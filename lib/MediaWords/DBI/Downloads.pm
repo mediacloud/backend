@@ -377,7 +377,7 @@ sub fetch_content($$)
     }
 
     # Fetch content
-    if ( my $content_ref = $store->fetch_content( $db, $download ) )
+    if ( my $content_ref = $store->fetch_content( $db, $download->{ downloads_id }, $download->{ download_path } ) )
     {
 
         # horrible hack to fix old content that is not stored in unicode
@@ -519,7 +519,7 @@ sub store_content($$$)
         }
         foreach my $store ( @{ $stores_for_writing } )
         {
-            $path = $store->store_content( $db, $download, $content_ref );
+            $path = $store->store_content( $db, $download->{ downloads_id }, $content_ref );
         }
 
         # Now $path points to the last store that was configured

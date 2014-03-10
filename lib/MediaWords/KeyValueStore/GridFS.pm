@@ -1,6 +1,6 @@
 package MediaWords::KeyValueStore::GridFS;
 
-# class for storing / loading downloads in GridFS (MongoDB)
+# class for storing / loading objects (raw downloads, CoreNLP annotator results, ...) to / from Mongo GridFS
 
 use strict;
 use warnings;
@@ -109,31 +109,31 @@ sub _connect_to_mongodb_or_die($)
     # Save PID
     $self->_pid( $$ );
 
-    say STDERR "GridFS: Connected to GridFS download storage at '" .
+    say STDERR "GridFS: Connected to GridFS storage at '" .
       $self->_conf_host . ":" . $self->_conf_port . "/" . $self->_conf_database_name . "' for PID $$.";
 }
 
 # Moose method
-sub content_exists($$$)
+sub content_exists($$$;$)
 {
-    my ( $self, $db, $download ) = @_;
+    my ( $self, $db, $object_id, $object_path ) = @_;
 
     $self->_connect_to_mongodb_or_die();
 
-    my $filename = '' . $download->{ downloads_id };
+    my $filename = '' . $object_id;
     my $file = $self->_mongodb_gridfs->find_one( { "filename" => $filename } );
 
     return ( defined $file );
 }
 
 # Moose method
-sub remove_content($$$)
+sub remove_content($$$;$)
 {
-    my ( $self, $db, $download ) = @_;
+    my ( $self, $db, $object_id, $object_path ) = @_;
 
     $self->_connect_to_mongodb_or_die();
 
-    my $filename = '' . $download->{ downloads_id };
+    my $filename = '' . $object_id;
 
     # Remove file(s) if already exist(s) -- MongoDB might store several versions of the same file
     while ( my $file = $self->_mongodb_gridfs->find_one( { "filename" => $filename } ) )
@@ -148,7 +148,7 @@ sub remove_content($$$)
 # Moose method
 sub store_content($$$$;$)
 {
-    my ( $self, $db, $download, $content_ref, $skip_encode_and_gzip ) = @_;
+    my ( $self, $db, $object_id, $content_ref, $skip_encode_and_gzip ) = @_;
 
     $self->_connect_to_mongodb_or_die();
 
@@ -160,10 +160,10 @@ sub store_content($$$$;$)
     }
     else
     {
-        $content_to_store = $self->encode_and_gzip( $content_ref, $download->{ downloads_id } );
+        $content_to_store = $self->encode_and_gzip( $content_ref, $object_id );
     }
 
-    my $filename = '' . $download->{ downloads_id };
+    my $filename = '' . $object_id;
     my $gridfs_id;
 
     # MongoDB sometimes times out when writing because it's busy creating a new data file,
@@ -181,7 +181,7 @@ sub store_content($$$$;$)
             while ( my $file = $self->_mongodb_gridfs->find_one( { "filename" => $filename } ) )
             {
                 say STDERR "GridFS: Removing existing file '$filename'.";
-                $self->remove_content( $db, $download );
+                $self->remove_content( $db, $object_id );
             }
 
             # Write
@@ -208,25 +208,25 @@ sub store_content($$$$;$)
 
     unless ( $gridfs_id )
     {
-        die "GridFS: Unable to store download '$filename' to GridFS after " . MONGODB_WRITE_RETRIES . " retries.\n";
+        die "GridFS: Unable to store object ID $object_id to GridFS after " . MONGODB_WRITE_RETRIES . " retries.\n";
     }
 
     return $gridfs_id;
 }
 
 # Moose method
-sub fetch_content($$$;$)
+sub fetch_content($$$;$$)
 {
-    my ( $self, $db, $download, $skip_gunzip_and_decode ) = @_;
+    my ( $self, $db, $object_id, $object_path, $skip_gunzip_and_decode ) = @_;
 
     $self->_connect_to_mongodb_or_die();
 
-    unless ( $download->{ downloads_id } )
+    unless ( defined $object_id )
     {
-        die "GridFS: Download ID is not defined.\n";
+        die "GridFS: Object ID is undefined.\n";
     }
 
-    my $filename = '' . $download->{ downloads_id };
+    my $filename = '' . $object_id;
 
     my $id = MongoDB::OID->new( filename => $filename );
 
@@ -247,7 +247,7 @@ sub fetch_content($$$;$)
             my $gridfs_file = $self->_mongodb_gridfs->find_one( { 'filename' => $filename } );
             unless ( defined $gridfs_file )
             {
-                die "GridFS: unable to find file with filename '$filename'.";
+                die "GridFS: unable to find file '$filename'.";
             }
             $file                      = $gridfs_file->slurp;
             $attempt_to_read_succeeded = 1;
@@ -265,12 +265,12 @@ sub fetch_content($$$;$)
 
     unless ( $attempt_to_read_succeeded )
     {
-        die "GridFS: Unable to read download '$filename' from GridFS after " . MONGODB_READ_RETRIES . " retries.\n";
+        die "GridFS: Unable to read object ID $object_id from GridFS after " . MONGODB_READ_RETRIES . " retries.\n";
     }
 
     unless ( defined( $file ) )
     {
-        die "GridFS: Could not get file from GridFS for filename " . $filename . "\n";
+        die "GridFS: Could not get file '$filename'.\n";
     }
 
     my $gzipped_content = $file;
@@ -283,7 +283,7 @@ sub fetch_content($$$;$)
     }
     else
     {
-        $decoded_content = $self->gunzip_and_decode( \$gzipped_content, $download->{ downloads_id } );
+        $decoded_content = $self->gunzip_and_decode( \$gzipped_content, $object_id );
     }
 
     return \$decoded_content;

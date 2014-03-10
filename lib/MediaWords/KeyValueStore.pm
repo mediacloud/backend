@@ -1,6 +1,6 @@
 package MediaWords::KeyValueStore;
 
-# abstract class for storing / loading downloads
+# abstract class for storing / loading objects (raw downloads, CoreNLP annotator results, ...) to / from various storage locations
 
 use strict;
 use warnings;

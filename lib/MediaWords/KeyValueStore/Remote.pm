@@ -1,6 +1,6 @@
 package MediaWords::KeyValueStore::Remote;
 
-# class for storing / loading downloads in remote locations via HTTP
+# class for storing / loading objects (raw downloads, CoreNLP annotator results, ...) to / from remote locations via HTTP
 
 use strict;
 use warnings;
@@ -56,9 +56,9 @@ sub BUILD($$)
 }
 
 # Moose method
-sub store_content($$$$)
+sub store_content($$$$;$)
 {
-    my ( $self, $db, $download, $content_ref ) = @_;
+    my ( $self, $db, $object_id, $content_ref, $skip_encode_and_gzip ) = @_;
 
     die "Not implemented.\n";
 
@@ -66,18 +66,19 @@ sub store_content($$$$)
 }
 
 # Moose method
-sub fetch_content($$$)
+sub fetch_content($$$;$$)
 {
-    my ( $self, $db, $download ) = @_;
+    my ( $self, $db, $object_id, $object_path, $skip_gunzip_and_decode ) = @_;
 
     my $ua = LWP::UserAgent->new;
 
-    if ( !defined( $download->{ downloads_id } ) )
+    if ( defined $object_id )
     {
-        return \"";
+        die "Object ID is undefined.\n";
+        return undef;
     }
 
-    my $request = HTTP::Request->new( 'GET', $self->_conf_url . $download->{ downloads_id } );
+    my $request = HTTP::Request->new( 'GET', $self->_conf_url . $object_id );
     $request->authorization_basic( $self->_conf_username, $self->_conf_password );
 
     my $response = $ua->request( $request );
@@ -90,28 +91,28 @@ sub fetch_content($$$)
     }
     else
     {
-        die "error fetching remote content for download " .
-          $download->{ downloads_id } . " with url '" . $self->_conf_url . "'  " . ":\n" . $response->as_string;
+        die "Error fetching remote content for object ID $object_id with URL '" .
+          $self->_conf_url . "'  " . ":\n" . $response->as_string;
         return undef;
     }
 }
 
 # Moose method
-sub remove_content($$$)
+sub remove_content($$$$)
 {
-    my ( $self, $db, $download ) = @_;
+    my ( $self, $db, $object_id, $object_path ) = @_;
 
-    die "Not sure how to remove remote content for download " . $download->{ downloads_id } . "\n";
+    die "Not sure how to remove remote content for object ID $object_id.\n";
 
     return 0;
 }
 
 # Moose method
-sub content_exists($$$)
+sub content_exists($$$$)
 {
-    my ( $self, $db, $download ) = @_;
+    my ( $self, $db, $object_id, $object_path ) = @_;
 
-    die "Not sure how to check whether inline content exists for download " . $download->{ downloads_id } . "\n";
+    die "Not sure how to check whether inline content exists for object ID $object_id.\n";
 
     return 0;
 }

@@ -1,6 +1,7 @@
 package MediaWords::KeyValueStore::LocalFile;
 
-# class for storing / loading downloads in local files
+# class for storing / loading objects (raw downloads, CoreNLP annotator results, ...) from / to local files
+# currently only works with downloads
 
 use strict;
 use warnings;
@@ -49,7 +50,7 @@ sub _directory_name($)
 # Moose method
 sub store_content($$$$;$)
 {
-    my ( $self, $db, $download, $content_ref, $skip_encode_and_gzip ) = @_;
+    my ( $self, $db, $object_id, $content_ref, $skip_encode_and_gzip ) = @_;
 
     # Encode + gzip
     my $content_to_store;
@@ -59,11 +60,11 @@ sub store_content($$$$;$)
     }
     else
     {
-        $content_to_store = $self->encode_and_gzip( $content_ref, $download->{ downloads_id } );
+        $content_to_store = $self->encode_and_gzip( $content_ref, $object_id, $skip_encode_and_gzip );
     }
 
     # e.g. "<media_id>/<year>/<month>/<day>/<hour>/<minute>[/<parent download_id>]/<download_id>[.gz]"
-    my $relative_path = MediaWords::Util::Paths::get_download_path( $db, $download, $skip_encode_and_gzip );
+    my $relative_path = MediaWords::Util::Paths::get_download_path( $db, $object_id, $skip_encode_and_gzip );
     my $full_path = $self->_conf_data_content_dir . $relative_path;
 
     # Create missing directories for the path
@@ -78,16 +79,16 @@ sub store_content($$$$;$)
 }
 
 # Moose method
-sub fetch_content($$$)
+sub fetch_content($$$$;$)
 {
-    my ( $self, $db, $download ) = @_;
+    my ( $self, $db, $object_id, $object_path, $skip_gunzip_and_decode ) = @_;
 
-    if ( !$download->{ path } || ( $download->{ state } ne "success" ) )
+    unless ( defined $object_path )
     {
-        return undef;
+        die "Object path for object ID $object_id is undefined.\n";
     }
 
-    my $relative_path = $download->{ path };
+    my $relative_path = $object_path;
     my $full_path     = $self->_conf_data_content_dir . $relative_path;
 
     my $content;
@@ -100,7 +101,7 @@ sub fetch_content($$$)
         my $gzipped_content = read_file( $full_path, binmode => ':raw' );
 
         # Gunzip + decode
-        $decoded_content = $self->gunzip_and_decode( \$gzipped_content, $download->{ downloads_id } );
+        $decoded_content = $self->gunzip_and_decode( \$gzipped_content, $object_id );
 
     }
     else
@@ -118,16 +119,21 @@ sub fetch_content($$$)
 }
 
 # Moose method
-sub remove_content($$$)
+sub remove_content($$$$)
 {
-    my ( $self, $db, $download ) = @_;
+    my ( $self, $db, $object_id, $object_path ) = @_;
 
-    unless ( $self->content_exists( $db, $download ) )
+    unless ( defined $object_path )
     {
-        die "Content for download " . $download->{ downloads_id } . " doesn't exist so it can't be removed.\n";
+        die "Object path for object ID $object_id is undefined.\n";
     }
 
-    my $relative_path = $download->{ path };
+    unless ( $self->content_exists( $db, $object_id, $object_path ) )
+    {
+        die "Content for object ID $object_id doesn't exist so it can't be removed.\n";
+    }
+
+    my $relative_path = $object_path;
     my $full_path     = $self->_conf_data_content_dir . $relative_path;
 
     unless ( -f $full_path )
@@ -136,21 +142,26 @@ sub remove_content($$$)
 
         unless ( -f $full_path )
         {
-            die "Content for download " . $download->{ downloads_id } . " doesn't exist so it can't be removed.\n";
+            die "Content for object ID $object_id doesn't exist so it can't be removed.\n";
         }
     }
 
-    unlink( $full_path ) or die "Unable to remove file '$full_path' for download " . $download->{ downloads_id } . "\n";
+    unlink( $full_path ) or die "Unable to remove file '$full_path' for object ID $object_id: $@.\n";
 
     return 1;
 }
 
 # Moose method
-sub content_exists($$$)
+sub content_exists($$$$)
 {
-    my ( $self, $db, $download ) = @_;
+    my ( $self, $db, $object_id, $object_path ) = @_;
 
-    my $relative_path = $download->{ path };
+    unless ( defined $object_path )
+    {
+        die "Object path for object ID $object_id is undefined.\n";
+    }
+
+    my $relative_path = $object_path;
     my $full_path     = $self->_conf_data_content_dir . $relative_path;
 
     if ( -f $full_path )

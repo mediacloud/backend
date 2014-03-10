@@ -1,6 +1,6 @@
 package MediaWords::KeyValueStore::PostgreSQL;
 
-# class for storing / loading downloads in PostgreSQL, "raw_downloads" table
+# class for storing / loading objects (raw downloads, CoreNLP annotator results, ...) to / from PostgreSQL
 
 use strict;
 use warnings;
@@ -34,10 +34,9 @@ sub BUILD($$)
 # Moose method
 sub store_content($$$$;$)
 {
-    my ( $self, $db, $download, $content_ref, $skip_encode_and_gzip ) = @_;
+    my ( $self, $db, $object_id, $content_ref, $skip_encode_and_gzip ) = @_;
 
-    my $downloads_id = $download->{ downloads_id };
-    my $table_name   = $self->_conf_table_name;
+    my $table_name = $self->_conf_table_name;
 
     # Encode + gzip
     my $content_to_store;
@@ -47,10 +46,10 @@ sub store_content($$$$;$)
     }
     else
     {
-        $content_to_store = $self->encode_and_gzip( $content_ref, $download->{ downloads_id } );
+        $content_to_store = $self->encode_and_gzip( $content_ref, $object_id );
     }
 
-    # "Upsert" the download
+    # "Upsert" the object
     $db->begin_work;
 
     my $sth;
@@ -59,27 +58,27 @@ sub store_content($$$$;$)
         <<"EOF",
     	UPDATE $table_name
     	SET raw_data = ?
-    	WHERE downloads_id = ?
+    	WHERE object_id = ?
 EOF
     );
     $sth->bind_param( 1, $content_to_store, { pg_type => DBD::Pg::PG_BYTEA } );
-    $sth->bind_param( 2, $downloads_id );
+    $sth->bind_param( 2, $object_id );
     $sth->execute();
 
     $sth = $db->dbh->prepare(
         <<"EOF",
-    	INSERT INTO $table_name (downloads_id, raw_data)
+    	INSERT INTO $table_name (object_id, raw_data)
 			SELECT ?, ?
 			WHERE NOT EXISTS (
 				SELECT 1
 				FROM $table_name
-				WHERE downloads_id = ?
+				WHERE object_id = ?
 			)
 EOF
     );
-    $sth->bind_param( 1, $downloads_id );
+    $sth->bind_param( 1, $object_id );
     $sth->bind_param( 2, $content_to_store, { pg_type => DBD::Pg::PG_BYTEA } );
-    $sth->bind_param( 3, $downloads_id );
+    $sth->bind_param( 3, $object_id );
     $sth->execute();
 
     $db->commit;
@@ -89,25 +88,24 @@ EOF
 }
 
 # Moose method
-sub fetch_content($$$;$)
+sub fetch_content($$$;$$)
 {
-    my ( $self, $db, $download, $skip_gunzip_and_decode ) = @_;
+    my ( $self, $db, $object_id, $object_path, $skip_gunzip_and_decode ) = @_;
 
-    my $downloads_id = $download->{ downloads_id };
-    my $table_name   = $self->_conf_table_name;
+    my $table_name = $self->_conf_table_name;
 
     my $gzipped_content = $db->query(
         <<"EOF",
         SELECT raw_data
         FROM $table_name
-        WHERE downloads_id = ?
+        WHERE object_id = ?
 EOF
-        $downloads_id
+        $object_id
     )->flat;
 
     unless ( $gzipped_content->[ 0 ] )
     {
-        die "Download with ID $downloads_id was not found in '$table_name' table.\n";
+        die "Object with ID $object_id was not found in '$table_name' table.\n";
     }
 
     $gzipped_content = $gzipped_content->[ 0 ];
@@ -120,49 +118,47 @@ EOF
     }
     else
     {
-        $decoded_content = $self->gunzip_and_decode( \$gzipped_content, $download->{ downloads_id } );
+        $decoded_content = $self->gunzip_and_decode( \$gzipped_content, $object_id );
     }
 
     return \$decoded_content;
 }
 
 # Moose method
-sub remove_content($$$)
+sub remove_content($$$;$)
 {
-    my ( $self, $db, $download ) = @_;
+    my ( $self, $db, $object_id, $object_path ) = @_;
 
-    my $downloads_id = $download->{ downloads_id };
-    my $table_name   = $self->_conf_table_name;
+    my $table_name = $self->_conf_table_name;
 
     $db->query(
         <<"EOF",
         DELETE FROM $table_name
-        WHERE downloads_id = ?
+        WHERE object_id = ?
 EOF
-        $downloads_id
+        $object_id
     );
 
     return 1;
 }
 
 # Moose method
-sub content_exists($$$)
+sub content_exists($$$;$)
 {
-    my ( $self, $db, $download ) = @_;
+    my ( $self, $db, $object_id, $object_path ) = @_;
 
-    my $downloads_id = $download->{ downloads_id };
-    my $table_name   = $self->_conf_table_name;
+    my $table_name = $self->_conf_table_name;
 
-    my $download_exists = $db->query(
+    my $object_exists = $db->query(
         <<"EOF",
         SELECT 1
         FROM $table_name
-        WHERE downloads_id = ?
+        WHERE object_id = ?
 EOF
-        $downloads_id
+        $object_id
     )->flat;
 
-    if ( $download_exists->[ 0 ] )
+    if ( $object_exists->[ 0 ] )
     {
         return 1;
     }

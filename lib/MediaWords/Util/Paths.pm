@@ -70,9 +70,19 @@ sub _get_data_dir()
 # Returns: string download path
 sub get_download_path($$;$)
 {
-    my ( $db, $download, $skip_encode_and_gzip ) = @_;
+    my ( $db, $downloads_id, $skip_encode_and_gzip ) = @_;
+
+    my $download = $db->query( 'SELECT * FROM downloads WHERE downloads_id = ?', $downloads_id )->hash;
+    unless ( $download )
+    {
+        die "Download $downloads_id was not found.\n";
+    }
 
     my $feed = $db->query( "SELECT * FROM feeds WHERE feeds_id = ?", $download->{ feeds_id } )->hash;
+    unless ( $feed )
+    {
+        die "Feed $download->{ feeds_id } for download $downloads_id was not found.\n";
+    }
 
     my @date = ( $download->{ download_time } =~ /(\d\d\d\d)-(\d\d)-(\d\d).(\d\d):(\d\d):(\d\d)/ );
 

@@ -221,7 +221,10 @@ EOF
 
             # Fetch download
             my $content_ref;
-            eval { $content_ref = $store->fetch_content( $_db, $db_download ); };
+            eval {
+                $content_ref =
+                  $store->fetch_content( $_db, $db_download->{ downloads_id }, $db_download->{ downloads_path } );
+            };
             if ( $@ or ( !$content_ref ) )
             {
                 return ( $storage_method, undef );
@@ -304,7 +307,10 @@ EOF
 
             # Fetch download
             my $content_ref;
-            eval { $content_ref = $_gridfs_store->fetch_content( $_db, $download ); };
+            eval {
+                $content_ref =
+                  $_gridfs_store->fetch_content( $_db, $download->{ downloads_id }, $download->{ downloads_path } );
+            };
             if ( $@ or ( !$content_ref ) )
             {
                 return ( 'gridfs', undef );

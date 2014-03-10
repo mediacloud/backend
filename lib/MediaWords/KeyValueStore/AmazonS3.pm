@@ -1,6 +1,6 @@
 package MediaWords::KeyValueStore::AmazonS3;
 
-# class for storing / loading downloads in Amazon S3
+# class for storing / loading objects (raw downloads, CoreNLP annotator results, ...) to / from Amazon S3
 
 use strict;
 use warnings;
@@ -92,7 +92,7 @@ sub BUILD($$)
     my $access_key_id     = $config->{ amazon_s3 }->{ access_key_id };
     my $secret_access_key = $config->{ amazon_s3 }->{ secret_access_key };
 
-    # Downloads directory is optional
+    # Directory is optional
     unless ( $access_key_id and $secret_access_key and $bucket_name )
     {
         die "AmazonS3: Amazon S3 connection settings in mediawords.yml are not configured properly.\n";
@@ -170,32 +170,32 @@ sub _initialize_s3_or_die($)
         ? $self->_conf_bucket_name . '/' . $self->_conf_directory_name
         : $self->_conf_bucket_name
     );
-    say STDERR "AmazonS3: Initialized Amazon S3 download storage at '$path' for PID $$.";
+    say STDERR "AmazonS3: Initialized Amazon S3 storage at '$path' for PID $$.";
 }
 
-sub _object_for_download($$)
+sub _object_for_object_id($$)
 {
-    my ( $self, $download ) = @_;
+    my ( $self, $object_id ) = @_;
 
-    unless ( $download and $download->{ downloads_id } )
+    unless ( defined $object_id )
     {
-        die "Download is invalid: " . Dumper( $download );
+        die "Object ID is undefined.";
     }
 
-    my $filename = $self->_conf_directory_name . $download->{ downloads_id };
+    my $filename = $self->_conf_directory_name . $object_id;
     my $object = $self->_s3_bucket->object( key => $filename );
 
     return $object;
 }
 
 # Moose method
-sub content_exists($$$)
+sub content_exists($$$;$)
 {
-    my ( $self, $db, $download ) = @_;
+    my ( $self, $db, $object_id, $object_path ) = @_;
 
     $self->_initialize_s3_or_die();
 
-    my $object = $self->_object_for_download( $download );
+    my $object = $self->_object_for_object_id( $object_id );
     if ( $object->exists )
     {
         return 1;
@@ -207,21 +207,21 @@ sub content_exists($$$)
 }
 
 # Moose method
-sub remove_content($$$)
+sub remove_content($$$;$)
 {
-    my ( $self, $db, $download ) = @_;
+    my ( $self, $db, $object_id, $object_path ) = @_;
 
     $self->_initialize_s3_or_die();
 
     if ( AMAZON_S3_CHECK_IF_EXISTS_BEFORE_DELETING )
     {
-        unless ( $self->content_exists( $db, $download ) )
+        unless ( $self->content_exists( $db, $object_id, $object_path ) )
         {
-            die "AmazonS3: download ID " . $download->{ downloads_id } . " does not exist.\n";
+            die "AmazonS3: object with ID " . $object_id . " does not exist.\n";
         }
     }
 
-    my $object = $self->_object_for_download( $download );
+    my $object = $self->_object_for_object_id( $object_id );
 
     $object->delete;
 
@@ -231,15 +231,15 @@ sub remove_content($$$)
 # Moose method
 sub store_content($$$$;$)
 {
-    my ( $self, $db, $download, $content_ref, $skip_encode_and_gzip ) = @_;
+    my ( $self, $db, $object_id, $content_ref, $skip_encode_and_gzip ) = @_;
 
     $self->_initialize_s3_or_die();
 
     if ( AMAZON_S3_CHECK_IF_EXISTS_BEFORE_STORING )
     {
-        if ( $self->content_exists( $db, $download ) )
+        if ( $self->content_exists( $db, $object_id ) )
         {
-            say STDERR "AmazonS3: download ID " . $download->{ downloads_id } . " already exists, " .
+            say STDERR "AmazonS3: object ID $object_id already exists, " .
               "will store a new version or overwrite (depending on whether or not versioning is enabled).\n";
         }
     }
@@ -252,7 +252,7 @@ sub store_content($$$$;$)
     }
     else
     {
-        $content_to_store = $self->encode_and_gzip( $content_ref, $download->{ downloads_id } );
+        $content_to_store = $self->encode_and_gzip( $content_ref, $object_id );
     }
 
     my $write_was_successful = 0;
@@ -269,7 +269,7 @@ sub store_content($$$$;$)
         eval {
 
             # Store; will die() on failure
-            $object = $self->_object_for_download( $download );
+            $object = $self->_object_for_object_id( $object_id );
             $object->put( $content_to_store );
             $write_was_successful = 1;
 
@@ -277,7 +277,7 @@ sub store_content($$$$;$)
 
         if ( $@ )
         {
-            say STDERR "Attempt to write to '" . $download->{ downloads_id } . "' didn't succeed because: $@";
+            say STDERR "Attempt to write object ID $object_id didn't succeed because: $@";
         }
         else
         {
@@ -287,25 +287,24 @@ sub store_content($$$$;$)
 
     unless ( $write_was_successful )
     {
-        die "Unable to write '" .
-          $download->{ downloads_id } . "' from Amazon S3 after " . AMAZON_S3_WRITE_ATTEMPTS . " retries.\n";
+        die "Unable to write object ID " . $object_id . " to Amazon S3 after " . AMAZON_S3_WRITE_ATTEMPTS . " retries.\n";
     }
 
     return 's3:' . $object->key;
 }
 
 # Moose method
-sub fetch_content($$$;$)
+sub fetch_content($$$;$$)
 {
-    my ( $self, $db, $download, $skip_gunzip_and_decode ) = @_;
+    my ( $self, $db, $object_id, $object_path, $skip_gunzip_and_decode ) = @_;
 
     $self->_initialize_s3_or_die();
 
     if ( AMAZON_S3_CHECK_IF_EXISTS_BEFORE_FETCHING )
     {
-        unless ( $self->content_exists( $db, $download ) )
+        unless ( $self->content_exists( $db, $object_id, $object_path ) )
         {
-            die "AmazonS3: download ID " . $download->{ downloads_id } . " does not exist.\n";
+            die "AmazonS3: object ID " . $object_id . " does not exist.\n";
         }
     }
 
@@ -323,14 +322,14 @@ sub fetch_content($$$;$)
         eval {
 
             # Read; will die() on failure
-            $object          = $self->_object_for_download( $download );
+            $object          = $self->_object_for_object_id( $object_id );
             $gzipped_content = $object->get;
 
         };
 
         if ( $@ )
         {
-            say STDERR "Attempt to read from '" . $download->{ downloads_id } . "' didn't succeed because: $@";
+            say STDERR "Attempt to read object ID $object_id didn't succeed because: $@";
         }
         else
         {
@@ -340,8 +339,7 @@ sub fetch_content($$$;$)
 
     unless ( defined $gzipped_content )
     {
-        die "Unable to read '" .
-          $download->{ downloads_id } . "' from Amazon S3 after " . AMAZON_S3_READ_ATTEMPTS . " retries.\n";
+        die "Unable to read object ID " . $object_id . "' from Amazon S3 after " . AMAZON_S3_READ_ATTEMPTS . " retries.\n";
     }
 
     # Gunzip + decode
@@ -352,7 +350,7 @@ sub fetch_content($$$;$)
     }
     else
     {
-        $decoded_content = $self->gunzip_and_decode( \$gzipped_content, $download->{ downloads_id } );
+        $decoded_content = $self->gunzip_and_decode( \$gzipped_content, $object_id );
     }
 
     return \$decoded_content;

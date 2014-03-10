@@ -58,9 +58,9 @@ ok( $gridfs, "MongoDB initialized" );
 my $db = MediaWords::DB::connect_to_db;
 ok( $db, "PostgreSQL initialized " );
 
-my $test_download_id = 999999999999999;
-my $test_download    = { downloads_id => $test_download_id };
-my $test_content     = 'Loren ipsum dolor sit amet.';
+my $test_downloads_id   = 999999999999999;
+my $test_downloads_path = undef;
+my $test_content        = 'Loren ipsum dolor sit amet.';
 my $content_ref;
 
 #
@@ -68,7 +68,7 @@ my $content_ref;
 #
 
 my $gridfs_id;
-eval { $gridfs_id = $gridfs->store_content( $db, $test_download, \$test_content ); };
+eval { $gridfs_id = $gridfs->store_content( $db, $test_downloads_id, \$test_content ); };
 ok( ( !$@ ), "Storing content failed: $@" );
 ok( $gridfs_id,                                                          'Object ID was returned' );
 ok( length( $gridfs_id ) == length( 'gridfs:5152138e3e7062d55800057c' ), 'Object ID is of the valid size' );
@@ -77,7 +77,7 @@ ok( length( $gridfs_id ) == length( 'gridfs:5152138e3e7062d55800057c' ), 'Object
 # Fetch content, compare
 #
 
-eval { $content_ref = $gridfs->fetch_content( $db, $test_download ); };
+eval { $content_ref = $gridfs->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
 ok( ( !$@ ), "Fetching download failed: $@" );
 ok( $content_ref, "Fetching download did not die but no content was returned" );
 is( $$content_ref, $test_content, "Content doesn't match." );
@@ -86,17 +86,19 @@ is( $$content_ref, $test_content, "Content doesn't match." );
 # Remove content, try fetching again
 #
 
-$gridfs->remove_content( $db, $test_download );
+$gridfs->remove_content( $db, $test_downloads_id, $test_downloads_path );
 $content_ref = undef;
-eval { $content_ref = $gridfs->fetch_content( $db, $test_download ); };
+eval { $content_ref = $gridfs->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
 ok( $@, "Fetching download that does not exist should have failed" );
 ok( ( !$content_ref ), "Fetching download that does not exist failed (as expected) but the content reference was returned" );
 
 #
 # Check GridFS thinks that the content exists
 #
-ok( ( !$gridfs->content_exists( $db, $test_download ) ),
-    "content_exists() reports that content exists (although it shouldn't)" );
+ok(
+    ( !$gridfs->content_exists( $db, $test_downloads_id, $test_downloads_path ) ),
+    "content_exists() reports that content exists (although it shouldn't)"
+);
 
 #
 # Store content twice
@@ -104,26 +106,28 @@ ok( ( !$gridfs->content_exists( $db, $test_download ) ),
 
 $gridfs_id = undef;
 eval {
-    $gridfs_id = $gridfs->store_content( $db, $test_download, \$test_content );
-    $gridfs_id = $gridfs->store_content( $db, $test_download, \$test_content );
+    $gridfs_id = $gridfs->store_content( $db, $test_downloads_id, \$test_content );
+    $gridfs_id = $gridfs->store_content( $db, $test_downloads_id, \$test_content );
 };
 ok( ( !$@ ), "Storing content twice failed: $@" );
 ok( $gridfs_id,                                                          'Object ID was returned' );
 ok( length( $gridfs_id ) == length( 'gridfs:5152138e3e7062d55800057c' ), 'Object ID is of the valid size' );
 
 # Fetch content again, compare
-eval { $content_ref = $gridfs->fetch_content( $db, $test_download ); };
+eval { $content_ref = $gridfs->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
 ok( ( !$@ ), "Fetching download failed: $@" );
 ok( $content_ref, "Fetching download did not die but no content was returned" );
 is( $$content_ref, $test_content, "Content doesn't match." );
 
 # Remove content, try fetching again
-$gridfs->remove_content( $db, $test_download );
+$gridfs->remove_content( $db, $test_downloads_id, $test_downloads_path );
 $content_ref = undef;
-eval { $content_ref = $gridfs->fetch_content( $db, $test_download ); };
+eval { $content_ref = $gridfs->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
 ok( $@, "Fetching download that does not exist should have failed" );
 ok( ( !$content_ref ), "Fetching download that does not exist failed (as expected) but the content reference was returned" );
 
 # Check GridFS thinks that the content exists
-ok( ( !$gridfs->content_exists( $db, $test_download ) ),
-    "content_exists() reports that content exists (although it shouldn't)" );
+ok(
+    ( !$gridfs->content_exists( $db, $test_downloads_id, $test_downloads_path ) ),
+    "content_exists() reports that content exists (although it shouldn't)"
+);

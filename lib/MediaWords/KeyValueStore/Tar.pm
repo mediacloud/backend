@@ -36,7 +36,13 @@ sub BUILD($$)
 # get the name of the tar file for the download
 sub _get_tar_file($$)
 {
-    my ( $db, $download ) = @_;
+    my ( $db, $downloads_id ) = @_;
+
+    my $download = $db->query( 'SELECT * FROM downloads WHERE downloads_id = ?', $downloads_id )->hash;
+    unless ( $download )
+    {
+        die "Download $downloads_id was not found.\n";
+    }
 
     my $date = $download->{ download_time };
     $date =~ s/(\d\d\d\d)-(\d\d)-(\d\d).*/$1$2$3/;
@@ -48,11 +54,11 @@ sub _get_tar_file($$)
 # Moose method
 sub store_content($$$$;$)
 {
-    my ( $self, $db, $download, $content_ref, $skip_encode_and_gzip ) = @_;
+    my ( $self, $db, $object_id, $content_ref, $skip_encode_and_gzip ) = @_;
 
-    my $download_path = MediaWords::Util::Paths::get_download_path( $db, $download, $skip_encode_and_gzip );
+    my $download_path = MediaWords::Util::Paths::get_download_path( $db, $object_id, $skip_encode_and_gzip );
 
-    my $tar_file = _get_tar_file( $db, $download );
+    my $tar_file = _get_tar_file( $db, $object_id );
     my $tar_path = $self->_conf_data_content_dir . $tar_file;
 
     # Encode + gzip
@@ -63,7 +69,7 @@ sub store_content($$$$;$)
     }
     else
     {
-        $content_to_store = $self->encode_and_gzip( $content_ref, $download->{ downloads_id } );
+        $content_to_store = $self->encode_and_gzip( $content_ref, $object_id );
     }
 
     # Store in a Tar archive
@@ -82,14 +88,18 @@ sub store_content($$$$;$)
 }
 
 # Moose method
-sub fetch_content($$$;$)
+sub fetch_content($$$$;$)
 {
-    my ( $self, $db, $download, $skip_gunzip_and_decode ) = @_;
+    my ( $self, $db, $object_id, $object_path, $skip_gunzip_and_decode ) = @_;
 
-    if ( !( $download->{ path } =~ /tar:(\d+):(\d+):([^:]*):(.*)/ ) )
+    unless ( defined $object_path )
     {
-        warn( "Unable to parse download path: $download->{ path }" );
-        return undef;
+        die "Object path for object ID $object_id is undefined.\n";
+    }
+
+    unless ( $object_path =~ /tar:(\d+):(\d+):([^:]*):(.*)/ )
+    {
+        die "Unable to parse object (download) path: $object_path";
     }
 
     my ( $starting_block, $num_blocks, $tar_file, $download_file ) = ( $1, $2, $3, $4 );
@@ -107,28 +117,38 @@ sub fetch_content($$$;$)
     }
     else
     {
-        $decoded_content = $self->gunzip_and_decode( $gzipped_content_ref, $download->{ downloads_id } );
+        $decoded_content = $self->gunzip_and_decode( $gzipped_content_ref, $object_id );
     }
 
     return \$decoded_content;
 }
 
 # Moose method
-sub remove_content($$$)
+sub remove_content($$$$)
 {
-    my ( $self, $db, $download ) = @_;
+    my ( $self, $db, $object_id, $object_path ) = @_;
 
-    die "Not sure how to remove Tar content for download " . $download->{ downloads_id } . "\n";
+    unless ( defined $object_path )
+    {
+        die "Object path for object ID $object_id is undefined.\n";
+    }
+
+    die "Not sure how to remove Tar content for object ID $object_id.\n";
 
     return 0;
 }
 
 # Moose method
-sub content_exists($$$)
+sub content_exists($$$$)
 {
-    my ( $self, $db, $download ) = @_;
+    my ( $self, $db, $object_id, $object_path ) = @_;
 
-    die "Not sure how to check whether Tar content exists for download " . $download->{ downloads_id } . "\n";
+    unless ( defined $object_path )
+    {
+        die "Object path for object ID $object_id is undefined.\n";
+    }
+
+    die "Not sure how to check whether Tar content exists for object ID $object_id.\n";
 
     return 0;
 }
