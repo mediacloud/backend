@@ -81,4 +81,33 @@ sub test_on_test_database
     }
 }
 
+sub create_download_for_feed
+{
+    my ( $feed, $dbs ) = @_;
+
+    my $priority = 0;
+    if ( !$feed->{ last_attempted_download_time } )
+    {
+        $priority = 10;
+    }
+
+    my $host = lc( ( URI::Split::uri_split( $feed->{ url } ) )[ 1 ] );
+    my $download = $dbs->create(
+        'downloads',
+        {
+            feeds_id      => $feed->{ feeds_id },
+            url           => $feed->{ url },
+            host          => $host,
+            type          => 'feed',
+            sequence      => 1,
+            state         => 'pending',
+            priority      => $priority,
+            download_time => 'now()',
+            extracted     => 'f'
+        }
+    );
+
+    return $download;
+}
+
 1;
