@@ -31,10 +31,14 @@ Catalyst Controller.
 
 =cut
 
-BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
+BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 
 use MediaWords::Tagger;
 
+sub get_table_name
+{
+    return "story_sentences";
+}
 
 sub list : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
 {
@@ -65,6 +69,38 @@ sub list_GET : Local
     my $list =  MediaWords::Solr::query( $params );
 
     $self->status_ok( $c, entity => $list );
+}
+
+##TODO merge with stories put_tags
+sub put_tags : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
+{
+}
+
+sub put_tags_PUT : Local
+{
+    my ( $self, $c ) = @_;
+    my $subset = $c->req->data;
+
+    my $story_tag = $c->req->params->{ 'sentence_tag' };
+
+    my $story_tags;
+
+    if ( ref $story_tag )
+    {
+        $story_tags = $story_tag;
+    }
+    else
+    {
+        $story_tags = [ $story_tag ];
+    }
+
+    say STDERR Dumper( $story_tags );
+
+    $self->_add_tags( $c, $story_tags );
+
+    $self->status_ok( $c, entity => $story_tags );
+
+    return;
 }
 
 1;
