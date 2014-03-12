@@ -603,7 +603,7 @@ URL:  http://mediacloud.org/api/v2/sentences/list?q=sentence:obama&rows=10&fq=me
 
 ## Word Counting
 
-### api/v2/wc
+### api/v2/wc/list
 
 Returns word frequency counts of the 5000 most commwords in all sentences returned by 
 querying Solr using the `q` and `fq` parameters, with stopwords removed.  Words are stemmed
@@ -624,7 +624,7 @@ See above /api/v2/stories/list for Solr query syntax.
 
 Obtain word frequency counts for all sentences containing the word `'obama'` in The New York Times
 
-URL:  http://mediacloud.org/api/v2/wc?q=sentence:obama&fq=media_id:1
+URL:  http://mediacloud.org/api/v2/wc/list?q=sentence:obama&fq=media_id:1
 
 ```json
 [
