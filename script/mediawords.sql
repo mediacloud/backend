@@ -68,7 +68,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4442;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4443;
     
 BEGIN
 
@@ -256,6 +256,30 @@ $$
         UPDATE stories
         SET db_row_last_updated = now()
         WHERE stories_id = reference_stories_id;
+	RETURN NULL;
+   END;
+$$
+LANGUAGE 'plpgsql';
+
+CREATE OR REPLACE FUNCTION update_story_sentences_updated_time_by_story_sentences_id_trigger () RETURNS trigger AS
+$$
+    DECLARE
+        path_change boolean;
+        reference_story_sentences_id integer default null;
+    BEGIN
+
+        IF TG_OP = 'INSERT' THEN
+            -- The "old" record doesn't exist
+            reference_story_sentences_id = NEW.story_sentences_id;
+        ELSIF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'DELETE') THEN
+            reference_story_sentences_id = OLD.story_sentences_id;
+        ELSE
+            RAISE EXCEPTION 'Unconfigured operation: %', TG_OP;
+        END IF;
+
+        UPDATE story_sentences
+        SET db_row_last_updated = now()
+        WHERE story_sentences_id = reference_story_sentences_id;
 	RETURN NULL;
    END;
 $$
@@ -1074,7 +1098,7 @@ create table story_sentences_tags_map
 DROP TRIGGER IF EXISTS story_sentences_tags_map_last_updated_trigger on story_sentences_tags_map CASCADE;
 CREATE TRIGGER story_sentences_tags_map_last_updated_trigger BEFORE INSERT OR UPDATE ON story_sentences_tags_map FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
 DROP TRIGGER IF EXISTS story_sentences_tags_map_update_story_sentences_last_updated_trigger on story_sentences_tags_map;
-CREATE TRIGGER story_sentences_tags_map_update_story_sentences_last_updated_trigger AFTER INSERT OR UPDATE OR DELETE ON story_sentences_tags_map FOR EACH ROW EXECUTE PROCEDURE update_stories_updated_time_by_stories_id_trigger();
+CREATE TRIGGER story_sentences_tags_map_update_story_sentences_last_updated_trigger AFTER INSERT OR UPDATE OR DELETE ON story_sentences_tags_map FOR EACH ROW EXECUTE PROCEDURE update_story_sentences_updated_time_by_story_sentences_id_trigger();
 
 CREATE index story_sentences_tags_map_db_row_last_updated on story_sentences_tags_map ( db_row_last_updated );
 create unique index story_sentences_tags_map_story on story_sentences_tags_map (story_sentences_id, tags_id);
