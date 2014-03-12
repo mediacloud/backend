@@ -307,7 +307,11 @@ sub _add_tags
         my $tags_map_table = $self->get_table_name() . '_tags_map';
         my $table_id_name  = $self->get_table_name() . '_id';
 
-        $c->dbis->query( "INSERT INTO $tags_map_table ( $table_id_name, tags_id) VALUES (?, ? )", $id, $tags_id );
+	my $query =  "INSERT INTO $tags_map_table ( $table_id_name, tags_id) VALUES (?, ? )";
+
+	say STDERR $query;
+
+        $c->dbis->query( $query, $id, $tags_id );
     }
 }
 
