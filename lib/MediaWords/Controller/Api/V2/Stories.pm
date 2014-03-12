@@ -211,17 +211,17 @@ sub _get_list_last_id_param_name
 
 sub _max_processed_stories_id
 {
-    my ( $self, $c) = @_;
+    my ( $self, $c ) = @_;
 
     my $params = {};
 
     $params->{ q } = '*:*';
 
-    $params->{sort} = "processed_stories_id desc";
+    $params->{ sort } = "processed_stories_id desc";
 
     $params->{ rows } = 1;
 
-    my $processed_stories_ids = MediaWords::Solr::search_for_processed_stories_ids( $params ); 
+    my $processed_stories_ids = MediaWords::Solr::search_for_processed_stories_ids( $params );
 
     my $max_processed_stories_id = $processed_stories_ids->[ 0 ];
 
@@ -242,45 +242,45 @@ sub _get_object_ids
 
     $fq //= [];
 
-    if ( ! ref( $fq ) )
+    if ( !ref( $fq ) )
     {
-	$fq = [ $fq ];
+        $fq = [ $fq ];
     }
 
     my $processed_stories_ids = [];
 
-    my $max_processed_stories_id = $self->_max_processed_stories_id ( $c );
+    my $max_processed_stories_id = $self->_max_processed_stories_id( $c );
 
     say STDERR "max_processed_stories_id = $max_processed_stories_id";
 
     while ( $next_id <= $max_processed_stories_id && scalar( @$processed_stories_ids ) < $rows )
     {
-	my $params = {};
-	say STDERR ( Dumper ( $processed_stories_ids ) );
+        my $params = {};
+        say STDERR ( Dumper( $processed_stories_ids ) );
 
-	say STDERR ( $next_id );
-	
-	$params->{ q } = $q;
-	
-	$params->{ fq } = [ @{$fq}, "processed_stories_id:[ $next_id TO * ]" ];
-	
-	$params->{sort} = "processed_stories_id asc";
-	
-	$params->{ rows } = $rows;
+        say STDERR ( $next_id );
 
-	say STDERR ( Dumper ( $params ) );
+        $params->{ q } = $q;
 
-	my $new_stories_ids = MediaWords::Solr::search_for_processed_stories_ids( $params );
+        $params->{ fq } = [ @{ $fq }, "processed_stories_id:[ $next_id TO * ]" ];
 
-	say STDERR Dumper( $new_stories_ids );
+        $params->{ sort } = "processed_stories_id asc";
 
-	last if scalar ( @ { $new_stories_ids } ) == 0;
+        $params->{ rows } = $rows;
 
-	push $processed_stories_ids, @{ $new_stories_ids };
+        say STDERR ( Dumper( $params ) );
 
-	die unless scalar( @$processed_stories_ids );
+        my $new_stories_ids = MediaWords::Solr::search_for_processed_stories_ids( $params );
 
-	$next_id = $processed_stories_ids->[ -1 ] + 1;
+        say STDERR Dumper( $new_stories_ids );
+
+        last if scalar( @{ $new_stories_ids } ) == 0;
+
+        push $processed_stories_ids, @{ $new_stories_ids };
+
+        die unless scalar( @$processed_stories_ids );
+
+        $next_id = $processed_stories_ids->[ -1 ] + 1;
     }
 
     say STDERR Dumper( $processed_stories_ids );
@@ -296,9 +296,10 @@ sub _fetch_list
 
     #say STDERR Dumper( $stories_ids );
 
-    my $query =  "select stories.*, processed_stories.processed_stories_id from stories natural join processed_stories where processed_stories_id in (??) ORDER by $id_field asc ";
-    
-    my @values =  @ {$stories_ids };
+    my $query =
+"select stories.*, processed_stories.processed_stories_id from stories natural join processed_stories where processed_stories_id in (??) ORDER by $id_field asc ";
+
+    my @values = @{ $stories_ids };
 
     return [] unless scalar( @values );
 
@@ -306,11 +307,59 @@ sub _fetch_list
 
     say STDERR $query;
 
-    
+    my $list = $c->dbis->query( $query, @values )->hashes;
 
-    my $list = $c->dbis->query( $query , @values )->hashes;
+    return $list;
+}
 
-    return $list;    
+sub _get_tags_id
+{
+    my ( $self, $c, $tag_string ) = @_;
+
+    if ( $tag_string =~ /^\d+/ )
+    {
+	say STDERR "returning int: $tag_string";
+        return $tag_string;
+    }
+    elsif ( $tag_string =~ /^.+:.+$/ )
+    {
+	say STDERR "processing tag_sets:tag_name";
+
+        my ( $tag_set, $tag_name ) = split ':', $tag_string;
+
+        my $tag_sets = $c->dbis->query( "SELECT * from tag_sets where name = ?", $tag_set )->hashes;
+
+        die "invalid tag set " unless scalar(@$tag_sets) > 0;
+
+	say STDERR "tag_sets";
+	say STDERR Dumper( $tag_sets );
+
+        my $tag_sets_id = $tag_sets->[ 0 ]->{ tag_sets_id };
+
+        my $tags =
+          $c->dbis->query( "SELECT * from tags where tag_sets_id = ? and tag = ? ", $tag_sets_id, $tag_name )->hashes;
+       
+	say STDERR Dumper( $tags );
+
+        my $tag;
+
+        if ( !scalar(@$tags) )
+        {
+            $tag = $c->dbis->create( 'tags', { tag => $tag_name, tag_sets_id => $tag_sets_id } );
+        }
+        else
+        {
+            $tag = $tags->[ 0 ];
+        }
+
+        return $tag->{ tags_id };
+    }
+    else
+    {
+        die "invalid tag string '$tag_string'";
+    }
+
+    return;
 }
 
 sub _add_story_tags
@@ -321,13 +370,13 @@ sub _add_story_tags
     {
         say STDERR "story_tag $story_tag";
 
-        my ( $stories_id, $tag) = split ',', $story_tag;
-	
-	my $tags_id = $tag;
+        my ( $stories_id, $tag ) = split ',', $story_tag;
 
-	say STDERR "$stories_id, $tags_id";
+        my $tags_id = $self->_get_tags_id( $c, $tag);
 
-	$c->dbis->query( "INSERT INTO stories_tags_map( stories_id, tags_id) VALUES (?, ? )", $stories_id, $tags_id );
+        say STDERR "$stories_id, $tags_id";
+
+        $c->dbis->query( "INSERT INTO stories_tags_map( stories_id, tags_id) VALUES (?, ? )", $stories_id, $tags_id );
     }
 }
 
@@ -340,18 +389,17 @@ sub put_tags_PUT : Local
     my ( $self, $c ) = @_;
     my $subset = $c->req->data;
 
-
     my $story_tag = $c->req->params->{ 'story_tag' };
 
     my $story_tags;
 
     if ( ref $story_tag )
     {
-       $story_tags = $story_tag;
+        $story_tags = $story_tag;
     }
     else
     {
-       $story_tags = [ $story_tag ];
+        $story_tags = [ $story_tag ];
     }
 
     say STDERR Dumper( $story_tags );
@@ -362,7 +410,6 @@ sub put_tags_PUT : Local
 
     return;
 }
-
 
 =head1 AUTHOR
 
