@@ -5,7 +5,9 @@
 
     <entity name="story_sentences" 
             pk="story_sentences_id"
-            query="select story_sentences_id || '_ss' as id, 'ss' as field_type, now() as solr_import_date, * from story_sentences where '${dataimporter.request.clean}' != 'false'
+            query="select ss.story_sentences_id || '_ss' as id, 'ss' as field_type, now() as solr_import_date, ps.processed_stories_id, ss.*
+                from story_sentences ss INNER JOIN  processed_stories ps ON ( ss.stories_id = ps.stories_id ) 
+      where '${dataimporter.request.clean}' != 'false'
       OR db_row_last_updated &gt; '${dataimporter.last_index_time}' "
 	    >
       <entity name="media_sets_media_map" 
@@ -31,15 +33,6 @@
               query="select tags_id as tags_id_stories, * from stories_tags_map"
               processor="SqlEntityProcessor"
 	      cacheImpl="SortedMapBackedCache"
-	      cacheKey="stories_id"
-	      cacheLookup="story_sentences.stories_id"
-              >
-      </entity>
-      <entity name="processed_stories" 
-              pk="processed_stories_id"
-              query="select processed_stories_id, stories_id from processed_stories"
-              processor="SqlEntityProcessor"
-              cacheImpl="SortedMapBackedCache"
 	      cacheKey="stories_id"
 	      cacheLookup="story_sentences.stories_id"
               >
