@@ -312,77 +312,6 @@ sub _fetch_list
     return $list;
 }
 
-sub _get_tags_id
-{
-    my ( $self, $c, $tag_string ) = @_;
-
-    if ( $tag_string =~ /^\d+/ )
-    {
-	say STDERR "returning int: $tag_string";
-        return $tag_string;
-    }
-    elsif ( $tag_string =~ /^.+:.+$/ )
-    {
-	say STDERR "processing tag_sets:tag_name";
-
-        my ( $tag_set, $tag_name ) = split ':', $tag_string;
-
-        my $tag_sets = $c->dbis->query( "SELECT * from tag_sets where name = ?", $tag_set )->hashes;
-
-        die "invalid tag set " unless scalar(@$tag_sets) > 0;
-
-	say STDERR "tag_sets";
-	say STDERR Dumper( $tag_sets );
-
-        my $tag_sets_id = $tag_sets->[ 0 ]->{ tag_sets_id };
-
-        my $tags =
-          $c->dbis->query( "SELECT * from tags where tag_sets_id = ? and tag = ? ", $tag_sets_id, $tag_name )->hashes;
-       
-	say STDERR Dumper( $tags );
-
-        my $tag;
-
-        if ( !scalar(@$tags) )
-        {
-            $tag = $c->dbis->create( 'tags', { tag => $tag_name, tag_sets_id => $tag_sets_id } );
-        }
-        else
-        {
-            $tag = $tags->[ 0 ];
-        }
-
-        return $tag->{ tags_id };
-    }
-    else
-    {
-        die "invalid tag string '$tag_string'";
-    }
-
-    return;
-}
-
-sub _add_story_tags
-{
-    my ( $self, $c, $story_tags ) = @_;
-
-    foreach my $story_tag ( @$story_tags )
-    {
-        say STDERR "story_tag $story_tag";
-
-        my ( $id, $tag ) = split ',', $story_tag;
-
-        my $tags_id = $self->_get_tags_id( $c, $tag);
-
-        say STDERR "$id, $tags_id";
-
-        my $tags_map_table = $self->get_table_name() . '_tags_map';
-        my $table_id_name  = $self->get_table_name() . '_id';
-
-        $c->dbis->query( "INSERT INTO $tags_map_table ( $table_id_name, tags_id) VALUES (?, ? )", $id, $tags_id );
-    }
-}
-
 sub put_tags : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
 {
 }
@@ -407,7 +336,7 @@ sub put_tags_PUT : Local
 
     say STDERR Dumper( $story_tags );
 
-    $self->_add_story_tags( $c, $story_tags );
+    $self->_add_tags( $c, $story_tags );
 
     $self->status_ok( $c, entity => $story_tags );
 
