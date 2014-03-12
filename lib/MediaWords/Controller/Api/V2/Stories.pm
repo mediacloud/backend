@@ -370,13 +370,16 @@ sub _add_story_tags
     {
         say STDERR "story_tag $story_tag";
 
-        my ( $stories_id, $tag ) = split ',', $story_tag;
+        my ( $id, $tag ) = split ',', $story_tag;
 
         my $tags_id = $self->_get_tags_id( $c, $tag);
 
-        say STDERR "$stories_id, $tags_id";
+        say STDERR "$id, $tags_id";
 
-        $c->dbis->query( "INSERT INTO stories_tags_map( stories_id, tags_id) VALUES (?, ? )", $stories_id, $tags_id );
+        my $tags_map_table = $self->get_table_name() . '_tags_map';
+        my $table_id_name  = $self->get_table_name() . '_id';
+
+        $c->dbis->query( "INSERT INTO $tags_map_table ( $table_id_name, tags_id) VALUES (?, ? )", $id, $tags_id );
     }
 }
 
