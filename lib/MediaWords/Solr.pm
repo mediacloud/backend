@@ -105,13 +105,24 @@ sub search_for_processed_stories_ids
 
     $params->{ fl } = 'processed_stories_id';
 
-    # say STDERR Dumper( $params );
+    $params->{ 'group' } = 'true';
+
+    $params->{ 'group.limit' } = 0;
+    $params->{ 'group.field' } = 'processed_stories_id';
+
+    say STDERR Dumper( $params );
 
     my $response = query( $params );
 
-    # say STDERR Dumper( $response );
+    say STDERR "Solr_response\n" . Dumper( $response );
 
-    my $uniq_ids =  [ uniq ( map { $_->{ processed_stories_id } } @{ $response->{ response }->{ docs } } ) ];
+    my $groups = $response->{ grouped }->{ processed_stories_id }->{ groups };
+
+    say STDERR Dumper( $groups );
+
+    say STDERR Dumper ( map { $_->{ groupValue } } @{ $groups } );
+
+    my $uniq_ids =  [ uniq ( map { $_->{ groupValue } } @{ $groups } ) ];
 
     return $uniq_ids;
 }
