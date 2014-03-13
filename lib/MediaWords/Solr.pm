@@ -14,7 +14,8 @@ use MediaWords::Languages::Language;
 use MediaWords::Util::Web;
 
 # execute a query on the solr server using the given params.
-# return the raw encoded json from solr
+# return the raw encoded json from solr.  return a maximum of 
+# 1 million sentences.
 sub query_encoded_json
 {
     my ( $params ) = @_;
@@ -84,6 +85,98 @@ sub search_for_stories_ids
     map { $stories_id_lookup->{ $_->{ stories_id } } = 1 } @{ $response->{ response }->{ docs } };
 
     return [ keys( %{ $stories_id_lookup } ) ];
+}
+
+# given a list of hashes, each with a stories_id field, query postgres to attach
+# the rest of the story metadata to each hash. assumes that each stories_id appears
+# only once in the stories list.  Fails if given more than 500 stories
+sub _attach_story_data_to_stories_ids_chunk
+{
+    my ( $db, $stories ) = @_;
+    
+    die( "stories list has more than 500 members" ) unless ( @{ $stories } <= 500 );
+    
+    my $stories_id_list = join( ',', map { $_->{ stories_id } } @{ $stories } );
+    
+    my $story_data = $db->query( <<END )->hashes;
+select s.stories_id, s.title, s.publish_date, s.url, s.guid, s.media_id, s.language, m.name media_name
+    from stories s join media m on ( s.media_id = m.media_id )
+    where s.stories_id in ( $stories_id_list )
+END
+
+    my $story_data_lookup = {};
+    map { $story_data_lookup->{ $_->{ stories_id } } = $_ } @{ $story_data };
+    
+    for my $story ( @{ $stories } )
+    {
+        if ( $story_data = $story_data_lookup->{ $story->{ stories_id } } )
+        {
+            map { $story->{ $_ } = $story_data->{ $_ } } keys( %{ $story_data } );
+        }
+    }
+}
+
+# given a list of hashes, each with a stories_id field, query postgres to attach
+# the following story data to each hash:
+# title, publish_date, url, guid, media_name, media_id, language
+# assumes that each stories_id appears only once in the stories list.
+sub _attach_story_data_to_stories_ids
+{
+    my ( $db, $stories ) = @_;
+    
+    # first sort so that each chunk query includes maxmimally adjacent stories_ids
+    my $sorted_stories = [ sort { $a->{ stories_id } <=> $b->{ stories_id } } @{ $stories } ];
+    
+    # break up into chunks of 500 to avoid overly large postgres queries (max 8192 characters)
+    my $chunk_size = 500;
+    for ( my $i = 0; $i < @{ $sorted_stories }; $i += $chunk_size )
+    {
+        my $chunk_end = List::Util::min( $#{ $stories }, $i + $chunk_size - 1 );
+        my $stories_chunk = [ @{ $stories }[ $i .. $chunk_end ] ];
+        _attach_story_data_to_stories_ids_chunk( $db, $stories_chunk );
+    }
+}
+
+# return all of the stories that match the solr query.  attach a list of matching sentences in story order
+# to each story as well as the stories.* fields from postgres.  limit to a random but consistently chosen
+# set of stories of $num_sampled stories if $num_sampled is specified.
+#
+# returns a list of (optionally sampled) stories and the total number of unsampled stories.
+sub search_for_stories_with_sentences
+{
+    my ( $db, $params, $num_sampled ) = @_;
+    
+    $params = { %{ $params } };
+    
+    $params->{ fl } = 'stories_id,sentence,story_sentences_id';
+    $params->{ rows } = 1000000;
+    
+    my $response = query( $params );
+
+    my $stories_lookup = {};
+    for my $doc ( @{ $response->{ response }->{ docs } } )
+    {
+        $stories_lookup->{ $doc->{ stories_id } } ||= [];
+        push( @{ $stories_lookup->{ $doc->{ stories_id } } }, $doc );
+    }
+    
+    my $stories = [];
+    while ( my ( $stories_id, $sentences ) = each( %{ $stories_lookup } ) )
+    {
+        my $ordered_sentences = [ sort { $a->{ story_sentences_id } <=> $b->{ story_sentences_id } } @{ $sentences } ];
+        push( @{ $stories }, { stories_id => $stories_id, sentences => $ordered_sentences } )
+    }    
+    
+    my $num_stories = @{ $stories };
+    if ( $num_sampled && ( @{ $stories } > $num_sampled ) )
+    {
+        map { $_->{ _s } = Digest::MD5::md5_hex( $_->{ stories_id } ) } @{ $stories };
+        $stories = [ ( sort { $a->{ _s } cmp $b->{ _s } } @{ $stories } )[ 0 .. 999 ] ];
+    }
+
+    _attach_story_data_to_stories_ids( $db, $stories );
+    
+    return ( $stories, $num_stories );
 }
 
 # execute the query and return only the number of documents found
