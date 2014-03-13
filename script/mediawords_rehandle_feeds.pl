@@ -56,7 +56,7 @@ END
         if ( $@ )
         {
             print STDERR "Error rehandling download: $download->{ downloads_id }\n";
-            $db = MediaWords::connect_to_db;
+            $db = MediaWords::DB::connect_to_db;
         }
 
     }
