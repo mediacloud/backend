@@ -88,7 +88,7 @@ sub index : Path : Args(0)
 {
     my ( $self, $c ) = @_;
 
-    my $q = $c->req->params->{ q };
+    my $q = $c->req->params->{ q } || '';
 
     print STDERR "q: '$q'\n";
 
@@ -102,10 +102,11 @@ sub index : Path : Args(0)
     my $db = $c->dbis;
     
     my $csv = $c->req->params->{ csv };
+    my $random = $c->req->params->{ random };
     
     my $num_sampled = $csv ? undef : 1000;
     
-    my ( $stories, $num_stories ) = MediaWords::Solr::search_for_stories_with_sentences( $db, { q => $q }, $num_sampled );
+    my ( $stories, $num_stories ) = MediaWords::Solr::search_for_stories_with_sentences( $db, { q => $q }, $num_sampled, $random );
 
     if ( $csv )
     {
@@ -120,6 +121,7 @@ sub index : Path : Args(0)
         $c->stash->{ stories } = $stories;
         $c->stash->{ num_stories } = $num_stories;
         $c->stash->{ q } = $q;
+        $c->stash->{ random } = $random;
         $c->stash->{ template } = 'search/search.tt2';
     }
 }

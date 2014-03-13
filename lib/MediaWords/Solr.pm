@@ -138,21 +138,28 @@ sub _attach_story_data_to_stories_ids
 }
 
 # return all of the stories that match the solr query.  attach a list of matching sentences in story order
-# to each story as well as the stories.* fields from postgres.  limit to a random but consistently chosen
-# set of stories of $num_sampled stories if $num_sampled is specified.
+# to each story as well as the stories.* fields from postgres.  
+
+# limit to first $num_sampled stories $num_sampled is specified.  return first rows returned by solr 
+# if $random is not true (and only an estimate of the total number of matching stories ).  fetch all results 
+# from solr and return a random sample of those rows if $random is true (and an exact count of the number of
+# matching stories
 #
-# returns a list of (optionally sampled) stories and the total number of unsampled stories.
+# returns the (optionally sampled) stories and the total number of matching stories.
 sub search_for_stories_with_sentences
 {
-    my ( $db, $params, $num_sampled ) = @_;
+    my ( $db, $params, $num_sampled, $random ) = @_;
     
     $params = { %{ $params } };
     
     $params->{ fl } = 'stories_id,sentence,story_sentences_id';
-    $params->{ rows } = 1000000;
     
+    $params->{ rows } = ( $num_sampled && !$random ) ? ( $num_sampled * 2 ) : 1000000;
+    
+    print STDERR "solr search\n";
     my $response = query( $params );
 
+    print STDERR "aggregate into stories\n";
     my $stories_lookup = {};
     for my $doc ( @{ $response->{ response }->{ docs } } )
     {
@@ -167,15 +174,18 @@ sub search_for_stories_with_sentences
         push( @{ $stories }, { stories_id => $stories_id, sentences => $ordered_sentences } )
     }    
     
-    my $num_stories = @{ $stories };
+    my $num_stories = ( $num_sampled && !$random ) ? int( $response->{ response }->{ numFound } / 2 ) : @{ $stories };
+    
     if ( $num_sampled && ( @{ $stories } > $num_sampled ) )
     {
         map { $_->{ _s } = Digest::MD5::md5_hex( $_->{ stories_id } ) } @{ $stories };
         $stories = [ ( sort { $a->{ _s } cmp $b->{ _s } } @{ $stories } )[ 0 .. 999 ] ];
     }
 
+    print STDERR "attach story data\n";
     _attach_story_data_to_stories_ids( $db, $stories );
     
+    print STDERR "return\n";
     return ( $stories, $num_stories );
 }
 

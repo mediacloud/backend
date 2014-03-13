@@ -19,10 +19,16 @@
     <br />
     <fieldset>
         <p>
-            [% num_stories %] stories found.
-            [% IF stories.size < num_stories %]
-                Only showing a random sample of [% stories.count %] stories out of [% num_stories %].  Download the csv
+            [% IF stories.size < num_stories && random %]
+                Only showing a random sample of [% stories.size %] stories out of [% num_stories %].  Download the csv
                 to see all stories.
+            [% ELSIF stories.size < num_stories %]
+                Only showing a sample of [% stories.size %] stories out of about [% num_stories %].  Download the csv
+                to see all stories.  This set of stories is not random and therefore not representative of all matching 
+                stories. Click on the 'random sample' button below to see a random sample of the matching
+                stories (be patient, generating a random sample can take some time).
+            [% ELSE %]
+                [% num_stories %] stories found.
             [% END %]
         </p>
     </fieldset>
@@ -33,6 +39,7 @@
         <div class="boxtitle">
             Search Results
             <a id="boxcommand" href="[% c.uri_for( '/search', { 'q' => q, 'csv' => 1 } ) %]">CSV</a>
+            <a id="boxcommand" href="[% c.uri_for( '/search', { 'q' => q, 'random' => 1 } ) %]">random sample</a>
         </div>
         <table>
             <tr>
@@ -55,7 +62,7 @@
                             [% story.stories_id %]
                         [% END %]
                     </td>
-                    <td>[% story.title.substr( 0, 48 ) | html %]</td>
+                    <td>[% story.title | truncate( 48 ) | html %]</td>
                     <td><a href="[% story.url | html %]">[% story.url.substr( 0, 32 ) | html %]</a></td>
                     <td>[% story.publish_date | html %]</td>
                     <td>[% story.media_name | html %]</td>
