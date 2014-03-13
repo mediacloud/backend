@@ -34,6 +34,7 @@ select distinct a.*, f.url feed_url
         join downloads b on ( f.feeds_id = b.feeds_id )
     where
         a.state = 'feed_error' and
+        f.feed_type = 'syndicated' and
         b.state = 'feed_error' and
         b.error_message ~ $1 and
         b.download_time > $2
