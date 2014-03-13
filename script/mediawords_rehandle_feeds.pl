@@ -34,27 +34,32 @@ select distinct a.*, f.url feed_url
         join downloads b on ( f.feeds_id = b.feeds_id )
     where
         a.state = 'feed_error' and
+        f.feed_type = 'syndicated' and
         b.state = 'feed_error' and
         b.error_message ~ $1 and
         b.download_time > $2
-    order by feed_url limit 1
+    order by feed_url
 END
 
     for my $download ( @{ $downloads } )
     {
-        $db->query( "update downloads set state = 'success' where downloads_id = ?", $download->{ downloads_id } );
+        eval {
+            my $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download );
+            print STDERR Dumper( $download );
+            print STDERR substr( $$content_ref, 0, 1024 );
 
-        my $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download );
-        print STDERR Dumper( $download );
-        print STDERR substr( $$content_ref, 0, 1024 );
-
-        if ( length( $$content_ref ) > 32 )
+            if ( length( $$content_ref ) > 32 )
+            {
+                $download->{ state } = 'error';
+                MediaWords::Crawler::FeedHandler::handle_feed_content( $db, $download, $$content_ref );
+            }
+        };
+        if ( $@ )
         {
-            $download->{ state } = 'error';
-            MediaWords::Crawler::FeedHandler::handle_feed_content( $db, $download, $$content_ref );
+            print STDERR "Error rehandling download: $download->{ downloads_id }\n";
+            $db = MediaWords::DB::connect_to_db;
         }
 
-        $db->update_by_id( 'downloads', $download );
     }
 }
 

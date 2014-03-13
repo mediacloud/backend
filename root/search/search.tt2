@@ -1,68 +1,81 @@
 [% title = 'Search' %]
 [% INCLUDE include/header.tt2 %]
 
-<p><b>Search downloads</b></p>
+<fieldset>
 
-[% IF c.acl_user_can_visit('/admin/search/basic_search') %]
-    <div>
-        <form action="[% c.uri_for('/admin/search/basic_search') %]" method="post" >
-
-            TSQuery: <input type="text" name="tsquery"><br/>
-            Result List Size: <input type="text" name="num_results_per_page"><br/>
-
-            <input type="submit" value="Search" />
-
-        </form>
-
-    </div>
-[% END # [% IF c.acl_user_can_visit('/admin/search/basic_search') %]
-
-[% IF match_list %]
-
+    [% search_url = c.uri_for( "/search" ) %]
+    <form method="get" action="[% search_url | html %]">
+        <input type="text" name="q" width="64" value="[% q | html %]" />
+        <input type="submit" name="submit" value="Search" />
+    </form>
     <p>
-        Showing top [% displayed_matches | html_entity %] results out of [% total_matches | html_entity %]
+        <a href="[% c.uri_for( '/search/tags' ) | html %]">List available media tags.</a>
     </p>
 
-    <table>
-        <tr>
-            <th>Story Title</th>
-            <th>Source</th>
-            <th>Date</th>
-            <th>Rank</th>
-            <th>Download ID</th>
-            <th>Story ID </th>
-            <th>Story URL</th>
-            <th>Download URL</th>
-            <th>Matching Text</th>
-        </tr>
+</fieldset>
 
-        [% match_list %]
+[% IF q %]
 
-        [% FOREACH match_info IN match_list -%]
+    <br />
+    <fieldset>
+        <p>
+            [% IF stories.size < num_stories && random %]
+                Only showing a random sample of [% stories.size %] stories out of [% num_stories %].  Download the csv
+                to see all stories.
+            [% ELSIF stories.size < num_stories %]
+                Only showing a sample of [% stories.size %] stories out of about [% num_stories %].  Download the csv
+                to see all stories.  This set of stories is not random and therefore not representative of all matching 
+                stories. Click on the 'random sample' button below to see a random sample of the matching
+                stories (be patient, generating a random sample can take some time).
+            [% ELSE %]
+                [% num_stories %] stories found.
+            [% END %]
+        </p>
+    </fieldset>
+    
+    [% IF stories %]
+
+    
+        <div class="boxtitle">
+            Search Results
+            <a id="boxcommand" href="[% c.uri_for( '/search', { 'q' => q, 'csv' => 1 } ) %]">CSV</a>
+            <a id="boxcommand" href="[% c.uri_for( '/search', { 'q' => q, 'random' => 1 } ) %]">random sample</a>
+        </div>
+        <table>
             <tr>
-
-                <td> [% match_info.title | html_entity %] </td>
-                <td> [% match_info.media_source %] </td>
-                <td> [% match_info.date %] </td>
-                <td> [% match_info.rank %] </td>
-                <td> [% match_info.downloads_id %] </td>
-                <td> [% match_info.story_id %] </td>
-                <td> [% match_info.story_url %] </td>
-                <td> [% match_info.download_url %] </td>
-                <td> 
-                    [% FOREACH text_fragment IN match_info.head_line -%]
-                        [%- IF text_fragment.high_lighted -%]
-                            <b>
-                        [%-END-%]
-                        [%- text_fragment.text | html_entity -%]
-                        [%- IF text_fragment.high_lighted -%]
-                            </b>
-                        [%-END-%]
-                    [%- END -%]
-                </td>
+                <th>ID</th>
+                <th>Title</th>
+                <th>URL</th>
+                <th>Publish Date</th>
+                <th>Media Source</th>
+                <th>Media ID</th>
+                <th>Language</th>
             </tr>
-        [% END %]
-    </table>
+        
+            [% FOREACH story IN stories %]
+                
+                <tr [% IF even %]class="even"[% END %]>
+                    <td>
+                        [% IF c.acl_user_can_visit('/admin/stories/view') %]
+                            <a href="[% c.uri_for( '/admin/stories/view' _ story.stories_id ) %]">[% story.stories_id %]</a></td>
+                        [% ELSE %]
+                            [% story.stories_id %]
+                        [% END %]
+                    </td>
+                    <td>[% story.title | truncate( 48 ) | html %]</td>
+                    <td><a href="[% story.url | html %]">[% story.url.substr( 0, 32 ) | html %]</a></td>
+                    <td>[% story.publish_date | html %]</td>
+                    <td>[% story.media_name | html %]</td>
+                    <td>[% story.media_id %]</td>
+                    <td>[% story.language %]</td>            
+                </tr>
+
+                [%  SET even = !even %]
+            [% END %]
+        
+        </table>
+            
+    [% END %]
 
 [% END %]
 
