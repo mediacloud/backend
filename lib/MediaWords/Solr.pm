@@ -94,6 +94,25 @@ sub search_for_stories_ids
     return $uniq_stories_ids;
 }
 
+sub max_processed_stories_id
+{
+    my ( $self, $c ) = @_;
+
+    my $params = {};
+
+    $params->{ q } = '*:*';
+
+    $params->{ sort } = "processed_stories_id desc";
+
+    $params->{ rows } = 1;
+
+    my $response = query( $params );
+
+    my $max_processed_stories_id = $response->{ response }->{ docs }->[ 0 ]->{ processed_stories_id };
+
+    return $max_processed_stories_id;
+}
+
 # return all of the story ids that match the solr query
 sub search_for_processed_stories_ids
 {
