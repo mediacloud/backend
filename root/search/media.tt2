@@ -1,0 +1,27 @@
+[% title = 'Media for ' _ tag.tag | html %]
+[% INCLUDE include/header.tt2 %]
+
+<table>
+
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>URL</th>
+    </tr>
+
+    [% FOREACH medium IN media -%]
+
+        <tr [% IF even %]class="even"[% END %]>
+            <td>[% medium.media_id | html %]</td>
+            <td>[% medium.name | html %]</td>
+            <td><a href="[% medium.url | html %]">[% medium.url | html %]</a></td>
+        </tr>
+
+    [%  SET even = !even %]
+
+    [% END # FOREACH medium -%]
+
+</table>
+
+
+[% INCLUDE include/footer.tt2 %]
