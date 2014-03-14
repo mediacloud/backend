@@ -12,6 +12,7 @@ use List::Util;
 
 use MediaWords::Languages::Language;
 use MediaWords::Util::Web;
+use List::MoreUtils qw ( uniq );
 
 # execute a query on the solr server using the given params.
 # return the raw encoded json from solr.  return a maximum of 
@@ -37,7 +38,7 @@ sub query_encoded_json
     # print STDERR Dumper( $params );
     my $res = $ua->post( $url, $params );
 
-    # print STDERR "solr query response received.\n";
+    say STDERR "solr query response received.\n";
 
     if ( !$res->is_success )
     {
@@ -54,6 +55,8 @@ sub query
     my ( $params ) = @_;
 
     my $json = query_encoded_json( $params );
+
+    say STDERR Dumper( $json );
 
     my $data;
     eval { $data = decode_json( $json ) };
@@ -75,16 +78,43 @@ sub search_for_stories_ids
 {
     my ( $params ) = @_;
 
+    # say STDERR "MediaWords::Solr::search_for_stories_ids";
+
     $params = { %{ $params } };
 
     $params->{ fl } = 'stories_id';
 
+    # say STDERR Dumper( $params );
+
     my $response = query( $params );
 
-    my $stories_id_lookup = {};
-    map { $stories_id_lookup->{ $_->{ stories_id } } = 1 } @{ $response->{ response }->{ docs } };
+    # say STDERR Dumper( $response );
 
-    return [ keys( %{ $stories_id_lookup } ) ];
+    my $uniq_stories_ids =  [ uniq ( map { $_->{ stories_id } } @{ $response->{ response }->{ docs } } ) ];
+
+    return $uniq_stories_ids;
+}
+
+# return all of the story ids that match the solr query
+sub search_for_processed_stories_ids
+{
+    my ( $params ) = @_;
+
+    # say STDERR "MediaWords::Solr::search_for_stories_ids";
+
+    $params = { %{ $params } };
+
+    $params->{ fl } = 'processed_stories_id';
+
+    # say STDERR Dumper( $params );
+
+    my $response = query( $params );
+
+    # say STDERR Dumper( $response );
+
+    my $uniq_ids =  [ uniq ( map { $_->{ processed_stories_id } } @{ $response->{ response }->{ docs } } ) ];
+
+    return $uniq_ids;
 }
 
 # given a list of hashes, each with a stories_id field, query postgres to attach

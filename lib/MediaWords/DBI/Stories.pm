@@ -493,7 +493,7 @@ EOF
         $story->{ stories_id }
     )->hashes;
 
-    return join( ". ", map { $_->{ download_text } } @{ $download_texts } );
+    return join( ".\n\n", map { $_->{ download_text } } @{ $download_texts } );
 }
 
 sub get_extracted_html_from_db
