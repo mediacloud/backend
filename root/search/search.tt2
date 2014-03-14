@@ -1,4 +1,8 @@
 [% title = 'Search' %]
+[% IF q %]
+    [% title = title _ ': ' _ q %]
+[% END %]
+
 [% INCLUDE include/header.tt2 %]
 
 <fieldset>
@@ -39,6 +43,7 @@
         <div class="boxtitle">
             Search Results
             <a id="boxcommand" href="[% c.uri_for( '/search', { 'q' => q, 'csv' => 1 } ) %]">CSV</a>
+            <a id="boxcommand" href="[% c.uri_for( '/search/wc', { 'q' => q } ) %]">words</a>
             <a id="boxcommand" href="[% c.uri_for( '/search', { 'q' => q, 'random' => 1 } ) %]">random sample</a>
         </div>
         <table>

@@ -126,4 +126,20 @@ sub index : Path : Args(0)
     }
 }
 
+# print word cloud of search results
+sub wc : Local
+{
+    my ( $self, $c ) = @_;
+    
+    my $q = $c->req->params->{ q };
+    
+    die( "missing q" ) unless ( $q );
+    
+    my $words = MediaWords::Solr::count_words( { q => $q } );
+    
+    $c->stash->{ words } = $words;
+    $c->stash->{ q } = $q;
+    $c->stash->{ template } = 'search/wc.tt2';
+}
+
 1;
