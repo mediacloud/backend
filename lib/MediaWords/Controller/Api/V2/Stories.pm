@@ -249,20 +249,24 @@ sub _get_object_ids
 
     my $processed_stories_ids = [];
 
-    my $max_processed_stories_id = $self->_max_processed_stories_id( $c );
+    my $max_processed_stories_id =  MediaWords::Solr::max_processed_stories_id( );
 
     say STDERR "max_processed_stories_id = $max_processed_stories_id";
 
     while ( $next_id <= $max_processed_stories_id && scalar( @$processed_stories_ids ) < $rows )
     {
         my $params = {};
+
+	my $batch_max_id = $next_id + 1_000_000;
+
         say STDERR ( Dumper( $processed_stories_ids ) );
 
-        say STDERR ( $next_id );
+        say STDERR " Next_id $next_id  batch max_id $batch_max_id";
+
 
         $params->{ q } = $q;
 
-        $params->{ fq } = [ @{ $fq }, "processed_stories_id:[ $next_id TO * ]" ];
+        $params->{ fq } = [ @{ $fq }, "processed_stories_id:[ $next_id TO $batch_max_id ]" ];
 
         $params->{ sort } = "processed_stories_id asc";
 
@@ -274,13 +278,18 @@ sub _get_object_ids
 
         say STDERR Dumper( $new_stories_ids );
 
-        last if scalar( @{ $new_stories_ids } ) == 0;
+        if ( scalar( @{ $new_stories_ids } ) == 0 )
+	{
+	    $next_id = $batch_max_id - 1;
+	}
+	else
+	{
+	    push $processed_stories_ids, @{ $new_stories_ids };
 
-        push $processed_stories_ids, @{ $new_stories_ids };
+	    die unless scalar( @$processed_stories_ids );
 
-        die unless scalar( @$processed_stories_ids );
-
-        $next_id = $processed_stories_ids->[ -1 ] + 1;
+	    $next_id = $processed_stories_ids->[ -1 ] + 1;
+	}
     }
 
     say STDERR Dumper( $processed_stories_ids );
