@@ -17,9 +17,6 @@ use URI;
 use JSON;
 use Data::Dumper;
 
-# How to index annotation JSON for the concatenation of all sentences
-use constant CORENLP_SENTENCES_CONCAT_INDEX => '_';
-
 # (Cached) CoreNLP annotator URL
 my $_corenlp_annotator_url;        # lazy-initialized in BEGIN()
 my $_corenlp_annotator_timeout;    # lazy-initialized in BEGIN()
@@ -310,6 +307,65 @@ sub _annotate_text($)
     return $results_hashref;
 }
 
+# Fetch the CoreNLP annotation hashref from MongoDB for the story
+# Return annotation hashref on success, undef if the annotation doesn't exist in MongoDB, die() on error
+sub _fetch_annotation_from_gridfs_for_story($$)
+{
+    my ( $db, $stories_id ) = @_;
+
+    if ( !annotator_is_enabled() )
+    {
+        die "CoreNLP annotator is not enabled in the configuration.";
+    }
+
+    my $story = $db->find_by_id( 'stories', $stories_id );
+    unless ( $story->{ stories_id } )
+    {
+        die "Story with ID $stories_id was not found.";
+    }
+
+    # Test if annotation exists
+    my $annotation_exists = 0;
+    eval { $annotation_exists = $_gridfs_store->content_exists( $db, $stories_id ); };
+    if ( $@ )
+    {
+        die "GridFS died while testing whether or not an annotation exists for story $stories_id: $@\n";
+    }
+    unless ( $annotation_exists )
+    {
+        return undef;
+    }
+
+    # Fetch annotation
+    my $json_ref = undef;
+    eval { $json_ref = $_gridfs_store->fetch_content( $db, $stories_id ); };
+    if ( $@ or ( !defined $json_ref ) )
+    {
+        die "GridFS died while fetching annotation for story $stories_id: $@\n";
+    }
+
+    my $json = $$json_ref;
+    unless ( $json )
+    {
+        die "Fetched annotation is undefined or empty for story $stories_id.\n";
+    }
+
+    my $json_hashref;
+    eval { $json_hashref = _decode_json( $json ); };
+    if ( $@ or ( !ref $json_hashref ) )
+    {
+        die "Unable to parse annotation JSON for story $stories_id: $@\nString JSON: $json";
+    }
+
+    # Re-add "corenlp" root keys
+    foreach my $sentence_id ( keys %{ $json_hashref } )
+    {
+        $json_hashref->{ $sentence_id } = { 'corenlp' => $json_hashref->{ $sentence_id } };
+    }
+
+    return $json_hashref;
+}
+
 sub _fatal_error($)
 {
     # There are errors that cannot be classified as CoreNLP annotator errors
@@ -330,6 +386,12 @@ sub _fatal_error($)
 
     say STDERR $error_message;
     exit 1;
+}
+
+# String to use for indexing annotation JSON of the concatenation of all sentences
+sub sentences_concatenation_index()
+{
+    return '_';
 }
 
 # Run the CoreNLP annotation for the story, store results in MongoDB
@@ -385,7 +447,7 @@ EOF
     my $sentences_concat_text = join( ' ', map { $_->{ sentence } } @{ $story_sentences } );
 
     say STDERR "Annotating story's $stories_id concatenated sentences...";
-    my $concat_index = CORENLP_SENTENCES_CONCAT_INDEX . '';
+    my $concat_index = sentences_concatenation_index() . '';
     $annotations{ $concat_index } = _annotate_text( $sentences_concat_text );
     unless ( $annotations{ $concat_index } )
     {
@@ -394,8 +456,8 @@ EOF
 
     # Convert results to a minimized JSON
     my $json_annotation;
-    eval { $json_annotation = _encode_json( \%annotations ); }
-      if ( $@ or ( !$json_annotation ) )
+    eval { $json_annotation = _encode_json( \%annotations ); };
+    if ( $@ or ( !$json_annotation ) )
     {
         _fatal_error( "Unable to encode hashref to JSON: $@\nHashref: " . Dumper( $json_annotation ) );
         return 0;
@@ -411,6 +473,181 @@ EOF
     }
 
     return 1;
+}
+
+# Fetch the CoreNLP annotation JSON from MongoDB for the story
+# Return string JSON on success, undef if the annotation doesn't exist in MongoDB, die() on error
+sub fetch_annotation_json_for_story($$)
+{
+    my ( $db, $stories_id ) = @_;
+
+    if ( !annotator_is_enabled() )
+    {
+        die "CoreNLP annotator is not enabled in the configuration.";
+    }
+
+    my $story = $db->find_by_id( 'stories', $stories_id );
+    unless ( $story->{ stories_id } )
+    {
+        die "Story $stories_id was not found.";
+    }
+
+    my $annotation;
+    eval { $annotation = _fetch_annotation_from_gridfs_for_story( $db, $stories_id ); };
+    if ( $@ )
+    {
+        die "Unable to fetch annotation for story $stories_id: $@";
+    }
+
+    unless ( defined $annotation )
+    {
+        return undef;
+    }
+
+    my $sentences_concat_text = sentences_concatenation_index() . '';
+    unless ( exists( $annotation->{ $sentences_concat_text } ) )
+    {
+        die "Annotation of the concatenation of all sentences under concatenation index " .
+          "'$sentences_concat_text' doesn't exist for story $stories_id";
+    }
+
+    # Test sanity
+    my $story_annotation = $annotation->{ $sentences_concat_text };
+    unless ( exists $story_annotation->{ corenlp } )
+    {
+        die "Story annotation does not have 'corenlp' root key for story $stories_id";
+    }
+
+    # Encode back to JSON
+    my $story_annotation_json;
+    eval { $story_annotation_json = _encode_json( $story_annotation ); };
+    if ( $@ or ( !$story_annotation_json ) )
+    {
+        die "Unable to encode story annotation to JSON for story $stories_id: $@\nHashref: " . Dumper( $story_annotation );
+    }
+
+    return $story_annotation_json;
+}
+
+# Fetch the CoreNLP annotation JSON from MongoDB for the story sentence
+# Return string JSON on success, undef if the annotation doesn't exist in MongoDB, die() on error
+sub fetch_annotation_json_for_story_sentence($$)
+{
+    my ( $db, $story_sentences_id ) = @_;
+
+    if ( !annotator_is_enabled() )
+    {
+        die "CoreNLP annotator is not enabled in the configuration.";
+    }
+
+    my $story_sentence = $db->find_by_id( 'story_sentences', $story_sentences_id );
+    unless ( $story_sentence->{ story_sentences_id } )
+    {
+        die "Story sentence with ID $story_sentences_id was not found.";
+    }
+
+    my $stories_id = $story_sentence->{ stories_id } + 0;
+
+    my $story = $db->find_by_id( 'stories', $stories_id );
+    unless ( $story->{ stories_id } )
+    {
+        die "Story $stories_id for story sentence $story_sentences_id was not found.";
+    }
+
+    my $annotation;
+    eval { $annotation = _fetch_annotation_from_gridfs_for_story( $db, $stories_id ); };
+    if ( $@ )
+    {
+        die "Unable to fetch annotation for story $stories_id: $@";
+    }
+
+    unless ( defined $annotation )
+    {
+        return undef;
+    }
+
+    unless ( exists( $annotation->{ $story_sentences_id } ) )
+    {
+        die "Annotation for story sentence $story_sentences_id does not exist in story's $stories_id annotation.";
+    }
+
+    # Test sanity
+    my $story_sentence_annotation = $annotation->{ $story_sentences_id };
+    unless ( exists $story_sentence_annotation->{ corenlp } )
+    {
+        die "Sentence annotation does not have 'corenlp' root key for story sentence " .
+          $story_sentences_id . ", story $stories_id";
+    }
+
+    # Encode back to JSON
+    my $story_sentence_annotation_json;
+    eval { $story_sentence_annotation_json = _encode_json( $story_sentence_annotation ); };
+    if ( $@ or ( !$story_sentence_annotation_json ) )
+    {
+        die "Unable to encode sentence annotation to JSON for story sentence " .
+          $story_sentences_id . ", story $stories_id: $@\nHashref: " . Dumper( $story_sentence_annotation );
+    }
+
+    return $story_sentence_annotation_json;
+}
+
+# Fetch the CoreNLP annotation JSON from MongoDB for the story and all its sentences
+# Annotation for the concatenation of all sentences will have a key of sentences_concatenation_index(), e.g.:
+#
+# {
+#     '_' => { 'corenlp' => 'annotation of the concatenation of all story sentences' },
+#     1 => { 'corenlp' => 'annotation of the sentence with story_sentences_id => 1' },
+#     2 => { 'corenlp' => 'annotation of the sentence with story_sentences_id => 2' },
+#     3 => { 'corenlp' => 'annotation of the sentence with story_sentences_id => 3' },
+#     ...
+# }
+#
+# Return string JSON on success, undef if the annotation doesn't exist in MongoDB, die() on error
+sub fetch_annotation_json_for_story_and_all_sentences($$)
+{
+    my ( $db, $stories_id ) = @_;
+
+    if ( !annotator_is_enabled() )
+    {
+        die "CoreNLP annotator is not enabled in the configuration.";
+    }
+
+    my $story = $db->find_by_id( 'stories', $stories_id );
+    unless ( $story->{ stories_id } )
+    {
+        die "Story $stories_id was not found.";
+    }
+
+    my $annotation;
+    eval { $annotation = _fetch_annotation_from_gridfs_for_story( $db, $stories_id ); };
+    if ( $@ )
+    {
+        die "Unable to fetch annotation for story $stories_id: $@";
+    }
+
+    unless ( defined $annotation )
+    {
+        return undef;
+    }
+
+    # Test sanity
+    my $sentences_concat_text = sentences_concatenation_index() . '';
+    unless ( exists( $annotation->{ $sentences_concat_text } ) )
+    {
+        die "Annotation of the concatenation of all sentences under concatenation index " .
+          "'$sentences_concat_text' doesn't exist for story $stories_id";
+    }
+
+    # Encode back to JSON
+    my $annotation_json;
+    eval { $annotation_json = _encode_json( $annotation ); };
+    if ( $@ or ( !$annotation_json ) )
+    {
+        die "Unable to encode story and its sentences annotation to JSON for story " .
+          $stories_id . ": $@\nHashref: " . Dumper( $annotation );
+    }
+
+    return $annotation_json;
 }
 
 1;
