@@ -9,6 +9,7 @@ use MediaWords::CommonLibs;
 use MediaWords::Util::Config;
 use MediaWords::Util::Web;
 use MediaWords::KeyValueStore::GridFS;
+use MediaWords::Util::Text;
 use HTTP::Request;
 use HTTP::Status qw(:constants);
 use Encode;
@@ -148,6 +149,11 @@ sub _corenlp_annotate($)
     {
         # CoreNLP doesn't accept empty strings, but that might happen with some stories
         die "Text is undefined or empty.";
+    }
+    unless ( MediaWords::Util::Text::is_valid_utf8( $text ) )
+    {
+        # Text will be encoded to JSON, so we test the UTF-8 validity before doing anything else
+        die "Text is not a valid UTF-8 file: $text";
     }
 
     # Create JSON request
