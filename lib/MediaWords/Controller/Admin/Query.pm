@@ -12,7 +12,6 @@ use JSON;
 
 use MediaWords::Solr;
 
-# list of stories with the given feed id
 sub sentences : Local : PathPrefix( '/api' )
 {
     my ( $self, $c ) = @_;

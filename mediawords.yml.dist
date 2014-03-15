@@ -277,6 +277,12 @@ mediawords:
     
     # url for solr queries
     # solr_select_url: http://localhost:8983/solr/collection1/select
-    
+
+    # By default API requests require a invalid 'key' param.
+    # comment to allow api requests without a key.
+    # WARNING DO NOT enable on a production or Internet connected instance
+    # allow_unauthenticated_api_requests: yes
+
     # set to "yes" to skip requirement to run on the correct database schema version
     # ignore_schema_version: "no"
+
