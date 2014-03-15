@@ -363,8 +363,8 @@ EOF
     }
     say STDERR 'JSON length: ' . length( $json_annotation );
 
-    # Write to GridFS
-    eval { my $path = $_gridfs_store->store_content( $db, $downloads_id, \$json_annotation ); };
+    # Write to GridFS, index by stories_id
+    eval { my $path = $_gridfs_store->store_content( $db, $stories_id, \$json_annotation ); };
     if ( $@ )
     {
         _fatal_error( "Unable to store CoreNLP annotation result to GridFS because: $@" );
