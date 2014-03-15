@@ -288,7 +288,7 @@ sub _fatal_error($)
 
 # Run the CoreNLP annotation for the story, store results in MongoDB
 # Return 1 on success, die()s on error, exit()s on fatal error
-sub store_annotation_for_stories_id($$)
+sub store_annotation_for_story($$)
 {
     my ( $db, $stories_id ) = @_;
 
@@ -365,28 +365,6 @@ EOF
     }
 
     return 1;
-}
-
-# Run the CoreNLP annotation for the download, store results in MongoDB
-# Return 1 on success, die()s on error, exit()s on fatal error
-sub store_annotation_for_downloads_id($$)
-{
-    my ( $db, $downloads_id ) = @_;
-
-    if ( !annotator_is_enabled() )
-    {
-        _fatal_error( "CoreNLP annotator is not enabled in the configuration." );
-    }
-
-    my $download = $db->find_by_id( 'downloads', $downloads_id );
-    unless ( $download->{ downloads_id } )
-    {
-        die "Download with ID $downloads_id was not found.";
-    }
-
-    my $stories_id = $download->{ stories_id } + 0;
-
-    return store_annotation_for_stories_id( $db, $stories_id );
 }
 
 1;

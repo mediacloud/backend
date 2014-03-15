@@ -55,7 +55,16 @@ sub run($;$)
 
     $db->begin_work;
 
-    eval { MediaWords::Util::CoreNLP::store_annotation_for_downloads_id( $db, $downloads_id ); };
+    my $download = $db->find_by_id( 'downloads', $downloads_id );
+    unless ( $download->{ downloads_id } )
+    {
+        $db->rollback;
+        die "Download with ID $downloads_id was not found.";
+    }
+
+    my $stories_id = $download->{ stories_id } + 0;
+
+    eval { MediaWords::Util::CoreNLP::store_annotation_for_story( $db, $stories_id ); };
     if ( $@ )
     {
         $db->rollback;
