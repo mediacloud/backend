@@ -12,6 +12,8 @@ use MediaWords::Languages::Language;
 use List::Util qw(min);
 use Memoize;
 use Tie::Cache;
+use Encode;
+use utf8;
 
 # Cache output of _words_in_text() because get_similarity_score() is called
 # many times with the very same first parameter (which is "title+description")
@@ -155,6 +157,22 @@ sub get_similarity_score($$;$)
     # say "Recall: $recall";
 
     return $f_measure;
+}
+
+# Check whether the string is valid UTF-8
+sub is_valid_utf8($)
+{
+    my $s = shift;
+
+    my $valid = 1;
+
+    Encode::_utf8_on( $s );
+
+    $valid = 0 unless ( utf8::valid( $s ) );
+
+    Encode::_utf8_off( $s );
+
+    return $valid;
 }
 
 1;
