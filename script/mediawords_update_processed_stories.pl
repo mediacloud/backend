@@ -24,32 +24,62 @@ sub update_processed_stories
 
     $db->dbh->{ AutoCommit } = 0;
 
-    my $last_story_sentences_id_processed =
-      ( $db->query( " SELECT value from database_variables where name = 'LAST_STORY_SENTENCES_ID_PROCESSED' " )->flat() )
-      [ 0 ];
+    my $last_story_sentences_id_processed = (
+        $db->query(
+            <<EOF
+        SELECT value
+        FROM database_variables
+        WHERE name = 'LAST_STORY_SENTENCES_ID_PROCESSED'
+EOF
+        )->flat()
+    )[ 0 ];
 
-    die unless defined( $last_story_sentences_id_processed );
+    unless ( defined( $last_story_sentences_id_processed ) )
+    {
+        die "'LAST_STORY_SENTENCES_ID_PROCESSED' variable is undefined.\n";
+    }
 
-    my $stop_story_sentences_id = ( $db->query( " SELECT max(story_sentences_id) from story_sentences" )->flat() )[ 0 ];
+    my $stop_story_sentences_id = (
+        $db->query(
+            <<EOF
+        SELECT MAX(story_sentences_id)
+        FROM story_sentences
+EOF
+        )->flat()
+    )[ 0 ];
 
     if ( $last_story_sentences_id_processed == $stop_story_sentences_id )
     {
-        say STDERR "processed_stories is up to date. Stop story_sentences_id = $stop_story_sentences_id";
+        say STDERR "'processed_stories' is up to date. Stop story_sentences_id = $stop_story_sentences_id";
         return;
     }
 
-    say STDERR "Updating processed stories from $last_story_sentences_id_processed to $stop_story_sentences_id";
+    say STDERR "Updating processed stories from $last_story_sentences_id_processed to $stop_story_sentences_id...";
 
     $db->query(
-" INSERT INTO processed_stories ( stories_id ) select distinct( stories_id ) from story_sentences where story_sentences_id >? and story_sentences_id <= ? order by stories_id",
+        <<EOF,
+        INSERT INTO processed_stories (stories_id)
+            SELECT DISTINCT (stories_id)
+            FROM story_sentences
+            WHERE story_sentences_id > ?
+              AND story_sentences_id <= ?
+            ORDER BY stories_id
+EOF
         $last_story_sentences_id_processed, $stop_story_sentences_id
     );
 
-    $db->query( "UPDATE database_variables SET value = ? where name =  'LAST_STORY_SENTENCES_ID_PROCESSED' ",
-        $stop_story_sentences_id );
+    $db->query(
+        <<EOF,
+        UPDATE database_variables
+        SET value = ?
+        WHERE name = 'LAST_STORY_SENTENCES_ID_PROCESSED'
+EOF
+        $stop_story_sentences_id
+    );
 
     $db->commit;
 
+    say STDERR "Updated processed stories from $last_story_sentences_id_processed to $stop_story_sentences_id.";
 }
 
 sub main
