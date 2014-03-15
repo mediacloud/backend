@@ -65,7 +65,7 @@ BEGIN
         eval { $uri = URI->new( $url )->canonical; };
         if ( $@ )
         {
-            _fatal_error( "Invalid CoreNLP annotator URI: $url" );
+            _fatal_error( "Invalid CoreNLP annotator URI '$url': $@" );
         }
 
         $_corenlp_annotator_url = $uri->as_string;
@@ -165,7 +165,7 @@ sub _annotate_text($)
     eval { $text_json_encoded = Encode::encode_utf8( $text_json ); };
     if ( $@ or ( !$text_json_encoded ) )
     {
-        die "Unable to encode_utf8() JSON text to be annotated: $text_json";
+        die "Unable to encode_utf8() JSON text to be annotated: $@\nJSON: $text_json";
     }
 
     # Make a request
@@ -235,7 +235,7 @@ sub _annotate_text($)
     {
         # If the JSON is invalid, it's probably something broken with the
         # remote CoreNLP service, so that's why whe do _fatal_error() here
-        _fatal_error( "Unable to parse JSON response: $results_string" );
+        _fatal_error( "Unable to parse JSON response: $@\nJSON string: $results_string" );
     }
 
     # Check sanity
@@ -351,7 +351,7 @@ EOF
     eval { $json_annotation = JSON->new->utf8( 1 )->pretty( 0 )->encode( \%annotations ); };
     if ( $@ or ( !$json_annotation ) )
     {
-        _fatal_error( "Unable to encode hashref to JSON: " . Dumper( $json_annotation ) );
+        _fatal_error( "Unable to encode hashref to JSON: $@\nHashref: " . Dumper( $json_annotation ) );
         return 0;
     }
     say STDERR 'JSON length: ' . length( $json_annotation );
@@ -360,7 +360,7 @@ EOF
     eval { my $path = $_gridfs_store->store_content( $db, $stories_id, \$json_annotation ); };
     if ( $@ )
     {
-        _fatal_error( "Unable to store CoreNLP annotation result to GridFS because: $@" );
+        _fatal_error( "Unable to store CoreNLP annotation result to GridFS: $@" );
         return 0;
     }
 
