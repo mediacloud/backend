@@ -128,6 +128,48 @@
             </ul>
         </td>
     </tr>
+    <tr>
+        <th>CoreNLP annotation<br />(story):</th>
+        <td>
+            [% IF corenlp_story_json %]
+                <textarea cols="120" rows="12">[% corenlp_story_json | html %]</textarea>
+            [% ELSE %]
+                not annotated
+            [% END %]
+        </td>
+    </tr>
+    <tr>
+        <th>CoreNLP annotation<br />(sentences):</th>
+        <td>
+            [% IF corenlp_sentences_json %]
+                <ul>
+                    [% FOREACH s IN corenlp_sentences_json %]
+                        <li>
+                            [% s.key | html %]
+                            =>
+                            [% IF s.value %]
+                                <textarea cols="120" rows="12">[% s.value | html %]</textarea>
+                            [% ELSE %]
+                                not annotated
+                            [% END %]
+                        </li>
+                    [% END %]
+                </ul>
+            [% ELSE %]
+                not annotated
+            [% END %]
+        </td>
+    </tr>
+    <tr>
+        <th>CoreNLP annotation<br />(story + sentences):</th>
+        <td>
+            [% IF corenlp_story_and_sentences_json %]
+                <textarea cols="120" rows="12">[% corenlp_story_and_sentences_json | html %]</textarea>
+            [% ELSE %]
+                not annotated
+            [% END %]
+        </td>
+    </tr>
 
 </table>
 
