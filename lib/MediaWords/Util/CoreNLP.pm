@@ -125,7 +125,7 @@ BEGIN
 #    }
 #
 # die()s on error
-sub _corenlp_annotate($)
+sub _annotate_text($)
 {
     my $text = shift;
 
@@ -288,7 +288,7 @@ sub _fatal_error($)
 
 # Run the CoreNLP annotation for the story, store results in MongoDB
 # Return 1 on success, die()s on error, exit()s on fatal error
-sub annotate_stories_id($$)
+sub store_annotation_for_stories_id($$)
 {
     my ( $db, $stories_id ) = @_;
 
@@ -328,7 +328,7 @@ EOF
 
         say STDERR "Annotating story's $stories_id sentence " . ( $sentence_number + 1 ) . " / " .
           scalar( @{ $story_sentences } ) . "...";
-        $annotations{ $sentence_id } = _corenlp_annotate( $sentence_text );
+        $annotations{ $sentence_id } = _annotate_text( $sentence_text );
         unless ( defined $annotations{ $sentence_id } )
         {
             die "Unable to annotate story sentence $sentence_id.";
@@ -340,7 +340,7 @@ EOF
 
     say STDERR "Annotating story's $stories_id concatenated sentences...";
     my $concat_index = CORENLP_SENTENCES_CONCAT_INDEX . '';
-    $annotations{ $concat_index } = _corenlp_annotate( $sentences_concat_text );
+    $annotations{ $concat_index } = _annotate_text( $sentences_concat_text );
     unless ( $annotations{ $concat_index } )
     {
         die "Unable to annotate story sentences concatenation for story $stories_id.\n";
@@ -369,7 +369,7 @@ EOF
 
 # Run the CoreNLP annotation for the download, store results in MongoDB
 # Return 1 on success, die()s on error, exit()s on fatal error
-sub annotate_downloads_id($$)
+sub store_annotation_for_downloads_id($$)
 {
     my ( $db, $downloads_id ) = @_;
 
@@ -386,7 +386,7 @@ sub annotate_downloads_id($$)
 
     my $stories_id = $download->{ stories_id } + 0;
 
-    return annotate_stories_id( $db, $stories_id );
+    return store_annotation_for_stories_id( $db, $stories_id );
 }
 
 1;

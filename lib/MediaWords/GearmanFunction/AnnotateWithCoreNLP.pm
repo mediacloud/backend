@@ -55,7 +55,7 @@ sub run($;$)
 
     $db->begin_work;
 
-    eval { MediaWords::Util::CoreNLP::annotate_downloads_id( $db, $downloads_id ); };
+    eval { MediaWords::Util::CoreNLP::store_annotation_for_downloads_id( $db, $downloads_id ); };
     if ( $@ )
     {
         $db->rollback;
