@@ -286,24 +286,17 @@ sub _fatal_error($)
     exit 1;
 }
 
-# Run the CoreNLP annotation for the download, store results in MongoDB
+# Run the CoreNLP annotation for the story, store results in MongoDB
 # Return 1 on success, die()s on error, exit()s on fatal error
-sub annotate_downloads_id($$)
+sub annotate_stories_id($$)
 {
-    my ( $db, $downloads_id ) = @_;
+    my ( $db, $stories_id ) = @_;
 
     if ( !annotator_is_enabled() )
     {
         _fatal_error( "CoreNLP annotator is not enabled in the configuration." );
     }
 
-    my $download = $db->find_by_id( 'downloads', $downloads_id );
-    unless ( $download->{ downloads_id } )
-    {
-        die "Download with ID $downloads_id was not found.";
-    }
-
-    my $stories_id = $download->{ stories_id } + 0;
     my $story = $db->find_by_id( 'stories', $stories_id );
     unless ( $story->{ stories_id } )
     {
@@ -372,6 +365,28 @@ EOF
     }
 
     return 1;
+}
+
+# Run the CoreNLP annotation for the download, store results in MongoDB
+# Return 1 on success, die()s on error, exit()s on fatal error
+sub annotate_downloads_id($$)
+{
+    my ( $db, $downloads_id ) = @_;
+
+    if ( !annotator_is_enabled() )
+    {
+        _fatal_error( "CoreNLP annotator is not enabled in the configuration." );
+    }
+
+    my $download = $db->find_by_id( 'downloads', $downloads_id );
+    unless ( $download->{ downloads_id } )
+    {
+        die "Download with ID $downloads_id was not found.";
+    }
+
+    my $stories_id = $download->{ stories_id } + 0;
+
+    return annotate_stories_id( $db, $stories_id );
 }
 
 1;
