@@ -94,6 +94,46 @@ BEGIN
     }
 }
 
+# Encode hashref to JSON, die() on error
+sub _encode_json($)
+{
+    my $hashref = shift;
+
+    unless ( ref( $hashref ) eq ref( {} ) )
+    {
+        die "Parameter is not a hashref: " . Dumper( $hashref );
+    }
+
+    my $json;
+    eval { $json = JSON->new->utf8( 1 )->pretty( 0 )->encode( $hashref ); };
+    if ( $@ or ( !$json ) )
+    {
+        die "Unable to encode hashref to JSON: $@\nHashref: " . Dumper( $hashref );
+    }
+
+    return $json;
+}
+
+# Decode JSON to hashref, die() on error
+sub _decode_json($)
+{
+    my $json = shift;
+
+    unless ( $json )
+    {
+        die "JSON is empty or undefined.\n";
+    }
+
+    my $hashref;
+    eval { $hashref = decode_json $json; };
+    if ( $@ or ( !$hashref ) )
+    {
+        die "Unable to decode JSON to hashref: $@\nJSON: $json";
+    }
+
+    return $hashref;
+}
+
 # Make a request to the CoreNLP annotator, return hashref of parsed JSON
 # results (without the "corenlp" key)
 #
@@ -157,14 +197,20 @@ sub _annotate_text($)
     }
 
     # Create JSON request
-    my $text_hashref = { 'text' => $text };
-    my $text_json = encode_json( $text_hashref );
+    my $text_json;
+    eval { $text_json = _encode_json( { 'text' => $text } ); };
+    if ( $@ or ( !$text_json ) )
+    {
+        # Not critical, might happen to some stories, no need to shut down the annotator
+        die "Unable to encode text to a JSON request: $@\nText: $text";
+    }
 
     # Text has to be encoded because HTTP::Request only accepts bytes as POST data
     my $text_json_encoded;
     eval { $text_json_encoded = Encode::encode_utf8( $text_json ); };
     if ( $@ or ( !$text_json_encoded ) )
     {
+        # Not critical, might happen to some stories, no need to shut down the annotator
         die "Unable to encode_utf8() JSON text to be annotated: $@\nJSON: $text_json";
     }
 
@@ -230,7 +276,7 @@ sub _annotate_text($)
 
     # Parse resulting JSON
     my $results_hashref;
-    eval { $results_hashref = decode_json $results_string; };
+    eval { $results_hashref = _decode_json( $results_string ); };
     if ( $@ or ( !ref $results_hashref ) )
     {
         # If the JSON is invalid, it's probably something broken with the
@@ -348,8 +394,8 @@ EOF
 
     # Convert results to a minimized JSON
     my $json_annotation;
-    eval { $json_annotation = JSON->new->utf8( 1 )->pretty( 0 )->encode( \%annotations ); };
-    if ( $@ or ( !$json_annotation ) )
+    eval { $json_annotation = _encode_json( \%annotations ); }
+      if ( $@ or ( !$json_annotation ) )
     {
         _fatal_error( "Unable to encode hashref to JSON: $@\nHashref: " . Dumper( $json_annotation ) );
         return 0;
