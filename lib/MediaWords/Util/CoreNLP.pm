@@ -472,6 +472,9 @@ EOF
         return 0;
     }
 
+    # Log to the PostgreSQL
+    $db->query( 'INSERT INTO corenlp_annotated_stories (stories_id) VALUES (?)', $stories_id );
+
     return 1;
 }
 

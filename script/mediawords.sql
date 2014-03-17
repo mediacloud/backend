@@ -68,7 +68,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4443;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4444;
     
 BEGIN
 
@@ -2187,3 +2187,15 @@ $$ LANGUAGE PLPGSQL;
 CREATE TRIGGER gearman_job_queue_sync_lastmod
     BEFORE UPDATE ON gearman_job_queue
     FOR EACH ROW EXECUTE PROCEDURE gearman_job_queue_sync_lastmod();
+
+
+--
+-- List of CoreNLP-annotated stories
+--
+
+CREATE TABLE corenlp_annotated_stories (
+    corenlp_annotated_stories_id    BIGSERIAL   PRIMARY KEY,
+    stories_id                      INT         NOT NULL REFERENCES stories ON DELETE CASCADE
+);
+
+CREATE INDEX corenlp_annotated_stories_stories_id ON corenlp_annotated_stories ( stories_id );
