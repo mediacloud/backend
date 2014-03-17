@@ -54,11 +54,11 @@ sub encode_and_compress($$;$$)
     eval {
         if ( $use_bzip2_instead_of_gzip )
         {
-            $encoded_and_compressed_content = MediaWords::Util::Compress::bzip2( $$content_ref );
+            $encoded_and_compressed_content = MediaWords::Util::Compress::encode_and_bzip2( $$content_ref );
         }
         else
         {
-            $encoded_and_compressed_content = MediaWords::Util::Compress::gzip( $$content_ref );
+            $encoded_and_compressed_content = MediaWords::Util::Compress::encode_and_gzip( $$content_ref );
         }
 
     };
@@ -93,11 +93,11 @@ sub uncompress_and_decode($$;$$)
     eval {
         if ( $use_bunzip2_instead_of_gunzip )
         {
-            $uncompressed_and_decoded_content = MediaWords::Util::Compress::bunzip2( $$content_ref );
+            $uncompressed_and_decoded_content = MediaWords::Util::Compress::bunzip2_and_decode( $$content_ref );
         }
         else
         {
-            $uncompressed_and_decoded_content = MediaWords::Util::Compress::gunzip( $$content_ref );
+            $uncompressed_and_decoded_content = MediaWords::Util::Compress::gunzip_and_decode( $$content_ref );
         }
     };
     if ( $@ or ( !defined $uncompressed_and_decoded_content ) )
