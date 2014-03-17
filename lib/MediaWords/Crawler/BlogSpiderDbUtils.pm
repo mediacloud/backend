@@ -12,7 +12,6 @@ use DateTime;
 use Encode;
 use Feed::Find;
 use HTML::LinkExtractor;
-use IO::Compress::Gzip;
 use URI::Split;
 use Carp;
 

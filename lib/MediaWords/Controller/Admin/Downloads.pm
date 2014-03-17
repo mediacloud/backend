@@ -10,7 +10,6 @@ use DateTime;
 # MODULES
 
 use HTML::Entities;
-use IO::Uncompress::Gunzip;
 
 use MediaWords::Crawler::Extractor;
 use MediaWords::Crawler::Engine;

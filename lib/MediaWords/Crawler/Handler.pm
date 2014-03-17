@@ -18,7 +18,6 @@ use Date::Parse;
 use DateTime;
 use Encode;
 use FindBin;
-use IO::Compress::Gzip;
 use URI::Split;
 use if $] < 5.014, Switch => 'Perl6';
 use if $] >= 5.014, feature => 'switch';

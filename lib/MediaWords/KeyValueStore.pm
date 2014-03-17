@@ -10,10 +10,8 @@ use Moose::Role;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
-use Encode;
-use IO::Compress::Gzip qw(:constants);
-use IO::Uncompress::Gunzip;
 use MediaWords::Util::Config;
+use MediaWords::Util::Compress;
 
 #
 # Required methods
@@ -49,24 +47,22 @@ sub encode_and_gzip($$;$)
 {
     my ( $self, $content_ref, $content_id ) = @_;
 
-    # Will croak on error
-    my $encoded_content = Encode::encode( 'utf-8', $$content_ref );
-
-    my $gzipped_content;
-
-    if ( !( IO::Compress::Gzip::gzip \$encoded_content => \$gzipped_content, -Level => Z_BEST_COMPRESSION, Minimal => 1 ) )
+    my $encoded_and_gzipped_content;
+    eval { $encoded_and_gzipped_content = MediaWords::Util::Compress::encode_and_gzip( $$content_ref ); };
+    if ( $@ or ( !defined $encoded_and_gzipped_content ) )
     {
         if ( $content_id )
         {
-            die "Unable to gzip content for identifier '$content_id': " . $IO::Compress::Gzip::GzipError . "\n";
+            die "Unable to gzip content for identifier '$content_id': $@";
         }
         else
         {
-            die "Unable to gzip content: $IO::Compress::Gzip::GzipError\n";
+            die "Unable to gzip content: $@";
         }
+
     }
 
-    return $gzipped_content;
+    return $encoded_and_gzipped_content;
 }
 
 # Helper to gunzip and decode content
@@ -75,26 +71,23 @@ sub encode_and_gzip($$;$)
 # Returns: gunzipped content on success, dies on error
 sub gunzip_and_decode($$;$)
 {
-    my ( $self, $gzipped_content_ref, $content_id ) = @_;
+    my ( $self, $content_ref, $content_id ) = @_;
 
-    my $content;
-
-    if ( !( IO::Uncompress::Gunzip::gunzip $gzipped_content_ref => \$content ) )
+    my $gunzipped_and_decoded_content;
+    eval { $gunzipped_and_decoded_content = MediaWords::Util::Compress::gunzip_and_decode( $$content_ref ); };
+    if ( $@ or ( !defined $gunzipped_and_decoded_content ) )
     {
         if ( $content_id )
         {
-            die "Unable to gunzip content for identifier '$content_id': " . $IO::Uncompress::Gunzip::GunzipError . "\n";
+            die "Unable to gunzip content for identifier '$content_id': $@";
         }
         else
         {
-            die "Unable to gunzip content: $IO::Uncompress::Gunzip::GunzipError\n";
+            die "Unable to gunzip content: $@";
         }
     }
 
-    # Will croak on error
-    my $decoded_content = Encode::decode( 'utf-8', $content );
-
-    return $decoded_content;
+    return $gunzipped_and_decoded_content;
 }
 
 no Moose;    # gets rid of scaffolding

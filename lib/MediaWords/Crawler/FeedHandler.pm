@@ -12,7 +12,6 @@ use Date::Parse;
 use DateTime;
 use Encode;
 use FindBin;
-use IO::Compress::Gzip;
 use URI::Split;
 use Carp;
 
