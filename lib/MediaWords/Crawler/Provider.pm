@@ -141,7 +141,10 @@ sub _add_stale_feeds
     my $constraint = "((last_attempted_download_time IS NULL " . "OR (last_attempted_download_time < (NOW() - interval ' " .
       STALE_FEED_INTERVAL . " seconds')) OR $last_new_story_time_clause ) " . "AND url ~ 'https?://')";
 
-    $dbs->query( "drop table if exists feeds_to_queue" );
+    # If the table doesn't exist, PostgreSQL sends a NOTICE which breaks the "no warnings" unit test
+    $dbs->query( 'SET client_min_messages=WARNING' );
+    $dbs->query( 'DROP TABLE IF EXISTS feeds_to_queue' );
+    $dbs->query( 'SET client_min_messages=NOTICE' );
 
     $dbs->query( <<END );
 create temporary table feeds_to_queue as 
