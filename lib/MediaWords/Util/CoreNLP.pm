@@ -17,6 +17,9 @@ use URI;
 use JSON;
 use Data::Dumper;
 
+# Store / fetch downloads using Bzip2 compression
+use constant CORENLP_GRIDFS_USE_BZIP2 => 1;
+
 # (Cached) CoreNLP annotator URL
 my $_corenlp_annotator_url;        # lazy-initialized in BEGIN()
 my $_corenlp_annotator_timeout;    # lazy-initialized in BEGIN()
@@ -338,7 +341,18 @@ sub _fetch_annotation_from_gridfs_for_story($$)
 
     # Fetch annotation
     my $json_ref = undef;
-    eval { $json_ref = $_gridfs_store->fetch_content( $db, $stories_id ); };
+
+    my $param_object_path                   = undef;                         # no such thing, objects are indexed by filename
+    my $param_skip_uncompress_and_decode    = 0;                             # objects are compressed...
+    my $param_use_bunzip2_instead_of_gunzip = CORENLP_GRIDFS_USE_BZIP2 + 0;  # ...with Bzip2
+
+    eval {
+        $json_ref = $_gridfs_store->fetch_content(
+            $db, $stories_id, $param_object_path,
+            $param_skip_uncompress_and_decode,
+            $param_use_bunzip2_instead_of_gunzip
+        );
+    };
     if ( $@ or ( !defined $json_ref ) )
     {
         die "GridFS died while fetching annotation for story $stories_id: $@\n";
@@ -465,7 +479,16 @@ EOF
     say STDERR 'JSON length: ' . length( $json_annotation );
 
     # Write to GridFS, index by stories_id
-    eval { my $path = $_gridfs_store->store_content( $db, $stories_id, \$json_annotation ); };
+    eval {
+        my $param_skip_encode_and_compress  = 0;                               # objects should be compressed...
+        my $param_use_bzip2_instead_of_gzip = CORENLP_GRIDFS_USE_BZIP2 + 0;    # ...with Bzip2
+
+        my $path = $_gridfs_store->store_content(
+            $db, $stories_id, \$json_annotation,
+            $param_skip_encode_and_compress,
+            $param_use_bzip2_instead_of_gzip
+        );
+    };
     if ( $@ )
     {
         _fatal_error( "Unable to store CoreNLP annotation result to GridFS: $@" );
