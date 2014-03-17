@@ -45,7 +45,7 @@ sub gzip($)
     return $gzipped_data;
 }
 
-# Encode and gzip data; die() on error
+# Encode and Gzip data; die() on error
 sub encode_and_gzip($)
 {
     my $data = shift;
