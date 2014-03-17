@@ -148,19 +148,19 @@ sub remove_content($$$;$)
 # Moose method
 sub store_content($$$$;$)
 {
-    my ( $self, $db, $object_id, $content_ref, $skip_encode_and_gzip ) = @_;
+    my ( $self, $db, $object_id, $content_ref, $skip_encode_and_compress ) = @_;
 
     $self->_connect_to_mongodb_or_die();
 
     # Encode + gzip
     my $content_to_store;
-    if ( $skip_encode_and_gzip )
+    if ( $skip_encode_and_compress )
     {
         $content_to_store = $$content_ref;
     }
     else
     {
-        $content_to_store = $self->encode_and_gzip( $content_ref, $object_id );
+        $content_to_store = $self->encode_and_compress( $content_ref, $object_id );
     }
 
     my $filename = '' . $object_id;
@@ -217,7 +217,7 @@ sub store_content($$$$;$)
 # Moose method
 sub fetch_content($$$;$$)
 {
-    my ( $self, $db, $object_id, $object_path, $skip_gunzip_and_decode ) = @_;
+    my ( $self, $db, $object_id, $object_path, $skip_uncompress_and_decode ) = @_;
 
     $self->_connect_to_mongodb_or_die();
 
@@ -277,13 +277,13 @@ sub fetch_content($$$;$$)
 
     # Gunzip + decode
     my $decoded_content;
-    if ( $skip_gunzip_and_decode )
+    if ( $skip_uncompress_and_decode )
     {
         $decoded_content = $gzipped_content;
     }
     else
     {
-        $decoded_content = $self->gunzip_and_decode( \$gzipped_content, $object_id );
+        $decoded_content = $self->uncompress_and_decode( \$gzipped_content, $object_id );
     }
 
     return \$decoded_content;

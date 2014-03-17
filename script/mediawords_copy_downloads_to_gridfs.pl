@@ -310,8 +310,8 @@ EOF
                     # Skipping gunzipping, decoding, encoding and gzipping again would improve the
                     # migration speed, but for the sake of trying MongoDBs stability and performance
                     # we go the full way.
-                    my Readonly $skip_gunzip_and_decode = 0;
-                    my Readonly $skip_encode_and_gzip   = 0;
+                    my Readonly $skip_uncompress_and_decode = 0;
+                    my Readonly $skip_encode_and_compress   = 0;
 
                     # Fetch from Tar
                     my $content_ref;
@@ -321,7 +321,7 @@ EOF
                             $db,
                             $download->{ downloads_id },
                             $download->{ downloads_path },
-                            $skip_gunzip_and_decode
+                            $skip_uncompress_and_decode
                         );
                         say STDERR "Done fetching download." if ( _verbose() );
                     };
@@ -336,8 +336,8 @@ EOF
                     say STDERR "Will store download to GridFS..." if ( _verbose() );
 
                     # Store to GridFS
-                    my $gridfs_path =
-                      $gridfs_store->store_content( $db, $download->{ downloads_id }, $content_ref, $skip_encode_and_gzip );
+                    my $gridfs_path = $gridfs_store->store_content( $db, $download->{ downloads_id },
+                        $content_ref, $skip_encode_and_compress );
                     unless ( $gridfs_path )
                     {
                         die "Unable to store content for download " . $download->{ downloads_id };

@@ -39,55 +39,55 @@ requires 'remove_content';
 # if it doesn't, dies on error
 requires 'content_exists';
 
-# Helper to encode and gzip content
+# Helper to encode and compress content
 #
 # Parameters: content ref; content's identifier, e.g. download ID (optional)
-# Returns: gzipped content on success, dies on error
-sub encode_and_gzip($$;$)
+# Returns: compressed content on success, dies on error
+sub encode_and_compress($$;$)
 {
     my ( $self, $content_ref, $content_id ) = @_;
 
-    my $encoded_and_gzipped_content;
-    eval { $encoded_and_gzipped_content = MediaWords::Util::Compress::encode_and_gzip( $$content_ref ); };
-    if ( $@ or ( !defined $encoded_and_gzipped_content ) )
+    my $encoded_and_compressed_content;
+    eval { $encoded_and_compressed_content = MediaWords::Util::Compress::gzip( $$content_ref ); };
+    if ( $@ or ( !defined $encoded_and_compressed_content ) )
     {
         if ( $content_id )
         {
-            die "Unable to gzip content for identifier '$content_id': $@";
+            die "Unable to compress content for identifier '$content_id': $@";
         }
         else
         {
-            die "Unable to gzip content: $@";
+            die "Unable to compress content: $@";
         }
 
     }
 
-    return $encoded_and_gzipped_content;
+    return $encoded_and_compressed_content;
 }
 
-# Helper to gunzip and decode content
+# Helper to uncompress and decode content
 #
-# Parameters: gzipped content; content's identifier, e.g. download ID (optional)
-# Returns: gunzipped content on success, dies on error
-sub gunzip_and_decode($$;$)
+# Parameters: compressed content; content's identifier, e.g. download ID (optional)
+# Returns: uncompressed content on success, dies on error
+sub uncompress_and_decode($$;$)
 {
     my ( $self, $content_ref, $content_id ) = @_;
 
-    my $gunzipped_and_decoded_content;
-    eval { $gunzipped_and_decoded_content = MediaWords::Util::Compress::gunzip_and_decode( $$content_ref ); };
-    if ( $@ or ( !defined $gunzipped_and_decoded_content ) )
+    my $uncompressed_and_decoded_content;
+    eval { $uncompressed_and_decoded_content = MediaWords::Util::Compress::gunzip( $$content_ref ); };
+    if ( $@ or ( !defined $uncompressed_and_decoded_content ) )
     {
         if ( $content_id )
         {
-            die "Unable to gunzip content for identifier '$content_id': $@";
+            die "Unable to uncompress content for identifier '$content_id': $@";
         }
         else
         {
-            die "Unable to gunzip content: $@";
+            die "Unable to uncompress content: $@";
         }
     }
 
-    return $gunzipped_and_decoded_content;
+    return $uncompressed_and_decoded_content;
 }
 
 no Moose;    # gets rid of scaffolding

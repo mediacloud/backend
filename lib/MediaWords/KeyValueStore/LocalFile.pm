@@ -50,21 +50,21 @@ sub _directory_name($)
 # Moose method
 sub store_content($$$$;$)
 {
-    my ( $self, $db, $object_id, $content_ref, $skip_encode_and_gzip ) = @_;
+    my ( $self, $db, $object_id, $content_ref, $skip_encode_and_compress ) = @_;
 
     # Encode + gzip
     my $content_to_store;
-    if ( $skip_encode_and_gzip )
+    if ( $skip_encode_and_compress )
     {
         $content_to_store = $$content_ref;
     }
     else
     {
-        $content_to_store = $self->encode_and_gzip( $content_ref, $object_id, $skip_encode_and_gzip );
+        $content_to_store = $self->encode_and_compress( $content_ref, $object_id, $skip_encode_and_compress );
     }
 
     # e.g. "<media_id>/<year>/<month>/<day>/<hour>/<minute>[/<parent download_id>]/<download_id>[.gz]"
-    my $relative_path = MediaWords::Util::Paths::get_download_path( $db, $object_id, $skip_encode_and_gzip );
+    my $relative_path = MediaWords::Util::Paths::get_download_path( $db, $object_id, $skip_encode_and_compress );
     my $full_path = $self->_conf_data_content_dir . $relative_path;
 
     # Create missing directories for the path
@@ -81,7 +81,7 @@ sub store_content($$$$;$)
 # Moose method
 sub fetch_content($$$$;$)
 {
-    my ( $self, $db, $object_id, $object_path, $skip_gunzip_and_decode ) = @_;
+    my ( $self, $db, $object_id, $object_path, $skip_uncompress_and_decode ) = @_;
 
     unless ( defined $object_path )
     {
@@ -101,7 +101,7 @@ sub fetch_content($$$$;$)
         my $gzipped_content = read_file( $full_path, binmode => ':raw' );
 
         # Gunzip + decode
-        $decoded_content = $self->gunzip_and_decode( \$gzipped_content, $object_id );
+        $decoded_content = $self->uncompress_and_decode( \$gzipped_content, $object_id );
 
     }
     else
