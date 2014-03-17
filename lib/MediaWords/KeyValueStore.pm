@@ -41,14 +41,27 @@ requires 'content_exists';
 
 # Helper to encode and compress content
 #
-# Parameters: content ref; content's identifier, e.g. download ID (optional)
+# Parameters:
+# * content ref
+# * content's identifier, e.g. download ID (optional)
+# * true if the subroutine should use Bzip2 instead of Gzip (optional)
 # Returns: compressed content on success, dies on error
-sub encode_and_compress($$;$)
+sub encode_and_compress($$;$$)
 {
-    my ( $self, $content_ref, $content_id ) = @_;
+    my ( $self, $content_ref, $content_id, $use_bzip2_instead_of_gzip ) = @_;
 
     my $encoded_and_compressed_content;
-    eval { $encoded_and_compressed_content = MediaWords::Util::Compress::gzip( $$content_ref ); };
+    eval {
+        if ( $use_bzip2_instead_of_gzip )
+        {
+            $encoded_and_compressed_content = MediaWords::Util::Compress::bzip2( $$content_ref );
+        }
+        else
+        {
+            $encoded_and_compressed_content = MediaWords::Util::Compress::gzip( $$content_ref );
+        }
+
+    };
     if ( $@ or ( !defined $encoded_and_compressed_content ) )
     {
         if ( $content_id )
@@ -67,14 +80,26 @@ sub encode_and_compress($$;$)
 
 # Helper to uncompress and decode content
 #
-# Parameters: compressed content; content's identifier, e.g. download ID (optional)
+# Parameters:
+# * compressed content;
+# * content's identifier, e.g. download ID (optional)
+# * true if the subroutine should use Bunzip2 instead of Gunzip (optional)
 # Returns: uncompressed content on success, dies on error
-sub uncompress_and_decode($$;$)
+sub uncompress_and_decode($$;$$)
 {
-    my ( $self, $content_ref, $content_id ) = @_;
+    my ( $self, $content_ref, $content_id, $use_bunzip2_instead_of_gunzip ) = @_;
 
     my $uncompressed_and_decoded_content;
-    eval { $uncompressed_and_decoded_content = MediaWords::Util::Compress::gunzip( $$content_ref ); };
+    eval {
+        if ( $use_bunzip2_instead_of_gunzip )
+        {
+            $uncompressed_and_decoded_content = MediaWords::Util::Compress::bunzip2( $$content_ref );
+        }
+        else
+        {
+            $uncompressed_and_decoded_content = MediaWords::Util::Compress::gunzip( $$content_ref );
+        }
+    };
     if ( $@ or ( !defined $uncompressed_and_decoded_content ) )
     {
         if ( $content_id )
