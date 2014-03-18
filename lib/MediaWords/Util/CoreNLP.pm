@@ -134,6 +134,33 @@ sub _decode_json($)
     return $hashref;
 }
 
+# Get an English-language story from the database; return either a story
+# hashref or undef
+sub _get_english_language_story($$)
+{
+    my ( $db, $stories_id ) = @_;
+
+    my $story = $db->query(
+        <<EOF,
+        SELECT *
+        FROM stories
+        WHERE stories_id = ?
+
+          -- Stories with language field set to NULL are the ones fetched
+          -- before introduction of the multilanguage support, so they are
+          -- assumed to be in English
+          AND (language = 'en' OR language IS NULL)
+EOF
+        $stories_id
+    )->hash;
+    unless ( $story->{ stories_id } )
+    {
+        return undef;
+    }
+
+    return $story;
+}
+
 # Make a request to the CoreNLP annotator, return hashref of parsed JSON
 # results (without the "corenlp" key)
 #
@@ -321,10 +348,10 @@ sub _fetch_annotation_from_gridfs_for_story($$)
         die "CoreNLP annotator is not enabled in the configuration.";
     }
 
-    my $story = $db->find_by_id( 'stories', $stories_id );
-    unless ( $story->{ stories_id } )
+    my $story = _get_english_language_story( $db, $stories_id );
+    unless ( $story )
     {
-        die "Story with ID $stories_id was not found.";
+        die "English-language story with ID $stories_id was not found.";
     }
 
     # Test if annotation exists
@@ -419,10 +446,10 @@ sub store_annotation_for_story($$)
         _fatal_error( "CoreNLP annotator is not enabled in the configuration." );
     }
 
-    my $story = $db->find_by_id( 'stories', $stories_id );
-    unless ( $story->{ stories_id } )
+    my $story = _get_english_language_story( $db, $stories_id );
+    unless ( $story )
     {
-        die "Story with ID $stories_id was not found.";
+        die "English-language story with ID $stories_id was not found.";
     }
 
     my $story_sentences = $db->query(
@@ -512,10 +539,18 @@ sub fetch_annotation_json_for_story($$)
         die "CoreNLP annotator is not enabled in the configuration.";
     }
 
-    my $story = $db->find_by_id( 'stories', $stories_id );
+    my $story = $db->query(
+        <<EOF,
+        SELECT *
+        FROM stories
+        WHERE stories_id = ?
+          AND (language = 'en' OR language IS NULL)
+EOF
+        $stories_id
+    )->hash;
     unless ( $story->{ stories_id } )
     {
-        die "Story $stories_id was not found.";
+        die "English-language story $stories_id was not found.";
     }
 
     my $annotation;
@@ -574,10 +609,10 @@ sub fetch_annotation_json_for_story_sentence($$)
 
     my $stories_id = $story_sentence->{ stories_id } + 0;
 
-    my $story = $db->find_by_id( 'stories', $stories_id );
-    unless ( $story->{ stories_id } )
+    my $story = _get_english_language_story( $db, $stories_id );
+    unless ( $story )
     {
-        die "Story $stories_id for story sentence $story_sentences_id was not found.";
+        die "English-language story $stories_id for story sentence $story_sentences_id was not found.";
     }
 
     my $annotation;
@@ -638,10 +673,10 @@ sub fetch_annotation_json_for_story_and_all_sentences($$)
         die "CoreNLP annotator is not enabled in the configuration.";
     }
 
-    my $story = $db->find_by_id( 'stories', $stories_id );
-    unless ( $story->{ stories_id } )
+    my $story = _get_english_language_story( $db, $stories_id );
+    unless ( $story )
     {
-        die "Story $stories_id was not found.";
+        die "English-language story with ID $stories_id was not found.";
     }
 
     my $annotation;
