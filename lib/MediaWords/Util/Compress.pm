@@ -78,7 +78,7 @@ sub bunzip2_and_decode($)
 {
     my $data = shift;
 
-    my $bunzipped2_data = gunzip( $data );
+    my $bunzipped2_data = bunzip2( $data );
     my $decoded_data    = _decode_from_utf8( $bunzipped2_data );
 
     return $decoded_data;
