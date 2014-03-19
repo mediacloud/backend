@@ -8,3 +8,4 @@ mediacloud/test/__init__.py
 mediacloud/test/apitest.py
 mediacloud/test/storagetest.py
 mediacloud/test/fixtures/all_processed.json
+mediacloud/test/fixtures/sentences_by_story.json

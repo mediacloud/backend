@@ -1,5 +1,5 @@
 
-import unittest
+import unittest, os, json
 from mediacloud.storage import *
 
 class StorageTest(unittest.TestCase):
@@ -9,6 +9,33 @@ class StorageTest(unittest.TestCase):
     def _createThenDeleteDb(self,db):
         db.createDatabase(self.TEST_DB_NAME)
         db.deleteDatabase(self.TEST_DB_NAME)
+
+    def _addStoryFromSentencesToDb(self, db):
+        story_sentences = self._getFakeStorySentences(1)['207593389']
+        db.createDatabase(self.TEST_DB_NAME)
+        worked = db.addStoryFromSentences(story_sentences)
+        self.assertTrue(worked)
+        saved_story = db.getStory(str(story_sentences[0]['stories_id']))
+        self.assertNotEqual(saved_story,None)
+        self.assertEquals(int(saved_story['_id']), story_sentences[0]['stories_id'])
+        self.assertEquals(saved_story['story_sentences_count'], 20)
+        db.deleteDatabase(self.TEST_DB_NAME)
+
+    def _updateStoryFromSentencesToDb(self, db):
+        story_sentences = self._getFakeStorySentences(1)['207593389']
+        db.createDatabase(self.TEST_DB_NAME)
+        self.assertEquals(len(story_sentences),20)
+        worked = db.addStoryFromSentences(story_sentences)
+        self.assertTrue(worked)
+        saved_story = db.getStory(str(story_sentences[0]['stories_id']))
+        self.assertNotEqual(saved_story,None)
+        self.assertEquals(int(saved_story['_id']), story_sentences[0]['stories_id'])
+        self.assertEquals(saved_story['story_sentences_count'], 20)
+        story_sentences = self._getFakeStorySentences(2)['207593389']
+        self.assertEquals(len(story_sentences),6)
+        worked = db.addStoryFromSentences(story_sentences)
+        saved_story = db.getStory(str(story_sentences[0]['stories_id']))
+        self.assertEquals(saved_story['story_sentences_count'], 26)
 
     def _addStoryToDb(self, db):
         story = self._getFakeStory()
@@ -34,15 +61,15 @@ class StorageTest(unittest.TestCase):
 
     def _testMaxStoryIdInDb(self, db):
         story1 = self._getFakeStory()
-        story1['stories_id'] = "1000"
+        story1['stories_id'] = "10000000000"
         story2 = self._getFakeStory()
-        story1['stories_id'] = "2000"
+        story1['stories_id'] = "20000000000"
         db.createDatabase(self.TEST_DB_NAME)
         db.initialize()
-        self.assertEquals(db.getMaxStoryId(),0)
+        #self.assertEquals(db.getMaxStoryId(),0)
         db.addStory(story1)
         db.addStory(story2)
-        self.assertEquals(db.getMaxStoryId(),2000)
+        self.assertEquals(db.getMaxStoryId(),20000000000)
         db.deleteDatabase(self.TEST_DB_NAME)           
 
     def _getFakeStory(self):
@@ -62,6 +89,10 @@ class StorageTest(unittest.TestCase):
            ],
         }
         return story_attributes
+
+    def _getFakeStorySentences(self,page=1):
+        my_file = open(os.path.dirname(os.path.realpath(__file__))+'/fixtures/sentences_by_story_'+str(page)+'.json', 'r')
+        return json.loads( my_file.read() )
 
 class CouchStorageTest(StorageTest):
 
@@ -94,14 +125,20 @@ class MongoStorageTest(StorageTest):
         db = MongoStoryDatabase()
         self._createThenDeleteDb(db)
 
-    def testAddStory(self):
+    def testGetMaxStoryId(self):
         db = MongoStoryDatabase()
-        self._addStoryToDb(db)
+        self._testMaxStoryIdInDb(db)
 
     def testStoryExists(self):
         db = MongoStoryDatabase()
         self._checkStoryExistsInDb(db)
 
-    def testGetMaxStoryId(self):
+    def testAddStory(self):
         db = MongoStoryDatabase()
-        self._testMaxStoryIdInDb(db)
+        self._addStoryToDb(db)
+
+    def testAddStoryFromSentences(self):
+        db = MongoStoryDatabase()
+        self._addStoryFromSentencesToDb(db)
+        self._updateStoryFromSentencesToDb(db)
+

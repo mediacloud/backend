@@ -14,8 +14,47 @@ class StoryDatabase(object):
     def storyExists(self, story_id):
         raise NotImplementedError("Subclasses should implement this!")
 
+    def addStoryFromSentences(self, story_sentences):
+        '''
+        Save a story based on it's sentences to the database.  Return success or failure boolean.
+        This is pairs well with mediacloud.sentencesMatchingByStory(...).  This saves or updates.
+        '''
+        from pubsub import pub
+        # if nothing to save, bail
+        if len(story_sentences)==0:
+            return False
+        # verify all the sentences are part of the same story
+        stories_id_list = set( [ s['stories_id'] for s in story_sentences ] )
+        if len(stories_id_list)>1:
+            raise Exception('Expecting all the sentences to be part of the same story (ie. one entry from mediacloud.sentencesMatchingByStory)')
+        stories_id = list(stories_id_list)[0]
+        # save or update the story
+        sorted_sentences = [s['sentence'] for s in sorted(story_sentences, key=lambda x: x['sentence_number'], reverse=True)]
+        if not self.storyExists(stories_id):
+            # if the story is new, save it all
+            story_attributes = {
+                '_id': str(stories_id),
+                'media_id': story_sentences[0]['media_id'],
+                'publish_date': story_sentences[0]['publish_date'],
+                'language': story_sentences[0]['language'],
+                'sentences': sorted_sentences,
+                'story_sentences_count': len(sorted_sentences)
+            }
+            self._saveStory( story_attributes )
+        else:
+            # if the story exists already, add any new sentences
+            story = self.getStory(stories_id)
+            story_attributes = {
+                '_id': str(stories_id),
+                'sentences': story['sentences'] + sorted_sentences,
+                'story_sentences_count': len(story['sentences']) + len(sorted_sentences)
+            }
+            self._updateStory( story_attributes )
+        return True
+
     def addStory(self, story, save_extracted_text=False, save_raw_download=False, save_story_sentences=False):
         ''' 
+        DEPRECATED!!!
         Save a story (python object) to the database.  Return success or failure boolean.
         '''
         from pubsub import pub
@@ -46,6 +85,9 @@ class StoryDatabase(object):
         saved_story = self.getStory( str(story['stories_id']) )
         pub.sendMessage(self.EVENT_POST_STORY_SAVE, db_story=story_attributes, raw_story=story)
         return True
+
+    def _updateStory(self, story_attributes):
+        raise NotImplementedError("Subclasses should implement this!")
 
     def _saveStory(self, story_attributes):
         raise NotImplementedError("Subclasses should implement this!")
@@ -86,6 +128,13 @@ class MongoStoryDatabase(StoryDatabase):
     def storyExists(self, story_id):
         story = self._db.stories.find_one( { "_id": int(story_id) } )
         return story != None
+
+    def _updateStory(self, story_attributes):
+        story_attributes['_id'] = int(story_attributes['_id'])
+        stories = self._db.stories
+        story_id = stories.save(story_attributes)
+        story = stories.find_one( { "_id": int(story_id) } )
+        return story
 
     def _saveStory(self, story_attributes):
         story_attributes['_id'] = int(story_attributes['_id'])
