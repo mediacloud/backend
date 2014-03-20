@@ -21,21 +21,47 @@ class StorageTest(unittest.TestCase):
         self.assertEquals(saved_story['story_sentences_count'], 20)
         db.deleteDatabase(self.TEST_DB_NAME)
 
-    def _updateStoryFromSentencesToDb(self, db):
+    def _addStoryFromSentencesToDbWithAttributes(self, db):
         story_sentences = self._getFakeStorySentences(1)['207593389']
         db.createDatabase(self.TEST_DB_NAME)
-        self.assertEquals(len(story_sentences),20)
-        worked = db.addStoryFromSentences(story_sentences)
+        worked = db.addStoryFromSentences(story_sentences, {'group':'test'})
         self.assertTrue(worked)
         saved_story = db.getStory(str(story_sentences[0]['stories_id']))
         self.assertNotEqual(saved_story,None)
         self.assertEquals(int(saved_story['_id']), story_sentences[0]['stories_id'])
         self.assertEquals(saved_story['story_sentences_count'], 20)
+        self.assertEquals(saved_story['group'], 'test')
+        db.deleteDatabase(self.TEST_DB_NAME)
+
+    def _updateStoryFromSentencesToDb(self, db):
+        # load up first page of sentences in story
+        story_sentences = self._getFakeStorySentences(1)['207593389']
+        db.createDatabase(self.TEST_DB_NAME)
+        self.assertEquals(len(story_sentences),20)
+        worked = db.addStoryFromSentences(story_sentences)
+        self.assertTrue(worked)
+        # make sure it saved right
+        saved_story = db.getStory(str(story_sentences[0]['stories_id']))
+        self.assertNotEqual(saved_story,None)
+        self.assertEquals(int(saved_story['_id']), story_sentences[0]['stories_id'])
+        self.assertEquals(saved_story['story_sentences_count'], 20)
+        self.assertEquals(len(saved_story['sentences']), 20)
+        # load up second page of sentences in story
         story_sentences = self._getFakeStorySentences(2)['207593389']
         self.assertEquals(len(story_sentences),6)
         worked = db.addStoryFromSentences(story_sentences)
+        # make sure update merged the sentences right
         saved_story = db.getStory(str(story_sentences[0]['stories_id']))
+        self.assertEquals(len(saved_story['sentences']), 26)
         self.assertEquals(saved_story['story_sentences_count'], 26)
+        # now add some extra attributes
+        story_sentences = self._getFakeStorySentences(2)['207593389']
+        self.assertEquals(len(story_sentences),6)
+        worked = db.addStoryFromSentences(story_sentences, {'group':'test2'})
+        saved_story = db.getStory(str(story_sentences[0]['stories_id']))
+        self.assertEquals(len(saved_story['sentences']), 26)
+        self.assertEquals(saved_story['story_sentences_count'], 26)
+        self.assertEquals(saved_story['group'], 'test2')
 
     def _addStoryToDb(self, db):
         story = self._getFakeStory()
@@ -137,8 +163,15 @@ class MongoStorageTest(StorageTest):
         db = MongoStoryDatabase()
         self._addStoryToDb(db)
 
+    def testAddStoryFromSentencesWithAttributes(self):
+        db = MongoStoryDatabase()
+        self._addStoryFromSentencesToDbWithAttributes(db)
+
     def testAddStoryFromSentences(self):
         db = MongoStoryDatabase()
         self._addStoryFromSentencesToDb(db)
+
+    def testUpdateStoryFromSentences(self):
+        db = MongoStoryDatabase()
         self._updateStoryFromSentencesToDb(db)
 

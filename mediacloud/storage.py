@@ -1,3 +1,4 @@
+import copy
 
 class StoryDatabase(object):
 
@@ -14,7 +15,7 @@ class StoryDatabase(object):
     def storyExists(self, story_id):
         raise NotImplementedError("Subclasses should implement this!")
 
-    def addStoryFromSentences(self, story_sentences):
+    def addStoryFromSentences(self, story_sentences, extra_attributes={}):
         '''
         Save a story based on it's sentences to the database.  Return success or failure boolean.
         This is pairs well with mediacloud.sentencesMatchingByStory(...).  This saves or updates.
@@ -29,7 +30,7 @@ class StoryDatabase(object):
             raise Exception('Expecting all the sentences to be part of the same story (ie. one entry from mediacloud.sentencesMatchingByStory)')
         stories_id = list(stories_id_list)[0]
         # save or update the story
-        sorted_sentences = [s['sentence'] for s in sorted(story_sentences, key=lambda x: x['sentence_number'], reverse=True)]
+        sentences_by_number = {str(s['sentence_number']):s['sentence'] for s in sorted(story_sentences, key=lambda x: x['sentence_number'], reverse=True)}
         if not self.storyExists(stories_id):
             # if the story is new, save it all
             story_attributes = {
@@ -37,19 +38,20 @@ class StoryDatabase(object):
                 'media_id': story_sentences[0]['media_id'],
                 'publish_date': story_sentences[0]['publish_date'],
                 'language': story_sentences[0]['language'],
-                'sentences': sorted_sentences,
-                'story_sentences_count': len(sorted_sentences)
+                'sentences': sentences_by_number,
+                'story_sentences_count': len(sentences_by_number)
             }
-            self._saveStory( story_attributes )
+            self._saveStory( dict(story_attributes.items() + extra_attributes.items()) )
         else:
             # if the story exists already, add any new sentences
             story = self.getStory(stories_id)
+            all_sentences = dict(story['sentences'].items() + sentences_by_number.items())
             story_attributes = {
                 '_id': str(stories_id),
-                'sentences': story['sentences'] + sorted_sentences,
-                'story_sentences_count': len(story['sentences']) + len(sorted_sentences)
+                'sentences': all_sentences,
+                'story_sentences_count': len(all_sentences)
             }
-            self._updateStory( story_attributes )
+            self._updateStory( dict(story_attributes.items() + extra_attributes.items()) )
         return True
 
     def addStory(self, story, save_extracted_text=False, save_raw_download=False, save_story_sentences=False):
