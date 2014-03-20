@@ -10,13 +10,13 @@ use threads qw(stringify);
 use threads::shared;
 
 use Data::Dumper;
-use Encode;
 use HTTP::Request::Common;
 use HTTP::Server::Simple::CGI;
 use IO::Socket::INET;
 use JSON;
 use LWP::UserAgent;
 use URI::Escape;
+use MediaWords::Util::Text;
 
 use base qw(HTTP::Server::Simple::CGI);
 
@@ -305,22 +305,6 @@ sub clear_word_count_json_cache
     $_cached_word_count_json = {};
 }
 
-# check whether the string is valid utf8
-sub is_valid_utf8
-{
-    my ( $s ) = @_;
-
-    my $valid = 1;
-
-    Encode::_utf8_on( $s );
-
-    $valid = 0 unless ( utf8::valid( $s ) );
-
-    Encode::_utf8_off( $s );
-
-    return $valid;
-}
-
 sub get_solr_word_count_json
 {
     my ( $q, $fqs, $file ) = @_;
@@ -399,7 +383,7 @@ sub get_solr_word_count_json
             }
         }
 
-        if ( !is_valid_utf8( $w->[ 0 ] ) || !is_valid_utf8( $max_term ) )
+        if ( !MediaWords::Util::Text::is_valid_utf8( $w->[ 0 ] ) || !MediaWords::Util::Text::is_valid_utf8( $max_term ) )
         {
             print STDERR "invalid utf8: $w->[ 0 ] / $max_term\n";
             next;
