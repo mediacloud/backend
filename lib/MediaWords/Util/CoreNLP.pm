@@ -446,6 +446,7 @@ sub store_annotation_for_story($$)
         _fatal_error( "CoreNLP annotator is not enabled in the configuration." );
     }
 
+    say STDERR "Fetching English-language story $stories_id...";
     my $story = _get_english_language_story( $db, $stories_id );
     unless ( $story )
     {
@@ -465,8 +466,11 @@ EOF
     {
         die "Unable to fetch story sentences for story $stories_id.";
     }
+    say STDERR "Done fetching English-language story $stories_id.";
 
     my %annotations;
+
+    say STDERR "Annotating sentences and story text for story $stories_id...";
 
     # Annotate each sentence separately, index by story_sentences_id
     foreach my $sentence ( @{ $story_sentences } )
@@ -503,7 +507,11 @@ EOF
         _fatal_error( "Unable to encode hashref to JSON: $@\nHashref: " . Dumper( $json_annotation ) );
         return 0;
     }
+
+    say STDERR "Done annotating sentences and story text for story $stories_id.";
     say STDERR 'JSON length: ' . length( $json_annotation );
+
+    say STDERR "Storing annotation results to GridFS for story $stories_id...";
 
     # Write to GridFS, index by stories_id
     eval {
@@ -521,6 +529,7 @@ EOF
         _fatal_error( "Unable to store CoreNLP annotation result to GridFS: $@" );
         return 0;
     }
+    say STDERR "Done storing annotation results to GridFS for story $stories_id.";
 
     # Log to the PostgreSQL
     $db->query( 'INSERT INTO corenlp_annotated_stories (stories_id) VALUES (?)', $stories_id );
