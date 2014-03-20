@@ -532,7 +532,16 @@ EOF
     say STDERR "Done storing annotation results to GridFS for story $stories_id.";
 
     # Log to the PostgreSQL
-    $db->query( 'INSERT INTO corenlp_annotated_stories (stories_id) VALUES (?)', $stories_id );
+    say STDERR "Logging annotated story to PostgreSQL for story $stories_id...";
+    unless ( $db->dbh->do( 'INSERT INTO corenlp_annotated_stories (stories_id) VALUES (?)', undef, $stories_id ) )
+    {
+
+        # If the script wasn't able to log annotated story to PostgreSQL, this
+        # is also a fatal error (meaning that the script can't continue running)
+        _fatal_error( 'Unable to to log annotated story $stories_id to database: ' . $db->dbh->errstr );
+        return 0;
+    }
+    say STDERR "Done logging annotated story to PostgreSQL for story $stories_id.";
 
     return 1;
 }
