@@ -38,6 +38,8 @@ sub main
         $shard_dir =~ /mediacloud-shard-([0-9]+)/;
         my $shard_id = $1;
         
+        mkdir( "../logs" ) unless ( -e "../logs" );
+        
         my $log_file = "../logs/$shard_dir.log";
         
         chdir( $shard_dir ) || die( "unable to cd into $shard_dir: $!" );

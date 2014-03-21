@@ -19,10 +19,6 @@ fi
 mkdir -p local/
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ Module::Install
 
-# Graph::Layout::Aesthetic doesn't compile on newer compilers, so install a
-# monkey-patched version of the module beforehand
-./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ git://github.com/pypt/p5-Graph-Layout-Aesthetic.git@0.12
-
 # Install the rest of the modules; run the command twice because the first
 # attempt might fail
 source ./script/set_java_home.sh
