@@ -17,7 +17,7 @@ sub import
 {
     use Data::Dumper();
 
-    feature->import( ':5.18' );
+    feature->import( ':5.16' );
     warnings->import();
     strict->import();
     Data::Dumper->export_to_level( 1,, @Data::Dumper::Export );

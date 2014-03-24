@@ -62,7 +62,7 @@
                 <tr [% IF even %]class="even"[% END %]>
                     <td>
                         [% IF c.acl_user_can_visit('/admin/stories/view') %]
-                            <a href="[% c.uri_for( '/admin/stories/view' _ story.stories_id ) %]">[% story.stories_id %]</a></td>
+                            <a href="[% c.uri_for( '/admin/stories/view/' _ story.stories_id ) %]">[% story.stories_id %]</a></td>
                         [% ELSE %]
                             [% story.stories_id %]
                         [% END %]

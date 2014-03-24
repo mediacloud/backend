@@ -61,6 +61,9 @@ sub main
 java -DzkRun -DnumShards=$total_shards -Dbootstrap_confdir=./solr/collection1/conf -Dcollection.configName=mediacloud -jar start.jar > $log_file 2>&1 &
 END
 
+    # give time for the shell to be able to create the log file
+    sleep( 1 );
+
     my $successful_init;
     CHECKLOG: for ( my $i = 0; $i < 12; $i++ )
     {
