@@ -253,6 +253,44 @@ DISTRIBUTIONS
       Module::Metadata 0
       strict 0
       warnings 0
+  CPAN-Meta-Requirements-2.125
+    pathname: D/DA/DAGOLDEN/CPAN-Meta-Requirements-2.125.tar.gz
+    provides:
+      CPAN::Meta::Requirements 2.125
+    requirements:
+      Carp 0
+      ExtUtils::MakeMaker 6.17
+      Scalar::Util 0
+      strict 0
+      version 0.77
+      warnings 0
+  CPAN-Meta-YAML-0.012
+    pathname: D/DA/DAGOLDEN/CPAN-Meta-YAML-0.012.tar.gz
+    provides:
+      CPAN::Meta::YAML 0.012
+    requirements:
+      B 0
+      Carp 0
+      Exporter 0
+      ExtUtils::MakeMaker 6.17
+      Fcntl 0
+      File::Basename 0
+      File::Find 0
+      File::Spec 0
+      File::Spec::Functions 0
+      File::Temp 0
+      Getopt::Long 0
+      IO::Dir 0
+      JSON::PP 0
+      List::Util 0
+      Scalar::Util 0
+      Test::More 0.99
+      lib 0
+      strict 0
+      utf8 0
+      vars 0
+      version 0
+      warnings 0
   Cache-Cache-1.06
     pathname: J/JS/JSWARTZ/Cache-Cache-1.06.tar.gz
     provides:
@@ -412,6 +450,7 @@ DISTRIBUTIONS
     requirements:
       Catalyst::Runtime 5.80030
       Class::Inspector 1.13
+      Config::General 0
       ExtUtils::MakeMaker 6.59
       HTML::Parser 0
       JSON 2.12
@@ -424,6 +463,7 @@ DISTRIBUTIONS
       Test::More 0.88
       URI::Find 0
       XML::Simple 0
+      YAML::Syck 0.67
       namespace::autoclean 0
       perl 5.008001
   Catalyst-Action-RenderView-0.16
@@ -3214,6 +3254,41 @@ DISTRIBUTIONS
       Scalar::Util 0
       Test::More 0
       perl 5.006
+  Encode-2.57
+    pathname: D/DA/DANKOGAI/Encode-2.57.tar.gz
+    provides:
+      Encode 2.57
+      Encode::Alias 2.18
+      Encode::Byte 2.04
+      Encode::CJKConstants 2.02
+      Encode::CN 2.03
+      Encode::CN::HZ 2.07
+      Encode::Config 2.05
+      Encode::EBCDIC 2.02
+      Encode::Encoder 2.03
+      Encode::Encoding 2.07
+      Encode::GSM0338 2.05
+      Encode::Guess 2.06
+      Encode::Internal 2.57
+      Encode::JP 2.04
+      Encode::JP::H2Z 2.02
+      Encode::JP::JIS7 2.05
+      Encode::KR 2.03
+      Encode::KR::2022_KR 2.03
+      Encode::MIME::Header 2.15
+      Encode::MIME::Header::ISO_2022_JP 1.04
+      Encode::MIME::Name 1.01
+      Encode::Symbol 2.02
+      Encode::TW 2.03
+      Encode::UTF_EBCDIC 2.57
+      Encode::Unicode 2.09
+      Encode::Unicode::UTF7 2.08
+      Encode::utf8 2.57
+      encoding 2.12
+    requirements:
+      Exporter 5.57
+      ExtUtils::MakeMaker 0
+      parent 0.221
   Encode-HanConvert-0.35
     pathname: A/AU/AUDREYT/Encode-HanConvert-0.35.tar.gz
     provides:
@@ -3230,7 +3305,7 @@ DISTRIBUTIONS
       Module::Install::WriteAll 0.77
     requirements:
       Encode 1.41
-      ExtUtils::MakeMaker 6.9
+      ExtUtils::MakeMaker 6.92
   Encode-Locale-1.03
     pathname: G/GA/GAAS/Encode-Locale-1.03.tar.gz
     provides:
@@ -3302,23 +3377,28 @@ DISTRIBUTIONS
       Test::More 0.88
       strict 0
       warnings 0
-  ExtUtils-Helpers-0.021
-    pathname: L/LE/LEONT/ExtUtils-Helpers-0.021.tar.gz
+  ExtUtils-Helpers-0.022
+    pathname: L/LE/LEONT/ExtUtils-Helpers-0.022.tar.gz
     provides:
-      ExtUtils::Helpers 0.021
-      ExtUtils::Helpers::Unix 0.021
-      ExtUtils::Helpers::VMS 0.021
-      ExtUtils::Helpers::Windows 0.021
+      ExtUtils::Helpers 0.022
+      ExtUtils::Helpers::Unix 0.022
+      ExtUtils::Helpers::VMS 0.022
+      ExtUtils::Helpers::Windows 0.022
     requirements:
       Carp 0
-      Config 0
+      Cwd 0
       Exporter 5.57
       ExtUtils::MakeMaker 6.30
       File::Basename 0
       File::Copy 0
+      File::Spec 0
       File::Spec::Functions 0
+      IO::Handle 0
+      IPC::Open3 0
       Module::Load 0
+      Test::More 0
       Text::ParseWords 3.24
+      lib 0
       strict 0
       warnings 0
   ExtUtils-InstallPaths-0.010
@@ -3330,6 +3410,11 @@ DISTRIBUTIONS
       ExtUtils::Config 0.002
       ExtUtils::MakeMaker 6.30
       File::Spec 0
+      File::Spec::Functions 0
+      File::Temp 0
+      IO::Handle 0
+      IPC::Open3 0
+      Test::More 0
       strict 0
       warnings 0
   ExtUtils-LibBuilder-0.04
@@ -3342,40 +3427,40 @@ DISTRIBUTIONS
       File::Temp 0
       Module::Build 0.36
       Test::More 0
-  ExtUtils-MakeMaker-6.90
-    pathname: B/BI/BINGOS/ExtUtils-MakeMaker-6.90.tar.gz
+  ExtUtils-MakeMaker-6.92
+    pathname: B/BI/BINGOS/ExtUtils-MakeMaker-6.92.tar.gz
     provides:
-      DynaLoader 6.90
-      ExtUtils::Command::MM 6.90
-      ExtUtils::Liblist 6.90
-      ExtUtils::Liblist::Kid 6.90
-      ExtUtils::MM 6.90
-      ExtUtils::MM_AIX 6.90
-      ExtUtils::MM_Any 6.90
-      ExtUtils::MM_BeOS 6.90
-      ExtUtils::MM_Cygwin 6.90
-      ExtUtils::MM_DOS 6.90
-      ExtUtils::MM_Darwin 6.90
-      ExtUtils::MM_MacOS 6.90
-      ExtUtils::MM_NW5 6.90
-      ExtUtils::MM_OS2 6.90
-      ExtUtils::MM_QNX 6.90
-      ExtUtils::MM_UWIN 6.90
-      ExtUtils::MM_Unix 6.90
-      ExtUtils::MM_VMS 6.90
-      ExtUtils::MM_VOS 6.90
-      ExtUtils::MM_Win32 6.90
-      ExtUtils::MM_Win95 6.90
-      ExtUtils::MY 6.90
-      ExtUtils::MakeMaker 6.90
-      ExtUtils::MakeMaker::Config 6.90
-      ExtUtils::MakeMaker::_version 6.90
-      ExtUtils::Mkbootstrap 6.90
-      ExtUtils::Mksymlists 6.90
-      ExtUtils::testlib 6.90
-      MM 6.90
-      MY 6.90
-      in 6.90
+      DynaLoader 6.92
+      ExtUtils::Command::MM 6.92
+      ExtUtils::Liblist 6.92
+      ExtUtils::Liblist::Kid 6.92
+      ExtUtils::MM 6.92
+      ExtUtils::MM_AIX 6.92
+      ExtUtils::MM_Any 6.92
+      ExtUtils::MM_BeOS 6.92
+      ExtUtils::MM_Cygwin 6.92
+      ExtUtils::MM_DOS 6.92
+      ExtUtils::MM_Darwin 6.92
+      ExtUtils::MM_MacOS 6.92
+      ExtUtils::MM_NW5 6.92
+      ExtUtils::MM_OS2 6.92
+      ExtUtils::MM_QNX 6.92
+      ExtUtils::MM_UWIN 6.92
+      ExtUtils::MM_Unix 6.92
+      ExtUtils::MM_VMS 6.92
+      ExtUtils::MM_VOS 6.92
+      ExtUtils::MM_Win32 6.92
+      ExtUtils::MM_Win95 6.92
+      ExtUtils::MY 6.92
+      ExtUtils::MakeMaker 6.92
+      ExtUtils::MakeMaker::Config 6.92
+      ExtUtils::MakeMaker::_version 6.92
+      ExtUtils::Mkbootstrap 6.92
+      ExtUtils::Mksymlists 6.92
+      ExtUtils::testlib 6.92
+      MM 6.92
+      MY 6.92
+      in 6.92
     requirements:
       Data::Dumper 0
       DirHandle 0
@@ -3626,6 +3711,15 @@ DISTRIBUTIONS
       Storable 0
       Test::More 0
       perl 5.006
+  Getopt-Long-2.42
+    pathname: J/JV/JV/Getopt-Long-2.42.tar.gz
+    provides:
+      Getopt::Long 2.42
+      Getopt::Long::CallBack 2.42
+      Getopt::Long::Parser 2.42
+    requirements:
+      ExtUtils::MakeMaker 0
+      Pod::Usage 1.14
   Getopt-Long-Descriptive-0.096
     pathname: R/RJ/RJBS/Getopt-Long-Descriptive-0.096.tar.gz
     provides:
@@ -4054,7 +4148,6 @@ DISTRIBUTIONS
     provides:
       HTML::TagCloud 0.38
     requirements:
-      Module::Build 0.36
       Test::More 0
   HTML-Tagset-3.20
     pathname: P/PE/PETDANCE/HTML-Tagset-3.20.tar.gz
@@ -4311,6 +4404,7 @@ DISTRIBUTIONS
       File::Spec 3.27
       File::Temp 0.16
       IO::File 0
+      Module::Build 0.36
       Symbol 0
       Test::More 0.62
   IO-HTML-1.00
@@ -4488,6 +4582,15 @@ DISTRIBUTIONS
       JSON::PP 2.27202
       Test::More 0.88
       Test::Without::Module 0.17
+  JSON-PP-2.27203
+    pathname: M/MA/MAKAMAKA/JSON-PP-2.27203.tar.gz
+    provides:
+      JSON::PP 2.27203
+      JSON::PP::Boolean 2.27203
+      JSON::PP::IncrParser 2.27203
+    requirements:
+      ExtUtils::MakeMaker 0
+      Test::More 0
   JSON-XS-3.01
     pathname: M/ML/MLEHMANN/JSON-XS-3.01.tar.gz
     provides:
@@ -4693,7 +4796,7 @@ DISTRIBUTIONS
     requirements:
       Carp 0
       Class::Data::Inheritable 0
-      ExtUtils::MakeMaker 6.9
+      ExtUtils::MakeMaker 6.92
       File::Spec 0
       Symbol 0
       Test::More 0
@@ -5055,45 +5158,45 @@ DISTRIBUTIONS
       Try::Tiny 0
       strict 0
       warnings 0
-  Module-Install-1.06
-    pathname: A/AD/ADAMK/Module-Install-1.06.tar.gz
+  Module-Install-1.08
+    pathname: B/BI/BINGOS/Module-Install-1.08.tar.gz
     provides:
-      Module::AutoInstall 1.06
-      Module::Install 1.06
-      Module::Install::Admin 1.06
-      Module::Install::Admin::Bundle 1.06
-      Module::Install::Admin::Compiler 1.06
-      Module::Install::Admin::Find 1.06
-      Module::Install::Admin::Include 1.06
-      Module::Install::Admin::Makefile 1.06
-      Module::Install::Admin::Manifest 1.06
-      Module::Install::Admin::Metadata 1.06
-      Module::Install::Admin::ScanDeps 1.06
-      Module::Install::Admin::WriteAll 1.06
-      Module::Install::AutoInstall 1.06
-      Module::Install::Base 1.06
-      Module::Install::Base::FakeAdmin 1.06
-      Module::Install::Bundle 1.06
-      Module::Install::Can 1.06
-      Module::Install::Compiler 1.06
-      Module::Install::DSL 1.06
-      Module::Install::Deprecated 1.06
-      Module::Install::External 1.06
-      Module::Install::Fetch 1.06
-      Module::Install::Include 1.06
-      Module::Install::Inline 1.06
-      Module::Install::MakeMaker 1.06
-      Module::Install::Makefile 1.06
-      Module::Install::Metadata 1.06
-      Module::Install::PAR 1.06
-      Module::Install::Run 1.06
-      Module::Install::Scripts 1.06
-      Module::Install::Share 1.06
-      Module::Install::Win32 1.06
-      Module::Install::With 1.06
-      Module::Install::WriteAll 1.06
-      inc::Module::Install 1.06
-      inc::Module::Install::DSL 1.06
+      Module::AutoInstall 1.08
+      Module::Install 1.08
+      Module::Install::Admin 1.08
+      Module::Install::Admin::Bundle 1.08
+      Module::Install::Admin::Compiler 1.08
+      Module::Install::Admin::Find 1.08
+      Module::Install::Admin::Include 1.08
+      Module::Install::Admin::Makefile 1.08
+      Module::Install::Admin::Manifest 1.08
+      Module::Install::Admin::Metadata 1.08
+      Module::Install::Admin::ScanDeps 1.08
+      Module::Install::Admin::WriteAll 1.08
+      Module::Install::AutoInstall 1.08
+      Module::Install::Base 1.08
+      Module::Install::Base::FakeAdmin 1.08
+      Module::Install::Bundle 1.08
+      Module::Install::Can 1.08
+      Module::Install::Compiler 1.08
+      Module::Install::DSL 1.08
+      Module::Install::Deprecated 1.08
+      Module::Install::External 1.08
+      Module::Install::Fetch 1.08
+      Module::Install::Include 1.08
+      Module::Install::Inline 1.08
+      Module::Install::MakeMaker 1.08
+      Module::Install::Makefile 1.08
+      Module::Install::Metadata 1.08
+      Module::Install::PAR 1.08
+      Module::Install::Run 1.08
+      Module::Install::Scripts 1.08
+      Module::Install::Share 1.08
+      Module::Install::Win32 1.08
+      Module::Install::With 1.08
+      Module::Install::WriteAll 1.08
+      inc::Module::Install 1.08
+      inc::Module::Install::DSL 1.08
     requirements:
       Archive::Tar 1.44
       Devel::PPPort 3.16
@@ -5103,12 +5206,11 @@ DISTRIBUTIONS
       File::Remove 1.42
       File::Spec 3.28
       JSON 2.14
-      LWP::UserAgent 5.812
       Module::Build 0.29
       Module::CoreList 2.17
-      Module::ScanDeps 0.89
+      Module::ScanDeps 1.09
       PAR::Dist 0.29
-      Parse::CPAN::Meta 1.39
+      Parse::CPAN::Meta 1.4413
       Test::Harness 3.13
       Test::More 0.86
       YAML::Tiny 1.38
@@ -5669,7 +5771,7 @@ DISTRIBUTIONS
   MooseX-Types-DateTime-MoreCoercions-0.11
     pathname: I/IL/ILMARI/MooseX-Types-DateTime-MoreCoercions-0.11.tar.gz
     provides:
-      MooseX::Types::DateTime::MoreCoercions 0.11
+      MooseX::Types::DateTime::MoreCoercions undef
     requirements:
       DateTime 0.4302
       DateTime::Duration 0.4302
@@ -6171,6 +6273,26 @@ DISTRIBUTIONS
       strict 0
       vars 0
       warnings 0
+  Parse-CPAN-Meta-1.4414
+    pathname: D/DA/DAGOLDEN/Parse-CPAN-Meta-1.4414.tar.gz
+    provides:
+      Parse::CPAN::Meta 1.4414
+    requirements:
+      CPAN::Meta::YAML 0.011
+      Carp 0
+      Encode 0
+      Exporter 0
+      ExtUtils::MakeMaker 6.30
+      File::Spec 0.80
+      File::Spec::Functions 0
+      JSON::PP 2.27200
+      List::Util 0
+      Test::More 0.47
+      lib 0
+      strict 0
+      vars 0
+      version 0
+      warnings 0
   Parse-RecDescent-1.967009
     pathname: J/JT/JTBRAUN/Parse-RecDescent-1.967009.tar.gz
     provides:
@@ -6226,6 +6348,25 @@ DISTRIBUTIONS
       overload 0
       strict 0
       warnings 0
+  PathTools-3.40
+    pathname: S/SM/SMUELLER/PathTools-3.40.tar.gz
+    provides:
+      Cwd 3.40
+      File::Spec 3.40
+      File::Spec::Cygwin 3.40
+      File::Spec::Epoc 3.40
+      File::Spec::Functions 3.40
+      File::Spec::Mac 3.40
+      File::Spec::OS2 3.40
+      File::Spec::Unix 3.40
+      File::Spec::VMS 3.40
+      File::Spec::Win32 3.40
+    requirements:
+      Carp 0
+      ExtUtils::MakeMaker 0
+      File::Basename 0
+      Scalar::Util 0
+      Test 0
   Perl-Tidy-20130922
     pathname: S/SH/SHANCOCK/Perl-Tidy-20130922.tar.gz
     provides:
@@ -6943,6 +7084,7 @@ DISTRIBUTIONS
     provides:
       Test::Exception 0.32
     requirements:
+      Module::Build 0.38
       Sub::Uplevel 0.18
       Test::Builder 0.7
       Test::Builder::Tester 1.07
@@ -7161,14 +7303,14 @@ DISTRIBUTIONS
       Test::Requires 0
       Time::HiRes 0
       perl 5.008
-  Test-Simple-1.001002
-    pathname: R/RJ/RJBS/Test-Simple-1.001002.tar.gz
+  Test-Simple-1.001003
+    pathname: E/EX/EXODIST/Test-Simple-1.001003.tar.gz
     provides:
-      Test::Builder 1.001002
+      Test::Builder 1.001003
       Test::Builder::IO::Scalar 2.110
-      Test::Builder::Module 1.001002
-      Test::More 1.001002
-      Test::Simple 1.001002
+      Test::Builder::Module 1.001003
+      Test::More 1.001003
+      Test::Simple 1.001003
     requirements:
       ExtUtils::MakeMaker 0
       Scalar::Util 1.13
@@ -8058,10 +8200,10 @@ DISTRIBUTIONS
     requirements:
       ExtUtils::MakeMaker 6.59
       perl 5.006
-  YAML-Tiny-1.61
-    pathname: E/ET/ETHER/YAML-Tiny-1.61.tar.gz
+  YAML-Tiny-1.62
+    pathname: E/ET/ETHER/YAML-Tiny-1.62.tar.gz
     provides:
-      YAML::Tiny 1.61
+      YAML::Tiny 1.62
     requirements:
       B 0
       Carp 0
@@ -8069,7 +8211,7 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 6.30
       Fcntl 0
       Module::Build::Tiny 0.035
-      Scalar::Util 0
+      Scalar::Util 1.18
       perl 5.008001
       strict 0
       warnings 0
@@ -8080,6 +8222,51 @@ DISTRIBUTIONS
     requirements:
       Module::Build 0.40
       Test::More 0
+  autodie-2.23
+    pathname: P/PJ/PJF/autodie-2.23.tar.gz
+    provides:
+      Caller_helper undef
+      Fatal 2.23
+      Hints_pod_examples undef
+      Hints_provider_does undef
+      Hints_provider_easy_does_it undef
+      Hints_provider_isa undef
+      Hints_test undef
+      OtherTypes undef
+      Some::Module undef
+      autodie 2.23
+      autodie::Scope::Guard 2.23
+      autodie::exception 2.23
+      autodie::exception::system 2.23
+      autodie::hints 2.23
+      autodie::hints::provider undef
+      autodie::skip 2.23
+      autodie::test::au undef
+      autodie::test::au::exception undef
+      autodie::test::badname undef
+      autodie::test::missing undef
+      autodie_skippy undef
+      autodie_test_module undef
+      autodie_unskippy undef
+      lethal undef
+      my::autodie undef
+      pujHa::ghach undef
+      pujHa::ghach::Dotlh undef
+    requirements:
+      B 0
+      Carp 0
+      Exporter 0
+      ExtUtils::MakeMaker 6.30
+      Fcntl 0
+      POSIX 0
+      Scalar::Util 0
+      Tie::RefHash 0
+      base 0
+      constant 0
+      if 0
+      overload 0
+      strict 0
+      warnings 0
   boolean-0.30
     pathname: I/IN/INGY/boolean-0.30.tar.gz
     provides:
