@@ -107,7 +107,7 @@
         <td>
             <ul>
                 [% FOREACH ss IN story_sentences %]
-                    <li>[% ss.sentences | html %]</li>
+                    <li>[% ss.sentence | html %]</li>
                 [% END %]
             </ul>
         </td>
