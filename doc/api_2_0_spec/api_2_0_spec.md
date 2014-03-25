@@ -13,7 +13,7 @@ from the examples in the below sections for brevity.
 
 ### Example
 
-http://mediacloud.org/api/v2/media/single/1?key=KRN4T5JGJ2A
+http://www.mediacloud.org/api/v2/media/single/1?key=KRN4T5JGJ2A
 
 ## Media
 
@@ -34,7 +34,7 @@ None.
 
 Fetching information on The New York Times
 
-URL: http://mediacloud.org/api/v2/media/single/1
+URL: http://www.mediacloud.org/api/v2/media/single/1
 
 Response:
 
@@ -110,7 +110,7 @@ Response:
 
 #### Example
 
-URL: http://mediacloud.org/api/v2/media/list?last_media_id=1&rows=2
+URL: http://www.mediacloud.org/api/v2/media/list?last_media_id=1&rows=2
 
 Output format is the same as for api/v2/media/single above.
 
@@ -131,7 +131,7 @@ None.
 
 #### Example
 
-http://mediacloud.org/api/v2/media_sets/single/2
+http://www.mediacloud.org/api/v2/media_sets/single/2
 
 ```json
 [
@@ -169,7 +169,7 @@ http://mediacloud.org/api/v2/media_sets/single/2
 
 #### Example
 
-URL: http://mediacloud.org/api/v2/media_sets/list?rows=1&last_media_sets_id=1
+URL: http://www.mediacloud.org/api/v2/media_sets/list?rows=1&last_media_sets_id=1
 
 Output is the same as the api/v2/media_set/single example above.
 
@@ -194,7 +194,7 @@ None.
 
 #### Example
 
-URL: http://mediacloud.org/api/v2/feeds/single/1
+URL: http://www.mediacloud.org/api/v2/feeds/single/1
 
 ```json
 [
@@ -222,7 +222,7 @@ URL: http://mediacloud.org/api/v2/feeds/single/1
 
 #### Example
 
-URL: http://mediacloud.org/api/v2/feeds/list?media_id=1
+URL: http://www.mediacloud.org/api/v2/feeds/list?media_id=1
 
 Output format is the same as for api/v2/feeds/single above.
 
@@ -245,7 +245,7 @@ media sets related to some topic, usually a country.  Each media set can belong 
 
 #### Example
 
-http://mediacloud.org/api/v2/dashboards/single/2
+http://www.mediacloud.org/api/v2/dashboards/single/2
 
 ```json
 [
@@ -292,7 +292,7 @@ http://mediacloud.org/api/v2/dashboards/single/2
 
 #### Example
 
-URL: http://mediacloud.org/api/v2/dashboards/list?rows=1&last_dashboards_id=1
+URL: http://www.mediacloud.org/api/v2/dashboards/list?rows=1&last_dashboards_id=1
 
 Output is the same as the api/v2/dashboard/single example above.
 
@@ -343,7 +343,7 @@ The following table describes the meaning and origin of fields returned by both 
 
 Note: This fetches data on the CC licensed Global Voices story ["Myanmar's new flag and new name"](http://globalvoicesonline.org/2010/10/26/myanmars-new-flag-and-new-name/#comment-1733161) from November 2010.
 
-URL: http://mediacloud.org/api/v2/stories/single/27456565
+URL: http://www.mediacloud.org/api/v2/stories/single/27456565
 
 
 ```json
@@ -453,11 +453,11 @@ as solr query parameters, for example 'sentence:obama AND media_id:1'. Be aware 
 
 The output of these calls is in exactly the same format as for the api/v2/stories/single call.
 
-URL: http://mediacloud.org/api/v2/stories/list?last_processed_stories_id=8625915
+URL: http://www.mediacloud.org/api/v2/stories/list?last_processed_stories_id=8625915
 
 Return a stream of all stories processed by Media Cloud, greater than the `last_processed_stories_id`.
 
-URL: http://mediacloud.org/api/v2/stories/list?last_processed_stories_id=2523432&q=sentence:obama+AND+media_id:1
+URL: http://www.mediacloud.org/api/v2/stories/list?last_processed_stories_id=2523432&q=sentence:obama+AND+media_id:1
 
 Return a stream of all stories from The New York Times mentioning `'obama'` greater than the given `last_processed_stories_id`.
 
@@ -486,7 +486,7 @@ These parameters are passed directly through to Solr (see above).
 
 Fetch 10 sentences containing the word 'obama' from The New York Times
 
-URL:  http://mediacloud.org/api/v2/sentences/list?q=sentence:obama&rows=10&fq=media_id:1
+URL:  http://www.mediacloud.org/api/v2/sentences/list?q=sentence:obama&rows=10&fq=media_id:1
 
 ```json
 [
@@ -624,7 +624,7 @@ See above /api/v2/stories/list for Solr query syntax.
 
 Obtain word frequency counts for all sentences containing the word `'obama'` in The New York Times
 
-URL:  http://mediacloud.org/api/v2/wc/list?q=sentence:obama&fq=media_id:1
+URL:  http://www.mediacloud.org/api/v2/wc/list?q=sentence:obama&fq=media_id:1
 
 ```json
 [
@@ -687,7 +687,7 @@ None.
 
 Fetching information on the tag 8876989.
 
-URL: http://mediacloud.org/api/v2/tags/single/8876989
+URL: http://www.mediacloud.org/api/v2/tags/single/8876989
 
 Response:
 
@@ -718,7 +718,7 @@ Response:
 
 #### Example
 
-URL: http://mediacloud.org/api/v2/tags/list?last_tags_id=1&rows=2&tag_sets_id=597
+URL: http://www.mediacloud.org/api/v2/tags/list?last_tags_id=1&rows=2&tag_sets_id=597
 
 ```json
 [
@@ -749,7 +749,7 @@ None.
 
 Fetching information on the tag set 597.
 
-URL: http://mediacloud.org/api/v2/tag_sets/single/597
+URL: http://www.mediacloud.org/api/v2/tag_sets/single/597
 
 Response:
 
@@ -779,7 +779,7 @@ None.
 
 #### Example
 
-URL: http://mediacloud.org/api/v2/tag_sets/list
+URL: http://www.mediacloud.org/api/v2/tag_sets/list
 
 ```json
 [
@@ -827,14 +827,14 @@ A user may only write put tags (or create new tags) within a tag set owned by th
 Add tag ID 5678 to story ID 1234.
 
 ```
-curl -X PUT -d story_tag=1234,5678 http://mediacloud.org/api/v2/stories/put_tags
+curl -X PUT -d story_tag=1234,5678 http://www.mediacloud.org/api/v2/stories/put_tags
 ```
 
 Add the `gv_country:japan` and the `gv_country:brazil` tags to story 1234 and the `gv_country:japan` tag to 
 story 5678.
 
 ```
-curl -X PUT -d story_tag=1234,gv_country:japan -d story_tag=1234,gv_country:brazil -d story_tag=5678,gv_country:japan http://mediacloud.org/api/v2/stories/put_tags
+curl -X PUT -d story_tag=1234,gv_country:japan -d story_tag=1234,gv_country:brazil -d story_tag=5678,gv_country:japan http://www.mediacloud.org/api/v2/stories/put_tags
 ```
 
 ### api/v2/sentences/put_tags (PUT)
@@ -860,7 +860,7 @@ Add the `gv_country:japan` and the `gv_country:brazil` tags to story sentence 12
 story sentence 56781234.
 
 ```
-curl -X PUT -d sentence_tag=12345678,gv_country:japan -d sentence_tag=12345678,gv_country:brazil -d sentence_tag=56781234,gv_country:japan http://mediacloud.org/api/v2/sentences/put_tags
+curl -X PUT -d sentence_tag=12345678,gv_country:japan -d sentence_tag=12345678,gv_country:brazil -d sentence_tag=56781234,gv_country:japan http://www.mediacloud.org/api/v2/sentences/put_tags
 ```
 
 # Extended Examples
@@ -877,7 +877,7 @@ import pkg_resources
 import requests   
 assert pkg_resources.get_distribution("requests").version >= '1.2.3'
  
-r = requests.get( 'http://mediacloud.org/api/stories/all_processed?last_processed_stories_id=1', auth=('mediacloud-admin', KEY), headers = { 'Accept': 'application/json'})  
+r = requests.get( 'http://www.mediacloud.org/api/stories/all_processed?last_processed_stories_id=1', auth=('mediacloud-admin', KEY), headers = { 'Accept': 'application/json'})  
 
 data = r.json()
 ```
@@ -891,7 +891,7 @@ rows  = 100
 while True:
       params = { 'start': start, 'rows': rows }
       print "start:{} rows:{}".format( start, rows)
-      r = requests.get( 'http://mediacloud.org/api/v2/media/list', params = params, headers = { 'Accept': 'application/json'} )
+      r = requests.get( 'http://www.mediacloud.org/api/v2/media/list', params = params, headers = { 'Accept': 'application/json'} )
       data = r.json()
 
       if len(data) == 0:
@@ -925,7 +925,7 @@ This is broken down into multiple steps for convenience and because that's proba
 We assume that the user is new to Media Cloud. They're interested in what sources we have available. They run cURL to get a quick list of the available dashboards.
 
 ```
-curl http://mediacloud.org/api/v2/dashboards/list&nested_data=0
+curl http://www.mediacloud.org/api/v2/dashboards/list&nested_data=0
 ```
 
 ```json
@@ -950,7 +950,7 @@ curl http://mediacloud.org/api/v2/dashboards/list&nested_data=0
 The user sees the "US / English" dashboard with `dashboards_id = 1` and asks for more detailed information.
 
 ```
-curl http://mediacloud.org/api/v2/dashboards/single/1
+curl http://www.mediacloud.org/api/v2/dashboards/single/1
 ```
 
 ```json
@@ -1001,7 +1001,7 @@ while True:
       params = { 'last_processed_stories_id': start, 'rows': rows, 'q': 'media_sets_id:1' }
 
       print "Fetching {} stories starting from {}".format( rows, start)
-      r = requests.get( 'http://mediacloud.org/api/v2/stories/list/', params = params, headers = { 'Accept': 'application/json'} )
+      r = requests.get( 'http://www.mediacloud.org/api/v2/stories/list/', params = params, headers = { 'Accept': 'application/json'} )
       stories = r.json()
 
       if len(stories) == 0:
@@ -1037,7 +1037,7 @@ while True:
       'rows': rows, 'q': 'media_set_id:1', 'fq': 'publish_date:[2010-10-01T00:00:00Z TO 2010-11-01T00:00:00Z]'  }
 
       print "Fetching {} stories starting from {}".format( rows, start)
-      r = requests.get( 'http://mediacloud.org/api/v2/stories/list/', params = params, headers = { 'Accept': 'application/json'} )
+      r = requests.get( 'http://www.mediacloud.org/api/v2/stories/list/', params = params, headers = { 'Accept': 'application/json'} )
       stories = r.json()
 
       if len(stories) == 0:
@@ -1058,7 +1058,7 @@ This is broken down into multiple steps for convenience and because that's proba
 We assume that the user is new to Media Cloud. They're interested in what sources we have available. They run cURL to get a quick list of the available dashboards.
 
 ```
-curl http://mediacloud.org/api/v2/dashboards/list&nested_data=0
+curl http://www.mediacloud.org/api/v2/dashboards/list&nested_data=0
 ```
 
 ```json
@@ -1083,7 +1083,7 @@ curl http://mediacloud.org/api/v2/dashboards/list&nested_data=0
 The user sees the "US / English" dashboard with `dashboards_id = 1` and asks for more detailed information.
 
 ```
-curl http://mediacloud.org/api/v2/dashboards/single/1
+curl http://www.mediacloud.org/api/v2/dashboards/single/1
 ```
 
 ```json
@@ -1137,13 +1137,13 @@ One way to appropriately restrict the data is by setting the `q` parameter to re
 Below `q` is set to `"sentence:trayvon"` and `fq` is set to `"media_sets_id:7125" and "publish_date:[2012-04-01T00:00:00.000Z TO 2013-05-01T00:00:00.000Z]"`. (Note that ":", "[", and "]" are URL encoded.)
 
 ```
-curl 'http://mediacloud.org/api/v2/wc?q=sentence:trayvon&fq=media_sets_id:7125&fq=publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D'
+curl 'http://www.mediacloud.org/api/v2/wc?q=sentence:trayvon&fq=media_sets_id:7125&fq=publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D'
 ```
 
 Alternatively, we could use a single large query by setting `q` to `"sentence:trayvon AND media_sets_id:7125 AND publish_date:[2012-04-01T00:00:00.000Z TO 2013-05-01T00:00:00.000Z]"`:
 
 ```
-curl 'http://mediacloud.org/api/v2/wc?q=sentence:trayvon+AND+media_sets_id:7125+AND+publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D&fq=media_sets_id:7135&fq=publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D'
+curl 'http://www.mediacloud.org/api/v2/wc?q=sentence:trayvon+AND+media_sets_id:7125+AND+publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D&fq=media_sets_id:7135&fq=publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D'
 ```
 
 
@@ -1154,7 +1154,7 @@ For simplicity, we assume that the user is interested in the story with `stories
 ```python
 
 stories_id = 100
-r = requests.get( 'http://mediacloud.org/api/v2/story/single/' + stories_id, headers = { 'Accept': 'application/json'} )
+r = requests.get( 'http://www.mediacloud.org/api/v2/story/single/' + stories_id, headers = { 'Accept': 'application/json'} )
 data = r.json()
 story = data[0]
 
@@ -1172,7 +1172,7 @@ for story_sentence in story['story_sentences']:
     custom_tags.append( '{},{}:{}'.format( story_sentences_id, tag_set_name, tag_name )
 
 
-r = requests.put( 'http://mediacloud.org/api/v2/sentences/put_tags/', { 'sentence_tag': custom_tags }, headers = { 'Accept': 'application/json'} )  
+r = requests.put( 'http://www.mediacloud.org/api/v2/sentences/put_tags/', { 'sentence_tag': custom_tags }, headers = { 'Accept': 'application/json'} )  
 
 ```
 
@@ -1184,7 +1184,7 @@ r = requests.put( 'http://mediacloud.org/api/v2/sentences/put_tags/', { 'sentenc
 The user requests a list of all tag sets.
 
 ```
-curl http://mediacloud.org/api/v2/tag_sets/list
+curl http://www.mediacloud.org/api/v2/tag_sets/list
 ```
 
 ```json
@@ -1215,7 +1215,7 @@ def find_tags_id( tag_name, tag_sets_id):
    while True:
       params = { 'last_tags_id': last_tags_id, 'rows': rows }
       print "start:{} rows:{}".format( start, rows)
-      r = requests.get( 'http://mediacloud.org/api/v2/tags/list/' + tag_sets_id , params = params, headers = { 'Accept': 'application/json'} )
+      r = requests.get( 'http://www.mediacloud.org/api/v2/tags/list/' + tag_sets_id , params = params, headers = { 'Accept': 'application/json'} )
       tags = r.json()
 
       if len(tags) == 0:
@@ -1236,7 +1236,7 @@ def find_tags_id( tag_name, tag_sets_id):
 Assume that the user determined that the `tags_id` was 12345678 using the above code.
 
 ```
-curl 'http://mediacloud.org/api/v2/wc?q=tags:12345678'
+curl 'http://www.mediacloud.org/api/v2/wc?q=tags:12345678'
 ```
 
 ## Grab stories from 10 January 2014 with the tag `'foo:bar'`
@@ -1262,7 +1262,7 @@ while True:
       params = { 'last_processed_stories_id': start, 'rows': rows, 'q': 'tags_id_stories:678910' }
 
       print "Fetching {} stories starting from {}".format( rows, start)
-      r = requests.get( 'http://mediacloud.org/api/v2/stories/list/', params = params, headers = { 'Accept': 'application/json'} )
+      r = requests.get( 'http://www.mediacloud.org/api/v2/stories/list/', params = params, headers = { 'Accept': 'application/json'} )
       stories = r.json()
 
       if len(stories) == 0:
