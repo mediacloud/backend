@@ -255,6 +255,8 @@ sub _get_tags_id
 
         my ( $tag_set, $tag_name ) = split ':', $tag_string;
 
+	die "Illegal tag_set name '$tag_set', tag_set must be user email " unless  $c->stash->{ auth_user }->{ email } eq $tag_set;
+
         my $tag_sets = $c->dbis->query( "SELECT * from tag_sets where name = ?", $tag_set )->hashes;
 
         die "invalid tag set " unless scalar(@$tag_sets) > 0;
