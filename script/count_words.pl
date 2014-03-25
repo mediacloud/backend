@@ -10,18 +10,25 @@ use threads qw(stringify);
 use threads::shared;
 
 use Data::Dumper;
+use Encode;
 use HTTP::Request::Common;
 use HTTP::Server::Simple::CGI;
 use IO::Socket::INET;
 use JSON;
 use LWP::UserAgent;
+use List::Util;
 use URI::Escape;
-use MediaWords::Util::Text;
 
 use base qw(HTTP::Server::Simple::CGI);
 
 # number of lines to process by count_stems at a time
-use constant MAX_LINE_BLOCK_SIZE => 10000;
+use constant MAX_LINE_BLOCK_SIZE => 500;
+
+# max number of random sentences to fetch
+use constant MAX_RANDOM_SENTENCES => 10000;
+
+# number of words to return
+use constant NUM_RETURN_WORDS => 500;
 
 # base url for solr searches
 use constant SOLR_SELECT_URL => 'http://localhost:8983/solr/collection1/select';
@@ -238,9 +245,10 @@ sub get_solr_results_socket
 
     my $params = get_solr_params_hash( $q, $fqs );
 
-    $params->{ rows } = $num_sentences;
+    $params->{ rows } = List::Util::min( $num_sentences, MAX_RANDOM_SENTENCES );
     $params->{ wt }   = 'csv';
     $params->{ df }   = 'sentence';
+    $params->{ sort } = 'random_1 asc';
 
     my $full_request = POST( SOLR_SELECT_URL, $params );
 
@@ -305,6 +313,22 @@ sub clear_word_count_json_cache
     $_cached_word_count_json = {};
 }
 
+# Check whether the string is valid UTF-8
+sub is_valid_utf8($)
+{
+    my $s = shift;
+
+    my $valid = 1;
+
+    Encode::_utf8_on( $s );
+
+    $valid = 0 unless ( utf8::valid( $s ) );
+
+    Encode::_utf8_off( $s );
+
+    return $valid;
+}
+
 sub get_solr_word_count_json
 {
     my ( $q, $fqs, $file ) = @_;
@@ -327,7 +351,7 @@ sub get_solr_word_count_json
 
     my ( $num_sentences, $socket ) = get_solr_results_socket( $q, $fqs, $file );
 
-    print STDERR "fetching $num_sentences sentences from solr ...\n";
+    print STDERR "found $num_sentences sentences in solr ...\n";
 
     # sentences is not quite the same as lines, since some sentences might be more than one line, but
     # it's close enough to guess a good line_block_size
@@ -367,7 +391,8 @@ sub get_solr_word_count_json
     @word_list = sort { $b->[ 1 ] <=> $a->[ 1 ] } @word_list;
 
     print STDERR "cutting list ...\n";
-    my @return_words = ( scalar( @word_list ) > 5000 ) ? @word_list[ 0 .. 4999 ] : @word_list;
+    my @return_words =
+      ( scalar( @word_list ) > NUM_RETURN_WORDS ) ? @word_list[ 0 .. ( NUM_RETURN_WORDS - 1 ) ] : @word_list;
 
     my $json_list = [];
     for my $w ( @return_words )
@@ -383,7 +408,7 @@ sub get_solr_word_count_json
             }
         }
 
-        if ( !MediaWords::Util::Text::is_valid_utf8( $w->[ 0 ] ) || !MediaWords::Util::Text::is_valid_utf8( $max_term ) )
+        if ( !is_valid_utf8( $w->[ 0 ] ) || !is_valid_utf8( $max_term ) )
         {
             print STDERR "invalid utf8: $w->[ 0 ] / $max_term\n";
             next;
