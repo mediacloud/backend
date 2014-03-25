@@ -90,8 +90,6 @@ sub index : Path : Args(0)
 
     my $q = $c->req->params->{ q } || '';
 
-    print STDERR "q: '$q'\n";
-
     if ( !$q )
     {
         $c->stash->{ template } = 'search/search.tt2';
@@ -102,14 +100,14 @@ sub index : Path : Args(0)
     my $db = $c->dbis;
     
     my $csv = $c->req->params->{ csv };
-    my $random = $c->req->params->{ random };
     
     my $num_sampled = $csv ? undef : 1000;
     
-    my ( $stories, $num_stories ) = MediaWords::Solr::search_for_stories_with_sentences( $db, { q => $q }, $num_sampled, $random );
+    my ( $stories, $num_stories ) = MediaWords::Solr::search_for_stories_with_sentences( $db, { q => $q }, $num_sampled, 1 );
 
     if ( $csv )
     {
+        map { delete( $_->{ sentences } ) } @{ $stories };
         my $encoded_csv = MediaWords::Util::CSV::get_hashes_as_encoded_csv( $stories );
         
         $c->response->header( "Content-Disposition" => "attachment;filename=stories.csv" );
@@ -121,7 +119,6 @@ sub index : Path : Args(0)
         $c->stash->{ stories } = $stories;
         $c->stash->{ num_stories } = $num_stories;
         $c->stash->{ q } = $q;
-        $c->stash->{ random } = $random;
         $c->stash->{ template } = 'search/search.tt2';
     }
 }
@@ -133,13 +130,37 @@ sub wc : Local
     
     my $q = $c->req->params->{ q };
     
+    if ( $q =~ /story_sentences_id|sentence_number/ )
+    {
+        die( "searches by sentence not allowed" );
+    }
+    
     die( "missing q" ) unless ( $q );
     
     my $words = MediaWords::Solr::count_words( { q => $q } );
     
-    $c->stash->{ words } = $words;
-    $c->stash->{ q } = $q;
-    $c->stash->{ template } = 'search/wc.tt2';
+    if ( $c->req->params->{ csv } )
+    {
+        my $encoded_csv = MediaWords::Util::CSV::get_hashes_as_encoded_csv( $words );
+        
+        $c->response->header( "Content-Disposition" => "attachment;filename=words.csv" );
+        $c->response->content_type( 'text/csv; charset=UTF-8' );
+        $c->response->content_length( bytes::length( $encoded_csv ) );
+        $c->response->body( $encoded_csv );
+    }
+    else {
+        $c->stash->{ words } = $words;
+        $c->stash->{ q } = $q;
+        $c->stash->{ template } = 'search/wc.tt2';
+    }
+}
+
+# print out search instructions
+sub readme : Local
+{
+    my ( $self, $c ) = @_;
+    
+    $c->stash->{ template } = 'search/readme.tt2';
 }
 
 1;
