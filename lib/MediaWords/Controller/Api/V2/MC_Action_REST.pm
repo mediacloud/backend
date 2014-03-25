@@ -76,6 +76,8 @@ sub _valid_api_key
         return 0;
     }
 
+    $c->stash->{ auth_user } = $api_auth;
+
     return $api_auth;
 }
 
