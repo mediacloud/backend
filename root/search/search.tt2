@@ -9,11 +9,12 @@
 
     [% search_url = c.uri_for( "/search" ) %]
     <form method="get" action="[% search_url | html %]">
-        <input type="text" name="q" width="64" value="[% q | html %]" />
+        <input type="text" name="q" size="128" value="[% q | html %]" />
         <input type="submit" name="submit" value="Search" />
     </form>
     <p>
-        <a href="[% c.uri_for( '/search/tags' ) | html %]">List available media tags.</a>
+        <a href="[% c.uri_for( '/search/readme' ) %]">Query instructions</a><br />
+        <a href="[% c.uri_for( '/search/tags' ) | html %]">List available media tags</a>
     </p>
 
 </fieldset>
@@ -23,14 +24,9 @@
     <br />
     <fieldset>
         <p>
-            [% IF stories.size < num_stories && random %]
-                Only showing a random sample of [% stories.size %] stories out of [% num_stories %].  Download the csv
+            [% IF stories.size < num_stories %]
+                Only showing a random sample of [% stories.size %] stories out of about [% num_stories %].  Download the csv
                 to see all stories.
-            [% ELSIF stories.size < num_stories %]
-                Only showing a sample of [% stories.size %] stories out of about [% num_stories %].  Download the csv
-                to see all stories.  This set of stories is not random and therefore not representative of all matching 
-                stories. Click on the 'random sample' button below to see a random sample of the matching
-                stories (be patient, generating a random sample can take some time).
             [% ELSE %]
                 [% num_stories %] stories found.
             [% END %]
@@ -44,7 +40,6 @@
             Search Results
             <a id="boxcommand" href="[% c.uri_for( '/search', { 'q' => q, 'csv' => 1 } ) %]">CSV</a>
             <a id="boxcommand" href="[% c.uri_for( '/search/wc', { 'q' => q } ) %]">words</a>
-            <a id="boxcommand" href="[% c.uri_for( '/search', { 'q' => q, 'random' => 1 } ) %]">random sample</a>
         </div>
         <table>
             <tr>

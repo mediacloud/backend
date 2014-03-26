@@ -56,8 +56,6 @@ sub query
 
     my $json = query_encoded_json( $params );
 
-    say STDERR Dumper( $json );
-
     my $data;
     eval { $data = decode_json( $json ) };
     if ( $@ )
@@ -184,12 +182,12 @@ sub search_for_stories_with_sentences
     
     $params->{ fl } = 'stories_id,sentence,story_sentences_id';
     
-    $params->{ rows } = ( $num_sampled && !$random ) ? ( $num_sampled * 2 ) : 1000000;
+    $params->{ rows } = ( $num_sampled ) ? ( $num_sampled * 2 ) : 1000000;
     
-    print STDERR "solr search\n";
+    $params->{ sort } = 'random_1 asc' if ( $random );
+    
     my $response = query( $params );
 
-    print STDERR "aggregate into stories\n";
     my $stories_lookup = {};
     for my $doc ( @{ $response->{ response }->{ docs } } )
     {
@@ -204,18 +202,16 @@ sub search_for_stories_with_sentences
         push( @{ $stories }, { stories_id => $stories_id, sentences => $ordered_sentences } )
     }    
     
-    my $num_stories = ( $num_sampled && !$random ) ? int( $response->{ response }->{ numFound } / 2 ) : @{ $stories };
-    
-    if ( $num_sampled && ( @{ $stories } > $num_sampled ) )
+    my $num_stories = @{ $stories };
+    if ( $num_sampled && ( $num_stories > $num_sampled ) )
     {
         map { $_->{ _s } = Digest::MD5::md5_hex( $_->{ stories_id } ) } @{ $stories };
-        $stories = [ ( sort { $a->{ _s } cmp $b->{ _s } } @{ $stories } )[ 0 .. 999 ] ];
+        $stories = [ ( sort { $a->{ _s } cmp $b->{ _s } } @{ $stories } )[ 0 .. ( $num_sampled - 1 ) ] ];
+        $num_stories = int( $response->{ response }->{ numFound } / 2 );
     }
 
-    print STDERR "attach story data\n";
     _attach_story_data_to_stories_ids( $db, $stories );
     
-    print STDERR "return\n";
     return ( $stories, $num_stories );
 }
 

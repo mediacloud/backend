@@ -2,6 +2,11 @@
 
 [% INCLUDE include/header.tt2 %]
 
+<div class="boxtitle">
+    Words
+    <a id="boxcommand" href="[% c.uri_for( '/search/wc', { 'q' => q, 'csv' => 1 } ) %]">CSV</a>
+    <a id="boxcommand" href="[% c.uri_for( '/search', { 'q' => q } ) %]">stories</a>
+</div>
 <table>
     <tr>
         <th>word</th>

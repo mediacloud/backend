@@ -1,12 +1,12 @@
 --
 -- This is a Media Cloud PostgreSQL schema difference file (a "diff") between schema
--- versions 4443 and 4444.
+-- versions 4444 and 4445.
 --
 -- If you are running Media Cloud with a database that was set up with a schema version
--- 4443, and you would like to upgrade both the Media Cloud and the
--- database to be at version 4444, import this SQL file:
+-- 4444, and you would like to upgrade both the Media Cloud and the
+-- database to be at version 4445, import this SQL file:
 --
---     psql mediacloud < mediawords-4443-4444.sql
+--     psql mediacloud < mediawords-4444-4445.sql
 --
 -- You might need to import some additional schema diff files to reach the desired version.
 --
@@ -18,7 +18,12 @@
 SET search_path = public, pg_catalog;
 
 
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE TABLE corenlp_annotated_stories (
+    corenlp_annotated_stories_id    BIGSERIAL   PRIMARY KEY,
+    stories_id                      INT         NOT NULL REFERENCES stories ON DELETE CASCADE
+);
+
+CREATE INDEX corenlp_annotated_stories_stories_id ON corenlp_annotated_stories ( stories_id );
 
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
@@ -26,7 +31,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4444;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4445;
     
 BEGIN
 

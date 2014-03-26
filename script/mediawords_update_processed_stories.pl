@@ -54,16 +54,19 @@ EOF
         return;
     }
 
+    if ( ( $stop_story_sentences_id - $last_story_sentences_id_processed ) > 10_000 )
+    {
+    	$stop_story_sentences_id = $last_story_sentences_id_processed + 10_000;
+    }
+
     say STDERR "Updating processed stories from $last_story_sentences_id_processed to $stop_story_sentences_id...";
 
-    $db->query(
-        <<EOF,
-        INSERT INTO processed_stories (stories_id)
-            SELECT DISTINCT (stories_id)
+    $db->query(<<EOF,
+        INSERT INTO processed_stories ( stories_id )
+            SELECT DISTINCT stories_id
             FROM story_sentences
             WHERE story_sentences_id > ?
               AND story_sentences_id <= ?
-            ORDER BY stories_id
 EOF
         $last_story_sentences_id_processed, $stop_story_sentences_id
     );
@@ -90,7 +93,7 @@ sub main
         {
             update_processed_stories();
             say STDERR "Sleeping...";
-            sleep( 30 );
+            sleep( 1 );
         }
     }
     else
