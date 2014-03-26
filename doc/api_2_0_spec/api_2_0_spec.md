@@ -489,116 +489,133 @@ Fetch 10 sentences containing the word 'obama' from The New York Times
 URL:  http://www.mediacloud.org/api/v2/sentences/list?q=sentence:obama&rows=10&fq=media_id:1
 
 ```json
-[
-  {
-    "id": "959545252_ss",
-    "field_type": "ss",
-    "publish_date": "2012-04-18T16:10:06Z",
-    "media_id": 1,
-    "story_sentences_id": "959545252",
-    "solr_import_date": "2014-01-23T04:28:14.894Z",
-    "sentence": "Obama:",
-    "sentence_number": 16,
-    "stories_id": 79115414,
-    "media_sets_id": [
-      24,
-      1,
-      16959
-    ],
-    "tags_id_media": [
-      8874930,
-      1,
-      109,
-      6729599,
-      6071565,
-      8875027
-    ],
-    "tags_id_stories": [
-      8878051,
-      8878085
-    ],
-    "tags_id_sentence": [
-      23452345
-     ]
-    "_version_": 1.4579959345877e+18
+{
+  "responseHeader": {
+    "params": {
+      "df": "sentence",
+      "wt": "json",
+      "q": "sentence:obama",
+      "fq": "media_id:1",
+      "rows": "10",
+      "start": "0"
+    },
+    "status": 0,
+    "QTime": 348
   },
-  {
-    "id": "816034983_ss",
-    "field_type": "ss",
-    "publish_date": "2011-10-04T09:15:23Z",
-    "media_id": 1,
-    "story_sentences_id": "816034983",
-    "solr_import_date": "2014-01-23T04:28:14.894Z",
-    "sentence": "Obama!",
-    "sentence_number": 8,
-    "stories_id": 42553267,
-    "media_sets_id": [
-      24,
-      1,
-      16959
+  "response": {
+    "numFound": 96383,
+    "docs": [
+      {
+        "sentence": "Obama:",
+        "field_type": "ss",
+        "sentence_number": 16,
+        "_version_": 1.4579959345877e+18,
+        "tags_id_media": [
+          8874930,
+          1,
+          109,
+          6729599,
+          6071565,
+          8875027
+        ],
+        "solr_import_date": "2014-01-23T04:28:14.894Z",
+        "media_id": 1,
+        "tags_id_stories": [
+          8878051,
+          8878085
+        ],
+        "media_sets_id": [
+          24,
+          1,
+          16959
+        ],
+        "publish_date": "2012-04-18T16:10:06Z",
+        "stories_id": 79115414,
+        "id": "959545252_ss",
+        "story_sentences_id": "959545252"
+      },
+      {
+        "sentence": "Obama!",
+        "field_type": "ss",
+        "sentence_number": 8,
+        "_version_": 1.4580934893476e+18,
+        "tags_id_media": [
+          8874930,
+          1,
+          109,
+          6729599,
+          6071565,
+          8875027
+        ],
+        "solr_import_date": "2014-01-23T04:28:14.894Z",
+        "media_id": 1,
+        "media_sets_id": [
+          24,
+          1,
+          16959
+        ],
+        "publish_date": "2011-10-04T09:15:23Z",
+        "stories_id": 42553267,
+        "id": "816034983_ss",
+        "story_sentences_id": "816034983"
+      },
+
+      ...
+
+      {
+        "sentence": "Obama agreed.",
+        "field_type": "ss",
+        "sentence_number": 169,
+        "_version_": 1.4579989989955e+18,
+        "tags_id_media": [
+          8874930,
+          1,
+          109,
+          6729599,
+          6071565,
+          8875027
+        ],
+        "solr_import_date": "2014-01-23T04:28:14.894Z",
+        "media_id": 1,
+        "media_sets_id": [
+          24,
+          1,
+          16959
+        ],
+        "publish_date": "2012-05-02T13:00:35Z",
+        "stories_id": 80058349,
+        "id": "947364128_ss",
+        "story_sentences_id": "947364128"
+      },
+      {
+        "sentence": "Obama Foodorama",
+        "field_type": "ss",
+        "sentence_number": 138,
+        "_version_": 1.4580065399325e+18,
+        "tags_id_media": [
+          8874930,
+          1,
+          109,
+          6729599,
+          6071565,
+          8875027
+        ],
+        "solr_import_date": "2014-01-23T04:28:14.894Z",
+        "media_id": 1,
+        "media_sets_id": [
+          24,
+          1,
+          16959
+        ],
+        "publish_date": "2012-04-04T00:08:33Z",
+        "stories_id": 77777319,
+        "id": "916030816_ss",
+        "story_sentences_id": "916030816"
+      }
     ],
-    "tags_id_media": [
-      8874930,
-      1,
-      109,
-      6729599,
-      6071565,
-      8875027
-    ],
-    "_version_": 1.4580934893476e+18
-  },
-  // <...> -- sentences skipped for space reasons
-  {
-    "id": "915146557_ss",
-    "field_type": "ss",
-    "publish_date": "2010-11-03T04:18:40Z",
-    "media_id": 1,
-    "story_sentences_id": "915146557",
-    "solr_import_date": "2014-01-23T04:28:14.894Z",
-    "sentence": "OBAMA 3",
-    "sentence_number": 12,
-    "stories_id": 76521646,
-    "media_sets_id": [
-      24,
-      1,
-      16959
-    ],
-    "tags_id_media": [
-      8874930,
-      1,
-      109,
-      6729599,
-      6071565,
-      8875027
-    ],
-    "_version_": 1.4580067639912e+18
-  },
-  {
-    "id": "911745123_ss",
-    "field_type": "ss",
-    "publish_date": "2012-01-03T11:13:06Z",
-    "media_id": 1,
-    "story_sentences_id": "911745123",
-    "solr_import_date": "2014-01-23T04:28:14.894Z",
-    "sentence": "Obama bad.",
-    "sentence_number": 46,
-    "stories_id": 46771580,
-    "media_sets_id": [
-      24,
-      1,
-      16959
-    ],
-    "tags_id_media": [
-      8874930,
-      1,
-      109,
-      6729599,
-      6071565,
-      8875027
-    ],
-    "_version_": 1.4580076258599e+18
+    "start": 0
   }
-]
+}
 ```
 
 ## Word Counting
