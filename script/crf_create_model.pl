@@ -45,7 +45,7 @@ sub main
     $iterations = int( $iterations );
 
     my $model_output_location = $dat_file;
-    $model_output_location =~ s/\.dat$/_MaxEntModel_Iterations_$iterations\.txt/;
+    $model_output_location =~ s/\.dat$/_CrfModel_Iterations_$iterations\.txt/;
 
     CRF::CrfUtils::create_model( $dat_file, $iterations, $model_output_location );
 }

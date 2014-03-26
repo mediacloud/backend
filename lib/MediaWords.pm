@@ -215,6 +215,13 @@ sub setup_acl()
       /admin/gearman/view_log
       |;
 
+    my @acl_search = qw|
+      /search
+      /search/index
+      /search/wc
+      /search/readme
+      |;
+
     foreach my $path ( @acl_stories_api )
     {
         __PACKAGE__->allow_access_if_any( $path, [ qw/stories-api/ ] );
@@ -245,6 +252,11 @@ sub setup_acl()
         __PACKAGE__->allow_access_if_any( $path, [ qw/cm/ ] );
     }
 
+    for my $path ( @acl_search )
+    {
+        __PACKAGE__->allow_access_if_any( $path, [ qw/search/ ] );
+    }
+
     # ---
 
     # All roles can access their profile
@@ -264,7 +276,8 @@ sub setup_acl()
     );
 
     # Blanket rule for the rest of the administration controllers
-    __PACKAGE__->deny_access_unless_any( "/admin", [ qw/admin/ ] );
+    __PACKAGE__->deny_access_unless_any( "/admin",  [ qw/admin/ ] );
+    __PACKAGE__->deny_access_unless_any( "/search", [ qw/admin/ ] );
 
     # Public interface
     __PACKAGE__->allow_access( "/dashboard" );

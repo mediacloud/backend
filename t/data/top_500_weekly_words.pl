@@ -2,14579 +2,12907 @@
 $VAR1 = [
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => '2twenty3',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => '2twenty3'
+            'media_sets_id' => 1,
+            'term' => '2twenty3',
+            'stem_count' => 1,
+            'stem' => '2twenty3'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => '31th',
-            'media_sets_id' => 1,
+            'term' => '31th',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => '31th'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => '64forsuu',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => '64forsuu',
+            'stem_count' => 1,
             'term' => '64forsuu'
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => '64th',
             'stem_count' => 1,
             'stem' => '64th',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => '64th'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 5,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'a330',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'a330'
+            'term' => 'a330',
+            'stem_count' => 6
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'abaixo',
             'stem_count' => 1,
+            'stem' => 'abaix',
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
             'stem' => 'abi',
-            'media_sets_id' => 1,
+            'term' => 'aby',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'aby'
+            'media_sets_id' => 1
+          },
+          {
+            'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1,
+            'stem' => 'absurd',
+            'term' => 'absurd',
+            'stem_count' => 3
+          },
+          {
+            'stem' => 'absurdo',
+            'stem_count' => 1,
+            'term' => 'absurdo',
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'abus',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'abuses'
+            'media_sets_id' => 1,
+            'term' => 'abuses',
+            'stem_count' => 1,
+            'stem' => 'abus'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'accident',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'accident'
-          },
-          {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'ach',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ache'
+            'term' => 'ache',
+            'stem' => 'ach'
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'acho',
             'stem' => 'acho',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'acho'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
-            'stem_count' => 4,
+            'media_sets_id' => 1,
             'stem' => 'acident',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'acidente'
+            'term' => 'acidente',
+            'stem_count' => 5
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'acknowledge',
             'stem_count' => 1,
             'stem' => 'acknowledg',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => 1,
-            'term' => 'acknowledge'
+            'media_sets_id' => 1
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
             'stem_count' => 2,
-            'stem' => 'acknowledg',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'acknowledged'
+            'term' => 'acknowledged',
+            'stem' => 'acknowledg'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'acompanh',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => 'acompanh',
+            'stem_count' => 1,
             'term' => 'acompanho'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 3,
             'stem' => 'acontec',
-            'media_sets_id' => 1,
+            'term' => 'aconteceu',
+            'stem_count' => 3,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'aconteceu'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'adel',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'acordo',
+            'stem_count' => 1,
+            'stem' => 'acord'
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'stem' => 'adel',
+            'stem_count' => 1,
             'term' => 'adel'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 4,
             'stem' => 'adiru',
+            'stem_count' => 4,
+            'term' => 'adiru',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'adiru'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'adirus',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => 'adirus',
+            'stem_count' => 1,
             'term' => 'adirus'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'advisori',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'stem' => 'advisori',
+            'stem_count' => 1,
             'term' => 'advisory'
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
             'stem_count' => 3,
-            'stem' => "a\x{e9}r",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "a\x{e9}reo"
+            'term' => "a\x{e9}reo",
+            'stem' => "a\x{e9}r"
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
             'stem' => 'affirm',
-            'media_sets_id' => 1,
+            'term' => 'affirming',
+            'stem_count' => 2,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'affirming'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'afirma',
             'stem' => 'afirm',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'afirma'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
+            'stem' => 'african',
             'stem_count' => 1,
+            'term' => 'african'
+          },
+          {
             'stem' => 'agreement',
-            'media_sets_id' => 1,
+            'term' => 'agreements',
+            'stem_count' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'agreements'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'ahm',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => 1,
-            'term' => 'ahmed'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'ahm',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 2,
             'term' => 'ahmed'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'aind',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'ainda'
+            'stem_count' => 2,
+            'term' => 'ahmed',
+            'stem' => 'ahm'
           },
           {
+            'term' => 'ainda',
+            'stem_count' => 3,
+            'stem' => 'aind',
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
             'stem_count' => 5,
-            'stem' => 'airbus',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'airbus'
+            'term' => 'airbus',
+            'stem' => 'airbus'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 3,
             'stem' => 'aircraft',
+            'stem_count' => 4,
+            'term' => 'aircraft',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'aircraft'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'airlin',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => 'airlin',
+            'stem_count' => 1,
             'term' => 'airliner'
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'airplane',
             'stem' => 'airplan',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'airplane'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'airport',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'airport'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
+            'term' => 'alaykum',
+            'stem' => 'alaykum'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'airport',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'airport'
-          },
-          {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'alaykum',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'alaykum'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'albeit',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => 'albeit'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'albright',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'albright'
+            'stem_count' => 1,
+            'term' => 'albright',
+            'stem' => 'albright'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'allah',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'allah'
+            'media_sets_id' => 1,
+            'term' => 'alheia',
+            'stem_count' => 1,
+            'stem' => 'alhe'
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'aloud',
             'stem_count' => 1,
             'stem' => 'aloud',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'aloud'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'alredi',
+            'stem_count' => 1,
+            'term' => 'alredy',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'alredy'
+            'publish_week' => '2009-06-01'
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'amazon',
             'stem_count' => 1,
             'stem' => 'amazon',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'amazon'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'ambit',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'ambition'
+            'stem_count' => 1,
+            'term' => 'ambition',
+            'stem' => 'ambit'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'amelia',
+            'stem_count' => 1,
+            'term' => 'amelia',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'amelia'
+            'publish_week' => '2009-06-01'
           },
           {
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'america',
             'stem_count' => 2,
-            'stem' => 'america',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'america'
+            'stem' => 'america'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 5,
-            'stem' => 'american',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'american'
+            'publish_week' => '2009-06-01',
+            'stem_count' => 3,
+            'term' => 'american',
+            'stem' => 'american'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'ameryka',
+            'stem_count' => 1,
+            'term' => 'ameryka',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ameryka'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'amira',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => 'amira',
+            'stem_count' => 1,
             'term' => 'amira'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'analyz',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'analyzed'
+            'stem' => 'analis',
+            'stem_count' => 1,
+            'term' => 'analisou'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'analyz',
+            'dashboard_topics_id' => undef,
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'analyzed'
+            'term' => 'analyzed',
+            'stem_count' => 2,
+            'stem' => 'analyz'
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => 1,
             'stem_count' => 1,
+            'term' => 'analyzed',
+            'stem' => 'analyz'
+          },
+          {
             'stem' => 'anjelica',
-            'media_sets_id' => 1,
+            'term' => 'anjelica',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'anjelica'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'annonc',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'annonce'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'term' => 'anwar',
             'stem' => 'anwar',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'anwar'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'anwar',
+            'stem_count' => 1,
+            'term' => 'anwar',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'anwar'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'aonde',
             'stem' => 'aond',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'aonde'
+            'publish_week' => '2009-06-01'
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'apenas',
             'stem_count' => 1,
             'stem' => 'apen',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'apenas'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'apolog',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => 'apolog',
+            'stem_count' => 1,
             'term' => 'apologizing'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'appropri',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'appropriated'
+            'stem_count' => 1,
+            'term' => 'aqui',
+            'stem' => 'aqu'
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'arab',
+            'media_sets_id' => 1,
+            'term' => 'arab',
+            'stem_count' => 4,
+            'stem' => 'arab'
+          },
+          {
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'arab'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 3,
-            'stem' => 'arab',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'arab'
-          },
-          {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'arabia',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'arabia'
+            'term' => 'arab',
+            'stem' => 'arab'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
             'stem' => 'arabist',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'arabist'
-          },
-          {
-            'publish_week' => '2009-06-01',
+            'term' => 'arabist',
             'stem_count' => 2,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
             'stem' => 'arabist',
+            'stem_count' => 2,
+            'term' => 'arabist',
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => 1
+          },
+          {
+            'stem' => 'arafa',
+            'stem_count' => 1,
+            'term' => 'arafa',
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
+          },
+          {
+            'stem' => 'arafa',
+            'stem_count' => 1,
+            'term' => 'arafa',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'arabist'
+            'publish_week' => '2009-06-01'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'arafa',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'arafa'
-          },
-          {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'arafa',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'arafa'
-          },
-          {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'archbishop',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'archbishop'
+            'term' => 'archbishop',
+            'stem' => 'archbishop'
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'armistice',
             'stem_count' => 1,
             'stem' => 'armistic',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'armistice'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'arrived',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => 'arrived',
+            'stem_count' => 1,
             'term' => 'arrived'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'ascens',
-            'media_sets_id' => 1,
+            'term' => 'ascension',
+            'stem_count' => 1
+          },
+          {
             'dashboard_topics_id' => undef,
-            'term' => 'ascension'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1,
+            'term' => 'ashton',
+            'stem_count' => 1,
+            'stem' => 'ashton'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'ashton',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'ashton'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'aspir',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'aspirations'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'assert',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'asserting'
+            'term' => 'asserting',
+            'stem_count' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'athor',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'athority'
+            'media_sets_id' => 1,
+            'stem' => 'assunt',
+            'term' => 'assunto',
+            'stem_count' => 1
           },
           {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
+            'term' => 'athority',
+            'stem' => 'athor'
+          },
+          {
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
             'stem_count' => 5,
-            'stem' => 'atlant',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'atlantic'
+            'term' => 'atlantic',
+            'stem' => 'atlant'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "atl\x{e2}nt",
-            'media_sets_id' => 1,
+            'term' => "atl\x{e2}ntico",
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "atl\x{e2}ntico"
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'atsb',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'atsb'
+            'stem_count' => 1,
+            'term' => 'atsb',
+            'stem' => 'atsb'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "audi\x{ea}nc",
-            'media_sets_id' => 1,
+            'term' => "audi\x{ea}ncia",
+            'stem_count' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "audi\x{ea}ncia"
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'aung',
             'stem_count' => 10,
             'stem' => 'aung',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'aung'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'australia',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'stem' => 'australia',
+            'stem_count' => 2,
             'term' => 'australia'
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'autopilot',
             'stem' => 'autopilot',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'autopilot'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => "avi\x{e3}o",
             'stem_count' => 3,
             'stem' => "avi\x{e3}",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "avi\x{e3}o"
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'stem' => "avi\x{e3}ozinh",
+            'term' => "avi\x{e3}ozinho",
+            'stem_count' => 1
+          },
+          {
             'stem_count' => 4,
+            'term' => 'aviation',
             'stem' => 'aviat',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'aviation'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'baboseir',
+            'dashboard_topics_id' => undef,
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'baboseiras'
+            'term' => 'baboseiras',
+            'stem_count' => 1,
+            'stem' => 'baboseir'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "b\x{105}d\x{17a}",
-            'media_sets_id' => 1,
+            'term' => "b\x{105}d\x{17a}",
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "b\x{105}d\x{17a}"
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
             'stem' => 'bahraini',
+            'stem_count' => 2,
+            'term' => 'bahraini',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'bahraini'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
             'stem_count' => 3,
+            'term' => 'barack',
+            'stem' => 'barack'
+          },
+          {
             'stem' => 'barack',
+            'stem_count' => 3,
+            'term' => 'barack',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'barack'
+            'publish_week' => '2009-06-01'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 3,
-            'stem' => 'barack',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'barack'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'bardzo',
-            'media_sets_id' => 1,
+            'term' => 'bardzo',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'bardzo'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'barrymor',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'barrymore'
+            'stem_count' => 1,
+            'term' => 'barrymore',
+            'stem' => 'barrymor'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'beckham',
+            'stem_count' => 1,
+            'term' => 'beckham',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'beckham'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
-            'stem' => "b\x{119}d\x{119}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "b\x{119}d\x{119}"
+            'term' => "b\x{119}d\x{119}",
+            'stem' => "b\x{119}d\x{119}"
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 7,
             'stem' => 'bermuda',
+            'stem_count' => 7,
+            'term' => 'bermuda',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'bermuda'
+            'publish_week' => '2009-06-01'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'bermudzkim',
+            'stem_count' => 1,
+            'term' => 'bermudzkim',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'bermudzkim'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'birthday',
             'stem_count' => 1,
             'stem' => 'birthday',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'birthday'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
             'stem' => 'blah',
+            'stem_count' => 2,
+            'term' => 'blah',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'blah'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "blisk\x{105}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'stem' => "blisk\x{105}",
+            'stem_count' => 1,
             'term' => "blisk\x{105}"
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 6,
-            'stem' => 'blogger',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'blogger'
+            'stem_count' => 7,
+            'term' => 'blogger',
+            'stem' => 'blogger'
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'bloggers',
             'stem_count' => 2,
             'stem' => 'blogger',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => 1,
-            'term' => 'bloggers'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
+            'stem' => 'blogospher',
             'stem_count' => 1,
-            'stem' => "b\x{142}ogostan",
+            'term' => 'blogosphere',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "b\x{142}ogostan"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => 1,
+            'stem' => 'blogospher',
+            'stem_count' => 1,
+            'term' => 'blogosphere'
+          },
+          {
+            'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1,
+            'term' => "b\x{142}ogostan",
+            'stem_count' => 1,
+            'stem' => "b\x{142}ogostan"
+          },
+          {
+            'term' => 'boeing',
             'stem_count' => 1,
             'stem' => 'boe',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'boeing'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'boeing',
             'stem_count' => 1,
             'stem' => 'boeing',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'boeing'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'bono',
-            'media_sets_id' => 1,
+            'term' => 'bono',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'bono'
+            'media_sets_id' => 1
           },
           {
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'brad',
+            'term' => 'brad',
+            'stem' => 'brad'
+          },
+          {
+            'stem_count' => 1,
+            'term' => 'brasileiro',
+            'stem' => 'brasileir',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'brad'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 5,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'brazil',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'brazil'
+            'term' => 'brazil',
+            'stem_count' => 6
           },
           {
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
             'stem' => 'brazilian',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'brazilians'
+            'stem_count' => 4,
+            'term' => 'brazilian'
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'britannica',
             'stem' => 'britannica',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'britannica'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'british',
             'stem' => 'british',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'british'
+            'publish_week' => '2009-06-01'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'broderick',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'broderick'
-          },
-          {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'bullock',
+            'term' => 'broderick',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'bullock'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'bruno',
+            'stem_count' => 1,
+            'stem' => 'bruno'
+          },
+          {
+            'stem' => 'bullock',
+            'term' => 'bullock',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
+            'term' => 'bunch',
             'stem_count' => 1,
             'stem' => 'bunch',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'bunch'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'burmes',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'burmese'
-          },
-          {
-            'publish_week' => '2009-06-01',
+            'term' => 'burmese',
             'stem_count' => 1,
-            'stem' => 'caipirinha',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'caipirinhas'
+            'media_sets_id' => 1
           },
           {
+            'stem' => 'burr',
+            'stem_count' => 1,
+            'term' => 'burros',
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
+          },
+          {
+            'stem' => 'caid',
+            'stem_count' => 1,
+            'term' => 'caido',
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
+            'term' => 'caipirinhas',
+            'stem' => 'caipirinha'
+          },
+          {
+            'stem_count' => 1,
+            'term' => 'cair',
+            'stem' => 'cair',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01'
+          },
+          {
+            'stem_count' => 2,
+            'term' => 'cairo',
+            'stem' => 'cairo',
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => 1
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
             'stem_count' => 3,
-            'stem' => 'cairo',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'cairo'
+            'term' => 'cairo',
+            'stem' => 'cairo'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 6,
-            'stem' => 'cairo',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'cairo'
-          },
-          {
-            'publish_week' => '2009-06-01',
+            'term' => 'caixa',
             'stem_count' => 1,
             'stem' => 'caix',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'caixa'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'camerini',
+            'stem_count' => 1,
+            'term' => 'camerini',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'camerini'
+            'publish_week' => '2009-06-01'
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'campaign',
             'stem_count' => 4,
             'stem' => 'campaign',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'campaign'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'campaign',
             'stem_count' => 1,
             'stem' => 'campaign',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => 1,
-            'term' => 'campaign'
+            'media_sets_id' => 1
           },
           {
+            'stem_count' => 1,
+            'term' => 'campinas',
+            'stem' => 'campin',
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
+          },
+          {
+            'stem' => 'campina',
+            'stem_count' => 1,
+            'term' => 'campinas',
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
+          },
+          {
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
-            'stem' => 'caraca',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'caracas'
+            'term' => 'caracas',
+            'stem' => 'caraca'
           },
           {
-            'publish_week' => '2009-06-01',
+            'stem' => 'caribb',
+            'term' => 'caribb',
             'stem_count' => 1,
-            'stem' => "cat\x{e1}strof",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "cat\x{e1}strofe"
+            'media_sets_id' => 1
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'stem' => 'cas',
+            'stem_count' => 2,
+            'term' => 'caso'
+          },
+          {
+            'stem' => "cat\x{e1}strof",
             'stem_count' => 3,
+            'term' => "cat\x{e1}strofe",
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
+          },
+          {
+            'stem_count' => 5,
+            'term' => 'catastrophe',
             'stem' => 'catastroph',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'catastrophe'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'categor',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'stem' => 'categor',
+            'stem_count' => 1,
             'term' => 'categoricamente'
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'celebrities',
             'stem' => 'celebr',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'celebrities'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'cet',
+            'dashboard_topics_id' => undef,
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'cet'
+            'term' => 'centenas',
+            'stem_count' => 1,
+            'stem' => 'centen'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'cham',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'chamar'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'charl',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'charles'
-          },
-          {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'cheer',
+            'term' => 'chamar',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'cheering'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
+            'term' => 'charisma',
+            'stem_count' => 1,
+            'stem' => 'charisma',
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
+          },
+          {
+            'stem' => 'charl',
+            'stem_count' => 2,
+            'term' => 'charles',
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
+          },
+          {
+            'stem' => 'cheer',
+            'term' => 'cheering',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
+            'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1,
+            'stem' => 'chei',
+            'term' => 'cheio',
+            'stem_count' => 1
+          },
+          {
+            'term' => 'chwili',
             'stem_count' => 1,
             'stem' => 'chwili',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'chwili'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "ciesz\x{119}",
-            'media_sets_id' => 1,
+            'term' => "ciesz\x{119}",
+            'stem_count' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "ciesz\x{119}"
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'clashes',
             'stem' => 'clash',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'clashes'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'claus',
-            'media_sets_id' => 1,
+            'term' => 'claus',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'claus'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'clockwis',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => 1,
-            'term' => 'clockwise'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'clockwis',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => 'clockwise'
           },
           {
-            'publish_week' => '2009-06-01',
+            'stem' => 'clockwis',
             'stem_count' => 1,
-            'stem' => 'clooney',
+            'term' => 'clockwise',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'clooney'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
             'stem_count' => 1,
+            'term' => 'clooney',
+            'stem' => 'clooney'
+          },
+          {
             'stem' => 'cobra',
+            'stem_count' => 1,
+            'term' => 'cobra',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'cobra'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'coincid',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'coincidences'
+            'stem_count' => 1,
+            'term' => 'coincidences',
+            'stem' => 'coincid'
           },
           {
-            'publish_week' => '2009-06-01',
+            'stem' => 'cois',
             'stem_count' => 1,
+            'term' => 'coisas',
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
+          },
+          {
+            'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1,
+            'stem' => 'coloc',
+            'term' => 'colocar',
+            'stem_count' => 1
+          },
+          {
+            'stem_count' => 1,
+            'term' => 'comic',
             'stem' => 'comic',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'comic'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'comic',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'comic'
+            'stem_count' => 1,
+            'term' => 'comic',
+            'stem' => 'comic'
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'conceal',
             'stem_count' => 1,
             'stem' => 'conceal',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'conceal'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'condol',
+            'stem_count' => 1,
+            'term' => 'condolences',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'condolences'
+            'publish_week' => '2009-06-01'
           },
           {
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
+            'stem' => "conjun\x{e7}\x{e3}",
             'stem_count' => 1,
+            'term' => "conjun\x{e7}\x{e3}o"
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'stem' => 'conjunct',
+            'stem_count' => 1,
+            'term' => 'conjunction'
+          },
+          {
+            'stem_count' => 1,
+            'term' => 'consigam',
             'stem' => 'consig',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
+          },
+          {
+            'stem' => 'contradict',
+            'term' => 'contradicting',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => 1,
+            'media_sets_id' => 1
+          },
+          {
+            'stem' => 'contradict',
+            'term' => 'contradicting',
+            'stem_count' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'consigam'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'corja',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'stem' => "cora\x{e7}\x{e3}",
+            'term' => "cora\x{e7}\x{e3}o",
+            'stem_count' => 1
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'stem' => 'corja',
+            'stem_count' => 1,
             'term' => 'corja'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'creep',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => 'creep',
+            'stem_count' => 1,
             'term' => 'creeps'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'crewmemb',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'crewmembers'
+            'media_sets_id' => 1,
+            'stem' => 'crewmemb',
+            'term' => 'crewmembers',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'crikey',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'stem' => 'crikey',
+            'stem_count' => 1,
             'term' => 'crikey'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'culp',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'culpados'
+            'stem_count' => 1,
+            'term' => 'culpados',
+            'stem' => 'culp'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'cusack',
+            'stem_count' => 1,
+            'term' => 'cusack',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'cusack'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'cynic',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'cynical'
-          },
-          {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
             'stem' => 'cynthia',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => 'cynthia'
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'czarna',
             'stem_count' => 1,
             'stem' => 'czarna',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'czarna'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "cz\x{119}sto",
+            'stem_count' => 1,
+            'term' => "cz\x{119}sto",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "cz\x{119}sto"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "czynnik\x{f3}w",
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => "czynnik\x{f3}w",
+            'stem_count' => 1,
             'term' => "czynnik\x{f3}w"
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'damon',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'damon'
-          },
-          {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'david',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'david'
+            'term' => 'damon',
+            'stem_count' => 1,
+            'stem' => 'damon'
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'david',
             'stem_count' => 2,
             'stem' => 'david',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'david'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'deaf',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'deaf'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'deaf',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'deaf'
-          },
-          {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'david',
+            'stem' => 'david'
+          },
+          {
             'stem' => 'debri',
-            'media_sets_id' => 1,
+            'term' => 'debris',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'debris'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'deem',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'deemed'
+            'term' => 'deemed',
+            'stem_count' => 1
           },
           {
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'democratic',
             'stem_count' => 3,
-            'stem' => 'democrat',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'democratic'
+            'stem' => 'democrat'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'democrat',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'democratic'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'derrub',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'derrubou'
+            'term' => 'democratic',
+            'stem_count' => 1,
+            'stem' => 'democrat'
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
             'stem_count' => 1,
+            'term' => 'derrubou',
+            'stem' => 'derrub'
+          },
+          {
             'stem' => 'desastr',
-            'media_sets_id' => 1,
+            'term' => 'desastre',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'desastre'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'desej',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'desejo'
+            'term' => 'desejo',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'desencad',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => 'desencad',
+            'stem_count' => 1,
             'term' => 'desencadeam'
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => 'desfil',
+            'term' => 'desfilando',
+            'stem_count' => 1
+          },
+          {
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'desfilando'
+            'stem_count' => 1,
+            'term' => "desgra\x{e7}a",
+            'stem' => 'desgrac'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'desmond',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'desmond'
+            'term' => 'desmond',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'destin',
+            'stem_count' => 1,
+            'term' => 'destination',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'destination'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => 'destroc',
-            'media_sets_id' => 1,
+            'term' => "destro\x{e7}os",
+            'stem_count' => 1
+          },
+          {
+            'stem' => 'detalh',
+            'term' => 'detalhe',
+            'stem_count' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "destro\x{e7}os"
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'deterior',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'deteriorated'
+            'term' => 'deteriorated',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'deu',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => 'deu',
+            'stem_count' => 2,
             'term' => 'deu'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'dev',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'deveriam'
+            'stem_count' => 1,
+            'term' => 'deveriam',
+            'stem' => 'dev'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'diment',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'stem' => 'diment',
+            'stem_count' => 1,
             'term' => 'dimention'
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'dinheiro',
+            'stem' => 'dinheir',
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
+          },
+          {
+            'stem_count' => 1,
+            'term' => 'disengagement',
             'stem' => 'disengag',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'disengagement'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => "disfar\x{e7}am",
             'stem' => 'disfarc',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "disfar\x{e7}am"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'disgust',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => 'disgust',
+            'stem_count' => 1,
             'term' => 'disgusted'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'divert',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'stem' => 'divert',
+            'stem_count' => 1,
             'term' => 'diverted'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'stem_count' => 2,
+            'term' => 'divulgar',
             'stem' => 'divulg',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'divulgando'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'stem_count' => 3,
+            'term' => 'dizer',
             'stem' => 'diz',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'dizer'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'dlaczego',
+            'dashboard_topics_id' => undef,
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'dlaczego'
+            'term' => 'dlaczego',
+            'stem_count' => 1,
+            'stem' => 'dlaczego'
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => 'dni',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'dni'
+            'term' => 'dni',
+            'stem_count' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'doaa',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'doaa'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'doaa',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'doaa'
+            'media_sets_id' => 1,
+            'term' => 'doaa',
+            'stem_count' => 1,
+            'stem' => 'doaa'
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
             'stem_count' => 1,
-            'stem' => 'dobrz',
+            'term' => 'doaa',
+            'stem' => 'doaa'
+          },
+          {
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'stem' => 'dobrz',
+            'stem_count' => 1,
             'term' => 'dobrze'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'dole',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => 'dole',
+            'stem_count' => 1,
             'term' => 'dole'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "dolecie\x{107}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'stem' => "dolecie\x{107}",
+            'stem_count' => 1,
             'term' => "dolecie\x{107}"
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
+            'dashboard_topics_id' => undef,
             'stem' => 'domain',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'domains'
+            'stem_count' => 1,
+            'term' => 'domain'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'donia',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'donia'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => "do\x{15b}\x{107}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "do\x{15b}\x{107}"
+            'term' => "do\x{15b}\x{107}",
+            'stem_count' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "dos\x{142}owni",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "dos\x{142}ownie"
+            'media_sets_id' => 1,
+            'term' => "dos\x{142}ownie",
+            'stem_count' => 1,
+            'stem' => "dos\x{142}owni"
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'drescher',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'drescher'
+            'media_sets_id' => 1,
+            'term' => 'drescher',
+            'stem_count' => 1,
+            'stem' => 'drescher'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "dzia\x{142}a",
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "dzia\x{142}a"
+            'stem_count' => 1,
+            'term' => "dzia\x{142}a",
+            'stem' => "dzia\x{142}a"
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'dziecko',
-            'media_sets_id' => 1,
+            'term' => 'dziecko',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'dziecko'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'earhart',
             'stem_count' => 1,
             'stem' => 'earhart',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'earhart'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'eastner',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'eastners'
+            'media_sets_id' => 1,
+            'term' => 'eastners',
+            'stem_count' => 1,
+            'stem' => 'eastner'
           },
           {
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'econom',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => 'economic'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 4,
-            'stem' => 'egypt',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'egypt'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 4,
-            'stem' => 'egypt',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'egypt'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 9,
-            'stem' => 'egyptian',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'egyptian'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 4,
-            'stem' => 'egyptian',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'egyptian'
-          },
-          {
-            'publish_week' => '2009-06-01',
+            'stem' => 'efeit',
+            'term' => 'efeito',
             'stem_count' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
+            'term' => 'egypt',
+            'stem_count' => 3,
+            'stem' => 'egypt',
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
+            'stem_count' => 3,
+            'term' => 'egypt',
+            'stem' => 'egypt',
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => 1
+          },
+          {
+            'stem_count' => 4,
+            'term' => 'egyptian',
+            'stem' => 'egyptian',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => 1,
+            'publish_week' => '2009-06-01'
+          },
+          {
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'stem_count' => 6,
+            'term' => 'egyptian',
+            'stem' => 'egyptian'
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'electromagnet',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'electromagnetic'
+            'term' => 'electromagnetic',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'eloqu',
-            'media_sets_id' => 1,
+            'term' => 'eloquence',
+            'stem_count' => 2,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'eloquence'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'empathi',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => 'empathi',
+            'stem_count' => 1,
             'term' => 'empathy'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'emphat',
+            'stem_count' => 1,
+            'term' => 'emphatically',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'emphatically'
+            'publish_week' => '2009-06-01'
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'enduring',
             'stem' => 'endur',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'enduring'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
             'stem_count' => 1,
+            'term' => 'energias',
+            'stem' => 'energ'
+          },
+          {
+            'term' => 'enfim',
+            'stem_count' => 1,
+            'stem' => 'enfim',
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
             'stem' => 'enhanc',
+            'stem_count' => 1,
+            'term' => 'enhancing',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'enhancing'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'enrag',
+            'stem_count' => 1,
+            'term' => 'enraged',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'enraged'
+            'publish_week' => '2009-06-01'
           },
           {
-            'publish_week' => '2009-06-01',
+            'stem' => 'enxerg',
+            'term' => 'enxergar',
             'stem_count' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
+            'stem_count' => 1,
+            'term' => "epis\x{f3}dio",
             'stem' => "epis\x{f3}di",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "epis\x{f3}dio"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'escal',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'escala'
-          },
-          {
-            'publish_week' => '2009-06-01',
+            'term' => 'escala',
             'stem_count' => 1,
-            'stem' => "esc\x{e2}ndal",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "esc\x{e2}ndalo"
+            'media_sets_id' => 1
+          },
+          {
+            'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1,
+            'term' => "esc\x{e2}ndalo",
+            'stem_count' => 1,
+            'stem' => "esc\x{e2}ndal"
           },
           {
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'especialistas',
             'stem_count' => 2,
-            'stem' => 'especial',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'especialistas'
+            'stem' => 'especial'
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => "especula\x{e7}\x{f5}es",
             'stem_count' => 1,
             'stem' => 'especul',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "especula\x{e7}\x{f5}es"
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'esquecimento',
             'stem_count' => 1,
+            'stem' => 'esquec',
+            'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
+          },
+          {
             'stem' => 'esra\'a',
-            'media_sets_id' => 1,
+            'term' => 'esra\'a',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'esra\'a'
+            'media_sets_id' => 1
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
+            'media_sets_id' => 1,
             'stem' => 'europ',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'europe'
+            'term' => 'europe',
+            'stem_count' => 2
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'europa',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'europa'
+            'term' => 'europa',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'term' => 'exams',
+            'stem_count' => 2,
             'stem' => 'exam',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
+            'stem' => 'exam',
+            'term' => 'exams',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => 1,
-            'term' => 'exams'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'exam',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'exams'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'exceed',
-            'media_sets_id' => 1,
+            'term' => 'exceed',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'exceed'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'experts',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'experts'
-          },
-          {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'extremist',
+            'term' => 'experts',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'extremist'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'fact',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'exploiting',
+            'stem_count' => 1,
+            'stem' => 'exploit'
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
+            'term' => 'extremist',
+            'stem' => 'extremist'
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'stem' => 'fact',
+            'stem_count' => 3,
             'term' => 'fact'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
+            'stem_count' => 3,
+            'term' => 'falam',
             'stem' => 'fal',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'falam'
+            'publish_week' => '2009-06-01'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
             'stem' => 'famili',
-            'media_sets_id' => 1,
+            'term' => 'families',
+            'stem_count' => 2,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'families'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'fatores',
             'stem_count' => 1,
             'stem' => 'fator',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'fatores'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 3,
-            'stem' => 'fattract',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'fattractive'
+            'media_sets_id' => 1,
+            'term' => 'fattractive',
+            'stem_count' => 2,
+            'stem' => 'fattract'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'faulti',
-            'media_sets_id' => 1,
+            'term' => 'faulty',
+            'stem_count' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'faulty'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'favourit',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'stem' => 'favourit',
+            'stem_count' => 1,
             'term' => 'favourite'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'faz',
+            'stem_count' => 2,
+            'term' => 'fazer',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'fazer'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'ficou',
+            'stem_count' => 3,
+            'stem' => 'fic'
+          },
+          {
             'stem_count' => 1,
-            'stem' => 'fic',
+            'term' => 'flickr',
+            'stem' => 'flickr',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ficar'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'flirt',
             'stem_count' => 1,
             'stem' => 'flirt',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'flirt'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'flirt',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'flirt'
+            'term' => 'flirt',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'float',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => 'float',
+            'stem_count' => 1,
             'term' => 'floating'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'florida',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'florida'
+            'term' => 'florida',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'footnot',
+            'stem_count' => 1,
+            'term' => 'footnote',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'footnote'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'footnot',
-            'media_sets_id' => 1,
+            'term' => 'footnote',
+            'stem_count' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'footnote'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'term' => 'forgotten',
+            'stem_count' => 2,
             'stem' => 'forgotten',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'forgotten'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'fragment',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'fragmented'
+            'term' => 'fragmented',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "frajd\x{119}",
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => "frajd\x{119}",
+            'stem_count' => 1,
             'term' => "frajd\x{119}"
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'fran',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'stem' => 'fran',
+            'stem_count' => 1,
             'term' => 'franly'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 13,
-            'stem' => 'franc',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'france'
+            'media_sets_id' => 1,
+            'term' => 'france',
+            'stem_count' => 14,
+            'stem' => 'franc'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'freak',
+            'stem_count' => 1,
+            'term' => 'freak',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'freak'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'free',
             'stem_count' => 1,
             'stem' => 'free',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'free'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
             'stem' => 'freedom',
-            'media_sets_id' => 1,
+            'term' => 'freedom',
+            'stem_count' => 2,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'freedom'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 4,
             'stem' => 'french',
-            'media_sets_id' => 1,
+            'term' => 'french',
+            'stem_count' => 4,
             'dashboard_topics_id' => undef,
-            'term' => 'french'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
+          },
+          {
+            'stem_count' => 1,
+            'term' => 'futura',
+            'stem' => 'futura',
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
+          },
+          {
+            'stem' => 'ganh',
+            'stem_count' => 1,
+            'term' => 'ganha',
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => "gapi\x{107}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "gapi\x{107}"
+            'term' => "gapi\x{107}",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'gdi',
-            'media_sets_id' => 1,
+            'term' => 'gdy',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'gdy'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'gdzie',
             'stem_count' => 1,
             'stem' => 'gdzie',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'gdzie'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => "gdzie\x{15b}",
             'stem_count' => 1,
             'stem' => "gdzie\x{15b}",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "gdzie\x{15b}"
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'gente',
             'stem_count' => 1,
+            'stem' => 'gent',
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
+            'stem_count' => 1,
+            'term' => 'george',
             'stem' => 'georg',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'george'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'ghost',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ghost'
-          },
-          {
-            'publish_week' => '2009-06-01',
+            'term' => 'ghost',
             'stem_count' => 1,
-            'stem' => 'glimps',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'glimpse'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
             'stem' => 'global',
-            'media_sets_id' => 1,
+            'term' => 'global',
+            'stem_count' => 2,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'global'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'god',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'god'
+            'stem_count' => 1,
+            'term' => 'godzin',
+            'stem' => 'godzin'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'godzin',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'godzin'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'godzinami',
+            'stem_count' => 1,
+            'term' => 'godzinami',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'godzinami'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'gordon',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'stem' => 'gordon',
+            'stem_count' => 1,
             'term' => 'gordon'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
             'stem' => 'gorenberg',
+            'stem_count' => 2,
+            'term' => 'gorenberg',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'gorenberg'
+            'publish_week' => '2009-06-01'
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'grandson',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'grandson'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'term' => 'gresghom',
             'stem' => 'gresghom',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'gresghom'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'grief',
+            'stem_count' => 1,
+            'stem' => 'grief'
+          },
+          {
+            'term' => 'grieving',
             'stem_count' => 1,
             'stem' => 'griev',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'grieving'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'grumman',
+            'stem_count' => 1,
+            'term' => 'grumman',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'grumman'
+            'publish_week' => '2009-06-01'
+          },
+          {
+            'stem_count' => 1,
+            'term' => 'gvo',
+            'stem' => 'gvo',
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'gvo',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'gvo'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'gvo',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'gvo'
+            'media_sets_id' => 1,
+            'term' => 'gvo',
+            'stem_count' => 1,
+            'stem' => 'gvo'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'gwiazdi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'gwiazdy'
+            'term' => 'gwiazdy',
+            'stem_count' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'ha\'er',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'ha\'er'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => 'hagg',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'hagg'
+            'term' => 'hagg',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'hagg',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'hagg'
-          },
-          {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'hagg',
+            'stem' => 'hagg'
+          },
+          {
             'stem' => 'harvard',
-            'media_sets_id' => 1,
+            'term' => 'harvard',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => 1,
-            'term' => 'harvard'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'harvard',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'harvard'
+            'media_sets_id' => 1,
+            'term' => 'harvard',
+            'stem_count' => 1,
+            'stem' => 'harvard'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'havel',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'havel'
+            'term' => 'havel',
+            'stem_count' => 1
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
+            'media_sets_id' => 1,
             'stem' => 'haven',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'haven'
+            'term' => 'haven',
+            'stem_count' => 2
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'stem' => 'heartless',
+            'stem_count' => 1,
+            'term' => 'heartless'
+          },
+          {
+            'term' => 'heighten',
             'stem_count' => 1,
             'stem' => 'heighten',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'heighten'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'helen',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'helen'
-          },
-          {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'helen',
+            'stem' => 'helen'
+          },
+          {
             'stem' => 'henceforth',
-            'media_sets_id' => 1,
+            'term' => 'henceforth',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'henceforth'
+            'media_sets_id' => 1
+          },
+          {
+            'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1,
+            'term' => 'herald',
+            'stem_count' => 1,
+            'stem' => 'herald'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'herald',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'herald'
+            'media_sets_id' => 1,
+            'term' => 'holistic',
+            'stem_count' => 1,
+            'stem' => 'holist'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'hereon',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'hereon'
+            'stem_count' => 1,
+            'term' => "hol\x{ed}stica",
+            'stem' => "hol\x{ed}st"
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'hommes',
             'stem' => 'homm',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'hommes'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'honeywel',
-            'media_sets_id' => 1,
+            'term' => 'honeywell',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'honeywell'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'honour',
+            'stem_count' => 1,
+            'term' => 'honour',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'honour'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'honour',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'honour'
+            'term' => 'honour',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'hoo',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'hoo'
-          },
-          {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
             'stem' => 'hood',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => 'hood'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'horrif',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => 'horrif',
+            'stem_count' => 1,
             'term' => 'horrific'
           },
           {
-            'publish_week' => '2009-06-01',
+            'stem' => 'hunger',
+            'stem_count' => 2,
+            'term' => 'hunger',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01'
+          },
+          {
+            'term' => 'hussaini',
             'stem_count' => 1,
             'stem' => 'hussaini',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'hussaini'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'huston',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'huston'
+            'media_sets_id' => 1,
+            'term' => 'huston',
+            'stem_count' => 1,
+            'stem' => 'huston'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'hype',
-            'media_sets_id' => 1,
+            'term' => 'hype',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'hype'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'icon',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'icon'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1,
+            'term' => 'icon',
+            'stem_count' => 1,
+            'stem' => 'icon'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'imam',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'imam'
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'term' => 'imam',
+            'stem' => 'imam'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'imam',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'imam'
+            'media_sets_id' => 1,
+            'term' => 'imam',
+            'stem_count' => 1,
+            'stem' => 'imam'
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
             'stem' => 'imprens',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => 'imprensa'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'imprison',
+            'stem_count' => 1,
+            'term' => 'imprisoned',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'imprisoned'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'incognita',
             'stem_count' => 1,
             'stem' => 'incognita',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'incognita'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
+          },
+          {
+            'term' => 'indignada',
+            'stem_count' => 1,
+            'stem' => 'indign',
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'inerti',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'inertial'
+            'media_sets_id' => 1,
+            'term' => 'inertial',
+            'stem_count' => 1,
+            'stem' => 'inerti'
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
             'stem' => 'infant',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => 'infant'
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'influential',
             'stem_count' => 1,
             'stem' => 'influenti',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'influential'
+            'media_sets_id' => 1
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => 'inhibit',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'inhibit'
+            'term' => 'inhibit',
+            'stem_count' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'innym',
+            'term' => 'innym',
+            'stem_count' => 1
+          },
+          {
+            'stem' => 'insens',
+            'stem_count' => 1,
+            'term' => "insens\x{ed}vel",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'innym'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'stem' => 'intellig',
+            'term' => 'intelligence',
+            'stem_count' => 1
+          },
+          {
+            'term' => 'intervene',
             'stem_count' => 1,
             'stem' => 'interven',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'intervene'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
+            'dashboard_topics_id' => 1,
             'stem' => 'islam',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'islam'
+            'stem_count' => 1,
+            'term' => 'islamic'
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'stem' => 'islam',
+            'stem_count' => 3,
+            'term' => 'islamic'
+          },
+          {
             'stem_count' => 1,
+            'term' => 'israeli',
             'stem' => 'isra',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'israeli'
+            'publish_week' => '2009-06-01'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'isra',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => 'isra',
+            'stem_count' => 2,
             'term' => 'israelis'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 4,
-            'stem' => 'israel',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'israel'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'israel',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'israel'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1,
+            'term' => 'israel',
+            'stem_count' => 1,
+            'stem' => 'israel'
           },
           {
+            'stem' => 'israel',
+            'stem_count' => 4,
+            'term' => 'israel',
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef
+          },
+          {
             'stem' => 'jak',
+            'stem_count' => 1,
+            'term' => 'jak',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'jak'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'janeiro',
+            'stem_count' => 1,
+            'term' => 'janeiro',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'janeiro'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'jarbou',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'jarbou'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'jednym',
-            'media_sets_id' => 1,
+            'term' => 'jednym',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'jednym'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'jeja',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'jeja'
-          },
-          {
-            'publish_week' => '2009-06-01',
+            'term' => 'jerusalem',
             'stem_count' => 1,
             'stem' => 'jerusalem',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'jerusalem'
+            'media_sets_id' => 1
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
             'stem_count' => 1,
-            'stem' => "je\x{15b}li",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "je\x{15b}li"
+            'term' => "je\x{15b}li",
+            'stem' => "je\x{15b}li"
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'jessica',
             'stem_count' => 1,
             'stem' => 'jessica',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'jessica'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'jest',
-            'media_sets_id' => 1,
+            'term' => 'jest',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'jest'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 3,
-            'stem' => 'jeszcz',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'stem' => 'jeszcz',
+            'stem_count' => 3,
             'term' => 'jeszcze'
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'johansson',
             'stem' => 'johansson',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'johansson'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'john',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'john'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'john',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'john'
+            'media_sets_id' => 1,
+            'stem' => 'john',
+            'term' => 'john',
+            'stem_count' => 1
           },
           {
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'john',
+            'stem_count' => 2,
+            'stem' => 'john'
+          },
+          {
+            'stem' => 'jornal',
+            'stem_count' => 3,
+            'term' => 'jornalistas',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01'
+          },
+          {
+            'term' => 'journal',
             'stem_count' => 1,
             'stem' => 'journal',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'journal'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
+            'term' => 'journalists',
+            'stem_count' => 2,
+            'stem' => 'journalist',
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
+            'stem' => 'julg',
             'stem_count' => 1,
+            'term' => 'julgando',
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
+          },
+          {
             'stem' => 'julia',
+            'stem_count' => 1,
+            'term' => 'julia',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'julia'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'junta',
-            'media_sets_id' => 1,
+            'term' => 'junta',
+            'stem_count' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'junta'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'katastrofi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'katastrofy'
+            'term' => 'katastrofy',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'kennedi',
-            'media_sets_id' => 1,
+            'term' => 'kennedy',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'kennedy'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'kennedi',
-            'media_sets_id' => 1,
+            'term' => 'kennedy',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => 1,
-            'term' => 'kennedy'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'kerimel',
             'stem' => 'kerimel',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'kerimel'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'khaldoun',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'khaldoun'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'kidman',
-            'media_sets_id' => 1,
+            'term' => 'kidman',
+            'stem_count' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'kidman'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 3,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'kilka',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'kilka'
+            'term' => 'kilka',
+            'stem_count' => 3
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => "kilkana\x{15b}ci",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "kilkana\x{15b}cie"
+            'term' => "kilkana\x{15b}cie",
+            'stem_count' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "k\x{142}opoti",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "k\x{142}opoty"
+            'media_sets_id' => 1,
+            'term' => "k\x{142}opoty",
+            'stem_count' => 1,
+            'stem' => "k\x{142}opoti"
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => 'knesset',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'knesset'
+            'term' => 'knesset',
+            'stem_count' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'knesset',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'knesset'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "ksi\x{119}\x{17c}yca",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "ksi\x{119}\x{17c}yca"
+            'term' => 'knesset',
+            'stem_count' => 1,
+            'stem' => 'knesset'
           },
           {
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => "ksi\x{119}\x{17c}yca",
             'stem_count' => 1,
+            'stem' => "ksi\x{119}\x{17c}yca"
+          },
+          {
             'stem' => 'kutcher',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'kutcher'
-          },
-          {
-            'publish_week' => '2009-06-01',
+            'term' => 'kutcher',
             'stem_count' => 1,
-            'stem' => 'kuwait',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'kuwait'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
+            'term' => 'kuwait',
+            'stem_count' => 2,
+            'stem' => 'kuwait',
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
             'stem_count' => 11,
-            'stem' => 'kyi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'kyi'
+            'term' => 'kyi',
+            'stem' => 'kyi'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "l\x{105}dowaniu",
+            'stem_count' => 1,
+            'term' => "l\x{105}dowaniu",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "l\x{105}dowaniu"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => "lata\x{107}",
             'stem' => "lata\x{107}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "lata\x{107}"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'latam',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => 'latam',
+            'stem_count' => 1,
             'term' => 'latam'
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'latania',
             'stem' => 'latania',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'latania'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'launchpad',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => 1,
-            'term' => 'launchpad'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'launchpad',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => 'launchpad'
           },
           {
+            'stem' => 'launchpad',
+            'stem_count' => 1,
+            'term' => 'launchpad',
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'learmonth',
             'stem_count' => 2,
-            'stem' => 'learmonth',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'learmonth'
+            'stem' => 'learmonth'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "lec\x{105}ci",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "lec\x{105}cy"
+            'media_sets_id' => 1,
+            'term' => "lec\x{105}cy",
+            'stem_count' => 1,
+            'stem' => "lec\x{105}ci"
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'leit',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'leite'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1,
+            'term' => 'leite',
+            'stem_count' => 1,
+            'stem' => 'leit'
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
             'stem' => 'lev',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => 'levar'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'lightn',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'lightning'
+            'media_sets_id' => 1,
+            'stem' => 'lightn',
+            'term' => 'lightning',
+            'stem_count' => 2
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'localiz',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => 'localiz',
+            'stem_count' => 1,
             'term' => 'localizar'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'lotnicza',
+            'stem_count' => 1,
+            'term' => 'lotnicza',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'lotnicza'
+            'publish_week' => '2009-06-01'
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 3,
+            'term' => 'loves',
             'stem' => 'love',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'loves'
+            'publish_week' => '2009-06-01'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'luckili',
-            'media_sets_id' => 1,
+            'term' => 'luckily',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'luckily'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'lug',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'lugar'
-          },
-          {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'madelein',
+            'term' => 'lugar',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'madeleine'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
+            'term' => 'madeleine',
+            'stem' => 'madelein'
+          },
+          {
+            'term' => 'madonna',
             'stem_count' => 1,
             'stem' => 'madonna',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'madonna'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'mahmood',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => 'mahmood',
+            'stem_count' => 1,
             'term' => 'mahmood'
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'mahmoud25x',
             'stem_count' => 1,
             'stem' => 'mahmoud25x',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => 1,
-            'term' => 'mahmoud25x'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'mahmoud25x',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'mahmoud25x'
+            'media_sets_id' => 1,
+            'stem' => 'mahmoud25x',
+            'term' => 'mahmoud25x',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
             'stem' => 'mam',
+            'term' => 'mam',
+            'stem_count' => 2,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'mam'
+            'publish_week' => '2009-06-01',
+            'stem' => 'maneir',
+            'stem_count' => 1,
+            'term' => 'maneira'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'marwa',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'marwa'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'marwa',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'marwa'
+            'media_sets_id' => 1,
+            'stem' => 'marwa',
+            'term' => 'marwa',
+            'stem_count' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'maszyna',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'stem' => 'marwa',
+            'term' => 'marwa',
+            'stem_count' => 1
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'stem' => 'maszyna',
+            'stem_count' => 1,
             'term' => 'maszyna'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'matt',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'matt'
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'term' => 'matt',
+            'stem' => 'matt'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'matthew',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => 'matthew',
+            'stem_count' => 1,
             'term' => 'matthew'
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => "m\x{e1}ximo",
             'stem' => "m\x{e1}xim",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "m\x{e1}ximo"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => 'meanwhil',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'meanwhile'
+            'term' => 'meanwhile',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 4,
             'stem' => 'media',
-            'media_sets_id' => 1,
+            'term' => 'media',
+            'stem_count' => 5,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'media'
+            'media_sets_id' => 1
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => 'meryl',
+            'term' => 'meryl',
+            'stem_count' => 1
+          },
+          {
+            'stem' => 'mesmoo',
+            'stem_count' => 1,
+            'term' => 'mesmooo',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'meryl'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'meter',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'meters'
+            'term' => 'meters',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'mid',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'mid'
+            'stem_count' => 1,
+            'term' => 'mid',
+            'stem' => 'mid'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'mideast',
+            'stem_count' => 1,
+            'term' => 'mideast',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'mideast'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => "miesi\x{105}cu",
             'stem' => "miesi\x{105}cu",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "miesi\x{105}cu"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'mim',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'mim'
+            'term' => 'mim',
+            'stem_count' => 2
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'mindless',
+            'stem_count' => 1,
+            'term' => 'mindlessly',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'mindlessly'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "m\x{ed}nim",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "m\x{ed}nimo"
+            'media_sets_id' => 1,
+            'term' => "m\x{ed}nimo",
+            'stem_count' => 1,
+            'stem' => "m\x{ed}nim"
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'minist',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'minister'
-          },
-          {
-            'publish_week' => '2009-06-01',
+            'term' => 'minister',
             'stem_count' => 1,
-            'stem' => 'mirag',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'mirage'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'mirage',
+            'stem_count' => 1,
+            'stem' => 'mirag'
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'misfortune',
+            'stem_count' => 1,
+            'stem' => 'misfortun'
+          },
+          {
+            'term' => 'mnie',
             'stem_count' => 2,
             'stem' => 'mnie',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'mnie'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "mog\x{119}",
-            'media_sets_id' => 1,
+            'term' => "mog\x{119}",
+            'stem_count' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "mog\x{119}"
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'moich',
             'stem' => 'moich',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'moich'
+            'publish_week' => '2009-06-01'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => "m\x{f3}j",
+            'term' => "m\x{f3}j",
+            'stem_count' => 1
+          },
+          {
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "m\x{f3}j"
+            'stem_count' => 1,
+            'term' => 'moje',
+            'stem' => 'moje'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'moje',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'moje'
+            'media_sets_id' => 1,
+            'term' => 'mongering',
+            'stem_count' => 1,
+            'stem' => 'monger'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'monger',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'mongering'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'monger',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'mongering'
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'term' => 'mongering',
+            'stem' => 'monger'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'moon',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'moon'
+            'media_sets_id' => 1,
+            'term' => 'moon',
+            'stem_count' => 1,
+            'stem' => 'moon'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'mubarak',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'mubarak'
+            'stem' => 'morr',
+            'stem_count' => 1,
+            'term' => 'morrem'
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'mubarak',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'mubarak'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'term' => 'mundo',
             'stem' => 'mundo',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'mundo'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => "musia\x{142}",
-            'media_sets_id' => 1,
+            'term' => "musia\x{142}",
+            'stem_count' => 1
+          },
+          {
             'dashboard_topics_id' => undef,
-            'term' => "musia\x{142}"
-          },
-          {
             'publish_week' => '2009-06-01',
-            'stem_count' => 3,
-            'stem' => 'muslim',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'muslims'
-          },
-          {
-            'publish_week' => '2009-06-01',
+            'term' => 'muslims',
             'stem_count' => 7,
+            'stem' => 'muslim'
+          },
+          {
+            'stem_count' => 3,
+            'term' => 'muslims',
             'stem' => 'muslim',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'muslims'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 3,
             'stem' => 'myanmar',
-            'media_sets_id' => 1,
+            'term' => 'myanmar',
+            'stem_count' => 3,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'myanmar'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'mysid',
+            'stem_count' => 1,
+            'term' => 'mysid',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'mysid'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'nacional',
             'stem_count' => 1,
             'stem' => 'nacional',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'nacional'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'nadal',
             'stem_count' => 1,
             'stem' => 'nadal',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'nadal'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => "nadziej\x{119}",
             'stem_count' => 1,
             'stem' => "nadziej\x{119}",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "nadziej\x{119}"
+            'media_sets_id' => 1
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => "najbli\x{17c}sz",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "najbli\x{17c}sze"
+            'term' => "najbli\x{17c}sze",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'naomi',
-            'media_sets_id' => 1,
+            'term' => 'naomi',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'naomi'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'napoleon',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'napoleon'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1,
+            'term' => 'natos',
+            'stem_count' => 1,
+            'stem' => 'nat'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'nat',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'natos'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'nawara',
-            'media_sets_id' => 1,
+            'term' => 'nawara',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
+            'stem' => 'nawara',
+            'term' => 'nawara',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => 1,
-            'term' => 'nawara'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'nawara',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'nawara'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'nawet',
             'media_sets_id' => 1,
+            'term' => 'nawet',
+            'stem_count' => 1,
+            'stem' => 'nawet'
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'nawet'
+            'stem_count' => 1,
+            'term' => 'nego',
+            'stem' => 'neg'
           },
           {
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => 1,
+            'media_sets_id' => 1,
+            'term' => 'negm',
             'stem_count' => 1,
+            'stem' => 'negm'
+          },
+          {
+            'stem_count' => 1,
+            'term' => 'negm',
             'stem' => 'negm',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'negm'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'negm',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'negm'
+            'media_sets_id' => 1,
+            'term' => 'nepumoceno',
+            'stem_count' => 1,
+            'stem' => 'nepumoceno'
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'stem' => 'ness',
+            'stem_count' => 1,
+            'term' => 'nesse'
+          },
+          {
+            'term' => 'never',
             'stem_count' => 1,
             'stem' => 'nev',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'never'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
+            'stem' => 'newsworthi',
+            'term' => 'newsworthy',
             'stem_count' => 1,
-            'stem' => 'nicol',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'nicole'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'stem' => 'nicol',
+            'term' => 'nicole',
+            'stem_count' => 1
+          },
+          {
+            'term' => 'nie',
             'stem_count' => 5,
             'stem' => 'nie',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'nie'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'nighttim',
-            'media_sets_id' => 1,
+            'term' => 'nighttime',
+            'stem_count' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'nighttime'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'nineteen',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'nineteen'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1,
+            'term' => 'nineteen',
+            'stem_count' => 1,
+            'stem' => 'nineteen'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "ningu\x{e9}m",
+            'stem_count' => 1,
+            'term' => "ningu\x{e9}m",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "ningu\x{e9}m"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'niro',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'niro'
+            'media_sets_id' => 1,
+            'term' => 'niro',
+            'stem_count' => 1,
+            'stem' => 'niro'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'nixon',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'nixon'
-          },
-          {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'nixon',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
+            'stem_count' => 1,
+            'term' => 'nixon',
+            'stem' => 'nixon'
+          },
+          {
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'stem' => 'nixon',
+            'stem_count' => 1,
             'term' => 'nixon'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'noc',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'noc'
+            'stem_count' => 1,
+            'term' => 'noc',
+            'stem' => 'noc'
           },
           {
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'nordeste',
             'stem_count' => 1,
+            'stem' => 'nord'
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'stem' => 'nordestin',
+            'stem_count' => 1,
+            'term' => 'nordestinos'
+          },
+          {
+            'stem_count' => 2,
+            'term' => 'northeast',
+            'stem' => 'northeast',
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
+          },
+          {
+            'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1,
             'stem' => 'northrop',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'northrop'
+            'term' => 'northrop',
+            'stem_count' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 26,
-            'stem' => 'obama',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'obama'
+            'media_sets_id' => 1,
+            'term' => "n\x{fa}meros",
+            'stem_count' => 1,
+            'stem' => "n\x{fa}mer"
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 26,
-            'stem' => 'obama',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'stem' => 'numerolog',
+            'stem_count' => 3,
+            'term' => 'numerologia'
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
+            'term' => 'numerologist',
+            'stem' => 'numerologist'
+          },
+          {
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'stem_count' => 22,
+            'term' => 'obama',
+            'stem' => 'obama'
+          },
+          {
+            'stem' => 'obama',
+            'term' => 'obama',
+            'stem_count' => 22,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => 1,
-            'term' => 'obama'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'oceanu',
+            'stem_count' => 1,
+            'term' => 'oceanu',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'oceanu'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => 'ocorr',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ocorre'
+            'term' => 'ocorre',
+            'stem_count' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'ode',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'ode'
+            'media_sets_id' => 1,
+            'term' => 'ode',
+            'stem_count' => 1,
+            'stem' => 'ode'
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => "odprowadza\x{142}em",
             'stem' => "odprowadza\x{142}em",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "odprowadza\x{142}em"
+            'publish_week' => '2009-06-01'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'odrywa',
-            'media_sets_id' => 1,
+            'term' => 'odrywa',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'odrywa'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'okienko',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => 'okienko',
+            'stem_count' => 1,
             'term' => 'okienko'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'onlin',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'stem' => "\x{f4}nibus",
+            'term' => "\x{f4}nibus",
+            'stem_count' => 1
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'stem' => 'onlin',
+            'stem_count' => 2,
             'term' => 'online'
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'ono',
             'stem' => 'ono',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ono'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'opinion',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem_count' => 1,
+            'term' => "opini\x{e3}o",
+            'stem' => "opini\x{e3}"
+          },
+          {
+            'stem' => 'opinion',
+            'stem_count' => 1,
+            'term' => 'opinion',
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => 1
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'stem' => 'opinion',
+            'stem_count' => 3,
             'term' => 'opinion'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'optimist',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'dashboard_topics_id' => 1,
+            'publish_week' => '2009-06-01',
+            'stem' => 'optimist',
+            'stem_count' => 1,
             'term' => 'optimistic'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'org',
+            'stem' => 'optimist',
+            'stem_count' => 2,
+            'term' => 'optimistic',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => 'org',
+            'stem_count' => 1,
             'term' => 'org'
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 2,
+            'term' => 'outro',
             'stem' => 'outr',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'outro'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'outrag',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'outrageous'
+            'term' => 'outrageous',
+            'stem_count' => 2,
+            'stem' => 'outrag'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'ouv',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ouvir'
-          },
-          {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'overload',
+            'term' => 'ouvir',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'overload'
+            'publish_week' => '2009-06-01'
           },
           {
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'overload',
+            'stem_count' => 1,
+            'stem' => 'overload'
+          },
+          {
+            'term' => 'palestine',
             'stem_count' => 2,
             'stem' => 'palestin',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'palestine'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'palestinians',
             'stem_count' => 1,
             'stem' => 'palestinian',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'palestinians'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
+            'stem' => 'palm',
+            'term' => 'palm',
             'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
+          },
+          {
+            'stem_count' => 1,
+            'term' => 'palm',
             'stem' => 'palm',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'palm'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'palm',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'palm'
-          },
-          {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
+            'dashboard_topics_id' => undef,
             'stem' => 'pari',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 2,
             'term' => 'paris'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'parker',
+            'stem_count' => 1,
+            'term' => 'parker',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'parker'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'particul',
+            'stem_count' => 1,
+            'term' => 'particulares',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'particulares'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "pary\x{17c}a",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'stem' => "pary\x{17c}a",
+            'stem_count' => 1,
             'term' => "pary\x{17c}a"
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'perenni',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'perennial'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'perth',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'perth'
-          },
-          {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'perennial',
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'stem_count' => 2,
+            'term' => 'perth',
+            'stem' => 'perth'
+          },
+          {
             'stem' => 'peru',
+            'stem_count' => 1,
+            'term' => 'peru',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'peru'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
-            'stem' => 'pervers',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'perverso'
+            'term' => 'perverso',
+            'stem' => 'pervers'
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
             'stem_count' => 1,
+            'term' => 'pessoas',
+            'stem' => 'pesso'
+          },
+          {
+            'stem_count' => 1,
+            'term' => 'pewnie',
             'stem' => 'pewni',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'pewnie'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'photo',
+            'stem' => 'photo',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01'
+          },
+          {
             'stem' => 'pitt',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'pitt'
-          },
-          {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => "plant\x{e3}",
+            'term' => 'pitt',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "plant\x{e3}o"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
+            'stem' => "plant\x{e3}",
+            'term' => "plant\x{e3}o",
+            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
+          },
+          {
+            'term' => 'pode',
             'stem_count' => 2,
             'stem' => 'pod',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'pode'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => "podr\x{f3}\x{17c}",
             'stem_count' => 1,
             'stem' => "podr\x{f3}\x{17c}",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "podr\x{f3}\x{17c}"
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => "podr\x{f3}\x{17c}y",
             'stem' => "podr\x{f3}\x{17c}i",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "podr\x{f3}\x{17c}y"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'polish',
-            'media_sets_id' => 1,
+            'term' => 'polish',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'polish'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "po\x{142}udniowa",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "po\x{142}udniowa"
+            'media_sets_id' => 1,
+            'term' => "po\x{142}udniowa",
+            'stem_count' => 1,
+            'stem' => "po\x{142}udniowa"
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => "poss\x{ed}vel",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "poss\x{ed}vel"
+            'term' => "poss\x{ed}vel",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'postpon',
+            'stem_count' => 1,
+            'term' => 'postponed',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => 1
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'stem' => 'postpon',
+            'stem_count' => 1,
             'term' => 'postponed'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'postpon',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'postponed'
-          },
-          {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => "pozosta\x{142}i",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "pozosta\x{142}y"
+            'term' => "pozosta\x{142}y",
+            'stem_count' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'pra',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'pra'
+            'media_sets_id' => 1,
+            'term' => 'pra',
+            'stem_count' => 2,
+            'stem' => 'pra'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'stem_count' => 2,
+            'term' => 'praises',
             'stem' => 'prais',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'praises'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'prawdopodobnie',
             'stem' => 'prawdopodobni',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'prawdopodobnie'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'pre',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'pre'
-          },
-          {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'pre',
+            'stem' => 'pre'
+          },
+          {
             'stem' => 'prematur',
-            'media_sets_id' => 1,
+            'term' => 'prematuro',
+            'stem_count' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'prematuro'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'pret',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => 'pret',
+            'stem_count' => 1,
             'term' => 'preta'
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'primeiro',
             'stem_count' => 1,
             'stem' => 'primeir',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'primeiro'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'problemy',
             'stem_count' => 1,
-            'stem' => 'problemi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'problemy'
+            'stem' => 'problemi'
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
+            'media_sets_id' => 1,
+            'term' => "prop\x{f5}em",
             'stem_count' => 1,
-            'stem' => 'protocol',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'protocol'
+            'stem' => "prop\x{f5}"
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
             'stem_count' => 2,
-            'stem' => "pr\x{f3}xim",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "pr\x{f3}xima"
+            'term' => "pr\x{f3}xima",
+            'stem' => "pr\x{f3}xim"
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'przeciwni',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => 'przeciwni',
+            'stem_count' => 1,
             'term' => 'przeciwnie'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => "przewo\x{17a}nik\x{f3}w",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "przewo\x{17a}nik\x{f3}w"
+            'term' => "przewo\x{17a}nik\x{f3}w",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
             'stem' => 'przez',
+            'stem_count' => 2,
+            'term' => 'przez',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'przez'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => 'przi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'przy'
+            'term' => 'przy',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "przyjaci\x{f3}\x{142}k\x{119}",
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "przyjaci\x{f3}\x{142}k\x{119}"
+            'stem_count' => 1,
+            'term' => "przyjaci\x{f3}\x{142}k\x{119}",
+            'stem' => "przyjaci\x{f3}\x{142}k\x{119}"
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
             'stem' => 'przynajmniej',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => 'przynajmniej'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'puerto',
+            'stem_count' => 1,
+            'term' => 'puerto',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
+          },
+          {
             'dashboard_topics_id' => undef,
-            'term' => 'puerto'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1,
+            'term' => 'pyramids',
+            'stem_count' => 1,
+            'stem' => 'pyramid'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'pyramid',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'pyramids'
+            'media_sets_id' => 1,
+            'term' => 'qahwa',
+            'stem_count' => 1,
+            'stem' => 'qahwa'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'qahwa',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'qahwa'
-          },
-          {
-            'publish_week' => '2009-06-01',
+            'term' => 'qahwa',
             'stem_count' => 1,
-            'stem' => 'qahwa',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => 1,
-            'term' => 'qahwa'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 4,
-            'stem' => 'qanta',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'stem' => 'qanta',
+            'stem_count' => 4,
             'term' => 'qantas'
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'qf72',
             'stem_count' => 1,
             'stem' => 'qf72',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'qf72'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'qualqu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'qualquer'
-          },
-          {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'quanta',
+            'term' => 'qualquer',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'quantas'
+            'publish_week' => '2009-06-01'
           },
           {
+            'stem' => 'quanta',
+            'stem_count' => 1,
+            'term' => 'quantas',
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
+            'term' => 'quantidade',
+            'stem' => 'quantidad'
+          },
+          {
+            'term' => 'queda',
             'stem_count' => 1,
             'stem' => 'qued',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'queda'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'qur',
+            'term' => 'querer',
+            'stem' => 'quer',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => 'qur',
+            'stem_count' => 1,
             'term' => 'qur'
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 2,
+            'term' => 'raios',
             'stem' => 'rai',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'raios'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'rakha',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => 1,
-            'term' => 'rakha'
+            'stem_count' => 1,
+            'term' => 'rakha',
+            'stem' => 'rakha'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'rakha',
-            'media_sets_id' => 1,
+            'term' => 'rakha',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'rakha'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'razi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'razy'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'react',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'reacting'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'react',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'reacting'
-          },
-          {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'razy',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01'
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'stem' => 'react',
+            'stem_count' => 1,
+            'term' => 'react'
+          },
+          {
+            'stem_count' => 1,
+            'term' => 'react',
+            'stem' => 'react',
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => 1
+          },
+          {
+            'term' => 'realise',
+            'stem_count' => 1,
+            'stem' => 'realis',
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
+            'stem' => 'receb',
+            'stem_count' => 1,
+            'term' => 'recebemos',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01'
+          },
+          {
+            'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1,
             'stem' => 'reconcili',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'reconciliation'
+            'term' => 'reconciliation',
+            'stem_count' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'regardless',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'regardless'
+            'term' => 'regardless',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "relaksuj\x{105}co",
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => "relaksuj\x{105}co",
+            'stem_count' => 1,
             'term' => "relaksuj\x{105}co"
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'relax',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => 'relax',
+            'stem_count' => 1,
             'term' => 'relaxes'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'rempl',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'remplit'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'rend',
+            'stem_count' => 1,
+            'term' => 'renda',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'renda'
+            'publish_week' => '2009-06-01'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'repress',
-            'media_sets_id' => 1,
+            'term' => 'repressive',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'repressive'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'repress',
+            'stem_count' => 1,
+            'term' => 'repressive',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'repressive'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'rescue',
             'stem_count' => 1,
             'stem' => 'rescu',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'rescue'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'resembl',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'resembles'
+            'media_sets_id' => 1,
+            'term' => 'resembles',
+            'stem_count' => 1,
+            'stem' => 'resembl'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'respeit',
+            'stem_count' => 1,
+            'term' => 'respeito',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'respeito'
+            'publish_week' => '2009-06-01'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'reviv',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => 'reviv',
+            'stem_count' => 1,
             'term' => 'revived'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'rhetor',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'rhetoric'
+            'media_sets_id' => 1,
+            'term' => 'rhetoric',
+            'stem_count' => 1,
+            'stem' => 'rhetor'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'rico',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => 'rico',
+            'stem_count' => 1,
             'term' => 'rico'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'rio',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'stem' => 'rio',
+            'stem_count' => 1,
             'term' => 'rio'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'riski',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'risky'
+            'term' => 'risky',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
             'stem' => 'robert',
+            'stem_count' => 2,
+            'term' => 'robert',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'robert'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'robin',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'robin'
-          },
-          {
-            'publish_week' => '2009-06-01',
+            'term' => 'robin',
             'stem_count' => 1,
-            'stem' => 'roku',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'roku'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
+            'term' => 'roku',
+            'stem' => 'roku'
+          },
+          {
+            'term' => 'rubbish',
             'stem_count' => 1,
             'stem' => 'rubbish',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'rubbish'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'rudder',
-            'media_sets_id' => 1,
+            'term' => 'rudder',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'rudder'
+            'media_sets_id' => 1
+          },
+          {
+            'stem_count' => 1,
+            'term' => 'ruins',
+            'stem' => 'ruins',
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'rumour',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'rumours'
+            'term' => 'rumours',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'ryan',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => 'ryan',
+            'stem_count' => 1,
             'term' => 'ryan'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'sab',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'sabe'
+            'media_sets_id' => 1,
+            'term' => 'sabe',
+            'stem_count' => 2,
+            'stem' => 'sab'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 3,
-            'stem' => 'sadat',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'sadat'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'sadat',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'sadat'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "s\x{105}dz\x{119}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "s\x{105}dz\x{119}"
+            'stem' => 'sadat',
+            'term' => 'sadat',
+            'stem_count' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'safest',
+            'dashboard_topics_id' => undef,
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'safest'
+            'term' => 'sadat',
+            'stem_count' => 1,
+            'stem' => 'sadat'
           },
           {
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => "s\x{105}dz\x{119}",
+            'stem_count' => 1,
+            'stem' => "s\x{105}dz\x{119}"
+          },
+          {
+            'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1,
+            'term' => 'safest',
+            'stem_count' => 1,
+            'stem' => 'safest'
+          },
+          {
+            'term' => 'salamu',
             'stem_count' => 1,
             'stem' => 'salamu',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'salamu'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'sam',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'sam'
+            'term' => 'sam',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'samolot',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => 'samolot',
+            'stem_count' => 1,
             'term' => 'samolot'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
             'stem' => 'samolotem',
-            'media_sets_id' => 1,
+            'term' => 'samolotem',
+            'stem_count' => 2,
             'dashboard_topics_id' => undef,
-            'term' => 'samolotem'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'samolotu',
             'stem_count' => 1,
             'stem' => 'samolotu',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'samolotu'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'san',
             'stem_count' => 10,
-            'stem' => 'san',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'san'
+            'stem' => 'san'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'sandiland',
-            'media_sets_id' => 1,
+            'term' => 'sandilands',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'sandilands'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'sandmonkey',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'sandmonkey'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'sandra',
-            'media_sets_id' => 1,
+            'term' => 'sandra',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'sandra'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'santa',
             'stem' => 'santa',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'santa'
+            'publish_week' => '2009-06-01'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'sarah',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'sarah'
+            'term' => 'sarah',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'saudi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'saudi'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'term' => 'scandal',
             'stem' => 'scandal',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'scandal'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'scarlett',
+            'dashboard_topics_id' => undef,
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'scarlett'
+            'term' => 'scarlett',
+            'stem_count' => 1,
+            'stem' => 'scarlett'
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'scientific',
             'stem' => 'scientif',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'scientific'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'sec',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'sec'
-          },
-          {
-            'publish_week' => '2009-06-01',
+            'term' => 'sec',
             'stem_count' => 1,
-            'stem' => 'segur',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'seguro'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'stem' => 'segur',
+            'term' => 'seguro',
+            'stem_count' => 1
+          },
+          {
             'stem_count' => 2,
+            'term' => 'sensationalism',
             'stem' => 'sensat',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'sensationalism'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'stem' => "s\x{e9}ri",
             'stem_count' => 1,
+            'term' => "s\x{e9}rie"
+          },
+          {
             'stem' => 'shelv',
-            'media_sets_id' => 1,
+            'term' => 'shelved',
+            'stem_count' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'shelved'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'sherif',
+            'dashboard_topics_id' => undef,
             'media_sets_id' => 1,
+            'term' => 'sherif',
+            'stem_count' => 1,
+            'stem' => 'sherif'
+          },
+          {
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => 1,
-            'term' => 'sherif'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => 'sherif',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'sherif'
+            'term' => 'sherif',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'shokeir',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'shokeir'
-          },
-          {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'shokeir',
+            'stem' => 'shokeir'
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
             'stem' => 'shokier',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'shokier'
-          },
-          {
-            'publish_week' => '2009-06-01',
             'stem_count' => 2,
-            'stem' => 'shokier',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
             'term' => 'shokier'
           },
           {
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => 1,
             'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'term' => 'shokier',
+            'stem' => 'shokier'
+          },
+          {
             'stem_count' => 6,
+            'term' => "si\x{119}",
             'stem' => "si\x{119}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "si\x{119}"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'sim',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'sim'
+            'stem_count' => 1,
+            'term' => 'sim',
+            'stem' => 'sim'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'sincer',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'sincere'
+            'stem_count' => 1,
+            'term' => 'singapore',
+            'stem' => 'singapor'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'sincer',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => 1,
-            'term' => 'sincere'
+            'stem_count' => 1,
+            'term' => 'sir',
+            'stem' => 'sir'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'singapor',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'singapore'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'sir',
+            'stem_count' => 1,
+            'term' => 'sir',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'sir'
+            'stem_count' => 1,
+            'term' => 'sistema',
+            'stem' => 'sistem'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'sir',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'sir'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'sistem',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'sistema'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'skeptic',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'skeptics'
-          },
-          {
-            'publish_week' => '2009-06-01',
+            'term' => 'skeptics',
             'stem_count' => 1,
-            'stem' => 'skinni',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'skinny'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => "sk\x{f3}r\x{119}",
             'stem_count' => 1,
             'stem' => "sk\x{f3}r\x{119}",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "sk\x{f3}r\x{119}"
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'solar',
             'stem_count' => 1,
             'stem' => 'sol',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'solar'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
             'stem' => 'solar',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => 'solar'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'solidar',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'solidarity'
+            'term' => 'solidarity',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'solut',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'solutions'
+            'stem_count' => 1,
+            'term' => 'solutions',
+            'stem' => 'solut'
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'sorrow',
             'stem' => 'sorrow',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'sorrow'
+            'publish_week' => '2009-06-01'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 3,
-            'stem' => 'specul',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'speculation'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1,
+            'term' => 'speculation',
+            'stem_count' => 3,
+            'stem' => 'specul'
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'specyficzny',
             'stem_count' => 1,
             'stem' => 'specyficzni',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'specyficzny'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'spielberg',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'spielberg'
+            'stem_count' => 1,
+            'term' => 'spielberg',
+            'stem' => 'spielberg'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'sprawia',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'sprawia'
-          },
-          {
-            'publish_week' => '2009-06-01',
+            'term' => 'sprawia',
             'stem_count' => 1,
-            'stem' => 'squat',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'squat'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => "\x{15b}rodku",
             'stem_count' => 1,
             'stem' => "\x{15b}rodku",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{15b}rodku"
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'stall',
             'stem' => 'stall',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'stall'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'starcie',
             'stem' => 'starci',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'starcie'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'steven',
-            'media_sets_id' => 1,
+            'term' => 'steven',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'steven'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'stileto',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'stiletos'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'stosunek',
-            'media_sets_id' => 1,
+            'term' => 'stosunek',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'stosunek'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'streep',
+            'stem_count' => 1,
+            'term' => 'streep',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'streep'
+            'publish_week' => '2009-06-01'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'stresu',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'stresu'
+            'media_sets_id' => 1,
+            'term' => 'stresu',
+            'stem_count' => 1,
+            'stem' => 'stresu'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'studi',
-            'media_sets_id' => 1,
+            'term' => 'studies',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'studies'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'sumi',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'sumie'
+            'media_sets_id' => 1,
+            'term' => 'suficiente',
+            'stem_count' => 1,
+            'stem' => 'suficient'
           },
           {
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'sumie',
+            'stem' => 'sumi'
+          },
+          {
             'stem' => 'superfici',
-            'media_sets_id' => 1,
+            'term' => 'superficially',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'superficially'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 11,
             'stem' => 'suu',
+            'stem_count' => 11,
+            'term' => 'suu',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'suu'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "\x{15b}wiadomo\x{15b}\x{107}",
-            'media_sets_id' => 1,
+            'term' => "\x{15b}wiadomo\x{15b}\x{107}",
+            'stem_count' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{15b}wiadomo\x{15b}\x{107}"
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
+            'term' => 'syria',
+            'stem' => 'syria'
+          },
+          {
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'syria',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'syria'
+            'term' => 'syrian',
+            'stem' => 'syrian'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'syrian',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'syrian'
-          },
-          {
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
             'stem_count' => 1,
-            'stem' => "szcz\x{119}\x{15b}cie",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "szcz\x{119}\x{15b}cie"
+            'term' => "szcz\x{119}\x{15b}cie",
+            'stem' => "szcz\x{119}\x{15b}cie"
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'tackl',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'tackled'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'term' => "tajemniczo\x{15b}\x{107}",
             'stem' => "tajemniczo\x{15b}\x{107}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "tajemniczo\x{15b}\x{107}"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'tak',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'tak'
-          },
-          {
-            'publish_week' => '2009-06-01',
+            'term' => 'tak',
             'stem_count' => 1,
-            'stem' => 'tam',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'tam'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'tam',
+            'stem_count' => 1,
+            'stem' => 'tam'
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'stem' => 'taro',
+            'stem_count' => 1,
+            'term' => 'taro'
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'stem' => "tar\x{f4}",
+            'stem_count' => 1,
+            'term' => "tar\x{f4}"
+          },
+          {
+            'term' => 'tedious',
             'stem_count' => 1,
             'stem' => 'tedious',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'tedious'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'tej',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'tej'
+            'stem_count' => 1,
+            'term' => 'tej',
+            'stem' => 'tej'
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => "t\x{ea}m",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "t\x{ea}m"
+            'term' => "t\x{ea}m",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'temu',
             'stem_count' => 1,
             'stem' => 'temu',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'temu'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 3,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'stem' => 'terapeut',
+            'term' => 'terapeuta',
+            'stem_count' => 1
+          },
+          {
             'stem' => 'terror',
-            'media_sets_id' => 1,
+            'term' => 'terrorism',
+            'stem_count' => 2,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'terrorism'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'terrorist',
-            'media_sets_id' => 1,
+            'term' => 'terrorist',
+            'stem_count' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'terrorist'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "te\x{17c}",
+            'stem_count' => 1,
+            'term' => "te\x{17c}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "te\x{17c}"
+            'publish_week' => '2009-06-01'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'theorist',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'theorists'
+            'stem_count' => 1,
+            'term' => 'theorists',
+            'stem' => 'theorist'
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'stem' => 'therapist',
             'stem_count' => 1,
+            'term' => 'therapist'
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
             'stem' => 'throne',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => 'throne'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'thunderstorm',
+            'stem_count' => 1,
+            'term' => 'thunderstorms',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'thunderstorms'
+            'publish_week' => '2009-06-01'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'tierra',
+            'stem_count' => 1,
+            'term' => 'tierra',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'tierra'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'todo',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'todo'
-          },
-          {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'toll',
+            'term' => 'todo',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'toll'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'topic',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'topic'
-          },
-          {
-            'publish_week' => '2009-06-01',
+            'term' => 'tradycyjne',
             'stem_count' => 1,
             'stem' => 'tradycyjn',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'tradycyjne'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
+            'stem' => "trag\x{e9}d",
             'stem_count' => 1,
+            'term' => "trag\x{e9}dia",
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
+          },
+          {
+            'stem_count' => 1,
+            'term' => 'transbrasil',
             'stem' => 'transbrasil',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'transbrasil'
+            'publish_week' => '2009-06-01'
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'translated',
             'stem_count' => 1,
             'stem' => 'translat',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'translated'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'trapezoid',
             'stem_count' => 1,
-            'stem' => 'trapezoid',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'trapezoid'
+            'stem' => 'trapezoid'
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'trasie',
             'stem_count' => 1,
             'stem' => 'trasi',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'trasie'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'treaty',
             'stem' => 'treati',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'treaty'
+            'publish_week' => '2009-06-01'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'treati',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => 1,
-            'term' => 'treaty'
+            'stem_count' => 1,
+            'term' => 'treaty',
+            'stem' => 'treati'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'trist',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'triste'
+            'term' => 'triste',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'tristess',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'tristesse'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "tr\x{f3}jk\x{105}tem",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "tr\x{f3}jk\x{105}tem"
-          },
-          {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'tune',
+            'term' => "tr\x{f3}jk\x{105}tem",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'tune'
+            'publish_week' => '2009-06-01'
           },
           {
+            'stem' => 'tune',
+            'term' => 'tune',
+            'stem_count' => 1,
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
+            'term' => 'turbulence',
             'stem_count' => 1,
             'stem' => 'turbul',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'turbulence'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'tutu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'tutu'
-          },
-          {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'tvs',
+            'term' => 'tutu',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'tvs'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'stem' => 'tvs',
+            'term' => 'tvs',
+            'stem_count' => 1
+          },
+          {
+            'term' => 'tweets',
             'stem_count' => 2,
             'stem' => 'tweet',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'tweets'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 6,
             'stem' => 'twitter',
+            'stem_count' => 6,
+            'term' => 'twitter',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'twitter'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'tylko',
             'stem_count' => 1,
             'stem' => 'tylko',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'tylko'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 2,
+            'term' => 'tym',
             'stem' => 'tym',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'tym'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'uda',
             'stem_count' => 1,
             'stem' => 'uda',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'uda'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'ulubionych',
+            'stem_count' => 1,
+            'term' => 'ulubionych',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ulubionych'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'unawar',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'unaware'
-          },
-          {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'unfinish',
+            'term' => 'unaware',
+            'stem' => 'unawar'
+          },
+          {
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'unfinished'
+            'stem_count' => 1,
+            'term' => 'unfinished',
+            'stem' => 'unfinish'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'unpreced',
-            'media_sets_id' => 1,
+            'term' => 'unprecedented',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'unprecedented'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'upset',
-            'media_sets_id' => 1,
+            'term' => 'upset',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'upset'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'usa',
-            'media_sets_id' => 1,
+            'term' => 'usa',
+            'stem_count' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'usa'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => "uspokajaj\x{105}co",
+            'term' => 'uso',
+            'stem' => 'uso',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "uspokajaj\x{105}co"
+            'publish_week' => '2009-06-01'
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
             'stem_count' => 1,
+            'term' => "uspokajaj\x{105}co",
+            'stem' => "uspokajaj\x{105}co"
+          },
+          {
+            'stem_count' => 1,
+            'term' => 'uwielbiam',
             'stem' => 'uwielbiam',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'uwielbiam'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "v\x{e1}clav",
+            'dashboard_topics_id' => undef,
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "v\x{e1}clav"
+            'term' => "v\x{e1}clav",
+            'stem_count' => 1,
+            'stem' => "v\x{e1}clav"
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'valu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'values'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'vanish',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'vanished'
-          },
-          {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'values',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01'
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'vanished',
+            'stem_count' => 2,
+            'stem' => 'vanish'
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'stem' => 'vejam',
+            'stem_count' => 1,
+            'term' => 'vejam'
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'venh',
-            'media_sets_id' => 1,
+            'term' => 'venha',
+            'stem_count' => 1
+          },
+          {
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'venha'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'venu',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'venue'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
             'stem' => 'venu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'venue'
+            'term' => 'venue',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'verdade',
             'stem_count' => 1,
             'stem' => 'verdad',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'verdade'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'vertic',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'vergonha',
+            'stem_count' => 1,
+            'stem' => 'vergonh'
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'stem' => 'vertic',
+            'stem_count' => 1,
             'term' => 'vertical'
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'victims',
             'stem_count' => 2,
             'stem' => 'victim',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'victims'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'violenc',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'stem' => 'violenc',
+            'stem_count' => 1,
             'term' => 'violence'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "v\x{ed}tim",
+            'stem_count' => 1,
+            'term' => "v\x{ed}timas",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "v\x{ed}timas"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "voc\x{ea}",
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => "voc\x{ea}",
+            'stem_count' => 1,
             'term' => "voc\x{ea}"
           },
           {
-            'publish_week' => '2009-06-01',
+            'stem' => 'vontad',
+            'term' => 'vontade',
             'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
+          },
+          {
             'stem' => 'vultur',
+            'stem_count' => 1,
+            'term' => 'vultures',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'vultures'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'wasn',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'wasn'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'term' => 'wasn',
             'stem' => 'wasn',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'wasn'
+            'publish_week' => '2009-06-01'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'watt',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'watts'
+            'media_sets_id' => 1,
+            'stem' => 'wasn',
+            'term' => 'wasn',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
+            'stem' => 'watt',
+            'term' => 'watts',
             'stem_count' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
+            'stem_count' => 1,
+            'term' => "wci\x{105}\x{17c}",
             'stem' => "wci\x{105}\x{17c}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "wci\x{105}\x{17c}"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'website',
             'stem_count' => 5,
             'stem' => 'websit',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'website'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'western',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'western'
+            'media_sets_id' => 1,
+            'term' => 'western',
+            'stem_count' => 1,
+            'stem' => 'western'
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'whoever',
             'stem' => 'whoever',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'whoever'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => "wida\x{107}",
             'stem_count' => 1,
             'stem' => "wida\x{107}",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "wida\x{107}"
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "wielk\x{105}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "wielk\x{105}"
+            'media_sets_id' => 1,
+            'term' => "wielk\x{105}",
+            'stem_count' => 1,
+            'stem' => "wielk\x{105}"
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => 'wikiedia',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'wikiedia'
+            'term' => 'wikiedia',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "w\x{142}a\x{15b}ni",
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => "w\x{142}a\x{15b}ni",
+            'stem_count' => 1,
             'term' => "w\x{142}a\x{15b}nie"
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "wlaz\x{142}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "wlaz\x{142}"
+            'media_sets_id' => 1,
+            'term' => "wlaz\x{142}",
+            'stem_count' => 1,
+            'stem' => "wlaz\x{142}"
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'wpadam',
             'stem' => 'wpadam',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'wpadam'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "wra\x{17c}eni",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "wra\x{17c}enie"
+            'publish_week' => '2009-06-01',
+            'stem' => 'wrap',
+            'stem_count' => 1,
+            'term' => 'wrapping'
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
+            'media_sets_id' => 1,
+            'term' => "wra\x{17c}enie",
             'stem_count' => 1,
+            'stem' => "wra\x{17c}eni"
+          },
+          {
             'stem' => "wr\x{119}cz",
-            'media_sets_id' => 1,
+            'term' => "wr\x{119}cz",
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "wr\x{119}cz"
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "wsi\x{105}\x{15b}\x{107}",
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "wsi\x{105}\x{15b}\x{107}"
+            'stem_count' => 1,
+            'term' => "wsi\x{105}\x{15b}\x{107}",
+            'stem' => "wsi\x{105}\x{15b}\x{107}"
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'wszystkie',
             'stem' => 'wszystki',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'wszystkie'
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'wymiarz',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'stem' => 'wymiarz',
+            'stem_count' => 1,
             'term' => 'wymiarze'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'wypadek',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => 'wypadek',
+            'stem_count' => 2,
             'term' => 'wypadek'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "wywo\x{142}uj",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "wywo\x{142}uje"
+            'media_sets_id' => 1,
+            'stem' => "wywo\x{142}uj",
+            'term' => "wywo\x{142}uje",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'yoko',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => 'yoko',
+            'stem_count' => 1,
             'term' => 'yoko'
           },
           {
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'yousif',
             'stem_count' => 2,
-            'stem' => 'yousif',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'yousif'
+            'stem' => 'yousif'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'youth',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'youth'
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1,
+            'term' => 'youth',
+            'stem_count' => 1,
+            'stem' => 'youth'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'youtub',
-            'media_sets_id' => 1,
+            'term' => 'youtube',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'youtube'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{17c}adn",
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "\x{17c}adne"
+            'stem_count' => 1,
+            'term' => "\x{17c}adne",
+            'stem' => "\x{17c}adn"
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "\x{17c}adnego",
-            'media_sets_id' => 1,
+            'term' => "\x{17c}adnego",
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "\x{17c}adnego"
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => "zagini\x{119}cie",
             'stem_count' => 1,
             'stem' => "zagini\x{119}ci",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "zagini\x{119}cie"
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "zale\x{17c}i",
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => "zale\x{17c}i",
+            'stem_count' => 1,
             'term' => "zale\x{17c}y"
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'zastanawiam',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'zastanawiam'
+            'media_sets_id' => 1,
+            'term' => 'zastanawiam',
+            'stem_count' => 1,
+            'stem' => 'zastanawiam'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'zdistrict',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'zdistrict'
+            'publish_week' => '2009-06-01',
+            'stem_count' => 2,
+            'term' => 'zdistrict',
+            'stem' => 'zdistrict'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'zeinobia',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => 1,
-            'term' => 'zeinobia'
+            'stem_count' => 1,
+            'term' => 'zeinobia',
+            'stem' => 'zeinobia'
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => 'zeinobia',
             'stem' => 'zeinobia',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'zeinobia'
+            'publish_week' => '2009-06-01'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'ziemi',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => 'ziemi',
+            'stem_count' => 1,
             'term' => 'ziemi'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "z\x{142}o\x{17c}y\x{142}o",
+            'stem_count' => 1,
+            'term' => "z\x{142}o\x{17c}y\x{142}o",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "z\x{142}o\x{17c}y\x{142}o"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => 'zmartwienia',
             'stem_count' => 1,
             'stem' => 'zmartwienia',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => 'zmartwienia'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "zmieni\x{142}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "zmieni\x{142}"
+            'media_sets_id' => 1,
+            'term' => "zmieni\x{142}",
+            'stem_count' => 1,
+            'stem' => "zmieni\x{142}"
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "zupe\x{142}ni",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "zupe\x{142}nie"
+            'media_sets_id' => 1,
+            'term' => "zupe\x{142}nie",
+            'stem_count' => 1,
+            'stem' => "zupe\x{142}ni"
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{627}\x{627}\x{642}\x{648}\x{644}\x{64a}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{627}\x{642}\x{648}\x{644}\x{64a}"
+            'media_sets_id' => 1,
+            'term' => "\x{627}\x{627}\x{642}\x{648}\x{644}\x{64a}",
+            'stem_count' => 1,
+            'stem' => "\x{627}\x{627}\x{642}\x{648}\x{644}\x{64a}"
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => "\x{627}\x{62a}\x{635}\x{631}\x{641}\x{648}\x{627}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{62a}\x{635}\x{631}\x{641}\x{648}\x{627}"
+            'term' => "\x{627}\x{62a}\x{635}\x{631}\x{641}\x{648}\x{627}",
+            'stem_count' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => "\x{627}\x{62a}\x{635}\x{648}\x{631}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{62a}\x{635}\x{648}\x{631}"
+            'term' => "\x{627}\x{62a}\x{635}\x{648}\x{631}",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => "\x{627}\x{62a}\x{648}\x{642}\x{639}",
             'stem_count' => 1,
             'stem' => "\x{627}\x{62a}\x{648}\x{642}\x{639}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{62a}\x{648}\x{642}\x{639}"
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{623}\x{62b}\x{646}\x{627}\x{621}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{623}\x{62b}\x{646}\x{627}\x{621}"
-          },
-          {
-            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1,
+            'term' => "\x{627}\x{62d}\x{645}\x{62f}",
             'stem_count' => 2,
-            'stem' => "\x{627}\x{62d}\x{645}\x{62f}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{62d}\x{645}\x{62f}"
+            'stem' => "\x{627}\x{62d}\x{645}\x{62f}"
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => "\x{627}\x{62e}\x{644}\x{639}",
             'stem_count' => 1,
             'stem' => "\x{627}\x{62e}\x{644}\x{639}",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{62e}\x{644}\x{639}"
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => "\x{623}\x{631}\x{648}\x{639}",
             'stem_count' => 1,
-            'stem' => "\x{627}\x{631}\x{647}\x{627}\x{628}",
-            'media_sets_id' => 1,
+            'stem' => "\x{623}\x{631}\x{648}\x{639}",
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{631}\x{647}\x{627}\x{628}"
+            'media_sets_id' => 1
           },
           {
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "\x{627}\x{632}\x{648}\x{631}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => "\x{627}\x{632}\x{648}\x{631}"
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{627}\x{633}\x{62a}\x{639}\x{62f}\x{627}\x{62f}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{633}\x{62a}\x{639}\x{62f}\x{627}\x{62f}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "\x{625}\x{633}\x{62a}\x{647}\x{644}\x{627}\x{643}\x{64a}\x{629}",
+            'stem_count' => 1,
+            'term' => "\x{625}\x{633}\x{62a}\x{647}\x{644}\x{627}\x{643}\x{64a}\x{629}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{625}\x{633}\x{62a}\x{647}\x{644}\x{627}\x{643}\x{64a}\x{629}"
+            'publish_week' => '2009-06-01'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{623}\x{639}\x{62a}\x{642}\x{62f}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{623}\x{639}\x{62a}\x{642}\x{62f}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "\x{625}\x{642}\x{62a}\x{635}\x{627}\x{62f}\x{64a}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{625}\x{642}\x{62a}\x{635}\x{627}\x{62f}\x{64a}"
-          },
-          {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => "\x{627}\x{644}500\x{645}\x{644}\x{64a}\x{648}\x{646}",
+            'term' => "\x{625}\x{642}\x{62a}\x{635}\x{627}\x{62f}\x{64a}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}500\x{645}\x{644}\x{64a}\x{648}\x{646}"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
+            'term' => "\x{627}\x{644}500\x{645}\x{644}\x{64a}\x{648}\x{646}",
+            'stem' => "\x{627}\x{644}500\x{645}\x{644}\x{64a}\x{648}\x{646}"
+          },
+          {
+            'term' => "\x{627}\x{644}\x{627}\x{628}\x{64a}\x{636}",
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{627}\x{628}\x{64a}\x{636}",
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{627}\x{628}\x{64a}\x{636}"
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'term' => "\x{627}\x{644}\x{623}\x{62f}\x{646}\x{64a}",
+            'stem' => "\x{627}\x{644}\x{623}\x{62f}\x{646}\x{64a}"
+          },
+          {
+            'term' => "\x{627}\x{644}\x{627}\x{639}\x{62a}\x{630}\x{627}\x{631}",
+            'stem_count' => 1,
+            'stem' => "\x{627}\x{644}\x{627}\x{639}\x{62a}\x{630}\x{627}\x{631}",
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{623}\x{645}\x{631}\x{64a}\x{643}\x{64a}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{623}\x{645}\x{631}\x{64a}\x{643}\x{64a}"
+            'media_sets_id' => 1,
+            'stem' => "\x{627}\x{644}\x{623}\x{642}\x{631}\x{628}",
+            'term' => "\x{627}\x{644}\x{623}\x{642}\x{631}\x{628}",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{622}\x{646}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{622}\x{646}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{627}\x{646}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{627}\x{646}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{628}\x{64a}\x{62a}",
-            'media_sets_id' => 1,
+            'term' => "\x{627}\x{644}\x{628}\x{64a}\x{62a}",
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{628}\x{64a}\x{62a}"
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => "\x{627}\x{644}\x{62a}\x{639}\x{627}\x{645}\x{644}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{62a}\x{639}\x{627}\x{645}\x{644}"
+            'term' => "\x{627}\x{644}\x{62a}\x{639}\x{627}\x{645}\x{644}",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{62d}\x{627}\x{644}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'stem' => "\x{627}\x{644}\x{62d}\x{627}\x{644}",
+            'stem_count' => 1,
             'term' => "\x{627}\x{644}\x{62d}\x{627}\x{644}"
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{62d}\x{642}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{62d}\x{642}"
+            'media_sets_id' => 1,
+            'term' => "\x{627}\x{644}\x{62d}\x{642}",
+            'stem_count' => 1,
+            'stem' => "\x{627}\x{644}\x{62d}\x{642}"
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{62d}\x{644}\x{648}\x{644}",
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => "\x{627}\x{644}\x{62d}\x{644}\x{648}\x{644}",
+            'stem_count' => 1,
             'term' => "\x{627}\x{644}\x{62d}\x{644}\x{648}\x{644}"
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{62d}\x{648}\x{627}\x{631}\x{627}\x{62a}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{62d}\x{648}\x{627}\x{631}\x{627}\x{62a}"
+            'media_sets_id' => 1,
+            'stem' => "\x{627}\x{644}\x{62d}\x{648}\x{627}\x{631}\x{627}\x{62a}",
+            'term' => "\x{627}\x{644}\x{62d}\x{648}\x{627}\x{631}\x{627}\x{62a}",
+            'stem_count' => 1
           },
           {
+            'stem' => "\x{627}\x{644}\x{62d}\x{64a}\x{627}\x{62f}",
+            'term' => "\x{627}\x{644}\x{62d}\x{64a}\x{627}\x{62f}",
+            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
+            'media_sets_id' => 1
+          },
+          {
+            'stem_count' => 1,
+            'term' => "\x{627}\x{644}\x{62e}\x{637}\x{627}\x{628}",
             'stem' => "\x{627}\x{644}\x{62e}\x{637}\x{627}\x{628}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{62e}\x{637}\x{627}\x{628}"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{630}\x{64a}",
-            'media_sets_id' => 1,
+            'term' => "\x{627}\x{644}\x{630}\x{64a}",
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{630}\x{64a}"
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => "\x{627}\x{644}\x{631}\x{627}\x{62c}\x{644}",
             'stem' => "\x{627}\x{644}\x{631}\x{627}\x{62c}\x{644}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{631}\x{627}\x{62c}\x{644}"
+            'publish_week' => '2009-06-01'
           },
           {
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => "\x{627}\x{644}\x{631}\x{62c}\x{644}",
             'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{631}\x{62c}\x{644}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{631}\x{62c}\x{644}"
+            'stem' => "\x{627}\x{644}\x{631}\x{62c}\x{644}"
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 7,
-            'stem' => "\x{627}\x{644}\x{631}\x{626}\x{64a}\x{633}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{631}\x{626}\x{64a}\x{633}"
-          },
-          {
-            'publish_week' => '2009-06-01',
+            'term' => "\x{627}\x{644}\x{633}\x{627}\x{628}\x{642}\x{629}",
             'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{632}\x{645}\x{646}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{632}\x{645}\x{646}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
             'stem' => "\x{627}\x{644}\x{633}\x{627}\x{628}\x{642}\x{629}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{633}\x{627}\x{628}\x{642}\x{629}"
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{633}\x{627}\x{62f}\x{627}\x{62a}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{633}\x{627}\x{62f}\x{627}\x{62a}"
-          },
-          {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
             'stem' => "\x{627}\x{644}\x{633}\x{628}\x{628}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => "\x{627}\x{644}\x{633}\x{628}\x{628}"
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => "\x{627}\x{644}\x{633}\x{64a}\x{62f}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{633}\x{64a}\x{62f}"
+            'media_sets_id' => 1,
+            'term' => "\x{627}\x{644}\x{63a}\x{62f}\x{627}\x{621}",
+            'stem_count' => 1,
+            'stem' => "\x{627}\x{644}\x{63a}\x{62f}\x{627}\x{621}"
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{639}\x{627}\x{62f}\x{629}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{639}\x{627}\x{62f}\x{629}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{639}\x{627}\x{644}\x{645}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{639}\x{627}\x{644}\x{645}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{63a}\x{62f}\x{627}\x{621}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{63a}\x{62f}\x{627}\x{621}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{641}\x{639}\x{644}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{641}\x{639}\x{644}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{642}\x{627}\x{647}\x{631}\x{647}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{642}\x{627}\x{647}\x{631}\x{647}"
-          },
-          {
-            'publish_week' => '2009-06-01',
+            'term' => "\x{627}\x{644}\x{642}\x{627}\x{647}\x{631}\x{647}",
             'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{644}\x{647}",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{644}\x{647}"
+            'media_sets_id' => 1
           },
           {
+            'stem' => "\x{627}\x{644}\x{644}\x{647}\x{62c}\x{629}",
+            'term' => "\x{627}\x{644}\x{644}\x{647}\x{62c}\x{629}",
+            'stem_count' => 1,
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
+            'term' => "\x{627}\x{644}\x{644}\x{649}",
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{644}\x{649}",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{644}\x{649}"
+            'media_sets_id' => 1
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'stem' => "\x{627}\x{644}\x{645}\x{641}\x{627}\x{62a}\x{62d}\x{629}",
             'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{645}\x{635}\x{631}\x{64a}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{645}\x{635}\x{631}\x{64a}"
+            'term' => "\x{627}\x{644}\x{645}\x{641}\x{627}\x{62a}\x{62d}\x{629}"
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 3,
-            'stem' => "\x{627}\x{644}\x{645}\x{637}\x{627}\x{631}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{645}\x{637}\x{627}\x{631}"
-          },
-          {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => "\x{627}\x{644}\x{646}\x{638}\x{631}",
             'stem' => "\x{627}\x{644}\x{646}\x{638}\x{631}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{646}\x{638}\x{631}"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
+            'term' => "\x{627}\x{644}\x{646}\x{647}\x{627}\x{64a}\x{629}",
+            'stem_count' => 1,
+            'stem' => "\x{627}\x{644}\x{646}\x{647}\x{627}\x{64a}\x{629}",
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
+            'term' => "\x{627}\x{644}\x{647}\x{631}\x{645}",
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{647}\x{631}\x{645}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{647}\x{631}\x{645}"
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
+          },
+          {
+            'stem' => "\x{625}\x{644}\x{64a}",
+            'stem_count' => 3,
+            'term' => "\x{625}\x{644}\x{64a}",
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{623}\x{645}\x{627}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{623}\x{645}\x{627}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
+            'media_sets_id' => 1,
             'stem' => "\x{623}\x{645}\x{629}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{623}\x{645}\x{629}"
+            'term' => "\x{623}\x{645}\x{629}",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => "\x{627}\x{645}\x{62a}\x{649}",
+            'term' => "\x{623}\x{645}\x{631}\x{64a}\x{643}\x{64a}",
+            'stem' => "\x{623}\x{645}\x{631}\x{64a}\x{643}\x{64a}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{645}\x{62a}\x{649}"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{623}\x{645}\x{633}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{623}\x{645}\x{633}"
-          },
-          {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "\x{627}\x{645}\x{644}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => "\x{627}\x{645}\x{644}"
           },
           {
-            'publish_week' => '2009-06-01',
+            'stem' => "\x{623}\x{646}\x{627}",
+            'term' => "\x{623}\x{646}\x{627}",
             'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
+          },
+          {
             'stem' => "\x{627}\x{646}\x{646}\x{627}",
+            'stem_count' => 1,
+            'term' => "\x{627}\x{646}\x{646}\x{627}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{646}\x{646}\x{627}"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "\x{627}\x{646}\x{647}",
+            'stem_count' => 1,
+            'term' => "\x{627}\x{646}\x{647}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{646}\x{647}"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => "\x{627}\x{646}\x{649}",
             'stem' => "\x{627}\x{646}\x{649}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{646}\x{649}"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{623}\x{647}\x{645}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{623}\x{647}\x{645}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{623}\x{648}\x{628}\x{627}\x{645}\x{627}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{623}\x{648}\x{628}\x{627}\x{645}\x{627}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "\x{627}\x{648}\x{628}\x{627}\x{645}\x{627}",
-            'media_sets_id' => 1,
+            'term' => "\x{627}\x{648}\x{628}\x{627}\x{645}\x{627}",
+            'stem_count' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{648}\x{628}\x{627}\x{645}\x{627}"
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{627}\x{648}\x{628}\x{645}\x{627}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{648}\x{628}\x{645}\x{627}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "\x{627}\x{648}\x{649}",
-            'media_sets_id' => 1,
+            'term' => "\x{627}\x{648}\x{649}",
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{648}\x{649}"
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{628}\x{627}\x{628}\x{627}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{628}\x{627}\x{628}\x{627}"
+            'media_sets_id' => 1,
+            'term' => "\x{628}\x{627}\x{628}\x{627}",
+            'stem_count' => 1,
+            'stem' => "\x{628}\x{627}\x{628}\x{627}"
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{628}\x{627}\x{644}\x{633}\x{627}\x{62f}\x{627}\x{62a}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{628}\x{627}\x{644}\x{633}\x{627}\x{62f}\x{627}\x{62a}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{628}\x{62f}\x{646}\x{64a}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{628}\x{62f}\x{646}\x{64a}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{628}\x{635}\x{62d}\x{629}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{628}\x{635}\x{62d}\x{629}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{628}\x{635}\x{648}\x{631}\x{629}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{628}\x{635}\x{648}\x{631}\x{629}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "\x{628}\x{645}\x{627}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{628}\x{645}\x{627}"
+            'term' => "\x{628}\x{645}\x{627}",
+            'stem_count' => 1
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'stem' => "\x{628}\x{647}\x{630}\x{647}",
+            'stem_count' => 2,
+            'term' => "\x{628}\x{647}\x{630}\x{647}"
+          },
+          {
             'stem' => "\x{628}\x{64a}\x{62d}\x{628}\x{646}\x{627}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{628}\x{64a}\x{62d}\x{628}\x{646}\x{627}"
-          },
-          {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => "\x{628}\x{64a}\x{646}",
+            'term' => "\x{628}\x{64a}\x{62d}\x{628}\x{646}\x{627}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{628}\x{64a}\x{646}"
+            'publish_week' => '2009-06-01'
           },
           {
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'stem' => "\x{628}\x{64a}\x{646}",
+            'term' => "\x{628}\x{64a}\x{646}",
+            'stem_count' => 1
+          },
+          {
+            'term' => "\x{62a}\x{623}\x{62b}\x{64a}\x{631}",
             'stem_count' => 1,
             'stem' => "\x{62a}\x{623}\x{62b}\x{64a}\x{631}",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "\x{62a}\x{623}\x{62b}\x{64a}\x{631}"
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => "\x{62a}\x{623}\x{62e}\x{630}",
             'stem_count' => 1,
             'stem' => "\x{62a}\x{623}\x{62e}\x{630}",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "\x{62a}\x{623}\x{62e}\x{630}"
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => "\x{62a}\x{630}\x{647}\x{628}",
+            'stem' => "\x{62a}\x{630}\x{647}\x{628}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-01'
+          },
+          {
             'stem' => "\x{62a}\x{635}\x{644}\x{64a}\x{62d}\x{627}\x{62a}",
+            'stem_count' => 1,
+            'term' => "\x{62a}\x{635}\x{644}\x{64a}\x{62d}\x{627}\x{62a}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{62a}\x{635}\x{644}\x{64a}\x{62d}\x{627}\x{62a}"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{62a}\x{639}\x{628}\x{627}\x{646}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{62a}\x{639}\x{628}\x{627}\x{646}"
-          },
-          {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
             'stem' => "\x{62a}\x{642}\x{64a}\x{64a}\x{645}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => "\x{62a}\x{642}\x{64a}\x{64a}\x{645}"
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{62a}\x{643}\x{646}\x{648}\x{644}\x{648}\x{62c}\x{64a}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{62a}\x{643}\x{646}\x{648}\x{644}\x{648}\x{62c}\x{64a}"
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'term' => "\x{62a}\x{643}\x{646}",
+            'stem' => "\x{62a}\x{643}\x{646}"
           },
           {
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => "\x{62a}\x{643}\x{646}\x{648}\x{644}\x{648}\x{62c}\x{64a}",
             'stem_count' => 1,
+            'stem' => "\x{62a}\x{643}\x{646}\x{648}\x{644}\x{648}\x{62c}\x{64a}"
+          },
+          {
+            'stem_count' => 1,
+            'term' => "\x{62a}\x{645}\x{646}\x{62d}",
             'stem' => "\x{62a}\x{645}\x{646}\x{62d}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{62a}\x{645}\x{646}\x{62d}"
+            'publish_week' => '2009-06-01'
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => "\x{62a}\x{646}\x{628}\x{626}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{62a}\x{646}\x{628}\x{626}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{62a}\x{646}\x{62a}\x{643}\x{633}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{62a}\x{646}\x{62a}\x{643}\x{633}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'term' => "\x{62b}\x{627}\x{644}\x{62b}\x{627}\x{64b}",
             'stem' => "\x{62b}\x{627}\x{644}\x{62b}\x{627}\x{64b}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{62b}\x{627}\x{644}\x{62b}\x{627}\x{64b}"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{62b}\x{642}\x{644}",
+            'dashboard_topics_id' => undef,
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{62b}\x{642}\x{644}"
+            'stem' => "\x{62b}\x{642}\x{644}",
+            'term' => "\x{62b}\x{642}\x{644}",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => "\x{62c}\x{627}\x{644}\x{646}\x{627}",
             'stem_count' => 1,
             'stem' => "\x{62c}\x{627}\x{644}\x{646}\x{627}",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "\x{62c}\x{627}\x{644}\x{646}\x{627}"
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{62c}\x{646}\x{628}\x{647}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{62c}\x{646}\x{628}\x{647}"
+            'media_sets_id' => 1,
+            'term' => "\x{62c}\x{646}\x{628}\x{647}",
+            'stem_count' => 1,
+            'stem' => "\x{62c}\x{646}\x{628}\x{647}"
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "\x{62c}\x{646}\x{64a}\x{647}",
+            'stem_count' => 1,
+            'term' => "\x{62c}\x{646}\x{64a}\x{647}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{62c}\x{646}\x{64a}\x{647}"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "\x{62d}\x{627}\x{637}\x{629}",
+            'stem_count' => 1,
+            'term' => "\x{62d}\x{627}\x{637}\x{629}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{62d}\x{627}\x{637}\x{629}"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
             'stem' => "\x{62d}\x{62a}\x{649}",
+            'stem_count' => 1,
+            'term' => "\x{62d}\x{62a}\x{649}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{62d}\x{62a}\x{649}"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{62d}\x{631}\x{648}\x{628}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{62d}\x{631}\x{648}\x{628}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{62d}\x{641}\x{64a}\x{62f}\x{647}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{62d}\x{641}\x{64a}\x{62f}\x{647}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "\x{62e}\x{627}\x{645}\x{633}\x{627}\x{64b}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{62e}\x{627}\x{645}\x{633}\x{627}\x{64b}"
+            'term' => "\x{62e}\x{627}\x{645}\x{633}\x{627}\x{64b}",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => "\x{62e}\x{637}\x{627}\x{628}",
             'stem' => "\x{62e}\x{637}\x{627}\x{628}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{62e}\x{637}\x{627}\x{628}"
+            'publish_week' => '2009-06-01'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{62f}\x{645}\x{627}\x{631}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{62f}\x{645}\x{627}\x{631}"
-          },
-          {
-            'publish_week' => '2009-06-01',
+            'term' => "\x{62f}\x{645}\x{649}",
             'stem_count' => 1,
             'stem' => "\x{62f}\x{645}\x{649}",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "\x{62f}\x{645}\x{649}"
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => "\x{62f}\x{648}\x{644}\x{64a}",
             'stem_count' => 1,
-            'stem' => "\x{62f}\x{648}\x{644}\x{64a}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{62f}\x{648}\x{644}\x{64a}"
+            'stem' => "\x{62f}\x{648}\x{644}\x{64a}"
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => "\x{631}\x{627}\x{628}\x{639}\x{627}\x{64b}",
             'stem_count' => 1,
             'stem' => "\x{631}\x{627}\x{628}\x{639}\x{627}\x{64b}",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "\x{631}\x{627}\x{628}\x{639}\x{627}\x{64b}"
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{631}\x{623}\x{64a}\x{62a}\x{645}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{631}\x{623}\x{64a}\x{62a}\x{645}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{631}\x{62c}\x{644}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{631}\x{62c}\x{644}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{631}\x{63a}\x{645}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{631}\x{63a}\x{645}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "\x{631}\x{648}\x{628}\x{64a}\x{646}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{631}\x{648}\x{628}\x{64a}\x{646}"
-          },
-          {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => "\x{631}\x{648}\x{626}\x{64a}\x{629}",
+            'term' => "\x{631}\x{648}\x{628}\x{64a}\x{646}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{631}\x{648}\x{626}\x{64a}\x{629}"
+            'publish_week' => '2009-06-01'
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
+            'media_sets_id' => 1,
+            'term' => "\x{631}\x{626}\x{64a}\x{633}",
             'stem_count' => 1,
-            'stem' => "\x{632}\x{64a}\x{627}\x{631}\x{627}\x{62a}\x{647}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{632}\x{64a}\x{627}\x{631}\x{627}\x{62a}\x{647}"
+            'stem' => "\x{631}\x{626}\x{64a}\x{633}"
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => "\x{633}\x{627}\x{639}\x{627}\x{62a}",
             'stem_count' => 1,
             'stem' => "\x{633}\x{627}\x{639}\x{627}\x{62a}",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "\x{633}\x{627}\x{639}\x{627}\x{62a}"
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{633}\x{644}\x{627}\x{645}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{633}\x{644}\x{627}\x{645}"
+            'media_sets_id' => 1,
+            'term' => "\x{633}\x{645}\x{639}\x{646}\x{627}",
+            'stem_count' => 1,
+            'stem' => "\x{633}\x{645}\x{639}\x{646}\x{627}"
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{633}\x{645}\x{639}\x{646}\x{627}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{633}\x{645}\x{639}\x{646}\x{627}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{634}\x{627}\x{628}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{634}\x{627}\x{628}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{634}\x{62e}\x{635}\x{64a}\x{629}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{634}\x{62e}\x{635}\x{64a}\x{629}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{635}\x{62d}\x{64a}\x{62d}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{635}\x{62d}\x{64a}\x{62d}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "\x{637}\x{631}\x{64a}\x{642}\x{629}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{637}\x{631}\x{64a}\x{642}\x{629}"
+            'term' => "\x{637}\x{631}\x{64a}\x{642}\x{629}",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
+            'stem' => "\x{637}\x{645}\x{648}\x{62d}\x{627}\x{62a}\x{64a}",
+            'term' => "\x{637}\x{645}\x{648}\x{62d}\x{627}\x{62a}\x{64a}",
             'stem_count' => 1,
-            'stem' => "\x{639}\x{627}\x{62f}\x{644}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{639}\x{627}\x{62f}\x{644}"
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
             'stem' => "\x{639}\x{633}\x{643}\x{631}\x{64a}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => "\x{639}\x{633}\x{643}\x{631}\x{64a}"
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => "\x{639}\x{634}\x{627}\x{646}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{639}\x{634}\x{627}\x{646}"
+            'term' => "\x{639}\x{634}\x{627}\x{646}",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "\x{639}\x{644}\x{627}\x{642}\x{627}\x{62a}\x{646}\x{627}",
-            'media_sets_id' => 1,
+            'term' => "\x{639}\x{644}\x{627}\x{642}\x{627}\x{62a}\x{646}\x{627}",
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "\x{639}\x{644}\x{627}\x{642}\x{627}\x{62a}\x{646}\x{627}"
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => "\x{639}\x{644}\x{645}\x{64a}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{639}\x{644}\x{645}\x{64a}"
+            'term' => "\x{639}\x{644}\x{645}\x{64a}",
+            'stem_count' => 1
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-01',
+            'media_sets_id' => 1,
+            'term' => "\x{639}\x{644}\x{649}",
             'stem_count' => 2,
-            'stem' => "\x{639}\x{644}\x{649}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{639}\x{644}\x{649}"
+            'stem' => "\x{639}\x{644}\x{649}"
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{639}\x{644}\x{64a}\x{647}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{639}\x{644}\x{64a}\x{647}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => "\x{639}\x{646}\x{62f}\x{647}\x{645}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{639}\x{646}\x{62f}\x{647}\x{645}"
+            'term' => "\x{639}\x{646}\x{62f}\x{647}\x{645}",
+            'stem_count' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{63a}\x{64a}\x{631}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{63a}\x{64a}\x{631}"
+            'media_sets_id' => 1,
+            'term' => "\x{641}\x{627}\x{644}\x{639}\x{644}\x{627}\x{642}\x{629}",
+            'stem_count' => 1,
+            'stem' => "\x{641}\x{627}\x{644}\x{639}\x{644}\x{627}\x{642}\x{629}"
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{641}\x{627}\x{644}\x{639}\x{644}\x{627}\x{642}\x{629}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{641}\x{627}\x{644}\x{639}\x{644}\x{627}\x{642}\x{629}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => "\x{641}\x{631}\x{642}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{641}\x{631}\x{642}"
+            'term' => "\x{641}\x{631}\x{642}",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => "\x{641}\x{639}\x{644}\x{627}\x{64b}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{641}\x{639}\x{644}\x{627}\x{64b}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'term' => "\x{641}\x{642}\x{627}\x{644}\x{643}",
             'stem' => "\x{641}\x{642}\x{627}\x{644}\x{643}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{641}\x{642}\x{627}\x{644}\x{643}"
+            'publish_week' => '2009-06-01'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{641}\x{643}\x{631}\x{62a}",
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => "\x{641}\x{643}\x{631}\x{62a}",
+            'stem_count' => 1,
             'term' => "\x{641}\x{643}\x{631}\x{62a}"
           },
           {
-            'publish_week' => '2009-06-01',
+            'stem' => "\x{641}\x{644}\x{645}",
+            'term' => "\x{641}\x{644}\x{645}",
             'stem_count' => 1,
-            'stem' => "\x{641}\x{643}\x{631}\x{646}\x{64a}",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "\x{641}\x{643}\x{631}\x{646}\x{64a}"
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => "\x{641}\x{647}\x{644}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{641}\x{647}\x{644}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
+            'term' => "\x{641}\x{647}\x{648}",
             'stem' => "\x{641}\x{647}\x{648}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{641}\x{647}\x{648}"
+            'publish_week' => '2009-06-01'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{641}\x{648}\x{641}\x{627}\x{629}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{641}\x{648}\x{641}\x{627}\x{629}"
-          },
-          {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{642}\x{627}\x{644}\x{647}\x{627}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{642}\x{627}\x{644}\x{647}\x{627}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "\x{642}\x{636}\x{627}\x{647}\x{645}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => "\x{642}\x{636}\x{627}\x{647}\x{645}"
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{642}\x{648}\x{64a}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{642}\x{648}\x{64a}"
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1,
+            'term' => "\x{643}\x{644}\x{627}\x{645}\x{647}",
+            'stem_count' => 1,
+            'stem' => "\x{643}\x{644}\x{627}\x{645}\x{647}"
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{642}\x{648}\x{64a}\x{629}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{642}\x{648}\x{64a}\x{629}"
+            'media_sets_id' => 1,
+            'term' => "\x{643}\x{644}\x{645}\x{62a}\x{64a}\x{646}",
+            'stem_count' => 1,
+            'stem' => "\x{643}\x{644}\x{645}\x{62a}\x{64a}\x{646}"
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{643}\x{627}\x{646}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{643}\x{627}\x{646}"
+            'media_sets_id' => 1,
+            'term' => "\x{643}\x{646}\x{62a}",
+            'stem_count' => 1,
+            'stem' => "\x{643}\x{646}\x{62a}"
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{643}\x{644}\x{627}\x{645}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{643}\x{644}\x{627}\x{645}"
-          },
-          {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{643}\x{644}\x{627}\x{645}\x{647}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{643}\x{644}\x{627}\x{645}\x{647}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{643}\x{644}\x{645}\x{62a}\x{64a}\x{646}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{643}\x{644}\x{645}\x{62a}\x{64a}\x{646}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{643}\x{646}\x{62a}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{643}\x{646}\x{62a}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{643}\x{648}\x{646}\x{647}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{643}\x{648}\x{646}\x{647}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "\x{644}\x{623}\x{633}\x{644}\x{627}\x{641}\x{647}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => "\x{644}\x{623}\x{633}\x{644}\x{627}\x{641}\x{647}"
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{644}\x{623}\x{646}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{644}\x{623}\x{646}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => "\x{644}\x{627}\x{646}\x{649}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{644}\x{627}\x{646}\x{649}"
+            'term' => "\x{644}\x{627}\x{646}\x{649}",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => "\x{644}\x{628}\x{630}\x{644}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{644}\x{628}\x{630}\x{644}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{644}\x{62f}\x{64a}\x{647}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{644}\x{62f}\x{64a}\x{647}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'term' => "\x{644}\x{643}\x{646}",
             'stem' => "\x{644}\x{643}\x{646}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{644}\x{643}\x{646}"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => "\x{644}\x{643}\x{64a}",
             'stem' => "\x{644}\x{643}\x{64a}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{644}\x{643}\x{64a}"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{644}\x{644}\x{637}\x{627}\x{626}\x{631}\x{629}",
+            'dashboard_topics_id' => undef,
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{644}\x{644}\x{637}\x{627}\x{626}\x{631}\x{629}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{644}\x{644}\x{645}\x{633}\x{62a}\x{642}\x{628}\x{644}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{644}\x{644}\x{645}\x{633}\x{62a}\x{642}\x{628}\x{644}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "\x{644}\x{646}\x{627}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{644}\x{646}\x{627}"
+            'term' => "\x{644}\x{646}\x{627}",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "\x{644}\x{647}\x{627}",
-            'media_sets_id' => 1,
+            'term' => "\x{644}\x{647}\x{627}",
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "\x{644}\x{647}\x{627}"
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "\x{644}\x{64a}\x{633}",
+            'stem_count' => 1,
+            'term' => "\x{644}\x{64a}\x{633}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{644}\x{64a}\x{633}"
+            'publish_week' => '2009-06-01'
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => "\x{644}\x{64a}\x{642}\x{62f}\x{645}",
             'stem' => "\x{644}\x{64a}\x{642}\x{62f}\x{645}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{644}\x{64a}\x{642}\x{62f}\x{645}"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{645}\x{62a}\x{628}\x{627}\x{62f}\x{644}\x{629}",
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => "\x{645}\x{62a}\x{628}\x{627}\x{62f}\x{644}\x{629}",
+            'stem_count' => 1,
             'term' => "\x{645}\x{62a}\x{628}\x{627}\x{62f}\x{644}\x{629}"
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{645}\x{62b}\x{644}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{645}\x{62b}\x{644}"
+            'media_sets_id' => 1,
+            'term' => "\x{645}\x{62a}\x{641}\x{627}\x{621}\x{644}",
+            'stem_count' => 1,
+            'stem' => "\x{645}\x{62a}\x{641}\x{627}\x{621}\x{644}"
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{645}\x{62c}\x{627}\x{644}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{645}\x{62c}\x{627}\x{644}"
-          },
-          {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => "\x{645}\x{62c}\x{647}\x{648}\x{62f}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{645}\x{62c}\x{647}\x{648}\x{62f}"
+            'term' => "\x{645}\x{62c}\x{627}\x{644}",
+            'stem' => "\x{645}\x{62c}\x{627}\x{644}"
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{645}\x{62c}\x{64a}\x{628}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{645}\x{62c}\x{64a}\x{628}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "\x{645}\x{62d}\x{631}\x{648}\x{642}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{645}\x{62d}\x{631}\x{648}\x{642}"
-          },
-          {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => "\x{645}\x{62f}\x{631}\x{643}\x{629}",
+            'term' => "\x{645}\x{62d}\x{631}\x{648}\x{642}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{645}\x{62f}\x{631}\x{643}\x{629}"
+            'publish_week' => '2009-06-01'
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
+            'term' => "\x{645}\x{62f}\x{631}\x{643}\x{629}",
+            'stem' => "\x{645}\x{62f}\x{631}\x{643}\x{629}"
+          },
+          {
+            'term' => "\x{645}\x{639}\x{627}\x{644}\x{64a}\x{647}",
             'stem_count' => 1,
             'stem' => "\x{645}\x{639}\x{627}\x{644}\x{64a}\x{647}",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "\x{645}\x{639}\x{627}\x{644}\x{64a}\x{647}"
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{645}\x{639}\x{62a}\x{642}\x{62f}\x{634}",
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
+            'stem' => "\x{645}\x{639}\x{62a}\x{642}\x{62f}\x{634}",
+            'stem_count' => 1,
             'term' => "\x{645}\x{639}\x{62a}\x{642}\x{62f}\x{634}"
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "\x{645}\x{639}\x{646}\x{64a}",
+            'stem_count' => 1,
+            'term' => "\x{645}\x{639}\x{646}\x{64a}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{645}\x{639}\x{646}\x{64a}"
+            'publish_week' => '2009-06-01'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{645}\x{639}\x{647}\x{645}",
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "\x{645}\x{639}\x{647}\x{645}"
+            'stem_count' => 1,
+            'term' => "\x{645}\x{639}\x{647}\x{645}",
+            'stem' => "\x{645}\x{639}\x{647}\x{645}"
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => "\x{645}\x{641}\x{643}\x{643}\x{629}",
             'stem' => "\x{645}\x{641}\x{643}\x{643}\x{629}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{645}\x{641}\x{643}\x{643}\x{629}"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{645}\x{644}\x{62d}\x{648}\x{638}\x{629}",
+            'dashboard_topics_id' => undef,
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{645}\x{644}\x{62d}\x{648}\x{638}\x{629}"
-          },
-          {
-            'publish_week' => '2009-06-01',
+            'term' => "\x{646}\x{62d}\x{646}",
             'stem_count' => 1,
-            'stem' => "\x{646}\x{62d}\x{646}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{646}\x{62d}\x{646}"
+            'stem' => "\x{646}\x{62d}\x{646}"
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{646}\x{638}\x{631}\x{629}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{646}\x{638}\x{631}\x{629}"
-          },
-          {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => "\x{646}\x{639}\x{64a}\x{634}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{646}\x{639}\x{64a}\x{634}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "\x{646}\x{641}\x{633}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => "\x{646}\x{641}\x{633}"
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => "\x{646}\x{641}\x{633}\x{646}\x{627}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{646}\x{641}\x{633}\x{646}\x{627}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'term' => "\x{646}\x{648}\x{64a}\x{644}",
             'stem' => "\x{646}\x{648}\x{64a}\x{644}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{646}\x{648}\x{64a}\x{644}"
+            'publish_week' => '2009-06-01'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{647}\x{630}\x{627}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{647}\x{630}\x{627}"
-          },
-          {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
             'stem' => "\x{647}\x{646}\x{627}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => "\x{647}\x{646}\x{627}"
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{647}\x{648}\x{62f}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{647}\x{648}\x{62f}"
+            'media_sets_id' => 1,
+            'stem' => "\x{647}\x{648}\x{62f}",
+            'term' => "\x{647}\x{648}\x{62f}",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-01',
+            'term' => "\x{647}\x{64a}\x{62a}\x{646}\x{641}\x{630}",
             'stem_count' => 1,
             'stem' => "\x{647}\x{64a}\x{62a}\x{646}\x{641}\x{630}",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "\x{647}\x{64a}\x{62a}\x{646}\x{641}\x{630}"
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{648}\x{627}\x{644}\x{628}\x{631}\x{648}\x{62a}\x{648}\x{643}\x{648}\x{644}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{648}\x{627}\x{644}\x{628}\x{631}\x{648}\x{62a}\x{648}\x{643}\x{648}\x{644}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "\x{648}\x{627}\x{644}\x{62d}\x{627}\x{62c}",
-            'media_sets_id' => 1,
+            'term' => "\x{648}\x{627}\x{644}\x{62d}\x{627}\x{62c}",
+            'stem_count' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{648}\x{627}\x{644}\x{62d}\x{627}\x{62c}"
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{648}\x{627}\x{644}\x{645}\x{633}\x{627}\x{639}\x{62f}\x{627}\x{62a}",
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "\x{648}\x{627}\x{644}\x{645}\x{633}\x{627}\x{639}\x{62f}\x{627}\x{62a}"
+            'stem_count' => 1,
+            'term' => "\x{648}\x{627}\x{644}\x{645}\x{633}\x{627}\x{639}\x{62f}\x{627}\x{62a}",
+            'stem' => "\x{648}\x{627}\x{644}\x{645}\x{633}\x{627}\x{639}\x{62f}\x{627}\x{62a}"
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "\x{648}\x{627}\x{644}\x{647}\x{648}\x{627}\x{646}",
-            'media_sets_id' => 1,
+            'term' => "\x{648}\x{627}\x{644}\x{647}\x{648}\x{627}\x{646}",
+            'stem_count' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "\x{648}\x{627}\x{644}\x{647}\x{648}\x{627}\x{646}"
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{648}\x{62a}\x{639}\x{637}\x{64a}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{648}\x{62a}\x{639}\x{637}\x{64a}"
+            'publish_week' => '2009-06-01',
+            'media_sets_id' => 1,
+            'term' => "\x{648}\x{62a}\x{639}\x{637}\x{64a}",
+            'stem_count' => 1,
+            'stem' => "\x{648}\x{62a}\x{639}\x{637}\x{64a}"
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
             'stem' => "\x{648}\x{62a}\x{647}\x{628}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => "\x{648}\x{62a}\x{647}\x{628}"
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{648}\x{62f}\x{648}\x{627}\x{639}\x{64a}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{648}\x{62f}\x{648}\x{627}\x{639}\x{64a}"
-          },
-          {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => "\x{648}\x{635}\x{644}\x{646}\x{627}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{648}\x{635}\x{644}\x{646}\x{627}"
+            'term' => "\x{648}\x{635}\x{644}\x{646}\x{627}",
+            'stem_count' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 4,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => "\x{648}\x{644}\x{627}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{648}\x{644}\x{627}"
+            'term' => "\x{648}\x{644}\x{627}",
+            'stem_count' => 4
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
             'stem' => "\x{648}\x{644}\x{64a}\x{633}",
+            'stem_count' => 1,
+            'term' => "\x{648}\x{644}\x{64a}\x{633}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{648}\x{644}\x{64a}\x{633}"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{648}\x{645}\x{627}\x{645}\x{62f}\x{649}",
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "\x{648}\x{645}\x{627}\x{645}\x{62f}\x{649}"
+            'stem_count' => 1,
+            'term' => "\x{648}\x{645}\x{627}\x{645}\x{62f}\x{649}",
+            'stem' => "\x{648}\x{645}\x{627}\x{645}\x{62f}\x{649}"
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => "\x{648}\x{647}\x{648}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{648}\x{647}\x{648}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'term' => "\x{648}\x{64a}\x{631}\x{62d}\x{644}",
             'stem' => "\x{648}\x{64a}\x{631}\x{62d}\x{644}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{648}\x{64a}\x{631}\x{62d}\x{644}"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'term' => "\x{64a}\x{623}\x{62a}\x{64a}",
             'stem' => "\x{64a}\x{623}\x{62a}\x{64a}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{64a}\x{623}\x{62a}\x{64a}"
+            'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{64a}\x{628}\x{62f}\x{648}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{64a}\x{628}\x{62f}\x{648}"
-          },
-          {
-            'publish_week' => '2009-06-01',
+            'term' => "\x{64a}\x{628}\x{642}\x{64a}",
             'stem_count' => 1,
             'stem' => "\x{64a}\x{628}\x{642}\x{64a}",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-01',
             'dashboard_topics_id' => undef,
-            'term' => "\x{64a}\x{628}\x{642}\x{64a}"
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{64a}\x{62a}\x{645}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{64a}\x{62a}\x{645}"
+            'media_sets_id' => 1,
+            'term' => "\x{64a}\x{62a}\x{643}\x{644}\x{645}",
+            'stem_count' => 1,
+            'stem' => "\x{64a}\x{62a}\x{643}\x{644}\x{645}"
           },
           {
             'publish_week' => '2009-06-01',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => "\x{64a}\x{62a}\x{645}",
             'stem_count' => 1,
+            'stem' => "\x{64a}\x{62a}\x{645}"
+          },
+          {
+            'stem_count' => 1,
+            'term' => "\x{64a}\x{62c}\x{628}",
             'stem' => "\x{64a}\x{62c}\x{628}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{64a}\x{62c}\x{628}"
+            'publish_week' => '2009-06-01'
           },
           {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{64a}\x{631}\x{62d}\x{645}\x{629}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{64a}\x{631}\x{62d}\x{645}\x{629}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => "\x{64a}\x{633}\x{62a}\x{642}\x{628}\x{644}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{64a}\x{633}\x{62a}\x{642}\x{628}\x{644}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => "\x{64a}\x{633}\x{62a}\x{642}\x{628}\x{644}\x{647}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{64a}\x{633}\x{62a}\x{642}\x{628}\x{644}\x{647}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{64a}\x{635}\x{639}\x{62f}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{64a}\x{635}\x{639}\x{62f}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{64a}\x{642}\x{648}\x{62f}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{64a}\x{642}\x{648}\x{62f}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{64a}\x{642}\x{648}\x{644}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{64a}\x{642}\x{648}\x{644}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{64a}\x{642}\x{648}\x{644}\x{647}\x{627}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{64a}\x{642}\x{648}\x{644}\x{647}\x{627}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{64a}\x{646}\x{628}\x{63a}\x{64a}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{64a}\x{646}\x{628}\x{63a}\x{64a}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{64a}\x{647}\x{645}\x{646}\x{64a}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{64a}\x{647}\x{645}\x{646}\x{64a}"
-          },
-          {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => '17th',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'stem' => '17th',
+            'stem_count' => 1,
             'term' => '17th'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => '30pm',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => '30pm'
+            'stem_count' => 1,
+            'term' => '8th',
+            'stem' => '8th'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => '8th',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => '8th'
-          },
-          {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
             'stem' => 'abdelhak',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => 'abdelhak'
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'abdelrahman',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'abdelrahman'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'term' => 'abdoukili',
             'stem' => 'abdoukili',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'abdoukili'
+            'publish_week' => '2009-06-08'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'absurd',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'absurd'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1,
+            'term' => 'absurd',
+            'stem_count' => 1,
+            'stem' => 'absurd'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'abtahi',
+            'stem_count' => 1,
+            'term' => 'abtahi',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'abtahi'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'abus',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'abuse'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'term' => 'acknowledge',
             'stem' => 'acknowledg',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'acknowledge'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'acronym',
             'stem' => 'acronym',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'acronym'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
-            'stem_count' => 3,
-            'stem' => 'activist',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'activists'
+            'term' => 'adore',
+            'stem_count' => 1,
+            'stem' => 'ador'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'adieu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'adieu'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'ador',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'adore'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'advoc',
+            'stem_count' => 1,
+            'term' => 'advocates',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'advocates'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'affili',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
+            'stem' => 'affili',
+            'stem_count' => 1,
             'term' => 'affiliations'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'afinina',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'afinina'
+            'media_sets_id' => 1,
+            'term' => 'afinina',
+            'stem_count' => 1,
+            'stem' => 'afinina'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'afp',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
+            'stem' => 'afp',
+            'stem_count' => 1,
             'term' => 'afp'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 7,
+            'term' => 'africa',
+            'stem_count' => 3,
             'stem' => 'africa',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'africa'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'africains',
             'stem_count' => 2,
-            'stem' => 'africain',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'africains'
+            'stem' => 'africain'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'african',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => 1,
-            'term' => 'african'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 8,
-            'stem' => 'african',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'african'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'afriqu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'afrique'
+            'term' => 'african',
+            'stem' => 'african'
           },
           {
+            'stem' => 'african',
+            'term' => 'african',
+            'stem_count' => 6,
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
+            'stem' => 'afriqu',
+            'stem_count' => 1,
+            'term' => 'afrique',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-08'
+          },
+          {
             'stem_count' => 4,
+            'term' => 'afro',
             'stem' => 'afro',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'afro'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'aggress',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'stem' => 'aggress',
+            'stem_count' => 1,
             'term' => 'aggression'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'aggress',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'aggression'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'ahmadinejad',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ahmadinejad'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'akin',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'akin'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'alaykum',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'alaykum'
-          },
-          {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'alaykum',
+            'term' => 'aggression',
+            'stem' => 'aggress'
+          },
+          {
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
+            'stem_count' => 1,
+            'term' => 'ahmadinejad',
+            'stem' => 'ahmadinejad'
+          },
+          {
+            'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1,
+            'term' => 'akin',
+            'stem_count' => 1,
+            'stem' => 'akin'
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
+            'term' => 'alaoui',
+            'stem' => 'alaoui'
+          },
+          {
+            'stem' => 'alaykum',
+            'term' => 'alaykum',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => 1,
+            'media_sets_id' => 1
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'stem' => 'alaykum',
+            'stem_count' => 1,
             'term' => 'alaykum'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
             'stem' => 'albert',
+            'stem_count' => 2,
+            'term' => 'albert',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'albert'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
             'stem' => 'ali',
-            'media_sets_id' => 1,
+            'term' => 'ali',
+            'stem_count' => 3,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'ali'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'al\'koush',
-            'media_sets_id' => 1,
+            'term' => 'al\'koush',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'al\'koush'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'alleged',
             'stem_count' => 1,
             'stem' => 'alleg',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'alleged'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
             'stem' => 'amass',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "amass\x{e9}e"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'amazon',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'amazon'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'amer',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'amer'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 2,
-            'stem' => 'america',
+            'term' => "amass\x{e9}e",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'america'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
+            'media_sets_id' => 1,
+            'term' => 'amazon',
             'stem_count' => 1,
-            'stem' => 'america',
+            'stem' => 'amazon'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
             'media_sets_id' => 1,
+            'stem' => 'america',
+            'term' => 'america',
+            'stem_count' => 1
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => 1,
+            'stem' => 'america',
+            'stem_count' => 1,
             'term' => 'america'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 3,
-            'stem' => 'american',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'american'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 10,
-            'stem' => 'american',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'american'
+            'media_sets_id' => 1,
+            'stem' => 'american',
+            'term' => 'american',
+            'stem_count' => 9
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'american',
             'stem_count' => 3,
+            'stem' => 'american',
+            'dashboard_topics_id' => 1,
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
+          },
+          {
             'stem' => 'ami',
+            'stem_count' => 3,
+            'term' => 'ami',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'ami'
+            'publish_week' => '2009-06-08'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
             'stem' => 'amongst',
+            'stem_count' => 2,
+            'term' => 'amongst',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'amongst'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'amongst',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => 1,
-            'term' => 'amongst'
+            'stem_count' => 2,
+            'term' => 'amongst',
+            'stem' => 'amongst'
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
             'stem_count' => 1,
-            'stem' => 'amplifi',
+            'term' => 'amplified',
+            'stem' => 'amplifi'
+          },
+          {
+            'stem' => 'ana',
+            'stem_count' => 1,
+            'term' => 'anas',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'amplified'
+            'publish_week' => '2009-06-08'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'amr',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'amr'
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'term' => 'anal',
             'stem_count' => 4,
             'stem' => 'anal',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'anal'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 2,
+            'term' => 'analogy',
             'stem' => 'analog',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'analogy'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'angel',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'angeles'
+            'term' => 'angeles',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'anil',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'anil'
-          },
-          {
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
             'stem_count' => 1,
-            'stem' => 'anomali',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'anomaly'
+            'term' => 'anomaly',
+            'stem' => 'anomali'
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
+            'media_sets_id' => 1,
+            'term' => 'anti',
             'stem_count' => 1,
-            'stem' => 'anti',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'anti'
+            'stem' => 'anti'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'term' => 'anymore',
+            'stem_count' => 1,
             'stem' => 'anymor',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'anymore'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'appel',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'appelle'
+            'media_sets_id' => 1,
+            'term' => 'applauded',
+            'stem_count' => 1,
+            'stem' => 'applaud'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'applaud',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'applauded'
-          },
-          {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
             'stem' => 'apport',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => 'apportera'
           },
           {
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'apres',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "apr\x{e8}s"
+            'term' => "apr\x{e8}s",
+            'stem' => 'apres'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
             'stem' => 'arab',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'arabs'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 5,
-            'stem' => 'arab',
+            'term' => 'arabs',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'arabs'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
+            'stem' => 'arab',
+            'term' => 'arabs',
+            'stem_count' => 3,
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => 1,
+            'media_sets_id' => 1
+          },
+          {
+            'term' => 'army',
             'stem_count' => 1,
             'stem' => 'armi',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'army'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'aryans',
             'stem' => 'aryan',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'aryans'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'ashok',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ashok'
+            'term' => 'ashok',
+            'stem_count' => 1,
+            'stem' => 'ashok'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'ashtari',
-            'media_sets_id' => 1,
+            'term' => 'ashtary',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'ashtary'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'asia',
             'stem' => 'asia',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'asia'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'assalaamu',
+            'stem_count' => 1,
+            'term' => 'assalaamu',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
+          },
+          {
+            'stem' => 'assalaamu',
+            'term' => 'assalaamu',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => 1,
-            'term' => 'assalaamu'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'assalaamu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'assalaamu'
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'term' => 'assets',
             'stem_count' => 1,
             'stem' => 'asset',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'assets'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'atheist',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'atheist'
-          },
-          {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
             'stem' => 'auss',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => 'aussi'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'autr',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'autres'
+            'term' => 'autres',
+            'stem_count' => 1
           },
           {
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'avancera',
             'stem_count' => 1,
-            'stem' => 'avanc',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'avancera'
+            'stem' => 'avanc'
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
+            'media_sets_id' => 1,
+            'term' => 'awaited',
             'stem_count' => 1,
-            'stem' => 'await',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'awaited'
+            'stem' => 'await'
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'azaan',
             'stem_count' => 1,
             'stem' => 'azaan',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => 1,
-            'term' => 'azaan'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'azaan',
-            'media_sets_id' => 1,
+            'term' => 'azaan',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'azaan'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'azraq',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'azraq'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'term' => 'bak',
             'stem' => 'bak',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'bak'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'baleman',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'balemans'
-          },
-          {
             'publish_week' => '2009-06-08',
-            'stem_count' => 4,
-            'stem' => 'ban',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'banned'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'bancair',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => 'bancaires'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'barack',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-08',
+            'stem' => 'barack',
+            'stem_count' => 2,
             'term' => 'barack'
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'barack',
             'stem_count' => 2,
             'stem' => 'barack',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => 1,
-            'term' => 'barack'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
             'stem' => 'barcelona',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'barcelona'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'bataill',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'bataille'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'bellart',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'bellart'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'benefici',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'beneficial'
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'term' => 'barcelona',
             'stem_count' => 2,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
+            'term' => 'bataille',
+            'stem' => 'bataill'
+          },
+          {
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'term' => 'beneficial',
+            'stem' => 'benefici'
+          },
+          {
             'stem' => 'bernard',
-            'media_sets_id' => 1,
+            'term' => 'bernard',
+            'stem_count' => 2,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'bernard'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'bien',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
+            'stem' => 'bhumika',
+            'stem_count' => 1,
+            'term' => 'bhumika'
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'stem' => 'bien',
+            'stem_count' => 2,
             'term' => 'bien'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "bient\x{f4}t",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "bient\x{f4}t"
+            'media_sets_id' => 1,
+            'term' => "bient\x{f4}t",
+            'stem_count' => 1,
+            'stem' => "bient\x{f4}t"
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'bihari',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'bihari'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
             'stem' => 'bilan',
+            'stem_count' => 2,
+            'term' => 'bilan',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'bilan'
+            'publish_week' => '2009-06-08'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'biographi',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
+            'stem' => 'biographi',
+            'stem_count' => 1,
             'term' => 'biographies'
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 3,
+            'term' => 'blake',
             'stem' => 'blake',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'blake'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'blaze',
             'stem_count' => 1,
             'stem' => 'blaze',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'blaze'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'blaze',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'blaze'
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'term' => 'blaze',
+            'stem' => 'blaze'
           },
           {
+            'term' => 'bleak',
+            'stem_count' => 1,
+            'stem' => 'bleak',
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'bloggers',
+            'stem_count' => 11,
+            'stem' => 'blogger'
+          },
+          {
+            'stem' => 'blogger',
+            'stem_count' => 2,
+            'term' => 'bloggers',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => 1,
+            'publish_week' => '2009-06-08'
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
+            'term' => 'blogoma',
+            'stem' => 'blogoma'
+          },
+          {
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
-            'stem' => 'blogger',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'bloggers'
+            'term' => 'blogosphere',
+            'stem' => 'blogospher'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 11,
-            'stem' => 'blogger',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'bloggers'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'blogoma',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'blogoma'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
-            'stem' => 'blogospher',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'blogosphere'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'bojic',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'bojic'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'bollor',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "bollor\x{e9}"
+            'term' => "bollor\x{e9}",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => "bollor\x{e9}",
             'stem' => "bollor\x{e9}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "bollor\x{e9}"
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 21,
+            'stem_count' => 16,
+            'term' => 'bongo',
             'stem' => 'bongo',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'bongo'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'bonheur',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
+            'stem' => 'bonheur',
+            'stem_count' => 1,
             'term' => 'bonheur'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'boundari',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'boundary'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'bounti',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'bounty'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 5,
             'stem' => 'boycot',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'boycotting'
+            'term' => 'boycotting',
+            'stem_count' => 5
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 4,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'boycott',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'boycott'
+            'term' => 'boycott',
+            'stem_count' => 4
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'boyd',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'boyd'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'brahmansamaj',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'brahmansamaj'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 21,
-            'stem' => 'brahmin',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'brahmin'
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'term' => 'brahmansamaj',
             'stem_count' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'brahmin',
+            'stem_count' => 19,
+            'stem' => 'brahmin'
+          },
+          {
+            'stem_count' => 1,
+            'term' => 'brahminsamaj',
             'stem' => 'brahminsamaj',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'brahminsamaj'
+            'publish_week' => '2009-06-08'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'brazil',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
+            'stem' => 'brazil',
+            'stem_count' => 1,
             'term' => 'brazil'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'breather',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'breather'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'breather',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'breather'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'britney',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'britney'
+            'stem' => 'breather',
+            'term' => 'breather',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'breather',
             'stem_count' => 1,
-            'stem' => 'brows',
-            'media_sets_id' => 1,
+            'stem' => 'breather',
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'browse'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'bulletin',
+            'stem_count' => 1,
+            'term' => 'bulletin',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'bulletin'
+            'publish_week' => '2009-06-08'
           },
           {
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
-            'stem_count' => 6,
             'stem' => 'cairo',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'cairo'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 5,
-            'stem' => 'cairo',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
             'term' => 'cairo'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'cameroon',
+            'dashboard_topics_id' => 1,
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'cameroon'
+            'stem' => 'cairo',
+            'term' => 'cairo',
+            'stem_count' => 4
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'campagn',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
+            'stem' => 'campagn',
+            'stem_count' => 1,
             'term' => 'campagnes'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
             'stem' => 'campaign',
+            'stem_count' => 1,
+            'term' => 'campaigns',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'campaigns'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => 'cancer',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'cancer'
+            'term' => 'cancer',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'candl',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'candle'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'capt',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'capter'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'captur',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'capturing'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'carolina',
+            'term' => 'capter',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'carolina'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
             'stem_count' => 1,
+            'term' => 'capturing',
+            'stem' => 'captur'
+          },
+          {
+            'stem_count' => 1,
+            'term' => 'cas',
             'stem' => 'cas',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'cas'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'casablanca',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
+            'stem' => 'casablanca',
+            'stem_count' => 1,
             'term' => 'casablanca'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'casualti',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-08',
+            'stem' => 'casualti',
+            'stem_count' => 1,
             'term' => 'casualties'
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'categorically',
             'stem' => 'categor',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'categorically'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'cctvb',
             'stem_count' => 1,
-            'stem' => 'cautious',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'cautious'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'cctv',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'cctv'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 5,
             'stem' => 'cctvb',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'cctvb'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'celib',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'celibate'
+            'term' => 'celibate',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'censor',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'censored'
-          },
-          {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'centr',
+            'term' => "centr\x{e9}",
+            'stem' => 'centr'
+          },
+          {
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "centr\x{e9}"
-          },
-          {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
             'stem' => 'cess',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => "cess\x{e9}"
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
-            'stem' => 'c\'est',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'c\'est'
-          },
-          {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'cet',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'cette'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'ceux',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ceux'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'chandranayagam',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'chandranayagam'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'chao',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => 'chaos'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'chapter',
+            'stem_count' => 1,
+            'term' => 'chapter',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'chapter'
+            'publish_week' => '2009-06-08'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'children',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'children'
+            'term' => 'children',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 10,
-            'stem' => 'china',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'china'
-          },
-          {
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
+            'term' => 'china',
+            'stem' => 'china'
+          },
+          {
+            'stem_count' => 1,
+            'term' => 'chinese',
             'stem' => 'chines',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'chinese'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'chopra',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'chopra'
+            'stem_count' => 1,
+            'term' => 'chopra',
+            'stem' => 'chopra'
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'chos',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'chose'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'term' => 'christian',
             'stem' => 'christian',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'christian'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'christoph',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'christophe'
+            'term' => 'christophe',
+            'stem_count' => 2
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'chronicl',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'chronicle'
+            'media_sets_id' => 1,
+            'term' => 'chronicle',
+            'stem_count' => 1,
+            'stem' => 'chronicl'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'citoyen',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'citoyen'
-          },
-          {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'clair',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'claire'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'clara',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'clara'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'clever',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => 'clever'
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'coincides',
             'stem_count' => 1,
             'stem' => 'coincid',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'coincides'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'coitus',
             'stem' => 'coitus',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'coitus'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'collabor',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-08',
+            'stem' => 'collabor',
+            'stem_count' => 1,
             'term' => 'collaboration'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'combien',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'combien'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 2,
+            'term' => 'comme',
             'stem' => 'comm',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'comme'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'commenc',
+            'dashboard_topics_id' => undef,
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'commence'
+            'term' => 'comptes',
+            'stem_count' => 1,
+            'stem' => 'compt'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'compt',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'comptes'
-          },
-          {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
             'stem' => 'confin',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => 'confinement'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'constitu',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'constitution'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1,
+            'term' => 'constitutionnel',
+            'stem_count' => 1,
+            'stem' => 'constitutionnel'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'constitutionnel',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'constitutionnel'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1,
+            'term' => 'contraceptive',
+            'stem_count' => 1,
+            'stem' => 'contracept'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'contracept',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'contraceptive'
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'term' => 'contradictions',
             'stem_count' => 2,
             'stem' => 'contradict',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'contradictions'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'contributor',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'contributors'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'convey',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'conveyed'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'convey',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'conveyed'
+            'term' => 'conveyed',
+            'stem_count' => 1,
+            'stem' => 'convey'
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
+            'term' => 'conveyed',
+            'stem' => 'convey'
+          },
+          {
+            'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1,
             'stem' => 'cosmopolitan',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'cosmopolitanism'
+            'term' => 'cosmopolitanism',
+            'stem_count' => 2
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "c\x{f4}t",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "c\x{f4}t\x{e9}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'counterpart',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'counterpart'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
             'stem' => 'crime',
+            'term' => 'crimes',
+            'stem_count' => 2
+          },
+          {
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'crimes'
+            'stem_count' => 1,
+            'term' => 'crocodiles',
+            'stem' => 'crocodil'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'crocodil',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'crocodiles'
+            'media_sets_id' => 1,
+            'term' => 'crude',
+            'stem_count' => 1,
+            'stem' => 'crude'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'crude',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'crude'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'cultiv',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'cultivated'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'cultiv',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'cultivated'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'curs',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'curse'
+            'term' => 'cultivated',
+            'stem_count' => 1,
+            'stem' => 'cultiv'
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'cynic',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'cynically'
+            'term' => 'cultivated',
+            'stem_count' => 1,
+            'stem' => 'cultiv'
           },
           {
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'cynically',
             'stem_count' => 1,
+            'stem' => 'cynic'
+          },
+          {
             'stem' => 'cyniqu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'cyniquement'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'd\'abord',
+            'term' => 'cyniquement',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'd\'abord'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'stem' => 'd\'abord',
+            'term' => 'd\'abord',
+            'stem_count' => 1
+          },
+          {
             'stem_count' => 15,
+            'term' => 'dalit',
             'stem' => 'dalit',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'dalit'
+            'publish_week' => '2009-06-08'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'dam',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'dam'
+            'term' => 'dam',
+            'stem_count' => 2
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'danah',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'danah'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'dandong',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'dandong'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'daniel',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'daniel'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'danilo',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'danilo'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'deceas',
-            'media_sets_id' => 1,
+            'term' => 'deceased',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'deceased'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'deceas',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
+            'publish_week' => '2009-06-08',
+            'stem' => 'deceas',
+            'stem_count' => 1,
             'term' => 'deceased'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'decreas',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'decreasing'
+            'media_sets_id' => 1,
+            'term' => 'decreasing',
+            'stem_count' => 1,
+            'stem' => 'decreas'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "d\x{e9}funt",
+            'stem_count' => 1,
+            'term' => "d\x{e9}funt",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "d\x{e9}funt"
+            'publish_week' => '2009-06-08'
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => "d\x{e9}j\x{e0}",
             'stem' => "d\x{e9}j\x{e0}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "d\x{e9}j\x{e0}"
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'delegation',
             'stem_count' => 2,
-            'stem' => 'deleg',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'delegation'
+            'stem' => 'deleg'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'delv',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'delve'
+            'term' => 'delve',
+            'stem_count' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => "d\x{e9}m\x{ea}l",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "d\x{e9}m\x{ea}ler"
+            'term' => "d\x{e9}m\x{ea}ler",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
+            'stem_count' => 2,
+            'term' => 'democratic',
             'stem' => 'democrat',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'democratic'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => "d\x{e9}mocrat",
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
+            'stem' => "d\x{e9}mocrat",
+            'stem_count' => 2,
             'term' => "d\x{e9}mocratique"
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => "d\x{e9}mocratie",
             'stem_count' => 1,
             'stem' => "d\x{e9}mocrati",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "d\x{e9}mocratie"
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => "d\x{e9}part",
             'stem_count' => 1,
             'stem' => "d\x{e9}part",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "d\x{e9}part"
+            'media_sets_id' => 1
           },
           {
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'departur',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'departure'
+            'term' => 'depuis',
+            'stem' => 'depuis'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'depuis',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'depuis'
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'term' => 'deputy',
             'stem_count' => 1,
             'stem' => 'deputi',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'deputy'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'despot',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'despots'
+            'term' => 'despots',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'destin',
             'stem_count' => 1,
             'stem' => 'destin',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'destin'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'detain',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'detained'
-          },
-          {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'detect',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'detection'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'detruir',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'detruire'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'deuil',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => 'deuil'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'dev',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'devait'
-          },
-          {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'devenu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'devenu'
+            'term' => 'devenu',
+            'stem' => 'devenu'
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'd\'hommes',
             'stem' => 'd\'homm',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'd\'hommes'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'dictat',
+            'dashboard_topics_id' => undef,
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'dictator'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'dieu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'dieu'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'digit',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'digital'
+            'term' => 'digital',
+            'stem_count' => 1
           },
           {
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'directories',
             'stem_count' => 1,
-            'stem' => 'directori',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'directories'
+            'stem' => 'directori'
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
+            'media_sets_id' => 1,
+            'term' => 'disadvantaged',
             'stem_count' => 1,
-            'stem' => 'disadvantag',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'disadvantaged'
+            'stem' => 'disadvantag'
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'disagree',
             'stem_count' => 2,
             'stem' => 'disagre',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'disagree'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'disappoint',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'disappointment'
-          },
-          {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'disappoint',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
+            'stem' => 'disappoint',
+            'stem_count' => 1,
             'term' => 'disappointment'
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'discomfort',
+            'term' => 'disappointment',
+            'stem' => 'disappoint',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'discomfort'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
+            'term' => 'discomfort',
+            'stem' => 'discomfort'
+          },
+          {
+            'term' => 'discourteous',
             'stem_count' => 1,
             'stem' => 'discourt',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'discourteous'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'discov',
-            'media_sets_id' => 1,
+            'term' => 'discovered',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'discovered'
+            'media_sets_id' => 1
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
             'stem_count' => 2,
-            'stem' => 'discrimin',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'discrimination'
+            'term' => 'discrimination',
+            'stem' => 'discrimin'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'disgrac',
-            'media_sets_id' => 1,
+            'term' => 'disgrace',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'disgrace'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'disservic',
-            'media_sets_id' => 1,
+            'term' => 'disservice',
+            'stem_count' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'disservice'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'doit',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'doit'
+            'media_sets_id' => 1,
+            'term' => 'd\'omar',
+            'stem_count' => 1,
+            'stem' => 'd\'omar'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'doivent',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'doivent'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'd\'omar',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'd\'omar'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'donald',
-            'media_sets_id' => 1,
+            'term' => 'donald',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'donald'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'dont',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'dont'
-          },
-          {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'dont',
+            'stem' => 'dont'
+          },
+          {
             'stem' => 'downward',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'downward'
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'term' => 'downward',
             'stem_count' => 1,
-            'stem' => 'doyen',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'doyen'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'dude',
             'stem_count' => 1,
             'stem' => 'dude',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'dude'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'd\'un',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'd\'un'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'eastern',
             'stem' => 'eastern',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'eastern'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'eastern',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'eastern'
+            'media_sets_id' => 1,
+            'stem' => 'eastern',
+            'term' => 'eastern',
+            'stem_count' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => "\x{e9}crit",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{e9}crit"
+            'term' => "\x{e9}crit",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'edgi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'edgy'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
             'stem' => 'educ',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'education'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'egypt',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'egypt'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'egypt',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'egypt'
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'term' => 'education',
             'stem_count' => 2,
-            'stem' => "\x{e9}lect",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
+            'stem' => 'egypt',
+            'stem_count' => 1,
+            'term' => 'egypt',
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => 1
+          },
+          {
+            'term' => 'egypt',
+            'stem_count' => 1,
+            'stem' => 'egypt',
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'stem' => "\x{e9}lect",
+            'stem_count' => 1,
             'term' => "\x{e9}lections"
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'elector',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'electoral'
+            'stem_count' => 1,
+            'term' => 'electoral',
+            'stem' => 'elector'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "\x{e9}lectoral",
-            'media_sets_id' => 1,
+            'term' => "\x{e9}lectorales",
+            'stem_count' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{e9}lectorales"
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'elementari',
+            'stem_count' => 1,
+            'term' => 'elementary',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'elementary'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'eleph',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'elephant'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'elia',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'elia'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'elephant',
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
+          },
+          {
+            'stem' => 'elicit',
+            'term' => 'eliciting',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
             'stem' => 'elit',
-            'media_sets_id' => 1,
+            'term' => 'elite',
+            'stem_count' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'elite'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'elmafjou',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-08',
+            'stem' => 'elmafjou',
+            'stem_count' => 1,
             'term' => 'elmafjoue'
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'embellished',
             'stem_count' => 1,
             'stem' => 'embellish',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'embellished'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'emended',
             'stem_count' => 1,
             'stem' => 'emend',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'emended'
+            'media_sets_id' => 1
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'stem_count' => 5,
+            'term' => 'emotional',
+            'stem' => 'emot'
+          },
+          {
             'stem_count' => 1,
-            'stem' => 'emmanuel',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'emmanuel'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
-            'stem' => 'emot',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'emotional'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'term' => 'enact',
             'stem' => 'enact',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'enact'
+            'publish_week' => '2009-06-08'
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'endorsement',
             'stem_count' => 1,
             'stem' => 'endors',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => 1,
-            'term' => 'endorsement'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'endors',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'endorsement'
+            'stem_count' => 1,
+            'term' => 'endorsement',
+            'stem' => 'endors'
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
             'stem' => 'endur',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => 'endure'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'enfant',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'enfants'
+            'media_sets_id' => 1,
+            'term' => 'enslaved',
+            'stem_count' => 1,
+            'stem' => 'enslav'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'enslav',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'enslaved'
-          },
-          {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'entourag',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'entourage'
+            'term' => 'entourage',
+            'stem' => 'entourag'
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'entrera',
             'stem_count' => 1,
             'stem' => 'entrer',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'entrera'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'eradicate',
             'stem' => 'erad',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'eradicate'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'escapees',
             'stem' => 'escape',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'escapees'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'eswn',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'eswn'
-          },
-          {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'etc',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'etc'
+            'term' => 'etc',
+            'stem' => 'etc'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "\x{e9}ternel",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{e9}ternellement"
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'etkhabat',
+            'term' => "\x{e9}ternellement",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'etkhabat'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 4,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'etkhabat',
+            'stem_count' => 1,
+            'stem' => 'etkhabat'
+          },
+          {
             'stem' => "\x{ea}tre",
+            'stem_count' => 2,
+            'term' => "\x{ea}tre",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{ea}tre"
+            'publish_week' => '2009-06-08'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 5,
+            'term' => 'euna',
+            'stem_count' => 6,
             'stem' => 'euna',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'euna'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'eutopia',
             'stem' => 'eutopia',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'eutopia'
+            'publish_week' => '2009-06-08'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => "\x{e9}vident",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{e9}videmment"
+            'term' => "\x{e9}videmment",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'exam',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'exam'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'exit',
-            'media_sets_id' => 1,
+            'term' => 'exit',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'exit'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'expats',
             'stem_count' => 1,
             'stem' => 'expat',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'expats'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'eyeghe',
             'stem' => 'eyegh',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'eyeghe'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'fabienn',
+            'dashboard_topics_id' => undef,
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'fabienne'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 7,
             'stem' => 'facebook',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'facebook'
+            'term' => 'facebook',
+            'stem_count' => 4
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'fact',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'fact'
+            'stem_count' => 3,
+            'term' => 'families',
+            'stem' => 'famili'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'famili',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'family'
-          },
-          {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
             'stem' => 'farhad',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => 'farhad'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'fellowship',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'fellowship'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'feront',
-            'media_sets_id' => 1,
+            'term' => 'feront',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'feront'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'fieri',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'fiery'
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'term' => 'fiery',
             'stem_count' => 1,
-            'stem' => 'fieri',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'stem' => 'fieri',
+            'stem_count' => 1,
             'term' => 'fiery'
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'fils',
             'stem' => 'fil',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'fils'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'filip',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'filip'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'filter',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'filtering'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'flessel',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'flessel'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'forbid',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'forbid'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'founder',
-            'media_sets_id' => 1,
+            'term' => 'founder',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'founder'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 11,
-            'stem' => 'franc',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'france'
+            'publish_week' => '2009-06-08',
+            'stem_count' => 6,
+            'term' => 'france',
+            'stem' => 'franc'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
             'stem' => "fran\x{e7}afr",
-            'media_sets_id' => 1,
+            'term' => "fran\x{e7}afrique",
+            'stem_count' => 2,
             'dashboard_topics_id' => undef,
-            'term' => "fran\x{e7}afrique"
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 4,
+            'term' => "fran\x{e7}afrique",
             'stem' => "fran\x{e7}afriqu",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "fran\x{e7}afrique"
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "fran\x{e7}oi",
+            'stem_count' => 1,
+            'term' => "fran\x{e7}ois",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "fran\x{e7}ois"
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "fran\x{e7}ois",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "fran\x{e7}ois"
+            'media_sets_id' => 1,
+            'term' => "fran\x{e7}ois",
+            'stem_count' => 1,
+            'stem' => "fran\x{e7}ois"
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'fransisco',
             'stem' => 'fransisco',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'fransisco'
+            'publish_week' => '2009-06-08'
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 2,
+            'term' => 'fratricide',
             'stem' => 'fratricid',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'fratricide'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 4,
             'stem' => 'free',
+            'stem_count' => 4,
+            'term' => 'free',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'free'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
-            'stem' => 'freedom',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
+            'stem' => 'freedom',
+            'stem_count' => 4,
             'term' => 'freedom'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'freeli',
+            'stem_count' => 1,
+            'term' => 'freely',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'freely'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 5,
-            'stem' => 'french',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-08',
+            'stem' => 'french',
+            'stem_count' => 5,
             'term' => 'french'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'frenchmen',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'frenchmen'
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'term' => 'frenzy',
             'stem_count' => 1,
             'stem' => 'frenzi',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'frenzy'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'frustrat',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'frustrating'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'funni',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'funny'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 12,
+            'stem_count' => 8,
+            'term' => 'gabon',
             'stem' => 'gabon',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'gabon'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'gabonais',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'gabonaise'
+            'term' => 'gabonaise',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'gaboneco',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'gaboneco'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 9,
+            'term' => 'gabonese',
+            'stem_count' => 4,
             'stem' => 'gabones',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'gabonese'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 2,
+            'term' => 'gaulle',
             'stem' => 'gaull',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'gaulle'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
+            'stem' => 'gauravonom',
+            'term' => 'gauravonomics',
             'stem_count' => 1,
-            'stem' => 'gaur',
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
+            'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-08',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'gaur'
+            'term' => 'gender',
+            'stem_count' => 1,
+            'stem' => 'gender'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'gender',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'gender'
+            'stem' => 'ghimir',
+            'stem_count' => 1,
+            'term' => 'ghimire'
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'georgia',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'georgia'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'gibson',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'gibson'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'gigant',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'gigantic'
+            'term' => 'gigantic',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'gigantesqu',
-            'media_sets_id' => 1,
+            'term' => 'gigantesque',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'gigantesque'
+            'media_sets_id' => 1
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'stem_count' => 5,
+            'term' => 'global',
+            'stem' => 'global'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 6,
-            'stem' => 'global',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'global'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'media_sets_id' => 1,
             'stem' => 'gnassingb',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'gnassingbe'
+            'term' => 'gnassingbe',
+            'stem_count' => 2
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
-            'stem' => 'god',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
+            'stem' => 'god',
+            'stem_count' => 1,
             'term' => 'god'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "g\x{f3}es",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "g\x{f3}es"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => 'golyardi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'golyardi'
+            'term' => 'golyardi',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "gon\x{e7}alv",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "gon\x{e7}alves"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'goodby',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'goodbye'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'googl',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'google'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 7,
             'stem' => 'gore',
+            'stem_count' => 7,
+            'term' => 'gore',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'gore'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'gouvernements',
             'stem_count' => 1,
             'stem' => 'gouvern',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'gouvernements'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'gowd',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'gowd'
+            'term' => 'gowd',
+            'stem_count' => 1
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
+            'media_sets_id' => 1,
+            'term' => 'graciously',
             'stem_count' => 1,
-            'stem' => 'gracious',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'graciously'
+            'stem' => 'gracious'
           },
           {
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'groomed',
             'stem_count' => 1,
-            'stem' => 'graphic',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'graphic'
+            'stem' => 'groom'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'groom',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'grooming'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => 'gsbmatch',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'gsbmatch'
+            'term' => 'gsbmatch',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 4,
-            'stem' => 'hadj',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
+            'stem' => 'hadj',
+            'stem_count' => 4,
             'term' => 'hadj'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'hamza',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-08',
+            'stem' => 'hamza',
+            'stem_count' => 1,
             'term' => 'hamza'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'hardlin',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-08',
+            'stem' => 'hardlin',
+            'stem_count' => 1,
             'term' => 'hardline'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'harsh',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
+            'stem' => 'harsh',
+            'stem_count' => 1,
             'term' => 'harsh'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'haven',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'havens'
+            'stem_count' => 1,
+            'term' => 'havens',
+            'stem' => 'haven'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'headlin',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'headline'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => "h\x{e9}bergent",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "h\x{e9}bergent"
+            'term' => "h\x{e9}bergent",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'heighten',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'heighten'
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'term' => 'heighten',
             'stem_count' => 1,
-            'stem' => 'heighten',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'heighten'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
+            'stem' => 'heighten',
+            'term' => 'heighten',
             'stem_count' => 1,
-            'stem' => 'heir',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'stem' => 'heir',
+            'stem_count' => 1,
             'term' => 'heir'
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'heiress',
             'stem_count' => 1,
             'stem' => 'heiress',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'heiress'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => "h\x{e9}ritiers",
             'stem' => "h\x{e9}riti",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "h\x{e9}ritiers"
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'hermit',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-08',
+            'stem' => 'hermit',
+            'stem_count' => 1,
             'term' => 'hermit'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'heterosexu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'heterosexuals'
+            'term' => 'heterosexuals',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'hey',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'hey'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'highlight',
+            'term' => 'hey',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'highlighted'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'hilal',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'hilal'
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'term' => 'hindu',
             'stem_count' => 1,
             'stem' => 'hindu',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'hindu'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
-            'stem' => 'hisham',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'hisham'
-          },
-          {
             'publish_week' => '2009-06-08',
+            'media_sets_id' => 1,
+            'term' => 'hisham',
             'stem_count' => 1,
-            'stem' => 'histoir',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'histoire'
+            'stem' => 'hisham'
           },
           {
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'histoire',
             'stem_count' => 1,
+            'stem' => 'histoir'
+          },
+          {
             'stem' => 'hmmm',
+            'stem_count' => 1,
+            'term' => 'hmmm',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'hmmm'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'homepag',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-08',
+            'stem' => 'homepag',
+            'stem_count' => 1,
             'term' => 'homepage'
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'homos',
             'stem_count' => 2,
             'stem' => 'homo',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'homos'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 9,
-            'stem' => 'homosexu',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-08',
+            'stem' => 'homosexu',
+            'stem_count' => 9,
             'term' => 'homosexuality'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'hong',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
+            'stem' => 'hong',
+            'stem_count' => 1,
             'term' => 'hong'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'horgan',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'horgan'
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'term' => 'horgan',
             'stem_count' => 1,
-            'stem' => 'horrif',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'horrific'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'horrific',
+            'stem_count' => 1,
+            'stem' => 'horrif'
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
             'stem_count' => 2,
-            'stem' => 'hospit',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'hospitals'
+            'term' => 'hospitals',
+            'stem' => 'hospit'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'humain',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'humain'
+            'media_sets_id' => 1,
+            'term' => 'hypocrisy',
+            'stem_count' => 1,
+            'stem' => 'hypocrisi'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'hypocrisi',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'hypocrisy'
-          },
-          {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
             'stem' => 'idiot',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => 'idiotic'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'ikalyanam',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ikalyanam'
+            'term' => 'ikalyanam',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'illeg',
+            'stem_count' => 1,
+            'term' => 'illegally',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'illegally'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'immobili',
-            'media_sets_id' => 1,
+            'term' => 'immobilier',
+            'stem_count' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'immobilier'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'impli',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'imply'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'term' => 'inability',
             'stem' => 'inabl',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
+          },
+          {
+            'term' => 'inauguration',
+            'stem_count' => 1,
+            'stem' => 'inaugur',
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'inability'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'inaugur',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'inauguration'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => 'inaugur',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'inauguration'
+            'term' => 'inauguration',
+            'stem_count' => 1
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
+            'media_sets_id' => 1,
+            'term' => 'incertitudes',
             'stem_count' => 1,
-            'stem' => 'incertitud',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'incertitudes'
+            'stem' => 'incertitud'
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
-            'stem_count' => 13,
+            'media_sets_id' => 1,
             'stem' => 'india',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'india'
+            'term' => 'india',
+            'stem_count' => 11
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 7,
+            'term' => 'indian',
+            'stem_count' => 4,
             'stem' => 'indian',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'indian'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'indictment',
             'stem_count' => 2,
             'stem' => 'indict',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'indictment'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'infiltr',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'infiltrations'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'term' => 'infrastructure',
             'stem' => 'infrastructur',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'infrastructure'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'inhabit',
+            'stem_count' => 1,
+            'term' => 'inhabitants',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'inhabitants'
+            'publish_week' => '2009-06-08'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'inherit',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'inherit'
+            'media_sets_id' => 1,
+            'term' => 'insults',
+            'stem_count' => 1,
+            'stem' => 'insult'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'innov',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'innovations'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'innov',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'innovations'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'insult',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'insults'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 2,
-            'stem' => 'intellectu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'intellectuals'
+            'term' => 'intellectuals',
+            'stem' => 'intellectu'
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 2,
+            'term' => 'interacted',
             'stem' => 'interact',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'interacted'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
-            'stem' => 'internet',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'internet'
+            'stem_count' => 2,
+            'term' => 'internet',
+            'stem' => 'internet'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'interrog',
-            'media_sets_id' => 1,
+            'term' => 'interrogations',
+            'stem_count' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'interrogations'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'interruptus',
             'stem_count' => 1,
             'stem' => 'interruptus',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'interruptus'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'invisible',
             'stem_count' => 2,
             'stem' => 'invis',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'invisible'
+            'media_sets_id' => 1
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
             'stem' => 'invisibl',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => 'invisible'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'iraison',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'iraisonnable'
-          },
-          {
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
-            'stem' => 'iran',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'iran'
+            'term' => 'iran',
+            'stem' => 'iran'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 5,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'iranian',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'iranian'
+            'term' => 'iranian',
+            'stem_count' => 5
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'islamic',
             'stem' => 'islam',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'islamic'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
+            'stem' => 'islam',
+            'term' => 'islamic',
             'stem_count' => 2,
-            'stem' => 'islam',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'islamic'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'isra',
+            'stem_count' => 1,
+            'term' => 'israeli',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'israeli'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'israeli',
             'stem_count' => 1,
             'stem' => 'isra',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'israeli'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'itinerari',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'itinerary'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => 'ivorian',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ivorian'
+            'term' => 'ivorian',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 2,
+            'term' => 'iyers',
             'stem' => 'iyer',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'iyers'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'james',
             'stem_count' => 1,
             'stem' => 'jame',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'james'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
             'stem' => 'jangid',
+            'stem_count' => 2,
+            'term' => 'jangid',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'jangid'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'japan',
-            'media_sets_id' => 1,
+            'term' => 'japan',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'japan'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'jat',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'jats'
+            'term' => 'jats',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'jatland',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
+            'stem' => 'jatland',
+            'stem_count' => 1,
             'term' => 'jatland'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'jean',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'jean'
+            'stem_count' => 1,
+            'term' => 'jean',
+            'stem' => 'jean'
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'jeunesse',
             'stem' => 'jeuness',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'jeunesse'
+            'publish_week' => '2009-06-08'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'j\'exig',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'j\'exige'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'jilin',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'jilin'
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'term' => 'john',
             'stem_count' => 1,
             'stem' => 'john',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'john'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'jomg',
-            'media_sets_id' => 1,
+            'term' => 'jomg',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'jomg'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'jong',
             'stem_count' => 2,
-            'stem' => 'jong',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'jong'
+            'stem' => 'jong'
           },
           {
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'jour',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'jours'
+            'term' => 'jours',
+            'stem' => 'jour'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'journal',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'journalism'
-          },
-          {
             'publish_week' => '2009-06-08',
-            'stem_count' => 7,
+            'media_sets_id' => 1,
             'stem' => 'journalist',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'journalists'
+            'term' => 'journalists',
+            'stem_count' => 6
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'junk',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'junk'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
             'stem' => 'kamran',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'kamran'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'karoubi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'karoubi'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 2,
+            'term' => 'kamran',
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'stem' => 'karoubi',
+            'term' => 'karoubi',
+            'stem_count' => 1
+          },
+          {
+            'stem_count' => 2,
+            'term' => 'kayastha',
             'stem' => 'kayastha',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'kayastha'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'kelli',
-            'media_sets_id' => 1,
+            'term' => 'kelly',
+            'stem_count' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'kelly'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'kenya',
+            'stem_count' => 1,
+            'term' => 'kenya',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'kenya'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
             'stem' => 'kenyan',
+            'stem_count' => 3,
+            'term' => 'kenyan',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'kenyan'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'kerala',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'kerala'
+            'media_sets_id' => 1,
+            'term' => 'kerala',
+            'stem_count' => 1,
+            'stem' => 'kerala'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'keralaiy',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'keralaiyers'
+            'term' => 'keralaiyers',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'kevin',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'kevin'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'keyword',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'keyword'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'kirk',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'kirk'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'kiss',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'kiss'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'kiss',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'kiss'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'knot',
+            'term' => 'kirk',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-08'
+          },
+          {
+            'stem' => 'kiss',
+            'stem_count' => 2,
+            'term' => 'kiss',
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
+          },
+          {
+            'stem_count' => 2,
+            'term' => 'kiss',
+            'stem' => 'kiss',
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => 1
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'stem' => 'knot',
+            'stem_count' => 1,
             'term' => 'knots'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'kong',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'kong'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1,
+            'stem' => 'kong',
+            'term' => 'kong',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'kopg',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
+            'stem' => 'kopg',
+            'stem_count' => 2,
             'term' => 'kopgli'
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'koran',
             'stem_count' => 1,
             'stem' => 'koran',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'koran'
-          },
-          {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'koran',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'koran'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 11,
+            'stem' => 'koran',
+            'stem_count' => 1,
+            'term' => 'koran',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-08'
+          },
+          {
             'stem' => 'korea',
+            'stem_count' => 11,
+            'term' => 'korea',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'korea'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
-            'stem_count' => 5,
             'stem' => 'korean',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'korean'
+            'stem_count' => 2,
+            'term' => 'koreans'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 5,
-            'stem' => 'koss',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'koss'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => "koss\x{548c}\x{4e00}\x{540d}\x{4e2d}\x{56fd}\x{5411}\x{5bfc}\x{88ab}\x{4e2d}\x{56fd}\x{8b66}\x{65b9}\x{963b}\x{6b62}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "koss\x{548c}\x{4e00}\x{540d}\x{4e2d}\x{56fd}\x{5411}\x{5bfc}\x{88ab}\x{4e2d}\x{56fd}\x{8b66}\x{65b9}\x{963b}\x{6b62}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "koss\x{548c}\x{4e00}\x{540d}\x{4e2d}\x{56fd}\x{5bfc}\x{6e38}\x{88ab}\x{4e2d}\x{56fd}\x{8b66}\x{65b9}\x{62d8}\x{7559}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "koss\x{548c}\x{4e00}\x{540d}\x{4e2d}\x{56fd}\x{5bfc}\x{6e38}\x{88ab}\x{4e2d}\x{56fd}\x{8b66}\x{65b9}\x{62d8}\x{7559}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'term' => 'kouamouo',
             'stem' => 'kouamouo',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'kouamouo'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'kumar',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'kumar'
+            'term' => 'kumar',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
             'stem' => 'labor',
-            'media_sets_id' => 1,
+            'term' => 'labor',
+            'stem_count' => 2,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'labor'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 4,
-            'stem' => 'l\'afriqu',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'l\'afrique'
-          },
-          {
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
             'stem_count' => 1,
-            'stem' => 'lahloumi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'lahloumi'
+            'term' => 'l\'afrique',
+            'stem' => 'l\'afriqu'
           },
           {
+            'stem' => 'lahloumi',
+            'stem_count' => 1,
+            'term' => 'lahloumi',
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
+          },
+          {
+            'term' => 'l\'aidera',
             'stem_count' => 1,
             'stem' => 'l\'aid',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'l\'aidera'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'laila',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
+            'stem' => 'laila',
+            'stem_count' => 1,
             'term' => 'laila'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'laiss',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'laisse'
+            'media_sets_id' => 1,
+            'term' => 'laisse',
+            'stem_count' => 1,
+            'stem' => 'laiss'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'laisson',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'laissons'
-          },
-          {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'lalami',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'lalami'
+            'term' => 'lalami',
+            'stem' => 'lalami'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'lam',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'lam'
-          },
-          {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
             'stem' => 'lament',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => 'lamentable'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'l\'arm',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
+            'stem' => 'l\'arm',
+            'stem_count' => 1,
             'term' => "l'arm\x{e9}e"
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'larsen',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'larsen'
+            'media_sets_id' => 1,
+            'term' => 'laura',
+            'stem_count' => 6,
+            'stem' => 'laura'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'laughlin',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'laughlin'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 5,
-            'stem' => 'laura',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'laura'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 2,
+            'term' => 'leaking',
             'stem' => 'leak',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'leaking'
+            'publish_week' => '2009-06-08'
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
+            'media_sets_id' => 1,
+            'term' => 'lee',
             'stem_count' => 5,
-            'stem' => 'lee',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'lee'
+            'stem' => 'lee'
           },
           {
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'legacy',
             'stem_count' => 2,
-            'stem' => 'legaci',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'legacy'
+            'stem' => 'legaci'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'legco',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'legco'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => "l\x{e9}ger",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "l\x{e9}g\x{e8}re"
+            'term' => "l\x{e9}g\x{e8}re",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'legitim',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'legitimate'
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'term' => 'legitimate',
             'stem_count' => 1,
-            'stem' => 'legitimaci',
+            'stem' => 'legitim',
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-08',
+            'stem' => 'legitimaci',
+            'stem_count' => 1,
             'term' => 'legitimacy'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'l\'er',
+            'stem_count' => 1,
+            'term' => "l'\x{e8}re",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "l'\x{e8}re"
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
             'stem' => 'lesbian',
+            'stem_count' => 2,
+            'term' => 'lesbian',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'lesbian'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'liberatelaura',
-            'media_sets_id' => 1,
+            'term' => 'liberatelaura',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'liberatelaura'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'liner',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'liners'
+            'term' => 'liners',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
             'stem' => 'ling',
-            'media_sets_id' => 1,
+            'term' => 'ling',
+            'stem_count' => 3,
             'dashboard_topics_id' => undef,
-            'term' => 'ling'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'ljubisa',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ljubisa'
-          },
-          {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
             'stem' => 'loft',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => 'loft'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'logo',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'logos'
+            'media_sets_id' => 1,
+            'term' => 'l\'on',
+            'stem_count' => 1,
+            'stem' => 'l\'on'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'l\'on',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'l\'on'
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1,
+            'term' => 'longevity',
             'stem_count' => 2,
-            'stem' => 'longev',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'longevity'
+            'stem' => 'longev'
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'loonies',
             'stem_count' => 1,
             'stem' => 'looni',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'loonies'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'lova',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'lova'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 4,
-            'stem' => 'love',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'love'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
-            'stem' => 'love',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'love'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'lux',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'luxe'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'maghreb',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'maghreb'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'maghreb',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'maghreb'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'mainland',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'mainland'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'malouk',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'malouk'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'malouk',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'malouk'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'manqu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'manque'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'marger',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'margerie'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'margeri',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'margerie'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'marwa',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'marwa'
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'term' => 'loving',
             'stem_count' => 2,
-            'stem' => 'masturb',
+            'stem' => 'love',
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => 1,
+            'media_sets_id' => 1,
+            'term' => 'loving',
+            'stem_count' => 2,
+            'stem' => 'love'
+          },
+          {
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'term' => 'luxe',
+            'stem' => 'lux'
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => 1,
+            'stem_count' => 1,
+            'term' => 'maghreb',
+            'stem' => 'maghreb'
+          },
+          {
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'term' => 'maghreb',
+            'stem' => 'maghreb'
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => 1,
+            'stem_count' => 1,
+            'term' => 'malouk',
+            'stem' => 'malouk'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'malouk',
+            'stem_count' => 1,
+            'stem' => 'malouk'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'manque',
+            'stem_count' => 1,
+            'stem' => 'manqu'
+          },
+          {
+            'stem' => 'marger',
+            'term' => 'margerie',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
+            'stem' => 'margeri',
+            'stem_count' => 1,
+            'term' => 'margerie',
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'stem' => 'masturb',
+            'stem_count' => 2,
             'term' => 'masturbation'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 7,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'matrimoni',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'matrimonial'
+            'term' => 'matrimonial',
+            'stem_count' => 7
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'm\'avanc',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'm\'avance'
+            'term' => 'm\'avance',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'meanwhil',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'meanwhile'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'meddl',
+            'term' => 'meanwhile',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'meddle'
+            'publish_week' => '2009-06-08'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 5,
+            'term' => 'media',
+            'stem_count' => 2,
             'stem' => 'media',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'media'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'mehdi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'mehdi'
+            'term' => 'mehdi',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => "m\x{ea}l",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "m\x{ea}ler"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'merc',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'merci'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'term' => 'mettront',
             'stem' => 'mettront',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'mettront'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'meur',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'meurs'
-          },
-          {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'microphon',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'microphone'
+            'term' => 'militant',
+            'stem' => 'milit'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'milit',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'militant'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'mimick',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'mimicking'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'miniscul',
+            'term' => 'mimicking',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'miniscule'
+            'publish_week' => '2009-06-08'
           },
           {
+            'stem' => 'miniscul',
+            'term' => 'miniscule',
+            'stem_count' => 1,
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
+            'term' => 'minister',
             'stem_count' => 1,
             'stem' => 'minist',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'minister'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'mislead',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'misleading'
+            'stem_count' => 1,
+            'term' => 'mistrust',
+            'stem' => 'mistrust'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'mister',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'mister'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'mistrust',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'mistrust'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'mistrust',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'mistrust'
-          },
-          {
             'publish_week' => '2009-06-08',
-            'stem_count' => 6,
-            'stem' => 'mitch',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'mitch'
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'term' => 'mistrust',
             'stem_count' => 1,
-            'stem' => 'mitterr',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'mitterrant'
+            'stem' => 'mistrust'
           },
           {
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'mitterrant',
             'stem_count' => 1,
-            'stem' => 'mitterrand',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'mitterrand'
+            'stem' => 'mitterr'
           },
           {
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'mitterrand',
+            'stem_count' => 1,
+            'stem' => 'mitterrand'
+          },
+          {
+            'term' => 'mobilier',
             'stem_count' => 1,
             'stem' => 'mobili',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'mobilier'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'modh',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
+            'stem' => 'modh',
+            'stem_count' => 1,
             'term' => 'modh'
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'modhbrahmin',
             'stem_count' => 1,
             'stem' => 'modhbrahmin',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'modhbrahmin'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'mohamed',
             'stem_count' => 3,
             'stem' => 'moham',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'mohamed'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'moham',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'mohammed'
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1,
+            'term' => 'mohammed',
             'stem_count' => 2,
-            'stem' => 'mohammad',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'mohammad'
+            'stem' => 'moham'
           },
           {
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'mohammad',
             'stem_count' => 1,
-            'stem' => 'monitor',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'monitoring'
+            'stem' => 'mohammad'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'monopol',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'monopolize'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'monsieur',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'monsieur'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'montr',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "montr\x{e9}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 7,
-            'stem' => 'moroccan',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'moroccan'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 4,
-            'stem' => 'moroccan',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'moroccans'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1,
+            'stem' => 'moroccan',
+            'term' => 'moroccan',
+            'stem_count' => 3
           },
           {
+            'term' => 'moroccan',
+            'stem_count' => 6,
+            'stem' => 'moroccan',
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
+            'stem' => 'morocco',
             'stem_count' => 5,
-            'stem' => 'morocco',
+            'term' => 'morocco',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'morocco'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 4,
-            'stem' => 'morocco',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'morocco'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1,
+            'term' => 'morocco',
+            'stem_count' => 4,
+            'stem' => 'morocco'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
             'stem' => 'mort',
+            'stem_count' => 2,
+            'term' => 'mort',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'mort'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'mouamba',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'mouamba'
-          },
-          {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'moumbamb',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'moumbamba'
+            'term' => 'mourn',
+            'stem' => 'mourn'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'mourn',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'mourn'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'muhurtham',
+            'stem_count' => 1,
+            'term' => 'muhurtham',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'muhurtham'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 9,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'muslim',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'muslim'
+            'term' => 'muslim',
+            'stem_count' => 9
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 4,
+            'term' => 'muslims',
             'stem' => 'muslim',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'muslims'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'myspac',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'myspace'
+            'stem_count' => 1,
+            'term' => 'myung',
+            'stem' => 'myung'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'myung',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'myung'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'narrowli',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'narrowly'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'nationalist',
-            'media_sets_id' => 1,
+            'term' => 'nationalists',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'nationalists'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'ndong',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ndong'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'nekue',
+            'term' => 'ndong',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'nekuee'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
+            'term' => 'nekuee',
+            'stem' => 'nekue'
+          },
+          {
+            'term' => 'n\'est',
             'stem_count' => 1,
             'stem' => 'n\'est',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'n\'est'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'netanyahu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'netanyahu'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'netanyahu',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
+            'publish_week' => '2009-06-08',
+            'stem' => 'netanyahu',
+            'stem_count' => 1,
             'term' => 'netanyahu'
           },
           {
+            'term' => 'netanyahu',
+            'stem_count' => 1,
+            'stem' => 'netanyahu',
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'netherlands',
             'stem_count' => 2,
-            'stem' => 'netherland',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'netherlands'
+            'stem' => 'netherland'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'netizen',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'netizens'
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1,
+            'term' => 'n\'existent',
             'stem_count' => 1,
-            'stem' => 'newsport',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'newsportal'
+            'stem' => 'n\'existent'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'n\'existent',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'n\'existent'
-          },
-          {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'nichola',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'nicholas'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'nobel',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'nobel'
+            'term' => 'nobel',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'noeuds',
             'stem_count' => 1,
             'stem' => 'noeud',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'noeuds'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'nom',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
+            'stem' => 'nom',
+            'stem_count' => 1,
             'term' => 'nom'
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'nombre',
             'stem_count' => 1,
             'stem' => 'nombr',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'nombre'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'nuclear',
-            'media_sets_id' => 1,
+            'term' => 'nuclear',
+            'stem_count' => 2
+          },
+          {
             'dashboard_topics_id' => undef,
-            'term' => 'nuclear'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1,
+            'term' => 'obama',
+            'stem_count' => 21,
+            'stem' => 'obama'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 23,
-            'stem' => 'obama',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'obama'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 23,
-            'stem' => 'obama',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'obama'
+            'media_sets_id' => 1,
+            'stem' => 'obama',
+            'term' => 'obama',
+            'stem_count' => 21
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'observon',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
+            'stem' => 'observon',
+            'stem_count' => 1,
             'term' => 'observons'
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'octroie',
             'stem_count' => 1,
             'stem' => 'octroi',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'octroie'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'odinma',
+            'stem_count' => 1,
+            'term' => 'odinma',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'odinma'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'offend',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'offended'
+            'term' => 'offended',
+            'stem' => 'offend'
           },
           {
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'offre',
             'stem_count' => 1,
-            'stem' => 'offre',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'offre'
+            'stem' => 'offre'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'ogwera',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ogwera'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'oiwan',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'oiwan'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
             'stem' => 'okay',
+            'stem_count' => 2,
+            'term' => 'okay',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'okay'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 9,
+            'stem_count' => 6,
+            'term' => 'omar',
             'stem' => 'omar',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'omar'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
+            'media_sets_id' => 1,
+            'term' => 'ondimba',
             'stem_count' => 2,
-            'stem' => 'ondimb',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ondimba'
+            'stem' => 'ondimb'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'ondimba',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ondimba'
+            'term' => 'ondimba',
+            'stem_count' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 3,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'onlin',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'online'
+            'term' => 'online',
+            'stem_count' => 3
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'onofr',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'onofre'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'opinion',
+            'stem_count' => 1,
+            'term' => 'opinions',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'opinions'
+            'publish_week' => '2009-06-08'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
             'stem' => 'opinion',
+            'stem_count' => 2,
+            'term' => 'opinions',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'opinions'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'ordinarily',
             'stem_count' => 1,
             'stem' => 'ordinarili',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'ordinarily'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 3,
+            'term' => 'org',
             'stem' => 'org',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'org'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'organis',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'organiser'
-          },
-          {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
             'stem' => 'orient',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => 'orientation'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 8,
+            'stem_count' => 5,
+            'term' => 'orkut',
             'stem' => 'orkut',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'orkut'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'oui',
             'stem' => 'oui',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'oui'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'outlin',
+            'stem_count' => 1,
+            'term' => 'outline',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'outline'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'outright',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'outright'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'outright',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'outright'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'ouvr',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ouvrir'
+            'stem' => 'outright',
+            'term' => 'outright',
+            'stem_count' => 1
           },
           {
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'outright',
             'stem_count' => 1,
+            'stem' => 'outright'
+          },
+          {
             'stem' => 'pacif',
-            'media_sets_id' => 1,
+            'term' => 'pacific',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'pacific'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'paicorg',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-08',
+            'stem' => 'paicorg',
+            'stem_count' => 1,
             'term' => 'paicorg'
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'pakistan',
             'stem_count' => 1,
             'stem' => 'pakistan',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'pakistan'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'palace',
             'stem_count' => 1,
             'stem' => 'palac',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'palace'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'paparazzi',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'paparazzi'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => 'parc',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'parc'
+            'term' => 'parc',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'pardon',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'pardon'
-          },
-          {
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
-            'stem' => 'pascalin',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'pascaline'
+            'term' => 'pascaline',
+            'stem' => 'pascalin'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
             'stem' => 'patriarch',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'patriarche'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'paula',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'paula'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'pawn',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'pawn'
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'term' => 'patriarche',
             'stem_count' => 2,
-            'stem' => "p\x{e9}an",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "p\x{e9}an"
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'pend',
+            'stem' => "p\x{e9}an",
+            'stem_count' => 2,
+            'term' => "p\x{e9}an",
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
+            'stem' => 'pend',
+            'stem_count' => 1,
             'term' => 'pendant'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'pens',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'pense'
+            'stem_count' => 1,
+            'term' => 'pense',
+            'stem' => 'pens'
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
-            'stem_count' => 6,
+            'media_sets_id' => 1,
             'stem' => 'pepper',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'pepper'
+            'term' => 'pepper',
+            'stem_count' => 6
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'perci',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'percy'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'perdur',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'perdurer'
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'term' => 'perdurer',
             'stem_count' => 1,
-            'stem' => 'peru',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'peru'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'pet',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'petit'
-          },
-          {
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
             'stem_count' => 1,
+            'term' => 'peru',
+            'stem' => 'peru'
+          },
+          {
+            'stem_count' => 1,
+            'term' => 'petits',
             'stem' => 'petit',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'petits'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 5,
-            'stem' => 'peupl',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'peuple'
-          },
-          {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'peut',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'peut'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'phiona',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'phiona'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 3,
-            'stem' => 'photo',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'photos'
+            'term' => 'peuple',
+            'stem' => 'peupl'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'pierr',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'pierre'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'pig',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'pig'
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'stem' => 'peut',
             'stem_count' => 1,
-            'stem' => 'pili',
+            'term' => 'peut',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'pilier'
+            'publish_week' => '2009-06-08'
+          },
+          {
+            'stem' => 'phiona',
+            'stem_count' => 1,
+            'term' => 'phiona',
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'stem' => 'photo',
+            'term' => 'photos',
+            'stem_count' => 1
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'pierre',
+            'stem_count' => 2,
+            'stem' => 'pierr'
+          },
+          {
+            'stem' => 'pili',
+            'term' => 'pilier',
+            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
+          },
+          {
+            'term' => 'pillar',
             'stem_count' => 1,
             'stem' => 'pillar',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'pillar'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'pion',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'pion'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'piti',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'pitiful'
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'term' => 'poids',
             'stem_count' => 1,
             'stem' => 'poid',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'poids'
+            'media_sets_id' => 1
           },
           {
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'ponder',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ponders'
+            'term' => 'ponders',
+            'stem' => 'ponder'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'pornograph',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'pornographic'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'pornographi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'pornography'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'portray',
-            'media_sets_id' => 1,
+            'term' => 'portray',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'portray'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'position',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "positionn\x{e9}s"
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'pourr',
+            'term' => "positionn\x{e9}s",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'pourrait'
+            'publish_week' => '2009-06-08'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 8,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'pouvoir',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'pouvoir'
+            'term' => 'pouvoir',
+            'stem_count' => 4
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'pre',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'pre'
+            'media_sets_id' => 1,
+            'term' => 'predecessor',
+            'stem_count' => 1,
+            'stem' => 'predecessor'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'predecessor',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'predecessor'
-          },
-          {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'predecessor',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'predecessor'
+            'stem_count' => 1,
+            'term' => 'predecessor',
+            'stem' => 'predecessor'
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'predicted',
             'stem' => 'predict',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'predicted'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'predomin',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'predominately'
+            'term' => 'predominately',
+            'stem_count' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'preisdent',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'preisdent'
+            'term' => 'preisdent',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'prejudic',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'prejudice'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'preppi',
+            'term' => 'prejudice',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'preppy'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => "pr\x{e9}sidente",
             'stem_count' => 1,
-            'stem' => "pr\x{e9}sident",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "pr\x{e9}sidente"
+            'stem' => "pr\x{e9}sident"
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 2,
+            'term' => 'presidential',
             'stem' => 'presidenti',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'presidential'
+            'publish_week' => '2009-06-08'
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'pretending',
             'stem' => 'pretend',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'pretending'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "pr\x{e9}tend",
-            'media_sets_id' => 1,
+            'term' => "pr\x{e9}tendait",
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "pr\x{e9}tendait"
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'pris',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'prise'
+            'stem_count' => 1,
+            'term' => 'prise',
+            'stem' => 'pris'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'privaci',
+            'stem_count' => 1,
+            'term' => 'privacy',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'privacy'
+            'publish_week' => '2009-06-08'
+          },
+          {
+            'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1,
+            'term' => 'probabaly',
+            'stem_count' => 1,
+            'stem' => 'probabali'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'probabali',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'probabaly'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => 'probiti',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'probity'
+            'term' => 'probity',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'prochain',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
+            'stem' => 'prochain',
+            'stem_count' => 1,
             'term' => 'prochains'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'procreat',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'procreative'
+            'media_sets_id' => 1,
+            'term' => 'procreative',
+            'stem_count' => 1,
+            'stem' => 'procreat'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'profil',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'profiles'
-          },
-          {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'profond',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "profond\x{e9}ment"
+            'term' => "profond\x{e9}ment",
+            'stem' => 'profond'
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'propagating',
             'stem_count' => 2,
             'stem' => 'propag',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'propagating'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'provinc',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'province'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'provoc',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'provocative'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 3,
+            'term' => 'puis',
             'stem' => 'puis',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'puis'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'puiss',
+            'dashboard_topics_id' => undef,
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'puisse'
+            'term' => 'pulitzer',
+            'stem_count' => 1,
+            'stem' => 'pulitz'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'pulitz',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'pulitzer'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'pyongyang',
+            'stem_count' => 1,
+            'term' => 'pyongyang',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
+          },
+          {
             'dashboard_topics_id' => undef,
-            'term' => 'pyongyang'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1,
+            'term' => 'quel',
+            'stem_count' => 1,
+            'stem' => 'quel'
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
+            'term' => "quir\x{f3}n",
+            'stem' => "quir\x{f3}n"
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
+            'term' => 'quo',
+            'stem' => 'quo'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'quel',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'quel'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'qu\'il',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'qu\'il'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "quir\x{f3}n",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "quir\x{f3}n"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'quo',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'quo'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'qu\'on',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'qu\'on'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'quotat',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'quotations'
+            'term' => 'quotations',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'quotat',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'quotations'
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'term' => 'quotations',
+            'stem' => 'quotat'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'rabat',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'rabat'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'rabat',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'rabat'
+            'media_sets_id' => 1,
+            'stem' => 'rabat',
+            'term' => 'rabat',
+            'stem_count' => 1
           },
           {
+            'stem' => 'rabat',
+            'stem_count' => 1,
+            'term' => 'rabat',
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
+          },
+          {
+            'term' => 'racism',
             'stem_count' => 1,
             'stem' => 'racism',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'racism'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'rag',
             'stem_count' => 1,
-            'stem' => 'rag',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'rag'
+            'stem' => 'rag'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'railway',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'railway'
-          },
-          {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => 'rajapur',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'rajapur'
+            'term' => 'rajapur',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'rajasthan',
             'stem_count' => 1,
             'stem' => 'rajasthan',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'rajasthan'
+            'media_sets_id' => 1
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
             'stem_count' => 4,
-            'stem' => 'rajput',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'rajput'
+            'term' => 'rajput',
+            'stem' => 'rajput'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'rakha',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'rakha'
-          },
-          {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'rakotomalala',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'rakotomalala'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'rami',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'rami'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'rape',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => 'rape'
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'reacted',
             'stem_count' => 1,
             'stem' => 'react',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'reacted'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'reassur',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'reassure'
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'term' => 'reassure',
             'stem_count' => 1,
-            'stem' => "r\x{e9}clam",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "r\x{e9}clame"
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'recognit',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => "r\x{e9}clame",
+            'stem_count' => 1,
+            'stem' => "r\x{e9}clam"
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'stem' => 'recognit',
+            'stem_count' => 2,
             'term' => 'recognition'
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'reformist',
             'stem' => 'reformist',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'reformist'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'refuge',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'refugees'
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'term' => 'regardless',
             'stem_count' => 1,
             'stem' => 'regardless',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'regardless'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'regl',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "r\x{e8}gles"
+            'media_sets_id' => 1,
+            'term' => "r\x{e8}gles",
+            'stem_count' => 1,
+            'stem' => 'regl'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'remis',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'remise'
+            'stem_count' => 1,
+            'term' => 'remise',
+            'stem' => 'remis'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'renni',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'rennie'
+            'stem_count' => 1,
+            'term' => "repr\x{e9}senter",
+            'stem' => "repr\x{e9}sent"
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "repr\x{e9}sent",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "repr\x{e9}senter"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "r\x{e9}publ",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "r\x{e9}publique"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'rescu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'rescue'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'respir',
+            'term' => 'rescue',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'respirer'
+            'publish_week' => '2009-06-08'
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'retrouvera',
             'stem_count' => 1,
             'stem' => 'retrouv',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'retrouvera'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'reunit',
+            'stem_count' => 1,
+            'term' => 'reunited',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'reunited'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'richard',
             'stem' => 'richard',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'richard'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'richardson',
             'stem' => 'richardson',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'richardson'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'riddanc',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-08',
+            'stem' => 'riddanc',
+            'stem_count' => 1,
             'term' => 'riddance'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'rien',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'rien'
+            'media_sets_id' => 1,
+            'stem' => 'rien',
+            'term' => 'rien',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'rim',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
+            'stem' => 'rim',
+            'stem_count' => 1,
             'term' => 'rim'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'rodrigu',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'rodrigue'
+            'media_sets_id' => 1,
+            'term' => 'rodrigue',
+            'stem_count' => 1,
+            'stem' => 'rodrigu'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'rohit',
-            'media_sets_id' => 1,
+            'term' => 'rohit',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'rohit'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'rsbnet',
             'stem_count' => 1,
             'stem' => 'rsbnet',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'rsbnet'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'rumuat',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'rumuat'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
             'stem' => 's\'affaibl',
-            'media_sets_id' => 1,
+            'term' => 's\'affaiblira',
+            'stem_count' => 2,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 's\'affaiblira'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'sakhdwipi',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
+            'stem' => 'sakhdwipi',
+            'stem_count' => 1,
             'term' => 'sakhdwipi'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'salutair',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'salutaire'
+            'media_sets_id' => 1,
+            'stem' => 'salutair',
+            'term' => 'salutaire',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 4,
+            'term' => 'samaj',
             'stem' => 'samaj',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'samaj'
+            'publish_week' => '2009-06-08'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'san',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'san'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'saraswat',
+            'term' => 'san',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'saraswat'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
+            'term' => 'saraswat',
+            'stem' => 'saraswat'
+          },
+          {
+            'term' => 'saraswath',
             'stem_count' => 1,
             'stem' => 'saraswath',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'saraswath'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'sarkozy',
             'stem' => 'sarkozi',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'sarkozy'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'sarkozy',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'sarkozy'
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'term' => 'sarkozy',
             'stem_count' => 1,
-            'stem' => 'sauf',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'sauf'
+            'stem' => 'sarkozy'
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => "sc\x{e8}ne",
             'stem_count' => 1,
             'stem' => 'scen',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "sc\x{e8}ne"
+            'media_sets_id' => 1
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
             'stem_count' => 2,
-            'stem' => 'schem',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "sch\x{e9}ma"
+            'term' => "sch\x{e9}ma",
+            'stem' => 'schem'
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
+            'term' => 'scorn',
+            'stem' => 'scorn'
+          },
+          {
+            'term' => 'scorn',
             'stem_count' => 1,
             'stem' => 'scorn',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => 1,
-            'term' => 'scorn'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'scorn',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'scorn'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'sebaspac',
-            'media_sets_id' => 1,
+            'term' => 'sebaspace',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'sebaspace'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
             'stem' => 'sect',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'sects'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'semen',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'semen'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "s\x{e9}nat",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "s\x{e9}nat"
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'term' => 'sects',
             'stem_count' => 2,
-            'stem' => 'serra',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'serra'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'semen',
             'stem_count' => 1,
+            'stem' => 'semen'
+          },
+          {
+            'stem' => "s\x{e9}nat",
+            'stem_count' => 1,
+            'term' => "s\x{e9}nat",
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
+          },
+          {
+            'stem_count' => 1,
+            'term' => 'shakdwipis',
             'stem' => 'shakdwipi',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'shakdwipis'
+            'publish_week' => '2009-06-08'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'shakespear',
+            'stem_count' => 1,
+            'term' => 'shakespeare',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'shakespeare'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'shakespearean',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'shakespearean'
+            'stem_count' => 1,
+            'term' => 'shakespearean',
+            'stem' => 'shakespearean'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'shallow',
+            'stem_count' => 1,
+            'term' => 'shallow',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'shallow'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'shervin',
             'stem' => 'shervin',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'shervin'
+            'publish_week' => '2009-06-08'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'shival',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'shivalli'
-          },
-          {
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
+            'term' => 'shivalli',
+            'stem' => 'shival'
+          },
+          {
+            'stem_count' => 2,
+            'term' => 'sic',
             'stem' => 'sic',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'sic'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'signatur',
-            'media_sets_id' => 1,
+            'term' => 'signatures',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'signatures'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'sincere',
             'stem_count' => 1,
             'stem' => 'sincer',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'sincere'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'skepticism',
             'stem' => 'skeptic',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'skepticism'
+            'publish_week' => '2009-06-08'
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'skepticism',
             'stem_count' => 2,
             'stem' => 'skeptic',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'skepticism'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'slightest',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
+            'stem' => 'slightest',
+            'stem_count' => 1,
             'term' => 'slightest'
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'smal',
             'stem' => 'smal',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
+          },
+          {
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'smal'
+            'media_sets_id' => 1,
+            'term' => 'sociologist',
+            'stem_count' => 1,
+            'stem' => 'sociologist'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'sms',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'sms'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'sms',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'sms'
-          },
-          {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'snoop',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'snooping'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'sociologist',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'sociologist'
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'term' => 'sodomy',
             'stem_count' => 4,
-            'stem' => 'sodomi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'sodomy'
+            'stem' => 'sodomi'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 4,
-            'stem' => 'softwar',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'software'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
-            'stem' => 'solana',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'solana'
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'term' => 'solidarity',
             'stem_count' => 3,
             'stem' => 'solidar',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'solidarity'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'solitari',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'solitary'
+            'term' => 'solitary',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'sommet',
             'stem' => 'sommet',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'sommet'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'sordid',
-            'media_sets_id' => 1,
+            'term' => 'sordid',
+            'stem_count' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'sordid'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'souhait',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'souhaiter'
-          },
-          {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'soulag',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'soulagement'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'sous',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => 'sous'
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'sparked',
             'stem' => 'spark',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
+          },
+          {
+            'stem' => 'spark',
+            'term' => 'sparked',
+            'stem_count' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'sparked'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'spark',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'sparked'
-          },
-          {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'spear',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'spears'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'spectrum',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => 'spectrum'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'spectrum',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
+            'publish_week' => '2009-06-08',
+            'stem' => 'spectrum',
+            'stem_count' => 1,
             'term' => 'spectrum'
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'dashboard_topics_id' => undef,
             'stem' => 'specul',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'speculating'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'spelunk',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'spelunker'
+            'term' => 'speculate'
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 3,
+            'term' => 'splintered',
             'stem' => 'splinter',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'splintered'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'spoil',
-            'media_sets_id' => 1,
+            'term' => 'spoil',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'spoil'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'steinberg',
             'stem_count' => 2,
             'stem' => 'steinberg',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'steinberg'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'stojanovski',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'stojanovski'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 4,
             'stem' => 'student',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'students'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'studi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'study'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 2,
-            'stem' => 'subsect',
+            'term' => 'students',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'subsects'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'subway',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'subway'
+            'media_sets_id' => 1,
+            'term' => 'subsects',
+            'stem_count' => 2,
+            'stem' => 'subsect'
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'suck',
             'stem_count' => 1,
             'stem' => 'suck',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'suck'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 's\'un',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 's\'unir'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'suspens',
-            'media_sets_id' => 1,
+            'term' => 'suspension',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'suspension'
+            'media_sets_id' => 1
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => 'tabloid',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'tabloid'
+            'term' => 'tabloid',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 't\'accapar',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 't\'accapare'
+            'stem_count' => 1,
+            'term' => 'tahkim',
+            'stem' => 'tahkim'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'tahkim',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'tahkim'
+            'stem_count' => 1,
+            'term' => 'tahrimen',
+            'stem' => 'tahrimen'
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'tahrimen',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'tahrimen'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'tan',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'tan'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'tarek',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'tarek'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'term' => 'tax',
             'stem' => 'tax',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'tax'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'teach',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'teach'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'teach',
+            'term' => 'teach',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'teach'
+            'publish_week' => '2009-06-08'
           },
           {
-            'publish_week' => '2009-06-08',
+            'stem' => 'teach',
+            'term' => 'teach',
             'stem_count' => 1,
-            'stem' => 'teacher',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'teacher'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'tel',
             'stem' => 'tel',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'tel'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'temp',
-            'media_sets_id' => 1,
+            'term' => 'temps',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'temps'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'terr',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'terre'
+            'stem_count' => 1,
+            'term' => 'terre',
+            'stem' => 'terr'
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'territori',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'territory'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'term' => 'thambraas',
             'stem' => 'thambraa',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'thambraas'
+            'publish_week' => '2009-06-08'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'thamizhnadu',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'thamizhnadu'
+            'media_sets_id' => 1,
+            'term' => 'thamizhnadu',
+            'stem_count' => 1,
+            'stem' => 'thamizhnadu'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => "th\x{e9}ophil",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "th\x{e9}ophile"
+            'term' => "th\x{e9}ophile",
+            'stem_count' => 1
           },
           {
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => 'titan',
             'stem_count' => 1,
-            'stem' => 'tinshiuwai',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'tinshiuwai'
+            'stem' => 'titan'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'titan',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'titan'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 5,
+            'term' => 'togo',
             'stem' => 'togo',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'togo'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => 'togolais',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'togolaise'
+            'term' => 'togolaise',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'togoles',
-            'media_sets_id' => 1,
+            'term' => 'togolese',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'togolese'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'topic',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'topics'
+            'term' => 'topics',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'totalfinaelf',
             'stem_count' => 2,
             'stem' => 'totalfinaelf',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'totalfinaelf'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 't\'oubl',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 't\'oublit'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'term' => 'tous',
             'stem' => 'tous',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'tous'
+            'publish_week' => '2009-06-08'
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 2,
+            'term' => 'tout',
             'stem' => 'tout',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'tout'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'tribal',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'tribals'
+            'term' => 'tribals',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'trickeri',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'trickery'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'troll',
+            'term' => 'trickery',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'troll'
+            'publish_week' => '2009-06-08'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'trop',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'stem' => 'troll',
+            'term' => 'troll',
+            'stem_count' => 1
+          },
+          {
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-08',
+            'stem' => 'trop',
+            'stem_count' => 2,
             'term' => 'trop'
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'true',
             'stem' => 'true',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'true'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'tumen',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'tumen'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'tvb',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'tvb'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'term' => 'tweets',
             'stem' => 'tweet',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => 1
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
+            'stem' => 'tweet',
+            'stem_count' => 1,
             'term' => 'tweets'
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'twitter',
             'stem_count' => 1,
-            'stem' => 'tweet',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'tweets'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
             'stem' => 'twitter',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'twitter'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
             'stem' => 'uganda',
+            'stem_count' => 2,
+            'term' => 'uganda',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'uganda'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'ugandan',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ugandan'
+            'term' => 'ugandan',
+            'stem_count' => 1
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
             'stem_count' => 1,
-            'stem' => 'unafrican',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'unafrican'
+            'term' => 'unafrican',
+            'stem' => 'unafrican'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'unansw',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'unanswered'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'unask',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'unasked'
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'term' => 'uncertainty',
             'stem_count' => 1,
             'stem' => 'uncertainti',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'uncertainty'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'unfathomable',
             'stem' => 'unfathom',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'unfathomable'
+            'publish_week' => '2009-06-08'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'unreason',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'unreasonable'
+            'stem_count' => 1,
+            'term' => 'unspecified',
+            'stem' => 'unspecifi'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'unspecifi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'unspecified'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'unthink',
+            'stem_count' => 1,
+            'term' => 'unthinkable',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'unthinkable'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'unti',
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
+            'stem' => 'unti',
+            'stem_count' => 1,
             'term' => 'untie'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'usa',
-            'media_sets_id' => 1,
+            'term' => 'usa',
+            'stem_count' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'usa'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'uterus',
             'stem' => 'uterus',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'uterus'
+            'publish_week' => '2009-06-08'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'uttermost',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'uttermost'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'vahdat',
+            'stem_count' => 1,
+            'term' => 'vahdat',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'vahdat'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 2,
+            'term' => 'vampires',
             'stem' => 'vampir',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'vampires'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'varela',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'varela'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'vegetarians',
             'stem' => 'vegetarian',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'vegetarians'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'verdict',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'verdict'
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'term' => 'verdict',
             'stem_count' => 1,
-            'stem' => 'vieux',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'vieux'
+            'stem' => 'verdict'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 4,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'vigil',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'vigilants'
+            'term' => 'vigils',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => 'vile',
             'stem_count' => 1,
             'stem' => 'vile',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'vile'
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'viol',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'viol'
+            'term' => 'viol',
+            'stem_count' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'violat',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'violation'
+            'term' => 'violation',
+            'stem_count' => 2
           },
           {
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
-            'stem' => 'violenc',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'violences'
+            'term' => 'violences',
+            'stem' => 'violenc'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'voul',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'voulaient'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'vrai',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'vraiment'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'wander',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'wandered'
+            'term' => 'wandered',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'wari',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'wary'
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'term' => 'weaken',
             'stem_count' => 1,
             'stem' => 'weaken',
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'weaken'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'weaker',
-            'media_sets_id' => 1,
+            'term' => 'weaker',
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => 'weaker'
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => 'website',
             'stem' => 'websit',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'website'
+            'publish_week' => '2009-06-08'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 12,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'websit',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'websites'
+            'term' => 'websites',
+            'stem_count' => 8
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'western',
+            'dashboard_topics_id' => 1,
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'western'
+            'term' => 'whilst',
+            'stem_count' => 1,
+            'stem' => 'whilst'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'whereabout',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'whereabouts'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'whilst',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'whilst'
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'term' => 'whilst',
             'stem_count' => 3,
-            'stem' => 'whilst',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'whilst'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => 'wiki',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'wiki'
+            'term' => 'wiki',
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'winglok',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'winglok'
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'term' => 'winner',
             'stem_count' => 1,
             'stem' => 'winner',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'winner'
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'yadav',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'yadav'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'yahoo',
+            'term' => 'yadav',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'yahoo'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 6,
-            'stem' => 'yanji',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'yanji'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'y\'av',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'y\'avait'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'yeux',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'yeux'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'term' => 'youtube',
             'stem' => 'youtub',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'youtube'
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "\x{623}\x{628}\x{62c}\x{62f}\x{64a}\x{627}\x{62a}",
+            'stem_count' => 1,
+            'term' => "\x{623}\x{628}\x{62c}\x{62f}\x{64a}\x{627}\x{62a}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{623}\x{628}\x{62c}\x{62f}\x{64a}\x{627}\x{62a}"
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "\x{627}\x{64d}\x{630}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{64d}\x{630}"
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'term' => "\x{627}\x{64d}\x{630}",
             'stem_count' => 1,
-            'stem' => "\x{625}\x{630}\x{646}",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "\x{625}\x{630}\x{646}"
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => "\x{625}\x{630}\x{646}",
+            'stem_count' => 1,
+            'stem' => "\x{625}\x{630}\x{646}"
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => "\x{625}\x{644}\x{627}",
             'stem_count' => 3,
-            'stem' => "\x{625}\x{644}\x{627}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{625}\x{644}\x{627}"
+            'stem' => "\x{625}\x{644}\x{627}"
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "\x{622}\x{644}\x{627}\x{645}",
-            'media_sets_id' => 1,
+            'term' => "\x{622}\x{644}\x{627}\x{645}",
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "\x{622}\x{644}\x{627}\x{645}"
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => "\x{627}\x{644}\x{622}\x{645}\x{627}\x{644}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{622}\x{645}\x{627}\x{644}"
+            'term' => "\x{627}\x{644}\x{622}\x{645}\x{627}\x{644}",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{623}\x{645}\x{631}",
+            'stem_count' => 1,
+            'term' => "\x{627}\x{644}\x{623}\x{645}\x{631}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{623}\x{645}\x{631}"
+            'publish_week' => '2009-06-08'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{623}\x{645}\x{631}\x{64a}\x{643}\x{64a}",
+            'stem_count' => 1,
+            'term' => "\x{627}\x{644}\x{623}\x{645}\x{631}\x{64a}\x{643}\x{64a}",
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{623}\x{645}\x{631}\x{64a}\x{643}\x{64a}"
+            'stem_count' => 1,
+            'term' => "\x{627}\x{644}\x{623}\x{645}\x{631}\x{64a}\x{643}\x{64a}\x{629}",
+            'stem' => "\x{627}\x{644}\x{623}\x{645}\x{631}\x{64a}\x{643}\x{64a}\x{629}"
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{623}\x{645}\x{631}\x{64a}\x{643}\x{64a}\x{629}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{623}\x{645}\x{631}\x{64a}\x{643}\x{64a}\x{629}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => "\x{627}\x{644}\x{623}\x{648}\x{644}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{623}\x{648}\x{644}"
+            'term' => "\x{627}\x{644}\x{623}\x{648}\x{644}",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{628}\x{627}\x{631}\x{62f}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-08',
+            'stem' => "\x{627}\x{644}\x{628}\x{627}\x{631}\x{62f}",
+            'stem_count' => 1,
             'term' => "\x{627}\x{644}\x{628}\x{627}\x{631}\x{62f}"
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => "\x{627}\x{644}\x{628}\x{644}\x{647}\x{649}",
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{628}\x{644}\x{647}\x{649}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{628}\x{644}\x{647}\x{649}"
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => "\x{627}\x{644}\x{62a}\x{62e}\x{644}\x{635}",
             'stem' => "\x{627}\x{644}\x{62a}\x{62e}\x{644}\x{635}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{62a}\x{62e}\x{644}\x{635}"
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{62a}\x{62e}\x{648}\x{641}",
+            'dashboard_topics_id' => undef,
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{62a}\x{62e}\x{648}\x{641}"
+            'term' => "\x{627}\x{644}\x{62a}\x{62e}\x{648}\x{641}",
+            'stem_count' => 1,
+            'stem' => "\x{627}\x{644}\x{62a}\x{62e}\x{648}\x{641}"
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{62a}\x{639}\x{627}\x{645}\x{644}",
-            'media_sets_id' => 1,
+            'term' => "\x{627}\x{644}\x{62a}\x{639}\x{627}\x{645}\x{644}",
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{62a}\x{639}\x{627}\x{645}\x{644}"
+            'media_sets_id' => 1
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'media_sets_id' => 1,
             'stem' => "\x{627}\x{644}\x{62a}\x{642}\x{64a}\x{62a}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{62a}\x{642}\x{64a}\x{62a}"
+            'term' => "\x{627}\x{644}\x{62a}\x{642}\x{64a}\x{62a}",
+            'stem_count' => 2
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => "\x{627}\x{644}\x{62b}\x{645}\x{64a}\x{646}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{62b}\x{645}\x{64a}\x{646}"
+            'term' => "\x{627}\x{644}\x{62b}\x{645}\x{64a}\x{646}",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{62d}\x{627}\x{636}\x{631}\x{648}\x{646}",
+            'stem_count' => 1,
+            'term' => "\x{627}\x{644}\x{62d}\x{627}\x{636}\x{631}\x{648}\x{646}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{62d}\x{627}\x{636}\x{631}\x{648}\x{646}"
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{62d}\x{642}\x{64a}\x{642}\x{629}",
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{62d}\x{642}\x{64a}\x{642}\x{629}"
+            'stem_count' => 1,
+            'term' => "\x{627}\x{644}\x{62d}\x{642}\x{64a}\x{642}\x{629}",
+            'stem' => "\x{627}\x{644}\x{62d}\x{642}\x{64a}\x{642}\x{629}"
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => "\x{627}\x{644}\x{631}\x{626}\x{64a}\x{633}",
             'stem' => "\x{627}\x{644}\x{631}\x{626}\x{64a}\x{633}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{631}\x{626}\x{64a}\x{633}"
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{634}\x{639}\x{648}\x{628}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-08',
+            'stem' => "\x{627}\x{644}\x{634}\x{639}\x{648}\x{628}",
+            'stem_count' => 1,
             'term' => "\x{627}\x{644}\x{634}\x{639}\x{648}\x{628}"
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => "\x{627}\x{644}\x{637}\x{63a}\x{627}\x{629}",
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{637}\x{63a}\x{627}\x{629}",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{637}\x{63a}\x{627}\x{629}"
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => "\x{627}\x{644}\x{639}\x{627}\x{644}\x{645}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{639}\x{627}\x{644}\x{645}"
+            'term' => "\x{627}\x{644}\x{639}\x{627}\x{644}\x{645}",
+            'stem_count' => 1
           },
           {
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => "\x{627}\x{644}\x{639}\x{62f}\x{648}\x{627}\x{646}",
             'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{639}\x{62f}\x{648}\x{627}\x{646}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{639}\x{62f}\x{648}\x{627}\x{646}"
+            'stem' => "\x{627}\x{644}\x{639}\x{62f}\x{648}\x{627}\x{646}"
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => "\x{627}\x{644}\x{639}\x{631}\x{628}",
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{639}\x{631}\x{628}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{639}\x{631}\x{628}"
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
             'stem_count' => 3,
-            'stem' => "\x{627}\x{644}\x{639}\x{631}\x{628}\x{64a}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{639}\x{631}\x{628}\x{64a}"
+            'term' => "\x{627}\x{644}\x{639}\x{631}\x{628}\x{64a}",
+            'stem' => "\x{627}\x{644}\x{639}\x{631}\x{628}\x{64a}"
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{641}\x{635}\x{644}",
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{641}\x{635}\x{644}"
+            'stem_count' => 1,
+            'term' => "\x{627}\x{644}\x{641}\x{635}\x{644}",
+            'stem' => "\x{627}\x{644}\x{641}\x{635}\x{644}"
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{642}\x{637}\x{64a}\x{639}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{642}\x{637}\x{64a}\x{639}"
-          },
-          {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => "\x{627}\x{644}\x{642}\x{637}\x{64a}\x{639}",
+            'stem' => "\x{627}\x{644}\x{642}\x{637}\x{64a}\x{639}"
+          },
+          {
             'stem' => "\x{627}\x{644}\x{643}\x{631}\x{64a}\x{645}\x{62a}\x{64a}\x{646}",
-            'media_sets_id' => 1,
+            'term' => "\x{627}\x{644}\x{643}\x{631}\x{64a}\x{645}\x{62a}\x{64a}\x{646}",
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{643}\x{631}\x{64a}\x{645}\x{62a}\x{64a}\x{646}"
+            'media_sets_id' => 1
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => "\x{627}\x{644}\x{645}\x{62a}\x{62d}\x{62f}\x{629}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{645}\x{62a}\x{62d}\x{62f}\x{629}"
+            'term' => "\x{627}\x{644}\x{645}\x{62a}\x{62d}\x{62f}\x{629}",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{645}\x{62a}\x{645}\x{64a}\x{632}\x{629}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{645}\x{62a}\x{645}\x{64a}\x{632}\x{629}"
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{645}\x{62b}\x{642}\x{641}\x{64a}\x{646}",
+            'term' => "\x{627}\x{644}\x{645}\x{62a}\x{645}\x{64a}\x{632}\x{629}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{645}\x{62b}\x{642}\x{641}\x{64a}\x{646}"
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
+            'term' => "\x{627}\x{644}\x{645}\x{62b}\x{642}\x{641}\x{64a}\x{646}",
+            'stem' => "\x{627}\x{644}\x{645}\x{62b}\x{642}\x{641}\x{64a}\x{646}"
+          },
+          {
+            'term' => "\x{627}\x{644}\x{645}\x{631}\x{629}",
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{645}\x{631}\x{629}",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{645}\x{631}\x{629}"
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{645}\x{633}\x{631}\x{62d}\x{64a}\x{629}",
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
+            'stem' => "\x{627}\x{644}\x{645}\x{633}\x{631}\x{62d}\x{64a}\x{629}",
+            'stem_count' => 1,
             'term' => "\x{627}\x{644}\x{645}\x{633}\x{631}\x{62d}\x{64a}\x{629}"
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => "\x{627}\x{644}\x{645}\x{648}\x{627}\x{637}\x{646}\x{64a}\x{646}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{645}\x{648}\x{627}\x{637}\x{646}\x{64a}\x{646}"
+            'term' => "\x{627}\x{644}\x{645}\x{648}\x{627}\x{637}\x{646}\x{64a}\x{646}",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{645}\x{648}\x{62a}",
+            'stem_count' => 1,
+            'term' => "\x{627}\x{644}\x{645}\x{648}\x{62a}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{645}\x{648}\x{62a}"
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{645}\x{64a}\x{627}\x{645}\x{64a}\x{646}",
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
+            'stem' => "\x{627}\x{644}\x{645}\x{64a}\x{627}\x{645}\x{64a}\x{646}",
+            'stem_count' => 1,
             'term' => "\x{627}\x{644}\x{645}\x{64a}\x{627}\x{645}\x{64a}\x{646}"
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{645}\x{64a}\x{62a}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{645}\x{64a}\x{62a}"
-          },
-          {
-            'publish_week' => '2009-06-08',
+            'term' => "\x{627}\x{644}\x{645}\x{64a}\x{62a}",
             'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{648}\x{627}\x{636}\x{62d}\x{629}",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{648}\x{627}\x{636}\x{62d}\x{629}"
+            'media_sets_id' => 1
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
+            'media_sets_id' => 1,
+            'term' => "\x{627}\x{644}\x{648}\x{627}\x{636}\x{62d}\x{629}",
+            'stem_count' => 1,
+            'stem' => "\x{627}\x{644}\x{648}\x{627}\x{636}\x{62d}\x{629}"
+          },
+          {
+            'term' => "\x{627}\x{644}\x{648}\x{644}\x{627}\x{64a}\x{627}\x{62a}",
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{648}\x{644}\x{627}\x{64a}\x{627}\x{62a}",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{648}\x{644}\x{627}\x{64a}\x{627}\x{62a}"
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => "\x{625}\x{644}\x{649}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{625}\x{644}\x{649}"
+            'term' => "\x{625}\x{644}\x{649}",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{64a}\x{645}\x{648}\x{642}\x{631}\x{627}\x{637}\x{64a}\x{629}",
-            'media_sets_id' => 1,
+            'term' => "\x{627}\x{644}\x{64a}\x{645}\x{648}\x{642}\x{631}\x{627}\x{637}\x{64a}\x{629}",
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{64a}\x{645}\x{648}\x{642}\x{631}\x{627}\x{637}\x{64a}\x{629}"
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{623}\x{645}\x{64a}\x{62a}\x{647}\x{645}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{623}\x{645}\x{64a}\x{62a}\x{647}\x{645}"
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1,
+            'term' => "\x{623}\x{645}\x{64a}\x{62a}\x{647}\x{645}",
+            'stem_count' => 1,
+            'stem' => "\x{623}\x{645}\x{64a}\x{62a}\x{647}\x{645}"
           },
           {
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "\x{623}\x{646}\x{62a}\x{62c}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => "\x{623}\x{646}\x{62a}\x{62c}"
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{623}\x{646}\x{641}\x{627}\x{633}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{623}\x{646}\x{641}\x{627}\x{633}"
+            'media_sets_id' => 1,
+            'term' => "\x{623}\x{646}\x{641}\x{627}\x{633}",
+            'stem_count' => 1,
+            'stem' => "\x{623}\x{646}\x{641}\x{627}\x{633}"
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{623}\x{646}\x{641}\x{627}\x{633}\x{647}\x{627}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{623}\x{646}\x{641}\x{627}\x{633}\x{647}\x{627}"
+            'media_sets_id' => 1,
+            'term' => "\x{623}\x{646}\x{641}\x{627}\x{633}\x{647}\x{627}",
+            'stem_count' => 1,
+            'stem' => "\x{623}\x{646}\x{641}\x{627}\x{633}\x{647}\x{627}"
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
             'stem_count' => 5,
-            'stem' => "\x{623}\x{648}\x{628}\x{627}\x{645}\x{627}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{623}\x{648}\x{628}\x{627}\x{645}\x{627}"
+            'term' => "\x{623}\x{648}\x{628}\x{627}\x{645}\x{627}",
+            'stem' => "\x{623}\x{648}\x{628}\x{627}\x{645}\x{627}"
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => "\x{628}\x{623}\x{645}\x{644}",
             'stem' => "\x{628}\x{623}\x{645}\x{644}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{628}\x{623}\x{645}\x{644}"
+            'publish_week' => '2009-06-08'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{628}\x{62d}\x{631}\x{627}\x{631}\x{629}",
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "\x{628}\x{62d}\x{631}\x{627}\x{631}\x{629}"
+            'stem_count' => 1,
+            'term' => "\x{628}\x{62d}\x{631}\x{627}\x{631}\x{629}",
+            'stem' => "\x{628}\x{62d}\x{631}\x{627}\x{631}\x{629}"
           },
           {
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => "\x{628}\x{639}\x{62f}",
             'stem_count' => 2,
-            'stem' => "\x{628}\x{639}\x{62f}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{628}\x{639}\x{62f}"
+            'stem' => "\x{628}\x{639}\x{62f}"
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "\x{628}\x{639}\x{636}\x{627}",
+            'stem_count' => 1,
+            'term' => "\x{628}\x{639}\x{636}\x{627}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{628}\x{639}\x{636}\x{627}"
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "\x{628}\x{645}\x{646}",
+            'stem_count' => 1,
+            'term' => "\x{628}\x{645}\x{646}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{628}\x{645}\x{646}"
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => "\x{628}\x{648}\x{634}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{628}\x{648}\x{634}"
+            'term' => "\x{628}\x{648}\x{634}",
+            'stem_count' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => "\x{628}\x{64a}\x{62f}\x{64a}\x{647}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{628}\x{64a}\x{62f}\x{64a}\x{647}"
+            'term' => "\x{628}\x{64a}\x{62f}\x{64a}\x{647}",
+            'stem_count' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => "\x{628}\x{64a}\x{646}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{628}\x{64a}\x{646}"
+            'term' => "\x{628}\x{64a}\x{646}",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "\x{628}\x{64a}\x{646}\x{646}\x{627}",
-            'media_sets_id' => 1,
+            'term' => "\x{628}\x{64a}\x{646}\x{646}\x{627}",
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "\x{628}\x{64a}\x{646}\x{646}\x{627}"
+            'media_sets_id' => 1
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => "\x{62a}\x{62a}\x{62d}\x{648}\x{644}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{62a}\x{62a}\x{62d}\x{648}\x{644}"
+            'term' => "\x{62a}\x{62a}\x{62d}\x{648}\x{644}",
+            'stem_count' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{62a}\x{631}\x{643}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{62a}\x{631}\x{643}"
+            'media_sets_id' => 1,
+            'term' => "\x{62a}\x{631}\x{643}",
+            'stem_count' => 1,
+            'stem' => "\x{62a}\x{631}\x{643}"
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "\x{62a}\x{639}\x{628}\x{64a}\x{631}",
+            'stem_count' => 1,
+            'term' => "\x{62a}\x{639}\x{628}\x{64a}\x{631}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{62a}\x{639}\x{628}\x{64a}\x{631}"
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => "\x{62a}\x{644}\x{62a}\x{642}\x{637}",
             'stem' => "\x{62a}\x{644}\x{62a}\x{642}\x{637}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{62a}\x{644}\x{62a}\x{642}\x{637}"
+            'publish_week' => '2009-06-08'
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => "\x{62a}\x{648}\x{641}\x{642}",
             'stem_count' => 1,
             'stem' => "\x{62a}\x{648}\x{641}\x{642}",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "\x{62a}\x{648}\x{641}\x{642}"
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => "\x{62b}\x{642}\x{627}\x{641}\x{64a}\x{627}",
             'stem_count' => 1,
             'stem' => "\x{62b}\x{642}\x{627}\x{641}\x{64a}\x{627}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{62b}\x{642}\x{627}\x{641}\x{64a}\x{627}"
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => "\x{62c}\x{627}\x{621}",
             'stem' => "\x{62c}\x{627}\x{621}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{62c}\x{627}\x{621}"
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{62c}\x{627}\x{631}\x{62d}",
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "\x{62c}\x{627}\x{631}\x{62d}"
+            'stem_count' => 1,
+            'term' => "\x{62c}\x{627}\x{631}\x{62d}",
+            'stem' => "\x{62c}\x{627}\x{631}\x{62d}"
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => "\x{62c}\x{632}\x{621}\x{627}",
             'stem' => "\x{62c}\x{632}\x{621}\x{627}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{62c}\x{632}\x{621}\x{627}"
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => "\x{62c}\x{626}\x{62a}",
             'stem' => "\x{62c}\x{626}\x{62a}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{62c}\x{626}\x{62a}"
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{62d}\x{631}\x{648}\x{628}",
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "\x{62d}\x{631}\x{648}\x{628}"
+            'stem_count' => 1,
+            'term' => "\x{62d}\x{631}\x{648}\x{628}",
+            'stem' => "\x{62d}\x{631}\x{648}\x{628}"
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{62d}\x{642}\x{62f}\x{627}",
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "\x{62d}\x{642}\x{62f}\x{627}"
+            'stem_count' => 1,
+            'term' => "\x{62d}\x{642}\x{62f}\x{627}",
+            'stem' => "\x{62d}\x{642}\x{62f}\x{627}"
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
             'stem' => "\x{633}\x{644}\x{641}\x{643}\x{645}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => "\x{633}\x{644}\x{641}\x{643}\x{645}"
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => "\x{633}\x{64a}\x{634}\x{62a}\x{62f}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{633}\x{64a}\x{634}\x{62a}\x{62f}"
+            'term' => "\x{633}\x{64a}\x{634}\x{62a}\x{62f}",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{635}\x{646}\x{639}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{635}\x{646}\x{639}"
-          },
-          {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => "\x{639}\x{642}\x{62f}\x{629}",
+            'term' => "\x{635}\x{646}\x{639}",
+            'stem' => "\x{635}\x{646}\x{639}"
+          },
+          {
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "\x{639}\x{642}\x{62f}\x{629}"
+            'stem_count' => 1,
+            'term' => "\x{639}\x{642}\x{62f}\x{629}",
+            'stem' => "\x{639}\x{642}\x{62f}\x{629}"
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "\x{639}\x{644}\x{64a}\x{647}\x{627}",
+            'stem_count' => 1,
+            'term' => "\x{639}\x{644}\x{64a}\x{647}\x{627}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{639}\x{644}\x{64a}\x{647}\x{627}"
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => "\x{639}\x{645}\x{64a}\x{642}",
             'stem_count' => 1,
             'stem' => "\x{639}\x{645}\x{64a}\x{642}",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "\x{639}\x{645}\x{64a}\x{642}"
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => "\x{639}\x{646}\x{62f}\x{647}\x{645}",
             'stem_count' => 1,
             'stem' => "\x{639}\x{646}\x{62f}\x{647}\x{645}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{639}\x{646}\x{62f}\x{647}\x{645}"
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "\x{639}\x{646}\x{647}\x{645}",
-            'media_sets_id' => 1,
+            'term' => "\x{639}\x{646}\x{647}\x{645}",
+            'stem_count' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{639}\x{646}\x{647}\x{645}"
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => "\x{63a}\x{636}\x{628}\x{627}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{63a}\x{636}\x{628}\x{627}"
+            'term' => "\x{63a}\x{636}\x{628}\x{627}",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{641}\x{631}\x{635}\x{629}",
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "\x{641}\x{631}\x{635}\x{629}"
+            'stem_count' => 1,
+            'term' => "\x{641}\x{631}\x{635}\x{629}",
+            'stem' => "\x{641}\x{631}\x{635}\x{629}"
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "\x{641}\x{633}\x{623}\x{637}\x{644}\x{628}",
-            'media_sets_id' => 1,
+            'term' => "\x{641}\x{633}\x{623}\x{637}\x{644}\x{628}",
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "\x{641}\x{633}\x{623}\x{637}\x{644}\x{628}"
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "\x{641}\x{626}\x{629}",
+            'stem_count' => 1,
+            'term' => "\x{641}\x{626}\x{629}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{641}\x{626}\x{629}"
+            'publish_week' => '2009-06-08'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => "\x{641}\x{64a}\x{646}\x{627}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{641}\x{64a}\x{646}\x{627}"
+            'term' => "\x{641}\x{64a}\x{646}\x{627}",
+            'stem_count' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => "\x{641}\x{64a}\x{647}\x{645}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{641}\x{64a}\x{647}\x{645}"
+            'term' => "\x{641}\x{64a}\x{647}\x{645}",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => "\x{642}\x{628}\x{644}\x{629}",
             'stem_count' => 1,
             'stem' => "\x{642}\x{628}\x{644}\x{629}",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "\x{642}\x{628}\x{644}\x{629}"
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => "\x{642}\x{648}\x{645}",
+            'term' => "\x{642}\x{648}\x{645}",
+            'stem_count' => 1
+          },
+          {
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{642}\x{648}\x{645}"
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'term' => "\x{643}\x{631}\x{647}\x{627}",
+            'stem' => "\x{643}\x{631}\x{647}\x{627}"
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{643}\x{631}\x{647}\x{627}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{643}\x{631}\x{647}\x{627}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => "\x{643}\x{645}\x{627}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{643}\x{645}\x{627}"
+            'term' => "\x{643}\x{645}\x{627}",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => "\x{643}\x{64a}\x{641}\x{64a}\x{629}",
             'stem_count' => 1,
             'stem' => "\x{643}\x{64a}\x{641}\x{64a}\x{629}",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "\x{643}\x{64a}\x{641}\x{64a}\x{629}"
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => "\x{644}\x{623}\x{645}\x{631}\x{64a}\x{643}\x{627}",
             'stem_count' => 1,
             'stem' => "\x{644}\x{623}\x{645}\x{631}\x{64a}\x{643}\x{627}",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "\x{644}\x{623}\x{645}\x{631}\x{64a}\x{643}\x{627}"
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "\x{644}\x{62d}\x{638}\x{627}\x{62a}",
+            'stem_count' => 1,
+            'term' => "\x{644}\x{62d}\x{638}\x{627}\x{62a}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{644}\x{62d}\x{638}\x{627}\x{62a}"
+            'publish_week' => '2009-06-08'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{644}\x{62d}\x{638}\x{629}",
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "\x{644}\x{62d}\x{638}\x{629}"
+            'stem_count' => 1,
+            'term' => "\x{644}\x{62d}\x{638}\x{629}",
+            'stem' => "\x{644}\x{62d}\x{638}\x{629}"
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
             'stem' => "\x{644}\x{62d}\x{643}\x{627}\x{645}\x{646}\x{627}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
             'term' => "\x{644}\x{62d}\x{643}\x{627}\x{645}\x{646}\x{627}"
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{644}\x{642}\x{644}\x{62a}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{644}\x{642}\x{644}\x{62a}"
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'term' => "\x{644}\x{642}\x{644}\x{62a}",
+            'stem' => "\x{644}\x{642}\x{644}\x{62a}"
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => "\x{644}\x{643}\x{644}",
             'stem_count' => 1,
             'stem' => "\x{644}\x{643}\x{644}",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "\x{644}\x{643}\x{644}"
+            'media_sets_id' => 1
           },
           {
+            'dashboard_topics_id' => undef,
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => "\x{644}\x{646}\x{627}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{644}\x{646}\x{627}"
+            'term' => "\x{644}\x{646}\x{627}",
+            'stem_count' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => "\x{644}\x{647}\x{627}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{644}\x{647}\x{627}"
+            'term' => "\x{644}\x{647}\x{627}",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => "\x{644}\x{648}\x{62d}",
             'stem' => "\x{644}\x{648}\x{62d}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{644}\x{648}\x{62d}"
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => "\x{644}\x{64a}\x{642}\x{628}\x{644}",
             'stem_count' => 1,
             'stem' => "\x{644}\x{64a}\x{642}\x{628}\x{644}",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "\x{644}\x{64a}\x{642}\x{628}\x{644}"
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{644}\x{64a}\x{645}\x{62d}\x{648}",
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "\x{644}\x{64a}\x{645}\x{62d}\x{648}"
+            'stem_count' => 1,
+            'term' => "\x{644}\x{64a}\x{645}\x{62d}\x{648}",
+            'stem' => "\x{644}\x{64a}\x{645}\x{62d}\x{648}"
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => "\x{645}\x{62a}\x{62a}\x{627}\x{644}\x{64a}\x{629}",
             'stem' => "\x{645}\x{62a}\x{62a}\x{627}\x{644}\x{64a}\x{629}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{645}\x{62a}\x{62a}\x{627}\x{644}\x{64a}\x{629}"
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{645}\x{62a}\x{635}\x{627}\x{639}\x{62f}\x{627}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{645}\x{62a}\x{635}\x{627}\x{639}\x{62f}\x{627}"
-          },
-          {
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
             'stem_count' => 1,
-            'stem' => "\x{645}\x{631}\x{62d}\x{644}\x{629}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{645}\x{631}\x{62d}\x{644}\x{629}"
+            'term' => "\x{645}\x{62a}\x{635}\x{627}\x{639}\x{62f}\x{627}",
+            'stem' => "\x{645}\x{62a}\x{635}\x{627}\x{639}\x{62f}\x{627}"
           },
           {
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
+            'term' => "\x{645}\x{631}\x{62d}\x{644}\x{629}",
+            'stem_count' => 1,
+            'stem' => "\x{645}\x{631}\x{62d}\x{644}\x{629}"
+          },
+          {
+            'term' => "\x{645}\x{644}\x{648}\x{643}\x{646}\x{627}",
             'stem_count' => 1,
             'stem' => "\x{645}\x{644}\x{648}\x{643}\x{646}\x{627}",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "\x{645}\x{644}\x{648}\x{643}\x{646}\x{627}"
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "\x{645}\x{646}\x{647}",
+            'stem_count' => 1,
+            'term' => "\x{645}\x{646}\x{647}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{645}\x{646}\x{647}"
+            'publish_week' => '2009-06-08'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "\x{646}\x{641}\x{627}\x{642}\x{647}\x{645}",
-            'media_sets_id' => 1,
+            'term' => "\x{646}\x{641}\x{627}\x{642}\x{647}\x{645}",
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "\x{646}\x{641}\x{627}\x{642}\x{647}\x{645}"
+            'media_sets_id' => 1
+          },
+          {
+            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
+            'term' => "\x{648}\x{623}\x{62e}\x{631}\x{649}",
+            'stem' => "\x{648}\x{623}\x{62e}\x{631}\x{649}"
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{648}\x{623}\x{62e}\x{631}\x{649}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{648}\x{623}\x{62e}\x{631}\x{649}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => "\x{648}\x{623}\x{637}\x{644}\x{642}\x{62a}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{648}\x{623}\x{637}\x{644}\x{642}\x{62a}"
+            'term' => "\x{648}\x{623}\x{637}\x{644}\x{642}\x{62a}",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => "\x{648}\x{627}\x{644}\x{62d}\x{642}\x{64a}\x{642}\x{629}",
             'stem_count' => 1,
             'stem' => "\x{648}\x{627}\x{644}\x{62d}\x{642}\x{64a}\x{642}\x{629}",
+            'dashboard_topics_id' => undef,
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
+          },
+          {
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{648}\x{627}\x{644}\x{62d}\x{642}\x{64a}\x{642}\x{629}"
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'term' => "\x{648}\x{627}\x{644}\x{639}\x{631}\x{628}",
+            'stem' => "\x{648}\x{627}\x{644}\x{639}\x{631}\x{628}"
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{648}\x{627}\x{644}\x{639}\x{631}\x{628}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{648}\x{627}\x{644}\x{639}\x{631}\x{628}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'media_sets_id' => 1,
             'stem' => "\x{648}\x{627}\x{644}\x{645}\x{633}\x{644}\x{645}\x{648}\x{646}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{648}\x{627}\x{644}\x{645}\x{633}\x{644}\x{645}\x{648}\x{646}"
+            'term' => "\x{648}\x{627}\x{644}\x{645}\x{633}\x{644}\x{645}\x{648}\x{646}",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "\x{648}\x{627}\x{646}\x{62a}",
+            'stem_count' => 1,
+            'term' => "\x{648}\x{627}\x{646}\x{62a}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{648}\x{627}\x{646}\x{62a}"
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "\x{648}\x{62c}\x{628}\x{627}\x{628}\x{631}\x{62a}\x{646}\x{627}",
-            'media_sets_id' => 1,
+            'term' => "\x{648}\x{62c}\x{628}\x{627}\x{628}\x{631}\x{62a}\x{646}\x{627}",
+            'stem_count' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "\x{648}\x{62c}\x{628}\x{627}\x{628}\x{631}\x{62a}\x{646}\x{627}"
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "\x{648}\x{62d}\x{636}\x{627}\x{631}\x{64a}\x{627}",
+            'stem_count' => 1,
+            'term' => "\x{648}\x{62d}\x{636}\x{627}\x{631}\x{64a}\x{627}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{648}\x{62d}\x{636}\x{627}\x{631}\x{64a}\x{627}"
+            'publish_week' => '2009-06-08'
           },
           {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'term' => "\x{648}\x{62f}\x{64a}\x{646}\x{64a}\x{627}",
             'stem' => "\x{648}\x{62f}\x{64a}\x{646}\x{64a}\x{627}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{648}\x{62f}\x{64a}\x{646}\x{64a}\x{627}"
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "\x{648}\x{633}\x{64a}\x{627}\x{633}\x{64a}\x{627}",
+            'stem_count' => 1,
+            'term' => "\x{648}\x{633}\x{64a}\x{627}\x{633}\x{64a}\x{627}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{648}\x{633}\x{64a}\x{627}\x{633}\x{64a}\x{627}"
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "\x{648}\x{635}\x{641}\x{642}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{648}\x{635}\x{641}\x{642}"
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => "\x{648}\x{639}\x{62f}\x{627}",
+            'term' => "\x{648}\x{635}\x{641}\x{642}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{648}\x{639}\x{62f}\x{627}"
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
+            'media_sets_id' => 1,
             'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef,
+            'stem_count' => 1,
+            'term' => "\x{648}\x{639}\x{62f}\x{627}",
+            'stem' => "\x{648}\x{639}\x{62f}\x{627}"
+          },
+          {
+            'term' => "\x{648}\x{642}\x{62a}\x{647}",
             'stem_count' => 1,
             'stem' => "\x{648}\x{642}\x{62a}\x{647}",
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{648}\x{642}\x{62a}\x{647}"
+            'publish_week' => '2009-06-08',
+            'media_sets_id' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => "\x{648}\x{644}\x{64a}\x{639}\x{644}\x{645}\x{647}\x{645}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{648}\x{644}\x{64a}\x{639}\x{644}\x{645}\x{647}\x{645}"
+            'term' => "\x{648}\x{644}\x{64a}\x{639}\x{644}\x{645}\x{647}\x{645}",
+            'stem_count' => 1
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => "\x{648}\x{644}\x{64a}\x{644}\x{642}\x{646}\x{647}\x{645}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{648}\x{644}\x{64a}\x{644}\x{642}\x{646}\x{647}\x{645}"
+            'term' => "\x{648}\x{644}\x{64a}\x{644}\x{642}\x{646}\x{647}\x{645}",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
+            'term' => "\x{648}\x{644}\x{64a}\x{646}\x{62a}\x{647}\x{64a}",
             'stem_count' => 1,
             'stem' => "\x{648}\x{644}\x{64a}\x{646}\x{62a}\x{647}\x{64a}",
-            'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "\x{648}\x{644}\x{64a}\x{646}\x{62a}\x{647}\x{64a}"
+            'media_sets_id' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
             'stem' => "\x{648}\x{645}\x{627}",
+            'stem_count' => 2,
+            'term' => "\x{648}\x{645}\x{627}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{648}\x{645}\x{627}"
+            'publish_week' => '2009-06-08'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'dashboard_topics_id' => undef,
+            'media_sets_id' => 1,
             'stem' => "\x{64a}\x{62a}\x{631}\x{62f}\x{62f}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{64a}\x{62a}\x{631}\x{62f}\x{62f}"
+            'term' => "\x{64a}\x{62a}\x{631}\x{62f}\x{62f}",
+            'stem_count' => 1
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "\x{64a}\x{62e}\x{635}\x{635}\x{647}",
+            'stem_count' => 1,
+            'term' => "\x{64a}\x{62e}\x{635}\x{635}\x{647}",
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{64a}\x{62e}\x{635}\x{635}\x{647}"
+            'publish_week' => '2009-06-08',
+            'dashboard_topics_id' => undef
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "\x{64a}\x{641}\x{639}\x{644}",
+            'stem_count' => 1,
+            'term' => "\x{64a}\x{641}\x{639}\x{644}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{64a}\x{641}\x{639}\x{644}"
+            'publish_week' => '2009-06-08'
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{64a}\x{642}\x{62a}\x{637}\x{639}",
             'media_sets_id' => 1,
+            'publish_week' => '2009-06-08',
             'dashboard_topics_id' => undef,
-            'term' => "\x{64a}\x{642}\x{62a}\x{637}\x{639}"
+            'stem_count' => 1,
+            'term' => "\x{64a}\x{642}\x{62a}\x{637}\x{639}",
+            'stem' => "\x{64a}\x{642}\x{62a}\x{637}\x{639}"
           },
           {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "\x{64a}\x{645}\x{646}\x{62d}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{64a}\x{645}\x{646}\x{62d}"
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => "\x{4e0e}\x{4e2d}\x{56fd}\x{5411}\x{5bfc}\x{5219}\x{88ab}\x{4e2d}\x{56fd}\x{8fb9}\x{754c}\x{8b66}\x{536b}\x{62d8}\x{6355}",
+            'term' => "\x{64a}\x{645}\x{646}\x{62d}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{4e0e}\x{4e2d}\x{56fd}\x{5411}\x{5bfc}\x{5219}\x{88ab}\x{4e2d}\x{56fd}\x{8fb9}\x{754c}\x{8b66}\x{536b}\x{62d8}\x{6355}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{53e6}\x{4e00}\x{540d}\x{7f8e}\x{56fd}\x{6444}\x{5f71}\x{5e08}mitch",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{53e6}\x{4e00}\x{540d}\x{7f8e}\x{56fd}\x{6444}\x{5f71}\x{5e08}mitch"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{5979}\x{4eec}\x{7684}\x{540c}\x{4e8b}\x{9ad8}\x{65af}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{5979}\x{4eec}\x{7684}\x{540c}\x{4e8b}\x{9ad8}\x{65af}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{6709}\x{62a5}\x{5bfc}\x{79f0}\x{7f8e}\x{56fd}\x{6444}\x{5f71}\x{5e08}mitch",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{6709}\x{62a5}\x{5bfc}\x{79f0}\x{7f8e}\x{56fd}\x{6444}\x{5f71}\x{5e08}mitch"
+            'publish_week' => '2009-06-08'
           }
         ];
 #>>>

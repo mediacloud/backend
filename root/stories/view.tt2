@@ -20,6 +20,10 @@
         </tr>
     [% END -%]
     <tr>
+        <th>Language:</th>
+        <td>[% story.language | html %]</td>
+    </tr>
+    <tr>
         <th>Date Published:</th>
         <td>[% story.publish_date %]</td>
     </tr>
@@ -97,6 +101,32 @@
         <th>Extracted text:</th>
         <td>[% storytext | html | html_line_break %]</td>
 
+    </tr>
+    <tr>
+        <th>Story Sentences:</th>
+        <td>
+            <ul>
+                [% FOREACH ss IN story_sentences %]
+                    <li>[% ss.sentence | html %]</li>
+                [% END %]
+            </ul>
+        </td>
+    </tr>
+    <tr>
+        <th>All Sentences:</th>
+        <td>
+            <ul>
+                [% FOREACH s IN all_sentences %]
+                    <li>
+                        [% s.sentence | html %]
+                        [% IF s.dup_stories_id %]
+                            [DUP: 
+                            <a href="[% c.uri_for( '/admin/stories/view/' _ s.dup_stories_id ) | html %]">[% s.dup_stories_id %]</a>]
+                        [% END %]
+                    </li>
+                [% END %]
+            </ul>
+        </td>
     </tr>
 
 </table>

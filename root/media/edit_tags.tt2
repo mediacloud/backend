@@ -1,6 +1,41 @@
 [% title = 'Edit Tags' -%]
 [% INCLUDE include/header.tt2 %]
 
-[% form.render %]
-  
+    <fieldset>
+
+    <form action="[% c.uri_for('/admin/media/edit_tags' ) %]" method="post">
+    <input type="hidden" name="media_id" value="[% medium.media_id %]" />
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $("#tags").tagit({
+                tagSource: function(term, showChoices) {
+                    $.ajax({
+                        url: "[% c.uri_for('/admin/media/media_tags_search_json') %]",
+                        data: { term: term.term},
+                        dataType: "json",
+                        success: function(choices) {
+                            showChoices(choices);
+                        }
+                    })
+                },
+                singleFieldDelimiter: ';'
+            });
+        });
+    </script>
+
+    <p>
+    Enter tag names.  The format is: <br/>
+    tag_set:tag [tag_set:tag;...]
+    </p>
+    <textarea id="tags" name="tags" rows="20" cols="80">[% tags | html %]</textarea>
+
+    <p>
+    <input type="submit" value="Edit Tags" />
+    </p>
+
+    </form> 
+
+    </fieldset>
+
 [% INCLUDE include/footer.tt2 %]

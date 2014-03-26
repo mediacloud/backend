@@ -600,7 +600,7 @@ sub _recurse_get_valid_feeds_from_index_url($$$$$$$)
                 @{
                     $class->_recurse_get_valid_feeds_from_index_url( $scraped_urls, $db, $ignore_patterns, $existing_urls,
                         $valid_feeds, $recurse_levels_left )
-                  }
+                }
             );
 
             my $u = {};

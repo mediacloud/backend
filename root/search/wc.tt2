@@ -1,0 +1,27 @@
+[% title = 'Search: Words for ' _ q %]
+
+[% INCLUDE include/header.tt2 %]
+
+<div class="boxtitle">
+    Words
+    <a id="boxcommand" href="[% c.uri_for( '/search/wc', { 'q' => q, 'csv' => 1 } ) %]">CSV</a>
+    <a id="boxcommand" href="[% c.uri_for( '/search', { 'q' => q } ) %]">stories</a>
+</div>
+<table>
+    <tr>
+        <th>word</th>
+        <th>stem</th>
+        <th>count</th>
+    </tr>
+    
+    [% FOREACH word IN words %]
+        <tr>
+            <td>[% word.term | html %]</td>
+            <td>[% word.stem | html %]</td>
+            <td>[% word.count %]</td>
+        </tr>
+    [% END %]
+    
+</table>
+            
+[% INCLUDE include/footer.tt2 %]

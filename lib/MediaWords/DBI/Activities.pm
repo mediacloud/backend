@@ -186,10 +186,6 @@ Readonly::Hash my %ACTIVITIES => {
             'to_stories_id' => {
                 description => 'Story ID that the story was merged into',
                 references  => 'stories.stories_id'
-            },
-            'cdts_id' => {
-                description => 'Controversy dump time slice',
-                references  => 'controversy_dump_time_slices.controversy_dump_time_slices_id'
             }
         }
     },
@@ -540,7 +536,7 @@ sub encode_activity_description($$)
 
     my $comp = Array::Compare->new;
 
-    unless ( $comp->compare(\@expected_parameters, \@actual_parameters) )
+    unless ( $comp->compare( \@expected_parameters, \@actual_parameters ) )
     {
         die "Expected parameters: " .
           join( ' ', @expected_parameters ) . "\n" . "Actual parameters: " .

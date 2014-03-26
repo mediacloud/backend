@@ -5,6 +5,7 @@ use MediaWords::CommonLibs;
 use strict;
 
 use Encode;
+use JSON;
 use Text::CSV_XS;
 
 # various functions for outputting csv
@@ -54,6 +55,19 @@ sub send_hashes_as_csv_page
     $c->res->body( $encoded_output );
 }
 
+# given a csv string without headers, return a list of lists of values
+sub get_csv_string_as_matrix
+{
+    my ( $string ) = @_;
+
+    my $csv = Text::CSV->new( { binary => 1 } );
+
+    my $fh;
+    open( $fh, '<', \$string );
+
+    return $csv->getline_all( $fh );
+}
+
 # given a file name, open the file, parse it as a csv, and return a list of hashes.
 # assumes that the csv includes a header line.  If normalize_column_names is true,
 # lowercase and underline column names ( 'Media type' -> 'media_type' )
@@ -99,6 +113,59 @@ sub get_query_as_csv
     my $csv_string = get_hashes_as_encoded_csv( $data, $fields );
 
     return $csv_string;
+}
+
+# get a short snippet of the given encoded json for error reporting
+sub _json_snippet
+{
+    return substr( decode( 'utf8', $_[ 0 ] ), 0, 32 );
+}
+
+# accepts a file handle from which to read.  assumes that each line is a json
+# object.  prints out a csv line for each json object, assuming that the
+# keys for all json objects are the same as for the first.
+sub stream_json_to_csv
+{
+    my ( $in_fh, $out_fh ) = @_;
+
+    my $first_line = <$in_fh>;
+
+    print STDERR "first_line: $first_line\n";
+
+    return unless ( $first_line );
+
+    my $json = JSON->new->relaxed( 1 )->utf8( 1 );
+
+    my $csv = Text::CSV_XS->new( { binary => 1 } );
+
+    my $first_json_object = $json->decode( $first_line );
+
+    my $keys = [ keys( %{ $first_json_object } ) ];
+    $csv->combine( @{ $keys } );
+    $out_fh->print( encode( 'utf-8', $csv->string . "\n" ) );
+
+    $csv->combine( map { $first_json_object->{ $_ } } @{ $keys } );
+    $out_fh->print( encode( 'utf-8', $csv->string . "\n" ) );
+
+    my $i = 0;
+    while ( my $line = <$in_fh> )
+    {
+        print STDERR "$i\n" unless ( $i++ % 1000 );
+        my $json_object;
+        eval { $json_object = $json->decode( $line ) };
+        if ( $@ )
+        {
+            warn( $@ );
+            print STDERR $line;
+        }
+        else
+        {
+            $csv->combine( map { $json_object->{ $_ } } @{ $keys } );
+            $out_fh->print( encode( 'utf-8', $csv->string . "\n" ) );
+        }
+    }
+
+    print STDERR "FOO!\n";
 }
 
 1;

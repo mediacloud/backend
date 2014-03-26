@@ -43,8 +43,8 @@ END
 
     $live_story->{ publish_date } =~ s/T/ /g;
     $live_story->{ collect_date } =~ s/T/ /g;
-    $story->{ publish_date }      =~ s/T/ /g;
-    $story->{ collect_date }      =~ s/T/ /g;
+    $story->{ publish_date } =~ s/T/ /g;
+    $story->{ collect_date } =~ s/T/ /g;
 
     cmp_deeply( $live_story, $story, "$test_label: $story->{ title } should be in $controversy->{ name } and match story" );
 }

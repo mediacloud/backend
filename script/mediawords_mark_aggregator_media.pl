@@ -14,6 +14,7 @@ BEGIN
 
 use MediaWords::DB;
 use MediaWords::Util::CSV;
+use MediaWords::DBI::Media;
 
 use constant MAX_DIFFERENT_DOMAINS => 10;
 
@@ -24,7 +25,7 @@ sub main
     my $db = MediaWords::DB::connect_to_db;
 
     my $media = $db->query( <<END )->hashes;
-select * from media order by media_id
+select * from media where foreign_rss_links = 'f' or foreign_rss_links is null order by media_id
 END
 
     #     where ( foreign_rss_links is null or foreign_rss_links is false ) and
@@ -35,7 +36,7 @@ END
     my $i = 0;
     for my $medium ( @{ $media } )
     {
-        my $domain_map = MediaWords::DBI::Media::get_medium_domain_count( $db, $medium );
+        my $domain_map = MediaWords::DBI::Media::get_medium_domain_counts( $db, $medium );
 
         my $num_domains = scalar( values( %{ $domain_map } ) );
 

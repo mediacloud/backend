@@ -7,6 +7,7 @@ use Text::Trim;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 use MediaWords::Util::HTML;
+use MediaWords::Util::Text;
 use MediaWords::Crawler::Extractor;
 use MediaWords::Languages::Language;
 use MediaWords::Util::IdentifyLanguage;
@@ -48,18 +49,17 @@ sub get_html_density($$)
     my $html_length = 0;
     while ( $line =~ /(<\/?([a-z]*) ?[^>]*>)/g )
     {
-        my ( $tag, $tag_name ) = ( $1, $2 );
-        my $len = length( $1 );
+        my ( $len, $tag_name ) = ( length( $1 ), lc( $2 ) );
 
-        if ( lc( $tag_name ) eq 'p' )
+        if ( $tag_name eq 'p' )
         {
             $len *= P_DISCOUNT;
         }
-        elsif ( lc( $tag_name ) eq 'li' )
+        elsif ( $tag_name eq 'li' )
         {
             $len *= LI_DISCOUNT;
         }
-        elsif ( lc( $tag_name ) eq 'a' )
+        elsif ( $tag_name eq 'a' )
         {
             if ( pos( $line ) == 0 )
             {
@@ -81,19 +81,14 @@ sub get_html_density($$)
     {
         die "Language is null for language code '$language_code'.\n";
     }
-    my $noise_words = $lang->get_noise_strings();
-    unless ( $noise_words )
+    my $noise_strings_regex = $lang->get_noise_strings_regex();
+    unless ( $noise_strings_regex )
     {
-        die "Noise words is null for language code '$language_code'.\n";
+        die "Noise strings regular expression is null for language code '$language_code'.\n";
     }
 
-    for my $noise_word ( @{ $noise_words } )
-    {
-        while ( $line =~ /$noise_word/ig )
-        {
-            $html_length += length( $noise_word );
-        }
-    }
+    my @noise_strings_matches = ( $line =~ /$noise_strings_regex/g );
+    map { $html_length += length( $_ ) } @noise_strings_matches;
 
     return ( $html_length / ( length( $line ) ) );
 }
@@ -124,9 +119,9 @@ sub lineStartsWithTitleText($$)
 }
 
 # get discount based on the similarity to the description
-sub get_description_similarity_discount($$)
+sub get_description_similarity_discount($$$)
 {
-    my ( $line, $description ) = @_;
+    my ( $line, $description, $language_code ) = @_;
 
     if ( !$description )
     {
@@ -146,14 +141,7 @@ sub get_description_similarity_discount($$)
     my $stripped_line        = html_strip( $line );
     my $stripped_description = html_strip( $description );
 
-    ##
-    ## WARNING the Text::Similarity::Overlaps object MUST be assigned to a temporary variable
-    ## calling getSimilarityStrings directly on the result of Text::Similarity::Overlaps->new( ) results in a memory leak.
-    ##  This leak only occurs under certain so it won't show up in toy test programs. However, it consistently occured
-    ## in the MediaWords::DBI::Downloads::extractor_results_for_download() call chain until this fix.
-    ##
-    my $sim = Text::Similarity::Overlaps->new( { normalize => 1, verbose => 0 } );
-    my $score = $sim->getSimilarityStrings( $stripped_line, $stripped_description );
+    my $score = MediaWords::Util::Text::get_similarity_score( $stripped_line, $stripped_description, $language_code );
 
     if (   ( DESCRIPTION_SIMILARITY_DISCOUNT > 1 )
         || ( DESCRIPTION_SIMILARITY_DISCOUNT < 0 ) )
@@ -175,15 +163,15 @@ sub calculate_line_extraction_metrics($$$$$$)
 {
     my ( $i, $description, $line, $sphereit_map, $has_clickprint, $language_code ) = @_;
 
-    Readonly my $article_has_clickprint => $has_clickprint;    #<--- syntax error at (eval 980) line 11, near "Readonly my "
+    my $article_has_clickprint = $has_clickprint;
 
-    Readonly my $article_has_sphereit_map        => defined( $sphereit_map );
-    Readonly my $sphereit_map_includes_line      => ( defined( $sphereit_map ) && $sphereit_map->{ $i } );
-    Readonly my $description_similarity_discount => get_description_similarity_discount( $line, $description );
+    my $article_has_sphereit_map        = defined( $sphereit_map );
+    my $sphereit_map_includes_line      = ( defined( $sphereit_map ) && $sphereit_map->{ $i } );
+    my $description_similarity_discount = get_description_similarity_discount( $line, $description, $language_code );
 
     return ( $article_has_clickprint, $article_has_sphereit_map, $description_similarity_discount,
         $sphereit_map_includes_line );
-}    #<--- syntax error at (eval 980) line 18, near ";
+}
 
 #
 # New subroutine "get_copyright_count" extracted - Mon Feb 27 17:27:56 2012.
@@ -216,8 +204,8 @@ sub calculate_line_extraction_metrics_2($$$$)
 {
     my ( $line_text, $line, $title_text, $language_code ) = @_;
 
-    Readonly my $line_length => length( $line );    #<--- syntax error at (eval 983) line 8, near "Readonly my "
-    Readonly my $line_starts_with_title_text => lineStartsWithTitleText( $line_text, $title_text );
+    my $line_length = length( $line );
+    my $line_starts_with_title_text = lineStartsWithTitleText( $line_text, $title_text );
 
     return ( $line_length, $line_starts_with_title_text );
 }
@@ -306,7 +294,10 @@ sub get_info_for_lines($$$)
           " falling back to default language '$language_code'.";
     }
 
-    my $auto_excluded_lines = MediaWords::Crawler::Extractor::find_auto_excluded_lines( $lines, $language_code );
+    my $markers = MediaWords::Crawler::Extractor::find_markers( $lines, $language_code );
+    my $auto_excluded_lines = MediaWords::Crawler::Extractor::find_auto_excluded_lines( $lines, $language_code, $markers );
+    my $has_clickprint      = HTML::CruftText::has_clickprint( $lines );
+    my $sphereit_map        = MediaWords::Crawler::Extractor::get_sphereit_map( $markers, $language_code );
 
     my $info_for_lines = [];
 
@@ -315,12 +306,6 @@ sub get_info_for_lines($$$)
     $title_text =~ s/^\s*//;
     $title_text =~ s/\s*$//;
     $title_text =~ s/\s+/ /;
-
-    my $markers        = MediaWords::Crawler::Extractor::find_markers( $lines, $language_code );
-    my $has_clickprint = HTML::CruftText::has_clickprint( $lines );
-    my $sphereit_map   = MediaWords::Crawler::Extractor::get_sphereit_map( $markers, $language_code );
-
-    MediaWords::Crawler::Extractor::print_time( "find_markers" );
 
     for ( my $i = 0 ; $i < @{ $lines } ; $i++ )
     {
@@ -406,7 +391,6 @@ my $banned_fields;
 
 sub get_feature_string_from_line_info($$;$)
 {
-
     my ( $line_info, $line_text, $top_words ) = @_;
 
     #say Dumper( $line_info );
@@ -435,7 +419,7 @@ sub get_feature_string_from_line_info($$;$)
 
         next if $feature_field eq 'class';
 
-        next if ( !defined( $line_info->{ $feature_field } ) );
+        next unless ( defined( $line_info->{ $feature_field } ) );
         next if ( $line_info->{ $feature_field } eq '0' );
         next if ( $line_info->{ $feature_field } eq '' );
 
@@ -445,9 +429,9 @@ sub get_feature_string_from_line_info($$;$)
 
         if ( $field_value eq '1' )
         {
-            $ret .= "$feature_field";
-            $ret .= "=" . $field_value;    # || 0;
-            $ret .= " ";
+            $ret .= $feature_field;
+            $ret .= '=' . $field_value;    # || 0;
+            $ret .= ' ';
         }
         else
         {
@@ -458,7 +442,7 @@ sub get_feature_string_from_line_info($$;$)
             my $last_feature = '';
             while ( $field_value < $val )
             {
-                $last_feature = "$feature_field" . "_lt_" . $val;
+                $last_feature = $feature_field . '_lt_' . $val;
                 $val /= 2;
             }
 
@@ -466,12 +450,12 @@ sub get_feature_string_from_line_info($$;$)
 
             while ( $field_value > $val )
             {
-                $last_feature = "$feature_field" . "_gt_" . $val;
+                $last_feature = $feature_field . '_gt_' . $val;
                 $val *= 2;
             }
 
             die if $last_feature eq '';
-            $ret .= "$last_feature ";
+            $ret .= $last_feature . ' ';
         }
 
     }
@@ -483,7 +467,7 @@ sub get_feature_string_from_line_info($$;$)
 
         next if ( defined( $top_words ) && ( !$top_words->{ $word } ) );
 
-        $ret .= "unigram_$word ";
+        $ret .= 'unigram_' . $word . ' ';
     }
 
     if ( defined( $line_info->{ class } ) )

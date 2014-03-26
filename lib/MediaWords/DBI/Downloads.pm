@@ -157,7 +157,7 @@ sub _download_store_for_reading($)
     else
     {
         my $path = $download->{ path };
-        if ( !$download->{ path } || ( $download->{ state } ne "success" ) )
+        if ( !$path )
         {
             $store = undef;
         }
@@ -228,7 +228,7 @@ sub fetch_content($$)
 
     carp "fetch_content called with invalid download " unless exists $download->{ downloads_id };
 
-    confess "attempt to fetch content for unsuccessful download $download->{ downloads_id } "
+    carp "attempt to fetch content for unsuccessful download $download->{ downloads_id }  / $download->{ state }"
       unless $download->{ state } eq 'success';
 
     my $store = _download_store_for_reading( $download );
@@ -272,11 +272,11 @@ sub fetch_preprocessed_content_lines($$)
         return [];
     }
 
-    my @lines = split( /[\n\r]+/, $$content_ref );
+    my $lines = [ split( /[\n\r]+/, $$content_ref ) ];
 
-    MediaWords::Crawler::Extractor::preprocess( \@lines );
+    $lines = MediaWords::Crawler::Extractor::preprocess( $lines );
 
-    return \@lines;
+    return $lines;
 }
 
 # run MediaWords::Crawler::Extractor against the download content and return a hash in the form of:
@@ -323,9 +323,9 @@ sub _do_extraction_from_content_ref($$$)
 {
     my ( $content_ref, $title, $description ) = @_;
 
-    my @lines = split( /[\n\r]+/, $$content_ref );
+    my $lines = [ split( /[\n\r]+/, $$content_ref ) ];
 
-    my $lines = MediaWords::Crawler::Extractor::preprocess( \@lines );
+    $lines = MediaWords::Crawler::Extractor::preprocess( $lines );
 
     return extract_preprocessed_lines_for_story( $lines, $title, $description );
 }
@@ -389,7 +389,7 @@ sub store_content($$$)
         $new_state = 'error';
         $download->{ error_message } = $@;
     }
-    else
+    elsif ( $new_state eq 'success' )
     {
         $download->{ error_message } = '';
     }

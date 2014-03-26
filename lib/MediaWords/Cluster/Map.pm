@@ -35,7 +35,6 @@ use List::Util;
 use Math::Random;
 
 use MediaWords::Cluster;
-use MediaWords::Cluster::Map::GraphLayoutAesthetic;
 use MediaWords::Cluster::Map::GraphViz;
 use MediaWords::DBI::DashboardMediaSets;
 use MediaWords::DBI::Queries;
@@ -192,11 +191,7 @@ sub _plot_nodes
 
     die "There must be more than one node " if scalar( @$nodes ) <= 1;
 
-    if ( $method eq 'graph-layout-aesthetic' )
-    {
-        MediaWords::Cluster::Map::GraphLayoutAesthetic::plot_nodes( $method, $nodes );
-    }
-    elsif ( $method =~ /^graphviz/ )
+    if ( $method =~ /^graphviz/ )
     {
         MediaWords::Cluster::Map::GraphViz::plot_nodes( $method, $nodes );
     }

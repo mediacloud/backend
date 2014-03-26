@@ -1,0 +1,24 @@
+[% PROCESS cm/header.tt2 title="Remove Stories" %]
+
+<fieldset>
+
+<form action="[% c.uri_for( '/admin/cm/delete_stories/' _ controversy.controversies_id ) %]" method="POST" >
+
+<div class="text label">
+
+<label>List of Story IDs</label>
+<textarea name="stories_ids" rows="16" cols="32"></textarea>
+List of story ids, one per line, to remove from this controversy.
+
+</div>
+
+<div class="submit">
+<input type="submit" name="submit" value="Remove" />
+
+</div>
+
+</form>
+
+</fieldset>
+
+[% INCLUDE dashboard/footer.tt2 %]

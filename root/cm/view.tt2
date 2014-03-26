@@ -4,7 +4,11 @@
 
     <div id="widecolumn">
 
-        <div class="boxtitle">Query</div>
+        <div class="boxtitle">
+            Query
+            <a id="boxcommand" href="[% c.uri_for( '/admin/cm/delete_stories/' _ controversy.controversies_id ) %]">remove stories</a>
+            <a id="boxcommand" href="[% c.uri_for( '/admin/cm/merge_stories_list/' _ controversy.controversies_id ) %]">merge stories</a>
+        </div>
         <table>
             <tr>
                 <td>Pattern</td>

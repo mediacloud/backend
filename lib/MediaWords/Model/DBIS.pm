@@ -23,16 +23,33 @@ sub new
 
 sub dbis
 {
+    my ( $self ) = @_;
 
-    # TODO replace this with  MediaWords::DB::connect_to_db();
-    my $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
-      or die DBIx::Simple::MediaWords->error;
+    my $db = $self->{ dbis };
 
-    $db->dbh->{ RaiseError } = 1;
+    # we put an eval and print the error here b/c the web auth dies silently on a database error
+    eval {
+        if ( !$db || $db->dbh->state )
+        {
+            # TODO replace this with  MediaWords::DB::connect_to_db();
+            $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
+              || die DBIx::Simple::MediaWords->error;
 
-    ## UNCOMMENT to enable database profiling
-    ## Eventually we may wish to make this a config option in mediawords.yml
-    # $db->dbh->{ Profile }    = 2;
+            $db->dbh->{ RaiseError } = 1;
+
+            ## UNCOMMENT to enable database profiling
+            ## Eventually we may wish to make this a config option in mediawords.yml
+            # $db->dbh->{ Profile }    = 2;
+
+            $self->{ dbis } = $db;
+        }
+    };
+
+    if ( $@ )
+    {
+        print STDERR "db error: $@\n";
+        die( $@ );
+    }
 
     return $db;
 }

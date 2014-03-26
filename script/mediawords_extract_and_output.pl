@@ -39,19 +39,6 @@ my $_re_generate_cache = 0;
 
 Readonly my $output_dir => 'download_content_test_data';
 
-sub create_base64_encoded_element
-{
-    my ( $name, $content ) = @_;
-
-    my $ret = XML::LibXML::Element->new( $name );
-
-    my $data_section = XML::LibXML::CDATASection->new( encode_base64( encode( "utf8", $content ) ) );
-
-    $ret->appendChild( $data_section );
-
-    return $ret;
-}
-
 sub store_preprocessed_result
 {
     my ( $download, $preprocessed_lines, $extract_results, $content_ref, $story ) = @_;
@@ -111,19 +98,6 @@ sub store_downloads
         store_preprocessed_result( $download, $preprocessed_lines, $extract_results, $content_ref, $story );
     }
 
-}
-
-sub create_download_element
-{
-    my ( $download ) = @_;
-
-    my $download_element = XML::LibXML::Element->new( 'download' );
-    foreach my $key ( sort keys %{ $download } )
-    {
-        $download_element->appendTextChild( $key, $download->{ $key } );
-    }
-
-    return $download_element;
 }
 
 # do a test run of the text extractor

@@ -48,8 +48,10 @@ sub get_rgbp_format
 {
     my ( $hex ) = @_;
 
-    return 'rgb(' . hex( substr( $hex, 0, 2 ) ) . ',' . hex( substr( $hex, 2, 2 ) ) . ',' . hex( substr( $hex, 4, 2 ) ) .
-      ')';
+    return 'rgb(' .
+      hex( substr( $hex, 0, 2 ) ) . ',' .
+      hex( substr( $hex, 2, 2 ) ) . ',' .
+      hex( substr( $hex, 4, 2 ) ) . ')';
 }
 
 1;

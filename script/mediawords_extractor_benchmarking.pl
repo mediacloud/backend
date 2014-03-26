@@ -1,8 +1,21 @@
 #!/usr/bin/env perl
-
-# test MediaWords::Crawler::Extractor against manually extracted downloads
+#
+# test MediaWords::Crawler::Extractor's performance against manually extracted downloads
+#
+# Usage:
+#
+# ./script/run_with_carton.sh \
+#     ./script/mediawords_extractor_benchmarking.pl # extract only
+#
+# *or*
+#
+# MEDIAWORDS_EXTRACTOR_BENCHMARKING_VECTOR=1 \
+#     ./script/run_with_carton.sh \
+#     ./script/mediawords_extractor_benchmarking.pl # extract and vector
+#
 
 use strict;
+use warnings;
 
 BEGIN
 {
@@ -35,27 +48,45 @@ use MediaWords::Languages::en;
 
 #use XML::LibXML::Enhanced;
 
-sub test_extractor
+sub test_extract
 {
 
     my ( $downloads ) = @_;
 
     my @downloads = @{ $downloads };
 
-    say STDERR "Starting store_downloads";
+    say STDERR "Starting test_extract()...";
 
     @downloads = sort { $a->{ downloads_id } <=> $b->{ downloads_id } } @downloads;
 
-    my $download_results = [];
-
-    my $dbs = MediaWords::DB::connect_to_db;
+    my $db = MediaWords::DB::connect_to_db;
 
     for my $download ( @downloads )
     {
-        say "Processing download $download->{downloads_id}";
-        my $extract_results = MediaWords::DBI::Downloads::extractor_results_for_download( $dbs, $download );
+        say STDERR "Processing download $download->{downloads_id}...";
+        my $extract_results = MediaWords::DBI::Downloads::extractor_results_for_download( $db, $download );
 
-        say STDERR "Got extract_results:\n " . Dumper( $extract_results );
+        say "Got extract_results: " . Dumper( $extract_results );
+    }
+}
+
+sub test_extract_and_vector
+{
+    my ( $downloads ) = @_;
+
+    my @downloads = @{ $downloads };
+
+    say STDERR "Starting test_extract_and_vector()...";
+
+    @downloads = sort { $a->{ downloads_id } <=> $b->{ downloads_id } } @downloads;
+
+    my $db = MediaWords::DB::connect_to_db;
+
+    for my $download ( @downloads )
+    {
+        say STDERR "Processing download $download->{downloads_id}...";
+        MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, '1' );
+        say STDERR "Done.";
     }
 }
 
@@ -76,44 +107,79 @@ sub main
         'iterations=i'  => \$iterations
     ) or die;
 
-    unless ( $file || ( @download_ids ) )
-    {
-        die "no options given ";
-    }
-
     my $downloads;
 
-    say STDERR @download_ids;
+    if ( @download_ids or $file )
+    {
+        if ( $file )
+        {
+            open( DOWNLOAD_ID_FILE, $file ) || die( "Could not open file: $file" );
+            @download_ids = <DOWNLOAD_ID_FILE>;
+        }
 
-    if ( @download_ids )
-    {
-        $downloads = $dbs->query( "SELECT * from downloads where downloads_id in (??)", @download_ids )->hashes;
-    }
-    elsif ( $file )
-    {
-        open( DOWNLOAD_ID_FILE, $file ) || die( "Could not open file: $file" );
-        @download_ids = <DOWNLOAD_ID_FILE>;
-        $downloads = $dbs->query( "SELECT * from downloads where downloads_id in (??)", @download_ids )->hashes;
+        say STDERR "Will process download IDs: " . join( ', ', @download_ids );
+
+        $downloads = $dbs->query(
+            <<EOF,
+            SELECT *
+            FROM downloads
+            WHERE downloads_id IN (??)
+            ORDER BY downloads_id
+EOF
+            @download_ids
+        )->hashes;
     }
     else
     {
-        die "must specify file or downloads id";
+        say STDERR "Will process *all* 'content' downloads";
 
         $downloads = $dbs->query(
-"SELECT * from downloads where downloads_id in (select distinct downloads_id from extractor_training_lines order by downloads_id)"
+            <<EOF
+            SELECT *
+            FROM downloads
+            WHERE type = 'content'
+              AND state = 'success'
+            ORDER BY downloads_id
+EOF
         )->hashes;
     }
 
-    say STDERR Dumper( $downloads );
+    die 'no downloads found ' unless scalar( @{ $downloads } );
 
-    die 'no downloads found ' unless scalar( @$downloads );
+    say STDERR "Will process " . scalar( @{ $downloads } ) . " downloads.";
 
-    say STDERR scalar( @$downloads ) . ' downloads';
+    my $extract_and_vector = 0;
+    if ( defined $ENV{ 'MEDIAWORDS_EXTRACTOR_BENCHMARKING_VECTOR' } )
+    {
+        $extract_and_vector = 1;
+    }
+
+    if ( $extract_and_vector )
+    {
+        say STDERR "Will extract *and* vector downloads.";
+        say STDERR <<EOF;
+Please note that running this script in \"extract and vector\" mode will store
+extracted downloads in the database, so in order to repeat the performance test
+you will have to reinitialize the database with unextracted downloads.
+EOF
+    }
+    else
+    {
+        say STDERR "Will only extract downloads.";
+    }
 
     foreach my $iteration ( 1 .. $iterations )
     {
         say STDERR "iteration $iteration";
-        test_extractor( $downloads );
+
+        if ( $extract_and_vector )
+        {
+            test_extract_and_vector( $downloads );
+        }
+        else
+        {
+            test_extract( $downloads );
+        }
     }
 }
 

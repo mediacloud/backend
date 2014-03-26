@@ -218,7 +218,7 @@ sub main
       unless ( $tags && @{ $tags } && $start_date && $end_date && $terms && @{ $terms } );
 
     die( "invalid start_date: $start_date" ) unless ( $start_date =~ /^\d\d\d\d-\d\d-\d\d$/ );
-    die( "invalid end_date: $end_date" )     unless ( $end_date   =~ /^\d\d\d\d-\d\d-\d\d$/ );
+    die( "invalid end_date: $end_date" )     unless ( $end_date =~ /^\d\d\d\d-\d\d-\d\d$/ );
 
     my $days = get_date_interval( $start_date, $end_date );
 

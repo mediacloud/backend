@@ -16,6 +16,8 @@ use MediaWords::Util::Config;
 use MediaWords::Util::Tags;
 use MediaWords::DBI::StoriesTagsMapMediaSubtables;
 use MediaWords::DBI::Downloads;
+use MediaWords::Languages::Language;
+use MediaWords::StoryVectors;
 use List::Compare;
 
 my $_tags_id_cache = {};
@@ -491,7 +493,7 @@ EOF
         $story->{ stories_id }
     )->hashes;
 
-    return join( ". ", map { $_->{ download_text } } @{ $download_texts } );
+    return join( ".\n\n", map { $_->{ download_text } } @{ $download_texts } );
 }
 
 sub get_extracted_html_from_db
@@ -676,15 +678,16 @@ sub is_new
 {
     my ( $dbs, $story ) = @_;
 
-    my $db_story = $dbs->query(
-        <<"EOF",
-        SELECT *
-        FROM stories
-        WHERE guid = ?
-              AND media_id = ?
-EOF
-        $story->{ guid }, $story->{ media_id }
-    )->hash;
+    my $db_story;
+    eval {
+        $db_story = $dbs->query( <<"END", $story->{ guid }, $story->{ media_id } )->hash;
+SELECT *
+    FROM stories
+    WHERE guid = ?
+        AND media_id = ?
+END
+    };
+    die( "query error: $@\n" . Dumper( $story->{ guid }, $story->{ media_id } ) ) if ( $@ );
 
     $db_story ||= $dbs->query( <<END, $story->{ guid }, $story->{ media_id } )->hash;
 select * from stories where guid = ? and media_id = ?
@@ -692,6 +695,7 @@ END
 
     if ( !$db_story )
     {
+        return 0 if ( $story->{ title } eq '(no title)' );
 
         my $date = DateTime->from_epoch( epoch => Date::Parse::str2time( $story->{ publish_date } ) );
 
@@ -723,13 +727,14 @@ END
 
         #say STDERR "Searching for story by title";
 
+        # we do the goofy "publish_date + interval '1 second'" to force postgres to use the stories_title_hash index
         $db_story = $dbs->query(
             <<"EOF",
             SELECT *
             FROM stories
-            WHERE title = ?
+            WHERE md5(title) = md5(?)
                   AND media_id = ?
-                  AND publish_date BETWEEN ?::DATE AND ?::DATE FOR UPDATE
+                  AND publish_date + interval '1 second' BETWEEN ?::DATE AND ?::DATE FOR UPDATE
 EOF
             $title,
             $story->{ media_id },
@@ -1022,6 +1027,39 @@ sub add_missing_story_sentences
     print STDERR "ADD SENTENCES\n";
 
     MediaWords::StoryVectors::update_story_sentence_words_and_language( $db, $story, 0, 0, 1 );
+}
+
+# get list of all sentences in story from the extracted text and annotate each with a dup_stories_id
+# field if it is a duplicate sentence
+sub get_all_sentences
+{
+    my ( $db, $story ) = @_;
+    
+    # Tokenize into sentences
+    my $lang = MediaWords::Languages::Language::language_for_code( $story->{ language } ) ||
+        MediaWords::Languages::Language::default_language();
+
+    my $text = get_text( $db, $story );
+    
+    my $raw_sentences = $lang->get_sentences( $text ) || return;
+    
+    my $all_sentences = [];
+    for my $sentence ( @{ $raw_sentences } )
+    {
+        my $dup_sentence = $db->query( <<END, $sentence, $story->{ media_id }, $story->{ publish_date }, $story->{ stories_id } )->hash;
+select * 
+    from story_sentence_counts 
+    where sentence_md5 = MD5( ? ) and
+        media_id = ? and
+        publish_week = DATE_TRUNC( 'week', ?::date ) and
+        first_stories_id <> ?
+    limit 1
+END
+        my $dup_stories_id = $dup_sentence ? $dup_sentence->{ first_stories_id } : undef;
+        push( @{ $all_sentences }, { sentence => $sentence, dup_stories_id => $dup_stories_id } );
+    }
+
+    return $all_sentences;
 }
 
 1;

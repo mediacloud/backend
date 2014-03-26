@@ -877,7 +877,8 @@ sub _guessing_is_inapplicable($$$)
     {
 
         my $r = 0;
-        if (any {$_ eq $segment} @url_segments) {
+        if ( any { $_ eq $segment } @url_segments )
+        {
             return 1;
         }
     }

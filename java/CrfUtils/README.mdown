@@ -1,0 +1,9 @@
+This is a Maven-based Java project used for developing and testing the
+Mallet-based CRF model runner.
+
+The file `src/main/java/org/mediacloud/crfutils/ModelRunner.java` is being
+build and used by `Inline::Java` from the Perl code. Binary builds in `target/`
+are not being used by the production code directly.
+
+It is easy to test and improve the project using the
+[NetBeans IDE](https://netbeans.org).
