@@ -7,7 +7,7 @@ package CRF::CrfUtils::InlineJava;
 use strict;
 use warnings;
 
-use 5.18.1;
+use 5.16.3;
 
 use Readonly;
 use File::Temp qw/ tempfile /;

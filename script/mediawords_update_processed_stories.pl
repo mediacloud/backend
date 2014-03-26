@@ -38,10 +38,15 @@ sub update_processed_stories
         return;
     }
 
+    if ( ( $stop_story_sentences_id - $last_story_sentences_id_processed ) > 10_000 )
+    {
+	$stop_story_sentences_id = $last_story_sentences_id_processed + 10_000;
+    }
+
     say STDERR "Updating processed stories from $last_story_sentences_id_processed to $stop_story_sentences_id";
 
     $db->query(
-" INSERT INTO processed_stories ( stories_id ) select distinct( stories_id ) from story_sentences where story_sentences_id >? and story_sentences_id <= ? order by stories_id",
+" INSERT INTO processed_stories ( stories_id ) select distinct( stories_id ) from story_sentences where story_sentences_id >? and story_sentences_id <= ? ",
         $last_story_sentences_id_processed, $stop_story_sentences_id
     );
 
@@ -60,7 +65,7 @@ sub main
         {
             update_processed_stories();
             say STDERR "Sleeping...";
-            sleep( 30 );
+            sleep( 1 );
         }
     }
     else

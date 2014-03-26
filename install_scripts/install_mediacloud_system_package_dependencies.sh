@@ -112,7 +112,7 @@ else
         python-lxml-dbg python-lxml-doc python-libxml2 libxml2-dev \
         libxslt1-dev libxslt1-dbg libxslt1.1 build-essential make gcc g++ \
         cpanminus perl-doc liblocale-maketext-lexicon-perl openjdk-7-jdk \
-        gearman libgearman-dev maven
+        pandoc gearman libgearman-dev maven
 
     # Apt's version of Supervisor is too old
     sudo apt-get remove -y supervisor

@@ -13,7 +13,7 @@ use warnings;
 use constant POST_UNSUCCESSFUL_LOGIN_DELAY => 1;
 
 # API token HTTP GET parameter
-use constant API_TOKEN_PARAMETER => 'api';
+use constant API_TOKEN_PARAMETER => 'key';
 
 use Digest::SHA qw/sha256_hex/;
 use Crypt::SaltedHash;

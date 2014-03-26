@@ -10,17 +10,25 @@ use threads qw(stringify);
 use threads::shared;
 
 use Data::Dumper;
+use Encode;
 use HTTP::Request::Common;
 use HTTP::Server::Simple::CGI;
 use IO::Socket::INET;
 use JSON;
 use LWP::UserAgent;
+use List::Util;
 use URI::Escape;
 
 use base qw(HTTP::Server::Simple::CGI);
 
 # number of lines to process by count_stems at a time
-use constant MAX_LINE_BLOCK_SIZE => 10000;
+use constant MAX_LINE_BLOCK_SIZE => 500;
+
+# max number of random sentences to fetch
+use constant MAX_RANDOM_SENTENCES => 10000;
+
+# number of words to return
+use constant NUM_RETURN_WORDS => 500;
 
 # base url for solr searches
 use constant SOLR_SELECT_URL => 'http://localhost:8983/solr/collection1/select';
@@ -29,23 +37,24 @@ use constant SOLR_SELECT_URL => 'http://localhost:8983/solr/collection1/select';
 my $_cached_word_count_json;
 
 # set any duplicate lines blank.
-# if $dup_lines is specified, it is assumed to be shared among threads.  leave if 
+# if $dup_lines is specified, it is assumed to be shared among threads.  leave if
 # you don't want to track duplicates across threads
 sub blank_dup_lines
 {
     my ( $lines, $dup_lines ) = @_;
-    
+
     my $threaded = 1;
     if ( $dup_lines )
     {
         $threaded = 1;
     }
-    else {
+    else
+    {
         $dup_lines = {};
-        $threaded = 0;
+        $threaded  = 0;
     }
-    
-    map { 
+
+    map {
         $threaded ? lock( $dup_lines ) : undef;
         $dup_lines->{ $_ } ? ( $_ = '' ) : ( $dup_lines->{ $_ } = 1 );
     } @{ $lines };
@@ -56,23 +65,23 @@ sub blank_dup_lines
 # { $stem => { count => $stem_count, terms => { $term => $term_count } } }
 #
 # this function is where virtually all of the time in the script is spent, and
-# had been carefully tuned, so do not change anything without testing performance 
+# had been carefully tuned, so do not change anything without testing performance
 # impacts
 sub count_stems
 {
     my ( $lines, $dup_lines ) = @_;
-    
+
     blank_dup_lines( $lines, $dup_lines );
-        
+
     # tokenize each line and add count to $words for each token
     my $words = {};
-    for my $line ( @{ $lines }  )
+    for my $line ( @{ $lines } )
     {
         # very long lines tend to be noise -- html text and the like.
         # lc here instead of individual word for better performance
         $line = lc( substr( $line, 0, 256 ) );
 
-        # replace anything sequence of not-space-punct characters with a 
+        # replace anything sequence of not-space-punct characters with a
         # single space so that we can just use a split below for better performance
         # than matching each token as /(\w\w\w+)/; in theory, this could miss
         # control characters and such, but it is much faster than using \w because
@@ -83,14 +92,14 @@ sub count_stems
         # split performance much better than a regex match for each word.
         # for some reason, the single map / grep / split line works better
         # than an less concise version with an explicit loop.
-        map { $words->{ $_ }++ } grep { length( $_ ) > 2 } split( ' ', $line  );
+        map { $words->{ $_ }++ } grep { length( $_ ) > 2 } split( ' ', $line );
     }
 
     # now we need to stem the words.  It's faster to stem as a single set of words.  we
     # don't want to use caching with the stemming because we are finding the unique
     # words ourselves.
     my @unique_words = keys( %{ $words } );
-    my @stems = @unique_words;
+    my @stems        = @unique_words;
 
     # Lingua::Stem::Snowball is an order of magnitude faster than Lingua::Stem,
     # but LSS is not threadsafe unless we wait until we are within a thread
@@ -100,12 +109,12 @@ sub count_stems
     $stemmer->stem_in_place( \@stems );
 
     my $stem_counts = {};
-    for ( my $i = 0; $i < @stems; $i++ )
+    for ( my $i = 0 ; $i < @stems ; $i++ )
     {
         $stem_counts->{ $stems[ $i ] }->[ 0 ] += $words->{ $unique_words[ $i ] };
         $stem_counts->{ $stems[ $i ] }->[ 1 ]->{ $unique_words[ $i ] } += $words->{ $unique_words[ $i ] };
     }
-    
+
     return $stem_counts;
 }
 
@@ -199,7 +208,7 @@ sub get_solr_params_hash
 sub advance_past_csv_header
 {
     my ( $sock ) = @_;
-    
+
     my $found_csv_header = 0;
     while ( my $line = <$sock> )
     {
@@ -224,9 +233,9 @@ sub get_solr_results_socket
     {
         my $fh = FileHandle::new;
         $fh->open( '< ' . $file ) || die( "unable to open $file: $!" );
-    
+
         advance_past_csv_header( $fh );
-        return( 100000, $fh );
+        return ( 100000, $fh );
     }
 
     my $num_sentences = get_num_sentences_from_solr( $q, $fqs );
@@ -236,9 +245,10 @@ sub get_solr_results_socket
 
     my $params = get_solr_params_hash( $q, $fqs );
 
-    $params->{ rows } = $num_sentences;
+    $params->{ rows } = List::Util::min( $num_sentences, MAX_RANDOM_SENTENCES );
     $params->{ wt }   = 'csv';
     $params->{ df }   = 'sentence';
+    $params->{ sort } = 'random_1 asc';
 
     my $full_request = POST( SOLR_SELECT_URL, $params );
 
@@ -303,6 +313,22 @@ sub clear_word_count_json_cache
     $_cached_word_count_json = {};
 }
 
+# Check whether the string is valid UTF-8
+sub is_valid_utf8($)
+{
+    my $s = shift;
+
+    my $valid = 1;
+
+    Encode::_utf8_on( $s );
+
+    $valid = 0 unless ( utf8::valid( $s ) );
+
+    Encode::_utf8_off( $s );
+
+    return $valid;
+}
+
 sub get_solr_word_count_json
 {
     my ( $q, $fqs, $file ) = @_;
@@ -322,10 +348,10 @@ sub get_solr_word_count_json
     my $num_threads = 15;
     my $threads     = [];
     my $words       = {};
-        
+
     my ( $num_sentences, $socket ) = get_solr_results_socket( $q, $fqs, $file );
 
-    print STDERR "fetching $num_sentences sentences from solr ...\n";
+    print STDERR "found $num_sentences sentences in solr ...\n";
 
     # sentences is not quite the same as lines, since some sentences might be more than one line, but
     # it's close enough to guess a good line_block_size
@@ -333,7 +359,7 @@ sub get_solr_word_count_json
     $line_block_size = ( $line_block_size > MAX_LINE_BLOCK_SIZE ) ? MAX_LINE_BLOCK_SIZE : $line_block_size;
 
     # only use each line once
-    my ( %dup_lines_hash, $dup_lines ) :shared;
+    my ( %dup_lines_hash, $dup_lines ) : shared;
     my $dup_lines = \%dup_lines_hash;
 
     # start up one thread for each block of lines, start merging the results back into the
@@ -351,7 +377,7 @@ sub get_solr_word_count_json
 
     # merge any still running threads
     map { merge_thread_words( $_, $words ) if ( $_->is_running || $_->is_joinable ) } @{ $threads };
-    
+
     my $merge_end_time = time;
 
     print STDERR "generating word list ...\n";
@@ -365,7 +391,8 @@ sub get_solr_word_count_json
     @word_list = sort { $b->[ 1 ] <=> $a->[ 1 ] } @word_list;
 
     print STDERR "cutting list ...\n";
-    my @return_words = ( scalar( @word_list ) > 5000 ) ? @word_list[ 0 .. 4999 ] : @word_list;
+    my @return_words =
+      ( scalar( @word_list ) > NUM_RETURN_WORDS ) ? @word_list[ 0 .. ( NUM_RETURN_WORDS - 1 ) ] : @word_list;
 
     my $json_list = [];
     for my $w ( @return_words )
@@ -380,11 +407,20 @@ sub get_solr_word_count_json
                 $max_term_count = $term_count;
             }
         }
+
+        if ( !is_valid_utf8( $w->[ 0 ] ) || !is_valid_utf8( $max_term ) )
+        {
+            print STDERR "invalid utf8: $w->[ 0 ] / $max_term\n";
+            next;
+        }
+
         push( @{ $json_list }, { stem => $w->[ 0 ], count => $w->[ 1 ], term => $max_term } );
+
+        #        print STDERR "$max_term\n";
     }
 
-    my $json = to_json( { words => $json_list }, { utf8 => 1, pretty => 1 } );
-    
+    my $json = to_json( { words => $json_list }, { pretty => 1 } );
+
     print STDERR "returning json: " . substr( $json, 0, 1024 ) . "\n";
     print STDERR "total generation time: " . ( time() - $start_generation_time ) . "\n";
     print STDERR "thread end time: " . ( $merge_end_time - $start_generation_time ) . "\n";
@@ -474,19 +510,20 @@ END
 sub main
 {
     my ( $arg ) = @ARGV;
-    
+
     if ( !$arg || ( $arg =~ /^\d+$/ ) )
     {
         SolrCountServer->new( $arg )->run;
     }
-    else {
+    else
+    {
         my $fh = FileHandle::new;
         $fh->open( '<' . $arg ) || die( "cannot open '$arg': $!" );
         my $lines = [ <$fh> ];
         my $words = count_stems( $lines );
-        
+
         print STDERR substr( Dumper( $words ), 0, 1024 ) . "\n";
-    }    
+    }
 }
 
 main();

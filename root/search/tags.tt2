@@ -1,0 +1,31 @@
+[% title = 'Tags' %]
+[% INCLUDE include/header.tt2 %]
+
+<table>
+
+    <tr>
+        <th>ID</th>
+        <th>Tag</th>
+        <th>Media Sets</th>
+        <th>Num Media</th>
+        <th>List Media</th>
+    </tr>
+
+    [% FOREACH tag IN tags -%]
+
+        <tr [% IF even %]class="even"[% END %]>
+            <td>[% tag.tags_id %]</td>
+            <td>[% tag.tag | html %]</td>
+            <td>[% tag.media_set_names | html %]</td>
+            <td>[% tag.media_count %]</td>
+            <td><a href="[% c.uri_for( '/search/media/' _ tag.tags_id ) %]">list media</a></td>
+        </tr>
+
+    [%  SET even = !even %]
+
+    [% END # FOREACH medium -%]
+
+</table>
+
+
+[% INCLUDE include/footer.tt2 %]
