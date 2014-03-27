@@ -7185,6 +7185,19 @@ DISTRIBUTIONS
       Test::Builder::Module 0
       Test::More 0.88
       perl 5.008_001
+  Test-Simple-1.001003
+    pathname: E/EX/EXODIST/Test-Simple-1.001003.tar.gz
+    provides:
+      Test::Builder 1.001003
+      Test::Builder::IO::Scalar 2.110
+      Test::Builder::Module 1.001003
+      Test::More 1.001003
+      Test::Simple 1.001003
+    requirements:
+      ExtUtils::MakeMaker 0
+      Scalar::Util 1.13
+      Test::Harness 2.03
+      perl 5.006
   Test-Strict-0.23
     pathname: S/SZ/SZABGAB/Test-Strict-0.23.tar.gz
     provides:
