@@ -1034,19 +1034,20 @@ sub add_missing_story_sentences
 sub get_all_sentences
 {
     my ( $db, $story ) = @_;
-    
+
     # Tokenize into sentences
-    my $lang = MediaWords::Languages::Language::language_for_code( $story->{ language } ) ||
-        MediaWords::Languages::Language::default_language();
+    my $lang = MediaWords::Languages::Language::language_for_code( $story->{ language } )
+      || MediaWords::Languages::Language::default_language();
 
     my $text = get_text( $db, $story );
-    
+
     my $raw_sentences = $lang->get_sentences( $text ) || return;
-    
+
     my $all_sentences = [];
     for my $sentence ( @{ $raw_sentences } )
     {
-        my $dup_sentence = $db->query( <<END, $sentence, $story->{ media_id }, $story->{ publish_date }, $story->{ stories_id } )->hash;
+        my $dup_sentence =
+          $db->query( <<END, $sentence, $story->{ media_id }, $story->{ publish_date }, $story->{ stories_id } )->hash;
 select * 
     from story_sentence_counts 
     where sentence_md5 = MD5( ? ) and

@@ -13,7 +13,7 @@ use Moose;
 use namespace::autoclean;
 use List::Compare;
 use Carp;
-use  MediaWords::Solr;
+use MediaWords::Solr;
 
 =head1 NAME
 
@@ -52,21 +52,21 @@ sub list_GET : Local
 
     my $params = {};
 
-    my $q = $c->req->params->{ 'q' };
+    my $q  = $c->req->params->{ 'q' };
     my $fq = $c->req->params->{ 'fq' };
 
     my $start = $c->req->params->{ 'start' };
-    my $rows = $c->req->params->{ 'rows' };
+    my $rows  = $c->req->params->{ 'rows' };
 
-    $rows //= 1000;
-    $start //=0;
+    $rows  //= 1000;
+    $start //= 0;
 
-    $params->{ q } = $q;
-    $params->{ fq } = $fq;
+    $params->{ q }     = $q;
+    $params->{ fq }    = $fq;
     $params->{ start } = $start;
-    $params->{ rows } = $rows;
+    $params->{ rows }  = $rows;
 
-    my $list =  MediaWords::Solr::query( $params );
+    my $list = MediaWords::Solr::query( $params );
 
     $self->status_ok( $c, entity => $list );
 }

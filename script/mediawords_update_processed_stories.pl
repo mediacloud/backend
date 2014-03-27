@@ -56,12 +56,13 @@ EOF
 
     if ( ( $stop_story_sentences_id - $last_story_sentences_id_processed ) > 10_000 )
     {
-    	$stop_story_sentences_id = $last_story_sentences_id_processed + 10_000;
+        $stop_story_sentences_id = $last_story_sentences_id_processed + 10_000;
     }
 
     say STDERR "Updating processed stories from $last_story_sentences_id_processed to $stop_story_sentences_id...";
 
-    $db->query(<<EOF,
+    $db->query(
+        <<EOF,
         INSERT INTO processed_stories ( stories_id )
             SELECT DISTINCT stories_id
             FROM story_sentences
