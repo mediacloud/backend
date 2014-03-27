@@ -260,7 +260,7 @@ sub _get_object_ids
 
     my $processed_stories_ids = [];
 
-    my $max_processed_stories_id =  MediaWords::Solr::max_processed_stories_id( );
+    my $max_processed_stories_id = MediaWords::Solr::max_processed_stories_id();
 
     say STDERR "max_processed_stories_id = $max_processed_stories_id";
 
@@ -270,12 +270,11 @@ sub _get_object_ids
     {
         my $params = {};
 
-	my $batch_max_id = $next_id + 1_000_000;
+        my $batch_max_id = $next_id + 1_000_000;
 
         say STDERR ( Dumper( $processed_stories_ids ) );
 
         say STDERR " Next_id $next_id  batch max_id $batch_max_id";
-
 
         my $top_of_range = $next_id + 10_000_000;
 

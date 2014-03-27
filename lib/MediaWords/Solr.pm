@@ -157,7 +157,7 @@ sub search_for_processed_stories_ids
 
     say STDERR Dumper( $groups );
 
-    say STDERR Dumper ( map { $_->{ groupValue } } @{ $groups } );
+    say STDERR Dumper( map { $_->{ groupValue } } @{ $groups } );
 
     my $uniq_ids = [ uniq( map { $_->{ processed_stories_id } } @{ $response->{ response }->{ docs } } ) ];
 
