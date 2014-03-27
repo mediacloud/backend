@@ -112,6 +112,25 @@ sub number_of_matching_documents
     return $response->{ numFound };
 }
 
+sub max_processed_stories_id
+{
+    my ( $self, $c ) = @_;
+
+    my $params = {};
+
+    $params->{ q } = '*:*';
+
+    $params->{ sort } = "processed_stories_id desc";
+
+    $params->{ rows } = 1;
+
+    my $response = query( $params );
+
+    my $max_processed_stories_id = $response->{ response }->{ docs }->[ 0 ]->{ processed_stories_id };
+
+    return $max_processed_stories_id;
+}
+
 # return all of the story ids that match the solr query
 sub search_for_processed_stories_ids
 {
@@ -123,11 +142,22 @@ sub search_for_processed_stories_ids
 
     $params->{ fl } = 'processed_stories_id';
 
-    # say STDERR Dumper( $params );
+    $params->{ 'group' } = 'true';
+
+    $params->{ 'group.limit' } = 0;
+    $params->{ 'group.field' } = 'processed_stories_id';
+
+    say STDERR Dumper( $params );
 
     my $response = query( $params );
 
-    # say STDERR Dumper( $response );
+    say STDERR "Solr_response\n" . Dumper( $response );
+
+    my $groups = $response->{ grouped }->{ processed_stories_id }->{ groups };
+
+    say STDERR Dumper( $groups );
+
+    say STDERR Dumper ( map { $_->{ groupValue } } @{ $groups } );
 
     my $uniq_ids = [ uniq( map { $_->{ processed_stories_id } } @{ $response->{ response }->{ docs } } ) ];
 
