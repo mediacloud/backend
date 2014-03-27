@@ -112,6 +112,25 @@ sub number_of_matching_documents
     return $response->{ numFound };
 }
 
+sub max_processed_stories_id
+{
+    my ( $self, $c ) = @_;
+
+    my $params = {};
+
+    $params->{ q } = '*:*';
+
+    $params->{ sort } = "processed_stories_id desc";
+
+    $params->{ rows } = 1;
+
+    my $response = query( $params );
+
+    my $max_processed_stories_id = $response->{ response }->{ docs }->[ 0 ]->{ processed_stories_id };
+
+    return $max_processed_stories_id;
+}
+
 # return all of the story ids that match the solr query
 sub search_for_processed_stories_ids
 {
@@ -182,6 +201,39 @@ sub _attach_story_data_to_stories_ids
         my $stories_chunk = [ @{ $stories }[ $i .. $chunk_end ] ];
         _attach_story_data_to_stories_ids_chunk( $db, $stories_chunk );
     }
+}
+
+# return all of the story ids that match the solr query
+sub search_for_processed_stories_ids_with_groups
+{
+    my ( $params ) = @_;
+
+    # say STDERR "MediaWords::Solr::search_for_stories_ids";
+
+    $params = { %{ $params } };
+
+    $params->{ fl } = 'processed_stories_id';
+
+    $params->{ 'group' } = 'true';
+
+    $params->{ 'group.limit' } = 0;
+    $params->{ 'group.field' } = 'processed_stories_id';
+
+    say STDERR Dumper( $params );
+
+    my $response = query( $params );
+
+    say STDERR "Solr_response\n" . Dumper( $response );
+
+    my $groups = $response->{ grouped }->{ processed_stories_id }->{ groups };
+
+    say STDERR Dumper( $groups );
+
+    say STDERR Dumper( map { $_->{ groupValue } } @{ $groups } );
+
+    my $uniq_ids = [ uniq( map { $_->{ processed_stories_id } } @{ $response->{ response }->{ docs } } ) ];
+
+    return $uniq_ids;
 }
 
 # return all of the stories that match the solr query.  attach a list of matching sentences in story order
