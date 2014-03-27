@@ -5646,7 +5646,7 @@ DISTRIBUTIONS
   MooseX-Types-DateTime-MoreCoercions-0.11
     pathname: I/IL/ILMARI/MooseX-Types-DateTime-MoreCoercions-0.11.tar.gz
     provides:
-      MooseX::Types::DateTime::MoreCoercions undef
+      MooseX::Types::DateTime::MoreCoercions 0.11
     requirements:
       DateTime 0.4302
       DateTime::Duration 0.4302
