@@ -236,6 +236,18 @@ sub list_GET : Local
     $self->status_ok( $c, entity => $list );
 }
 
+sub _die_unless_tag_set_matches_user_email
+{
+    my ( $self, $c, $tags_id ) = @_;
+
+    Readonly my $query => "SELECT tag_sets.name from tags natural join tag_sets where tags_id = ? limit 1 ";
+
+    my $tag_set = $c->dbis->query( $query, $tags_id )->hashes->[ 0 ]->{ name };
+
+    die "Illegal tag_set name '$tag_set', tag_set must be user email "
+      unless $c->stash->{ auth_user }->{ email } eq $tag_set;
+}
+
 sub _get_tags_id
 {
     my ( $self, $c, $tag_string ) = @_;
@@ -255,6 +267,11 @@ sub _get_tags_id
           unless $c->stash->{ auth_user }->{ email } eq $tag_set;
 
         my $tag_sets = $c->dbis->query( "SELECT * from tag_sets where name = ?", $tag_set )->hashes;
+
+        if ( !scalar( @$tag_sets ) > 0 )
+        {
+            $tag_sets = [ $c->dbis->create( 'tag_sets', { 'name' => $tag_set } ) ];
+        }
 
         die "invalid tag set " unless scalar( @$tag_sets ) > 0;
 
@@ -300,6 +317,8 @@ sub _add_tags
         my ( $id, $tag ) = split ',', $story_tag;
 
         my $tags_id = $self->_get_tags_id( $c, $tag );
+
+        $self->_die_unless_tag_set_matches_user_email( $c, $tags_id );
 
         say STDERR "$id, $tags_id";
 
