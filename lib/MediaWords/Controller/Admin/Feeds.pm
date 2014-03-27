@@ -37,10 +37,10 @@ Catalyst Controller.
 # most_recent_download_state
 sub _attach_activity_data
 {
-    my  ( $db, $feeds ) = @_;
-    
+    my ( $db, $feeds ) = @_;
+
     return unless ( @{ $feeds } );
-    
+
     my $feed_story_data = $db->query( <<END, $feeds->[ 0 ]->{ media_id } )->hashes;
 select count(*) num_stories, fsm.feeds_id 
     from feeds_stories_map fsm 
@@ -52,7 +52,7 @@ END
     my $feed_story_data_lookup = {};
     map { $feed_story_data_lookup->{ $_->{ feeds_id } } = $_ } @{ $feed_story_data };
 
-    for my $feed ( @{ $feeds } ) 
+    for my $feed ( @{ $feeds } )
     {
         my $fsd = $feed_story_data_lookup->{ $feed->{ feeds_id } };
         $feed->{ num_stories } = $fsd ? $fsd->{ num_stories } : 0;
@@ -71,7 +71,6 @@ select publish_date
     where fsm.feeds_id = ? 
     order by fsm.stories_id desc limit 1;
 END
-
 
     }
 }

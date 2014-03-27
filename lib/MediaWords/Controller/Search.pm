@@ -24,9 +24,9 @@ Catalyst Controller for basic story search page
 sub tags : Local
 {
     my ( $self, $c ) = @_;
-    
+
     my $db = $c->dbis;
-    
+
     my $tags = $db->query( <<END )->hashes;
 with collection_tags as (
     
@@ -59,7 +59,7 @@ select t.*, ms.media_set_names, mtm.media_count
     order by media_set_names, t.tags_id
 END
 
-    $c->stash->{ tags } = $tags;
+    $c->stash->{ tags }     = $tags;
     $c->stash->{ template } = 'search/tags.tt2';
 }
 
@@ -67,11 +67,11 @@ END
 sub media : Local
 {
     my ( $self, $c, $tags_id ) = @_;
-    
+
     die( "no tags_id" ) unless ( $tags_id );
-    
+
     my $db = $c->dbis;
-    
+
     my $media = $db->query( <<'END', $tags_id )->hashes;
 select m.* 
     from media m join media_tags_map mtm on ( m.media_id = mtm.media_id )
@@ -79,7 +79,7 @@ select m.*
     order by mtm.media_id
 END
 
-    $c->stash->{ media } = $media;
+    $c->stash->{ media }    = $media;
     $c->stash->{ template } = 'search/media.tt2';
 }
 
@@ -96,30 +96,31 @@ sub index : Path : Args(0)
         $c->stash->{ title }    = 'Search';
         return;
     }
-    
+
     my $db = $c->dbis;
-    
+
     my $csv = $c->req->params->{ csv };
-    
+
     my $num_sampled = $csv ? undef : 1000;
-    
+
     my ( $stories, $num_stories ) = MediaWords::Solr::search_for_stories_with_sentences( $db, { q => $q }, $num_sampled, 1 );
 
     if ( $csv )
     {
         map { delete( $_->{ sentences } ) } @{ $stories };
         my $encoded_csv = MediaWords::Util::CSV::get_hashes_as_encoded_csv( $stories );
-        
+
         $c->response->header( "Content-Disposition" => "attachment;filename=stories.csv" );
         $c->response->content_type( 'text/csv; charset=UTF-8' );
         $c->response->content_length( bytes::length( $encoded_csv ) );
         $c->response->body( $encoded_csv );
     }
-    else {
-        $c->stash->{ stories } = $stories;
+    else
+    {
+        $c->stash->{ stories }     = $stories;
         $c->stash->{ num_stories } = $num_stories;
-        $c->stash->{ q } = $q;
-        $c->stash->{ template } = 'search/search.tt2';
+        $c->stash->{ q }           = $q;
+        $c->stash->{ template }    = 'search/search.tt2';
     }
 }
 
@@ -127,30 +128,31 @@ sub index : Path : Args(0)
 sub wc : Local
 {
     my ( $self, $c ) = @_;
-    
+
     my $q = $c->req->params->{ q };
-    
+
     if ( $q =~ /story_sentences_id|sentence_number/ )
     {
         die( "searches by sentence not allowed" );
     }
-    
+
     die( "missing q" ) unless ( $q );
-    
+
     my $words = MediaWords::Solr::count_words( { q => $q } );
-    
+
     if ( $c->req->params->{ csv } )
     {
         my $encoded_csv = MediaWords::Util::CSV::get_hashes_as_encoded_csv( $words );
-        
+
         $c->response->header( "Content-Disposition" => "attachment;filename=words.csv" );
         $c->response->content_type( 'text/csv; charset=UTF-8' );
         $c->response->content_length( bytes::length( $encoded_csv ) );
         $c->response->body( $encoded_csv );
     }
-    else {
-        $c->stash->{ words } = $words;
-        $c->stash->{ q } = $q;
+    else
+    {
+        $c->stash->{ words }    = $words;
+        $c->stash->{ q }        = $q;
         $c->stash->{ template } = 'search/wc.tt2';
     }
 }
@@ -159,7 +161,7 @@ sub wc : Local
 sub readme : Local
 {
     my ( $self, $c ) = @_;
-    
+
     $c->stash->{ template } = 'search/readme.tt2';
 }
 

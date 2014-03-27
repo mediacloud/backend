@@ -29,11 +29,11 @@ sub index : Path : Args(0)
 sub _get_health_status
 {
     my ( $stats, $i ) = @_;
-    
+
     my $status = 'green';
-    
+
     my $a = $stats->[ $i ];
-    for ( my $j = $i + 1; $j < @{ $stats }; $j++ )
+    for ( my $j = $i + 1 ; $j < @{ $stats } ; $j++ )
     {
         my $b = $stats->[ $j ];
         for my $k ( qw/num_stories num_sentences num_stories_with_text num_stories_with_sentences/ )
@@ -42,7 +42,7 @@ sub _get_health_status
 
             my $a_value = $a->{ $k } || 1;
             my $b_value = $b->{ $k };
-            
+
             if ( ( $a_value / $b_value ) < 0.10 )
             {
                 return 'red';
@@ -53,7 +53,7 @@ sub _get_health_status
             }
         }
     }
-    
+
     return $status;
 }
 
@@ -61,7 +61,7 @@ sub _get_health_status
 sub _assign_health_data_to_medium
 {
     my ( $db, $medium ) = @_;
-    
+
     my $medium_stats = $db->query( <<END, $medium->{ media_id } )->hashes;
 select * from media_stats
     where media_id = ? and stat_date < now() - interval '1 day'
@@ -73,18 +73,18 @@ END
     for my $ms ( @{ $medium_stats } )
     {
         push( @{ $medium->{ media_stats } }, $ms );
-        
+
         my $fields = [ qw/num_stories num_sentences num_stories_with_sentences num_stories_with_text/ ];
         map { $medium->{ $_ } += $ms->{ $_ } || 0 } @{ $fields };
     }
-    
+
     my $media_stats = $medium->{ media_stats };
-    for ( my $i = 0; $i < @{ $media_stats }; $i++ )
+    for ( my $i = 0 ; $i < @{ $media_stats } ; $i++ )
     {
         $media_stats->[ $i ]->{ status } = _get_health_status( $media_stats, $i );
     }
-    
-    $medium->{ status } = $media_stats->[ 0 ]->{ status } || '';    
+
+    $medium->{ status } = $media_stats->[ 0 ]->{ status } || '';
 }
 
 # assign aggregate health data about the media sources associated with the tag.
@@ -93,7 +93,7 @@ END
 sub _assign_health_data_to_tag
 {
     my ( $db, $tag ) = @_;
-    
+
     my $media = $db->query( <<END, $tag->{ tags_id } )->hashes;
 select m.* 
     from media m join media_tags_map mtm on ( m.media_id = mtm.media_id ) 
@@ -108,16 +108,17 @@ END
         my $fields = [ qw/num_stories num_sentences num_stories_with_sentences num_stories_with_text/ ];
         map { $tag->{ $_ } += $medium->{ $_ } || 0 } @{ $fields };
     }
-    
-    $tag->{ media } = $media;
+
+    $tag->{ media }     = $media;
     $tag->{ num_media } = scalar( @{ $media } );
-    
+
     $tag->{ num_healthy_media } = scalar( grep { $_->{ status } ne 'red' } @{ $media } );
     if ( $tag->{ num_media } )
     {
         $tag->{ percent_healthy_media } = int( 100 * ( $tag->{ num_healthy_media } / $tag->{ num_media } ) );
     }
-    else {
+    else
+    {
         $tag->{ percent_healthy_media } = 'na';
     }
 
@@ -128,7 +129,7 @@ END
 sub _assign_media_set_to_tag
 {
     my ( $db, $tag ) = @_;
-    
+
     my $media_sets = $db->query( <<END, $tag->{ tags_id } )->hashes;
 select ms.*, d.name dashboard_name
     from media_sets ms
@@ -138,17 +139,16 @@ select ms.*, d.name dashboard_name
         ms.tags_id = ?
 END
 
-   
-   $tag->{ media_set_names } = join( '; ', map { "$_->{ dashboard_name }:$_->{ name }" } @{ $media_sets } );
+    $tag->{ media_set_names } = join( '; ', map { "$_->{ dashboard_name }:$_->{ name }" } @{ $media_sets } );
 }
 
 # list the overall health of each collection: tag
 sub list : Local
 {
     my ( $self, $c, $media_id ) = @_;
-    
+
     my $db = $c->dbis;
-    
+
     my $tags = $db->query( <<END )->hashes;
 with collection_tags as (
     
@@ -199,8 +199,8 @@ END
         # _assign_health_data_to_tag( $db, $tag );
         _assign_media_set_to_tag( $db, $tag );
     }
-    
-    $c->stash->{ tags } = $tags;
+
+    $c->stash->{ tags }     = $tags;
     $c->stash->{ template } = 'health/list.tt2';
 }
 
@@ -208,15 +208,15 @@ END
 sub tag : Local
 {
     my ( $self, $c, $tags_id ) = @_;
-    
+
     my $db = $c->dbis;
-    
+
     my $tag = $db->find_by_id( 'tags', $tags_id ) || die( "unknown tag '$tags_id'" );
-    
+
     _assign_health_data_to_tag( $db, $tag );
     _assign_media_set_to_tag( $db, $tag );
-    
-    $c->stash->{ tag } = $tag;
+
+    $c->stash->{ tag }      = $tag;
     $c->stash->{ template } = 'health/tag.tt2';
 }
 
@@ -224,14 +224,14 @@ sub tag : Local
 sub medium : Local
 {
     my ( $self, $c, $media_id ) = @_;
-    
+
     my $db = $c->dbis;
-    
+
     my $medium = $db->find_by_id( 'media', $media_id ) || die( "unknown medium '$media_id'" );
-    
+
     _assign_health_data_to_medium( $db, $medium );
-    
-    $c->stash->{ 'medium' } = $medium;
+
+    $c->stash->{ 'medium' }   = $medium;
     $c->stash->{ 'template' } = 'health/medium.tt2';
 }
 
@@ -240,11 +240,11 @@ sub stories : Local
     my ( $self, $c, $media_id ) = @_;
 
     my $db = $c->dbis;
-    
+
     my $medium = $db->find_by_id( 'media', $media_id ) || die( "unknown medium '$media_id'" );
-    
+
     my $date = $c->req->params->{ date } || die( "missing date" );
-    
+
     my $stories = $db->query( <<END, $media_id, $date )->hashes;
 with media_stories as (
     select s.*, d.downloads_id
@@ -275,9 +275,9 @@ select s.*,
     order by publish_date
 END
 
-    $c->stash->{ medium } = $medium;
-    $c->stash->{ date } = $date;
-    $c->stash->{ stories } = $stories;
+    $c->stash->{ medium }   = $medium;
+    $c->stash->{ date }     = $date;
+    $c->stash->{ stories }  = $stories;
     $c->stash->{ template } = 'health/stories.tt2';
 }
 
