@@ -13,7 +13,7 @@ use Moose;
 use namespace::autoclean;
 use List::Compare;
 use Carp;
-use  MediaWords::Solr;
+use MediaWords::Solr;
 
 =head1 NAME
 
@@ -34,7 +34,6 @@ Catalyst Controller.
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
 use MediaWords::Tagger;
-
 
 sub list : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
 {

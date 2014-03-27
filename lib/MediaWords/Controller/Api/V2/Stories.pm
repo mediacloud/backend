@@ -139,6 +139,9 @@ sub _add_nested_data
             $story->{ stories_id }
         )->hashes;
         $story->{ story_tags } = $story_tags;
+
+        # say STDERR "story_tags";
+        # say STDERR Dumper($story->{ story_tags } );
     }
 
     return $stories;
@@ -213,19 +216,30 @@ sub _max_processed_stories_id
 {
     my ( $self, $c ) = @_;
 
-    my $params = {};
+    my $find_max_processed_stories_id_with_postgresql = 1;
 
-    $params->{ q } = '*:*';
+    if ( $find_max_processed_stories_id_with_postgresql )
+    {
+        my $hash = $c->dbis->query( "SELECT max( processed_stories_id ) from processed_stories " )->hash;
 
-    $params->{ sort } = "processed_stories_id desc";
+        return $hash->{ max };
+    }
+    else
+    {
+        my $params = {};
 
-    $params->{ rows } = 1;
+        $params->{ q } = '*:*';
 
-    my $processed_stories_ids = MediaWords::Solr::search_for_processed_stories_ids( $params );
+        $params->{ sort } = "processed_stories_id desc";
 
-    my $max_processed_stories_id = $processed_stories_ids->[ 0 ];
+        $params->{ rows } = 1;
 
-    return $max_processed_stories_id;
+        my $processed_stories_ids = MediaWords::Solr::search_for_processed_stories_ids( $params );
+
+        my $max_processed_stories_id = $processed_stories_ids->[ 0 ];
+
+        return $max_processed_stories_id;
+    }
 }
 
 sub _get_object_ids
@@ -253,6 +267,8 @@ sub _get_object_ids
 
     say STDERR "max_processed_stories_id = $max_processed_stories_id";
 
+    my $empty_blocks = 0;
+
     while ( $next_id <= $max_processed_stories_id && scalar( @$processed_stories_ids ) < $rows )
     {
         my $params = {};
@@ -260,9 +276,11 @@ sub _get_object_ids
 
         say STDERR ( $next_id );
 
+        my $top_of_range = $next_id + 10_000_000;
+
         $params->{ q } = $q;
 
-        $params->{ fq } = [ @{ $fq }, "processed_stories_id:[ $next_id TO * ]" ];
+        $params->{ fq } = [ @{ $fq }, "processed_stories_id:[ $next_id TO $top_of_range ]" ];
 
         $params->{ sort } = "processed_stories_id asc";
 
@@ -274,13 +292,38 @@ sub _get_object_ids
 
         say STDERR Dumper( $new_stories_ids );
 
-        last if scalar( @{ $new_stories_ids } ) == 0;
+        if ( scalar( @{ $new_stories_ids } ) == 0 )
+        {
+            $empty_blocks++;
 
-        push $processed_stories_ids, @{ $new_stories_ids };
+            if ( $empty_blocks > 3 )
+            {
+                $params->{ fq } = [ @{ $fq }, "processed_stories_id:[ $next_id TO * ]" ];
+                my $remaining_sentence_matches = MediaWords::Solr::number_of_matching_documents( $params );
 
-        die unless scalar( @$processed_stories_ids );
+                if ( $remaining_sentence_matches == 0 )
+                {
+                    say STDERR "No remaining matches after processed_stories_id $next_id  ";
+                    last;
+                }
+                else
+                {
+                    $empty_blocks = 0;
+                }
+            }
 
-        $next_id = $processed_stories_ids->[ -1 ] + 1;
+            $next_id = $top_of_range - 1;
+
+        }
+        else
+        {
+            push $processed_stories_ids, @{ $new_stories_ids };
+
+            die unless scalar( @$processed_stories_ids );
+
+            $next_id = $processed_stories_ids->[ -1 ] + 1;
+
+        }
     }
 
     say STDERR Dumper( $processed_stories_ids );

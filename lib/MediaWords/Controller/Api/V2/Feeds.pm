@@ -2,7 +2,6 @@ package MediaWords::Controller::Api::V2::Feeds;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
-
 use strict;
 use warnings;
 use MediaWords::DBI::StorySubsets;
@@ -27,6 +26,5 @@ sub list_query_filter_field
 {
     return 'media_id';
 }
-
 
 1;
