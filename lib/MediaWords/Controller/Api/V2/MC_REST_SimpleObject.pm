@@ -91,21 +91,21 @@ sub _process_result_list
         $items = $self->_purge_extra_fields_obj_list( $items );
     }
 
-    if ($self->has_extra_data() )
+    if ( $self->has_extra_data() )
     {
-	$items = $self->add_extra_data( $c, $items );
+        $items = $self->add_extra_data( $c, $items );
     }
 
     if ( $self->has_nested_data() )
     {
 
-	my $nested_data = $c->req->param( 'nested_data' );
-	$nested_data //= 1;
+        my $nested_data = $c->req->param( 'nested_data' );
+        $nested_data //= 1;
 
-	if ( $nested_data )
-	{
-	    $self->_add_nested_data( $c->dbis, $items );
-	}
+        if ( $nested_data )
+        {
+            $self->_add_nested_data( $c->dbis, $items );
+        }
     }
 
     return $items;
@@ -144,40 +144,40 @@ sub list_api_requires_filter_field
 {
     my ( $self ) = @_;
 
-    return defined($self->list_query_filter_field() ) && $self->list_query_filter_field();
+    return defined( $self->list_query_filter_field() ) && $self->list_query_filter_field();
 }
 
 sub _fetch_list
 {
     my ( $self, $c, $last_id, $table_name, $id_field, $rows ) = @_;
 
-    my $list; 
+    my $list;
 
     if ( $self->list_api_requires_filter_field() )
     {
-	my $query_filter_field_name = $self->list_query_filter_field();
+        my $query_filter_field_name = $self->list_query_filter_field();
 
-	my $filter_field_value = $c->req->param( $query_filter_field_name );
+        my $filter_field_value = $c->req->param( $query_filter_field_name );
 
-	if (!defined( $filter_field_value ) )
-	{
-	    die "Missing required param $query_filter_field_name";
-	}
+        if ( !defined( $filter_field_value ) )
+        {
+            die "Missing required param $query_filter_field_name";
+        }
 
-	my $query = "select * from $table_name where $id_field > ? and $query_filter_field_name = ? ORDER by $id_field asc limit ? ";
+        my $query =
+          "select * from $table_name where $id_field > ? and $query_filter_field_name = ? ORDER by $id_field asc limit ? ";
 
-	$list = $c->dbis->query( $query , $last_id, $filter_field_value, $rows )->hashes;
+        $list = $c->dbis->query( $query, $last_id, $filter_field_value, $rows )->hashes;
     }
     else
     {
-	my $query = "select * from $table_name where $id_field > ? ORDER by $id_field asc limit ? ";
+        my $query = "select * from $table_name where $id_field > ? ORDER by $id_field asc limit ? ";
 
-	$list = $c->dbis->query( $query , $last_id, $rows )->hashes;
+        $list = $c->dbis->query( $query, $last_id, $rows )->hashes;
     }
 
-    return $list;    
+    return $list;
 }
-
 
 sub _get_list_last_id_param_name
 {
@@ -214,24 +214,21 @@ sub list_GET : Local
     say STDERR "last_id: $last_id";
 
     my $all_fields = $c->req->param( 'all_fields' );
-    $all_fields   //= 0;
+    $all_fields //= 0;
 
-    my $rows =  $c->req->param( 'rows' );
+    my $rows = $c->req->param( 'rows' );
     say STDERR "rows $rows";
 
     $rows //= ROWS_PER_PAGE;
 
     my $list;
 
-    eval { $list = $self->_fetch_list(  $c, $last_id, $table_name, $id_field, $rows ); };
+    eval { $list = $self->_fetch_list( $c, $last_id, $table_name, $id_field, $rows ); };
 
     if ( $@ )
     {
-	$self->status_bad_request(
-	    $c,
-	    message => $@
-	    );
-	return;
+        $self->status_bad_request( $c, message => $@ );
+        return;
     }
 
     $list = $self->_process_result_list( $c, $list, $all_fields );
@@ -239,6 +236,17 @@ sub list_GET : Local
     $self->status_ok( $c, entity => $list );
 }
 
+sub _die_unless_tag_set_matches_user_email
+{
+    my ( $self, $c, $tags_id ) = @_;
+
+    Readonly my $query => "SELECT tag_sets.name from tags natural join tag_sets where tags_id = ? limit 1 ";
+
+    my $tag_set = $c->dbis->query( $query, $tags_id )->hashes->[ 0 ]->{ name };
+
+    die "Illegal tag_set name '$tag_set', tag_set must be user email "
+      unless $c->stash->{ auth_user }->{ email } eq $tag_set;
+}
 
 sub _get_tags_id
 {
@@ -246,34 +254,40 @@ sub _get_tags_id
 
     if ( $tag_string =~ /^\d+/ )
     {
-	say STDERR "returning int: $tag_string";
+        say STDERR "returning int: $tag_string";
         return $tag_string;
     }
     elsif ( $tag_string =~ /^.+:.+$/ )
     {
-	say STDERR "processing tag_sets:tag_name";
+        say STDERR "processing tag_sets:tag_name";
 
         my ( $tag_set, $tag_name ) = split ':', $tag_string;
 
-	die "Illegal tag_set name '$tag_set', tag_set must be user email " unless  $c->stash->{ auth_user }->{ email } eq $tag_set;
+        die "Illegal tag_set name '$tag_set', tag_set must be user email "
+          unless $c->stash->{ auth_user }->{ email } eq $tag_set;
 
         my $tag_sets = $c->dbis->query( "SELECT * from tag_sets where name = ?", $tag_set )->hashes;
 
-        die "invalid tag set " unless scalar(@$tag_sets) > 0;
+        if ( !scalar( @$tag_sets ) > 0 )
+        {
+            $tag_sets = [ $c->dbis->create( 'tag_sets', { 'name' => $tag_set } ) ];
+        }
 
-	say STDERR "tag_sets";
-	say STDERR Dumper( $tag_sets );
+        die "invalid tag set " unless scalar( @$tag_sets ) > 0;
+
+        say STDERR "tag_sets";
+        say STDERR Dumper( $tag_sets );
 
         my $tag_sets_id = $tag_sets->[ 0 ]->{ tag_sets_id };
 
         my $tags =
           $c->dbis->query( "SELECT * from tags where tag_sets_id = ? and tag = ? ", $tag_sets_id, $tag_name )->hashes;
-       
-	say STDERR Dumper( $tags );
+
+        say STDERR Dumper( $tags );
 
         my $tag;
 
-        if ( !scalar(@$tags) )
+        if ( !scalar( @$tags ) )
         {
             $tag = $c->dbis->create( 'tags', { tag => $tag_name, tag_sets_id => $tag_sets_id } );
         }
@@ -302,16 +316,18 @@ sub _add_tags
 
         my ( $id, $tag ) = split ',', $story_tag;
 
-        my $tags_id = $self->_get_tags_id( $c, $tag);
+        my $tags_id = $self->_get_tags_id( $c, $tag );
+
+        $self->_die_unless_tag_set_matches_user_email( $c, $tags_id );
 
         say STDERR "$id, $tags_id";
 
         my $tags_map_table = $self->get_table_name() . '_tags_map';
         my $table_id_name  = $self->get_table_name() . '_id';
 
-	my $query =  "INSERT INTO $tags_map_table ( $table_id_name, tags_id) VALUES (?, ? )";
+        my $query = "INSERT INTO $tags_map_table ( $table_id_name, tags_id) VALUES (?, ? )";
 
-	say STDERR $query;
+        say STDERR $query;
 
         $c->dbis->query( $query, $id, $tags_id );
     }
