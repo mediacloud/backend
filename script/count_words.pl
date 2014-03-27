@@ -1,6 +1,11 @@
 #!/usr/bin/env perl
 
-# efficiently count stemmed words
+# efficiently count stemmed words.
+
+# usage: count_words.pl [--port <port>] [--file <file>]
+
+# default mode is to run as a cgi script.  If --port is specified, run as a standlone server
+# on that port.  If --file is specified, count the words for the given file.
 
 package SolrCountServer;
 
@@ -11,6 +16,7 @@ use threads::shared;
 
 use Data::Dumper;
 use Encode;
+use Getopt::Long;
 use HTTP::Request::Common;
 use HTTP::Server::Simple::CGI;
 use IO::Socket::INET;
@@ -509,20 +515,29 @@ END
 # start word counting web service
 sub main
 {
-    my ( $arg ) = @ARGV;
+    my ( $port, $file );
+    
+    Getopt::Long::GetOptions(
+        "port=i"    => \$port,
+        "file=s"    => \$file
+    ) || return;
 
-    if ( !$arg || ( $arg =~ /^\d+$/ ) )
+    if ( $port )
     {
-        SolrCountServer->new( $arg )->run;
+        SolrCountServer->new( $port )->run;
     }
-    else
+    elsif ( $file )
     {
         my $fh = FileHandle::new;
-        $fh->open( '<' . $arg ) || die( "cannot open '$arg': $!" );
+        $fh->open( '<' . $file ) || die( "cannot open '$file': $!" );
         my $lines = [ <$fh> ];
         my $words = count_stems( $lines );
 
         print STDERR substr( Dumper( $words ), 0, 1024 ) . "\n";
+    }
+    else
+    {
+        count_words
     }
 }
 

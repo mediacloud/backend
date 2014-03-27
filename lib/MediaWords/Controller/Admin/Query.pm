@@ -40,7 +40,7 @@ sub wc : Local : PathPrefix( '/api' )
     my $q  = $c->req->parameters->{ 'q' };
     my $fq = $c->req->parameters->{ 'fq' };
 
-    my $words = MediaWords::Solr::count_words( { q => $q, fq => $fq } );
+    my $words = MediaWords::Solr::count_words( $q, $fq, [ 'en' ] );
 
     my $json = JSON::encode_json( $words );
 
