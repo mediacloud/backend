@@ -4,8 +4,8 @@
 
 <div class="boxtitle">
     Words
-    <a id="boxcommand" href="[% c.uri_for( '/search/wc', { 'q' => q, 'csv' => 1 } ) %]">CSV</a>
-    <a id="boxcommand" href="[% c.uri_for( '/search', { 'q' => q } ) %]">stories</a>
+    <a id="boxcommand" href="[% c.uri_for( '/search/wc', { 'q' => q, 'l' => l, 'csv' => 1 } ) %]">CSV</a>
+    <a id="boxcommand" href="[% c.uri_for( '/search', { 'q' => q, 'l' => l } ) %]">stories</a>
 </div>
 <table>
     <tr>

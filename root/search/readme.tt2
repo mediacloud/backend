@@ -1,0 +1,82 @@
+[% title = 'Search Query Instructions' %]
+[% INCLUDE include/header.tt2 %]
+
+<fieldset>
+
+<p>
+This search interface allows the user to direclty input a solr query.  The easiest way to query is simply by text.  To search for a single word, just enter that word:
+</p>
+
+<blockquote>
+trayvon
+</blockquote>
+
+<p>
+You can also use boolean and phrase searches, in any combination:
+</p>
+
+<blockquote>
+"trayvon martin"
++(trayvon OR treyvon) AND +martin
+</blockquote>
+
+<p>
+Note that when you enter more than one term in a boolean AND list, you have to include a + before each term to make each term required (otherwise solr will just search for stories with either element, with a preference for stories with both elements).
+</p>
+
+<p>
+In addition to searching by text, you can search by the following fields:
+
+<ul>
+<li>sentence (search by text -- this is the field that is searched by default when only text is entered)</li>
+<li>stories_id (internal id of each story)</li>
+<li>media_id (internal id of a media source (eg. nytimes.com) discoverable through the 'list media tags' link</li>
+<li>tags_id_media (all media associated with a media tag, discoverable through the 'list media tags' link</li>
+<li>tag_id_stories</li>
+<li>publish_date</li>
+</ul>
+
+<p>
+To search by a field, use the following format: <code>field_name:value</code>.  For example, to search for all nytimes.com 
+stories, use:
+</p>
+
+<blockquote>
+media_id:1
+</blockquote>
+
+<p>
+To search by date, you need to use a range in the following cumbersome format:
+</p>
+
+<blockquote>
+publish_date:[2013-01-01T00:00:00Z TO 2013-01-02T00:00:00Z]
+</blockquote>
+
+<p>
+As with text searches, the individual field values can be mixed in aribtrary boolean queries.  For example, here is a search for "trayvon martin" in the top 25 us msm during 2013:
+</p>
+
+<blockquote>
++"trayvon martin" AND +tags_id_media:8875027 AND +publish_date:[2013-01-01T00:00:00Z TO 2014-01-01T00:00:00Z]
+</blockquote>
+
+<p>
+Note that each required element has a + prefix to make it required.
+</p>
+
+<p>
+Note also that we gather content from a wide variety of U.S. and international media sources, so searches without a media_id: or tags_id_media: field are unlikely to be useful.
+</p>
+
+<p>
+The language field determines only the stemming and stopwording done for the word count list -- it does not
+determine which stories are returned.  By default, the word 
+counting returns a list of words stemmed and stopworded in English.  You can change this behavior by entering a list
+of two letter language codes, which will make the system stem and stopword each word by each of the listed languages.
+Languages currently supported are: da, de, en, es, fi, fr, hu, it, lt, nl, no, pt, ro, ru, sv, tr.   
+</p>
+
+</fieldset>
+
+[% INCLUDE include/footer.tt2 %]
