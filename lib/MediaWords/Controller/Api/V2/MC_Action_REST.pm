@@ -42,7 +42,8 @@ sub execute
 
     #say STDERR "before code";
 
-    if ( MediaWords::Util::Config::get_config->{ mediawords }->{ allow_unauthenticated_api_requests } ne 'yes' )
+    my $allow_unauth = MediaWords::Util::Config::get_config->{ mediawords }->{ allow_unauthenticated_api_requests } || 'no';
+    if ( $allow_unauth ne 'yes' )
     {
         return unless $self->_valid_api_key( $c );
     }

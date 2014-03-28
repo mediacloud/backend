@@ -139,6 +139,9 @@ sub _add_nested_data
             $story->{ stories_id }
         )->hashes;
         $story->{ story_tags } = $story_tags;
+
+        # say STDERR "story_tags";
+        # say STDERR Dumper($story->{ story_tags } );
     }
 
     return $stories;

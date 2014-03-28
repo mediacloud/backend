@@ -271,6 +271,7 @@ sub setup_acl()
               stories-edit
               cm
               stories-api
+              search
               /
         ]
     );
@@ -286,6 +287,8 @@ sub setup_acl()
 
     # we need to protect this with .htaccess until we can implement an easy to login via the api
     __PACKAGE__->allow_access( "/admin/api/stories" );
+    __PACKAGE__->allow_access( "/admin/query/sentences" );
+    __PACKAGE__->allow_access( "/admin/query/wc" );
 
 }
 
