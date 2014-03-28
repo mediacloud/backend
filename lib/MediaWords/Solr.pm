@@ -307,8 +307,6 @@ sub _get_remote_word_counts
     my $key = MediaWords::Util::Config::get_config->{ mediawords }->{ solr_wc_key };
     return undef unless ( $url && $key );
     
-    print STDERR "get remote word counts: $url\n";
-
     my $ua = MediaWords::Util::Web::UserAgent();
 
     $ua->timeout( 600 );

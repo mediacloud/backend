@@ -136,6 +136,12 @@ sub wc : Local
     my $q = $c->req->params->{ q };
     my $l = $c->req->params->{ l };
 
+    if ( !$q )
+    {
+        $c->stash->{ template } = 'search/wc.tt2';
+        return;
+    }
+
     my $languages = [ split( /\W/, $l )  ];
     
     if ( $q =~ /story_sentences_id|sentence_number/ )
