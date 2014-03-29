@@ -285,8 +285,22 @@ DISTRIBUTIONS
       Exporter 0
       ExtUtils::MakeMaker 6.17
       Fcntl 0
+      File::Basename 0
+      File::Find 0
+      File::Spec 0
+      File::Spec::Functions 0
+      File::Temp 0
+      Getopt::Long 0
+      IO::Dir 0
+      JSON::PP 0
+      List::Util 0
       Scalar::Util 0
+      Test::More 0.99
+      lib 0
       strict 0
+      utf8 0
+      vars 0
+      version 0
       warnings 0
   Cache-FastMmap-1.40
     pathname: R/RO/ROBM/Cache-FastMmap-1.40.tar.gz
@@ -3243,13 +3257,19 @@ DISTRIBUTIONS
       ExtUtils::Helpers::Windows 0.022
     requirements:
       Carp 0
+      Cwd 0
       Exporter 5.57
       ExtUtils::MakeMaker 6.30
       File::Basename 0
       File::Copy 0
+      File::Spec 0
       File::Spec::Functions 0
+      IO::Handle 0
+      IPC::Open3 0
       Module::Load 0
+      Test::More 0
       Text::ParseWords 3.24
+      lib 0
       strict 0
       warnings 0
   ExtUtils-InstallPaths-0.010
@@ -3261,6 +3281,11 @@ DISTRIBUTIONS
       ExtUtils::Config 0.002
       ExtUtils::MakeMaker 6.30
       File::Spec 0
+      File::Spec::Functions 0
+      File::Temp 0
+      IO::Handle 0
+      IPC::Open3 0
+      Test::More 0
       strict 0
       warnings 0
   ExtUtils-LibBuilder-0.04
@@ -4432,15 +4457,6 @@ DISTRIBUTIONS
       JSON::PP 2.27202
       Test::More 0.88
       Test::Without::Module 0.17
-  JSON-PP-2.27203
-    pathname: M/MA/MAKAMAKA/JSON-PP-2.27203.tar.gz
-    provides:
-      JSON::PP 2.27203
-      JSON::PP::Boolean 2.27203
-      JSON::PP::IncrParser 2.27203
-    requirements:
-      ExtUtils::MakeMaker 0
-      Test::More 0
   JSON-XS-3.01
     pathname: M/ML/MLEHMANN/JSON-XS-3.01.tar.gz
     provides:
@@ -4666,7 +4682,7 @@ DISTRIBUTIONS
     requirements:
       Carp 0
       Class::Data::Inheritable 0
-      ExtUtils::MakeMaker 6.92
+      ExtUtils::MakeMaker 6.94
       File::Spec 0
       Symbol 0
       Test::More 0
@@ -5601,7 +5617,7 @@ DISTRIBUTIONS
   MooseX-Types-DateTime-MoreCoercions-0.11
     pathname: I/IL/ILMARI/MooseX-Types-DateTime-MoreCoercions-0.11.tar.gz
     provides:
-      MooseX::Types::DateTime::MoreCoercions 0.11
+      MooseX::Types::DateTime::MoreCoercions undef
     requirements:
       DateTime 0.4302
       DateTime::Duration 0.4302
@@ -6128,8 +6144,15 @@ DISTRIBUTIONS
       Exporter 0
       ExtUtils::MakeMaker 6.30
       File::Spec 0.80
+      File::Spec::Functions 0
       JSON::PP 2.27200
+      List::Util 0
+      Test::More 0.47
+      lib 0
       strict 0
+      vars 0
+      version 0
+      warnings 0
   Parse-RecDescent-1.967009
     pathname: J/JT/JTBRAUN/Parse-RecDescent-1.967009.tar.gz
     provides:
@@ -7186,6 +7209,19 @@ DISTRIBUTIONS
       Test::Builder::Module 0
       Test::More 0.88
       perl 5.008_001
+  Test-Simple-1.001003
+    pathname: E/EX/EXODIST/Test-Simple-1.001003.tar.gz
+    provides:
+      Test::Builder 1.001003
+      Test::Builder::IO::Scalar 2.110
+      Test::Builder::Module 1.001003
+      Test::More 1.001003
+      Test::Simple 1.001003
+    requirements:
+      ExtUtils::MakeMaker 0
+      Scalar::Util 1.13
+      Test::Harness 2.03
+      perl 5.006
   Test-Strict-0.23
     pathname: S/SZ/SZABGAB/Test-Strict-0.23.tar.gz
     provides:
