@@ -310,6 +310,15 @@ DISTRIBUTIONS
     requirements:
       ExtUtils::MakeMaker 0
       Storable 0
+  Captcha-reCAPTCHA-0.97
+    pathname: P/PH/PHRED/Captcha-reCAPTCHA-0.97.tar.gz
+    provides:
+      Captcha::reCAPTCHA 0.97
+    requirements:
+      ExtUtils::MakeMaker 0
+      HTML::Tiny 0.904
+      LWP::UserAgent 0
+      Test::More 0
   Capture-Tiny-0.24
     pathname: D/DA/DAGOLDEN/Capture-Tiny-0.24.tar.gz
     provides:
@@ -3931,6 +3940,19 @@ DISTRIBUTIONS
       Storable 0
       Task::Weaken 0
       YAML::XS 0.32
+  HTML-FormFu-Element-reCAPTCHA-1.00
+    pathname: C/CF/CFRANKS/HTML-FormFu-Element-reCAPTCHA-1.00.tar.gz
+    provides:
+      HTML::FormFu::Constraint::reCAPTCHA 1.00
+      HTML::FormFu::Element::reCAPTCHA 1.00
+    requirements:
+      Captcha::reCAPTCHA 0.93
+      Clone 0.31
+      ExtUtils::MakeMaker 6.30
+      HTML::FormFu 1.00
+      Moose 1.00
+      MooseX::Attribute::Chained v1.0.1
+      Scalar::Util 0
   HTML-Format-2.11
     pathname: N/NI/NIGELM/HTML-Format-2.11.tar.gz
     provides:
@@ -4026,6 +4048,13 @@ DISTRIBUTIONS
       HTML::Tagset 3.20
     requirements:
       ExtUtils::MakeMaker 0
+  HTML-Tiny-1.05
+    pathname: A/AN/ANDYA/HTML-Tiny-1.05.tar.gz
+    provides:
+      HTML::Tiny 1.05
+    requirements:
+      ExtUtils::MakeMaker 0
+      Test::More 0
   HTML-TokeParser-Simple-3.16
     pathname: O/OV/OVID/HTML-TokeParser-Simple-3.16.tar.gz
     provides:

@@ -63,6 +63,7 @@ requires 'HTML::CruftText', '0.02';
 requires 'HTML::Entities';
 requires 'HTML::FormatText';
 requires 'HTML::FormFu';
+requires 'HTML::FormFu::Element::reCAPTCHA';
 requires 'HTML::LinkExtractor';
 requires 'HTML::Strip';
 requires 'HTML::TagCloud';
