@@ -74,7 +74,7 @@ requires 'Inline::Python';
 requires 'IPC::Run3';
 requires 'IPC::System::Simple';
 requires 'JSON';
-requires 'Lingua::Identify::CLD';
+requires 'Lingua::Identify::CLD', '0.08';
 requires 'Lingua::Sentence';
 requires 'Lingua::Stem';
 requires 'Lingua::Stem::Snowball';

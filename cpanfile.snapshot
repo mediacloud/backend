@@ -4530,10 +4530,10 @@ DISTRIBUTIONS
       perl 5.006
       strict 0
       warnings 0
-  Lingua-Identify-CLD-0.07
-    pathname: A/AM/AMBS/Lingua/Lingua-Identify-CLD-0.07.tar.gz
+  Lingua-Identify-CLD-0.08
+    pathname: A/AM/AMBS/Lingua/Lingua-Identify-CLD-0.08.tar.gz
     provides:
-      Lingua::Identify::CLD 0.07
+      Lingua::Identify::CLD 0.08
     requirements:
       Config::AutoConf 0.17
       ExtUtils::CBuilder 0.27
