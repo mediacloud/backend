@@ -18,13 +18,13 @@
 SET search_path = public, pg_catalog;
 
 
-CREATE TABLE corenlp_annotated_stories (
-    corenlp_annotated_stories_id    BIGSERIAL   PRIMARY KEY,
-    stories_id                      INT         NOT NULL REFERENCES stories ON DELETE CASCADE
-);
+INSERT INTO auth_roles (role, description) VALUES
+    ('search', 'Access to the /search pages');
 
-CREATE INDEX corenlp_annotated_stories_stories_id ON corenlp_annotated_stories ( stories_id );
 
+--
+-- 2 of 2. Reset the database version.
+--
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
@@ -49,4 +49,3 @@ LANGUAGE 'plpgsql';
 -- 2 of 2. Reset the database version.
 --
 SELECT set_database_schema_version();
-

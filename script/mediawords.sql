@@ -69,7 +69,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4445;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4446;
     
 BEGIN
 
@@ -2068,7 +2068,8 @@ INSERT INTO auth_roles (role, description) VALUES
     ('media-edit', 'Add / edit media; includes feeds.'),
     ('stories-edit', 'Add / edit stories.'),
     ('cm', 'Controversy mapper; includes media and story editing'),
-    ('stories-api', 'Access to the stories api');
+    ('stories-api', 'Access to the stories api'),
+    ('search', 'Access to the /search pages');
 
 --
 -- Activity log

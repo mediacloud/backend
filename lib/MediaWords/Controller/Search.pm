@@ -89,6 +89,7 @@ sub index : Path : Args(0)
     my ( $self, $c ) = @_;
 
     my $q = $c->req->params->{ q } || '';
+    my $l = $c->req->params->{ l };
 
     if ( !$q )
     {
@@ -103,9 +104,21 @@ sub index : Path : Args(0)
 
     my $num_sampled = $csv ? undef : 1000;
 
-    my ( $stories, $num_stories ) = MediaWords::Solr::search_for_stories_with_sentences( $db, { q => $q }, $num_sampled, 1 );
+    my ( $stories, $num_stories );
+    eval
+    {
+        ( $stories, $num_stories ) =
+          MediaWords::Solr::search_for_stories_with_sentences( $db, { q => $q }, $num_sampled, 1 );
+    };
 
-    if ( $csv )
+    if ( $@ =~ /solr.*Bad Request/ )
+    {
+        $c->stash->{ status_msg } = 'Cannot parse search query';
+        $c->stash->{ q }          = $q;
+        $c->stash->{ l }          = $l;
+        $c->stash->{ template }   = 'search/search.tt2';
+    }
+    elsif ( $csv )
     {
         map { delete( $_->{ sentences } ) } @{ $stories };
         my $encoded_csv = MediaWords::Util::CSV::get_hashes_as_encoded_csv( $stories );
@@ -120,6 +133,9 @@ sub index : Path : Args(0)
         $c->stash->{ stories }     = $stories;
         $c->stash->{ num_stories } = $num_stories;
         $c->stash->{ q }           = $q;
+        $c->stash->{ l }           = $l;
+        $c->stash->{ template }    = 'search/search.tt2';
+        $c->stash->{ q }           = $q;
         $c->stash->{ template }    = 'search/search.tt2';
     }
 }
@@ -130,6 +146,15 @@ sub wc : Local
     my ( $self, $c ) = @_;
 
     my $q = $c->req->params->{ q };
+    my $l = $c->req->params->{ l };
+
+    if ( !$q )
+    {
+        $c->stash->{ template } = 'search/wc.tt2';
+        return;
+    }
+
+    my $languages = [ split( /\W/, $l ) ];
 
     if ( $q =~ /story_sentences_id|sentence_number/ )
     {
@@ -138,9 +163,17 @@ sub wc : Local
 
     die( "missing q" ) unless ( $q );
 
-    my $words = MediaWords::Solr::count_words( { q => $q } );
+    my $words;
+    eval { $words = MediaWords::Solr::count_words( $q, undef, $languages ) };
 
-    if ( $c->req->params->{ csv } )
+    if ( $@ =~ /solr.*Bad Request/ )
+    {
+        $c->stash->{ status_msg } = 'Cannot parse search query';
+        $c->stash->{ q }          = $q;
+        $c->stash->{ l }          = $l;
+        $c->stash->{ template }   = 'search/wc.tt2';
+    }
+    elsif ( $c->req->params->{ csv } )
     {
         my $encoded_csv = MediaWords::Util::CSV::get_hashes_as_encoded_csv( $words );
 
@@ -153,6 +186,7 @@ sub wc : Local
     {
         $c->stash->{ words }    = $words;
         $c->stash->{ q }        = $q;
+        $c->stash->{ l }        = $l;
         $c->stash->{ template } = 'search/wc.tt2';
     }
 }
