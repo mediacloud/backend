@@ -34,9 +34,11 @@ sub main
         SELECT downloads_id
         FROM downloads AS d
             INNER JOIN stories AS s ON d.stories_id = s.stories_id
+            INNER JOIN media AS m ON s.media_id = m.media_id
         WHERE d.extracted = 't'
           AND d.type = 'content'
           AND d.state = 'success'
+          AND m.annotate_with_corenlp = 't'
 
           -- Stories with language field set to NULL are the ones fetched
           -- before introduction of the multilanguage support, so they are
@@ -54,13 +56,22 @@ sub main
 EOF
     )->hashes;
 
-    for my $download ( @{ $downloads } )
+    unless ( scalar @{ $downloads } )
     {
-
-        say STDERR 'Enqueueing download ID ' . $download->{ downloads_id } . ' for CoreNLP annotation...';
-        MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman( $download );
+        say STDERR "No downloads to enqueue were found; maybe you forgot to set media.annotate_with_corenlp = 't'?";
 
     }
+    else
+    {
+        for my $download ( @{ $downloads } )
+        {
+
+            say STDERR 'Enqueueing download ID ' . $download->{ downloads_id } . ' for CoreNLP annotation...';
+            MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman( $download );
+
+        }
+    }
+
 }
 
 main();

@@ -332,6 +332,10 @@ create table media (
     is_not_dup          boolean         null,
     use_pager           boolean         null,
     unpaged_stories     int             not null default 0,
+
+    -- Annotate stories from this media source with CoreNLP?
+    annotate_with_corenlp   BOOLEAN     NOT NULL DEFAULT(false),
+
     CONSTRAINT media_name_not_empty CHECK ( ( (name)::text <> ''::text ) ),
     CONSTRAINT media_self_dup CHECK ( dup_media_id IS NULL OR dup_media_id <> media_id )
 );

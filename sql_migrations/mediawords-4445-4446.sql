@@ -25,6 +25,9 @@ CREATE TABLE corenlp_annotated_stories (
 
 CREATE INDEX corenlp_annotated_stories_stories_id ON corenlp_annotated_stories ( stories_id );
 
+ALTER TABLE media
+    ADD COLUMN annotate_with_corenlp BOOLEAN     NOT NULL DEFAULT(false);
+
 
 --
 -- 2 of 2. Reset the database version.

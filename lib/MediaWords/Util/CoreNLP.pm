@@ -140,6 +140,26 @@ sub _get_english_language_story($$)
 {
     my ( $db, $stories_id ) = @_;
 
+    # Verify that the story's media is enabled for annotations
+    my $media = $db->query(
+        <<EOF,
+        SELECT media_id
+        FROM media
+        WHERE media_id = (
+            SELECT media_id
+            FROM stories
+            WHERE stories_id = ?
+        )
+          AND annotate_with_corenlp = 't'
+EOF
+        $stories_id
+    )->hash;
+    unless ( $media->{ media_id } )
+    {
+        # die() so the reason gets logged to the database
+        die "Story's $stories_id media either doesn't exist or is not enabled for annotations.";
+    }
+
     my $story = $db->query(
         <<EOF,
         SELECT *
