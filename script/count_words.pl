@@ -516,10 +516,10 @@ END
 sub main
 {
     my ( $port, $file );
-    
+
     Getopt::Long::GetOptions(
-        "port=i"    => \$port,
-        "file=s"    => \$file
+        "port=i" => \$port,
+        "file=s" => \$file
     ) || return;
 
     if ( $port )
@@ -537,7 +537,6 @@ sub main
     }
     else
     {
-        count_words
     }
 }
 
