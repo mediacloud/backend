@@ -23,6 +23,7 @@ use Carp;
 use MediaWords::Util::ExtractorFactory;
 use MediaWords::Util::HeuristicExtractor;
 use MediaWords::Util::CrfExtractor;
+use MediaWords::GearmanFunction::AnnotateWithCoreNLP;
 
 use Data::Dumper;
 
@@ -617,34 +618,41 @@ sub process_download_for_extractor($$$;$$$)
 {
     my ( $db, $download, $process_num, $no_dedup_sentences, $no_vector ) = @_;
 
+    # Extract
     say STDERR "[$process_num] extract: $download->{ downloads_id } $download->{ stories_id } $download->{ url }";
     my $download_text = MediaWords::DBI::DownloadTexts::create_from_download( $db, $download );
 
-    #say STDERR "Got download_text";
-
-    return if ( $no_vector );
-
-    my $remaining_download =
-      $db->query( "select downloads_id from downloads " . "where stories_id = ? and extracted = 'f' and type = 'content' ",
-        $download->{ stories_id } )->hash;
-    if ( !$remaining_download )
+    unless ( $no_vector )
     {
-        my $story = $db->find_by_id( 'stories', $download->{ stories_id } );
 
-        # my $tags = MediaWords::DBI::Stories::add_default_tags( $db, $story );
-        #
-        # say STDERR "[$process_num] download: $download->{downloads_id} ($download->{feeds_id}) ";
-        # while ( my ( $module, $module_tags ) = each( %{$tags} ) )
-        # {
-        #     say STDERR "[$process_num] $download->{downloads_id} $module: "
-        #       . join( ' ', map { "<$_>" } @{ $module_tags->{tags} } );
-        # }
+        # Vector
+        my $remaining_download = $db->query(
+            <<EOF,
+            SELECT downloads_id
+            FROM downloads
+            WHERE stories_id = ?
+              AND extracted = 'f'
+              AND type = 'content'
+EOF
+            $download->{ stories_id }
+        )->hash;
+        if ( !$remaining_download )
+        {
+            my $story = $db->find_by_id( 'stories', $download->{ stories_id } );
 
-        MediaWords::StoryVectors::update_story_sentence_words_and_language( $db, $story, 0, $no_dedup_sentences );
+            MediaWords::StoryVectors::update_story_sentence_words_and_language( $db, $story, 0, $no_dedup_sentences );
+        }
+        else
+        {
+            say STDERR "[$process_num] pending more downloads ...";
+        }
     }
-    else
+
+    my $media = get_medium( $db, $download );
+    if ( $media->{ annotate_with_corenlp } )
     {
-        say STDERR "[$process_num] pending more downloads ...";
+        # Enqueue for CoreNLP annotation
+        MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman( $download );
     }
 }
 
