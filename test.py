@@ -2,19 +2,15 @@
 
 import unittest
 
-from mediacloud.test.apitest import ApiTest
-from mediacloud.test.storagetest import CouchStorageTest
-from mediacloud.test.storagetest import MongoStorageTest
-from mediacloud.test.mediatest import MediaTest
+from mediacloud.test.apitest import ApiMediaTest, ApiMediaSetTest, ApiFeedsTest, ApiDashboardsTest, ApiTagsTest, ApiTagSetsTest, ApiStoriesTest, ApiWordCountTest, ApiSentencesTest
+from mediacloud.test.storagetest import CouchStorageTest, MongoStorageTest
 
-suite = unittest.TestLoader().loadTestsFromTestCase(MediaTest)
-unittest.TextTestRunner(verbosity=2).run(suite)
+test_classes = [
+	ApiMediaTest, ApiMediaSetTest, ApiFeedsTest, ApiDashboardsTest, ApiTagsTest, ApiTagSetsTest, 
+	ApiStoriesTest, ApiWordCountTest, ApiSentencesTest,
+	CouchStorageTest, MongoStorageTest
+]
 
-suite = unittest.TestLoader().loadTestsFromTestCase(ApiTest)
-unittest.TextTestRunner(verbosity=2).run(suite)
-
-suite = unittest.TestLoader().loadTestsFromTestCase(CouchStorageTest)
-unittest.TextTestRunner(verbosity=2).run(suite)
-
-suite = unittest.TestLoader().loadTestsFromTestCase(MongoStorageTest)
-unittest.TextTestRunner(verbosity=2).run(suite)
+for test_class in test_classes:
+	suite = unittest.TestLoader().loadTestsFromTestCase(test_class)
+	unittest.TextTestRunner(verbosity=1).run(suite)

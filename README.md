@@ -1,8 +1,9 @@
 MediaCloud Python API Client
 ============================
 
-This is the source code of the python MediaCloud API client module.  This client is still 
-*under construction*, because so is the API.
+This is the source code of the python client for the [MediaCloud API v2](https://github.com/berkmancenter/mediacloud/blob/master/doc/api_2_0_spec/api_2_0_spec.md).
+
+*You need an API key to use this, so be sure to ask us for one first!*
 
 Installation
 ------------
@@ -26,8 +27,8 @@ Examples
 Get a list of all the sentences from the US mainstream media that mentioned "Zimbabwe" and "president" in 2013:
 ```python
 import mediacloud
-mc = mediacloud.api.MediaCloud('MY_USERNAME','MY_PASSWORD')
-res = mc.sentencesMatching('( zimbabwe AND president)', '+publish_date:[2013-01-01T00:00:00Z TO 2013-12-31T00:00:00Z] AND +media_sets_id:1')
+mc = mediacloud.api.MediaCloud('MY_API_KEY')
+res = mc.sentences('( zimbabwe AND president)', '+publish_date:[2013-01-01T00:00:00Z TO 2013-12-31T00:00:00Z] AND +media_sets_id:1')
 print res['response']['numFound'] # prints the number of sentences found
 ```
 
@@ -43,7 +44,7 @@ To find out all the details about one particular story by id:
 ```python
 import mediacloud
 mc = mediacloud.api.MediaCloud('MY_USERNAME','MY_PASSWORD')
-story = mc.storyDetails(169440976)
+story = mc.story(169440976)
 print story['url']  # prints the url the story came from
 ```
 

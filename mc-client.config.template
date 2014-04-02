@@ -1,6 +1,5 @@
 [api]
-user: username
-pass: password
+key: api_v2_key
 
 [db]
 user: username
