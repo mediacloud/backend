@@ -33,11 +33,23 @@ insert into _revector_stories select stories_id from scratch.revector_stories li
 END
 
         return unless ( @{ $stories_ids } );
+        
+        my $stories_id_list = join( ',', @{ $stories_ids } );
+        my $stories = $db->query( <<END )->hashes;
+select s.*, string_agg( dt.download_text, E'.\n\n' ) story_text
+    from stories s
+        join downloads d on ( d.stories_id = s.stories_id ) 
+        join download_texts dt on ( dt.downloads_id = d.downloads_id )
+    where
+        s.stories_id in ( $stories_id_list )
+    group by s.stories_id
+END
 
-        for my $stories_id ( @{ $stories_ids } )
+        for my $story ( @{ $stories } )
         {
-            my $story = $db->find_by_id( 'stories', $stories_id );
-            MediaWords::StoryVectors::update_story_sentence_words_and_language( $db, $story );
+            # prevent usswal from refetching empty download_texts
+            $story->{ story_text } ||= ' ';
+            MediaWords::StoryVectors::update_story_sentence_words_and_language( $db, $story, 1 );
         }
 
         $db->query( <<END );
