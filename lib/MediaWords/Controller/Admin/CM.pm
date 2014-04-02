@@ -22,7 +22,6 @@ use base 'Catalyst::Controller::HTML::FormFu';
 
 sub index : Path : Args(0)
 {
-
     return list( @_ );
 }
 
