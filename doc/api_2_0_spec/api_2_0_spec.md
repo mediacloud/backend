@@ -218,6 +218,8 @@ URL: http://www.mediacloud.org/api/v2/feeds/single/1
 
 | Parameter            | Default    | Notes
 | -------------------- | ---------- | -----------------------------------------------------------------
+| `last_feeds_id`      | 0          | Return feeds in which `feeds_id` is greater than this value
+| `rows`               | 20         | Number of feeds to return. Cannot be larger than 100
 | `media_id`           | (required) | Return feeds belonging to the media source
 
 #### Example
