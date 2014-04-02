@@ -2,8 +2,8 @@
 
 import unittest
 
-from mediacloud.test.apitest import ApiMediaTest, ApiMediaSetTest, ApiFeedsTest, ApiDashboardsTest, ApiTagsTest, ApiTagSetsTest, ApiStoriesTest, ApiWordCountTest, ApiSentencesTest
-from mediacloud.test.storagetest import CouchStorageTest, MongoStorageTest
+from mediacloud.test.apitest import *
+from mediacloud.test.storagetest import *
 
 test_classes = [
 	ApiMediaTest, ApiMediaSetTest, ApiFeedsTest, ApiDashboardsTest, ApiTagsTest, ApiTagSetsTest, 
