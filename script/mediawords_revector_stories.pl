@@ -29,7 +29,7 @@ sub main
     {
         $db->query( "create temporary table _revector_stories ( stories_id int )" );
         my $stories_ids = $db->query( <<END )->flat;
-insert into _revector_stories select stories_id from scratch.revector_stories limit 100 returning *
+insert into _revector_stories select stories_id from scratch.revector_stories order by stories_id desc limit 100 returning *
 END
 
         return unless ( @{ $stories_ids } );
