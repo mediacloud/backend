@@ -6,9 +6,10 @@ import time
 import json
 import pysolr
 
-def py_solr_connection:
-    get_solr_collection_url_prefix()
-    return 
+def py_solr_connection():
+    solr = pysolr.Solr(get_solr_collection_url_prefix(), timeout=10)
+    
+    return solr
 
 def get_solr_location():
     ##TODO -- get this from the yaml file
