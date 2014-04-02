@@ -4,6 +4,11 @@ import psycopg2
 import psycopg2.extras
 import time
 import json
+import pysolr
+
+def py_solr_connection:
+    get_solr_collection_url_prefix()
+    return 
 
 def get_solr_location():
     ##TODO -- get this from the yaml file
