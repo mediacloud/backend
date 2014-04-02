@@ -482,13 +482,20 @@ sub update_story_sentence_words_and_language
         # Insert the sentence into the database
         _insert_story_sentence( $db, $story, $sentence_num, $sentence, $sentence_lang );
 
-        my $word_counts_for_sentence =
-          _get_stem_word_counts_for_sentence( $sentences->[ $sentence_num ], $sentence_lang, $story_lang );
-
-        $sentence_word_counts->{ $sentence_num } = $word_counts_for_sentence;
+        # skip SSW if env var is set
+        if ( !$ENV{ MC_SKIP_SSW } )
+        {
+            my $word_counts_for_sentence =
+              _get_stem_word_counts_for_sentence( $sentences->[ $sentence_num ], $sentence_lang, $story_lang );
+            $sentence_word_counts->{ $sentence_num } = $word_counts_for_sentence;
+        }
     }
 
-    _insert_story_sentence_words( $db, $story, $sentence_word_counts );
+    # we're obsoleting ssw, so only create ssw data for current stories
+    if ( !$ENV{ MC_SKIP_SSW } )
+    {
+        _insert_story_sentence_words( $db, $story, $sentence_word_counts );
+    }
 
     $db->dbh->{ AutoCommit } || $db->commit;
 }

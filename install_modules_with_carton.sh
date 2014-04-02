@@ -33,7 +33,23 @@ mkdir -p local/
 # Install the rest of the modules; run the command twice because the first
 # attempt might fail
 source ./script/set_java_home.sh
-JAVA_HOME=$JAVA_HOME ./script/run_carton.sh install --deployment || { echo "First attempt to install CPAN modules might fail"; }
-JAVA_HOME=$JAVA_HOME ./script/run_carton.sh install --deployment
+JAVA_HOME=$JAVA_HOME ./script/run_carton.sh install --deployment || {
+    echo "First attempt to install CPAN modules failed, trying again..."
+
+    # Sometimes Carton fails with:
+    #
+    # <...>
+    # ! Installing the dependencies failed: Module 'Spiffy' is not installed
+    # ! Bailing out the installation for Test-Base-0.62.
+    # <...>
+    # ! Bailing out the installation for ...
+    # <...>
+    #
+    # so we're installing Spiffy manually
+    ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ Spiffy
+
+    # Try again
+    JAVA_HOME=$JAVA_HOME ./script/run_carton.sh install --deployment
+}
 
 echo "Successfully installed Perl and modules for Media Cloud"
