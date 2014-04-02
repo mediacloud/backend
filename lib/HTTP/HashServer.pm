@@ -87,7 +87,9 @@ sub stop
 {
     my ( $self ) = @_;
 
-    kill( 15, $self->{ pid } );
+    say STDERR "Stopping server with PID " . $self->{ pid } . " from PID $$";
+
+    kill( 'KILL', $self->{ pid } );
 }
 
 # we have to override this so that we can allow the /die request
