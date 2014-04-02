@@ -445,8 +445,6 @@ sub update_story_sentence_words_and_language
     my $sentence_word_counts;
     my $story = _get_story( $db, $story_ref );
 
-    print STDERR "update_ssw: $story_ref->{ stories_id }\n";
-
     unless ( $no_delete )
     {
         $db->query( "DELETE FROM story_sentence_words WHERE stories_id = ?",        $story->{ stories_id } );
