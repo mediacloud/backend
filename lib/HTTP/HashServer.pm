@@ -26,6 +26,7 @@ use HTML::Entities;
 use HTTP::Server::Simple;
 use HTTP::Server::Simple::CGI;
 use LWP::Simple;
+use Encode;
 
 use base qw(HTTP::Server::Simple::CGI);
 
@@ -86,7 +87,9 @@ sub stop
 {
     my ( $self ) = @_;
 
-    kill( 15, $self->{ pid } );
+    say STDERR "Stopping server with PID " . $self->{ pid } . " from PID $$";
+
+    kill( 'KILL', $self->{ pid } );
 }
 
 # we have to override this so that we can allow the /die request
@@ -159,6 +162,8 @@ END
     {
         my $header  = $page->{ header }  || 'Content-Type: text/html; charset=UTF-8';
         my $content = $page->{ content } || "<body><html>Filler content for $path</html><body>";
+        $content = encode( 'utf-8', $content );
+
         print <<END;
 HTTP/1.0 200 OK
 $header

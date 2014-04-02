@@ -12,6 +12,7 @@
 # handles and have other side effects
 
 use strict;
+use warnings;
 
 BEGIN
 {
@@ -130,7 +131,7 @@ sub main
 
     my $ua = MediaWords::Util::Web::UserAgent();
 
-    my $requests = get_scheduled_requests( $requests, $per_domain_timeout );
+    $requests = get_scheduled_requests( $requests, $per_domain_timeout );
     my $start_time = time;
 
     my $i     = 0;
