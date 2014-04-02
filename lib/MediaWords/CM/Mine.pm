@@ -711,6 +711,7 @@ END
 }
 
 # return the type of match if the story title, url, description, or sentences match controversy search pattern.
+# return undef if no match is found.
 sub story_matches_controversy_pattern
 {
     my ( $db, $controversy, $story, $metadata_only ) = @_;
