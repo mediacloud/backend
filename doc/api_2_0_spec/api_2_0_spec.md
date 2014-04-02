@@ -44,7 +44,7 @@ Response:
     "url": "http:\/\/nytimes.com",
     "name": "New York Times",
     "media_id": 1,
-    "tags": [
+    "media_source_tags": [
       {
         "tags_id": 1,
         "tag_sets_id": 1,
@@ -363,7 +363,7 @@ URL: http://www.mediacloud.org/api/v2/stories/single/27456565
     "stories_id": 27456565,
     "story_texts_id": null,
     "story_text": " \t\t\t\t\t\tMyanmar's new flag and new name\t\t    The new flag, designated in the 2008 Constitution, has a central star set against a yellow, green and red background.   The old flags will be lowered by government department officials who were born on a Tuesday, while the new flags will be raised by officials born on a Wednesday.   <SENTENCES SKIPPED BECAUSE OF SPACE REASONS> You know That big white star is also the only star on the colors of Myanmar's tatmadaw, navy, air force and police force. This flag represent only the armed forces.  ",
-    "tags": [ 1234235 ],
+    "story_tags": [ 1234235 ],
     "story_sentences": [
       {
         "language": "en",
