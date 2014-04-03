@@ -30,6 +30,15 @@ BEGIN
     use lib "$FindBin::Bin/../python_scripts/gen-perl";
 }
 
+BEGIN
+{
+    use FindBin;
+    use lib "$FindBin::Bin/../lib";
+}
+
+use MediaWords::Thrift::SolrFacets;
+
+
 use Thrift;
 use Thrift::BinaryProtocol;
 use Thrift::Socket;
@@ -45,7 +54,7 @@ use 5.14.1;
 
 use Data::Dumper;
 
-sub get_transport
+sub _get_transport
 {
     my $socket = new Thrift::Socket( 'localhost', 9090 );
     my $transport = new Thrift::BufferedTransport( $socket, 1024, 1024 );
@@ -53,7 +62,7 @@ sub get_transport
     return $transport;
 }
 
-sub get_client
+sub _get_client
 {
     my ( $transport ) = @_;
 
@@ -67,8 +76,8 @@ sub get_media_counts
 {
     my ( $q, $facet_field, $fq, $mincount ) = @_;
 
-    my $transport = get_transport();
-    my $client    = get_client( $transport);
+    my $transport = _get_transport();
+    my $client    = _get_client( $transport);
 
     $transport->open();
 
@@ -91,7 +100,7 @@ eval {
 
     $fq = [ 'media_id:1' ];
 
-    my $counts = get_media_counts( $q, $facet_field, $fq, $mincount );
+    $counts = get_media_counts( $q, $facet_field, $fq, $mincount );
 
     say Dumper( $counts );
 
