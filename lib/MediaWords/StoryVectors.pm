@@ -124,12 +124,13 @@ END
     eval { $db->dbh->do( $copy ) };
     die( " Error on copy for story_sentences: $@" ) if ( $@ );
 
+    my $csv = Text::CSV_XS->new( { binary => 1 } );
+
     for my $sentence ( @{ $sentences } )
     {
-        my $csv = Text::CSV_XS->new( { binary => 1 } );
         $csv->combine( map { $sentence->{ $_ } } @{ $fields } );
         eval { $db->dbh->pg_putcopydata( $csv->string . "\n" ) };
-        
+
         die( " Error on pg_putcopydata for story_sentences: $@" ) if ( $@ );
     }
 
@@ -154,7 +155,7 @@ sub limit_string_length
 sub insert_story_sentence_counts
 {
     my ( $db, $story, $md5s ) = @_;
-    
+
     my $fields = [ qw/sentence_md5 media_id publish_week first_stories_id first_sentence_number sentence_count/ ];
     my $field_list = join( ',', @{ $fields } );
 
@@ -166,14 +167,14 @@ END
     eval { $db->dbh->do( $copy ) };
     die( " Error on copy for story_sentence_counts: $@" ) if ( $@ );
 
+    my $csv = Text::CSV_XS->new( { binary => 1 } );
 
     my $i = 0;
     for my $md5 ( @{ $md5s } )
     {
-        my $csv = Text::CSV_XS->new( { binary => 1 } );
         $csv->combine( $md5, $story->{ media_id }, $publish_week, $story->{ stories_id }, $i++, 1 );
         eval { $db->dbh->pg_putcopydata( $csv->string . "\n" ) };
-        
+
         die( " Error on pg_putcopydata for story_sentence_counts: $@" ) if ( $@ );
     }
 
@@ -199,15 +200,16 @@ sub get_deduped_sentences
     my ( $db, $story, $sentences ) = @_;
 
     my $sentence_md5_lookup = {};
-    my $i = 0;
+    my $i                   = 0;
     for my $sentence ( @{ $sentences } )
     {
-        my $sentence_data = { md5 => Digest::MD5::md5_hex( encode( 'utf8', $sentence ) ), sentence => $sentence, num => $i++ }; 
+        my $sentence_data =
+          { md5 => Digest::MD5::md5_hex( encode( 'utf8', $sentence ) ), sentence => $sentence, num => $i++ };
         $sentence_md5_lookup->{ $sentence_data->{ md5 } } = $sentence_data;
     }
-    
+
     my $sentence_md5_list = join( ',', map { "'$_'" } keys %{ $sentence_md5_lookup } );
-    
+
     my $sentence_dup_info = $db->query( <<END, $story->{ media_id }, $story->{ publish_date } )->hashes;
 SELECT min( story_sentence_counts_id) story_sentence_counts_id, sentence_md5
         FROM story_sentence_counts
@@ -225,8 +227,8 @@ END
     }
 
     my $deduped_sentence_data = [ sort { $a->{ num } <=> $b->{ num } } values( %{ $sentence_md5_lookup } ) ];
-    my $deduped_md5s = [ map { $_->{ md5 } } @{ $deduped_sentence_data } ];
-    my $deduped_sentences = [ map { $_->{ sentence } } @{ $deduped_sentence_data } ];
+    my $deduped_md5s          = [ map  { $_->{ md5 } } @{ $deduped_sentence_data } ];
+    my $deduped_sentences     = [ map  { $_->{ sentence } } @{ $deduped_sentence_data } ];
 
     if ( @{ $story_sentence_counts_ids } )
     {
@@ -239,7 +241,7 @@ END
     }
 
     insert_story_sentence_counts( $db, $story, $deduped_md5s );
-    
+
     return $deduped_sentences;
 }
 
@@ -471,8 +473,8 @@ sub update_story_sentence_words_and_language
 
     # Identify the language of the full story
     my $story_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $story_text, $story_tld );
-    
-    if ( !$story->{ language } || ( $story_lang ne $story->{ language }  ) )
+
+    if ( !$story->{ language } || ( $story_lang ne $story->{ language } ) )
     {
         $db->query( "UPDATE stories SET language = ? WHERE stories_id = ?", $story_lang, $story->{ stories_id } );
     }
@@ -505,13 +507,13 @@ sub update_story_sentence_words_and_language
 
         # Insert the sentence into the database
         my $sentence_ref = {};
-        $sentence_ref->{ sentence } = $sentence;
-        $sentence_ref->{ language } = $sentence_lang;
+        $sentence_ref->{ sentence }        = $sentence;
+        $sentence_ref->{ language }        = $sentence_lang;
         $sentence_ref->{ sentence_number } = $sentence_num;
-        $sentence_ref->{ stories_id } = $story->{ stories_id };
-        $sentence_ref->{ media_id } = $story->{ media_id };
-        $sentence_ref->{ publish_date } = $story->{ publish_date };
-        
+        $sentence_ref->{ stories_id }      = $story->{ stories_id };
+        $sentence_ref->{ media_id }        = $story->{ media_id };
+        $sentence_ref->{ publish_date }    = $story->{ publish_date };
+
         push( @{ $sentence_refs }, $sentence_ref );
 
         # skip SSW if env var is set
