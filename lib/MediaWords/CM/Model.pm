@@ -12,6 +12,7 @@ use Statistics::Basic;
 use MediaWords::CM::Dump;
 use MediaWords::Util::Config;
 use MediaWords::Util::SQL;
+use MediaWords::Util::Tags;
 
 # percentage of media sources in a given dump for which to generate a confidence interval
 use constant MODEL_PERCENT_TOP_MEDIA => 10;
