@@ -1,8 +1,6 @@
 import sys
 import glob
-sys.path.append("gen-py") 
-#sys.path.append('/home/dlarochelle/git_dev/mediacloud/python_scripts/gen-py')
-#sys.path.insert(0, glob.glob('/home/dlarochelle/bin/thrift-0.9.1/lib/py/build/lib.*')[0])
+sys.path.append("python_scripts/gen-py") 
 
 from thrift.transport import TSocket 
 from thrift.server import TServer 
