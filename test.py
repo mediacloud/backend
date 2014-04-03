@@ -13,4 +13,4 @@ test_classes = [
 
 for test_class in test_classes:
 	suite = unittest.TestLoader().loadTestsFromTestCase(test_class)
-	unittest.TextTestRunner(verbosity=1).run(suite)
+	unittest.TextTestRunner(verbosity=2).run(suite)

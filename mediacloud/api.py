@@ -46,11 +46,12 @@ class MediaCloud(object):
         '''
         return self._queryForJson(self.V2_API_URL+'feeds/single/'+str(feeds_id))[0]
 
-    def feedList(self, media_id):
+    def feedList(self, media_id, last_feeds_id=0, rows=20):
         '''
-        List all the feeds of one media source
+        Page through all the feeds of one media source
         '''
-        return self._queryForJson(self.V2_API_URL+'feeds/list', { 'media_id':media_id} )
+        return self._queryForJson(self.V2_API_URL+'feeds/list', 
+            { 'media_id':media_id, 'last_feeds_id':last_feeds_id, 'rows':rows} )
 
     def dashboard(self, dashboards_id, nested_data=True):
         '''
