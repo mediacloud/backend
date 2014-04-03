@@ -710,7 +710,8 @@ END
     return $ss ? 1 : 0;
 }
 
-# return true if the story title, url, description, or sentences match controversy search pattern
+# return the type of match if the story title, url, description, or sentences match controversy search pattern.
+# return undef if no match is found.
 sub story_matches_controversy_pattern
 {
     my ( $db, $controversy, $story, $metadata_only ) = @_;
@@ -718,6 +719,8 @@ sub story_matches_controversy_pattern
     my $query_story_search = $db->find_by_id( 'query_story_searches', $controversy->{ query_story_searches_id } );
 
     my $perl_re = $query_story_search->{ pattern };
+
+    # translate from postgres to perl regex
     $perl_re =~ s/\[\[\:[\<\>]\:\]\]/[^a-z]/g;
     for my $field ( qw/title description url redirect_url/ )
     {

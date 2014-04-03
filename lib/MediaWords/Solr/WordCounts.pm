@@ -33,9 +33,7 @@ sub blank_dup_lines
 {
     my ( $lines, $dup_lines ) = @_;
 
-    map {
-        $dup_lines->{ $_ } ? ( $_ = '' ) : ( $dup_lines->{ $_ } = 1 );
-    } @{ $lines };
+    map { $dup_lines->{ $_ } ? ( $_ = '' ) : ( $dup_lines->{ $_ } = 1 ); } @{ $lines };
 }
 
 # parse the text and return a count of stems and terms in the sentence in the
@@ -81,9 +79,9 @@ sub count_stems
 
     for my $lang ( @{ $languages } )
     {
-        my $language  = MediaWords::Languages::Language::language_for_code( $lang );
+        my $language = MediaWords::Languages::Language::language_for_code( $lang );
         next unless ( $language );
-        
+
         $stems = $language->stem( @{ $stems } );
     }
 
@@ -118,8 +116,9 @@ sub get_solr_params_hash
     my ( $q, $fqs ) = @_;
 
     my $params = { q => $q, fl => 'sentence' };
-    
+
     $fqs ||= [];
+    $fqs = [ $fqs ] unless ( ref( $fqs ) );
     for my $fq ( @{ $fqs } )
     {
         push( @{ $params->{ fq } }, $fq );
@@ -161,8 +160,8 @@ sub get_solr_results_socket
         return $fh;
     }
 
-    my $url = MediaWords::Util::Config::get_config->{ mediawords }->{ solr_select_url };
-    my $uri = URI->new( $url );
+    my $url  = MediaWords::Util::Config::get_config->{ mediawords }->{ solr_select_url };
+    my $uri  = URI->new( $url );
     my $host = $uri->host;
     my $port = $uri->port;
 
@@ -254,13 +253,13 @@ sub merge_block_words
 sub get_stopworded_counts
 {
     my ( $words, $languages ) = @_;
-    
-    for my $lang ( @{ $languages } ) 
+
+    for my $lang ( @{ $languages } )
     {
         my $language = MediaWords::Languages::Language::language_for_code( $lang );
-        
-        next unless( $language );
-        
+
+        next unless ( $language );
+
         my $stopstems = $language->get_long_stop_word_stems();
 
         my $stopworded_words = [];
@@ -284,9 +283,9 @@ sub get_stopworded_counts
 sub words_from_solr_server
 {
     my ( $q, $fqs, $languages, $file ) = @_;
-    
+
     $languages = [ 'en' ] unless ( $languages && @{ $languages } );
-    
+
     print STDERR "generating word hash ...\n";
     print STDERR Dumper( $q, $fqs, $languages );
 
@@ -297,8 +296,8 @@ sub words_from_solr_server
     my $socket = get_solr_results_socket( $q, $fqs, $file );
 
     my $line_block_size = 500;
-    my $dup_lines = {};
-    my $words = {};
+    my $dup_lines       = {};
+    my $words           = {};
 
     # grab a block of lines at a time from solr, count the stems, and then grab more lines.
     # this lets us do stem counting while solr is generating more results.
@@ -350,6 +349,5 @@ sub words_from_solr_server
 
     return get_stopworded_counts( $counts, $languages );
 }
-
 
 1;
