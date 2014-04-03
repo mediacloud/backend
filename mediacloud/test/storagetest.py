@@ -45,21 +45,21 @@ class StorageTest(unittest.TestCase):
         self.assertNotEqual(saved_story,None)
         self.assertEquals(int(saved_story['_id']), story_sentences[0]['stories_id'])
         self.assertEquals(saved_story['story_sentences_count'], 20)
-        self.assertEquals(len(saved_story['sentences']), 20)
+        self.assertEquals(len(saved_story['story_sentences']), 20)
         # load up second page of sentences in story
         story_sentences = self._getFakeStorySentences(2)['207593389']
         self.assertEquals(len(story_sentences),6)
         worked = db.addStoryFromSentences(story_sentences)
         # make sure update merged the sentences right
         saved_story = db.getStory(str(story_sentences[0]['stories_id']))
-        self.assertEquals(len(saved_story['sentences']), 26)
+        self.assertEquals(len(saved_story['story_sentences']), 26)
         self.assertEquals(saved_story['story_sentences_count'], 26)
         # now add some extra attributes
         story_sentences = self._getFakeStorySentences(2)['207593389']
         self.assertEquals(len(story_sentences),6)
         worked = db.addStoryFromSentences(story_sentences, {'group':'test2'})
         saved_story = db.getStory(str(story_sentences[0]['stories_id']))
-        self.assertEquals(len(saved_story['sentences']), 26)
+        self.assertEquals(len(saved_story['story_sentences']), 26)
         self.assertEquals(saved_story['story_sentences_count'], 26)
         self.assertEquals(saved_story['group'], 'test2')
 
@@ -73,7 +73,7 @@ class StorageTest(unittest.TestCase):
         saved_story = db.getStory(str(story['stories_id']))
         self.assertNotEqual(saved_story,None)
         self.assertEquals(int(saved_story['_id']), story['stories_id'])
-        self.assertEquals(saved_story['story_sentences_count'], 2)
+        self.assertEquals(saved_story['story_sentences_count'], 4)
         db.deleteDatabase(self.TEST_DB_NAME)
 
     def _checkStoryExistsInDb(self, db):
@@ -92,29 +92,14 @@ class StorageTest(unittest.TestCase):
         story1['stories_id'] = "20000000000"
         db.createDatabase(self.TEST_DB_NAME)
         db.initialize()
-        #self.assertEquals(db.getMaxStoryId(),0)
         db.addStory(story1)
         db.addStory(story2)
         self.assertEquals(db.getMaxStoryId(),20000000000)
         db.deleteDatabase(self.TEST_DB_NAME)           
 
     def _getFakeStory(self):
-        story_attributes = {
-          'stories_id': 1234,
-          'title': 'my test story',
-          'url': 'www.myserver.com',
-          'media_id': 4321,
-          'collect_date': '9/2/12',
-          'publish_date': '9/2/12',
-          'description': 'This is my awesome test story for testing everything.',
-          'guid': '23445654634615',
-          'fully_extracted': 1,
-          'story_sentences': [
-            'sentence1',
-            'sentence2',
-           ],
-        }
-        return story_attributes
+        my_file = open(os.path.dirname(os.path.realpath(__file__))+'/fixtures/story_27456565.json', 'r')
+        return json.loads( my_file.read() )
 
     def _getFakeStorySentences(self,page=1):
         my_file = open(os.path.dirname(os.path.realpath(__file__))+'/fixtures/sentences_by_story_'+str(page)+'.json', 'r')

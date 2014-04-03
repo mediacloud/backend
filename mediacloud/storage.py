@@ -38,54 +38,38 @@ class StoryDatabase(object):
                 'media_id': story_sentences[0]['media_id'],
                 'publish_date': story_sentences[0]['publish_date'],
                 'language': story_sentences[0]['language'],
-                'sentences': sentences_by_number,
+                'story_sentences': sentences_by_number,
                 'story_sentences_count': len(sentences_by_number)
             }
             self._saveStory( dict(story_attributes.items() + extra_attributes.items()) )
         else:
             # if the story exists already, add any new sentences
             story = self.getStory(stories_id)
-            all_sentences = dict(story['sentences'].items() + sentences_by_number.items())
+            all_sentences = dict(story['story_sentences'].items() + sentences_by_number.items())
             story_attributes = {
                 '_id': str(stories_id),
-                'sentences': all_sentences,
+                'story_sentences': all_sentences,
                 'story_sentences_count': len(all_sentences)
             }
             self._updateStory( dict(story_attributes.items() + extra_attributes.items()) )
         return True
 
-    def addStory(self, story, save_extracted_text=False, save_raw_download=False, save_story_sentences=False):
+    def addStory(self, story, extra_attributes={}):
         ''' 
-        DEPRECATED!!!
         Save a story (python object) to the database.  Return success or failure boolean.
         '''
         from pubsub import pub
         if self.storyExists(str(story['stories_id'])):
             return False
-        story_attributes = {
-          '_id': str(story['stories_id']),
-          'title': story['title'],
-          'url': story['url'],
-          'media_id': story['media_id'],
-          'collect_date': story['collect_date'],
-          'publish_date': story['publish_date'],
-          'description': story['description'],
-          'guid': story['guid'],
-          'fully_extracted': story['fully_extracted'],
-          'stories_id': story['stories_id'],
-        }
-        if( (save_extracted_text==True) and ('story_text' in story) ):
-            story_attributes['story_text'] = story['story_text']
-        if( (save_raw_download==True) and ('first_raw_download_file' in story) ):
-            story_attributes['first_raw_download_file'] = story['first_raw_download_file']
-        if('story_sentences' in story):
-            story_attributes['story_sentences_count'] = len(story['story_sentences'])
-            if( save_story_sentences==True ):
-                story_attributes['story_sentences'] = story['story_sentences']
-        pub.sendMessage(self.EVENT_PRE_STORY_SAVE, db_story=story_attributes, raw_story=story)
-        self._saveStory(story_attributes)
+        story_to_save = copy.deepcopy( story )
+        story_to_save = dict(story_to_save.items() + extra_attributes.items())
+        story_to_save['_id'] = str(story['stories_id'])
+        if 'story_sentences' in story:
+            story_to_save['story_sentences_count'] = len(story['story_sentences'])
+        pub.sendMessage(self.EVENT_PRE_STORY_SAVE, db_story=story_to_save, raw_story=story)
+        self._saveStory( story_to_save )
         saved_story = self.getStory( str(story['stories_id']) )
-        pub.sendMessage(self.EVENT_POST_STORY_SAVE, db_story=story_attributes, raw_story=story)
+        pub.sendMessage(self.EVENT_POST_STORY_SAVE, db_story=saved_story, raw_story=story)
         return True
 
     def _updateStory(self, story_attributes):

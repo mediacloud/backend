@@ -6,6 +6,6 @@ mediacloud/storage.py
 mediacloud/test/__init__.py
 mediacloud/test/apitest.py
 mediacloud/test/storagetest.py
-mediacloud/test/fixtures/all_processed.json
+mediacloud/test/fixtures/story_27456565.json
 mediacloud/test/fixtures/sentences_by_story_1.json
 mediacloud/test/fixtures/sentences_by_story_2.json

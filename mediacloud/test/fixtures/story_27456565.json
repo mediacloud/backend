@@ -1,0 +1,63 @@
+{
+"db_row_last_updated": null,
+"full_text_rss": 0,
+"description": "<p>Both the previously current and now current Burmese flags look ugly and ridiculous!  Burma once had a flag that was actually better looking.  Also Taiwan&#8217;s flag needs to change!  it is a party state flag representing the republic of china since 1911 and Taiwan\/Formosa was Japanese colony since 1895.  A new flag representing the land, people and history of Taiwan needs to be given birth to and flown!<\/p>\n",
+"language": "en",
+"title": "Comment on Myanmar's new flag and new name by kc",
+"fully_extracted": 1,
+"collect_date": "2010-11-24 15:33:39",
+"url": "http:\/\/globalvoicesonline.org\/2010\/10\/26\/myanmars-new-flag-and-new-name\/comment-page-1\/#comment-1733161",
+"guid": "http:\/\/globalvoicesonline.org\/?p=169660#comment-1733161",
+"publish_date": "2010-11-24 04:05:00",
+"media_id": 1144,
+"stories_id": 27456565,
+"story_texts_id": null,
+"story_text": " \t\t\t\t\t\tMyanmar's new flag and new name\t\t    The new flag, designated in the 2008 Constitution, has a central star set against a yellow, green and red background.   The old flags will be lowered by government department officials who were born on a Tuesday, while the new flags will be raised by officials born on a Wednesday.   <SENTENCES SKIPPED BECAUSE OF SPACE REASONS> You know That big white star is also the only star on the colors of Myanmar's tatmadaw, navy, air force and police force. This flag represent only the armed forces.  ",
+"story_tags": [ 1234235 ],
+"story_sentences": [
+  {
+    "language": "en",
+    "db_row_last_updated": null,
+    "sentence": "Myanmar's new flag and new name The new flag, designated in the 2008 Constitution, has a central star set against a yellow, green and red background.",
+    "sentence_number": 0,
+    "story_sentences_id": "525687757",
+    "media_id": 1144,
+    "stories_id": 27456565,
+    "tags": [ 123 ],
+    "publish_date": "2010-11-24 04:05:00"
+  },
+  {
+    "sentence_number": 1,
+    "story_sentences_id": "525687758",
+    "media_id": 1144,
+    "stories_id": 27456565,
+    "publish_date": "2010-11-24 04:05:00",
+    "language": "en",
+    "db_row_last_updated": null,
+    "tags": [ 123 ],
+    "sentence": "The old flags will be lowered by government department officials who were born on a Tuesday, while the new flags will be raised by officials born on a Wednesday."
+  },
+  {
+    "language": "en",
+    "db_row_last_updated": null,
+    "tags": [ 123 ],
+    "sentence": "You know That big white star is also the only star on the colors of Myanmar's tatmadaw, navy, air force and police force.",
+    "story_sentences_id": "525687808",
+    "sentence_number": 51,
+    "publish_date": "2010-11-24 04:05:00",
+    "stories_id": 27456565,
+    "media_id": 1144
+  },
+  {
+    "media_id": 1144,
+    "stories_id": 27456565,
+    "publish_date": "2010-11-24 04:05:00",
+    "sentence_number": 52,
+    "story_sentences_id": "525687809",
+    "db_row_last_updated": null,
+    "sentence": "This flag represent only the armed forces.",
+    "tags": [ 123 ],
+    "language": "en"
+  }
+]
+}
