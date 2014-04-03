@@ -45,26 +45,58 @@ use 5.14.1;
 
 use Data::Dumper;
 
-my $socket = new Thrift::Socket( 'localhost', 9090 );
-my $transport = new Thrift::BufferedTransport( $socket, 1024, 1024 );
-my $protocol  = new Thrift::BinaryProtocol( $transport );
-my $client    = new thrift_solr::SolrServiceClient( $protocol );
+sub get_transport
+{
+    my $socket = new Thrift::Socket( 'localhost', 9090 );
+    my $transport = new Thrift::BufferedTransport( $socket, 1024, 1024 );
 
-eval {
+    return $transport;
+}
+
+sub get_client
+{
+    my ( $transport ) = @_;
+
+    my $protocol  = new Thrift::BinaryProtocol( $transport );
+    my $client    = new thrift_solr::SolrServiceClient( $protocol );
+    
+    return $client;
+}
+
+sub get_media_counts
+{
+    my ( $q, $facet_field, $fq, $mincount ) = @_;
+
+    my $transport = get_transport();
+    my $client    = get_client( $transport);
+
     $transport->open();
 
+    my $ret = $client->media_counts( $q, $facet_field, $fq, $mincount );
+
+    $transport->close();
+
+    return $ret;
+}
+
+eval {
     my $q           = 'sentence:"birth control"';
     my $facet_field = 'media_id';
     my $fq          = [];
     my $mincount    = 1;
 
-    my $counts = $client->media_counts( $q, $facet_field, $fq, $mincount );
+    my $counts = get_media_counts( $q, $facet_field, $fq, $mincount );
 
     say Dumper( $counts );
 
-    $transport->close();
+    $fq = [ 'media_id:1' ];
+
+    my $counts = get_media_counts( $q, $facet_field, $fq, $mincount );
+
+    say Dumper( $counts );
 
 };
+
 if ( $@ )
 {
     warn( Dumper( $@ ) );
