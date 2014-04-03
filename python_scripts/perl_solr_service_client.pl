@@ -22,11 +22,13 @@
 use strict;
 use warnings;
 
-use lib '/home/dlarochelle/bin/thrift-0.9.1/tutorial/perl/../../lib/perl/lib';
-use lib '/home/dlarochelle/git_dev/mediacloud/python_scripts/gen-perl';
-
-#use lib '../../lib/perl/lib';
-#use lib '../gen-perl';
+BEGIN
+{
+    use FindBin;
+    use lib "$FindBin::Bin/../lib";
+    use lib "$FindBin::Bin/../foreign_modules/perl";
+    use lib "$FindBin::Bin/../python_scripts/gen-perl";
+}
 
 use Thrift;
 use Thrift::BinaryProtocol;
@@ -59,28 +61,6 @@ eval {
     my $counts = $client->media_counts( $q, $facet_field, $fq, $mincount );
 
     say Dumper( $counts );
-
-    # my $work = new thrift_solr::Work();
-
-    # $work->op(thrift_solr::Operation::DIVIDE);
-    # $work->num1(1);
-    # $work->num2(0);
-
-    # eval {
-    #     $client->calculate(1, $work);
-    #     print "Whoa! We can divide by zero?\n";
-    # }; if($@) {
-    #     warn "InvalidOperation: ".Dumper($@);
-    # }
-
-    # $work->op(thrift_solr::Operation::SUBTRACT);
-    # $work->num1(15);
-    # $work->num2(10);
-    # my $diff = $client->calculate(1, $work);
-    # print "15-10=$diff\n";
-
-    # my $log = $client->getStruct(1);
-    # print "Log: $log->{value}\n";
 
     $transport->close();
 
