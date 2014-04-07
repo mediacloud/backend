@@ -19,8 +19,10 @@ use List::MoreUtils qw ( uniq );
 BEGIN
 {
     use FindBin;
-    use lib "$FindBin::Bin/../foreign_modules/perl";
-    use lib "$FindBin::Bin/../python_scripts/gen-perl";
+
+    my $base_dir = MediaWords::Util::Config::base_dir();
+    use lib "$FindBin::Bin/../../../foreign_modules/perl";
+    use lib "$FindBin::Bin/../../../python_scripts/gen-perl";
 }
 
 use Thrift;
