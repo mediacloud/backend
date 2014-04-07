@@ -17,6 +17,7 @@ use strict;
 use Carp;
 use Dir::Self;
 use Config::Any;
+use Hash::Merge;
 
 # cache config object so that it remains the same from call to call
 my $_config;
