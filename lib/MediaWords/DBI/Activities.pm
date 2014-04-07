@@ -206,7 +206,6 @@ Readonly::Hash my %ACTIVITIES => {
             references  => 'controversies.controversies_id'
         },
         parameters => {
-            'dedup_stories'          => { description => 'FIXME' },
             'import_only'            => { description => 'FIXME' },
             'cache_broken_downloads' => { description => 'FIXME' }
         }
