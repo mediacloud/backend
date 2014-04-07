@@ -1935,8 +1935,8 @@ sub mine_controversy ($$;$)
     print STDERR "running spider ...\n";
     run_spider( $db, $controversy, NUM_SPIDER_ITERATIONS );
 
-    # print STDERR "adding outgoing foreign rss links ...\n";
-    # add_outgoing_foreign_rss_links( $db, $controversy );
+    print STDERR "adding outgoing foreign rss links ...\n";
+    add_outgoing_foreign_rss_links( $db, $controversy );
 
     print STDERR "merging media_dup stories ...\n";
     merge_dup_media_stories( $db, $controversy );
