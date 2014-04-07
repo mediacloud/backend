@@ -346,14 +346,26 @@ sub get_medium_domain
     return lc( $domain );
 }
 
-# (re-)enqueue AddDefaultFeeds jobs for all unmoderated media
-# ("AddDefaultFeeds" Gearman function is "unique", so Gearman will skip media
-# IDs that are already enqueued)
+# add default feeds for a single medium
 sub enqueue_add_default_feeds($)
 {
     my ( $medium ) = @_;
 
     return MediaWords::GearmanFunction::AddDefaultFeeds->enqueue_on_gearman( { media_id => $medium->{ media_id } } );
+}
+
+# (re-)enqueue AddDefaultFeeds jobs for all unmoderated media
+# ("AddDefaultFeeds" Gearman function is "unique", so Gearman will skip media
+# IDs that are already enqueued)
+sub enqueue_add_default_feeds_for_unmoderated_media($)
+{
+    my ( $db ) = @_;
+
+    my $media = $db->query( "select * from media where feeds_added = 'f'" )->hashes;
+
+    map { enqueue_add_default_feeds( $_ ) } @{ $media };
+
+    return 1;
 }
 
 1;

@@ -27,7 +27,7 @@ sub require_controversies_by_opt
     }
     else
     {
-        $controversies = $db->query( "select * from controversies where name ~* ?", '^' . $controversy_opt . '$' )->hashes;
+        $controversies = $db->query( "select * from controversies where name ~* ? order by name", '^' . $controversy_opt . '$' )->hashes;
         die( "No controversies found by pattern '$controversy_opt'" ) unless ( @{ $controversies } );
     }
 
