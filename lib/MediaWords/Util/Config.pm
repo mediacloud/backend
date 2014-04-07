@@ -93,7 +93,7 @@ sub _dump_defaults_as_yaml
 {
     my $empty_config = {};
 
-    set_defaults( $empty_config );
+    _set_defaults( $empty_config );
 
     use YAML;
     local $YAML::Indent = 4;
@@ -109,7 +109,7 @@ sub _read_static_defaults
     return $static_defaults;
 }
 
-sub set_defaults
+sub _set_defaults
 {
     my ( $config ) = @_;
 
