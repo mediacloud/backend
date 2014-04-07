@@ -81,7 +81,11 @@ sub set_config
 
     my $merge = Hash::Merge->new('LEFT_PRECEDENT');
 
+    #Work around bug in Hash::Merge::merge in which it modifies $@
+    my $appersand = $@;
     my $merged = $merge->merge( $config, $static_defaults );
+    
+    $@ = $appersand;
 
     _set_dynamic_defaults( $merged );
 
