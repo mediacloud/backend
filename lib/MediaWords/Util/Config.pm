@@ -76,7 +76,15 @@ sub set_config
         carp( "config object already cached" );
     }
 
-    $_config = set_defaults( $config );
+    my $static_defaults = _read_static_defaults();
+
+    my $merge = Hash::Merge->new('LEFT_PRECEDENT');
+
+    my $merged = $merge->merge( $config, $static_defaults );
+
+    _set_dynamic_defaults( $merged );
+
+    $_config = $merged;
 
     verify_settings( $_config );
 }
@@ -90,6 +98,15 @@ sub _dump_defaults_as_yaml
     use YAML;
     local $YAML::Indent = 4;
     YAML::DumpFile( '/tmp/default.yml', $empty_config );
+}
+
+sub _read_static_defaults
+{
+    my $defaults_file_yml = base_dir() . '/config/defaults.yml';
+
+    my $static_defaults = _parse_config_file( $defaults_file_yml );
+
+    return $static_defaults;
 }
 
 sub set_defaults
@@ -150,6 +167,17 @@ sub verify_settings
     my ( $config ) = @_;
 
     defined( $config->{ database } ) or croak "No database connections configured";
+}
+
+sub _set_dynamic_defaults
+{
+    my ( $config ) = @_;
+
+    $config->{ mediawords }->{ script_dir }                       ||= "$_base_dir/script";
+    $config->{ mediawords }->{ data_dir }                         ||= "$_base_dir/data";
+    $config->{ session }->{ storage }   ||= "$ENV{HOME}/tmp/mediacloud-session";
+
+    return $config;
 }
 
 1;
