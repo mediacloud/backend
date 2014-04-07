@@ -98,11 +98,9 @@ sub get_extracted_lines_with_crf
     my $feature_strings =
       MediaWords::Crawler::AnalyzeLines::get_feature_strings_for_download( $line_infos, $preprocessed_lines );
 
-    my $non_autoexcluded_line_infos = [ grep { ! $_->{ auto_excluded } } @$line_infos ];
+    my $non_autoexcluded_line_infos = [ grep { !$_->{ auto_excluded } } @$line_infos ];
 
-    die unless scalar( @$non_autoexcluded_line_infos) == scalar( @$feature_strings );
-
-   
+    die unless scalar( @$non_autoexcluded_line_infos ) == scalar( @$feature_strings );
 
     my $model_file_name = $_model_file_name;
 
@@ -123,7 +121,6 @@ sub get_extracted_lines_with_crf
 
     #say STDERR "non_auto_excluded_line_infos, feature_strings, predictions zipped";
     #say STDERR Dumper( [ List::MoreUtils::zip( @$non_autoexcluded_line_infos, @$feature_strings, @$predictions ) ] );
-
 
     my $line_index       = 0;
     my $prediction_index = 0;
