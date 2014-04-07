@@ -24,6 +24,11 @@ my $_config;
 # base dir
 my $_base_dir = __DIR__ . '/../../..';
 
+sub base_dir
+{
+    return $_base_dir;
+}
+
 sub get_config
 {
 
@@ -38,6 +43,18 @@ sub get_config
     return $_config;
 }
 
+sub _parse_config_file
+{
+    my $config_file = shift;
+
+    -r $config_file or croak "Can't read from $config_file";
+
+    #print "config:file: $config_file\n";
+    my $ret = Config::Any->load_files( { files => [ $config_file ], use_ext => 1 } )->[ 0 ]->{ $config_file };
+
+    return $ret;
+}
+
 # set the cached config object given a file path
 sub set_config_file
 {
@@ -46,7 +63,7 @@ sub set_config_file
     -r $config_file or croak "Can't read from $config_file";
 
     #print "config:file: $config_file\n";
-    set_config( Config::Any->load_files( { files => [ $config_file ], use_ext => 1 } )->[ 0 ]->{ $config_file } );
+    set_config( _parse_config_file( $config_file ) );
 }
 
 # set the cached config object
@@ -62,6 +79,17 @@ sub set_config
     $_config = set_defaults( $config );
 
     verify_settings( $_config );
+}
+
+sub _dump_defaults_as_yaml
+{
+    my $empty_config = {};
+
+    set_defaults( $empty_config );
+
+    use YAML;
+    local $YAML::Indent = 4;
+    YAML::DumpFile( '/tmp/default.yml', $empty_config );
 }
 
 sub set_defaults
