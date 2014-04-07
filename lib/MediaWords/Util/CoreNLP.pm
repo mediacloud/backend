@@ -8,6 +8,7 @@ use MediaWords::CommonLibs;
 
 use MediaWords::Util::Config;
 use MediaWords::Util::Web;
+use MediaWords::DBI::Stories;
 use MediaWords::KeyValueStore::GridFS;
 use MediaWords::Util::Text;
 use HTTP::Request;
@@ -553,7 +554,7 @@ EOF
 
     # Log to the PostgreSQL
     say STDERR "Logging annotated story to PostgreSQL for story $stories_id...";
-    unless ( $db->dbh->do( 'INSERT INTO corenlp_annotated_stories (stories_id) VALUES (?)', undef, $stories_id ) )
+    unless ( MediaWords::DBI::Stories::mark_as_processed( $db, $stories_id ) )
     {
 
         # If the script wasn't able to log annotated story to PostgreSQL, this

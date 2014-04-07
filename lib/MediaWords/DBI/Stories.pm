@@ -1064,4 +1064,23 @@ END
     return $all_sentences;
 }
 
+# Mark the story as processed by INSERTing an entry into "processed_stories";
+# return true on success, false on failure
+sub mark_as_processed($$)
+{
+    my ( $db, $stories_id ) = @_;
+
+    my $result;
+    eval { $db->create( 'processed_stories', { stories_id => $stories_id } ); };
+    if ( $@ or ( !$result ) )
+    {
+        say STDERR "Unable to insert story ID $stories_id into 'processed_stories': $@";
+        return 0;
+    }
+    else
+    {
+        return 1;
+    }
+}
+
 1;

@@ -47,8 +47,8 @@ sub main
 
           AND NOT EXISTS (
             SELECT *
-            FROM corenlp_annotated_stories
-            WHERE d.stories_id = corenlp_annotated_stories.stories_id
+            FROM processed_stories
+            WHERE d.stories_id = processed_stories.stories_id
           )
     
         ORDER BY d.downloads_id ASC

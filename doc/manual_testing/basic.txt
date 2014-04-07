@@ -47,7 +47,6 @@ gearman:search_stories_01        RUNNING
 mc:crawler                       RUNNING
 mc:extract_and_vector            RUNNING
 mc:process_story_subsets         RUNNING
-mc:update_processed_stories      RUNNING
 
 TEST
 

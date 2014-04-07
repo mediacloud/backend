@@ -10,6 +10,7 @@ use MediaWords::Crawler::Extractor;
 use MediaWords::Util::Config;
 use MediaWords::Util::HTML;
 use MediaWords::DBI::DownloadTexts;
+use MediaWords::DBI::Stories;
 use MediaWords::StoryVectors;
 use MediaWords::Util::Paths;
 use MediaWords::KeyValueStore::AmazonS3;
@@ -618,13 +619,14 @@ sub process_download_for_extractor($$$;$$$)
 {
     my ( $db, $download, $process_num, $no_dedup_sentences, $no_vector ) = @_;
 
+    my $stories_id = $download->{ stories_id };
+
     # Extract
-    say STDERR "[$process_num] extract: $download->{ downloads_id } $download->{ stories_id } $download->{ url }";
+    say STDERR "[$process_num] extract: $download->{ downloads_id } $stories_id $download->{ url }";
     my $download_text = MediaWords::DBI::DownloadTexts::create_from_download( $db, $download );
 
     unless ( $no_vector )
     {
-
         # Vector
         my $remaining_download = $db->query(
             <<EOF,
@@ -634,11 +636,11 @@ sub process_download_for_extractor($$$;$$$)
               AND extracted = 'f'
               AND type = 'content'
 EOF
-            $download->{ stories_id }
+            $stories_id
         )->hash;
         if ( !$remaining_download )
         {
-            my $story = $db->find_by_id( 'stories', $download->{ stories_id } );
+            my $story = $db->find_by_id( 'stories', $stories_id );
 
             MediaWords::StoryVectors::update_story_sentence_words_and_language( $db, $story, 0, $no_dedup_sentences );
         }
@@ -651,8 +653,18 @@ EOF
     my $media = get_medium( $db, $download );
     if ( $media->{ annotate_with_corenlp } )
     {
-        # Enqueue for CoreNLP annotation
+        # Enqueue for CoreNLP annotation (which will run mark_as_processed() on its own)
         MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman( $download );
+
+    }
+    else
+    {
+
+        # Add to "processed_stories" right away
+        unless ( MediaWords::DBI::Stories::mark_as_processed( $db, $stories_id ) )
+        {
+            die "Unable to mark story ID $stories_id as processed";
+        }
     }
 }
 

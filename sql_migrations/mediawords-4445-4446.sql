@@ -18,13 +18,6 @@
 SET search_path = public, pg_catalog;
 
 
-CREATE TABLE corenlp_annotated_stories (
-    corenlp_annotated_stories_id    BIGSERIAL   PRIMARY KEY,
-    stories_id                      INT         NOT NULL REFERENCES stories ON DELETE CASCADE
-);
-
-CREATE INDEX corenlp_annotated_stories_stories_id ON corenlp_annotated_stories ( stories_id );
-
 ALTER TABLE media
     ADD COLUMN annotate_with_corenlp BOOLEAN     NOT NULL DEFAULT(false);
 
