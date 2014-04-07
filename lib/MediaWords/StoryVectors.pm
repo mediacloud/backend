@@ -17,9 +17,11 @@ use MediaWords::Util::IdentifyLanguage;
 
 use Date::Format;
 use Date::Parse;
+use Digest::MD5;
 use Encode;
 use utf8;
 use Readonly;
+use Text::CSV_XS;
 
 # minimum length of words in story_sentence_words
 use constant MIN_STEM_LENGTH => 3;
@@ -108,29 +110,33 @@ sub _valid_stem
           && ( $word =~ /[^[:digit:][:punct:]]/ ) );
 }
 
-# insert the story sentence into the db
-sub _insert_story_sentence
+# insert the story sentences into the db
+sub _insert_story_sentences
 {
-    my ( $db, $story, $sentence_num, $sentence, $sentence_lang ) = @_;
+    my ( $db, $story, $sentences ) = @_;
 
-    $db->query(
-        <<"EOF",
-        INSERT INTO story_sentences (
-            stories_id,
-            sentence_number,
-            sentence,
-            language,
-            publish_date,
-            media_id
-        ) VALUES (?,?,?,?,?,?)
-EOF
-        $story->{ stories_id },
-        $sentence_num,
-        $sentence,
-        $sentence_lang,
-        $story->{ publish_date },
-        $story->{ media_id }
-    );
+    my $fields = [ qw/stories_id sentence_number sentence language publish_date media_id/ ];
+    my $field_list = join( ',', @{ $fields } );
+
+    my $copy = <<END;
+copy story_sentences ( $field_list ) from STDIN with csv
+END
+    eval { $db->dbh->do( $copy ) };
+    die( " Error on copy for story_sentences: $@" ) if ( $@ );
+
+    my $csv = Text::CSV_XS->new( { binary => 1 } );
+
+    for my $sentence ( @{ $sentences } )
+    {
+        $csv->combine( map { $sentence->{ $_ } } @{ $fields } );
+        eval { $db->dbh->pg_putcopydata( $csv->string . "\n" ) };
+
+        die( " Error on pg_putcopydata for story_sentences: $@" ) if ( $@ );
+    }
+
+    eval { $db->dbh->pg_putcopyend() };
+
+    die( " Error on pg_putcopyend for story_sentences: $@" ) if ( $@ );
 }
 
 # if the length of the string is greater than the given length, cut to that length
@@ -145,7 +151,39 @@ sub limit_string_length
     }
 }
 
-# return the number of sentences of this sentence within the same media source and calendar week.
+# efficient copy insertion of story sentence counts
+sub insert_story_sentence_counts
+{
+    my ( $db, $story, $md5s ) = @_;
+
+    my $fields = [ qw/sentence_md5 media_id publish_week first_stories_id first_sentence_number sentence_count/ ];
+    my $field_list = join( ',', @{ $fields } );
+
+    my ( $publish_week ) = $db->query( "select date_trunc( 'week', ?::date )", $story->{ publish_date } )->flat;
+
+    my $copy = <<END;
+copy story_sentence_counts ( $field_list ) from STDIN with csv
+END
+    eval { $db->dbh->do( $copy ) };
+    die( " Error on copy for story_sentence_counts: $@" ) if ( $@ );
+
+    my $csv = Text::CSV_XS->new( { binary => 1 } );
+
+    my $i = 0;
+    for my $md5 ( @{ $md5s } )
+    {
+        $csv->combine( $md5, $story->{ media_id }, $publish_week, $story->{ stories_id }, $i++, 1 );
+        eval { $db->dbh->pg_putcopydata( $csv->string . "\n" ) };
+
+        die( " Error on pg_putcopydata for story_sentence_counts: $@" ) if ( $@ );
+    }
+
+    eval { $db->dbh->pg_putcopyend() };
+
+    die( " Error on pg_putcopyend for story_sentence_counts: $@" ) if ( $@ );
+}
+
+# return the sentences from the set that are dups within the same media source and calendar week.
 # also adds the sentence to the  t table and/or increments the count in that table
 # for the sentence.
 #
@@ -157,58 +195,54 @@ sub limit_string_length
 # So we have decided to simply leave things in place as they are rather than risk the performance and code complexity issues
 # of ensuring atomic updates.
 #
-sub count_duplicate_sentences
+sub get_deduped_sentences
 {
-    my ( $db, $sentence, $sentence_number, $story ) = @_;
+    my ( $db, $story, $sentences ) = @_;
 
-    my $dup_sentence = $db->query(
-        <<"EOF",
-        SELECT *
+    my $sentence_md5_lookup = {};
+    my $i                   = 0;
+    for my $sentence ( @{ $sentences } )
+    {
+        my $sentence_data =
+          { md5 => Digest::MD5::md5_hex( encode( 'utf8', $sentence ) ), sentence => $sentence, num => $i++ };
+        $sentence_md5_lookup->{ $sentence_data->{ md5 } } = $sentence_data;
+    }
+
+    my $sentence_md5_list = join( ',', map { "'$_'" } keys %{ $sentence_md5_lookup } );
+
+    my $sentence_dup_info = $db->query( <<END, $story->{ media_id }, $story->{ publish_date } )->hashes;
+SELECT min( story_sentence_counts_id) story_sentence_counts_id, sentence_md5
         FROM story_sentence_counts
-        WHERE sentence_md5 = MD5( ? )
+        WHERE sentence_md5 in ( $sentence_md5_list )
               AND media_id = ?
               AND publish_week = DATE_TRUNC( 'week', ?::date )
-        ORDER BY story_sentence_counts_id
-        LIMIT 1
-EOF
-        $sentence,
-        $story->{ media_id },
-        $story->{ publish_date }
-    )->hash;
+        GROUP BY story_sentence_counts_id
+END
 
-    if ( $dup_sentence )
+    my $story_sentence_counts_ids = [];
+    for my $sdi ( @{ $sentence_dup_info } )
     {
-        $db->query(
-            <<"EOF",
-            UPDATE story_sentence_counts
-            SET sentence_count = sentence_count + 1
-            WHERE story_sentence_counts_id = ?
-EOF
-            $dup_sentence->{ story_sentence_counts_id }
-        );
-        return $dup_sentence->{ sentence_count };
+        push( @{ $story_sentence_counts_ids }, $sdi->{ story_sentence_counts_id } );
+        delete( $sentence_md5_lookup->{ $sdi->{ sentence_md5 } } );
     }
-    else
+
+    my $deduped_sentence_data = [ sort { $a->{ num } <=> $b->{ num } } values( %{ $sentence_md5_lookup } ) ];
+    my $deduped_md5s          = [ map  { $_->{ md5 } } @{ $deduped_sentence_data } ];
+    my $deduped_sentences     = [ map  { $_->{ sentence } } @{ $deduped_sentence_data } ];
+
+    if ( @{ $story_sentence_counts_ids } )
     {
-        $db->query(
-            <<"EOF",
-            INSERT INTO story_sentence_counts (
-                sentence_md5,
-                media_id,
-                publish_week,
-                first_stories_id,
-                first_sentence_number,
-                sentence_count
-            ) VALUES (MD5( ? ), ?, DATE_TRUNC( 'week', ?::date ), ?, ?, 1)
-EOF
-            $sentence,
-            $story->{ media_id },
-            $story->{ publish_date },
-            $story->{ stories_id },
-            $sentence_number
-        );
-        return 0;
+        my $id_list = join( ',', @{ $story_sentence_counts_ids } );
+        $db->query( <<END );
+UPDATE story_sentence_counts
+    SET sentence_count = sentence_count + 1
+    WHERE story_sentence_counts_id in ( $id_list )
+END
     }
+
+    insert_story_sentence_counts( $db, $story, $deduped_md5s );
+
+    return $deduped_sentences;
 }
 
 # given a story and a list of sentences, return all of the stories that are not duplicates as defined by
@@ -217,32 +251,19 @@ sub dedup_sentences
 {
     my ( $db, $story, $sentences ) = @_;
 
+    return [] unless ( $sentences && @{ $sentences } );
+
     if ( !$db->dbh->{ AutoCommit } )
     {
         $db->query( "LOCK TABLE story_sentence_counts IN ROW EXCLUSIVE MODE" );
     }
 
-    my $deduped_sentences = [];
-    for my $sentence ( @{ $sentences } )
-    {
-        my $num_dups = count_duplicate_sentences( $db, $sentence, scalar( @{ $deduped_sentences } ), $story );
-
-        if ( $num_dups == 0 )
-        {
-            push( @{ $deduped_sentences }, $sentence );
-        }
-        else
-        {
-
-            # print STDERR "ignoring duplicate sentence: '$sentence'\n";
-        }
-    }
+    my $deduped_sentences = get_deduped_sentences( $db, $story, $sentences );
 
     $db->dbh->{ AutoCommit } || $db->commit;
 
     if ( @{ $sentences } && !@{ $deduped_sentences } )
     {
-
         # FIXME - should do something here to find out if this is just a duplicate story and
         # try to merge the given story with the existing one
         print STDERR "all sentences deduped for stories_id $story->{ stories_id }\n";
@@ -436,7 +457,7 @@ sub update_story_sentence_words_and_language
     return unless ( $ignore_date_range || _story_within_media_source_story_words_date_range( $db, $story ) );
 
     # Get story text
-    my $story_text = MediaWords::DBI::Stories::get_text_for_word_counts( $db, $story );
+    my $story_text = $story->{ story_text } || MediaWords::DBI::Stories::get_text_for_word_counts( $db, $story );
 
     # Determine TLD
     my $story_tld = '';
@@ -452,7 +473,11 @@ sub update_story_sentence_words_and_language
 
     # Identify the language of the full story
     my $story_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $story_text, $story_tld );
-    $db->query( "UPDATE stories SET language = ? WHERE stories_id = ?", $story_lang, $story->{ stories_id } );
+
+    if ( !$story->{ language } || ( $story_lang ne $story->{ language } ) )
+    {
+        $db->query( "UPDATE stories SET language = ? WHERE stories_id = ?", $story_lang, $story->{ stories_id } );
+    }
 
     # Tokenize into sentences
     my $lang = MediaWords::Languages::Language::language_for_code( $story_lang );
@@ -463,6 +488,7 @@ sub update_story_sentence_words_and_language
     my $sentences = $lang->get_sentences( $story_text ) || return;
     $sentences = dedup_sentences( $db, $story_ref, $sentences ) unless ( $no_dedup_sentences );
 
+    my $sentence_refs = [];
     for ( my $sentence_num = 0 ; $sentence_num < @{ $sentences } ; $sentence_num++ )
     {
         my $sentence = $sentences->[ $sentence_num ];
@@ -480,15 +506,32 @@ sub update_story_sentence_words_and_language
         }
 
         # Insert the sentence into the database
-        _insert_story_sentence( $db, $story, $sentence_num, $sentence, $sentence_lang );
+        my $sentence_ref = {};
+        $sentence_ref->{ sentence }        = $sentence;
+        $sentence_ref->{ language }        = $sentence_lang;
+        $sentence_ref->{ sentence_number } = $sentence_num;
+        $sentence_ref->{ stories_id }      = $story->{ stories_id };
+        $sentence_ref->{ media_id }        = $story->{ media_id };
+        $sentence_ref->{ publish_date }    = $story->{ publish_date };
 
-        my $word_counts_for_sentence =
-          _get_stem_word_counts_for_sentence( $sentences->[ $sentence_num ], $sentence_lang, $story_lang );
+        push( @{ $sentence_refs }, $sentence_ref );
 
-        $sentence_word_counts->{ $sentence_num } = $word_counts_for_sentence;
+        # skip SSW if env var is set
+        if ( !$ENV{ MC_SKIP_SSW } )
+        {
+            my $word_counts_for_sentence =
+              _get_stem_word_counts_for_sentence( $sentences->[ $sentence_num ], $sentence_lang, $story_lang );
+            $sentence_word_counts->{ $sentence_num } = $word_counts_for_sentence;
+        }
     }
 
-    _insert_story_sentence_words( $db, $story, $sentence_word_counts );
+    _insert_story_sentences( $db, $story, $sentence_refs );
+
+    # we're obsoleting ssw, so only create ssw data for current stories
+    if ( !$ENV{ MC_SKIP_SSW } )
+    {
+        _insert_story_sentence_words( $db, $story, $sentence_word_counts );
+    }
 
     $db->dbh->{ AutoCommit } || $db->commit;
 }

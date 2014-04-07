@@ -199,6 +199,11 @@ sub setup_acl()
       /admin/mediasets/create
       /admin/mediasets/edit_cluster_run
       /admin/mediasets/edit_cluster_run_do
+      /admin/health
+      /admin/health/list
+      /admin/health/tag
+      /admin/health/medium
+      /admin/health/stories
       |;
 
     # stories-edit role; can do everything admin-readonly can + add / edit stories

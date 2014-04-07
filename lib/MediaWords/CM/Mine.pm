@@ -631,11 +631,6 @@ sub add_new_story
 
     my ( $story, $date_guess_method ) = generate_new_story_hash( $db, $story_content, $old_story, $link, $medium );
 
-    if ( my $dup_story = get_dup_story( $db, $story ) )
-    {
-        return $dup_story;
-    }
-
     my $story = safely_create_story( $db, $story );
 
     my $spidered_tag = get_spidered_tag( $db );
@@ -710,7 +705,8 @@ END
     return $ss ? 1 : 0;
 }
 
-# return true if the story title, url, description, or sentences match controversy search pattern
+# return the type of match if the story title, url, description, or sentences match controversy search pattern.
+# return undef if no match is found.
 sub story_matches_controversy_pattern
 {
     my ( $db, $controversy, $story, $metadata_only ) = @_;
@@ -718,6 +714,8 @@ sub story_matches_controversy_pattern
     my $query_story_search = $db->find_by_id( 'query_story_searches', $controversy->{ query_story_searches_id } );
 
     my $perl_re = $query_story_search->{ pattern };
+
+    # translate from postgres to perl regex
     $perl_re =~ s/\[\[\:[\<\>]\:\]\]/[^a-z]/g;
     for my $field ( qw/title description url redirect_url/ )
     {
@@ -760,70 +758,6 @@ sub add_to_controversy_stories_and_links
     generate_controversy_links( $db, $controversy, [ $story ] );
 }
 
-# check for stories with the same title within a week of the given story in the same or duplicate media source.
-# return all duplicates stories found.
-sub get_dup_stories
-{
-    my ( $db, $story, $controversy ) = @_;
-
-    return [] if ( length( $story->{ title } ) < 16 );
-
-    my $query = <<END;
-select distinct s.* from stories s, controversy_stories cs
-    where cs.stories_id = s.stories_id and s.title = ? and s.stories_id <> ? and 
-        s.media_id = ? and cs.controversies_id = ?    
-END
-
-    my $possible_dup_stories = $db->query(
-        $query,
-        $story->{ title },
-        $story->{ stories_id } || -1,
-        $story->{ media_id },
-        $controversy->{ controversies_id }
-    )->hashes;
-
-    my $dup_stories = [];
-    for my $dup_story ( @{ $possible_dup_stories } )
-    {
-        my $dup_story_epoch = MediaWords::Util::SQL::get_epoch_from_sql_date( $dup_story->{ publish_date } );
-        my $story_epoch     = MediaWords::Util::SQL::get_epoch_from_sql_date( $story->{ publish_date } );
-
-        # if the stories aren't within a week, be more careful about matching
-        if (   ( $dup_story_epoch >= ( $story_epoch - ( 7 * 86400 ) ) )
-            && ( $dup_story_epoch <= ( $story_epoch + ( 7 * 86400 ) ) ) )
-        {
-            push( @{ $dup_stories }, $dup_story );
-            next;
-        }
-
-        # if the stories aren't in the same week, require that the length be greater than 32
-        next if ( length( $story->{ title } ) < 32 );
-
-        # and require that the urls match minus parameters
-        my $dup_story_url_no_p = $dup_story->{ url };
-        my $story_url_no_p     = $story->{ url };
-        $dup_story_url_no_p =~ s/(.*)\?(.*)/$1/;
-        $story_url_no_p =~ s/(.*)\?(.*)/$1/;
-
-        next if ( lc( $dup_story_url_no_p ) ne lc( $story_url_no_p ) );
-
-        push( @{ $dup_stories }, $dup_story );
-    }
-
-    return $dup_stories;
-}
-
-# check for stories with the same title within a week of the given story in the same or duplicate media source.
-# return all duplicates stories found.
-sub get_dup_story
-{
-    my ( $db, $story, $controversy ) = @_;
-
-    my $dup_stories = get_dup_stories( $db, $story, $controversy );
-
-    return @{ $dup_stories } ? $dup_stories->[ 0 ] : undef;
-}
-
 # look for a story matching the link url in the db
 sub get_matching_story_from_db
 {
@@ -855,9 +789,6 @@ select s.* from stories s
     where ( csu.url in ( $1, $2 ) ) and 
         m.foreign_rss_links = false and m.dup_media_id is null
 END
-
-    # replace with dup story if there's one already added to controversy_stories
-    $story = get_dup_story( $db, $story, $controversy ) || $story;
 
     if ( $story )
     {
@@ -1664,85 +1595,6 @@ sub pick_first_matched_story
     die( "can't find any pick element in reference list" );
 }
 
-# loop through each story, finding the earliest dup story that is earlier in the sort order of
-# the above query than the current story.  put that earliest story in the dups hash where
-# the key is the stories_id to delete and the value is the story to keep.  before putting each
-# keep story in the array, look it up in the existing dups hash
-sub get_stories_dups
-{
-    my ( $db, $controversy, $stories ) = @_;
-
-    my $dups              = {};
-    my $processed_stories = {};
-    my $i                 = 0;
-    my $num_stories       = @{ $stories };
-
-    for my $story ( @{ $stories } )
-    {
-        print STDERR "$i / $num_stories\n" unless ( ++$i % 100 );
-
-        $processed_stories->{ $story->{ stories_id } } = 1;
-        next if ( $dups->{ $story->{ stories_id } } );
-
-        my $dup_stories = get_dup_stories( $db, $story, $controversy );
-        next unless ( @{ $dup_stories } );
-
-        my $dup_story = pick_first_matched_story( $stories, $dup_stories );
-
-        next unless ( $processed_stories->{ $dup_story->{ stories_id } } );
-
-        my $earliest_dup_story = $dup_story;
-        while ( my $earlier_dup_story = $dups->{ $earliest_dup_story->{ stories_id } } )
-        {
-            $earliest_dup_story = $earlier_dup_story;
-        }
-
-        $dups->{ $story->{ stories_id } } = $earliest_dup_story;
-    }
-
-    return $dups;
-}
-
-# find any stories in the controversy that are dups according to get_dup_story and
-# merge them.  be sure to merge to the best dated / earliest story and to handle recursive
-# duplicates.
-sub dedup_stories
-{
-    my ( $db, $controversy ) = @_;
-
-    my $dgm = $db->query( <<END )->hash;
-select ts.* from tag_sets ts where name = 'date_guess_method'
-END
-
-    print STDERR "dedup_stories: fetching stories...\n";
-
-    # order stories so that stories with reliable dates are first and then stories with earlier publish
-    # dates are first because that the order of preference for which dup to keep
-    my $stories = $db->query( <<'END', $dgm->{ tag_sets_id }, $controversy->{ controversies_id } )->hashes;
-select s.*, 
-        ( t.tags_id is null or t.tag in ( 'merged_story_rss', 'guess_by_url_and_date_text', 'guess_by_url' ) ) date_is_reliable
-    from stories s
-        join controversy_stories cs on ( s.stories_id = cs.stories_id )
-        left join 
-            ( stories_tags_map stm 
-                join tags t on ( stm.tags_id = t.tags_id and t.tag_sets_id = $1 ) 
-                join controversy_stories csb on ( csb.stories_id = stm.stories_id and csb.controversies_id = $2 ) )
-            on ( s.stories_id = stm.stories_id )
-    where cs.controversies_id = $2
-    order by date_is_reliable desc, s.publish_date asc
-END
-
-    print STDERR "dedup_stories: processing stories...\n";
-
-    my $story_dups = get_stories_dups( $db, $controversy, $stories );
-
-    while ( my ( $delete_stories_id, $keep_story ) = each( %{ $story_dups } ) )
-    {
-        my $delete_story = $db->find_by_id( 'stories', $delete_stories_id );
-        merge_dup_story( $db, $controversy, $delete_story, $keep_story );
-    }
-}
-
 # add the medium url to the controversy_ignore_redirects table
 sub add_medium_url_to_ignore_redirects
 {
@@ -1902,9 +1754,156 @@ END
     return $normalized_urls;
 }
 
+# break a story down into parts separated by [-:|]
+sub get_title_parts
+{
+    my ( $title ) = @_;
+    
+    $title = lc( $title );
+    $title =~ s/\s+/ /g;
+    $title =~ s/^\s+//; 
+    $title =~ s/\s+$//;
+
+    my $title_parts;
+    if ( $title =~ m~http://[^ ]*^~ )
+    {
+        $title_parts = [ $title ];
+    }
+    else
+    {
+        $title_parts = [ split( /\s*[-:|]+\s*/, $title ) ];
+    }
+    
+    map { s/^\s+//; s/\s+$//; } @{ $title_parts };
+    
+    return $title_parts;
+}
+
+# get duplicate stories within the set of stires by breaking the title
+# of each story into parts by [-:|] and looking for any such part
+# that is the sole title part for any story ans is at least 4 words long and
+# is not the title of a story with a path-less url.  Any story that includes that title
+# part becames a duplicate.
+sub get_medium_dup_stories_by_title
+{
+    my ( $db, $stories ) = @_;
+    
+    my $title_part_counts = {};
+    
+    for my $story ( @{ $stories } )
+    {   
+        my $title_parts = $story->{ title_parts } = get_title_parts( $story->{ title } );   
+
+        if ( @{ $title_parts } == 1 )
+        {
+            my $title_part = $title_parts->[ 0 ];
+            
+            # solo title parts that are only a few words might just be the media source name
+            my $num_words = scalar( split( / /, $title_part ) );
+            next if ( $num_words < 5 );
+
+            # likewise, a solo title of a story with a url with no path is probably 
+            # the media source name
+            next if ( URI->new( $story->{ url } )->path =~ /$\/?^/ );
+
+            $title_part_counts->{ $title_parts->[ 0 ] }->{ solo } = 1;
+        }
+        
+        for my $title_part ( @{ $title_parts } )
+        {
+            $title_part_counts->{ $title_part }->{ count }++;
+            push( @{ $title_part_counts->{ $title_part }->{ stories } }, $story );
+        }
+    }
+    
+    my $duplicate_stories = [];
+    for my $t ( grep { $_->{ solo } } values( %{ $title_part_counts } ) )
+    {
+        my $num_stories = @{ $t->{ stories } };
+        if ( ( $num_stories > 1 ) && ( $num_stories < 6 ) )
+        {
+            push( @{ $duplicate_stories }, $t->{ stories } );
+        }
+    }
+
+    return $duplicate_stories;
+}
+
+sub get_medium_dup_stories_by_url
+{
+    my ( $db, $stories ) = @_;
+    
+    my $url_lookup = {};
+    for my $story ( @{ $stories } )
+    {
+        my $nu = MediaWords::Util::URL::normalize_url( $story->{ url } )->as_string;
+        $story->{ normalized_url } = $nu;
+        push( @{ $url_lookup->{ $nu } }, $story ); 
+    }
+    
+    return [ map { { stories => $_ } } grep { ( @{ $_ } > 1 ) && ( @{ $_ } < 6 ) } values( %{ $url_lookup } ) ];
+}
+
+# given a list of stories, keep the story with the shortest title and
+# merge the other stories into that story
+sub merge_dup_stories
+{
+    my ( $db, $controversy, $stories ) = @_;
+    
+    $stories = [ sort { length( $a->{ title } ) <=> length( $b->{ title } ) } @{ $stories } ];
+    
+    my $keep_story = shift( @{ $stories } );
+    
+    print "duplicates:\n";
+    print "\t$keep_story->{ title } [$keep_story->{ url } $keep_story->{ normalized_url } $keep_story->{ stories_id }]\n";
+    map { print "\t$_->{ title } [$_->{ url } $_->{ normalized_url } $_->{ stories_id }]\n" } @{ $stories };
+    
+    print "\n";
+
+    map { merge_dup_story( $db, $controversy, $_, $keep_story ) } @{ $stories };
+
+}
+
+# return hash of { $media_id => $stories } for the controversy
+sub get_controversy_stories_by_medium
+{
+    my ( $db, $controversy ) = @_;
+    
+    my $stories = $db->query( <<END, $controversy->{ controversies_id } )->hashes;
+select s.stories_id, s.media_id, s.title, s.url
+    from stories s
+        join controversy_stories cs on ( cs.stories_id = s.stories_id )
+    where cs.controversies_id = ?
+    group by s.stories_id
+END
+   
+    my $media_lookup = {};
+    map { push( @{ $media_lookup->{ $_->{ media_id } } }, $_ ) } @{ $stories };
+    
+    return $media_lookup;
+}
+
+# look for duplicate stories within each media source and merge any duplicates into the
+# story with the shortest title
+sub find_and_merge_dup_stories
+{
+    my ( $db, $controversy ) = @_;
+    
+    for my $get_dup_stories ( \&get_medium_dup_stories_by_url, \&get_medium_dup_stories_by_title )
+    {
+        # regenerate story list each time to capture previously merged stories
+        my $media_lookup = get_controversy_stories_by_medium( $db, $controversy );
+    
+        while ( my ( $media_id, $stories )  = each( %{ $media_lookup } ) )
+        {
+            my $dup_stories = $get_dup_stories->( $db, $stories );
+            map { merge_dup_stories( $db, $controversy, $_->{ stories } ) } @{ $dup_stories };
+        }    
+    }
+}
+
 # mine the given controversy for links and to recursively discover new stories on the web.
 # options:
-#   dedup_stories - run story deduping on controversy; should only be necessary of deduping algorithm changes
 #   import_only - only run import_seed_urls and import_query_story_search and exit
 #   cache_broken_downloads - speed up fixing broken downloads, but add time if there are no broken downloads
 sub mine_controversy ($$;$)
@@ -1922,8 +1921,6 @@ sub mine_controversy ($$;$)
     print STDERR "importing query stories search ...\n";
     import_query_story_search( $db, $controversy, $options->{ cache_broken_downloads } );
 
-    dedup_stories( $db, $controversy ) if ( $options->{ dedup_stories } );
-
     return if ( $options->{ import_only } );
 
     print STDERR "merging foreign_rss stories ...\n";
@@ -1938,11 +1935,14 @@ sub mine_controversy ($$;$)
     print STDERR "running spider ...\n";
     run_spider( $db, $controversy, NUM_SPIDER_ITERATIONS );
 
-    print STDERR "adding outgoing foreign rss links ...\n";
-    add_outgoing_foreign_rss_links( $db, $controversy );
+    # print STDERR "adding outgoing foreign rss links ...\n";
+    # add_outgoing_foreign_rss_links( $db, $controversy );
 
     print STDERR "merging media_dup stories ...\n";
     merge_dup_media_stories( $db, $controversy );
+    
+    print STDERR "merging dup stories ...\n";
+    find_and_merge_dup_stories( $db, $controversy );
 
     print STDERR "adding source link dates ...\n";
     add_source_link_dates( $db, $controversy );
