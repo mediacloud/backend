@@ -77,6 +77,8 @@ sub set_config
         carp( "config object already cached" );
     }
 
+    _set_dynamic_defaults( $config );
+
     my $static_defaults = _read_static_defaults();
 
     my $merge = Hash::Merge->new('LEFT_PRECEDENT');
@@ -86,8 +88,6 @@ sub set_config
     my $merged = $merge->merge( $config, $static_defaults );
     
     $@ = $appersand;
-
-    _set_dynamic_defaults( $merged );
 
     $_config = $merged;
 
@@ -181,6 +181,22 @@ sub _set_dynamic_defaults
     $config->{ mediawords }->{ script_dir }                       ||= "$_base_dir/script";
     $config->{ mediawords }->{ data_dir }                         ||= "$_base_dir/data";
     $config->{ session }->{ storage }   ||= "$ENV{HOME}/tmp/mediacloud-session";
+
+
+    my $auth = {
+        default_realm => 'users',
+        users         => {
+            credential => {
+                class              => 'Password',
+                password_field     => 'password',
+                password_type      => 'salted_hash',
+                password_hash_type => 'SHA-256',
+                password_salt_len  => 64
+            },
+            store => { class => 'MediaWords' }
+        }
+    };
+    $config->{ 'Plugin::Authentication' } ||= $auth;
 
     return $config;
 }
