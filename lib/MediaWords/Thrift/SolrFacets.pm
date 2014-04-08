@@ -15,14 +15,13 @@ use MediaWords::Util::Config;
 use MediaWords::Util::Web;
 use List::MoreUtils qw ( uniq );
 
-
 BEGIN
 {
     use FindBin;
 
     my $base_dir = MediaWords::Util::Config::base_dir();
-    use lib "$FindBin::Bin/../../../foreign_modules/perl";
-    use lib "$FindBin::Bin/../../../python_scripts/gen-perl";
+    use lib "$FindBin::Bin/../foreign_modules/perl";
+    use lib "$FindBin::Bin/../python_scripts/gen-perl";
 }
 
 use Thrift;
@@ -46,9 +45,9 @@ sub _get_client
 {
     my ( $transport ) = @_;
 
-    my $protocol  = new Thrift::BinaryProtocol( $transport );
-    my $client    = new thrift_solr::SolrServiceClient( $protocol );
-    
+    my $protocol = new Thrift::BinaryProtocol( $transport );
+    my $client   = new thrift_solr::SolrServiceClient( $protocol );
+
     return $client;
 }
 
@@ -57,7 +56,7 @@ sub get_media_counts
     my ( $q, $facet_field, $fq, $mincount ) = @_;
 
     my $transport = _get_transport();
-    my $client    = _get_client( $transport);
+    my $client    = _get_client( $transport );
 
     $transport->open();
 
