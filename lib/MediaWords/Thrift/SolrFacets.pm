@@ -17,40 +17,10 @@ use List::MoreUtils qw ( uniq );
 
 BEGIN
 {
+    use MediaWords::Util::Config;
 
-    my $source_root;
-
-    BEGIN
-    {
-        use FindBin;
-
-        my $base_dir = MediaWords::Util::Config::base_dir();
-
-        use File::Basename;
-
-        use File::Spec;
-
-        my $file_dir = dirname( __FILE__ );
-
-        #say STDERR "file_dir $file_dir";
-
-        use Cwd qw( realpath );
-
-        my $source_rt = "$file_dir" . "/../../../";
-
-        #say STDERR "source_rt $source_rt";
-
-        use File::Spec;
-
-        $source_root = realpath( File::Spec->canonpath( $source_rt ) );
-
-        #$source_root = $source_rt;
-
-        say STDERR "source_root $source_root";
-    }
-
-    use lib ( "$source_root" . "/foreign_modules/perl" );
-    use lib ( "$source_root" . "/python_scripts/gen-perl" );
+    use lib MediaWords::Util::Config::get_mc_root_dir() . "/foreign_modules/perl";
+    use lib MediaWords::Util::Config::get_mc_root_dir() . "/python_scripts/gen-perl";
 }
 
 use Thrift;
