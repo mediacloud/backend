@@ -23,11 +23,29 @@ use Hash::Merge;
 my $_config;
 
 # base dir
+my $MC_ROOT_DIR;
 my $_base_dir = __DIR__ . '/../../..';
 
-sub base_dir
+BEGIN
 {
-    return $_base_dir;
+    use File::Basename;
+
+    use File::Spec;
+
+    my $file_dir = dirname( __FILE__ );
+
+    use Cwd qw( realpath );
+
+    my $source_rt = "$file_dir" . "/../../../";
+
+    use File::Spec;
+
+    $MC_ROOT_DIR = realpath( File::Spec->canonpath( $source_rt ) );
+}
+
+sub get_mc_root_dir
+{
+    return $MC_ROOT_DIR;
 }
 
 sub get_config
@@ -81,12 +99,12 @@ sub set_config
 
     my $static_defaults = _read_static_defaults();
 
-    my $merge = Hash::Merge->new('LEFT_PRECEDENT');
+    my $merge = Hash::Merge->new( 'LEFT_PRECEDENT' );
 
     #Work around bug in Hash::Merge::merge in which it modifies $@
     my $appersand = $@;
     my $merged = $merge->merge( $config, $static_defaults );
-    
+
     $@ = $appersand;
 
     $_config = $merged;
@@ -107,7 +125,7 @@ sub set_config
 
 sub _read_static_defaults
 {
-    my $defaults_file_yml = base_dir() . '/config/defaults.yml';
+    my $defaults_file_yml = get_mc_root_dir() . '/config/defaults.yml';
 
     my $static_defaults = _parse_config_file( $defaults_file_yml );
 
@@ -178,10 +196,9 @@ sub _set_dynamic_defaults
 {
     my ( $config ) = @_;
 
-    $config->{ mediawords }->{ script_dir }                       ||= "$_base_dir/script";
-    $config->{ mediawords }->{ data_dir }                         ||= "$_base_dir/data";
-    $config->{ session }->{ storage }   ||= "$ENV{HOME}/tmp/mediacloud-session";
-
+    $config->{ mediawords }->{ script_dir } ||= "$_base_dir/script";
+    $config->{ mediawords }->{ data_dir }   ||= "$_base_dir/data";
+    $config->{ session }->{ storage }       ||= "$ENV{HOME}/tmp/mediacloud-session";
 
     my $auth = {
         default_realm => 'users',
