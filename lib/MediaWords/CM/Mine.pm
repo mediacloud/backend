@@ -493,7 +493,7 @@ my $reliable_methods = [ qw(guess_by_url guess_by_url_and_date_text merged_story
 # by the media_id medium.  return the first medium that does not have a dup_media_id.
 sub get_dup_medium
 {
-    my ( $db, $media_id, $count ) = @_;
+    my ( $db, $media_id, $allow_foreign_rss_links, $count ) = @_;
 
     croak( "loop detected" ) if ( $count > 10 );
 
@@ -503,10 +503,10 @@ sub get_dup_medium
 
     if ( $medium->{ dup_media_id } )
     {
-        return get_dup_medium( $db, $medium->{ dup_media_id }, ++$count );
+        return get_dup_medium( $db, $medium->{ dup_media_id }, $allow_foreign_rss_links, ++$count );
     }
 
-    return undef if ( $medium->{ foreign_rss_links } );
+    return undef if ( !$allow_foreign_rss_links && $medium->{ foreign_rss_links } );
 
     return $medium;
 }
@@ -867,20 +867,26 @@ sub set_controversy_link_ref_story
     return unless ( $controversy_link->{ controversy_links_id } );
 
     my $link_exists = $db->query( <<END, $story->{ stories_id }, $controversy_link->{ controversy_links_id } )->hash;
-select 1 from controversy_links a, controversy_links b
-    where a.stories_id = b.stories_id and a.controversies_id = b.controversies_id and
-        a.ref_stories_id = ? and b.controversy_links_id = ?
+select 1 
+    from controversy_links a, 
+        controversy_links b
+    where 
+        a.stories_id = b.stories_id and 
+        a.controversies_id = b.controversies_id and
+        a.ref_stories_id = ? and 
+        b.controversy_links_id = ?
 END
 
-    return if ( $link_exists );
-
-    croak( "story $story->{ stories_id } does not exist" )
-      unless ( $db->find_by_id( 'stories', $story->{ stories_id } ) );
-
-    $db->query( <<END, $story->{ stories_id }, $controversy_link->{ controversy_links_id } );
+    if ( $link_exists )
+    {
+        $db->delete_by_id( 'controversy_links', $controversy_link->{ controversy_links_id } );
+    }
+    else
+    {
+        $db->query( <<END, $story->{ stories_id }, $controversy_link->{ controversy_links_id } );
 update controversy_links set ref_stories_id = ? where controversy_links_id = ?
 END
-
+    }
 }
 
 # if the story matches the controversy pattern, add it to controversy_stories and controversy_links
@@ -923,6 +929,7 @@ sub add_new_links
         }
         else
         {
+            print STDERR "add to fetch list ...\n";
             push( @{ $fetch_links }, $link );
         }
     }
@@ -1032,10 +1039,14 @@ END
         push( @{ $urls }, $target_story->{ url } );
         my $url_params = join( ',', map { '?' } ( 1 .. scalar( @{ $urls } ) ) );
         my $source_stories = $db->query( <<END, @{ $urls } )->hashes;
-select s.* from stories s, media m
-    where m.foreign_rss_links and s.media_id = m.media_id and s.url in ( $url_params ) and
-        not exists ( select 1 from controversy_stories cs where s.stories_id = cs.stories_id )
-        
+select s.* 
+    from stories s
+        join media m on ( s.media_id = m.media_id )
+    where 
+        m.foreign_rss_links and 
+        s.url in ( $url_params ) and
+        not exists ( 
+            select 1 from controversy_stories cs where s.stories_id = cs.stories_id )        
 END
         for my $source_story ( @{ $source_stories } )
         {
@@ -1381,7 +1392,11 @@ sub merge_dup_media_story
 {
     my ( $db, $controversy, $story ) = @_;
 
-    my $dup_medium = get_dup_medium( $db, $story->{ media_id } );
+    # allow foreign_rss_links get get_dup_medium, because at this point the only
+    # foreign_rss_links stories should have been added by add_outgoing_foreign_rss_links
+    my $dup_medium = get_dup_medium( $db, $story->{ media_id }, 1 );
+
+    print STDERR "no dup medium found\n" unless ( $dup_medium );
 
     return unless ( $dup_medium );
 
@@ -1433,9 +1448,13 @@ sub merge_dup_media_stories
     my ( $db, $controversy ) = @_;
 
     my $dup_media_stories = $db->query( <<END, $controversy->{ controversies_id } )->hashes;
-SELECT distinct s.* FROM stories s, controversy_stories cs, media m
-    WHERE s.stories_id = cs.stories_id and m.media_id = s.media_id and 
-        m.dup_media_id is not null and cs.controversies_id = ?
+SELECT distinct s.* 
+    FROM stories s
+        join controversy_stories cs on ( s.stories_id = cs.stories_id ) 
+        join media m on ( s.media_id = m.media_id )
+    WHERE 
+        m.dup_media_id is not null and 
+        cs.controversies_id = ?
 END
 
     print STDERR "merging " . scalar( @{ $dup_media_stories } ) . " stories\n" if ( @{ $dup_media_stories } );
@@ -1758,10 +1777,10 @@ END
 sub get_title_parts
 {
     my ( $title ) = @_;
-    
+
     $title = lc( $title );
     $title =~ s/\s+/ /g;
-    $title =~ s/^\s+//; 
+    $title =~ s/^\s+//;
     $title =~ s/\s+$//;
 
     my $title_parts;
@@ -1773,9 +1792,9 @@ sub get_title_parts
     {
         $title_parts = [ split( /\s*[-:|]+\s*/, $title ) ];
     }
-    
+
     map { s/^\s+//; s/\s+$//; } @{ $title_parts };
-    
+
     return $title_parts;
 }
 
@@ -1787,35 +1806,35 @@ sub get_title_parts
 sub get_medium_dup_stories_by_title
 {
     my ( $db, $stories ) = @_;
-    
+
     my $title_part_counts = {};
-    
+
     for my $story ( @{ $stories } )
-    {   
-        my $title_parts = $story->{ title_parts } = get_title_parts( $story->{ title } );   
+    {
+        my $title_parts = $story->{ title_parts } = get_title_parts( $story->{ title } );
 
         if ( @{ $title_parts } == 1 )
         {
             my $title_part = $title_parts->[ 0 ];
-            
+
             # solo title parts that are only a few words might just be the media source name
             my $num_words = scalar( split( / /, $title_part ) );
             next if ( $num_words < 5 );
 
-            # likewise, a solo title of a story with a url with no path is probably 
+            # likewise, a solo title of a story with a url with no path is probably
             # the media source name
             next if ( URI->new( $story->{ url } )->path =~ /$\/?^/ );
 
             $title_part_counts->{ $title_parts->[ 0 ] }->{ solo } = 1;
         }
-        
+
         for my $title_part ( @{ $title_parts } )
         {
             $title_part_counts->{ $title_part }->{ count }++;
             push( @{ $title_part_counts->{ $title_part }->{ stories } }, $story );
         }
     }
-    
+
     my $duplicate_stories = [];
     for my $t ( grep { $_->{ solo } } values( %{ $title_part_counts } ) )
     {
@@ -1832,15 +1851,15 @@ sub get_medium_dup_stories_by_title
 sub get_medium_dup_stories_by_url
 {
     my ( $db, $stories ) = @_;
-    
+
     my $url_lookup = {};
     for my $story ( @{ $stories } )
     {
         my $nu = MediaWords::Util::URL::normalize_url( $story->{ url } )->as_string;
         $story->{ normalized_url } = $nu;
-        push( @{ $url_lookup->{ $nu } }, $story ); 
+        push( @{ $url_lookup->{ $nu } }, $story );
     }
-    
+
     return [ map { { stories => $_ } } grep { ( @{ $_ } > 1 ) && ( @{ $_ } < 6 ) } values( %{ $url_lookup } ) ];
 }
 
@@ -1849,15 +1868,15 @@ sub get_medium_dup_stories_by_url
 sub merge_dup_stories
 {
     my ( $db, $controversy, $stories ) = @_;
-    
+
     $stories = [ sort { length( $a->{ title } ) <=> length( $b->{ title } ) } @{ $stories } ];
-    
+
     my $keep_story = shift( @{ $stories } );
-    
+
     print "duplicates:\n";
     print "\t$keep_story->{ title } [$keep_story->{ url } $keep_story->{ normalized_url } $keep_story->{ stories_id }]\n";
     map { print "\t$_->{ title } [$_->{ url } $_->{ normalized_url } $_->{ stories_id }]\n" } @{ $stories };
-    
+
     print "\n";
 
     map { merge_dup_story( $db, $controversy, $_, $keep_story ) } @{ $stories };
@@ -1868,7 +1887,7 @@ sub merge_dup_stories
 sub get_controversy_stories_by_medium
 {
     my ( $db, $controversy ) = @_;
-    
+
     my $stories = $db->query( <<END, $controversy->{ controversies_id } )->hashes;
 select s.stories_id, s.media_id, s.title, s.url
     from stories s
@@ -1876,10 +1895,10 @@ select s.stories_id, s.media_id, s.title, s.url
     where cs.controversies_id = ?
     group by s.stories_id
 END
-   
+
     my $media_lookup = {};
     map { push( @{ $media_lookup->{ $_->{ media_id } } }, $_ ) } @{ $stories };
-    
+
     return $media_lookup;
 }
 
@@ -1888,17 +1907,17 @@ END
 sub find_and_merge_dup_stories
 {
     my ( $db, $controversy ) = @_;
-    
+
     for my $get_dup_stories ( \&get_medium_dup_stories_by_url, \&get_medium_dup_stories_by_title )
     {
         # regenerate story list each time to capture previously merged stories
         my $media_lookup = get_controversy_stories_by_medium( $db, $controversy );
-    
-        while ( my ( $media_id, $stories )  = each( %{ $media_lookup } ) )
+
+        while ( my ( $media_id, $stories ) = each( %{ $media_lookup } ) )
         {
             my $dup_stories = $get_dup_stories->( $db, $stories );
             map { merge_dup_stories( $db, $controversy, $_->{ stories } ) } @{ $dup_stories };
-        }    
+        }
     }
 }
 
@@ -1906,6 +1925,7 @@ sub find_and_merge_dup_stories
 # options:
 #   import_only - only run import_seed_urls and import_query_story_search and exit
 #   cache_broken_downloads - speed up fixing broken downloads, but add time if there are no broken downloads
+#   skip_outgoing_foreign_rss_links - skip slow process of adding links from foreign_rss_links media
 sub mine_controversy ($$;$)
 {
     my ( $db, $controversy, $options ) = @_;
@@ -1935,12 +1955,15 @@ sub mine_controversy ($$;$)
     print STDERR "running spider ...\n";
     run_spider( $db, $controversy, NUM_SPIDER_ITERATIONS );
 
-    print STDERR "adding outgoing foreign rss links ...\n";
-    add_outgoing_foreign_rss_links( $db, $controversy );
+    if ( !$options->{ skip_outgoing_foreign_rss_links } )
+    {
+        print STDERR "adding outgoing foreign rss links ...\n";
+        add_outgoing_foreign_rss_links( $db, $controversy );
+    }
 
     print STDERR "merging media_dup stories ...\n";
     merge_dup_media_stories( $db, $controversy );
-    
+
     print STDERR "merging dup stories ...\n";
     find_and_merge_dup_stories( $db, $controversy );
 
