@@ -13,8 +13,20 @@ use warnings;
 
 BEGIN
 {
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
+    my $source_rt;
+
+    BEGIN
+    {
+        use File::Basename;
+        use File::Spec;
+        use Cwd qw( realpath );
+
+        my $file_dir = dirname( __FILE__ );
+
+        $source_rt = "$file_dir" . "/..";
+        $source_rt = realpath( File::Spec->canonpath( $source_rt ) );
+    }
+    use lib "$source_rt/lib";
 }
 
 use DBIx::Simple::MediaWords;
