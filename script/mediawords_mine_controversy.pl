@@ -20,19 +20,21 @@ use Gearman::JobScheduler;
 
 sub main
 {
-    my ( $controversies_id, $import_only, $cache_broken_downloads, $direct_job );
+    my ( $controversies_id, $import_only, $cache_broken_downloads, $direct_job, $skip_outgoing_foreign_rss_links );
 
     binmode( STDOUT, 'utf8' );
     binmode( STDERR, 'utf8' );
 
     Getopt::Long::GetOptions(
-        "controversy=s"           => \$controversies_id,
-        "import_only!"            => \$import_only,
-        "cache_broken_downloads!" => \$cache_broken_downloads,
-        "direct_job!"             => \$direct_job,
+        "controversy=s"                    => \$controversies_id,
+        "import_only!"                     => \$import_only,
+        "cache_broken_downloads!"          => \$cache_broken_downloads,
+        "direct_job!"                      => \$direct_job,
+        "skip_outgoing_foreign_rss_links!" => \$skip_outgoing_foreign_rss_links,
     ) || return;
 
-    my $optional_args = join( ' ', map { "[ --$_ ]" } qw(direct_job import_only cache_broken_downloads) );
+    my $optional_args =
+      join( ' ', map { "[ --$_ ]" } qw(direct_job import_only cache_broken_downloads skip_outgoing_foreign_rss_links) );
     die( "usage: $0 --controversy < controversies_id > $optional_args" ) unless ( $controversies_id );
 
     if ( $direct_job )
@@ -43,8 +45,9 @@ sub main
           or die( "Unable to find controversy '$controversies_id'" );
 
         my $options = {
-            import_only            => $import_only,
-            cache_broken_downloads => $cache_broken_downloads
+            import_only                     => $import_only,
+            cache_broken_downloads          => $cache_broken_downloads,
+            skip_outgoing_foreign_rss_links => $skip_outgoing_foreign_rss_links
         };
 
         MediaWords::CM::Mine::mine_controversy( $db, $controversy, $options );
@@ -52,10 +55,11 @@ sub main
     else
     {
         my $args = {
-            controversies_id       => $controversies_id,
-            import_only            => $import_only,
-            cache_broken_downloads => $cache_broken_downloads
-        };    
+            controversies_id                => $controversies_id,
+            import_only                     => $import_only,
+            cache_broken_downloads          => $cache_broken_downloads,
+            skip_outgoing_foreign_rss_links => $skip_outgoing_foreign_rss_links
+        };
 
         my $gearman_job_id = MediaWords::GearmanFunction::CM::MineControversy->enqueue_on_gearman( $args );
         say STDERR "Enqueued Gearman job with ID: $gearman_job_id";
@@ -64,7 +68,8 @@ sub main
         # so consider adding:
         #     sleep(1);
         # before calling log_path_for_gearman_job()
-        my $log_path = Gearman::JobScheduler::log_path_for_gearman_job( MediaWords::GearmanFunction::CM::MineControversy->name(),
+        my $log_path =
+          Gearman::JobScheduler::log_path_for_gearman_job( MediaWords::GearmanFunction::CM::MineControversy->name(),
             $gearman_job_id );
         if ( $log_path )
         {
