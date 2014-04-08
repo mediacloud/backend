@@ -593,7 +593,7 @@ sub create_download_for_new_story
 # add a new story and download corresponding to the given link or existing story
 sub add_new_story
 {
-    my ( $db, $link, $old_story, $controversy ) = @_;
+    my ( $db, $link, $old_story, $controversy, $allow_foreign_rss_links ) = @_;
 
     die( "only one of $link or $old_story should be set" ) if ( $link && $old_story );
 
@@ -626,7 +626,8 @@ sub add_new_story
 
     $old_story->{ url } = substr( $old_story->{ url }, 0, 1024 );
 
-    my $medium = get_dup_medium( $db, $old_story->{ media_id } ) || get_spider_medium( $db, $old_story->{ url } );
+    my $medium = get_dup_medium( $db, $old_story->{ media_id }, $allow_foreign_rss_links )
+      || get_spider_medium( $db, $old_story->{ url } );
     my $feed = get_spider_feed( $db, $medium );
 
     my ( $story, $date_guess_method ) = generate_new_story_hash( $db, $story_content, $old_story, $link, $medium );
@@ -1407,7 +1408,7 @@ SELECT s.* FROM stories s
         ( ( ? in ( s.url, s.guid ) ) or ( s.title = ? and date_trunc( 'day', s.publish_date ) = ? ) )
 END
 
-    $new_story ||= add_new_story( $db, undef, $story, $controversy );
+    $new_story ||= add_new_story( $db, undef, $story, $controversy, 1 );
 
     merge_dup_story( $db, $controversy, $story, $new_story );
 }
