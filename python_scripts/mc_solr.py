@@ -5,6 +5,7 @@ import psycopg2.extras
 import time
 import json
 import pysolr
+import sys
 
 def py_solr_connection():
     solr = pysolr.Solr(get_solr_collection_url_prefix(), timeout=10)
@@ -13,7 +14,8 @@ def py_solr_connection():
 
 def get_solr_collection_url_prefix():
     config = mc_config.read_config()
-    solr_select_url = config[ 'solr_select_url' ]
+
+    #print >> sys.stderr, config
 
     solr_select_url = config['mediawords'][ 'solr_select_url' ]
 
