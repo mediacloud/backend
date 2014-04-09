@@ -94,6 +94,8 @@ sub _assign_health_data_to_tag
 {
     my ( $db, $tag ) = @_;
 
+    say STDERR "_assign_health_data_to_tag";
+
     my $media = $db->query( <<END, $tag->{ tags_id } )->hashes;
 select m.* 
     from media m join media_tags_map mtm on ( m.media_id = mtm.media_id ) 
@@ -103,6 +105,8 @@ END
 
     for my $medium ( @{ $media } )
     {
+        say STDERR "_assign_health_data_to_tag: " . Dumper( $medium );
+
         _assign_health_data_to_medium( $db, $medium );
 
         my $fields = [ qw/num_stories num_sentences num_stories_with_sentences num_stories_with_text/ ];
