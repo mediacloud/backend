@@ -48,6 +48,18 @@ story = mc.story(169440976)
 print story['url']  # prints the url the story came from
 ```
 
+To get all the stories associated with a query and dump the output to json:
+```import mediacloud
+import json
+mc = mediacloud.api.MediaCloud('')
+res = mc.sentenceList('( hacking AND civic ) OR ( hackathon AND civic)', '+publish_date:[2013-01-01T00:00:00Z TO 2014-04-19T00:00:00Z] AND +media_sets_id:1')
+story_ids = []
+[story_ids.append(i) for i in [y["stories_id"] for y in res["response"]["docs"]] if not story_ids.count(i)]
+stories = [mc.story(i) for i in story_ids]
+print json.dumps(stories)
+```
+
+
 Take a look at the `apitest.py` for more detailed examples.
 
 Testing
