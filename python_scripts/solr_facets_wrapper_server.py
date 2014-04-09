@@ -19,7 +19,7 @@ class SolrHandler:
 handler = SolrHandler()
 processor = SolrService.Processor(handler)
 listening_socket = TSocket.TServerSocket(port=9090)
-server = TServer.TSimpleServer(processor, listening_socket)
+server = TServer.TThreadPoolServer(processor, listening_socket)
 
 print ("[Server] Started")
 server.serve()
