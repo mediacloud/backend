@@ -18,7 +18,7 @@ article info.
 *Dependencies*
 
 ```
-pip install pypubsub
+pip install pypubsub corenlp resource
 ```
 
 Examples
@@ -28,7 +28,7 @@ Get a list of all the sentences from the US mainstream media that mentioned "Zim
 ```python
 import mediacloud
 mc = mediacloud.api.MediaCloud('MY_API_KEY')
-res = mc.sentences('( zimbabwe AND president)', '+publish_date:[2013-01-01T00:00:00Z TO 2013-12-31T00:00:00Z] AND +media_sets_id:1')
+res = mc.sentenceList('( zimbabwe AND president)', '+publish_date:[2013-01-01T00:00:00Z TO 2013-12-31T00:00:00Z] AND +media_sets_id:1')
 print res['response']['numFound'] # prints the number of sentences found
 ```
 
