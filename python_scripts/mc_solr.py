@@ -11,12 +11,17 @@ def py_solr_connection():
     
     return solr
 
-def get_solr_location():
-    ##TODO -- get this from the yaml file
-    return 'http://localhost:8983'
-
 def get_solr_collection_url_prefix():
-    return get_solr_location() + '/solr/collection1'
+    config = mc_config.read_config()
+    solr_select_url = config[ 'solr_select_url' ]
+
+    solr_select_url = config['mediawords'][ 'solr_select_url' ]
+
+    assert solr_select_url.endswith( '/select')
+
+    solr_collection_url = solr_select_url[:-7]
+
+    return solr_collection_url
 
 def solr_request( path, params):
     url = get_solr_collection_url_prefix() + '/' + path
