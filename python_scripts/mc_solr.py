@@ -4,13 +4,26 @@ import psycopg2
 import psycopg2.extras
 import time
 import json
+import pysolr
+import sys
 
-def get_solr_location():
-    ##TODO -- get this from the yaml file
-    return 'http://localhost:8983'
+def py_solr_connection():
+    solr = pysolr.Solr(get_solr_collection_url_prefix(), timeout=10)
+    
+    return solr
 
 def get_solr_collection_url_prefix():
-    return get_solr_location() + '/solr/collection1'
+    config = mc_config.read_config()
+
+    #print >> sys.stderr, config
+
+    solr_select_url = config['mediawords'][ 'solr_select_url' ]
+
+    assert solr_select_url.endswith( '/select')
+
+    solr_collection_url = solr_select_url[:-7]
+
+    return solr_collection_url
 
 def solr_request( path, params):
     url = get_solr_collection_url_prefix() + '/' + path
