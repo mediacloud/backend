@@ -46,7 +46,7 @@ END
 
       'not-in-rolezinhos-controversy + portuguese-media-set' => <<END,
 select s.*
-    from stories s
+    from one_day_stories s
         join media_tags_map mtm on ( s.media_id = mtm.media_id and mtm.tags_id = 8877968 )
         left join stories_tags_map stm on ( s.stories_id = stm.stories_id and stm.tags_id = 8875452 )
     where
@@ -55,24 +55,25 @@ END
 
       'egypt-emm' => <<END,
 select s.*
-    from stories s
+    from one_day_stories s
         join media_tags_map mtm on ( s.media_id = mtm.media_id and mtm.tags_id = 8876576 )
 END
 
       'us-political-blogs' => <<END,
 select s.*
-    from stories s
+    from one_day_stories s
         join media_tags_map mtm on ( s.media_id = mtm.media_id and mtm.tags_id = 8875108 )
 END
 
       'us-top-25-msm' => <<END,
 select s.*
-    from stories s
+    from one_day_stories s
         join media_tags_map mtm on ( s.media_id = mtm.media_id and mtm.tags_id = 8875027 )
 END
 
     };
 
+my $_one_day_stories_created = 0;
 
 sub get_extractor_results_for_story
 {
@@ -250,11 +251,25 @@ sub print_basic_stats
 }
 
 # get a sample of NUM_SAMPLED_STORIES the most recent (by stories_id) stories
-# matching the given query.  Generate randomness by only returning stories for
-# which stories_id % SAMPLE_MOD == 0.
+# matching the given query. Provide a one_day_stories temporary table
+# that allows efficient random sampling for whole media sets.
 sub get_sampled_stories
 {
     my ( $db, $query, $num_sampled_stories ) = @_;
+    
+    if ( !$_one_day_stories_created )
+    {
+        print "generating one_day_stories ...\n";
+        $_one_day_stories_created = 1;
+        my $mod_factor = List::Util::max( 1, int( 10 / $num_sampled_stories ) );
+        $db->query( <<END );
+create temporary table one_day_stories as
+    select s.* from stories s
+        where date_trunc( 'day', publish_date ) = '2014-03-01'
+            and ( s.stories_id % $mod_factor ) = 0
+        
+END
+    }
     
     # guess that we'll get NUM_SAMPLED_STORIES if we multiply the limit by SAMPLE_MOD
     my $inner_limit = int( $num_sampled_stories * $SAMPLE_MOD );
@@ -262,21 +277,18 @@ sub get_sampled_stories
     # we have to create this complex subquery because otherwise the postgres
     # query planner falls back to scanning stories_media_id instead of stories_pkey
     my $sampled_query = <<END;
-select distinct q.*
+select distinct q.*, md5( q.stories_id::text )
     from ( 
             $query
-            order by s.stories_id desc limit $inner_limit 
+            order by md5( s.stories_id::text ) desc 
         ) q
         join downloads d on ( q.stories_id = d.stories_id )
     where 
-        ( q.stories_id % $SAMPLE_MOD ) = 0 and 
         d.state = 'success'
-    order by q.stories_id desc 
+    order by md5( q.stories_id::text ) desc 
     limit $num_sampled_stories
 END
 
-    print $sampled_query;
-    
     return $db->query( $sampled_query )->hashes;
 }
 
