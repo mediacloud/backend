@@ -18,6 +18,7 @@ use MediaWords::DBI::Downloads;
 use MediaWords::Util::Config;
 
 Readonly my $NUM_SAMPLED_STORIES => 100;
+Readonly my $SAMPLE_MOD          => 17;
 
 # specify story queries for which we compare a sample of stories against 
 # the heuristic and crc extractors
@@ -31,8 +32,6 @@ select s.*
     where
         cs.controversies_id = 563 and
         stm.tags_id is not null
-    order by ( s.stories_id % 1789 ) asc, stories_id
-    limit $NUM_SAMPLED_STORIES
 END
 
       'rolezinhos-controversy + unspidered' => <<END,
@@ -43,8 +42,6 @@ select s.*
     where
         cs.controversies_id = 563 and
         stm.tags_id is null
-    order by ( s.stories_id % 1789 ) asc, stories_id
-    limit $NUM_SAMPLED_STORIES
 END
 
       'not-in-rolezinhos-controversy + portuguese-media-set' => <<END,
@@ -52,49 +49,26 @@ select s.*
     from stories s
         join media_tags_map mtm on ( s.media_id = mtm.media_id and mtm.tags_id = 8877968 )
         left join stories_tags_map stm on ( s.stories_id = stm.stories_id and stm.tags_id = 8875452 )
-        join downloads d on ( d.stories_id = s.stories_id )
-    where ( s.stories_id % 7 ) = 0 and
-        d.state = 'success' and
+    where
         stm.tags_id is null and
-        s.stories_id  < 210000000
-    order by s.stories_id desc
-    limit $NUM_SAMPLED_STORIES
 END
 
       'egypt-emm' => <<END,
 select s.*
     from stories s
         join media_tags_map mtm on ( s.media_id = mtm.media_id and mtm.tags_id = 8876576 )
-        join downloads d on ( d.stories_id = s.stories_id )
-    where ( s.stories_id % 37 ) = 0 and
-        d.state = 'success' and
-        s.stories_id  < 210000000
-    order by s.stories_id desc
-    limit $NUM_SAMPLED_STORIES
 END
 
       'us-political-blogs' => <<END,
 select s.*
     from stories s
         join media_tags_map mtm on ( s.media_id = mtm.media_id and mtm.tags_id = 8875108 )
-        join downloads d on ( d.stories_id = s.stories_id )
-    where ( s.stories_id % 37 ) = 0 and
-        d.state = 'success' and
-        s.stories_id  < 210000000
-    order by s.stories_id desc
-    limit $NUM_SAMPLED_STORIES
 END
 
       'us-top-25-msm' => <<END,
 select s.*
     from stories s
         join media_tags_map mtm on ( s.media_id = mtm.media_id and mtm.tags_id = 8875027 )
-        join downloads d on ( d.stories_id = s.stories_id )
-    where ( s.stories_id % 37 ) = 0 and
-        d.state = 'success' and
-        s.stories_id  < 210000000
-    order by s.stories_id desc
-    limit $NUM_SAMPLED_STORIES
 END
 
     };
@@ -275,8 +249,44 @@ sub print_basic_stats
     }
 }
 
+# get a sample of NUM_SAMPLED_STORIES the most recent (by stories_id) stories
+# matching the given query.  Generate randomness by only returning stories for
+# which stories_id % SAMPLE_MOD == 0.
+sub get_sampled_stories
+{
+    my ( $db, $query, $num_sampled_stories ) = @_;
+    
+    # guess that we'll get NUM_SAMPLED_STORIES if we multiply the limit
+    # by SAMPLE_MOD * 1.5 for the innery query
+    my $inner_limit = int( $num_sampled_stories * $SAMPLE_MOD * 1.5 );
+    
+    # we have to create this complex subquery because otherwise the postgres
+    # query planner falls back to scanning stories_media_id instead of stories_pkey
+    my $sampled_query = <<END;
+select distinct q.*
+    from ( 
+            $query
+            order by s.stories_id desc limit $inner_limit 
+        ) q
+        join downloads d on ( q.stories_id = d.stories_id )
+    where 
+        ( q.stories_id % $SAMPLE_MOD ) = 0 and 
+        d.state = 'success'
+    order by q.stories_id desc 
+    limit $num_sampled_stories
+END
+
+    print $sampled_query;
+    
+    return $db->query( $sampled_query )->hashes;
+}
+
 sub main
 {
+    my ( $num_sampled_stories ) = @ARGV;
+    
+    $num_sampled_stories ||= $NUM_SAMPLED_STORIES;
+    
     $| = 1;
     binmode( STDOUT, 'utf8' );
     binmode( STDERR, 'utf8' );
@@ -290,7 +300,7 @@ sub main
         print "PROCESSING SET $name...\n";
 
         print "fetching stories ...\n";
-        my $stories = $db->query( $query )->hashes;
+        my $stories = get_sampled_stories( $db, $query, $num_sampled_stories );
 
         print "extracting stories ...\n";
         my $s = get_extractor_stats( $db, $stories );
