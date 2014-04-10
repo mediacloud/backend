@@ -18,7 +18,7 @@ use MediaWords::DBI::Downloads;
 use MediaWords::Util::Config;
 
 Readonly my $NUM_SAMPLED_STORIES => 100;
-Readonly my $SAMPLE_MOD          => 7;
+Readonly my $SAMPLE_MOD          => 11;
 
 # specify story queries for which we compare a sample of stories against 
 # the heuristic and crc extractors
@@ -50,7 +50,7 @@ select s.*
         join media_tags_map mtm on ( s.media_id = mtm.media_id and mtm.tags_id = 8877968 )
         left join stories_tags_map stm on ( s.stories_id = stm.stories_id and stm.tags_id = 8875452 )
     where
-        stm.tags_id is null and
+        stm.tags_id is null
 END
 
       'egypt-emm' => <<END,
@@ -256,9 +256,8 @@ sub get_sampled_stories
 {
     my ( $db, $query, $num_sampled_stories ) = @_;
     
-    # guess that we'll get NUM_SAMPLED_STORIES if we multiply the limit
-    # by SAMPLE_MOD * 1.5 for the innery query
-    my $inner_limit = int( $num_sampled_stories * $SAMPLE_MOD * 1.5 );
+    # guess that we'll get NUM_SAMPLED_STORIES if we multiply the limit by SAMPLE_MOD
+    my $inner_limit = int( $num_sampled_stories * $SAMPLE_MOD );
     
     # we have to create this complex subquery because otherwise the postgres
     # query planner falls back to scanning stories_media_id instead of stories_pkey
