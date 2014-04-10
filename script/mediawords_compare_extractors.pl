@@ -17,7 +17,7 @@ use MediaWords::DB;
 use MediaWords::DBI::Downloads;
 use MediaWords::Util::Config;
 
-Readonly my $NUM_SAMPLED_STORIES => 50;
+Readonly my $NUM_SAMPLED_STORIES => 100;
 
 # specify story queries for which we compare a sample of stories against 
 # the heuristic and crc extractors
@@ -60,6 +60,43 @@ select s.*
     order by s.stories_id desc
     limit $NUM_SAMPLED_STORIES
 END
+
+      'egypt-emm' => <<END,
+select s.*
+    from stories s
+        join media_tags_map mtm on ( s.media_id = mtm.media_id and mtm.tags_id = 8876576 )
+        join downloads d on ( d.stories_id = s.stories_id )
+    where ( s.stories_id % 37 ) = 0 and
+        d.state = 'success' and
+        s.stories_id  < 210000000
+    order by s.stories_id desc
+    limit $NUM_SAMPLED_STORIES
+END
+
+      'us-political-blogs' => <<END,
+select s.*
+    from stories s
+        join media_tags_map mtm on ( s.media_id = mtm.media_id and mtm.tags_id = 8875108 )
+        join downloads d on ( d.stories_id = s.stories_id )
+    where ( s.stories_id % 37 ) = 0 and
+        d.state = 'success' and
+        s.stories_id  < 210000000
+    order by s.stories_id desc
+    limit $NUM_SAMPLED_STORIES
+END
+
+      'us-top-25-msm' => <<END,
+select s.*
+    from stories s
+        join media_tags_map mtm on ( s.media_id = mtm.media_id and mtm.tags_id = 8875027 )
+        join downloads d on ( d.stories_id = s.stories_id )
+    where ( s.stories_id % 37 ) = 0 and
+        d.state = 'success' and
+        s.stories_id  < 210000000
+    order by s.stories_id desc
+    limit $NUM_SAMPLED_STORIES
+END
+
     };
 
 
