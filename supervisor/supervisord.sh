@@ -16,4 +16,4 @@ source "$PWD/supervisor_is_up_to_date.inc.sh"
 validate_supervisor_version
 
 cd "$PWD/"
-supervisord --childlogdir "$CHILDLOGDIR" --configuration "$PWD/supervisord.conf"
+/usr/local/bin/supervisord --childlogdir "$CHILDLOGDIR" --configuration "$PWD/supervisord.conf"
