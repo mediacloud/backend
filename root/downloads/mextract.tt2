@@ -136,12 +136,13 @@
                 [% SET line_number = 0 %]
                 [%- FOREACH line IN lines -%] 
                     [%- SET score = scores.$line_number -%] 
+                    [%- SET line_info = line_info.$line_number -%] 
                     [%- IF score.is_story AND !story_lines_lookup.$line_number -%]
                         <tr>
                             <td><a href="#[% line_number -%]">extra</a></td>
                             [%- IF !hide_html_densities %]
-                                <td>[%- score.html_density * 100 | format('%d') -%]</td>
-                                <td>[% score.discounted_html_density * 100 | format('%d') -%]</td>
+                                <td>[%- line_info.html_density  | html -%]</td>
+                                <td>[% line_info.discounted_html_density | html -%]</td>
                             [%- END -%]
                             <td>[% line | html_strip | html  %]</td>
                         </tr>
@@ -150,8 +151,8 @@
                         <tr>
                             <td><a href="#[% line_number -%]">missing</a></td>
                             [%- IF !hide_html_densities %]
-                                <td>[% score.html_density * 100 | format('%d') -%]</td>
-                                <td>[% score.discounted_html_density * 100 | format('%d') -%]</td>
+                                <td>[% line_info.html_density | html -%]</td>
+                                <td>[% line_info.discounted_html_density | html -%]</td>
                             [% END %]
                             <td>[% line | html_strip | html %]</td>
                         </tr>
@@ -195,8 +196,9 @@
         [% FOREACH line IN lines -%]
             [%- SET score = scores.$line_number -%]
             [%- SET explanation = score.explanation -%]
+	    [%- SET line_info = line_infos.$line_number -%] 
 
-            [%- IF ( explanation != "require body\n") AND (explanation != "require non-blank\n") AND (explanation != "require non-html\n")  || c.flash.no_autoexclude -%]
+            [%- IF ( explanation != "require body\n") AND (explanation != "require non-blank\n") AND (explanation != "require non-html\n" AND ! line_info.auto_excluded )  || c.flash.no_autoexclude -%]
                 [%- IF autoexcluded_lines > 0 %]
                     <tr>  
                         <td> -- </td> 
@@ -216,7 +218,7 @@
 
                 [%- SET autoexcluded_lines = 0 %]
 
-                <tr style="color:rgb( [% (256 - score.discounted_html_density *256) | round -%], 0, [% score.is_story * 256 | round -%])">
+                <tr style="color:rgb( [% (256) | round -%], 0, [% score.is_story * 256 | round -%])">
                     <td>
                         <a name="[% line_number -%]" />
                         <input type="checkbox" name="required_line_numbers" value="[% line_number %]" [% IF ((has_extractor_training_lines_scores && (story_lines_lookup.$line_number == 'required')) || (!has_extractor_training_lines_scores && score.is_story && !score.explanation.search('title match discount') ) ) -%] checked="checked"[% END -%]/>
@@ -226,8 +228,8 @@
                     </td>
                     <td>[% IF score.is_story -%]X[% END -%]</td>
                     [% IF !hide_html_densities -%]
-                        <td>[% score.html_density * 100 | format('%d') -%]</td>
-                        <td>[% score.discounted_html_density * 100 | format('%d') -%]</td>
+                        <td>[% line_info.html_density  -%]</td>
+                        <td>[% line_info.discounted_html_density -%]</td>
                     [% END -%]
                     [%- IF !hide_explanation -%]
                         <td>[% score.explanation %]</td>
