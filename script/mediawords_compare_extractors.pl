@@ -18,7 +18,7 @@ use MediaWords::DBI::Downloads;
 use MediaWords::Util::Config;
 
 Readonly my $NUM_SAMPLED_STORIES => 100;
-Readonly my $SAMPLE_MOD          => 17;
+Readonly my $SAMPLE_MOD          => 7;
 
 # specify story queries for which we compare a sample of stories against 
 # the heuristic and crc extractors
