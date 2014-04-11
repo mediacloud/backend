@@ -24,6 +24,14 @@ pip install pypubsub corenlp resource
 Examples
 --------
 
+To get all the stories associated with a query and dump the output to json:
+```python
+import mediacloud, json
+mc = mediacloud.api.MediaCloud('MY_API_KEY')
+stories = mc.storyList('( hacking AND civic ) OR ( hackathon AND civic)', '+publish_date:[2013-01-01T00:00:00Z TO 2014-04-19T00:00:00Z] AND +media_sets_id:1')
+print json.dumps(stories)
+```
+
 Get a list of all the sentences from the US mainstream media that mentioned "Zimbabwe" and "president" in 2013:
 ```python
 import mediacloud
@@ -48,20 +56,17 @@ story = mc.story(169440976)
 print story['url']  # prints the url the story came from
 ```
 
-To get all the stories associated with a query and dump the output to json:
+To save the first 100 stories from one day to a database:
 ```python
 import mediacloud
-import json
-mc = mediacloud.api.MediaCloud('')
-res = mc.sentenceList('( hacking AND civic ) OR ( hackathon AND civic)', '+publish_date:[2013-01-01T00:00:00Z TO 2014-04-19T00:00:00Z] AND +media_sets_id:1')
-story_ids = []
-[story_ids.append(i) for i in [y["stories_id"] for y in res["response"]["docs"]] if not story_ids.count(i)]
-stories = [mc.story(i) for i in story_ids]
-print json.dumps(stories)
+mc = mediacloud.api.MediaCloud('MY_API_KEY')
+db = mediacloud.storage.MongoStoryDatabase('one_day')
+stories = mc.storyList('*', '+publish_date:[2014-01-01T00:00:00Z TO 2014-01-01T23:59:59Z]',0,100)
+[db.addStory(s) for story in stories]
+print db.storyCount()
 ```
 
-
-Take a look at the `apitest.py` for more detailed examples.
+Take a look at the `apitest.py` and `storagetest.py` for more detailed examples.
 
 Testing
 -------
