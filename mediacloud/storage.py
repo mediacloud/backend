@@ -1,4 +1,4 @@
-import copy
+import copy, logging
 
 class StoryDatabase(object):
 
@@ -54,12 +54,31 @@ class StoryDatabase(object):
             self._updateStory( dict(story_attributes.items() + extra_attributes.items()) )
         return True
 
+    def updateStory(self, story, extra_attributes={}):
+        # if it is a new story, just add it normally
+        if not self.storyExists(str(story['stories_id'])):
+            return self.addStory(story,extra_attributes)
+        else:
+            from pubsub import pub
+            story_to_save = copy.deepcopy( story )
+            story_to_save = dict(story_to_save.items() + extra_attributes.items())
+            story_to_save['_id'] = str(story['stories_id'])
+            if 'story_sentences' in story:
+                story_to_save['story_sentences_count'] = len(story['story_sentences'])
+            pub.sendMessage(self.EVENT_PRE_STORY_SAVE, db_story=story_to_save, raw_story=story)
+            self._updateStory(story_to_save)
+            saved_story = self.getStory( str(story['stories_id']) )
+            pub.sendMessage(self.EVENT_POST_STORY_SAVE, db_story=saved_story, raw_story=story)
+            logging.info('DB: Updated '+str(story['stories_id']))
+
     def addStory(self, story, extra_attributes={}):
         ''' 
-        Save a story (python object) to the database.  Return success or failure boolean.
+        Save a story (python object) to the database. This does NOT update stories.
+        Return success or failure boolean.
         '''
         from pubsub import pub
         if self.storyExists(str(story['stories_id'])):
+            logging.info('DB: Not saving '+str(story['stories_id'])+' - already exists')
             return False
         story_to_save = copy.deepcopy( story )
         story_to_save = dict(story_to_save.items() + extra_attributes.items())
@@ -70,6 +89,7 @@ class StoryDatabase(object):
         self._saveStory( story_to_save )
         saved_story = self.getStory( str(story['stories_id']) )
         pub.sendMessage(self.EVENT_POST_STORY_SAVE, db_story=saved_story, raw_story=story)
+        logging.info('DB: Saved '+str(story['stories_id']))
         return True
 
     def _updateStory(self, story_attributes):
@@ -80,6 +100,9 @@ class StoryDatabase(object):
 
     def getStory(self, story_id):
         raise NotImplementedError("Subclasses should implement this!")
+
+    def storyCount(self):
+        raise NotImplementedError("Subclasses should implement this!")        
 
     def createDatabase(self, db_name):
         raise NotImplementedError("Subclasses should implement this!")
@@ -110,6 +133,9 @@ class MongoStoryDatabase(StoryDatabase):
 
     def deleteDatabase(self, ignored):
         self._db.drop_collection('stories')
+
+    def storyCount(self):
+        self._db.stories.count();
 
     def storyExists(self, story_id):
         story = self._db.stories.find_one( { "_id": int(story_id) } )
@@ -207,6 +233,10 @@ class CouchStoryDatabase(StoryDatabase):
         
     def deleteDatabase(self, db_name):
         del self._server[db_name]
+        
+    def storyCount(self):
+        results = self._db.view('examples/total_stories')
+        return results.rows[0].value
         
     def getMaxStoryId(self):
         results = self._db.view('examples/max_story_id')

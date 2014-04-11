@@ -63,6 +63,38 @@ class StorageTest(unittest.TestCase):
         self.assertEquals(saved_story['story_sentences_count'], 26)
         self.assertEquals(saved_story['group'], 'test2')
 
+    def _updateStoryInDb(self, db):
+        story = self._getFakeStory()
+        db.createDatabase(self.TEST_DB_NAME)
+        # first save it normally
+        worked = db.updateStory(story)
+        self.assertTrue(worked)
+        saved_story = db.getStory(str(story['stories_id']))
+        self.assertNotEqual(saved_story,None)
+        self.assertEquals(int(saved_story['_id']), story['stories_id'])
+        self.assertEquals(saved_story['story_sentences_count'], 4)
+        self.assertFalse('category' in saved_story)
+        # now update it with new info and make sure it is still there
+        worked = db.updateStory(story,{'category':'editorial'})
+        saved_story = db.getStory(str(story['stories_id']))
+        self.assertNotEqual(saved_story,None)
+        self.assertEquals(int(saved_story['_id']), story['stories_id'])
+        self.assertEquals(saved_story['story_sentences_count'], 4)
+        self.assertTrue('category' in saved_story)
+        db.deleteDatabase(self.TEST_DB_NAME)
+
+    def _countStoriesInDb(self,db):
+        story1 = self._getFakeStory()
+        story1['stories_id'] = "10000000000"
+        story2 = self._getFakeStory()
+        story1['stories_id'] = "20000000000"
+        db.createDatabase(self.TEST_DB_NAME)
+        db.initialize()
+        db.addStory(story1)
+        db.addStory(story2)
+        self.assertEquals(db.storyCount(),2)
+        db.deleteDatabase(self.TEST_DB_NAME)       
+
     def _addStoryToDb(self, db):
         story = self._getFakeStory()
         db.createDatabase(self.TEST_DB_NAME)
@@ -123,6 +155,10 @@ class CouchStorageTest(StorageTest):
         db = CouchStoryDatabase()
         self._testMaxStoryIdInDb(db)
 
+    def testStoryCount(self):
+        db = CouchStoryDatabase()
+        self._countStoriesInDb(db)
+
     def testCreateMaxIdView(self):
         db = CouchStoryDatabase()
         db.createDatabase(self.TEST_DB_NAME)
@@ -147,6 +183,14 @@ class MongoStorageTest(StorageTest):
     def testAddStory(self):
         db = MongoStoryDatabase()
         self._addStoryToDb(db)
+
+    def testUpdateStory(self):
+        db = MongoStoryDatabase()
+        self._updateStoryInDb(db)
+
+    def testStoryCount(self):
+        db = MongoStoryDatabase()
+        self._countStoriesInDb(db)
 
     def testAddStoryFromSentencesWithAttributes(self):
         db = MongoStoryDatabase()
