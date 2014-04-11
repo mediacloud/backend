@@ -87,15 +87,17 @@
             [% IF c.acl_user_can_visit('/admin/users/list') %]
                 <a href="[% c.uri_for('/admin/users/list') %]">Users</a>
             [% END -%]
-            [% IF submenu_items -%]
-                |
+    </div>
+    [% IF submenu_items -%]
+        <div id="submenu">
+                --
                 [% FOREACH item IN submenu_items -%]
                     [% IF c.acl_user_can_visit(item.0) %]
                         <a href="[% c.uri_for(item.0) _ '/' _ item.1 _ '?' _ item.2 %]">[% item.3 %]</a>
                     [% END -%]
                 [% END #[% FOREACH i IN submenu_items -%]
-            [% END #[% IF menu_items -%]
-      </div>
+        </div>
+    [% END #[% IF menu_items -%]
 
     [% END #[% IF c.user -%]
     

@@ -84,7 +84,7 @@ sub _get_stories_from_feed_contents_impl
     for my $item ( @{ $items } )
     {
 
-        my $url  = _no_ref( $item->link() ) || _no_ref( $item->guid() ) || _no_ref( $item->get( 'nnd:canonicalUrl' ) );
+        my $url  = _no_ref( $item->link() ) || _no_ref( $item->get( 'nnd:canonicalUrl' ) ) || _no_ref( $item->guid() );
         my $guid = _no_ref( $item->guid() ) || $url;
 
         next ITEM unless ( $url );
