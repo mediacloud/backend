@@ -541,6 +541,14 @@ sub batch_create : Local
     $c->stash->{ template } = 'feeds/batch_create.tt2';
 }
 
+# return true of the feed url exists in the medium
+sub _feed_url_exists_in_medium
+{
+    my ( $db, $url, $media_id ) = @_;
+    
+    return $db->query( 'select 1 from feeds where url = ? and media_id = ?', $url, $media_id )->hash;
+}
+
 sub batch_create_do : Local
 {
     my ( $self, $c, $media_id ) = @_;
@@ -562,15 +570,18 @@ sub batch_create_do : Local
 
     for my $link ( @{ $links } )
     {
-        my $feed = $c->dbis->create(
-            'feeds',
-            {
-                media_id => $media_id,
-                name     => $link->{ name } || '(no name)',
-                url      => $link->{ url }
-            }
-        );
-        $self->add_default_scraped_tags( $c, $feed );
+        if ( !_feed_url_exists_in_medium( $c->dbis, $link->{ url }, $media_id ) )
+        {
+            my $feed = $c->dbis->create(
+                'feeds',
+                {
+                    media_id => $media_id,
+                    name     => $link->{ name } || '(no name)',
+                    url      => $link->{ url }
+                }
+            );
+            $self->add_default_scraped_tags( $c, $feed );
+        }
     }
 
     my $status_msg;
@@ -582,7 +593,7 @@ sub batch_create_do : Local
                 !( grep { $a eq lc( $_->{ url } ) } @{ $links } )
             } @{ $urls }
         ];
-        $status_msg = "The following urls were skipped: " . join( ', ', @{ $skipped_urls } );
+        $status_msg = "The following urls were skipped because they already exist in this medium: " . join( ', ', @{ $skipped_urls } );
     }
     else
     {
