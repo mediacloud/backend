@@ -2,7 +2,6 @@ package MediaWords::Controller::Api::V2::Tag_Sets;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
-
 use strict;
 use warnings;
 use MediaWords::DBI::StorySubsets;

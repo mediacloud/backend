@@ -5,7 +5,6 @@
     <tr>
         <th>Media Source</th>
         <th>URL</th>
-        <th>Current Status</th>
         <th>Stories</th>
         <th>w Text</th>
         <th>w Sentences</th>
@@ -18,7 +17,6 @@
         <tr [% IF even %]class="even"[% END %]>
             <td><a href="[% c.uri_for( '/admin/health/medium/' _ medium.media_id ) %]">[% medium.name | html %]</a></td>
             <td><a href="[% medium.url | html %]">[% medium.url.substr( 0, 32 ) | html %]</a></td>
-            <td>[% medium.status %]</td>
             <td>[% medium.num_stories %]</td>
             <td>[% medium.num_stories_with_text %]</td>
             <td>[% medium.num_stories_with_sentences %]</td>

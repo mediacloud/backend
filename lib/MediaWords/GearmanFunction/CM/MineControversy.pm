@@ -49,10 +49,10 @@ sub run($;$)
 {
     my ( $self, $args ) = @_;
 
-    my $controversies_id       = $args->{ controversies_id };
-    my $dedup_stories          = $args->{ dedup_stories } // 0;
-    my $import_only            = $args->{ import_only } // 0;
-    my $cache_broken_downloads = $args->{ cache_broken_downloads } // 0;
+    my $controversies_id                = $args->{ controversies_id };
+    my $import_only                     = $args->{ import_only } // 0;
+    my $cache_broken_downloads          = $args->{ cache_broken_downloads } // 0;
+    my $skip_outgoing_foreign_rss_links = $args->{ skip_outgoing_foreign_rss_links } // 0;
 
     unless ( $controversies_id )
     {
@@ -65,9 +65,9 @@ sub run($;$)
       or die( "Unable to find controversy '$controversies_id'" );
 
     my $options = {
-        dedup_stories          => $dedup_stories,
-        import_only            => $import_only,
-        cache_broken_downloads => $cache_broken_downloads
+        import_only                     => $import_only,
+        cache_broken_downloads          => $cache_broken_downloads,
+        skip_outgoing_foreign_rss_links => $skip_outgoing_foreign_rss_links
     };
 
     MediaWords::CM::Mine::mine_controversy( $db, $controversy, $options );

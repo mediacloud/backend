@@ -26,7 +26,6 @@ use base 'Catalyst::Controller::HTML::FormFu';
 
 sub index : Path : Args(0)
 {
-
     return list( @_ );
 }
 
@@ -277,7 +276,7 @@ END
       MediaWords::DBI::Activities::sql_activities_which_reference_column( 'controversies.controversies_id',
         $controversies_id );
     $sql_latest_activities .= ' LIMIT ?';
-    
+
     print STDERR "$sql_latest_activities\n";
 
     my $latest_activities = $db->query( $sql_latest_activities, $LATEST_ACTIVITIES_COUNT )->hashes;

@@ -129,13 +129,13 @@ sub view : Local
         $stories_id
     )->hashes;
     $c->stash->{ tags } = \@tags;
-    
+
     my $story_sentences = $c->dbis->query( <<END, $stories_id )->hashes;
 select * from story_sentences where stories_id = ? order by sentence_number
 END
     my $all_sentences = MediaWords::DBI::Stories::get_all_sentences( $c->dbis, $story );
 
-    $c->stash->{ all_sentences } = $all_sentences;
+    $c->stash->{ all_sentences }   = $all_sentences;
     $c->stash->{ story_sentences } = $story_sentences;
 
     $c->stash->{ storytext } = MediaWords::DBI::Stories::get_text( $c->dbis, $story );
@@ -515,7 +515,6 @@ sub retag : Local
     $c->stash->{ tags }       = $tags;
     $c->stash->{ template }   = 'stories/retag.tt2';
 }
-
 
 =head1 AUTHOR
 

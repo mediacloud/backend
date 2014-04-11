@@ -291,7 +291,7 @@ sub mextract : Local
     $download->{ story }  = $c->dbis->find_by_id( 'stories', $download->{ stories_id } );
     $download->{ medium } = $c->dbis->find_by_id( 'media',   $download->{ story }->{ media_id } );
 
-    my $has_extractor_training_lines_scores = @{ $download->{ extractor_training_lines } } > 0;
+    my $has_extractor_training_lines_scores = scalar( @{ $download->{ extractor_training_lines } } ) > 0;
 
     my $story_lines_lookup = {};
     for my $line ( @{ $download->{ extractor_training_lines } } )
@@ -303,6 +303,8 @@ sub mextract : Local
 
     my $lines  = $extract->{ download_lines };
     my $scores = $extract->{ scores };
+
+    my $line_infos = MediaWords::Crawler::AnalyzeLines::get_info_for_lines( $lines,  $download->{ story }->{ title }, $download->{ story }->{ description } );
 
     my $developer_ui_param = $c->request->param( 'developer_ui' );
 
@@ -342,6 +344,7 @@ sub mextract : Local
 
     $c->stash->{ download }                            = $download;
     $c->stash->{ lines }                               = $lines;
+    $c->stash->{ line_infos }                          = $line_infos;
     $c->stash->{ next_training_download }              = $next_training_download;
     $c->stash->{ story_lines_lookup }                  = $story_lines_lookup;
     $c->stash->{ has_extractor_training_lines_scores } = $has_extractor_training_lines_scores;
