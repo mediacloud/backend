@@ -185,10 +185,9 @@ sub _get_rolezinhos_download
 
     my $rolezinhos_query =  <<END ;
 WITH controversy_stories_ids as (select s.stories_id
-    from stories s
+from stories s
         join controversy_stories cs on ( s.stories_id = cs.stories_id )
-        left join stories_tags_map stm on ( s.stories_id = stm.stories_id and stm.tags_id = 8875452 )
-    where
+    where  
     cs.controversies_id = 563) select  downloads.* from downloads, controversy_stories_ids where downloads.stories_id = controversy_stories_ids.stories_id AND   type = 'content'::download_type AND state = 'success'::download_state
 END
 
