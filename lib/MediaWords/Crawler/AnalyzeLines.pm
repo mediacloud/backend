@@ -119,7 +119,7 @@ sub lineStartsWithTitleText($$)
 }
 
 # get discount based on the similarity to the description
-sub get_description_similarity_discount($$$)
+sub _get_description_similarity_discount($$$)
 {
     my ( $line, $description, $language_code ) = @_;
 
@@ -167,7 +167,7 @@ sub calculate_line_extraction_metrics($$$$$$)
 
     my $article_has_sphereit_map        = defined( $sphereit_map );
     my $sphereit_map_includes_line      = ( defined( $sphereit_map ) && $sphereit_map->{ $i } );
-    my $description_similarity_discount = get_description_similarity_discount( $line, $description, $language_code );
+    my $description_similarity_discount = _get_description_similarity_discount( $line, $description, $language_code );
 
     return ( $article_has_clickprint, $article_has_sphereit_map, $description_similarity_discount,
         $sphereit_map_includes_line );
@@ -275,6 +275,37 @@ sub calculate_full_line_metrics($$$$$$$$$)
     return $line_info;
 }
 
+## TODO merge this with the one in HTML::CruftText
+# markers -- patterns used to find lines than can help find the text
+my $_MARKER_PATTERNS = {
+    startclickprintinclude => qr/<\!--\s*startclickprintinclude/i,
+    endclickprintinclude   => qr/<\!--\s*endclickprintinclude/i,
+    startclickprintexclude => qr/<\!--\s*startclickprintexclude/i,
+    endclickprintexclude   => qr/<\!--\s*endclickprintexclude/i,
+    sphereitbegin          => qr/<\!--\s*DISABLEsphereit\s*start/i,
+    sphereitend            => qr/<\!--\s*DISABLEsphereit\s*end/i,
+    body                   => qr/<body/i,
+    comment                => qr/(id|class)="[^"]*comment[^"]*"/i,
+};
+
+# METHODS
+
+# find various markers that can be used to discount line scores
+# return a hash of the found markers
+sub _find_markers($$)
+{
+    my ( $lines, $language_code ) = @_;
+
+    my $markers = {};
+
+    while ( my ( $name, $pattern ) = each( %{ $_MARKER_PATTERNS } ) )
+    {
+        $markers->{ $name } = [ indexes { $_ =~ $pattern } @{ $lines } ];
+    }
+
+    return $markers;
+}
+
 sub get_info_for_lines($$$)
 {
     my ( $lines, $title, $description ) = @_;
@@ -294,7 +325,7 @@ sub get_info_for_lines($$$)
           " falling back to default language '$language_code'.";
     }
 
-    my $markers = MediaWords::Crawler::Extractor::find_markers( $lines, $language_code );
+    my $markers = _find_markers( $lines, $language_code );
     my $auto_excluded_lines = MediaWords::Crawler::Extractor::find_auto_excluded_lines( $lines, $language_code, $markers );
     my $has_clickprint      = HTML::CruftText::has_clickprint( $lines );
     my $sphereit_map        = MediaWords::Crawler::Extractor::get_sphereit_map( $markers, $language_code );
@@ -425,8 +456,6 @@ sub get_feature_string_from_line_info($$;$)
 
         my $field_value = $line_info->{ $feature_field };
 
-        #next if ($field_valuene '1' &&$field_valuene '0' );
-
         if ( $field_value eq '1' )
         {
             $ret .= $feature_field;
@@ -509,7 +538,6 @@ sub get_feature_strings_for_download
     my $ea = each_arrayref( $line_infos, $preprocessed_lines );
 
     #TODO DRY out this code
-    #my $previous_states = [ qw ( prestart start ) ];
     while ( my ( $line_info, $line_text ) = $ea->() )
     {
         my $current_state = $line_info->{ class };
@@ -518,19 +546,6 @@ sub get_feature_strings_for_download
         {
             $current_state = 'auto_excluded';
         }
-
-        # my $prior_state_string = join '_', @$previous_states;
-
-        # #$line_info->{ "priors_$prior_state_string" } = 1;
-
-        # if ( $previous_states->[ 1 ] eq 'auto_excluded' )
-        # {
-        #     $line_info->{ previous_line_auto_excluded } = 1;
-        # }
-
-        # shift $previous_states;
-
-        # push $previous_states, $current_state;
 
         next if $line_info->{ auto_excluded } == 1;
 

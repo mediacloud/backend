@@ -53,22 +53,6 @@ my $_MARKER_PATTERNS = {
 
 # METHODS
 
-# find various markers that can be used to discount line scores
-# return a hash of the found markers
-sub find_markers($$)
-{
-    my ( $lines, $language_code ) = @_;
-
-    my $markers = {};
-
-    while ( my ( $name, $pattern ) = each( %{ $_MARKER_PATTERNS } ) )
-    {
-        $markers->{ $name } = [ indexes { $_ =~ $pattern } @{ $lines } ];
-    }
-
-    return $markers;
-}
-
 # return hash with lines numbers that should be included by sphereit
 # { linenum1 => 1, linenum2 => 1, ...}
 sub get_sphereit_map($$)
