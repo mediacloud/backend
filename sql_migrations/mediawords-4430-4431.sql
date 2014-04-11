@@ -18,12 +18,6 @@
 SET search_path = public, pg_catalog;
 
 
-ALTER TABLE dashboards
-    -- A "public" dashboard is the one that is shown in the web UI
-    -- (e.g. the "create controversy" page)
-	ADD COLUMN "public" boolean         not null DEFAULT true;
-
-
 -- Generate random API token
 CREATE OR REPLACE FUNCTION generate_api_token() RETURNS VARCHAR(64) LANGUAGE plpgsql AS $$
 DECLARE
