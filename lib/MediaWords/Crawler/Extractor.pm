@@ -19,19 +19,6 @@ use Array::Compare;
 use HTML::CruftText 0.02;
 use Carp qw (confess);
 
-## TODO merge this with the one in HTML::CruftText
-# markers -- patterns used to find lines than can help find the text
-my $_MARKER_PATTERNS = {
-    startclickprintinclude => qr/<\!--\s*startclickprintinclude/i,
-    endclickprintinclude   => qr/<\!--\s*endclickprintinclude/i,
-    startclickprintexclude => qr/<\!--\s*startclickprintexclude/i,
-    endclickprintexclude   => qr/<\!--\s*endclickprintexclude/i,
-    sphereitbegin          => qr/<\!--\s*DISABLEsphereit\s*start/i,
-    sphereitend            => qr/<\!--\s*DISABLEsphereit\s*end/i,
-    body                   => qr/<body/i,
-    comment                => qr/(id|class)="[^"]*comment[^"]*"/i,
-};
-
 # METHODS
 
 sub preprocess
