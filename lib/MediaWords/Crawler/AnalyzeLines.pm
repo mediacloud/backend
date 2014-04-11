@@ -12,6 +12,7 @@ use MediaWords::Crawler::Extractor;
 use MediaWords::Languages::Language;
 use MediaWords::Util::IdentifyLanguage;
 use Carp;
+use HTML::Entities;
 
 # extract substantive new story text from html pages
 
@@ -306,6 +307,91 @@ sub _find_markers($$)
     return $markers;
 }
 
+
+# return hash with lines numbers that should be included by sphereit
+# { linenum1 => 1, linenum2 => 1, ...}
+sub _get_sphereit_map($$)
+{
+    my ( $markers, $language_code ) = @_;
+
+    my $sphereit_map;
+    while ( my $start = shift( @{ $markers->{ sphereitbegin } } ) )
+    {
+        my $end = shift( @{ $markers->{ sphereitend } } ) || $start;
+
+        for ( my $i = $start ; $i <= $end ; $i++ )
+        {
+            $sphereit_map->{ $i } = 1;
+        }
+    }
+
+    return $sphereit_map;
+}
+
+sub _find_auto_excluded_lines($$;$)
+{
+    my ( $lines, $language_code, $markers ) = @_;
+
+    unless ( $markers )
+    {
+        $markers = find_markers( $lines, $language_code );
+    }
+    my $sphereit_map = _get_sphereit_map( $markers, $language_code );
+
+    my $ret = [];
+
+    for ( my $i = 0 ; $i < @{ $lines } ; $i++ )
+    {
+        my $line = defined( $lines->[ $i ] ) ? $lines->[ $i ] : '';
+
+        $line =~ s/^\s*//;
+        $line =~ s/\s*$//;
+        $line =~ s/\s+/ /;
+
+        my $explanation;
+
+        my $auto_exclude = 0;
+
+        if ( $markers->{ body }
+            && ( $i < ( $markers->{ body }->[ 0 ] || 0 ) ) )
+        {
+            $explanation .= "require body";
+            $auto_exclude = 1;
+        }
+        elsif ( $line =~ /^\s*$/ )
+        {
+            $explanation .= "require non-blank";
+            $auto_exclude = 1;
+        }
+        elsif ( MediaWords::Util::HTML::html_strip( $line ) !~ /[\w]/i )
+        {
+            $explanation .= "require non-html";
+            $auto_exclude = 1;
+        }
+        elsif ( decode_entities( $line ) !~ /\w{4}/i )
+        {
+            $explanation .= "require word";
+            $auto_exclude = 1;
+        }
+        elsif ( $sphereit_map && !$sphereit_map->{ $i } )
+        {
+            $explanation .= "require sphereit";
+            $auto_exclude = 1;
+        }
+
+        if ( $auto_exclude )
+        {
+            $ret->[ $i ] = [ 1, $explanation ];
+        }
+        else
+        {
+            $ret->[ $i ] = [ 0 ];
+        }
+    }
+
+    return $ret;
+}
+
 sub get_info_for_lines($$$)
 {
     my ( $lines, $title, $description ) = @_;
@@ -326,9 +412,9 @@ sub get_info_for_lines($$$)
     }
 
     my $markers = _find_markers( $lines, $language_code );
-    my $auto_excluded_lines = MediaWords::Crawler::Extractor::find_auto_excluded_lines( $lines, $language_code, $markers );
+    my $auto_excluded_lines = _find_auto_excluded_lines( $lines, $language_code, $markers );
     my $has_clickprint      = HTML::CruftText::has_clickprint( $lines );
-    my $sphereit_map        = MediaWords::Crawler::Extractor::get_sphereit_map( $markers, $language_code );
+    my $sphereit_map        = _get_sphereit_map( $markers, $language_code );
 
     my $info_for_lines = [];
 
