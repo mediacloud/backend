@@ -1,5 +1,9 @@
-[% title = 'Media Health' %]
+[% title = 'Media Health: Tags for ' _ tag_set.name | html %]
 [% INCLUDE include/header.tt2 %]
+
+<fieldset>
+    <a href="[% c.uri_for( '/admin/health/tag_sets' ) %]">List Tag Sets</a>
+</fieldset>
 
 <table>
     <tr>
