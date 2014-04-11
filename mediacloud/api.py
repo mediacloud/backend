@@ -10,8 +10,8 @@ class MediaCloud(object):
 
     V2_API_URL = "http://www.mediacloud.org/api/v2/"
 
-    def __init__(self, api_key=None):
-        logging.basicConfig(filename='mediacloud-api.log',level=logging.DEBUG)
+    def __init__(self, api_key=None,log_level=logging.DEBUG):
+        logging.basicConfig(filename='mediacloud-api.log',level=log_level)
         self._api_key = api_key
 
     def media(self, media_id):
