@@ -387,7 +387,7 @@ sub _get_country_counts($$$$)
 {
     my ( $self, $c, $query, $language_code ) = @_;
 
-    my $country_counts = MediaWords::DBI::Queries::get_country_counts( $c->dbis, $query, $language_code );
+    my $country_counts = MediaWords::DBI::Queries::get_country_counts( $c->dbis, $query );
 
     my $ret;
     foreach my $country_count ( @$country_counts )
