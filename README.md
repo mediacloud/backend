@@ -12,13 +12,15 @@ Download the distribution zip, then run
 
     python setup.py install
 
-Install and run [CouchDB](http://couchdb.apache.org) or [MongoDb](http://mongodb.org) to store 
-article info.
-
 *Dependencies*
 
 ```
-pip install pypubsub requests
+pip install requests
+```
+
+If you want to use the storage helpers built in, then run:
+```
+pip install pypubsub pymongo couchdb-python
 ```
 
 Examples
