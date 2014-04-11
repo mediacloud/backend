@@ -127,7 +127,7 @@ class ApiStoriesTest(ApiBaseTest):
         self.assertTrue(len(story['story_sentences'])>0)
 
     def testStoryList(self):
-        results = self._mc.storyList('robot','+publish_date:[2013-01-01T00:00:00Z TO 2013-12-31T00:00:00Z] AND +media_sets_id:1')
+        results = self._mc.storyList('+obama', '+publish_date:[2013-01-01T00:00:00Z TO 2013-02-01T00:00:00Z] AND +media_sets_id:1')
         self.assertNotEqual(len(results),0)
 
 class ApiSentencesTest(ApiBaseTest):
@@ -153,7 +153,7 @@ class ApiSentencesTest(ApiBaseTest):
 class ApiWordCountTest(ApiBaseTest):
 
     def testWordCount(self):
-        term_freq = self._mc.wordCount('robots', '+publish_date:[2013-01-01T00:00:00Z TO 2013-02-01T00:00:00Z] AND +media_sets_id:1')
+        term_freq = self._mc.wordCount('+robots', '+publish_date:[2013-01-01T00:00:00Z TO 2013-02-01T00:00:00Z] AND +media_sets_id:1')
         self.assertEqual(len(term_freq),71)
         self.assertEqual(term_freq[3]['term'],u'drones')
         # verify sorted in desc order
