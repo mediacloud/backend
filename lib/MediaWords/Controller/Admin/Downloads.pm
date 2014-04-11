@@ -201,7 +201,24 @@ sub _get_rolezinhos_download
 {
     my ( $self, $c ) = @_;
 
-    return $self->_get_controversy_download( $c, 563 );
+    my $rolezinhos_query =  <<END ;
+WITH controversy_stories_ids as (select s.stories_id
+from stories s
+        join controversy_stories cs on ( s.stories_id = cs.stories_id )
+ left join stories_tags_map stm on ( s.stories_id = stm.stories_id and stm.tags_id = 8875452 ),
+ (select Random() as r ) as rand
+    where  
+    cs.controversies_id = ?
+  AND  ( ( (rand.r < 0.4) AND (stm.tags_id is not  null)) OR ( (rand.r > 0.4) AND (stm.tags_id is  null)) )
+) select  downloads.* from downloads, controversy_stories_ids where downloads.stories_id = controversy_stories_ids.stories_id AND   type = 'content'::download_type AND state = 'success'::download_state
+    ORDER BY random()
+END
+
+    my $downloads = $c->dbis->query( $rolezinhos_query, 563 )->hashes;
+
+    return $downloads->[0];
+
+    #return $self->_get_controversy_download( $c, 563 );
 }
 
 sub get_high_priority_download
