@@ -44,7 +44,11 @@ sub create : Local
         return;
     }
 
-    $c->dbis->create_from_request( 'dashboards', $c->request, [ qw/name start_date end_date/ ] );
+    # If the user unchecks the "public" checkbox, the value that is being sent
+    # is undef
+    $c->request->parameters->{ public } //= 0;
+
+    $c->dbis->create_from_request( 'dashboards', $c->request, [ qw/name start_date end_date public/ ] );
 
     $c->response->redirect( $c->uri_for( '/admin/dashboards/list', { status_msg => 'Dashboard created.' } ) );
 }

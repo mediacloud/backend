@@ -32,7 +32,6 @@ $$;
 ALTER TABLE auth_users
 	ADD COLUMN api_token VARCHAR(64)     UNIQUE NOT NULL DEFAULT generate_api_token() CONSTRAINT api_token_64_characters CHECK(LENGTH(api_token) = 64);
 
-
 --
 -- Incorporate changes from the 4430->4431 diff from master
 --

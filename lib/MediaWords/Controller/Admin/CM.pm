@@ -9,11 +9,15 @@ use Digest::MD5;
 use JSON;
 use List::Compare;
 use Data::Dumper;
+use Gearman::JobScheduler;
 
 use MediaWords::Solr;
+use MediaWords::CM;
 use MediaWords::CM::Dump;
 use MediaWords::CM::Mine;
 use MediaWords::DBI::Activities;
+use MediaWords::DBI::Queries;
+use MediaWords::GearmanFunction::SearchStories;
 use MediaWords::DBI::Stories;
 
 use constant ROWS_PER_PAGE => 25;
@@ -38,6 +42,87 @@ END
 
     $c->stash->{ controversies } = $controversies;
     $c->stash->{ template }      = 'cm/list.tt2';
+}
+
+# show a new controversy form
+sub create : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $form = $c->create_form( { load_config_file => $c->path_to() . '/root/forms/admin/cm/create_controversy.yml' } );
+
+    my $db = $c->dbis;
+
+    # Fill in a list of media sets (show only the "public" dashboards)
+    my $media_sets = $db->query(
+        <<EOF
+        SELECT
+            ms.media_sets_id,
+            d.name AS dashboard_name,
+            ms.name AS media_set_name,
+            ms.description AS media_set_description
+        FROM dashboards AS d
+            INNER JOIN dashboard_media_sets AS dms
+                ON d.dashboards_id = dms.dashboards_id
+            INNER JOIN media_sets AS ms
+                ON dms.media_sets_id = ms.media_sets_id
+        WHERE d.public = 't'
+        ORDER BY
+            d.name,
+            ms.name
+EOF
+    )->hashes;
+    my $media_set_options =
+      [ map { [ $_->{ media_sets_id }, "$_->{ dashboard_name }:$_->{ media_set_name } -- $_->{ media_set_description }" ] }
+          @{ $media_sets } ];
+    $form->get_field( 'media_sets_ids' )->options( $media_set_options );
+
+    $c->stash->{ form }     = $form;
+    $c->stash->{ template } = 'cm/create_controversy.tt2';
+
+    $form->process( $c->request );
+
+    if ( !$form->submitted_and_valid )
+    {
+        # Just show the form
+        return;
+    }
+
+    # At this point the form is submitted
+
+    my $c_name           = $c->req->parameters->{ name } . '';
+    my $c_pattern        = $c->req->parameters->{ pattern } . '';
+    my $c_start_date     = $c->req->parameters->{ start_date } . '';
+    my $c_end_date       = $c->req->parameters->{ end_date } . '';
+    my $c_media_sets_ids = $c->req->parameters->{ media_sets_ids };
+
+    unless ( $c_name and $c_pattern and $c_start_date and $c_end_date and $c_media_sets_ids )
+    {
+        $c->stash->{ error_msg } = 'Please fill the form.';
+        return;
+    }
+
+    unless ( ref $c_media_sets_ids )
+    {
+        # Single media set ID (scalar)
+        $c_media_sets_ids = [ $c_media_sets_ids ];
+    }
+
+    # Create controversy
+    my $controversies_id = undef;
+    eval {
+        $controversies_id =
+          MediaWords::CM::create_controversy( $db, $c_name, $c_pattern, $c_start_date, $c_end_date, $c_media_sets_ids );
+    };
+    if ( $@ )
+    {
+        my $error_msg = $@;
+        $c->stash->{ error_msg } = 'Unable to create controversy because: ' . $error_msg;
+        return;
+    }
+
+    my $status_msg = "Controversy \"$c_name\" (controversies_id = $controversies_id) has been created.";
+    $c->res->redirect( $c->uri_for( "/admin/cm/list", { status_msg => $status_msg } ) );
 }
 
 # add a periods field to the controversy dump
@@ -117,6 +202,59 @@ sub view : Local
     my $controversy = $db->query( <<END, $controversies_id )->hash;
 select * from controversies_with_search_info where controversies_id = ?
 END
+
+    # Check if the (initial) story search for the controversy has been completed
+    my $incomplete_query_story_search = $db->query(
+        <<EOF,
+        SELECT 1
+        FROM query_story_searches
+        WHERE query_story_searches_id = ?
+          AND search_completed = 'f'
+EOF
+        $controversy->{ query_story_searches_id }
+    )->hash;
+    if ( $incomplete_query_story_search )
+    {
+
+        my $status_msg =
+          "The initial story search for the controversy has not " .
+          "been completed, and this is why you don't see anything here.\n\n";
+
+        # Get the current Gearman job status
+        my $args = { query_story_searches_id => $controversy->{ query_story_searches_id } };
+        my $unique_job_id =
+          Gearman::JobScheduler::unique_job_id( MediaWords::GearmanFunction::SearchStories->name(), $args );
+        my $gearman_job_status = $db->query(
+            <<EOF,
+            SELECT *
+            FROM gearman_job_queue
+            WHERE function_name = ?
+              AND unique_job_id = ?
+EOF
+            MediaWords::GearmanFunction::SearchStories->name(),
+            $unique_job_id
+        )->hash;
+
+        if ( $gearman_job_status )
+        {
+
+            $status_msg .=
+              'The initial search job is enqueued on Gearman as "' . $gearman_job_status->{ job_handle } .
+              '", the current status of ' . 'the job is "' . $gearman_job_status->{ status } . '".' . "\n";
+
+            if ( $gearman_job_status->{ error } )
+            {
+                $status_msg .= 'The job failed with error message: ' . $gearman_job_status->{ error_msg };
+            }
+
+        }
+        else
+        {
+            $status_msg .= 'The status of the initial search job on Gearman is unknown.';
+        }
+
+        $c->stash->{ status_msg } = $status_msg;
+    }
 
     my $query = MediaWords::DBI::Queries::find_query_by_id( $db, $controversy->{ queries_id } );
     $query->{ media_set_names } = MediaWords::DBI::Queries::get_media_set_names( $db, $query ) if ( $query );

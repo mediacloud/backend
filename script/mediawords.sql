@@ -69,7 +69,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4445;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4446;
     
 BEGIN
 
@@ -465,7 +465,11 @@ create table dashboards (
     dashboards_id               serial          primary key,
     name                        varchar(1024)   not null,
     start_date                  timestamp       not null,
-    end_date                    timestamp       not null
+    end_date                    timestamp       not null,
+
+    -- A "public" dashboard is the one that is shown in the web UI
+    -- (e.g. the "create controversy" page)
+    public                      boolean         not null default true
 );
 
 create unique index dashboards_name on dashboards ( name );

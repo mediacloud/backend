@@ -13,6 +13,10 @@
     <!-- Sorting tables -->
     <script type="text/javascript" src="/script/jquery.metadata.js"></script>
     <script type="text/javascript" src="/script/jquery.tablesorter.min.js"></script>
+
+    <!-- Chosen (http://harvesthq.github.io/chosen/) -->
+    <script type="text/javascript" src="/script/chosen_v1/chosen.jquery.js"></script>
+    <link href="/script/chosen_v1/chosen.css" rel="stylesheet" type="text/css" />
     
     <!-- <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script> -->
     
