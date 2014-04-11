@@ -37,7 +37,7 @@ use constant MAX_SIMILARITY_LENGTH => 8192;
 
 #todo explain what this function really does
 # return the ratio of html characters to text characters
-sub get_html_density($$)
+sub _get_html_density($$)
 {
     my ( $line, $language_code ) = @_;
 
@@ -94,7 +94,7 @@ sub get_html_density($$)
     return ( $html_length / ( length( $line ) ) );
 }
 
-sub lineStartsWithTitleText($$)
+sub _lineStartsWithTitleText($$)
 {
     my ( $line_text, $title_text ) = @_;
 
@@ -158,9 +158,9 @@ sub _get_description_similarity_discount($$$)
 }
 
 #
-# New subroutine "calculate_line_extraction_metrics" extracted - Mon Feb 27 17:19:53 2012.
+# New subroutine "_calculate_line_extraction_metrics" extracted - Mon Feb 27 17:19:53 2012.
 #
-sub calculate_line_extraction_metrics($$$$$$)
+sub _calculate_line_extraction_metrics($$$$$$)
 {
     my ( $i, $description, $line, $sphereit_map, $has_clickprint, $language_code ) = @_;
 
@@ -177,7 +177,7 @@ sub calculate_line_extraction_metrics($$$$$$)
 #
 # New subroutine "get_copyright_count" extracted - Mon Feb 27 17:27:56 2012.
 #
-sub get_copyright_count($$)
+sub _get_copyright_count($$)
 {
     my ( $line, $language_code ) = @_;
 
@@ -199,19 +199,19 @@ sub get_copyright_count($$)
 }
 
 #
-# New subroutine "calculate_line_extraction_metrics_2" extracted - Mon Feb 27 17:30:21 2012.
+# New subroutine "_calculate_line_extraction_metrics_2" extracted - Mon Feb 27 17:30:21 2012.
 #
-sub calculate_line_extraction_metrics_2($$$$)
+sub _calculate_line_extraction_metrics_2($$$$)
 {
     my ( $line_text, $line, $title_text, $language_code ) = @_;
 
     my $line_length = length( $line );
-    my $line_starts_with_title_text = lineStartsWithTitleText( $line_text, $title_text );
+    my $line_starts_with_title_text = _lineStartsWithTitleText( $line_text, $title_text );
 
     return ( $line_length, $line_starts_with_title_text );
 }
 
-sub calculate_full_line_metrics($$$$$$$$$)
+sub _calculate_full_line_metrics($$$$$$$$$)
 {
     my (
         $line,           $line_number,         $title_text, $description, $sphereit_map,
@@ -248,7 +248,7 @@ sub calculate_full_line_metrics($$$$$$$$$)
         return $line_info;
     }
 
-    $line_info->{ html_density } = get_html_density( $line, $language_code );
+    $line_info->{ html_density } = _get_html_density( $line, $language_code );
 
     $line_text =~ s/^\s*//;
     $line_text =~ s/\s*$//;
@@ -257,12 +257,12 @@ sub calculate_full_line_metrics($$$$$$$$$)
     $line_info->{ auto_excluded } = 0;
 
     my ( $line_length, $line_starts_with_title_text ) =
-      calculate_line_extraction_metrics_2( $line_text, $line, $title_text, $language_code );
+      _calculate_line_extraction_metrics_2( $line_text, $line, $title_text, $language_code );
 
-    my ( $copyright_count ) = get_copyright_count( $line, $language_code );
+    my ( $copyright_count ) = _get_copyright_count( $line, $language_code );
 
     my ( $article_has_clickprint, $article_has_sphereit_map, $description_similarity_discount, $sphereit_map_includes_line )
-      = calculate_line_extraction_metrics( $line_number, $description, $line, $sphereit_map, $has_clickprint,
+      = _calculate_line_extraction_metrics( $line_number, $description, $line, $sphereit_map, $has_clickprint,
         $language_code );
 
     $line_info->{ line_length }                     = $line_length;
@@ -438,7 +438,7 @@ sub get_info_for_lines($$$)
 
         my ( $html_density, $discounted_html_density, $explanation );
 
-        my $line_info = calculate_full_line_metrics(
+        my $line_info = _calculate_full_line_metrics(
             $line,           $i,                   $title_text, $description, $sphereit_map,
             $has_clickprint, $auto_excluded_lines, $markers,    $language_code
         );
