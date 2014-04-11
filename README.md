@@ -18,7 +18,7 @@ article info.
 *Dependencies*
 
 ```
-pip install pypubsub corenlp resource
+pip install pypubsub requests
 ```
 
 Examples
