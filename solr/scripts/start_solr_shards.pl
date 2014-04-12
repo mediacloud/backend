@@ -19,7 +19,7 @@ sub main
         "zk_host=s" => \$zk_host,
     ) || return;
 
-    die( "usage: $0 --memory <memory argument for java -Xmx> --host <local hostname> --zk_host <zk host in host:port format>"
+    die( "usage: $0 --memory <gigs of memory for java heap> --host <local hostname> --zk_host <zk host in host:port format>"
     ) unless ( $memory && $zk_host );
 
     my $solr_dir = "$FindBin::Bin/..";
@@ -49,7 +49,7 @@ sub main
         if ( -e "master" )
         {
             my $master_memory = ( $memory * 2 );
-            system( "java -server -Xmx$master_memory $log_config -Dhost=$host -DzkRun -jar start.jar > $log_file 2>&1 &" );
+            system( "java -server -Xmx${ master_memory }g $log_config -Dhost=$host -DzkRun -jar start.jar > $log_file 2>&1 &" );
         }
         else
         {
