@@ -55,7 +55,7 @@ sub main
         {
             my $port = 7980 + $shard_id;
             system(
-"java -server -Xmx$memory $log_config -Dhost=$host -Djetty.port=$port -DzkHost=$zk_host -jar start.jar > $log_file 2>&1 &"
+"java -server -Xmx${ memory }g $log_config -Dhost=$host -Djetty.port=$port -DzkHost=$zk_host -jar start.jar > $log_file 2>&1 &"
             );
         }
         print STDERR "started shard $shard_id logging to $log_file\n";
