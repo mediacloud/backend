@@ -12,19 +12,22 @@ use Getopt::Long;
 
 sub main
 {
-    my ( $local_shards, $total_shards ) = @_;
+    my ( $local_shards, $total_shards, $host ) = @_;
 
     Getopt::Long::GetOptions(
         "local_shards=i" => \$local_shards,
         "total_shards=i" => \$total_shards,
+        "host=s"         => \$host
     ) || return;
 
-    die( "usage: $0 --local_shards <num local shards> [ --total_shards <num total shards> ]" )
+    die( "usage: $0 --local_shards <num local shards> [ --total_shards <num total shards> --host <host name> ]" )
         unless ( $local_shards );
         
     die( "local_shards must be > 0" ) unless ( $local_shards > 0 );
     
     die( "total shards must be >= local shards" ) if ( $total_shards && ( $total_shards < $local_shards ) );
+    
+    die( "if total_shards is specified, host must also be specified" ) if ( $total_shards && !$host );
 
     my $solr_dir = "$FindBin::Bin/..";
     chdir( $solr_dir ) || die( "can't cd to $solr_dir" );
@@ -58,7 +61,7 @@ sub main
     my $log_file = '../logs/mediacloud-shard-1.log';
     
     system( <<END );
-java -DzkRun -DnumShards=$total_shards -Dbootstrap_confdir=./solr/collection1/conf -Dcollection.configName=mediacloud -jar start.jar > $log_file 2>&1 &
+java -DzkRun -Dhost=$host -DnumShards=$total_shards -Dbootstrap_confdir=./solr/collection1/conf -Dcollection.configName=mediacloud -jar start.jar > $log_file 2>&1 &
 END
 
     # give time for the shell to be able to create the log file
