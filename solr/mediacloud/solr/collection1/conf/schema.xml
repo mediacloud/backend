@@ -106,143 +106,26 @@
       trailing underscores (e.g. _version_) are reserved.
    -->
         
-   <field name="id" type="string" indexed="true" stored="true" required="true" multiValued="false" /> 
    <field name="story_sentences_id" type="string" indexed="true" stored="true" required="false" multiValued="false" /> 
-   <field name="media_id" type="int" indexed="true" stored="true" required="false" multiValued="false" /> 
-   <field name="media_id_inner" type="int" indexed="true" stored="true" required="false" multiValued="false" /> 
+   <field name="media_id" type="int" indexed="true" stored="false" required="false" multiValued="false" /> 
 
    <field name="stories_id" type="int" indexed="true" stored="true" required="true" multiValued="false" /> 
-   <field name="sentence_number" type="int" indexed="true" stored="true" required="false" multiValued="false" /> 
+   <field name="sentence_number" type="int" indexed="true" stored="false" required="false" multiValued="false" /> 
 
-   <field name="processed_stories_id" type="long" indexed="true" stored="true" required="true" multiValued="false" docValues="true" /> 
+   <field name="processed_stories_id" type="tlong" indexed="true" stored="false" required="true" multiValued="false" docValues="true" /> 
 
-   <field name="sentence"  type="text_general" indexed="true" stored="true" termVectors="true" termPositions="true" termOffsets="true" /> 
-   <field name="title" type="text_general" indexed="true" stored="true" multiValued="false"/>
+   <field name="sentence"  type="text_general" indexed="true" stored="true" /> 
 
-   <field name="publish_date" type="date" indexed="true" stored="true"/>
+   <field name="publish_date" type="tdate" indexed="true" stored="false"/>
 
-   <field name="solr_import_date" type="date" indexed="true" stored="true"/>
+   <!-- language field from the story_sentences table - 2 letter code -->
+   <field name="language" type="string" indexed="true" stored="false"/>
 
-   <!-- language field from the story_sentences table - 3 letter code -->
-   <field name="language" type="string" indexed="true" stored="true"/>
-
-   <field name="media_sets_id" type="int" indexed="true" stored="true" multiValued="true" />
-   <field name="tags_id_stories" type="int" indexed="true" stored="true" multiValued="true" />
-   <field name="tags_id_media" type="int" indexed="true" stored="true" multiValued="true" />
-
-   <field name="field_type" type="string" indexed="true" stored="true" />
-   
-   <field name="includes" type="text_en" indexed="true" stored="false" termVectors="true" termPositions="true" termOffsets="true" />
-   <field name="sen_text_ws" type="text_ws" indexed="true" stored="false" termVectors="true" termPositions="true" termOffsets="true" />
-   <field name="sen_string" type="string" indexed="true" stored="true" termVectors="true" termPositions="true" termOffsets="true" />
-
-   <field name="includes_docvalues" type="string" indexed="true" stored="true" multiValued="true"  docValues="true" />
-   <field name="includes_docvalues2" type="string" indexed="true" stored="true" multiValued="true" docValues="true" />
-
-
-   <!-- Common metadata fields, named specifically to match up with
-     SolrCell metadata when parsing rich documents such as Word, PDF.
-     Some fields are multiValued only because Tika currently may return
-     multiple values for them. Some metadata is parsed from the documents,
-     but there are some which come from the client context:
-       "content_type": From the HTTP headers of incoming stream
-       "resourcename": From SolrCell request param resource.name
-   -->
-   <field name="subject" type="text_general" indexed="true" stored="true"/>
-   <field name="description" type="text_general" indexed="true" stored="true"/>
-   <field name="comments" type="text_general" indexed="true" stored="true"/>
-   <field name="author" type="text_general" indexed="true" stored="true"/>
-   <field name="keywords" type="text_general" indexed="true" stored="true"/>
-   <field name="category" type="text_general" indexed="true" stored="true"/>
-   <field name="resourcename" type="text_general" indexed="true" stored="true"/>
-   <field name="url" type="text_general" indexed="true" stored="true"/>
-   <field name="content_type" type="string" indexed="true" stored="true" multiValued="true"/>
-   <field name="last_modified" type="date" indexed="true" stored="true"/>
-   <field name="links" type="string" indexed="true" stored="true" multiValued="true"/>
-
-   <!-- Main body of document extracted by SolrCell.
-        NOTE: This field is not indexed by default, since it is also copied to "text"
-        using copyField below. This is to save space. Use this field for returning and
-        highlighting document content. Use the "text" field to search the content. -->
-   <field name="content" type="text_general" indexed="false" stored="true" multiValued="true"/>
-   
-
-   <!-- catchall field, containing all other searchable text fields (implemented
-        via copyField further on in this schema  -->
-   <field name="text" type="text_general" indexed="true" stored="false" multiValued="true"/>
-
-   <!-- catchall text field that indexes tokens both normally and in reverse for efficient
-        leading wildcard queries. -->
-   <field name="text_rev" type="text_general_rev" indexed="true" stored="false" multiValued="true"/>
-
-   <!-- non-tokenized version of manufacturer to make it easier to sort or group
-        results by manufacturer.  copied from "manu" via copyField -->
-   <field name="manu_exact" type="string" indexed="true" stored="false"/>
-
-   <field name="payloads" type="payloads" indexed="true" stored="true"/>
-
-   <field name="_version_" type="long" indexed="true" stored="true"/>
-
-   <!--
-     Some fields such as popularity and manu_exact could be modified to
-     leverage doc values:
-     <field name="popularity" type="int" indexed="true" stored="true" docValues="true" default="0" />
-     <field name="manu_exact" type="string" indexed="false" stored="false" docValues="true" default="" />
-
-     Although it would make indexing slightly slower and the index bigger, it
-     would also make the index faster to load, more memory-efficient and more
-     NRT-friendly.
-     -->
-
-   <!-- Dynamic field definitions allow using convention over configuration
-       for fields via the specification of patterns to match field names. 
-       EXAMPLE:  name="*_i" will match any field ending in _i (like myid_i, z_i)
-       RESTRICTION: the glob-like pattern in the name attribute must have
-       a "*" only at the start or the end.  -->
-   
-   <dynamicField name="*_i"  type="int"    indexed="true"  stored="true"/>
-   <dynamicField name="*_is" type="int"    indexed="true"  stored="true"  multiValued="true"/>
-   <dynamicField name="*_s"  type="string"  indexed="true"  stored="true" />
-   <dynamicField name="*_ss" type="string"  indexed="true"  stored="true" multiValued="true"/>
-   <dynamicField name="*_l"  type="long"   indexed="true"  stored="true"/>
-   <dynamicField name="*_ls" type="long"   indexed="true"  stored="true"  multiValued="true"/>
-   <dynamicField name="*_t"  type="text_general"    indexed="true"  stored="true"/>
-   <dynamicField name="*_txt" type="text_general"   indexed="true"  stored="true" multiValued="true"/>
-   <dynamicField name="*_en"  type="text_en"    indexed="true"  stored="true" multiValued="true"/>
-   <dynamicField name="*_b"  type="boolean" indexed="true" stored="true"/>
-   <dynamicField name="*_bs" type="boolean" indexed="true" stored="true"  multiValued="true"/>
-   <dynamicField name="*_f"  type="float"  indexed="true"  stored="true"/>
-   <dynamicField name="*_fs" type="float"  indexed="true"  stored="true"  multiValued="true"/>
-   <dynamicField name="*_d"  type="double" indexed="true"  stored="true"/>
-   <dynamicField name="*_ds" type="double" indexed="true"  stored="true"  multiValued="true"/>
-
-   <!-- Type used to index the lat and lon components for the "location" FieldType -->
-   <dynamicField name="*_coordinate"  type="tdouble" indexed="true"  stored="false" />
-
-   <dynamicField name="*_dt"  type="date"    indexed="true"  stored="true"/>
-   <dynamicField name="*_dts" type="date"    indexed="true"  stored="true" multiValued="true"/>
-   <dynamicField name="*_p"  type="location" indexed="true" stored="true"/>
-
-   <!-- some trie-coded dynamic fields for faster range queries -->
-   <dynamicField name="*_ti" type="tint"    indexed="true"  stored="true"/>
-   <dynamicField name="*_tl" type="tlong"   indexed="true"  stored="true"/>
-   <dynamicField name="*_tf" type="tfloat"  indexed="true"  stored="true"/>
-   <dynamicField name="*_td" type="tdouble" indexed="true"  stored="true"/>
-   <dynamicField name="*_tdt" type="tdate"  indexed="true"  stored="true"/>
-
-   <dynamicField name="*_pi"  type="pint"    indexed="true"  stored="true"/>
-   <dynamicField name="*_c"   type="currency" indexed="true"  stored="true"/>
-
-   <dynamicField name="ignored_*" type="ignored" multiValued="true"/>
-   <dynamicField name="attr_*" type="text_general" indexed="true" stored="true" multiValued="true"/>
+   <field name="media_sets_id" type="int" indexed="true" stored="false" multiValued="true" />
+   <field name="tags_id_stories" type="int" indexed="true" stored="false" multiValued="true" />
+   <field name="tags_id_media" type="int" indexed="true" stored="false" multiValued="true" />
 
    <dynamicField name="random_*" type="random" />
-
-   <!-- uncomment the following to ignore any fields that don't already match an existing 
-        field name or dynamic field, rather than reporting them as an error. 
-        alternately, change the type="ignored" to some other type e.g. "text" if you want 
-        unknown fields indexed and/or stored by default --> 
-   <!--dynamicField name="*" type="ignored" multiValued="true" /-->
    
  </fields>
 
@@ -250,39 +133,7 @@
  <!-- Field to use to determine and enforce document uniqueness. 
       Unless this field is marked with required="false", it will be a required field
    -->
- <uniqueKey>id</uniqueKey>
-
- <!-- DEPRECATED: The defaultSearchField is consulted by various query parsers when
-  parsing a query string that isn't explicit about the field.  Machine (non-user)
-  generated queries are best made explicit, or they can use the "df" request parameter
-  which takes precedence over this.
-  Note: Un-commenting defaultSearchField will be insufficient if your request handler
-  in solrconfig.xml defines "df", which takes precedence. That would need to be removed.
- <defaultSearchField>text</defaultSearchField> -->
-
- <!-- DEPRECATED: The defaultOperator (AND|OR) is consulted by various query parsers
-  when parsing a query string to determine if a clause of the query should be marked as
-  required or optional, assuming the clause isn't already marked by some operator.
-  The default is OR, which is generally assumed so it is not a good idea to change it
-  globally here.  The "q.op" request parameter takes precedence over this.
- <solrQueryParser defaultOperator="OR"/> -->
-
-  <!-- copyField commands copy one field to another at the time a document
-        is added to the index.  It's used either to index the same field differently,
-        or to add multiple fields to the same field for easier/faster searching.  -->
-
-   <copyField source="sentence" dest="includes"/>
-   <copyField source="sentence" dest="sen_text_ws"/>
-	
-   <!-- Above, multiple source fields are copied to the [text] field. 
-	  Another way to map multiple source fields to the same 
-	  destination field is to use the dynamic field syntax. 
-	  copyField also supports a maxChars to copy setting.  -->
-	   
-   <!-- <copyField source="*_t" dest="text" maxChars="3000"/> -->
-
-   <!-- copy name to alphaNameSort, a field designed for sorting by name -->
-   <!-- <copyField source="name" dest="alphaNameSort"/> -->
+ <uniqueKey>story_sentences_id</uniqueKey>
  
   <types>
     <!-- field type definitions. The "name" attribute is
