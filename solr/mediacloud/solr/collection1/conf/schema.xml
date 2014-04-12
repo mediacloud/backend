@@ -125,6 +125,8 @@
    <field name="tags_id_stories" type="int" indexed="true" stored="false" multiValued="true" />
    <field name="tags_id_media" type="int" indexed="true" stored="false" multiValued="true" />
 
+   <field name="_version_" type="long" indexed="true" stored="true"/>
+
    <dynamicField name="random_*" type="random" />
    
  </fields>
