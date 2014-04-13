@@ -49,7 +49,7 @@ sub main
         if ( -e "master" )
         {
             my $master_memory = ( $memory * 2 );
-            system( "java -server -Xmx${ master_memory }g $log_config -Dhost=$host -DzkRun -jar start.jar > $log_file 2>&1 &" );
+            system( "java -server -Xmx${ master_memory }g $log_config -DzkRun -jar start.jar > $log_file 2>&1 &" );
         }
         else
         {
