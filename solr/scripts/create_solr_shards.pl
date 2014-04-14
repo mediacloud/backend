@@ -12,11 +12,12 @@ use Getopt::Long;
 
 sub main
 {
-    my ( $local_shards, $total_shards ) = @_;
+    my ( $local_shards, $total_shards, $host ) = @_;
 
     Getopt::Long::GetOptions(
         "local_shards=i" => \$local_shards,
         "total_shards=i" => \$total_shards,
+        "host=s"         => \$host
     ) || return;
 
     die( "usage: $0 --local_shards <num local shards> [ --total_shards <num total shards> ]" )
@@ -25,7 +26,7 @@ sub main
     die( "local_shards must be > 0" ) unless ( $local_shards > 0 );
     
     die( "total shards must be >= local shards" ) if ( $total_shards && ( $total_shards < $local_shards ) );
-
+    
     my $solr_dir = "$FindBin::Bin/..";
     chdir( $solr_dir ) || die( "can't cd to $solr_dir" );
     
