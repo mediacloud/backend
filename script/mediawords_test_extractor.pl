@@ -132,21 +132,13 @@ sub processDownload
 
     my $extracted_lines;
 
-    my $extraction_method = 'CRF';
+    my $extraction_method = 'Heuristic';
 
     # $extraction_method = 'old';
 
-    if ( $extraction_method eq 'CRF' )
-    {
-        my $crf_extractor = MediaWords::Util::CrfExtractor->new();
+    my $extractor = MediaWords::Util::ExtractorFactory::createExtractor();
 
-        $extracted_lines = $crf_extractor->getExtractedLines( $line_info, $preprocessed_lines );
-    }
-    else
-    {
-        my $old_extractor = MediaWords::Util::HeuristicExtractor->new();
-        $extracted_lines = $old_extractor->getExtractedLines( $line_info );
-    }
+    $extracted_lines = $extractor->getExtractedLines( $line_info, $preprocessed_lines );
 
     return MediaWords::Util::ExtractorTest::compare_extraction_with_training_data( $line_should_be_in_story,
         $extracted_lines, $download, $preprocessed_lines, $dbs, $line_info, $_test_sentences );
@@ -452,6 +444,7 @@ sub main
         {
             open( DOWNLOAD_ID_FILE, $file ) || die( "Could not open file: $file" );
             @download_ids = <DOWNLOAD_ID_FILE>;
+	    #say Dumper ( [ @download_ids ] );
             $downloads = $dbs->query( "SELECT * from downloads where downloads_id in (??)", @download_ids )->hashes;
         }
         else
