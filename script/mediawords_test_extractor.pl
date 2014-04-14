@@ -29,7 +29,6 @@ use Data::Dumper;
 use MediaWords::Util::HTML;
 use MediaWords::Util::ExtractorTest;
 use MediaWords::Util::HeuristicExtractor;
-use MediaWords::Util::MaxEntExtractor;
 use MediaWords::Util::CrfExtractor;
 
 use Data::Compare;
@@ -148,14 +147,6 @@ sub processDownload
         my $old_extractor = MediaWords::Util::HeuristicExtractor->new();
         $extracted_lines = $old_extractor->getExtractedLines( $line_info );
     }
-
-    #say STDERR "processDownload";
-    #my $me_extractor = MediaWords::Util::MaxEntExtractor->new();
-
-    #$extracted_lines = $me_extractor->getExtractedLines( $line_info, $preprocessed_lines );
-
-    #say Dumper ( $extracted_lines );
-    #exit;
 
     return MediaWords::Util::ExtractorTest::compare_extraction_with_training_data( $line_should_be_in_story,
         $extracted_lines, $download, $preprocessed_lines, $dbs, $line_info, $_test_sentences );
