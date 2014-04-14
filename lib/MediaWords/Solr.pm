@@ -178,11 +178,6 @@ sub search_for_processed_stories_ids ($$)
 
     my $response = query( $params );
 
-    print STDERR Dumper( $response->{ responseHeader }->{ QTime } );
-    print STDERR Dumper( $response->{ response }->{ numFound } );
-
-    # say STDERR Dumper( $response );
-
     my $stories_ids = [ uniq( map { $_->{ stories_id } } @{ $response->{ response }->{ docs } } ) ];
     if ( defined( $params->{ rows } ) && ( @{ $stories_ids } > $params->{ rows } ) )
     {
