@@ -217,9 +217,9 @@ sub list_GET : Local
     $all_fields //= 0;
 
     my $rows = $c->req->param( 'rows' );
-    say STDERR "rows $rows";
-
     $rows //= ROWS_PER_PAGE;
+
+    say STDERR "rows $rows";
 
     my $list;
 
