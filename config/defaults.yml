@@ -30,8 +30,8 @@ mediawords:
     inline_java_jni: no
     language: en_US_and_ru_RU
     owner: mediacloud@cyber.law.harvard.edu
-    read_file_downloads_from_gridfs: no
-    read_tar_downloads_from_gridfs: no
+    read_file_downloads_from_gridfs: yes
+    read_tar_downloads_from_gridfs: yes
     recaptcha_private_key: 6LfEVt0SAAAAABmI-8IJmx4g93eNcSeyeCxvLMs2
     recaptcha_public_key: 6LfEVt0SAAAAAFwQI0pOZ1bTHgDTpQcMeQY6VLd_
     solr_select_url: http://localhost:8983/solr/collection1/select

@@ -69,7 +69,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4446;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4447;
     
 BEGIN
 
@@ -82,6 +82,7 @@ BEGIN
 END;
 $$
 LANGUAGE 'plpgsql';
+
 
 -- Set the version number right away
 SELECT set_database_schema_version();
@@ -975,7 +976,7 @@ create table extractor_training_lines
 
 create unique index extractor_training_lines_line on extractor_training_lines(line_number, downloads_id);
 create index extractor_training_lines_download on extractor_training_lines(downloads_id);
-    
+        
 CREATE TABLE top_ten_tags_for_media (
     media_id integer NOT NULL,
     tags_id integer NOT NULL,
@@ -1128,6 +1129,14 @@ create index story_sentence_counts_md5 on story_sentence_counts( media_id, publi
 
 create index story_sentence_counts_first_stories_id on story_sentence_counts( first_stories_id );
 
+create table solr_imports (
+    solr_imports_id     serial primary key,
+    import_date         timestamp not null,
+    full_import         boolean not null default false
+);
+
+create index solr_imports_date on solr_imports ( import_date );
+    
 create table story_sentence_words (
        stories_id                   int             not null, -- references stories on delete cascade,
        term                         varchar(256)    not null,
