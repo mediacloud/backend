@@ -108,6 +108,8 @@ requires 'Readonly';
 requires 'Readonly::XS';
 requires 'Regexp::Common';
 requires 'Regexp::Common::time';
+requires 'Set::Scalar';
+requires 'Set::Jaccard::SimilarityCoefficient';
 requires 'Smart::Comments';
 requires 'Statistics::Basic';
 requires 'Term::Prompt';
