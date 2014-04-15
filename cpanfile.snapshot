@@ -5646,7 +5646,7 @@ DISTRIBUTIONS
   MooseX-Types-DateTime-MoreCoercions-0.11
     pathname: I/IL/ILMARI/MooseX-Types-DateTime-MoreCoercions-0.11.tar.gz
     provides:
-      MooseX::Types::DateTime::MoreCoercions 0.11
+      MooseX::Types::DateTime::MoreCoercions undef
     requirements:
       DateTime 0.4302
       DateTime::Duration 0.4302
@@ -6624,6 +6624,12 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       Test::More 0
       Time::Local 0
+  Set-Jaccard-SimilarityCoefficient-0.5.1
+    pathname: M/ML/MLFISHER/Set-Jaccard-SimilarityCoefficient-0.5.1.tar.gz
+    provides:
+      Set::Jaccard::SimilarityCoefficient 0.005001
+    requirements:
+      ExtUtils::MakeMaker 6.30
   Set-Object-1.34
     pathname: R/RU/RURBAN/Set-Object-1.34.tar.gz
     provides:
@@ -6635,6 +6641,19 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       Scalar::Util 0
       Test::More 0
+  Set-Scalar-1.29
+    pathname: D/DA/DAVIDO/Set-Scalar-1.29.tar.gz
+    provides:
+      Set::Scalar 1.29
+      Set::Scalar::Base 1.29
+      Set::Scalar::Null 1.29
+      Set::Scalar::Real 1.29
+      Set::Scalar::Universe 1.29
+      Set::Scalar::Valued 1.29
+      Set::Scalar::ValuedUniverse 1.29
+      Set::Scalar::Virtual 1.29
+    requirements:
+      ExtUtils::MakeMaker 0
   Smart-Comments-1.000005
     pathname: D/DC/DCONWAY/Smart-Comments-1.000005.tar.gz
     provides:

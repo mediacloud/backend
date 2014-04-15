@@ -13,6 +13,7 @@ use MediaWords::Languages::Language;
 use MediaWords::Util::IdentifyLanguage;
 use Carp;
 use HTML::Entities;
+use Set::Jaccard::SimilarityCoefficient;
 
 # extract substantive new story text from html pages
 
@@ -157,6 +158,40 @@ sub _get_description_similarity_discount($$$)
     return ( ( 1 - $score ) )**$power;
 }
 
+# get discount based on the similarity to the description
+sub _get_description_jaccard($$)
+{
+    my ( $description, $line ) = @_;
+
+    if ( !$description )
+    {
+        return 0;
+    }
+
+    if ( length( $line ) > MAX_SIMILARITY_LENGTH )
+    {
+        $line = substr( $line, 0, MAX_SIMILARITY_LENGTH );
+    }
+
+    if ( length( $description ) > MAX_SIMILARITY_LENGTH )
+    {
+        $description = substr( $description, 0, MAX_SIMILARITY_LENGTH );
+    }
+
+    my $stripped_line        = html_strip( $line );
+    my $stripped_description = html_strip( $description );
+
+    my $line_words = words_on_line( $stripped_line );
+    my $description_words = words_on_line( $stripped_description );
+
+    if ( scalar( @$line_words) <= 0 && scalar( @$description_words) <= 0 )
+    {
+	return 0;
+    }
+
+    return Set::Jaccard::SimilarityCoefficient::calc( $line_words, $description_words );
+}
+
 #
 # New subroutine "_calculate_line_extraction_metrics" extracted - Mon Feb 27 17:19:53 2012.
 #
@@ -265,12 +300,17 @@ sub _calculate_full_line_metrics($$$$$$$$$)
       = _calculate_line_extraction_metrics( $line_number, $description, $line, $sphereit_map, $has_clickprint,
         $language_code );
 
+    my $description_jaccard  = _get_description_jaccard( $description, $line );
+
     $line_info->{ line_length }                     = $line_length;
     $line_info->{ line_starts_with_title_text }     = $line_starts_with_title_text;
     $line_info->{ copyright_copy }                  = $copyright_count;
     $line_info->{ article_has_clickprint }          = $article_has_clickprint;
     $line_info->{ article_has_sphereit_map }        = $article_has_sphereit_map;
     $line_info->{ description_similarity_discount } = $description_similarity_discount;
+    
+    $line_info->{ description_jaccard } = $description_jaccard;
+
     $line_info->{ sphereit_map_includes_line }      = $sphereit_map_includes_line;
 
     return $line_info;
