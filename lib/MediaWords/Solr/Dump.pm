@@ -142,7 +142,6 @@ declare csr cursor for
         
     where ( ss.stories_id % $num_proc = $proc - 1 )
         $date_clause
-        limit 1000
 END
 
     my $fields = [
