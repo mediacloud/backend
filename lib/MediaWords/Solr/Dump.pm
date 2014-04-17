@@ -91,12 +91,18 @@ sub _print_csv_to_file_single_job
     my $date_clause = '';
     if ( $delta )
     {
-        $db->query( <<END );
+        my ( $import_date ) =
+          $db->query( "select import_date from solr_imports order by import_date desc limit 1 offset 1" )->flat;
+
+        $import_date //= '2000-01-01';
+
+        print STDERR "importing delta from $import_date...\n";
+
+        $db->query( <<END, $import_date );
 create temporary table stories_for_solr_import as
     select distinct stories_id
     from story_sentences ss
-    where ss.db_row_last_updated > 
-        ( select import_date from solr_imports order by import_date desc limit 1 offset 1 )
+    where ss.db_row_last_updated > ?
 END
         $date_clause = "and stories_id in ( select stories_id from stories_for_solr_import )";
     }
