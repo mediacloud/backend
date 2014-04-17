@@ -42,11 +42,6 @@ sub print_csv_to_file
 
     $num_proc //= 1;
 
-    {
-        my $db = MediaWords::DB::connect_to_db;
-        $db->query( "insert into solr_imports( import_date, full_import ) values ( now(), ? )", ( $delta ? 'f' : 't' ) );
-    }
-
     if ( $num_proc == 1 )
     {
         _print_csv_to_file_single_job( $file_spec, 1, 1, $delta );
@@ -71,6 +66,9 @@ sub print_csv_to_file
 
     $pm->wait_all_children;
 
+    my $db = MediaWords::DB::connect_to_db;
+    $db->query( "insert into solr_imports( import_date, full_import ) values ( now(), ? )", ( $delta ? 'f' : 't' ) );
+
     return $files;
 }
 
@@ -91,13 +89,22 @@ sub _print_csv_to_file_single_job
     my $date_clause = '';
     if ( $delta )
     {
-        $db->query( <<END );
+        my ( $import_date ) = $db->query( "select import_date from solr_imports order by import_date desc limit 1" )->flat;
+
+        $import_date //= '2000-01-01';
+
+        print STDERR "importing delta from $import_date...\n";
+
+        $db->query( <<END, $import_date );
 create temporary table stories_for_solr_import as
     select distinct stories_id
     from story_sentences ss
-    where ss.db_row_last_updated > 
-        ( select import_date from solr_imports order by import_date desc limit 1 offset 1 )
+    where ss.db_row_last_updated > ?
 END
+
+        my ( $num_delta_stories ) = $db->query( "select count(*) from stories_for_solr_import" )->flat;
+        print STDERR "found $num_delta_stories for import ...\n";
+
         $date_clause = "and stories_id in ( select stories_id from stories_for_solr_import )";
     }
 
@@ -142,7 +149,6 @@ declare csr cursor for
         
     where ( ss.stories_id % $num_proc = $proc - 1 )
         $date_clause
-        limit 1000
 END
 
     my $fields = [
@@ -250,7 +256,8 @@ sub import_csv_files
     }
 
     print STDERR "comitting ..\n";
-    my $ua  = LWP::UserAgent->new;
+    my $ua = LWP::UserAgent->new;
+    $ua->timeout( 86400 * 7 );
     my $res = $ua->get( 'http://localhost:8983/solr/update?stream.body=<commit/>' );
 
     if ( $res->is_success )
