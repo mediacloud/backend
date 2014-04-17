@@ -101,6 +101,10 @@ create temporary table stories_for_solr_import as
     from story_sentences ss
     where ss.db_row_last_updated > ?
 END
+
+        my ( $num_delta_stories ) = $db->query( "select count(*) from stories_for_solr_import" )->flat;
+        print STDERR "found $num_delta_stories for import ...\n";
+
         $date_clause = "and stories_id in ( select stories_id from stories_for_solr_import )";
     }
 
