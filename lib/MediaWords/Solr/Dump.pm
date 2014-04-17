@@ -250,7 +250,8 @@ sub import_csv_files
     }
 
     print STDERR "comitting ..\n";
-    my $ua  = LWP::UserAgent->new;
+    my $ua = LWP::UserAgent->new;
+    $ua->timeout( 86400 * 7 );
     my $res = $ua->get( 'http://localhost:8983/solr/update?stream.body=<commit/>' );
 
     if ( $res->is_success )
