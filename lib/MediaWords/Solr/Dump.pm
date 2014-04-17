@@ -42,11 +42,6 @@ sub print_csv_to_file
 
     $num_proc //= 1;
 
-    {
-        my $db = MediaWords::DB::connect_to_db;
-        $db->query( "insert into solr_imports( import_date, full_import ) values ( now(), ? )", ( $delta ? 'f' : 't' ) );
-    }
-
     if ( $num_proc == 1 )
     {
         _print_csv_to_file_single_job( $file_spec, 1, 1, $delta );
@@ -71,6 +66,9 @@ sub print_csv_to_file
 
     $pm->wait_all_children;
 
+    my $db = MediaWords::DB::connect_to_db;
+    $db->query( "insert into solr_imports( import_date, full_import ) values ( now(), ? )", ( $delta ? 'f' : 't' ) );
+
     return $files;
 }
 
@@ -91,8 +89,7 @@ sub _print_csv_to_file_single_job
     my $date_clause = '';
     if ( $delta )
     {
-        my ( $import_date ) =
-          $db->query( "select import_date from solr_imports order by import_date desc limit 1 offset 1" )->flat;
+        my ( $import_date ) = $db->query( "select import_date from solr_imports order by import_date desc limit 1" )->flat;
 
         $import_date //= '2000-01-01';
 
