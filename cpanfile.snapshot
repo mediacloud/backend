@@ -302,6 +302,35 @@ DISTRIBUTIONS
       vars 0
       version 0
       warnings 0
+  Cache-Cache-1.06
+    pathname: J/JS/JSWARTZ/Cache-Cache-1.06.tar.gz
+    provides:
+      Cache::BaseCache undef
+      Cache::BaseCacheTester undef
+      Cache::Cache 1.06
+      Cache::CacheMetaData undef
+      Cache::CacheSizer undef
+      Cache::CacheTester undef
+      Cache::CacheUtils undef
+      Cache::FileBackend undef
+      Cache::FileCache undef
+      Cache::MemoryBackend undef
+      Cache::MemoryCache undef
+      Cache::NullCache undef
+      Cache::Object undef
+      Cache::SharedMemoryBackend undef
+      Cache::SharedMemoryCache undef
+      Cache::SizeAwareCache undef
+      Cache::SizeAwareCacheTester undef
+      Cache::SizeAwareFileCache undef
+      Cache::SizeAwareMemoryCache undef
+      Cache::SizeAwareSharedMemoryCache undef
+    requirements:
+      Digest::SHA1 2.02
+      Error 0.15
+      ExtUtils::MakeMaker 0
+      File::Spec 0.82
+      Storable 1.014
   Cache-FastMmap-1.40
     pathname: R/RO/ROBM/Cache-FastMmap-1.40.tar.gz
     provides:
@@ -663,6 +692,18 @@ DISTRIBUTIONS
       MRO::Compat 0
       MooseX::Emulate::Class::Accessor::Fast 0
       Path::Class 0
+  Catalyst-Plugin-Session-Store-File-0.18
+    pathname: F/FL/FLORA/Catalyst-Plugin-Session-Store-File-0.18.tar.gz
+    provides:
+      Catalyst::Plugin::Session::Store::File 0.18
+    requirements:
+      Cache::Cache 1.02
+      Catalyst::Plugin::Session 0.27
+      Catalyst::Runtime 5.7000
+      Class::Data::Inheritable 0.04
+      ExtUtils::MakeMaker 6.42
+      MRO::Compat 0.10
+      Test::More 0
   Catalyst-Plugin-StackTrace-0.12
     pathname: B/BO/BOBTFISH/Catalyst-Plugin-StackTrace-0.12.tar.gz
     provides:
@@ -3122,10 +3163,10 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 6.30
       strict 0
       warnings 0
-  Email-Valid-1.193
-    pathname: R/RJ/RJBS/Email-Valid-1.193.tar.gz
+  Email-Valid-1.192
+    pathname: R/RJ/RJBS/Email-Valid-1.192.tar.gz
     provides:
-      Email::Valid 1.193
+      Email::Valid 1.192
     requirements:
       ExtUtils::MakeMaker 0
       Mail::Address 0
@@ -3183,7 +3224,7 @@ DISTRIBUTIONS
       Module::Install::WriteAll 0.77
     requirements:
       Encode 1.41
-      ExtUtils::MakeMaker 6.94
+      ExtUtils::MakeMaker 6.92
   Encode-Locale-1.03
     pathname: G/GA/GAAS/Encode-Locale-1.03.tar.gz
     provides:
@@ -3194,6 +3235,16 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       Test 0
       perl 5.008
+  Error-0.17022
+    pathname: S/SH/SHLOMIF/Error-0.17022.tar.gz
+    provides:
+      Error 0.17022
+    requirements:
+      Module::Build 0.39
+      Scalar::Util 0
+      perl v5.6.0
+      strict 0
+      warnings 0
   Eval-Closure-0.11
     pathname: D/DO/DOY/Eval-Closure-0.11.tar.gz
     provides:
@@ -3225,15 +3276,14 @@ DISTRIBUTIONS
       strict 0
       vars 0
       warnings 0
-  Exporter-Lite-0.04
-    pathname: N/NE/NEILB/Exporter-Lite-0.04.tar.gz
+  Exporter-Lite-0.02
+    pathname: M/MS/MSCHWERN/Exporter-Lite-0.02.tar.gz
     provides:
-      Exporter::Lite 0.04
+      Dummy 0.5
+      Exporter::Lite 0.02
     requirements:
-      ExtUtils::MakeMaker 6.3
-      perl 5.006
-      strict 0
-      warnings 0
+      ExtUtils::MakeMaker 0
+      Test::More 0.34
   ExtUtils-Config-0.007
     pathname: L/LE/LEONT/ExtUtils-Config-0.007.tar.gz
     provides:
@@ -3306,40 +3356,40 @@ DISTRIBUTIONS
       File::Spec 0
       File::Temp 0
       Test::More 0
-  ExtUtils-MakeMaker-6.94
-    pathname: B/BI/BINGOS/ExtUtils-MakeMaker-6.94.tar.gz
+  ExtUtils-MakeMaker-6.92
+    pathname: B/BI/BINGOS/ExtUtils-MakeMaker-6.92.tar.gz
     provides:
-      DynaLoader 6.94
-      ExtUtils::Command::MM 6.94
-      ExtUtils::Liblist 6.94
-      ExtUtils::Liblist::Kid 6.94
-      ExtUtils::MM 6.94
-      ExtUtils::MM_AIX 6.94
-      ExtUtils::MM_Any 6.94
-      ExtUtils::MM_BeOS 6.94
-      ExtUtils::MM_Cygwin 6.94
-      ExtUtils::MM_DOS 6.94
-      ExtUtils::MM_Darwin 6.94
-      ExtUtils::MM_MacOS 6.94
-      ExtUtils::MM_NW5 6.94
-      ExtUtils::MM_OS2 6.94
-      ExtUtils::MM_QNX 6.94
-      ExtUtils::MM_UWIN 6.94
-      ExtUtils::MM_Unix 6.94
-      ExtUtils::MM_VMS 6.94
-      ExtUtils::MM_VOS 6.94
-      ExtUtils::MM_Win32 6.94
-      ExtUtils::MM_Win95 6.94
-      ExtUtils::MY 6.94
-      ExtUtils::MakeMaker 6.94
-      ExtUtils::MakeMaker::Config 6.94
-      ExtUtils::MakeMaker::_version 6.94
-      ExtUtils::Mkbootstrap 6.94
-      ExtUtils::Mksymlists 6.94
-      ExtUtils::testlib 6.94
-      MM 6.94
-      MY 6.94
-      in 6.94
+      DynaLoader 6.92
+      ExtUtils::Command::MM 6.92
+      ExtUtils::Liblist 6.92
+      ExtUtils::Liblist::Kid 6.92
+      ExtUtils::MM 6.92
+      ExtUtils::MM_AIX 6.92
+      ExtUtils::MM_Any 6.92
+      ExtUtils::MM_BeOS 6.92
+      ExtUtils::MM_Cygwin 6.92
+      ExtUtils::MM_DOS 6.92
+      ExtUtils::MM_Darwin 6.92
+      ExtUtils::MM_MacOS 6.92
+      ExtUtils::MM_NW5 6.92
+      ExtUtils::MM_OS2 6.92
+      ExtUtils::MM_QNX 6.92
+      ExtUtils::MM_UWIN 6.92
+      ExtUtils::MM_Unix 6.92
+      ExtUtils::MM_VMS 6.92
+      ExtUtils::MM_VOS 6.92
+      ExtUtils::MM_Win32 6.92
+      ExtUtils::MM_Win95 6.92
+      ExtUtils::MY 6.92
+      ExtUtils::MakeMaker 6.92
+      ExtUtils::MakeMaker::Config 6.92
+      ExtUtils::MakeMaker::_version 6.92
+      ExtUtils::Mkbootstrap 6.92
+      ExtUtils::Mksymlists 6.92
+      ExtUtils::testlib 6.92
+      MM 6.92
+      MY 6.92
+      in 6.92
     requirements:
       Data::Dumper 0
       DirHandle 0
@@ -4324,14 +4374,14 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       Test::More 0
       version 0
-  IO-Socket-SSL-1.973
-    pathname: S/SU/SULLR/IO-Socket-SSL-1.973.tar.gz
+  IO-Socket-SSL-1.970
+    pathname: S/SU/SULLR/IO-Socket-SSL-1.970.tar.gz
     provides:
-      IO::Socket::SSL 1.973
+      IO::Socket::SSL 1.970
       IO::Socket::SSL::Intercept 1.93
-      IO::Socket::SSL::SSL_Context 1.973
-      IO::Socket::SSL::SSL_HANDLE 1.973
-      IO::Socket::SSL::Session_Cache 1.973
+      IO::Socket::SSL::SSL_Context 1.970
+      IO::Socket::SSL::SSL_HANDLE 1.970
+      IO::Socket::SSL::Session_Cache 1.970
       IO::Socket::SSL::Utils 0.02
     requirements:
       ExtUtils::MakeMaker 0
@@ -4711,7 +4761,7 @@ DISTRIBUTIONS
     requirements:
       Carp 0
       Class::Data::Inheritable 0
-      ExtUtils::MakeMaker 6.94
+      ExtUtils::MakeMaker 6.92
       File::Spec 0
       Symbol 0
       Test::More 0
@@ -5450,20 +5500,20 @@ DISTRIBUTIONS
       Test::Exception 0
       Test::More 0
       namespace::clean 0
-  MooseX-Getopt-0.63
-    pathname: E/ET/ETHER/MooseX-Getopt-0.63.tar.gz
+  MooseX-Getopt-0.62
+    pathname: E/ET/ETHER/MooseX-Getopt-0.62.tar.gz
     provides:
-      MooseX::Getopt 0.63
-      MooseX::Getopt::Basic 0.63
-      MooseX::Getopt::Dashes 0.63
-      MooseX::Getopt::GLD 0.63
-      MooseX::Getopt::Meta::Attribute 0.63
-      MooseX::Getopt::Meta::Attribute::NoGetopt 0.63
-      MooseX::Getopt::Meta::Attribute::Trait 0.63
-      MooseX::Getopt::Meta::Attribute::Trait::NoGetopt 0.63
-      MooseX::Getopt::OptionTypeMap 0.63
-      MooseX::Getopt::ProcessedArgv 0.63
-      MooseX::Getopt::Strict 0.63
+      MooseX::Getopt 0.62
+      MooseX::Getopt::Basic 0.62
+      MooseX::Getopt::Dashes 0.62
+      MooseX::Getopt::GLD 0.62
+      MooseX::Getopt::Meta::Attribute 0.62
+      MooseX::Getopt::Meta::Attribute::NoGetopt 0.62
+      MooseX::Getopt::Meta::Attribute::Trait 0.62
+      MooseX::Getopt::Meta::Attribute::Trait::NoGetopt 0.62
+      MooseX::Getopt::OptionTypeMap 0.62
+      MooseX::Getopt::ProcessedArgv 0.62
+      MooseX::Getopt::Strict 0.62
     requirements:
       Carp 0
       ExtUtils::MakeMaker 6.30
@@ -7555,16 +7605,16 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       Test::Pod 0
       Test::Pod::Coverage 0
-  Time-Duration-Parse-0.11
-    pathname: N/NE/NEILB/Time-Duration-Parse-0.11.tar.gz
+  Time-Duration-Parse-0.07
+    pathname: N/NE/NEILB/Time-Duration-Parse-0.07.tar.gz
     provides:
-      Time::Duration::Parse 0.11
+      Time::Duration::Parse 0.07
     requirements:
-      Carp 0
       Exporter::Lite 0
-      ExtUtils::MakeMaker 6.30
-      strict 0
-      warnings 0
+      ExtUtils::MakeMaker 6.59
+      Test::More 0
+      Time::Duration 0
+      perl 5.006
   TimeDate-2.30
     pathname: G/GB/GBARR/TimeDate-2.30.tar.gz
     provides:
