@@ -20,25 +20,39 @@ Catalyst Controller for basic story search page
 
 =cut
 
+# get tag_sets_id for collection: tag set
+sub _get_collection_tag_sets_id
+{
+    my ( $db ) = @_;
+
+    my $tag_set = $db->query( "select * from tag_sets where name = 'collection'" )->hash
+      || die( "Unable to find 'collection' tag set" );
+
+    return $tag_set->{ tag_sets_id };
+}
+
 # list all collection tags, with media set names attached
 sub tags : Local
 {
-    my ( $self, $c ) = @_;
+    my ( $self, $c, $tag_sets_id ) = @_;
 
     my $db = $c->dbis;
 
-    my $tags = $db->query( <<END )->hashes;
-with collection_tags as (
+    $tag_sets_id //= _get_collection_tag_sets_id( $db );
+
+    my $tag_set = $db->find_by_id( 'tag_sets', $tag_sets_id ) || die( "Unable to find tag_set '$tag_sets_id'" );
+
+    my $tags = $db->query( <<END, $tag_sets_id )->hashes;
+with set_tags as (
     
-    select t.* 
-        from tags t 
-            join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
-        where ts.name = 'collection' and
+    select t.* from tags t 
+        where tag_sets_id = ? and
             tags_id not in ( select tags_id from media_sets where include_in_dump = false )
+            
 )
         
 select t.*, ms.media_set_names, mtm.media_count
-    from collection_tags t
+    from set_tags t
     
         left join ( 
             select count(*) media_count, mtm.tags_id 
@@ -60,6 +74,7 @@ select t.*, ms.media_set_names, mtm.media_count
 END
 
     $c->stash->{ tags }     = $tags;
+    $c->stash->{ tag_set }  = $tag_set;
     $c->stash->{ template } = 'search/tags.tt2';
 }
 
@@ -105,8 +120,7 @@ sub index : Path : Args(0)
     my $num_sampled = $csv ? undef : 1000;
 
     my ( $stories, $num_stories );
-    eval
-    {
+    eval {
         ( $stories, $num_stories ) =
           MediaWords::Solr::search_for_stories_with_sentences( $db, { q => $q }, $num_sampled, 1 );
     };
@@ -197,6 +211,30 @@ sub readme : Local
     my ( $self, $c ) = @_;
 
     $c->stash->{ template } = 'search/readme.tt2';
+}
+
+# list tag sets
+sub tag_sets : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my $tag_sets = $db->query( <<END )->hashes;
+select ts.*
+    from tag_sets ts
+    where 
+        exists ( 
+            select 1 
+                from media_tags_map mtm 
+                    join tags t on ( mtm.tags_id = t.tags_id )
+                where t.tag_sets_id = ts.tag_sets_id
+        )
+    order by name
+END
+
+    $c->stash->{ tag_sets } = $tag_sets;
+    $c->stash->{ template } = 'health/tag_sets.tt2';
 }
 
 1;

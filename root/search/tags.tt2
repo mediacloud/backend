@@ -1,6 +1,9 @@
-[% title = 'Tags' %]
+[% title = 'Tags for Tag Set' _ tag_set.name | html %]
 [% INCLUDE include/header.tt2 %]
 
+<fieldset>
+    <a href="[% c.uri_for( '/search/tag_sets' ) %]">List Tag Sets</a>
+</fieldset>
 <table>
 
     <tr>
