@@ -234,7 +234,7 @@ select ts.*
 END
 
     $c->stash->{ tag_sets } = $tag_sets;
-    $c->stash->{ template } = 'health/tag_sets.tt2';
+    $c->stash->{ template } = 'search/tag_sets.tt2';
 }
 
 1;
