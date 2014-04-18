@@ -8,7 +8,7 @@ import pysolr
 import sys
 
 def py_solr_connection():
-    solr = pysolr.Solr(get_solr_collection_url_prefix(), timeout=10)
+    solr = pysolr.Solr(get_solr_collection_url_prefix(), timeout=300)
     
     return solr
 
