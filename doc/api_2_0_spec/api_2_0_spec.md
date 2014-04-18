@@ -131,26 +131,127 @@ None.
 
 #### Example
 
-http://www.mediacloud.org/api/v2/media_sets/single/2
+http://www.mediacloud.org/api/v2/media_sets/single/1
 
 ```json
 [
-   {
-     "name": "set name",
-     "media_sets_id": 2,
-     "description": "media_set 2 description",
-     "media": 
-     [
-      	    {       "name": "source 1 name",
-                    "media_id": "source 1 media id",
-                    "url": "http://source1.com"
-            },
-      	    {       "name": "source 2 name",
-                    "media_id": "source 2 media id",
-                    "url": "http://source2.com"
-            },
-     ]
-   }
+  {
+    "media_sets_id": 1,
+    "name": "Top 25 Mainstream Media",
+    "description": "Top 25 mainstream media sources by monthly unique users from the U.S. according to the Google AdPlanner service.",
+    "media": [
+      {
+        "media_id": 1,
+        "url": "http:\/\/nytimes.com",
+        "name": "New York Times"
+      },
+      {
+        "media_id": 2,
+        "url": "http:\/\/washingtonpost.com",
+        "name": "Washington Post"
+      },
+      {
+        "media_id": 4,
+        "url": "http:\/\/www.usatoday.com",
+        "name": "USA Today"
+      },
+      {
+        "media_id": 6,
+        "url": "http:\/\/www.latimes.com\/",
+        "name": "Los Angeles Times"
+      },
+      {
+        "media_id": 7,
+        "url": "http:\/\/www.nypost.com\/",
+        "name": "The New York Post"
+      },
+      {
+        "media_id": 8,
+        "url": "http:\/\/www.nydailynews.com\/",
+        "name": "The Daily News New York"
+      },
+      {
+        "media_id": 14,
+        "url": "http:\/\/www.sfgate.com\/",
+        "name": "San Francisco Chronicle"
+      },
+      {
+        "media_id": 314,
+        "url": "http:\/\/www.huffingtonpost.com\/",
+        "name": "The Huffington Post"
+      },
+      {
+        "media_id": 1089,
+        "url": "http:\/\/www.reuters.com\/",
+        "name": "Reuters"
+      },
+      {
+        "media_id": 1092,
+        "url": "http:\/\/www.foxnews.com\/",
+        "name": "FOX News"
+      },
+      {
+        "media_id": 1094,
+        "url": "http:\/\/www.bbc.co.uk\/?ok",
+        "name": "BBC"
+      },
+      {
+        "media_id": 1095,
+        "url": "http:\/\/www.cnn.com\/",
+        "name": "CNN"
+      },
+      {
+        "media_id": 1098,
+        "url": "http:\/\/www.newsweek.com\/",
+        "name": "Newsweek "
+      },
+      {
+        "media_id": 1104,
+        "url": "http:\/\/www.forbes.com\/",
+        "name": "Forbes"
+      },
+      {
+        "media_id": 1149,
+        "url": "http:\/\/www.msnbc.msn.com\/",
+        "name": "MSNBC"
+      },
+      {
+        "media_id": 1747,
+        "url": "http:\/\/www.dailymail.co.uk\/home\/index.html",
+        "name": "Daily Mail"
+      },
+      {
+        "media_id": 1750,
+        "url": "http:\/\/www.telegraph.co.uk\/",
+        "name": "Daily Telegraph"
+      },
+      {
+        "media_id": 1751,
+        "url": "http:\/\/www.guardian.co.uk\/",
+        "name": "Guardian"
+      },
+      {
+        "media_id": 1752,
+        "url": "http:\/\/www.cbsnews.com\/",
+        "name": "CBS News"
+      },
+      {
+        "media_id": 4415,
+        "url": "http:\/\/cnet.com",
+        "name": "CNET"
+      },
+      {
+        "media_id": 4418,
+        "url": "http:\/\/examiner.com",
+        "name": "Examiner.com"
+      },
+      {
+        "media_id": 4419,
+        "url": "http:\/\/time.com",
+        "name": "TIME.com"
+      }
+    ],
+  }
 ]
 ```
 

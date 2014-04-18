@@ -34,7 +34,7 @@ use Catalyst qw/
   Authorization::Roles
   Authorization::ACL
   Session
-  Session::Store::FastMmap
+  Session::Store::File
   Session::State::Cookie
   /;
 

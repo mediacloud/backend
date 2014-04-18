@@ -243,6 +243,7 @@ sub _get_object_ids
         {
             my $next_fq = [ @{ $fq }, "processed_stories_id:[ $next_id TO * ]" ];
             $next_id = MediaWords::Solr::min_processed_stories_id( $c->dbis, { q => $q, fq => $next_fq } );
+            last unless ( $next_id );
         }
         else
         {
