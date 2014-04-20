@@ -117,7 +117,7 @@ sub index : Path : Args(0)
 
     my $csv = $c->req->params->{ csv };
 
-    my $num_sampled = $csv ? undef : 1000;
+    my $num_sampled = $csv ? undef : 100;
 
     my ( $stories, $num_stories );
     eval {
@@ -160,7 +160,7 @@ sub wc : Local
     my ( $self, $c ) = @_;
 
     my $q = $c->req->params->{ q };
-    my $l = $c->req->params->{ l };
+    my $l = $c->req->params->{ l } || '';
 
     if ( !$q )
     {
@@ -186,6 +186,10 @@ sub wc : Local
         $c->stash->{ q }          = $q;
         $c->stash->{ l }          = $l;
         $c->stash->{ template }   = 'search/wc.tt2';
+    }
+    elsif ( $@ )
+    {
+        die( $@ );
     }
     elsif ( $c->req->params->{ csv } )
     {

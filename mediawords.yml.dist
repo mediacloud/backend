@@ -218,12 +218,16 @@ mediawords:
     # number of times to run each controversy_dump_time_slice model in MediaWords::CM::Model
     # controversy_model_reps: 25
     
-    # url for solr word counting url
-    # solr_wc_url: http://localhost:8080/wc
+    # url for solr word counting url.  if this is set, fetch word counts from a remote server
+    # using this url; otherwise, generate word counts locally
+    # solr_wc_url: http://localhost/api/v2/wc
+
+    # mc api key for appending to sol_wc_url for fetching remote word counts
+    # solr_wc_key: FOO
     
     # url for solr queries
     # solr_select_url: http://localhost:8983/solr/collection1/select
-
+    
     # By default API requests require a invalid 'key' param.
     # comment to allow api requests without a key.
     # WARNING DO NOT enable on a production or Internet connected instance
