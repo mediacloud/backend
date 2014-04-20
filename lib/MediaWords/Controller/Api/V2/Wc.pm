@@ -45,12 +45,12 @@ sub list_GET : Local : PathPrefix( '/api' )
 
     my $q  = $c->req->parameters->{ 'q' };
     my $fq = $c->req->parameters->{ 'fq' };
-    my $l  = $c->req->parameters->{ 'l' };
-    
+    my $l  = $c->req->parameters->{ 'l' } || '';
+
     # no remote parameter prevents loop of server calling itself via MediaWords::Solr::WordCounts::_get_remote_word_counts
     my $nr = $c->req->parameters->{ 'nr' };
 
-    my $languages = [ split( /\W/, $l )  ];
+    my $languages = [ split( /\W/, $l ) ];
 
     my $words = MediaWords::Solr::count_words( $q, $fq, $languages, $nr );
 
