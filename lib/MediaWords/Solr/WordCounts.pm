@@ -23,7 +23,7 @@ use URI::Escape;
 use MediaWords::Util::Config;
 
 # max number of random sentences to fetch
-use constant MAX_RANDOM_SENTENCES => 10000;
+use constant MAX_RANDOM_SENTENCES => 1000;
 
 # number of words to return
 use constant NUM_RETURN_WORDS => 500;
