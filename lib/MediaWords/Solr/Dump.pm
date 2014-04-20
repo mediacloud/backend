@@ -216,7 +216,8 @@ sub _import_csv_single_file
 
     print STDERR "$url\n";
 
-    my $ua  = LWP::UserAgent->new;
+    my $ua = LWP::UserAgent->new;
+    $ua->timeout( 86400 * 7 );
     my $res = $ua->get( $url );
 
     if ( $res->is_success )
