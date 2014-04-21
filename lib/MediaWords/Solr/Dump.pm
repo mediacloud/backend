@@ -42,29 +42,32 @@ sub print_csv_to_file
 
     $num_proc //= 1;
 
+    my $files;
+
     if ( $num_proc == 1 )
     {
         _print_csv_to_file_single_job( $file_spec, 1, 1, $delta );
-        return [ $file_spec ];
+        $files = [ $file_spec ];
     }
-
-    my $pm = new Parallel::ForkManager( $num_proc );
-
-    my $files = [];
-    for my $proc ( 1 .. $num_proc )
+    else
     {
-        my $file = "$file_spec-$proc";
+        my $pm = new Parallel::ForkManager( $num_proc );
 
-        push( @{ $files }, $file );
+        for my $proc ( 1 .. $num_proc )
+        {
+            my $file = "$file_spec-$proc";
 
-        $pm->start and next;
+            push( @{ $files }, $file );
 
-        _print_csv_to_file_single_job( $file, $num_proc, $proc, $delta );
+            $pm->start and next;
 
-        $pm->finish;
+            _print_csv_to_file_single_job( $file, $num_proc, $proc, $delta );
+
+            $pm->finish;
+        }
+
+        $pm->wait_all_children;
     }
-
-    $pm->wait_all_children;
 
     my $db = MediaWords::DB::connect_to_db;
     $db->query( "insert into solr_imports( import_date, full_import ) values ( now(), ? )", ( $delta ? 'f' : 't' ) );
