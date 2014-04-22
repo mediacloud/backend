@@ -35,7 +35,7 @@ mkdir -p local/
 # cpanfile.snapshot (https://rt.cpan.org/Public/Bug/Display.html?id=90138).
 # Because of that, some of the dependent modules fail to install properly,
 # therefore we install a patched version before everything else
-./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ https://github.com/pypt/p5-MooseX-Types-DateTime-MoreCoercions.git
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ https://github.com/pypt/p5-MooseX-Types-DateTime-MoreCoercions/tarball/master
 
 # Sometimes Carton fails with:
 #
