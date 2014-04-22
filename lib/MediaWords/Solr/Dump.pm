@@ -168,7 +168,7 @@ END
     my $i = 0;
     while ( 1 )
     {
-        print STDERR time . " " . ( $i++ * 1000 ) . "\n";
+        print STDERR time . " " . ( $i++ * 1000 ) . "\n" unless ( $i % 10 );
         my $sth = $dbh->prepare( "fetch 1000 from csr" );
 
         $sth->execute;
