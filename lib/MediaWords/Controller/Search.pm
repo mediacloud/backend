@@ -132,6 +132,10 @@ sub index : Path : Args(0)
         $c->stash->{ l }          = $l;
         $c->stash->{ template }   = 'search/search.tt2';
     }
+    elsif ( $@ )
+    {
+        die( $@ );
+    }
     elsif ( $csv )
     {
         map { delete( $_->{ sentences } ) } @{ $stories };
@@ -146,9 +150,7 @@ sub index : Path : Args(0)
     {
         $c->stash->{ stories }     = $stories;
         $c->stash->{ num_stories } = $num_stories;
-        $c->stash->{ q }           = $q;
         $c->stash->{ l }           = $l;
-        $c->stash->{ template }    = 'search/search.tt2';
         $c->stash->{ q }           = $q;
         $c->stash->{ template }    = 'search/search.tt2';
     }

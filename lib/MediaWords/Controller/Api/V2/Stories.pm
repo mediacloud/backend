@@ -85,16 +85,19 @@ sub add_extra_data
 
     my $db = $c->dbis;
 
+    $db->begin;
+
+    my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ stories_id } } @{ $stories } ] );
+
     # it's a bit confusing to use this function to attach data to downloads,
-    # but it works b/c we want one download per story
-    my $downloads = [ map { { stories_id => $_->{ stories_id } } } @{ $stories } ];
-    MediaWords::DBI::Stories::attach_story_data_to_stories( $db, $downloads, <<'END' );
+    # but it works b/c w want one download per story
+    my $downloads = $db->query( <<END )->hashes;
 select d.* 
     from downloads d
         join (
             select min( s.downloads_id ) over ( partition by s.stories_id ) downloads_id
                 from downloads s
-                where STORY_ID_CLAUSE
+                where s.stories_id in ( select id from $ids_table )
         ) q on ( d.downloads_id = q.downloads_id )
 END
 
@@ -109,15 +112,20 @@ END
         $story->{ raw_first_download_file } = defined( $content_ref ) ? $$content_ref : { missing => 'true' };
     }
 
+    $db->commit;
+
     return $stories;
 }
 
 sub _add_nested_data
 {
-
     my ( $self, $db, $stories, $show_raw_1st_download ) = @_;
 
-    MediaWords::DBI::Stories::attach_story_data_to_stories( $db, $stories, <<'END' );
+    $db->begin;
+
+    my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ stories_id } } @{ $stories } ] );
+
+    my $story_text_data = $db->query( <<END )->hashes;
 select s.stories_id,
         case when BOOL_AND( m.full_text_rss ) then s.description
             else string_agg( dt.download_text, E'.\n\n' )
@@ -126,34 +134,40 @@ select s.stories_id,
         join media m on ( s.media_id = m.media_id )
         join downloads d on ( s.stories_id = d.stories_id )
         left join download_texts dt on ( d.downloads_id = dt.downloads_id )
-    where STORY_ID_CLAUSE
+    where s.stories_id in ( select id from $ids_table )
     group by s.stories_id
 END
+    MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $story_text_data );
 
-    MediaWords::DBI::Stories::attach_story_data_to_stories( $db, $stories, <<'END' );
+    my $extracted_data = $db->query( <<END )->hashes;
 select s.stories_id,
         BOOL_AND( extracted ) is_fully_extracted
     from stories s
         join downloads d on ( s.stories_id = d.stories_id )
-    where STORY_ID_CLAUSE
+    where s.stories_id in ( select id from $ids_table )
     group by s.stories_id
 END
+    MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $extracted_data );
 
-    MediaWords::DBI::Stories::attach_story_data_to_stories( $db, $stories, <<'END', 'story_sentences' );
+    my $sentences = $db->query( <<END )->hashes;
 select s.* 
     from story_sentences s
-    where STORY_ID_CLAUSE
+    where s.stories_id in ( select id from $ids_table )
     order by s.sentence_number
 END
+    MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $sentences, 'story_sentences' );
 
-    MediaWords::DBI::Stories::attach_story_data_to_stories( $db, $stories, <<'END', 'story_tags' );
+    my $tag_data = $db->query( <<END )->hashes;
 select s.stories_id, tags.tags_id, tags.tag, tag_sets.tag_sets_id, tag_sets.name as tag_set 
     from stories_tags_map s
         natural join tags 
         natural join tag_sets 
-    where STORY_ID_CLAUSE
+    where s.stories_id in ( select id from $ids_table )
     order by tags_id
 END
+    MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $tag_data, 'story_tags' );
+
+    $db->commit;
 
     return $stories;
 }
@@ -271,22 +285,27 @@ sub _fetch_list
 
     my $stories_ids = $self->_get_object_ids( $c, $last_id, $rows );
 
-    #say STDERR Dumper( $stories_ids );
+    return [] unless ( @{ $stories_ids } );
 
-    my $query =
-"select stories.*, processed_stories.processed_stories_id from stories natural join processed_stories where processed_stories_id in (??) ORDER by $id_field asc limit $rows ";
+    my $db = $c->dbis;
 
-    my @values = @{ $stories_ids };
+    my $stories;
+    $db->begin;
 
-    return [] unless scalar( @values );
+    my $ids_table = $db->get_temporary_ids_table( $stories_ids );
 
-    #say STDERR Dumper( [ @values ] );
+    $stories = $db->query( <<END )->hashes;
+select s.*, max( ps.processed_stories_id ) processed_stories_id
+    from stories s 
+        natural join processed_stories ps
+    where ps.processed_stories_id in ( select id from $ids_table )
+    group by s.stories_id 
+    order by $id_field asc limit $rows
+END
 
-    # say STDERR $query;
+    $db->commit;
 
-    my $list = $c->dbis->query( $query, @values )->hashes;
-
-    return $list;
+    return $stories;
 }
 
 sub put_tags : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
