@@ -30,8 +30,8 @@ In addition to searching by text, you can search by the following fields:
 <ul>
 <li>sentence (search by text -- this is the field that is searched by default when only text is entered)</li>
 <li>stories_id (internal id of each story)</li>
-<li>media_id (internal id of a media source (eg. nytimes.com) discoverable through the 'list media tags' link</li>
-<li>tags_id_media (all media associated with a media tag, discoverable through the 'list media tags' link</li>
+<li>media_id (internal id of a media source (eg. nytimes.com) discoverable through the 'list media tags' link)</li>
+<li>tags_id_media (all media associated with a media tag, discoverable through the 'list media tags' link)</li>
 <li>tags_id_stories</li>
 <li>publish_date</li>
 </ul>

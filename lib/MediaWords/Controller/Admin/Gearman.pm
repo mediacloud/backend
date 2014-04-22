@@ -7,7 +7,7 @@ use warnings;
 use parent 'Catalyst::Controller';
 use File::Slurp;
 
-use constant MAX_LOG_SIZE => 1024 * 1024;    # 1 MB
+use constant MAX_LOG_SIZE => 1024 * 1024 * 64;    # 64 MB
 
 sub index : Path : Args(0)
 {

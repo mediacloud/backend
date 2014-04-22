@@ -12,6 +12,8 @@ use MediaWords::Crawler::Extractor;
 use MediaWords::Languages::Language;
 use MediaWords::Util::IdentifyLanguage;
 use Carp;
+use HTML::Entities;
+use Set::Jaccard::SimilarityCoefficient;
 
 # extract substantive new story text from html pages
 
@@ -36,7 +38,7 @@ use constant MAX_SIMILARITY_LENGTH => 8192;
 
 #todo explain what this function really does
 # return the ratio of html characters to text characters
-sub get_html_density($$)
+sub _get_html_density($$)
 {
     my ( $line, $language_code ) = @_;
 
@@ -93,7 +95,7 @@ sub get_html_density($$)
     return ( $html_length / ( length( $line ) ) );
 }
 
-sub lineStartsWithTitleText($$)
+sub _lineStartsWithTitleText($$)
 {
     my ( $line_text, $title_text ) = @_;
 
@@ -119,7 +121,7 @@ sub lineStartsWithTitleText($$)
 }
 
 # get discount based on the similarity to the description
-sub get_description_similarity_discount($$$)
+sub _get_description_similarity_discount($$$)
 {
     my ( $line, $description, $language_code ) = @_;
 
@@ -156,10 +158,44 @@ sub get_description_similarity_discount($$$)
     return ( ( 1 - $score ) )**$power;
 }
 
+# get discount based on the similarity to the description
+sub _get_description_jaccard($$)
+{
+    my ( $description, $line ) = @_;
+
+    if ( !$description )
+    {
+        return 0;
+    }
+
+    if ( length( $line ) > MAX_SIMILARITY_LENGTH )
+    {
+        $line = substr( $line, 0, MAX_SIMILARITY_LENGTH );
+    }
+
+    if ( length( $description ) > MAX_SIMILARITY_LENGTH )
+    {
+        $description = substr( $description, 0, MAX_SIMILARITY_LENGTH );
+    }
+
+    my $stripped_line        = html_strip( $line );
+    my $stripped_description = html_strip( $description );
+
+    my $line_words = words_on_line( $stripped_line );
+    my $description_words = words_on_line( $stripped_description );
+
+    if ( scalar( @$line_words) <= 0 && scalar( @$description_words) <= 0 )
+    {
+	return 0;
+    }
+
+    return Set::Jaccard::SimilarityCoefficient::calc( $line_words, $description_words );
+}
+
 #
-# New subroutine "calculate_line_extraction_metrics" extracted - Mon Feb 27 17:19:53 2012.
+# New subroutine "_calculate_line_extraction_metrics" extracted - Mon Feb 27 17:19:53 2012.
 #
-sub calculate_line_extraction_metrics($$$$$$)
+sub _calculate_line_extraction_metrics($$$$$$)
 {
     my ( $i, $description, $line, $sphereit_map, $has_clickprint, $language_code ) = @_;
 
@@ -167,7 +203,7 @@ sub calculate_line_extraction_metrics($$$$$$)
 
     my $article_has_sphereit_map        = defined( $sphereit_map );
     my $sphereit_map_includes_line      = ( defined( $sphereit_map ) && $sphereit_map->{ $i } );
-    my $description_similarity_discount = get_description_similarity_discount( $line, $description, $language_code );
+    my $description_similarity_discount = _get_description_similarity_discount( $line, $description, $language_code );
 
     return ( $article_has_clickprint, $article_has_sphereit_map, $description_similarity_discount,
         $sphereit_map_includes_line );
@@ -176,7 +212,7 @@ sub calculate_line_extraction_metrics($$$$$$)
 #
 # New subroutine "get_copyright_count" extracted - Mon Feb 27 17:27:56 2012.
 #
-sub get_copyright_count($$)
+sub _get_copyright_count($$)
 {
     my ( $line, $language_code ) = @_;
 
@@ -198,19 +234,19 @@ sub get_copyright_count($$)
 }
 
 #
-# New subroutine "calculate_line_extraction_metrics_2" extracted - Mon Feb 27 17:30:21 2012.
+# New subroutine "_calculate_line_extraction_metrics_2" extracted - Mon Feb 27 17:30:21 2012.
 #
-sub calculate_line_extraction_metrics_2($$$$)
+sub _calculate_line_extraction_metrics_2($$$$)
 {
     my ( $line_text, $line, $title_text, $language_code ) = @_;
 
     my $line_length = length( $line );
-    my $line_starts_with_title_text = lineStartsWithTitleText( $line_text, $title_text );
+    my $line_starts_with_title_text = _lineStartsWithTitleText( $line_text, $title_text );
 
     return ( $line_length, $line_starts_with_title_text );
 }
 
-sub calculate_full_line_metrics($$$$$$$$$)
+sub _calculate_full_line_metrics($$$$$$$$$)
 {
     my (
         $line,           $line_number,         $title_text, $description, $sphereit_map,
@@ -247,7 +283,7 @@ sub calculate_full_line_metrics($$$$$$$$$)
         return $line_info;
     }
 
-    $line_info->{ html_density } = get_html_density( $line, $language_code );
+    $line_info->{ html_density } = _get_html_density( $line, $language_code );
 
     $line_text =~ s/^\s*//;
     $line_text =~ s/\s*$//;
@@ -256,13 +292,15 @@ sub calculate_full_line_metrics($$$$$$$$$)
     $line_info->{ auto_excluded } = 0;
 
     my ( $line_length, $line_starts_with_title_text ) =
-      calculate_line_extraction_metrics_2( $line_text, $line, $title_text, $language_code );
+      _calculate_line_extraction_metrics_2( $line_text, $line, $title_text, $language_code );
 
-    my ( $copyright_count ) = get_copyright_count( $line, $language_code );
+    my ( $copyright_count ) = _get_copyright_count( $line, $language_code );
 
     my ( $article_has_clickprint, $article_has_sphereit_map, $description_similarity_discount, $sphereit_map_includes_line )
-      = calculate_line_extraction_metrics( $line_number, $description, $line, $sphereit_map, $has_clickprint,
+      = _calculate_line_extraction_metrics( $line_number, $description, $line, $sphereit_map, $has_clickprint,
         $language_code );
+
+    my $description_jaccard  = _get_description_jaccard( $description, $line );
 
     $line_info->{ line_length }                     = $line_length;
     $line_info->{ line_starts_with_title_text }     = $line_starts_with_title_text;
@@ -270,9 +308,128 @@ sub calculate_full_line_metrics($$$$$$$$$)
     $line_info->{ article_has_clickprint }          = $article_has_clickprint;
     $line_info->{ article_has_sphereit_map }        = $article_has_sphereit_map;
     $line_info->{ description_similarity_discount } = $description_similarity_discount;
+    
+    $line_info->{ description_jaccard } = $description_jaccard;
+
     $line_info->{ sphereit_map_includes_line }      = $sphereit_map_includes_line;
 
     return $line_info;
+}
+
+## TODO merge this with the one in HTML::CruftText
+# markers -- patterns used to find lines than can help find the text
+my $_MARKER_PATTERNS = {
+    startclickprintinclude => qr/<\!--\s*startclickprintinclude/i,
+    endclickprintinclude   => qr/<\!--\s*endclickprintinclude/i,
+    startclickprintexclude => qr/<\!--\s*startclickprintexclude/i,
+    endclickprintexclude   => qr/<\!--\s*endclickprintexclude/i,
+    sphereitbegin          => qr/<\!--\s*DISABLEsphereit\s*start/i,
+    sphereitend            => qr/<\!--\s*DISABLEsphereit\s*end/i,
+    body                   => qr/<body/i,
+    comment                => qr/(id|class)="[^"]*comment[^"]*"/i,
+};
+
+# METHODS
+
+# find various markers that can be used to discount line scores
+# return a hash of the found markers
+sub _find_markers($$)
+{
+    my ( $lines, $language_code ) = @_;
+
+    my $markers = {};
+
+    while ( my ( $name, $pattern ) = each( %{ $_MARKER_PATTERNS } ) )
+    {
+        $markers->{ $name } = [ indexes { $_ =~ $pattern } @{ $lines } ];
+    }
+
+    return $markers;
+}
+
+
+# return hash with lines numbers that should be included by sphereit
+# { linenum1 => 1, linenum2 => 1, ...}
+sub _get_sphereit_map($$)
+{
+    my ( $markers, $language_code ) = @_;
+
+    my $sphereit_map;
+    while ( my $start = shift( @{ $markers->{ sphereitbegin } } ) )
+    {
+        my $end = shift( @{ $markers->{ sphereitend } } ) || $start;
+
+        for ( my $i = $start ; $i <= $end ; $i++ )
+        {
+            $sphereit_map->{ $i } = 1;
+        }
+    }
+
+    return $sphereit_map;
+}
+
+sub _find_auto_excluded_lines($$;$)
+{
+    my ( $lines, $language_code, $markers ) = @_;
+
+    unless ( $markers )
+    {
+        $markers = find_markers( $lines, $language_code );
+    }
+    my $sphereit_map = _get_sphereit_map( $markers, $language_code );
+
+    my $ret = [];
+
+    for ( my $i = 0 ; $i < @{ $lines } ; $i++ )
+    {
+        my $line = defined( $lines->[ $i ] ) ? $lines->[ $i ] : '';
+
+        $line =~ s/^\s*//;
+        $line =~ s/\s*$//;
+        $line =~ s/\s+/ /;
+
+        my $explanation;
+
+        my $auto_exclude = 0;
+
+        if ( $markers->{ body }
+            && ( $i < ( $markers->{ body }->[ 0 ] || 0 ) ) )
+        {
+            $explanation .= "require body";
+            $auto_exclude = 1;
+        }
+        elsif ( $line =~ /^\s*$/ )
+        {
+            $explanation .= "require non-blank";
+            $auto_exclude = 1;
+        }
+        elsif ( MediaWords::Util::HTML::html_strip( $line ) !~ /[\w]/i )
+        {
+            $explanation .= "require non-html";
+            $auto_exclude = 1;
+        }
+        elsif ( decode_entities( $line ) !~ /\w{4}/i )
+        {
+            $explanation .= "require word";
+            $auto_exclude = 1;
+        }
+        elsif ( $sphereit_map && !$sphereit_map->{ $i } )
+        {
+            $explanation .= "require sphereit";
+            $auto_exclude = 1;
+        }
+
+        if ( $auto_exclude )
+        {
+            $ret->[ $i ] = [ 1, $explanation ];
+        }
+        else
+        {
+            $ret->[ $i ] = [ 0 ];
+        }
+    }
+
+    return $ret;
 }
 
 sub get_info_for_lines($$$)
@@ -294,10 +451,10 @@ sub get_info_for_lines($$$)
           " falling back to default language '$language_code'.";
     }
 
-    my $markers = MediaWords::Crawler::Extractor::find_markers( $lines, $language_code );
-    my $auto_excluded_lines = MediaWords::Crawler::Extractor::find_auto_excluded_lines( $lines, $language_code, $markers );
+    my $markers = _find_markers( $lines, $language_code );
+    my $auto_excluded_lines = _find_auto_excluded_lines( $lines, $language_code, $markers );
     my $has_clickprint      = HTML::CruftText::has_clickprint( $lines );
-    my $sphereit_map        = MediaWords::Crawler::Extractor::get_sphereit_map( $markers, $language_code );
+    my $sphereit_map        = _get_sphereit_map( $markers, $language_code );
 
     my $info_for_lines = [];
 
@@ -321,7 +478,7 @@ sub get_info_for_lines($$$)
 
         my ( $html_density, $discounted_html_density, $explanation );
 
-        my $line_info = calculate_full_line_metrics(
+        my $line_info = _calculate_full_line_metrics(
             $line,           $i,                   $title_text, $description, $sphereit_map,
             $has_clickprint, $auto_excluded_lines, $markers,    $language_code
         );
@@ -425,8 +582,6 @@ sub get_feature_string_from_line_info($$;$)
 
         my $field_value = $line_info->{ $feature_field };
 
-        #next if ($field_valuene '1' &&$field_valuene '0' );
-
         if ( $field_value eq '1' )
         {
             $ret .= $feature_field;
@@ -509,7 +664,6 @@ sub get_feature_strings_for_download
     my $ea = each_arrayref( $line_infos, $preprocessed_lines );
 
     #TODO DRY out this code
-    #my $previous_states = [ qw ( prestart start ) ];
     while ( my ( $line_info, $line_text ) = $ea->() )
     {
         my $current_state = $line_info->{ class };
@@ -518,19 +672,6 @@ sub get_feature_strings_for_download
         {
             $current_state = 'auto_excluded';
         }
-
-        # my $prior_state_string = join '_', @$previous_states;
-
-        # #$line_info->{ "priors_$prior_state_string" } = 1;
-
-        # if ( $previous_states->[ 1 ] eq 'auto_excluded' )
-        # {
-        #     $line_info->{ previous_line_auto_excluded } = 1;
-        # }
-
-        # shift $previous_states;
-
-        # push $previous_states, $current_state;
 
         next if $line_info->{ auto_excluded } == 1;
 

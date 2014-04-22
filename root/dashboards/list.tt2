@@ -25,6 +25,7 @@
         [% IF c.acl_user_can_visit('/admin/mediasets/list') %]
             <th>media sets</th>
         [% END -%]
+        <th>public</th>
         [% IF c.acl_user_can_visit('/dashboard/view') %]
             <th>view dashboard</th>
         [% END -%]
@@ -47,6 +48,8 @@
         [% IF c.acl_user_can_visit('/admin/mediasets/list') %]
             <td><a href='[% c.uri_for( '/admin/mediasets/list/' ) _ dashboard.dashboards_id %]'>media sets</a></td>
         [% END -%]
+
+        <td>[% IF dashboard.public %]yes[% ELSE %]no[% END %]</td>
 
         [% IF c.acl_user_can_visit('/dashboard/view') %]
             <td><a href='[% c.uri_for( '/dashboard/view/' )  _ dashboard.dashboards_id %]'>view</a></td>

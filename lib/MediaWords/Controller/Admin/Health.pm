@@ -95,15 +95,25 @@ sub _assign_health_data_to_tag
     my ( $db, $tag ) = @_;
 
     my $media = $db->query( <<END, $tag->{ tags_id } )->hashes;
-select m.* 
-    from media m join media_tags_map mtm on ( m.media_id = mtm.media_id ) 
+select m.*,
+        sum( ms.num_stories ) num_stories,
+        sum( ms.num_sentences ) num_sentences,
+        sum( ms.num_stories_with_sentences ) num_stories_with_sentences,
+        sum( ms.num_stories_with_text ) num_stories_with_text
+        
+    from media m 
+        join media_tags_map mtm on ( m.media_id = mtm.media_id ) 
+        join media_stats ms on ( m.media_id = ms.media_id )
     where mtm.tags_id = ?
+    group by m.media_id
     order by m.media_id
 END
 
     for my $medium ( @{ $media } )
     {
-        _assign_health_data_to_medium( $db, $medium );
+        # say STDERR "_assign_health_data_to_tag: " . Dumper( $medium );
+        # 
+        # _assign_health_data_to_medium( $db, $medium );
 
         my $fields = [ qw/num_stories num_sentences num_stories_with_sentences num_stories_with_text/ ];
         map { $tag->{ $_ } += $medium->{ $_ } || 0 } @{ $fields };
@@ -112,16 +122,16 @@ END
     $tag->{ media }     = $media;
     $tag->{ num_media } = scalar( @{ $media } );
 
-    $tag->{ num_healthy_media } = scalar( grep { $_->{ status } ne 'red' } @{ $media } );
-    if ( $tag->{ num_media } )
-    {
-        $tag->{ percent_healthy_media } = int( 100 * ( $tag->{ num_healthy_media } / $tag->{ num_media } ) );
-    }
-    else
-    {
-        $tag->{ percent_healthy_media } = 'na';
-    }
-
+    # $tag->{ num_healthy_media } = scalar( grep { $_->{ status } ne 'red' } @{ $media } );
+    # if ( $tag->{ num_media } )
+    # {
+    #     $tag->{ percent_healthy_media } = int( 100 * ( $tag->{ num_healthy_media } / $tag->{ num_media } ) );
+    # }
+    # else
+    # {
+    #     $tag->{ percent_healthy_media } = 'na';
+    # }
+    # 
 }
 
 # find any media set and dashboard associated with the tag and
@@ -142,20 +152,35 @@ END
     $tag->{ media_set_names } = join( '; ', map { "$_->{ dashboard_name }:$_->{ name }" } @{ $media_sets } );
 }
 
-# list the overall health of each collection: tag
+# get tag_sets_id for collection: tag set
+sub _get_collection_tag_sets_id
+{
+    my ( $db ) = @_;
+    
+    my $tag_set = $db->query( "select * from tag_sets where name = 'collection'" )->hash ||
+        die( "Unable to find 'collection' tag set" );
+    
+    return $tag_set->{ tag_sets_id };
+}
+
+# list the overall health of each tag in a tag_set
 sub list : Local
 {
-    my ( $self, $c, $media_id ) = @_;
+    my ( $self, $c, $tag_sets_id ) = @_;
 
     my $db = $c->dbis;
-
-    my $tags = $db->query( <<END )->hashes;
-with collection_tags as (
     
-    select t.* 
-        from tags t 
-            join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
-        where ts.name = 'collection'
+    $tag_sets_id ||= _get_collection_tag_sets_id( $db );
+    
+    my $tag_set = $db->find_by_id( 'tag_sets', $tag_sets_id ) ||
+        die( "Unable to find tag set '$tag_sets_id'" );
+
+    # sample 1 / $sample_factor days from the past year
+    my $sample_factor = 13;
+    
+    my $query = <<END;
+with collection_tags as (
+    select t.* from tags t where t.tag_sets_id = ?
 )
         
 select t.*, s.*,
@@ -166,17 +191,15 @@ select t.*, s.*,
             select 
                 mtm.tags_id,
                 count( distinct mtm.media_id ) num_media,
-                ( sum( 
-                    case when ms.stat_date > now() - interval '1 month' 
-                        then 1 
-                        else 0 end ) * 100 / count(*) )::int percent_current_media,
-                sum( ms.num_stories ) num_stories,
-                sum( ms.num_stories_with_text ) num_stories_with_text,
-                sum( ms.num_sentences ) num_sentences,
-                sum( ms.num_stories_with_sentences ) num_stories_with_sentences
+                sum( ms.num_stories ) * $sample_factor num_stories,
+                sum( ms.num_stories_with_text ) * $sample_factor num_stories_with_text,
+                sum( ms.num_sentences ) * $sample_factor num_sentences,
+                sum( ms.num_stories_with_sentences ) * $sample_factor num_stories_with_sentences
             from 
                 media_tags_map mtm
                     left join media_stats ms on ( ms.media_id = mtm.media_id )
+            where ms.media_stats_id % $sample_factor = 0 and
+                ms.stat_date > now() - '1 year'::interval
             group by mtm.tags_id
             
         ) s on ( t.tags_id = s.tags_id )
@@ -194,6 +217,8 @@ select t.*, s.*,
     order by media_set_names, t.tags_id
 END
 
+    my $tags = $db->query( $query, $tag_sets_id )->hashes;
+
     for my $tag ( @{ $tags } )
     {
         # _assign_health_data_to_tag( $db, $tag );
@@ -201,8 +226,34 @@ END
     }
 
     $c->stash->{ tags }     = $tags;
+    $c->stash->{ tag_set }  = $tag_set;
     $c->stash->{ template } = 'health/list.tt2';
 }
+
+# list tag sets
+sub tag_sets : Local
+{
+    my ( $self, $c ) = @_;
+    
+    my $db = $c->dbis;
+    
+    my $tag_sets = $db->query( <<END )->hashes;
+select ts.*
+    from tag_sets ts
+    where 
+        exists ( 
+            select 1 
+                from media_tags_map mtm 
+                    join tags t on ( mtm.tags_id = t.tags_id )
+                where t.tag_sets_id = ts.tag_sets_id
+        )
+    order by name
+END
+
+    $c->stash->{ tag_sets } = $tag_sets;
+    $c->stash->{ template } = 'health/tag_sets.tt2';
+}
+
 
 # list the media sources in the given tag, with health info for each
 sub tag : Local

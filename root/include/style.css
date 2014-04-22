@@ -86,6 +86,17 @@ div#menu a {
     text-decoration: none;
 }
 
+div#submenu a {
+    font-weight: bold;
+    list-style-type: none;
+    display: inline;
+    padding-right: 1em;
+    margin-left: 0em;
+    font-size: smaller;    
+    white-space: nowrap;
+    text-decoration: none;
+}
+
 div#breadcrumbs {
     display: inline;
     padding-right: 1em;

@@ -1,0 +1,23 @@
+[% title = 'Media Health: Tag Sets' %]
+[% INCLUDE include/header.tt2 %]
+
+<table>
+
+    <tr>
+        <th>Tag Set</th>
+    </tr>
+
+    [% FOREACH tag_set IN tag_sets -%]
+
+        <tr [% IF even %]class="even"[% END %]>
+            <td><a href="[% c.uri_for( '/admin/health/list/' _ tag_set.tag_sets_id ) %]">[% tag_set.name | html %]</a></td>
+        </tr>
+
+        [%  SET even = !even %]
+
+    [% END -%]
+
+</table>
+
+
+[% INCLUDE include/footer.tt2 %]

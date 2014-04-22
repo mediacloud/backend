@@ -131,26 +131,127 @@ None.
 
 #### Example
 
-http://www.mediacloud.org/api/v2/media_sets/single/2
+http://www.mediacloud.org/api/v2/media_sets/single/1
 
 ```json
 [
-   {
-     "name": "set name",
-     "media_sets_id": 2,
-     "description": "media_set 2 description",
-     "media": 
-     [
-      	    {       "name": "source 1 name",
-                    "media_id": "source 1 media id",
-                    "url": "http://source1.com"
-            },
-      	    {       "name": "source 2 name",
-                    "media_id": "source 2 media id",
-                    "url": "http://source2.com"
-            },
-     ]
-   }
+  {
+    "media_sets_id": 1,
+    "name": "Top 25 Mainstream Media",
+    "description": "Top 25 mainstream media sources by monthly unique users from the U.S. according to the Google AdPlanner service.",
+    "media": [
+      {
+        "media_id": 1,
+        "url": "http:\/\/nytimes.com",
+        "name": "New York Times"
+      },
+      {
+        "media_id": 2,
+        "url": "http:\/\/washingtonpost.com",
+        "name": "Washington Post"
+      },
+      {
+        "media_id": 4,
+        "url": "http:\/\/www.usatoday.com",
+        "name": "USA Today"
+      },
+      {
+        "media_id": 6,
+        "url": "http:\/\/www.latimes.com\/",
+        "name": "Los Angeles Times"
+      },
+      {
+        "media_id": 7,
+        "url": "http:\/\/www.nypost.com\/",
+        "name": "The New York Post"
+      },
+      {
+        "media_id": 8,
+        "url": "http:\/\/www.nydailynews.com\/",
+        "name": "The Daily News New York"
+      },
+      {
+        "media_id": 14,
+        "url": "http:\/\/www.sfgate.com\/",
+        "name": "San Francisco Chronicle"
+      },
+      {
+        "media_id": 314,
+        "url": "http:\/\/www.huffingtonpost.com\/",
+        "name": "The Huffington Post"
+      },
+      {
+        "media_id": 1089,
+        "url": "http:\/\/www.reuters.com\/",
+        "name": "Reuters"
+      },
+      {
+        "media_id": 1092,
+        "url": "http:\/\/www.foxnews.com\/",
+        "name": "FOX News"
+      },
+      {
+        "media_id": 1094,
+        "url": "http:\/\/www.bbc.co.uk\/?ok",
+        "name": "BBC"
+      },
+      {
+        "media_id": 1095,
+        "url": "http:\/\/www.cnn.com\/",
+        "name": "CNN"
+      },
+      {
+        "media_id": 1098,
+        "url": "http:\/\/www.newsweek.com\/",
+        "name": "Newsweek "
+      },
+      {
+        "media_id": 1104,
+        "url": "http:\/\/www.forbes.com\/",
+        "name": "Forbes"
+      },
+      {
+        "media_id": 1149,
+        "url": "http:\/\/www.msnbc.msn.com\/",
+        "name": "MSNBC"
+      },
+      {
+        "media_id": 1747,
+        "url": "http:\/\/www.dailymail.co.uk\/home\/index.html",
+        "name": "Daily Mail"
+      },
+      {
+        "media_id": 1750,
+        "url": "http:\/\/www.telegraph.co.uk\/",
+        "name": "Daily Telegraph"
+      },
+      {
+        "media_id": 1751,
+        "url": "http:\/\/www.guardian.co.uk\/",
+        "name": "Guardian"
+      },
+      {
+        "media_id": 1752,
+        "url": "http:\/\/www.cbsnews.com\/",
+        "name": "CBS News"
+      },
+      {
+        "media_id": 4415,
+        "url": "http:\/\/cnet.com",
+        "name": "CNET"
+      },
+      {
+        "media_id": 4418,
+        "url": "http:\/\/examiner.com",
+        "name": "Examiner.com"
+      },
+      {
+        "media_id": 4419,
+        "url": "http:\/\/time.com",
+        "name": "TIME.com"
+      }
+    ],
+  }
 ]
 ```
 
@@ -474,15 +575,17 @@ navigational snippets wrongly included in the extracted text by the extractor al
 #### Query Parameters
 
 | Parameter | Default | Notes
-| --------- | ------- | ----------------------------------------------------------------
-| `q`       | n/a     | `q` ("query") parameter which is passed directly to Solr
-| `fq`      | `null`  | `fq` ("filter query") parameter which is passed directly to Solr
-| `start`   | 0       | Passed directly to Solr
-| `rows`    | 1000    | Passed directly to Solr
+| --------- | ---------------- | ----------------------------------------------------------------
+| `q`       | n/a              | `q` ("query") parameter which is passed directly to Solr
+| `fq`      | `null`           | `fq` ("filter query") parameter which is passed directly to Solr
+| `start`   | 0                | Passed directly to Solr
+| `rows`    | 1000             | Passed directly to Solr
+| `sort`    | publish_date_asc | publish_date_asc, publish_date_desc, or random
 
 --------------------------------------------------------------------------------------------------------
 
-These parameters are passed directly through to Solr (see above).
+Other than 'sort', these parameters are passed directly through to Solr (see above).  The sort parameter must be
+one of the listed above and determines the order of the sentences returned.
 
 #### Example
 
@@ -492,130 +595,114 @@ URL:  http://www.mediacloud.org/api/v2/sentences/list?q=sentence:obama&rows=10&f
 
 ```json
 {
-  "responseHeader": {
-    "params": {
-      "df": "sentence",
-      "wt": "json",
-      "q": "sentence:obama",
-      "fq": "media_id:1",
-      "rows": "10",
-      "start": "0"
+  "responseHeader":{
+    "params":{
+      "sort":"random_1 asc",
+      "df":"sentence",
+      "wt":"json",
+      "q":"sentence:obama",
+      "fq":"media_id:1",
+      "rows":"10",
+      "start":"0"
     },
-    "status": 0,
-    "QTime": 348
+    "status":0,
+    "QTime":20
   },
-  "response": {
-    "numFound": 96383,
-    "docs": [
+  "response":{
+    "numFound":94171,
+    "docs":[
       {
-        "sentence": "Obama:",
-        "field_type": "ss",
-        "sentence_number": 16,
-        "_version_": 1.4579959345877e+18,
-        "tags_id_media": [
-          8874930,
-          1,
-          109,
-          6729599,
-          6071565,
-          8875027
-        ],
-        "solr_import_date": "2014-01-23T04:28:14.894Z",
-        "media_id": 1,
-        "tags_id_stories": [
-          8878051,
-          8878085
-        ],
-        "media_sets_id": [
-          24,
-          1,
-          16959
-        ],
-        "publish_date": "2012-04-18T16:10:06Z",
-        "stories_id": 79115414,
-        "id": "959545252_ss",
-        "story_sentences_id": "959545252"
+        "sentence":"Mr. Obama played golf on Sunday and again on Monday.",
+        "media_id":1,
+        "publish_date":"2013-08-13 00:55:48",
+        "sentence_number":3,
+        "stories_id":146975599,
+        "_version_":1465531175907885056,
+        "story_sentences_id":"1693567329"
       },
       {
-        "sentence": "Obama!",
-        "field_type": "ss",
-        "sentence_number": 8,
-        "_version_": 1.4580934893476e+18,
-        "tags_id_media": [
-          8874930,
-          1,
-          109,
-          6729599,
-          6071565,
-          8875027
-        ],
-        "solr_import_date": "2014-01-23T04:28:14.894Z",
-        "media_id": 1,
-        "media_sets_id": [
-          24,
-          1,
-          16959
-        ],
-        "publish_date": "2011-10-04T09:15:23Z",
-        "stories_id": 42553267,
-        "id": "816034983_ss",
-        "story_sentences_id": "816034983"
-      },
-
-      ...
-
-      {
-        "sentence": "Obama agreed.",
-        "field_type": "ss",
-        "sentence_number": 169,
-        "_version_": 1.4579989989955e+18,
-        "tags_id_media": [
-          8874930,
-          1,
-          109,
-          6729599,
-          6071565,
-          8875027
-        ],
-        "solr_import_date": "2014-01-23T04:28:14.894Z",
-        "media_id": 1,
-        "media_sets_id": [
-          24,
-          1,
-          16959
-        ],
-        "publish_date": "2012-05-02T13:00:35Z",
-        "stories_id": 80058349,
-        "id": "947364128_ss",
-        "story_sentences_id": "947364128"
+        "sentence":"Without mentioning them by name, it takes on Charles and David Koch, the wealthy conservative businessmen who have opposed Mr. Obama through the political advocacy group Americans for Prosperity.",
+        "media_id":1,
+        "publish_date":"2012-01-19 01:12:10",
+        "sentence_number":5,
+        "stories_id":51549022,
+        "_version_":1465513962638409730,
+        "story_sentences_id":"902231969"
       },
       {
-        "sentence": "Obama Foodorama",
-        "field_type": "ss",
-        "sentence_number": 138,
-        "_version_": 1.4580065399325e+18,
-        "tags_id_media": [
-          8874930,
-          1,
-          109,
-          6729599,
-          6071565,
-          8875027
-        ],
-        "solr_import_date": "2014-01-23T04:28:14.894Z",
-        "media_id": 1,
-        "media_sets_id": [
-          24,
-          1,
-          16959
-        ],
-        "publish_date": "2012-04-04T00:08:33Z",
-        "stories_id": 77777319,
-        "id": "916030816_ss",
-        "story_sentences_id": "916030816"
+        "sentence":"Former presidential speechwriters said Lincoln’s few words would make it even more difficult for Mr. Obama to find ones that feel fresh.",
+        "media_id":1,
+        "publish_date":"2013-08-22 00:51:42",
+        "sentence_number":36,
+        "stories_id":149735751,
+        "_version_":1465531727373926400,
+        "story_sentences_id":"1723403496"
+      },
+      {
+        "sentence":"Though Mr. Obama is expected to address how the peace process fits into the broader changes in the Middle East, officials said they did not expect him to lay out a detailed American blueprint to revive the negotiations, which have been paralyzed since September.",
+        "media_id":1,
+        "publish_date":"2011-05-17 17:10:14",
+        "sentence_number":9,
+        "stories_id":36107537,
+        "_version_":1465517874643730432,
+        "story_sentences_id":"684054351"
+      },
+      {
+        "sentence":"“The reason I’m so animated about defeating Barack Obama is because he’s failed the American people,” Mr. Romney said, speaking outside at an energy company.",
+        "media_id":1,
+        "publish_date":"2012-06-14 13:17:37",
+        "sentence_number":68,
+        "stories_id":169631466,
+        "_version_":1465545382125633537,
+        "story_sentences_id":"2085799723"
+      },
+      {
+        "sentence":"Sarah Palin said Obama was guilty of “shuck and jive” on Benghazi.",
+        "media_id":1,
+        "publish_date":"2012-10-27 23:02:01",
+        "sentence_number":27,
+        "stories_id":92275227,
+        "_version_":1465520856365006849,
+        "story_sentences_id":"1060529064"
+      },
+      {
+        "sentence":"Still, Democrats openly worried that if Mr. Obama could not drive a harder bargain when he holds most of the cards, he will give up still more Democratic priorities in the coming weeks, when hard deadlines will raise the prospects of a government default first, then a government shutdown.",
+        "media_id":1,
+        "publish_date":"2013-01-01 02:10:42",
+        "sentence_number":24,
+        "stories_id":96795610,
+        "_version_":1465523519766921216,
+        "story_sentences_id":"1112283342"
+      },
+      {
+        "sentence":"Mr. Obama agreed to the far-reaching penalties after the White House negotiated language that would allow him to waive them against foreign financial institutions.",
+        "media_id":1,
+        "publish_date":"2012-02-06 17:07:35",
+        "sentence_number":12,
+        "stories_id":72982936,
+        "_version_":1465514836620214273,
+        "story_sentences_id":"908488464"
+      },
+      {
+        "sentence":"“We believe the Syrian government to be systematically persecuting its own people on a vast scale.” On Tuesday, the Obama administration added to the economic pressure on Mr. Assad’s government, freezing the United States assets of Foreign Minister Walid al-Moualem and two other officials.",
+        "media_id":1,
+        "publish_date":"2011-08-31 19:30:38",
+        "sentence_number":18,
+        "stories_id":40984774,
+        "_version_":1465516934096224256,
+        "story_sentences_id":"762139692"
+      },
+      {
+        "sentence":"Mr. Obama set the standard with the $745 million he raised in 2008 after opting not to participate in the post-Watergate public financing system, under which candidates received taxpayer funds in return for accepting limits on their spending.",
+        "media_id":1,
+        "publish_date":"2012-06-22 19:30:32",
+        "sentence_number":23,
+        "stories_id":83442616,
+        "_version_":1465520768804716544,
+        "story_sentences_id":"983218944"
       }
     ],
-    "start": 0
+    "start":0
   }
 }
 ```

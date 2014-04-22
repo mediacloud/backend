@@ -83,6 +83,7 @@ END;
 $$
 LANGUAGE 'plpgsql';
 
+
 -- Set the version number right away
 SELECT set_database_schema_version();
 INSERT INTO database_variables( name, value ) values ( 'LAST_STORY_SENTENCES_ID_PROCESSED', '0' ); 
@@ -469,7 +470,11 @@ create table dashboards (
     dashboards_id               serial          primary key,
     name                        varchar(1024)   not null,
     start_date                  timestamp       not null,
-    end_date                    timestamp       not null
+    end_date                    timestamp       not null,
+
+    -- A "public" dashboard is the one that is shown in the web UI
+    -- (e.g. the "create controversy" page)
+    public                      boolean         not null default true
 );
 
 create unique index dashboards_name on dashboards ( name );
@@ -975,7 +980,7 @@ create table extractor_training_lines
 
 create unique index extractor_training_lines_line on extractor_training_lines(line_number, downloads_id);
 create index extractor_training_lines_download on extractor_training_lines(downloads_id);
-    
+        
 CREATE TABLE top_ten_tags_for_media (
     media_id integer NOT NULL,
     tags_id integer NOT NULL,
@@ -1128,6 +1133,14 @@ create index story_sentence_counts_md5 on story_sentence_counts( media_id, publi
 
 create index story_sentence_counts_first_stories_id on story_sentence_counts( first_stories_id );
 
+create table solr_imports (
+    solr_imports_id     serial primary key,
+    import_date         timestamp not null,
+    full_import         boolean not null default false
+);
+
+create index solr_imports_date on solr_imports ( import_date );
+    
 create table story_sentence_words (
        stories_id                   int             not null, -- references stories on delete cascade,
        term                         varchar(256)    not null,

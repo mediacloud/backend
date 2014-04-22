@@ -23,10 +23,13 @@ use URI::Escape;
 use MediaWords::Util::Config;
 
 # max number of random sentences to fetch
-use constant MAX_RANDOM_SENTENCES => 10000;
+use constant MAX_RANDOM_SENTENCES => 1000;
 
 # number of words to return
 use constant NUM_RETURN_WORDS => 500;
+
+# max number of lines that can be in the solr http response header
+use constant MAX_HEADER_LINES => 100;
 
 # set any duplicate lines blank.
 sub blank_dup_lines
@@ -57,18 +60,14 @@ sub count_stems
         # lc here instead of individual word for better performance
         $line = lc( substr( $line, 0, 256 ) );
 
-        # replace anything sequence of not-space-punct characters with a
-        # single space so that we can just use a split below for better performance
-        # than matching each token as /(\w\w\w+)/; in theory, this could miss
-        # control characters and such, but it is much faster than using \w because
-        # \w requires encoding the line for extended unicode characters, and encoding
-        # is very slow
-        $line =~ s/[[:punct:][:space:]]/ /og;
+        # for some reason, encode( 'utf8', $line ) does not make \w match unicode letters,
+        # but the following does
+        Encode::_utf8_on( $line );
 
-        # split performance much better than a regex match for each word.
-        # for some reason, the single map / grep / split line works better
-        # than an less concise version with an explicit loop.
-        map { $words->{ $_ }++ } grep { length( $_ ) > 2 } split( ' ', $line );
+        while ( $line =~ /(\w+)/g )
+        {
+            $words->{ $1 }++ if ( length( $1 ) > 2 );
+        }
     }
 
     # now we need to stem the words.  It's faster to stem as a single set of words.  we
@@ -132,17 +131,20 @@ sub advance_past_csv_header
 {
     my ( $sock ) = @_;
 
+    my $header           = '';
     my $found_csv_header = 0;
-    while ( my $line = <$sock> )
+    for ( my $i = 0 ; $i < MAX_HEADER_LINES ; $i++ )
     {
+        my $line = <$sock>;
         if ( $line =~ /^sentence/i )
         {
             $found_csv_header = 1;
             last;
         }
+        $header .= $line;
     }
 
-    die( "Unable to find 'sentence' csv header in solr response" ) unless ( $found_csv_header );
+    die( "Unable to find 'sentence' csv header in solr response: $header" ) unless ( $found_csv_header );
 }
 
 # send request to solr and return a file handle that we can read for responses
@@ -160,7 +162,10 @@ sub get_solr_results_socket
         return $fh;
     }
 
-    my $url  = MediaWords::Util::Config::get_config->{ mediawords }->{ solr_select_url };
+    my $url = MediaWords::Util::Config::get_config->{ mediawords }->{ solr_select_url };
+
+    die( "mediawords:solr_select_url not found in config" ) unless ( $url );
+
     my $uri  = URI->new( $url );
     my $host = $uri->host;
     my $port = $uri->port;
