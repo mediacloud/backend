@@ -1082,20 +1082,24 @@ sub _attach_story_data_to_stories_ids_chunk
     return unless ( @{ $story_data } );
 
     my $story_data_lookup = {};
-    map { $story_data_lookup->{ $_->{ stories_id } } = $_ } @{ $story_data };
+    for my $sd ( @{ $story_data } )
+    {
+        if ( $list_field )
+        {
+            $story_data_lookup->{ $sd->{ stories_id } } //= { $list_field => [] };
+            push( $story_data_lookup->{ $sd->{ stories_id } }->{ $list_field }, $sd );
+        }
+        else
+        {
+            $story_data_lookup->{ $sd->{ stories_id } } = $sd;
+        }
+    }
 
     for my $story ( @{ $stories } )
     {
         if ( $story_data = $story_data_lookup->{ $story->{ stories_id } } )
         {
-            if ( $list_field )
-            {
-                push( @{ $story->{ $list_field } }, $story_data );
-            }
-            else
-            {
-                map { $story->{ $_ } = $story_data->{ $_ } } keys( %{ $story_data } );
-            }
+            map { $story->{ $_ } = $story_data->{ $_ } } keys( %{ $story_data } );
         }
     }
 }

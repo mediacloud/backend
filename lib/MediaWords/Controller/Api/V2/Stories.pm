@@ -274,7 +274,7 @@ sub _fetch_list
     #say STDERR Dumper( $stories_ids );
 
     my $query =
-"select stories.*, processed_stories.processed_stories_id from stories natural join processed_stories where processed_stories_id in (??) ORDER by $id_field asc limit $rows ";
+"select stories.*, max( processed_stories.processed_stories_id ) processed_stories_id from stories natural join processed_stories where processed_stories_id in (??) group by stories.stories_id ORDER by $id_field asc limit $rows ";
 
     my @values = @{ $stories_ids };
 
