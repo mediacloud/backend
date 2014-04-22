@@ -178,6 +178,49 @@ END_SQL
     return $download;
 }
 
+sub _get_controversy_download
+{
+    my ( $self, $c, $controversies_id ) = @_;
+
+
+    my $rolezinhos_query =  <<END ;
+WITH controversy_stories_ids as (select s.stories_id
+from stories s
+        join controversy_stories cs on ( s.stories_id = cs.stories_id )
+    where  
+    cs.controversies_id = ?) select  downloads.* from downloads, controversy_stories_ids where downloads.stories_id = controversy_stories_ids.stories_id AND   type = 'content'::download_type AND state = 'success'::download_state
+    ORDER BY random()
+END
+
+    my $downloads = $c->dbis->query( $rolezinhos_query, $controversies_id )->hashes;
+
+    return $downloads->[0];
+}
+
+sub _get_rolezinhos_download
+{
+    my ( $self, $c ) = @_;
+
+    my $rolezinhos_query =  <<END ;
+WITH controversy_stories_ids as (select s.stories_id
+from stories s
+        join controversy_stories cs on ( s.stories_id = cs.stories_id )
+ left join stories_tags_map stm on ( s.stories_id = stm.stories_id and stm.tags_id = 8875452 ),
+ (select Random() as r ) as rand
+    where  
+    cs.controversies_id = ?
+  AND  ( ( (rand.r < 0.4) AND (stm.tags_id is not  null)) OR ( (rand.r > 0.4) AND (stm.tags_id is  null)) )
+) select  downloads.* from downloads, controversy_stories_ids where downloads.stories_id = controversy_stories_ids.stories_id AND   type = 'content'::download_type AND state = 'success'::download_state
+    ORDER BY random()
+END
+
+    my $downloads = $c->dbis->query( $rolezinhos_query, 563 )->hashes;
+
+    return $downloads->[0];
+
+    #return $self->_get_controversy_download( $c, 563 );
+}
+
 sub get_high_priority_download
 {
     my ( $self, $c ) = @_;
@@ -269,6 +312,10 @@ sub mextract : Local
             $current_training_download_id
         );
     }
+    elsif ( 1==1 )
+    {
+	$download = $self->_get_rolezinhos_download( $c );
+    }
     elsif ( defined( $dashboards_id ) )
     {
         my $dashboards_id = $c->request->param( 'dashboards_id' );
@@ -291,7 +338,7 @@ sub mextract : Local
     $download->{ story }  = $c->dbis->find_by_id( 'stories', $download->{ stories_id } );
     $download->{ medium } = $c->dbis->find_by_id( 'media',   $download->{ story }->{ media_id } );
 
-    my $has_extractor_training_lines_scores = @{ $download->{ extractor_training_lines } } > 0;
+    my $has_extractor_training_lines_scores = scalar( @{ $download->{ extractor_training_lines } } ) > 0;
 
     my $story_lines_lookup = {};
     for my $line ( @{ $download->{ extractor_training_lines } } )
@@ -303,6 +350,8 @@ sub mextract : Local
 
     my $lines  = $extract->{ download_lines };
     my $scores = $extract->{ scores };
+
+    my $line_infos = MediaWords::Crawler::AnalyzeLines::get_info_for_lines( $lines,  $download->{ story }->{ title }, $download->{ story }->{ description } );
 
     my $developer_ui_param = $c->request->param( 'developer_ui' );
 
@@ -342,6 +391,7 @@ sub mextract : Local
 
     $c->stash->{ download }                            = $download;
     $c->stash->{ lines }                               = $lines;
+    $c->stash->{ line_infos }                          = $line_infos;
     $c->stash->{ next_training_download }              = $next_training_download;
     $c->stash->{ story_lines_lookup }                  = $story_lines_lookup;
     $c->stash->{ has_extractor_training_lines_scores } = $has_extractor_training_lines_scores;

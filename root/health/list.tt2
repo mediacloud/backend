@@ -1,12 +1,16 @@
-[% title = 'Media Health' %]
+[% title = 'Media Health: Tags for ' _ tag_set.name | html %]
 [% INCLUDE include/header.tt2 %]
+
+<fieldset>
+    <a href="[% c.uri_for( '/admin/health/tag_sets' ) %]">List Tag Sets</a>
+</fieldset>
 
 <table>
     <tr>
+        <th>ID</th>
         <th>Tag</th>
         <th>Media Sets</th>
         <th>Media</th>        
-        <th>Current Media</th>
         <th>Stories</th>
         <th>w Text</th>
         <th>w Sentences</th>
@@ -16,10 +20,10 @@
     [% FOREACH tag IN tags -%]
 
         <tr [% IF even %]class="even"[% END %]>
+            <td>[% tag.tags_id %]</td>
             <td><a href="[% c.uri_for( '/admin/health/tag/' _ tag.tags_id ) %]">[% tag.tag | html %]</a></td>
             <td>[% tag.media_set_names | html %]</td>
             <td>[% tag.num_media || 0 %]</td>
-            <td>[% tag.percent_current_media || 0 %]%</td>
             <td>[% tag.num_stories || 0 %]</td>
             <td>[% tag.num_stories_with_text || 0 %]</td>
             <td>[% tag.num_stories_with_sentences || 0 %]</td>

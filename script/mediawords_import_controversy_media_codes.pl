@@ -15,7 +15,7 @@ use Getopt::Long;
 use Text::CSV_XS;
 
 use MediaWords::DB;
-use MediaWords::DBI::Controversies;
+use MediaWords::CM;
 
 # hash of all media with stories in a controversy, hashed by media_id and controversies_id
 my $_medium_controversy_lookup;
@@ -113,7 +113,7 @@ sub main
 
     my $db = MediaWords::DB::connect_to_db;
 
-    my $controversies = MediaWords::DBI::Controversies::require_controversies_by_opt( $db, $controversy_opt );
+    my $controversies = MediaWords::CM::require_controversies_by_opt( $db, $controversy_opt );
 
     for my $controversy ( @{ $controversies } )
     {

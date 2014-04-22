@@ -13,7 +13,7 @@ use Moose;
 use namespace::autoclean;
 use List::Compare;
 use Carp;
-use  MediaWords::Solr;
+use MediaWords::Solr;
 
 =head1 NAME
 
@@ -44,6 +44,85 @@ sub list : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST
 {
 }
 
+# fill ss_ids temporary table with story_sentence_ids from the given sentences
+# and return the temp table name
+sub _get_ss_ids_temporary_table
+{
+    my ( $db, $sentences ) = @_;
+
+    $db->query( "create temporary table _ss_ids ( story_sentences_id bigint )" );
+
+    eval { $db->dbh->do( "copy _ss_ids from STDIN" ) };
+    die( " Error on copy for _ss_ids: $@" ) if ( $@ );
+
+    for my $ss ( @{ $sentences } )
+    {
+        eval { $db->dbh->pg_putcopydata( "$ss->{ story_sentences_id }\n" ); };
+        die( " Error on pg_putcopydata for _ss_ids: $@" ) if ( $@ );
+    }
+
+    eval { $db->dbh->pg_putcopyend(); };
+
+    die( " Error on pg_putcopyend for _ss_ids: $@" ) if ( $@ );
+
+    return '_ss_ids';
+}
+
+# attach the following fields to each sentence: sentence_number, media_id, publish_date
+sub _attach_data_to_sentences
+{
+    my ( $db, $sentences ) = @_;
+
+    return unless ( @{ $sentences } );
+
+    my $temp_ss_ids = _get_ss_ids_temporary_table( $db, $sentences );
+
+    my $story_sentences = $db->query( <<END )->hashes;
+select ss.story_sentences_id, ss.sentence_number, ss.media_id, ss.publish_date
+    from story_sentences ss
+        join $temp_ss_ids q on ( ss.story_sentences_id = q.story_sentences_id )
+END
+
+    $db->query( "drop table $temp_ss_ids" );
+
+    my $ss_lookup = {};
+    map { $ss_lookup->{ $_->{ story_sentences_id } } = $_ } @{ $story_sentences };
+
+    for my $sentence ( @{ $sentences } )
+    {
+        my $ss_data = $ss_lookup->{ $sentence->{ story_sentences_id } };
+        map { $sentence->{ $_ } = $ss_data->{ $_ } } qw/sentence_number media_id publish_date/;
+    }
+}
+
+# return the solr sort param corresponding with the possible
+# api params values of publish_date_asc, publish_date_desc, and random
+sub _get_sort_param
+{
+    my ( $sort ) = @_;
+
+    $sort //= 'publish_date_asc';
+
+    $sort = lc( $sort );
+
+    if ( $sort eq 'publish_date_asc' )
+    {
+        return 'publish_date asc';
+    }
+    elsif ( $sort eq 'publish_date_desc' )
+    {
+        return 'publish_date desc';
+    }
+    elsif ( $sort eq 'random' )
+    {
+        return 'random_1 asc';
+    }
+    else
+    {
+        die( "Unknown sort: $sort" );
+    }
+}
+
 sub list_GET : Local
 {
     my ( $self, $c ) = @_;
@@ -52,21 +131,30 @@ sub list_GET : Local
 
     my $params = {};
 
-    my $q = $c->req->params->{ 'q' };
+    my $q  = $c->req->params->{ 'q' };
     my $fq = $c->req->params->{ 'fq' };
 
     my $start = $c->req->params->{ 'start' };
-    my $rows = $c->req->params->{ 'rows' };
+    my $rows  = $c->req->params->{ 'rows' };
+    my $sort  = $c->req->params->{ 'sort' };
 
-    $rows //= 1000;
-    $start //=0;
+    $rows  //= 1000;
+    $start //= 0;
 
-    $params->{ q } = $q;
-    $params->{ fq } = $fq;
+    $params->{ q }     = $q;
+    $params->{ fq }    = $fq;
     $params->{ start } = $start;
-    $params->{ rows } = $rows;
+    $params->{ rows }  = $rows;
 
-    my $list =  MediaWords::Solr::query( $params );
+    $params->{ sort } = _get_sort_param( $sort );
+
+    $rows = List::Util::min( $rows, 10000 );
+
+    my $list = MediaWords::Solr::query( $params );
+
+    my $sentences = $list->{ response }->{ docs };
+
+    _attach_data_to_sentences( $c->dbis, $sentences );
 
     $self->status_ok( $c, entity => $list );
 }

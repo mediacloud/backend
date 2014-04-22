@@ -1,0 +1,48 @@
+auto_fieldset:
+
+elements:
+  - type: Text
+    name: name
+    id: name
+    label: Name
+    comment: Name of the controversy
+    constraints:
+        - Required
+
+  - type: Text
+    name: pattern
+    id: pattern
+    label: Pattern
+    comment: Regular expression for the controversy
+    constraints:
+        - Required
+
+  - type: Text
+    name: start_date
+    id: start_date
+    label: Start Date
+    comment: (e.g. 2008-09-01)
+    constraints:
+        - Required
+        - type: DateTime
+          parser:
+            strptime: '%Y-%d-%m'
+
+  - type: Text
+    name: end_date
+    id: end_date
+    label: End Date
+    comment: (e.g. 2008-09-30)
+    constraints:
+        - Required
+        - type: DateTime
+          parser:
+            strptime: '%Y-%d-%m'
+
+  - type: Checkboxgroup
+    name: media_sets_ids
+    id: media_sets_ids
+    label: Media Sets
+
+  - type: Submit
+    value: Create

@@ -80,11 +80,11 @@ sub get_extracted_lines_with_crf
     my $feature_strings =
       MediaWords::Crawler::AnalyzeLines::get_feature_strings_for_download( $line_infos, $preprocessed_lines );
 
-    my $model_file_name = '/home/dlarochelle/mc/mediacloud-code/branches/extractor_inline_java/crf_model';
+    my $non_autoexcluded_line_infos = [ grep { !$_->{ auto_excluded } } @$line_infos ];
 
-    $model_file_name = '/home/dlarochelle/mc/mediacloud-code/branches/extractor_inline_java/features_outputModel.txt';
+    die unless scalar( @$non_autoexcluded_line_infos ) == scalar( @$feature_strings );
 
-    $model_file_name = $_model_file_name;
+    my $model_file_name = $_model_file_name;
 
     #say STDERR "using model file: '$model_file_name'";
 
@@ -101,6 +101,9 @@ sub get_extracted_lines_with_crf
     {
         die "Prediction count is not equal to the feature string count.\n";
     }
+
+    #say STDERR "non_auto_excluded_line_infos, feature_strings, predictions zipped";
+    #say STDERR Dumper( [ List::MoreUtils::zip( @$non_autoexcluded_line_infos, @$feature_strings, @$predictions ) ] );
 
     my $line_index       = 0;
     my $prediction_index = 0;

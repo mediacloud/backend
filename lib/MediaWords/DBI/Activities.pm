@@ -206,9 +206,10 @@ Readonly::Hash my %ACTIVITIES => {
             references  => 'controversies.controversies_id'
         },
         parameters => {
-            'dedup_stories'          => { description => 'FIXME' },
-            'import_only'            => { description => 'FIXME' },
-            'cache_broken_downloads' => { description => 'FIXME' }
+            'import_only' => { description => 'only run import_seed_urls and import_query_story_search and exit' },
+            'cache_broken_downloads' => { description => 'speed up fixing broken downloads' },
+            'skip_outgoing_foreign_rss_links' =>
+              { description => 'skip slow process of adding links from foreign_rss_links media' }
         }
     },
 

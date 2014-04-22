@@ -17,7 +17,7 @@ use LWP::UserAgent;
 use MediaWords::CM::GuessDate;
 use MediaWords::CM::Mine;
 use MediaWords::DB;
-use MediaWords::DBI::Controversies;
+use MediaWords::CM;
 use MediaWords::DBI::Stories;
 
 # guess the date for the story and update it in the db, using
@@ -81,7 +81,7 @@ sub main
 
     my $db = MediaWords::DB::connect_to_db;
 
-    my $controversies = MediaWords::DBI::Controversies::require_controversies_by_opt( $db );
+    my $controversies = MediaWords::CM::require_controversies_by_opt( $db );
 
     for my $controversy ( @{ $controversies } )
     {

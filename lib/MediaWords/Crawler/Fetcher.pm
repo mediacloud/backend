@@ -23,6 +23,35 @@ sub new
     return $self;
 }
 
+# alarabiya uses an interstitial that requires javascript.  if the download url 
+# matches alarabiya and returns the 'requires JavaScript' page, manually parse
+# out the necessary cookie and add it to the $ua so that the request will work
+sub fix_alarabiya_response
+{
+    my ( $download, $ua, $response ) = @_;
+    
+    return $response unless ( $download->{ url } =~ /alarabiya/ );
+    
+    if ( $response->content !~ /This site requires JavaScript and Cookies to be enabled/ )
+    {
+        return $response;
+    }
+    
+    if ( $response->content =~ /setCookie\('([^']+)', '([^']+)'/ )
+    {
+        my $response = $ua->get( $download->{ url }, Cookie => "$1=$2" );
+        
+        return $response;
+    }
+    else
+    {
+        warn( "Unable to parse cookie from alarabiya: " . $response->content );
+        return $response;
+    }
+}
+
+
+
 sub do_fetch
 {
     my ( $download, $dbs ) = @_;
@@ -35,6 +64,7 @@ sub do_fetch
     my $ua     = LWP::UserAgent->new();
     my $config = MediaWords::Util::Config::get_config;
 
+
     $ua->from( $config->{ mediawords }->{ owner } );
     $ua->agent( $config->{ mediawords }->{ user_agent } );
     $ua->cookie_jar( {} );
@@ -46,14 +76,8 @@ sub do_fetch
 
     my $response = $ua->get( $download->{ url } );
 
-    #     if (!$response->is_t )
-    #     {
-    #         sleep 20;
-    #
-    #         $response = $ua->get( $download->{url} );
-    #     }
-    #
-    #    print STDERR "returning from fetch_download\n";
+    $response = fix_alarabiya_response( $download, $ua, $response );
+    
     return $response;
 }
 
@@ -62,11 +86,6 @@ sub fetch_download
     my ( $self, $download ) = @_;
 
     my $dbs = $self->engine->dbs;
-
-    # FIXME - need to handle redirect manually, sticking them back into the queue as downloads
-    # so that the host throttling works as it should
-
-    #print "fetcher " . $self->engine->fetcher_number . " download: " . $download->{url} . "\n";
 
     return do_fetch( $download, $dbs );
 }

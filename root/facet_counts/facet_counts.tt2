@@ -1,0 +1,47 @@
+[% title = 'Facet Counts' %]
+[% IF q %]
+    [% title = title _ ': ' _ q %]
+[% END %]
+
+[% INCLUDE include/header.tt2 %]
+
+<fieldset>
+
+    [% search_url = c.uri_for( "/admin/facetcounts" ) %]
+    <form method="get" action="[% search_url | html %]">
+        Query: <input type="text" name="q" size="96" value="[% q | html %]" />
+        <input type="submit" name="submit" value="Go" />
+    </form>
+</fieldset>
+
+[% IF q %]
+
+    [% IF counts %]
+        <p>
+            <a id="boxcommand" href="[% c.uri_for( '/admin/facetcounts', { 'q' => q, 'csv' => 1 } ) %]">Download as CSV</a>
+        </p>
+	
+        <table>
+            <tr>
+                <th>Media ID</th>
+                <th>Sentence Match Count</th>
+            </tr>
+        
+            [% FOREACH count IN counts %]
+                
+                <tr [% IF even %]class="even"[% END %]>
+                    <td>[% count.media_id %]</td>
+                    <td>[% count.count %]</td>            
+                </tr>
+
+                [%  SET even = !even %]
+            [% END %]
+        
+        </table>
+    [% ELSE %]
+    <p> not counts</p>        
+    [% END %]
+
+[% END %]
+
+[% INCLUDE include/footer.tt2 %]

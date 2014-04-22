@@ -34,7 +34,7 @@ use Catalyst qw/
   Authorization::Roles
   Authorization::ACL
   Session
-  Session::Store::FastMmap
+  Session::Store::File
   Session::State::Cookie
   /;
 
@@ -199,6 +199,11 @@ sub setup_acl()
       /admin/mediasets/create
       /admin/mediasets/edit_cluster_run
       /admin/mediasets/edit_cluster_run_do
+      /admin/health
+      /admin/health/list
+      /admin/health/tag
+      /admin/health/medium
+      /admin/health/stories
       |;
 
     # stories-edit role; can do everything admin-readonly can + add / edit stories
@@ -271,6 +276,7 @@ sub setup_acl()
               stories-edit
               cm
               stories-api
+              search
               /
         ]
     );
@@ -286,6 +292,8 @@ sub setup_acl()
 
     # we need to protect this with .htaccess until we can implement an easy to login via the api
     __PACKAGE__->allow_access( "/admin/api/stories" );
+    __PACKAGE__->allow_access( "/admin/query/sentences" );
+    __PACKAGE__->allow_access( "/admin/query/wc" );
 
 }
 
