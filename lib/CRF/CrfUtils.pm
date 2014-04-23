@@ -94,35 +94,35 @@ sub run_model
     return _run_model_inline_java( $model_file_name, $test_data_file, $output_fhs );
 }
 
-sub run_model_with_tmp_file
-{
-    my ( $model_file_name, $test_data_array ) = @_;
+# sub run_model_with_tmp_file
+# {
+#     my ( $model_file_name, $test_data_array ) = @_;
 
-    _reconnect_to_jvm_if_necessary();
+#     _reconnect_to_jvm_if_necessary();
 
-    my $test_data_file_name = _create_tmp_file_from_array( $test_data_array );
+#     my $test_data_file_name = _create_tmp_file_from_array( $test_data_array );
 
-    my $mr = new org::mediacloud::crfutils::ModelRunner( $model_file_name );
+#     my $mr = new org::mediacloud::crfutils::ModelRunner( $model_file_name );
 
-    # Returning and using a single string from a Java method is way faster than
-    # returning and using an array of strings
-    my $results_string = $mr->runModelReturnString( $test_data_file_name );
+#     # Returning and using a single string from a Java method is way faster than
+#     # returning and using an array of strings
+#     my $results_string = $mr->runModelReturnString( $test_data_file_name );
 
-    my $results = [ split( "\n", $results_string ) ];
+#     my $results = [ split( "\n", $results_string ) ];
 
-    return $results;
-}
+#     return $results;
+# }
 
-sub run_model_with_separate_exec
-{
-    my ( $model_file_name, $test_data_array ) = @_;
+# sub run_model_with_separate_exec
+# {
+#     my ( $model_file_name, $test_data_array ) = @_;
 
-    my $test_data_file_name = _create_tmp_file_from_array( $test_data_array );
+#     my $test_data_file_name = _create_tmp_file_from_array( $test_data_array );
 
-    my $output = `java -cp  $class_path cc.mallet.fst.SimpleTagger --model-file  $model_file_name $test_data_file_name `;
+#     my $output = `java -cp  $class_path cc.mallet.fst.SimpleTagger --model-file  $model_file_name $test_data_file_name `;
 
-    return [ split "\n", $output ];
-}
+#     return [ split "\n", $output ];
+# }
 
 sub run_model_inline_java_data_array
 {
@@ -185,18 +185,18 @@ sub _reconnect_to_jvm_if_necessary()
     }
 }
 
-sub _create_tmp_file_from_array
-{
-    my ( $test_data_array ) = @_;
+# sub _create_tmp_file_from_array
+# {
+#     my ( $test_data_array ) = @_;
 
-    my ( $test_data_fh, $test_data_file_name ) = tempfile( "/tmp/tested_arrayXXXXXX", SUFFIX => '.dat' );
+#     my ( $test_data_fh, $test_data_file_name ) = tempfile( "/tmp/tested_arrayXXXXXX", SUFFIX => '.dat' );
 
-    print $test_data_fh join "\n", @{ $test_data_array };
+#     print $test_data_fh join "\n", @{ $test_data_array };
 
-    close( $test_data_fh );
+#     close( $test_data_fh );
 
-    return $test_data_file_name;
-}
+#     return $test_data_file_name;
+# }
 
 sub _run_model_on_array
 {
