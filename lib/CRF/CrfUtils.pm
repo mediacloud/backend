@@ -87,12 +87,12 @@ sub create_model
     return _create_model_inline_java( $training_data_file, $iterations );
 }
 
-sub run_model
-{
-    my ( $model_file_name, $test_data_file, $output_fhs ) = @_;
-
-    return _run_model_inline_java( $model_file_name, $test_data_file, $output_fhs );
-}
+# sub run_model
+# {
+#     my ( $model_file_name, $test_data_file, $output_fhs ) = @_;
+#
+#     return _run_model_inline_java( $model_file_name, $test_data_file, $output_fhs );
+# }
 
 sub run_model_with_tmp_file
 {
