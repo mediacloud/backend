@@ -141,15 +141,6 @@ sub run_model_inline_java_data_array
     return _run_model_on_array( $modelrunner, $test_data_array );
 }
 
-sub train_and_test
-{
-    my ( $files, $output_fhs, $iterations ) = @_;
-
-    my $model_file_name = create_model( $files->{ train_data_file }, $iterations );
-
-    run_model( $model_file_name, $files->{ leave_out_file }, $output_fhs );
-}
-
 sub _create_model_inline_java
 {
     my ( $training_data_file, $iterations ) = @_;
