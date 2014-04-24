@@ -1889,6 +1889,8 @@ sub import_solr_seed_query
 
     print STDERR "adding " . scalar( @{ $stories } ) . " stories to controversy_seed_urls\n";
 
+    $db->begin;
+
     for my $story ( @{ $stories } )
     {
         my $csu = {
@@ -1903,6 +1905,8 @@ sub import_solr_seed_query
 
     $db->query( "update controversies set solr_seed_query_run = 't' where controversies_id = ?",
         $controversy->{ controversies_id } );
+
+    $db->commit;
 }
 
 # mine the given controversy for links and to recursively discover new stories on the web.
