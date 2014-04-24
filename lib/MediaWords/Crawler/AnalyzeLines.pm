@@ -47,6 +47,8 @@ sub _get_html_density($$)
         return 1;
     }
 
+    $line = substr( $line, 0, 65536 );
+
     my $a_tag_found;
     my $html_length = 0;
     while ( $line =~ /(<\/?([a-z]*) ?[^>]*>)/g )
@@ -181,12 +183,12 @@ sub _get_description_jaccard($$)
     my $stripped_line        = html_strip( $line );
     my $stripped_description = html_strip( $description );
 
-    my $line_words = words_on_line( $stripped_line );
+    my $line_words        = words_on_line( $stripped_line );
     my $description_words = words_on_line( $stripped_description );
 
-    if ( scalar( @$line_words) <= 0 && scalar( @$description_words) <= 0 )
+    if ( scalar( @$line_words ) <= 0 && scalar( @$description_words ) <= 0 )
     {
-	return 0;
+        return 0;
     }
 
     return Set::Jaccard::SimilarityCoefficient::calc( $line_words, $description_words );
@@ -300,7 +302,7 @@ sub _calculate_full_line_metrics($$$$$$$$$)
       = _calculate_line_extraction_metrics( $line_number, $description, $line, $sphereit_map, $has_clickprint,
         $language_code );
 
-    my $description_jaccard  = _get_description_jaccard( $description, $line );
+    my $description_jaccard = _get_description_jaccard( $description, $line );
 
     $line_info->{ line_length }                     = $line_length;
     $line_info->{ line_starts_with_title_text }     = $line_starts_with_title_text;
@@ -308,10 +310,10 @@ sub _calculate_full_line_metrics($$$$$$$$$)
     $line_info->{ article_has_clickprint }          = $article_has_clickprint;
     $line_info->{ article_has_sphereit_map }        = $article_has_sphereit_map;
     $line_info->{ description_similarity_discount } = $description_similarity_discount;
-    
+
     $line_info->{ description_jaccard } = $description_jaccard;
 
-    $line_info->{ sphereit_map_includes_line }      = $sphereit_map_includes_line;
+    $line_info->{ sphereit_map_includes_line } = $sphereit_map_includes_line;
 
     return $line_info;
 }
@@ -346,7 +348,6 @@ sub _find_markers($$)
 
     return $markers;
 }
-
 
 # return hash with lines numbers that should be included by sphereit
 # { linenum1 => 1, linenum2 => 1, ...}
