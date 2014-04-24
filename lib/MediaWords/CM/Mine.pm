@@ -717,7 +717,7 @@ sub story_matches_controversy_pattern
     my $perl_re = $query_story_search->{ pattern };
 
     # translate from postgres to perl regex
-    $perl_re =~ s/\[\[\:[\<\>]\:\]\]/[^a-z]/g;
+    $perl_re =~ s/\[\[\:[\<\>]\:\]\]/\\b/g;
     for my $field ( qw/title description url redirect_url/ )
     {
         return $field if ( $story->{ $field } =~ /$perl_re/is );
