@@ -32,7 +32,7 @@ alter table controversies
 
 update controversies c 
     set 
-        pattern = q.pattern, 
+        pattern = a.pattern, 
         solr_seed_query = '"CONTROVERSY CREATED BEFORE SOLR QUERY SUPPORT"',
         solr_seed_query_run = 't',
         description = name || ' in ' || a.media_set_names || ' from ' || a.start_date || ' to ' || a.end_date
@@ -40,14 +40,14 @@ update controversies c
             select 
                     ca.controversies_id,
                     min( qss.pattern ) pattern, 
-                    string_agg( '; ', ms.name ) media_set_names, 
-                    min( qss.start_date ) start_date,
-                    min( qss.end_date ) end_date
+                    string_agg( ms.name, '; ' ) media_set_names, 
+                    min( q.start_date ) start_date,
+                    min( q.end_date ) end_date
                 from controversies ca
-                    natural join query_story_searches qss
-                    natural join queries q
-                    natural join queries_media_sets_map qmsm
-                    natural join media_sets ms
+                    join query_story_searches qss on ( ca.query_story_searches_id = qss.query_story_searches_id )
+                    join queries q on ( qss.queries_id = q.queries_id )
+                    join queries_media_sets_map qmsm on ( qmsm.queries_id = q.queries_id )
+                    join media_sets ms on ( ms.media_sets_id = qmsm.media_sets_id )
                 group by ca.controversies_id
         ) a 
     where a.controversies_id = c.controversies_id;
