@@ -80,7 +80,8 @@ sub search_for_stories_ids
 
     $params = { %{ $params } };
 
-    $params->{ fl } = 'stories_id';
+    $params->{ fl }   = 'stories_id';
+    $params->{ rows } = 1000000;
 
     # say STDERR Dumper( $params );
 
@@ -199,6 +200,20 @@ sub min_processed_stories_id
     my $processed_stories_ids = search_for_processed_stories_ids( $db, $params );
 
     return @{ $processed_stories_ids } ? $processed_stories_ids->[ 0 ] : undef;
+}
+
+# return stories.* for all stories matching the give solr query
+sub search_for_stories
+{
+    my ( $db, $params ) = @_;
+
+    my $stories_ids = search_for_stories_ids( $params );
+
+    my $stories = [ map { { stories_id => $_ } } @{ $stories_ids } ];
+
+    MediaWords::DBI::Stories::attach_story_meta_data_to_stories( $db, $stories );
+
+    return $stories;
 }
 
 # return all of the stories that match the solr query.  attach a list of matching sentences in story order
