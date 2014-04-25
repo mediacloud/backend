@@ -16,7 +16,6 @@ use File::Path qw(make_path remove_tree);
 use File::Spec;
 use File::Basename;
 use File::Slurp;
-use MediaWords::Util::Config;
 
 use Inline (
     Java => 'STUDY',
@@ -65,17 +64,6 @@ BEGIN
 
     #Assumes Unix fix later.
     $class_path = scalar( join ':', ( map { "$jar_dir/$_" } @{ $jars } ) );
-
-    my $config = MediaWords::Util::Config::get_config();
-
-    if ( $config->{ mediawords }->{ inline_java_jni } eq 'yes' )
-    {
-        $use_jni = 1;
-    }
-    else
-    {
-        $use_jni = 0;
-    }
 
     #say STDERR "classpath: $class_path";
 }
