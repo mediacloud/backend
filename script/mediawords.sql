@@ -1436,7 +1436,7 @@ create table controversies (
 create unique index controversies_name on controversies( name );
     
 create view controversies_with_search_info as
-    select c.*, q.start_date::date, q.end_date::date, qss.pattern, qss.queries_id
+    select c.controversies_id, c.name, c.query_story_searches_id, q.start_date::date, q.end_date::date, qss.pattern, qss.queries_id
         from controversies c
             left join query_story_searches qss on ( c.query_story_searches_id = qss.query_story_searches_id )
             left join queries q on ( qss.queries_id = q.queries_id );
