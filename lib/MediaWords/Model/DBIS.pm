@@ -21,30 +21,29 @@ sub new
     return $self;
 }
 
+# hand out a database connection.  reuse the last connection unless the request has changed
+# since the last call.
 sub dbis
 {
-    my ( $self ) = @_;
+    my ( $self, $request ) = @_;
 
     my $db = $self->{ dbis };
 
+    my $prev_req_id = $self->{ prev_req_id } || '';
+    my $req_id = scalar( $request );
+
+    return $db if ( $db && ( $req_id eq $prev_req_id ) );
+
+    $self->{ prev_req_id } = $req_id;
+
     # we put an eval and print the error here b/c the web auth dies silently on a database error
     eval {
-        if ( !$db || $db->dbh->state )
-        {
-            # TODO replace this with  MediaWords::DB::connect_to_db();
-            $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
-              || die DBIx::Simple::MediaWords->error;
+        $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
+          || die DBIx::Simple::MediaWords->error;
 
-            $db->dbh->{ RaiseError } = 1;
-
-            ## UNCOMMENT to enable database profiling
-            ## Eventually we may wish to make this a config option in mediawords.yml
-            # $db->dbh->{ Profile }    = 2;
-
-            $self->{ dbis } = $db;
-        }
+        $db->dbh->{ RaiseError } = 1;
+        $self->{ dbis } = $db;
     };
-
     if ( $@ )
     {
         print STDERR "db error: $@\n";
