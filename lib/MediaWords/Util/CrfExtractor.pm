@@ -25,7 +25,7 @@ BEGIN
     my $_dirname      = dirname( __FILE__ );
     my $_dirname_full = File::Spec->rel2abs( $_dirname );
 
-    $_model_file_name = "$_dirname_full/../../CRF/models/extractor_model";
+    $_model_file_name = "$_dirname_full/models/crf_extractor_model";
 
     #say STDERR "model_file: $_model_file_name";
 }
