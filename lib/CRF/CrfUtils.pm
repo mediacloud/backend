@@ -193,7 +193,7 @@ sub _crf_modelrunner_java_src()
 {
     # Compile and prepare Java class from /java/CrfUtils/
     my Readonly $crf_modelrunner_java_path =
-      _crf_root() . '/../../java/CrfUtils/src/main/java/org/mediacloud/crfutils/ModelRunner.java';
+      _crf_root() . '/java/CrfUtils/src/main/java/org/mediacloud/crfutils/ModelRunner.java';
     my $crf_modelrunner_java_src = read_file( $crf_modelrunner_java_path );
     unless ( $crf_modelrunner_java_src )
     {
