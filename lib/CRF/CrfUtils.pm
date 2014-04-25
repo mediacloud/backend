@@ -33,32 +33,38 @@ my $use_jni = 0;
 
 my $modelrunner;
 
-sub _mediacloud_root()
-{
-    my $dirname = dirname( __FILE__ );
 
+my $_crf_source_rt;
+
+BEGIN
+{
+    use File::Basename;
+    use File::Spec;
+    use Cwd qw( realpath );
+    
+    my $file_dir = dirname( __FILE__ );
+    
+    $_crf_source_rt = "$file_dir";
+    $_crf_source_rt = realpath( File::Spec->canonpath( $_crf_source_rt ) );
+}
+
+sub _crf_root()
+{
     # If this package gets moved to a different location, the subroutine will
     # stop reporting correct paths to MC root, so this is an attempt to warn
     # about the problem early
     if ( __PACKAGE__ ne 'CRF::CrfUtils' )
     {
         die 'Package name is not CRF::CrfUtils, the package was probably moved to a different location.' .
-          ' Please update _mediacloud_root() subroutine accordingly.';
+          ' Please update _crf_root() subroutine accordingly.';
     }
 
-    # Assuming that this file resides in "lib/CRF/"
-    my $root = File::Spec->rel2abs( "$dirname/../../" );
-    unless ( $root )
-    {
-        die "Unable to determine absolute path to Media Cloud.";
-    }
-
-    return $root;
+    return $_crf_source_rt;
 }
 
 BEGIN
 {
-    my $jar_dir = _mediacloud_root() . '/lib/CRF/jars';
+    my $jar_dir = _crf_root() . '/jars';
 
     my $jars = [ 'mallet-deps.jar', 'mallet.jar' ];
 
@@ -187,7 +193,7 @@ sub _crf_modelrunner_java_src()
 {
     # Compile and prepare Java class from /java/CrfUtils/
     my Readonly $crf_modelrunner_java_path =
-      _mediacloud_root() . '/java/CrfUtils/src/main/java/org/mediacloud/crfutils/ModelRunner.java';
+      _crf_root() . '/../../java/CrfUtils/src/main/java/org/mediacloud/crfutils/ModelRunner.java';
     my $crf_modelrunner_java_src = read_file( $crf_modelrunner_java_path );
     unless ( $crf_modelrunner_java_src )
     {
