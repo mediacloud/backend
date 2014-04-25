@@ -1,6 +1,7 @@
 data.old
 matrix
 mediawords.yml
+mediawords-*.yml
 mediacloud.tmproj
 jons_stuff
 .carton

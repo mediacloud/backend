@@ -16,13 +16,13 @@
             </tr>
 
             <tr class="even">
-                <td>Dates</td>
-                <td>[% controversy.start_date | html %] - [% controversy.end_date | html %]</td>
+                <td>Description</td>
+                <td>[% controversy.description | html %]</td>
             </tr>
 
             <tr>
-                <td>Media Sets</td>
-                <td>[% query.media_set_names.join( ' / ') | html %]</td>
+                <td>Solr Seed Query</td>
+                <td>[% controversy.solr_seed_query | html %]</td>
             </tr>
         </table>
 
