@@ -5,6 +5,8 @@
 [% END %]
 
 [% PROCESS cm/header.tt2 %]
+
+[% PROCESS cm/remove_stories_confirm_js.tt2 %]
     
 <script type="text/javascript">
 $(document).ready(function () {
