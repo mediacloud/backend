@@ -168,7 +168,6 @@ END
     my $i = 0;
     while ( 1 )
     {
-        print STDERR time . " " . ( $i++ * 1000 ) . "\n" unless ( $i % 10 );
         my $sth = $dbh->prepare( "fetch 1000 from csr" );
 
         $sth->execute;
@@ -179,6 +178,7 @@ END
         # cpu is a significant bottleneck for this script
         while ( my $row = $sth->fetchrow_arrayref )
         {
+            print STDERR time . " " . ( $i++ * 1000 ) . "\n" unless ( $i % 10 );
             my $stories_id         = $row->[ 0 ];
             my $media_id           = $row->[ 1 ];
             my $story_sentences_id = $row->[ 3 ];
