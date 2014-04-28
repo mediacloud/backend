@@ -9,12 +9,55 @@ use MediaWords::CommonLibs;
 
 use JSON;
 use List::Util;
+use Time::HiRes qw(gettimeofday tv_interval);
 
 use MediaWords::DBI::Stories;
 use MediaWords::Languages::Language;
 use MediaWords::Util::Config;
 use MediaWords::Util::Web;
 use List::MoreUtils qw ( uniq );
+
+my $_last_num_found;
+
+# get a solr select url from config.  if there is more than one url
+# in the config, randomly choose one from the list.
+sub _get_solr_select_url
+{
+    my $urls = MediaWords::Util::Config::get_config->{ mediawords }->{ solr_select_url };
+
+    return $urls unless ( ref( $urls ) );
+
+    return $urls->[ int( rand( scalar( @{ $urls } ) ) ) ];
+}
+
+# get the numFound from the last solr query run
+sub get_last_num_found
+{
+    return $_last_num_found;
+}
+
+sub _set_last_num_found
+{
+    my ( $res ) = @_;
+
+    if ( defined( $res->{ response }->{ num_found } ) )
+    {
+        $_last_num_found = $res->{ response }->{ numFound };
+    }
+    elsif ( $res->{ grouped } )
+    {
+        my $group_key = ( keys( %{ $res->{ grouped } } ) )[ 0 ];
+
+        $_last_num_found = $res->{ grouped }->{ $group_key }->{ matches };
+    }
+    else
+    {
+        $_last_num_found = undef;
+    }
+
+    print STDERR ( $_last_num_found ? $_last_num_found : 'undef' ) . " matches found.\n" if ( $ENV{ MC_SOLR_TRACE } );
+
+}
 
 # execute a query on the solr server using the given params.
 # return the raw encoded json from solr.  return a maximum of
@@ -29,21 +72,23 @@ sub query_encoded_json
 
     $params->{ rows } = List::Util::min( $params->{ rows }, 1000000 );
 
-    my $url = MediaWords::Util::Config::get_config->{ mediawords }->{ solr_select_url };
+    my $url = _get_solr_select_url();
 
     my $ua = MediaWords::Util::Web::UserAgent;
 
     $ua->timeout( 300 );
     $ua->max_size( undef );
 
-    # print STDERR "executing solr query ...\n";
-    # print STDERR Dumper( $params );
+    print STDERR "executing solr query on $url ...\n" if ( $ENV{ MC_SOLR_TRACE } );
+    print STDERR Dumper( $params ) if ( $ENV{ MC_SOLR_TRACE } );
+
+    my $t0 = [ gettimeofday ];
+
     my $res = $ua->post( $url, $params );
 
-    if ( !$res->is_success )
-    {
-        die( "Error fetching solr response: " . $res->as_string );
-    }
+    print STDERR "query returned in " . tv_interval( $t0, [ gettimeofday ] ) . "s.\n" if ( $ENV{ MC_SOLR_TRACE } );
+
+    die( "Error fetching solr response: " . $res->as_string ) unless ( $res->is_success );
 
     return $res->content;
 }
@@ -68,6 +113,8 @@ sub query
         die( "Error received from solr: '$json'" );
     }
 
+    _set_last_num_found( $data );
+
     return $data;
 }
 
@@ -76,22 +123,18 @@ sub search_for_stories_ids
 {
     my ( $params ) = @_;
 
-    # say STDERR "MediaWords::Solr::search_for_stories_ids";
+    my $p = { %{ $params } };
 
-    $params = { %{ $params } };
+    $p->{ fl }            = 'stories_id';
+    $p->{ group }         = 'true';
+    $p->{ 'group.field' } = 'stories_id';
 
-    $params->{ fl }   = 'stories_id';
-    $params->{ rows } = 1000000;
+    my $response = query( $p );
 
-    # say STDERR Dumper( $params );
+    my $groups = $response->{ grouped }->{ stories_id }->{ groups };
+    my $stories_ids = [ map { $_->{ doclist }->{ docs }->[ 0 ]->{ stories_id } } @{ $groups } ];
 
-    my $response = query( $params );
-
-    # say STDERR Dumper( $response );
-
-    my $uniq_stories_ids = [ uniq( map { $_->{ stories_id } } @{ $response->{ response }->{ docs } } ) ];
-
-    return $uniq_stories_ids;
+    return $stories_ids;
 }
 
 sub number_of_matching_documents
@@ -113,93 +156,36 @@ sub number_of_matching_documents
     return $response->{ numFound };
 }
 
-sub max_processed_stories_id
+# return the first $num_stories processed_stories_id that match the given query,
+# sorted by processed_stories_id and with processed_stories_id greater than $last_ps_id.
+sub search_for_processed_stories_ids ($$$$)
 {
-    my ( $db ) = @_;
+    my ( $q, $fq, $last_ps_id, $num_stories ) = @_;
 
-    my $params = {};
+    return [] unless ( $num_stories );
 
-    $params->{ q } = '*:*';
+    my $params;
 
-    $params->{ sort } = "processed_stories_id desc";
+    $params->{ q }             = $q;
+    $params->{ fq }            = $fq;
+    $params->{ fl }            = 'processed_stories_id';
+    $params->{ sort }          = 'processed_stories_id asc';
+    $params->{ rows }          = $num_stories;
+    $params->{ group }         = 'true';
+    $params->{ 'group.field' } = 'stories_id';
 
-    $params->{ rows } = 1;
+    if ( $last_ps_id )
+    {
+        my $min_ps_id = $last_ps_id + 1;
+        $params->{ fq } = [ @{ $params->{ fq } }, "processed_stories_id:[$min_ps_id TO *]" ];
+    }
 
     my $response = query( $params );
 
-    my $stories_id = $response->{ response }->{ docs }->[ 0 ]->{ stories_id };
+    my $groups = $response->{ grouped }->{ stories_id }->{ groups };
+    my $ps_ids = [ map { $_->{ doclist }->{ docs }->[ 0 ]->{ processed_stories_id } } @{ $groups } ];
 
-    my $processed_stories_ids = _get_processed_stories_ids_from_stories_ids( $db, [ $stories_id ] );
-
-    return $processed_stories_ids->[ 0 ];
-}
-
-# given a list of stories_ids, return a sorted list of corresponding list of processed_stories_ids
-sub _get_processed_stories_ids_from_stories_ids
-{
-    my ( $db, $stories_ids ) = @_;
-
-    return [] unless ( @{ $stories_ids } );
-
-    # first sort so that each chunk query includes maxmimally adjacent stories_ids
-    my $sorted_stories_ids = [ sort { $a <=> $b } @{ $stories_ids } ];
-
-    my $processed_stories_ids = [];
-
-    # break up into chunks of 500 to avoid overly large postgres queries (max 8192 characters)
-    my $chunk_size = 500;
-    for ( my $i = 0 ; $i < @{ $sorted_stories_ids } ; $i += $chunk_size )
-    {
-        my $chunk_end = List::Util::min( $#{ $sorted_stories_ids }, $i + $chunk_size - 1 );
-        my $stories_ids_list = join( ',', @{ $sorted_stories_ids }[ $i .. $chunk_end ] );
-
-        my $processed_stories_ids_chunk = $db->query( <<END )->flat;
-select processed_stories_id from processed_stories where stories_id in ( $stories_ids_list )
-END
-        push( @{ $processed_stories_ids }, @{ $processed_stories_ids_chunk } );
-    }
-
-    return [ sort { $a <=> $b } @{ $processed_stories_ids } ];
-}
-
-# return all of the story ids that match the solr query
-sub search_for_processed_stories_ids ($$)
-{
-    my ( $db, $params ) = @_;
-
-    # say STDERR "MediaWords::Solr::search_for_stories_ids";
-
-    $params = { %{ $params } };
-
-    $params->{ fl } = 'stories_id';
-
-    # simple guess of whether the query does not match a text pattern, in which case
-    # we need to get more rows per each story
-    $params->{ rows } = ( $params->{ q } eq '*:*' ) ? $params->{ rows } * 25 : $params->{ rows } * 5;
-
-    my $response = query( $params );
-
-    my $stories_ids = [ uniq( map { $_->{ stories_id } } @{ $response->{ response }->{ docs } } ) ];
-    if ( defined( $params->{ rows } ) && ( @{ $stories_ids } > $params->{ rows } ) )
-    {
-        splice( $stories_ids, $params->{ rows } );
-    }
-
-    return _get_processed_stories_ids_from_stories_ids( $db, $stories_ids );
-}
-
-# return the smallest processed_stories_id that matches the query
-sub min_processed_stories_id
-{
-    my ( $db, $params ) = @_;
-
-    $params = { %{ $params } };
-
-    $params->{ rows } = 1;
-
-    my $processed_stories_ids = search_for_processed_stories_ids( $db, $params );
-
-    return @{ $processed_stories_ids } ? $processed_stories_ids->[ 0 ] : undef;
+    return $ps_ids;
 }
 
 # return stories.* for all stories matching the give solr query
