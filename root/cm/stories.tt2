@@ -8,32 +8,6 @@
 
 [% PROCESS cm/remove_stories_confirm_js.tt2 %]
     
-<script type="text/javascript">
-$(document).ready(function () {
-
-  $("#confirmDialog").dialog({ autoOpen: false });
-
-  $(".remove_story").click(function (e) {
-    e.preventDefault();
-    var hrefAttribute = $(this).attr("href");
-
-    $("#confirmDialog").dialog('option', 'buttons', {
-      "Confirm": function () { window.location.href = hrefAttribute; },
-      "Cancel": function () { $(this).dialog("close"); }
-    });
-
-    $("#confirmDialog").dialog("open");
-  });
-  
-});
-</script>
-
-<div id="confirmDialog">
-    Are you sure you want to remove all of the listed stories from the [% controversy.name | html %] controversy?  
-    After removal, the stories will still appear in existing dumps but will not be in live views 
-    or new dumps of the controversy.
-</div>
-
 <div id="wholecolumn">
 
     <div class="boxtitle">
