@@ -25,12 +25,12 @@
 
         <testResources>
             
-            <!-- Use a "live" Media Cloud extractor model from lib/CRF/models/ for testing -->
+            <!-- Use a "live" Media Cloud extractor model from lib/MediaWords/Util/models/ for testing -->
             <testResource>
-                <directory>${basedir}/../../lib/CRF/models/</directory>
+                <directory>${basedir}/../../../../lib/MediaWords/Util/models/</directory>
                 <targetPath>org/mediacloud/crfutils</targetPath>
                 <includes>
-                    <include>extractor_model</include>
+                    <include>crf_extractor_model</include>
                 </includes>
             </testResource>
             

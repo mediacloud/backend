@@ -10,7 +10,7 @@ import org.apache.commons.lang.StringUtils;
 
 public class ModelRunnerTest extends TestCase {
 
-    private final String test_extractor_model_filename = "extractor_model";
+    private final String test_extractor_model_filename = "crf_extractor_model";
     private final String test_input_txt = "test_input.txt";
     private final String test_output_txt = "test_output.txt";
 
