@@ -50,11 +50,7 @@ sub _get_html_density($$)
         return 1;
     }
 
-<<<<<<< HEAD
-    $line = substr( $line, 0, 65536 );
-=======
     $line = substr( $line, 0, MAX_HTML_DENSITY_LENGTH );
->>>>>>> master
 
     my $a_tag_found;
     my $html_length = 0;
