@@ -21,7 +21,7 @@ my $_last_num_found;
 
 # get a solr select url from config.  if there is more than one url
 # in the config, randomly choose one from the list.
-sub _get_solr_select_url
+sub get_solr_select_url
 {
     my $urls = MediaWords::Util::Config::get_config->{ mediawords }->{ solr_select_url };
 
@@ -72,7 +72,7 @@ sub query_encoded_json
 
     $params->{ rows } = List::Util::min( $params->{ rows }, 1000000 );
 
-    my $url = _get_solr_select_url();
+    my $url = get_solr_select_url();
 
     my $ua = MediaWords::Util::Web::UserAgent;
 

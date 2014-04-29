@@ -162,7 +162,7 @@ sub get_solr_results_socket
         return $fh;
     }
 
-    my $url = MediaWords::Util::Config::get_config->{ mediawords }->{ solr_select_url };
+    my $url = MediaWords::Solr::get_solr_select_url;
 
     die( "mediawords:solr_select_url not found in config" ) unless ( $url );
 
