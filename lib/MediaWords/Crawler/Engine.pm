@@ -399,7 +399,7 @@ sub crawl_single_download
 
                 #waitpid ( $fetcher_pid, 0 );
 
-                say STDERR "exting loop after wait";
+                say STDERR "exiting loop after wait";
                 last OUTER_LOOP;
             }
 

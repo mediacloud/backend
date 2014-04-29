@@ -15,6 +15,7 @@ use MediaWords::Util::SchemaVersion;
 use MediaWords::DB;
 use MediaWords::DBI::Activities;
 
+use Carp;
 use Data::Page;
 use JSON;
 
@@ -172,7 +173,13 @@ sub query
 {
     my $self = shift @_;
 
-    my $ret = $self->_query_impl( @_ );
+    my $ret;
+
+    eval { $ret = $self->_query_impl( @_ ) };
+    if ( $@ )
+    {
+        Carp::confess( "query error: $@" );
+    }
 
     return $ret;
 }
@@ -571,6 +578,41 @@ sub query_csv_dump
     {
         print $output_file encode( 'utf8', $line );
     }
+
+}
+
+# get the name of a temporary table that contains all of the ids in $ids as an 'id bigint' field.
+# the database connection must be within a transaction.  the temporary table is setup to be dropped
+# at the end of the current transaction.
+sub get_temporary_ids_table ($)
+{
+    my ( $db, $ids ) = @_;
+
+    die( "must be in a transaction" ) if ( $db->dbh->{ AutoCommit } );
+
+    my $table = "_tmp_ids_" . int( rand( 100000 ) );
+    while ( $db->query( "select 1 from pg_class where relname = ?", $table )->hash )
+    {
+        $table = "_tmp_ids_" . int( rand( 100000 ) );
+    }
+
+    $db->query( "create temporary table $table ( id bigint ) on commit drop" );
+
+    eval { $db->dbh->do( "copy $table from STDIN" ) };
+    die( " Error on copy: $@" ) if ( $@ );
+
+    for my $id ( @{ $ids } )
+    {
+        eval { $db->dbh->pg_putcopydata( "$id\n" ); };
+        die( " Error on pg_putcopydata: $@" ) if ( $@ );
+    }
+
+    eval { $db->dbh->pg_putcopyend(); };
+    die( " Error on pg_putcopyend: $@" ) if ( $@ );
+
+    $db->query( "analyze $table" );
+
+    return $table;
 
 }
 

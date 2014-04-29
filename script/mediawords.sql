@@ -69,7 +69,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4447;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4448;
     
 BEGIN
 
@@ -344,6 +344,15 @@ create index media_moderated on media(moderated);
 CREATE INDEX media_name_trgm on media USING gin (name gin_trgm_ops);
 CREATE INDEX media_url_trgm on media USING gin (url gin_trgm_ops);
 
+-- list of media sources for which the stories should be updated to be at 
+-- at least db_row_last_updated
+create table media_update_time_queue (
+    media_id                    int         not null references media on delete cascade,
+    db_row_last_updated         timestamp with time zone not null
+);
+
+create index media_update_time_queue_updated on media_update_time_queue ( db_row_last_updated );
+
 create table media_stats (
     media_stats_id              serial      primary key,
     media_id                    int         not null references media on delete cascade,
@@ -452,7 +461,6 @@ create table media_tags_map (
 
 DROP TRIGGER IF EXISTS media_tags_map_last_updated_trigger on media_tags_map CASCADE;
 CREATE TRIGGER media_tags_last_updated_trigger BEFORE INSERT OR UPDATE ON media_tags_map FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
-CREATE TRIGGER media_tags_map_update_stories_last_updated_trigger AFTER INSERT OR UPDATE OR DELETE ON media_tags_map FOR EACH ROW EXECUTE PROCEDURE update_stories_updated_time_by_media_id_trigger();
 
 CREATE index media_tags_map_db_row_last_updated on media_tags_map ( db_row_last_updated );
 create unique index media_tags_map_media on media_tags_map (media_id, tags_id);
@@ -662,7 +670,6 @@ create table media_sets_media_map (
 
 DROP TRIGGER IF EXISTS media_sets_media_map_last_updated_trigger on media_sets_media_map CASCADE;
 CREATE TRIGGER media_sets_media_map_last_updated_trigger BEFORE INSERT OR UPDATE ON media_sets_media_map FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
-CREATE TRIGGER media_sets_media_map_update_stories_last_updated_trigger AFTER INSERT OR UPDATE OR DELETE ON media_sets_media_map FOR EACH ROW EXECUTE PROCEDURE update_stories_updated_time_by_media_id_trigger();
 
 create index media_sets_media_map_set on media_sets_media_map ( media_sets_id );
 create index media_sets_media_map_media on media_sets_media_map ( media_id );
@@ -1387,8 +1394,7 @@ create table query_story_searches (
     query_story_searches_id     serial primary key,
     queries_id                  int not null references queries,
     pattern                     text,
-    search_completed            boolean default false,
-    csv_text                    text
+    search_completed            boolean default false
 );
 
 create unique index query_story_searches_query_pattern on query_story_searches( queries_id, pattern );
@@ -1420,13 +1426,17 @@ create view story_similarities_transitive as
 create table controversies (
     controversies_id        serial primary key,
     name                    varchar(1024) not null,
+    pattern                 text not null,
+    solr_seed_query         text not null,
+    solr_seed_query_run     boolean not null default false,
+    description             text not null,
     query_story_searches_id int not null references query_story_searches
 );
 
 create unique index controversies_name on controversies( name );
     
 create view controversies_with_search_info as
-    select c.*, q.start_date::date, q.end_date::date, qss.pattern, qss.queries_id
+    select c.controversies_id, c.name, c.query_story_searches_id, q.start_date::date, q.end_date::date, qss.pattern, qss.queries_id
         from controversies c
             left join query_story_searches qss on ( c.query_story_searches_id = qss.query_story_searches_id )
             left join queries q on ( qss.queries_id = q.queries_id );

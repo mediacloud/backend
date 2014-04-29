@@ -42,29 +42,32 @@ sub print_csv_to_file
 
     $num_proc //= 1;
 
+    my $files;
+
     if ( $num_proc == 1 )
     {
         _print_csv_to_file_single_job( $file_spec, 1, 1, $delta );
-        return [ $file_spec ];
+        $files = [ $file_spec ];
     }
-
-    my $pm = new Parallel::ForkManager( $num_proc );
-
-    my $files = [];
-    for my $proc ( 1 .. $num_proc )
+    else
     {
-        my $file = "$file_spec-$proc";
+        my $pm = new Parallel::ForkManager( $num_proc );
 
-        push( @{ $files }, $file );
+        for my $proc ( 1 .. $num_proc )
+        {
+            my $file = "$file_spec-$proc";
 
-        $pm->start and next;
+            push( @{ $files }, $file );
 
-        _print_csv_to_file_single_job( $file, $num_proc, $proc, $delta );
+            $pm->start and next;
 
-        $pm->finish;
+            _print_csv_to_file_single_job( $file, $num_proc, $proc, $delta );
+
+            $pm->finish;
+        }
+
+        $pm->wait_all_children;
     }
-
-    $pm->wait_all_children;
 
     my $db = MediaWords::DB::connect_to_db;
     $db->query( "insert into solr_imports( import_date, full_import ) values ( now(), ? )", ( $delta ? 'f' : 't' ) );
@@ -103,7 +106,7 @@ create temporary table stories_for_solr_import as
 END
 
         my ( $num_delta_stories ) = $db->query( "select count(*) from stories_for_solr_import" )->flat;
-        print STDERR "found $num_delta_stories for import ...\n";
+        print STDERR "found $num_delta_stories stories for import ...\n";
 
         $date_clause = "and stories_id in ( select stories_id from stories_for_solr_import )";
     }
@@ -165,7 +168,6 @@ END
     my $i = 0;
     while ( 1 )
     {
-        print STDERR time . " " . ( $i++ * 1000 ) . "\n";
         my $sth = $dbh->prepare( "fetch 1000 from csr" );
 
         $sth->execute;
@@ -176,6 +178,7 @@ END
         # cpu is a significant bottleneck for this script
         while ( my $row = $sth->fetchrow_arrayref )
         {
+            print STDERR time . " " . ( $i++ * 1000 ) . "\n" unless ( $i % 10 );
             my $stories_id         = $row->[ 0 ];
             my $media_id           = $row->[ 1 ];
             my $story_sentences_id = $row->[ 3 ];
@@ -212,11 +215,12 @@ sub _import_csv_single_file
     my $overwrite = $delta ? 'overwrite=true' : 'overwrite=false';
 
     my $url =
-"http://localhost:8983/solr/update/csv?stream.file=$abs_file&stream.contentType=text/plain;charset=utf-8&f.media_sets_id.split=true&f.media_sets_id.separator=;&f.tags_id_media.split=true&f.tags_id_media.separator=;&f.tags_id_stories.split=true&f.tags_id_stories.separator=;&f.tags_id_story_sentences.split=true&f.tags_id_story_sentences.separator=;&$overwrite&skip=field_type,id,solr_import_date";
+"http://localhost:7983/solr/update/csv?stream.file=$abs_file&stream.contentType=text/plain;charset=utf-8&f.media_sets_id.split=true&f.media_sets_id.separator=;&f.tags_id_media.split=true&f.tags_id_media.separator=;&f.tags_id_stories.split=true&f.tags_id_stories.separator=;&f.tags_id_story_sentences.split=true&f.tags_id_story_sentences.separator=;&$overwrite&skip=field_type,id,solr_import_date";
 
     print STDERR "$url\n";
 
-    my $ua  = LWP::UserAgent->new;
+    my $ua = LWP::UserAgent->new;
+    $ua->timeout( 86400 * 7 );
     my $res = $ua->get( $url );
 
     if ( $res->is_success )
@@ -258,7 +262,7 @@ sub import_csv_files
     print STDERR "comitting ..\n";
     my $ua = LWP::UserAgent->new;
     $ua->timeout( 86400 * 7 );
-    my $res = $ua->get( 'http://localhost:8983/solr/update?stream.body=<commit/>' );
+    my $res = $ua->get( 'http://localhost:7983/solr/update?stream.body=<commit/>' );
 
     if ( $res->is_success )
     {

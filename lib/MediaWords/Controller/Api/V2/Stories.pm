@@ -81,20 +81,23 @@ sub add_extra_data
 {
     my ( $self, $c, $stories ) = @_;
 
-    return $stories unless ( $c->req->param( 'raw_1st_download' ) );
+    return $stories unless ( @{ $stories } && ( $c->req->param( 'raw_1st_download' ) ) );
 
     my $db = $c->dbis;
 
+    $db->begin;
+
+    my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ stories_id } } @{ $stories } ] );
+
     # it's a bit confusing to use this function to attach data to downloads,
-    # but it works b/c we want one download per story
-    my $downloads = [ map { { stories_id => $_->{ stories_id } } } @{ $stories } ];
-    MediaWords::DBI::Stories::attach_story_data_to_stories( $db, $downloads, <<'END' );
+    # but it works b/c w want one download per story
+    my $downloads = $db->query( <<END )->hashes;
 select d.* 
     from downloads d
         join (
             select min( s.downloads_id ) over ( partition by s.stories_id ) downloads_id
                 from downloads s
-                where STORY_ID_CLAUSE
+                where s.stories_id in ( select id from $ids_table )
         ) q on ( d.downloads_id = q.downloads_id )
 END
 
@@ -109,15 +112,22 @@ END
         $story->{ raw_first_download_file } = defined( $content_ref ) ? $$content_ref : { missing => 'true' };
     }
 
+    $db->commit;
+
     return $stories;
 }
 
 sub _add_nested_data
 {
-
     my ( $self, $db, $stories, $show_raw_1st_download ) = @_;
 
-    MediaWords::DBI::Stories::attach_story_data_to_stories( $db, $stories, <<'END' );
+    return unless ( @{ $stories } );
+
+    $db->begin;
+
+    my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ stories_id } } @{ $stories } ] );
+
+    my $story_text_data = $db->query( <<END )->hashes;
 select s.stories_id,
         case when BOOL_AND( m.full_text_rss ) then s.description
             else string_agg( dt.download_text, E'.\n\n' )
@@ -126,34 +136,40 @@ select s.stories_id,
         join media m on ( s.media_id = m.media_id )
         join downloads d on ( s.stories_id = d.stories_id )
         left join download_texts dt on ( d.downloads_id = dt.downloads_id )
-    where STORY_ID_CLAUSE
+    where s.stories_id in ( select id from $ids_table )
     group by s.stories_id
 END
+    MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $story_text_data );
 
-    MediaWords::DBI::Stories::attach_story_data_to_stories( $db, $stories, <<'END' );
+    my $extracted_data = $db->query( <<END )->hashes;
 select s.stories_id,
         BOOL_AND( extracted ) is_fully_extracted
     from stories s
         join downloads d on ( s.stories_id = d.stories_id )
-    where STORY_ID_CLAUSE
+    where s.stories_id in ( select id from $ids_table )
     group by s.stories_id
 END
+    MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $extracted_data );
 
-    MediaWords::DBI::Stories::attach_story_data_to_stories( $db, $stories, <<'END', 'story_sentences' );
+    my $sentences = $db->query( <<END )->hashes;
 select s.* 
     from story_sentences s
-    where STORY_ID_CLAUSE
+    where s.stories_id in ( select id from $ids_table )
     order by s.sentence_number
 END
+    MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $sentences, 'story_sentences' );
 
-    MediaWords::DBI::Stories::attach_story_data_to_stories( $db, $stories, <<'END', 'story_tags' );
+    my $tag_data = $db->query( <<END )->hashes;
 select s.stories_id, tags.tags_id, tags.tag, tag_sets.tag_sets_id, tag_sets.name as tag_set 
     from stories_tags_map s
         natural join tags 
         natural join tag_sets 
-    where STORY_ID_CLAUSE
+    where s.stories_id in ( select id from $ids_table )
     order by tags_id
 END
+    MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $tag_data, 'story_tags' );
+
+    $db->commit;
 
     return $stories;
 }
@@ -165,101 +181,16 @@ sub _get_list_last_id_param_name
     return "last_processed_stories_id";
 }
 
-sub _max_processed_stories_id
-{
-    my ( $self, $c ) = @_;
-
-    my $find_max_processed_stories_id_with_postgresql = 1;
-
-    if ( $find_max_processed_stories_id_with_postgresql )
-    {
-        my $hash = $c->dbis->query( "SELECT max( processed_stories_id ) from processed_stories " )->hash;
-
-        return $hash->{ max };
-    }
-    else
-    {
-        return MediaWords::Solr::max_processed_stories_id( $c->dbis );
-    }
-}
-
 sub _get_object_ids
 {
     my ( $self, $c, $last_id, $rows ) = @_;
 
-    my $db = $c->dbis;
+    my $q = $c->req->param( 'q' ) || '*:*';
 
-    my $q = $c->req->param( 'q' );
+    my $fq = $c->req->params->{ fq } || [];
+    $fq = [ $fq ] unless ( ref( $fq ) );
 
-    $q //= '*:*';
-
-    my $fq = $c->req->params->{ fq };
-
-    $fq //= [];
-
-    if ( !ref( $fq ) )
-    {
-        $fq = [ $fq ];
-    }
-
-    my $processed_stories_ids = [];
-
-    my $next_id = $last_id ? $last_id + 1 : MediaWords::Solr::min_processed_stories_id( $c->dbis, { q => $q, fq => $fq } );
-
-    return [] unless ( $next_id );
-
-    my $max_processed_stories_id = $self->_max_processed_stories_id( $c );
-
-    # say STDERR "max_processed_stories_id = $max_processed_stories_id";
-
-    my $empty_blocks = 0;
-    my $num_solr_searches;
-    my $exp_search_growth = 1;
-    my $exp_rows_growth   = 1;
-
-    while ( $next_id <= $max_processed_stories_id && scalar( @$processed_stories_ids ) < $rows )
-    {
-        my $params = {};
-
-        my $top_of_range = $next_id + 50_000;
-
-        # print STDERR "top_of_range: $top_of_range [ $num_solr_searches ]\n";
-
-        $params->{ q } = $q;
-
-        $params->{ fq } = [ @{ $fq }, "processed_stories_id:[ $next_id TO $top_of_range ]" ];
-
-        $params->{ sort } = "processed_stories_id asc";
-
-        $params->{ rows } = $rows * $exp_rows_growth;
-
-        # say STDERR ( Dumper( $params ) );
-
-        my $new_stories_ids = MediaWords::Solr::search_for_processed_stories_ids( $db, $params );
-
-        # say STDERR Dumper( $new_stories_ids );
-
-        if ( ( scalar( @{ $new_stories_ids } ) == 0 ) )
-        {
-            my $next_fq = [ @{ $fq }, "processed_stories_id:[ $next_id TO * ]" ];
-            $next_id = MediaWords::Solr::min_processed_stories_id( $c->dbis, { q => $q, fq => $next_fq } );
-            last unless ( $next_id );
-        }
-        else
-        {
-            push $processed_stories_ids, @{ $new_stories_ids };
-            $next_id = $processed_stories_ids->[ -1 ] + 1;
-
-            if ( $next_id < $top_of_range )
-            {
-                $exp_rows_growth *= 2;
-            }
-        }
-    }
-
-    # say STDERR Dumper( $processed_stories_ids );
-
-    return $processed_stories_ids;
+    return MediaWords::Solr::search_for_processed_stories_ids( $q, $fq, $last_id, $rows );
 }
 
 sub _fetch_list
@@ -269,24 +200,31 @@ sub _fetch_list
     $rows //= 20;
     $rows = List::Util::min( $rows, 10_000 );
 
-    my $stories_ids = $self->_get_object_ids( $c, $last_id, $rows );
+    my $ps_ids = $self->_get_object_ids( $c, $last_id, $rows );
 
-    #say STDERR Dumper( $stories_ids );
+    return [] unless ( @{ $ps_ids } );
 
-    my $query =
-"select stories.*, max( processed_stories.processed_stories_id ) processed_stories_id from stories natural join processed_stories where processed_stories_id in (??) group by stories.stories_id ORDER by $id_field asc limit $rows ";
+    my $db = $c->dbis;
 
-    my @values = @{ $stories_ids };
+    $db->begin;
 
-    return [] unless scalar( @values );
+    my $ids_table = $db->get_temporary_ids_table( $ps_ids );
 
-    #say STDERR Dumper( [ @values ] );
+    my $stories = $db->query( <<END )->hashes;
+with ps_ids as
 
-    # say STDERR $query;
+    ( select processed_stories_id, stories_id 
+        from processed_stories
+        where processed_stories_id in ( select id from $ids_table ) )
 
-    my $list = $c->dbis->query( $query, @values )->hashes;
+select s.*, p.processed_stories_id
+    from stories s join ps_ids p on ( s.stories_id = p.stories_id )    
+    order by processed_stories_id asc limit $rows
+END
 
-    return $list;
+    $db->commit;
+
+    return $stories;
 }
 
 sub put_tags : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')

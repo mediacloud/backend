@@ -36,6 +36,9 @@ use constant DESCRIPTION_SIMILARITY_DISCOUNT => .5;
 # only apply similarity test to this many characters of the story text and desciption
 use constant MAX_SIMILARITY_LENGTH => 8192;
 
+# only calculate the html_density for the first of this many characters of each line
+use constant MAX_HTML_DENSITY_LENGTH => 65536;
+
 #todo explain what this function really does
 # return the ratio of html characters to text characters
 sub _get_html_density($$)
@@ -47,7 +50,11 @@ sub _get_html_density($$)
         return 1;
     }
 
+<<<<<<< HEAD
     $line = substr( $line, 0, 65536 );
+=======
+    $line = substr( $line, 0, MAX_HTML_DENSITY_LENGTH );
+>>>>>>> master
 
     my $a_tag_found;
     my $html_length = 0;
