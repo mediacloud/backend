@@ -20,6 +20,7 @@ use Lingua::Stem::Snowball;
 use List::Util;
 use URI::Escape;
 
+use MediaWords::Solr;
 use MediaWords::Util::Config;
 
 # max number of random sentences to fetch
