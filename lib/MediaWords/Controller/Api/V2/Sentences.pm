@@ -146,7 +146,7 @@ sub list_GET : Local
     $params->{ start } = $start;
     $params->{ rows }  = $rows;
 
-    $params->{ sort } = _get_sort_param( $sort );
+    $params->{ sort } = _get_sort_param( $sort ) if ( $rows );
 
     $rows = List::Util::min( $rows, 10000 );
 
