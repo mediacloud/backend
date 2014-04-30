@@ -17,6 +17,9 @@ use MediaWords::DB;
 # parallel imports makes solr flaky
 Readonly my $MAX_IMPORT_JOBS => 4;
 
+# how many sentences to fetch at a time from the postgres query
+Readonly my $FETCH_BLOCK_SIZE => 10000;
+
 # run a postgres query and generate a table that lookups on the first column by the second column
 sub _get_lookup
 {
@@ -168,7 +171,7 @@ END
     my $i = 0;
     while ( 1 )
     {
-        my $sth = $dbh->prepare( "fetch 1000 from csr" );
+        my $sth = $dbh->prepare( "fetch $FETCH_BLOCK_SIZE from csr" );
 
         $sth->execute;
 
@@ -178,7 +181,7 @@ END
         # cpu is a significant bottleneck for this script
         while ( my $row = $sth->fetchrow_arrayref )
         {
-            print STDERR time . " " . ( $i++ * 1000 ) . "\n" unless ( $i % 10 );
+            print STDERR time . " " . ( $i * $FETCH_BLOCK_SIZE ) . "\n" if ( $i++ );
             my $stories_id         = $row->[ 0 ];
             my $media_id           = $row->[ 1 ];
             my $story_sentences_id = $row->[ 3 ];
