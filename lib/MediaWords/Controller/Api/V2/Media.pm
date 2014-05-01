@@ -53,7 +53,7 @@ sub _add_nested_data
 
     foreach my $media_source ( @{ $media } )
     {
-        say STDERR "adding media_source tags ";
+        # say STDERR "adding media_source tags ";
         my $media_source_tags = $db->query(
 "select tags.tags_id, tags.tag, tag_sets.tag_sets_id, tag_sets.name as tag_set from media_tags_map natural join tags natural join tag_sets where media_id = ? ORDER by tags_id",
             $media_source->{ media_id }
@@ -63,7 +63,7 @@ sub _add_nested_data
 
     foreach my $media_source ( @{ $media } )
     {
-        say STDERR "adding media_sets ";
+        # say STDERR "adding media_sets ";
         my $media_source_tags = $db->query(
 "select media_sets.media_sets_id, media_sets.name, media_sets.description, media_sets.set_type from media_sets_media_map natural join media_sets where media_id = ? ORDER by media_sets_id",
             $media_source->{ media_id }
