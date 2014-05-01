@@ -32,7 +32,7 @@ sub main
     print STDERR "generating dump ...\n";
     MediaWords::Solr::Dump::print_csv_to_file( $filename, 1, 1 );
 
-    print STDERR "submitting dump ...\n";
+    print STDERR "importing dump ...\n";
     MediaWords::Solr::Dump::import_csv_files( [ $filename ], 1 );
 
     unlink( $filename );

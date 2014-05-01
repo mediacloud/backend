@@ -385,7 +385,7 @@ sub acl_access_denied
 sub dbis
 {
 
-    return $_[ 0 ]->model( 'DBIS' )->dbis;
+    return $_[ 0 ]->model( 'DBIS' )->dbis( $_[ 0 ]->req );
 }
 
 =head1 NAME

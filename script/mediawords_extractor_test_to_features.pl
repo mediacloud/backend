@@ -228,9 +228,56 @@ sub get_top_words
     return \%top_words;
 }
 
+sub _fetch_training_downloads
+{
+    my $db = MediaWords::DB::connect_to_db;
+
+    my $downloads = $db->query(
+"SELECT * from downloads where downloads_id in ( SELECT distinct(downloads_id) from extractor_training_lines) ORDER BY downloads_id "
+    )->hashes();
+
+    $downloads = [ $downloads->[ 0 ] ];
+
+    foreach my $download ( @$downloads )
+    {
+        my $story = $db->find_by_id( 'stories', $download->{ stories_id } );
+        die unless $story;
+
+        $download->{ story_title }       = $story->{ title };
+        $download->{ story_description } = $story->{ description };
+    }
+
+    foreach my $download ( @$downloads )
+    {
+        my $extractor_training_lines =
+          $db->query( "SELECT * from extractor_training_lines where downloads_id = ? ORDER BY extractor_training_lines_id ",
+            $download->{ downloads_id } )->hashes();
+        $download->{ extractor_training_lines } = $extractor_training_lines;
+    }
+
+    foreach my $download ( @$downloads )
+    {
+        my $raw_content = MediaWords::DBI::Downloads::fetch_content( $db, $download );
+        $download->{ raw_content } = $raw_content;
+    }
+
+    say scalar( @$downloads );
+}
+
+## downloads
+## stories title
+## stories description
+## extractor_training_lines
+## raw_content
+## processsed_content
+
 sub main
 {
     my $file;
+
+    #_fetch_training_downloads();
+
+    #exit();
 
     GetOptions( 'file|f=s' => \$file, ) or die;
 
@@ -251,6 +298,11 @@ sub main
 
         my $line_infos         = $download->{ line_info };
         my $preprocessed_lines = $download->{ preprocessed_lines };
+
+        #foreach my $line_info (@$line_infos)
+        #{
+        #    delete ($line_info->{ description_similarity_discount } );
+        #}
 
         my $feature_strings =
           MediaWords::Crawler::AnalyzeLines::get_feature_strings_for_download( $line_infos, $preprocessed_lines,

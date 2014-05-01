@@ -117,13 +117,17 @@ sub index : Path : Args(0)
 
     my $csv = $c->req->params->{ csv };
 
-    my $num_sampled = $csv ? undef : 100;
+    my $solr_params = { q => $q };
+    if ( !$csv )
+    {
+        $solr_params->{ sort } = 'random_1 asc';
+        $solr_params->{ rows } = 100;
+    }
 
-    my ( $stories, $num_stories );
-    eval {
-        ( $stories, $num_stories ) =
-          MediaWords::Solr::search_for_stories_with_sentences( $db, { q => $q }, $num_sampled, 1 );
-    };
+    my $stories;
+    eval { $stories = MediaWords::Solr::search_for_stories( $db, $solr_params ) };
+
+    my $num_stories = int( MediaWords::Solr::get_last_num_found() / 2 );
 
     if ( $@ =~ /solr.*Bad Request/ )
     {
@@ -131,6 +135,10 @@ sub index : Path : Args(0)
         $c->stash->{ q }          = $q;
         $c->stash->{ l }          = $l;
         $c->stash->{ template }   = 'search/search.tt2';
+    }
+    elsif ( $@ )
+    {
+        die( $@ );
     }
     elsif ( $csv )
     {
@@ -146,9 +154,7 @@ sub index : Path : Args(0)
     {
         $c->stash->{ stories }     = $stories;
         $c->stash->{ num_stories } = $num_stories;
-        $c->stash->{ q }           = $q;
         $c->stash->{ l }           = $l;
-        $c->stash->{ template }    = 'search/search.tt2';
         $c->stash->{ q }           = $q;
         $c->stash->{ template }    = 'search/search.tt2';
     }

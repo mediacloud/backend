@@ -1,8 +1,9 @@
-package CRF::CrfUtils::InlineJava;
+#!/usr/bin/perl -w
 
 #
 # Package to access CRF model runner via Inline::Java
 #
+package CRF::CrfUtils::InlineJava;
 
 use strict;
 use warnings;
@@ -10,12 +11,11 @@ use warnings;
 use 5.16.3;
 
 use Readonly;
-use File::Temp qw/ tempfile /;
+use Data::Dumper;
 use Env qw(HOME);
 use File::Spec;
 use File::Basename;
 use File::Slurp;
-use MediaWords::Util::Config;
 
 use Inline (
     Java => 'STUDY',
@@ -33,48 +33,45 @@ my $use_jni = 0;
 
 my $modelrunner;
 
-sub _mediacloud_root()
-{
-    my $dirname = dirname( __FILE__ );
+my $_crf_source_rt;
 
+BEGIN
+{
+    use File::Basename;
+    use File::Spec;
+    use Cwd qw( realpath );
+
+    # lib/CRF/CrfUtils/
+    my $file_dir = dirname( __FILE__ );
+
+    # lib/CRF/
+    $_crf_source_rt = "$file_dir/../";
+
+    $_crf_source_rt = realpath( File::Spec->canonpath( $_crf_source_rt ) );
+}
+
+sub _crf_root()
+{
     # If this package gets moved to a different location, the subroutine will
     # stop reporting correct paths to MC root, so this is an attempt to warn
     # about the problem early
     if ( __PACKAGE__ ne 'CRF::CrfUtils::InlineJava' )
     {
         die 'Package name is not CRF::CrfUtils::InlineJava, the package was probably moved to a different location.' .
-          ' Please update _mediacloud_root() subroutine accordingly.';
+          ' Please update _crf_root() subroutine accordingly.';
     }
 
-    # Assuming that this file resides in "lib/CRF/CrfUtils/"
-    my $root = File::Spec->rel2abs( "$dirname/../../../" );
-    unless ( $root )
-    {
-        die "Unable to determine absolute path to Media Cloud.";
-    }
-
-    return $root;
+    return $_crf_source_rt;
 }
 
 BEGIN
 {
-    my $jar_dir = _mediacloud_root() . '/lib/CRF/CrfUtils/jars';
+    my $jar_dir = _crf_root() . '/CrfUtils/jars';
 
     my $jars = [ 'mallet-deps.jar', 'mallet.jar' ];
 
     #Assumes Unix fix later.
     $class_path = scalar( join ':', ( map { "$jar_dir/$_" } @{ $jars } ) );
-
-    my $config = MediaWords::Util::Config::get_config();
-
-    if ( $config->{ mediawords }->{ inline_java_jni } eq 'yes' )
-    {
-        $use_jni = 1;
-    }
-    else
-    {
-        $use_jni = 0;
-    }
 
     #say STDERR "classpath: $class_path";
 }
@@ -83,7 +80,7 @@ sub create_model($$$)
 {
     my ( $class, $training_data_file, $iterations ) = @_;
 
-    return _create_model_inline_java( $training_data_file, $iterations );
+    return _create_model_inline_java( $class, $training_data_file, $iterations );
 }
 
 sub run_model($$$$)
@@ -91,36 +88,6 @@ sub run_model($$$$)
     my ( $class, $model_file_name, $test_data_file, $output_fhs ) = @_;
 
     return _run_model_inline_java( $class, $model_file_name, $test_data_file, $output_fhs );
-}
-
-sub run_model_with_tmp_file($$$)
-{
-    my ( $class, $model_file_name, $test_data_array ) = @_;
-
-    _reconnect_to_jvm_if_necessary();
-
-    my $test_data_file_name = _create_tmp_file_from_array( $test_data_array );
-
-    my $mr = new org::mediacloud::crfutils::ModelRunner( $model_file_name );
-
-    # Returning and using a single string from a Java method is way faster than
-    # returning and using an array of strings
-    my $results_string = $mr->runModelReturnString( $test_data_file_name );
-
-    my $results = [ split( "\n", $results_string ) ];
-
-    return $results;
-}
-
-sub run_model_with_separate_exec($$$)
-{
-    my ( $class, $model_file_name, $test_data_array ) = @_;
-
-    my $test_data_file_name = _create_tmp_file_from_array( $test_data_array );
-
-    my $output = `java -cp  $class_path cc.mallet.fst.SimpleTagger --model-file  $model_file_name $test_data_file_name `;
-
-    return [ split "\n", $output ];
 }
 
 sub run_model_inline_java_data_array($$$)
@@ -137,16 +104,7 @@ sub run_model_inline_java_data_array($$$)
         $modelrunner = new org::mediacloud::crfutils::ModelRunner( $model_file_name );
     }
 
-    return _run_model_on_array( $modelrunner, $test_data_array );
-}
-
-sub train_and_test($$$$)
-{
-    my ( $class, $files, $output_fhs, $iterations ) = @_;
-
-    my $model_file_name = create_model( $class, $files->{ train_data_file }, $iterations );
-
-    run_model( $class, $model_file_name, $files->{ leave_out_file }, $output_fhs );
+    return _run_model_on_array( $class, $modelrunner, $test_data_array );
 }
 
 sub _create_model_inline_java($$$)
@@ -193,22 +151,9 @@ sub _reconnect_to_jvm_if_necessary()
     }
 }
 
-sub _create_tmp_file_from_array($)
+sub _run_model_on_array($$$)
 {
-    my ( $test_data_array ) = @_;
-
-    my ( $test_data_fh, $test_data_file_name ) = tempfile( "/tmp/tested_arrayXXXXXX", SUFFIX => '.dat' );
-
-    print $test_data_fh join "\n", @{ $test_data_array };
-
-    close( $test_data_fh );
-
-    return $test_data_file_name;
-}
-
-sub _run_model_on_array($$)
-{
-    my ( $modelrunner, $test_data_array ) = @_;
+    my ( $class, $modelrunner, $test_data_array ) = @_;
 
     _reconnect_to_jvm_if_necessary();
 
@@ -239,8 +184,6 @@ sub _run_model_inline_java($$$$)
 
     my $expected_results_fh = $output_fhs->{ expected_results_fh };
 
-    my $create_model_script_path = "$HOME/Applications/mallet-2.0.7/run_simple_tagger.sh";
-
     say STDERR "generating predictions";
 
     say STDERR "classpath: $class_path";
@@ -258,7 +201,7 @@ sub _crf_modelrunner_java_src()
 {
     # Compile and prepare Java class from /java/CrfUtils/
     my Readonly $crf_modelrunner_java_path =
-      _mediacloud_root() . '/java/CrfUtils/src/main/java/org/mediacloud/crfutils/ModelRunner.java';
+      _crf_root() . '/java/CrfUtils/src/main/java/org/mediacloud/crfutils/ModelRunner.java';
     my $crf_modelrunner_java_src = read_file( $crf_modelrunner_java_path );
     unless ( $crf_modelrunner_java_src )
     {

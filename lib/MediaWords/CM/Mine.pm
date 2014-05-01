@@ -20,6 +20,7 @@ use MediaWords::CM::GuessDate;
 use MediaWords::CM::GuessDate::Result;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
+use MediaWords::Solr;
 use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
@@ -518,13 +519,11 @@ sub ignore_redirect
 {
     my ( $db, $link ) = @_;
 
-    print STDERR "ignore_redirect\n";
     return 0 unless ( $link->{ redirect_url } && ( $link->{ redirect_url } ne $link->{ url } ) );
 
     my ( $medium_url, $medium_name ) = generate_medium_url_and_name_from_url( $link->{ redirect_url } );
 
     my $u = MediaWords::Util::URL::normalize_url( $medium_url );
-    print STDERR "$u\n";
 
     my $match = $db->query( "select 1 from controversy_ignore_redirects where url = ?", $u )->hash;
 
@@ -670,16 +669,16 @@ EOF
 # return true if any of the download_texts for the story matches the controversy search pattern
 sub story_download_text_matches_pattern
 {
-    my ( $db, $story, $query_story_search ) = @_;
+    my ( $db, $story, $controversy ) = @_;
 
-    my $dt = $db->query( <<END, $story->{ stories_id }, $query_story_search->{ query_story_searches_id } )->hash;
+    my $dt = $db->query( <<END, $story->{ stories_id }, $controversy->{ controversies_id } )->hash;
 select 1 
     from download_texts dt 
         join downloads d on ( dt.downloads_id = d.downloads_id )
-        join query_story_searches qss on ( qss.query_story_searches_id = \$2 )
+        join controversies c on ( c.controversies_id = \$2 )
     where 
         d.stories_id = \$1 and
-        dt.download_text ~* qss.pattern
+        dt.download_text ~* c.pattern
     limit 1
 END
     return $dt ? 1 : 0;
@@ -688,17 +687,17 @@ END
 # return true if any of the story_sentences with no duplicates for the story matches the controversy search pattern
 sub story_sentence_matches_pattern
 {
-    my ( $db, $story, $query_story_search ) = @_;
+    my ( $db, $story, $controversy ) = @_;
 
-    my $ss = $db->query( <<END, $story->{ stories_id }, $query_story_search->{ query_story_searches_id } )->hash;
+    my $ss = $db->query( <<END, $story->{ stories_id }, $controversy->{ controversies_id } )->hash;
 select 1 
     from story_sentences ss
         join story_sentence_counts ssc 
             on ( ss.stories_id = ssc.first_stories_id and ss.sentence_number = ssc.first_sentence_number )
-        join query_story_searches qss on ( qss.query_story_searches_id = \$2 )
+        join controversies c on ( c.controversies_id = \$2 )
     where 
         ss.stories_id = \$1 and
-        ss.sentence ~* qss.pattern and
+        ss.sentence ~* c.pattern and
         ssc.sentence_count < 2
     limit 1
 END
@@ -712,12 +711,10 @@ sub story_matches_controversy_pattern
 {
     my ( $db, $controversy, $story, $metadata_only ) = @_;
 
-    my $query_story_search = $db->find_by_id( 'query_story_searches', $controversy->{ query_story_searches_id } );
-
-    my $perl_re = $query_story_search->{ pattern };
+    my $perl_re = $controversy->{ pattern };
 
     # translate from postgres to perl regex
-    $perl_re =~ s/\[\[\:[\<\>]\:\]\]/[^a-z]/g;
+    $perl_re =~ s/\[\[\:[\<\>]\:\]\]/\\b/g;
     for my $field ( qw/title description url redirect_url/ )
     {
         return $field if ( $story->{ $field } =~ /$perl_re/is );
@@ -727,11 +724,11 @@ sub story_matches_controversy_pattern
 
     # check for download_texts match first because some stories don't have
     # story_sentences, and it is expensive to generate the missing story_sentences
-    return 0 unless ( story_download_text_matches_pattern( $db, $story, $query_story_search ) );
+    return 0 unless ( story_download_text_matches_pattern( $db, $story, $controversy ) );
 
     MediaWords::DBI::Stories::add_missing_story_sentences( $db, $story );
 
-    return story_sentence_matches_pattern( $db, $story, $query_story_search ) ? 'sentence' : 0;
+    return story_sentence_matches_pattern( $db, $story, $controversy ) ? 'sentence' : 0;
 }
 
 # add to controversy_stories table
@@ -759,7 +756,7 @@ sub add_to_controversy_stories_and_links
     generate_controversy_links( $db, $controversy, [ $story ] );
 }
 
-# look for a story matching the link url in the db
+# look for a story matching the link stories_id, url,  in the db
 sub get_matching_story_from_db
 {
     my ( $db, $link, $controversy ) = @_;
@@ -772,22 +769,25 @@ sub get_matching_story_from_db
         $ru = substr( $link->{ redirect_url }, 0, 1024 ) || $u;
     }
 
+    my $nu  = MediaWords::Util::URL::normalize_url( $u );
+    my $nru = MediaWords::Util::URL::normalize_url( $ru );
+
     # look for matching stories, ignore those in foreign_rss_links media and those
     # in dup_media_id media.
-    my $story = $db->query( <<'END', $u, $ru )->hash;
+    my $story = $db->query( <<'END', $u, $ru, $nu, $nru )->hash;
 select s.* from stories s
         join media m on s.media_id = m.media_id
-    where ( s.url in ( $1 , $2 ) or s.guid in ( $1, $2 ) ) and 
+    where ( s.url in ( $1 , $2, $3, $4 ) or s.guid in ( $1, $2, $3, $4 ) ) and 
         m.foreign_rss_links = false and m.dup_media_id is null
 END
 
     # we have to do a separate query here b/c postgres was not coming
     # up with a sane query plan for the combined query
-    $story ||= $db->query( <<'END', $u, $ru )->hash;
+    $story ||= $db->query( <<'END', $u, $ru, $nu, $nru )->hash;
 select s.* from stories s
         join media m on s.media_id = m.media_id
         join controversy_seed_urls csu on s.stories_id = csu.stories_id
-    where ( csu.url in ( $1, $2 ) ) and 
+    where ( csu.url in ( $1, $2, $3, $4 ) ) and 
         m.foreign_rss_links = false and m.dup_media_id is null
 END
 
@@ -1552,53 +1552,6 @@ END
     MediaWords::Util::Web::cache_link_downloads( $fetch_links );
 }
 
-# import stories from the query_story_searches associated with this controversy
-sub import_query_story_search
-{
-    my ( $db, $controversy, $cache_broken_story_downloads ) = @_;
-
-    my $stories = $db->query( <<END, $controversy->{ controversies_id } )->hashes;
-select distinct s.* 
-    from stories s
-        join query_story_searches_stories_map qsssm on ( qsssm.stories_id = s.stories_id )
-        join controversies c on ( qsssm.query_story_searches_id = c.query_story_searches_id )
-        left join controversy_query_story_searches_imported_stories_map cm
-            on ( cm.stories_id = s.stories_id and cm.controversies_id = c.controversies_id )
-    where
-        c.controversies_id = ? and
-        cm.stories_id is null
-END
-
-    if ( $cache_broken_story_downloads )
-    {
-        print STDERR "caching broken downloads ...\n";
-        cache_broken_story_downloads( $db, $stories );
-    }
-
-    for my $story ( @{ $stories } )
-    {
-        $db->query( <<END, $controversy->{ controversies_id }, $story->{ stories_id } );
-insert into controversy_query_story_searches_imported_stories_map 
-    ( controversies_id, stories_id ) values ( ?, ? );
-END
-
-        my $controversy_story_exists = $db->query( <<END, $story->{ stories_id }, $controversy->{ controversies_id } )->hash;
-select 1 from controversy_stories where stories_id = ? and controversies_id = ?
-END
-        next if ( $controversy_story_exists );
-
-        # don't reimport the story if the story has been merged into a story that is already in the controversy
-        my $merged_story = $db->query( <<END, $story->{ stories_id }, $controversy->{ controversies_id } )->hash;
-select 1 from controversy_merged_stories_map cmsm, controversy_stories cs
-    where cmsm.source_stories_id = ? and cmsm.target_stories_id = cs.stories_id and
-        cs.controversies_id = ?
-END
-        next if ( $merged_story );
-
-        add_to_controversy_stories_and_links( $db, $controversy, $story, 0 );
-    }
-}
-
 # get the story in pick_list that appears first in ref_list
 sub pick_first_matched_story
 {
@@ -1801,7 +1754,7 @@ sub get_title_parts
 
 # get duplicate stories within the set of stires by breaking the title
 # of each story into parts by [-:|] and looking for any such part
-# that is the sole title part for any story ans is at least 4 words long and
+# that is the sole title part for any story and is at least 4 words long and
 # is not the title of a story with a path-less url.  Any story that includes that title
 # part becames a duplicate.
 sub get_medium_dup_stories_by_title
@@ -1922,9 +1875,43 @@ sub find_and_merge_dup_stories
     }
 }
 
+# import stories intro controversy_seed_urls from solr by running
+# controversy->{ solr_seed_query } against solr.  if the solr query has
+# already been imported, do nothing.
+sub import_solr_seed_query
+{
+    my ( $db, $controversy ) = @_;
+
+    return if ( $controversy->{ solr_seed_query_run } );
+
+    print STDERR "executing solr query: $controversy->{ solr_seed_query }\n";
+    my $stories = MediaWords::Solr::search_for_stories( $db, { q => $controversy->{ solr_seed_query } } );
+
+    print STDERR "adding " . scalar( @{ $stories } ) . " stories to controversy_seed_urls\n";
+
+    $db->begin;
+
+    for my $story ( @{ $stories } )
+    {
+        my $csu = {
+            controversies_id => $controversy->{ controversies_id },
+            url              => $story->{ url },
+            stories_id       => $story->{ stories_id },
+            assume_match     => 'f'
+        };
+
+        $db->create( 'controversy_seed_urls', $csu );
+    }
+
+    $db->query( "update controversies set solr_seed_query_run = 't' where controversies_id = ?",
+        $controversy->{ controversies_id } );
+
+    $db->commit;
+}
+
 # mine the given controversy for links and to recursively discover new stories on the web.
 # options:
-#   import_only - only run import_seed_urls and import_query_story_search and exit
+#   import_only - only run import_seed_urls and import_solr_seed and exit
 #   cache_broken_downloads - speed up fixing broken downloads, but add time if there are no broken downloads
 #   skip_outgoing_foreign_rss_links - skip slow process of adding links from foreign_rss_links media
 sub mine_controversy ($$;$)
@@ -1936,11 +1923,11 @@ sub mine_controversy ($$;$)
         $options )
       || die( "Unable to log the 'cm_mine_controversy' activity." );
 
+    print STDERR "importing solr seed query ...\n";
+    import_solr_seed_query( $db, $controversy );
+
     print STDERR "importing seed urls ...\n";
     import_seed_urls( $db, $controversy );
-
-    print STDERR "importing query stories search ...\n";
-    import_query_story_search( $db, $controversy, $options->{ cache_broken_downloads } );
 
     return if ( $options->{ import_only } );
 

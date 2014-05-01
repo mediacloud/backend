@@ -83,28 +83,6 @@ sub run_model($$$$)
     _fatal_error( "Not implemented in " . __PACKAGE__ );
 }
 
-sub run_model_with_tmp_file($$$)
-{
-    my ( $class, $model_file_name, $test_data_array ) = @_;
-
-    _validate_model_file_name( $model_file_name );
-
-    warn "Implementation of this subroutine in " . __PACKAGE__ . " will not create temporary files.\n";
-
-    return run_model_inline_java_data_array( $class, $model_file_name, $test_data_array );
-}
-
-sub run_model_with_separate_exec($$$)
-{
-    my ( $class, $model_file_name, $test_data_array ) = @_;
-
-    _validate_model_file_name( $model_file_name );
-
-    warn "Implementation of this subroutine in " . __PACKAGE__ . " will not execute a separate process.\n";
-
-    return run_model_inline_java_data_array( $class, $model_file_name, $test_data_array );
-}
-
 sub run_model_inline_java_data_array($$$)
 {
     my ( $class, $model_file_name, $test_data_array ) = @_;
@@ -197,14 +175,6 @@ sub run_model_inline_java_data_array($$$)
     my $results = [ split( "\n", $results_string ) ];
 
     return $results;
-}
-
-sub train_and_test($$$$)
-{
-    my ( $class, $files, $output_fhs, $iterations ) = @_;
-
-    # Clients should use CRF::CrfUtils::InlineJava directly
-    _fatal_error( "Not implemented in " . __PACKAGE__ );
 }
 
 sub _validate_model_file_name($)

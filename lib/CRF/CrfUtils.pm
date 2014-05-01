@@ -68,24 +68,6 @@ sub run_model($$$)
     return $module->run_model( $model_file_name, $test_data_file, $output_fhs );
 }
 
-sub run_model_with_tmp_file($$)
-{
-    my ( $model_file_name, $test_data_array ) = @_;
-
-    my $module = _load_and_return_crf_module();
-
-    return $module->run_model_with_tmp_file( $model_file_name, $test_data_array );
-}
-
-sub run_model_with_separate_exec($$)
-{
-    my ( $model_file_name, $test_data_array ) = @_;
-
-    my $module = _load_and_return_crf_module();
-
-    return $module->run_model_with_separate_exec( $model_file_name, $test_data_array );
-}
-
 sub run_model_inline_java_data_array($$)
 {
     my ( $model_file_name, $test_data_array ) = @_;
@@ -93,15 +75,6 @@ sub run_model_inline_java_data_array($$)
     my $module = _load_and_return_crf_module();
 
     return $module->run_model_inline_java_data_array( $model_file_name, $test_data_array );
-}
-
-sub train_and_test($$)
-{
-    my ( $files, $output_fhs, $iterations ) = @_;
-
-    my $module = _load_and_return_crf_module();
-
-    return $module->train_and_test( $files, $output_fhs, $iterations );
 }
 
 # Helper

@@ -70,6 +70,9 @@ Note also that we gather content from a wide variety of U.S. and international m
 </p>
 
 <p>
+Here is <a href="http://lucene.apache.org/core/4_6_1/queryparser/org/apache/lucene/queryparser/classic/package-summary.html#package_description">full documentation of the solr search syntax</a>.
+
+<p>
 The language field determines only the stemming and stopwording done for the word count list -- it does not
 determine which stories are returned.  By default, the word 
 counting returns a list of words stemmed and stopworded in English.  You can change this behavior by entering a list
