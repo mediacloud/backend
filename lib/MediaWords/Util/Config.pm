@@ -85,6 +85,50 @@ sub set_config_file
     set_config( _parse_config_file( $config_file ) );
 }
 
+# merge configs using Hash::Merge, with precedence for the mediawords.yml config.
+# use a Hash::Merge object with a custom behavior set to the same as
+# LEFT_PRECEDENT but that replaces arrays instead of merging them.
+sub _merge_configs
+{
+    my ( $config, $static_defaults ) = @_;
+
+    my $merge = Hash::Merge->new();
+
+    # this is just copy and pasted from Hash::Merge with one line different.  annoyingly,
+    # there's no way to get the behavior hash out of Hash::Merge directly to just modify it.
+    $merge->specify_behavior(
+        {
+            'SCALAR' => {
+                'SCALAR' => sub { $_[ 0 ] },
+                'ARRAY'  => sub { $_[ 0 ] },
+                'HASH'   => sub { $_[ 0 ] },
+            },
+            'ARRAY' => {
+                'SCALAR' => sub { [ @{ $_[ 0 ] }, $_[ 1 ] ] },
+
+                # this is the only difference between our custom behavior and LEFT_PRECEDENT
+                'ARRAY' => sub { $_[ 0 ] },
+                'HASH'  => sub { [ @{ $_[ 0 ] }, values %{ $_[ 1 ] } ] },
+            },
+            'HASH' => {
+                'SCALAR' => sub { $_[ 0 ] },
+                'ARRAY'  => sub { $_[ 0 ] },
+                'HASH'   => sub { Hash::Merge::_merge_hashes( $_[ 0 ], $_[ 1 ] ) },
+            }
+        },
+        'custom'
+    );
+
+    # work around bug in Hash::Merge::merge in which it modifies $@
+    my $ampersand = $@;
+
+    my $merged = $merge->merge( $config, $static_defaults );
+
+    $@ = $ampersand;
+
+    return $merged;
+}
+
 # set the cached config object
 sub set_config
 {
@@ -99,15 +143,7 @@ sub set_config
 
     my $static_defaults = _read_static_defaults();
 
-    my $merge = Hash::Merge->new( 'LEFT_PRECEDENT' );
-
-    #Work around bug in Hash::Merge::merge in which it modifies $@
-    my $appersand = $@;
-    my $merged = $merge->merge( $config, $static_defaults );
-
-    $@ = $appersand;
-
-    $_config = $merged;
+    $_config = _merge_configs( $config, $static_defaults );
 
     verify_settings( $_config );
 }
