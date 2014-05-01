@@ -459,6 +459,11 @@ sub update_story_sentence_words_and_language
     # Get story text
     my $story_text = $story->{ story_text } || MediaWords::DBI::Stories::get_text_for_word_counts( $db, $story );
 
+    if ( length( $story_text ) < length( $story->{ description } ) )
+    {
+        $story_text = "$story->{ title }.  $story->{ description }.";
+    }
+
     # Determine TLD
     my $story_tld = '';
     if ( defined( $story->{ url } ) )
