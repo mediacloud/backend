@@ -17,6 +17,9 @@ use MediaWords::DB;
 # parallel imports makes solr flaky
 Readonly my $MAX_IMPORT_JOBS => 4;
 
+# how many sentences to fetch at a time from the postgres query
+Readonly my $FETCH_BLOCK_SIZE => 10000;
+
 # run a postgres query and generate a table that lookups on the first column by the second column
 sub _get_lookup
 {
@@ -106,7 +109,7 @@ create temporary table stories_for_solr_import as
 END
 
         my ( $num_delta_stories ) = $db->query( "select count(*) from stories_for_solr_import" )->flat;
-        print STDERR "found $num_delta_stories for import ...\n";
+        print STDERR "found $num_delta_stories stories for import ...\n";
 
         $date_clause = "and stories_id in ( select stories_id from stories_for_solr_import )";
     }
@@ -168,8 +171,7 @@ END
     my $i = 0;
     while ( 1 )
     {
-        print STDERR time . " " . ( $i++ * 1000 ) . "\n";
-        my $sth = $dbh->prepare( "fetch 1000 from csr" );
+        my $sth = $dbh->prepare( "fetch $FETCH_BLOCK_SIZE from csr" );
 
         $sth->execute;
 
@@ -179,6 +181,7 @@ END
         # cpu is a significant bottleneck for this script
         while ( my $row = $sth->fetchrow_arrayref )
         {
+            print STDERR time . " " . ( $i * $FETCH_BLOCK_SIZE ) . "\n" if ( $i++ );
             my $stories_id         = $row->[ 0 ];
             my $media_id           = $row->[ 1 ];
             my $story_sentences_id = $row->[ 3 ];
@@ -215,7 +218,7 @@ sub _import_csv_single_file
     my $overwrite = $delta ? 'overwrite=true' : 'overwrite=false';
 
     my $url =
-"http://localhost:8983/solr/update/csv?stream.file=$abs_file&stream.contentType=text/plain;charset=utf-8&f.media_sets_id.split=true&f.media_sets_id.separator=;&f.tags_id_media.split=true&f.tags_id_media.separator=;&f.tags_id_stories.split=true&f.tags_id_stories.separator=;&f.tags_id_story_sentences.split=true&f.tags_id_story_sentences.separator=;&$overwrite&skip=field_type,id,solr_import_date";
+"http://localhost:7983/solr/update/csv?commit=false&stream.file=$abs_file&stream.contentType=text/plain;charset=utf-8&f.media_sets_id.split=true&f.media_sets_id.separator=;&f.tags_id_media.split=true&f.tags_id_media.separator=;&f.tags_id_stories.split=true&f.tags_id_stories.separator=;&f.tags_id_story_sentences.split=true&f.tags_id_story_sentences.separator=;&$overwrite&skip=field_type,id,solr_import_date";
 
     print STDERR "$url\n";
 
@@ -262,7 +265,7 @@ sub import_csv_files
     print STDERR "comitting ..\n";
     my $ua = LWP::UserAgent->new;
     $ua->timeout( 86400 * 7 );
-    my $res = $ua->get( 'http://localhost:8983/solr/update?stream.body=<commit/>' );
+    my $res = $ua->get( 'http://localhost:7983/solr/update?stream.body=<commit/>' );
 
     if ( $res->is_success )
     {

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.mediacloud</groupId>
+    <artifactId>CrfUtils</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <name>CrfUtils</name>
+
+    <packaging>jar</packaging>
+    
+    <build>
+        
+        <resources>
+            
+            <!-- Mallet logging.properties file -->
+            <resource>
+                <directory>src/main/resources/cc/mallet/util</directory>
+                <targetPath>cc/mallet/util/resources/</targetPath>
+                <includes>
+                    <include>logging.properties</include>
+                </includes>
+            </resource>
+            
+        </resources>
+
+        <testResources>
+            
+            <!-- Use a "live" Media Cloud extractor model from lib/MediaWords/Util/models/ for testing -->
+            <testResource>
+                <directory>${basedir}/../../../../lib/MediaWords/Util/models/</directory>
+                <targetPath>org/mediacloud/crfutils</targetPath>
+                <includes>
+                    <include>crf_extractor_model</include>
+                </includes>
+            </testResource>
+            
+            <!-- Include "test input" and "expected output" files too -->
+            <testResource>
+                <directory>src/test/resources/org/mediacloud/crfutils/</directory>
+                <targetPath>org/mediacloud/crfutils</targetPath>
+                <includes>
+                    <include>test_input.txt</include>
+                    <include>test_output.txt</include>
+                </includes>
+            </testResource>
+        </testResources>
+    </build>
+  
+    <dependencies>
+        
+        <!-- Mallet -->
+        <dependency>
+            <groupId>cc.mallet</groupId>
+            <artifactId>mallet</artifactId>
+            <version>2.0.7</version>
+        </dependency>
+      
+        <!-- Unit test dependencies -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.directory.studio</groupId>
+            <artifactId>org.apache.commons.io</artifactId>
+            <version>2.4</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.directory.studio</groupId>
+            <artifactId>org.apache.commons.lang</artifactId>
+            <version>2.6</version>
+            <scope>test</scope>
+        </dependency>
+      
+    </dependencies>
+
+</project>

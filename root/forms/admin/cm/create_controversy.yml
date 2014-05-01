@@ -18,31 +18,20 @@ elements:
         - Required
 
   - type: Text
-    name: start_date
-    id: start_date
-    label: Start Date
-    comment: (e.g. 2008-09-01)
+    name: solr_seed_query
+    id: solr_seed_query
+    label: "Solr Seed Query"
+    comment: "Query to run against solr to return initial seed of Media Cloud stories"
     constraints:
         - Required
-        - type: DateTime
-          parser:
-            strptime: '%Y-%d-%m'
 
   - type: Text
-    name: end_date
-    id: end_date
-    label: End Date
-    comment: (e.g. 2008-09-30)
+    name: description
+    id: description
+    label: Description
+    comment: "Human readable description of controversy including a human description of the solr seed query"
     constraints:
         - Required
-        - type: DateTime
-          parser:
-            strptime: '%Y-%d-%m'
-
-  - type: Checkboxgroup
-    name: media_sets_ids
-    id: media_sets_ids
-    label: Media Sets
 
   - type: Submit
     value: Create

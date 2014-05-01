@@ -1,6 +1,7 @@
 data.old
 matrix
 mediawords.yml
+mediawords-*.yml
 mediacloud.tmproj
 jons_stuff
 .carton
@@ -14,6 +15,9 @@ cache/translate
 
 # Python bytecode files
 *.py[cod]
+
+# Vim backup files
+*.swp
 
 # OS X
 .DS_Store

@@ -1083,70 +1083,38 @@ sub mark_as_processed($$)
     }
 }
 
-# given a list of hashes, each with a stories_id field, query postgres to attach
-# the rest of the story metadata to each hash. assumes that each stories_id appears
-# only once in the stories list.  Fails if given more than 500 stories
-sub _attach_story_data_to_stories_ids_chunk
+# given two lists of hashes, $stories and $story_data, each with
+# a stories_id field in each row, assign each key:value pair in
+# story_data to the corresponding row in $stories.  if $list_field
+# is specified, push each the value associate with key in each matching
+# stories_id row in story_data field into a list with the name $list_field
+# in stories
+sub attach_story_data_to_stories
 {
-    my ( $db, $stories, $query, $list_field ) = @_;
-
-    die( "stories list has more than 500 members" ) unless ( @{ $stories } <= 500 );
-
-    my $stories_id_list = join( ',', map { $_->{ stories_id } } @{ $stories } );
-
-    $query =~ s/STORY_ID_CLAUSE/s.stories_id in ($stories_id_list)/g;
-
-    my $story_data = $db->query( $query )->hashes;
+    my ( $stories, $story_data, $list_field ) = @_;
 
     return unless ( @{ $story_data } );
 
     my $story_data_lookup = {};
-    map { $story_data_lookup->{ $_->{ stories_id } } = $_ } @{ $story_data };
+    for my $sd ( @{ $story_data } )
+    {
+        if ( $list_field )
+        {
+            $story_data_lookup->{ $sd->{ stories_id } } //= { $list_field => [] };
+            push( $story_data_lookup->{ $sd->{ stories_id } }->{ $list_field }, $sd );
+        }
+        else
+        {
+            $story_data_lookup->{ $sd->{ stories_id } } = $sd;
+        }
+    }
 
     for my $story ( @{ $stories } )
     {
-        if ( $story_data = $story_data_lookup->{ $story->{ stories_id } } )
+        if ( my $sd = $story_data_lookup->{ $story->{ stories_id } } )
         {
-            if ( $list_field )
-            {
-                push( @{ $story->{ $list_field } }, $story_data );
-            }
-            else
-            {
-                map { $story->{ $_ } = $story_data->{ $_ } } keys( %{ $story_data } );
-            }
+            map { $story->{ $_ } = $sd->{ $_ } } keys( %{ $sd } );
         }
-    }
-}
-
-# given a list of hashes, each with a unique stories_id field, execute a
-# postgres query that includes a stories_id field in its return
-# and assign the resulting data to each story.
-#
-# The function will replace STORY_ID_CLAUSE with:
-# s.stories_id in ( $id_list )
-# eg:
-# select s.stitle, s.stories_id from stories s where STORY_ID_CLAUSE
-# $query s.stories_id in ( $id_list )
-#
-# if $list_field is specified, push each row of the query to the
-# $story->{ $list_field }
-# otherwise, attach each field for each story result directly to
-# that field in $story->{ $field_name }
-sub attach_story_data_to_stories
-{
-    my ( $db, $stories, $query, $list_field ) = @_;
-
-    # first sort so that each chunk query includes maxmimally adjacent stories_ids
-    my $sorted_stories = [ sort { $a->{ stories_id } <=> $b->{ stories_id } } @{ $stories } ];
-
-    # break up into chunks of 300 to avoid overly large postgres queries (max 8192 characters)
-    my $chunk_size = 300;
-    for ( my $i = 0 ; $i < @{ $sorted_stories } ; $i += $chunk_size )
-    {
-        my $chunk_end = List::Util::min( $#{ $stories }, $i + $chunk_size - 1 );
-        my $stories_chunk = [ @{ $stories }[ $i .. $chunk_end ] ];
-        _attach_story_data_to_stories_ids_chunk( $db, $stories_chunk, $query, $list_field );
     }
 }
 
@@ -1156,11 +1124,21 @@ sub attach_story_meta_data_to_stories
 {
     my ( $db, $stories ) = @_;
 
-    attach_story_data_to_stories( $db, $stories, <<END );
+    $db->begin;
+
+    my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ stories_id } } @{ $stories } ] );
+
+    my $story_data = $db->query( <<END )->hashes;
 select s.stories_id, s.title, s.publish_date, s.url, s.guid, s.media_id, s.language, m.name media_name
     from stories s join media m on ( s.media_id = m.media_id )
-    where STORY_ID_CLAUSE
+    where s.stories_id in ( select id from $ids_table )
 END
+
+    attach_story_data_to_stories( $stories, $story_data );
+
+    $db->commit;
+
+    return $stories;
 }
 
 1;

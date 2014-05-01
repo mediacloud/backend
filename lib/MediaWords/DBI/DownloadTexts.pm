@@ -200,6 +200,8 @@ sub create_from_download
 
     my $extract = MediaWords::DBI::Downloads::extractor_results_for_download( $db, $download );
 
+    # say STDERR Dumper( $extract );
+
     my $included_line_numbers = $extract->{ included_line_numbers };
 
     $db->query( "delete from download_texts where downloads_id = ?", $download->{ downloads_id } );
@@ -210,7 +212,7 @@ sub create_from_download
 
     my $extracted_text = html_strip( $extracted_html );
 
-    # print "EXTRACT\n**\n$text\n**\n";
+    # say STDERR "EXTRACT\n**\n$extracted_text\n**\n";
 
     my $download_text = $db->create(
         'download_texts',
@@ -220,6 +222,8 @@ sub create_from_download
             download_text_length => length( $extracted_text )
         }
     );
+
+    # say STDERR "Created download_text" . Dumper( $download_text );
 
     $db->dbh->do( "copy extracted_lines(download_texts_id, line_number) from STDIN" );
     foreach my $included_line_number ( @{ $included_line_numbers } )

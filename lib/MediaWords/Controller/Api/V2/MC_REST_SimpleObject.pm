@@ -200,7 +200,7 @@ sub list_GET : Local
 {
     my ( $self, $c ) = @_;
 
-    say STDERR "starting list_GET";
+    # say STDERR "starting list_GET";
 
     my $table_name = $self->get_table_name();
 
@@ -211,7 +211,7 @@ sub list_GET : Local
     my $last_id = $c->req->param( $last_id_param_name );
     $last_id //= 0;
 
-    say STDERR "last_id: $last_id";
+    # say STDERR "last_id: $last_id";
 
     my $all_fields = $c->req->param( 'all_fields' );
     $all_fields //= 0;
@@ -219,7 +219,7 @@ sub list_GET : Local
     my $rows = $c->req->param( 'rows' );
     $rows //= ROWS_PER_PAGE;
 
-    say STDERR "rows $rows";
+    # say STDERR "rows $rows";
 
     my $list;
 
@@ -254,12 +254,12 @@ sub _get_tags_id
 
     if ( $tag_string =~ /^\d+/ )
     {
-        say STDERR "returning int: $tag_string";
+        # say STDERR "returning int: $tag_string";
         return $tag_string;
     }
     elsif ( $tag_string =~ /^.+:.+$/ )
     {
-        say STDERR "processing tag_sets:tag_name";
+        # say STDERR "processing tag_sets:tag_name";
 
         my ( $tag_set, $tag_name ) = split ':', $tag_string;
 
@@ -275,15 +275,15 @@ sub _get_tags_id
 
         die "invalid tag set " unless scalar( @$tag_sets ) > 0;
 
-        say STDERR "tag_sets";
-        say STDERR Dumper( $tag_sets );
+        # say STDERR "tag_sets";
+        # say STDERR Dumper( $tag_sets );
 
         my $tag_sets_id = $tag_sets->[ 0 ]->{ tag_sets_id };
 
         my $tags =
           $c->dbis->query( "SELECT * from tags where tag_sets_id = ? and tag = ? ", $tag_sets_id, $tag_name )->hashes;
 
-        say STDERR Dumper( $tags );
+        # say STDERR Dumper( $tags );
 
         my $tag;
 
@@ -312,7 +312,7 @@ sub _add_tags
 
     foreach my $story_tag ( @$story_tags )
     {
-        say STDERR "story_tag $story_tag";
+        # say STDERR "story_tag $story_tag";
 
         my ( $id, $tag ) = split ',', $story_tag;
 
@@ -320,14 +320,14 @@ sub _add_tags
 
         $self->_die_unless_tag_set_matches_user_email( $c, $tags_id );
 
-        say STDERR "$id, $tags_id";
+        # say STDERR "$id, $tags_id";
 
         my $tags_map_table = $self->get_table_name() . '_tags_map';
         my $table_id_name  = $self->get_table_name() . '_id';
 
         my $query = "INSERT INTO $tags_map_table ( $table_id_name, tags_id) VALUES (?, ? )";
 
-        say STDERR $query;
+        # say STDERR $query;
 
         $c->dbis->query( $query, $id, $tags_id );
     }
