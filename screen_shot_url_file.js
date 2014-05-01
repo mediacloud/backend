@@ -1,6 +1,11 @@
 
 var fs = require('fs');
-var page = require('webpage').create();
+//var page = require('webpage').create();
+
+function capture_and_render( url, base_name )
+{
+
+}
 
 function capture_func( q0, q1 )
 {
@@ -10,50 +15,47 @@ function capture_func( q0, q1 )
 
     //q0 = 94946;
 
-    url = 'http://www.mediacloud.org/dashboard/view/1?q1=' + q0;
+    var url = 'http://www.mediacloud.org/dashboard/view/1?q1=' + q0;
     console.log( url );
-
-    url = 'http://www.mediacloud.org/dashboard/view/1?q1=94946';
 
     var page = require('webpage').create();
 
+    var output_dir = 'screen_shots';
+
     page.open(url, function() {
-	    console.log('rendering');
-	page.render('mc_' + q0 + '.png');
-	page.render('mc_' + q0 + '.pdf');
-	page.render('mc_' + q0 + '.jpg');
+	console.log('rendering non wconly' + url);
+	page.render(output_dir + '/mc_' + q0 + '.png');
+	page.render(output_dir + '/mc_' + q0 + '.pdf');
 	console.log('captured');
 	//phantom.exit();
     });
+
+    var url_2 = url + '&wconly=1';
+
+    var page_2 =  require('webpage').create();
+
+    page_2.open(url_2, function(status) {
+	console.log('rendering' + url_2);
+	console.log( status );
+	page_2.render(output_dir + '/mc_' + q0 + '_wc_only' + '.png');
+	page_2.render(output_dir + '/mc_' + q0 + '_wc_only' + '.pdf');
+	console.log('captured');
+	//phantom.exit();
+    });
+
 }
 
-var stream = fs.open('/tmp/CSV_FILE.csv', 'r');
+var stream =  fs.open('/tmp/json', 'r');
+var json_str = stream.readLine();
 
-var header_line = stream.readLine();
+data = JSON.parse(json_str);
 
-header_arr = header_line.split( "\t" );
+//stream.close();
 
-//console.log( header_arr );
-//console.assert(header_arr.1 == 'queries_id_0');
-//console.assert( header_arr.2 == 'queries_id_1');
-
-//phantom.exit();
-
-while(!stream.atEnd()) {
-    var line = stream.readLine();
-    //console.log(line);
-    fields = line.split( "\t" );
-    console.log(fields);
-    //console.log(fields.length() + '');
-    var q0 = fields[1];
-    var q1 = fields[2];
-
-    console.log( q0 );
-    console.log( 'q0=' + q0 );
-    //q0 = 94946;
+data.forEach( function( pop_query ) {
+    var q0 = pop_query[  "queries_id_0" ];
+    var q1 = pop_query[  "queries_id_2" ];
     capture_func( q0, q1 );
-}
+});
 
-stream.close();
 //phantom.exit();
-
