@@ -23,8 +23,6 @@ use MediaWords::Util::ExtractorFactory;
 use MediaWords::Util::HeuristicExtractor;
 use MediaWords::Util::CrfExtractor;
 
-use Data::Dumper;
-
 # Download store instances
 my $_amazon_s3_store;
 my $_databaseinline_store;
@@ -40,6 +38,9 @@ my $_config;
 # Database inline content length limit
 Readonly my $INLINE_CONTENT_LENGTH => 256;
 
+# lookup table for download store objects.  initialized in BEGIN below;
+my $_download_store_lookup;
+
 # Constructor
 BEGIN
 {
@@ -51,6 +52,16 @@ BEGIN
     $_remote_store         = MediaWords::DBI::Downloads::Store::Remote->new();
     $_tar_store            = MediaWords::DBI::Downloads::Store::Tar->new();
 
+    $_download_store_lookup = {
+        'amazon_s3'      => $_amazon_s3_store,
+        'databaseinline' => $_databaseinline_store,
+        'gridfs'         => $_gridfs_store,
+        'localfile'      => $_localfile_store,
+        'postgresql'     => $_postgresql_store,
+        'remote'         => $_remote_store,
+        'tar'            => $_tar_store
+    };
+
     # Early sanity check on configuration
     $_config = MediaWords::Util::Config::get_config;
     my $download_storage_locations = $_config->{ mediawords }->{ download_storage_locations };
@@ -58,12 +69,19 @@ BEGIN
     {
         die "No download storage methods are configured.\n";
     }
+
     foreach my $download_storage_location ( @{ $download_storage_locations } )
     {
         my $location = lc( $download_storage_location );
-        unless ( grep { $_ eq $location } ( 'amazon_s3', 'gridfs', 'localfile', 'postgresql', 'tar' ) )
+
+        if ( grep { $_ eq $location } qw(remote databaseinline) )
         {
-            die "Download storage location '$download_storage_location' is not valid.\n";
+            die "download_storage_location $location is not valid for storage";
+        }
+
+        unless ( $_download_store_lookup->{ $download_storage_location } )
+        {
+            die "download_storage_location '$download_storage_location' is not valid.";
         }
     }
 
@@ -88,47 +106,10 @@ sub _download_stores_for_writing($)
         my $download_storage_locations = $_config->{ mediawords }->{ download_storage_locations };
         foreach my $download_storage_location ( @{ $download_storage_locations } )
         {
-            my $location = lc( $download_storage_location );
+            my $store = $_download_store_lookup->{ lc( $download_storage_location ) }
+              || die "config value mediawords.download_storage_location '$download_storage_location' is not valid.";
 
-            if ( $location eq 'amazon_s3' )
-            {
-
-                #say STDERR "Will store to Amazon S3.";
-                push( @{ $stores }, $_amazon_s3_store );
-
-            }
-            elsif ( $location eq 'gridfs' )
-            {
-
-                #say STDERR "Will store to GridFS.";
-                push( @{ $stores }, $_gridfs_store );
-
-            }
-            elsif ( $location eq 'localfile' )
-            {
-
-                #say STDERR "Will store to local files.";
-                push( @{ $stores }, $_localfile_store );
-
-            }
-            elsif ( $location eq 'postgresql' )
-            {
-
-                #say STDERR "Will store to PostgreSQL.";
-                push( @{ $stores }, $_postgresql_store );
-
-            }
-            elsif ( $location eq 'tar' )
-            {
-
-                #say STDERR "Will store to Tar.";
-                push( @{ $stores }, $_tar_store );
-
-            }
-            else
-            {
-                die "Download storage location '$location' is not valid.\n";
-            }
+            push( $stores, $store );
         }
     }
 
@@ -140,85 +121,43 @@ sub _download_stores_for_writing($)
     return $stores;
 }
 
+# return true if the system is configured to override the given storage location with gridfs
+sub _override_store_with_gridfs
+{
+    my ( $location ) = @_;
+
+    return 1
+      if ( ( $location eq 'tar' ) && ( lc( $_config->{ mediawords }->{ read_tar_downloads_from_gridfs } eq 'yes' ) ) );
+
+    return 1
+      if ( ( $location eq 'localfile' )
+        && ( lc( $_config->{ mediawords }->{ read_file_downloads_from_gridfs } eq 'yes' ) ) );
+
+    return 0;
+}
+
 # Returns store for fetching downloads from
 sub _download_store_for_reading($)
 {
     my $download = shift;
 
-    my $store;
-
     my $fetch_remote = $_config->{ mediawords }->{ fetch_remote_content } || 'no';
-    if ( $fetch_remote eq 'yes' )
-    {
+    return $_remote_store if ( $fetch_remote eq 'yes' );
 
-        # Remote
-        $store = $_remote_store;
-    }
-    else
-    {
-        my $path = $download->{ path };
-        if ( !$path )
-        {
-            $store = undef;
-        }
-        elsif ( $path =~ /^content:(.*)/ )
-        {
+    my $path = $download->{ path };
+    return undef unless ( $path && ( $path =~ /^([\w]+):/ ) );
 
-            # Inline content
-            $store = $_databaseinline_store;
-        }
-        elsif ( $path =~ /^gridfs:(.*)/ )
-        {
+    my $location = lc( $1 );
 
-            # GridFS
-            $store = $_gridfs_store;
-        }
-        elsif ( $path =~ /^postgresql:(.*)/ )
-        {
+    return $_gridfs_store if ( _override_store_with_gridfs( $location ) );
 
-            # PostgreSQL
-            $store = $_postgresql_store;
-        }
-        elsif ( $path =~ /^s3:(.*)/ )
-        {
+    my $store = $_download_store_lookup->{ lc( $1 ) };
 
-            # Amazon S3
-            $store = $_amazon_s3_store;
-        }
-        elsif ( $download->{ path } =~ /^tar:/ )
-        {
+    return $store if ( $store );
 
-            # Tar
-            if ( lc( $_config->{ mediawords }->{ read_tar_downloads_from_gridfs } ) eq 'yes' )
-            {
+    return $_gridfs_store if ( _override_store_with_gridfs( 'localfile' ) );
 
-                # Force reading Tar downloads from GridFS (after the migration)
-                $store = $_gridfs_store;
-            }
-            else
-            {
-                $store = $_tar_store;
-            }
-        }
-        else
-        {
-
-            # Local file
-            if ( lc( $_config->{ mediawords }->{ read_file_downloads_from_gridfs } ) eq 'yes' )
-            {
-
-                # Force reading file downloads from GridFS (after the migration)
-                $store = $_gridfs_store;
-            }
-            else
-            {
-                $store = $_localfile_store;
-            }
-
-        }
-    }
-
-    return $store;
+    return $_localfile_store;
 }
 
 # fetch the content for the given download as a content_ref
