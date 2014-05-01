@@ -1,12 +1,12 @@
-package MediaWords::DBI::Downloads::Store::GridFS;
+package MediaWords::KeyValueStore::GridFS;
 
-# class for storing / loading downloads in GridFS (MongoDB)
+# class for storing / loading objects (raw downloads, CoreNLP annotator results, ...) to / from Mongo GridFS
 
 use strict;
 use warnings;
 
 use Moose;
-with 'MediaWords::DBI::Downloads::Store';
+with 'MediaWords::KeyValueStore';
 
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
@@ -34,23 +34,37 @@ has '_mongodb_gridfs'   => ( is => 'rw' );
 # Process PID (to prevent forks attempting to clone the MongoDB accessor objects)
 has '_pid' => ( is => 'rw', default => 0 );
 
-# True if the package should connect to the MongoDB GridFS database used for testing
-has '_use_testing_database' => ( is => 'rw', default => 0 );
+# Configuration
+has '_conf_host'          => ( is => 'rw' );
+has '_conf_port'          => ( is => 'rw' );
+has '_conf_database_name' => ( is => 'rw' );
 
 # Constructor
-sub BUILD
+sub BUILD($$)
 {
     my ( $self, $args ) = @_;
 
-    # Get settings
-    if ( $args->{ use_testing_database } )
+    # Get arguments
+    unless ( $args->{ database_name } )
     {
-        $self->_use_testing_database( 1 );
+        die "Please provide 'database_name' argument.\n";
     }
-    else
+    my $gridfs_database_name = $args->{ database_name };
+
+    # Get configuration
+    my $config      = MediaWords::Util::Config::get_config;
+    my $gridfs_host = $config->{ mongodb_gridfs }->{ host };
+    my $gridfs_port = $config->{ mongodb_gridfs }->{ port };
+
+    unless ( $gridfs_host and $gridfs_port )
     {
-        $self->_use_testing_database( 0 );
+        die "GridFS: MongoDB connection settings in mediawords.yml are not configured properly.\n";
     }
+
+    # Store configuration
+    $self->_conf_host( $gridfs_host );
+    $self->_conf_port( $gridfs_port );
+    $self->_conf_database_name( $gridfs_database_name );
 
     $self->_pid( $$ );
 }
@@ -67,45 +81,20 @@ sub _connect_to_mongodb_or_die($)
     }
 
     # Get settings
-    my $mongo_settings;
-    if ( $self->_use_testing_database )
-    {
-        $mongo_settings = MediaWords::Util::Config::get_config->{ mongodb_gridfs }->{ test };
-        unless ( defined( $mongo_settings ) )
-        {
-            die "GridFS: Testing MongoDB database is not configured.\n";
-        }
-        say STDERR "GridFS: Will use testing MongoDB database.";
-    }
-    else
-    {
-        $mongo_settings = MediaWords::Util::Config::get_config->{ mongodb_gridfs }->{ mediawords };
-    }
-
-    unless ( defined( $mongo_settings ) )
-    {
-        die "GridFS: MongoDB connection settings in mediawords.yml are not configured properly.\n";
-    }
-
-    # Check settings
-    my $host          = $mongo_settings->{ host };
-    my $port          = $mongo_settings->{ port };
-    my $database_name = $mongo_settings->{ database };
-
-    unless ( defined( $host ) and defined( $port ) and defined( $database_name ) )
-    {
-        die "GridFS: MongoDB connection settings in mediawords.yml are not configured properly.\n";
-    }
-
     # Connect
     $self->_mongodb_client(
-        MongoDB::MongoClient->new( host => $host, port => $port, query_timeout => MONGODB_QUERY_TIMEOUT ) );
+        MongoDB::MongoClient->new(
+            host          => $self->_conf_host,
+            port          => $self->_conf_port,
+            query_timeout => MONGODB_QUERY_TIMEOUT
+        )
+    );
     unless ( $self->_mongodb_client )
     {
         die "GridFS: Unable to connect to MongoDB.\n";
     }
 
-    $self->_mongodb_database( $self->_mongodb_client->get_database( $database_name ) );
+    $self->_mongodb_database( $self->_mongodb_client->get_database( $self->_conf_database_name ) );
     unless ( $self->_mongodb_database )
     {
         die "GridFS: Unable to choose a MongoDB database.\n";
@@ -120,30 +109,31 @@ sub _connect_to_mongodb_or_die($)
     # Save PID
     $self->_pid( $$ );
 
-    say STDERR "GridFS: Connected to GridFS download storage at '$host:$port/$database_name' for PID $$.";
+    say STDERR "GridFS: Connected to GridFS storage at '" .
+      $self->_conf_host . ":" . $self->_conf_port . "/" . $self->_conf_database_name . "' for PID $$.";
 }
 
-# Returns true if a download already exists in a database
-sub content_exists($$$)
+# Moose method
+sub content_exists($$$;$)
 {
-    my ( $self, $db, $download ) = @_;
+    my ( $self, $db, $object_id, $object_path ) = @_;
 
     $self->_connect_to_mongodb_or_die();
 
-    my $filename = '' . $download->{ downloads_id };
+    my $filename = '' . $object_id;
     my $file = $self->_mongodb_gridfs->find_one( { "filename" => $filename } );
 
     return ( defined $file );
 }
 
-# Removes content
-sub remove_content($$$)
+# Moose method
+sub remove_content($$$;$)
 {
-    my ( $self, $db, $download ) = @_;
+    my ( $self, $db, $object_id, $object_path ) = @_;
 
     $self->_connect_to_mongodb_or_die();
 
-    my $filename = '' . $download->{ downloads_id };
+    my $filename = '' . $object_id;
 
     # Remove file(s) if already exist(s) -- MongoDB might store several versions of the same file
     while ( my $file = $self->_mongodb_gridfs->find_one( { "filename" => $filename } ) )
@@ -156,24 +146,24 @@ sub remove_content($$$)
 }
 
 # Moose method
-sub store_content($$$$;$)
+sub store_content($$$$;$$)
 {
-    my ( $self, $db, $download, $content_ref, $skip_encode_and_gzip ) = @_;
+    my ( $self, $db, $object_id, $content_ref, $skip_encode_and_compress, $use_bzip2_instead_of_gzip ) = @_;
 
     $self->_connect_to_mongodb_or_die();
 
     # Encode + gzip
     my $content_to_store;
-    if ( $skip_encode_and_gzip )
+    if ( $skip_encode_and_compress )
     {
         $content_to_store = $$content_ref;
     }
     else
     {
-        $content_to_store = $self->encode_and_gzip( $content_ref, $download->{ downloads_id } );
+        $content_to_store = $self->encode_and_compress( $content_ref, $object_id, $use_bzip2_instead_of_gzip );
     }
 
-    my $filename = '' . $download->{ downloads_id };
+    my $filename = '' . $object_id;
     my $gridfs_id;
 
     # MongoDB sometimes times out when writing because it's busy creating a new data file,
@@ -191,7 +181,7 @@ sub store_content($$$$;$)
             while ( my $file = $self->_mongodb_gridfs->find_one( { "filename" => $filename } ) )
             {
                 say STDERR "GridFS: Removing existing file '$filename'.";
-                $self->remove_content( $db, $download );
+                $self->remove_content( $db, $object_id );
             }
 
             # Write
@@ -218,25 +208,25 @@ sub store_content($$$$;$)
 
     unless ( $gridfs_id )
     {
-        die "GridFS: Unable to store download '$filename' to GridFS after " . MONGODB_WRITE_RETRIES . " retries.\n";
+        die "GridFS: Unable to store object ID $object_id to GridFS after " . MONGODB_WRITE_RETRIES . " retries.\n";
     }
 
     return $gridfs_id;
 }
 
 # Moose method
-sub fetch_content($$$;$)
+sub fetch_content($$$;$$$)
 {
-    my ( $self, $db, $download, $skip_gunzip_and_decode ) = @_;
+    my ( $self, $db, $object_id, $object_path, $skip_uncompress_and_decode, $use_bunzip2_instead_of_gunzip ) = @_;
 
     $self->_connect_to_mongodb_or_die();
 
-    unless ( $download->{ downloads_id } )
+    unless ( defined $object_id )
     {
-        die "GridFS: Download ID is not defined.\n";
+        die "GridFS: Object ID is undefined.\n";
     }
 
-    my $filename = '' . $download->{ downloads_id };
+    my $filename = '' . $object_id;
 
     my $id = MongoDB::OID->new( filename => $filename );
 
@@ -257,7 +247,7 @@ sub fetch_content($$$;$)
             my $gridfs_file = $self->_mongodb_gridfs->find_one( { 'filename' => $filename } );
             unless ( defined $gridfs_file )
             {
-                die "GridFS: unable to find file with filename '$filename'.";
+                die "GridFS: unable to find file '$filename'.";
             }
             $file                      = $gridfs_file->slurp;
             $attempt_to_read_succeeded = 1;
@@ -275,25 +265,25 @@ sub fetch_content($$$;$)
 
     unless ( $attempt_to_read_succeeded )
     {
-        die "GridFS: Unable to read download '$filename' from GridFS after " . MONGODB_READ_RETRIES . " retries.\n";
+        die "GridFS: Unable to read object ID $object_id from GridFS after " . MONGODB_READ_RETRIES . " retries.\n";
     }
 
     unless ( defined( $file ) )
     {
-        die "GridFS: Could not get file from GridFS for filename " . $filename . "\n";
+        die "GridFS: Could not get file '$filename'.\n";
     }
 
     my $gzipped_content = $file;
 
     # Gunzip + decode
     my $decoded_content;
-    if ( $skip_gunzip_and_decode )
+    if ( $skip_uncompress_and_decode )
     {
         $decoded_content = $gzipped_content;
     }
     else
     {
-        $decoded_content = $self->gunzip_and_decode( \$gzipped_content, $download->{ downloads_id } );
+        $decoded_content = $self->uncompress_and_decode( \$gzipped_content, $object_id, $use_bunzip2_instead_of_gunzip );
     }
 
     return \$decoded_content;

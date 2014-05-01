@@ -10,11 +10,19 @@
 --
 -- You might need to import some additional schema diff files to reach the desired version.
 --
+
 --
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
-alter table dashboards alter column public boolean not null default true;
+SET search_path = public, pg_catalog;
+
+
+ALTER TABLE media
+    ADD COLUMN annotate_with_corenlp BOOLEAN	NOT NULL DEFAULT(false);
+
+ALTER TABLE dashboards
+	ALTER COLUMN public	BOOLEAN	NOT NULL DEFAULT(true);
 
 --
 -- 2 of 2. Reset the database version.
@@ -39,6 +47,7 @@ END;
 $$
 LANGUAGE 'plpgsql';
 
+--
+-- 2 of 2. Reset the database version.
+--
 SELECT set_database_schema_version();
-
-

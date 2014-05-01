@@ -53,18 +53,26 @@ use DBIx::Simple::MediaWords;
 use Feed::Scrape::MediaWords;
 use MediaWords::DB;
 
+# Having a global database object should be safe because
+# Gearman::JobScheduler's workers don't support fork()s anymore
+my $db = undef;
+
 # Run job
 sub run($;$)
 {
     my ( $self, $args ) = @_;
+
+    unless ( $db )
+    {
+        # Postpone connecting to the database so that compile test doesn't do that
+        $db = MediaWords::DB::connect_to_db();
+    }
 
     my $media_id = $args->{ media_id };
     unless ( defined $media_id )
     {
         die "'media_id' is undefined.";
     }
-
-    my $db = MediaWords::DB::connect_to_db();
 
     $db->begin_work;
 
@@ -120,8 +128,6 @@ sub run($;$)
     );
 
     $db->commit;
-
-    $db->disconnect;
 }
 
 no Moose;    # gets rid of scaffolding

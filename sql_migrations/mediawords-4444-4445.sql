@@ -10,9 +10,13 @@
 --
 -- You might need to import some additional schema diff files to reach the desired version.
 --
+
 --
 -- 1 of 2. Import the output of 'apgdiff':
 --
+
+SET search_path = public, pg_catalog;
+
 
 INSERT INTO auth_roles (role, description) VALUES
     ('search', 'Access to the /search pages');
@@ -41,6 +45,7 @@ END;
 $$
 LANGUAGE 'plpgsql';
 
+--
+-- 2 of 2. Reset the database version.
+--
 SELECT set_database_schema_version();
-
-

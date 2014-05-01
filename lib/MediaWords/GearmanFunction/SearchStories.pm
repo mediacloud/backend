@@ -29,19 +29,27 @@ use MediaWords::DB;
 use MediaWords::DBI::Queries;
 use MediaWords::Util::CSV;
 
+# Having a global database object should be safe because
+# Gearman::JobScheduler's workers don't support fork()s anymore
+my $db = undef;
+
 # execute the story search, store the results as a csv in the
 # query_story_search, and mark the query_story_search as completed
 sub run($;$)
 {
     my ( $self, $args ) = @_;
 
+    unless ( $db )
+    {
+        # Postpone connecting to the database so that compile test doesn't do that
+        $db = MediaWords::DB::connect_to_db();
+    }
+
     my $query_story_searches_id = $args->{ query_story_searches_id };
     unless ( defined $query_story_searches_id )
     {
         die "'query_story_searches_id' is undefined.";
     }
-
-    my $db = MediaWords::DB::connect_to_db();
 
     $db->begin_work;
 
@@ -80,8 +88,6 @@ sub run($;$)
     say STDERR "done.";
 
     $db->commit;
-
-    $db->disconnect;
 }
 
 no Moose;    # gets rid of scaffolding

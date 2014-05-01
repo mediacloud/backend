@@ -1,12 +1,15 @@
 #!/usr/bin/env perl
-
-# run a loop extracting the text of any downloads that have not been extracted yet
-
-# usage: mediawords_extract_text.pl [<num of processes>] [<number of total jobs>] [<number of this job>]
 #
-# example:
-# mediawords_extract_text.pl 20 2 1
+# Run a loop extracting the text of any downloads that have not been extracted
+# yet locally (not on Gearman)
+#
+# Usage: mediawords_extract_and_vector_locally.pl [<num of processes>] [<number of total jobs>] [<number of this job>]
+#
+# Example:
+#
+# mediawords_extract_and_vector_locally.pl 20 2 1
 # (extracts with 20 total processes, divided into 2 jobs, of which this is the first one)
+#
 
 # number of downloads to fetch at a time
 use constant PROCESS_SIZE => 100;
@@ -20,11 +23,12 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
-use MediaWords::DB;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
-
 use MediaWords::Util::MC_Fork;
+
+use MediaWords::DB;
+use MediaWords::GearmanFunction::ExtractAndVector;
 
 # extract, story, and tag downloaded text a slice of downloads.
 # downloads are extracted by a total of num_total_jobs processings
@@ -36,63 +40,53 @@ sub extract_text($$$$)
 
     my $db = MediaWords::DB::connect_to_db;
 
-    $db->dbh->{ AutoCommit } = 0;
-
     my $job_process_num = $process_num + int( ( $num_total_processes / $num_total_jobs ) * ( $job_number - 1 ) );
-    my $process_id = "$process_num, $job_process_num";
-
-    use MediaWords::DBI::DownloadTexts;
-    use MediaWords::DBI::Stories;
-    use MediaWords::StoryVectors;
 
     while ( 1 )
     {
+
         say STDERR "[$process_num, $job_process_num] find new downloads...";
 
         my $downloads = $db->query(
             <<EOF,
-            SELECT d.*
-            FROM downloads d
-            WHERE d.extracted = 'f'
-              AND d.type = 'content'
-              AND d.state = 'success'
-              AND (( ( d.stories_id + ? ) % ? ) = 0 )
+
+            SELECT downloads_id
+            FROM downloads
+            WHERE extracted = 'f'
+              AND type = 'content'
+              AND state = 'success'
+              AND (( ( stories_id + ? ) % ? ) = 0 )
             ORDER BY stories_id ASC
             LIMIT ?
 EOF
             $job_process_num, $num_total_processes, PROCESS_SIZE
         );
 
-        # my $downloads = $db->query( "select * from downloads where stories_id = 418981" );
-        my $download_found;
+        my $at_least_one_download_found = 0;
         while ( my $download = $downloads->hash() )
         {
-            $download_found = 1;
+            $at_least_one_download_found = 1;
+            my $return_value = 0;
 
             eval {
-                MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, $process_id );
+
+                # Run the Gearman function locally
+                $return_value = MediaWords::GearmanFunction::ExtractAndVector->run_locally( $download );
 
             };
-
-            if ( $@ )
+            if ( $@ or ( !$return_value ) )
             {
-                say STDERR "[$process_num] extractor error processing download " . $download->{ downloads_id } . ": $@";
-                $db->rollback;
 
-                $db->query(
-                    <<EOF,
-                    UPDATE downloads
-                    SET state = 'extractor_error',
-                        error_message = ?
-                    WHERE downloads_id = ?
-EOF
-                    "extractor error: $@", $download->{ downloads_id }
-                );
+                # Probably the download was not found (Gearman function will
+                # take care of writing an error message to the database, so we
+                # only output an error here)
+                say STDERR "Extractor died while processing download " . $download->{ downloads_id } . ": $@\n";
+
             }
-            $db->commit;
+
         }
 
-        if ( !$download_found )
+        if ( !$at_least_one_download_found )
         {
             say STDERR "[$process_num] no downloads found. sleeping ...";
             sleep 60;
@@ -161,8 +155,5 @@ sub main
         }
     }
 }
-
-# use Test::LeakTrace;
-# leaktrace { main(); };
 
 main();

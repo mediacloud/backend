@@ -1,34 +1,51 @@
 ---
 name: MediaWords
 
-### database settings. at least one database connection must be defined
+### database settings. at least one database connection must be defined. the
+### main "production" database should be the first one below.
 database:
+
+    # production
     - label : "LABEL"
       type  : "pg"
       host  : "localhost"
+      port  : 5432
       db    : "mediacloud"
       user  : "mediaclouduser"
       pass  : "mediacloud"
 
+    # unit tests
     - label : "test"
       type  : "pg"
       host  : "localhost"
+      port  : 5432
       db    : "mediacloud_test"
       user  : "mediaclouduser"
       pass  : "mediacloud"
 
-### MongoDB connection settings for storing downloads in GridFS
+    # persistent "gearmand" queue
+    - label : "gearman"
+      type  : "pg"
+      host  : "localhost"
+      port  : 5432
+      db    : "mediacloud_gearman"
+      user  : "mediaclouduser"
+      pass  : "mediacloud"
+
+
+### MongoDB connection settings
 #mongodb_gridfs:
-    ### Production database
-    #mediawords:
-        #host      : "localhost" 
-        #port      : "27017" 
-        #database  : "mediacloud_downloads_gridfs"
-    ### Testing database
+    #host : "localhost"
+    #port : "27017"
+    ### Database for storing raw downloads
+    #downloads:
+        #database_name : "mediacloud_downloads_gridfs"
+    ### Database for testing
     #test:
-        #host      : "localhost" 
-        #port      : "27017" 
-        #database  : "mediacloud_downloads_gridfs_test"
+        #database_name : "mediacloud_downloads_gridfs_test"
+    ### (optional) Database for storing CoreNLP annotator results
+    #corenlp:
+        #database_name : "mediacloud_corenlp"
 
 ### Amazon S3 connection settings
 #amazon_s3:
@@ -37,23 +54,28 @@ database:
     #access_key_id       : "AKIAIOSFODNN7EXAMPLE"
     #secret_access_key   : "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
 
-    ### Production bucket
-    #mediawords:
-        #bucket_name             : "mediacloud"
-        #downloads_folder_name   : "downloads"
+    ### Bucket for storing downloads
+    #downloads:
+        #bucket_name    : "mediacloud"
+        #directory_name : "downloads"
 
-    ### Testing bucket
+    ### Bucket for testing
     #test:
-        #bucket_name             : "mediacloud_test"
-        #downloads_folder_name   : "downloads_test"
+        #bucket_name    : "mediacloud_test"
+        #directory_name : "downloads_test"
 
-### Gearman (p5-Gearman-JobScheduler) configuration
+### Gearman worker (p5-Gearman-JobScheduler) configuration
 ### (to enable Gearman, add at least one server)
 #gearman:
 
     ### Gearman servers (required)
     #servers:
-    #    - "127.0.0.1:4730"
+        ### By default "gearmand" works on port 4730; "gearmand" run as a
+        ### Supervisord daemon (see below) runs on 4731.
+        ### It is recommended to use Media Cloud-provided Gearman instance
+        ### instead of relying on system's because of a persistent
+        ### (PostgreSQL-backed) job queue and Supervisord logging facilities.
+        #- "127.0.0.1:4731"
 
     ### Worker log directory (optional; default is "Sys::Path->logdir . '/gjs/'")
     #worker_log_dir: "data/gearman_worker_logs/"
@@ -71,12 +93,91 @@ database:
         ### Email subject prefix (optional; default is "[GJS]")
         #subject_prefix: "[GJS]"
 
+### Gearman server (gearmand) configuration
+#gearmand:
+
+    ### To enable your very own "gearmand" instance managed by Supervisord, set
+    ### the below to "yes"
+    #enabled: "no"
+
+    ### Host to listen to. You can set the above parameter to an empty string
+    ### so that Gearman will accept connections from anywhere; however, it is
+    ### highly advised use secure channels (e.g. a SSH tunnel) to make Gearman
+    ### accessible to "outside" instead.
+    #listen: "127.0.0.1"
+
+    ### Port to use in gearmand. Default port for vendor-provided Gearman
+    ### deployments is 4730, but Media Cloud runs its own Gearman instance via
+    ### Supervisord.
+    #port: 4731
+
 ### Supervisor (supervisord) configuration
 #supervisor:
 
     ### The log directory for child process logs (absolute or relative to Media
     ### Cloud's root; must already exist)
     #childlogdir: "data/supervisor_logs/"
+
+### CoreNLP annotator
+#corenlp:
+
+    ### Enable CoreNLP processing
+    ### If enabled, CoreNLP processing will happen after every "content"
+    ### download extraction
+    #enabled: "no"
+
+    ### Annotator URL
+    #annotator_url: "http://www.example.com:8080/corenlp/annotator"
+
+    ### Annotator timeout (in seconds)
+    ### If you annotate huge chunks of text or the CoreNLP annotator is busy in
+    ### general, you might want to increase this value even more because
+    ### otherwise the Gearman worker will exit() often.
+    #annotator_timeout: 600
+
+    ###
+    ### Also see: "mongodb_gridfs/corenlp/database_name" configuration property above
+    ###
+
+### CRF model runner web service
+#crf_web_service:
+
+    ### To enable the CRF model runner via the web service (both the Java
+    ### server and extractor client), set the below to "yes".
+    ###
+    ### If the service is enabled, Supervisord will start a CRF model runner
+    ### web service which will then be used by the extractor.
+    ###
+    ### If the service is disabled, Supervisord will *not* start a CRF model
+    ### runner web service, and extractor will use Inline::Java to run the CRF
+    ### model instead.
+    #enabled: "no"
+
+    ### URL of the CRF model runner web service the extractor should use to do
+    ### the CRF processing.
+    ###
+    ### If you are running the CRF model runner web service on the very same
+    ### machine as the extractor, leave this parameter intact. The parameter is
+    ### only useful if you are running the CRF model runner web service on a
+    ### different machine than the extractor.
+    #server_url: "http://127.0.0.1:8441/crf"
+
+    ### Host(:port) the CRF model runner web service should to listen to for
+    ### processing requests from the extractor.
+    ###
+    ### You can set the above parameter to an empty string so that CRF model
+    ### runner web service will accept connections from anywhere. However, it
+    ### is highly advised use secure channels (e.g. a SSH tunnel) to make CRF
+    ### model runner accessible to "outside" instead.
+    ###
+    ### Default port is 8441.
+    #listen: "127.0.0.1:8441"
+
+    ### Number of threads the CRF model runner web service should spawn.
+    ###
+    ### More threads will serve more model runner requests per seconds, but
+    ### will take up more memory.
+    #number_of_threads: 32
 
 #mail:
     # Email address to receive bug report emails; leave empty for no bug reports via email

@@ -30,7 +30,7 @@ sub BUILD
 override 'gearman_servers' => sub {
     my $self = shift;
 
-    return $self->mc_config->{ gearman }->{ servers } // $self->SUPER::gearman_servers();
+    return $self->mc_config->{ gearman }->{ servers };
 };
 
 # Where should the worker put the logs

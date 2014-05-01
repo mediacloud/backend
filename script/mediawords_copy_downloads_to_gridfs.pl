@@ -24,9 +24,11 @@ BEGIN
 use MediaWords::DB;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
-use MediaWords::DBI::Downloads::Store::LocalFile;
-use MediaWords::DBI::Downloads::Store::Tar;
-use MediaWords::DBI::Downloads::Store::GridFS;
+use MediaWords::Util::Config;
+use MediaWords::Util::Paths;
+use MediaWords::KeyValueStore::LocalFile;
+use MediaWords::KeyValueStore::Tar;
+use MediaWords::KeyValueStore::GridFS;
 use Getopt::Long;
 
 {
@@ -177,11 +179,15 @@ sub _write_downloads_id_resume_log($$)
         $global_resume_downloads_id     = 0;
 
         # Source stores
-        my $tar_store       = MediaWords::DBI::Downloads::Store::Tar->new();
-        my $localfile_store = MediaWords::DBI::Downloads::Store::LocalFile->new();
+        my $tar_store =
+          MediaWords::KeyValueStore::Tar->new( { data_content_dir => MediaWords::Util::Paths::get_data_content_dir } );
+        my $localfile_store =
+          MediaWords::KeyValueStore::LocalFile->new( { data_content_dir => MediaWords::Util::Paths::get_data_content_dir } );
 
         # Target store
-        my $gridfs_store = MediaWords::DBI::Downloads::Store::GridFS->new();
+        my $config       = MediaWords::Util::Config::get_config;
+        my $gridfs_store = MediaWords::KeyValueStore::GridFS->new(
+            { database_name => $config->{ mongodb_gridfs }->{ downloads }->{ database_name } } );
 
         $db = MediaWords::DB::connect_to_db;
 
@@ -292,7 +298,7 @@ EOF
                     ++$downloads_found;
 
                     # Skip the download if it already exists in MongoDB
-                    if ( $gridfs_store->content_exists( $db, $download ) )
+                    if ( $gridfs_store->content_exists( $db, $download->{ downloads_id }, $download->{ downloads_path } ) )
                     {
 
                         say STDERR "Download " . $download->{ downloads_id } . " already exists, skipping.";
@@ -304,14 +310,19 @@ EOF
                     # Skipping gunzipping, decoding, encoding and gzipping again would improve the
                     # migration speed, but for the sake of trying MongoDBs stability and performance
                     # we go the full way.
-                    my Readonly $skip_gunzip_and_decode = 0;
-                    my Readonly $skip_encode_and_gzip   = 0;
+                    my Readonly $skip_uncompress_and_decode = 0;
+                    my Readonly $skip_encode_and_compress   = 0;
 
                     # Fetch from Tar
                     my $content_ref;
                     eval {
                         say STDERR "Fetching download..." if ( _verbose() );
-                        $content_ref = $store->fetch_content( $db, $download, $skip_gunzip_and_decode );
+                        $content_ref = $store->fetch_content(
+                            $db,
+                            $download->{ downloads_id },
+                            $download->{ downloads_path },
+                            $skip_uncompress_and_decode
+                        );
                         say STDERR "Done fetching download." if ( _verbose() );
                     };
                     if ( $@ or ( !$content_ref ) )
@@ -325,7 +336,8 @@ EOF
                     say STDERR "Will store download to GridFS..." if ( _verbose() );
 
                     # Store to GridFS
-                    my $gridfs_path = $gridfs_store->store_content( $db, $download, $content_ref, $skip_encode_and_gzip );
+                    my $gridfs_path = $gridfs_store->store_content( $db, $download->{ downloads_id },
+                        $content_ref, $skip_encode_and_compress );
                     unless ( $gridfs_path )
                     {
                         die "Unable to store content for download " . $download->{ downloads_id };

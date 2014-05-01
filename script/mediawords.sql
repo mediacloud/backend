@@ -333,6 +333,10 @@ create table media (
     is_not_dup          boolean         null,
     use_pager           boolean         null,
     unpaged_stories     int             not null default 0,
+
+    -- Annotate stories from this media source with CoreNLP?
+    annotate_with_corenlp   BOOLEAN     NOT NULL DEFAULT(false),
+
     CONSTRAINT media_name_not_empty CHECK ( ( (name)::text <> ''::text ) ),
     CONSTRAINT media_self_dup CHECK ( dup_media_id IS NULL OR dup_media_id <> media_id )
 );
@@ -937,10 +941,10 @@ CREATE VIEW downloads_sites as select site_from_host( host ) as site, * from dow
 --
 CREATE TABLE raw_downloads (
     raw_downloads_id    SERIAL      PRIMARY KEY,
-    downloads_id        INTEGER     NOT NULL REFERENCES downloads ON DELETE CASCADE,
+    object_id           INTEGER     NOT NULL REFERENCES downloads ON DELETE CASCADE,
     raw_data            BYTEA       NOT NULL
 );
-CREATE UNIQUE INDEX raw_downloads_downloads_id ON raw_downloads (downloads_id);
+CREATE UNIQUE INDEX raw_downloads_object_id ON raw_downloads (object_id);
 
 
 create table feeds_stories_map

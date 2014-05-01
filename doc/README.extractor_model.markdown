@@ -1,12 +1,13 @@
 These are some rouch instructions for regenerating the extractor model.
-The instructions assume that the file /home/dlarochelle/R/machine_learning/training_download_information.dat contains a Perl Store representation of download objects.
 
-Steps :
+The instructions assume that the file `/home/dlarochelle/R/machine_learning/training_download_information.dat` contains a [Perl Storable](http://perldoc.perl.org/Storable.html) representation of download objects.
+
+Steps:
 
 ```
 ./script/run_with_carton.sh ./script/mediawords_extractor_test_to_features.pl --file=/home/dlarochelle/R/machine_learning/training_download_information.dat  >  features_regen/all_training_downloads_features.dat
 time nice ./script/run_with_carton.sh script/crf_create_model.pl features_regen/all_training_downloads_features.dat 500
-cp features_regen/all_training_downloads_featuresModel.txt lib/CRF/models/extractor_model
+cp features_regen/all_training_downloads_featuresModel.txt lib/MediaWords/Util/models/crf_extractor_model
 ```
 
 Run the following and verify that the mode is sane:
