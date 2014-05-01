@@ -118,7 +118,11 @@ sub index : Path : Args(0)
     my $csv = $c->req->params->{ csv };
 
     my $solr_params = { q => $q };
-    if ( !$csv )
+    if ( $csv )
+    {
+        $solr_params->{ rows } = 100_000;
+    }
+    else
     {
         $solr_params->{ sort } = 'random_1 asc';
         $solr_params->{ rows } = 100;

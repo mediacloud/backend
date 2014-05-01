@@ -42,10 +42,11 @@ VERIFY
 
 gearman:add_default_feeds_00     RUNNING
 gearman:add_default_feeds_01     RUNNING
+gearman:extract_and_vector_00    RUNNING
+gearman:extract_and_vector_01    RUNNING
 gearman:search_stories_00        RUNNING
 gearman:search_stories_01        RUNNING
 mc:crawler                       RUNNING
-mc:extract_and_vector            RUNNING
 mc:process_story_subsets         RUNNING
 
 TEST

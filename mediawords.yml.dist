@@ -1,18 +1,24 @@
 ---
 name: MediaWords
 
-### database settings. at least one database connection must be defined
+### database settings. at least one database connection must be defined. the
+### main "production" database should be the first one below.
 database:
+
+    # production
     - label : "LABEL"
       type  : "pg"
       host  : "localhost"
+      port  : 5432
       db    : "mediacloud"
       user  : "mediaclouduser"
       pass  : "mediacloud"
 
+    # unit tests
     - label : "test"
       type  : "pg"
       host  : "localhost"
+      port  : 5432
       db    : "mediacloud_test"
       user  : "mediaclouduser"
       pass  : "mediacloud"
@@ -21,6 +27,7 @@ database:
     - label : "gearman"
       type  : "pg"
       host  : "localhost"
+      port  : 5432
       db    : "mediacloud_gearman"
       user  : "mediaclouduser"
       pass  : "mediacloud"
@@ -131,6 +138,46 @@ database:
     ###
     ### Also see: "mongodb_gridfs/corenlp/database_name" configuration property above
     ###
+
+### CRF model runner web service
+#crf_web_service:
+
+    ### To enable the CRF model runner via the web service (both the Java
+    ### server and extractor client), set the below to "yes".
+    ###
+    ### If the service is enabled, Supervisord will start a CRF model runner
+    ### web service which will then be used by the extractor.
+    ###
+    ### If the service is disabled, Supervisord will *not* start a CRF model
+    ### runner web service, and extractor will use Inline::Java to run the CRF
+    ### model instead.
+    #enabled: "no"
+
+    ### URL of the CRF model runner web service the extractor should use to do
+    ### the CRF processing.
+    ###
+    ### If you are running the CRF model runner web service on the very same
+    ### machine as the extractor, leave this parameter intact. The parameter is
+    ### only useful if you are running the CRF model runner web service on a
+    ### different machine than the extractor.
+    #server_url: "http://127.0.0.1:8441/crf"
+
+    ### Host(:port) the CRF model runner web service should to listen to for
+    ### processing requests from the extractor.
+    ###
+    ### You can set the above parameter to an empty string so that CRF model
+    ### runner web service will accept connections from anywhere. However, it
+    ### is highly advised use secure channels (e.g. a SSH tunnel) to make CRF
+    ### model runner accessible to "outside" instead.
+    ###
+    ### Default port is 8441.
+    #listen: "127.0.0.1:8441"
+
+    ### Number of threads the CRF model runner web service should spawn.
+    ###
+    ### More threads will serve more model runner requests per seconds, but
+    ### will take up more memory.
+    #number_of_threads: 32
 
 #mail:
     # Email address to receive bug report emails; leave empty for no bug reports via email

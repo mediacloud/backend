@@ -13,6 +13,7 @@ use IPC::Open2;
 use Text::Trim;
 use File::Spec;
 use File::Basename;
+use CRF::CrfUtils;
 
 use Moose;
 
@@ -20,7 +21,9 @@ with 'MediaWords::Util::Extractor';
 
 my $_model_file_name;
 
-BEGIN
+# FIXME: make path to the extractor model configurable because that way Java
+# wouldn't have to use hardcoded path to the extractor model
+sub get_path_to_extractor_model()
 {
     my $_dirname      = dirname( __FILE__ );
     my $_dirname_full = File::Spec->rel2abs( $_dirname );
@@ -28,32 +31,15 @@ BEGIN
     $_model_file_name = "$_dirname_full/models/crf_extractor_model";
 
     #say STDERR "model_file: $_model_file_name";
+
+    return $_model_file_name;
 }
 
-# Loading of CRF::CrfUtils is postponed because it compiles + loads a Java
-# class with JVM and that in turn slows down scripts that don't have anything
-# to do with extraction
-my $_crf_crfutils_loaded = 0;
-
-sub _load_crf_crfutils()
+BEGIN
 {
-    unless ( $_crf_crfutils_loaded )
-    {
-        my $module = 'CRF::CrfUtils';
+    $_model_file_name = get_path_to_extractor_model();
 
-        eval {
-            ( my $file = $module ) =~ s|::|/|g;
-            require $file . '.pm';
-            $module->import();
-            1;
-        } or do
-        {
-            my $error = $@;
-            die "Unable to load $module: $error";
-        };
-
-        $_crf_crfutils_loaded = 1;
-    }
+    #say STDERR "model_file: $_model_file_name";
 }
 
 sub getScoresAndLines
@@ -106,8 +92,6 @@ sub get_extracted_lines_with_crf
 
     #say STDERR "using model file: '$model_file_name'";
 
-    _load_crf_crfutils();
-
     my $predictions = CRF::CrfUtils::run_model_inline_java_data_array( $model_file_name, $feature_strings );
 
     #my $predictions = CRF::CrfUtils::run_model_with_separate_exec( $model_file_name, $feature_strings );
@@ -117,7 +101,10 @@ sub get_extracted_lines_with_crf
     #say STDERR Dumper( $feature_strings );
     #say STDERR ( Dumper( $predictions ) );
 
-    die unless scalar( @$predictions ) == scalar( @$feature_strings );
+    unless ( scalar( @$predictions ) == scalar( @$feature_strings ) )
+    {
+        die "Prediction count is not equal to the feature string count.\n";
+    }
 
     #say STDERR "non_auto_excluded_line_infos, feature_strings, predictions zipped";
     #say STDERR Dumper( [ List::MoreUtils::zip( @$non_autoexcluded_line_infos, @$feature_strings, @$predictions ) ] );
@@ -127,7 +114,10 @@ sub get_extracted_lines_with_crf
 
     my @extracted_lines;
 
-    die unless scalar( @$predictions ) <= scalar( @$line_infos );
+    unless ( scalar( @$predictions ) <= scalar( @$line_infos ) )
+    {
+        die "Prediction count is bigger than the line info count.\n";
+    }
 
     while ( $line_index < scalar( @{ $line_infos } ) )
     {
@@ -139,11 +129,11 @@ sub get_extracted_lines_with_crf
 
         my $prediction = rtrim $predictions->[ $prediction_index ];
 
-        die "Invalid prediction: '$prediction' for line index $line_index and prediction_index $prediction_index " .
-          Dumper( $predictions )
-          unless ( $prediction eq 'excluded' )
-          or ( $prediction eq 'required' )
-          or ( $prediction eq 'optional' );
+        unless ( $prediction eq 'excluded' or $prediction eq 'required' or $prediction eq 'optional' )
+        {
+            die 'Invalid prediction: "' . $prediction . '" for line index ' .
+              $line_index . ' and prediction_index ' . $prediction_index . ': ' . Dumper( $predictions );
+        }
 
         #say STDERR "$prediction";
         if ( $prediction ne 'excluded' )

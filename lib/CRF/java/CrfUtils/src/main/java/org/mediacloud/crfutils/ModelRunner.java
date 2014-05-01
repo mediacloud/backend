@@ -28,6 +28,10 @@ public class ModelRunner {
                 modelFileName));
         crf = (CRF) s.readObject();
         s.close();
+
+        // Mallet's thread safety trick -- http://comments.gmane.org/gmane.comp.ai.mallet.devel/271
+        Pipe p = crf.getInputPipe();
+        p.getDataAlphabet().stopGrowth();
     }
 
     public String[] runModel(String testFileName) throws Exception {

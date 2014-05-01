@@ -74,7 +74,8 @@ EOF
     brew install \
         graphviz --with-bindings \
         coreutils postgresql curl tidy libyaml berkeley-db4 gawk cpanminus \
-        gearman --with-postgresql
+        gearman --with-postgresql \
+        maven
 
     # have to change dir or it think you are trying to install from the supervisor/ dir
     ( cd /tmp; easy_install supervisor )
@@ -111,7 +112,7 @@ else
         python-lxml-dbg python-lxml-doc python-libxml2 libxml2-dev \
         libxslt1-dev libxslt1-dbg libxslt1.1 build-essential make gcc g++ \
         cpanminus perl-doc liblocale-maketext-lexicon-perl openjdk-7-jdk \
-        pandoc gearman libgearman-dev
+        pandoc gearman libgearman-dev maven
 
     # Apt's version of Supervisor is too old
     sudo apt-get remove -y supervisor
