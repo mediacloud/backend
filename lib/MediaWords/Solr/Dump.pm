@@ -181,7 +181,6 @@ END
         # cpu is a significant bottleneck for this script
         while ( my $row = $sth->fetchrow_arrayref )
         {
-            print STDERR time . " " . ( $i * $FETCH_BLOCK_SIZE ) . "\n" if ( $i++ );
             my $stories_id         = $row->[ 0 ];
             my $media_id           = $row->[ 1 ];
             my $story_sentences_id = $row->[ 3 ];
@@ -198,6 +197,7 @@ END
                 $ss_tags_list );
             print FILE encode( 'utf8', $csv->string . "\n" );
         }
+        print STDERR time . " " . ( $i * $FETCH_BLOCK_SIZE ) . "\n" if ( $i++ );
     }
 
     $dbh->do( "close csr" );
