@@ -1071,7 +1071,7 @@ sub mark_as_processed($$)
     my ( $db, $stories_id ) = @_;
 
     my $result;
-    eval { $db->create( 'processed_stories', { stories_id => $stories_id } ); };
+    eval { $result = $db->create( 'processed_stories', { stories_id => $stories_id } ); };
     if ( $@ or ( !$result ) )
     {
         say STDERR "Unable to insert story ID $stories_id into 'processed_stories': $@";

@@ -26,46 +26,32 @@ use MediaWords::Util::HeuristicExtractor;
 use MediaWords::Util::CrfExtractor;
 use MediaWords::GearmanFunction::AnnotateWithCoreNLP;
 
-# Download store instances
-my $_databaseinline_store;
-my $_localfile_store;
-my $_postgresql_store;
-my $_tar_store;
-my $_amazon_s3_store;    # might be nil if not configured
-my $_gridfs_store;       # might be nil if not configured
-my $_remote_store;       # might be nil if not configured
-
 # Database inline content length limit
 use constant INLINE_CONTENT_LENGTH => 256;
 
-# lookup table for download store objects.  initialized in BEGIN below;
+# lookup table for download store objects; initialized in BEGIN below
 my $_download_store_lookup;
+
+# cached configuration; initialized in BEGIN below
+my $_config;
 
 # Constructor
 BEGIN
 {
-    $_amazon_s3_store      = MediaWords::DBI::Downloads::Store::AmazonS3->new();
-    $_databaseinline_store = MediaWords::DBI::Downloads::Store::DatabaseInline->new();
-    $_gridfs_store         = MediaWords::DBI::Downloads::Store::GridFS->new();
-    $_localfile_store      = MediaWords::DBI::Downloads::Store::LocalFile->new();
-    $_postgresql_store     = MediaWords::DBI::Downloads::Store::PostgreSQL->new();
-    $_remote_store         = MediaWords::DBI::Downloads::Store::Remote->new();
-    $_tar_store            = MediaWords::DBI::Downloads::Store::Tar->new();
-
     $_download_store_lookup = {
-        'amazon_s3'      => $_amazon_s3_store,
-        'databaseinline' => $_databaseinline_store,
-        'gridfs'         => $_gridfs_store,
-        'localfile'      => $_localfile_store,
-        'postgresql'     => $_postgresql_store,
-        'remote'         => $_remote_store,
-        'tar'            => $_tar_store
+        databaseinline => undef,
+        localfile      => undef,
+        postgresql     => undef,
+        tar            => undef,
+        amazon_s3      => undef,    # might remain 'undef' if not configured
+        gridfs         => undef,    # might remain 'undef' if not configured
+        remote         => undef,    # might remain 'undef' if not configured
     };
 
-    # Early sanity check on configuration
-    my $config = MediaWords::Util::Config::get_config;
+    $_config = MediaWords::Util::Config::get_config;
 
-    my $download_storage_locations = $config->{ mediawords }->{ download_storage_locations };
+    # Early sanity check on configuration
+    my $download_storage_locations = $_config->{ mediawords }->{ download_storage_locations };
     if ( scalar( @{ $download_storage_locations } ) == 0 )
     {
         die "No download storage methods are configured.\n";
@@ -80,7 +66,7 @@ BEGIN
             die "download_storage_location $location is not valid for storage";
         }
 
-        unless ( $_download_store_lookup->{ $download_storage_location } )
+        unless ( exists $_download_store_lookup->{ $download_storage_location } )
         {
             die "download_storage_location '$download_storage_location' is not valid.";
         }
@@ -89,61 +75,62 @@ BEGIN
     my %enabled_download_storage_locations = map { $_ => 1 } @{ $download_storage_locations };
 
     # Test if all enabled storage locations are also configured
-    if ( exists( $enabled_download_storage_locations{ 'amazon_s3' } ) )
+    if ( exists( $enabled_download_storage_locations{ amazon_s3 } ) )
     {
-        unless ( $config->{ amazon_s3 } )
+        unless ( $_config->{ amazon_s3 } )
         {
             die "'amazon_s3' storage location is enabled, but Amazon S3 is not configured.\n";
         }
     }
-    if ( exists( $enabled_download_storage_locations{ 'gridfs' } ) )
+    if ( exists( $enabled_download_storage_locations{ gridfs } ) )
     {
-        unless ( $config->{ mongodb_gridfs } )
+        unless ( $_config->{ mongodb_gridfs } )
         {
             die "'gridfs' storage location is enabled, but MongoDB GridFS is not configured.\n";
         }
     }
 
     # Initialize key value stores for downloads
-    if ( $config->{ amazon_s3 } )
+    if ( $_config->{ amazon_s3 } )
     {
-        $_amazon_s3_store = MediaWords::KeyValueStore::AmazonS3->new(
+        $_download_store_lookup->{ amazon_s3 } = MediaWords::KeyValueStore::AmazonS3->new(
             {
-                bucket_name    => $config->{ amazon_s3 }->{ downloads }->{ bucket_name },
-                directory_name => $config->{ amazon_s3 }->{ downloads }->{ directory_name }
+                bucket_name    => $_config->{ amazon_s3 }->{ downloads }->{ bucket_name },
+                directory_name => $_config->{ amazon_s3 }->{ downloads }->{ directory_name }
             }
         );
     }
 
-    $_databaseinline_store = MediaWords::KeyValueStore::DatabaseInline->new(
+    $_download_store_lookup->{ databaseinline } = MediaWords::KeyValueStore::DatabaseInline->new(
         {
             # no arguments are needed
         }
     );
 
-    if ( $config->{ mongodb_gridfs } )
+    if ( $_config->{ mongodb_gridfs } )
     {
-        $_gridfs_store = MediaWords::KeyValueStore::GridFS->new(
-            { database_name => $config->{ mongodb_gridfs }->{ downloads }->{ database_name } } );
+        $_download_store_lookup->{ gridfs } = MediaWords::KeyValueStore::GridFS->new(
+            { database_name => $_config->{ mongodb_gridfs }->{ downloads }->{ database_name } } );
     }
 
-    $_localfile_store =
+    $_download_store_lookup->{ localfile } =
       MediaWords::KeyValueStore::LocalFile->new( { data_content_dir => MediaWords::Util::Paths::get_data_content_dir } );
 
-    $_postgresql_store = MediaWords::KeyValueStore::PostgreSQL->new( { table_name => 'raw_downloads' } );
+    $_download_store_lookup->{ postgresql } =
+      MediaWords::KeyValueStore::PostgreSQL->new( { table_name => 'raw_downloads' } );
 
-    if ( $config->{ mediawords }->{ fetch_remote_content_url } )
+    if ( $_config->{ mediawords }->{ fetch_remote_content_url } )
     {
-        $_remote_store = MediaWords::KeyValueStore::Remote->new(
+        $_download_store_lookup->{ remote } = MediaWords::KeyValueStore::Remote->new(
             {
-                url      => $config->{ mediawords }->{ fetch_remote_content_url },
-                username => $config->{ mediawords }->{ fetch_remote_content_user },
-                password => $config->{ mediawords }->{ fetch_remote_content_password }
+                url      => $_config->{ mediawords }->{ fetch_remote_content_url },
+                username => $_config->{ mediawords }->{ fetch_remote_content_user },
+                password => $_config->{ mediawords }->{ fetch_remote_content_password }
             }
         );
     }
 
-    $_tar_store =
+    $_download_store_lookup->{ tar } =
       MediaWords::KeyValueStore::Tar->new( { data_content_dir => MediaWords::Util::Paths::get_data_content_dir } );
 }
 
@@ -156,20 +143,18 @@ sub _download_stores_for_writing($)
 
     if ( length( $$content_ref ) < INLINE_CONTENT_LENGTH )
     {
-        unless ( $_databaseinline_store )
+        unless ( $_download_store_lookup->{ databaseinline } )
         {
             die "DatabaseInline store is not initialized, although it is required by _download_stores_for_writing().\n";
         }
 
         # Inline
         #say STDERR "Will store inline.";
-        push( @{ $stores }, $_databaseinline_store );
+        push( @{ $stores }, $_download_store_lookup->{ databaseinline } );
     }
     else
     {
-        my $config = MediaWords::Util::Config::get_config;
-
-        my $download_storage_locations = $config->{ mediawords }->{ download_storage_locations };
+        my $download_storage_locations = $_config->{ mediawords }->{ download_storage_locations };
         foreach my $download_storage_location ( @{ $download_storage_locations } )
         {
             my $store = $_download_store_lookup->{ lc( $download_storage_location ) }
@@ -192,12 +177,15 @@ sub _override_store_with_gridfs
 {
     my ( $location ) = @_;
 
-    return 1
-      if ( ( $location eq 'tar' ) && ( lc( $_config->{ mediawords }->{ read_tar_downloads_from_gridfs } eq 'yes' ) ) );
+    if ( ( $location eq 'tar' ) and ( lc( $_config->{ mediawords }->{ read_tar_downloads_from_gridfs } eq 'yes' ) ) )
+    {
+        return 1;
+    }
 
-    return 1
-      if ( ( $location eq 'localfile' )
-        && ( lc( $_config->{ mediawords }->{ read_file_downloads_from_gridfs } eq 'yes' ) ) );
+    if ( ( $location eq 'localfile' ) and ( lc( $_config->{ mediawords }->{ read_file_downloads_from_gridfs } eq 'yes' ) ) )
+    {
+        return 1;
+    }
 
     return 0;
 }
@@ -208,22 +196,36 @@ sub _download_store_for_reading($)
     my $download = shift;
 
     my $fetch_remote = $_config->{ mediawords }->{ fetch_remote_content } || 'no';
-    return $_remote_store if ( $fetch_remote eq 'yes' );
+    if ( $fetch_remote eq 'yes' )
+    {
+        return $_download_store_lookup->{ remote };
+    }
 
     my $path = $download->{ path };
-    return undef unless ( $path && ( $path =~ /^([\w]+):/ ) );
+    unless ( $path and ( $path =~ /^([\w]+):/ ) )
+    {
+        return undef;
+    }
 
     my $location = lc( $1 );
 
-    return $_gridfs_store if ( _override_store_with_gridfs( $location ) );
+    if ( _override_store_with_gridfs( $location ) )
+    {
+        return $_download_store_lookup->{ gridfs };
+    }
 
     my $store = $_download_store_lookup->{ lc( $1 ) };
+    if ( $store )
+    {
+        return $store;
+    }
 
-    return $store if ( $store );
+    if ( _override_store_with_gridfs( 'localfile' ) )
+    {
+        return $_download_store_lookup->{ gridfs };
+    }
 
-    return $_gridfs_store if ( _override_store_with_gridfs( 'localfile' ) );
-
-    return $_localfile_store;
+    return $_download_store_lookup->{ localfile };
 }
 
 # fetch the content for the given download as a content_ref
@@ -231,12 +233,15 @@ sub fetch_content($$)
 {
     my ( $db, $download ) = @_;
 
-    carp "fetch_content called with invalid download " unless exists $download->{ downloads_id };
+    unless ( exists $download->{ downloads_id } )
+    {
+        carp "fetch_content called with invalid download";
+    }
 
-    carp "attempt to fetch content for unsuccessful download $download->{ downloads_id }  / $download->{ state }"
-      unless ( grep { $_ eq $download->{ state } } ( 'success', 'extractor_error' ) );
-
-    my $config = MediaWords::Util::Config::get_config;
+    unless ( grep { $_ eq $download->{ state } } ( 'success', 'extractor_error' ) )
+    {
+        carp "attempt to fetch content for unsuccessful download $download->{ downloads_id }  / $download->{ state }";
+    }
 
     my $store = _download_store_for_reading( $download );
     unless ( defined $store )
@@ -249,8 +254,8 @@ sub fetch_content($$)
     {
 
         # horrible hack to fix old content that is not stored in unicode
-        my $ascii_hack_downloads_id = $config->{ mediawords }->{ ascii_hack_downloads_id };
-        if ( $ascii_hack_downloads_id && ( $download->{ downloads_id } < $ascii_hack_downloads_id ) )
+        my $ascii_hack_downloads_id = $_config->{ mediawords }->{ ascii_hack_downloads_id };
+        if ( $ascii_hack_downloads_id and ( $download->{ downloads_id } < $ascii_hack_downloads_id ) )
         {
             $$content_ref =~ s/[^[:ascii:]]/ /g;
         }
@@ -275,7 +280,7 @@ sub fetch_preprocessed_content_lines($$)
 
     # print "CONTENT:\n**\n${ $content_ref }\n**\n";
 
-    if ( !$content_ref )
+    unless ( $content_ref )
     {
         warn( "unable to find content: " . $download->{ downloads_id } );
         return [];
