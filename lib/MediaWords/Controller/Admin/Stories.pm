@@ -13,6 +13,9 @@ use URI::QueryParam;
 
 use MediaWords::DBI::Stories;
 use MediaWords::DBI::Activities;
+use MediaWords::Util::CoreNLP;
+
+use constant STORIES_PRINT_CORENLP_ANNOTATIONS => 1;
 
 =head1 NAME
 
@@ -141,6 +144,25 @@ END
     $c->stash->{ storytext } = MediaWords::DBI::Stories::get_text( $c->dbis, $story );
 
     $c->stash->{ stories_id } = $stories_id;
+
+    if ( STORIES_PRINT_CORENLP_ANNOTATIONS )
+    {
+
+        $c->stash->{ corenlp_story_json } =
+          MediaWords::Util::CoreNLP::fetch_annotation_json_for_story( $c->dbis, $story->{ stories_id } );
+
+        my $corenlp_sentences = {};
+        foreach my $sentence ( @{ $story_sentences } )
+        {
+            my $story_sentences_id = $sentence->{ story_sentences_id } + 0;
+            $corenlp_sentences->{ $story_sentences_id } =
+              MediaWords::Util::CoreNLP::fetch_annotation_json_for_story_sentence( $c->dbis, $story_sentences_id );
+        }
+        $c->stash->{ corenlp_sentences_json } = $corenlp_sentences;
+
+        $c->stash->{ corenlp_story_and_sentences_json } =
+          MediaWords::Util::CoreNLP::fetch_annotation_json_for_story_and_all_sentences( $c->dbis, $story->{ stories_id } );
+    }
 
     $c->stash->{ template } = 'stories/view.tt2';
 }

@@ -26,6 +26,7 @@ my $_config;
 my $MC_ROOT_DIR;
 my $_base_dir = __DIR__ . '/../../..';
 
+
 BEGIN
 {
     use File::Basename;
@@ -85,6 +86,50 @@ sub set_config_file
     set_config( _parse_config_file( $config_file ) );
 }
 
+# merge configs using Hash::Merge, with precedence for the mediawords.yml config.
+# use a Hash::Merge object with a custom behavior set to the same as
+# LEFT_PRECEDENT but that replaces arrays instead of merging them.
+sub _merge_configs
+{
+    my ( $config, $static_defaults ) = @_;
+
+    my $merge = Hash::Merge->new();
+
+    # this is just copy and pasted from Hash::Merge with one line different.  annoyingly,
+    # there's no way to get the behavior hash out of Hash::Merge directly to just modify it.
+    $merge->specify_behavior(
+        {
+            'SCALAR' => {
+                'SCALAR' => sub { $_[ 0 ] },
+                'ARRAY'  => sub { $_[ 0 ] },
+                'HASH'   => sub { $_[ 0 ] },
+            },
+            'ARRAY' => {
+                'SCALAR' => sub { [ @{ $_[ 0 ] }, $_[ 1 ] ] },
+
+                # this is the only difference between our custom behavior and LEFT_PRECEDENT
+                'ARRAY' => sub { $_[ 0 ] },
+                'HASH'  => sub { [ @{ $_[ 0 ] }, values %{ $_[ 1 ] } ] },
+            },
+            'HASH' => {
+                'SCALAR' => sub { $_[ 0 ] },
+                'ARRAY'  => sub { $_[ 0 ] },
+                'HASH'   => sub { Hash::Merge::_merge_hashes( $_[ 0 ], $_[ 1 ] ) },
+            }
+        },
+        'custom'
+    );
+
+    # work around bug in Hash::Merge::merge in which it modifies $@
+    my $ampersand = $@;
+
+    my $merged = $merge->merge( $config, $static_defaults );
+
+    $@ = $ampersand;
+
+    return $merged;
+}
+
 # set the cached config object
 sub set_config
 {
@@ -99,15 +144,7 @@ sub set_config
 
     my $static_defaults = _read_static_defaults();
 
-    my $merge = Hash::Merge->new( 'LEFT_PRECEDENT' );
-
-    #Work around bug in Hash::Merge::merge in which it modifies $@
-    my $appersand = $@;
-    my $merged = $merge->merge( $config, $static_defaults );
-
-    $@ = $appersand;
-
-    $_config = $merged;
+    $_config = _merge_configs( $config, $static_defaults );
 
     verify_settings( $_config );
 }
@@ -121,11 +158,118 @@ sub _read_static_defaults
     return $static_defaults;
 }
 
+# die() if obsolete configuration syntax is being used
+sub _croak_on_obsolete_configuration_syntax($)
+{
+    my $config = shift;
+
+    # Ensure that the new MongoDB GridFS configuration syntax is being used
+    if (
+        $config->{ mongodb_gridfs }
+        and (  $config->{ mongodb_gridfs }->{ mediawords }
+            or $config->{ mongodb_gridfs }->{ test }->{ database }
+            or ( !$config->{ mongodb_gridfs }->{ host } )
+            or ( !$config->{ mongodb_gridfs }->{ port } )
+            or ( !$config->{ mongodb_gridfs }->{ downloads } ) )
+      )
+    {
+
+        my $error_message = <<"EOF";
+MongoDB GridFS configuration syntax in mediawords.yml has been changed from:
+
+    ### MongoDB connection settings for storing downloads in GridFS
+    mongodb_gridfs:
+        ### Production database
+        mediawords:
+            host      : "localhost"
+            port      : "27017"
+            database  : "mediacloud_downloads_gridfs"
+        ### Testing database
+        test:
+            host      : "localhost"
+            port      : "27017"
+            database  : "mediacloud_downloads_gridfs_test"
+
+to:
+
+    ### MongoDB connection settings
+    mongodb_gridfs:
+        host : "localhost"
+        port : "27017"
+        ### Database for storing raw downloads
+        downloads:
+            database_name : "mediacloud_downloads_gridfs"
+        ### Database for testing
+        test:
+            database_name : "mediacloud_downloads_gridfs_test"
+
+Please update your mediawords.yml accordingly (use mediawords.yml.dist as an example).
+EOF
+        croak $error_message;
+    }
+
+    # Ensure that the new Amazon S3 configuration syntax is being used
+    if (
+        $config->{ amazon_s3 }
+        and (  $config->{ amazon_s3 }->{ mediawords }
+            or $config->{ amazon_s3 }->{ test }->{ downloads_folder_name }
+            or ( !$config->{ amazon_s3 }->{ downloads } )
+            or ( !$config->{ amazon_s3 }->{ downloads }->{ directory_name } ) )
+      )
+    {
+
+        my $error_message = <<"EOF";
+Amazon S3 configuration syntax in mediawords.yml has been changed from:
+
+    ### Amazon S3 connection settings
+    amazon_s3:
+
+        ### Authentication credentials
+        access_key_id       : "AKIAIOSFODNN7EXAMPLE"
+        secret_access_key   : "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
+
+        ### Production bucket
+        mediawords:
+            bucket_name             : "mediacloud"
+            downloads_folder_name   : "downloads"
+
+        ### Testing bucket
+        test:
+            bucket_name             : "mediacloud_test"
+            downloads_folder_name   : "downloads_test"
+
+to:
+
+    ### Amazon S3 connection settings
+    amazon_s3:
+
+        ### Authentication credentials
+        access_key_id       : "AKIAIOSFODNN7EXAMPLE"
+        secret_access_key   : "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
+
+        ### Bucket for storing downloads
+        downloads:
+            bucket_name    : "mediacloud"
+            directory_name : "downloads"
+
+        ### Bucket for testing
+        test:
+            bucket_name    : "mediacloud_test"
+            directory_name : "downloads_test"
+
+Please update your mediawords.yml accordingly (use mediawords.yml.dist as an example).
+EOF
+        croak $error_message;
+    }
+}
+
 sub verify_settings
 {
     my ( $config ) = @_;
 
     defined( $config->{ database } ) or croak "No database connections configured";
+
+    _croak_on_obsolete_configuration_syntax( $config );
 }
 
 sub _set_dynamic_defaults

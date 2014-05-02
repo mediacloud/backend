@@ -723,8 +723,17 @@ with the given stem (for example, in the below example, 'romnei' is the stem tha
 | --------- | ------- | ----------------------------------------------------------------
 | `q`       | n/a     | `q` ("query") parameter which is passed directly to Solr
 | `fq`      | `null`  | `fq` ("filter query") parameter which is passed directly to Solr
+| `l`       | `en`    | space separated list of languages to use for stopwording and stemming
 
 See above /api/v2/stories/list for Solr query syntax.
+
+By default, the system stems and stopwords the list in English.  If you specify the 'l' parameter, 
+the system will stem and stopword the words by each of the listed langauges serially.  To do no stemming 
+or stopwording, specify 'none'.  The following language are supported (by 2 letter language code): 
+'da' (Danish), 'de' (German), 'en' (English), 'es' (Spanish), 'fi' (Finnish), 'fr' (French),
+'hu' (Hungarian), 'it' (Italian), 'lt' (Lithuanian), 'nl' (Dutch), 'no' (Norwegian), 'pt' (Portuguese),
+'ro' (Romanian), 'ru' (Russian), 'sv' (Swedish), 'tr' (Turkish).
+
 
 ### Example
 

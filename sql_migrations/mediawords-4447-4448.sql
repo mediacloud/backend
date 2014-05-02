@@ -53,10 +53,10 @@ update controversies c
     where a.controversies_id = c.controversies_id;
         
 alter table controversies
-    set pattern not null,
-    set solr_seed_query not null,
-    set solr_seed_query_run not null,
-    set description not null;
+    alter pattern set not null,
+    alter solr_seed_query set not null,
+    alter solr_seed_query_run set not null,
+    alter description set not null;
 
 --
 -- 2 of 2. Reset the database version.

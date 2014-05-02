@@ -1,90 +1,40 @@
-Media Cloud + Gearman interoperability
-======================================
+# Media Cloud + Gearman interoperability
 
-Media Cloud uses [Gearman](http://gearman.org/) and [Gearman::JobScheduler](https://github.com/pypt/p5-Gearman-JobScheduler) for scheduling, enqueueing and running various background processes.
-
-
-Installing Gearman
-------------------
-
-On Ubuntu, install Gearman with:
-
-    apt-get install gearman
-    apt-get install libgearman-dev  # for Gearman::XS
-
-On OS X, install Gearman with:
-
-    brew install gearman
+Media Cloud uses [Gearman](http://gearman.org/) and
+[Gearman::JobScheduler](https://github.com/pypt/p5-Gearman-JobScheduler) for
+scheduling, enqueueing and running various background processes.
 
 
-Installing `Gearman-JobScheduler`
----------------------------------
+## Starting Gearman
 
-`Gearman-JobScheduler` is a normal Carton dependency. Installation of it should be as easy as:
+While you can use your system's Gearman deployment directly, it is recommended
+that you use another instance configured by Media Cloud and managed by
+Supervisor because:
 
-    ./script/run_carton.sh install --deployment
+1. `gearmand` will automatically use PostgreSQL as a backend for storing a job
+   queue (instead of an unsafe in-memory job queue used by Gearman by default).
+2. Logs will be available in `data/supervisor_logs/`.
 
-If it doesn't work (likely because of an old "cpanm" version), install it manually:
-
-    $ source ./script/set_perl_brew_environment.sh 
-    $ cpanm -L local/ Module::Install
-    $ cpanm -L local/ git://github.com/pypt/p5-Gearman-JobScheduler.git@0.07
-
-
-Configuring Gearman to use PostgreSQL for storing the job queue
----------------------------------------------------------------
-
-You need to set Gearman up to store its job queue in a permanent storage (as opposed to storing the queue in memory). If you do not do that, Media Cloud might be unable to correctly keep track of the currently enqueued / running / finished / failed jobs (see the `gearman_job_queue` table definition in `script/mediawords.sql` for the explanation).
-
-You might want Gearman to [store its job queue in PostgreSQL](http://gearman.org/manual:job_server#postgresql). To do that, create a PostgreSQL database `gearman` for storing the queue, and allow user `gearman` to access it:
-
-    # sudo -u postgres createuser -D -A -P gearman
-    Enter password for new role: 
-    Enter it again: 
-    Shall the new role be allowed to create more new roles? (y/n) n
-    # sudo -u postgres createdb -O gearman gearman
-
-Then, edit `/etc/default/gearman-job-server`:
-
-    vim /etc/default/gearman-job-server
-
-and append PostgreSQL connection properties to `PARAMS` so that it reads something like this:
-
-    # Parameters to pass to gearmand.
-    PARAMS="--listen=127.0.0.1"
-
-    # Use PostgreSQL for storing a job queue
-    export PGHOST=127.0.0.1
-    export PGPORT=5432
-    export PGUSER=gearman
-    export PGPASSWORD="correct horse battery staple"
-    export PGDATABASE=gearman
-    PARAMS="$PARAMS --queue-type Postgres"
-    PARAMS="$PARAMS --libpq-table=queue"
-    PARAMS="$PARAMS --verbose DEBUG"
-
-Lastly, restart `gearmand`:
-
-    # service gearman-job-server restart
-     * Stopping Gearman Server gearmand    [ OK ] 
-     * Starting Gearman Server gearmand    [ OK ] 
+Gearman is automatically started by Supervisor. See
+`README.supervisor.markdown` for instructions on how to manage Supervisor
+processes.
 
 
-Testing Gearman
----------------
+## Testing Gearman
 
-To try things out, start a test Gearman worker which will count the lines of the input:
+To try things out, start a test Gearman worker which will count the lines of
+the input:
 
-    $ gearman -w -f wc -- wc -l
+    $ gearman -h 127.0.0.1 -p 4731 -w -f wc -- wc -l
 
 Then run the job in the worker:
 
-    $ gearman -f wc < /etc/group
+    $ gearman -h 127.0.0.1 -p 4731 -f wc < /etc/group
     61
 
 Ensure that the job queue is being stored in PostgreSQL:
 
-    # sudo -u postgres psql gearman
+    # sudo -u postgres psql mediacloud_gearman
     gearman=# \dt
             List of relations
      Schema | Name  | Type  |  Owner  
@@ -92,9 +42,9 @@ Ensure that the job queue is being stored in PostgreSQL:
      public | queue | table | gearman
     (1 row)
 
-Submit a test background job to Gearman:
+Kill the worker process and submit a test background job to Gearman:
 
-    $ gearman -b -f wc < /etc/passwd
+    $ gearman -h 127.0.0.1 -p 4731 -b -f wc < /etc/passwd
 
 and make sure it is being stored in the queue:
 
@@ -105,17 +55,17 @@ and make sure it is being stored in the queue:
     (1 row)
 
 
-Monitoring Gearman
-------------------
+## Monitoring Gearman
 
-To monitor Gearman, you can use either the `gearadmin` tool or the "Gearman-Monitor" PHP script.
+To monitor Gearman, you can use either the `gearadmin` tool or the
+"Gearman-Monitor" PHP script.
 
 
 ### `gearadmin`
 
 For example:
 
-    $ gearadmin --status
+    $ gearadmin -h 127.0.0.1 -p 4731 --status
     wc  2   0   0
 
 (Function "wc", 2 jobs enqueued, 0 currently running, 0 workers registered)
@@ -125,13 +75,13 @@ Run `gearadmin --help` for more options.
 
 ### "Gearman-Monitor"
 
-[Gearman-Monitor](https://github.com/yugene/Gearman-Monitor) is a tool to watch Gearman servers. 
+[Gearman-Monitor](https://github.com/yugene/Gearman-Monitor) is a tool to watch
+Gearman servers. 
 
 Screenshots: http://imgur.com/a/RjJWc
 
 
-Running jobs on Gearman with `Gearman::JobScheduler`
-----------------------------------------------------
+## Running jobs on Gearman with `Gearman::JobScheduler`
 
 A full example of a Gearman job is located in:
 

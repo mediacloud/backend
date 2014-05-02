@@ -1754,7 +1754,7 @@ sub get_title_parts
 
 # get duplicate stories within the set of stires by breaking the title
 # of each story into parts by [-:|] and looking for any such part
-# that is the sole title part for any story ans is at least 4 words long and
+# that is the sole title part for any story and is at least 4 words long and
 # is not the title of a story with a path-less url.  Any story that includes that title
 # part becames a duplicate.
 sub get_medium_dup_stories_by_title

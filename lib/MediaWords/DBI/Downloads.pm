@@ -10,63 +10,128 @@ use MediaWords::Crawler::Extractor;
 use MediaWords::Util::Config;
 use MediaWords::Util::HTML;
 use MediaWords::DBI::DownloadTexts;
+use MediaWords::DBI::Stories;
 use MediaWords::StoryVectors;
-use MediaWords::DBI::Downloads::Store::AmazonS3;
-use MediaWords::DBI::Downloads::Store::DatabaseInline;
-use MediaWords::DBI::Downloads::Store::GridFS;
-use MediaWords::DBI::Downloads::Store::LocalFile;
-use MediaWords::DBI::Downloads::Store::PostgreSQL;
-use MediaWords::DBI::Downloads::Store::Remote;
-use MediaWords::DBI::Downloads::Store::Tar;
+use MediaWords::Util::Paths;
+use MediaWords::KeyValueStore::AmazonS3;
+use MediaWords::KeyValueStore::DatabaseInline;
+use MediaWords::KeyValueStore::GridFS;
+use MediaWords::KeyValueStore::LocalFile;
+use MediaWords::KeyValueStore::PostgreSQL;
+use MediaWords::KeyValueStore::Remote;
+use MediaWords::KeyValueStore::Tar;
 use Carp;
 use MediaWords::Util::ExtractorFactory;
 use MediaWords::Util::HeuristicExtractor;
 use MediaWords::Util::CrfExtractor;
-
-use Data::Dumper;
-
-# Download store instances
-my $_amazon_s3_store;
-my $_databaseinline_store;
-my $_gridfs_store;
-my $_localfile_store;
-my $_postgresql_store;
-my $_remote_store;
-my $_tar_store;
-
-# Reference to configuration
-my $_config;
+use MediaWords::GearmanFunction::AnnotateWithCoreNLP;
 
 # Database inline content length limit
-Readonly my $INLINE_CONTENT_LENGTH => 256;
+use constant INLINE_CONTENT_LENGTH => 256;
+
+# lookup table for download store objects; initialized in BEGIN below
+my $_download_store_lookup;
+
+# cached configuration; initialized in BEGIN below
+my $_config;
 
 # Constructor
 BEGIN
 {
-    $_amazon_s3_store      = MediaWords::DBI::Downloads::Store::AmazonS3->new();
-    $_databaseinline_store = MediaWords::DBI::Downloads::Store::DatabaseInline->new();
-    $_gridfs_store         = MediaWords::DBI::Downloads::Store::GridFS->new();
-    $_localfile_store      = MediaWords::DBI::Downloads::Store::LocalFile->new();
-    $_postgresql_store     = MediaWords::DBI::Downloads::Store::PostgreSQL->new();
-    $_remote_store         = MediaWords::DBI::Downloads::Store::Remote->new();
-    $_tar_store            = MediaWords::DBI::Downloads::Store::Tar->new();
+    $_download_store_lookup = {
+        databaseinline => undef,
+        localfile      => undef,
+        postgresql     => undef,
+        tar            => undef,
+        amazon_s3      => undef,    # might remain 'undef' if not configured
+        gridfs         => undef,    # might remain 'undef' if not configured
+        remote         => undef,    # might remain 'undef' if not configured
+    };
+
+    $_config = MediaWords::Util::Config::get_config;
 
     # Early sanity check on configuration
-    $_config = MediaWords::Util::Config::get_config;
     my $download_storage_locations = $_config->{ mediawords }->{ download_storage_locations };
     if ( scalar( @{ $download_storage_locations } ) == 0 )
     {
         die "No download storage methods are configured.\n";
     }
+
     foreach my $download_storage_location ( @{ $download_storage_locations } )
     {
         my $location = lc( $download_storage_location );
-        unless ( grep { $_ eq $location } ( 'amazon_s3', 'gridfs', 'localfile', 'postgresql', 'tar' ) )
+
+        if ( grep { $_ eq $location } qw(remote databaseinline) )
         {
-            die "Download storage location '$download_storage_location' is not valid.\n";
+            die "download_storage_location $location is not valid for storage";
+        }
+
+        unless ( exists $_download_store_lookup->{ $download_storage_location } )
+        {
+            die "download_storage_location '$download_storage_location' is not valid.";
         }
     }
 
+    my %enabled_download_storage_locations = map { $_ => 1 } @{ $download_storage_locations };
+
+    # Test if all enabled storage locations are also configured
+    if ( exists( $enabled_download_storage_locations{ amazon_s3 } ) )
+    {
+        unless ( $_config->{ amazon_s3 } )
+        {
+            die "'amazon_s3' storage location is enabled, but Amazon S3 is not configured.\n";
+        }
+    }
+    if ( exists( $enabled_download_storage_locations{ gridfs } ) )
+    {
+        unless ( $_config->{ mongodb_gridfs } )
+        {
+            die "'gridfs' storage location is enabled, but MongoDB GridFS is not configured.\n";
+        }
+    }
+
+    # Initialize key value stores for downloads
+    if ( $_config->{ amazon_s3 } )
+    {
+        $_download_store_lookup->{ amazon_s3 } = MediaWords::KeyValueStore::AmazonS3->new(
+            {
+                bucket_name    => $_config->{ amazon_s3 }->{ downloads }->{ bucket_name },
+                directory_name => $_config->{ amazon_s3 }->{ downloads }->{ directory_name }
+            }
+        );
+    }
+
+    $_download_store_lookup->{ databaseinline } = MediaWords::KeyValueStore::DatabaseInline->new(
+        {
+            # no arguments are needed
+        }
+    );
+
+    if ( $_config->{ mongodb_gridfs } )
+    {
+        $_download_store_lookup->{ gridfs } = MediaWords::KeyValueStore::GridFS->new(
+            { database_name => $_config->{ mongodb_gridfs }->{ downloads }->{ database_name } } );
+    }
+
+    $_download_store_lookup->{ localfile } =
+      MediaWords::KeyValueStore::LocalFile->new( { data_content_dir => MediaWords::Util::Paths::get_data_content_dir } );
+
+    $_download_store_lookup->{ postgresql } =
+      MediaWords::KeyValueStore::PostgreSQL->new( { table_name => 'raw_downloads' } );
+
+    if ( $_config->{ mediawords }->{ fetch_remote_content_url } )
+    {
+        $_download_store_lookup->{ remote } = MediaWords::KeyValueStore::Remote->new(
+            {
+                url      => $_config->{ mediawords }->{ fetch_remote_content_url },
+                username => $_config->{ mediawords }->{ fetch_remote_content_user },
+                password => $_config->{ mediawords }->{ fetch_remote_content_password }
+            }
+        );
+    }
+
+    $_download_store_lookup->{ tar } =
+      MediaWords::KeyValueStore::Tar->new( { data_content_dir => MediaWords::Util::Paths::get_data_content_dir } );
 }
 
 # Returns arrayref of stores for writing new downloads to
@@ -76,59 +141,26 @@ sub _download_stores_for_writing($)
 
     my $stores = [];
 
-    if ( length( $$content_ref ) < $INLINE_CONTENT_LENGTH )
+    if ( length( $$content_ref ) < INLINE_CONTENT_LENGTH )
     {
+        unless ( $_download_store_lookup->{ databaseinline } )
+        {
+            die "DatabaseInline store is not initialized, although it is required by _download_stores_for_writing().\n";
+        }
 
         # Inline
         #say STDERR "Will store inline.";
-        push( @{ $stores }, $_databaseinline_store );
+        push( @{ $stores }, $_download_store_lookup->{ databaseinline } );
     }
     else
     {
         my $download_storage_locations = $_config->{ mediawords }->{ download_storage_locations };
         foreach my $download_storage_location ( @{ $download_storage_locations } )
         {
-            my $location = lc( $download_storage_location );
+            my $store = $_download_store_lookup->{ lc( $download_storage_location ) }
+              || die "config value mediawords.download_storage_location '$download_storage_location' is not valid.";
 
-            if ( $location eq 'amazon_s3' )
-            {
-
-                #say STDERR "Will store to Amazon S3.";
-                push( @{ $stores }, $_amazon_s3_store );
-
-            }
-            elsif ( $location eq 'gridfs' )
-            {
-
-                #say STDERR "Will store to GridFS.";
-                push( @{ $stores }, $_gridfs_store );
-
-            }
-            elsif ( $location eq 'localfile' )
-            {
-
-                #say STDERR "Will store to local files.";
-                push( @{ $stores }, $_localfile_store );
-
-            }
-            elsif ( $location eq 'postgresql' )
-            {
-
-                #say STDERR "Will store to PostgreSQL.";
-                push( @{ $stores }, $_postgresql_store );
-
-            }
-            elsif ( $location eq 'tar' )
-            {
-
-                #say STDERR "Will store to Tar.";
-                push( @{ $stores }, $_tar_store );
-
-            }
-            else
-            {
-                die "Download storage location '$location' is not valid.\n";
-            }
+            push( $stores, $store );
         }
     }
 
@@ -140,85 +172,60 @@ sub _download_stores_for_writing($)
     return $stores;
 }
 
+# return true if the system is configured to override the given storage location with gridfs
+sub _override_store_with_gridfs
+{
+    my ( $location ) = @_;
+
+    if ( ( $location eq 'tar' ) and ( lc( $_config->{ mediawords }->{ read_tar_downloads_from_gridfs } eq 'yes' ) ) )
+    {
+        return 1;
+    }
+
+    if ( ( $location eq 'localfile' ) and ( lc( $_config->{ mediawords }->{ read_file_downloads_from_gridfs } eq 'yes' ) ) )
+    {
+        return 1;
+    }
+
+    return 0;
+}
+
 # Returns store for fetching downloads from
 sub _download_store_for_reading($)
 {
     my $download = shift;
 
-    my $store;
-
     my $fetch_remote = $_config->{ mediawords }->{ fetch_remote_content } || 'no';
     if ( $fetch_remote eq 'yes' )
     {
-
-        # Remote
-        $store = $_remote_store;
+        return $_download_store_lookup->{ remote };
     }
-    else
+
+    my $path = $download->{ path };
+    unless ( $path and ( $path =~ /^([\w]+):/ ) )
     {
-        my $path = $download->{ path };
-        if ( !$path )
-        {
-            $store = undef;
-        }
-        elsif ( $path =~ /^content:(.*)/ )
-        {
-
-            # Inline content
-            $store = $_databaseinline_store;
-        }
-        elsif ( $path =~ /^gridfs:(.*)/ )
-        {
-
-            # GridFS
-            $store = $_gridfs_store;
-        }
-        elsif ( $path =~ /^postgresql:(.*)/ )
-        {
-
-            # PostgreSQL
-            $store = $_postgresql_store;
-        }
-        elsif ( $path =~ /^s3:(.*)/ )
-        {
-
-            # Amazon S3
-            $store = $_amazon_s3_store;
-        }
-        elsif ( $download->{ path } =~ /^tar:/ )
-        {
-
-            # Tar
-            if ( lc( $_config->{ mediawords }->{ read_tar_downloads_from_gridfs } ) eq 'yes' )
-            {
-
-                # Force reading Tar downloads from GridFS (after the migration)
-                $store = $_gridfs_store;
-            }
-            else
-            {
-                $store = $_tar_store;
-            }
-        }
-        else
-        {
-
-            # Local file
-            if ( lc( $_config->{ mediawords }->{ read_file_downloads_from_gridfs } ) eq 'yes' )
-            {
-
-                # Force reading file downloads from GridFS (after the migration)
-                $store = $_gridfs_store;
-            }
-            else
-            {
-                $store = $_localfile_store;
-            }
-
-        }
+        return undef;
     }
 
-    return $store;
+    my $location = lc( $1 );
+
+    if ( _override_store_with_gridfs( $location ) )
+    {
+        return $_download_store_lookup->{ gridfs };
+    }
+
+    my $store = $_download_store_lookup->{ lc( $1 ) };
+    if ( $store )
+    {
+        return $store;
+    }
+
+    if ( _override_store_with_gridfs( 'localfile' ) )
+    {
+        return $_download_store_lookup->{ gridfs };
+    }
+
+    return $_download_store_lookup->{ localfile };
 }
 
 # fetch the content for the given download as a content_ref
@@ -226,10 +233,15 @@ sub fetch_content($$)
 {
     my ( $db, $download ) = @_;
 
-    carp "fetch_content called with invalid download " unless exists $download->{ downloads_id };
+    unless ( exists $download->{ downloads_id } )
+    {
+        carp "fetch_content called with invalid download";
+    }
 
-    carp "attempt to fetch content for unsuccessful download $download->{ downloads_id }  / $download->{ state }"
-      unless $download->{ state } eq 'success';
+    unless ( grep { $_ eq $download->{ state } } ( 'success', 'extractor_error' ) )
+    {
+        carp "attempt to fetch content for unsuccessful download $download->{ downloads_id }  / $download->{ state }";
+    }
 
     my $store = _download_store_for_reading( $download );
     unless ( defined $store )
@@ -238,12 +250,12 @@ sub fetch_content($$)
     }
 
     # Fetch content
-    if ( my $content_ref = $store->fetch_content( $db, $download ) )
+    if ( my $content_ref = $store->fetch_content( $db, $download->{ downloads_id }, $download->{ download_path } ) )
     {
 
         # horrible hack to fix old content that is not stored in unicode
         my $ascii_hack_downloads_id = $_config->{ mediawords }->{ ascii_hack_downloads_id };
-        if ( $ascii_hack_downloads_id && ( $download->{ downloads_id } < $ascii_hack_downloads_id ) )
+        if ( $ascii_hack_downloads_id and ( $download->{ downloads_id } < $ascii_hack_downloads_id ) )
         {
             $$content_ref =~ s/[^[:ascii:]]/ /g;
         }
@@ -252,6 +264,8 @@ sub fetch_content($$)
     }
     else
     {
+        warn "Unable to fetch content for download " . $download->{ downloads_id } . "\n";
+
         my $ret = '';
         return \$ret;
     }
@@ -266,7 +280,7 @@ sub fetch_preprocessed_content_lines($$)
 
     # print "CONTENT:\n**\n${ $content_ref }\n**\n";
 
-    if ( !$content_ref )
+    unless ( $content_ref )
     {
         warn( "unable to find content: " . $download->{ downloads_id } );
         return [];
@@ -378,7 +392,7 @@ sub store_content($$$)
         }
         foreach my $store ( @{ $stores_for_writing } )
         {
-            $path = $store->store_content( $db, $download, $content_ref );
+            $path = $store->store_content( $db, $download->{ downloads_id }, $content_ref );
         }
 
         # Now $path points to the last store that was configured
@@ -427,7 +441,7 @@ sub store_content_determinedly
     my $interval = 1;
     while ( 1 )
     {
-        eval { MediaWords::DBI::Downloads::store_content( $db, $download, \$content ) };
+        eval { store_content( $db, $download, \$content ) };
         return unless ( $@ );
 
         if ( $interval < 33 )
@@ -476,38 +490,92 @@ sub process_download_for_extractor($$$;$$$)
 {
     my ( $db, $download, $process_num, $no_dedup_sentences, $no_vector ) = @_;
 
-    say STDERR "[$process_num] extract: $download->{ downloads_id } $download->{ stories_id } $download->{ url }";
+    my $stories_id = $download->{ stories_id };
+
+    # Extract
+    say STDERR "[$process_num] extract: $download->{ downloads_id } $stories_id $download->{ url }";
     my $download_text = MediaWords::DBI::DownloadTexts::create_from_download( $db, $download );
 
     #say STDERR "Got download_text";
 
-    return if ( $no_vector );
-
-    my $remaining_download =
-      $db->query( "select downloads_id from downloads " . "where stories_id = ? and extracted = 'f' and type = 'content' ",
-        $download->{ stories_id } )->hash;
-    if ( !$remaining_download )
+    unless ( $no_vector )
     {
-        my $story = $db->find_by_id( 'stories', $download->{ stories_id } );
+        # Vector
+        my $remaining_download = $db->query(
+            <<EOF,
+            SELECT downloads_id
+            FROM downloads
+            WHERE stories_id = ?
+              AND extracted = 'f'
+              AND type = 'content'
+EOF
+            $stories_id
+        )->hash;
+        unless ( $remaining_download )
+        {
+            my $story = $db->find_by_id( 'stories', $stories_id );
 
-        # my $tags = MediaWords::DBI::Stories::add_default_tags( $db, $story );
-        #
-        # say STDERR "[$process_num] download: $download->{downloads_id} ($download->{feeds_id}) ";
-        # while ( my ( $module, $module_tags ) = each( %{$tags} ) )
-        # {
-        #     say STDERR "[$process_num] $download->{downloads_id} $module: "
-        #       . join( ' ', map { "<$_>" } @{ $module_tags->{tags} } );
-        # }
+            MediaWords::StoryVectors::update_story_sentence_words_and_language( $db, $story, 0, $no_dedup_sentences );
+        }
+        else
+        {
+            say STDERR "[$process_num] pending more downloads ...";
+        }
+    }
 
-        MediaWords::StoryVectors::update_story_sentence_words_and_language( $db, $story, 0, $no_dedup_sentences );
+    my $media = get_medium( $db, $download );
+    if ( $media->{ annotate_with_corenlp } )
+    {
+        # Enqueue for CoreNLP annotation (which will run mark_as_processed() on its own)
+        MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman( $download );
 
-        # Temporarily commenting this out until we're ready to push it to Amanda.
-        # $db->query( " INSERT INTO processed_stories ( stories_id ) VALUES ( ? ) " , $download->{ stories_id }  );
     }
     else
     {
-        say STDERR "[$process_num] pending more downloads ...";
+
+        # Add to "processed_stories" right away
+        unless ( MediaWords::DBI::Stories::mark_as_processed( $db, $stories_id ) )
+        {
+            die "Unable to mark story ID $stories_id as processed";
+        }
     }
+}
+
+# Extract and vector the download; on error, store the error message in the
+# "downloads" table
+sub extract_and_vector($$$;$$$)
+{
+    my ( $db, $download, $process_num, $no_dedup_sentences, $no_vector ) = @_;
+
+    eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, $process_num ); };
+
+    if ( $@ )
+    {
+        my $downloads_id = $download->{ downloads_id };
+
+        say STDERR "extractor error processing download $downloads_id: $@";
+
+        $db->rollback;
+
+        $db->query(
+            <<EOF,
+            UPDATE downloads
+            SET state = 'extractor_error',
+                error_message = ?
+            WHERE downloads_id = ?
+EOF
+            "extractor error: $@", $downloads_id
+        );
+
+        $db->commit;
+
+        return 0;
+    }
+
+    # Extraction succeeded
+    $db->commit;
+
+    return 1;
 }
 
 1;

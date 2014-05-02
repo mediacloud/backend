@@ -17,7 +17,9 @@
 
 SET search_path = public, pg_catalog;
 
+
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE

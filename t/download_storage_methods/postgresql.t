@@ -10,7 +10,7 @@ BEGIN
     use lib "$FindBin::Bin/../";
 }
 
-use MediaWords::DBI::Downloads::Store::PostgreSQL;
+use MediaWords::KeyValueStore::PostgreSQL;
 use MediaWords::Test::DB;
 use Data::Dumper;
 
@@ -59,38 +59,41 @@ sub test_store_content($$)
 {
     my ( $db, $postgresql ) = @_;
 
-    my $test_download = { downloads_id => MOCK_DOWNLOADS_ID };
-    my $test_content = 'Loren ipsum dolor sit amet.';
+    my $test_downloads_id   = MOCK_DOWNLOADS_ID + 0;
+    my $test_downloads_path = undef;
+    my $test_content        = 'Loren ipsum dolor sit amet.';
     my $content_ref;
 
     # Store content
     my $postgresql_id;
-    eval { $postgresql_id = $postgresql->store_content( $db, $test_download, \$test_content ); };
+    eval { $postgresql_id = $postgresql->store_content( $db, $test_downloads_id, \$test_content ); };
     ok( ( !$@ ), "Storing content failed: $@" );
     ok( $postgresql_id,                                     'Object ID was returned' );
     ok( length( $postgresql_id ) > length( 'postgresql:' ), 'Object ID is of the valid size' );
 
     # Fetch content
-    eval { $content_ref = $postgresql->fetch_content( $db, $test_download ); };
+    eval { $content_ref = $postgresql->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
     ok( ( !$@ ), "Fetching download failed: $@" );
     ok( $content_ref, "Fetching download did not die but no content was returned" );
     is( $$content_ref, $test_content, "Content doesn't match." );
 
     # Check if GridFS thinks that the content exists
-    ok( $postgresql->content_exists( $db, $test_download ),
-        "content_exists() reports that content doesn't exist (although it does)" );
+    ok(
+        $postgresql->content_exists( $db, $test_downloads_id, $test_downloads_path ),
+        "content_exists() reports that content doesn't exist (although it does)"
+    );
 
     # Remove content, try fetching again
-    $postgresql->remove_content( $db, $test_download );
+    $postgresql->remove_content( $db, $test_downloads_id, $test_downloads_path );
     $content_ref = undef;
-    eval { $content_ref = $postgresql->fetch_content( $db, $test_download ); };
+    eval { $content_ref = $postgresql->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
     ok( $@, "Fetching download that does not exist should have failed" );
     ok( ( !$content_ref ),
         "Fetching download that does not exist failed (as expected) but the content reference was returned" );
 
     # Check if GridFS thinks that the content exists
     ok(
-        ( !$postgresql->content_exists( $db, $test_download ) ),
+        ( !$postgresql->content_exists( $db, $test_downloads_id, $test_downloads_path ) ),
         "content_exists() reports that content exists (although it doesn't)"
     );
 }
@@ -99,41 +102,44 @@ sub test_store_content_twice($$)
 {
     my ( $db, $postgresql ) = @_;
 
-    my $test_download = { downloads_id => MOCK_DOWNLOADS_ID };
-    my $test_content = 'Loren ipsum dolor sit amet.';
+    my $test_downloads_id   = MOCK_DOWNLOADS_ID + 0;
+    my $test_downloads_path = undef;
+    my $test_content        = 'Loren ipsum dolor sit amet.';
     my $content_ref;
 
     # Store content
     my $postgresql_id;
     eval {
-        $postgresql_id = $postgresql->store_content( $db, $test_download, \$test_content );
-        $postgresql_id = $postgresql->store_content( $db, $test_download, \$test_content );
+        $postgresql_id = $postgresql->store_content( $db, $test_downloads_id, \$test_content );
+        $postgresql_id = $postgresql->store_content( $db, $test_downloads_id, \$test_content );
     };
     ok( ( !$@ ), "Storing content failed: $@" );
     ok( $postgresql_id,                                     'Object ID was returned' );
     ok( length( $postgresql_id ) > length( 'postgresql:' ), 'Object ID is of the valid size' );
 
     # Fetch content
-    eval { $content_ref = $postgresql->fetch_content( $db, $test_download ); };
+    eval { $content_ref = $postgresql->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
     ok( ( !$@ ), "Fetching download failed: $@" );
     ok( $content_ref, "Fetching download did not die but no content was returned" );
     is( $$content_ref, $test_content, "Content doesn't match." );
 
     # Check if GridFS thinks that the content exists
-    ok( $postgresql->content_exists( $db, $test_download ),
-        "content_exists() reports that content doesn't exist (although it does)" );
+    ok(
+        $postgresql->content_exists( $db, $test_downloads_id, $test_downloads_path ),
+        "content_exists() reports that content doesn't exist (although it does)"
+    );
 
     # Remove content, try fetching again
-    $postgresql->remove_content( $db, $test_download );
+    $postgresql->remove_content( $db, $test_downloads_id, $test_downloads_path );
     $content_ref = undef;
-    eval { $content_ref = $postgresql->fetch_content( $db, $test_download ); };
+    eval { $content_ref = $postgresql->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
     ok( $@, "Fetching download that does not exist should have failed" );
     ok( ( !$content_ref ),
         "Fetching download that does not exist failed (as expected) but the content reference was returned" );
 
     # Check if GridFS thinks that the content exists
     ok(
-        ( !$postgresql->content_exists( $db, $test_download ) ),
+        ( !$postgresql->content_exists( $db, $test_downloads_id, $test_downloads_path ) ),
         "content_exists() reports that content exists (although it doesn't)"
     );
 }
@@ -148,7 +154,7 @@ sub main()
             binmode( STDOUT, ':utf8' );
             binmode( STDERR, ':utf8' );
 
-            my $postgresql = MediaWords::DBI::Downloads::Store::PostgreSQL->new();
+            my $postgresql = MediaWords::KeyValueStore::PostgreSQL->new( { table_name => 'raw_downloads' } );
 
             _create_mock_download( $db, MOCK_DOWNLOADS_ID );
 

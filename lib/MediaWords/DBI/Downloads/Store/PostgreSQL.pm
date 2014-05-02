@@ -40,8 +40,10 @@ sub store_content($$$$;$)
         $content_to_store = $self->encode_and_gzip( $content_ref, $download->{ downloads_id } );
     }
 
+    my $use_transaction = $db->dbh->{ AutoCommit };
+
     # "Upsert" the download
-    $db->begin_work;
+    $db->begin_work if ( $use_transaction );
 
     my $sth;
 
@@ -72,7 +74,7 @@ EOF
     $sth->bind_param( 3, $downloads_id );
     $sth->execute();
 
-    $db->commit;
+    $db->commit if ( $use_transaction );
 
     my $path = 'postgresql:' . $table_name;
     return $path;

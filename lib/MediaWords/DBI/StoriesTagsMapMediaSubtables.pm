@@ -8,8 +8,6 @@ use strict;
 
 use File::Path;
 use HTTP::Request;
-use IO::Uncompress::Gunzip;
-use IO::Compress::Gzip;
 use Readonly;
 use List::MoreUtils qw(any);
 use MediaWords::Crawler::Extractor;

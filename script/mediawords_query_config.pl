@@ -3,18 +3,21 @@
 # Run XPath query against Media Cloud configuration (mediawords.yml), print out
 # result(s) to STDOUT (usually for piping further to other shell commands)
 #
+# Make sure to enclose the XPath in quotes or else you might get unexpected
+# results.
+#
 # Usage:
 #
-# ./script/run_with_carton.sh ./script/mediawords_query_config.pl /mediawords/session/storage
+# ./script/run_with_carton.sh ./script/mediawords_query_config.pl "/mediawords/session/storage"
 #
 # or
 #
-# ./script/run_with_carton.sh ./script/mediawords_query_config.pl //user_agent
+# ./script/run_with_carton.sh ./script/mediawords_query_config.pl "//user_agent"
 #
 # or
 #
 # # multiple results:
-# ./script/run_with_carton.sh ./script/mediawords_query_config.pl //database/db | xargs createdb
+# ./script/run_with_carton.sh ./script/mediawords_query_config.pl "//database[1]/db" | xargs createdb
 #
 
 use strict;

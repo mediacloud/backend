@@ -3,44 +3,66 @@
 set -u
 set -o  errexit
 
-# Default password
-PASSWORD="mediacloud"
-
 # Include PostgreSQL path helpers
 PWD="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-source "$PWD/postgresql_path_helpers.inc.sh"
+source "$PWD/postgresql_helpers.inc.sh"
 
+QUERY_CONFIG="$PWD/../script/run_with_carton.sh $PWD/../script/mediawords_query_config.pl"
 
-# Create user
-echo "creating postgresql user 'mediaclouduser' with password '$PASSWORD'"
-CREATEUSER_RUN=`run_psql "CREATE USER mediaclouduser WITH SUPERUSER password '$PASSWORD' ; "`
-echo "$CREATEUSER_RUN"
+for db_selector in "${DB_CREDENTIALS_SELECTORS[@]}"; do
 
-if [[ "$CREATEUSER_RUN" == *"ERROR"* ]]; then
-    if [[ "$CREATEUSER_RUN" == *"already exists"* ]]; then
-        echo "postgresql user 'mediaclouduser' already exists, skipping creation."
-        echo "if you want to purge everything and start from scratch, run purge_mediacloud_databases.sh manually."
-    else
-        echo "postgresql error while creating user 'mediaclouduser': $CREATEUSER_RUN"
+    db_credentials_label=`$QUERY_CONFIG "$db_selector/label"`
+    echo "Initializing database with label '$db_credentials_label'..."
+
+    db_credentials_host=`$QUERY_CONFIG "$db_selector/host"`
+    db_credentials_user=`$QUERY_CONFIG "$db_selector/user"`
+    db_credentials_pass=`$QUERY_CONFIG "$db_selector/pass"`
+    db_credentials_db=`$QUERY_CONFIG "$db_selector/db"`
+
+    #
+    # Create user if it doesn't exist already
+    #
+    echo "    Creating user '$db_credentials_user' with password '$db_credentials_pass'..."
+
+    createuser_sql=$( cat <<EOF
+
+        DO
+        \$body\$
+        BEGIN
+           IF NOT EXISTS (
+              SELECT *
+              FROM   pg_roles
+              WHERE  rolname = '$db_credentials_user') THEN
+
+              CREATE ROLE $db_credentials_user WITH SUPERUSER LOGIN PASSWORD '$db_credentials_pass';
+           END IF;
+        END
+        \$body\$;
+
+EOF
+)
+    createuser_exec=`run_psql "$db_credentials_host" "$createuser_sql"`
+    if [[ "$createuser_exec" == *"ERROR"* ]]; then
+        echo "    PostgreSQL error while creating user '$db_credentials_user': $createuser_exec"
         exit 1
     fi
-fi
+    echo "    Done creating user '$db_credentials_user'."
 
-# Create databases
-for db_name in "mediacloud" "mediacloud_test"; do
-    echo "$db_name"
+    #
+    # Create database
+    #
+    echo "    Creating database '$db_credentials_db' on host '$db_credentials_host' with owner '$db_credentials_user'..."
+    createdb_exec=`run_createdb "$db_credentials_host" "$db_credentials_db" "$db_credentials_user"`
 
-    echo "creating database '$db_name'"
-    CREATEDB_MEDIACLOUD_RUN=`run_createdb $db_name`
-    echo "$CREATEDB_MEDIACLOUD_RUN"
-
-    if [[ "$CREATEDB_MEDIACLOUD_RUN" == *"already exists"* ]]; then
-        echo "postgresql database '$db_name' already exists, skipping creation."
-        echo "if you want to purge everything and start from scratch, run purge_mediacloud_databases.sh manually."
-    elif [[ -n "$CREATEDB_MEDIACLOUD_RUN" ]]; then
-        echo "postgresql error while creating database '$db_name': $CREATEDB_MEDIACLOUD_RUN"
+    if [[ "$createdb_exec" == *"already exists"* ]]; then
+        echo "        Database '$db_credentials_db' already exists, skipping creation."
+        echo "        If you want to purge everything and start from scratch, run purge_mediacloud_databases.sh manually."
+    elif [[ -n "$createdb_exec" ]]; then
+        echo "        PostgreSQL error while creating database '$db_credentials_db': $createdb_exec"
         exit 1
-    else
-       echo "created database $db_name"
     fi
+    echo "    Done creating database '$db_credentials_db'."
+
+    echo "Done initializing database with label '$db_credentials_label'."
+
 done

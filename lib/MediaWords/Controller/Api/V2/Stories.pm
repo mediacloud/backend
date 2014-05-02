@@ -81,7 +81,7 @@ sub add_extra_data
 {
     my ( $self, $c, $stories ) = @_;
 
-    return $stories unless ( $c->req->param( 'raw_1st_download' ) );
+    return $stories unless ( @{ $stories } && ( $c->req->param( 'raw_1st_download' ) ) );
 
     my $db = $c->dbis;
 
@@ -120,6 +120,8 @@ END
 sub _add_nested_data
 {
     my ( $self, $db, $stories, $show_raw_1st_download ) = @_;
+
+    return unless ( @{ $stories } );
 
     $db->begin;
 
@@ -179,101 +181,16 @@ sub _get_list_last_id_param_name
     return "last_processed_stories_id";
 }
 
-sub _max_processed_stories_id
-{
-    my ( $self, $c ) = @_;
-
-    my $find_max_processed_stories_id_with_postgresql = 1;
-
-    if ( $find_max_processed_stories_id_with_postgresql )
-    {
-        my $hash = $c->dbis->query( "SELECT max( processed_stories_id ) from processed_stories " )->hash;
-
-        return $hash->{ max };
-    }
-    else
-    {
-        return MediaWords::Solr::max_processed_stories_id( $c->dbis );
-    }
-}
-
 sub _get_object_ids
 {
     my ( $self, $c, $last_id, $rows ) = @_;
 
-    my $db = $c->dbis;
+    my $q = $c->req->param( 'q' ) || '*:*';
 
-    my $q = $c->req->param( 'q' );
+    my $fq = $c->req->params->{ fq } || [];
+    $fq = [ $fq ] unless ( ref( $fq ) );
 
-    $q //= '*:*';
-
-    my $fq = $c->req->params->{ fq };
-
-    $fq //= [];
-
-    if ( !ref( $fq ) )
-    {
-        $fq = [ $fq ];
-    }
-
-    my $processed_stories_ids = [];
-
-    my $next_id = $last_id ? $last_id + 1 : MediaWords::Solr::min_processed_stories_id( $c->dbis, { q => $q, fq => $fq } );
-
-    return [] unless ( $next_id );
-
-    my $max_processed_stories_id = $self->_max_processed_stories_id( $c );
-
-    # say STDERR "max_processed_stories_id = $max_processed_stories_id";
-
-    my $empty_blocks = 0;
-    my $num_solr_searches;
-    my $exp_search_growth = 1;
-    my $exp_rows_growth   = 1;
-
-    while ( $next_id <= $max_processed_stories_id && scalar( @$processed_stories_ids ) < $rows )
-    {
-        my $params = {};
-
-        my $top_of_range = $next_id + 50_000;
-
-        # print STDERR "top_of_range: $top_of_range [ $num_solr_searches ]\n";
-
-        $params->{ q } = $q;
-
-        $params->{ fq } = [ @{ $fq }, "processed_stories_id:[ $next_id TO $top_of_range ]" ];
-
-        $params->{ sort } = "processed_stories_id asc";
-
-        $params->{ rows } = $rows * $exp_rows_growth;
-
-        # say STDERR ( Dumper( $params ) );
-
-        my $new_stories_ids = MediaWords::Solr::search_for_processed_stories_ids( $db, $params );
-
-        # say STDERR Dumper( $new_stories_ids );
-
-        if ( ( scalar( @{ $new_stories_ids } ) == 0 ) )
-        {
-            my $next_fq = [ @{ $fq }, "processed_stories_id:[ $next_id TO * ]" ];
-            $next_id = MediaWords::Solr::min_processed_stories_id( $c->dbis, { q => $q, fq => $next_fq } );
-            last unless ( $next_id );
-        }
-        else
-        {
-            push $processed_stories_ids, @{ $new_stories_ids };
-            $next_id = $processed_stories_ids->[ -1 ] + 1;
-
-            if ( $next_id < $top_of_range )
-            {
-                $exp_rows_growth *= 2;
-            }
-        }
-    }
-
-    # say STDERR Dumper( $processed_stories_ids );
-
-    return $processed_stories_ids;
+    return MediaWords::Solr::search_for_processed_stories_ids( $q, $fq, $last_id, $rows );
 }
 
 sub _fetch_list
@@ -283,24 +200,26 @@ sub _fetch_list
     $rows //= 20;
     $rows = List::Util::min( $rows, 10_000 );
 
-    my $stories_ids = $self->_get_object_ids( $c, $last_id, $rows );
+    my $ps_ids = $self->_get_object_ids( $c, $last_id, $rows );
 
-    return [] unless ( @{ $stories_ids } );
+    return [] unless ( @{ $ps_ids } );
 
     my $db = $c->dbis;
 
-    my $stories;
     $db->begin;
 
-    my $ids_table = $db->get_temporary_ids_table( $stories_ids );
+    my $ids_table = $db->get_temporary_ids_table( $ps_ids );
 
-    $stories = $db->query( <<END )->hashes;
-select s.*, max( ps.processed_stories_id ) processed_stories_id
-    from stories s 
-        natural join processed_stories ps
-    where ps.processed_stories_id in ( select id from $ids_table )
-    group by s.stories_id 
-    order by $id_field asc limit $rows
+    my $stories = $db->query( <<END )->hashes;
+with ps_ids as
+
+    ( select processed_stories_id, stories_id 
+        from processed_stories
+        where processed_stories_id in ( select id from $ids_table ) )
+
+select s.*, p.processed_stories_id
+    from stories s join ps_ids p on ( s.stories_id = p.stories_id )    
+    order by processed_stories_id asc limit $rows
 END
 
     $db->commit;

@@ -17,6 +17,9 @@ use MediaWords::DB;
 # parallel imports makes solr flaky
 Readonly my $MAX_IMPORT_JOBS => 4;
 
+# how many sentences to fetch at a time from the postgres query
+Readonly my $FETCH_BLOCK_SIZE => 10000;
+
 # run a postgres query and generate a table that lookups on the first column by the second column
 sub _get_lookup
 {
@@ -168,8 +171,7 @@ END
     my $i = 0;
     while ( 1 )
     {
-        print STDERR time . " " . ( $i++ * 1000 ) . "\n" unless ( $i % 10 );
-        my $sth = $dbh->prepare( "fetch 1000 from csr" );
+        my $sth = $dbh->prepare( "fetch $FETCH_BLOCK_SIZE from csr" );
 
         $sth->execute;
 
@@ -195,6 +197,7 @@ END
                 $ss_tags_list );
             print FILE encode( 'utf8', $csv->string . "\n" );
         }
+        print STDERR time . " " . ( $i * $FETCH_BLOCK_SIZE ) . "\n" if ( $i++ );
     }
 
     $dbh->do( "close csr" );
@@ -215,7 +218,7 @@ sub _import_csv_single_file
     my $overwrite = $delta ? 'overwrite=true' : 'overwrite=false';
 
     my $url =
-"http://localhost:8983/solr/update/csv?stream.file=$abs_file&stream.contentType=text/plain;charset=utf-8&f.media_sets_id.split=true&f.media_sets_id.separator=;&f.tags_id_media.split=true&f.tags_id_media.separator=;&f.tags_id_stories.split=true&f.tags_id_stories.separator=;&f.tags_id_story_sentences.split=true&f.tags_id_story_sentences.separator=;&$overwrite&skip=field_type,id,solr_import_date";
+"http://localhost:7983/solr/update/csv?commit=false&stream.file=$abs_file&stream.contentType=text/plain;charset=utf-8&f.media_sets_id.split=true&f.media_sets_id.separator=;&f.tags_id_media.split=true&f.tags_id_media.separator=;&f.tags_id_stories.split=true&f.tags_id_stories.separator=;&f.tags_id_story_sentences.split=true&f.tags_id_story_sentences.separator=;&$overwrite&skip=field_type,id,solr_import_date";
 
     print STDERR "$url\n";
 
@@ -262,7 +265,7 @@ sub import_csv_files
     print STDERR "comitting ..\n";
     my $ua = LWP::UserAgent->new;
     $ua->timeout( 86400 * 7 );
-    my $res = $ua->get( 'http://localhost:8983/solr/update?stream.body=<commit/>' );
+    my $res = $ua->get( 'http://localhost:7983/solr/update?stream.body=<commit/>' );
 
     if ( $res->is_success )
     {

@@ -44,10 +44,20 @@ use MediaWords::CommonLibs;
 use MediaWords::CM::Mine;
 use MediaWords::DB;
 
+# Having a global database object should be safe because
+# Gearman::JobScheduler's workers don't support fork()s anymore
+my $db = undef;
+
 # Run job
 sub run($;$)
 {
     my ( $self, $args ) = @_;
+
+    unless ( $db )
+    {
+        # Postpone connecting to the database so that compile test doesn't do that
+        $db = MediaWords::DB::connect_to_db();
+    }
 
     my $controversies_id                = $args->{ controversies_id };
     my $import_only                     = $args->{ import_only } // 0;
@@ -58,8 +68,6 @@ sub run($;$)
     {
         die "'controversies_id' is not set.";
     }
-
-    my $db = MediaWords::DB::connect_to_db;
 
     my $controversy = $db->find_by_id( 'controversies', $controversies_id )
       or die( "Unable to find controversy '$controversies_id'" );
