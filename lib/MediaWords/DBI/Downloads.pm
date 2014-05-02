@@ -523,17 +523,18 @@ EOF
         }
     }
 
-    my $media = get_medium( $db, $download );
-    if ( $media->{ annotate_with_corenlp } )
+    if ( MediaWords::Util::CoreNLP::get_story_annotatable_by_corenlp( $db, $stories_id ) )
     {
-        # Enqueue for CoreNLP annotation (which will run mark_as_processed() on its own)
-        MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman( $download );
+
+        # Story is annotatable with CoreNLP; enqueue for CoreNLP annotation (which will run mark_as_processed() on its own)
+        MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman(
+            { downloads_id => $download->{ downloads_id } } );
 
     }
     else
     {
 
-        # Add to "processed_stories" right away
+        # Story is not annotatable with CoreNLP; add to "processed_stories" right away
         unless ( MediaWords::DBI::Stories::mark_as_processed( $db, $stories_id ) )
         {
             die "Unable to mark story ID $stories_id as processed";
