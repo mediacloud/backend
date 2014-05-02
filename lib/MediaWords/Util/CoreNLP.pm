@@ -135,8 +135,8 @@ sub _decode_json($)
     return $hashref;
 }
 
-# Get an English-language, CoreNLP-annotatable story from the database; returns
-# either a story hashref or undef if such a story is unavailable for annotation
+# Get an CoreNLP-annotatable story from the database; returns either a story
+# hashref or undef if such a story is unavailable for annotation
 sub get_story_annotatable_by_corenlp($$)
 {
     my ( $db, $stories_id ) = @_;
@@ -348,7 +348,7 @@ sub _fetch_annotation_from_gridfs_for_story($$)
     my $story = get_story_annotatable_by_corenlp( $db, $stories_id );
     unless ( $story )
     {
-        die "English-language story with ID $stories_id was not found.";
+        die "Annotatable story with ID $stories_id was not found.";
     }
 
     # Test if annotation exists
@@ -443,11 +443,11 @@ sub store_annotation_for_story($$)
         _fatal_error( "CoreNLP annotator is not enabled in the configuration." );
     }
 
-    say STDERR "Fetching English-language story $stories_id...";
+    say STDERR "Fetching annotatable story $stories_id...";
     my $story = get_story_annotatable_by_corenlp( $db, $stories_id );
     unless ( $story )
     {
-        die "English-language story with ID $stories_id was not found.";
+        die "Annotatable story with ID $stories_id was not found.";
     }
 
     my $story_sentences = $db->query(
@@ -463,7 +463,7 @@ EOF
     {
         die "Unable to fetch story sentences for story $stories_id.";
     }
-    say STDERR "Done fetching English-language story $stories_id.";
+    say STDERR "Done fetching annotatable story $stories_id.";
 
     my %annotations;
 
@@ -554,18 +554,10 @@ sub fetch_annotation_json_for_story($$)
         die "CoreNLP annotator is not enabled in the configuration.";
     }
 
-    my $story = $db->query(
-        <<EOF,
-        SELECT *
-        FROM stories
-        WHERE stories_id = ?
-          AND (language = 'en' OR language IS NULL)
-EOF
-        $stories_id
-    )->hash;
+    my $story = $db->find_by_id( 'stories', $stories_id);
     unless ( $story->{ stories_id } )
     {
-        die "English-language story $stories_id was not found.";
+        die "Annotatable story $stories_id was not found.";
     }
 
     my $annotation;
@@ -627,7 +619,7 @@ sub fetch_annotation_json_for_story_sentence($$)
     my $story = get_story_annotatable_by_corenlp( $db, $stories_id );
     unless ( $story )
     {
-        die "English-language story $stories_id for story sentence $story_sentences_id was not found.";
+        die "Annotatable story $stories_id for story sentence $story_sentences_id was not found.";
     }
 
     my $annotation;
@@ -691,7 +683,7 @@ sub fetch_annotation_json_for_story_and_all_sentences($$)
     my $story = get_story_annotatable_by_corenlp( $db, $stories_id );
     unless ( $story )
     {
-        die "English-language story with ID $stories_id was not found.";
+        die "Annotatable story with ID $stories_id was not found.";
     }
 
     my $annotation;

@@ -27,7 +27,7 @@ sub main
 {
     my $db = MediaWords::DB::connect_to_db;
 
-    say STDERR "Fetching a list of extracted, unannotated, English language downloads...";
+    say STDERR "Fetching a list of extracted, unannotated, annotatable downloads...";
     my $downloads = $db->query(
         <<EOF
 
