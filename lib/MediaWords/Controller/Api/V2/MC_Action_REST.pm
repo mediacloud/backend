@@ -64,8 +64,6 @@ sub _valid_api_key
     if ( !$api_auth )
     {
 
-        say STDERR "invalid key";
-
         my $controller = $c->component( $self->class );
 
         my $code = $controller->action_for( 'invalid_key' );
