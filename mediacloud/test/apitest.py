@@ -1,4 +1,4 @@
-import unittest, ConfigParser, json
+import unittest, ConfigParser, json, datetime
 import mediacloud.api
 
 class ApiBaseTest(unittest.TestCase):
@@ -132,10 +132,35 @@ class ApiStoriesTest(ApiBaseTest):
 
 class ApiSentencesTest(ApiBaseTest):
 
+    def testSentenceListSorting(self):
+        date_format = self._mc.SENTENCE_PUBLISH_DATE_FORMAT
+        q = '( mars OR robot )'
+        fq = '+publish_date:[2013-01-01T00:00:00Z TO 2013-02-01T00:00:00Z] AND +media_sets_id:1'
+        # ascending
+        results = self._mc.sentenceList(q,fq,0,1000,self._mc.SORT_PUBLISH_DATE_ASC)
+        self.assertEqual(len(results['response']['docs']), 1000)
+        last_date = None
+        for sentence in results['response']['docs']:
+            this_date = datetime.datetime.strptime(sentence['publish_date'],date_format)
+            if last_date is not None:
+                self.assertTrue(last_date <= this_date, "Date wrong: "+str(last_date)+" is not < "+str(this_date))
+                last_date = this_date
+            last_date = this_date
+        # descending
+        results = self._mc.sentenceList(q,fq,0,1000,self._mc.SORT_PUBLISH_DATE_DESC)
+        self.assertEqual(len(results['response']['docs']), 1000)
+        last_date = None
+        for sentence in results['response']['docs']:
+            this_date = datetime.datetime.strptime(sentence['publish_date'],date_format)
+            if last_date is not None:
+                self.assertTrue(last_date >= this_date, "Date wrong: "+str(last_date)+" is not > "+str(this_date))
+                last_date = this_date
+            last_date = this_date
+
     def testSentenceList(self):
         results = self._mc.sentenceList('( mars OR robot )', '+publish_date:[2013-01-01T00:00:00Z TO 2013-02-01T00:00:00Z] AND +media_sets_id:1')
         self.assertEqual(int(results['responseHeader']['status']),0)
-        self.assertEqual(int(results['response']['numFound']),6742)
+        self.assertEqual(int(results['response']['numFound']),6735)
         self.assertEqual(len(results['response']['docs']), 1000)
 
     def testSentenceListPaging(self):
@@ -143,19 +168,19 @@ class ApiSentencesTest(ApiBaseTest):
         filter_str = '+publish_date:[2013-01-01T00:00:00Z TO 2013-02-01T00:00:00Z] AND +media_sets_id:1'
         # test limiting rows returned
         results = self._mc.sentenceList(query_str, filter_str,0,100)
-        self.assertEqual(int(results['response']['numFound']), 6742)
+        self.assertEqual(int(results['response']['numFound']), 6781)
         self.assertEqual(len(results['response']['docs']), 100)
         # test starting offset
         results = self._mc.sentenceList(query_str, filter_str,6700)
-        self.assertEqual(int(results['response']['numFound']), 6742)
-        self.assertEqual(len(results['response']['docs']), 42)
+        self.assertEqual(int(results['response']['numFound']), 6735)
+        self.assertEqual(len(results['response']['docs']), 35)
 
 class ApiWordCountTest(ApiBaseTest):
 
     def testWordCount(self):
         term_freq = self._mc.wordCount('+robots', '+publish_date:[2013-01-01T00:00:00Z TO 2013-02-01T00:00:00Z] AND +media_sets_id:1')
-        self.assertEqual(len(term_freq),71)
-        self.assertEqual(term_freq[3]['term'],u'drones')
+        self.assertEqual(len(term_freq),69)
+        self.assertEqual(term_freq[3]['term'],u'science')
         # verify sorted in desc order
         last_count = 10000000000
         for freq in term_freq:

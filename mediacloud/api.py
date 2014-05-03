@@ -10,6 +10,12 @@ class MediaCloud(object):
 
     V2_API_URL = "http://www.mediacloud.org/api/v2/"
 
+    SORT_PUBLISH_DATE_ASC = "publish_date_asc"
+    SORT_PUBLISH_DATE_DESC = "publish_date_desc"
+    SORT_RANDOM = "random"
+
+    SENTENCE_PUBLISH_DATE_FORMAT = "%Y-%m-%d %H:%M:%S" # use with datetime.datetime.strptime
+
     def __init__(self, api_key=None,log_level=logging.DEBUG):
         logging.basicConfig(filename='mediacloud-api.log',level=log_level)
         self._api_key = api_key
@@ -87,7 +93,7 @@ class MediaCloud(object):
                  'corenlp': 1 if corenlp else 0
                 }) 
 
-    def sentenceList(self, solr_query, solr_filter='', start=0, rows=1000):
+    def sentenceList(self, solr_query, solr_filter='', start=0, rows=1000, sort=SORT_PUBLISH_DATE_ASC):
         '''
         Search for sentences and page through results
         '''
@@ -95,7 +101,8 @@ class MediaCloud(object):
                 {'q': solr_query,
                  'fq': solr_filter,
                  'start': start,
-                 'rows': rows
+                 'rows': rows,
+                 'sort': sort
                 }) 
 
     def wordCount(self, solr_query, solr_filter=''):
