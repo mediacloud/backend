@@ -27,29 +27,17 @@ sub main
 {
     my $db = MediaWords::DB::connect_to_db;
 
-    say STDERR "Fetching a list of extracted, unannotated, English language downloads...";
+    say STDERR "Fetching a list of extracted, unannotated, annotatable downloads...";
     my $downloads = $db->query(
         <<EOF
 
         SELECT downloads_id
         FROM downloads AS d
             INNER JOIN stories AS s ON d.stories_id = s.stories_id
-            INNER JOIN media AS m ON s.media_id = m.media_id
         WHERE d.extracted = 't'
           AND d.type = 'content'
           AND d.state = 'success'
-          AND m.annotate_with_corenlp = 't'
-
-          -- Stories with language field set to NULL are the ones fetched
-          -- before introduction of the multilanguage support, so they are
-          -- assumed to be in English
-          AND (s.language = 'en' OR s.language IS NULL)
-
-          AND NOT EXISTS (
-            SELECT *
-            FROM processed_stories
-            WHERE d.stories_id = processed_stories.stories_id
-          )
+          AND story_is_annotatable_with_corenlp(d.stories_id) = 't'
     
         ORDER BY d.downloads_id ASC
 
@@ -58,7 +46,13 @@ EOF
 
     unless ( scalar @{ $downloads } )
     {
-        say STDERR "No downloads to enqueue were found; maybe you forgot to set media.annotate_with_corenlp = 't'?";
+        say STDERR <<EOF;
+
+No downloads to enqueue were found; did you forget to set
+media.annotate_with_corenlp = 't'? Or maybe the stories for the downloads you
+want to enqueue are already listed in "processed_stories"?
+
+EOF
 
     }
     else

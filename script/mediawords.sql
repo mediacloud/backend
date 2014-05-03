@@ -2228,3 +2228,43 @@ $$ LANGUAGE PLPGSQL;
 CREATE TRIGGER gearman_job_queue_sync_lastmod
     BEFORE UPDATE ON gearman_job_queue
     FOR EACH ROW EXECUTE PROCEDURE gearman_job_queue_sync_lastmod();
+
+
+--
+-- Returns true if the story can + should be annotated with CoreNLP
+--
+CREATE OR REPLACE FUNCTION story_is_annotatable_with_corenlp(corenlp_stories_id INT) RETURNS boolean AS $$
+BEGIN
+
+    IF EXISTS (
+
+        SELECT 1
+        FROM stories
+            INNER JOIN media ON stories.media_id = media.media_id
+        WHERE stories.stories_id = corenlp_stories_id
+
+          -- We don't check if the story has been extracted here because the
+          -- CoreNLP worker might get to it sooner than the extractor (i.e. the
+          -- extractor might not be fast enough to set extracted = 't' before
+          -- CoreNLP annotation begins)
+
+          -- Media is marked for CoreNLP annotation
+          AND media.annotate_with_corenlp = 't'
+
+          -- Story not yet marked as "processed"
+          AND NOT EXISTS (
+            SELECT 1
+            FROM processed_stories
+            WHERE stories.stories_id = processed_stories.stories_id
+          )
+
+    ) THEN
+        RETURN TRUE;
+    ELSE
+        RETURN FALSE;
+    END IF;
+    
+END;
+$$
+LANGUAGE 'plpgsql';
+
