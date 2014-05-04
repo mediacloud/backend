@@ -16,8 +16,7 @@ use Modern::Perl "2013";
 #
 # This changes the expected results so it's important to make sure that you're
 # not masking bugs in the code. Also it's a good idea to manually examine the
-# changes in t/data/top_500_weekly_words.pl and t/data/crawler_stories.pl
-# before committing them.
+# changes in t/data/crawler_stories.pl before committing them.
 #
 
 BEGIN
@@ -40,6 +39,7 @@ use MediaWords::DBI::Stories;
 use MediaWords::Test::DB;
 use MediaWords::Test::Data;
 use MediaWords::Test::LocalServer;
+use MediaWords::Util::Config;
 use DBIx::Simple::MediaWords;
 use MediaWords::StoryVectors;
 use LWP::UserAgent;
@@ -94,11 +94,12 @@ sub add_test_feed
     return $syndicated_feed;
 }
 
-Readonly my $crawler_timeout => 60;
+Readonly my $crawler_timeout => 180;
 
 # run the crawler for one minute, which should be enough time to gather all of the stories from the test feed
 sub run_crawler
 {
+    MediaWords::Util::Config->get_config->{ mediawords }->{ extract_in_process } = 1;
 
     my $crawler = MediaWords::Crawler::Engine->new();
 
@@ -116,20 +117,6 @@ sub run_crawler
     print "crawler exiting ...\n";
 }
 
-sub extract_downloads
-{
-    my ( $db ) = @_;
-
-    print "extracting downloads ...\n";
-
-    my $downloads = $db->query( "select * from downloads where type = 'content' order by stories_id, downloads_id" )->hashes;
-
-    for my $download ( @{ $downloads } )
-    {
-        MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, 1 );
-    }
-}
-
 sub update_download_texts
 {
     my ( $db ) = @_;
@@ -140,24 +127,6 @@ sub update_download_texts
     {
         MediaWords::DBI::DownloadTexts::update_text( $db, $download_text );
     }
-}
-
-# run extractor, tagger, and vector on all stories
-sub process_stories
-{
-    my ( $db ) = @_;
-
-    print "processing stories ...\n";
-
-    my $stories = $db->query( "select * from stories" )->hashes;
-
-    for my $story ( @{ $stories } )
-    {
-        print "adding default tags ...\n";
-        MediaWords::DBI::Stories::add_default_tags( $db, $story );
-    }
-
-    print "processing stories done.\n";
 }
 
 # get stories from database, including content, text, tags, sentences, sentence_words, and story_sentence_words
@@ -305,9 +274,10 @@ sub test_stories
               )
             {
                 print STDERR "Expected sentence count: " . scalar( @{ $test_story->{ story_sentences } } ) . "\n";
-                print STDERR "Expected sentences: " . Dumper( $test_story->{ story_sentences } );
+                print STDERR "Expected sentences: " .
+                  join( "\n", map { $_->{ sentence } } @{ $test_story->{ story_sentences } } );
                 print STDERR "Got sentence count: " . scalar( @{ $story->{ story_sentences } } ) . "\n";
-                print STDERR "Got sentences: " . Dumper( $story->{ story_sentences } );
+                print STDERR "Got sentences: " . join( "\n", map { $_->{ sentence } } @{ $story->{ story_sentences } } );
             }
 
             _purge_story_sentences_id_field( $story->{ story_sentences } );
@@ -330,153 +300,21 @@ sub test_stories
                 "story sentences " . $story->{ stories_id }
             );
 
-          TODO:
-            {
-                my $fake_var;    #silence warnings
-
-                my $test_story_sentence_words_count = scalar( @{ $test_story->{ story_sentence_words } } );
-                my $story_sentence_words_count      = scalar( @{ $story->{ story_sentence_words } } );
-
-                unless (
-                    is(
-                        $story_sentence_words_count, $test_story_sentence_words_count,
-                        "story words count for " . $story->{ stories_id }
-                    )
-                  )
-                {
-                    print STDERR "Expected words: " . Dumper( $test_story->{ story_sentence_words } );
-                    print STDERR "Got words: " . Dumper( $story->{ story_sentence_words } );
-                }
-            }
         }
 
         delete( $test_story_hash->{ $story->{ title } } );
     }
-
 }
 
-sub generate_aggregate_words
-{
-    my ( $db ) = @_;
-
-    my ( $start_date ) = $db->query( "select date_trunc( 'day', min(publish_date) ) from stories" )->flat;
-
-    #( $start_date ) = $db->query( "select date_trunc( 'day', min(publish_date)  - interval '1 week' ) from stories" )->flat;
-    my ( $end_date ) = $db->query( "select date_trunc( 'day', max(publish_date) ) from stories" )->flat;
-
-    #( $end_date )   = $db->query( "select date_trunc( 'day', max(publish_date) + interval '1 month' ) from stories" )->flat;
-
-    my $dashboard =
-      $db->create( 'dashboards', { name => 'test_dashboard', start_date => $start_date, end_date => $end_date } );
-
-    my $dashboard_topic = $db->create(
-        'dashboard_topics',
-        {
-            dashboards_id => $dashboard->{ dashboards_id },
-            name          => 'obama_topic',
-            query         => 'obama',
-            language      => 'en',
-            start_date    => $start_date,
-            end_date      => $end_date
-        }
-    );
-
-    MediaWords::StoryVectors::update_aggregate_words( $db, $start_date, $end_date );
-}
-
-sub _process_top_500_weekly_words_for_testing
-{
-    my ( $hashes ) = @_;
-
-    foreach my $hash ( @{ $hashes } )
-    {
-        delete( $hash->{ top_500_weekly_words_id } );
-    }
-}
-
-# simple test to verify that top 500 weekly words has at least 500 words
-sub sanity_test_top_500_weekly_words
-{
-    my ( $words ) = @_;
-
-    ok( scalar( @{ $words } ) >= 500, "top 500 weekly words has at least 500 words" );
-}
-
-sub dump_top_500_weekly_words
-{
-    my ( $db ) = @_;
-
-    my $top_500_weekly_words = $db->query( 'SELECT * FROM top_500_weekly_words order by publish_week, stem, term', )->hashes;
-    _process_top_500_weekly_words_for_testing( $top_500_weekly_words );
-
-    MediaWords::Test::Data::store_test_data( 'top_500_weekly_words', $top_500_weekly_words );
-
-    sanity_test_top_500_weekly_words( $top_500_weekly_words );
-
-    return;
-}
-
-sub sort_top_500_weekly_words
-{
-    my ( $array ) = @_;
-
-    #ensure that the order is deterministic
-    #first sort on the important fields then sort on everything just to be sure...
-    my @keys = qw (publish_week stem dashboard_topics_id term );
-
-    my @hash_fields = sort keys %{ $array->[ 0 ] };
-
-    return [ sorted_array( @$array, @keys, @hash_fields ) ];
-}
-
-sub test_top_500_weekly_words
-{
-    my ( $db ) = @_;
-
-    my $top_500_weekly_words_actual =
-      $db->query( 'SELECT * FROM top_500_weekly_words order by publish_week, stem, term' )->hashes;
-    _process_top_500_weekly_words_for_testing( $top_500_weekly_words_actual );
-
-    my $top_500_weekly_words_expected = MediaWords::Test::Data::fetch_test_data( 'top_500_weekly_words' );
-
-    is(
-        scalar( @{ $top_500_weekly_words_actual } ),
-        scalar( @{ $top_500_weekly_words_expected } ),
-        'Top 500 weekly words table row count'
-    );
-
-    $top_500_weekly_words_actual   = sort_top_500_weekly_words( $top_500_weekly_words_actual );
-    $top_500_weekly_words_expected = sort_top_500_weekly_words( $top_500_weekly_words_expected );
-
-    my $i;
-
-    for ( $i = 0 ; $i < scalar( @{ $top_500_weekly_words_actual } ) ; $i++ )
-    {
-        my $actual_row   = $top_500_weekly_words_actual->[ $i ];
-        my $expected_row = $top_500_weekly_words_expected->[ $i ];
-
-        #undef($actual_row->{term});
-        #undef($expected_row->{term});
-        cmp_deeply( $actual_row, $expected_row, "top_500_weekly_words row $i comparison" );
-        my @keys = sort ( keys %{ $expected_row } );
-
-        @keys = grep { defined( $expected_row->{ $_ } ) } @keys;
-
-        my $actual_row_string   = join ',', ( @{ $actual_row }{ @keys } );
-        my $expected_row_string = join ',', ( @{ $expected_row }{ @keys } );
-
-        is( $actual_row_string, $expected_row_string, "top_500_weekly_words row $i string comparison:" . join ",", @keys );
-    }
-}
-
-# simple test to verify that each story has at least 10 words
+# simple test to verify that each story has at least 80 characters in its sentences
 sub sanity_test_stories
 {
     my ( $stories ) = @_;
 
     for my $story ( @{ $stories } )
     {
-        ok( scalar( @{ $story->{ story_sentence_words } } ) >= 10, "story '$story->{ url }' has at least 10 words" );
+        my $all_sentences = join( '. ', map { $_->{ sentence } } @{ $story->{ story_sentences } } );
+        ok( length( $all_sentences ) >= 80, "story '$story->{ url }' has at least 80 characters in its sentences" );
     }
 }
 
@@ -528,6 +366,9 @@ sub main
 {
     my ( $dump ) = @ARGV;
 
+    binmode( STDERR, 'utf8' );
+    binmode( STDOUT, 'utf8' );
+
     MediaWords::Test::DB::test_on_test_database(
         sub {
             use Encode;
@@ -545,28 +386,12 @@ sub main
 
             run_crawler();
 
-            extract_downloads( $db );
-
-            process_stories( $db );
-
             if ( defined( $dump ) && ( $dump eq '-d' ) )
             {
                 dump_stories( $db );
             }
 
             test_stories( $db );
-
-            generate_aggregate_words( $db );
-
-            ## Temporary hack to get the test suite working again.
-            $db->query( "DELETE from top_500_weekly_words where publish_week > now() - interval '1 week' " );
-
-            if ( defined( $dump ) && ( $dump eq '-d' ) )
-            {
-                dump_top_500_weekly_words( $db );
-            }
-
-            test_top_500_weekly_words( $db );
 
             print "Killing server\n";
             kill_local_server( $url_to_crawl );

@@ -267,12 +267,21 @@ sub _queue_extraction($$)
 {
     my ( $self, $download ) = @_;
 
-    say STDERR "fetcher " .
-      $self->engine->fetcher_number . " starting _queue_extraction for download " . $download->{ downloads_id };
+    my $db             = $self->engine->dbs;
+    my $fetcher_number = $self->engine->fetcher_number;
 
-    MediaWords::GearmanFunction::ExtractAndVector->enqueue_on_gearman( { downloads_id => $download->{ downloads_id } } );
+    say STDERR "fetcher $fetcher_number starting extraction for download " . $download->{ downloads_id };
 
-    say STDERR "queued extraction";
+    if ( MediaWords::Util::Config::get_config->{ mediawords }->{ extract_in_process } )
+    {
+        say STDERR "extracting in process...";
+        MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, $fetcher_number );
+    }
+    else
+    {
+        MediaWords::GearmanFunction::ExtractAndVector->enqueue_on_gearman( { downloads_id => $download->{ downloads_id } } );
+        say STDERR "queued extraction";
+    }
 }
 
 sub _queue_author_extraction($$;$)
