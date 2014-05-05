@@ -306,7 +306,7 @@ sub test_stories
     }
 }
 
-# simple test to verify that each story has at least 80 characters in its sentences
+# simple test to verify that each story has at least 60 characters in its sentences
 sub sanity_test_stories
 {
     my ( $stories ) = @_;
@@ -314,7 +314,7 @@ sub sanity_test_stories
     for my $story ( @{ $stories } )
     {
         my $all_sentences = join( '. ', map { $_->{ sentence } } @{ $story->{ story_sentences } } );
-        ok( length( $all_sentences ) >= 80, "story '$story->{ url }' has at least 80 characters in its sentences" );
+        ok( length( $all_sentences ) >= 80, "story '$story->{ url }' has at least 60 characters in its sentences" );
     }
 }
 
