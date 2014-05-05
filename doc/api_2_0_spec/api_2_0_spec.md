@@ -982,7 +982,7 @@ curl -X PUT -d sentence_tag=12345678,gv_country:japan -d sentence_tag=12345678,g
 
 The Authentication API allows a client to fetch an IP-address-limited authentication token for a user.
 
-### api/v2/auth (GET)
+### api/v2/auth/single (GET)
 
 | URL                          | Function
 | ---------------------------- | --------------------------------------------------
@@ -1008,7 +1008,7 @@ Response:
 ```json
 [
   {
-    "result": "found"
+    "result": "found",
     "token": "3827b988b309f8296fb47c0dbdd65302143f931c3852fdcb9083134ae6345f68"
    }
 ]
