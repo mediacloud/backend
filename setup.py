@@ -1,9 +1,9 @@
 #! /usr/bin/env python
 
-from distutils.core import setup
+from setuptools import setup
 
 setup(name='mediacloud',
-  version='2.2',
+  version='2.3',
   description='MediaCloud API Client Library',
   author='Rahul Bhargava',
   author_email='rahulb@media.mit.edu',

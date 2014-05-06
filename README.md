@@ -8,9 +8,10 @@ This is the source code of the python client for the [MediaCloud API v2](https:/
 Installation
 ------------
 
-Download the distribution zip, then run
-
-    python setup.py install
+Download the distribution egg, then run
+```
+easy_install mediacloud-2.3-py2.7.egg
+```
 
 *Dependencies*
 
@@ -82,4 +83,4 @@ Distribution
 ------------
 
 To build the distributon, update the version numbers in `mediacloud/__init__.py` and `setup.py`.
-Then run `python setup.py sdist` and a compressed file will be created in the `dist` directory.
+Then run `python setup.py bdist_egg` and a new egg will be laid in the `dist` directory.
