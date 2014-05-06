@@ -265,20 +265,9 @@ sub test_stories
 
             is( scalar( @{ $story->{ tags } } ), scalar( @{ $test_story->{ tags } } ), "story tags count" );
 
-            unless (
-                is(
-                    scalar( @{ $story->{ story_sentences } } ),
-                    scalar( @{ $test_story->{ story_sentences } } ),
-                    "story sentence count" . $story->{ stories_id }
-                )
-              )
-            {
-                print STDERR "Expected sentence count: " . scalar( @{ $test_story->{ story_sentences } } ) . "\n";
-                print STDERR "Expected sentences: " .
-                  join( "\n", map { $_->{ sentence } } @{ $test_story->{ story_sentences } } );
-                print STDERR "Got sentence count: " . scalar( @{ $story->{ story_sentences } } ) . "\n";
-                print STDERR "Got sentences: " . join( "\n", map { $_->{ sentence } } @{ $story->{ story_sentences } } );
-            }
+            my $expected_sentences = join( "\n", map { $_->{ sentence } } @{ $test_story->{ story_sentences } } );
+            my $got_sentences      = join( "\n", map { $_->{ sentence } } @{ $story->{ story_sentences } } );
+            eq_or_diff( $expected_sentences, $got_sentences, "sentences match" );
 
             _purge_story_sentences_id_field( $story->{ story_sentences } );
             _purge_story_sentences_id_field( $test_story->{ story_sentences } );
