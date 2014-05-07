@@ -169,7 +169,6 @@ sub _restrict_content_type
         return;
     }
 
-    print "unsupported content type: " . $response->content_type . "\n";
     $response->content( '(unsupported content type)' );
 }
 
@@ -279,7 +278,23 @@ sub _queue_extraction($$)
     }
     else
     {
-        MediaWords::GearmanFunction::ExtractAndVector->enqueue_on_gearman( { downloads_id => $download->{ downloads_id } } );
+        while ( 1 )
+        {
+            eval {
+                MediaWords::GearmanFunction::ExtractAndVector->enqueue_on_gearman(
+                    { downloads_id => $download->{ downloads_id } } );
+            };
+
+            if ( $@ )
+            {
+                warn( "extractor job queue failed.  sleeping and trying again in 5 seconds: $@" );
+                sleep 5;
+            }
+            else
+            {
+                last;
+            }
+        }
         say STDERR "queued extraction";
     }
 }
