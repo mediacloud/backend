@@ -204,6 +204,7 @@ sub _download_store_for_reading($)
     my $path = $download->{ path };
     unless ( $path and ( $path =~ /^([\w]+):/ ) )
     {
+        say STDERR "Download path is not set or invalid for download $download->{ downloads_id }";
         return undef;
     }
 
