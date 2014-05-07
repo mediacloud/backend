@@ -50,7 +50,7 @@ for db_selector in "${DB_CREDENTIALS_SELECTORS[@]}"; do
     dropuser_exec=`run_psql "$db_credentials_host" "DROP USER IF EXISTS $db_credentials_user ; "`
     if [[ "$dropuser_exec" == *"ERROR"* ]]; then
         if [[ "$dropuser_exec" == *"some objects depend on it"* ]]; then
-            echo "        User '$db_credentials_user' wasn't dropped yet because there some objects still depend on it."
+            echo "        User '$db_credentials_user' wasn't dropped yet because some objects still depend on it."
         elif [[ -n "$dropuser_exec" ]]; then
             echo "        PostgreSQL error while dropping user '$db_credentials_user': $dropuser_exec"
             exit 1
