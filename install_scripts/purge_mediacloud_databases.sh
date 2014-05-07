@@ -74,3 +74,4 @@ for db_selector in "${DB_CREDENTIALS_SELECTORS[@]}"; do
     echo "Done dropping database with label '$db_credentials_label'."
 
 done
+
