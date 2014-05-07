@@ -424,6 +424,8 @@ create index feeds_last_successful_download_time on feeds(last_successful_downlo
 create table tag_sets (
     tag_sets_id            serial            primary key,
     name                varchar(512)    not null,
+    label               varchar(512)    default(name),
+    description         text,
     CONSTRAINT tag_sets_name_not_empty CHECK (((name)::text <> ''::text))
 );
 
