@@ -29,12 +29,14 @@ for db_selector in "${DB_CREDENTIALS_SELECTORS[@]}"; do
         DO
         \$body\$
         BEGIN
-           IF NOT EXISTS (
-              SELECT *
-              FROM   pg_roles
-              WHERE  rolname = '$db_credentials_user') THEN
-
-              CREATE ROLE $db_credentials_user WITH SUPERUSER LOGIN PASSWORD '$db_credentials_pass';
+            IF NOT EXISTS (
+                SELECT *
+                FROM pg_roles
+                WHERE rolname = '$db_credentials_user'
+            ) THEN
+                CREATE ROLE $db_credentials_user
+                WITH SUPERUSER LOGIN
+                PASSWORD '$db_credentials_pass';
            END IF;
         END
         \$body\$;
