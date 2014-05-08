@@ -69,6 +69,24 @@ END
     return $domain_map;
 }
 
+# for each medium in $media, enqueue an add_default_feeds job for any medium
+# that is lacking feeds
+sub _add_feeds_for_feedless_media
+{
+    my ( $db, $media ) = @_;
+
+    for my $medium ( @{ $media } )
+    {
+        my $feeds = $db->query( <<END, $medium->{ media_id } )->hashes;
+select * from feeds where media_id = ? and feed_status = 'active' and feed_type = 'syndicated'
+END
+
+        $db->query( "update media set feeds_added = 'f' where media_id = ?", $medium->{ media_id } );
+
+        enqueue_add_default_feeds( $medium ) unless ( @{ $feeds } );
+    }
+}
+
 # for each url in $urls, either find the medium associated with that
 # url or the medium assocaited with the title from the given url or,
 # if no medium is found, a newly created medium.  Return the list of
@@ -82,6 +100,8 @@ sub find_or_create_media_from_urls
     _add_missing_media_from_urls( $dbis, $url_media );
 
     _add_media_tags_from_strings( $dbis, $url_media, $tags_string );
+
+    _add_feeds_for_feedless_media( $dbis, [ map { $_->{ medium } } @{ $url_media } ] );
 
     return [ grep { $_ } map { $_->{ message } } @{ $url_media } ];
 }

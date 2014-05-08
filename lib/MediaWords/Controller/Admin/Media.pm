@@ -122,6 +122,8 @@ sub create_do : Local
         $status_msg = "All media sources were added successfully.";
     }
 
+    $status_msg .= " The system is working on scraping feeds for feedless media.  That process may take a long time.";
+
     $c->response->redirect( $c->uri_for( '/admin/media/list', { status_msg => $status_msg } ) );
 }
 
