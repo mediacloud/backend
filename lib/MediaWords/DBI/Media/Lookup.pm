@@ -25,7 +25,7 @@ select m.*, mtm.tags_id spidered_tags_id
                 join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id and ts.name = 'spidered' )
             ) on ( m.media_id = mtm.media_id )
     where
-        m.url like ( '%'||?||'%' )
+        m.url ilike ( '%'||?||'%' )
 END
 
     my $nu = MediaWords::Util::URL::normalize_url( $url );
