@@ -69,7 +69,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4453;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4451;
     
 BEGIN
 
@@ -424,7 +424,7 @@ create index feeds_last_successful_download_time on feeds(last_successful_downlo
 create table tag_sets (
     tag_sets_id            serial            primary key,
     name                varchar(512)    not null,
-    label               varchar(512),
+    label               varchar(512)    default(name),
     description         text,
     CONSTRAINT tag_sets_name_not_empty CHECK (((name)::text <> ''::text))
 );
@@ -435,8 +435,6 @@ create table tags (
     tags_id                serial            primary key,
     tag_sets_id            int                not null references tag_sets,
     tag                    varchar(512)    not null,
-    label                  varchar(512),
-    description            text,
         CONSTRAINT no_line_feed CHECK (((NOT ((tag)::text ~~ '%
 %'::text)) AND (NOT ((tag)::text ~~ '%
 %'::text)))),
