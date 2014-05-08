@@ -1,20 +1,19 @@
 package MediaWords::DBI::Media;
 
-use Modern::Perl "2013";
-use MediaWords::CommonLibs;
-use MediaWords::Util::HTML;
-use MediaWords::GearmanFunction;
-use MediaWords::GearmanFunction::AddDefaultFeeds;
-use Text::Trim;
-
 use strict;
 use warnings;
 
+use Modern::Perl "2013";
+
 use Encode;
-
 use Regexp::Common qw /URI/;
+use Text::Trim;
 
-use Data::Dumper;
+use MediaWords::CommonLibs;
+use MediaWords::DBI::Media::Lookup;
+use MediaWords::GearmanFunction;
+use MediaWords::GearmanFunction::AddDefaultFeeds;
+use MediaWords::Util::HTML;
 
 # parse the domain from the url of each story.  return the list of domains
 sub _get_domains_from_story_urls
@@ -129,7 +128,7 @@ sub _get_medium_title_from_response
     return $title;
 }
 
-# find the media source by the reseponse.  recurse back along the response to all of the chained redirects
+# find the media source by the response.  recurse back along the response to all of the chained redirects
 # to see if we can find the media source by any of those urls.
 sub _find_medium_by_response
 {
@@ -138,7 +137,8 @@ sub _find_medium_by_response
     my $r = $response;
 
     my $medium;
-    while ( $r && !( $medium = _find_medium_by_url( $dbis, decode( 'utf8', $r->request->url ) ) ) )
+    while ( $r
+        && !( $medium = MediaWords::DBI::Media::Lookup::find_medium_by_url( $dbis, decode( 'utf8', $r->request->url ) ) ) )
     {
         $r = $r->previous;
     }
@@ -247,29 +247,6 @@ sub _add_media_tags_from_strings
     }
 }
 
-# find the media source by the url or the url with/without the trailing slash
-sub _find_medium_by_url
-{
-    my ( $dbis, $url ) = @_;
-
-    my $base_url = $url;
-
-    $base_url =~ m~^([a-z]*)://~;
-    my $protocol = $1 || 'http';
-
-    $base_url =~ s~^([a-z]+://)?(www\.)?~~;
-    $base_url =~ s~/$~~;
-
-    my $url_permutations =
-      [ "$protocol://$base_url", "$protocol://www.$base_url", "$protocol://$base_url/", "$protocol://www.$base_url/" ];
-
-    my $medium =
-      $dbis->query( "select * from media where url in (?, ?, ?, ?) order by length(url) desc", @{ $url_permutations } )
-      ->hash;
-
-    return $medium;
-}
-
 # given a newline separated list of media urls, return a list of hashes in the form of
 # { medium => $medium_hash, url => $url, tags_string => $tags_string, message => $error_message }
 # the $medium_hash is the existing media source with the given url, or undef if no existing media source is found.
@@ -303,7 +280,7 @@ sub _find_media_from_urls
             $medium->{ message } = "'$url' is not a valid url";
         }
 
-        $medium->{ medium } = _find_medium_by_url( $dbis, $url );
+        $medium->{ medium } = MediaWords::DBI::Media::Lookup::find_medium_by_url( $dbis, $url );
 
         push( @{ $url_media }, $medium );
     }
@@ -311,12 +288,12 @@ sub _find_media_from_urls
     return $url_media;
 }
 
-# get the domain from the medium url
-sub get_medium_domain
+# get the domain of the given medium url
+sub get_medium_url_domain
 {
-    my ( $medium ) = @_;
+    my ( $url ) = @_;
 
-    $medium->{ url } =~ m~https?://([^/#]*)~ || return $medium;
+    $url =~ m~https?://([^/#]*)~ || return $url;
 
     my $host = $1;
 
@@ -344,6 +321,14 @@ sub get_medium_domain
     }
 
     return lc( $domain );
+}
+
+# get the domain from the medium url
+sub get_medium_domain
+{
+    my ( $medium ) = @_;
+
+    return get_medium_url_domain( $medium->{ url } );
 }
 
 # add default feeds for a single medium

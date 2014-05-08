@@ -110,9 +110,7 @@ sub create_do : Local
     my $status_msg;
     if ( @{ $error_messages } )
     {
-        $status_msg = join( "\n",
-            "Errors adding some media sources, see below.  Any urls not mentioned below were added successfully.",
-            @{ $error_messages } );
+        $status_msg = join( "\n", @{ $error_messages } );
 
         if ( length( $status_msg ) > 2048 )
         {
