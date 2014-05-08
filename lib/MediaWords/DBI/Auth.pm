@@ -24,7 +24,7 @@ use URI::Escape;
 use Data::Dumper;
 
 # Validate a password / password token with Crypt::SaltedHash; return 1 on success, 0 on error
-sub _password_hash_is_valid($$)
+sub password_hash_is_valid($$)
 {
     my ( $secret_hash, $secret ) = @_;
 
@@ -87,7 +87,7 @@ sub generate_secure_hash($)
         die "Unable to hash a secret.";
         return '';
     }
-    if ( !_password_hash_is_valid( $secret_hash, $secret ) )
+    if ( !password_hash_is_valid( $secret_hash, $secret ) )
     {
         say STDERR "Secret hash has been generated, but it does not validate.";
         return '';
@@ -244,31 +244,55 @@ EOF
     return $user;
 }
 
+# get the ip address of the given catalyst request, using the x-forwarded-for header
+# if present and ip address is localhost
+sub get_request_ip_address ($)
+{
+    my ( $c ) = @_;
+
+    my $req = $c->req;
+
+    my $forwarded_ip = $req->headers->header( 'X-Forwarded-For' );
+    return $forwarded_ip if ( $forwarded_ip && ( $req->address eq '127.0.0.1' ) );
+
+    return $req->address;
+}
+
 # Fetch a hash of basic user information and an array of assigned roles based on the API token.
 # Only active users are fetched.
 # Returns 0 on error
 sub user_for_api_token($$)
 {
-    my ( $db, $api_token ) = @_;
+    my ( $c, $api_token ) = @_;
+
+    my $db         = $c->dbis;
+    my $ip_address = get_request_ip_address( $c );
 
     my $user = $db->query(
         <<"EOF",
         SELECT auth_users.auth_users_id,
                auth_users.email,
                ARRAY_TO_STRING(ARRAY_AGG(role), ' ') AS roles
-        FROM auth_users
+        FROM auth_users 
             LEFT JOIN auth_users_roles_map
                 ON auth_users.auth_users_id = auth_users_roles_map.auth_users_id
             LEFT JOIN auth_roles
                 ON auth_users_roles_map.auth_roles_id = auth_roles.auth_roles_id
-        WHERE auth_users.api_token = LOWER(?)
+        WHERE auth_users.api_token = LOWER(\$1) OR
+            LOWER(\$1) in ( 
+                SELECT api_token
+                    FROM auth_user_ip_tokens
+                    WHERE
+                        auth_users.auth_users_id = auth_user_ip_tokens.auth_users_id AND
+                        ip_address = \$2 )
           AND active = true
         GROUP BY auth_users.auth_users_id,
                  auth_users.email
         ORDER BY auth_users.auth_users_id
         LIMIT 1
 EOF
-        $api_token
+        $api_token,
+        $ip_address
     )->hash;
 
     if ( !( ref( $user ) eq 'HASH' and $user->{ auth_users_id } ) )
@@ -287,10 +311,9 @@ sub user_for_api_token_catalyst($)
 {
     my $c = shift;
 
-    my $dbis      = $c->dbis;
     my $api_token = $c->request->param( API_TOKEN_PARAMETER . '' );
 
-    return user_for_api_token( $dbis, $api_token );
+    return user_for_api_token( $c, $api_token );
 }
 
 # Post-successful login database tasks
@@ -371,7 +394,7 @@ EOF
 
     $password_reset_token_hash = $password_reset_token_hash->{ password_reset_token_hash };
 
-    if ( _password_hash_is_valid( $password_reset_token_hash, $password_reset_token ) )
+    if ( password_hash_is_valid( $password_reset_token_hash, $password_reset_token ) )
     {
         return 1;
     }
@@ -505,7 +528,7 @@ EOF
     $db_password_old = $db_password_old->{ password_hash };
 
     # Validate the password
-    if ( !_password_hash_is_valid( $db_password_old, $password_old ) )
+    if ( !password_hash_is_valid( $db_password_old, $password_old ) )
     {
         return 'Old password is incorrect.';
     }

@@ -21,12 +21,30 @@ declare -a DB_CREDENTIALS_SELECTORS=(
 
 )
 
+
+# Returns true (0) if the host is localhost; used for skipping the "--host"
+# parameter when creating databases on local machines (because otherwise user
+# gets asked for a password)
+function _host_is_localhost {
+    local db_host="$1"
+
+    if [ "$db_host" == "localhost" ] || [ "$db_host" == "127.0.0.1" ]; then
+        return 0    # "true" in Bash
+    else
+        return 1    # "false" in Bash
+    fi
+}
+
+
 # "psql" shorthand
 function run_psql {
     local db_host="$1"
     local sql_command="$2"
 
-    PSQL_OPTIONS="--host=$db_host"
+    PSQL_OPTIONS=""
+    if ! _host_is_localhost "$db_host"; then
+        PSQL_OPTIONS="$PSQL_OPTIONS --host=$db_host"
+    fi
 
     if [ `uname` == 'Darwin' ]; then
         # Mac OS X
@@ -43,7 +61,10 @@ function run_dropdb {
     local db_host="$1"
     local db_name="$2"
 
-    DROPDB_OPTIONS="--host=$db_host"
+    DROPDB_OPTIONS=""
+    if ! _host_is_localhost "$db_host"; then
+        DROPDB_OPTIONS="$DROPDB_OPTIONS --host=$db_host"
+    fi
 
     if [ `uname` == 'Darwin' ]; then
         # Mac OS X
@@ -61,7 +82,11 @@ function run_createdb {
     local db_name="$2"
     local db_owner="$3"
 
-    CREATEDB_OPTIONS="--host=$db_host"
+    CREATEDB_OPTIONS=""
+    if ! _host_is_localhost "$db_host"; then
+        CREATEDB_OPTIONS="$CREATEDB_OPTIONS --host=$db_host"
+    fi
+
     CREATEDB_OPTIONS="$CREATEDB_OPTIONS --owner=$db_owner"
 
     # Force UTF-8 encoding because some PostgreSQL installations default to

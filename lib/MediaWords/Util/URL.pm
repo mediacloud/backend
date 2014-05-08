@@ -13,7 +13,7 @@ sub normalize_url
     my ( $url ) = @_;
     $url = lc( $url );
 
-    # r2.ly redirects throug the hostname, ala http://543.r2.ly
+    # r2.ly redirects through the hostname, ala http://543.r2.ly
     if ( $url !~ /r2\.ly/ )
     {
         $url =~ s/^(https?:\/\/)(m|media|data|image|www|cdn|topic|article|news|archive|blog|video|\d+?).?\./$1/i;

@@ -26,25 +26,20 @@ for db_selector in "${DB_CREDENTIALS_SELECTORS[@]}"; do
 
     createuser_sql=$( cat <<EOF
 
-        DO
-        \$body\$
-        BEGIN
-           IF NOT EXISTS (
-              SELECT *
-              FROM   pg_roles
-              WHERE  rolname = '$db_credentials_user') THEN
-
-              CREATE ROLE $db_credentials_user WITH SUPERUSER LOGIN PASSWORD '$db_credentials_pass';
-           END IF;
-        END
-        \$body\$;
+        CREATE ROLE $db_credentials_user
+        WITH SUPERUSER LOGIN
+        PASSWORD '$db_credentials_pass'
 
 EOF
 )
     createuser_exec=`run_psql "$db_credentials_host" "$createuser_sql"`
     if [[ "$createuser_exec" == *"ERROR"* ]]; then
-        echo "    PostgreSQL error while creating user '$db_credentials_user': $createuser_exec"
-        exit 1
+        if [[ "$createuser_exec" == *"already exists"* ]]; then
+            echo "        User '$db_credentials_user' already exists, skipping creation."
+        elif [[ -n "$createuser_exec" ]]; then
+            echo "        PostgreSQL error while creating user '$db_credentials_user': $createuser_exec"
+            exit 1
+        fi
     fi
     echo "    Done creating user '$db_credentials_user'."
 
@@ -54,15 +49,18 @@ EOF
     echo "    Creating database '$db_credentials_db' on host '$db_credentials_host' with owner '$db_credentials_user'..."
     createdb_exec=`run_createdb "$db_credentials_host" "$db_credentials_db" "$db_credentials_user"`
 
-    if [[ "$createdb_exec" == *"already exists"* ]]; then
-        echo "        Database '$db_credentials_db' already exists, skipping creation."
-        echo "        If you want to purge everything and start from scratch, run purge_mediacloud_databases.sh manually."
-    elif [[ -n "$createdb_exec" ]]; then
-        echo "        PostgreSQL error while creating database '$db_credentials_db': $createdb_exec"
-        exit 1
+    if [[ "$createdb_exec" == *"ERROR"* ]]; then
+        if [[ "$createdb_exec" == *"already exists"* ]]; then
+            echo "        Database '$db_credentials_db' already exists, skipping creation."
+            echo "        If you want to purge everything and start from scratch, run purge_mediacloud_databases.sh manually."
+        elif [[ -n "$createdb_exec" ]]; then
+            echo "        PostgreSQL error while creating database '$db_credentials_db': $createdb_exec"
+            exit 1
+        fi
     fi
     echo "    Done creating database '$db_credentials_db'."
 
     echo "Done initializing database with label '$db_credentials_label'."
 
 done
+

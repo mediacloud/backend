@@ -616,4 +616,15 @@ sub get_temporary_ids_table ($)
 
 }
 
+sub begin_work
+{
+    my ( $self ) = @_;
+
+    eval { $self->SUPER::begin_work; };
+    if ( $@ )
+    {
+        Carp::confess( $@ );
+    }
+}
+
 1;

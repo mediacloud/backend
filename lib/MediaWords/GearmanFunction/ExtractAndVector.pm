@@ -31,21 +31,13 @@ use MediaWords::DB;
 use MediaWords::DBI::Downloads;
 use MediaWords::Util::GearmanJobSchedulerConfiguration;
 
-# Having a global database object should be safe because
-# Gearman::JobScheduler's workers don't support fork()s anymore
-my $db = undef;
-
 # extract + vector the download; die() and / or return false on error
 sub run($$)
 {
     my ( $self, $args ) = @_;
 
-    unless ( $db )
-    {
-        # Postpone connecting to the database so that compile test doesn't do that
-        $db = MediaWords::DB::connect_to_db();
-        $db->dbh->{ AutoCommit } = 0;
-    }
+    my $db = MediaWords::DB::connect_to_db();
+    $db->dbh->{ AutoCommit } = 0;
 
     my $downloads_id = $args->{ downloads_id };
     unless ( defined $downloads_id )

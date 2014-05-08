@@ -15,8 +15,6 @@ use MediaWords::DBI::Stories;
 use MediaWords::DBI::Activities;
 use MediaWords::Util::CoreNLP;
 
-use constant STORIES_PRINT_CORENLP_ANNOTATIONS => 1;
-
 =head1 NAME
 
 MediaWords::Controller::Stories - Catalyst Controller
@@ -145,7 +143,7 @@ END
 
     $c->stash->{ stories_id } = $stories_id;
 
-    if ( STORIES_PRINT_CORENLP_ANNOTATIONS )
+    if ( MediaWords::Util::CoreNLP::annotator_is_enabled )
     {
 
         $c->stash->{ corenlp_story_json } =

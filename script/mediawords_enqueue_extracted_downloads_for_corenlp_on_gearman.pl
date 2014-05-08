@@ -27,7 +27,7 @@ sub main
 {
     my $db = MediaWords::DB::connect_to_db;
 
-    say STDERR "Fetching a list of extracted, unannotated, English language downloads...";
+    say STDERR "Fetching a list of extracted, unannotated, annotatable downloads...";
     my $downloads = $db->query(
         <<EOF
 
@@ -48,9 +48,9 @@ EOF
     {
         say STDERR <<EOF;
 
-No downloads to enqueue were found; maybe the download's story wasn't
-identified as being English, or did you forget to set
-media.annotate_with_corenlp = 't'?
+No downloads to enqueue were found; did you forget to set
+media.annotate_with_corenlp = 't'? Or maybe the stories for the downloads you
+want to enqueue are already listed in "processed_stories"?
 
 EOF
 

@@ -978,6 +978,55 @@ story sentence 56781234.
 curl -X PUT -d sentence_tag=12345678,gv_country:japan -d sentence_tag=12345678,gv_country:brazil -d sentence_tag=56781234,gv_country:japan http://www.mediacloud.org/api/v2/sentences/put_tags
 ```
 
+## Authentication API
+
+The Authentication API allows a client to fetch an IP-address-limited authentication token for a user.
+
+### api/v2/auth/single (GET)
+
+| URL                          | Function
+| ---------------------------- | --------------------------------------------------
+| `api/v2/auth/single`         | Fetch an IP-address-limited auth token
+
+#### Query Parameters
+
+| Parameter    | Notes
+| ------------ | -----------------------------------------------------------------
+| `username`   | The name of the user for whom the token is being requested.
+| `password`   | The password of the user for whom the token is being requested.
+
+The call will return either an auth token of the email and password match those of a 
+user in the database.  The auth token will only be valid for connecting from the IP
+address that made the api request.
+
+#### Example
+
+URL: http://www.mediacloud.org/api/v2/auth/single?username=foo&password=bar
+
+Response:
+
+```json
+[
+  {
+    "result": "found",
+    "token": "3827b988b309f8296fb47c0dbdd65302143f931c3852fdcb9083134ae6345f68"
+   }
+]
+```
+
+URL: http://www.mediacloud.org/api/v2/auth/single?username=foo&password=foobar
+
+Response:
+
+```json
+[
+  {
+    "result": "not found"
+   }
+]
+```
+
+
 # Extended Examples
 
 ## Output Format / JSON

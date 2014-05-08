@@ -69,7 +69,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4449;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4453;
     
 BEGIN
 
@@ -424,6 +424,8 @@ create index feeds_last_successful_download_time on feeds(last_successful_downlo
 create table tag_sets (
     tag_sets_id            serial            primary key,
     name                varchar(512)    not null,
+    label               varchar(512),
+    description         text,
     CONSTRAINT tag_sets_name_not_empty CHECK (((name)::text <> ''::text))
 );
 
@@ -433,6 +435,8 @@ create table tags (
     tags_id                serial            primary key,
     tag_sets_id            int                not null references tag_sets,
     tag                    varchar(512)    not null,
+    label                  varchar(512),
+    description            text,
         CONSTRAINT no_line_feed CHECK (((NOT ((tag)::text ~~ '%
 %'::text)) AND (NOT ((tag)::text ~~ '%
 %'::text)))),
@@ -2068,6 +2072,18 @@ CREATE TABLE auth_users (
     last_unsuccessful_login_attempt     TIMESTAMP NOT NULL DEFAULT TIMESTAMP 'epoch'
 );
 
+create index auth_users_email on auth_users( email );
+create index auth_users_token on auth_users( api_token );
+
+create table auth_user_ip_tokens (
+    auth_user_ip_tokens_id  serial      primary key,
+    auth_users_id           int         not null references auth_users on delete cascade,
+    api_token               varchar(64) unique not null default generate_api_token() constraint api_token_64_characters check( length( api_token ) = 64 ),
+    ip_address              inet    not null
+);
+
+create index auth_user_ip_tokens_token on auth_user_ip_tokens ( api_token, ip_address );
+
 -- List of roles the users can perform
 CREATE TABLE auth_roles (
     auth_roles_id   SERIAL  PRIMARY KEY,
@@ -2238,13 +2254,6 @@ BEGIN
 
           -- Media is marked for CoreNLP annotation
           AND media.annotate_with_corenlp = 't'
-
-          -- English language stories only because they're the only ones
-          -- supported by CoreNLP at the time.
-          -- Stories with language field set to NULL are the ones fetched
-          -- before introduction of the multilanguage support, so they are
-          -- assumed to be in English
-          AND (stories.language = 'en' OR stories.language IS NULL)
 
           -- Story not yet marked as "processed"
           AND NOT EXISTS (
