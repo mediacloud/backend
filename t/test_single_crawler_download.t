@@ -389,6 +389,9 @@ sub main
                       "test_crawler.t and test_single_crawler_download.t share data" );
             }
 
+            # Wait for a bit for the crawler to finish crawling
+            sleep( 10 );
+
             test_stories( $db, $feed );
 
             print "Killing server\n";
