@@ -67,9 +67,10 @@ sub add_test_feed
     return $feed;
 }
 
-Readonly my $crawler_timeout => 60;
+Readonly my $crawler_timeout => 2 * 60;
 
-# run the crawler for one minute, which should be enough time to gather all of the stories from the test feed
+# run the crawler for two minutes, which should be enough time to gather all of
+# the stories from the test feed and test-extract them
 sub run_crawler
 {
 
@@ -387,6 +388,9 @@ sub main
                 die( "Dumping of stories is only supported within t/test_crawler.t \n" .
                       "test_crawler.t and test_single_crawler_download.t share data" );
             }
+
+            # Wait for a bit for the crawler to finish crawling
+            sleep( 10 );
 
             test_stories( $db, $feed );
 
