@@ -94,9 +94,10 @@ sub add_test_feed
     return $syndicated_feed;
 }
 
-Readonly my $crawler_timeout => 180;
+Readonly my $crawler_timeout => 6 * 60;
 
-# run the crawler for one minute, which should be enough time to gather all of the stories from the test feed
+# run the crawler for one minute, which should be enough time to gather all of
+# the stories from the test feed and test-extract them
 sub run_crawler
 {
     MediaWords::Util::Config->get_config->{ mediawords }->{ extract_in_process } = 1;

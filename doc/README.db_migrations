@@ -23,10 +23,7 @@ If you want to try Git out, install git-svn first (`sudo apt-get install git-cor
 
     # Set up a symlink to the pre-commit hook that would run each and every time a commit by the
     # developer is attempted
-    cd .git/hooks/
-    ln -s ../../script/pre_commit_hooks/pre-commit .
-    chmod +x pre-commit     # Make sure it's executable
-    cd ../../
+    ./install_scripts/setup_git_precommit_hooks.sh
 
 2. Make an arbitrary change to an irrelevant file and run the pre-commit hook:
 ------------------------------------------------------------------------------

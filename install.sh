@@ -42,6 +42,9 @@ echo "creating new user 'jdoe@mediacloud.org' with password 'mediacloud'"
     --roles="admin" \
     --password="mediacloud"
 
+echo "Setting up Git pre-commit hooks..."
+./install_scripts/setup_git_precommit_hooks.sh
+
 echo "Media Cloud install succeeded!!!!"
 echo "See doc/ for more information on using Media Cloud"
 echo "Run ./script/start_mediacloud_server.sh to start the Media Cloud server"

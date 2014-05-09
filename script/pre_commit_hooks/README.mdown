@@ -1,0 +1,64 @@
+Git pre-commit hooks
+====================
+
+You can use these Git pre-commit hooks before committing code in order to
+automatically check your changes for mistakes and bad formatting. Also, Git
+pre-commit hooks are useful when doing database schema versioning.
+
+You can also run the pre-commit hooks manually by executing
+`./script/pre_commit_hooks/pre-commit` just before doing `git commit`.
+
+
+Attaching pre-commit hooks to a Git's local copy
+------------------------------------------------
+
+To automatically install Media Cloud's pre-commit hooks, run:
+
+    ./install_scripts/setup_git_precommit_hooks.sh
+
+`./install.sh` script will do it for you.
+
+
+Skipping pre-commit hooks when committing
+-----------------------------------------
+
+If you would like to skip running pre-commit hooks when doing a particular
+commit, run `git commit` with a `--no-verify` option:
+
+    git commit --no-verify
+
+
+Writing a new pre-commit hook
+-----------------------------
+
+You can create new pre-commit hooks that would be run before committing code
+against the committer's local copy of the code.
+
+The hooks are placed in `/script/git_hooks/` and follow the `hook-***.sh`
+naming pattern. The hook as to be made executable (`chmod +x`) in order to make
+it work.
+
+For example, to prevent committers from committing code on weekends (Saturdays
+and Sundays):
+
+1. Create a file `/script/git_hooks/hook-weekends-are-sacred.sh`
+2. In the hook, check if the current day is weekend:
+
+        #!/bin/sh
+
+        if [[ $(date +%u) -gt 5 ]] ; then
+            echo "Today is a weekend and committing code to Media Cloud's repository is prohibited."
+            echo "If you absolutely, positively have to commit this code today,"
+            echo "run \"git commit\" with the --no-verify option."
+            exit 1
+        fi
+
+        # Not a weekend, exiting normally
+        exit 0
+
+3. Make the newly-created hook an executable:
+
+        chmod +x /script/git_hooks/hook-weekends-are-sacred.sh
+
+4. Done! Now the hook should be run each and every time you commit new changes
+to the Git repository.
