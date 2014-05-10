@@ -5,3 +5,5 @@ supervisord.sock
 # Ignore custom user configuration
 supervisord.user.*.conf
 
+# Ignore autocreated conf
+supervisord.conf
