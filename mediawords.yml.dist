@@ -92,6 +92,7 @@ database:
 
         ### Email subject prefix (optional; default is "[GJS]")
         #subject_prefix: "[GJS]"
+                
 
 ### Gearman server (gearmand) configuration
 #gearmand:
@@ -117,6 +118,33 @@ database:
     ### The log directory for child process logs (absolute or relative to Media
     ### Cloud's root; must already exist)
     #childlogdir: "data/supervisor_logs/"
+    
+    # configure supervisor settings for mediacloud background daemons here.
+    # the defaults should work for a small dev setup, but you will want to increase
+    # numprocs for some daemons depending on load.  you can also set some daemons
+    # not to autostart -- for instance you might want to change crawler.autostart
+    # to 'false' to prevent the crawler from starting automatically on a dev machine.
+    #programs:
+    
+        #crawler:
+            #numprocs: 1
+            #autostart: 'true'
+            #autorestart: 'false'
+            
+        #extractor_and_vector:
+            #numprocs: 1
+            #autostart: 'true'
+            #autorestart: 'true'
+        
+        # other configurable supervisor programs
+        #crf_web_service
+        #gearmand
+        #add_default_feeds
+        #cm_mine_controversy
+        #cm_dump_controversy    
+        #solr
+        #solr_facets_wrapper_server
+        
 
 ### CoreNLP annotator
 #corenlp:
