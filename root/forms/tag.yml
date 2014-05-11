@@ -1,0 +1,39 @@
+auto_fieldset:
+
+elements:
+  - type: Text
+    name: tag
+    label: Tag
+    size: 80
+    constraints:
+        - Required
+
+  - type: Text
+    name: label
+    label: Label
+    size: 80
+    constraints:
+        - Required
+
+  - type: Textarea
+    cols: 80
+    rows: 4
+    name: description
+    label: Description
+    constraints:
+        - Required
+
+  - type: Checkbox
+    name: show_on_media
+    label: Show on Media
+    default: 1
+    default_empty_value: true
+
+  - type: Checkbox
+    name: show_on_stories
+    label: Show on Stories
+    default: 1
+    default_empty_value: true
+
+  - type: Submit
+    value: Save

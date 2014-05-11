@@ -204,6 +204,8 @@ sub setup_acl()
       /admin/health/tag
       /admin/health/medium
       /admin/health/stories
+      /admin/tags/edit
+      /admin/tagsets/edit
       |;
 
     # stories-edit role; can do everything admin-readonly can + add / edit stories
@@ -212,6 +214,8 @@ sub setup_acl()
       /admin/stories/add_tag_do
       /admin/stories/delete_tag
       /admin/stories/edit
+      /admin/tags/edit
+      /admin/tagsets/edit
       |;
 
     # cm role; can access all cm pages + admin-readonly + media-edit + stories-edi
