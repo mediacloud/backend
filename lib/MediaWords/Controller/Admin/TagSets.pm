@@ -41,7 +41,7 @@ sub edit : Local
 
     $db->update_by_id( 'tag_sets', $tag_sets_id, $tag_set );
 
-    $c->response->redirect( $c->uri_for( "/admin/tagsets/edit/$tag_sets_id", { status_msg => 'tag set saved.' } ) );
+    $c->response->redirect( $c->uri_for( "/search/tag_sets", { status_msg => 'tag set saved.' } ) );
 }
 
 1;

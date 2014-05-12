@@ -3,6 +3,8 @@
 
 <fieldset>
 [% form.render %]
+<p><a href="[% c.uri_for( "/search/tag_sets/" _ tag.tag_sets_id ) %]">Return to Tag Set</a></p>
 </fieldset>
+
  
 [% INCLUDE include/footer.tt2 %]

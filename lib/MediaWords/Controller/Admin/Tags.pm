@@ -32,6 +32,7 @@ sub edit : Local
 
     if ( !$form->submitted_and_valid() )
     {
+        $c->stash->{ tag }      = $tag;
         $c->stash->{ form }     = $form;
         $c->stash->{ template } = 'tags/edit.tt2';
         return;
@@ -41,7 +42,17 @@ sub edit : Local
 
     $db->update_by_id( 'tags', $tags_id, $tag );
 
-    $c->response->redirect( $c->uri_for( "/admin/tags/edit/$tags_id", { status_msg => 'tag saved.' } ) );
+    my $next_tag = $db->query( <<END, $tag->{ tags_id }, $tag->{ tag_sets_id } )->hash;
+select * from tags
+    where
+        ( label is null or description is null ) and
+        tag_sets_id = \$2
+    order by ( tags_id > \$1 ) desc, tags_id asc
+END
+
+    my $url = $next_tag ? "/admin/tags/edit/$next_tag->{ tags_id }" : "/search/tags/$tag->{ tag_sets_id }";
+
+    $c->response->redirect( $c->uri_for( $url, { status_msg => 'Tag saved.' } ) );
 }
 
 1;
