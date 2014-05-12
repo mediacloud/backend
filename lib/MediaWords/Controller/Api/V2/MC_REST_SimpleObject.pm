@@ -3,10 +3,9 @@ use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use MediaWords::DBI::StorySubsets;
-use MediaWords::Controller::Api::V2::MC_Action_REST;
 use strict;
 use warnings;
-use base 'Catalyst::Controller';
+use base 'Catalyst::Controller::REST';
 use JSON;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Moose;
@@ -111,7 +110,7 @@ sub _process_result_list
     return $items;
 }
 
-sub single : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
+sub single : Local : ActionClass('REST') : Does('~ApiKeyAuthenticated')
 {
 }
 
@@ -192,7 +191,7 @@ sub _get_list_last_id_param_name
     return $last_id_param_name;
 }
 
-sub list : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
+sub list : Local : ActionClass('REST') : Does('~ApiKeyAuthenticated')
 {
 }
 
@@ -200,7 +199,7 @@ sub list_GET : Local
 {
     my ( $self, $c ) = @_;
 
-    # say STDERR "starting list_GET";
+    say STDERR "starting list_GET";
 
     my $table_name = $self->get_table_name();
 

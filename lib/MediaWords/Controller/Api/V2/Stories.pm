@@ -227,7 +227,7 @@ END
     return $stories;
 }
 
-sub put_tags : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
+sub put_tags : Local : Does('~ApiKeyAuthenticated')
 {
 }
 

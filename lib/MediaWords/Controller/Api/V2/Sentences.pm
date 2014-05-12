@@ -3,7 +3,6 @@ use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use MediaWords::DBI::StorySubsets;
-use MediaWords::Controller::Api::V2::MC_Action_REST;
 use strict;
 use warnings;
 use base 'Catalyst::Controller';
@@ -40,7 +39,7 @@ sub get_table_name
     return "story_sentences";
 }
 
-sub list : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
+sub list : Local : Does('~ApiKeyAuthenticated')
 {
 }
 
@@ -160,7 +159,7 @@ sub list_GET : Local
 }
 
 ##TODO merge with stories put_tags
-sub put_tags : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
+sub put_tags : Local : Does('~ApiKeyAuthenticated')
 {
 }
 

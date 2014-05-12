@@ -10,7 +10,6 @@ use MediaWords::CommonLibs;
 
 use base 'Catalyst::Controller';
 
-use MediaWords::Controller::Api::V2::MC_Action_REST;
 use MediaWords::Controller::Api::V2::MC_Controller_REST;
 use MediaWords::DBI::Auth;
 use MediaWords::DBI::StorySubsets;
@@ -20,7 +19,7 @@ use namespace::autoclean;
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
-sub single : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
+sub single : Local : ActionClass('REST') : Does('~ApiKeyAuthenticated')
 {
 }
 

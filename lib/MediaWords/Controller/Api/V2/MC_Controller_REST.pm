@@ -7,7 +7,7 @@ use MediaWords::DBI::Auth;
 
 use strict;
 use warnings;
-use base 'Catalyst::Controller';
+use base 'Catalyst::Controller::REST';
 use JSON;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Moose;
@@ -56,17 +56,6 @@ __PACKAGE__->config(
 );
 
 __PACKAGE__->config( json_options => { relaxed => 1, pretty => 1, space_before => 2, indent => 1, space_after => 2 } );
-
-sub invalid_key : Local
-{
-    my ( $self, $c ) = @_;
-
-    say STDERR "invalid key";
-
-    $self->status_forbidden( $c, message => "Invalid key. Access denied", );
-
-    return;
-}
 
 =head1 AUTHOR
 

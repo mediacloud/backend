@@ -3,7 +3,6 @@ use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use MediaWords::DBI::StorySubsets;
-use MediaWords::Controller::Api::V2::MC_Action_REST;
 use strict;
 use warnings;
 use base 'Catalyst::Controller';
@@ -29,7 +28,6 @@ Catalyst Controller.
 =head2 index 
 
 =cut
-
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 
@@ -69,7 +67,6 @@ sub default_output_fields
 {
     return [ qw ( name media_sets_id description ) ];
 }
-
 
 =head1 AUTHOR
 
