@@ -34,7 +34,7 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
 use MediaWords::Tagger;
 
-sub list : Local : Does('~ApiKeyAuthenticated')
+sub list : Local : Does('~ApiKeyAuthenticated') : Does('~Logged')
 {
 }
 

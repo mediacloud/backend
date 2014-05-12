@@ -19,7 +19,7 @@ use namespace::autoclean;
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
-sub single : Local : ActionClass('REST') : Does('~ApiKeyAuthenticated')
+sub single : Local : ActionClass('REST') : Does('~ApiKeyAuthenticated') : Does('~Logged')
 {
 }
 
