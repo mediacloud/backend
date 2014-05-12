@@ -128,26 +128,45 @@ public class ModelRunner {
 
          SumLattice lattice = new SumLatticeDefault(crf,input);
 
-
-
-        ArrayList<String> sequenceResults = new ArrayList<String>();
+        ArrayList<CrfOutput> crfResults   = new ArrayList<CrfOutput>();
         for (int j = 0; j < input.size(); j++) {
+
             // probability of transitioning from state si at input position ip-1
             System.err.println(" Input Pos " + j);
+
+            CrfOutput crfResult = new CrfOutput();
+
+            crfResult.probabilities = new HashMap<String, Double>();
 
             for ( int si = 0; si < crf.numStates(); si++) {
                 // to state sj at input position ip
                 // double twoStateMarginal = lattice.getXiProbability(j,crf.getState(si),crf.getState(sj));
                 // probability of being in state si at input position ip
                 double oneStateMarginal = lattice.getGammaProbability(j + 1, crf.getState(si));
-                System.err.println( "Marginal prob: " + crf.getState(si).getName() + " " +oneStateMarginal );
+
+                String stateName = crf.getState(si).getName();
+                System.err.println( "Marginal prob: " + stateName + " " +oneStateMarginal );
+                crfResult.probabilities.put( stateName, oneStateMarginal);
             }
 
 
             String prediction = output.get(j).toString();
-            System.err.println( "Prediction: " + prediction);
-            sequenceResults.add(prediction + " ");
 
+            crfResult.prediction = prediction;
+
+            System.err.println( "Prediction: " + prediction);
+
+            //sequenceResults.add(prediction + " ");
+
+            crfResults.add( crfResult);
+
+        }
+
+        ArrayList<String> sequenceResults = new ArrayList<String>();
+
+        for ( CrfOutput crfResult: crfResults )
+        {
+            sequenceResults.add( crfResult.prediction + " ");
         }
 
         return sequenceResults;
