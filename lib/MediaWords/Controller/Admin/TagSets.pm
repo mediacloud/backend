@@ -32,6 +32,7 @@ sub edit : Local
 
     if ( !$form->submitted_and_valid() )
     {
+        $c->stash->{ tag_set }  = $tag_set;
         $c->stash->{ form }     = $form;
         $c->stash->{ template } = 'tag_sets/edit.tt2';
         return;

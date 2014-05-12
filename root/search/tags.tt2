@@ -2,7 +2,10 @@
 [% INCLUDE include/header.tt2 %]
 
 <fieldset>
-    <a href="[% c.uri_for( '/search/tag_sets' ) %]">List Tag Sets</a>
+    <a href="[% c.uri_for( '/search/tag_sets' ) %]">List All Tag Sets</a>
+    [% IF c.acl_user_can_visit('/admin/tags/edit') %]
+        | <a href="[% c.uri_for( '/admin/tagsets/edit/' _ tag_set.tag_sets_id ) %]">Edit This Tag Set</a>
+    [% END %]
 </fieldset>
 <table>
 
@@ -13,7 +16,9 @@
         <th>Media Sets</th>
         <th>Num Media</th>
         <th>List Media</th>
-        <th>Edit</th>
+        [% IF c.acl_user_can_visit('/admin/tags/edit') %]
+            <th>Edit</th>
+        [% END %]
     </tr>
 
     [% FOREACH tag IN tags -%]
@@ -25,7 +30,9 @@
             <td>[% tag.media_set_names | html %]</td>
             <td>[% tag.media_count %]</td>
             <td><a href="[% c.uri_for( '/search/media/' _ tag.tags_id ) %]">list media</a></td>
-            <td><a href="[% c.uri_for( '/admin/tags/edit/' _ tag.tags_id ) %]">edit</a></td>
+            [% IF c.acl_user_can_visit('/admin/tags/edit') %]
+                <td><a href="[% c.uri_for( '/admin/tags/edit/' _ tag.tags_id ) %]">edit</a></td>
+            [% END %]
         </tr>
 
     [%  SET even = !even %]
@@ -33,6 +40,5 @@
     [% END # FOREACH medium -%]
 
 </table>
-
 
 [% INCLUDE include/footer.tt2 %]
