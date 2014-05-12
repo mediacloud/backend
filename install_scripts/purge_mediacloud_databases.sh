@@ -26,7 +26,7 @@ done
 echo "Are you sure you want to do this (y/n)?"
 read REPLY
 
-if [ $REPLY != "y" ]; then
+if [ "$REPLY" != "y" ]; then
     echo "Exiting..."
     exit 1
 fi
