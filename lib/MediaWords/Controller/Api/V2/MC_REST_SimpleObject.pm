@@ -199,7 +199,7 @@ sub list_GET : Local
 {
     my ( $self, $c ) = @_;
 
-    say STDERR "starting list_GET";
+    # say STDERR "starting list_GET";
 
     my $table_name = $self->get_table_name();
 
