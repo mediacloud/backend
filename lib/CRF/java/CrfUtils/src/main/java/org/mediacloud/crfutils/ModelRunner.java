@@ -9,9 +9,12 @@ import java.io.ObjectInputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.regex.Pattern;
 
 import cc.mallet.fst.CRF;
+import cc.mallet.fst.SumLattice;
+import cc.mallet.fst.SumLatticeDefault;
 import cc.mallet.pipe.Pipe;
 import cc.mallet.pipe.iterator.LineGroupIterator;
 import cc.mallet.types.InstanceList;
@@ -104,31 +107,47 @@ public class ModelRunner {
         return testData;
     }
 
+    class CrfOutput {
+        public String prediction;
+        public HashMap<String, Double> probabilities;
+    };
+
     private ArrayList<String> predictSequence(Sequence input) {
 
         // That's how SimpleTagger.apply() implements it
-        Sequence[] outputs = new Sequence[1];
-        outputs[0] = crf.transduce(input);
-
-        int k = outputs.length;
+        Sequence output = crf.transduce(input);
 
         try {
-            for (int a = 0; a < k; a++) {
-                if (outputs[a].size() != input.size()) {
-                    throw new RuntimeException("Failed to decode input sequence " + input + ", answer " + a);
-                }
+            if (output.size() != input.size()) {
+                     throw new RuntimeException("Failed to decode input sequence " + input);
             }
         } catch (RuntimeException e) {
             System.err.println("Exception: " + e.getMessage());
             return new ArrayList<String>();
         }
 
+         SumLattice lattice = new SumLatticeDefault(crf,input);
+
+
+
         ArrayList<String> sequenceResults = new ArrayList<String>();
         for (int j = 0; j < input.size(); j++) {
-            for (int a = 0; a < k; a++) {
-                String prediction = outputs[a].get(j).toString();
-                sequenceResults.add(prediction + " ");
+            // probability of transitioning from state si at input position ip-1
+            System.err.println(" Input Pos " + j);
+
+            for ( int si = 0; si < crf.numStates(); si++) {
+                // to state sj at input position ip
+                // double twoStateMarginal = lattice.getXiProbability(j,crf.getState(si),crf.getState(sj));
+                // probability of being in state si at input position ip
+                double oneStateMarginal = lattice.getGammaProbability(j + 1, crf.getState(si));
+                System.err.println( "Marginal prob: " + crf.getState(si).getName() + " " +oneStateMarginal );
             }
+
+
+            String prediction = output.get(j).toString();
+            System.err.println( "Prediction: " + prediction);
+            sequenceResults.add(prediction + " ");
+
         }
 
         return sequenceResults;
