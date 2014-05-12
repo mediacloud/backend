@@ -11,6 +11,8 @@ if [[ -z "$CHILDLOGDIR" ]]; then
 fi
 CHILDLOGDIR="$(cd "$CHILDLOGDIR" && pwd )"
 
+./script/run_with_carton.sh ./script/mediawords_generate_supervisord_conf.pl
+
 cd "supervisor/"
 source "$PWD/supervisor_is_up_to_date.inc.sh"
 validate_supervisor_version

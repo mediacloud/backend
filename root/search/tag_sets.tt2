@@ -5,12 +5,22 @@
 
     <tr>
         <th>Tag Set</th>
+        <th>Label</th>
+        <th>Description</th>
+        [% IF c.acl_user_can_visit('/admin/tagsets/edit') %]
+            <th>Edit</th>
+        [% END %]
     </tr>
 
     [% FOREACH tag_set IN tag_sets -%]
 
         <tr [% IF even %]class="even"[% END %]>
             <td><a href="[% c.uri_for( '/search/tags/' _ tag_set.tag_sets_id ) %]">[% tag_set.name | html %]</a></td>
+            <td>[% tag_set.label | html %]</td>
+            <td>[% tag_set.description | html %]</td>
+            [% IF c.acl_user_can_visit('/admin/tagsets/edit') %]
+                <td><a href="[% c.uri_for( '/admin/tagsets/edit/' _ tag_set.tag_sets_id ) %]">edit</a></td>
+            [% END %]
         </tr>
 
         [%  SET even = !even %]

@@ -1,0 +1,48 @@
+[% title = 'Edit Tag' %]
+[% INCLUDE include/header.tt2 %]
+
+<fieldset>
+[% form.render %]
+<p><a href="[% c.uri_for( "/search/tags/" _ tag.tag_sets_id ) %]">Return to Tag Set</a></p>
+</fieldset>
+
+<div class="boxtitle">Tag Media ([% media.size %])</div>
+<table>
+
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>URL</th>
+    </tr>
+
+    [% FOREACH medium IN media %]
+        <tr>
+            <td>[% medium.media_id %]</td>
+            <td>[% medium.name | html %]</td>
+            <td><a href="[% medium.url | html %]">[% medium.url | html %]</a></td>
+        </tr>
+    [% END %]
+
+</table>
+
+<div class="boxtitle">Tag Stories (max 100)</div>
+<table>
+
+    <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>URL</th>
+    </tr>
+
+    [% FOREACH story IN stories %]
+        <tr>
+            <td>[% story.stories_id %]</td>
+            <td>[% story.title | html %]</td>
+            <td><a href="[% story.url | html %]">[% story.url | html %]</a></td>
+        </tr>
+    [% END %]
+
+</table>
+
+ 
+[% INCLUDE include/footer.tt2 %]
