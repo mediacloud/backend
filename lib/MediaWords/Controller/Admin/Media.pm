@@ -70,7 +70,7 @@ sub media_tags_search_json : Local
 
     my $terms = [];
 
-    if ( $tag_part eq '' )
+    if ( !defined( $tag_part ) || $tag_part eq '' )
     {
         $tag_part = $tag_set_part;
         $terms    = $c->dbis->query(
