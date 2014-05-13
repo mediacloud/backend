@@ -199,6 +199,8 @@ sub search_for_stories
 
     MediaWords::DBI::Stories::attach_story_meta_data_to_stories( $db, $stories );
 
+    $stories = [ grep { $_->{ url } } @{ $stories } ];
+
     return $stories;
 }
 

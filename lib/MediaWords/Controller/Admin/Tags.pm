@@ -32,7 +32,24 @@ sub edit : Local
 
     if ( !$form->submitted_and_valid() )
     {
+        my $media = $db->query( <<END, $tag->{ tags_id } )->hashes;
+select m.* 
+    from media m
+        join media_tags_map mtm on ( m.media_id = mtm.media_id )
+    where mtm.tags_id = ?
+END
+
+        my $stories = $db->query( <<END, $tag->{ tags_id } )->hashes;
+select s.*
+    from stories s
+        join stories_tags_map stm on ( s.stories_id = stm.stories_id )
+    where stm.tags_id = ?
+    limit 100
+END
+
         $c->stash->{ tag }      = $tag;
+        $c->stash->{ media }    = $media;
+        $c->stash->{ stories }  = $stories;
         $c->stash->{ form }     = $form;
         $c->stash->{ template } = 'tags/edit.tt2';
         return;
