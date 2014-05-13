@@ -83,7 +83,7 @@ sub create_model($$$)
     return _create_model_inline_java( $class, $training_data_file, $iterations );
 }
 
-sub run_model($$$$)
+sub run_model_data_file($$$$)
 {
     my ( $class, $model_file_name, $test_data_file, $output_fhs ) = @_;
 
@@ -178,15 +178,9 @@ sub _run_model_inline_java($$$$)
 {
     my ( $class, $model_file_name, $test_data_file, $output_fhs ) = @_;
 
-    my $probabilities_fh = $output_fhs->{ probabilities_fh };
+    #say STDERR "generating predictions";
 
-    my $predictions_fh = $output_fhs->{ predictions_fh };
-
-    my $expected_results_fh = $output_fhs->{ expected_results_fh };
-
-    say STDERR "generating predictions";
-
-    say STDERR "classpath: $class_path";
+    #say STDERR "classpath: $class_path";
 
     my @test_data_array = read_file( $test_data_file );
 

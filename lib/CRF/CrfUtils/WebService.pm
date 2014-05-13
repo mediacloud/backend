@@ -75,7 +75,7 @@ sub create_model($$$)
     _fatal_error( "Not implemented in " . __PACKAGE__ );
 }
 
-sub run_model($$$$)
+sub run_model_data_file($$$$)
 {
     my ( $class, $model_file_name, $test_data_file, $output_fhs ) = @_;
 
