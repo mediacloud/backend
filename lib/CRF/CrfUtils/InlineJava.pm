@@ -167,23 +167,6 @@ sub _run_model_on_array($$$)
     return $results;
 }
 
-sub _run_model_inline_java($$$$)
-{
-    my ( $class, $model_file_name, $test_data_file, $output_fhs ) = @_;
-
-    #say STDERR "generating predictions";
-
-    #say STDERR "classpath: $class_path";
-
-    my @test_data_array = read_file( $test_data_file );
-
-    my $foo = run_model_inline_java_data_array( $class, $model_file_name, \@test_data_array );
-
-    say join "\n", @{ $foo };
-
-    exit();
-}
-
 sub _crf_modelrunner_java_src()
 {
     # Compile and prepare Java class from /java/CrfUtils/
