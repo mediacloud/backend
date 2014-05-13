@@ -76,10 +76,19 @@ public class ModelRunner {
         for (int i = 0; i < testData.size(); i++) {
             Sequence input = (Sequence) testData.get(i).getData();
 
-            ArrayList<String> predictions = predictSequence(input);
+            ArrayList<CrfOutput> crfResults = predictSequence(input);
 
-            results.addAll(predictions);
+
+            ArrayList<String> sequenceResults = new ArrayList<String>();
+
+            for ( CrfOutput crfResult: crfResults )
+            {
+                sequenceResults.add( crfResult.prediction + " ");
+            }
+
+            results.addAll(sequenceResults);
         }
+
 
         return results.toArray(new String[0]);
     }
@@ -112,7 +121,7 @@ public class ModelRunner {
         public HashMap<String, Double> probabilities;
     };
 
-    private ArrayList<String> predictSequence(Sequence input) {
+    private ArrayList<CrfOutput> predictSequence(Sequence input) {
 
         // That's how SimpleTagger.apply() implements it
         Sequence output = crf.transduce(input);
@@ -123,7 +132,7 @@ public class ModelRunner {
             }
         } catch (RuntimeException e) {
             System.err.println("Exception: " + e.getMessage());
-            return new ArrayList<String>();
+            return new ArrayList<CrfOutput>();
         }
 
          SumLattice lattice = new SumLatticeDefault(crf,input);
@@ -162,14 +171,7 @@ public class ModelRunner {
 
         }
 
-        ArrayList<String> sequenceResults = new ArrayList<String>();
-
-        for ( CrfOutput crfResult: crfResults )
-        {
-            sequenceResults.add( crfResult.prediction + " ");
-        }
-
-        return sequenceResults;
+        return crfResults;
     }
 
     private static String joinArrayToString(String glue, String[] array) {
