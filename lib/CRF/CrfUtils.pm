@@ -59,15 +59,6 @@ sub create_model($$)
     return $module->create_model( $training_data_file, $iterations );
 }
 
-sub run_model_data_file($$$)
-{
-    my ( $model_file_name, $test_data_file, $output_fhs ) = @_;
-
-    my $module = _load_and_return_crf_module();
-
-    return $module->run_model_data_file( $model_file_name, $test_data_file, $output_fhs );
-}
-
 sub run_model_inline_java_data_array($$)
 {
     my ( $model_file_name, $test_data_array ) = @_;
