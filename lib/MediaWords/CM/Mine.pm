@@ -1885,7 +1885,7 @@ sub import_solr_seed_query
     return if ( $controversy->{ solr_seed_query_run } );
 
     print STDERR "executing solr query: $controversy->{ solr_seed_query }\n";
-    my $stories = MediaWords::Solr::search_for_stories( $db, { q => $controversy->{ solr_seed_query } } );
+    my $stories = MediaWords::Solr::search_for_stories( $db, { q => $controversy->{ solr_seed_query }, rows => 100000 } );
 
     print STDERR "adding " . scalar( @{ $stories } ) . " stories to controversy_seed_urls\n";
 
