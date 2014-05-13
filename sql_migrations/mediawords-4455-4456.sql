@@ -111,6 +111,58 @@ CREATE TRIGGER auth_user_requests_update_daily_counts
     AFTER INSERT ON auth_user_requests
     FOR EACH ROW EXECUTE PROCEDURE auth_user_requests_update_daily_counts();
 
+-- User limits for logged + throttled controller actions
+CREATE TABLE auth_user_limits (
+
+    auth_user_limits_id             SERIAL      NOT NULL,
+
+    auth_users_id                   INTEGER     NOT NULL REFERENCES auth_users(auth_users_id)
+                                                ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE,
+
+    -- Request limit (0 or belonging to 'admin' / 'admin-readonly' group = no
+    -- limit)
+    weekly_request_limit            INTEGER     NOT NULL DEFAULT 1000,
+
+    -- Requested items (stories) limit (0 or belonging to 'admin' /
+    -- 'admin-readonly' group = no limit)
+    weekly_requested_items_limit    INTEGER     NOT NULL DEFAULT 20000
+
+);
+
+CREATE INDEX auth_user_limits_auth_users_id ON auth_user_limits (auth_users_id);
+
+-- Set the default limits for newly created users
+CREATE OR REPLACE FUNCTION auth_users_set_default_limits() RETURNS trigger AS
+$$
+BEGIN
+
+    INSERT INTO auth_user_limits (auth_users_id) VALUES (NEW.auth_users_id);
+    RETURN NULL;
+
+END;
+$$
+LANGUAGE 'plpgsql';
+
+CREATE TRIGGER auth_users_set_default_limits
+    AFTER INSERT ON auth_users
+    FOR EACH ROW EXECUTE PROCEDURE auth_users_set_default_limits();
+
+
+-- Set default limits to the previously created users by creating a temporary ON UPDATE trigger
+CREATE TRIGGER auth_users_set_default_limits_for_previously_created_users
+    AFTER UPDATE ON auth_users
+    FOR EACH ROW EXECUTE PROCEDURE auth_users_set_default_limits();
+
+-- Run UPDATE trigger against all of the previously created users (that don't have their limit set yet)
+UPDATE auth_users
+SET auth_users_id = auth_users_id
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM auth_user_limits
+    WHERE auth_users_id = auth_users.auth_users_id
+);
+
+DROP TRIGGER auth_users_set_default_limits_for_previously_created_users ON auth_users;
 
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$

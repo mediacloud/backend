@@ -2211,6 +2211,42 @@ CREATE TRIGGER auth_user_requests_update_daily_counts
     AFTER INSERT ON auth_user_requests
     FOR EACH ROW EXECUTE PROCEDURE auth_user_requests_update_daily_counts();
 
+-- User limits for logged + throttled controller actions
+CREATE TABLE auth_user_limits (
+
+    auth_user_limits_id             SERIAL      NOT NULL,
+
+    auth_users_id                   INTEGER     NOT NULL REFERENCES auth_users(auth_users_id)
+                                                ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE,
+
+    -- Request limit (0 or belonging to 'admin' / 'admin-readonly' group = no
+    -- limit)
+    weekly_request_limit            INTEGER     NOT NULL DEFAULT 1000,
+
+    -- Requested items (stories) limit (0 or belonging to 'admin' /
+    -- 'admin-readonly' group = no limit)
+    weekly_requested_items_limit    INTEGER     NOT NULL DEFAULT 20000
+
+);
+
+CREATE INDEX auth_user_limits_auth_users_id ON auth_user_limits (auth_users_id);
+
+-- Set the default limits for newly created users
+CREATE OR REPLACE FUNCTION auth_users_set_default_limits() RETURNS trigger AS
+$$
+BEGIN
+
+    INSERT INTO auth_user_limits (auth_users_id) VALUES (NEW.auth_users_id);
+    RETURN NULL;
+
+END;
+$$
+LANGUAGE 'plpgsql';
+
+CREATE TRIGGER auth_users_set_default_limits
+    AFTER INSERT ON auth_users
+    FOR EACH ROW EXECUTE PROCEDURE auth_users_set_default_limits();
+
 
 --
 -- Activity log
