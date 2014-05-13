@@ -20,8 +20,9 @@ ALTER TABLE raw_downloads
 ALTER INDEX raw_downloads_downloads_id
     RENAME TO raw_downloads_object_id;
 
-ALTER TABLE media
-    ADD annotate_with_corenlp   BOOLEAN     NOT NULL DEFAULT(false);
+-- Commenting out since the column is also added in migration mediawords-4445-4446.sql
+-- ALTER TABLE media
+--    ADD annotate_with_corenlp   BOOLEAN     NOT NULL DEFAULT(false);
 
 --
 -- 2 of 2. Reset the database version.

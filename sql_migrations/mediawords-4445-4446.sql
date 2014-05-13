@@ -22,7 +22,7 @@ ALTER TABLE media
     ADD COLUMN annotate_with_corenlp BOOLEAN	NOT NULL DEFAULT(false);
 
 ALTER TABLE dashboards
-	ALTER COLUMN public	BOOLEAN	NOT NULL DEFAULT(true);
+	ADD COLUMN public	BOOLEAN	NOT NULL DEFAULT(true);
 
 --
 -- 2 of 2. Reset the database version.
