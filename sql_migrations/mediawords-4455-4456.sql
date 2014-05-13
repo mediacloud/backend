@@ -71,6 +71,9 @@ CREATE TABLE auth_user_request_daily_counts (
 
 );
 
+CREATE INDEX auth_user_request_daily_counts_email ON auth_user_request_daily_counts (email);
+CREATE INDEX auth_user_request_daily_counts_day ON auth_user_request_daily_counts (day);
+
 
 -- On each logged request, update "auth_user_request_daily_counts" table
 CREATE OR REPLACE FUNCTION auth_user_requests_update_daily_counts() RETURNS trigger AS
