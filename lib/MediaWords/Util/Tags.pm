@@ -129,15 +129,45 @@ sub save_tags
 
         for my $tags_id ( @{ $tag_ids } )
         {
-            eval { $c->dbis->create( "${table}_tags_map", { tags_id => $tags_id, $oid_field => $oid } ) };
-            if ( $@ && ( $@ !~ /unique constraint/ ) )
+            my $tag_exists = $c->dbis->query( <<END, $tags_id, $oid )->hash;
+select * from ${ table }_tags_map where tags_id = ? and oid_field = ?
+END
+            if ( !$tag_exists )
             {
-                die( $@ );
+                $c->dbis->create( "${table}_tags_map", { tags_id => $tags_id, $oid_field => $oid } );
             }
         }
     }
 
     return $tag_ids;
+}
+
+# save tag info for the given object (medium or feed) from a space separated list of tag names.
+# oid is the object id (eg the media_id), and table is the name of the table for which to save
+# the tag associations (eg media).
+sub save_tags_by_name
+{
+    my ( $db, $oid, $table, $tag_names_list ) = @_;
+
+    my $oid_field = "${table}_id";
+
+    my $tag_names = [ split( /[\s,;]+/, $tag_names_list ) ];
+
+    my $tags = [];
+    map { push( $tags, lookup_or_create_tag( $db, $_ ) ) } @{ $tag_names };
+
+    $db->query( "delete from ${ table }_tags_map where ${ table }_id = ?", $oid );
+
+    for my $tag ( @{ $tags } )
+    {
+        my $tag_exists = $db->query( <<END, $tag->{ tags_id }, $oid )->hash;
+select * from ${ table }_tags_map where tags_id = ? and ${ table }_id = ?
+END
+        if ( !$tag_exists )
+        {
+            $db->create( "${table}_tags_map", { tags_id => $tag->{ tags_id }, $oid_field => $oid } );
+        }
+    }
 }
 
 # lookup the tag given the tag_set:tag format
