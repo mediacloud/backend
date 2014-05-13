@@ -40,7 +40,7 @@ public class ModelRunner {
     public String[] runModel(String testFileName) throws Exception {
 
         InstanceList testData = readTestData(testFileName);
-        return runCrfModel(testData);
+        return crfOutputsToStrings(runCrfModel(testData));
     }
 
     public String runModelReturnString(String testFileName) throws Exception {
@@ -52,7 +52,7 @@ public class ModelRunner {
     public String[] runModelString(String testDataString) throws Exception {
 
         InstanceList testData = readTestDataFromString(testDataString);
-        return runCrfModel(testData);
+        return crfOutputsToStrings(runCrfModel(testData));
     }
 
     public String runModelStringReturnString(String testDataString) throws Exception {
@@ -61,7 +61,7 @@ public class ModelRunner {
         return joinArrayToString("\n", results);
     }
 
-    private String[] runCrfModel(InstanceList testData) {
+    private ArrayList<CrfOutput> runCrfModel(InstanceList testData) {
 
         /*
          Runtime rt = Runtime.getRuntime();
@@ -73,24 +73,29 @@ public class ModelRunner {
          System.err.println("");
          */
         ArrayList<String> results = new ArrayList<String>();
-        for (int i = 0; i < testData.size(); i++) {
-            Sequence input = (Sequence) testData.get(i).getData();
 
-            ArrayList<CrfOutput> crfResults = predictSequence(input);
+         if ( testData.size() >  1) {
+             throw new IllegalArgumentException("test data may only contain one sequence");
+         }
 
+        Sequence input = (Sequence) testData.get(0).getData();
 
-            ArrayList<String> sequenceResults = new ArrayList<String>();
+        ArrayList<CrfOutput> crfResults = predictSequence(input);
 
-            for ( CrfOutput crfResult: crfResults )
-            {
-                sequenceResults.add( crfResult.prediction + " ");
-            }
+        return crfResults;
 
-            results.addAll(sequenceResults);
+        //return crfOutputsToStrings(crfResults);
+    }
+
+    private String[] crfOutputsToStrings(ArrayList<CrfOutput> crfResults) {
+        ArrayList<String> sequenceResults = new ArrayList<String>();
+
+        for ( CrfOutput crfResult: crfResults )
+        {
+            sequenceResults.add( crfResult.prediction + " ");
         }
 
-
-        return results.toArray(new String[0]);
+        return sequenceResults.toArray(new String[0]);
     }
 
     private InstanceList readTestData(String testFileName) throws FileNotFoundException {
@@ -140,8 +145,7 @@ public class ModelRunner {
         ArrayList<CrfOutput> crfResults   = new ArrayList<CrfOutput>();
         for (int j = 0; j < input.size(); j++) {
 
-            // probability of transitioning from state si at input position ip-1
-            System.err.println(" Input Pos " + j);
+            //System.err.println(" Input Pos " + j);
 
             CrfOutput crfResult = new CrfOutput();
 
@@ -154,7 +158,7 @@ public class ModelRunner {
                 double oneStateMarginal = lattice.getGammaProbability(j + 1, crf.getState(si));
 
                 String stateName = crf.getState(si).getName();
-                System.err.println( "Marginal prob: " + stateName + " " +oneStateMarginal );
+                //System.err.println( "Marginal prob: " + stateName + " " +oneStateMarginal );
                 crfResult.probabilities.put( stateName, oneStateMarginal);
             }
 
@@ -163,7 +167,7 @@ public class ModelRunner {
 
             crfResult.prediction = prediction;
 
-            System.err.println( "Prediction: " + prediction);
+            //System.err.println( "Prediction: " + prediction);
 
             //sequenceResults.add(prediction + " ");
 
