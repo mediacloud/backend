@@ -61,7 +61,7 @@ public class ModelRunnerTest extends TestCase {
 
         ModelRunner mr = new ModelRunner(extractor_model_path);
 
-        ArrayList<ModelRunner.CrfOutput> results = mr.runModelString(this.test_input);
+        ModelRunner.CrfOutput[] results = mr.runModelString(this.test_input);
         String resultsString = StringUtils.join(mr.crfOutputsToStrings(results), "\n");
 
         assertEquals("CRF results are correct", test_output, resultsString);
