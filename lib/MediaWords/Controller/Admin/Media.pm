@@ -70,7 +70,7 @@ sub media_tags_search_json : Local
 
     my $terms = [];
 
-    if ( $tag_part eq '' )
+    if ( !defined( $tag_part ) || $tag_part eq '' )
     {
         $tag_part = $tag_set_part;
         $terms    = $c->dbis->query(
@@ -588,7 +588,9 @@ sub edit_tags : Local
         die( "no media_id" );
     }
 
-    my $medium = $c->dbis->find_by_id( 'media', $media_id );
+    my $db = $c->dbis;
+
+    my $medium = $db->find_by_id( 'media', $media_id );
     if ( !$medium )
     {
         die( "Unable to find medium $media_id" );
@@ -598,25 +600,31 @@ sub edit_tags : Local
 
     my $form = MediaWords::Util::Tags->make_edit_tags_form( $c, $action, $media_id, 'media' );
 
-    $c->stash->{ form }     = $form;
+    my $tags = $db->query( <<END, $medium->{ media_id } )->flat;
+select ts.name || ':' || t.tag
+    from tags t
+        join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
+        join media_tags_map mtm on ( mtm.tags_id = t.tags_id )
+    where mtm.media_id = ?
+END
+
+    $c->stash->{ tags }     = join( ' ', @{ $tags } );
     $c->stash->{ medium }   = $medium;
     $c->stash->{ template } = 'media/edit_tags.tt2';
 }
 
 sub edit_tags_do : Local
 {
-    my ( $self, $c, $media_id ) = @_;
+    my ( $self, $c ) = @_;
 
-    if ( !$media_id )
-    {
-        die( "no media_id" );
-    }
+    my $media_id = $c->req->params->{ media_id };
 
-    my $medium = $c->dbis->find_by_id( 'media', $media_id );
-    if ( !$medium )
-    {
-        die( "Unable to find medium $media_id" );
-    }
+    die( "no media_id " ) unless ( $media_id );
+
+    my $db = $c->dbis;
+
+    my $medium = $db->find_by_id( 'media', $media_id )
+      || die( "Unable to find medium $media_id" );
 
     my $action = $c->uri_for( '/admin/media/edit_tags_do/' ) . $media_id;
     my $form = MediaWords::Util::Tags->make_edit_tags_form( $c, $action, $media_id, 'media' );
@@ -626,7 +634,9 @@ sub edit_tags_do : Local
         return $self->edit_tags( $c, $media_id );
     }
 
-    MediaWords::Util::Tags->save_tags( $c, $media_id, 'media' );
+    my $tag_names = $c->req->params->{ tags };
+
+    MediaWords::Util::Tags::save_tags_by_name( $db, $media_id, 'media', $tag_names );
 
     $c->response->redirect( $c->uri_for( "/admin/feeds/list/" . $media_id, { status_msg => 'Tags updated.' } ) );
 }
@@ -636,7 +646,7 @@ sub skip_feeds : Local
 {
     my ( $self, $c, $media_id, $confirm ) = @_;
 
-    my $media_tags_id = $c->request->param( 'media_tags_id' ) || 0;
+    my $media_tags_id = $c->req->params( 'media_tags_id' ) || 0;
 
     my $medium = $c->dbis->query( "select * from media where media_id = ?", $media_id )->hash;
 
