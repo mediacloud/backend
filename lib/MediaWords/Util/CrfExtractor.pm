@@ -92,10 +92,9 @@ sub get_extracted_lines_with_crf
 
     #say STDERR "using model file: '$model_file_name'";
 
-    my $predictions = CRF::CrfUtils::run_model_inline_java_data_array( $model_file_name, $feature_strings );
+    my $results = CRF::CrfUtils::run_model_inline_java_data_array( $model_file_name, $feature_strings );
 
-    #my $predictions = CRF::CrfUtils::run_model_with_separate_exec( $model_file_name, $feature_strings );
-    #my $predictions = CRF::CrfUtils::run_model_with_tmp_file( $model_file_name, $feature_strings );
+    my $predictions = [ map { $_->{ prediction } } @$results ];
 
     #say STDERR ( Dumper( $line_infos ) );
     #say STDERR Dumper( $feature_strings );
