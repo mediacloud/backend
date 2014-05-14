@@ -148,6 +148,23 @@ CREATE TRIGGER auth_users_set_default_limits
     FOR EACH ROW EXECUTE PROCEDURE auth_users_set_default_limits();
 
 
+-- Add helper function to find out weekly request / request items usage for a user
+CREATE OR REPLACE FUNCTION auth_user_limits_weekly_usage(user_email TEXT)
+RETURNS TABLE(email TEXT, weekly_requests_sum BIGINT, weekly_requested_items_sum BIGINT) AS
+$$
+
+    SELECT auth_user_request_daily_counts.email,
+           SUM(auth_user_request_daily_counts.requests_count) AS weekly_requests_sum,
+           SUM(auth_user_request_daily_counts.requested_items_count) AS weekly_requested_items_sum
+    FROM auth_user_request_daily_counts
+    WHERE auth_user_request_daily_counts.email = $1
+      AND day > DATE_TRUNC('day', NOW()) - INTERVAL '1 week'
+    GROUP BY auth_user_request_daily_counts.email;
+
+$$
+LANGUAGE SQL;
+
+
 -- Set default limits to the previously created users by creating a temporary ON UPDATE trigger
 CREATE TRIGGER auth_users_set_default_limits_for_previously_created_users
     AFTER UPDATE ON auth_users

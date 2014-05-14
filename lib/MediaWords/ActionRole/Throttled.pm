@@ -41,27 +41,19 @@ before execute => sub {
     # Fetch limits
     my $limits = $c->dbis->query(
         <<EOF,
-
         SELECT auth_users.auth_users_id,
                auth_users.email,
                weekly_requests_limit,
                weekly_requested_items_limit,
-               SUM(auth_user_request_daily_counts.requests_count) AS weekly_requests_sum,
-               SUM(auth_user_request_daily_counts.requested_items_count) AS weekly_requested_items_sum
+               weekly_requests_sum,
+               weekly_requested_items_sum
 
         FROM auth_users
             INNER JOIN auth_user_limits
-                ON auth_users.auth_users_id = auth_user_limits.auth_users_id
-            INNER JOIN auth_user_request_daily_counts
-                ON auth_users.email = auth_user_request_daily_counts.email
+                ON auth_users.auth_users_id = auth_user_limits.auth_users_id,
+            auth_user_limits_weekly_usage(auth_users.email)
 
         WHERE auth_users.email = ?
-          AND auth_user_request_daily_counts.day > DATE_TRUNC('day', NOW()) - INTERVAL '1 week'
-
-        GROUP BY auth_users.auth_users_id,
-                 auth_users.email,
-                 weekly_requests_limit,
-                 weekly_requested_items_limit
         LIMIT 1
 EOF
         $user_email
