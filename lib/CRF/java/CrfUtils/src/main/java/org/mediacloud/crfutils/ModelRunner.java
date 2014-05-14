@@ -37,21 +37,21 @@ public class ModelRunner {
         p.getDataAlphabet().stopGrowth();
     }
 
-    private String[] runModel(String testFileName) throws Exception {
+    private ArrayList<CrfOutput> runModel(String testFileName) throws Exception {
 
         InstanceList testData = readTestData(testFileName);
-        return crfOutputsToStrings(runCrfModel(testData));
+        return runCrfModel(testData);
     }
 
-    String[] runModelString(String testDataString) throws Exception {
+    public ArrayList<CrfOutput> runModelString(String testDataString) throws Exception {
 
         InstanceList testData = readTestDataFromString(testDataString);
-        return crfOutputsToStrings(runCrfModel(testData));
+        return runCrfModel(testData);
     }
 
     public String runModelStringReturnString(String testDataString) throws Exception {
 
-        String[] results = runModelString(testDataString);
+        String[] results = crfOutputsToStrings(runModelString(testDataString));
         return joinArrayToString("\n", results);
     }
 
@@ -78,7 +78,7 @@ public class ModelRunner {
         //return crfOutputsToStrings(crfResults);
     }
 
-    private String[] crfOutputsToStrings(ArrayList<CrfOutput> crfResults) {
+    String[] crfOutputsToStrings(ArrayList<CrfOutput> crfResults) {
         ArrayList<String> sequenceResults = new ArrayList<String>();
 
         for ( CrfOutput crfResult: crfResults )
