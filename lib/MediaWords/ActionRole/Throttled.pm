@@ -33,7 +33,7 @@ before execute => sub {
     }
 
     # Admin users are not limited
-    if ( any { /^admin$/ } @{ $user_roles } )
+    if ( any { /^admin$/ } @{ $user_roles } or any { /^admin-readonly$/ } @{ $user_roles } )
     {
         return 0;
     }
