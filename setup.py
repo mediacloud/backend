@@ -12,4 +12,4 @@ setup(name='mediacloud',
             'mediacloud.test': 'mediacloud/test'},
   package_data={'mediacloud.test':['fixtures/*.json']},
   install_requires=['requests','pypubsub']
-  )
+)
