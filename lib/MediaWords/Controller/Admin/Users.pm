@@ -148,13 +148,21 @@ sub create : Local
     my $el_roles = $form->get_element( { name => 'roles', type => 'Checkboxgroup' } );
     $el_roles->options( \@roles_options );
 
+    $form->default_values(
+        {
+            weekly_requests_limit        => MediaWords::DBI::Auth::default_weekly_requests_limit( $c->dbis ),
+            weekly_requested_items_limit => MediaWords::DBI::Auth::default_weekly_requested_items_limit( $c->dbis ),
+
+        }
+    );
+
     $form->process( $c->request );
 
     $c->stash->{ form } = $form;
     $c->stash->{ c }    = $c;
     $c->stash( template => 'users/create.tt2' );
 
-    if ( !$form->submitted_and_valid() )
+    unless ( $form->submitted_and_valid() )
     {
 
         # Show the form
@@ -168,6 +176,8 @@ sub create : Local
     my $user_notes                        = $form->param_value( 'notes' );
     my $user_is_active                    = $form->param_value( 'active' );
     my $user_roles                        = $form->param_array( 'roles' );
+    my $user_weekly_requests_limit        = $form->param_value( 'weekly_requests_limit' ) + 0;
+    my $user_weekly_requested_items_limit = $form->param_value( 'weekly_requested_items_limit' ) + 0;
     my $user_password                     = '';
     my $user_password_repeat              = '';
     my $user_will_choose_password_himself = $form->param_value( 'password_chosen_by_user' );
@@ -188,7 +198,8 @@ sub create : Local
     # Add user
     my $add_user_error_message =
       MediaWords::DBI::Auth::add_user_or_return_error_message( $c->dbis, $user_email, $user_full_name, $user_notes,
-        $user_roles, $user_is_active, $user_password, $user_password_repeat );
+        $user_roles, $user_is_active, $user_password, $user_password_repeat, $user_weekly_requests_limit,
+        $user_weekly_requested_items_limit );
     if ( $add_user_error_message )
     {
         $c->stash->{ c }    = $c;
@@ -281,7 +292,7 @@ sub edit : Local
 
     $form->process( $c->request );
 
-    if ( !$form->submitted_and_valid() )
+    unless ( $form->submitted_and_valid() )
     {
 
         # Fetch list of available roles
@@ -313,10 +324,12 @@ sub edit : Local
 
         $form->default_values(
             {
-                email     => $user_email,
-                full_name => $userinfo->{ full_name },
-                notes     => $userinfo->{ notes },
-                active    => $userinfo->{ active }
+                email                        => $user_email,
+                full_name                    => $userinfo->{ full_name },
+                notes                        => $userinfo->{ notes },
+                active                       => $userinfo->{ active },
+                weekly_requests_limit        => $userinfo->{ weekly_requests_limit },
+                weekly_requested_items_limit => $userinfo->{ weekly_requested_items_limit }
             }
         );
 
@@ -338,12 +351,14 @@ sub edit : Local
 
     # Form has been submitted
 
-    my $user_full_name       = $form->param_value( 'full_name' );
-    my $user_notes           = $form->param_value( 'notes' );
-    my $user_roles           = $form->param_array( 'roles' );
-    my $user_is_active       = $form->param_value( 'active' );
-    my $user_password        = $form->param_value( 'password' );           # Might be empty
-    my $user_password_repeat = $form->param_value( 'password_repeat' );    # Might be empty
+    my $user_full_name                    = $form->param_value( 'full_name' );
+    my $user_notes                        = $form->param_value( 'notes' );
+    my $user_roles                        = $form->param_array( 'roles' );
+    my $user_is_active                    = $form->param_value( 'active' );
+    my $user_password                     = $form->param_value( 'password' );                       # Might be empty
+    my $user_password_repeat              = $form->param_value( 'password_repeat' );                # Might be empty
+    my $user_weekly_requests_limit        = $form->param_value( 'weekly_requests_limit' );
+    my $user_weekly_requested_items_limit = $form->param_value( 'weekly_requested_items_limit' );
 
     # Check if user is trying to deactivate oneself
     if ( $userinfo->{ email } eq $c->user->username and ( !$user_is_active ) )
@@ -363,7 +378,8 @@ sub edit : Local
     # Update user
     my $update_user_error_message =
       MediaWords::DBI::Auth::update_user_or_return_error_message( $c->dbis, $user_email, $user_full_name, $user_notes,
-        $user_roles, $user_is_active, $user_password, $user_password_repeat );
+        $user_roles, $user_is_active, $user_password, $user_password_repeat, $user_weekly_requests_limit,
+        $user_weekly_requested_items_limit );
     if ( $update_user_error_message )
     {
         $c->stash->{ auth_users_id } = $userinfo->{ auth_users_id };

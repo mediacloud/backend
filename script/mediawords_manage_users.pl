@@ -20,7 +20,9 @@
 #         --notes="Media Cloud developer." \
 #         [--inactive] \
 #         --roles="query-create,media-edit,stories-edit" \
-#         [--password="correct horse battery staple"]
+#         [--password="correct horse battery staple"] \
+#         [--weekly_requests_limit=2000] \
+#         [--weekly_requested_items_limit=10000]
 #
 #     Notes:
 #     * Skip the `--password` parameter to read the password from STDIN.
@@ -36,7 +38,9 @@
 #         [--notes="Media Cloud developer."] \
 #         [--active|--inactive] \
 #         [--roles="query-create,media-edit,stories-edit"] \
-#         [--password="correct horse battery staple"|--set-password]
+#         [--password="correct horse battery staple" | --set-password] \
+#         [--weekly_requests_limit=2000] \
+#         [--weekly_requested_items_limit=10000]
 #
 #     Notes:
 #     * Pass only those parameters that you want to change; skip the ones that you want to leave inact.
@@ -138,25 +142,36 @@ sub user_add($)
 {
     my ( $db ) = @_;
 
-    my $user_email       = undef;
-    my $user_full_name   = '';
-    my $user_notes       = '';
-    my $user_is_inactive = 0;
-    my $user_roles       = '';
-    my $user_password    = undef;
+    my $user_email                        = undef;
+    my $user_full_name                    = '';
+    my $user_notes                        = '';
+    my $user_is_inactive                  = 0;
+    my $user_roles                        = '';
+    my $user_password                     = undef;
+    my $user_weekly_requests_limit        = undef;
+    my $user_weekly_requested_items_limit = undef;
 
-    my Readonly $user_add_usage =
-      "Usage: $0" . ' --action=add' .
-      ' --email=jdoe@cyber.law.harvard.edu' . ' --full_name="John Doe"' . ' [--notes="Media Cloud developer."]' .
-      ' [--inactive]' . ' [--roles="query-create,media-edit,stories-edit"]' . ' [--password="correct horse battery staple"]';
+    my Readonly $user_add_usage = <<"EOF";
+Usage: $0 --action=add \
+    --email=jdoe\@cyber.law.harvard.edu \
+    --full_name="John Doe" \
+    [--notes="Media Cloud developer."] \
+    [--inactive] \
+    [--roles="query-create,media-edit,stories-edit"] \
+    [--password="correct horse battery staple"] \
+    [--weekly_requests_limit=2000] \
+    [--weekly_requested_items_limit=10000]
+EOF
 
     GetOptions(
-        'email=s'     => \$user_email,
-        'full_name=s' => \$user_full_name,
-        'notes:s'     => \$user_notes,
-        'inactive'    => \$user_is_inactive,
-        'roles:s'     => \$user_roles,
-        'password:s'  => \$user_password
+        'email=s'                        => \$user_email,
+        'full_name=s'                    => \$user_full_name,
+        'notes:s'                        => \$user_notes,
+        'inactive'                       => \$user_is_inactive,
+        'roles:s'                        => \$user_roles,
+        'password:s'                     => \$user_password,
+        'weekly_requests_limit:i'        => \$user_weekly_requests_limit,
+        'weekly_requested_items_limit:i' => \$user_weekly_requested_items_limit
     ) or die "$user_add_usage\n";
     die "$user_add_usage\n" unless ( $user_email and $user_full_name );
 
@@ -199,7 +214,7 @@ sub user_add($)
     my $add_user_error_message =
       MediaWords::DBI::Auth::add_user_or_return_error_message( $db, $user_email, $user_full_name, $user_notes,
         \@user_role_ids, ( !$user_is_inactive ),
-        $user_password, $user_password_repeat );
+        $user_password, $user_password_repeat, $user_weekly_requests_limit, $user_weekly_requested_items_limit );
     if ( $add_user_error_message )
     {
         say STDERR "Error while trying to add user: $add_user_error_message";
@@ -216,29 +231,38 @@ sub user_modify($)
 {
     my ( $db ) = @_;
 
-    my $user_email        = undef;
-    my $user_full_name    = undef;
-    my $user_notes        = undef;
-    my $user_is_active    = undef;
-    my $user_is_inactive  = undef;
-    my $user_roles        = undef;
-    my $user_password     = undef;
-    my $user_set_password = undef;
+    my $user_email                        = undef;
+    my $user_full_name                    = undef;
+    my $user_notes                        = undef;
+    my $user_is_active                    = undef;
+    my $user_is_inactive                  = undef;
+    my $user_roles                        = undef;
+    my $user_password                     = undef;
+    my $user_set_password                 = undef;
+    my $user_weekly_requests_limit        = undef;
+    my $user_weekly_requested_items_limit = undef;
 
-    my Readonly $user_modify_usage =
-      "Usage: $0" . ' --action=modify' . ' --email=jdoe@cyber.law.harvard.edu' .
-      ' [--full_name="John Doe"]' . ' [--notes="Media Cloud developer."]' . ' [--active|--inactive]' .
-      ' [--roles="query-create,media-edit,stories-edit"]' . ' [--password="correct horse battery staple"|--set-password]';
+    my Readonly $user_modify_usage = <<"EOF";
+Usage: $0 --action=modify \
+    --email=jdoe\@cyber.law.harvard.edu \
+    [--full_name="John Doe"] \
+    [--notes="Media Cloud developer."] \
+    [--active|--inactive] \
+    [--roles="query-create,media-edit,stories-edit"] \
+    [--password="correct horse battery staple" | --set-password] \
+EOF
 
     GetOptions(
-        'email=s'      => \$user_email,
-        'full_name:s'  => \$user_full_name,
-        'notes:s'      => \$user_notes,
-        'active'       => \$user_is_active,
-        'inactive'     => \$user_is_inactive,
-        'roles:s'      => \$user_roles,
-        'password:s'   => \$user_password,
-        'set-password' => \$user_set_password,
+        'email=s'                        => \$user_email,
+        'full_name:s'                    => \$user_full_name,
+        'notes:s'                        => \$user_notes,
+        'active'                         => \$user_is_active,
+        'inactive'                       => \$user_is_inactive,
+        'roles:s'                        => \$user_roles,
+        'password:s'                     => \$user_password,
+        'set-password'                   => \$user_set_password,
+        'weekly_requests_limit:i'        => \$user_weekly_requests_limit,
+        'weekly_requested_items_limit:i' => \$user_weekly_requested_items_limit
     ) or die "$user_modify_usage\n";
     die "$user_modify_usage\n" unless ( $user_email );
 
@@ -259,7 +283,9 @@ sub user_modify($)
         or defined $user_is_inactive
         or defined $user_roles
         or defined $user_password
-        or defined $user_set_password )
+        or defined $user_set_password
+        or defined $user_weekly_requests_limit
+        or defined $user_weekly_requested_items_limit )
     {
         say STDERR "Nothing has to be changed.";
         die "$user_modify_usage\n";
@@ -333,7 +359,9 @@ sub user_modify($)
         $modified_user{ role_ids },
         $modified_user{ active },
         $modified_user{ password },
-        $modified_user{ password_repeat }
+        $modified_user{ password_repeat },
+        $user_weekly_requests_limit,
+        $user_weekly_requested_items_limit
     );
     if ( $update_user_error_message )
     {
@@ -426,6 +454,8 @@ sub user_show($)
     say "Notes:\t" . $db_user->{ notes };
     say "Active:\t" . ( $db_user->{ active } ? 'yes' : 'no' );
     say "Roles:\t" . join( ',', @{ $db_user_roles->{ roles } } );
+    say "Weekly requests limit: " . $db_user->{ weekly_requests_limit };
+    say "Weekly requested items limit: " . $db_user->{ weekly_requested_items_limit };
 
     return 0;
 }

@@ -150,13 +150,17 @@ sub user_info($$)
     # Fetch readonly information about the user
     my $userinfo = $db->query(
         <<"EOF",
-        SELECT auth_users_id,
+        SELECT auth_users.auth_users_id,
                email,
                full_name,
                api_token,
                notes,
-               active
+               active,
+               weekly_requests_limit,
+               weekly_requested_items_limit
         FROM auth_users
+            INNER JOIN auth_user_limits
+                ON auth_users.auth_users_id = auth_user_limits.auth_users_id
         WHERE email = ?
         LIMIT 1
 EOF
@@ -633,12 +637,16 @@ EOF
 }
 
 # Add new user; $role_ids is a arrayref to an array of role IDs; returns error message on error, empty string on success
-sub add_user_or_return_error_message($$$$$$$$)
+sub add_user_or_return_error_message($$$$$$$$;$$)
 {
-    my ( $db, $email, $full_name, $notes, $role_ids, $is_active, $password, $password_repeat ) = @_;
+    my ( $db, $email, $full_name, $notes, $role_ids, $is_active, $password, $password_repeat, $weekly_requests_limit,
+        $weekly_requested_items_limit )
+      = @_;
 
-    say STDERR "Creating user with email: $email, full name: $full_name, notes: $notes, role IDs: " . Dumper( $role_ids ) .
-      ", is active: $is_active";
+    say STDERR "Creating user with email: $email, full name: $full_name, notes: $notes, role IDs: " .
+      Dumper( $role_ids ) . ", is active: $is_active, weekly_requests_limit: " .
+      ( defined $weekly_requests_limit ? $weekly_requests_limit : 'default' ) . ', weekly requested items limit: ' .
+      ( defined $weekly_requested_items_limit ? $weekly_requested_items_limit : 'default' );
 
     my $password_validation_message =
       validate_password_requirements_or_return_error_message( $email, $password, $password_repeat );
@@ -697,6 +705,31 @@ EOF
     }
     $sth->finish;
 
+    # Update limits (if they're defined)
+    if ( defined $weekly_requests_limit )
+    {
+        $db->query(
+            <<EOF,
+            UPDATE auth_user_limits
+            SET weekly_requests_limit = ?
+            WHERE auth_users_id = ?
+EOF
+            $weekly_requests_limit, $auth_users_id
+        );
+    }
+
+    if ( defined $weekly_requested_items_limit )
+    {
+        $db->query(
+            <<EOF,
+            UPDATE auth_user_limits
+            SET weekly_requested_items_limit = ?
+            WHERE auth_users_id = ?
+EOF
+            $weekly_requested_items_limit, $auth_users_id
+        );
+    }
+
     # End transaction
     $db->dbh->commit;
 
@@ -706,9 +739,11 @@ EOF
 
 # Update an existing user; returns error message on error, empty string on success
 # ($password and $password_repeat are optional; if not provided, the password will not be changed)
-sub update_user_or_return_error_message($$$$$$;$$)
+sub update_user_or_return_error_message($$$$$$;$$$$)
 {
-    my ( $db, $email, $full_name, $notes, $roles, $is_active, $password, $password_repeat ) = @_;
+    my ( $db, $email, $full_name, $notes, $roles, $is_active, $password, $password_repeat, $weekly_requests_limit,
+        $weekly_requested_items_limit )
+      = @_;
 
     # Check if user exists
     my $userinfo = user_info( $db, $email );
@@ -741,6 +776,30 @@ EOF
             $db->dbh->rollback;
             return $password_change_error_message;
         }
+    }
+
+    if ( defined $weekly_requests_limit )
+    {
+        $db->query(
+            <<EOF,
+            UPDATE auth_user_limits
+            SET weekly_requests_limit = ?
+            WHERE auth_users_id = ?
+EOF
+            $weekly_requests_limit, $userinfo->{ auth_users_id }
+        );
+    }
+
+    if ( defined $weekly_requested_items_limit )
+    {
+        $db->query(
+            <<EOF,
+            UPDATE auth_user_limits
+            SET weekly_requested_items_limit = ?
+            WHERE auth_users_id = ?
+EOF
+            $weekly_requested_items_limit, $userinfo->{ auth_users_id }
+        );
     }
 
     # Update roles
@@ -920,6 +979,50 @@ EOF
 
     # Success
     return '';
+}
+
+# Get default weekly request limit
+sub default_weekly_requests_limit($)
+{
+    my $db = shift;
+
+    my $default_weekly_requests_limit = $db->query(
+        <<EOF
+        SELECT column_default AS default_weekly_requests_limit
+        FROM information_schema.columns
+        WHERE (table_schema, table_name) = ('public', 'auth_user_limits')
+          AND column_name = 'weekly_requests_limit'
+EOF
+    )->hash;
+    unless ( ref( $default_weekly_requests_limit ) eq ref( {} )
+        and defined( $default_weekly_requests_limit->{ default_weekly_requests_limit } ) )
+    {
+        die "Unable to fetch default weekly requests limit.";
+    }
+
+    return $default_weekly_requests_limit->{ default_weekly_requests_limit } + 0;
+}
+
+# Get default weekly requested items limit
+sub default_weekly_requested_items_limit($)
+{
+    my $db = shift;
+
+    my $default_weekly_requested_items_limit = $db->query(
+        <<EOF
+        SELECT column_default AS default_weekly_requested_items_limit
+        FROM information_schema.columns
+        WHERE (table_schema, table_name) = ('public', 'auth_user_limits')
+          AND column_name = 'weekly_requested_items_limit'
+EOF
+    )->hash;
+    unless ( ref( $default_weekly_requested_items_limit ) eq ref( {} )
+        and defined( $default_weekly_requested_items_limit->{ default_weekly_requested_items_limit } ) )
+    {
+        die "Unable to fetch default weekly requested items limit.";
+    }
+
+    return $default_weekly_requested_items_limit->{ default_weekly_requested_items_limit } + 0;
 }
 
 1;
