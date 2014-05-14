@@ -22,7 +22,8 @@ after execute => sub {
     my ( $user_email, $user_roles ) = $self->_user_email_and_roles( $c );
     unless ( $user_email and $user_roles )
     {
-        die "user_email is undef (I wasn't able to authenticate either using the API key nor the normal means)";
+        warn "user_email is undef (I wasn't able to authenticate either using the API key nor the normal means)";
+        return;
     }
 
     my $request_path = $c->req->path;
