@@ -1,6 +1,5 @@
 mc-client.config
 *.pyc
 *.log
-example_realtime_website/config.ini
-example_realtime_website/cache/*.json
-build/*
+build
+mediacloud.egg-info
