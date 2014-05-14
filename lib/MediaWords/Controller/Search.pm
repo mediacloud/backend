@@ -100,7 +100,7 @@ END
 }
 
 # search for stories using solr and return either a sampled list of stories in html or the full list in csv
-sub index : Path : Args(0) : Does('~Logged')
+sub index : Path : Args(0) : Does('~Throttled') : Does('~Logged')
 {
     my ( $self, $c ) = @_;
 
@@ -169,7 +169,7 @@ sub index : Path : Args(0) : Does('~Logged')
 }
 
 # print word cloud of search results
-sub wc : Local : Does('~Logged')
+sub wc : Local : Does('~Throttled') : Does('~Logged')
 {
     my ( $self, $c ) = @_;
 
