@@ -16,9 +16,33 @@ class MediaCloud(object):
 
     SENTENCE_PUBLISH_DATE_FORMAT = "%Y-%m-%d %H:%M:%S" # use with datetime.datetime.strptime
 
-    def __init__(self, api_key=None,log_level=logging.DEBUG):
-        logging.basicConfig(filename='mediacloud-api.log',level=log_level)
-        self._api_key = api_key
+    def __init__(self, auth_token=None,log_level=logging.INFO):
+        self._logger = logging.getLogger(__name__)
+        log_file = logging.FileHandler('mediacloud-api.log')
+        self._logger.setLevel(log_level)
+        self._logger.addHandler(log_file)
+        self.setAuthToken(auth_token)
+
+    def setAuthToken(self, auth_token):
+        '''
+        Specify the auth_token to use for all future requests
+        '''
+        self._auth_token = auth_token
+        
+    def userAuthToken(self,username,password):
+        '''
+        Get a auth_token for future requests to use
+        '''
+        self._logger.debug("Requesting new auth token for "+username)
+        response = self._queryForJson(self.V2_API_URL+'auth/single/',
+            {'username':username, 'password':password})
+        response = response[0]
+        if response['result']=='found':
+            self._logger.debug(" new token is "+response['auth_token'])
+            return response['auth_token']
+        else:
+            self._logger.warn("AuthToken request for "+username+" failed!")
+            raise Exception(response['result'])
 
     def media(self, media_id):
         '''
@@ -144,8 +168,9 @@ class MediaCloud(object):
         response = self._query(url, params, http_method)
         # print response.content
         response_json = response.json()
-        #print json.dumps(response_json,indent=2)
+        # print json.dumps(response_json,indent=2)
         if 'error' in response_json:
+            self._logger.error('Error in response from server on request to '+url+' : '+response_json['error'])
             raise Exception(response_json['error'])
         return response_json
 
@@ -153,13 +178,14 @@ class MediaCloud(object):
         '''
         Helper that actually makes the requests and returns plain text results (this adds in the API key for you)
         '''
-        logging.debug("query "+url+" with "+str(params))
+        self._logger.debug("query "+url+" with "+str(params))
         if 'key' not in params:
-            params['key'] = self._api_key
+            params['key'] = self._auth_token
         r = requests.request( http_method, url, 
             params=params,
             headers={ 'Accept': 'application/json'}  
         )
         if r.status_code is not 200:
+            self._logger.error('Bad HTTP response to '+url+' : '+str(r.status_code))
             raise Exception('Error - got a HTTP status code of '+str(r.status_code))
         return r
