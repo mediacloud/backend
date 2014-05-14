@@ -2216,7 +2216,7 @@ CREATE TABLE auth_user_limits (
 
     auth_user_limits_id             SERIAL      NOT NULL,
 
-    auth_users_id                   INTEGER     NOT NULL REFERENCES auth_users(auth_users_id)
+    auth_users_id                   INTEGER     NOT NULL UNIQUE REFERENCES auth_users(auth_users_id)
                                                 ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE,
 
     -- Request limit (0 or belonging to 'admin' / 'admin-readonly' group = no
@@ -2229,7 +2229,7 @@ CREATE TABLE auth_user_limits (
 
 );
 
-CREATE INDEX auth_user_limits_auth_users_id ON auth_user_limits (auth_users_id);
+CREATE UNIQUE INDEX auth_user_limits_auth_users_id ON auth_user_limits (auth_users_id);
 
 -- Set the default limits for newly created users
 CREATE OR REPLACE FUNCTION auth_users_set_default_limits() RETURNS trigger AS
