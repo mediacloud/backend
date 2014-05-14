@@ -38,8 +38,8 @@ class MediaCloud(object):
             {'username':username, 'password':password})
         response = response[0]
         if response['result']=='found':
-            self._logger.debug(" new token is "+response['auth_token'])
-            return response['auth_token']
+            self._logger.debug(" new token is "+response['token'])
+            return response['token']
         else:
             self._logger.warn("AuthToken request for "+username+" failed!")
             raise Exception(response['result'])
