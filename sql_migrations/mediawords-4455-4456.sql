@@ -121,7 +121,7 @@ CREATE TABLE auth_user_limits (
 
     -- Request limit (0 or belonging to 'admin' / 'admin-readonly' group = no
     -- limit)
-    weekly_request_limit            INTEGER     NOT NULL DEFAULT 1000,
+    weekly_requests_limit           INTEGER     NOT NULL DEFAULT 1000,
 
     -- Requested items (stories) limit (0 or belonging to 'admin' /
     -- 'admin-readonly' group = no limit)
