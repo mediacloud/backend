@@ -153,13 +153,15 @@ CREATE OR REPLACE FUNCTION auth_user_limits_weekly_usage(user_email TEXT)
 RETURNS TABLE(email TEXT, weekly_requests_sum BIGINT, weekly_requested_items_sum BIGINT) AS
 $$
 
-    SELECT auth_user_request_daily_counts.email,
-           SUM(auth_user_request_daily_counts.requests_count) AS weekly_requests_sum,
-           SUM(auth_user_request_daily_counts.requested_items_count) AS weekly_requested_items_sum
-    FROM auth_user_request_daily_counts
-    WHERE auth_user_request_daily_counts.email = $1
-      AND day > DATE_TRUNC('day', NOW()) - INTERVAL '1 week'
-    GROUP BY auth_user_request_daily_counts.email;
+    SELECT auth_users.email,
+           COALESCE(SUM(auth_user_request_daily_counts.requests_count), 0) AS weekly_requests_sum,
+           COALESCE(SUM(auth_user_request_daily_counts.requested_items_count), 0) AS weekly_requested_items_sum
+    FROM auth_users
+        LEFT JOIN auth_user_request_daily_counts
+            ON auth_users.email = auth_user_request_daily_counts.email
+            AND auth_user_request_daily_counts.day > DATE_TRUNC('day', NOW()) - INTERVAL '1 week'
+    WHERE auth_users.email = $1
+    GROUP BY auth_users.email;
 
 $$
 LANGUAGE SQL;
