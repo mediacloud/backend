@@ -75,14 +75,6 @@ sub create_model($$$)
     _fatal_error( "Not implemented in " . __PACKAGE__ );
 }
 
-sub run_model($$$$)
-{
-    my ( $class, $model_file_name, $test_data_file, $output_fhs ) = @_;
-
-    # Clients should use CRF::CrfUtils::InlineJava directly
-    _fatal_error( "Not implemented in " . __PACKAGE__ );
-}
-
 sub run_model_inline_java_data_array($$$)
 {
     my ( $class, $model_file_name, $test_data_array ) = @_;

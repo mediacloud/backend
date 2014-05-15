@@ -83,13 +83,6 @@ sub create_model($$$)
     return _create_model_inline_java( $class, $training_data_file, $iterations );
 }
 
-sub run_model($$$$)
-{
-    my ( $class, $model_file_name, $test_data_file, $output_fhs ) = @_;
-
-    return _run_model_inline_java( $class, $model_file_name, $test_data_file, $output_fhs );
-}
-
 sub run_model_inline_java_data_array($$$)
 {
     my ( $class, $model_file_name, $test_data_array ) = @_;
@@ -172,29 +165,6 @@ sub _run_model_on_array($$$)
     my $results = [ split( "\n", $results_string ) ];
 
     return $results;
-}
-
-sub _run_model_inline_java($$$$)
-{
-    my ( $class, $model_file_name, $test_data_file, $output_fhs ) = @_;
-
-    my $probabilities_fh = $output_fhs->{ probabilities_fh };
-
-    my $predictions_fh = $output_fhs->{ predictions_fh };
-
-    my $expected_results_fh = $output_fhs->{ expected_results_fh };
-
-    say STDERR "generating predictions";
-
-    say STDERR "classpath: $class_path";
-
-    my @test_data_array = read_file( $test_data_file );
-
-    my $foo = run_model_inline_java_data_array( $class, $model_file_name, \@test_data_array );
-
-    say join "\n", @{ $foo };
-
-    exit();
 }
 
 sub _crf_modelrunner_java_src()
