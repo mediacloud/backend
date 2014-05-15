@@ -58,16 +58,16 @@ CREATE TABLE auth_user_request_daily_counts (
 
     -- User's email (does *not* reference auth_users.email because the user
     -- might be deleted)
-    email                   TEXT            NOT NULL,
+    email                   TEXT    NOT NULL,
 
     -- Day (request timestamp, date_truncated to a day)
-    day                     TIMESTAMP       NOT NULL,
+    day                     DATE    NOT NULL,
 
     -- Number of requests
-    requests_count          INTEGER         NOT NULL,
+    requests_count          INTEGER NOT NULL,
 
     -- Number of requested items
-    requested_items_count   INTEGER         NOT NULL
+    requested_items_count   INTEGER NOT NULL
 
 );
 
@@ -80,18 +80,18 @@ CREATE OR REPLACE FUNCTION auth_user_requests_update_daily_counts() RETURNS trig
 $$
 
 DECLARE
-    day_timestamp DATE;
+    request_date DATE;
 
 BEGIN
 
-    day_timestamp := DATE_TRUNC('day', NEW.request_timestamp);
+    request_date := DATE_TRUNC('day', NEW.request_timestamp)::DATE;
 
     -- Try to UPDATE a previously INSERTed day
     UPDATE auth_user_request_daily_counts
     SET requests_count = requests_count + 1,
         requested_items_count = requested_items_count + NEW.requested_items_count
     WHERE email = NEW.email
-      AND day = day_timestamp;
+      AND day = request_date;
 
     IF FOUND THEN
         RETURN NULL;
@@ -99,7 +99,7 @@ BEGIN
 
     -- If UPDATE was not successful, do an INSERT (new day!)
     INSERT INTO auth_user_request_daily_counts (email, day, requests_count, requested_items_count)
-    VALUES (NEW.email, day_timestamp, 1, NEW.requested_items_count);
+    VALUES (NEW.email, request_date, 1, NEW.requested_items_count);
 
     RETURN NULL;
 
@@ -159,7 +159,7 @@ $$
     FROM auth_users
         LEFT JOIN auth_user_request_daily_counts
             ON auth_users.email = auth_user_request_daily_counts.email
-            AND auth_user_request_daily_counts.day > DATE_TRUNC('day', NOW()) - INTERVAL '1 week'
+            AND auth_user_request_daily_counts.day > DATE_TRUNC('day', NOW())::date - INTERVAL '1 week'
     WHERE auth_users.email = $1
     GROUP BY auth_users.email;
 
