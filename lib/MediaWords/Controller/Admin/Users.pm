@@ -3,6 +3,8 @@ use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 use MediaWords::Util::Config;
 use MediaWords::DBI::Auth;
+use JSON;
+use POSIX qw(strftime);
 
 use strict;
 use warnings;
@@ -401,7 +403,180 @@ sub edit : Local
     }
 
     $c->response->redirect( $c->uri_for( '/admin/users/list', { status_msg => $status_msg } ) );
+}
 
+# view usage report page
+sub usage : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $users = MediaWords::DBI::Auth::all_users( $c->dbis );
+    my $roles = MediaWords::DBI::Auth::all_user_roles( $c->dbis );
+
+    my $query = $c->request->param( 'query' );
+
+    $c->stash->{ query }    = $query;
+    $c->stash->{ users }    = $users;
+    $c->stash->{ roles }    = $roles;
+    $c->stash->{ template } = 'users/usage.tt2';
+}
+
+# send back usage JSON
+sub usage_json : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $json_response = [];
+
+    eval {
+
+        my $db = $c->dbis;
+
+        my $query = $c->request->param( 'query' ) // '';
+
+        say STDERR "query=$query";
+
+        my $emails = [];
+
+        # Fetch a list of emails for which we'll generate stats
+        if ( $query =~ /^role=.+?$/ )
+        {
+
+            # Users that belong to a specific role
+            my ( $role ) = $query =~ /^role=(.+?)$/;
+            unless ( $role )
+            {
+                die "Role is undefined.";
+            }
+
+            say STDERR "Showing usage for users with role '$role'";
+
+            my $db_emails = $db->query(
+                <<EOF,
+                SELECT email
+                FROM auth_roles
+                    INNER JOIN auth_users_roles_map
+                        ON auth_roles.auth_roles_id = auth_users_roles_map.auth_roles_id
+                    INNER JOIN auth_users
+                        ON auth_users_roles_map.auth_users_id = auth_users.auth_users_id
+                WHERE role = ?
+EOF
+                $role
+            )->hashes;
+            unless ( $db_emails )
+            {
+                die "Unable to fetch a list of emails for role '$role'.";
+            }
+
+            $emails = [ map { $_->{ email } } @{ $db_emails } ];
+
+        }
+        elsif ( $query =~ /^user=\d+?$/ )
+        {
+
+            # Specific user
+            my ( $user_id ) = $query =~ /^user=(\d+?)$/;
+            unless ( $user_id )
+            {
+                die "User ID is undefined.";
+            }
+
+            say STDERR "Showing usage for user with ID '$user_id'.";
+
+            my $db_email = $db->query(
+                <<EOF,
+                SELECT email
+                FROM auth_users
+                WHERE auth_users_id = ?
+                LIMIT 1
+EOF
+                $user_id
+            )->hash;
+            unless ( $db_email )
+            {
+                die "Unable to fetch email address for user ID $user_id.";
+            }
+
+            $emails = [ $db_email->{ email } ];
+
+        }
+        else
+        {
+
+            # All users
+            say STDERR "Showing usage for all users.";
+
+            my $db_emails = $db->query(
+                <<EOF
+                SELECT email
+                FROM auth_users
+EOF
+            )->hashes;
+
+            $emails = [ map { $_->{ email } } @{ $db_emails } ];
+        }
+
+        if ( scalar( @{ $emails } ) == 0 )
+        {
+            die "No users found for the current query.";
+        }
+
+        # Fetch aggregated statistics
+        my $statistics = $db->query(
+            <<EOF,
+            SELECT day,
+                   SUM(requests_count) AS total_requests_count,
+                   SUM(requested_items_count) AS total_requested_items_count
+
+            FROM auth_user_request_daily_counts
+
+            WHERE email IN (??)
+
+            GROUP BY auth_user_request_daily_counts.day
+            ORDER BY auth_user_request_daily_counts.day
+EOF
+            @{ $emails }
+        )->hashes;
+        unless ( $statistics )
+        {
+            die "Unable to fetch statistics for emails: " . join( ', ', @{ $emails } );
+        }
+
+        $json_response = [];
+        foreach my $statistics_day ( @{ $statistics } )
+        {
+
+            my $day = {
+                'day'             => $statistics_day->{ day },
+                'requests'        => $statistics_day->{ total_requests_count },
+                'requested_items' => $statistics_day->{ total_requested_items_count }
+            };
+            push( @{ $json_response }, $day );
+        }
+
+        # Insert an empty "fake" record with today's date and a zero requests if
+        # there were no requests logged because otherwise the chart drawing program
+        # doesn't show anything
+        if ( scalar( @{ $json_response } ) == 0 )
+        {
+
+            my $day = {
+                'day'             => strftime( '%Y-%m-%d', localtime ),
+                'requests'        => 0,
+                'requested_items' => 0
+            };
+            push( @{ $json_response }, $day );
+        }
+    };
+
+    # Report errors to JSON
+    if ( $@ )
+    {
+        $json_response = { 'error' => $@ };
+    }
+
+    $c->response->content_type( 'application/json; charset=UTF-8' );
+    $c->response->body( encode_json( $json_response ) );
 }
 
 1;
