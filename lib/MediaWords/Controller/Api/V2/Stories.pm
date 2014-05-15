@@ -117,6 +117,24 @@ END
     return $stories;
 }
 
+# the story_sentences query returns story_sentences_tags as a ; separated list.
+# this function splits the tags_list field of each sentence into a proper list
+# and reassigns the result to the tags field.  the tags_list field is deleted
+# after splitting.
+sub _split_sentence_tags_list
+{
+    my ( $stories ) = @_;
+
+    for my $story ( @{ $stories } )
+    {
+        for my $ss ( @{ $story->{ story_sentences } } )
+        {
+            $ss->{ tags } = [ split( ';', $ss->{ tags_list } || '' ) ];
+            delete( $ss->{ tags_list } );
+        }
+    }
+}
+
 sub _add_nested_data
 {
     my ( $self, $db, $stories, $show_raw_1st_download ) = @_;
@@ -152,12 +170,16 @@ END
     MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $extracted_data );
 
     my $sentences = $db->query( <<END )->hashes;
-select s.* 
+select s.*, string_agg( sstm.tags_id::text, ';' ) tags_list
     from story_sentences s
+        left join story_sentences_tags_map sstm on ( s.story_sentences_id = sstm.story_sentences_id )
     where s.stories_id in ( select id from $ids_table )
+    group by s.story_sentences_id
     order by s.sentence_number
 END
     MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $sentences, 'story_sentences' );
+
+    _split_sentence_tags_list( $stories );
 
     my $tag_data = $db->query( <<END )->hashes;
 select s.stories_id, tags.tags_id, tags.tag, tag_sets.tag_sets_id, tag_sets.name as tag_set 
