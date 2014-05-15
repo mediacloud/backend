@@ -1,17 +1,5 @@
-[% title = 'Users: List' %]
-[% INCLUDE include/header.tt2 %]
-
-[% IF c.acl_user_can_visit('/admin/users/create') %]
-    <fieldset>
-
-        <p>
-            <a href="[% c.uri_for( '/admin/users/create' )%]">Create New User</a>
-        </p>
-
-    </fieldset>
-[% END -%]
-
-<p />
+[% title = 'List Users' -%]
+[% INCLUDE include/users_header.tt2 -%]
 
 <table id="users">
 

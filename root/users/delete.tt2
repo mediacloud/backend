@@ -1,5 +1,5 @@
-[% title = 'Users: Delete' %]
-[% INCLUDE include/header.tt2 %]
+[% title = 'Delete User' -%]
+[% INCLUDE include/users_header.tt2 -%]
 
 [% IF c.acl_user_can_visit('/admin/users/delete_do') %]
 

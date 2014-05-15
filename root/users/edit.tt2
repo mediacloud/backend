@@ -1,6 +1,5 @@
-[% title = 'Users: Edit' %]
-
-[% INCLUDE include/header.tt2 %]
+[% title = 'Edit User' -%]
+[% INCLUDE include/users_header.tt2 -%]
 
 <h2>Editing user <code>[% email | html %]</code></h2>
 

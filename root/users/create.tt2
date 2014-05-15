@@ -1,6 +1,5 @@
-[% title = 'Users: Create' %]
-
-[% INCLUDE include/header.tt2 %]
+[% title = 'Create New User' -%]
+[% INCLUDE include/users_header.tt2 -%]
 
 <!-- Create user form -->
 <fieldset id="createUser" class="formNameValue">
