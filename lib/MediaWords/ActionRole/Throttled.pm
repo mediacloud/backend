@@ -32,10 +32,14 @@ before execute => sub {
         die "request_path is undef";
     }
 
-    # Admin users are not limited
-    if ( any { /^admin$/ } @{ $user_roles } or any { /^admin-readonly$/ } @{ $user_roles } )
+    # Admin users are effectively unlimited
+    my $roles_exempt_from_user_limits = MediaWords::DBI::Auth::roles_exempt_from_user_limits();
+    foreach my $exempt_role ( @{ $roles_exempt_from_user_limits } )
     {
-        return 0;
+        if ( any { $exempt_role } @{ $user_roles } )
+        {
+            return 0;
+        }
     }
 
     # Fetch limits

@@ -1025,4 +1025,11 @@ EOF
     return $default_weekly_requested_items_limit->{ default_weekly_requested_items_limit } + 0;
 }
 
+# User roles that are not limited by the weekly requests / requested items limits
+sub roles_exempt_from_user_limits()
+{
+    my @exceptions = qw/admin admin-reaonly/;
+    return \@exceptions;
+}
+
 1;
