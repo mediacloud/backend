@@ -37,19 +37,13 @@ public class ModelRunner {
         p.getDataAlphabet().stopGrowth();
     }
 
-    public String[] runModel(String testFileName) throws Exception {
+    private String[] runModel(String testFileName) throws Exception {
 
         InstanceList testData = readTestData(testFileName);
         return crfOutputsToStrings(runCrfModel(testData));
     }
 
-    public String runModelReturnString(String testFileName) throws Exception {
-
-        String[] results = runModel(testFileName);
-        return joinArrayToString("\n", results);
-    }
-
-    public String[] runModelString(String testDataString) throws Exception {
+    String[] runModelString(String testDataString) throws Exception {
 
         InstanceList testData = readTestDataFromString(testDataString);
         return crfOutputsToStrings(runCrfModel(testData));
@@ -72,17 +66,14 @@ public class ModelRunner {
          System.err.println("Max Memory: " + rt.maxMemory() / 1024 + " KB");
          System.err.println("");
          */
-        ArrayList<String> results = new ArrayList<String>();
 
-         if ( testData.size() >  1) {
+        if ( testData.size() >  1) {
              throw new IllegalArgumentException("test data may only contain one sequence");
          }
 
         Sequence input = (Sequence) testData.get(0).getData();
 
-        ArrayList<CrfOutput> crfResults = predictSequence(input);
-
-        return crfResults;
+        return predictSequence(input);
 
         //return crfOutputsToStrings(crfResults);
     }
@@ -95,7 +86,7 @@ public class ModelRunner {
             sequenceResults.add( crfResult.prediction + " ");
         }
 
-        return sequenceResults.toArray(new String[0]);
+        return sequenceResults.toArray(new String[sequenceResults.size()]);
     }
 
     private InstanceList readTestData(String testFileName) throws FileNotFoundException {
