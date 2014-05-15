@@ -151,22 +151,25 @@ sub user_info($$)
     my $userinfo = $db->query(
         <<"EOF",
         SELECT auth_users.auth_users_id,
-               email,
+               auth_users.email,
                full_name,
                api_token,
                notes,
                active,
+               weekly_requests_sum,
+               weekly_requested_items_sum,
                weekly_requests_limit,
                weekly_requested_items_limit
         FROM auth_users
             INNER JOIN auth_user_limits
-                ON auth_users.auth_users_id = auth_user_limits.auth_users_id
-        WHERE email = ?
+                ON auth_users.auth_users_id = auth_user_limits.auth_users_id,
+            auth_user_limits_weekly_usage(auth_users.email)
+        WHERE auth_users.email = ?
         LIMIT 1
 EOF
         $email
     )->hash;
-    if ( !( ref( $userinfo ) eq 'HASH' and $userinfo->{ auth_users_id } ) )
+    unless ( ref( $userinfo ) eq ref( {} ) and $userinfo->{ auth_users_id } )
     {
         return 0;
     }
@@ -237,7 +240,7 @@ EOF
         $email
     )->hash;
 
-    if ( !( ref( $user ) eq 'HASH' and $user->{ auth_users_id } ) )
+    unless ( ref( $user ) eq ref( {} ) and $user->{ auth_users_id } )
     {
         return 0;
     }

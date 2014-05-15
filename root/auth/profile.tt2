@@ -19,6 +19,44 @@
     </div>
     <br />
 
+    [% MACRO user_limits_css_style(numerator, denominator) BLOCK %]
+        [% IF denominator > 0 %]
+            [% IF numerator / denominator < 0.8 %]
+                color: green
+            [% ELSIF numerator / denominator >= 1.0 %]
+                color: red
+            [% ELSE %]
+                color: orange
+            [% END %]
+        [% ELSE %]
+            color: green
+        [% END %]
+    [% END %]
+
+    <label for="weekly_requests">API weekly requests:</label>
+    <div id="weekly_requests" style="display: inline-block; [% user_limits_css_style(weekly_requests_sum, weekly_requests_limit) %]">
+        [% weekly_requests_sum %]
+        /
+        [% IF weekly_requests_limit > 0 %]
+            [% weekly_requests_limit %]
+        [% ELSE %]
+            unlimited
+        [% END %]
+    </div>
+    <br />
+
+    <label for="weekly_requested_items">API weekly requested items:</label>    
+    <div id="weekly_requested_items" style="display: inline-block; [% user_limits_css_style(weekly_requested_items_sum, weekly_requested_items_limit) %]">
+        [% weekly_requested_items_sum %]
+        /
+        [% IF weekly_requested_items_limit > 0 %]
+            [% weekly_requested_items_limit %]
+        [% ELSE %]
+            unlimited
+        [% END %]
+    </div>
+    <br />
+
     <label for="notes">Notes:</label>
     <textarea name="notes" id="notes" cols="30" rows="10" readonly="readonly">[% notes | html %]</textarea><br />
 </div>

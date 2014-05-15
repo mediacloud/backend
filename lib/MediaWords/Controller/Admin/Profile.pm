@@ -9,6 +9,7 @@ use namespace::autoclean;
 use MediaWords::Util::Config;
 use MediaWords::DBI::Auth;
 
+use List::MoreUtils qw/ any /;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -18,9 +19,25 @@ sub index : Path : Args(0)
 
     # Fetch readonly information about the user
     my $userinfo = MediaWords::DBI::Auth::user_info( $c->dbis, $c->user->username );
-    if ( !$userinfo )
+    my $userauth = MediaWords::DBI::Auth::user_auth( $c->dbis, $c->user->username );
+    unless ( $userinfo and $userauth )
     {
         die 'Unable to find currently logged in user in the database.';
+    }
+    my $roles = $userauth->{ roles };
+
+    my $weekly_requests_limit        = $userinfo->{ weekly_requests_limit } + 0;
+    my $weekly_requested_items_limit = $userinfo->{ weekly_requested_items_limit } + 0;
+
+    # Admin users are effectively unlimited
+    my $roles_exempt_from_user_limits = MediaWords::DBI::Auth::roles_exempt_from_user_limits();
+    foreach my $exempt_role ( @{ $roles_exempt_from_user_limits } )
+    {
+        if ( any { $exempt_role } @{ $roles } )
+        {
+            $weekly_requests_limit        = 0;
+            $weekly_requested_items_limit = 0;
+        }
     }
 
     # Prepare the template
@@ -29,6 +46,12 @@ sub index : Path : Args(0)
     $c->stash->{ full_name } = $userinfo->{ full_name };
     $c->stash->{ api_token } = $userinfo->{ api_token };
     $c->stash->{ notes }     = $userinfo->{ notes };
+
+    $c->stash->{ weekly_requests_sum }          = $userinfo->{ weekly_requests_sum } + 0;
+    $c->stash->{ weekly_requested_items_sum }   = $userinfo->{ weekly_requested_items_sum } + 0;
+    $c->stash->{ weekly_requests_limit }        = $weekly_requests_limit;
+    $c->stash->{ weekly_requested_items_limit } = $weekly_requested_items_limit;
+
     $c->stash( template => 'auth/profile.tt2' );
 
     # Prepare the "change password" form
@@ -41,7 +64,7 @@ sub index : Path : Args(0)
     );
 
     $form->process( $c->request );
-    if ( !$form->submitted_and_valid() )
+    unless ( $form->submitted_and_valid() )
     {
 
         # No change password attempt
