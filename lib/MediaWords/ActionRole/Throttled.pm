@@ -55,9 +55,9 @@ before execute => sub {
         FROM auth_users
             INNER JOIN auth_user_limits
                 ON auth_users.auth_users_id = auth_user_limits.auth_users_id,
-            auth_user_limits_weekly_usage(auth_users.email)
+            auth_user_limits_weekly_usage( \$1 )
 
-        WHERE auth_users.email = ?
+        WHERE auth_users.email = \$1
         LIMIT 1
 EOF
         $user_email

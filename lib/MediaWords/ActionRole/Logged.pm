@@ -37,8 +37,6 @@ after execute => sub {
     # Log the request
     my $db = $c->dbis;
 
-    $db->begin_work;
-
     $db->query(
         <<EOF,
         INSERT INTO auth_user_requests (email, request_path, requested_items_count)
@@ -46,8 +44,6 @@ after execute => sub {
 EOF
         $user_email, $request_path, $requested_items_count
     );
-
-    $db->commit;
 };
 
 # Static helper that sets the number of requested items (e.g. stories) in the Catalyst's stash to be later used by after{}
