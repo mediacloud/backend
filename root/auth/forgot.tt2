@@ -1,39 +1,5 @@
-[% title = 'Password reset' %]
+[% INCLUDE 'include/auth/header.tt2' title="Forgot Password" %] 
 
-[% INCLUDE include/header.tt2 %]
-
-[% IF c.user %]
-    You are already logged in as <code>[% c.user.username | html %]</code>.
-    You can <a href="[% c.uri_for('/logout') %]">logout</a> here.
-[% ELSE %]
-
-    [% IF form %]
-
-        <p>
-            If you forgot your password, use this form to reset it.
-        </p>
-
-        <!-- Password reset form -->
-        <fieldset id="passwordReset" class="formNameValue">
-            [% form.render %]
-        </fieldset>
-
-        <script type="text/javascript"><!--
-
-            // Validate login form -- select empty form fields
-            $(document).ready(function(){
-                $("fieldset#passwordReset form").validate();
-            });
-
-            // Focus email field on load
-            $(function() {
-                $("#email").focus();
-            });
-
-        --></script>
-
-    [% END #[% IF form -%]
-
-[% END #[% IF c.user -%]
+[% form.render %]
   
-[% INCLUDE include/footer.tt2 %]
+[% INCLUDE 'include/auth/footer.tt2' %]

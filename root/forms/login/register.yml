@@ -1,0 +1,57 @@
+# indicator is the field that is used to test for form submission
+indicator: submit
+auto_fieldset:
+
+elements:
+  - type: Text
+    id: email
+    name: email
+    label: Email
+    size: 40
+    constraints:
+      - Required
+      - Email
+    attributes:
+      # jQuery validator classes
+      class: email required
+      placeholder: jdoe@cyber.law.harvard.edu
+
+  - type: Text
+    id: full_name
+    name: full_name
+    label: Full name
+    size: 40
+    constraints:
+      - Required
+    attributes:
+      # jQuery validator classes
+      class: required
+      placeholder: John Doe
+
+  - type: Textarea
+    id: notes
+    name: notes
+    label: Notes
+    comment: Please describe in a few words how you plan to use the Media Cloud tools and data.
+    cols: 30
+    rows: 10
+
+  - type: Password
+    id: password
+    name: password
+    label: Password
+    size: 40
+    attributes:
+      placeholder: correct horse battery staple
+
+  - type: Password
+    id: password_repeat
+    name: password_repeat
+    label: Repeat password
+    size: 40
+    attributes:
+      placeholder: correct horse battery staple
+
+  - type: Submit
+    name: submit
+    value: Create

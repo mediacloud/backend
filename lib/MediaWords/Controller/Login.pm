@@ -93,7 +93,7 @@ sub index : Path : Args(0)
             # Redirect to default homepage
             my $config            = MediaWords::Util::Config::get_config;
             my $default_home_page = $config->{ mediawords }->{ default_home_page };
-            $c->response->redirect( $c->uri_for( $default_home_page ) );
+            $c->response->redirect( $c->uri_for( '/admin/profile' ) );
         }
     }
     else
@@ -254,6 +254,58 @@ sub reset : Local
         );
     }
 
+}
+
+sub register : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $form = $c->create_form(
+        {
+            load_config_file => $c->path_to() . '/root/forms/login/register.yml',
+            method           => 'POST',
+            action           => $c->uri_for( '/login/register' )
+        }
+    );
+
+    $form->process( $c->request );
+
+    $c->stash->{ form } = $form;
+    $c->stash->{ c }    = $c;
+    $c->stash( template => 'auth/register.tt2' );
+
+    return unless ( $form->submitted_and_valid() );
+
+    my $db = $c->dbis;
+
+    my $search_role = $db->query( "select * from auth_roles where role = 'search'" )->hash
+      || die( "Unable to find 'search' role" );
+
+    my $user_email                        = $form->param_value( 'email' );
+    my $user_full_name                    = $form->param_value( 'full_name' );
+    my $user_notes                        = $form->param_value( 'notes' );
+    my $user_is_active                    = 1;
+    my $user_roles                        = [ $search_role->{ auth_roles_id } ];
+    my $user_weekly_requests_limit        = 1000;
+    my $user_weekly_requested_items_limit = 20000;
+    my $user_password                     = $form->param_value( 'password' );
+    my $user_password_repeat              = $form->param_value( 'password_repeat' );
+
+    # Add user
+    my $add_user_error_message =
+      MediaWords::DBI::Auth::add_user_or_return_error_message( $db, $user_email, $user_full_name, $user_notes,
+        $user_roles, $user_is_active, $user_password, $user_password_repeat, $user_weekly_requests_limit,
+        $user_weekly_requested_items_limit );
+
+    if ( $add_user_error_message )
+    {
+        $c->stash( error_msg => $add_user_error_message );
+    }
+    else
+    {
+        $c->req->params->{ username } = $user_email;
+        $self->index( $c );
+    }
 }
 
 =head1 AUTHOR

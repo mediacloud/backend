@@ -1,23 +1,11 @@
 [% title = 'User profile' %]
 
-[% INCLUDE include/header.tt2 %]
+[% INCLUDE include/auth/header.tt2 %]
 
-<h2>User information</h2>
-
-<div class="formNameValue">
-    <label for="email">Email:</label>
-    <input type="email" name="email" id="email" value="[% email | html %]" size="40" readonly="readonly" /><br />
-
-    <label for="full_name">Full name:</label>
-    <input type="text" name="full_name" id="full_name" value="[% full_name | html %]" size="40" readonly="readonly" /><br />
-
-    <label for="api_token">API token:</label>
-    <div id="api_token" style="display: inline-block">
-        <span>[% api_token | html %]</span>
-        <br />
-        <input type="button" name="regenerate_api_token" id="regenerate_api_token" value="Regenerate API token" />
-    </div>
-    <br />
+<div class="formNameValue">    
+    
+    Email: [% email | html %]<br />
+    Full name: [% full_name | html %]<br />
 
     [% MACRO user_limits_css_style(numerator, denominator) BLOCK %]
         [% IF denominator > 0 %]
@@ -58,16 +46,36 @@
     <br />
 
     <label for="notes">Notes:</label>
-    <textarea name="notes" id="notes" cols="30" rows="10" readonly="readonly">[% notes | html %]</textarea><br />
+    <blockquote>[% notes | html %]</blockquote>
+    
+    <form action="[% c.uri_for( '/logout' ) | html %]">
+        <input type="submit" value="Logout" \>
+    </form>
+    <br />
+
+
+<header class="page-header">
+    <p class="page-title">API Token</p>
+</header>
+
+    <div id="api_token" >
+        <span>[% api_token | html %]</span>
+    </div>
+    <input type="button" name="regenerate_api_token" id="regenerate_api_token" value="Regenerate API token" />
+    
 </div>
 
 
-<h2>Change password</h2>
+<header class="page-header">
+    <br />
+    <p class="page-title">Change Password</p>
+</header>
 
 <!-- Login form -->
 <fieldset id="changePassword" class="formNameValue">
     [% form.render %]
 </fieldset>
+
 
 <script type="text/javascript"><!--
 
@@ -76,6 +84,7 @@
     {
         $("fieldset#changePassword div.submit input").click(function()
         {
+            alert( 'foo' );
             $(".error").hide();
 
             var hasError = false;
@@ -122,4 +131,4 @@
 
 --></script>
   
-[% INCLUDE include/footer.tt2 %]
+[% INCLUDE include/auth/footer.tt2 %]
