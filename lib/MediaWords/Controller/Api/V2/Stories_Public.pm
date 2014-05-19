@@ -1,4 +1,4 @@
-package MediaWords::Controller::Api::V2::Stories;
+package MediaWords::Controller::Api::V2::Stories_Public;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
@@ -17,25 +17,9 @@ use Carp;
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
 
-=head1 NAME
-
-MediaWords::Controller::Stories - Catalyst Controller
-
-=head1 DESCRIPTION
-
-Catalyst Controller.
-
-=head1 METHODS
-
-=cut
-
-=head2 index 
-
-=cut
-
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 
-__PACKAGE__->config( action_roles => [ 'NonPublicApiKeyAuthenticated' ], );
+__PACKAGE__->config( action_roles => [ 'PublicApiKeyAuthenticated' ], );
 
 use constant ROWS_PER_PAGE => 20;
 
