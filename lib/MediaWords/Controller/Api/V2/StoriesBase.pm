@@ -1,4 +1,4 @@
-package MediaWords::Controller::Api::V2::Stories;
+package MediaWords::Controller::Api::V2::StoriesBase;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
@@ -35,7 +35,7 @@ Catalyst Controller.
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 
-__PACKAGE__->config( action_roles => [ 'NonPublicApiKeyAuthenticated' ], );
+#__PACKAGE__->config( action_roles => [ 'NonPublicApiKeyAuthenticated' ], );
 
 use constant ROWS_PER_PAGE => 20;
 
@@ -226,37 +226,6 @@ END
     $db->commit;
 
     return $stories;
-}
-
-sub put_tags : Local : Does('~NonPublicApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
-{
-}
-
-sub put_tags_PUT : Local
-{
-    my ( $self, $c ) = @_;
-    my $subset = $c->req->data;
-
-    my $story_tag = $c->req->params->{ 'story_tag' };
-
-    my $story_tags;
-
-    if ( ref $story_tag )
-    {
-        $story_tags = $story_tag;
-    }
-    else
-    {
-        $story_tags = [ $story_tag ];
-    }
-
-    # say STDERR Dumper( $story_tags );
-
-    $self->_add_tags( $c, $story_tags );
-
-    $self->status_ok( $c, entity => $story_tags );
-
-    return;
 }
 
 =head1 AUTHOR
