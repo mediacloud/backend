@@ -39,7 +39,7 @@ sub get_table_name
     return "story_sentences";
 }
 
-sub list : Local : Does('~PublicApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
+sub list : Local : Does('~NonPublicApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
 {
 }
 
@@ -159,7 +159,7 @@ sub list_GET : Local
 }
 
 ##TODO merge with stories put_tags
-sub put_tags : Local : Does('~PublicApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
+sub put_tags : Local : Does('~NonPublicApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
 {
 }
 
