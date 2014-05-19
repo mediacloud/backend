@@ -32,6 +32,8 @@ Catalyst Controller.
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 
+__PACKAGE__->config( action_roles => [ 'NonPublicApiKeyAuthenticated' ], );
+
 use MediaWords::Tagger;
 
 sub get_table_name
