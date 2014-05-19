@@ -1,4 +1,4 @@
-package MediaWords::ActionRole::PublicApiKeyAuthenticated;
+package MediaWords::ActionRole::NonPublicApiKeyAuthenticated;
 
 #
 # Action role that requires its actions to authenticate via API key
