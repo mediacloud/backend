@@ -249,7 +249,7 @@ END
     return $stories;
 }
 
-sub put_tags : Local : Does('~ApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
+sub put_tags : Local : Does('~PublicApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
 {
 }
 

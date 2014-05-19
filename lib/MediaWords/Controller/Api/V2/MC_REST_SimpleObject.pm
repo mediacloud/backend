@@ -110,7 +110,7 @@ sub _process_result_list
     return $items;
 }
 
-sub single : Local : ActionClass('REST') : Does('~ApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
+sub single : Local : ActionClass('REST') : Does('~PublicApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
 {
 }
 
@@ -191,7 +191,7 @@ sub _get_list_last_id_param_name
     return $last_id_param_name;
 }
 
-sub list : Local : ActionClass('REST') : Does('~ApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
+sub list : Local : ActionClass('REST') : Does('~PublicApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
 {
 }
 
