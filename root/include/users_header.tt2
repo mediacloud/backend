@@ -1,0 +1,8 @@
+[% title = "Users: " _ title -%]
+
+[% submenu_items = [ [ "/admin/users/list", "", "", "List Users"],
+                     [ "/admin/users/create", "", "", "Create New User"],
+                     [ "/admin/users/usage", "", "", 'View Usage Report'],
+                   ]; -%]
+
+[% INCLUDE include/header.tt2 %]

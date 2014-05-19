@@ -1,0 +1,28 @@
+		</div>
+</article>
+					
+			
+			</div><!-- #content -->
+		</section><!-- #primary .site-content -->
+
+		<div id="secondary" class="widget-area" role="complementary">
+		    <aside id="recent-posts-2" class="widget widget_recent_entries">		
+				<h1 class="widget-title">Media Cloud</h1>		
+				<ul>
+					<li><a href="http://www.mediacloud.org">Media Cloud Home</a></li>
+					<li><a href="http://dashboard.mediameter.org">Media Cloud Dashboard</a></li>
+					<li><a href="[% c.uri_for( '/admin/profile' ) %]">Media Cloud Profile</a></li>
+				</ul>
+		    </aside>
+		</div><!-- #secondary .widget-area -->
+	</div><!-- #main -->
+</div><!-- #page .hfeed .site -->
+
+<footer id="colophon" class="site-footer" role="contentinfo">
+	<div class="site-info">
+<!--		TTheme: Skylark by <a href="http://blankthemes.com/" rel="designer">Blank Themes</a>. -->
+		Media Cloud is a project of the Harvard <a href="http://cyber.law.harvard.edu/">Berkman Center for Internet &amp; Society</a> and the <a href="http://civic.mit.edu/">MIT Center for Civic Media</a>
+	</div><!-- .site-info -->
+</footer><!-- .site-footer .site-footer -->
+
+</body></html>

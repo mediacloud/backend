@@ -51,6 +51,32 @@ elements:
     label: Roles
     # 'options' will be filled by the Users controller
 
+  - type: Text
+    id: weekly_requests_limit
+    name: weekly_requests_limit
+    label: Weekly API request limit
+    comment: (0 or belonging to "admin" / "admin-readonly" group = no limit)
+    size: 10
+    constraints:
+      - Required
+      - Integer
+    attributes:
+      # jQuery validator classes
+      class: required
+
+  - type: Text
+    id: weekly_requested_items_limit
+    name: weekly_requested_items_limit
+    label: Weekly API requested items (stories) limit
+    comment: (0 or belonging to "admin" / "admin-readonly" group = no limit)
+    size: 10
+    constraints:
+      - Required
+      - Integer
+    attributes:
+      # jQuery validator classes
+      class: required
+
   - type: Checkbox
     id: password_chosen_by_user
     name: password_chosen_by_user

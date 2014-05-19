@@ -3,7 +3,6 @@ use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use MediaWords::DBI::StorySubsets;
-use MediaWords::Controller::Api::V2::MC_Action_REST;
 use strict;
 use warnings;
 use base 'Catalyst::Controller';
@@ -35,7 +34,7 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
 use MediaWords::Tagger;
 
-sub list : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
+sub list : Local : Does('~ApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
 {
 }
 

@@ -1,0 +1,5 @@
+[% INCLUDE 'include/auth/header.tt2' title="Register" %] 
+
+[% form.render %]
+  
+[% INCLUDE 'include/auth/footer.tt2' %]

@@ -3,6 +3,8 @@ use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 use MediaWords::Util::Config;
 use MediaWords::DBI::Auth;
+use JSON;
+use POSIX qw(strftime);
 
 use strict;
 use warnings;
@@ -148,13 +150,21 @@ sub create : Local
     my $el_roles = $form->get_element( { name => 'roles', type => 'Checkboxgroup' } );
     $el_roles->options( \@roles_options );
 
+    $form->default_values(
+        {
+            weekly_requests_limit        => MediaWords::DBI::Auth::default_weekly_requests_limit( $c->dbis ),
+            weekly_requested_items_limit => MediaWords::DBI::Auth::default_weekly_requested_items_limit( $c->dbis ),
+
+        }
+    );
+
     $form->process( $c->request );
 
     $c->stash->{ form } = $form;
     $c->stash->{ c }    = $c;
     $c->stash( template => 'users/create.tt2' );
 
-    if ( !$form->submitted_and_valid() )
+    unless ( $form->submitted_and_valid() )
     {
 
         # Show the form
@@ -168,6 +178,8 @@ sub create : Local
     my $user_notes                        = $form->param_value( 'notes' );
     my $user_is_active                    = $form->param_value( 'active' );
     my $user_roles                        = $form->param_array( 'roles' );
+    my $user_weekly_requests_limit        = $form->param_value( 'weekly_requests_limit' ) + 0;
+    my $user_weekly_requested_items_limit = $form->param_value( 'weekly_requested_items_limit' ) + 0;
     my $user_password                     = '';
     my $user_password_repeat              = '';
     my $user_will_choose_password_himself = $form->param_value( 'password_chosen_by_user' );
@@ -188,7 +200,8 @@ sub create : Local
     # Add user
     my $add_user_error_message =
       MediaWords::DBI::Auth::add_user_or_return_error_message( $c->dbis, $user_email, $user_full_name, $user_notes,
-        $user_roles, $user_is_active, $user_password, $user_password_repeat );
+        $user_roles, $user_is_active, $user_password, $user_password_repeat, $user_weekly_requests_limit,
+        $user_weekly_requested_items_limit );
     if ( $add_user_error_message )
     {
         $c->stash->{ c }    = $c;
@@ -281,7 +294,7 @@ sub edit : Local
 
     $form->process( $c->request );
 
-    if ( !$form->submitted_and_valid() )
+    unless ( $form->submitted_and_valid() )
     {
 
         # Fetch list of available roles
@@ -313,10 +326,12 @@ sub edit : Local
 
         $form->default_values(
             {
-                email     => $user_email,
-                full_name => $userinfo->{ full_name },
-                notes     => $userinfo->{ notes },
-                active    => $userinfo->{ active }
+                email                        => $user_email,
+                full_name                    => $userinfo->{ full_name },
+                notes                        => $userinfo->{ notes },
+                active                       => $userinfo->{ active },
+                weekly_requests_limit        => $userinfo->{ weekly_requests_limit },
+                weekly_requested_items_limit => $userinfo->{ weekly_requested_items_limit }
             }
         );
 
@@ -338,12 +353,14 @@ sub edit : Local
 
     # Form has been submitted
 
-    my $user_full_name       = $form->param_value( 'full_name' );
-    my $user_notes           = $form->param_value( 'notes' );
-    my $user_roles           = $form->param_array( 'roles' );
-    my $user_is_active       = $form->param_value( 'active' );
-    my $user_password        = $form->param_value( 'password' );           # Might be empty
-    my $user_password_repeat = $form->param_value( 'password_repeat' );    # Might be empty
+    my $user_full_name                    = $form->param_value( 'full_name' );
+    my $user_notes                        = $form->param_value( 'notes' );
+    my $user_roles                        = $form->param_array( 'roles' );
+    my $user_is_active                    = $form->param_value( 'active' );
+    my $user_password                     = $form->param_value( 'password' );                       # Might be empty
+    my $user_password_repeat              = $form->param_value( 'password_repeat' );                # Might be empty
+    my $user_weekly_requests_limit        = $form->param_value( 'weekly_requests_limit' );
+    my $user_weekly_requested_items_limit = $form->param_value( 'weekly_requested_items_limit' );
 
     # Check if user is trying to deactivate oneself
     if ( $userinfo->{ email } eq $c->user->username and ( !$user_is_active ) )
@@ -363,7 +380,8 @@ sub edit : Local
     # Update user
     my $update_user_error_message =
       MediaWords::DBI::Auth::update_user_or_return_error_message( $c->dbis, $user_email, $user_full_name, $user_notes,
-        $user_roles, $user_is_active, $user_password, $user_password_repeat );
+        $user_roles, $user_is_active, $user_password, $user_password_repeat, $user_weekly_requests_limit,
+        $user_weekly_requested_items_limit );
     if ( $update_user_error_message )
     {
         $c->stash->{ auth_users_id } = $userinfo->{ auth_users_id };
@@ -385,7 +403,180 @@ sub edit : Local
     }
 
     $c->response->redirect( $c->uri_for( '/admin/users/list', { status_msg => $status_msg } ) );
+}
 
+# view usage report page
+sub usage : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $users = MediaWords::DBI::Auth::all_users( $c->dbis );
+    my $roles = MediaWords::DBI::Auth::all_user_roles( $c->dbis );
+
+    my $query = $c->request->param( 'query' );
+
+    $c->stash->{ query }    = $query;
+    $c->stash->{ users }    = $users;
+    $c->stash->{ roles }    = $roles;
+    $c->stash->{ template } = 'users/usage.tt2';
+}
+
+# send back usage JSON
+sub usage_json : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $json_response = [];
+
+    eval {
+
+        my $db = $c->dbis;
+
+        my $query = $c->request->param( 'query' ) // '';
+
+        say STDERR "query=$query";
+
+        my $emails = [];
+
+        # Fetch a list of emails for which we'll generate stats
+        if ( $query =~ /^role=.+?$/ )
+        {
+
+            # Users that belong to a specific role
+            my ( $role ) = $query =~ /^role=(.+?)$/;
+            unless ( $role )
+            {
+                die "Role is undefined.";
+            }
+
+            say STDERR "Showing usage for users with role '$role'";
+
+            my $db_emails = $db->query(
+                <<EOF,
+                SELECT email
+                FROM auth_roles
+                    INNER JOIN auth_users_roles_map
+                        ON auth_roles.auth_roles_id = auth_users_roles_map.auth_roles_id
+                    INNER JOIN auth_users
+                        ON auth_users_roles_map.auth_users_id = auth_users.auth_users_id
+                WHERE role = ?
+EOF
+                $role
+            )->hashes;
+            unless ( $db_emails )
+            {
+                die "Unable to fetch a list of emails for role '$role'.";
+            }
+
+            $emails = [ map { $_->{ email } } @{ $db_emails } ];
+
+        }
+        elsif ( $query =~ /^user=\d+?$/ )
+        {
+
+            # Specific user
+            my ( $user_id ) = $query =~ /^user=(\d+?)$/;
+            unless ( $user_id )
+            {
+                die "User ID is undefined.";
+            }
+
+            say STDERR "Showing usage for user with ID '$user_id'.";
+
+            my $db_email = $db->query(
+                <<EOF,
+                SELECT email
+                FROM auth_users
+                WHERE auth_users_id = ?
+                LIMIT 1
+EOF
+                $user_id
+            )->hash;
+            unless ( $db_email )
+            {
+                die "Unable to fetch email address for user ID $user_id.";
+            }
+
+            $emails = [ $db_email->{ email } ];
+
+        }
+        else
+        {
+
+            # All users
+            say STDERR "Showing usage for all users.";
+
+            my $db_emails = $db->query(
+                <<EOF
+                SELECT email
+                FROM auth_users
+EOF
+            )->hashes;
+
+            $emails = [ map { $_->{ email } } @{ $db_emails } ];
+        }
+
+        if ( scalar( @{ $emails } ) == 0 )
+        {
+            die "No users found for the current query.";
+        }
+
+        # Fetch aggregated statistics
+        my $statistics = $db->query(
+            <<EOF,
+            SELECT day,
+                   SUM(requests_count) AS total_requests_count,
+                   SUM(requested_items_count) AS total_requested_items_count
+
+            FROM auth_user_request_daily_counts
+
+            WHERE email IN (??)
+
+            GROUP BY auth_user_request_daily_counts.day
+            ORDER BY auth_user_request_daily_counts.day
+EOF
+            @{ $emails }
+        )->hashes;
+        unless ( $statistics )
+        {
+            die "Unable to fetch statistics for emails: " . join( ', ', @{ $emails } );
+        }
+
+        $json_response = [];
+        foreach my $statistics_day ( @{ $statistics } )
+        {
+
+            my $day = {
+                'day'             => $statistics_day->{ day },
+                'requests'        => $statistics_day->{ total_requests_count },
+                'requested_items' => $statistics_day->{ total_requested_items_count }
+            };
+            push( @{ $json_response }, $day );
+        }
+
+        # Insert an empty "fake" record with today's date and a zero requests if
+        # there were no requests logged because otherwise the chart drawing program
+        # doesn't show anything
+        if ( scalar( @{ $json_response } ) == 0 )
+        {
+
+            my $day = {
+                'day'             => strftime( '%Y-%m-%d', localtime ),
+                'requests'        => 0,
+                'requested_items' => 0
+            };
+            push( @{ $json_response }, $day );
+        }
+    };
+
+    # Report errors to JSON
+    if ( $@ )
+    {
+        $json_response = { 'error' => $@ };
+    }
+
+    $c->response->content_type( 'application/json; charset=UTF-8' );
+    $c->response->body( encode_json( $json_response ) );
 }
 
 1;

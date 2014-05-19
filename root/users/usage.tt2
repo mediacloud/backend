@@ -1,0 +1,182 @@
+[% title = 'Usage Report' -%]
+[% INCLUDE include/users_header.tt2 -%]
+
+<script src="/script/amcharts/amcharts.js" type="text/javascript"></script>
+<script src="/script/amcharts/serial.js" type="text/javascript"></script>
+<script src="/script/amcharts/themes/light.js" type="text/javascript"></script>
+
+<form action="[% c.uri_for( '/admin/users/usage' ) %]" method="GET">
+
+[% page_subtitle = "All users" %]
+
+<select name="query" onchange="this.form.submit()">
+    <option value="">All users</option>
+
+    <option>---</option>
+
+    [% FOREACH role IN roles %]
+        [% option_value = "role=" _ role.role %]
+        [% option_label = "Users with \"" _ role.role _ "\" role" %]
+
+        [% IF option_value == query %]
+            <option value="[% option_value | html %]" selected="selected">[% option_label | html %]</option>
+            [% page_subtitle = option_label %]
+        [% ELSE %]
+            <option value="[% option_value | html %]">[% option_label | html %]</option>
+        [% END %]
+    [% END %]
+
+    <option>---</option>
+
+    [% FOREACH user IN users %]
+        [% option_value = "user=" _ user.auth_users_id %]
+        [% option_label = user.email _ " (" _ user.full_name _ ")" %]
+
+        [% IF option_value == query %]
+            <option value="[% option_value | html %]" selected="selected">[% option_label | html %]</option>
+            [% page_subtitle = option_label %]
+        [% ELSE %]
+            <option value="[% option_value | html %]">[% option_label | html %]</option>
+        [% END %]
+    [% END %]
+
+</select>
+
+<button type="submit">View Report</button>
+
+</form>
+
+<hr />
+
+<h2>[% page_subtitle | html %]</h2>
+
+<script type="text/javascript"><!--
+
+    var chart;
+    var chartData = [];
+
+    AmCharts.ready(function() {
+
+        chart = AmCharts.makeChart("chart", {
+            type: "serial",
+            pathToImages: "/script/amcharts/images/",
+            dataProvider: chartData,
+            categoryField: "date",
+            dataDateFormat: "YYYY-MM-DD",
+            categoryAxis: {
+                parseDates: true,
+                gridAlpha: 0.15,
+                minorGridEnabled: true,
+                axisColor: "#DADADA"
+            },
+            valueAxes: [{
+                axisAlpha: 0.2,
+                id: "v1"
+            }],
+            graphs: [
+                {
+                    title: "requests",
+                    id: "requests",
+                    valueAxis: "v1",
+                    valueField: "requests",
+                    bullet: "round",
+                    bulletBorderColor: "#FFFFFF",
+                    bulletBorderAlpha: 1,
+                    lineThickness: 2,
+                    lineColor: "#ff0000",
+                    balloonText: "[[category]]<br><b><span style='font-size:14px;'>requests: [[value]]</span></b>"
+                },
+                {
+                    title: "requested items",
+                    id: "requested_items",
+                    valueAxis: "v1",
+                    valueField: "requested_items",
+                    bullet: "round",
+                    bulletBorderColor: "#FFFFFF",
+                    bulletBorderAlpha: 1,
+                    lineThickness: 2,
+                    lineColor: "#0971B2",
+                    balloonText: "[[category]]<br><b><span style='font-size:14px;'>requested items: [[value]]</span></b>"
+                }
+
+            ],
+            chartCursor: {
+                fullWidth:true,
+                cursorAlpha:0.1
+            },
+            chartScrollbar: {
+                scrollbarHeight: 40,
+                color: "#FFFFFF",
+                autoGridCount: true,
+                graph: "requests"
+            }
+        });
+
+        chart.addListener("dataUpdated", zoomChart);
+
+        fetchChartData();
+    });
+
+
+    // fetch data to be shown in the chart
+    function fetchChartData() {
+
+        $.getJSON( "[% c.uri_for( '/admin/users/usage_json' ) %]?query=[% query | uri %]", function( data ) {
+
+            if ( 'error' in data ) {
+
+                alert("Server responded with an error:\n\n" + data.error);
+
+            } else {
+
+                var items = [];
+                $.each( data, function( key, val ) {
+
+                    var date = val.day;
+                    var requests = val.requests + 0;
+                    var requested_items = val.requested_items + 0;
+
+                    chartData.push({
+                        date: date,
+                        requests: requests,
+                        requested_items: requested_items
+                    });
+                    
+                });
+
+                chart.validateData();
+
+            }
+        });
+
+    }
+
+    // this method is called when chart is first inited as we listen for "dataUpdated" event
+    function zoomChart() {
+        // different zoom methods can be used - zoomToIndexes, zoomToDates, zoomToCategoryValues
+        chart.zoomToIndexes(chartData.length - 40, chartData.length - 1);
+    }
+
+    // changes cursor mode from pan to select
+    function setPanSelect() {
+        var chartCursor = chart.chartCursor;
+
+        if (document.getElementById("chart_mode_select").checked) {
+            chartCursor.pan = false;
+            chartCursor.zoomable = true;
+
+        } else {
+            chartCursor.pan = true;
+        }
+        chart.validateNow();
+    }
+--></script>
+
+<div id="chart" style="width: 100%; height: 500px"></div>
+
+<p>
+    <input type="radio" name="chart_mode" id="chart_mode_select" onclick="setPanSelect()" checked="true">Select
+    <input type="radio" name="chart_mode" id="chart_mode_pan" onclick="setPanSelect()">Pan
+</p>
+  
+[% INCLUDE include/footer.tt2 %]

@@ -1093,6 +1093,8 @@ sub attach_story_data_to_stories
 {
     my ( $stories, $story_data, $list_field ) = @_;
 
+    map { $_->{ $list_field } = [] } @{ $stories } if ( $list_field );
+
     return unless ( @{ $story_data } );
 
     my $story_data_lookup = {};
