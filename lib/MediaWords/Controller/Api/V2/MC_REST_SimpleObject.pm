@@ -343,8 +343,6 @@ sub end : Private
         my $message = 'Error(s): ' . join( '; ', @{ $c->stash->{ errors } } );
         my $body = JSON->new->utf8->encode( { 'error' => $message } );
 
-        say STDERR "Current HTTP status: " . $c->response->status;
-
         if ( $c->response->status =~ /^[23]\d\d$/ )
         {
             # Action roles and other parts might have set the HTTP status to
