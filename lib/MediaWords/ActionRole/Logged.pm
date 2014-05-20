@@ -14,6 +14,8 @@ use Moose::Role;
 with 'MediaWords::ActionRole::AbstractAuthenticatedActionRole';
 use namespace::autoclean;
 
+use HTTP::Status qw(:constants);
+
 use constant NUMBER_OF_REQUESTED_ITEMS_KEY => 'MediaWords::ActionRole::Logged::requested_items_count';
 
 after execute => sub {
@@ -22,14 +24,18 @@ after execute => sub {
     my ( $user_email, $user_roles ) = $self->_user_email_and_roles( $c );
     unless ( $user_email and $user_roles )
     {
-        warn "user_email is undef (I wasn't able to authenticate either using the API key nor the normal means)";
+        $c->response->status( HTTP_FORBIDDEN );
+        $c->error( 'Invalid API key or authentication cookie. Access denied.' );
+        $c->detach();
         return;
     }
 
     my $request_path = $c->req->path;
     unless ( $request_path )
     {
-        die "request_path is undef";
+        $c->error( 'request_path is undef' );
+        $c->detach();
+        return;
     }
 
     my $requested_items_count = $c->stash->{ NUMBER_OF_REQUESTED_ITEMS_KEY } // 1;

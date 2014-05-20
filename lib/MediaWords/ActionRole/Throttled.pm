@@ -15,6 +15,7 @@ with 'MediaWords::ActionRole::AbstractAuthenticatedActionRole';
 use namespace::autoclean;
 
 use List::MoreUtils qw/ any /;
+use HTTP::Status qw(:constants);
 
 before execute => sub {
     my ( $self, $controller, $c ) = @_;
@@ -22,14 +23,18 @@ before execute => sub {
     my ( $user_email, $user_roles ) = $self->_user_email_and_roles( $c );
     unless ( $user_email and $user_roles )
     {
-        warn "user_email is undef (I wasn't able to authenticate either using the API key nor the normal means)";
+        $c->response->status( HTTP_FORBIDDEN );
+        $c->error( 'Invalid API key or authentication cookie. Access denied.' );
+        $c->detach();
         return;
     }
 
     my $request_path = $c->req->path;
     unless ( $request_path )
     {
-        die "request_path is undef";
+        $c->error( 'request_path is undef' );
+        $c->detach();
+        return;
     }
 
     # Admin users are effectively unlimited
@@ -64,7 +69,9 @@ EOF
     )->hash;
     unless ( ref( $limits ) eq ref( {} ) )
     {
-        die "Returned limits is not a hashref.";
+        $c->error( 'Returned limits is not a hashref.' );
+        $c->detach();
+        return;
     }
 
     my $weekly_requests_limit        = ( $limits->{ weekly_requests_limit }        // 0 ) + 0;
@@ -76,8 +83,8 @@ EOF
     {
         if ( $weekly_requests_sum >= $weekly_requests_limit )
         {
-            $controller->status_forbidden( $c,
-                message => "User exceeded weekly requests limit of $weekly_requests_limit. Access denied." );
+            $c->response->status( HTTP_FORBIDDEN );
+            $c->error( "User exceeded weekly requests limit of $weekly_requests_limit. Access denied." );
             $c->detach();
             return;
         }
@@ -87,9 +94,9 @@ EOF
     {
         if ( $weekly_requested_items_sum >= $weekly_requested_items_limit )
         {
-            $controller->status_forbidden( $c,
-                message =>
-                  "User exceeded weekly requested items (stories) limit of $weekly_requested_items_limit. Access denied." );
+            $c->response->status( HTTP_FORBIDDEN );
+            $c->error(
+                "User exceeded weekly requested items (stories) limit of $weekly_requested_items_limit. Access denied." );
             $c->detach();
             return;
         }

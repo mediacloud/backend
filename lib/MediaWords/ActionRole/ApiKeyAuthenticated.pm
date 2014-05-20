@@ -15,6 +15,7 @@ use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use MediaWords::Util::Config;
+use HTTP::Status qw(:constants);
 
 before execute => sub {
     my ( $self, $controller, $c ) = @_;
@@ -26,7 +27,8 @@ before execute => sub {
         my ( $user_email, $user_roles ) = $self->_user_email_and_roles( $c );
         unless ( $user_email and $user_roles )
         {
-            $controller->status_forbidden( $c, message => 'Invalid API key. Access denied.' );
+            $c->response->status( HTTP_FORBIDDEN );
+            $c->error( 'Invalid API key or authentication cookie. Access denied.' );
             $c->detach();
             return;
         }
