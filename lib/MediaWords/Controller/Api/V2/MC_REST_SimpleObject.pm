@@ -8,6 +8,7 @@ use warnings;
 use base 'Catalyst::Controller::REST';
 use JSON;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
+use HTTP::Status qw(:constants);
 use Moose;
 use namespace::autoclean;
 use List::Compare;
@@ -321,6 +322,33 @@ sub _add_tags
         # say STDERR $query;
 
         $c->dbis->query( $query, $id, $tags_id );
+    }
+}
+
+# Catch Catalyst exceptions (controller actions that have died); report them in
+# JSON back to the client
+sub end : Private
+{
+    my ( $self, $c ) = @_;
+
+    if ( scalar @{ $c->error } )
+    {
+        $c->stash->{ errors } = $c->error;
+
+        for my $error ( @{ $c->error } )
+        {
+            $c->log->error( $error );
+        }
+
+        my $message = 'Error(s): ' . join( '; ', @{ $c->stash->{ errors } } );
+        my $body = JSON->new->utf8->encode( { 'error' => $message } );
+
+        $c->response->status( HTTP_INTERNAL_SERVER_ERROR );
+        $c->response->content_type( 'application/json; charset=UTF-8' );
+        $c->response->body( $body );
+
+        $c->clear_errors;
+        $c->detach();
     }
 }
 
