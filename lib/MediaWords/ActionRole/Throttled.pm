@@ -41,9 +41,10 @@ around execute => sub {
         # Admin users are effectively unlimited
         my $roles_exempt_from_user_limits   = MediaWords::DBI::Auth::roles_exempt_from_user_limits();
         my $user_is_exempt_from_user_limits = 0;
+
         foreach my $exempt_role ( @{ $roles_exempt_from_user_limits } )
         {
-            if ( any { $exempt_role } @{ $user_roles } )
+            if ( any { $_ eq $exempt_role } @{ $user_roles } )
             {
                 $user_is_exempt_from_user_limits = 1;
                 last;
