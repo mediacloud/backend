@@ -343,12 +343,22 @@ sub end : Private
         my $message = 'Error(s): ' . join( '; ', @{ $c->stash->{ errors } } );
         my $body = JSON->new->utf8->encode( { 'error' => $message } );
 
-        $c->response->status( HTTP_INTERNAL_SERVER_ERROR );
+        say STDERR "Current HTTP status: " . $c->response->status;
+
+        if ( $c->response->status =~ /^[23]\d\d$/ )
+        {
+            # Action roles and other parts might have set the HTTP status to
+            # some other error value. In that case, do not touch it. If not,
+            # default to 500 Internal Server Error
+            $c->response->status( HTTP_INTERNAL_SERVER_ERROR );
+        }
         $c->response->content_type( 'application/json; charset=UTF-8' );
         $c->response->body( $body );
 
         $c->clear_errors;
         $c->detach();
+
+        return 1;
     }
 }
 
