@@ -57,6 +57,10 @@ my $config = __PACKAGE__->config( -name => 'MediaWords' );
 # Configure authentication scheme
 __PACKAGE__->config( 'Plugin::Static::Simple' => { dirs => [ 'gexf' ] } );
 
+# Exit an action chain when there is an error raised in any action (thus
+# terminating the chain early)
+__PACKAGE__->config( abort_chain_on_error_fix => 1 );
+
 # Start the application
 __PACKAGE__->setup;
 
