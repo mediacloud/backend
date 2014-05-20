@@ -36,7 +36,7 @@ before execute => sub {
     my $roles_exempt_from_user_limits = MediaWords::DBI::Auth::roles_exempt_from_user_limits();
     foreach my $exempt_role ( @{ $roles_exempt_from_user_limits } )
     {
-        if ( any { $exempt_role } @{ $user_roles } )
+        if ( any { $_ eq $exempt_role } @{ $user_roles } )
         {
             return 0;
         }
