@@ -1,9 +1,9 @@
 [% title = 'Usage Report' -%]
 [% INCLUDE include/users_header.tt2 -%]
 
-<script src="/script/amcharts/amcharts.js" type="text/javascript"></script>
-<script src="/script/amcharts/serial.js" type="text/javascript"></script>
-<script src="/script/amcharts/themes/light.js" type="text/javascript"></script>
+<script src="/script/non-free/amcharts/amcharts.js" type="text/javascript"></script>
+<script src="/script/non-free/amcharts/serial.js" type="text/javascript"></script>
+<script src="/script/non-free/amcharts/themes/light.js" type="text/javascript"></script>
 
 <form action="[% c.uri_for( '/admin/users/usage' ) %]" method="GET">
 
@@ -59,7 +59,7 @@
 
         chart = AmCharts.makeChart("chart", {
             type: "serial",
-            pathToImages: "/script/amcharts/images/",
+            pathToImages: "/script/non-free/amcharts/images/",
             dataProvider: chartData,
             categoryField: "date",
             dataDateFormat: "YYYY-MM-DD",
