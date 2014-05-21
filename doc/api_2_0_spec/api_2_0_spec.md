@@ -13,7 +13,22 @@ from the examples in the below sections for brevity.
 
 ### Example
 
-http://www.mediacloud.org/api/v2/media/single/1?key=KRN4T5JGJ2A
+https://api.mediacloud.org/api/v2/media/single/1?key=KRN4T5JGJ2A
+
+## Errors
+
+The Media Cloud returns an appropriate HTTP status code for any error, along with a json document in the following format:
+
+```json
+[
+    { error => "error message" }
+]
+```
+
+## Request Limits
+
+Each user is limited to 1,000 API calls and 20,000 stories returned in any 7 day period.  Requests submitted beyond this 
+limit will result in a status 403 error.  Users who need access to more requests should email info@mediacloud.org.
 
 ## Media
 
@@ -34,7 +49,7 @@ None.
 
 Fetching information on The New York Times
 
-URL: http://www.mediacloud.org/api/v2/media/single/1
+URL: https://api.mediacloud.org/api/v2/media/single/1
 
 Response:
 
@@ -110,7 +125,7 @@ Response:
 
 #### Example
 
-URL: http://www.mediacloud.org/api/v2/media/list?last_media_id=1&rows=2
+URL: https://api.mediacloud.org/api/v2/media/list?last_media_id=1&rows=2
 
 Output format is the same as for api/v2/media/single above.
 
@@ -131,7 +146,7 @@ None.
 
 #### Example
 
-http://www.mediacloud.org/api/v2/media_sets/single/1
+https://api.mediacloud.org/api/v2/media_sets/single/1
 
 ```json
 [
@@ -270,7 +285,7 @@ http://www.mediacloud.org/api/v2/media_sets/single/1
 
 #### Example
 
-URL: http://www.mediacloud.org/api/v2/media_sets/list?rows=1&last_media_sets_id=1
+URL: https://api.mediacloud.org/api/v2/media_sets/list?rows=1&last_media_sets_id=1
 
 Output is the same as the api/v2/media_set/single example above.
 
@@ -295,7 +310,7 @@ None.
 
 #### Example
 
-URL: http://www.mediacloud.org/api/v2/feeds/single/1
+URL: https://api.mediacloud.org/api/v2/feeds/single/1
 
 ```json
 [
@@ -325,7 +340,7 @@ URL: http://www.mediacloud.org/api/v2/feeds/single/1
 
 #### Example
 
-URL: http://www.mediacloud.org/api/v2/feeds/list?media_id=1
+URL: https://api.mediacloud.org/api/v2/feeds/list?media_id=1
 
 Output format is the same as for api/v2/feeds/single above.
 
@@ -348,7 +363,7 @@ media sets related to some topic, usually a country.  Each media set can belong 
 
 #### Example
 
-http://www.mediacloud.org/api/v2/dashboards/single/2
+https://api.mediacloud.org/api/v2/dashboards/single/2
 
 ```json
 [
@@ -395,7 +410,7 @@ http://www.mediacloud.org/api/v2/dashboards/single/2
 
 #### Example
 
-URL: http://www.mediacloud.org/api/v2/dashboards/list?rows=1&last_dashboards_id=1
+URL: https://api.mediacloud.org/api/v2/dashboards/list?rows=1&last_dashboards_id=1
 
 Output is the same as the api/v2/dashboard/single example above.
 
@@ -406,123 +421,53 @@ a single media source is represented by a single story.  For example, a single N
 Media Cloud story, as is a single Instapundit blog post.  Only one story may exist for a given title for each 24 hours 
 within a single media source.
 
-The `story_text` of a story is either the content of the description field in the syndicated field or the extracted 
-text of the content downloaded from the story's URL at the `collect_date`, depending on whether our full text RSS 
-detection system has determined that the full text of each story can be found in the RSS of a given media source.
-
 ### Output description
 
-The following table describes the meaning and origin of fields returned by both api/v2/stories/single and api/v2/stories/list in which we felt clarification was necessary.
+The following table describes the meaning and origin of fields returned by both api/v2/stories_public/single and api/v2/stories_public/list.
 
 | Field               | Description
 | ------------------- | ----------------------------------------------------------------------
-| `title`             | The story title as defined in the RSS feed. May contain HTML (depending on the source).
-| `description`       | The story description as defined in the RSS feed. May contain HTML (depending on the source).
-| `full_text_rss`     | If 1, the text of the story was obtained through the RSS feed.<br />If 0, the text of the story was obtained by extracting the article text from the HTML.
-| `story_text`        | The text of the story.<br />If `full_text_rss` is non-zero, this is formed by stripping HTML from the title and description and concatenating them.<br />If `full_text_rss` is zero, this is formed by extracting the article text from the HTML.
-| `story_sentences`   | A list of sentences in the story.<br />Generated from `story_text` by splitting it into sentences and removing any duplicate sentences occurring within the same source for the same week.
-| `raw_1st_download`  | The contents of the first HTML page of the story.<br />Available regardless of the value of `full_text_rss`.<br />*Note:* only provided if the `raw_1st_download` parameter is non-zero.
+| `stories_id`        | The internal Media Cloud ID for the story.
+| `media_id`          | The internal Media Cloud ID for the media source to which the story belongs.
 | `publish_date`      | The publish date of the story as specified in the RSS feed.
-| `tags` | A list of any tags associated with this story, including those written through the write-back api.
+| `tags`              | A list of any tags associated with this story, including those written through the write-back api.
 | `collect_date`      | The date the RSS feed was actually downloaded.
+| `url`               | The URL field in the RSS feed.
 | `guid`              | The GUID field in the RSS feed. Defaults to the URL if no GUID is specified in the RSS feed.
-| `corenlp`           | The raw json result from running the story text through the CoreNLP pipeline.
 
 
-### api/v2/stories/single
+### api/v2/stories_public/single
 
 | URL                                  | Function
 | ------------------------------------ | ------------------------------------------------------
-| `api/v2/stories/single/<stories_id>` | Return the story for which `stories_id` equals `<stories_id>`
-
-#### Query Parameters 
-
-| Parameter          | Default | Notes
-| ------------------ | ------- | -----------------------------------------------------------------
-| `raw_1st_download` | 0       | If non-zero, include the full HTML of the first page of the story
-| `corenlp`          | 0       | If non-zero, include the corenlp json document with each story and each sentence
+| `api/v2/stories_public/single/<stories_id>` | Return the story for which `stories_id` equals `<stories_id>`
 
 #### Example
 
 Note: This fetches data on the CC licensed Global Voices story ["Myanmar's new flag and new name"](http://globalvoicesonline.org/2010/10/26/myanmars-new-flag-and-new-name/#comment-1733161) from November 2010.
 
-URL: http://www.mediacloud.org/api/v2/stories/single/27456565
+URL: https://api.mediacloud.org/api/v2/stories_public/single/27456565
 
 
 ```json
 [
   {
-    "db_row_last_updated": null,
-    "full_text_rss": 0,
-    "description": "<p>Both the previously current and now current Burmese flags look ugly and ridiculous!  Burma once had a flag that was actually better looking.  Also Taiwan&#8217;s flag needs to change!  it is a party state flag representing the republic of china since 1911 and Taiwan\/Formosa was Japanese colony since 1895.  A new flag representing the land, people and history of Taiwan needs to be given birth to and flown!<\/p>\n",
-    "language": "en",
-    "title": "Comment on Myanmar's new flag and new name by kc",
-    "fully_extracted": 1,
     "collect_date": "2010-11-24 15:33:39",
     "url": "http:\/\/globalvoicesonline.org\/2010\/10\/26\/myanmars-new-flag-and-new-name\/comment-page-1\/#comment-1733161",
     "guid": "http:\/\/globalvoicesonline.org\/?p=169660#comment-1733161",
     "publish_date": "2010-11-24 04:05:00",
     "media_id": 1144,
     "stories_id": 27456565,
-    "story_texts_id": null,
-    "story_text": " \t\t\t\t\t\tMyanmar's new flag and new name\t\t    The new flag, designated in the 2008 Constitution, has a central star set against a yellow, green and red background.   The old flags will be lowered by government department officials who were born on a Tuesday, while the new flags will be raised by officials born on a Wednesday.   <SENTENCES SKIPPED BECAUSE OF SPACE REASONS> You know That big white star is also the only star on the colors of Myanmar's tatmadaw, navy, air force and police force. This flag represent only the armed forces.  ",
     "story_tags": [ 1234235 ],
-    "story_sentences": [
-      {
-        "language": "en",
-        "db_row_last_updated": null,
-        "sentence": "Myanmar's new flag and new name The new flag, designated in the 2008 Constitution, has a central star set against a yellow, green and red background.",
-        "sentence_number": 0,
-        "story_sentences_id": "525687757",
-        "media_id": 1144,
-        "stories_id": 27456565,
-        "tags": [ 123 ],
-        "publish_date": "2010-11-24 04:05:00"
-      },
-      {
-        "sentence_number": 1,
-        "story_sentences_id": "525687758",
-        "media_id": 1144,
-        "stories_id": 27456565,
-        "publish_date": "2010-11-24 04:05:00",
-        "language": "en",
-        "db_row_last_updated": null,
-        "tags": [ 123 ],
-        "sentence": "The old flags will be lowered by government department officials who were born on a Tuesday, while the new flags will be raised by officials born on a Wednesday."
-      },
-      // SENTENCES SKIPPED BECAUSE OF SPACE REASONS
-      {
-        "language": "en",
-        "db_row_last_updated": null,
-        "tags": [ 123 ],
-        "sentence": "You know That big white star is also the only star on the colors of Myanmar's tatmadaw, navy, air force and police force.",
-        "story_sentences_id": "525687808",
-        "sentence_number": 51,
-        "publish_date": "2010-11-24 04:05:00",
-        "stories_id": 27456565,
-        "media_id": 1144
-      },
-      {
-        "media_id": 1144,
-        "stories_id": 27456565,
-        "publish_date": "2010-11-24 04:05:00",
-        "sentence_number": 52,
-        "story_sentences_id": "525687809",
-        "db_row_last_updated": null,
-        "sentence": "This flag represent only the armed forces.",
-        "tags": [ 123 ],
-        "language": "en"
-      }
-    ],
   }
 ]
 ```
 
-### api/v2/stories/list
+### api/v2/stories_public/list
   
 | URL                             | Function
 | ------------------------------- | ---------------------------------
-| `api/v2/stories/list` | Return multiple processed stories
+| `api/v2/stories_public/list` | Return multiple processed stories
 
 #### Query Parameters 
 
@@ -530,15 +475,13 @@ URL: http://www.mediacloud.org/api/v2/stories/single/27456565
 | ---------------------------- | ------- | ------------------------------------------------------------------------------
 | `last_processed_stories_id`  | 0       | Return stories in which the `processed_stories_id` is greater than this value.
 | `rows`                       | 20      | Number of stories to return.
-| `raw_1st_download`           | 0       | If non-zero, include the full HTML of the first page of the story.
-| `corenlp`                    | 0       | If non-zero, include the corenlp json document with each story and each sentence
 | `q`                          | null    | If specified, return only results that match the given Solr query.  Only one `q` parameter may be included.
 | `fq`                         | null    | If specified, file results by the given Solr query.  More than one `fq` parameter may be included.
 
 
 The `last_processed_stories_id` parameter can be used to page through these results. The API will return stories with a 
 `processed_stories_id` greater than this value.  To get a continuous stream of stories as they are processed by Media Cloud, 
-the user must make a series of calls to api/v2/stories/list in which `last_processed_stories_id` for each 
+the user must make a series of calls to api/v2/stories_public/list in which `last_processed_stories_id` for each 
 call is set to the `processed_stories_id` of the last story in the previous call to the API.
 
 *Note:* `stories_id` and `processed_stories_id` are separate values. The order in which stories are processed is different than the `stories_id` order. The processing pipeline involves downloading, extracting, and vectoring stories. Requesting by the `processed_stories_id` field guarantees that the user will receive every story (matching the query criteria if present) in
@@ -546,31 +489,43 @@ the order it is processed by the system.
 
 The `q` and `fq` parameters specify queries to be sent to a Solr server that indexes all Media Cloud stories.  The Solr
 server provides full text search indexing of each sentence collected by Media Cloud.  All content is stored as individual 
-sentences.  The api/v2/stories/list call searches for sentences matching the `q` and / or `fq` parameters if specified and
+sentences.  The api/v2/stories_public/list call searches for sentences matching the `q` and / or `fq` parameters if specified and
 the stories that include at least one sentence returned by the specified query.
 
-The `q` and `fq` parameters are passed directly through to Solr.  Documentation of the format of the `q` and `fq` parameters is [here](http://lucene.apache.org/core/4_6_1/queryparser/org/apache/lucene/queryparser/classic/package-summary.html#package_description).  All the return fields (in the example return value in the api/v2/sentences/list call below) may be used 
-as solr query parameters, for example 'sentence:obama AND media_id:1'. Be aware that ':' is usually replaced with '%3A' in programmatically generated URLs.
+The `q` and `fq` parameters are passed directly through to Solr.  Documentation of the format of the `q` and `fq` parameters is [here](http://lucene.apache.org/core/4_6_1/queryparser/org/apache/lucene/queryparser/classic/package-summary.html#package_description).  Below are the fields that may be used as solr query parameters, for example 'sentence:obama AND media_id:1':
+
+| Field                        | Description
+| ---------------------------- | -----------------------------------------------------
+| sentence                     | the text of the sentence
+| stories_id                   | a Media Cloud story ID
+| media_id                     | the Media Cloud media source ID of a story
+| publish_date                 | the publish date of a story 
+| tags_id_story                | the ID of a tag associated with a story
+| tags_id_media                | the ID of a tag associated with a media source
+| media_sets_id                | the ID of a media set
+| processed_stories_id         | the processed_stories_id as returned by stories_public/list
+
+Be aware that ':' is usually replaced with '%3A' in programmatically generated URLs.
 
 #### Example
 
-The output of these calls is in exactly the same format as for the api/v2/stories/single call.
+The output of these calls is in exactly the same format as for the api/v2/stories_public/single call.
 
-URL: http://www.mediacloud.org/api/v2/stories/list?last_processed_stories_id=8625915
+URL: https://api.mediacloud.org/api/v2/stories_public/list?last_processed_stories_id=8625915
 
 Return a stream of all stories processed by Media Cloud, greater than the `last_processed_stories_id`.
 
-URL: http://www.mediacloud.org/api/v2/stories/list?last_processed_stories_id=2523432&q=sentence:obama+AND+media_id:1
+URL: https://api.mediacloud.org/api/v2/stories_public/list?last_processed_stories_id=2523432&q=sentence:obama+AND+media_id:1
 
 Return a stream of all stories from The New York Times mentioning `'obama'` greater than the given `last_processed_stories_id`.
 
 ## Sentences
 
-The `story_text` of every story processed by Media Cloud is parsed into individual sentences.  Duplicate sentences within
+The text of every story processed by Media Cloud is parsed into individual sentences.  Duplicate sentences within
 the same media source in the same week are dropped (the large majority of those duplicate sentences are 
 navigational snippets wrongly included in the extracted text by the extractor algorithm).
 
-### api/v2/sentences/list
+### api/v2/sentences/count
 
 #### Query Parameters
 
@@ -578,132 +533,20 @@ navigational snippets wrongly included in the extracted text by the extractor al
 | --------- | ---------------- | ----------------------------------------------------------------
 | `q`       | n/a              | `q` ("query") parameter which is passed directly to Solr
 | `fq`      | `null`           | `fq` ("filter query") parameter which is passed directly to Solr
-| `start`   | 0                | Passed directly to Solr
-| `rows`    | 1000             | Passed directly to Solr
-| `sort`    | publish_date_asc | publish_date_asc, publish_date_desc, or random
 
---------------------------------------------------------------------------------------------------------
+These parameters are passed directly through to Solr (see description of q and fq parameters in api/v2/stories_public/list section above).
 
-Other than 'sort', these parameters are passed directly through to Solr (see above).  The sort parameter must be
-one of the listed above and determines the order of the sentences returned.
+The call returns the number of sentences returned by Solr for the specified query.
 
 #### Example
 
-Fetch 10 sentences containing the word 'obama' from The New York Times
+Count sentences containing the word 'obama' in The New York Times.
 
-URL:  http://www.mediacloud.org/api/v2/sentences/list?q=sentence:obama&rows=10&fq=media_id:1
+URL: https://api.mediacloud.org/api/v2/sentences/count?q=sentence:obama&fq=media_id:1
 
 ```json
 {
-  "responseHeader":{
-    "params":{
-      "sort":"random_1 asc",
-      "df":"sentence",
-      "wt":"json",
-      "q":"sentence:obama",
-      "fq":"media_id:1",
-      "rows":"10",
-      "start":"0"
-    },
-    "status":0,
-    "QTime":20
-  },
-  "response":{
-    "numFound":94171,
-    "docs":[
-      {
-        "sentence":"Mr. Obama played golf on Sunday and again on Monday.",
-        "media_id":1,
-        "publish_date":"2013-08-13 00:55:48",
-        "sentence_number":3,
-        "stories_id":146975599,
-        "_version_":1465531175907885056,
-        "story_sentences_id":"1693567329"
-      },
-      {
-        "sentence":"Without mentioning them by name, it takes on Charles and David Koch, the wealthy conservative businessmen who have opposed Mr. Obama through the political advocacy group Americans for Prosperity.",
-        "media_id":1,
-        "publish_date":"2012-01-19 01:12:10",
-        "sentence_number":5,
-        "stories_id":51549022,
-        "_version_":1465513962638409730,
-        "story_sentences_id":"902231969"
-      },
-      {
-        "sentence":"Former presidential speechwriters said Lincoln’s few words would make it even more difficult for Mr. Obama to find ones that feel fresh.",
-        "media_id":1,
-        "publish_date":"2013-08-22 00:51:42",
-        "sentence_number":36,
-        "stories_id":149735751,
-        "_version_":1465531727373926400,
-        "story_sentences_id":"1723403496"
-      },
-      {
-        "sentence":"Though Mr. Obama is expected to address how the peace process fits into the broader changes in the Middle East, officials said they did not expect him to lay out a detailed American blueprint to revive the negotiations, which have been paralyzed since September.",
-        "media_id":1,
-        "publish_date":"2011-05-17 17:10:14",
-        "sentence_number":9,
-        "stories_id":36107537,
-        "_version_":1465517874643730432,
-        "story_sentences_id":"684054351"
-      },
-      {
-        "sentence":"“The reason I’m so animated about defeating Barack Obama is because he’s failed the American people,” Mr. Romney said, speaking outside at an energy company.",
-        "media_id":1,
-        "publish_date":"2012-06-14 13:17:37",
-        "sentence_number":68,
-        "stories_id":169631466,
-        "_version_":1465545382125633537,
-        "story_sentences_id":"2085799723"
-      },
-      {
-        "sentence":"Sarah Palin said Obama was guilty of “shuck and jive” on Benghazi.",
-        "media_id":1,
-        "publish_date":"2012-10-27 23:02:01",
-        "sentence_number":27,
-        "stories_id":92275227,
-        "_version_":1465520856365006849,
-        "story_sentences_id":"1060529064"
-      },
-      {
-        "sentence":"Still, Democrats openly worried that if Mr. Obama could not drive a harder bargain when he holds most of the cards, he will give up still more Democratic priorities in the coming weeks, when hard deadlines will raise the prospects of a government default first, then a government shutdown.",
-        "media_id":1,
-        "publish_date":"2013-01-01 02:10:42",
-        "sentence_number":24,
-        "stories_id":96795610,
-        "_version_":1465523519766921216,
-        "story_sentences_id":"1112283342"
-      },
-      {
-        "sentence":"Mr. Obama agreed to the far-reaching penalties after the White House negotiated language that would allow him to waive them against foreign financial institutions.",
-        "media_id":1,
-        "publish_date":"2012-02-06 17:07:35",
-        "sentence_number":12,
-        "stories_id":72982936,
-        "_version_":1465514836620214273,
-        "story_sentences_id":"908488464"
-      },
-      {
-        "sentence":"“We believe the Syrian government to be systematically persecuting its own people on a vast scale.” On Tuesday, the Obama administration added to the economic pressure on Mr. Assad’s government, freezing the United States assets of Foreign Minister Walid al-Moualem and two other officials.",
-        "media_id":1,
-        "publish_date":"2011-08-31 19:30:38",
-        "sentence_number":18,
-        "stories_id":40984774,
-        "_version_":1465516934096224256,
-        "story_sentences_id":"762139692"
-      },
-      {
-        "sentence":"Mr. Obama set the standard with the $745 million he raised in 2008 after opting not to participate in the post-Watergate public financing system, under which candidates received taxpayer funds in return for accepting limits on their spending.",
-        "media_id":1,
-        "publish_date":"2012-06-22 19:30:32",
-        "sentence_number":23,
-        "stories_id":83442616,
-        "_version_":1465520768804716544,
-        "story_sentences_id":"983218944"
-      }
-    ],
-    "start":0
-  }
+  "count" => 96620
 }
 ```
 
@@ -725,7 +568,7 @@ with the given stem (for example, in the below example, 'romnei' is the stem tha
 | `fq`      | `null`  | `fq` ("filter query") parameter which is passed directly to Solr
 | `l`       | `en`    | space separated list of languages to use for stopwording and stemming
 
-See above /api/v2/stories/list for Solr query syntax.
+See above /api/v2/stories_public/list for Solr query syntax.
 
 By default, the system stems and stopwords the list in English.  If you specify the 'l' parameter, 
 the system will stem and stopword the words by each of the listed langauges serially.  To do no stemming 
@@ -739,7 +582,7 @@ or stopwording, specify 'none'.  The following language are supported (by 2 lett
 
 Obtain word frequency counts for all sentences containing the word `'obama'` in The New York Times
 
-URL:  http://www.mediacloud.org/api/v2/wc/list?q=sentence:obama&fq=media_id:1
+URL:  https://api.mediacloud.org/api/v2/wc/list?q=sentence:obama&fq=media_id:1
 
 ```json
 [
@@ -798,24 +641,44 @@ in a Global Voices post).
 
 None.
 
+### Output description
+
+| Field               | Description
+|---------------------|-----------------------------------
+| tags_id             | Media Cloud internal tag ID
+| tags\_sets\_id      | Media Cloud internal ID of the parent tag set
+| tag                 | text of tag, often cryptic
+| label               | a short human readable label for the tag
+| description         | a couple of sentences describing the meaning of the tag
+| show\_on\_media     | recommendation to show this tag as an option for searching solr using the tags_id_media
+| show\_on\_stories   | recommendation to show this tag as an option for searching solr using the tags_id_stories
+
+The show\_on\_media and show\_on\_stories fields are useful for picking out which tags are likely to be useful for
+external researchers.  A tag should be considered useful for searching via tags\_id\_media or tags\_id\_stories
+if show\_on\_media or show\_on\_stories, respectively, is set to true for _either_ the specific tag or its parent
+tag set.
+
 #### Example
 
 Fetching information on the tag 8876989.
 
-URL: http://www.mediacloud.org/api/v2/tags/single/8876989
+URL: https://api.mediacloud.org/api/v2/tags/single/8875027
 
 Response:
 
 ```json
 [
   {
-    "tags_id": 8876989,
-    "tag": "japan",
-    "tag_sets_id": 597
-   }
+    "tag_sets_id": 5,
+    "show_on_stories": null,
+    "label": "U.S. Mainstream Media",
+    "tag": "ap_english_us_top25_20100110",
+    "tags_id": 8875027,
+    "show_on_media": 1,
+    "description": "Top U.S. mainstream media according Google Ad Planner's measure of unique monthly users."
+  },
 ]
 ```
-
 
 ### api/v2/tags/list/
 
@@ -828,27 +691,12 @@ Response:
 | Parameter       | Default    | Notes
 | --------------- | ---------- | -----------------------------------------------------------------
 | `last_tags_id`  | 0          | Return tags with a `tags_id` is greater than this value
-| `tag_sets_id`   | (required) | Return tags belonging to the given tag set.
+| `tag_sets_id`   | (required) | Return tags belonging to the given tag set.  The most useful tag set is tag set 5.
 | `rows`          | 20         | Number of tags to return. Cannot be larger than 100
 
 #### Example
 
-URL: http://www.mediacloud.org/api/v2/tags/list?last_tags_id=1&rows=2&tag_sets_id=597
-
-```json
-[
-  {
-    "tags_id": 8876989,
-    "tag": "japan",
-    "tag_sets_id": 597,
-   }
-  {
-    "tags_id": 8876990,
-    "tag": "brazil",
-    "tag_sets_id": 597
-   }
-]
-```
+URL: https://api.mediacloud.org/api/v2/tags/list?rows=2&tag_sets_id=5&last_tags_id=8875026
 
 ### api/v2/tag_sets/single/
 
@@ -860,20 +708,40 @@ URL: http://www.mediacloud.org/api/v2/tags/list?last_tags_id=1&rows=2&tag_sets_i
 
 None.
 
+### Output description
+
+| Field               | Description
+|---------------------|-----------------------------------
+| tags\_sets\_id      | Media Cloud internal ID of the tag set
+| name                | text of tag set, often cryptic
+| label               | a short human readable label for the tag
+| description         | a couple of sentences describing the meaning of the tag
+| show\_on\_media     | recommendation to show this tag as an option for searching solr using the tags_id_media
+| show\_on\_stories   | recommendation to show this tag as an option for searching solr using the tags_id_stories
+
+The show\_on\_media and show\_on\_stories fields are useful for picking out which tags are likely to be useful for
+external researchers.  A tag should be considered useful for searching via tags\_id\_media or tags\_id\_stories
+if show\_on\_media or show\_on\_stories, respectively, is set to true for _either_ the specific tag or its parent
+tag set.
+
 #### Example
 
-Fetching information on the tag set 597.
+Fetching information on the tag set 5.
 
-URL: http://www.mediacloud.org/api/v2/tag_sets/single/597
+URL: https://api.mediacloud.org/api/v2/tag_sets/single/5
 
 Response:
 
 ```json
 [
   {
-    "tag_sets_id": 597,
-    "name": "gv_country"
-   }
+    "tag_sets_id": 5,
+    "show_on_stories": null,
+    "name": "collection",
+    "label": "Collections",
+    "show_on_media": null,
+    "description": "Curated collections of media sources.  This is our primary way of organizing our media sources -- almost every media source in our system is a member of one or more of these curated collections.  Some collections are manually curated, and others are generated using quantitative metrics."
+    }
 ]
 ```
 
@@ -894,138 +762,7 @@ None.
 
 #### Example
 
-URL: http://www.mediacloud.org/api/v2/tag_sets/list
-
-```json
-[
-  {
-    "tag_sets_id": 597,
-    "name": "gv_country"
-   },
-   // additional tag sets skipped for space
-]
-```
-
-## Write Back API
-
-These calls allow users to push data into the PostgreSQL database. This data will then be imported from Postgresql into Solr.
-
-### api/v2/stories/put_tags (PUT)
-
-| URL                          | Function
-| ---------------------------- | --------------------------------------------------
-| `api/v2/stories/put_tags`    | Add tags to a story. Must be a PUT request.
-
-#### Query Parameters
-
-| Parameter    | Notes
-| ------------ | -----------------------------------------------------------------
-| `story_tag`  | The `stories_id` and associated tag in `stories_id,tag` format.  Can be specified more than once.
-
-Each `story_tag` parameter associates a single story with a single tag.  To associate a story with more than one tag,
-include this parameter multiple times.  A single call can include multiple stories as well as multiple tags.  Users
-are encouraged to batch writes for multiple stories into a single call to avoid the web server overhead of many small
-web service calls.
-
-The `story_tag` parameter consists of the `stories_id` and the tag information, separated by a comma.  The tag part of 
-the parameter value can be in one of two formats -- either the `tags_id` of the tag or the tag set name and tag
-in `<tag set>:<tag>` format, for example `gv_country:japan`.
-    
-If the tag is specified in the latter format and the given tag set does not exist, a new tag set with that 
-name will be created owned by the current user.  If the tag does not exist, a new tag will be created 
-within the given tag set.
-
-A user may only write put tags (or create new tags) within a tag set owned by that user.
-
-#### Example
-
-Add tag ID 5678 to story ID 1234.
-
-```
-curl -X PUT -d story_tag=1234,5678 http://www.mediacloud.org/api/v2/stories/put_tags
-```
-
-Add the `gv_country:japan` and the `gv_country:brazil` tags to story 1234 and the `gv_country:japan` tag to 
-story 5678.
-
-```
-curl -X PUT -d story_tag=1234,gv_country:japan -d story_tag=1234,gv_country:brazil -d story_tag=5678,gv_country:japan http://www.mediacloud.org/api/v2/stories/put_tags
-```
-
-### api/v2/sentences/put_tags (PUT)
-
-| URL                                  | Function
-| ------------------------------------ | -----------------------------------------------------------
-| `api/v2/sentences/put_tags`          | Add tags to a story sentence. Must be a PUT request.
-
-#### Query Parameters 
-
-| Parameter            | Notes
-| -------------------- | --------------------------------------------------------------------------
-| `sentence_tag`       | The `story_sentences_id` and associated tag in `story_sentences_id,tag` format.  Can be specified more than once.
-
-The format of the sentences write back call is the same as for the stories write back call above, but with the `story_sentences_id`
-substituted for the `stories_id`.  As with the stories write back call, users are strongly encouraged to 
-included multiple sentences (including sentences for multiple stories) in a single call to avoid
-web service overhead.
-
-#### Example
-
-Add the `gv_country:japan` and the `gv_country:brazil` tags to story sentence 12345678 and the `gv_country:japan` tag to 
-story sentence 56781234.
-
-```
-curl -X PUT -d sentence_tag=12345678,gv_country:japan -d sentence_tag=12345678,gv_country:brazil -d sentence_tag=56781234,gv_country:japan http://www.mediacloud.org/api/v2/sentences/put_tags
-```
-
-## Authentication API
-
-The Authentication API allows a client to fetch an IP-address-limited authentication token for a user.
-
-### api/v2/auth/single (GET)
-
-| URL                          | Function
-| ---------------------------- | --------------------------------------------------
-| `api/v2/auth/single`         | Fetch an IP-address-limited auth token
-
-#### Query Parameters
-
-| Parameter    | Notes
-| ------------ | -----------------------------------------------------------------
-| `username`   | The name of the user for whom the token is being requested.
-| `password`   | The password of the user for whom the token is being requested.
-
-The call will return either an auth token of the email and password match those of a 
-user in the database.  The auth token will only be valid for connecting from the IP
-address that made the api request.
-
-#### Example
-
-URL: http://www.mediacloud.org/api/v2/auth/single?username=foo&password=bar
-
-Response:
-
-```json
-[
-  {
-    "result": "found",
-    "token": "3827b988b309f8296fb47c0dbdd65302143f931c3852fdcb9083134ae6345f68"
-   }
-]
-```
-
-URL: http://www.mediacloud.org/api/v2/auth/single?username=foo&password=foobar
-
-Response:
-
-```json
-[
-  {
-    "result": "not found"
-   }
-]
-```
-
+URL: https://api.mediacloud.org/api/v2/tag_sets/list
 
 # Extended Examples
 
@@ -1041,7 +778,7 @@ import pkg_resources
 import requests   
 assert pkg_resources.get_distribution("requests").version >= '1.2.3'
  
-r = requests.get( 'http://www.mediacloud.org/api/stories/all_processed?last_processed_stories_id=1', auth=('mediacloud-admin', KEY), headers = { 'Accept': 'application/json'})  
+r = requests.get( 'https://api.mediacloud.org/api/v2/media/list', params = params, headers = { 'Accept': 'application/json'}, headers = { 'Accept': 'application/json'} )  
 
 data = r.json()
 ```
@@ -1055,7 +792,7 @@ rows  = 100
 while True:
       params = { 'start': start, 'rows': rows }
       print "start:{} rows:{}".format( start, rows)
-      r = requests.get( 'http://www.mediacloud.org/api/v2/media/list', params = params, headers = { 'Accept': 'application/json'} )
+      r = requests.get( 'https://api.mediacloud.org/api/v2/media/list', params = params, headers = { 'Accept': 'application/json'} )
       data = r.json()
 
       if len(data) == 0:
@@ -1089,7 +826,7 @@ This is broken down into multiple steps for convenience and because that's proba
 We assume that the user is new to Media Cloud. They're interested in what sources we have available. They run cURL to get a quick list of the available dashboards.
 
 ```
-curl http://www.mediacloud.org/api/v2/dashboards/list&nested_data=0
+curl https://api.mediacloud.org/api/v2/dashboards/list&nested_data=0
 ```
 
 ```json
@@ -1114,7 +851,7 @@ curl http://www.mediacloud.org/api/v2/dashboards/list&nested_data=0
 The user sees the "US / English" dashboard with `dashboards_id = 1` and asks for more detailed information.
 
 ```
-curl http://www.mediacloud.org/api/v2/dashboards/single/1
+curl https://api.mediacloud.org/api/v2/dashboards/single/1
 ```
 
 ```json
@@ -1150,9 +887,9 @@ curl http://www.mediacloud.org/api/v2/dashboards/single/1
 
 After looking at this output, the user decides that she is interested in the "Top 25 Mainstream Media" set with `media_sets_id=1`.
 
-### Grab stories by querying stories/list
+### Grab stories by querying stories_public/list
 
-We can obtain all stories by repeatedly querying api/v2/stories/list using the `q` parameter to restrict to `media_sets_id = 1` and changing the `last_processed_stories_id` parameter. 
+We can obtain all stories by repeatedly querying api/v2/stories_public/list using the `q` parameter to restrict to `media_sets_id = 1` and changing the `last_processed_stories_id` parameter. 
 
 This is shown in the Python code below where `process_stories` is a user provided function to process this data.
 
@@ -1165,7 +902,7 @@ while True:
       params = { 'last_processed_stories_id': start, 'rows': rows, 'q': 'media_sets_id:1' }
 
       print "Fetching {} stories starting from {}".format( rows, start)
-      r = requests.get( 'http://www.mediacloud.org/api/v2/stories/list/', params = params, headers = { 'Accept': 'application/json'} )
+      r = requests.get( 'https://api.mediacloud.org/api/v2/stories_public/list/', params = params, headers = { 'Accept': 'application/json'} )
       stories = r.json()
 
       if len(stories) == 0:
@@ -1185,9 +922,9 @@ Currently, the best way to do this is to create a CSV file with all media source
 
 Once you have this CSV file, manually search for The New York Times. You should find an entry for The New York Times at the top of the file with `media_id = 1`.
 
-### Grab stories by querying stories/list
+### Grab stories by querying stories_public/list
 
-We can obtain the desired stories by repeatedly querying `api/v2/stories/list` using the `q` parameter to restrict to `media_id` to 1 and  the `fq` parameter to restrict by date range. We repeatedly change the `last_processed_stories_id` parameter to obtain all stories.
+We can obtain the desired stories by repeatedly querying `api/v2/stories_public/list` using the `q` parameter to restrict to `media_id` to 1 and  the `fq` parameter to restrict by date range. We repeatedly change the `last_processed_stories_id` parameter to obtain all stories.
 
 This is shown in the Python code below where `process_stories` is a user provided function to process this data.
 
@@ -1201,7 +938,7 @@ while True:
       'rows': rows, 'q': 'media_set_id:1', 'fq': 'publish_date:[2010-10-01T00:00:00Z TO 2010-11-01T00:00:00Z]'  }
 
       print "Fetching {} stories starting from {}".format( rows, start)
-      r = requests.get( 'http://www.mediacloud.org/api/v2/stories/list/', params = params, headers = { 'Accept': 'application/json'} )
+      r = requests.get( 'https://api.mediacloud.org/api/v2/stories_public/list/', params = params, headers = { 'Accept': 'application/json'} )
       stories = r.json()
 
       if len(stories) == 0:
@@ -1222,7 +959,7 @@ This is broken down into multiple steps for convenience and because that's proba
 We assume that the user is new to Media Cloud. They're interested in what sources we have available. They run cURL to get a quick list of the available dashboards.
 
 ```
-curl http://www.mediacloud.org/api/v2/dashboards/list&nested_data=0
+curl https://api.mediacloud.org/api/v2/dashboards/list&nested_data=0
 ```
 
 ```json
@@ -1247,7 +984,7 @@ curl http://www.mediacloud.org/api/v2/dashboards/list&nested_data=0
 The user sees the "US / English" dashboard with `dashboards_id = 1` and asks for more detailed information.
 
 ```
-curl http://www.mediacloud.org/api/v2/dashboards/single/1
+curl https://api.mediacloud.org/api/v2/dashboards/single/1
 ```
 
 ```json
@@ -1301,13 +1038,13 @@ One way to appropriately restrict the data is by setting the `q` parameter to re
 Below `q` is set to `"sentence:trayvon"` and `fq` is set to `"media_sets_id:7125" and "publish_date:[2012-04-01T00:00:00.000Z TO 2013-05-01T00:00:00.000Z]"`. (Note that ":", "[", and "]" are URL encoded.)
 
 ```
-curl 'http://www.mediacloud.org/api/v2/wc?q=sentence:trayvon&fq=media_sets_id:7125&fq=publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D'
+curl 'https://api.mediacloud.org/api/v2/wc?q=sentence:trayvon&fq=media_sets_id:7125&fq=publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D'
 ```
 
 Alternatively, we could use a single large query by setting `q` to `"sentence:trayvon AND media_sets_id:7125 AND publish_date:[2012-04-01T00:00:00.000Z TO 2013-05-01T00:00:00.000Z]"`:
 
 ```
-curl 'http://www.mediacloud.org/api/v2/wc?q=sentence:trayvon+AND+media_sets_id:7125+AND+publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D&fq=media_sets_id:7135&fq=publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D'
+curl 'https://api.mediacloud.org/api/v2/wc?q=sentence:trayvon+AND+media_sets_id:7125+AND+publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D&fq=media_sets_id:7135&fq=publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D'
 ```
 
 
@@ -1318,7 +1055,7 @@ For simplicity, we assume that the user is interested in the story with `stories
 ```python
 
 stories_id = 100
-r = requests.get( 'http://www.mediacloud.org/api/v2/story/single/' + stories_id, headers = { 'Accept': 'application/json'} )
+r = requests.get( 'https://api.mediacloud.org/api/v2/story/single/' + stories_id, headers = { 'Accept': 'application/json'} )
 data = r.json()
 story = data[0]
 
@@ -1336,7 +1073,7 @@ for story_sentence in story['story_sentences']:
     custom_tags.append( '{},{}:{}'.format( story_sentences_id, tag_set_name, tag_name )
 
 
-r = requests.put( 'http://www.mediacloud.org/api/v2/sentences/put_tags/', { 'sentence_tag': custom_tags }, headers = { 'Accept': 'application/json'} )  
+r = requests.put( 'https://api.mediacloud.org/api/v2/sentences/put_tags/', { 'sentence_tag': custom_tags }, headers = { 'Accept': 'application/json'} )  
 
 ```
 
@@ -1348,7 +1085,7 @@ r = requests.put( 'http://www.mediacloud.org/api/v2/sentences/put_tags/', { 'sen
 The user requests a list of all tag sets.
 
 ```
-curl http://www.mediacloud.org/api/v2/tag_sets/list
+curl https://api.mediacloud.org/api/v2/tag_sets/list
 ```
 
 ```json
@@ -1379,7 +1116,7 @@ def find_tags_id( tag_name, tag_sets_id):
    while True:
       params = { 'last_tags_id': last_tags_id, 'rows': rows }
       print "start:{} rows:{}".format( start, rows)
-      r = requests.get( 'http://www.mediacloud.org/api/v2/tags/list/' + tag_sets_id , params = params, headers = { 'Accept': 'application/json'} )
+      r = requests.get( 'https://api.mediacloud.org/api/v2/tags/list/' + tag_sets_id , params = params, headers = { 'Accept': 'application/json'} )
       tags = r.json()
 
       if len(tags) == 0:
@@ -1397,10 +1134,11 @@ def find_tags_id( tag_name, tag_sets_id):
 
 ###Request a word count using the `tags_id`
 
-Assume that the user determined that the `tags_id` was 12345678 using the above code.
+Assume that the user determined that the `tags_id` was 12345678 using the above code.  The following will return
+the word count for all sentences in stories belonging to any media source associated with tag 12345678.
 
 ```
-curl 'http://www.mediacloud.org/api/v2/wc?q=tags:12345678'
+curl 'https://api.mediacloud.org/api/v2/wc?q=tags_id_media:12345678'
 ```
 
 ## Grab stories from 10 January 2014 with the tag `'foo:bar'`
@@ -1413,7 +1151,7 @@ See the "Get Word Counts for Top Words for Sentences with the Tag `'odd'` in `ta
 
 See the "Get Word Counts for Top Words for Sentences with the Tag `'odd'` in `tag_set = 'ts'`" example above.
 
-### Grab stories by querying stories/list
+### Grab stories by querying stories_public/list
 
 We assume the `tags_id` is 678910.
 
@@ -1426,7 +1164,7 @@ while True:
       params = { 'last_processed_stories_id': start, 'rows': rows, 'q': 'tags_id_stories:678910' }
 
       print "Fetching {} stories starting from {}".format( rows, start)
-      r = requests.get( 'http://www.mediacloud.org/api/v2/stories/list/', params = params, headers = { 'Accept': 'application/json'} )
+      r = requests.get( 'https://api.mediacloud.org/api/v2/stories_public/list/', params = params, headers = { 'Accept': 'application/json'} )
       stories = r.json()
 
       if len(stories) == 0:
