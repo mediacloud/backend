@@ -41,8 +41,9 @@ sub get_table_name
     return "story_sentences";
 }
 
-sub list : Local : Does('~NonPublicApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
+sub list : Local : ActionClass('REST') : Does('~NonPublicApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
 {
+    #say STDERR "starting Sentences/list";
 }
 
 # fill ss_ids temporary table with story_sentence_ids from the given sentences
@@ -153,11 +154,53 @@ sub list_GET : Local
 
     my $list = MediaWords::Solr::query( $params );
 
+    #say STDERR "Got List:\n" . Dumper( $list );
+
     my $sentences = $list->{ response }->{ docs };
 
     _attach_data_to_sentences( $c->dbis, $sentences );
 
     $self->status_ok( $c, entity => $list );
+}
+
+sub count : Local : ActionClass('REST') : Does('~PublicApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
+{
+}
+
+sub count_GET : Local
+{
+    my ( $self, $c ) = @_;
+
+    # say STDERR "starting list_GET";
+
+    my $params = {};
+
+    my $q  = $c->req->params->{ 'q' };
+    my $fq = $c->req->params->{ 'fq' };
+
+    my $start = $c->req->params->{ 'start' };
+    my $rows  = $c->req->params->{ 'rows' };
+    my $sort  = $c->req->params->{ 'sort' };
+
+    $rows  //= 1000;
+    $start //= 0;
+
+    $params->{ q }     = $q;
+    $params->{ fq }    = $fq;
+    $params->{ start } = $start;
+    $params->{ rows }  = 0;
+
+    #$params->{ sort } = _get_sort_param( $sort ) if ( $rows );
+
+    $rows = List::Util::min( $rows, 10000 );
+
+    my $list = MediaWords::Solr::query( $params );
+
+    my $count = $list->{ response }->{ numFound };
+
+    #_attach_data_to_sentences( $c->dbis, $sentences );
+
+    $self->status_ok( $c, entity => { count => $count } );
 }
 
 ##TODO merge with stories put_tags
