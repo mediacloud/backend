@@ -20,9 +20,7 @@ https://api.mediacloud.org/api/v2/media/single/1?key=KRN4T5JGJ2A
 The Media Cloud returns an appropriate HTTP status code for any error, along with a json document in the following format:
 
 ```json
-[
-    { error => "error message" }
-]
+{ "error": "error message" }
 ```
 
 ## Request Limits
