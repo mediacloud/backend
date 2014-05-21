@@ -14,36 +14,58 @@ use Moose::Role;
 with 'MediaWords::ActionRole::AbstractAuthenticatedActionRole';
 use namespace::autoclean;
 
+use HTTP::Status qw(:constants);
+
 use constant NUMBER_OF_REQUESTED_ITEMS_KEY => 'MediaWords::ActionRole::Logged::requested_items_count';
 
-after execute => sub {
-    my ( $self, $controller, $c ) = @_;
+around execute => sub {
 
-    my ( $user_email, $user_roles ) = $self->_user_email_and_roles( $c );
-    unless ( $user_email and $user_roles )
-    {
-        warn "user_email is undef (I wasn't able to authenticate either using the API key nor the normal means)";
-        return;
-    }
+    my $orig = shift;
+    my $self = shift;
+    my ( $controller, $c ) = @_;
 
-    my $request_path = $c->req->path;
-    unless ( $request_path )
-    {
-        die "request_path is undef";
-    }
+    my $result = $self->$orig( @_ );
 
-    my $requested_items_count = $c->stash->{ NUMBER_OF_REQUESTED_ITEMS_KEY } // 1;
+    eval {
 
-    # Log the request
-    my $db = $c->dbis;
+        my ( $user_email, $user_roles ) = $self->_user_email_and_roles( $c );
+        unless ( $user_email and $user_roles )
+        {
+            $c->response->status( HTTP_FORBIDDEN );
+            die 'Invalid API key or authentication cookie. Access denied.';
+        }
 
-    $db->query(
-        <<EOF,
-        INSERT INTO auth_user_requests (email, request_path, requested_items_count)
-        VALUES (?, ?, ?)
+        my $request_path = $c->req->path;
+        unless ( $request_path )
+        {
+            die 'request_path is undef';
+        }
+
+        my $requested_items_count = $c->stash->{ NUMBER_OF_REQUESTED_ITEMS_KEY } // 1;
+
+        # Log the request
+        my $db = $c->dbis;
+
+        $db->query(
+            <<EOF,
+            INSERT INTO auth_user_requests (email, request_path, requested_items_count)
+            VALUES (?, ?, ?)
 EOF
-        $user_email, $request_path, $requested_items_count
-    );
+            $user_email, $request_path, $requested_items_count
+        );
+
+    };
+
+    if ( $@ )
+    {
+        my $message = $@;
+
+        $c->error( $message );
+        $c->detach();
+        return undef;
+    }
+
+    return $result;
 };
 
 # Static helper that sets the number of requested items (e.g. stories) in the Catalyst's stash to be later used by after{}
