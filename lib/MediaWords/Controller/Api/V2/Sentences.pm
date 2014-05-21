@@ -163,7 +163,7 @@ sub list_GET : Local
     $self->status_ok( $c, entity => $list );
 }
 
-sub count : Local : Does('~NonPublicApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
+sub count : Local : ActionClass('REST') : Does('~PublicApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
 {
 }
 
