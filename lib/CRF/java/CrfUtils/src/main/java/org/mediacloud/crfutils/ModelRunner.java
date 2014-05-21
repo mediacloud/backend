@@ -37,25 +37,25 @@ public class ModelRunner {
         p.getDataAlphabet().stopGrowth();
     }
 
-    private String[] runModel(String testFileName) throws Exception {
+    private CrfOutput[] runModel(String testFileName) throws Exception {
 
         InstanceList testData = readTestData(testFileName);
-        return crfOutputsToStrings(runCrfModel(testData));
+        return runCrfModel(testData);
     }
 
-    String[] runModelString(String testDataString) throws Exception {
+    public CrfOutput[] runModelString(String testDataString) throws Exception {
 
         InstanceList testData = readTestDataFromString(testDataString);
-        return crfOutputsToStrings(runCrfModel(testData));
+        return runCrfModel(testData);
     }
 
     public String runModelStringReturnString(String testDataString) throws Exception {
 
-        String[] results = runModelString(testDataString);
+        String[] results = crfOutputsToStrings(runModelString(testDataString));
         return joinArrayToString("\n", results);
     }
 
-    private ArrayList<CrfOutput> runCrfModel(InstanceList testData) {
+    private CrfOutput[] runCrfModel(InstanceList testData) {
 
         /*
          Runtime rt = Runtime.getRuntime();
@@ -78,7 +78,7 @@ public class ModelRunner {
         //return crfOutputsToStrings(crfResults);
     }
 
-    private String[] crfOutputsToStrings(ArrayList<CrfOutput> crfResults) {
+    String[] crfOutputsToStrings(CrfOutput[] crfResults) {
         ArrayList<String> sequenceResults = new ArrayList<String>();
 
         for ( CrfOutput crfResult: crfResults )
@@ -112,12 +112,12 @@ public class ModelRunner {
         return testData;
     }
 
-    class CrfOutput {
+    public class CrfOutput {
         public String prediction;
         public HashMap<String, Double> probabilities;
     };
 
-    private ArrayList<CrfOutput> predictSequence(Sequence input) {
+    private CrfOutput[] predictSequence(Sequence input) {
 
         // That's how SimpleTagger.apply() implements it
         Sequence output = crf.transduce(input);
@@ -128,7 +128,7 @@ public class ModelRunner {
             }
         } catch (RuntimeException e) {
             System.err.println("Exception: " + e.getMessage());
-            return new ArrayList<CrfOutput>();
+            return new CrfOutput[0];
         }
 
          SumLattice lattice = new SumLatticeDefault(crf,input);
@@ -166,7 +166,7 @@ public class ModelRunner {
 
         }
 
-        return crfResults;
+        return crfResults.toArray( new CrfOutput[0] );
     }
 
     private static String joinArrayToString(String glue, String[] array) {

@@ -3,6 +3,8 @@ package org.mediacloud.crfutils;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+
 import junit.framework.TestCase;
 
 import org.apache.commons.io.IOUtils;
@@ -59,8 +61,8 @@ public class ModelRunnerTest extends TestCase {
 
         ModelRunner mr = new ModelRunner(extractor_model_path);
 
-        String[] results = mr.runModelString(this.test_input);
-        String resultsString = StringUtils.join(results, "\n");
+        ModelRunner.CrfOutput[] results = mr.runModelString(this.test_input);
+        String resultsString = StringUtils.join(mr.crfOutputsToStrings(results), "\n");
 
         assertEquals("CRF results are correct", test_output, resultsString);
 
@@ -83,7 +85,7 @@ public class ModelRunnerTest extends TestCase {
         String[] results = null;
 
         for (int x = 0; x < 1000; ++x) {
-            results = mr.runModelString(this.test_input);
+            results = mr.crfOutputsToStrings(mr.runModelString(this.test_input));
         }
 
         String resultsString = StringUtils.join(results, "\n");

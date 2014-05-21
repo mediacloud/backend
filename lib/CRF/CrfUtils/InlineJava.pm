@@ -160,9 +160,32 @@ sub _run_model_on_array($$$)
 
     # Returning and using a single string from a Java method is way faster than
     # returning and using an array of strings
-    my $results_string = $modelrunner->runModelStringReturnString( $test_data );
+    my $crf_results = $modelrunner->runModelString( $test_data );
 
-    my $results = [ split( "\n", $results_string ) ];
+    my $results = [];
+
+    use Inline::Java qw(cast);
+
+    for my $crf_result ( @$crf_results )
+    {
+        #say STDERR Dumper( $crf_result );
+
+        my $prediction          = $crf_result->{ prediction };
+        my $probability_entries = $crf_result->{ probabilities }->entrySet()->toArray();
+
+        my @probabilities =
+          map { cast( 'java.util.Map$Entry', $_ )->getKey() => cast( 'java.util.Map$Entry', $_ )->getValue() }
+          @{ $probability_entries };
+
+        my $result = {
+            prediction    => $prediction,
+            probabilities => { @probabilities },
+        };
+
+        say STDERR Dumper( $result );
+
+        push $results, $result;
+    }
 
     return $results;
 }

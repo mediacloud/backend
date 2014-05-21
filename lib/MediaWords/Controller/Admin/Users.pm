@@ -449,8 +449,6 @@ sub usage_json : Local
                 die "Role is undefined.";
             }
 
-            say STDERR "Showing usage for users with role '$role'";
-
             my $db_emails = $db->query(
                 <<EOF,
                 SELECT email
@@ -481,8 +479,6 @@ EOF
                 die "User ID is undefined.";
             }
 
-            say STDERR "Showing usage for user with ID '$user_id'.";
-
             my $db_email = $db->query(
                 <<EOF,
                 SELECT email
@@ -504,8 +500,6 @@ EOF
         {
 
             # All users
-            say STDERR "Showing usage for all users.";
-
             my $db_emails = $db->query(
                 <<EOF
                 SELECT email
