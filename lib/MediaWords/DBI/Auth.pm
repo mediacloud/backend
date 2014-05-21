@@ -152,6 +152,7 @@ sub user_info($$)
         <<"EOF",
         SELECT auth_users.auth_users_id,
                auth_users.email,
+               auth_users.non_public_api,
                full_name,
                api_token,
                notes,
