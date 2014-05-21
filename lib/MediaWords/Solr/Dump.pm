@@ -75,10 +75,8 @@ sub print_csv_to_file
         $pm->wait_all_children;
     }
 
-    my $full_import =
-      $delta
-      ? 'f'
-      : 't' $db->query( "insert into solr_imports( import_date, full_import ) values ( ?, ? )", $now, $full_import );
+    my $full_import = $delta ? 'f' : 't';
+    $db->query( "insert into solr_imports( import_date, full_import ) values ( ?, ? )", $now, $full_import );
 
     return $files;
 }
