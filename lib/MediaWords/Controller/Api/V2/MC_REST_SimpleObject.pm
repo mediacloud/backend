@@ -57,7 +57,32 @@ sub _purge_extra_fields_obj_list
     return [ map { $self->_purge_extra_fields( $_ ) } @{ $list } ];
 }
 
+sub _purge_non_permissible_fields :
+{
+    my ( $self, $obj ) = @_;
+
+    my $object_fields = keys %{ $obj };
+
+    my $permissible_output_fields = $self->permissible_output_fields();
+
+    my $new_obj = { map { $_ => $obj->{ $_ } } @$permissible_output_fields };
+
+    return $new_obj;
+}
+
+sub _purge_non_permissible_fields_obj_list
+{
+    my ( $self, $list ) = @_;
+
+    return [ map { $self->_purge_non_permissible_fields( $_ ) } @{ $list } ];
+}
+
 sub default_output_fields
+{
+    return;
+}
+
+sub permissible_output_fields
 {
     return;
 }
@@ -108,10 +133,15 @@ sub _process_result_list
         }
     }
 
+    if ( $self->permissible_output_fields() )
+    {
+        $items = $self->_purge_non_permissible_fields_obj_list( $items );
+    }
+
     return $items;
 }
 
-sub single : Local : ActionClass('REST') : Does('~ApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
+sub single : Local : ActionClass('REST') : Does('~PublicApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
 {
 }
 
@@ -192,7 +222,7 @@ sub _get_list_last_id_param_name
     return $last_id_param_name;
 }
 
-sub list : Local : ActionClass('REST') : Does('~ApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
+sub list : Local : ActionClass('REST') : Does('~PublicApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
 {
 }
 

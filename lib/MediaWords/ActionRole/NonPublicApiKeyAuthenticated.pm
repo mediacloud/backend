@@ -1,4 +1,4 @@
-package MediaWords::ActionRole::ApiKeyAuthenticated;
+package MediaWords::ActionRole::NonPublicApiKeyAuthenticated;
 
 #
 # Action role that requires its actions to authenticate via API key
@@ -47,7 +47,6 @@ around execute => sub {
     }
 
     return $self->$orig( @_ );
-
 };
 
 1;
