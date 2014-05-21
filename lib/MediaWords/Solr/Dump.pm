@@ -47,6 +47,9 @@ sub print_csv_to_file
 
     my $files;
 
+    my $db = MediaWords::DB::connect_to_db;
+    my ( $now ) = $db->query( "select now()" )->flat;
+
     if ( $num_proc == 1 )
     {
         _print_csv_to_file_single_job( $file_spec, 1, 1, $delta );
@@ -72,8 +75,8 @@ sub print_csv_to_file
         $pm->wait_all_children;
     }
 
-    my $db = MediaWords::DB::connect_to_db;
-    $db->query( "insert into solr_imports( import_date, full_import ) values ( now(), ? )", ( $delta ? 'f' : 't' ) );
+    my $full_import = $delta ? 'f' : 't';
+    $db->query( "insert into solr_imports( import_date, full_import ) values ( ?, ? )", $now, $full_import );
 
     return $files;
 }
