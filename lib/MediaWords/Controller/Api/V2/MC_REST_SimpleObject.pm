@@ -250,15 +250,7 @@ sub list_GET : Local
 
     # say STDERR "rows $rows";
 
-    my $list;
-
-    eval { $list = $self->_fetch_list( $c, $last_id, $table_name, $id_field, $rows ); };
-
-    if ( $@ )
-    {
-        $self->status_bad_request( $c, message => $@ );
-        return;
-    }
+    my $list = $self->_fetch_list( $c, $last_id, $table_name, $id_field, $rows );
 
     $list = $self->_process_result_list( $c, $list, $all_fields );
 

@@ -204,7 +204,7 @@ sub count_GET : Local
 }
 
 ##TODO merge with stories put_tags
-sub put_tags : Local : Does('~NonPublicApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
+sub put_tags : Local : ActionClass('REST') : Does('~NonPublicApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
 {
 }
 
