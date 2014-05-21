@@ -355,6 +355,11 @@ sub _add_tags
     }
 }
 
+sub serialize : ActionClass('Serialize')
+{
+    # Just calls parent
+}
+
 # Catch Catalyst exceptions (controller actions that have died); report them in
 # JSON back to the client
 sub end : Private
@@ -386,7 +391,14 @@ sub end : Private
         $c->clear_errors;
         $c->detach();
 
-        return 1;
+    }
+    else
+    {
+
+        # Continue towards serializing JSON results
+        # (http://search.cpan.org/~frew/Catalyst-Action-REST-1.15/lib/Catalyst/Controller/REST.pm#IMPLEMENTATION_DETAILS)
+        $c->forward( 'serialize' );
+
     }
 }
 
