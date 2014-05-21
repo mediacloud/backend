@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name='mediacloud',
-  version='2.4',
+  version='2.5',
   description='MediaCloud API Client Library',
   author='Rahul Bhargava',
   author_email='rahulb@media.mit.edu',
