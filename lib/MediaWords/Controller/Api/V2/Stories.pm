@@ -228,7 +228,7 @@ use MediaWords::Tagger;
 #     return $stories;
 # }
 
-sub put_tags : Local : Does('~NonPublicApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
+sub put_tags : Local : ActionClass('REST') : Does('~NonPublicApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
 {
 }
 
