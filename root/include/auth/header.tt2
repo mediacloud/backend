@@ -14,7 +14,7 @@
 		<div class="header-wrapper">
 			<hgroup>
 				<h1 class="site-title"><a href="http://www.mediacloud.org/" title="Media Cloud" rel="home">Media Cloud</a></h1>
-				<h2 class="site-description">quantitative analysis about the content of online media</h2>
+				<h2 class="site-description">tools for online media analysis</h2>
 			</hgroup>
 
 			<nav role="navigation" class="site-navigation main-navigation">
@@ -23,9 +23,8 @@
 				<div class="menu-nav-bar-container"><ul id="menu-nav-bar" class="menu"><li id="menu-item-129" class="menu-item menu-item-type-taxonomy menu-item-object-category current-category-ancestor current-category-parent menu-item-129"><a href="http://www.mediacloud.org/category/blog/">Blog</a></li>
 <li id="menu-item-151" class="menu-item menu-item-type-taxonomy menu-item-object-category current-menu-item menu-item-151"><a href="http://www.mediacloud.org">Tools</a></li>
 <li id="menu-item-162" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-162"><a href="http://www.mediacloud.org/papers/">Papers</a></li>
-<li id="menu-item-161" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-161"><a href="http://www.mediacloud.org/sponsors/">Collaborators</a></li>
 <li id="menu-item-163" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-163"><a href="http://www.mediacloud.org/get-involved/">Get Involved</a></li>
-<li id="menu-item-44" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-44"><a href="http://www.mediacloud.org/sample-page-2/">About</a></li>
+<li id="menu-item-44" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-44"><a href="http://www.mediacloud.org/about/">About</a></li>
 </ul></div>			</nav>
 
 		</div><!-- .header-wrapper -->
