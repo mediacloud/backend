@@ -1,5 +1,4 @@
 % Media Cloud API Version 2
-% David Larochelle
 %
 
 #API URLs
