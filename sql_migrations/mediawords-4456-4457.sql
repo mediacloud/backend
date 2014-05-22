@@ -10,7 +10,6 @@
 --
 -- You might need to import some additional schema diff files to reach the desired version.
 --
-
 --
 -- 1 of 2. Import the output of 'apgdiff':
 --
@@ -41,8 +40,4 @@ END;
 $$
 LANGUAGE 'plpgsql';
 
---
--- 2 of 2. Reset the database version.
---
 SELECT set_database_schema_version();
-
