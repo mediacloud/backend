@@ -278,10 +278,24 @@ sub register : Local
 
     my $db = $c->dbis;
 
+    my $user_email = $form->param_value( 'email' );
+
+    my $approved_user = $db->query( <<END, $user_email )->hash;
+select * from auth_registration_queue where email = ? and approved
+END
+
+    if ( !$approved_user )
+    {
+        $c->stash( error_msg => <<END );
+The email address '$user_email' has not been approved for registration.  Please see http://mediacloud.org/get-involved
+for instructions on signing up for a registration invitation.
+END
+        return;
+    }
+
     my $search_role = $db->query( "select * from auth_roles where role = 'search'" )->hash
       || die( "Unable to find 'search' role" );
 
-    my $user_email                        = $form->param_value( 'email' );
     my $user_full_name                    = $form->param_value( 'full_name' );
     my $user_notes                        = $form->param_value( 'notes' );
     my $user_is_active                    = 1;

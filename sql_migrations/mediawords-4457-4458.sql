@@ -1,12 +1,12 @@
 --
 -- This is a Media Cloud PostgreSQL schema difference file (a "diff") between schema
--- versions 4456 and 4457.
+-- versions 4457 and 4458.
 --
 -- If you are running Media Cloud with a database that was set up with a schema version
--- 4456, and you would like to upgrade both the Media Cloud and the
--- database to be at version 4457, import this SQL file:
+-- 4457, and you would like to upgrade both the Media Cloud and the
+-- database to be at version 4458, import this SQL file:
 --
---     psql mediacloud < mediawords-4456-4457.sql
+--     psql mediacloud < mediawords-4457-4458.sql
 --
 -- You might need to import some additional schema diff files to reach the desired version.
 --
@@ -14,19 +14,26 @@
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
-SET search_path = public, pg_catalog;
+create table auth_registration_queue (
+    auth_registration_queue_id  serial  primary key,
+    name                        text    not null,
+    email                       text    not null,
+    organization                text    not null,
+    motivation                  text    not null,
+    approved                    boolean default false
+);
 
-ALTER TABLE auth_users
-	ADD COLUMN non_public_api BOOLEAN NOT NULL DEFAULT false;
 
-UPDATE auth_users set non_public_api = 't';
+--
+-- 2 of 2. Reset the database version.
+--
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4457;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4458;
     
 BEGIN
 
@@ -41,3 +48,5 @@ $$
 LANGUAGE 'plpgsql';
 
 SELECT set_database_schema_version();
+
+
