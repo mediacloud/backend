@@ -40,6 +40,7 @@ echo "creating new user 'jdoe@mediacloud.org' with password 'mediacloud'"
     --full_name="John Doe" \
     --notes="Media Cloud administrator" \
     --roles="admin" \
+    --non_public_api_access
     --password="mediacloud"
 
 echo "Setting up Git pre-commit hooks..."

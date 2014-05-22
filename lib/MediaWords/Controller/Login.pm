@@ -288,14 +288,15 @@ sub register : Local
     my $user_roles                        = [ $search_role->{ auth_roles_id } ];
     my $user_weekly_requests_limit        = 1000;
     my $user_weekly_requested_items_limit = 20000;
+    my $user_non_public_api_access        = 0;
     my $user_password                     = $form->param_value( 'password' );
     my $user_password_repeat              = $form->param_value( 'password_repeat' );
 
     # Add user
     my $add_user_error_message =
       MediaWords::DBI::Auth::add_user_or_return_error_message( $db, $user_email, $user_full_name, $user_notes,
-        $user_roles, $user_is_active, $user_password, $user_password_repeat, $user_weekly_requests_limit,
-        $user_weekly_requested_items_limit );
+        $user_roles, $user_is_active, $user_password, $user_password_repeat, $user_non_public_api_access,
+        $user_weekly_requests_limit, $user_weekly_requested_items_limit );
 
     if ( $add_user_error_message )
     {
