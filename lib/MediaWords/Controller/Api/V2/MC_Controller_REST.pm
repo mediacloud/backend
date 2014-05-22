@@ -14,6 +14,7 @@ use Moose;
 use namespace::autoclean;
 use List::Compare;
 use Carp;
+use HTTP::Status qw(:constants);
 
 =head1 NAME
 
@@ -56,6 +57,53 @@ __PACKAGE__->config(
 );
 
 __PACKAGE__->config( json_options => { relaxed => 1, pretty => 1, space_before => 2, indent => 1, space_after => 2 } );
+
+sub serialize : ActionClass('Serialize')
+{
+    # Just calls parent
+}
+
+# Catch Catalyst exceptions (controller actions that have died); report them in
+# JSON back to the client
+sub end : Private
+{
+    my ( $self, $c ) = @_;
+
+    if ( scalar @{ $c->error } )
+    {
+        $c->stash->{ errors } = $c->error;
+
+        for my $error ( @{ $c->error } )
+        {
+            $c->log->error( $error );
+        }
+
+        my $message = 'Error(s): ' . join( '; ', @{ $c->stash->{ errors } } );
+        my $body = JSON->new->utf8->encode( { 'error' => $message } );
+
+        if ( $c->response->status =~ /^[23]\d\d$/ )
+        {
+            # Action roles and other parts might have set the HTTP status to
+            # some other error value. In that case, do not touch it. If not,
+            # default to 500 Internal Server Error
+            $c->response->status( HTTP_INTERNAL_SERVER_ERROR );
+        }
+        $c->response->content_type( 'application/json; charset=UTF-8' );
+        $c->response->body( $body );
+
+        $c->clear_errors;
+        $c->detach();
+
+    }
+    else
+    {
+
+        # Continue towards serializing JSON results
+        # (http://search.cpan.org/~frew/Catalyst-Action-REST-1.15/lib/Catalyst/Controller/REST.pm#IMPLEMENTATION_DETAILS)
+        $c->forward( 'serialize' );
+
+    }
+}
 
 =head1 AUTHOR
 

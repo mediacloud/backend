@@ -146,6 +146,7 @@ sub user_add($)
     my $user_full_name                    = '';
     my $user_notes                        = '';
     my $user_is_inactive                  = 0;
+    my $non_public_api_access             = 0;
     my $user_roles                        = '';
     my $user_password                     = undef;
     my $user_weekly_requests_limit        = undef;
@@ -157,6 +158,7 @@ Usage: $0 --action=add \
     --full_name="John Doe" \
     [--notes="Media Cloud developer."] \
     [--inactive] \
+    [--non_public_api_access ] \
     [--roles="query-create,media-edit,stories-edit"] \
     [--password="correct horse battery staple"] \
     [--weekly_requests_limit=2000] \
@@ -168,6 +170,7 @@ EOF
         'full_name=s'                    => \$user_full_name,
         'notes:s'                        => \$user_notes,
         'inactive'                       => \$user_is_inactive,
+        'non_public_api_access'          => \$non_public_api_access,
         'roles:s'                        => \$user_roles,
         'password:s'                     => \$user_password,
         'weekly_requests_limit:i'        => \$user_weekly_requests_limit,
@@ -211,10 +214,12 @@ EOF
     }
 
     # Add the user
-    my $add_user_error_message =
-      MediaWords::DBI::Auth::add_user_or_return_error_message( $db, $user_email, $user_full_name, $user_notes,
-        \@user_role_ids, ( !$user_is_inactive ),
-        $user_password, $user_password_repeat, $user_weekly_requests_limit, $user_weekly_requested_items_limit );
+    my $add_user_error_message = MediaWords::DBI::Auth::add_user_or_return_error_message(
+        $db, $user_email, $user_full_name,
+        $user_notes, \@user_role_ids, ( !$user_is_inactive ),
+        $user_password,              $user_password_repeat, $non_public_api_access,
+        $user_weekly_requests_limit, $user_weekly_requested_items_limit
+    );
     if ( $add_user_error_message )
     {
         say STDERR "Error while trying to add user: $add_user_error_message";

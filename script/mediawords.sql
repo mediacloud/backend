@@ -69,7 +69,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4456;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4457;
     
 BEGIN
 
@@ -2065,6 +2065,8 @@ CREATE TABLE auth_users (
 
     full_name       TEXT    NOT NULL,
     notes           TEXT    NULL,
+    
+    non_public_api  BOOLEAN NOT NULL DEFAULT false,
     active          BOOLEAN NOT NULL DEFAULT true,
 
     -- Salted hash of a password reset token (with Crypt::SaltedHash, algorithm => 'SHA-256',

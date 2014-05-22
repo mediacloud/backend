@@ -35,6 +35,18 @@ around execute => sub {
                 $c->response->status( HTTP_FORBIDDEN );
                 die 'Invalid API key or authentication cookie. Access denied.';
             }
+
+            my $user_info = MediaWords::DBI::Auth::user_info( $c->dbis, $user_email );
+
+            #say STDERR Dumper( $user_info );
+
+            if ( !$user_info->{ non_public_api } )
+            {
+                #say STDERR "non public api access denied";
+                $c->response->status( HTTP_FORBIDDEN );
+
+                die 'Your API key does not allow access to this URL. Access denied.';
+            }
         }
     };
     if ( $@ )

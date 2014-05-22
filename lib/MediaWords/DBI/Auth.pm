@@ -152,6 +152,7 @@ sub user_info($$)
         <<"EOF",
         SELECT auth_users.auth_users_id,
                auth_users.email,
+               auth_users.non_public_api,
                full_name,
                api_token,
                notes,
@@ -640,14 +641,15 @@ EOF
 }
 
 # Add new user; $role_ids is a arrayref to an array of role IDs; returns error message on error, empty string on success
-sub add_user_or_return_error_message($$$$$$$$;$$)
+sub add_user_or_return_error_message($$$$$$$$$;$$)
 {
-    my ( $db, $email, $full_name, $notes, $role_ids, $is_active, $password, $password_repeat, $weekly_requests_limit,
-        $weekly_requested_items_limit )
+    my ( $db, $email, $full_name, $notes, $role_ids, $is_active, $password, $password_repeat, $non_public_api_access,
+        $weekly_requests_limit, $weekly_requested_items_limit )
       = @_;
 
     say STDERR "Creating user with email: $email, full name: $full_name, notes: $notes, role IDs: " .
-      Dumper( $role_ids ) . ", is active: $is_active, weekly_requests_limit: " .
+      Dumper( $role_ids ) .
+      ", is active: $is_active, non_public_api_access: $non_public_api_access, weekly_requests_limit: " .
       ( defined $weekly_requests_limit ? $weekly_requests_limit : 'default' ) . ', weekly requested items limit: ' .
       ( defined $weekly_requested_items_limit ? $weekly_requested_items_limit : 'default' );
 
@@ -684,10 +686,10 @@ sub add_user_or_return_error_message($$$$$$$$;$$)
     # Create the user
     $db->query(
         <<"EOF",
-        INSERT INTO auth_users (email, password_hash, full_name, notes, active)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO auth_users (email, password_hash, full_name, notes, active, non_public_api)
+        VALUES (?, ?, ?, ?, ?, ?)
 EOF
-        $email, $password_hash, $full_name, $notes, ( $is_active ? 'true' : 'false' )
+        $email, $password_hash, $full_name, $notes, ( $is_active ? 'true' : 'false' ), $non_public_api_access
     );
 
     # Fetch the user's ID
