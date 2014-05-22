@@ -261,12 +261,19 @@ sub _die_unless_tag_set_matches_user_email
 {
     my ( $self, $c, $tags_id ) = @_;
 
-    Readonly my $query => "SELECT tag_sets.name from tags natural join tag_sets where tags_id = ? limit 1 ";
+    Readonly my $query =>
+      "SELECT tag_sets.name from tags, tag_sets where tags.tag_sets_id = tag_sets.tag_sets_id AND tags_id = ? limit 1 ";
 
-    my $tag_set = $c->dbis->query( $query, $tags_id )->hashes->[ 0 ]->{ name };
+    my $hashes = $c->dbis->query( $query, $tags_id )->hashes();
+
+    #say STDERR "Hashes:\n" . Dumper( $hashes );
+
+    my $tag_set = $hashes->[ 0 ]->{ name };
+
+    die "Undefined tag_set for tags_id: $tags_id" unless defined( $tag_set );
 
     die "Illegal tag_set name '$tag_set', tag_set must be user email "
-      unless $c->stash->{ auth_user }->{ email } eq $tag_set;
+      unless $c->stash->{ api_auth }->{ email } eq $tag_set;
 }
 
 sub _get_tags_id
@@ -284,8 +291,13 @@ sub _get_tags_id
 
         my ( $tag_set, $tag_name ) = split ':', $tag_string;
 
-        die "Illegal tag_set name '$tag_set', tag_set must be user email "
-          unless $c->stash->{ auth_user }->{ email } eq $tag_set;
+        #say STDERR Dumper( $c->stash );
+        my $user_email = $c->stash->{ api_auth }->{ email };
+
+        if ( $user_email ne $tag_set )
+        {
+            die "Illegal tag_set name '" . $tag_set . "' tag_set must be user email ( '$user_email' ) ";
+        }
 
         my $tag_sets = $c->dbis->query( "SELECT * from tag_sets where name = ?", $tag_set )->hashes;
 
