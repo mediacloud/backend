@@ -45,6 +45,12 @@ elements:
     label: User is active
     default: 1
 
+  - type: Checkbox
+    id: non_public_api_access
+    name: non_public_api_access
+    label: Non Public Api Access
+    default: 0
+
   - type: Checkboxgroup
     id: roles
     name: roles
