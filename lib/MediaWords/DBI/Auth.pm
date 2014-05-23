@@ -744,10 +744,10 @@ EOF
 
 # Update an existing user; returns error message on error, empty string on success
 # ($password and $password_repeat are optional; if not provided, the password will not be changed)
-sub update_user_or_return_error_message($$$$$$;$$$$)
+sub update_user_or_return_error_message($$$$$$;$$$$$)
 {
-    my ( $db, $email, $full_name, $notes, $roles, $is_active, $password, $password_repeat, $weekly_requests_limit,
-        $weekly_requested_items_limit )
+    my ( $db, $email, $full_name, $notes, $roles, $is_active, $password, $password_repeat, $non_public_api_access,
+        $weekly_requests_limit, $weekly_requested_items_limit )
       = @_;
 
     # Check if user exists
@@ -766,11 +766,14 @@ sub update_user_or_return_error_message($$$$$$;$$$$)
         UPDATE auth_users
         SET full_name = ?,
             notes = ?,
+            non_public_api = ?,
             active = ?
         WHERE email = ?
 EOF
-        $full_name, $notes, ( $is_active ? 'true' : 'false' ), $email
+        $full_name, $notes, ( $non_public_api_access ? 'true' : 'false' ), ( $is_active ? 'true' : 'false' ), $email
     );
+
+# say STDERR Dumper( [ $full_name, $notes, ( $non_public_api_access ? 'true' : 'false' ), ( $is_active ? 'true' : 'false' ), $email ] );
 
     if ( $password )
     {
