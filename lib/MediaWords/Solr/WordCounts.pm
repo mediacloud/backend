@@ -115,7 +115,13 @@ sub get_solr_params_hash
 {
     my ( $q, $fqs ) = @_;
 
-    my $params = { q => $q, fl => 'sentence' };
+    my $params;
+
+    $params->{ q }                  = $q;
+    $params->{ fl }                 = 'sentence';
+    $params->{ defType }            = 'edismax';
+    $params->{ stopwords }          = 'false';
+    $params->{ lowercaseOperators } = 'true';
 
     $fqs ||= [];
     $fqs = [ $fqs ] unless ( ref( $fqs ) );
