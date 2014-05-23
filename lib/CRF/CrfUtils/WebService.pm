@@ -16,6 +16,7 @@ use HTTP::Request;
 use HTTP::Status qw(:constants);
 use Encode;
 use URI;
+use JSON;
 
 use Data::Dumper;
 
@@ -78,9 +79,6 @@ sub create_model($$$)
 sub run_model_inline_java_data_array($$$)
 {
     my ( $class, $model_file_name, $test_data_array ) = @_;
-
-    _fatal_error(
-        "CRF Webservice is disabled because it does not support probability results which are now required by CrfUtils." );
 
     _validate_model_file_name( $model_file_name );
 
@@ -167,7 +165,7 @@ sub run_model_inline_java_data_array($$$)
         _fatal_error( "Server returned nothing for POST data: " . $test_data );
     }
 
-    my $results = [ split( "\n", $results_string ) ];
+    my $results = decode_json( $results_string );
 
     return $results;
 }
