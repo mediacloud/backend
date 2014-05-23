@@ -358,7 +358,16 @@ sub _add_tags
         my $tags_map_table = $self->get_table_name() . '_tags_map';
         my $table_id_name  = $self->get_table_name() . '_id';
 
-        my $query = "INSERT INTO $tags_map_table ( $table_id_name, tags_id) VALUES (?, ? )";
+        my $query = <<END;
+INSERT INTO $tags_map_table ( $table_id_name, tags_id) 
+    select \$1, \$2
+        where not exists (
+            select 1 
+                from $tags_map_table 
+                where $table_id_name = \$1 and
+                    tags_id = \$2
+        )
+END
 
         # say STDERR $query;
 
