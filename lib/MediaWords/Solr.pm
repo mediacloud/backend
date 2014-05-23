@@ -69,6 +69,9 @@ sub query_encoded_json
     $params->{ wt } = 'json';
     $params->{ rows } //= 1000;
     $params->{ df }   //= 'sentence';
+    $params->{ defType }            = 'edismax';
+    $params->{ stopwords }          = 'false';
+    $params->{ lowercaseOperators } = 'true';
 
     $params->{ rows } = List::Util::min( $params->{ rows }, 1000000 );
 
