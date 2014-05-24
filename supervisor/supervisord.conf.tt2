@@ -14,10 +14,13 @@
 
 [program:[% program %]]
     [%- IF gearman_worker_module %]
-command = ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/[% gearman_worker_module %]
-    [%- ELSE %]
-command = [% command %]
+        [%- command = './script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/' _ gearman_worker_module %]
+    [%- END %]    
+    [%- nice = supervisor.programs.$program.nice || default_nice %]
+    [%- IF nice %]
+        [%- command = "/usr/bin/nice -n $nice $command" %]
     [%- END %]
+command = [% command %]
 directory = %(here)s/../
 autorestart = [% supervisor.programs.$program.autorestart_b|| default_autorestart  %]
 autostart = [% supervisor.programs.$program.autostart_b || default_autostart  %]
@@ -32,7 +35,7 @@ process_name = %(program_name)s_%(process_num)02d
     [%- IF stopwaitsecs %]
 stopwaitsecs=[% stopwaitsecs %]
     [%- END %]
-[% END %]
+[%- END %]
 
 [inet_http_server]
 port = 127.0.0.1:4398
@@ -66,6 +69,7 @@ programs = crawler,crf_web_service
     default_autorestart='false'
     default_autostart='true'
     skip_numprocs=1
+    default_nice=5
 %]
 
 [% INCLUDE program_config
@@ -74,11 +78,12 @@ programs = crawler,crf_web_service
     default_autorestart='true'
     default_autostart='false'
     priority=5
+    default_nice=12
 %]
 
 ; Gearman (p5-Gearman-JobScheduler) functions
 [group:gearman]
-programs = gearmand,add_default_feeds,extract_and_vector,cm_mine_controversy,cm_dump_controversy
+programs = gearmand
 
 [% INCLUDE program_config
     program='gearmand'
@@ -93,6 +98,7 @@ programs = gearmand,add_default_feeds,extract_and_vector,cm_mine_controversy,cm_
     gearman_worker_module='AddDefaultFeeds.pm'
     default_autorestart='true'
     default_autostart='true'
+    default_nice=10
 %]
 
 [% INCLUDE program_config
@@ -100,6 +106,7 @@ programs = gearmand,add_default_feeds,extract_and_vector,cm_mine_controversy,cm_
     gearman_worker_module='ExtractAndVector.pm'
     default_autorestart='true'
     default_autostart='true'
+    default_nice=12
 %]
 
 [% INCLUDE program_config
@@ -107,6 +114,7 @@ programs = gearmand,add_default_feeds,extract_and_vector,cm_mine_controversy,cm_
     gearman_worker_module='CM/MineControversy.pm'
     default_autorestart='true'
     default_autostart='true'
+    default_nice=10
 %]
 
 [% INCLUDE program_config
@@ -114,6 +122,7 @@ programs = gearmand,add_default_feeds,extract_and_vector,cm_mine_controversy,cm_
     gearman_worker_module='CM/DumpControversy.pm'
     default_autorestart='true'
     default_autostart='true'
+    default_nice=10
 %]
 
 [group:solr]
