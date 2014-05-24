@@ -53,21 +53,29 @@ sub _add_nested_data
     foreach my $media_source ( @{ $media } )
     {
         # say STDERR "adding media_source tags ";
-        my $media_source_tags = $db->query(
-"select tags.tags_id, tags.tag, tag_sets.tag_sets_id, tag_sets.name as tag_set from media_tags_map natural join tags natural join tag_sets where media_id = ? ORDER by tags_id",
-            $media_source->{ media_id }
-        )->hashes;
-        $media_source->{ media_source_tags } = $media_source_tags;
+        $media_source->{ media_source_tags } = $db->query( <<END, $media_source->{ media_id } )->hashes;
+select t.tags_id, t.tag, t.label, t.description, ts.tag_sets_id, ts.name as tag_set,
+        ( t.show_on_media or ts.show_on_media ) show_on_media, 
+        ( t.show_on_stories or ts.show_on_stories ) show_on_stories
+    from media_tags_map mtm
+        join tags t on ( mtm.tags_id = t.tags_id )
+        join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id )
+    where mtm.media_id = ?
+    order by t.tags_id
+END
     }
 
     foreach my $media_source ( @{ $media } )
     {
         # say STDERR "adding media_sets ";
-        my $media_source_tags = $db->query(
-"select media_sets.media_sets_id, media_sets.name, media_sets.description, media_sets.set_type from media_sets_media_map natural join media_sets where media_id = ? ORDER by media_sets_id",
-            $media_source->{ media_id }
-        )->hashes;
-        $media_source->{ media_sets } = $media_source_tags;
+        $media_source->{ media_sets } = $db->query( <<END, $media_source->{ media_id } )->hashes;
+select ms.media_sets_id, ms.name, ms.description
+    from media_sets_media_map msmm
+        join media_sets ms on ( msmm.media_sets_id = ms.media_sets_id ) 
+    where msmm.media_id = ? and
+        ms.set_type = 'collection'
+    ORDER by ms.media_sets_id
+END
     }
 
     return $media;

@@ -57,50 +57,22 @@ Response:
     "name": "New York Times",
     "media_id": 1,
     "media_source_tags": [
-      {
-        "tags_id": 1,
-        "tag_sets_id": 1,
-        "tag_set": "media_type",
-        "tag": "newspapers"
-      },
-      {
-        "tag_sets_id": 3,
-        "tag_set": "usnewspapercirculation",
-        "tag": "3",
-        "tags_id": 109
-      },
-      {
-        "tags_id": 6071565,
-        "tag_sets_id": 17,
-        "tag_set": "word_cloud",
-        "tag": "include"
-      },
-      {
-        "tag": "default",
-        "tag_set": "word_cloud",
-        "tag_sets_id": 17,
-        "tags_id": 6729599
-      },
-      {
-        "tag": "adplanner_english_news_20090910",
-        "tag_set": "collection",
-        "tag_sets_id": 5,
-        "tags_id": 8874930
-      },
-      {
-        "tag_sets_id": 5,
-        "tag_set": "collection",
-        "tag": "ap_english_us_top25_20100110",
-        "tags_id": 8875027
-      }
-    ],
+     {
+       "tag_sets_id": 5,
+       "show_on_stories": null,
+       "tags_id": 8875027,
+       "show_on_media": 1,
+       "description": "Top U.S. mainstream media according Google Ad Planner's measure of unique monthly users.",
+       "tag_set": "collection",
+       "tag": "ap_english_us_top25_20100110",
+       "label": "U.S. Mainstream Media"
+     },
     "media_sets": [
       {
-        "set_type": "medium",
-        "media_sets_id": 24,
-        "name": "New York Times",
-        "description": null
-      }
+        "media_sets_id": 1,
+        "name": "Top 25 Mainstream Media",
+        "description": "Top 25 mainstream media sources by monthly unique users from the U.S. according to the Google AdPlanner service."
+      },
     ]
   }
 ]
