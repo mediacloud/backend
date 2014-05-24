@@ -70,7 +70,7 @@ sub _get_ss_ids_temporary_table
     return '_ss_ids';
 }
 
-# attach the following fields to each sentence: sentence_number, media_id, publish_date
+# attach the following fields to each sentence: sentence_number, media_id, publish_date, url, medium_name
 sub _attach_data_to_sentences
 {
     my ( $db, $sentences ) = @_;
@@ -80,9 +80,12 @@ sub _attach_data_to_sentences
     my $temp_ss_ids = _get_ss_ids_temporary_table( $db, $sentences );
 
     my $story_sentences = $db->query( <<END )->hashes;
-select ss.story_sentences_id, ss.sentence_number, ss.media_id, ss.publish_date
+select ss.story_sentences_id, ss.sentence_number, ss.media_id, ss.publish_date,
+        s.url, m.name medium_name
     from story_sentences ss
         join $temp_ss_ids q on ( ss.story_sentences_id = q.story_sentences_id )
+        join stories s on ( s.stories_id = ss.stories_id )
+        join media m on ( ss.media_id = m.media_id )
 END
 
     $db->query( "drop table $temp_ss_ids" );
@@ -93,7 +96,7 @@ END
     for my $sentence ( @{ $sentences } )
     {
         my $ss_data = $ss_lookup->{ $sentence->{ story_sentences_id } };
-        map { $sentence->{ $_ } = $ss_data->{ $_ } } qw/sentence_number media_id publish_date/;
+        map { $sentence->{ $_ } = $ss_data->{ $_ } } qw/sentence_number media_id publish_date url medium_name/;
     }
 }
 

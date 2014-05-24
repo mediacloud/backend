@@ -79,6 +79,11 @@ sub default_output_fields
     return [ qw ( name url media_id ) ];
 }
 
+sub list_name_search_field
+{
+    return 'name';
+}
+
 =head1 AUTHOR
 
 David Larochelle

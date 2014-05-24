@@ -176,11 +176,39 @@ sub list_api_requires_filter_field
     return defined( $self->list_query_filter_field() ) && $self->list_query_filter_field();
 }
 
+sub list_name_search_field
+{
+    return;
+}
+
+sub _get_name_search_clause
+{
+    my ( $self, $c ) = @_;
+
+    my $name_clause = '';
+
+    my $name_field = $self->list_name_search_field;
+
+    return '' unless ( $name_field );
+
+    my $name_val = $c->req->params->{ $name_field };
+
+    return '' unless ( $name_val );
+
+    return 'and false' unless ( length( $name_val ) > 2 );
+
+    my $q_name_val = $c->dbis->dbh->quote( $name_val );
+
+    return "and $name_field ilike '%' || $q_name_val || '%'";
+}
+
 sub _fetch_list
 {
     my ( $self, $c, $last_id, $table_name, $id_field, $rows ) = @_;
 
     my $list;
+
+    my $name_clause = $self->_get_name_search_clause( $c );
 
     if ( $self->list_api_requires_filter_field() )
     {
@@ -194,13 +222,13 @@ sub _fetch_list
         }
 
         my $query =
-          "select * from $table_name where $id_field > ? and $query_filter_field_name = ? ORDER by $id_field asc limit ? ";
+"select * from $table_name where $id_field > ? $name_clause and $query_filter_field_name = ? ORDER by $id_field asc limit ? ";
 
         $list = $c->dbis->query( $query, $last_id, $filter_field_value, $rows )->hashes;
     }
     else
     {
-        my $query = "select * from $table_name where $id_field > ? ORDER by $id_field asc limit ? ";
+        my $query = "select * from $table_name where $id_field > ? $name_clause ORDER by $id_field asc limit ? ";
 
         $list = $c->dbis->query( $query, $last_id, $rows )->hashes;
     }
