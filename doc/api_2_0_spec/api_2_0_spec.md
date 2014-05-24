@@ -119,6 +119,10 @@ Response:
 | --------------- | ------- | -----------------------------------------------------------------
 | `last_media_id` | 0       | Return media sources with a `media_id` greater than this value
 | `rows`          | 20      | Number of media sources to return. Cannot be larger than 100
+| `name`          | none    | Name of media source for which to search
+
+If the name parameter is specified, the call returns only media sources that match a case insensitive search 
+specified value.  If the specified value is less than 3 characters long, the call returns an empty list.
 
 #### Example
 
