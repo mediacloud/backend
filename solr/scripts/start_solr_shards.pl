@@ -9,6 +9,9 @@ use v5.10;
 use FindBin;
 use Getopt::Long;
 
+use constant JVM_OPTS =>
+"-XX:NewRatio=3 -XX:SurvivorRatio=4 -XX:TargetSurvivorRatio=90 -XX:MaxTenuringThreshold=8 -XX:+UseConcMarkSweepGC -XX:+CMSScavengeBeforeRemark -XX:PretenureSizeThreshold=64m -XX:CMSFullGCsBeforeCompaction=1 -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 -XX:CMSTriggerPermRatio=80 -XX:CMSMaxAbortablePrecleanTime=6000 -XX:+CMSParallelRemarkEnabled -XX:+ParallelRefProcEnabled- XX:+UseLargePages -XX:+AggressiveOpts";
+
 sub main
 {
     my ( $memory, $host, $zk_host ) = @_;
@@ -19,8 +22,9 @@ sub main
         "zk_host=s" => \$zk_host,
     ) || return;
 
-    die( "usage: $0 --memory <gigs of memory for java heap> --host <local hostname> --zk_host <zk host in host:port format>"
-    ) unless ( $memory && $zk_host );
+    die(
+        "usage: $0 --memory <gigs of memory for java heap> --host <local hostname> --zk_host <zk host in host:port format>" )
+      unless ( $memory && $zk_host );
 
     my $solr_dir = "$FindBin::Bin/..";
     chdir( $solr_dir ) || die( "can't cd to $solr_dir" );
@@ -49,13 +53,14 @@ sub main
         if ( -e "master" )
         {
             my $master_memory = ( $memory * 2 );
-            system( "java -server -Xmx${ master_memory }g $log_config -DzkRun -jar start.jar > $log_file 2>&1 &" );
+            system( "java " .
+                  JVM_OPTS . " -server -Xmx${ master_memory }g $log_config -DzkRun -jar start.jar > $log_file 2>&1 &" );
         }
         else
         {
             my $port = 7980 + $shard_id;
-            system(
-"java -server -Xmx${ memory }g $log_config -Dhost=$host -Djetty.port=$port -DzkHost=$zk_host -jar start.jar > $log_file 2>&1 &"
+            system( "java " . JVM_OPTS .
+" -server -Xmx${ memory }g $log_config -Dhost=$host -Djetty.port=$port -DzkHost=$zk_host -jar start.jar > $log_file 2>&1 &"
             );
         }
         print STDERR "started shard $shard_id logging to $log_file\n";
