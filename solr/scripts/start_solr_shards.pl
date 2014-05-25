@@ -9,8 +9,7 @@ use v5.10;
 use FindBin;
 use Getopt::Long;
 
-use constant JVM_OPTS =>
-"-XX:NewRatio=3 -XX:SurvivorRatio=4 -XX:TargetSurvivorRatio=90 -XX:MaxTenuringThreshold=8 -XX:+UseConcMarkSweepGC -XX:+CMSScavengeBeforeRemark -XX:PretenureSizeThreshold=64m -XX:CMSFullGCsBeforeCompaction=1 -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 -XX:CMSTriggerPermRatio=80 -XX:CMSMaxAbortablePrecleanTime=6000 -XX:+CMSParallelRemarkEnabled -XX:+ParallelRefProcEnabled -XX:+UseLargePages -XX:+AggressiveOpts";
+use constant JVM_OPTS => '-XX:MaxGCPauseMillis=1000';
 
 sub main
 {
