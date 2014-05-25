@@ -502,14 +502,30 @@ navigational snippets wrongly included in the extracted text by the extractor al
 
 #### Query Parameters
 
-| Parameter | Default | Notes
-| --------- | ---------------- | ----------------------------------------------------------------
-| `q`       | n/a              | `q` ("query") parameter which is passed directly to Solr
-| `fq`      | `null`           | `fq` ("filter query") parameter which is passed directly to Solr
+| Parameter          | Default          | Notes
+| ------------------ | ---------------- | ----------------------------------------------------------------
+| `q`                | n/a              | `q` ("query") parameter which is passed directly to Solr
+| `fq`               | `null`           | `fq` ("filter query") parameter which is passed directly to Solr
+| `split`            | `null`           | if set to 1 or true, split the counts into date ranges
+| `split_start_date` | `null`           | date on which to start date splits, in YYYY-MM-DD format
+| `split_end_date`   | `null`           | date on which to end date splits, in YYYY-MM-DD format
 
-These parameters are passed directly through to Solr (see description of q and fq parameters in api/v2/stories_public/list section above).
+The q and fq parameters are passed directly through to Solr (see description of q and fq parameters in api/v2/stories_public/list section above).
 
 The call returns the number of sentences returned by Solr for the specified query.
+
+If split is specified, split the counts into regular date ranges for dates between split\_start\_date and split\_end\_date. 
+The number of days in each date range depends on the total number of days between split\_start\_date and split\_end\_date:
+
+| Total Days | Days in each range
+| ---------- | ------------------
+| < 15       | 1 day
+| < 45       | 3 days
+| < 105      | 7 days
+| >= 105     | 1 month
+
+Note that the total count returned by a split query is for all sentences found by the solr query, which query might or might not
+include a date restriction.  So in the example africa query below, the 236372 count is for all sentences matching africa, not just those within the split date range.
 
 #### Example
 
@@ -522,6 +538,31 @@ URL: https://api.mediacloud.org/api/v2/sentences/count?q=sentence:obama&fq=media
   "count" => 96620
 }
 ```
+
+Count sentences containing 'africa' in the U.S. Mainstream Media from 2014-01-01 to 2014-03-01:
+
+URL: https://api.mediacloud.org/api/v2/sentences/count?q=sentence:africa+AND+tags\_id\_media:8875027&split=1&split\_start\_date=2014-01-01&split\_end\_date=2014-03-01
+
+```json
+{
+  "count": 236372,
+  "split":
+  {
+    "2014-01-01T00:00:00Z": 650,
+    "2014-01-08T00:00:00Z": 900,
+    "2014-01-15T00:00:00Z": 999,
+    "2014-01-22T00:00:00Z": 1047,
+    "2014-01-29T00:00:00Z": 1125,
+    "2014-02-05T00:00:00Z": 946,
+    "2014-02-12T00:00:00Z": 1126
+    "2014-02-19T00:00:00Z": 1094,
+    "2014-02-26T00:00:00Z": 1218,
+    "gap": "+7DAYS",
+    "end": "2014-03-05T00:00:00Z",
+    "start": "2014-01-01T00:00:00Z",
+    }
+}
+````
 
 ## Word Counting
 
