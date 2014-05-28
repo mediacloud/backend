@@ -52,6 +52,10 @@ BEGIN
     {
         CRF::CrfUtils::use_webservice( 0 );
     }
+
+    my $crf_server_url = $config->{ crf_web_service }->{ server_url };
+
+    CRF::CrfUtils::set_webservice_url( $crf_server_url );
 }
 
 sub getScoresAndLines

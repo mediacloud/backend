@@ -17,6 +17,8 @@ my $_active_crf_module = undef;
 
 my $_webservice_enabled = undef;
 
+my $_webservice_url = undef;
+
 sub use_webservice
 {
     my ( $flag ) = @_;
@@ -29,6 +31,13 @@ sub use_webservice
     {
         $_webservice_enabled = 0;
     }
+}
+
+sub set_webservice_url
+{
+    my ( $url ) = @_;
+
+    $_webservice_url = $url;
 }
 
 sub _load_and_return_crf_module()
@@ -50,6 +59,11 @@ sub _load_and_return_crf_module()
             ( my $file = $module ) =~ s|::|/|g;
             require $file . '.pm';
             $module->import();
+
+            if ( ( $module eq 'CRF::CrfUtils::WebService' ) && ( defined( $_webservice_url ) ) )
+            {
+                $module->set_webservice_url( $_webservice_url );
+            }
             1;
         } or do
         {
