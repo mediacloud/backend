@@ -62,7 +62,7 @@ sub getScoresAndLines
 {
     my ( $self, $line_info, $preprocessed_lines ) = @_;
 
-    my $extracted_lines = get_extracted_lines_with_crf( $line_info, $preprocessed_lines );
+    my $extracted_lines = _get_extracted_lines_with_crf( $line_info, $preprocessed_lines );
 
     my $scores = [];
 
@@ -93,7 +93,7 @@ sub getExtractedLines
     return $scores_and_lines->{ included_line_numbers };
 }
 
-sub get_extracted_lines_with_crf
+sub _get_extracted_lines_with_crf
 {
     my ( $line_infos, $preprocessed_lines ) = @_;
 
