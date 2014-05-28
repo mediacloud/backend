@@ -8,7 +8,7 @@ from mediacloud.test.storagetest import *
 test_classes = [
 	ApiMediaTest, ApiMediaSetTest, ApiFeedsTest, ApiDashboardsTest, ApiTagsTest, ApiTagSetsTest, 
 	ApiStoriesTest, ApiWordCountTest, ApiSentencesTest,
-	CouchStorageTest, MongoStorageTest,
+	MongoStorageTest,
 	AuthTokenTest
 ]
 
