@@ -40,8 +40,12 @@ class ApiMediaTest(ApiBaseTest):
         self.assertNotEqual(media, None)
         self.assertEqual(media['media_id'],1)
         self.assertEqual(media['name'],'New York Times')
-        #self.assertTrue(len(media['media_source_tags'])>0)
+        self.assertTrue(len(media['media_source_tags'])>0)
         self.assertTrue(len(media['media_sets'])>0)
+
+    def testMediaListWithName(self):
+        matchingList = self._mc.mediaList(name_like='new york times')
+        self.assertEqual(len(matchingList),3)
 
     def testMediaList(self):
         firstList = self._mc.mediaList()
