@@ -1,5 +1,4 @@
-
-import re, logging, json, urllib
+import re, logging, json, urllib, datetime
 import xml.etree.ElementTree, requests
 import mediacloud
 
@@ -131,6 +130,17 @@ class MediaCloud(object):
                  'rows': rows,
                  'sort': sort
                 }) 
+
+    def sentenceCount(self, solr_query, solr_filter=' ',split=False,split_start_date=None,split_end_date=None,split_daily=False):
+        params = {'q':solr_query, 'fq':solr_filter}
+        params['split'] = 1 if split is True else 0
+        params['split_daily'] = 1 if split_daily is True else 0
+        if split is True:
+            datetime.datetime.strptime(split_start_date, '%Y-%m-%d')    #will throw a ValueError if invalid
+            datetime.datetime.strptime(split_end_date, '%Y-%m-%d')    #will throw a ValueError if invalid
+            params['split_start_date'] = split_start_date
+            params['split_end_date'] = split_end_date
+        return self._queryForJson(self.V2_API_URL+'sentences/count', params)
 
     def wordCount(self, solr_query, solr_filter=''):
         return self._queryForJson(self.V2_API_URL+'wc/list',
