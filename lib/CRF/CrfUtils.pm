@@ -7,8 +7,6 @@ package CRF::CrfUtils;
 use strict;
 use warnings;
 
-use MediaWords::Util::Config;
-
 # Name of a loaded and active CRF module, either 'CRF::CrfUtils::InlineJava' or
 # 'CRF::CrfUtils::WebService'.
 #
@@ -17,14 +15,29 @@ use MediaWords::Util::Config;
 # that don't have anything to do with extraction
 my $_active_crf_module = undef;
 
+my $_webservice_enabled = undef;
+
+sub use_webservice
+{
+    my ( $flag ) = @_;
+
+    if ( defined( $flag ) && $flag )
+    {
+        $_webservice_enabled = 1;
+    }
+    else
+    {
+        $_webservice_enabled = 0;
+    }
+}
+
 sub _load_and_return_crf_module()
 {
     unless ( $_active_crf_module )
     {
         my $module;
-        my $config = MediaWords::Util::Config->get_config();
 
-        if ( $config->{ crf_web_service }->{ enabled } eq 'yes' )
+        if ( $_webservice_enabled )
         {
             $module = 'CRF::CrfUtils::WebService';
         }
