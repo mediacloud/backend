@@ -15,9 +15,9 @@ class StorageTest(unittest.TestCase):
         db.createDatabase(self.TEST_DB_NAME)
         worked = db.addStoryFromSentences(story_sentences)
         self.assertTrue(worked)
-        saved_story = db.getStory(str(story_sentences[0]['stories_id']))
+        saved_story = db.getStory(story_sentences[0]['stories_id'])
         self.assertNotEqual(saved_story,None)
-        self.assertEquals(int(saved_story['_id']), story_sentences[0]['stories_id'])
+        self.assertEquals(saved_story['stories_id'], story_sentences[0]['stories_id'])
         self.assertEquals(saved_story['story_sentences_count'], 20)
         db.deleteDatabase(self.TEST_DB_NAME)
 
@@ -26,9 +26,9 @@ class StorageTest(unittest.TestCase):
         db.createDatabase(self.TEST_DB_NAME)
         worked = db.addStoryFromSentences(story_sentences, {'group':'test'})
         self.assertTrue(worked)
-        saved_story = db.getStory(str(story_sentences[0]['stories_id']))
+        saved_story = db.getStory(story_sentences[0]['stories_id'])
         self.assertNotEqual(saved_story,None)
-        self.assertEquals(int(saved_story['_id']), story_sentences[0]['stories_id'])
+        self.assertEquals(saved_story['stories_id'], story_sentences[0]['stories_id'])
         self.assertEquals(saved_story['story_sentences_count'], 20)
         self.assertEquals(saved_story['group'], 'test')
         db.deleteDatabase(self.TEST_DB_NAME)
@@ -41,9 +41,9 @@ class StorageTest(unittest.TestCase):
         worked = db.addStoryFromSentences(story_sentences)
         self.assertTrue(worked)
         # make sure it saved right
-        saved_story = db.getStory(str(story_sentences[0]['stories_id']))
+        saved_story = db.getStory(story_sentences[0]['stories_id'])
         self.assertNotEqual(saved_story,None)
-        self.assertEquals(int(saved_story['_id']), story_sentences[0]['stories_id'])
+        self.assertEquals(saved_story['stories_id'], story_sentences[0]['stories_id'])
         self.assertEquals(saved_story['story_sentences_count'], 20)
         self.assertEquals(len(saved_story['story_sentences']), 20)
         # load up second page of sentences in story
@@ -51,14 +51,14 @@ class StorageTest(unittest.TestCase):
         self.assertEquals(len(story_sentences),6)
         worked = db.addStoryFromSentences(story_sentences)
         # make sure update merged the sentences right
-        saved_story = db.getStory(str(story_sentences[0]['stories_id']))
+        saved_story = db.getStory(story_sentences[0]['stories_id'])
         self.assertEquals(len(saved_story['story_sentences']), 26)
         self.assertEquals(saved_story['story_sentences_count'], 26)
         # now add some extra attributes
         story_sentences = self._getFakeStorySentences(2)['207593389']
         self.assertEquals(len(story_sentences),6)
         worked = db.addStoryFromSentences(story_sentences, {'group':'test2'})
-        saved_story = db.getStory(str(story_sentences[0]['stories_id']))
+        saved_story = db.getStory(story_sentences[0]['stories_id'])
         self.assertEquals(len(saved_story['story_sentences']), 26)
         self.assertEquals(saved_story['story_sentences_count'], 26)
         self.assertEquals(saved_story['group'], 'test2')
@@ -69,16 +69,16 @@ class StorageTest(unittest.TestCase):
         # first save it normally
         worked = db.updateStory(story)
         self.assertTrue(worked)
-        saved_story = db.getStory(str(story['stories_id']))
+        saved_story = db.getStory(story['stories_id'])
         self.assertNotEqual(saved_story,None)
-        self.assertEquals(int(saved_story['_id']), story['stories_id'])
+        self.assertEquals(saved_story['stories_id'], story['stories_id'])
         self.assertEquals(saved_story['story_sentences_count'], 4)
         self.assertFalse('category' in saved_story)
         # now update it with new info and make sure it is still there
         worked = db.updateStory(story,{'category':'editorial'})
-        saved_story = db.getStory(str(story['stories_id']))
+        saved_story = db.getStory(story['stories_id'])
         self.assertNotEqual(saved_story,None)
-        self.assertEquals(int(saved_story['_id']), story['stories_id'])
+        self.assertEquals(saved_story['stories_id'], story['stories_id'])
         self.assertEquals(saved_story['story_sentences_count'], 4)
         self.assertTrue('category' in saved_story)
         db.deleteDatabase(self.TEST_DB_NAME)
@@ -102,9 +102,9 @@ class StorageTest(unittest.TestCase):
         self.assertTrue(worked)
         worked = db.addStory(story)
         self.assertFalse(worked)
-        saved_story = db.getStory(str(story['stories_id']))
+        saved_story = db.getStory(story['stories_id'])
         self.assertNotEqual(saved_story,None)
-        self.assertEquals(int(saved_story['_id']), story['stories_id'])
+        self.assertEquals(saved_story['stories_id'], story['stories_id'])
         self.assertEquals(saved_story['story_sentences_count'], 4)
         db.deleteDatabase(self.TEST_DB_NAME)
 
@@ -112,8 +112,8 @@ class StorageTest(unittest.TestCase):
         story = self._getFakeStory()
         db.createDatabase(self.TEST_DB_NAME)
         db.addStory(story)
-        saved_story = db.getStory(str(story['stories_id']))
-        self.assertTrue(db.storyExists(str(story['stories_id'])))
+        saved_story = db.getStory(story['stories_id'])
+        self.assertTrue(db.storyExists(story['stories_id']))
         self.assertFalse(db.storyExists('43223535'))
         db.deleteDatabase(self.TEST_DB_NAME)
 
@@ -136,35 +136,6 @@ class StorageTest(unittest.TestCase):
     def _getFakeStorySentences(self,page=1):
         my_file = open(os.path.dirname(os.path.realpath(__file__))+'/fixtures/sentences_by_story_'+str(page)+'.json', 'r')
         return json.loads( my_file.read() )
-
-class CouchStorageTest(StorageTest):
-
-    def testManageDatabase(self):
-        db = CouchStoryDatabase()
-        self._createThenDeleteDb(db)
-
-    def testAddStory(self):
-        db = CouchStoryDatabase()
-        self._addStoryToDb(db)
-
-    def testStoryExists(self):
-        db = CouchStoryDatabase()
-        self._checkStoryExistsInDb(db)
-
-    def testGetMaxStoryId(self):
-        db = CouchStoryDatabase()
-        self._testMaxStoryIdInDb(db)
-
-    def testStoryCount(self):
-        db = CouchStoryDatabase()
-        self._countStoriesInDb(db)
-
-    def testCreateMaxIdView(self):
-        db = CouchStoryDatabase()
-        db.createDatabase(self.TEST_DB_NAME)
-        db.initialize()
-        self.assertEquals(db.getMaxStoryId(),0)
-        db.deleteDatabase(self.TEST_DB_NAME)        
 
 class MongoStorageTest(StorageTest):
 

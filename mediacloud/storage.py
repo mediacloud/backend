@@ -34,7 +34,7 @@ class StoryDatabase(object):
         if not self.storyExists(stories_id):
             # if the story is new, save it all
             story_attributes = {
-                '_id': str(stories_id),
+                'stories_id': long(stories_id),
                 'media_id': story_sentences[0]['media_id'],
                 'publish_date': story_sentences[0]['publish_date'],
                 'language': story_sentences[0]['language'],
@@ -47,7 +47,7 @@ class StoryDatabase(object):
             story = self.getStory(stories_id)
             all_sentences = dict(story['story_sentences'].items() + sentences_by_number.items())
             story_attributes = {
-                '_id': str(stories_id),
+                'stories_id': long(stories_id),
                 'story_sentences': all_sentences,
                 'story_sentences_count': len(all_sentences)
             }
@@ -56,18 +56,18 @@ class StoryDatabase(object):
 
     def updateStory(self, story, extra_attributes={}):
         # if it is a new story, just add it normally
-        if not self.storyExists(str(story['stories_id'])):
+        if not self.storyExists(story['stories_id']):
             return self.addStory(story,extra_attributes)
         else:
             from pubsub import pub
             story_to_save = copy.deepcopy( story )
             story_to_save = dict(story_to_save.items() + extra_attributes.items())
-            story_to_save['_id'] = str(story['stories_id'])
+            story_to_save['stories_id'] = long(story['stories_id'])
             if 'story_sentences' in story:
                 story_to_save['story_sentences_count'] = len(story['story_sentences'])
             pub.sendMessage(self.EVENT_PRE_STORY_SAVE, db_story=story_to_save, raw_story=story)
             self._updateStory(story_to_save)
-            saved_story = self.getStory( str(story['stories_id']) )
+            saved_story = self.getStory( long(story['stories_id']) )
             pub.sendMessage(self.EVENT_POST_STORY_SAVE, db_story=saved_story, raw_story=story)
             logging.info('DB: Updated '+str(story['stories_id']))
 
@@ -77,17 +77,17 @@ class StoryDatabase(object):
         Return success or failure boolean.
         '''
         from pubsub import pub
-        if self.storyExists(str(story['stories_id'])):
+        if self.storyExists(story['stories_id']):
             logging.info('DB: Not saving '+str(story['stories_id'])+' - already exists')
             return False
         story_to_save = copy.deepcopy( story )
         story_to_save = dict(story_to_save.items() + extra_attributes.items())
-        story_to_save['_id'] = str(story['stories_id'])
+        story_to_save['_stories_id'] = long(story['stories_id'])
         if 'story_sentences' in story:
             story_to_save['story_sentences_count'] = len(story['story_sentences'])
         pub.sendMessage(self.EVENT_PRE_STORY_SAVE, db_story=story_to_save, raw_story=story)
         self._saveStory( story_to_save )
-        saved_story = self.getStory( str(story['stories_id']) )
+        saved_story = self.getStory( story['stories_id'] )
         pub.sendMessage(self.EVENT_POST_STORY_SAVE, db_story=saved_story, raw_story=story)
         logging.info('DB: Saved '+str(story['stories_id']))
         return True
@@ -138,32 +138,31 @@ class MongoStoryDatabase(StoryDatabase):
         self._db.stories.count();
 
     def storyExists(self, story_id):
-        story = self._db.stories.find_one( { "_id": int(story_id) } )
+        story = self.getStory(story_id)
         return story != None
 
     def _updateStory(self, story_attributes):
-        story_attributes['_id'] = int(story_attributes['_id'])
-        stories = self._db.stories
-        story_id = stories.save(story_attributes)
-        story = stories.find_one( { "_id": int(story_id) } )
+        story = self.getStory(story_attributes['stories_id'])
+        story_attributes['_id'] = story['_id']
+        story_id = self._db.stories.save(story_attributes)
+        story = self.getStory(story_attributes['stories_id'])
         return story
 
     def _saveStory(self, story_attributes):
-        story_attributes['_id'] = int(story_attributes['_id'])
-        stories = self._db.stories
-        story_id = stories.insert(story_attributes)
-        story = stories.find_one( { "_id": int(story_id) } )
+        story_db_id = self._db.stories.insert(story_attributes)
+        story = self.getStory(story_attributes['stories_id'])
         return story
 
     def getStory(self, story_id):
-        stories = self._db.stories
-        story = stories.find_one( { "_id": int(story_id) } )
-        return story
+        stories = self._db.stories.find( { "stories_id": long(story_id) } ).limit(1)
+        if stories.count()==0:
+            return None
+        return stories.next()
 
     def getMaxStoryId(self):
         max_story_id = 0
         if self._db.stories.count() > 0 :
-            max_story_id = self._db.stories.find().sort("_id",-1)[0]['_id']
+            max_story_id = self._db.stories.find().sort("stories_id",-1)[0]['stories_id']
         return int(max_story_id)
 
     def initialize(self):
@@ -172,75 +171,3 @@ class MongoStoryDatabase(StoryDatabase):
 
     def storyCount(self):
         return self._db['stories'].count()
-
-class CouchStoryDatabase(StoryDatabase):
-
-    def __init__(self, db_name=None, host='127.0.0.1', port=5984, username=None, password=None):
-        super(CouchStoryDatabase, self).__init__()
-        import couchdb
-        if (username is not None) and (password is not None):
-            url = "http://"+username+":"+password+"@"
-        else:
-            url = "http://"
-        url = url + host+":"+str(port)
-        self._server = couchdb.Server(url)
-        if db_name is not None:
-          self.selectDatabase(db_name)        
-
-    def initialize(self):
-        views = {
-          "_id": "_design/examples",
-          "language": "javascript",
-          "views": {
-                "max_story_id": {
-                    "map": "function(doc) { emit(doc._id,doc._id);}",
-                    "reduce": "function(keys, values) { var ids = [];  values.forEach(function(id) {if (!isNaN(id)) ids.push(id); }); return Math.max.apply(Math, ids); }"
-                },
-                "total_stories": {
-                    "map": "function(doc) { emit(null,1); }",
-                    "reduce": "function(keys, values) { return sum(values); }"
-                }
-          }
-        }
-        self._db.save(views)
-
-    def storyExists(self, story_id):
-        '''
-        Is this story id in the database already?
-        '''
-        try:
-            import couchdb
-            self._db[story_id]
-        except couchdb.ResourceNotFound:
-            return False
-        return True
-
-    def _saveStory(self, story_attributes):
-        self._db.save( story_attributes )
-        
-    def getStory(self, story_id):
-        '''
-        Return a story (python object)
-        '''
-        return self._db[story_id]
-
-    def selectDatabase(self, db_name):
-        self._db = self._server[db_name]
-
-    def createDatabase(self, db_name):
-        self._server.create(db_name)
-        self.selectDatabase(db_name)
-        
-    def deleteDatabase(self, db_name):
-        del self._server[db_name]
-        
-    def storyCount(self):
-        results = self._db.view('examples/total_stories')
-        return results.rows[0].value
-        
-    def getMaxStoryId(self):
-        results = self._db.view('examples/max_story_id')
-        max_story_id = 0
-        if( len(results.rows)==1 ):
-            max_story_id = results.rows[0].value
-        return max_story_id
