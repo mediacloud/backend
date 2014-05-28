@@ -180,10 +180,11 @@ sub _get_count_with_split
 {
     my ( $self, $c ) = @_;
 
-    my $q          = $c->req->params->{ 'q' };
-    my $fq         = $c->req->params->{ 'fq' };
-    my $start_date = $c->req->params->{ 'split_start_date' };
-    my $end_date   = $c->req->params->{ 'split_end_date' };
+    my $q           = $c->req->params->{ 'q' };
+    my $fq          = $c->req->params->{ 'fq' };
+    my $start_date  = $c->req->params->{ 'split_start_date' };
+    my $end_date    = $c->req->params->{ 'split_end_date' };
+    my $split_daily = $c->req->params->{ 'split_daily' };
 
     die( "must include split_start_date and split_end_date of split is true" ) unless ( $start_date && $end_date );
 
@@ -197,10 +198,11 @@ sub _get_count_with_split
 
     my $facet_date_gap;
 
-    if    ( $days < 15 )  { $facet_date_gap = '+1DAY' }
-    elsif ( $days < 45 )  { $facet_date_gap = '+3DAYS' }
-    elsif ( $days < 105 ) { $facet_date_gap = '+7DAYS' }
-    else                  { $facet_date_gap = '+1MONTH' }
+    if    ( $split_daily ) { $facet_date_gap = '+1DAY' }
+    elsif ( $days < 15 )   { $facet_date_gap = '+1DAY' }
+    elsif ( $days < 45 )   { $facet_date_gap = '+3DAYS' }
+    elsif ( $days < 105 )  { $facet_date_gap = '+7DAYS' }
+    else                   { $facet_date_gap = '+1MONTH' }
 
     my $params;
     $params->{ q }                  = $q;
@@ -210,6 +212,7 @@ sub _get_count_with_split
     $params->{ 'facet.date.gap' }   = $facet_date_gap;
     $params->{ 'facet.date.start' } = "${ start_date }T00:00:00Z";
     $params->{ 'facet.date.end' }   = "${ end_date }T00:00:00Z";
+    $params->{ 'facet.method' }     = 'enum';
 
     my $solr_response = MediaWords::Solr::query( $params );
 
