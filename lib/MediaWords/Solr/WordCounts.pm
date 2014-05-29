@@ -67,8 +67,10 @@ sub count_stems
 
         while ( $line =~ /(\w+)/g )
         {
-            my $word = $1;
-            $words->{ $word }++ if ( length( $word ) > 2 && ( $word =~ /[^\d]/ ) );
+            my $word           = $1;
+            my $word_no_digits = $word;
+            $word_no_digits =~ s/\d//g;
+            $words->{ $word }++ if ( length( $word_no_digits ) );
         }
     }
 
