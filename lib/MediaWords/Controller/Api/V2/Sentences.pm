@@ -35,7 +35,14 @@ Catalyst Controller.
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 
-__PACKAGE__->config( action_roles => [ 'NonPublicApiKeyAuthenticated' ], );
+__PACKAGE__->config(    #
+    action => {         #
+        single   => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
+        list     => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
+        put_tags => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
+        count    => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },       #
+      }    #
+);         #
 
 use MediaWords::Tagger;
 
@@ -44,7 +51,7 @@ sub get_table_name
     return "story_sentences";
 }
 
-sub list : Local : ActionClass('REST') : Does('~NonPublicApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
+sub list : Local : ActionClass('REST')
 {
     #say STDERR "starting Sentences/list";
 }
@@ -169,7 +176,7 @@ sub list_GET : Local
     $self->status_ok( $c, entity => $list );
 }
 
-sub count : Local : ActionClass('REST') : Does('~PublicApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
+sub count : Local : ActionClass('REST')
 {
 }
 
@@ -248,7 +255,7 @@ sub count_GET : Local
 }
 
 ##TODO merge with stories put_tags
-sub put_tags : Local : ActionClass('REST') : Does('~NonPublicApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
+sub put_tags : Local : ActionClass('REST')
 {
 }
 

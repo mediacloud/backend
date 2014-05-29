@@ -35,20 +35,26 @@ Catalyst Controller.
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::StoriesBase' }
 
-__PACKAGE__->config( action_roles => [ 'NonPublicApiKeyAuthenticated' ], );
+__PACKAGE__->config(    #
+    action => {         #
+        single   => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
+        list     => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
+        put_tags => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
+      }    #
+);         #
 
 use constant ROWS_PER_PAGE => 20;
 
 use MediaWords::Tagger;
 
-
-sub put_tags : Local : ActionClass('REST') : Does('~NonPublicApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
+sub put_tags : Local : ActionClass('REST')
 {
 }
 
 sub put_tags_PUT : Local
 {
     my ( $self, $c ) = @_;
+
     my $subset = $c->req->data;
 
     my $story_tag = $c->req->params->{ 'story_tag' };
