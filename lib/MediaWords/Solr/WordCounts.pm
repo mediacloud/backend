@@ -24,7 +24,7 @@ use MediaWords::Solr;
 use MediaWords::Util::Config;
 
 # max number of random sentences to fetch
-use constant MAX_RANDOM_SENTENCES => 1000;
+use constant MAX_RANDOM_SENTENCES => 2000;
 
 # number of words to return
 use constant NUM_RETURN_WORDS => 500;
@@ -67,7 +67,8 @@ sub count_stems
 
         while ( $line =~ /(\w+)/g )
         {
-            $words->{ $1 }++ if ( length( $1 ) > 2 );
+            my $word = $1;
+            $words->{ $word }++ if ( length( $word ) > 2 && ( $word =~ /[^\d]/ ) );
         }
     }
 

@@ -509,7 +509,7 @@
                and old cache.  
       -->
     <filterCache class="solr.FastLRUCache"
-                 size="512000"
+                 size="5120000"
                  initialSize="512000"
                  autowarmCount="512000"/>
 

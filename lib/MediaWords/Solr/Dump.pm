@@ -201,7 +201,7 @@ END
             print FILE encode( 'utf8', $csv->string . "\n" );
         }
 
-        print STDERR time . " " . ( $i * $FETCH_BLOCK_SIZE ) . "\n" if ( $i++ % 10 );
+        print STDERR time . " " . ( $i * $FETCH_BLOCK_SIZE ) . "\n" unless ( $i++ % 10 );
     }
 
     $dbh->do( "close csr" );
