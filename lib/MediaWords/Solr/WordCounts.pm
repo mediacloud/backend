@@ -70,7 +70,7 @@ sub count_stems
             my $word           = $1;
             my $word_no_digits = $word;
             $word_no_digits =~ s/\d//g;
-            $words->{ $word }++ if ( length( $word_no_digits ) );
+            $words->{ $word }++ if ( length( $word_no_digits ) > 2 );
         }
     }
 
