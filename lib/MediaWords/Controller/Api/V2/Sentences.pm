@@ -213,8 +213,6 @@ sub _get_count_with_split
     $params->{ 'facet.date.start' } = "${ start_date }T00:00:00Z";
     $params->{ 'facet.date.end' }   = "${ end_date }T00:00:00Z";
 
-    $params->{ 'facet.method' } = ( $days < 90 ) ? 'enum' : 'fc';
-
     my $solr_response = MediaWords::Solr::query( $params );
 
     return {
