@@ -32,17 +32,14 @@ sub _fatal_error($)
     CRF::CrfUtils::_fatal_error( $error_message );
 }
 
-sub _crf_server_url()
+my $_crf_server_url = 'http://127.0.0.1:8441/crf';
+
+say STDERR "CRF model runner web service URL: $_crf_server_url";
+
+sub set_webservice_url()
 {
-    my $config         = MediaWords::Util::Config->get_config();
-    my $crf_server_url = $config->{ crf_web_service }->{ server_url };
+    my ( $crf_server_url ) = @_;
 
-    unless ( $crf_server_url )
-    {
-        _fatal_error( "Unable to determine CRF model runner web service URL to use." );
-    }
-
-    # Validate URL
     my $uri;
     eval { $uri = URI->new( $crf_server_url )->canonical; };
     if ( $@ )
@@ -58,11 +55,8 @@ sub _crf_server_url()
         $uri->port( DEFAULT_CRF_PORT );
     }
 
-    return $uri->as_string;
+    $_crf_server_url = $uri->as_string;
 }
-
-my $_crf_server_url = _crf_server_url();
-say STDERR "CRF model runner web service URL: $_crf_server_url";
 
 #
 # CRF::CrfUtils "implementation"
