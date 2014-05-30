@@ -13,6 +13,8 @@ use Data::Dumper;
 
 use MediaWords::DB;
 use MediaWords::DBI::Downloads;
+use MediaWords::Util::HTML;
+use MediaWords::StoryVectors;
 
 sub get_extractor_results_for_story
 {
@@ -31,7 +33,7 @@ sub get_extractor_results_for_story
         $download_results->{ $download->{ downloads_id } } = $res;
     }
 
-    my $text = join( "\n****\n", map { $_->{ text } } values( %{ $download_results } ) );
+    my $text = join( "\n****\n", map { html_strip( $_->{ text } ) } values( %{ $download_results } ) );
 
     return {
         text             => $text,
@@ -52,7 +54,9 @@ sub main
 
     my $res = get_extractor_results_for_story( $db, $story );
 
-    print Dumper( $res );
+    say STDERR $res->{ text };
+
+    # print Dumper( $res );
 }
 
 main();

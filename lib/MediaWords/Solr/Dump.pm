@@ -148,7 +148,8 @@ declare csr cursor for
     select 
         ss.stories_id, 
         ss.media_id, 
-        to_char( publish_date, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') publish_date, 
+        to_char( date_trunc( 'minute', publish_date ), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') publish_date, 
+        to_char( date_trunc( 'hour', publish_date ), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') publish_day, 
         ss.story_sentences_id, 
         ss.sentence_number, 
         ss.sentence, 
@@ -161,7 +162,7 @@ declare csr cursor for
 END
 
     my $fields = [
-        qw/stories_id media_id publish_date story_sentences_id sentence_number sentence language
+        qw/stories_id media_id publish_date publish_day story_sentences_id sentence_number sentence language
           processed_stories_id media_sets_id tags_id_media tags_id_stories tags_id_story_sentences/
     ];
 

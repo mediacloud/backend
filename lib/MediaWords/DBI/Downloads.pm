@@ -23,7 +23,6 @@ use MediaWords::KeyValueStore::Tar;
 use Carp;
 use MediaWords::Util::ExtractorFactory;
 use MediaWords::Util::HeuristicExtractor;
-use MediaWords::Util::CrfExtractor;
 use MediaWords::GearmanFunction::AnnotateWithCoreNLP;
 
 # Database inline content length limit
