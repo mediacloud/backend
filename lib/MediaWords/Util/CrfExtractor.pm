@@ -14,6 +14,7 @@ use Text::Trim;
 use File::Spec;
 use File::Basename;
 use CRF::CrfUtils;
+use MediaWords::Util::Config;
 
 use Moose;
 
@@ -40,13 +41,28 @@ BEGIN
     $_model_file_name = get_path_to_extractor_model();
 
     #say STDERR "model_file: $_model_file_name";
+
+    my $config = MediaWords::Util::Config->get_config();
+
+    if ( $config->{ crf_web_service }->{ enabled } eq 'yes' )
+    {
+        CRF::CrfUtils::use_webservice( 1 );
+    }
+    else
+    {
+        CRF::CrfUtils::use_webservice( 0 );
+    }
+
+    my $crf_server_url = $config->{ crf_web_service }->{ server_url };
+
+    CRF::CrfUtils::set_webservice_url( $crf_server_url );
 }
 
 sub getScoresAndLines
 {
     my ( $self, $line_info, $preprocessed_lines ) = @_;
 
-    my $extracted_lines = get_extracted_lines_with_crf( $line_info, $preprocessed_lines );
+    my $extracted_lines = _get_extracted_lines_with_crf( $line_info, $preprocessed_lines );
 
     my $scores = [];
 
@@ -77,7 +93,7 @@ sub getExtractedLines
     return $scores_and_lines->{ included_line_numbers };
 }
 
-sub get_extracted_lines_with_crf
+sub _get_extracted_lines_with_crf
 {
     my ( $line_infos, $preprocessed_lines ) = @_;
 

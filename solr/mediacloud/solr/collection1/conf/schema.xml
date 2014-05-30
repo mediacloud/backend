@@ -117,6 +117,7 @@
    <field name="sentence"  type="text_general" indexed="true" stored="true" /> 
 
    <field name="publish_date" type="tdate" indexed="true" stored="false"/>
+   <field name="publish_day" type="tdate" indexed="true" stored="false"/>
 
    <!-- language field from the story_sentences table - 2 letter code -->
    <field name="language" type="string" indexed="true" stored="false"/>
