@@ -75,9 +75,11 @@ database:
         ### It is recommended to use Media Cloud-provided Gearman instance
         ### instead of relying on system's because of a persistent
         ### (PostgreSQL-backed) job queue and Supervisord logging facilities.
+        ### Default is a single server at "127.0.0.1:4731".
         #- "127.0.0.1:4731"
 
-    ### Worker log directory (optional; default is "Sys::Path->logdir . '/gjs/'")
+    ### Worker log directory (default is "data/gearman_worker_logs/"; if not
+    ### set, will fallback to Sys::Path->logdir . '/gjs/')
     #worker_log_dir: "data/gearman_worker_logs/"
 
     ### Email notifications
@@ -87,29 +89,31 @@ database:
         #emails:
         #    - "jdoe@cyber.law.harvard.edu"
 
-        ### "From:" address (optional; default is "gjs_donotreply@example.com")
+        ### "From:" address (default is "noreply@mediacloud.org"; if not set,
+        ### will fallback to "gjs_donotreply@example.com")
         #from_address: "gjs@mediacloud.org"
 
-        ### Email subject prefix (optional; default is "[GJS]")
+        ### Email subject prefix (default is "[GJS]"; if not set, will fallback
+        ### to an empty string)
         #subject_prefix: "[GJS]"
                 
 
 ### Gearman server (gearmand) configuration
 #gearmand:
 
-    ### To enable your very own "gearmand" instance managed by Supervisord, set
-    ### the below to "yes"
-    #enabled: "no"
+    ### To disable your very own "gearmand" instance managed by Supervisord,
+    ### set the below to "no". Default is "yes".
+    #enabled: "yes"
 
     ### Host to listen to. You can set the above parameter to an empty string
     ### so that Gearman will accept connections from anywhere; however, it is
     ### highly advised use secure channels (e.g. a SSH tunnel) to make Gearman
-    ### accessible to "outside" instead.
+    ### accessible to "outside" instead. Default is "127.0.0.1".
     #listen: "127.0.0.1"
 
     ### Port to use in gearmand. Default port for vendor-provided Gearman
     ### deployments is 4730, but Media Cloud runs its own Gearman instance via
-    ### Supervisord.
+    ### Supervisord. Default is 4731.
     #port: 4731
 
 ### Supervisor (supervisord) configuration
