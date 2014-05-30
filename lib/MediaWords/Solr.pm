@@ -82,16 +82,73 @@ sub query_encoded_json
     $ua->timeout( 300 );
     $ua->max_size( undef );
 
-    print STDERR "executing solr query on $url ...\n" if ( $ENV{ MC_SOLR_TRACE } );
-    print STDERR Dumper( $params ) if ( $ENV{ MC_SOLR_TRACE } );
+    if ( $ENV{ MC_SOLR_TRACE } )
+    {
+        say STDERR "executing Solr query on $url ...";
+        say STDERR Dumper( $params );
+    }
 
     my $t0 = [ gettimeofday ];
 
     my $res = $ua->post( $url, $params );
 
-    print STDERR "query returned in " . tv_interval( $t0, [ gettimeofday ] ) . "s.\n" if ( $ENV{ MC_SOLR_TRACE } );
+    if ( $ENV{ MC_SOLR_TRACE } )
+    {
+        say STDERR "query returned in " . tv_interval( $t0, [ gettimeofday ] ) . "s.";
+    }
 
-    die( "Error fetching solr response: " . $res->as_string ) unless ( $res->is_success );
+    unless ( $res->is_success )
+    {
+        my $error_message;
+
+        if ( MediaWords::Util::Web::response_error_is_client_side( $res ) )
+        {
+
+            # LWP error (LWP wasn't able to connect to the server or something like that)
+            $error_message = 'LWP error: ' . $res->decoded_content;
+
+        }
+        else
+        {
+
+            my $status_code = $res->code;
+            if ( $status_code =~ /^4\d\d$/ )
+            {
+                # Client error - set default message
+                $error_message = 'Client error: ' . $res->status_line . ' ' . $res->decoded_content;
+
+                # Parse out Solr error message if there is one
+                my $solr_response_maybe_json = $res->decoded_content;
+                if ( $solr_response_maybe_json )
+                {
+                    my $solr_response_json;
+
+                    eval { $solr_response_json = decode_json( $solr_response_maybe_json ) };
+                    unless ( $@ )
+                    {
+                        if (    exists( $solr_response_json->{ error }->{ msg } )
+                            and exists( $solr_response_json->{ responseHeader }->{ params } ) )
+                        {
+                            my $solr_error_msg = $solr_response_json->{ error }->{ msg };
+                            my $solr_params    = encode_json( $solr_response_json->{ responseHeader }->{ params } );
+
+                            # If we were able to decode Solr error message, overwrite the default error message with it
+                            $error_message = 'Solr error: "' . $solr_error_msg . '", params: ' . $solr_params;
+                        }
+                    }
+                }
+
+            }
+            elsif ( $status_code =~ /^5\d\d/ )
+            {
+                # Server error or some other error
+                $error_message = 'Server / other error: ' . $res->status_line . ' ' . $res->decoded_content;
+            }
+
+        }
+
+        die "Error fetching Solr response: $error_message";
+    }
 
     return $res->content;
 }
