@@ -147,7 +147,6 @@ sub query_encoded_json
 
         }
 
-        $c->response->status( $res->code );
         die "Error fetching Solr response: $error_message";
     }
 
