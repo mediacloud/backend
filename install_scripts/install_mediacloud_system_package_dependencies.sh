@@ -75,7 +75,7 @@ EOF
         graphviz --with-bindings \
         coreutils curl homebrew/dupes/tidy libyaml berkeley-db4 gawk cpanminus \
         gearman --with-postgresql \
-        maven
+        maven mongodb
 
     # have to change dir or it think you are trying to install from the supervisor/ dir
     ( cd /tmp; easy_install supervisor )
@@ -102,6 +102,17 @@ EOF
 else
 
     # assume Ubuntu
+
+    # Add 10gen repository
+    MONGODB_10GEN_REPO="deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen"
+    APT_SOURCES_MONGODB="/etc/apt/sources.list.d/mongodb.list"
+    if ! grep -q "$MONGODB_10GEN_REPO" "$APT_SOURCES_MONGODB"; then
+        echo "Adding MongoDB 10gen repository..."
+        sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
+        echo "$MONGODB_10GEN_REPO" > "$APT_SOURCES_MONGODB"
+        sudo apt-get update
+    fi
+    # Install dependencies
     sudo apt-get --assume-yes install \
         expat libexpat1-dev libxml2-dev gawk postgresql-server-dev-all \
         libdb-dev libtest-www-mechanize-perl libtidy-dev \
@@ -112,13 +123,13 @@ else
         python-lxml-dbg python-lxml-doc python-libxml2 libxml2-dev \
         libxslt1-dev libxslt1-dbg libxslt1.1 build-essential make gcc g++ \
         cpanminus perl-doc liblocale-maketext-lexicon-perl openjdk-7-jdk \
-        pandoc gearman libgearman-dev maven
 
     # Apt's version of Supervisor is too old
     sudo apt-get remove -y supervisor
 
     # Apt's version of Vagrant is too old
     sudo apt-get remove -y vagrant
+        pandoc gearman libgearman-dev maven mongodb-10gen
     
     # have to change dir or it think you are trying to install from the supervisor/ dir
     ( cd /tmp; sudo easy_install supervisor ) 
