@@ -5,9 +5,14 @@ addons:
     hosts:
         - mediacloud.local
 install:
+    # Run "update" before "upgrade" in order to fix the "Unable to fetch some
+    # archives, maybe run apt-get update or try with --fix-missing?" error:
     - sudo apt-get -y update
+    # Upgrade packages:
     - sudo apt-get -y upgrade
     - sudo apt-get -y update
+    # Install Media Cloud and dependencies:
     - MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM=1 ./install.sh
 script:
+    # Run Media Cloud's test suite
     - ./script/run_test_suite.sh
