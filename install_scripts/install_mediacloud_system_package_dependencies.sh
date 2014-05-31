@@ -104,12 +104,11 @@ else
     # assume Ubuntu
 
     # Add 10gen repository
-    MONGODB_10GEN_REPO="deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen"
     APT_SOURCES_MONGODB="/etc/apt/sources.list.d/mongodb.list"
-    if ! grep -q "$MONGODB_10GEN_REPO" "$APT_SOURCES_MONGODB"; then
+    if [ ! -f "$APT_SOURCES_MONGODB" ]; then
         echo "Adding MongoDB 10gen repository..."
         sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
-        echo "$MONGODB_10GEN_REPO" > "$APT_SOURCES_MONGODB"
+        echo "deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen" | sudo tee -a "$APT_SOURCES_MONGODB"
         sudo apt-get update
     fi
 
