@@ -367,9 +367,44 @@ sub _get_tags_id
     return;
 }
 
+# given a hash in the form { $id => [ $tags_id, ... ] }, for each
+# distinct tag_set associated with the listed tags for a story/sentence, clear
+# all other tags in that tag set from the story/sentence
+sub _clear_tags
+{
+    my ( $self, $c, $tags_map ) = @_;
+
+    my $tags_map_table = $self->get_table_name() . '_tags_map';
+    my $table_id_name  = $self->get_table_name() . '_id';
+
+    while ( my ( $id, $tags_ids ) = each( %{ $tags_map } ) )
+    {
+        my $tags_ids_list = join( ',', @{ $tags_ids } );
+        $c->dbis->query( <<END, $id );
+delete from $tags_map_table stm
+    using tags keep_tags, tags delete_tags
+    where
+        keep_tags.tags_id in ( $tags_ids_list ) and
+        keep_tags.tag_sets_id = delete_tags.tag_sets_id and
+        delete_tags.tags_id not in ( $tags_ids_list ) and
+        stm.tags_id = delete_tags.tags_id and
+        stm.$table_id_name = ?
+END
+    }
+}
+
+# add tags from the $story_tags list in the form '<id>,<tag_set>:<tag>'
+# to the given story or sentence.  if $c->req->param( 'clear_tags' ) is true,
+# for each combination of id and tag_set, clear all tags not
+# assigned in this request
 sub _add_tags
 {
     my ( $self, $c, $story_tags ) = @_;
+
+    my $clear_tags_map = {};
+
+    my $tags_map_table = $self->get_table_name() . '_tags_map';
+    my $table_id_name  = $self->get_table_name() . '_id';
 
     foreach my $story_tag ( @$story_tags )
     {
@@ -382,9 +417,6 @@ sub _add_tags
         $self->_die_unless_tag_set_matches_user_email( $c, $tags_id );
 
         # say STDERR "$id, $tags_id";
-
-        my $tags_map_table = $self->get_table_name() . '_tags_map';
-        my $table_id_name  = $self->get_table_name() . '_id';
 
         my $query = <<END;
 INSERT INTO $tags_map_table ( $table_id_name, tags_id) 
@@ -400,6 +432,13 @@ END
         # say STDERR $query;
 
         $c->dbis->query( $query, $id, $tags_id );
+
+        push( @{ $clear_tags_map->{ $id } }, $tags_id );
+    }
+
+    if ( $c->req->params->{ clear_tags } )
+    {
+        $self->_clear_tags( $c, $clear_tags_map );
     }
 }
 

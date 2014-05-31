@@ -21,7 +21,7 @@ use List::Util qw(min);
 use Memoize;
 use Tie::Cache;
 
-use constant MAX_SEGMENT_LENGTH => 14000;
+use constant MAX_SEGMENT_LENGTH => 14000000;
 
 # Cache output of html_strip() because it is likely that it is going to be called multiple times from extractor
 my %_html_strip_cache;
@@ -36,59 +36,9 @@ memoize 'html_strip', SCALAR_CACHE => [ HASH => \%_html_strip_cache ];
 # use HTML::StripPP instead of HTML::Strip b/c HTML::Strip mucks up the encoding
 sub html_strip($)
 {
-    my $html = shift;
+    my ( $html ) = @_;
 
-    unless ( defined( $html ) )
-    {
-        return '';
-    }
-
-    my $html_length = length( $html );
-
-    if ( ( $html_length > MAX_SEGMENT_LENGTH ) )
-    {
-        my $str_pos = 0;
-
-        my $ret;
-
-        while ( $str_pos < $html_length )
-        {
-            my $new_line_pos = index( $html, "\n", $str_pos + 5000 );
-
-            my $new_line_segment_length;
-
-            if ( $new_line_pos == -1 )
-            {
-                $new_line_segment_length = MAX_SEGMENT_LENGTH;
-            }
-            else
-            {
-                $new_line_segment_length = $new_line_pos - $str_pos;
-            }
-
-            my $segment_length = min( $new_line_segment_length, MAX_SEGMENT_LENGTH );
-
-            my $token_end_pos = index( $html, '>', $str_pos + 5000 ) + 1;
-
-            my $token_boundary_segment_length;
-
-            if ( $token_end_pos == 0 )
-            {
-                $token_boundary_segment_length = MAX_SEGMENT_LENGTH;
-            }
-            else
-            {
-                $token_boundary_segment_length = $token_end_pos - $str_pos;
-            }
-
-            $segment_length = min( $segment_length, $token_boundary_segment_length );
-
-            $ret .= HTML::StripPP::strip( substr( $html, $str_pos, $segment_length ) );
-            $str_pos += $segment_length;
-        }
-
-        return $ret;
-    }
+    return '' unless ( defined( $html ) );
 
     return HTML::StripPP::strip( $html ) || '';
 }

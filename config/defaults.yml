@@ -11,6 +11,8 @@ Plugin::Authentication:
         store:
             class: MediaWords
 gearman:
+    servers:
+        - "127.0.0.1:4731"
     notifications:
         emails: []
         from_address: gjs@mediacloud.org
@@ -40,7 +42,7 @@ mediawords:
 supervisor:
     childlogdir: data/supervisor_logs/
 gearmand:
-    enabled: no
+    enabled: yes
     listen: 127.0.0.1
     port: 4731
 corenlp:
