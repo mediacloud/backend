@@ -57,6 +57,6 @@ JAVA_HOME=$JAVA_HOME ./script/run_carton.sh install --deployment || {
     JAVA_HOME=$JAVA_HOME ./script/run_carton.sh install --deployment
 }
 
-JAVA_HOME=$JAVA_HOME ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ https://github.com/dlarochelle/Mallet-CrfWrapper/tarball/master
+JAVA_HOME=$JAVA_HOME ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ https://github.com/dlarochelle/Mallet-CrfWrapper/tarball/dist
 
 echo "Successfully installed Perl and modules for Media Cloud"
