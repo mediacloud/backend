@@ -8,8 +8,11 @@ install:
     # Upgrade packages:
     - sudo apt-get -y update
     - sudo apt-get -y upgrade
+    # Create + switch to the Media Cloud's Perlbrew library
+    - perlbrew lib create mediacloud
+    - perlbrew switch @mediacloud
     # Install Media Cloud and dependencies:
-    - MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM=1 travis_wait ./install.sh
+    - TRAVIS_SKIP_INSTALL_MC_PERLBREW=1 MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM=1 ./install.sh
 script:
     # Run Media Cloud's test suite
     - ./script/run_test_suite.sh
