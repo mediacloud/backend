@@ -112,6 +112,23 @@ else
         echo "$MONGODB_10GEN_REPO" > "$APT_SOURCES_MONGODB"
         sudo apt-get update
     fi
+
+    # Apt's versions of Supervisor, Vagrant, MongoDB are too old
+    OBSOLETE_APT_PACKAGES=(supervisor vagrant mongodb)
+    for obsolete_package in "${OBSOLETE_APT_PACKAGES[@]}"; do
+        dpkg -s "$obsolete_package" >/dev/null 2>&1 && {
+            echo "Installed package '$obsolete_package' from APT is too old."
+            echo "Please remove it manually by running:"
+            echo
+            echo "    sudo apt-get remove -y $obsolete_package"
+            echo
+            echo "and then rerun this script. I will then install an up-to-date"
+            echo "version of '$obsolete_package'."
+
+            exit 1
+        }
+    done
+
     # Install dependencies
     sudo apt-get --assume-yes install \
         expat libexpat1-dev libxml2-dev gawk postgresql-server-dev-all \
@@ -123,12 +140,6 @@ else
         python-lxml-dbg python-lxml-doc python-libxml2 libxml2-dev \
         libxslt1-dev libxslt1-dbg libxslt1.1 build-essential make gcc g++ \
         cpanminus perl-doc liblocale-maketext-lexicon-perl openjdk-7-jdk \
-
-    # Apt's version of Supervisor is too old
-    sudo apt-get remove -y supervisor
-
-    # Apt's version of Vagrant is too old
-    sudo apt-get remove -y vagrant
         pandoc gearman libgearman-dev maven mongodb-10gen
     
     # have to change dir or it think you are trying to install from the supervisor/ dir
