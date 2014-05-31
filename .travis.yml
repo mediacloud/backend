@@ -1,0 +1,11 @@
+language: perl
+perl:
+    - "5.16"
+addons:
+    hosts:
+        - mediacloud.local
+install:
+    - apt-get -y upgrade
+    - sudo MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM=1 ./install.sh
+script:
+    - ./script/run_test_suite.sh
