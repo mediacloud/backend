@@ -9,7 +9,7 @@ install:
     - sudo apt-get -y update
     - sudo apt-get -y upgrade
     # Install Media Cloud and dependencies:
-    - MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM=1 USE_TRAVIS_WAIT=1 ./install.sh
+    - MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM=1 travis_wait ./install.sh
 script:
     # Run Media Cloud's test suite
     - ./script/run_test_suite.sh
