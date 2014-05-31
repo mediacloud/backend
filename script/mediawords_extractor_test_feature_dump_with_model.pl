@@ -37,7 +37,7 @@ use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 use File::Temp qw/ tempfile tempdir /;
 
-use CRF::CrfUtils;
+use Mallet::CrfWrapper;
 
 sub get_predictions_separate_exec
 {
@@ -59,9 +59,9 @@ sub get_predictions
 {
     my ( $_model_file, $current_file_lines ) = @_;
 
-    #my $predictions = CRF::CrfUtils::run_model_with_separate_exec( $_model_file, $current_file_lines );
+    #my $predictions = Mallet::CrfWrapper::run_model_with_separate_exec( $_model_file, $current_file_lines );
 
-    my $predictions = CRF::CrfUtils::run_model_inline_java_data_array( $_model_file, $current_file_lines );
+    my $predictions = Mallet::CrfWrapper::run_model_inline_java_data_array( $_model_file, $current_file_lines );
 
     #my $predictions = get_predictions_separate_exec( $_model_file, $current_file_lines );
 
