@@ -62,9 +62,9 @@ sub _set_last_num_found
 # execute a query on the solr server using the given params.
 # return the raw encoded json from solr.  return a maximum of
 # 1 million sentences.
-sub query_encoded_json
+sub query_encoded_json($;$)
 {
-    my ( $params ) = @_;
+    my ( $params, $c ) = @_;
 
     $params->{ wt } = 'json';
     $params->{ rows } //= 1000;
@@ -147,6 +147,11 @@ sub query_encoded_json
 
         }
 
+        if ( $c )
+        {
+            # Set HTTP status code if Catalyst object is present
+            $c->response->status( $res->code );
+        }
         die "Error fetching Solr response: $error_message";
     }
 
@@ -155,11 +160,11 @@ sub query_encoded_json
 
 # execute a query on the solr server using the given params.
 # return a hash generated from the json results
-sub query
+sub query($;$)
 {
-    my ( $params ) = @_;
+    my ( $params, $c ) = @_;
 
-    my $json = query_encoded_json( $params );
+    my $json = query_encoded_json( $params, $c );
 
     my $data;
     eval { $data = decode_json( $json ) };
