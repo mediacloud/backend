@@ -5,7 +5,7 @@ addons:
     hosts:
         - mediacloud.local
 install:
-    - apt-get -y upgrade
-    - sudo MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM=1 ./install.sh
+    - sudo apt-get -y upgrade
+    - MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM=1 ./install.sh
 script:
     - ./script/run_test_suite.sh
