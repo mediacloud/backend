@@ -57,8 +57,7 @@ JAVA_HOME=$JAVA_HOME ./script/run_carton.sh install --deployment || {
     JAVA_HOME=$JAVA_HOME ./script/run_carton.sh install --deployment
 }
 
-# Updated version of Mallet-CrfWrapper; update to
-# https://github.com/dlarochelle/Mallet-CrfWrapper when needed
-JAVA_HOME=$JAVA_HOME ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ https://github.com/pypt/p5-Mallet-CrfWrapper/tarball/0.02
+# Mallet-CrfWrapper
+JAVA_HOME=$JAVA_HOME ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ https://github.com/dlarochelle/Mallet-CrfWrapper/tarball/0.02
 
 echo "Successfully installed Perl and modules for Media Cloud"
