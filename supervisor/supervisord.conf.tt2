@@ -74,7 +74,7 @@ programs = crawler,crf_web_service
 
 [% INCLUDE program_config
     program='crf_web_service'
-    command='bash ./lib/CRF/java/CrfUtils/crfutils_wrapper.sh'
+    command='bash ./script/crfwebservice_wrapper.sh'
     default_autorestart='true'
     default_autostart='false'
     priority=5
