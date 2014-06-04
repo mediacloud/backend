@@ -73,7 +73,7 @@ EOF
 
     brew install \
         graphviz --with-bindings \
-        coreutils curl tidy libyaml berkeley-db4 gawk cpanminus \
+        coreutils curl homebrew/dupes/tidy libyaml berkeley-db4 gawk cpanminus \
         gearman --with-postgresql \
         maven
 
