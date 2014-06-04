@@ -62,21 +62,11 @@ sub getScoresAndLines
 {
     my ( $self, $line_info, $preprocessed_lines ) = @_;
 
-    my $extracted_lines = _get_extracted_lines_with_crf( $line_info, $preprocessed_lines );
+    my $scores = _get_extracted_lines_with_crf( $line_info, $preprocessed_lines );
 
-    my $scores = [];
+    my @extracted_lines = map { $_->{ line_number } } grep { $_->{ is_story } } @{ $scores };
 
-    my %extracted_lines_hash = map { $_ => 1 } @{ $extracted_lines };
-
-    foreach my $line ( @{ $line_info } )
-    {
-        my $score = {};
-
-        $score->{ line_number } = $line->{ line_number };
-        $score->{ is_story } = defined( $extracted_lines_hash{ $line->{ line_number } } ) ? 1 : 0;
-
-        push $scores, $score;
-    }
+    my $extracted_lines = \@extracted_lines;
 
     return {
         included_line_numbers => $extracted_lines,
@@ -134,15 +124,24 @@ sub _get_extracted_lines_with_crf
         die "Prediction count is bigger than the line info count.\n";
     }
 
+    my $scores = [];
+
     while ( $line_index < scalar( @{ $line_infos } ) )
     {
+        my $score;
+
         if ( $line_infos->[ $line_index ]->{ auto_excluded } )
         {
+            $score->{ is_story }     = 0;
+            $score->{ autoexcluded } = 1;
             $line_index++;
+            push $scores, $score;
             next;
         }
 
         my $prediction = rtrim $predictions->[ $prediction_index ];
+
+        $score->{ predicted_class } = $prediction;
 
         unless ( $prediction eq 'excluded' or $prediction eq 'required' or $prediction eq 'optional' )
         {
@@ -154,12 +153,30 @@ sub _get_extracted_lines_with_crf
         if ( $prediction ne 'excluded' )
         {
             push @extracted_lines, $line_infos->[ $line_index ]->{ line_number };
+            $score->{ is_story } = 1;
         }
+        else
+        {
+            $score->{ is_story } = 0;
+        }
+
+        $score->{ probabilities } = $results->[ $prediction_index ]->{ probabilities };
+
+        my $exclude_probability = $score->{ probabilities }->{ excluded };
+
+        die "Invalid exclude_probability " unless $exclude_probability >= 0 and $exclude_probability <= 1.0;
+
+        my $include_probability = 1.0 - $exclude_probability;
+
+        $score->{ include_probability } = $include_probability;
+
         $line_index++;
         $prediction_index++;
+
+        push $scores, $score;
+
     }
 
-    my $extracted_lines = \@extracted_lines;
-    return $extracted_lines;
+    return $scores;
 }
 1;
