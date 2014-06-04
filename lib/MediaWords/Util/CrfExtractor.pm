@@ -13,7 +13,7 @@ use IPC::Open2;
 use Text::Trim;
 use File::Spec;
 use File::Basename;
-use CRF::CrfUtils;
+use Mallet::CrfWrapper;
 use MediaWords::Util::Config;
 
 use Moose;
@@ -46,16 +46,16 @@ BEGIN
 
     if ( $config->{ crf_web_service }->{ enabled } eq 'yes' )
     {
-        CRF::CrfUtils::use_webservice( 1 );
+        Mallet::CrfWrapper::use_webservice( 1 );
     }
     else
     {
-        CRF::CrfUtils::use_webservice( 0 );
+        Mallet::CrfWrapper::use_webservice( 0 );
     }
 
     my $crf_server_url = $config->{ crf_web_service }->{ server_url };
 
-    CRF::CrfUtils::set_webservice_url( $crf_server_url );
+    Mallet::CrfWrapper::set_webservice_url( $crf_server_url );
 }
 
 sub getScoresAndLines
@@ -108,7 +108,7 @@ sub _get_extracted_lines_with_crf
 
     #say STDERR "using model file: '$model_file_name'";
 
-    my $results = CRF::CrfUtils::run_model_inline_java_data_array( $model_file_name, $feature_strings );
+    my $results = Mallet::CrfWrapper::run_model_inline_java_data_array( $model_file_name, $feature_strings );
 
     my $predictions = [ map { $_->{ prediction } } @$results ];
 

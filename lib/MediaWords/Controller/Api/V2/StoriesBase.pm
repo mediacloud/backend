@@ -35,8 +35,6 @@ Catalyst Controller.
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 
-#__PACKAGE__->config( action_roles => [ 'NonPublicApiKeyAuthenticated' ], );
-
 use constant ROWS_PER_PAGE => 20;
 
 use MediaWords::Tagger;

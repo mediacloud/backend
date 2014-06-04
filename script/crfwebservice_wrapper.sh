@@ -3,14 +3,16 @@
 # Die on error
 set -e
 
+# Configuration
+POM_PATH="local/lib/perl5/Mallet/java/CrfUtils/pom.xml"
+CRF_EXTRACTOR_MODEL_PATH="lib/MediaWords/Util/models/crf_extractor_model"
+
 PWD="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-MC_ROOT="$PWD/../../../../"
+MC_ROOT="$PWD/../"
 QUERY_CONFIG="$MC_ROOT/script/run_with_carton.sh $MC_ROOT/script/mediawords_query_config.pl"
 
-# 'cd' to where the Maven project resides (same location as the wrapper script)
-cd "$PWD/"
-
+cd "$MC_ROOT"
 
 
 log() {
@@ -58,6 +60,24 @@ if ! maven_is_installed; then
     exit 1
 fi
 
+if [ ! -f "$CRF_EXTRACTOR_MODEL_PATH" ]; then
+    log "Extractor model at path:"
+    log ""
+    log "    $CRF_EXTRACTOR_MODEL_PATH"
+    log ""
+    log "is unavailable."
+    exit 1
+fi
+
+if [ ! -f "$POM_PATH" ]; then
+    log "Maven POM file at path:"
+    log ""
+    log "    $POM_PATH"
+    log ""
+    log "is unavailable."
+    exit 1
+fi
+
 echo "Reading configuration..."
 CRF_LISTEN=`$QUERY_CONFIG "//crf_web_service/listen"`
 CRF_NUMBER_OF_THREADS=`$QUERY_CONFIG "//crf_web_service/number_of_threads"`
@@ -67,6 +87,8 @@ if [[ ! -z "$CRF_LISTEN" ]]; then
     MVN_PARAMS="$MVN_PARAMS -Dcrf.httpListen=$CRF_LISTEN"
 fi
 MVN_PARAMS="$MVN_PARAMS -Dcrf.numberOfThreads=$CRF_NUMBER_OF_THREADS"
+MVN_PARAMS="$MVN_PARAMS -Dcrf.extractorModelPath=$CRF_EXTRACTOR_MODEL_PATH"
 
 echo "Executing: mvn $MVN_PARAMS"
-exec mvn $MVN_PARAMS
+cd "$MC_ROOT/"
+exec mvn -f "$POM_PATH" $MVN_PARAMS

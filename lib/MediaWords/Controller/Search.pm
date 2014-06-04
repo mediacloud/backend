@@ -21,6 +21,13 @@ Catalyst Controller for basic story search page
 
 =cut
 
+__PACKAGE__->config(    #
+    action => {         #
+        index => { Does => [ qw( ~Throttled ~Logged ) ] },    #
+        wc    => { Does => [ qw( ~Throttled ~Logged ) ] },    #
+      }    #
+);         #
+
 # get tag_sets_id for collection: tag set
 sub _get_collection_tag_sets_id
 {
@@ -100,7 +107,7 @@ END
 }
 
 # search for stories using solr and return either a sampled list of stories in html or the full list in csv
-sub index : Path : Args(0) : Does('~Throttled') : Does('~Logged')
+sub index : Path : Args(0)
 {
     my ( $self, $c ) = @_;
 
@@ -169,7 +176,7 @@ sub index : Path : Args(0) : Does('~Throttled') : Does('~Logged')
 }
 
 # print word cloud of search results
-sub wc : Local : Does('~Throttled') : Does('~Logged')
+sub wc : Local
 {
     my ( $self, $c ) = @_;
 
