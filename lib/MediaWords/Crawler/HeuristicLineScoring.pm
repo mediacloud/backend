@@ -235,6 +235,19 @@ sub _score_lines_with_line_info($)
         $score->{ is_story }                = ( $discounted_html_density < MAX_HTML_DENSITY ) || 0;
         $score->{ line_number }             = $i;
 
+        my $include_probability;
+
+        if ( $discounted_html_density < MAX_HTML_DENSITY )
+        {
+            $include_probability = 1 - ( $discounted_html_density / MAX_HTML_DENSITY ) * 0.5;
+        }
+        else
+        {
+            $include_probability = 0.5 * ( MAX_HTML_DENSITY / $discounted_html_density );
+        }
+
+        $score->{ include_probability } = $include_probability;
+
         if ( $score->{ is_story } )
         {
             $last_story_line = $i;
