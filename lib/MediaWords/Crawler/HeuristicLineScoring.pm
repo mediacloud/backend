@@ -234,6 +234,7 @@ sub _score_lines_with_line_info($)
         $score->{ explanation }             = $explanation                                    || '';
         $score->{ is_story }                = ( $discounted_html_density < MAX_HTML_DENSITY ) || 0;
         $score->{ line_number }             = $i;
+        $score->{ autoexcluded }            = $line_info->{ auto_excluded };
 
         my $include_probability;
 
