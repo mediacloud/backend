@@ -235,12 +235,12 @@ sub fetch_content($$)
 
     unless ( exists $download->{ downloads_id } )
     {
-        carp "fetch_content called with invalid download";
+        croak "fetch_content called with invalid download";
     }
 
     unless ( grep { $_ eq $download->{ state } } ( 'success', 'extractor_error' ) )
     {
-        carp "attempt to fetch content for unsuccessful download $download->{ downloads_id }  / $download->{ state }";
+        croak "attempt to fetch content for unsuccessful download $download->{ downloads_id }  / $download->{ state }";
     }
 
     my $store = _download_store_for_reading( $download );
