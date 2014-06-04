@@ -35,7 +35,7 @@ use constant ROWS_PER_PAGE => 20;
 
 use MediaWords::Tagger;
 
-sub _purge_extra_fields :
+sub _purge_extra_fields
 {
     my ( $self, $obj ) = @_;
 
@@ -56,7 +56,7 @@ sub _purge_extra_fields_obj_list
     return [ map { $self->_purge_extra_fields( $_ ) } @{ $list } ];
 }
 
-sub _purge_non_permissible_fields :
+sub _purge_non_permissible_fields
 {
     my ( $self, $obj ) = @_;
 
@@ -140,7 +140,7 @@ sub _process_result_list
     return $items;
 }
 
-sub single : Local : ActionClass('REST') : Does('~PublicApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
+sub single : Local : ActionClass('REST')    # action roles are to be set for each derivative sub-actions
 {
 }
 
@@ -249,7 +249,7 @@ sub _get_list_last_id_param_name
     return $last_id_param_name;
 }
 
-sub list : Local : ActionClass('REST') : Does('~PublicApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
+sub list : Local : ActionClass('REST')    # action roles are to be set for each derivative sub-actions
 {
 }
 

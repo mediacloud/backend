@@ -12,6 +12,13 @@ use namespace::autoclean;
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 
+__PACKAGE__->config(    #
+    action => {         #
+        single => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
+        list   => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
+      }    #
+);         #
+
 sub get_table_name
 {
     return "tag_sets";

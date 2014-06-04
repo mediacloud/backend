@@ -93,6 +93,7 @@ use Term::Prompt;
 use MediaWords::DBI::Auth;
 use MediaWords::Util::Config;
 use Term::ReadKey;
+use Data::Dumper;
 
 # Helper to read passwords from CLI without showing them
 # (http://stackoverflow.com/a/701234/200603 plus http://search.cpan.org/dist/TermReadKey/ReadKey.pm)
@@ -475,13 +476,15 @@ sub user_show($)
         return 1;
     }
 
-    say "User ID:\t" . $db_user->{ auth_users_id };
-    say "Email (username):\t" . $db_user->{ email };
-    say "Full name:\t" . $db_user->{ full_name };
-    say "Notes:\t" . $db_user->{ notes };
-    say "Active:\t" . ( $db_user->{ active } ? 'yes' : 'no' );
-    say "Roles:\t" . join( ',', @{ $db_user_roles->{ roles } } );
-    say "Weekly requests limit: " . $db_user->{ weekly_requests_limit };
+    say "User ID:          " . $db_user->{ auth_users_id };
+    say "Email (username): " . $db_user->{ email };
+    say "Full name: " . $db_user->{ full_name };
+    say "Notes:     " . $db_user->{ notes };
+    say "Active:    " . ( $db_user->{ active } ? 'yes' : 'no' );
+    say "Roles:     " . join( ',', @{ $db_user_roles->{ roles } } );
+    say "API key:   " . $db_user->{ api_token };
+    say "Can access non-public API:    " . ( $db_user->{ non_public_api } ? 'yes' : 'no' );
+    say "Weekly requests limit:        " . $db_user->{ weekly_requests_limit };
     say "Weekly requested items limit: " . $db_user->{ weekly_requested_items_limit };
 
     return 0;
