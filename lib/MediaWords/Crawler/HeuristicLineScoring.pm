@@ -253,6 +253,24 @@ sub _score_lines_with_line_info($)
             $last_story_line = $i;
         }
 
+        if ( $score->{ is_story } )
+        {
+            if ( $line_info->{ line_starts_with_title_text } )
+            {
+                $score->{ predicted_class } = 'optional';
+            }
+            else
+            {
+                $score->{ predicted_class } = 'required';
+            }
+
+            die Dumper( $line_info ) if $explanation =~ /title/;
+        }
+        else
+        {
+            $score->{ predicted_class } = 'excluded';
+        }
+
         # print "score: [" . $score->{is_story} . " / " . $score->{html_density} . "] $line\n";
 
         push( @{ $scores }, $score );
