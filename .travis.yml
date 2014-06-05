@@ -27,3 +27,8 @@ before_script:
 script:
     # Run Media Cloud's test suite
     - ./script/run_test_suite.sh
+after_failure:
+    # Print out cpanminus build logs, maybe they have failed
+    - echo "cpanminus build logs:"
+    - echo "---"
+    - find ~/.cpanm/ -name build.log -exec printf "\n\n\n\n" \; -exec echo Build file {} \; -exec echo "---" \; -exec cat {} \;
