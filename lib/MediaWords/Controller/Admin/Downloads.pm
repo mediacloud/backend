@@ -181,8 +181,7 @@ sub _get_controversy_download
 {
     my ( $self, $c, $controversies_id ) = @_;
 
-
-    my $rolezinhos_query =  <<END ;
+    my $rolezinhos_query = <<END ;
 WITH controversy_stories_ids as (select s.stories_id
 from stories s
         join controversy_stories cs on ( s.stories_id = cs.stories_id )
@@ -193,14 +192,14 @@ END
 
     my $downloads = $c->dbis->query( $rolezinhos_query, $controversies_id )->hashes;
 
-    return $downloads->[0];
+    return $downloads->[ 0 ];
 }
 
 sub _get_rolezinhos_download
 {
     my ( $self, $c ) = @_;
 
-    my $rolezinhos_query =  <<END ;
+    my $rolezinhos_query = <<END ;
 WITH controversy_stories_ids as (select s.stories_id
 from stories s
         join controversy_stories cs on ( s.stories_id = cs.stories_id )
@@ -215,7 +214,7 @@ END
 
     my $downloads = $c->dbis->query( $rolezinhos_query, 563 )->hashes;
 
-    return $downloads->[0];
+    return $downloads->[ 0 ];
 
     #return $self->_get_controversy_download( $c, 563 );
 }
@@ -311,10 +310,6 @@ sub mextract : Local
             $current_training_download_id
         );
     }
-    elsif ( 1==1 )
-    {
-	$download = $self->_get_rolezinhos_download( $c );
-    }
     elsif ( defined( $dashboards_id ) )
     {
         my $dashboards_id = $c->request->param( 'dashboards_id' );
@@ -350,7 +345,11 @@ sub mextract : Local
     my $lines  = $extract->{ download_lines };
     my $scores = $extract->{ scores };
 
-    my $line_infos = MediaWords::Crawler::AnalyzeLines::get_info_for_lines( $lines,  $download->{ story }->{ title }, $download->{ story }->{ description } );
+    my $line_infos = MediaWords::Crawler::AnalyzeLines::get_info_for_lines(
+        $lines,
+        $download->{ story }->{ title },
+        $download->{ story }->{ description }
+    );
 
     my $developer_ui_param = $c->request->param( 'developer_ui' );
 
