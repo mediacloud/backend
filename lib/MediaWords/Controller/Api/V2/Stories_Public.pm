@@ -25,13 +25,6 @@ BEGIN
     extends 'MediaWords::Controller::Api::V2::StoriesBase'    # private
 }
 
-__PACKAGE__->config(                                          #
-    action => {                                               #
-        single => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
-        list   => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
-      }    #
-);         #
-
 sub permissible_output_fields
 {
     return [ qw ( stories_id url guid publish_date collect_date story_tags ) ];

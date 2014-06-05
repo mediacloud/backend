@@ -31,13 +31,6 @@ Catalyst Controller.
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 
-__PACKAGE__->config(    #
-    action => {         #
-        single => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
-        list   => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
-      }    #
-);         #
-
 use constant ROWS_PER_PAGE => 20;
 
 use MediaWords::Tagger;
