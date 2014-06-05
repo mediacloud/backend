@@ -4,15 +4,26 @@ perl:
 addons:
     hosts:
         - mediacloud.local
-install:
+before_install:
     # Upgrade packages:
     - sudo apt-get -y update
     - sudo apt-get -y upgrade
     # Create + switch to the Media Cloud's Perlbrew library
     - perlbrew lib create mediacloud
     - perlbrew switch @mediacloud
-    # Install Media Cloud and dependencies:
-    - TRAVIS_SKIP_INSTALL_MC_PERLBREW=1 MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM=1 ./install.sh
+    # Install Media Cloud system package dependencies
+    - ./install_scripts/install_mediacloud_package_dependencies.sh
+    - ./install_modules_outside_of_carton.sh
+    - ./install_modules_with_carton.sh
+    - ./python_scripts/pip_installs.sh
+install:
+    # Use default configuration
+    - cp mediawords.yml.dist mediawords.yml
+    # Create PostgreSQL database
+    - sudo ./install_scripts/create_default_db_user_and_databases.sh
+before_script:
+    # Initialize PostgreSQL database
+    - MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM=1 ./script/run_with_carton.sh ./script/mediawords_create_db.pl
 script:
     # Run Media Cloud's test suite
     - ./script/run_test_suite.sh
