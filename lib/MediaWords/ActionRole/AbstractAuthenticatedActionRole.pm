@@ -24,13 +24,12 @@ sub _user_email_and_roles($$)
 
     my $user_email = undef;
     my @user_roles;
-    if ( $c->user )
+
+    # 1. If the request has the "key" parameter, force authenticating via API
+    #    key (even if the user is logged in)
+    if ( $c->request->param( 'key' ) )
     {
-        $user_email = $c->user->username;
-        @user_roles = $c->user->roles;
-    }
-    else
-    {
+
         my $api_auth = undef;
         if ( $c->stash->{ api_auth } )
         {
@@ -48,6 +47,17 @@ sub _user_email_and_roles($$)
 
             $c->stash->{ api_auth } = $api_auth;
         }
+
+    }
+
+    # 2. If the request doesn't have the "key" parameter, but the user is
+    #    logged in, let it go through anyway
+    elsif ( $c->user )
+    {
+
+        $user_email = $c->user->username;
+        @user_roles = $c->user->roles;
+
     }
 
     return ( $user_email, \@user_roles );
