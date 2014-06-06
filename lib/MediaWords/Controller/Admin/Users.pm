@@ -334,6 +334,7 @@ sub edit : Local
                 notes                        => $userinfo->{ notes },
                 active                       => $userinfo->{ active },
                 weekly_requests_limit        => $userinfo->{ weekly_requests_limit },
+                non_public_api_access        => $userinfo->{ non_public_api },
                 weekly_requested_items_limit => $userinfo->{ weekly_requested_items_limit }
             }
         );
