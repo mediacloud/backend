@@ -160,9 +160,10 @@ END
         $story_tag_counts->{ $story_tag->{ tags_id } }->{ count }++;
     }
 
-    my $aggregate_story_tags =
-      [ map { { stories_id => $_, tag_names => join( "; ", @{ $story_tag_names->{ $_ } } ) } }
-          keys( %{ $story_tag_names } ) ];
+    my $aggregate_story_tags = [
+        map { { stories_id => $_, tag_names => join( "; ", @{ $story_tag_names->{ $_ } } ) } }
+          keys( %{ $story_tag_names } )
+    ];
     MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $aggregate_story_tags );
 
     return [ sort { $b->{ count } <=> $a->{ count } } values( %{ $story_tag_counts } ) ];
@@ -201,30 +202,29 @@ sub index : Path : Args(0)
     my $stories;
     eval { $stories = MediaWords::Solr::search_for_stories( $db, $solr_params ) };
 
-    my $tag_counts = _generate_story_tag_data( $db, $stories );
-
-    my $num_stories;
-    if ( @{ $stories } < NUM_SAMPLED_STORIES )
-    {
-        $num_stories = @{ $stories };
-    }
-    else
-    {
-        $num_stories = int( MediaWords::Solr::get_last_num_found() / MediaWords::Solr::get_last_sentences_per_story() );
-    }
-
     if ( $@ =~ /solr.*Bad Request/ )
     {
+        print STDERR "solr error: $@\n";
         $c->stash->{ status_msg } = 'Cannot parse search query';
         $c->stash->{ q }          = $q;
         $c->stash->{ l }          = $l;
         $c->stash->{ template }   = 'search/search.tt2';
+        return;
     }
     elsif ( $@ )
     {
         die( $@ );
     }
-    elsif ( $csv )
+
+    my $tag_counts = _generate_story_tag_data( $db, $stories );
+
+    my $num_stories = @{ $stories };
+    if ( @{ $stories } >= NUM_SAMPLED_STORIES )
+    {
+        $num_stories = int( MediaWords::Solr::get_last_num_found() / MediaWords::Solr::get_last_sentences_per_story() );
+    }
+
+    if ( $csv )
     {
         map { delete( $_->{ sentences } ) } @{ $stories };
         my $encoded_csv = MediaWords::Util::CSV::get_hashes_as_encoded_csv( $stories );
@@ -234,8 +234,8 @@ sub index : Path : Args(0)
         $c->response->content_length( bytes::length( $encoded_csv ) );
         $c->response->body( $encoded_csv );
 
-        MediaWords::ActionRole::Logged::set_requested_items_count( $c, $num_stories + 1 )
-          ;    # number of stories + the request itself
+        # number of stories + the request itself
+        MediaWords::ActionRole::Logged::set_requested_items_count( $c, $num_stories + 1 );
     }
     else
     {
