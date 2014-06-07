@@ -28,6 +28,9 @@ __PACKAGE__->config(    #
       }    #
 );         #
 
+# number of stories to sample for the search
+use constant NUM_SAMPLED_STORIES => 100;
+
 # get tag_sets_id for collection: tag set
 sub _get_collection_tag_sets_id
 {
@@ -95,6 +98,8 @@ sub media : Local
 
     my $db = $c->dbis;
 
+    my $tag = $db->find_by_id( 'tags', $tags_id );
+
     my $media = $db->query( <<'END', $tags_id )->hashes;
 select m.* 
     from media m join media_tags_map mtm on ( m.media_id = mtm.media_id )
@@ -103,7 +108,64 @@ select m.*
 END
 
     $c->stash->{ media }    = $media;
+    $c->stash->{ tag }      = $tag;
     $c->stash->{ template } = 'search/media.tt2';
+}
+
+# given a list of stories, generate a list of all tags with show_on_media or show_on_stories true.
+# attach a comma separated list of the tags associated with each story to the story and return
+# a list of story counts for each tag sorted by descending count in the following format:
+# [ [ tag_name => $a, tags_id => $b, count => $c ], ... ]
+sub _generate_story_tag_data
+{
+    my ( $db, $stories ) = @_;
+
+    $db->begin;
+
+    my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ stories_id } } @{ $stories } ] );
+
+    my $story_tags = $db->query( <<END )->hashes;
+select distinct stm.stories_id, t.description,
+        t.tags_id, coalesce( ts.label, ts.name ) || ' - ' || coalesce( t.label, t.tag ) tag_name
+    from stories_tags_map stm
+        join tags t on ( stm.tags_id = t.tags_id )
+        join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
+    where 
+        stm.stories_id in ( select id from $ids_table ) and
+        ( t.show_on_media or t.show_on_stories or ts.show_on_media or ts.show_on_stories )
+    
+union
+    
+select distinct s.stories_id, t.description,
+        t.tags_id, coalesce( ts.label, ts.name ) || ' - ' || coalesce( t.label, t.tag ) tag_name
+    from stories s
+        join media_tags_map mtm on ( s.media_id = mtm.media_id )
+        join tags t on ( mtm.tags_id = t.tags_id )
+        join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
+    where 
+        s.stories_id in ( select id from $ids_table ) and
+        ( t.show_on_media or t.show_on_stories or ts.show_on_media or ts.show_on_stories )
+
+END
+
+    $db->commit;
+
+    my $story_tag_names  = {};
+    my $story_tag_counts = {};
+    for my $story_tag ( @{ $story_tags } )
+    {
+        push( @{ $story_tag_names->{ $story_tag->{ stories_id } } }, $story_tag->{ tag_name } );
+
+        $story_tag_counts->{ $story_tag->{ tags_id } } //= $story_tag;
+        $story_tag_counts->{ $story_tag->{ tags_id } }->{ count }++;
+    }
+
+    my $aggregate_story_tags =
+      [ map { { stories_id => $_, tag_names => join( "; ", @{ $story_tag_names->{ $_ } } ) } }
+          keys( %{ $story_tag_names } ) ];
+    MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $aggregate_story_tags );
+
+    return [ sort { $b->{ count } <=> $a->{ count } } values( %{ $story_tag_counts } ) ];
 }
 
 # search for stories using solr and return either a sampled list of stories in html or the full list in csv
@@ -133,13 +195,23 @@ sub index : Path : Args(0)
     else
     {
         $solr_params->{ sort } = 'random_1 asc';
-        $solr_params->{ rows } = 100;
+        $solr_params->{ rows } = NUM_SAMPLED_STORIES;
     }
 
     my $stories;
     eval { $stories = MediaWords::Solr::search_for_stories( $db, $solr_params ) };
 
-    my $num_stories = int( MediaWords::Solr::get_last_num_found() / 2 );
+    my $tag_counts = _generate_story_tag_data( $db, $stories );
+
+    my $num_stories;
+    if ( @{ $stories } < NUM_SAMPLED_STORIES )
+    {
+        $num_stories = @{ $stories };
+    }
+    else
+    {
+        $num_stories = int( MediaWords::Solr::get_last_num_found() / MediaWords::Solr::get_last_sentences_per_story() );
+    }
 
     if ( $@ =~ /solr.*Bad Request/ )
     {
@@ -169,6 +241,7 @@ sub index : Path : Args(0)
     {
         $c->stash->{ stories }     = $stories;
         $c->stash->{ num_stories } = $num_stories;
+        $c->stash->{ tag_counts }  = $tag_counts;
         $c->stash->{ l }           = $l;
         $c->stash->{ q }           = $q;
         $c->stash->{ template }    = 'search/search.tt2';

@@ -17,7 +17,11 @@ use MediaWords::Util::Config;
 use MediaWords::Util::Web;
 use List::MoreUtils qw ( uniq );
 
+# numFound from last query() call, accessible get get_last_num_found
 my $_last_num_found;
+
+# mean number of sentences per story from the last search_stories() call
+my $_last_sentences_per_story;
 
 # get a solr select url from config.  if there is more than one url
 # in the config, randomly choose one from the list.
@@ -34,6 +38,12 @@ sub get_solr_select_url
 sub get_last_num_found
 {
     return $_last_num_found;
+}
+
+# get the ratio of sentence per story for the last search_stories call
+sub get_last_sentences_per_story
+{
+    return $_last_sentences_per_story;
 }
 
 sub _set_last_num_found
@@ -198,6 +208,11 @@ sub search_for_stories_ids
 
     my $groups = $response->{ grouped }->{ stories_id }->{ groups };
     my $stories_ids = [ map { $_->{ doclist }->{ docs }->[ 0 ]->{ stories_id } } @{ $groups } ];
+
+    my $sentence_counts = [ map { $_->{ doclist }->{ numFound } } @{ $groups } ];
+    $_last_sentences_per_story = List::Util::sum( @{ $sentence_counts } ) / scalar( @{ $sentence_counts } );
+
+    print STDERR "last_sentences_per_story: $_last_sentences_per_story\n" if ( $ENV{ MC_SOLR_TRACE } );
 
     return $stories_ids;
 }
