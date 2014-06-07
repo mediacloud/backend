@@ -1727,103 +1727,20 @@ END
     return $normalized_urls;
 }
 
-# break a story down into parts separated by [-:|]
-sub get_title_parts
-{
-    my ( $title ) = @_;
-
-    $title = lc( $title );
-    $title =~ s/\s+/ /g;
-    $title =~ s/^\s+//;
-    $title =~ s/\s+$//;
-
-    my $title_parts;
-    if ( $title =~ m~http://[^ ]*^~ )
-    {
-        $title_parts = [ $title ];
-    }
-    else
-    {
-        $title_parts = [ split( /\s*[-:|]+\s*/, $title ) ];
-    }
-
-    map { s/^\s+//; s/\s+$//; } @{ $title_parts };
-
-    return $title_parts;
-}
-
-# get duplicate stories within the set of stires by breaking the title
-# of each story into parts by [-:|] and looking for any such part
-# that is the sole title part for any story and is at least 4 words long and
-# is not the title of a story with a path-less url.  Any story that includes that title
-# part becames a duplicate.
-sub get_medium_dup_stories_by_title
-{
-    my ( $db, $stories ) = @_;
-
-    my $title_part_counts = {};
-
-    for my $story ( @{ $stories } )
-    {
-        my $title_parts = $story->{ title_parts } = get_title_parts( $story->{ title } );
-
-        if ( @{ $title_parts } == 1 )
-        {
-            my $title_part = $title_parts->[ 0 ];
-
-            # solo title parts that are only a few words might just be the media source name
-            my $num_words = scalar( split( / /, $title_part ) );
-            next if ( $num_words < 5 );
-
-            # likewise, a solo title of a story with a url with no path is probably
-            # the media source name
-            next if ( URI->new( $story->{ url } )->path =~ /$\/?^/ );
-
-            $title_part_counts->{ $title_parts->[ 0 ] }->{ solo } = 1;
-        }
-
-        for my $title_part ( @{ $title_parts } )
-        {
-            $title_part_counts->{ $title_part }->{ count }++;
-            push( @{ $title_part_counts->{ $title_part }->{ stories } }, $story );
-        }
-    }
-
-    my $duplicate_stories = [];
-    for my $t ( grep { $_->{ solo } } values( %{ $title_part_counts } ) )
-    {
-        my $num_stories = @{ $t->{ stories } };
-        if ( ( $num_stories > 1 ) && ( $num_stories < 6 ) )
-        {
-            push( @{ $duplicate_stories }, $t->{ stories } );
-        }
-    }
-
-    return $duplicate_stories;
-}
-
-sub get_medium_dup_stories_by_url
-{
-    my ( $db, $stories ) = @_;
-
-    my $url_lookup = {};
-    for my $story ( @{ $stories } )
-    {
-        my $nu = MediaWords::Util::URL::normalize_url( $story->{ url } )->as_string;
-        $story->{ normalized_url } = $nu;
-        push( @{ $url_lookup->{ $nu } }, $story );
-    }
-
-    return [ map { { stories => $_ } } grep { ( @{ $_ } > 1 ) && ( @{ $_ } < 6 ) } values( %{ $url_lookup } ) ];
-}
-
 # given a list of stories, keep the story with the shortest title and
 # merge the other stories into that story
 sub merge_dup_stories
 {
     my ( $db, $controversy, $stories ) = @_;
 
-    $stories = [ sort { length( $a->{ title } ) <=> length( $b->{ title } ) } @{ $stories } ];
+    my $story_sentence_counts = $db->query( <<END, map { $_->{ stories_id } } @{ $stories } )->hashes;
+select stories_id, count(*) sentence_count from story_sentences where stories_id in (??) group by stories_id
+END
+
+    my $ssc = {};
+    map { $ssc->{ $_->{ stories_id } } = $_->{ sentence_count } } @{ $story_sentence_counts };
+
+    $stories = [ sort { $ssc->{ $_->{ stories_id } } <=> $ssc->{ $_->{ stories_id } } } @{ $stories } ];
 
     my $keep_story = shift( @{ $stories } );
 
@@ -1870,7 +1787,7 @@ sub find_and_merge_dup_stories
         while ( my ( $media_id, $stories ) = each( %{ $media_lookup } ) )
         {
             my $dup_stories = $get_dup_stories->( $db, $stories );
-            map { merge_dup_stories( $db, $controversy, $_->{ stories } ) } @{ $dup_stories };
+            map { merge_dup_stories( $db, $controversy, $_ ) } @{ $dup_stories };
         }
     }
 }
