@@ -511,7 +511,7 @@
     <filterCache class="solr.FastLRUCache"
                  size="1048576"
                  initialSize="1048576"
-                 autowarmCount="16384"/>
+                 autowarmCount="0"/>
 
     <!-- Query Result Cache
          
@@ -639,16 +639,13 @@
       -->
     <listener event="newSearcher" class="solr.QuerySenderListener">
       <arr name="queries">
-        <!--
-           <lst><str name="q">solr</str><str name="sort">price asc</str></lst>
-           <lst><str name="q">rocks</str><str name="sort">weight asc</str></lst>
-          -->
+          <lst><str name="q">media_id:1 AND publish_date:[2008-01-01T00:00:00Z TO 2020-01-01T00:00:00Z]</str></lst>
       </arr>
     </listener>
     <listener event="firstSearcher" class="solr.QuerySenderListener">
       <arr name="queries">
         <lst>
-          <str name="q">static firstSearcher warming in solrconfig.xml</str>
+          <lst><str name="q">media_id:1 AND publish_date:[2008-01-01T00:00:00Z TO 2020-01-01T00:00:00Z]</str></lst>
         </lst>
       </arr>
     </listener>
@@ -671,7 +668,7 @@
          Recommend values of 1-2 for read-only slaves, higher for
          masters w/o cache warming.
       -->
-    <maxWarmingSearchers>2</maxWarmingSearchers>
+    <maxWarmingSearchers>16</maxWarmingSearchers>
 
   </query>
 
