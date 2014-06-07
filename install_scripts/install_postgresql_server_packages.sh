@@ -46,8 +46,8 @@ if [ `uname` == 'Darwin' ]; then
     # Start PostgreSQL
     launchctl load ~/Library/LaunchAgents/homebrew.mxcl.postgresql.plist
     sleep 5
-    createdb    # for the current user
-    createuser postgres
+    createdb || echo "User's database already exists, nothing to do."    # for the current user
+    createuser postgres || echo "User 'postgres' already exists, nothing to do."
 
 else
 

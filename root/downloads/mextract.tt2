@@ -172,7 +172,7 @@
         <tr>
             <th>Required</th>
             <th>Optional</th>
-            <th>Score</th>
+            <th>Include Prob</th>
             [%- IF !hide_html_densities %]
                 <th>Density</th>
                 <th>Discounted</th>
@@ -218,21 +218,21 @@
 
                 [%- SET autoexcluded_lines = 0 %]
 
-                <tr style="color:rgb( [% (256) | round -%], 0, [% score.is_story * 256 | round -%])">
+                <tr style="color:rgb(  [% (  1 - score.include_probability ) * 256 | round -%], 0,  [%  ( score.include_probability ) * 256 | round -%] )">
                     <td>
                         <a name="[% line_number -%]" />
-                        <input type="checkbox" name="required_line_numbers" value="[% line_number %]" [% IF ((has_extractor_training_lines_scores && (story_lines_lookup.$line_number == 'required')) || (!has_extractor_training_lines_scores && score.is_story && !score.explanation.search('title match discount') ) ) -%] checked="checked"[% END -%]/>
+                        <input type="checkbox" name="required_line_numbers" value="[% line_number %]" [% IF ((has_extractor_training_lines_scores && (story_lines_lookup.$line_number == 'required')) || (!has_extractor_training_lines_scores && score.is_story && score.predicted_class == 'required' ) ) -%] checked="checked"[% END -%]/>
                     </td>
                     <td>
-                        <input type="checkbox" name="optional_line_numbers" value="[% line_number %]" [%- IF ( (!has_extractor_training_lines_scores && score.explanation.search('title match discount')) || (has_extractor_training_lines_scores &&  (story_lines_lookup.$line_number == 'optional'))) -%] checked="checked"[% END -%]/>
+                        <input type="checkbox" name="optional_line_numbers" value="[% line_number %]" [%- IF ( (!has_extractor_training_lines_scores && ( score.explanation.search('title match discount')) ||  score.predicted_class == 'optional'  ) || (has_extractor_training_lines_scores &&  (story_lines_lookup.$line_number == 'optional'))) -%] checked="checked"[% END -%]/>
                     </td>
-                    <td>[% IF score.is_story -%]X[% END -%]</td>
+                    <td>[% score.include_probability -%] </td>
                     [% IF !hide_html_densities -%]
                         <td>[% line_info.html_density  -%]</td>
-                        <td>[% line_info.discounted_html_density -%]</td>
+                        <td>[% score.discounted_html_density -%] [% score.include_probability -%]</td>
                     [% END -%]
                     [%- IF !hide_explanation -%]
-                        <td>[% score.explanation %]</td>
+                        <td>[% score.explanation %] [%score.predicted_class%] </td>
                     [% END %]
                     <td>[% line | html_strip | html | html_line_break %]</td>
                     [% IF c.flash.translation %]

@@ -69,41 +69,6 @@ __PACKAGE__->setup;
 sub setup_acl()
 {
 
-    my @acl_stories_api = qw|
-      /admin/api/stories/all_processed
-      /admin/api/stories/all_processed_GET
-      /admin/api/stories/list
-      /admin/api/stories/retag
-      /admin/api/stories/stories_query
-      /admin/api/stories/stories_query_GET
-      /admin/api/stories/subset
-      /admin/api/stories/subset_GET
-      /admin/api/stories/subset_processed
-      /admin/api/stories/subset_processed_GET
-      /admin/api/stories/tag
-      /admin/api/stories/view
-      /admin/api/stories/add
-      /admin/api/stories/add_do
-      /admin/api/stories/delete
-      /admin/api/stories/subset_PUT
-      /api/stories/all_processed
-      /api/stories/all_processed_GET
-      /api/stories/list
-      /api/stories/retag
-      /api/stories/stories_query
-      /api/stories/stories_query_GET
-      /api/stories/subset
-      /api/stories/subset_GET
-      /api/stories/subset_processed
-      /api/stories/subset_processed_GET
-      /api/stories/tag
-      /api/stories/view
-      /api/stories/add
-      /api/stories/add_do
-      /api/stories/delete
-      /api/stories/subset_PUT
-      |;
-
     # Admin read-only interface
     my @acl_admin_readonly = qw|
       /admin/clusters/index
@@ -235,11 +200,6 @@ sub setup_acl()
       /search/readme
       |;
 
-    foreach my $path ( @acl_stories_api )
-    {
-        __PACKAGE__->allow_access_if_any( $path, [ qw/stories-api/ ] );
-    }
-
     foreach my $path ( @acl_admin_readonly )
     {
         __PACKAGE__->allow_access_if_any( $path, [ qw/admin-readonly query-create media-edit stories-edit cm/ ] );
@@ -299,7 +259,6 @@ sub setup_acl()
     __PACKAGE__->allow_access( "/logout" );
 
     # we need to protect this with .htaccess until we can implement an easy to login via the api
-    __PACKAGE__->allow_access( "/admin/api/stories" );
     __PACKAGE__->allow_access( "/admin/query/sentences" );
     __PACKAGE__->allow_access( "/admin/query/wc" );
 
