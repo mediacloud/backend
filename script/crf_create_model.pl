@@ -19,7 +19,7 @@ use Data::Dumper;
 use File::Temp qw/ tempfile tempdir /;
 use Env qw(HOME);
 use File::Path qw(make_path remove_tree);
-use CRF::CrfUtils::InlineJava;
+use Mallet::CrfWrapper::InlineJava;
 
 Readonly my $folds => 10;
 
@@ -47,7 +47,7 @@ sub main
     my $model_output_location = $dat_file;
     $model_output_location =~ s/\.dat$/_CrfModel_Iterations_$iterations\.txt/;
 
-    CRF::CrfUtils::InlineJava::create_model( $dat_file, $iterations, $model_output_location );
+    Mallet::CrfWrapper::InlineJava::create_model( $dat_file, $iterations, $model_output_location );
 }
 
 main();

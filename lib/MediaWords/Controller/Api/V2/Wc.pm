@@ -34,7 +34,7 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
 use MediaWords::Tagger;
 
-sub list : Local : ActionClass('REST') : Does('~PublicApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
+sub list : Local : ActionClass('REST')
 {
 }
 

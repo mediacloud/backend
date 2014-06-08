@@ -27,12 +27,15 @@
     <fieldset>
         <p>
             [% IF stories.size < num_stories %]
-                Only showing a random sample of [% stories.size %] stories out of about [% num_stories %].  Download the csv
-                to see all stories.
+                Only showing a random sample of [% stories.size %] stories out of about [% num_stories %] (this story 
+                    total is just a guess based on the number of sentences found).  Download the csv to see all stories
+                    and get a true count of stories.
             [% ELSE %]
                 [% num_stories %] stories found.
             [% END %]
         </p>
+        
+        <p><a href="#tag_counts">Summary of tag counts for this query</a></p>
     </fieldset>
     
     [% IF stories %]
@@ -52,6 +55,7 @@
                 <th>Media Source</th>
                 <th>Media ID</th>
                 <th>Language</th>
+                <th>Search Tags</th>
             </tr>
         
             [% FOREACH story IN stories %]
@@ -69,7 +73,30 @@
                     <td>[% story.publish_date | html %]</td>
                     <td>[% story.media_name | html %]</td>
                     <td>[% story.media_id %]</td>
-                    <td>[% story.language %]</td>            
+                    <td>[% story.language %]</td>  
+                    <td>[% story.tag_names %]</td>          
+                </tr>
+
+                [%  SET even = !even %]
+            [% END %]
+        
+        </table>
+
+        <a name="tag_counts" />
+        <div class="boxtitle">Tag Counts (out of [% num_stories %] above stories)</div>
+        <table>
+            <tr>
+                <th>Count</th>
+                <th>Tag Name</th>
+                <th>Tag ID</th>
+            </tr>
+        
+            [% FOREACH tag_count IN tag_counts %]
+                
+                <tr [% IF even %]class="even"[% END %]>
+                    <td>[% tag_count.count %]</td>
+                    <td><a title="[% tag_count.description | html %]" href="[% c.uri_for( '/search/media/' _ tag_count.tags_id )%]">[% tag_count.tag_name | html %]</a></td>
+                    <td>[% tag_count.tags_id %]</td>
                 </tr>
 
                 [%  SET even = !even %]

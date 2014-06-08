@@ -35,7 +35,14 @@ Catalyst Controller.
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 
-__PACKAGE__->config( action_roles => [ 'NonPublicApiKeyAuthenticated' ], );
+__PACKAGE__->config(    #
+    action => {         #
+        single => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },  # overrides "MC_REST_SimpleObject"
+        list   => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },  # overrides "MC_REST_SimpleObject"
+        put_tags => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
+        count    => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },       #
+      }    #
+);         #
 
 use MediaWords::Tagger;
 
@@ -44,7 +51,7 @@ sub get_table_name
     return "story_sentences";
 }
 
-sub list : Local : ActionClass('REST') : Does('~NonPublicApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
+sub list : Local : ActionClass('REST')
 {
     #say STDERR "starting Sentences/list";
 }
@@ -158,7 +165,7 @@ sub list_GET : Local
 
     $rows = List::Util::min( $rows, 10000 );
 
-    my $list = MediaWords::Solr::query( $params );
+    my $list = MediaWords::Solr::query( $params, $c );
 
     #say STDERR "Got List:\n" . Dumper( $list );
 
@@ -169,7 +176,7 @@ sub list_GET : Local
     $self->status_ok( $c, entity => $list );
 }
 
-sub count : Local : ActionClass('REST') : Does('~PublicApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
+sub count : Local : ActionClass('REST')
 {
 }
 
@@ -213,7 +220,7 @@ sub _get_count_with_split
     $params->{ 'facet.date.start' } = "${ start_date }T00:00:00Z";
     $params->{ 'facet.date.end' }   = "${ end_date }T00:00:00Z";
 
-    my $solr_response = MediaWords::Solr::query( $params );
+    my $solr_response = MediaWords::Solr::query( $params, $c );
 
     return {
         count => $solr_response->{ response }->{ numFound },
@@ -240,7 +247,7 @@ sub count_GET : Local
     }
     else
     {
-        my $list = MediaWords::Solr::query( { q => $q, fq => $fq } );
+        my $list = MediaWords::Solr::query( { q => $q, fq => $fq }, $c );
         $response = { count => $list->{ response }->{ numFound } };
     }
 
@@ -248,7 +255,7 @@ sub count_GET : Local
 }
 
 ##TODO merge with stories put_tags
-sub put_tags : Local : ActionClass('REST') : Does('~NonPublicApiKeyAuthenticated') : Does('~Throttled') : Does('~Logged')
+sub put_tags : Local : ActionClass('REST')
 {
 }
 

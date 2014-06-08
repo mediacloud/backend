@@ -36,7 +36,7 @@ use 5.14.2;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
-use CRF::CrfUtils;
+use Mallet::CrfWrapper;
 
 sub main
 {
@@ -59,7 +59,7 @@ sub main
 
     close( $fh );
 
-    my $predictions = CRF::CrfUtils::run_model_inline_java_data_array( $_model_file, \@all_file_lines );
+    my $predictions = Mallet::CrfWrapper::run_model_inline_java_data_array( $_model_file, \@all_file_lines );
 
     say join "\n", @{ $predictions };
 }

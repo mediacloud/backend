@@ -17,17 +17,13 @@ use Carp;
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
 
-BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
-
-__PACKAGE__->config( action_roles => [ 'PublicApiKeyAuthenticated' ], );
-
 use constant ROWS_PER_PAGE => 20;
-
 use MediaWords::Tagger;
 
-BEGIN { extends 'MediaWords::Controller::Api::V2::StoriesBase' }
-
-__PACKAGE__->config( action_roles => [ 'NonPublicApiKeyAuthenticated' ], );
+BEGIN
+{
+    extends 'MediaWords::Controller::Api::V2::StoriesBase'    # private
+}
 
 sub permissible_output_fields
 {

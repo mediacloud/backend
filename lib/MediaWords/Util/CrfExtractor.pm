@@ -13,7 +13,7 @@ use IPC::Open2;
 use Text::Trim;
 use File::Spec;
 use File::Basename;
-use CRF::CrfUtils;
+use Mallet::CrfWrapper;
 use MediaWords::Util::Config;
 
 use Moose;
@@ -46,37 +46,27 @@ BEGIN
 
     if ( $config->{ crf_web_service }->{ enabled } eq 'yes' )
     {
-        CRF::CrfUtils::use_webservice( 1 );
+        Mallet::CrfWrapper::use_webservice( 1 );
     }
     else
     {
-        CRF::CrfUtils::use_webservice( 0 );
+        Mallet::CrfWrapper::use_webservice( 0 );
     }
 
     my $crf_server_url = $config->{ crf_web_service }->{ server_url };
 
-    CRF::CrfUtils::set_webservice_url( $crf_server_url );
+    Mallet::CrfWrapper::set_webservice_url( $crf_server_url );
 }
 
 sub getScoresAndLines
 {
     my ( $self, $line_info, $preprocessed_lines ) = @_;
 
-    my $extracted_lines = _get_extracted_lines_with_crf( $line_info, $preprocessed_lines );
+    my $scores = _get_extracted_lines_with_crf( $line_info, $preprocessed_lines );
 
-    my $scores = [];
+    my @extracted_lines = map { $_->{ line_number } } grep { $_->{ is_story } } @{ $scores };
 
-    my %extracted_lines_hash = map { $_ => 1 } @{ $extracted_lines };
-
-    foreach my $line ( @{ $line_info } )
-    {
-        my $score = {};
-
-        $score->{ line_number } = $line->{ line_number };
-        $score->{ is_story } = defined( $extracted_lines_hash{ $line->{ line_number } } ) ? 1 : 0;
-
-        push $scores, $score;
-    }
+    my $extracted_lines = \@extracted_lines;
 
     return {
         included_line_numbers => $extracted_lines,
@@ -108,7 +98,7 @@ sub _get_extracted_lines_with_crf
 
     #say STDERR "using model file: '$model_file_name'";
 
-    my $results = CRF::CrfUtils::run_model_inline_java_data_array( $model_file_name, $feature_strings );
+    my $results = Mallet::CrfWrapper::run_model_inline_java_data_array( $model_file_name, $feature_strings );
 
     my $predictions = [ map { $_->{ prediction } } @$results ];
 
@@ -134,15 +124,24 @@ sub _get_extracted_lines_with_crf
         die "Prediction count is bigger than the line info count.\n";
     }
 
+    my $scores = [];
+
     while ( $line_index < scalar( @{ $line_infos } ) )
     {
+        my $score;
+
         if ( $line_infos->[ $line_index ]->{ auto_excluded } )
         {
+            $score->{ is_story }     = 0;
+            $score->{ autoexcluded } = 1;
             $line_index++;
+            push $scores, $score;
             next;
         }
 
         my $prediction = rtrim $predictions->[ $prediction_index ];
+
+        $score->{ predicted_class } = $prediction;
 
         unless ( $prediction eq 'excluded' or $prediction eq 'required' or $prediction eq 'optional' )
         {
@@ -154,12 +153,30 @@ sub _get_extracted_lines_with_crf
         if ( $prediction ne 'excluded' )
         {
             push @extracted_lines, $line_infos->[ $line_index ]->{ line_number };
+            $score->{ is_story } = 1;
         }
+        else
+        {
+            $score->{ is_story } = 0;
+        }
+
+        $score->{ probabilities } = $results->[ $prediction_index ]->{ probabilities };
+
+        my $exclude_probability = $score->{ probabilities }->{ excluded };
+
+        die "Invalid exclude_probability " unless $exclude_probability >= 0 and $exclude_probability <= 1.0;
+
+        my $include_probability = 1.0 - $exclude_probability;
+
+        $score->{ include_probability } = $include_probability;
+
         $line_index++;
         $prediction_index++;
+
+        push $scores, $score;
+
     }
 
-    my $extracted_lines = \@extracted_lines;
-    return $extracted_lines;
+    return $scores;
 }
 1;
