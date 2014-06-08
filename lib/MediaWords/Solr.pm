@@ -50,7 +50,7 @@ sub _set_last_num_found
 {
     my ( $res ) = @_;
 
-    if ( defined( $res->{ response }->{ num_found } ) )
+    if ( defined( $res->{ response }->{ numFound } ) )
     {
         $_last_num_found = $res->{ response }->{ numFound };
     }
@@ -69,6 +69,22 @@ sub _set_last_num_found
 
 }
 
+# convert any and, or, or not operations in the argument to uppercase.  if the argument
+# is a ref, call self on all elements of the list.
+sub _uppercase_boolean_operators
+{
+    return unless ( $_[ 0 ] );
+
+    if ( ref( $_[ 0 ] ) )
+    {
+        map { _uppercase_boolean_operators( $_ ) } @{ $_[ 0 ] };
+    }
+    else
+    {
+        $_[ 0 ] =~ s/\b(and|or|not)\b/uc($1)/ge;
+    }
+}
+
 # execute a query on the solr server using the given params.
 # return the raw encoded json from solr.  return a maximum of
 # 1 million sentences.
@@ -79,11 +95,11 @@ sub query_encoded_json($;$)
     $params->{ wt } = 'json';
     $params->{ rows } //= 1000;
     $params->{ df }   //= 'sentence';
-    $params->{ defType }            = 'edismax';
-    $params->{ stopwords }          = 'false';
-    $params->{ lowercaseOperators } = 'true';
 
     $params->{ rows } = List::Util::min( $params->{ rows }, 1000000 );
+
+    _uppercase_boolean_operators( $params->{ q } );
+    _uppercase_boolean_operators( $params->{ fq } );
 
     my $url = get_solr_select_url();
 
