@@ -17,7 +17,11 @@ use MediaWords::Util::Config;
 use MediaWords::Util::Web;
 use List::MoreUtils qw ( uniq );
 
+# numFound from last query() call, accessible get get_last_num_found
 my $_last_num_found;
+
+# mean number of sentences per story from the last search_stories() call
+my $_last_sentences_per_story;
 
 # get a solr select url from config.  if there is more than one url
 # in the config, randomly choose one from the list.
@@ -36,11 +40,17 @@ sub get_last_num_found
     return $_last_num_found;
 }
 
+# get the ratio of sentence per story for the last search_stories call
+sub get_last_sentences_per_story
+{
+    return $_last_sentences_per_story;
+}
+
 sub _set_last_num_found
 {
     my ( $res ) = @_;
 
-    if ( defined( $res->{ response }->{ num_found } ) )
+    if ( defined( $res->{ response }->{ numFound } ) )
     {
         $_last_num_found = $res->{ response }->{ numFound };
     }
@@ -59,6 +69,22 @@ sub _set_last_num_found
 
 }
 
+# convert any and, or, or not operations in the argument to uppercase.  if the argument
+# is a ref, call self on all elements of the list.
+sub _uppercase_boolean_operators
+{
+    return unless ( $_[ 0 ] );
+
+    if ( ref( $_[ 0 ] ) )
+    {
+        map { _uppercase_boolean_operators( $_ ) } @{ $_[ 0 ] };
+    }
+    else
+    {
+        $_[ 0 ] =~ s/\b(and|or|not)\b/uc($1)/ge;
+    }
+}
+
 # execute a query on the solr server using the given params.
 # return the raw encoded json from solr.  return a maximum of
 # 1 million sentences.
@@ -69,11 +95,11 @@ sub query_encoded_json($;$)
     $params->{ wt } = 'json';
     $params->{ rows } //= 1000;
     $params->{ df }   //= 'sentence';
-    $params->{ defType }            = 'edismax';
-    $params->{ stopwords }          = 'false';
-    $params->{ lowercaseOperators } = 'true';
 
     $params->{ rows } = List::Util::min( $params->{ rows }, 1000000 );
+
+    _uppercase_boolean_operators( $params->{ q } );
+    _uppercase_boolean_operators( $params->{ fq } );
 
     my $url = get_solr_select_url();
 
@@ -198,6 +224,11 @@ sub search_for_stories_ids
 
     my $groups = $response->{ grouped }->{ stories_id }->{ groups };
     my $stories_ids = [ map { $_->{ doclist }->{ docs }->[ 0 ]->{ stories_id } } @{ $groups } ];
+
+    my $sentence_counts = [ map { $_->{ doclist }->{ numFound } } @{ $groups } ];
+    $_last_sentences_per_story = List::Util::sum( @{ $sentence_counts } ) / scalar( @{ $sentence_counts } );
+
+    print STDERR "last_sentences_per_story: $_last_sentences_per_story\n" if ( $ENV{ MC_SOLR_TRACE } );
 
     return $stories_ids;
 }

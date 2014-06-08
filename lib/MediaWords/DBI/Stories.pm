@@ -15,6 +15,7 @@ use MediaWords::Util::Web;
 use MediaWords::Tagger;
 use MediaWords::Util::Config;
 use MediaWords::Util::Tags;
+use MediaWords::Util::URL;
 use MediaWords::DBI::StoriesTagsMapMediaSubtables;
 use MediaWords::DBI::Downloads;
 use MediaWords::Languages::Language;
@@ -1141,6 +1142,102 @@ END
     $db->commit;
 
     return $stories;
+}
+
+# break a story down into parts separated by [-:|]
+sub get_title_parts
+{
+    my ( $title ) = @_;
+
+    $title = lc( $title );
+    $title =~ s/\s+/ /g;
+    $title =~ s/^\s+//;
+    $title =~ s/\s+$//;
+
+    my $title_parts;
+    if ( $title =~ m~http://[^ ]*^~ )
+    {
+        $title_parts = [ $title ];
+    }
+    else
+    {
+        $title_parts = [ split( /\s*[-:|]+\s*/, $title ) ];
+    }
+
+    map { s/^\s+//; s/\s+$//; } @{ $title_parts };
+
+    return $title_parts;
+}
+
+# get duplicate stories within the set of stires by breaking the title
+# of each story into parts by [-:|] and looking for any such part
+# that is the sole title part for any story and is at least 4 words long and
+# is not the title of a story with a path-less url.  Any story that includes that title
+# part becames a duplicate.  return a list of duplciate story lists. do not return
+# any list of duplicates with greater than 5 duplicates for fear that the title deduping is
+# interacting with some title form in a goofy way
+sub get_medium_dup_stories_by_title
+{
+    my ( $db, $stories ) = @_;
+
+    my $title_part_counts = {};
+
+    for my $story ( @{ $stories } )
+    {
+        my $title_parts = $story->{ title_parts } = get_title_parts( $story->{ title } );
+
+        if ( @{ $title_parts } == 1 )
+        {
+            my $title_part = $title_parts->[ 0 ];
+
+            # solo title parts that are only a few words might just be the media source name
+            my $num_words = scalar( split( / /, $title_part ) );
+            next if ( $num_words < 5 );
+
+            # likewise, a solo title of a story with a url with no path is probably
+            # the media source name
+            next if ( URI->new( $story->{ url } )->path =~ /^\/?$/ );
+
+            $title_part_counts->{ $title_parts->[ 0 ] }->{ solo } = 1;
+        }
+
+        for my $title_part ( @{ $title_parts } )
+        {
+            $title_part_counts->{ $title_part }->{ count }++;
+            push( @{ $title_part_counts->{ $title_part }->{ stories } }, $story );
+        }
+    }
+
+    my $duplicate_stories = [];
+    for my $t ( grep { $_->{ solo } } values( %{ $title_part_counts } ) )
+    {
+        my $num_stories = @{ $t->{ stories } };
+        if ( ( $num_stories > 1 ) && ( $num_stories < 6 ) )
+        {
+            push( @{ $duplicate_stories }, $t->{ stories } );
+        }
+    }
+
+    return $duplicate_stories;
+}
+
+# get duplicate stories within the given set that are duplicates because the normalized url
+# for two given stories is the same.  return a list of story duplicate lists.  do not return
+# any list of duplicates with greater than 5 duplicates for fear that the url normalization is
+# interacting with some url form in a goofy way
+sub get_medium_dup_stories_by_url
+{
+    my ( $db, $stories ) = @_;
+
+    my $url_lookup = {};
+    for my $story ( @{ $stories } )
+    {
+        my $nu = MediaWords::Util::URL::normalize_url( $story->{ url } )->as_string;
+        $story->{ normalized_url } = $nu;
+        push( @{ $url_lookup->{ $nu } }, $story );
+    }
+
+    return [ grep { ( @{ $_ } > 1 ) && ( @{ $_ } < 6 ) } values( %{ $url_lookup } ) ];
 }
 
 1;

@@ -24,7 +24,7 @@ use MediaWords::Solr;
 use MediaWords::Util::Config;
 
 # max number of random sentences to fetch
-use constant MAX_RANDOM_SENTENCES => 2000;
+use constant MAX_RANDOM_SENTENCES => 1000;
 
 # number of words to return
 use constant NUM_RETURN_WORDS => 500;
@@ -96,137 +96,6 @@ sub count_stems
     }
 
     return $stem_counts;
-}
-
-# get params string from $q and $fqs arguments
-sub get_params_list
-{
-    my ( $q, $fqs ) = @_;
-
-    my $params = [ "q=" . uri_escape( $q ) ];
-    for my $fq ( @{ $fqs } )
-    {
-        push( @{ $params }, 'fq=' . uri_escape( $fq ) );
-    }
-
-    # keep the sort here so that we get consistent hash lookups
-    # regardless of the specified order of the arguments
-    return join( '&', sort @{ $params } );
-}
-
-sub get_solr_params_hash
-{
-    my ( $q, $fqs ) = @_;
-
-    my $params;
-
-    $params->{ q }                  = $q;
-    $params->{ fl }                 = 'sentence';
-    $params->{ defType }            = 'edismax';
-    $params->{ stopwords }          = 'false';
-    $params->{ lowercaseOperators } = 'true';
-
-    $fqs ||= [];
-    $fqs = [ $fqs ] unless ( ref( $fqs ) );
-    for my $fq ( @{ $fqs } )
-    {
-        push( @{ $params->{ fq } }, $fq );
-    }
-
-    return $params;
-}
-
-# advance the socket to the line after the 'sentence' line, which is the csv header
-sub advance_past_csv_header
-{
-    my ( $sock ) = @_;
-
-    my $header           = '';
-    my $found_csv_header = 0;
-    for ( my $i = 0 ; $i < MAX_HEADER_LINES ; $i++ )
-    {
-        my $line = <$sock>;
-        if ( $line =~ /^sentence/i )
-        {
-            $found_csv_header = 1;
-            last;
-        }
-        $header .= $line;
-    }
-
-    die( "Unable to find 'sentence' csv header in solr response: $header" ) unless ( $found_csv_header );
-}
-
-# send request to solr and return a file handle that we can read for responses
-sub get_solr_results_socket
-{
-    my ( $q, $fqs, $file ) = @_;
-
-    # if a file is specified, just use the file (for eval purposes)
-    if ( $file )
-    {
-        my $fh = FileHandle::new;
-        $fh->open( '< ' . $file ) || die( "unable to open $file: $!" );
-
-        advance_past_csv_header( $fh );
-        return $fh;
-    }
-
-    my $url = MediaWords::Solr::get_solr_select_url;
-
-    die( "mediawords:solr_select_url not found in config" ) unless ( $url );
-
-    my $uri  = URI->new( $url );
-    my $host = $uri->host;
-    my $port = $uri->port;
-
-    # use manual socket to fetch http results so that we can process results as they
-    # come in, which is not easy to do with LWP
-    my $sock = IO::Socket::INET->new( PeerAddr => $host, PeerPort => $port, Proto => 'tcp' )
-      || die( "Unable to open socket to solr: '$|'" );
-
-    my $params = get_solr_params_hash( $q, $fqs );
-
-    $params->{ rows } = MAX_RANDOM_SENTENCES;
-    $params->{ wt }   = 'csv';
-    $params->{ df }   = 'sentence';
-    $params->{ sort } = 'random_1 asc';
-
-    my $full_request = POST( $url, $params );
-
-    my $request_string = $full_request->as_string;
-
-    my $post = "POST $url";
-
-    # for some reason, the HTTP::Request::as_string method does not include
-    # the HTTP protocol id at the end of the HTTP POST line
-    $request_string =~ s/^$post/$post HTTP\/1.0/;
-
-    $sock->print( $request_string );
-
-    my $status = <$sock>;
-    chomp( $status );
-    chomp( $status );
-
-    die( "error requesting data from solr: '$status'" ) unless ( $status =~ m~^HTTP/1.1 200 OK~ );
-
-    advance_past_csv_header( $sock );
-
-    return $sock;
-}
-
-# get $line_block_size new lines from the socket
-sub get_lines_from_socket
-{
-    my ( $socket, $line_block_size ) = @_;
-
-    my $lines = [];
-    while ( ( @{ $lines } < $line_block_size ) && ( my $line = <$socket> ) )
-    {
-        push( @{ $lines }, $line );
-    }
-
-    return @{ $lines } ? $lines : undef;
 }
 
 # Check whether the string is valid UTF-8
@@ -308,20 +177,17 @@ sub words_from_solr_server
 
     my $start_generation_time = time();
 
-    my $socket = get_solr_results_socket( $q, $fqs, $file );
+    my $data = MediaWords::Solr::query(
+        { q => $q, fq => $fqs, rows => MAX_RANDOM_SENTENCES, fl => 'sentence', sort => 'random_1 asc' } );
 
-    my $line_block_size = 500;
-    my $dup_lines       = {};
-    my $words           = {};
+    my @sentences = map { $_->{ sentence } } @{ $data->{ response }->{ docs } };
 
-    # grab a block of lines at a time from solr, count the stems, and then grab more lines.
-    # this lets us do stem counting while solr is generating more results.
-    while ( my $lines = get_lines_from_socket( $socket, $line_block_size ) )
-    {
-        print STDERR "counting block...\n";
-        my $block_words = count_stems( $lines, $dup_lines, $languages );
-        merge_block_words( $block_words, $words );
-    }
+    my $dup_lines = {};
+    my $words     = {};
+
+    print STDERR "counting sentences...\n";
+    my $block_words = count_stems( \@sentences, $dup_lines, $languages );
+    merge_block_words( $block_words, $words );
 
     my $merge_end_time = time;
 
@@ -336,11 +202,11 @@ sub words_from_solr_server
     @word_list = sort { $b->[ 1 ] <=> $a->[ 1 ] } @word_list;
 
     print STDERR "cutting list ...\n";
-    my @return_words =
-      ( scalar( @word_list ) > NUM_RETURN_WORDS ) ? @word_list[ 0 .. ( NUM_RETURN_WORDS - 1 ) ] : @word_list;
+    my $num_pre_sw_words = NUM_RETURN_WORDS * ( 1 + scalar( @{ $languages } ) );
+    splice( @word_list, $num_pre_sw_words );
 
     my $counts = [];
-    for my $w ( @return_words )
+    for my $w ( @word_list )
     {
         my $terms = $words->{ $w->[ 0 ] }->{ terms };
         my ( $max_term, $max_term_count );
@@ -362,7 +228,11 @@ sub words_from_solr_server
         push( @{ $counts }, { stem => $w->[ 0 ], count => $w->[ 1 ], term => $max_term } );
     }
 
-    return get_stopworded_counts( $counts, $languages );
+    $counts = get_stopworded_counts( $counts, $languages );
+
+    splice( @{ $counts }, NUM_RETURN_WORDS );
+
+    return $counts;
 }
 
 1;
