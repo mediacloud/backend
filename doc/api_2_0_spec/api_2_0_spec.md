@@ -568,7 +568,7 @@ URL: https://api.mediacloud.org/api/v2/sentences/count?q=sentence:africa+AND+tag
 
 ### api/v2/wc/list
 
-Returns word frequency counts of the 5000 most commwords in all sentences returned by 
+Returns word frequency counts of the most commwords in all sentences returned by 
 querying Solr using the `q` and `fq` parameters, with stopwords removed.  Words are stemmed
 before being counted.  For each word, the call returns the stem and the full term most used 
 with the given stem (for example, in the below example, 'romnei' is the stem that appeared 
