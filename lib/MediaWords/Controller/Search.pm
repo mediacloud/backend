@@ -7,6 +7,7 @@ use strict;
 use warnings;
 use base 'Catalyst::Controller';
 
+use MediaWords::CM::Mine;
 use MediaWords::Solr;
 use MediaWords::Util::CSV;
 use MediaWords::ActionRole::Logged;
@@ -169,13 +170,32 @@ END
     return [ sort { $b->{ count } <=> $a->{ count } } values( %{ $story_tag_counts } ) ];
 }
 
+# set 'matches_pattern' field on each story
+sub _match_stories_to_pattern
+{
+    my ( $db, $stories, $pattern ) = @_;
+
+    $db->begin;
+
+    my $controversy = { name => '_preview', description => '_preview', solr_seed_query => '_preview', pattern => $pattern };
+    $controversy = $db->create( 'controversies', $controversy );
+
+    map { $_->{ matches_pattern } = MediaWords::CM::Mine::story_matches_controversy_pattern( $db, $controversy, $_ ) }
+      @{ $stories };
+
+    $db->rollback;
+
+    return $stories;
+}
+
 # search for stories using solr and return either a sampled list of stories in html or the full list in csv
 sub index : Path : Args(0)
 {
     my ( $self, $c ) = @_;
 
-    my $q = $c->req->params->{ q } || '';
-    my $l = $c->req->params->{ l };
+    my $q       = $c->req->params->{ q } || '';
+    my $l       = $c->req->params->{ l };
+    my $pattern = $c->req->params->{ pattern };
 
     if ( !$q )
     {
@@ -216,13 +236,15 @@ sub index : Path : Args(0)
         die( $@ );
     }
 
-    my $tag_counts = _generate_story_tag_data( $db, $stories );
+    _match_stories_to_pattern( $db, $stories, $pattern ) if ( defined( $pattern ) );
 
     my $num_stories = @{ $stories };
     if ( @{ $stories } >= NUM_SAMPLED_STORIES )
     {
         $num_stories = int( MediaWords::Solr::get_last_num_found() / MediaWords::Solr::get_last_sentences_per_story() );
     }
+
+    my $tag_counts = _generate_story_tag_data( $db, $stories );
 
     if ( $csv )
     {
@@ -244,6 +266,7 @@ sub index : Path : Args(0)
         $c->stash->{ tag_counts }  = $tag_counts;
         $c->stash->{ l }           = $l;
         $c->stash->{ q }           = $q;
+        $c->stash->{ pattern }     = $pattern;
         $c->stash->{ template }    = 'search/search.tt2';
     }
 }

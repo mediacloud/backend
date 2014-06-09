@@ -25,7 +25,7 @@
 
     <br />
     <fieldset>
-        <p>
+        <p>        
             [% IF stories.size < num_stories %]
                 Only showing a random sample of [% stories.size %] stories out of about [% num_stories %] (this story 
                     total is just a guess based on the number of sentences found).  Download the csv to see all stories
@@ -56,6 +56,7 @@
                 <th>Media ID</th>
                 <th>Language</th>
                 <th>Search Tags</th>
+                [% IF pattern %]<th>Matches Pattern</th>[% END %]
             </tr>
         
             [% FOREACH story IN stories %]
@@ -74,7 +75,14 @@
                     <td>[% story.media_name | html %]</td>
                     <td>[% story.media_id %]</td>
                     <td>[% story.language %]</td>  
-                    <td>[% story.tag_names %]</td>          
+                    <td>[% story.tag_names %]</td>
+                    [% IF pattern %]
+                        [% IF story.matches_pattern %]
+                            <td>yes</td>
+                        [% ELSE %]
+                            <td style="background:#BA6569">no</td>
+                        [% END %]
+                    [% END %]
                 </tr>
 
                 [%  SET even = !even %]
