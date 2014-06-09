@@ -33,5 +33,14 @@ elements:
     constraints:
         - Required
 
+  - type: Checkbox
+    name: preview
+    id: preview
+    label: Preview
+    value: 1
+    default_empty_value: true
+    comment: "Display preview of seeded stories"
+
   - type: Submit
+    name: create
     value: Create

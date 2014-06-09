@@ -106,11 +106,13 @@
       trailing underscores (e.g. _version_) are reserved.
    -->
         
-   <field name="story_sentences_id" type="string" indexed="true" stored="true" required="false" multiValued="false" /> 
-   <field name="media_id" type="int" indexed="true" stored="false" required="false" multiValued="false" /> 
+   <field name="solr_id" type="string" indexed="true" stored="true" required="true" multiValued="false" /> 
+   
+   <field name="story_sentences_id" type="tlong" indexed="true" stored="true" required="true" multiValued="false" /> 
+   <field name="media_id" type="int" indexed="true" stored="false" required="true" multiValued="false" /> 
 
-   <field name="stories_id" type="int" indexed="true" stored="true" required="true" multiValued="false" /> 
-   <field name="sentence_number" type="int" indexed="true" stored="false" required="false" multiValued="false" /> 
+   <field name="stories_id" type="tlong" indexed="true" stored="true" required="true" multiValued="false" /> 
+   <field name="sentence_number" type="int" indexed="true" stored="false" required="true" multiValued="false" /> 
 
    <field name="processed_stories_id" type="tlong" indexed="true" stored="true" required="true" multiValued="false" docValues="true" /> 
 
@@ -136,7 +138,7 @@
  <!-- Field to use to determine and enforce document uniqueness. 
       Unless this field is marked with required="false", it will be a required field
    -->
- <uniqueKey>story_sentences_id</uniqueKey>
+ <uniqueKey>solr_id</uniqueKey>
  
   <types>
     <!-- field type definitions. The "name" attribute is
