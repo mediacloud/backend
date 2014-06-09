@@ -678,7 +678,7 @@ select 1
         join controversies c on ( c.controversies_id = \$2 )
     where 
         d.stories_id = \$1 and
-        dt.download_text ~* c.pattern
+        dt.download_text ~ ( '(?isx)' || c.pattern )
     limit 1
 END
     return $dt ? 1 : 0;
@@ -697,7 +697,7 @@ select 1
         join controversies c on ( c.controversies_id = \$2 )
     where 
         ss.stories_id = \$1 and
-        ss.sentence ~* c.pattern and
+        ss.sentence ~ ( '(?isx)' || c.pattern ) and
         ssc.sentence_count < 2
     limit 1
 END
@@ -717,16 +717,16 @@ sub story_matches_controversy_pattern
     $perl_re =~ s/\[\[\:[\<\>]\:\]\]/\\b/g;
     for my $field ( qw/title description url redirect_url/ )
     {
-        return $field if ( $story->{ $field } =~ /$perl_re/is );
+        return $field if ( $story->{ $field } =~ /$perl_re/isx );
     }
 
     return 0 if ( $metadata_only );
 
-    # check for download_texts match first because some stories don't have
-    # story_sentences, and it is expensive to generate the missing story_sentences
-    return 0 unless ( story_download_text_matches_pattern( $db, $story, $controversy ) );
-
-    MediaWords::DBI::Stories::add_missing_story_sentences( $db, $story );
+    # # check for download_texts match first because some stories don't have
+    # # story_sentences, and it is expensive to generate the missing story_sentences
+    # return 0 unless ( story_download_text_matches_pattern( $db, $story, $controversy ) );
+    #
+    # MediaWords::DBI::Stories::add_missing_story_sentences( $db, $story );
 
     return story_sentence_matches_pattern( $db, $story, $controversy ) ? 'sentence' : 0;
 }
