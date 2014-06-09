@@ -43,11 +43,11 @@ use constant ROWS_PER_PAGE => 20;
 
 use MediaWords::Tagger;
 
-sub list : Local : ActionClass('REST')    # action roles are to be set for each derivative sub-actions
+sub storyLines : Local : ActionClass('REST')    # action roles are to be set for each derivative sub-actions
 {
 }
 
-sub list_GET : Local
+sub storyLines_GET : Local
 {
     my ( $self, $c ) = @_;
 
