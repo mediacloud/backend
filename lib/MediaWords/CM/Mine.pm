@@ -362,7 +362,7 @@ END
 
     # avoid conflicts with existing media urls that are missed by the above query b/c of dups feeds or foreign_rss_links
     $medium_url = substr( $medium_url, 0, 1000 ) . '#spider';
-    $medium_name = get_unique_medium_name( $medium_name );
+    $medium_name = get_unique_medium_name( $db, $medium_name );
 
     $medium = {
         name        => encode( 'utf8', substr( $medium_name, 0, 128 ) ),
