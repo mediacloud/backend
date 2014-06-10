@@ -38,13 +38,34 @@ my $_config;
 BEGIN
 {
     $_download_store_lookup = {
+
+        # downloads.path is prefixed with "content:";
+        # download is stored in downloads.path itself
         databaseinline => undef,
-        localfile      => undef,
-        postgresql     => undef,
-        tar            => undef,
-        amazon_s3      => undef,    # might remain 'undef' if not configured
-        gridfs         => undef,    # might remain 'undef' if not configured
-        remote         => undef,    # might remain 'undef' if not configured
+
+        # downloads.path has no prefix;
+        # download is stored in a filesystem
+        localfile => undef,
+
+        # downloads.path is prefixed with "postgresql:";
+        # download is stored in "raw_downloads" table
+        postgresql => undef,
+
+        # downloads.path is prefixed with "tar:";
+        # download is stored in a Tar archive in a filesystem
+        tar => undef,
+
+        # downloads.path is prefixed with "amazon_s3:";
+        # download is stored in Amazon S3
+        amazon_s3 => undef,    # might remain 'undef' if not configured
+
+        # downloads.path is prefixed with "gridfs:";
+        # download is stored in MongoDB GridFS
+        gridfs => undef,    # might remain 'undef' if not configured
+
+        # downloads.path has no prefix, but /mediawords/fetch_remote_content is set to "yes";
+        # download is stored in a remote HTTP server
+        remote => undef,    # might remain 'undef' if not configured
     };
 
     $_config = MediaWords::Util::Config::get_config;
@@ -208,6 +229,11 @@ sub _download_store_for_reading($)
     }
 
     my $location = lc( $1 );
+
+    if ( $location eq 'content' )
+    {
+        return $_download_store_lookup->{ databaseinline };
+    }
 
     if ( _override_store_with_gridfs( $location ) )
     {
