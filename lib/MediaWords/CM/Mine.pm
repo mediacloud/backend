@@ -1753,14 +1753,17 @@ sub merge_dup_stories
 {
     my ( $db, $controversy, $stories ) = @_;
 
-    my $story_sentence_counts = $db->query( <<END, map { $_->{ stories_id } } @{ $stories } )->hashes;
-select stories_id, count(*) sentence_count from story_sentences where stories_id in (??) group by stories_id
+    my $stories_ids_list = join( ',', map { $_->{ stories_id } } @{ $stories } );
+
+    my $story_sentence_counts = $db->query( <<END )->hashes;
+select stories_id, count(*) sentence_count from story_sentences where stories_id in ($stories_ids_list) group by stories_id
 END
 
     my $ssc = {};
+    map { $ssc->{ $_->{ stories_id } } = 0 } @{ $stories };
     map { $ssc->{ $_->{ stories_id } } = $_->{ sentence_count } } @{ $story_sentence_counts };
 
-    $stories = [ sort { $ssc->{ $_->{ stories_id } } <=> $ssc->{ $_->{ stories_id } } } @{ $stories } ];
+    $stories = [ sort { $ssc->{ $b->{ stories_id } } <=> $ssc->{ $a->{ stories_id } } } @{ $stories } ];
 
     my $keep_story = shift( @{ $stories } );
 
