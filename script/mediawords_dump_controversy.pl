@@ -24,7 +24,7 @@ use Gearman::JobScheduler;
 
 sub main
 {
-    my ( $controversy_opt );
+    my ( $controversy_opt, $direct_job );
 
     unless ( MediaWords::GearmanFunction::gearman_is_enabled() )
     {
@@ -35,16 +35,24 @@ sub main
     binmode( STDERR, 'utf8' );
     $| = 1;
 
-    Getopt::Long::GetOptions( "controversy=s" => \$controversy_opt ) || return;
+    Getopt::Long::GetOptions(
+        "controversy=s" => \$controversy_opt,
+        "direct_job!"   => \$direct_job
+    ) || return;
 
     die( "Usage: $0 --controversy < id >" ) unless ( $controversy_opt );
 
     my $db = MediaWords::DB::connect_to_db();
     my $controversies = MediaWords::CM::require_controversies_by_opt( $db, $controversy_opt );
-    $db->disconnect;
 
     for my $controversy ( @{ $controversies } )
     {
+        if ( $direct_job )
+        {
+            MediaWords::CM::Dump::dump_controversy( $db, $controversy->{ controversies_id } );
+            next;
+        }
+
         my $args = { controversies_id => $controversy->{ controversies_id } };
         my $gearman_job_id = MediaWords::GearmanFunction::CM::DumpControversy->enqueue_on_gearman( $args );
         say STDERR
