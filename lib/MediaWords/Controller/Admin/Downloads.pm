@@ -100,6 +100,11 @@ sub view : Local
     else
     {
         eval { $content_ref = MediaWords::DBI::Downloads::fetch_content( $c->dbis, $download ) };
+        if ( $@ )
+        {
+            my $content = "Error fetching download:\n" . $@;
+            $content_ref = \$content;
+        }
     }
 
     if ( !$content_ref || !$$content_ref )
