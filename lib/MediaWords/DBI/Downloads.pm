@@ -230,6 +230,11 @@ sub _download_store_for_reading($)
 
     my $location = lc( $1 );
 
+    if ( $location eq 'content' )
+    {
+        return $_download_store_lookup->{ databaseinline };
+    }
+
     if ( _override_store_with_gridfs( $location ) )
     {
         return $_download_store_lookup->{ gridfs };
