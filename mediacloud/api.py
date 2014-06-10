@@ -199,6 +199,8 @@ class MediaCloud(object):
             headers={ 'Accept': 'application/json'}  
         )
         if r.status_code is not 200:
-            self._logger.error('Bad HTTP response to '+url+' : '+str(r.status_code))
-            raise Exception('Error - got a HTTP status code of '+str(r.status_code))
+            self._logger.error('Bad HTTP response to '+r.url +' : '+str(r.status_code)  + ' ' +  str( r.reason) )
+            self._logger.error('\t' + r.content )
+
+            raise Exception('Error - got a HTTP status code of '+str(r.status_code) + ' ' +  str( r.reason) + 'for ' + r.url )
         return r
