@@ -322,6 +322,25 @@ sub generate_medium_url_and_name_from_url
 
 }
 
+# make sure that the medium_name is unique so that we can insert it without causing an unique key error
+sub get_unique_medium_name
+{
+    my ( $db, $name, $i ) = @_;
+
+    my $q_name = $i ? "$name $1" : $name;
+
+    my $name_exists = $db->query( "select 1 from media where name = ?", $q_name )->hash;
+
+    if ( $name_exists )
+    {
+        return get_unique_medium_name( $db, $name, ++$i );
+    }
+    else
+    {
+        return $q_name;
+    }
+}
+
 # return a spider specific media_id for each story.  create a new spider specific medium
 # based on the domain of the story url
 sub get_spider_medium
@@ -343,6 +362,7 @@ END
 
     # avoid conflicts with existing media urls that are missed by the above query b/c of dups feeds or foreign_rss_links
     $medium_url = substr( $medium_url, 0, 1000 ) . '#spider';
+    $medium_name = get_unique_medium_name( $medium_name );
 
     $medium = {
         name        => encode( 'utf8', substr( $medium_name, 0, 128 ) ),
