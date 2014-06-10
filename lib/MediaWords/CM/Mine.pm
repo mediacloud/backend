@@ -162,7 +162,7 @@ sub get_extracted_html
     if ( $@ )
     {
         MediaWords::DBI::Stories::fix_story_downloads_if_needed( $db, $story );
-        $extracted_html = MediaWords::DBI::Stories::get_extracted_html_from_db( $db, $story );
+        eval { $extracted_html = MediaWords::DBI::Stories::get_extracted_html_from_db( $db, $story ); };
     }
 
     return $extracted_html;
@@ -1799,7 +1799,10 @@ sub find_and_merge_dup_stories
 {
     my ( $db, $controversy ) = @_;
 
-    for my $get_dup_stories ( \&get_medium_dup_stories_by_url, \&get_medium_dup_stories_by_title )
+    for my $get_dup_stories (
+        \&MediaWords::DBI::Stories::get_medium_dup_stories_by_url,
+        \&MediaWords::DBI::Stories::get_medium_dup_stories_by_title
+      )
     {
         # regenerate story list each time to capture previously merged stories
         my $media_lookup = get_controversy_stories_by_medium( $db, $controversy );
