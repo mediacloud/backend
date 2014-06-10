@@ -81,8 +81,6 @@ sub create : Local
         return;
     }
 
-    die;
-
     my $controversy = {
         name            => $c_name,
         pattern         => $c_pattern,

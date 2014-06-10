@@ -1287,9 +1287,8 @@ sub get_default_dates
 {
     my ( $db, $controversy ) = @_;
 
-    my ( $start_date, $end_date ) = $db->query( <<END, $controversy->{ query_story_searches_id } )->flat;
-select q.start_date, q.end_date from queries q, query_story_searches qss
-    where qss.query_story_searches_id = ? and q.queries_id = qss.queries_id
+    my ( $start_date, $end_date ) = $db->query( <<END, $controversy->{ controversies_id } )->flat;
+select min( cd.start_date ), max( cd.end_date ) from controversy_dates cd where cd.controversies_id = ?
 END
 
     die( "Unable to find default dates" ) unless ( $start_date && $end_date );
@@ -1531,21 +1530,6 @@ sub get_periods ($)
       if ( $period && !grep { $_ eq $period } ( 'all', @{ $all_periods } ) );
 
     return ( $period eq 'all' ) ? $all_periods : [ $period ];
-}
-
-# validate and set the date parameters for the dump
-sub get_dates ($$$$)
-{
-    my ( $db, $controversy, $start_date, $end_date ) = @_;
-
-    if ( !$start_date || !$end_date )
-    {
-        my ( $default_start_date, $default_end_date ) = get_default_dates( $db, $controversy );
-        $start_date ||= $default_start_date;
-        $end_date   ||= $default_end_date;
-    }
-
-    return ( $start_date, $end_date );
 }
 
 # get the tags associated with the controversy through controversy_dump_tags
