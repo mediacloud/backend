@@ -55,12 +55,11 @@ sub _add_nested_data
 
     foreach my $download ( @$downloads )
     {
-
         if ( $download->{ state } eq 'success' )
         {
-            my $raw_content = MediaWords::DBI::Downloads::fetch_content( $db, $download );
+            my $raw_content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download );
 
-            $download->{ raw_content } = $raw_content;
+            $download->{ raw_content } = $$raw_content_ref;
         }
     }
 

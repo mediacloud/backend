@@ -9,9 +9,14 @@ use strict;
 
 sub createExtractor
 {
+    my ( $extractor_method ) = @_;
+
     my $config = MediaWords::Util::Config::get_config;
 
-    my $extractor_method = $config->{ mediawords }->{ extractor_method };
+    if ( !defined( $extractor_method ) )
+    {
+        $extractor_method = $config->{ mediawords }->{ extractor_method };
+    }
 
     die unless defined( $extractor_method );
 
