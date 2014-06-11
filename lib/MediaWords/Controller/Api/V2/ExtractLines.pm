@@ -1,4 +1,5 @@
-package MediaWords::Controller::Api::V2::MC_REST_SimpleObject;
+package MediaWords::Controller::Api::V2::ExtractLines;
+
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
@@ -15,7 +16,7 @@ use Carp;
 
 =head1 NAME
 
-MediaWords::Controller::Media - Catalyst Controller
+MediaWords::Controller::Api::V2::ExtractLines - Catalyst Controller
 
 =head1 DESCRIPTION
 
@@ -34,8 +35,7 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 # Default authentication action roles
 __PACKAGE__->config(    #
     action => {         #
-        single => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
-        list   => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
+        story_lines => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
       }    #
 );         #
 
@@ -43,11 +43,11 @@ use constant ROWS_PER_PAGE => 20;
 
 use MediaWords::Tagger;
 
-sub storyLines : Local : ActionClass('REST')    # action roles are to be set for each derivative sub-actions
+sub story_lines : Local : ActionClass('REST')
 {
 }
 
-sub storyLines_GET : Local
+sub story_lines_GET : Local
 {
     my ( $self, $c ) = @_;
 
