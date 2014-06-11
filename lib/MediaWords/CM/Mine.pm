@@ -327,6 +327,8 @@ sub get_unique_medium_name
 {
     my ( $db, $name, $i ) = @_;
 
+    $name = substr( $name, 0, 124 );
+
     my $q_name = $i ? "$name $i" : $name;
 
     my $name_exists = $db->query( "select 1 from media where name = ?", $q_name )->hash;
@@ -338,6 +340,39 @@ sub get_unique_medium_name
     else
     {
         return $q_name;
+    }
+}
+
+# make sure that the url is unique so that we can insert it without causing an unique key error
+sub get_unique_medium_url
+{
+    my ( $db, $url, $i ) = @_;
+
+    $url = substr( $url, 0, 1000 );
+
+    my $q_url;
+    if ( !$i )
+    {
+        $q_url = $url;
+    }
+    elsif ( $i == 1 )
+    {
+        $q_url = '#spider';
+    }
+    else
+    {
+        $q_url = "#spider$i";
+    }
+
+    my $url_exists = $db->query( "select 1 from media where url = ?", $url )->hash;
+
+    if ( $url_exists )
+    {
+        return get_unique_medium_url( $db, $url, ++$i );
+    }
+    else
+    {
+        return $q_url;
     }
 }
 
@@ -353,21 +388,21 @@ sub get_spider_medium
 
     $medium ||= $db->query( <<END, $medium_name, "${ medium_name }#spider" )->hash;
 select m.* from media m
-    where lower( m.name ) in ( lower( \$1 ), lower( \$2 ) ) and 
-        m.foreign_rss_links = false
-    order by lower( m.name ) = lower( \$1 )
+    where lower( m.name ) in lower( ? ) and m.foreign_rss_links = false
 END
+
+    $medium ||= lookup_medium_by_url( $db, "${ medium_url }#spider" );
 
     $medium = get_dup_medium( $db, $medium->{ dup_media_id } ) if ( $medium && $medium->{ dup_media_id } );
 
     return $medium if ( $medium );
 
-    # avoid conflicts with existing media urls that are missed by the above query b/c of dups feeds or foreign_rss_links
-    $medium_url = substr( $medium_url, 0, 1000 ) . '#spider';
+# avoid conflicts with existing media names and urls that are missed by the above query b/c of dups feeds or foreign_rss_links
     $medium_name = get_unique_medium_name( $db, $medium_name );
+    $medium_url = get_unique_medium_url( $db, $medium_url );
 
     $medium = {
-        name        => encode( 'utf8', substr( $medium_name, 0, 128 ) ),
+        name        => encode( 'utf8', $medium_name ),
         url         => encode( 'utf8', $medium_url ),
         moderated   => 't',
         feeds_added => 't'
