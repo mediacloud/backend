@@ -264,8 +264,6 @@ sub _score_lines_with_line_info($)
             {
                 $score->{ predicted_class } = 'required';
             }
-
-            die Dumper( $line_info ) if $explanation =~ /title/;
         }
         else
         {
