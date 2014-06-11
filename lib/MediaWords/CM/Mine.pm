@@ -351,9 +351,11 @@ sub get_spider_medium
 
     my $medium = lookup_medium_by_url( $db, $medium_url );
 
-    $medium ||= $db->query( <<END, $medium_name )->hash;
+    $medium ||= $db->query( <<END, $medium_name, "${ medium_name }#spider" )->hash;
 select m.* from media m
-    where lower( m.name ) = lower( ? ) and m.foreign_rss_links = false
+    where lower( m.name ) in ( lower( \$1 ), lower( \$2 ) ) and 
+        m.foreign_rss_links = false
+    order by lower( m.name ) = lower( \$1 )
 END
 
     $medium = get_dup_medium( $db, $medium->{ dup_media_id } ) if ( $medium && $medium->{ dup_media_id } );
