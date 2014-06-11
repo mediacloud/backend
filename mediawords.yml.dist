@@ -219,6 +219,13 @@ database:
     ### will take up more memory.
     #number_of_threads: 32
 
+### Bit.ly API
+#bitly:
+
+    ### (Generic) Access Token
+    ### Get one at: https://bitly.com/a/oauth_apps
+    #access_token: ""
+
 #mail:
     # Email address to receive bug report emails; leave empty for no bug reports via email
     #bug_email : ""
