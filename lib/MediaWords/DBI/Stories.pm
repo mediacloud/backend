@@ -8,6 +8,7 @@ use strict;
 
 use Carp;
 use Encode;
+use HTML::Entities;
 
 use MediaWords::Util::BigPDLVector qw(vector_new vector_set vector_dot vector_normalize);
 use MediaWords::Util::HTML;
@@ -1149,6 +1150,8 @@ sub get_title_parts
 {
     my ( $title ) = @_;
 
+    $title = decode_entities( $title );
+
     $title = lc( $title );
     $title =~ s/\s+/ /g;
     $title =~ s/^\s+//;
@@ -1164,7 +1167,12 @@ sub get_title_parts
         $title_parts = [ split( /\s*[-:|]+\s*/, $title ) ];
     }
 
-    map { s/^\s+//; s/\s+$//; } @{ $title_parts };
+    map { s/^\s+//; s/\s+$//; s/[[:punct:]]//g; } @{ $title_parts };
+
+    if ( @{ $title_parts } > 1 )
+    {
+        unshift( @{ $title_parts }, $title );
+    }
 
     return $title_parts;
 }
@@ -1186,35 +1194,42 @@ sub get_medium_dup_stories_by_title
     {
         my $title_parts = $story->{ title_parts } = get_title_parts( $story->{ title } );
 
-        if ( @{ $title_parts } == 1 )
+        for ( my $i = 0 ; $i < @{ $title_parts } ; $i++ )
         {
-            my $title_part = $title_parts->[ 0 ];
+            my $title_part = $title_parts->[ $i ];
 
-            # solo title parts that are only a few words might just be the media source name
-            my $num_words = scalar( split( / /, $title_part ) );
-            next if ( $num_words < 5 );
+            if ( $i == 0 )
+            {
+                # solo title parts that are only a few words might just be the media source name
+                my $num_words = scalar( split( / /, $title_part ) );
+                next if ( $num_words < 5 );
 
-            # likewise, a solo title of a story with a url with no path is probably
-            # the media source name
-            next if ( URI->new( $story->{ url } )->path =~ /^\/?$/ );
+                # likewise, a solo title of a story with a url with no path is probably
+                # the media source name
+                next if ( URI->new( $story->{ url } )->path =~ /^\/?$/ );
 
-            $title_part_counts->{ $title_parts->[ 0 ] }->{ solo } = 1;
-        }
+                $title_part_counts->{ $title_parts->[ 0 ] }->{ solo } = 1;
+            }
 
-        for my $title_part ( @{ $title_parts } )
-        {
             $title_part_counts->{ $title_part }->{ count }++;
-            push( @{ $title_part_counts->{ $title_part }->{ stories } }, $story );
+            $title_part_counts->{ $title_part }->{ stories }->{ $story->{ stories_id } } = $story;
         }
     }
 
     my $duplicate_stories = [];
     for my $t ( grep { $_->{ solo } } values( %{ $title_part_counts } ) )
     {
-        my $num_stories = @{ $t->{ stories } };
-        if ( ( $num_stories > 1 ) && ( $num_stories < 6 ) )
+        my $num_stories = scalar( keys( %{ $t->{ stories } } ) );
+        if ( $num_stories > 1 )
         {
-            push( @{ $duplicate_stories }, $t->{ stories } );
+            if ( $num_stories < 26 )
+            {
+                push( @{ $duplicate_stories }, [ values( %{ $t->{ stories } } ) ] );
+            }
+            else
+            {
+                warn( "cowardly refusing to mark $num_stories stories as dups [" . $t->{ stories }->[ 0 ]->{ title } . "]" );
+            }
         }
     }
 
