@@ -123,6 +123,14 @@ sub canonicalize_url($)
     delete $query_form{ utm_term };
     delete $query_form{ utm_content };
     delete $query_form{ utm_campaign };
+    delete $query_form{ utm_reader };
+    delete $query_form{ utm_place };
+    delete $query_form{ ga_source };
+    delete $query_form{ ga_medium };
+    delete $query_form{ ga_term };
+    delete $query_form{ ga_content };
+    delete $query_form{ ga_campaign };
+    delete $query_form{ ga_place };
 
     # Remove Facebook parameters (https://developers.facebook.com/docs/games/canvas/referral-tracking)
     delete $query_form{ fb_action_ids };
@@ -132,6 +140,17 @@ sub canonicalize_url($)
     delete $query_form{ action_object_map };
     delete $query_form{ action_type_map };
     delete $query_form{ action_ref_map };
+
+    if ( $uri->host =~ /facebook\.com$/ )
+    {
+        delete $query_form->{ ref };
+        delete $query_form->{ fref };
+        delete $query_form->{ hc_location };
+    }
+
+    # Remove metrika.yandex.ru parameters
+    delete $query_form{ yclid };
+    delete $query_form{ _openstat };
 
     $uri->query_form( \%query_form );
 
