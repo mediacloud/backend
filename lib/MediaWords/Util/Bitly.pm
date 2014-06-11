@@ -91,4 +91,56 @@ sub request($$)
     return $json_data;
 }
 
+# Canonicalizes URL for Bit.ly API lookup; die()s on error
+sub canonicalize_url($)
+{
+    my $url = shift;
+
+    unless ( $url )
+    {
+        die "URL is undefined";
+    }
+
+    my $uri = URI->new_abs( $url, 'http' )->canonical;
+
+    unless ( $uri->scheme )
+    {
+        die "Scheme is undefined for URL $url";
+    }
+    unless ( $uri->scheme eq 'http' or $uri->scheme eq 'https' )
+    {
+        die "Scheme is not HTTP(s) for URL $url";
+    }
+
+    # Remove #fragment
+    $uri->fragment( undef );
+
+    my %query_form = $uri->query_form;
+
+    # Remove GA parameters (https://support.google.com/analytics/answer/1033867?hl=en)
+    delete $query_form{ utm_source };
+    delete $query_form{ utm_medium };
+    delete $query_form{ utm_term };
+    delete $query_form{ utm_content };
+    delete $query_form{ utm_campaign };
+
+    # Remove Facebook parameters (https://developers.facebook.com/docs/games/canvas/referral-tracking)
+    delete $query_form{ fb_action_ids };
+    delete $query_form{ fb_action_types };
+    delete $query_form{ fb_source };
+    delete $query_form{ fb_ref };
+    delete $query_form{ action_object_map };
+    delete $query_form{ action_type_map };
+    delete $query_form{ action_ref_map };
+
+    $uri->query_form( \%query_form );
+
+    # FIXME remove parameters that contain URLs
+    # FIXME remove base64-encoded parameters (likely to be tracking codes)
+    # FIXME try fetching an URL, use the first redirect as the real URL
+    # FIXME fetch the page, look for <link rel="canonical" />
+
+    return $uri->as_string;
+}
+
 1;
