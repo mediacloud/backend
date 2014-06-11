@@ -327,11 +327,7 @@ sub get_unique_medium_name
 {
     my ( $db, $name, $i ) = @_;
 
-    $i ||= 0;
-
-    print STDERR "get_unique_medium_name: $name $i\n";
-
-    my $q_name = $i ? "$name $1" : $name;
+    my $q_name = $i ? "$name $i" : $name;
 
     my $name_exists = $db->query( "select 1 from media where name = ?", $q_name )->hash;
 
