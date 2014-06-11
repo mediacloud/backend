@@ -1,4 +1,5 @@
-package MediaWords::Controller::Api::V2::MC_REST_SimpleObject;
+package MediaWords::Controller::Api::V2::ExtractLines;
+
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
@@ -15,7 +16,7 @@ use Carp;
 
 =head1 NAME
 
-MediaWords::Controller::Media - Catalyst Controller
+MediaWords::Controller::Api::V2::ExtractLines - Catalyst Controller
 
 =head1 DESCRIPTION
 
