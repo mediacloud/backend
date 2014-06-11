@@ -364,7 +364,7 @@ sub get_unique_medium_url
         $q_url = "#spider$i";
     }
 
-    my $url_exists = $db->query( "select 1 from media where url = ?", $url )->hash;
+    my $url_exists = $db->query( "select 1 from media where url = ?", $q_url )->hash;
 
     if ( $url_exists )
     {
