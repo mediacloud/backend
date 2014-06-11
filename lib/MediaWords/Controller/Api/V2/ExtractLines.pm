@@ -35,7 +35,7 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 # Default authentication action roles
 __PACKAGE__->config(    #
     action => {         #
-        storyLines => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
+        story_lines => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
       }    #
 );         #
 
@@ -43,11 +43,11 @@ use constant ROWS_PER_PAGE => 20;
 
 use MediaWords::Tagger;
 
-sub storyLines : Local : ActionClass('REST')    # action roles are to be set for each derivative sub-actions
+sub story_lines : Local : ActionClass('REST')
 {
 }
 
-sub storyLines_GET : Local
+sub story_lines_GET : Local
 {
     my ( $self, $c ) = @_;
 
