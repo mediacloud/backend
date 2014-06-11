@@ -386,7 +386,7 @@ sub get_spider_medium
 
     my $medium = lookup_medium_by_url( $db, $medium_url );
 
-    $medium ||= $db->query( <<END, $medium_name, "${ medium_name }#spider" )->hash;
+    $medium ||= $db->query( <<END, $medium_name )->hash;
 select m.* from media m
     where lower( m.name ) in lower( ? ) and m.foreign_rss_links = false
 END
