@@ -33,6 +33,9 @@ _Inline/
 # Devel::NYTProf output
 nytprof*
 
+# Data dumps
+root/include/data_dumps
+
 # Vagrant and test suite temporary files
 .vagrant
 script/vagrant/vagrant_test_suite.lock
