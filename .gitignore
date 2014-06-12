@@ -30,6 +30,9 @@ Session.vim
 # Inline::Java
 _Inline/
 
+# Devel::NYTProf output
+nytprof*
+
 # Vagrant and test suite temporary files
 .vagrant
 script/vagrant/vagrant_test_suite.lock
