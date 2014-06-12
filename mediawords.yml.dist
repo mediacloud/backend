@@ -148,6 +148,7 @@ database:
         #cm_dump_controversy    
         #solr
         #solr_facets_wrapper_server
+        #annotate_with_corenlp
         
 
 ### CoreNLP annotator

@@ -125,6 +125,14 @@ programs = gearmand
     default_nice=10
 %]
 
+[% INCLUDE program_config
+    program='annotate_with_corenlp'
+    gearman_worker_module='AnnotateWithCoreNLP.pm'
+    default_autorestart='true'
+    default_autostart='true'
+    default_nice=10
+%]
+
 [group:solr]
 programs = solr
 
