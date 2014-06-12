@@ -17,7 +17,12 @@ cache/translate
 *.py[cod]
 
 # Vim backup files
-*.swp
+[._]*.s[a-w][a-z]
+[._]s[a-w][a-z]
+*.un~
+Session.vim
+.netrwhist
+*~
 
 # OS X
 .DS_Store
