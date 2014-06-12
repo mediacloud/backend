@@ -14,6 +14,7 @@ use MediaWords::CommonLibs;
 use MediaWords::Util::Config;
 use MongoDB 0.700.0;
 use MongoDB::GridFS;
+use Carp;
 
 # MongoDB's query timeout, in ms
 # (default timeout is 30 s, but MongoDB sometimes creates a new 2 GB data file for ~38 seconds,
@@ -47,7 +48,7 @@ sub BUILD($$)
     # Get arguments
     unless ( $args->{ database_name } )
     {
-        die "Please provide 'database_name' argument.\n";
+        confess "Please provide 'database_name' argument.\n";
     }
     my $gridfs_database_name = $args->{ database_name };
 
@@ -58,7 +59,7 @@ sub BUILD($$)
 
     unless ( $gridfs_host and $gridfs_port )
     {
-        die "GridFS: MongoDB connection settings in mediawords.yml are not configured properly.\n";
+        confess "GridFS: MongoDB connection settings in mediawords.yml are not configured properly.\n";
     }
 
     # Store configuration
@@ -91,19 +92,19 @@ sub _connect_to_mongodb_or_die($)
     );
     unless ( $self->_mongodb_client )
     {
-        die "GridFS: Unable to connect to MongoDB.\n";
+        confess "GridFS: Unable to connect to MongoDB.\n";
     }
 
     $self->_mongodb_database( $self->_mongodb_client->get_database( $self->_conf_database_name ) );
     unless ( $self->_mongodb_database )
     {
-        die "GridFS: Unable to choose a MongoDB database.\n";
+        confess "GridFS: Unable to choose a MongoDB database.\n";
     }
 
     $self->_mongodb_gridfs( $self->_mongodb_database->get_gridfs );
     unless ( $self->_mongodb_gridfs )
     {
-        die "GridFS: Unable to connect use the MongoDB database as GridFS.\n";
+        confess "GridFS: Unable to connect use the MongoDB database as GridFS.\n";
     }
 
     # Save PID
@@ -190,7 +191,7 @@ sub store_content($$$$;$$)
             $gridfs_id = $self->_mongodb_gridfs->put( $basic_fh, { "filename" => $filename } );
             unless ( $gridfs_id )
             {
-                die "GridFS: MongoDBs OID is empty.";
+                confess "GridFS: MongoDBs OID is empty.";
             }
 
             $gridfs_id = "gridfs:$gridfs_id";
@@ -208,7 +209,7 @@ sub store_content($$$$;$$)
 
     unless ( $gridfs_id )
     {
-        die "GridFS: Unable to store object ID $object_id to GridFS after " . MONGODB_WRITE_RETRIES . " retries.\n";
+        confess "GridFS: Unable to store object ID $object_id to GridFS after " . MONGODB_WRITE_RETRIES . " retries.\n";
     }
 
     return $gridfs_id;
@@ -223,7 +224,7 @@ sub fetch_content($$$;$$$)
 
     unless ( defined $object_id )
     {
-        die "GridFS: Object ID is undefined.\n";
+        confess "GridFS: Object ID is undefined.\n";
     }
 
     my $filename = '' . $object_id;
@@ -247,7 +248,7 @@ sub fetch_content($$$;$$$)
             my $gridfs_file = $self->_mongodb_gridfs->find_one( { 'filename' => $filename } );
             unless ( defined $gridfs_file )
             {
-                die "GridFS: unable to find file '$filename'.";
+                confess "GridFS: unable to find file '$filename'.";
             }
             $file                      = $gridfs_file->slurp;
             $attempt_to_read_succeeded = 1;
@@ -265,12 +266,12 @@ sub fetch_content($$$;$$$)
 
     unless ( $attempt_to_read_succeeded )
     {
-        die "GridFS: Unable to read object ID $object_id from GridFS after " . MONGODB_READ_RETRIES . " retries.\n";
+        confess "GridFS: Unable to read object ID $object_id from GridFS after " . MONGODB_READ_RETRIES . " retries.\n";
     }
 
     unless ( defined( $file ) )
     {
-        die "GridFS: Could not get file '$filename'.\n";
+        confess "GridFS: Could not get file '$filename'.\n";
     }
 
     my $gzipped_content = $file;
