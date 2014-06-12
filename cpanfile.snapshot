@@ -5816,6 +5816,12 @@ DISTRIBUTIONS
       IO::Select 0
       IO::Socket::INET 0
       perl 5.006002
+  Net-IP-1.26
+    pathname: M/MA/MANU/Net-IP-1.26.tar.gz
+    provides:
+      Net::IP 1.26
+    requirements:
+      ExtUtils::MakeMaker 0
   Net-SSLeay-1.58
     pathname: M/MI/MIKEM/Net-SSLeay-1.58.tar.gz
     provides:
