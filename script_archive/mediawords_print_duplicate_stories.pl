@@ -31,13 +31,15 @@ sub main
 
     my $db = MediaWords::DB::connect_to_db;
 
-    my $stories = [];
-    while ( my $stories_id = <> )
+    my $stories_ids = [ @ARGV ];
+    my $stories     = [];
+    for my $stories_id ( @{ $stories_ids } )
     {
-        chomp( $stories_id );
         my $story = $db->find_by_id( 'stories', $stories_id ) || die( "unable to find story '$stories_id'" );
         push( $stories, $story );
     }
+
+    print "finding dups ...\n";
 
     my $title_dup_stories = MediaWords::DBI::Stories::get_medium_dup_stories_by_title( $db, $stories );
     my $url_dup_stories = MediaWords::DBI::Stories::get_medium_dup_stories_by_url( $db, $stories );
