@@ -276,7 +276,7 @@ sub fetch_content($$)
     }
 
     # Fetch content
-    if ( my $content_ref = $store->fetch_content( $db, $download->{ downloads_id }, $download->{ download_path } ) )
+    if ( my $content_ref = $store->fetch_content( $db, $download->{ downloads_id }, $download->{ path } ) )
     {
 
         # horrible hack to fix old content that is not stored in unicode
