@@ -78,7 +78,7 @@ sub add_test_feed
     return $feed;
 }
 
-# get stories from database, including content, text, tags, sentences, sentence_words, and story_sentence_words
+# get stories from database, including content, text, tags, and sentences
 sub get_expanded_stories
 {
     my ( $db, $feed ) = @_;
@@ -161,16 +161,6 @@ sub test_stories
             _purge_story_sentences_id_field( $test_story->{ story_sentences } );
 
 #cmp_deeply (  $story->{ story_sentences }, $test_story->{ story_sentences } , "story sentences " . $story->{ stories_id } );
-
-          TODO:
-            {
-                my $fake_var;    #silence warnings
-
-                #my $test_story_sentence_words_count = scalar( @{ $test_story->{ story_sentence_words } } );
-                #my $story_sentence_words_count      = scalar( @{ $story->{ story_sentence_words } } );
-
-    #is( $story_sentence_words_count, $test_story_sentence_words_count, "story words count for "  . $story->{ stories_id } );
-            }
         }
 
         delete( $test_story_hash->{ $story->{ title } } );

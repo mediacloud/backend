@@ -90,7 +90,7 @@ sub run_crawler
     print "crawler exiting ...\n";
 }
 
-# get stories from database, including content, text, tags, sentences, sentence_words, and story_sentence_words
+# get stories from database, including content, text, tags, and sentences
 sub get_expanded_stories
 {
     my ( $db, $feed ) = @_;

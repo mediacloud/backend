@@ -130,7 +130,7 @@ sub update_download_texts
     }
 }
 
-# get stories from database, including content, text, tags, sentences, sentence_words, and story_sentence_words
+# get stories from database, including content, text, tags, and sentences
 sub get_expanded_stories
 {
     my ( $db ) = @_;
@@ -143,9 +143,6 @@ sub get_expanded_stories
         $story->{ content } = ${ MediaWords::DBI::Stories::fetch_content( $db, $story ) };
         $story->{ extracted_text } = MediaWords::DBI::Stories::get_text( $db, $story );
         $story->{ tags } = MediaWords::DBI::Stories::get_db_module_tags( $db, $story, 'NYTTopics' );
-
-        $story->{ story_sentence_words } =
-          $db->query( "select * from story_sentence_words where stories_id = ?", $story->{ stories_id } )->hashes;
 
         $story->{ story_sentences } =
           $db->query( "select * from story_sentences where stories_id = ? order by stories_id, sentence_number ",
