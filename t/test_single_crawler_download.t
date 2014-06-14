@@ -244,18 +244,6 @@ sub _process_top_500_weekly_words_for_testing
     }
 }
 
-sub dump_top_500_weekly_words
-{
-    my ( $db, $feed ) = @_;
-
-    my $top_500_weekly_words = $db->query( 'SELECT * FROM top_500_weekly_words order by publish_week, stem, term', )->hashes;
-    _process_top_500_weekly_words_for_testing( $top_500_weekly_words );
-
-    MediaWords::Test::Data::store_test_data( 'top_500_weekly_words', $top_500_weekly_words );
-
-    return;
-}
-
 sub sort_top_500_weekly_words
 {
     my ( $array ) = @_;
