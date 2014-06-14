@@ -59,13 +59,21 @@ sub store_test_data($$;$)
 
     my $file = _get_data_file( $basename, $subdirectory );
 
-    open( FILE, ">$file" ) or die "Unable to open file $file: $!";
+    {
+        # Make sure that results can be eval{}-ed
+        local $Data::Dumper::Purity = 1;
 
-    print FILE "#<<<\n";
-    print FILE Dumper( $data );
-    print FILE "#>>>\n";
+        # Sort hash keys so that Git commit diffs will look more concise afterwards
+        local $Data::Dumper::Sortkeys = 1;
 
-    close( FILE );
+        open( FILE, ">$file" ) or die "Unable to open file $file: $!";
+
+        print FILE "#<<<\n";
+        print FILE Dumper( $data );
+        print FILE "#>>>\n";
+
+        close( FILE );
+    }
 }
 
 # Write the given data to disk under the given basename; split the data
