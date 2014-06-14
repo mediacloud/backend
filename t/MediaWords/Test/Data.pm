@@ -3,6 +3,7 @@ package MediaWords::Test::Data;
 # store and fetch testing data
 
 use strict;
+use warnings;
 
 BEGIN
 {
