@@ -164,4 +164,41 @@ sub fetch_test_data_from_individual_files($)
     return \%data_hash;
 }
 
+# Creates a hashref of stories from an arrayref of stories (indexed by stories_id)
+sub stories_hashref_from_arrayref($)
+{
+    my $arrayref = shift;
+
+    my %hash;
+    foreach my $story ( @{ $arrayref } )
+    {
+
+        my $stories_id = $story->{ stories_id };
+        unless ( $stories_id )
+        {
+            die "Story ID is unset for story " . Dumper( $story );
+        }
+
+        if ( exists $hash{ $stories_id } )
+        {
+            die "Story ID $stories_id is not unique (such story already exists in a hashref) for story " . Dumper( $story );
+        }
+
+        $hash{ $stories_id } = $story;
+    }
+
+    return \%hash;
+}
+
+# Creates an arrayref of stories from a hashref of stories (array of stories in any order)
+sub stories_arrayref_from_hashref($)
+{
+    my $hashref = shift;
+
+    my @array;
+    map { push( @array, $hashref->{ $_ } ) } keys %{ $hashref };
+
+    return \@array;
+}
+
 1;
