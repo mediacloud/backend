@@ -36,7 +36,9 @@ sub extract_and_compare
 {
     my ( $file, $title ) = @_;
 
-    my $test_stories = MediaWords::Test::Data::fetch_test_data( 'crawler_stories' );
+    my $test_stories_hashref = MediaWords::Test::Data::fetch_test_data_from_individual_files( 'crawler_stories' );
+    my $test_stories         = [];
+    map { push( @{ $test_stories }, $test_stories_hashref->{ $_ } ) } keys %{ $test_stories_hashref };
 
     my $test_story_hash;
     map { $test_story_hash->{ $_->{ title } } = $_ } @{ $test_stories };

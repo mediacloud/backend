@@ -220,7 +220,9 @@ sub test_stories
 
     is( @{ $stories }, 16, "story count" );
 
-    my $test_stories = MediaWords::Test::Data::fetch_test_data( 'crawler_stories' );
+    my $test_stories_hashref = MediaWords::Test::Data::fetch_test_data_from_individual_files( 'crawler_stories' );
+    my $test_stories         = [];
+    map { push( @{ $test_stories }, $test_stories_hashref->{ $_ } ) } keys %{ $test_stories_hashref };
 
     # replace stories_id with urls so that the order of stories
     # doesn't matter
@@ -315,7 +317,24 @@ sub dump_stories
 
     my $stories = get_expanded_stories( $db );
 
-    MediaWords::Test::Data::store_test_data( 'crawler_stories', $stories );
+    my %stories_hash;
+    foreach my $story ( @{ $stories } )
+    {
+
+        my $stories_id = $story->{ stories_id };
+        unless ( $stories_id )
+        {
+            die "Story ID is unset for story " . Dumper( $story );
+        }
+
+        if ( exists $stories_hash{ $stories_id } )
+        {
+            die "Story ID $stories_id is not unique (such story already exists in a hashref) for story " . Dumper( $story );
+        }
+
+        $stories_hash{ $stories_id } = $story;
+    }
+    MediaWords::Test::Data::store_test_data_to_individual_files( 'crawler_stories', \%stories_hash );
 
     sanity_test_stories( $stories );
 }
