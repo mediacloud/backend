@@ -32,7 +32,7 @@ sub start_server
     my $d = HTTP::Daemon->new( ReuseAddr => 1 ) || die;
 
     my $url = $d->url;
-    print "Deamon <URL:", $url, ">\n";
+    print "Daemon <URL:", $url, ">\n";
 
     if ( fork() != 0 )
     {
