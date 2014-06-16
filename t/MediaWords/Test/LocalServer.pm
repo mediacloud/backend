@@ -44,7 +44,12 @@ sub start_server
 
         while ( my $r = $c->get_request )
         {
-            my $path = $r->uri->path;
+            my $uri = $r->uri;
+
+            # We use "as_string" because URL paths with two slashes (e.g.
+            # "//gv/test.rss") could be interpreted as "http://gv/test.rss" by
+            # the URI module
+            my $path = $uri->as_string;
             say STDERR "URI path is '$path'";
 
             if ( $r->method eq 'GET' && $path && $path !~ /\.\./ )
