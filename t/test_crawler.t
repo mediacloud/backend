@@ -98,7 +98,7 @@ EOF
     return $syndicated_feed;
 }
 
-Readonly my $crawler_timeout => 6 * 60;
+Readonly my $crawler_timeout => 3 * 60;
 
 # run the crawler for one minute, which should be enough time to gather all of
 # the stories from the test feed and test-extract them
