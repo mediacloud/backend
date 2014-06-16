@@ -11,7 +11,6 @@ use URI::Split;
 use Fcntl qw (O_RDWR O_CREAT O_TRUNC);
 use File::Path;
 use Data::Dumper;
-use Data::Serializer;
 use MediaWords::DB;
 use MediaWords::Util::Config;
 use Readonly;
@@ -19,15 +18,7 @@ use Readonly;
 #use Tie::File;
 use Carp qw( croak confess );
 
-# hash of { $download_media_id => { time => $last_request_time_for_media_id, pending => $pending_downloads }  }
-my $_downloads = {};
-
-Readonly my $download_timed_out_error_message => 'Download timed out by Fetcher::_timeout_stale_downloads';
-
-my $_serializer;
-my $_downloads_count = 0;
-
-Readonly my $_debug_mode => 0;
+use constant _DEBUG_MODE => 0;
 
 sub new
 {
@@ -36,7 +27,16 @@ sub new
     my $self = {};
     bless( $self, $class );
 
-    $_serializer = Data::Serializer->new();
+    # hash of {
+    #     $download_media_id => {
+    #         time => $last_request_time_for_media_id,
+    #         pending => $pending_downloads
+    #     }
+    # }
+    $self->{ downloads } = {};
+
+    $self->{ downloads_count } = 0;
+
     return $self;
 }
 
@@ -105,19 +105,17 @@ sub _queue_download
 
     #print STDERR "Provider _queue_download media_id $media_id\n";
 
-    $_downloads->{ $media_id }->{ queued } ||= $self->_get_media_download_queue( $media_id );
-    $_downloads->{ $media_id }->{ time }   ||= 0;
-    $_downloads->{ $media_id }->{ map }    ||= {};
+    $self->{ downloads }->{ $media_id }->{ queued } ||= $self->_get_media_download_queue( $media_id );
+    $self->{ downloads }->{ $media_id }->{ time }   ||= 0;
+    $self->{ downloads }->{ $media_id }->{ map }    ||= {};
 
-    my $map = $_downloads->{ $media_id }->{ map };
+    my $map = $self->{ downloads }->{ $media_id }->{ map };
 
     return if ( $map->{ $download->{ downloads_id } } );
 
     $map->{ $download->{ downloads_id } } = 1;
 
-    my $pending = $_downloads->{ $media_id }->{ queued };
-
-    #my $download_serialized = $_serializer->freeze($download);
+    my $pending = $self->{ downloads }->{ $media_id }->{ queued };
 
     if ( $download->{ priority } && ( $download->{ priority } > 0 ) )
     {
@@ -128,18 +126,18 @@ sub _queue_download
         push( @{ $pending }, $download );
     }
 
-    $_downloads_count++;
+    $self->{ downloads_count }++;
 }
 
 # pop the latest download for the given media_id off the queue
 sub _pop_download
 {
     my ( $self, $media_id ) = @_;
-    $_downloads->{ $media_id }->{ time } = time;
+    $self->{ downloads }->{ $media_id }->{ time } = time;
 
-    $_downloads->{ $media_id }->{ queued } ||= [];
+    $self->{ downloads }->{ $media_id }->{ queued } ||= [];
 
-    my $download_serialized = shift( @{ $_downloads->{ $media_id }->{ queued } } );
+    my $download_serialized = shift( @{ $self->{ downloads }->{ $media_id }->{ queued } } );
     my $download            = $download_serialized;
 
     if ( $download )
@@ -150,8 +148,8 @@ sub _pop_download
         # with the effect that no download can be redownloaded until the crawler
         # is restarted.  That shouldn't happen in any case unless someone is manually
         # fiddling with download rows in the database. -hal
-        #$_downloads->{ $media_id }->{ map }->{ $download->{ downloads_id } } = 0;
-        $_downloads_count--;
+        #$self->{ downloads }->{ $media_id }->{ map }->{ $download->{ downloads_id } } = 0;
+        $self->{ downloads_count }--;
     }
 
     return $download;
@@ -163,8 +161,8 @@ sub _get_download_media_ids
     my ( $self ) = @_;
 
     return [
-        map { { media_id => $_, time => $_downloads->{ $_ }->{ time } } }
-          keys( %{ $_downloads } )
+        map { { media_id => $_, time => $self->{ downloads }->{ $_ }->{ time } } }
+          keys( %{ $self->{ downloads } } )
     ];
 }
 
@@ -176,17 +174,17 @@ sub _get_queued_downloads_count
 
     my $ret;
 
-    if ( !defined( $_downloads->{ $media_id } ) || !$_downloads->{ $media_id } )
+    if ( !defined( $self->{ downloads }->{ $media_id } ) || !$self->{ downloads }->{ $media_id } )
     {
         $ret = 0;
     }
-    elsif ( !$_downloads->{ $media_id }->{ queued } )
+    elsif ( !$self->{ downloads }->{ $media_id }->{ queued } )
     {
         $ret = 0;
     }
     else
     {
-        $ret = scalar( @{ $_downloads->{ $media_id }->{ queued } } );
+        $ret = scalar( @{ $self->{ downloads }->{ $media_id }->{ queued } } );
     }
 
     unless ( defined( $quiet ) ) { print "_get_queued_downloads_count media='$media_id' returning '$ret'\n"; }
@@ -198,7 +196,7 @@ sub _get_queued_downloads_count
 # {
 #     my ($self, $queue_max) = @_;
 
-#     return [ grep { scalar($_->{downloads}->{queued}) } key (%{$_downloads}) ];
+#     return [ grep { scalar($_->{downloads}->{queued}) } key (%{$self->{ downloads }}) ];
 # }
 
 sub _verify_downloads_count
@@ -207,7 +205,7 @@ sub _verify_downloads_count
 
     my $downloads_count_real = 0;
 
-    for my $a ( values( %{ $_downloads } ) )
+    for my $a ( values( %{ $self->{ downloads } } ) )
     {
         if ( @{ $a->{ queued } } )
         {
@@ -215,8 +213,8 @@ sub _verify_downloads_count
         }
     }
 
-    die "\$_downloads_counts is $_downloads_count but there are actually $downloads_count_real downloads"
-      unless $downloads_count_real == $_downloads_count;
+    die "\$downloads_counts is " . $self->{ downloads_count } . " but there are actually $downloads_count_real downloads"
+      unless $downloads_count_real == $self->{ downloads_count };
 }
 
 # get total number of queued downloads
@@ -224,12 +222,12 @@ sub _get_downloads_size
 {
     my ( $self ) = @_;
 
-    if ( $_debug_mode )
+    if ( _DEBUG_MODE + 0 )
     {
         $self->_verify_downloads_count();
     }
 
-    return $_downloads_count;
+    return $self->{ downloads_count };
 }
 
 1;
