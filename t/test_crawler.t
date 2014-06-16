@@ -382,6 +382,10 @@ sub main
     binmode( STDERR, ':utf8' );
     binmode( STDOUT, ':utf8' );
 
+    # Test short inline "content:..." downloads
+    _test_crawler( 'Short "inline" downloads', 'inline_content', 4, '2008-02-03', '2014-02-27' );
+
+    # Test Global Voices downloads
     _test_crawler( 'Global Voices', 'gv', 16, '2008-02-03', '2014-02-27' );
 
     Test::NoWarnings::had_no_warnings();
