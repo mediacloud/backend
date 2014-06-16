@@ -47,10 +47,8 @@ use LWP::UserAgent;
 use Data::Sorting qw( :basics :arrays :extras );
 use Readonly;
 
-#use feature 'unicode_strings';
-
 # add a test media source and feed to the database
-sub add_test_feed
+sub _add_test_feed
 {
     my ( $db, $url_to_crawl ) = @_;
 
@@ -98,7 +96,7 @@ Readonly my $crawler_timeout => 6 * 60;
 
 # run the crawler for one minute, which should be enough time to gather all of
 # the stories from the test feed and test-extract them
-sub run_crawler
+sub _run_crawler
 {
     MediaWords::Util::Config->get_config->{ mediawords }->{ extract_in_process } = 1;
 
@@ -118,20 +116,8 @@ sub run_crawler
     print "crawler exiting ...\n";
 }
 
-sub update_download_texts
-{
-    my ( $db ) = @_;
-
-    my $download_texts = $db->query( "select * from download_texts" )->hashes;
-
-    for my $download_text ( @{ $download_texts } )
-    {
-        MediaWords::DBI::DownloadTexts::update_text( $db, $download_text );
-    }
-}
-
 # get stories from database, including content, text, tags, and sentences
-sub get_expanded_stories
+sub _get_expanded_stories
 {
     my ( $db ) = @_;
 
@@ -159,11 +145,6 @@ sub _purge_story_sentences_id_field
 
     for my $sentence ( @$sentences )
     {
-
-        #die Dumper ($sentence ) unless $sentence->{story_sentences_id };
-
-        #die Dumper ($sentence);
-
         $sentence->{ story_sentences_id } = '';
         delete $sentence->{ story_sentences_id };
     }
@@ -171,7 +152,7 @@ sub _purge_story_sentences_id_field
 
 # replace all stories_id fields with the normalized url of the corresponding story
 # within the stories data structure
-sub replace_stories_ids_with_urls
+sub _replace_stories_ids_with_urls
 {
     my ( $stories ) = @_;
 
@@ -205,7 +186,7 @@ sub replace_stories_ids_with_urls
 }
 
 # test various results of the crawler
-sub test_stories
+sub _test_stories
 {
     my ( $db ) = @_;
 
@@ -213,7 +194,7 @@ sub test_stories
     is( scalar( @{ $download_errors } ), 0, "download errors" );
     die( "errors: " . Dumper( $download_errors ) ) if ( @{ $download_errors } );
 
-    my $stories = get_expanded_stories( $db );
+    my $stories = _get_expanded_stories( $db );
 
     is( @{ $stories }, 16, "story count" );
 
@@ -223,8 +204,8 @@ sub test_stories
 
     # replace stories_id with urls so that the order of stories
     # doesn't matter
-    replace_stories_ids_with_urls( $stories );
-    replace_stories_ids_with_urls( $test_stories );
+    _replace_stories_ids_with_urls( $stories );
+    _replace_stories_ids_with_urls( $test_stories );
 
     my $test_story_hash;
     map { $test_story_hash->{ $_->{ title } } = $_ } @{ $test_stories };
@@ -234,10 +215,6 @@ sub test_stories
         my $test_story = $test_story_hash->{ $story->{ title } };
         if ( ok( $test_story, "story match: " . $story->{ title } ) )
         {
-
-            #$story->{ extracted_text } =~ s/\n//g;
-            #$test_story->{ extracted_text } =~ s/\n//g;
-
             my $fields = [ qw(description extracted_text) ];
 
             # can't test web_page story dates against historical data b/c they are supposed to have
@@ -256,12 +233,7 @@ sub test_stories
                 }
             }
 
-            unless ( eq_or_diff( $story->{ content }, $test_story->{ content }, "story content matches" ) )
-            {
-
-                #print STDERR "Expected content: " . Dumper( $test_story->{ content } );
-                #print STDERR "Got content: " . Dumper( $story->{ content } );
-            }
+            eq_or_diff( $story->{ content }, $test_story->{ content }, "story content matches" );
 
             is( scalar( @{ $story->{ tags } } ), scalar( @{ $test_story->{ tags } } ), "story tags count" );
 
@@ -296,7 +268,7 @@ sub test_stories
 }
 
 # simple test to verify that each story has at least 60 characters in its sentences
-sub sanity_test_stories
+sub _sanity_test_stories
 {
     my ( $stories ) = @_;
 
@@ -308,19 +280,19 @@ sub sanity_test_stories
 }
 
 # store the stories as test data to compare against in subsequent runs
-sub dump_stories
+sub _dump_stories
 {
     my ( $db ) = @_;
 
-    my $stories = get_expanded_stories( $db );
+    my $stories = _get_expanded_stories( $db );
 
     MediaWords::Test::Data::store_test_data_to_individual_files( 'crawler_stories',
         MediaWords::Test::Data::stories_hashref_from_arrayref( $stories ) );
 
-    sanity_test_stories( $stories );
+    _sanity_test_stories( $stories );
 }
 
-sub kill_local_server
+sub _kill_local_server
 {
     my ( $server_url ) = @_;
 
@@ -335,7 +307,7 @@ sub kill_local_server
     die $resp->status_line unless $resp->is_success;
 }
 
-sub get_crawler_data_directory
+sub _get_crawler_data_directory
 {
     my $crawler_data_location;
 
@@ -368,23 +340,23 @@ sub main
             binmode( STDOUT, ":utf8" );
             binmode( STDERR, ":utf8" );
 
-            my $crawler_data_location = get_crawler_data_directory();
+            my $crawler_data_location = _get_crawler_data_directory();
 
             my $url_to_crawl = MediaWords::Test::LocalServer::start_server( $crawler_data_location );
 
-            add_test_feed( $db, $url_to_crawl );
+            _add_test_feed( $db, $url_to_crawl );
 
-            run_crawler();
+            _run_crawler();
 
             if ( defined( $dump ) && ( $dump eq '-d' ) )
             {
-                dump_stories( $db );
+                _dump_stories( $db );
             }
 
-            test_stories( $db );
+            _test_stories( $db );
 
             print "Killing server\n";
-            kill_local_server( $url_to_crawl );
+            _kill_local_server( $url_to_crawl );
 
             Test::NoWarnings::had_no_warnings();
             done_testing();
