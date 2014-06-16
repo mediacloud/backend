@@ -79,7 +79,7 @@ sub _add_test_feed
         {
             media_id  => $test_medium->{ media_id },
             name      => '_ Crawler Test - Web Page Feed',
-            url       => "${ url_to_crawl }gv/gv_home.html",
+            url       => "${ url_to_crawl }gv/home.html",
             feed_type => 'web_page'
         }
     );

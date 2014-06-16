@@ -1482,7 +1482,7 @@ var _wpcf7 = {\"loaderUrl\":\"http:\\/\\/globalvoicesonline.org\\/wp-content\\/p
 (downloads pending extraction)",
           'feed_type' => 'web_page',
           'full_text_rss' => 0,
-          'guid' => '1402776347:http://tundra.local:58502/gv/gv_home.html',
+          'guid' => '1402776347:http://tundra.local:58502/gv/home.html',
           'language' => undef,
           'media_id' => 1,
           'publish_date' => '2014-06-14 20:05:47',
@@ -1490,6 +1490,6 @@ var _wpcf7 = {\"loaderUrl\":\"http:\\/\\/globalvoicesonline.org\\/wp-content\\/p
           'story_sentences' => [],
           'tags' => [],
           'title' => 'Global Voices &middot; Citizen media stories from around the world',
-          'url' => 'http://tundra.local:58502/gv/gv_home.html'
+          'url' => 'http://tundra.local:58502/gv/home.html'
         };
 #>>>
