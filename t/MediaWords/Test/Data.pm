@@ -98,7 +98,16 @@ sub store_test_data_to_individual_files($$)
     my @old_data_files              = glob( $glob_path_to_old_data_files );
 
     # say STDERR "Will remove old data files at path '$glob_path_to_old_data_files': " . Dumper(\@old_data_files);
-    unlink @old_data_files or die "Unable to unlink old data files: $!; files: " . Dumper( \@old_data_files );
+    if ( scalar @old_data_files )
+    {
+        unlink @old_data_files
+          or die "Unable to remove old data files at path $glob_path_to_old_data_files: $!; files: " .
+          Dumper( \@old_data_files );
+    }
+    else
+    {
+        say STDERR "Won't remove old data files because there aren't any at path $glob_path_to_old_data_files.";
+    }
 
     # Write hashref to files
     foreach my $index ( keys %{ $data_hashref } )

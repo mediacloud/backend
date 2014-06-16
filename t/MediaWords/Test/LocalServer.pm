@@ -29,10 +29,10 @@ sub start_server
 {
     my ( $web_directory ) = @_;
 
-    my $d = HTTP::Daemon->new( ReuseAddr => 1 ) || die;
+    my $d = HTTP::Daemon->new( ReuseAddr => 1 ) or die "Unable to start HTTP::Daemon: $!";
 
     my $url = $d->url;
-    print "Daemon <URL:", $url, ">\n";
+    say STDERR "Daemon <URL: $url>";
 
     if ( fork() != 0 )
     {
@@ -44,21 +44,27 @@ sub start_server
 
         while ( my $r = $c->get_request )
         {
-            my $path = $r->uri->path;
-            print "path is '$path'\n";
+            my $uri = $r->uri;
+
+            # We use "as_string" because URL paths with two slashes (e.g.
+            # "//gv/test.rss") could be interpreted as "http://gv/test.rss" by
+            # the URI module
+            my $path = $uri->as_string;
+            say STDERR "URI path is '$path'";
+
             if ( $r->method eq 'GET' && $path && $path !~ /\.\./ )
             {
 
                 #change double slash to single slash
                 $path =~ s/^\/\//\//;
 
-                print "path is '$path'\n";
+                say STDERR "Normalized path is '$path'";
                 if ( $path eq '/kill_server' )
                 {
                     $c->send_response( "shutting down" );
                     $c->close;
                     undef( $c );
-                    print "Shutting down server\n";
+                    say STDERR "Shutting down server";
                     exit;
                 }
 
@@ -69,18 +75,23 @@ sub start_server
                     $path = replace_relative_urls_in_file( $url, $path );
                 }
 
-                print "Sending file $path\n";
-                $c->send_file_response( $path ) || die "''$!' $@' '$?'";
-                print "Sent file $path\n";
+                unless ( -f $path )
+                {
+                    die "File at path $path does not exist.";
+                }
+
+                say STDERR "Sending file $path...";
+                $c->send_file_response( $path ) or die "Unable to send file $path: ''$!' $@' '$?'";
+                say STDERR "Sent file $path";
             }
             else
             {
-                print( $r->uri->path );
-                print Dumper( $r );
+                say STDERR "Won't serve path: " . $r->uri->path;
+                say STDERR "Request: " . Dumper( $r );
                 $c->send_error( RC_FORBIDDEN );
             }
         }
-        print "closing connection\n";
+        say STDERR "closing connection";
         $c->close;
         undef( $c );
     }

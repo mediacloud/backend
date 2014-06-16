@@ -32,11 +32,6 @@ use MediaWords::DBI::Stories;
 # max number of pages the handler will download for a single story
 use constant MAX_PAGES => 10;
 
-# STATICS
-
-my $_feed_media_ids     = {};
-my $_added_xml_enc_path = 0;
-
 # METHODS
 
 sub _get_stories_from_feed_contents
