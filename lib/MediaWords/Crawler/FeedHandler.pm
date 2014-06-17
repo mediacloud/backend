@@ -155,7 +155,7 @@ sub _add_story_using_parent_download
         $dbs->rollback;
 
         #TODO handle race conditions differently
-        if ( $_ =~ /unique constraint "stories_guid"/ )
+        if ( $@ =~ /unique constraint "stories_guid/ )
         {
             warn "failed to add story for '." . $story->{ url } . "' to guid conflict ( guid =  '" . $story->{ guid } . "')";
 
