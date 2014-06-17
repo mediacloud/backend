@@ -275,7 +275,7 @@ EOF
                 MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman(
                     { downloads_id => $download->{ downloads_id } } );
 
-                say STDERR "Done enqueueing download " . $download->{ downloads_id } if ( _verbose() );
+                say STDERR "Done enqueuing download " . $download->{ downloads_id } if ( _verbose() );
 
                 ++$downloads_copied;
             }
