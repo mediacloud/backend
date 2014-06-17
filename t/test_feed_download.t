@@ -1,9 +1,23 @@
+#!/usr/bin/env perl
+
 use strict;
 use warnings;
 use Data::Dumper;
 use Modern::Perl "2013";
 
-# basic sanity test of crawler functionality
+#
+# Basic sanity test of crawler functionality
+#
+# ---
+#
+# If you run t/test_feed_download.t with the -d command it rewrites the files. E.g.:
+#
+#     ./script/run_with_carton.sh ./t/test_feed_download.t  -d
+#
+# This changes the expected results so it's important to make sure that you're
+# not masking bugs in the code. Also it's a good idea to manually examine the
+# changes in t/data/test_feed_download_stories.pl before committing them.
+#
 
 BEGIN
 {
@@ -64,7 +78,7 @@ sub add_test_feed
     return $feed;
 }
 
-# get stories from database, including content, text, tags, sentences, sentence_words, and story_sentence_words
+# get stories from database, including content, text, tags, and sentences
 sub get_expanded_stories
 {
     my ( $db, $feed ) = @_;
@@ -147,16 +161,6 @@ sub test_stories
             _purge_story_sentences_id_field( $test_story->{ story_sentences } );
 
 #cmp_deeply (  $story->{ story_sentences }, $test_story->{ story_sentences } , "story sentences " . $story->{ stories_id } );
-
-          TODO:
-            {
-                my $fake_var;    #silence warnings
-
-                #my $test_story_sentence_words_count = scalar( @{ $test_story->{ story_sentence_words } } );
-                #my $story_sentence_words_count      = scalar( @{ $story->{ story_sentence_words } } );
-
-    #is( $story_sentence_words_count, $test_story_sentence_words_count, "story words count for "  . $story->{ stories_id } );
-            }
         }
 
         delete( $test_story_hash->{ $story->{ title } } );

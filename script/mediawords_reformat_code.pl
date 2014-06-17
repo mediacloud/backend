@@ -27,15 +27,18 @@ sub main
     #say STDERR "Using $perltidy_config_file";
 
     my $arguments = join( ' ', @ARGV );
-    $arguments = ' -se ' . $arguments;     # append errorfile to stderr
-    $arguments = ' -syn ' . $arguments;    # check the syntax
+    $arguments = ' -se ' . $arguments;          # append errorfile to stderr
+    $arguments = ' -syn ' . $arguments;         # check the syntax
+    $arguments = " -bext='/' " . $arguments;    #  don't make backups
 
     my $error = Perl::Tidy::perltidy(
         argv       => $arguments,
         perltidyrc => $perltidy_config_file,
         stderr     => \$stderr_string,
     );
-    if ( $error or $stderr_string )
+
+    if (   $error
+        or $stderr_string )
     {
 
         my $message = "Error while tidying file(s): " . join( ' ', @ARGV ) . "\n";

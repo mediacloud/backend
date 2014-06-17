@@ -8,11 +8,6 @@ jons_stuff
 local
 cache/translate
 
-# Perl::Tidy backup files
-*.pl.bak
-*.pm.bak
-*.t.bak
-
 # Python bytecode files
 *.py[cod]
 
