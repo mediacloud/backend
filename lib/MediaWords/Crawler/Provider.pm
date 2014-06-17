@@ -37,28 +37,7 @@ use constant QUEUED_DOWNLOADS_IDLE_COUNT => 1000;
 # how often to check the database for new pending downloads (seconds)
 use constant DEFAULT_PENDING_CHECK_INTERVAL => 10 * ONE_MINUTE;
 
-# last time a stale feed check was run
-my $_last_stale_feed_check = 0;
-
-# last time a stale download check was run
-my $_last_stale_download_check = 0;
-
-my $_last_timed_out_spidered_download_check = 0;
-
-# last time a pending downloads check was run
-my $_last_pending_check = 0;
-
-# has setup run once?
-my $_setup = 0;
-
-# hash of { $download_media_id => { time => $last_request_time_for_media_id,
-#                                   pending => $pending_downloads }  }
-my $_downloads = {};
-
-Readonly my $download_timed_out_error_message => 'Download timed out by Fetcher::_timeout_stale_downloads';
-
-my $_serializer;
-my $_downloads_count = 0;
+use constant DOWNLOAD_TIMED_OUT_ERROR_MESSAGE => 'Download timed out by Fetcher::_timeout_stale_downloads';
 
 sub new
 {
@@ -70,6 +49,21 @@ sub new
     $self->engine( $engine );
 
     $self->{ downloads } = MediaWords::Crawler::Downloads_Queue->new();
+
+    $self->{ last_timed_out_spidered_download_check } = 0;
+
+    # last time a pending downloads check was run
+    $self->{ last_pending_check } = 0;
+
+    # last time a stale feed check was run
+    $self->{ last_stale_feed_check } = 0;
+
+    # last time a stale download check was run
+    $self->{ last_stale_download_check } = 0;
+
+    # has setup run once?
+    $self->{ setup_was_run } = 0;
+
     return $self;
 }
 
@@ -78,10 +72,10 @@ sub _setup
 {
     my ( $self ) = @_;
 
-    if ( !$_setup )
+    unless ( $self->{ setup_was_run } )
     {
         print STDERR "Provider _setup\n";
-        $_setup = 1;
+        $self->{ setup_was_run } = 1;
 
         $self->engine->dbs->query( "UPDATE downloads set state = 'pending' where state = 'fetching'" );
     }
@@ -94,11 +88,11 @@ sub _timeout_stale_downloads
 {
     my ( $self ) = @_;
 
-    if ( $_last_stale_download_check > ( time() - STALE_DOWNLOAD_INTERVAL ) )
+    if ( $self->{ last_stale_download_check } > ( time() - STALE_DOWNLOAD_INTERVAL ) )
     {
         return;
     }
-    $_last_stale_download_check = time();
+    $self->{ last_stale_download_check } = time();
 
     my $dbs       = $self->engine->dbs;
     my @downloads = $dbs->query(
@@ -108,7 +102,7 @@ sub _timeout_stale_downloads
     for my $download ( @downloads )
     {
         $download->{ state }         = ( 'error' );
-        $download->{ error_message } = ( $download_timed_out_error_message );
+        $download->{ error_message } = ( DOWNLOAD_TIMED_OUT_ERROR_MESSAGE . '' );
         $download->{ download_time } = ( 'now()' );
 
         $dbs->update_by_id( "downloads", $download->{ downloads_id }, $download );
@@ -124,14 +118,14 @@ sub _add_stale_feeds
 {
     my ( $self ) = @_;
 
-    if ( ( time() - $_last_stale_feed_check ) < STALE_FEED_CHECK_INTERVAL )
+    if ( ( time() - $self->{ last_stale_feed_check } ) < STALE_FEED_CHECK_INTERVAL )
     {
         return;
     }
 
     print STDERR "start _add_stale_feeds\n";
 
-    $_last_stale_feed_check = time();
+    $self->{ last_stale_feed_check } = time();
 
     my $dbs = $self->engine->dbs;
 
@@ -235,9 +229,9 @@ sub _add_pending_downloads
 
     my $interval = $self->engine->pending_check_interval || DEFAULT_PENDING_CHECK_INTERVAL;
 
-    return if ( $_last_pending_check > ( time() - $interval ) );
+    return if ( $self->{ last_pending_check } > ( time() - $interval ) );
 
-    $_last_pending_check = time();
+    $self->{ last_pending_check } = time();
 
     if ( $self->{ downloads }->_get_downloads_size > MAX_QUEUED_DOWNLOADS )
     {
@@ -285,17 +279,24 @@ sub _retry_timed_out_spider_downloads
 
     $interval *= 20;
 
-    if ( $_last_timed_out_spidered_download_check > ( time() - $interval ) )
+    if ( $self->{ last_timed_out_spidered_download_check } > ( time() - $interval ) )
     {
         return;
     }
 
     print STDERR "start _retry_timed_out_spider_downloads\n";
 
-    $_last_timed_out_spidered_download_check = time();
+    $self->{ last_timed_out_spidered_download_check } = time();
 
     $self->engine->dbs->query(
-"update downloads set (state,error_message) = ('pending','') where state='error' and type in ('spider_blog_home','spider_posting','spider_rss','spider_blog_friends_list') and (error_message like '50%' or error_message = '$download_timed_out_error_message') ;"
+        <<EOF,
+        UPDATE DOWNLOADS
+        SET (state, error_message) = ('pending', '')
+        WHERE state = 'error'
+          AND type IN ('spider_blog_home', 'spider_posting', 'spider_rss', 'spider_blog_friends_list')
+          AND (error_message LIKE '50%' OR error_message = ?)
+EOF
+        DOWNLOAD_TIMED_OUT_ERROR_MESSAGE . ''
     );
 
     print STDERR "end _retry_timed_out_spider_downloads\n";
