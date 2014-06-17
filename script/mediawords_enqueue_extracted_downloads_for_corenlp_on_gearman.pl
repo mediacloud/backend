@@ -272,7 +272,8 @@ EOF
 
                 ++$downloads_found;
 
-                MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman( $download );
+                MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman(
+                    { downloads_id => $download->{ downloads_id } } );
 
                 say STDERR "Done enqueueing download " . $download->{ downloads_id } if ( _verbose() );
 
