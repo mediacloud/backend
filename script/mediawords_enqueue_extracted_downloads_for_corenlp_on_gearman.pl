@@ -1,13 +1,13 @@
 #!/usr/bin/env perl
 #
-# Enqueue unextracted downloads on Gearman.
+# Enqueue extracted downloads for CoreNLP annotation.
 #
 # It is safe to run this as many times as you want because the extraction job
 # on Gearman is unique so download extractions won't be duplicated.
 #
 # Usage:
 #
-#     mediawords_enqueue_unextracted_downloads_on_gearman.pl \
+#     mediawords_enqueue_extracted_downloads_for_corenlp_on_gearman.pl \
 #         [--resume_downloads_id_log=corenlp-enqueue-resume-downloads_id.log] \
 #         [--media_id=1]
 #
