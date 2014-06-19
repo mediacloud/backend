@@ -459,17 +459,11 @@ sub update_story_sentence_words_and_language
         $db->query( "DELETE FROM story_sentence_counts WHERE first_stories_id = ?", $story->{ stories_id } );
     }
 
-    unless ( $ignore_date_range )
+    unless ( $ignore_date_range or _story_within_media_source_story_words_date_range( $db, $story ) )
     {
-        say STDERR "Won't split story " . $story->{ stories_id } .
-          " into sentences / words and determine their language because 'ignore_date_range' is set.";
-        return;
-    }
-
-    unless ( _story_within_media_source_story_words_date_range( $db, $story ) )
-    {
-        say STDERR "Won't split story " . $story->{ stories_id } .
-" into sentences / words and determine their language because story is *not* within media source's story words date range";
+        say STDERR "Won't split story " .
+          $story->{ stories_id } . " " . "into sentences / words and determine their language because " .
+          "story is *not* within media source's story words date range and 'ignore_date_range' is not set.";
         return;
     }
 
