@@ -252,7 +252,11 @@ sub dedup_sentences
 {
     my ( $db, $story, $sentences ) = @_;
 
-    return [] unless ( $sentences && @{ $sentences } );
+    unless ( $sentences and @{ $sentences } )
+    {
+        warn "Sentences for story " . $story->{ stories_id } . " is undef or empty.";
+        return [];
+    }
 
     if ( !$db->dbh->{ AutoCommit } )
     {
@@ -455,13 +459,17 @@ sub update_story_sentence_words_and_language
         $db->query( "DELETE FROM story_sentence_counts WHERE first_stories_id = ?", $story->{ stories_id } );
     }
 
-    unless ( $ignore_date_range ) {
-        say STDERR "Won't split story " . $story->{ stories_id } . " into sentences / words and determine their language because 'ignore_date_range' is set.";
+    unless ( $ignore_date_range )
+    {
+        say STDERR "Won't split story " . $story->{ stories_id } .
+          " into sentences / words and determine their language because 'ignore_date_range' is set.";
         return;
     }
 
-    unless ( _story_within_media_source_story_words_date_range( $db, $story ) ) {
-        say STDERR "Won't split story " . $story->{ stories_id } . " into sentences / words and determine their language because story is *not* within media source's story words date range";
+    unless ( _story_within_media_source_story_words_date_range( $db, $story ) )
+    {
+        say STDERR "Won't split story " . $story->{ stories_id } .
+" into sentences / words and determine their language because story is *not* within media source's story words date range";
         return;
     }
 
@@ -499,8 +507,26 @@ sub update_story_sentence_words_and_language
     {
         $lang = MediaWords::Languages::Language::default_language();
     }
-    my $sentences = $lang->get_sentences( $story_text ) || return;
-    $sentences = dedup_sentences( $db, $story_ref, $sentences ) unless ( $no_dedup_sentences );
+    my $sentences = $lang->get_sentences( $story_text );
+    unless ( defined $sentences )
+    {
+        die "Sentences for story " . $story->{ stories_id } . " are undefined.";
+    }
+    unless ( scalar @{ $sentences } )
+    {
+        warn "Story " . $story->{ stories_id } . " doesn't have any sentences.";
+        return;
+    }
+
+    if ( $no_dedup_sentences )
+    {
+        say STDERR "Won't de-duplicate sentences for story " .
+          $story->{ stories_id } . " because 'no_dedup_sentences' is set.";
+    }
+    else
+    {
+        $sentences = dedup_sentences( $db, $story_ref, $sentences );
+    }
 
     my $sentence_refs = [];
     for ( my $sentence_num = 0 ; $sentence_num < @{ $sentences } ; $sentence_num++ )

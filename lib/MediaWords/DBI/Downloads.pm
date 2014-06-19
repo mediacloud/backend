@@ -491,11 +491,17 @@ sub get_media_id($$)
 
     my $feeds_id = $download->{ feeds_id };
 
-    $feeds_id || die $db->error;
+    unless ( $feeds_id )
+    {
+        die "feeds_id is undefined; database error: " . $db->error;
+    }
 
     my $media_id = $db->query( "SELECT media_id from feeds where feeds_id = ?", $feeds_id )->hash->{ media_id };
 
-    defined( $media_id ) || die "Could not get media id for feeds_id '$feeds_id " . $db->error;
+    unless ( defined $media_id )
+    {
+        die "Could not get media id for feeds_id '$feeds_id; database error: " . $db->error;
+    }
 
     return $media_id;
 }
@@ -574,7 +580,10 @@ sub extract_and_vector($$$;$$$)
 {
     my ( $db, $download, $process_num, $no_dedup_sentences, $no_vector ) = @_;
 
-    eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, $process_num, $no_dedup_sentences, $no_vector ); };
+    eval {
+        MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, $process_num, $no_dedup_sentences,
+            $no_vector );
+    };
 
     if ( $@ )
     {
