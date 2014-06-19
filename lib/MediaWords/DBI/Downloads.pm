@@ -574,7 +574,7 @@ sub extract_and_vector($$$;$$$)
 {
     my ( $db, $download, $process_num, $no_dedup_sentences, $no_vector ) = @_;
 
-    eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, $process_num ); };
+    eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, $process_num, $no_dedup_sentences, $no_vector ); };
 
     if ( $@ )
     {
