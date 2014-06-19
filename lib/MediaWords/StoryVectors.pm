@@ -204,21 +204,40 @@ sub get_deduped_sentences
     my $i                   = 0;
     for my $sentence ( @{ $sentences } )
     {
-        my $sentence_data =
-          { md5 => Digest::MD5::md5_hex( encode( 'utf8', $sentence ) ), sentence => $sentence, num => $i++ };
-        $sentence_md5_lookup->{ $sentence_data->{ md5 } } = $sentence_data;
+        my $sentence_utf8 = encode_utf8( $sentence );
+        unless ( defined $sentence_utf8 )
+        {
+            die "Sentence '$sentence' for story " . $story->{ stories_id } . " is undefined after encoding it to UTF-8.";
+        }
+
+        my $sentence_utf8_md5 = Digest::MD5::md5_hex( $sentence_utf8 );
+        unless ( $sentence_utf8_md5 )
+        {
+            die "Sentence's '$sentence' MD5 hash is empty or undef.";
+        }
+
+        my $sentence_data = {
+            md5      => $sentence_utf8_md5,
+            sentence => $sentence,
+            num      => $i++
+        };
+        $sentence_md5_lookup->{ $sentence_utf8_md5 } = $sentence_data;
     }
 
     my $sentence_md5_list = join( ',', map { "'$_'" } keys %{ $sentence_md5_lookup } );
 
-    my $sentence_dup_info = $db->query( <<END, $story->{ media_id }, $story->{ publish_date } )->hashes;
-SELECT min( story_sentence_counts_id) story_sentence_counts_id, sentence_md5
+    my $sentence_dup_info = $db->query(
+        <<"END",
+        SELECT MIN( story_sentence_counts_id) AS story_sentence_counts_id,
+               sentence_md5
         FROM story_sentence_counts
-        WHERE sentence_md5 in ( $sentence_md5_list )
-              AND media_id = ?
-              AND publish_week = DATE_TRUNC( 'week', ?::date )
+        WHERE sentence_md5 IN ( $sentence_md5_list )
+          AND media_id = ?
+          AND publish_week = DATE_TRUNC( 'week', ?::date )
         GROUP BY story_sentence_counts_id
 END
+        $story->{ media_id }, $story->{ publish_date }
+    )->hashes;
 
     my $story_sentence_counts_ids = [];
     for my $sdi ( @{ $sentence_dup_info } )
@@ -234,11 +253,13 @@ END
     if ( @{ $story_sentence_counts_ids } )
     {
         my $id_list = join( ',', @{ $story_sentence_counts_ids } );
-        $db->query( <<END );
-UPDATE story_sentence_counts
-    SET sentence_count = sentence_count + 1
-    WHERE story_sentence_counts_id in ( $id_list )
+        $db->query(
+            <<"END"
+            UPDATE story_sentence_counts
+            SET sentence_count = sentence_count + 1
+            WHERE story_sentence_counts_id IN ( $id_list )
 END
+        );
     }
 
     insert_story_sentence_counts( $db, $story, $deduped_md5s );
