@@ -231,8 +231,6 @@ EOF
             # Fetch a new chunk of downloads
             say STDERR "Fetching chunk of downloads..." if ( _verbose() );
 
-            # It would make sense to have "WHERE path LIKE 'tar:%' AND ..." here, but that way
-            # the progress meter is very uneven
             $downloads = $db->query(
                 <<"EOF"
                 SELECT downloads.*
