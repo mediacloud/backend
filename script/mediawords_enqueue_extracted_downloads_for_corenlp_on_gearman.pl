@@ -233,7 +233,7 @@ EOF
 
             $downloads = $db->query(
                 <<"EOF"
-                SELECT downloads.*
+                SELECT downloads.downloads_id
                 FROM downloads
                     -- Needed for limiting a list of downloads to a certain media_id
                     INNER JOIN stories ON downloads.stories_id = stories.stories_id
