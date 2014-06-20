@@ -23,15 +23,27 @@ my $_last_num_found;
 # mean number of sentences per story from the last search_stories() call
 my $_last_sentences_per_story;
 
+# get a solr url from the config, returning either the single
+# url if there is one or a random member of the list if there is
+# a list
+sub get_solr_url
+{
+    my $urls = MediaWords::Util::Config::get_config->{ mediawords }->{ solr_url };
+
+    my $url = ref( $urls ) ? $urls->[ int( rand( scalar( @{ $urls } ) ) ) ] : $urls;
+
+    $url =~ s~/+$~~;
+
+    return $url;
+}
+
 # get a solr select url from config.  if there is more than one url
 # in the config, randomly choose one from the list.
 sub get_solr_select_url
 {
-    my $urls = MediaWords::Util::Config::get_config->{ mediawords }->{ solr_select_url };
+    my $url = get_solr_url();
 
-    return $urls unless ( ref( $urls ) );
-
-    return $urls->[ int( rand( scalar( @{ $urls } ) ) ) ];
+    return "$url/collection1/select";
 }
 
 # get the numFound from the last solr query run
