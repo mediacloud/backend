@@ -8,22 +8,28 @@ jons_stuff
 local
 cache/translate
 
-# Perl::Tidy backup files
-*.pl.bak
-*.pm.bak
-*.t.bak
-
 # Python bytecode files
 *.py[cod]
 
 # Vim backup files
-*.swp
+[._]*.s[a-w][a-z]
+[._]s[a-w][a-z]
+*.un~
+Session.vim
+.netrwhist
+*~
 
 # OS X
 .DS_Store
 
 # Inline::Java
 _Inline/
+
+# Devel::NYTProf output
+nytprof*
+
+# Data dumps
+root/include/data_dumps
 
 # Vagrant and test suite temporary files
 .vagrant

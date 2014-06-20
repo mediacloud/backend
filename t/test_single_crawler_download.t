@@ -90,7 +90,7 @@ sub run_crawler
     print "crawler exiting ...\n";
 }
 
-# get stories from database, including content, text, tags, sentences, sentence_words, and story_sentence_words
+# get stories from database, including content, text, tags, and sentences
 sub get_expanded_stories
 {
     my ( $db, $feed ) = @_;
@@ -145,7 +145,9 @@ sub test_stories
 
     is( @{ $stories }, 1, "story count" );
 
-    my $test_stories = MediaWords::Test::Data::fetch_test_data( 'crawler_stories' );
+    my $test_stories =
+      MediaWords::Test::Data::stories_arrayref_from_hashref(
+        MediaWords::Test::Data::fetch_test_data_from_individual_files( 'crawler_stories/gv' ) );
 
     my $test_story_hash;
     map { $test_story_hash->{ $_->{ title } } = $_ } @{ $test_stories };
@@ -202,109 +204,6 @@ sub test_stories
         delete( $test_story_hash->{ $story->{ title } } );
     }
 
-}
-
-sub generate_aggregate_words
-{
-    my ( $db, $feed ) = @_;
-
-    my ( $start_date ) = $db->query( "select date_trunc( 'day', min(publish_date) ) from stories" )->flat;
-
-    #( $start_date ) = $db->query( "select date_trunc( 'day', min(publish_date)  - interval '1 week' ) from stories" )->flat;
-    my ( $end_date ) = $db->query( "select date_trunc( 'day', max(publish_date) ) from stories" )->flat;
-
-    #( $end_date )   = $db->query( "select date_trunc( 'day', max(publish_date) + interval '1 month' ) from stories" )->flat;
-
-    my $dashboard =
-      $db->create( 'dashboards', { name => 'test_dashboard', start_date => $start_date, end_date => $end_date } );
-
-    my $dashboard_topic = $db->create(
-        'dashboard_topics',
-        {
-            dashboards_id => $dashboard->{ dashboards_id },
-            name          => 'obama_topic',
-            query         => 'obama',
-            start_date    => $start_date,
-            end_date      => $end_date
-        }
-    );
-
-    MediaWords::StoryVectors::update_aggregate_words( $db, $start_date, $end_date );
-}
-
-sub _process_top_500_weekly_words_for_testing
-{
-    my ( $hashes ) = @_;
-
-    foreach my $hash ( @{ $hashes } )
-    {
-        delete( $hash->{ top_500_weekly_words_id } );
-    }
-}
-
-sub dump_top_500_weekly_words
-{
-    my ( $db, $feed ) = @_;
-
-    my $top_500_weekly_words = $db->query( 'SELECT * FROM top_500_weekly_words order by publish_week, stem, term', )->hashes;
-    _process_top_500_weekly_words_for_testing( $top_500_weekly_words );
-
-    MediaWords::Test::Data::store_test_data( 'top_500_weekly_words', $top_500_weekly_words );
-
-    return;
-}
-
-sub sort_top_500_weekly_words
-{
-    my ( $array ) = @_;
-
-    #ensure that the order is deterministic
-    #first sort on the important fields then sort on everything just to be sure...
-    my @keys = qw (publish_week stem dashboard_topics_id term );
-
-    my @hash_fields = sort keys %{ $array->[ 0 ] };
-
-    return [ sorted_array( @$array, @keys, @hash_fields ) ];
-}
-
-sub test_top_500_weekly_words
-{
-    my ( $db, $feed ) = @_;
-
-    my $top_500_weekly_words_actual =
-      $db->query( 'SELECT * FROM top_500_weekly_words order by publish_week, stem, term' )->hashes;
-    _process_top_500_weekly_words_for_testing( $top_500_weekly_words_actual );
-
-    my $top_500_weekly_words_expected = MediaWords::Test::Data::fetch_test_data( 'top_500_weekly_words' );
-
-    is(
-        scalar( @{ $top_500_weekly_words_actual } ),
-        scalar( @{ $top_500_weekly_words_expected } ),
-        'Top 500 weekly words table row count'
-    );
-
-    $top_500_weekly_words_actual   = sort_top_500_weekly_words( $top_500_weekly_words_actual );
-    $top_500_weekly_words_expected = sort_top_500_weekly_words( $top_500_weekly_words_expected );
-
-    my $i;
-
-    for ( $i = 0 ; $i < scalar( @{ $top_500_weekly_words_actual } ) ; $i++ )
-    {
-        my $actual_row   = $top_500_weekly_words_actual->[ $i ];
-        my $expected_row = $top_500_weekly_words_expected->[ $i ];
-
-        #undef($actual_row->{term});
-        #undef($expected_row->{term});
-        cmp_deeply( $actual_row, $expected_row, "top_500_weekly_words row $i comparison" );
-        my @keys = sort ( keys %{ $expected_row } );
-
-        @keys = grep { defined( $expected_row->{ $_ } ) } @keys;
-
-        my $actual_row_string   = join ',', ( @{ $actual_row }{ @keys } );
-        my $expected_row_string = join ',', ( @{ $expected_row }{ @keys } );
-
-        is( $actual_row_string, $expected_row_string, "top_500_weekly_words row $i string comparison:" . join ",", @keys );
-    }
 }
 
 sub kill_local_server

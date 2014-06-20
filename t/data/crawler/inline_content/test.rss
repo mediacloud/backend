@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+
+<channel>
+    <title>Inline downloads test</title>
+    <link>http://www.example.com/</link>
+    <description><![CDATA[
+        This RSS feed is used to test whether very short downloads (stored directly in the downloads.path as "content:...") are being stored / extracted / fetched correctly.
+    ]]></description>
+    <item>
+        <title>First inline item</title>
+        <pubDate>Thu, 11 Jun 2009 10:57:00 +0000</pubDate>
+        <link><BASE_WEBSITE_URL/>inline_content/item_1.html</link>
+        <guid isPermaLink="false">http://www.example.com/inline_content/item_1.html</guid>
+        <description>RSS description of the first inline item.</description>
+    </item>
+    <item>
+        <title>Second inline item</title>
+        <pubDate>Thu, 11 Jun 2009 10:57:00 +0000</pubDate>
+        <link><BASE_WEBSITE_URL/>inline_content/item_2.html</link>
+        <guid isPermaLink="false">http://www.example.com/inline_content/item_2.html</guid>
+        <description>RSS description of the second inline item.</description>
+    </item>
+    <item>
+        <title>Third inline item</title>
+        <pubDate>Thu, 11 Jun 2009 10:57:00 +0000</pubDate>
+        <link><BASE_WEBSITE_URL/>inline_content/item_3.html</link>
+        <guid isPermaLink="false">http://www.example.com/inline_content/item_3.html</guid>
+        <description>RSS description of the third inline item.</description>
+    </item>
+</channel>
+
+</rss>

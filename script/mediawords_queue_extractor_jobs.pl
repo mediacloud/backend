@@ -33,7 +33,13 @@ sub main
 
     for my $downloads_id ( @{ $downloads_ids } )
     {
-        MediaWords::GearmanFunction::ExtractAndVector->enqueue_on_gearman( { downloads_id => $downloads_id } );
+        eval { MediaWords::GearmanFunction::ExtractAndVector->enqueue_on_gearman( { downloads_id => $downloads_id } ); };
+        if ( $@ )
+        {
+            say STDERR "gearmand error. sleeping and retrying.";
+            sleep( 10 );
+            MediaWords::GearmanFunction::ExtractAndVector->enqueue_on_gearman( { downloads_id => $downloads_id } );
+        }
     }
 }
 

@@ -43,37 +43,41 @@ use MediaWords::Util::Config;
 use DBIx::Simple::MediaWords;
 use MediaWords::StoryVectors;
 use LWP::UserAgent;
+use Encode;
 
 use Data::Sorting qw( :basics :arrays :extras );
 use Readonly;
 
-#use feature 'unicode_strings';
-
 # add a test media source and feed to the database
-sub add_test_feed
+sub _add_test_feed($$$$$$)
 {
-    my ( $db, $url_to_crawl ) = @_;
-
-    Readonly my $sw_data_start_date => '2008-02-03';
-    Readonly my $sw_data_end_date   => '2014-02-27';
+    my ( $db, $url_to_crawl, $test_name, $test_prefix, $sw_data_start_date, $sw_data_end_date ) = @_;
 
     my $test_medium = $db->query(
-"insert into media (name, url, moderated, feeds_added, sw_data_start_date, sw_data_end_date) values (?, ?, ?, ?, ?, ?) returning *",
+        <<EOF,
+        INSERT INTO media (name, url, moderated, feeds_added, sw_data_start_date, sw_data_end_date)
+        VALUES (?, ?, ?, ?, ?, ?)
+        RETURNING *
+EOF
         '_ Crawler Test', $url_to_crawl, 0, 0, $sw_data_start_date, $sw_data_end_date
     )->hash;
 
-    ok( MediaWords::StoryVectors::_medium_has_story_words_start_date( $test_medium ) );
-    ok( MediaWords::StoryVectors::_medium_has_story_words_end_date( $test_medium ) );
+    ok( MediaWords::StoryVectors::_medium_has_story_words_start_date( $test_medium ),
+        "$test_name - _medium_has_story_words_start_date()" );
+    ok( MediaWords::StoryVectors::_medium_has_story_words_end_date( $test_medium ),
+        "$test_name - _medium_has_story_words_end_date()" );
 
-    is( MediaWords::StoryVectors::_get_story_words_start_date_for_medium( $test_medium ), $sw_data_start_date );
-    is( MediaWords::StoryVectors::_get_story_words_end_date_for_medium( $test_medium ),   $sw_data_end_date );
+    is( MediaWords::StoryVectors::_get_story_words_start_date_for_medium( $test_medium ),
+        $sw_data_start_date, "$test_name - _get_story_words_start_date_for_medium()" );
+    is( MediaWords::StoryVectors::_get_story_words_end_date_for_medium( $test_medium ),
+        $sw_data_end_date, "$test_name - _get_story_words_end_date_for_medium()" );
 
     my $syndicated_feed = $db->create(
         'feeds',
         {
             media_id => $test_medium->{ media_id },
             name     => '_ Crawler Test - Syndicated Feed',
-            url      => "${ url_to_crawl }gv/test.rss"
+            url      => "$url_to_crawl/$test_prefix/test.rss"
         }
     );
     my $web_page_feed = $db->create(
@@ -81,24 +85,24 @@ sub add_test_feed
         {
             media_id  => $test_medium->{ media_id },
             name      => '_ Crawler Test - Web Page Feed',
-            url       => "${ url_to_crawl }gv/gv_home.html",
+            url       => "$url_to_crawl/$test_prefix/home.html",
             feed_type => 'web_page'
         }
     );
 
     MediaWords::DBI::MediaSets::create_for_medium( $db, $test_medium );
 
-    ok( $syndicated_feed->{ feeds_id }, "test syndicated feed created" );
-    ok( $web_page_feed->{ feeds_id },   "test web page feed created" );
+    ok( $syndicated_feed->{ feeds_id }, "$test_name - test syndicated feed created" );
+    ok( $web_page_feed->{ feeds_id },   "$test_name - test web page feed created" );
 
     return $syndicated_feed;
 }
 
-Readonly my $crawler_timeout => 6 * 60;
+Readonly my $crawler_timeout => 3 * 60;
 
 # run the crawler for one minute, which should be enough time to gather all of
 # the stories from the test feed and test-extract them
-sub run_crawler
+sub _run_crawler()
 {
     MediaWords::Util::Config->get_config->{ mediawords }->{ extract_in_process } = 1;
 
@@ -118,25 +122,22 @@ sub run_crawler
     print "crawler exiting ...\n";
 }
 
-sub update_download_texts
+# get stories from database, including content, text, tags, and sentences
+sub _get_expanded_stories($)
 {
     my ( $db ) = @_;
 
-    my $download_texts = $db->query( "select * from download_texts" )->hashes;
-
-    for my $download_text ( @{ $download_texts } )
-    {
-        MediaWords::DBI::DownloadTexts::update_text( $db, $download_text );
-    }
-}
-
-# get stories from database, including content, text, tags, sentences, sentence_words, and story_sentence_words
-sub get_expanded_stories
-{
-    my ( $db ) = @_;
-
-    my $stories = $db->query( "select s.*, f.feed_type from stories s, feeds_stories_map fsm, feeds f " .
-          "  where s.stories_id = fsm.stories_id and fsm.feeds_id = f.feeds_id" )->hashes;
+    my $stories = $db->query(
+        <<EOF
+        SELECT s.*,
+               f.feed_type
+        FROM stories s,
+             feeds_stories_map fsm,
+             feeds f
+        WHERE s.stories_id = fsm.stories_id
+          AND fsm.feeds_id = f.feeds_id
+EOF
+    )->hashes;
 
     for my $story ( @{ $stories } )
     {
@@ -144,29 +145,28 @@ sub get_expanded_stories
         $story->{ extracted_text } = MediaWords::DBI::Stories::get_text( $db, $story );
         $story->{ tags } = MediaWords::DBI::Stories::get_db_module_tags( $db, $story, 'NYTTopics' );
 
-        $story->{ story_sentence_words } =
-          $db->query( "select * from story_sentence_words where stories_id = ?", $story->{ stories_id } )->hashes;
-
-        $story->{ story_sentences } =
-          $db->query( "select * from story_sentences where stories_id = ? order by stories_id, sentence_number ",
-            $story->{ stories_id } )->hashes;
+        $story->{ story_sentences } = $db->query(
+            <<EOF,
+            SELECT *
+            FROM story_sentences
+            WHERE stories_id = ?
+            ORDER BY stories_id,
+                     sentence_number
+EOF
+            $story->{ stories_id }
+        )->hashes;
 
     }
 
     return $stories;
 }
 
-sub _purge_story_sentences_id_field
+sub _purge_story_sentences_id_field($)
 {
     my ( $sentences ) = @_;
 
     for my $sentence ( @$sentences )
     {
-
-        #die Dumper ($sentence ) unless $sentence->{story_sentences_id };
-
-        #die Dumper ($sentence);
-
         $sentence->{ story_sentences_id } = '';
         delete $sentence->{ story_sentences_id };
     }
@@ -174,7 +174,7 @@ sub _purge_story_sentences_id_field
 
 # replace all stories_id fields with the normalized url of the corresponding story
 # within the stories data structure
-sub replace_stories_ids_with_urls
+sub _replace_stories_ids_with_urls($)
 {
     my ( $stories ) = @_;
 
@@ -208,24 +208,26 @@ sub replace_stories_ids_with_urls
 }
 
 # test various results of the crawler
-sub test_stories
+sub _test_stories($$$$)
 {
-    my ( $db ) = @_;
+    my ( $db, $test_name, $test_prefix, $stories_count ) = @_;
 
     my $download_errors = $db->query( "select * from downloads where state = 'error'" )->hashes;
-    is( scalar( @{ $download_errors } ), 0, "download errors" );
+    is( scalar( @{ $download_errors } ), 0, "$test_name - download errors" );
     die( "errors: " . Dumper( $download_errors ) ) if ( @{ $download_errors } );
 
-    my $stories = get_expanded_stories( $db );
+    my $stories = _get_expanded_stories( $db );
 
-    is( @{ $stories }, 16, "story count" );
+    is( @{ $stories }, $stories_count, "$test_name - story count" );
 
-    my $test_stories = MediaWords::Test::Data::fetch_test_data( 'crawler_stories' );
+    my $test_stories =
+      MediaWords::Test::Data::stories_arrayref_from_hashref(
+        MediaWords::Test::Data::fetch_test_data_from_individual_files( "crawler_stories/$test_prefix" ) );
 
     # replace stories_id with urls so that the order of stories
     # doesn't matter
-    replace_stories_ids_with_urls( $stories );
-    replace_stories_ids_with_urls( $test_stories );
+    _replace_stories_ids_with_urls( $stories );
+    _replace_stories_ids_with_urls( $test_stories );
 
     my $test_story_hash;
     map { $test_story_hash->{ $_->{ title } } = $_ } @{ $test_stories };
@@ -233,12 +235,8 @@ sub test_stories
     for my $story ( @{ $stories } )
     {
         my $test_story = $test_story_hash->{ $story->{ title } };
-        if ( ok( $test_story, "story match: " . $story->{ title } ) )
+        if ( ok( $test_story, "$test_name - story match: " . $story->{ title } ) )
         {
-
-            #$story->{ extracted_text } =~ s/\n//g;
-            #$test_story->{ extracted_text } =~ s/\n//g;
-
             my $fields = [ qw(description extracted_text) ];
 
             # can't test web_page story dates against historical data b/c they are supposed to have
@@ -253,22 +251,17 @@ sub test_stories
                 {
                     my $fake_var;    #silence warnings
                      #eq_or_diff( $story->{ $field }, encode_utf8($test_story->{ $field }), "story $field match" , {context => 0});
-                    is( $story->{ $field }, $test_story->{ $field }, "story $field match" );
+                    is( $story->{ $field }, $test_story->{ $field }, "$test_name - story $field match" );
                 }
             }
 
-            unless ( eq_or_diff( $story->{ content }, $test_story->{ content }, "story content matches" ) )
-            {
+            eq_or_diff( $story->{ content }, $test_story->{ content }, "$test_name - story content matches" );
 
-                #print STDERR "Expected content: " . Dumper( $test_story->{ content } );
-                #print STDERR "Got content: " . Dumper( $story->{ content } );
-            }
-
-            is( scalar( @{ $story->{ tags } } ), scalar( @{ $test_story->{ tags } } ), "story tags count" );
+            is( scalar( @{ $story->{ tags } } ), scalar( @{ $test_story->{ tags } } ), "$test_name - story tags count" );
 
             my $expected_sentences = join( "\n", map { $_->{ sentence } } @{ $test_story->{ story_sentences } } );
             my $got_sentences      = join( "\n", map { $_->{ sentence } } @{ $story->{ story_sentences } } );
-            eq_or_diff( $expected_sentences, $got_sentences, "sentences match" );
+            eq_or_diff( $expected_sentences, $got_sentences, "$test_name - sentences match" );
 
             _purge_story_sentences_id_field( $story->{ story_sentences } );
             _purge_story_sentences_id_field( $test_story->{ story_sentences } );
@@ -287,7 +280,7 @@ sub test_stories
             cmp_deeply(
                 $story->{ story_sentences },
                 $test_story->{ story_sentences },
-                "story sentences " . $story->{ stories_id }
+                "$test_name - story sentences " . $story->{ stories_id }
             );
 
         }
@@ -297,45 +290,47 @@ sub test_stories
 }
 
 # simple test to verify that each story has at least 60 characters in its sentences
-sub sanity_test_stories
+sub _sanity_test_stories($$$)
 {
-    my ( $stories ) = @_;
+    my ( $stories, $test_name, $test_prefix ) = @_;
 
     for my $story ( @{ $stories } )
     {
         my $all_sentences = join( '. ', map { $_->{ sentence } } @{ $story->{ story_sentences } } );
-        ok( length( $all_sentences ) >= 80, "story '$story->{ url }' has at least 60 characters in its sentences" );
+        ok( length( $all_sentences ) >= 80,
+            "$test_name - story '$story->{ url }' has at least 60 characters in its sentences" );
     }
 }
 
 # store the stories as test data to compare against in subsequent runs
-sub dump_stories
+sub _dump_stories($$$)
 {
-    my ( $db ) = @_;
+    my ( $db, $test_name, $test_prefix ) = @_;
 
-    my $stories = get_expanded_stories( $db );
+    my $stories = _get_expanded_stories( $db );
 
-    MediaWords::Test::Data::store_test_data( 'crawler_stories', $stories );
+    MediaWords::Test::Data::store_test_data_to_individual_files( "crawler_stories/$test_prefix",
+        MediaWords::Test::Data::stories_hashref_from_arrayref( $stories ) );
 
-    sanity_test_stories( $stories );
+    _sanity_test_stories( $stories, $test_name, $test_prefix );
 }
 
-sub kill_local_server
+sub _kill_local_server($)
 {
-    my ( $server_url ) = @_;
+    my $server_url = shift;
 
     my $ua = LWP::UserAgent->new;
 
     $ua->timeout( 10 );
 
-    my $kill_url = "$server_url" . "kill_server";
+    my $kill_url = "$server_url/kill_server";
     print STDERR "Getting $kill_url\n";
     my $resp = $ua->get( $kill_url ) || die;
     print STDERR "got url";
     die $resp->status_line unless $resp->is_success;
 }
 
-sub get_crawler_data_directory
+sub _get_crawler_data_directory()
 {
     my $crawler_data_location;
 
@@ -352,45 +347,49 @@ sub get_crawler_data_directory
     return $crawler_data_location;
 }
 
-sub main
+sub _test_crawler($$$$$)
 {
-    my ( $dump ) = @ARGV;
-
-    binmode( STDERR, 'utf8' );
-    binmode( STDOUT, 'utf8' );
+    my ( $test_name, $test_prefix, $stories_count, $sw_data_start_date, $sw_data_end_date ) = @_;
 
     MediaWords::Test::DB::test_on_test_database(
         sub {
-            use Encode;
             my ( $db ) = @_;
 
-            # Errors might want to print out UTF-8 characters
-            binmode( STDOUT, ":utf8" );
-            binmode( STDERR, ":utf8" );
-
-            my $crawler_data_location = get_crawler_data_directory();
+            my $crawler_data_location = _get_crawler_data_directory();
 
             my $url_to_crawl = MediaWords::Test::LocalServer::start_server( $crawler_data_location );
 
-            add_test_feed( $db, $url_to_crawl );
+            _add_test_feed( $db, $url_to_crawl, $test_name, $test_prefix, $sw_data_start_date, $sw_data_end_date );
 
-            run_crawler();
+            _run_crawler();
 
-            if ( defined( $dump ) && ( $dump eq '-d' ) )
+            if ( defined( $ARGV[ 0 ] ) && ( $ARGV[ 0 ] eq '-d' ) )
             {
-                dump_stories( $db );
+                _dump_stories( $db, $test_name, $test_prefix );
             }
 
-            test_stories( $db );
+            _test_stories( $db, $test_name, $test_prefix, $stories_count );
 
             print "Killing server\n";
-            kill_local_server( $url_to_crawl );
-
-            Test::NoWarnings::had_no_warnings();
-            done_testing();
+            _kill_local_server( $url_to_crawl );
         }
     );
+}
 
+sub main
+{
+    # Errors might want to print out UTF-8 characters
+    binmode( STDERR, ':utf8' );
+    binmode( STDOUT, ':utf8' );
+
+    # Test short inline "content:..." downloads
+    _test_crawler( 'Short "inline" downloads', 'inline_content', 4, '2008-02-03', '2014-02-27' );
+
+    # Test Global Voices downloads
+    _test_crawler( 'Global Voices', 'gv', 16, '2008-02-03', '2014-02-27' );
+
+    Test::NoWarnings::had_no_warnings();
+    done_testing();
 }
 
 main();

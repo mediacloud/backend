@@ -176,6 +176,7 @@ sub get_content_for_first_download($$)
 
     if ( $first_download->{ state } ne 'success' )
     {
+        say STDERR "First download's state is not 'success' for story " . $story->{ stories_id };
         return;
     }
 
@@ -189,8 +190,9 @@ sub _store_tags_content
 {
     my ( $db, $story, $module, $tags ) = @_;
 
-    if ( !$tags->{ content } )
+    unless ( $tags->{ content } )
     {
+        warn "Tags doesn't have 'content' for story " . $story->{ stories_id };
         return;
     }
 
@@ -291,9 +293,9 @@ sub _add_module_tags
 {
     my ( $db, $story, $module, $tags ) = @_;
 
-    if ( !$tags->{ tags } )
+    unless ( $tags->{ tags } )
     {
-        print STDERR "tagging error - module: $module story: $story->{stories_id} error: $tags->{error}\n";
+        warn "tagging error - module: $module story: $story->{stories_id} error: $tags->{error}";
         return;
     }
 
@@ -626,9 +628,15 @@ sub add_cos_similarities
 {
     my ( $db, $stories ) = @_;
 
-    return if ( !@{ $stories } );
+    unless ( scalar @{ $stories } )
+    {
+        die "'stories' is not an arrayref.";
+    }
 
-    die( "must call add_word_vectors before add_cos_similarities" ) if ( !$stories->[ 0 ]->{ vector } );
+    unless ( $stories->[ 0 ]->{ vector } )
+    {
+        die "must call add_word_vectors before add_cos_similarities";
+    }
 
     my $num_words = List::Util::max( map { scalar( @{ $_->{ vector } } ) } @{ $stories } );
 
@@ -761,10 +769,18 @@ sub reextract_download
 {
     my ( $db, $download ) = @_;
 
-    return if ( $download->{ url } =~ /jpg|pdf|doc|mp3|mp4$/i );
+    if ( $download->{ url } =~ /jpg|pdf|doc|mp3|mp4$/i )
+    {
+        warn "Won't reextract download " .
+          $download->{ downloads_id } . " because the URL doesn't look like it could contain text.";
+        return;
+    }
 
     eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, "restore", 1, 1 ); };
-    warn "extract error processing download $download->{ downloads_id }" if ( $@ );
+    if ( $@ )
+    {
+        warn "extract error processing download $download->{ downloads_id }: $@";
+    }
 }
 
 sub restore_download_content
@@ -876,7 +892,11 @@ sub unconfirm_date
 {
     my ( $db, $story ) = @_;
 
-    return unless ( date_is_confirmed( $db, $story ) );
+    unless ( date_is_confirmed( $db, $story ) )
+    {
+        say STDERR "Date for story " . $story->{ stories_id } . " is not confirmed, so not unconfirming.";
+        return;
+    }
 
     my $manual      = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'date_guess_method:manual' );
     my $unconfirmed = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'date_guess_method:unconfirmed' );
@@ -1025,7 +1045,12 @@ sub add_missing_story_sentences
 
     my $ss = $db->query( "select 1 from story_sentences ss where stories_id = ?", $story->{ stories_id } )->hash;
 
-    return if ( $ss );
+    if ( $ss )
+    {
+        say STDERR "Sentences for story " .
+          $story->{ stories_id } . " already exist, so not adding missing story sentences.";
+        return;
+    }
 
     print STDERR "ADD SENTENCES\n";
 
@@ -1043,8 +1068,27 @@ sub get_all_sentences
       || MediaWords::Languages::Language::default_language();
 
     my $text = get_text( $db, $story );
+    unless ( defined $text )
+    {
+        warn "Text for story " . $story->{ stories_id } . " is undefined.";
+        return;
+    }
+    unless ( length( $text ) )
+    {
+        warn "Story " . $story->{ stories_id } . " text is an empty string.";
+        return;
+    }
 
-    my $raw_sentences = $lang->get_sentences( $text ) || return;
+    my $raw_sentences = $lang->get_sentences( $text );
+    unless ( defined $raw_sentences )
+    {
+        die "Sentences for story " . $story->{ stories_id } . " are undefined.";
+    }
+    unless ( scalar @{ $raw_sentences } )
+    {
+        warn "Story " . $story->{ stories_id } . " doesn't have any sentences.";
+        return;
+    }
 
     my $all_sentences = [];
     for my $sentence ( @{ $raw_sentences } )
@@ -1097,7 +1141,11 @@ sub attach_story_data_to_stories
 
     map { $_->{ $list_field } = [] } @{ $stories } if ( $list_field );
 
-    return unless ( @{ $story_data } );
+    unless ( scalar @{ $story_data } )
+    {
+        say STDERR "Story data is not an arrayref, so not attaching story data to stories.";
+        return;
+    }
 
     my $story_data_lookup = {};
     for my $sd ( @{ $story_data } )

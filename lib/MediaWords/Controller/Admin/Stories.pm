@@ -143,7 +143,8 @@ END
 
     $c->stash->{ stories_id } = $stories_id;
 
-    if ( MediaWords::Util::CoreNLP::annotator_is_enabled )
+    if ( MediaWords::Util::CoreNLP::annotator_is_enabled &&
+	 MediaWords::Util::CoreNLP::get_story_annotatable_by_corenlp( $c->dbis, $story->{ stories_id } ) )
     {
 
         $c->stash->{ corenlp_story_json } =

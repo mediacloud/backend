@@ -224,7 +224,7 @@ sub _import_csv_single_file
     my $overwrite = $delta ? 'overwrite=true' : 'overwrite=false';
 
     my $url =
-"http://localhost:7983/solr/update/csv?commit=false&stream.file=$abs_file&stream.contentType=text/plain;charset=utf-8&f.media_sets_id.split=true&f.media_sets_id.separator=;&f.tags_id_media.split=true&f.tags_id_media.separator=;&f.tags_id_stories.split=true&f.tags_id_stories.separator=;&f.tags_id_story_sentences.split=true&f.tags_id_story_sentences.separator=;&$overwrite&skip=field_type,id,solr_import_date";
+"http://localhost:8983/solr/update/csv?commit=false&stream.file=$abs_file&stream.contentType=text/plain;charset=utf-8&f.media_sets_id.split=true&f.media_sets_id.separator=;&f.tags_id_media.split=true&f.tags_id_media.separator=;&f.tags_id_stories.split=true&f.tags_id_stories.separator=;&f.tags_id_story_sentences.split=true&f.tags_id_story_sentences.separator=;&$overwrite&skip=field_type,id,solr_import_date";
 
     print STDERR "$url\n";
 
@@ -271,7 +271,7 @@ sub import_csv_files
     print STDERR "comitting ..\n";
     my $ua = LWP::UserAgent->new;
     $ua->timeout( 86400 * 7 );
-    my $res = $ua->get( 'http://localhost:7983/solr/update?stream.body=<commit/>' );
+    my $res = $ua->get( 'http://localhost:8983/solr/update?stream.body=<commit/>' );
 
     if ( $res->is_success )
     {

@@ -32,11 +32,6 @@ use MediaWords::DBI::Stories;
 # max number of pages the handler will download for a single story
 use constant MAX_PAGES => 10;
 
-# STATICS
-
-my $_feed_media_ids     = {};
-my $_added_xml_enc_path = 0;
-
 # METHODS
 
 sub _get_stories_from_feed_contents
@@ -160,7 +155,7 @@ sub _add_story_using_parent_download
         $dbs->rollback;
 
         #TODO handle race conditions differently
-        if ( $_ =~ /unique constraint "stories_guid"/ )
+        if ( $@ =~ /unique constraint "stories_guid/ )
         {
             warn "failed to add story for '." . $story->{ url } . "' to guid conflict ( guid =  '" . $story->{ guid } . "')";
 

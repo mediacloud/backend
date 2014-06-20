@@ -102,6 +102,7 @@ requires 'Moose', '== 2.1005';
 requires 'namespace::autoclean';
 requires 'Net::Amazon::S3';
 requires 'Net::Calais';
+requires 'Net::IP';
 requires 'Parallel::Fork::BossWorkerAsync';
 requires 'Parallel::ForkManager';
 requires 'PDL';
