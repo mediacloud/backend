@@ -156,6 +156,10 @@ sub get_sentence_info_for_lines
         say "Line text no html: $line_text";
 
         my $sentences = $lang->get_sentences( $line_text );
+        unless ( defined $sentences )
+        {
+            die "Sentences for text '$line_text' is undefined.";
+        }
 
         foreach my $sentence ( @{ $sentences } )
         {

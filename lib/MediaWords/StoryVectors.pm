@@ -204,21 +204,40 @@ sub get_deduped_sentences
     my $i                   = 0;
     for my $sentence ( @{ $sentences } )
     {
-        my $sentence_data =
-          { md5 => Digest::MD5::md5_hex( encode( 'utf8', $sentence ) ), sentence => $sentence, num => $i++ };
-        $sentence_md5_lookup->{ $sentence_data->{ md5 } } = $sentence_data;
+        my $sentence_utf8 = encode_utf8( $sentence );
+        unless ( defined $sentence_utf8 )
+        {
+            die "Sentence '$sentence' for story " . $story->{ stories_id } . " is undefined after encoding it to UTF-8.";
+        }
+
+        my $sentence_utf8_md5 = Digest::MD5::md5_hex( $sentence_utf8 );
+        unless ( $sentence_utf8_md5 )
+        {
+            die "Sentence's '$sentence' MD5 hash is empty or undef.";
+        }
+
+        my $sentence_data = {
+            md5      => $sentence_utf8_md5,
+            sentence => $sentence,
+            num      => $i++
+        };
+        $sentence_md5_lookup->{ $sentence_utf8_md5 } = $sentence_data;
     }
 
     my $sentence_md5_list = join( ',', map { "'$_'" } keys %{ $sentence_md5_lookup } );
 
-    my $sentence_dup_info = $db->query( <<END, $story->{ media_id }, $story->{ publish_date } )->hashes;
-SELECT min( story_sentence_counts_id) story_sentence_counts_id, sentence_md5
+    my $sentence_dup_info = $db->query(
+        <<"END",
+        SELECT MIN( story_sentence_counts_id) AS story_sentence_counts_id,
+               sentence_md5
         FROM story_sentence_counts
-        WHERE sentence_md5 in ( $sentence_md5_list )
-              AND media_id = ?
-              AND publish_week = DATE_TRUNC( 'week', ?::date )
+        WHERE sentence_md5 IN ( $sentence_md5_list )
+          AND media_id = ?
+          AND publish_week = DATE_TRUNC( 'week', ?::date )
         GROUP BY story_sentence_counts_id
 END
+        $story->{ media_id }, $story->{ publish_date }
+    )->hashes;
 
     my $story_sentence_counts_ids = [];
     for my $sdi ( @{ $sentence_dup_info } )
@@ -234,11 +253,13 @@ END
     if ( @{ $story_sentence_counts_ids } )
     {
         my $id_list = join( ',', @{ $story_sentence_counts_ids } );
-        $db->query( <<END );
-UPDATE story_sentence_counts
-    SET sentence_count = sentence_count + 1
-    WHERE story_sentence_counts_id in ( $id_list )
+        $db->query(
+            <<"END"
+            UPDATE story_sentence_counts
+            SET sentence_count = sentence_count + 1
+            WHERE story_sentence_counts_id IN ( $id_list )
 END
+        );
     }
 
     insert_story_sentence_counts( $db, $story, $deduped_md5s );
@@ -252,7 +273,11 @@ sub dedup_sentences
 {
     my ( $db, $story, $sentences ) = @_;
 
-    return [] unless ( $sentences && @{ $sentences } );
+    unless ( $sentences and @{ $sentences } )
+    {
+        warn "Sentences for story " . $story->{ stories_id } . " is undef or empty.";
+        return [];
+    }
 
     if ( !$db->dbh->{ AutoCommit } )
     {
@@ -455,7 +480,13 @@ sub update_story_sentence_words_and_language
         $db->query( "DELETE FROM story_sentence_counts WHERE first_stories_id = ?", $story->{ stories_id } );
     }
 
-    return unless ( $ignore_date_range || _story_within_media_source_story_words_date_range( $db, $story ) );
+    unless ( $ignore_date_range or _story_within_media_source_story_words_date_range( $db, $story ) )
+    {
+        say STDERR "Won't split story " .
+          $story->{ stories_id } . " " . "into sentences / words and determine their language because " .
+          "story is *not* within media source's story words date range and 'ignore_date_range' is not set.";
+        return;
+    }
 
     # Get story text
     my $story_text = $story->{ story_text } || MediaWords::DBI::Stories::get_text_for_word_counts( $db, $story );
@@ -491,8 +522,26 @@ sub update_story_sentence_words_and_language
     {
         $lang = MediaWords::Languages::Language::default_language();
     }
-    my $sentences = $lang->get_sentences( $story_text ) || return;
-    $sentences = dedup_sentences( $db, $story_ref, $sentences ) unless ( $no_dedup_sentences );
+    my $sentences = $lang->get_sentences( $story_text );
+    unless ( defined $sentences )
+    {
+        die "Sentences for story " . $story->{ stories_id } . " are undefined.";
+    }
+    unless ( scalar @{ $sentences } )
+    {
+        warn "Story " . $story->{ stories_id } . " doesn't have any sentences.";
+        return;
+    }
+
+    if ( $no_dedup_sentences )
+    {
+        say STDERR "Won't de-duplicate sentences for story " .
+          $story->{ stories_id } . " because 'no_dedup_sentences' is set.";
+    }
+    else
+    {
+        $sentences = dedup_sentences( $db, $story_ref, $sentences );
+    }
 
     my $sentence_refs = [];
     for ( my $sentence_num = 0 ; $sentence_num < @{ $sentences } ; $sentence_num++ )

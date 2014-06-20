@@ -429,7 +429,11 @@ sub _tokenize_text_with_lingua_sentence
         $self->sentence_tokenizer( Lingua::Sentence->new( $language, $nonbreaking_prefixes_file ) );
     }
 
-    return [] unless defined $text;
+    unless ( defined $text )
+    {
+        warn "Text is undefined.";
+        return undef;
+    }
 
     # Only "\n\n" (not a single "\n") denotes the end of sentence, so remove single line breaks
     $text =~ s/([^\n])\n([^\n])/$1 $2/gs;
@@ -466,6 +470,12 @@ sub _tokenize_text_with_lingua_sentence
 
     # FIXME: fix "bla bla... yada yada"? is it two sentences?
     # FIXME: fix "text . . some more text."?
+
+    unless ( $text )
+    {
+        say STDERR "Text is empty after processing it.";
+        return [];
+    }
 
     # Split to sentences
     my @sentences = $self->sentence_tokenizer->split_array( $text );
