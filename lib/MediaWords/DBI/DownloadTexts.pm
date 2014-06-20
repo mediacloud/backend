@@ -214,16 +214,11 @@ sub create_from_download
 
     # say STDERR "EXTRACT\n**\n$extracted_text\n**\n";
 
-    my $download_text = $db->create(
-        'download_texts',
-        {
-            download_text        => $extracted_text,
-            downloads_id         => $download->{ downloads_id },
-            download_text_length => length( $extracted_text )
-        }
-    );
-
-    # say STDERR "Created download_text" . Dumper( $download_text );
+    my $download_text = $db->query( <<END, $extracted_text, $download->{ downloads_id } )->hash;
+insert into download_texts ( download_text, downloads_id, download_text_length )
+    values ( \$1, \$2, char_length( \$1 ) )
+    returning *
+END
 
     $db->dbh->do( "copy extracted_lines(download_texts_id, line_number) from STDIN" );
     foreach my $included_line_number ( @{ $included_line_numbers } )
