@@ -5,9 +5,8 @@ addons:
     hosts:
         - mediacloud.local
 before_install:
-    # Upgrade packages:
+    # Update package listings (don't upgrade the packages though because it takes too much time)
     - sudo apt-get -y update
-    - sudo apt-get -y upgrade
     # Create + switch to the Media Cloud's Perlbrew library
     - perlbrew lib create mediacloud
     - perlbrew switch @mediacloud
