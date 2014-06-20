@@ -226,8 +226,8 @@ sub search_for_stories_ids
     my $stories_ids = [ map { $_->{ doclist }->{ docs }->[ 0 ]->{ stories_id } } @{ $groups } ];
 
     my $sentence_counts = [ map { $_->{ doclist }->{ numFound } } @{ $groups } ];
-    
-    if ( @{ sentence_counts } > 0 )
+
+    if ( @{ $sentence_counts } > 0 )
     {
         $_last_sentences_per_story = List::Util::sum( @{ $sentence_counts } ) / scalar( @{ $sentence_counts } );
     }
