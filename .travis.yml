@@ -4,6 +4,10 @@ perl:
 addons:
     hosts:
         - mediacloud.local
+# Don't run dependency modules' unit tests because in that case the whole build
+# will take more than 40 minutes, and we want to spend that time running
+# Media Cloud's unit tests
+env: PERL_CPANM_OPT="--notest --force --skip-satisfied"
 before_install:
     # Update package listings (don't upgrade the packages though because it takes too much time)
     - sudo apt-get -y update
