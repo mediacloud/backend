@@ -12,8 +12,8 @@ package SolrCountServer;
 use strict;
 use warnings;
 
-use threads qw(stringify);
-use threads::shared;
+use forks qw(stringify);
+use forks::shared;
 
 use Data::Dumper;
 use Encode;
