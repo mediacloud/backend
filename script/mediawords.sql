@@ -31,30 +31,6 @@ END AS plpgsql_created;
 
 DROP FUNCTION create_language_plpgsql();
 
--- CREATE LANGUAGE IF NOT EXISTS plperlu
-CREATE OR REPLACE FUNCTION create_language_plperlu()
-RETURNS BOOLEAN AS $$
-    CREATE LANGUAGE plperlu;
-    SELECT TRUE;
-$$ LANGUAGE SQL;
-
-SELECT CASE WHEN NOT
-    (
-        SELECT  TRUE AS exists
-        FROM    pg_language
-        WHERE   lanname = 'plperlu'
-        UNION
-        SELECT  FALSE AS exists
-        ORDER BY exists DESC
-        LIMIT 1
-    )
-THEN
-    create_language_plperlu()
-ELSE
-    FALSE
-END AS plperlu_created;
-
-DROP FUNCTION create_language_plperlu();
 
 
 -- Database properties (variables) table

@@ -213,8 +213,6 @@ sub add_functions
 {
     my ( $db ) = @_;
 
-    eval { $db->query( 'create language plperlu' ); };
-
     my $sql = get_sql_function_definitions();
     $db->query( $sql );
 }
