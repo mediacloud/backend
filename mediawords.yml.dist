@@ -361,9 +361,9 @@ mediawords:
     
     # urls for solr queries, include multiple to make mc choose a random url from
     # the list for each solr query
-    # solr_select_url:
-    #    - http://localhost:8983/solr/collection1/select
-    #    - http://127.0.0.1:8983/solr/collection1/select
+    # solr_url:
+    #    - http://localhost:8983/solr
+    #    - http://127.0.0.1:8983/solr
     
     # By default API requests require a invalid 'key' param.
     # comment to allow api requests without a key.
