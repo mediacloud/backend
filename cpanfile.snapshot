@@ -1470,6 +1470,15 @@ DISTRIBUTIONS
     requirements:
       DBI 1.21
       ExtUtils::MakeMaker 0
+  DB_File-1.831
+    pathname: P/PM/PMQS/DB_File-1.831.tar.gz
+    provides:
+      DB_File 1.831
+      DB_File::BTREEINFO 1.831
+      DB_File::HASHINFO 1.831
+      DB_File::RECNOINFO 1.831
+    requirements:
+      ExtUtils::MakeMaker 0
   Data-Compare-1.23
     pathname: D/DC/DCANTRELL/Data-Compare-1.23.tar.gz
     provides:
