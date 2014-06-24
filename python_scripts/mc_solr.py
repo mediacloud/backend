@@ -17,11 +17,7 @@ def get_solr_collection_url_prefix():
 
     #print >> sys.stderr, config
 
-    solr_select_url = config['mediawords'][ 'solr_select_url' ]
-
-    assert solr_select_url.endswith( '/select')
-
-    solr_collection_url = solr_select_url[:-7]
+    solr_collection_url = config['mediawords'][ 'solr_url' ][0] + '/collection1'
 
     return solr_collection_url
 

@@ -57,10 +57,12 @@ JAVA_HOME=$JAVA_HOME ./script/run_carton.sh install --deployment || {
     JAVA_HOME=$JAVA_HOME ./script/run_carton.sh install --deployment
 }
 
-# Install Mallet-CrfWrapper
+# Install Mallet-CrfWrapper (don't run unit tests because the web service test
+# ends up as a Perl zombie process during the Vagrant test run)
 JAVA_HOME=$JAVA_HOME ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
     --local-lib-contained local/ \
     --verbose \
+    --notest \
     https://github.com/dlarochelle/Mallet-CrfWrapper/tarball/0.02
 
 echo "Successfully installed Perl and modules for Media Cloud"

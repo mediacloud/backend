@@ -98,7 +98,7 @@ use XML::LibXML;
 #     <recaptcha_private_key>...</recaptcha_private_key>
 #     <recaptcha_public_key>...</recaptcha_public_key>
 #     <script_dir>/Users/pypt/Dropbox/etc-MediaCloud/trunk/script/../lib/MediaWords/Util/../../../script</script_dir>
-#     <solr_select_url>http://localhost:8983/solr/collection1/select</solr_select_url>
+#     <solr_url>http://localhost:8983/solr</solr_url>
 #     <solr_wc_url>http://localhost:8080/wc</solr_wc_url>
 #     <user_agent>mediawords bot (http://cyber.law.harvard.edu)</user_agent>
 #   </mediawords>
