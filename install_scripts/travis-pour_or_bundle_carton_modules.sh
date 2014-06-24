@@ -121,6 +121,15 @@ else
     echo "Removing archive..."
     rm "$TGZ_FILENAME"
 
+    echo ""
+    echo "Please note that building the Carton modules took a lot of time, so"
+    echo "this Travis CI build will most likely fail (as we only have 50"
+    echo "minutes to do everything)."
+    echo ""
+    echo "To rerun the Travis CI build using the cached (packaged) Carton"
+    echo "modules, make another Git push."
+    echo ""
+
 fi
 
 echo "Done."
