@@ -1,6 +1,8 @@
 language: perl
 perl:
     - "5.16"
+    - "5.18"
+    - "5.19"
 addons:
     hosts:
         - mediacloud.local
