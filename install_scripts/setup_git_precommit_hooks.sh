@@ -18,6 +18,10 @@ HOOK_TARGET=".git/hooks/pre-commit"
 
 # ---
 
+# 'cd' to Media Cloud's root (assuming that this script is stored in './install_scripts/')
+PWD="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$PWD/../"
+
 if [ ! -d .git ]; then
     echo ".git directory doesn't exist in the current path."
     echo "Either you didn't checkout Media Cloud from the GitHub repository, or you're not in the Media Cloud root path."
