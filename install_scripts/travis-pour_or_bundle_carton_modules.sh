@@ -18,7 +18,7 @@ else
     S3_REGION="$ARTIFACTS_AWS_REGION"
 fi
 
-if [ -z "$ARTIFACTS_S3_BUCKET"]; then
+if [ -z "$ARTIFACTS_S3_BUCKET" ]; then
     echo "ARTIFACTS_S3_BUCKET is empty, defaulting to 'travis-ci-cache-mediacloud-pypt-lt'."
     S3_BUCKET_NAME="travis-ci-cache-mediacloud-pypt-lt"
 else
