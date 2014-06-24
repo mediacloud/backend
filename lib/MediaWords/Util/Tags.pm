@@ -154,7 +154,7 @@ sub save_tags_by_name
     my $tag_names = [ split( /[\s,;]+/, $tag_names_list ) ];
 
     my $tags = [];
-    map { push( $tags, lookup_or_create_tag( $db, $_ ) ) } @{ $tag_names };
+    map { push( @{ $tags }, lookup_or_create_tag( $db, $_ ) ) } @{ $tag_names };
 
     $db->query( "delete from ${ table }_tags_map where ${ table }_id = ?", $oid );
 

@@ -45,7 +45,7 @@ sub process
 
     my $query_params = [];
 
-    push $query_params, $story_subsets_id;
+    push( @{ $query_params }, $story_subsets_id );
     say STDERR Dumper( $query_params );
 
     foreach my $clause ( @{ $subset_clauses } )

@@ -683,7 +683,7 @@ sub get_feature_strings_for_download
 
         my $feature_string =
           MediaWords::Crawler::AnalyzeLines::get_feature_string_from_line_info( $line_info, $line_text, $top_words );
-        push $ret, $feature_string;
+        push( @{ $ret }, $feature_string );
     }
 
     return $ret;
