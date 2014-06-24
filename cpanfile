@@ -46,7 +46,6 @@ requires 'DBD::Pg', '2.19.3';
 requires 'DBIx::Class::Schema';
 requires 'DBIx::Simple';
 requires 'Devel::NYTProf';
-requires 'Devel::SizeMe';
 requires 'Dir::Self';
 requires 'Domain::PublicSuffix';
 requires 'Email::MIME';

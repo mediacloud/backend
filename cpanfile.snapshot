@@ -2893,24 +2893,6 @@ DISTRIBUTIONS
       Test::Differences 0.60
       Test::More 0.84
       XSLoader 0
-  Devel-SizeMe-0.19
-    pathname: T/TI/TIMB/Devel-SizeMe-0.19.tar.gz
-    provides:
-      Devel::SizeMe 0.19
-      Devel::SizeMe::Core 0.19
-      Devel::SizeMe::Graph undef
-    requirements:
-      DBD::SQLite 1.37
-      DBI 0
-      Devel::Dwarn 0
-      ExtUtils::MakeMaker 0
-      HTML::Entities 0
-      JSON::XS 0
-      Moo 1.000007
-      Test::More 0.98
-      XSLoader 0
-      autodie 2.12
-      perl 5.008
   Devel-StackTrace-1.32
     pathname: D/DR/DROLSKY/Devel-StackTrace-1.32.tar.gz
     provides:
