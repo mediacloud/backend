@@ -10,7 +10,6 @@ use Carp;
 use Encode;
 use HTML::Entities;
 
-use MediaWords::Util::BigPDLVector qw(vector_new vector_set vector_dot vector_normalize);
 use MediaWords::Util::HTML;
 use MediaWords::Util::Web;
 use MediaWords::Tagger;
@@ -628,6 +627,8 @@ sub add_cos_similarities
 {
     my ( $db, $stories ) = @_;
 
+    require MediaWords::Util::BigPDLVector;
+
     unless ( scalar @{ $stories } )
     {
         die "'stories' is not an arrayref.";
@@ -646,13 +647,13 @@ sub add_cos_similarities
         for my $story ( @{ $stories } )
         {
             print STDERR ".";
-            my $pdl_vector = vector_new( $num_words );
+            my $pdl_vector = MediaWords::Util::BigPDLVector::vector_new( $num_words );
 
             for my $i ( 0 .. $num_words - 1 )
             {
-                vector_set( $pdl_vector, $i, $story->{ vector }->[ $i ] );
+                MediaWords::Util::BigPDLVector::vector_set( $pdl_vector, $i, $story->{ vector }->[ $i ] );
             }
-            $story->{ pdl_norm_vector } = vector_normalize( $pdl_vector );
+            $story->{ pdl_norm_vector } = MediaWords::Util::BigPDLVector::vector_normalize( $pdl_vector );
             $story->{ vector }          = undef;
         }
         print STDERR "\n";
@@ -670,7 +671,8 @@ sub add_cos_similarities
             my $sim = 0;
             if ( $num_words )
             {
-                $sim = vector_dot( $stories->[ $i ]->{ pdl_norm_vector }, $stories->[ $j ]->{ pdl_norm_vector } );
+                $sim = MediaWords::Util::BigPDLVector::vector_dot( $stories->[ $i ]->{ pdl_norm_vector },
+                    $stories->[ $j ]->{ pdl_norm_vector } );
             }
 
             $stories->[ $i ]->{ similarities }->[ $j ] = $sim;
