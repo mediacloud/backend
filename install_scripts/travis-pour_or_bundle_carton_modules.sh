@@ -9,11 +9,21 @@
 #
 
 set -e
-set -u
 set -o errexit
 
-S3_REGION="us-east-1"
-S3_BUCKET_NAME="travis-ci-cache-mediacloud-pypt-lt"
+if [ -z "$ARTIFACTS_AWS_REGION" ]; then
+    echo "ARTIFACTS_AWS_REGION is empty, defaulting to 'us-east-1'."
+    S3_REGION="us-east-1"
+else
+    S3_REGION="$ARTIFACTS_AWS_REGION"
+fi
+
+if [ -z "$ARTIFACTS_S3_BUCKET"]; then
+    echo "ARTIFACTS_S3_BUCKET is empty, defaulting to 'travis-ci-cache-mediacloud-pypt-lt'."
+    S3_BUCKET_NAME="travis-ci-cache-mediacloud-pypt-lt"
+else
+    S3_BUCKET_NAME="$ARTIFACTS_S3_BUCKET"
+fi
 S3_PATH="carton-bundles"
 S3_PREFIX="local"
 
