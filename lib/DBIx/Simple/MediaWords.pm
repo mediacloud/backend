@@ -448,7 +448,14 @@ sub create
 
     delete( $hash->{ submit } );
 
-    $self->insert( $table, $hash );
+    eval { $self->insert( $table, $hash ); };
+
+    if ( $@ )
+    {
+        my $query_error = $@;
+
+        confess "error inserting into table '$table' with object:\n" . Dumper( $hash ) . "\n$query_error";
+    }
 
     my $id;
 
