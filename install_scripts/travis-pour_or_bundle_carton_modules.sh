@@ -21,6 +21,14 @@ S3_PREFIX="local"
 
 function bundle_id {
 
+    if [ `uname` == 'Darwin' ]; then
+        # Mac OS X
+        DATE=gdate
+    else
+        # assume Ubuntu
+        DATE=date
+    fi
+
     # Kernel architecture, e.g. x86_64
     local OS_ARCH=`uname -m`
 
@@ -28,10 +36,10 @@ function bundle_id {
     local PERL_VERSION=`perl -e "print $]"`
 
     # Author date (GMT) of current version of "cpanfile", e.g. "2014_06_23_15_29_22"
-    local CPANFILE_SHA1=$(TZ=UTC date -r $(git log -1 --format=%at cpanfile) "+%F-%T" | tr -s ' :-' '_')
+    local CPANFILE_SHA1=$(TZ=UTC $DATE --date "@$(git log -1 --format=%at cpanfile)" "+%F-%T" | tr -s ' :-' '_')
 
     # Author date (GMT) of current version of "cpanfile.snapshot", e.g. "2014_06_23_14_50_51"
-    local CPANFILE_SNAPSHOT_SHA1=$(TZ=UTC date -r $(git log -1 --format=%at cpanfile.snapshot) "+%F-%T" | tr -s ' :-' '_')
+    local CPANFILE_SNAPSHOT_SHA1=$(TZ=UTC $DATE --date "@$(git log -1 --format=%at cpanfile.snapshot)" "+%F-%T" | tr -s ' :-' '_')
 
     # OS version
     local OS_VERSION="unknown"
