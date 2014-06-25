@@ -115,69 +115,57 @@ sub canonicalize_url($)
     # Remove #fragment
     $uri->fragment( undef );
 
-    my %query_form = $uri->query_form;
+    my @parameters_to_remove;
 
-    # Remove GA parameters (https://support.google.com/analytics/answer/1033867?hl=en)
-    delete $query_form{ utm_source };
-    delete $query_form{ utm_medium };
-    delete $query_form{ utm_term };
-    delete $query_form{ utm_content };
-    delete $query_form{ utm_campaign };
-    delete $query_form{ utm_reader };
-    delete $query_form{ utm_place };
-    delete $query_form{ ga_source };
-    delete $query_form{ ga_medium };
-    delete $query_form{ ga_term };
-    delete $query_form{ ga_content };
-    delete $query_form{ ga_campaign };
-    delete $query_form{ ga_place };
+    # GA parameters (https://support.google.com/analytics/answer/1033867?hl=en)
+    @parameters_to_remove = (
+        @parameters_to_remove,
+        qw/ utm_source utm_medium utm_term utm_content utm_campaign utm_reader utm_place
+          ga_source ga_medium ga_term ga_content ga_campaign ga_place /
+    );
 
-    # Remove Facebook parameters (https://developers.facebook.com/docs/games/canvas/referral-tracking)
-    delete $query_form{ fb_action_ids };
-    delete $query_form{ fb_action_types };
-    delete $query_form{ fb_source };
-    delete $query_form{ fb_ref };
-    delete $query_form{ action_object_map };
-    delete $query_form{ action_type_map };
-    delete $query_form{ action_ref_map };
+    # Facebook parameters (https://developers.facebook.com/docs/games/canvas/referral-tracking)
+    @parameters_to_remove = (
+        @parameters_to_remove,
+        qw/ fb_action_ids fb_action_types fb_source fb_ref
+          action_object_map action_type_map action_ref_map
+          fsrc /
+    );
 
     if ( $uri->host =~ /facebook\.com$/i )
     {
-        delete $query_form{ ref };
-        delete $query_form{ fref };
-        delete $query_form{ hc_location };
+        # Additional parameters specifically for the facebook.com host
+        @parameters_to_remove = ( @parameters_to_remove, qw/ ref fref hc_location / );
     }
 
-    if ( $uri->host =~ /nytimes\.com$/i ) {
-        delete $query_form{ emc };
-        delete $query_form{ partner };
-        delete $query_form{ _r };
-        delete $query_form{ hp };
-        delete $query_form{ inline };
+    if ( $uri->host =~ /nytimes\.com$/i )
+    {
+        # Additional parameters specifically for the nytimes.com host
+        @parameters_to_remove = ( @parameters_to_remove, qw/ emc partner _r hp inline / );
     }
 
-    # Remove metrika.yandex.ru parameters
-    delete $query_form{ yclid };
-    delete $query_form{ _openstat };
+    # metrika.yandex.ru parameters
+    @parameters_to_remove = ( @parameters_to_remove, qw/ yclid _openstat / );
 
-    # Remove some other parameters
-    delete $query_form{ PHPSESSID };
-    delete $query_form{ s_cid };
-    delete $query_form{ sid };
-    delete $query_form{ ncid };
-    delete $query_form{ wprss };
-    delete $query_form{ fsrc };
-    delete $query_form{ custom_click };
-    delete $query_form{ ns_mchannel };
-    delete $query_form{ ns_campaign };
-    delete $query_form{ source };
-    delete $query_form{ ref };
-    delete $query_form{ oref };
-    delete $query_form{ eref };
+    # Some other parameters (common for tracking session IDs, advertising, etc.)
+    @parameters_to_remove = (
+        @parameters_to_remove,
+        qw/ PHPSESSID PHPSESSIONID
+          s_cid sid ncid
+          ref oref eref
+          ns_mchannel ns_campaign
+          wprss custom_click source /
+    );
 
     # Make the sorting default (e.g. on Reddit)
-    delete $query_form{ sort };
+    # Some other parameters (common for tracking session IDs, advertising, etc.)
+    push( @parameters_to_remove, 'sort' );
 
+    my %query_form = $uri->query_form;
+    foreach my $parameter ( @parameters_to_remove )
+    {
+        delete $query_form{ $parameter };
+    }
     $uri->query_form( \%query_form );
 
     # FIXME remove parameters that contain URLs
