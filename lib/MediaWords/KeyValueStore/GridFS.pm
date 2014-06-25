@@ -38,6 +38,8 @@ has '_pid' => ( is => 'rw', default => 0 );
 # Configuration
 has '_conf_host'          => ( is => 'rw' );
 has '_conf_port'          => ( is => 'rw' );
+has '_conf_username'      => ( is => 'rw' );
+has '_conf_password'      => ( is => 'rw' );
 has '_conf_database_name' => ( is => 'rw' );
 
 # Constructor
@@ -53,9 +55,11 @@ sub BUILD($$)
     my $gridfs_database_name = $args->{ database_name };
 
     # Get configuration
-    my $config      = MediaWords::Util::Config::get_config;
-    my $gridfs_host = $config->{ mongodb_gridfs }->{ host };
-    my $gridfs_port = $config->{ mongodb_gridfs }->{ port };
+    my $config          = MediaWords::Util::Config::get_config;
+    my $gridfs_host     = $config->{ mongodb_gridfs }->{ host } // 'localhost';
+    my $gridfs_port     = $config->{ mongodb_gridfs }->{ port } // 27017;
+    my $gridfs_username = $config->{ mongodb_gridfs }->{ username };
+    my $gridfs_password = $config->{ mongodb_gridfs }->{ password };
 
     unless ( $gridfs_host and $gridfs_port )
     {
@@ -65,6 +69,8 @@ sub BUILD($$)
     # Store configuration
     $self->_conf_host( $gridfs_host );
     $self->_conf_port( $gridfs_port );
+    $self->_conf_username( $gridfs_username );
+    $self->_conf_password( $gridfs_password );
     $self->_conf_database_name( $gridfs_database_name );
 
     $self->_pid( $$ );
@@ -85,8 +91,9 @@ sub _connect_to_mongodb_or_die($)
     # Connect
     $self->_mongodb_client(
         MongoDB::MongoClient->new(
-            host          => $self->_conf_host,
-            port          => $self->_conf_port,
+            host          => sprintf( 'mongodb://%s:%d', $self->_conf_host, $self->_conf_port ),
+            username      => $self->_conf_username,
+            password      => $self->_conf_password,
             query_timeout => MONGODB_QUERY_TIMEOUT
         )
     );
