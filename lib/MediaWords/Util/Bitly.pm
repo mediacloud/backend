@@ -148,9 +148,35 @@ sub canonicalize_url($)
         delete $query_form{ hc_location };
     }
 
+    if ( $uri->host =~ /nytimes\.com$/i ) {
+        delete $query_form{ emc };
+        delete $query_form{ partner };
+        delete $query_form{ _r };
+        delete $query_form{ hp };
+        delete $query_form{ inline };
+    }
+
     # Remove metrika.yandex.ru parameters
     delete $query_form{ yclid };
     delete $query_form{ _openstat };
+
+    # Remove some other parameters
+    delete $query_form{ PHPSESSID };
+    delete $query_form{ s_cid };
+    delete $query_form{ sid };
+    delete $query_form{ ncid };
+    delete $query_form{ wprss };
+    delete $query_form{ fsrc };
+    delete $query_form{ custom_click };
+    delete $query_form{ ns_mchannel };
+    delete $query_form{ ns_campaign };
+    delete $query_form{ source };
+    delete $query_form{ ref };
+    delete $query_form{ oref };
+    delete $query_form{ eref };
+
+    # Make the sorting default (e.g. on Reddit)
+    delete $query_form{ sort };
 
     $uri->query_form( \%query_form );
 
