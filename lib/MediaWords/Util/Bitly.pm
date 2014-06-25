@@ -143,9 +143,9 @@ sub canonicalize_url($)
 
     if ( $uri->host =~ /facebook\.com$/ )
     {
-        delete $query_form->{ ref };
-        delete $query_form->{ fref };
-        delete $query_form->{ hc_location };
+        delete $query_form{ ref };
+        delete $query_form{ fref };
+        delete $query_form{ hc_location };
     }
 
     # Remove metrika.yandex.ru parameters
