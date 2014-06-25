@@ -138,9 +138,9 @@ programs = solr
 
 [% INCLUDE program_config
     program='solr'
-    command='bash ./script/solr/solr_start.sh'
+    command='bash ./script/run_with_carton.sh ./solr/scripts/run_singleton_solr_server.pl'
     default_autorestart='true'
-    default_autostart='false'
+    default_autostart='true'
     stopwaitsecs=20
 %]
 
