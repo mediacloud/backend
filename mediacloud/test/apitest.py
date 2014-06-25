@@ -7,6 +7,8 @@ class ApiBaseTest(unittest.TestCase):
         self._config = ConfigParser.ConfigParser()
         self._config.read('mc-client.config')
         self._mc = mediacloud.api.MediaCloud( self._config.get('api','key'), logging.DEBUG )
+        requests_log = logging.getLogger("requests")
+        requests_log.setLevel(logging.DEBUG)
 
 class AuthTokenTest(ApiBaseTest):
 
@@ -225,7 +227,6 @@ class ApiSentencesTest(ApiBaseTest):
         self.assertEqual(results['split']['gap'],'+1DAY')
         self.assertEqual(len(results['split']),34)
 
-
 class ApiWordCountTest(ApiBaseTest):
 
     def testWordCount(self):
@@ -237,3 +238,33 @@ class ApiWordCountTest(ApiBaseTest):
         for freq in term_freq:
             self.assertTrue( last_count >= freq['count'] )
             last_count = freq['count']
+
+class WriteableApiTest(unittest.TestCase):
+
+    def setUp(self):
+        self._config = ConfigParser.ConfigParser()
+        self._config.read('mc-client.config')
+        self._mc = mediacloud.api.WriteableMediaCloud( self._config.get('api','key'), logging.DEBUG )
+        requests_log = logging.getLogger("requests")
+        requests_log.setLevel(logging.DEBUG)
+
+    def testTagStories(self):
+        test_story_id = 1
+        tag_set_name = "rahulb@media.mit.edu"
+        # tag a story with two things
+        desired_tags = [ mediacloud.api.StoryTag(test_story_id, tag_set_name, 'test_tag1'),
+                 mediacloud.api.StoryTag(test_story_id, tag_set_name, 'test_tag2') ] 
+        response = self._mc.tagStories(desired_tags)
+        self.assertEqual(len(response),len(desired_tags))
+        # make sure it worked
+        story = self._mc.story(test_story_id)
+        tags_on_story = [t for t in story['story_tags'] if t['tag_set']==tag_set_name]
+        self.assertEqual(len(tags_on_story),len(desired_tags))
+        # now remove one
+        desired_tags = [ mediacloud.api.StoryTag(1,'rahulb@media.mit.edu','test_tag1') ]
+        response = self._mc.tagStories(desired_tags, clear_others=True)
+        self.assertEqual(len(response),len(desired_tags))
+        # and check it
+        story = self._mc.story(test_story_id)
+        tags_on_story = [t for t in story['story_tags'] if t['tag_set']==tag_set_name]
+        self.assertEqual(len(tags_on_story),len(desired_tags))
