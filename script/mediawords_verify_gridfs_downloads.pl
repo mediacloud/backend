@@ -55,7 +55,7 @@ use MediaWords::KeyValueStore::DatabaseInline;
 use MediaWords::KeyValueStore::LocalFile;
 use MediaWords::KeyValueStore::Tar;
 use MediaWords::KeyValueStore::GridFS;
-use MongoDB;
+use MongoDB 0.704.1.0;
 use Getopt::Long;
 use Data::Dumper;
 

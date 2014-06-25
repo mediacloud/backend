@@ -5197,42 +5197,67 @@ DISTRIBUTIONS
       Module::Build 0.40
       Test::More 0
       perl v5.5.3
-  MongoDB-0.702.2
-    pathname: F/FR/FRIEDO/MongoDB-0.702.2.tar.gz
+  MongoDB-v0.704.1.0
+    pathname: M/MO/MONGODB/MongoDB-v0.704.1.0.tar.gz
     provides:
-      MongoDB 0.702002
-      MongoDB::BSON 0.702002
-      MongoDB::BSON::Binary 0.702002
-      MongoDB::Code 0.702002
-      MongoDB::Collection 0.702002
-      MongoDB::Connection 0.702002
-      MongoDB::Cursor 0.702002
-      MongoDB::DBRef 0.702002
-      MongoDB::Database 0.702002
-      MongoDB::GridFS 0.702002
-      MongoDB::GridFS::File 0.702002
-      MongoDB::MongoClient 0.702002
-      MongoDB::OID 0.702002
-      MongoDB::Timestamp 0.702002
+      MongoDB 0.704001000
+      MongoDB::BSON 0.704001000
+      MongoDB::BSON::Binary 0.704001000
+      MongoDB::BSON::Regexp 0.704001000
+      MongoDB::BulkWrite 0.704001000
+      MongoDB::BulkWriteView 0.704001000
+      MongoDB::Code 0.704001000
+      MongoDB::Collection 0.704001000
+      MongoDB::CommandResult 0.704001000
+      MongoDB::Connection 0.704001000
+      MongoDB::Cursor 0.704001000
+      MongoDB::DBRef 0.704001000
+      MongoDB::Database 0.704001000
+      MongoDB::Error 0.704001000
+      MongoDB::GridFS 0.704001000
+      MongoDB::GridFS::File 0.704001000
+      MongoDB::MongoClient 0.704001000
+      MongoDB::OID 0.704001000
+      MongoDB::Timestamp 0.704001000
+      MongoDB::WriteResult 0.704001000
     requirements:
-      Class::Method::Modifiers 0
+      Carp 0
+      Class::MOP::Class 0
+      Data::Dump 0
+      Data::Dumper 0
       Data::Types 0
-      DateTime 0
+      DateTime 0.78
       DateTime::Tiny 0
+      Devel::Peek 0
       Digest::MD5 0
+      Encode 0
       ExtUtils::MakeMaker 6.59
+      File::Copy 0
+      File::Path 0
       File::Slurp 0
+      File::Spec 0
       File::Temp 0.17
       FileHandle 0
-      JSON 0
-      Moose 0
+      IO::File 0
+      JSON 2
+      Moose 2
+      Moose::Util::TypeConstraints 2
+      Safe::Isa 0
+      Scalar::Util 0
+      Syntax::Keyword::Junction 0
+      Test::Deep 0
       Test::Exception 0
+      Test::Fatal 0
+      Test::More 0.96
       Test::Warn 0
+      Throwable 0
       Tie::IxHash 0
       Try::Tiny 0
-      XSLoader 0
+      bigint 0
       boolean 0
+      namespace::clean 0
       perl 5.008004
+      version 0
   Moo-1.004002
     pathname: H/HA/HAARG/Moo-1.004002.tar.gz
     provides:
@@ -6848,6 +6873,20 @@ DISTRIBUTIONS
       constant 0
       strict 0
       warnings 0
+  Syntax-Keyword-Junction-0.003007
+    pathname: F/FR/FREW/Syntax-Keyword-Junction-0.003007.tar.gz
+    provides:
+      Syntax::Feature::Junction 0.003007
+      Syntax::Keyword::Junction 0.003007
+      Syntax::Keyword::Junction::All 0.003007
+      Syntax::Keyword::Junction::Any 0.003007
+      Syntax::Keyword::Junction::Base 0.003007
+      Syntax::Keyword::Junction::None 0.003007
+      Syntax::Keyword::Junction::One 0.003007
+    requirements:
+      ExtUtils::MakeMaker 6.30
+      Sub::Exporter::Progressive 0.001006
+      syntax 0
   Sys-SigAction-0.21
     pathname: L/LB/LBAXTER/Sys-SigAction-0.21.tar.gz
     provides:
@@ -8478,3 +8517,16 @@ DISTRIBUTIONS
       bareword::filehandles 0
       indirect 0
       multidimensional 0
+  syntax-0.004
+    pathname: P/PH/PHAYLON/syntax-0.004.tar.gz
+    provides:
+      syntax 0.004
+    requirements:
+      Carp 0
+      Data::OptList 0.104
+      ExtUtils::MakeMaker 6.30
+      FindBin 0
+      Test::More 0.94
+      namespace::clean 0
+      strict 0
+      warnings 0

@@ -12,7 +12,7 @@ use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use MediaWords::Util::Config;
-use MongoDB 0.700.0;
+use MongoDB 0.704.1.0;
 use MongoDB::GridFS;
 use Carp;
 
