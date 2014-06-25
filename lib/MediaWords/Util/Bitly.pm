@@ -141,7 +141,7 @@ sub canonicalize_url($)
     delete $query_form{ action_type_map };
     delete $query_form{ action_ref_map };
 
-    if ( $uri->host =~ /facebook\.com$/ )
+    if ( $uri->host =~ /facebook\.com$/i )
     {
         delete $query_form{ ref };
         delete $query_form{ fref };
