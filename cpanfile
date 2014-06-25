@@ -57,6 +57,7 @@ requires 'FCGI';
 requires 'FCGI::ProcManager';
 requires 'Feed::Find';
 requires 'File::Touch';
+requires 'forks::shared';
 requires 'Gearman::JobScheduler', '0.15';
 requires 'Graph';
 requires 'GraphViz';
