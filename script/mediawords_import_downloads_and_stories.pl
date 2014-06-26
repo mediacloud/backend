@@ -66,8 +66,12 @@ sub hash_from_element
     {
         if ( !defined( $ret->{ $key } ) || $ret->{ $key } eq '' )
         {
-            undef( $ret->{ $key } );
-            next;
+            # hack to make sure story->{title} isn't null
+            if ( $key ne 'title' )
+            {
+                undef( $ret->{ $key } );
+                next;
+            }
         }
     }
 
