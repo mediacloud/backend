@@ -509,8 +509,8 @@
                and old cache.  
       -->
     <filterCache class="solr.FastLRUCache"
-                 size="1048576"
-                 initialSize="1048576"
+                 size="16384"
+                 initialSize="16384"
                  autowarmCount="0"/>
 
     <!-- Query Result Cache
@@ -519,8 +519,8 @@
          (DocList) based on a query, a sort, and the range of documents requested.  
       -->
     <queryResultCache class="solr.LRUCache"
-                     size="512000"
-                     initialSize="512"
+                     size="16384"
+                     initialSize="16384"
                      autowarmCount="0"/>
    
     <!-- Document Cache
@@ -530,8 +530,8 @@
          this cache will not be autowarmed.  
       -->
     <documentCache class="solr.LRUCache"
-                   size="512"
-                   initialSize="512"
+                   size="16384"
+                   initialSize="16384"
                    autowarmCount="0"/>
     
     <!-- custom cache currently used by block join --> 
