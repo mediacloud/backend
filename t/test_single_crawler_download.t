@@ -276,7 +276,7 @@ sub main
 
             my $content_download = pop @{ $content_downloads };
 
-            die unless $content_downloads;
+            die 'Content downloads is undef.' unless $content_downloads;
 
             $db->query( " DELETE from stories where stories_id <> ? ", $content_download->{ stories_id } );
 
