@@ -2,6 +2,7 @@
 
 # extract the text for the given story using the heuristic and crf extractors
 use strict;
+use warnings;
 
 BEGIN
 {

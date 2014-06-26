@@ -3,6 +3,7 @@
 # dedup controversy spidered media
 
 use strict;
+use warnings;
 
 BEGIN
 {

@@ -1,16 +1,23 @@
 use strict;
+use warnings;
 
 # test feed checksumming in FeedHandler
 
-use English '-no_match_vars';
-
-use Test::More tests => 12;
-
 BEGIN
 {
-    use_ok( 'MediaWords::DB' );
-    use_ok( 'MediaWords::Crawler::FeedHandler' );
+    use FindBin;
+    use lib "$FindBin::Bin/../lib";
+    use lib $FindBin::Bin;
 }
+
+use Test::More tests => 12;
+use Test::NoWarnings;
+
+use MediaWords::Test::DB;
+use MediaWords::DB;
+use MediaWords::Crawler::FeedHandler;
+
+use English '-no_match_vars';
 
 sub test_feed_checksums
 {
@@ -114,17 +121,15 @@ sub test_feed_checksums
 
 sub main
 {
-    my $db = MediaWords::DB::connect_to_db;
+    MediaWords::Test::DB::test_on_test_database(
+        sub {
+            my $db = shift;
 
-    $db->begin;
+            test_feed_checksums( $db );
 
-    eval { test_feed_checksums( $db ); };
-
-    die( $@ ) if ( $@ );
-
-    $db->rollback;
-
-    done_testing();
+            Test::NoWarnings::had_no_warnings();
+        }
+    );
 }
 
 main();

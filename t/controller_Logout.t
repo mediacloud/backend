@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More;
+use Test::More tests => 1;
 
 BEGIN
 {
@@ -11,4 +11,3 @@ use MediaWords::Controller::Logout;
 
 # Commented out because we need to log in first
 #ok( request( '/logout' )->is_success, 'Request should succeed' );
-done_testing();

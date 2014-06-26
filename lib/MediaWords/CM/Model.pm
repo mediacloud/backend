@@ -4,6 +4,7 @@ package MediaWords::CM::Model;
 # data about date, link extraction, and duplication error rates
 
 use strict;
+use warnings;
 
 use List::Util;
 use POSIX;

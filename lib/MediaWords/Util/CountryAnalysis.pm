@@ -4,6 +4,7 @@ package MediaWords::Util::CountryAnalysis;
 # format of the input.  See the functions lists below for the sorts of functions called on various combinations of media sets and topics.
 
 use strict;
+use warnings;
 
 use Data::Dumper;
 

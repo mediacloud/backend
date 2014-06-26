@@ -18,6 +18,7 @@ package HTTP::HashServer;
 # { content => 'foo', header => 'Content-Type: text/plain' }.
 
 use strict;
+use warnings;
 
 use English;
 

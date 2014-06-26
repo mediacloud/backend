@@ -107,7 +107,7 @@ requires 'Net::IP';
 requires 'Parallel::Fork::BossWorkerAsync';
 requires 'Parallel::ForkManager';
 requires 'PDL';
-requires 'Perl::Tidy';
+requires 'Perl::Tidy', '20140328';
 requires 'RDF::Simple::Parser';
 requires 'Readonly';
 requires 'Readonly::XS';

@@ -12,6 +12,7 @@
 #   category and subsequent entries on the line the source categories
 
 use strict;
+use warnings;
 
 BEGIN
 {

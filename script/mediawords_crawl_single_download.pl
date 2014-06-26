@@ -4,6 +4,7 @@
 # see MediaWords::Crawler::Engine.pm for details.
 
 use strict;
+use warnings;
 
 BEGIN
 {

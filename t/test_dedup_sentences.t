@@ -1,4 +1,5 @@
 use strict;
+use warnings;
 
 # test that inserts and updates on stories in controversy_stories are correctly mirrored to cd.live_stories
 
@@ -12,7 +13,7 @@ BEGIN
 use English '-no_match_vars';
 
 use Data::Dumper;
-use Test::More;
+use Test::More tests => 4;
 use Test::Deep;
 
 use MediaWords::StoryVectors;
@@ -97,8 +98,6 @@ sub main
             test_dedup_sentences( $db );
         }
     );
-
-    done_testing();
 }
 
 main();

@@ -14,7 +14,7 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
-use Test::More;
+use Test::More tests => 2;
 use Test::Differences;
 use Test::Deep;
 
@@ -26,7 +26,6 @@ use MediaWords::DBI::MediaSets;
 use MediaWords::DBI::Stories;
 use MediaWords::Test::DB;
 use MediaWords::Test::Data;
-use MediaWords::Test::LocalServer;
 use DBIx::Simple::MediaWords;
 use MediaWords::StoryVectors;
 use LWP::UserAgent;
@@ -60,7 +59,6 @@ sub main
             test_query_with_large_work_mem( $db );
 
             Test::NoWarnings::had_no_warnings();
-            done_testing();
         }
     );
 

@@ -3,6 +3,7 @@ package MediaWords::Test::DB;
 # database utility functions for testing.  includes functionality to run tests on a temporary db
 
 use strict;
+use warnings;
 
 use File::Path;
 

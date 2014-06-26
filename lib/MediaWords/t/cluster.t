@@ -5,13 +5,14 @@ BEGIN
 {
     use FindBin;
     use lib "$FindBin::Bin/../../../lib";
+    use lib "$FindBin::Bin/../../../t";
 }
 
 use Dir::Self;
 use Data::Dumper;
 use DBIx::Simple::MediaWords;
 use MediaWords::Util::Tags;
-use MediaWords::DB;
+use MediaWords::Test::DB;
 
 #use Test::NoWarnings;
 #use Test::More tests => 7;
@@ -45,18 +46,23 @@ sub get_cluster_run
 
 sub main
 {
-    my $db           = MediaWords::DB::connect_to_db();
-    my $start_date   = '2006-01-01';
-    my $end_date     = '2011-01-01';
-    my $tag_name     = 'content_type:news';
-    my $description  = 'foo2';
-    my $num_clusters = 2;
+    MediaWords::Test::DB::test_on_test_database(
+        sub {
+            my $db = shift;
 
-    my $cluster_run = get_cluster_run( $db, $start_date, $end_date, $tag_name, $description, $num_clusters );
+            my $start_date   = '2006-01-01';
+            my $end_date     = '2011-01-01';
+            my $tag_name     = 'content_type:news';
+            my $description  = 'foo2';
+            my $num_clusters = 2;
 
-    MediaWords::Cluster::execute_and_store_media_cluster_run( $db, $cluster_run );
+            my $cluster_run = get_cluster_run( $db, $start_date, $end_date, $tag_name, $description, $num_clusters );
 
-    print "Completed cluster run\n";
+            MediaWords::Cluster::execute_and_store_media_cluster_run( $db, $cluster_run );
+
+            print "Completed cluster run\n";
+        }
+    );
 }
 
 main();

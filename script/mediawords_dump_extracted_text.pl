@@ -3,6 +3,7 @@
 # generate a dump of extracted html for seas students
 
 use strict;
+use warnings;
 
 BEGIN
 {

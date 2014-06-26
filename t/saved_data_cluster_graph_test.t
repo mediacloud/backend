@@ -10,10 +10,8 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
-my $skip_reason =
+use Test::More skip_all =>
 "Need to update tests after classes were moved and interfaces changes: The relevant classes now live in MediaWords::Cluster::Map ";
-
-use Test::More skip_all => $skip_reason;
 
 use Test::NoWarnings;
 
@@ -43,8 +41,6 @@ sub main
     use_ok( 'MediaWords::Util::Graph' );
 
     MediaWords::Util::Graph::do_get_graph( $nodes, $media_clusters, 'graph-layout-aesthetic' );
-
-    done_testing();
 }
 
 main();

@@ -1,5 +1,7 @@
 package Bundle::MediaWords;
+
 use strict;
+use warnings;
 
 1;
 

@@ -1,6 +1,7 @@
 package HTML::FormFu::Unicode;
 
 use strict;
+use warnings;
 
 use Carp;
 

@@ -6341,18 +6341,18 @@ DISTRIBUTIONS
       File::Basename 0
       Scalar::Util 0
       Test 0
-  Perl-Tidy-20130922
-    pathname: S/SH/SHANCOCK/Perl-Tidy-20130922.tar.gz
+  Perl-Tidy-20140328
+    pathname: S/SH/SHANCOCK/Perl-Tidy-20140328.tar.gz
     provides:
-      Perl::Tidy 20130922
-      Perl::Tidy::DevNull 20130922
-      Perl::Tidy::Diagnostics 20130922
-      Perl::Tidy::HtmlWriter 20130922
-      Perl::Tidy::IOScalar 20130922
-      Perl::Tidy::IOScalarArray 20130922
-      Perl::Tidy::LineSink 20130922
-      Perl::Tidy::LineSource 20130922
-      Perl::Tidy::Logger 20130922
+      Perl::Tidy 20140328
+      Perl::Tidy::DevNull 20140328
+      Perl::Tidy::Diagnostics 20140328
+      Perl::Tidy::HtmlWriter 20140328
+      Perl::Tidy::IOScalar 20140328
+      Perl::Tidy::IOScalarArray 20140328
+      Perl::Tidy::LineSink 20140328
+      Perl::Tidy::LineSource 20140328
+      Perl::Tidy::Logger 20140328
     requirements:
       ExtUtils::MakeMaker 0
   PerlIO-Layers-0.011
