@@ -902,27 +902,28 @@ sub _send_new_user_email
 
     my $email_subject = 'Welcome to Media Cloud';
     my $email_message = <<"EOF";
-Welcome to Media Cloud!
+Welcome to Media Cloud.
+
+The Media Cloud team is committed to providing open access to our code, tools, and
+data so that other folks can build on the work we have done to better understand
+how online media impacts our society.
 
 A Media Cloud user has been created for you.  To activate the user, please
-visit the below link:
+visit the below link to set your password:
 
 $password_reset_link
 
-You can this user account to access user restricted Media Cloud tools like the
+You can use this user account to access user restricted Media Cloud tools like the
 Media Meter dashboard and to make calls to the Media Cloud API.  For information
 about our tools and API, visit:
     
-https://core.mediacloud.org/get-involved
-
-The Media Cloud team is committed to providing open access to our code, tools, and
-so that other folks can build on the work we have done to better understand
-how online media impacts our society.
+http://mediacloud.org/get-involved
 
 If you have any questions about the Media Cloud project, tools, or data, please join
-the mediacloud-users list described at the above link and ask them there.  If you
-have specific questions about your account or other private questions email
-info\@mediacloud.org.
+the mediacloud-users list described at the above link and ask them there.  We
+encourage you to join the mediacloud-users list just to share how you are using
+Media Cloud even if you do not have any specific questions.  If you have questions 
+about your account or other private questions email info\@mediacloud.org.
 
 EOF
 
