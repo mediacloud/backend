@@ -87,16 +87,29 @@ sub _connect_to_mongodb_or_die($)
         return;
     }
 
-    # Get settings
     # Connect
-    $self->_mongodb_client(
-        MongoDB::MongoClient->new(
-            host          => sprintf( 'mongodb://%s:%d', $self->_conf_host, $self->_conf_port ),
-            username      => $self->_conf_username,
-            password      => $self->_conf_password,
-            query_timeout => MONGODB_QUERY_TIMEOUT
-        )
-    );
+    if ( $self->_conf_username and $self->_conf_password )
+    {
+        # Authenticated login
+        $self->_mongodb_client(
+            MongoDB::MongoClient->new(
+                host          => sprintf( 'mongodb://%s:%d', $self->_conf_host, $self->_conf_port ),
+                username      => $self->_conf_username,
+                password      => $self->_conf_password,
+                query_timeout => MONGODB_QUERY_TIMEOUT
+            )
+        );
+    }
+    else
+    {
+        # Unauthenticated login
+        $self->_mongodb_client(
+            MongoDB::MongoClient->new(
+                host          => sprintf( 'mongodb://%s:%d', $self->_conf_host, $self->_conf_port ),
+                query_timeout => MONGODB_QUERY_TIMEOUT
+            )
+        );
+    }
     unless ( $self->_mongodb_client )
     {
         confess "GridFS: Unable to connect to MongoDB.\n";
