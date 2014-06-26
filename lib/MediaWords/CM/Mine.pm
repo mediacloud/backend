@@ -700,7 +700,7 @@ sub add_new_story
 
     my ( $story, $date_guess_method ) = generate_new_story_hash( $db, $story_content, $old_story, $link, $medium );
 
-    my $story = safely_create_story( $db, $story );
+    $story = safely_create_story( $db, $story );
 
     my $spidered_tag = get_spidered_tag( $db );
     $db->create( 'stories_tags_map', { stories_id => $story->{ stories_id }, tags_id => $spidered_tag->{ tags_id } } );
@@ -905,7 +905,7 @@ sub add_redirect_url_to_link
 # exists, delete the link
 sub set_controversy_ref_story
 {
-    my ( $db, $ref_story, $controversy_link ) - @_;
+    my ( $db, $ref_story, $controversy_link ) = @_;
 
     my $ref_stories_id   = $ref_story->{ stories_id };
     my $stories_id       = $controversy_link->{ stories_id };
