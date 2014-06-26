@@ -135,7 +135,7 @@ sub test_query_signatures
     map { $_->{ create_query } = MediaWords::DBI::Queries::find_or_create_query_by_params( $db, $_->{ params } ) }
       @{ $tests };
 
-    my $tests = [ List::Util::shuffle( @{ $tests } ) ];
+    $tests = [ List::Util::shuffle( @{ $tests } ) ];
 
     for my $test ( @{ $tests } )
     {
