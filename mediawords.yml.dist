@@ -37,6 +37,8 @@ database:
 #mongodb_gridfs:
     #host : "localhost"
     #port : "27017"
+    #username : "mediaclouduser"    # optional
+    #password : "mediacloud"        # optional
     ### Database for storing raw downloads
     #downloads:
         #database_name : "mediacloud_downloads_gridfs"
@@ -145,7 +147,7 @@ database:
         #gearmand
         #add_default_feeds
         #cm_mine_controversy
-        #cm_dump_controversy    
+        #cm_dump_controversy
         #solr
         #solr_facets_wrapper_server
         #annotate_with_corenlp
@@ -219,7 +221,7 @@ database:
     # "From:" email address that is being set in emails sent by Media Cloud
     #from_address: "noreply@mediacloud.org"
 
-### everything below is optional.  the system should work out of the box without 
+### everything below is optional.  the system should work out of the box without
 ### touching any of these other than calais_key for tagging
 
 #session:
@@ -231,7 +233,7 @@ database:
 ## Uncomment and fill in to use Google Analytics
 #google_analytics:
 #      account: "<ACOUNT>"
-#      domainname: "<DOMAIN>"	
+#      domainname: "<DOMAIN>"
 
 mediawords:
     ### defaults to http://$hostname:$port/.
@@ -306,10 +308,10 @@ mediawords:
     #Uncomment to put the site into overload. This disables functionality so that the site can handle more traffic.
     #site_overload_mode: "yes"
 
-    #Uncomment to disable the use of a precalculated version of the top_500_words. 
+    #Uncomment to disable the use of a precalculated version of the top_500_words.
     #disable_json_top_500_words_cache: "yes"
 
-    # Uncomment to allow sentences to cross block level html elments such a <p> or <div> 
+    # Uncomment to allow sentences to cross block level html elments such a <p> or <div>
     #disable_block_element_sentence_splitting: "yes"
 
     # Uncomment to cause feeds to be downloaded and stories but not processed for stories.
@@ -336,7 +338,7 @@ mediawords:
     # The default value was set up for http://127.0.0.1 and is a global key (should work across all domains)
     #recaptcha_private_key: "6LfEVt0SAAAAABmI-8IJmx4g93eNcSeyeCxvLMs2"
 
-    #uncomment to make the public homepage the default start page    
+    #uncomment to make the public homepage the default start page
     #default_home_page: "dashboard/view"
     # downloads id under which to strip all non-ascii characters
     #ascii_hack_downloads_id: 123456789
@@ -361,9 +363,9 @@ mediawords:
     
     # urls for solr queries, include multiple to make mc choose a random url from
     # the list for each solr query
-    # solr_select_url:
-    #    - http://localhost:8983/solr/collection1/select
-    #    - http://127.0.0.1:8983/solr/collection1/select
+    # solr_url:
+    #    - http://localhost:8983/solr
+    #    - http://127.0.0.1:8983/solr
     
     # By default API requests require a invalid 'key' param.
     # comment to allow api requests without a key.

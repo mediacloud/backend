@@ -294,13 +294,13 @@ sub user_for_api_token($$)
         SELECT auth_users.auth_users_id,
                auth_users.email,
                ARRAY_TO_STRING(ARRAY_AGG(role), ' ') AS roles
-        FROM auth_users 
+        FROM auth_users
             LEFT JOIN auth_users_roles_map
                 ON auth_users.auth_users_id = auth_users_roles_map.auth_users_id
             LEFT JOIN auth_roles
                 ON auth_users_roles_map.auth_roles_id = auth_roles.auth_roles_id
         WHERE auth_users.api_token = LOWER(\$1) OR
-            LOWER(\$1) in ( 
+            LOWER(\$1) in (
                 SELECT api_token
                     FROM auth_user_ip_tokens
                     WHERE
@@ -607,7 +607,7 @@ sub all_users($)
             all_user_roles.role,
 
             -- Boolean denoting whether the user has that particular role
-            ARRAY(     
+            ARRAY(
                 SELECT r_auth_roles.role
                 FROM auth_users AS r_auth_users
                     INNER JOIN auth_users_roles_map AS r_auth_users_roles_map
@@ -869,11 +869,76 @@ EOF
     return '';
 }
 
+# send password reset email in response to user clicking on reset password link
+sub _send_password_reset_email
+{
+    my ( $email, $password_reset_link ) = @_;
+
+    my $email_subject = 'Password reset link';
+    my $email_message = <<"EOF";
+Someone (hopefully that was you) has requested a link to change your password,
+and you can do this through the link below:
+
+$password_reset_link
+
+Your password won't change until you access the link above and create a new one.
+
+If you didn't request this, please ignore this email or contact Media Cloud
+support at www.mediacloud.org.
+EOF
+
+    if ( !MediaWords::Util::Mail::send( $email, $email_subject, $email_message ) )
+    {
+        return 'The password has been changed, but I was unable to send an email notifying you about the change.';
+    }
+
+    return '';
+}
+
+# send password reset link in email to a new user
+sub _send_new_user_email
+{
+    my ( $email, $password_reset_link ) = @_;
+
+    my $email_subject = 'Welcome to Media Cloud';
+    my $email_message = <<"EOF";
+Welcome to Media Cloud!
+
+A Media Cloud user has been created for you.  To activate the user, please
+visit the below link:
+
+$password_reset_link
+
+You can this user account to access user restricted Media Cloud tools like the
+Media Meter dashboard and to make calls to the Media Cloud API.  For information
+about our tools and API, visit:
+    
+https://core.mediacloud.org/get-involved
+
+The Media Cloud team is committed to providing open access to our code, tools, and
+so that other folks can build on the work we have done to better understand
+how online media impacts our society.
+
+If you have any questions about the Media Cloud project, tools, or data, please join
+the mediacloud-users list described at the above link and ask them there.  If you
+have specific questions about your account or other private questions email
+info\@mediacloud.org.
+
+EOF
+
+    if ( !MediaWords::Util::Mail::send( $email, $email_subject, $email_message ) )
+    {
+        return 'The user was created, but I was unable to send you an activation email.';
+    }
+
+    return '';
+}
+
 # Prepare for password reset by emailing the password reset token; returns error
 # message on failure, empty string on success
-sub send_password_reset_token_or_return_error_message($$$)
+sub send_password_reset_token_or_return_error_message($$$;$)
 {
-    my ( $db, $email, $password_reset_link ) = @_;
+    my ( $db, $email, $password_reset_link, $new_user ) = @_;
 
     if ( !$email )
     {
@@ -947,24 +1012,9 @@ EOF
       $password_reset_link . '?email=' . uri_escape( $email ) . '&token=' . uri_escape( $password_reset_token );
     say STDERR "Full password reset link: $password_reset_link";
 
-    # Send email
-    my $email_subject = 'Password reset link';
-    my $email_message = <<"EOF";
-Someone (hopefully that was you) has requested a link to change your password,
-and you can do this through the link below:
-
-$password_reset_link
-
-Your password won't change until you access the link above and create a new one.
-
-If you didn't request this, please ignore this email or contact Media Cloud
-support at www.mediacloud.org.
-EOF
-
-    if ( !MediaWords::Util::Mail::send( $email, $email_subject, $email_message ) )
-    {
-        return 'The password has been changed, but I was unable to send an email notifying you about the change.';
-    }
+    return $new_user
+      ? _send_new_user_email( $email, $password_reset_link )
+      : _send_password_reset_email( $email, $password_reset_link );
 
     # Success
     return '';

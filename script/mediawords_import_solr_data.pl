@@ -1,6 +1,8 @@
 #!/usr/bin/env perl
 
-# import a list of csvs into solr and write the dataimport.properties with the import date
+use forks;
+
+# generate and import dumps of postgres data for solr
 
 use strict;
 
@@ -10,15 +12,35 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
+use Getopt::Long;
+
 use MediaWords::Solr::Dump;
 
 sub main
 {
-    my $files = [ @ARGV ];
+    my ( $delta, $file, $delete );
 
-    die( "usage: $0 <file 1> <file 2> ..." ) unless ( @{ $files } );
+    $| = 1;
 
-    MediaWords::Solr::Dump::import_csv_files( $files );
+    Getopt::Long::GetOptions(
+        "delta!"  => \$delta,
+        "file!"   => \$file,
+        "delete!" => \$delete,
+    ) || return;
+
+    if ( $file )
+    {
+        if ( $delete )
+        {
+            print STDERR "deleting all stories ...\n";
+            MediaWords::Solr::Dump::delete_all_sentences() || die( "delete all sentences failed." );
+        }
+        MediaWords::Solr::Dump::import_csv_files( [ @ARGV ], $delta );
+    }
+    else
+    {
+        MediaWords::Solr::Dump::generate_and_import_data( $delta, $delete );
+    }
 }
 
 main();

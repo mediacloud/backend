@@ -219,7 +219,7 @@ sub create : Local
     {
         my $reset_password_error_message =
           MediaWords::DBI::Auth::send_password_reset_token_or_return_error_message( $c->dbis, $user_email,
-            $c->uri_for( '/login/reset' ) );
+            $c->uri_for( '/login/reset' ), 1 );
         if ( $reset_password_error_message )
         {
             $c->stash->{ c }    = $c;

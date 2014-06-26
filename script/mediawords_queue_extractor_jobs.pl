@@ -29,18 +29,23 @@ sub main
 
     my $db = MediaWords::DB::connect_to_db;
 
-    my $downloads_ids = $db->query( "select downloads_id from scratch.reextract_downloads" )->hashes;
+    my $downloads_ids = $db->query( "select downloads_id from scratch.reextract_downloads" )->flat;
 
+    $db->dbh->{ AutoCommit } = 0;
+
+    my $i = 0;
     for my $downloads_id ( @{ $downloads_ids } )
     {
-        eval { MediaWords::GearmanFunction::ExtractAndVector->enqueue_on_gearman( { downloads_id => $downloads_id } ); };
-        if ( $@ )
+        MediaWords::GearmanFunction::ExtractAndVector->enqueue_on_gearman( { downloads_id => $downloads_id } );
+        $db->query( "delete from scratch.reextract_downloads where downloads_id = ?", $downloads_id );
+        if ( !( ++$i % 100 ) )
         {
-            say STDERR "gearmand error. sleeping and retrying.";
-            sleep( 10 );
-            MediaWords::GearmanFunction::ExtractAndVector->enqueue_on_gearman( { downloads_id => $downloads_id } );
+            $db->commit;
+            print STDERR "[$i]\n";
         }
     }
+
+    $db->commit;
 }
 
 main();
