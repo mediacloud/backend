@@ -1510,7 +1510,6 @@ sub analyze_snapshot_tables
     print STDERR "analyzing tables...\n";
 
     my $snapshot_tables   = get_snapshot_tables();
-    my $time_slice_tables = qw(story_links story_link_counts media_links media_link_counts);
 
     for my $t ( @{ $snapshot_tables } )
     {
