@@ -206,21 +206,6 @@ sub test_stories
 
 }
 
-sub kill_local_server
-{
-    my ( $server_url ) = @_;
-
-    my $ua = LWP::UserAgent->new;
-
-    $ua->timeout( 10 );
-
-    my $kill_url = "$server_url" . "kill_server";
-    print STDERR "Getting $kill_url\n";
-    my $resp = $ua->get( $kill_url ) || die;
-    print STDERR "got url";
-    die $resp->status_line unless $resp->is_success;
-}
-
 sub get_crawler_data_directory
 {
     my $crawler_data_location;
@@ -250,7 +235,9 @@ sub main
 
             my $crawler_data_location = get_crawler_data_directory();
 
-            my $url_to_crawl = MediaWords::Test::LocalServer::start_server( $crawler_data_location );
+            my $test_http_server = MediaWords::Test::LocalServer->new( $crawler_data_location );
+            $test_http_server->start();
+            my $url_to_crawl = $test_http_server->url();
 
             my $feed = add_test_feed( $db, $url_to_crawl );
 
@@ -293,13 +280,12 @@ sub main
 
             test_stories( $db, $feed );
 
-            print "Killing server\n";
-            kill_local_server( $url_to_crawl );
+            say STDERR "Killing server";
+            $test_http_server->stop();
 
             Test::NoWarnings::had_no_warnings();
         }
     );
-
 }
 
 main();

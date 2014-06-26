@@ -9,11 +9,11 @@ use HTTP::Status;
 use Data::Dumper;
 use File::Temp;
 
-sub replace_relative_urls_in_file
+sub _replace_relative_urls_in_file
 {
     my ( $base_url, $requested_file_path ) = @_;
 
-    ( $fh, $modified_file_path ) = File::Temp::tmpnam();
+    my ( $fh, $modified_file_path ) = File::Temp::tmpnam();
 
     open( REQUESTED_FILE, "<$requested_file_path" ) || return $requested_file_path;
 
@@ -28,21 +28,47 @@ sub replace_relative_urls_in_file
     return $modified_file_path;
 }
 
-sub start_server
+sub new($$)
 {
-    my ( $web_directory ) = @_;
+    my ( $class, $web_directory ) = @_;
 
-    my $d = HTTP::Daemon->new( ReuseAddr => 1 ) or die "Unable to start HTTP::Daemon: $!";
+    my $self = {};
+    bless( $self, $class );
 
-    my $url = $d->url;
-    say STDERR "Daemon <URL: $url>";
+    $self->{ web_directory } = $web_directory;
 
-    if ( fork() != 0 )
+    return $self;
+}
+
+sub DESTROY
+{
+    my $self = shift;
+
+    if ( $self->{ child_pid } )
     {
-        return $url;
+        $self->stop();
+    }
+}
+
+sub start($)
+{
+    my $self = shift;
+
+    $self->{ daemon } = HTTP::Daemon->new( ReuseAddr => 1 ) or die "Unable to start HTTP::Daemon: $!";
+
+    say STDERR "Daemon <URL: " . $self->{ daemon }->url . ">";
+
+    my $pid = fork();
+    if ( $pid != 0 )
+    {
+        say STDERR "Forked child process $pid, returning";
+        $self->{ child_pid } = $pid;
+
+        # parent
+        return;
     }
 
-    while ( my $c = $d->accept )
+    while ( my $c = $self->{ daemon }->accept )
     {
 
         while ( my $r = $c->get_request )
@@ -71,11 +97,11 @@ sub start_server
                     exit;
                 }
 
-                $path = "$web_directory/$path";
+                $path = $self->{ web_directory } . "/$path";
 
                 if ( $path =~ /\.rss$/ )
                 {
-                    $path = replace_relative_urls_in_file( $url, $path );
+                    $path = _replace_relative_urls_in_file( $self->url(), $path );
                 }
 
                 unless ( -f $path )
@@ -98,6 +124,40 @@ sub start_server
         $c->close;
         undef( $c );
     }
+}
+
+sub stop($)
+{
+    my $self = shift;
+
+    unless ( $self->{ daemon } )
+    {
+        warn "HTTP server is not started.";
+        return;
+    }
+
+    unless ( $self->{ child_pid } )
+    {
+        die "HTTP server must be started, but the child PID is empty.";
+    }
+
+    # say STDERR "Killing " . $self->{ child_pid };
+    kill 9, $self->{ child_pid };
+
+    delete $self->{ child_pid };
+    delete $self->{ daemon };
+}
+
+sub url($)
+{
+    my $self = shift;
+
+    unless ( $self->{ daemon } )
+    {
+        die "Daemon is undef; run start()";
+    }
+
+    return $self->{ daemon }->url;
 }
 
 1;
