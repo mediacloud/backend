@@ -246,9 +246,9 @@ sub import_downloads
                 $download_hash->{ extracted }  = 'f';
                 $download_hash->{ path }       = '';
 
-                confess unless $download_hash->{ stories_id }
+                confess unless $download_hash->{ stories_id };
 
-                  delete( $download_hash->{ downloads_id } );
+                delete( $download_hash->{ downloads_id } );
 
                 my $story_download_decoded_content = $download_hash->{ encoded_download_content_base_64 }
                   && decode_base64( $download_hash->{ encoded_download_content_base_64 } );
