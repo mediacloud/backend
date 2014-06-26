@@ -2,6 +2,7 @@ use strict;
 
 use List::Util;
 use Test::More;
+use warnings;
 
 BEGIN
 {

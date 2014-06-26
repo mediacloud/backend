@@ -1,14 +1,20 @@
 use strict;
+use warnings;
 
 # test MediaWords::DBI::DashboardMediaSets::get_colors
 
 use Test::More tests => 18;
+use Test::NoWarnings;
 
 BEGIN
 {
-    use_ok( 'MediaWords::DB' );
-    use_ok( 'MediaWords::DBI::DashboardMediaSets' );
+    use FindBin;
+    use lib "$FindBin::Bin/../lib";
+    use lib $FindBin::Bin;
 }
+
+use MediaWords::Test::DB;
+use MediaWords::DBI::DashboardMediaSets;
 
 # create a stub dashboard_media_sets for testing
 sub create_dashboard_media_sets

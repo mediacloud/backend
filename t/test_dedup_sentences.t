@@ -1,4 +1,5 @@
 use strict;
+use warnings;
 
 # test that inserts and updates on stories in controversy_stories are correctly mirrored to cd.live_stories
 

@@ -1,4 +1,5 @@
 use strict;
+use warnings;
 
 # test the use_pager logic in Handler.pm that reads and sets the use_pager
 # flag that determines whether to use the pager for a given media source

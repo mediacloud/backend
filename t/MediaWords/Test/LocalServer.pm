@@ -1,5 +1,8 @@
 package MediaWords::Test::LocalServer;
 
+use strict;
+use warnings;
+
 use HTTP::Daemon;
 use HTTP::Status;
 

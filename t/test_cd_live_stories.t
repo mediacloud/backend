@@ -1,4 +1,5 @@
 use strict;
+use warnings;
 
 # test that inserts and updates on stories in controversy_stories are correctly mirrored to cd.live_stories
 
@@ -56,7 +57,7 @@ sub test_live_story_absent
     my $live_story = $db->query( <<END, $controversy->{ controversies_id }, $story->{ stories_id } )->hash;
 select * from cd.live_stories where controversies_id = ? and stories_id = ?
 END
-    is( $live_story, undef, "$test_label: $story->{ title } should be absent from $controversy->{ title }" );
+    is( $live_story, undef, "$test_label: \$story->{ title } should be absent from \$controversy->{ title }" );
 }
 
 sub update_story
@@ -67,8 +68,8 @@ sub update_story
     $story->{ guid }        ||= '/' . rand();
     $story->{ title }       ||= ' ' . rand();
     $story->{ description } ||= ' ' . rand();
-    $story->{ publish_date } = MediaWords::Util::SQL::get_sql_date_from_epoch( time() - int( rand *100000 ) );
-    $story->{ collect_date } = MediaWords::Util::SQL::get_sql_date_from_epoch( time() - int( rand *100000 ) );
+    $story->{ publish_date } = MediaWords::Util::SQL::get_sql_date_from_epoch( time() - int( rand( 100000 ) ) );
+    $story->{ collect_date } = MediaWords::Util::SQL::get_sql_date_from_epoch( time() - int( rand( 100000 ) ) );
 
     $db->update_by_id( 'stories', $story->{ stories_id }, $story );
 

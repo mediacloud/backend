@@ -1,4 +1,5 @@
 use strict;
+use warnings;
 
 # test feed checksumming in FeedHandler
 
