@@ -130,6 +130,8 @@ sub get_boingboing_links
 {
     my ( $db, $story ) = @_;
 
+    return [] unless ( $story->{ url } =~ /boingboing.org/ );
+
     my $download = $db->query( "select * from downloads where stories_id = ?", $story->{ stories_id } )->hash;
 
     my $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download );
@@ -168,6 +170,30 @@ sub get_extracted_html
     return $extracted_html;
 }
 
+# get all urls that appear in the text or description of the story using
+# a simple kludgy regex
+sub get_links_from_story_text
+{
+    my ( $db, $story ) = @_;
+
+    my $text = MediaWords::DBI::Stories::get_text( $db, $story );
+
+    my $links = [];
+    while ( $text =~ m~(https?://[^\s]+)~g )
+    {
+        push( $links, $1 );
+    }
+
+    if ( @{ $links } )
+    {
+        print STDERR "TEXT LINKS:\n";
+        print STDERR Dumper( $links );
+        sleep 1;
+    }
+
+    return $links;
+}
+
 # find any links in the extracted html or the description of the story.
 sub get_links_from_story
 {
@@ -176,31 +202,16 @@ sub get_links_from_story
     print STDERR "mining $story->{ title } [$story->{ url }] ...\n";
 
     my $extracted_html = get_extracted_html( $db, $story );
-    my $links = get_links_from_html( $extracted_html );
 
-    my $more_links = [];
-    if ( story_media_has_full_text_rss( $db, $story ) )
-    {
-        $more_links = get_links_from_html( $story->{ description } );
-    }
-    elsif ( $story->{ media_id } == 1720 )
-    {
-        $more_links = get_boingboing_links( $db, $story );
-    }
-
-    return $links if ( !@{ $more_links } );
+    my $links             = get_links_from_html( $extracted_html );
+    my $text_links        = get_links_from_story_text( $db, $story );
+    my $description_links = get_links_from_html( $story->{ description } );
+    my $boingboing_links  = get_boingboing_links( $db, $story );
 
     my $link_lookup = {};
-    map { $link_lookup->{ MediaWords::Util::URL::normalize_url( $_->{ url } ) } = 1 } @{ $links };
-    for my $more_link ( @{ $more_links } )
-    {
-        next if ( $link_lookup->{ MediaWords::Util::URL::normalize_url( $more_link->{ url } ) } );
-        push( @{ $links }, $more_link );
-    }
+    map { $link_lookup->{ MediaWords::Util::URL::normalize_url( $_->{ url } ) } = $_ } @{ $links };
 
-    # add_redirect_links( $links ) if ( @{ $links } );
-
-    return $links;
+    return [ values( %{ $link_lookup } ) ];
 }
 
 # for each story, return a list of the links found in either the extracted html or the story description
@@ -427,7 +438,7 @@ sub get_spider_feed
     my ( $db, $medium ) = @_;
 
     my $feed_query = <<"END";
-select * from feeds 
+select * from feeds
     where media_id = ? and url = ?
     order by ( name = 'Controversy Spider Feed' )
 END
@@ -499,7 +510,7 @@ sub extract_download
     return if ( $download->{ url } =~ /livejournal.com\/(tag|profile)/i );
 
     eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, "controversy", 1, 1, 1 ); };
-    warn "extract error processing download $download->{ downloads_id }" if ( $@ );
+    warn "extract error processing download $download->{ downloads_id }: $@" if ( $@ );
 }
 
 # get a date for a new story by trying each of the following, in this order:
@@ -729,11 +740,11 @@ sub story_download_text_matches_pattern
     my ( $db, $story, $controversy ) = @_;
 
     my $dt = $db->query( <<END, $story->{ stories_id }, $controversy->{ controversies_id } )->hash;
-select 1 
-    from download_texts dt 
+select 1
+    from download_texts dt
         join downloads d on ( dt.downloads_id = d.downloads_id )
         join controversies c on ( c.controversies_id = \$2 )
-    where 
+    where
         d.stories_id = \$1 and
         dt.download_text ~ ( '(?isx)' || c.pattern )
     limit 1
@@ -747,12 +758,12 @@ sub story_sentence_matches_pattern
     my ( $db, $story, $controversy ) = @_;
 
     my $ss = $db->query( <<END, $story->{ stories_id }, $controversy->{ controversies_id } )->hash;
-select 1 
+select 1
     from story_sentences ss
-        join story_sentence_counts ssc 
+        join story_sentence_counts ssc
             on ( ss.stories_id = ssc.first_stories_id and ss.sentence_number = ssc.first_sentence_number )
         join controversies c on ( c.controversies_id = \$2 )
-    where 
+    where
         ss.stories_id = \$1 and
         ss.sentence ~ ( '(?isx)' || c.pattern ) and
         ssc.sentence_count < 2
@@ -834,7 +845,7 @@ sub get_matching_story_from_db
     my $story = $db->query( <<'END', $u, $ru, $nu, $nru )->hash;
 select s.* from stories s
         join media m on s.media_id = m.media_id
-    where ( s.url in ( $1 , $2, $3, $4 ) or s.guid in ( $1, $2, $3, $4 ) ) and 
+    where ( s.url in ( $1 , $2, $3, $4 ) or s.guid in ( $1, $2, $3, $4 ) ) and
         m.foreign_rss_links = false and m.dup_media_id is null
 END
 
@@ -844,7 +855,7 @@ END
 select s.* from stories s
         join media m on s.media_id = m.media_id
         join controversy_seed_urls csu on s.stories_id = csu.stories_id
-    where ( csu.url in ( $1, $2, $3, $4 ) ) and 
+    where ( csu.url in ( $1, $2, $3, $4 ) ) and
         m.foreign_rss_links = false and m.dup_media_id is null
 END
 
@@ -925,13 +936,13 @@ sub set_controversy_link_ref_story
     return unless ( $controversy_link->{ controversy_links_id } );
 
     my $link_exists = $db->query( <<END, $story->{ stories_id }, $controversy_link->{ controversy_links_id } )->hash;
-select 1 
-    from controversy_links a, 
+select 1
+    from controversy_links a,
         controversy_links b
-    where 
-        a.stories_id = b.stories_id and 
+    where
+        a.stories_id = b.stories_id and
         a.controversies_id = b.controversies_id and
-        a.ref_stories_id = ? and 
+        a.ref_stories_id = ? and
         b.controversy_links_id = ?
 END
 
@@ -1019,10 +1030,10 @@ sub get_url_alias_lookup
     my $lookup;
 
     my $url_pairs = $db->query( <<END )->hashes;
-select distinct url, redirect_url from 
+select distinct url, redirect_url from
     ( ( select url, redirect_url from controversy_links where url <> redirect_url ) union
-      ( select s.url, cs.redirect_url 
-           from controversy_stories cs join stories s on ( cs.stories_id = s.stories_id ) 
+      ( select s.url, cs.redirect_url
+           from controversy_stories cs join stories s on ( cs.stories_id = s.stories_id )
            where cs.redirect_url <> s.url
        ) ) q
 END
@@ -1097,14 +1108,14 @@ END
         push( @{ $urls }, $target_story->{ url } );
         my $url_params = join( ',', map { '?' } ( 1 .. scalar( @{ $urls } ) ) );
         my $source_stories = $db->query( <<END, @{ $urls } )->hashes;
-select s.* 
+select s.*
     from stories s
         join media m on ( s.media_id = m.media_id )
-    where 
-        m.foreign_rss_links and 
+    where
+        m.foreign_rss_links and
         s.url in ( $url_params ) and
-        not exists ( 
-            select 1 from controversy_stories cs where s.stories_id = cs.stories_id )        
+        not exists (
+            select 1 from controversy_stories cs where s.stories_id = cs.stories_id )
 END
         for my $source_story ( @{ $source_stories } )
         {
@@ -1203,8 +1214,8 @@ sub update_controversy_tags
       || die( "Can't find or create all_tag" );
 
     $db->query( <<END, $all_tag->{ tags_id }, $controversy->{ controversies_id } );
-delete from stories_tags_map stm 
-    where stm.tags_id = ? and 
+delete from stories_tags_map stm
+    where stm.tags_id = ? and
         not exists ( select 1 from controversy_stories cs
                          where cs.controversies_id = ? and cs.stories_id = stm.stories_id )
 END
@@ -1436,10 +1447,10 @@ sub merge_foreign_rss_stories
     my ( $db, $controversy ) = @_;
 
     my $foreign_stories = $db->query( <<END, $controversy->{ controversies_id } )->hashes;
-select s.* from stories s, controversy_stories cs, media m 
-    where s.stories_id = cs.stories_id and s.media_id = m.media_id and 
+select s.* from stories s, controversy_stories cs, media m
+    where s.stories_id = cs.stories_id and s.media_id = m.media_id and
         m.foreign_rss_links = true and cs.controversies_id = ? and
-        not cs.valid_foreign_rss_story        
+        not cs.valid_foreign_rss_story
 END
 
     map { merge_foreign_rss_story( $db, $controversy, $_ ) } @{ $foreign_stories };
@@ -1460,7 +1471,7 @@ sub merge_dup_media_story
 
     my $new_story =
       $db->query( <<END, $dup_medium->{ media_id }, $story->{ url }, $story->{ title }, $story->{ publish_date } )->hash;
-SELECT s.* FROM stories s 
+SELECT s.* FROM stories s
     WHERE s.media_id = ? and
         ( ( ? in ( s.url, s.guid ) ) or ( s.title = ? and date_trunc( 'day', s.publish_date ) = ? ) )
 END
@@ -1482,10 +1493,10 @@ update media set dup_media_id = ? where media_id = ?
 END
 
     my $stories = $db->query( <<END, $delete_medium->{ media_id } )->hashes;
-SELECT distinct s.*, cs.controversies_id 
+SELECT distinct s.*, cs.controversies_id
     FROM stories s
         join controversy_stories cs on ( s.stories_id = cs.stories_id )
-    WHERE 
+    WHERE
         s.media_id = ?
 END
 
@@ -1506,12 +1517,12 @@ sub merge_dup_media_stories
     my ( $db, $controversy ) = @_;
 
     my $dup_media_stories = $db->query( <<END, $controversy->{ controversies_id } )->hashes;
-SELECT distinct s.* 
+SELECT distinct s.*
     FROM stories s
-        join controversy_stories cs on ( s.stories_id = cs.stories_id ) 
+        join controversy_stories cs on ( s.stories_id = cs.stories_id )
         join media m on ( s.media_id = m.media_id )
-    WHERE 
-        m.dup_media_id is not null and 
+    WHERE
+        m.dup_media_id is not null and
         cs.controversies_id = ?
 END
 
@@ -1531,10 +1542,10 @@ sub import_seed_urls
     # for this controversy
     $db->query( <<END, $controversies_id );
 update controversy_seed_urls a set stories_id = b.stories_id, processed = 't'
-    from controversy_seed_urls b 
-    where a.url = b.url and 
-        a.controversies_id = ? and b.controversies_id = a.controversies_id and 
-        a.stories_id is null and b.stories_id is not null        
+    from controversy_seed_urls b
+    where a.url = b.url and
+        a.controversies_id = ? and b.controversies_id = a.controversies_id and
+        a.stories_id is null and b.stories_id is not null
 END
 
     my $seed_urls = $db->query( <<END, $controversies_id )->hashes;
@@ -1561,7 +1572,7 @@ sub add_source_link_dates
     my $stories = $db->query( <<END, $controversy->{ controversies_id } )->hashes;
 select s.* from stories s, controversy_stories cs, tag_sets ts, tags t, stories_tags_map stm
     where s.stories_id = cs.stories_id and cs.controversies_id = ? and
-        stm.stories_id = s.stories_id and stm.tags_id = t.tags_id and 
+        stm.stories_id = s.stories_id and stm.tags_id = t.tags_id and
         t.tag_sets_id = ts.tag_sets_id and
         t.tag in ( 'current_time' ) and ts.name = 'date_guess_method'
 END
@@ -1569,7 +1580,7 @@ END
     for my $story ( @{ $stories } )
     {
         my $source_link = $db->query( <<END, $controversy->{ controversies_id } )->hash;
-select cl.*, s.publish_date from controversy_links cl, stories s 
+select cl.*, s.publish_date from controversy_links cl, stories s
     where cl.ref_stories_id = s.stories_id
     order by ( controversies_id = ? ) asc, s.publish_date asc
 END
@@ -1757,7 +1768,7 @@ sub get_story_original_urls
 
     my $urls = $db->query( <<'END', $story->{ stories_id } )->hashes;
 select q.url, q.controversies_id, c.name controversy_name
-    from 
+    from
         (
             select distinct controversies_id, url from controversy_links where ref_stories_id = $1
             union
