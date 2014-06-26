@@ -19,6 +19,17 @@ require Test::NoWarnings;
 
 use MediaWords::Util::Config;
 
+my $key = MediaWords::Util::Config::get_config->{ mediawords }->{ calais_key };
+
+unless ( defined( $key ) )
+{
+    plan skip_all => 'skipping calais tests because the calais key is not defined';
+}
+else
+{
+    plan tests => 5;
+}
+
 use_ok( 'MediaWords::Tagger::Calais' );
 
 my $test_cases = [
@@ -47,38 +58,34 @@ sub main()
 {
     my $key = MediaWords::Util::Config::get_config->{ mediawords }->{ calais_key };
 
-    if ( !defined( $key ) )
+    if ( defined( $key ) )
     {
-        say STDERR 'skipping calais tests because the calais key is not defined';
-        done_testing();
-        return;
-    }
 
-    foreach my $test_case ( @{ $test_cases } )
-    {
-        my $error_message;
-
-        my $tag_result = MediaWords::Tagger::Calais::get_tags( $test_case->{ test_input } );
-
-        isa_ok( $tag_result, 'HASH' );
-
-        my $tags = $tag_result->{ tags };
-
-        #print Dumper($tags);
-
-        isa_ok( $tags, 'ARRAY' );
-
-      SKIP:
+        foreach my $test_case ( @{ $test_cases } )
         {
-            skip "No tags array ", 1, unless $tags;
+            my $error_message;
 
-            is( join( ", ", map { $_ } @{ $tags } ), $test_case->{ test_output }, $test_case->{ test_name } );
+            my $tag_result = MediaWords::Tagger::Calais::get_tags( $test_case->{ test_input } );
+
+            isa_ok( $tag_result, 'HASH' );
+
+            my $tags = $tag_result->{ tags };
+
+            #print Dumper($tags);
+
+            isa_ok( $tags, 'ARRAY' );
+
+          SKIP:
+            {
+                skip "No tags array ", 1, unless $tags;
+
+                is( join( ", ", map { $_ } @{ $tags } ), $test_case->{ test_output }, $test_case->{ test_name } );
+            }
         }
+
     }
 
     Test::NoWarnings::had_no_warnings();
-
-    done_testing();
 }
 
 main();

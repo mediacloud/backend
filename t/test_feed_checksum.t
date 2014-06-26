@@ -125,7 +125,6 @@ sub main
 
     $db->rollback;
 
-    done_testing();
 }
 
 main();

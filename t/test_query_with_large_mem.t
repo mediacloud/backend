@@ -14,7 +14,7 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
-use Test::More;
+use Test::More tests => 2;
 use Test::Differences;
 use Test::Deep;
 
@@ -60,7 +60,6 @@ sub main
             test_query_with_large_work_mem( $db );
 
             Test::NoWarnings::had_no_warnings();
-            done_testing();
         }
     );
 

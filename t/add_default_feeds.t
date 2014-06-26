@@ -3,8 +3,8 @@ use warnings;
 
 use utf8;
 
+use Test::More tests => 35;
 use Test::NoWarnings;
-use Test::More tests => 33 + 1;
 use Test::Deep;
 
 use Modern::Perl "2013";

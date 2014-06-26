@@ -26,7 +26,7 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
-use Test::More;
+use Test::More tests => 193;
 use Test::Differences;
 use Test::Deep;
 
@@ -389,7 +389,6 @@ sub main
     _test_crawler( 'Global Voices', 'gv', 16, '2008-02-03', '2014-02-27' );
 
     Test::NoWarnings::had_no_warnings();
-    done_testing();
 }
 
 main();

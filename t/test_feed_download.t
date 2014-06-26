@@ -26,7 +26,7 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
-use Test::More;
+use Test::More tests => 97;
 use Test::Differences;
 use Test::Deep;
 require Test::NoWarnings;
@@ -240,7 +240,6 @@ sub main
             kill_local_server( $url_to_crawl );
 
             Test::NoWarnings::had_no_warnings();
-            done_testing();
         }
     );
 

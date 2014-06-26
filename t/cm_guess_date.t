@@ -1,8 +1,8 @@
 use strict;
 use warnings;
 
+use Test::More tests => 43;
 use Test::NoWarnings;
-use Test::More tests => 41 + 1;
 use Test::Deep;
 
 use utf8;

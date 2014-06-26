@@ -12,7 +12,7 @@ BEGIN
 
 use English '-no_match_vars';
 
-use Test::More;
+use Test::More tests => 14;
 use Test::Deep;
 
 use MediaWords::Test::DB;
@@ -196,8 +196,6 @@ sub main
             test_live_stories( $db );
         }
     );
-
-    done_testing();
 }
 
 main();

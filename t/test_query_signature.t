@@ -1,7 +1,6 @@
 use strict;
 
 use List::Util;
-use Test::More;
 use warnings;
 
 BEGIN
@@ -10,6 +9,7 @@ BEGIN
     use_ok( 'MediaWords::DBI::Queries' );
 }
 
+use Test::More tests => 416;
 # create some media sets, dashboards, and dashboard_topics to use for query creation
 sub create_query_parts
 {
@@ -162,7 +162,6 @@ sub main
 
     $db->rollback;
 
-    done_testing( $num_tests + 2 );
 }
 
 main();
