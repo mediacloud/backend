@@ -1384,9 +1384,6 @@ EOF
 
     $hs->stop();
 
-    say STDERR 'Feed links: ' . Dumper( $feed_links );
-    say STDERR 'Expected links: ' . Dumper( $expected_links );
-
     cmp_bag( $feed_links, $expected_links, 'test_rss_external_feeds feed_links' );
     is( $need_to_moderate, $expected_need_to_moderate, 'test_rss_external_feeds need_to_moderate' );
     cmp_bag( $existing_urls, $expected_existing_urls, 'test_rss_external_feeds existing_urls' );
