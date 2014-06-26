@@ -23,7 +23,6 @@ use MediaWords::DBI::MediaSets;
 use MediaWords::DBI::Stories;
 use MediaWords::Test::DB;
 use MediaWords::Test::Data;
-use MediaWords::Test::LocalServer;
 use DBIx::Simple::MediaWords;
 use MediaWords::StoryVectors;
 use LWP::UserAgent;
