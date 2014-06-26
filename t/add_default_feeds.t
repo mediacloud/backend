@@ -1,7 +1,12 @@
 use strict;
 use warnings;
 
-use utf8;
+BEGIN
+{
+    use FindBin;
+    use lib "$FindBin::Bin/../lib";
+    use lib $FindBin::Bin;
+}
 
 use Test::More tests => 35;
 use Test::NoWarnings;
@@ -9,8 +14,10 @@ use Test::Deep;
 
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
-use MediaWords::DB;
+use MediaWords::Test::DB;
 use Feed::Scrape::MediaWords;
+
+use utf8;
 
 use HTTP::HashServer;
 use Readonly;
@@ -30,11 +37,6 @@ my Readonly $HTTP_CONTENT_TYPE_RSS  = 'Content-Type: application/rss+xml; charse
 my Readonly $HTTP_CONTENT_TYPE_ATOM = 'Content-Type: application/atom+xml; charset=UTF-8';
 
 BEGIN { use_ok 'Feed::Scrape' }
-
-sub _db()
-{
-    return MediaWords::DB::connect_to_db();
-}
 
 sub _sample_rss_feed($;$)
 {
@@ -120,8 +122,10 @@ EOF
 }
 
 # Basic RSS feed URL scraping
-sub test_basic()
+sub test_basic($)
 {
+    my $db = shift;
+
     my $pages = {
 
         # Index page
@@ -164,8 +168,10 @@ EOF
 }
 
 # Basic RSS feed URL scraping
-sub test_utf8_title()
+sub test_utf8_title($)
 {
+    my $db = shift;
+
     my Readonly $utf8_title =
 "𝘉𝘰𝘳𝘯 𝘥𝘰𝘸𝘯 𝘪𝘯 𝘢 𝘥𝘦𝘢𝘥 𝘮𝘢𝘯'𝘴 𝘵𝘰𝘸𝘯 / 𝘛𝘩𝘦 𝘧𝘪𝘳𝘴𝘵 𝘬𝘪𝘤𝘬 𝘐 𝘵𝘰𝘰𝘬 𝘸𝘢𝘴 𝘸𝘩𝘦𝘯 𝘐 𝘩𝘪𝘵 𝘵𝘩𝘦 𝘨𝘳𝘰𝘶𝘯𝘥 / äëïöü";
 
@@ -211,8 +217,10 @@ EOF
 }
 
 # Basic RSS feed (entities in URLs)
-sub test_basic_entities_in_urls()
+sub test_basic_entities_in_urls($)
 {
+    my $db = shift;
+
     my $pages = {
 
         # Index page
@@ -255,8 +263,10 @@ EOF
 }
 
 # Basic RSS feed (short URLs)
-sub test_basic_short_urls()
+sub test_basic_short_urls($)
 {
+    my $db = shift;
+
     my $pages = {
 
         # Index page
@@ -299,8 +309,10 @@ EOF
 }
 
 # Basic RSS feed URL scraping (no RSS feed titles)
-sub test_basic_no_titles()
+sub test_basic_no_titles($)
 {
+    my $db = shift;
+
     my $pages = {
 
         # Index page
@@ -343,8 +355,10 @@ EOF
 }
 
 # More complex example (more HTML tags, HTML entities; from dagbladet.se)
-sub test_dagbladet_se()
+sub test_dagbladet_se($)
 {
+    my $db = shift;
+
     my $pages = {
 
         # Index page
@@ -540,8 +554,10 @@ EOF
 }
 
 # More complex example (relative URLs to RSS feeds; a lot of RSS feeds in a single line; from gp.se)
-sub test_gp_se()
+sub test_gp_se($)
 {
+    my $db = shift;
+
     my $pages = {
 
         # Index page
@@ -903,8 +919,10 @@ sub test_gp_se()
     $hs->stop();
 }
 
-sub test_rss_simple_website
+sub test_rss_simple_website($)
 {
+    my $db = shift;
+
     my $pages = {
 
         # Index page
@@ -960,15 +978,17 @@ EOF
     my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
-    my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1, _db(), [], [] );
+    my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
 
     $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_rss_simple_website' );
 }
 
-sub test_rss_immediate_redirect_via_http_header
+sub test_rss_immediate_redirect_via_http_header($)
 {
+    my $db = shift;
+
     my $pages_1 = {
 
         '/' => {
@@ -1031,7 +1051,7 @@ EOF
     $hs2->start();
 
     my ( $feed_links, $need_to_moderate, $existing_urls ) =
-      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( _db(), $medium );
+      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
 
     $hs1->stop();
     $hs2->stop();
@@ -1041,8 +1061,10 @@ EOF
     cmp_bag( $existing_urls, $expected_existing_urls, 'test_rss_immediate_redirect_via_http_header existing_urls' );
 }
 
-sub test_rss_immediate_redirect_via_html_meta_refresh
+sub test_rss_immediate_redirect_via_html_meta_refresh($)
 {
+    my $db = shift;
+
     my $pages_1 = {
 
         # META-redirect to a new website
@@ -1113,7 +1135,7 @@ EOF
     $hs2->start();
 
     my ( $feed_links, $need_to_moderate, $existing_urls ) =
-      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( _db(), $medium );
+      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
 
     $hs1->stop();
     $hs2->stop();
@@ -1125,8 +1147,10 @@ EOF
 }
 
 # <base href="" />, like in http://www.thejakartaglobe.com
-sub test_rss_base_href
+sub test_rss_base_href($)
 {
+    my $db = shift;
+
     my $pages = {
 
         # Index page
@@ -1196,15 +1220,17 @@ EOF
     my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
-    my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1, _db(), [], [] );
+    my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
 
     $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_rss_base_href' );
 }
 
-sub test_rss_unlinked_urls
+sub test_rss_unlinked_urls($)
 {
+    my $db = shift;
+
     my $pages = {
 
         # Index page
@@ -1261,15 +1287,17 @@ EOF
     my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
-    my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1, _db(), [], [] );
+    my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
 
     $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_rss_unlinked_urls' );
 }
 
-sub test_rss_image_link
+sub test_rss_image_link($)
 {
+    my $db = shift;
+
     my $pages = {
 
         # Index page
@@ -1326,15 +1354,17 @@ EOF
     my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
-    my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1, _db(), [], [] );
+    my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
 
     $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_rss_image_link' );
 }
 
-sub test_rss_external_feeds
+sub test_rss_external_feeds($)
 {
+    my $db = shift;
+
     my $pages = {
 
         # Index page
@@ -1380,7 +1410,7 @@ EOF
     $hs->start();
 
     my ( $feed_links, $need_to_moderate, $existing_urls ) =
-      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( _db(), $medium );
+      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
 
     $hs->stop();
 
@@ -1389,8 +1419,10 @@ EOF
     cmp_bag( $existing_urls, $expected_existing_urls, 'test_rss_external_feeds existing_urls' );
 }
 
-sub test_get_feed_links_and_need_to_moderate_and_existing_urls
+sub test_get_feed_links_and_need_to_moderate_and_existing_urls($)
 {
+    my $db = shift;
+
     my $pages = {
 
         # Index page
@@ -1448,7 +1480,7 @@ EOF
     $hs->start();
 
     my ( $feed_links, $need_to_moderate, $existing_urls ) =
-      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( _db(), $medium );
+      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
 
     $hs->stop();
 
@@ -1459,8 +1491,10 @@ EOF
         'test_get_feed_links_and_need_to_moderate_and_existing_urls existing_urls' );
 }
 
-sub test_feeds_with_common_prefix
+sub test_feeds_with_common_prefix($)
 {
+    my $db = shift;
+
     my $pages = {
 
         # Index page
@@ -1538,7 +1572,7 @@ EOF
     $hs->start();
 
     my ( $feed_links, $need_to_moderate, $existing_urls ) =
-      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( _db(), $medium );
+      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
 
     $hs->stop();
 
@@ -1547,8 +1581,10 @@ EOF
     cmp_bag( $existing_urls, $expected_existing_urls, 'test_feeds_with_common_prefix existing_urls' );
 }
 
-sub test_feed_aggregator_urls
+sub test_feed_aggregator_urls($)
 {
+    my $db = shift;
+
     my $pages = {
 
         # Index page
@@ -1602,7 +1638,7 @@ EOF
     $hs->start();
 
     my ( $feed_links, $need_to_moderate, $existing_urls ) =
-      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( _db(), $medium );
+      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
 
     $hs->stop();
 
@@ -1611,8 +1647,10 @@ EOF
     cmp_bag( $existing_urls, $expected_existing_urls, 'test_feed_aggregator_urls existing_urls' );
 }
 
-sub test_web_page_feed
+sub test_web_page_feed($)
 {
+    my $db = shift;
+
     my $medium_name = 'Acme News -- The best news ever!';
     my $medium      = { url => $TEST_HTTP_SERVER_URL, name => $medium_name };
     my $pages       = {
@@ -1645,7 +1683,7 @@ EOF
     $hs->start();
 
     my ( $feed_links, $need_to_moderate, $existing_urls ) =
-      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( _db(), $medium );
+      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
 
     $hs->stop();
 
@@ -1661,24 +1699,32 @@ sub main
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
-    test_basic();
-    test_utf8_title();
-    test_basic_entities_in_urls();
-    test_basic_short_urls();
-    test_basic_no_titles();
-    test_dagbladet_se();
-    test_gp_se();
-    test_rss_simple_website();
-    test_rss_immediate_redirect_via_http_header();
-    test_rss_immediate_redirect_via_html_meta_refresh();
-    test_rss_base_href();
-    test_rss_unlinked_urls();
-    test_rss_image_link();
-    test_rss_external_feeds();
-    test_get_feed_links_and_need_to_moderate_and_existing_urls();
-    test_feeds_with_common_prefix();
-    test_feed_aggregator_urls();
-    test_web_page_feed();
+    MediaWords::Test::DB::test_on_test_database(
+        sub {
+            my $db = shift;
+
+            test_basic( $db );
+            test_utf8_title( $db );
+            test_basic_entities_in_urls( $db );
+            test_basic_short_urls( $db );
+            test_basic_no_titles( $db );
+            test_dagbladet_se( $db );
+            test_gp_se( $db );
+            test_rss_simple_website( $db );
+            test_rss_immediate_redirect_via_http_header( $db );
+            test_rss_immediate_redirect_via_html_meta_refresh( $db );
+            test_rss_base_href( $db );
+            test_rss_unlinked_urls( $db );
+            test_rss_image_link( $db );
+            test_rss_external_feeds( $db );
+            test_get_feed_links_and_need_to_moderate_and_existing_urls( $db );
+            test_feeds_with_common_prefix( $db );
+            test_feed_aggregator_urls( $db );
+            test_web_page_feed( $db );
+
+            Test::NoWarnings::had_no_warnings();
+        }
+    );
 }
 
 main();

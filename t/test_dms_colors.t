@@ -71,19 +71,16 @@ sub test_colors
 
 sub main
 {
-    my $db = MediaWords::DB::connect_to_db;
+    MediaWords::Test::DB::test_on_test_database(
+        sub {
+            my $db = shift;
 
-    $db->begin;
+            my $dashboard_media_sets = create_dashboard_media_sets( $db );
+            test_colors( $db, $dashboard_media_sets );
 
-    eval {
-        my $dashboard_media_sets = create_dashboard_media_sets( $db );
-        test_colors( $db, $dashboard_media_sets );
-    };
-
-    $db->rollback;
-
-    print STDERR ( $@ ) if ( $@ );
-
+            Test::NoWarnings::had_no_warnings();
+        }
+    );
 }
 
 main();

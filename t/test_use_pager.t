@@ -4,14 +4,23 @@ use warnings;
 # test the use_pager logic in Handler.pm that reads and sets the use_pager
 # flag that determines whether to use the pager for a given media source
 
-use English '-no_match_vars';
+BEGIN
+{
+    use FindBin;
+    use lib "$FindBin::Bin/../lib";
+    use lib $FindBin::Bin;
+}
 
-use Test::More tests => 8;
+use Test::More tests => 11;
+use Test::NoWarnings;
+
+use English '-no_match_vars';
 
 BEGIN
 {
     use_ok( 'MediaWords::DB' );
     use_ok( 'MediaWords::Crawler::Handler' );
+    use_ok( 'MediaWords::Test::DB' );
 }
 
 sub test_use_pager
@@ -54,16 +63,15 @@ END
 
 sub main
 {
-    my $db = MediaWords::DB::connect_to_db;
+    MediaWords::Test::DB::test_on_test_database(
+        sub {
+            my $db = shift;
 
-    $db->begin;
+            test_use_pager( $db );
 
-    eval { test_use_pager( $db ); };
-
-    die( $@ ) if ( $@ );
-
-    $db->rollback;
-
+            Test::NoWarnings::had_no_warnings();
+        }
+    );
 }
 
 main();

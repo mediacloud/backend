@@ -1,13 +1,20 @@
 use strict;
 use warnings;
 
+BEGIN
+{
+    use FindBin;
+    use lib "$FindBin::Bin/../../lib";
+    use lib "$FindBin::Bin/../";
+}
+
 use Test::More;
 
 use Data::Dumper;
 use MongoDB;
 use MongoDB::GridFS;
 use MediaWords::KeyValueStore::GridFS;
-use MediaWords::DB;
+use MediaWords::Test::DB;
 use MediaWords::Util::Config;
 use IO::Socket;
 
@@ -51,83 +58,91 @@ else
     }
 }
 
-my $gridfs =
-  MediaWords::KeyValueStore::GridFS->new( { database_name => $config->{ mongodb_gridfs }->{ test }->{ database_name } } );
-ok( $gridfs, "MongoDB initialized" );
+MediaWords::Test::DB::test_on_test_database(
+    sub {
+        my $db = shift;
 
-my $db = MediaWords::DB::connect_to_db;
-ok( $db, "PostgreSQL initialized " );
+        ok( $db, "PostgreSQL initialized " );
 
-my $test_downloads_id   = 999999999999999;
-my $test_downloads_path = undef;
-my $test_content        = 'Loren ipsum dolor sit amet.';
-my $content_ref;
+        my $gridfs =
+          MediaWords::KeyValueStore::GridFS->new(
+            { database_name => $config->{ mongodb_gridfs }->{ test }->{ database_name } } );
+        ok( $gridfs, "MongoDB initialized" );
 
-#
-# Store content
-#
+        my $test_downloads_id   = 999999999999999;
+        my $test_downloads_path = undef;
+        my $test_content        = 'Loren ipsum dolor sit amet.';
+        my $content_ref;
 
-my $gridfs_id;
-eval { $gridfs_id = $gridfs->store_content( $db, $test_downloads_id, \$test_content ); };
-ok( ( !$@ ), "Storing content failed: $@" );
-ok( $gridfs_id,                                                          'Object ID was returned' );
-ok( length( $gridfs_id ) == length( 'gridfs:5152138e3e7062d55800057c' ), 'Object ID is of the valid size' );
+        #
+        # Store content
+        #
 
-#
-# Fetch content, compare
-#
+        my $gridfs_id;
+        eval { $gridfs_id = $gridfs->store_content( $db, $test_downloads_id, \$test_content ); };
+        ok( ( !$@ ), "Storing content failed: $@" );
+        ok( $gridfs_id,                                                          'Object ID was returned' );
+        ok( length( $gridfs_id ) == length( 'gridfs:5152138e3e7062d55800057c' ), 'Object ID is of the valid size' );
 
-eval { $content_ref = $gridfs->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
-ok( ( !$@ ), "Fetching download failed: $@" );
-ok( $content_ref, "Fetching download did not die but no content was returned" );
-is( $$content_ref, $test_content, "Content doesn't match." );
+        #
+        # Fetch content, compare
+        #
 
-#
-# Remove content, try fetching again
-#
+        eval { $content_ref = $gridfs->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
+        ok( ( !$@ ), "Fetching download failed: $@" );
+        ok( $content_ref, "Fetching download did not die but no content was returned" );
+        is( $$content_ref, $test_content, "Content doesn't match." );
 
-$gridfs->remove_content( $db, $test_downloads_id, $test_downloads_path );
-$content_ref = undef;
-eval { $content_ref = $gridfs->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
-ok( $@, "Fetching download that does not exist should have failed" );
-ok( ( !$content_ref ), "Fetching download that does not exist failed (as expected) but the content reference was returned" );
+        #
+        # Remove content, try fetching again
+        #
 
-#
-# Check GridFS thinks that the content exists
-#
-ok(
-    ( !$gridfs->content_exists( $db, $test_downloads_id, $test_downloads_path ) ),
-    "content_exists() reports that content exists (although it shouldn't)"
-);
+        $gridfs->remove_content( $db, $test_downloads_id, $test_downloads_path );
+        $content_ref = undef;
+        eval { $content_ref = $gridfs->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
+        ok( $@, "Fetching download that does not exist should have failed" );
+        ok( ( !$content_ref ),
+            "Fetching download that does not exist failed (as expected) but the content reference was returned" );
 
-#
-# Store content twice
-#
+        #
+        # Check GridFS thinks that the content exists
+        #
+        ok(
+            ( !$gridfs->content_exists( $db, $test_downloads_id, $test_downloads_path ) ),
+            "content_exists() reports that content exists (although it shouldn't)"
+        );
 
-$gridfs_id = undef;
-eval {
-    $gridfs_id = $gridfs->store_content( $db, $test_downloads_id, \$test_content );
-    $gridfs_id = $gridfs->store_content( $db, $test_downloads_id, \$test_content );
-};
-ok( ( !$@ ), "Storing content twice failed: $@" );
-ok( $gridfs_id,                                                          'Object ID was returned' );
-ok( length( $gridfs_id ) == length( 'gridfs:5152138e3e7062d55800057c' ), 'Object ID is of the valid size' );
+        #
+        # Store content twice
+        #
 
-# Fetch content again, compare
-eval { $content_ref = $gridfs->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
-ok( ( !$@ ), "Fetching download failed: $@" );
-ok( $content_ref, "Fetching download did not die but no content was returned" );
-is( $$content_ref, $test_content, "Content doesn't match." );
+        $gridfs_id = undef;
+        eval {
+            $gridfs_id = $gridfs->store_content( $db, $test_downloads_id, \$test_content );
+            $gridfs_id = $gridfs->store_content( $db, $test_downloads_id, \$test_content );
+        };
+        ok( ( !$@ ), "Storing content twice failed: $@" );
+        ok( $gridfs_id,                                                          'Object ID was returned' );
+        ok( length( $gridfs_id ) == length( 'gridfs:5152138e3e7062d55800057c' ), 'Object ID is of the valid size' );
 
-# Remove content, try fetching again
-$gridfs->remove_content( $db, $test_downloads_id, $test_downloads_path );
-$content_ref = undef;
-eval { $content_ref = $gridfs->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
-ok( $@, "Fetching download that does not exist should have failed" );
-ok( ( !$content_ref ), "Fetching download that does not exist failed (as expected) but the content reference was returned" );
+        # Fetch content again, compare
+        eval { $content_ref = $gridfs->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
+        ok( ( !$@ ), "Fetching download failed: $@" );
+        ok( $content_ref, "Fetching download did not die but no content was returned" );
+        is( $$content_ref, $test_content, "Content doesn't match." );
 
-# Check GridFS thinks that the content exists
-ok(
-    ( !$gridfs->content_exists( $db, $test_downloads_id, $test_downloads_path ) ),
-    "content_exists() reports that content exists (although it shouldn't)"
+        # Remove content, try fetching again
+        $gridfs->remove_content( $db, $test_downloads_id, $test_downloads_path );
+        $content_ref = undef;
+        eval { $content_ref = $gridfs->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
+        ok( $@, "Fetching download that does not exist should have failed" );
+        ok( ( !$content_ref ),
+            "Fetching download that does not exist failed (as expected) but the content reference was returned" );
+
+        # Check GridFS thinks that the content exists
+        ok(
+            ( !$gridfs->content_exists( $db, $test_downloads_id, $test_downloads_path ) ),
+            "content_exists() reports that content exists (although it shouldn't)"
+        );
+    }
 );
