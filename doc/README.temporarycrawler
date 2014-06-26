@@ -33,4 +33,6 @@ On the backup system run ./script/mediawords_export_feed_downloads.pl
 After this script completes copy files /tmp/downloads*.xml to the permanent system.
 
 On the permanent system, CD to the directory with the download*.xml files and run a command like the following: 
-find `pwd`  -iname '*.xml' -print | sort | nohup time parallel --keep-order --max-procs +5  /space/mediacloud/mediacloud/script/run_with_carton.sh /space/mediacloud/mediacloud-repo/trunk/script/mediawords_import_feed_downloads.pl | tee  downloads_import.log
+
+find `pwd`  -iname '*.xml' -print | sort | nohup time parallel --keep-order --max-procs +5  /space/mediacloud/mediacloud/script/run_with_carton.sh /space/mediacloud/mediacloud_RELEASE_20140325/script/mediawords_import_feed_downloads.pl |  tee  downloads_import.log
+

@@ -37,6 +37,8 @@ database:
 #mongodb_gridfs:
     #host : "localhost"
     #port : "27017"
+    #username : "mediaclouduser"    # optional
+    #password : "mediacloud"        # optional
     ### Database for storing raw downloads
     #downloads:
         #database_name : "mediacloud_downloads_gridfs"
