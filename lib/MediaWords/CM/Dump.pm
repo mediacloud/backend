@@ -3,6 +3,7 @@ package MediaWords::CM::Dump;
 # code to analyze a controversy and dump the controversy to snapshot tables and a gexf file
 
 use strict;
+use warnings;
 
 use Data::Dumper;
 use Date::Format;

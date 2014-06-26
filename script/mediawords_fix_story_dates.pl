@@ -4,6 +4,7 @@
 # that are different in the csv than in the existing story.
 
 use strict;
+use warnings;
 
 BEGIN
 {

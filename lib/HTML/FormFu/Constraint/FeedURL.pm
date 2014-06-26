@@ -1,6 +1,8 @@
 package HTML::FormFu::Constraint::FeedURL;
 
 use strict;
+use warnings;
+
 use base 'HTML::FormFu::Constraint';
 
 use XML::FeedPP;

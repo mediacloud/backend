@@ -4,6 +4,7 @@
 # usage: mediawords_dump_controversy_sentences.pl --controversy < id >
 
 use strict;
+use warnings;
 
 BEGIN
 {

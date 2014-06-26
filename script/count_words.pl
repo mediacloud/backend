@@ -10,6 +10,7 @@
 package SolrCountServer;
 
 use strict;
+use warnings;
 
 use threads qw(stringify);
 use threads::shared;

@@ -6,6 +6,7 @@ package MediaWords::CM::Mine;
 # controversy.  Write the resulting stories and links to controversy_stories and controversy_links.
 
 use strict;
+use warnings;
 
 use Carp;
 use Data::Dumper;
