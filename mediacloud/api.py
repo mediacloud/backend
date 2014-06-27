@@ -16,11 +16,8 @@ class MediaCloud(object):
 
     SENTENCE_PUBLISH_DATE_FORMAT = "%Y-%m-%d %H:%M:%S" # use with datetime.datetime.strptime
 
-    def __init__(self, auth_token=None,log_level=logging.INFO):
-        self._logger = logging.getLogger(__name__)
-        log_file = logging.FileHandler('mediacloud-api.log')
-        self._logger.setLevel(log_level)
-        self._logger.addHandler(log_file)
+    def __init__(self, auth_token=None):
+        self._logger = logging.getLogger('mediacloud-api')
         self.setAuthToken(auth_token)
 
     def setAuthToken(self, auth_token):
