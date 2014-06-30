@@ -255,9 +255,7 @@ class WriteableApiTest(unittest.TestCase):
     def setUp(self):
         self._config = ConfigParser.ConfigParser()
         self._config.read('mc-client.config')
-        self._mc = mediacloud.api.WriteableMediaCloud( self._config.get('api','key'), logging.DEBUG )
-        requests_log = logging.getLogger("requests")
-        requests_log.setLevel(logging.DEBUG)
+        self._mc = mediacloud.api.WriteableMediaCloud( self._config.get('api','key') )
 
     def testTagStories(self):
         test_story_id = 1
