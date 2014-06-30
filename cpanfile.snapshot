@@ -198,6 +198,25 @@ DISTRIBUTIONS
       Storable 0
       Test::Deep 0
       Test::More 0
+  CGI.pm-4.02
+    pathname: L/LE/LEEJO/CGI.pm-4.02.tar.gz
+    provides:
+      CGI 4.02
+      CGI::Apache 1.02
+      CGI::Carp 3.64
+      CGI::Cookie 1.31
+      CGI::Pretty 3.64
+      CGI::Push 1.06
+      CGI::Switch 1.02
+      CGI::Util 3.64
+      CGITempFile 4.02
+      Fh 4.02
+      MultipartBuffer 4.02
+    requirements:
+      ExtUtils::MakeMaker 0
+      File::Spec 0.82
+      Test::More 0.98
+      if 0
   CHI-0.58
     pathname: H/HA/HAARG/CHI-0.58.tar.gz
     provides:
