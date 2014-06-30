@@ -7,7 +7,7 @@ class StoryDatabase(object):
     EVENT_POST_STORY_SAVE = "postStorySave"
 
     def __init__(self):
-        None
+        self._logger = logging.getLogger(__name__)
 
     def connect(self, db_name, host, port, username, password):
         raise NotImplementedError("Subclasses should implement this!")
@@ -69,7 +69,7 @@ class StoryDatabase(object):
             self._updateStory(story_to_save)
             saved_story = self.getStory( long(story['stories_id']) )
             pub.sendMessage(self.EVENT_POST_STORY_SAVE, db_story=saved_story, raw_story=story)
-            logging.info('DB: Updated '+str(story['stories_id']))
+            self._logger.info('Updated '+str(story['stories_id']))
 
     def addStory(self, story, extra_attributes={}):
         ''' 
@@ -78,7 +78,7 @@ class StoryDatabase(object):
         '''
         from pubsub import pub
         if self.storyExists(story['stories_id']):
-            logging.info('DB: Not saving '+str(story['stories_id'])+' - already exists')
+            self._logger.info('Not saving '+str(story['stories_id'])+' - already exists')
             return False
         story_to_save = copy.deepcopy( story )
         story_to_save = dict(story_to_save.items() + extra_attributes.items())
@@ -89,7 +89,7 @@ class StoryDatabase(object):
         self._saveStory( story_to_save )
         saved_story = self.getStory( story['stories_id'] )
         pub.sendMessage(self.EVENT_POST_STORY_SAVE, db_story=saved_story, raw_story=story)
-        logging.info('DB: Saved '+str(story['stories_id']))
+        self._logger.info('Saved '+str(story['stories_id']))
         return True
 
     def _updateStory(self, story_attributes):

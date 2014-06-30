@@ -6,7 +6,7 @@ class ApiBaseTest(unittest.TestCase):
     def setUp(self):
         self._config = ConfigParser.ConfigParser()
         self._config.read('mc-client.config')
-        self._mc = mediacloud.api.MediaCloud( self._config.get('api','key'), logging.DEBUG )
+        self._mc = mediacloud.api.MediaCloud( self._config.get('api','key'))
 
 class AuthTokenTest(ApiBaseTest):
 
@@ -68,7 +68,7 @@ class ApiTagsTest(ApiBaseTest):
     def testTags(self):
         tag = self._mc.tag(8876989)
         self.assertEqual(tag['tags_id'],8876989)
-        self.assertEqual(tag['tag'],'japan')
+        self.assertEqual(tag['tag'],'JP')
         self.assertEqual(tag['tag_sets_id'],597)
 
     def testTagList(self):
@@ -161,48 +161,61 @@ class ApiStoriesTest(ApiBaseTest):
 
 class ApiSentencesTest(ApiBaseTest):
 
-    def testSentenceListSorting(self):
-        date_format = self._mc.SENTENCE_PUBLISH_DATE_FORMAT
-        q = '( mars OR robot )'
-        fq = '+publish_date:[2013-01-01T00:00:00Z TO 2013-02-01T00:00:00Z] AND +media_sets_id:1'
-        # ascending
-        results = self._mc.sentenceList(q,fq,0,1000,self._mc.SORT_PUBLISH_DATE_ASC)
-        self.assertEqual(len(results['response']['docs']), 1000)
+    QUERY = '( mars OR robot )'
+    FILTER_QUERY = '+publish_date:[2013-01-01T00:00:00Z TO 2013-02-01T00:00:00Z] AND +media_sets_id:1'
+    SENTENCE_COUNT = 100
+
+    def testSentenceListSortingAscending(self):
+        results = self._mc.sentenceList(self.QUERY,self.FILTER_QUERY,0,self.SENTENCE_COUNT,
+            self._mc.SORT_PUBLISH_DATE_ASC)
+        self.assertEqual(len(results['response']['docs']), self.SENTENCE_COUNT)
         last_date = None
         for sentence in results['response']['docs']:
-            this_date = datetime.datetime.strptime(sentence['publish_date'],date_format)
+            this_date = datetime.datetime.strptime(sentence['publish_date'],self._mc.SENTENCE_PUBLISH_DATE_FORMAT)
             if last_date is not None:
-                self.assertTrue(last_date <= this_date, "Date wrong: "+str(last_date)+" is not < "+str(this_date))
+                self.assertTrue(last_date <= this_date, "Date wrong: "+str(last_date)+" is not <= "+str(this_date))
                 last_date = this_date
             last_date = this_date
-        # descending
-        results = self._mc.sentenceList(q,fq,0,1000,self._mc.SORT_PUBLISH_DATE_DESC)
-        self.assertEqual(len(results['response']['docs']), 1000)
+        
+    def testSentenceListSortingDescending(self):
+        results = self._mc.sentenceList(self.QUERY,self.FILTER_QUERY,0,self.SENTENCE_COUNT,
+            self._mc.SORT_PUBLISH_DATE_DESC)
+        self.assertEqual(len(results['response']['docs']), self.SENTENCE_COUNT)
         last_date = None
         for sentence in results['response']['docs']:
-            this_date = datetime.datetime.strptime(sentence['publish_date'],date_format)
+            this_date = datetime.datetime.strptime(sentence['publish_date'],self._mc.SENTENCE_PUBLISH_DATE_FORMAT)
             if last_date is not None:
-                self.assertTrue(last_date >= this_date, "Date wrong: "+str(last_date)+" is not > "+str(this_date))
+                self.assertTrue(last_date >= this_date, "Date wrong: "+str(last_date)+" is not >= "+str(this_date))
                 last_date = this_date
             last_date = this_date
 
+    def testSentenceListSortingRadom(self):
+        # we do random sort by telling we want the random sort, and then offsetting to a different start index
+        results1 = self._mc.sentenceList(self.QUERY,self.FILTER_QUERY,0,self.SENTENCE_COUNT,
+            self._mc.SORT_RANDOM)
+        self.assertEqual(len(results1['response']['docs']), self.SENTENCE_COUNT)
+        results2 = self._mc.sentenceList(self.QUERY,self.FILTER_QUERY,self.SENTENCE_COUNT,self.SENTENCE_COUNT,
+            self._mc.SORT_RANDOM)
+        self.assertEqual(len(results2['response']['docs']), self.SENTENCE_COUNT)
+        for idx in range(0,self.SENTENCE_COUNT):
+            self.assertNotEqual(results1['response']['docs'][idx]['stories_id'],results2['response']['docs'][idx]['stories_id'],
+                "Stories in two different random sets are the same :-(")
+
     def testSentenceList(self):
-        results = self._mc.sentenceList('( mars OR robot )', '+publish_date:[2013-01-01T00:00:00Z TO 2013-02-01T00:00:00Z] AND +media_sets_id:1')
+        results = self._mc.sentenceList(self.QUERY, self.FILTER_QUERY)
         self.assertEqual(int(results['responseHeader']['status']),0)
-        self.assertEqual(int(results['response']['numFound']),6735)
+        self.assertEqual(int(results['response']['numFound']),6738)
         self.assertEqual(len(results['response']['docs']), 1000)
 
     def testSentenceListPaging(self):
-        query_str = '( mars OR robot )'
-        filter_str = '+publish_date:[2013-01-01T00:00:00Z TO 2013-02-01T00:00:00Z] AND +media_sets_id:1'
         # test limiting rows returned
-        results = self._mc.sentenceList(query_str, filter_str,0,100)
-        self.assertEqual(int(results['response']['numFound']), 6781)
+        results = self._mc.sentenceList(self.QUERY, self.FILTER_QUERY,0,100)
+        self.assertEqual(int(results['response']['numFound']), 6738)
         self.assertEqual(len(results['response']['docs']), 100)
         # test starting offset
-        results = self._mc.sentenceList(query_str, filter_str,6700)
-        self.assertEqual(int(results['response']['numFound']), 6735)
-        self.assertEqual(len(results['response']['docs']), 35)
+        results = self._mc.sentenceList(self.QUERY, self.FILTER_QUERY,6700)
+        self.assertEqual(int(results['response']['numFound']), 6738)
+        self.assertEqual(len(results['response']['docs']), 38)
 
     def testSentenceCount(self):
         # basic counting
@@ -225,15 +238,42 @@ class ApiSentencesTest(ApiBaseTest):
         self.assertEqual(results['split']['gap'],'+1DAY')
         self.assertEqual(len(results['split']),34)
 
-
 class ApiWordCountTest(ApiBaseTest):
 
     def testWordCount(self):
         term_freq = self._mc.wordCount('+robots', '+publish_date:[2013-01-01T00:00:00Z TO 2013-02-01T00:00:00Z] AND +media_sets_id:1')
-        self.assertEqual(len(term_freq),69)
+        self.assertEqual(len(term_freq),193)
         self.assertEqual(term_freq[3]['term'],u'science')
         # verify sorted in desc order
         last_count = 10000000000
         for freq in term_freq:
             self.assertTrue( last_count >= freq['count'] )
             last_count = freq['count']
+
+class WriteableApiTest(unittest.TestCase):
+
+    def setUp(self):
+        self._config = ConfigParser.ConfigParser()
+        self._config.read('mc-client.config')
+        self._mc = mediacloud.api.WriteableMediaCloud( self._config.get('api','key') )
+
+    def testTagStories(self):
+        test_story_id = 1
+        tag_set_name = "rahulb@media.mit.edu"
+        # tag a story with two things
+        desired_tags = [ mediacloud.api.StoryTag(test_story_id, tag_set_name, 'test_tag1'),
+                 mediacloud.api.StoryTag(test_story_id, tag_set_name, 'test_tag2') ] 
+        response = self._mc.tagStories(desired_tags)
+        self.assertEqual(len(response),len(desired_tags))
+        # make sure it worked
+        story = self._mc.story(test_story_id)
+        tags_on_story = [t for t in story['story_tags'] if t['tag_set']==tag_set_name]
+        self.assertEqual(len(tags_on_story),len(desired_tags))
+        # now remove one
+        desired_tags = [ mediacloud.api.StoryTag(1,'rahulb@media.mit.edu','test_tag1') ]
+        response = self._mc.tagStories(desired_tags, clear_others=True)
+        self.assertEqual(len(response),len(desired_tags))
+        # and check it
+        story = self._mc.story(test_story_id)
+        tags_on_story = [t for t in story['story_tags'] if t['tag_set']==tag_set_name]
+        self.assertEqual(len(tags_on_story),len(desired_tags))

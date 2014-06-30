@@ -2,4 +2,4 @@
 from api import MediaCloud
 from storage import *
 
-VERSION = '2.6'
+VERSION = '2.7'

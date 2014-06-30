@@ -1,4 +1,5 @@
-import re, logging, json, urllib, datetime
+import re, logging, json, urllib, datetime, sys
+from collections import namedtuple
 import xml.etree.ElementTree, requests
 import mediacloud
 
@@ -15,11 +16,8 @@ class MediaCloud(object):
 
     SENTENCE_PUBLISH_DATE_FORMAT = "%Y-%m-%d %H:%M:%S" # use with datetime.datetime.strptime
 
-    def __init__(self, auth_token=None,log_level=logging.INFO):
+    def __init__(self, auth_token=None):
         self._logger = logging.getLogger(__name__)
-        log_file = logging.FileHandler('mediacloud-api.log')
-        self._logger.setLevel(log_level)
-        self._logger.addHandler(log_file)
         self.setAuthToken(auth_token)
 
     def setAuthToken(self, auth_token):
@@ -187,20 +185,67 @@ class MediaCloud(object):
             raise Exception(response_json['error'])
         return response_json
 
+
     def _query(self, url, params={}, http_method='GET'):
-        '''
-        Helper that actually makes the requests and returns plain text results (this adds in the API key for you)
-        '''
-        self._logger.debug("query "+url+" with "+str(params))
+        self._logger.debug("query "+http_method+" to "+url+" with "+str(params))
+        if not isinstance(params, dict):
+            raise Exception('Queries must include a dict of parameters')
         if 'key' not in params:
             params['key'] = self._auth_token
-        r = requests.request( http_method, url, 
-            params=params,
-            headers={ 'Accept': 'application/json'}  
-        )
+        if http_method is 'GET':
+            r = requests.get(url, params=params, headers={ 'Accept': 'application/json'} )
+        elif http_method is 'PUT':
+            r = requests.put( url, params=params, headers={ 'Accept': 'application/json'} )
+        else:
+            raise Exception('Error - unsupported HTTP method '+str(http_method))
         if r.status_code is not 200:
             self._logger.error('Bad HTTP response to '+r.url +' : '+str(r.status_code)  + ' ' +  str( r.reason) )
             self._logger.error('\t' + r.content )
 
             raise Exception('Error - got a HTTP status code of '+str(r.status_code) + ' ' +  str( r.reason) + 'for ' + r.url )
         return r
+
+# used when calling WriteableMediaCloud.tagStories
+StoryTag = namedtuple('StoryTag',['stories_id','tag_set_name','tag_name'])
+
+# used when calling WriteableMediaCloud.tagSentences
+SentenceTag = namedtuple('SentenceTag',['story_sentences_id','tag_set_name','tag_name'])
+
+class WriteableMediaCloud(MediaCloud):
+    '''
+    A MediaCloud API client that includes methods to write back data to MediaCloud.
+    This is separated out from the base MediaCloud object to make it hard to accidentally 
+    write data.
+    '''
+
+    def tagStories(self, tags={}, clear_others=False):
+        '''
+        Add some tags to stories. The tags parameter should be a list of StoryTag objects
+        Returns ["1,rahulb@media.mit.edu:example_tag_2"] as response
+curl -X PUT -d key=KEY -d story_tag=1,rahulb@media.mit.edu:example_tag_2 https://api.mediacloud.org/api/v2/stories/put_tags
+        '''
+        params = {}
+        if clear_others is True:
+            params['clear_tags'] = 1
+        custom_tags = []
+        for tag in tags:
+            if tag.__class__ is not StoryTag:
+                raise Exception('To use tagStories you must send in a list of StoryTag objects')
+            custom_tags.append( '{},{}:{}'.format( tag.stories_id, tag.tag_set_name, tag.tag_name ) )
+        params['story_tag'] = custom_tags
+        return self._queryForJson( self.V2_API_URL+'stories/put_tags', params, 'PUT')
+
+    def tagSentences(self, tags={}, clear_others=False):
+        '''
+        Add some tags to sentences. The tags parameter should be a list of SentenceTag objects
+        '''
+        params = {}
+        if clear_others is True:
+            params['clear_tags'] = 1
+        custom_tags = []
+        for tag in tags:
+            if tag.__class__ is not SentenceTag:
+                raise Exception('To use tagSentences you must send in a list of SentenceTag objects')
+            custom_tags.append( '{},{}:{}'.format( tag.story_sentences_id, tag.tag_set_name, tag.tag_name ) )
+        params['sentence_tag'] = custom_tags
+        return self._queryForJson( self.V2_API_URL+'sentences/put_tags', params, 'PUT')
