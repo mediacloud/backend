@@ -5829,6 +5829,89 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       LWP 5.09
       XML::Writer 0
+  Net-DNS-0.77
+    pathname: N/NL/NLNETLABS/Net-DNS-0.77.tar.gz
+    provides:
+      Net::DNS 0.77
+      Net::DNS::Domain 1195
+      Net::DNS::DomainName 1177
+      Net::DNS::DomainName1035 1177
+      Net::DNS::DomainName2535 1177
+      Net::DNS::Header 1101
+      Net::DNS::Mailbox 1155
+      Net::DNS::Mailbox1035 1155
+      Net::DNS::Mailbox2535 1155
+      Net::DNS::Nameserver 1186
+      Net::DNS::Packet 1210
+      Net::DNS::Parameters 1194
+      Net::DNS::Question 1098
+      Net::DNS::RR 1212
+      Net::DNS::RR::A 1188
+      Net::DNS::RR::AAAA 1188
+      Net::DNS::RR::AFSDB 1188
+      Net::DNS::RR::APL 1188
+      Net::DNS::RR::APL::Item 1188
+      Net::DNS::RR::CAA 1188
+      Net::DNS::RR::CERT 1188
+      Net::DNS::RR::CNAME 1188
+      Net::DNS::RR::DHCID 1188
+      Net::DNS::RR::DNAME 1188
+      Net::DNS::RR::EUI48 1188
+      Net::DNS::RR::EUI64 1188
+      Net::DNS::RR::GPOS 1188
+      Net::DNS::RR::HINFO 1188
+      Net::DNS::RR::HIP 1188
+      Net::DNS::RR::IPSECKEY 1188
+      Net::DNS::RR::ISDN 1188
+      Net::DNS::RR::KX 1188
+      Net::DNS::RR::L32 1188
+      Net::DNS::RR::L64 1188
+      Net::DNS::RR::LOC 1188
+      Net::DNS::RR::LP 1188
+      Net::DNS::RR::MB 1182
+      Net::DNS::RR::MG 1182
+      Net::DNS::RR::MINFO 1188
+      Net::DNS::RR::MR 1182
+      Net::DNS::RR::MX 1188
+      Net::DNS::RR::NAPTR 1188
+      Net::DNS::RR::NID 1188
+      Net::DNS::RR::NS 1188
+      Net::DNS::RR::NULL 1188
+      Net::DNS::RR::OPT 1212
+      Net::DNS::RR::PTR 1188
+      Net::DNS::RR::PX 1188
+      Net::DNS::RR::RP 1189
+      Net::DNS::RR::RT 1188
+      Net::DNS::RR::SOA 1188
+      Net::DNS::RR::SPF 1188
+      Net::DNS::RR::SRV 1188
+      Net::DNS::RR::SSHFP 1188
+      Net::DNS::RR::TKEY 1188
+      Net::DNS::RR::TLSA 1188
+      Net::DNS::RR::TSIG 1188
+      Net::DNS::RR::TXT 1206
+      Net::DNS::RR::X25 1188
+      Net::DNS::Resolver 1218
+      Net::DNS::Resolver::Base 1219
+      Net::DNS::Resolver::MSWin32 1202
+      Net::DNS::Resolver::Recurse 1185
+      Net::DNS::Resolver::UNIX 1185
+      Net::DNS::Resolver::cygwin 1215
+      Net::DNS::Resolver::os2 1185
+      Net::DNS::Text 1206
+      Net::DNS::Update 1171
+      Net::DNS::ZoneFile 1218
+      Net::DNS::ZoneFile::Generator 1218
+      Net::DNS::ZoneFile::Text 1218
+    requirements:
+      Digest::HMAC 1.01
+      Digest::MD5 2.13
+      Digest::SHA 5.23
+      ExtUtils::MakeMaker 0
+      IO::Socket 1.24
+      MIME::Base64 2.11
+      Test::More 0.52
+      perl 5.00404
   Net-Domain-TLD-1.72
     pathname: A/AL/ALEXP/Net-Domain-TLD-1.72.tar.gz
     provides:

@@ -30,10 +30,6 @@ mkdir -p local/
 # ! Bailing out the installation for /mediacloud/.
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ ExtUtils::MakeMaker~6.92
 
-# Install / upgrade Net::DNS before installing everything else because
-# Email::Valid is unable to decide whether or not it wants it as a dependency
-./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ Net::DNS
-
 # Install modules required for offloading huge hashes to a BerkeleyDB database
 # (installing it from cpanfile doesn't seem to work with certain Perl versions)
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ DB_File
