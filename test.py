@@ -1,15 +1,16 @@
 #! /usr/bin/env python
 
-import unittest
+import unittest, logging
 
 from mediacloud.test.apitest import *
 from mediacloud.test.storagetest import *
 
 test_classes = [
 	ApiMediaTest, ApiMediaSetTest, ApiFeedsTest, ApiDashboardsTest, ApiTagsTest, ApiTagSetsTest, 
-	ApiStoriesTest, ApiWordCountTest, ApiSentencesTest, 
+	ApiStoriesTest, ApiWordCountTest, ApiSentencesTest,
 	MongoStorageTest,
-	AuthTokenTest
+	AuthTokenTest,
+	WriteableApiTest
 ]
 
 # set up all logging to DEBUG (cause we're running tests here!)
