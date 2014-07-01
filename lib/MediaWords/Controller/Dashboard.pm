@@ -2120,7 +2120,7 @@ sub compare_media_set_terms : Local
     foreach my $term_language ( @{ $terms } )
     {
         my ( $term, $language ) = split( ' ', $term_language );
-        push( $terms_languages, { 'term' => $term, 'language' => $language } );
+        push( @{ $terms_languages }, { 'term' => $term, 'language' => $language } );
     }
 
     # Create a stems clause

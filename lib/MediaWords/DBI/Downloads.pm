@@ -180,7 +180,7 @@ sub _download_stores_for_writing($)
             my $store = $_download_store_lookup->{ lc( $download_storage_location ) }
               || die "config value mediawords.download_storage_location '$download_storage_location' is not valid.";
 
-            push( $stores, $store );
+            push( @{ $stores }, $store );
         }
     }
 

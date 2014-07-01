@@ -1,0 +1,48 @@
+language: perl
+perl:
+    - "5.16"
+    - "5.18"
+    #
+    # Do not test on Perl 5.19 because 5.19.9 seems to mishandle UTF-8 source files
+    # (see https://travis-ci.org/berkmancenter/mediacloud/jobs/28721908#L2803);
+    # Perl 5.18 and 5.20 work fine though.
+    #
+    #- "5.19"
+addons:
+    hosts:
+        - mediacloud.local
+env:
+    global:
+        # Amazon S3 credentials for caching Carton dependencies ("local/")
+        - "ARTIFACTS_AWS_REGION=us-east-1"
+        - "ARTIFACTS_S3_BUCKET=travis-ci-cache-mediacloud-pypt-lt"
+        - secure: "dbil5PHZMwJ0Hn5d/asLj+yXX8ozkhnhJfDoOyhW7aLo7jW8HL0cmmlXeaEhitU3gk++BwM7xu9weX+8W5vKRPnbOkEJtV5EtkXwLG59Mg02GSKpdF1lbfVNJe6JaIPbXnckzieaITF/H+U06GRRfKphYzoRcaYYI2Yik4rNmxA="
+        - secure: "Ek4Y2M1JO+ryFLPMrwQfNLnvIlh7H2X39p0aAVS5Bn9dILjKKWgvHlNjIJWgm8Wb5qfJmh94c6pDNRTqjqdPKPcR4IUmFY7cRgH1tai8Hcq0rUyu8GQ4dWOJqttCUzTuBpKVpwdX4SVD9MRhrouJfflfAD0+9znIs0sH2xvbfWw="
+before_install:
+    # Travis artifacts (for caching "local/" to S3)
+    - gem install travis-artifacts
+    # Update package listings (don't upgrade the packages though because it takes too much time)
+    - sudo apt-get -y update
+    # Create + switch to the Media Cloud's Perlbrew library
+    - perlbrew lib create mediacloud
+    - perlbrew switch @mediacloud
+    # Install Media Cloud system package dependencies
+    - ./install_scripts/install_mediacloud_package_dependencies.sh
+    - ./install_modules_outside_of_carton.sh
+    # Either:
+    # 1) download Carton dependencies bundle from S3 and extract it as "local/", or
+    # 2) build the Carton dependencies, bundle them and upload to S3
+    - ./install_scripts/travis-pour_or_bundle_carton_modules.sh
+    # Install Python dependencies
+    - ./python_scripts/pip_installs.sh
+install:
+    # Use default configuration
+    - cp mediawords.yml.dist mediawords.yml
+    # Create PostgreSQL database
+    - sudo ./install_scripts/create_default_db_user_and_databases.sh
+before_script:
+    # Initialize PostgreSQL database
+    - MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM=1 ./script/run_with_carton.sh ./script/mediawords_create_db.pl
+script:
+    # Run Media Cloud's test suite
+    - ./script/run_test_suite.sh

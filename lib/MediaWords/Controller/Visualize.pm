@@ -229,7 +229,7 @@ sub query_term_in_media
     foreach my $term_language ( @{ $params->{ 'terms' } } )
     {
         my ( $term, $language ) = split( ' ', $term_language );
-        push( $terms_languages, { 'term' => $term, 'language' => $language } );
+        push( @{ $terms_languages }, { 'term' => $term, 'language' => $language } );
     }
 
     # Create a stems clause

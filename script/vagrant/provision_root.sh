@@ -39,11 +39,6 @@ if [ -b /dev/sda ]; then
     update-grub
 fi
 
-echo "Adding MongoDB 10gen repository and installing MongoDB..."
-apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
-echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' \
-    > /etc/apt/sources.list.d/mongodb.list
-
 echo "Fetching a list of APT updates and new repository listings..."
 apt-get update
 
@@ -52,6 +47,3 @@ DEBIAN_FRONTEND=noninteractive apt-get -y upgrade
 
 echo "Installing some basic utilities..."
 DEBIAN_FRONTEND=noninteractive apt-get -y install vim git screen mc zip unzip links htop
-
-echo "Installing MongoDB (10gen version)..."
-DEBIAN_FRONTEND=noninteractive apt-get -y install mongodb-10gen

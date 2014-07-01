@@ -313,7 +313,7 @@ sub _annotate_text($)
     {
         _fatal_error( "Expected root key 'corenlp' doesn't exist in JSON response: $results_string" );
     }
-    unless ( scalar( keys( $results_hashref ) ) == 1 )
+    unless ( scalar( keys( %{ $results_hashref } ) ) == 1 )
     {
         _fatal_error( "Hashref is expected to have a single 'corenlp' root key in JSON response: $results_string" );
     }
@@ -326,7 +326,7 @@ sub _annotate_text($)
     {
         _fatal_error( "Contents of 'corenlp' root key are expected to be a hashref in JSON response: $results_string" );
     }
-    unless ( scalar( keys( $results_hashref ) ) > 0 )
+    unless ( scalar( keys( %{ $results_hashref } ) ) > 0 )
     {
         _fatal_error( "'corenlp' root key is not expected to be an empty hash in JSON response: $results_string" );
     }
@@ -554,7 +554,7 @@ sub fetch_annotation_json_for_story($$)
         die "CoreNLP annotator is not enabled in the configuration.";
     }
 
-    my $story = $db->find_by_id( 'stories', $stories_id);
+    my $story = $db->find_by_id( 'stories', $stories_id );
     unless ( $story->{ stories_id } )
     {
         die "Annotatable story $stories_id was not found.";
