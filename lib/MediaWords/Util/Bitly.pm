@@ -169,7 +169,6 @@ sub canonicalize_url($)
     $uri->query_form( \%query_form );
 
     # FIXME remove parameters that contain URLs
-    # FIXME remove base64-encoded parameters (likely to be tracking codes)
     # FIXME try fetching an URL, use the first redirect as the real URL
     # FIXME fetch the page, look for <link rel="canonical" />
 
