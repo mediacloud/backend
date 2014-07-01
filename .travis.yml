@@ -2,7 +2,12 @@ language: perl
 perl:
     - "5.16"
     - "5.18"
-    - "5.19"
+    #
+    # Do not test on Perl 5.19 because 5.19.9 seems to mishandle UTF-8 source files
+    # (see https://travis-ci.org/berkmancenter/mediacloud/jobs/28721908#L2803);
+    # Perl 5.18 and 5.20 work fine though.
+    #
+    #- "5.19"
 addons:
     hosts:
         - mediacloud.local
