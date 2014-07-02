@@ -900,31 +900,11 @@ sub _immediate_redirection_url_for_medium($$)
     }
 
     my $html = $response->decoded_content || '';
-    $new_url = undef;
-    while ( $html =~ m~(<\s*?meta.+?>)~gi )
+    $new_url = MediaWords::Util::URL::meta_refresh_url_from_html( $html );
+    if ( $new_url and $medium->{ url } ne $new_url )
     {
-        my $meta_element = $1;
-
-        if ( $meta_element =~ m~http-equiv\s*?=\s*?["']\s*?refresh\s*?["']~i )
-        {
-            if ( $meta_element =~ m~content\s*?=\s*?["']\d+?\s*?;\s*?URL\s*?=\s*?(http://.+?)["']~i )
-            {
-                $new_url = $1;
-                if ( $new_url and $medium->{ url } ne $new_url )
-                {
-                    if ( $new_url !~ /$RE{URI}/ )
-                    {
-                        say STDERR
-                          "HTML <meta/> refresh found ($medium->{url} => $new_url) but the new URL doesn't seem valid.";
-                    }
-                    else
-                    {
-                        say STDERR "New medium URL via HTML <meta/> refresh: $medium->{url} => $new_url";
-                        return $new_url;
-                    }
-                }
-            }
-        }
+        say STDERR "New medium URL via HTML <meta/> refresh: $medium->{url} => $new_url";
+        return $new_url;
     }
 
     return undef;

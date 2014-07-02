@@ -1,11 +1,13 @@
 package MediaWords::Util::URL;
 
-use URI;
+use strict;
+use warnings;
 
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
-use strict;
+use URI;
+use Regexp::Common qw /URI/;
 
 # do some simple transformations on a url to make it match other equivalent urls as well as possible
 sub normalize_url
@@ -62,7 +64,39 @@ sub get_url_domain
     }
 
     return lc( $domain );
+}
 
+# From the provided HTML, determine the <meta http-equiv="refresh" /> URL (if any)
+sub meta_refresh_url_from_html($)
+{
+    my $html = shift;
+
+    my $url = undef;
+    while ( $html =~ m~(<\s*?meta.+?>)~gi )
+    {
+        my $meta_element = $1;
+
+        if ( $meta_element =~ m~http-equiv\s*?=\s*?["']\s*?refresh\s*?["']~i )
+        {
+            if ( $meta_element =~ m~content\s*?=\s*?["']\d+?\s*?;\s*?URL\s*?=\s*?(http://.+?)["']~i )
+            {
+                $url = $1;
+                if ( $url )
+                {
+                    if ( $url !~ /$RE{URI}/ )
+                    {
+                        say STDERR "HTML <meta/> refresh found, but the new URL ($url) doesn't seem valid.";
+                    }
+                    else
+                    {
+                        return $url;
+                    }
+                }
+            }
+        }
+    }
+
+    return undef;
 }
 
 1;
