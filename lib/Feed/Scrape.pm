@@ -14,6 +14,7 @@ use URI::URL;
 use URI::Escape;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
+use MediaWords::Util::URL;
 use Domain::PublicSuffix;
 use Carp;
 use HTML::LinkExtractor;
