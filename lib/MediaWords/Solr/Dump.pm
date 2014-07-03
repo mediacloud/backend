@@ -256,7 +256,7 @@ sub _solr_request
 {
     my ( $url ) = @_;
 
-    print STDERR "requesting url: $url ...\n";
+    # print STDERR "requesting url: $url ...\n";
 
     my $solr_url = MediaWords::Util::Config::get_config->{ mediawords }->{ solr_url }->[ 0 ];
 
@@ -360,6 +360,8 @@ sub delete_stories
 
     return 1 unless ( $stories_ids && @{ $stories_ids } );
 
+    print STDERR "deleting " . scalar( @{ $stories } ) . " stories ...\n";
+
     # send requests in chunks so the requests are not too big
     my $chunk_size = 500;
     for ( my $i = 0 ; $i < @{ $stories_ids } ; $i += $chunk_size )
@@ -379,6 +381,8 @@ sub delete_stories
 # delete all stories from solr
 sub delete_all_sentences
 {
+    print STDERR "deleting all sentences ...\n";
+
     return _solr_request( "/update?stream.body=<delete><query>*:*</query></delete>" );
 }
 
