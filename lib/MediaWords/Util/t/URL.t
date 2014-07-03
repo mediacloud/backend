@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 5;
+use Test::More tests => 8;
 
 BEGIN
 {
@@ -16,6 +16,7 @@ BEGIN
 sub test_meta_refresh_url_from_html()
 {
     my $html;
+    my $base_url;
     my $expected_url;
 
     # No <meta http-equiv="refresh" />
@@ -30,8 +31,10 @@ sub test_meta_refresh_url_from_html()
         </body>
         </html>
 EOF
+    $base_url     = 'http://example.com/';
     $expected_url = undef;
-    is( MediaWords::Util::URL::meta_refresh_url_from_html( $html ), $expected_url, 'No <meta http-equiv="refresh" />' );
+    is( MediaWords::Util::URL::meta_refresh_url_from_html( $html, $base_url ),
+        $expected_url, 'No <meta http-equiv="refresh" />' );
 
     # Basic HTML <meta http-equiv="refresh">
     $html = <<EOF;
@@ -46,9 +49,10 @@ EOF
         </BODY>
         </HTML>
 EOF
+    $base_url     = 'http://example.com/';
     $expected_url = 'http://example.com/';
-    is( MediaWords::Util::URL::meta_refresh_url_from_html( $html ), $expected_url,
-        'Basic HTML <meta http-equiv="refresh">' );
+    is( MediaWords::Util::URL::meta_refresh_url_from_html( $html, $base_url ),
+        $expected_url, 'Basic HTML <meta http-equiv="refresh">' );
 
     # Basic XHTML <meta http-equiv="refresh" />
     $html = <<EOF;
@@ -63,9 +67,36 @@ EOF
         </body>
         </html>
 EOF
+    $base_url     = 'http://example.com/';
     $expected_url = 'http://example.com/';
-    is( MediaWords::Util::URL::meta_refresh_url_from_html( $html ),
+    is( MediaWords::Util::URL::meta_refresh_url_from_html( $html, $base_url ),
         $expected_url, 'Basic XHTML <meta http-equiv="refresh" />' );
+
+    # Relative path (with trailing slash)
+    $html = <<EOF;
+        <meta http-equiv="refresh" content="0; url=second/third/" />
+EOF
+    $base_url     = 'http://example.com/first/';
+    $expected_url = 'http://example.com/first/second/third/';
+    is( MediaWords::Util::URL::meta_refresh_url_from_html( $html, $base_url ),
+        $expected_url, 'Relative path (with trailing slash)' );
+
+    # Relative path (without trailing slash)
+    $html = <<EOF;
+        <meta http-equiv="refresh" content="0; url=second/third/" />
+EOF
+    $base_url     = 'http://example.com/first';
+    $expected_url = 'http://example.com/second/third/';
+    is( MediaWords::Util::URL::meta_refresh_url_from_html( $html, $base_url ),
+        $expected_url, 'Relative path (without trailing slash)' );
+
+    # Absolute path
+    $html = <<EOF;
+        <meta http-equiv="refresh" content="0; url=/first/second/third/" />
+EOF
+    $base_url     = 'http://example.com/fourth/fifth/';
+    $expected_url = 'http://example.com/first/second/third/';
+    is( MediaWords::Util::URL::meta_refresh_url_from_html( $html, $base_url ), $expected_url, 'Absolute path' );
 }
 
 sub main()

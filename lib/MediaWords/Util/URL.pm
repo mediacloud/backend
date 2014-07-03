@@ -67,9 +67,9 @@ sub get_url_domain
 }
 
 # From the provided HTML, determine the <meta http-equiv="refresh" /> URL (if any)
-sub meta_refresh_url_from_html($)
+sub meta_refresh_url_from_html($;$)
 {
-    my $html = shift;
+    my ( $html, $base_url ) = @_;
 
     my $url = undef;
     while ( $html =~ m~(<\s*?meta.+?>)~gi )
@@ -78,17 +78,27 @@ sub meta_refresh_url_from_html($)
 
         if ( $meta_element =~ m~http-equiv\s*?=\s*?["']\s*?refresh\s*?["']~i )
         {
-            if ( $meta_element =~ m~content\s*?=\s*?["']\d+?\s*?;\s*?URL\s*?=\s*?(http://.+?)["']~i )
+            if ( $meta_element =~ m~content\s*?=\s*?["']\d+?\s*?;\s*?URL\s*?=\s*?(.+?)["']~i )
             {
                 $url = $1;
                 if ( $url )
                 {
                     if ( $url !~ /$RE{URI}/ )
                     {
-                        say STDERR "HTML <meta/> refresh found, but the new URL ($url) doesn't seem valid.";
+                        # Maybe it's relative / absolute URL?
+                        if ( $base_url )
+                        {
+                            my $uri = URI->new_abs( $url, $base_url );
+                            return $uri->as_string;
+                        }
+                        else
+                        {
+                            say STDERR "HTML <meta/> refresh found, but the new URL ($url) doesn't seem valid.";
+                        }
                     }
                     else
                     {
+                        # Looks like URL, so return it
                         return $url;
                     }
                 }
