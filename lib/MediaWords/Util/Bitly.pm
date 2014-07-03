@@ -258,6 +258,10 @@ sub url_canonical($)
     # Some other parameters (common for tracking session IDs, advertising, etc.)
     push( @parameters_to_remove, 'sort' );
 
+    # Delete the "empty" parameter (e.g. in http://www-nc.nytimes.com/2011/06/29/us/politics/29marriage.html?=_r%3D6)
+    push( @parameters_to_remove, '' );
+
+    # Remove cruft parameters
     foreach my $parameter ( @parameters_to_remove )
     {
         $uri->query_param_delete( $parameter );
