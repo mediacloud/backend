@@ -140,22 +140,23 @@ sub url_after_redirects($;$$)
         }
 
         my @redirects = $response->redirects();
-        if ( scalar @redirects )
-        {
-            say STDERR "Redirects:";
-            foreach my $redirect ( @redirects )
-            {
-                say STDERR "* From:";
-                say STDERR "    " . $redirect->request()->uri()->canonical;
-                say STDERR "  to:";
-                say STDERR "    " . $redirect->header( 'Location' );
-            }
-        }
+
+        # if ( scalar @redirects )
+        # {
+        #     say STDERR "Redirects:";
+        #     foreach my $redirect ( @redirects )
+        #     {
+        #         say STDERR "* From:";
+        #         say STDERR "    " . $redirect->request()->uri()->canonical;
+        #         say STDERR "  to:";
+        #         say STDERR "    " . $redirect->header( 'Location' );
+        #     }
+        # }
 
         my $new_uri = $response->request()->uri()->canonical;
         unless ( $uri->eq( $new_uri ) )
         {
-            say STDERR "New URI: " . $new_uri->as_string;
+            # say STDERR "New URI: " . $new_uri->as_string;
             $uri = $new_uri;
         }
 
