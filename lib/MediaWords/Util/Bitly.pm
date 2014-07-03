@@ -11,6 +11,7 @@ use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use MediaWords::Util::Web;
+use MediaWords::Util::URL;
 use MediaWords::Util::Config;
 use JSON;
 
@@ -93,6 +94,86 @@ sub request($$)
 
 # Canonicalizes URL for Bit.ly API lookup; die()s on error
 sub canonicalize_url($)
+# Fetch the URL, evaluate HTTP / HTML redirects, and return URL after all those redirects; die() on error
+sub url_after_redirects($;$$)
+{
+    my ( $orig_url, $max_http_redirect, $max_meta_redirect ) = @_;
+
+    unless ( $orig_url )
+    {
+        die "URL is undefined";
+    }
+
+    my $uri = URI->new( $orig_url )->canonical;
+
+    unless ( $uri->scheme )
+    {
+        die "Scheme is undefined for URL $orig_url";
+    }
+    unless ( $uri->scheme eq 'http' or $uri->scheme eq 'https' )
+    {
+        die "Scheme is not HTTP(s) for URL $orig_url";
+    }
+
+    $max_http_redirect //= 7;
+    $max_meta_redirect //= 3;
+
+    for ( my $meta_redirect = 1 ; $meta_redirect <= $max_meta_redirect ; ++$meta_redirect )
+    {
+
+        # Do HTTP request to the current URL
+        my $ua = MediaWords::Util::Web::UserAgent;
+
+        $ua->max_redirect( $max_http_redirect );
+
+        my $response = $ua->get( $uri->as_string );
+
+        unless ( $response->is_success )
+        {
+            warn "Request to " . $uri->as_string . " was unsuccessful: " . $response->status_line;
+            return $orig_url;
+        }
+
+        my @redirects = $response->redirects();
+        if ( scalar @redirects )
+        {
+            say STDERR "Redirects:";
+            foreach my $redirect ( @redirects )
+            {
+                say STDERR "* From:";
+                say STDERR "    " . $redirect->request()->uri()->canonical;
+                say STDERR "  to:";
+                say STDERR "    " . $redirect->header( 'Location' );
+            }
+        }
+
+        my $new_uri = $response->request()->uri()->canonical;
+        unless ( $uri->eq( $new_uri ) )
+        {
+            say STDERR "New URI: " . $new_uri->as_string;
+            $uri = $new_uri;
+        }
+
+        # Check if the returned document contains <meta http-equiv="refresh" />
+        my $html = $response->decoded_content || '';
+        my $url_after_meta_redirect = MediaWords::Util::URL::meta_refresh_url_from_html( $html );
+        if ( $url_after_meta_redirect and $uri->as_string ne $url_after_meta_redirect )
+        {
+            say STDERR "URL after <meta /> refresh: $url_after_meta_redirect";
+            $uri = URI->new( $url_after_meta_redirect )->canonical;
+
+            # ...and repeat the HTTP redirect cycle here
+        }
+        else
+        {
+            # No <meta /> refresh, the current URL is the final one
+            last;
+        }
+
+    }
+
+    return $uri->as_string;
+}
 {
     my $url = shift;
 
@@ -168,7 +249,6 @@ sub canonicalize_url($)
     }
     $uri->query_form( \%query_form );
 
-    # FIXME try fetching an URL, use the first redirect as the real URL
     # FIXME fetch the page, look for <link rel="canonical" />
 
     return $uri->as_string;
