@@ -288,4 +288,88 @@ sub all_url_variants($)
     return uniq( values %urls );
 }
 
+# Query for a Bitlink based on a long URL (http://dev.bitly.com/links.html#v3_link_lookup)
+# Params: URL to query
+# Returns: hashref with "URL => Bit.ly ID" pairs, e.g.:
+#     {
+#         'http://www.foxnews.com/us/2013/07/04/crowds-across-america-protest-nsa-in-restore-fourth-movement/' => '14VhXAj',
+#         'http://feeds.foxnews.com/~r/foxnews/national/~3/bmilmNKlhLw/' => undef,
+#         'http://www.foxnews.com/us/2013/07/04/crowds-across-america-protest-nsa-in-restore-fourth-movement/?utm_source=
+#              feedburner&utm_medium=feed&utm_campaign=Feed%3A+foxnews%2Fnational+(Internal+-+US+Latest+-+Text)' => undef
+#     };
+# die()s on error
+sub bitly_link_lookup($)
+{
+    my $url = shift;
+
+    my @urls = all_url_variants( $url );
+    unless ( scalar @urls )
+    {
+        die "No URLs returned for URL $url";
+    }
+
+    my $result = request( '/v3/link/lookup', { url => \@urls } );
+
+    # say STDERR "API result: " . Dumper($result);
+
+    unless ( defined $result->{ link_lookup } )
+    {
+        die "Result doesn't contain expected 'link_lookup' key.";
+    }
+    unless ( ref( $result->{ link_lookup } ) eq ref( [] ) )
+    {
+        die "'link_lookup' value is not an arrayref.";
+    }
+    unless ( scalar @{ $result->{ link_lookup } } == scalar( @urls ) )
+    {
+        die "The number of URLs returned differs from the number of input URLs.";
+    }
+
+    my %bitly_link_lookup;
+    foreach my $link_lookup ( @{ $result->{ link_lookup } } )
+    {
+        unless ( ref( $link_lookup ) eq ref( {} ) )
+        {
+            die "Link lookup result is not a hashref.";
+        }
+
+        my $link_lookup_url = $link_lookup->{ url };
+        unless ( $link_lookup_url )
+        {
+            die "Link lookup URL is empty.";
+        }
+
+        my $link_lookup_aggregate_id;
+        if ( $link_lookup->{ aggregate_link } )
+        {
+
+            my $aggregate_link_uri = URI->new( $link_lookup->{ aggregate_link } );
+            $link_lookup_aggregate_id = $aggregate_link_uri->path;
+            $link_lookup_aggregate_id =~ s|^/||;
+        }
+        else
+        {
+            if ( $link_lookup->{ error } )
+            {
+                if ( uc( $link_lookup->{ error } ) eq 'NOT_FOUND' )
+                {
+                    $link_lookup_aggregate_id = undef;
+                }
+                else
+                {
+                    die "'error' is not 'NOT_FOUND': " . $link_lookup->{ error };
+                }
+            }
+            else
+            {
+                die "No 'aggregate_link' was provided, but it's not an API error either.";
+            }
+        }
+
+        $bitly_link_lookup{ $link_lookup_url } = $link_lookup_aggregate_id;
+    }
+
+    return \%bitly_link_lookup;
+}
+
 1;
