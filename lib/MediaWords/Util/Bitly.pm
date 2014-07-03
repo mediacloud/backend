@@ -182,7 +182,7 @@ sub url_after_redirects($;$$)
         die "URL is undefined";
     }
 
-    my $uri = URI->new_abs( $url, 'http' )->canonical;
+    my $uri = URI->new( $url )->canonical;
 
     unless ( $uri->scheme )
     {
