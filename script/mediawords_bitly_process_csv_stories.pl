@@ -48,10 +48,12 @@ sub main()
     my $csv = Text::CSV->new( { binary => 1 } )    # should set binary attribute.
       or die "Cannot use CSV: " . Text::CSV->error_diag();
 
+    my $links_total = 0;
+    my $links_found = 0;
+
     open my $fh, "<:encoding(utf8)", $stories_csv_file or die "Unable to open $stories_csv_file: $!";
     while ( my $row = $csv->getline( $fh ) )
     {
-
         if ( scalar( @{ $row } ) != 2 )
         {
             die "Only two columns with stories_id and URL is expected; got: " . Dumper( $row );
@@ -67,13 +69,29 @@ sub main()
 
         say STDERR "Processing story $stories_id...";
 
+        ++$links_total;
+
         my $link_lookup = MediaWords::Util::Bitly::bitly_link_lookup( $stories_url );
         say STDERR "Link lookup: " . Dumper( $link_lookup );
+
+        my $link_was_found = 0;
+        foreach my $link (keys %{ $link_lookup }) {
+            if (defined $link_lookup->{ $link }) {
+                $link_was_found = 1;
+                last;
+            }
+        }
+        if ($link_was_found) {
+            ++$links_found;
+        }
 
         say STDERR "Done.";
     }
     $csv->eof or $csv->error_diag();
     close $fh;
+
+    say STDERR "Total links: $links_total";
+    say STDERR "Found links: $links_found";
 }
 
 main();
