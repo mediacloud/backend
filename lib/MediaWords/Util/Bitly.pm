@@ -13,6 +13,8 @@ use MediaWords::CommonLibs;
 use MediaWords::Util::Web;
 use MediaWords::Util::URL;
 use MediaWords::Util::Config;
+use URI;
+use URI::QueryParam;
 use JSON;
 use List::MoreUtils qw/uniq/;
 
@@ -51,7 +53,11 @@ sub request($$)
 
     my $uri = URI->new( BITLY_API_ENDPOINT );
     $uri->path( $path );
-    $uri->query_form( $params );
+    foreach my $params_key ( keys %{ $params } )
+    {
+        $uri->query_param( $params_key => $params->{ $params_key } );
+    }
+    $uri->query_param( $params );
     my $url = $uri->as_string;
 
     my $ua       = MediaWords::Util::Web::UserAgent;
@@ -244,12 +250,10 @@ sub url_canonical($)
     # Some other parameters (common for tracking session IDs, advertising, etc.)
     push( @parameters_to_remove, 'sort' );
 
-    my %query_form = $uri->query_form;
     foreach my $parameter ( @parameters_to_remove )
     {
-        delete $query_form{ $parameter };
+        $uri->query_param_delete( $parameter );
     }
-    $uri->query_form( \%query_form );
 
     # FIXME fetch the page, look for <link rel="canonical" />
 
