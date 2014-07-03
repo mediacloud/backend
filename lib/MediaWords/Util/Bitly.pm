@@ -155,7 +155,7 @@ sub url_after_redirects($;$$)
 
         # Check if the returned document contains <meta http-equiv="refresh" />
         my $html = $response->decoded_content || '';
-        my $url_after_meta_redirect = MediaWords::Util::URL::meta_refresh_url_from_html( $html );
+        my $url_after_meta_redirect = MediaWords::Util::URL::meta_refresh_url_from_html( $html, $uri->as_string );
         if ( $url_after_meta_redirect and $uri->as_string ne $url_after_meta_redirect )
         {
             say STDERR "URL after <meta /> refresh: $url_after_meta_redirect";
