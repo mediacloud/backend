@@ -247,10 +247,11 @@ sub url_canonical($)
     @parameters_to_remove = (
         @parameters_to_remove,
         qw/ PHPSESSID PHPSESSIONID
-          s_cid sid ncid
+          cid s_cid sid ncid ir
           ref oref eref
           ns_mchannel ns_campaign
-          wprss custom_click source /
+          wprss custom_click source
+          feedName feedType /
     );
 
     # Make the sorting default (e.g. on Reddit)
