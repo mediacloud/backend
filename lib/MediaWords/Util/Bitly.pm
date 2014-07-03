@@ -234,6 +234,12 @@ sub url_canonical($)
         @parameters_to_remove = ( @parameters_to_remove, qw/ emc partner _r hp inline / );
     }
 
+    if ( $uri->host =~ /livejournal\.com$/i )
+    {
+        # Additional parameters specifically for the livejournal.com host
+        @parameters_to_remove = ( @parameters_to_remove, qw/ thread nojs / );
+    }
+
     # metrika.yandex.ru parameters
     @parameters_to_remove = ( @parameters_to_remove, qw/ yclid _openstat / );
 
