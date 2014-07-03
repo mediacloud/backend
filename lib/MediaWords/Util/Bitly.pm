@@ -267,6 +267,16 @@ sub url_canonical($)
         $uri->query_param_delete( $parameter );
     }
 
+    # Remove parameters that start with '_' (e.g. '_cid') because they're more likely to be the tracking codes
+    my @parameters = $uri->query_param;
+    foreach my $parameter ( @parameters )
+    {
+        if ( $parameter =~ /^_/ )
+        {
+            $uri->query_param_delete( $parameter );
+        }
+    }
+
     # FIXME fetch the page, look for <link rel="canonical" />
 
     return $uri->as_string;
