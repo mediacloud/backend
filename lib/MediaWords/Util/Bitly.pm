@@ -222,6 +222,9 @@ sub url_canonical($)
           fsrc /
     );
 
+    # metrika.yandex.ru parameters
+    @parameters_to_remove = ( @parameters_to_remove, qw/ yclid _openstat / );
+
     if ( $uri->host =~ /facebook\.com$/i )
     {
         # Additional parameters specifically for the facebook.com host
@@ -239,9 +242,6 @@ sub url_canonical($)
         # Additional parameters specifically for the livejournal.com host
         @parameters_to_remove = ( @parameters_to_remove, qw/ thread nojs / );
     }
-
-    # metrika.yandex.ru parameters
-    @parameters_to_remove = ( @parameters_to_remove, qw/ yclid _openstat / );
 
     # Some other parameters (common for tracking session IDs, advertising, etc.)
     @parameters_to_remove = (
