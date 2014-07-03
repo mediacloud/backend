@@ -17,7 +17,7 @@ sub get_table_name
     return "tags";
 }
 
-sub list_query_filter_field
+sub list_optional_query_filter_field
 {
     return 'tag_sets_id';
 }
