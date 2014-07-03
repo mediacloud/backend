@@ -18,6 +18,7 @@ package HTTP::HashServer;
 # { content => 'foo', header => 'Content-Type: text/plain' }.
 
 use strict;
+use warnings;
 
 use English;
 
@@ -52,8 +53,11 @@ sub new
     $self->{ pages } = $pages;
     $self->{ port }  = $port;
 
-    while ( my ( $path, $page ) = each( %{ $pages } ) )
+    my @paths = keys %{ $pages };
+    foreach my $path ( @paths )
     {
+        my $page = $pages->{ $path };
+
         die( "path must start with /: '$path'" ) unless ( $path =~ /^\// );
         if ( $path =~ /.\/$/ )
         {

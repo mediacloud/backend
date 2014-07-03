@@ -4,6 +4,7 @@
 # all associated stories and downloads in the process
 
 use strict;
+use warnings;
 
 BEGIN
 {

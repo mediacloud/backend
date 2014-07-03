@@ -216,10 +216,10 @@ sub import_downloads
             my $db_story =
               MediaWords::Crawler::FeedHandler::_add_story_using_parent_download( $db, $story_hash, $db_download );
 
-            die "Story not created for object " . Dumper( $story_hash ) unless defined( $db_story ) and $db_story;
+            confess "Story not created for object " . Dumper( $story_hash ) unless defined( $db_story ) and $db_story;
 
-            die "db_story object: " .
-              Dumper( $db_story ) . "does not have a stories_id." . "object created from " . Dumper( $story_hash );
+            confess "db_story object: " .
+		Dumper( $db_story ) . "does not have a stories_id." . "object created from " . Dumper( $story_hash ) unless $db_story->{ stories_id };
 
             my @story_downloads_list = $story_element->getElementsByTagName( "story_downloads" );
 
@@ -246,9 +246,9 @@ sub import_downloads
                 $download_hash->{ extracted }  = 'f';
                 $download_hash->{ path }       = '';
 
-                confess unless $download_hash->{ stories_id }
+                confess unless $download_hash->{ stories_id };
 
-                  delete( $download_hash->{ downloads_id } );
+                delete( $download_hash->{ downloads_id } );
 
                 my $story_download_decoded_content = $download_hash->{ encoded_download_content_base_64 }
                   && decode_base64( $download_hash->{ encoded_download_content_base_64 } );

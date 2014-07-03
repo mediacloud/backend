@@ -1,4 +1,5 @@
 use strict;
+use warnings;
 
 # test HTTP::HashServer
 

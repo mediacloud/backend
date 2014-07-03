@@ -3,6 +3,7 @@
 #Runs html_strip on the concat'ed input and prints the results.
 
 use strict;
+use warnings;
 
 my $dir;
 

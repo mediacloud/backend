@@ -1,13 +1,19 @@
 use strict;
-
-use List::Util;
-use Test::More;
+use warnings;
 
 BEGIN
 {
-    use_ok( 'MediaWords::DB' );
-    use_ok( 'MediaWords::DBI::Queries' );
+    use FindBin;
+    use lib "$FindBin::Bin/../lib";
+    use lib $FindBin::Bin;
 }
+
+use Test::More tests => 416;
+use Test::NoWarnings;
+use MediaWords::Test::DB;
+use MediaWords::DBI::Queries;
+
+use List::Util;
 
 # create some media sets, dashboards, and dashboard_topics to use for query creation
 sub create_query_parts
@@ -134,7 +140,7 @@ sub test_query_signatures
     map { $_->{ create_query } = MediaWords::DBI::Queries::find_or_create_query_by_params( $db, $_->{ params } ) }
       @{ $tests };
 
-    my $tests = [ List::Util::shuffle( @{ $tests } ) ];
+    $tests = [ List::Util::shuffle( @{ $tests } ) ];
 
     for my $test ( @{ $tests } )
     {
@@ -147,21 +153,16 @@ sub test_query_signatures
 
 sub main
 {
-    my $db = MediaWords::DB::connect_to_db;
+    MediaWords::Test::DB::test_on_test_database(
+        sub {
+            my $db = shift;
 
-    $db->begin;
+            my ( $media_sets, $dashboards ) = create_query_parts( $db );
+            test_query_signatures( $db, $media_sets, $dashboards );
 
-    my $num_tests;
-    eval {
-        my ( $media_sets, $dashboards ) = create_query_parts( $db );
-        $num_tests = test_query_signatures( $db, $media_sets, $dashboards );
-    };
-
-    die( $@ ) if ( $@ );
-
-    $db->rollback;
-
-    done_testing( $num_tests + 2 );
+            Test::NoWarnings::had_no_warnings();
+        }
+    );
 }
 
 main();

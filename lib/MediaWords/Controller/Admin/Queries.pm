@@ -314,7 +314,7 @@ sub terms : Local
     foreach my $term_language ( @{ $terms } )
     {
         my ( $term, $language ) = split( ' ', $term_language );
-        push( $terms_languages, { 'term' => $term, 'language' => $language } );
+        push( @{ $terms_languages }, { 'term' => $term, 'language' => $language } );
     }
 
     my $query = MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $queries_id );

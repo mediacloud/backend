@@ -5,6 +5,7 @@ package HTML::StripPP;
 # code by powerman from: http://www.perlmonks.org/?node_id=161281
 
 use strict;
+use warnings;
 
 use HTML::Entities;
 

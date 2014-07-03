@@ -3,6 +3,7 @@
 # import a set of medium -> controversy_media_codes mappings from a csv
 
 use strict;
+use warnings;
 
 BEGIN
 {

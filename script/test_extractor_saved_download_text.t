@@ -3,6 +3,7 @@
 # test MediaWords::Crawler::Extractor against manually extracted downloads
 
 use strict;
+use warnings;
 
 my $cwd;
 
@@ -140,5 +141,3 @@ sub get_value_of_base_64_node
 }
 
 Test::NoWarnings::had_no_warnings();
-
-done_testing;

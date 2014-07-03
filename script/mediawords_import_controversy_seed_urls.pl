@@ -13,6 +13,7 @@
 # 1 or 0 (the default is 0).
 
 use strict;
+use warnings;
 
 BEGIN
 {

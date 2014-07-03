@@ -5,8 +5,6 @@ All source files must use the CPAN module Modern::Perl and the internal library 
 
 Simply including these modules will, among other things, enable all Perl 5.16 features, provide common and frequently used libraries such as Readonly and Data::Dumper, and ensure use strict is enabled.
 
-The only exception is modules that are used by the plperl stored procedures. 
-
 Any source files that do not use Modern::Perl and MediaWords::CommonLibs must have a comment explaining why these libraries are not being used.
 
 Shebang Lines

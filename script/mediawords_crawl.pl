@@ -9,6 +9,7 @@
 # which is useful for testing environments to make a test crawler work quickly
 
 use strict;
+use warnings;
 
 BEGIN
 {

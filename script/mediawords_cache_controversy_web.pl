@@ -5,6 +5,7 @@
 # not take a long time the first request to the controversy
 
 use strict;
+use warnings;
 
 BEGIN
 {

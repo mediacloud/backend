@@ -135,7 +135,7 @@ sub _get_extracted_lines_with_crf
             $score->{ is_story }     = 0;
             $score->{ autoexcluded } = 1;
             $line_index++;
-            push $scores, $score;
+            push( @{ $scores }, $score );
             next;
         }
 
@@ -173,7 +173,7 @@ sub _get_extracted_lines_with_crf
         $line_index++;
         $prediction_index++;
 
-        push $scores, $score;
+        push( @{ $scores }, $score );
 
     }
 

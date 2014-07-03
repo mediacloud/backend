@@ -5,6 +5,7 @@
 #
 
 use strict;
+use warnings;
 
 BEGIN
 {

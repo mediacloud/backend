@@ -1155,7 +1155,7 @@ sub attach_story_data_to_stories
         if ( $list_field )
         {
             $story_data_lookup->{ $sd->{ stories_id } } //= { $list_field => [] };
-            push( $story_data_lookup->{ $sd->{ stories_id } }->{ $list_field }, $sd );
+            push( @{ $story_data_lookup->{ $sd->{ stories_id } }->{ $list_field } }, $sd );
         }
         else
         {

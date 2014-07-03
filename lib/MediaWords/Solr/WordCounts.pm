@@ -7,6 +7,7 @@ package MediaWords::Solr::WordCounts;
 # MediaWords::Solr::count_words.
 
 use strict;
+use warnings;
 
 use Data::Dumper;
 use Encode;

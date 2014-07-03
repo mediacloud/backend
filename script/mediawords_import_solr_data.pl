@@ -5,6 +5,7 @@ use forks;
 # generate and import dumps of postgres data for solr
 
 use strict;
+use warnings;
 
 BEGIN
 {

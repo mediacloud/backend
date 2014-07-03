@@ -33,4 +33,5 @@ $CPANM List::MoreUtils
 
 # Install profiler and tools
 $CPANM Devel::NYTProf
+$CPANM Devel::Cover
 $CPANM lib::core::only

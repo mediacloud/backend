@@ -5,6 +5,7 @@
 # In most cases, this script can be in an Apache config simply by changing the $HOME environment variable for the mediacloud user below.
 
 use strict;
+use warnings;
 
 #use Catalyst::ScriptRunner;
 #Catalyst::ScriptRunner->run( 'MediaWords', 'FastCGI' );

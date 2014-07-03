@@ -1,7 +1,5 @@
 #!/usr/bin/env perl
 #
-# Add plperl functions to database.
-#
 # See MediaWords::Pg::Schema for definition of which functions to add
 #
 # Set the MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM=1 environment variable to create

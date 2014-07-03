@@ -6,6 +6,8 @@ package Catalyst::Plugin::ConfigDefaults;
 # (Session, for instance)
 
 use strict;
+use warnings;
+
 use MRO::Compat;
 
 sub setup
