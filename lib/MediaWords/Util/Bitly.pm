@@ -14,6 +14,7 @@ use MediaWords::Util::Web;
 use MediaWords::Util::URL;
 use MediaWords::Util::Config;
 use JSON;
+use List::MoreUtils qw/uniq/;
 
 use constant BITLY_API_ENDPOINT => 'https://api-ssl.bitly.com/';
 
@@ -92,8 +93,6 @@ sub request($$)
     return $json_data;
 }
 
-# Canonicalizes URL for Bit.ly API lookup; die()s on error
-sub canonicalize_url($)
 # Fetch the URL, evaluate HTTP / HTML redirects, and return URL after all those redirects; die() on error
 sub url_after_redirects($;$$)
 {
@@ -174,6 +173,9 @@ sub url_after_redirects($;$$)
 
     return $uri->as_string;
 }
+
+# Canonicalize URL for Bit.ly API lookup; die() on error
+sub url_canonical($)
 {
     my $url = shift;
 
@@ -252,6 +254,33 @@ sub url_after_redirects($;$$)
     # FIXME fetch the page, look for <link rel="canonical" />
 
     return $uri->as_string;
+}
+
+# Return all URL variants for all URL to be requested to Bit.ly API:
+# 1) Normal URL
+# 2) URL after redirects (i.e., fetch the URL, see if it gets redirected somewhere)
+# 3) Canonical URL (after removing #fragments, session IDs, tracking parameters, etc.)
+# 4) Canonical URL after redirects (do the redirect check first, then strip the tracking parameters from the URL)
+sub all_url_variants($)
+{
+    my $url = shift;
+
+    my %urls = (
+
+        # Normal URL (don't touch anything)
+        'normal' => $url,
+
+        # Normal URL after redirects
+        'after_redirects' => MediaWords::Util::Bitly::url_after_redirects( $url ),
+    );
+
+    # Canonical URL
+    $urls{ 'canonical' } = MediaWords::Util::Bitly::url_canonical( $urls{ 'normal' } );
+
+    # Canonical URL after redirects
+    $urls{ 'after_redirects_canonical' } = MediaWords::Util::Bitly::url_canonical( $urls{ 'after_redirects' } );
+
+    return uniq( values %urls );
 }
 
 1;

@@ -65,9 +65,15 @@ sub main()
             die "The first column doesn't look like stories_id; got: " . Dumper( $row );
         }
 
-        say STDERR "Processing story $stories_id...";
-        my $c_stories_url = MediaWords::Util::Bitly::canonicalize_url( $stories_url );
-        print Dumper( MediaWords::Util::Bitly::request( '/v3/link/lookup', { url => $c_stories_url } ) );
+        say STDERR "Processing story $stories_id...";        
+
+        my @urls = MediaWords::Util::Bitly::all_url_variants( $stories_url );
+
+        foreach my $url (@urls) {
+            my $result = MediaWords::Util::Bitly::request( '/v3/link/lookup', { url => $url } );
+            say STDERR "API result: " . Dumper($result);
+        }
+
         say STDERR "Done.";
     }
     $csv->eof or $csv->error_diag();
