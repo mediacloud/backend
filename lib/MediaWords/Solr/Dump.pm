@@ -360,7 +360,7 @@ sub delete_stories
 
     return 1 unless ( $stories_ids && @{ $stories_ids } );
 
-    print STDERR "deleting " . scalar( @{ $stories } ) . " stories ...\n";
+    print STDERR "deleting " . scalar( @{ $stories_ids } ) . " stories ...\n";
 
     # send requests in chunks so the requests are not too big
     my $chunk_size = 500;

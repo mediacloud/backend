@@ -34,6 +34,7 @@ mkdir -p local/
 # (installing it from cpanfile doesn't seem to work with certain Perl versions)
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ DB_File
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ DBM_Filter
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ Net::DNS
 
 # Module MooseX::Types::DateTime::MoreCoercions doesn't have "provides"
 # section in its META.yml, so Carton sets module's version to "undef" in
