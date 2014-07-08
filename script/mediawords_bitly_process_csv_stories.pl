@@ -121,8 +121,8 @@ sub main()
 
                     # array because one might want to make multiple requests with various dates
                     $bitly_referrers,
+                ],
 
-                  ]
 
                   # 'shares' => $bitly_shares
             };
