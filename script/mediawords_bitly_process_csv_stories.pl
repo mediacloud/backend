@@ -100,36 +100,24 @@ sub main()
                 die "Bit.ly ID $bitly_id already exists in link stats hashref: " . Dumper( $link_stats );
             }
 
-            my $bitly_clicks = MediaWords::Util::Bitly::bitly_link_clicks( $bitly_id );
-
-            my $bitly_category = MediaWords::Util::Bitly::bitly_link_category( $bitly_id );
-
-            my $bitly_referrers = MediaWords::Util::Bitly::bitly_link_referrers( $bitly_id );
-
-            my $bitly_shares = MediaWords::Util::Bitly::bitly_link_shares( $bitly_id );
-
             $link_stats->{ 'data' }->{ $bitly_id } = {
                 'url'    => $link,
                 'clicks' => [
 
                     # array because one might want to make multiple requests with various dates
-                    $bitly_clicks
+                    MediaWords::Util::Bitly::bitly_link_clicks( $bitly_id )
                 ],
-
-                'category' => $bitly_category,
-
+                'category'  => MediaWords::Util::Bitly::bitly_link_category( $bitly_id ),
                 'referrers' => [
 
                     # array because one might want to make multiple requests with various dates
-                    $bitly_referrers,
+                    MediaWords::Util::Bitly::bitly_link_referrers( $bitly_id )
                 ],
-
                 'shares' => [
 
                     # array because one might want to make multiple requests with various dates
-                    $bitly_shares
+                    MediaWords::Util::Bitly::bitly_link_shares( $bitly_id )
                 ],
-
             };
 
         }
