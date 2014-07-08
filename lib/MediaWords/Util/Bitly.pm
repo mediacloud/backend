@@ -309,8 +309,65 @@ sub all_url_variants($)
     return uniq( values %urls );
 }
 
-# Query for a Bitlink based on a long URL (http://dev.bitly.com/links.html#v3_link_lookup)
+# Query for a Bitlinks based on a long URL
+# (http://dev.bitly.com/links.html#v3_link_lookup)
+#
+# Params: URLs (arrayref) to query
+#
+# Returns: hashref with link lookup results, e.g.:
+#     "link_lookup": [
+#         {
+#             "aggregate_link": "http://bit.ly/2V6CFi",
+#             "link": "http://bit.ly/zhheQ9",
+#             "url": "http://www.google.com/"
+#         },
+#         # ...
+#     ]
+#
+# die()s on error
+sub bitly_link_lookup($)
+{
+    my $urls = shift;
+
+    unless ( $urls )
+    {
+        die "URLs is undefined.";
+    }
+    unless ( ref( $urls ) eq ref( [] ) )
+    {
+        die "URLs is not an arrayref.";
+    }
+
+    my $result = request( '/v3/link/lookup', { url => $urls } );
+
+    # Sanity check
+    my @expected_keys = qw/ link_lookup /;
+    foreach my $expected_key ( @expected_keys )
+    {
+        unless ( exists $result->{ $expected_key } )
+        {
+            die "Result doesn't contain expected '$expected_key' key: " . Dumper( $result );
+        }
+    }
+
+    unless ( ref( $result->{ link_lookup } ) eq ref( [] ) )
+    {
+        die "'link_lookup' value is not an arrayref.";
+    }
+    unless ( scalar @{ $result->{ link_lookup } } == scalar( @{ $urls } ) )
+    {
+        die "The number of URLs returned differs from the number of input URLs.";
+    }
+
+    return $result;
+}
+
+# Query for a Bitlinks based on a long URL
+# (http://dev.bitly.com/links.html#v3_link_lookup); try multiple variants
+# (normal, canonical, before redirects, after redirects)
+#
 # Params: URL to query
+#
 # Returns: hashref with "URL => Bit.ly ID" pairs, e.g.:
 #     {
 #         'http://www.foxnews.com/us/2013/07/04/crowds-across-america-protest-nsa-in-restore-fourth-movement/' => '14VhXAj',
@@ -318,6 +375,7 @@ sub all_url_variants($)
 #         'http://www.foxnews.com/us/2013/07/04/crowds-across-america-protest-nsa-in-restore-fourth-movement/?utm_source=
 #              feedburner&utm_medium=feed&utm_campaign=Feed%3A+foxnews%2Fnational+(Internal+-+US+Latest+-+Text)' => undef
 #     };
+#
 # die()s on error
 sub bitly_link_lookup_all_variants($)
 {
@@ -329,22 +387,7 @@ sub bitly_link_lookup_all_variants($)
         die "No URLs returned for URL $url";
     }
 
-    my $result = request( '/v3/link/lookup', { url => \@urls } );
-
-    # say STDERR "API result: " . Dumper($result);
-
-    unless ( defined $result->{ link_lookup } )
-    {
-        die "Result doesn't contain expected 'link_lookup' key.";
-    }
-    unless ( ref( $result->{ link_lookup } ) eq ref( [] ) )
-    {
-        die "'link_lookup' value is not an arrayref.";
-    }
-    unless ( scalar @{ $result->{ link_lookup } } == scalar( @urls ) )
-    {
-        die "The number of URLs returned differs from the number of input URLs.";
-    }
+    my $result = bitly_link_lookup( \@urls );
 
     my %bitly_link_lookup;
     foreach my $link_lookup ( @{ $result->{ link_lookup } } )
