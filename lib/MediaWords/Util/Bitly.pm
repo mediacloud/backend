@@ -753,4 +753,80 @@ sub bitly_link_referrers($;$$)
     return $result;
 }
 
+# Query for list of shares based on Bit.ly URL
+# (http://dev.bitly.com/link_metrics.html#v3_link_shares)
+#
+# Params:
+# * Bit.ly ID (e.g. "QEH44r")
+# * (optional) starting timestamp for which to query statistics
+# * (optional) ending timestamp for which to query statistics
+#
+# Returns: hashref with list of shares, e.g.:
+#     {
+#         "shares": [
+#             {
+#                 "share_type": "tw",
+#                 "shares": 1
+#             }
+#         ],
+#         "total_shares": 1,
+#         "tz_offset": -4,
+#         "unit": "day",
+#         "unit_reference_ts": null,
+#         "units": -1
+#     };
+#
+# die()s on error
+sub bitly_link_shares($;$$)
+{
+    my ( $bitly_id, $start_timestamp, $end_timestamp ) = @_;
+
+    Readonly my $MAX_BITLY_LIMIT => 1000;    # in "/v3/link/referrers" case
+
+    unless ( $bitly_id )
+    {
+        die "Bit.ly ID is undefined.";
+    }
+
+    my ( $unit_reference_ts, $units ) =
+      _unit_reference_ts_and_units_from_start_end_timestamps( $start_timestamp, $end_timestamp, $MAX_BITLY_LIMIT );
+
+    my $result = request(
+        '/v3/link/shares',
+        {
+            link     => "http://bit.ly/$bitly_id",
+            limit    => $MAX_BITLY_LIMIT + 0,        # biggest possible limit
+            rollup   => 'false',                     # detailed stats for the whole period
+            unit     => 'day',                       # daily stats
+            timezone => 'Etc/GMT',                   # GMT timestamps
+
+            unit_reference_ts => $unit_reference_ts,
+            units             => $units,
+        }
+    );
+
+    # Sanity check
+    my @expected_keys = qw/shares total_shares tz_offset unit unit_reference_ts units/;
+    foreach my $expected_key ( @expected_keys )
+    {
+        unless ( exists $result->{ $expected_key } )
+        {
+            die "Result doesn't contain expected '$expected_key' key: " . Dumper( $result );
+        }
+    }
+
+    unless ( ref( $result->{ shares } ) eq ref( [] ) )
+    {
+        die "'shares' value is not an arrayref.";
+    }
+
+    if ( scalar @{ $result->{ shares } } == $MAX_BITLY_LIMIT )
+    {
+        warn "Count of returned 'shares' is at the limit ($MAX_BITLY_LIMIT); " .
+          "you might want to reduce the scope of your query.";
+    }
+
+    return $result;
+}
+
 1;

@@ -106,13 +106,14 @@ sub main()
 
             my $bitly_referrers = MediaWords::Util::Bitly::bitly_link_referrers( $bitly_id );
 
+            my $bitly_shares = MediaWords::Util::Bitly::bitly_link_shares( $bitly_id );
+
             $link_stats->{ 'data' }->{ $bitly_id } = {
                 'url'    => $link,
                 'clicks' => [
 
                     # array because one might want to make multiple requests with various dates
                     $bitly_clicks
-
                 ],
 
                 'category' => $bitly_category,
@@ -123,8 +124,12 @@ sub main()
                     $bitly_referrers,
                 ],
 
+                'shares' => [
 
-                  # 'shares' => $bitly_shares
+                    # array because one might want to make multiple requests with various dates
+                    $bitly_shares
+                ],
+
             };
 
         }
