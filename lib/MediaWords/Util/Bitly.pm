@@ -160,7 +160,8 @@ sub request($$)
 
     if ( $json->{ status_code } != 200 )
     {
-        die "API returned non-200 HTTP status code " . $json->{ status_code } . "; JSON: $json_string";
+        die 'API returned non-200 HTTP status code ' .
+          $json->{ status_code } . '; JSON: ' . $json_string . '; request parameters: ' . Dumper( $params );
     }
 
     my $json_data = $json->{ data };
