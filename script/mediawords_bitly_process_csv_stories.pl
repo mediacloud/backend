@@ -102,6 +102,8 @@ sub main()
 
             my $bitly_clicks = MediaWords::Util::Bitly::bitly_link_clicks( $bitly_id );
 
+            my $bitly_category = MediaWords::Util::Bitly::bitly_link_category( $bitly_id );
+
             $link_stats->{ 'data' }->{ $bitly_id } = {
                 'url'    => $link,
                 'clicks' => [
@@ -111,7 +113,8 @@ sub main()
 
                 ],
 
-                # 'category' => $bitly_category,
+                'category' => $bitly_category,
+
                 # 'referrers' => $bitly_referrers,
                 # 'shares' => $bitly_shares
             };

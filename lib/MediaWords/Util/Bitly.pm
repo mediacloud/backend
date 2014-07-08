@@ -583,4 +583,51 @@ sub bitly_link_clicks($;$$)
     return $result;
 }
 
+# Query for a list of categories based on Bit.ly URL
+# (http://dev.bitly.com/data_apis.html#v3_link_category)
+#
+# Params:
+# * Bit.ly ID (e.g. "QEH44r")
+#
+# Returns: hashref with categories, e.g.:
+#     {
+#         "categories": [
+#             "Social Media",
+#             "Advertising",
+#             "Software and Internet",
+#             "Technology",
+#             "Business"
+#         ]
+#     }
+#
+# die()s on error
+sub bitly_link_category($)
+{
+    my ( $bitly_id ) = @_;
+
+    unless ( $bitly_id )
+    {
+        die "Bit.ly ID is undefined.";
+    }
+
+    my $result = request( '/v3/link/category', { link => "http://bit.ly/$bitly_id" } );
+
+    # Sanity check
+    my @expected_keys = qw/ categories /;
+    foreach my $expected_key ( @expected_keys )
+    {
+        unless ( exists $result->{ $expected_key } )
+        {
+            die "Result doesn't contain expected '$expected_key' key: " . Dumper( $result );
+        }
+    }
+
+    unless ( ref( $result->{ categories } ) eq ref( [] ) )
+    {
+        die "'categories' value is not an arrayref.";
+    }
+
+    return $result;
+}
+
 1;
