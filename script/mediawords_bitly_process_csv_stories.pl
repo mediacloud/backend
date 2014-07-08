@@ -100,11 +100,7 @@ sub main()
                 die "Bit.ly ID $bitly_id already exists in link stats hashref: " . Dumper( $link_stats );
             }
 
-            my $bitly_clicks = MediaWords::Util::Bitly::bitly_link_clicks(
-                $bitly_id,
-                DateTime->new( year => 2012, month => 3, day => 1, time_zone => 'Etc/GMT' )->epoch(),
-                DateTime->new( year => 2013, month => 3, day => 8, time_zone => 'Etc/GMT' )->epoch()
-            );
+            my $bitly_clicks = MediaWords::Util::Bitly::bitly_link_clicks( $bitly_id );
 
             $link_stats->{ 'data' }->{ $bitly_id } = {
                 'url'    => $link,
