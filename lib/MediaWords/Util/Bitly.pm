@@ -165,7 +165,7 @@ sub url_after_redirects($;$$)
         my $url_after_meta_redirect = MediaWords::Util::URL::meta_refresh_url_from_html( $html, $uri->as_string );
         if ( $url_after_meta_redirect and $uri->as_string ne $url_after_meta_redirect )
         {
-            say STDERR "URL after <meta /> refresh: $url_after_meta_redirect";
+            # say STDERR "URL after <meta /> refresh: $url_after_meta_redirect";
             $uri = URI->new( $url_after_meta_redirect )->canonical;
 
             # ...and repeat the HTTP redirect cycle here
