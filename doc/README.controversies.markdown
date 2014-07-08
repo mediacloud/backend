@@ -15,115 +15,125 @@ between the controversy mapping system and the rest of the system are that:
   database so that we can use them for link analysis.
 
 Basic flow of CM
------------------------------------
+----------------
 
-1. search solr for a set of seed stories;
+1. Search solr for a set of seed stories;
 
-2. add each seed set story to controversy if it matches the controversy regex;
+2. Add each seed set story to controversy if it matches the controversy regex;
 
-3. extract and download every link in the matching seed set stories;
+3. Extract and download every link in the matching seed set stories;
 
-4. add to the controversy each downloaded link that matches the controversy regex;
+4. Add to the controversy each downloaded link that matches the controversy
+   regex;
 
-5. repeat 3. and 4. until no new controversy links are found or the max number of 
-    iterations is reached;
+5. Repeat 3. and 4. until no new controversy links are found or the max number
+   of iterations is reached;
 
-6. dedup stories by duplicate media source, duplication title, or duplicate url;
+6. Dedup stories by duplicate media source, duplication title, or duplicate
+   url;
 
-7. add the <controversy name>:all tag to each story in the controversy.
-    
+7. Add the `<controversy name>:all` tag to each story in the controversy.
+
+
 Tables used by CM
 -----------------
 
-* controversies -- basic controversy metadata
-* controversy_stories -- stories that are currently part of each controversy
-* controversy_links -- all links from all stories within each controversy
-* controversy_links_cross_media -- (view) only links between controversy stories from different
-    media sources 
-* controversy_dates -- list of dates for custom time slices; each controversy must include at least
-    one pair of dates that define the outer range of date coverage
-* controversy_seed_urls -- list of urls to add to a controversy in addition to those
-    discovered by the solr_seed_query
+* `controversies` -- basic controversy metadata
+* `controversy_stories` -- stories that are currently part of each controversy
+* `controversy_links` -- all links from all stories within each controversy
+* `controversy_links_cross_media` -- (view) only links between controversy
+   stories from different media sources 
+* `controversy_dates` -- list of dates for custom time slices; each controversy
+   must include at least one pair of dates that define the outer range of date
+   coverage
+* `controversy_seed_urls` -- list of urls to add to a controversy in addition
+   to those discovered by the `solr_seed_query`
+
 
 Detailed explanation of CM process
 ----------------------------------
 
 1. Write both a solr query and date range that defines the controversy seed
-    set as a combination of text, collection tag, and date clauses, for example
-    ( sentence:trayvon AND tags_id_media:123456 AND publish_date:[2012-03-01T00:00:00Z TO 2012-05-01T00:00:00Z] ).
+   set as a combination of text, collection tag, and date clauses, for example
+   `( sentence:trayvon AND tags_id_media:123456 AND
+   publish_date:[2012-03-01T00:00:00Z TO 2012-05-01T00:00:00Z] )`.
     
-2. Validate that this query has at most 10% false positives by searching on core/search
-    and manually validating the first ~25 (randomly sampled) stories returned on 
-    core/search page.  Repeat 1. and 2. until a good solr query is found.
+2. Validate that this query has at most 10% false positives by searching on
+   `core/search` and manually validating the first ~25 (randomly sampled)
+   stories returned on `core/search` page.  Repeat 1. and 2. until a good solr
+   query is found.
     
 3. Write a regex pattern that corresponds as closely as possible to the text
-    part of the solr seed query.  Any story added to the controversy will have
-    to match this pattern, including the stories returned by the solr seed query.
+   part of the solr seed query.  Any story added to the controversy will have
+   to match this pattern, including the stories returned by the solr seed
+   query.
     
-4. Create a row in the controversies table with the above solr seed query and controversy
-    regex using the core/admin/cm/create page.
+4. Create a row in the controversies table with the above solr seed query and
+   controversy regex using the `core/admin/cm/create` page.
     * This basic controversy metadata goes into the `controversies` table.
     
 5. Add any additional seed set urls from other sources (e.g. manual research by
-   RAs, twitter links, google search results);
-    * These seed set urls are generated manually and imported from csvs into
-      `controversy_seed_urls` using `mediawords_import_controversy_seed_urls.pl`.
+   RAs, twitter links, google search results).
+    * These seed set urls are generated manually and imported from CSVs into
+      `controversy_seed_urls` using
+      `mediawords_import_controversy_seed_urls.pl`.
 
-6. Run `mediawords_mine_controversy.pl` to start the controversy mining process.
-    You can use the --direct_job option to run the mining code directly in process
-    rather than sending a job off to the gearman MineControversy job.  The controversy
-    mining sets off the following process:
+6. Run `mediawords_mine_controversy.pl` to start the controversy mining
+   process. You can use the `--direct_job` option to run the mining code
+   directly in process rather than sending a job off to the gearman
+   `CM/MineControversy` job.  The controversy mining sets off the following
+   process:
 
-6a. If controversies.solr_seed_query_run is false, the miner executes the solr_seed_query
-    on solr and adds all of the returned stories that also match the controversy
-    regex to the controversy.
-    * These stories go into `contoversy_stories`.
-    
-6b. The miner downloads all additional seed set urls from (5) that do not already exist in
-    the database and adds a story and controversy_story for each.
+    1. If `controversies.solr_seed_query_run` is `false`, the miner executes
+       the `solr_seed_query` on solr and adds all of the returned stories that
+       also match the controversy regex to the controversy.
+        * These stories go into `contoversy_stories`.
+    2. The miner downloads all additional seed set urls from (5) that do not
+       already exist in the database and adds a story and `controversy_story`
+       for each.
+    3. The miner parses all links from the extracted html from each story in
+       the controversy.
+        * Every link extracted from a controversy is added to
+          `controversy_links`.
+    4. For each link, the miner either matches it to a the url of an existing
+       story in the database or downloads it and adds it as a new story.
+    5. For each story at the end point of a link from a controversy story, the
+       miner adds it to the controversy if it matches the controversy regex.
+    6. The miner repeats (6.3) - (6.5) for all stories newly added to the
+       controversy, until no new stories are found or a maximum number of
+       iterations is reached.
+    7. The miner dedups stories based on duplicate media sources (found by
+       walking through the `media.dup_media_id` values), duplicate titles, and
+       duplicate urls.
+        * Story title and url deduping is implemented in
+          `MediaWords::DBI::Stories`, `get_medium_dup_stories_by_url` and
+          `get_medium_dup_stories_by_title`.
 
-6c. The miner parses all links from the extracted html from each story in the controversy.
-    * Every link extracted from a controversy is added to `controversy_links`.
-
-6d. For each link, the miner either matches it to a the url of an existing story in the
-    database or downloads it and adds it as a new story.
-
-6e. For each story at the end point of a link from a controversy story, the miner adds it
-    to the controversy if it matches the controversy regex.
-
-6f. The miner repeats (c) - (e) for all stories newly added to the controversy, until no
-    new stories are found or a maximum number of iterations is reached.
-    
-6g. The miner dedups stories based on duplicate media sources (found by walking through the
-    media.dup_media_id values), duplicate titles, and duplicate urls.
-    * Story title and url dedupping is implemented in `MediaWords::DBI::Stories`
-        `get_medium_dup_stories_by_url` and `get_medium_dup_stories_by_title`.
-
-7. Manually dedup all media associated with a controversy (as each new
-    story is added, a media source has to found or created for it based on the
-    url host name, and often those media sources end up being duplicates, e.g.
-    `articles.orlandosun.com` and `www.orlandosun.com`).  The below script 
-    remembers which media sources have already been reviewed for duplication
-    at least once, so you will have review only media sources not previously
-    reviewed.
+7. Manually dedup all media associated with a controversy (as each new story is
+   added, a media source has to found or created for it based on the url host
+   name, and often those media sources end up being duplicates, e.g.
+   `articles.orlandosun.com` and `www.orlandosun.com`).  The below script
+   remembers which media sources have already been reviewed for duplication at
+   least once, so you will have review only media sources not previously
+   reviewed.
     * media deduping is implemented in `mediawords_dedup_controversy_media.pl`
     
 8. Run `mediawords_mine_controversy.pl` again if any media sources have been
-    marked as duplciates in (7) to merge stories from duplicate media.
+   marked as duplicates in (7) to merge stories from duplicate media.
 
 9. Run a dump of the controversy to create a static snapshot of the data that
-    can act as a stable data set for research, to generate the time slice
-    network maps, and to generate reliability scores for the influential media
-    list in each time slices.
+   can act as a stable data set for research, to generate the time slice
+   network maps, and to generate reliability scores for the influential media
+   list in each time slices.
     * dumping is implemented by `MediaWords::CM::Dump::dump_controversy`
     
-10. review the dump data, performing any more manual edits (editing story and
+10. Review the dump data, performing any more manual edits (editing story and
     media names, checking dates, analyzing influential media lists for each
     time slice, and so on).
 
-11. Redo the mine, dedup media, mine, dump steps any time new stories are added 
+11. Redo the mine, dedup media, mine, dump steps any time new stories are added
     to the controversy (for instance after adding more seed urls).
     
-12. rerun the dump any time the controversy data has been changed and
+12. Rerun the dump any time the controversy data has been changed and
     researchers need a new set of consistent results, new maps, or new
     reliability scores.

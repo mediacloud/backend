@@ -1,0 +1,137 @@
+[% PROCESS cm/header.tt2
+    title = 'Media Over Time for Dump ' _ datetime.format( controversy_dump.dump_date ) %]
+
+<script src="[% c.uri_for( '/cm/mot/jquery.min.js' ) %]" charset="utf-8"></script>
+<script src="[% c.uri_for( '/cm/mot/d3.min.js' ) %]" charset="utf-8"></script>
+<script src="[% c.uri_for( '/cm/mot/scripts.js' ) %]" charset="utf-8"></script>
+<style type="text/css">
+.axis path,.axis line {fill: none;stroke:#b6b6b6;shape-rendering: crispEdges;}
+/*.tick line{fill:none;stroke:none;}*/
+.tick text{fill:#999;}
+g.label.active{cursor:pointer;}
+text.label{font-size:12px;font-weight:bold;cursor:pointer;}
+text.value{font-size:12px;font-weight:bold;}
+</style>
+
+<script type="text/javascript">
+function truncate(str, maxLength, suffix) {
+	if(str.length > maxLength) {
+		str = str.substring(0, maxLength + 1); 
+		str = str.substring(0, Math.min(str.length, str.lastIndexOf(" ")));
+		str = str + suffix;
+	}
+	return str;
+}
+
+var controversies_id = '[% controversy.controversies_id %]';
+var controversy_dumps_id = '[% controversy_dump.controversy_dumps_id %]';
+var base_url = '[% c.uri_for( "/" ) %]';
+var json_url = base_url + "/admin/cm/view_dump_media_over_time_json/" + controversy_dumps_id;
+
+d3.json( json_url, function(data) {
+        
+    var media = data;
+          
+    if ( !media || ( media.length < 1 ) )
+    {
+        return;
+    }
+
+    var dates = media[0]['counts'].map(  function( d ) { return d[ 0 ] } );
+
+    var margin = {top: 100, right: 300, bottom: 0, left: 30},
+    	width = 800,
+    	height = 22 * media.length + 50;
+
+    var c = d3.scale.category20c();
+
+    var x = d3.scale.ordinal()
+        .domain( dates )
+        .rangePoints( [ 0, width ] );
+
+    var xAxis = d3.svg.axis()
+	    .scale( x )
+	    .orient("top");
+	
+    var svg = d3.select("body").append("svg")
+    	.attr("width", width + margin.left + margin.right)
+    	.attr("height", height + margin.top + margin.bottom)
+    	.style("margin-left", margin.left + "px")
+    	.append("g")
+    	.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+	svg.append("g")
+		.attr("class", "x axis")
+		.attr("transform", "translate(0," + 0 + ")")
+		.call(xAxis)
+		.selectAll("text")  
+            .style("text-anchor", "start")
+            .attr("dx", "1em")
+            .attr("dy", "0.5em")
+            .attr("transform", function(d) {
+                return "rotate(-65)" 
+                });
+
+	var rScale = d3.scale.linear()
+		.domain( [ 1, 10 ] )
+		.clamp( true )
+		.range( [ 10, 1 ] );
+
+	for ( var j = 0; j < media.length; j++ ) {
+	    	    
+		var g = svg.append("g").attr("class","label");
+
+		var circles = g.selectAll("circle")
+			.data(media[j]['counts'].filter( function ( d ) { return d[1] > 0 } ) )
+			.enter()
+			.append("circle");
+
+		var text = g.selectAll("text")
+			.data(media[j]['counts'].filter( function ( d ) { return d[1] > 0 } ))
+			.enter()
+			.append("text");
+        
+		circles
+		    .attr("cx",function(d, i) { return x( d[0] ) })
+			.attr("cy", j*20+20)
+			.attr("r", function(d) { return rScale( d[1]) ; })
+			.style("fill", function(d) { return c(j); })
+			.style("cursor", "pointer")
+			.on("click", function(d){ window.location = base_url + "/admin/cm/view_time_slice/" + d[2] } ); 
+			
+		text
+			.attr("y", j*20+25)
+			.attr("x",function(d, i) { return x( d[0] )-5 })
+			.attr("class","value")
+			.text( function(d, i){ return d[1] })
+			.style("fill", function(d) { return c(j); })
+			.style("display","none");
+
+		g.append("text")
+			.attr("y", j*20+25)
+			.attr("x",width+20)
+			.attr("class","label")
+			.text(truncate(media[j]['name'],30,"..."))
+			.style("fill", function(d) { return c(j); })
+			.on("mouseover", mouseover)
+			.on("mouseout", mouseout);
+
+	};
+
+	function mouseover(p) {
+		var g = d3.select(this).node().parentNode;
+		d3.select(g).selectAll("circle").style("display","none");
+		d3.select(g).selectAll("text.value").style("display","block");
+	}
+
+	function mouseout(p) {
+		var g = d3.select(this).node().parentNode;
+		d3.select(g).selectAll("circle").style("display","block");
+		d3.select(g).selectAll("text.value").style("display","none");
+	}
+		
+} );
+
+</script>
+
+[% PROCESS include/footer.tt2 %]

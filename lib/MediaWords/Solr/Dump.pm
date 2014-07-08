@@ -49,6 +49,9 @@ sub _add_media_stories_to_import
 {
     my ( $db, $import_date, $num_delta_stories ) = @_;
 
+    # temporarily disabling for more testing -hal
+    return;
+
     $db->query( <<END, $import_date );
 insert into solr_import_stories ( stories_id )
     select stories_id
@@ -363,7 +366,7 @@ sub delete_stories
     print STDERR "deleting " . scalar( @{ $stories_ids } ) . " stories ...\n";
 
     # send requests in chunks so the requests are not too big
-    my $chunk_size = 500;
+    my $chunk_size = 100;
     for ( my $i = 0 ; $i < @{ $stories_ids } ; $i += $chunk_size )
     {
         my $ceil = List::Util::min( scalar( @{ $stories_ids } ), $i + $chunk_size ) - 1;

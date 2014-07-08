@@ -131,7 +131,7 @@ sub _get_cdts_from_cd
 select cdts.*, coalesce( t.tag, '(all stories/no tag)' ) tag_name
     from controversy_dump_time_slices cdts
         left join tags t on ( cdts.tags_id = t.tags_id )
-    where controversy_dumps_id = ? 
+    where controversy_dumps_id = ?
     order by cdts.tags_id desc, period, start_date, end_date
 END
 }
@@ -256,6 +256,119 @@ END
     $c->stash->{ template }                     = 'cm/view_dump.tt2';
 }
 
+# generate a list of the top media for each of the time slices
+sub _get_media_with_cdts_counts
+{
+    my ( $db, $cd ) = @_;
+
+    # do this in one big complex quey because it's much faster than doing one for each cdts.
+    # sort by inlink_count with each controversy and keep only the 10 lowest ranked
+    # media for each time slice.
+    my $top_media = $db->query( <<END, $cd->{ controversies_id } )->hashes;
+with ranked_media as (
+    select m.name as name,
+            m.url as medium_url,
+            mlc.media_id,
+            mlc.controversy_dump_time_slices_id,
+            cdts.model_num_media,
+            cdts.start_date,
+            mlc.inlink_count,
+            rank() over w as inlink_count_rank,
+            row_number() over w as inlink_count_row_number
+        from controversy_dump_time_slices cdts
+            join controversy_dumps cd on ( cdts.controversy_dumps_id = cd.controversy_dumps_id )
+            join cd.medium_link_counts mlc on ( cdts.controversy_dump_time_slices_id = mlc.controversy_dump_time_slices_id )
+            join cd.media m on ( mlc.media_id = m.media_id and cd.controversy_dumps_id = m.controversy_dumps_id )
+        where 
+            cd.controversies_id = \$1 and
+            cdts.period = 'weekly' and
+            mlc.inlink_count > 1        
+        window w as (
+            partition by mlc.controversy_dump_time_slices_id
+                order by mlc.inlink_count desc )                
+)
+
+select * 
+    from 
+        ranked_media
+    where
+        inlink_count_row_number <= 10 and
+        inlink_count_row_number <= model_num_media
+        
+    order by start_date asc, inlink_count_rank asc, media_id asc
+END
+
+    my $top_media_lookup = {};
+    my $all_dates_lookup = {};
+    for my $top_medium ( @{ $top_media } )
+    {
+        my $d = substr( $top_medium->{ start_date }, 0, 10 );
+        $all_dates_lookup->{ $d } = 1;
+
+        my $m = $top_media_lookup->{ $top_medium->{ media_id } } ||= $top_medium;
+
+        $m->{ first_date }  ||= $d;
+        $m->{ first_count } ||= $d;
+
+        $m->{ count_lookup }->{ $d } =
+          [ $top_medium->{ inlink_count_rank }, $top_medium->{ controversy_dump_time_slices_id } ];
+        $m->{ total_weight } += 100 / $top_medium->{ inlink_count_rank };
+    }
+
+    my $sorted_media = [ sort { $a->{ first_date } cmp $b->{ first_date } || $a->{ first_count } <=> $b->{ first_count } }
+          values( %{ $top_media_lookup } ) ];
+
+    my $all_dates = [ sort { $a cmp $b } keys( $all_dates_lookup ) ];
+
+    for my $medium ( @{ $sorted_media } )
+    {
+        $medium->{ counts } = [];
+        for my $d ( @{ $all_dates } )
+        {
+            my $count = $medium->{ count_lookup }->{ $d } || [ 0, 0 ];
+            push( @{ $medium->{ counts } }, [ $d, @{ $count } ] );
+        }
+    }
+
+    return $sorted_media;
+}
+
+# generate a json of the weekly counts for any medium in the top
+# ten media in any week
+sub view_dump_media_over_time_json : Local
+{
+    my ( $self, $c, $controversy_dumps_id ) = @_;
+
+    my $db = $c->dbis;
+
+    my $controversy_dump = $db->query( <<END, $controversy_dumps_id )->hash;
+select * from controversy_dumps where controversy_dumps_id = ?
+END
+    my $controversy = $db->find_by_id( 'controversies', $controversy_dump->{ controversies_id } );
+
+    my $media_with_cdts_counts = _get_media_with_cdts_counts( $db, $controversy_dump );
+
+    $c->res->body( encode_json( $media_with_cdts_counts ) );
+}
+
+# generate the d3 chart of the weekly counts for any medium in the top
+# ten media in any week
+sub mot : Local
+{
+    my ( $self, $c, $controversy_dumps_id ) = @_;
+
+    my $db = $c->dbis;
+
+    my $controversy_dump = $db->query( <<END, $controversy_dumps_id )->hash;
+select * from controversy_dumps where controversy_dumps_id = ?
+END
+    my $controversy = $db->find_by_id( 'controversies', $controversy_dump->{ controversies_id } );
+
+    $c->stash->{ controversy }      = $controversy;
+    $c->stash->{ controversy_dump } = $controversy_dump;
+    $c->stash->{ template }         = 'cm/mot/mot.tt2';
+}
+
 # get the media marked as the most influential media for the current time slice
 sub _get_top_media_for_time_slice
 {
@@ -266,7 +379,7 @@ sub _get_top_media_for_time_slice
     return unless ( $num_media );
 
     my $top_media = $db->query( <<END, $num_media )->hashes;
-select m.*, mlc.inlink_count, mlc.outlink_count, mlc.story_count
+select m.*, mlc.inlink_count, mlc.outlink_count, mlc.story_count, mlc.inlink_count
     from dump_media m, dump_medium_link_counts mlc
     where m.media_id = mlc.media_id
     order by mlc.inlink_count desc
@@ -522,7 +635,7 @@ select latest.* from controversy_dumps latest, controversy_dumps current, contro
         current.controversy_dumps_id = cdts.controversy_dumps_id and
         latest.controversy_dumps_id > current.controversy_dumps_id and
         latest.controversies_id = current.controversies_id
-    order by latest.controversy_dumps_id desc 
+    order by latest.controversy_dumps_id desc
     limit 1
 END
 
@@ -551,7 +664,7 @@ sub _get_medium_and_stories_from_dump_tables
     $medium->{ stories } = $db->query( <<'END', $media_id )->hashes;
 select s.*, m.name medium_name, slc.inlink_count, slc.outlink_count
     from dump_stories s, dump_media m, dump_story_link_counts slc
-    where 
+    where
         s.stories_id = slc.stories_id and
         s.media_id = m.media_id and
         s.media_id = ?
@@ -561,26 +674,26 @@ END
 
     $medium->{ inlink_stories } = $db->query( <<'END', $media_id )->hashes;
 select distinct s.*, sm.name medium_name, sslc.inlink_count, sslc.outlink_count
-    from dump_stories s, dump_story_link_counts sslc, dump_media sm, 
+    from dump_stories s, dump_story_link_counts sslc, dump_media sm,
         dump_stories r, dump_story_link_counts rslc,
         dump_controversy_links_cross_media cl
-    where 
+    where
         s.stories_id = sslc.stories_id and
         r.stories_id = rslc.stories_id and
         s.media_id = sm.media_id and
         s.stories_id = cl.stories_id and
         r.stories_id = cl.ref_stories_id and
-        r.media_id = ?        
+        r.media_id = ?
     order by sslc.inlink_count desc
 END
     map { _add_story_date_info( $db, $_ ) } @{ $medium->{ inlink_stories } };
 
     $medium->{ outlink_stories } = $db->query( <<'END', $media_id )->hashes;
 select distinct r.*, rm.name medium_name, rslc.inlink_count, rslc.outlink_count
-    from dump_stories s, dump_story_link_counts sslc, 
-        dump_stories r, dump_story_link_counts rslc, dump_media rm, 
+    from dump_stories s, dump_story_link_counts sslc,
+        dump_stories r, dump_story_link_counts rslc, dump_media rm,
         dump_controversy_links_cross_media cl
-    where 
+    where
         s.stories_id = sslc.stories_id and
         r.stories_id = rslc.stories_id and
         r.media_id = rm.media_id and
@@ -759,26 +872,26 @@ sub _get_story_and_links_from_dump_tables
 
     $story->{ inlink_stories } = $db->query( <<'END', $stories_id )->hashes;
 select distinct s.*, sm.name medium_name, sslc.inlink_count, sslc.outlink_count
-    from dump_stories s, dump_story_link_counts sslc, dump_media sm, 
+    from dump_stories s, dump_story_link_counts sslc, dump_media sm,
         dump_stories r, dump_story_link_counts rslc,
         dump_controversy_links_cross_media cl
-    where 
+    where
         s.stories_id = sslc.stories_id and
         r.stories_id = rslc.stories_id and
         s.media_id = sm.media_id and
         s.stories_id = cl.stories_id and
         r.stories_id = cl.ref_stories_id and
-        cl.ref_stories_id = ?       
+        cl.ref_stories_id = ?
     order by sslc.inlink_count desc
 END
     map { _add_story_date_info( $db, $_ ) } @{ $story->{ inlink_stories } };
 
     $story->{ outlink_stories } = $db->query( <<'END', $stories_id )->hashes;
 select distinct r.*, rm.name medium_name, rslc.inlink_count, rslc.outlink_count
-    from dump_stories s, dump_story_link_counts sslc, 
-        dump_stories r, dump_story_link_counts rslc, dump_media rm, 
+    from dump_stories s, dump_story_link_counts sslc,
+        dump_stories r, dump_story_link_counts rslc, dump_media rm,
         dump_controversy_links_cross_media cl
-    where 
+    where
         s.stories_id = sslc.stories_id and
         r.stories_id = rslc.stories_id and
         r.media_id = rm.media_id and
@@ -1100,7 +1213,7 @@ sub _add_id_medium_to_search_results ($$$)
     my $id_medium = $db->query( <<END, $query )->hash;
 select distinct m.*, mlc.inlink_count, mlc.outlink_count, mlc.story_count
     from dump_story_link_counts slc
-        join stories s on ( slc.stories_id = s.stories_id ) 
+        join stories s on ( slc.stories_id = s.stories_id )
         join dump_media m on ( s.media_id = m.media_id )
         join dump_medium_link_counts mlc on ( m.media_id = mlc.media_id )
      where s.media_id = ?
