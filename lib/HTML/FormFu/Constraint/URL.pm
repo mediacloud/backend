@@ -1,6 +1,8 @@
 package HTML::FormFu::Constraint::URL;
 
 use strict;
+use warnings;
+
 use base 'HTML::FormFu::Constraint';
 
 use Regexp::Common qw /URI/;

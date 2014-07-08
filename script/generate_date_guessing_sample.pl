@@ -12,6 +12,7 @@
 # usage: generate_date_guessing_sample.pl [<old story dates csv>]
 
 use strict;
+use warnings;
 
 BEGIN
 {

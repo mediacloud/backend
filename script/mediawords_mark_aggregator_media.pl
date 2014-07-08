@@ -5,6 +5,7 @@
 # and marking foreign_rss_links to true for any medium that has more than MAX_DIFFERENT_DOMAINS different domains
 
 use strict;
+use warnings;
 
 BEGIN
 {

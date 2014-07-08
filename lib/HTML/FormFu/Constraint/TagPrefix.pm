@@ -1,6 +1,8 @@
 package HTML::FormFu::Constraint::TagPrefix;
 
 use strict;
+use warnings;
+
 use base 'HTML::FormFu::Constraint';
 
 sub constrain_value

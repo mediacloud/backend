@@ -3,6 +3,7 @@
 # Run through the controversy stories, trying to assign better date guesses
 
 use strict;
+use warnings;
 
 BEGIN
 {

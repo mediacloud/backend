@@ -1,7 +1,5 @@
 #!/usr/bin/env perl
 
-# add plperl functions to database.
-
 # see MediaWords::Pg::Schema for definition of which functions to add
 
 use strict;

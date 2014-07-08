@@ -184,6 +184,11 @@ sub list_api_requires_filter_field
     return defined( $self->list_query_filter_field() ) && $self->list_query_filter_field();
 }
 
+sub list_optional_query_filter_field
+{
+    return;
+}
+
 sub list_name_search_field
 {
     return;
@@ -210,36 +215,53 @@ sub _get_name_search_clause
     return "and $name_field ilike '%' || $q_name_val || '%'";
 }
 
+# list_query_filter_field or list_optional_query_field, add relevant clauses
+# for any specified fields that have values specified in the requests params
+sub _get_filter_field_clause
+{
+    my ( $self, $c ) = @_;
+
+    my $clauses = [];
+    my $required_field_names = $self->list_query_filter_field || [];
+    $required_field_names = ref( $required_field_names ) ? $required_field_names : [ $required_field_names ];
+    for my $required_field_name ( @{ $required_field_names } )
+    {
+        my $val = $c->req->params->{ $required_field_name };
+        die( "Missing required param $required_field_name" ) unless ( defined( $val ) );
+
+        push( @{ $clauses }, "$required_field_name = " . $c->dbis->dbh->quote( $val ) );
+    }
+
+    my $field_names = $self->list_optional_query_filter_field || [];
+    $field_names = ref( $field_names ) ? $field_names : [ $field_names ];
+    for my $field_name ( @{ $field_names } )
+    {
+        my $val = $c->req->params->{ $field_name };
+
+        if ( $val )
+        {
+            push( @{ $clauses }, "$field_name = " . $c->dbis->dbh->quote( $val ) );
+        }
+    }
+
+    return '' if ( !@{ $clauses } );
+
+    return ' and ( ' . join( ' and ', @{ $clauses } ) . ' ) ';
+}
+
 sub _fetch_list
 {
     my ( $self, $c, $last_id, $table_name, $id_field, $rows ) = @_;
 
     my $list;
 
-    my $name_clause = $self->_get_name_search_clause( $c );
+    my $name_clause         = $self->_get_name_search_clause( $c );
+    my $filter_field_clause = $self->_get_filter_field_clause( $c );
 
-    if ( $self->list_api_requires_filter_field() )
-    {
-        my $query_filter_field_name = $self->list_query_filter_field();
+    my $query =
+      "select * from $table_name where $id_field > ? $name_clause  $filter_field_clause ORDER by $id_field asc limit ? ";
 
-        my $filter_field_value = $c->req->param( $query_filter_field_name );
-
-        if ( !defined( $filter_field_value ) )
-        {
-            die "Missing required param $query_filter_field_name";
-        }
-
-        my $query =
-"select * from $table_name where $id_field > ? $name_clause and $query_filter_field_name = ? ORDER by $id_field asc limit ? ";
-
-        $list = $c->dbis->query( $query, $last_id, $filter_field_value, $rows )->hashes;
-    }
-    else
-    {
-        my $query = "select * from $table_name where $id_field > ? $name_clause ORDER by $id_field asc limit ? ";
-
-        $list = $c->dbis->query( $query, $last_id, $rows )->hashes;
-    }
+    $list = $c->dbis->query( $query, $last_id, $rows )->hashes;
 
     return $list;
 }

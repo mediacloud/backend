@@ -4,6 +4,7 @@
 # generate rows for every day starting with the last date in media stats up to yesterday
 
 use strict;
+use warnings;
 
 BEGIN
 {

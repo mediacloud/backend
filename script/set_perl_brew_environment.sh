@@ -8,20 +8,8 @@ export PERLBREW_HOME=$HOME/.perlbrew
 unset MANPATH
 source ${PERLBREW_ROOT}/etc/bashrc
 
-#if [[ -z "$PERLBREW_BASHRD_VERSION" ]]
-# then
-#   echo "if branch taken"
-#   source ~/perl5/perlbrew/etc/bashrc
-#fi
-
-#Switch to the right version and filter useless message. 
-
-perlbrew use perl-5.16.3@mediacloud   2> >(grep -v 'manpath: warning: $MANPATH set, ignoring /etc/manpath.config')
-if [ $? -ne 0 ]; then
-    echo "Unable to run 'perlbrew use perl-5.16.3@mediacloud'"
-    exit 1
-fi
+# Switch to whatever version has the "mediacloud" library
+perlbrew use @mediacloud
 
 # NOTE: We filter the useless MANPATH warning message this way because there was no good way to get rid of it.
 # perlbrew use will fail unless $MANPATH is set but then it generates this warning.
-

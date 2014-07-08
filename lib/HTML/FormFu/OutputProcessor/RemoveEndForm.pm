@@ -1,6 +1,8 @@
 package HTML::FormFu::OutputProcessor::RemoveEndForm;
 
 use strict;
+use warnings;
+
 use base 'HTML::FormFu::OutputProcessor';
 
 sub process

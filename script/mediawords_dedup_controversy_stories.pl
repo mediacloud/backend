@@ -4,6 +4,7 @@
 # code in CM::Mine has changed.
 
 use strict;
+use warnings;
 
 BEGIN
 {

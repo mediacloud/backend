@@ -3,6 +3,7 @@ package Data::Google::Visualization::DataTable::MediaWords;
 # local subclass of DBIx::Simple with some modification for use in media cloud code
 
 use strict;
+use warnings;
 
 use Carp;
 

@@ -4,6 +4,7 @@ use base 'Feed::Scrape';
 # subclass of Feed::Scrape that prunes out list of ignored and existing urls
 
 use strict;
+use warnings;
 
 use Feed::Scrape;
 

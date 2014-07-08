@@ -108,10 +108,10 @@
         
    <field name="solr_id" type="string" indexed="true" stored="true" required="true" multiValued="false" /> 
    
-   <field name="story_sentences_id" type="tlong" indexed="true" stored="true" required="true" multiValued="false" /> 
+   <field name="story_sentences_id" type="string" indexed="true" stored="true" required="true" multiValued="false" /> 
    <field name="media_id" type="int" indexed="true" stored="false" required="true" multiValued="false" /> 
 
-   <field name="stories_id" type="tlong" indexed="true" stored="true" required="true" multiValued="false" /> 
+   <field name="stories_id" type="int" indexed="true" stored="true" required="true" multiValued="false" /> 
    <field name="sentence_number" type="int" indexed="true" stored="false" required="true" multiValued="false" /> 
 
    <field name="processed_stories_id" type="tlong" indexed="true" stored="true" required="true" multiValued="false" docValues="true" /> 

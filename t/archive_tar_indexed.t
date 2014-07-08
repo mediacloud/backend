@@ -1,4 +1,5 @@
 use strict;
+use warnings;
 
 use File::Temp;
 use Test::More tests => 203 + 1;
