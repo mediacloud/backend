@@ -91,6 +91,9 @@ sub _unit_reference_ts_and_units_from_start_end_timestamps($$$)
         $units             = $delta_days;
     }
 
+    $unit_reference_ts .= '';
+    $units             .= '';
+
     return ( $unit_reference_ts, $units );
 }
 
