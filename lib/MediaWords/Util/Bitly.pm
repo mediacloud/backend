@@ -651,4 +651,104 @@ sub bitly_link_category($)
     return $result;
 }
 
+# Query for list of referrers based on Bit.ly URL
+# (http://dev.bitly.com/link_metrics.html#v3_link_referrers)
+#
+# Params:
+# * Bit.ly ID (e.g. "QEH44r")
+# * (optional) starting timestamp for which to query statistics
+# * (optional) ending timestamp for which to query statistics
+#
+# Returns: hashref with list of referrers (plus "unit_reference_ts" value), e.g.:
+#     {
+#         "referrers": [
+#             {
+#                 "clicks": 1129,
+#                 "referrer": "direct"
+#             },
+#             {
+#                 "clicks": 55,
+#                 "referrer": "http://news.ycombinator.com/item"
+#             },
+#             {
+#                 "clicks": 41,
+#                 "referrer": "http://twitter.com/"
+#             },
+#             {
+#                 "clicks": 25,
+#                 "referrer": "yxG0tQXMY40="
+#             },
+#             {
+#                 "clicks": 24,
+#                 "referrer": "http://localhost/www/2ii.jp/ii.php"
+#             }
+#         ],
+#         "tz_offset": -5,
+#         "unit": "day",
+#         "unit_reference_ts": 1360351157,
+#         "units": -1
+#     };
+#
+# die()s on error
+sub bitly_link_referrers($;$$)
+{
+    my ( $bitly_id, $start_timestamp, $end_timestamp ) = @_;
+
+    Readonly my $MAX_BITLY_LIMIT => 1000;    # in "/v3/link/referrers" case
+
+    unless ( $bitly_id )
+    {
+        die "Bit.ly ID is undefined.";
+    }
+
+    my ( $unit_reference_ts, $units ) =
+      _unit_reference_ts_and_units_from_start_end_timestamps( $start_timestamp, $end_timestamp, $MAX_BITLY_LIMIT );
+
+    my $result = request(
+        '/v3/link/referrers',
+        {
+            link     => "http://bit.ly/$bitly_id",
+            limit    => $MAX_BITLY_LIMIT + 0,        # biggest possible limit
+            unit     => 'day',                       # daily stats
+            timezone => 'Etc/GMT',                   # GMT timestamps
+
+            unit_reference_ts => $unit_reference_ts,
+            units             => $units,
+        }
+    );
+
+    # Sanity check
+    my @expected_keys = qw/referrers tz_offset unit units/;
+    foreach my $expected_key ( @expected_keys )
+    {
+        unless ( exists $result->{ $expected_key } )
+        {
+            die "Result doesn't contain expected '$expected_key' key: " . Dumper( $result );
+        }
+    }
+
+    unless ( ref( $result->{ referrers } ) eq ref( [] ) )
+    {
+        die "'referrers' value is not an arrayref.";
+    }
+
+    if ( scalar @{ $result->{ referrers } } == $MAX_BITLY_LIMIT )
+    {
+        warn "Count of returned 'referrers' is at the limit ($MAX_BITLY_LIMIT); " .
+          "you might want to reduce the scope of your query.";
+    }
+
+    if ( exists $result->{ unit_reference_ts } )
+    {
+        warn "'unit_reference_ts' exists, this is unexpected because it wasn't in the API spec.";
+    }
+    else
+    {
+        # Add "unit_reference_ts" value because Bit.ly doesn't return it for some reason
+        $result->{ unit_reference_ts } = ( $unit_reference_ts eq 'now' ? undef : $unit_reference_ts + 0 );
+    }
+
+    return $result;
+}
+
 1;
