@@ -625,7 +625,7 @@ sub bitly_link_clicks($;$$)
 #     };
 #
 # die()s on error
-sub bitly_link_category($)
+sub bitly_link_categories($)
 {
     my ( $bitly_id ) = @_;
 

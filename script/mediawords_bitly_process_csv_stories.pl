@@ -107,8 +107,8 @@ sub main()
                     # array because one might want to make multiple requests with various dates
                     MediaWords::Util::Bitly::bitly_link_clicks( $bitly_id )
                 ],
-                'category'  => MediaWords::Util::Bitly::bitly_link_category( $bitly_id ),
-                'referrers' => [
+                'categories' => MediaWords::Util::Bitly::bitly_link_categories( $bitly_id ),
+                'referrers'  => [
 
                     # array because one might want to make multiple requests with various dates
                     MediaWords::Util::Bitly::bitly_link_referrers( $bitly_id )
