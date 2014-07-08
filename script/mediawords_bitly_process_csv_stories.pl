@@ -50,8 +50,15 @@ sub main()
     my $csv = Text::CSV->new( { binary => 1 } )    # should set binary attribute.
       or die "Cannot use CSV: " . Text::CSV->error_diag();
 
-    my $links_total = 0;
-    my $links_found = 0;
+    my %stats = (
+        links_total => 0,
+        links_found => 0,
+
+        links_that_have_clicks     => 0,
+        links_that_have_categories => 0,
+        links_that_have_referrers  => 0,
+        links_that_have_shares     => 0,
+    );
 
     open my $fh, "<:encoding(utf8)", $stories_csv_file or die "Unable to open $stories_csv_file: $!";
     while ( my $row = $csv->getline( $fh ) )
@@ -71,12 +78,19 @@ sub main()
 
         say STDERR "Processing story $stories_id...";
 
-        ++$links_total;
+        ++$stats{ links_total };
 
         Readonly my $link_lookup => MediaWords::Util::Bitly::bitly_link_lookup_all_variants( $stories_url );
         say STDERR "Link lookup: " . Dumper( $link_lookup );
 
         my $link_stats = {};
+
+        my %at_least_one_link_has = (
+            clicks     => 0,
+            categories => 0,
+            referrers  => 0,
+            shares     => 0,
+        );
 
         # Fetch Bit.ly stats for the link (if any)
         foreach my $link ( keys %{ $link_lookup } )
@@ -120,6 +134,32 @@ sub main()
                 ],
             };
 
+            # Collect stats
+            foreach my $click ( @{ $link_stats->{ 'data' }->{ $bitly_id }->{ 'clicks' }->[ 0 ]->{ 'link_clicks' } } )
+            {
+                if ( $click->{ 'clicks' } > 0 )
+                {
+                    $at_least_one_link_has{ clicks } = 1;
+                    last;
+                }
+            }
+            if ( scalar @{ $link_stats->{ 'data' }->{ $bitly_id }->{ 'categories' }->{ 'categories' } } > 0 )
+            {
+                $at_least_one_link_has{ categories } = 1;
+            }
+            foreach my $referrer ( @{ $link_stats->{ 'data' }->{ $bitly_id }->{ 'referrers' }->[ 0 ]->{ 'referrers' } } )
+            {
+                if ( $referrer->{ 'clicks' } > 0 )
+                {
+                    $at_least_one_link_has{ referrers } = 1;
+                    last;
+                }
+            }
+            if ( scalar @{ $link_stats->{ 'data' }->{ $bitly_id }->{ 'shares' }->[ 0 ]->{ 'shares' } } > 0 )
+            {
+                $at_least_one_link_has{ shares } = 1;
+            }
+
         }
 
         # No links?
@@ -150,7 +190,23 @@ sub main()
         }
         if ( $link_was_found )
         {
-            ++$links_found;
+            ++$stats{ links_found };
+        }
+        if ( $at_least_one_link_has{ clicks } )
+        {
+            ++$stats{ links_that_have_clicks };
+        }
+        if ( $at_least_one_link_has{ categories } )
+        {
+            ++$stats{ links_that_have_categories };
+        }
+        if ( $at_least_one_link_has{ referrers } )
+        {
+            ++$stats{ links_that_have_referrers };
+        }
+        if ( $at_least_one_link_has{ shares } )
+        {
+            ++$stats{ links_that_have_shares };
         }
 
         say STDERR "Done.";
@@ -158,8 +214,13 @@ sub main()
     $csv->eof or $csv->error_diag();
     close $fh;
 
-    say STDERR "Total links: $links_total";
-    say STDERR "Found links: $links_found";
+    say STDERR "Total links: $stats{ links_total }";
+    say STDERR "Found links: $stats{ links_found }";
+    say STDERR "Links that have:";
+    say STDERR "    * clicks: $stats{ links_that_have_clicks }";
+    say STDERR "    * categories: $stats{ links_that_have_categories }";
+    say STDERR "    * referrers: $stats{ links_that_have_referrers }";
+    say STDERR "    * shares: $stats{ links_that_have_shares }";
 }
 
 main();
