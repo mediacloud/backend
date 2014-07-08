@@ -209,6 +209,9 @@ sub main()
             ++$stats{ links_that_have_shares };
         }
 
+        say STDERR "Sleeping for rate limiting reasons...";
+        sleep( 1 );
+
         say STDERR "Done.";
     }
     $csv->eof or $csv->error_diag();
