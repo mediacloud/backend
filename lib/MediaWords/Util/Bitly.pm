@@ -319,7 +319,7 @@ sub all_url_variants($)
 #              feedburner&utm_medium=feed&utm_campaign=Feed%3A+foxnews%2Fnational+(Internal+-+US+Latest+-+Text)' => undef
 #     };
 # die()s on error
-sub bitly_link_lookup($)
+sub bitly_link_lookup_all_variants($)
 {
     my $url = shift;
 

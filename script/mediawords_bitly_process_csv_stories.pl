@@ -30,6 +30,7 @@ use MediaWords::CommonLibs;
 use MediaWords::Util::Bitly;
 use Text::CSV;
 use Scalar::Util qw(looks_like_number);
+use Readonly;
 use Data::Dumper;
 
 sub main()
@@ -71,7 +72,7 @@ sub main()
 
         ++$links_total;
 
-        my $link_lookup = MediaWords::Util::Bitly::bitly_link_lookup( $stories_url );
+        Readonly my $link_lookup => MediaWords::Util::Bitly::bitly_link_lookup_all_variants( $stories_url );
         say STDERR "Link lookup: " . Dumper( $link_lookup );
 
         my $link_was_found = 0;
