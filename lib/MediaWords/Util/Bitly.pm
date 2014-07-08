@@ -392,14 +392,16 @@ sub all_url_variants($)
 # Params: URLs (arrayref) to query
 #
 # Returns: hashref with link lookup results, e.g.:
-#     "link_lookup": [
-#         {
-#             "aggregate_link": "http://bit.ly/2V6CFi",
-#             "link": "http://bit.ly/zhheQ9",
-#             "url": "http://www.google.com/"
-#         },
-#         # ...
-#     ]
+#     {
+#         "link_lookup": [
+#             {
+#                 "aggregate_link": "http://bit.ly/2V6CFi",
+#                 "link": "http://bit.ly/zhheQ9",
+#                 "url": "http://www.google.com/"
+#             },
+#             # ...
+#         ]
+#     };
 #
 # die()s on error
 sub bitly_link_lookup($)
@@ -619,7 +621,7 @@ sub bitly_link_clicks($;$$)
 #             "Technology",
 #             "Business"
 #         ]
-#     }
+#     };
 #
 # die()s on error
 sub bitly_link_category($)
