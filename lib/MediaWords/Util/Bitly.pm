@@ -17,6 +17,9 @@ use URI;
 use URI::QueryParam;
 use JSON;
 use List::MoreUtils qw/uniq/;
+use Scalar::Util qw/looks_like_number/;
+use DateTime;
+use DateTime::Duration;
 
 use constant BITLY_API_ENDPOINT => 'https://api-ssl.bitly.com/';
 
@@ -434,6 +437,150 @@ sub bitly_link_lookup_all_variants($)
     }
 
     return \%bitly_link_lookup;
+}
+
+# Query for number of link clicks based on Bit.ly URL
+# (http://dev.bitly.com/link_metrics.html#v3_link_clicks)
+#
+# Params:
+# * Bit.ly ID (e.g. "QEH44r")
+# * (optional) starting timestamp for which to query statistics
+# * (optional) ending timestamp for which to query statistics
+#
+# Returns: hashref with click statistics, e.g.:
+#     {
+#         "link_clicks": [
+#             {
+#                 "clicks": 1,
+#                 "dt": 1360299600
+#             },
+#             {
+#                 "clicks": 2,
+#                 "dt": 1360213200
+#             },
+#             {
+#                 "clicks": 2,
+#                 "dt": 1360126800
+#             },
+#             {
+#                 "clicks": 3,
+#                 "dt": 1360040400
+#             },
+#             {
+#                 "clicks": 10,
+#                 "dt": 1359954000
+#             }
+#         ],
+#         "tz_offset": -5,
+#         "unit": "day",
+#         "unit_reference_ts": 1360351157,
+#         "units": 5
+#     };
+#
+# die()s on error
+sub bitly_link_clicks($;$$)
+{
+    my ( $bitly_id, $start_timestamp, $end_timestamp ) = @_;
+
+    Readonly my $MAX_BITLY_LIMIT => 1000;    # in "/v3/link/clicks" case
+
+    unless ( $bitly_id )
+    {
+        die "Bit.ly ID is undefined.";
+    }
+
+    # Both or none must be defined (note "xor")
+    if ( defined $start_timestamp xor defined $end_timestamp )
+    {
+        die "Both (or none) start_timestamp and end_timestamp must be defined.";
+    }
+    else
+    {
+
+        if ( defined $start_timestamp and defined $end_timestamp )
+        {
+
+            unless ( looks_like_number( $start_timestamp ) )
+            {
+                die "start_timestamp is not a timestamp.";
+            }
+            unless ( looks_like_number( $end_timestamp ) )
+            {
+                die "end_timestamp is not a timestamp.";
+            }
+
+            if ( $start_timestamp > $end_timestamp )
+            {
+                die "start_timestamp is bigger than end_timestamp.";
+            }
+
+        }
+    }
+
+    my $unit_reference_ts = 'now';
+    my $units             = '-1';
+
+    if ( defined $start_timestamp and defined $end_timestamp )
+    {
+
+        my $start_date = DateTime->from_epoch( epoch => $start_timestamp, time_zone => 'Etc/GMT' );
+        my $end_date   = DateTime->from_epoch( epoch => $end_timestamp,   time_zone => 'Etc/GMT' );
+
+        # Round timestamps to the nearest day
+        $start_date->set( hour => 0, minute => 0, second => 0 );
+        $end_date->set( hour => 0, minute => 0, second => 0 );
+
+        my $delta      = $end_date->delta_days( $start_date );
+        my $delta_days = $delta->delta_days;
+        say STDERR "Delta days between $start_timestamp and $end_timestamp: $delta_days";
+
+        if ( $delta_days == 0 )
+        {
+            say STDERR "Delta days between $start_timestamp and $end_timestamp is 0, so setting it to 1";
+            $delta_days = 1;
+        }
+
+        # Make sure it doesn't exceed Bit.ly's limit
+        if ( $delta_days > $MAX_BITLY_LIMIT )
+        {
+            die "Difference between start_timestamp ($start_timestamp) and end_timestamp ($end_timestamp) " .
+              "is bigger than Bit.ly's limit of $MAX_BITLY_LIMIT days.";
+        }
+
+        $unit_reference_ts = $end_timestamp;
+        $units             = $delta_days;
+    }
+
+    my $result = request(
+        '/v3/link/clicks',
+        {
+            link     => "http://bit.ly/$bitly_id",
+            limit    => $MAX_BITLY_LIMIT + 0,        # biggest possible limit
+            rollup   => 'false',                     # detailed stats for the whole period
+            unit     => 'day',                       # daily stats
+            timezone => 'Etc/GMT',                   # GMT timestamps
+
+            unit_reference_ts => $unit_reference_ts,
+            units             => $units,
+        }
+    );
+
+    # Sanity check
+    my @expected_keys = qw/link_clicks tz_offset unit unit_reference_ts units/;
+    foreach my $expected_key ( @expected_keys )
+    {
+        unless ( exists $result->{ $expected_key } )
+        {
+            die "Result doesn't contain expected '$expected_key' key: " . Dumper( $result );
+        }
+    }
+
+    unless ( ref( $result->{ link_clicks } ) eq ref( [] ) )
+    {
+        die "'link_clicks' value is not an arrayref.";
+    }
+
+    return $result;
 }
 
 1;

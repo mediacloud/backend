@@ -31,6 +31,7 @@ use MediaWords::Util::Bitly;
 use Text::CSV;
 use Scalar::Util qw(looks_like_number);
 use Readonly;
+use DateTime;
 use Data::Dumper;
 
 sub main()
@@ -75,14 +76,80 @@ sub main()
         Readonly my $link_lookup => MediaWords::Util::Bitly::bitly_link_lookup_all_variants( $stories_url );
         say STDERR "Link lookup: " . Dumper( $link_lookup );
 
+        my $link_stats = {};
+
+        # Fetch Bit.ly stats for the link (if any)
+        foreach my $link ( keys %{ $link_lookup } )
+        {
+
+            unless ( defined $link_lookup->{ $link } )
+            {
+                next;
+            }
+
+            unless ( defined $link_stats->{ 'data' } )
+            {
+                $link_stats->{ 'data' } = {};
+            }
+
+            my $bitly_id = $link_lookup->{ $link };
+
+            say STDERR "\tFetching stats for Bit.ly ID $bitly_id...";
+            if ( $link_stats->{ 'data' }->{ $bitly_id } )
+            {
+                die "Bit.ly ID $bitly_id already exists in link stats hashref: " . Dumper( $link_stats );
+            }
+
+            my $bitly_clicks = MediaWords::Util::Bitly::bitly_link_clicks(
+                $bitly_id,
+                DateTime->new( year => 2012, month => 3, day => 1, time_zone => 'Etc/GMT' )->epoch(),
+                DateTime->new( year => 2013, month => 3, day => 8, time_zone => 'Etc/GMT' )->epoch()
+            );
+
+            $link_stats->{ 'data' }->{ $bitly_id } = {
+                'url'    => $link,
+                'clicks' => [
+
+                    # array because one might want to make multiple requests with various dates
+                    $bitly_clicks
+
+                ],
+
+                # 'category' => $bitly_category,
+                # 'referrers' => $bitly_referrers,
+                # 'shares' => $bitly_shares
+            };
+
+        }
+
+        # No links?
+        if ( scalar( keys %{ $link_stats } ) )
+        {
+
+            # Store timestamp (GMT, not local time)
+            $link_stats->{ 'timestamp' } = time();
+
+        }
+        else
+        {
+
+            # Mark as "not found"
+            $link_stats->{ 'error' } = 'NOT_FOUND';
+        }
+
+        say STDERR "Link stats: " . Dumper( $link_stats );
+
         my $link_was_found = 0;
-        foreach my $link (keys %{ $link_lookup }) {
-            if (defined $link_lookup->{ $link }) {
+        foreach my $link ( keys %{ $link_lookup } )
+        {
+            if ( defined $link_lookup->{ $link } )
+            {
                 $link_was_found = 1;
                 last;
             }
         }
-        if ($link_was_found) {
+        if ( $link_was_found )
+        {
             ++$links_found;
         }
 
