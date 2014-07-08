@@ -740,13 +740,9 @@ sub bitly_link_referrers($;$$)
           "you might want to reduce the scope of your query.";
     }
 
-    if ( exists $result->{ unit_reference_ts } )
+    unless ( exists $result->{ unit_reference_ts } )
     {
-        warn "'unit_reference_ts' exists, this is unexpected because it wasn't in the API spec.";
-    }
-    else
-    {
-        # Add "unit_reference_ts" value because Bit.ly doesn't return it for some reason
+        # It's not in the API spec, so we add it manually
         $result->{ unit_reference_ts } = ( $unit_reference_ts eq 'now' ? undef : $unit_reference_ts + 0 );
     }
 
