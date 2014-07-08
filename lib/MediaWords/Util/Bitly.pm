@@ -592,6 +592,12 @@ sub bitly_link_clicks($;$$)
         die "'link_clicks' value is not an arrayref.";
     }
 
+    if ( scalar @{ $result->{ link_clicks } } == $MAX_BITLY_LIMIT )
+    {
+        warn "Count of returned 'link_clicks' is at the limit ($MAX_BITLY_LIMIT); " .
+          "you might want to reduce the scope of your query.";
+    }
+
     return $result;
 }
 
