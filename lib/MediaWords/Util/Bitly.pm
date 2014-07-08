@@ -23,6 +23,77 @@ use DateTime::Duration;
 
 use constant BITLY_API_ENDPOINT => 'https://api-ssl.bitly.com/';
 
+# From $start_timestamp and $end_timestamp parameters, return API parameters "unit_reference_ts" and "units"
+# die()s on error
+sub _unit_reference_ts_and_units_from_start_end_timestamps($$$)
+{
+    my ( $start_timestamp, $end_timestamp, $max_bitly_limit ) = @_;
+
+    # Both or none must be defined (note "xor")
+    if ( defined $start_timestamp xor defined $end_timestamp )
+    {
+        die "Both (or none) start_timestamp and end_timestamp must be defined.";
+    }
+    else
+    {
+
+        if ( defined $start_timestamp and defined $end_timestamp )
+        {
+
+            unless ( looks_like_number( $start_timestamp ) )
+            {
+                die "start_timestamp is not a timestamp.";
+            }
+            unless ( looks_like_number( $end_timestamp ) )
+            {
+                die "end_timestamp is not a timestamp.";
+            }
+
+            if ( $start_timestamp > $end_timestamp )
+            {
+                die "start_timestamp is bigger than end_timestamp.";
+            }
+
+        }
+    }
+
+    my $unit_reference_ts = 'now';
+    my $units             = '-1';
+
+    if ( defined $start_timestamp and defined $end_timestamp )
+    {
+
+        my $start_date = DateTime->from_epoch( epoch => $start_timestamp, time_zone => 'Etc/GMT' );
+        my $end_date   = DateTime->from_epoch( epoch => $end_timestamp,   time_zone => 'Etc/GMT' );
+
+        # Round timestamps to the nearest day
+        $start_date->set( hour => 0, minute => 0, second => 0 );
+        $end_date->set( hour => 0, minute => 0, second => 0 );
+
+        my $delta      = $end_date->delta_days( $start_date );
+        my $delta_days = $delta->delta_days;
+        say STDERR "Delta days between $start_timestamp and $end_timestamp: $delta_days";
+
+        if ( $delta_days == 0 )
+        {
+            say STDERR "Delta days between $start_timestamp and $end_timestamp is 0, so setting it to 1";
+            $delta_days = 1;
+        }
+
+        # Make sure it doesn't exceed Bit.ly's limit
+        if ( $delta_days > $max_bitly_limit )
+        {
+            die "Difference between start_timestamp ($start_timestamp) and end_timestamp ($end_timestamp) " .
+              "is bigger than Bit.ly's limit of $max_bitly_limit days.";
+        }
+
+        $unit_reference_ts = $end_timestamp;
+        $units             = $delta_days;
+    }
+
+    return ( $unit_reference_ts, $units );
+}
+
 # Sends a request to Bit.ly API, returns a 'data' key hashref with results; die()s on error
 sub request($$)
 {
@@ -489,67 +560,8 @@ sub bitly_link_clicks($;$$)
         die "Bit.ly ID is undefined.";
     }
 
-    # Both or none must be defined (note "xor")
-    if ( defined $start_timestamp xor defined $end_timestamp )
-    {
-        die "Both (or none) start_timestamp and end_timestamp must be defined.";
-    }
-    else
-    {
-
-        if ( defined $start_timestamp and defined $end_timestamp )
-        {
-
-            unless ( looks_like_number( $start_timestamp ) )
-            {
-                die "start_timestamp is not a timestamp.";
-            }
-            unless ( looks_like_number( $end_timestamp ) )
-            {
-                die "end_timestamp is not a timestamp.";
-            }
-
-            if ( $start_timestamp > $end_timestamp )
-            {
-                die "start_timestamp is bigger than end_timestamp.";
-            }
-
-        }
-    }
-
-    my $unit_reference_ts = 'now';
-    my $units             = '-1';
-
-    if ( defined $start_timestamp and defined $end_timestamp )
-    {
-
-        my $start_date = DateTime->from_epoch( epoch => $start_timestamp, time_zone => 'Etc/GMT' );
-        my $end_date   = DateTime->from_epoch( epoch => $end_timestamp,   time_zone => 'Etc/GMT' );
-
-        # Round timestamps to the nearest day
-        $start_date->set( hour => 0, minute => 0, second => 0 );
-        $end_date->set( hour => 0, minute => 0, second => 0 );
-
-        my $delta      = $end_date->delta_days( $start_date );
-        my $delta_days = $delta->delta_days;
-        say STDERR "Delta days between $start_timestamp and $end_timestamp: $delta_days";
-
-        if ( $delta_days == 0 )
-        {
-            say STDERR "Delta days between $start_timestamp and $end_timestamp is 0, so setting it to 1";
-            $delta_days = 1;
-        }
-
-        # Make sure it doesn't exceed Bit.ly's limit
-        if ( $delta_days > $MAX_BITLY_LIMIT )
-        {
-            die "Difference between start_timestamp ($start_timestamp) and end_timestamp ($end_timestamp) " .
-              "is bigger than Bit.ly's limit of $MAX_BITLY_LIMIT days.";
-        }
-
-        $unit_reference_ts = $end_timestamp;
-        $units             = $delta_days;
-    }
+    my ( $unit_reference_ts, $units ) =
+      _unit_reference_ts_and_units_from_start_end_timestamps( $start_timestamp, $end_timestamp, $MAX_BITLY_LIMIT );
 
     my $result = request(
         '/v3/link/clicks',
