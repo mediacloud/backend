@@ -140,10 +140,11 @@ class MediaCloud(object):
             params['split_end_date'] = split_end_date
         return self._queryForJson(self.V2_API_URL+'sentences/count', params)
 
-    def wordCount(self, solr_query, solr_filter=''):
+    def wordCount(self, solr_query, solr_filter='', l='en'):
         return self._queryForJson(self.V2_API_URL+'wc/list',
                 {'q': solr_query,
-                 'fq': solr_filter
+                 'fq': solr_filter,
+                 'l': l
                 })
 
     def tag(self, tags_id):
