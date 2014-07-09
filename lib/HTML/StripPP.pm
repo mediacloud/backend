@@ -12,9 +12,9 @@ use HTML::Entities;
 # strip the html tags, html comments, any any text within TITLE, SCRIPT, APPLET, OBJECT, and STYLE tags
 sub strip
 {
-    local $_ = $_[ 0 ] || $_;
+    my ( $html ) = @_;
 
-    if ( !defined( $_ ) )
+    if ( !defined( $html ) )
     {
         return undef;
     }
@@ -22,7 +22,7 @@ sub strip
     # Remove soft hyphen (&shy; or 0xAD) character from text
     # (some news websites hyphenate their stories using this character so that the browser can lay it out more nicely)
     my $soft_hyphen = chr( 0xAD );
-    $_ =~ s/$soft_hyphen//gs;
+    $html =~ s/$soft_hyphen//gs;
 
     # ALGORITHM:
     #   find < ,
@@ -34,7 +34,7 @@ sub strip
     #           then skip to next "
     #           else [^>]
     #   >
-    s{
+    $html =~ s{
     <               # open tag
     (?:             # open group (A)
       (!--) |       #   comment (1) or
@@ -80,7 +80,7 @@ sub strip
     >               # tag closed
    }{ }gsxi;    # STRIP THIS TAG
 
-    return $_ ? HTML::Entities::decode_entities( $_ ) : "";
+    return $html ? HTML::Entities::decode_entities( $html ) : "";
 }
 
 1;
