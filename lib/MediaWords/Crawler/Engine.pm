@@ -143,9 +143,9 @@ sub _run_fetcher
             }
             elsif ( $downloads_id && ( $downloads_id eq 'exit' ) )
             {
-                say STDERR "exiting as a fetcher";
+                #say STDERR "exiting as a fetcher";
 
-                exit 0;
+                #exit 0;
             }
             else
             {
