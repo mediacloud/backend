@@ -82,7 +82,14 @@ sub process_csv_stories($;$$)
 
         ++$stats{ links_total };
 
-        Readonly my $link_lookup => MediaWords::Util::Bitly::bitly_link_lookup_all_variants( $stories_url );
+        my $link_lookup;
+        eval {
+            $link_lookup = MediaWords::Util::Bitly::bitly_link_lookup_all_variants( $stories_url );
+        };
+        if ( $@ or (! $link_lookup )) {
+            warn "Unable to lookup story with URL $stories_url: $@";
+            next;
+        }
         say STDERR "Link lookup: " . Dumper( $link_lookup );
 
         # Found links statistics
