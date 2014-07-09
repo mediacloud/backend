@@ -1,8 +1,9 @@
 [% PROCESS cm/header.tt2
     title = 'Media Over Time for Dump ' _ datetime.format( controversy_dump.dump_date ) %]
 
-<script src="[% c.uri_for( '/cm/mot/jquery.min.js' ) %]"></script>
-<script src="[% c.uri_for( '/cm/mot/scripts.js' ) %]"></script>
+<script src="[% c.uri_for( '/cm/mot/jquery.min.js' ) %]" charset="utf-8"></script>
+<script src="[% c.uri_for( '/cm/mot/d3.min.js' ) %]" charset="utf-8"></script>
+<script src="[% c.uri_for( '/cm/mot/scripts.js' ) %]" charset="utf-8"></script>
 <style type="text/css">
 .axis path,.axis line {fill: none;stroke:#b6b6b6;shape-rendering: crispEdges;}
 /*.tick line{fill:none;stroke:none;}*/
