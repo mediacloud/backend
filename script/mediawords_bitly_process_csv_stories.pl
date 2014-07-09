@@ -101,122 +101,121 @@ sub process_csv_stories($;$$)
         }
 
         # Stop here if only querying for Bit.ly links was needed
-        if ( $stat_only )
+        unless ( $stat_only )
         {
-            next;
-        }
+            my $link_stats = {};
 
-        my $link_stats = {};
+            my %at_least_one_link_has = (
+                clicks     => 0,
+                categories => 0,
+                referrers  => 0,
+                shares     => 0,
+            );
 
-        my %at_least_one_link_has = (
-            clicks     => 0,
-            categories => 0,
-            referrers  => 0,
-            shares     => 0,
-        );
-
-        # Fetch Bit.ly stats for the link (if any)
-        foreach my $link ( keys %{ $link_lookup } )
-        {
-
-            unless ( defined $link_lookup->{ $link } )
+            # Fetch Bit.ly stats for the link (if any)
+            foreach my $link ( keys %{ $link_lookup } )
             {
-                next;
-            }
 
-            unless ( defined $link_stats->{ 'data' } )
-            {
-                $link_stats->{ 'data' } = {};
-            }
-
-            my $bitly_id = $link_lookup->{ $link };
-
-            say STDERR "\tFetching stats for Bit.ly ID $bitly_id...";
-            if ( $link_stats->{ 'data' }->{ $bitly_id } )
-            {
-                die "Bit.ly ID $bitly_id already exists in link stats hashref: " . Dumper( $link_stats );
-            }
-
-            $link_stats->{ 'data' }->{ $bitly_id } = {
-                'url'    => $link,
-                'clicks' => [
-
-                    # array because one might want to make multiple requests with various dates
-                    MediaWords::Util::Bitly::bitly_link_clicks( $bitly_id )
-                ],
-                'categories' => MediaWords::Util::Bitly::bitly_link_categories( $bitly_id ),
-                'referrers'  => [
-
-                    # array because one might want to make multiple requests with various dates
-                    MediaWords::Util::Bitly::bitly_link_referrers( $bitly_id )
-                ],
-                'shares' => [
-
-                    # array because one might want to make multiple requests with various dates
-                    MediaWords::Util::Bitly::bitly_link_shares( $bitly_id )
-                ],
-            };
-
-            # Collect stats
-            foreach my $click ( @{ $link_stats->{ 'data' }->{ $bitly_id }->{ 'clicks' }->[ 0 ]->{ 'link_clicks' } } )
-            {
-                if ( $click->{ 'clicks' } > 0 )
+                unless ( defined $link_lookup->{ $link } )
                 {
-                    $at_least_one_link_has{ clicks } = 1;
-                    last;
+                    next;
                 }
-            }
-            if ( scalar @{ $link_stats->{ 'data' }->{ $bitly_id }->{ 'categories' }->{ 'categories' } } > 0 )
-            {
-                $at_least_one_link_has{ categories } = 1;
-            }
-            foreach my $referrer ( @{ $link_stats->{ 'data' }->{ $bitly_id }->{ 'referrers' }->[ 0 ]->{ 'referrers' } } )
-            {
-                if ( $referrer->{ 'clicks' } > 0 )
+
+                unless ( defined $link_stats->{ 'data' } )
                 {
-                    $at_least_one_link_has{ referrers } = 1;
-                    last;
+                    $link_stats->{ 'data' } = {};
                 }
+
+                my $bitly_id = $link_lookup->{ $link };
+
+                say STDERR "\tFetching stats for Bit.ly ID $bitly_id...";
+                if ( $link_stats->{ 'data' }->{ $bitly_id } )
+                {
+                    die "Bit.ly ID $bitly_id already exists in link stats hashref: " . Dumper( $link_stats );
+                }
+
+                $link_stats->{ 'data' }->{ $bitly_id } = {
+                    'url'    => $link,
+                    'clicks' => [
+
+                        # array because one might want to make multiple requests with various dates
+                        MediaWords::Util::Bitly::bitly_link_clicks( $bitly_id )
+                    ],
+                    'categories' => MediaWords::Util::Bitly::bitly_link_categories( $bitly_id ),
+                    'referrers'  => [
+
+                        # array because one might want to make multiple requests with various dates
+                        MediaWords::Util::Bitly::bitly_link_referrers( $bitly_id )
+                    ],
+                    'shares' => [
+
+                        # array because one might want to make multiple requests with various dates
+                        MediaWords::Util::Bitly::bitly_link_shares( $bitly_id )
+                    ],
+                };
+
+                # Collect stats
+                foreach my $click ( @{ $link_stats->{ 'data' }->{ $bitly_id }->{ 'clicks' }->[ 0 ]->{ 'link_clicks' } } )
+                {
+                    if ( $click->{ 'clicks' } > 0 )
+                    {
+                        $at_least_one_link_has{ clicks } = 1;
+                        last;
+                    }
+                }
+                if ( scalar @{ $link_stats->{ 'data' }->{ $bitly_id }->{ 'categories' }->{ 'categories' } } > 0 )
+                {
+                    $at_least_one_link_has{ categories } = 1;
+                }
+                foreach my $referrer ( @{ $link_stats->{ 'data' }->{ $bitly_id }->{ 'referrers' }->[ 0 ]->{ 'referrers' } } )
+                {
+                    if ( $referrer->{ 'clicks' } > 0 )
+                    {
+                        $at_least_one_link_has{ referrers } = 1;
+                        last;
+                    }
+                }
+                if ( scalar @{ $link_stats->{ 'data' }->{ $bitly_id }->{ 'shares' }->[ 0 ]->{ 'shares' } } > 0 )
+                {
+                    $at_least_one_link_has{ shares } = 1;
+                }
+
             }
-            if ( scalar @{ $link_stats->{ 'data' }->{ $bitly_id }->{ 'shares' }->[ 0 ]->{ 'shares' } } > 0 )
+
+            # No links?
+            if ( scalar( keys %{ $link_stats } ) )
             {
-                $at_least_one_link_has{ shares } = 1;
+
+                # Store timestamp (GMT, not local time)
+                $link_stats->{ 'timestamp' } = time();
+
+            }
+            else
+            {
+
+                # Mark as "not found"
+                $link_stats->{ 'error' } = 'NOT_FOUND';
             }
 
-        }
+            say STDERR "Link stats: " . Dumper( $link_stats );
 
-        # No links?
-        if ( scalar( keys %{ $link_stats } ) )
-        {
+            if ( $at_least_one_link_has{ clicks } )
+            {
+                ++$stats{ links_that_have_clicks };
+            }
+            if ( $at_least_one_link_has{ categories } )
+            {
+                ++$stats{ links_that_have_categories };
+            }
+            if ( $at_least_one_link_has{ referrers } )
+            {
+                ++$stats{ links_that_have_referrers };
+            }
+            if ( $at_least_one_link_has{ shares } )
+            {
+                ++$stats{ links_that_have_shares };
+            }
 
-            # Store timestamp (GMT, not local time)
-            $link_stats->{ 'timestamp' } = time();
-
-        }
-        else
-        {
-
-            # Mark as "not found"
-            $link_stats->{ 'error' } = 'NOT_FOUND';
-        }
-
-        say STDERR "Link stats: " . Dumper( $link_stats );
-
-        if ( $at_least_one_link_has{ clicks } )
-        {
-            ++$stats{ links_that_have_clicks };
-        }
-        if ( $at_least_one_link_has{ categories } )
-        {
-            ++$stats{ links_that_have_categories };
-        }
-        if ( $at_least_one_link_has{ referrers } )
-        {
-            ++$stats{ links_that_have_referrers };
-        }
-        if ( $at_least_one_link_has{ shares } )
-        {
-            ++$stats{ links_that_have_shares };
         }
 
         unless ( $no_sleep_between_links )
