@@ -28,20 +28,22 @@ use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use MediaWords::Util::Bitly;
+use Getopt::Long;
 use Text::CSV;
 use Scalar::Util qw(looks_like_number);
 use Readonly;
 use DateTime;
 use Data::Dumper;
 
-sub main()
-{
-    unless ( $ARGV[ 0 ] )
-    {
-        die "Usage: $0 stories.csv\n";
-    }
+Readonly my $sleep_between_links => 1;    # seconds
 
-    my $stories_csv_file = $ARGV[ 0 ];
+sub process_csv_stories($;$$)
+{
+    my ( $stories_csv_file, $stat_only, $no_sleep_between_links ) = @_;
+
+    $stat_only              //= 0;
+    $no_sleep_between_links //= 0;
+
     unless ( -f $stories_csv_file )
     {
         die "File '$stories_csv_file' does not exist.\n";
@@ -82,6 +84,27 @@ sub main()
 
         Readonly my $link_lookup => MediaWords::Util::Bitly::bitly_link_lookup_all_variants( $stories_url );
         say STDERR "Link lookup: " . Dumper( $link_lookup );
+
+        # Found links statistics
+        my $link_was_found = 0;
+        foreach my $link ( keys %{ $link_lookup } )
+        {
+            if ( defined $link_lookup->{ $link } )
+            {
+                $link_was_found = 1;
+                last;
+            }
+        }
+        if ( $link_was_found )
+        {
+            ++$stats{ links_found };
+        }
+
+        # Stop here if only querying for Bit.ly links was needed
+        if ( $stat_only )
+        {
+            next;
+        }
 
         my $link_stats = {};
 
@@ -179,19 +202,6 @@ sub main()
 
         say STDERR "Link stats: " . Dumper( $link_stats );
 
-        my $link_was_found = 0;
-        foreach my $link ( keys %{ $link_lookup } )
-        {
-            if ( defined $link_lookup->{ $link } )
-            {
-                $link_was_found = 1;
-                last;
-            }
-        }
-        if ( $link_was_found )
-        {
-            ++$stats{ links_found };
-        }
         if ( $at_least_one_link_has{ clicks } )
         {
             ++$stats{ links_that_have_clicks };
@@ -209,21 +219,55 @@ sub main()
             ++$stats{ links_that_have_shares };
         }
 
-        say STDERR "Sleeping for rate limiting reasons...";
-        sleep( 1 );
-
-        say STDERR "Done.";
+        unless ( $no_sleep_between_links )
+        {
+            say STDERR "Sleeping for rate limiting reasons...";
+            sleep( $sleep_between_links + 0 );
+        }
     }
     $csv->eof or $csv->error_diag();
     close $fh;
 
     say STDERR "Total links: $stats{ links_total }";
     say STDERR "Found links: $stats{ links_found }";
-    say STDERR "Links that have:";
-    say STDERR "    * clicks: $stats{ links_that_have_clicks }";
-    say STDERR "    * categories: $stats{ links_that_have_categories }";
-    say STDERR "    * referrers: $stats{ links_that_have_referrers }";
-    say STDERR "    * shares: $stats{ links_that_have_shares }";
+
+    unless ( $stat_only )
+    {
+        say STDERR "Links that have:";
+        say STDERR "    * clicks: $stats{ links_that_have_clicks }";
+        say STDERR "    * categories: $stats{ links_that_have_categories }";
+        say STDERR "    * referrers: $stats{ links_that_have_referrers }";
+        say STDERR "    * shares: $stats{ links_that_have_shares }";
+    }
+}
+
+sub main()
+{
+    Readonly my $usage => "Usage: $0 --stories_csv_file=stories.csv [--stat_only] [--no_sleep_between_links]";
+
+    my $stories_csv_file       = undef;
+    my $stat_only              = 0;
+    my $no_sleep_between_links = 0;
+
+    GetOptions(
+        "stories_csv_file=s"     => \$stories_csv_file,
+        "stat_only"              => \$stat_only,
+        "no_sleep_between_links" => \$no_sleep_between_links
+    ) or die $usage;
+    unless ( $stories_csv_file )
+    {
+        die $usage;
+    }
+
+    say STDERR "starting -- " . localtime();
+
+    say STDERR "Stories CSV file: $stories_csv_file";
+    say STDERR "Only check if Bit.ly links exist and don't fetch stats: " . ( $stat_only ? 'yes' : 'no' );
+    say STDERR "Don't sleep($sleep_between_links) between analyzing links: " . ( $no_sleep_between_links ? 'yes' : 'no' );
+
+    process_csv_stories( $stories_csv_file, $stat_only, $no_sleep_between_links );
+
+    say STDERR "finished -- " . localtime();
 }
 
 main();
