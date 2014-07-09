@@ -229,6 +229,11 @@ sub url_after_redirects($;$$)
 
         my $response = $ua->get( $uri->as_string );
 
+# FIXME:
+# Request to http://mediadecoder.blogs.nytimes.com/2012/01/15/a-tv-debate-on-antipiracy/?hp was unsuccessful: 302 Found at /Users/pypt/Dropbox/etc-MediaCloud/trunk/script/../lib/MediaWords/Util/Bitly.pm line 216, <$fh> line 865.
+# Link lookup: $VAR1 = {
+#           'http://mediadecoder.blogs.nytimes.com/2012/01/15/a-tv-debate-on-antipiracy/?hp' => 'A4yslU'
+#         };
         unless ( $response->is_success )
         {
             warn "Request to " . $uri->as_string . " was unsuccessful: " . $response->status_line;
