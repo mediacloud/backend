@@ -97,6 +97,33 @@ sub _unit_reference_ts_and_units_from_start_end_timestamps($$$)
     return ( $unit_reference_ts, $units );
 }
 
+# Returns true if URL is valid for Bit.ly shortening
+sub _url_is_valid_for_bitly($)
+{
+    my $url = shift;
+
+    unless ( $url )
+    {
+        warn "URL is undefined";
+        return 0;
+    }
+
+    my $uri = URI->new( $url )->canonical;
+
+    unless ( $uri->scheme )
+    {
+        warn "Scheme is undefined for URL $url";
+        return 0;
+    }
+    unless ( $uri->scheme eq 'http' or $uri->scheme eq 'https' or $uri->scheme eq 'ftp' )
+    {
+        warn "Scheme is not HTTP(s) or FTP for URL $url";
+        return 0;
+    }
+
+    return 1;
+}
+
 # Sends a request to Bit.ly API, returns a 'data' key hashref with results; die()s on error
 sub request($$)
 {
@@ -182,21 +209,12 @@ sub url_after_redirects($;$$)
 {
     my ( $orig_url, $max_http_redirect, $max_meta_redirect ) = @_;
 
-    unless ( $orig_url )
+    unless ( _url_is_valid_for_bitly( $orig_url ) )
     {
-        die "URL is undefined";
+        die "URL is invalid: $orig_url";
     }
 
     my $uri = URI->new( $orig_url )->canonical;
-
-    unless ( $uri->scheme )
-    {
-        die "Scheme is undefined for URL $orig_url";
-    }
-    unless ( $uri->scheme eq 'http' or $uri->scheme eq 'https' )
-    {
-        die "Scheme is not HTTP(s) for URL $orig_url";
-    }
 
     $max_http_redirect //= 7;
     $max_meta_redirect //= 3;
@@ -264,21 +282,12 @@ sub url_canonical($)
 {
     my $url = shift;
 
-    unless ( $url )
+    unless ( _url_is_valid_for_bitly( $url ) )
     {
-        die "URL is undefined";
+        die "URL is invalid: $url";
     }
 
     my $uri = URI->new( $url )->canonical;
-
-    unless ( $uri->scheme )
-    {
-        die "Scheme is undefined for URL $url";
-    }
-    unless ( $uri->scheme eq 'http' or $uri->scheme eq 'https' )
-    {
-        die "Scheme is not HTTP(s) for URL $url";
-    }
 
     # Remove #fragment
     $uri->fragment( undef );
@@ -416,6 +425,14 @@ sub bitly_link_lookup($)
     unless ( ref( $urls ) eq ref( [] ) )
     {
         die "URLs is not an arrayref.";
+    }
+
+    foreach my $url ( @{ $urls } )
+    {
+        unless ( _url_is_valid_for_bitly( $url ) )
+        {
+            die "One of the URLs is invalid: $url";
+        }
     }
 
     my $result = request( '/v3/link/lookup', { url => $urls } );
