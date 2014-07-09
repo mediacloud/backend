@@ -308,14 +308,15 @@ END
         my $m = $top_media_lookup->{ $top_medium->{ media_id } } ||= $top_medium;
 
         $m->{ first_date }  ||= $d;
-        $m->{ first_count } ||= $d;
+        $m->{ first_count } ||= $top_medium->{ inlink_count_rank };
 
         $m->{ count_lookup }->{ $d } =
           [ $top_medium->{ inlink_count_rank }, $top_medium->{ controversy_dump_time_slices_id } ];
         $m->{ total_weight } += 100 / $top_medium->{ inlink_count_rank };
     }
 
-    my $sorted_media = [ sort { $a->{ first_date } cmp $b->{ first_date } || $a->{ first_count } <=> $b->{ first_count } }
+    my $sorted_media =
+      [ sort { ( $a->{ first_date } cmp $b->{ first_date } ) || ( $a->{ first_count } <=> $b->{ first_count } ) }
           values( %{ $top_media_lookup } ) ];
 
     my $all_dates = [ sort { $a cmp $b } keys( $all_dates_lookup ) ];
