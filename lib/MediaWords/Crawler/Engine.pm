@@ -145,7 +145,7 @@ sub _run_fetcher
             {
                 say STDERR "exiting as a fetcher";
 
-                #exit 0;
+                exit 0;
             }
             else
             {
@@ -169,6 +169,13 @@ sub _run_fetcher
         }
 
     }
+}
+
+my $_exit_on_kill = 0;
+
+sub _exit()
+{
+    exit();
 }
 
 # fork off the fetching processes
@@ -211,6 +218,11 @@ sub spawn_fetchers
             $self->fetcher_number( $i );
             $self->socket( $child_socket );
             $self->reconnect_db;
+
+            if ( $_exit_on_kill )
+            {
+                $SIG{ TERM } = \&_exit;
+            }
 
             say STDERR "in child $i calling run_fetcher";
             eval { $self->_run_fetcher(); };
@@ -271,6 +283,8 @@ sub crawl
 
     my $queued_downloads = [];
 
+    say STDERR "starting Crawler::Engine::crawl";
+
     MediaWords::DB::run_block_with_large_work_mem
     {
 
@@ -328,7 +342,7 @@ sub crawl
     $self->dbs;
 
     kill( 15, map { $_->{ pid } } @{ $self->{ fetchers } } );
-    print "waiting 5 seconds for children to exit ...\n";
+    print STDERR "waiting 5 seconds for children to exit ...\n";
     sleep( 5 );
 
     print STDERR "using kill 9 to make sure children stop ";
