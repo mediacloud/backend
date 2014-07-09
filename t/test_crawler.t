@@ -113,6 +113,7 @@ sub _run_crawler()
     $crawler->sleep_interval( 1 );
     $crawler->timeout( $crawler_timeout );
     $crawler->pending_check_interval( 1 );
+    #$crawler->children_exit_on_kill( 1 );
 
     $| = 1;
 
