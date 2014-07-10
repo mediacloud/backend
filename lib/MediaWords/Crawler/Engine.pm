@@ -39,7 +39,7 @@ sub new
     $self->throttle( 30 );
     $self->fetchers( [] );
     $self->reconnect_db();
-
+    $self->children_exit_on_kill( 0 );
     return $self;
 }
 
@@ -143,9 +143,9 @@ sub _run_fetcher
             }
             elsif ( $downloads_id && ( $downloads_id eq 'exit' ) )
             {
-                say STDERR "exiting as a fetcher";
+                #say STDERR "exiting as a fetcher";
 
-                exit 0;
+                #exit 0;
             }
             else
             {
@@ -219,9 +219,14 @@ sub spawn_fetchers
             $self->socket( $child_socket );
             $self->reconnect_db;
 
-            if ( $_exit_on_kill )
+            if ( $self->children_exit_on_kill() )
             {
+                say STDERR "child $i adding sig{ TERM } handler";
                 $SIG{ TERM } = \&_exit;
+            }
+            else
+            {
+                say STDERR "child $i not adding sig{ TERM } handler";
             }
 
             say STDERR "in child $i calling run_fetcher";
@@ -518,6 +523,16 @@ sub socket
     }
 
     return $_[ 0 ]->{ socket };
+}
+
+sub children_exit_on_kill
+{
+    if ( defined( $_[ 1 ] ) )
+    {
+        $_[ 0 ]->{ children_exit_on_kill } = $_[ 1 ];
+    }
+
+    return $_[ 0 ]->{ children_exit_on_kill };
 }
 
 # engine MediaWords::DBI Simple handle

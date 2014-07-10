@@ -86,7 +86,11 @@ sub _tidy_with_perl_tidy($)
 
 sub main
 {
-    _test_syntax( \@ARGV );
+    #Commenting out syntax check because it breaks on files in t/
+    # ALSO this script may not be the right place for syntax checking
+    #   it might be better to have a separate precommit hook to check syntax
+    #
+    #_test_syntax( \@ARGV );
     _tidy_with_perl_tidy( \@ARGV );
 }
 

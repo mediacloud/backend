@@ -241,8 +241,6 @@ sub main
 
             my $feed = add_test_feed( $db, $url_to_crawl );
 
-            $DB::single = 2;
-
             my $feed_download = MediaWords::Test::DB::create_download_for_feed( $feed, $db );
 
             MediaWords::Util::Config::get_config->{ mediawords }->{ extract_in_process } = 1;
