@@ -257,8 +257,9 @@ sub main
 
             $crawler->crawl_single_download( $feed_download->{ downloads_id } );
 
+            print STDERR "download id: $feed_download->{ downloads_id }\n";
             my $content_downloads =
-              $db->query( " SELECT * from downloads where  type = 'content' and state <> 'success' and downloads_id > ? ",
+              $db->query( "SELECT * from downloads where  type = 'content' and state <> 'success' and downloads_id > ? ",
                 $feed_download->{ downloads_id } )->hashes;
 
             my $content_download = pop @{ $content_downloads };
