@@ -932,7 +932,7 @@ END
     for my $edge ( @{ $edges } )
     {
         $edge_lookup->{ $edge->{ source } } ||= 0;
-        $edge_lookup->{ $edge->{ target } } += $edge->{ weight };
+        $edge_lookup->{ $edge->{ target } } += $edge->{ weight } || 0;
     }
 
     my $total_link_count = 1;
@@ -1509,7 +1509,7 @@ sub analyze_snapshot_tables
 
     print STDERR "analyzing tables...\n";
 
-    my $snapshot_tables   = get_snapshot_tables();
+    my $snapshot_tables = get_snapshot_tables();
 
     for my $t ( @{ $snapshot_tables } )
     {
