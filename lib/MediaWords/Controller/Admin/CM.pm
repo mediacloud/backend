@@ -264,7 +264,7 @@ sub _get_media_with_cdts_counts
     # do this in one big complex quey because it's much faster than doing one for each cdts.
     # sort by inlink_count with each controversy and keep only the 10 lowest ranked
     # media for each time slice.
-    my $top_media = $db->query( <<END, $cd->{ controversies_id } )->hashes;
+    my $top_media = $db->query( <<END, $cd->{ controversy_dumps_id } )->hashes;
 with ranked_media as (
     select m.name as name,
             m.url as medium_url,
@@ -280,7 +280,7 @@ with ranked_media as (
             join cd.medium_link_counts mlc on ( cdts.controversy_dump_time_slices_id = mlc.controversy_dump_time_slices_id )
             join cd.media m on ( mlc.media_id = m.media_id and cd.controversy_dumps_id = m.controversy_dumps_id )
         where 
-            cd.controversies_id = \$1 and
+            cd.controversy_dumps_id = \$1 and
             cdts.period = 'weekly' and
             mlc.inlink_count > 1        
         window w as (
@@ -307,8 +307,8 @@ END
 
         my $m = $top_media_lookup->{ $top_medium->{ media_id } } ||= $top_medium;
 
-        $m->{ first_date }  ||= $d;
-        $m->{ first_count } ||= $top_medium->{ inlink_count_rank };
+        $m->{ first_date } ||= $d;
+        $m->{ first_rank } ||= $top_medium->{ inlink_count_rank };
 
         $m->{ count_lookup }->{ $d } =
           [ $top_medium->{ inlink_count_rank }, $top_medium->{ controversy_dump_time_slices_id } ];
@@ -316,7 +316,7 @@ END
     }
 
     my $sorted_media =
-      [ sort { ( $a->{ first_date } cmp $b->{ first_date } ) || ( $a->{ first_count } <=> $b->{ first_count } ) }
+      [ sort { ( $a->{ first_date } cmp $b->{ first_date } ) || ( $a->{ first_rank } <=> $b->{ first_rank } ) }
           values( %{ $top_media_lookup } ) ];
 
     my $all_dates = [ sort { $a cmp $b } keys( $all_dates_lookup ) ];
