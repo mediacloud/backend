@@ -22,6 +22,7 @@ use Feed::Scrape::MediaWords;
 use MediaWords::Crawler::BlogSpiderBlogHomeHandler;
 use MediaWords::Crawler::BlogSpiderPostingHandler;
 use MediaWords::Crawler::Pager;
+use MediaWords::GearmanFunction::ExtractAndVector;
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories;
 use MediaWords::Util::Config;
@@ -78,7 +79,7 @@ sub _get_stories_from_feed_contents_impl
     for my $item ( @{ $items } )
     {
 
-        my $url  = _no_ref( $item->link() ) || _no_ref( $item->get( 'nnd:canonicalUrl' ) ) || _no_ref( $item->guid() );
+        my $url = _no_ref( $item->link() ) || _no_ref( $item->get( 'nnd:canonicalUrl' ) ) || _no_ref( $item->guid() );
         my $guid = _no_ref( $item->guid() ) || $url;
 
         next ITEM unless ( $url );
@@ -308,6 +309,8 @@ sub handle_web_page_content
         $download->{ downloads_id }
     );
 
+    $download->{ stories_id } = $story->{ stories_id };
+
     return \$decoded_content;
 }
 
@@ -334,11 +337,10 @@ sub handle_feed_content
     my $content_ref = \$decoded_content;
 
     my $feed = $dbs->find_by_id( 'feeds', $download->{ feeds_id } );
+    my $feed_type = $feed->{ feed_type };
 
     try
     {
-        my $feed_type = $feed->{ feed_type };
-
         if ( $feed_type eq 'syndicated' )
         {
             $content_ref = handle_syndicated_content( $dbs, $download, $decoded_content );
@@ -372,6 +374,11 @@ sub handle_feed_content
         }
 
         MediaWords::DBI::Downloads::store_content( $dbs, $download, $content_ref );
+
+        if ( $feed_type eq 'web_page' )
+        {
+            MediaWords::GearmanFunction::ExtractAndVector->extract_for_crawler( $dbs, $download, 0 );
+        }
     };
 
     return;

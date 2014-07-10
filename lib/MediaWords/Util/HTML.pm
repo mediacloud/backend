@@ -38,9 +38,7 @@ sub html_strip($)
 {
     my ( $html ) = @_;
 
-    return '' unless ( defined( $html ) );
-
-    return HTML::StripPP::strip( $html ) || '';
+    return defined( $html ) ? HTML::StripPP::strip( $html ) : '';
 }
 
 1;

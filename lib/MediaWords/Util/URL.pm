@@ -26,4 +26,40 @@ sub normalize_url
     return scalar( URI->new( $url )->canonical );
 }
 
+# get the domain of the given url
+sub get_url_domain
+{
+    my ( $url ) = @_;
+
+    $url =~ m~https?://([^/#]*)~ || return $url;
+
+    my $host = $1;
+
+    my $name_parts = [ split( /\./, $host ) ];
+
+    my $n = @{ $name_parts } - 1;
+
+    my $domain;
+    if ( $host =~ /\.(gov|org|com?)\...$/i )
+    {
+        $domain = join( ".", ( $name_parts->[ $n - 2 ], $name_parts->[ $n - 1 ], $name_parts->[ $n ] ) );
+    }
+    elsif ( $host =~ /\.(edu|gov)$/i )
+    {
+        $domain = join( ".", ( $name_parts->[ $n - 2 ], $name_parts->[ $n - 1 ] ) );
+    }
+    elsif ( $host =~
+        /wordpress.com|blogspot|livejournal.com|privet.ru|wikia.com|feedburner.com|24open.ru|patch.com|tumblr.com/i )
+    {
+        $domain = $host;
+    }
+    else
+    {
+        $domain = join( ".", $name_parts->[ $n - 1 ], $name_parts->[ $n ] );
+    }
+
+    return lc( $domain );
+
+}
+
 1;

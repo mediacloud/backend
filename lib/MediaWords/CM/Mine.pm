@@ -409,7 +409,8 @@ END
 
     return $medium if ( $medium );
 
-# avoid conflicts with existing media names and urls that are missed by the above query b/c of dups feeds or foreign_rss_links
+    # avoid conflicts with existing media names and urls that are missed
+    # by the above query b/c of dups feeds or foreign_rss_links
     $medium_name = get_unique_medium_name( $db, $medium_name );
     $medium_url = get_unique_medium_url( $db, $medium_url );
 
@@ -422,7 +423,7 @@ END
 
     $medium = $db->create( 'media', $medium );
 
-    print STDERR "add medium: $medium_name / $medium_url / $medium->{ medium_id }\n";
+    print STDERR "add medium: $medium_name / $medium_url / $medium->{ media_id }\n";
 
     my $spidered_tag = get_spidered_tag( $db );
 
@@ -565,7 +566,7 @@ sub get_dup_medium
 {
     my ( $db, $media_id, $allow_foreign_rss_links, $count ) = @_;
 
-    croak( "loop detected" ) if ( $count > 10 );
+    croak( "loop detected" ) if ( $count && ( $count > 10 ) );
 
     return undef unless ( $media_id );
 
@@ -596,7 +597,6 @@ sub ignore_redirect
 
     my $match = $db->query( "select 1 from controversy_ignore_redirects where url = ?", $u )->hash;
 
-    print STDERR "ignore_redirect: $match\n";
     return $match ? 1 : 0;
 }
 
@@ -786,7 +786,7 @@ sub story_matches_controversy_pattern
     $perl_re =~ s/\[\[\:[\<\>]\:\]\]/\\b/g;
     for my $field ( qw/title description url redirect_url/ )
     {
-        return $field if ( $story->{ $field } =~ /$perl_re/isx );
+        return $field if ( $story->{ $field } && ( $story->{ $field } =~ /$perl_re/isx ) );
     }
 
     return 0 if ( $metadata_only );
@@ -825,40 +825,95 @@ sub add_to_controversy_stories_and_links
     generate_controversy_links( $db, $controversy, [ $story ] );
 }
 
-# look for a story matching the link stories_id, url,  in the db
-sub get_matching_story_from_db
+# return true if the domain of the story url matches the domain of the medium url
+sub _story_domain_matches_medium
 {
-    my ( $db, $link, $controversy ) = @_;
+    my ( $db, $medium, $url, $redirect_url ) = @_;
+
+    my $medium_domain = MediaWords::Util::URL::get_url_domain( $medium->{ url } );
+
+    my $story_domains = [ map { MediaWords::Util::URL::get_url_domain( $_ ) } ( $url, $redirect_url ) ];
+
+    return ( grep { $medium_domain eq $_ } @{ $story_domains } ) ? 1 : 0;
+}
+
+# given a set of possible story matches, find the story that is likely the best.
+# the best story is the one that sorts first according to the following criteria
+# based on the media source of each story, in descending order of importance:
+# * media pointed to by some dup_media_id;
+# * media with a dup_media_id;
+# * media whose url domain matches that of the story;
+# * media with a lower media_id
+sub get_preferred_story
+{
+    my ( $db, $url, $redirect_url, $stories ) = @_;
+
+    return $stories->[ 0 ] if ( @{ $stories } == 1 );
+
+    my $stories_lookup = {};
+    map { $stories_lookup->{ $_->{ stories_id } } = $_ } @{ $stories };
+    $stories = [ values( %{ $stories_lookup } ) ];
+
+    my $media = [];
+    for my $story ( @{ $stories } )
+    {
+        my $medium = $db->find_by_id( 'media', $story->{ media_id } );
+        $medium->{ story } = $story;
+        $medium->{ dup_target } =
+          $db->query( "select 1 from media where dup_media_id = ?", $story->{ media_id } )->hash ? 1 : 0;
+        $medium->{ dup_source } = $medium->{ dup_media_id } ? 1 : 0;
+        $medium->{ matches_domain } = _story_domain_matches_medium( $db, $medium, $url, $redirect_url );
+        push( @{ $media }, $medium );
+    }
+
+    sub _compare_media
+    {
+             ( $b->{ dup_target } <=> $a->{ dup_target } )
+          || ( $b->{ dup_source } <=> $a->{ dup_source } )
+          || ( $b->{ matches_domain } <=> $a->{ matches_domain } )
+          || ( $a->{ media_id } <=> $b->{ media_id } );
+    }
+
+    my $sorted_media = [ sort _compare_media @{ $media } ];
+
+    return $sorted_media->[ 0 ]->{ story };
+}
+
+# look for a story matching the link stories_id, url,  in the db
+sub get_matching_story_from_db ($$)
+{
+    my ( $db, $link ) = @_;
 
     my $u = substr( $link->{ url }, 0, 1024 );
 
-    my $ru;
+    my $ru = '';
     if ( !ignore_redirect( $db, $link ) )
     {
-        $ru = substr( $link->{ redirect_url }, 0, 1024 ) || $u;
+        $ru = $link->{ redirect_url } ? substr( $link->{ redirect_url }, 0, 1024 ) : $u;
     }
 
     my $nu  = MediaWords::Util::URL::normalize_url( $u );
     my $nru = MediaWords::Util::URL::normalize_url( $ru );
 
-    # look for matching stories, ignore those in foreign_rss_links media and those
-    # in dup_media_id media.
-    my $story = $db->query( <<'END', $u, $ru, $nu, $nru )->hash;
+    # look for matching stories, ignore those in foreign_rss_links media
+    my $stories = $db->query( <<'END', $u, $ru, $nu, $nru )->hashes;
 select s.* from stories s
         join media m on s.media_id = m.media_id
     where ( s.url in ( $1 , $2, $3, $4 ) or s.guid in ( $1, $2, $3, $4 ) ) and
-        m.foreign_rss_links = false and m.dup_media_id is null
+        m.foreign_rss_links = false
 END
 
     # we have to do a separate query here b/c postgres was not coming
     # up with a sane query plan for the combined query
-    $story ||= $db->query( <<'END', $u, $ru, $nu, $nru )->hash;
+    my $seed_stories = $db->query( <<'END', $u, $ru, $nu, $nru )->hashes;
 select s.* from stories s
         join media m on s.media_id = m.media_id
         join controversy_seed_urls csu on s.stories_id = csu.stories_id
     where ( csu.url in ( $1, $2, $3, $4 ) ) and
-        m.foreign_rss_links = false and m.dup_media_id is null
+        m.foreign_rss_links = false
 END
+
+    my $story = get_preferred_story( $db, $u, $ru, [ @{ $stories }, @{ $seed_stories } ] );
 
     if ( $story )
     {
@@ -992,7 +1047,7 @@ sub add_new_links
 
         print STDERR "spidering $link->{ url } ...\n";
 
-        if ( my $story = get_matching_story_from_db( $db, $link, $controversy ) )
+        if ( my $story = get_matching_story_from_db( $db, $link ) )
         {
             add_to_controversy_stories_and_links_if_match( $db, $controversy, $story, $link );
             $link->{ story } = $story;
@@ -1013,7 +1068,7 @@ sub add_new_links
         print STDERR "fetch spidering $link->{ url } ...\n";
 
         add_redirect_url_to_link( $db, $link );
-        my $story = get_matching_story_from_db( $db, $link, $controversy )
+        my $story = get_matching_story_from_db( $db, $link )
           || add_new_story( $db, $link, undef, $controversy );
 
         $link->{ story } = $story;
@@ -1434,7 +1489,7 @@ sub merge_foreign_rss_story
     my $link = { url => $story->{ url } };
 
     # note that get_matching_story_from_db will not return $story b/c it now checkes for foreign_rss_links = true
-    my $merge_into_story = get_matching_story_from_db( $db, $link, $controversy )
+    my $merge_into_story = get_matching_story_from_db( $db, $link )
       || add_new_story( $db, undef, $story, $controversy );
 
     merge_dup_story( $db, $controversy, $story, $merge_into_story );
@@ -1746,7 +1801,7 @@ sub unredirect_story
 
     for my $url ( @{ $urls } )
     {
-        my $new_story = get_matching_story_from_db( $db, $url, $controversy )
+        my $new_story = get_matching_story_from_db( $db, $url )
           || add_new_story( $db, $url, undef, $controversy );
 
         add_to_controversy_stories_if_match( $db, $controversy, $new_story, $url->{ assume_match } );

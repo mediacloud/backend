@@ -266,32 +266,7 @@ sub _queue_extraction($$)
 
     say STDERR "fetcher $fetcher_number starting extraction for download " . $download->{ downloads_id };
 
-    if ( MediaWords::Util::Config::get_config->{ mediawords }->{ extract_in_process } )
-    {
-        say STDERR "extracting in process...";
-        MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, $fetcher_number );
-    }
-    else
-    {
-        while ( 1 )
-        {
-            eval {
-                MediaWords::GearmanFunction::ExtractAndVector->enqueue_on_gearman(
-                    { downloads_id => $download->{ downloads_id } } );
-            };
-
-            if ( $@ )
-            {
-                warn( "extractor job queue failed.  sleeping and trying again in 5 seconds: $@" );
-                sleep 5;
-            }
-            else
-            {
-                last;
-            }
-        }
-        say STDERR "queued extraction";
-    }
+    MediaWords::GearmanFunction::ExtractAndVector->extract_for_crawler( $db, $download, $fetcher_number );
 }
 
 sub _queue_author_extraction($$;$)

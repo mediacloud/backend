@@ -745,7 +745,7 @@ sub scale_gexf_nodes
     for my $node ( @{ $nodes } )
     {
         my $p = $node->{ 'viz:position' }->[ 0 ];
-        $max_x = $p->{ x } if ( $p->{ x } > $max_x );
+        $max_x = $p->{ x } if ( !defined( $max_x ) || ( $p->{ x } > $max_x ) );
     }
 
     my $map_width = $max_x * 2;
@@ -932,7 +932,7 @@ END
     for my $edge ( @{ $edges } )
     {
         $edge_lookup->{ $edge->{ source } } ||= 0;
-        $edge_lookup->{ $edge->{ target } } += $edge->{ weight };
+        $edge_lookup->{ $edge->{ target } } += $edge->{ weight } || 0;
     }
 
     my $total_link_count = 1;
@@ -1509,7 +1509,7 @@ sub analyze_snapshot_tables
 
     print STDERR "analyzing tables...\n";
 
-    my $snapshot_tables   = get_snapshot_tables();
+    my $snapshot_tables = get_snapshot_tables();
 
     for my $t ( @{ $snapshot_tables } )
     {

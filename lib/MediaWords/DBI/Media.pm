@@ -14,6 +14,7 @@ use MediaWords::DBI::Media::Lookup;
 use MediaWords::GearmanFunction;
 use MediaWords::GearmanFunction::AddDefaultFeeds;
 use MediaWords::Util::HTML;
+use MediaWords::Util::URL;
 
 # parse the domain from the url of each story.  return the list of domains
 sub _get_domains_from_story_urls
@@ -308,47 +309,12 @@ sub _find_media_from_urls
     return $url_media;
 }
 
-# get the domain of the given medium url
-sub get_medium_url_domain
-{
-    my ( $url ) = @_;
-
-    $url =~ m~https?://([^/#]*)~ || return $url;
-
-    my $host = $1;
-
-    my $name_parts = [ split( /\./, $host ) ];
-
-    my $n = @{ $name_parts } - 1;
-
-    my $domain;
-    if ( $host =~ /\.(gov|org|com?)\...$/i )
-    {
-        $domain = join( ".", ( $name_parts->[ $n - 2 ], $name_parts->[ $n - 1 ], $name_parts->[ $n ] ) );
-    }
-    elsif ( $host =~ /\.(edu|gov)$/i )
-    {
-        $domain = join( ".", ( $name_parts->[ $n - 2 ], $name_parts->[ $n - 1 ] ) );
-    }
-    elsif ( $host =~
-        /wordpress.com|blogspot|livejournal.com|privet.ru|wikia.com|feedburner.com|24open.ru|patch.com|tumblr.com/i )
-    {
-        $domain = $host;
-    }
-    else
-    {
-        $domain = join( ".", $name_parts->[ $n - 1 ], $name_parts->[ $n ] );
-    }
-
-    return lc( $domain );
-}
-
 # get the domain from the medium url
 sub get_medium_domain
 {
     my ( $medium ) = @_;
 
-    return get_medium_url_domain( $medium->{ url } );
+    return MediaWords::Util::URL::get_url_domain( $medium->{ url } );
 }
 
 # add default feeds for a single medium

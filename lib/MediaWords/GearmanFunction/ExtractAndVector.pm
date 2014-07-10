@@ -81,6 +81,40 @@ sub configuration()
     return MediaWords::Util::GearmanJobSchedulerConfiguration->instance;
 }
 
+# run extraction for the crawler. run in process of mediawords.extract_in_process is configured.
+# keep retrying on enqueue error.
+sub extract_for_crawler
+{
+    my ( $self, $db, $download, $fetcher_number ) = @_;
+
+    if ( MediaWords::Util::Config::get_config->{ mediawords }->{ extract_in_process } )
+    {
+        say STDERR "extracting in process...";
+        MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, $fetcher_number );
+    }
+    else
+    {
+        while ( 1 )
+        {
+            eval {
+                MediaWords::GearmanFunction::ExtractAndVector->enqueue_on_gearman(
+                    { downloads_id => $download->{ downloads_id } } );
+            };
+
+            if ( $@ )
+            {
+                warn( "extractor job queue failed.  sleeping and trying again in 5 seconds: $@" );
+                sleep 5;
+            }
+            else
+            {
+                last;
+            }
+        }
+        say STDERR "queued extraction";
+    }
+}
+
 no Moose;    # gets rid of scaffolding
 
 # Return package name instead of 1 or otherwise worker.pl won't know the name of the package it's loading
