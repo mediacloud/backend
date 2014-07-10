@@ -54,12 +54,25 @@ sub _test_syntax($)
 
 sub _tidy_with_perl_tidy($)
 {
-    my $files = shift;
+    my $orig_files = shift;
 
     my $perltidy_config_file = MediaWords::Util::Paths::mc_script_path() . '/mediawords_perltidy_config_file';
     my $stderr_string;
 
     #say STDERR "Using $perltidy_config_file";
+
+    # Remove test files so that newlines aren't changed
+    my $files = [ grep { !m|^t/data/| } @{ $orig_files } ];
+    if ( scalar @{ $orig_files } > scalar @{ $files } )
+    {
+        warn "Some input files will be skipped because they seem to be test data files.";
+    }
+
+    unless ( scalar @{ $files } )
+    {
+        say STDERR "No files (nothing to do).";
+        exit( 0 );
+    }
 
     my $arguments = join( ' ', @{ $files } );
     $arguments = ' -se ' . $arguments;          # append errorfile to stderr
