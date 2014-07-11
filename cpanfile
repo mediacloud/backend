@@ -46,7 +46,7 @@ requires 'DateTime::Format::Pg';
 requires 'DBD::Pg', '2.19.3';
 requires 'DBIx::Class::Schema';
 requires 'DBIx::Simple';
-requires 'Devel::Cover', '1.15'; #make sure Devel::Cover ti current (version newer than 1.15 should be ok too
+requires 'Devel::Cover', '1.15';    # make sure Devel::Cover is current (version newer than 1.15 should be ok too)
 requires 'Devel::NYTProf';
 requires 'Dir::Self';
 requires 'Domain::PublicSuffix';
