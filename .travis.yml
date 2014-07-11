@@ -44,5 +44,5 @@ before_script:
     # Initialize PostgreSQL database
     - MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM=1 ./script/run_with_carton.sh ./script/mediawords_create_db.pl
 script:
-    # Run Media Cloud's test suite
-    - ./script/run_test_suite.sh
+    # Run Media Cloud's test suite, report test coverage to https://coveralls.io/r/berkmancenter/mediacloud
+    - ./script/run_test_suite_for_devel_cover.sh coveralls
