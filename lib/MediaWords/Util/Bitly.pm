@@ -3,6 +3,12 @@ package MediaWords::Util::Bitly;
 #
 # Bit.ly API helper
 #
+# FIXME: for /v3/info and /v3/lookup, check if result contains all the expected
+# keys because Bit.ly API doesn't seem stable
+#
+# FIXME: don't ignore errors when rate limit is reached, e.g.:
+#     {"status_code": 403, "data": null, "status_txt": "RATE_LIMIT_EXCEEDED"}
+#
 
 use strict;
 use warnings;
