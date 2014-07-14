@@ -91,6 +91,23 @@ sub process_csv_stories($;$$)
         }
         say STDERR "Link lookup: " . Dumper( $link_lookup );
 
+        # Fetch link information for all Bit.ly links at once
+        my $bitly_ids = [ grep { defined $_ } values %{ $link_lookup } ];
+        my $bitly_info = {};
+
+        say STDERR "\tFetching info for Bit.ly IDs " . join( ', ', @{ $bitly_ids } ) . "...";
+        if ( scalar( @{ $bitly_ids } ) )
+        {
+            eval { $bitly_info = MediaWords::Util::Bitly::bitly_info_hashref( $bitly_ids ); };
+            if ( $@ or ( !$bitly_info ) )
+            {
+                warn "Unable to fetch Bit.ly info for Bit.ly IDs " . join( ', ', @{ $bitly_ids } ) . ": $@";
+                next;
+            }
+        }
+
+        # say STDERR "Link info: " . Dumper( $bitly_info );
+
         # Found links statistics
         my $link_was_found = 0;
         foreach my $link ( keys %{ $link_lookup } )
@@ -142,6 +159,7 @@ sub process_csv_stories($;$$)
 
                 $link_stats->{ 'data' }->{ $bitly_id } = {
                     'url'        => $link,
+                    'info'       => $bitly_info->{ $bitly_id },
                     'categories' => MediaWords::Util::Bitly::bitly_link_categories( $bitly_id ),
                     'clicks'     => [
 

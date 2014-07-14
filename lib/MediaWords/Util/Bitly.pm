@@ -416,6 +416,143 @@ sub all_url_variants($)
     return uniq( values %urls );
 }
 
+# Query for a Bitlink information based on a Bit.ly IDs
+# (http://dev.bitly.com/links.html#v3_info)
+#
+# Not to be confused with /v3/link/info (http://dev.bitly.com/data_apis.html#v3_link_info)!
+#
+# Params: Bit.ly IDs (arrayref) to query, e.g. ["1RmnUT"]
+#
+# Returns: hashref with link info results, e.g.:
+#     {
+#         "info": [
+#             {
+#                 "hash": "1RmnUT",
+#                 "title": null,
+#                 "created_at": 1212926400,
+#                 "created_by": "bitly",
+#                 "global_hash": "1RmnUT",
+#                 "user_hash": "1RmnUT"
+#             },
+#             // ...
+#         ]
+#     };
+#
+# die()s on error
+sub bitly_info($)
+{
+    my $bitly_ids = shift;
+
+    unless ( $bitly_ids )
+    {
+        die "Bit.ly IDs is undefined.";
+    }
+    unless ( ref( $bitly_ids ) eq ref( [] ) )
+    {
+        die "Bit.ly IDs is not an arrayref.";
+    }
+    unless ( scalar( @{ $bitly_ids } ) )
+    {
+        die "Bit.ly IDs arrayref is empty.";
+    }
+
+    my $result = request( '/v3/info', { hash => $bitly_ids, expand_user => 'false' } );
+
+    # Sanity check
+    my @expected_keys = qw/ info /;
+    foreach my $expected_key ( @expected_keys )
+    {
+        unless ( exists $result->{ $expected_key } )
+        {
+            die "Result doesn't contain expected '$expected_key' key: " . Dumper( $result );
+        }
+    }
+
+    unless ( ref( $result->{ info } ) eq ref( [] ) )
+    {
+        die "'info' value is not an arrayref.";
+    }
+    unless ( scalar @{ $result->{ info } } == scalar( @{ $bitly_ids } ) )
+    {
+        die "The number of results returned differs from the number of input Bit.ly IDs.";
+    }
+
+    return $result;
+}
+
+# Query for a Bitlink information based on a Bit.ly IDs
+# (http://dev.bitly.com/links.html#v3_info)
+#
+# Not to be confused with /v3/link/info (http://dev.bitly.com/data_apis.html#v3_link_info)!
+#
+# Params: Bit.ly IDs (arrayref) to query, e.g. ["1RmnUT"]
+#
+# Returns: hashref with "Bit.ly ID => link info" pairs, e.g.:
+#     {
+#         "1RmnUT": {
+#             "hash": "1RmnUT",
+#             "title": null,
+#             "created_at": 1212926400,
+#             "created_by": "bitly",
+#             "global_hash": "1RmnUT",
+#             "user_hash": "1RmnUT"
+#         },
+#         "RmnUT" : undef,
+#         # ...
+#     };
+#
+# die()s on error
+sub bitly_info_hashref($)
+{
+    my $bitly_ids = shift;
+
+    unless ( $bitly_ids )
+    {
+        die "Bit.ly IDs is undefined.";
+    }
+    unless ( ref( $bitly_ids ) eq ref( [] ) )
+    {
+        die "Bit.ly IDs is not an arrayref.";
+    }
+    unless ( scalar( @{ $bitly_ids } ) )
+    {
+        die "Bit.ly IDs arrayref is empty.";
+    }
+
+    my $result = bitly_info( $bitly_ids );
+
+    my %bitly_info;
+    foreach my $info ( @{ $result->{ info } } )
+    {
+        unless ( ref( $info ) eq ref( {} ) )
+        {
+            die "Info result is not a hashref.";
+        }
+
+        my $info_bitly_id = $info->{ hash };
+        unless ( $info_bitly_id )
+        {
+            die "Bit.ly ID is empty.";
+        }
+
+        if ( $info->{ error } )
+        {
+            if ( uc( $info->{ error } ) eq 'NOT_FOUND' )
+            {
+                $info = undef;
+            }
+            else
+            {
+                die "'error' is not 'NOT_FOUND': " . $info->{ error };
+            }
+        }
+
+        $bitly_info{ $info_bitly_id } = $info;
+    }
+
+    return \%bitly_info;
+}
+
 # Query for a Bitlinks based on a long URL
 # (http://dev.bitly.com/links.html#v3_link_lookup)
 #
