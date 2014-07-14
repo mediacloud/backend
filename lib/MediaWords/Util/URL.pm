@@ -110,4 +110,48 @@ sub meta_refresh_url_from_html($;$)
     return undef;
 }
 
+# From the provided HTML, determine the <link rel="canonical" /> URL (if any)
+sub link_canonical_url_from_html($;$)
+{
+    my ( $html, $base_url ) = @_;
+
+    my $url = undef;
+    while ( $html =~ m~(<\s*?link.+?>)~gi )
+    {
+        my $link_element = $1;
+
+        if ( $link_element =~ m~rel\s*?=\s*?["']\s*?canonical\s*?["']~i )
+        {
+            if ( $link_element =~ m~href\s*?=\s*?["'](.+?)["']~i )
+            {
+                $url = $1;
+                if ( $url )
+                {
+                    if ( $url !~ /$RE{URI}/ )
+                    {
+                        # Maybe it's absolute path?
+                        if ( $base_url )
+                        {
+                            my $uri = URI->new_abs( $url, $base_url );
+                            return $uri->as_string;
+                        }
+                        else
+                        {
+                            say STDERR
+                              "HTML <link rel=\"canonical\"/> found, but the new URL ($url) doesn't seem to be valid.";
+                        }
+                    }
+                    else
+                    {
+                        # Looks like URL, so return it
+                        return $url;
+                    }
+                }
+            }
+        }
+    }
+
+    return undef;
+}
+
 1;
