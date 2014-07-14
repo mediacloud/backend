@@ -204,8 +204,8 @@ sub request($$)
     return $json_data;
 }
 
-# Fetch the URL, evaluate HTTP / HTML redirects, and return URL after all those redirects; die() on error
-sub url_after_redirects($;$$)
+# Fetch the URL, evaluate HTTP / HTML redirects; return URL and data after all those redirects; die() on error
+sub url_and_data_after_redirects($;$$)
 {
     my ( $orig_url, $max_http_redirect, $max_meta_redirect ) = @_;
 
@@ -218,6 +218,8 @@ sub url_after_redirects($;$$)
 
     $max_http_redirect //= 7;
     $max_meta_redirect //= 3;
+
+    my $html = undef;
 
     for ( my $meta_redirect = 1 ; $meta_redirect <= $max_meta_redirect ; ++$meta_redirect )
     {
@@ -258,7 +260,7 @@ sub url_after_redirects($;$$)
         }
 
         # Check if the returned document contains <meta http-equiv="refresh" />
-        my $html = $response->decoded_content || '';
+        $html = $response->decoded_content || '';
         my $url_after_meta_redirect = MediaWords::Util::URL::meta_refresh_url_from_html( $html, $uri->as_string );
         if ( $url_after_meta_redirect and $uri->as_string ne $url_after_meta_redirect )
         {
@@ -275,7 +277,7 @@ sub url_after_redirects($;$$)
 
     }
 
-    return $uri->as_string;
+    return ( $uri->as_string, $html );
 }
 
 # Canonicalize URL for Bit.ly API lookup; die() on error
@@ -379,20 +381,37 @@ sub all_url_variants($)
 {
     my $url = shift;
 
+    # Get URL after HTTP / HTML redirects
+    my ( $url_after_redirects, $data_after_redirects ) = url_and_data_after_redirects( $url );
+
     my %urls = (
 
         # Normal URL (don't touch anything)
         'normal' => $url,
 
         # Normal URL after redirects
-        'after_redirects' => MediaWords::Util::Bitly::url_after_redirects( $url ),
+        'after_redirects' => $url_after_redirects,
+
+        # Canonical URL
+        'canonical' => url_canonical( $url ),
+
+        # Canonical URL after redirects
+        'after_redirects_canonical' => url_canonical( $url_after_redirects )
     );
 
-    # Canonical URL
-    $urls{ 'canonical' } = MediaWords::Util::Bitly::url_canonical( $urls{ 'normal' } );
+    # If <link rel="canonical" /> is present, try that one too
+    if ( defined $data_after_redirects )
+    {
+        my $url_link_rel_canonical =
+          MediaWords::Util::URL::link_canonical_url_from_html( $data_after_redirects, $url_after_redirects );
+        if ( $url_link_rel_canonical )
+        {
+            say STDERR "Found <link rel=\"canonical\" /> for URL $url_after_redirects " .
+              "(original URL: $url): $url_link_rel_canonical";
 
-    # Canonical URL after redirects
-    $urls{ 'after_redirects_canonical' } = MediaWords::Util::Bitly::url_canonical( $urls{ 'after_redirects' } );
+            $urls{ 'after_redirects_canonical_via_link_rel' } = $url_link_rel_canonical;
+        }
+    }
 
     return uniq( values %urls );
 }
