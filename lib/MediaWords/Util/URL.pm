@@ -85,7 +85,7 @@ sub meta_refresh_url_from_html($;$)
                 {
                     if ( $url !~ /$RE{URI}/ )
                     {
-                        # Maybe it's relative / absolute URL?
+                        # Maybe it's relative / absolute path?
                         if ( $base_url )
                         {
                             my $uri = URI->new_abs( $url, $base_url );
@@ -93,7 +93,8 @@ sub meta_refresh_url_from_html($;$)
                         }
                         else
                         {
-                            say STDERR "HTML <meta/> refresh found, but the new URL ($url) doesn't seem valid.";
+                            say STDERR
+                              "HTML <meta http-equiv=\"refresh\"/> found, but the new URL ($url) doesn't seem to be valid.";
                         }
                     }
                     else

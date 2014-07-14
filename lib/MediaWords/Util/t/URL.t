@@ -72,7 +72,7 @@ EOF
     is( MediaWords::Util::URL::meta_refresh_url_from_html( $html, $base_url ),
         $expected_url, 'Basic XHTML <meta http-equiv="refresh" />' );
 
-    # Relative path (with trailing slash)
+    # Relative path (base URL with trailing slash)
     $html = <<EOF;
         <meta http-equiv="refresh" content="0; url=second/third/" />
 EOF
@@ -81,7 +81,7 @@ EOF
     is( MediaWords::Util::URL::meta_refresh_url_from_html( $html, $base_url ),
         $expected_url, 'Relative path (with trailing slash)' );
 
-    # Relative path (without trailing slash)
+    # Relative path (base URL without trailing slash)
     $html = <<EOF;
         <meta http-equiv="refresh" content="0; url=second/third/" />
 EOF
