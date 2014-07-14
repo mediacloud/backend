@@ -14,6 +14,9 @@
 #    193464034,http://armenpress.am/arm/news/745942/
 #    ...
 #
+# FIXME: for /v3/info and /v3/lookup, check if result contains all the expected
+# keys because Bit.ly API doesn't seem stable
+#
 
 use strict;
 use warnings;
