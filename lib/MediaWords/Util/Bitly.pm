@@ -232,7 +232,8 @@ sub url_after_redirects($;$$)
         unless ( $response->is_success )
         {
             warn "Request to " . $uri->as_string . " was unsuccessful: " . $response->status_line;
-            return $orig_url;
+            $uri = URI->new( $orig_url )->canonical;
+            last;
         }
 
         my @redirects = $response->redirects();
