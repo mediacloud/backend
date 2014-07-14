@@ -170,7 +170,7 @@ sub process_csv_stories($;$$)
                         last;
                     }
                 }
-                if ( scalar @{ $link_stats->{ 'data' }->{ $bitly_id }->{ 'categories' }->{ 'categories' } } > 0 )
+                if ( scalar @{ $link_stats->{ 'data' }->{ $bitly_id }->{ 'categories' } } > 0 )
                 {
                     $at_least_one_link_has{ categories } = 1;
                 }

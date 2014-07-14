@@ -650,16 +650,14 @@ sub bitly_link_clicks($;$$)
 # Params:
 # * Bit.ly ID (e.g. "QEH44r")
 #
-# Returns: hashref with categories, e.g.:
-#     {
-#         "categories": [
-#             "Social Media",
-#             "Advertising",
-#             "Software and Internet",
-#             "Technology",
-#             "Business"
-#         ]
-#     };
+# Returns: arrayref of categories, e.g.:
+#     [
+#         "Social Media",
+#         "Advertising",
+#         "Software and Internet",
+#         "Technology",
+#         "Business"
+#     ];
 #
 # die()s on error
 sub bitly_link_categories($)
@@ -688,7 +686,7 @@ sub bitly_link_categories($)
         die "'categories' value is not an arrayref.";
     }
 
-    return $result;
+    return $result->{ categories };
 }
 
 # Query for list of referrers based on Bit.ly URL
