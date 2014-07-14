@@ -1,10 +1,8 @@
 package MediaWords::Solr::WordCounts;
 
-# handle direct word counting from solr server results.
+use Moose;
 
-# this is written separately from MediaWords::Solr::count_words so that this
-# code can run on the solr server itself and be requested over http by
-# MediaWords::Solr::count_words.
+# handle direct word counting from solr server results.
 
 use strict;
 use warnings;
@@ -24,19 +22,106 @@ use URI::Escape;
 use MediaWords::Solr;
 use MediaWords::Util::Config;
 
-# max number of random sentences to fetch
-use constant MAX_RANDOM_SENTENCES => 1000;
+# Moose instance fields
 
-# number of words to return
-use constant NUM_RETURN_WORDS => 500;
+has 'q'                 => ( is => 'rw', isa => 'Str' );
+has 'fq'                => ( is => 'rw', isa => 'Str' );
+has 'num_words'         => ( is => 'rw', isa => 'Int', default => 500 );
+has 'sample_size'       => ( is => 'rw', isa => 'Int', default => 1000 );
+has 'languages'         => ( is => 'rw', isa => 'ArrayRef', default => 'en' );
+has 'include_stopwords' => ( is => 'rw', isa => 'Bool' );
+has 'no_remote'         => ( is => 'rw', isa => 'Bool' );
+has 'include_stats'     => ( is => 'rw', isa => 'Bool' );
 
-# max number of lines that can be in the solr http response header
-use constant MAX_HEADER_LINES => 100;
+# list of all attribute names that should be exposed as cgi params
+sub get_cgi_param_attributes
+{
+    return [ qw(q fq languages num_words sample_size include_stopwords include_stats no_remote) ];
+}
+
+# return hash of attributes for use as cgi params
+sub get_cgi_param_hash
+{
+    my ( $self ) = @_;
+
+    my $keys = get_cgi_param_attributes;
+
+    my $meta = $self->meta;
+
+    my $hash = {};
+    map { $hash->{ $_ } = $meta->get_attribute( $_ )->get_value( $self ) } @{ $keys };
+
+    if ( $hash->{ languages } && ref( $hash->{ languages } ) )
+    {
+        $hash->{ languages } = join( " ", @{ $hash->{ languages } } );
+    }
+
+    return $hash;
+}
+
+# add support for constructor in this form:
+#   WordsCounts->new( cgi_params => $cgi_params )
+# where $cgi_params is a hash of cgi params directly from a web request
+around BUILDARGS => sub {
+    my $orig  = shift;
+    my $class = shift;
+
+    print STDERR "args: " . Dumper( @_ ) . "\n";
+
+    my $args;
+    if ( ref( $_[ 0 ] ) )
+    {
+        $args = $_[ 0 ];
+    }
+    elsif ( defined( $_[ 0 ] ) )
+    {
+        $args = { @_ };
+    }
+    else
+    {
+        $args = {};
+    }
+
+    if ( $args->{ cgi_params } )
+    {
+        my $cgi_params = $args->{ cgi_params };
+
+        $cgi_params->{ languages } = $cgi_params->{ l }
+          if ( exists( $cgi_params->{ l } ) && !exists( $cgi_params->{ languages } ) );
+
+        if ( !$cgi_params->{ languages } )
+        {
+            $cgi_params->{ languages } = [];
+        }
+        elsif ( !ref( $cgi_params->{ languages } ) )
+        {
+            $cgi_params->{ languages } = [ split( /[\s,]/, $cgi_params->{ languages } ) ];
+        }
+
+        my $vals = {};
+        my $keys = get_cgi_param_attributes;
+        for my $key ( @{ $keys } )
+        {
+            $vals->{ $key } = $cgi_params->{ $key } if ( exists( $cgi_params->{ $key } ) );
+        }
+
+        $vals->{ languages } = $cgi_params->{ l }
+          if ( exists( $cgi_params->{ l } ) && !exists( $cgi_params->{ languages } ) );
+
+        return $class->$orig( $vals );
+    }
+    else
+    {
+        return $class->$orig( @_ );
+    }
+};
 
 # set any duplicate lines blank.
 sub blank_dup_lines
 {
-    my ( $lines, $dup_lines ) = @_;
+    my ( $self, $lines ) = @_;
+
+    my $dup_lines = {};
 
     map { $dup_lines->{ $_ } ? ( $_ = '' ) : ( $dup_lines->{ $_ } = 1 ); } @{ $lines };
 }
@@ -50,9 +135,9 @@ sub blank_dup_lines
 # impacts
 sub count_stems
 {
-    my ( $lines, $dup_lines, $languages ) = @_;
+    my ( $self, $lines ) = @_;
 
-    blank_dup_lines( $lines, $dup_lines );
+    $self->blank_dup_lines( $lines );
 
     # tokenize each line and add count to $words for each token
     my $words = {};
@@ -81,7 +166,7 @@ sub count_stems
     my @unique_words = keys( %{ $words } );
     my $stems        = [ @unique_words ];
 
-    for my $lang ( @{ $languages } )
+    for my $lang ( @{ $self->languages } )
     {
         my $language = MediaWords::Languages::Language::language_for_code( $lang );
         next unless ( $language );
@@ -100,9 +185,9 @@ sub count_stems
 }
 
 # Check whether the string is valid UTF-8
-sub is_valid_utf8($)
+sub is_valid_utf8
 {
-    my $s = shift;
+    my ( $self, $s ) = @_;
 
     my $valid = 1;
 
@@ -118,7 +203,7 @@ sub is_valid_utf8($)
 # get the count_stem results from one run of count_stems against a block of lines
 sub merge_block_words
 {
-    my ( $block_words, $words ) = @_;
+    my ( $self, $block_words, $words ) = @_;
 
     for my $stem ( keys( %{ $block_words } ) )
     {
@@ -137,9 +222,11 @@ sub merge_block_words
 # stopword counts by list of languages
 sub get_stopworded_counts
 {
-    my ( $words, $languages ) = @_;
+    my ( $self, $words ) = @_;
 
-    for my $lang ( @{ $languages } )
+    return $words if ( $self->include_stopwords );
+
+    for my $lang ( @{ $self->languages } )
     {
         my $language = MediaWords::Languages::Language::language_for_code( $lang );
 
@@ -165,30 +252,36 @@ sub get_stopworded_counts
 }
 
 # connect to solr server directly and count the words resulting from the query
-sub words_from_solr_server
+sub get_words_from_solr_server
 {
-    my ( $q, $fqs, $languages, $file ) = @_;
+    my ( $self ) = @_;
 
-    $languages = [ 'en' ] unless ( $languages && @{ $languages } );
+    $self->languages( [ 'en' ] ) unless ( $self->languages && @{ $self->languages } );
 
-    print STDERR "generating word hash ...\n";
-    print STDERR Dumper( $q, $fqs, $languages );
-
-    return [] unless ( $q || @{ $fqs } );
+    return [] unless ( $self->q() || ( $self->fq && @{ $self->fq } ) );
 
     my $start_generation_time = time();
 
-    my $data = MediaWords::Solr::query(
-        { q => $q, fq => $fqs, rows => MAX_RANDOM_SENTENCES, fl => 'sentence', sort => 'random_1 asc' } );
+    my $solr_params = {
+        q    => $self->q(),
+        fq   => $self->fq,
+        rows => $self->sample_size,
+        fl   => 'sentence',
+        sort => 'random_1 asc'
+    };
 
+    print STDERR "executing solr query ...\n";
+    print STDERR Dumper( $solr_params );
+    my $data = MediaWords::Solr::query( $solr_params );
+
+    my $sentences_found = $data->{ response }->{ numFound };
     my @sentences = map { $_->{ sentence } } @{ $data->{ response }->{ docs } };
 
-    my $dup_lines = {};
-    my $words     = {};
-
     print STDERR "counting sentences...\n";
-    my $block_words = count_stems( \@sentences, $dup_lines, $languages );
-    merge_block_words( $block_words, $words );
+    my $block_words = $self->count_stems( \@sentences );
+
+    my $words = {};
+    $self->merge_block_words( $block_words, $words );
 
     my $merge_end_time = time;
 
@@ -203,8 +296,10 @@ sub words_from_solr_server
     @word_list = sort { $b->[ 1 ] <=> $a->[ 1 ] } @word_list;
 
     print STDERR "cutting list ...\n";
-    my $num_pre_sw_words = NUM_RETURN_WORDS * ( 1 + scalar( @{ $languages } ) );
-    splice( @word_list, $num_pre_sw_words );
+    my $m = ( 1 + @{ $self->languages } );
+    my $num_pre_sw_words = ( 1000 * $m ) + ( $self->num_words * $m );
+
+    #splice( @word_list, $num_pre_sw_words );
 
     my $counts = [];
     for my $w ( @word_list )
@@ -220,7 +315,7 @@ sub words_from_solr_server
             }
         }
 
-        if ( !is_valid_utf8( $w->[ 0 ] ) || !is_valid_utf8( $max_term ) )
+        if ( !$self->is_valid_utf8( $w->[ 0 ] ) || !$self->is_valid_utf8( $max_term ) )
         {
             print STDERR "invalid utf8: $w->[ 0 ] / $max_term\n";
             next;
@@ -229,11 +324,122 @@ sub words_from_solr_server
         push( @{ $counts }, { stem => $w->[ 0 ], count => $w->[ 1 ], term => $max_term } );
     }
 
-    $counts = get_stopworded_counts( $counts, $languages );
+    $counts = $self->get_stopworded_counts( $counts, $self->languages );
 
-    splice( @{ $counts }, NUM_RETURN_WORDS );
+    splice( @{ $counts }, $self->num_words );
 
-    return $counts;
+    if ( $self->include_stats )
+    {
+        return {
+            stats => {
+                num_words_returned     => scalar( @{ $counts } ),
+                num_sentences_returned => scalar( @sentences ),
+                num_sentences_found    => $sentences_found,
+                num_words_param        => $self->num_words,
+                sample_size_param      => $self->sample_size
+            },
+            words => $counts
+        };
+    }
+    else
+    {
+        return $counts;
+    }
+}
+
+# fetch word counts from a separate server
+sub _get_remote_words
+{
+    my ( $self ) = @_;
+
+    my $url = MediaWords::Util::Config::get_config->{ mediawords }->{ solr_wc_url };
+    my $key = MediaWords::Util::Config::get_config->{ mediawords }->{ solr_wc_key };
+    return undef unless ( $url && $key );
+
+    my $ua = MediaWords::Util::Web::UserAgent();
+
+    $ua->timeout( 900 );
+    $ua->max_size( undef );
+
+    my $uri          = URI->new( $url );
+    my $query_params = $self->get_cgi_param_hash;
+
+    $query_params->{ no_remote } = 1;
+
+    $uri->query_form( $query_params );
+
+    my $res = $ua->get( $uri, Accept => 'application/json' );
+
+    die( "error retrieving words from solr: " . $res->as_string ) unless ( $res->is_success );
+
+    my $words = from_json( $res->content, { utf8 => 1 } );
+
+    die( "Unable to parse json" ) unless ( $words && ref( $words ) );
+
+    return $words;
+}
+
+# return CHI cache for word counts
+sub _get_cache
+{
+    my $mediacloud_data_dir = MediaWords::Util::Config::get_config->{ mediawords }->{ data_dir };
+
+    return CHI->new(
+        driver           => 'File',
+        expires_in       => '1 day',
+        expires_variance => '0.1',
+        root_dir         => "${ mediacloud_data_dir }/cache/word_counts",
+        cache_size       => '1g'
+    );
+}
+
+# return key that uniquely identifies the query
+sub _get_cache_key
+{
+    my ( $self ) = @_;
+
+    my $meta = $self->meta;
+
+    my $keys = $self->get_cgi_param_attributes;
+
+    my $hash_key = Dumper( map { $meta->get_attribute( $_ )->get_value( $self ) } @{ $keys } );
+
+    return $hash_key;
+}
+
+# get a cached value for the given word count
+sub _get_cached_words
+{
+    my ( $self ) = @_;
+
+    return undef;
+
+    return $self->_get_cache->get( $self->_get_cache_key );
+}
+
+# set a cached value for the given word count
+sub _set_cached_words
+{
+    my ( $self, $value ) = @_;
+
+    return $self->_get_cache->set( $self->_get_cache_key, $value );
+}
+
+# get sorted list of most common words in sentences matching a solr query.  exclude stop words from the
+# long_stop_word list.  assumes english stemming and stopwording for now.
+sub get_words
+{
+    my ( $self ) = @_;
+
+    my $words = $self->no_remote ? $self->_get_cached_words : $self->_get_remote_words;
+
+    if ( !$words )
+    {
+        $words = $self->get_words_from_solr_server;
+        $self->_set_cached_words;
+    }
+
+    return $words;
 }
 
 1;

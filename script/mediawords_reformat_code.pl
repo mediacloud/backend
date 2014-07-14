@@ -99,11 +99,17 @@ sub _tidy_with_perl_tidy($)
 
 sub main
 {
-    #Commenting out syntax check because it breaks on files in t/
-    # ALSO this script may not be the right place for syntax checking
-    #   it might be better to have a separate precommit hook to check syntax
+    # Test syntax before doing the reformatting; die() if syntax is incorrect.
     #
-    #_test_syntax( \@ARGV );
+    # The full syntax check is needed because if syntax is incorrect (and
+    # Perl::Tidy doesn't catch the error itself, which it sometimes does),
+    # Perl::Tidy will reformat code in funky ways.
+    #
+    # The syntax error itself will be later caught only by the t/compile.t test
+    # (which seems to be rarely used before committing).
+    _test_syntax( \@ARGV );
+
+    # Reformat code (if needed) with Perl::Tidy.
     _tidy_with_perl_tidy( \@ARGV );
 }
 

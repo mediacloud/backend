@@ -10,7 +10,7 @@
     [% search_url = c.uri_for( "/search/wc" ) %]
     <form method="get" action="[% search_url | html %]">
         Query: <input type="text" name="q" size="96" value="[% q | html %]" />
-        Languages: <input type="text" name="l" size="32" value="[% l | html %]" /><br />
+        Languages: <input type="text" name="languages" size="32" value="[% languages | html %]" /><br />
         <input type="submit" name="submit" value="Go" />
     </form>
     <p>
@@ -25,8 +25,8 @@
     <br />
     <div class="boxtitle">
         Words
-        <a id="boxcommand" href="[% c.uri_for( '/search/wc', { 'q' => q, 'l' => l, 'csv' => 1 } ) %]">CSV</a>
-        <a id="boxcommand" href="[% c.uri_for( '/search', { 'q' => q, 'l' => l } ) %]">stories</a>
+        <a id="boxcommand" href="[% c.uri_for( '/search/wc', { 'q' => q, 'languages' => languages, 'csv' => 1 } ) %]">CSV</a>
+        <a id="boxcommand" href="[% c.uri_for( '/search', { 'q' => q, 'languages' => languages } ) %]">stories</a>
     </div>
     <table>
         <tr>
