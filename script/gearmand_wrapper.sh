@@ -28,11 +28,56 @@ gearmand_is_enabled() {
 
 gearmand_is_installed() {
     local path_to_gearmand=$(which gearmand)
-    if [ -x "$path_to_gearmand" ] ; then
+    if [ -x "$path_to_gearmand" ]; then
         return 0    # "true" in Bash
     else
         return 1    # "false" in Bash
     fi
+}
+
+gearmand_version() {
+    local gearmand_version=`gearmand --version | perl -e '
+        while (<>) {
+            chomp;
+            $version_string .= $_;
+        }
+        @parts = split(/ /, $version_string);
+        print $parts[1]'`
+        
+    if [ -z "$gearmand_version" ]; then
+        log "Unable to determine gearmand version"
+        exit 1
+    fi
+    echo "$gearmand_version"
+}
+
+gearmand_is_up_to_date() {
+    local gearmand_version=$(gearmand_version)
+    echo "$gearmand_version" | perl -e '
+        use version 0.77;
+        $current_version = version->parse(<>);
+        $required_version = version->parse("1.0.1");
+        unless ($current_version >= $required_version) {
+            die "Current gearmand version $current_version is older than required version $required_version\n";
+        } else {
+            print "Current gearmand version $current_version is up-to-date.\n";
+        }' || {
+
+        return 1    # "false" in Bash
+    }
+    return 0    # "true" in Bash
+}
+
+print_gearman_installation_instructions() {
+    log "Please install Gearman by running:"
+    log ""
+    log "    sudo apt-get -y remove gearman gearman-job-server gearman-tools \\"
+    log "        libgearman-dbg libgearman-dev libgearman-doc libgearman6"
+    log "    sudo apt-get -y install python-software-properties"
+    log "    sudo add-apt-repository -y ppa:gearman-developers/ppa"
+    log "    sudo apt-get -y update"
+    log "    sudo apt-get -y install gearman-job-server gearman-tools libgearman-dev"
+    log ""
 }
 
 #
@@ -47,11 +92,14 @@ if ! gearmand_is_enabled; then
 fi
 
 if ! gearmand_is_installed; then
-    log "'gearmand' was not found anywhere on your system."
-    log "Please install 'gearmand' by running:"
-    log ""
-    log "    apt-get install gearman"
-    log ""
+    log "'gearmand' was not found in your PATH."
+    print_gearman_installation_instructions
+    exit 1
+fi
+
+if ! gearmand_is_up_to_date; then
+    log "'gearmand' was found in your PATH, but is too old."
+    print_gearman_installation_instructions
     exit 1
 fi
 
