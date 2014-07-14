@@ -141,14 +141,14 @@ sub process_csv_stories($;$$)
                 }
 
                 $link_stats->{ 'data' }->{ $bitly_id } = {
-                    'url'    => $link,
-                    'clicks' => [
+                    'url'        => $link,
+                    'categories' => MediaWords::Util::Bitly::bitly_link_categories( $bitly_id ),
+                    'clicks'     => [
 
                         # array because one might want to make multiple requests with various dates
                         MediaWords::Util::Bitly::bitly_link_clicks( $bitly_id )
                     ],
-                    'categories' => MediaWords::Util::Bitly::bitly_link_categories( $bitly_id ),
-                    'referrers'  => [
+                    'referrers' => [
 
                         # array because one might want to make multiple requests with various dates
                         MediaWords::Util::Bitly::bitly_link_referrers( $bitly_id )
