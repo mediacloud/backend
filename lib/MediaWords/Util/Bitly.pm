@@ -480,10 +480,9 @@ sub bitly_link_lookup($)
 }
 
 # Query for a Bitlinks based on a long URL
-# (http://dev.bitly.com/links.html#v3_link_lookup); try multiple variants
-# (normal, canonical, before redirects, after redirects)
+# (http://dev.bitly.com/links.html#v3_link_lookup)
 #
-# Params: URL to query
+# Params: URLs (arrayref) to query
 #
 # Returns: hashref with "URL => Bit.ly ID" pairs, e.g.:
 #     {
@@ -494,17 +493,21 @@ sub bitly_link_lookup($)
 #     };
 #
 # die()s on error
-sub bitly_link_lookup_all_variants($)
+sub bitly_link_lookup_hashref($)
 {
-    my $url = shift;
+    my $urls = shift;
 
-    my @urls = all_url_variants( $url );
-    unless ( scalar @urls )
+    unless ( $urls )
     {
-        die "No URLs returned for URL $url";
+        die "URLs is not a hashref.";
     }
 
-    my $result = bitly_link_lookup( \@urls );
+    unless ( scalar @{ $urls } )
+    {
+        die "No URLs.";
+    }
+
+    my $result = bitly_link_lookup( $urls );
 
     my %bitly_link_lookup;
     foreach my $link_lookup ( @{ $result->{ link_lookup } } )
@@ -551,6 +554,34 @@ sub bitly_link_lookup_all_variants($)
     }
 
     return \%bitly_link_lookup;
+}
+
+# Query for a Bitlinks based on a long URL
+# (http://dev.bitly.com/links.html#v3_link_lookup); try multiple variants
+# (normal, canonical, before redirects, after redirects)
+#
+# Params: URL to query
+#
+# Returns: hashref with "URL => Bit.ly ID" pairs, e.g.:
+#     {
+#         'http://www.foxnews.com/us/2013/07/04/crowds-across-america-protest-nsa-in-restore-fourth-movement/' => '14VhXAj',
+#         'http://feeds.foxnews.com/~r/foxnews/national/~3/bmilmNKlhLw/' => undef,
+#         'http://www.foxnews.com/us/2013/07/04/crowds-across-america-protest-nsa-in-restore-fourth-movement/?utm_source=
+#              feedburner&utm_medium=feed&utm_campaign=Feed%3A+foxnews%2Fnational+(Internal+-+US+Latest+-+Text)' => undef
+#     };
+#
+# die()s on error
+sub bitly_link_lookup_hashref_all_variants($)
+{
+    my $url = shift;
+
+    my @urls = all_url_variants( $url );
+    unless ( scalar @urls )
+    {
+        die "No URLs returned for URL $url";
+    }
+
+    return bitly_link_lookup_hashref( \@urls );
 }
 
 # Query for number of link clicks based on Bit.ly URL

@@ -83,7 +83,7 @@ sub process_csv_stories($;$$)
         ++$stats{ links_total };
 
         my $link_lookup;
-        eval { $link_lookup = MediaWords::Util::Bitly::bitly_link_lookup_all_variants( $stories_url ); };
+        eval { $link_lookup = MediaWords::Util::Bitly::bitly_link_lookup_hashref_all_variants( $stories_url ); };
         if ( $@ or ( !$link_lookup ) )
         {
             warn "Unable to lookup story with URL $stories_url: $@";
