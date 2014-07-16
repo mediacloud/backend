@@ -340,7 +340,7 @@ create table media (
 create unique index media_name on media(name);
 create unique index media_url on media(url);
 create index media_moderated on media(moderated);
-create index media on media( db_row_last_updated );
+create index media_db_row_last_updated on media( db_row_last_updated );
 
 CREATE INDEX media_name_trgm on media USING gin (name gin_trgm_ops);
 CREATE INDEX media_url_trgm on media USING gin (url gin_trgm_ops);

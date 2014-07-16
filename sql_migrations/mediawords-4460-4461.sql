@@ -21,7 +21,7 @@ create table solr_import_stories (
 create index solr_import_stories_story on solr_import_stories ( stories_id );
 
 alter table media add db_row_last_updated timestamp with time zone;
-create index media_last_updated on media( db_row_last_updated );
+create index media_db_row_last_updated on media( db_row_last_updated );
     
 create temporary view mtm_last_updated as
     select media_id, max( db_row_last_updated ) db_row_last_updated
