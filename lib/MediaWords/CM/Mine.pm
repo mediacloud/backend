@@ -1872,8 +1872,8 @@ END
     my $keep_story = shift( @{ $stories } );
 
     print "duplicates:\n";
-    print "\t$keep_story->{ title } [$keep_story->{ url } $keep_story->{ normalized_url } $keep_story->{ stories_id }]\n";
-    map { print "\t$_->{ title } [$_->{ url } $_->{ normalized_url } $_->{ stories_id }]\n" } @{ $stories };
+    print "\t$keep_story->{ title } [$keep_story->{ url } $keep_story->{ stories_id }]\n";
+    map { print "\t$_->{ title } [$_->{ url } $_->{ stories_id }]\n" } @{ $stories };
 
     print "\n";
 

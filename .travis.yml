@@ -20,6 +20,7 @@ env:
         - secure: "Ek4Y2M1JO+ryFLPMrwQfNLnvIlh7H2X39p0aAVS5Bn9dILjKKWgvHlNjIJWgm8Wb5qfJmh94c6pDNRTqjqdPKPcR4IUmFY7cRgH1tai8Hcq0rUyu8GQ4dWOJqttCUzTuBpKVpwdX4SVD9MRhrouJfflfAD0+9znIs0sH2xvbfWw="
 before_install:
     # Travis artifacts (for caching "local/" to S3)
+    - gem install fog-json
     - gem install travis-artifacts
     # Update package listings (don't upgrade the packages though because it takes too much time)
     - sudo apt-get -y update

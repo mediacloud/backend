@@ -42,16 +42,14 @@ sub list_GET : Local : PathPrefix( '/api' )
 {
     my ( $self, $c ) = @_;
 
-    my $q  = $c->req->parameters->{ 'q' };
-    my $fq = $c->req->parameters->{ 'fq' };
-    my $l  = $c->req->parameters->{ 'l' } || '';
+    if ( $c->req->params->{ sample_size } > 100_000 )
+    {
+        $c->req->params->{ sample_size } = 100_000;
+    }
 
-    # no remote parameter prevents loop of server calling itself via MediaWords::Solr::WordCounts::_get_remote_word_counts
-    my $nr = $c->req->parameters->{ 'nr' };
+    my $wc = MediaWords::Solr::WordCounts->new( cgi_params => $c->req->params );
 
-    my $languages = [ split( /\W/, $l ) ];
-
-    my $words = MediaWords::Solr::count_words( $q, $fq, $languages, $nr );
+    my $words = $wc->get_words;
 
     $self->status_ok( $c, entity => $words );
 }

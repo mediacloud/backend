@@ -41,12 +41,16 @@ sub main
 EOF
     )->hashes;
 
+    my $i = 0;
     for my $download ( @{ $downloads } )
     {
 
         say STDERR 'Enqueueing download ID ' . $download->{ downloads_id } . '...';
         MediaWords::GearmanFunction::ExtractAndVector->enqueue_on_gearman( $download );
 
+        # throttle to 100 connections a second to prevent running the
+        # system out of connections stuck in TIME_WAIT
+        sleep 1 if ( !( ++$i % 100 ) );
     }
 }
 

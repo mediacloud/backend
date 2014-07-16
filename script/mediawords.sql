@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4460;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4461;
     
 BEGIN
 
@@ -185,6 +185,24 @@ END;
 $$
 LANGUAGE 'plpgsql'
  ;
+ 
+CREATE OR REPLACE FUNCTION update_media_last_updated () RETURNS trigger AS
+$$
+   DECLARE
+   BEGIN
+
+      IF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'INSERT') THEN
+      	 update media set db_row_last_updated = now() where media_id = NEW.media_id;
+      END IF;
+      
+      IF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'DELETE') THEN
+      	 update media set db_row_last_updated = now() where media_id = OLD.media_id;
+      END IF;
+
+      RETURN NEW;
+   END;
+$$
+LANGUAGE 'plpgsql';
 
 CREATE OR REPLACE FUNCTION last_updated_trigger () RETURNS trigger AS
 $$
@@ -272,7 +290,7 @@ $$
 
         IF TG_OP = 'INSERT' THEN
             -- The "old" record doesn't exist
-            reference_media_id = NEW.media_id;
+            reference_media_id = EWEW.media_id;
         ELSIF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'DELETE') THEN
             reference_media_id = OLD.media_id;
         ELSE
@@ -312,6 +330,8 @@ create table media (
 
     -- Annotate stories from this media source with CoreNLP?
     annotate_with_corenlp   BOOLEAN     NOT NULL DEFAULT(false),
+    
+    db_row_last_updated         timestamp with time zone,
 
     CONSTRAINT media_name_not_empty CHECK ( ( (name)::text <> ''::text ) ),
     CONSTRAINT media_self_dup CHECK ( dup_media_id IS NULL OR dup_media_id <> media_id )
@@ -320,6 +340,7 @@ create table media (
 create unique index media_name on media(name);
 create unique index media_url on media(url);
 create index media_moderated on media(moderated);
+create index media_db_row_last_updated on media( db_row_last_updated );
 
 CREATE INDEX media_name_trgm on media USING gin (name gin_trgm_ops);
 CREATE INDEX media_url_trgm on media USING gin (url gin_trgm_ops);
@@ -443,16 +464,15 @@ create index feeds_tags_map_tag on feeds_tags_map (tags_id);
 create table media_tags_map (
     media_tags_map_id    serial            primary key,
     media_id            int                not null references media on delete cascade,
-    tags_id                int                not null references tags on delete cascade,
-    db_row_last_updated                timestamp with time zone not null
+    tags_id                int                not null references tags on delete cascade
 );
 
-DROP TRIGGER IF EXISTS media_tags_map_last_updated_trigger on media_tags_map CASCADE;
-CREATE TRIGGER media_tags_last_updated_trigger BEFORE INSERT OR UPDATE ON media_tags_map FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
-
-CREATE index media_tags_map_db_row_last_updated on media_tags_map ( db_row_last_updated );
 create unique index media_tags_map_media on media_tags_map (media_id, tags_id);
 create index media_tags_map_tag on media_tags_map (tags_id);
+    
+DROP TRIGGER IF EXISTS mtm_last_updated on media_tags_map CASCADE;
+CREATE TRIGGER mtm_last_updated BEFORE INSERT OR UPDATE OR DELETE 
+    ON media_tags_map FOR EACH ROW EXECUTE PROCEDURE update_media_last_updated() ;
 
 -- A dashboard defines which collections, dates, and topics appear together within a given dashboard screen.
 -- For example, a dashboard might include three media_sets for russian collections, a set of dates for which 
@@ -652,16 +672,17 @@ create index media_sets_vectors_added on media_sets ( vectors_added );
 create table media_sets_media_map (
     media_sets_media_map_id     serial  primary key,
     media_sets_id               int     not null references media_sets on delete cascade,    
-    media_id                    int     not null references media on delete cascade,
-    db_row_last_updated                timestamp with time zone not null
+    media_id                    int     not null references media on delete cascade
 );
 
-DROP TRIGGER IF EXISTS media_sets_media_map_last_updated_trigger on media_sets_media_map CASCADE;
-CREATE TRIGGER media_sets_media_map_last_updated_trigger BEFORE INSERT OR UPDATE ON media_sets_media_map FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
 
 create index media_sets_media_map_set on media_sets_media_map ( media_sets_id );
 create index media_sets_media_map_media on media_sets_media_map ( media_id );
-CREATE index media_sets_media_map_db_row_last_updated on media_sets_media_map ( db_row_last_updated );
+    
+DROP TRIGGER IF EXISTS msmm_last_updated on media_sets_media_map CASCADE;
+CREATE TRIGGER msmm_last_updated BEFORE INSERT OR UPDATE OR DELETE 
+    ON media_sets_media_map FOR EACH ROW EXECUTE PROCEDURE update_media_last_updated() ;
+
 
 CREATE OR REPLACE FUNCTION media_set_sw_data_retention_dates(v_media_sets_id int, default_start_day date, default_end_day date, OUT start_date date, OUT end_date date) AS
 $$
@@ -1129,6 +1150,12 @@ create table solr_imports (
     import_date         timestamp not null,
     full_import         boolean not null default false
 );
+
+create table solr_import_stories (
+    stories_id          int not null references stories on delete cascade
+);
+
+create index solr_import_stories_story on solr_import_stories ( stories_id );
 
 create index solr_imports_date on solr_imports ( import_date );
     

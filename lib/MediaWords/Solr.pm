@@ -430,22 +430,22 @@ sub _get_word_count_cache
 # get a cached value for the given word count
 sub _get_cached_word_counts
 {
-    my ( $q, $fq, $languages ) = @_;
+    my ( $q, $fq, $languages, $num_words, $sample_size ) = @_;
 
     my $cache = _get_word_count_cache();
 
-    my $key = Dumper( $q, $fq, $languages );
+    my $key = Dumper( $q, $fq, $languages, $num_words, $sample_size );
     return $cache->get( $key );
 }
 
 # set a cached value for the given word count
 sub _set_cached_word_counts
 {
-    my ( $q, $fq, $languages, $value ) = @_;
+    my ( $q, $fq, $languages, $num_words, $sample_size, $value ) = @_;
 
     my $cache = _get_word_count_cache();
 
-    my $key = Dumper( $q, $fq, $languages );
+    my $key = Dumper( $q, $fq, $languages, $num_words, $sample_size );
     return $cache->set( $key, $value );
 }
 
@@ -453,17 +453,20 @@ sub _set_cached_word_counts
 # long_stop_word list.  assumes english stemming and stopwording for now.
 sub count_words
 {
-    my ( $q, $fq, $languages, $no_remote ) = @_;
+    my ( $q, $fq, $languages, $no_remote, $num_words, $sample_size ) = @_;
+
+    $num_words   ||= 500;
+    $sample_size ||= 1000;
 
     my $words;
-    $words = _get_remote_word_counts( $q, $fq, $languages ) unless ( $no_remote );
+    $words = _get_remote_word_counts( $q, $fq, $languages, $num_words, $sample_size ) unless ( $no_remote );
 
-    $words ||= _get_cached_word_counts( $q, $fq, $languages );
+    $words ||= _get_cached_word_counts( $q, $fq, $languages, $num_words, $sample_size );
 
     if ( !$words )
     {
-        $words = MediaWords::Solr::WordCounts::words_from_solr_server( $q, $fq, $languages );
-        _set_cached_word_counts( $q, $fq, $languages, $words );
+        $words = MediaWords::Solr::WordCounts::words_from_solr_server( $q, $fq, $languages, $num_words, $sample_size );
+        _set_cached_word_counts( $q, $fq, $languages, $num_words, $sample_size, $words );
     }
 
     return $words;

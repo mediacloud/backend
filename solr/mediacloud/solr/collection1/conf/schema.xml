@@ -127,6 +127,7 @@
    <field name="media_sets_id" type="int" indexed="true" stored="false" multiValued="true" />
    <field name="tags_id_stories" type="int" indexed="true" stored="false" multiValued="true" />
    <field name="tags_id_media" type="int" indexed="true" stored="false" multiValued="true" />
+   <field name="tags_id_story_sentences" type="int" indexed="true" stored="false" multiValued="true" />
 
    <field name="_version_" type="long" indexed="true" stored="true"/>
 

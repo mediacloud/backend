@@ -1,42 +1,46 @@
 package MediaWords::CommonLibs;
+
+use strict;
+use warnings;
+
+use feature qw/ :5.16 /;
+
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 require Exporter;
 our @ISA = qw(Exporter);
 
-use strict;
-use warnings;
-
 use Data::Dumper;
+use Readonly;
 
-use List::Util;
-use List::MoreUtils;
+our @EXPORT = ( @Readonly::EXPORT, @Data::Dumper::EXPORT );
 
 sub import
 {
-    use Data::Dumper();
+    my ( $class, @isa ) = @_;
 
-    feature->import( ':5.16' );
-    warnings->import();
+    my $caller = caller;
+
     strict->import();
-    Data::Dumper->export_to_level( 1,, @Data::Dumper::Export );
+    warnings->import();
+    feature->import( qw( :5.16 ) );
 
+    if ( scalar @isa )
     {
-        no strict;
-        require Readonly;
-        Readonly->export_to_level( 1, undef, @Readonly::Export );
+        foreach my $isa ( @isa )
+        {
+            if ( eval "require $isa" )
+            {
+                no strict 'refs';
+                push @{ "${caller}::ISA" }, $isa;
+            }
+        }
     }
 
-    #List::Util->export_to_level( 1, , @List::Util::EXPORT_OK );
-    #List::MoreUtils->export_to_level( 1,, @List::MoreUtils::EXPORT_OK );
+    $class->export_to_level( 1, $caller );
 
-    {
-        no strict;
-        use Readonly;
-        MediaWords::CommonLibs->export_to_level( 1,, qw ( Readonly ) );
-    }
-
+    return;
 }
 
 1;
