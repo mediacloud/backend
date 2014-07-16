@@ -17,10 +17,10 @@ use Text::CSV_XS;
 use MediaWords::DB;
 
 # how many sentences to fetch at a time from the postgres query
-Readonly my $FETCH_BLOCK_SIZE => 10000;
+Readonly my $FETCH_BLOCK_SIZE => 10_000;
 
 # max number of updated media stories to import in one delta import
-Readonly my $MAX_MEDIA_STORIES => 100000;
+Readonly my $MAX_MEDIA_STORIES => 100_000;
 
 # mark date before generating dump for storing in solr_imports after successful import
 my $_import_date;
@@ -49,31 +49,26 @@ sub _add_media_stories_to_import
 {
     my ( $db, $import_date, $num_delta_stories ) = @_;
 
-    # temporarily disabling for more testing -hal
-    return;
-
     $db->query( <<END, $import_date );
 insert into solr_import_stories ( stories_id )
     select stories_id
         from stories s
             join media m on ( s.media_id = m.media_id )
-            left join media_tags_map mtm on ( m.media_id = mtm.media_id )
-            left join media_sets_media_map msmm on ( msmm.media_id = m.media_id )
         where
-            ( mtm.db_row_last_updated > \$1 or msmm.db_row_last_updated > \$1 ) and
-            s.stories_id not in ( select stories_id from stories_for_solr_import ) and
+            m.db_row_last_updated > \$1 and
+            s.stories_id not in ( select stories_id from delta_import_stories ) and
             s.stories_id not in ( select stories_id from solr_import_stories )
 END
 
     my $max_media_stories = List::Util::max( 0, $MAX_MEDIA_STORIES - $num_delta_stories );
     my $num_media_stories = $db->query( <<END, $max_media_stories )->rows;
-insert into stories_for_solr_import ( stories_id ) select stories_id from solr_import_stories limit ?
+insert into delta_import_stories ( stories_id ) select stories_id from solr_import_stories limit ?
 END
 
     if ( $num_media_stories > 0 )
     {
         $db->query( <<END );
-delete from solr_import_stories where stories_id in ( select stories_id from stories_for_solr_import )
+delete from solr_import_stories where stories_id in ( select stories_id from delta_import_stories )
 END
     }
 
@@ -102,17 +97,17 @@ sub _print_csv_to_file_single_job
         print STDERR "importing delta from $import_date...\n";
 
         $db->query( <<END, $import_date );
-create temporary table stories_for_solr_import as
+create temporary table delta_import_stories as
     select distinct stories_id
     from story_sentences ss
     where ss.db_row_last_updated > \$1
 END
-        my ( $num_delta_stories ) = $db->query( "select count(*) from stories_for_solr_import" )->flat;
+        my ( $num_delta_stories ) = $db->query( "select count(*) from delta_import_stories" )->flat;
         print STDERR "found $num_delta_stories stories for import ...\n";
 
         _add_media_stories_to_import( $db, $import_date, $num_delta_stories );
 
-        $date_clause = "and stories_id in ( select stories_id from stories_for_solr_import )";
+        $date_clause = "and stories_id in ( select stories_id from delta_import_stories )";
     }
 
     my $ps_lookup = _get_lookup( $db, <<END );
