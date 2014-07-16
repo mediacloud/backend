@@ -24,11 +24,12 @@ BEGIN
     use_ok 'Catalyst::Test', 'MediaWords';
 }
 
-
 use Test::Differences;
 use Test::Deep;
 
 require Test::NoWarnings;
+
+use Data::Dumper;
 
 use MediaWords::Crawler::Engine;
 use MediaWords::DBI::DownloadTexts;
@@ -40,6 +41,7 @@ use MediaWords::Test::LocalServer;
 use DBIx::Simple::MediaWords;
 use MediaWords::StoryVectors;
 use LWP::UserAgent;
+use JSON;
 
 use Data::Sorting qw( :basics :arrays :extras );
 use Readonly;
@@ -79,22 +81,44 @@ sub add_test_feed
 
 #use_ok 'Catalyst::Test', 'MediaWords';
 
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-	  use Encode;
-            my ( $db ) = @_;
+MediaWords::Test::DB::test_on_test_database(
+    sub {
+        use Encode;
+        my ( $db ) = @_;
 
-	  add_test_feed( $db, 'http://example.com' );
+        add_test_feed( $db, 'http://example.com' );
 
-	  $ENV{ MEDIAWORDS_FORCE_USING_TEST_DATABASE } = 1;
-	  	  MediaWords::Util::Config->get_config->{ mediawords }->{ allow_unauthenticated_api_requests } = 'yes';
+        $ENV{ MEDIAWORDS_FORCE_USING_TEST_DATABASE } = 1;
+        MediaWords::Util::Config->get_config->{ mediawords }->{ allow_unauthenticated_api_requests } = 'yes';
 
-	  is( MediaWords::Util::Config->get_config->{ mediawords }->{ allow_unauthenticated_api_requests }, 'yes' );
+        is( MediaWords::Util::Config->get_config->{ mediawords }->{ allow_unauthenticated_api_requests }, 'yes' );
 
-	  ok( request( '/api/v2/media/list' )->is_success, 'Request should succeed' );
-	  ok( request( '/api/v2/media/list' )->is_success, 'Request should succeed' );
+        my $urls = [ '/api/v2/media/list', '/api/v2/media/single/1' ];
 
-	}
-						);
+        foreach my $url ( @{ $urls } )
+        {
+            my $response = request( $url );
+
+            ok( $response->is_success, 'Request should succeed' );
+
+            my $resp_object = decode_json( $response->decoded_content() );
+
+            say STDERR Dumper( $resp_object );
+
+            my $expected_response = [
+                {
+                    'media_id'          => 1,
+                    'media_source_tags' => [],
+                    'name'              => '_ Crawler Test',
+                    'url'               => 'http://example.com',
+                    'media_sets'        => []
+                }
+            ];
+
+            cmp_deeply( $resp_object, $expected_response, "response format mismatch for $url" );
+        }
+
+    }
+);
 
 done_testing();
