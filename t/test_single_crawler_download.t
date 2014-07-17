@@ -245,9 +245,6 @@ sub main
 
             MediaWords::Util::Config::get_config->{ mediawords }->{ extract_in_process } = 1;
 
-            $db->disconnect();
-            $db = 0;
-
             my $crawler = MediaWords::Crawler::Engine->new();
 
             $crawler->processes( 1 );
@@ -269,13 +266,7 @@ sub main
 
             $db->query( " DELETE from stories where stories_id <> ? ", $content_download->{ stories_id } );
 
-            $db->disconnect();
-            $db = 0;
-
             $crawler->crawl_single_download( $content_download->{ downloads_id } );
-
-            $db = 0;
-            $db = MediaWords::DB::connect_to_db();
 
             if ( defined( $dump ) && ( $dump eq '-d' ) )
             {
