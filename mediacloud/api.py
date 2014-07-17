@@ -157,12 +157,16 @@ class MediaCloud(object):
         '''
         return self._queryForJson(self.V2_API_URL+'tags/single/'+str(tags_id))[0]
 
-    def tagList(self, tag_sets_id, last_tags_id=0, rows=20):
+    def tagList(self, tag_sets_id, last_tags_id=0, rows=20, public_only=False):
         '''
         List all the tags in one tag set
         '''
         return self._queryForJson(self.V2_API_URL+'tags/list',
-            { 'tag_sets_id':tag_sets_id, 'last_tags_id': last_tags_id, 'rows':rows })
+            { 'tag_sets_id':tag_sets_id, 
+              'last_tags_id': last_tags_id, 
+              'rows':rows,
+              'public': 1 if public_only is True else 0
+            })
 
     def tagSet(self, tag_sets_id):
         '''

@@ -51,20 +51,20 @@ class ApiMediaTest(ApiBaseTest):
         self.assertEqual(len(matchingList),3)
 
     def testMediaList(self):
-        firstList = self._mc.mediaList()
-        for media in firstList:
+        first_list = self._mc.mediaList()
+        for media in first_list:
             self.assertTrue(media['media_id']>0)
-        self.assertNotEqual(firstList, None)
-        self.assertEqual(len(firstList),20)
-        last_page_one_media_id = int(firstList[19]['media_id'])-1
+        self.assertNotEqual(first_list, None)
+        self.assertEqual(len(first_list),20)
+        last_page_one_media_id = int(first_list[19]['media_id'])-1
         self.assertTrue(last_page_one_media_id > 0)
-        secondList = self._mc.mediaList(last_page_one_media_id)
-        for media in secondList:
+        second_list = self._mc.mediaList(last_page_one_media_id)
+        for media in second_list:
             self.assertTrue(media['media_id']>last_page_one_media_id)
-        self.assertEqual(len(secondList),20)
-        self.assertEqual(firstList[19]['media_id'], secondList[0]['media_id'])
-        longerList = self._mc.mediaList(0,200)
-        self.assertEqual(len(longerList),200)
+        self.assertEqual(len(second_list),20)
+        self.assertEqual(first_list[19]['media_id'], second_list[0]['media_id'])
+        longer_list = self._mc.mediaList(0,200)
+        self.assertEqual(len(longer_list),200)
 
 class ApiTagsTest(ApiBaseTest):
 
@@ -75,19 +75,26 @@ class ApiTagsTest(ApiBaseTest):
         self.assertEqual(tag['tag_sets_id'],597)
 
     def testTagList(self):
-        firstList = self._mc.tagList(597)
-        self.assertEqual(len(firstList),20)
-        [self.assertEqual(tag['tag_sets_id'],597) for tag in firstList]
-        secondList = self._mc.tagList(597, int(firstList[19]['tags_id'])-1)
-        self.assertEqual(len(secondList),20)
-        [self.assertEqual(tag['tag_sets_id'],597) for tag in secondList]
-        self.assertEqual(firstList[19]['tags_id'], secondList[0]['tags_id'])
-        longerList = self._mc.tagList(597, 0, 150)
-        self.assertEqual(len(longerList),150)
-        [self.assertEqual(tag['tag_sets_id'],597) for tag in longerList]
-        longestList = self._mc.tagList(597, 0, 200)
-        self.assertEqual(len(longestList),173)
-        [self.assertEqual(tag['tag_sets_id'],597) for tag in longestList]
+        # verify it only pulls tags from that one set
+        first_list = self._mc.tagList(597)
+        self.assertEqual(len(first_list),20)
+        [self.assertEqual(tag['tag_sets_id'],597) for tag in first_list]
+        # make sure paging through a set works right
+        second_list = self._mc.tagList(597, int(first_list[19]['tags_id'])-1)
+        self.assertEqual(len(second_list),20)
+        [self.assertEqual(tag['tag_sets_id'],597) for tag in second_list]
+        self.assertEqual(first_list[19]['tags_id'], second_list[0]['tags_id'])
+        # make sure you can pull a longer list of tags
+        longer_list = self._mc.tagList(597, 0, 150)
+        self.assertEqual(len(longer_list),150)
+        [self.assertEqual(tag['tag_sets_id'],597) for tag in longer_list]
+        longest_list = self._mc.tagList(597, 0, 200)
+        self.assertEqual(len(longest_list),173)
+        [self.assertEqual(tag['tag_sets_id'],597) for tag in longest_list]
+        # try getting only the public tags in the set
+        full_list = self._mc.tagList(6, rows=200)
+        public_list = self._mc.tagList(6, rows=200, public_only=True)
+        self.assertNotEqual( len(full_list), len(public_list))
 
 class ApiTagSetsTest(ApiBaseTest):
 
@@ -97,13 +104,13 @@ class ApiTagSetsTest(ApiBaseTest):
         self.assertEqual(tagSet['name'],'gv_country')
 
     def testTagSetList(self):
-        firstList = self._mc.tagSetList()
-        self.assertEqual(len(firstList),20)
-        secondList = self._mc.tagSetList(int(firstList[19]['tag_sets_id'])-1)
-        self.assertEqual(len(secondList),20)
-        self.assertEqual(firstList[19]['tag_sets_id'], secondList[0]['tag_sets_id'])
-        longerList = self._mc.tagSetList(0,50)
-        self.assertEqual(len(longerList),50)
+        first_list = self._mc.tagSetList()
+        self.assertEqual(len(first_list),20)
+        second_list = self._mc.tagSetList(int(first_list[19]['tag_sets_id'])-1)
+        self.assertEqual(len(second_list),20)
+        self.assertEqual(first_list[19]['tag_sets_id'], second_list[0]['tag_sets_id'])
+        longer_list = self._mc.tagSetList(0,50)
+        self.assertEqual(len(longer_list),50)
 
 class ApiMediaSetTest(ApiBaseTest):
 
@@ -114,13 +121,13 @@ class ApiMediaSetTest(ApiBaseTest):
         #self.assertTrue(len(media_set['media'])>0) # blocked by Media Cloud bug #7511 
 
     def testMediaSetList(self):
-        firstList = self._mc.mediaSetList()
-        self.assertEqual(len(firstList),20)
-        secondList = self._mc.mediaSetList(int(firstList[19]['media_sets_id'])-1)
-        self.assertEqual(len(secondList),20)
-        self.assertEqual(firstList[19]['media_sets_id'], secondList[0]['media_sets_id'])
-        longerList = self._mc.mediaSetList(0,200)
-        self.assertEqual(len(longerList),200)
+        first_list = self._mc.mediaSetList()
+        self.assertEqual(len(first_list),20)
+        second_list = self._mc.mediaSetList(int(first_list[19]['media_sets_id'])-1)
+        self.assertEqual(len(second_list),20)
+        self.assertEqual(first_list[19]['media_sets_id'], second_list[0]['media_sets_id'])
+        longer_list = self._mc.mediaSetList(0,200)
+        self.assertEqual(len(longer_list),200)
 
 class ApiFeedsTest(ApiBaseTest):
 
@@ -131,13 +138,13 @@ class ApiFeedsTest(ApiBaseTest):
         self.assertEqual(media_set['media_id'],1)
 
     def testFeedList(self):
-        firstList = self._mc.feedList(1)
-        self.assertEqual(len(firstList),20)
-        secondList = self._mc.feedList(1,int(firstList[19]['feeds_id'])-1)
-        self.assertEqual(len(secondList),20)
-        self.assertEqual(firstList[19]['feeds_id'], secondList[0]['feeds_id'])
-        longerList = self._mc.feedList(1,0,200)
-        self.assertEqual(len(longerList),140)
+        first_list = self._mc.feedList(1)
+        self.assertEqual(len(first_list),20)
+        second_list = self._mc.feedList(1,int(first_list[19]['feeds_id'])-1)
+        self.assertEqual(len(second_list),20)
+        self.assertEqual(first_list[19]['feeds_id'], second_list[0]['feeds_id'])
+        longer_list = self._mc.feedList(1,0,200)
+        self.assertEqual(len(longer_list),140)
 
 class ApiDashboardsTest(ApiBaseTest):
 
@@ -148,8 +155,8 @@ class ApiDashboardsTest(ApiBaseTest):
         self.assertTrue(len(dashboard['media_sets'])>0)
 
     def testDashboardList(self):
-        firstList = self._mc.dashboardList()
-        self.assertTrue(len(firstList)>0)
+        first_list = self._mc.dashboardList()
+        self.assertTrue(len(first_list)>0)
 
 class ApiStoriesTest(ApiBaseTest):
 
