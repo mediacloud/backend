@@ -71,7 +71,7 @@ END
 delete from solr_import_stories where stories_id in ( select stories_id from delta_import_stories )
 END
 
-        my ( $total_media_stories ) = $db->query( "select count(*) from delta_import_stories" )->flat;
+        my ( $total_media_stories ) = $db->query( "select count(*) from solr_import_stories" )->flat;
 
         print STDERR "added $num_media_stories / $total_media_stories media stories to the queue\n";
     }
