@@ -140,10 +140,11 @@ class MediaCloud(object):
             params['split_end_date'] = split_end_date
         return self._queryForJson(self.V2_API_URL+'sentences/count', params)
 
-    def wordCount(self, solr_query, solr_filter=''):
+    def wordCount(self, solr_query, solr_filter='', l='en'):
         return self._queryForJson(self.V2_API_URL+'wc/list',
                 {'q': solr_query,
-                 'fq': solr_filter
+                 'fq': solr_filter,
+                 'l': l
                 })
 
     def tag(self, tags_id):
@@ -199,8 +200,10 @@ class MediaCloud(object):
         else:
             raise Exception('Error - unsupported HTTP method '+str(http_method))
         if r.status_code is not 200:
-            self._logger.error('Bad HTTP response to '+url+' : '+str(r.status_code))
-            raise Exception('Error - got a HTTP status code of '+str(r.status_code))
+            self._logger.error('Bad HTTP response to '+r.url +' : '+str(r.status_code)  + ' ' +  str( r.reason) )
+            self._logger.error('\t' + r.content )
+
+            raise Exception('Error - got a HTTP status code of '+str(r.status_code) + ' ' +  str( r.reason) + 'for ' + r.url )
         return r
 
 # used when calling WriteableMediaCloud.tagStories
