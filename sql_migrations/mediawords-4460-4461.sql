@@ -60,12 +60,15 @@ LANGUAGE 'plpgsql';
 
 DROP TRIGGER IF EXISTS media_tags_map_last_updated_trigger on media_tags_map CASCADE;
 drop trigger if exists media_tags_last_updated_trigger on media_tags_map;
+DROP index media_tags_map_db_row_last_updated;
 
-alter table media_tags_map drop db_row_last_updated;
+alter table media_tags_map drop column db_row_last_updated CASCADE;
 
 DROP TRIGGER IF EXISTS media_sets_media_map_last_updated_trigger on media_sets_media_map CASCADE;
 
-alter table media_sets_media_map drop db_row_last_updated;
+DROP INDEX media_sets_media_map_db_row_last_updated ;
+
+alter table media_sets_media_map drop db_row_last_updated CASCADE;
 
 DROP TRIGGER IF EXISTS msmm_last_updated on media_sets_media_map CASCADE;
 CREATE TRIGGER msmm_last_updated BEFORE INSERT OR UPDATE OR DELETE 
