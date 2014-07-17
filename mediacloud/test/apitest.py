@@ -3,6 +3,9 @@ import mediacloud.api
 
 class ApiBaseTest(unittest.TestCase):
 
+    QUERY = '( mars OR robot )'
+    FILTER_QUERY = '+publish_date:[2013-01-01T00:00:00Z TO 2013-02-01T00:00:00Z] AND +media_sets_id:1'
+
     def setUp(self):
         self._config = ConfigParser.ConfigParser()
         self._config.read('mc-client.config')
@@ -161,8 +164,6 @@ class ApiStoriesTest(ApiBaseTest):
 
 class ApiSentencesTest(ApiBaseTest):
 
-    QUERY = '( mars OR robot )'
-    FILTER_QUERY = '+publish_date:[2013-01-01T00:00:00Z TO 2013-02-01T00:00:00Z] AND +media_sets_id:1'
     SENTENCE_COUNT = 100
 
     def testSentenceListSortingAscending(self):
@@ -240,15 +241,40 @@ class ApiSentencesTest(ApiBaseTest):
 
 class ApiWordCountTest(ApiBaseTest):
 
-    def testWordCount(self):
-        term_freq = self._mc.wordCount('+robots', '+publish_date:[2013-01-01T00:00:00Z TO 2013-02-01T00:00:00Z] AND +media_sets_id:1')
-        self.assertEqual(len(term_freq),193)
+    QUERY = 'robots'
+
+    def testResults(self):
+        term_freq = self._mc.wordCount(self.QUERY, self.FILTER_QUERY)
+        self.assertEqual(len(term_freq),500)
         self.assertEqual(term_freq[3]['term'],u'science')
+
+    def testSort(self):
+        term_freq = self._mc.wordCount(self.QUERY, self.FILTER_QUERY)
         # verify sorted in desc order
         last_count = 10000000000
         for freq in term_freq:
             self.assertTrue( last_count >= freq['count'] )
             last_count = freq['count']
+
+    def testNumWords(self):
+        term_freq = self._mc.wordCount(self.QUERY, self.FILTER_QUERY)
+        self.assertEqual(len(term_freq),500)
+        term_freq = self._mc.wordCount(self.QUERY, self.FILTER_QUERY, num_words=100)
+        self.assertEqual(len(term_freq),100)
+
+    def testStopWords(self):
+        term_freq = self._mc.wordCount(self.QUERY, self.FILTER_QUERY)
+        self.assertEqual(term_freq[3]['term'],u'science')
+        term_freq = self._mc.wordCount(self.QUERY, self.FILTER_QUERY, include_stopwords=True)
+        self.assertEqual(term_freq[3]['term'],u'that')        
+
+    def testStats(self):
+        term_freq = self._mc.wordCount(self.QUERY, self.FILTER_QUERY)
+        self.assertEqual(term_freq[3]['term'],u'science')
+        term_freq = self._mc.wordCount(self.QUERY, self.FILTER_QUERY, include_stats=True)
+        self.assertEqual(len(term_freq),2)
+        self.assertTrue( 'stats' in term_freq.keys() )
+        self.assertTrue( 'words' in term_freq.keys() )
 
 class WriteableApiTest(unittest.TestCase):
 

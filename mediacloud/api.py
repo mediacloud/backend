@@ -140,11 +140,15 @@ class MediaCloud(object):
             params['split_end_date'] = split_end_date
         return self._queryForJson(self.V2_API_URL+'sentences/count', params)
 
-    def wordCount(self, solr_query, solr_filter='', l='en'):
+    def wordCount(self, solr_query, solr_filter='', languages='en', num_words=500, sample_size=1000, include_stopwords=False, include_stats=False):
         return self._queryForJson(self.V2_API_URL+'wc/list',
                 {'q': solr_query,
                  'fq': solr_filter,
-                 'l': l
+                 'l': languages,
+                 'num_words': num_words,
+                 'sample_size': sample_size,
+                 'include_stopwords': 1 if include_stopwords is True else 0,
+                 'include_stats': 1 if include_stats is True else 0,
                 })
 
     def tag(self, tags_id):
@@ -202,7 +206,6 @@ class MediaCloud(object):
         if r.status_code is not 200:
             self._logger.error('Bad HTTP response to '+r.url +' : '+str(r.status_code)  + ' ' +  str( r.reason) )
             self._logger.error('\t' + r.content )
-
             raise Exception('Error - got a HTTP status code of '+str(r.status_code) + ' ' +  str( r.reason) + 'for ' + r.url )
         return r
 
