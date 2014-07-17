@@ -118,6 +118,7 @@ requires 'Set::Jaccard::SimilarityCoefficient';
 requires 'Set::Scalar';
 requires 'Smart::Comments';
 requires 'Statistics::Basic';
+requires 'Sys::RunAlone';
 requires 'Template';
 requires 'Term::Prompt';
 requires 'Test::Differences';

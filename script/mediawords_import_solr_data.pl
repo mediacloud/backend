@@ -7,6 +7,8 @@ use forks;
 use strict;
 use warnings;
 
+use Sys::RunAlone;
+
 BEGIN
 {
     use FindBin;
@@ -45,3 +47,5 @@ sub main
 }
 
 main();
+
+__END__
