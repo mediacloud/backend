@@ -364,7 +364,7 @@ sub _get_story_words_end_date_for_medium
 
 }
 
-sub _date_with_media_source_story_words_range
+sub _date_within_media_source_story_words_range
 {
     my ( $medium, $publish_date ) = @_;
 
@@ -393,7 +393,7 @@ sub _story_within_media_source_story_words_date_range
 
     my $publish_date = $story->{ publish_date };
 
-    return _date_with_media_source_story_words_range( $medium, $publish_date );
+    return _date_within_media_source_story_words_range( $medium, $publish_date );
 
     return 1;
 }

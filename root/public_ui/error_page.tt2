@@ -1,39 +1,16 @@
-[% INCLUDE 'public_ui/html_head.tt2' %]
+<html>
+<title>Error</title>
 <body>
-<script type="text/javascript">
-<!--
 
-   $(document).ready(function() 
-    {
+<h2>Error</h2>
 
-        look_up_news();
-    });
+[% FOREACH error IN errors %]
+    <p>[% error %]</p>
+[% END %]
 
--->
-</script>
-
-[% # form.render() %]
-
-[% INCLUDE 'public_ui/header.tt2' %]
-<tr>
-<td>
-<h1>
-The system has generated an error.
-</h1>
-[% # FOREACH error in errors %]
 <p>
-[% error | html %]
-</p> 
-[% # END %]
-<p>
-If you think this page should have worked, please <a href="mailto:mediacloud@cyber.law.harvard.edu">let us know</a>.
+If you think this page should have worked, please <a href="mailto:info@mediacloud.org">let us know</a>.
 </p>
-</td>
-</tr>
 
-      </table></td>
-    <td bgcolor="#FFFFFF"><img alt="" src="/include/images/spacer.gif" width="10" height="1" /></td>
-    <td bgcolor="#000000"><img alt="" src="/include/images/spacer.gif" width="1" height="1" /></td>
-  </tr>
-
-[% INCLUDE 'public_ui/html_footer.tt2' %]
+</body>
+</html>

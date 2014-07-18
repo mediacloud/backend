@@ -70,9 +70,12 @@ END
         $db->query( <<END );
 delete from solr_import_stories where stories_id in ( select stories_id from delta_import_stories )
 END
+
+        my ( $total_media_stories ) = $db->query( "select count(*) from solr_import_stories" )->flat;
+
+        print STDERR "added $num_media_stories / $total_media_stories media stories to the queue\n";
     }
 
-    print STDERR "added $num_media_stories media stories to the queue\n";
 }
 
 # print a csv dump of the postgres data to $file.
