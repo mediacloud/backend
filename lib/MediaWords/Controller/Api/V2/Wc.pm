@@ -32,6 +32,8 @@ Catalyst Controller.
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
+__PACKAGE__->config( action => { list_GET => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] }, } );
+
 use MediaWords::Tagger;
 
 sub list : Local : ActionClass('REST')

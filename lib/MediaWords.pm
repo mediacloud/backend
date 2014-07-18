@@ -311,7 +311,11 @@ sub uri_for
         $uri->query_form( $args );
     }
 
-    return $uri->as_string();
+    my $uri_string = $uri->as_string();
+
+    $uri_string =~ s~//~/~g;
+
+    return $uri_string;
 }
 
 sub create_form

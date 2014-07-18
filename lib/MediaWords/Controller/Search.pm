@@ -205,6 +205,44 @@ sub _stash_wc_query_params
     }
 }
 
+# if there the error is empty, return undef. if the error is a recognized message, return a
+# suitable error message as the catalyst response. otherwise, print the error to stderr and
+# print a generic error message
+sub _return_recognized_query_error
+{
+    my ( $c, $error ) = @_;
+
+    return 0 unless ( $error );
+
+    $c->stash->{ num_stories } = 0;
+    $c->stash->{ template }    = 'search/search.tt2';
+
+    my $msg;
+    if ( $error =~ /(solr.*(bad request|invalid|syntax))/i )
+    {
+        $c->stash->{ status_msg } = "Cannot parse search query";
+    }
+    elsif ( $error =~ /pseudo query error/i )
+    {
+        $error =~ s/at \/.*//;
+        $c->stash->{ status_msg } = "Cannot parse search query: $error";
+    }
+    elsif ( $error =~ /throttled/i )
+    {
+        $c->stash->{ status_msg } = <<END;
+You have exceeded your quota of requests or stories.  See your profile page at https://core.mediacloud.org/admin/profile
+for your current usage and limits.  Contact info\@mediacloud.org with quota questions.
+END
+    }
+    else
+    {
+        warn( $@ );
+        $c->stash->{ status_msg } = 'Unknown error.  Please report to info@mediacloud.org.';
+    }
+
+    return 1;
+}
+
 # search for stories using solr and return either a sampled list of stories in html or the full list in csv
 sub index : Path : Args(0)
 {
@@ -240,17 +278,7 @@ sub index : Path : Args(0)
 
     _stash_wc_query_params( $c );
 
-    if ( $@ =~ /solr.*Bad Request/ )
-    {
-        print STDERR "solr error: $@\n";
-        $c->stash->{ status_msg } = 'Cannot parse search query';
-        $c->stash->{ template }   = 'search/search.tt2';
-        return;
-    }
-    elsif ( $@ )
-    {
-        die( $@ );
-    }
+    return if ( _return_recognized_query_error( $c, $@ ) );
 
     _match_stories_to_pattern( $db, $stories, $pattern ) if ( defined( $pattern ) );
 
@@ -310,17 +338,9 @@ sub wc : Local
 
     _stash_wc_query_params( $c );
 
-    if ( $@ =~ /solr.*Bad Request/ )
-    {
+    return if ( _return_recognized_query_error( $c, $@ ) );
 
-        $c->stash->{ status_msg } = 'Cannot parse search query';
-        $c->stash->{ template }   = 'search/wc.tt2';
-    }
-    elsif ( $@ )
-    {
-        die( $@ );
-    }
-    elsif ( $c->req->params->{ csv } )
+    if ( $c->req->params->{ csv } )
     {
         my $encoded_csv = MediaWords::Util::CSV::get_hashes_as_encoded_csv( $words );
 
