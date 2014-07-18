@@ -313,7 +313,7 @@ sub uri_for
 
     my $uri_string = $uri->as_string();
 
-    $uri_string =~ s~//~/~g;
+    while ( $uri_string =~ s~(https?\://.*)//~$1/~g ) { }
 
     return $uri_string;
 }
