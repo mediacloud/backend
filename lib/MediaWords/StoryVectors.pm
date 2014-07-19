@@ -491,9 +491,14 @@ sub update_story_sentence_words_and_language
     # Get story text
     my $story_text = $story->{ story_text } || MediaWords::DBI::Stories::get_text_for_word_counts( $db, $story );
 
-    if ( length( $story_text ) < length( $story->{ description } ) )
+    if ( ( length( $story_text ) == 0 ) || ( length( $story_text ) < length( $story->{ description } ) ) )
     {
-        $story_text = html_strip( "$story->{ title }.  $story->{ description }." );
+        $story_text = $story->{ title };
+        if ( $story->{ description } )
+        {
+            $story_text .= '.' unless ( $story_text =~ /\.\s*$/ );
+            $story_text .= $story->{ description };
+        }
     }
 
     # Determine TLD
