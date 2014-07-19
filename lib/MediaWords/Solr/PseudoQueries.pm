@@ -10,7 +10,7 @@ use MediaWords::CommonLibs;
 # pseudo queries allow us to effectively perform joins with postgres
 # queries directly through the api with queries that look like:
 #
-# sentence:obama and {? controversy_dump_time_slice:1234 }
+# sentence:obama and {! controversy_dump_time_slice:1234 }
 #
 # which would be processed and replaced before sending to solr with
 # something that looks like:
@@ -119,7 +119,7 @@ END
     return { stories_ids => $stories_ids };
 }
 
-# accept a single {? ... } clause and return a stories_id:(...) clause
+# accept a single {! ... } clause and return a stories_id:(...) clause
 sub _transform_clause
 {
     my ( $clause ) = @_;
@@ -196,7 +196,7 @@ sub transform_query
 
     my $t = $q;
 
-    $t =~ s/(\{\?[^\}]*\})/_transform_clause( $1 )/eg;
+    $t =~ s/(\{\![^\}]*\})/_transform_clause( $1 )/eg;
 
     print STDERR "transformed solr query: '$q' -> '$t'\n" unless ( $t eq $q );
 
