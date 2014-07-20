@@ -365,6 +365,7 @@ sub _get_remote_words
     my $query_params = $self->get_cgi_param_hash;
 
     $query_params->{ no_remote } = 1;
+    $query_params->{ key }       = $key;
 
     $uri->query_form( $query_params );
 
