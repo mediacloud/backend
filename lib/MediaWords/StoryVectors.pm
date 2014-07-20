@@ -493,11 +493,11 @@ sub update_story_sentence_words_and_language
 
     if ( ( length( $story_text ) == 0 ) || ( length( $story_text ) < length( $story->{ description } ) ) )
     {
-        $story_text = $story->{ title };
+        $story_text = html_strip( $story->{ title } );
         if ( $story->{ description } )
         {
             $story_text .= '.' unless ( $story_text =~ /\.\s*$/ );
-            $story_text .= $story->{ description };
+            $story_text .= html_strip( $story->{ description } );
         }
     }
 
