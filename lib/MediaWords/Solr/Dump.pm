@@ -80,11 +80,12 @@ END
 # if delta is true, only dump the data changed since the last dump
 sub _print_csv_to_file_single_job
 {
-    my ( $file, $num_proc, $proc, $delta ) = @_;
+    my ( $db, $file, $num_proc, $proc, $delta ) = @_;
+
+    # recreate db for forked processes
+    $db ||= MediaWords::DB::connect_to_db;
 
     open( FILE, ">$file" ) || die( "Unable to open file '$file': $@" );
-
-    my $db = MediaWords::DB::connect_to_db;
 
     my $date_clause = '';
     if ( $delta )
@@ -214,7 +215,7 @@ END
 # if delta is true, only dump the data changed since the last dump
 sub print_csv_to_file
 {
-    my ( $file_spec, $num_proc, $delta ) = @_;
+    my ( $db, $file_spec, $num_proc, $delta ) = @_;
 
     $num_proc //= 1;
 
@@ -222,7 +223,7 @@ sub print_csv_to_file
 
     if ( $num_proc == 1 )
     {
-        return _print_csv_to_file_single_job( $file_spec, 1, 1, $delta );
+        return _print_csv_to_file_single_job( $db, $file_spec, 1, 1, $delta );
     }
     else
     {
@@ -233,7 +234,7 @@ sub print_csv_to_file
             my $file = "$file_spec-$proc";
             push( @{ $files }, $file );
 
-            push( $threads, threads->create( \&_print_csv_to_file_single_job, $file, $num_proc, $proc, $delta ) );
+            push( $threads, threads->create( \&_print_csv_to_file_single_job, undef, $file, $num_proc, $proc, $delta ) );
         }
 
         my $all_stories_ids = [];
@@ -401,8 +402,8 @@ sub _get_dump_file
 # delete stories that have just been imported from the media import queue
 sub delete_stories_from_import_queue
 {
-    my ( $db ) = @_;
-    
+    my ( $db, $delta ) = @_;
+
     if ( $delta )
     {
         $db->query( <<END );
@@ -432,7 +433,7 @@ sub generate_and_import_data
     mark_import_date( $db );
 
     print STDERR "generating dump ...\n";
-    my $stories_ids = print_csv_to_file( $dump_file, 1, $delta ) || die( "dump failed." );
+    my $stories_ids = print_csv_to_file( $db, $dump_file, 1, $delta ) || die( "dump failed." );
 
     if ( $delta )
     {
