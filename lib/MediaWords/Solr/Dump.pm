@@ -67,10 +67,6 @@ END
 
     if ( $num_media_stories > 0 )
     {
-        $db->query( <<END );
-delete from solr_import_stories where stories_id in ( select stories_id from delta_import_stories )
-END
-
         my ( $total_media_stories ) = $db->query( "select count(*) from solr_import_stories" )->flat;
 
         print STDERR "added $num_media_stories / $total_media_stories media stories to the queue\n";
@@ -402,6 +398,24 @@ sub _get_dump_file
     return $filename;
 }
 
+# delete stories that have just been imported from the media import queue
+sub delete_stories_from_import_queue
+{
+    my ( $db ) = @_;
+    
+    if ( $delta )
+    {
+        $db->query( <<END );
+delete from solr_import_stories where stories_id in ( select stories_id from delta_import_stories )
+END
+    }
+    else
+    {
+        # if we just completed a full import, drop the whole current stories queue
+        $db->query( "truncate table solr_import_stories" );
+    }
+}
+
 # generate and import dump.  optionally generate delta dump since beginning of last
 # full or delta dump.  optionally delete all solr data after generating dump and before
 # importing
@@ -435,6 +449,7 @@ sub generate_and_import_data
     import_csv_files( [ $dump_file ], $delta ) || die( "import failed." );
 
     save_import_date( $db, $delta );
+    delete_stories_from_import_queue( $db, $delta );
 
     # if we're doing a full import, do a delta to catchup with the data since the start of the import
     if ( !$delta )
