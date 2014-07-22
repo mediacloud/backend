@@ -1026,6 +1026,7 @@ sub add_to_controversy_stories_and_links_if_match
     if ( $link->{ assume_match } || story_matches_controversy_pattern( $db, $controversy, $story ) )
     {
         print STDERR "CONTROVERSY MATCH: $link->{ url }\n";
+        $link->{ iteration } ||= 0;
         add_to_controversy_stories_and_links( $db, $controversy, $story, $link->{ iteration } + 1 );
     }
 
