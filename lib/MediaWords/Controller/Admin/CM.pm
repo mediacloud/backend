@@ -1727,4 +1727,69 @@ sub merge_stories_list : Local
     $c->response->redirect( $u );
 }
 
+# get simple summary of links between partisan communities
+sub _get_partisan_link_metrics
+{
+    my ( $db, $controversy, $cdts ) = @_;
+
+    $db->begin;
+
+    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, undef );
+
+    my $link_metrics = $db->query( <<END )->hashes;
+with partisan_stories as (
+    select s.*, t.*
+        from 
+            dump_stories s
+            join media_tags_map mtm on ( s.media_id = mtm.media_id )
+            join tags t on ( mtm.tags_id = t.tags_id )
+            join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
+        where
+            ts.name = 'collection' and
+            t.tag in ( 'partisan_2012_liberal', 'partisan_2012_conservative', 'partisan_2012_libertarian' )
+)
+    
+select distinct 
+        sum( log( count(*) ) ) over ( partition by ss.tags_id, rs.tags_id ) log_inlink_count,
+        sum( count(*) ) over ( partition by ss.tags_id, rs.tags_id ) inlink_count,
+        ss.tags_id source_tags_id,
+        min( ss.tag ) source_tag,
+        rs.tags_id ref_tags_id,
+        min( rs.tag ) ref_tag
+    from 
+        partisan_stories ss
+        join dump_story_links sl on ( ss.stories_id = sl.source_stories_id )
+        join partisan_stories rs on ( rs.stories_id = sl.ref_stories_id )
+    group by ss.media_id, ss.tags_id, rs.media_id, rs.tags_id
+    order by ss.tags_id, rs.tags_id
+END
+
+    $db->commit;
+
+    print STDERR Dumper( $link_metrics );
+
+    die;
+
+    return $link_metrics;
+
+}
+
+# generate report on partisan behavior within set
+sub partisan : Local
+{
+    my ( $self, $c, $cdts_id ) = @_;
+
+    my $db = $c->dbis;
+
+    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
+
+    my $link_metrics = _get_partisan_link_metrics( $db, $controversy, $cdts );
+
+    $c->stash->{ link_metrics }                = $link_metrics;
+    $c->stash->{ controversy }                 = $controversy;
+    $c->stash->{ controversy_dump }            = $cd;
+    $c->stash->{ controversy_dump_time_slice } = $cdts;
+    $c->stash->{ template }                    = 'cm/partisan.tt2';
+}
+
 1;
