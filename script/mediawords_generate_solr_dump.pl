@@ -16,6 +16,7 @@ use Encode;
 use Getopt::Long;
 use Text::CSV_XS;
 
+use MediaWords::DB;
 use MediaWords::Solr::Dump;
 
 sub main
@@ -31,7 +32,9 @@ sub main
     die( "usage: $0 --file_spec <spec for file dump names> [ --jobs <num of parallel jobs> --delta ]" )
       unless ( $file_spec );
 
-    MediaWords::Solr::Dump::print_csv_to_file( $file_spec, $jobs, $delta );
+    my $db = MediaWords::DB::connect_to_db;
+
+    MediaWords::Solr::Dump::print_csv_to_file( $db, $file_spec, $jobs, $delta );
 
 }
 

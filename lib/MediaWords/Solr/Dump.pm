@@ -67,10 +67,6 @@ END
 
     if ( $num_media_stories > 0 )
     {
-        $db->query( <<END );
-delete from solr_import_stories where stories_id in ( select stories_id from delta_import_stories )
-END
-
         my ( $total_media_stories ) = $db->query( "select count(*) from solr_import_stories" )->flat;
 
         print STDERR "added $num_media_stories / $total_media_stories media stories to the queue\n";
@@ -84,11 +80,12 @@ END
 # if delta is true, only dump the data changed since the last dump
 sub _print_csv_to_file_single_job
 {
-    my ( $file, $num_proc, $proc, $delta ) = @_;
+    my ( $db, $file, $num_proc, $proc, $delta ) = @_;
+
+    # recreate db for forked processes
+    $db ||= MediaWords::DB::connect_to_db;
 
     open( FILE, ">$file" ) || die( "Unable to open file '$file': $@" );
-
-    my $db = MediaWords::DB::connect_to_db;
 
     my $date_clause = '';
     if ( $delta )
@@ -218,7 +215,7 @@ END
 # if delta is true, only dump the data changed since the last dump
 sub print_csv_to_file
 {
-    my ( $file_spec, $num_proc, $delta ) = @_;
+    my ( $db, $file_spec, $num_proc, $delta ) = @_;
 
     $num_proc //= 1;
 
@@ -226,7 +223,7 @@ sub print_csv_to_file
 
     if ( $num_proc == 1 )
     {
-        return _print_csv_to_file_single_job( $file_spec, 1, 1, $delta );
+        return _print_csv_to_file_single_job( $db, $file_spec, 1, 1, $delta );
     }
     else
     {
@@ -237,7 +234,7 @@ sub print_csv_to_file
             my $file = "$file_spec-$proc";
             push( @{ $files }, $file );
 
-            push( $threads, threads->create( \&_print_csv_to_file_single_job, $file, $num_proc, $proc, $delta ) );
+            push( $threads, threads->create( \&_print_csv_to_file_single_job, undef, $file, $num_proc, $proc, $delta ) );
         }
 
         my $all_stories_ids = [];
@@ -402,6 +399,24 @@ sub _get_dump_file
     return $filename;
 }
 
+# delete stories that have just been imported from the media import queue
+sub delete_stories_from_import_queue
+{
+    my ( $db, $delta ) = @_;
+
+    if ( $delta )
+    {
+        $db->query( <<END );
+delete from solr_import_stories where stories_id in ( select stories_id from delta_import_stories )
+END
+    }
+    else
+    {
+        # if we just completed a full import, drop the whole current stories queue
+        $db->query( "truncate table solr_import_stories" );
+    }
+}
+
 # generate and import dump.  optionally generate delta dump since beginning of last
 # full or delta dump.  optionally delete all solr data after generating dump and before
 # importing
@@ -418,7 +433,7 @@ sub generate_and_import_data
     mark_import_date( $db );
 
     print STDERR "generating dump ...\n";
-    my $stories_ids = print_csv_to_file( $dump_file, 1, $delta ) || die( "dump failed." );
+    my $stories_ids = print_csv_to_file( $db, $dump_file, 1, $delta ) || die( "dump failed." );
 
     if ( $delta )
     {
@@ -435,6 +450,7 @@ sub generate_and_import_data
     import_csv_files( [ $dump_file ], $delta ) || die( "import failed." );
 
     save_import_date( $db, $delta );
+    delete_stories_from_import_queue( $db, $delta );
 
     # if we're doing a full import, do a delta to catchup with the data since the start of the import
     if ( !$delta )
