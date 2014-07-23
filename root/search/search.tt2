@@ -25,8 +25,8 @@
 
     <br />
     <fieldset>
-        <p>        
-            [% IF stories.size < num_stories %]
+        <p> 
+            [% IF stories && ( stories.size < num_stories ) %]
                 Only showing a random sample of [% stories.size %] stories out of about [% num_stories %] (this story 
                     total is just a guess based on the number of sentences found).  Download the csv to see all stories
                     and get a true count of stories.
@@ -35,7 +35,10 @@
             [% END %]
         </p>
         
-        <p><a href="#tag_counts">Summary of tag counts for this query</a></p>
+        
+        [% IF stories %]
+            <p><a href="#tag_counts">Summary of tag counts for this query</a></p>
+        [% END %]
     </fieldset>
     
     [% IF stories %]

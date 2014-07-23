@@ -67,29 +67,6 @@ sub add_test_feed
     return $feed;
 }
 
-Readonly my $crawler_timeout => 2 * 60;
-
-# run the crawler for two minutes, which should be enough time to gather all of
-# the stories from the test feed and test-extract them
-sub run_crawler
-{
-
-    my $crawler = MediaWords::Crawler::Engine->new();
-
-    $crawler->processes( 1 );
-    $crawler->throttle( 1 );
-    $crawler->sleep_interval( 1 );
-    $crawler->timeout( $crawler_timeout );
-    $crawler->pending_check_interval( 1 );
-
-    $| = 1;
-
-    print "running crawler for one minute ...\n";
-    $crawler->crawl();
-
-    print "crawler exiting ...\n";
-}
-
 # get stories from database, including content, text, tags, and sentences
 sub get_expanded_stories
 {

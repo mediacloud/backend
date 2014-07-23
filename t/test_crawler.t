@@ -98,7 +98,7 @@ EOF
     return $syndicated_feed;
 }
 
-Readonly my $crawler_timeout => 6 * 60;
+Readonly my $crawler_timeout => MediaWords::Util::Config::get_config->{ mediawords }->{ crawler_test_timeout };
 
 # run the crawler for one minute, which should be enough time to gather all of
 # the stories from the test feed and test-extract them
@@ -108,11 +108,7 @@ sub _run_crawler()
 
     my $crawler = MediaWords::Crawler::Engine->new();
 
-    $crawler->processes( 1 );
-    $crawler->throttle( 1 );
-    $crawler->sleep_interval( 1 );
-    $crawler->timeout( $crawler_timeout );
-    $crawler->pending_check_interval( 1 );
+    $crawler->test_mode( 1 );
 
     #$crawler->children_exit_on_kill( 1 );
 
@@ -372,10 +368,10 @@ sub main
     binmode( STDOUT, ':utf8' );
 
     # Test short inline "content:..." downloads
-    _test_crawler( 'Short "inline" downloads', 'inline_content', 4, '2008-02-03', '2014-02-27' );
+    _test_crawler( 'Short "inline" downloads', 'inline_content', 4, '2008-02-03', '2020-02-27' );
 
     # Test Global Voices downloads
-    _test_crawler( 'Global Voices', 'gv', 16, '2008-02-03', '2014-02-27' );
+    _test_crawler( 'Global Voices', 'gv', 16, '2008-02-03', '2020-02-27' );
 
     Test::NoWarnings::had_no_warnings();
 }

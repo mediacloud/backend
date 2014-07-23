@@ -304,15 +304,11 @@ EOF
 
             foreign_reference_subqueries => {
                 'controversies.controversies_id' => <<EOF
-
-                    SELECT DISTINCT activities.activities_id
-                    FROM activities
-                        INNER JOIN stories
-                            ON activities.object_id = stories.media_id
-                        INNER JOIN controversy_stories
-                            ON stories.stories_id = controversy_stories.stories_id
-                    WHERE activities.name = 'media_edit'
-                      AND controversy_stories.controversies_id = $ACTIVITIES_SUBQUERY_OBJECT_ID_PLACEHOLDER
+            SELECT DISTINCT activities.activities_id                                                                                                                                                 
+            FROM activities                                                                                                                                                                          
+                INNER JOIN cd.live_stories on ( cd.live_stories.media_id = activities.object_id )                                                                                                  
+            WHERE activities.name = 'media_edit'                                                                                                                                                                 
+              AND cd.live_stories.controversies_id = $ACTIVITIES_SUBQUERY_OBJECT_ID_PLACEHOLDER
 EOF
               }
 

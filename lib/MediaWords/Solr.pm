@@ -13,6 +13,7 @@ use Time::HiRes qw(gettimeofday tv_interval);
 
 use MediaWords::DBI::Stories;
 use MediaWords::Languages::Language;
+use MediaWords::Solr::PseudoQueries;
 use MediaWords::Util::Config;
 use MediaWords::Util::Web;
 use List::MoreUtils qw ( uniq );
@@ -112,6 +113,9 @@ sub query_encoded_json($;$)
 
     _uppercase_boolean_operators( $params->{ q } );
     _uppercase_boolean_operators( $params->{ fq } );
+
+    $params->{ q }  = MediaWords::Solr::PseudoQueries::transform_query( $params->{ q } );
+    $params->{ fq } = MediaWords::Solr::PseudoQueries::transform_query( $params->{ fq } );
 
     my $url = get_solr_select_url();
 
