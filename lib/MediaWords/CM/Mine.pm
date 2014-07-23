@@ -369,11 +369,11 @@ sub get_unique_medium_url
     }
     elsif ( $i == 1 )
     {
-        $q_url = '#spider';
+        $q_url = "$url#spider";
     }
     else
     {
-        $q_url = "#spider$i";
+        $q_url = "$url#spider$i";
     }
 
     my $url_exists = $db->query( "select 1 from media where url = ?", $q_url )->hash;
