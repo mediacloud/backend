@@ -353,7 +353,11 @@ sub scrape_import : Local
             $c->log->error( "Unable to parse scrape import link: $link" );
         }
 
-        my $feed = $c->dbis->create(
+        my ( $name, $url ) = ( $1, $2 );
+
+        my $feed = $c->dbis->query( "select * from feeds where url = ? and media_id = ?", $url, $media_id )->hash;
+
+        $feed ||= $c->dbis->create(
             'feeds',
             {
                 name => $1 || '(no name)',
@@ -545,7 +549,7 @@ sub batch_create : Local
 sub _feed_url_exists_in_medium
 {
     my ( $db, $url, $media_id ) = @_;
-    
+
     return $db->query( 'select 1 from feeds where url = ? and media_id = ?', $url, $media_id )->hash;
 }
 
@@ -593,7 +597,8 @@ sub batch_create_do : Local
                 !( grep { $a eq lc( $_->{ url } ) } @{ $links } )
             } @{ $urls }
         ];
-        $status_msg = "The following urls were skipped because they already exist in this medium: " . join( ', ', @{ $skipped_urls } );
+        $status_msg =
+          "The following urls were skipped because they already exist in this medium: " . join( ', ', @{ $skipped_urls } );
     }
     else
     {
