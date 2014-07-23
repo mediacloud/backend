@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 #use Test::More;
-use Test::More tests => 4;
+use Test::More tests => 6;
 
 # use MediaWords::Test::DB;
 # use MediaWords::Test::Data;
@@ -56,12 +56,6 @@ sub test
 
     my $key = 'f66a50230d54afaf18822808aed649f1d6ca72b08fb06d5efb6247afe9fbae52';
 
-    #    add_test_feed( $db, 'http://example.com' );
-
-    #    MediaWords::Util::Config->get_config->{ mediawords }->{ allow_unauthenticated_api_requests } = 'yes';
-
-    #   is( MediaWords::Util::Config->get_config->{ mediawords }->{ allow_unauthenticated_api_requests }, 'yes' );
-
     my $urls = [ '/api/v2/media/single/1' ];
 
     foreach my $url ( @{ $urls } )
@@ -102,9 +96,9 @@ sub test
 
         foreach my $medium ( @{ $expected_response } )
         {
-            last;
+            my $media_id = $medium->{ media_id };
 
-            $response = request( "/api/v2/feeds/list", [ key => $key, media_id => $medium->{ media_id } ] );
+            $response = request( "/api/v2/feeds/list?key=$key&media_id=$media_id" );
             ok( $response->is_success, 'Request should succeed' );
 
             if ( !$response->is_success )
@@ -112,10 +106,20 @@ sub test
                 say STDERR Dumper( $response->decoded_content() );
             }
 
-            my $expected_feed = [ {} ];
+            my $expected_feed = [
+                {
+                    'media_id'  => 1,
+                    'feed_type' => 'syndicated',
+                    'name'      => 'English Wikinews Atom feed.',
+                    'url' =>
+'http://en.wikinews.org/w/index.php?title=Special:NewsFeed&feed=atom&categories=Published&notcategories=No%20publish%7CArchived%7CAutoArchived%7Cdisputed&namespace=0&count=30&hourcount=124&ordermethod=categoryadd&stablepages=only',
+                    'feeds_id' => 1
+                }
+            ];
 
             my $feed_resp_object = decode_json( $response->decoded_content() );
-            say STDERR Dumper( $feed_resp_object );
+
+            #say STDERR Dumper( $feed_resp_object );
 
             cmp_deeply( $feed_resp_object, $expected_feed, 'response format mismatch for feed' );
         }
