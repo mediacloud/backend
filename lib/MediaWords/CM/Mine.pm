@@ -850,21 +850,22 @@ sub get_preferred_story
 
     return $stories->[ 0 ] if ( @{ $stories } == 1 );
 
-    my $stories_lookup = {};
-    map { $stories_lookup->{ $_->{ stories_id } } = $_ } @{ $stories };
-    $stories = [ values( %{ $stories_lookup } ) ];
-
-    my $media = [];
+    my $media_lookup = {};
     for my $story ( @{ $stories } )
     {
+        next if ( $media_lookup->{ $story->{ media_id } } );
+
         my $medium = $db->find_by_id( 'media', $story->{ media_id } );
         $medium->{ story } = $story;
         $medium->{ dup_target } =
           $db->query( "select 1 from media where dup_media_id = ?", $story->{ media_id } )->hash ? 1 : 0;
         $medium->{ dup_source } = $medium->{ dup_media_id } ? 1 : 0;
         $medium->{ matches_domain } = _story_domain_matches_medium( $db, $medium, $url, $redirect_url );
-        push( @{ $media }, $medium );
+
+        $media_lookup->{ $medium->{ media_id } } = $medium;
     }
+
+    my $media = [ values { %{ $media_lookup } } ];
 
     sub _compare_media
     {
