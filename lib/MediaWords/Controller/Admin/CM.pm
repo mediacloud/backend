@@ -1736,22 +1736,23 @@ sub _get_partisan_link_metrics
 
     MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, undef );
 
-    my $link_metrics = $db->query( <<END )->hashes;
+    my $query = <<END;
 with partisan_stories as (
     select s.*, t.*
         from 
             dump_stories s
-            join media_tags_map mtm on ( s.media_id = mtm.media_id )
-            join tags t on ( mtm.tags_id = t.tags_id )
-            join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
+            join dump_media_tags_map mtm on ( s.media_id = mtm.media_id )
+            join dump_tags t on ( mtm.tags_id = t.tags_id )
+            join dump_tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
         where
             ts.name = 'collection' and
             t.tag in ( 'partisan_2012_liberal', 'partisan_2012_conservative', 'partisan_2012_libertarian' )
 )
     
 select distinct 
-        sum( log( count(*) ) ) over ( partition by ss.tags_id, rs.tags_id ) log_inlink_count,
-        sum( count(*) ) over ( partition by ss.tags_id, rs.tags_id ) inlink_count,
+        count(*) over w media_link_count,
+        sum( log( count(*) + 1 ) / log ( 2 ) ) over w log_inlink_count,
+        sum( count(*) ) over w inlink_count,
         ss.tags_id source_tags_id,
         min( ss.tag ) source_tag,
         rs.tags_id ref_tags_id,
@@ -1761,8 +1762,15 @@ select distinct
         join dump_story_links sl on ( ss.stories_id = sl.source_stories_id )
         join partisan_stories rs on ( rs.stories_id = sl.ref_stories_id )
     group by ss.media_id, ss.tags_id, rs.media_id, rs.tags_id
+    window w as ( partition by ss.tags_id, rs.tags_id )
     order by ss.tags_id, rs.tags_id
 END
+
+    my $explain = $db->query( "explain analyze $query" )->hashes;
+
+    print STDERR Dumper( $explain );
+
+    my $link_metrics = $db->query( $query )->hashes;
 
     $db->commit;
 
