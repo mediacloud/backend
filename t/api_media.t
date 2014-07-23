@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 #use Test::More;
-use Test::More tests => 6;
+use Test::More tests => 10;
 
 # use MediaWords::Test::DB;
 # use MediaWords::Test::Data;
@@ -56,11 +56,24 @@ sub test
 
     my $key = 'f66a50230d54afaf18822808aed649f1d6ca72b08fb06d5efb6247afe9fbae52';
 
-    my $urls = [ '/api/v2/media/single/1' ];
+    my $urls = [ '/api/v2/media/single/1', '/api/v2/media/list/?rows=1' ];
 
-    foreach my $url ( @{ $urls } )
+    #my $urls = [ '/api/v2/media/list/?rows=1' ];
+
+    foreach my $base_url ( @{ $urls } )
     {
-        my $response = request( "$url?key=$key" );
+
+        my $url;
+        if ( index( $base_url, "?" ) != -1 )
+        {
+            $url = "$base_url&key=$key";
+        }
+        else
+        {
+            $url = "$base_url?key=$key";
+        }
+
+        my $response = request( "$url" );
 
         #say STDERR Dumper( $response );
         #say STDERR Dumper( $response->base );
