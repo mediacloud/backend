@@ -33,7 +33,7 @@ sub index : Path : Args(0)
     my $roles_exempt_from_user_limits = MediaWords::DBI::Auth::roles_exempt_from_user_limits();
     foreach my $exempt_role ( @{ $roles_exempt_from_user_limits } )
     {
-        if ( any { $exempt_role } @{ $roles } )
+        if ( any { $_ eq $exempt_role } @{ $roles } )
         {
             $weekly_requests_limit        = 0;
             $weekly_requested_items_limit = 0;

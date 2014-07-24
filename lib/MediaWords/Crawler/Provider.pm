@@ -229,7 +229,7 @@ sub _add_pending_downloads
 
     my $interval = $self->engine->pending_check_interval || DEFAULT_PENDING_CHECK_INTERVAL;
 
-    return if ( $self->{ last_pending_check } > ( time() - $interval ) );
+    return if ( !$self->engine->test_mode && ( $self->{ last_pending_check } > ( time() - $interval ) ) );
 
     $self->{ last_pending_check } = time();
 
@@ -348,7 +348,7 @@ sub provide_downloads
 
     if ( !@downloads )
     {
-        sleep( 10 );
+        sleep( 10 ) unless $self->engine->test_mode;
     }
 
     return \@downloads;

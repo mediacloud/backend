@@ -69,6 +69,8 @@ sub end : ActionClass('RenderView')
     {
         $c->stash->{ errors } = [ map { $_ } @{ $c->error } ];
 
+        map { $_ =~ s/at \/.*// } @{ $c->stash->{ errors } };
+
         print STDERR "Handling error:\n";
         print STDERR Dumper( $c->stash->{ errors } );
 
@@ -86,7 +88,7 @@ sub end : ActionClass('RenderView')
 
             $c->stash->{ template } = 'public_ui/error_page.tt2';
 
-            $c->response->status( 500 );
+            $c->response->status( 500 ) if ( $c->response->status < 400 );
         }
     }
 

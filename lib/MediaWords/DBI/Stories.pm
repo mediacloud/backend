@@ -1145,7 +1145,6 @@ sub attach_story_data_to_stories
 
     unless ( scalar @{ $story_data } )
     {
-        say STDERR "Story data is not an arrayref, so not attaching story data to stories.";
         return;
     }
 

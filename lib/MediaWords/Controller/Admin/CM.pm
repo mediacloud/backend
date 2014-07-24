@@ -1017,13 +1017,10 @@ sub _get_stories_id_search_query
 {
     my ( $db, $q ) = @_;
 
-    if ( defined( $q ) )
-    {
-        $q =~ s/^\s+//;
-        $q =~ s/\s+$//;
-    }
-
     return 'select stories_id from dump_story_link_counts' unless ( $q );
+
+    $q =~ s/^\s+//;
+    $q =~ s/\s+$//;
 
     my $period_stories_ids = $db->query( "select stories_id from dump_story_link_counts" )->flat;
 
@@ -1169,6 +1166,15 @@ END
     $db->commit;
 
     my $controversies_id = $controversy->{ controversies_id };
+
+    if ( $c->req->params->{ missing_solr_stories } )
+    {
+        my $solr_query       = "{! controversy:$controversy->{ controversies_id } }";
+        my $solr_stories_ids = MediaWords::Solr::search_for_stories_ids( { q => $solr_query } );
+        my $solr_lookup      = {};
+        map { $solr_lookup->{ $_ } = 1 } @{ $solr_stories_ids };
+        $stories = [ grep { !$solr_lookup->{ $_->{ stories_id } } } @{ $stories } ];
+    }
 
     if ( $c->req->params->{ remove_stories } )
     {

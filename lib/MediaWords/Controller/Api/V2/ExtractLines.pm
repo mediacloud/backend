@@ -37,7 +37,7 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 # Default authentication action roles
 __PACKAGE__->config(    #
     action => {         #
-        story_lines => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
+        story_lines_GET => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
       }    #
 );         #
 
@@ -72,11 +72,11 @@ sub extract_GET : Local
 {
     my ( $self, $c ) = @_;
 
-    my $temp = $c->req->param( 'preprocessed_lines' );
-    my $pp_lines = encode_utf8( $temp );
-    my $preprocessed_lines = decode_json ( $pp_lines );
-    my $story_title       = $c->req->param( 'story_title' );
-    my $story_description = $c->req->param( 'story_description' );
+    my $temp               = $c->req->param( 'preprocessed_lines' );
+    my $pp_lines           = encode_utf8( $temp );
+    my $preprocessed_lines = decode_json( $pp_lines );
+    my $story_title        = $c->req->param( 'story_title' );
+    my $story_description  = $c->req->param( 'story_description' );
 
     my $extractor_method = $c->req->param( 'extractor_method' );
 
