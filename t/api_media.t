@@ -49,7 +49,7 @@ use Readonly;
 
 $ENV{ MEDIAWORDS_FORCE_USING_TEST_DATABASE } = 1;
 
-sub test
+sub test_media
 {
     use Encode;
     my ( $db ) = @_;
@@ -140,5 +140,5 @@ sub test
 
 }
 
-test();
+test_media();
 done_testing();
