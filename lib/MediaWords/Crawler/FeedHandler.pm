@@ -7,13 +7,14 @@ use warnings;
 
 # MODULES
 
+use Carp;
 use Data::Dumper;
 use Date::Parse;
 use DateTime;
 use Encode;
 use FindBin;
+use Readonly;
 use URI::Split;
-use Carp;
 
 use List::Util qw (max maxstr);
 use Try::Tiny;
@@ -30,8 +31,8 @@ use MediaWords::DBI::Stories;
 
 # CONSTANTS
 
-# max number of pages the handler will download for a single story
-use constant MAX_PAGES => 10;
+Readonly my $EXTERNAL_FEED_URL  => 'http://external/feed/url';
+Readonly my $EXTERNAL_FEED_NAME => 'EXTERNAL FEED';
 
 # METHODS
 
@@ -312,6 +313,42 @@ sub handle_web_page_content
     $download->{ stories_id } = $story->{ stories_id };
 
     return \$decoded_content;
+}
+
+# import stories from external feed into the given media source
+sub import_external_feed
+{
+    my ( $db, $media_id, $feed_content ) = @_;
+
+    my $feed = $db->query( "select * from feeds where media_id = ? and name = ?", $media_id, $EXTERNAL_FEED_NAME )->hash;
+
+    $feed ||= $db->create(
+        'feeds',
+        {
+            media_id    => $media_id,
+            name        => $EXTERNAL_FEED_NAME,
+            url         => $EXTERNAL_FEED_URL,
+            feed_status => 'inactive'
+        }
+    );
+
+    my $download = $db->create(
+        'downloads',
+        {
+            url           => $EXTERNAL_FEED_URL,
+            feeds_id      => $feed->{ feeds_id },
+            host          => 'external',
+            download_time => \'now()',
+            type          => 'feed',
+            state         => 'fetching',
+            priority      => 1,
+            sequence      => 1
+        }
+    );
+
+    MediaWords::DBI::Downloads::store_content( $db, $download, \$feed_content );
+
+    handle_syndicated_content( $db, $download, $feed_content );
 }
 
 # handle feeds of type 'syndicated', which are rss / atom / rdf feeds

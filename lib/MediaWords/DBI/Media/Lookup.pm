@@ -14,7 +14,7 @@ sub _get_matching_media
 {
     my ( $db, $url ) = @_;
 
-    my $domain = MediaWords::DBI::Media::get_medium_url_domain( $url );
+    my $domain = MediaWords::Util::URL::get_url_domain( $url );
 
     my $media = $db->query( <<END, $domain )->hashes;
 select m.*, mtm.tags_id spidered_tags_id
