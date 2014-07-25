@@ -14,8 +14,11 @@ if [ $? -ne 0 ]; then
 echo "need to start solr"
 ./script/run_with_carton.sh ./solr/scripts/run_singleton_solr_server.pl > /dev/null&
 solr_pid=$!
+echo "pausing to let solr start"
+sleep 10
 else
-echo "solr running"
+echo "Solr must not be running"
+exit -1
 fi
 MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION=1 MEDIAWORDS_FORCE_USING_TEST_DATABASE=1 ./script/run_with_carton.sh ./script/mediawords_import_solr_data.pl --delete 
 MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION=1 MEDIAWORDS_FORCE_USING_TEST_DATABASE=1 ./script/run_carton.sh exec prove -Ilib/ api_test/api_media.t
