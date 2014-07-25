@@ -14,6 +14,20 @@
 
 </div>
 
+<div class="boxtitle">
+
+    Words
+    
+    [% SET wc_url = c.uri_for( '/admin/cm/word_cloud', { 
+        cdts = cdts.controversy_dump_time_slices_id,
+        l = live,
+        sort_by_count = !sort_by_count,
+        q = q } ) %]
+    [% SET sort_label = sort_by_count ? 'sort by tfidf' : 'sort by simple count' %]
+    <a id="boxcommand" href="[% wc_url | html %]">[% sort_label | html %]</a>        
+
+</div>
+
 <table>
     <tr>
         <th>Word</th>
