@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 #use Test::More;
-use Test::More tests => 10;
+use Test::More tests => 12;
 
 # use MediaWords::Test::DB;
 # use MediaWords::Test::Data;
@@ -140,5 +140,57 @@ sub test_media
 
 }
 
+sub test_stories
+{
+    use Encode;
+    my ( $db ) = @_;
+
+    my $key = 'f66a50230d54afaf18822808aed649f1d6ca72b08fb06d5efb6247afe9fbae52';
+
+    my $base_url = '/api/v2/stories_public/list/';
+
+    my $url;
+    if ( index( $base_url, "?" ) != -1 )
+    {
+        $url = "$base_url&key=$key";
+    }
+    else
+    {
+        $url = "$base_url?key=$key";
+    }
+
+    $url .= "&q=sentence:obama&rows=2";
+
+    say STDERR $url;
+
+    my $response = request( "$url" );
+
+    ok( $response->is_success, 'Request should succeed' );
+
+    if ( !$response->is_success )
+    {
+        say STDERR $response->decoded_content();
+    }
+
+    my $resp_object = decode_json( $response->decoded_content() );
+
+    #say STDERR Dumper( $resp_object );
+
+    my $expected_response = [
+        {
+            'collect_date'         => '2014-06-02 17:33:04',
+            'publish_date'         => '2014-06-02 01:00:59',
+            'stories_id'           => 67,
+            'url'                  => 'http://boingboing.net/2014/06/01/this-day-in-blogging-history-228.html',
+            'processed_stories_id' => '67',
+            'guid'                 => 'http://boingboing.net/2014/06/01/this-day-in-blogging-history-228.html',
+            'story_tags'           => []
+        }
+    ];
+
+    cmp_deeply( $resp_object, $expected_response );
+}
+
+test_stories();
 test_media();
 done_testing();
