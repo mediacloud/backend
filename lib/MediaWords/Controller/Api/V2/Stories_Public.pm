@@ -25,6 +25,11 @@ BEGIN
     extends 'MediaWords::Controller::Api::V2::StoriesBase'    # private
 }
 
+sub has_extra_data
+{
+    return 0;
+}
+
 sub permissible_output_fields
 {
     return [
