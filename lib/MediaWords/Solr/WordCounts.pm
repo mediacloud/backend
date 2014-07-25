@@ -66,7 +66,7 @@ around BUILDARGS => sub {
     my $orig  = shift;
     my $class = shift;
 
-    print STDERR "args: " . Dumper( @_ ) . "\n";
+    # print STDERR "args: " . Dumper( @_ ) . "\n";
 
     my $args;
     if ( ref( $_[ 0 ] ) )
