@@ -151,6 +151,9 @@ sub count_stems
         # but the following does
         Encode::_utf8_on( $line );
 
+        # remove urls so they don't get tokenized into noise
+        $line =~ s~https?://[^\s]+~~g;
+
         while ( $line =~ /(\w+)/g )
         {
             my $word           = $1;
