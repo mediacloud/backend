@@ -1052,8 +1052,13 @@ sub _get_story_words ($$$$$)
 
     for my $story_word ( @{ $story_words } )
     {
-        my $solr_df_query = "{~ controversy:$controversy->{ controversies_id } } AND +sentence:" . $story_word->{ term };
-        my $df = MediaWords::Solr::get_num_found( { q => $solr_df_query } );
+        my $solr_df_query = "{~ controversy:$controversy->{ controversies_id } }";
+        my $df            = MediaWords::Solr::get_num_found(
+            {
+                q  => "+sentence:" . $story_word->{ term },
+                fq => $solr_df_query
+            }
+        );
 
         if ( $df )
         {
