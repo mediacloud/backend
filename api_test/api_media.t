@@ -179,12 +179,15 @@ sub test_stories
     my $expected_response = [
         {
             'collect_date'         => '2014-06-02 17:33:04',
+            'story_tags'           => [],
+            'media_name'           => 'Boing Boing',
+            'media_id'             => 2,
             'publish_date'         => '2014-06-02 01:00:59',
+            'processed_stories_id' => '67',
             'stories_id'           => 67,
             'url'                  => 'http://boingboing.net/2014/06/01/this-day-in-blogging-history-228.html',
-            'processed_stories_id' => '67',
             'guid'                 => 'http://boingboing.net/2014/06/01/this-day-in-blogging-history-228.html',
-            'story_tags'           => []
+            'media_url'            => 'http://boingboing.net/'
         }
     ];
 
