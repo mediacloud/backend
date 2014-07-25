@@ -17,6 +17,7 @@ use MediaWords::CM::Mine;
 use MediaWords::DBI::Activities;
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
+use MediaWords::Solr::WordCounts;
 
 use constant ROWS_PER_PAGE => 25;
 
@@ -1033,26 +1034,31 @@ sub _get_stories_id_search_query
 
 # get the top words used by the given set of stories, sorted by tfidf against all words
 # in the controversy
-sub _get_story_words ($$$$)
+sub _get_story_words ($$$$$)
 {
-    my ( $db, $c, $stories_ids, $controversy ) = @_;
+    my ( $db, $controversy, $cdts, $q, $sort_by_count ) = @_;
+
+    my $cdts_clause = "{~ controversy_dump_time_slice:$cdts->{ controversy_dump_time_slices_id } }";
+    my $stories_solr_query = $q ? "$cdts_clause and ( $q )" : $cdts_clause;
+
+    my $stories_ids = MediaWords::Solr::search_for_stories_ids( { q => $stories_solr_query } );
 
     my $num_words = int( log( scalar( @{ $stories_ids } ) + 1 ) * 10 );
-    $num_words = ( $num_words < 1000 ) ? $num_words : 1000;
+    $num_words = ( $num_words < 100 ) ? $num_words : 100;
 
-    my $tag = MediaWords::Util::Tags::lookup_tag( $db, "controversy_$controversy->{ name }:all" );
-
-    die( "Unable to find controversy tag" ) unless ( $tag );
-
-    my $stories_solr_query = "stories_id:(" . join( ' ', @{ $stories_ids } ) . ")";
-    my $story_words = MediaWords::Solr::count_words( { q => $stories_solr_query } );
+    my $story_words = MediaWords::Solr::WordCounts->new( q => $stories_solr_query )->get_words;
 
     splice( @{ $story_words }, $num_words );
 
     for my $story_word ( @{ $story_words } )
     {
-        my $solr_df_query = "+tags_id_stories:" . $tag->{ tags_id } . " AND +sentence:" . $story_word->{ term };
-        my $df = MediaWords::Solr::get_num_found( { q => $solr_df_query } );
+        my $solr_df_query = "{~ controversy:$controversy->{ controversies_id } }";
+        my $df            = MediaWords::Solr::get_num_found(
+            {
+                q  => "+sentence:" . $story_word->{ term },
+                fq => $solr_df_query
+            }
+        );
 
         if ( $df )
         {
@@ -1065,7 +1071,7 @@ sub _get_story_words ($$$$)
         }
     }
 
-    if ( !$c->req->params->{ raw_word_count } )
+    if ( !$sort_by_count )
     {
         @{ $story_words } = sort { $b->{ tfidf } <=> $a->{ tfidf } } @{ $story_words };
     }
@@ -1112,20 +1118,19 @@ sub word_cloud : Local
     my $cdts_id = $c->req->params->{ cdts };
     my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
 
-    my $live        = $c->req->params->{ l };
-    my $title       = $c->req->params->{ title };
-    my $stories_ids = $c->req->params->{ stories_ids };
+    my $live          = $c->req->params->{ l };
+    my $q             = $c->req->params->{ q };
+    my $sort_by_count = $c->req->params->{ sort_by_count };
 
-    print STDERR "word_cloud stories_ids: " . Dumper( $stories_ids ) . "\n";
-
-    my $words = _get_story_words( $db, $c, $stories_ids, $controversy );
+    my $words = _get_story_words( $db, $controversy, $cdts, $q, $sort_by_count );
 
     $c->stash->{ cdts }             = $cdts;
     $c->stash->{ controversy_dump } = $cd;
     $c->stash->{ controversy }      = $controversy;
     $c->stash->{ live }             = $live;
     $c->stash->{ words }            = $words;
-    $c->stash->{ title }            = $title;
+    $c->stash->{ q }                = $q;
+    $c->stash->{ sort_by_count }    = $sort_by_count;
     $c->stash->{ template }         = 'cm/words.tt2';
 }
 
