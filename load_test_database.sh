@@ -18,7 +18,7 @@ else
 echo "solr running"
 fi
 MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION=1 MEDIAWORDS_FORCE_USING_TEST_DATABASE=1 ./script/run_with_carton.sh ./script/mediawords_import_solr_data.pl --delete 
-MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION=1 MEDIAWORDS_FORCE_USING_TEST_DATABASE=1 ./script/run_carton.sh exec prove -Ilib/ t/api_media.t
+MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION=1 MEDIAWORDS_FORCE_USING_TEST_DATABASE=1 ./script/run_carton.sh exec prove -Ilib/ api_test/api_media.t
 
 if [ $solr_pid ]; then
 echo killing solr pid $solr_pid
