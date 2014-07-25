@@ -28,7 +28,7 @@ has 'q'                 => ( is => 'rw', isa => 'Str' );
 has 'fq'                => ( is => 'rw', isa => 'Str' );
 has 'num_words'         => ( is => 'rw', isa => 'Int', default => 500 );
 has 'sample_size'       => ( is => 'rw', isa => 'Int', default => 1000 );
-has 'languages'         => ( is => 'rw', isa => 'ArrayRef', default => 'en' );
+has 'languages'         => ( is => 'rw', isa => 'ArrayRef', default => sub { [ 'en' ] } );
 has 'include_stopwords' => ( is => 'rw', isa => 'Bool' );
 has 'no_remote'         => ( is => 'rw', isa => 'Bool' );
 has 'include_stats'     => ( is => 'rw', isa => 'Bool' );
