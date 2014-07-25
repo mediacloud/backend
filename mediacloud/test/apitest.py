@@ -169,6 +169,15 @@ class ApiStoriesTest(ApiBaseTest):
         results = self._mc.storyList('+obama', '+publish_date:[2013-01-01T00:00:00Z TO 2013-02-01T00:00:00Z] AND +media_sets_id:1')
         self.assertNotEqual(len(results),0)
 
+    def testStoryPublic(self):
+        story = self._mc.storyPublic(27456565)
+        self.assertEqual(story['media_id'],1144)
+        self.assertTrue('story_sentences' not in story)
+
+    def testStoryPublicList(self):
+        results = self._mc.storyList('+obama', '+publish_date:[2013-01-01T00:00:00Z TO 2013-02-01T00:00:00Z] AND +media_sets_id:1')
+        self.assertNotEqual(len(results),0)
+
 class ApiSentencesTest(ApiBaseTest):
 
     SENTENCE_COUNT = 100

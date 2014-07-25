@@ -97,6 +97,23 @@ class MediaCloud(object):
         return self._queryForJson(self.V2_API_URL+'dashboards/list', 
                 {'last_dashboards_id':last_dashboards_id, 'rows':rows, 'nested_data': 1 if nested_data else 0})
 
+    def storyPublic(self, stories_id):
+        '''
+        Authenticated Public Users: Details about one story
+        '''
+        return self._queryForJson(self.V2_API_URL+'stories_public/single/'+str(stories_id))[0]
+
+    def storyPublicList(self, solr_query='', solr_filter='', last_processed_stories_id=0, rows=20):
+        '''
+        Authenticated Public Users: Search for stories and page through results
+        '''
+        return self._queryForJson(self.V2_API_URL+'stories_public/list',
+                {'q': solr_query,
+                 'fq': solr_filter,
+                 'last_processed_stories_id': last_processed_stories_id,
+                 'rows': rows
+                }) 
+
     def story(self, stories_id, raw_1st_download=False, corenlp=False):
         '''
         Details about one story
