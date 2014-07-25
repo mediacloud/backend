@@ -4,16 +4,6 @@
 
 [% PROCESS cm/header.tt2 %]
 
-<div id="boxtitle">
-
-[% title %]
-
-[% IF cdts_date_range %]
-    in [% cdts_date_range %] Time Slice
-[% END %]
-
-</div>
-
 <div class="boxtitle">
 
     Words
