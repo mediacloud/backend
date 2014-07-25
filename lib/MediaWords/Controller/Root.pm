@@ -69,10 +69,10 @@ sub end : ActionClass('RenderView')
     {
         $c->stash->{ errors } = [ map { $_ } @{ $c->error } ];
 
-        map { $_ =~ s/at \/.*// } @{ $c->stash->{ errors } };
-
         print STDERR "Handling error:\n";
         print STDERR Dumper( $c->stash->{ errors } );
+
+        map { $_ =~ s/at \/.*// } @{ $c->stash->{ errors } };
 
         my $config                   = MediaWords::Util::Config::get_config;
         my $always_show_stack_traces = $config->{ mediawords }->{ always_show_stack_traces } eq 'yes';

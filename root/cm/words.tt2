@@ -1,3 +1,7 @@
+[% USE date = date(format => '%Y-%m-%d', locale => 'en_GB') %]
+
+[% title = "Words matching '$q' in " _ date.format( cdts.start_date ) _ ' - ' _ date.format( cdts.end_date ) _ ' Time Slice' %]
+
 [% PROCESS cm/header.tt2 %]
 
 <div id="boxtitle">
@@ -25,9 +29,11 @@
 
 [% FOREACH w IN words -%]
 
+    [% SET word_url = c.uri_for( "/admin/cm/search_stories?l=${l}&cdts=${cdts.controversy_dump_time_slices_id}&q=(${q})+and+${w.term}" ) %]
+
     <tr [% IF even %]id="even"[% END %]>
 
-        <td>[% w.term | html %]</td>
+        <td><a href="[% word_url | html %]">[% w.term | html %]</a></td>
         <td>[% w.tfidf | html %]</td>
         <td>[% w.count | html %]</td>
         <td>[% w.total_count | html %]</td>

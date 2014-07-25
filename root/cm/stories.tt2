@@ -28,7 +28,8 @@
         display_stories_short_title = title
         display_stories_full_title = title
         display_stories_id = 'search'
-        display_stories_remove_button = 1 %]
+        display_stories_remove_button = 1
+        display_stories_solr_query = query %]
     
 
 </div>
