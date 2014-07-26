@@ -416,8 +416,6 @@ sub _get_cached_words
 {
     my ( $self ) = @_;
 
-    return undef;
-
     return $self->_get_cache->get( $self->_get_cache_key );
 }
 
