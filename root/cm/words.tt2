@@ -21,9 +21,11 @@
 <table>
     <tr>
         <th>Word</th>
-        <th>TFIDF</th>
         <th>Query Stem Count</th>
-        <th>Controversy Sentence Count</th>
+        [% IF !sort_by_count %]
+            <th>TFIDF</th>
+            <th>Controversy Sentence Count</th>
+        [% END %]
         <th>Stem</th>
     </tr>
 
@@ -33,14 +35,17 @@
 
 [% FOREACH w IN words -%]
 
-    [% SET word_url = c.uri_for( "/admin/cm/search_stories?l=${l}&cdts=${cdts.controversy_dump_time_slices_id}&q=(${q})+and+${w.term}" ) %]
+    [% SET word_query = q ? "( $q ) and $w.term" : w.term %]
+    [% SET word_url = c.uri_for( "/admin/cm/search_stories?l=${l}&cdts=${cdts.controversy_dump_time_slices_id}&q=$word_query" ) %]
 
     <tr [% IF even %]id="even"[% END %]>
 
         <td><a href="[% word_url | html %]">[% w.term | html %]</a></td>
-        <td>[% w.tfidf | html %]</td>
         <td>[% w.count | html %]</td>
-        <td>[% w.total_count | html %]</td>
+        [% IF !sort_by_count %]
+            <td>[% w.tfidf | html %]</td>
+            <td>[% w.total_count | html %]</td>
+        [% END %]
         <td>[% w.stem | html %]</td>
 
     </tr>

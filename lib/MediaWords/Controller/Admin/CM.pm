@@ -1050,29 +1050,28 @@ sub _get_story_words ($$$$$)
 
     splice( @{ $story_words }, $num_words );
 
-    for my $story_word ( @{ $story_words } )
-    {
-        my $solr_df_query = "{~ controversy:$controversy->{ controversies_id } }";
-        my $df            = MediaWords::Solr::get_num_found(
-            {
-                q  => "+sentence:" . $story_word->{ term },
-                fq => $solr_df_query
-            }
-        );
-
-        if ( $df )
-        {
-            $story_word->{ tfidf }       = $story_word->{ count } / sqrt( $df );
-            $story_word->{ total_count } = $df;
-        }
-        else
-        {
-            $story_word->{ tfidf } = 0;
-        }
-    }
-
     if ( !$sort_by_count )
     {
+        for my $story_word ( @{ $story_words } )
+        {
+            my $solr_df_query = "{~ controversy:$controversy->{ controversies_id } }";
+            my $df            = MediaWords::Solr::get_num_found(
+                {
+                    q  => "+sentence:" . $story_word->{ term },
+                    fq => $solr_df_query
+                }
+            );
+
+            if ( $df )
+            {
+                $story_word->{ tfidf }       = $story_word->{ count } / sqrt( $df );
+                $story_word->{ total_count } = $df;
+            }
+            else
+            {
+                $story_word->{ tfidf } = 0;
+            }
+        }
         @{ $story_words } = sort { $b->{ tfidf } <=> $a->{ tfidf } } @{ $story_words };
     }
 
