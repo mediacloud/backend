@@ -1075,6 +1075,8 @@ sub _get_story_words ($$$$$)
         @{ $story_words } = sort { $b->{ tfidf } <=> $a->{ tfidf } } @{ $story_words };
     }
 
+    map { $story_words->[ $_ ]->{ rank } = $_ + 1 } ( 0 .. @{ $story_words } );
+
     return $story_words;
 }
 
@@ -1104,8 +1106,8 @@ sub remove_stories : Local
     $c->res->redirect( $c->uri_for( "/admin/cm/view_time_slice/$cdts_id", { l => $live, status_msg => $status_msg } ) );
 }
 
-# display a tfidf word cloud of the words in the stories given in the stories_ids cgi param
-# compared to all stories in the given time slice
+# display a word cloud of the words in the stories given in the stories_ids cgi param
+# optionaly tfidf'd to all stories in the given controversy
 sub word_cloud : Local
 {
     my ( $self, $c ) = @_;
@@ -1729,6 +1731,48 @@ sub merge_stories_list : Local
 
     my $u = $c->uri_for( "/admin/cm/view/$controversies_id", { status_msg => $status_msg } );
     $c->response->redirect( $u );
+}
+
+# display the 20 most popular words for the 10 most influential media in the given time slice
+sub influential_media_words : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my $cdts_id = $c->req->params->{ cdts };
+    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
+
+    my $live = $c->req->params->{ l };
+    my $q    = $c->req->params->{ q };
+
+    $db->begin;
+    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $live );
+    my $top_media = _get_top_media_for_time_slice( $db, $cdts );
+    $db->commit;
+
+    my $num_media = 10;
+    my $num_words = 20;
+
+    splice( @{ $top_media }, $num_media );
+
+    for my $medium ( @{ $top_media } )
+    {
+        my $q = "media_id:$medium->{ media_id }";
+        $medium->{ words } = _get_story_words( $db, $controversy, $cdts, $q, 1 );
+        splice( @{ $medium->{ words } }, $num_words );
+    }
+
+    my $top_words = _get_story_words( $db, $controversy, $cdts, undef, 1 );
+
+    $c->stash->{ cdts }             = $cdts;
+    $c->stash->{ controversy_dump } = $cd;
+    $c->stash->{ controversy }      = $controversy;
+    $c->stash->{ live }             = $live;
+    $c->stash->{ top_media }        = $top_media;
+    $c->stash->{ q }                = $q;
+    $c->stash->{ top_words }        = $top_words;
+    $c->stash->{ template }         = 'cm/influential_media_words.tt2';
 }
 
 1;
