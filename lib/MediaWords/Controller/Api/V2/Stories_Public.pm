@@ -117,8 +117,12 @@ with ps_ids as
         from processed_stories
         where processed_stories_id in ( select id from $ids_table ) )
 
-select s.stories_id, s.url, s.guid, s.publish_date, s.collect_date, p.processed_stories_id
-    from stories s join ps_ids p on ( s.stories_id = p.stories_id )
+select m.name media_name, m.url media_url, s.media_id, 
+        s.stories_id, s.url, s.guid, s.publish_date, s.collect_date, p.processed_stories_id
+    from 
+        stories s 
+        join ps_ids p on ( s.stories_id = p.stories_id )
+        join media m on ( s.media_id = m.media_id )
     order by processed_stories_id asc limit $rows
 END
 

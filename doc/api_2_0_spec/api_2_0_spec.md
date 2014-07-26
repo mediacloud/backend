@@ -402,6 +402,8 @@ The following table describes the meaning and origin of fields returned by both 
 | ------------------- | ----------------------------------------------------------------------
 | `stories_id`        | The internal Media Cloud ID for the story.
 | `media_id`          | The internal Media Cloud ID for the media source to which the story belongs.
+| `media_name`        | The name of the media source to which the story belongs.
+| `media_url`         | The url of the media source to which the story belongs.
 | `publish_date`      | The publish date of the story as specified in the RSS feed.
 | `tags`              | A list of any tags associated with this story, including those written through the write-back api.
 | `collect_date`      | The date the RSS feed was actually downloaded.
@@ -430,6 +432,8 @@ URL: https://api.mediacloud.org/api/v2/stories_public/single/27456565
     "guid": "http:\/\/globalvoicesonline.org\/?p=169660#comment-1733161",
     "publish_date": "2010-11-24 04:05:00",
     "media_id": 1144,
+    "media_name": "Global Voices Online",
+    "media_url": "http:\/\/globalvoicesonline.org\/"
     "stories_id": 27456565,
     "story_tags": [ 1234235 ],
   }
