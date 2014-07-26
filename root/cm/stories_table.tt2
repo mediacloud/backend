@@ -30,7 +30,12 @@
         <a id="boxcommand" href="javascript:void(0);" onclick="[% display_stories_id %]_submit_stories( '/admin/cm/remove_stories' );" class="remove_story">remove all</a>        
     [% END %]
 
-    <a id="boxcommand" href="javascript:void(0);" onclick="[% display_stories_id %]_submit_stories( '/admin/cm/word_cloud' );">word cloud</a>
+    [% SET wc_url = c.uri_for( '/admin/cm/word_cloud', { 
+        cdts = cdts.controversy_dump_time_slices_id,
+        l = live,
+        sort_by_count = 1,
+        q = display_stories_solr_query } ) %]
+    <a id="boxcommand" href="[% wc_url | html %]">word cloud</a>
 
     </div>
 [% END %]

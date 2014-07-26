@@ -28,7 +28,7 @@ has 'q'                 => ( is => 'rw', isa => 'Str' );
 has 'fq'                => ( is => 'rw', isa => 'Str' );
 has 'num_words'         => ( is => 'rw', isa => 'Int', default => 500 );
 has 'sample_size'       => ( is => 'rw', isa => 'Int', default => 1000 );
-has 'languages'         => ( is => 'rw', isa => 'ArrayRef', default => 'en' );
+has 'languages'         => ( is => 'rw', isa => 'ArrayRef', default => sub { [ 'en' ] } );
 has 'include_stopwords' => ( is => 'rw', isa => 'Bool' );
 has 'no_remote'         => ( is => 'rw', isa => 'Bool' );
 has 'include_stats'     => ( is => 'rw', isa => 'Bool' );
@@ -66,7 +66,7 @@ around BUILDARGS => sub {
     my $orig  = shift;
     my $class = shift;
 
-    print STDERR "args: " . Dumper( @_ ) . "\n";
+    # print STDERR "args: " . Dumper( @_ ) . "\n";
 
     my $args;
     if ( ref( $_[ 0 ] ) )
@@ -150,6 +150,9 @@ sub count_stems
         # for some reason, encode( 'utf8', $line ) does not make \w match unicode letters,
         # but the following does
         Encode::_utf8_on( $line );
+
+        # remove urls so they don't get tokenized into noise
+        $line =~ s~https?://[^\s]+~~g;
 
         while ( $line =~ /(\w+)/g )
         {
@@ -412,8 +415,6 @@ sub _get_cache_key
 sub _get_cached_words
 {
     my ( $self ) = @_;
-
-    return undef;
 
     return $self->_get_cache->get( $self->_get_cache_key );
 }

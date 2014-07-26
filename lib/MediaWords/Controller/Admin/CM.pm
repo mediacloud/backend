@@ -17,6 +17,7 @@ use MediaWords::CM::Mine;
 use MediaWords::DBI::Activities;
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
+use MediaWords::Solr::WordCounts;
 
 use constant ROWS_PER_PAGE => 25;
 
@@ -1033,42 +1034,48 @@ sub _get_stories_id_search_query
 
 # get the top words used by the given set of stories, sorted by tfidf against all words
 # in the controversy
-sub _get_story_words ($$$$)
+sub _get_story_words ($$$$$)
 {
-    my ( $db, $c, $stories_ids, $controversy ) = @_;
+    my ( $db, $controversy, $cdts, $q, $sort_by_count ) = @_;
+
+    my $cdts_clause = "{~ controversy_dump_time_slice:$cdts->{ controversy_dump_time_slices_id } }";
+    my $stories_solr_query = $q ? "$cdts_clause and ( $q )" : $cdts_clause;
+
+    my $stories_ids = MediaWords::Solr::search_for_stories_ids( { q => $stories_solr_query } );
 
     my $num_words = int( log( scalar( @{ $stories_ids } ) + 1 ) * 10 );
-    $num_words = ( $num_words < 1000 ) ? $num_words : 1000;
+    $num_words = ( $num_words < 100 ) ? $num_words : 100;
 
-    my $tag = MediaWords::Util::Tags::lookup_tag( $db, "controversy_$controversy->{ name }:all" );
-
-    die( "Unable to find controversy tag" ) unless ( $tag );
-
-    my $stories_solr_query = "stories_id:(" . join( ' ', @{ $stories_ids } ) . ")";
-    my $story_words = MediaWords::Solr::count_words( { q => $stories_solr_query } );
+    my $story_words = MediaWords::Solr::WordCounts->new( q => $stories_solr_query )->get_words;
 
     splice( @{ $story_words }, $num_words );
 
-    for my $story_word ( @{ $story_words } )
+    if ( !$sort_by_count )
     {
-        my $solr_df_query = "+tags_id_stories:" . $tag->{ tags_id } . " AND +sentence:" . $story_word->{ term };
-        my $df = MediaWords::Solr::get_num_found( { q => $solr_df_query } );
-
-        if ( $df )
+        for my $story_word ( @{ $story_words } )
         {
-            $story_word->{ tfidf }       = $story_word->{ count } / sqrt( $df );
-            $story_word->{ total_count } = $df;
-        }
-        else
-        {
-            $story_word->{ tfidf } = 0;
-        }
-    }
+            my $solr_df_query = "{~ controversy:$controversy->{ controversies_id } }";
+            my $df            = MediaWords::Solr::get_num_found(
+                {
+                    q  => "+sentence:" . $story_word->{ term },
+                    fq => $solr_df_query
+                }
+            );
 
-    if ( !$c->req->params->{ raw_word_count } )
-    {
+            if ( $df )
+            {
+                $story_word->{ tfidf }       = $story_word->{ count } / sqrt( $df );
+                $story_word->{ total_count } = $df;
+            }
+            else
+            {
+                $story_word->{ tfidf } = 0;
+            }
+        }
         @{ $story_words } = sort { $b->{ tfidf } <=> $a->{ tfidf } } @{ $story_words };
     }
+
+    map { $story_words->[ $_ ]->{ rank } = $_ + 1 } ( 0 .. @{ $story_words } );
 
     return $story_words;
 }
@@ -1099,8 +1106,8 @@ sub remove_stories : Local
     $c->res->redirect( $c->uri_for( "/admin/cm/view_time_slice/$cdts_id", { l => $live, status_msg => $status_msg } ) );
 }
 
-# display a tfidf word cloud of the words in the stories given in the stories_ids cgi param
-# compared to all stories in the given time slice
+# display a word cloud of the words in the stories given in the stories_ids cgi param
+# optionaly tfidf'd to all stories in the given controversy
 sub word_cloud : Local
 {
     my ( $self, $c ) = @_;
@@ -1112,20 +1119,19 @@ sub word_cloud : Local
     my $cdts_id = $c->req->params->{ cdts };
     my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
 
-    my $live        = $c->req->params->{ l };
-    my $title       = $c->req->params->{ title };
-    my $stories_ids = $c->req->params->{ stories_ids };
+    my $live          = $c->req->params->{ l };
+    my $q             = $c->req->params->{ q };
+    my $sort_by_count = $c->req->params->{ sort_by_count };
 
-    print STDERR "word_cloud stories_ids: " . Dumper( $stories_ids ) . "\n";
-
-    my $words = _get_story_words( $db, $c, $stories_ids, $controversy );
+    my $words = _get_story_words( $db, $controversy, $cdts, $q, $sort_by_count );
 
     $c->stash->{ cdts }             = $cdts;
     $c->stash->{ controversy_dump } = $cd;
     $c->stash->{ controversy }      = $controversy;
     $c->stash->{ live }             = $live;
     $c->stash->{ words }            = $words;
-    $c->stash->{ title }            = $title;
+    $c->stash->{ q }                = $q;
+    $c->stash->{ sort_by_count }    = $sort_by_count;
     $c->stash->{ template }         = 'cm/words.tt2';
 }
 
@@ -1785,9 +1791,11 @@ END
 # generate report on partisan behavior within set
 sub partisan : Local
 {
-    my ( $self, $c, $cdts_id ) = @_;
+    my ( $self, $c ) = @_;
 
     my $db = $c->dbis;
+    
+    my $cdts_id = $c->req->params->{ cdts };
 
     my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
 
@@ -1797,7 +1805,49 @@ sub partisan : Local
     $c->stash->{ controversy }                 = $controversy;
     $c->stash->{ controversy_dump }            = $cd;
     $c->stash->{ controversy_dump_time_slice } = $cdts;
-    $c->stash->{ template }                    = 'cm/partisan.tt2';
+    $c->stash->{ template }                    = 'cm/partisan.tt2';   
+}
+
+# display the 20 most popular words for the 10 most influential media in the given time slice
+sub influential_media_words : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my $cdts_id = $c->req->params->{ cdts };
+    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
+
+    my $live = $c->req->params->{ l };
+    my $q    = $c->req->params->{ q };
+
+    $db->begin;
+    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $live );
+    my $top_media = _get_top_media_for_time_slice( $db, $cdts );
+    $db->commit;
+
+    my $num_media = 10;
+    my $num_words = 20;
+
+    splice( @{ $top_media }, $num_media );
+
+    for my $medium ( @{ $top_media } )
+    {
+        my $q = "media_id:$medium->{ media_id }";
+        $medium->{ words } = _get_story_words( $db, $controversy, $cdts, $q, 1 );
+        splice( @{ $medium->{ words } }, $num_words );
+    }
+
+    my $top_words = _get_story_words( $db, $controversy, $cdts, undef, 1 );
+
+    $c->stash->{ cdts }             = $cdts;
+    $c->stash->{ controversy_dump } = $cd;
+    $c->stash->{ controversy }      = $controversy;
+    $c->stash->{ live }             = $live;
+    $c->stash->{ top_media }        = $top_media;
+    $c->stash->{ q }                = $q;
+    $c->stash->{ top_words }        = $top_words;
+    $c->stash->{ template }         = 'cm/influential_media_words.tt2';
 }
 
 1;

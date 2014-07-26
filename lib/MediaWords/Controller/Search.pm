@@ -229,6 +229,7 @@ sub _return_recognized_query_error
     }
     elsif ( $error =~ /throttled/i )
     {
+        warn( $error );
         $c->stash->{ status_msg } = <<END;
 You have exceeded your quota of requests or stories.  See your profile page at https://core.mediacloud.org/admin/profile
 for your current usage and limits.  Contact info\@mediacloud.org with quota questions.
