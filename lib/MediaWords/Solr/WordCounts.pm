@@ -433,13 +433,15 @@ sub get_words
 {
     my ( $self ) = @_;
 
-    my $words = $self->no_remote ? $self->_get_cached_words : $self->_get_remote_words;
+    my $words = $self->_get_cached_words;
 
-    if ( !$words )
-    {
-        $words = $self->get_words_from_solr_server;
-        $self->_set_cached_words;
-    }
+    return $words if ( $words );
+
+    $words = $self->_get_remote_words unless ( $self->no_remote );
+
+    $words ||= $self->get_words_from_solr_server;
+
+    $self->_set_cached_words( $words );
 
     return $words;
 }
