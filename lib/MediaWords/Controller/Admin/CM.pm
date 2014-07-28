@@ -447,7 +447,7 @@ sub _get_controversy_objects
 
     die( "cdts param is required" ) unless ( $cdts_id );
 
-    my $cdts        = $db->find_by_id( 'controversy_dump_time_slices', $cdts_id );
+    my $cdts        = $db->find_by_id( 'controversy_dump_time_slices', $cdts_id ) || die( "cdts not found" );
     my $cd          = $db->find_by_id( 'controversy_dumps',            $cdts->{ controversy_dumps_id } );
     my $controversy = $db->find_by_id( 'controversies',                $cd->{ controversies_id } );
 
@@ -1050,31 +1050,32 @@ sub _get_story_words ($$$$$)
 
     splice( @{ $story_words }, $num_words );
 
-    for my $story_word ( @{ $story_words } )
-    {
-        my $solr_df_query = "{~ controversy:$controversy->{ controversies_id } }";
-        my $df            = MediaWords::Solr::get_num_found(
-            {
-                q  => "+sentence:" . $story_word->{ term },
-                fq => $solr_df_query
-            }
-        );
-
-        if ( $df )
-        {
-            $story_word->{ tfidf }       = $story_word->{ count } / sqrt( $df );
-            $story_word->{ total_count } = $df;
-        }
-        else
-        {
-            $story_word->{ tfidf } = 0;
-        }
-    }
-
     if ( !$sort_by_count )
     {
-        @{ $story_words } = sort { $b->{ tfidf } <=> $a->{ tfidf } } @{ $story_words };
+        for my $story_word ( @{ $story_words } )
+        {
+            my $solr_df_query = "{~ controversy:$controversy->{ controversies_id } }";
+            my $df            = MediaWords::Solr::get_num_found(
+                {
+                    q  => "+sentence:" . $story_word->{ term },
+                    fq => $solr_df_query
+                }
+            );
+
+            if ( $df )
+            {
+                $story_word->{ tfidf }       = $story_word->{ count } / sqrt( $df );
+                $story_word->{ total_count } = $df;
+            }
+            else
+            {
+                $story_word->{ tfidf } = 0;
+            }
+        }
+        $story_words = [ sort { $b->{ tfidf } <=> $a->{ tfidf } } @{ $story_words } ];
     }
+
+    map { $story_words->[ $_ ]->{ rank } = $_ + 1 } ( 0 .. $#{ $story_words } );
 
     return $story_words;
 }
@@ -1105,8 +1106,8 @@ sub remove_stories : Local
     $c->res->redirect( $c->uri_for( "/admin/cm/view_time_slice/$cdts_id", { l => $live, status_msg => $status_msg } ) );
 }
 
-# display a tfidf word cloud of the words in the stories given in the stories_ids cgi param
-# compared to all stories in the given time slice
+# display a word cloud of the words in the stories given in the stories_ids cgi param
+# optionaly tfidf'd to all stories in the given controversy
 sub word_cloud : Local
 {
     my ( $self, $c ) = @_;
@@ -1730,6 +1731,232 @@ sub merge_stories_list : Local
 
     my $u = $c->uri_for( "/admin/cm/view/$controversies_id", { status_msg => $status_msg } );
     $c->response->redirect( $u );
+}
+
+# get metrics for links between partisan communities in the form of:
+# [
+#  [
+#   {
+#     'source_tag' => 'partisan_2012_liberal',
+#     'log_inlink_count' => '29.1699250014423',
+#     'ref_tag' => 'partisan_2012_liberal',
+#     'source_tags_id' => 29,
+#     'inlink_count' => '32',
+#     'media_link_count' => '26',
+#     'ref_tags_id' => 29
+#   },
+#   {
+#     'source_tag' => 'partisan_2012_liberal',
+#     'log_inlink_count' => '38.1536311941017',
+#     'ref_tag' => 'partisan_2012_libertarian',
+#     'source_tags_id' => 29,
+#     'inlink_count' => '61',
+#     'media_link_count' => '25',
+#     'ref_tags_id' => 30
+#   },
+#   ...
+#  ], [ ... ], ... ]
+sub _get_partisan_link_metrics
+{
+    my ( $db, $controversy, $cdts ) = @_;
+
+    $db->begin;
+
+    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, undef );
+
+    my $query = <<END;
+-- partisan collection tags
+with partisan_tags as (
+    select t.* 
+        from
+            tags t 
+            join tag_sets ts on (t.tag_sets_id = ts.tag_sets_id )
+        where
+            ts.name = 'collection' and
+            t.tag in ( 'partisan_2012_liberal', 'partisan_2012_conservative', 'partisan_2012_libertarian' )
+),
+
+-- all stories in the controversy belonging to the media tagged with one of the partisan collection tags
+partisan_stories as (
+    select s.*, t.*
+        from 
+            dump_stories s
+            join dump_media_tags_map mtm on ( s.media_id = mtm.media_id )
+            join dump_tags t on ( mtm.tags_id = t.tags_id )
+            join partisan_tags pt on ( t.tags_id = pt.tags_id )
+            join dump_tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
+),
+
+-- full matrix of all partisan tags joined to one another
+partisan_tags_matrix as ( 
+    select 
+            at.tags_id tags_id_a, 
+            at.tag tag_a, 
+            at.label label_a,
+            bt.tags_id tags_id_b, 
+            bt.tag tag_b, 
+            bt.label label_b
+        from 
+            partisan_tags at
+            cross join partisan_tags bt
+),
+
+-- matrix of all partisan tags that have links to one another
+sparse_matrix as (
+    select distinct 
+            ss.tags_id source_tags_id,
+            rs.tags_id ref_tags_id,
+            count(*) over w media_link_count,
+            sum( log( count(*) + 1 ) / log ( 2 ) ) over w log_inlink_count,
+            sum( count(*) ) over w inlink_count
+        from 
+            partisan_stories ss
+            join dump_story_links sl on ( ss.stories_id = sl.source_stories_id )
+            join partisan_stories rs on ( rs.stories_id = sl.ref_stories_id )
+        group by ss.media_id, ss.tags_id, rs.media_id, rs.tags_id
+        window w as ( partition by ss.tags_id, rs.tags_id )
+        order by ss.tags_id, rs.tags_id
+)
+
+-- join the full matrix to the sparse matrix to add 0 values for partisan tag <-> partisan tag
+-- combination that have no links between them (which are not present in the sparse matrix )
+select
+        ptm.tags_id_a source_tags_id,
+        ptm.tag_a as source_tag,
+        ptm.label_a as source_label,
+        ptm.tags_id_b ref_tags_id,
+        ptm.tag_b ref_tag,
+        ptm.label_b as ref_label,
+        coalesce( sm.media_link_count, 0 ) media_link_count,
+        coalesce( sm.log_inlink_count, 0 ) log_inlink_count,
+        coalesce( sm.inlink_count, 0 ) inlink_count
+    from
+        partisan_tags_matrix ptm
+        left join sparse_matrix sm on 
+            ( ptm.tags_id_a = sm.source_tags_id and ptm.tags_id_b = sm.ref_tags_id )
+
+END
+
+    my $link_metrics = $db->query( $query )->hashes;
+
+    $db->commit;
+
+    # arrange results into a list of lists, sorted by source tags id
+    my $last_source_tags_id = 0;
+    my $metrics_table       = [];
+    for my $m ( @{ $link_metrics } )
+    {
+        if ( $last_source_tags_id != $m->{ source_tags_id } )
+        {
+            push( @{ $metrics_table->[ @{ $metrics_table } ] }, $m );
+            $last_source_tags_id = $m->{ source_tags_id };
+        }
+        else
+        {
+            push( @{ $metrics_table->[ @{ $metrics_table } - 1 ] }, $m );
+        }
+    }
+
+    return $metrics_table;
+}
+
+# generate report on partisan behavior within set
+sub partisan : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my $cdts_id = $c->req->params->{ cdts };
+
+    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
+
+    my $metrics_table = _get_partisan_link_metrics( $db, $controversy, $cdts );
+
+    $c->stash->{ metrics_table } = $metrics_table;
+    $c->stash->{ controversy }   = $controversy;
+    $c->stash->{ cd }            = $cd;
+    $c->stash->{ cdts }          = $cdts;
+    $c->stash->{ template }      = 'cm/partisan.tt2';
+}
+
+# given a list of word lists as returned by _get_story_words, add a { key_word => 1 } field
+# to each word hash for which the rank of that word is higher than the rank for that
+# word in any other list
+sub _highlight_key_words
+{
+    my ( $word_lists ) = @_;
+
+    my $word_rank_lookup = {};
+    for my $word_list ( @{ $word_lists } )
+    {
+        for my $word ( @{ $word_list } )
+        {
+            my $stem = $word->{ stem };
+            my $rank = $word->{ rank };
+            if ( !$word_rank_lookup->{ $stem } )
+            {
+                $word_rank_lookup->{ $stem } = { rank => $rank, key_word => $word };
+                $word->{ key_word } = 1;
+            }
+            elsif ( $word_rank_lookup->{ $stem }->{ rank } > $rank )
+            {
+                $word_rank_lookup->{ $stem }->{ key_word }->{ key_word } = 0;
+                $word_rank_lookup->{ $stem } = { rank => $rank, key_word => $word };
+                $word->{ key_word } = 1;
+            }
+            elsif ( $word_rank_lookup->{ $stem }->{ rank } == $rank )
+            {
+                $word_rank_lookup->{ $stem }->{ key_word }->{ key_word } = 0;
+            }
+        }
+    }
+
+}
+
+# display the 20 most popular words for the 10 most influential media in the given time slice
+sub influential_media_words : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my $cdts_id = $c->req->params->{ cdts };
+
+    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
+
+    my $live = $c->req->params->{ l };
+    my $q    = $c->req->params->{ q };
+
+    $db->begin;
+    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $live );
+    my $top_media = _get_top_media_for_time_slice( $db, $cdts );
+    $db->commit;
+
+    my $num_media = 10;
+    my $num_words = 20;
+
+    splice( @{ $top_media }, $num_media );
+
+    for my $medium ( @{ $top_media } )
+    {
+        my $q = "media_id:$medium->{ media_id }";
+        $medium->{ words } = _get_story_words( $db, $controversy, $cdts, $q, 1 );
+        splice( @{ $medium->{ words } }, $num_words );
+    }
+
+    my $top_words = _get_story_words( $db, $controversy, $cdts, undef, 1 );
+
+    _highlight_key_words( [ $top_words, map { $_->{ words } } @{ $top_media } ] );
+
+    $c->stash->{ cdts }        = $cdts;
+    $c->stash->{ cd }          = $cd;
+    $c->stash->{ controversy } = $controversy;
+    $c->stash->{ live }        = $live;
+    $c->stash->{ top_media }   = $top_media;
+    $c->stash->{ q }           = $q;
+    $c->stash->{ top_words }   = $top_words;
+    $c->stash->{ template }    = 'cm/influential_media_words.tt2';
 }
 
 1;

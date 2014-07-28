@@ -741,7 +741,7 @@ sub scale_gexf_nodes
     my $nodes = $gexf->{ graph }->[ 0 ]->{ nodes }->[ 0 ]->{ node };
 
     # we assume that the gephi maps are symmetrical and so only check the
-    my $max_x;
+    my $max_x = 0;
     for my $node ( @{ $nodes } )
     {
         my $p = $node->{ 'viz:position' }->[ 0 ];

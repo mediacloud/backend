@@ -4,6 +4,9 @@
 
 [% PROCESS cm/header.tt2 %]
 
+<div id="wholecolumn">
+
+
 <div class="boxtitle">
 
     Words
@@ -14,16 +17,19 @@
         sort_by_count = !sort_by_count,
         q = q } ) %]
     [% SET sort_label = sort_by_count ? 'sort by tfidf' : 'sort by simple count' %]
-    <a id="boxcommand" href="[% wc_url | html %]">[% sort_label | html %]</a>        
-
+    <a id="boxcommand" href="[% wc_url | html %]">[% sort_label | html %]</a>   
+    
 </div>
 
 <table>
     <tr>
+        <th>Rank</th>
         <th>Word</th>
-        <th>TFIDF</th>
         <th>Query Stem Count</th>
-        <th>Controversy Sentence Count</th>
+        [% IF !sort_by_count %]
+            <th>TFIDF (<a href="#tfidf_description">note</a>)</th>
+            <th>Controversy Sentence Count</th>
+        [% END %]
         <th>Stem</th>
     </tr>
 
@@ -33,14 +39,18 @@
 
 [% FOREACH w IN words -%]
 
-    [% SET word_url = c.uri_for( "/admin/cm/search_stories?l=${l}&cdts=${cdts.controversy_dump_time_slices_id}&q=(${q})+and+${w.term}" ) %]
+    [% SET word_query = q ? "( $q ) and $w.term" : w.term %]
+    [% SET word_url = c.uri_for( "/admin/cm/search_stories?l=${l}&cdts=${cdts.controversy_dump_time_slices_id}&q=$word_query" ) %]
 
     <tr [% IF even %]id="even"[% END %]>
 
+        <td>[% w.rank | html %]</td>
         <td><a href="[% word_url | html %]">[% w.term | html %]</a></td>
-        <td>[% w.tfidf | html %]</td>
         <td>[% w.count | html %]</td>
-        <td>[% w.total_count | html %]</td>
+        [% IF !sort_by_count %]
+            <td>[% w.tfidf | html %]</td>
+            <td>[% w.total_count | html %]</td>
+        [% END %]
         <td>[% w.stem | html %]</td>
 
     </tr>
@@ -49,5 +59,29 @@
 [% END # FOREACH s -%]
 
 </table>
+
+[% IF !sort_by_count %]
+    <br />
+    <a name="tfidf_description"></a>
+    <div id="boxtitle">TFIDF Description</div>
+    <fieldset>
+        <p>
+            This is a list of the 100 most common words matching the query, sorted by the TFIDF score for each word.  The TFIDF score
+            of each word is computed as:
+        </p>
+        <blockquote>
+            tfidf( w, q ) = term_freq( w, q ) / square_root( sentence_frequency( w ) )
+        </blockquote>
+        <p>
+            where 'term_freq( w, q )' is the number of times the word 'w' appears in the query and 
+            'sentence_frequency( w )' is the number of sentences with the word 'w' in the entire
+            controversy.
+        </p>
+    </fieldset>    
+[% END %]
+
+
+
+</div>
 
 [% INCLUDE include/footer.tt2 %]

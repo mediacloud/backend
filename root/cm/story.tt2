@@ -172,11 +172,11 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
 <table>
     <tr>
         <td>Description (from rss description field)</td>
-        <td>[% story.description | html %]</td>
+        <td>[% story.description | html | html_line_break %]</td>
     </tr>
     <tr>
         <td>Extracted Text (processed from the story html)</td>
-        <td>[% story.extracted_text | html %]</td>
+        <td>[% story.extracted_text | html | html_line_break %]</td>
     </td>
 </div>
 

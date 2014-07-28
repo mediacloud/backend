@@ -138,23 +138,24 @@ sub create : Local
     my @roles_options;
     for my $role ( @{ $available_roles } )
     {
-        push(
-            @roles_options,
-            {
-                value => $role->{ auth_roles_id },
-                label => $role->{ role } . ': ' . $role->{ description }
-            }
-        );
+        my $option = {
+            value => $role->{ auth_roles_id },
+            label => $role->{ role } . ': ' . $role->{ description }
+        };
+
+        push( @roles_options, $option );
     }
 
     my $el_roles = $form->get_element( { name => 'roles', type => 'Checkboxgroup' } );
     $el_roles->options( \@roles_options );
 
+    my $default_roles_ids = $c->dbis->query( "select auth_roles_id from auth_roles where role in ( 'search' ) " )->flat;
+
     $form->default_values(
         {
             weekly_requests_limit        => MediaWords::DBI::Auth::default_weekly_requests_limit( $c->dbis ),
             weekly_requested_items_limit => MediaWords::DBI::Auth::default_weekly_requested_items_limit( $c->dbis ),
-
+            roles                        => $default_roles_ids,
         }
     );
 

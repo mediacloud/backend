@@ -71,6 +71,14 @@
                 <input type="text" name="q" style="width:100%" />
             </form>
         </fieldset>
+        
+        <div class="boxtitle">Tools</div>
+        <fieldset>
+            [% SET imt_url = c.uri_for( '/admin/cm/influential_media_words', { cdts => cdts.controversy_dump_time_slices_id, l => live } ) %]
+            [% SET partisan_url = c.uri_for( '/admin/cm/partisan', { cdts => cdts.controversy_dump_time_slices_id, l => live } ) %]
+            <p><a href="[% imt_url %]">Influential Media Words</a></p>
+            <p><a href="[% partisan_url %]">Partisanship</a></p>
+        </fieldset>
     </div>
 </div>
 
