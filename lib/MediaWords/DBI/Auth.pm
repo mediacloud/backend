@@ -1100,7 +1100,7 @@ EOF
 # User roles that are not limited by the weekly requests / requested items limits
 sub roles_exempt_from_user_limits()
 {
-    my @exceptions = qw/admin admin-reaonly/;
+    my @exceptions = qw/admin admin-readonly/;
     return \@exceptions;
 }
 
