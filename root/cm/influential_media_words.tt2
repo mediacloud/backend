@@ -1,0 +1,66 @@
+[% USE date = date(format => '%Y-%m-%d', locale => 'en_GB') %]
+
+[% title = "Influential Media Words " _ date.format( cdts.start_date ) _ ' - ' _ date.format( cdts.end_date ) _ ' Time Slice' %]
+
+[% PROCESS cm/header.tt2 %]
+
+<div class="wholecolumn">
+
+<div class="boxtitle">
+    Top Words for Influential Media
+</div>
+
+<table>
+    <tr>
+        <th>Rank</th>
+        <th>Time Slice</th>
+        <th>Count</th>
+        [% FOREACH m IN top_media %]
+            [% SET medium_url = c.uri_for( '/admin/cm/medium/' _ m.media_id, { cdts => cdts.controversy_dump_time_slices_id, l => live } ) %]
+            <th><a href="[% medium_url | html %]" title="[% m.name | html %]">[% m.name | truncate( 8 ) | html %]</a></th>
+            <th>Count</th>
+        [% END %]
+    </tr>
+
+    [% FOREACH i IN [ 0 .. 19 ] %]
+        [% SET word_url = c.uri_for( '/admin/cm/search_stories', { q => top_words.$i.term, cdts => cdts.controversy_dump_time_slices_id, l => live } ) %]
+        [% SET top_word = top_words.$i %]
+    <tr>
+        <td>[% i + 1 %]</td>
+        <td [% IF top_word.key_word %]style="font-weight:bold"[% END %]>
+            <a href="[% word_url | html %]">[% top_word.term | html %]</a>
+        </td>
+        <td>[% top_words.count | html %]</td>
+        [% FOREACH m IN top_media %]
+
+            [% SET w = m.words.$i %]
+            [% SET word_url = c.uri_for( '/admin/cm/search_stories', { q => "media_id:${m.media_id} and ( $w.term )", cdts => cdts.controversy_dump_time_slices_id, l => live } ) %]
+            
+            [% IF w %]
+                <td [% IF w.key_word %]style="font-weight:bold"[% END %]>
+                    <a href="[% word_url | html %]">[% w.term | html %]</a>
+                </td>
+                <td>[% w.count | html %]</td>
+            [% ELSE %]
+                <td /><td />
+            [% END %]
+        [% END %]
+    </tr>
+    [% END %]
+</table>
+<br />
+<fieldset>
+    <p>
+        This is a list of the most common 20 non-stopword words in each of the top 10 most influential media for the given time slice,
+        along with the most common words for the time slice as a whole.  Hover over the column header to see the full media
+        source name; click on the header to go the to page for the media source.
+    </p>
+    <p>
+        The highlighted words in each column are the words that are ranked lower (where lower is more common) in the given
+        media source than in any listed media source or in the time slice overall.
+    </p>
+</fieldset>
+
+</div>
+
+[% INCLUDE include/footer.tt2 %]
