@@ -117,7 +117,7 @@ else
     # Apt's versions of Supervisor, Vagrant, MongoDB are too old
     OBSOLETE_APT_PACKAGES=(supervisor vagrant mongodb)
     for obsolete_package in "${OBSOLETE_APT_PACKAGES[@]}"; do
-        dpkg -s "$obsolete_package" >/dev/null 2>&1 && {
+        dpkg-query -l "$obsolete_package" | grep "^ii" >/dev/null 2>&1 && {
             echo "Installed package '$obsolete_package' from APT is too old."
             echo "Please remove it manually by running:"
             echo

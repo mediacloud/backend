@@ -96,7 +96,7 @@ and the schema version in the mediawords.sql is $target_schema_version.
 
 Please run:
 
-    ./script/run_with_carton.sh ./script/mediawords_upgrade_db.pl
+    ./script/run_with_carton.sh ./script/mediawords_upgrade_db.pl --import
 
 to automatically upgrade the database schema to the latest version.
 
