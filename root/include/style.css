@@ -279,6 +279,7 @@ div#widecolumn {
 }
 
 div#wholecolumn {
+    padding-top: 5px;
     width: 100%; 
     clear: both;
 }
