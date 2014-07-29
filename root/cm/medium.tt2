@@ -57,10 +57,10 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
     <a id="boxcommand" href="[% unredirect_url | html %]">un-redirect</a>
     <a id="boxcommand" href="[% edit_url | html %]">edit</a>
 </div>
-<table>
+<table class="even_rows_grey">
 
     <tr><td>Media_id</td><td>[% medium.media_id %]</td></tr>
-    <tr class="even"><td>Name</td><td>[% medium.name | html %] [% live_medium_diff( 'name' ) | html %]</td></tr>
+    <tr><td>Name</td><td>[% medium.name | html %] [% live_medium_diff( 'name' ) | html %]</td></tr>
     <tr>
         <td>Url</td>
         <td>
@@ -68,9 +68,10 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
             [% live_medium_diff( 'url' ) | html %]
         </td>
     </tr>
-    <tr class="even"><td># Stories</td><td>[% medium.story_count %] [% live_medium_diff( 'story_count' ) | html %]</td></tr>
+    <tr><td>Media Type</td><td>[% medium.media_type | html %]</td></tr>
+    <tr><td># Stories</td><td>[% medium.story_count %] [% live_medium_diff( 'story_count' ) | html %]</td></tr>
     <tr><td># Incoming Story Links</td><td>[% medium.inlink_count %] [% live_medium_diff( 'inlink_count' ) | html %]</td></tr>
-    <tr class="even"><td># Outgoing Story Links</td><td>[% medium.outlink_count %] [% live_medium_diff( 'outlink_count' ) | html %]</td></tr>
+    <tr><td># Outgoing Story Links</td><td>[% medium.outlink_count %] [% live_medium_diff( 'outlink_count' ) | html %]</td></tr>
     
 </table>
 

@@ -6,12 +6,13 @@
     [% END %]
     </div>
 [% END %]
-<table>
+<table class="even_rows_grey">
     
     <tr>
         <th>Media_id</th>
         <th>Name</th>
         <th>Url</th>
+        <th>Media Type</th>
         <th># Stories</th>
         <th># Story Inlinks</th>
         <th># Story Outlinks</th>
@@ -24,16 +25,16 @@
                                      c => controversies_id, 
                                      l => live } ) %]
 
-    <tr [% IF even %]class="even"[% END %]>
+    <tr>
         <td><a href="[% medium_url | html %]">[% m.media_id | html %]</a></td>
         <td>[% m.name | truncate( 48 ) | html %]</td>
         <td><a href="[% m.url | html %]">[% m.url | truncate( 48 ) | html %]</a></td>
+        <td>[% m.media_type | html %]</td>
         <td>[% m.story_count | html %]</td>
         <td>[% m.inlink_count | html %]</td>
         <td>[% m.outlink_count | html %]</td>
     </tr>
 
-        [% SET even = !even %]
     [% END %]
 [% ELSE %]
 

@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4461;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4462;
     
 BEGIN
 
@@ -1684,14 +1684,18 @@ create table cd.tags (
     controversy_dumps_id    int not null    references controversy_dumps on delete cascade,    
     tags_id                 int,
     tag_sets_id             int,
-    tag                     varchar(512)
+    tag                     varchar(512),
+    label                   text,
+    description             text
 );
 create index tags_id on cd.tags ( controversy_dumps_id, tags_id );
 
 create table cd.tag_sets (
     controversy_dumps_id    int not null    references controversy_dumps on delete cascade,    
     tag_sets_id             int,
-    name                    varchar(512)    
+    name                    varchar(512),
+    label                   text,
+    description             text   
 );
 create index tag_sets_id on cd.tag_sets ( controversy_dumps_id, tag_sets_id );
 

@@ -40,7 +40,7 @@
     </div>
 [% END %]
 
-<table>
+<table class="even_rows_grey">
     <tr>
         <th>Stories_id</th>
         <th>Title</th>
@@ -65,7 +65,7 @@
                                 l => live } ) %]
     [% edit_url = c.uri_for( "/admin/stories/edit/$s.stories_id" ) %]
 
-    <tr [% IF even %]class="even"[% END %]>
+    <tr>
 
         <td><a href="[% story_url  | html %]">[% s.stories_id %]</a></td>
         <td>[% s.title | truncate( 48 ) | html %]</td>
@@ -83,7 +83,6 @@
         <td>[% s.outlink_count %]</td>
     </tr>
 
-    [% SET even = !even %]
     [% END # FOREACH s -%]
 
 </table>

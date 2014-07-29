@@ -27,6 +27,12 @@ elements:
     validators:
         - MediumUrlIsUnique
 
+  - type: Select
+    name: media_type_tags_id
+    label: Media Type
+    comment: type of media source        
+ 
+
   - type: Checkbox
     name: full_text_rss
     label: Full text RSS

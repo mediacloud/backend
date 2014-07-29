@@ -1,5 +1,5 @@
 <div class="boxtitle">Latest [% activities.size %] activities</div>
-<table class="cm_latest_activities">
+<table class="cm_latest_activities even_rows_grey">
 
     <tr>
         <th>Activity</th>
@@ -8,7 +8,7 @@
 
     [% FOREACH activity IN activities -%]
 
-        <tr [% IF even %]class="even"[% END %]>
+        <tr>
 
             <td>
                 <abbr title="[% activity.activity.description | html %]">[% activity.name | html %]</abbr>
@@ -17,7 +17,6 @@
             <td>[% datetime.format( activity.creation_date ) %]</td>
         </tr>
 
-    [% SET even = !even %]
     [% END # FOREACH activities -%]
 
 </table>
