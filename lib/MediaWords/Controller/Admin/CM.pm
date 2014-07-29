@@ -382,7 +382,7 @@ sub _get_top_media_for_time_slice
 
     my $top_media = $db->query( <<END, $num_media )->hashes;
 select m.*, mlc.inlink_count, mlc.outlink_count, mlc.story_count, mlc.inlink_count
-    from dump_media m, dump_medium_link_counts mlc
+    from dump_media_with_types m, dump_medium_link_counts mlc
     where m.media_id = mlc.media_id
     order by mlc.inlink_count desc
     limit ?
@@ -397,8 +397,8 @@ sub _get_top_stories_for_time_slice
     my ( $db ) = @_;
 
     my $top_stories = $db->query( <<END, 20 )->hashes;
-select s.*, slc.inlink_count, slc.outlink_count, m.name as medium_name
-    from dump_stories s, dump_story_link_counts slc, dump_media m
+select s.*, slc.inlink_count, slc.outlink_count, m.name as medium_name, m.media_type
+    from dump_stories s, dump_story_link_counts slc, dump_media_with_types m
     where s.stories_id = slc.stories_id and
         s.media_id = m.media_id
     order by slc.inlink_count desc
@@ -461,6 +461,55 @@ sub _get_controversy_objects
     return ( $cdts, $cd, $controversy );
 }
 
+# get a media_type_stats hash for the given time slice that has the following format:
+# { story_count =>
+#   [ { media_type => 'Blog', num_stories => $num_stories, percent_stories => $percent_stories },
+#     { media_type => 'Tech Media', num_stories => $num_stories, percent_stories => $percent_stories },
+#     ...
+#   ]
+# { link_weight =>
+#   [ { media_type => 'Blog', link_weight => $link_weight, percent_link_weight => $percent_link_weight },
+#     { media_type => 'General Online News Media', link_weight => $link_weight, percent_link_weight => $percent_link_weight },
+#     ...
+#   ]
+sub _get_media_type_stats_for_time_slice
+{
+    my ( $db, $cdts ) = @_;
+
+    my $story_count = $db->query( <<END )->hashes;
+with media_type_stats as (
+    select
+            s.media_type,
+            count(*) num_stories,
+            sum( inlink_count ) link_weight
+        from
+            dump_stories_with_types s 
+            join dump_story_link_counts slc on ( s.stories_id = slc.stories_id )
+        group by s.media_type
+),
+
+media_type_sums as (
+    select sum( num_stories ) sum_num_stories, sum( link_weight ) sum_link_weight from media_type_stats
+)
+
+select
+        media_type,
+        num_stories,
+        round( ( num_stories / sum_num_stories ) * 100 ) percent_stories,
+        link_weight,
+        round( ( link_weight / sum_link_weight ) * 100 ) percent_link_weight
+    from
+        media_type_stats
+        cross join media_type_sums
+    order by num_stories desc;
+END
+
+    my $link_weight = [ @{ $story_count } ];
+    $link_weight = [ sort { $b->{ link_weight } <=> $a->{ link_weight } } @{ $link_weight } ];
+
+    return { story_count => $story_count, link_weight => $link_weight };
+}
+
 # view timelices, with links to csv and gexf files
 sub view_time_slice : Local
 {
@@ -480,6 +529,7 @@ sub view_time_slice : Local
 
     my $top_media = _get_top_media_for_time_slice( $db, $cdts );
     my $top_stories = _get_top_stories_for_time_slice( $db, $cdts );
+    my $media_type_stats = _get_media_type_stats_for_time_slice( $db, $cdts );
 
     MediaWords::CM::Dump::discard_temp_tables( $db );
 
@@ -490,6 +540,7 @@ sub view_time_slice : Local
     $c->stash->{ controversy }      = $controversy;
     $c->stash->{ top_media }        = $top_media;
     $c->stash->{ top_stories }      = $top_stories;
+    $c->stash->{ media_type_stats } = $media_type_stats;
     $c->stash->{ live }             = $live;
     $c->stash->{ template }         = 'cm/view_time_slice.tt2';
 }
@@ -649,7 +700,7 @@ sub _get_medium_from_dump_tables
 {
     my ( $db, $media_id ) = @_;
 
-    return $db->query( "select * from dump_media where media_id = ?", $media_id )->hash;
+    return $db->query( "select * from dump_media_with_types where media_id = ?", $media_id )->hash;
 }
 
 # get the medium with the medium_stories, inlink_stories, and outlink_stories and associated
@@ -664,8 +715,8 @@ sub _get_medium_and_stories_from_dump_tables
     return unless ( $medium );
 
     $medium->{ stories } = $db->query( <<'END', $media_id )->hashes;
-select s.*, m.name medium_name, slc.inlink_count, slc.outlink_count
-    from dump_stories s, dump_media m, dump_story_link_counts slc
+select s.*, m.name medium_name, m.media_type, slc.inlink_count, slc.outlink_count
+    from dump_stories s, dump_media_with_types m, dump_story_link_counts slc
     where
         s.stories_id = slc.stories_id and
         s.media_id = m.media_id and
@@ -675,8 +726,8 @@ END
     map { _add_story_date_info( $db, $_ ) } @{ $medium->{ stories } };
 
     $medium->{ inlink_stories } = $db->query( <<'END', $media_id )->hashes;
-select distinct s.*, sm.name medium_name, sslc.inlink_count, sslc.outlink_count
-    from dump_stories s, dump_story_link_counts sslc, dump_media sm,
+select distinct s.*, sm.name medium_name, sm.media_type, sslc.inlink_count, sslc.outlink_count
+    from dump_stories s, dump_story_link_counts sslc, dump_media_with_types sm,
         dump_stories r, dump_story_link_counts rslc,
         dump_controversy_links_cross_media cl
     where
@@ -691,9 +742,9 @@ END
     map { _add_story_date_info( $db, $_ ) } @{ $medium->{ inlink_stories } };
 
     $medium->{ outlink_stories } = $db->query( <<'END', $media_id )->hashes;
-select distinct r.*, rm.name medium_name, rslc.inlink_count, rslc.outlink_count
+select distinct r.*, rm.name medium_name, rm.media_type, rslc.inlink_count, rslc.outlink_count
     from dump_stories s, dump_story_link_counts sslc,
-        dump_stories r, dump_story_link_counts rslc, dump_media rm,
+        dump_stories r, dump_story_link_counts rslc, dump_media_with_types rm,
         dump_controversy_links_cross_media cl
     where
         s.stories_id = sslc.stories_id and
@@ -868,13 +919,13 @@ sub _get_story_and_links_from_dump_tables
 
     return unless ( $story );
 
-    $story->{ medium } = $db->query( "select * from dump_media where media_id = ?", $story->{ media_id } )->hash;
+    $story->{ medium } = $db->query( "select * from dump_media_with_types where media_id = ?", $story->{ media_id } )->hash;
 
     _add_story_date_info( $db, $story );
 
     $story->{ inlink_stories } = $db->query( <<'END', $stories_id )->hashes;
-select distinct s.*, sm.name medium_name, sslc.inlink_count, sslc.outlink_count
-    from dump_stories s, dump_story_link_counts sslc, dump_media sm,
+select distinct s.*, sm.name medium_name, sm.media_type, sslc.inlink_count, sslc.outlink_count
+    from dump_stories s, dump_story_link_counts sslc, dump_media_with_types sm,
         dump_stories r, dump_story_link_counts rslc,
         dump_controversy_links_cross_media cl
     where
@@ -889,9 +940,9 @@ END
     map { _add_story_date_info( $db, $_ ) } @{ $story->{ inlink_stories } };
 
     $story->{ outlink_stories } = $db->query( <<'END', $stories_id )->hashes;
-select distinct r.*, rm.name medium_name, rslc.inlink_count, rslc.outlink_count
+select distinct r.*, rm.name medium_name, rm.media_type, rslc.inlink_count, rslc.outlink_count
     from dump_stories s, dump_story_link_counts sslc,
-        dump_stories r, dump_story_link_counts rslc, dump_media rm,
+        dump_stories r, dump_story_link_counts rslc, dump_media_with_types rm,
         dump_controversy_links_cross_media cl
     where
         s.stories_id = sslc.stories_id and
@@ -1156,8 +1207,8 @@ sub search_stories : Local
     my $search_query = _get_stories_id_search_query( $db, $query );
 
     my $stories = $db->query( <<END )->hashes;
-select s.*, m.name medium_name, slc.inlink_count, slc.outlink_count
-    from dump_stories s, dump_media m, dump_story_link_counts slc
+select s.*, m.name medium_name, m.media_type, slc.inlink_count, slc.outlink_count
+    from dump_stories s, dump_media_with_types m, dump_story_link_counts slc
     where
         s.stories_id = slc.stories_id and
         s.media_id = m.media_id and
@@ -1227,7 +1278,7 @@ sub _add_id_medium_to_search_results ($$$)
 select distinct m.*, mlc.inlink_count, mlc.outlink_count, mlc.story_count
     from dump_story_link_counts slc
         join stories s on ( slc.stories_id = s.stories_id )
-        join dump_media m on ( s.media_id = m.media_id )
+        join dump_media_with_types m on ( s.media_id = m.media_id )
         join dump_medium_link_counts mlc on ( m.media_id = mlc.media_id )
      where s.media_id = ?
 END
@@ -1258,7 +1309,7 @@ sub search_media : Local
 
     my $media = $db->query( <<END )->hashes;
 select distinct m.*, mlc.inlink_count, mlc.outlink_count, mlc.story_count
-    from dump_stories s, dump_media m, dump_story_link_counts slc, dump_medium_link_counts mlc
+    from dump_stories s, dump_media_with_types m, dump_story_link_counts slc, dump_medium_link_counts mlc
     where
         s.stories_id = slc.stories_id and
         s.media_id = m.media_id and

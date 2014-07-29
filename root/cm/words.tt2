@@ -21,7 +21,7 @@
     
 </div>
 
-<table>
+<table class="even_rows_grey">
     <tr>
         <th>Rank</th>
         <th>Word</th>
@@ -42,7 +42,7 @@
     [% SET word_query = q ? "( $q ) and $w.term" : w.term %]
     [% SET word_url = c.uri_for( "/admin/cm/search_stories?l=${l}&cdts=${cdts.controversy_dump_time_slices_id}&q=$word_query" ) %]
 
-    <tr [% IF even %]id="even"[% END %]>
+    <tr>
 
         <td>[% w.rank | html %]</td>
         <td><a href="[% word_url | html %]">[% w.term | html %]</a></td>
@@ -55,7 +55,6 @@
 
     </tr>
 
-    [% SET even = !even %]
 [% END # FOREACH s -%]
 
 </table>

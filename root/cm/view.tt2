@@ -9,13 +9,13 @@
             <a id="boxcommand" href="[% c.uri_for( '/admin/cm/delete_stories/' _ controversy.controversies_id ) %]">remove stories</a>
             <a id="boxcommand" href="[% c.uri_for( '/admin/cm/merge_stories_list/' _ controversy.controversies_id ) %]">merge stories</a>
         </div>
-        <table>
+        <table class="even_rows_grey">
             <tr>
                 <td>Pattern</td>
                 <td>[% controversy.pattern | html %]</td>
             </tr>
 
-            <tr class="even">
+            <tr>
                 <td>Description</td>
                 <td>[% controversy.description | html %]</td>
             </tr>
@@ -39,7 +39,7 @@
 
 
         <div class="boxtitle">Dumps</div>
-        <table>
+        <table class="even_rows_grey">
 
             <tr>
                 <th>Dump Date</th>
@@ -51,7 +51,7 @@
 
             [% FOREACH cd IN controversy_dumps -%]
 
-                <tr [% IF even %]class="even"[% END %]>
+                <tr>
 
                     <td><a href="[% c.uri_for( '/admin/cm/view_dump/' _ cd.controversy_dumps_id )%]">[% datetime.format( cd.dump_date ) %]</a></td>
 
@@ -64,7 +64,6 @@
                     <td>[% cd.note | html %]</td>
                 </tr>
 
-            [% SET even = !even %]
             [% END # FOREACH stories -%]
 
         </table>

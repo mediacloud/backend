@@ -1472,6 +1472,25 @@ create temporary table dump_tag_sets $_temporary_tablespace as
     from tag_sets ts
     where ts.tag_sets_id in ( select tag_sets_id from dump_tags )
 END
+
+    $db->query( <<END );
+create temporary view dump_media_with_types as
+    select m.*, coalesce( t.label, 'Not Typed' ) media_type
+        from 
+            dump_media m
+            left join (
+                dump_tags t
+                join dump_tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id and ts.name = 'media_type' )
+                join dump_media_tags_map mtm on ( mtm.tags_id = t.tags_id )
+            ) on ( m.media_id = mtm.media_id )
+END
+
+    $db->query( <<END );
+create temporary view dump_stories_with_types as
+    select s.*, m.media_type
+        from dump_stories s join dump_media_with_types m on ( s.media_id = m.media_id )
+END
+
 }
 
 # generate snapshots for all of the get_snapshot_tables from the temporary dump tables

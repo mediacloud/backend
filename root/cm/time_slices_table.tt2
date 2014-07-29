@@ -5,7 +5,7 @@ Time Slices
      [% datetime.format( latest_full_dump.dump_date ) | html %].
 [% END %]
 </div>
-<table>
+<table class="even_rows_grey">
 
 <tr>
 <th>Period</th>
@@ -23,7 +23,7 @@ Time Slices
     [% FOREACH cdts IN controversy_dump_time_slices -%]
         [% cdts_url = c.uri_for( '/admin/cm/view_time_slice/' _ cdts.controversy_dump_time_slices_id, { l => live_periods } ) %]
 
-        <tr [% IF even %]class="even"[% END %]>
+        <tr>
 
             <td><a href="[% cdts_url | html %]">[% cdts.period | html %]</a></td>
             <td>[% cdts.tag_name | truncate( 32 ) | html %]</td>
@@ -36,7 +36,6 @@ Time Slices
             <td>[% cdts.medium_link_count | html %]</td>
         </tr>
 
-    [% SET even = !even %]
     [% END # FOREACH stories -%]
 
 </table>

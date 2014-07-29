@@ -3,7 +3,7 @@
 [% breadcrumbs = "[ $controversy_link &gt; activities ]" %]
 [% INCLUDE include/header.tt2 %]
 
-<table>
+<table class="even_rows_grey">
 
     <tr>
         <th>activity</th>
@@ -17,7 +17,7 @@
 
         [% FOREACH activity IN activities -%]
 
-            <tr [% IF even %]class="even"[% END %]>
+            <tr>
 
                 <td>
                     <abbr title="[% activity.activity.description %]">[% activity.name | html %]</abbr>
@@ -41,8 +41,6 @@
 
             </tr>
 
-            [%  SET even = !even %]
-            
         [% END # FOREACH activities -%]
 
         [% INCLUDE include/pager.tt2 %] 
