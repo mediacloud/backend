@@ -118,6 +118,8 @@ create temporary view dump_$t as select * from cd.$t
     where controversy_dump_time_slices_id = $cdts->{ controversy_dump_time_slices_id }
 END
     }
+
+    add_media_type_views( $db );
 }
 
 # setup dump_* tables by either creating views for the relevant cd.*
@@ -689,7 +691,7 @@ sub get_media_type_color
     return $_media_type_color_map->{ $media_type } if ( $_media_type_color_map );
 
     my $all_media_types = $db->query( <<END )->flat;
-select distinct code from dump_controversy_media_codes where code_type = 'media_type'
+select distinct media_type from dump_media_with_types
 END
 
     my $num_colors = scalar( @{ $all_media_types } ) + 1;
@@ -887,7 +889,7 @@ sub write_gexf_dump
     add_codes_to_gexf_attribute_types( $db, $cdts );
 
     my $media = $db->query( <<END )->hashes;
-select * from dump_media m, dump_medium_link_counts mlc where m.media_id = mlc.media_id
+select * from dump_media_with_types m, dump_medium_link_counts mlc where m.media_id = mlc.media_id
 END
 
     add_codes_to_dump_media( $db, $cdts, $media );
@@ -962,7 +964,7 @@ END
         #     push( @{ $node->{ spells }->{ spell } }, { start => $story_date, end => $story_date } );
         # }
 
-        $node->{ 'viz:color' } = [ get_media_type_color( $db, $cdts, $medium->{ code_media_type } ) ];
+        $node->{ 'viz:color' } = [ get_media_type_color( $db, $cdts, $medium->{ media_type } ) ];
         $node->{ 'viz:size' } = { value => $medium->{ inlink_count } + 1 };
 
         push( @{ $graph->{ nodes }->{ node } }, $node );
@@ -1343,6 +1345,8 @@ sub restore_temporary_tables
         $db->query( "drop table if exists $dump_table cascade" );
         $db->query( "create temporary table $dump_table $_temporary_tablespace as select * from $copy_table" );
     }
+
+    add_media_type_views( $db );
 }
 
 # create a snapshot for the given table from the temporary dump_* table,
@@ -1473,8 +1477,16 @@ create temporary table dump_tag_sets $_temporary_tablespace as
     where ts.tag_sets_id in ( select tag_sets_id from dump_tags )
 END
 
+    add_media_type_views( $db );
+
+}
+
+sub add_media_type_views
+{
+    my ( $db ) = @_;
+
     $db->query( <<END );
-create temporary view dump_media_with_types as
+create or replace view dump_media_with_types as
     select m.*, coalesce( t.label, 'Not Typed' ) media_type
         from 
             dump_media m
@@ -1486,7 +1498,7 @@ create temporary view dump_media_with_types as
 END
 
     $db->query( <<END );
-create temporary view dump_stories_with_types as
+create or replace view dump_stories_with_types as
     select s.*, m.media_type
         from dump_stories s join dump_media_with_types m on ( s.media_id = m.media_id )
 END
@@ -1590,6 +1602,7 @@ sub dump_controversy ($$)
     my $cd = create_controversy_dump( $db, $controversy, $start_date, $end_date );
 
     write_temporary_dump_tables( $db, $controversy->{ controversies_id } );
+
     generate_snapshots_from_temporary_dump_tables( $db, $cd );
 
     for my $t ( undef, @{ $dump_tags } )
