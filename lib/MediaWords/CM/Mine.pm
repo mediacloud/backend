@@ -511,7 +511,7 @@ sub extract_download
 
     return if ( $download->{ url } =~ /livejournal.com\/(tag|profile)/i );
 
-    eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, "controversy", 1, 1, 1 ); };
+    eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, "controversy", 0, 1 ); };
     warn "extract error processing download $download->{ downloads_id }: $@" if ( $@ );
 }
 
@@ -786,16 +786,20 @@ sub story_matches_controversy_pattern
     $perl_re =~ s/\[\[\:[\<\>]\:\]\]/\\b/g;
     for my $field ( qw/title description url redirect_url/ )
     {
-        return $field if ( $story->{ $field } && ( $story->{ $field } =~ /$perl_re/isx ) );
+        if ( $story->{ $field } && ( $story->{ $field } =~ /$perl_re/isx ) )
+        {
+            MediaWords::DBI::Stories::add_missing_story_sentences( $db, $story );
+            return $field;
+        }
     }
 
     return 0 if ( $metadata_only );
 
-    # # check for download_texts match first because some stories don't have
-    # # story_sentences, and it is expensive to generate the missing story_sentences
-    # return 0 unless ( story_download_text_matches_pattern( $db, $story, $controversy ) );
-    #
-    # MediaWords::DBI::Stories::add_missing_story_sentences( $db, $story );
+    # check for download_texts match first because some stories don't have
+    # story_sentences, and it is expensive to generate the missing story_sentences
+    return 0 unless ( story_download_text_matches_pattern( $db, $story, $controversy ) );
+
+    MediaWords::DBI::Stories::add_missing_story_sentences( $db, $story );
 
     return story_sentence_matches_pattern( $db, $story, $controversy ) ? 'sentence' : 0;
 }

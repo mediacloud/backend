@@ -522,6 +522,8 @@ sub process_download_for_extractor($$$;$$$)
 {
     my ( $db, $download, $process_num, $no_dedup_sentences, $no_vector ) = @_;
 
+    $process_num //= 1;
+
     my $stories_id = $download->{ stories_id };
 
     # Extract
