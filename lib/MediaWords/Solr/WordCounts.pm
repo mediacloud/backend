@@ -22,6 +22,9 @@ use URI::Escape;
 use MediaWords::Solr;
 use MediaWords::Util::Config;
 
+# mediawords.wc_cache_version from config
+my $_wc_cache_version;
+
 # Moose instance fields
 
 has 'q'                 => ( is => 'rw', isa => 'Str' );
@@ -402,11 +405,13 @@ sub _get_cache_key
 {
     my ( $self ) = @_;
 
+    $_wc_cache_version //= MediaWords::Util::Config->get_config->{ mediawords }->{ wc_cache_version } || '1';
+
     my $meta = $self->meta;
 
     my $keys = $self->get_cgi_param_attributes;
 
-    my $hash_key = Dumper( map { $meta->get_attribute( $_ )->get_value( $self ) } @{ $keys } );
+    my $hash_key = "$_wc_cache_version:" . Dumper( map { $meta->get_attribute( $_ )->get_value( $self ) } @{ $keys } );
 
     return $hash_key;
 }
