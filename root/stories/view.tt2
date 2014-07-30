@@ -132,7 +132,7 @@
         <th>CoreNLP annotation<br />(story):</th>
         <td>
             [% IF corenlp_story_json %]
-                <textarea cols="120" rows="12">[% corenlp_story_json | html %]</textarea>
+                <textarea class="json" readonly="readonly" cols="120" rows="12">[% corenlp_story_json | html %]</textarea>
             [% ELSE %]
                 not annotated
             [% END %]
@@ -148,7 +148,7 @@
                             [% s.key | html %]
                             =>
                             [% IF s.value %]
-                                <textarea cols="120" rows="12">[% s.value | html %]</textarea>
+                                <textarea class="json" readonly="readonly" cols="120" rows="12">[% s.value | html %]</textarea>
                             [% ELSE %]
                                 not annotated
                             [% END %]
@@ -164,7 +164,7 @@
         <th>CoreNLP annotation<br />(story + sentences):</th>
         <td>
             [% IF corenlp_story_and_sentences_json %]
-                <textarea cols="120" rows="12">[% corenlp_story_and_sentences_json | html %]</textarea>
+                <textarea class="json" readonly="readonly" cols="120" rows="12">[% corenlp_story_and_sentences_json | html %]</textarea>
             [% ELSE %]
                 not annotated
             [% END %]
