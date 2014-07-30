@@ -129,8 +129,11 @@ BEGIN
 
     if ( $_config->{ mongodb_gridfs } )
     {
-        $_download_store_lookup->{ gridfs } = MediaWords::KeyValueStore::GridFS->new(
-            { database_name => $_config->{ mongodb_gridfs }->{ downloads }->{ database_name } } );
+        if ( $_config->{ mongodb_gridfs }->{ downloads } )
+        {
+            $_download_store_lookup->{ gridfs } = MediaWords::KeyValueStore::GridFS->new(
+                { database_name => $_config->{ mongodb_gridfs }->{ downloads }->{ database_name } } );
+        }
     }
 
     $_download_store_lookup->{ localfile } =
