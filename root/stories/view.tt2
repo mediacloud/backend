@@ -129,7 +129,9 @@
         </td>
     </tr>
     <tr>
-        <th>CoreNLP annotation<br />(story + sentences):</th>
+        <th>
+            <abbr title="Integer index is &quot;story_sentences_id&quot;
+index &quot;[% corenlp_sentences_concatenation_index | html %]&quot; is concatenation of all sentences.">CoreNLP annotation</abbr>:</th>
         <td>
             [% IF corenlp_story_and_sentences_json %]
                 <textarea class="json" readonly="readonly" cols="120" rows="12">[% corenlp_story_and_sentences_json | html %]</textarea>

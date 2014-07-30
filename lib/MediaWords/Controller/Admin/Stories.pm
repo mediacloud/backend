@@ -148,6 +148,8 @@ END
     {
         $c->stash->{ corenlp_story_and_sentences_json } =
           MediaWords::Util::CoreNLP::fetch_annotation_json_for_story_and_all_sentences( $c->dbis, $story->{ stories_id } );
+
+        $c->stash->{ corenlp_sentences_concatenation_index } = MediaWords::Util::CoreNLP::sentences_concatenation_index();
     }
 
     $c->stash->{ template } = 'stories/view.tt2';
