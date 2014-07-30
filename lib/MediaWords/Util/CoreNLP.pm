@@ -96,9 +96,11 @@ BEGIN
 }
 
 # Encode hashref to JSON, die() on error
-sub _encode_json($)
+sub _encode_json($;$)
 {
-    my $hashref = shift;
+    my ( $hashref, $pretty ) = @_;
+
+    $pretty = ( $pretty ? 1 : 0 );
 
     unless ( ref( $hashref ) eq ref( {} ) )
     {
@@ -106,7 +108,7 @@ sub _encode_json($)
     }
 
     my $json;
-    eval { $json = JSON->new->utf8( 1 )->pretty( 0 )->encode( $hashref ); };
+    eval { $json = JSON->new->utf8( 1 )->pretty( $pretty )->encode( $hashref ); };
     if ( $@ or ( !$json ) )
     {
         die "Unable to encode hashref to JSON: $@\nHashref: " . Dumper( $hashref );
@@ -586,9 +588,9 @@ sub fetch_annotation_json_for_story($$)
         die "Story annotation does not have 'corenlp' root key for story $stories_id";
     }
 
-    # Encode back to JSON
+    # Encode back to JSON, prettifying the result
     my $story_annotation_json;
-    eval { $story_annotation_json = _encode_json( $story_annotation ); };
+    eval { $story_annotation_json = _encode_json( $story_annotation, 1 ); };
     if ( $@ or ( !$story_annotation_json ) )
     {
         die "Unable to encode story annotation to JSON for story $stories_id: $@\nHashref: " . Dumper( $story_annotation );
@@ -647,9 +649,9 @@ sub fetch_annotation_json_for_story_sentence($$)
           $story_sentences_id . ", story $stories_id";
     }
 
-    # Encode back to JSON
+    # Encode back to JSON, prettifying the result
     my $story_sentence_annotation_json;
-    eval { $story_sentence_annotation_json = _encode_json( $story_sentence_annotation ); };
+    eval { $story_sentence_annotation_json = _encode_json( $story_sentence_annotation, 1 ); };
     if ( $@ or ( !$story_sentence_annotation_json ) )
     {
         die "Unable to encode sentence annotation to JSON for story sentence " .
@@ -706,9 +708,9 @@ sub fetch_annotation_json_for_story_and_all_sentences($$)
           "'$sentences_concat_text' doesn't exist for story $stories_id";
     }
 
-    # Encode back to JSON
+    # Encode back to JSON, prettifying the result
     my $annotation_json;
-    eval { $annotation_json = _encode_json( $annotation ); };
+    eval { $annotation_json = _encode_json( $annotation, 1 ); };
     if ( $@ or ( !$annotation_json ) )
     {
         die "Unable to encode story and its sentences annotation to JSON for story " .
