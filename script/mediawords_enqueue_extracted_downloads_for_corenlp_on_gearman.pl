@@ -69,7 +69,7 @@ use Scalar::Util qw/looks_like_number/;
 
 }
 
-# Returns a download's ID to continue copying from
+# Returns a download's ID to continue enqueueing from
 sub _resume_downloads_id_from_log($)
 {
     my $resume_downloads_id_log = shift;
@@ -136,7 +136,7 @@ sub _write_downloads_id_resume_log($$)
     my $row                            = 0;
     my $rows_analyzed_since_resuming   = 0;
     my $downloads_found                = 0;
-    my $downloads_copied               = 0;
+    my $downloads_enqueued             = 0;
 
     # Cleanup tasks after finishing normally or after receiving SIGINT
     sub finish($)
@@ -152,7 +152,7 @@ sub _write_downloads_id_resume_log($$)
             say STDERR "Rows analyzed since resuming: $rows_analyzed_since_resuming";
         }
         say STDERR "Downloads found: $downloads_found (including duplicates)";
-        say STDERR "Downloads copied: $downloads_copied";
+        say STDERR "Downloads enqueued: $downloads_enqueued";
         if ( $global_resume_downloads_id_log and ( !$successfully ) )
         {
             say STDERR "Will resume at download ID: $global_resume_downloads_id";
@@ -209,7 +209,7 @@ EOF
 
         $rows_analyzed_since_resuming = 0;
         $downloads_found              = 0;
-        $downloads_copied             = 0;
+        $downloads_enqueued           = 0;
 
         $row = $resume_downloads_id;
 
@@ -276,7 +276,7 @@ EOF
 
                 say STDERR "Done enqueuing download " . $downloads_id if ( _verbose() );
 
-                ++$downloads_copied;
+                ++$downloads_enqueued;
             }
         }
 
