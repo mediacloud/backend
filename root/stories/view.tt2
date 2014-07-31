@@ -149,25 +149,4 @@ index &quot;[% corenlp_sentences_concatenation_index | html %]&quot; is concaten
     <div align="center"><big><b>END OF STORY</b></big></div>
 </p>
 
-<!-- Prettify CoreNLP JSON -->
-<link rel="stylesheet" type="text/css" media="all" href="/script/jquery-jsonview/dist/jquery.jsonview.css" title="jquery-jsonview stylesheet" />
-<script type="text/javascript" src="/script/jquery-jsonview/dist/jquery.jsonview.js"></script>
-<script type="text/javascript"><!--
-
-$(function() {
-
-    var USE_JSON_VIEW = false;
-
-    if ( USE_JSON_VIEW ) {
-        $( ".json" ).each(function() {
-            var json = jQuery.parseJSON($( this ).val());
-            $( this ).hide();
-            $( this ).parent().JSONView(json, {collapsed: true});
-        });
-    }
-
-});
-
---></script>
-
 [% INCLUDE include/footer.tt2 %]

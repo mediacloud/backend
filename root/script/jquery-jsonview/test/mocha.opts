@@ -1,3 +1,0 @@
---compilers coffee:coffee-script/register
---require test/test_helper.coffee
---ui tdd
