@@ -455,7 +455,8 @@ sub story_is_annotated($$)
 }
 
 # Run the CoreNLP annotation for the story, store results in MongoDB
-# Return 1 on success, die()s on error, exit()s on fatal error
+# If story is already annotated, issue a warning and overwrite
+# Return 1 on success, 0 on failure, die() on error, exit() on fatal error
 sub store_annotation_for_story($$)
 {
     my ( $db, $stories_id ) = @_;
