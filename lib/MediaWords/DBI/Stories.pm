@@ -1107,17 +1107,41 @@ END
     return $all_sentences;
 }
 
-# Mark the story as processed by INSERTing an entry into "processed_stories";
-# return true on success, false on failure
-sub mark_as_processed($$)
+# Mark the story as processed by INSERTing an entry into "processed_stories"
+#
+# Parameters:
+# * $db -- database object
+# * $stories_id -- "stories_id" to insert into "processed_stories"
+# * $skip_if_already_exists -- if "stories_id" already exists in
+#   "processed_stories" (e.g. when you're running CoreNLP annotations for old
+#   stories that are already marked as "processed"), warn about it and don't
+#   try to do anything else
+#
+# Return true on success, false on failure
+sub mark_as_processed($$;$)
 {
-    my ( $db, $stories_id ) = @_;
+    my ( $db, $stories_id, $skip_if_already_exists ) = @_;
 
-    my $result;
+    my $result = undef;
+    if ( $skip_if_already_exists )
+    {
+        $result = $db->select( 'processed_stories', 'processed_stories_id', { stories_id => $stories_id } )->hash;
+
+        if ( ref( $result ) eq 'HASH' and $result->{ processed_stories_id } )
+        {
+            # Most likely annotating stories that were downloaded + extracted
+            # before introduction of CoreNLP annotator as such
+            warn "Story ID $stories_id already exists in 'processed_stories', " .
+              "so I'm not adding a duplicate record to the table.";
+            return 1;
+        }
+    }
+
+    $result = undef;
     eval { $result = $db->create( 'processed_stories', { stories_id => $stories_id } ); };
     if ( $@ or ( !$result ) )
     {
-        say STDERR "Unable to insert story ID $stories_id into 'processed_stories': $@";
+        warn "Unable to insert story ID $stories_id into 'processed_stories': $@";
         return 0;
     }
     else
