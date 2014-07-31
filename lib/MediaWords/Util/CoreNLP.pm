@@ -8,7 +8,6 @@ use MediaWords::CommonLibs;
 
 use MediaWords::Util::Config;
 use MediaWords::Util::Web;
-use MediaWords::DBI::Stories;
 use MediaWords::KeyValueStore::GridFS;
 use MediaWords::Util::Text;
 use HTTP::Request;
@@ -529,18 +528,6 @@ EOF
         return 0;
     }
     say STDERR "Done storing annotation results to GridFS for story $stories_id.";
-
-    # Log to the PostgreSQL
-    say STDERR "Logging annotated story to PostgreSQL for story $stories_id...";
-    unless ( MediaWords::DBI::Stories::mark_as_processed( $db, $stories_id ) )
-    {
-
-        # If the script wasn't able to log annotated story to PostgreSQL, this
-        # is also a fatal error (meaning that the script can't continue running)
-        _fatal_error( 'Unable to to log annotated story $stories_id to database: ' . $db->dbh->errstr );
-        return 0;
-    }
-    say STDERR "Done logging annotated story to PostgreSQL for story $stories_id.";
 
     return 1;
 }
