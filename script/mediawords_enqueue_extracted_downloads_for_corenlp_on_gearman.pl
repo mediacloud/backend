@@ -5,6 +5,9 @@
 # It is safe to run this as many times as you want because the extraction job
 # on Gearman is unique so download extractions won't be duplicated.
 #
+# Also, CoreNLP Gearman worker will skip stories that are already annotated by
+# issuing a warning and doing nothing.
+#
 # Usage:
 #
 #     mediawords_enqueue_extracted_downloads_for_corenlp_on_gearman.pl \
@@ -29,6 +32,7 @@ use MediaWords::DB;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 use MediaWords::Util::Config;
+use MediaWords::Util::CoreNLP;
 use Getopt::Long;
 use MediaWords::GearmanFunction::AnnotateWithCoreNLP;
 use Scalar::Util qw/looks_like_number/;
@@ -233,7 +237,8 @@ EOF
 
             $downloads = $db->query(
                 <<"EOF"
-                SELECT downloads.downloads_id
+                SELECT downloads.downloads_id,
+                       downloads.stories_id
                 FROM downloads
                     -- Needed for limiting a list of downloads to a certain media_id
                     INNER JOIN stories ON downloads.stories_id = stories.stories_id
@@ -261,12 +266,19 @@ EOF
                 ++$row;
 
                 my $downloads_id = $download->{ downloads_id };
+                my $stories_id   = $download->{ stories_id };
 
                 $global_resume_downloads_id = $downloads_id;
                 $resume_downloads_id        = $downloads_id;
 
                 # Write the offset
                 _write_downloads_id_resume_log( $resume_downloads_id_log, $downloads_id );
+
+                if ( MediaWords::Util::CoreNLP::story_is_annotated( $db, $stories_id ) )
+                {
+                    warn "Story $stories_id for download $downloads_id is already annotated with CoreNLP, skipping.";
+                    next;
+                }
 
                 say STDERR "Will attempt to enqueue download " . $downloads_id if ( _verbose() );
 
