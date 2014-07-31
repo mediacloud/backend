@@ -146,13 +146,46 @@ END
     if (    MediaWords::Util::CoreNLP::annotator_is_enabled()
         and MediaWords::Util::CoreNLP::story_is_annotated( $c->dbis, $story->{ stories_id } ) )
     {
-        $c->stash->{ corenlp_story_and_sentences_json } =
-          MediaWords::Util::CoreNLP::fetch_annotation_json_for_story_and_all_sentences( $c->dbis, $story->{ stories_id } );
-
+        $c->stash->{ corenlp_story_is_annotated }            = 1;
         $c->stash->{ corenlp_sentences_concatenation_index } = MediaWords::Util::CoreNLP::sentences_concatenation_index();
+    }
+    else
+    {
+        $c->stash->{ corenlp_story_is_annotated } = 0;
     }
 
     $c->stash->{ template } = 'stories/view.tt2';
+}
+
+# view CoreNLP JSON
+sub corenlp_json : Local
+{
+    my ( $self, $c, $stories_id ) = @_;
+
+    unless ( $stories_id )
+    {
+        die "No stories_id";
+    }
+
+    unless ( $c->dbis->find_by_id( 'stories', $stories_id ) )
+    {
+        die "Story $stories_id does not exist.";
+    }
+
+    unless ( MediaWords::Util::CoreNLP::annotator_is_enabled() )
+    {
+        die "CoreNLP annotator is not enabled in the configuration.";
+    }
+
+    unless ( MediaWords::Util::CoreNLP::story_is_annotated( $c->dbis, $stories_id ) )
+    {
+        die "Story $stories_id is not annotated.";
+    }
+
+    my $corenlp_json = MediaWords::Util::CoreNLP::fetch_annotation_json_for_story_and_all_sentences( $c->dbis, $stories_id );
+
+    $c->response->content_type( 'application/json; charset=UTF-8' );
+    return $c->res->body( $corenlp_json );
 }
 
 # edit a single story
