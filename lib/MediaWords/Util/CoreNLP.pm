@@ -433,6 +433,62 @@ sub sentences_concatenation_index()
     return '_';
 }
 
+# Check if story can be annotated with CoreNLP
+# Return 1 if story can be annotated, 0 otherwise, die() on error, exit() on fatal error
+sub story_is_annotatable($$)
+{
+    my ( $db, $stories_id ) = @_;
+
+    if ( !annotator_is_enabled() )
+    {
+        _fatal_error( "CoreNLP annotator is not enabled in the configuration." );
+    }
+
+    my $story = $db->query(
+        <<EOF,
+        SELECT story_is_annotatable_with_corenlp
+        FROM story_is_annotatable_with_corenlp(?)
+EOF
+        $stories_id
+    )->hash;
+    if ( $story->{ story_is_annotatable_with_corenlp } )
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+# Check if story is annotated with CoreNLP
+# Return 1 if story is annotated, 0 otherwise, die() on error, exit() on fatal error
+sub story_is_annotated($$)
+{
+    my ( $db, $stories_id ) = @_;
+
+    if ( !annotator_is_enabled() )
+    {
+        _fatal_error( "CoreNLP annotator is not enabled in the configuration." );
+    }
+
+    my $annotation_exists = undef;
+    eval { $annotation_exists = $_gridfs_store->content_exists( $db, $stories_id ); };
+    if ( $@ )
+    {
+        die "GridFS died while testing whether or not an annotation exists for story $stories_id: $@";
+    }
+
+    if ( $annotation_exists )
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 # Run the CoreNLP annotation for the story, store results in MongoDB
 # Return 1 on success, die()s on error, exit()s on fatal error
 sub store_annotation_for_story($$)
