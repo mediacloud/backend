@@ -464,6 +464,7 @@ sub store_annotation_for_story($$)
     if ( !annotator_is_enabled() )
     {
         _fatal_error( "CoreNLP annotator is not enabled in the configuration." );
+        return 0;
     }
 
     if ( story_is_annotated( $db, $stories_id ) )
@@ -576,14 +577,9 @@ sub fetch_annotation_json_for_story($$)
 
     my $annotation;
     eval { $annotation = _fetch_annotation_from_gridfs_for_story( $db, $stories_id ); };
-    if ( $@ )
+    if ( $@ or ( !defined $annotation ) )
     {
         die "Unable to fetch annotation for story $stories_id: $@";
-    }
-
-    unless ( defined $annotation )
-    {
-        return undef;
     }
 
     my $sentences_concat_text = sentences_concatenation_index() . '';
@@ -697,14 +693,9 @@ sub fetch_annotation_json_for_story_and_all_sentences($$)
 
     my $annotation;
     eval { $annotation = _fetch_annotation_from_gridfs_for_story( $db, $stories_id ); };
-    if ( $@ )
+    if ( $@ or ( !defined $annotation ) )
     {
         die "Unable to fetch annotation for story $stories_id: $@";
-    }
-
-    unless ( defined $annotation )
-    {
-        return undef;
     }
 
     # Test sanity
