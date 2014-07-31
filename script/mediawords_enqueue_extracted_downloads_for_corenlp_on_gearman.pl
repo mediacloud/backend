@@ -260,20 +260,21 @@ EOF
                 ++$rows_analyzed_since_resuming;
                 ++$row;
 
-                $global_resume_downloads_id = $download->{ downloads_id };
-                $resume_downloads_id        = $download->{ downloads_id };
+                my $downloads_id = $download->{ downloads_id };
+
+                $global_resume_downloads_id = $downloads_id;
+                $resume_downloads_id        = $downloads_id;
 
                 # Write the offset
-                _write_downloads_id_resume_log( $resume_downloads_id_log, $download->{ downloads_id } );
+                _write_downloads_id_resume_log( $resume_downloads_id_log, $downloads_id );
 
-                say STDERR "Will attempt to enqueue download " . $download->{ downloads_id } if ( _verbose() );
+                say STDERR "Will attempt to enqueue download " . $downloads_id if ( _verbose() );
 
                 ++$downloads_found;
 
-                MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman(
-                    { downloads_id => $download->{ downloads_id } } );
+                MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman( { downloads_id => $downloads_id } );
 
-                say STDERR "Done enqueuing download " . $download->{ downloads_id } if ( _verbose() );
+                say STDERR "Done enqueuing download " . $downloads_id if ( _verbose() );
 
                 ++$downloads_copied;
             }
