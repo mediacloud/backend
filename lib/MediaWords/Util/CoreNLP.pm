@@ -136,29 +136,6 @@ sub _decode_json($)
     return $hashref;
 }
 
-# Get an CoreNLP-annotatable story from the database; returns either a story
-# hashref or undef if such a story is unavailable for annotation
-sub get_story_annotatable_by_corenlp($$)
-{
-    my ( $db, $stories_id ) = @_;
-
-    my $story = $db->query(
-        <<EOF,
-        SELECT *
-        FROM stories
-        WHERE stories_id = ?
-          AND story_is_annotatable_with_corenlp(stories_id) = 't'
-EOF
-        $stories_id
-    )->hash;
-    unless ( $story->{ stories_id } )
-    {
-        return undef;
-    }
-
-    return $story;
-}
-
 # Make a request to the CoreNLP annotator, return hashref of parsed JSON
 # results (without the "corenlp" key)
 #
