@@ -346,21 +346,9 @@ sub _fetch_annotation_from_gridfs_for_story($$)
         die "CoreNLP annotator is not enabled in the configuration.";
     }
 
-    my $story = get_story_annotatable_by_corenlp( $db, $stories_id );
-    unless ( $story )
+    unless ( story_is_annotated( $db, $stories_id ) )
     {
-        die "Annotatable story with ID $stories_id was not found.";
-    }
-
-    # Test if annotation exists
-    my $annotation_exists = 0;
-    eval { $annotation_exists = $_gridfs_store->content_exists( $db, $stories_id ); };
-    if ( $@ )
-    {
-        die "GridFS died while testing whether or not an annotation exists for story $stories_id: $@\n";
-    }
-    unless ( $annotation_exists )
-    {
+        warn "Story $stories_id is not annotated with CoreNLP.";
         return undef;
     }
 
@@ -500,11 +488,15 @@ sub store_annotation_for_story($$)
         _fatal_error( "CoreNLP annotator is not enabled in the configuration." );
     }
 
-    say STDERR "Fetching annotatable story $stories_id...";
-    my $story = get_story_annotatable_by_corenlp( $db, $stories_id );
-    unless ( $story )
+    if ( story_is_annotated( $db, $stories_id ) )
     {
-        die "Annotatable story with ID $stories_id was not found.";
+        warn "Story $stories_id is already annotated with CoreNLP, so I will overwrite it.";
+    }
+
+    unless ( story_is_annotatable( $db, $stories_id ) )
+    {
+        warn "Story $stories_id is not annotatable.";
+        return 0;
     }
 
     my $story_sentences = $db->query(
@@ -520,7 +512,6 @@ EOF
     {
         die "Unable to fetch story sentences for story $stories_id.";
     }
-    say STDERR "Done fetching annotatable story $stories_id.";
 
     my %annotations;
 
@@ -599,10 +590,10 @@ sub fetch_annotation_json_for_story($$)
         die "CoreNLP annotator is not enabled in the configuration.";
     }
 
-    my $story = $db->find_by_id( 'stories', $stories_id );
-    unless ( $story->{ stories_id } )
+    unless ( story_is_annotated( $db, $stories_id ) )
     {
-        die "Annotatable story $stories_id was not found.";
+        warn "Story $stories_id is not annotated with CoreNLP.";
+        return undef;
     }
 
     my $annotation;
@@ -661,22 +652,17 @@ sub fetch_annotation_json_for_story_sentence($$)
 
     my $stories_id = $story_sentence->{ stories_id } + 0;
 
-    my $story = get_story_annotatable_by_corenlp( $db, $stories_id );
-    unless ( $story )
+    unless ( story_is_annotated( $db, $stories_id ) )
     {
-        die "Annotatable story $stories_id for story sentence $story_sentences_id was not found.";
+        warn "Story $stories_id is not annotated with CoreNLP.";
+        return undef;
     }
 
     my $annotation;
     eval { $annotation = _fetch_annotation_from_gridfs_for_story( $db, $stories_id ); };
-    if ( $@ )
+    if ( $@ or ( !defined $annotation ) )
     {
         die "Unable to fetch annotation for story $stories_id: $@";
-    }
-
-    unless ( defined $annotation )
-    {
-        return undef;
     }
 
     unless ( exists( $annotation->{ $story_sentences_id } ) )
@@ -725,10 +711,10 @@ sub fetch_annotation_json_for_story_and_all_sentences($$)
         die "CoreNLP annotator is not enabled in the configuration.";
     }
 
-    my $story = get_story_annotatable_by_corenlp( $db, $stories_id );
-    unless ( $story )
+    unless ( story_is_annotated( $db, $stories_id ) )
     {
-        die "Annotatable story with ID $stories_id was not found.";
+        warn "Story $stories_id is not annotated with CoreNLP.";
+        return undef;
     }
 
     my $annotation;
