@@ -52,7 +52,7 @@ sub process
     {
         $where_clause .= ' and ';
         $where_clause .= $query_map->{ $clause };
-        push $query_params, $st_subset->{ $clause };
+        push @{ $query_params }, $st_subset->{ $clause };
     }
 
     say STDERR Dumper( $query_params );
