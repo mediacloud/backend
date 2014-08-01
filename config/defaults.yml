@@ -39,6 +39,7 @@ mediawords:
     solr_url:
         - "http://localhost:8983/solr"
     user_agent: mediawords bot (http://cyber.law.harvard.edu)
+    cm_spider_iterations: 15
 supervisor:
     childlogdir: data/supervisor_logs/
 gearmand:

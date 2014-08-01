@@ -339,4 +339,48 @@ sub enqueue_add_default_feeds_for_unmoderated_media($)
     return 1;
 }
 
+# get all of the media_type: tags
+sub get_media_type_tags
+{
+    my ( $db ) = @_;
+
+    my $media_types = $db->query( <<END )->hashes;
+select t.*
+    from 
+        tags t join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
+    where
+        ts.name = 'media_type'
+    order by t.label = 'Not Typed' desc, t.label = 'Other', t.label
+END
+
+    return $media_types;
+}
+
+# update the media_type tag for the media source
+sub update_media_type
+{
+    my ( $db, $medium, $media_type_tags_id ) = @_;
+
+    die( "medium to update must have media_type_tags_id field, defined in media_with_media_types view" )
+      unless ( exists( $medium->{ media_type_tags_id } ) );
+
+    my $existing_media_type_tags_id = $medium->{ media_type_tags_id } || 0;
+
+    return if ( $existing_media_type_tags_id == $media_type_tags_id );
+
+    if ( $existing_media_type_tags_id )
+    {
+        $db->query( <<END, $medium->{ media_id }, $existing_media_type_tags_id );
+delete from media_tags_map where media_id = ? and tags_id = ?
+END
+    }
+
+    if ( $media_type_tags_id )
+    {
+        $db->query( <<END, $medium->{ media_id }, $media_type_tags_id );
+insert into media_tags_map ( media_id, tags_id ) values ( ?, ? )
+END
+    }
+}
+
 1;

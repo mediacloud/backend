@@ -15,7 +15,8 @@ elements:
     label: Pattern
     comment: Regular expression for the controversy
     constraints:
-        - Required
+        - type: Regex
+          regex: '\<'
 
   - type: Text
     name: solr_seed_query
@@ -32,7 +33,27 @@ elements:
     comment: "Human readable description of controversy including a human description of the solr seed query"
     constraints:
         - Required
+        
+  - type: Text
+    name: start_date
+    id: start_date
+    label: Start Date
+    comment: start date for controversy (YYYY-MM-DD)
+    constraints:
+        - Required
+        - type: Regex
+          regex: '^\d\d\d\d-\d\d-\d\d$'
 
+  - type: Text
+    name: end_date
+    id: end_date
+    label: End Date
+    comment: end date for controversy (YYYY-MM-DD)
+    constraints:
+        - Required
+        - type: Regex
+          regex: '^\d\d\d\d-\d\d-\d\d$'
+    
   - type: Checkbox
     name: preview
     id: preview
@@ -42,5 +63,4 @@ elements:
     comment: "Display preview of seeded stories"
 
   - type: Submit
-    name: create
-    value: Create
+    value: Go

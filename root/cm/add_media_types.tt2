@@ -1,0 +1,50 @@
+[% INCLUDE cm/header.tt2 title = "CM: Add Media Types for ${ controversy.name }" %]
+
+<div id="boxtitle">Media With No Types</div>
+    [% IF media.size == 0 %]
+        <fieldset>>All media sources have been typed.</fieldset>
+    [% ELSE %]
+        <form action="[% c.uri_for( '/admin/cm/add_media_types' ) | html %]" method="post">
+            <input type="hidden" name="cdts" value="[% cdts.controversy_dump_time_slices_id %]" />
+            <input type="hidden" name="l" value="[% live | html %]" />
+        
+            <table class="even_rows_grey">
+                <tr>
+                    <th>Media_id</th>
+                    <th>Name</th>
+                    <th>Url</th>
+                    <th>Media Type</th>
+                    <th># Stories</th>
+                    <th># Inlinks</th>
+                    <th># Outlinks</th>
+                </tr>
+                [% FOREACH m IN media %]
+                    [% medium_url = c.uri_for( '/admin/cm/medium/' _ m.media_id, 
+                                               { cdts => cdts.controversy_dump_time_slices_id, 
+                                                 c => controversies_id, 
+                                                 l => live } ) %]
+
+                    <tr>
+                        <td><a href="[% medium_url | html %]">[% m.media_id | html %]</a></td>
+                        <td>[% m.name | truncate( 36 ) | html %]</td>
+                        <td><a target="new" href="[% m.url | html %]">[% m.url | truncate( 36 ) | html %]</a></td>
+                        <td>
+                            <select name="media_type_[% m.media_id %]" >
+                                [% FOREACH media_type IN media_types %]
+                                    <option value="[% media_type.tags_id %]">[% media_type.label | html %]</option>
+                                [% END %]
+                            </select>                                
+                        </td>
+                        <td>[% m.story_count | html %]</td>
+                        <td>[% m.inlink_count | html %]</td>
+                        <td>[% m.outlink_count | html %]</td>
+                    </tr>
+                [% END %]
+            </table>
+            
+            <input type="submit" value="Go" />
+        </form>
+    [% END %]
+</div>
+
+[% INCLUDE include/footer.tt2 %]

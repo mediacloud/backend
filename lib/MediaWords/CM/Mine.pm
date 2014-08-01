@@ -26,9 +26,6 @@ use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 
-# number of times to iterate through spider
-use constant NUM_SPIDER_ITERATIONS => 15;
-
 # number of times to run through the recursive link weight process
 use constant LINK_WEIGHT_ITERATIONS => 3;
 
@@ -1219,7 +1216,9 @@ sub spider_new_links
 # run the spider over any new links, for $num_iterations iterations
 sub run_spider
 {
-    my ( $db, $controversy, $num_iterations ) = @_;
+    my ( $db, $controversy ) = @_;
+
+    my $num_iterations = MediaWords::Util::Config->get_config->{ mediawords }->{ cm_spider_iterations };
 
     for my $i ( 1 .. $num_iterations )
     {
@@ -1994,7 +1993,7 @@ sub mine_controversy ($$;$)
     mine_controversy_stories( $db, $controversy );
 
     print STDERR "running spider ...\n";
-    run_spider( $db, $controversy, NUM_SPIDER_ITERATIONS );
+    run_spider( $db, $controversy );
 
     if ( !$options->{ skip_outgoing_foreign_rss_links } )
     {

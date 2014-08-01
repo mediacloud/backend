@@ -103,8 +103,6 @@ else
 
     # assume Ubuntu
 
-    source /etc/lsb-release
-
     # Add 10gen repository
     APT_SOURCES_MONGODB="/etc/apt/sources.list.d/mongodb.list"
     if [ ! -f "$APT_SOURCES_MONGODB" ]; then
@@ -133,13 +131,23 @@ else
     # Install Gearman from PPA repository
     sudo apt-get -y install python-software-properties
 
-    if [[ "$DISTRIB_RELEASE" < "14.04" ]]; then
-         # Apt's version of Gearman is too old
-	sudo apt-get -y remove gearman gearman-job-server gearman-tools \
-        libgearman-dbg libgearman-dev libgearman-doc libgearman6
+    # Version comparison functions
+    function verlte() {
+        [  "$1" = "`echo -e "$1\n$2" | sort -V | head -n1`" ]
+    }
 
-	sudo add-apt-repository -y ppa:gearman-developers/ppa
-	sudo apt-get -y update
+    function verlt() {
+        [ "$1" = "$2" ] && return 1 || verlte "$1" "$2"
+    }
+
+    source /etc/lsb-release
+    if verlt "$DISTRIB_RELEASE" "14.04"; then
+         # 12.04 Apt's version of Gearman is too old
+        sudo apt-get -y remove gearman gearman-job-server gearman-tools \
+            libgearman-dbg libgearman-dev libgearman-doc libgearman6
+
+       sudo add-apt-repository -y ppa:gearman-developers/ppa
+       sudo apt-get -y update
     fi
 
     sudo apt-get -y install gearman-job-server gearman-tools libgearman-dev

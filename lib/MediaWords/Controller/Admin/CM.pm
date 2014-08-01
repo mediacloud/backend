@@ -15,6 +15,7 @@ use MediaWords::CM;
 use MediaWords::CM::Dump;
 use MediaWords::CM::Mine;
 use MediaWords::DBI::Activities;
+use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
 use MediaWords::Solr::WordCounts;
@@ -43,7 +44,88 @@ END
     $c->stash->{ template }      = 'cm/list.tt2';
 }
 
-# show a new controversy form
+sub _add_controversy_date
+{
+    my ( $db, $controversy, $start_date, $end_date, $boundary ) = @_;
+
+    my $existing_date = $db->query( <<END, $start_date, $end_date, $controversy->{ controversies_id } )->hash;
+select * from controversy_dates where start_date = ? and end_date = ? and controversies_id = ?
+END
+
+    if ( !$existing_date )
+    {
+        $db->create(
+            'controversy_dates',
+            {
+                controversies_id => $controversy->{ controversies_id },
+                start_date       => $start_date,
+                end_date         => $end_date
+            }
+        );
+    }
+
+    if ( $boundary )
+    {
+        $db->query( <<END, $start_date, $end_date, $controversy->{ controversies_id } )
+update controversy_dates set boundary = ( start_date = ? and end_date = ? ) where controversies_id = ?
+END
+    }
+
+}
+
+# edit an existing controversy
+sub edit : Local
+{
+    my ( $self, $c, $controversies_id ) = @_;
+
+    my $form = $c->create_form( { load_config_file => $c->path_to() . '/root/forms/admin/cm/create_controversy.yml' } );
+
+    my $db = $c->dbis;
+
+    my $controversy =
+      $db->query( 'select * from controversies_with_dates where controversies_id = ?', $controversies_id )->hash
+      || die( "Unable to find controversy" );
+
+    $form->default_values( $controversy );
+    $form->process( $c->req );
+
+    if ( !$form->submitted_and_valid )
+    {
+        $c->stash->{ form }        = $form;
+        $c->stash->{ controversy } = $controversy;
+        $c->stash->{ template }    = 'cm/edit_controversy.tt2';
+        return;
+    }
+    elsif ( $c->req->params->{ preview } )
+    {
+        my $solr_seed_query = $c->req->params->{ solr_seed_query };
+        my $pattern         = $c->req->params->{ pattern };
+        $c->res->redirect( $c->uri_for( '/search', { q => $solr_seed_query, pattern => $pattern } ) );
+        return;
+    }
+
+    else
+    {
+        my $p = $form->params;
+
+        _add_controversy_date( $db, $controversy, $p->{ start_date }, $p->{ end_date }, 1 );
+
+        delete( $p->{ start_date } );
+        delete( $p->{ end_date } );
+        delete( $p->{ preview } );
+
+        $p->{ solr_seed_query_run } = 'f' unless ( $controversy->{ solr_seed_query } eq $p->{ solr_seed_query } );
+
+        $c->dbis->update_by_id( 'controversies', $controversies_id, $p );
+
+        my $view_url = $c->uri_for( "/admin/cm/view/" . $controversies_id, { status_msg => 'Controversy updated.' } );
+        $c->res->redirect( $view_url );
+
+        return;
+    }
+}
+
+# create a new controversy
 sub create : Local
 {
     my ( $self, $c ) = @_;
@@ -65,16 +147,12 @@ sub create : Local
 
     # At this point the form is submitted
 
-    my $c_name            = $c->req->parameters->{ name } . '';
-    my $c_pattern         = $c->req->parameters->{ pattern } . '';
-    my $c_solr_seed_query = $c->req->parameters->{ solr_seed_query } . '';
-    my $c_description     = $c->req->parameters->{ description } . '';
-
-    unless ( $c_name and $c_pattern and $c_solr_seed_query and $c_description )
-    {
-        $c->stash->{ error_msg } = 'Please fill the form.';
-        return;
-    }
+    my $c_name            = $c->req->params->{ name };
+    my $c_pattern         = $c->req->params->{ pattern };
+    my $c_solr_seed_query = $c->req->params->{ solr_seed_query };
+    my $c_description     = $c->req->params->{ description };
+    my $c_start_date      = $c->req->params->{ start_date };
+    my $c_end_date        = $c->req->params->{ end_date };
 
     if ( $c->req->params->{ preview } )
     {
@@ -82,14 +160,28 @@ sub create : Local
         return;
     }
 
-    my $controversy = {
-        name            => $c_name,
-        pattern         => $c_pattern,
-        solr_seed_query => $c_solr_seed_query,
-        description     => $c_description
-    };
+    $db->begin;
 
-    $controversy = $db->create( 'controversies', $controversy );
+    my $controversy = $db->create(
+        'controversies',
+        {
+            name            => $c_name,
+            pattern         => $c_pattern,
+            solr_seed_query => $c_solr_seed_query,
+            description     => $c_description
+        }
+    );
+
+    $db->create(
+        'controversy_dates',
+        {
+            controversies_id => $controversy->{ controversies_id },
+            start_date       => $c_start_date,
+            end_date         => $c_end_date
+        }
+    );
+
+    $db->commit;
 
     my $status_msg = "Controversy has been created.";
     $c->res->redirect( $c->uri_for( "/admin/cm/view/$controversy->{ controversies_id }", { status_msg => $status_msg } ) );
@@ -170,7 +262,7 @@ sub view : Local
     my $db = $c->dbis;
 
     my $controversy = $db->query( <<END, $controversies_id )->hash;
-select * from controversies where controversies_id = ?
+select * from controversies_with_dates where controversies_id = ?
 END
 
     if ( !$controversy->{ solr_seed_query_run } )
@@ -196,8 +288,6 @@ END
       MediaWords::DBI::Activities::sql_activities_which_reference_column( 'controversies.controversies_id',
         $controversies_id );
     $sql_latest_activities .= ' LIMIT ?';
-
-    print STDERR "$sql_latest_activities\n";
 
     my $latest_activities = $db->query( $sql_latest_activities, $LATEST_ACTIVITIES_COUNT )->hashes;
 
@@ -1759,7 +1849,6 @@ sub merge_stories_list : Local
     for my $stories_id_pair ( @{ $stories_ids_pairs } )
     {
         my ( $keep_stories_id, $delete_stories_id ) = @{ $stories_id_pair };
-        print STDERR "$delete_stories_id -> $keep_stories_id\n";
 
         my $keep_story   = $db->find_by_id( 'stories', $keep_stories_id );
         my $delete_story = $db->find_by_id( 'stories', $delete_stories_id );
@@ -2008,6 +2097,178 @@ sub influential_media_words : Local
     $c->stash->{ q }           = $q;
     $c->stash->{ top_words }   = $top_words;
     $c->stash->{ template }    = 'cm/influential_media_words.tt2';
+}
+
+# process form values to add media types according to form parameters.
+# each relevant form param has a name of 'media_type_<media_id>'
+# (eg. 'media_type_123') and the tags_id of the media_type tag to add.
+sub _process_add_media_type_params
+{
+    my ( $c ) = @_;
+
+    my $db = $c->dbis;
+
+    for my $type_param ( keys( %{ $c->req->params } ) )
+    {
+        next unless ( $type_param =~ /media_type_(\d+)/ );
+
+        my $media_id = $1;
+        my $tags_id  = $c->req->params->{ $type_param };
+
+        my $medium = $db->query( "select * from media_with_media_types where media_id = ?", $media_id )->hash
+          || die( "Unable to find medium '$media_id'" );
+
+        MediaWords::DBI::Media::update_media_type( $db, $medium, $tags_id );
+    }
+}
+
+# page for adding media types to 'not type'd media
+sub add_media_types : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $c->req->params->{ cdts } );
+
+    _process_add_media_type_params( $c );
+
+    $db->begin;
+    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, 1 );
+
+    my $media = $db->query( <<END )->hashes;
+select distinct m.*, mlc.inlink_count, mlc.outlink_count, mlc.story_count
+    from dump_media_with_types m, dump_medium_link_counts mlc
+    where
+        m.media_id = mlc.media_id and
+        m.media_type = 'Not Typed'
+    order by mlc.inlink_count desc
+    limit 10
+END
+
+    $db->commit;
+
+    my $media_types = MediaWords::DBI::Media::get_media_type_tags( $db );
+
+    $c->stash->{ controversy } = $controversy;
+    $c->stash->{ cd }          = $cd;
+    $c->stash->{ cdts }        = $cdts;
+    $c->stash->{ live }        = 1;
+    $c->stash->{ media }       = $media;
+    $c->stash->{ media_types } = $media_types;
+    $c->stash->{ template }    = 'cm/add_media_types.tt2';
+}
+
+# delete all controversy_dates in the controversy
+sub delete_all_dates : Local
+{
+    my ( $self, $c, $controversies_id ) = @_;
+
+    my $db = $c->dbis;
+
+    my $controversy = $db->query( "select * from controversies_with_dates where controversies_id = ?", $controversies_id )
+      || die( "Unable to find controversy" );
+
+    $db->query( <<END, $controversies_id );
+delete from controversy_dates where not bounday and controversies_id = ?
+END
+
+}
+
+# delet a single controversy_dates row
+sub delete_date : Local
+{
+    my ( $self, $c, $controversies_id ) = @_;
+
+    my $db = $c->dbis;
+
+    my $controversy = $db->query( "select * from controversies_with_dates where controversies_id = ?", $controversies_id )
+      || die( "Unable to find controversy" );
+
+    my $start_date = $c->req->params->{ start_date };
+    my $end_date   = $c->req->params->{ end_date };
+
+    die( "missing start_date or end_date" ) unless ( $start_date && $end_date );
+
+    $db->query( <<END, $controversies_id, $start_date, $end_date );
+delete from controversy_dates where controversies_id = ? and start_date = ? and end_date = ? and not boundary
+END
+
+    $c->res->redirect( $c->uri_for( '/admin/cm/edit_dates/' . $controversies_id, { status_msg => 'Date deleted.' } ) );
+}
+
+# add timeslice dates for every $interval days
+sub _add_interval_dates
+{
+    my ( $db, $controversy, $interval ) = @_;
+
+    return unless ( $interval > 0 );
+
+    sub increment_day { MediaWords::Util::SQL::increment_day( @_ ) }
+
+    my $last_interval_start = increment_day( $controversy->{ end_date }, -1 * $interval );
+
+    for ( my $i = $controversy->{ start_date } ; $i lt $last_interval_start ; $i = increment_day( $i, $interval ) )
+    {
+        _add_controversy_date( $db, $controversy, $i, increment_day( $i, $interval ) );
+    }
+}
+
+# add custom time slice range to controversy_dates
+sub add_date : Local
+{
+    my ( $self, $c, $controversies_id ) = @_;
+
+    my $db = $c->dbis;
+
+    my $controversy =
+      $db->query( "select * from controversies_with_dates where controversies_id = ?", $controversies_id )->hash
+      || die( "Unable to find controversy" );
+
+    my $interval   = $c->req->params->{ interval } + 0;
+    my $start_date = $c->req->params->{ start_date };
+    my $end_date   = $c->req->params->{ end_date };
+
+    if ( $interval )
+    {
+        _add_interval_dates( $db, $controversy, $interval );
+    }
+    else
+    {
+        my $valid_date = qr/^\d\d\d\d-\d\d-\d\d$/;
+        if ( !( ( $start_date =~ $valid_date ) && ( $end_date =~ $valid_date ) ) )
+        {
+            $c->res->redirect(
+                $c->uri_for( '/admin/cm/edit_dates/' . $controversies_id, { error_msg => 'Invalid date format.' } ) );
+            return;
+        }
+
+        die( "missing start_date or end_date" ) unless ( $start_date && $end_date );
+
+        _add_controversy_date( $db, $controversy, $start_date, $end_date );
+    }
+
+    $c->res->redirect( $c->uri_for( '/admin/cm/edit_dates/' . $controversies_id, { status_msg => 'Dates added.' } ) );
+}
+
+# edit list of controversy_dates for the controversy
+sub edit_dates : Local
+{
+    my ( $self, $c, $controversies_id ) = @_;
+
+    my $db = $c->dbis;
+
+    my $controversy = $db->find_by_id( 'controversies', $controversies_id ) || die( "Unable to find controversy" );
+
+    # mark the controversy_date that is the boundary date for the controversy, since we don't want
+    # to delete it
+    my $controversy_dates = $db->query( <<END, $controversies_id )->hashes;
+select cd.* from controversy_dates cd where cd.controversies_id = ? order by cd.start_date, cd.end_date desc 
+END
+
+    $c->stash->{ controversy }       = $controversy;
+    $c->stash->{ controversy_dates } = $controversy_dates;
+    $c->stash->{ template }          = 'cm/edit_dates.tt2';
 }
 
 1;
