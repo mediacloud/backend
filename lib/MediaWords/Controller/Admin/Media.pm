@@ -46,17 +46,11 @@ sub _make_edit_form
 
     $form->stash->{ c } = $c;
 
-    my $media_types = $c->dbis->query( <<END )->arrays;
-select t.tags_id, t.label
-    from 
-        tags t join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
-    where
-        ts.name = 'media_type'
-    order by t.label
-END
+    my $media_types = MediaWords::DBI::Media::get_media_type_tags( $c->dbis );
 
-    unshift( @{ $media_types }, [ 0, 'None' ] );
-    $form->get_element( { name => 'media_type_tags_id' } )->options( $media_types );
+    my $media_type_options = [ map { [ $_->{ tags_id }, $_->{ label } ] } @{ $media_types } ];
+
+    $form->get_element( { name => 'media_type_tags_id' } )->options( $media_type_options );
 
     return $form;
 }
@@ -170,45 +164,6 @@ END
     }
 }
 
-# update the media_type tag for the media source
-sub _update_media_type
-{
-    my ( $db, $medium, $media_type_tags_id ) = @_;
-
-    return if ( $medium->{ media_type_tags_id } == $media_type_tags_id );
-
-    if ( $medium->{ media_type_tags_id } )
-    {
-        $db->query( <<END, $medium->{ media_id }, $medium->{ media_type_tags_id } );
-delete from media_tags_map where media_id = ? and tags_id = ?
-END
-    }
-
-    if ( $media_type_tags_id )
-    {
-        $db->query( <<END, $medium->{ media_id }, $media_type_tags_id );
-insert into media_tags_map ( media_id, tags_id ) values ( ?, ? )
-END
-    }
-}
-
-sub _get_medium_with_media_tags_id
-{
-    my ( $db, $media_id ) = @_;
-
-    return $db->query( <<END, $media_id )->hash;
-select m.*, mtm.tags_id media_type_tags_id
-    from
-        media m
-        left join (
-            tags t
-            join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id and ts.name = 'media_type' )
-            join media_tags_map mtm on ( mtm.tags_id = t.tags_id )
-        ) on ( m.media_id = mtm.media_id )
-    where m.media_id = ?
-END
-}
-
 sub edit_do : Local
 {
     my ( $self, $c, $id ) = @_;
@@ -216,7 +171,8 @@ sub edit_do : Local
     $id += 0;
 
     my $form = $self->_make_edit_form( $c, $c->uri_for( "/admin/media/edit_do/$id" ) );
-    my $medium = _get_medium_with_media_tags_id( $c->dbis, $id ) || die( "unknown medium: $id" );
+    my $medium = $c->dbis->query( "select * from media_with_media_types where media_id = ?", $id )->hash
+      || die( "unknown medium: $id" );
 
     $form->default_values( $medium );
 
@@ -244,7 +200,7 @@ sub edit_do : Local
         $form_params->{ full_text_rss }     ||= 0;
         $form_params->{ foreign_rss_links } ||= 0;
 
-        _update_media_type( $c->dbis, $medium, $c->req->params->{ media_type_tags_id } );
+        MediaWords::DBI::Media::update_media_type( $c->dbis, $medium, $c->req->params->{ media_type_tags_id } );
         delete( $form_params->{ media_type_tags_id } );
 
         $c->dbis->update_by_id( 'media', $id, $form_params );

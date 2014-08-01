@@ -8,6 +8,8 @@
             Query
             <a id="boxcommand" href="[% c.uri_for( '/admin/cm/delete_stories/' _ controversy.controversies_id ) %]">remove stories</a>
             <a id="boxcommand" href="[% c.uri_for( '/admin/cm/merge_stories_list/' _ controversy.controversies_id ) %]">merge stories</a>
+            <a id="boxcommand" href="[% c.uri_for( '/admin/cm/edit_dates/' _ controversy.controversies_id ) %]">edit dates</a>
+            <a id="boxcommand" href="[% c.uri_for( '/admin/cm/edit/' _ controversy.controversies_id ) %]">edit</a>
         </div>
         <table class="even_rows_grey">
             <tr>
@@ -23,6 +25,10 @@
             <tr>
                 <td>Solr Seed Query</td>
                 <td>[% controversy.solr_seed_query | html %]</td>
+            </tr>
+            <tr>
+                <td>Dates</td>
+                <td>[% controversy.start_date | html %] - [% controversy.end_date | html %]</td>
             </tr>
         </table>
 

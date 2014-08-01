@@ -6,8 +6,6 @@
 
 [% PROCESS cm/header.tt2 %]
 
-[% PROCESS cm/remove_stories_confirm_js.tt2 %]
-    
 <div id="wholecolumn">
 
     <div class="boxtitle">

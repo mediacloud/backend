@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4462;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4463;
     
 BEGIN
 
@@ -345,6 +345,17 @@ create index media_db_row_last_updated on media( db_row_last_updated );
 CREATE INDEX media_name_trgm on media USING gin (name gin_trgm_ops);
 CREATE INDEX media_url_trgm on media USING gin (url gin_trgm_ops);
 
+create view media_with_media_types as
+    select m.*, mtm.tags_id media_type_tags_id, t.label media_type
+    from
+        media m
+        left join (
+            tags t
+            join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id and ts.name = 'media_type' )
+            join media_tags_map mtm on ( mtm.tags_id = t.tags_id )
+        ) on ( m.media_id = mtm.media_id );
+
+
 -- list of media sources for which the stories should be updated to be at 
 -- at least db_row_last_updated
 create table media_update_time_queue (
@@ -451,6 +462,28 @@ create index tags_tag_2 on tags (split_part(tag, ' ', 2));
 create index tags_tag_3 on tags (split_part(tag, ' ', 3));
 
 create view tags_with_sets as select t.*, ts.name as tag_set_name from tags t, tag_sets ts where t.tag_sets_id = ts.tag_sets_id;
+    
+insert into tag_sets ( name, label, description ) values ( 'media_type', 'Media Type', 'High level topology for media sources for use across a variety of different topics' );
+
+create temporary table media_type_tags ( name text, label text, description text );
+insert into media_type_tags values
+    ( 'Not Typed', 'Not Typed', 'The medium has not yet been typed.' ),
+    ( 'Other', 'Other', 'The medium does not fit in any listed type.' ),
+    ( 'Independent Group', 'Ind. Group', 'An academic or nonprofit group that is not affiliated with the private sector or government, such as the Electronic Frontier Foundation or the Center for Democracy and Technology)' ),
+    ( 'Social Linking Site', 'Social Linking', 'A site that aggregates links based at least partially on user submissions and/or ranking, such as Reddit, Digg, Slashdot, MetaFilter, StumbleUpon, and other social news sites' ),
+    ( 'Blog', 'Blog', 'A web log, written by one or more individuals, that is not associated with a professional or advocacy organization or institution' ), 
+    ( 'General Online News Media', 'General News', 'A site that is a mainstream media outlet, such as The New York Times and The Washington Post; an online-only news outlet, such as Slate, Salon, or the Huffington Post; or a citizen journalism or non-profit news outlet, such as Global Voices or ProPublica' ),
+    ( 'Issue Specific Campaign', 'Issue', 'A site specifically dedicated to campaigning for or against a single issue.' ),
+    ( 'News Aggregator', 'News Agg.', 'A site that contains little to no original content and compiles news from other sites, such as Yahoo News or Google News' ),
+    ( 'Tech Media', 'Tech Media', 'A site that focuses on technological news and information produced by a news organization, such as Arstechnica, Techdirt, or Wired.com' ),
+    ( 'Private Sector', 'Private Sec.', 'A non-news media for-profit actor, including, for instance, trade organizations, industry sites, and domain registrars' ), 
+    ( 'Government', 'Government', 'A site associated with and run by a government-affiliated entity, such as the DOJ website, White House blog, or a U.S. Senator official website' ),
+    ( 'User-Generated Content Platform', 'User Gen.', 'A general communication and networking platform or tool, like Wikipedia, YouTube, Twitter, and Scribd, or a search engine like Google or speech platform like the Daily Kos' );
+    
+insert into tags ( tag_sets_id, tag, label, description )
+    select ts.tag_sets_id, mtt.name, mtt.name, mtt.description 
+        from tag_sets ts cross join media_type_tags mtt
+        where ts.name = 'media_type';
 
 create table feeds_tags_map (
     feeds_tags_map_id    serial            primary key,
@@ -1450,6 +1483,16 @@ create table controversies (
 
 create unique index controversies_name on controversies( name );
     
+create view controversies_with_dates as
+    select c.*, 
+            to_char( cd.start_date, 'YYYY-MM-DD' ) start_date, 
+            to_char( cd.end_date, 'YYYY-MM-DD' ) end_date
+        from 
+            controversies c 
+            join controversy_dates cd on ( c.controversies_id = cd.controversies_id )
+        where 
+            cd.boundary;
+    
 create view controversies_with_search_info as
     select c.controversies_id, c.name, c.query_story_searches_id, q.start_date::date, q.end_date::date, qss.pattern, qss.queries_id
         from controversies c
@@ -1460,7 +1503,8 @@ create table controversy_dates (
     controversy_dates_id    serial primary key,
     controversies_id        int not null references controversies on delete cascade,
     start_date              date not null,
-    end_date                date not null
+    end_date                date not null,
+    boundary                boolean not null default 'false'
 );
 
 create table controversy_dump_tags (

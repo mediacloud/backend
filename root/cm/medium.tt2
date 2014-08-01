@@ -1,7 +1,5 @@
 [% PROCESS cm/header.tt2 title="Medium '$medium.name'" %]
 
-[% PROCESS cm/remove_stories_confirm_js.tt2 %]
-
 <div id="warning_box">
 
 [% IF live %]
