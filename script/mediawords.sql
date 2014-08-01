@@ -345,17 +345,6 @@ create index media_db_row_last_updated on media( db_row_last_updated );
 CREATE INDEX media_name_trgm on media USING gin (name gin_trgm_ops);
 CREATE INDEX media_url_trgm on media USING gin (url gin_trgm_ops);
 
-create view media_with_media_types as
-    select m.*, mtm.tags_id media_type_tags_id, t.label media_type
-    from
-        media m
-        left join (
-            tags t
-            join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id and ts.name = 'media_type' )
-            join media_tags_map mtm on ( mtm.tags_id = t.tags_id )
-        ) on ( m.media_id = mtm.media_id );
-
-
 -- list of media sources for which the stories should be updated to be at 
 -- at least db_row_last_updated
 create table media_update_time_queue (
@@ -484,6 +473,19 @@ insert into tags ( tag_sets_id, tag, label, description )
     select ts.tag_sets_id, mtt.name, mtt.name, mtt.description 
         from tag_sets ts cross join media_type_tags mtt
         where ts.name = 'media_type';
+        
+create view media_with_media_types as
+    select m.*, mtm.tags_id media_type_tags_id, t.label media_type
+    from
+        media m
+        left join (
+            tags t
+            join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id and ts.name = 'media_type' )
+            join media_tags_map mtm on ( mtm.tags_id = t.tags_id )
+        ) on ( m.media_id = mtm.media_id );
+
+
+
 
 create table feeds_tags_map (
     feeds_tags_map_id    serial            primary key,
