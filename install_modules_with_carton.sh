@@ -36,13 +36,6 @@ mkdir -p local/
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ DBM_Filter
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ Net::DNS
 
-# Module MooseX::Types::DateTime::MoreCoercions doesn't have "provides"
-# section in its META.yml, so Carton sets module's version to "undef" in
-# cpanfile.snapshot (https://rt.cpan.org/Public/Bug/Display.html?id=90138).
-# Because of that, some of the dependent modules fail to install properly,
-# therefore we install a patched version before everything else
-./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ https://github.com/pypt/p5-MooseX-Types-DateTime-MoreCoercions/tarball/master
-
 # Sometimes Carton fails with:
 #
 # <...>

@@ -5703,6 +5703,26 @@ DISTRIBUTIONS
       perl 5.008003
       strict 0
       warnings 0
+  MooseX-Types-DateTime-MoreCoercions-0.12
+    pathname: E/ET/ETHER/MooseX-Types-DateTime-MoreCoercions-0.12.tar.gz
+    provides:
+      MooseX::Types::DateTime::MoreCoercions 0.12
+    requirements:
+      DateTime 0.4302
+      DateTime::Duration 0.4302
+      DateTimeX::Easy 0.085
+      ExtUtils::MakeMaker 6.30
+      Module::Build::Tiny 0.036
+      Moose 0.41
+      MooseX::Types 0.04
+      MooseX::Types::DateTime 0.07
+      MooseX::Types::Moose 0.04
+      Time::Duration::Parse 0.06
+      if 0
+      namespace::clean 0.08
+      perl 5.006
+      strict 0
+      warnings 0
   Mozilla-CA-20130114
     pathname: A/AB/ABH/Mozilla-CA-20130114.tar.gz
     provides:
