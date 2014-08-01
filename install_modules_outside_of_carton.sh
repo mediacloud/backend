@@ -32,6 +32,8 @@ $CPANM Carton~1.0.9
 $CPANM List::MoreUtils
 
 # Install profiler and tools
-$CPANM --verbose Devel::NYTProf
+# (we --force the install because the unit test "t/70-subname.t" fails with
+# Sub::Name 0.07, see https://github.com/timbunce/devel-nytprof/issues/34)
+$CPANM --force Devel::NYTProf
 $CPANM Devel::Cover
 $CPANM lib::core::only
