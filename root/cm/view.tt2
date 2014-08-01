@@ -2,6 +2,13 @@
    
 <div id="wholecolumn" class="clearfix">
 
+    [% IF !controversy.solr_seed_query_run %]
+        <fieldset>
+            The solr seed query has been changed since it has been run last.  Run a 'mine controversy' job to
+            add stories from the new query.
+        </fieldset>
+    [% END %]
+
     <div id="widecolumn">
 
         <div class="boxtitle">

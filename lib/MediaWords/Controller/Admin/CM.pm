@@ -265,12 +265,6 @@ sub view : Local
 select * from controversies_with_dates where controversies_id = ?
 END
 
-    if ( !$controversy->{ solr_seed_query_run } )
-    {
-        $c->stash->{ status_msg } =
-          "The initial solr seed search has not been run.  Run a 'mine controversy' job to seed the controversy";
-    }
-
     my $controversy_dumps = $db->query( <<END, $controversy->{ controversies_id } )->hashes;
 select * from controversy_dumps where controversies_id = ?
     order by controversy_dumps_id desc
