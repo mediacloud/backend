@@ -1,4 +1,3 @@
-
 #!/usr/bin/env perl
 
 # import stories from external feeds into existing media source
@@ -37,7 +36,8 @@ END
 
     for my $download ( @{ $downloads } )
     {
-        my $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download );
+        my $content_ref = \'';
+        eval { $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download ); };
 
         # skip redundant feeds
         next if ( length( $$content_ref ) < 32 );
