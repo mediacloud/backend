@@ -2208,7 +2208,7 @@ sub _add_interval_dates
 
     my $last_interval_start = increment_day( $controversy->{ end_date }, -1 * $interval );
 
-    for ( my $i = $controversy->{ start_date } ; $i <= $last_interval_start ; $i = increment_day( $i, $interval ) )
+    for ( my $i = $controversy->{ start_date } ; $i lt $last_interval_start ; $i = increment_day( $i, $interval ) )
     {
         _add_controversy_date( $db, $controversy, $i, increment_day( $i, $interval ) );
     }
@@ -2221,7 +2221,9 @@ sub add_date : Local
 
     my $db = $c->dbis;
 
-    my $controversy = $db->find_by_id( 'controversies', $controversies_id ) || die( "Unable to find controversy" );
+    my $controversy =
+      $db->query( "select * from controversies_with_dates where controversies_id = ?", $controversies_id )->hash
+      || die( "Unable to find controversy" );
 
     my $interval   = $c->req->params->{ interval } + 0;
     my $start_date = $c->req->params->{ start_date };

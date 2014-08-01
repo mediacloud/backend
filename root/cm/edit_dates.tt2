@@ -1,14 +1,10 @@
 [% INCLUDE cm/header.tt2 title = "CM: Edit Timeslice Dates for ${ controversy.name }" %]
 
+<div id="boxtitle">Edit Dates</a>
 <div id="wholecolumn">
     <fieldset>
-        Use this page to add or remove custom date ranges for timeslices.
-    </fieldset>
-</div>
+        <p>Use this page to add or remove custom date ranges for timeslices.</p>
 
-<div id="boxtitle">Add Dates</a>
-<div id="wholecolumn">
-    <fieldset>
         <form action="[% c.uri_for( '/admin/cm/add_date/' _ controversy.controversies_id ) %]" method="post" >
             Start Date (YYYY-MM-DD): <input type="text" name="start_date" /><br />
             End Date (YYYY-MM-DD: <input type="text" name="end_date" /><br />
