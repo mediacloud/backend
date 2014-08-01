@@ -474,19 +474,7 @@ insert into tags ( tag_sets_id, tag, label, description )
         from tag_sets ts cross join media_type_tags mtt
         where ts.name = 'media_type';
         
-create view media_with_media_types as
-    select m.*, mtm.tags_id media_type_tags_id, t.label media_type
-    from
-        media m
-        left join (
-            tags t
-            join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id and ts.name = 'media_type' )
-            join media_tags_map mtm on ( mtm.tags_id = t.tags_id )
-        ) on ( m.media_id = mtm.media_id );
-
-
-
-
+        
 create table feeds_tags_map (
     feeds_tags_map_id    serial            primary key,
     feeds_id            int                not null references feeds on delete cascade,
@@ -508,6 +496,17 @@ create index media_tags_map_tag on media_tags_map (tags_id);
 DROP TRIGGER IF EXISTS mtm_last_updated on media_tags_map CASCADE;
 CREATE TRIGGER mtm_last_updated BEFORE INSERT OR UPDATE OR DELETE 
     ON media_tags_map FOR EACH ROW EXECUTE PROCEDURE update_media_last_updated() ;
+    
+create view media_with_media_types as
+    select m.*, mtm.tags_id media_type_tags_id, t.label media_type
+    from
+        media m
+        left join (
+            tags t
+            join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id and ts.name = 'media_type' )
+            join media_tags_map mtm on ( mtm.tags_id = t.tags_id )
+        ) on ( m.media_id = mtm.media_id );
+
 
 -- A dashboard defines which collections, dates, and topics appear together within a given dashboard screen.
 -- For example, a dashboard might include three media_sets for russian collections, a set of dates for which 
