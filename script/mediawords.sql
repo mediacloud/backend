@@ -473,19 +473,6 @@ insert into tags ( tag_sets_id, tag, label, description )
     select ts.tag_sets_id, mtt.name, mtt.name, mtt.description 
         from tag_sets ts cross join media_type_tags mtt
         where ts.name = 'media_type';
-        
-create view media_with_media_types as
-    select m.*, mtm.tags_id media_type_tags_id, t.label media_type
-    from
-        media m
-        left join (
-            tags t
-            join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id and ts.name = 'media_type' )
-            join media_tags_map mtm on ( mtm.tags_id = t.tags_id )
-        ) on ( m.media_id = mtm.media_id );
-
-
-
 
 create table feeds_tags_map (
     feeds_tags_map_id    serial            primary key,
@@ -508,6 +495,17 @@ create index media_tags_map_tag on media_tags_map (tags_id);
 DROP TRIGGER IF EXISTS mtm_last_updated on media_tags_map CASCADE;
 CREATE TRIGGER mtm_last_updated BEFORE INSERT OR UPDATE OR DELETE 
     ON media_tags_map FOR EACH ROW EXECUTE PROCEDURE update_media_last_updated() ;
+
+create view media_with_media_types as
+    select m.*, mtm.tags_id media_type_tags_id, t.label media_type
+    from
+        media m
+        left join (
+            tags t
+            join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id and ts.name = 'media_type' )
+            join media_tags_map mtm on ( mtm.tags_id = t.tags_id )
+        ) on ( m.media_id = mtm.media_id );
+
 
 -- A dashboard defines which collections, dates, and topics appear together within a given dashboard screen.
 -- For example, a dashboard might include three media_sets for russian collections, a set of dates for which 
@@ -1484,17 +1482,7 @@ create table controversies (
 );
 
 create unique index controversies_name on controversies( name );
-    
-create view controversies_with_dates as
-    select c.*, 
-            to_char( cd.start_date, 'YYYY-MM-DD' ) start_date, 
-            to_char( cd.end_date, 'YYYY-MM-DD' ) end_date
-        from 
-            controversies c 
-            join controversy_dates cd on ( c.controversies_id = cd.controversies_id )
-        where 
-            cd.boundary;
-    
+        
 create view controversies_with_search_info as
     select c.controversies_id, c.name, c.query_story_searches_id, q.start_date::date, q.end_date::date, qss.pattern, qss.queries_id
         from controversies c
@@ -1508,6 +1496,16 @@ create table controversy_dates (
     end_date                date not null,
     boundary                boolean not null default 'false'
 );
+
+create view controversies_with_dates as
+    select c.*, 
+            to_char( cd.start_date, 'YYYY-MM-DD' ) start_date, 
+            to_char( cd.end_date, 'YYYY-MM-DD' ) end_date
+        from 
+            controversies c 
+            join controversy_dates cd on ( c.controversies_id = cd.controversies_id )
+        where 
+            cd.boundary;
 
 create table controversy_dump_tags (
     controversy_dump_tags_id    serial primary key,
