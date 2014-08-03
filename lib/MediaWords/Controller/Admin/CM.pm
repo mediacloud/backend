@@ -2002,6 +2002,7 @@ sub partisan : Local
     my $db = $c->dbis;
 
     my $cdts_id = $c->req->params->{ cdts };
+    my $live    = $c->req->params->{ l };
 
     my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
 
@@ -2011,6 +2012,7 @@ sub partisan : Local
     $c->stash->{ controversy }   = $controversy;
     $c->stash->{ cd }            = $cd;
     $c->stash->{ cdts }          = $cdts;
+    $c->stash->{ live }          = $live;
     $c->stash->{ template }      = 'cm/partisan.tt2';
 }
 
