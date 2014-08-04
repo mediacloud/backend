@@ -225,8 +225,14 @@ sub _annotate_text($)
     $request->content_type( 'application/json; charset=utf8' );
     $request->content( $text_json_encoded );
 
-    my $response       = $ua->request( $request );
-    my $results_string = $response->decoded_content;
+    my $response = $ua->request( $request );
+
+    # Force UTF-8 encoding on the response because the server might not always
+    # return correct "Content-Type"
+    my $results_string = $response->decoded_content(
+        charset         => 'utf8',
+        default_charset => 'utf8'
+    );
 
     if ( $response->is_success )
     {
