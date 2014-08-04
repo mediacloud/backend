@@ -319,3 +319,48 @@ class WriteableApiTest(unittest.TestCase):
         story = self._mc.story(test_story_id)
         tags_on_story = [t for t in story['story_tags'] if t['tag_set']==tag_set_name]
         self.assertEqual(len(tags_on_story),len(desired_tags))
+
+    def testTagSentences(self):
+        test_story_id = 150891343
+        test_tag_id1 = '8878341' # rahulb@media.mit.edu:test_tag1
+        test_tag_id2 = '8878342' # rahulb@media.mit.edu:test_tag2
+        tag_set_name = "rahulb@media.mit.edu"
+        # grab some sentence_ids to test with
+        orig_story = self._mc.story(test_story_id)
+        self.assertTrue( len(orig_story['story_sentences']) > 2 )
+        sentence_ids = [ s['story_sentences_id'] for s in orig_story['story_sentences'][0:2] ]
+        # add a tag
+        desired_tags = [ mediacloud.api.SentenceTag(sid, tag_set_name, 'test_tag1') 
+            for sid in sentence_ids ]
+        response = self._mc.tagSentences(desired_tags)
+        self.assertEqual(len(response),len(desired_tags))
+        # and verify it worked
+        tagged_story = self._mc.story(test_story_id)
+        tagged_sentences = [ s for s in orig_story['story_sentences'] if len(s['tags']) > 0 ]
+        for s in tagged_sentences:
+            if s['story_sentences_id'] in sentence_ids:
+                self.assertTrue(test_tag_id1 in s['tags'])
+        # now do two tags on each story
+        desired_tags = desired_tags + [ mediacloud.api.SentenceTag(sid, tag_set_name, 'test_tag2') 
+            for sid in sentence_ids ]
+        response = self._mc.tagSentences(desired_tags)
+        self.assertEqual(len(response),len(desired_tags))
+        # and verify it worked
+        tagged_story = self._mc.story(test_story_id)
+        tagged_sentences = [ s for s in tagged_story['story_sentences'] if len(s['tags']) > 0 ]
+        for s in tagged_sentences:
+            if s['story_sentences_id'] in sentence_ids:
+                self.assertTrue(test_tag_id1 in s['tags'])
+                self.assertTrue(test_tag_id2 in s['tags'])
+        # now remove one
+        desired_tags = [ mediacloud.api.SentenceTag(sid, tag_set_name, 'test_tag1') 
+            for sid in sentence_ids ]
+        response = self._mc.tagSentences(desired_tags, clear_others=True)
+        self.assertEqual(len(response),len(desired_tags))
+        # and check it
+        tagged_story = self._mc.story(test_story_id)
+        tagged_sentences = [ s for s in tagged_story['story_sentences'] if len(s['tags']) > 0 ]
+        for s in tagged_sentences:
+            if s['story_sentences_id'] in sentence_ids:
+                self.assertTrue(test_tag_id1 in s['tags'])
+                self.assertFalse(test_tag_id2 in s['tags'])
