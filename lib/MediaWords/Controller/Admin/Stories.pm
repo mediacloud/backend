@@ -144,15 +144,23 @@ END
 
     $c->stash->{ stories_id } = $stories_id;
 
-    if (    MediaWords::Util::CoreNLP::annotator_is_enabled()
-        and MediaWords::Util::CoreNLP::story_is_annotated( $c->dbis, $story->{ stories_id } ) )
+    if ( MediaWords::Util::CoreNLP::annotator_is_enabled() )
     {
-        $c->stash->{ corenlp_story_is_annotated }            = 1;
-        $c->stash->{ corenlp_sentences_concatenation_index } = MediaWords::Util::CoreNLP::sentences_concatenation_index();
+        $c->stash->{ corenlp_is_enabled } = 1;
+        if ( MediaWords::Util::CoreNLP::story_is_annotated( $c->dbis, $story->{ stories_id } ) )
+        {
+            $c->stash->{ corenlp_story_is_annotated } = 1;
+            $c->stash->{ corenlp_sentences_concatenation_index } =
+              MediaWords::Util::CoreNLP::sentences_concatenation_index();
+        }
+        else
+        {
+            $c->stash->{ corenlp_story_is_annotated } = 0;
+        }
     }
     else
     {
-        $c->stash->{ corenlp_story_is_annotated } = 0;
+        $c->stash->{ corenlp_is_enabled } = 0;
     }
 
     $c->stash->{ template } = 'stories/view.tt2';
