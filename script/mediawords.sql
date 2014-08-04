@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4463;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4464;
     
 BEGIN
 
@@ -2456,32 +2456,34 @@ CREATE TRIGGER gearman_job_queue_sync_lastmod
 CREATE OR REPLACE FUNCTION story_is_annotatable_with_corenlp(corenlp_stories_id INT) RETURNS boolean AS $$
 BEGIN
 
-    IF EXISTS (
+    -- Check "media.annotate_with_corenlp"
+    IF NOT EXISTS (
 
         SELECT 1
         FROM stories
             INNER JOIN media ON stories.media_id = media.media_id
         WHERE stories.stories_id = corenlp_stories_id
-
-          -- We don't check if the story has been extracted here because the
-          -- CoreNLP worker might get to it sooner than the extractor (i.e. the
-          -- extractor might not be fast enough to set extracted = 't' before
-          -- CoreNLP annotation begins)
-
-          -- Media is marked for CoreNLP annotation
           AND media.annotate_with_corenlp = 't'
 
-          -- Story not yet marked as "processed"
-          AND NOT EXISTS (
-            SELECT 1
-            FROM processed_stories
-            WHERE stories.stories_id = processed_stories.stories_id
-          )
+    ) THEN
+        RAISE NOTICE 'Story % is not annotatable with CoreNLP because media is not set for annotation.', corenlp_stories_id;
+        RETURN FALSE;
+
+    -- Check if story has sentences
+    ELSEIF NOT EXISTS (
+
+        SELECT 1
+        FROM story_sentences
+        WHERE stories_id = corenlp_stories_id
 
     ) THEN
-        RETURN TRUE;
-    ELSE
+        RAISE NOTICE 'Story % is not annotatable with CoreNLP because it has no sentences.', corenlp_stories_id;
         RETURN FALSE;
+
+    -- Things are fine
+    ELSE
+        RETURN TRUE;
+
     END IF;
     
 END;
