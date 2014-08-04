@@ -74,13 +74,8 @@ sub run($;$)
         die "Unable to process download $downloads_id with CoreNLP: $@\n";
     }
 
-    # Mark the story as processed in "processed_stories"
-
-    # A record in "processed_stories" might already exist (when annotating old
-    # stories); in that case, just let it run with a warning
-    Readonly my $skip_if_already_exists => 1;
-
-    unless ( MediaWords::DBI::Stories::mark_as_processed( $db, $stories_id, $skip_if_already_exists ) )
+    # Mark the story as processed in "processed_stories" (which might contain duplicate records)
+    unless ( MediaWords::DBI::Stories::mark_as_processed( $db, $stories_id ) )
     {
 
         # If the script wasn't able to log annotated story to PostgreSQL, this
