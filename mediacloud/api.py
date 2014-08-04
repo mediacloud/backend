@@ -211,7 +211,6 @@ class MediaCloud(object):
             raise Exception(response_json['error'])
         return response_json
 
-
     def _query(self, url, params={}, http_method='GET'):
         self._logger.debug("query "+http_method+" to "+url+" with "+str(params))
         if not isinstance(params, dict):
@@ -219,9 +218,17 @@ class MediaCloud(object):
         if 'key' not in params:
             params['key'] = self._auth_token
         if http_method is 'GET':
-            r = requests.get(url, params=params, headers={ 'Accept': 'application/json'} )
+            try:
+                r = requests.get(url, params=params, headers={ 'Accept': 'application/json'} )
+            except Exception as e:
+                self._logger.error('Failed to load url '+url+' because '+str(e))
+                raise Exception("Error - failed to fetch data from mediacloud.org server")
         elif http_method is 'PUT':
-            r = requests.put( url, params=params, headers={ 'Accept': 'application/json'} )
+            try:
+                r = requests.put( url, params=params, headers={ 'Accept': 'application/json'} )
+            except Exception as e:
+                self._logger.error('Failed to load url '+url+' because '+str(e))
+                raise Exception("Error - failed to fetch data from mediacloud.org server")
         else:
             raise Exception('Error - unsupported HTTP method '+str(http_method))
         if r.status_code is not 200:
@@ -247,7 +254,6 @@ class WriteableMediaCloud(MediaCloud):
         '''
         Add some tags to stories. The tags parameter should be a list of StoryTag objects
         Returns ["1,rahulb@media.mit.edu:example_tag_2"] as response
-curl -X PUT -d key=KEY -d story_tag=1,rahulb@media.mit.edu:example_tag_2 https://api.mediacloud.org/api/v2/stories/put_tags
         '''
         params = {}
         if clear_others is True:
