@@ -16,6 +16,7 @@ use HTTP::Status qw(:constants);
 use Encode;
 use URI;
 use JSON;
+use Carp qw/confess cluck/;
 use Data::Dumper;
 
 # Store / fetch downloads using Bzip2 compression
@@ -333,7 +334,7 @@ sub _fetch_annotation_from_gridfs_for_story($$)
 
     if ( !annotator_is_enabled() )
     {
-        die "CoreNLP annotator is not enabled in the configuration.";
+        confess "CoreNLP annotator is not enabled in the configuration.";
     }
 
     unless ( story_is_annotated( $db, $stories_id ) )
@@ -401,7 +402,7 @@ sub _fatal_error($)
 
     my $error_message = shift;
 
-    say STDERR $error_message;
+    cluck $error_message;
     exit 1;
 }
 
@@ -579,7 +580,7 @@ sub fetch_annotation_json_for_story($$)
 
     if ( !annotator_is_enabled() )
     {
-        die "CoreNLP annotator is not enabled in the configuration.";
+        confess "CoreNLP annotator is not enabled in the configuration.";
     }
 
     unless ( story_is_annotated( $db, $stories_id ) )
@@ -628,7 +629,7 @@ sub fetch_annotation_json_for_story_sentence($$)
 
     if ( !annotator_is_enabled() )
     {
-        die "CoreNLP annotator is not enabled in the configuration.";
+        confess "CoreNLP annotator is not enabled in the configuration.";
     }
 
     my $story_sentence = $db->find_by_id( 'story_sentences', $story_sentences_id );
@@ -695,7 +696,7 @@ sub fetch_annotation_json_for_story_and_all_sentences($$)
 
     if ( !annotator_is_enabled() )
     {
-        die "CoreNLP annotator is not enabled in the configuration.";
+        confess "CoreNLP annotator is not enabled in the configuration.";
     }
 
     unless ( story_is_annotated( $db, $stories_id ) )
