@@ -10,6 +10,7 @@ use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use URI;
 use URI::Escape;
 use URI::QueryParam;
+use Carp;
 
 use MediaWords::DBI::Stories;
 use MediaWords::DBI::Activities;
@@ -164,22 +165,22 @@ sub corenlp_json : Local
 
     unless ( $stories_id )
     {
-        die "No stories_id";
+        confess "No stories_id";
     }
 
     unless ( $c->dbis->find_by_id( 'stories', $stories_id ) )
     {
-        die "Story $stories_id does not exist.";
+        confess "Story $stories_id does not exist.";
     }
 
     unless ( MediaWords::Util::CoreNLP::annotator_is_enabled() )
     {
-        die "CoreNLP annotator is not enabled in the configuration.";
+        confess "CoreNLP annotator is not enabled in the configuration.";
     }
 
     unless ( MediaWords::Util::CoreNLP::story_is_annotated( $c->dbis, $stories_id ) )
     {
-        die "Story $stories_id is not annotated.";
+        confess "Story $stories_id is not annotated.";
     }
 
     my $corenlp_json = MediaWords::Util::CoreNLP::fetch_annotation_json_for_story_and_all_sentences( $c->dbis, $stories_id );
