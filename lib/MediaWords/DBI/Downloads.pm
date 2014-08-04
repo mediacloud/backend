@@ -560,7 +560,8 @@ EOF
         }
     }
 
-    if ( MediaWords::Util::CoreNLP::story_is_annotatable( $db, $stories_id ) )
+    if (    MediaWords::Util::CoreNLP::annotator_is_enabled()
+        and MediaWords::Util::CoreNLP::story_is_annotatable( $db, $stories_id ) )
     {
 
         # Story is annotatable with CoreNLP; enqueue for CoreNLP annotation (which will run mark_as_processed() on its own)
