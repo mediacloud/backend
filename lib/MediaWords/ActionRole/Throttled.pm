@@ -29,7 +29,7 @@ around execute => sub {
         unless ( $user_email and $user_roles )
         {
             $c->response->status( HTTP_FORBIDDEN );
-            die 'Invalid API key or authentication cookie. Access denied.';
+            die 'Invalid API key or authentication cookie.';
         }
 
         my $request_path = $c->req->path;
@@ -84,12 +84,19 @@ EOF
             my $weekly_requests_sum          = ( $limits->{ weekly_requests_sum }          // 0 ) + 0;
             my $weekly_requested_items_sum   = ( $limits->{ weekly_requested_items_sum }   // 0 ) + 0;
 
+            my $profile_url       = $c->uri_for( '/admin/profile' );
+            my $throttled_message = <<END;
+You have exceeded your quota of requests or stories.  See your profile page 
+at $profile_url for your current usage and limits.  
+Contact info\@mediacloud.org with quota questions.
+END
+
             if ( $weekly_requests_limit > 0 )
             {
                 if ( $weekly_requests_sum >= $weekly_requests_limit )
                 {
                     $c->response->status( HTTP_FORBIDDEN );
-                    die "User exceeded weekly requests limit of $weekly_requests_limit. Access denied.";
+                    die "User exceeded weekly requests limit of $weekly_requests_limit. $throttled_message";
                 }
             }
 
@@ -99,7 +106,7 @@ EOF
                 {
                     $c->response->status( HTTP_FORBIDDEN );
                     die
-"User exceeded weekly requested items (stories) limit of $weekly_requested_items_limit. Access denied.";
+"User exceeded weekly requested items (stories) limit of $weekly_requested_items_limit. $throttled_message";
                 }
             }
         }

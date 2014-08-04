@@ -6,7 +6,7 @@
 
 <a id="boxcommand" href="[% c.uri_for('/admin/cm/create') %]">create controversy</a>
 
-<table>
+<table class="even_rows_grey">
 
 <tr>
 <th>Controversy</th>
@@ -15,7 +15,7 @@
 
     [% FOREACH controversy IN controversies -%]
 
-        <tr [% IF even %]class="even"[% END %]>
+        <tr>
 
             <td>
                 <a href="[%  c.uri_for('/admin/cm/view/'  _ controversy.controversies_id ) %]">
@@ -25,8 +25,6 @@
 
             <td>[% controversy.description | html %]</td>
         </tr>
-
-    [% SET even = !even %]
     [% END # FOREACH stories -%]
 
 </table>

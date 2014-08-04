@@ -1,7 +1,5 @@
 [% PROCESS cm/header.tt2 title="Medium '$medium.name'" %]
 
-[% PROCESS cm/remove_stories_confirm_js.tt2 %]
-
 <div id="warning_box">
 
 [% IF live %]
@@ -57,10 +55,10 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
     <a id="boxcommand" href="[% unredirect_url | html %]">un-redirect</a>
     <a id="boxcommand" href="[% edit_url | html %]">edit</a>
 </div>
-<table>
+<table class="even_rows_grey">
 
     <tr><td>Media_id</td><td>[% medium.media_id %]</td></tr>
-    <tr class="even"><td>Name</td><td>[% medium.name | html %] [% live_medium_diff( 'name' ) | html %]</td></tr>
+    <tr><td>Name</td><td>[% medium.name | html %] [% live_medium_diff( 'name' ) | html %]</td></tr>
     <tr>
         <td>Url</td>
         <td>
@@ -68,9 +66,10 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
             [% live_medium_diff( 'url' ) | html %]
         </td>
     </tr>
-    <tr class="even"><td># Stories</td><td>[% medium.story_count %] [% live_medium_diff( 'story_count' ) | html %]</td></tr>
+    <tr><td>Media Type</td><td>[% medium.media_type | html %]</td></tr>
+    <tr><td># Stories</td><td>[% medium.story_count %] [% live_medium_diff( 'story_count' ) | html %]</td></tr>
     <tr><td># Incoming Story Links</td><td>[% medium.inlink_count %] [% live_medium_diff( 'inlink_count' ) | html %]</td></tr>
-    <tr class="even"><td># Outgoing Story Links</td><td>[% medium.outlink_count %] [% live_medium_diff( 'outlink_count' ) | html %]</td></tr>
+    <tr><td># Outgoing Story Links</td><td>[% medium.outlink_count %] [% live_medium_diff( 'outlink_count' ) | html %]</td></tr>
     
 </table>
 
@@ -79,19 +78,22 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
     display_stories_short_title = controversy.name _ " Stories in " _ medium.name
     display_stories_full_title = controversy.name _ " Stories in Medium '" _ medium.name _ "'"
     display_stories_id = "medium_stories"
-    display_stories_remove_button = 1 %]
+    display_stories_remove_button = 1
+    display_stories_solr_query = "media_id:${medium.media_id}" %]
     
 [% INCLUDE cm/stories_table.tt2 
     display_stories = medium.inlink_stories
     display_stories_short_title = controversy.name _ " Stories Linking to " _ medium.name
     display_stories_full_title = controversy.name _ " Stories Linking to Medium '" _ medium.name _ "'" 
-    display_stories_id = 'inlink_stories' %]
+    display_stories_id = 'inlink_stories' 
+    display_stories_solr_query = "{~ controversy_dump_time_slice:${cdts.controversy_dump_time_slices_id} link_to_medium:${medium.media_id} }" %]
 
 [% INCLUDE cm/stories_table.tt2 
     display_stories = medium.outlink_stories
     display_stories_short_title = controversy.name _ " Stories Linked from " _ medium.name
     display_stories_full_title = controversy.name _ " Stories Linked from Medium '" _ medium.name _ "'" 
-    display_stories_id = 'outlink_stories' %]
+    display_stories_id = 'outlink_stories'
+    display_stories_solr_query = "{~ controversy_dump_time_slice:${cdts.controversy_dump_time_slices_id} link_from_medium:${medium.media_id} }" %]
 
 
 [% INCLUDE include/footer.tt2 %]

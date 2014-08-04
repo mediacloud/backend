@@ -9,6 +9,7 @@ use base 'Catalyst::Controller';
 
 use MediaWords::CM::Mine;
 use MediaWords::Solr;
+use MediaWords::Solr::WordCounts;
 use MediaWords::Util::CSV;
 use MediaWords::ActionRole::Logged;
 
@@ -22,12 +23,12 @@ Catalyst Controller for basic story search page
 
 =cut
 
-__PACKAGE__->config(    #
-    action => {         #
-        index => { Does => [ qw( ~Throttled ~Logged ) ] },    #
-        wc    => { Does => [ qw( ~Throttled ~Logged ) ] },    #
-      }    #
-);         #
+__PACKAGE__->config(
+    action => {
+        index => { Does => [ qw( ~Throttled ~Logged ) ] },
+        wc    => { Does => [ qw( ~Throttled ~Logged ) ] },
+    }
+);
 
 # number of stories to sample for the search
 use constant NUM_SAMPLED_STORIES => 100;
@@ -188,13 +189,67 @@ sub _match_stories_to_pattern
     return $stories;
 }
 
+# stash all the parameters relevant to a wc query, which includes the 'q' param necessary for a
+# non-wc search
+sub _stash_wc_query_params
+{
+    my ( $c ) = @_;
+
+    my $keys = MediaWords::Solr::WordCounts::get_cgi_param_attributes;
+
+    map { $c->stash->{ $_ } = $c->req->params->{ $_ } } @{ $keys };
+
+    if ( $c->req->params->{ languages } && ref( $c->req->params->{ languages } ) )
+    {
+        $c->stash->{ languages } = join( " ", @{ $c->req->params->{ languages } } );
+    }
+}
+
+# if there the error is empty, return undef. if the error is a recognized message, return a
+# suitable error message as the catalyst response. otherwise, print the error to stderr and
+# print a generic error message
+sub _return_recognized_query_error
+{
+    my ( $c, $error ) = @_;
+
+    return 0 unless ( $error );
+
+    $c->stash->{ num_stories } = 0;
+    $c->stash->{ template }    = 'search/search.tt2';
+
+    my $msg;
+    if ( $error =~ /(solr.*(bad request|invalid|syntax))/i )
+    {
+        $c->stash->{ status_msg } = "Cannot parse search query";
+    }
+    elsif ( $error =~ /pseudo query error/i )
+    {
+        $error =~ s/at \/.*//;
+        $c->stash->{ status_msg } = "Cannot parse search query: $error";
+    }
+    elsif ( $error =~ /throttled/i )
+    {
+        warn( $error );
+        $c->stash->{ status_msg } = <<END;
+You have exceeded your quota of requests or stories.  See your profile page at https://core.mediacloud.org/admin/profile
+for your current usage and limits.  Contact info\@mediacloud.org with quota questions.
+END
+    }
+    else
+    {
+        warn( $@ );
+        $c->stash->{ status_msg } = 'Unknown error.  Please report to info@mediacloud.org.';
+    }
+
+    return 1;
+}
+
 # search for stories using solr and return either a sampled list of stories in html or the full list in csv
 sub index : Path : Args(0)
 {
     my ( $self, $c ) = @_;
 
-    my $q       = $c->req->params->{ q } || '';
-    my $l       = $c->req->params->{ l };
+    my $q = $c->req->params->{ q } || '';
     my $pattern = $c->req->params->{ pattern };
 
     if ( !$q )
@@ -222,19 +277,9 @@ sub index : Path : Args(0)
     my $stories;
     eval { $stories = MediaWords::Solr::search_for_stories( $db, $solr_params ) };
 
-    if ( $@ =~ /solr.*Bad Request/ )
-    {
-        print STDERR "solr error: $@\n";
-        $c->stash->{ status_msg } = 'Cannot parse search query';
-        $c->stash->{ q }          = $q;
-        $c->stash->{ l }          = $l;
-        $c->stash->{ template }   = 'search/search.tt2';
-        return;
-    }
-    elsif ( $@ )
-    {
-        die( $@ );
-    }
+    _stash_wc_query_params( $c );
+
+    return if ( _return_recognized_query_error( $c, $@ ) );
 
     _match_stories_to_pattern( $db, $stories, $pattern ) if ( defined( $pattern ) );
 
@@ -264,8 +309,6 @@ sub index : Path : Args(0)
         $c->stash->{ stories }     = $stories;
         $c->stash->{ num_stories } = $num_stories;
         $c->stash->{ tag_counts }  = $tag_counts;
-        $c->stash->{ l }           = $l;
-        $c->stash->{ q }           = $q;
         $c->stash->{ pattern }     = $pattern;
         $c->stash->{ template }    = 'search/search.tt2';
     }
@@ -277,7 +320,6 @@ sub wc : Local
     my ( $self, $c ) = @_;
 
     my $q = $c->req->params->{ q };
-    my $l = $c->req->params->{ l } || '';
 
     if ( !$q )
     {
@@ -285,30 +327,21 @@ sub wc : Local
         return;
     }
 
-    my $languages = [ split( /\W/, $l ) ];
-
     if ( $q =~ /story_sentences_id|sentence_number/ )
     {
         die( "searches by sentence not allowed" );
     }
 
-    die( "missing q" ) unless ( $q );
+    my $wc = MediaWords::Solr::WordCounts->new( cgi_params => $c->req->params );
 
     my $words;
-    eval { $words = MediaWords::Solr::count_words( $q, undef, $languages ) };
+    eval { $words = $wc->get_words };
 
-    if ( $@ =~ /solr.*Bad Request/ )
-    {
-        $c->stash->{ status_msg } = 'Cannot parse search query';
-        $c->stash->{ q }          = $q;
-        $c->stash->{ l }          = $l;
-        $c->stash->{ template }   = 'search/wc.tt2';
-    }
-    elsif ( $@ )
-    {
-        die( $@ );
-    }
-    elsif ( $c->req->params->{ csv } )
+    _stash_wc_query_params( $c );
+
+    return if ( _return_recognized_query_error( $c, $@ ) );
+
+    if ( $c->req->params->{ csv } )
     {
         my $encoded_csv = MediaWords::Util::CSV::get_hashes_as_encoded_csv( $words );
 
@@ -320,8 +353,6 @@ sub wc : Local
     else
     {
         $c->stash->{ words }    = $words;
-        $c->stash->{ q }        = $q;
-        $c->stash->{ l }        = $l;
         $c->stash->{ template } = 'search/wc.tt2';
     }
 }

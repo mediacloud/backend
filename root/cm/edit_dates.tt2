@@ -1,0 +1,44 @@
+[% INCLUDE cm/header.tt2 title = "CM: Edit Timeslice Dates for ${ controversy.name }" %]
+
+<div id="boxtitle">Edit Dates</a>
+<div id="wholecolumn">
+    <fieldset>
+        <p>Use this page to add or remove custom date ranges for timeslices.</p>
+
+        <form action="[% c.uri_for( '/admin/cm/add_date/' _ controversy.controversies_id ) %]" method="post" >
+            Start Date (YYYY-MM-DD): <input type="text" name="start_date" /><br />
+            End Date (YYYY-MM-DD: <input type="text" name="end_date" /><br />
+            OR<br/>
+            Add Dates Every N Days: <input type="text" name="interval" /><br />
+            <input type="submit" value="Add Dates" />
+    </fieldset>
+</div>
+
+<div id="wholecolumn">
+    <div id="boxtitle">Existing Dates</div>
+    <table class="even_rows_grey">
+        <tr>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Delete</th>
+        </tr>
+        [% FOREACH cd IN controversy_dates %]
+            [% SET delete_url = c.uri_for( '/admin/cm/delete_date/' _ controversy.controversies_id, { start_date => cd.start_date, end_date => cd.end_date } ) %]
+
+            <tr>
+                <td>[% cd.start_date | html %]</td>
+                <td>[% cd.end_date | html %]</td>
+                <td>
+                    [% IF cd.boundary %]
+                        (boundary)
+                    [% ELSE %]
+                        <a href="[% delete_url | html %]">delete</a>
+                    [% END %] 
+                                       
+                </td>
+            </tr>
+        [% END %]
+    </table>
+</div>
+
+[% INCLUDE include/footer.tt2 %]

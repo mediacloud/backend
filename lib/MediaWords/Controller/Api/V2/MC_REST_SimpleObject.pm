@@ -34,8 +34,8 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 # Default authentication action roles
 __PACKAGE__->config(    #
     action => {         #
-        single => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
-        list   => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
+        single_GET => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
+        list_GET   => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
       }    #
 );         #
 

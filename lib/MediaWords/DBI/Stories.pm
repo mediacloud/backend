@@ -1047,12 +1047,7 @@ sub add_missing_story_sentences
 
     my $ss = $db->query( "select 1 from story_sentences ss where stories_id = ?", $story->{ stories_id } )->hash;
 
-    if ( $ss )
-    {
-        say STDERR "Sentences for story " .
-          $story->{ stories_id } . " already exist, so not adding missing story sentences.";
-        return;
-    }
+    return unless ( $ss );
 
     print STDERR "ADD SENTENCES\n";
 
@@ -1112,17 +1107,22 @@ END
     return $all_sentences;
 }
 
-# Mark the story as processed by INSERTing an entry into "processed_stories";
-# return true on success, false on failure
+# Mark the story as processed by INSERTing an entry into "processed_stories"
+#
+# Parameters:
+# * $db -- database object
+# * $stories_id -- "stories_id" to insert into "processed_stories"
+#
+# Return true on success, false on failure
 sub mark_as_processed($$)
 {
     my ( $db, $stories_id ) = @_;
 
-    my $result;
+    my $result = undef;
     eval { $result = $db->create( 'processed_stories', { stories_id => $stories_id } ); };
     if ( $@ or ( !$result ) )
     {
-        say STDERR "Unable to insert story ID $stories_id into 'processed_stories': $@";
+        warn "Unable to insert story ID $stories_id into 'processed_stories': $@";
         return 0;
     }
     else
@@ -1145,7 +1145,6 @@ sub attach_story_data_to_stories
 
     unless ( scalar @{ $story_data } )
     {
-        say STDERR "Story data is not an arrayref, so not attaching story data to stories.";
         return;
     }
 

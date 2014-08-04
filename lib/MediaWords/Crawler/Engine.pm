@@ -40,6 +40,8 @@ sub new
     $self->fetchers( [] );
     $self->reconnect_db();
     $self->children_exit_on_kill( 0 );
+    $self->test_mode( 0 );
+
     return $self;
 }
 
@@ -293,12 +295,12 @@ sub crawl
     MediaWords::DB::run_block_with_large_work_mem
     {
 
-        while ( 1 )
+      MAINLOOP: while ( 1 )
         {
             if ( $self->timeout && ( ( time - $start_time ) > $self->timeout ) )
             {
                 print STDERR "crawler timed out\n";
-                last;
+                last MAINLOOP;
             }
 
             #print "wait for fetcher requests ...\n";
@@ -321,6 +323,14 @@ sub crawl
                 {
                     print STDERR "refill queued downloads ...\n";
                     $queued_downloads = $provider->provide_downloads();
+
+                    if ( !@{ $queued_downloads } && $self->test_mode )
+                    {
+                        print STDERR "exiting after 30 second wait because crawler is in test mode and queue is empty\n";
+                        sleep 30;
+                        print STDERR "exiting now.\n";
+                        last MAINLOOP;
+                    }
                 }
 
                 if ( my $queued_download = shift( @{ $queued_downloads } ) )
@@ -533,6 +543,25 @@ sub children_exit_on_kill
     }
 
     return $_[ 0 ]->{ children_exit_on_kill };
+}
+
+sub test_mode
+{
+    my ( $self, $test_mode ) = @_;
+
+    if ( defined( $test_mode ) )
+    {
+        $self->{ test_mode } = $test_mode;
+
+        if ( $test_mode )
+        {
+            $self->processes( 1 );
+            $self->throttle( 1 );
+            $self->sleep_interval( 1 );
+        }
+    }
+
+    return $self->{ test_mode };
 }
 
 # engine MediaWords::DBI Simple handle

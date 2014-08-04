@@ -364,7 +364,7 @@ sub _get_story_words_end_date_for_medium
 
 }
 
-sub _date_with_media_source_story_words_range
+sub _date_within_media_source_story_words_range
 {
     my ( $medium, $publish_date ) = @_;
 
@@ -393,7 +393,7 @@ sub _story_within_media_source_story_words_date_range
 
     my $publish_date = $story->{ publish_date };
 
-    return _date_with_media_source_story_words_range( $medium, $publish_date );
+    return _date_within_media_source_story_words_range( $medium, $publish_date );
 
     return 1;
 }
@@ -491,9 +491,14 @@ sub update_story_sentence_words_and_language
     # Get story text
     my $story_text = $story->{ story_text } || MediaWords::DBI::Stories::get_text_for_word_counts( $db, $story );
 
-    if ( length( $story_text ) < length( $story->{ description } ) )
+    if ( ( length( $story_text ) == 0 ) || ( length( $story_text ) < length( $story->{ description } ) ) )
     {
-        $story_text = html_strip( "$story->{ title }.  $story->{ description }." );
+        $story_text = html_strip( $story->{ title } );
+        if ( $story->{ description } )
+        {
+            $story_text .= '.' unless ( $story_text =~ /\.\s*$/ );
+            $story_text .= html_strip( $story->{ description } );
+        }
     }
 
     # Determine TLD

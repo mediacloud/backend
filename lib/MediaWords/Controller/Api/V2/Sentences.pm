@@ -37,10 +37,12 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 
 __PACKAGE__->config(    #
     action => {         #
-        single => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },  # overrides "MC_REST_SimpleObject"
-        list   => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },  # overrides "MC_REST_SimpleObject"
-        put_tags => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
-        count    => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },       #
+        single_GET => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] }
+        ,               # overrides "MC_REST_SimpleObject"
+        list_GET => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] }
+        ,               # overrides "MC_REST_SimpleObject"
+        put_tags_PUT => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
+        count_GET    => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },       #
       }    #
 );         #
 

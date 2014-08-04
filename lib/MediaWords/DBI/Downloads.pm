@@ -129,8 +129,11 @@ BEGIN
 
     if ( $_config->{ mongodb_gridfs } )
     {
-        $_download_store_lookup->{ gridfs } = MediaWords::KeyValueStore::GridFS->new(
-            { database_name => $_config->{ mongodb_gridfs }->{ downloads }->{ database_name } } );
+        if ( $_config->{ mongodb_gridfs }->{ downloads } )
+        {
+            $_download_store_lookup->{ gridfs } = MediaWords::KeyValueStore::GridFS->new(
+                { database_name => $_config->{ mongodb_gridfs }->{ downloads }->{ database_name } } );
+        }
     }
 
     $_download_store_lookup->{ localfile } =
@@ -522,6 +525,8 @@ sub process_download_for_extractor($$$;$$$)
 {
     my ( $db, $download, $process_num, $no_dedup_sentences, $no_vector ) = @_;
 
+    $process_num //= 1;
+
     my $stories_id = $download->{ stories_id };
 
     # Extract
@@ -555,7 +560,8 @@ EOF
         }
     }
 
-    if ( MediaWords::Util::CoreNLP::get_story_annotatable_by_corenlp( $db, $stories_id ) )
+    if (    MediaWords::Util::CoreNLP::annotator_is_enabled()
+        and MediaWords::Util::CoreNLP::story_is_annotatable( $db, $stories_id ) )
     {
 
         # Story is annotatable with CoreNLP; enqueue for CoreNLP annotation (which will run mark_as_processed() on its own)

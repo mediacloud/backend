@@ -292,22 +292,8 @@ DISTRIBUTIONS
       Exporter 0
       ExtUtils::MakeMaker 6.17
       Fcntl 0
-      File::Basename 0
-      File::Find 0
-      File::Spec 0
-      File::Spec::Functions 0
-      File::Temp 0
-      Getopt::Long 0
-      IO::Dir 0
-      JSON::PP 0
-      List::Util 0
       Scalar::Util 0
-      Test::More 0.99
-      lib 0
       strict 0
-      utf8 0
-      vars 0
-      version 0
       warnings 0
   Cache-Cache-1.06
     pathname: J/JS/JSWARTZ/Cache-Cache-1.06.tar.gz
@@ -1698,10 +1684,6 @@ DISTRIBUTIONS
       POSIX 0
       Params::Validate 0.76
       Scalar::Util 0
-      Storable 0
-      Test::Fatal 0
-      Test::More 0.88
-      Test::Warnings 0.005
       Try::Tiny 0
       XSLoader 0
       base 0
@@ -1710,7 +1692,6 @@ DISTRIBUTIONS
       overload 0
       perl 5.008001
       strict 0
-      utf8 0
       vars 0
       warnings 0
       warnings::register 0
@@ -1821,7 +1802,6 @@ DISTRIBUTIONS
       FindBin 0
       Getopt::Long 0
       List::MoreUtils 0
-      Module::Build 0.38
       Module::Util 0
       Params::Validate 0
       Scalar::Util 0
@@ -2332,7 +2312,7 @@ DISTRIBUTIONS
       DateTime::Locale::zu_ZA undef
     requirements:
       List::MoreUtils 0
-      Module::Build 0.36
+      Module::Build 0
       Params::Validate 0.91
       perl 5.006
   DateTime-Set-0.3400
@@ -3321,10 +3301,6 @@ DISTRIBUTIONS
     requirements:
       Data::Dumper 0
       ExtUtils::MakeMaker 6.30
-      File::Spec 0
-      IO::Handle 0
-      IPC::Open3 0
-      Test::More 0.88
       strict 0
       warnings 0
   ExtUtils-Depends-0.306
@@ -3346,19 +3322,13 @@ DISTRIBUTIONS
       ExtUtils::Helpers::Windows 0.022
     requirements:
       Carp 0
-      Cwd 0
       Exporter 5.57
       ExtUtils::MakeMaker 6.30
       File::Basename 0
       File::Copy 0
-      File::Spec 0
       File::Spec::Functions 0
-      IO::Handle 0
-      IPC::Open3 0
       Module::Load 0
-      Test::More 0
       Text::ParseWords 3.24
-      lib 0
       strict 0
       warnings 0
   ExtUtils-InstallPaths-0.010
@@ -3370,11 +3340,6 @@ DISTRIBUTIONS
       ExtUtils::Config 0.002
       ExtUtils::MakeMaker 6.30
       File::Spec 0
-      File::Spec::Functions 0
-      File::Temp 0
-      IO::Handle 0
-      IPC::Open3 0
-      Test::More 0
       strict 0
       warnings 0
   ExtUtils-LibBuilder-0.04
@@ -4595,6 +4560,15 @@ DISTRIBUTIONS
       JSON::PP 2.27202
       Test::More 0.88
       Test::Without::Module 0.17
+  JSON-PP-2.27203
+    pathname: M/MA/MAKAMAKA/JSON-PP-2.27203.tar.gz
+    provides:
+      JSON::PP 2.27203
+      JSON::PP::Boolean 2.27203
+      JSON::PP::IncrParser 2.27203
+    requirements:
+      ExtUtils::MakeMaker 0
+      Test::More 0
   LWP-MediaTypes-6.02
     pathname: G/GA/GAAS/LWP-MediaTypes-6.02.tar.gz
     provides:
@@ -4824,7 +4798,7 @@ DISTRIBUTIONS
     requirements:
       Carp 0
       Class::Data::Inheritable 0
-      ExtUtils::MakeMaker 6.98
+      ExtUtils::MakeMaker 6.92
       File::Spec 0
       Symbol 0
       Test::More 0
@@ -5138,63 +5112,61 @@ DISTRIBUTIONS
       Try::Tiny 0
       strict 0
       warnings 0
-  Module-Install-1.08
-    pathname: B/BI/BINGOS/Module-Install-1.08.tar.gz
+  Module-Install-1.10
+    pathname: B/BI/BINGOS/Module-Install-1.10.tar.gz
     provides:
-      Module::AutoInstall 1.08
-      Module::Install 1.08
-      Module::Install::Admin 1.08
-      Module::Install::Admin::Bundle 1.08
-      Module::Install::Admin::Compiler 1.08
-      Module::Install::Admin::Find 1.08
-      Module::Install::Admin::Include 1.08
-      Module::Install::Admin::Makefile 1.08
-      Module::Install::Admin::Manifest 1.08
-      Module::Install::Admin::Metadata 1.08
-      Module::Install::Admin::ScanDeps 1.08
-      Module::Install::Admin::WriteAll 1.08
-      Module::Install::AutoInstall 1.08
-      Module::Install::Base 1.08
-      Module::Install::Base::FakeAdmin 1.08
-      Module::Install::Bundle 1.08
-      Module::Install::Can 1.08
-      Module::Install::Compiler 1.08
-      Module::Install::DSL 1.08
-      Module::Install::Deprecated 1.08
-      Module::Install::External 1.08
-      Module::Install::Fetch 1.08
-      Module::Install::Include 1.08
-      Module::Install::Inline 1.08
-      Module::Install::MakeMaker 1.08
-      Module::Install::Makefile 1.08
-      Module::Install::Metadata 1.08
-      Module::Install::PAR 1.08
-      Module::Install::Run 1.08
-      Module::Install::Scripts 1.08
-      Module::Install::Share 1.08
-      Module::Install::Win32 1.08
-      Module::Install::With 1.08
-      Module::Install::WriteAll 1.08
-      inc::Module::Install 1.08
-      inc::Module::Install::DSL 1.08
+      Module::AutoInstall 1.10
+      Module::Install 1.10
+      Module::Install::Admin 1.10
+      Module::Install::Admin::Bundle 1.10
+      Module::Install::Admin::Compiler 1.10
+      Module::Install::Admin::Find 1.10
+      Module::Install::Admin::Include 1.10
+      Module::Install::Admin::Makefile 1.10
+      Module::Install::Admin::Manifest 1.10
+      Module::Install::Admin::Metadata 1.10
+      Module::Install::Admin::ScanDeps 1.10
+      Module::Install::Admin::WriteAll 1.10
+      Module::Install::AutoInstall 1.10
+      Module::Install::Base 1.10
+      Module::Install::Base::FakeAdmin 1.10
+      Module::Install::Bundle 1.10
+      Module::Install::Can 1.10
+      Module::Install::Compiler 1.10
+      Module::Install::DSL 1.10
+      Module::Install::Deprecated 1.10
+      Module::Install::External 1.10
+      Module::Install::Fetch 1.10
+      Module::Install::Include 1.10
+      Module::Install::Inline 1.10
+      Module::Install::MakeMaker 1.10
+      Module::Install::Makefile 1.10
+      Module::Install::Metadata 1.10
+      Module::Install::PAR 1.10
+      Module::Install::Run 1.10
+      Module::Install::Scripts 1.10
+      Module::Install::Share 1.10
+      Module::Install::Win32 1.10
+      Module::Install::With 1.10
+      Module::Install::WriteAll 1.10
+      inc::Module::Install 1.10
+      inc::Module::Install::DSL 1.10
     requirements:
-      Archive::Tar 1.44
       Devel::PPPort 3.16
       ExtUtils::Install 1.52
       ExtUtils::MakeMaker 6.59
       ExtUtils::ParseXS 2.19
+      File::Path 0
       File::Remove 1.42
       File::Spec 3.28
-      JSON 2.14
       Module::Build 0.29
       Module::CoreList 2.17
       Module::ScanDeps 1.09
-      PAR::Dist 0.29
       Parse::CPAN::Meta 1.4413
       Test::Harness 3.13
       Test::More 0.86
       YAML::Tiny 1.38
-      perl 5.005
+      perl 5.006
   Module-Pluggable-5.1
     pathname: S/SI/SIMONW/Module-Pluggable-5.1.tar.gz
     provides:
@@ -5781,6 +5753,26 @@ DISTRIBUTIONS
       perl 5.008003
       strict 0
       warnings 0
+  MooseX-Types-DateTime-MoreCoercions-0.12
+    pathname: E/ET/ETHER/MooseX-Types-DateTime-MoreCoercions-0.12.tar.gz
+    provides:
+      MooseX::Types::DateTime::MoreCoercions 0.12
+    requirements:
+      DateTime 0.4302
+      DateTime::Duration 0.4302
+      DateTimeX::Easy 0.085
+      ExtUtils::MakeMaker 6.30
+      Module::Build::Tiny 0.036
+      Moose 0.41
+      MooseX::Types 0.04
+      MooseX::Types::DateTime 0.07
+      MooseX::Types::Moose 0.04
+      Time::Duration::Parse 0.06
+      if 0
+      namespace::clean 0.08
+      perl 5.006
+      strict 0
+      warnings 0
   Mozilla-CA-20130114
     pathname: A/AB/ABH/Mozilla-CA-20130114.tar.gz
     provides:
@@ -5863,6 +5855,89 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       LWP 5.09
       XML::Writer 0
+  Net-DNS-0.78
+    pathname: N/NL/NLNETLABS/Net-DNS-0.78.tar.gz
+    provides:
+      Net::DNS 0.78
+      Net::DNS::Domain 1222
+      Net::DNS::DomainName 1222
+      Net::DNS::DomainName1035 1222
+      Net::DNS::DomainName2535 1222
+      Net::DNS::Header 1101
+      Net::DNS::Mailbox 1155
+      Net::DNS::Mailbox1035 1155
+      Net::DNS::Mailbox2535 1155
+      Net::DNS::Nameserver 1222
+      Net::DNS::Packet 1225
+      Net::DNS::Parameters 1222
+      Net::DNS::Question 1222
+      Net::DNS::RR 1225
+      Net::DNS::RR::A 1188
+      Net::DNS::RR::AAAA 1188
+      Net::DNS::RR::AFSDB 1188
+      Net::DNS::RR::APL 1188
+      Net::DNS::RR::APL::Item 1188
+      Net::DNS::RR::CAA 1188
+      Net::DNS::RR::CERT 1188
+      Net::DNS::RR::CNAME 1188
+      Net::DNS::RR::DHCID 1188
+      Net::DNS::RR::DNAME 1188
+      Net::DNS::RR::EUI48 1188
+      Net::DNS::RR::EUI64 1188
+      Net::DNS::RR::GPOS 1188
+      Net::DNS::RR::HINFO 1188
+      Net::DNS::RR::HIP 1188
+      Net::DNS::RR::IPSECKEY 1188
+      Net::DNS::RR::ISDN 1188
+      Net::DNS::RR::KX 1188
+      Net::DNS::RR::L32 1188
+      Net::DNS::RR::L64 1188
+      Net::DNS::RR::LOC 1188
+      Net::DNS::RR::LP 1188
+      Net::DNS::RR::MB 1182
+      Net::DNS::RR::MG 1182
+      Net::DNS::RR::MINFO 1188
+      Net::DNS::RR::MR 1182
+      Net::DNS::RR::MX 1188
+      Net::DNS::RR::NAPTR 1229
+      Net::DNS::RR::NID 1188
+      Net::DNS::RR::NS 1188
+      Net::DNS::RR::NULL 1188
+      Net::DNS::RR::OPT 1225
+      Net::DNS::RR::PTR 1188
+      Net::DNS::RR::PX 1188
+      Net::DNS::RR::RP 1229
+      Net::DNS::RR::RT 1188
+      Net::DNS::RR::SOA 1188
+      Net::DNS::RR::SPF 1188
+      Net::DNS::RR::SRV 1188
+      Net::DNS::RR::SSHFP 1188
+      Net::DNS::RR::TKEY 1188
+      Net::DNS::RR::TLSA 1188
+      Net::DNS::RR::TSIG 1188
+      Net::DNS::RR::TXT 1229
+      Net::DNS::RR::X25 1188
+      Net::DNS::Resolver 1223
+      Net::DNS::Resolver::Base 1224
+      Net::DNS::Resolver::MSWin32 1225
+      Net::DNS::Resolver::Recurse 1185
+      Net::DNS::Resolver::UNIX 1224
+      Net::DNS::Resolver::cygwin 1233
+      Net::DNS::Resolver::os2 1225
+      Net::DNS::Text 1229
+      Net::DNS::Update 1171
+      Net::DNS::ZoneFile 1224
+      Net::DNS::ZoneFile::Generator 1224
+      Net::DNS::ZoneFile::Text 1224
+    requirements:
+      Digest::HMAC 1.01
+      Digest::MD5 2.13
+      Digest::SHA 5.23
+      ExtUtils::MakeMaker 0
+      IO::Socket 1.24
+      MIME::Base64 2.11
+      Test::More 0.52
+      perl 5.00404
   Net-Domain-TLD-1.72
     pathname: A/AL/ALEXP/Net-Domain-TLD-1.72.tar.gz
     provides:
@@ -6282,24 +6357,13 @@ DISTRIBUTIONS
     requirements:
       Attribute::Handlers 0.79
       Carp 0
-      Devel::Peek 0
       Exporter 0
       ExtUtils::CBuilder 0
-      File::Spec 0
-      File::Temp 0
       Module::Build 0.3601
       Module::Implementation 0
       Scalar::Util 1.10
-      Test::Fatal 0
-      Test::More 0.88
-      Test::Requires 0
-      Tie::Array 0
-      Tie::Hash 0
       XSLoader 0
       attributes 0
-      base 0
-      lib 0
-      overload 0
       perl 5.008001
       strict 0
       vars 0
@@ -6315,15 +6379,8 @@ DISTRIBUTIONS
       Exporter 0
       ExtUtils::MakeMaker 6.30
       File::Spec 0.80
-      File::Spec::Functions 0
       JSON::PP 2.27200
-      List::Util 0
-      Test::More 0.47
-      lib 0
       strict 0
-      vars 0
-      version 0
-      warnings 0
   Parse-RecDescent-1.967009
     pathname: J/JT/JTBRAUN/Parse-RecDescent-1.967009.tar.gz
     provides:
@@ -6961,6 +7018,13 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 6.30
       Sub::Exporter::Progressive 0.001006
       syntax 0
+  Sys-RunAlone-0.12
+    pathname: E/EL/ELIZABETH/Sys-RunAlone-0.12.tar.gz
+    provides:
+      Sys::RunAlone 0.12
+    requirements:
+      ExtUtils::MakeMaker 0
+      Fcntl 0
   Sys-SigAction-0.21
     pathname: L/LB/LBAXTER/Sys-SigAction-0.21.tar.gz
     provides:
@@ -7217,7 +7281,6 @@ DISTRIBUTIONS
     provides:
       Test::Exception 0.32
     requirements:
-      Module::Build 0.38
       Sub::Uplevel 0.18
       Test::Builder 0.7
       Test::Builder::Tester 1.07
@@ -7370,18 +7433,6 @@ DISTRIBUTIONS
       Test::More 0.47
       Test::Tester 0.107
       perl 5.006
-  Test-Output-1.03
-    pathname: B/BD/BDFOY/Test-Output-1.03.tar.gz
-    provides:
-      Test::Output 1.03
-    requirements:
-      Capture::Tiny 0.17
-      ExtUtils::MakeMaker 0
-      File::Temp 0.17
-      Sub::Exporter 0
-      Test::More 0
-      Test::Tester 0.107
-      perl 5.006
   Test-Pod-1.48
     pathname: D/DW/DWHEELER/Test-Pod-1.48.tar.gz
     provides:
@@ -7450,19 +7501,6 @@ DISTRIBUTIONS
       Test::Builder::Module 0
       Test::More 0.88
       perl 5.008_001
-  Test-Simple-1.001003
-    pathname: E/EX/EXODIST/Test-Simple-1.001003.tar.gz
-    provides:
-      Test::Builder 1.001003
-      Test::Builder::IO::Scalar 2.110
-      Test::Builder::Module 1.001003
-      Test::More 1.001003
-      Test::Simple 1.001003
-    requirements:
-      ExtUtils::MakeMaker 0
-      Scalar::Util 1.13
-      Test::Harness 2.03
-      perl 5.006
   Test-Strict-0.23
     pathname: S/SZ/SZABGAB/Test-Strict-0.23.tar.gz
     provides:
@@ -7578,17 +7616,6 @@ DISTRIBUTIONS
       Test::Builder::Tester 1.02
       Test::More 0
       perl 5.006
-  Test-Warnings-0.016
-    pathname: E/ET/ETHER/Test-Warnings-0.016.tar.gz
-    provides:
-      Test::Warnings 0.016
-    requirements:
-      Exporter 0
-      ExtUtils::MakeMaker 6.30
-      Test::Builder 0
-      parent 0
-      strict 0
-      warnings 0
   Test-Without-Module-0.17
     pathname: C/CO/CORION/Test-Without-Module-0.17.tar.gz
     provides:

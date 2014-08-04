@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4460;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4464;
     
 BEGIN
 
@@ -185,6 +185,24 @@ END;
 $$
 LANGUAGE 'plpgsql'
  ;
+ 
+CREATE OR REPLACE FUNCTION update_media_last_updated () RETURNS trigger AS
+$$
+   DECLARE
+   BEGIN
+
+      IF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'INSERT') THEN
+      	 update media set db_row_last_updated = now() where media_id = NEW.media_id;
+      END IF;
+      
+      IF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'DELETE') THEN
+      	 update media set db_row_last_updated = now() where media_id = OLD.media_id;
+      END IF;
+
+      RETURN NEW;
+   END;
+$$
+LANGUAGE 'plpgsql';
 
 CREATE OR REPLACE FUNCTION last_updated_trigger () RETURNS trigger AS
 $$
@@ -272,7 +290,7 @@ $$
 
         IF TG_OP = 'INSERT' THEN
             -- The "old" record doesn't exist
-            reference_media_id = NEW.media_id;
+            reference_media_id = EWEW.media_id;
         ELSIF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'DELETE') THEN
             reference_media_id = OLD.media_id;
         ELSE
@@ -312,6 +330,8 @@ create table media (
 
     -- Annotate stories from this media source with CoreNLP?
     annotate_with_corenlp   BOOLEAN     NOT NULL DEFAULT(false),
+    
+    db_row_last_updated         timestamp with time zone,
 
     CONSTRAINT media_name_not_empty CHECK ( ( (name)::text <> ''::text ) ),
     CONSTRAINT media_self_dup CHECK ( dup_media_id IS NULL OR dup_media_id <> media_id )
@@ -320,6 +340,7 @@ create table media (
 create unique index media_name on media(name);
 create unique index media_url on media(url);
 create index media_moderated on media(moderated);
+create index media_db_row_last_updated on media( db_row_last_updated );
 
 CREATE INDEX media_name_trgm on media USING gin (name gin_trgm_ops);
 CREATE INDEX media_url_trgm on media USING gin (url gin_trgm_ops);
@@ -430,6 +451,28 @@ create index tags_tag_2 on tags (split_part(tag, ' ', 2));
 create index tags_tag_3 on tags (split_part(tag, ' ', 3));
 
 create view tags_with_sets as select t.*, ts.name as tag_set_name from tags t, tag_sets ts where t.tag_sets_id = ts.tag_sets_id;
+    
+insert into tag_sets ( name, label, description ) values ( 'media_type', 'Media Type', 'High level topology for media sources for use across a variety of different topics' );
+
+create temporary table media_type_tags ( name text, label text, description text );
+insert into media_type_tags values
+    ( 'Not Typed', 'Not Typed', 'The medium has not yet been typed.' ),
+    ( 'Other', 'Other', 'The medium does not fit in any listed type.' ),
+    ( 'Independent Group', 'Ind. Group', 'An academic or nonprofit group that is not affiliated with the private sector or government, such as the Electronic Frontier Foundation or the Center for Democracy and Technology)' ),
+    ( 'Social Linking Site', 'Social Linking', 'A site that aggregates links based at least partially on user submissions and/or ranking, such as Reddit, Digg, Slashdot, MetaFilter, StumbleUpon, and other social news sites' ),
+    ( 'Blog', 'Blog', 'A web log, written by one or more individuals, that is not associated with a professional or advocacy organization or institution' ), 
+    ( 'General Online News Media', 'General News', 'A site that is a mainstream media outlet, such as The New York Times and The Washington Post; an online-only news outlet, such as Slate, Salon, or the Huffington Post; or a citizen journalism or non-profit news outlet, such as Global Voices or ProPublica' ),
+    ( 'Issue Specific Campaign', 'Issue', 'A site specifically dedicated to campaigning for or against a single issue.' ),
+    ( 'News Aggregator', 'News Agg.', 'A site that contains little to no original content and compiles news from other sites, such as Yahoo News or Google News' ),
+    ( 'Tech Media', 'Tech Media', 'A site that focuses on technological news and information produced by a news organization, such as Arstechnica, Techdirt, or Wired.com' ),
+    ( 'Private Sector', 'Private Sec.', 'A non-news media for-profit actor, including, for instance, trade organizations, industry sites, and domain registrars' ), 
+    ( 'Government', 'Government', 'A site associated with and run by a government-affiliated entity, such as the DOJ website, White House blog, or a U.S. Senator official website' ),
+    ( 'User-Generated Content Platform', 'User Gen.', 'A general communication and networking platform or tool, like Wikipedia, YouTube, Twitter, and Scribd, or a search engine like Google or speech platform like the Daily Kos' );
+    
+insert into tags ( tag_sets_id, tag, label, description )
+    select ts.tag_sets_id, mtt.name, mtt.name, mtt.description 
+        from tag_sets ts cross join media_type_tags mtt
+        where ts.name = 'media_type';
 
 create table feeds_tags_map (
     feeds_tags_map_id    serial            primary key,
@@ -443,16 +486,26 @@ create index feeds_tags_map_tag on feeds_tags_map (tags_id);
 create table media_tags_map (
     media_tags_map_id    serial            primary key,
     media_id            int                not null references media on delete cascade,
-    tags_id                int                not null references tags on delete cascade,
-    db_row_last_updated                timestamp with time zone not null
+    tags_id                int                not null references tags on delete cascade
 );
 
-DROP TRIGGER IF EXISTS media_tags_map_last_updated_trigger on media_tags_map CASCADE;
-CREATE TRIGGER media_tags_last_updated_trigger BEFORE INSERT OR UPDATE ON media_tags_map FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
-
-CREATE index media_tags_map_db_row_last_updated on media_tags_map ( db_row_last_updated );
 create unique index media_tags_map_media on media_tags_map (media_id, tags_id);
 create index media_tags_map_tag on media_tags_map (tags_id);
+    
+DROP TRIGGER IF EXISTS mtm_last_updated on media_tags_map CASCADE;
+CREATE TRIGGER mtm_last_updated BEFORE INSERT OR UPDATE OR DELETE 
+    ON media_tags_map FOR EACH ROW EXECUTE PROCEDURE update_media_last_updated() ;
+    
+create view media_with_media_types as
+    select m.*, mtm.tags_id media_type_tags_id, t.label media_type
+    from
+        media m
+        left join (
+            tags t
+            join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id and ts.name = 'media_type' )
+            join media_tags_map mtm on ( mtm.tags_id = t.tags_id )
+        ) on ( m.media_id = mtm.media_id );
+
 
 -- A dashboard defines which collections, dates, and topics appear together within a given dashboard screen.
 -- For example, a dashboard might include three media_sets for russian collections, a set of dates for which 
@@ -652,16 +705,17 @@ create index media_sets_vectors_added on media_sets ( vectors_added );
 create table media_sets_media_map (
     media_sets_media_map_id     serial  primary key,
     media_sets_id               int     not null references media_sets on delete cascade,    
-    media_id                    int     not null references media on delete cascade,
-    db_row_last_updated                timestamp with time zone not null
+    media_id                    int     not null references media on delete cascade
 );
 
-DROP TRIGGER IF EXISTS media_sets_media_map_last_updated_trigger on media_sets_media_map CASCADE;
-CREATE TRIGGER media_sets_media_map_last_updated_trigger BEFORE INSERT OR UPDATE ON media_sets_media_map FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
 
 create index media_sets_media_map_set on media_sets_media_map ( media_sets_id );
 create index media_sets_media_map_media on media_sets_media_map ( media_id );
-CREATE index media_sets_media_map_db_row_last_updated on media_sets_media_map ( db_row_last_updated );
+    
+DROP TRIGGER IF EXISTS msmm_last_updated on media_sets_media_map CASCADE;
+CREATE TRIGGER msmm_last_updated BEFORE INSERT OR UPDATE OR DELETE 
+    ON media_sets_media_map FOR EACH ROW EXECUTE PROCEDURE update_media_last_updated() ;
+
 
 CREATE OR REPLACE FUNCTION media_set_sw_data_retention_dates(v_media_sets_id int, default_start_day date, default_end_day date, OUT start_date date, OUT end_date date) AS
 $$
@@ -1130,6 +1184,12 @@ create table solr_imports (
     full_import         boolean not null default false
 );
 
+create table solr_import_stories (
+    stories_id          int not null references stories on delete cascade
+);
+
+create index solr_import_stories_story on solr_import_stories ( stories_id );
+
 create index solr_imports_date on solr_imports ( import_date );
     
 create table story_sentence_words (
@@ -1422,7 +1482,7 @@ create table controversies (
 );
 
 create unique index controversies_name on controversies( name );
-    
+        
 create view controversies_with_search_info as
     select c.controversies_id, c.name, c.query_story_searches_id, q.start_date::date, q.end_date::date, qss.pattern, qss.queries_id
         from controversies c
@@ -1433,8 +1493,19 @@ create table controversy_dates (
     controversy_dates_id    serial primary key,
     controversies_id        int not null references controversies on delete cascade,
     start_date              date not null,
-    end_date                date not null
+    end_date                date not null,
+    boundary                boolean not null default 'false'
 );
+
+create view controversies_with_dates as
+    select c.*, 
+            to_char( cd.start_date, 'YYYY-MM-DD' ) start_date, 
+            to_char( cd.end_date, 'YYYY-MM-DD' ) end_date
+        from 
+            controversies c 
+            join controversy_dates cd on ( c.controversies_id = cd.controversies_id )
+        where 
+            cd.boundary;
 
 create table controversy_dump_tags (
     controversy_dump_tags_id    serial primary key,
@@ -1657,14 +1728,18 @@ create table cd.tags (
     controversy_dumps_id    int not null    references controversy_dumps on delete cascade,    
     tags_id                 int,
     tag_sets_id             int,
-    tag                     varchar(512)
+    tag                     varchar(512),
+    label                   text,
+    description             text
 );
 create index tags_id on cd.tags ( controversy_dumps_id, tags_id );
 
 create table cd.tag_sets (
     controversy_dumps_id    int not null    references controversy_dumps on delete cascade,    
     tag_sets_id             int,
-    name                    varchar(512)    
+    name                    varchar(512),
+    label                   text,
+    description             text   
 );
 create index tag_sets_id on cd.tag_sets ( controversy_dumps_id, tag_sets_id );
 
@@ -2381,32 +2456,34 @@ CREATE TRIGGER gearman_job_queue_sync_lastmod
 CREATE OR REPLACE FUNCTION story_is_annotatable_with_corenlp(corenlp_stories_id INT) RETURNS boolean AS $$
 BEGIN
 
-    IF EXISTS (
+    -- Check "media.annotate_with_corenlp"
+    IF NOT EXISTS (
 
         SELECT 1
         FROM stories
             INNER JOIN media ON stories.media_id = media.media_id
         WHERE stories.stories_id = corenlp_stories_id
-
-          -- We don't check if the story has been extracted here because the
-          -- CoreNLP worker might get to it sooner than the extractor (i.e. the
-          -- extractor might not be fast enough to set extracted = 't' before
-          -- CoreNLP annotation begins)
-
-          -- Media is marked for CoreNLP annotation
           AND media.annotate_with_corenlp = 't'
 
-          -- Story not yet marked as "processed"
-          AND NOT EXISTS (
-            SELECT 1
-            FROM processed_stories
-            WHERE stories.stories_id = processed_stories.stories_id
-          )
+    ) THEN
+        RAISE NOTICE 'Story % is not annotatable with CoreNLP because media is not set for annotation.', corenlp_stories_id;
+        RETURN FALSE;
+
+    -- Check if story has sentences
+    ELSEIF NOT EXISTS (
+
+        SELECT 1
+        FROM story_sentences
+        WHERE stories_id = corenlp_stories_id
 
     ) THEN
-        RETURN TRUE;
-    ELSE
+        RAISE NOTICE 'Story % is not annotatable with CoreNLP because it has no sentences.', corenlp_stories_id;
         RETURN FALSE;
+
+    -- Things are fine
+    ELSE
+        RETURN TRUE;
+
     END IF;
     
 END;

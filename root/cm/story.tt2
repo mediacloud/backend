@@ -108,11 +108,11 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
     <a id="boxcommand" href="[% merge_story_url | html %]">merge</a>
     <a id="boxcommand" href="[% edit_story_url | html %]">edit</a>
 </div>
-<table>
+<table class="even_rows_grey">
     <tr>
         <td>Stories_id</td><td>[% story.stories_id %]</td>
     </tr>
-    <tr class="even">
+    <tr>
         <td>Title</td>
         <td>
             [% story.title | truncate( 128 )| html %] [% live_story_diff( 'title' ) | html %]
@@ -121,7 +121,7 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
     <tr>
         <td>Url</td><td><a href="[% story.url| html %]" target="blank">[% story.url | truncate( 96 ) | html %]</td>
     </tr>
-    <tr class="even">
+    <tr>
         <td>Publish Date</td>
         <td id="[% story.date_is_reliable ? 'reliable_story_date' : 'unreliable_story_date' %]">
             [% IF story.undateable %]
@@ -139,15 +139,18 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
         </td>
     </tr>
     <tr>
-        <td>Medium</td><td><a href="[% medium_url | html %]">[% story.medium.name | truncate( 96 ) | html %]</a>
-    </td>
-    <tr class="even">
+        <td>Medium</td><td><a href="[% medium_url | html %]">[% story.medium.name | truncate( 96 ) | html %]</a></td>
+    </tr>
+    <tr>
+        <td>Media Type</td><td>[% story.medium.media_type | html %]</td>
+    </tr>
+    <tr>
         <td># Incoming Story Links</td><td>[% story.inlink_count %] [% live_story_diff( 'inlink_count' ) | html %]</td>
     </tr>
     <tr>
         <td># Outgoing Story Links</td><td>[% story.outlink_count %] [% live_story_diff( 'outlink_count' ) | html %]</td>
     </tr>
-    <tr class="even">
+    <tr>
         <td>Controversy Field Matched</td>
         <td>[% story.controversy_match | html %]
     </tr>
@@ -158,23 +161,25 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
     display_stories = story.inlink_stories
     display_stories_short_title = controversy.name _ " Stories Linking to this Story"
     display_stories_full_title = controversy.name _ " Stories Linking to Story " _ story.title
-    display_stories_id = 'inlink_stories' %]
+    display_stories_id = 'inlink_stories'
+    display_stories_solr_query = "{~ controversy_dump_time_slice:${cdts.controversy_dump_time_slices_id} link_to_story:${story.stories_id} }" %]
 
 [% INCLUDE cm/stories_table.tt2
     display_stories = story.outlink_stories
     display_stories_short_title = controversy.name _ " Stories Linked from this Story"
     display_stories_full_title = controversy.name _ " Stories Linked from Story '" _ story.title _ "'"
-    display_stories_id = 'outlink_stories' %]
+    display_stories_id = 'outlink_stories'
+    display_stories_solr_query = "{~ controversy_dump_time_slice:${cdts.controversy_dump_time_slices_id} link_from_story:${story.stories_id} }" %]
 
 <div class="boxtitle">Collected Story Text</div>
 <table>
     <tr>
         <td>Description (from rss description field)</td>
-        <td>[% story.description | html %]</td>
+        <td>[% story.description | html | html_line_break %]</td>
     </tr>
     <tr>
         <td>Extracted Text (processed from the story html)</td>
-        <td>[% story.extracted_text | html %]</td>
+        <td>[% story.extracted_text | html | html_line_break %]</td>
     </td>
 </div>
 

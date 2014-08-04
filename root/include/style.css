@@ -16,6 +16,10 @@ table th, table td {
     padding: 0.2em;
 }
 
+table.even_rows_grey tr:nth-of-type(even) {
+    background-color:#fcfcfc;
+}
+
 table tr.even {
     background: #fcfcfc;
 }
@@ -279,6 +283,7 @@ div#widecolumn {
 }
 
 div#wholecolumn {
+    padding-top: 5px;
     width: 100%; 
     clear: both;
 }

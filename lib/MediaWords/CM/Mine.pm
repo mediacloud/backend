@@ -26,9 +26,6 @@ use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 
-# number of times to iterate through spider
-use constant NUM_SPIDER_ITERATIONS => 15;
-
 # number of times to run through the recursive link weight process
 use constant LINK_WEIGHT_ITERATIONS => 3;
 
@@ -182,7 +179,7 @@ sub get_links_from_story_text
     my $links = [];
     while ( $text =~ m~(https?://[^\s]+)~g )
     {
-        push( $links, $1 );
+        push( @{ $links }, $1 );
     }
 
     if ( @{ $links } )
@@ -369,11 +366,11 @@ sub get_unique_medium_url
     }
     elsif ( $i == 1 )
     {
-        $q_url = '#spider';
+        $q_url = "$url#spider";
     }
     else
     {
-        $q_url = "#spider$i";
+        $q_url = "$url#spider$i";
     }
 
     my $url_exists = $db->query( "select 1 from media where url = ?", $q_url )->hash;
@@ -511,7 +508,7 @@ sub extract_download
 
     return if ( $download->{ url } =~ /livejournal.com\/(tag|profile)/i );
 
-    eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, "controversy", 1, 1, 1 ); };
+    eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, "controversy", 0, 1 ); };
     warn "extract error processing download $download->{ downloads_id }: $@" if ( $@ );
 }
 
@@ -786,16 +783,20 @@ sub story_matches_controversy_pattern
     $perl_re =~ s/\[\[\:[\<\>]\:\]\]/\\b/g;
     for my $field ( qw/title description url redirect_url/ )
     {
-        return $field if ( $story->{ $field } && ( $story->{ $field } =~ /$perl_re/isx ) );
+        if ( $story->{ $field } && ( $story->{ $field } =~ /$perl_re/isx ) )
+        {
+            MediaWords::DBI::Stories::add_missing_story_sentences( $db, $story );
+            return $field;
+        }
     }
 
     return 0 if ( $metadata_only );
 
-    # # check for download_texts match first because some stories don't have
-    # # story_sentences, and it is expensive to generate the missing story_sentences
-    # return 0 unless ( story_download_text_matches_pattern( $db, $story, $controversy ) );
-    #
-    # MediaWords::DBI::Stories::add_missing_story_sentences( $db, $story );
+    # check for download_texts match first because some stories don't have
+    # story_sentences, and it is expensive to generate the missing story_sentences
+    return 0 unless ( story_download_text_matches_pattern( $db, $story, $controversy ) );
+
+    MediaWords::DBI::Stories::add_missing_story_sentences( $db, $story );
 
     return story_sentence_matches_pattern( $db, $story, $controversy ) ? 'sentence' : 0;
 }
@@ -850,21 +851,22 @@ sub get_preferred_story
 
     return $stories->[ 0 ] if ( @{ $stories } == 1 );
 
-    my $stories_lookup = {};
-    map { $stories_lookup->{ $_->{ stories_id } } = $_ } @{ $stories };
-    $stories = [ values( %{ $stories_lookup } ) ];
-
-    my $media = [];
+    my $media_lookup = {};
     for my $story ( @{ $stories } )
     {
+        next if ( $media_lookup->{ $story->{ media_id } } );
+
         my $medium = $db->find_by_id( 'media', $story->{ media_id } );
         $medium->{ story } = $story;
         $medium->{ dup_target } =
           $db->query( "select 1 from media where dup_media_id = ?", $story->{ media_id } )->hash ? 1 : 0;
         $medium->{ dup_source } = $medium->{ dup_media_id } ? 1 : 0;
         $medium->{ matches_domain } = _story_domain_matches_medium( $db, $medium, $url, $redirect_url );
-        push( @{ $media }, $medium );
+
+        $media_lookup->{ $medium->{ media_id } } = $medium;
     }
+
+    my $media = [ values %{ $media_lookup } ];
 
     sub _compare_media
     {
@@ -1026,6 +1028,7 @@ sub add_to_controversy_stories_and_links_if_match
     if ( $link->{ assume_match } || story_matches_controversy_pattern( $db, $controversy, $story ) )
     {
         print STDERR "CONTROVERSY MATCH: $link->{ url }\n";
+        $link->{ iteration } ||= 0;
         add_to_controversy_stories_and_links( $db, $controversy, $story, $link->{ iteration } + 1 );
     }
 
@@ -1213,7 +1216,9 @@ sub spider_new_links
 # run the spider over any new links, for $num_iterations iterations
 sub run_spider
 {
-    my ( $db, $controversy, $num_iterations ) = @_;
+    my ( $db, $controversy ) = @_;
+
+    my $num_iterations = MediaWords::Util::Config->get_config->{ mediawords }->{ cm_spider_iterations };
 
     for my $i ( 1 .. $num_iterations )
     {
@@ -1872,8 +1877,8 @@ END
     my $keep_story = shift( @{ $stories } );
 
     print "duplicates:\n";
-    print "\t$keep_story->{ title } [$keep_story->{ url } $keep_story->{ normalized_url } $keep_story->{ stories_id }]\n";
-    map { print "\t$_->{ title } [$_->{ url } $_->{ normalized_url } $_->{ stories_id }]\n" } @{ $stories };
+    print "\t$keep_story->{ title } [$keep_story->{ url } $keep_story->{ stories_id }]\n";
+    map { print "\t$_->{ title } [$_->{ url } $_->{ stories_id }]\n" } @{ $stories };
 
     print "\n";
 
@@ -1988,7 +1993,7 @@ sub mine_controversy ($$;$)
     mine_controversy_stories( $db, $controversy );
 
     print STDERR "running spider ...\n";
-    run_spider( $db, $controversy, NUM_SPIDER_ITERATIONS );
+    run_spider( $db, $controversy );
 
     if ( !$options->{ skip_outgoing_foreign_rss_links } )
     {

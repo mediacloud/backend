@@ -72,6 +72,8 @@ sub end : ActionClass('RenderView')
         print STDERR "Handling error:\n";
         print STDERR Dumper( $c->stash->{ errors } );
 
+        map { $_ =~ s/at \/.*// } @{ $c->stash->{ errors } };
+
         my $config                   = MediaWords::Util::Config::get_config;
         my $always_show_stack_traces = $config->{ mediawords }->{ always_show_stack_traces } eq 'yes';
 
@@ -86,7 +88,7 @@ sub end : ActionClass('RenderView')
 
             $c->stash->{ template } = 'public_ui/error_page.tt2';
 
-            $c->response->status( 500 );
+            $c->response->status( 500 ) if ( $c->response->status < 400 );
         }
     }
 

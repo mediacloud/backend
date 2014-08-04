@@ -1,0 +1,7 @@
+[% INCLUDE cm/header.tt2 title = "CM: Edit Controversy ${ controversy.name }" %]
+
+<fieldset>
+[% form.render %]
+</fieldset>
+
+[% INCLUDE include/footer.tt2 %]

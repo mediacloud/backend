@@ -13,6 +13,7 @@ use Time::HiRes qw(gettimeofday tv_interval);
 
 use MediaWords::DBI::Stories;
 use MediaWords::Languages::Language;
+use MediaWords::Solr::PseudoQueries;
 use MediaWords::Util::Config;
 use MediaWords::Util::Web;
 use List::MoreUtils qw ( uniq );
@@ -112,6 +113,9 @@ sub query_encoded_json($;$)
 
     _uppercase_boolean_operators( $params->{ q } );
     _uppercase_boolean_operators( $params->{ fq } );
+
+    $params->{ q }  = MediaWords::Solr::PseudoQueries::transform_query( $params->{ q } );
+    $params->{ fq } = MediaWords::Solr::PseudoQueries::transform_query( $params->{ fq } );
 
     my $url = get_solr_select_url();
 
@@ -381,92 +385,6 @@ sub get_num_found
     my $res = query( $params );
 
     return $res->{ response }->{ numFound };
-}
-
-# fetch word counts from a separate server
-sub _get_remote_word_counts
-{
-    my ( $q, $fq, $languages ) = @_;
-
-    my $url = MediaWords::Util::Config::get_config->{ mediawords }->{ solr_wc_url };
-    my $key = MediaWords::Util::Config::get_config->{ mediawords }->{ solr_wc_key };
-    return undef unless ( $url && $key );
-
-    my $ua = MediaWords::Util::Web::UserAgent();
-
-    $ua->timeout( 600 );
-    $ua->max_size( undef );
-
-    my $l = join( " ", @{ $languages } );
-
-    my $uri = URI->new( $url );
-    $uri->query_form( { q => $q, fq => $fq, l => $l, key => $key, nr => 1 } );
-
-    my $res = $ua->get( $uri, Accept => 'application/json' );
-
-    die( "error retrieving words from solr: " . $res->as_string ) unless ( $res->is_success );
-
-    my $words = from_json( $res->content, { utf8 => 1 } );
-
-    die( "Unable to parse json" ) unless ( $words && ( ref( $words ) eq 'ARRAY' ) );
-
-    return $words;
-}
-
-# return CHI cache for word counts
-sub _get_word_count_cache
-{
-    my $mediacloud_data_dir = MediaWords::Util::Config::get_config->{ mediawords }->{ data_dir };
-
-    return CHI->new(
-        driver           => 'File',
-        expires_in       => '1 day',
-        expires_variance => '0.1',
-        root_dir         => "${ mediacloud_data_dir }/cache/word_counts",
-        cache_size       => '1g'
-    );
-}
-
-# get a cached value for the given word count
-sub _get_cached_word_counts
-{
-    my ( $q, $fq, $languages ) = @_;
-
-    my $cache = _get_word_count_cache();
-
-    my $key = Dumper( $q, $fq, $languages );
-    return $cache->get( $key );
-}
-
-# set a cached value for the given word count
-sub _set_cached_word_counts
-{
-    my ( $q, $fq, $languages, $value ) = @_;
-
-    my $cache = _get_word_count_cache();
-
-    my $key = Dumper( $q, $fq, $languages );
-    return $cache->set( $key, $value );
-}
-
-# get sorted list of most common words in sentences matching a solr query.  exclude stop words from the
-# long_stop_word list.  assumes english stemming and stopwording for now.
-sub count_words
-{
-    my ( $q, $fq, $languages, $no_remote ) = @_;
-
-    my $words;
-    $words = _get_remote_word_counts( $q, $fq, $languages ) unless ( $no_remote );
-
-    $words ||= _get_cached_word_counts( $q, $fq, $languages );
-
-    if ( !$words )
-    {
-        $words = MediaWords::Solr::WordCounts::words_from_solr_server( $q, $fq, $languages );
-        _set_cached_word_counts( $q, $fq, $languages, $words );
-    }
-
-    return $words;
 }
 
 1;

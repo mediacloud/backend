@@ -46,6 +46,12 @@ sub _make_edit_form
 
     $form->stash->{ c } = $c;
 
+    my $media_types = MediaWords::DBI::Media::get_media_type_tags( $c->dbis );
+
+    my $media_type_options = [ map { [ $_->{ tags_id }, $_->{ label } ] } @{ $media_types } ];
+
+    $form->get_element( { name => 'media_type_tags_id' } )->options( $media_type_options );
+
     return $form;
 }
 
@@ -165,7 +171,8 @@ sub edit_do : Local
     $id += 0;
 
     my $form = $self->_make_edit_form( $c, $c->uri_for( "/admin/media/edit_do/$id" ) );
-    my $medium = $c->dbis->find_by_id( 'media', $id ) || die( "unknown medium: $id" );
+    my $medium = $c->dbis->query( "select * from media_with_media_types where media_id = ?", $id )->hash
+      || die( "unknown medium: $id" );
 
     $form->default_values( $medium );
 
@@ -192,6 +199,9 @@ sub edit_do : Local
         # Set the database-compatible boolean checkbox values (otherwise they're empty strings)
         $form_params->{ full_text_rss }     ||= 0;
         $form_params->{ foreign_rss_links } ||= 0;
+
+        MediaWords::DBI::Media::update_media_type( $c->dbis, $medium, $c->req->params->{ media_type_tags_id } );
+        delete( $form_params->{ media_type_tags_id } );
 
         $c->dbis->update_by_id( 'media', $id, $form_params );
 

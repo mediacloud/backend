@@ -11,7 +11,7 @@
             <p><a href="[% c.uri_for( '/admin/cm/dump_daily_counts/' _ controversy_dump.controversy_dumps_id ) %]">Daily Counts CSV</a></p>
             <p><a href="[% c.uri_for( '/admin/cm/dump_weekly_counts/' _ controversy_dump.controversy_dumps_id ) %]">Weekly Counts CSV</a></p>
         </fieldset>
-        <div class="boxtitle">Media Over Time</div>
+        <div class="boxtitle">Tools</div>
         <fieldset>
             <p><a href="[% c.uri_for( '/admin/cm/mot/' _ controversy_dump.controversy_dumps_id ) %]">Media Over Time</a></p>
         </fieldset>

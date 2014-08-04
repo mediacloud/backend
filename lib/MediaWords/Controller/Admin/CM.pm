@@ -15,8 +15,10 @@ use MediaWords::CM;
 use MediaWords::CM::Dump;
 use MediaWords::CM::Mine;
 use MediaWords::DBI::Activities;
+use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
+use MediaWords::Solr::WordCounts;
 
 use constant ROWS_PER_PAGE => 25;
 
@@ -42,7 +44,88 @@ END
     $c->stash->{ template }      = 'cm/list.tt2';
 }
 
-# show a new controversy form
+sub _add_controversy_date
+{
+    my ( $db, $controversy, $start_date, $end_date, $boundary ) = @_;
+
+    my $existing_date = $db->query( <<END, $start_date, $end_date, $controversy->{ controversies_id } )->hash;
+select * from controversy_dates where start_date = ? and end_date = ? and controversies_id = ?
+END
+
+    if ( !$existing_date )
+    {
+        $db->create(
+            'controversy_dates',
+            {
+                controversies_id => $controversy->{ controversies_id },
+                start_date       => $start_date,
+                end_date         => $end_date
+            }
+        );
+    }
+
+    if ( $boundary )
+    {
+        $db->query( <<END, $start_date, $end_date, $controversy->{ controversies_id } )
+update controversy_dates set boundary = ( start_date = ? and end_date = ? ) where controversies_id = ?
+END
+    }
+
+}
+
+# edit an existing controversy
+sub edit : Local
+{
+    my ( $self, $c, $controversies_id ) = @_;
+
+    my $form = $c->create_form( { load_config_file => $c->path_to() . '/root/forms/admin/cm/create_controversy.yml' } );
+
+    my $db = $c->dbis;
+
+    my $controversy =
+      $db->query( 'select * from controversies_with_dates where controversies_id = ?', $controversies_id )->hash
+      || die( "Unable to find controversy" );
+
+    $form->default_values( $controversy );
+    $form->process( $c->req );
+
+    if ( !$form->submitted_and_valid )
+    {
+        $c->stash->{ form }        = $form;
+        $c->stash->{ controversy } = $controversy;
+        $c->stash->{ template }    = 'cm/edit_controversy.tt2';
+        return;
+    }
+    elsif ( $c->req->params->{ preview } )
+    {
+        my $solr_seed_query = $c->req->params->{ solr_seed_query };
+        my $pattern         = $c->req->params->{ pattern };
+        $c->res->redirect( $c->uri_for( '/search', { q => $solr_seed_query, pattern => $pattern } ) );
+        return;
+    }
+
+    else
+    {
+        my $p = $form->params;
+
+        _add_controversy_date( $db, $controversy, $p->{ start_date }, $p->{ end_date }, 1 );
+
+        delete( $p->{ start_date } );
+        delete( $p->{ end_date } );
+        delete( $p->{ preview } );
+
+        $p->{ solr_seed_query_run } = 'f' unless ( $controversy->{ solr_seed_query } eq $p->{ solr_seed_query } );
+
+        $c->dbis->update_by_id( 'controversies', $controversies_id, $p );
+
+        my $view_url = $c->uri_for( "/admin/cm/view/" . $controversies_id, { status_msg => 'Controversy updated.' } );
+        $c->res->redirect( $view_url );
+
+        return;
+    }
+}
+
+# create a new controversy
 sub create : Local
 {
     my ( $self, $c ) = @_;
@@ -64,16 +147,12 @@ sub create : Local
 
     # At this point the form is submitted
 
-    my $c_name            = $c->req->parameters->{ name } . '';
-    my $c_pattern         = $c->req->parameters->{ pattern } . '';
-    my $c_solr_seed_query = $c->req->parameters->{ solr_seed_query } . '';
-    my $c_description     = $c->req->parameters->{ description } . '';
-
-    unless ( $c_name and $c_pattern and $c_solr_seed_query and $c_description )
-    {
-        $c->stash->{ error_msg } = 'Please fill the form.';
-        return;
-    }
+    my $c_name            = $c->req->params->{ name };
+    my $c_pattern         = $c->req->params->{ pattern };
+    my $c_solr_seed_query = $c->req->params->{ solr_seed_query };
+    my $c_description     = $c->req->params->{ description };
+    my $c_start_date      = $c->req->params->{ start_date };
+    my $c_end_date        = $c->req->params->{ end_date };
 
     if ( $c->req->params->{ preview } )
     {
@@ -81,14 +160,28 @@ sub create : Local
         return;
     }
 
-    my $controversy = {
-        name            => $c_name,
-        pattern         => $c_pattern,
-        solr_seed_query => $c_solr_seed_query,
-        description     => $c_description
-    };
+    $db->begin;
 
-    $controversy = $db->create( 'controversies', $controversy );
+    my $controversy = $db->create(
+        'controversies',
+        {
+            name            => $c_name,
+            pattern         => $c_pattern,
+            solr_seed_query => $c_solr_seed_query,
+            description     => $c_description
+        }
+    );
+
+    $db->create(
+        'controversy_dates',
+        {
+            controversies_id => $controversy->{ controversies_id },
+            start_date       => $c_start_date,
+            end_date         => $c_end_date
+        }
+    );
+
+    $db->commit;
 
     my $status_msg = "Controversy has been created.";
     $c->res->redirect( $c->uri_for( "/admin/cm/view/$controversy->{ controversies_id }", { status_msg => $status_msg } ) );
@@ -169,14 +262,8 @@ sub view : Local
     my $db = $c->dbis;
 
     my $controversy = $db->query( <<END, $controversies_id )->hash;
-select * from controversies where controversies_id = ?
+select * from controversies_with_dates where controversies_id = ?
 END
-
-    if ( !$controversy->{ solr_seed_query_run } )
-    {
-        $c->stash->{ status_msg } =
-          "The initial solr seed search has not been run.  Run a 'mine controversy' job to seed the controversy";
-    }
 
     my $controversy_dumps = $db->query( <<END, $controversy->{ controversies_id } )->hashes;
 select * from controversy_dumps where controversies_id = ?
@@ -195,8 +282,6 @@ END
       MediaWords::DBI::Activities::sql_activities_which_reference_column( 'controversies.controversies_id',
         $controversies_id );
     $sql_latest_activities .= ' LIMIT ?';
-
-    print STDERR "$sql_latest_activities\n";
 
     my $latest_activities = $db->query( $sql_latest_activities, $LATEST_ACTIVITIES_COUNT )->hashes;
 
@@ -319,7 +404,7 @@ END
       [ sort { ( $a->{ first_date } cmp $b->{ first_date } ) || ( $a->{ first_rank } <=> $b->{ first_rank } ) }
           values( %{ $top_media_lookup } ) ];
 
-    my $all_dates = [ sort { $a cmp $b } keys( $all_dates_lookup ) ];
+    my $all_dates = [ sort { $a cmp $b } keys %{ $all_dates_lookup } ];
 
     for my $medium ( @{ $sorted_media } )
     {
@@ -381,7 +466,7 @@ sub _get_top_media_for_time_slice
 
     my $top_media = $db->query( <<END, $num_media )->hashes;
 select m.*, mlc.inlink_count, mlc.outlink_count, mlc.story_count, mlc.inlink_count
-    from dump_media m, dump_medium_link_counts mlc
+    from dump_media_with_types m, dump_medium_link_counts mlc
     where m.media_id = mlc.media_id
     order by mlc.inlink_count desc
     limit ?
@@ -396,8 +481,8 @@ sub _get_top_stories_for_time_slice
     my ( $db ) = @_;
 
     my $top_stories = $db->query( <<END, 20 )->hashes;
-select s.*, slc.inlink_count, slc.outlink_count, m.name as medium_name
-    from dump_stories s, dump_story_link_counts slc, dump_media m
+select s.*, slc.inlink_count, slc.outlink_count, m.name as medium_name, m.media_type
+    from dump_stories s, dump_story_link_counts slc, dump_media_with_types m
     where s.stories_id = slc.stories_id and
         s.media_id = m.media_id
     order by slc.inlink_count desc
@@ -446,7 +531,7 @@ sub _get_controversy_objects
 
     die( "cdts param is required" ) unless ( $cdts_id );
 
-    my $cdts        = $db->find_by_id( 'controversy_dump_time_slices', $cdts_id );
+    my $cdts        = $db->find_by_id( 'controversy_dump_time_slices', $cdts_id ) || die( "cdts not found" );
     my $cd          = $db->find_by_id( 'controversy_dumps',            $cdts->{ controversy_dumps_id } );
     my $controversy = $db->find_by_id( 'controversies',                $cd->{ controversies_id } );
 
@@ -458,6 +543,55 @@ sub _get_controversy_objects
     _add_cdts_model_reliability( $db, $cdts );
 
     return ( $cdts, $cd, $controversy );
+}
+
+# get a media_type_stats hash for the given time slice that has the following format:
+# { story_count =>
+#   [ { media_type => 'Blog', num_stories => $num_stories, percent_stories => $percent_stories },
+#     { media_type => 'Tech Media', num_stories => $num_stories, percent_stories => $percent_stories },
+#     ...
+#   ]
+# { link_weight =>
+#   [ { media_type => 'Blog', link_weight => $link_weight, percent_link_weight => $percent_link_weight },
+#     { media_type => 'General Online News Media', link_weight => $link_weight, percent_link_weight => $percent_link_weight },
+#     ...
+#   ]
+sub _get_media_type_stats_for_time_slice
+{
+    my ( $db, $cdts ) = @_;
+
+    my $story_count = $db->query( <<END )->hashes;
+with media_type_stats as (
+    select
+            s.media_type,
+            count(*) num_stories,
+            sum( inlink_count ) link_weight
+        from
+            dump_stories_with_types s 
+            join dump_story_link_counts slc on ( s.stories_id = slc.stories_id )
+        group by s.media_type
+),
+
+media_type_sums as (
+    select sum( num_stories ) sum_num_stories, sum( link_weight ) sum_link_weight from media_type_stats
+)
+
+select
+        media_type,
+        num_stories,
+        round( ( num_stories / sum_num_stories ) * 100 ) percent_stories,
+        link_weight,
+        round( ( link_weight / sum_link_weight ) * 100 ) percent_link_weight
+    from
+        media_type_stats
+        cross join media_type_sums
+    order by num_stories desc;
+END
+
+    my $link_weight = [ @{ $story_count } ];
+    $link_weight = [ sort { $b->{ link_weight } <=> $a->{ link_weight } } @{ $link_weight } ];
+
+    return { story_count => $story_count, link_weight => $link_weight };
 }
 
 # view timelices, with links to csv and gexf files
@@ -479,6 +613,7 @@ sub view_time_slice : Local
 
     my $top_media = _get_top_media_for_time_slice( $db, $cdts );
     my $top_stories = _get_top_stories_for_time_slice( $db, $cdts );
+    my $media_type_stats = _get_media_type_stats_for_time_slice( $db, $cdts );
 
     MediaWords::CM::Dump::discard_temp_tables( $db );
 
@@ -489,6 +624,7 @@ sub view_time_slice : Local
     $c->stash->{ controversy }      = $controversy;
     $c->stash->{ top_media }        = $top_media;
     $c->stash->{ top_stories }      = $top_stories;
+    $c->stash->{ media_type_stats } = $media_type_stats;
     $c->stash->{ live }             = $live;
     $c->stash->{ template }         = 'cm/view_time_slice.tt2';
 }
@@ -648,7 +784,7 @@ sub _get_medium_from_dump_tables
 {
     my ( $db, $media_id ) = @_;
 
-    return $db->query( "select * from dump_media where media_id = ?", $media_id )->hash;
+    return $db->query( "select * from dump_media_with_types where media_id = ?", $media_id )->hash;
 }
 
 # get the medium with the medium_stories, inlink_stories, and outlink_stories and associated
@@ -663,8 +799,8 @@ sub _get_medium_and_stories_from_dump_tables
     return unless ( $medium );
 
     $medium->{ stories } = $db->query( <<'END', $media_id )->hashes;
-select s.*, m.name medium_name, slc.inlink_count, slc.outlink_count
-    from dump_stories s, dump_media m, dump_story_link_counts slc
+select s.*, m.name medium_name, m.media_type, slc.inlink_count, slc.outlink_count
+    from dump_stories s, dump_media_with_types m, dump_story_link_counts slc
     where
         s.stories_id = slc.stories_id and
         s.media_id = m.media_id and
@@ -674,8 +810,8 @@ END
     map { _add_story_date_info( $db, $_ ) } @{ $medium->{ stories } };
 
     $medium->{ inlink_stories } = $db->query( <<'END', $media_id )->hashes;
-select distinct s.*, sm.name medium_name, sslc.inlink_count, sslc.outlink_count
-    from dump_stories s, dump_story_link_counts sslc, dump_media sm,
+select distinct s.*, sm.name medium_name, sm.media_type, sslc.inlink_count, sslc.outlink_count
+    from dump_stories s, dump_story_link_counts sslc, dump_media_with_types sm,
         dump_stories r, dump_story_link_counts rslc,
         dump_controversy_links_cross_media cl
     where
@@ -690,9 +826,9 @@ END
     map { _add_story_date_info( $db, $_ ) } @{ $medium->{ inlink_stories } };
 
     $medium->{ outlink_stories } = $db->query( <<'END', $media_id )->hashes;
-select distinct r.*, rm.name medium_name, rslc.inlink_count, rslc.outlink_count
+select distinct r.*, rm.name medium_name, rm.media_type, rslc.inlink_count, rslc.outlink_count
     from dump_stories s, dump_story_link_counts sslc,
-        dump_stories r, dump_story_link_counts rslc, dump_media rm,
+        dump_stories r, dump_story_link_counts rslc, dump_media_with_types rm,
         dump_controversy_links_cross_media cl
     where
         s.stories_id = sslc.stories_id and
@@ -867,13 +1003,13 @@ sub _get_story_and_links_from_dump_tables
 
     return unless ( $story );
 
-    $story->{ medium } = $db->query( "select * from dump_media where media_id = ?", $story->{ media_id } )->hash;
+    $story->{ medium } = $db->query( "select * from dump_media_with_types where media_id = ?", $story->{ media_id } )->hash;
 
     _add_story_date_info( $db, $story );
 
     $story->{ inlink_stories } = $db->query( <<'END', $stories_id )->hashes;
-select distinct s.*, sm.name medium_name, sslc.inlink_count, sslc.outlink_count
-    from dump_stories s, dump_story_link_counts sslc, dump_media sm,
+select distinct s.*, sm.name medium_name, sm.media_type, sslc.inlink_count, sslc.outlink_count
+    from dump_stories s, dump_story_link_counts sslc, dump_media_with_types sm,
         dump_stories r, dump_story_link_counts rslc,
         dump_controversy_links_cross_media cl
     where
@@ -888,9 +1024,9 @@ END
     map { _add_story_date_info( $db, $_ ) } @{ $story->{ inlink_stories } };
 
     $story->{ outlink_stories } = $db->query( <<'END', $stories_id )->hashes;
-select distinct r.*, rm.name medium_name, rslc.inlink_count, rslc.outlink_count
+select distinct r.*, rm.name medium_name, rm.media_type, rslc.inlink_count, rslc.outlink_count
     from dump_stories s, dump_story_link_counts sslc,
-        dump_stories r, dump_story_link_counts rslc, dump_media rm,
+        dump_stories r, dump_story_link_counts rslc, dump_media_with_types rm,
         dump_controversy_links_cross_media cl
     where
         s.stories_id = sslc.stories_id and
@@ -1017,13 +1153,10 @@ sub _get_stories_id_search_query
 {
     my ( $db, $q ) = @_;
 
-    if ( defined( $q ) )
-    {
-        $q =~ s/^\s+//;
-        $q =~ s/\s+$//;
-    }
-
     return 'select stories_id from dump_story_link_counts' unless ( $q );
+
+    $q =~ s/^\s+//;
+    $q =~ s/\s+$//;
 
     my $period_stories_ids = $db->query( "select stories_id from dump_story_link_counts" )->flat;
 
@@ -1036,42 +1169,48 @@ sub _get_stories_id_search_query
 
 # get the top words used by the given set of stories, sorted by tfidf against all words
 # in the controversy
-sub _get_story_words ($$$$)
+sub _get_story_words ($$$$$)
 {
-    my ( $db, $c, $stories_ids, $controversy ) = @_;
+    my ( $db, $controversy, $cdts, $q, $sort_by_count ) = @_;
+
+    my $cdts_clause = "{~ controversy_dump_time_slice:$cdts->{ controversy_dump_time_slices_id } }";
+    my $stories_solr_query = $q ? "$cdts_clause and ( $q )" : $cdts_clause;
+
+    my $stories_ids = MediaWords::Solr::search_for_stories_ids( { q => $stories_solr_query } );
 
     my $num_words = int( log( scalar( @{ $stories_ids } ) + 1 ) * 10 );
-    $num_words = ( $num_words < 1000 ) ? $num_words : 1000;
+    $num_words = ( $num_words < 100 ) ? $num_words : 100;
 
-    my $tag = MediaWords::Util::Tags::lookup_tag( $db, "controversy_$controversy->{ name }:all" );
-
-    die( "Unable to find controversy tag" ) unless ( $tag );
-
-    my $stories_solr_query = "stories_id:(" . join( ' ', @{ $stories_ids } ) . ")";
-    my $story_words = MediaWords::Solr::count_words( { q => $stories_solr_query } );
+    my $story_words = MediaWords::Solr::WordCounts->new( q => $stories_solr_query )->get_words;
 
     splice( @{ $story_words }, $num_words );
 
-    for my $story_word ( @{ $story_words } )
+    if ( !$sort_by_count )
     {
-        my $solr_df_query = "+tags_id_stories:" . $tag->{ tags_id } . " AND +sentence:" . $story_word->{ term };
-        my $df = MediaWords::Solr::get_num_found( { q => $solr_df_query } );
+        for my $story_word ( @{ $story_words } )
+        {
+            my $solr_df_query = "{~ controversy:$controversy->{ controversies_id } }";
+            my $df            = MediaWords::Solr::get_num_found(
+                {
+                    q  => "+sentence:" . $story_word->{ term },
+                    fq => $solr_df_query
+                }
+            );
 
-        if ( $df )
-        {
-            $story_word->{ tfidf }       = $story_word->{ count } / sqrt( $df );
-            $story_word->{ total_count } = $df;
+            if ( $df )
+            {
+                $story_word->{ tfidf }       = $story_word->{ count } / sqrt( $df );
+                $story_word->{ total_count } = $df;
+            }
+            else
+            {
+                $story_word->{ tfidf } = 0;
+            }
         }
-        else
-        {
-            $story_word->{ tfidf } = 0;
-        }
+        $story_words = [ sort { $b->{ tfidf } <=> $a->{ tfidf } } @{ $story_words } ];
     }
 
-    if ( !$c->req->params->{ raw_word_count } )
-    {
-        @{ $story_words } = sort { $b->{ tfidf } <=> $a->{ tfidf } } @{ $story_words };
-    }
+    map { $story_words->[ $_ ]->{ rank } = $_ + 1 } ( 0 .. $#{ $story_words } );
 
     return $story_words;
 }
@@ -1102,8 +1241,8 @@ sub remove_stories : Local
     $c->res->redirect( $c->uri_for( "/admin/cm/view_time_slice/$cdts_id", { l => $live, status_msg => $status_msg } ) );
 }
 
-# display a tfidf word cloud of the words in the stories given in the stories_ids cgi param
-# compared to all stories in the given time slice
+# display a word cloud of the words in the stories given in the stories_ids cgi param
+# optionaly tfidf'd to all stories in the given controversy
 sub word_cloud : Local
 {
     my ( $self, $c ) = @_;
@@ -1115,20 +1254,19 @@ sub word_cloud : Local
     my $cdts_id = $c->req->params->{ cdts };
     my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
 
-    my $live        = $c->req->params->{ l };
-    my $title       = $c->req->params->{ title };
-    my $stories_ids = $c->req->params->{ stories_ids };
+    my $live          = $c->req->params->{ l };
+    my $q             = $c->req->params->{ q };
+    my $sort_by_count = $c->req->params->{ sort_by_count };
 
-    print STDERR "word_cloud stories_ids: " . Dumper( $stories_ids ) . "\n";
-
-    my $words = _get_story_words( $db, $c, $stories_ids, $controversy );
+    my $words = _get_story_words( $db, $controversy, $cdts, $q, $sort_by_count );
 
     $c->stash->{ cdts }             = $cdts;
     $c->stash->{ controversy_dump } = $cd;
     $c->stash->{ controversy }      = $controversy;
     $c->stash->{ live }             = $live;
     $c->stash->{ words }            = $words;
-    $c->stash->{ title }            = $title;
+    $c->stash->{ q }                = $q;
+    $c->stash->{ sort_by_count }    = $sort_by_count;
     $c->stash->{ template }         = 'cm/words.tt2';
 }
 
@@ -1153,8 +1291,8 @@ sub search_stories : Local
     my $search_query = _get_stories_id_search_query( $db, $query );
 
     my $stories = $db->query( <<END )->hashes;
-select s.*, m.name medium_name, slc.inlink_count, slc.outlink_count
-    from dump_stories s, dump_media m, dump_story_link_counts slc
+select s.*, m.name medium_name, m.media_type, slc.inlink_count, slc.outlink_count
+    from dump_stories s, dump_media_with_types m, dump_story_link_counts slc
     where
         s.stories_id = slc.stories_id and
         s.media_id = m.media_id and
@@ -1169,6 +1307,15 @@ END
     $db->commit;
 
     my $controversies_id = $controversy->{ controversies_id };
+
+    if ( $c->req->params->{ missing_solr_stories } )
+    {
+        my $solr_query       = "{! controversy:$controversy->{ controversies_id } }";
+        my $solr_stories_ids = MediaWords::Solr::search_for_stories_ids( { q => $solr_query } );
+        my $solr_lookup      = {};
+        map { $solr_lookup->{ $_ } = 1 } @{ $solr_stories_ids };
+        $stories = [ grep { !$solr_lookup->{ $_->{ stories_id } } } @{ $stories } ];
+    }
 
     if ( $c->req->params->{ remove_stories } )
     {
@@ -1215,7 +1362,7 @@ sub _add_id_medium_to_search_results ($$$)
 select distinct m.*, mlc.inlink_count, mlc.outlink_count, mlc.story_count
     from dump_story_link_counts slc
         join stories s on ( slc.stories_id = s.stories_id )
-        join dump_media m on ( s.media_id = m.media_id )
+        join dump_media_with_types m on ( s.media_id = m.media_id )
         join dump_medium_link_counts mlc on ( m.media_id = mlc.media_id )
      where s.media_id = ?
 END
@@ -1246,7 +1393,7 @@ sub search_media : Local
 
     my $media = $db->query( <<END )->hashes;
 select distinct m.*, mlc.inlink_count, mlc.outlink_count, mlc.story_count
-    from dump_stories s, dump_media m, dump_story_link_counts slc, dump_medium_link_counts mlc
+    from dump_stories s, dump_media_with_types m, dump_story_link_counts slc, dump_medium_link_counts mlc
     where
         s.stories_id = slc.stories_id and
         s.media_id = m.media_id and
@@ -1696,7 +1843,6 @@ sub merge_stories_list : Local
     for my $stories_id_pair ( @{ $stories_ids_pairs } )
     {
         my ( $keep_stories_id, $delete_stories_id ) = @{ $stories_id_pair };
-        print STDERR "$delete_stories_id -> $keep_stories_id\n";
 
         my $keep_story   = $db->find_by_id( 'stories', $keep_stories_id );
         my $delete_story = $db->find_by_id( 'stories', $delete_stories_id );
@@ -1719,6 +1865,404 @@ sub merge_stories_list : Local
 
     my $u = $c->uri_for( "/admin/cm/view/$controversies_id", { status_msg => $status_msg } );
     $c->response->redirect( $u );
+}
+
+# get metrics for links between partisan communities in the form of:
+# [
+#  [
+#   {
+#     'source_tag' => 'partisan_2012_liberal',
+#     'log_inlink_count' => '29.1699250014423',
+#     'ref_tag' => 'partisan_2012_liberal',
+#     'source_tags_id' => 29,
+#     'inlink_count' => '32',
+#     'media_link_count' => '26',
+#     'ref_tags_id' => 29
+#   },
+#   {
+#     'source_tag' => 'partisan_2012_liberal',
+#     'log_inlink_count' => '38.1536311941017',
+#     'ref_tag' => 'partisan_2012_libertarian',
+#     'source_tags_id' => 29,
+#     'inlink_count' => '61',
+#     'media_link_count' => '25',
+#     'ref_tags_id' => 30
+#   },
+#   ...
+#  ], [ ... ], ... ]
+sub _get_partisan_link_metrics
+{
+    my ( $db, $controversy, $cdts ) = @_;
+
+    $db->begin;
+
+    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, undef );
+
+    my $query = <<END;
+-- partisan collection tags
+with partisan_tags as (
+    select t.* 
+        from
+            tags t 
+            join tag_sets ts on (t.tag_sets_id = ts.tag_sets_id )
+        where
+            ts.name = 'collection' and
+            t.tag in ( 'partisan_2012_liberal', 'partisan_2012_conservative', 'partisan_2012_libertarian' )
+),
+
+-- all stories in the controversy belonging to the media tagged with one of the partisan collection tags
+partisan_stories as (
+    select s.*, t.*
+        from 
+            dump_stories s
+            join dump_media_tags_map mtm on ( s.media_id = mtm.media_id )
+            join dump_tags t on ( mtm.tags_id = t.tags_id )
+            join partisan_tags pt on ( t.tags_id = pt.tags_id )
+            join dump_tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
+),
+
+-- full matrix of all partisan tags joined to one another
+partisan_tags_matrix as ( 
+    select 
+            at.tags_id tags_id_a, 
+            at.tag tag_a, 
+            at.label label_a,
+            bt.tags_id tags_id_b, 
+            bt.tag tag_b, 
+            bt.label label_b
+        from 
+            partisan_tags at
+            cross join partisan_tags bt
+),
+
+-- matrix of all partisan tags that have links to one another
+sparse_matrix as (
+    select distinct 
+            ss.tags_id source_tags_id,
+            rs.tags_id ref_tags_id,
+            count(*) over w media_link_count,
+            sum( log( count(*) + 1 ) / log ( 2 ) ) over w log_inlink_count,
+            sum( count(*) ) over w inlink_count
+        from 
+            partisan_stories ss
+            join dump_story_links sl on ( ss.stories_id = sl.source_stories_id )
+            join partisan_stories rs on ( rs.stories_id = sl.ref_stories_id )
+        group by ss.media_id, ss.tags_id, rs.media_id, rs.tags_id
+        window w as ( partition by ss.tags_id, rs.tags_id )
+        order by ss.tags_id, rs.tags_id
+)
+
+-- join the full matrix to the sparse matrix to add 0 values for partisan tag <-> partisan tag
+-- combination that have no links between them (which are not present in the sparse matrix )
+select
+        ptm.tags_id_a source_tags_id,
+        ptm.tag_a as source_tag,
+        ptm.label_a as source_label,
+        ptm.tags_id_b ref_tags_id,
+        ptm.tag_b ref_tag,
+        ptm.label_b as ref_label,
+        coalesce( sm.media_link_count, 0 ) media_link_count,
+        coalesce( sm.log_inlink_count, 0 ) log_inlink_count,
+        coalesce( sm.inlink_count, 0 ) inlink_count
+    from
+        partisan_tags_matrix ptm
+        left join sparse_matrix sm on 
+            ( ptm.tags_id_a = sm.source_tags_id and ptm.tags_id_b = sm.ref_tags_id )
+
+END
+
+    my $link_metrics = $db->query( $query )->hashes;
+
+    $db->commit;
+
+    # arrange results into a list of lists, sorted by source tags id
+    my $last_source_tags_id = 0;
+    my $metrics_table       = [];
+    for my $m ( @{ $link_metrics } )
+    {
+        if ( $last_source_tags_id != $m->{ source_tags_id } )
+        {
+            push( @{ $metrics_table->[ @{ $metrics_table } ] }, $m );
+            $last_source_tags_id = $m->{ source_tags_id };
+        }
+        else
+        {
+            push( @{ $metrics_table->[ @{ $metrics_table } - 1 ] }, $m );
+        }
+    }
+
+    return $metrics_table;
+}
+
+# generate report on partisan behavior within set
+sub partisan : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my $cdts_id = $c->req->params->{ cdts };
+
+    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
+
+    my $metrics_table = _get_partisan_link_metrics( $db, $controversy, $cdts );
+
+    $c->stash->{ metrics_table } = $metrics_table;
+    $c->stash->{ controversy }   = $controversy;
+    $c->stash->{ cd }            = $cd;
+    $c->stash->{ cdts }          = $cdts;
+    $c->stash->{ template }      = 'cm/partisan.tt2';
+}
+
+# given a list of word lists as returned by _get_story_words, add a { key_word => 1 } field
+# to each word hash for which the rank of that word is higher than the rank for that
+# word in any other list
+sub _highlight_key_words
+{
+    my ( $word_lists ) = @_;
+
+    my $word_rank_lookup = {};
+    for my $word_list ( @{ $word_lists } )
+    {
+        for my $word ( @{ $word_list } )
+        {
+            my $stem = $word->{ stem };
+            my $rank = $word->{ rank };
+            if ( !$word_rank_lookup->{ $stem } )
+            {
+                $word_rank_lookup->{ $stem } = { rank => $rank, key_word => $word };
+                $word->{ key_word } = 1;
+            }
+            elsif ( $word_rank_lookup->{ $stem }->{ rank } > $rank )
+            {
+                $word_rank_lookup->{ $stem }->{ key_word }->{ key_word } = 0;
+                $word_rank_lookup->{ $stem } = { rank => $rank, key_word => $word };
+                $word->{ key_word } = 1;
+            }
+            elsif ( $word_rank_lookup->{ $stem }->{ rank } == $rank )
+            {
+                $word_rank_lookup->{ $stem }->{ key_word }->{ key_word } = 0;
+            }
+        }
+    }
+
+}
+
+# display the 20 most popular words for the 10 most influential media in the given time slice
+sub influential_media_words : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my $cdts_id = $c->req->params->{ cdts };
+
+    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
+
+    my $live = $c->req->params->{ l };
+    my $q    = $c->req->params->{ q };
+
+    $db->begin;
+    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $live );
+    my $top_media = _get_top_media_for_time_slice( $db, $cdts );
+    $db->commit;
+
+    my $num_media = 10;
+    my $num_words = 20;
+
+    splice( @{ $top_media }, $num_media );
+
+    for my $medium ( @{ $top_media } )
+    {
+        my $q = "media_id:$medium->{ media_id }";
+        $medium->{ words } = _get_story_words( $db, $controversy, $cdts, $q, 1 );
+        splice( @{ $medium->{ words } }, $num_words );
+    }
+
+    my $top_words = _get_story_words( $db, $controversy, $cdts, undef, 1 );
+
+    _highlight_key_words( [ $top_words, map { $_->{ words } } @{ $top_media } ] );
+
+    $c->stash->{ cdts }        = $cdts;
+    $c->stash->{ cd }          = $cd;
+    $c->stash->{ controversy } = $controversy;
+    $c->stash->{ live }        = $live;
+    $c->stash->{ top_media }   = $top_media;
+    $c->stash->{ q }           = $q;
+    $c->stash->{ top_words }   = $top_words;
+    $c->stash->{ template }    = 'cm/influential_media_words.tt2';
+}
+
+# process form values to add media types according to form parameters.
+# each relevant form param has a name of 'media_type_<media_id>'
+# (eg. 'media_type_123') and the tags_id of the media_type tag to add.
+sub _process_add_media_type_params
+{
+    my ( $c ) = @_;
+
+    my $db = $c->dbis;
+
+    for my $type_param ( keys( %{ $c->req->params } ) )
+    {
+        next unless ( $type_param =~ /media_type_(\d+)/ );
+
+        my $media_id = $1;
+        my $tags_id  = $c->req->params->{ $type_param };
+
+        my $medium = $db->query( "select * from media_with_media_types where media_id = ?", $media_id )->hash
+          || die( "Unable to find medium '$media_id'" );
+
+        MediaWords::DBI::Media::update_media_type( $db, $medium, $tags_id );
+    }
+}
+
+# page for adding media types to 'not type'd media
+sub add_media_types : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $c->req->params->{ cdts } );
+
+    _process_add_media_type_params( $c );
+
+    $db->begin;
+    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, 1 );
+
+    my $media = $db->query( <<END )->hashes;
+select distinct m.*, mlc.inlink_count, mlc.outlink_count, mlc.story_count
+    from dump_media_with_types m, dump_medium_link_counts mlc
+    where
+        m.media_id = mlc.media_id and
+        m.media_type = 'Not Typed'
+    order by mlc.inlink_count desc
+    limit 10
+END
+
+    $db->commit;
+
+    my $media_types = MediaWords::DBI::Media::get_media_type_tags( $db );
+
+    $c->stash->{ controversy } = $controversy;
+    $c->stash->{ cd }          = $cd;
+    $c->stash->{ cdts }        = $cdts;
+    $c->stash->{ live }        = 1;
+    $c->stash->{ media }       = $media;
+    $c->stash->{ media_types } = $media_types;
+    $c->stash->{ template }    = 'cm/add_media_types.tt2';
+}
+
+# delete all controversy_dates in the controversy
+sub delete_all_dates : Local
+{
+    my ( $self, $c, $controversies_id ) = @_;
+
+    my $db = $c->dbis;
+
+    my $controversy = $db->query( "select * from controversies_with_dates where controversies_id = ?", $controversies_id )
+      || die( "Unable to find controversy" );
+
+    $db->query( <<END, $controversies_id );
+delete from controversy_dates where not bounday and controversies_id = ?
+END
+
+}
+
+# delet a single controversy_dates row
+sub delete_date : Local
+{
+    my ( $self, $c, $controversies_id ) = @_;
+
+    my $db = $c->dbis;
+
+    my $controversy = $db->query( "select * from controversies_with_dates where controversies_id = ?", $controversies_id )
+      || die( "Unable to find controversy" );
+
+    my $start_date = $c->req->params->{ start_date };
+    my $end_date   = $c->req->params->{ end_date };
+
+    die( "missing start_date or end_date" ) unless ( $start_date && $end_date );
+
+    $db->query( <<END, $controversies_id, $start_date, $end_date );
+delete from controversy_dates where controversies_id = ? and start_date = ? and end_date = ? and not boundary
+END
+
+    $c->res->redirect( $c->uri_for( '/admin/cm/edit_dates/' . $controversies_id, { status_msg => 'Date deleted.' } ) );
+}
+
+# add timeslice dates for every $interval days
+sub _add_interval_dates
+{
+    my ( $db, $controversy, $interval ) = @_;
+
+    return unless ( $interval > 0 );
+
+    sub increment_day { MediaWords::Util::SQL::increment_day( @_ ) }
+
+    my $last_interval_start = increment_day( $controversy->{ end_date }, -1 * $interval );
+
+    for ( my $i = $controversy->{ start_date } ; $i lt $last_interval_start ; $i = increment_day( $i, $interval ) )
+    {
+        _add_controversy_date( $db, $controversy, $i, increment_day( $i, $interval ) );
+    }
+}
+
+# add custom time slice range to controversy_dates
+sub add_date : Local
+{
+    my ( $self, $c, $controversies_id ) = @_;
+
+    my $db = $c->dbis;
+
+    my $controversy =
+      $db->query( "select * from controversies_with_dates where controversies_id = ?", $controversies_id )->hash
+      || die( "Unable to find controversy" );
+
+    my $interval   = $c->req->params->{ interval } + 0;
+    my $start_date = $c->req->params->{ start_date };
+    my $end_date   = $c->req->params->{ end_date };
+
+    if ( $interval )
+    {
+        _add_interval_dates( $db, $controversy, $interval );
+    }
+    else
+    {
+        my $valid_date = qr/^\d\d\d\d-\d\d-\d\d$/;
+        if ( !( ( $start_date =~ $valid_date ) && ( $end_date =~ $valid_date ) ) )
+        {
+            $c->res->redirect(
+                $c->uri_for( '/admin/cm/edit_dates/' . $controversies_id, { error_msg => 'Invalid date format.' } ) );
+            return;
+        }
+
+        die( "missing start_date or end_date" ) unless ( $start_date && $end_date );
+
+        _add_controversy_date( $db, $controversy, $start_date, $end_date );
+    }
+
+    $c->res->redirect( $c->uri_for( '/admin/cm/edit_dates/' . $controversies_id, { status_msg => 'Dates added.' } ) );
+}
+
+# edit list of controversy_dates for the controversy
+sub edit_dates : Local
+{
+    my ( $self, $c, $controversies_id ) = @_;
+
+    my $db = $c->dbis;
+
+    my $controversy = $db->find_by_id( 'controversies', $controversies_id ) || die( "Unable to find controversy" );
+
+    # mark the controversy_date that is the boundary date for the controversy, since we don't want
+    # to delete it
+    my $controversy_dates = $db->query( <<END, $controversies_id )->hashes;
+select cd.* from controversy_dates cd where cd.controversies_id = ? order by cd.start_date, cd.end_date desc 
+END
+
+    $c->stash->{ controversy }       = $controversy;
+    $c->stash->{ controversy_dates } = $controversy_dates;
+    $c->stash->{ template }          = 'cm/edit_dates.tt2';
 }
 
 1;

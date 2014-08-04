@@ -27,6 +27,12 @@ elements:
     validators:
         - MediumUrlIsUnique
 
+  - type: Select
+    name: media_type_tags_id
+    label: Media Type
+    comment: type of media source        
+ 
+
   - type: Checkbox
     name: full_text_rss
     label: Full text RSS
@@ -40,6 +46,11 @@ elements:
     comment: has a substantial number of links in its rss feeds to other media sources
     value: 1
     default_empty_value: true
+
+  - type: Checkbox
+    name: annotate_with_corenlp
+    label: Annotate with CoreNLP
+    comment: "annotate new media's stories with CoreNLP (note: old stories will have to be enqueued for annotation separately)"
 
   - type: Text
     name: reason

@@ -4,6 +4,7 @@
     title=date.format( cdts.start_date ) _ ' - ' _ date.format( cdts.end_date ) _ ' Time Slice' %]
 
 <div id="wholecolumn">
+
     <div id="widecolumn">
         <div class="boxtitle">Network Map</div>
         <fieldset>
@@ -21,17 +22,37 @@
                 <b>Model Reliability: [% INCLUDE cm/model_reliability.tt2 model_reliability_include_numbers=1 %]</b>
             </p>
         </fieldset>
-    </div>
 
+
+        [% INCLUDE cm/media_table.tt2
+            display_media = top_media
+            display_media_title = "Top Media" %]
+        [% all_media_url = c.uri_for( '/admin/cm/search_media', 
+                                      { cdts => cdts.controversy_dump_time_slices_id,
+                                        l => live } ) %]
+        <a href="[% all_media_url | html %]">View All Media</a>
+
+        [% INCLUDE cm/stories_table.tt2
+            display_stories = top_stories
+            display_stories_short_title = "Top Stories"
+            display_stories_full_title = title _ ": Top Stories" 
+            display_stories_id = "top_stories" %]
+        [% all_stories_url = c.uri_for( '/admin/cm/search_stories', 
+                                        { cdts => cdts.controversy_dump_time_slices_id,
+                                          l => live } ) %]
+        <a href="[% all_stories_url | html %]">View All Stories</a>
+    </div>
+    
+    
     <div id="narrowcolumn">
         <div class="boxtitle">Stats</div>
-        <table>
+        <table class="even_rows_grey">
             <tr>
                 <td># Stories</td>
                 <td>[% cdts.story_count %]</td>
                 <td><a href="[% c.uri_for( '/admin/cm/dump_stories/' _ cdts.controversy_dump_time_slices_id, { l => live } ) %]">CSV</a></td>
             </tr>
-            <tr class="even">
+            <tr>
                 <td># Story Links</td>
                 <td>[% cdts.story_link_count %]</td>
                 <td><a href="[% c.uri_for( '/admin/cm/dump_story_links/' _ cdts.controversy_dump_time_slices_id, { l => live } ) %]">CSV</a></td>
@@ -41,7 +62,7 @@
                 <td>[% cdts.medium_count %]</td>
                 <td><a href="[% c.uri_for( '/admin/cm/dump_media/' _ cdts.controversy_dump_time_slices_id, { l => live } ) %]">CSV</a></tr>
             </tr>
-            <tr class="even">
+            <tr>
                 <td># Medium Links</td>
                 <td>[% cdts.medium_link_count %]</td>
                 <td><a href="[% c.uri_for( '/admin/cm/dump_medium_links/' _ cdts.controversy_dump_time_slices_id, { l => live } ) %]">CSV</a></td>
@@ -71,28 +92,33 @@
                 <input type="text" name="q" style="width:100%" />
             </form>
         </fieldset>
+        
+        <div class="boxtitle">Tools</div>
+        <fieldset>
+            [% SET imt_url = c.uri_for( '/admin/cm/influential_media_words', { cdts => cdts.controversy_dump_time_slices_id, l => live } ) %]
+            [% SET partisan_url = c.uri_for( '/admin/cm/partisan', { cdts => cdts.controversy_dump_time_slices_id, l => live } ) %]
+            [% SET type_url = c.uri_for( '/admin/cm/add_media_types', { cdts => cdts.controversy_dump_time_slices_id, l => live } ) %]
+            <p><a href="[% imt_url | html %]">Influential Media Words</a></p>
+            <p><a href="[% partisan_url | html %]">Partisanship</a></p>
+            <p><a href="[% type_url | html %]">Add Media Types</a></p>
+        </fieldset>
+        
+        <div class="boxtitle">Media Types - Link Weight</div>
+        <table class="even_rows_grey">
+            [% FOREACH mt IN media_type_stats.link_weight %]
+                <tr><td >[% mt.media_type | html %]</td><td>[% mt.percent_link_weight %]%</td></tr>
+            [% END %]
+        </table>
+
+        <div class="boxtitle">Media Types - Story Count</div>
+        <table class="even_rows_grey">
+            [% FOREACH mt IN media_type_stats.story_count %]
+                <tr><td>[% mt.media_type | html %]</td><td>[% mt.percent_stories %]%</td></tr>
+            [% END %]
+        </table>
+    
     </div>
-</div>
 
-<div id="wholecolumn">
-
-    [% INCLUDE cm/media_table.tt2
-        display_media = top_media
-        display_media_title = "Top Media" %]
-    [% all_media_url = c.uri_for( '/admin/cm/search_media', 
-                                  { cdts => cdts.controversy_dump_time_slices_id,
-                                    l => live } ) %]
-    <a href="[% all_media_url | html %]">View All Media</a>
-
-    [% INCLUDE cm/stories_table.tt2
-        display_stories = top_stories
-        display_stories_short_title = "Top Stories"
-        display_stories_full_title = title _ ": Top Stories" 
-        display_stories_id = "top_stories" %]
-    [% all_stories_url = c.uri_for( '/admin/cm/search_stories', 
-                                    { cdts => cdts.controversy_dump_time_slices_id,
-                                      l => live } ) %]
-    <a href="[% all_stories_url | html %]">View All Stories</a>
 
 </div>
 

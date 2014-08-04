@@ -1,11 +1,36 @@
-<script langauge="javascript">
-    function [% display_stories_id %]_submit_stories( action )
-    {
-        form = document.getElementById( '[% display_stories_id %]_stories_ids_form' );
-        form.action = "[% c.uri_for( '/' ) | url %]" + action;
-        form.submit();
-    }
+[% IF !included_remove_stories_confirm_dialog %]
+    <div id="removeStoriesConfirmDialog" style="display:none">
+        Are you sure you want to remove all of the listed stories from the [% controversy.name | html %] controversy?  
+        After removal, the stories will still appear in existing dumps but will not be in live views 
+        or new dumps of the controversy.
+    </div>
+    [% SET included_remove_stories_confirm_dialog = 1 %]
+[% END %]
+
+<script type="text/javascript">
+$(document).ready(function () {
+
+  $("#removeStoriesConfirmDialog").dialog({ autoOpen: false });
+
+  $(".remove_story_[% display_stories_id %]").click(function (e) {
+    e.preventDefault();
+    var hrefAttribute = $(this).attr("href");
+
+    $("#removeStoriesConfirmDialog").dialog('option', 'buttons', {
+      "Confirm": function () { 
+          form = document.getElementById( '[% display_stories_id %]_stories_ids_form' ); 
+          form.action = "[% c.uri_for( '/admin/cm/remove_stories' ) | url %]";
+          form.submit();
+      },
+      "Cancel": function () { $(this).dialog("close"); }
+    });
+
+    $("#removeStoriesConfirmDialog").dialog("open");
+  });
+  
+});
 </script>
+
 
 <form id="[% display_stories_id %]_stories_ids_form" method="post">
     <input type="hidden" name="cdts" value="[% cdts.cdts_id | html %]" />
@@ -27,15 +52,20 @@
     [% END %]
 
     [% IF display_stories_remove_button %]
-        <a id="boxcommand" href="javascript:void(0);" onclick="[% display_stories_id %]_submit_stories( '/admin/cm/remove_stories' );" class="remove_story">remove all</a>        
+        <a id="boxcommand" href="#" class="remove_story_[% display_stories_id %]">remove all</a>        
     [% END %]
 
-    <a id="boxcommand" href="javascript:void(0);" onclick="[% display_stories_id %]_submit_stories( '/admin/cm/word_cloud' );">word cloud</a>
+    [% SET wc_url = c.uri_for( '/admin/cm/word_cloud', { 
+        cdts = cdts.controversy_dump_time_slices_id,
+        l = live,
+        sort_by_count = 1,
+        q = display_stories_solr_query } ) %]
+    <a id="boxcommand" href="[% wc_url | html %]">word cloud</a>
 
     </div>
 [% END %]
 
-<table>
+<table class="even_rows_grey">
     <tr>
         <th>Stories_id</th>
         <th>Title</th>
@@ -60,7 +90,7 @@
                                 l => live } ) %]
     [% edit_url = c.uri_for( "/admin/stories/edit/$s.stories_id" ) %]
 
-    <tr [% IF even %]class="even"[% END %]>
+    <tr>
 
         <td><a href="[% story_url  | html %]">[% s.stories_id %]</a></td>
         <td>[% s.title | truncate( 48 ) | html %]</td>
@@ -78,7 +108,6 @@
         <td>[% s.outlink_count %]</td>
     </tr>
 
-    [% SET even = !even %]
     [% END # FOREACH s -%]
 
 </table>

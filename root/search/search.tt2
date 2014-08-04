@@ -9,8 +9,8 @@
 
     [% search_url = c.uri_for( "/search" ) %]
     <form method="get" action="[% search_url | html %]">
-        Query: <input type="text" name="q" size="96" value="[% q | html %]" />
-        Languages: <input type="text" name="l" size="32" value="[% l | html %]" /><br />
+        Query: <input type="text" name="q" size="96" value="[% q | html %]" /> <br />
+        <input type="hidden" name="languages" size="32" value="[% languages | html %]" />
         <input type="submit" name="submit" value="Go" />
     </form>
     <p>
@@ -25,8 +25,8 @@
 
     <br />
     <fieldset>
-        <p>        
-            [% IF stories.size < num_stories %]
+        <p> 
+            [% IF stories && ( stories.size < num_stories ) %]
                 Only showing a random sample of [% stories.size %] stories out of about [% num_stories %] (this story 
                     total is just a guess based on the number of sentences found).  Download the csv to see all stories
                     and get a true count of stories.
@@ -35,7 +35,10 @@
             [% END %]
         </p>
         
-        <p><a href="#tag_counts">Summary of tag counts for this query</a></p>
+        
+        [% IF stories %]
+            <p><a href="#tag_counts">Summary of tag counts for this query</a></p>
+        [% END %]
     </fieldset>
     
     [% IF stories %]
@@ -43,8 +46,8 @@
     
         <div class="boxtitle">
             Search Results
-            <a id="boxcommand" href="[% c.uri_for( '/search', { 'q' => q, 'l' => l, 'csv' => 1 } ) %]">CSV</a>
-            <a id="boxcommand" href="[% c.uri_for( '/search/wc', { 'q' => q, 'l' => l } ) %]">words</a>
+            <a id="boxcommand" href="[% c.uri_for( '/search', { 'q' => q, 'languages' => languages, 'csv' => 1 } ) %]">CSV</a>
+            <a id="boxcommand" href="[% c.uri_for( '/search/wc', { 'q' => q, 'languages' => languages } ) %]">words</a>
         </div>
         <table>
             <tr>

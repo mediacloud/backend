@@ -1,0 +1,45 @@
+[% USE date = date(format => '%Y-%m-%d', locale => 'en_GB') %]
+
+[% title = "Partisanship for " _ date.format( cdts.start_date ) _ ' - ' _ date.format( cdts.end_date ) _ ' Time Slice' %]
+
+[% PROCESS cm/header.tt2 %]
+
+<div class="wholecolumn">
+
+<div class="boxtitle">
+    Partisan Link Metrics
+</div>
+
+<table>
+    <tr>
+        <th>Source / Target</th>
+        [% FOREACH ref_tag IN metrics_table.0 %]
+            <th>[% ref_tag.ref_label | html %]</th>
+        [% END %]
+    </tr>
+    [% FOREACH ref_tags IN metrics_table %]
+        <tr>
+            <th>[% ref_tags.0.source_label | html %]</th>
+            [% FOREACH ref_tag IN ref_tags %]
+                [% SET search_url = c.uri_for( '/admin/cm/search_stories/' , { q => "{~ controversy_dump_time_slice:${ cdts.controversy_dump_time_slices_id } link_from_tag:${ ref_tag.source_tags_id }-${ ref_tag.ref_tags_id } }", cdts => cdts.controversy_dump_time_slices_id, l => live } ) %]
+                <td><a href="[% search_url | html %]">[% ref_tag.log_inlink_count | format( '%.02f' ) %]</a></td>
+            [% END %]
+        </tr>
+    [% END %]
+</table>
+
+<br />
+<fieldset>
+    <p>
+        This table shows the weight of links from stories in media belonging to the partisan collection
+        on the right to the partisan collection on the top.  The link weight for each cell is the a log
+        weighted measure of links for each media source:
+        <blockquote>
+            link_weight( source, target ) = sum( medium ) { log( story_link_count( medium, source, target ) }
+        </blockquote>
+    </p>
+</fieldset>
+
+</div>
+
+[% INCLUDE include/footer.tt2 %]

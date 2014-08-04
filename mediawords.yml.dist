@@ -374,4 +374,10 @@ mediawords:
 
     # set to "yes" to skip requirement to run on the correct database schema version
     # ignore_schema_version: "no"
+    
+    # increment wc_cache_version to invalidate existing cache
+    # wc_cache_version: 1
+    
+    # max number of iterations by the the spider in MediaWords::CM::Mine
+    # mc_spider_iterations: 15
 
