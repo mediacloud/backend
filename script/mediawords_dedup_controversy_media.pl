@@ -65,7 +65,7 @@ sub mark_canonical_url_duplicates
 
     map { $_->{ url_c } = MediaWords::Util::URL::normalize_url( $_->{ url } ) } @{ $media };
 
-    my $media = [ sort { length( $a->{ url } ) <=> length( $b->{ url } ) } @{ $media } ];
+    $media = [ sort { length( $a->{ url } ) <=> length( $b->{ url } ) } @{ $media } ];
 
     for my $a ( @{ $media } )
     {
@@ -222,11 +222,15 @@ sub main
     # only dedup media that are either not spidered or are associated with controversy stories
     # (this eliminates spidered media not actually associated with any controversy story)
     my $media = $db->query( <<END, $spidered_tag->{ tags_id } )->hashes;
-select m.*, coalesce( mtm.tags_id, 0 ) is_spidered
-  from media m left join media_tags_map mtm on ( m.media_id = mtm.media_id and mtm.tags_id = ? )
-  where m.dup_media_id is null and
-    ( ( mtm.tags_id is null ) or 
-      exists ( select 1 from controversy_stories cs, stories s where cs.stories_id = s.stories_id and s.media_id = m.media_id ) )
+select m.*, 
+        coalesce( mtm.tags_id, 0 ) is_spidered
+    from 
+        media m 
+        left join media_tags_map mtm on ( m.media_id = mtm.media_id and mtm.tags_id = ? )
+    where 
+        m.dup_media_id is null and
+        ( ( mtm.tags_id is null ) or 
+            m.media_id in ( select distinct( cs.media_id ) from cd.live_stories cs ) )
   order by m.media_id
 END
 
