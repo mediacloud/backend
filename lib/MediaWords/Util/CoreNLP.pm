@@ -2,6 +2,7 @@ package MediaWords::Util::CoreNLP;
 
 use strict;
 use warnings;
+use utf8;
 
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
@@ -107,7 +108,7 @@ sub _encode_json($;$)
     }
 
     my $json;
-    eval { $json = JSON->new->utf8( 1 )->pretty( $pretty )->encode( $hashref ); };
+    eval { $json = JSON->new->utf8( 0 )->pretty( $pretty )->encode( $hashref ); };
     if ( $@ or ( !$json ) )
     {
         die "Unable to encode hashref to JSON: $@\nHashref: " . Dumper( $hashref );
@@ -127,7 +128,7 @@ sub _decode_json($)
     }
 
     my $hashref;
-    eval { $hashref = decode_json $json; };
+    eval { $hashref = JSON->new->utf8( 0 )->decode( $json ); };
     if ( $@ or ( !$hashref ) )
     {
         die "Unable to decode JSON to hashref: $@\nJSON: $json";
@@ -279,6 +280,13 @@ sub _annotate_text($)
     unless ( $results_string )
     {
         die "CoreNLP annotator returned nothing for text: " . $text;
+    }
+
+    # Decode JSON response
+    eval { $results_string = Encode::decode_utf8( $results_string, Encode::FB_CROAK ); };
+    if ( $@ )
+    {
+        _fatal_error( "Unable to decode string '$results_string': $@" );
     }
 
     # Parse resulting JSON
