@@ -404,7 +404,7 @@ END
       [ sort { ( $a->{ first_date } cmp $b->{ first_date } ) || ( $a->{ first_rank } <=> $b->{ first_rank } ) }
           values( %{ $top_media_lookup } ) ];
 
-    my $all_dates = [ sort { $a cmp $b } keys( $all_dates_lookup ) ];
+    my $all_dates = [ sort { $a cmp $b } keys %{ $all_dates_lookup } ];
 
     for my $medium ( @{ $sorted_media } )
     {

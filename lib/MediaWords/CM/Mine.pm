@@ -179,7 +179,7 @@ sub get_links_from_story_text
     my $links = [];
     while ( $text =~ m~(https?://[^\s]+)~g )
     {
-        push( $links, $1 );
+        push( @{ $links }, $1 );
     }
 
     if ( @{ $links } )
@@ -866,7 +866,7 @@ sub get_preferred_story
         $media_lookup->{ $medium->{ media_id } } = $medium;
     }
 
-    my $media = [ values { %{ $media_lookup } } ];
+    my $media = [ values %{ $media_lookup } ];
 
     sub _compare_media
     {

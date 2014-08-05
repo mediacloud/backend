@@ -10,6 +10,7 @@ use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use URI;
 use URI::Escape;
 use URI::QueryParam;
+use Carp;
 
 use MediaWords::DBI::Stories;
 use MediaWords::DBI::Activities;
@@ -143,27 +144,57 @@ END
 
     $c->stash->{ stories_id } = $stories_id;
 
-    if ( MediaWords::Util::CoreNLP::annotator_is_enabled &&
-	 MediaWords::Util::CoreNLP::get_story_annotatable_by_corenlp( $c->dbis, $story->{ stories_id } ) )
+    if ( MediaWords::Util::CoreNLP::annotator_is_enabled() )
     {
-
-        $c->stash->{ corenlp_story_json } =
-          MediaWords::Util::CoreNLP::fetch_annotation_json_for_story( $c->dbis, $story->{ stories_id } );
-
-        my $corenlp_sentences = {};
-        foreach my $sentence ( @{ $story_sentences } )
+        $c->stash->{ corenlp_is_enabled } = 1;
+        if ( MediaWords::Util::CoreNLP::story_is_annotated( $c->dbis, $story->{ stories_id } ) )
         {
-            my $story_sentences_id = $sentence->{ story_sentences_id } + 0;
-            $corenlp_sentences->{ $story_sentences_id } =
-              MediaWords::Util::CoreNLP::fetch_annotation_json_for_story_sentence( $c->dbis, $story_sentences_id );
+            $c->stash->{ corenlp_story_is_annotated } = 1;
+            $c->stash->{ corenlp_sentences_concatenation_index } =
+              MediaWords::Util::CoreNLP::sentences_concatenation_index();
         }
-        $c->stash->{ corenlp_sentences_json } = $corenlp_sentences;
-
-        $c->stash->{ corenlp_story_and_sentences_json } =
-          MediaWords::Util::CoreNLP::fetch_annotation_json_for_story_and_all_sentences( $c->dbis, $story->{ stories_id } );
+        else
+        {
+            $c->stash->{ corenlp_story_is_annotated } = 0;
+        }
+    }
+    else
+    {
+        $c->stash->{ corenlp_is_enabled } = 0;
     }
 
     $c->stash->{ template } = 'stories/view.tt2';
+}
+
+# view CoreNLP JSON
+sub corenlp_json : Local
+{
+    my ( $self, $c, $stories_id ) = @_;
+
+    unless ( $stories_id )
+    {
+        confess "No stories_id";
+    }
+
+    unless ( $c->dbis->find_by_id( 'stories', $stories_id ) )
+    {
+        confess "Story $stories_id does not exist.";
+    }
+
+    unless ( MediaWords::Util::CoreNLP::annotator_is_enabled() )
+    {
+        confess "CoreNLP annotator is not enabled in the configuration.";
+    }
+
+    unless ( MediaWords::Util::CoreNLP::story_is_annotated( $c->dbis, $stories_id ) )
+    {
+        confess "Story $stories_id is not annotated.";
+    }
+
+    my $corenlp_json = MediaWords::Util::CoreNLP::fetch_annotation_json_for_story_and_all_sentences( $c->dbis, $stories_id );
+
+    $c->response->content_type( 'application/json; charset=UTF-8' );
+    return $c->res->body( $corenlp_json );
 }
 
 # edit a single story

@@ -5,11 +5,16 @@
 # It is safe to run this as many times as you want because the extraction job
 # on Gearman is unique so download extractions won't be duplicated.
 #
+# The script will skip stories that are already annotated by issuing a warning
+# and doing nothing.  If you want to overwrite annotations, set
+# "overwrite_annotations" parameter.
+#
 # Usage:
 #
 #     mediawords_enqueue_extracted_downloads_for_corenlp_on_gearman.pl \
 #         [--resume_downloads_id_log=corenlp-enqueue-resume-downloads_id.log] \
-#         [--media_id=1]
+#         [--media_id=1] \
+#         [--overwrite_annotations]
 #
 # (then, to resume from where the script stopped, run the very same command again)
 #
@@ -29,6 +34,7 @@ use MediaWords::DB;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 use MediaWords::Util::Config;
+use MediaWords::Util::CoreNLP;
 use Getopt::Long;
 use MediaWords::GearmanFunction::AnnotateWithCoreNLP;
 use Scalar::Util qw/looks_like_number/;
@@ -69,7 +75,7 @@ use Scalar::Util qw/looks_like_number/;
 
 }
 
-# Returns a download's ID to continue copying from
+# Returns a download's ID to continue enqueueing from
 sub _resume_downloads_id_from_log($)
 {
     my $resume_downloads_id_log = shift;
@@ -136,7 +142,7 @@ sub _write_downloads_id_resume_log($$)
     my $row                            = 0;
     my $rows_analyzed_since_resuming   = 0;
     my $downloads_found                = 0;
-    my $downloads_copied               = 0;
+    my $downloads_enqueued             = 0;
 
     # Cleanup tasks after finishing normally or after receiving SIGINT
     sub finish($)
@@ -152,7 +158,7 @@ sub _write_downloads_id_resume_log($$)
             say STDERR "Rows analyzed since resuming: $rows_analyzed_since_resuming";
         }
         say STDERR "Downloads found: $downloads_found (including duplicates)";
-        say STDERR "Downloads copied: $downloads_copied";
+        say STDERR "Downloads enqueued: $downloads_enqueued";
         if ( $global_resume_downloads_id_log and ( !$successfully ) )
         {
             say STDERR "Will resume at download ID: $global_resume_downloads_id";
@@ -172,9 +178,9 @@ sub _write_downloads_id_resume_log($$)
     }
 
     # Enqueue downloads for CoreNLP annotation
-    sub enqueue_downloads_to_corenlp($$$)
+    sub enqueue_downloads_to_corenlp($$$$)
     {
-        my ( $resume_downloads_id_log, $resume_downloads_id, $media_id ) = @_;
+        my ( $resume_downloads_id_log, $resume_downloads_id, $media_id, $overwrite_annotations ) = @_;
 
         if ( defined $media_id )
         {
@@ -209,7 +215,7 @@ EOF
 
         $rows_analyzed_since_resuming = 0;
         $downloads_found              = 0;
-        $downloads_copied             = 0;
+        $downloads_enqueued           = 0;
 
         $row = $resume_downloads_id;
 
@@ -233,7 +239,8 @@ EOF
 
             $downloads = $db->query(
                 <<"EOF"
-                SELECT downloads.downloads_id
+                SELECT downloads.downloads_id,
+                       downloads.stories_id
                 FROM downloads
                     -- Needed for limiting a list of downloads to a certain media_id
                     INNER JOIN stories ON downloads.stories_id = stories.stories_id
@@ -260,22 +267,39 @@ EOF
                 ++$rows_analyzed_since_resuming;
                 ++$row;
 
-                $global_resume_downloads_id = $download->{ downloads_id };
-                $resume_downloads_id        = $download->{ downloads_id };
+                my $downloads_id = $download->{ downloads_id };
+                my $stories_id   = $download->{ stories_id };
+
+                $global_resume_downloads_id = $downloads_id;
+                $resume_downloads_id        = $downloads_id;
 
                 # Write the offset
-                _write_downloads_id_resume_log( $resume_downloads_id_log, $download->{ downloads_id } );
+                _write_downloads_id_resume_log( $resume_downloads_id_log, $downloads_id );
 
-                say STDERR "Will attempt to enqueue download " . $download->{ downloads_id } if ( _verbose() );
+                if ( MediaWords::Util::CoreNLP::story_is_annotated( $db, $stories_id ) )
+                {
+                    if ( $overwrite_annotations )
+                    {
+                        warn "Story $stories_id for download $downloads_id is already " .
+                          "annotated with CoreNLP, will overwrite.";
+                    }
+                    else
+                    {
+                        warn "Story $stories_id for download $downloads_id is already " .
+                          "annotated with CoreNLP, skipping.";
+                        next;
+                    }
+                }
+
+                say STDERR "Will attempt to enqueue download " . $downloads_id if ( _verbose() );
 
                 ++$downloads_found;
 
-                MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman(
-                    { downloads_id => $download->{ downloads_id } } );
+                MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman( { downloads_id => $downloads_id } );
 
-                say STDERR "Done enqueuing download " . $download->{ downloads_id } if ( _verbose() );
+                say STDERR "Done enqueuing download " . $downloads_id if ( _verbose() );
 
-                ++$downloads_copied;
+                ++$downloads_enqueued;
             }
         }
 
@@ -305,13 +329,17 @@ sub main
 
     my $resume_downloads_id_log = undef;    # (optional) file into which a resume download ID should be written
     my $media_id                = undef;    # (optional) media ID to which downloads should be limited to
+    my $overwrite_annotations   = undef;    # (optional) overwrite annotations that already exist
+                                            #            (don't skip stories that are already annotated)
 
     my Readonly $usage =
-      'Usage: ' . $0 . ' [--resume_downloads_id_log=corenlp-enqueue-resume-downloads_id.log]' . ' [--media_id=media_id]';
+      'Usage: ' . $0 . ' [--resume_downloads_id_log=corenlp-enqueue-resume-downloads_id.log]' .
+      ' [--media_id=media_id]' . ' [--overwrite_annotations]';
 
     GetOptions(
         'resume_downloads_id_log:s' => \$resume_downloads_id_log,
         'media_id:i'                => \$media_id,
+        'overwrite_annotations'     => \$overwrite_annotations,
     ) or die "$usage\n";
 
     say STDERR "starting --  " . localtime();
@@ -324,7 +352,7 @@ sub main
         # Read resume offset (next download's ID that has to be imported)
         $resume_downloads_id = _resume_downloads_id_from_log( $resume_downloads_id_log );
     }
-    if ( defined $resume_downloads_id )
+    if ( $resume_downloads_id )
     {
         say STDERR "Will resume from download ID " . $resume_downloads_id . ".";
     }
@@ -332,6 +360,7 @@ sub main
     {
         say STDERR "Will start from beginning.";
     }
+
     if ( defined $media_id )
     {
         say STDERR "Will enqueue only downloads with media.media_id = $media_id.";
@@ -341,7 +370,16 @@ sub main
         say STDERR "Will enqueue all applicable downloads.";
     }
 
-    enqueue_downloads_to_corenlp( $resume_downloads_id_log, $resume_downloads_id, $media_id );
+    if ( $overwrite_annotations )
+    {
+        say STDERR "Will overwrite annotations.";
+    }
+    else
+    {
+        say STDERR "Will *not* overwrite annotations.";
+    }
+
+    enqueue_downloads_to_corenlp( $resume_downloads_id_log, $resume_downloads_id, $media_id, $overwrite_annotations );
 
     say STDERR "finished --  " . localtime();
 }

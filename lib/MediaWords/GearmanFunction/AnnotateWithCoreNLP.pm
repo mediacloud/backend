@@ -31,6 +31,8 @@ use MediaWords::DB;
 use MediaWords::Util::GearmanJobSchedulerConfiguration;
 
 use MediaWords::Util::CoreNLP;
+use MediaWords::DBI::Stories;
+use Readonly;
 
 # Having a global database object should be safe because
 # Gearman::JobScheduler's workers don't support fork()s anymore
@@ -64,6 +66,7 @@ sub run($;$)
 
     my $stories_id = $download->{ stories_id } + 0;
 
+    # Annotate story with CoreNLP
     eval { MediaWords::Util::CoreNLP::store_annotation_for_story( $db, $stories_id ); };
     if ( $@ )
     {
@@ -71,6 +74,17 @@ sub run($;$)
         die "Unable to process download $downloads_id with CoreNLP: $@\n";
     }
 
+    # Mark the story as processed in "processed_stories" (which might contain duplicate records)
+    unless ( MediaWords::DBI::Stories::mark_as_processed( $db, $stories_id ) )
+    {
+
+        # If the script wasn't able to log annotated story to PostgreSQL, this
+        # is also a fatal error (meaning that the script can't continue running)
+        $db->rollback;
+        die 'Unable to to log annotated story $stories_id to database: ' . $db->dbh->errstr;
+    }
+
+    # Things went fine.
     $db->commit;
 
     return 1;
