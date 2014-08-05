@@ -17,84 +17,96 @@ use Encode;
 use URI;
 use JSON;
 use Carp qw/confess cluck/;
+use Scalar::Defer;
 use Data::Dumper;
 
 # Store / fetch downloads using Bzip2 compression
 use constant CORENLP_GRIDFS_USE_BZIP2 => 1;
 
-# (Cached) CoreNLP annotator URL
-my $_corenlp_annotator_url;        # lazy-initialized in BEGIN()
-my $_corenlp_annotator_timeout;    # lazy-initialized in BEGIN()
+# (Lazy-initialized) CoreNLP annotator URL
+my $_corenlp_annotator_url = lazy
+{
 
-# MongoDB GridFS key-value store
-# We use a static one here because:
+    unless ( annotator_is_enabled() )
+    {
+        _fatal_error( "CoreNLP annotator is not enabled; why are you accessing this variable?" );
+    }
+
+    my $config = MediaWords::Util::Config->get_config();
+
+    # CoreNLP annotator URL
+    my $url = $config->{ corenlp }->{ annotator_url };
+    unless ( $url )
+    {
+        die "Unable to determine CoreNLP annotator URL to use.";
+    }
+
+    # Validate URL
+    my $uri;
+    eval { $uri = URI->new( $url )->canonical; };
+    if ( $@ )
+    {
+        _fatal_error( "Invalid CoreNLP annotator URI '$url': $@" );
+    }
+
+    my $corenlp_annotator_url = $uri->as_string;
+    unless ( $corenlp_annotator_url )
+    {
+        _fatal_error( "CoreNLP annotator is enabled, but annotator URL is not set." );
+    }
+    say STDERR "CoreNLP annotator URL: $corenlp_annotator_url";
+
+    return $corenlp_annotator_url;
+};
+
+# (Lazy-initialized) CoreNLP annotator timeout
+my $_corenlp_annotator_timeout = lazy
+{
+
+    unless ( annotator_is_enabled() )
+    {
+        _fatal_error( "CoreNLP annotator is not enabled; why are you accessing this variable?" );
+    }
+
+    my $config = MediaWords::Util::Config->get_config();
+
+    # Timeout
+    my $corenlp_annotator_timeout = $config->{ corenlp }->{ annotator_timeout };
+    unless ( $corenlp_annotator_timeout )
+    {
+        die "Unable to determine CoreNLP annotator timeout to set.";
+    }
+    say STDERR "CoreNLP annotator timeout: $corenlp_annotator_timeout s";
+
+    return $corenlp_annotator_timeout;
+};
+
+# (Lazy-initialized) MongoDB GridFS key-value store
+# We use a static, package-wide variable here because:
 # a) MongoDB handler should support being used by multiple threads by now, and
 # b) each Gearman worker is a separate process so there shouldn't be any resource clashes.
-my $_gridfs_store;    # lazy-initialized in BEGIN()
-
-# Returns true if CoreNLP annotator is enabled
-sub annotator_is_enabled()
+my $_gridfs_store = lazy
 {
+
+    unless ( annotator_is_enabled() )
+    {
+        _fatal_error( "CoreNLP annotator is not enabled; why are you accessing this variable?" );
+    }
+
     my $config = MediaWords::Util::Config->get_config();
-    my $corenlp_enabled = $config->{ corenlp }->{ enabled } // '';
 
-    if ( $corenlp_enabled eq 'yes' )
+    # GridFS storage
+    my $gridfs_database_name = $config->{ mongodb_gridfs }->{ corenlp }->{ database_name };
+    unless ( $gridfs_database_name )
     {
-        return 1;
+        _fatal_error( "CoreNLP annotator is enabled, but MongoDB GridFS database name is not set." );
     }
-    else
-    {
-        return 0;
-    }
-}
 
-BEGIN
-{
-    if ( annotator_is_enabled() )
-    {
+    my $gridfs_store = MediaWords::KeyValueStore::GridFS->new( { database_name => $gridfs_database_name } );
+    say STDERR "Will write CoreNLP annotator results to GridFS database: $gridfs_database_name";
 
-        my $config = MediaWords::Util::Config->get_config();
-
-        # CoreNLP annotator URL
-        my $url = $config->{ corenlp }->{ annotator_url };
-        unless ( $url )
-        {
-            die "Unable to determine CoreNLP annotator URL to use.";
-        }
-
-        # Validate URL
-        my $uri;
-        eval { $uri = URI->new( $url )->canonical; };
-        if ( $@ )
-        {
-            _fatal_error( "Invalid CoreNLP annotator URI '$url': $@" );
-        }
-
-        $_corenlp_annotator_url = $uri->as_string;
-        unless ( $_corenlp_annotator_url )
-        {
-            _fatal_error( "CoreNLP annotator is enabled, but annotator URL is not set." );
-        }
-        say STDERR "CoreNLP annotator URL: $_corenlp_annotator_url";
-
-        # Timeout
-        $_corenlp_annotator_timeout = $config->{ corenlp }->{ annotator_timeout };
-        unless ( $_corenlp_annotator_timeout )
-        {
-            die "Unable to determine CoreNLP annotator timeout to set.";
-        }
-        say STDERR "CoreNLP annotator timeout: $_corenlp_annotator_timeout s";
-
-        # GridFS storage
-        my $gridfs_database_name = $config->{ mongodb_gridfs }->{ corenlp }->{ database_name };
-        unless ( $gridfs_database_name )
-        {
-            _fatal_error( "CoreNLP annotator is enabled, but MongoDB GridFS database name is not set." );
-        }
-        $_gridfs_store = MediaWords::KeyValueStore::GridFS->new( { database_name => $gridfs_database_name } );
-        say STDERR "Will write CoreNLP annotator results to GridFS database: $gridfs_database_name";
-    }
-}
+    return $gridfs_store;
+};
 
 # Encode hashref to JSON, die() on error
 sub _encode_json($;$)
@@ -404,6 +416,22 @@ sub _fatal_error($)
 
     cluck $error_message;
     exit 1;
+}
+
+# Returns true if CoreNLP annotator is enabled
+sub annotator_is_enabled()
+{
+    my $config = MediaWords::Util::Config->get_config();
+    my $corenlp_enabled = $config->{ corenlp }->{ enabled } // '';
+
+    if ( $corenlp_enabled eq 'yes' )
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 # String to use for indexing annotation JSON of the concatenation of all sentences
