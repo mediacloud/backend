@@ -166,7 +166,7 @@ sub insert_story_sentence_counts
 copy story_sentence_counts ( $field_list ) from STDIN with csv
 END
     eval { $db->dbh->do( $copy ) };
-    die( " Error on copy for story_sentence_counts: $@" ) if ( $@ );
+    die( "Error on copy for story_sentence_counts: $@" ) if ( $@ );
 
     my $csv = Text::CSV_XS->new( { binary => 1 } );
 
@@ -176,16 +176,16 @@ END
         $csv->combine( $md5, $story->{ media_id }, $publish_week, $story->{ stories_id }, $i++, 1 );
         eval { $db->dbh->pg_putcopydata( $csv->string . "\n" ) };
 
-        die( " Error on pg_putcopydata for story_sentence_counts: $@" ) if ( $@ );
+        die( "Error on pg_putcopydata for story_sentence_counts: $@" ) if ( $@ );
     }
 
     eval { $db->dbh->pg_putcopyend() };
 
-    die( " Error on pg_putcopyend for story_sentence_counts: $@" ) if ( $@ );
+    die( "Error on pg_putcopyend for story_sentence_counts: $@" ) if ( $@ );
 }
 
 # return the sentences from the set that are dups within the same media source and calendar week.
-# also adds the sentence to the  t table and/or increments the count in that table
+# also adds the sentence to the story_sentences_count table and/or increments the count in that table
 # for the sentence.
 #
 # NOTE: you must wrap a 'lock story_sentence_counts in row exclusive mode' around all calls to this within the
