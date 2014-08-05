@@ -332,7 +332,7 @@ sub _fetch_annotation_from_gridfs_for_story($$)
 {
     my ( $db, $stories_id ) = @_;
 
-    if ( !annotator_is_enabled() )
+    unless ( annotator_is_enabled() )
     {
         confess "CoreNLP annotator is not enabled in the configuration.";
     }
@@ -418,7 +418,7 @@ sub story_is_annotatable($$)
 {
     my ( $db, $stories_id ) = @_;
 
-    if ( !annotator_is_enabled() )
+    unless ( annotator_is_enabled() )
     {
         _fatal_error( "CoreNLP annotator is not enabled in the configuration." );
     }
@@ -446,7 +446,7 @@ sub story_is_annotated($$)
 {
     my ( $db, $stories_id ) = @_;
 
-    if ( !annotator_is_enabled() )
+    unless ( annotator_is_enabled() )
     {
         _fatal_error( "CoreNLP annotator is not enabled in the configuration." );
     }
@@ -475,7 +475,7 @@ sub store_annotation_for_story($$)
 {
     my ( $db, $stories_id ) = @_;
 
-    if ( !annotator_is_enabled() )
+    unless ( annotator_is_enabled() )
     {
         _fatal_error( "CoreNLP annotator is not enabled in the configuration." );
         return 0;
@@ -578,7 +578,7 @@ sub fetch_annotation_json_for_story($$)
 {
     my ( $db, $stories_id ) = @_;
 
-    if ( !annotator_is_enabled() )
+    unless ( annotator_is_enabled() )
     {
         confess "CoreNLP annotator is not enabled in the configuration.";
     }
@@ -627,7 +627,7 @@ sub fetch_annotation_json_for_story_sentence($$)
 {
     my ( $db, $story_sentences_id ) = @_;
 
-    if ( !annotator_is_enabled() )
+    unless ( annotator_is_enabled() )
     {
         confess "CoreNLP annotator is not enabled in the configuration.";
     }
@@ -694,7 +694,7 @@ sub fetch_annotation_json_for_story_and_all_sentences($$)
 {
     my ( $db, $stories_id ) = @_;
 
-    if ( !annotator_is_enabled() )
+    unless ( annotator_is_enabled() )
     {
         confess "CoreNLP annotator is not enabled in the configuration.";
     }
