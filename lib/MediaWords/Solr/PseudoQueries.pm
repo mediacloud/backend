@@ -42,16 +42,14 @@ Readonly my $FIELD_FUNCTIONS => [
     [ 'link_from_medium',            \&_transform_link_from_medium_field,            1 ],
 ];
 
-# get the cdts_id from the return date or die with an error for the
-# given field if there is no such valid data in the return_data
-sub _get_required_cdts_id
+# die with an error for the given field if there is no controversy_dump_time_slice
+# field in the same query
+sub _require_cdts
 {
     my ( $return_data, $field ) = @_;
 
     die( "pseudo query error: '$field' field requires a controversy_dump_time_slice field in the same pseudo query clause" )
       unless ( $return_data->{ controversy_dump_time_slice } );
-
-    return $return_data->{ controversy_dump_time_slice }->[ 0 ]->{ controversy_dump_time_slices_id };
 }
 
 # transform link_to_story:1234 into list of stories within time slice that link
@@ -60,14 +58,13 @@ sub _transform_link_to_story_field
 {
     my ( $db, $return_data, $to_stories_id ) = @_;
 
-    my $cdts_id = _get_required_cdts_id( $return_data, 'link_to_story' );
+    _require_cdts( $return_data, 'link_to_story' );
 
-    my $stories_ids = $db->query( <<END, $to_stories_id, $cdts_id )->flat;
+    my $stories_ids = $db->query( <<END, $to_stories_id )->flat;
 select source_stories_id 
-    from cd.story_links 
+    from dump_story_links
     where 
-        ref_stories_id = ? and 
-        controversy_dump_time_slices_id = ?
+        ref_stories_id = ?
 END
 
     return { stories_ids => $stories_ids };
@@ -79,14 +76,12 @@ sub _transform_link_from_story_field
 {
     my ( $db, $return_data, $from_stories_id ) = @_;
 
-    my $cdts_id = _get_required_cdts_id( $return_data, 'link_from_story' );
+    _require_cdts( $return_data, 'link_from_story' );
 
-    my $stories_ids = $db->query( <<END, $from_stories_id, $cdts_id )->flat;
+    my $stories_ids = $db->query( <<END, $from_stories_id )->flat;
 select ref_stories_id 
-    from cd.story_links 
-    where 
-        source_stories_id = ? and 
-        controversy_dump_time_slices_id = ?
+    from dump_story_links 
+    where source_stories_id = ?
 END
 
     return { stories_ids => $stories_ids };
@@ -98,20 +93,16 @@ sub _transform_link_to_medium_field
 {
     my ( $db, $return_data, $to_media_id ) = @_;
 
-    my $cdts_id = _get_required_cdts_id( $return_data, 'link_to_medium' );
+    _require_cdts( $return_data, 'link_from_medium' );
 
-    my $stories_ids = $db->query( <<END, $to_media_id, $cdts_id )->flat;
+    my $stories_ids = $db->query( <<END, $to_media_id )->flat;
 select distinct sl.source_stories_id 
     from 
-        cd.story_links sl
-        join controversy_dump_time_slices cdts 
-            on ( cdts.controversy_dump_time_slices_id = sl.controversy_dump_time_slices_id )
-        join controversy_dumps cd on ( cd.controversy_dumps_id = cdts.controversy_dumps_id )
-        join cd.live_stories rs 
-            on ( sl.ref_stories_id = rs.stories_id and rs.controversies_id = cd.controversies_id )
+        dump_story_links sl
+        join dump_stories s
+            on ( sl.ref_stories_id = s.stories_id )
     where 
-        rs.media_id = \$1 and
-        sl.controversy_dump_time_slices_id = \$2      
+        s.media_id = \$1
 END
 
     return { stories_ids => $stories_ids };
@@ -123,20 +114,16 @@ sub _transform_link_from_medium_field
 {
     my ( $db, $return_data, $from_media_id ) = @_;
 
-    my $cdts_id = _get_required_cdts_id( $return_data, 'link_to_medium' );
+    _require_cdts( $return_data, 'link_from_medium' );
 
-    my $stories_ids = $db->query( <<END, $from_media_id, $cdts_id )->flat;
+    my $stories_ids = $db->query( <<END, $from_media_id )->flat;
 select distinct sl.ref_stories_id 
     from 
-        cd.story_links sl
-        join controversy_dump_time_slices cdts 
-            on ( cdts.controversy_dump_time_slices_id = sl.controversy_dump_time_slices_id )
-        join controversy_dumps cd on ( cd.controversy_dumps_id = cdts.controversy_dumps_id )
-        join cd.live_stories ss 
-            on ( sl.source_stories_id = ss.stories_id and ss.controversies_id = cd.controversies_id )
+        dump_story_links sl
+        join dump_stories s
+            on ( sl.source_stories_id = s.stories_id )
     where 
-        ss.media_id = \$1 and
-        sl.controversy_dump_time_slices_id = \$2      
+        s.media_id = \$1
 END
 
     return { stories_ids => $stories_ids };
@@ -159,13 +146,24 @@ END
 # stories_ids
 sub _transform_controversy_dump_time_slice_field
 {
-    my ( $db, $return_data, $cdts_id ) = @_;
+    my ( $db, $return_data, $cdts_id, $live ) = @_;
 
-    my $stories_ids = $db->query( <<END, $cdts_id )->flat;
-select stories_id from cd.story_link_counts where controversy_dump_time_slices_id = ?
+    my $cdts = $db->find_by_id( 'controversy_dump_time_slices', $cdts_id )
+      || die( "Unable to find controversy_dump_time_slice with id '$cdts_id'" );
+    my $controversy = $db->query( <<END, $cdts->{ controversy_dumps_id } )->hash;
+select distinct c.*
+    from 
+        controversies c
+        join controversy_dumps cd on ( c.controversies_id = cd.controversies_id )
+    where 
+        cd.controversy_dumps_id = ?
 END
 
-    return { controversy_dump_time_slices_id => $cdts_id, stories_ids => $stories_ids };
+    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $live );
+
+    my $stories_ids = $db->query( "select stories_id from dump_story_link_counts" )->flat;
+
+    return { controversy_dump_time_slices_id => $cdts_id, stories_ids => $stories_ids, live => $live };
 }
 
 # accept link_from_tag:1234[-5678] clause and return a list of stories_ids where
@@ -177,7 +175,10 @@ sub _transform_link_from_tag_field
 {
     my ( $db, $return_data, $from_tags_id, $to_tags_id ) = @_;
 
-    my $cdts_id = _get_required_cdts_id( $return_data, 'link_from_tag' );
+    $from_tags_id += 0;
+    $to_tags_id   += 0;
+
+    _require_cdts( $return_data, 'link_from_tag' );
 
     my $to_tags_id_clause = '';
     if ( $to_tags_id )
@@ -185,7 +186,7 @@ sub _transform_link_from_tag_field
         if ( $to_tags_id eq 'other' )
         {
             $to_tags_id_clause = <<END;
-and sl.ref_stories_id not in ( select stories_id from tagged_stories ts where ts.tags_id = \$2 )
+and sl.ref_stories_id not in ( select stories_id from tagged_stories ts where ts.tags_id != $from_tags_id )
 END
         }
         elsif ( $to_tags_id =~ /^\d+$/ )
@@ -201,21 +202,22 @@ END
         }
     }
 
-    my $stories_ids = $db->query( <<END, $cdts_id, $from_tags_id )->flat;
+    my $stories_ids = $db->query( <<END )->flat;
 with tagged_stories as (
-    select stm.stories_id, stm.tags_id from stories_tags_map stm
+    select stm.stories_id, stm.tags_id from dump_stories_tags_map stm
     union
-    select s.stories_id, mtm.tags_id from stories s join media_tags_map mtm on ( s.media_id = mtm.media_id )
+    select s.stories_id, mtm.tags_id from dump_stories s join media_tags_map mtm on ( s.media_id = mtm.media_id )
 )
     
 select sl.ref_stories_id
     from
-        cd.story_links sl
+        dump_story_links sl
     where
-        sl.controversy_dump_time_slices_id = \$1 and
-        ( sl.source_stories_id in ( select stories_id from tagged_stories ts where ts.tags_id = \$2 ) )
-        $to_tags_id_clause        
+        ( sl.source_stories_id in ( select stories_id from tagged_stories ts where ts.tags_id = $from_tags_id ) )
+        $to_tags_id_clause
 END
+
+    $db->commit;
 
     return { stories_ids => $stories_ids };
 }
@@ -226,6 +228,8 @@ sub _transform_clause
     my ( $clause ) = @_;
 
     my $db = MediaWords::DB::connect_to_db;
+
+    $db->begin;
 
     # make a list of all calls to make against all field functions
     my $field_function_calls = {};
@@ -271,6 +275,8 @@ sub _transform_clause
         delete( $field_function_calls->{ $field_name } );
     }
 
+    $db->commit;
+
     if ( my @remaining_fields = keys( %{ $field_function_calls } ) )
     {
         die( "pseudo query error: unknown pseudo query fields: " . join( ", ", @remaining_fields ) );
@@ -299,7 +305,7 @@ sub transform_query
 
     $t =~ s/(\{\~[^\}]*\})/_transform_clause( $1 )/eg;
 
-    # print STDERR "transformed solr query: '$q' -> '$t'\n" unless ( $t eq $q );
+    #print STDERR "transformed solr query: '$q' -> '$t'\n" unless ( $t eq $q );
 
     return $t;
 }
