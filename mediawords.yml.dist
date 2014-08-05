@@ -170,6 +170,11 @@ database:
     ### otherwise the Gearman worker will exit() often.
     #annotator_timeout: 600
 
+    ### CoreNLP annotator "level"; you might want to use this configuration
+    ### parameter to limit the scope of annotations returned from the service.
+    ### Default is an empty string; you might want to set it to "ner".
+    #annotator_level: ""
+
     ###
     ### Also see: "mongodb_gridfs/corenlp/database_name" configuration property above
     ###

@@ -81,6 +81,29 @@ my $_corenlp_annotator_timeout = lazy
     return $corenlp_annotator_timeout;
 };
 
+# (Lazy-initialized) CoreNLP annotator level (e.g. "ner" or an empty string)
+my $_corenlp_annotator_level = lazy
+{
+
+    unless ( annotator_is_enabled() )
+    {
+        _fatal_error( "CoreNLP annotator is not enabled; why are you accessing this variable?" );
+    }
+
+    my $config = MediaWords::Util::Config->get_config();
+
+    # Level
+    my $corenlp_annotator_level = $config->{ corenlp }->{ annotator_level };
+    unless ( defined $corenlp_annotator_level )
+    {
+        die "Unable to determine CoreNLP annotator level to use.";
+    }
+
+    say STDERR "CoreNLP annotator level: $corenlp_annotator_level";
+
+    return $corenlp_annotator_level;
+};
+
 # (Lazy-initialized) MongoDB GridFS key-value store
 # We use a static, package-wide variable here because:
 # a) MongoDB handler should support being used by multiple threads by now, and
@@ -214,11 +237,18 @@ sub _annotate_text($)
 
     # Create JSON request
     my $text_json;
-    eval { $text_json = _encode_json( { 'text' => $text } ); };
+    eval {
+        my $text_json_hashref = { 'text' => $text };
+        if ( $_corenlp_annotator_level ne '' )
+        {
+            $text_json_hashref->{ 'level' } = $_corenlp_annotator_level . '';
+        }
+        $text_json = _encode_json( $text_json_hashref );
+    };
     if ( $@ or ( !$text_json ) )
     {
         # Not critical, might happen to some stories, no need to shut down the annotator
-        die "Unable to encode text to a JSON request: $@\nText: $text";
+        die "Unable to encode text to a JSON request: $@\nText: $text\nLevel: $_corenlp_annotator_level";
     }
 
     # Text has to be encoded because HTTP::Request only accepts bytes as POST data
