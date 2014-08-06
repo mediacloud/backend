@@ -22,7 +22,11 @@ use MediaWords::Solr::WordCounts;
 
 use constant ROWS_PER_PAGE => 25;
 
+use utf8;
+
 use base 'Catalyst::Controller::HTML::FormFu';
+
+#use Catalyst qw( ConfigLoader Static::Simple Unicode );
 
 sub index : Path : Args(0)
 {
@@ -136,6 +140,16 @@ sub create : Local
 
     $c->stash->{ form }     = $form;
     $c->stash->{ template } = 'cm/create_controversy.tt2';
+
+    # if ( defined ( $c->req->params->{ pattern } ) )
+    # {
+    # 	utf8::encode( $c->req->params->{ pattern } );
+    # }
+
+    # if ( defined ( $c->req->params->{ solr_seed_query } ) )
+    # {
+    # 	utf8::encode( $c->req->params->{ solr_seed_query } );
+    # }
 
     $form->process( $c->request );
 
