@@ -50,8 +50,6 @@ sub new
 
     $self->{ downloads } = MediaWords::Crawler::Downloads_Queue->new();
 
-    $self->{ last_timed_out_spidered_download_check } = 0;
-
     # last time a pending downloads check was run
     $self->{ last_pending_check } = 0;
 
