@@ -114,6 +114,7 @@ requires 'Readonly';
 requires 'Readonly::XS';
 requires 'Regexp::Common';
 requires 'Regexp::Common::time';
+requires 'Scalar::Defer';
 requires 'Set::Jaccard::SimilarityCoefficient';
 requires 'Set::Scalar';
 requires 'Smart::Comments';
