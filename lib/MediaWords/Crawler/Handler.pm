@@ -269,18 +269,6 @@ sub _process_content
     say STDERR "fetcher " . $self->engine->fetcher_number . " finished _process_content for  " . $download->{ downloads_id };
 }
 
-sub _set_spider_download_state_as_success
-{
-    my ( $self, $download ) = @_;
-
-    print STDERR "setting state to success for download: " .
-      $download->{ downloads_id } . " fetcher: " . $self->engine->fetcher_number . "\n";
-    $self->engine->dbs->query( "update downloads set state = 'success', path = 'foo' where downloads_id = ?",
-        $download->{ downloads_id } );
-
-    return;
-}
-
 sub handle_response
 {
     my ( $self, $download, $response ) = @_;
