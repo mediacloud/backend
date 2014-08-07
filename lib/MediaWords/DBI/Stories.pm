@@ -1047,7 +1047,7 @@ sub add_missing_story_sentences
 
     my $ss = $db->query( "select 1 from story_sentences ss where stories_id = ?", $story->{ stories_id } )->hash;
 
-    return unless ( $ss );
+    return if ( $ss );
 
     print STDERR "ADD SENTENCES\n";
 
