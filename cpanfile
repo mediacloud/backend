@@ -125,7 +125,6 @@ requires 'Test::NoWarnings';
 requires 'Test::Strict';
 requires 'Text::CSV';
 requires 'Text::Iconv';
-requires 'Text::Ngrams';
 requires 'Text::Similarity::Overlaps';
 requires 'Text::Trim';
 requires 'Tie::Cache';

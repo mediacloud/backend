@@ -7613,12 +7613,6 @@ DISTRIBUTIONS
       Text::Iconv 1.7
     requirements:
       ExtUtils::MakeMaker 0
-  Text-Ngrams-2.003
-    pathname: V/VL/VLADO/Text-Ngrams-2.003.tar.gz
-    provides:
-      Text::Ngrams 2.003
-    requirements:
-      ExtUtils::MakeMaker 0
   Text-Similarity-0.10
     pathname: T/TP/TPEDERSE/Text-Similarity-0.10.tar.gz
     provides:
