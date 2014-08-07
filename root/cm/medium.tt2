@@ -45,7 +45,7 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
        END;
 %]
 
-[% edit_url = c.uri_for( '/admin/media/edit_do/' _ medium.media_id ) %]
+[% edit_url = c.uri_for( '/admin/media/edit_do/' _ medium.media_id, { controversies_id => controversy.controversies_id } ) %]
 [% merge_url = c.uri_for( '/admin/cm/merge_media/' _ medium.media_id, { cdts => cdts.cdts_id } ) %]
 [% unredirect_url = c.uri_for( '/admin/cm/unredirect_medium/' _ medium.media_id, { cdts => cdts.cdts_id } ) %]
 

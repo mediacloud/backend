@@ -579,9 +579,19 @@ media_type_sums as (
 select
         media_type,
         num_stories,
-        round( ( num_stories / sum_num_stories ) * 100 ) percent_stories,
+        case when sum_num_stories = 0
+            then 
+                0
+            else 
+                round( ( num_stories / sum_num_stories ) * 100 ) 
+            end percent_stories,
         link_weight,
-        round( ( link_weight / sum_link_weight ) * 100 ) percent_link_weight
+        case when sum_link_weight = 0
+            then
+                0
+            else
+                round( ( link_weight / sum_link_weight ) * 100 ) 
+            end percent_link_weight
     from
         media_type_stats
         cross join media_type_sums
@@ -2256,8 +2266,6 @@ sub edit_dates : Local
 
     my $controversy = $db->find_by_id( 'controversies', $controversies_id ) || die( "Unable to find controversy" );
 
-    # mark the controversy_date that is the boundary date for the controversy, since we don't want
-    # to delete it
     my $controversy_dates = $db->query( <<END, $controversies_id )->hashes;
 select cd.* from controversy_dates cd where cd.controversies_id = ? order by cd.start_date, cd.end_date desc 
 END
@@ -2265,6 +2273,156 @@ END
     $c->stash->{ controversy }       = $controversy;
     $c->stash->{ controversy_dates } = $controversy_dates;
     $c->stash->{ template }          = 'cm/edit_dates.tt2';
+}
+
+# find existing media_type_tag_set for controversy or create a new one
+# if one does not already exist
+sub _find_or_create_controversy_media_type
+{
+    my ( $db, $controversy ) = @_;
+
+    if ( my $tag_sets_id = $controversy->{ media_type_tag_sets_id } )
+    {
+        return $db->find_by_id( 'tag_sets', $tag_sets_id );
+    }
+
+    my $tag_set = {
+        name        => "controversy_" . $controversy->{ controversies_id } . "_media_types",
+        label       => "Media Types for " . $controversy->{ name } . " Controversy",
+        description => "These tags are media types specific to the " . $controversy->{ name } . " controversy"
+    };
+
+    $tag_set = $db->create( 'tag_sets', $tag_set );
+
+    $db->query( <<END, $tag_set->{ tag_sets_id }, $controversy->{ controversies_id } );
+update controversies set media_type_tag_sets_id = ? where controversies_id = ?
+END
+
+    return $tag_set;
+}
+
+# add a new media type tag
+sub add_media_type : Local
+{
+    my ( $self, $c, $controversies_id ) = @_;
+
+    my $form = $c->create_form( { load_config_file => $c->path_to() . '/root/forms/admin/cm/controversy_media_type.yml' } );
+
+    my $db = $c->dbis;
+
+    my $controversy = $db->find_by_id( 'controversies', $controversies_id ) || die( "Unable to find controversy" );
+
+    $c->stash->{ controversy } = $controversy;
+    $c->stash->{ form }        = $form;
+    $c->stash->{ template }    = 'cm/add_media_type.tt2';
+
+    $form->process( $c->request );
+
+    return unless ( $form->submitted_and_valid );
+
+    my $p = $form->params;
+
+    my $tag_set = _find_or_create_controversy_media_type( $db, $controversy );
+
+    my $tag = {
+        tag         => $p->{ tag },
+        label       => $p->{ label },
+        description => $p->{ description },
+        tag_sets_id => $tag_set->{ tag_sets_id }
+    };
+
+    $db->create( 'tags', $tag );
+
+    my $status_msg = "Media type has been created.";
+    $c->res->redirect(
+        $c->uri_for( "/admin/cm/edit_media_types/$controversy->{ controversies_id }", { status_msg => $status_msg } ) );
+}
+
+# delete a single media type
+sub delete_media_type : Local
+{
+    my ( $self, $c, $tags_id ) = @_;
+
+    my $db = $c->dbis;
+
+    my $tag = $db->find_by_id( 'tags', $tags_id ) || die( "Unable to find tag" );
+
+    my $controversy = $db->query( <<END, $tag->{ tag_sets_id } )->hash;
+select * from controversies where media_type_tag_sets_id = ?
+END
+
+    die( "Unable to find controversy" ) unless ( $controversy );
+
+    $c->dbis->query( "delete from tags where tags_id = ?", $tags_id );
+
+    my $status_msg = "Media type has been delete.";
+    $c->res->redirect(
+        $c->uri_for( "/admin/cm/edit_media_types/$controversy->{ controversies_id }", { status_msg => $status_msg } ) );
+}
+
+# edit single controversy media type tag
+sub edit_media_type : Local
+{
+    my ( $self, $c, $tags_id ) = @_;
+
+    my $form = $c->create_form( { load_config_file => $c->path_to() . '/root/forms/admin/cm/controversy_media_type.yml' } );
+
+    my $db = $c->dbis;
+
+    my $tag = $db->find_by_id( 'tags', $tags_id ) || die( "Unable to find tag" );
+
+    my $controversy = $db->query( <<END, $tag->{ tag_sets_id } )->hash;
+select * from controversies where media_type_tag_sets_id = ?
+END
+
+    die( "Unable to find controversy" ) unless ( $controversy );
+
+    $form->default_values( $tag );
+    $form->process( $c->req );
+
+    if ( !$form->submitted_and_valid )
+    {
+        $c->stash->{ form }        = $form;
+        $c->stash->{ controversy } = $controversy;
+        $c->stash->{ tag }         = $tag;
+        $c->stash->{ template }    = 'cm/edit_media_type.tt2';
+        return;
+    }
+
+    my $p = $form->params;
+
+    $tag->{ tag }         = $p->{ tag };
+    $tag->{ label }       = $p->{ label };
+    $tag->{ description } = $p->{ description };
+
+    $c->dbis->update_by_id( 'tags', $tags_id, $tag );
+
+    my $controversies_id = $controversy->{ controversies_id };
+    $c->res->redirect(
+        $c->uri_for( "/admin/cm/edit_media_types/$controversies_id", { status_msg => 'Media type updated.' } ) );
+}
+
+# edit list of controversy specific media types
+sub edit_media_types : Local
+{
+    my ( $self, $c, $controversies_id ) = @_;
+
+    my $db = $c->dbis;
+
+    my $controversy = $db->find_by_id( 'controversies', $controversies_id ) || die( "Unable to find controversy" );
+
+    my $media_types = $db->query( <<END, $controversies_id )->hashes;
+select t.* 
+    from tags t
+        join controversies c on ( c.media_type_tag_sets_id = t.tag_sets_id )
+    where 
+        c.controversies_id = ? 
+    order by t.tag
+END
+
+    $c->stash->{ controversy } = $controversy;
+    $c->stash->{ media_types } = $media_types;
+    $c->stash->{ template }    = 'cm/edit_media_types.tt2';
 }
 
 1;
