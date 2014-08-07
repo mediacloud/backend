@@ -128,7 +128,6 @@ requires 'Text::Iconv';
 requires 'Text::Similarity::Overlaps';
 requires 'Text::Trim';
 requires 'Tie::Cache';
-requires 'URI::Find';
 requires 'WebService::Google::Language';
 requires 'XML::FeedPP';
 requires 'XML::LibXML';
