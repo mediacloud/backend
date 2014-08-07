@@ -20,8 +20,6 @@ use List::Util qw (max maxstr);
 use Try::Tiny;
 
 use Feed::Scrape::MediaWords;
-use MediaWords::Crawler::BlogSpiderBlogHomeHandler;
-use MediaWords::Crawler::BlogSpiderPostingHandler;
 use MediaWords::Crawler::Pager;
 use MediaWords::GearmanFunction::ExtractAndVector;
 use MediaWords::DBI::Downloads;

@@ -26,8 +26,6 @@ use Carp;
 use List::Util qw (max maxstr);
 
 use Feed::Scrape::MediaWords;
-use MediaWords::Crawler::BlogSpiderBlogHomeHandler;
-use MediaWords::Crawler::BlogSpiderPostingHandler;
 use MediaWords::Crawler::Pager;
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories;
@@ -52,8 +50,6 @@ sub new
 
     $self->engine( $engine );
 
-    $self->{ blog_spider_handler }         = MediaWords::Crawler::BlogSpiderBlogHomeHandler->new( $self->engine );
-    $self->{ blog_spider_posting_handler } = MediaWords::Crawler::BlogSpiderPostingHandler->new( $self->engine );
     return $self;
 }
 
@@ -318,60 +314,10 @@ END
         }
 
     }
-    elsif ( $download_type eq 'archival_only' )
-    {
-        MediaWords::DBI::Downloads::store_content( $dbs, $download, \$response->decoded_content );
-
-    }
     elsif ( $download_type eq 'content' )
     {
         MediaWords::DBI::Downloads::store_content( $dbs, $download, \$response->decoded_content );
         $self->_process_content( $dbs, $download, $response );
-
-    }
-    elsif ( $download_type eq 'spider_blog_home' )
-    {
-        $self->{ blog_spider_handler }->_process_spidered_download( $download, $response );
-        $self->_set_spider_download_state_as_success( $download );
-
-    }
-    elsif ( $download_type eq 'spider_rss' )
-    {
-        $self->_add_spider_posting_downloads( $download, $response );
-        $self->_set_spider_download_state_as_success( $download );
-
-    }
-    elsif ( $download_type eq 'spider_posting' )
-    {
-        $self->{ blog_spider_posting_handler } = MediaWords::Crawler::BlogSpiderPostingHandler->new( $self->engine );
-        $self->{ blog_spider_posting_handler }->process_spidered_posting_download( $download, $response );
-        $self->_set_spider_download_state_as_success( $download );
-
-    }
-    elsif ( $download_type eq 'spider_blog_friends_list' )
-    {
-        $self->{ blog_friends_list_handler } = MediaWords::Crawler::BlogSpiderPostingHandler->new( $self->engine );
-        $self->{ blog_friends_list_handler }->process_spidered_posting_download( $download, $response );
-        $self->_set_spider_download_state_as_success( $download );
-
-    }
-    elsif ( $download_type eq 'spider_validation_blog_home' )
-    {
-        print STDERR "starting spider_validation_blog_home\n";
-        MediaWords::DBI::Downloads::store_content( $dbs, $download, \$response->decoded_content );
-        $self->_set_spider_download_state_as_success( $download );
-        print STDERR "completed spider_validation_blog_home\n";
-
-    }
-    elsif ( $download_type eq 'spider_validation_rss' )
-    {
-        print STDERR "starting spider_validation_rss\n";
-        MediaWords::DBI::Downloads::store_content( $dbs, $download, \$response->decoded_content );
-        $self->_store_last_rss_entry_time( $download, $response );
-        $self->_set_spider_download_state_as_success( $download );
-        print STDERR "completed spider_validation_rss\n";
-
-        #$self->_process_content( $download, $response );
 
     }
     else
