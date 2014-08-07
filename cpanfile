@@ -10,7 +10,6 @@
 requires 'Algorithm::FeatureSelection';
 requires 'Archive::Zip';
 requires 'Array::Compare';
-requires 'BerkeleyDB';
 requires 'Cache::FastMmap';
 requires 'Carton::CLI';
 requires 'Catalyst', '5.90030';

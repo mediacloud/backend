@@ -18,8 +18,6 @@ Algorithm::Cluster
 
 Class::Std
 
-BerkeleyDB
-
 List::Uniq
 
 List::Member

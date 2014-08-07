@@ -148,27 +148,6 @@ DISTRIBUTIONS
       Test::More 0
       parent 0
       perl 5.008001
-  BerkeleyDB-0.54
-    pathname: P/PM/PMQS/BerkeleyDB-0.54.tar.gz
-    provides:
-      BerkeleyDB 0.54
-      BerkeleyDB::Btree 0.54
-      BerkeleyDB::CDS::Lock 0.54
-      BerkeleyDB::Common 0.54
-      BerkeleyDB::Cursor 0.54
-      BerkeleyDB::Env 0.54
-      BerkeleyDB::Hash 0.54
-      BerkeleyDB::Heap 0.54
-      BerkeleyDB::Queue 0.54
-      BerkeleyDB::Recno 0.54
-      BerkeleyDB::Term 0.54
-      BerkeleyDB::Txn 0.54
-      BerkeleyDB::TxnMgr 0.54
-      BerkeleyDB::Unknown 0.54
-      BerkeleyDB::_tiedArray 0.54
-      BerkeleyDB::_tiedHash 0.54
-    requirements:
-      ExtUtils::MakeMaker 0
   Bit-Vector-7.3
     pathname: S/ST/STBEY/Bit-Vector-7.3.tar.gz
     provides:

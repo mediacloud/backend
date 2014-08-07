@@ -73,7 +73,7 @@ EOF
 
     brew install \
         graphviz --with-bindings \
-        coreutils curl homebrew/dupes/tidy libyaml berkeley-db4 gawk cpanminus \
+        coreutils curl homebrew/dupes/tidy libyaml gawk cpanminus \
         gearman --with-postgresql \
         maven mongodb
 
@@ -84,7 +84,7 @@ EOF
         XML::Parser XML::SAX::Expat XML::LibXML XML::LibXML::Simple \
         Test::WWW::Mechanize OpenGL DBD::Pg Perl::Tidy HTML::Parser YAML \
         YAML::LibYAML YAML::Syck List::AllUtils List::MoreUtils Readonly \
-        Readonly::XS BerkeleyDB GraphViz Graph Graph::Writer::GraphViz \
+        Readonly::XS GraphViz Graph Graph::Writer::GraphViz \
         HTML::Entities version Lingua::Stem::Snowball
 
    if [ ! "${SKIP_VAGRANT_TEST:+x}" ]; then
