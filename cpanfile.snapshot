@@ -3529,24 +3529,6 @@ DISTRIBUTIONS
       Filesys::Notify::Simple 0.12
     requirements:
       ExtUtils::MakeMaker 6.30
-  Font-AFM-1.20
-    pathname: G/GA/GAAS/Font-AFM-1.20.tar.gz
-    provides:
-      Font::AFM 1.20
-      Font::Metrics::Courier undef
-      Font::Metrics::CourierBold undef
-      Font::Metrics::CourierBoldOblique undef
-      Font::Metrics::CourierOblique undef
-      Font::Metrics::Helvetica undef
-      Font::Metrics::HelveticaBold undef
-      Font::Metrics::HelveticaBoldOblique undef
-      Font::Metrics::HelveticaOblique undef
-      Font::Metrics::TimesBold undef
-      Font::Metrics::TimesBoldItalic undef
-      Font::Metrics::TimesItalic undef
-      Font::Metrics::TimesRoman undef
-    requirements:
-      ExtUtils::MakeMaker 0
   Furl-3.03
     pathname: T/TO/TOKUHIROM/Furl-3.03.tar.gz
     provides:
@@ -3996,42 +3978,6 @@ DISTRIBUTIONS
       Moose 1.00
       MooseX::Attribute::Chained v1.0.1
       Scalar::Util 0
-  HTML-Format-2.11
-    pathname: N/NI/NIGELM/HTML-Format-2.11.tar.gz
-    provides:
-      HTML::Format undef
-      HTML::FormatMarkdown 2.11
-      HTML::FormatPS 2.11
-      HTML::FormatRTF 2.11
-      HTML::FormatText 2.11
-      HTML::Formatter 2.11
-    requirements:
-      Carp 0
-      Data::Dumper 0
-      Encode 0
-      Font::Metrics::Courier 0
-      Font::Metrics::CourierBold 0
-      Font::Metrics::CourierBoldOblique 0
-      Font::Metrics::CourierOblique 0
-      Font::Metrics::Helvetica 0
-      Font::Metrics::HelveticaBold 0
-      Font::Metrics::HelveticaBoldOblique 0
-      Font::Metrics::HelveticaOblique 0
-      Font::Metrics::TimesBold 0
-      Font::Metrics::TimesBoldItalic 0
-      Font::Metrics::TimesItalic 0
-      Font::Metrics::TimesRoman 0
-      HTML::Element 3.15
-      HTML::TreeBuilder 0
-      IO::File 0
-      Module::Build 0.3601
-      base 0
-      integer 0
-      parent 0
-      perl 5.008
-      strict 0
-      utf8 0
-      warnings 0
   HTML-LinkExtractor-0.13
     pathname: P/PO/PODMASTER/HTML-LinkExtractor-0.13.tar.gz
     provides:
@@ -7667,19 +7613,6 @@ DISTRIBUTIONS
       Text::Iconv 1.7
     requirements:
       ExtUtils::MakeMaker 0
-  Text-MediawikiFormat-v1.0
-    pathname: D/DP/DPRICE/Text-MediawikiFormat-v1.0.tar.gz
-    provides:
-      Text::MediawikiFormat 1.000000
-      Text::MediawikiFormat::Blocks undef
-    requirements:
-      Scalar::Util 1.14
-      Test::More 0.3
-      Test::NoWarnings 0
-      Test::Warn 0
-      URI 0
-      URI::Escape 0
-      version 0.74
   Text-Ngrams-2.003
     pathname: V/VL/VLADO/Text-Ngrams-2.003.tar.gz
     provides:
