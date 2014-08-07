@@ -102,58 +102,6 @@ sub _store_last_rss_entry_time
 
 }
 
-# parse the feed and add the resulting stories and content downloads to the database
-sub _add_spider_posting_downloads
-{
-    my ( $self, $download, $response ) = @_;
-
-    my $items = $self->_get_feed_items( $download, \$response->decoded_content );
-
-    $items = [ reverse @{ $items } ];
-
-    my $added_posts = 0;
-    my %post_urls;
-
-    for my $item ( @{ $items } )
-    {
-        my $url = $item->link() || $item->guid();
-
-        if ( !$url )
-        {
-            next;
-        }
-
-        $url =~ s/[\n\r\s]//g;
-
-        next if ( $post_urls{ $url } );
-
-        my $date = DateTime->from_epoch( epoch => Date::Parse::str2time( $item->pubDate() ) || time );
-
-        $self->engine->dbs->create(
-            'downloads',
-            {
-                feeds_id => $download->{ feeds_id },
-
-                #stories_id    => $story->{stories_id},
-                parent        => $download->{ downloads_id },
-                url           => $url,
-                host          => lc( ( URI::Split::uri_split( $url ) )[ 1 ] ),
-                type          => 'spider_posting',
-                sequence      => 1,
-                state         => 'pending',
-                priority      => 0,
-                download_time => DateTime->now->datetime,
-                extracted     => 'f'
-            }
-        );
-
-        $post_urls{ $url } = 1;
-        $added_posts++;
-
-        last if $added_posts >= 10;
-    }
-}
-
 # chop out the content if we don't allow the content type
 sub _restrict_content_type
 {
