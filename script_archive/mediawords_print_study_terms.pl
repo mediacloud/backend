@@ -12,7 +12,7 @@ BEGIN
 
 use MediaWords::DB;
 
-my $_story_tag_sets = [ qw(manual_term Calais Yahoo NYTTopics SIP) ];
+my $_story_tag_sets = [ qw(manual_term Calais Yahoo NYTTopics) ];
 
 # print the text and the tags of the given story
 sub print_story

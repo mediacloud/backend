@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4464;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4465;
     
 BEGIN
 
@@ -871,7 +871,7 @@ DROP TRIGGER IF EXISTS stories_update_story_sentences_last_updated_trigger on st
 CREATE TRIGGER stories_update_story_sentences_last_updated_trigger AFTER INSERT OR UPDATE ON stories FOR EACH ROW EXECUTE PROCEDURE update_story_sentences_updated_time_trigger() ;
 
 CREATE TYPE download_state AS ENUM ('error', 'fetching', 'pending', 'queued', 'success', 'feed_error', 'extractor_error');    
-CREATE TYPE download_type  AS ENUM ('Calais', 'calais', 'content', 'feed', 'spider_blog_home', 'spider_posting', 'spider_rss', 'spider_blog_friends_list', 'spider_validation_blog_home','spider_validation_rss','archival_only');    
+CREATE TYPE download_type  AS ENUM ('Calais', 'calais', 'content', 'feed');    
 
 CREATE TYPE download_file_status AS ENUM ( 'tbd', 'missing', 'na', 'present', 'inline', 'redownloaded', 'error_redownloading' );
 
@@ -908,11 +908,9 @@ alter table downloads add constraint downloads_path
     check ((state = 'success' and path is not null) or 
            (state != 'success'));
 alter table downloads add constraint downloads_feed_id_valid
-      check ((feeds_id is not null) or 
-      ( type = 'spider_blog_home' or type = 'spider_posting' or type = 'spider_rss' or type = 'spider_blog_friends_list' or type = 'archival_only') );
+      check (feeds_id is not null);
 alter table downloads add constraint downloads_story
-    check (((type = 'feed' or type = 'spider_blog_home' or type = 'spider_posting' or type = 'spider_rss' or type = 'spider_blog_friends_list' or type = 'archival_only')
-    and stories_id is null) or (stories_id is not null));
+    check (((type = 'feed') and stories_id is null) or (stories_id is not null));
 
 -- make the query optimizer get enough stats to use the feeds_id index
 alter table downloads alter feeds_id set statistics 1000;
@@ -936,8 +934,6 @@ create index downloads_extracted on downloads(extracted, state, type)
 CREATE INDEX downloads_stories_to_be_extracted on downloads (stories_id) where extracted = false AND state = 'success' AND type = 'content';        
 
 CREATE INDEX downloads_extracted_stories on downloads (stories_id) where type='content' and state='success';
-CREATE INDEX downloads_spider_urls on downloads(url) where type = 'spider_blog_home' or type = 'spider_posting' or type = 'spider_rss' or type = 'spider_blog_friends_list';
-CREATE INDEX downloads_spider_download_errors_to_clear on downloads(state,type,error_message) where state='error' and type in ('spider_blog_home','spider_posting','spider_rss','spider_blog_friends_list') and (error_message like '50%' or error_message= 'Download timed out by Fetcher::_timeout_stale_downloads') ;
 CREATE INDEX downloads_state_queued_or_fetching on downloads(state) where state='queued' or state='fetching';
 CREATE INDEX downloads_state_fetching ON downloads(state, downloads_id) where state = 'fetching';
 
@@ -963,8 +959,6 @@ LANGUAGE 'plpgsql' IMMUTABLE;
 CREATE UNIQUE INDEX downloads_for_extractor_trainer on downloads ( downloads_id, feeds_id) where file_status <> 'missing' and type = 'content' and state = 'success';
 
 CREATE INDEX downloads_sites_pending on downloads ( site_from_host( host ) ) where state='pending';
-
-CREATE INDEX downloads_queued_spider ON downloads(downloads_id) where state = 'queued' and  type in  ('spider_blog_home','spider_posting','spider_rss','spider_blog_friends_list','spider_validation_blog_home','spider_validation_rss');
 
 CREATE UNIQUE INDEX downloads_sites_downloads_id_pending ON downloads ( site_from_host(host), downloads_id ) WHERE (state = 'pending');
 
