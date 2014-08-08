@@ -20,9 +20,20 @@ set -o errexit
 
 cd `dirname $0`/../
 
+DESTROY_SOLR="0"
 REPORT="html"
+
+if [[ $# == 2 && -n "$2" ]]; then
+    if [ '--destroy-solr' = "$2" ]
+    then
+	echo "set destroy solr"
+	DESTROY_SOLR=1
+    fi;
+    REPORT="$1";
+fi
+
 if [[ $# == 1 && -n "$1" ]]; then
-	REPORT="$1"
+	REPORT="$1";
 fi
 
 echo "Will generate test coverage report: $REPORT"
@@ -31,7 +42,13 @@ echo "Removing old test coverage database..." 1>&2
 rm -rf cover_db/
 
 echo "Running full test suite..." 1>&2
-HARNESS_PERL_SWITCHES='-MDevel::Cover=+ignore,local,+ignore,\.t$' ./script/run_test_suite.sh
+HARNESS_PERL_SWITCHES='-MDevel::Cover=+ignore,local/,+ignore,^foreign_modules/,+ignore,\.t$' ./script/run_test_suite.sh
+
+if [ "$DESTROY_SOLR" =  "1" ] 
+then
+   echo "running api test"
+   HARNESS_PERL_SWITCHES='-MDevel::Cover=+ignore,local/,+ignore,^foreign_modules/,+ignore,\.t$' ./api_test/run_api_test.sh;
+fi
 
 echo "Generating '$REPORT' report..." 1>&2
 ./script/run_carton.sh exec perl local/bin/cover --nogcov -report "$REPORT"
