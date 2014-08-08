@@ -1,0 +1,32 @@
+auto_fieldset:
+
+elements:
+  - type: Text
+    name: tag
+    id: tag
+    label: Tag
+    comment: tag for media type (eg. Conservative News)
+    constraints:
+        - Required
+
+  - type: Text
+    name: label
+    id: label
+    label: Label
+    comment: short human readable label for media type(< 12 characters) (eg. Cons. News)
+    constraints:
+        - Required
+
+  - type: Textarea
+    name: description
+    label: Description
+    cols: 80
+    rows: 10
+    comment: one or two sentence instruction for which media fit within this media type.
+    constraints:
+        - Required
+        
+        
+
+  - type: Submit
+    value: Go

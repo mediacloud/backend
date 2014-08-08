@@ -177,7 +177,8 @@ sub create : Local
         {
             controversies_id => $controversy->{ controversies_id },
             start_date       => $c_start_date,
-            end_date         => $c_end_date
+            end_date         => $c_end_date,
+            boundary         => 't',
         }
     );
 
@@ -2128,6 +2129,48 @@ sub _process_add_media_type_params
     }
 }
 
+sub _get_media_for_typing : Local
+{
+    my ( $c, $cdts, $controversy ) = @_;
+
+    my $db = $c->dbis;
+
+    my $retype_media_type = $c->req->params->{ retype_media_type } || 'Not Typed';
+    my $last_media_id     = $c->req->params->{ last_media_id }     || 0;
+
+    $db->begin;
+    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, 1 );
+
+    my $media = $db->query( <<END, $retype_media_type )->hashes;
+with ranked_media as (
+    select m.*, 
+            mlc.inlink_count, 
+            mlc.outlink_count, 
+            mlc.story_count,
+            rank() over ( order by mlc.inlink_count desc ) r
+        from 
+            dump_media_with_types m, 
+            dump_medium_link_counts mlc
+        where
+            m.media_id = mlc.media_id and
+            m.media_type = ?
+        order by r
+)
+
+select *
+    from 
+        ranked_media m
+    where
+        ( ( $last_media_id = 0 ) or
+          ( r > ( select r from ranked_media where media_id = $last_media_id limit 1 ) ) )
+    limit 10    
+END
+
+    $db->commit;
+
+    return $media;
+}
+
 # page for adding media types to 'not type'd media
 sub add_media_types : Local
 {
@@ -2136,33 +2179,24 @@ sub add_media_types : Local
     my $db = $c->dbis;
 
     my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $c->req->params->{ cdts } );
+    my $retype_media_type = $c->req->params->{ retype_media_type };
 
     _process_add_media_type_params( $c );
 
-    $db->begin;
-    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, 1 );
+    my $media = _get_media_for_typing( $c, $cdts, $controversy );
+    my $last_media_id = @{ $media } ? $media->[ $#{ $media } ]->{ media_id } : 0;
 
-    my $media = $db->query( <<END )->hashes;
-select distinct m.*, mlc.inlink_count, mlc.outlink_count, mlc.story_count
-    from dump_media_with_types m, dump_medium_link_counts mlc
-    where
-        m.media_id = mlc.media_id and
-        m.media_type = 'Not Typed'
-    order by mlc.inlink_count desc
-    limit 10
-END
+    my $media_types = MediaWords::DBI::Media::get_media_type_tags( $db, $controversy->{ controversies_id } );
 
-    $db->commit;
-
-    my $media_types = MediaWords::DBI::Media::get_media_type_tags( $db );
-
-    $c->stash->{ controversy } = $controversy;
-    $c->stash->{ cd }          = $cd;
-    $c->stash->{ cdts }        = $cdts;
-    $c->stash->{ live }        = 1;
-    $c->stash->{ media }       = $media;
-    $c->stash->{ media_types } = $media_types;
-    $c->stash->{ template }    = 'cm/add_media_types.tt2';
+    $c->stash->{ controversy }       = $controversy;
+    $c->stash->{ cd }                = $cd;
+    $c->stash->{ cdts }              = $cdts;
+    $c->stash->{ live }              = 1;
+    $c->stash->{ media }             = $media;
+    $c->stash->{ last_media_id }     = $last_media_id;
+    $c->stash->{ media_types }       = $media_types;
+    $c->stash->{ retype_media_type } = $retype_media_type;
+    $c->stash->{ template }          = 'cm/add_media_types.tt2';
 }
 
 # delete all controversy_dates in the controversy
@@ -2293,6 +2327,16 @@ sub _find_or_create_controversy_media_type
     };
 
     $tag_set = $db->create( 'tag_sets', $tag_set );
+
+    my $not_typed_tag = {
+        tag   => 'Not Typed',
+        label => 'Not Typed',
+        description =>
+          'Choose to indicate that this medium should be typed according to its universal type in this controversy',
+        tag_sets_id => $tag_set->{ tag_sets_id }
+    };
+
+    $db->create( 'tags', $not_typed_tag );
 
     $db->query( <<END, $tag_set->{ tag_sets_id }, $controversy->{ controversies_id } );
 update controversies set media_type_tag_sets_id = ? where controversies_id = ?

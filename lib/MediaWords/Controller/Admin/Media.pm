@@ -49,7 +49,7 @@ select t.*
         join controversies c on ( c.media_type_tag_sets_id = t.tag_sets_id )
     where 
         c.controversies_id = ? 
-    order by t.tag
+    order by t.label = 'Not Typed' desc, t.tag
 END
 
     return unless ( @{ $media_types } );
@@ -57,7 +57,6 @@ END
     my $controversy = $db->find_by_id( 'controversies', $controversies_id );
 
     my $media_type_options = [ map { [ $_->{ tags_id }, $_->{ label } ] } @{ $media_types } ];
-    unshift( @{ $media_type_options }, [ 0, 'None' ] );
 
     my $cmt_element = $form->element(
         {
@@ -208,6 +207,31 @@ END
     }
 }
 
+# add controversy_media_type_tags_id field to the medium if $c->req->params->{ controversies_id } is
+# specified and if there is a controversy media type for the medium / controversy
+sub _add_controversy_media_type
+{
+    my ( $c, $medium ) = @_;
+
+    my $controversies_id = $c->req->params->{ controversies_id };
+    return unless ( $controversies_id );
+
+    my $db = $c->dbis;
+
+    my ( $tags_id ) = $db->query( <<END, $medium->{ media_id }, $controversies_id )->flat;
+select t.tags_id
+    from media_tags_map mtm
+        join tags t on ( mtm.tags_id = t.tags_id )
+        join controversies c on ( t.tag_sets_id = c.media_type_tag_sets_id )
+    where
+        mtm.media_id = ? and
+        c.controversies_id = ?
+END
+
+    $medium->{ controversy_media_type_tags_id } = $tags_id;
+}
+
+# display edit form or save edit update
 sub edit_do : Local
 {
     my ( $self, $c, $id ) = @_;
@@ -217,6 +241,8 @@ sub edit_do : Local
     my $form = $self->_make_edit_form( $c, $c->uri_for( "/admin/media/edit_do/$id" ) );
     my $medium = $c->dbis->query( "select * from media_with_media_types where media_id = ?", $id )->hash
       || die( "unknown medium: $id" );
+
+    _add_controversy_media_type( $c, $medium );
 
     $form->default_values( $medium );
 

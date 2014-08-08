@@ -339,10 +339,11 @@ sub enqueue_add_default_feeds_for_unmoderated_media($)
     return 1;
 }
 
-# get all of the media_type: tags
+# get all of the media_type: tags. append the tags from the controversies.media_type_tags_sets_id
+# if $controversies_id is specified.
 sub get_media_type_tags
 {
-    my ( $db ) = @_;
+    my ( $db, $controversies_id ) = @_;
 
     my $media_types = $db->query( <<END )->hashes;
 select t.*
@@ -352,6 +353,22 @@ select t.*
         ts.name = 'media_type'
     order by t.label = 'Not Typed' desc, t.label = 'Other', t.label
 END
+
+    if ( $controversies_id )
+    {
+        my $controversy_media_types = $db->query( <<END, $controversies_id )->hashes;
+select t.*
+    from 
+        tags t 
+        join controversies c on ( t.tag_sets_id = c.media_type_tag_sets_id )
+    where
+        c.controversies_id = ? and
+        t.label <> 'Not Typed'
+    order by t.label
+END
+
+        push( @{ $media_types }, @{ $controversy_media_types } );
+    }
 
     return $media_types;
 }
