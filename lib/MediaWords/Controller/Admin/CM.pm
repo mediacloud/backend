@@ -2147,13 +2147,12 @@ with ranked_media as (
             mlc.inlink_count, 
             mlc.outlink_count, 
             mlc.story_count,
-            rank() over ( order by mlc.inlink_count desc ) r
+            rank() over ( order by mlc.inlink_count desc, m.media_id desc ) r
         from 
             dump_media_with_types m, 
             dump_medium_link_counts mlc
         where
-            m.media_id = mlc.media_id and
-            m.media_type = ?
+            m.media_id = mlc.media_id
         order by r
 )
 
@@ -2161,6 +2160,7 @@ select *
     from 
         ranked_media m
     where
+        m.media_type = ? and
         ( ( $last_media_id = 0 ) or
           ( r > ( select r from ranked_media where media_id = $last_media_id limit 1 ) ) )
     limit 10    
