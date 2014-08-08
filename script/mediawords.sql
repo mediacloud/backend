@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4464;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4465;
     
 BEGIN
 
@@ -1478,11 +1478,15 @@ create table controversies (
     solr_seed_query         text not null,
     solr_seed_query_run     boolean not null default false,
     description             text not null,
-    query_story_searches_id int not null references query_story_searches
+    query_story_searches_id int not null references query_story_searches,
+    controversy_tag_sets_id int not null references tag_sets,
+    media_type_tag_sets_id  int references tag_sets
 );
 
 create unique index controversies_name on controversies( name );
-        
+create unique index controversies_tag_set on controversies( controversy_tag_sets_id );
+create unique index controversies_media_type_tag_set on controversies( media_type_tag_sets_id );
+
 create view controversies_with_search_info as
     select c.controversies_id, c.name, c.query_story_searches_id, q.start_date::date, q.end_date::date, qss.pattern, qss.queries_id
         from controversies c

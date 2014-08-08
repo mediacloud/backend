@@ -615,7 +615,7 @@ sub get_temporary_ids_table ($)
     }
 
     eval { $db->dbh->pg_putcopyend(); };
-    die( " Error on pg_putcopyend: $@" ) if ( $@ );
+    Carp::confess( " Error on pg_putcopyend: $@" ) if ( $@ );
 
     $db->query( "analyze $table" );
 
