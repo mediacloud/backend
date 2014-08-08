@@ -17,7 +17,7 @@
 
 SET search_path = public, pg_catalog;
 
-
+-- Update constraints to not include obsolete enum values
 ALTER TABLE downloads
     DROP CONSTRAINT downloads_feed_id_valid;
 ALTER TABLE downloads
@@ -28,9 +28,18 @@ ALTER TABLE downloads
 ALTER TABLE downloads
     ADD CONSTRAINT downloads_story check (((type = 'feed') and stories_id is null) or (stories_id is not null));
 
+-- Drop obsolete indices
 DROP INDEX downloads_spider_urls;
 DROP INDEX downloads_spider_download_errors_to_clear;
 DROP INDEX downloads_queued_spider;
+
+-- Remove old values from "download_type" enum
+ALTER TYPE download_type
+    RENAME TO download_type_before_removing_spider;
+CREATE TYPE download_type AS ENUM ('Calais', 'calais', 'content', 'feed');
+ALTER TABLE downloads
+    ALTER COLUMN type TYPE download_type USING type::text::download_type;
+DROP TYPE download_type_before_removing_spider;
 
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
