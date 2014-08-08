@@ -17,6 +17,18 @@
 
 SET search_path = public, pg_catalog;
 
+
+-- Temporarily drop views that depend on "downloads.type" column
+DROP VIEW story_extracted_texts;
+DROP VIEW downloads_sites;
+DROP VIEW downloads_non_media;
+DROP VIEW downloads_media;
+DROP VIEW daily_stats;
+DROP VIEW downloads_to_be_extracted;
+DROP VIEW downloads_with_error_in_past_day;
+DROP VIEW downloads_in_past_day;
+
+
 -- Update constraints to not include obsolete enum values
 ALTER TABLE downloads
     DROP CONSTRAINT downloads_feed_id_valid;
@@ -34,12 +46,55 @@ DROP INDEX downloads_spider_download_errors_to_clear;
 DROP INDEX downloads_queued_spider;
 
 -- Remove old values from "download_type" enum
-ALTER TYPE download_type
-    RENAME TO download_type_before_removing_spider;
-CREATE TYPE download_type AS ENUM ('Calais', 'calais', 'content', 'feed');
-ALTER TABLE downloads
-    ALTER COLUMN type TYPE download_type USING type::text::download_type;
-DROP TYPE download_type_before_removing_spider;
+SELECT enum.enum_del('download_type', 'spider_blog_home');
+SELECT enum.enum_del('download_type', 'spider_posting');
+SELECT enum.enum_del('download_type', 'spider_rss');
+SELECT enum.enum_del('download_type', 'spider_blog_friends_list');
+SELECT enum.enum_del('download_type', 'spider_validation_blog_home');
+SELECT enum.enum_del('download_type', 'spider_validation_rss');
+SELECT enum.enum_del('download_type', 'archival_only');
+
+-- Recreate the views
+CREATE VIEW story_extracted_texts AS
+    SELECT stories_id, array_to_string(array_agg(download_text), ' ') as extracted_text 
+    FROM (select * from downloads natural join download_texts order by downloads_id) as downloads
+    GROUP BY stories_id;
+
+CREATE VIEW downloads_media AS
+    SELECT d.*, f.media_id as _media_id
+    FROM downloads d, feeds f
+    WHERE d.feeds_id = f.feeds_id;
+
+CREATE VIEW downloads_sites AS
+    SELECT site_from_host( host ) as site, *
+    FROM downloads_media;
+
+CREATE VIEW downloads_non_media AS
+    SELECT d.*
+    FROM downloads d
+    WHERE d.feeds_id is null;
+
+CREATE VIEW downloads_in_past_day AS
+    SELECT *
+    FROM downloads
+    WHERE download_time > now() - interval '1 day';
+
+CREATE VIEW downloads_with_error_in_past_day AS
+    SELECT *
+    FROM downloads_in_past_day
+    WHERE state = 'error';
+
+CREATE VIEW downloads_to_be_extracted AS
+    SELECT *
+    FROM downloads
+    WHERE extracted = 'f' and state = 'success' and type = 'content';
+
+CREATE VIEW daily_stats AS
+    SELECT *
+    FROM (SELECT count(*) as daily_downloads from downloads_in_past_day) as dd,
+         (SELECT count(*) as daily_stories from stories_collected_in_past_day) as ds,
+         (SELECT count(*) as downloads_to_be_extracted from downloads_to_be_extracted) as dex,
+         (SELECT count(*) as download_errors from downloads_with_error_in_past_day ) as er;
 
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
