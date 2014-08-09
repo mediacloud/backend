@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4465;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4466;
     
 BEGIN
 
@@ -1492,6 +1492,20 @@ create view controversies_with_search_info as
         from controversies c
             left join query_story_searches qss on ( c.query_story_searches_id = qss.query_story_searches_id )
             left join queries q on ( qss.queries_id = q.queries_id );
+            
+create function insert_controversy_tag_set() returns trigger as $insert_controversy_tag_set$
+    begin
+        insert into tag_sets ( name, label, description )
+            select 'controversy_'||NEW.name, NEW.name||' controversy', 'Tag set for stories within the '||NEW.name||' controversy.';
+        
+        select tag_sets_id into NEW.controversy_tag_sets_id from tag_sets where name = 'controversy_'||NEW.name;
+
+        return NEW;
+    END;
+$insert_controversy_tag_set$ LANGUAGE plpgsql;
+
+create trigger controversy_tag_set before insert on controversies
+    for each row execute procedure insert_controversy_tag_set();         
     
 create table controversy_dates (
     controversy_dates_id    serial primary key,
