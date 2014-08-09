@@ -2061,7 +2061,24 @@ sub _highlight_key_words
 
 }
 
+# get the overall time slice for the controversy dump associated with this time slice
+sub _get_overall_time_slice
+{
+    my ( $db, $cdts, $cd ) = @_;
+
+    return $cdts if ( $cdts->{ period } eq 'overall' );
+
+    my $overall_cdts = $db->query( <<END, $cdts->{ controversy_dumps_id } )->hash;
+select cdts.* from controversy_dump_time_slices cdts where controversy_dumps_id = ? and period = 'overall'
+END
+
+    die( "Unable to find overall time slice" ) unless ( $overall_cdts );
+
+    return $overall_cdts;
+}
+
 # display the 20 most popular words for the 10 most influential media in the given time slice
+# or for the 10 most influential media overall
 sub influential_media_words : Local
 {
     my ( $self, $c ) = @_;
@@ -2072,12 +2089,15 @@ sub influential_media_words : Local
 
     my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
 
-    my $live = $c->req->params->{ l };
-    my $q    = $c->req->params->{ q };
+    my $live    = $c->req->params->{ l };
+    my $q       = $c->req->params->{ q };
+    my $overall = $c->req->params->{ overall };
+
+    my $media_cdts = $overall ? _get_overall_time_slice( $db, $cdts, $cd ) : $cdts;
 
     $db->begin;
-    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $live );
-    my $top_media = _get_top_media_for_time_slice( $db, $cdts );
+    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $media_cdts, $controversy, $live );
+    my $top_media = _get_top_media_for_time_slice( $db, $media_cdts );
     $db->commit;
 
     my $num_media = 10;
@@ -2103,6 +2123,7 @@ sub influential_media_words : Local
     $c->stash->{ top_media }   = $top_media;
     $c->stash->{ q }           = $q;
     $c->stash->{ top_words }   = $top_words;
+    $c->stash->{ overall }     = $overall;
     $c->stash->{ template }    = 'cm/influential_media_words.tt2';
 }
 

@@ -96,9 +96,11 @@
         <div class="boxtitle">Tools</div>
         <fieldset>
             [% SET imt_url = c.uri_for( '/admin/cm/influential_media_words', { cdts => cdts.controversy_dump_time_slices_id, l => live } ) %]
+            [% SET imt_overall_url = c.uri_for( '/admin/cm/influential_media_words', { cdts => cdts.controversy_dump_time_slices_id, l => live, overall => 1 } ) %]
             [% SET partisan_url = c.uri_for( '/admin/cm/partisan', { cdts => cdts.controversy_dump_time_slices_id, l => live } ) %]
             [% SET type_url = c.uri_for( '/admin/cm/add_media_types', { cdts => cdts.controversy_dump_time_slices_id, l => live } ) %]
             <p><a href="[% imt_url | html %]">Influential Media Words</a></p>
+            <p><a href="[% imt_overall_url | html %]">Influential Media Words (overall)</a></p>
             <p><a href="[% partisan_url | html %]">Partisanship</a></p>
             <p><a href="[% type_url | html %]">Add Media Types</a></p>
         </fieldset>
