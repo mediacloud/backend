@@ -88,7 +88,7 @@ sub get_scheduled_requests
         {
             $domain_request->{ time } = $time;
             push( @{ $scheduled_requests }, $domain_request );
-            $time += $per_domain_timeout;
+            $time += $per_domain_timeout unless ( $time % 5 );
         }
     }
 
