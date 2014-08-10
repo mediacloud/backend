@@ -1277,7 +1277,8 @@ sub get_medium_dup_stories_by_title
             }
             else
             {
-                warn( "cowardly refusing to mark $num_stories stories as dups [" . $t->{ stories }->[ 0 ]->{ title } . "]" );
+                my $dup_title = ( values( %{ $t->{ stories } } ) )[ 0 ]->{ title };
+                warn( "cowardly refusing to mark $num_stories stories as dups [$dup_title]" );
             }
         }
     }
