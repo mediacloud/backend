@@ -532,9 +532,12 @@ sub _get_controversy_objects
 
     die( "cdts param is required" ) unless ( $cdts_id );
 
-    my $cdts        = $db->find_by_id( 'controversy_dump_time_slices', $cdts_id ) || die( "cdts not found" );
-    my $cd          = $db->find_by_id( 'controversy_dumps',            $cdts->{ controversy_dumps_id } );
-    my $controversy = $db->find_by_id( 'controversies',                $cd->{ controversies_id } );
+    my $cdts = $db->find_by_id( 'controversy_dump_time_slices', $cdts_id ) || die( "cdts not found" );
+    my $cd = $db->find_by_id( 'controversy_dumps', $cdts->{ controversy_dumps_id } );
+
+    my $controversy = $db->query( <<END, $cd->{ controversies_id } )->hash;
+select * from controversies_with_dates where controversies_id = ?
+END
 
     # add shortcut field names to make it easier to refer to in tt2
     $cdts->{ cdts_id } = $cdts->{ controversy_dump_time_slices_id };
