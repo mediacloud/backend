@@ -1487,14 +1487,33 @@ sub add_media_type_views
 
     $db->query( <<END );
 create or replace view dump_media_with_types as
-    select m.*, coalesce( t.label, 'Not Typed' ) media_type
+    with controversies_id as (
+        select controversies_id from dump_controversy_stories limit 1
+    )
+
+    select 
+            m.*, 
+            case 
+                when ( ct.label <> 'Not Typed' )
+                    then ct.label
+                when ( ut.label is not null )
+                    then ut.label
+                else
+                    'Not Typed'
+                end as media_type
         from 
             dump_media m
             left join (
-                dump_tags t
-                join dump_tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id and ts.name = 'media_type' )
-                join dump_media_tags_map mtm on ( mtm.tags_id = t.tags_id )
-            ) on ( m.media_id = mtm.media_id )
+                dump_tags ut
+                join dump_tag_sets uts on ( ut.tag_sets_id = uts.tag_sets_id and uts.name = 'media_type' )
+                join dump_media_tags_map umtm on ( umtm.tags_id = ut.tags_id )
+            ) on ( m.media_id = umtm.media_id )
+            left join (
+                dump_tags ct
+                join dump_media_tags_map cmtm on ( cmtm.tags_id = ct.tags_id )
+                join controversies c on ( c.media_type_tag_sets_id = ct.tag_sets_id )
+                join controversies_id cid on ( c.controversies_id = cid.controversies_id )
+            ) on ( m.media_id = cmtm.media_id )
 END
 
     $db->query( <<END );

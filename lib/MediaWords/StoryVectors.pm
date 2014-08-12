@@ -489,9 +489,10 @@ sub update_story_sentence_words_and_language
     }
 
     # Get story text
-    my $story_text = $story->{ story_text } || MediaWords::DBI::Stories::get_text_for_word_counts( $db, $story );
+    my $story_text = $story->{ story_text } || MediaWords::DBI::Stories::get_text_for_word_counts( $db, $story ) || '';
+    my $story_description = $story->{ description } || '';
 
-    if ( ( length( $story_text ) == 0 ) || ( length( $story_text ) < length( $story->{ description } ) ) )
+    if ( ( length( $story_text ) == 0 ) || ( length( $story_text ) < length( $story_description ) ) )
     {
         $story_text = html_strip( $story->{ title } );
         if ( $story->{ description } )

@@ -1,0 +1,41 @@
+[% INCLUDE cm/header.tt2 title = "CM: Edit Media Types for ${ controversy.name }" %]
+
+<div id="boxtitle">Edit Media Types</a>
+<div id="wholecolumn">
+    <fieldset>
+        <p>
+            Use this page to add, edit, or remove media types specific to this single controversy.  Media types in this list
+            will be available to assign to any media source within this controversy via the edit medium page or the
+            add media types page.
+        </p>
+    </fieldset>
+</div>
+
+<div id="wholecolumn">
+    <div id="boxtitle">
+        Media Types
+        <a id="boxcommand" href="[% c.uri_for( "/admin/cm/add_media_type/$controversy.controversies_id" ) | html %]">Add Media Type</a>
+    </div>
+    <table class="even_rows_grey">
+        <tr>
+            <th>Media Type Tag</th>
+            <th>Label</th>
+            <th>Description</th>
+            <th>Edit</th>
+            <th>Delete</th>
+        </tr>
+        [% FOREACH mt IN media_types %]
+            [% SET delete_url = c.uri_for( "/admin/cm/delete_media_type/$mt.tags_id" ) %]
+            [% SET edit_url = c.uri_for( "/admin/cm/edit_media_type/$mt.tags_id" ) %]
+            <tr>
+                <td>[% mt.tag | html %]</td>
+                <td>[% mt.label | html %]</td>
+                <td>[% mt.description | truncate( 48 ) | html %]</td>
+                <td><a href="[% edit_url | html %]">edit</a></td>
+                <td><a href="[% delete_url | html %]">delete</a></td>
+            </tr>
+        [% END %]
+    </table>
+</div>
+
+[% INCLUDE include/footer.tt2 %]
