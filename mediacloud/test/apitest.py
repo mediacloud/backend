@@ -118,7 +118,7 @@ class ApiMediaSetTest(ApiBaseTest):
         media_set = self._mc.mediaSet(1)
         self.assertEqual(media_set['media_sets_id'],1)
         self.assertEqual(media_set['name'],'Top 25 Mainstream Media')
-        #self.assertTrue(len(media_set['media'])>0) # blocked by Media Cloud bug #7511 
+        self.assertTrue(len(media_set['media'])>0)
 
     def testMediaSetList(self):
         first_list = self._mc.mediaSetList()
