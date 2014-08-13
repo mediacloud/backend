@@ -221,18 +221,18 @@ class ApiSentencesTest(ApiBaseTest):
     def testSentenceList(self):
         results = self._mc.sentenceList(self.QUERY, self.FILTER_QUERY)
         self.assertEqual(int(results['responseHeader']['status']),0)
-        self.assertEqual(int(results['response']['numFound']),6738)
+        self.assertEqual(int(results['response']['numFound']),6739)
         self.assertEqual(len(results['response']['docs']), 1000)
 
     def testSentenceListPaging(self):
         # test limiting rows returned
         results = self._mc.sentenceList(self.QUERY, self.FILTER_QUERY,0,100)
-        self.assertEqual(int(results['response']['numFound']), 6738)
+        self.assertEqual(int(results['response']['numFound']), 6739)
         self.assertEqual(len(results['response']['docs']), 100)
         # test starting offset
         results = self._mc.sentenceList(self.QUERY, self.FILTER_QUERY,6700)
-        self.assertEqual(int(results['response']['numFound']), 6738)
-        self.assertEqual(len(results['response']['docs']), 38)
+        self.assertEqual(int(results['response']['numFound']), 6739)
+        self.assertEqual(len(results['response']['docs']), 39)
 
     def testSentenceCount(self):
         # basic counting
