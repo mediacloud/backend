@@ -28,6 +28,10 @@ requests_logger.propagate = False
 requests_logger.addHandler(log_handler)
 
 # now run all the tests
-for test_class in test_classes:
-	suite = unittest.TestLoader().loadTestsFromTestCase(test_class)
-	unittest.TextTestRunner(verbosity=2).run(suite)
+suites = [ unittest.TestLoader().loadTestsFromTestCase(test_class) for test_class in test_classes ]
+
+if __name__ == "__main__":
+	suite = unittest.TestSuite(suites)
+	unittest.TextTestRunner(verbosity=2).run(suite)	
+
+# SUITE THESE ALL UP for better outputs
