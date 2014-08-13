@@ -1981,6 +1981,13 @@ sub mine_controversy ($$;$)
     print STDERR "importing seed urls ...\n";
     import_seed_urls( $db, $controversy );
 
+    # merge dup media and stories here to avoid redundant link processing for imported urls
+    print STDERR "merging media_dup stories ...\n";
+    merge_dup_media_stories( $db, $controversy );
+
+    print STDERR "merging dup stories ...\n";
+    find_and_merge_dup_stories( $db, $controversy );
+
     return if ( $options->{ import_only } );
 
     print STDERR "merging foreign_rss stories ...\n";
@@ -1995,12 +2002,15 @@ sub mine_controversy ($$;$)
     print STDERR "running spider ...\n";
     run_spider( $db, $controversy );
 
-    if ( !$options->{ skip_outgoing_foreign_rss_links } )
-    {
-        print STDERR "adding outgoing foreign rss links ...\n";
-        add_outgoing_foreign_rss_links( $db, $controversy );
-    }
+    # disabling because there are too many foreign_rss_links media sources
+    # with bogus feeds that pollute the results
+    # if ( !$options->{ skip_outgoing_foreign_rss_links } )
+    # {
+    #     print STDERR "adding outgoing foreign rss links ...\n";
+    #     add_outgoing_foreign_rss_links( $db, $controversy );
+    # }
 
+    # merge dup media and stories again to catch dups from spidering
     print STDERR "merging media_dup stories ...\n";
     merge_dup_media_stories( $db, $controversy );
 

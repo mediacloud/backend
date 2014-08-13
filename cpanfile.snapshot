@@ -952,6 +952,27 @@ DISTRIBUTIONS
     provides:
       Class::Factory::Util 1.7
     requirements:
+  Class-ISA-0.36
+    pathname: S/SM/SMUELLER/Class-ISA-0.36.tar.gz
+    provides:
+      Class::ISA 0.36
+    requirements:
+      ExtUtils::MakeMaker 0
+      if 0
+  Class-InsideOut-1.13
+    pathname: D/DA/DAGOLDEN/Class-InsideOut-1.13.tar.gz
+    provides:
+      Class::InsideOut 1.13
+    requirements:
+      Carp 0
+      Class::ISA 0
+      Exporter 0
+      ExtUtils::MakeMaker 6.30
+      Scalar::Util 1.09
+      Storable 0
+      overload 0
+      strict 0
+      vars 0
   Class-Inspector-1.28
     pathname: A/AD/ADAMK/Class-Inspector-1.28.tar.gz
     provides:
@@ -6720,6 +6741,14 @@ DISTRIBUTIONS
       Exporter 5.57
       ExtUtils::MakeMaker 0
       Scalar::Util 0
+  Scalar-Defer-0.23
+    pathname: J/JE/JESSE/Scalar-Defer-0.23.tar.gz
+    provides:
+      Scalar::Defer 0.23
+    requirements:
+      Class::InsideOut 0
+      Exporter::Lite 0
+      ExtUtils::MakeMaker 6.42
   Scalar-List-Utils-1.39
     pathname: P/PE/PEVANS/Scalar-List-Utils-1.39.tar.gz
     provides:
