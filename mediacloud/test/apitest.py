@@ -189,6 +189,7 @@ class ApiSentencesTest(ApiBaseTest):
         last_date = None
         for sentence in results['response']['docs']:
             this_date = datetime.datetime.strptime(sentence['publish_date'],self._mc.SENTENCE_PUBLISH_DATE_FORMAT)
+            this_date = this_date.replace( second=0, microsecond=0) # sorting is by minute
             if last_date is not None:
                 self.assertTrue(last_date <= this_date, "Date wrong: "+str(last_date)+" is not <= "+str(this_date))
                 last_date = this_date
@@ -201,6 +202,7 @@ class ApiSentencesTest(ApiBaseTest):
         last_date = None
         for sentence in results['response']['docs']:
             this_date = datetime.datetime.strptime(sentence['publish_date'],self._mc.SENTENCE_PUBLISH_DATE_FORMAT)
+            this_date = this_date.replace( second=0, microsecond=0) # sorting is by minute
             if last_date is not None:
                 self.assertTrue(last_date >= this_date, "Date wrong: "+str(last_date)+" is not >= "+str(this_date))
                 last_date = this_date
