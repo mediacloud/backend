@@ -2805,6 +2805,19 @@ DISTRIBUTIONS
       Scalar::Util 0
       Test::Most 0
       Time::Zone 0
+  Devel-CheckBin-0.02
+    pathname: T/TO/TOKUHIROM/Devel-CheckBin-0.02.tar.gz
+    provides:
+      Devel::CheckBin 0.02
+    requirements:
+      CPAN::Meta 0
+      CPAN::Meta::Prereqs 0
+      Exporter 0
+      ExtUtils::CBuilder 0
+      ExtUtils::MakeMaker 6.52
+      Module::Build 0.38
+      parent 0
+      perl 5.008001
   Devel-CheckLib-1.01
     pathname: M/MA/MATTN/Devel-CheckLib-1.01.tar.gz
     provides:
@@ -6955,12 +6968,17 @@ DISTRIBUTIONS
       Scalar::Util 0
       strict 0
       warnings 0
-  Sub-Name-0.05
-    pathname: F/FL/FLORA/Sub-Name-0.05.tar.gz
+  Sub-Name-0.09
+    pathname: E/ET/ETHER/Sub-Name-0.09.tar.gz
     provides:
-      Sub::Name 0.05
+      Sub::Name 0.09
     requirements:
+      Devel::CheckBin 0
+      DynaLoader 0
+      Exporter 0
       ExtUtils::MakeMaker 0
+      Test::More 0
+      perl 5.006
   Sub-Override-0.09
     pathname: O/OV/OVID/Sub-Override-0.09.tar.gz
     provides:
