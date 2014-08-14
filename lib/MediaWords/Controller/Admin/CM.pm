@@ -2130,12 +2130,38 @@ sub influential_media_words : Local
     $c->stash->{ template }    = 'cm/influential_media_words.tt2';
 }
 
+# update the media type of the given controversy.  if the submitted tag is a 'media_type'
+# tag, delete any existing media_type_tag_sets_id tag first.
+sub _update_media_type
+{
+    my ( $db, $medium, $tags_id, $controversy ) = @_;
+
+    my $tag = $db->query( <<END, $tags_id )->hash;
+select * from tags_with_sets where tags_id = ?
+END
+
+    if ( $tag->{ tag_set_name } eq 'media_type' )
+    {
+        $db->query( <<END, $medium->{ media_id }, $controversy->{ media_type_tag_sets_id } );
+delete from media_tags_map mtm
+    using 
+        tags t
+    where 
+        mtm.tags_id = t.tags_id and
+        t.tag_sets_id = \$2 and
+        mtm.media_id = \$1
+END
+    }
+
+    MediaWords::DBI::Media::update_media_type( $db, $medium, $tags_id );
+}
+
 # process form values to add media types according to form parameters.
 # each relevant form param has a name of 'media_type_<media_id>'
 # (eg. 'media_type_123') and the tags_id of the media_type tag to add.
 sub _process_add_media_type_params
 {
-    my ( $c ) = @_;
+    my ( $c, $controversy ) = @_;
 
     my $db = $c->dbis;
 
@@ -2149,7 +2175,7 @@ sub _process_add_media_type_params
         my $medium = $db->query( "select * from media_with_media_types where media_id = ?", $media_id )->hash
           || die( "Unable to find medium '$media_id'" );
 
-        MediaWords::DBI::Media::update_media_type( $db, $medium, $tags_id );
+        _update_media_type( $db, $medium, $tags_id, $controversy );
     }
 }
 
@@ -2205,7 +2231,7 @@ sub add_media_types : Local
     my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $c->req->params->{ cdts } );
     my $retype_media_type = $c->req->params->{ retype_media_type };
 
-    _process_add_media_type_params( $c );
+    _process_add_media_type_params( $c, $controversy );
 
     my $media = _get_media_for_typing( $c, $cdts, $controversy );
     my $last_media_id = @{ $media } ? $media->[ $#{ $media } ]->{ media_id } : 0;
