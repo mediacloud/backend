@@ -23,6 +23,9 @@ sub normalize_url
 
     $url =~ s/\/+$//;
 
+    # fix broken urls that look like this: http://http://www.al-monitor.com/pulse
+    $url =~ s~(https?)://https?:?//~$1://~i;
+
     return scalar( URI->new( $url )->canonical );
 }
 
