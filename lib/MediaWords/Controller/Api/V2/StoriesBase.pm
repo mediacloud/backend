@@ -7,6 +7,8 @@ use MediaWords::DBI::StorySubsets;
 use strict;
 use warnings;
 use base 'Catalyst::Controller';
+
+use Encode;
 use JSON;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Moose;
@@ -16,6 +18,7 @@ use Carp;
 
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
+use MediaWords::Util::CoreNLP;
 
 =head1 NAME
 
@@ -54,20 +57,15 @@ sub get_table_name
     return "stories";
 }
 
-sub add_extra_data
+# for each story, add the content of the raw 1st download associated with that story
+# to the { raw_first_download_file } field.
+sub _add_raw_1st_download
 {
-    my ( $self, $c, $stories ) = @_;
-
-    return $stories unless ( @{ $stories } && ( $c->req->param( 'raw_1st_download' ) ) );
-
-    my $db = $c->dbis;
+    my ( $db, $stories ) = @_;
 
     $db->begin;
-
     my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ stories_id } } @{ $stories } ] );
 
-    # it's a bit confusing to use this function to attach data to downloads,
-    # but it works b/c w want one download per story
     my $downloads = $db->query( <<END )->hashes;
 select d.* 
     from downloads d
@@ -90,6 +88,49 @@ END
     }
 
     $db->commit;
+}
+
+# for each story, add the corenlp anno
+sub _add_corenlp
+{
+    my ( $db, $stories, $ids_table ) = @_;
+
+    die( "corenlp annotator is not enabled" ) unless ( MediaWords::Util::CoreNLP::annotator_is_enabled );
+
+    for my $story ( @{ $stories } )
+    {
+        my $stories_id = $story->{ stories_id };
+
+        if ( !MediaWords::Util::CoreNLP::story_is_annotated( $db, $stories_id ) )
+        {
+            $story->{ corenlp } = { annotated => 'false' };
+            next;
+        }
+
+        my $json = MediaWords::Util::CoreNLP::fetch_annotation_json_for_story( $db, $stories_id );
+
+        my $json_data = decode_json( encode( 'utf8', $json ) );
+
+        die( "unable to parse corenlp json for story '$stories_id'" ) unless ( $json_data && $json_data->{ corenlp } );
+
+        $story->{ corenlp } = $json_data->{ corenlp };
+    }
+}
+
+sub add_extra_data
+{
+    my ( $self, $c, $stories ) = @_;
+
+    my $raw_1st_download = $c->req->params->{ raw_1st_download };
+    my $corenlp          = $c->req->params->{ corenlp };
+
+    return $stories unless ( @{ $stories } && ( $raw_1st_download || $corenlp ) );
+
+    my $db = $c->dbis;
+
+    _add_raw_1st_download( $db, $stories ) if ( $raw_1st_download );
+
+    _add_corenlp( $db, $stories ) if ( $corenlp );
 
     return $stories;
 }
