@@ -296,6 +296,9 @@ sub url_canonical($)
         die "URL is invalid: $url";
     }
 
+    # Fix broken URLs that look like this: http://http://www.al-monitor.com/pulse
+    $url =~ s~(https?)://https?:?//~$1://~i;
+
     my $uri = URI->new( $url )->canonical;
 
     # Remove #fragment
