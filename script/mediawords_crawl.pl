@@ -22,7 +22,7 @@ use MediaWords::Crawler::Engine;
 sub main
 {
     my $use_test_interval = 0;
-    if ( $ARGV[ 0 ] eq '-t' )
+    if ( defined $ARGV[ 0 ] and $ARGV[ 0 ] eq '-t' )
     {
         $use_test_interval = 1;
         shift( @ARGV );
