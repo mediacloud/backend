@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 14;
+use Test::More tests => 21;
 
 BEGIN
 {
@@ -11,6 +11,26 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 
     use_ok( 'MediaWords::Util::URL' );
+}
+
+sub test_get_url_domain()
+{
+    # FIXME - some resulting domains look funny, not sure if I can change them easily though
+    is( MediaWords::Util::URL::get_url_domain( 'http://www.nytimes.com/' ), 'nytimes.com',
+        'get_url_domain() - nytimes.com' );
+    is( MediaWords::Util::URL::get_url_domain( 'http://cyber.law.harvard.edu/' ),
+        'law.harvard', 'get_url_domain() - cyber.law.harvard.edu' );
+    is( MediaWords::Util::URL::get_url_domain( 'http://www.gazeta.ru/' ), 'gazeta.ru', 'get_url_domain() - gazeta.ru' );
+    is( MediaWords::Util::URL::get_url_domain( 'http://www.whitehouse.gov/' ),
+        'www.whitehouse', 'get_url_domain() - www.whitehouse' );
+    is( MediaWords::Util::URL::get_url_domain( 'http://info.info/' ), 'info.info', 'get_url_domain() - info.info' );
+    is( MediaWords::Util::URL::get_url_domain( 'http://blog.yesmeck.com/jquery-jsonview/' ),
+        'yesmeck.com', 'get_url_domain() - yesmeck.com' );
+    is( MediaWords::Util::URL::get_url_domain( 'http://status.livejournal.org/' ),
+        'livejournal.org', 'get_url_domain() - livejournal.org' );
+
+  # FIXME - invalid URL
+  # is(MediaWords::Util::URL::get_url_domain('http:///www.facebook.com/'), undef, 'get_url_domain() - invalid facebook.com');
 }
 
 sub test_meta_refresh_url_from_html()
@@ -192,6 +212,7 @@ sub main()
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
+    test_get_url_domain();
     test_meta_refresh_url_from_html();
     test_link_canonical_url_from_html();
 }

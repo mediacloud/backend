@@ -33,7 +33,7 @@ sub normalize_url_lossy($)
     return scalar( URI->new( $url )->canonical );
 }
 
-# get the domain of the given url
+# get the domain of the given URL (sans "www." and ".edu"; see t/URL.t for output examples)
 sub get_url_domain($)
 {
     my $url = shift;
