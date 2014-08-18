@@ -34,9 +34,9 @@ sub normalize_url_lossy($)
 }
 
 # get the domain of the given url
-sub get_url_domain
+sub get_url_domain($)
 {
-    my ( $url ) = @_;
+    my $url = shift;
 
     $url =~ m~https?://([^/#]*)~ || return $url;
 
