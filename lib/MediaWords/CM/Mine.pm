@@ -207,7 +207,7 @@ sub get_links_from_story
     my $boingboing_links  = get_boingboing_links( $db, $story );
 
     my $link_lookup = {};
-    map { $link_lookup->{ MediaWords::Util::URL::normalize_url( $_->{ url } ) } = $_ } @{ $links };
+    map { $link_lookup->{ MediaWords::Util::URL::normalize_url_lossy( $_->{ url } ) } = $_ } @{ $links };
 
     return [ values( %{ $link_lookup } ) ];
 }
@@ -276,7 +276,7 @@ sub lookup_medium_by_url
 {
     my ( $db, $url ) = @_;
 
-    if ( !$_media_url_lookup->{ MediaWords::Util::URL::normalize_url( $url ) } )
+    if ( !$_media_url_lookup->{ MediaWords::Util::URL::normalize_url_lossy( $url ) } )
     {
         my $max_media_id = 0;
         if ( $_media_url_lookup )
@@ -292,11 +292,11 @@ sub lookup_medium_by_url
             $medium = $dup_medium ? $dup_medium : $medium;
 
             croak( "foreign rss medium $medium->{ media_id }" ) if ( $medium->{ foreign_rss_links } );
-            $_media_url_lookup->{ MediaWords::Util::URL::normalize_url( $medium->{ url } ) } = $medium;
+            $_media_url_lookup->{ MediaWords::Util::URL::normalize_url_lossy( $medium->{ url } ) } = $medium;
         }
     }
 
-    return $_media_url_lookup->{ MediaWords::Util::URL::normalize_url( $url ) };
+    return $_media_url_lookup->{ MediaWords::Util::URL::normalize_url_lossy( $url ) };
 }
 
 # add medium to media_url_lookup
@@ -304,7 +304,7 @@ sub add_medium_to_url_lookup
 {
     my ( $medium ) = @_;
 
-    $_media_url_lookup->{ MediaWords::Util::URL::normalize_url( $medium->{ url } ) } = $medium;
+    $_media_url_lookup->{ MediaWords::Util::URL::normalize_url_lossy( $medium->{ url } ) } = $medium;
 }
 
 # derive the url and a media source name from the given story's url
@@ -312,7 +312,7 @@ sub generate_medium_url_and_name_from_url
 {
     my ( $story_url ) = @_;
 
-    my $normalized_url = MediaWords::Util::URL::normalize_url( $story_url );
+    my $normalized_url = MediaWords::Util::URL::normalize_url_lossy( $story_url );
 
     if ( !( $normalized_url =~ m~(http.?://([^/]+))~i ) )
     {
@@ -590,7 +590,7 @@ sub ignore_redirect
 
     my ( $medium_url, $medium_name ) = generate_medium_url_and_name_from_url( $link->{ redirect_url } );
 
-    my $u = MediaWords::Util::URL::normalize_url( $medium_url );
+    my $u = MediaWords::Util::URL::normalize_url_lossy( $medium_url );
 
     my $match = $db->query( "select 1 from controversy_ignore_redirects where url = ?", $u )->hash;
 
@@ -894,8 +894,8 @@ sub get_matching_story_from_db ($$)
         $ru = $link->{ redirect_url } ? substr( $link->{ redirect_url }, 0, 1024 ) : $u;
     }
 
-    my $nu  = MediaWords::Util::URL::normalize_url( $u );
-    my $nru = MediaWords::Util::URL::normalize_url( $ru );
+    my $nu  = MediaWords::Util::URL::normalize_url_lossy( $u );
+    my $nru = MediaWords::Util::URL::normalize_url_lossy( $ru );
 
     # look for matching stories, ignore those in foreign_rss_links media
     my $stories = $db->query( <<'END', $u, $ru, $nu, $nru )->hashes;
@@ -1702,7 +1702,7 @@ sub add_medium_url_to_ignore_redirects
 {
     my ( $db, $medium ) = @_;
 
-    my $url = MediaWords::Util::URL::normalize_url( $medium->{ url } );
+    my $url = MediaWords::Util::URL::normalize_url_lossy( $medium->{ url } );
 
     my $ir = $db->query( "select * from controversy_ignore_redirects where url = ?", $url )->hash;
 
@@ -1760,7 +1760,7 @@ sub get_redirect_url_lookup
 select a.* from ${ table } a where ${ story_field } = ? and controversies_id = ?
 END
     my $lookup = {};
-    map { push( @{ $lookup->{ MediaWords::Util::URL::normalize_url( $_->{ url } ) } }, $_ ) } @{ $rows };
+    map { push( @{ $lookup->{ MediaWords::Util::URL::normalize_url_lossy( $_->{ url } ) } }, $_ ) } @{ $rows };
 
     return $lookup;
 }
@@ -1772,7 +1772,7 @@ sub unredirect_story_url
 
     my $story_field = get_story_field_from_url_table( $table );
 
-    my $nu = MediaWords::Util::URL::normalize_url( $url->{ url } );
+    my $nu = MediaWords::Util::URL::normalize_url_lossy( $url->{ url } );
 
     for my $row ( @{ $lookup->{ $nu } } )
     {
@@ -1842,7 +1842,7 @@ END
     my $normalized_urls_map = {};
     for my $url ( @{ $urls } )
     {
-        my $nu = MediaWords::Util::URL::normalize_url( $url->{ url } );
+        my $nu = MediaWords::Util::URL::normalize_url_lossy( $url->{ url } );
         $normalized_urls_map->{ $nu } = $url;
     }
 

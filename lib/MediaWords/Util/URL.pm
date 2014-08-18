@@ -9,10 +9,12 @@ use MediaWords::CommonLibs;
 use URI;
 use Regexp::Common qw /URI/;
 
-# do some simple transformations on a url to make it match other equivalent urls as well as possible
-sub normalize_url
+# do some simple transformations on a URL to make it match other equivalent
+# URLs as well as possible; normalization is "lossy" (makes the whole URL lowercase)
+sub normalize_url_lossy($)
 {
-    my ( $url ) = @_;
+    my $url = shift;
+
     $url = lc( $url );
 
     # r2.ly redirects through the hostname, ala http://543.r2.ly
