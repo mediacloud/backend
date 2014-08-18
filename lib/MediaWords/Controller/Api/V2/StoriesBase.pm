@@ -107,13 +107,14 @@ sub _add_corenlp
             next;
         }
 
-        my $json = MediaWords::Util::CoreNLP::fetch_annotation_json_for_story( $db, $stories_id );
+        my $json = MediaWords::Util::CoreNLP::fetch_annotation_json_for_story_and_all_sentences( $db, $stories_id );
 
         my $json_data = decode_json( encode( 'utf8', $json ) );
 
-        die( "unable to parse corenlp json for story '$stories_id'" ) unless ( $json_data && $json_data->{ corenlp } );
+        die( "unable to parse corenlp json for story '$stories_id'" )
+          unless ( $json_data && $json_data->{ _ }->{ corenlp } );
 
-        $story->{ corenlp } = $json_data->{ corenlp };
+        $story->{ corenlp } = $json_data;
     }
 }
 
