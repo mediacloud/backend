@@ -35,7 +35,7 @@ Light wrapper class over Catalyst::Controller::REST
 BEGIN { extends 'Catalyst::Controller::REST' }
 
 __PACKAGE__->config(
-    'default'   => 'application/json',
+    'default'   => 'application/json; charset=UTF-8',
     'stash_key' => 'rest',
     'map'       => {
 
@@ -43,15 +43,16 @@ __PACKAGE__->config(
         'text/xml' => 'XML::Simple',
 
         # #         'text/x-yaml'        => 'YAML',
-        'application/json'         => 'JSON',
-        'text/x-json'              => 'JSON',
-        'text/x-data-dumper'       => [ 'Data::Serializer', 'Data::Dumper' ],
-        'text/x-data-denter'       => [ 'Data::Serializer', 'Data::Denter' ],
-        'text/x-data-taxi'         => [ 'Data::Serializer', 'Data::Taxi' ],
-        'application/x-storable'   => [ 'Data::Serializer', 'Storable' ],
-        'application/x-freezethaw' => [ 'Data::Serializer', 'FreezeThaw' ],
-        'text/x-config-general'    => [ 'Data::Serializer', 'Config::General' ],
-        'text/x-php-serialization' => [ 'Data::Serializer', 'PHP::Serialization' ],
+        'application/json'                => 'JSON',
+        'application/json; charset=UTF-8' => 'JSON',
+        'text/x-json'                     => 'JSON',
+        'text/x-data-dumper'              => [ 'Data::Serializer', 'Data::Dumper' ],
+        'text/x-data-denter'              => [ 'Data::Serializer', 'Data::Denter' ],
+        'text/x-data-taxi'                => [ 'Data::Serializer', 'Data::Taxi' ],
+        'application/x-storable'          => [ 'Data::Serializer', 'Storable' ],
+        'application/x-freezethaw'        => [ 'Data::Serializer', 'FreezeThaw' ],
+        'text/x-config-general'           => [ 'Data::Serializer', 'Config::General' ],
+        'text/x-php-serialization'        => [ 'Data::Serializer', 'PHP::Serialization' ],
     },
     json_options => { relaxed => 1, pretty => 1, space_before => 2, indent => 1, space_after => 2 }
 );

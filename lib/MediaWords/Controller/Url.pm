@@ -72,7 +72,7 @@ sub data : Local
 
     my $url = $c->req->param( 'url' );
 
-    $c->res->content_type( 'application/json' );
+    $c->res->content_type( 'application/json; charset=UTF-8' );
 
     if ( !$url )
     {
