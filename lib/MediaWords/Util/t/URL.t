@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 21;
+use Test::More tests => 27;
 
 BEGIN
 {
@@ -11,6 +11,35 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 
     use_ok( 'MediaWords::Util::URL' );
+}
+
+sub test_normalize_url_lossy()
+{
+    # FIXME - some resulting URLs look funny, not sure if I can change them easily though
+    is(
+        MediaWords::Util::URL::normalize_url_lossy( 'http://HTTP://WWW.nytimes.COM/ARTICLE/12345/?ab=cd#def#ghi/' ),
+        'http://www.nytimes.com/article/12345/?ab=cd',
+        'normalize_url_lossy() - nytimes.com'
+    );
+    is(
+        MediaWords::Util::URL::normalize_url_lossy( 'http://http://www.al-monitor.com/pulse' ),
+        'http://www.al-monitor.com/pulse',
+        'normalize_url_lossy() - www.al-monitor.com'
+    );
+    is( MediaWords::Util::URL::normalize_url_lossy( 'http://m.delfi.lt/foo' ),
+        'http://delfi.lt/foo', 'normalize_url_lossy() - m.delfi.lt' );
+    is(
+        MediaWords::Util::URL::normalize_url_lossy( 'http://blog.yesmeck.com/jquery-jsonview/' ),
+        'http://yesmeck.com/jquery-jsonview',
+        'normalize_url_lossy() - blog.yesmeck.com'
+    );
+    is(
+        MediaWords::Util::URL::normalize_url_lossy( 'http://cdn.com.do/noticias/nacionales' ),
+        'http://com.do/noticias/nacionales',
+        'normalize_url_lossy() - cdn.com.do'
+    );
+    is( MediaWords::Util::URL::normalize_url_lossy( 'http://543.r2.ly' ),
+        'http://543.r2.ly/', 'normalize_url_lossy() - r2.ly' );
 }
 
 sub test_get_url_domain()
@@ -212,6 +241,7 @@ sub main()
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
+    test_normalize_url_lossy();
     test_get_url_domain();
     test_meta_refresh_url_from_html();
     test_link_canonical_url_from_html();
