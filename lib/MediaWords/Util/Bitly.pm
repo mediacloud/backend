@@ -376,8 +376,6 @@ sub url_canonical($)
         }
     }
 
-    # FIXME fetch the page, look for <link rel="canonical" />
-
     return $uri->as_string;
 }
 
