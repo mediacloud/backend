@@ -1611,25 +1611,6 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       Net::Domain::TLD 1.62
       Test::More 0
-  Data-Validate-IP-0.23
-    pathname: D/DR/DROLSKY/Data-Validate-IP-0.23.tar.gz
-    provides:
-      Data::Validate::IP 0.23
-    requirements:
-      Exporter 0
-      ExtUtils::MakeMaker 6.30
-      NetAddr::IP 4
-      Scalar::Util 0
-      strict 0
-      warnings 0
-  Data-Validate-URI-0.06
-    pathname: S/SO/SONNEN/Data-Validate-URI-0.06.tar.gz
-    provides:
-      Data::Validate::URI 0.06
-    requirements:
-      Data::Validate::Domain 0
-      Data::Validate::IP 0
-      ExtUtils::MakeMaker 0
   Data-Visitor-0.30
     pathname: D/DO/DOY/Data-Visitor-0.30.tar.gz
     provides:
@@ -7636,12 +7617,6 @@ DISTRIBUTIONS
       Text::Glob 0.09
     requirements:
       Test::More 0
-  Text-Iconv-1.7
-    pathname: M/MP/MPIOTR/Text-Iconv-1.7.tar.gz
-    provides:
-      Text::Iconv 1.7
-    requirements:
-      ExtUtils::MakeMaker 0
   Text-Similarity-0.10
     pathname: T/TP/TPEDERSE/Text-Similarity-0.10.tar.gz
     provides:
