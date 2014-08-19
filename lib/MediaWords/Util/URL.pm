@@ -10,7 +10,8 @@ use URI;
 use Regexp::Common qw /URI/;
 
 # do some simple transformations on a URL to make it match other equivalent
-# URLs as well as possible; normalization is "lossy" (makes the whole URL lowercase, removes subdomain parts "m.", "data.", "news.", ... in some cases)
+# URLs as well as possible; normalization is "lossy" (makes the whole URL
+# lowercase, removes subdomain parts "m.", "data.", "news.", ... in some cases)
 sub normalize_url_lossy($)
 {
     my $url = shift;
