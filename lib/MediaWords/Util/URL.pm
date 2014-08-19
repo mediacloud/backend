@@ -76,7 +76,11 @@ sub normalize_url($)
     if ( $uri->host =~ /nytimes\.com$/i )
     {
         # Additional parameters specifically for the nytimes.com host
-        @parameters_to_remove = ( @parameters_to_remove, qw/ emc partner _r hp inline / );
+        @parameters_to_remove = (
+            @parameters_to_remove,
+            qw/ emc partner _r hp inline smid WT.z_sma bicmp bicmlukp bicmst bicmet abt
+              abg /
+        );
     }
 
     if ( $uri->host =~ /livejournal\.com$/i )
