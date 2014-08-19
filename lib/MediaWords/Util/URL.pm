@@ -15,7 +15,8 @@ use Regexp::Common qw /URI/;
 # * Fix common mistypes, e.g. "http://http://..."
 # * Run URL through URI->canonical, i.e. standardize URL's scheme and hostname
 #   case, remove default port, uppercase all escape sequences, unescape octets
-#   that can be represented as plain characters)
+#   that can be represented as plain characters, remove whitespace
+#   before / after the URL string)
 # * Remove #fragment
 # * Remove various ad tracking query parameters, e.g. "utm_source",
 #   "utm_medium", "PHPSESSID", etc.
