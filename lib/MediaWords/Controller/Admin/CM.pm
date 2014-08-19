@@ -560,9 +560,19 @@ END
 #     { media_type => 'General Online News Media', link_weight => $link_weight, percent_link_weight => $percent_link_weight },
 #     ...
 #   ]
+#
+# optionally only include stories in the given list of stories_ids.
+# must be called within a transaction.
 sub _get_media_type_stats_for_time_slice
 {
-    my ( $db, $cdts ) = @_;
+    my ( $db, $stories_ids ) = @_;
+
+    my $stories_clause = '1=1';
+    if ( $stories_ids )
+    {
+        my $ids_table = $db->get_temporary_ids_table( $stories_ids );
+        $stories_clause = "s.stories_id in ( select id from $ids_table )";
+    }
 
     my $story_count = $db->query( <<END )->hashes;
 with media_type_stats as (
@@ -573,6 +583,8 @@ with media_type_stats as (
         from
             dump_stories_with_types s 
             join dump_story_link_counts slc on ( s.stories_id = slc.stories_id )
+        where
+            $stories_clause
         group by s.media_type
 ),
 
@@ -627,9 +639,7 @@ sub view_time_slice : Local
 
     my $top_media = _get_top_media_for_time_slice( $db, $cdts );
     my $top_stories = _get_top_stories_for_time_slice( $db, $cdts );
-    my $media_type_stats = _get_media_type_stats_for_time_slice( $db, $cdts );
-
-    MediaWords::CM::Dump::discard_temp_tables( $db );
+    my $media_type_stats = _get_media_type_stats_for_time_slice( $db );
 
     $db->commit;
 
@@ -1906,11 +1916,14 @@ sub merge_stories_list : Local
 #  ], [ ... ], ... ]
 sub _get_partisan_link_metrics
 {
-    my ( $db, $controversy, $cdts ) = @_;
+    my ( $db, $stories_ids ) = @_;
 
-    $db->begin;
-
-    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, undef );
+    my $stories_clause = '1=1';
+    if ( $stories_ids )
+    {
+        my $ids_table = $db->get_temporary_ids_table( $stories_ids );
+        $stories_clause = "s.stories_id in ( select id from $ids_table )";
+    }
 
     my $query = <<END;
 -- partisan collection tags
@@ -1933,6 +1946,8 @@ partisan_stories as (
             join dump_tags t on ( mtm.tags_id = t.tags_id )
             join partisan_tags pt on ( t.tags_id = pt.tags_id )
             join dump_tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
+        where
+            $stories_clause
 ),
 
 -- full matrix of all partisan tags joined to one another
@@ -1987,8 +2002,6 @@ END
 
     my $link_metrics = $db->query( $query )->hashes;
 
-    $db->commit;
-
     # arrange results into a list of lists, sorted by source tags id
     my $last_source_tags_id = 0;
     my $metrics_table       = [];
@@ -2020,7 +2033,13 @@ sub partisan : Local
 
     my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
 
-    my $metrics_table = _get_partisan_link_metrics( $db, $controversy, $cdts );
+    $db->begin;
+
+    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, undef );
+
+    my $metrics_table = _get_partisan_link_metrics( $db );
+
+    $db->commit;
 
     $c->stash->{ metrics_table } = $metrics_table;
     $c->stash->{ controversy }   = $controversy;
@@ -2517,6 +2536,97 @@ END
     $c->stash->{ controversy } = $controversy;
     $c->stash->{ media_types } = $media_types;
     $c->stash->{ template }    = 'cm/edit_media_types.tt2';
+}
+
+# get a simple count of stories that belong to each partisan media set
+sub _get_partisan_counts
+{
+
+    my ( $db, $stories_ids ) = @_;
+
+    my $stories_clause = '1=1';
+    if ( $stories_ids )
+    {
+        my $ids_table = $db->get_temporary_ids_table( $stories_ids );
+        $stories_clause = "s.stories_id in ( select id from $ids_table )";
+    }
+
+    my $query = <<END;
+-- partisan collection tags
+with partisan_tags as (
+    select t.* 
+        from
+            tags t 
+            join tag_sets ts on (t.tag_sets_id = ts.tag_sets_id )
+        where
+            ts.name = 'collection' and
+            t.tag in ( 'partisan_2012_liberal', 'partisan_2012_conservative', 'partisan_2012_libertarian' )
+),
+
+-- all stories in the controversy belonging to the media tagged with one of the partisan collection tags
+partisan_stories as (
+    select s.*, t.*
+        from 
+            dump_stories s
+            join dump_media_tags_map mtm on ( s.media_id = mtm.media_id )
+            join dump_tags t on ( mtm.tags_id = t.tags_id )
+            join partisan_tags pt on ( t.tags_id = pt.tags_id )
+            join dump_tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
+        where
+            $stories_clause
+)
+
+select
+        ps.tag,
+        ps.label,
+        count(*) as num_stories
+    from partisan_stories ps
+    group by ps.tags_id, ps.tag, ps.label
+    order by count(*) desc
+END
+
+    return $db->query( $query )->hashes;
+}
+
+# various stats about an enumerated list of stories
+sub story_stats : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my $cdts_id = $c->req->params->{ cdts };
+    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
+
+    my $title            = $c->req->params->{ title };
+    my $live             = $c->req->params->{ l };
+    my $stories_ids      = $c->req->params->{ stories_ids };
+    my $controversies_id = $controversy->{ controversies_id };
+
+    $stories_ids = [ $stories_ids ] if ( $stories_ids && !ref( $stories_ids ) );
+
+    my $num_stories = scalar( @{ $stories_ids } );
+
+    $db->begin;
+
+    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $live );
+
+    my $media_type_stats = _get_media_type_stats_for_time_slice( $db, $stories_ids );
+    my $partisan_counts = _get_partisan_counts( $db, $stories_ids );
+
+    # my $partisan_metrics = _get_partisan_link_metrics( $db, $stories_ids );
+
+    $db->commit;
+
+    $c->stash->{ title }            = $title;
+    $c->stash->{ cdts }             = $cdts;
+    $c->stash->{ controversy_dump } = $cd;
+    $c->stash->{ controversy }      = $controversy;
+    $c->stash->{ media_type_stats } = $media_type_stats;
+    $c->stash->{ partisan_counts }  = $partisan_counts;
+    $c->stash->{ num_stories }      = $num_stories;
+    $c->stash->{ live }             = $live;
+    $c->stash->{ template }         = 'cm/story_stats.tt2';
 }
 
 1;
