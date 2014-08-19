@@ -7,7 +7,120 @@ use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use URI;
+use URI::QueryParam;
 use Regexp::Common qw /URI/;
+
+# Normalize URL:
+#
+# * Fix common mistypes, e.g. "http://http://..."
+# * Run URL through URI->canonical, i.e. standardize URL's scheme and hostname
+#   case, remove default port, uppercase all escape sequences, unescape octets
+#   that can be represented as plain characters)
+# * Remove #fragment
+# * Remove various ad tracking query parameters, e.g. "utm_source",
+#   "utm_medium", "PHPSESSID", etc.
+#
+# Return normalized URL on success; die() on error
+sub normalize_url($)
+{
+    my $url = shift;
+
+    unless ( $url )
+    {
+        die "URL is undefined";
+    }
+
+    # Fix broken URLs that look like this: http://http://www.al-monitor.com/pulse
+    $url =~ s~(https?)://https?:?//~$1://~i;
+
+    my $uri = URI->new( $url )->canonical;
+    unless ( $uri->scheme )
+    {
+        die "Scheme is undefined for URL $url";
+    }
+
+    unless ( $uri->scheme eq 'http' or $uri->scheme eq 'https' or $uri->scheme eq 'ftp' )
+    {
+        die "Scheme is not HTTP(s) or FTP for URL $url";
+    }
+
+    # Remove #fragment
+    $uri->fragment( undef );
+
+    my @parameters_to_remove;
+
+    # GA parameters (https://support.google.com/analytics/answer/1033867?hl=en)
+    @parameters_to_remove = (
+        @parameters_to_remove,
+        qw/ utm_source utm_medium utm_term utm_content utm_campaign utm_reader utm_place
+          ga_source ga_medium ga_term ga_content ga_campaign ga_place /
+    );
+
+    # Facebook parameters (https://developers.facebook.com/docs/games/canvas/referral-tracking)
+    @parameters_to_remove = (
+        @parameters_to_remove,
+        qw/ fb_action_ids fb_action_types fb_source fb_ref
+          action_object_map action_type_map action_ref_map
+          fsrc /
+    );
+
+    # metrika.yandex.ru parameters
+    @parameters_to_remove = ( @parameters_to_remove, qw/ yclid _openstat / );
+
+    if ( $uri->host =~ /facebook\.com$/i )
+    {
+        # Additional parameters specifically for the facebook.com host
+        @parameters_to_remove = ( @parameters_to_remove, qw/ ref fref hc_location / );
+    }
+
+    if ( $uri->host =~ /nytimes\.com$/i )
+    {
+        # Additional parameters specifically for the nytimes.com host
+        @parameters_to_remove = ( @parameters_to_remove, qw/ emc partner _r hp inline / );
+    }
+
+    if ( $uri->host =~ /livejournal\.com$/i )
+    {
+        # Additional parameters specifically for the livejournal.com host
+        @parameters_to_remove = ( @parameters_to_remove, qw/ thread nojs / );
+    }
+
+    # Some other parameters (common for tracking session IDs, advertising, etc.)
+    @parameters_to_remove = (
+        @parameters_to_remove,
+        qw/ PHPSESSID PHPSESSIONID
+          cid s_cid sid ncid ir
+          ref oref eref
+          ns_mchannel ns_campaign
+          wprss custom_click source
+          feedName feedType /
+    );
+
+    # Make the sorting default (e.g. on Reddit)
+    # Some other parameters (common for tracking session IDs, advertising, etc.)
+    push( @parameters_to_remove, 'sort' );
+
+    # Delete the "empty" parameter (e.g. in http://www-nc.nytimes.com/2011/06/29/us/politics/29marriage.html?=_r%3D6)
+    push( @parameters_to_remove, '' );
+
+    # Remove cruft parameters
+    foreach my $parameter ( @parameters_to_remove )
+    {
+        $uri->query_param_delete( $parameter );
+    }
+
+    # Remove parameters that start with '_' (e.g. '_cid') because they're more likely to be the tracking codes
+    my @parameters = $uri->query_param;
+    foreach my $parameter ( @parameters )
+    {
+        if ( $parameter =~ /^_/ )
+        {
+            $uri->query_param_delete( $parameter );
+        }
+    }
+
+    return $uri->as_string;
+}
 
 # do some simple transformations on a URL to make it match other equivalent
 # URLs as well as possible; normalization is "lossy" (makes the whole URL

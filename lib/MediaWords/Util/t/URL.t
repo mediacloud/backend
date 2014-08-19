@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 27;
+use Test::More tests => 29;
 
 BEGIN
 {
@@ -11,6 +11,23 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 
     use_ok( 'MediaWords::Util::URL' );
+}
+
+sub test_normalize_url()
+{
+    # Basic
+    is(
+        MediaWords::Util::URL::normalize_url( 'HTTP://CYBER.LAW.HARVARD.EDU/node/9244' ),
+        'http://cyber.law.harvard.edu/node/9244',
+        'normalize_url() - basic cyber.law.harvard.edu'
+    );
+    is(
+        MediaWords::Util::URL::normalize_url(
+'HTTP://WWW.GOCRICKET.COM/news/sourav-ganguly/Sourav-Ganguly-exclusive-MS-Dhoni-must-reinvent-himself-to-survive/articleshow_sg/40421328.cms?utm_source=facebook.com&utm_medium=referral'
+        ),
+'http://www.gocricket.com/news/sourav-ganguly/Sourav-Ganguly-exclusive-MS-Dhoni-must-reinvent-himself-to-survive/articleshow_sg/40421328.cms',
+        'normalize_url() - basic gocricket.com'
+    );
 }
 
 sub test_normalize_url_lossy()
@@ -241,6 +258,7 @@ sub main()
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
+    test_normalize_url();
     test_normalize_url_lossy();
     test_get_url_domain();
     test_meta_refresh_url_from_html();
