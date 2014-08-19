@@ -1,0 +1,45 @@
+[% USE date = date(format => '%Y-%m-%d', locale => 'en_GB') %]
+
+[% PROCESS cm/header.tt2 title="Story Stats for $title" %]
+
+<div id="wholecolumn">
+    
+    <div id="halfcolumn">
+
+        <div class="boxtitle">Media Types - Link Weight</div>
+        <table class="even_rows_grey">
+            [% FOREACH mt IN media_type_stats.link_weight %]
+                <tr><td >[% mt.media_type | html %]</td><td>[% mt.percent_link_weight %]%</td></tr>
+            [% END %]
+        </table>
+        
+        <div class="boxtitle">Media Types - Story Count</div>
+        <table class="even_rows_grey">
+            [% FOREACH mt IN media_type_stats.story_count %]
+                <tr><td>[% mt.media_type | html %]</td><td>[% mt.percent_stories %]%</td></tr>
+            [% END %]
+        </table>
+
+    </div>
+    
+    <div id="halfcolumn">
+
+        <div class="boxtitle">Story Counts</div>
+        <table class="even_rows_grey">
+            <tr><td >All Stories</td><td>[% num_stories %]</td></tr>
+        </table>
+        
+        <div class="boxtitle">Partisan Story Counts</div>
+        <table class="even_rows_grey">
+            [% FOREACH pc IN partisan_counts %]
+                <tr><td >[% pc.label | html %]</td><td>[% pc.num_stories %]</td></tr>
+            [% END %]
+        </table>
+        
+    </div>
+
+    
+</div>
+
+[% INCLUDE include/footer.tt2 %]
+
