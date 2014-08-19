@@ -14,7 +14,6 @@ $(document).ready(function () {
 
   $(".remove_story_[% display_stories_id %]").click(function (e) {
     e.preventDefault();
-    var hrefAttribute = $(this).attr("href");
 
     $("#removeStoriesConfirmDialog").dialog('option', 'buttons', {
       "Confirm": function () { 
@@ -28,7 +27,18 @@ $(document).ready(function () {
     $("#removeStoriesConfirmDialog").dialog("open");
   });
   
+  $(".story_stats_[% display_stories_id %]").click(function (e) {
+      e.preventDefault();
+      var hrefAttribute = $(this).attr("href");
+      form = document.getElementById( '[% display_stories_id %]_stories_ids_form' ); 
+      form.action = "[% c.uri_for( '/admin/cm/story_stats' ) | url %]";
+      form.submit();
+  });
+  
+  
 });
+
+
 </script>
 
 
@@ -50,6 +60,8 @@ $(document).ready(function () {
     [% IF cdts_date_range %]
         in [% cdts_date_range %] Time Slice
     [% END %]
+    
+    ([% display_stories.size %] stories)
 
     [% IF display_stories_remove_button %]
         <a id="boxcommand" href="#" class="remove_story_[% display_stories_id %]">remove all</a>        
@@ -60,7 +72,16 @@ $(document).ready(function () {
         l = live,
         sort_by_count = 1,
         q = display_stories_solr_query } ) %]
+        
+    [% USE date = date(format => '%Y-%m-%d', locale => 'en_GB') %]
+    [% SET dashboard_q = "{~ controversy_dump_time_slice:${ cdts.controversy_dump_time_slices_id }-${ live } }" %]
+    [% SET dashboard_q = display_stories_solr_query ? "$dashboard_q and ( " _ display_stories_solr_query.replace( '"', '\"' )  _ " ) " : dashboard_q %]
+    [% SET dashboard_url = 'https://dashboard.mediameter.org/#query/["' _ dashboard_q _ '"]/[{}]/["' _ controversy.start_date _ '"]/["' _ controversy.end_date _ '"]' %]
+    
+
     <a id="boxcommand" href="[% wc_url | html %]">word cloud</a>
+    <a id="boxcommand" target="new" href="[% dashboard_url | html %]">dashboard query</a>
+    <a id="boxcommand" href="#" class="story_stats_[% display_stories_id %]">stats</a>
 
     </div>
 [% END %]
