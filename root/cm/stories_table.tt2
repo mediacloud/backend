@@ -14,7 +14,6 @@ $(document).ready(function () {
 
   $(".remove_story_[% display_stories_id %]").click(function (e) {
     e.preventDefault();
-    var hrefAttribute = $(this).attr("href");
 
     $("#removeStoriesConfirmDialog").dialog('option', 'buttons', {
       "Confirm": function () { 
@@ -28,7 +27,18 @@ $(document).ready(function () {
     $("#removeStoriesConfirmDialog").dialog("open");
   });
   
+  $(".story_stats_[% display_stories_id %]").click(function (e) {
+      e.preventDefault();
+      var hrefAttribute = $(this).attr("href");
+      form = document.getElementById( '[% display_stories_id %]_stories_ids_form' ); 
+      form.action = "[% c.uri_for( '/admin/cm/story_stats' ) | url %]";
+      form.submit();
+  });
+  
+  
 });
+
+
 </script>
 
 
@@ -71,6 +81,7 @@ $(document).ready(function () {
 
     <a id="boxcommand" href="[% wc_url | html %]">word cloud</a>
     <a id="boxcommand" target="new" href="[% dashboard_url | html %]">dashboard query</a>
+    <a id="boxcommand" href="#" class="story_stats_[% display_stories_id %]">stats</a>
 
     </div>
 [% END %]
