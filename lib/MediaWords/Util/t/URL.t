@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 29;
+use Test::More tests => 37;
 
 BEGIN
 {
@@ -27,6 +27,64 @@ sub test_normalize_url()
         ),
 'http://www.gocricket.com/news/sourav-ganguly/Sourav-Ganguly-exclusive-MS-Dhoni-must-reinvent-himself-to-survive/articleshow_sg/40421328.cms',
         'normalize_url() - basic gocricket.com'
+    );
+    is(
+        MediaWords::Util::URL::normalize_url( 'HTTP://CYBER.LAW.HARVARD.EDU/node/9244#foo#bar' ),
+        'http://cyber.law.harvard.edu/node/9244',
+        'normalize_url() - basic cyber.law.harvard.edu (multiple fragments)'
+    );
+
+    # Broken URL
+    is(
+        MediaWords::Util::URL::normalize_url( 'http://http://www.al-monitor.com/pulse' ),
+        'http://www.al-monitor.com/pulse',
+        'normalize_url() - broken URL'
+    );
+
+    # Empty parameter
+    is(
+        MediaWords::Util::URL::normalize_url( 'http://www-nc.nytimes.com/2011/06/29/us/politics/29marriage.html?=_r%3D6' ),
+        'http://www-nc.nytimes.com/2011/06/29/us/politics/29marriage.html',
+        'normalize_url() - empty parameter'
+    );
+
+    # Remove whitespace
+    is(
+        MediaWords::Util::URL::normalize_url(
+            '  http://blogs.perl.org/users/domm/2010/11/posting-utf8-data-using-lwpuseragent.html  '
+        ),
+        'http://blogs.perl.org/users/domm/2010/11/posting-utf8-data-using-lwpuseragent.html',
+        'normalize_url() - remove spaces'
+    );
+    is(
+        MediaWords::Util::URL::normalize_url(
+            "\t\thttp://blogs.perl.org/users/domm/2010/11/posting-utf8-data-using-lwpuseragent.html\t\t"
+        ),
+        'http://blogs.perl.org/users/domm/2010/11/posting-utf8-data-using-lwpuseragent.html',
+        'normalize_url() - remove tabs'
+    );
+
+    # NYTimes
+    is(
+        MediaWords::Util::URL::normalize_url(
+'http://boss.blogs.nytimes.com/2014/08/19/why-i-do-all-of-my-recruiting-through-linkedin/?smid=fb-nytimes&WT.z_sma=BU_WID_20140819&bicmp=AD&bicmlukp=WT.mc_id&bicmst=1388552400000&bicmet=1420088400000&_'
+        ),
+        'http://boss.blogs.nytimes.com/2014/08/19/why-i-do-all-of-my-recruiting-through-linkedin/',
+        'normalize_url() - nytimes.com 1'
+    );
+    is(
+        MediaWords::Util::URL::normalize_url(
+'http://www.nytimes.com/2014/08/19/upshot/inequality-and-web-search-trends.html?smid=fb-nytimes&WT.z_sma=UP_IOA_20140819&bicmp=AD&bicmlukp=WT.mc_id&bicmst=1388552400000&bicmet=1420088400000&_r=1&abt=0002&abg=1'
+        ),
+        'http://www.nytimes.com/2014/08/19/upshot/inequality-and-web-search-trends.html',
+        'normalize_url() - nytimes.com 2'
+    );
+    is(
+        MediaWords::Util::URL::normalize_url(
+'http://www.nytimes.com/2014/08/20/upshot/data-on-transfer-of-military-gear-to-police-departments.html?smid=fb-nytimes&WT.z_sma=UP_DOT_20140819&bicmp=AD&bicmlukp=WT.mc_id&bicmst=1388552400000&bicmet=1420088400000&_r=1&abt=0002&abg=1'
+        ),
+        'http://www.nytimes.com/2014/08/20/upshot/data-on-transfer-of-military-gear-to-police-departments.html',
+        'normalize_url() - nytimes.com 3'
     );
 }
 
