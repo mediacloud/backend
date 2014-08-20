@@ -12,7 +12,7 @@ use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use Encode;
-use JSON;
+use JSON qw//;    # don't import encode_json() and decode_json() into current namespace
 use Data::Dumper;
 
 # Encode hashref to JSON, die() on error
@@ -41,7 +41,7 @@ sub encode_json($;$$)
 # Decode JSON to hashref, die() on error
 sub decode_json($;$)
 {
-    my ( $json, $utf8 ) = shift;
+    my ( $json, $utf8 ) = @_;
 
     $utf8 = ( $utf8 ? 1 : 0 );    # if you set this to 1, make sure you don't double-encode
 
