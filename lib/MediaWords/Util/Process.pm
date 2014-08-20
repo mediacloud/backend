@@ -7,11 +7,12 @@ use strict;
 use warnings;
 
 use Data::Dumper;
+use Carp qw/confess cluck/;
 
 my $child_pids = [];
 
 our @ISA    = qw(Exporter);
-our @EXPORT = qw(mc_fork);
+our @EXPORT = qw(mc_fork fatal_error);
 
 sub mc_fork
 {
@@ -62,6 +63,22 @@ sub _handle_sig
 
     say STDERR "exiting";
     exit;
+}
+
+# Sometimes when an error happens, we can't use die() because it would get
+# caught in eval{}.
+#
+# We don't always want that: for example, if crawler dies because of
+# misconfiguration in mediawords.yml, crawler's errors would get logged into
+# "downloads" table as if the error happened because of a valid reason.
+#
+# In those cases, we go straight to exit(1) using this helper subroutine.
+sub fatal_error($)
+{
+    my $error_message = shift;
+
+    cluck $error_message;
+    exit 1;
 }
 
 1;

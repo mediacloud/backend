@@ -16,6 +16,7 @@ use warnings;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
+use MediaWords::Util::Process;
 use MediaWords::Util::Web;
 use MediaWords::Util::URL;
 use MediaWords::Util::Config;
@@ -34,7 +35,7 @@ my $_bitly_access_token = lazy
 {
     unless ( bitly_processing_is_enabled() )
     {
-        _fatal_error( "Bit.ly processing is not enabled; why are you accessing this variable?" );
+        fatal_error( "Bit.ly processing is not enabled; why are you accessing this variable?" );
     }
 
     my $config = MediaWords::Util::Config->get_config();
@@ -53,7 +54,7 @@ my $_bitly_timeout = lazy
 {
     unless ( bitly_processing_is_enabled() )
     {
-        _fatal_error( "Bit.ly processing is not enabled; why are you accessing this variable?" );
+        fatal_error( "Bit.ly processing is not enabled; why are you accessing this variable?" );
     }
 
     my $config = MediaWords::Util::Config->get_config();

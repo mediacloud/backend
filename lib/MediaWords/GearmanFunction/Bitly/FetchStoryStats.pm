@@ -27,6 +27,7 @@ use MediaWords::CommonLibs;
 
 use MediaWords::DB;
 use MediaWords::Util::Bitly;
+use MediaWords::Util::Process;
 use Readonly;
 use Data::Dumper;
 use DateTime;
@@ -49,7 +50,7 @@ my $_gridfs_store = lazy
 {
     unless ( MediaWords::Util::Bitly::bitly_processing_is_enabled() )
     {
-        _fatal_error( "Bit.ly processing is not enabled; why are you accessing this variable?" );
+        fatal_error( "Bit.ly processing is not enabled; why are you accessing this variable?" );
     }
 
     my $config = MediaWords::Util::Config->get_config();
@@ -58,7 +59,7 @@ my $_gridfs_store = lazy
     my $gridfs_database_name = $config->{ mongodb_gridfs }->{ corenlp }->{ database_name };
     unless ( $gridfs_database_name )
     {
-        _fatal_error( "CoreNLP annotator is enabled, but MongoDB GridFS database name is not set." );
+        fatal_error( "CoreNLP annotator is enabled, but MongoDB GridFS database name is not set." );
     }
 
     my $gridfs_store = MediaWords::KeyValueStore::GridFS->new( { database_name => $gridfs_database_name } );
@@ -66,7 +67,6 @@ my $_gridfs_store = lazy
 
     return $gridfs_store;
 };
-
 
 sub _fetch_story_stats($$$$)
 {
