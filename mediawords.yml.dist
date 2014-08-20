@@ -232,6 +232,9 @@ database:
     ### Get one at: https://bitly.com/a/oauth_apps
     #access_token: ""
 
+    ### API request timeout (in seconds)
+    #timeout: 60
+
 #mail:
     # Email address to receive bug report emails; leave empty for no bug reports via email
     #bug_email : ""
