@@ -50,8 +50,6 @@ sub new
 
     $self->{ downloads } = MediaWords::Crawler::Downloads_Queue->new();
 
-    $self->{ last_timed_out_spidered_download_check } = 0;
-
     # last time a pending downloads check was run
     $self->{ last_pending_check } = 0;
 
@@ -270,38 +268,6 @@ END
     }
 }
 
-# add all pending downloads to the $_downloads list
-sub _retry_timed_out_spider_downloads
-{
-    my ( $self ) = @_;
-
-    my $interval = $self->engine->pending_check_interval || DEFAULT_PENDING_CHECK_INTERVAL;
-
-    $interval *= 20;
-
-    if ( $self->{ last_timed_out_spidered_download_check } > ( time() - $interval ) )
-    {
-        return;
-    }
-
-    print STDERR "start _retry_timed_out_spider_downloads\n";
-
-    $self->{ last_timed_out_spidered_download_check } = time();
-
-    $self->engine->dbs->query(
-        <<EOF,
-        UPDATE DOWNLOADS
-        SET (state, error_message) = ('pending', '')
-        WHERE state = 'error'
-          AND type IN ('spider_blog_home', 'spider_posting', 'spider_rss', 'spider_blog_friends_list')
-          AND (error_message LIKE '50%' OR error_message = ?)
-EOF
-        DOWNLOAD_TIMED_OUT_ERROR_MESSAGE . ''
-    );
-
-    print STDERR "end _retry_timed_out_spider_downloads\n";
-}
-
 # return the next pending request from the downloads table
 # that meets the throttling requirement
 sub provide_downloads
@@ -317,7 +283,6 @@ sub provide_downloads
     # $self->engine->dbs->transaction(sub { $self->_add_stale_feeds(); });
     $self->_add_stale_feeds();
 
-    #$self->_retry_timed_out_spider_downloads();
     $self->_add_pending_downloads();
 
     my @downloads;

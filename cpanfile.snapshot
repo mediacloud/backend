@@ -871,6 +871,12 @@ DISTRIBUTIONS
       Test::Exception 0.31
       Test::More 0.88
       perl 5.006
+  Class-Accessor-Lite-0.06
+    pathname: K/KA/KAZUHO/Class-Accessor-Lite-0.06.tar.gz
+    provides:
+      Class::Accessor::Lite 0.06
+    requirements:
+      ExtUtils::MakeMaker 6.42
   Class-C3-0.26
     pathname: H/HA/HAARG/Class-C3-0.26.tar.gz
     provides:
@@ -1456,15 +1462,6 @@ DISTRIBUTIONS
     requirements:
       DBI 1.21
       ExtUtils::MakeMaker 0
-  DB_File-1.831
-    pathname: P/PM/PMQS/DB_File-1.831.tar.gz
-    provides:
-      DB_File 1.831
-      DB_File::BTREEINFO 1.831
-      DB_File::HASHINFO 1.831
-      DB_File::RECNOINFO 1.831
-    requirements:
-      ExtUtils::MakeMaker 0
   Data-Compare-1.23
     pathname: D/DC/DCANTRELL/Data-Compare-1.23.tar.gz
     provides:
@@ -1614,25 +1611,6 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       Net::Domain::TLD 1.62
       Test::More 0
-  Data-Validate-IP-0.23
-    pathname: D/DR/DROLSKY/Data-Validate-IP-0.23.tar.gz
-    provides:
-      Data::Validate::IP 0.23
-    requirements:
-      Exporter 0
-      ExtUtils::MakeMaker 6.30
-      NetAddr::IP 4
-      Scalar::Util 0
-      strict 0
-      warnings 0
-  Data-Validate-URI-0.06
-    pathname: S/SO/SONNEN/Data-Validate-URI-0.06.tar.gz
-    provides:
-      Data::Validate::URI 0.06
-    requirements:
-      Data::Validate::Domain 0
-      Data::Validate::IP 0
-      ExtUtils::MakeMaker 0
   Data-Visitor-0.30
     pathname: D/DO/DOY/Data-Visitor-0.30.tar.gz
     provides:
@@ -2868,6 +2846,21 @@ DISTRIBUTIONS
       Storable 0
       Test::More 0
       Test::Warn 0
+  Devel-Cover-Report-Coveralls-0.08
+    pathname: M/MI/MIKIHOSHI/Devel-Cover-Report-Coveralls-0.08.tar.gz
+    provides:
+      Devel::Cover::Report::Coveralls 0.08
+    requirements:
+      CPAN::Meta 0
+      CPAN::Meta::Prereqs 0
+      Devel::Cover 1.02
+      ExtUtils::CBuilder 0
+      Furl 0
+      IO::Socket::SSL 0
+      JSON::PP 0
+      Module::Build 0.38
+      YAML 0
+      perl 5.008005
   Devel-GlobalDestruction-0.12
     pathname: H/HA/HAARG/Devel-GlobalDestruction-0.12.tar.gz
     provides:
@@ -3551,24 +3544,27 @@ DISTRIBUTIONS
       Filesys::Notify::Simple 0.12
     requirements:
       ExtUtils::MakeMaker 6.30
-  Font-AFM-1.20
-    pathname: G/GA/GAAS/Font-AFM-1.20.tar.gz
+  Furl-3.03
+    pathname: T/TO/TOKUHIROM/Furl-3.03.tar.gz
     provides:
-      Font::AFM 1.20
-      Font::Metrics::Courier undef
-      Font::Metrics::CourierBold undef
-      Font::Metrics::CourierBoldOblique undef
-      Font::Metrics::CourierOblique undef
-      Font::Metrics::Helvetica undef
-      Font::Metrics::HelveticaBold undef
-      Font::Metrics::HelveticaBoldOblique undef
-      Font::Metrics::HelveticaOblique undef
-      Font::Metrics::TimesBold undef
-      Font::Metrics::TimesBoldItalic undef
-      Font::Metrics::TimesItalic undef
-      Font::Metrics::TimesRoman undef
+      Furl 3.03
+      Furl::ConnectionCache undef
+      Furl::HTTP 3.03
+      Furl::Headers undef
+      Furl::Request undef
+      Furl::Response undef
+      Furl::ZlibStream undef
     requirements:
-      ExtUtils::MakeMaker 0
+      Class::Accessor::Lite 0
+      Encode 0
+      HTTP::Parser::XS 0.11
+      MIME::Base64 0
+      Module::Build 0.38
+      Mozilla::CA 0
+      Scalar::Util 0
+      Socket 0
+      Time::HiRes 0
+      perl 5.008001
   Gearman-JobScheduler-0.16
     pathname: L/LV/LVALIUKAS/Gearman-JobScheduler-0.16.tar.gz
     provides:
@@ -3997,42 +3993,6 @@ DISTRIBUTIONS
       Moose 1.00
       MooseX::Attribute::Chained v1.0.1
       Scalar::Util 0
-  HTML-Format-2.11
-    pathname: N/NI/NIGELM/HTML-Format-2.11.tar.gz
-    provides:
-      HTML::Format undef
-      HTML::FormatMarkdown 2.11
-      HTML::FormatPS 2.11
-      HTML::FormatRTF 2.11
-      HTML::FormatText 2.11
-      HTML::Formatter 2.11
-    requirements:
-      Carp 0
-      Data::Dumper 0
-      Encode 0
-      Font::Metrics::Courier 0
-      Font::Metrics::CourierBold 0
-      Font::Metrics::CourierBoldOblique 0
-      Font::Metrics::CourierOblique 0
-      Font::Metrics::Helvetica 0
-      Font::Metrics::HelveticaBold 0
-      Font::Metrics::HelveticaBoldOblique 0
-      Font::Metrics::HelveticaOblique 0
-      Font::Metrics::TimesBold 0
-      Font::Metrics::TimesBoldItalic 0
-      Font::Metrics::TimesItalic 0
-      Font::Metrics::TimesRoman 0
-      HTML::Element 3.15
-      HTML::TreeBuilder 0
-      IO::File 0
-      Module::Build 0.3601
-      base 0
-      integer 0
-      parent 0
-      perl 5.008
-      strict 0
-      utf8 0
-      warnings 0
   HTML-LinkExtractor-0.13
     pathname: P/PO/PODMASTER/HTML-LinkExtractor-0.13.tar.gz
     provides:
@@ -4261,6 +4221,14 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       HTTP::Headers 6
       perl 5.008001
+  HTTP-Parser-XS-0.16
+    pathname: K/KA/KAZUHO/HTTP-Parser-XS-0.16.tar.gz
+    provides:
+      HTTP::Parser::XS 0.16
+      HTTP::Parser::XS::PP undef
+    requirements:
+      ExtUtils::MakeMaker 6.42
+      Test::More 0.96
   HTTP-Request-AsCGI-1.2
     pathname: F/FL/FLORA/HTTP-Request-AsCGI-1.2.tar.gz
     provides:
@@ -7667,31 +7635,6 @@ DISTRIBUTIONS
       Text::Glob 0.09
     requirements:
       Test::More 0
-  Text-Iconv-1.7
-    pathname: M/MP/MPIOTR/Text-Iconv-1.7.tar.gz
-    provides:
-      Text::Iconv 1.7
-    requirements:
-      ExtUtils::MakeMaker 0
-  Text-MediawikiFormat-v1.0
-    pathname: D/DP/DPRICE/Text-MediawikiFormat-v1.0.tar.gz
-    provides:
-      Text::MediawikiFormat 1.000000
-      Text::MediawikiFormat::Blocks undef
-    requirements:
-      Scalar::Util 1.14
-      Test::More 0.3
-      Test::NoWarnings 0
-      Test::Warn 0
-      URI 0
-      URI::Escape 0
-      version 0.74
-  Text-Ngrams-2.003
-    pathname: V/VL/VLADO/Text-Ngrams-2.003.tar.gz
-    provides:
-      Text::Ngrams 2.003
-    requirements:
-      ExtUtils::MakeMaker 0
   Text-Similarity-0.10
     pathname: T/TP/TPEDERSE/Text-Similarity-0.10.tar.gz
     provides:

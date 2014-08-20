@@ -33,7 +33,8 @@ For a brief roadmap of the code contained in this release, see
 Build Status
 ------------
 
-[![Build Status](https://travis-ci.org/berkmancenter/mediacloud.svg?branch=master)](https://travis-ci.org/berkmancenter/mediacloud)
+[![Build Status](https://travis-ci.org/berkmancenter/mediacloud.svg?branch=master)](https://travis-ci.org/berkmancenter/mediacloud) 
+[![Coverage Status](https://coveralls.io/repos/berkmancenter/mediacloud/badge.png?branch=devel_cover)](https://coveralls.io/r/berkmancenter/mediacloud)
 
 
 History of the Project

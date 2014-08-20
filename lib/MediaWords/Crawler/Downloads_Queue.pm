@@ -84,23 +84,11 @@ sub _queue_download
 {
     my ( $self, $download ) = @_;
 
-    my $media_id;
+    my $media_id = $download->{ _media_id };
 
-    if ( ( $download->{ type } =~ /^spider_.*/ ) || ( $download->{ type } eq 'archival_only' ) )
+    if ( !defined( $media_id ) )
     {
-        my $host = $download->{ host };
-
-        $host     = get_download_site_from_hostname( $host );
-        $media_id = $host;
-    }
-    else
-    {
-        $media_id = $download->{ _media_id };
-
-        if ( !defined( $media_id ) )
-        {
-            die( "missing media_id" );
-        }
+        die( "missing media_id" );
     }
 
     #print STDERR "Provider _queue_download media_id $media_id\n";

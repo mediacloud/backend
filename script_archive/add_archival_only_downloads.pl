@@ -10,7 +10,7 @@ BEGIN
     use lib "$FindBin::Bin/.";
 }
 
-use TableCreationUtils;
+#use TableCreationUtils;
 
 sub main
 {

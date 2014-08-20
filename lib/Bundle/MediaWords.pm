@@ -273,8 +273,6 @@ Sys::SigAction
 
 DateTime::Format::Pg
 
-Text::Ngrams
-
 =head1 DESCRIPTION
 
 Bundle for modules required by MediaWords;
