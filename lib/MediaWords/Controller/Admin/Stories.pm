@@ -112,6 +112,11 @@ sub view : Local
     }
 
     my $story = $c->dbis->find_by_id( 'stories', $stories_id );
+    unless ( $story )
+    {
+        die "Story $stories_id was not found.";
+    }
+
     $c->stash->{ story } = $story;
 
     my @feeds = $c->dbis->query(

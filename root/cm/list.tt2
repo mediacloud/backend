@@ -23,7 +23,7 @@
                 </a>
             </td>
 
-            <td>[% controversy.description | html %]</td>
+            <td>[% controversy.description | truncate( 48 ) | html %]</td>
         </tr>
     [% END # FOREACH stories -%]
 
