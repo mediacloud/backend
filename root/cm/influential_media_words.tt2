@@ -1,6 +1,12 @@
 [% USE date = date(format => '%Y-%m-%d', locale => 'en_GB') %]
 
-[% title = "Influential Media Words " _ date.format( cdts.start_date ) _ ' - ' _ date.format( cdts.end_date ) _ ' Time Slice' %]
+[% title = "Influential Media Words for " _ date.format( cdts.start_date ) _ ' - ' _ date.format( cdts.end_date ) _ ' Time Slice' %]
+
+[% IF overall %]
+    [% SET title = title _ " for Top 10 Media Overall" %]
+[% ELSE %]
+    [% SET title = title _ " for Top 10 Media in this Time Slice" %]
+[% END %]
 
 [% PROCESS cm/header.tt2 %]
 

@@ -1,12 +1,12 @@
 --
 -- This is a Media Cloud PostgreSQL schema difference file (a "diff") between schema
--- versions 4464 and 4465.
+-- versions 4465 and 4466.
 --
 -- If you are running Media Cloud with a database that was set up with a schema version
--- 4464, and you would like to upgrade both the Media Cloud and the
--- database to be at version 4465, import this SQL file:
+-- 4465, and you would like to upgrade both the Media Cloud and the
+-- database to be at version 4466, import this SQL file:
 --
---     psql mediacloud < mediawords-4464-4465.sql
+--     psql mediacloud < mediawords-4465-4466.sql
 --
 -- You might need to import some additional schema diff files to reach the desired version.
 --
@@ -14,19 +14,19 @@
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
-alter table controversies add controversy_tag_sets_id int references tag_sets;
+create function insert_controversy_tag_set() returns trigger as $insert_controversy_tag_set$
+    begin
+        insert into tag_sets ( name, label, description )
+            select 'controversy_'||NEW.name, NEW.name||' controversy', 'Tag set for stories within the '||NEW.name||' controversy.';
+        
+        select tag_sets_id into NEW.controversy_tag_sets_id from tag_sets where name = 'controversy_'||NEW.name;
 
-update controversies c set controversy_tag_sets_id = ts.tag_sets_id
-    from tag_sets ts
-    where ts.name = 'controversy_' || c.name;
-    
-alter table controversies alter controversy_tag_sets_id set not null;
+        return NEW;
+    END;
+$insert_controversy_tag_set$ LANGUAGE plpgsql;
 
-alter table controversies add media_type_tag_sets_id int references tag_sets;
-
-create unique index controversies_tag_set on controversies( controversy_tag_sets_id );
-create unique index controversies_media_type_tag_set on controversies( media_type_tag_sets_id );
-
+create trigger controversy_tag_set before insert on controversies
+    for each row execute procedure insert_controversy_tag_set();         
 
 --
 -- 2 of 2. Reset the database version.
@@ -37,7 +37,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4465;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4466;
     
 BEGIN
 

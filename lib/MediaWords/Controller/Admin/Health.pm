@@ -95,24 +95,44 @@ sub _assign_health_data_to_tag
     my ( $db, $tag ) = @_;
 
     my $media = $db->query( <<END, $tag->{ tags_id } )->hashes;
-select m.*,
-        sum( ms.num_stories ) num_stories,
-        sum( ms.num_sentences ) num_sentences,
-        sum( ms.num_stories_with_sentences ) num_stories_with_sentences,
-        sum( ms.num_stories_with_text ) num_stories_with_text
-        
-    from media m 
-        join media_tags_map mtm on ( m.media_id = mtm.media_id ) 
-        join media_stats ms on ( m.media_id = ms.media_id )
-    where mtm.tags_id = ?
-    group by m.media_id
-    order by m.media_id
+with ranked_media_dates as (
+    select media_id, stat_date, 
+            rank() over ( partition by media_id order by stat_date desc ) r 
+        from media_stats 
+        where num_sentences > 0
+),
+    
+latest_media_dates as (
+    select * from ranked_media_dates where r = 1
+),   
+    
+
+aggregated_media_stats as (
+    select m.*,
+            sum( ms.num_stories ) num_stories,
+            sum( ms.num_sentences ) num_sentences,
+            sum( ms.num_stories_with_sentences ) num_stories_with_sentences,
+            sum( ms.num_stories_with_text ) num_stories_with_text
+        from media m 
+            join media_stats ms on ( m.media_id = ms.media_id )
+            join latest_media_dates lmd on ( m.media_id = lmd.media_id )
+        group by m.media_id
+        order by m.media_id
+)
+
+select ams.*, lmd.stat_date latest_story_date
+    from 
+        aggregated_media_stats ams
+        join media_tags_map mtm on ( ams.media_id = mtm.media_id ) 
+        join latest_media_dates lmd on ( ams.media_id = lmd.media_id )
+    where
+        mtm.tags_id = ?
 END
 
     for my $medium ( @{ $media } )
     {
         # say STDERR "_assign_health_data_to_tag: " . Dumper( $medium );
-        # 
+        #
         # _assign_health_data_to_medium( $db, $medium );
 
         my $fields = [ qw/num_stories num_sentences num_stories_with_sentences num_stories_with_text/ ];
@@ -131,7 +151,7 @@ END
     # {
     #     $tag->{ percent_healthy_media } = 'na';
     # }
-    # 
+    #
 }
 
 # find any media set and dashboard associated with the tag and
@@ -156,10 +176,10 @@ END
 sub _get_collection_tag_sets_id
 {
     my ( $db ) = @_;
-    
-    my $tag_set = $db->query( "select * from tag_sets where name = 'collection'" )->hash ||
-        die( "Unable to find 'collection' tag set" );
-    
+
+    my $tag_set = $db->query( "select * from tag_sets where name = 'collection'" )->hash
+      || die( "Unable to find 'collection' tag set" );
+
     return $tag_set->{ tag_sets_id };
 }
 
@@ -169,15 +189,15 @@ sub list : Local
     my ( $self, $c, $tag_sets_id ) = @_;
 
     my $db = $c->dbis;
-    
+
     $tag_sets_id ||= _get_collection_tag_sets_id( $db );
-    
-    my $tag_set = $db->find_by_id( 'tag_sets', $tag_sets_id ) ||
-        die( "Unable to find tag set '$tag_sets_id'" );
+
+    my $tag_set = $db->find_by_id( 'tag_sets', $tag_sets_id )
+      || die( "Unable to find tag set '$tag_sets_id'" );
 
     # sample 1 / $sample_factor days from the past year
     my $sample_factor = 13;
-    
+
     my $query = <<END;
 with collection_tags as (
     select t.* from tags t where t.tag_sets_id = ?
@@ -234,9 +254,9 @@ END
 sub tag_sets : Local
 {
     my ( $self, $c ) = @_;
-    
+
     my $db = $c->dbis;
-    
+
     my $tag_sets = $db->query( <<END )->hashes;
 select ts.*
     from tag_sets ts
@@ -253,7 +273,6 @@ END
     $c->stash->{ tag_sets } = $tag_sets;
     $c->stash->{ template } = 'health/tag_sets.tt2';
 }
-
 
 # list the media sources in the given tag, with health info for each
 sub tag : Local

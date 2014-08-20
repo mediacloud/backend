@@ -339,10 +339,11 @@ sub enqueue_add_default_feeds_for_unmoderated_media($)
     return 1;
 }
 
-# get all of the media_type: tags
+# get all of the media_type: tags. append the tags from the controversies.media_type_tags_sets_id
+# if $controversies_id is specified.
 sub get_media_type_tags
 {
-    my ( $db ) = @_;
+    my ( $db, $controversies_id ) = @_;
 
     my $media_types = $db->query( <<END )->hashes;
 select t.*
@@ -353,34 +354,54 @@ select t.*
     order by t.label = 'Not Typed' desc, t.label = 'Other', t.label
 END
 
+    if ( $controversies_id )
+    {
+        my $controversy_media_types = $db->query( <<END, $controversies_id )->hashes;
+select t.*
+    from 
+        tags t 
+        join controversies c on ( t.tag_sets_id = c.media_type_tag_sets_id )
+    where
+        c.controversies_id = ? and
+        t.label <> 'Not Typed'
+    order by t.label
+END
+
+        push( @{ $media_types }, @{ $controversy_media_types } );
+    }
+
     return $media_types;
 }
 
-# update the media_type tag for the media source
+# update the media type tag for the given medium by deleting any existing tags
+# in the same tag set as the new tag and inserting the new media_tags_map row
+# if it does not already exist.
 sub update_media_type
 {
     my ( $db, $medium, $media_type_tags_id ) = @_;
 
-    die( "medium to update must have media_type_tags_id field, defined in media_with_media_types view" )
-      unless ( exists( $medium->{ media_type_tags_id } ) );
-
-    my $existing_media_type_tags_id = $medium->{ media_type_tags_id } || 0;
-
-    return if ( $existing_media_type_tags_id == $media_type_tags_id );
-
-    if ( $existing_media_type_tags_id )
-    {
-        $db->query( <<END, $medium->{ media_id }, $existing_media_type_tags_id );
-delete from media_tags_map where media_id = ? and tags_id = ?
+    # delete existing tags in the media_type_tags_id tag set that are not the new tag
+    $db->query( <<END, $medium->{ media_id }, $media_type_tags_id );
+delete from media_tags_map mtm
+    using 
+        tags t
+    where
+        mtm.media_id = \$1 and
+        mtm.tags_id <> \$2 and
+        mtm.tags_id = t.tags_id and
+        t.tag_sets_id in (
+            select tag_sets_id from tags new_tag where new_tag.tags_id = \$2 )
 END
-    }
 
-    if ( $media_type_tags_id )
-    {
-        $db->query( <<END, $medium->{ media_id }, $media_type_tags_id );
-insert into media_tags_map ( media_id, tags_id ) values ( ?, ? )
+    return unless ( $media_type_tags_id );
+
+    # only insert the tag if it does not already exist
+    $db->query( <<END, $medium->{ media_id }, $media_type_tags_id );
+insert into media_tags_map ( media_id, tags_id )
+    select \$1, \$2 where not exists ( 
+        select 1 from media_tags_map where media_id = \$1 and tags_id = \$2
+    )
 END
-    }
 }
 
 1;

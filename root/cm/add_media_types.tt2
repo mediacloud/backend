@@ -2,11 +2,13 @@
 
 <div id="boxtitle">Media With No Types</div>
     [% IF media.size == 0 %]
-        <fieldset>>All media sources have been typed.</fieldset>
+        <fieldset>No media sources remain.</fieldset>
     [% ELSE %]
         <form action="[% c.uri_for( '/admin/cm/add_media_types' ) | html %]" method="post">
             <input type="hidden" name="cdts" value="[% cdts.controversy_dump_time_slices_id %]" />
             <input type="hidden" name="l" value="[% live | html %]" />
+            <input type="hidden" name="last_media_id" value="[% last_media_id | html %]" />
+            <input type="hidden" name="retype_media_type" value="[% retype_media_type | html %]" />
         
             <table class="even_rows_grey">
                 <tr>
@@ -31,7 +33,7 @@
                         <td>
                             <select name="media_type_[% m.media_id %]" >
                                 [% FOREACH media_type IN media_types %]
-                                    <option value="[% media_type.tags_id %]">[% media_type.label | html %]</option>
+                                    <option value="[% media_type.tags_id %]" [% IF media_type.label == retype_media_type %]selected[% END %]>[% media_type.label | html %]</option>
                                 [% END %]
                             </select>                                
                         </td>
@@ -45,6 +47,29 @@
             <input type="submit" value="Go" />
         </form>
     [% END %]
+</div>
+
+<div id="wholecolumn">
+    <div id="boxtitle">
+        Retype Media
+    </div>
+    <fieldset>
+        <p>
+            By default, this page displays the ten media with the highest link weight that have not been typed.  If you
+            would like to retype media with some other existing type, use the below form.
+        </p>
+        <form action="[% c.uri_for( '/admin/cm/add_media_types' ) %]" method="get">
+            <input type="hidden" name="cdts" value="[% cdts.controversy_dump_time_slices_id | html %]" />
+            <input type="hidden" name="l" value="[% live | html %]" />
+
+            <select name="retype_media_type">
+                [% FOREACH mt IN media_types %]
+                    <option>[% mt.label | html %]</option>
+                [% END %]
+            </select>
+            <input type="submit" value="Retype" />
+        </form>
+    </fieldset>
 </div>
 
 [% INCLUDE include/footer.tt2 %]

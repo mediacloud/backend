@@ -16,6 +16,7 @@
             <a id="boxcommand" href="[% c.uri_for( '/admin/cm/delete_stories/' _ controversy.controversies_id ) %]">remove stories</a>
             <a id="boxcommand" href="[% c.uri_for( '/admin/cm/merge_stories_list/' _ controversy.controversies_id ) %]">merge stories</a>
             <a id="boxcommand" href="[% c.uri_for( '/admin/cm/edit_dates/' _ controversy.controversies_id ) %]">edit dates</a>
+            <a id="boxcommand" href="[% c.uri_for( '/admin/cm/edit_media_types/' _ controversy.controversies_id ) %]">edit media types</a>
             <a id="boxcommand" href="[% c.uri_for( '/admin/cm/edit/' _ controversy.controversies_id ) %]">edit</a>
         </div>
         <table class="even_rows_grey">
