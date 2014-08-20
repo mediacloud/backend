@@ -225,6 +225,9 @@ database:
 ### Bit.ly API
 #bitly:
 
+    ### Enable Bit.ly processing
+    #enabled: "no"
+
     ### (Generic) Access Token
     ### Get one at: https://bitly.com/a/oauth_apps
     #access_token: ""
