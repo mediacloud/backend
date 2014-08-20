@@ -225,12 +225,151 @@ sub query($;$)
     return $data;
 }
 
+# given a list of array refs, each of which points to a list
+# of ids, return a list of all ids that appear in all of the
+# lists
+sub _get_intersection_of_id_array_refs
+{
+    return [] unless ( @_ );
+
+    my $first_list = shift( @_ );
+    return $first_list unless ( @_ );
+
+    my $other_lists = \@_;
+
+    my $id_lookup = {};
+    map { $id_lookup->{ $_ } = 1 } @{ $first_list };
+
+    for my $id_list ( @{ $other_lists } )
+    {
+        my $new_id_lookup = {};
+        for my $id ( @{ $id_list } )
+        {
+            if ( $id_lookup->{ $id } )
+            {
+                $new_id_lookup->{ $id } = 1;
+            }
+        }
+        $id_lookup = $new_id_lookup;
+    }
+
+    my $list = [ keys( %{ $id_lookup } ) ];
+
+    return $list;
+}
+
+# transform the psuedoquery fields in the query and then run a simple pattern to detect
+# queries that consists of one or more AND'ed stories_id:... clauses.  For those cases,
+# just return the stories ids list rather than running it through solr.  return undef if
+# the query does not match.
+sub _get_stories_ids_from_stories_only_q
+{
+    my ( $q ) = @_;
+
+    return undef unless ( $q );
+
+    $q =~ s/^\s*\(\s*(.*)\s*\)\s*$/$1/;
+    $q =~ s/^\s+//;
+    $q =~ s/\s+$//;
+
+    my $p = index( lc( $q ), 'and' );
+    if ( $p > 0 )
+    {
+        my $a_stories_ids = _get_stories_ids_from_stories_only_q( substr( $q, 0, $p ) ) || return undef;
+        my $b_stories_ids = _get_stories_ids_from_stories_only_q( substr( $q, $p + 3 ) ) || return undef;
+
+        return undef unless ( $a_stories_ids && $b_stories_ids );
+
+        return _get_intersection_of_id_array_refs( $a_stories_ids, $b_stories_ids );
+    }
+
+    if ( $q =~ /^stories_id:(\d+)$/ )
+    {
+        return [ $1 ];
+    }
+
+    if ( $q =~ /^stories_id:\([\s\d]+\)$/ )
+    {
+        my $stories_ids;
+        while ( $q =~ /(\d+)/g )
+        {
+            push( @{ $stories_ids }, $1 );
+        }
+
+        return $stories_ids;
+    }
+
+    return undef;
+}
+
+# transform the psuedoquery fields in the q and fq params and then run a simple pattern to detect
+# queries that consists of one or more AND'ed stories_id:... clauses in the q param and all fq params.
+# return undef if either the q or any of the fq params do not match.
+sub _get_stories_ids_from_stories_only_params
+{
+    my ( $params ) = @_;
+
+    my $q     = $params->{ q };
+    my $fqs   = $params->{ fq };
+    my $start = $params->{ start };
+    my $rows  = $params->{ rows };
+
+    # return undef if there are any unrecognized params
+    my $p = { %{ $params } };
+    map { delete( $p->{ $_ } ) } ( qw(q fq start rows ) );
+    return undef if ( values( %{ $p } ) );
+
+    my $stories_ids_lists = [];
+
+    if ( $fqs )
+    {
+        $fqs = ref( $fqs ) ? $fqs : [ $fqs ];
+        for my $fq ( @{ $fqs } )
+        {
+            if ( my $stories_ids = _get_stories_ids_from_stories_only_q( $fq ) )
+            {
+                push( @{ $stories_ids_lists }, $stories_ids );
+            }
+            else
+            {
+                return undef;
+            }
+        }
+
+    }
+
+    my $r;
+    if ( @{ $stories_ids_lists } && ( !defined( $q ) || ( $q eq '' ) ) )
+    {
+        $r = _get_intersection_of_id_array_refs( @{ $stories_ids_lists } );
+    }
+    else
+    {
+        my $stories_ids = _get_stories_ids_from_stories_only_q( $q );
+
+        return undef unless ( $stories_ids );
+
+        $r = _get_intersection_of_id_array_refs( $stories_ids, @{ $stories_ids_lists } );
+    }
+
+    splice( @{ $r }, 0, $start ) if ( defined( $start ) );
+    splice( @{ $r }, $rows ) if ( defined( $rows ) );
+
+    return $r;
+}
+
 # return all of the story ids that match the solr query
 sub search_for_stories_ids
 {
     my ( $params ) = @_;
 
     my $p = { %{ $params } };
+
+    if ( my $stories_ids = _get_stories_ids_from_stories_only_params( $p ) )
+    {
+        say STDERR "search_for_stories_ids: bypassing solr";
+        return $stories_ids;
+    }
 
     $p->{ fl }            = 'stories_id';
     $p->{ group }         = 'true';
