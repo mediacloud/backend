@@ -394,7 +394,7 @@ sub load_sql_file
         # Die on unexpected SQL (e.g. DROP TABLE)
         if (
             not $line =~
-/^NOTICE:|^CREATE|^ALTER|^\SET|^COMMENT|^INSERT|^ enum_add.*|^----------.*|^\s+|^\(\d+ rows?\)|^$|^Time:|^DROP LANGUAGE|^DROP VIEW|^DROP TABLE|^drop cascades to view |^UPDATE \d+|^DROP TRIGGER|^Timing is on\.|^DROP INDEX|^psql.*: NOTICE:|^DELETE/
+/^NOTICE:|^CREATE|^ALTER|^\SET|^COMMENT|^INSERT|^ enum_add.*|^----------.*|^\s+|^\(\d+ rows?\)|^$|^Time:|^DROP LANGUAGE|^DROP VIEW|^DROP TABLE|^drop cascades to view |^UPDATE \d+|^DROP TRIGGER|^Timing is on\.|^DROP INDEX|^psql.*: NOTICE:|^DELETE|^SELECT 0/
           )
         {
 
