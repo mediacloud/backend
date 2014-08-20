@@ -1,38 +1,63 @@
 package MediaWords::Util::JSON;
+
+#
+# Utilities for encoding / decoding JSON
+#
+
+use strict;
+use warnings;
+use utf8;
+
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
-# very simple module for generating from perl data
+use Encode;
+use JSON;
+use Data::Dumper;
 
-use strict;
-
-# return a json string representing a perl data structre
-sub get_json_from_perl
+# Encode hashref to JSON, die() on error
+sub encode_json($;$$)
 {
-    my ( $data ) = @_;
+    my ( $hashref, $pretty, $utf8 ) = @_;
 
-    if ( ref( $data ) eq 'ARRAY' )
-    {
-        return "[\n" . join( ",\n", map { get_json_from_perl( $_ ) } @{ $data } ) . "]\n";
-    }
-    elsif ( ref( $data ) eq 'HASH' )
-    {
-        return "{\n" . join( ",\n", map { "$_: " . get_json_from_perl( $data->{ $_ } ) } keys( %{ $data } ) ) . "}\n";
-    }
-    else
-    {
-        return "''" if ( !defined( $data ) );
+    $pretty = ( $pretty ? 1 : 0 );
+    $utf8   = ( $utf8   ? 1 : 0 );    # if you set this to 1, make sure you don't double-encode
 
-        if ( $data =~ /^[0-9]+$/ )
-        {
-            return $data;
-        }
-        else
-        {
-            $data =~ s/'/\\'/g;
-            return "'$data'";
-        }
+    unless ( ref( $hashref ) eq ref( {} ) )
+    {
+        die "Parameter is not a hashref: " . Dumper( $hashref );
     }
+
+    my $json;
+    eval { $json = JSON->new->utf8( $utf8 )->pretty( $pretty )->encode( $hashref ); };
+    if ( $@ or ( !$json ) )
+    {
+        die "Unable to encode hashref to JSON: $@\nHashref: " . Dumper( $hashref );
+    }
+
+    return $json;
+}
+
+# Decode JSON to hashref, die() on error
+sub decode_json($;$)
+{
+    my ( $json, $utf8 ) = shift;
+
+    $utf8 = ( $utf8 ? 1 : 0 );    # if you set this to 1, make sure you don't double-encode
+
+    unless ( $json )
+    {
+        die "JSON is empty or undefined.\n";
+    }
+
+    my $hashref;
+    eval { $hashref = JSON->new->utf8( $utf8 )->decode( $json ); };
+    if ( $@ or ( !$hashref ) )
+    {
+        die "Unable to decode JSON to hashref: $@\nJSON: $json";
+    }
+
+    return $hashref;
 }
 
 1;

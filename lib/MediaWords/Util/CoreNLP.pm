@@ -10,11 +10,11 @@ use MediaWords::CommonLibs;
 use MediaWords::Util::Config;
 use MediaWords::Util::Web;
 use MediaWords::Util::Text;
+use MediaWords::Util::JSON;
 use HTTP::Request;
 use HTTP::Status qw(:constants);
 use Encode;
 use URI;
-use JSON;
 use Carp qw/confess cluck/;
 use Scalar::Defer;
 use Data::Dumper;
@@ -132,48 +132,6 @@ my $_gridfs_store = lazy
     return $gridfs_store;
 };
 
-# Encode hashref to JSON, die() on error
-sub _encode_json($;$)
-{
-    my ( $hashref, $pretty ) = @_;
-
-    $pretty = ( $pretty ? 1 : 0 );
-
-    unless ( ref( $hashref ) eq ref( {} ) )
-    {
-        die "Parameter is not a hashref: " . Dumper( $hashref );
-    }
-
-    my $json;
-    eval { $json = JSON->new->utf8( 0 )->pretty( $pretty )->encode( $hashref ); };
-    if ( $@ or ( !$json ) )
-    {
-        die "Unable to encode hashref to JSON: $@\nHashref: " . Dumper( $hashref );
-    }
-
-    return $json;
-}
-
-# Decode JSON to hashref, die() on error
-sub _decode_json($)
-{
-    my $json = shift;
-
-    unless ( $json )
-    {
-        die "JSON is empty or undefined.\n";
-    }
-
-    my $hashref;
-    eval { $hashref = JSON->new->utf8( 0 )->decode( $json ); };
-    if ( $@ or ( !$hashref ) )
-    {
-        die "Unable to decode JSON to hashref: $@\nJSON: $json";
-    }
-
-    return $hashref;
-}
-
 # Make a request to the CoreNLP annotator, return hashref of parsed JSON
 # results (without the "corenlp" key)
 #
@@ -244,7 +202,7 @@ sub _annotate_text($)
         {
             $text_json_hashref->{ 'level' } = $_corenlp_annotator_level . '';
         }
-        $text_json = _encode_json( $text_json_hashref );
+        $text_json = MediaWords::Util::JSON::encode_json( $text_json_hashref );
     };
     if ( $@ or ( !$text_json ) )
     {
@@ -335,7 +293,7 @@ sub _annotate_text($)
 
     # Parse resulting JSON
     my $results_hashref;
-    eval { $results_hashref = _decode_json( $results_string ); };
+    eval { $results_hashref = MediaWords::Util::JSON::decode_json( $results_string ); };
     if ( $@ or ( !ref $results_hashref ) )
     {
         # If the JSON is invalid, it's probably something broken with the
@@ -412,7 +370,7 @@ sub _fetch_annotation_from_gridfs_for_story($$)
     }
 
     my $json_hashref;
-    eval { $json_hashref = _decode_json( $json ); };
+    eval { $json_hashref = MediaWords::Util::JSON::decode_json( $json ); };
     if ( $@ or ( !ref $json_hashref ) )
     {
         die "Unable to parse annotation JSON for story $stories_id: $@\nString JSON: $json";
@@ -598,7 +556,7 @@ EOF
 
     # Convert results to a minimized JSON
     my $json_annotation;
-    eval { $json_annotation = _encode_json( \%annotations ); };
+    eval { $json_annotation = MediaWords::Util::JSON::encode_json( \%annotations ); };
     if ( $@ or ( !$json_annotation ) )
     {
         _fatal_error( "Unable to encode hashref to JSON: $@\nHashref: " . Dumper( $json_annotation ) );
@@ -671,7 +629,7 @@ sub fetch_annotation_json_for_story($$)
 
     # Encode back to JSON, prettifying the result
     my $story_annotation_json;
-    eval { $story_annotation_json = _encode_json( $story_annotation, 1 ); };
+    eval { $story_annotation_json = MediaWords::Util::JSON::encode_json( $story_annotation, 1 ); };
     if ( $@ or ( !$story_annotation_json ) )
     {
         die "Unable to encode story annotation to JSON for story $stories_id: $@\nHashref: " . Dumper( $story_annotation );
@@ -727,7 +685,7 @@ sub fetch_annotation_json_for_story_sentence($$)
 
     # Encode back to JSON, prettifying the result
     my $story_sentence_annotation_json;
-    eval { $story_sentence_annotation_json = _encode_json( $story_sentence_annotation, 1 ); };
+    eval { $story_sentence_annotation_json = MediaWords::Util::JSON::encode_json( $story_sentence_annotation, 1 ); };
     if ( $@ or ( !$story_sentence_annotation_json ) )
     {
         die "Unable to encode sentence annotation to JSON for story sentence " .
@@ -781,7 +739,7 @@ sub fetch_annotation_json_for_story_and_all_sentences($$)
 
     # Encode back to JSON, prettifying the result
     my $annotation_json;
-    eval { $annotation_json = _encode_json( $annotation, 1 ); };
+    eval { $annotation_json = MediaWords::Util::JSON::encode_json( $annotation, 1 ); };
     if ( $@ or ( !$annotation_json ) )
     {
         die "Unable to encode story and its sentences annotation to JSON for story " .
