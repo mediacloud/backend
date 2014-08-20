@@ -261,7 +261,7 @@ CREATE OR REPLACE FUNCTION update_story_sentences_updated_time_by_story_sentence
 $$
     DECLARE
         path_change boolean;
-        reference_story_sentences_id integer default null;
+        reference_story_sentences_id bigint default null;
     BEGIN
 
         IF TG_OP = 'INSERT' THEN
@@ -1546,23 +1546,6 @@ CREATE TABLE popular_queries (
 CREATE UNIQUE INDEX popular_queries_da_up ON popular_queries(dashboard_action, url_params);
 CREATE UNIQUE INDEX popular_queries_query_ids ON popular_queries( queries_id_0,  queries_id_1);
 CREATE INDEX popular_queries_dashboards_id_count on popular_queries(dashboards_id, count);
-
-create table query_story_searches (
-    query_story_searches_id     serial primary key,
-    queries_id                  int not null references queries,
-    pattern                     text,
-    search_completed            boolean default false
-);
-
-create unique index query_story_searches_query_pattern on query_story_searches( queries_id, pattern );
-  
-create table query_story_searches_stories_map (
-    query_story_searches_id     int references query_story_searches on delete cascade,
-    stories_id                  int references stories on delete cascade
-);
-
-create unique index query_story_searches_stories_map_u on query_story_searches_stories_map ( query_story_searches_id, stories_id );
-create index query_story_searches_stories_map_story on query_story_searches_stories_map ( stories_id );
     
 create table story_similarities (
     story_similarities_id   serial primary key,
