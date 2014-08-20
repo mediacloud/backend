@@ -30,6 +30,7 @@ use MediaWords::Util::Bitly;
 use Readonly;
 use Data::Dumper;
 use DateTime;
+use Scalar::Defer;
 
 # Having a global database object should be safe because
 # Gearman::JobScheduler's workers don't support fork()s anymore
@@ -39,6 +40,33 @@ Readonly my $BITLY_FETCH_CATEGORIES => 0;
 Readonly my $BITLY_FETCH_CLICKS     => 1;
 Readonly my $BITLY_FETCH_REFERRERS  => 1;
 Readonly my $BITLY_FETCH_SHARES     => 0;
+
+# (Lazy-initialized) MongoDB GridFS key-value store
+# We use a static, package-wide variable here because:
+# a) MongoDB handler should support being used by multiple threads by now, and
+# b) each Gearman worker is a separate process so there shouldn't be any resource clashes.
+my $_gridfs_store = lazy
+{
+    unless ( MediaWords::Util::Bitly::bitly_processing_is_enabled() )
+    {
+        _fatal_error( "Bit.ly processing is not enabled; why are you accessing this variable?" );
+    }
+
+    my $config = MediaWords::Util::Config->get_config();
+
+    # GridFS storage
+    my $gridfs_database_name = $config->{ mongodb_gridfs }->{ corenlp }->{ database_name };
+    unless ( $gridfs_database_name )
+    {
+        _fatal_error( "CoreNLP annotator is enabled, but MongoDB GridFS database name is not set." );
+    }
+
+    my $gridfs_store = MediaWords::KeyValueStore::GridFS->new( { database_name => $gridfs_database_name } );
+    say STDERR "Will write CoreNLP annotator results to GridFS database: $gridfs_database_name";
+
+    return $gridfs_store;
+};
+
 
 sub _fetch_story_stats($$$$)
 {

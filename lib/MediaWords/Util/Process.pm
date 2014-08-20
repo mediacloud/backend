@@ -1,4 +1,4 @@
-package MediaWords::Util::MC_Fork;
+package MediaWords::Util::Process;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
