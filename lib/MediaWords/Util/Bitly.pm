@@ -22,7 +22,6 @@ use MediaWords::Util::Config;
 use URI;
 use URI::QueryParam;
 use JSON;
-use List::MoreUtils qw/uniq/;
 use Scalar::Util qw/looks_like_number/;
 use DateTime;
 use DateTime::Duration;
@@ -101,33 +100,6 @@ sub _unit_reference_ts_and_units_from_start_end_timestamps($$$)
     $units             .= '';
 
     return ( $unit_reference_ts, $units );
-}
-
-# Returns true if URL is valid for Bit.ly shortening
-sub _url_is_valid_for_bitly($)
-{
-    my $url = shift;
-
-    unless ( $url )
-    {
-        warn "URL is undefined";
-        return 0;
-    }
-
-    my $uri = URI->new( $url )->canonical;
-
-    unless ( $uri->scheme )
-    {
-        warn "Scheme is undefined for URL $url";
-        return 0;
-    }
-    unless ( $uri->scheme eq 'http' or $uri->scheme eq 'https' or $uri->scheme eq 'ftp' )
-    {
-        warn "Scheme is not HTTP(s) or FTP for URL $url";
-        return 0;
-    }
-
-    return 1;
 }
 
 # Returns true if Bit.ly processing is enabled
@@ -229,126 +201,6 @@ sub request($$)
     }
 
     return $json_data;
-}
-
-# Fetch the URL, evaluate HTTP / HTML redirects; return URL and data after all those redirects; die() on error
-sub url_and_data_after_redirects($;$$)
-{
-    my ( $orig_url, $max_http_redirect, $max_meta_redirect ) = @_;
-
-    unless ( _url_is_valid_for_bitly( $orig_url ) )
-    {
-        die "URL is invalid: $orig_url";
-    }
-
-    my $uri = URI->new( $orig_url )->canonical;
-
-    $max_http_redirect //= 7;
-    $max_meta_redirect //= 3;
-
-    my $html = undef;
-
-    for ( my $meta_redirect = 1 ; $meta_redirect <= $max_meta_redirect ; ++$meta_redirect )
-    {
-
-        # Do HTTP request to the current URL
-        my $ua = MediaWords::Util::Web::UserAgent;
-
-        $ua->max_redirect( $max_http_redirect );
-
-        my $response = $ua->get( $uri->as_string );
-
-        unless ( $response->is_success )
-        {
-            warn "Request to " . $uri->as_string . " was unsuccessful: " . $response->status_line;
-            $uri = URI->new( $orig_url )->canonical;
-            last;
-        }
-
-        my @redirects = $response->redirects();
-
-        # if ( scalar @redirects )
-        # {
-        #     say STDERR "Redirects:";
-        #     foreach my $redirect ( @redirects )
-        #     {
-        #         say STDERR "* From:";
-        #         say STDERR "    " . $redirect->request()->uri()->canonical;
-        #         say STDERR "  to:";
-        #         say STDERR "    " . $redirect->header( 'Location' );
-        #     }
-        # }
-
-        my $new_uri = $response->request()->uri()->canonical;
-        unless ( $uri->eq( $new_uri ) )
-        {
-            # say STDERR "New URI: " . $new_uri->as_string;
-            $uri = $new_uri;
-        }
-
-        # Check if the returned document contains <meta http-equiv="refresh" />
-        $html = $response->decoded_content || '';
-        my $url_after_meta_redirect = MediaWords::Util::URL::meta_refresh_url_from_html( $html, $uri->as_string );
-        if ( $url_after_meta_redirect and $uri->as_string ne $url_after_meta_redirect )
-        {
-            # say STDERR "URL after <meta /> refresh: $url_after_meta_redirect";
-            $uri = URI->new( $url_after_meta_redirect )->canonical;
-
-            # ...and repeat the HTTP redirect cycle here
-        }
-        else
-        {
-            # No <meta /> refresh, the current URL is the final one
-            last;
-        }
-
-    }
-
-    return ( $uri->as_string, $html );
-}
-
-# Return all URL variants for all URL to be requested to Bit.ly API:
-# 1) Normal URL
-# 2) URL after redirects (i.e., fetch the URL, see if it gets redirected somewhere)
-# 3) Canonical URL (after removing #fragments, session IDs, tracking parameters, etc.)
-# 4) Canonical URL after redirects (do the redirect check first, then strip the tracking parameters from the URL)
-sub all_url_variants($)
-{
-    my $url = shift;
-
-    # Get URL after HTTP / HTML redirects
-    my ( $url_after_redirects, $data_after_redirects ) = url_and_data_after_redirects( $url );
-
-    my %urls = (
-
-        # Normal URL (don't touch anything)
-        'normal' => $url,
-
-        # Normal URL after redirects
-        'after_redirects' => $url_after_redirects,
-
-        # Canonical URL
-        'canonical' => MediaWords::Util::URL::normalize_url( $url ),
-
-        # Canonical URL after redirects
-        'after_redirects_canonical' => MediaWords::Util::URL::normalize_url( $url_after_redirects )
-    );
-
-    # If <link rel="canonical" /> is present, try that one too
-    if ( defined $data_after_redirects )
-    {
-        my $url_link_rel_canonical =
-          MediaWords::Util::URL::link_canonical_url_from_html( $data_after_redirects, $url_after_redirects );
-        if ( $url_link_rel_canonical )
-        {
-            say STDERR "Found <link rel=\"canonical\" /> for URL $url_after_redirects " .
-              "(original URL: $url): $url_link_rel_canonical";
-
-            $urls{ 'after_redirects_canonical_via_link_rel' } = $url_link_rel_canonical;
-        }
-    }
-
-    return uniq( values %urls );
 }
 
 # Query for a Bitlink information based on a Bit.ly IDs
@@ -536,7 +388,7 @@ sub bitly_link_lookup($)
 
     foreach my $url ( @{ $urls } )
     {
-        unless ( _url_is_valid_for_bitly( $url ) )
+        unless ( MediaWords::Util::URL::is_http_url( $url ) )
         {
             die "One of the URLs is invalid: $url";
         }
@@ -672,7 +524,7 @@ sub bitly_link_lookup_hashref_all_variants($)
         die "Bit.ly processing is not enabled.";
     }
 
-    my @urls = all_url_variants( $url );
+    my @urls = MediaWords::Util::URL::all_url_variants( $url );
     unless ( scalar @urls )
     {
         die "No URLs returned for URL $url";

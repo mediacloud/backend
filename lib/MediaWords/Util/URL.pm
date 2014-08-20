@@ -9,6 +9,35 @@ use MediaWords::CommonLibs;
 use URI;
 use URI::QueryParam;
 use Regexp::Common qw /URI/;
+use MediaWords::Util::Web;
+use List::MoreUtils qw/uniq/;
+
+# Returns true if URL is in the "http" ("https") scheme
+sub is_http_url($)
+{
+    my $url = shift;
+
+    unless ( $url )
+    {
+        warn "URL is undefined";
+        return 0;
+    }
+
+    my $uri = URI->new( $url )->canonical;
+
+    unless ( $uri->scheme )
+    {
+        warn "Scheme is undefined for URL $url";
+        return 0;
+    }
+    unless ( $uri->scheme eq 'http' or $uri->scheme eq 'https' )
+    {
+        warn "Scheme is not HTTP(s) or FTP for URL $url";
+        return 0;
+    }
+
+    return 1;
+}
 
 # Normalize URL:
 #
@@ -273,6 +302,127 @@ sub link_canonical_url_from_html($;$)
     }
 
     return undef;
+}
+
+# Fetch the URL, evaluate HTTP / HTML redirects; return URL and data after all
+# those redirects; die() on error
+sub url_and_data_after_redirects($;$$)
+{
+    my ( $orig_url, $max_http_redirect, $max_meta_redirect ) = @_;
+
+    unless ( _url_is_valid_for_bitly( $orig_url ) )
+    {
+        die "URL is invalid: $orig_url";
+    }
+
+    my $uri = URI->new( $orig_url )->canonical;
+
+    $max_http_redirect //= 7;
+    $max_meta_redirect //= 3;
+
+    my $html = undef;
+
+    for ( my $meta_redirect = 1 ; $meta_redirect <= $max_meta_redirect ; ++$meta_redirect )
+    {
+
+        # Do HTTP request to the current URL
+        my $ua = MediaWords::Util::Web::UserAgent;
+
+        $ua->max_redirect( $max_http_redirect );
+
+        my $response = $ua->get( $uri->as_string );
+
+        unless ( $response->is_success )
+        {
+            warn "Request to " . $uri->as_string . " was unsuccessful: " . $response->status_line;
+            $uri = URI->new( $orig_url )->canonical;
+            last;
+        }
+
+        my @redirects = $response->redirects();
+
+        # if ( scalar @redirects )
+        # {
+        #     say STDERR "Redirects:";
+        #     foreach my $redirect ( @redirects )
+        #     {
+        #         say STDERR "* From:";
+        #         say STDERR "    " . $redirect->request()->uri()->canonical;
+        #         say STDERR "  to:";
+        #         say STDERR "    " . $redirect->header( 'Location' );
+        #     }
+        # }
+
+        my $new_uri = $response->request()->uri()->canonical;
+        unless ( $uri->eq( $new_uri ) )
+        {
+            # say STDERR "New URI: " . $new_uri->as_string;
+            $uri = $new_uri;
+        }
+
+        # Check if the returned document contains <meta http-equiv="refresh" />
+        $html = $response->decoded_content || '';
+        my $url_after_meta_redirect = meta_refresh_url_from_html( $html, $uri->as_string );
+        if ( $url_after_meta_redirect and $uri->as_string ne $url_after_meta_redirect )
+        {
+            # say STDERR "URL after <meta /> refresh: $url_after_meta_redirect";
+            $uri = URI->new( $url_after_meta_redirect )->canonical;
+
+            # ...and repeat the HTTP redirect cycle here
+        }
+        else
+        {
+            # No <meta /> refresh, the current URL is the final one
+            last;
+        }
+
+    }
+
+    return ( $uri->as_string, $html );
+}
+
+# Given the URL, return all URL variants that we can think of:
+# 1) Normal URL (the one passed as a parameter)
+# 2) URL after redirects (i.e., fetch the URL, see if it gets redirected somewhere)
+# 3) Canonical URL (after removing #fragments, session IDs, tracking parameters, etc.)
+# 4) Canonical URL after redirects (do the redirect check first, then strip the tracking parameters from the URL)
+# 5) URL from <link rel="canonical" /> (if any)
+sub all_url_variants($)
+{
+    my $url = shift;
+
+    # Get URL after HTTP / HTML redirects
+    my ( $url_after_redirects, $data_after_redirects ) = url_and_data_after_redirects( $url );
+
+    my %urls = (
+
+        # Normal URL (don't touch anything)
+        'normal' => $url,
+
+        # Normal URL after redirects
+        'after_redirects' => $url_after_redirects,
+
+        # Canonical URL
+        'canonical' => normalize_url( $url ),
+
+        # Canonical URL after redirects
+        'after_redirects_canonical' => normalize_url( $url_after_redirects )
+    );
+
+    # If <link rel="canonical" /> is present, try that one too
+    if ( defined $data_after_redirects )
+    {
+        my $url_link_rel_canonical = link_canonical_url_from_html( $data_after_redirects, $url_after_redirects );
+        if ( $url_link_rel_canonical )
+        {
+            say STDERR "Found <link rel=\"canonical\" /> for URL $url_after_redirects " .
+              "(original URL: $url): $url_link_rel_canonical";
+
+            $urls{ 'after_redirects_canonical_via_link_rel' } = $url_link_rel_canonical;
+        }
+    }
+
+    return uniq( values %urls );
 }
 
 1;
