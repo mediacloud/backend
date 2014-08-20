@@ -57,6 +57,7 @@ elements:
   - type: Select
     name: query_story_searches_id
     label: Query story search
+    empty_first: true
     constraints:
         - Required
 
