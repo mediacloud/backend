@@ -103,9 +103,14 @@ sub main
     binmode( STDOUT, ':utf8' );
     binmode( STDERR, ':utf8' );
 
+    unless ( MediaWords::Util::Bitly::bitly_processing_is_enabled() )
+    {
+        die "Bit.ly processing is not enabled.";
+    }
+
     say STDERR "starting --  " . localtime();
 
-    enqueue_stories_to_bitly ();
+    enqueue_stories_to_bitly();
 
     say STDERR "finished --  " . localtime();
 }

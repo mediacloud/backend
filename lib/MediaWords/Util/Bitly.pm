@@ -130,10 +130,31 @@ sub _url_is_valid_for_bitly($)
     return 1;
 }
 
+# Returns true if Bit.ly processing is enabled
+sub bitly_processing_is_enabled()
+{
+    my $config = MediaWords::Util::Config->get_config();
+    my $bitly_enabled = $config->{ bitly }->{ enabled } // '';
+
+    if ( $bitly_enabled eq 'yes' )
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 # Sends a request to Bit.ly API, returns a 'data' key hashref with results; die()s on error
 sub request($$)
 {
     my ( $path, $params ) = @_;
+
+    unless ( bitly_processing_is_enabled() )
+    {
+        die "Bit.ly processing is not enabled.";
+    }
 
     unless ( $path )
     {
@@ -357,6 +378,11 @@ sub bitly_info($)
 {
     my $bitly_ids = shift;
 
+    unless ( bitly_processing_is_enabled() )
+    {
+        die "Bit.ly processing is not enabled.";
+    }
+
     unless ( $bitly_ids )
     {
         die "Bit.ly IDs is undefined.";
@@ -419,6 +445,11 @@ sub bitly_info($)
 sub bitly_info_hashref($)
 {
     my $bitly_ids = shift;
+
+    unless ( bitly_processing_is_enabled() )
+    {
+        die "Bit.ly processing is not enabled.";
+    }
 
     unless ( $bitly_ids )
     {
@@ -489,6 +520,11 @@ sub bitly_link_lookup($)
 {
     my $urls = shift;
 
+    unless ( bitly_processing_is_enabled() )
+    {
+        die "Bit.ly processing is not enabled.";
+    }
+
     unless ( $urls )
     {
         die "URLs is undefined.";
@@ -547,6 +583,11 @@ sub bitly_link_lookup($)
 sub bitly_link_lookup_hashref($)
 {
     my $urls = shift;
+
+    unless ( bitly_processing_is_enabled() )
+    {
+        die "Bit.ly processing is not enabled.";
+    }
 
     unless ( $urls )
     {
@@ -626,6 +667,11 @@ sub bitly_link_lookup_hashref_all_variants($)
 {
     my $url = shift;
 
+    unless ( bitly_processing_is_enabled() )
+    {
+        die "Bit.ly processing is not enabled.";
+    }
+
     my @urls = all_url_variants( $url );
     unless ( scalar @urls )
     {
@@ -679,6 +725,11 @@ sub bitly_link_clicks($;$$)
     my ( $bitly_id, $start_timestamp, $end_timestamp ) = @_;
 
     Readonly my $MAX_BITLY_LIMIT => 1000;    # in "/v3/link/clicks" case
+
+    unless ( bitly_processing_is_enabled() )
+    {
+        die "Bit.ly processing is not enabled.";
+    }
 
     unless ( $bitly_id )
     {
@@ -745,6 +796,11 @@ sub bitly_link_clicks($;$$)
 sub bitly_link_categories($)
 {
     my ( $bitly_id ) = @_;
+
+    unless ( bitly_processing_is_enabled() )
+    {
+        die "Bit.ly processing is not enabled.";
+    }
 
     unless ( $bitly_id )
     {
@@ -815,6 +871,11 @@ sub bitly_link_referrers($;$$)
     my ( $bitly_id, $start_timestamp, $end_timestamp ) = @_;
 
     Readonly my $MAX_BITLY_LIMIT => 1000;    # in "/v3/link/referrers" case
+
+    unless ( bitly_processing_is_enabled() )
+    {
+        die "Bit.ly processing is not enabled.";
+    }
 
     unless ( $bitly_id )
     {
@@ -896,6 +957,11 @@ sub bitly_link_shares($;$$)
     my ( $bitly_id, $start_timestamp, $end_timestamp ) = @_;
 
     Readonly my $MAX_BITLY_LIMIT => 1000;    # in "/v3/link/referrers" case
+
+    unless ( bitly_processing_is_enabled() )
+    {
+        die "Bit.ly processing is not enabled.";
+    }
 
     unless ( $bitly_id )
     {

@@ -44,6 +44,11 @@ sub process_csv_stories($;$$)
     $stat_only              //= 0;
     $no_sleep_between_links //= 0;
 
+    unless ( MediaWords::Util::Bitly::bitly_processing_is_enabled() )
+    {
+        die "Bit.ly processing is not enabled.";
+    }
+
     unless ( -f $stories_csv_file )
     {
         die "File '$stories_csv_file' does not exist.\n";

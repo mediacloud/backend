@@ -44,6 +44,11 @@ sub _fetch_story_stats($$$$)
 {
     my ( $db, $stories_id, $start_timestamp, $end_timestamp ) = @_;
 
+    unless ( MediaWords::Util::Bitly::bitly_processing_is_enabled() )
+    {
+        die "Bit.ly processing is not enabled.";
+    }
+
     my $story = $db->find_by_id( 'stories', $stories_id );
     unless ( $story )
     {
