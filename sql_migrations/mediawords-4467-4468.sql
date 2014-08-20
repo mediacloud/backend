@@ -53,6 +53,8 @@ $$
 $$
 LANGUAGE 'plpgsql';
 
+drop view controversies_with_search_info;
+drop table controversy_query_story_searches_imported_stories_map;
 
 alter table controversies drop column query_story_searches_id;
 drop table query_story_searches_stories_map;

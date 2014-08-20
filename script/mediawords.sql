@@ -1571,7 +1571,6 @@ create table controversies (
     solr_seed_query         text not null,
     solr_seed_query_run     boolean not null default false,
     description             text not null,
-    query_story_searches_id int not null references query_story_searches,
     controversy_tag_sets_id int not null references tag_sets,
     media_type_tag_sets_id  int references tag_sets
 );
