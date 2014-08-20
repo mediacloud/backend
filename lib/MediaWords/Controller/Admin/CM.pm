@@ -91,6 +91,26 @@ sub edit : Local
       || die( "Unable to find controversy" );
 
     $form->default_values( $controversy );
+
+    my $query_story_searches = $db->query(
+        <<EOF
+        SELECT query_story_searches.query_story_searches_id,
+               '"' || query_story_searches.pattern || '" (' || queries.description || ')'
+        FROM query_story_searches
+            INNER JOIN queries
+                ON query_story_searches.queries_id = queries.queries_id
+        ORDER BY query_story_searches.query_story_searches_id,
+                 query_story_searches.pattern
+EOF
+    )->arrays;
+    unless ( scalar @{ $query_story_searches } )
+    {
+        die "No query story searches.";
+    }
+
+    my $select_query_story_searches_id = $form->get_element( { name => 'query_story_searches_id' } );
+    $select_query_story_searches_id->options( $query_story_searches );
+
     $form->process( $c->req );
 
     if ( !$form->submitted_and_valid )
