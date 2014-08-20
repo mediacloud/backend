@@ -916,9 +916,6 @@ alter table downloads add constraint downloads_story
 alter table downloads alter feeds_id set statistics 1000;
 
 -- Temporary hack so that we don't have to rewrite the entire download to alter the type column
--ALTER TABLE downloads add constraint valid_download_type check( type <> 'spider_blog_home' AND type <> 'spider_posting' AND 
---      type <> 'spider_rss' AND type <> 'spider_blog_friends_list' AND
---      type <> 'spider_validation_blog_home' AND type <>'spider_validation_rss','archival_only') );
 
 ALTER TABLE downloads add constraint valid_download_type check( type NOT in ( 'spider_blog_home','spider_posting','spider_rss','spider_blog_friends_list','spider_validation_blog_home','spider_validation_rss','archival_only') );
 
