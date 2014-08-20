@@ -86,9 +86,30 @@ sub edit : Local
 
     my $db = $c->dbis;
 
-    my $controversy =
-      $db->query( 'select * from controversies_with_dates where controversies_id = ?', $controversies_id )->hash
-      || die( "Unable to find controversy" );
+    my $controversy = $db->query(
+        <<EOF,
+        SELECT *
+        FROM controversies_with_dates
+        WHERE controversies_id = ?
+EOF
+        $controversies_id
+    )->hash;
+    unless ( $controversy )
+    {
+        die "Unable to find controversy $controversies_id";
+    }
+
+    my $controversy_traits = $db->query(
+        <<EOF,
+        SELECT trait, 1
+        FROM controversy_traits
+        WHERE controversies_id = ?
+EOF
+        $controversies_id
+    )->flat;
+    $controversy->{ controversy_traits } = $controversy_traits;
+
+    say STDERR Dumper( $controversy );
 
     $form->default_values( $controversy );
 
@@ -132,6 +153,8 @@ EOF
     {
         my $p = $form->params;
 
+        $db->begin;
+
         _add_controversy_date( $db, $controversy, $p->{ start_date }, $p->{ end_date }, 1 );
 
         delete( $p->{ start_date } );
@@ -140,7 +163,39 @@ EOF
 
         $p->{ solr_seed_query_run } = 'f' unless ( $controversy->{ solr_seed_query } eq $p->{ solr_seed_query } );
 
+        $db->query(
+            <<EOF,
+            DELETE FROM controversy_traits
+            WHERE controversies_id = ?
+EOF
+            $controversy->{ controversies_id }
+        );
+
+        unless ( $p->{ controversy_traits } )
+        {
+            $p->{ controversy_traits } = [];
+        }
+        unless ( ref( $p->{ controversy_traits } ) eq ref( [] ) )
+        {
+            $p->{ controversy_traits } = [ $p->{ controversy_traits } ];
+        }
+
+        for my $controversy_trait ( @{ $p->{ controversy_traits } } )
+        {
+            $db->create(
+                'controversy_traits',
+                {
+                    controversies_id => $controversy->{ controversies_id },
+                    trait            => $controversy_trait
+                }
+            );
+        }
+
+        delete $p->{ controversy_traits };    # because "controversies" table doesn't have that column
+
         $c->dbis->update_by_id( 'controversies', $controversies_id, $p );
+
+        $db->commit;
 
         my $view_url = $c->uri_for( "/admin/cm/view/" . $controversies_id, { status_msg => 'Controversy updated.' } );
         $c->res->redirect( $view_url );
@@ -207,6 +262,7 @@ EOF
     my $c_start_date              = $c->req->params->{ start_date };
     my $c_end_date                = $c->req->params->{ end_date };
     my $c_query_story_searches_id = $c->req->params->{ query_story_searches_id };
+    my $c_controversy_traits      = $c->req->params->{ controversy_traits };
 
     if ( $c->req->params->{ preview } )
     {
@@ -236,6 +292,26 @@ EOF
             boundary         => 't',
         }
     );
+
+    unless ( $c_controversy_traits )
+    {
+        $c_controversy_traits = [];
+    }
+    unless ( ref( $c_controversy_traits ) eq ref( [] ) )
+    {
+        $c_controversy_traits = [ $c_controversy_traits ];
+    }
+
+    for my $controversy_trait ( @{ $c_controversy_traits } )
+    {
+        $db->create(
+            'controversy_traits',
+            {
+                controversies_id => $controversy->{ controversies_id },
+                trait            => $controversy_trait
+            }
+        );
+    }
 
     $db->commit;
 
