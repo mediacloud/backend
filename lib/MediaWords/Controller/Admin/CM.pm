@@ -109,8 +109,6 @@ EOF
     )->flat;
     $controversy->{ controversy_traits } = $controversy_traits;
 
-    say STDERR Dumper( $controversy );
-
     $form->default_values( $controversy );
 
     my $query_story_searches = $db->query(
