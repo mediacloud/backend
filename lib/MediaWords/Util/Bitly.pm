@@ -23,10 +23,49 @@ use URI;
 use URI::QueryParam;
 use JSON;
 use Scalar::Util qw/looks_like_number/;
+use Scalar::Defer;
 use DateTime;
 use DateTime::Duration;
 
 use constant BITLY_API_ENDPOINT => 'https://api-ssl.bitly.com/';
+
+# (Lazy-initialized) Bit.ly access token
+my $_bitly_access_token = lazy
+{
+    unless ( bitly_processing_is_enabled() )
+    {
+        _fatal_error( "Bit.ly processing is not enabled; why are you accessing this variable?" );
+    }
+
+    my $config = MediaWords::Util::Config->get_config();
+
+    my $access_token = $config->{ bitly }->{ access_token };
+    unless ( $access_token )
+    {
+        die "Unable to determine Bit.ly access token.";
+    }
+
+    return $access_token;
+};
+
+# (Lazy-initialized) Bit.ly timeout
+my $_bitly_timeout = lazy
+{
+    unless ( bitly_processing_is_enabled() )
+    {
+        _fatal_error( "Bit.ly processing is not enabled; why are you accessing this variable?" );
+    }
+
+    my $config = MediaWords::Util::Config->get_config();
+
+    my $timeout = $config->{ bitly }->{ timeout };
+    unless ( $timeout )
+    {
+        die "Unable to determine Bit.ly timeout.";
+    }
+
+    return $timeout;
+};
 
 # From $start_timestamp and $end_timestamp parameters, return API parameters "unit_reference_ts" and "units"
 # die()s on error
@@ -142,17 +181,11 @@ sub request($$)
     }
 
     # Add access token
-    my $config       = MediaWords::Util::Config::get_config;
-    my $access_token = $config->{ bitly }->{ access_token };
-    unless ( $access_token )
-    {
-        die "Bit.ly Generic Access Token is not set in the configuration";
-    }
     if ( $params->{ access_token } )
     {
         die "Access token is already set; not resetting to the one from configuration";
     }
-    $params->{ access_token } = $access_token;
+    $params->{ access_token } = $_bitly_access_token;
 
     my $uri = URI->new( BITLY_API_ENDPOINT );
     $uri->path( $path );
@@ -163,7 +196,10 @@ sub request($$)
     $uri->query_param( $params );
     my $url = $uri->as_string;
 
-    my $ua       = MediaWords::Util::Web::UserAgent;
+    my $ua = MediaWords::Util::Web::UserAgent;
+    $ua->timeout( $_bitly_timeout );
+    $ua->max_size( undef );
+
     my $response = $ua->get( $url );
 
     unless ( $response->is_success )
