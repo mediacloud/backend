@@ -177,6 +177,10 @@ sub run($;$)
     my $end_timestamp   = $args->{ end_timestamp }   or die "'end_timestamp' is not set.";
 
     my $stats = _fetch_story_stats( $db, $stories_id, $start_timestamp, $end_timestamp );
+    unless ( ref( $stats ) eq ref( {} ) )
+    {
+        die "Stats for story ID $stories_id is not a hashref.";
+    }
 
     say STDERR "Stats: " . Dumper( $stats );
 }
