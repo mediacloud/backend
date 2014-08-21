@@ -24,10 +24,7 @@ fi
 
 echo "testing for runnning solr"
 
-set +e
-ps aux | grep java | grep -- '-Dsolr' | grep start.jar > /dev/null 
-
-if [ $? -ne 0 ]; then
+if ! ps aux | grep java | grep -- '-Dsolr' | grep start.jar > /dev/null; then
 echo "need to start solr"
 ./script/run_with_carton.sh ./solr/scripts/run_singleton_solr_server.pl > /dev/null&
 solr_pid=$!
