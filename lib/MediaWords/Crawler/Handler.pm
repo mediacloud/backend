@@ -26,8 +26,6 @@ use Carp;
 use List::Util qw (max maxstr);
 
 use Feed::Scrape::MediaWords;
-use MediaWords::Crawler::BlogSpiderBlogHomeHandler;
-use MediaWords::Crawler::BlogSpiderPostingHandler;
 use MediaWords::Crawler::Pager;
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories;
@@ -52,8 +50,6 @@ sub new
 
     $self->engine( $engine );
 
-    $self->{ blog_spider_handler }         = MediaWords::Crawler::BlogSpiderBlogHomeHandler->new( $self->engine );
-    $self->{ blog_spider_posting_handler } = MediaWords::Crawler::BlogSpiderPostingHandler->new( $self->engine );
     return $self;
 }
 
@@ -100,58 +96,6 @@ sub _store_last_rss_entry_time
     $self->engine->dbs->query( "UPDATE found_blogs set last_entry = ? where found_blogs_id = ? ",
         $entry_date, $found_blogs_id );
 
-}
-
-# parse the feed and add the resulting stories and content downloads to the database
-sub _add_spider_posting_downloads
-{
-    my ( $self, $download, $response ) = @_;
-
-    my $items = $self->_get_feed_items( $download, \$response->decoded_content );
-
-    $items = [ reverse @{ $items } ];
-
-    my $added_posts = 0;
-    my %post_urls;
-
-    for my $item ( @{ $items } )
-    {
-        my $url = $item->link() || $item->guid();
-
-        if ( !$url )
-        {
-            next;
-        }
-
-        $url =~ s/[\n\r\s]//g;
-
-        next if ( $post_urls{ $url } );
-
-        my $date = DateTime->from_epoch( epoch => Date::Parse::str2time( $item->pubDate() ) || time );
-
-        $self->engine->dbs->create(
-            'downloads',
-            {
-                feeds_id => $download->{ feeds_id },
-
-                #stories_id    => $story->{stories_id},
-                parent        => $download->{ downloads_id },
-                url           => $url,
-                host          => lc( ( URI::Split::uri_split( $url ) )[ 1 ] ),
-                type          => 'spider_posting',
-                sequence      => 1,
-                state         => 'pending',
-                priority      => 0,
-                download_time => DateTime->now->datetime,
-                extracted     => 'f'
-            }
-        );
-
-        $post_urls{ $url } = 1;
-        $added_posts++;
-
-        last if $added_posts >= 10;
-    }
 }
 
 # chop out the content if we don't allow the content type
@@ -321,18 +265,6 @@ sub _process_content
     say STDERR "fetcher " . $self->engine->fetcher_number . " finished _process_content for  " . $download->{ downloads_id };
 }
 
-sub _set_spider_download_state_as_success
-{
-    my ( $self, $download ) = @_;
-
-    print STDERR "setting state to success for download: " .
-      $download->{ downloads_id } . " fetcher: " . $self->engine->fetcher_number . "\n";
-    $self->engine->dbs->query( "update downloads set state = 'success', path = 'foo' where downloads_id = ?",
-        $download->{ downloads_id } );
-
-    return;
-}
-
 sub handle_response
 {
     my ( $self, $download, $response ) = @_;
@@ -382,60 +314,10 @@ END
         }
 
     }
-    elsif ( $download_type eq 'archival_only' )
-    {
-        MediaWords::DBI::Downloads::store_content( $dbs, $download, \$response->decoded_content );
-
-    }
     elsif ( $download_type eq 'content' )
     {
         MediaWords::DBI::Downloads::store_content( $dbs, $download, \$response->decoded_content );
         $self->_process_content( $dbs, $download, $response );
-
-    }
-    elsif ( $download_type eq 'spider_blog_home' )
-    {
-        $self->{ blog_spider_handler }->_process_spidered_download( $download, $response );
-        $self->_set_spider_download_state_as_success( $download );
-
-    }
-    elsif ( $download_type eq 'spider_rss' )
-    {
-        $self->_add_spider_posting_downloads( $download, $response );
-        $self->_set_spider_download_state_as_success( $download );
-
-    }
-    elsif ( $download_type eq 'spider_posting' )
-    {
-        $self->{ blog_spider_posting_handler } = MediaWords::Crawler::BlogSpiderPostingHandler->new( $self->engine );
-        $self->{ blog_spider_posting_handler }->process_spidered_posting_download( $download, $response );
-        $self->_set_spider_download_state_as_success( $download );
-
-    }
-    elsif ( $download_type eq 'spider_blog_friends_list' )
-    {
-        $self->{ blog_friends_list_handler } = MediaWords::Crawler::BlogSpiderPostingHandler->new( $self->engine );
-        $self->{ blog_friends_list_handler }->process_spidered_posting_download( $download, $response );
-        $self->_set_spider_download_state_as_success( $download );
-
-    }
-    elsif ( $download_type eq 'spider_validation_blog_home' )
-    {
-        print STDERR "starting spider_validation_blog_home\n";
-        MediaWords::DBI::Downloads::store_content( $dbs, $download, \$response->decoded_content );
-        $self->_set_spider_download_state_as_success( $download );
-        print STDERR "completed spider_validation_blog_home\n";
-
-    }
-    elsif ( $download_type eq 'spider_validation_rss' )
-    {
-        print STDERR "starting spider_validation_rss\n";
-        MediaWords::DBI::Downloads::store_content( $dbs, $download, \$response->decoded_content );
-        $self->_store_last_rss_entry_time( $download, $response );
-        $self->_set_spider_download_state_as_success( $download );
-        print STDERR "completed spider_validation_rss\n";
-
-        #$self->_process_content( $download, $response );
 
     }
     else

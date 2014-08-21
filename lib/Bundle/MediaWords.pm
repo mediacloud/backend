@@ -18,8 +18,6 @@ Algorithm::Cluster
 
 Class::Std
 
-BerkeleyDB
-
 List::Uniq
 
 List::Member
@@ -274,8 +272,6 @@ Encode::HanConvert
 Sys::SigAction
 
 DateTime::Format::Pg
-
-Text::Ngrams
 
 =head1 DESCRIPTION
 

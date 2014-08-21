@@ -28,6 +28,9 @@ _Inline/
 # Devel::NYTProf output
 nytprof*
 
+# Devel::Cover output
+cover_db/
+
 # Data dumps
 root/include/data_dumps
 

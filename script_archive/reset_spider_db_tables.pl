@@ -29,7 +29,8 @@ use Array::Compare;
 use Hash::Merge;
 use Carp;
 use Readonly;
-use TableCreationUtils;
+
+#use TableCreationUtils;
 use Term::Prompt;
 
 my @_spider_urls = (
