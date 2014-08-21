@@ -11,7 +11,6 @@ use MediaWords::CommonLibs;
 use Getopt::Long;
 use Data::Dumper;
 use MediaWords::DBI::Queries;
-use MediaWords::GearmanFunction::SearchStories;
 
 # get a list controversies that match the controversy option, which can either be an id
 # or a pattern that matches controversy names. Die if no controversies are found.

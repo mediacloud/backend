@@ -1578,12 +1578,6 @@ create table controversies (
 create unique index controversies_name on controversies( name );
 create unique index controversies_tag_set on controversies( controversy_tag_sets_id );
 create unique index controversies_media_type_tag_set on controversies( media_type_tag_sets_id );
-
-create view controversies_with_search_info as
-    select c.controversies_id, c.name, c.query_story_searches_id, q.start_date::date, q.end_date::date, qss.pattern, qss.queries_id
-        from controversies c
-            left join query_story_searches qss on ( c.query_story_searches_id = qss.query_story_searches_id )
-            left join queries q on ( qss.queries_id = q.queries_id );
             
 create function insert_controversy_tag_set() returns trigger as $insert_controversy_tag_set$
     begin
