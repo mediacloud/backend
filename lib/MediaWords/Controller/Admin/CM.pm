@@ -1191,17 +1191,16 @@ sub _get_stories_id_search_query
     return @{ $stories_ids } ? join( ',', @{ $stories_ids } ) : -1;
 }
 
-# query solr for stories_ids in solr matching the given time slice and solr query
-sub _search_solr_time_slice_for_stories_ids
+# get solr params for running a query against solr in the given time slice
+sub _get_solr_params_for_time_slice_query
 {
     my ( $cdts, $q ) = @_;
 
     my $params = { fq => "{~ controversy_dump_time_slice:$cdts->{ controversy_dump_time_slices_id } }" };
 
-    $params->{ q } = $q if ( defined( $q ) );
+    $params->{ q } = ( defined( $q ) && $q ne '' ) ? $q : '*:*';
 
-    return MediaWords::Solr::search_for_stories_ids( $params );
-
+    return $params;
 }
 
 # get the top words used by the given set of stories, sorted by tfidf against all words
@@ -1210,15 +1209,13 @@ sub _get_story_words ($$$$$)
 {
     my ( $db, $controversy, $cdts, $q, $sort_by_count ) = @_;
 
-    my $stories_ids = _search_solr_time_slice_for_stories_ids( $cdts, $q );
+    my $solr_p = _get_solr_params_for_time_slice_query( $cdts, $q );
+    my $stories_ids = MediaWords::Solr::search_for_stories_ids( $solr_p );
 
     my $num_words = int( log( scalar( @{ $stories_ids } ) + 1 ) * 10 );
     $num_words = ( $num_words < 100 ) ? $num_words : 100;
 
-    my $params = { fq => "{~ controversy_dump_time_slice:$cdts->{ controversy_dump_time_slices_id } }" };
-    $params->{ q } = $q if ( defined( $q ) );
-
-    my $story_words = MediaWords::Solr::WordCounts->new( $params )->get_words;
+    my $story_words = MediaWords::Solr::WordCounts->new( $solr_p )->get_words;
 
     splice( @{ $story_words }, $num_words );
 
@@ -2615,7 +2612,8 @@ sub story_stats : Local
     my $live  = $c->req->params->{ l };
     my $q     = $c->req->params->{ q };
 
-    my $stories_ids = _search_solr_time_slice_for_stories_ids( $cdts, $q );
+    my $solr_p = _get_solr_params_for_time_slice_query( $cdts, $q );
+    my $stories_ids = MediaWords::Solr::search_for_stories_ids( $solr_p );
 
     my $num_stories = scalar( @{ $stories_ids } );
 

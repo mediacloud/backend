@@ -309,6 +309,9 @@ sub _get_stories_ids_from_stories_only_params
 {
     my ( $params ) = @_;
 
+    $params->{ q }  = MediaWords::Solr::PseudoQueries::transform_query( $params->{ q } );
+    $params->{ fq } = MediaWords::Solr::PseudoQueries::transform_query( $params->{ fq } );
+
     my $q     = $params->{ q };
     my $fqs   = $params->{ fq };
     my $start = $params->{ start };
@@ -318,6 +321,8 @@ sub _get_stories_ids_from_stories_only_params
     my $p = { %{ $params } };
     map { delete( $p->{ $_ } ) } ( qw(q fq start rows ) );
     return undef if ( values( %{ $p } ) );
+
+    return undef unless ( $q );
 
     my $stories_ids_lists = [];
 
@@ -339,10 +344,20 @@ sub _get_stories_ids_from_stories_only_params
     }
 
     my $r;
-    if ( @{ $stories_ids_lists } && ( !defined( $q ) || ( $q eq '' ) ) )
+
+    # if there are stories_ids only fqs and a '*:*' q, just use the fqs
+    if ( @{ $stories_ids_lists } && ( $q eq '*:*' ) )
     {
         $r = _get_intersection_of_id_array_refs( @{ $stories_ids_lists } );
     }
+
+    # if there were no fqs and a '*:*' q, return undef
+    elsif ( $q eq '*:*' )
+    {
+        return undef;
+    }
+
+    # otherwise, combine q and fqs
     else
     {
         my $stories_ids = _get_stories_ids_from_stories_only_q( $q );
@@ -367,7 +382,6 @@ sub search_for_stories_ids
 
     if ( my $stories_ids = _get_stories_ids_from_stories_only_params( $p ) )
     {
-        say STDERR "search_for_stories_ids: bypassing solr";
         return $stories_ids;
     }
 
