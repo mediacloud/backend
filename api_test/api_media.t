@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 #use Test::More;
-use Test::More tests => 12;
+use Test::More tests => 14;
 
 # use MediaWords::Test::DB;
 # use MediaWords::Test::Data;
@@ -140,7 +140,7 @@ sub test_media
 
 }
 
-sub test_stories
+sub test_stories_public
 {
     use Encode;
     my ( $db ) = @_;
@@ -194,6 +194,175 @@ sub test_stories
     cmp_deeply( $resp_object, $expected_response );
 }
 
-test_stories();
+sub test_stories_non_public
+{
+    use Encode;
+    my ( $db ) = @_;
+
+    my $key = 'f66a50230d54afaf18822808aed649f1d6ca72b08fb06d5efb6247afe9fbae52';
+
+    my $base_url = '/api/v2/stories/list/';
+
+    my $url;
+    if ( index( $base_url, "?" ) != -1 )
+    {
+        $url = "$base_url&key=$key";
+    }
+    else
+    {
+        $url = "$base_url?key=$key";
+    }
+
+    $url .= "&q=sentence:obama&rows=2";
+
+    say STDERR $url;
+
+    my $response = request( "$url" );
+
+    ok( $response->is_success, 'Request should succeed' );
+
+    if ( !$response->is_success )
+    {
+        say STDERR $response->decoded_content();
+    }
+
+    my $resp_object = decode_json( $response->decoded_content() );
+
+    #say STDERR Dumper( $resp_object );
+
+    my $expected_response = [
+        {
+            'story_text' => " 
+
+ This Day in Blogging History: Turkish Spring in Gezi; Obama supports torture-evidence suppression law; Quaker football\x{a0}cheer 
+
+
+
+     
+
+ \x{2014} FEATURED \x{2014}
+
+  
+
+ \x{2014} COMICS \x{2014}
+
+ 
+
+ \x{2014} RECENTLY \x{2014}
+
+            
+
+ \x{2014} FOLLOW US \x{2014}   
+
+  Find us on  Twitter ,  Google+ ,  IRC , and  Facebook . Subscribe to our  RSS feed  or  daily email . 
+
+             
+
+ \x{2014} POLICIES  \x{2014}             
+
+  Please read our  Terms of Service ,  Privacy Policy , and  Community Guidelines . Except where indicated, Boing Boing is licensed under a Creative\x{a0}Commons License permitting  non-commercial sharing with attribution  
+
+  Turkish Spring: Taksim Gezi Park protests in Istanbul:  Taksim Gezi Park in Istanbul is alive with protest at this moment. The action began on May 28, when environmentalists protested plans to remove the park and replace it with a mall, and were met with a brutal police crackdown. 
+
+  Obama Supports New Law to Suppress Detainee Torture Photos:  The White House is actively supporting a new bill jointly sponsored by Sens. Lindsey Graham and Joe Lieberman -- called The Detainee Photographic Records Protection Act of 2009 -- that literally has no purpose other than to allow the government to suppress any \"photograph taken between September 11, 2001 and January 22, 2009 relating to the treatment of individuals engaged, captured, or detained after September 11, 2001, by the Armed Forces of the United States in operations outside of the United States.\"
+
+ Knock 'em down, beat 'em senseless, Do it till we reach consensus! 
+
+",
+            'is_fully_extracted'   => 1,
+            'publish_date'         => '2014-06-02 01:00:59',
+            'processed_stories_id' => '67',
+            'url'                  => 'http://boingboing.net/2014/06/01/this-day-in-blogging-history-228.html',
+            'db_row_last_updated'  => '2014-06-02 13:43:15.182044-04',
+            'guid'                 => 'http://boingboing.net/2014/06/01/this-day-in-blogging-history-228.html',
+            'media_url'            => 'http://boingboing.net/',
+            'collect_date'         => '2014-06-02 17:33:04',
+            'language'             => 'en',
+            'full_text_rss'        => 0,
+            'story_tags'           => [],
+
+            #     'description'          => '<p>
+
+            # <b>One year ago today</b>
+
+# <a href="http://boingboing.net/2013/06/01/turkish-spring-taksim-gezi-pa.html">Turkish Spring: Taksim Gezi Park protests in Istanbul:</a> Taksim Gezi Park in Istanbul is alive with protest at this moment.</p>',
+            'media_id'        => 2,
+            'media_name'      => 'Boing Boing',
+            'story_sentences' => [
+                {
+                    'sentence' =>
+'This Day in Blogging History: Turkish Spring in Gezi; Obama supports torture-evidence suppression law; Quaker football cheer',
+                    'sentence_number'     => 0,
+                    'language'            => 'en',
+                    'tags'                => [],
+                    'media_id'            => 2,
+                    'publish_date'        => '2014-06-02 01:00:59',
+                    'stories_id'          => '67',
+                    'db_row_last_updated' => '2014-06-02 13:43:15.182044-04',
+                    'story_sentences_id'  => '998'
+                },
+                {
+                    'sentence' =>
+'Turkish Spring: Taksim Gezi Park protests in Istanbul: Taksim Gezi Park in Istanbul is alive with protest at this moment.',
+                    'sentence_number'     => 1,
+                    'language'            => 'en',
+                    'tags'                => [],
+                    'media_id'            => 2,
+                    'publish_date'        => '2014-06-02 01:00:59',
+                    'stories_id'          => '67',
+                    'db_row_last_updated' => '2014-06-02 13:43:15.182044-04',
+                    'story_sentences_id'  => '999'
+                },
+                {
+                    'sentence' =>
+'The action began on May 28, when environmentalists protested plans to remove the park and replace it with a mall, and were met with a brutal police crackdown.',
+                    'sentence_number'     => 2,
+                    'language'            => 'en',
+                    'tags'                => [],
+                    'media_id'            => 2,
+                    'publish_date'        => '2014-06-02 01:00:59',
+                    'stories_id'          => '67',
+                    'db_row_last_updated' => '2014-06-02 13:43:15.182044-04',
+                    'story_sentences_id'  => '1000'
+                },
+                {
+                    'sentence' =>
+'Obama Supports New Law to Suppress Detainee Torture Photos: The White House is actively supporting a new bill jointly sponsored by Sens. Lindsey Graham and Joe Lieberman -- called The Detainee Photographic Records Protection Act of 2009 -- that literally has no purpose other than to allow the government to suppress any "photograph taken between September 11, 2001 and January 22, 2009 relating to the treatment of individuals engaged, captured, or detained after September 11, 2001, by the Armed Forces of the United States in operations outside of the United States."',
+                    'sentence_number'     => 3,
+                    'language'            => 'en',
+                    'tags'                => [],
+                    'media_id'            => 2,
+                    'publish_date'        => '2014-06-02 01:00:59',
+                    'stories_id'          => '67',
+                    'db_row_last_updated' => '2014-06-02 13:43:15.182044-04',
+                    'story_sentences_id'  => '1001'
+                },
+                {
+                    'sentence'            => 'Knock \'em down, beat \'em senseless, Do it till we reach consensus!',
+                    'sentence_number'     => 4,
+                    'language'            => 'en',
+                    'tags'                => [],
+                    'media_id'            => 2,
+                    'publish_date'        => '2014-06-02 01:00:59',
+                    'stories_id'          => '67',
+                    'db_row_last_updated' => '2014-06-02 13:43:15.182044-04',
+                    'story_sentences_id'  => '1002'
+                }
+            ],
+            'stories_id' => '67',
+            'title' =>
+'This Day in Blogging History: Turkish Spring in Gezi; Obama supports torture-evidence suppression law; Quaker football&#160;cheer'
+        }
+    ];
+
+    delete $resp_object->[ 0 ]->{ 'description' };
+
+    #say STDERR Dumper ( $resp_object );
+
+    cmp_deeply( $resp_object, $expected_response );
+}
+
+test_stories_public();
+test_stories_non_public();
 test_media();
 done_testing();
