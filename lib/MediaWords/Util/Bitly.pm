@@ -3,9 +3,6 @@ package MediaWords::Util::Bitly;
 #
 # Bit.ly API helper
 #
-# FIXME: don't ignore errors when rate limit is reached, e.g.:
-#     {"status_code": 403, "data": null, "status_txt": "RATE_LIMIT_EXCEEDED"}
-#
 
 use strict;
 use warnings;
@@ -220,8 +217,18 @@ sub request($$)
 
     if ( $json->{ status_code } != 200 )
     {
-        die 'API returned non-200 HTTP status code ' .
-          $json->{ status_code } . '; JSON: ' . $json_string . '; request parameters: ' . Dumper( $params );
+        # Rate limit exceeded
+        if ( $json->{ status_code } == 403 and $json->{ status_txt } eq 'RATE_LIMIT_EXCEEDED' )
+        {
+            die 'Bit.ly rate limit exceeded. Please wait for a bit and try again.';
+
+        }
+        else
+        {
+            die 'API returned non-200 HTTP status code ' .
+              $json->{ status_code } . '; JSON: ' . $json_string . '; request parameters: ' . Dumper( $params );
+
+        }
     }
 
     my $json_data = $json->{ data };
