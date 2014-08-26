@@ -310,9 +310,9 @@ sub url_and_data_after_redirects($;$$)
 {
     my ( $orig_url, $max_http_redirect, $max_meta_redirect ) = @_;
 
-    unless ( _url_is_valid_for_bitly( $orig_url ) )
+    unless ( is_http_url( $orig_url ) )
     {
-        die "URL is invalid: $orig_url";
+        die "URL is not HTTP(s): $orig_url";
     }
 
     my $uri = URI->new( $orig_url )->canonical;
