@@ -26,7 +26,9 @@ use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use MediaWords::DB;
+use MediaWords::KeyValueStore::GridFS;
 use MediaWords::Util::Bitly;
+use MediaWords::Util::JSON;
 use MediaWords::Util::Process;
 use Readonly;
 use Data::Dumper;
@@ -56,7 +58,7 @@ my $_gridfs_store = lazy
     my $config = MediaWords::Util::Config->get_config();
 
     # GridFS storage
-    my $gridfs_database_name = $config->{ mongodb_gridfs }->{ corenlp }->{ database_name };
+    my $gridfs_database_name = $config->{ mongodb_gridfs }->{ bitly }->{ database_name };
     unless ( $gridfs_database_name )
     {
         fatal_error( "CoreNLP annotator is enabled, but MongoDB GridFS database name is not set." );
@@ -197,6 +199,66 @@ sub _fetch_story_stats($$$$)
     return $link_stats;
 }
 
+sub _write_story_stats($$$;$)
+{
+    my ( $db, $stories_id, $stats, $overwrite ) = @_;
+
+    unless ( $stories_id )
+    {
+        die "'stories_id' is not set.";
+    }
+    unless ( ref( $stats ) eq ref( {} ) )
+    {
+        die "Stats is not a hashref.";
+    }
+
+    # Check if something is already stored
+    my $record_exists = undef;
+    eval { $record_exists = $_gridfs_store->content_exists( $db, $stories_id ); };
+    if ( $@ )
+    {
+        die "GridFS died while testing whether or not a Bit.ly record exists for story $stories_id: $@";
+    }
+
+    if ( $record_exists )
+    {
+        if ( $overwrite )
+        {
+            say STDERR "Bit.ly record for story $stories_id already exists in GridFS, will overwrite.";
+        }
+        else
+        {
+            die "Bit.ly record for story $stories_id already exists in GridFS.";
+        }
+    }
+
+    # Convert results to a minimized JSON
+    my $json_stats;
+    eval { $json_stats = MediaWords::Util::JSON::encode_json( $stats ); };
+    if ( $@ or ( !$json_stats ) )
+    {
+        die "Unable to encode hashref to JSON: $@\nHashref: " . Dumper( $stats );
+    }
+
+    say STDERR 'JSON length: ' . length( $json_stats );
+
+    # Write to GridFS, index by stories_id
+    eval {
+        my $param_skip_encode_and_compress  = 0;    # Objects should be compressed
+        my $param_use_bzip2_instead_of_gzip = 0;    # Gzip works better in Bit.ly's case
+
+        my $path = $_gridfs_store->store_content(
+            $db, $stories_id, \$json_stats,
+            $param_skip_encode_and_compress,
+            $param_use_bzip2_instead_of_gzip
+        );
+    };
+    if ( $@ )
+    {
+        die "Unable to store Bit.ly result to GridFS: $@";
+    }
+}
+
 # Run job
 sub run($;$)
 {
@@ -209,13 +271,20 @@ sub run($;$)
     my $start_timestamp = $args->{ start_timestamp } or die "'start_timestamp' is not set.";
     my $end_timestamp   = $args->{ end_timestamp }   or die "'end_timestamp' is not set.";
 
+    say STDERR "Fetching story stats for story $stories_id...";
     my $stats = _fetch_story_stats( $db, $stories_id, $start_timestamp, $end_timestamp );
     unless ( ref( $stats ) eq ref( {} ) )
     {
         die "Stats for story ID $stories_id is not a hashref.";
     }
+    say STDERR "Done fetching story stats for story $stories_id.";
 
-    say STDERR "Stats: " . Dumper( $stats );
+    # say STDERR "Stats: " . Dumper( $stats );
+
+    say STDERR "Storing story stats for story $stories_id...";
+    Readonly my $overwrite => 1;
+    _write_story_stats( $db, $stories_id, $stats, $overwrite );
+    say STDERR "Done storing story stats for story $stories_id.";
 }
 
 # write a single log because there are a lot of CoreNLP processing jobs so it's
