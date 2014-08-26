@@ -75,9 +75,7 @@ EOF
     )->hashes;
     say STDERR "Done fetching stories." if ( _verbose() );
 
-    say STDERR "Number of results: " . scalar( @{ $stories } ) if ( _verbose() );
-
-    last unless ( scalar( @{ $stories } ) > 0 );    # no stories
+    say STDERR "Number of stories: " . scalar( @{ $stories } ) if ( _verbose() );
 
     foreach my $story ( @{ $stories } )
     {
