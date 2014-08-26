@@ -3,9 +3,6 @@ package MediaWords::Util::Bitly;
 #
 # Bit.ly API helper
 #
-# FIXME: for /v3/info and /v3/lookup, check if result contains all the expected
-# keys because Bit.ly API doesn't seem stable
-#
 # FIXME: don't ignore errors when rate limit is reached, e.g.:
 #     {"status_code": 403, "data": null, "status_txt": "RATE_LIMIT_EXCEEDED"}
 #
@@ -306,6 +303,20 @@ sub bitly_info($)
         die "The number of results returned differs from the number of input Bit.ly IDs.";
     }
 
+    foreach my $info_item ( @{ $result->{ info } } )
+    {
+        # Note that "short_url" is not being returned (although it's in the API spec)
+        @expected_keys = qw/ created_at created_by global_hash title user_hash /;
+
+        foreach my $expected_key ( @expected_keys )
+        {
+            unless ( exists $info_item->{ $expected_key } )
+            {
+                die "Result item doesn't contain expected '$expected_key' key: " . Dumper( $info_item );
+            }
+        }
+    }
+
     return $result;
 }
 
@@ -450,6 +461,19 @@ sub bitly_link_lookup($)
     unless ( scalar @{ $result->{ link_lookup } } == scalar( @{ $urls } ) )
     {
         die "The number of URLs returned differs from the number of input URLs.";
+    }
+
+    foreach my $link_lookup_item ( @{ $result->{ link_lookup } } )
+    {
+        @expected_keys = qw/ aggregate_link url /;
+
+        foreach my $expected_key ( @expected_keys )
+        {
+            unless ( exists $link_lookup_item->{ $expected_key } )
+            {
+                die "Result item doesn't contain expected '$expected_key' key: " . Dumper( $link_lookup_item );
+            }
+        }
     }
 
     return $result;
