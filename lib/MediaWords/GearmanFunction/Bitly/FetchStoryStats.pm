@@ -39,10 +39,30 @@ use Scalar::Defer;
 # Gearman::JobScheduler's workers don't support fork()s anymore
 my $db = undef;
 
-Readonly my $BITLY_FETCH_CATEGORIES => 0;
-Readonly my $BITLY_FETCH_CLICKS     => 1;
-Readonly my $BITLY_FETCH_REFERRERS  => 1;
-Readonly my $BITLY_FETCH_SHARES     => 0;
+{
+    # Object to determine what kind of stats to fetch from Bit.ly (used in
+    # _fetch_story_stats())
+    package MediaWords::Util::Bitly::StatsToFetch;
+
+    sub new($;$$$$)
+    {
+        my $class = shift;
+        my ( $fetch_categories, $fetch_clicks, $fetch_referrers, $fetch_shares ) = @_;
+
+        my $self = {};
+        bless $self, $class;
+
+        # Default values
+        $self->{ fetch_categories } = $fetch_categories // 0;
+        $self->{ fetch_clicks }     = $fetch_clicks     // 1;
+        $self->{ fetch_referrers }  = $fetch_referrers  // 1;
+        $self->{ fetch_shares }     = $fetch_shares     // 0;
+
+        return $self;
+    }
+
+    1;
+}
 
 # (Lazy-initialized) MongoDB GridFS key-value store
 # We use a static, package-wide variable here because:
@@ -70,13 +90,35 @@ my $_gridfs_store = lazy
     return $gridfs_store;
 };
 
-sub _fetch_story_stats($$$$)
+sub _fetch_story_stats($$$$;$)
 {
-    my ( $db, $stories_id, $start_timestamp, $end_timestamp ) = @_;
+    my ( $db, $stories_id, $start_timestamp, $end_timestamp, $stats_to_fetch ) = @_;
 
     unless ( MediaWords::Util::Bitly::bitly_processing_is_enabled() )
     {
         die "Bit.ly processing is not enabled.";
+    }
+
+    {
+        $Data::Dumper::Indent = 0;
+
+        if ( defined $stats_to_fetch )
+        {
+
+            unless ( ref( $stats_to_fetch ) eq 'MediaWords::Util::Bitly::StatsToFetch' )
+            {
+                die "'stats_to_fetch' must be an instance of MediaWords::Util::Bitly::StatsToFetch";
+            }
+
+            say STDERR "Will fetch the following Bit.ly stats: " . Dumper( $stats_to_fetch );
+
+        }
+        else
+        {
+            $stats_to_fetch = MediaWords::Util::Bitly::StatsToFetch->new();
+            say STDERR "Will fetch default Bit.ly stats: " . Dumper( $stats_to_fetch );
+        }
+
     }
 
     my $story = $db->find_by_id( 'stories', $stories_id );
@@ -145,13 +187,13 @@ sub _fetch_story_stats($$$$)
 
         $link_stats->{ 'data' }->{ $bitly_id } = {};
 
-        if ( $BITLY_FETCH_CATEGORIES )
+        if ( $stats_to_fetch->{ fetch_categories } )
         {
             say STDERR "Fetching categories for Bit.ly ID $bitly_id...";
             $link_stats->{ 'data' }->{ $bitly_id }->{ 'categories' } =
               MediaWords::Util::Bitly::bitly_link_categories( $bitly_id );
         }
-        if ( $BITLY_FETCH_CLICKS )
+        if ( $stats_to_fetch->{ fetch_clicks } )
         {
             say STDERR "Fetching clicks for Bit.ly ID $bitly_id for date range $string_start_date - $string_end_date...";
             $link_stats->{ 'data' }->{ $bitly_id }->{ 'clicks' } = [
@@ -160,7 +202,7 @@ sub _fetch_story_stats($$$$)
                 MediaWords::Util::Bitly::bitly_link_clicks( $bitly_id, $start_timestamp, $end_timestamp )
             ];
         }
-        if ( $BITLY_FETCH_REFERRERS )
+        if ( $stats_to_fetch->{ fetch_referrers } )
         {
             say STDERR "Fetching referrers for Bit.ly ID $bitly_id for date range $string_start_date - $string_end_date...";
             $link_stats->{ 'data' }->{ $bitly_id }->{ 'referrers' } = [
@@ -169,7 +211,7 @@ sub _fetch_story_stats($$$$)
                 MediaWords::Util::Bitly::bitly_link_referrers( $bitly_id, $start_timestamp, $end_timestamp )
             ];
         }
-        if ( $BITLY_FETCH_SHARES )
+        if ( $stats_to_fetch->{ fetch_shares } )
         {
             say STDERR "Fetching shares for Bit.ly ID $bitly_id for date range $string_start_date - $string_end_date...";
             $link_stats->{ 'data' }->{ $bitly_id }->{ 'shares' } = [
@@ -264,6 +306,18 @@ sub run($;$)
 {
     my ( $self, $args ) = @_;
 
+    Readonly my $BITLY_FETCH_CATEGORIES => 0;
+    Readonly my $BITLY_FETCH_CLICKS     => 1;
+    Readonly my $BITLY_FETCH_REFERRERS  => 1;
+    Readonly my $BITLY_FETCH_SHARES     => 0;
+
+    Readonly my $stats_to_fetch => MediaWords::Util::Bitly::StatsToFetch->new(
+        $BITLY_FETCH_CATEGORIES,    # "/v3/link/category"
+        $BITLY_FETCH_CLICKS,        # "/v3/link/clicks"
+        $BITLY_FETCH_REFERRERS,     # "/v3/link/referrers"
+        $BITLY_FETCH_SHARES         # "/v3/link/shares"
+    );
+
     # Postpone connecting to the database so that compile test doesn't do that
     $db ||= MediaWords::DB::connect_to_db();
 
@@ -272,7 +326,8 @@ sub run($;$)
     my $end_timestamp   = $args->{ end_timestamp }   or die "'end_timestamp' is not set.";
 
     say STDERR "Fetching story stats for story $stories_id...";
-    my $stats = _fetch_story_stats( $db, $stories_id, $start_timestamp, $end_timestamp );
+
+    my $stats = _fetch_story_stats( $db, $stories_id, $start_timestamp, $end_timestamp, $stats_to_fetch );
     unless ( ref( $stats ) eq ref( {} ) )
     {
         die "Stats for story ID $stories_id is not a hashref.";
