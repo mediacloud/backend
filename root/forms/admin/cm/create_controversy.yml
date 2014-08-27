@@ -61,13 +61,6 @@ elements:
     constraints:
         - Required
 
-  - type: Checkboxgroup
-    name: controversy_traits
-    label: Controversy traits
-    options:
-        # Reflects "controversy_trait" enum from database schema (see script/mediawords.sql)
-        - [ 'controversy_trait_add_bitly_data', 'Fetch Bit.ly click / referrer data' ]
-
   - type: Checkbox
     name: preview
     id: preview
