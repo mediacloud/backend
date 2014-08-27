@@ -1137,6 +1137,11 @@ sub write_story_stats($$$;$)
 {
     my ( $db, $stories_id, $stats, $overwrite ) = @_;
 
+    unless ( MediaWords::Util::Bitly::bitly_processing_is_enabled() )
+    {
+        die "Bit.ly processing is not enabled.";
+    }
+
     unless ( $stories_id )
     {
         die "'stories_id' is not set.";
