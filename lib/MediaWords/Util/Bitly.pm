@@ -876,7 +876,7 @@ sub bitly_link_shares($;$$)
 {
     my ( $bitly_id, $start_timestamp, $end_timestamp ) = @_;
 
-    Readonly my $MAX_BITLY_LIMIT => 1000;    # in "/v3/link/referrers" case
+    Readonly my $MAX_BITLY_LIMIT => 1000;    # in "/v3/link/shares" case
 
     unless ( bitly_processing_is_enabled() )
     {
