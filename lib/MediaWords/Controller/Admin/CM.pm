@@ -19,6 +19,8 @@ use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
 use MediaWords::Solr::WordCounts;
+use MediaWords::Util::Bitly;
+use MediaWords::GearmanFunction::Bitly::EnqueueControversyStories;
 
 use constant ROWS_PER_PAGE => 25;
 
@@ -317,11 +319,12 @@ END
         $latest_activities->[ $x ] = $activity;
     }
 
-    $c->stash->{ controversy }       = $controversy;
-    $c->stash->{ controversy_dumps } = $controversy_dumps;
-    $c->stash->{ latest_full_dump }  = $latest_full_dump;
-    $c->stash->{ latest_activities } = $latest_activities;
-    $c->stash->{ template }          = 'cm/view.tt2';
+    $c->stash->{ controversy }                 = $controversy;
+    $c->stash->{ controversy_dumps }           = $controversy_dumps;
+    $c->stash->{ latest_full_dump }            = $latest_full_dump;
+    $c->stash->{ latest_activities }           = $latest_activities;
+    $c->stash->{ bitly_processing_is_enabled } = MediaWords::Util::Bitly::bitly_processing_is_enabled();
+    $c->stash->{ template }                    = 'cm/view.tt2';
 }
 
 # add num_stories, num_story_links, num_media, and num_media_links
@@ -2658,6 +2661,42 @@ sub story_stats : Local
     $c->stash->{ num_stories }      = $num_stories;
     $c->stash->{ live }             = $live;
     $c->stash->{ template }         = 'cm/story_stats.tt2';
+}
+
+# enqueue a Gearman job which will, in turn, enqueue all controversy's stories
+# for Bit.ly processing
+sub enqueue_stories_for_bitly : Local
+{
+    my ( $self, $c, $controversies_id ) = @_;
+
+    unless ( MediaWords::Util::Bitly::bitly_processing_is_enabled() )
+    {
+        die "Bit.ly processing is not enabled.";
+    }
+
+    my $db = $c->dbis;
+
+    my $controversy = $db->find_by_id( 'controversies', $controversies_id );
+    unless ( $controversy )
+    {
+        die "Controversy $controversies_id was not found";
+    }
+
+    unless ( $controversy->{ process_with_bitly } )
+    {
+        die "Controversy $controversies_id is not set up for Bit.ly processing; please set controversies.process_with_bitly";
+    }
+
+    my $args = { controversies_id => $controversies_id };
+    my $gearman_job_id = MediaWords::GearmanFunction::Bitly::EnqueueControversyStories->enqueue_on_gearman( $args );
+    unless ( $gearman_job_id )
+    {
+        die "Gearman job didn't return a job ID for controversy ID $controversies_id";
+    }
+
+    my $url = $c->uri_for( "/admin/cm/view/$controversies_id",
+        { status_msg => "Controversy's stories will soon be enqueued for Bit.ly processing." } );
+    $c->res->redirect( $url );
 }
 
 1;
