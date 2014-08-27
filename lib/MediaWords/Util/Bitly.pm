@@ -1135,7 +1135,7 @@ sub fetch_story_stats($$$$;$)
         }
     }
 
-    say STDERR "Link info: " . Dumper( $bitly_info );
+    # say STDERR "Link info: " . Dumper( $bitly_info );
 
     my $link_stats = {};
 
