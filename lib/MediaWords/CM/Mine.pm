@@ -25,6 +25,8 @@ use MediaWords::Solr;
 use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
+use MediaWords::Util::Bitly;
+use MediaWords::GearmanFunction::Bitly::EnqueueControversyStories;
 
 # number of times to run through the recursive link weight process
 use constant LINK_WEIGHT_ITERATIONS => 3;
@@ -2034,6 +2036,26 @@ sub mine_controversy ($$;$)
         say STDERR "analyzing controversy tables...";
         $db->query( "analyze controversy_stories" );
         $db->query( "analyze controversy_links" );
+    }
+
+    if ( $controversy->{ process_with_bitly } )
+    {
+        unless ( MediaWords::Util::Bitly::bitly_processing_is_enabled() )
+        {
+            die "Bit.ly processing is not enabled.";
+        }
+
+        say STDERR "enqueueing all (new) stories for Bit.ly processing ...";
+
+        # For the sake of simplicity, just re-enqueue all controversy's stories for
+        # Bit.ly processing. The ones that are already processed (have a respective
+        # record in the GridFS database) will be skipped, and the new ones will be
+        # enqueued further for fetching Bit.ly stats.
+        my $args = {
+            controversies_id => $controversy->{ controversies_id },
+            do_not_overwrite => 1
+        };
+        MediaWords::GearmanFunction::Bitly::EnqueueControversyStories->enqueue_on_gearman( $args );
     }
 }
 
