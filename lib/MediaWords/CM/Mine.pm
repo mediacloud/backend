@@ -1975,65 +1975,66 @@ sub mine_controversy ($$;$)
         $options )
       || die( "Unable to log the 'cm_mine_controversy' activity." );
 
-    print STDERR "importing solr seed query ...\n";
+    say STDERR "importing solr seed query ...";
     import_solr_seed_query( $db, $controversy );
 
-    print STDERR "importing seed urls ...\n";
+    say STDERR "importing seed urls ...";
     import_seed_urls( $db, $controversy );
 
     # merge dup media and stories here to avoid redundant link processing for imported urls
-    print STDERR "merging media_dup stories ...\n";
+    say STDERR "merging media_dup stories ...";
     merge_dup_media_stories( $db, $controversy );
 
-    print STDERR "merging dup stories ...\n";
+    say STDERR "merging dup stories ...";
     find_and_merge_dup_stories( $db, $controversy );
 
-    return if ( $options->{ import_only } );
+    unless ( $options->{ import_only } )
+    {
+        say STDERR "merging foreign_rss stories ...";
+        merge_foreign_rss_stories( $db, $controversy );
 
-    print STDERR "merging foreign_rss stories ...\n";
-    merge_foreign_rss_stories( $db, $controversy );
+        say STDERR "adding redirect urls to controversy stories ...";
+        add_redirect_urls_to_controversy_stories( $db, $controversy );
 
-    print STDERR "adding redirect urls to controversy stories ...\n";
-    add_redirect_urls_to_controversy_stories( $db, $controversy );
+        say STDERR "mining controversy stories ...";
+        mine_controversy_stories( $db, $controversy );
 
-    print STDERR "mining controversy stories ...\n";
-    mine_controversy_stories( $db, $controversy );
+        say STDERR "running spider ...";
+        run_spider( $db, $controversy );
 
-    print STDERR "running spider ...\n";
-    run_spider( $db, $controversy );
+        # disabling because there are too many foreign_rss_links media sources
+        # with bogus feeds that pollute the results
+        # if ( !$options->{ skip_outgoing_foreign_rss_links } )
+        # {
+        #     say STDERR "adding outgoing foreign rss links ...";
+        #     add_outgoing_foreign_rss_links( $db, $controversy );
+        # }
 
-    # disabling because there are too many foreign_rss_links media sources
-    # with bogus feeds that pollute the results
-    # if ( !$options->{ skip_outgoing_foreign_rss_links } )
-    # {
-    #     print STDERR "adding outgoing foreign rss links ...\n";
-    #     add_outgoing_foreign_rss_links( $db, $controversy );
-    # }
+        # merge dup media and stories again to catch dups from spidering
+        say STDERR "merging media_dup stories ...";
+        merge_dup_media_stories( $db, $controversy );
 
-    # merge dup media and stories again to catch dups from spidering
-    print STDERR "merging media_dup stories ...\n";
-    merge_dup_media_stories( $db, $controversy );
+        say STDERR "merging dup stories ...";
+        find_and_merge_dup_stories( $db, $controversy );
 
-    print STDERR "merging dup stories ...\n";
-    find_and_merge_dup_stories( $db, $controversy );
+        say STDERR "adding source link dates ...";
+        add_source_link_dates( $db, $controversy );
 
-    print STDERR "adding source link dates ...\n";
-    add_source_link_dates( $db, $controversy );
+        say STDERR "updating story_tags ...";
+        update_controversy_tags( $db, $controversy );
 
-    print STDERR "updating story_tags ...\n";
-    update_controversy_tags( $db, $controversy );
+        # my $stories = get_stories_with_sources( $db, $controversy );
 
-    # my $stories = get_stories_with_sources( $db, $controversy );
+        # say STDERR "generating link weights ...";
+        # generate_link_weights( $db, $controversy, $stories );
 
-    # print STDERR "generating link weights ...\n";
-    # generate_link_weights( $db, $controversy, $stories );
+        # say STDERR "generating link text similarities ...";
+        # generate_link_text_similarities( $db, $stories );
 
-    # print STDERR "generating link text similarities ...\n";
-    # generate_link_text_similarities( $db, $stories );
-
-    print STDERR "analyzing controversy tables...\n";
-    $db->query( "analyze controversy_stories" );
-    $db->query( "analyze controversy_links" );
+        say STDERR "analyzing controversy tables...";
+        $db->query( "analyze controversy_stories" );
+        $db->query( "analyze controversy_links" );
+    }
 }
 
 1;
