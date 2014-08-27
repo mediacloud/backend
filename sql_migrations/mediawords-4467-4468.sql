@@ -53,12 +53,14 @@ $$
 $$
 LANGUAGE 'plpgsql';
 
-drop view controversies_with_search_info;
-drop table controversy_query_story_searches_imported_stories_map;
+drop view controversies_with_dates;
 
+drop view if exists controversies_with_search_info;
+drop table if exists controversy_query_story_searches_imported_stories_map;
+
+drop table if exists query_story_searches_stories_map;
 alter table controversies drop column query_story_searches_id;
-drop table query_story_searches_stories_map;
-drop table query_story_searches;
+drop table if exists query_story_searches;
 
 ALTER TABLE downloads
     ADD CONSTRAINT downloads_feed_id_valid check (feeds_id is not null);
@@ -68,6 +70,15 @@ ALTER TABLE downloads
 
 ALTER TABLE downloads add constraint valid_download_type check( type NOT in ( 'spider_blog_home','spider_posting','spider_rss','spider_blog_friends_list','spider_validation_blog_home','spider_validation_rss','archival_only') );
 
+create view controversies_with_dates as
+    select c.*, 
+            to_char( cd.start_date, 'YYYY-MM-DD' ) start_date, 
+            to_char( cd.end_date, 'YYYY-MM-DD' ) end_date
+        from 
+            controversies c 
+            join controversy_dates cd on ( c.controversies_id = cd.controversies_id )
+        where 
+            cd.boundary;
 
 --
 -- 2 of 2. Reset the database version.
