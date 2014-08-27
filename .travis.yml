@@ -10,6 +10,7 @@ perl:
     #
     #- "5.19"
 addons:
+    postgresql: "9.3"
     hosts:
         - mediacloud.local
 env:
