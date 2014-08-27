@@ -500,13 +500,17 @@ sub bitly_link_lookup($)
 
     foreach my $link_lookup_item ( @{ $result->{ link_lookup } } )
     {
-        @expected_keys = qw/ aggregate_link url /;
-
-        foreach my $expected_key ( @expected_keys )
+        unless ( $link_lookup_item->{ error } )
         {
-            unless ( exists $link_lookup_item->{ $expected_key } )
+
+            @expected_keys = qw/ aggregate_link url /;
+
+            foreach my $expected_key ( @expected_keys )
             {
-                die "Result item doesn't contain expected '$expected_key' key: " . Dumper( $link_lookup_item );
+                unless ( exists $link_lookup_item->{ $expected_key } )
+                {
+                    die "Result item doesn't contain expected '$expected_key' key: " . Dumper( $link_lookup_item );
+                }
             }
         }
     }
