@@ -992,7 +992,7 @@ sub fetch_story_stats($$$$;$)
     }
 
     {
-        $Data::Dumper::Indent = 0;
+        local $Data::Dumper::Indent = 0;
 
         if ( defined $stats_to_fetch )
         {
