@@ -151,25 +151,6 @@ sub create : Local
     # 	utf8::encode( $c->req->params->{ solr_seed_query } );
     # }
 
-    my $query_story_searches = $db->query(
-        <<EOF
-        SELECT query_story_searches.query_story_searches_id,
-               '"' || query_story_searches.pattern || '" (' || queries.description || ')'
-        FROM query_story_searches
-            INNER JOIN queries
-                ON query_story_searches.queries_id = queries.queries_id
-        ORDER BY query_story_searches.query_story_searches_id,
-                 query_story_searches.pattern
-EOF
-    )->arrays;
-    unless ( scalar @{ $query_story_searches } )
-    {
-        die "No query story searches.";
-    }
-
-    my $select_query_story_searches_id = $form->get_element( { name => 'query_story_searches_id' } );
-    $select_query_story_searches_id->options( $query_story_searches );
-
     $form->process( $c->request );
 
     if ( !$form->submitted_and_valid )
@@ -180,13 +161,12 @@ EOF
 
     # At this point the form is submitted
 
-    my $c_name                    = $c->req->params->{ name };
-    my $c_pattern                 = $c->req->params->{ pattern };
-    my $c_solr_seed_query         = $c->req->params->{ solr_seed_query };
-    my $c_description             = $c->req->params->{ description };
-    my $c_start_date              = $c->req->params->{ start_date };
-    my $c_end_date                = $c->req->params->{ end_date };
-    my $c_query_story_searches_id = $c->req->params->{ query_story_searches_id };
+    my $c_name            = $c->req->params->{ name };
+    my $c_pattern         = $c->req->params->{ pattern };
+    my $c_solr_seed_query = $c->req->params->{ solr_seed_query };
+    my $c_description     = $c->req->params->{ description };
+    my $c_start_date      = $c->req->params->{ start_date };
+    my $c_end_date        = $c->req->params->{ end_date };
 
     if ( $c->req->params->{ preview } )
     {
@@ -199,11 +179,10 @@ EOF
     my $controversy = $db->create(
         'controversies',
         {
-            name                    => $c_name,
-            pattern                 => $c_pattern,
-            solr_seed_query         => $c_solr_seed_query,
-            description             => $c_description,
-            query_story_searches_id => $c_query_story_searches_id
+            name            => $c_name,
+            pattern         => $c_pattern,
+            solr_seed_query => $c_solr_seed_query,
+            description     => $c_description
         }
     );
 
