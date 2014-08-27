@@ -1213,18 +1213,18 @@ sub fetch_story_stats($$$$;$)
     return $link_stats;
 }
 
-# Write Bit.ly story statistics to GridFS
+# Write Bit.ly story statistics to GridFS; overwrite if a record already exists
+# in GridFS
 #
 # Params:
 # * $db - database object
 # * $stories_id - story ID
 # * $stats - hashref with Bit.ly statistics
-# * $overwrite - if true, will overwrite statistics that are already stored in GridFS
 #
 # die()s on error
-sub write_story_stats($$$;$)
+sub write_story_stats($$$)
 {
-    my ( $db, $stories_id, $stats, $overwrite ) = @_;
+    my ( $db, $stories_id, $stats ) = @_;
 
     unless ( MediaWords::Util::Bitly::bitly_processing_is_enabled() )
     {
@@ -1243,14 +1243,7 @@ sub write_story_stats($$$;$)
     # Check if something is already stored
     if ( story_is_processed( $db, $stories_id ) )
     {
-        if ( $overwrite )
-        {
-            say STDERR "Bit.ly record for story $stories_id already exists in GridFS, will overwrite.";
-        }
-        else
-        {
-            die "Bit.ly record for story $stories_id already exists in GridFS.";
-        }
+        warn "Story $stories_id is already processed with Bit.ly, so I will overwrite it.";
     }
 
     # Convert results to a minimized JSON

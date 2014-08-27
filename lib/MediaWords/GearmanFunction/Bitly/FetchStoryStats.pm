@@ -71,8 +71,7 @@ sub run($;$)
     # say STDERR "Stats: " . Dumper( $stats );
 
     say STDERR "Storing story stats for story $stories_id...";
-    Readonly my $overwrite => 1;
-    MediaWords::Util::Bitly::write_story_stats( $db, $stories_id, $stats, $overwrite );
+    MediaWords::Util::Bitly::write_story_stats( $db, $stories_id, $stats );
     say STDERR "Done storing story stats for story $stories_id.";
 }
 
