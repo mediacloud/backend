@@ -76,7 +76,7 @@ sub run($;$)
     say STDERR "Done storing story stats for story $stories_id.";
 }
 
-# write a single log because there are a lot of CoreNLP processing jobs so it's
+# write a single log because there are a lot of Bit.ly processing jobs so it's
 # impractical to log each job into a separate file
 sub unify_logs()
 {
