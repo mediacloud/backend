@@ -982,6 +982,59 @@ sub bitly_link_shares($;$$)
     1;
 }
 
+# Fetch story URL statistics from Bit.ly
+#
+# Params:
+# * $db - database object
+# * $stories_id - story ID
+# * $start_timestamp - starting date (offset) for fetching statistics
+# * $end_timestamp - ending date (limit) for fetching statistics
+# * $stats_to_fetch (optional) - object of type
+#   "MediaWords::Util::Bitly::StatsToFetch" which determines what kind of
+#   statistics to fetch for the story
+#
+# Returns: hashref with statistics, e.g.:
+#    {
+#        'collection_timestamp' => 1409135396,
+#        'data' => {
+#            '1boI7Cn' => {
+#                'clicks' => [
+#                    {
+#                        'link_clicks' => [
+#                            {
+#                                'clicks' => 0,
+#                                'dt' => 1408492800
+#                            },
+#                            {
+#                                'clicks' => 0,
+#                                'dt' => 1408406400
+#                            },
+#                            ...
+#                            {
+#                                'clicks' => 0,
+#                                'dt' => 1406937600
+#                            }
+#                        ],
+#                        'unit' => 'day',
+#                        'unit_reference_ts' => 1408492800,
+#                        'tz_offset' => 0,
+#                        'units' => 19
+#                    }
+#                ],
+#                'referrers' => [
+#                    {
+#                        'unit' => 'day',
+#                        'unit_reference_ts' => 1408492800,
+#                        'referrers' => [],
+#                        'tz_offset' => 0,
+#                        'units' => 19
+#                    }
+#                ]
+#            }
+#        }
+#    };
+#
+# die()s on error
 sub fetch_story_stats($$$$;$)
 {
     my ( $db, $stories_id, $start_timestamp, $end_timestamp, $stats_to_fetch ) = @_;
@@ -1010,7 +1063,6 @@ sub fetch_story_stats($$$$;$)
             $stats_to_fetch = MediaWords::Util::Bitly::StatsToFetch->new();
             say STDERR "Will fetch default Bit.ly stats: " . Dumper( $stats_to_fetch );
         }
-
     }
 
     my $story = $db->find_by_id( 'stories', $stories_id );
@@ -1133,6 +1185,15 @@ sub fetch_story_stats($$$$;$)
     return $link_stats;
 }
 
+# Write Bit.ly story statistics to GridFS
+#
+# Params:
+# * $db - database object
+# * $stories_id - story ID
+# * $stats - hashref with Bit.ly statistics
+# * $overwrite - if true, will overwrite statistics that are already stored in GridFS
+#
+# die()s on error
 sub write_story_stats($$$;$)
 {
     my ( $db, $stories_id, $stats, $overwrite ) = @_;
