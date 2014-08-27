@@ -79,13 +79,6 @@ sub normalize_url($)
 
     my @parameters_to_remove;
 
-    # GA parameters (https://support.google.com/analytics/answer/1033867?hl=en)
-    @parameters_to_remove = (
-        @parameters_to_remove,
-        qw/ utm_source utm_medium utm_term utm_content utm_campaign utm_reader utm_place
-          ga_source ga_medium ga_term ga_content ga_campaign ga_place /
-    );
-
     # Facebook parameters (https://developers.facebook.com/docs/games/canvas/referral-tracking)
     @parameters_to_remove = (
         @parameters_to_remove,
@@ -143,11 +136,20 @@ sub normalize_url($)
         $uri->query_param_delete( $parameter );
     }
 
-    # Remove parameters that start with '_' (e.g. '_cid') because they're more likely to be the tracking codes
     my @parameters = $uri->query_param;
     foreach my $parameter ( @parameters )
     {
+        # Remove parameters that start with '_' (e.g. '_cid') because they're
+        # more likely to be the tracking codes
         if ( $parameter =~ /^_/ )
+        {
+            $uri->query_param_delete( $parameter );
+        }
+
+        # Remove GA parameters, current and future (e.g. "utm_source",
+        # "utm_medium", "ga_source", "ga_medium")
+        # (https://support.google.com/analytics/answer/1033867?hl=en)
+        elsif ( $parameter =~ /^ga_/ or $parameter =~ /^utm_/ )
         {
             $uri->query_param_delete( $parameter );
         }
