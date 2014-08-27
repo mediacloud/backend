@@ -44,12 +44,12 @@ sub list_GET : Local : PathPrefix( '/api' )
 {
     my ( $self, $c ) = @_;
 
-    if ( $c->req->params->{ sample_size } > 100_000 )
+    if ( $c->req->params->{ sample_size } && ( $c->req->params->{ sample_size } > 100_000 ) )
     {
         $c->req->params->{ sample_size } = 100_000;
     }
 
-    my $wc = MediaWords::Solr::WordCounts->new( cgi_params => $c->req->params );
+    my $wc = MediaWords::Solr::WordCounts->new( db => $c->dbis, cgi_params => $c->req->params );
 
     my $words = $wc->get_words;
 

@@ -35,6 +35,7 @@ has 'languages'         => ( is => 'rw', isa => 'ArrayRef', default => sub { [ '
 has 'include_stopwords' => ( is => 'rw', isa => 'Bool' );
 has 'no_remote'         => ( is => 'rw', isa => 'Bool' );
 has 'include_stats'     => ( is => 'rw', isa => 'Bool' );
+has 'db' => ( is => 'rw' );
 
 # list of all attribute names that should be exposed as cgi params
 sub get_cgi_param_attributes
@@ -111,6 +112,8 @@ around BUILDARGS => sub {
         $vals->{ languages } = $cgi_params->{ l }
           if ( exists( $cgi_params->{ l } ) && !exists( $cgi_params->{ languages } ) );
 
+        $vals->{ db } = $args->{ db } if ( $args->{ db } );
+
         return $class->$orig( $vals );
     }
     else
@@ -126,7 +129,7 @@ sub blank_dup_lines
 
     my $dup_lines = {};
 
-    map { $dup_lines->{ $_ } ? ( $_ = '' ) : ( $dup_lines->{ $_ } = 1 ); } @{ $lines };
+    map { $dup_lines->{ $_ } ? ( $_ = '' ) : ( $dup_lines->{ $_ } = 1 ); } grep { defined( $_ ) } @{ $lines };
 }
 
 # parse the text and return a count of stems and terms in the sentence in the
@@ -146,6 +149,8 @@ sub count_stems
     my $words = {};
     for my $line ( @{ $lines } )
     {
+        next unless ( defined( $line ) );
+
         # very long lines tend to be noise -- html text and the like.
         # lc here instead of individual word for better performance
         $line = lc( substr( $line, 0, 256 ) );
@@ -278,7 +283,7 @@ sub get_words_from_solr_server
 
     print STDERR "executing solr query ...\n";
     print STDERR Dumper( $solr_params );
-    my $data = MediaWords::Solr::query( $solr_params );
+    my $data = MediaWords::Solr::query( $self->db, $solr_params );
 
     my $sentences_found = $data->{ response }->{ numFound };
     my @sentences = map { $_->{ sentence } } @{ $data->{ response }->{ docs } };

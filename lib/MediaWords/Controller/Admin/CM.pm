@@ -1200,7 +1200,7 @@ sub _get_stories_id_search_query
 
     my $stories_clause = "stories_id:(" . join( ' ', @{ $period_stories_ids } ) . ")";
 
-    my $stories_ids = MediaWords::Solr::search_for_stories_ids( { q => $q, fq => $stories_clause } );
+    my $stories_ids = MediaWords::Solr::search_for_stories_ids( $db, { q => $q, fq => $stories_clause } );
 
     return @{ $stories_ids } ? join( ',', @{ $stories_ids } ) : -1;
 }
@@ -1214,12 +1214,12 @@ sub _get_story_words ($$$$$)
     my $cdts_clause = "{~ controversy_dump_time_slice:$cdts->{ controversy_dump_time_slices_id } }";
     my $stories_solr_query = $q ? "$cdts_clause and ( $q )" : $cdts_clause;
 
-    my $stories_ids = MediaWords::Solr::search_for_stories_ids( { q => $stories_solr_query } );
+    my $stories_ids = MediaWords::Solr::search_for_stories_ids( $db, { q => $stories_solr_query } );
 
     my $num_words = int( log( scalar( @{ $stories_ids } ) + 1 ) * 10 );
     $num_words = ( $num_words < 100 ) ? $num_words : 100;
 
-    my $story_words = MediaWords::Solr::WordCounts->new( q => $stories_solr_query )->get_words;
+    my $story_words = MediaWords::Solr::WordCounts->new( db => $db, q => $stories_solr_query )->get_words;
 
     splice( @{ $story_words }, $num_words );
 
@@ -1228,7 +1228,9 @@ sub _get_story_words ($$$$$)
         for my $story_word ( @{ $story_words } )
         {
             my $solr_df_query = "{~ controversy:$controversy->{ controversies_id } }";
-            my $df            = MediaWords::Solr::get_num_found(
+
+            my $df = MediaWords::Solr::get_num_found(
+                $db,
                 {
                     q  => "+sentence:" . $story_word->{ term },
                     fq => $solr_df_query
@@ -1349,7 +1351,7 @@ END
     if ( $c->req->params->{ missing_solr_stories } )
     {
         my $solr_query       = "{! controversy:$controversy->{ controversies_id } }";
-        my $solr_stories_ids = MediaWords::Solr::search_for_stories_ids( { q => $solr_query } );
+        my $solr_stories_ids = MediaWords::Solr::search_for_stories_ids( $db, { q => $solr_query } );
         my $solr_lookup      = {};
         map { $solr_lookup->{ $_ } = 1 } @{ $solr_stories_ids };
         $stories = [ grep { !$solr_lookup->{ $_->{ stories_id } } } @{ $stories } ];

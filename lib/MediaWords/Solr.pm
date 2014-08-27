@@ -11,6 +11,7 @@ use JSON;
 use List::Util;
 use Time::HiRes qw(gettimeofday tv_interval);
 
+use MediaWords::DB;
 use MediaWords::DBI::Stories;
 use MediaWords::Languages::Language;
 use MediaWords::Solr::PseudoQueries;
@@ -38,13 +39,53 @@ sub get_solr_url
     return $url;
 }
 
+# get the name of the currently live collection, as stored in database_variables in postgres
+sub get_live_collection
+{
+    my ( $db ) = @_;
+
+    my ( $collection ) = $db->query( "select value from database_variables where name = 'live_solr_collection' " )->flat;
+
+    return $collection || 'collection1';
+}
+
+# get the name of the collection that is not get_live_collection()
+sub get_staging_collection
+{
+    my ( $db ) = @_;
+
+    my $live_collection = get_live_collection( $db );
+
+    return $live_collection eq 'collection1' ? 'collection2' : 'collection1';
+}
+
+# swap which collection is live and which is staging
+sub swap_live_collection
+{
+    my ( $db ) = @_;
+
+    my $current_staging_collection = get_staging_collection( $db );
+
+    $db->begin;
+
+    $db->query( "delete from database_variables where name = 'live_solr_collection'" );
+    $db->create( 'database_variables', { name => 'live_solr_collection', value => $current_staging_collection } );
+    -
+
+      $db->commit;
+}
+
 # get a solr select url from config.  if there is more than one url
 # in the config, randomly choose one from the list.
 sub get_solr_select_url
 {
+    my ( $db ) = @_;
+
     my $url = get_solr_url();
 
-    return "$url/collection1/select";
+    my $collection = get_live_collection( $db );
+
+    return "$url/$collection/select";
 }
 
 # get the numFound from the last solr query run
@@ -101,9 +142,9 @@ sub _uppercase_boolean_operators
 # execute a query on the solr server using the given params.
 # return the raw encoded json from solr.  return a maximum of
 # 1 million sentences.
-sub query_encoded_json($;$)
+sub query_encoded_json($$;$)
 {
-    my ( $params, $c ) = @_;
+    my ( $db, $params, $c ) = @_;
 
     $params->{ wt } = 'json';
     $params->{ rows } //= 1000;
@@ -117,7 +158,7 @@ sub query_encoded_json($;$)
     $params->{ q }  = MediaWords::Solr::PseudoQueries::transform_query( $params->{ q } );
     $params->{ fq } = MediaWords::Solr::PseudoQueries::transform_query( $params->{ fq } );
 
-    my $url = get_solr_select_url();
+    my $url = get_solr_select_url( $db );
 
     my $ua = MediaWords::Util::Web::UserAgent;
 
@@ -202,11 +243,11 @@ sub query_encoded_json($;$)
 
 # execute a query on the solr server using the given params.
 # return a hash generated from the json results
-sub query($;$)
+sub query($$;$)
 {
-    my ( $params, $c ) = @_;
+    my ( $db, $params, $c ) = @_;
 
-    my $json = query_encoded_json( $params, $c );
+    my $json = query_encoded_json( $db, $params, $c );
 
     my $data;
     eval { $data = decode_json( $json ) };
@@ -226,9 +267,9 @@ sub query($;$)
 }
 
 # return all of the story ids that match the solr query
-sub search_for_stories_ids
+sub search_for_stories_ids ($$)
 {
-    my ( $params ) = @_;
+    my ( $db, $params ) = @_;
 
     my $p = { %{ $params } };
 
@@ -236,7 +277,7 @@ sub search_for_stories_ids
     $p->{ group }         = 'true';
     $p->{ 'group.field' } = 'stories_id';
 
-    my $response = query( $p );
+    my $response = query( $db, $p );
 
     my $groups = $response->{ grouped }->{ stories_id }->{ groups };
     my $stories_ids = [ map { $_->{ doclist }->{ docs }->[ 0 ]->{ stories_id } } @{ $groups } ];
@@ -257,30 +298,11 @@ sub search_for_stories_ids
     return $stories_ids;
 }
 
-sub number_of_matching_documents
-{
-    my ( $params ) = @_;
-
-    $params = { %{ $params } };
-
-    undef $params->{ sort };
-
-    $params->{ rows } = 0;
-
-    my $response = query( $params )->{ response };
-
-    #say STDERR Dumper( $response );
-
-    #say STDERR $response->{ numFound };
-
-    return $response->{ numFound };
-}
-
 # return the first $num_stories processed_stories_id that match the given query,
 # sorted by processed_stories_id and with processed_stories_id greater than $last_ps_id.
-sub search_for_processed_stories_ids ($$$$)
+sub search_for_processed_stories_ids ($$$$$)
 {
-    my ( $q, $fq, $last_ps_id, $num_stories ) = @_;
+    my ( $db, $q, $fq, $last_ps_id, $num_stories ) = @_;
 
     return [] unless ( $num_stories );
 
@@ -300,7 +322,7 @@ sub search_for_processed_stories_ids ($$$$)
         $params->{ fq } = [ @{ $params->{ fq } }, "processed_stories_id:[$min_ps_id TO *]" ];
     }
 
-    my $response = query( $params );
+    my $response = query( $db, $params );
 
     my $groups = $response->{ grouped }->{ stories_id }->{ groups };
     my $ps_ids = [ map { $_->{ doclist }->{ docs }->[ 0 ]->{ processed_stories_id } } @{ $groups } ];
@@ -309,11 +331,11 @@ sub search_for_processed_stories_ids ($$$$)
 }
 
 # return stories.* for all stories matching the give solr query
-sub search_for_stories
+sub search_for_stories ($$)
 {
     my ( $db, $params ) = @_;
 
-    my $stories_ids = search_for_stories_ids( $params );
+    my $stories_ids = search_for_stories_ids( $db, $params );
 
     my $stories = [ map { { stories_id => $_ } } @{ $stories_ids } ];
 
@@ -333,7 +355,7 @@ sub search_for_stories
 # matching stories
 #
 # returns the (optionally sampled) stories and the total number of matching stories.
-sub search_for_stories_with_sentences
+sub search_for_stories_with_sentences ($$$$)
 {
     my ( $db, $params, $num_sampled, $random ) = @_;
 
@@ -345,7 +367,7 @@ sub search_for_stories_with_sentences
 
     $params->{ sort } = 'random_1 asc' if ( $random );
 
-    my $response = query( $params );
+    my $response = query( $db, $params );
 
     my $stories_lookup = {};
     for my $doc ( @{ $response->{ response }->{ docs } } )
@@ -375,14 +397,14 @@ sub search_for_stories_with_sentences
 }
 
 # execute the query and return only the number of documents found
-sub get_num_found
+sub get_num_found ($$)
 {
-    my ( $params ) = @_;
+    my ( $db, $params ) = @_;
 
     $params = { %{ $params } };
     $params->{ rows } = 0;
 
-    my $res = query( $params );
+    my $res = query( $db, $params );
 
     return $res->{ response }->{ numFound };
 }

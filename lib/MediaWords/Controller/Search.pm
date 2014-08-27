@@ -332,7 +332,7 @@ sub wc : Local
         die( "searches by sentence not allowed" );
     }
 
-    my $wc = MediaWords::Solr::WordCounts->new( cgi_params => $c->req->params );
+    my $wc = MediaWords::Solr::WordCounts->new( db => $c->dbis, cgi_params => $c->req->params );
 
     my $words;
     eval { $words = $wc->get_words };

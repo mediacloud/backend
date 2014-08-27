@@ -167,7 +167,7 @@ sub list_GET : Local
 
     $rows = List::Util::min( $rows, 10000 );
 
-    my $list = MediaWords::Solr::query( $params, $c );
+    my $list = MediaWords::Solr::query( $c->dbis, $params, $c );
 
     #say STDERR "Got List:\n" . Dumper( $list );
 
@@ -222,7 +222,7 @@ sub _get_count_with_split
     $params->{ 'facet.date.start' } = "${ start_date }T00:00:00Z";
     $params->{ 'facet.date.end' }   = "${ end_date }T00:00:00Z";
 
-    my $solr_response = MediaWords::Solr::query( $params, $c );
+    my $solr_response = MediaWords::Solr::query( $c->dbis, $params, $c );
 
     return {
         count => $solr_response->{ response }->{ numFound },
@@ -249,7 +249,7 @@ sub count_GET : Local
     }
     else
     {
-        my $list = MediaWords::Solr::query( { q => $q, fq => $fq }, $c );
+        my $list = MediaWords::Solr::query( $c->dbis, { q => $q, fq => $fq }, $c );
         $response = { count => $list->{ response }->{ numFound } };
     }
 
