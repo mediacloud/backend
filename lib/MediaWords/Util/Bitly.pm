@@ -982,6 +982,34 @@ sub bitly_link_shares($;$$)
     1;
 }
 
+# Check if story is processed with Bit.ly (stats are fetched)
+# Return 1 if stats for story are fetched, 0 otherwise, die() on error, exit() on fatal error
+sub story_is_processed($$)
+{
+    my ( $db, $stories_id ) = @_;
+
+    unless ( MediaWords::Util::Bitly::bitly_processing_is_enabled() )
+    {
+        die "Bit.ly processing is not enabled.";
+    }
+
+    my $record_exists = undef;
+    eval { $record_exists = $_gridfs_store->content_exists( $db, $stories_id ); };
+    if ( $@ )
+    {
+        die "GridFS died while testing whether or not a Bit.ly record exists for story $stories_id: $@";
+    }
+
+    if ( $record_exists )
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 # Fetch story URL statistics from Bit.ly
 #
 # Params:
@@ -1213,14 +1241,7 @@ sub write_story_stats($$$;$)
     }
 
     # Check if something is already stored
-    my $record_exists = undef;
-    eval { $record_exists = $_gridfs_store->content_exists( $db, $stories_id ); };
-    if ( $@ )
-    {
-        die "GridFS died while testing whether or not a Bit.ly record exists for story $stories_id: $@";
-    }
-
-    if ( $record_exists )
+    if ( story_is_processed( $db, $stories_id ) )
     {
         if ( $overwrite )
         {
