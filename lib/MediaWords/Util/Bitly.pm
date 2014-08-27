@@ -601,6 +601,56 @@ sub bitly_link_lookup_hashref_all_variants($)
     return bitly_link_lookup_hashref( \@urls );
 }
 
+# Query for a list of categories based on Bit.ly URL
+# (http://dev.bitly.com/data_apis.html#v3_link_category)
+#
+# Params:
+# * Bit.ly ID (e.g. "QEH44r")
+#
+# Returns: arrayref of categories, e.g.:
+#     [
+#         "Social Media",
+#         "Advertising",
+#         "Software and Internet",
+#         "Technology",
+#         "Business"
+#     ];
+#
+# die()s on error
+sub bitly_link_categories($)
+{
+    my ( $bitly_id ) = @_;
+
+    unless ( bitly_processing_is_enabled() )
+    {
+        die "Bit.ly processing is not enabled.";
+    }
+
+    unless ( $bitly_id )
+    {
+        die "Bit.ly ID is undefined.";
+    }
+
+    my $result = request( '/v3/link/category', { link => "http://bit.ly/$bitly_id" } );
+
+    # Sanity check
+    my @expected_keys = qw/ categories /;
+    foreach my $expected_key ( @expected_keys )
+    {
+        unless ( exists $result->{ $expected_key } )
+        {
+            die "Result doesn't contain expected '$expected_key' key: " . Dumper( $result );
+        }
+    }
+
+    unless ( ref( $result->{ categories } ) eq ref( [] ) )
+    {
+        die "'categories' value is not an arrayref.";
+    }
+
+    return $result->{ categories };
+}
+
 # Query for number of link clicks based on Bit.ly URL
 # (http://dev.bitly.com/link_metrics.html#v3_link_clicks)
 #
@@ -695,56 +745,6 @@ sub bitly_link_clicks($;$$)
     }
 
     return $result;
-}
-
-# Query for a list of categories based on Bit.ly URL
-# (http://dev.bitly.com/data_apis.html#v3_link_category)
-#
-# Params:
-# * Bit.ly ID (e.g. "QEH44r")
-#
-# Returns: arrayref of categories, e.g.:
-#     [
-#         "Social Media",
-#         "Advertising",
-#         "Software and Internet",
-#         "Technology",
-#         "Business"
-#     ];
-#
-# die()s on error
-sub bitly_link_categories($)
-{
-    my ( $bitly_id ) = @_;
-
-    unless ( bitly_processing_is_enabled() )
-    {
-        die "Bit.ly processing is not enabled.";
-    }
-
-    unless ( $bitly_id )
-    {
-        die "Bit.ly ID is undefined.";
-    }
-
-    my $result = request( '/v3/link/category', { link => "http://bit.ly/$bitly_id" } );
-
-    # Sanity check
-    my @expected_keys = qw/ categories /;
-    foreach my $expected_key ( @expected_keys )
-    {
-        unless ( exists $result->{ $expected_key } )
-        {
-            die "Result doesn't contain expected '$expected_key' key: " . Dumper( $result );
-        }
-    }
-
-    unless ( ref( $result->{ categories } ) eq ref( [] ) )
-    {
-        die "'categories' value is not an arrayref.";
-    }
-
-    return $result->{ categories };
 }
 
 # Query for list of referrers based on Bit.ly URL
