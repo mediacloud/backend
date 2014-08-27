@@ -61,6 +61,13 @@ elements:
         - Required
         - type: Regex
           regex: '^\d\d\d\d-\d\d-\d\d$'
+
+  - type: Checkbox
+    name: process_with_bitly
+    id: process_with_bitly
+    label: Process with Bit.ly
+    comment: Enqueue all new controversy stories for Bit.ly processing
+    value: 1
     
   - type: Checkbox
     name: preview

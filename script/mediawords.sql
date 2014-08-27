@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4471;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4472;
     
 BEGIN
 
@@ -1572,8 +1572,12 @@ create table controversies (
     solr_seed_query_run     boolean not null default false,
     description             text not null,
     controversy_tag_sets_id int not null references tag_sets,
-    media_type_tag_sets_id  int references tag_sets
+    media_type_tag_sets_id  int references tag_sets,
+    process_with_bitly      boolean not null default false
 );
+
+COMMENT ON COLUMN controversies.process_with_bitly
+    IS 'Enable processing controversy''s stories with Bit.ly; enqueue all new controversy stories for Bit.ly processing';
 
 create unique index controversies_name on controversies( name );
 create unique index controversies_tag_set on controversies( controversy_tag_sets_id );

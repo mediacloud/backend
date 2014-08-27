@@ -119,6 +119,7 @@ sub edit : Local
         delete( $p->{ preview } );
 
         $p->{ solr_seed_query_run } = 'f' unless ( $controversy->{ solr_seed_query } eq $p->{ solr_seed_query } );
+        $p->{ process_with_bitly } //= 'f';
 
         $c->dbis->update_by_id( 'controversies', $controversies_id, $p );
 
@@ -168,6 +169,7 @@ sub create : Local
     my $c_description         = $c->req->params->{ description };
     my $c_start_date          = $c->req->params->{ start_date };
     my $c_end_date            = $c->req->params->{ end_date };
+    my $c_process_with_bitly  = ( $c->req->params->{ process_with_bitly } ? 't' : 'f' );
 
     if ( $c->req->params->{ preview } )
     {
@@ -184,7 +186,8 @@ sub create : Local
             pattern             => $c_pattern,
             solr_seed_query     => $c_solr_seed_query,
             solr_seed_query_run => $c_solr_seed_query_run,
-            description         => $c_description
+            description         => $c_description,
+            process_with_bitly  => $c_process_with_bitly
         }
     );
 
