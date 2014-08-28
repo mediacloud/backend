@@ -356,6 +356,18 @@ sub test_stories_non_public
     ];
 
     delete $resp_object->[ 0 ]->{ 'description' };
+    delete $resp_object->[ 0 ]->{ 'db_row_last_updated' };
+    delete $expected_response->[ 0 ]->{ 'db_row_last_updated' };
+
+    for my $sentence_obj ( @$resp_object->[ 0 ]->{ 'story_sentences' } )
+    {
+        delete $sentence_obj->[ 0 ]->{ 'db_row_last_updated' };
+    }
+
+    for my $sentence_obj ( @$expected_response->[ 0 ]->{ 'story_sentences' } )
+    {
+        delete $sentence_obj->[ 0 ]->{ 'db_row_last_updated' };
+    }
 
     #say STDERR Dumper ( $resp_object );
 

@@ -29,7 +29,7 @@ echo "need to start solr"
 ./script/run_with_carton.sh ./solr/scripts/run_singleton_solr_server.pl > /dev/null&
 solr_pid=$!
 echo "pausing to let solr start"
-sleep 10
+sleep 30
 else
 echo "Solr must not be running"
 exit -1
