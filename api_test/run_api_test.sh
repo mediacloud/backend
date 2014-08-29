@@ -23,37 +23,36 @@ fi
 
 echo "testing for runnning solr"
 
-if ! ps aux | grep java | grep -- '-Dsolr' | grep start.jar > /dev/null; then
-    echo "need to start solr"
-    ./script/run_with_carton.sh ./solr/scripts/run_singleton_solr_server.pl > /dev/null&
-    solr_pid=$!
+if ps aux | grep java | grep -- '-Dsolr' | grep start.jar > /dev/null; then
+    echo "Solr is already running (it shouldn't)."
+    exit 1
+fi
 
-    SOLR_IS_UP=0
-    SOLR_START_RETRIES=30
+echo "Starting Solr..."
+./script/run_with_carton.sh ./solr/scripts/run_singleton_solr_server.pl > /dev/null&
+solr_pid=$!
 
-    echo "Waiting $SOLR_START_RETRIES seconds for Solr to start..."
-    for i in `seq 1 $SOLR_START_RETRIES`; do
-        echo "Trying to connect (#$i)..."
-        if nc -z -w 10 127.0.0.1 8983; then
-            echo "Solr is up"
-            SOLR_IS_UP=1
-            break
-        else
-            # Still down
-            sleep 1
-        fi
-    done
+SOLR_IS_UP=0
+SOLR_START_RETRIES=30
 
-    if [ $SOLR_IS_UP = 1 ]; then
-        echo "Solr is up."
+echo "Waiting $SOLR_START_RETRIES seconds for Solr to start..."
+for i in `seq 1 $SOLR_START_RETRIES`; do
+    echo "Trying to connect (#$i)..."
+    if nc -z -w 10 127.0.0.1 8983; then
+        echo "Solr is up"
+        SOLR_IS_UP=1
+        break
     else
-        echo "Solr is down after $SOLR_START_RETRIES seconds, giving up."
-        exit 1
+        # Still down
+        sleep 1
     fi
+done
 
+if [ $SOLR_IS_UP = 1 ]; then
+    echo "Solr is up."
 else
-    echo "Solr must not be running"
-    exit -1
+    echo "Solr is down after $SOLR_START_RETRIES seconds, giving up."
+    exit 1
 fi
 
 TEST_RETURN_STATUS=0
