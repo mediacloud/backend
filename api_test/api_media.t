@@ -355,24 +355,24 @@ sub test_stories_non_public
         }
     ];
 
-    delete $actual_response->[ 0 ]->{ 'description' };
-    delete $actual_response->[ 0 ]->{ 'db_row_last_updated' };
-    delete $expected_response->[ 0 ]->{ 'db_row_last_updated' };
+    # say STDERR "Expected response: " . Dumper( $expected_response );
+    # say STDERR "Actual response: " . Dumper( $actual_response );
 
-    say STDERR "Expected response: " . Dumper( $expected_response );
-    say STDERR "Actual response: " . Dumper( $actual_response );
-
-    for my $sentence_obj ( @{ $actual_response->[ 0 ]->{ 'story_sentences' } } )
+    # Remove volatile values
+    for my $response ( $expected_response, $actual_response )
     {
-        delete $sentence_obj->[ 0 ]->{ 'db_row_last_updated' };
-    }
+        for my $row ( @{ $response } )
+        {
+            delete $row->{ 'description' };
+            delete $row->{ 'db_row_last_updated' };
 
-    for my $sentence_obj ( @{ $expected_response->[ 0 ]->{ 'story_sentences' } } )
-    {
-        delete $sentence_obj->[ 0 ]->{ 'db_row_last_updated' };
-    }
+            for my $sentence ( @{ $row->{ 'story_sentences' } } )
+            {
+                delete $sentence->{ 'db_row_last_updated' };
+            }
 
-    #say STDERR Dumper ( $actual_response );
+        }
+    }
 
     cmp_deeply( $actual_response, $expected_response );
 }
