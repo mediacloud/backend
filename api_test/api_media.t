@@ -80,9 +80,9 @@ sub test_media
 
         ok( $response->is_success, 'Request should succeed' );
 
-        my $resp_object = decode_json( $response->decoded_content() );
+        my $actual_response = decode_json( $response->decoded_content() );
 
-        #say STDERR Dumper( $resp_object );
+        #say STDERR Dumper( $actual_response );
 
         my $expected_response = [
             {
@@ -105,7 +105,7 @@ sub test_media
             }
         ];
 
-        cmp_deeply( $resp_object, $expected_response, "response format mismatch for $url" );
+        cmp_deeply( $actual_response, $expected_response, "response format mismatch for $url" );
 
         foreach my $medium ( @{ $expected_response } )
         {
@@ -130,11 +130,11 @@ sub test_media
                 }
             ];
 
-            my $feed_resp_object = decode_json( $response->decoded_content() );
+            my $feed_actual_response = decode_json( $response->decoded_content() );
 
-            #say STDERR Dumper( $feed_resp_object );
+            #say STDERR Dumper( $feed_actual_response );
 
-            cmp_deeply( $feed_resp_object, $expected_feed, 'response format mismatch for feed' );
+            cmp_deeply( $feed_actual_response, $expected_feed, 'response format mismatch for feed' );
         }
     }
 
@@ -172,9 +172,9 @@ sub test_stories_public
         say STDERR $response->decoded_content();
     }
 
-    my $resp_object = decode_json( $response->decoded_content() );
+    my $actual_response = decode_json( $response->decoded_content() );
 
-    #say STDERR Dumper( $resp_object );
+    #say STDERR Dumper( $actual_response );
 
     my $expected_response = [
         {
@@ -191,7 +191,7 @@ sub test_stories_public
         }
     ];
 
-    cmp_deeply( $resp_object, $expected_response );
+    cmp_deeply( $actual_response, $expected_response );
 }
 
 sub test_stories_non_public
@@ -226,9 +226,9 @@ sub test_stories_non_public
         say STDERR $response->decoded_content();
     }
 
-    my $resp_object = decode_json( $response->decoded_content() );
+    my $actual_response = decode_json( $response->decoded_content() );
 
-    #say STDERR Dumper( $resp_object );
+    #say STDERR Dumper( $actual_response );
 
     my $expected_response = [
         {
@@ -355,23 +355,26 @@ sub test_stories_non_public
         }
     ];
 
-    delete $resp_object->[ 0 ]->{ 'description' };
-    delete $resp_object->[ 0 ]->{ 'db_row_last_updated' };
-    delete $expected_response->[ 0 ]->{ 'db_row_last_updated' };
+    # say STDERR "Expected response: " . Dumper( $expected_response );
+    # say STDERR "Actual response: " . Dumper( $actual_response );
 
-    for my $sentence_obj ( @$resp_object->[ 0 ]->{ 'story_sentences' } )
+    # Remove volatile values
+    for my $response ( $expected_response, $actual_response )
     {
-        delete $sentence_obj->[ 0 ]->{ 'db_row_last_updated' };
+        for my $row ( @{ $response } )
+        {
+            delete $row->{ 'description' };
+            delete $row->{ 'db_row_last_updated' };
+
+            for my $sentence ( @{ $row->{ 'story_sentences' } } )
+            {
+                delete $sentence->{ 'db_row_last_updated' };
+            }
+
+        }
     }
 
-    for my $sentence_obj ( @$expected_response->[ 0 ]->{ 'story_sentences' } )
-    {
-        delete $sentence_obj->[ 0 ]->{ 'db_row_last_updated' };
-    }
-
-    #say STDERR Dumper ( $resp_object );
-
-    cmp_deeply( $resp_object, $expected_response );
+    cmp_deeply( $actual_response, $expected_response );
 }
 
 test_stories_public();
