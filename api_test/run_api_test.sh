@@ -34,13 +34,32 @@ else
     exit -1
 fi
 
-MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION=1 MEDIAWORDS_FORCE_USING_TEST_DATABASE=1 \
-    ./script/run_with_carton.sh ./script/mediawords_import_solr_data.pl --delete
+TEST_RETURN_STATUS=0
 
-MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION=1 MEDIAWORDS_FORCE_USING_TEST_DATABASE=1 \
-    ./script/run_carton.sh exec prove -Ilib/ api_test/api_media.t
+if MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION=1 MEDIAWORDS_FORCE_USING_TEST_DATABASE=1 \
+   ./script/run_with_carton.sh ./script/mediawords_import_solr_data.pl --delete; then
+
+    echo "Importing Solr data succeeded."
+
+    if MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION=1 MEDIAWORDS_FORCE_USING_TEST_DATABASE=1 \
+       ./script/run_carton.sh exec prove -Ilib/ api_test/api_media.t; then
+
+        echo "API test succeeded."
+
+    else
+        TEST_RETURN_STATUS=$?
+        echo "API test failed with status: $TEST_RETURN_STATUS"
+    fi
+
+else
+    TEST_RETURN_STATUS=$?
+    echo "Importing Solr data failed with status: $TEST_RETURN_STATUS"
+fi
+
 
 if [ $solr_pid ]; then
     echo "killing solr pid $solr_pid"
     kill $solr_pid
 fi
+
+exit $TEST_RETURN_STATUS
