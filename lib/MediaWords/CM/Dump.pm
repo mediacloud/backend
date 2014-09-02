@@ -825,7 +825,11 @@ sub layout_gexf
     $cmd .= "$nolayout_path $layout_path";
 
     # print STDERR "$cmd\n";
-    system( $cmd );
+    my $exit_code = system( $cmd );
+    unless ( $exit_code == 0 )
+    {
+        die "Command '$cmd' failed with exit code $exit_code.";
+    }
 
     post_process_gexf( $db, $layout_path );
 
