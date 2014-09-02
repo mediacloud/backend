@@ -49,7 +49,6 @@
   </style>
 <![endif]-->
 
-[% INCLUDE 'include/google_analytics.tt2' %]
   </head>
   <body>
       [% IF c.user %]

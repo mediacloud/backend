@@ -28,7 +28,7 @@ my $_wc_cache_version;
 # Moose instance fields
 
 has 'q'                 => ( is => 'rw', isa => 'Str' );
-has 'fq'                => ( is => 'rw', isa => 'Str' );
+has 'fq'                => ( is => 'rw', isa => 'ArrayRef' );
 has 'num_words'         => ( is => 'rw', isa => 'Int', default => 500 );
 has 'sample_size'       => ( is => 'rw', isa => 'Int', default => 1000 );
 has 'languages'         => ( is => 'rw', isa => 'ArrayRef', default => sub { [ 'en' ] } );
@@ -70,8 +70,6 @@ around BUILDARGS => sub {
     my $orig  = shift;
     my $class = shift;
 
-    # print STDERR "args: " . Dumper( @_ ) . "\n";
-
     my $args;
     if ( ref( $_[ 0 ] ) )
     {
@@ -86,6 +84,7 @@ around BUILDARGS => sub {
         $args = {};
     }
 
+    my $vals;
     if ( $args->{ cgi_params } )
     {
         my $cgi_params = $args->{ cgi_params };
@@ -113,13 +112,15 @@ around BUILDARGS => sub {
           if ( exists( $cgi_params->{ l } ) && !exists( $cgi_params->{ languages } ) );
 
         $vals->{ db } = $args->{ db } if ( $args->{ db } );
-
-        return $class->$orig( $vals );
     }
     else
     {
-        return $class->$orig( @_ );
+        $vals = $args;
     }
+
+    $args->{ fq } = [ $args->{ fq } ] if ( $args->{ fq } && !ref( $args->{ fq } ) );
+
+    return $class->$orig( $vals );
 };
 
 # set any duplicate lines blank.

@@ -301,6 +301,11 @@ sub transform_query
 
     return undef unless ( defined( $q ) );
 
+    if ( ref( $q ) eq 'ARRAY' )
+    {
+        return [ map { transform_query( $_ ) } @{ $q } ];
+    }
+
     my $t = $q;
 
     $t =~ s/(\{\~[^\}]*\})/_transform_clause( $1 )/eg;
