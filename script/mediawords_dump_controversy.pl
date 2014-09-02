@@ -45,6 +45,10 @@ sub main
 
     my $db = MediaWords::DB::connect_to_db();
     my $controversies = MediaWords::CM::require_controversies_by_opt( $db, $controversy_opt );
+    unless ( $controversies )
+    {
+        die "Unable to find controversies for option '$controversy_opt'";
+    }
 
     for my $controversy ( @{ $controversies } )
     {
