@@ -14,23 +14,80 @@ between the controversy mapping system and the rest of the system are that:
 * as the cm parses links to discover new stories, it stores those links in the
   database so that we can use them for link analysis.
 
+How to run a controversy
+------------------------
+
+0. First make sure that you have a solr instance running in supervisord.  Then run
+the following import data into solr from postgres and erify existence of data in solr 
+by searching for a common word on the /search page.
+
+<pre>
+script/run_with_carton.sh script/mediawords_import_solr_data.pl --delete_all
+</pre>
+
+1. Go to http://localhost:3000/admin/cm (replace localhost:3000 with your mc web app).
+
+2. Click on 'create controversy' link on the left of the page.
+
+3. Fill out the controversy form with a solr query and a pattern that will return a
+good number of stories within your database.
+
+4. Check 'preview' and click submit to see a preview of the stories returned by the given
+solr query and pattern.
+
+5. Click the back button. 
+
+6. If there were not enough stories (a few hundred for a viable controversy), go back to step 3.
+
+7. If there were enough stories, uncheck 'preview' and click submit.
+
+8. In a shell, go to your mediacloud directory and run the following, replacing <controversies_id> with the
+id of the newly created controversy (visible in the url of the controversy page after completion of step 7):
+
+<pre>
+script/run_with_carton.sh script/mediawords_mine_controversy.pl --controversy <controversies_id> --direct_job
+</pre>
+
+9. Wait for the controversy spider to complete.  This can take anywhere from an hour or so to several days.  
+If you want it to complete faster, edit mediawords->cm\_spider\_iterations in mediawords.yml to some small 
+number (1 or 2), which will make the spider only spider out that many levels from the seed set.
+
+10. Once the the mine has finished, run the following command and follow the instructions within the script
+to dedup the media discovered during the spidering process:
+
+<pre>
+script/run_with_carton.sh script/mediawords_dedup_controversy_media.pl
+</pre>
+
+11. After all media have been deduped, run the command in step 8 again to make the miner process the stories
+in the media now marked as dups.
+
+12. Run the following to create a dump for the controversy:
+
+<pre>
+script/run_with_carton.sh script/mediawords_dump_controversy.pl --controversy <controversies_id> --direct_job
+</pre>
+
+13. That's it.  You should have a functioning controversy.  Go to the controversy page in step 1 and 
+click on the newly create controversy.
+
 Basic flow of CM
 ----------------
 
-1. Search solr for a set of seed stories;
+1. Search solr for a set of seed stories.
 
-2. Add each seed set story to controversy if it matches the controversy regex;
+2. Add each seed set story to controversy if it matches the controversy regex.
 
-3. Extract and download every link in the matching seed set stories;
+3. Extract and download every link in the matching seed set stories.
 
 4. Add to the controversy each downloaded link that matches the controversy
-   regex;
+   regex.
 
 5. Repeat 3. and 4. until no new controversy links are found or the max number
-   of iterations is reached;
+   of iterations is reached.
 
 6. Dedup stories by duplicate media source, duplication title, or duplicate
-   url;
+   url.
 
 7. Add the `<controversy name>:all` tag to each story in the controversy.
 
