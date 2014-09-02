@@ -12,12 +12,14 @@ use File::Temp;
 use FileHandle;
 use Getopt::Long;
 use XML::Simple;
+use Readonly;
 
 use MediaWords::CM::Model;
 use MediaWords::DBI::Media;
 use MediaWords::Util::CSV;
 use MediaWords::Util::Colors;
 use MediaWords::Util::Config;
+use MediaWords::Util::Paths;
 use MediaWords::Util::SQL;
 use MediaWords::DBI::Activities;
 
@@ -803,8 +805,24 @@ sub layout_gexf
     $fh->print( encode( 'utf8', $nolayout_gexf ) );
     $fh->close();
 
-    my $cmd =
-"java -cp $FindBin::Bin/../java/GephiLayout/build/jar/GephiLayout.jar:$FindBin::Bin/../java/GephiLayout/lib/gephi-toolkit.jar edu.law.harvard.cyber.mediacloud.layout.GephiLayout $nolayout_path $layout_path";
+    Readonly my $PATH_TO_GEPHILAYOUT_DIR     => MediaWords::Util::Paths::mc_root_path() . '/java/GephiLayout/';
+    Readonly my $PATH_TO_GEPHILAYOUT_JAR     => "$PATH_TO_GEPHILAYOUT_DIR/build/jar/GephiLayout.jar";
+    Readonly my $PATH_TO_GEPHILAYOUT_TOOLKIT => "$PATH_TO_GEPHILAYOUT_DIR/lib/gephi-toolkit.jar";
+    unless ( -f $PATH_TO_GEPHILAYOUT_JAR )
+    {
+        die "GephiLayout.jar does not exist at path: $PATH_TO_GEPHILAYOUT_JAR";
+    }
+    unless ( -f $PATH_TO_GEPHILAYOUT_TOOLKIT )
+    {
+        die "gephi-toolkit.jar does not exist at path: $PATH_TO_GEPHILAYOUT_TOOLKIT";
+    }
+
+    my $cmd = "";
+    $cmd .= "java -cp $PATH_TO_GEPHILAYOUT_JAR:$PATH_TO_GEPHILAYOUT_TOOLKIT";
+    $cmd .= " ";
+    $cmd .= "edu.law.harvard.cyber.mediacloud.layout.GephiLayout";
+    $cmd .= " ";
+    $cmd .= "$nolayout_path $layout_path";
 
     # print STDERR "$cmd\n";
     system( $cmd );
