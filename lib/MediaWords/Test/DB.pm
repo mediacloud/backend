@@ -19,7 +19,7 @@ sub _create_test_database
 
     my $test_db_name = 'mediacloud_test_' . time() . '_' . $$;
 
-    print "creating database $test_db_name ...\n";
+    # print "creating database $test_db_name ...\n";
     $base_db->query( "create database $test_db_name" );
 
     $base_db->disconnect();
@@ -27,7 +27,7 @@ sub _create_test_database
     my $test_connect_info = [ MediaWords::DB::connect_info ];
     $test_connect_info->[ 0 ] =~ s/dbname=[a-z0-9_]*/dbname=$test_db_name/i;
 
-    print "connecting to test database: $test_connect_info->[0] ...\n";
+    # print "connecting to test database: $test_connect_info->[0] ...\n";
     my $test_db = DBIx::Simple::MediaWords->connect( @{ $test_connect_info } );
 
     if ( !open( FILE, "$FindBin::Bin/../script/mediawords.sql" ) )
