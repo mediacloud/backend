@@ -2629,7 +2629,7 @@ sub story_stats : Local
     my $q     = $c->req->params->{ q };
 
     my $solr_p = _get_solr_params_for_time_slice_query( $cdts, $q );
-    my $stories_ids = MediaWords::Solr::search_for_stories_ids( $solr_p );
+    my $stories_ids = MediaWords::Solr::search_for_stories_ids( $db, $solr_p );
 
     my $num_stories = scalar( @{ $stories_ids } );
 
