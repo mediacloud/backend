@@ -1344,7 +1344,9 @@ CREATE TABLE authors_stories_queue (
     stories_id int                not null references stories on delete cascade,
     state      authors_stories_queue_type not null
 );
-   
+
+create index authors_stories_queue_story on authors_stories_queue( stories_id );
+       
 create table queries_dashboard_topics_map (
     queries_id              int                 not null references queries on delete cascade,
     dashboard_topics_id     int                 not null references dashboard_topics on delete cascade
@@ -1594,7 +1596,8 @@ create table controversy_seed_urls (
 
 create index controversy_seed_urls_controversy on controversy_seed_urls( controversies_id );
 create index controversy_seed_urls_url on controversy_seed_urls( url );
-    
+create index controversy_seed_urls_story on controversy_seed_urls ( stories_id );
+        
 create table controversy_ignore_redirects (
     controversy_ignore_redirects_id     serial primary key,
     url                                 varchar( 1024 )
@@ -1932,6 +1935,8 @@ CREATE TABLE story_subsets_processed_stories_map (
    story_subsets_id bigint NOT NULL references story_subsets on delete cascade,
    processed_stories_id bigint NOT NULL references processed_stories on delete cascade
 );
+
+create index story_subsets_processed_stories_map_processed_stories_id on story_subsets_processed_stories_map ( processed_stories_id );
 
 create table controversy_query_story_searches_imported_stories_map (
     controversies_id            int not null references controversies on delete cascade,
