@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4469;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4470;
     
 BEGIN
 
@@ -1451,6 +1451,7 @@ create table query_story_searches_stories_map (
 );
 
 create unique index query_story_searches_stories_map_u on query_story_searches_stories_map ( query_story_searches_id, stories_id );
+create index query_story_searches_stories_map_story on query_story_searches_stories_map ( stories_id );
     
 create table story_similarities (
     story_similarities_id   serial primary key,
@@ -1542,7 +1543,8 @@ create table controversy_merged_stories_map (
 );
 
 create index controversy_merged_stories_map_source on controversy_merged_stories_map ( source_stories_id );
-
+create index controversy_merged_stories_map_story on controversy_merged_stories_map ( target_stories_id );
+    
 create table controversy_stories (
     controversy_stories_id          serial primary key,
     controversies_id                int not null references controversies on delete cascade,
@@ -1575,7 +1577,8 @@ alter table controversy_links add constraint controversy_links_controversy_story
 
 create unique index controversy_links_scr on controversy_links ( stories_id, controversies_id, ref_stories_id );
 create index controversy_links_controversy on controversy_links ( controversies_id );
-
+create index controversy_links_ref_story on controversy_links ( ref_stories_id );
+    
 create view controversy_links_cross_media as
   select s.stories_id, sm.name as media_name, r.stories_id as ref_stories_id, rm.name as ref_media_name, cl.url as url, cs.controversies_id, cl.controversy_links_id from media sm, media rm, controversy_links cl, stories s, stories r, controversy_stories cs where cl.ref_stories_id <> cl.stories_id and s.stories_id = cl.stories_id and cl.ref_stories_id = r.stories_id and s.media_id <> r.media_id and sm.media_id = s.media_id and rm.media_id = r.media_id and cs.stories_id = cl.ref_stories_id and cs.controversies_id = cl.controversies_id;
 
