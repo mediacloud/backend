@@ -16,6 +16,8 @@ use Text::CSV_XS;
 
 use MediaWords::DB;
 
+use MediaWords::Solr;
+
 # how many sentences to fetch at a time from the postgres query
 Readonly my $FETCH_BLOCK_SIZE => 10_000;
 
@@ -249,10 +251,11 @@ sub print_csv_to_file
 }
 
 # send a request to MediaWords::Solr::get_solr_url.  return 1
-# on success and 0 on error.
+# on success and 0 on error.  if $staging is true, use the staging
+# collection; otherwise use the live collection.
 sub _solr_request
 {
-    my ( $url ) = @_;
+    my ( $url, $staging ) = @_;
 
     # print STDERR "requesting url: $url ...\n";
 
@@ -264,7 +267,12 @@ sub _solr_request
         return 0;
     }
 
-    my $abs_url = "${ solr_url }${ url }";
+    my $db = MediaWords::DB::connect_to_db;
+
+    my $collection =
+      $staging ? MediaWords::Solr::get_staging_collection( $db ) : MediaWords::Solr::get_live_collection( $db );
+
+    my $abs_url = "${ solr_url }/${ collection }/${ url }";
 
     my $ua = LWP::UserAgent->new;
     $ua->timeout( 86400 * 7 );
@@ -286,7 +294,7 @@ sub _solr_request
 # import a single csv dump file into solr
 sub _import_csv_single_file
 {
-    my ( $file, $delta ) = @_;
+    my ( $file, $delta, $staging ) = @_;
 
     my $abs_file = File::Spec->rel2abs( $file );
 
@@ -295,28 +303,29 @@ sub _import_csv_single_file
     my $overwrite = $delta ? 'overwrite=true' : 'overwrite=false';
 
     my $url =
-"/update/csv?commit=false&stream.file=$abs_file&stream.contentType=text/plain;charset=utf-8&f.media_sets_id.split=true&f.media_sets_id.separator=;&f.tags_id_media.split=true&f.tags_id_media.separator=;&f.tags_id_stories.split=true&f.tags_id_stories.separator=;&f.tags_id_story_sentences.split=true&f.tags_id_story_sentences.separator=;&$overwrite&skip=field_type,id,solr_import_date";
+"update/csv?commit=false&stream.file=$abs_file&stream.contentType=text/plain;charset=utf-8&f.media_sets_id.split=true&f.media_sets_id.separator=;&f.tags_id_media.split=true&f.tags_id_media.separator=;&f.tags_id_stories.split=true&f.tags_id_stories.separator=;&f.tags_id_story_sentences.split=true&f.tags_id_story_sentences.separator=;&$overwrite&skip=field_type,id,solr_import_date";
 
-    return _solr_request( $url );
+    return _solr_request( $url, $staging );
 }
 
 # import csv dump files into solr.  if there are multiple files,
-# import up to 4 at a time.
+# import up to 4 at a time.  If $staging is true, import into the
+# staging collection.
 sub import_csv_files
 {
-    my ( $files, $delta ) = @_;
+    my ( $files, $delta, $staging ) = @_;
 
     my $r;
     if ( @{ $files } == 1 )
     {
-        $r = _import_csv_single_file( $files->[ 0 ], $delta );
+        $r = _import_csv_single_file( $files->[ 0 ], $delta, $staging );
     }
     else
     {
         my $threads = [];
         for my $file ( @{ $files } )
         {
-            push( $threads, threads->create( \&_import_csv_single_file, $file, $delta ) );
+            push( $threads, threads->create( \&_import_csv_single_file, $file, $delta, $staging ) );
         }
 
         $r = 1;
@@ -329,7 +338,7 @@ sub import_csv_files
         return 0;
     }
 
-    return _solr_request( "/update?stream.body=<commit/>" );
+    return _solr_request( "update?stream.body=<commit/>", $staging );
 }
 
 # store in memory the current date according to postgres
@@ -354,7 +363,7 @@ sub save_import_date
 # delete the given stories from solr
 sub delete_stories
 {
-    my ( $stories_ids ) = @_;
+    my ( $stories_ids, $staging ) = @_;
 
     return 1 unless ( $stories_ids && @{ $stories_ids } );
 
@@ -368,7 +377,8 @@ sub delete_stories
         my $chunk_ids = [ ( @{ $stories_ids } )[ $i .. $ceil ] ];
 
         my $chunk_ids_list = join( ' ', @{ $chunk_ids } );
-        my $r = _solr_request( "/update?stream.body=<delete><query>+stories_id:(${ chunk_ids_list })</query></delete>" );
+        my $r =
+          _solr_request( "update?stream.body=<delete><query>+stories_id:(${ chunk_ids_list })</query></delete>", $staging );
 
         return 0 unless $r;
     }
@@ -379,9 +389,11 @@ sub delete_stories
 # delete all stories from solr
 sub delete_all_sentences
 {
+    my ( $staging ) = @_;
+
     print STDERR "deleting all sentences ...\n";
 
-    return _solr_request( "/update?stream.body=<delete><query>*:*</query></delete>" );
+    return _solr_request( "update?stream.body=<delete><query>*:*</query></delete>", $staging );
 }
 
 # get a temp file name to for a delta dump
@@ -422,7 +434,7 @@ END
 # importing
 sub generate_and_import_data
 {
-    my ( $delta, $delete ) = @_;
+    my ( $delta, $delete, $staging ) = @_;
 
     die( "cannot import with delta and delete both true" ) if ( $delta && $delete );
 
@@ -438,16 +450,16 @@ sub generate_and_import_data
     if ( $delta )
     {
         print STDERR "deleting updated stories ...\n";
-        delete_stories( $stories_ids ) || die( "delete stories failed." );
+        delete_stories( $stories_ids, $staging ) || die( "delete stories failed." );
     }
     elsif ( $delete )
     {
         print STDERR "deleting all stories ...\n";
-        delete_all_sentences() || die( "delete all sentences failed." );
+        delete_all_sentences( $staging ) || die( "delete all sentences failed." );
     }
 
     print STDERR "importing dump ...\n";
-    import_csv_files( [ $dump_file ], $delta ) || die( "import failed." );
+    import_csv_files( [ $dump_file ], $delta, $staging ) || die( "import failed." );
 
     save_import_date( $db, $delta );
     delete_stories_from_import_queue( $db, $delta );
@@ -455,7 +467,7 @@ sub generate_and_import_data
     # if we're doing a full import, do a delta to catchup with the data since the start of the import
     if ( !$delta )
     {
-        generate_and_import_data( 1 );
+        generate_and_import_data( 1, 0, $staging );
     }
 
     #unlink( $filename );

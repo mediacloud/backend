@@ -691,79 +691,55 @@ sub is_new
 {
     my ( $dbs, $story ) = @_;
 
-    my $db_story;
-    eval {
-        $db_story = $dbs->query( <<"END", $story->{ guid }, $story->{ media_id } )->hash;
+    my $db_story = $dbs->query( <<"END", $story->{ url }, $story->{ guid }, $story->{ media_id } )->hash;
 SELECT *
     FROM stories
-    WHERE guid = ?
+    WHERE 
+        ( url = ? OR guid = ? )
         AND media_id = ?
 END
-    };
-    die( "query error: $@\n" . Dumper( $story->{ guid }, $story->{ media_id } ) ) if ( $@ );
 
-    $db_story ||= $dbs->query( <<END, $story->{ guid }, $story->{ media_id } )->hash;
-select * from stories where guid = ? and media_id = ?
-END
+    return 0 if ( $db_story );
 
-    if ( !$db_story )
+    return 0 if ( $story->{ title } eq '(no title)' );
+
+    # TODO -- DRL not sure if assuming UTF-8 is a good idea but will experiment with this code from the gsoc_dsheets branch
+    my $title;
+
+    # This unicode decode may not be necessary! XML::Feed appears to at least /sometimes/ return
+    # character strings instead of byte strings. Decoding a character string is an error. This code now
+    # only fails if a non-ASCII byte-string is returned from XML::Feed.
+
+    # very misleadingly named function checks for unicode character string
+    # in perl's internal representation -- not a byte-string that contains UTF-8
+    # data
+
+    if ( Encode::is_utf8( $story->{ title } ) )
     {
-        return 0 if ( $story->{ title } eq '(no title)' );
-
-        my $date = DateTime->from_epoch( epoch => Date::Parse::str2time( $story->{ publish_date } ) );
-
-        my $start_date = $date->subtract( hours => 12 )->iso8601();
-        my $end_date = $date->add( hours => 12 )->iso8601();
-
-      # TODO -- DRL not sure if assuming UTF-8 is a good idea but will experiment with this code from the gsoc_dsheets branch
-        my $title;
-
-        # This unicode decode may not be necessary! XML::Feed appears to at least /sometimes/ return
-        # character strings instead of byte strings. Decoding a character string is an error. This code now
-        # only fails if a non-ASCII byte-string is returned from XML::Feed.
-
-        # very misleadingly named function checks for unicode character string
-        # in perl's internal representation -- not a byte-string that contains UTF-8
-        # data
-
-        if ( Encode::is_utf8( $story->{ title } ) )
-        {
-            $title = $story->{ title };
-        }
-        else
-        {
-
-            # TODO: A utf-8 byte string is only highly likely... we should actually examine the HTTP
-            #   header or the XML pragma so this doesn't explode when given another encoding.
-            $title = decode( 'utf-8', $story->{ title } );
-        }
-
-        #say STDERR "Searching for story by title";
-
-        # we do the goofy "publish_date + interval '1 second'" to force postgres to use the stories_title_hash index
-        $db_story = $dbs->query(
-            <<"EOF",
-            SELECT *
-            FROM stories
-            WHERE md5(title) = md5(?)
-                  AND media_id = ?
-                  AND publish_date + interval '1 second' BETWEEN ?::DATE AND ?::DATE FOR UPDATE
-EOF
-            $title,
-            $story->{ media_id },
-            $start_date,
-            $end_date
-        )->hash;
-    }
-
-    if ( !$db_story )
-    {
-        return 1;
+        $title = $story->{ title };
     }
     else
     {
-        return 0;
+        # TODO: A utf-8 byte string is only highly likely... we should actually examine the HTTP
+        #   header or the XML pragma so this doesn't explode when given another encoding.
+        $title = decode( 'utf-8', $story->{ title } );
     }
+
+    # we do the goofy " + interval '1 second'" to force postgres to use the stories_title_hash index
+    $db_story = $dbs->query( <<END, $title, $story->{ media_id }, $story->{ publish_date } )->hash;
+SELECT 1
+    FROM stories
+    WHERE 
+        md5( title ) = md5( ? ) AND
+        media_id = ? AND
+        date_trunc( 'day', publish_date )  + interval '1 second' = 
+            date_trunc( 'day', ?::date ) + interval '1 second' 
+    FOR UPDATE
+END
+
+    return 0 if ( $db_story );
+
+    return 1;
 }
 
 # re-extract the story for the given download

@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4467;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4470;
     
 BEGIN
 
@@ -908,14 +908,16 @@ alter table downloads add constraint downloads_path
     check ((state = 'success' and path is not null) or 
            (state != 'success'));
 alter table downloads add constraint downloads_feed_id_valid
-      check ((feeds_id is not null) or 
-      ( type = 'spider_blog_home' or type = 'spider_posting' or type = 'spider_rss' or type = 'spider_blog_friends_list' or type = 'archival_only') );
+      check (feeds_id is not null);
 alter table downloads add constraint downloads_story
-    check (((type = 'feed' or type = 'spider_blog_home' or type = 'spider_posting' or type = 'spider_rss' or type = 'spider_blog_friends_list' or type = 'archival_only')
-    and stories_id is null) or (stories_id is not null));
+    check (((type = 'feed') and stories_id is null) or (stories_id is not null));
 
 -- make the query optimizer get enough stats to use the feeds_id index
 alter table downloads alter feeds_id set statistics 1000;
+
+-- Temporary hack so that we don't have to rewrite the entire download to alter the type column
+
+ALTER TABLE downloads add constraint valid_download_type check( type NOT in ( 'spider_blog_home','spider_posting','spider_rss','spider_blog_friends_list','spider_validation_blog_home','spider_validation_rss','archival_only') );
 
 create index downloads_parent on downloads (parent);
 -- create unique index downloads_host_fetching 
@@ -936,8 +938,6 @@ create index downloads_extracted on downloads(extracted, state, type)
 CREATE INDEX downloads_stories_to_be_extracted on downloads (stories_id) where extracted = false AND state = 'success' AND type = 'content';        
 
 CREATE INDEX downloads_extracted_stories on downloads (stories_id) where type='content' and state='success';
-CREATE INDEX downloads_spider_urls on downloads(url) where type = 'spider_blog_home' or type = 'spider_posting' or type = 'spider_rss' or type = 'spider_blog_friends_list';
-CREATE INDEX downloads_spider_download_errors_to_clear on downloads(state,type,error_message) where state='error' and type in ('spider_blog_home','spider_posting','spider_rss','spider_blog_friends_list') and (error_message like '50%' or error_message= 'Download timed out by Fetcher::_timeout_stale_downloads') ;
 CREATE INDEX downloads_state_queued_or_fetching on downloads(state) where state='queued' or state='fetching';
 CREATE INDEX downloads_state_fetching ON downloads(state, downloads_id) where state = 'fetching';
 
@@ -963,8 +963,6 @@ LANGUAGE 'plpgsql' IMMUTABLE;
 CREATE UNIQUE INDEX downloads_for_extractor_trainer on downloads ( downloads_id, feeds_id) where file_status <> 'missing' and type = 'content' and state = 'success';
 
 CREATE INDEX downloads_sites_pending on downloads ( site_from_host( host ) ) where state='pending';
-
-CREATE INDEX downloads_queued_spider ON downloads(downloads_id) where state = 'queued' and  type in  ('spider_blog_home','spider_posting','spider_rss','spider_blog_friends_list','spider_validation_blog_home','spider_validation_rss');
 
 CREATE UNIQUE INDEX downloads_sites_downloads_id_pending ON downloads ( site_from_host(host), downloads_id ) WHERE (state = 'pending');
 
@@ -1346,7 +1344,9 @@ CREATE TABLE authors_stories_queue (
     stories_id int                not null references stories on delete cascade,
     state      authors_stories_queue_type not null
 );
-   
+
+create index authors_stories_queue_story on authors_stories_queue( stories_id );
+       
 create table queries_dashboard_topics_map (
     queries_id              int                 not null references queries on delete cascade,
     dashboard_topics_id     int                 not null references dashboard_topics on delete cascade
@@ -1453,6 +1453,7 @@ create table query_story_searches_stories_map (
 );
 
 create unique index query_story_searches_stories_map_u on query_story_searches_stories_map ( query_story_searches_id, stories_id );
+create index query_story_searches_stories_map_story on query_story_searches_stories_map ( stories_id );
     
 create table story_similarities (
     story_similarities_id   serial primary key,
@@ -1544,7 +1545,8 @@ create table controversy_merged_stories_map (
 );
 
 create index controversy_merged_stories_map_source on controversy_merged_stories_map ( source_stories_id );
-
+create index controversy_merged_stories_map_story on controversy_merged_stories_map ( target_stories_id );
+    
 create table controversy_stories (
     controversy_stories_id          serial primary key,
     controversies_id                int not null references controversies on delete cascade,
@@ -1577,7 +1579,8 @@ alter table controversy_links add constraint controversy_links_controversy_story
 
 create unique index controversy_links_scr on controversy_links ( stories_id, controversies_id, ref_stories_id );
 create index controversy_links_controversy on controversy_links ( controversies_id );
-
+create index controversy_links_ref_story on controversy_links ( ref_stories_id );
+    
 create view controversy_links_cross_media as
   select s.stories_id, sm.name as media_name, r.stories_id as ref_stories_id, rm.name as ref_media_name, cl.url as url, cs.controversies_id, cl.controversy_links_id from media sm, media rm, controversy_links cl, stories s, stories r, controversy_stories cs where cl.ref_stories_id <> cl.stories_id and s.stories_id = cl.stories_id and cl.ref_stories_id = r.stories_id and s.media_id <> r.media_id and sm.media_id = s.media_id and rm.media_id = r.media_id and cs.stories_id = cl.ref_stories_id and cs.controversies_id = cl.controversies_id;
 
@@ -1593,7 +1596,8 @@ create table controversy_seed_urls (
 
 create index controversy_seed_urls_controversy on controversy_seed_urls( controversies_id );
 create index controversy_seed_urls_url on controversy_seed_urls( url );
-    
+create index controversy_seed_urls_story on controversy_seed_urls ( stories_id );
+        
 create table controversy_ignore_redirects (
     controversy_ignore_redirects_id     serial primary key,
     url                                 varchar( 1024 )
@@ -1931,6 +1935,8 @@ CREATE TABLE story_subsets_processed_stories_map (
    story_subsets_id bigint NOT NULL references story_subsets on delete cascade,
    processed_stories_id bigint NOT NULL references processed_stories on delete cascade
 );
+
+create index story_subsets_processed_stories_map_processed_stories_id on story_subsets_processed_stories_map ( processed_stories_id );
 
 create table controversy_query_story_searches_imported_stories_map (
     controversies_id            int not null references controversies on delete cascade,

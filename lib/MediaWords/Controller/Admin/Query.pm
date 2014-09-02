@@ -26,7 +26,7 @@ sub sentences : Local : PathPrefix( '/api' )
 
     my $solr_params = { q => $q, fq => $fq, start => $start, rows => $rows };
 
-    my $json = MediaWords::Solr::query_encoded_json( $solr_params, $c );
+    my $json = MediaWords::Solr::query_encoded_json( $c->dbis, $solr_params, $c );
 
     $c->res->header( 'Content-Length', bytes::length( $json ) );
     $c->res->content_type( 'application/json; charset=UTF-8' );

@@ -231,7 +231,7 @@ sub _get_object_ids
     my $fq = $c->req->params->{ fq } || [];
     $fq = [ $fq ] unless ( ref( $fq ) );
 
-    return MediaWords::Solr::search_for_processed_stories_ids( $q, $fq, $last_id, $rows );
+    return MediaWords::Solr::search_for_processed_stories_ids( $c->dbis, $q, $fq, $last_id, $rows );
 }
 
 sub _fetch_list

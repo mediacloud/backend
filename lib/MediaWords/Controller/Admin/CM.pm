@@ -22,7 +22,11 @@ use MediaWords::Solr::WordCounts;
 
 use constant ROWS_PER_PAGE => 25;
 
+use utf8;
+
 use base 'Catalyst::Controller::HTML::FormFu';
+
+#use Catalyst qw( ConfigLoader Static::Simple Unicode );
 
 sub index : Path : Args(0)
 {
@@ -136,6 +140,16 @@ sub create : Local
 
     $c->stash->{ form }     = $form;
     $c->stash->{ template } = 'cm/create_controversy.tt2';
+
+    # if ( defined ( $c->req->params->{ pattern } ) )
+    # {
+    # 	utf8::encode( $c->req->params->{ pattern } );
+    # }
+
+    # if ( defined ( $c->req->params->{ solr_seed_query } ) )
+    # {
+    # 	utf8::encode( $c->req->params->{ solr_seed_query } );
+    # }
 
     $form->process( $c->request );
 
@@ -1186,9 +1200,21 @@ sub _get_stories_id_search_query
 
     my $stories_clause = "stories_id:(" . join( ' ', @{ $period_stories_ids } ) . ")";
 
-    my $stories_ids = MediaWords::Solr::search_for_stories_ids( { q => $q, fq => $stories_clause } );
+    my $stories_ids = MediaWords::Solr::search_for_stories_ids( $db, { q => $q, fq => $stories_clause } );
 
     return @{ $stories_ids } ? join( ',', @{ $stories_ids } ) : -1;
+}
+
+# get solr params for running a query against solr in the given time slice
+sub _get_solr_params_for_time_slice_query
+{
+    my ( $cdts, $q ) = @_;
+
+    my $params = { fq => "{~ controversy_dump_time_slice:$cdts->{ controversy_dump_time_slices_id } }" };
+
+    $params->{ q } = ( defined( $q ) && $q ne '' ) ? $q : '*:*';
+
+    return $params;
 }
 
 # get the top words used by the given set of stories, sorted by tfidf against all words
@@ -1197,15 +1223,13 @@ sub _get_story_words ($$$$$)
 {
     my ( $db, $controversy, $cdts, $q, $sort_by_count ) = @_;
 
-    my $cdts_clause = "{~ controversy_dump_time_slice:$cdts->{ controversy_dump_time_slices_id } }";
-    my $stories_solr_query = $q ? "$cdts_clause and ( $q )" : $cdts_clause;
-
-    my $stories_ids = MediaWords::Solr::search_for_stories_ids( { q => $stories_solr_query } );
+    my $solr_p = _get_solr_params_for_time_slice_query( $cdts, $q );
+    my $stories_ids = MediaWords::Solr::search_for_stories_ids( $db, $solr_p );
 
     my $num_words = int( log( scalar( @{ $stories_ids } ) + 1 ) * 10 );
     $num_words = ( $num_words < 100 ) ? $num_words : 100;
 
-    my $story_words = MediaWords::Solr::WordCounts->new( q => $stories_solr_query )->get_words;
+    my $story_words = MediaWords::Solr::WordCounts->new( db => $db, %{ $solr_p } )->get_words;
 
     splice( @{ $story_words }, $num_words );
 
@@ -1214,7 +1238,9 @@ sub _get_story_words ($$$$$)
         for my $story_word ( @{ $story_words } )
         {
             my $solr_df_query = "{~ controversy:$controversy->{ controversies_id } }";
-            my $df            = MediaWords::Solr::get_num_found(
+
+            my $df = MediaWords::Solr::get_num_found(
+                $db,
                 {
                     q  => "+sentence:" . $story_word->{ term },
                     fq => $solr_df_query
@@ -1335,7 +1361,7 @@ END
     if ( $c->req->params->{ missing_solr_stories } )
     {
         my $solr_query       = "{! controversy:$controversy->{ controversies_id } }";
-        my $solr_stories_ids = MediaWords::Solr::search_for_stories_ids( { q => $solr_query } );
+        my $solr_stories_ids = MediaWords::Solr::search_for_stories_ids( $db, { q => $solr_query } );
         my $solr_lookup      = {};
         map { $solr_lookup->{ $_ } = 1 } @{ $solr_stories_ids };
         $stories = [ grep { !$solr_lookup->{ $_->{ stories_id } } } @{ $stories } ];
@@ -2598,12 +2624,12 @@ sub story_stats : Local
     my $cdts_id = $c->req->params->{ cdts };
     my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
 
-    my $title            = $c->req->params->{ title };
-    my $live             = $c->req->params->{ l };
-    my $stories_ids      = $c->req->params->{ stories_ids };
-    my $controversies_id = $controversy->{ controversies_id };
+    my $title = $c->req->params->{ title };
+    my $live  = $c->req->params->{ l };
+    my $q     = $c->req->params->{ q };
 
-    $stories_ids = [ $stories_ids ] if ( $stories_ids && !ref( $stories_ids ) );
+    my $solr_p = _get_solr_params_for_time_slice_query( $cdts, $q );
+    my $stories_ids = MediaWords::Solr::search_for_stories_ids( $solr_p );
 
     my $num_stories = scalar( @{ $stories_ids } );
 

@@ -263,7 +263,7 @@ sub _add_pgcrypto_extension($)
 {
     my ( $db ) = @_;
 
-    say STDERR 'Adding "pgcrypto" extension...';
+    # say STDERR 'Adding "pgcrypto" extension...';
 
     # Add "pgcrypto" extension
     my $sql = _pgcrypto_extension_sql( $db );
@@ -318,36 +318,17 @@ sub reset_schema($;$)
 
     my $postgres_version = _postgresql_version( $db );
 
-    # TODO: should check for failure
+    my $old_warn = $db->dbh->{ Warn };
+    $db->dbh->{ Warn } = 0;
+
+    $db->query( "DROP SCHEMA IF EXISTS $schema CASCADE" );
+
+    unless ( $postgres_version =~ /^PostgreSQL 8/ or $postgres_version =~ /^PostgreSQL 9\.0/ )
     {
-        my $old_handler = $SIG{ __WARN__ };
-
-        $SIG{ __WARN__ } = 'IGNORE';
-
-        #sub {
-        # say 'ignoring warning';
-        #};
-
-        no warnings;
-
-        # By default this will complain but the drop cascading to other objects
-        # THis warning is just noise so get rid of it.
-
-        $db->dbh->trace( 0 );
-        say STDERR Dumper( $db->dbh->trace );
-
-        $db->query( "DROP SCHEMA IF EXISTS $schema CASCADE" );
-
-        unless ( $postgres_version =~ /^PostgreSQL 8/ or $postgres_version =~ /^PostgreSQL 9\.0/ )
-        {
-
-            # Assume PostgreSQL 9.1+ ('DROP EXTENSION' is only available+required since that version)
-            $db->query( 'DROP EXTENSION IF EXISTS plpgsql CASCADE' );
-        }
-        $db->query( "DROP LANGUAGE IF EXISTS plpgsql CASCADE" );
-
-        $SIG{ __WARN__ } = $old_handler;
+        # Assume PostgreSQL 9.1+ ('DROP EXTENSION' is only available+required since that version)
+        $db->query( 'DROP EXTENSION IF EXISTS plpgsql CASCADE' );
     }
+    $db->query( "DROP LANGUAGE IF EXISTS plpgsql CASCADE" );
 
     $db->query( "CREATE LANGUAGE plpgsql" );
 
@@ -356,6 +337,8 @@ sub reset_schema($;$)
     {
         $db->query( "CREATE SCHEMA $schema" );
     }
+
+    $db->dbh->{ Warn } = $old_warn;
 
     return undef;
 }
@@ -394,7 +377,7 @@ sub load_sql_file
         # Die on unexpected SQL (e.g. DROP TABLE)
         if (
             not $line =~
-/^NOTICE:|^CREATE|^ALTER|^\SET|^COMMENT|^INSERT|^ enum_add.*|^----------.*|^\s+|^\(\d+ rows?\)|^$|^Time:|^DROP LANGUAGE|^DROP VIEW|^DROP TABLE|^drop cascades to view |^UPDATE \d+|^DROP TRIGGER|^Timing is on\.|^DROP INDEX|^psql.*: NOTICE:|^DELETE/
+/^NOTICE:|^CREATE|^ALTER|^\SET|^COMMENT|^INSERT|^ enum_add.*|^----------.*|^\s+|^\(\d+ rows?\)|^$|^Time:|^DROP LANGUAGE|^DROP VIEW|^DROP TABLE|^drop cascades to view |^UPDATE \d+|^DROP TRIGGER|^Timing is on\.|^DROP INDEX|^psql.*: NOTICE:|^DELETE|^SELECT 0/
           )
         {
 
@@ -418,7 +401,7 @@ sub load_sql_file
     my $port        = $db_settings->{ port };
     my $password    = $db_settings->{ pass } . "\n";
 
-    say "$host $database $username $password ";
+    # say "$host $database $username $password ";
 
     # TODO: potentially brittle, $? should be checked after run3
     # common shell script interface gives indirection to database with no
@@ -427,7 +410,7 @@ sub load_sql_file
 
     # stdout and stderr go to this script's channels. password is passed on stdin
     # so it doesn't appear in the process table
-    say STDERR "loadsql: $script_dir/loadsql.$db_type.sh";
+    # say STDERR "loadsql: $script_dir/loadsql.$db_type.sh";
     run3( [ "$script_dir/loadsql.$db_type.sh", $sql_file, $host, $database, $username, $port ],
         \$password, \&parse_line, \&parse_line );
 
@@ -442,25 +425,26 @@ sub recreate_db
     my $do_not_check_schema_version = 1;
     my $db = MediaWords::DB::connect_to_db( $label, $do_not_check_schema_version );
 
-    say STDERR "reset schema ...";
+    # say STDERR "reset schema ...";
 
     reset_all_schemas( $db );
-    say STDERR "add functions ...";
+
+    # say STDERR "add functions ...";
     MediaWords::Pg::Schema::add_functions( $db );
 
     my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
 
-    say STDERR "script_dir: $script_dir";
+    # say STDERR "script_dir: $script_dir";
 
-    say STDERR "add enum functions ...";
+    # say STDERR "add enum functions ...";
     my $load_dklab_postgresql_enum_result = load_sql_file( $label, "$script_dir/dklab_postgresql_enum_2009-02-26.sql" );
 
     die "Error adding dklab_postgresql_enum procecures" if ( $load_dklab_postgresql_enum_result );
 
-    say STDERR "Adding 'pgcrypto' extension...";
+    # say STDERR "Adding 'pgcrypto' extension...";
     _add_pgcrypto_extension( $db );
 
-    say STDERR "add mediacloud schema ...";
+    # say STDERR "add mediacloud schema ...";
     my $load_sql_file_result = load_sql_file( $label, "$script_dir/mediawords.sql" );
 
     return $load_sql_file_result;
@@ -473,7 +457,8 @@ sub upgrade_db($;$)
     my ( $label, $echo_instead_of_executing ) = @_;
 
     my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
-    say STDERR "script_dir: $script_dir";
+
+    # say STDERR "script_dir: $script_dir";
     my $db;
     {
 
@@ -488,10 +473,11 @@ sub upgrade_db($;$)
     my $current_schema_version = $schema_versions[ 0 ] + 0;
     unless ( $current_schema_version )
     {
-        say STDERR "Invalid current schema version.";
+        # say STDERR "Invalid current schema version.";
         return 0;
     }
-    say STDERR "Current schema version: $current_schema_version";
+
+    # say STDERR "Current schema version: $current_schema_version";
 
     # Target schema version
     open SQLFILE, "$script_dir/mediawords.sql" or die $!;
@@ -504,7 +490,7 @@ sub upgrade_db($;$)
         return 0;
     }
 
-    say STDERR "Target schema version: $target_schema_version";
+    # say STDERR "Target schema version: $target_schema_version";
 
     if ( $current_schema_version == $target_schema_version )
     {
@@ -534,7 +520,7 @@ sub upgrade_db($;$)
     # Install "pgcrypto"
     unless ( _pgcrypto_is_installed( $db ) )
     {
-        say STDERR "Adding 'pgcrypto' extension...";
+        # say STDERR "Adding 'pgcrypto' extension...";
 
         if ( $echo_instead_of_executing )
         {

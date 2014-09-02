@@ -10,6 +10,7 @@ perl:
     #
     #- "5.19"
 addons:
+    postgresql: "9.3"
     hosts:
         - mediacloud.local
 env:
@@ -25,7 +26,6 @@ before_install:
     - gem install travis-artifacts
     # Update package listings (don't upgrade the packages though because it takes too much time)
     - sudo apt-get -y update
-    - sudo apt-get -y remove postgresql-9.1
     # Create + switch to the Media Cloud's Perlbrew library
     - perlbrew lib create mediacloud
     - perlbrew switch @mediacloud
@@ -47,5 +47,5 @@ before_script:
     # Initialize PostgreSQL database
     - MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM=1 ./script/run_with_carton.sh ./script/mediawords_create_db.pl
 script:
-    # Run Media Cloud's test suite
-    - ./script/run_test_suite.sh
+    # Run Media Cloud's test suite, report test coverage to https://coveralls.io/r/berkmancenter/mediacloud
+    - ./script/run_test_suite_for_devel_cover.sh coveralls --destroy-solr

@@ -30,10 +30,7 @@ mkdir -p local/
 # ! Bailing out the installation for /mediacloud/.
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ ExtUtils::MakeMaker~6.92
 
-# Install modules required for offloading huge hashes to a BerkeleyDB database
-# (installing it from cpanfile doesn't seem to work with certain Perl versions)
-./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ DB_File
-./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ DBM_Filter
+# Net::DNS somehow fails to install via Carton
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ Net::DNS
 
 # Sometimes Carton fails with:
