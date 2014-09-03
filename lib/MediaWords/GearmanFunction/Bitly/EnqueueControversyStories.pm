@@ -77,8 +77,14 @@ sub run($;$)
     say STDERR "Fetching controversy's $controversies_id start and end timestamps...";
     my $timestamps = $db->query(
         <<EOF,
-        SELECT EXTRACT(EPOCH FROM MIN( start_date )::timestamp) AS start_timestamp,
-               EXTRACT(EPOCH FROM MAX( end_date )::timestamp) AS end_timestamp
+        SELECT LEAST(
+                   EXTRACT(EPOCH FROM MIN( start_date )::timestamp),
+                   EXTRACT(EPOCH FROM CURRENT_TIMESTAMP AT TIME ZONE 'GMT')
+               )::integer AS start_timestamp,
+               LEAST(
+                   EXTRACT(EPOCH FROM MAX( end_date )::timestamp),
+                   EXTRACT(EPOCH FROM CURRENT_TIMESTAMP AT TIME ZONE 'GMT')
+               )::integer AS end_timestamp
         FROM controversies_with_dates
         WHERE controversies_id = ?
 EOF
