@@ -91,6 +91,11 @@ EOF
     my $start_timestamp = $timestamps->{ start_timestamp };
     my $end_timestamp   = $timestamps->{ end_timestamp };
 
+    if ( $start_timestamp >= $end_timestamp )
+    {
+        die "Start timestamp ($start_timestamp) is bigger or equal to end timestamp ($end_timestamp).";
+    }
+
     say STDERR "Start timestamp: " . DateTime->from_epoch( epoch => $start_timestamp )->ymd();
     say STDERR "End timestamp: " . DateTime->from_epoch( epoch => $end_timestamp )->ymd();
 
