@@ -50,8 +50,8 @@ sub test_story
 
     test_is_new( $db, "$num media_id diff",             1, $story, { media_id => $story->{ media_id } + 1 } );
     test_is_new( $db, "$num url+guid diff, title same", 0, $story, { url      => "diff", guid => "diff" } );
-    test_is_new( $db, "$num title+guid diff, url same", 0, $story, { url      => "diff", title => "diff" } );
-    test_is_new( $db, "$num title+url diff, guid same", 0, $story, { guid     => "diff", title => "diff" } );
+    test_is_new( $db, "$num title+url diff, guid same", 0, $story, { url      => "diff", title => "diff" } );
+    test_is_new( $db, "$num title+guid diff, url same", 1, $story, { guid     => "diff", title => "diff" } );
 
     test_is_new( $db, "$num date +2days", 1, $story, { url => "diff", guid => "diff", publish_date => $plus_two_days } );
     test_is_new( $db, "$num date -2days", 1, $story, { url => "diff", guid => "diff", publish_date => $minus_two_days } );
