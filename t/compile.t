@@ -1,6 +1,8 @@
 use strict;
 use warnings;
 
+# parallell ok
+
 use Test::Strict;
 use Test::NoWarnings;
 
@@ -20,4 +22,4 @@ $Test::Strict::TEST_SKIP     = [
     't/data/crawler_stories/inline_content/3.pl', 't/data/crawler_stories/inline_content/4.pl',
 ];
 
-all_perl_files_ok( 'lib', 'script', 't' );
+all_perl_files_ok( 'script' );
