@@ -32,8 +32,8 @@ sub _compare_similarity_score($$$$$)
     my ( $expected_score, $actual_score );
     my ( $time_before,    $time_after );
 
-    print STDERR "\n\n";
-    print STDERR "Identifier: $identifier\n";
+    # print STDERR "\n\n";
+    # print STDERR "Identifier: $identifier\n";
 
     # Text::Similarity::Overlaps
     $time_before = Time::HiRes::time();
@@ -42,9 +42,10 @@ sub _compare_similarity_score($$$$$)
         $expected_score = $sim->getSimilarityStrings( $text_1, $text_2 );
     }
     $time_after = Time::HiRes::time();
-    print STDERR "Text::Similarity::Overlaps:\n";
-    printf STDERR "\tScore: %2.6f\n", $expected_score;
-    printf STDERR "\tTime: %2.6f\n", ( $time_after - $time_before );
+
+    # print STDERR "Text::Similarity::Overlaps:\n";
+    # printf STDERR "\tScore: %2.6f\n", $expected_score;
+    # printf STDERR "\tTime: %2.6f\n", ( $time_after - $time_before );
 
     # Media Cloud's implementation
     $time_before = Time::HiRes::time();
@@ -54,9 +55,9 @@ sub _compare_similarity_score($$$$$)
     }
     $time_after = Time::HiRes::time();
 
-    print STDERR "MediaWords::Util::Text::get_similarity_score():\n";
-    printf STDERR "\tScore: %2.6f\n", $actual_score;
-    printf STDERR "\tTime: %2.6f\n", ( $time_after - $time_before );
+    # print STDERR "MediaWords::Util::Text::get_similarity_score():\n";
+    # printf STDERR "\tScore: %2.6f\n", $actual_score;
+    # printf STDERR "\tTime: %2.6f\n", ( $time_after - $time_before );
 
     cmp_ok( abs( $expected_score - $actual_score ), '<=', $score_epsilon, "$identifier: core is below the threshold" );
 }
