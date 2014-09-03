@@ -7,7 +7,7 @@ use English '-no_match_vars';
 
 use List::Util;
 
-use Test::More tests => 903;
+use Test::More tests => 183;
 
 BEGIN
 {
@@ -21,7 +21,7 @@ sub main
 {
 
     my $pages = {};
-    for my $i ( 1 .. 50 )
+    for my $i ( 1 .. 10 )
     {
         $pages->{ "/page-$i" }         = { page_num => $i, content  => "page-$i content" };
         $pages->{ "/redirect-$i" }     = { page_num => $i, redirect => "page-$i" };
