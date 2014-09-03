@@ -114,10 +114,7 @@ sub _run_crawler()
 
     $| = 1;
 
-    print "running crawler for one minute ...\n";
     $crawler->crawl();
-
-    print "crawler exiting ...\n";
 }
 
 # get stories from database, including content, text, tags, and sentences
@@ -324,8 +321,6 @@ sub _get_crawler_data_directory()
         say "Bin = '$bin' ";
         $crawler_data_location = "$FindBin::Bin/data/crawler";
     }
-
-    print "crawler data '$crawler_data_location'\n";
 
     return $crawler_data_location;
 }
