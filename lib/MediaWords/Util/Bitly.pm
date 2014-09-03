@@ -263,11 +263,28 @@ sub request($$)
 
     if ( $json->{ status_code } != 200 )
     {
-        # Rate limit exceeded
         if ( $json->{ status_code } == 403 and $json->{ status_txt } eq 'RATE_LIMIT_EXCEEDED' )
         {
             die 'Bit.ly rate limit exceeded. Please wait for a bit and try again.';
 
+        }
+        elsif ( $json->{ status_code } == 500 and $json->{ status_txt } eq 'INVALID_ARG_UNIT_REFERENCE_TS' )
+        {
+
+            my $error_message = '';
+            $error_message .= 'Invalid timestamp ("unit_reference_ts" argument) which is ';
+            if ( defined $params->{ unit_reference_ts } )
+            {
+                $error_message .= $params->{ unit_reference_ts };
+                $error_message .= ' (' . _gmt_date_string_from_timestamp( $params->{ unit_reference_ts } ) . ')';
+            }
+            else
+            {
+                $error_message .= 'undef';
+            }
+            $error_message .= '; request parameters: ' . Dumper( $params );
+
+            die $error_message;
         }
         else
         {
