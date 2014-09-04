@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 #use Test::More;
-use Test::More tests => 14;
+use Test::More tests => 20;
 
 # use MediaWords::Test::DB;
 # use MediaWords::Test::Data;
@@ -138,6 +138,44 @@ sub test_media
         }
     }
 
+}
+
+sub test_tags
+{
+    use Encode;
+    my ( $db ) = @_;
+
+    my $key = 'f66a50230d54afaf18822808aed649f1d6ca72b08fb06d5efb6247afe9fbae52';
+
+    my $urls =
+      [ '/api/v2/tags/single/4', '/api/v2/tags/list/?last_tags_id=3&rows=1', '/api/v2/tags/list?search=independent', ];
+
+    foreach my $base_url ( @{ $urls } )
+    {
+
+        my $url = ( index( $base_url, "?" ) != -1 ) ? "$base_url&key=$key" : "$base_url?key=$key";
+
+        my $response = request( "$url" );
+
+        ok( $response->is_success, 'Request should succeed' );
+
+        my $actual_response = decode_json( $response->decoded_content() );
+
+        my $expected_response = [
+            {
+                "tag_sets_id"     => 2,
+                "show_on_stories" => undef,
+                "label"           => "Independent Group",
+                "tag"             => "Independent Group",
+                "tags_id"         => 4,
+                "show_on_media"   => undef,
+                "description" =>
+"An academic or nonprofit group that is not affiliated with the private sector or government, such as the Electronic Frontier Foundation or the Center for Democracy and Technology)"
+            }
+        ];
+
+        cmp_deeply( $actual_response, $expected_response, "response format mismatch for $url" );
+    }
 }
 
 sub test_stories_public
@@ -379,5 +417,5 @@ sub test_stories_non_public
 
 test_stories_public();
 test_stories_non_public();
+test_tags();
 test_media();
-done_testing();
