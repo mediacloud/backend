@@ -691,11 +691,11 @@ sub is_new
 {
     my ( $dbs, $story ) = @_;
 
-    my $db_story = $dbs->query( <<"END", $story->{ url }, $story->{ guid }, $story->{ media_id } )->hash;
+    my $db_story = $dbs->query( <<"END", $story->{ guid }, $story->{ media_id } )->hash;
 SELECT *
     FROM stories
     WHERE 
-        ( url = ? OR guid = ? )
+        guid = ?
         AND media_id = ?
 END
 

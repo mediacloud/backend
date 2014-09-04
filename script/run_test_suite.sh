@@ -32,4 +32,19 @@ fi
 
 # Run test suite
 cd `dirname $0`/../
-exec ./script/run_carton.sh exec prove -Ilib/ $* `find lib/ script/ t/ -name '*.t'`
+
+TEST_FILES=`find lib/ script/ t/ -name '*.t'` 
+
+# make sure compile is included first so that it runs first as slowest test.
+# include test_crawler.t because we can have one db or server test here and
+# test_crawler.t takes the longest of those to complete
+PARALLEL_TESTS="t/compile.t t/test_crawler.t `egrep -L 'HashServer|LocalServer|Test\:\:DB' $TEST_FILES | grep -v t/compile.t`"
+
+# tests that use the Test::DB or one of [Hash|Local]Server modules are not parallel safe
+SERIAL_TESTS="`egrep -l 'HashServer|LocalServer|Test\:\:DB' $TEST_FILES | grep -v t/test_crawler.t`"
+
+echo "starting tests.  see data/run_test_suite.log for stderr."
+
+./script/run_carton.sh exec prove -j 4 -Ilib/ $* $PARALLEL_TESTS 2> data/run_test_suite.log || exit 1
+
+./script/run_carton.sh exec prove -Ilib/ $* $SERIAL_TESTS 2>> data/run_test_suite.log 

@@ -38,3 +38,11 @@ root/include/data_dumps
 .vagrant
 script/vagrant/vagrant_test_suite.lock
 script/vagrant/temp-vagrant-mediacloud
+
+# run_test_suite.sh log
+data/run_test_suite.log
+
+# solr logs and shards
+solr/mediacloud-shard-*/
+solr/logs
+solr/mediacloud/velocity.log
