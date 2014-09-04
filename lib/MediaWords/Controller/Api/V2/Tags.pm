@@ -56,7 +56,7 @@ sub _fetch_list
     {
         $c->dbis->query( <<END );
 create temporary view tags as
-    select t.tags_id, t.tag_sets_id, t.label, t.description, 
+    select t.tags_id, t.tag_sets_id, t.label, t.description, t.tag, 
         t.show_on_media OR ts.show_on_media show_on_media,
         t.show_on_stories OR ts.show_on_stories show_on_stories
     from tags t
