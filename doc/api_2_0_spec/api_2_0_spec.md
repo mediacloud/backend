@@ -735,7 +735,7 @@ in a Global Voices post).
 
 None.
 
-### Output description
+#### Output description
 
 | Field                 | Description
 |-----------------------|-----------------------------------
@@ -772,7 +772,10 @@ Response:
     "tag": "ap_english_us_top25_20100110",
     "tags_id": 8875027,
     "show_on_media": 1,
-    "description": "Top U.S. mainstream media according Google Ad Planner's measure of unique monthly users."
+    "description": "Top U.S. mainstream media according Google Ad Planner's measure of unique monthly users.",
+    "tag_set_name": "collection",
+    "tag_set_label": "Collection",
+    "tag_set_description": "Curated collections of media sources"
   },
 ]
 ```
