@@ -39,13 +39,13 @@ use MediaWords::Pg::Schema;
 
 sub main
 {
-    my $import = 0;    # script should import the diff directly instead of echoing it out
+    my $import   = 0;       # script should import the diff directly instead of echoing it out
+    my $db_label = undef;
 
-    my Readonly $usage = "Usage: $0 > schema-diff.sql\n   or: $0 --import";
+    my Readonly $usage = "Usage: $0 [ --db_label <label> ] > schema-diff.sql\n   or: $0 [ --db_label <label> ] --import";
 
-    GetOptions( 'import' => \$import ) or die "$usage\n";
+    GetOptions( 'import' => \$import, 'db_label=s' => \$db_label ) or die "$usage\n";
 
-    my $db_label                  = undef;
     my $echo_instead_of_executing = 1;
     if ( !MediaWords::Pg::Schema::upgrade_db( $db_label, ( !$import ) ) )
     {

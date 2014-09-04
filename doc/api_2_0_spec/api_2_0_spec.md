@@ -787,13 +787,20 @@ Response:
 | `last_tags_id`  | 0          | Return tags with a `tags_id` is greater than this value
 | `tag_sets_id`   | none       | Return tags belonging to the given tag set.  The most useful tag set is tag set 5.
 | `rows`          | 20         | Number of tags to return. Cannot be larger than 100
-| `public`        | none       | If public=1, return only public tags (see below )
+| `public`        | none       | If public=1, return only public tags (see below)
+| `search`        | none       | Search for tags by text (see below)
 
 If set to 1, the public parameter will return only tags that are generally useful for public consumption.  Those
 tags are defined as tags for which show_on_media or show_on_stories is set to true for either the tag
 or the tag's parent tag_set.  As described below in tags/single, a public tag can be usefully searched
 using the solr tags_id_media field if show_on_media is true and by the tags_id_stories field if
 show_on_stories is true.
+
+If the search parameter is set, the call will return only tags that match a case insensitive search for
+the given text.  The search includes the tag and label fields of the tags plus the names and label
+fields of the associated tag sets.  So a search for 'politics' will match tags whose tag or
+label field includes 'politics' and also tags belonging to a tag set whose name or label field includes
+'politics'.
 
 #### Example
 
