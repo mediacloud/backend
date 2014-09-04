@@ -737,15 +737,18 @@ None.
 
 ### Output description
 
-| Field               | Description
-|---------------------|-----------------------------------
-| tags_id             | Media Cloud internal tag ID
-| tags\_sets\_id      | Media Cloud internal ID of the parent tag set
-| tag                 | text of tag, often cryptic
-| label               | a short human readable label for the tag
-| description         | a couple of sentences describing the meaning of the tag
-| show\_on\_media     | recommendation to show this tag as an option for searching solr using the tags_id_media
-| show\_on\_stories   | recommendation to show this tag as an option for searching solr using the tags_id_stories
+| Field                 | Description
+|-----------------------|-----------------------------------
+| tags_id               | Media Cloud internal tag ID
+| tags\_sets\_id        | Media Cloud internal ID of the parent tag set
+| tag                   | text of tag, often cryptic
+| label                 | a short human readable label for the tag
+| description           | a couple of sentences describing the meaning of the tag
+| show\_on\_media       | recommendation to show this tag as an option for searching solr using the tags_id_media
+| show\_on\_stories     | recommendation to show this tag as an option for searching solr using the tags_id_stories
+| tag\_set\_name        | name field of associated tag set
+| tag\_set\_label       | label field of associated tag set
+| tag\_set\_description | description field of associated tag set
 
 The show\_on\_media and show\_on\_stories fields are useful for picking out which tags are likely to be useful for
 external researchers.  A tag should be considered useful for searching via tags\_id\_media or tags\_id\_stories
@@ -827,9 +830,6 @@ None.
 | description           | a couple of sentences describing the meaning of the tag
 | show\_on\_media       | recommendation to show this tag as an option for searching solr using the tags_id_media
 | show\_on\_stories     | recommendation to show this tag as an option for searching solr using the tags_id_stories
-| tag\_set\_name        | name field of associated tag set
-| tag\_set\_label       | label field of associated tag set
-| tag\_set\_description | description field of associated tag set
 
 
 The show\_on\_media and show\_on\_stories fields are useful for picking out which tags are likely to be useful for
