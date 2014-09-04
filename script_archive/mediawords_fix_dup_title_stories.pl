@@ -57,6 +57,19 @@ END
     return 0;
 }
 
+sub get_first_stories_id
+{
+    my ( $db, $stories_ids ) = @_;
+
+    my $stories_ids_list = join( ',', @{ $stories_ids } );
+
+    my ( $stories_id ) = $db->query( <<END )->flat;
+select stories_id from stories where stories_id in ( $stories_ids_list ) limit 1
+END
+
+    return $stories_id;
+}
+
 sub fix_dup_story_list
 {
     my ( $db, $dup_story_list ) = @_;
@@ -67,7 +80,9 @@ sub fix_dup_story_list
 
     my $stories_ids_list = join( ',', @{ $stories_ids } );
 
-    if ( my $dup = is_dup_story_list_artifact( $db, $dup_story_list ) )
+    my $first_stories_id = get_first_stories_id( $db, $stories_ids );
+
+    if ( ( my $dup = is_dup_story_list_artifact( $db, $dup_story_list ) ) || !$first_stories_id )
     {
         say STDERR "skipping: $dup";
         delete_dup_story_list( $db, $dup_story_list );
@@ -85,7 +100,7 @@ END
     }
 
     my $keep_stories_id =
-      @{ $controversy_stories_ids } ? $controversy_stories_ids->[ 0 ]->{ stories_id } : $stories_ids->[ 0 ];
+      @{ $controversy_stories_ids } ? $controversy_stories_ids->[ 0 ]->{ stories_id } : $first_stories_id;
 
     $db->query( "delete from story_sentence_counts where first_stories_id in ( $stories_ids_list )" );
     $db->query( "delete from stories where stories_id in ( $stories_ids_list ) and stories_id <> $keep_stories_id" );
@@ -97,7 +112,7 @@ END
 
     delete_dup_story_list( $db, $dup_story_list );
 
-    $db->rollback;
+    $db->commit;
 }
 
 sub main
@@ -107,9 +122,8 @@ sub main
 
     while ( 1 )
     {
-        my $dup_stories = $db->query(
-            "select * from scratch.dup_title_stories where media_id = 6 and date_trunc = '2014-05-23 00:00:00' limit 1000" )
-          ->hashes;
+        my $dup_stories =
+          $db->query( "select * from scratch.dup_title_stories order by date_trunc desc limit 1000" )->hashes;
 
         last unless ( $dup_stories );
 
