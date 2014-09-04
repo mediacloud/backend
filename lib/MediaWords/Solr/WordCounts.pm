@@ -101,7 +101,7 @@ around BUILDARGS => sub {
             $cgi_params->{ languages } = [ split( /[\s,]/, $cgi_params->{ languages } ) ];
         }
 
-        my $vals = {};
+        $vals = {};
         my $keys = get_cgi_param_attributes;
         for my $key ( @{ $keys } )
         {
