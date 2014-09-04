@@ -800,7 +800,8 @@ If the search parameter is set, the call will return only tags that match a case
 the given text.  The search includes the tag and label fields of the tags plus the names and label
 fields of the associated tag sets.  So a search for 'politics' will match tags whose tag or
 label field includes 'politics' and also tags belonging to a tag set whose name or label field includes
-'politics'.
+'politics'.  If the search parameter has less than three characters, an empty result set will be
+returned.
 
 #### Example
 
