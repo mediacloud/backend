@@ -800,7 +800,8 @@ If the search parameter is set, the call will return only tags that match a case
 the given text.  The search includes the tag and label fields of the tags plus the names and label
 fields of the associated tag sets.  So a search for 'politics' will match tags whose tag or
 label field includes 'politics' and also tags belonging to a tag set whose name or label field includes
-'politics'.
+'politics'.  If the search parameter has less than three characters, an empty result set will be
+returned.
 
 #### Example
 
@@ -818,14 +819,18 @@ None.
 
 ### Output description
 
-| Field               | Description
-|---------------------|-----------------------------------
-| tags\_sets\_id      | Media Cloud internal ID of the tag set
-| name                | text of tag set, often cryptic
-| label               | a short human readable label for the tag
-| description         | a couple of sentences describing the meaning of the tag
-| show\_on\_media     | recommendation to show this tag as an option for searching solr using the tags_id_media
-| show\_on\_stories   | recommendation to show this tag as an option for searching solr using the tags_id_stories
+| Field                 | Description
+|-----------------------|-----------------------------------
+| tags\_sets\_id        | Media Cloud internal ID of the tag set
+| name                  | text of tag set, often cryptic
+| label                 | a short human readable label for the tag
+| description           | a couple of sentences describing the meaning of the tag
+| show\_on\_media       | recommendation to show this tag as an option for searching solr using the tags_id_media
+| show\_on\_stories     | recommendation to show this tag as an option for searching solr using the tags_id_stories
+| tag\_set\_name        | name field of associated tag set
+| tag\_set\_label       | label field of associated tag set
+| tag\_set\_description | description field of associated tag set
+
 
 The show\_on\_media and show\_on\_stories fields are useful for picking out which tags are likely to be useful for
 external researchers.  A tag should be considered useful for searching via tags\_id\_media or tags\_id\_stories
