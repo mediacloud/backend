@@ -50,21 +50,20 @@ sub _fetch_list
     my ( $self, $c, $last_id, $table_name, $id_field, $rows ) = @_;
 
     my $public = $c->req->params->{ public } || '';
-    $public = $public eq '1' ? 1 : 0;
 
-    if ( $public )
-    {
-        $c->dbis->query( <<END );
+    my $public_clause =
+      $public eq '1' ? 't.show_on_media or ts.show_on_media or t.show_on_stories or ts.show_on_stories' : '1=1';
+
+    $c->dbis->query( <<END );
 create temporary view tags as
     select t.tags_id, t.tag_sets_id, t.label, t.description, t.tag, 
+        ts.name tag_set_name, ts.label tag_set_label, ts.description tag_set_description,
         t.show_on_media OR ts.show_on_media show_on_media,
         t.show_on_stories OR ts.show_on_stories show_on_stories
     from tags t
         join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
-    where 
-        t.show_on_media or ts.show_on_media or t.show_on_stories or ts.show_on_stories
+    where $public_clause
 END
-    }
 
     return MediaWords::Controller::Api::V2::MC_REST_SimpleObject::_fetch_list( @_ );
 }
