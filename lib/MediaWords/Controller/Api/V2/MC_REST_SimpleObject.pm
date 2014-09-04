@@ -194,7 +194,7 @@ sub list_name_search_field
     return;
 }
 
-sub _get_name_search_clause
+sub get_name_search_clause
 {
     my ( $self, $c ) = @_;
 
@@ -255,7 +255,7 @@ sub _fetch_list
 
     my $list;
 
-    my $name_clause         = $self->_get_name_search_clause( $c );
+    my $name_clause         = $self->get_name_search_clause( $c );
     my $filter_field_clause = $self->_get_filter_field_clause( $c );
 
     my $query =
