@@ -45,6 +45,24 @@ sub list_optional_query_filter_field
     return 'tag_sets_id';
 }
 
+sub single_GET : Local
+{
+    my ( $self, $c, $id ) = @_;
+
+    my $items = $c->dbis->query( <<END, $id )->hashes();
+select t.tags_id, t.tag_sets_id, t.label, t.description, t.tag, 
+        ts.name tag_set_name, ts.label tag_set_label, ts.description tag_set_description,
+        t.show_on_media OR ts.show_on_media show_on_media,
+        t.show_on_stories OR ts.show_on_stories show_on_stories
+    from tags t
+        join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
+    where 
+        t.tags_id = ?
+END
+
+    $self->status_ok( $c, entity => $items );
+}
+
 sub _fetch_list
 {
     my ( $self, $c, $last_id, $table_name, $id_field, $rows ) = @_;

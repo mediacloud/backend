@@ -169,6 +169,10 @@ sub test_tags
                 "tag"             => "Independent Group",
                 "tags_id"         => 4,
                 "show_on_media"   => undef,
+                "tag_set_name"    => 'media_type',
+                "tag_set_label"   => 'Media Type',
+                "tag_set_description" =>
+                  'High level topology for media sources for use across a variety of different topics',
                 "description" =>
 "An academic or nonprofit group that is not affiliated with the private sector or government, such as the Electronic Frontier Foundation or the Center for Democracy and Technology)"
             }
