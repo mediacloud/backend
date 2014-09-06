@@ -158,15 +158,17 @@ class MediaCloud(object):
         return self._queryForJson(self.V2_API_URL+'sentences/count', params)
 
     def wordCount(self, solr_query, solr_filter='', languages='en', num_words=500, sample_size=1000, include_stopwords=False, include_stats=False):
-        return self._queryForJson(self.V2_API_URL+'wc/list',
-                {'q': solr_query,
-                 'fq': solr_filter,
-                 'l': languages,
-                 'num_words': num_words,
-                 'sample_size': sample_size,
-                 'include_stopwords': 1 if include_stopwords is True else 0,
-                 'include_stats': 1 if include_stats is True else 0,
-                })
+        params = {
+            'q': solr_query,
+            'l': languages,
+            'num_words': num_words,
+            'sample_size': sample_size,
+            'include_stopwords': 1 if include_stopwords is True else 0,
+            'include_stats': 1 if include_stats is True else 0,
+        }
+        if len(solr_filter) > 0:
+            params['fq'] = solr_filter
+        return self._queryForJson(self.V2_API_URL+'wc/list', params)
 
     def tag(self, tags_id):
         '''
@@ -174,16 +176,20 @@ class MediaCloud(object):
         '''
         return self._queryForJson(self.V2_API_URL+'tags/single/'+str(tags_id))[0]
 
-    def tagList(self, tag_sets_id, last_tags_id=0, rows=20, public_only=False):
+    def tagList(self, tag_sets_id=None, last_tags_id=0, rows=20, public_only=False, name_like=None):
         '''
         List all the tags in one tag set
         '''
-        return self._queryForJson(self.V2_API_URL+'tags/list',
-            { 'tag_sets_id':tag_sets_id, 
-              'last_tags_id': last_tags_id, 
-              'rows':rows,
-              'public': 1 if public_only is True else 0
-            })
+        params = {
+            'last_tags_id': last_tags_id
+            , 'rows': rows
+            , 'public': 1 if public_only is True else 0
+        }
+        if tag_sets_id is not None:
+            params['tag_sets_id'] = tag_sets_id
+        if name_like is not None:
+            params['search'] = name_like
+        return self._queryForJson(self.V2_API_URL+'tags/list', params)
 
     def tagSet(self, tag_sets_id):
         '''
