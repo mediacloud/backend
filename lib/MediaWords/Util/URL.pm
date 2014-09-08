@@ -364,7 +364,16 @@ sub url_and_data_after_redirects($;$$)
 
         # Check if the returned document contains <meta http-equiv="refresh" />
         $html = $response->decoded_content || '';
-        my $url_after_meta_redirect = meta_refresh_url_from_html( $html, $uri->as_string );
+        my $base_uri = $uri->clone;
+        if ( $uri->as_string !~ /\/$/ )
+        {
+            # In "http://example.com/first/two" URLs, strip the "two" part (but not when it has a trailing slash)
+            my @base_uri_path_segments = $base_uri->path_segments;
+            pop @base_uri_path_segments;
+            $base_uri->path_segments( @base_uri_path_segments );
+        }
+
+        my $url_after_meta_redirect = meta_refresh_url_from_html( $html, $base_uri->as_string );
         if ( $url_after_meta_redirect and $uri->as_string ne $url_after_meta_redirect )
         {
             # say STDERR "URL after <meta /> refresh: $url_after_meta_redirect";
