@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 37;
+use Test::More tests => 38;
 
 BEGIN
 {
@@ -195,6 +195,24 @@ EOF
     $expected_url = 'http://example.com/';
     is( MediaWords::Util::URL::meta_refresh_url_from_html( $html, $base_url ),
         $expected_url, 'Basic XHTML <meta http-equiv="refresh" />' );
+
+    # Basic XHTML sans the seconds part
+    $html = <<EOF;
+        <html>
+        <head>
+            <title>This is a test</title>
+            <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+            <meta http-equiv="refresh" content="url=http://example.com/" />
+        </head>
+        <body>
+            <p>This is a test.</p>
+        </body>
+        </html>
+EOF
+    $base_url     = 'http://example.com/';
+    $expected_url = 'http://example.com/';
+    is( MediaWords::Util::URL::meta_refresh_url_from_html( $html, $base_url ),
+        $expected_url, 'Basic XHTML sans the seconds part' );
 
     # Relative path (base URL with trailing slash)
     $html = <<EOF;
