@@ -140,12 +140,10 @@ END
 
     if ( !$page )
     {
-        print <<END;
-HTTP/1.0 404 Not found
-Content-Type: text/plain
-
-Not found :(
-END
+        print "HTTP/1.0 404 Not found\r\n";
+        print "Content-Type: text/plain\r\n";
+        print "\r\n";
+        print "Not found :(";
         return;
     }
 
@@ -154,26 +152,30 @@ END
     if ( my $redirect = $page->{ redirect } )
     {
         my $enc_redirect = HTML::Entities::encode_entities( $redirect );
-        print <<END
-HTTP/1.0 301 Moved Permanently
-Content-Type: text/html; charset=UTF-8
-Location: $redirect
 
-<html><body>Website was moved to <a href="$enc_redirect">$enc_redirect</a></body></html>
-END
+        print "HTTP/1.0 301 Moved Permanently\r\n";
+        print "Content-Type: text/html; charset=UTF-8\r\n";
+        print "Location: $redirect\r\n";
+        print "\r\n";
+        print '<html><body>Website was moved to <a href="' . $enc_redirect . '">' . $enc_redirect . '</a></body></html>';
+
+        END;
     }
     else
     {
         my $header  = $page->{ header }  || 'Content-Type: text/html; charset=UTF-8';
         my $content = $page->{ content } || "<body><html>Filler content for $path</html><body>";
+
+        if ( $header =~ /\n/ and $header !~ /\r/ )
+        {
+            $header =~ s/\n/\r\n/gs;
+        }
         $content = encode( 'utf-8', $content );
 
-        print <<END;
-HTTP/1.0 200 OK
-$header
-
-$content
-END
+        print "HTTP/1.0 200 OK\r\n";
+        print "$header\r\n";
+        print "\r\n";
+        print "$content";
     }
 }
 
