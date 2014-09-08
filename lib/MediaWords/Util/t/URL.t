@@ -3,7 +3,14 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 38;
+use Test::More tests => 42;
+
+use Readonly;
+use HTTP::HashServer;
+use HTTP::Status qw(:constants);
+use Data::Dumper;
+
+Readonly my $TEST_HTTP_SERVER_PORT => 9998;
 
 BEGIN
 {
@@ -327,6 +334,59 @@ EOF
     is( MediaWords::Util::URL::link_canonical_url_from_html( $html, $base_url ), $expected_url, 'Absolute path' );
 }
 
+sub test_url_and_data_after_redirects_http()
+{
+    Readonly my $TEST_HTTP_SERVER_URL => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
+    my $starting_url = $TEST_HTTP_SERVER_URL . '/first';
+
+    # HTTP redirects
+    my $pages = {
+        '/first'  => { redirect => '/second',                        http_status_code => HTTP_MOVED_PERMANENTLY },
+        '/second' => { redirect => $TEST_HTTP_SERVER_URL . '/third', http_status_code => HTTP_FOUND },
+        '/third'  => { redirect => '/fourth',                        http_status_code => HTTP_SEE_OTHER },
+        '/fourth' => { redirect => $TEST_HTTP_SERVER_URL . '/fifth', http_status_code => HTTP_TEMPORARY_REDIRECT },
+        '/fifth' => 'Seems to be working.'
+    };
+
+    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my ( $url_after_redirects, $data_after_redirects ) =
+      MediaWords::Util::URL::url_and_data_after_redirects( $starting_url );
+
+    $hs->stop();
+
+    is( $url_after_redirects,  $TEST_HTTP_SERVER_URL . '/fifth', 'URL after HTTP redirects' );
+    is( $data_after_redirects, $pages->{ '/fifth' },             'Data after HTTP redirects' );
+}
+
+sub test_url_and_data_after_redirects_html()
+{
+    Readonly my $TEST_HTTP_SERVER_URL => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
+    my $starting_url = $TEST_HTTP_SERVER_URL . '/first';
+    Readonly my $MAX_META_REDIRECTS => 7;    # instead of default 3
+
+    # HTML redirects
+    my $pages = {
+        '/first'  => '<meta http-equiv="refresh" content="0; URL=/second" />',
+        '/second' => '<meta http-equiv="refresh" content="url=third" />',
+        '/third'  => '<META HTTP-EQUIV="REFRESH" CONTENT="10; URL=/fourth" />',
+        '/fourth' => '< meta content="url=fifth" http-equiv="refresh" >',
+        '/fifth'  => 'Seems to be working too.'
+    };
+
+    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my ( $url_after_redirects, $data_after_redirects ) =
+      MediaWords::Util::URL::url_and_data_after_redirects( $starting_url, undef, $MAX_META_REDIRECTS );
+
+    $hs->stop();
+
+    is( $url_after_redirects,  $TEST_HTTP_SERVER_URL . '/fifth', 'URL after HTML redirects' );
+    is( $data_after_redirects, $pages->{ '/fifth' },             'Data after HTML redirects' );
+}
+
 sub main()
 {
     my $builder = Test::More->builder;
@@ -339,6 +399,8 @@ sub main()
     test_get_url_domain();
     test_meta_refresh_url_from_html();
     test_link_canonical_url_from_html();
+    test_url_and_data_after_redirects_http();
+    test_url_and_data_after_redirects_html();
 }
 
 main();
