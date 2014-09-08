@@ -10,6 +10,7 @@ use URI;
 use URI::QueryParam;
 use Regexp::Common qw /URI/;
 use MediaWords::Util::Web;
+use URI::Escape;
 use List::MoreUtils qw/uniq/;
 
 # Returns true if URL is in the "http" ("https") scheme
@@ -336,24 +337,54 @@ sub url_and_data_after_redirects($;$$)
 
         unless ( $response->is_success )
         {
-            warn "Request to " . $uri->as_string . " was unsuccessful: " . $response->status_line;
-            $uri = URI->new( $orig_url )->canonical;
+            my @redirects = $response->redirects();
+            if ( scalar @redirects + 1 >= $max_http_redirect )
+            {
+                my @urls_redirected_to;
+
+                my $error_message = "";
+                $error_message .= "Number of HTTP redirects ($max_http_redirect) exhausted; redirects:\n";
+                foreach my $redirect ( @redirects )
+                {
+                    push( @urls_redirected_to, $redirect->request()->uri()->canonical->as_string );
+                    $error_message .= "* From: " . $redirect->request()->uri()->canonical->as_string . "; ";
+                    $error_message .= "to: " . $redirect->header( 'Location' ) . "\n";
+                }
+
+                say STDERR $error_message;
+
+                # Return the original URL (unless we find a URL being a substring of another URL, see below)
+                $uri = URI->new( $orig_url )->canonical;
+
+                # If one of the URLs that we've been redirected to contains another URLencoded URL, assume
+                # that we're hitting a paywall and the URLencoded URL is the right one
+                @urls_redirected_to = uniq @urls_redirected_to;
+                foreach my $url_redirected_to ( @urls_redirected_to )
+                {
+                    my $encoded_url_redirected_to = uri_escape( $url_redirected_to );
+
+                    if ( my ( $matched_url ) = grep /$encoded_url_redirected_to/, @urls_redirected_to )
+                    {
+
+                        say STDERR
+"Encoded URL $encoded_url_redirected_to is a substring of another URL $matched_url, so I'll assume that $url_redirected_to is the correct one.";
+                        $uri = URI->new( $url_redirected_to )->canonical;
+                        last;
+
+                    }
+                }
+
+            }
+            else
+            {
+                say STDERR "Request to " . $uri->as_string . " was unsuccessful: " . $response->status_line;
+
+                # Return the original URL and give up
+                $uri = URI->new( $orig_url )->canonical;
+            }
+
             last;
         }
-
-        my @redirects = $response->redirects();
-
-        # if ( scalar @redirects )
-        # {
-        #     say STDERR "Redirects:";
-        #     foreach my $redirect ( @redirects )
-        #     {
-        #         say STDERR "* From:";
-        #         say STDERR "    " . $redirect->request()->uri()->canonical;
-        #         say STDERR "  to:";
-        #         say STDERR "    " . $redirect->header( 'Location' );
-        #     }
-        # }
 
         my $new_uri = $response->request()->uri()->canonical;
         unless ( $uri->eq( $new_uri ) )

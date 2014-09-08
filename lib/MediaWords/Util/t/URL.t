@@ -3,11 +3,12 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 42;
+use Test::More tests => 44;
 
 use Readonly;
 use HTTP::HashServer;
 use HTTP::Status qw(:constants);
+use URI::Escape;
 use Data::Dumper;
 
 Readonly my $TEST_HTTP_SERVER_PORT => 9998;
@@ -387,6 +388,51 @@ sub test_url_and_data_after_redirects_html()
     is( $data_after_redirects, $pages->{ '/fifth' },             'Data after HTML redirects' );
 }
 
+sub test_url_and_data_after_redirects_loop()
+{
+    Readonly my $TEST_HTTP_SERVER_URL => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
+    my $starting_url = $TEST_HTTP_SERVER_URL . '/first';
+
+    # "http://127.0.0.1:9998/third?url=http%3A%2F%2F127.0.0.1%2Fsecond"
+    my $third = '/third?url=' . uri_escape( $TEST_HTTP_SERVER_URL . '/second' );
+
+    # HTTP redirects
+    my $pages = {
+
+# e.g. http://rss.nytimes.com/c/34625/f/640350/s/3a08a24a/sc/1/l/0L0Snytimes0N0C20A140C0A50C0A40Cus0Cpolitics0Cobama0Ewhite0Ehouse0Ecorrespondents0Edinner0Bhtml0Dpartner0Frss0Gemc0Frss/story01.htm
+        '/first' => { redirect => '/second', http_status_code => HTTP_SEE_OTHER },
+
+        # e.g. http://www.nytimes.com/2014/05/04/us/politics/obama-white-house-correspondents-dinner.html?partner=rss&emc=rss
+        '/second' => { redirect => $third, http_status_code => HTTP_SEE_OTHER },
+
+# e.g. http://www.nytimes.com/glogin?URI=http%3A%2F%2Fwww.nytimes.com%2F2014%2F05%2F04%2Fus%2Fpolitics%2Fobama-white-house-correspondents-dinner.html%3Fpartner%3Drss%26emc%3Drss
+        '/third' => { redirect => '/second', http_status_code => HTTP_SEE_OTHER }
+    };
+
+    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my ( $url_after_redirects, $data_after_redirects ) =
+      MediaWords::Util::URL::url_and_data_after_redirects( $starting_url );
+
+    $hs->stop();
+
+    is( $url_after_redirects, $TEST_HTTP_SERVER_URL . '/second', 'URL after HTTP redirect loop' );
+}
+
+sub test_url_and_data_after_redirects_nytimes()
+{
+    my $starting_url =
+'http://rss.nytimes.com/c/34625/f/640350/s/3a08a24a/sc/1/l/0L0Snytimes0N0C20A140C0A50C0A40Cus0Cpolitics0Cobama0Ewhite0Ehouse0Ecorrespondents0Edinner0Bhtml0Dpartner0Frss0Gemc0Frss/story01.htm';
+    my $expected_url =
+      'http://www.nytimes.com/2014/05/04/us/politics/obama-white-house-correspondents-dinner.html?partner=rss&emc=rss';
+
+    my ( $url_after_redirects, $data_after_redirects ) =
+      MediaWords::Util::URL::url_and_data_after_redirects( $starting_url );
+
+    is( $url_after_redirects, $expected_url, 'URL after NYTimes redirects' );
+}
+
 sub main()
 {
     my $builder = Test::More->builder;
@@ -401,6 +447,8 @@ sub main()
     test_link_canonical_url_from_html();
     test_url_and_data_after_redirects_http();
     test_url_and_data_after_redirects_html();
+    test_url_and_data_after_redirects_loop();
+    test_url_and_data_after_redirects_nytimes();
 }
 
 main();
