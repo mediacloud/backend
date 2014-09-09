@@ -13,6 +13,7 @@ MC_LOCALE_LANG_VARIANT="UTF-8"
 
 
 # Exit on error
+set -e
 set -u
 set -o errexit
 
