@@ -58,10 +58,6 @@ sub _generate_media_stats
 insert into media_stats ( 
     num_stories, 
     num_sentences, 
-    mean_num_sentences, 
-    num_stories_with_sentences, 
-    mean_text_length, 
-    num_stories_with_text, 
     media_id, 
     stat_date )
     
@@ -71,10 +67,6 @@ with media_stats_stories as (
 select 
         count(*) num_stories, 
         sum( coalesce( ss_ag.num_sentences, 0 ) ) num_sentences, 
-        avg( coalesce( ss_ag.num_sentences, 0 ) )::int mean_num_sentences,
-        sum( case when ss_ag.num_sentences > 0 then 1 else 0 end ) num_stories_with_sentences,
-        avg( coalesce( dt_ag.text_length, 0 ) )::int mean_text_length,
-        sum( case when dt_ag.text_length > 0 then 1 else 0 end ) num_stories_with_text,
         m.media_id,
         date_trunc( 'day', s.publish_date ) stat_date
         
@@ -86,12 +78,6 @@ select
                 from story_sentences ss 
                 where date_trunc( 'day', publish_date ) = $1
                 group by ss.stories_id ) ss_ag on ( s.stories_id = ss_ag.stories_id ) 
-
-        left join 
-            ( select mss.stories_id, sum( dt.download_text_length ) text_length
-                from media_stats_stories mss
-                    join download_texts dt on ( mss.downloads_id = dt.downloads_id )
-                group by mss.stories_id ) dt_ag on ( s.stories_id = dt_ag.stories_id ) 
 
     group by m.media_id, date_trunc( 'day', publish_date ) 
     order by m.media_id;

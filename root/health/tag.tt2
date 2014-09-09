@@ -6,9 +6,7 @@
         <th>Media Source</th>
         <th>URL</th>
         <th>Stories</th>
-        <th>w Text</th>
-        <th>w Sentences</th>
-        <th>Num Sentences</th>
+        <th>Sentences</th>
         <th>Feeds</th>
     </tr>
     
@@ -18,8 +16,6 @@
             <td><a href="[% c.uri_for( '/admin/health/medium/' _ medium.media_id ) %]">[% medium.name | html %]</a></td>
             <td><a href="[% medium.url | html %]">[% medium.url.substr( 0, 32 ) | html %]</a></td>
             <td>[% medium.num_stories %]</td>
-            <td>[% medium.num_stories_with_text %]</td>
-            <td>[% medium.num_stories_with_sentences %]</td>
             <td>[% medium.num_sentences %]</td>
             <td><a href="[% c.uri_for( '/admin/feeds/list/' _ medium.media_id ) %]">feeds</a></td>
         </tr>

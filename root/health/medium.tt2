@@ -5,9 +5,7 @@
     <tr>
         <th>Date</th>
         <th>Stories</th>
-        <th>w Text</th>
-        <th>w Sentences</th>
-        <th>Num Sentences</th>
+        <th>Sentences</th>
     </tr>
     
     [% FOREACH ms IN medium.media_stats -%]
@@ -15,8 +13,6 @@
         <tr [% IF even %]class="even"[% END %]>
             <td><a href="[% c.uri_for( '/admin/health/stories/' _ medium.media_id, { date => ms.stat_date } ) %]">[% ms.stat_date | html %]</a></td>
             <td>[% ms.num_stories %]</td>
-            <td>[% ms.num_stories_with_text %]</td>
-            <td>[% ms.num_stories_with_sentences %]</td>
             <td>[% ms.num_sentences %]</td>
         </tr>
 

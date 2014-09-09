@@ -24,8 +24,7 @@ sub index : Path : Args(0)
 
 # get the status of the given period by checking whether period $i
 # is less than 10% (red) or 50% (yellow) of any subsequent period
-# for any of num_stories, num_sentences, num_stories_with_text, or
-# num_stories_with_sentences
+# for any of num_stories or num_sentences
 sub _get_health_status
 {
     my ( $stats, $i ) = @_;
@@ -36,7 +35,7 @@ sub _get_health_status
     for ( my $j = $i + 1 ; $j < @{ $stats } ; $j++ )
     {
         my $b = $stats->[ $j ];
-        for my $k ( qw/num_stories num_sentences num_stories_with_text num_stories_with_sentences/ )
+        for my $k ( qw/num_stories num_sentences/ )
         {
             next unless ( $b->{ $k } );
 
@@ -74,7 +73,7 @@ END
     {
         push( @{ $medium->{ media_stats } }, $ms );
 
-        my $fields = [ qw/num_stories num_sentences num_stories_with_sentences num_stories_with_text/ ];
+        my $fields = [ qw/num_stories num_sentences/ ];
         map { $medium->{ $_ } += $ms->{ $_ } || 0 } @{ $fields };
     }
 
@@ -88,8 +87,8 @@ END
 }
 
 # assign aggregate health data about the media sources associated with the tag.
-# assigns the following fields to the tag: media, num_stories, num_sentences, num_stories_with_sentences,
-# num_stories_with_text, num_media, num_healthy_media, percent_health_media
+# assigns the following fields to the tag: media, num_stories, num_sentences,
+# num_media, num_healthy_media, percent_health_media
 sub _assign_health_data_to_tag
 {
     my ( $db, $tag ) = @_;
@@ -110,9 +109,7 @@ latest_media_dates as (
 aggregated_media_stats as (
     select m.*,
             sum( ms.num_stories ) num_stories,
-            sum( ms.num_sentences ) num_sentences,
-            sum( ms.num_stories_with_sentences ) num_stories_with_sentences,
-            sum( ms.num_stories_with_text ) num_stories_with_text
+            sum( ms.num_sentences ) num_sentences
         from media m 
             join media_stats ms on ( m.media_id = ms.media_id )
             join latest_media_dates lmd on ( m.media_id = lmd.media_id )
@@ -135,7 +132,7 @@ END
         #
         # _assign_health_data_to_medium( $db, $medium );
 
-        my $fields = [ qw/num_stories num_sentences num_stories_with_sentences num_stories_with_text/ ];
+        my $fields = [ qw/num_stories num_sentences/ ];
         map { $tag->{ $_ } += $medium->{ $_ } || 0 } @{ $fields };
     }
 
@@ -212,9 +209,7 @@ select t.*, s.*,
                 mtm.tags_id,
                 count( distinct mtm.media_id ) num_media,
                 sum( ms.num_stories ) * $sample_factor num_stories,
-                sum( ms.num_stories_with_text ) * $sample_factor num_stories_with_text,
-                sum( ms.num_sentences ) * $sample_factor num_sentences,
-                sum( ms.num_stories_with_sentences ) * $sample_factor num_stories_with_sentences
+                sum( ms.num_sentences ) * $sample_factor num_sentences
             from 
                 media_tags_map mtm
                     left join media_stats ms on ( ms.media_id = mtm.media_id )
