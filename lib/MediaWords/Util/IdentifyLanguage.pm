@@ -297,8 +297,13 @@ use Readonly;
         # Treat relative URLs as absolute URLs with missing http://.
         $url = "http://$url" if $url !~ /^\w+:/;
 
-        my $host = URI->new( $url )->host();
-        $host =~ s/\.\z//;    # D::PS doesn't handle "domain.com.".
+        my $host;
+
+        eval {
+            $host = URI->new( $url )->host();
+            $host =~ s/\.\z//;    # D::PS doesn't handle "domain.com.".
+        };
+        return '' if ( $@ );
 
         if ( !$dps->get_root_domain( $host ) )
         {
