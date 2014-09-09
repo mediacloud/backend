@@ -207,6 +207,7 @@ sub create_test_story_stack
     my $media = {};
     while ( my ( $medium_label, $feeds ) = each( %{ $data } ) )
     {
+        die( "$medium_label medium label already used in story stack" ) if ( $media->{ $medium_label } );
         my $medium = create_test_medium( $db, $medium_label );
         $media->{ $medium_label } = $medium;
 
@@ -214,6 +215,7 @@ sub create_test_story_stack
 
         while ( my ( $feed_label, $story_labels ) = each( %{ $feeds } ) )
         {
+            die( "$feed_label feed label already used in story stack" ) if ( $media->{ $feed_label } );
             my $feed = create_test_feed( $db, $feed_label, $medium );
             $medium->{ feeds }->{ $feed_label } = $feed;
             $media->{ $feed_label } = $feed;
@@ -222,6 +224,7 @@ sub create_test_story_stack
 
             for my $story_label ( @{ $story_labels } )
             {
+                die( "$story_label story label already used in story stack" ) if ( $media->{ $story_label } );
                 my $story = create_test_story( $db, $story_label, $feed );
                 $feed->{ stories }->{ $story_label } = $story;
                 $media->{ $story_label } = $story;
