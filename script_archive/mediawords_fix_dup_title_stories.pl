@@ -96,6 +96,9 @@ END
     if ( @{ $controversy_stories_ids } > 1 )
     {
         warn( "more than one distinct story in a controversy: " . Dumper( $dup_story_list ) );
+        $db->query( <<END, $dup_story_list->{ dup_title_stories_id } );
+update scratch.dup_title_stories set skip='t' where dup_title_stories_id = ?
+END
         return;
     }
 
@@ -122,8 +125,9 @@ sub main
 
     while ( 1 )
     {
-        my $dup_stories =
-          $db->query( "select * from scratch.dup_title_stories order by date_trunc desc limit 1000" )->hashes;
+        my $dup_stories = $db->query( <<END )->hashes;
+select * from scratch.dup_title_stories where not ( skip = 't' ) order by date_trunc desc limit 1000
+END
 
         last unless ( $dup_stories );
 
