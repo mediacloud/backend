@@ -50,6 +50,12 @@ begin
     IF ( new_date <> old_date ) THEN
         update media_stats set num_stories = num_stories - 1
             where media_id = NEW.media_id and stat_date = old_date;
+            
+        insert into media_stats ( media_id, num_stories, num_sentences, stat_date )
+            select NEW.media_id, 0, 0, date_trunc( 'day', NEW.publish_date )
+                where not exists (
+                    select 1 from media_stats where media_id = NEW.media_id and stat_date = date_trunc( 'day', NEW.publish_date ) );
+            
         update media_stats set num_stories = num_stories + 1
             where media_id = NEW.media_id and stat_date = new_date;
     END IF;
@@ -98,9 +104,9 @@ begin
     select date_trunc( 'day', OLD.publish_date ) into old_date;
     
     IF ( new_date <> old_date ) THEN
-        update media_stats set num_story_sentences = num_story_sentences - 1
+        update media_stats set num_sentences = num_sentences - 1
             where media_id = NEW.media_id and stat_date = old_date;
-        update media_stats set num_story_sentences = num_story_sentences + 1
+        update media_stats set num_sentences = num_sentences + 1
             where media_id = NEW.media_id and stat_date = new_date;
     END IF;
 
@@ -114,7 +120,7 @@ create trigger ss_update_story_media_stats after update
 create function delete_ss_media_stats() returns trigger as $$
 begin
     
-    update media_stats set num_story_sentences = num_story_sentences - 1
+    update media_stats set num_sentences = num_sentences - 1
     where media_id = OLD.media_id and stat_date = date_trunc( 'day', OLD.publish_date );
 
     return NEW;
