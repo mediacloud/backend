@@ -49,3 +49,9 @@ before_script:
 script:
     # Run Media Cloud's test suite, report test coverage to https://coveralls.io/r/berkmancenter/mediacloud
     - ./script/run_test_suite_for_devel_cover.sh coveralls --destroy-solr
+after_failure:
+    # Print out the test log
+    - echo
+    - echo "Unit test(s) have failed; here's the full log:"
+    - echo
+    - cat data/run_test_suite.log
