@@ -12,11 +12,9 @@ use HTML::Entities;
 
 use MediaWords::Util::HTML;
 use MediaWords::Util::Web;
-use MediaWords::Tagger;
 use MediaWords::Util::Config;
 use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
-use MediaWords::DBI::StoriesTagsMapMediaSubtables;
 use MediaWords::DBI::Downloads;
 use MediaWords::Languages::Language;
 use MediaWords::StoryVectors;
@@ -329,6 +327,9 @@ EOF
 
     $db->dbh->pg_endcopy();
 
+    # lazy load for performance
+    require MediaWords::DBI::StoriesTagsMapMediaSubtables;
+
     my $media_id = $story->{ media_id };
     my $subtable_name =
       MediaWords::DBI::StoriesTagsMapMediaSubtables::get_or_create_sub_table_name_for_media_id( $media_id );
@@ -370,6 +371,8 @@ sub add_default_tags
 
     my $default_tag_modules = [ split( /[,\s+]/, $default_tag_modules_list ) ];
 
+    # lazy load because this functionality is rarely run
+    require MediaWords::Tagger;
     my $module_tags = MediaWords::Tagger::get_tags_for_modules( $text, $default_tag_modules );
 
     for my $module ( keys( %{ $module_tags } ) )

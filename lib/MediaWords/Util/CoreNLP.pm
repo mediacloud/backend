@@ -9,7 +9,6 @@ use MediaWords::CommonLibs;
 
 use MediaWords::Util::Config;
 use MediaWords::Util::Web;
-use MediaWords::KeyValueStore::GridFS;
 use MediaWords::Util::Text;
 use HTTP::Request;
 use HTTP::Status qw(:constants);
@@ -110,6 +109,8 @@ my $_corenlp_annotator_level = lazy
 # b) each Gearman worker is a separate process so there shouldn't be any resource clashes.
 my $_gridfs_store = lazy
 {
+    # this is a very expensive module to load, so lazy load it
+    require MediaWords::KeyValueStore::GridFS;
 
     unless ( annotator_is_enabled() )
     {

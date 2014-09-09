@@ -20,7 +20,6 @@ use Lingua::Stem::Snowball;
 use Lingua::StopWords;
 use Lingua::Sentence;
 use Locale::Country::Multilingual { use_io_layer => 1 };
-use MediaWords::Util::IdentifyLanguage;    # to check if the language can be identified
 
 use File::Basename ();
 use Cwd            ();
@@ -168,34 +167,45 @@ has 'cached_long_stop_word_stems'  => ( is => 'rw', default => 0 );
 has 'cached_noise_strings_regex' => ( is => 'rw', default => 0 );
 
 # Instances of each of the enabled languages (e.g. MediaWords::Languages::en, MediaWords::Languages::lt, ...)
-my %_lang_instances;
+my $_lang_instances;
 
-# Load enabled language modules
-foreach my $language_to_load ( @_enabled_languages )
+sub _get_lang_instances
 {
+    return $_lang_instances if ( $_lang_instances );
 
-    # Check if the language is supported by the language identifier
-    unless ( MediaWords::Util::IdentifyLanguage::language_is_supported( $language_to_load ) )
+    # lazy load this here because this is very slow to load
+    require MediaWords::Util::IdentifyLanguage;    # to check if the language can be identified
+
+    # Load enabled language modules
+    foreach my $language_to_load ( @_enabled_languages )
     {
-        die(
-            "Language module '$language_to_load' is enabled but the language is not supported by the language identifier." );
+
+        # Check if the language is supported by the language identifier
+        unless ( MediaWords::Util::IdentifyLanguage::language_is_supported( $language_to_load ) )
+        {
+            die(
+"Language module '$language_to_load' is enabled but the language is not supported by the language identifier."
+            );
+        }
+
+        # Load module
+        my $module = 'MediaWords::Languages::' . $language_to_load;
+        eval {
+            ( my $file = $module ) =~ s|::|/|g;
+            require $file . '.pm';
+            $module->import();
+            1;
+        } or do
+        {
+            my $error = $@;
+            die( "Error while loading module for language '$language_to_load': $error" );
+        };
+
+        # Initialize an instance of the particular language module
+        $_lang_instances->{ $language_to_load } = $module->new();
     }
 
-    # Load module
-    my $module = 'MediaWords::Languages::' . $language_to_load;
-    eval {
-        ( my $file = $module ) =~ s|::|/|g;
-        require $file . '.pm';
-        $module->import();
-        1;
-    } or do
-    {
-        my $error = $@;
-        die( "Error while loading module for language '$language_to_load': $error" );
-    };
-
-    # Initialize an instance of the particular language module
-    $_lang_instances{ $language_to_load } = $module->new();
+    return $_lang_instances;
 }
 
 # (static) Returns 1 if language is enabled, 0 if not
@@ -203,7 +213,7 @@ sub language_is_enabled($)
 {
     my $language_code = shift;
 
-    if ( exists $_lang_instances{ $language_code } )
+    if ( exists _get_lang_instances->{ $language_code } )
     {
         return 1;
     }
@@ -223,7 +233,7 @@ sub language_for_code($)
         return 0;
     }
 
-    return $_lang_instances{ $language_code };
+    return _get_lang_instances->{ $language_code };
 }
 
 # (static) Returns default language module instance (English)

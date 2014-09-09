@@ -33,7 +33,7 @@ sub test_import
             B => [ 1, 2, 3 ],
             C => [ 4, 5, 6 ]
         },
-        D => { E => [ 6, 7, 8 ] }
+        D => { E => [ 7, 8, 9 ] }
     };
 
     my $media = MediaWords::Test::DB::create_test_story_stack( $db, $data );

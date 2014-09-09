@@ -13,13 +13,6 @@ use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
 use MediaWords::StoryVectors;
 use MediaWords::Util::Paths;
-use MediaWords::KeyValueStore::AmazonS3;
-use MediaWords::KeyValueStore::DatabaseInline;
-use MediaWords::KeyValueStore::GridFS;
-use MediaWords::KeyValueStore::LocalFile;
-use MediaWords::KeyValueStore::PostgreSQL;
-use MediaWords::KeyValueStore::Remote;
-use MediaWords::KeyValueStore::Tar;
 use Carp;
 use MediaWords::Util::ExtractorFactory;
 use MediaWords::Util::HeuristicExtractor;
@@ -35,8 +28,20 @@ my $_download_store_lookup;
 my $_config;
 
 # Constructor
-BEGIN
+sub _get_download_store_lookup
 {
+    return $_download_store_lookup if ( $_download_store_lookup );
+
+    # lazy load these modules because some of them are very expensive to load
+    # and are tangentially loaded by indirect module dependency
+    require MediaWords::KeyValueStore::AmazonS3;
+    require MediaWords::KeyValueStore::DatabaseInline;
+    require MediaWords::KeyValueStore::GridFS;
+    require MediaWords::KeyValueStore::LocalFile;
+    require MediaWords::KeyValueStore::PostgreSQL;
+    require MediaWords::KeyValueStore::Remote;
+    require MediaWords::KeyValueStore::Tar;
+
     $_download_store_lookup = {
 
         # downloads.path is prefixed with "content:";
@@ -155,32 +160,36 @@ BEGIN
 
     $_download_store_lookup->{ tar } =
       MediaWords::KeyValueStore::Tar->new( { data_content_dir => MediaWords::Util::Paths::get_data_content_dir } );
+
+    return $_download_store_lookup;
 }
 
 # Returns arrayref of stores for writing new downloads to
 sub _download_stores_for_writing($)
 {
+    my $download_store_lookup = _get_download_store_lookup;
+
     my $content_ref = shift;
 
     my $stores = [];
 
     if ( length( $$content_ref ) < INLINE_CONTENT_LENGTH )
     {
-        unless ( $_download_store_lookup->{ databaseinline } )
+        unless ( $download_store_lookup->{ databaseinline } )
         {
             die "DatabaseInline store is not initialized, although it is required by _download_stores_for_writing().\n";
         }
 
         # Inline
         #say STDERR "Will store inline.";
-        push( @{ $stores }, $_download_store_lookup->{ databaseinline } );
+        push( @{ $stores }, $download_store_lookup->{ databaseinline } );
     }
     else
     {
         my $download_storage_locations = $_config->{ mediawords }->{ download_storage_locations };
         foreach my $download_storage_location ( @{ $download_storage_locations } )
         {
-            my $store = $_download_store_lookup->{ lc( $download_storage_location ) }
+            my $store = $download_store_lookup->{ lc( $download_storage_location ) }
               || die "config value mediawords.download_storage_location '$download_storage_location' is not valid.";
 
             push( @{ $stores }, $store );
@@ -218,10 +227,12 @@ sub _download_store_for_reading($)
 {
     my $download = shift;
 
+    my $download_store_lookup = _get_download_store_lookup;
+
     my $fetch_remote = $_config->{ mediawords }->{ fetch_remote_content } || 'no';
     if ( $fetch_remote eq 'yes' )
     {
-        return $_download_store_lookup->{ remote };
+        return $download_store_lookup->{ remote };
     }
 
     my $path = $download->{ path };
@@ -235,15 +246,15 @@ sub _download_store_for_reading($)
 
     if ( $location eq 'content' )
     {
-        return $_download_store_lookup->{ databaseinline };
+        return $download_store_lookup->{ databaseinline };
     }
 
     if ( _override_store_with_gridfs( $location ) )
     {
-        return $_download_store_lookup->{ gridfs };
+        return $download_store_lookup->{ gridfs };
     }
 
-    my $store = $_download_store_lookup->{ lc( $1 ) };
+    my $store = $download_store_lookup->{ lc( $1 ) };
     if ( $store )
     {
         return $store;
@@ -251,10 +262,10 @@ sub _download_store_for_reading($)
 
     if ( _override_store_with_gridfs( 'localfile' ) )
     {
-        return $_download_store_lookup->{ gridfs };
+        return $download_store_lookup->{ gridfs };
     }
 
-    return $_download_store_lookup->{ localfile };
+    return $download_store_lookup->{ localfile };
 }
 
 # fetch the content for the given download as a content_ref

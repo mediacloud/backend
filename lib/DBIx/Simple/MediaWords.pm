@@ -13,7 +13,6 @@ use MediaWords::CommonLibs;
 use MediaWords::Util::Config;
 use MediaWords::Util::SchemaVersion;
 use MediaWords::DB;
-use MediaWords::DBI::Activities;
 
 use Carp;
 use Data::Page;
@@ -417,6 +416,8 @@ sub update_by_id_and_log($$$$$$$$)
         $self->dbh->rollback;
         die $@;
     }
+
+    require MediaWords::DBI::Activities;
 
     # Update succeeded, write the activity log
     unless ( MediaWords::DBI::Activities::log_activities( $self, $activity_name, $username, $id, $reason, \@changes ) )
