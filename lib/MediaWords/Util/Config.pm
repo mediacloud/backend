@@ -15,8 +15,9 @@ use MediaWords::CommonLibs;
 use strict;
 
 use Carp;
-use Dir::Self;
 use Config::Any;
+use Dir::Self;
+use Exporter 'import';
 use Hash::Merge;
 
 # cache config object so that it remains the same from call to call
@@ -25,6 +26,8 @@ my $_config;
 # base dir
 my $MC_ROOT_DIR;
 my $_base_dir = __DIR__ . '/../../..';
+
+our @EXPORT_OK = qw(get_config);
 
 BEGIN
 {
