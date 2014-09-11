@@ -9,7 +9,9 @@ use warnings;
 
 use Data::Dumper;
 use Encode;
+use FileHandle;
 use LWP::UserAgent;
+use List::MoreUtils;
 use List::Util;
 use Readonly;
 use Text::CSV_XS;
@@ -27,10 +29,11 @@ Readonly my $MAX_MEDIA_STORIES => 100_000;
 # mark date before generating dump for storing in solr_imports after successful import
 my $_import_date;
 
-# run a postgres query and generate a table that lookups on the first column by the second column
-sub _get_lookup
+# run a postgres query and generate a table that lookups on the first column by the second column.
+# assign that lookup to $data_lookup->{ $name }.
+sub _set_lookup
 {
-    my ( $db, $query ) = @_;
+    my ( $db, $data_lookup, $name, $query ) = @_;
 
     my $rows = $db->query( $query )->arrays;
 
@@ -40,7 +43,7 @@ sub _get_lookup
         $lookup->{ $row->[ 1 ] } = $row->[ 0 ];
     }
 
-    return $lookup;
+    $data_lookup->{ $name } = $lookup;
 }
 
 # look for media that have been updated since the last import
@@ -76,68 +79,12 @@ END
 
 }
 
-# print a csv dump of the postgres data to $file.
-# run as job proc out of num_proc jobs, where each job is printg
-# a separate set of data.
-# if delta is true, only dump the data changed since the last dump
-sub _print_csv_to_file_single_job
+# setup 'csr' cursor in postgres as the query to import the story_sentences
+sub _declare_sentences_cursor
 {
-    my ( $db, $file, $num_proc, $proc, $delta ) = @_;
+    my ( $db, $date_clause, $num_proc, $proc ) = @_;
 
-    # recreate db for forked processes
-    $db ||= MediaWords::DB::connect_to_db;
-
-    open( FILE, ">$file" ) || die( "Unable to open file '$file': $@" );
-
-    my $date_clause = '';
-    if ( $delta )
-    {
-        my ( $import_date ) = $db->query( "select import_date from solr_imports order by import_date desc limit 1" )->flat;
-
-        $import_date //= '2000-01-01';
-
-        print STDERR "importing delta from $import_date...\n";
-
-        $db->query( <<END, $import_date );
-create temporary table delta_import_stories as
-    select distinct stories_id
-    from story_sentences ss
-    where ss.db_row_last_updated > \$1
-END
-        my ( $num_delta_stories ) = $db->query( "select count(*) from delta_import_stories" )->flat;
-        print STDERR "found $num_delta_stories stories for import ...\n";
-
-        _add_media_stories_to_import( $db, $import_date, $num_delta_stories );
-
-        $date_clause = "and stories_id in ( select stories_id from delta_import_stories )";
-    }
-
-    my $ps_lookup = _get_lookup( $db, <<END );
-select processed_stories_id, stories_id from processed_stories where stories_id % $num_proc = $proc - 1 $date_clause
-END
-
-    my $media_sets_lookup = _get_lookup( $db, <<END );
-select string_agg( media_sets_id::text, ';' ) media_sets_id, media_id from media_sets_media_map group by media_id
-END
-    my $media_tags_lookup = _get_lookup( $db, <<END );
-select string_agg( tags_id::text, ';' ) tag_list, media_id from media_tags_map group by media_id
-END
-    my $stories_tags_lookup = _get_lookup( $db, <<END );
-select string_agg( tags_id::text, ';' ) tag_list, stories_id
-    from stories_tags_map
-    where stories_id % $num_proc = $proc - 1 $date_clause
-    group by stories_id
-END
-    my $ss_tags_lookup = _get_lookup( $db, <<END );
-select string_agg( tags_id::text, ';' ) tag_list, story_sentences_id
-    from story_sentences_tags_map
-    group by story_sentences_id
-END
-
-    my $dbh = $db->dbh;
-
-    $db->begin;
-    $dbh->do( <<END );
+    $db->dbh->do( <<END );
 declare csr cursor for
 
     select
@@ -149,30 +96,69 @@ declare csr cursor for
         to_char( date_trunc( 'hour', publish_date ), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') publish_day,
         ss.sentence_number,
         ss.sentence,
+        null title,
         ss.language
     
     from story_sentences ss
         
     where ( ss.stories_id % $num_proc = $proc - 1 )
-        $date_clause
+        $date_clause    
 END
 
+}
+
+# setup 'csr' cursor in postgres as the query to import the story titles
+sub _declare_titles_cursor
+{
+    my ( $db, $date_clause, $num_proc, $proc ) = @_;
+
+    $db->dbh->do( <<END );
+declare csr cursor for
+
+    select
+        s.stories_id,
+        s.media_id,
+        0 story_sentences_id,
+        s.stories_id || '!' || 0 solr_id,
+        to_char( date_trunc( 'minute', s.publish_date ), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') publish_date,
+        to_char( date_trunc( 'hour', s.publish_date ), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') publish_day,
+        0,
+        null sentence,
+        s.title,
+        s.language
+    
+    from stories s
+        
+    where ( s.stories_id % $num_proc = $proc - 1 )
+        $date_clause    
+END
+
+}
+
+# incrementally read the results from the 'csr' postgres cursor and print out the resulting
+# sorl dump csv to the file
+sub _print_csv_to_file_from_csr
+{
+    my ( $db, $fh, $data_lookup, $print_header ) = @_;
+
     my $fields = [
-        qw/stories_id media_id story_sentences_id solr_id publish_date publish_day sentence_number sentence language
+        qw/stories_id media_id story_sentences_id solr_id publish_date publish_day sentence_number sentence title language
           processed_stories_id media_sets_id tags_id_media tags_id_stories tags_id_story_sentences/
     ];
 
     my $csv = Text::CSV_XS->new( { binary => 1 } );
 
-    $csv->combine( @{ $fields } );
-
-    print FILE $csv->string . "\n";
+    if ( $print_header )
+    {
+        $csv->combine( @{ $fields } );
+        $fh->print( $csv->string . "\n" );
+    }
 
     my $imported_stories_ids = {};
     my $i                    = 0;
     while ( 1 )
     {
-        my $sth = $dbh->prepare( "fetch $FETCH_BLOCK_SIZE from csr" );
+        my $sth = $db->dbh->prepare( "fetch $FETCH_BLOCK_SIZE from csr" );
 
         $sth->execute;
 
@@ -186,17 +172,17 @@ END
             my $media_id           = $row->[ 1 ];
             my $story_sentences_id = $row->[ 2 ];
 
-            my $processed_stories_id = $ps_lookup->{ $stories_id };
+            my $processed_stories_id = $data_lookup->{ ps }->{ $stories_id };
             next unless ( $processed_stories_id );
 
-            my $media_sets_list   = $media_sets_lookup->{ $media_id }        || '';
-            my $media_tags_list   = $media_tags_lookup->{ $media_id }        || '';
-            my $stories_tags_list = $stories_tags_lookup->{ $stories_id }    || '';
-            my $ss_tags_list      = $ss_tags_lookup->{ $story_sentences_id } || '';
+            my $media_sets_list   = $data_lookup->{ media_sets }->{ $media_id }        || '';
+            my $media_tags_list   = $data_lookup->{ media_tags }->{ $media_id }        || '';
+            my $stories_tags_list = $data_lookup->{ stories_tags }->{ $stories_id }    || '';
+            my $ss_tags_list      = $data_lookup->{ ss_tags }->{ $story_sentences_id } || '';
 
             $csv->combine( @{ $row }, $processed_stories_id, $media_sets_list, $media_tags_list, $stories_tags_list,
                 $ss_tags_list );
-            print FILE encode( 'utf8', $csv->string . "\n" );
+            $fh->print( encode( 'utf8', $csv->string . "\n" ) );
 
             $imported_stories_ids->{ $stories_id } = 1;
         }
@@ -204,12 +190,108 @@ END
         print STDERR time . " " . ( $i * $FETCH_BLOCK_SIZE ) . "\n";    # unless ( ++$i % 10 );
     }
 
-    $dbh->do( "close csr" );
+    $db->dbh->do( "close csr" );
+
+    return [ keys { %{ $imported_stories_ids } } ];
+}
+
+# get the date clause that restricts the import of all subsequent queries to just the
+# delta stories
+sub _get_delta_import_date_clause
+{
+    my ( $db, $delta ) = @_;
+
+    return '' unless ( $delta );
+
+    my ( $import_date ) = $db->query( "select import_date from solr_imports order by import_date desc limit 1" )->flat;
+
+    $import_date //= '2000-01-01';
+
+    print STDERR "importing delta from $import_date...\n";
+
+    $db->query( <<END, $import_date );
+create temporary table delta_import_stories as
+select distinct stories_id
+from story_sentences ss
+where ss.db_row_last_updated > \$1
+END
+    my ( $num_delta_stories ) = $db->query( "select count(*) from delta_import_stories" )->flat;
+    print STDERR "found $num_delta_stories stories for import ...\n";
+
+    _add_media_stories_to_import( $db, $import_date, $num_delta_stories );
+
+    return "and stories_id in ( select stories_id from delta_import_stories )";
+}
+
+# get the $data_lookup hash that has lookup tables for values to include
+# for each of the processed_stories, media_sets, media_tags, stories_tags,
+# and ss_tags fields for export to solr.
+#
+# This is basically just a manual
+# client side join that we do in perl because we can get postgres to stream
+# results much more quickly if we don't ask it to do this giant join on the
+# server side.
+sub _get_data_lookup
+{
+    my ( $db, $num_proc, $proc, $date_clause ) = @_;
+
+    my $data_lookup = {};
+
+    _set_lookup( $db, $data_lookup, 'ps', <<END );
+select processed_stories_id, stories_id from processed_stories where stories_id % $num_proc = $proc - 1 $date_clause
+END
+
+    _set_lookup( $db, $data_lookup, 'media_sets', <<END );
+select string_agg( media_sets_id::text, ';' ) media_sets_id, media_id from media_sets_media_map group by media_id
+END
+    _set_lookup( $db, $data_lookup, 'media_tags', <<END );
+select string_agg( tags_id::text, ';' ) tag_list, media_id from media_tags_map group by media_id
+END
+    _set_lookup( $db, $data_lookup, 'stories_tags', <<END );
+select string_agg( tags_id::text, ';' ) tag_list, stories_id
+    from stories_tags_map
+    where stories_id % $num_proc = $proc - 1 $date_clause
+    group by stories_id
+END
+    _set_lookup( $db, $data_lookup, 'ss_tags', <<END );
+select string_agg( tags_id::text, ';' ) tag_list, story_sentences_id
+    from story_sentences_tags_map
+    group by story_sentences_id
+END
+
+    return $data_lookup;
+}
+
+# print a csv dump of the postgres data to $file.
+# run as job proc out of num_proc jobs, where each job is printg
+# a separate set of data.
+# if delta is true, only dump the data changed since the last dump
+sub _print_csv_to_file_single_job
+{
+    my ( $db, $file, $num_proc, $proc, $delta ) = @_;
+
+    # recreate db for forked processes
+    $db ||= MediaWords::DB::connect_to_db;
+
+    my $fh = FileHandle->new( ">$file" ) || die( "Unable to open file '$file': $@" );
+
+    my $date_clause = _get_delta_import_date_clause( $db, $delta );
+
+    my $data_lookup = _get_data_lookup( $db, $num_proc, $proc, $date_clause );
+
+    $db->begin;
+
+    print STDERR "exporting sentences ...\n";
+    _declare_sentences_cursor( $db, $date_clause, $num_proc, $proc );
+    my $sentence_stories_ids = _print_csv_to_file_from_csr( $db, $fh, $data_lookup, 1 );
+
+    print STDERR "exporting titles ...\n";
+    _declare_titles_cursor( $db, $date_clause, $num_proc, $proc );
+    my $title_stories_ids = _print_csv_to_file_from_csr( $db, $fh, $data_lookup, 0 );
+
     $db->commit;
 
-    close( FILE );
-
-    return [ keys( %{ $imported_stories_ids } ) ];
+    return [ List::MoreUtils::uniq( @{ $sentence_stories_ids }, @{ $title_stories_ids } ) ];
 }
 
 # print a csv dump of the postgres data to $file_spec.
