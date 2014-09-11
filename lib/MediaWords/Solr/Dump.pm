@@ -470,7 +470,7 @@ sub generate_and_import_data
         generate_and_import_data( 1, 0, $staging );
     }
 
-    #unlink( $filename );
+    unlink( $filename );
 }
 
 1;
