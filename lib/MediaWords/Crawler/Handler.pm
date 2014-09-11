@@ -307,6 +307,12 @@ END
             && ( $config->{ mediawords }->{ do_not_process_feeds } eq 'yes' ) )
         {
             MediaWords::DBI::Downloads::store_content( $dbs, $download, \$response->decoded_content );
+            say STDERR "DO NOT PROCESS FEEDS";
+            $self->engine->dbs->update_by_id(
+                'downloads',
+                $download->{ downloads_id },
+                { state => 'feed_error', error_message => 'do_not_process_feeds' }
+            );
         }
         else
         {

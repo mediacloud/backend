@@ -267,7 +267,7 @@ sub fetch_content($$)
         croak "fetch_content called with invalid download";
     }
 
-    unless ( grep { $_ eq $download->{ state } } ( 'success', 'extractor_error' ) )
+    unless ( grep { $_ eq $download->{ state } } ( 'success', 'extractor_error', 'feed_error' ) )
     {
         croak "attempt to fetch content for unsuccessful download $download->{ downloads_id }  / $download->{ state }";
     }
