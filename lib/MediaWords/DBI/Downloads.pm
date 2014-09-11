@@ -7,7 +7,7 @@ use MediaWords::CommonLibs;
 use strict;
 
 use Carp;
-use Scalar::defer;
+use Scalar::Defer;
 
 use MediaWords::Crawler::Extractor;
 use MediaWords::Util::Config qw(get_config);
@@ -36,7 +36,7 @@ my $_download_store_lookup = lazy
     require MediaWords::KeyValueStore::Remote;
     require MediaWords::KeyValueStore::Tar;
 
-    $_download_store_lookup = {
+    my $download_store_lookup = {
 
         # downloads.path is prefixed with "content:";
         # download is stored in downloads.path itself
@@ -83,7 +83,7 @@ my $_download_store_lookup = lazy
             die "download_storage_location $location is not valid for storage";
         }
 
-        unless ( exists $_download_store_lookup->{ $download_storage_location } )
+        unless ( exists $download_store_lookup->{ $download_storage_location } )
         {
             die "download_storage_location '$download_storage_location' is not valid.";
         }
@@ -110,7 +110,7 @@ my $_download_store_lookup = lazy
     # Initialize key value stores for downloads
     if ( get_config->{ amazon_s3 } )
     {
-        $_download_store_lookup->{ amazon_s3 } = MediaWords::KeyValueStore::AmazonS3->new(
+        $download_store_lookup->{ amazon_s3 } = MediaWords::KeyValueStore::AmazonS3->new(
             {
                 bucket_name    => get_config->{ amazon_s3 }->{ downloads }->{ bucket_name },
                 directory_name => get_config->{ amazon_s3 }->{ downloads }->{ directory_name }
@@ -118,7 +118,7 @@ my $_download_store_lookup = lazy
         );
     }
 
-    $_download_store_lookup->{ databaseinline } = MediaWords::KeyValueStore::DatabaseInline->new(
+    $download_store_lookup->{ databaseinline } = MediaWords::KeyValueStore::DatabaseInline->new(
         {
             # no arguments are needed
         }
@@ -128,20 +128,20 @@ my $_download_store_lookup = lazy
     {
         if ( get_config->{ mongodb_gridfs }->{ downloads } )
         {
-            $_download_store_lookup->{ gridfs } = MediaWords::KeyValueStore::GridFS->new(
+            $download_store_lookup->{ gridfs } = MediaWords::KeyValueStore::GridFS->new(
                 { database_name => get_config->{ mongodb_gridfs }->{ downloads }->{ database_name } } );
         }
     }
 
-    $_download_store_lookup->{ localfile } =
+    $download_store_lookup->{ localfile } =
       MediaWords::KeyValueStore::LocalFile->new( { data_content_dir => MediaWords::Util::Paths::get_data_content_dir } );
 
-    $_download_store_lookup->{ postgresql } =
+    $download_store_lookup->{ postgresql } =
       MediaWords::KeyValueStore::PostgreSQL->new( { table_name => 'raw_downloads' } );
 
     if ( get_config->{ mediawords }->{ fetch_remote_content_url } )
     {
-        $_download_store_lookup->{ remote } = MediaWords::KeyValueStore::Remote->new(
+        $download_store_lookup->{ remote } = MediaWords::KeyValueStore::Remote->new(
             {
                 url      => get_config->{ mediawords }->{ fetch_remote_content_url },
                 username => get_config->{ mediawords }->{ fetch_remote_content_user },
@@ -150,10 +150,10 @@ my $_download_store_lookup = lazy
         );
     }
 
-    $_download_store_lookup->{ tar } =
+    $download_store_lookup->{ tar } =
       MediaWords::KeyValueStore::Tar->new( { data_content_dir => MediaWords::Util::Paths::get_data_content_dir } );
 
-    return $_download_store_lookup;
+    return $download_store_lookup;
 };
 
 # Returns arrayref of stores for writing new downloads to
@@ -204,7 +204,8 @@ sub _override_store_with_gridfs
         return 1;
     }
 
-    if ( ( $location eq 'localfile' ) and ( lc( get_config->{ mediawords }->{ read_file_downloads_from_gridfs } eq 'yes' ) ) )
+    if (    ( $location eq 'localfile' )
+        and ( lc( get_config->{ mediawords }->{ read_file_downloads_from_gridfs } eq 'yes' ) ) )
     {
         return 1;
     }
