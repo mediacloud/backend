@@ -22,6 +22,9 @@ with 'MediaWords::Util::Extractor';
 
 my $_model_file_name;
 
+# has the mallet / web service stuff been initialized
+my $_crf_init;
+
 # FIXME: make path to the extractor model configurable because that way Java
 # wouldn't have to use hardcoded path to the extractor model
 sub get_path_to_extractor_model()
@@ -36,8 +39,12 @@ sub get_path_to_extractor_model()
     return $_model_file_name;
 }
 
-BEGIN
+sub _initialize_crf
 {
+    return unless ( $_crf_init );
+
+    $_crf_init = 1;
+
     $_model_file_name = get_path_to_extractor_model();
 
     #say STDERR "model_file: $_model_file_name";
@@ -86,6 +93,8 @@ sub getExtractedLines
 sub _get_extracted_lines_with_crf
 {
     my ( $line_infos, $preprocessed_lines ) = @_;
+
+    _initialize_crf;
 
     my $feature_strings =
       MediaWords::Crawler::AnalyzeLines::get_feature_strings_for_download( $line_infos, $preprocessed_lines );

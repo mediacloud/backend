@@ -6,21 +6,16 @@ use MediaWords::CommonLibs;
 
 use strict;
 
+use Carp;
+use Scalar::Defer;
+
 use MediaWords::Crawler::Extractor;
-use MediaWords::Util::Config;
+use MediaWords::Util::Config qw(get_config);
 use MediaWords::Util::HTML;
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
 use MediaWords::StoryVectors;
 use MediaWords::Util::Paths;
-use MediaWords::KeyValueStore::AmazonS3;
-use MediaWords::KeyValueStore::DatabaseInline;
-use MediaWords::KeyValueStore::GridFS;
-use MediaWords::KeyValueStore::LocalFile;
-use MediaWords::KeyValueStore::PostgreSQL;
-use MediaWords::KeyValueStore::Remote;
-use MediaWords::KeyValueStore::Tar;
-use Carp;
 use MediaWords::Util::ExtractorFactory;
 use MediaWords::Util::HeuristicExtractor;
 use MediaWords::GearmanFunction::AnnotateWithCoreNLP;
@@ -29,15 +24,19 @@ use MediaWords::GearmanFunction::AnnotateWithCoreNLP;
 use constant INLINE_CONTENT_LENGTH => 256;
 
 # lookup table for download store objects; initialized in BEGIN below
-my $_download_store_lookup;
-
-# cached configuration; initialized in BEGIN below
-my $_config;
-
-# Constructor
-BEGIN
+my $_download_store_lookup = lazy
 {
-    $_download_store_lookup = {
+    # lazy load these modules because some of them are very expensive to load
+    # and are tangentially loaded by indirect module dependency
+    require MediaWords::KeyValueStore::AmazonS3;
+    require MediaWords::KeyValueStore::DatabaseInline;
+    require MediaWords::KeyValueStore::GridFS;
+    require MediaWords::KeyValueStore::LocalFile;
+    require MediaWords::KeyValueStore::PostgreSQL;
+    require MediaWords::KeyValueStore::Remote;
+    require MediaWords::KeyValueStore::Tar;
+
+    my $download_store_lookup = {
 
         # downloads.path is prefixed with "content:";
         # download is stored in downloads.path itself
@@ -68,10 +67,8 @@ BEGIN
         remote => undef,    # might remain 'undef' if not configured
     };
 
-    $_config = MediaWords::Util::Config::get_config;
-
     # Early sanity check on configuration
-    my $download_storage_locations = $_config->{ mediawords }->{ download_storage_locations };
+    my $download_storage_locations = get_config->{ mediawords }->{ download_storage_locations };
     if ( scalar( @{ $download_storage_locations } ) == 0 )
     {
         die "No download storage methods are configured.\n";
@@ -86,7 +83,7 @@ BEGIN
             die "download_storage_location $location is not valid for storage";
         }
 
-        unless ( exists $_download_store_lookup->{ $download_storage_location } )
+        unless ( exists $download_store_lookup->{ $download_storage_location } )
         {
             die "download_storage_location '$download_storage_location' is not valid.";
         }
@@ -97,65 +94,67 @@ BEGIN
     # Test if all enabled storage locations are also configured
     if ( exists( $enabled_download_storage_locations{ amazon_s3 } ) )
     {
-        unless ( $_config->{ amazon_s3 } )
+        unless ( get_config->{ amazon_s3 } )
         {
             die "'amazon_s3' storage location is enabled, but Amazon S3 is not configured.\n";
         }
     }
     if ( exists( $enabled_download_storage_locations{ gridfs } ) )
     {
-        unless ( $_config->{ mongodb_gridfs } )
+        unless ( get_config->{ mongodb_gridfs } )
         {
             die "'gridfs' storage location is enabled, but MongoDB GridFS is not configured.\n";
         }
     }
 
     # Initialize key value stores for downloads
-    if ( $_config->{ amazon_s3 } )
+    if ( get_config->{ amazon_s3 } )
     {
-        $_download_store_lookup->{ amazon_s3 } = MediaWords::KeyValueStore::AmazonS3->new(
+        $download_store_lookup->{ amazon_s3 } = MediaWords::KeyValueStore::AmazonS3->new(
             {
-                bucket_name    => $_config->{ amazon_s3 }->{ downloads }->{ bucket_name },
-                directory_name => $_config->{ amazon_s3 }->{ downloads }->{ directory_name }
+                bucket_name    => get_config->{ amazon_s3 }->{ downloads }->{ bucket_name },
+                directory_name => get_config->{ amazon_s3 }->{ downloads }->{ directory_name }
             }
         );
     }
 
-    $_download_store_lookup->{ databaseinline } = MediaWords::KeyValueStore::DatabaseInline->new(
+    $download_store_lookup->{ databaseinline } = MediaWords::KeyValueStore::DatabaseInline->new(
         {
             # no arguments are needed
         }
     );
 
-    if ( $_config->{ mongodb_gridfs } )
+    if ( get_config->{ mongodb_gridfs } )
     {
-        if ( $_config->{ mongodb_gridfs }->{ downloads } )
+        if ( get_config->{ mongodb_gridfs }->{ downloads } )
         {
-            $_download_store_lookup->{ gridfs } = MediaWords::KeyValueStore::GridFS->new(
-                { database_name => $_config->{ mongodb_gridfs }->{ downloads }->{ database_name } } );
+            $download_store_lookup->{ gridfs } = MediaWords::KeyValueStore::GridFS->new(
+                { database_name => get_config->{ mongodb_gridfs }->{ downloads }->{ database_name } } );
         }
     }
 
-    $_download_store_lookup->{ localfile } =
+    $download_store_lookup->{ localfile } =
       MediaWords::KeyValueStore::LocalFile->new( { data_content_dir => MediaWords::Util::Paths::get_data_content_dir } );
 
-    $_download_store_lookup->{ postgresql } =
+    $download_store_lookup->{ postgresql } =
       MediaWords::KeyValueStore::PostgreSQL->new( { table_name => 'raw_downloads' } );
 
-    if ( $_config->{ mediawords }->{ fetch_remote_content_url } )
+    if ( get_config->{ mediawords }->{ fetch_remote_content_url } )
     {
-        $_download_store_lookup->{ remote } = MediaWords::KeyValueStore::Remote->new(
+        $download_store_lookup->{ remote } = MediaWords::KeyValueStore::Remote->new(
             {
-                url      => $_config->{ mediawords }->{ fetch_remote_content_url },
-                username => $_config->{ mediawords }->{ fetch_remote_content_user },
-                password => $_config->{ mediawords }->{ fetch_remote_content_password }
+                url      => get_config->{ mediawords }->{ fetch_remote_content_url },
+                username => get_config->{ mediawords }->{ fetch_remote_content_user },
+                password => get_config->{ mediawords }->{ fetch_remote_content_password }
             }
         );
     }
 
-    $_download_store_lookup->{ tar } =
+    $download_store_lookup->{ tar } =
       MediaWords::KeyValueStore::Tar->new( { data_content_dir => MediaWords::Util::Paths::get_data_content_dir } );
-}
+
+    return $download_store_lookup;
+};
 
 # Returns arrayref of stores for writing new downloads to
 sub _download_stores_for_writing($)
@@ -177,7 +176,7 @@ sub _download_stores_for_writing($)
     }
     else
     {
-        my $download_storage_locations = $_config->{ mediawords }->{ download_storage_locations };
+        my $download_storage_locations = get_config->{ mediawords }->{ download_storage_locations };
         foreach my $download_storage_location ( @{ $download_storage_locations } )
         {
             my $store = $_download_store_lookup->{ lc( $download_storage_location ) }
@@ -200,12 +199,13 @@ sub _override_store_with_gridfs
 {
     my ( $location ) = @_;
 
-    if ( ( $location eq 'tar' ) and ( lc( $_config->{ mediawords }->{ read_tar_downloads_from_gridfs } eq 'yes' ) ) )
+    if ( ( $location eq 'tar' ) and ( lc( get_config->{ mediawords }->{ read_tar_downloads_from_gridfs } eq 'yes' ) ) )
     {
         return 1;
     }
 
-    if ( ( $location eq 'localfile' ) and ( lc( $_config->{ mediawords }->{ read_file_downloads_from_gridfs } eq 'yes' ) ) )
+    if (    ( $location eq 'localfile' )
+        and ( lc( get_config->{ mediawords }->{ read_file_downloads_from_gridfs } eq 'yes' ) ) )
     {
         return 1;
     }
@@ -218,7 +218,7 @@ sub _download_store_for_reading($)
 {
     my $download = shift;
 
-    my $fetch_remote = $_config->{ mediawords }->{ fetch_remote_content } || 'no';
+    my $fetch_remote = get_config->{ mediawords }->{ fetch_remote_content } || 'no';
     if ( $fetch_remote eq 'yes' )
     {
         return $_download_store_lookup->{ remote };
@@ -283,7 +283,7 @@ sub fetch_content($$)
     {
 
         # horrible hack to fix old content that is not stored in unicode
-        my $ascii_hack_downloads_id = $_config->{ mediawords }->{ ascii_hack_downloads_id };
+        my $ascii_hack_downloads_id = get_config->{ mediawords }->{ ascii_hack_downloads_id };
         if ( $ascii_hack_downloads_id and ( $download->{ downloads_id } < $ascii_hack_downloads_id ) )
         {
             $$content_ref =~ s/[^[:ascii:]]/ /g;

@@ -12,13 +12,6 @@ use DBIx::Simple::MediaWords;
 
 use MediaWords::Util::Config;
 
-use base 'DBIx::Class::Schema';
-
-__PACKAGE__->load_classes;
-
-# Created by DBIx::Class::Schema::Loader v0.04999_02 @ 2008-03-06 18:46:45
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wXcXYixAy0uBrYdHuKCPag
-
 my $_connect_settings;
 
 # takes a hashref to a hash of settings and returns an array

@@ -12,9 +12,7 @@
         <th>Media Sets</th>
         <th>Media</th>        
         <th>Stories</th>
-        <th>w Text</th>
-        <th>w Sentences</th>
-        <th>Num Sentences</th>
+        <th>Sentences</th>
     </tr>
     
     [% FOREACH tag IN tags -%]
@@ -25,8 +23,6 @@
             <td>[% tag.media_set_names | html %]</td>
             <td>[% tag.num_media || 0 %]</td>
             <td>[% tag.num_stories || 0 %]</td>
-            <td>[% tag.num_stories_with_text || 0 %]</td>
-            <td>[% tag.num_stories_with_sentences || 0 %]</td>
             <td>[% tag.num_sentences || 0 %]</td>        
             
         </tr>

@@ -168,13 +168,36 @@ END
     return $story;
 }
 
-# create structure of media, feeds, and stories from hash in the form
-# { 'medium label a' =>
-#     { 'feed label a' => [ 'story label a', 'story label b' ],
-#       'feed label b' => [ 'story label c', 'story label d' ] } }
-#
+# create structure of media, feeds, and stories from hash.
+# given a hash in this form:
+# my $data = {
+#     A => {
+#         B => [ 1, 2 ],
+#         C => [ 4 ]
+#     },
+# };
 # returns the list of media sources created, with a feeds field on each medium and
-# a stories field on each field, all referenced by the given labels
+# a stories field on each field, all referenced by the given labels, in this form:
+# { A => {
+#     $medium_a_hash,
+#     feeds => {
+#         B => {
+#             $feed_b_hash,
+#             stories => {
+#                 1 => { $story_1_hash },
+#                 2 => { $story_2_hash },
+#             }
+#         }
+#     },
+#   B => { $feed_b_hash },
+#   1 => { $story_1_hash },
+#   2 => { $story_2_hash }
+# }
+#
+# so, for example, story 2 can be accessed in the return value as either
+#   $data->{ A }->{ feeds }->{ B }->{ stories }->{ 2 }
+# or simply as
+#   $data->{ 2 }
 sub create_test_story_stack
 {
     my ( $db, $data ) = @_;
@@ -184,6 +207,7 @@ sub create_test_story_stack
     my $media = {};
     while ( my ( $medium_label, $feeds ) = each( %{ $data } ) )
     {
+        die( "$medium_label medium label already used in story stack" ) if ( $media->{ $medium_label } );
         my $medium = create_test_medium( $db, $medium_label );
         $media->{ $medium_label } = $medium;
 
@@ -191,15 +215,19 @@ sub create_test_story_stack
 
         while ( my ( $feed_label, $story_labels ) = each( %{ $feeds } ) )
         {
+            die( "$feed_label feed label already used in story stack" ) if ( $media->{ $feed_label } );
             my $feed = create_test_feed( $db, $feed_label, $medium );
             $medium->{ feeds }->{ $feed_label } = $feed;
+            $media->{ $feed_label } = $feed;
 
             die( "invalid stories data format" ) unless ( ref( $story_labels ) eq 'ARRAY' );
 
             for my $story_label ( @{ $story_labels } )
             {
+                die( "$story_label story label already used in story stack" ) if ( $media->{ $story_label } );
                 my $story = create_test_story( $db, $story_label, $feed );
                 $feed->{ stories }->{ $story_label } = $story;
+                $media->{ $story_label } = $story;
             }
         }
     }

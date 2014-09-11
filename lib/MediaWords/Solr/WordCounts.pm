@@ -118,6 +118,8 @@ around BUILDARGS => sub {
         $vals = $args;
     }
 
+    say STDERR Dumper( $vals );
+
     $args->{ fq } = [ $args->{ fq } ] if ( $args->{ fq } && !ref( $args->{ fq } ) );
 
     return $class->$orig( $vals );
