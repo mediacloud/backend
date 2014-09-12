@@ -102,9 +102,8 @@ sub main
     print STDERR "generating media_stats_stories_all for $start_date - $end_date ...\n";
     $db->query( <<'END', $start_date, $end_date );
 create temporary table media_stats_stories_all as 
-    select s.media_id, s.publish_date, d.stories_id, d.downloads_id 
+    select s.stories_id, s.media_id, s.publish_date
         from stories s 
-            join downloads d on ( s.stories_id = d.stories_id ) 
         where date_trunc( 'day', publish_date ) between $1 and $2
 END
 
