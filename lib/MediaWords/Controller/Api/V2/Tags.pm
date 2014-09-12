@@ -1,10 +1,11 @@
 package MediaWords::Controller::Api::V2::Tags;
+
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use strict;
 use warnings;
-use MediaWords::DBI::StorySubsets;
+
 use MediaWords::Controller::Api::V2::MC_REST_SimpleObject;
 
 use Moose;

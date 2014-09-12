@@ -79,17 +79,78 @@ END
     }
 
     return $media;
-
 }
 
 sub default_output_fields
 {
-    return [ qw ( name url media_id ) ];
+    my ( $self ) = @_;
+
+    my $fields = [ qw ( name url media_id ) ];
+
+    push( @{ $fields }, qw ( inlink_count outlink_count story_count ) ) if ( $self->{ controversy_media } );
+
+    return $fields;
 }
 
 sub list_name_search_field
 {
     return 'name';
+}
+
+sub order_by_clause
+{
+    my ( $self ) = @_;
+
+    return $self->{ controversy_media } ? 'inlink_count desc' : 'media_id asc';
+}
+
+# if controversy_time_slices_id is specified, create a temporary
+# table with the media name that supercedes the normal media table
+# but includes only media in the given controversy time slice and
+# has the controversy metric data
+sub _create_controversy_media_table
+{
+    my ( $self, $c ) = @_;
+
+    my $cdts_id = $c->req->params->{ controversy_dump_time_slices_id };
+    my $cdts_mode = $c->req->params->{ controversy_mode } || '';
+
+    return unless ( $cdts_id );
+
+    $self->{ controversy_media } = 1;
+
+    my $live = $cdts_mode eq 'live' ? 1 : 0;
+
+    my $db = $c->dbis;
+
+    my $cdts = $db->find_by_id( 'controversy_dump_time_slices', $cdts_id )
+      || die( "Unable to find controversy_dump_time_slice with id '$cdts_id'" );
+
+    my $controversy = $db->query( <<END, $cdts->{ controversy_dumps_id } )->hash;
+select * from controversies where controversies_id in ( 
+    select controversies_id from controversy_dumps where controversy_dumps_id = ? )
+END
+
+    $db->begin;
+
+    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $live );
+
+    $db->query( <<END );
+create temporary table media as
+    select m.name, m.url, mlc.*
+        from media m join dump_medium_link_counts mlc on ( m.media_id = mlc.media_id )
+END
+
+    $db->commit;
+}
+
+sub list_GET : Local
+{
+    my ( $self, $c ) = @_;
+
+    $self->_create_controversy_media_table( $c );
+
+    return $self->SUPER::list_GET( $c );
 }
 
 =head1 AUTHOR

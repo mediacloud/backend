@@ -249,6 +249,18 @@ sub _get_filter_field_clause
     return ' and ( ' . join( ' and ', @{ $clauses } ) . ' ) ';
 }
 
+sub order_by_clause
+{
+    my ( $self ) = @_;
+
+    return;
+}
+
+sub get_extra_where_clause
+{
+    return '';
+}
+
 sub _fetch_list
 {
     my ( $self, $c, $last_id, $table_name, $id_field, $rows ) = @_;
@@ -257,9 +269,11 @@ sub _fetch_list
 
     my $name_clause         = $self->get_name_search_clause( $c );
     my $filter_field_clause = $self->_get_filter_field_clause( $c );
+    my $extra_where_clause  = $self->get_extra_where_clause( $c );
+    my $order_by_clause     = $self->order_by_clause || "$id_field asc";
 
     my $query =
-      "select * from $table_name where $id_field > ? $name_clause  $filter_field_clause ORDER by $id_field asc limit ? ";
+      "select * from $table_name where $id_field > ? $name_clause  $filter_field_clause order by $order_by_clause limit ? ";
 
     $list = $c->dbis->query( $query, $last_id, $rows )->hashes;
 
