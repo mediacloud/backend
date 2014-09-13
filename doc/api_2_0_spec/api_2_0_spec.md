@@ -95,14 +95,20 @@ Response:
 
 #### Query Parameters 
 
-| Parameter       | Default | Notes
-| --------------- | ------- | -----------------------------------------------------------------
-| `last_media_id` | 0       | Return media sources with a `media_id` greater than this value
-| `rows`          | 20      | Number of media sources to return. Cannot be larger than 100
-| `name`          | none    | Name of media source for which to search
+| Parameter                         | Default | Notes
+| --------------------------------- | ------- | -----------------------------------------------------------------
+| `last_media_id`                   | 0       | Return media sources with a `media_id` greater than this value
+| `rows`                            | 20      | Number of media sources to return. Cannot be larger than 100
+| `name`                            | none    | Name of media source for which to search
+| `controversy_dump_time_slices_id` | null    | Return media within the given controversy time slice
+| `controversy_mode`                | null    | If set to 'live', return media from live controversies
 
 If the name parameter is specified, the call returns only media sources that match a case insensitive search 
 specified value.  If the specified value is less than 3 characters long, the call returns an empty list.
+
+If the controversy_dump_time_slices_id parameter is specified, return media within the given time slice,
+sorted by descending inlink_count within the controversy time slice.  If controversy_mode is set to
+'live', return media from the live controversy stories rather than from the frozen controversy dump.
 
 #### Example
 
@@ -482,7 +488,7 @@ The `q` and `fq` parameters are passed directly through to Solr.  Documentation 
 | Field                        | Description
 | ---------------------------- | -----------------------------------------------------
 | sentence                     | the text of the sentence
-| stories_id                   | a Media Cloud story ID
+| stories_id                   | a story ID
 | media_id                     | the Media Cloud media source ID of a story
 | publish_date                 | the publish date of a story 
 | tags_id_story                | the ID of a tag associated with a story
@@ -491,6 +497,39 @@ The `q` and `fq` parameters are passed directly through to Solr.  Documentation 
 | processed_stories_id         | the processed_stories_id as returned by stories_public/list
 
 Be aware that ':' is usually replaced with '%3A' in programmatically generated URLs.
+
+In addition, there following fields may be entered as pseudo queries within the solr query:
+
+| Pseudo Query Field                        | Description
+| ---------------------------- | -----------------------------------------------------
+| controversy                  | a controversy id
+| controversy_dump_time_slice  | a controversy dump time slice id
+| link_from_tag                | a tag id, returns stories linked from stories associated with the tag
+| link_to_story                | a story id, returns stories that link to the story
+| link_from_story              | a story id, returns stories that are linked from the story
+| link_to_medium               | a medium id, returns stories that link to stories within the medium
+| link_from_medium             | link_from_medium, returns stories that are linked from stories within the medium
+
+To include one of these fields in a larger solr query, delineate with {~ }, for example:
+
+{~ controversy:1 } and media_id:1
+
+The api will translate the given pseudo query into a stories_id: clause in the larger solr query.  So the above query
+will be translated into the following, including controversy 1 consists of stories with ids 1, 2, 3, and 4.
+
+stories_id:( 1 2 3 4 ) and media_id:1
+
+If '-1' is appended to the controversy_dump_time_slice query field value, the pseudo query will match stories
+from the live controversy matching the given time slice rather than from the dump.  For example, the following will
+live stories from controversy_dump_time_slice 1234:
+
+{~ controversy_dump_time_slice:1234-1 }
+
+The link_* pseudo query fields all must be within the same {~ } clause as a controversy_dump_time_slice query and 
+return links from the associated controversy_dump_time_slice.  For example, the following returns stories that
+link to story 5678 within the specified time slice:
+
+{~ controversy_dump_time_slice:1234-1 link_to_story:5678 }
 
 #### Example
 
@@ -879,6 +918,182 @@ None.
 #### Example
 
 URL: https://api.mediacloud.org/api/v2/tag_sets/list
+
+## Controversies
+
+Controversies are collections of stories within some date range that match some pattern
+indicating that they belong to some topic.  Controversies both stories matched from
+crawled Media Cloud content and stories discovered by spidering out from the links of 
+those matched stories. For more information about controversies and how they are generated, 
+see:
+
+http://cyber.law.harvard.edu/publications/2013/social_mobilization_and_the_networked_public_sphere
+
+A single controversy is the umbrella object that represents the whole controversy.  A controversy dump
+is a frozen version of the data within a controversy that keeps a consistent view of a controversy
+for researchers and also includes analytical results like link counts.  A controversy time slice
+represents the set of stories active in a controversy within a given date range.  Every controversy time
+slice belongs to a controversy dump.
+
+Controversy data can be used to search stories and media sources as well.  Use the 
+controversy_dump_time_slices_id param to list the media sources within a given controversy
+time slice.  See the documentation for solr pseudo queries for documentation of how to
+query for stories within a controversy.
+
+### api/v2/controversies/single/
+
+| URL                                                | Function
+| -------------------------------------------------- | -------------------------------------------------------------
+| `api/v2/controversies/single/<controversies_id>`   | Return a single controversy
+
+#### Query Parameters 
+
+None.
+
+#### Example
+
+Fetching information on controversy 6.
+
+URL: https://api.mediacloud.org/api/v2/controversies/single/6
+
+Response:
+
+```json
+[
+  {
+    "controversies_id": 6,
+    "controversy_tag_sets_id": 14,
+    "description": "obama",
+    "name": "obama",
+    "media_type_tag_sets_id": 18
+    "pattern": "[[:<:]]obama|obamacare[[:>:]]",
+    "solr_seed_query": "obama OR obamacare",
+    "solr_seed_query_run": 1,
+  }
+]
+```
+
+### api/v2/controversies/list/
+
+| URL                          | Function
+| ---------------------------- | -----------------------------
+| `api/v2/controversies/list`  | Return controversies
+
+#### Query Parameters 
+
+| Parameter       | Default    | Notes
+| --------------- | ---------- | -----------------------------------------------------------------
+| `name`          | null       | Search for controversies with names including the given text
+
+#### Example
+
+URL: https://api.mediacloud.org/api/v2/controversies/list
+
+### api/v2/controversy_dumps/single/
+
+| URL                                      | Function
+| ---------------------------------------- | -------------------------------------------------------------
+| `api/v2/controversy_dumps/single/<id>`   | Return a single controversy dump
+
+#### Query Parameters 
+
+None.
+
+#### Example
+
+Fetching information on the controversy dump 5.
+
+URL: https://api.mediacloud.org/api/v2/controversy_dumps/single/5
+
+Response:
+
+```json
+[
+  {
+    "controversies_id": 6,
+    "controversy_dumps_id": 5,
+    "dump_date": "2014-07-30 16:32:15.479964",
+    "end_date": "2015-01-01 00:00:00",
+    "note": null
+    "start_date": "2014-01-01 00:00:00",
+  }
+]
+```
+
+### api/v2/controversy_dumps/list/
+
+| URL                              | Function
+| -------------------------------- | ---------------------------------------------------
+| `api/v2/controversy_dumps/list`  | Return controversy dumps sorted by descending date
+
+#### Query Parameters 
+
+| Parameter          | Default    | Notes
+| ------------------ | ---------- | -----------------------------------------------------------------
+| `controversies_id` | null       | Return dumps within the given controversy
+
+#### Example
+
+URL: https://api.mediacloud.org/api/v2/controversy_dumps/list?controversies_id=6
+
+### api/v2/controversy_dump_time_slices/single/
+
+| URL                                                 | Function
+| --------------------------------------------------- | -------------------------------------------------------------
+| `api/v2/controversy_dump_time_slices/single/<id>`   | Return a single controversy dump time slice
+
+#### Query Parameters 
+
+None.
+
+#### Example
+
+Fetching information on the controversy dump 5.
+
+URL: https://api.mediacloud.org/api/v2/controversy_dumps/single/5
+
+Response:
+
+```json
+[
+  {
+    "controversy_dumps_id": 5,
+    "controversy_dump_time_slices_id": 145,
+    "end_date": "2015-01-01 00:00:00",
+    "include_undateable_stories": 0,
+    "medium_count": 236,
+    "medium_link_count": 266,
+    "model_num_media": 17,
+    "model_r2_mean": "0.96",
+    "model_r2_stddev": "0",
+    "period": "overall",
+    "tags_id": null,
+    "start_date": "2014-01-01 00:00:00"
+    "story_count": 2148,
+    "story_link_count": 731,
+  }
+]
+```
+
+### api/v2/controversy_dump_time_slices/list/
+
+| URL                                         | Function
+| ------------------------------------------- | ---------------------------------------------------
+| `api/v2/controversy_dump_time_slices/list`  | Return controversy dump time slices
+
+#### Query Parameters 
+# controversy_dumps_id tags_id period start_date end_date
+| Parameter              | Default | Notes
+| ---------------------- | ------- | -----------------------------------------------------------------
+| `controversy_dumps_id` | null    | Return time slices within the dump
+| `tags_id`              | null    | Return time slices associated with the tag
+| `period`               | null    | Return time slices with the given period ('weekly', 'monthly', 'overall', or 'custom'
+| `start_date`           | null    | Return time slices that start on the given date (YYYY-MM-DD)
+| `end_date`             | null    | Return time slices that end on the given date (YYYY-MM-DD)
+
+#### Example
+
+URL: https://api.mediacloud.org/api/v2/controversy_dump_time_slices/list?controversies_dumps_id=5
 
 # Extended Examples
 
