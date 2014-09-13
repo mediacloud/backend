@@ -284,7 +284,7 @@ sub index : Path : Args(0)
     _match_stories_to_pattern( $db, $stories, $pattern ) if ( defined( $pattern ) );
 
     my $num_stories = @{ $stories };
-    if ( @{ $stories } >= NUM_SAMPLED_STORIES )
+    if ( @{ $stories } >= ( NUM_SAMPLED_STORIES - 5 ) )
     {
         $num_stories = int( MediaWords::Solr::get_last_num_found() / MediaWords::Solr::get_last_sentences_per_story() );
     }
