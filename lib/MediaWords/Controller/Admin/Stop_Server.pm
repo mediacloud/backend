@@ -38,6 +38,7 @@ use File::stat;
 use Data::Google::Visualization::DataTable::MediaWords;
 use Date::Parse;
 use DateTime::Format::Pg;
+use Time::HiRes;
 
 # statics for state between print_time() calls
 my $_start_time;
@@ -50,17 +51,10 @@ sub index : Path : Args(0)
     my ( $self, $c ) = @_;
 
     say STDERR "quitting server";
+
+    $c->response->body( "Shutting down server\n" );
     quit();
-}
-
-# generate main dashboard page
-sub view : Local : FormConfig
-{
-    my ( $self, $c ) = @_;
-
-    say STDERR "Monitor view";
-
-    $c->stash->{ template } = 'monitor/crawler_stats.tt2';
+    return;
 }
 
 1;
