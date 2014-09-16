@@ -13,12 +13,16 @@ if [[ "$PGDATABASE" != "mediacloud_test" ]]; then
     echo "aborting test database name ($PGDATABASE) must be mediacloud_test"
     exit -1
 else
-    echo "Dropping database $PGDATABASE"
-    dropdb $PGDATABASE
-    echo "Creating database $PGDATABASE"
-    createdb $PGDATABASE
-    echo "running pg_restore"
-    pg_restore  -d $PGDATABASE data/db_dumps/cc_blogs_mc_db.dump
+    RELOAD_TEST_DB=0
+
+    if [ $RELOAD_TEST_DB = 1 ]; then
+       echo "Dropping database $PGDATABASE"
+       dropdb $PGDATABASE
+       echo "Creating database $PGDATABASE"
+       createdb $PGDATABASE
+       echo "running pg_restore"
+       pg_restore  -d $PGDATABASE data/db_dumps/cc_blogs_mc_db.dump
+    fi
 fi
 
 UPGRADE_DB_SQL=`script/run_with_carton.sh script/mediawords_upgrade_db.pl --db_label test`
@@ -79,6 +83,29 @@ if MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION=1 MEDIAWORDS_FORCE_USING_TEST_DATABASE=1 
         TEST_RETURN_STATUS=$?
         echo "API test failed with status: $TEST_RETURN_STATUS"
     fi
+
+    echo "starting mediacloud server"
+
+    MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION=1 MEDIAWORDS_FORCE_USING_TEST_DATABASE=1 ./script/run_server_with_carton.sh &
+    mc_server_pid=$!
+
+    echo "Media Cloud server PID $mc_server_pid"
+
+    sleep 4
+    
+    cd MediaCloud-API-Client
+    if python test.py; then
+       echo "Python API test succeeded"
+    else
+        TEST_RETURN_STATUS=$?
+        echo "Python API test failed with status: $TEST_RETURN_STATUS"
+    fi  
+  
+    cd ..
+    pwd
+    curl 'http://0:3000/admin/stop_server' &   
+    sleep 1
+    echo "past curl"
 
 else
     TEST_RETURN_STATUS=$?
