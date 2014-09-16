@@ -49,16 +49,16 @@ sub run($;$)
     $db ||= MediaWords::DB::connect_to_db();
 
     my $controversies_id = $args->{ controversies_id } or die "'controversies_id' is not set.";
-    my $do_not_overwrite = $args->{ do_not_overwrite } // 0;
+    my $overwrite = $args->{ overwrite } // 0;
 
     say STDERR "Will enqueue all controversy's $controversies_id stories.";
-    if ( $do_not_overwrite )
+    if ( $overwrite )
     {
-        say STDERR "Will *not* overwrite stories that are already processed with Bit.ly";
+        say STDERR "Will overwrite stories that are already processed with Bit.ly";
     }
     else
     {
-        say STDERR "Will overwrite stories that are already processed with Bit.ly";
+        say STDERR "Will *not* overwrite stories that are already processed with Bit.ly";
     }
 
     say STDERR "Fetching controversy $controversies_id...";
@@ -146,16 +146,16 @@ EOF
 
             if ( MediaWords::Util::Bitly::story_is_processed( $db, $stories_id ) )
             {
-                if ( $do_not_overwrite )
+                if ( $overwrite )
                 {
                     say STDERR "Story $stories_id for controversy $controversies_id is already " .
-                      "processed with Bit.ly, skipping.";
-                    next;
+                      "processed with Bit.ly, will overwrite.";
                 }
                 else
                 {
                     say STDERR "Story $stories_id for controversy $controversies_id is already " .
-                      "processed with Bit.ly, will overwrite.";
+                      "processed with Bit.ly, skipping.";
+                    next;
                 }
             }
 
