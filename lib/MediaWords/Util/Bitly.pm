@@ -24,7 +24,8 @@ use Scalar::Defer;
 use DateTime;
 use DateTime::Duration;
 
-use constant BITLY_API_ENDPOINT => 'https://api-ssl.bitly.com/';
+use constant BITLY_API_ENDPOINT     => 'https://api-ssl.bitly.com/';
+use constant BITLY_GRIDFS_USE_BZIP2 => 0;                              # Gzip works better in Bit.ly's case
 
 # (Lazy-initialized) Bit.ly access token
 my $_bitly_access_token = lazy
@@ -1297,8 +1298,8 @@ sub write_story_stats($$$)
 
     # Write to GridFS, index by stories_id
     eval {
-        my $param_skip_encode_and_compress  = 0;    # Objects should be compressed
-        my $param_use_bzip2_instead_of_gzip = 0;    # Gzip works better in Bit.ly's case
+        my $param_skip_encode_and_compress  = 0;                            # Objects should be compressed
+        my $param_use_bzip2_instead_of_gzip = BITLY_GRIDFS_USE_BZIP2 + 0;
 
         my $path = $_gridfs_store->store_content(
             $db, $stories_id, \$json_stats,
@@ -1310,6 +1311,69 @@ sub write_story_stats($$$)
     {
         die "Unable to store Bit.ly result to GridFS: $@";
     }
+}
+
+# Read Bit.ly story statistics from GridFS
+#
+# Params:
+# * $db - database object
+# * $stories_id - story ID
+#
+# Returns hashref with decoded JSON, undef if story is not annotated; die()s on error
+sub read_story_stats($$)
+{
+    my ( $db, $stories_id ) = @_;
+
+    unless ( MediaWords::Util::Bitly::bitly_processing_is_enabled() )
+    {
+        die "Bit.ly processing is not enabled.";
+    }
+
+    unless ( $stories_id )
+    {
+        die "'stories_id' is not set.";
+    }
+
+    # Check if something is already stored
+    unless ( story_is_processed( $db, $stories_id ) )
+    {
+        warn "Story $stories_id is not processed with Bit.ly.";
+        return undef;
+    }
+
+    # Fetch annotation
+    my $json_ref = undef;
+
+    my $param_object_path                   = undef;
+    my $param_skip_uncompress_and_decode    = 0;
+    my $param_use_bunzip2_instead_of_gunzip = BITLY_GRIDFS_USE_BZIP2 + 0;
+
+    eval {
+        $json_ref = $_gridfs_store->fetch_content(
+            $db, $stories_id, $param_object_path,
+            $param_skip_uncompress_and_decode,
+            $param_use_bunzip2_instead_of_gunzip
+        );
+    };
+    if ( $@ or ( !defined $json_ref ) )
+    {
+        die "GridFS died while fetching Bit.ly stats for story $stories_id: $@\n";
+    }
+
+    my $json = $$json_ref;
+    unless ( $json )
+    {
+        die "Fetched stats are undefined or empty for story $stories_id.\n";
+    }
+
+    my $json_hashref;
+    eval { $json_hashref = MediaWords::Util::JSON::decode_json( $json ); };
+    if ( $@ or ( !ref $json_hashref ) )
+    {
+        die "Unable to parse Bit.ly stats JSON for story $stories_id: $@\nString JSON: $json";
+    }
+
+    return $json_hashref;
 }
 
 1;
