@@ -1376,4 +1376,25 @@ sub read_story_stats($$)
     return $json_hashref;
 }
 
+# Return true if all controversy's stories have aggregated Bit.ly statistics
+sub all_controversy_stories_have_bitly_statistics($$)
+{
+    my ( $db, $controversies_id ) = @_;
+
+    my ( $all_controversy_stories_have_bitly_statistics ) = $db->query(
+        <<EOF,
+        SELECT cd.all_controversy_stories_have_bitly_statistics(?)
+EOF
+        $controversies_id
+    )->flat;
+    if ( $all_controversy_stories_have_bitly_statistics )
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 1;
