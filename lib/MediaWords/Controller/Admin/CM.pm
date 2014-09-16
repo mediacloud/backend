@@ -487,13 +487,22 @@ sub _get_top_media_for_time_slice
 
     return unless ( $num_media );
 
-    my $top_media = $db->query( <<END, $num_media )->hashes;
-select m.*, mlc.inlink_count, mlc.outlink_count, mlc.story_count, mlc.inlink_count
-    from dump_media_with_types m, dump_medium_link_counts mlc
-    where m.media_id = mlc.media_id
-    order by mlc.inlink_count desc
-    limit ?
+    my $top_media = $db->query(
+        <<END,
+        SELECT m.*,
+               mlc.inlink_count,
+               mlc.outlink_count,
+               mlc.story_count,
+               mlc.bitly_click_count,
+               mlc.bitly_referrer_count
+        FROM dump_media_with_types AS m,
+             dump_medium_link_counts AS mlc
+        WHERE m.media_id = mlc.media_id
+        ORDER BY mlc.inlink_count DESC
+        LIMIT ?
 END
+        $num_media
+    )->hashes;
 
     return $top_media;
 }
@@ -503,14 +512,25 @@ sub _get_top_stories_for_time_slice
 {
     my ( $db ) = @_;
 
-    my $top_stories = $db->query( <<END, 20 )->hashes;
-select s.*, slc.inlink_count, slc.outlink_count, m.name as medium_name, m.media_type
-    from dump_stories s, dump_story_link_counts slc, dump_media_with_types m
-    where s.stories_id = slc.stories_id and
-        s.media_id = m.media_id
-    order by slc.inlink_count desc
-    limit ?
+    my $top_stories = $db->query(
+        <<END,
+        SELECT s.*,
+               slc.inlink_count,
+               slc.outlink_count,
+               slc.bitly_click_count,
+               slc.bitly_referrer_count,
+               m.name as medium_name,
+               m.media_type
+        FROM dump_stories AS s,
+             dump_story_link_counts AS slc,
+             dump_media_with_types AS m
+        WHERE s.stories_id = slc.stories_id
+          AND s.media_id = m.media_id
+        ORDER BY slc.inlink_count DESC
+        LIMIT ?
 END
+        20
+    )->hashes;
 
     map { _add_story_date_info( $db, $_ ) } @{ $top_stories };
 
@@ -844,47 +864,81 @@ sub _get_medium_and_stories_from_dump_tables
 
     return unless ( $medium );
 
-    $medium->{ stories } = $db->query( <<'END', $media_id )->hashes;
-select s.*, m.name medium_name, m.media_type, slc.inlink_count, slc.outlink_count
-    from dump_stories s, dump_media_with_types m, dump_story_link_counts slc
-    where
-        s.stories_id = slc.stories_id and
-        s.media_id = m.media_id and
-        s.media_id = ?
-    order by slc.inlink_count desc
+    $medium->{ stories } = $db->query(
+        <<END,
+        SELECT s.*,
+               m.name AS medium_name,
+               m.media_type,
+               slc.inlink_count,
+               slc.outlink_count,
+               slc.bitly_click_count,
+               slc.bitly_referrer_count
+        FROM dump_stories AS s,
+             dump_media_with_types AS m,
+             dump_story_link_counts AS slc
+        WHERE s.stories_id = slc.stories_id
+          AND s.media_id = m.media_id
+          AND s.media_id = ?
+        ORDER BY slc.inlink_count DESC
 END
+        $media_id
+    )->hashes;
     map { _add_story_date_info( $db, $_ ) } @{ $medium->{ stories } };
 
-    $medium->{ inlink_stories } = $db->query( <<'END', $media_id )->hashes;
-select distinct s.*, sm.name medium_name, sm.media_type, sslc.inlink_count, sslc.outlink_count
-    from dump_stories s, dump_story_link_counts sslc, dump_media_with_types sm,
-        dump_stories r, dump_story_link_counts rslc,
-        dump_controversy_links_cross_media cl
-    where
-        s.stories_id = sslc.stories_id and
-        r.stories_id = rslc.stories_id and
-        s.media_id = sm.media_id and
-        s.stories_id = cl.stories_id and
-        r.stories_id = cl.ref_stories_id and
-        r.media_id = ?
-    order by sslc.inlink_count desc
+    $medium->{ inlink_stories } = $db->query(
+        <<END,
+        SELECT DISTINCT s.*,
+                        sm.name AS medium_name,
+                        sm.media_type,
+                        sslc.inlink_count,
+                        sslc.outlink_count,
+                        sslc.bitly_click_count,
+                        sslc.bitly_referrer_count
+        FROM dump_stories AS s,
+             dump_story_link_counts AS sslc,
+             dump_media_with_types AS sm,
+             dump_stories AS r,
+             dump_story_link_counts AS rslc,
+             dump_controversy_links_cross_media AS cl
+        WHERE s.stories_id = sslc.stories_id
+          AND r.stories_id = rslc.stories_id
+          AND s.media_id = sm.media_id
+          AND s.stories_id = cl.stories_id
+          AND r.stories_id = cl.ref_stories_id
+          AND r.media_id = ?
+        ORDER BY sslc.inlink_count DESC
 END
+        $media_id
+    )->hashes;
+
     map { _add_story_date_info( $db, $_ ) } @{ $medium->{ inlink_stories } };
 
-    $medium->{ outlink_stories } = $db->query( <<'END', $media_id )->hashes;
-select distinct r.*, rm.name medium_name, rm.media_type, rslc.inlink_count, rslc.outlink_count
-    from dump_stories s, dump_story_link_counts sslc,
-        dump_stories r, dump_story_link_counts rslc, dump_media_with_types rm,
-        dump_controversy_links_cross_media cl
-    where
-        s.stories_id = sslc.stories_id and
-        r.stories_id = rslc.stories_id and
-        r.media_id = rm.media_id and
-        s.stories_id = cl.stories_id and
-        r.stories_id = cl.ref_stories_id and
-        s.media_id = ?
-    order by rslc.inlink_count desc
+    $medium->{ outlink_stories } = $db->query(
+        <<END,
+        SELECT DISTINCT r.*,
+                        rm.name AS medium_name,
+                        rm.media_type,
+                        rslc.inlink_count,
+                        rslc.outlink_count,
+                        rslc.bitly_click_count,
+                        rslc.bitly_referrer_count
+        FROM dump_stories AS s,
+             dump_story_link_counts AS sslc,
+             dump_stories AS r,
+             dump_story_link_counts AS rslc,
+             dump_media_with_types AS rm,
+             dump_controversy_links_cross_media AS cl
+        WHERE s.stories_id = sslc.stories_id
+          AND r.stories_id = rslc.stories_id
+          AND r.media_id = rm.media_id
+          AND s.stories_id = cl.stories_id
+          AND r.stories_id = cl.ref_stories_id
+          AND s.media_id = ?
+        ORDER BY rslc.inlink_count DESC
 END
+        $media_id
+    )->hashes;
+
     map { _add_story_date_info( $db, $_ ) } @{ $medium->{ outlink_stories } };
 
     $medium->{ story_count }   = scalar( @{ $medium->{ stories } } );
@@ -1053,36 +1107,60 @@ sub _get_story_and_links_from_dump_tables
 
     _add_story_date_info( $db, $story );
 
-    $story->{ inlink_stories } = $db->query( <<'END', $stories_id )->hashes;
-select distinct s.*, sm.name medium_name, sm.media_type, sslc.inlink_count, sslc.outlink_count
-    from dump_stories s, dump_story_link_counts sslc, dump_media_with_types sm,
-        dump_stories r, dump_story_link_counts rslc,
-        dump_controversy_links_cross_media cl
-    where
-        s.stories_id = sslc.stories_id and
-        r.stories_id = rslc.stories_id and
-        s.media_id = sm.media_id and
-        s.stories_id = cl.stories_id and
-        r.stories_id = cl.ref_stories_id and
-        cl.ref_stories_id = ?
-    order by sslc.inlink_count desc
+    $story->{ inlink_stories } = $db->query(
+        <<END,
+        SELECT DISTINCT s.*,
+                        sm.name AS medium_name,
+                        sm.media_type,
+                        sslc.inlink_count,
+                        sslc.outlink_count,
+                        sslc.bitly_click_count,
+                        sslc.bitly_referrer_count
+        FROM dump_stories AS s,
+             dump_story_link_counts AS sslc,
+             dump_media_with_types AS sm,
+             dump_stories AS r,
+             dump_story_link_counts AS rslc,
+             dump_controversy_links_cross_media AS cl
+        WHERE s.stories_id = sslc.stories_id
+          AND r.stories_id = rslc.stories_id
+          AND s.media_id = sm.media_id
+          AND s.stories_id = cl.stories_id
+          AND r.stories_id = cl.ref_stories_id
+          AND cl.ref_stories_id = ?
+        ORDER BY sslc.inlink_count DESC
 END
+        $stories_id
+    )->hashes;
+
     map { _add_story_date_info( $db, $_ ) } @{ $story->{ inlink_stories } };
 
-    $story->{ outlink_stories } = $db->query( <<'END', $stories_id )->hashes;
-select distinct r.*, rm.name medium_name, rm.media_type, rslc.inlink_count, rslc.outlink_count
-    from dump_stories s, dump_story_link_counts sslc,
-        dump_stories r, dump_story_link_counts rslc, dump_media_with_types rm,
-        dump_controversy_links_cross_media cl
-    where
-        s.stories_id = sslc.stories_id and
-        r.stories_id = rslc.stories_id and
-        r.media_id = rm.media_id and
-        s.stories_id = cl.stories_id and
-        r.stories_id = cl.ref_stories_id and
-        cl.stories_id = ?
-    order by rslc.inlink_count desc
+    $story->{ outlink_stories } = $db->query(
+        <<END,
+        SELECT DISTINCT r.*,
+                        rm.name AS medium_name,
+                        rm.media_type,
+                        rslc.inlink_count,
+                        rslc.outlink_count,
+                        rslc.bitly_click_count,
+                        rslc.bitly_referrer_count
+        FROM dump_stories AS s,
+             dump_story_link_counts AS sslc,
+             dump_stories AS r,
+             dump_story_link_counts AS rslc,
+             dump_media_with_types AS rm,
+             dump_controversy_links_cross_media AS cl
+        WHERE s.stories_id = sslc.stories_id
+          AND r.stories_id = rslc.stories_id
+          AND r.media_id = rm.media_id
+          AND s.stories_id = cl.stories_id
+          AND r.stories_id = cl.ref_stories_id
+          AND cl.stories_id = ?
+        ORDER BY rslc.inlink_count DESC
 END
+        $stories_id
+    )->hashes;
+
     map { _add_story_date_info( $db, $_ ) } @{ $story->{ outlink_stories } };
 
     $story->{ inlink_count }  = scalar( @{ $story->{ inlink_stories } } );
@@ -1348,15 +1426,24 @@ sub search_stories : Local
     my $query = $c->req->params->{ q };
     my $search_query = _get_stories_id_search_query( $db, $query );
 
-    my $stories = $db->query( <<END )->hashes;
-select s.*, m.name medium_name, m.media_type, slc.inlink_count, slc.outlink_count
-    from dump_stories s, dump_media_with_types m, dump_story_link_counts slc
-    where
-        s.stories_id = slc.stories_id and
-        s.media_id = m.media_id and
-        s.stories_id in ( $search_query )
-    order by slc.inlink_count desc
+    my $stories = $db->query(
+        <<"END"
+        SELECT s.*,
+               m.name AS medium_name,
+               m.media_type,
+               slc.inlink_count,
+               slc.outlink_count,
+               slc.bitly_click_count,
+               slc.bitly_referrer_count
+        FROM dump_stories AS s,
+             dump_media_with_types AS m,
+             dump_story_link_counts AS slc
+        WHERE s.stories_id = slc.stories_id
+          AND s.media_id = m.media_id
+          AND s.stories_id IN ( $search_query )
+        ORDER BY slc.inlink_count DESC
 END
+    )->hashes;
 
     map { _add_story_date_info( $db, $_ ) } @{ $stories };
 
@@ -1416,14 +1503,22 @@ sub _add_id_medium_to_search_results ($$$)
 
     return unless ( $query =~ /^[0-9]+$/ );
 
-    my $id_medium = $db->query( <<END, $query )->hash;
-select distinct m.*, mlc.inlink_count, mlc.outlink_count, mlc.story_count
-    from dump_story_link_counts slc
-        join stories s on ( slc.stories_id = s.stories_id )
-        join dump_media_with_types m on ( s.media_id = m.media_id )
-        join dump_medium_link_counts mlc on ( m.media_id = mlc.media_id )
-     where s.media_id = ?
+    my $id_medium = $db->query(
+        <<END,
+        SELECT DISTINCT m.*,
+                        mlc.inlink_count,
+                        mlc.outlink_count,
+                        mlc.bitly_click_count,
+                        mlc.bitly_referrer_count,
+                        mlc.story_count
+        FROM dump_story_link_counts AS slc
+            JOIN stories AS s ON ( slc.stories_id = s.stories_id )
+            JOIN dump_media_with_types AS m ON ( s.media_id = m.media_id )
+            JOIN dump_medium_link_counts AS mlc ON ( m.media_id = mlc.media_id )
+        WHERE s.media_id = ?
 END
+        $query
+    )->hash;
 
     if ( $id_medium )
     {
@@ -1449,16 +1544,25 @@ sub search_media : Local
     my $query = $c->req->param( 'q' );
     my $search_query = _get_stories_id_search_query( $db, $query );
 
-    my $media = $db->query( <<END )->hashes;
-select distinct m.*, mlc.inlink_count, mlc.outlink_count, mlc.story_count
-    from dump_stories s, dump_media_with_types m, dump_story_link_counts slc, dump_medium_link_counts mlc
-    where
-        s.stories_id = slc.stories_id and
-        s.media_id = m.media_id and
-        s.media_id = mlc.media_id and
-        s.stories_id in ( $search_query )
-    order by mlc.inlink_count desc
+    my $media = $db->query(
+        <<"END"
+        SELECT DISTINCT m.*,
+                        mlc.inlink_count,
+                        mlc.outlink_count,
+                        mlc.bitly_click_count,
+                        mlc.bitly_referrer_count,
+                        mlc.story_count
+        FROM dump_stories AS s,
+             dump_media_with_types AS m,
+             dump_story_link_counts AS slc,
+             dump_medium_link_counts AS mlc
+        WHERE s.stories_id = slc.stories_id
+          AND s.media_id = m.media_id
+          AND s.media_id = mlc.media_id
+          AND s.stories_id IN ( $search_query )
+        ORDER BY mlc.inlink_count DESC
 END
+    )->hashes;
 
     MediaWords::CM::Dump::discard_temp_tables( $db );
 
