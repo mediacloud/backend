@@ -13,7 +13,7 @@ if [[ "$PGDATABASE" != "mediacloud_test" ]]; then
     echo "aborting test database name ($PGDATABASE) must be mediacloud_test"
     exit -1
 else
-    RELOAD_TEST_DB=0
+    RELOAD_TEST_DB=1
 
     if [ $RELOAD_TEST_DB = 1 ]; then
        echo "Dropping database $PGDATABASE"
