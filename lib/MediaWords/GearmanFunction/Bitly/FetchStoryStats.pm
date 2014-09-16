@@ -27,6 +27,7 @@ use MediaWords::CommonLibs;
 
 use MediaWords::DB;
 use MediaWords::Util::Bitly;
+use MediaWords::GearmanFunction::Bitly::AggregateStoryStats;
 use Readonly;
 use Data::Dumper;
 
@@ -73,6 +74,9 @@ sub run($;$)
     say STDERR "Storing story stats for story $stories_id...";
     MediaWords::Util::Bitly::write_story_stats( $db, $stories_id, $stats );
     say STDERR "Done storing story stats for story $stories_id.";
+
+    # Enqueue aggregating Bit.ly stats
+    MediaWords::GearmanFunction::Bitly::AggregateStoryStats->enqueue_on_gearman( { stories_id => $stories_id } );
 }
 
 # write a single log because there are a lot of Bit.ly processing jobs so it's
