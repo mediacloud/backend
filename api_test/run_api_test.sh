@@ -90,9 +90,21 @@ if MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION=1 MEDIAWORDS_FORCE_USING_TEST_DATABASE=1 
     mc_server_pid=$!
 
     echo "Media Cloud server PID $mc_server_pid"
+    MC_IS_UP=0
+    MC_START_RETRIES=90
+    echo "Waiting $MC_START_RETRIES seconds for Media Cloud server to start..."
+    for i in `seq 1 $MC_START_RETRIES`; do
+        echo "Trying to connect (#$i)..."
+        if nc -z -w 10 127.0.0.1 3000; then
+        echo "Mediacloud is up"
+        MC_IS_UP=1
+        break
+    else
+        # Still down
+        sleep 1
+    fi
+    done
 
-    sleep 4
-    
     cd MediaCloud-API-Client
     if python test.py; then
        echo "Python API test succeeded"
