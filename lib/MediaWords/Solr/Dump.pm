@@ -187,7 +187,7 @@ sub _print_csv_to_file_from_csr
             $imported_stories_ids->{ $stories_id } = 1;
         }
 
-        print STDERR time . " " . ( $i * $FETCH_BLOCK_SIZE ) . "\n";    # unless ( ++$i % 10 );
+        print STDERR time . " " . ( ++$i * $FETCH_BLOCK_SIZE ) . "\n";    # unless ( ++$i % 10 );
     }
 
     $db->dbh->do( "close csr" );
