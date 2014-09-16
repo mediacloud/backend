@@ -262,6 +262,8 @@ sub setup_acl()
     __PACKAGE__->allow_access( "/admin/query/sentences" );
     __PACKAGE__->allow_access( "/admin/query/wc" );
 
+    __PACKAGE__->allow_access( "/admin/stop_server" );
+
 }
 
 setup_acl();
