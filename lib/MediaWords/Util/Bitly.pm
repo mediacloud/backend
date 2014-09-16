@@ -998,7 +998,7 @@ sub bitly_link_shares($;$$)
 
 {
     # Object to determine what kind of stats to fetch from Bit.ly (used in
-    # _fetch_story_stats())
+    # collect_story_stats())
     package MediaWords::Util::Bitly::StatsToFetch;
 
     sub new($;$$$$)
@@ -1049,7 +1049,7 @@ sub story_is_processed($$)
     }
 }
 
-# Fetch story URL statistics from Bit.ly
+# Collect story URL statistics from Bit.ly API
 #
 # Params:
 # * $db - database object
@@ -1102,7 +1102,7 @@ sub story_is_processed($$)
 #    };
 #
 # die()s on error
-sub fetch_story_stats($$$$;$)
+sub collect_story_stats($$$$;$)
 {
     my ( $db, $stories_id, $start_timestamp, $end_timestamp, $stats_to_fetch ) = @_;
 

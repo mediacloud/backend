@@ -61,7 +61,7 @@ sub run($;$)
     say STDERR "Fetching story stats for story $stories_id...";
 
     my $stats =
-      MediaWords::Util::Bitly::fetch_story_stats( $db, $stories_id, $start_timestamp, $end_timestamp, $stats_to_fetch );
+      MediaWords::Util::Bitly::collect_story_stats( $db, $stories_id, $start_timestamp, $end_timestamp, $stats_to_fetch );
     unless ( ref( $stats ) eq ref( {} ) )
     {
         die "Stats for story ID $stories_id is not a hashref.";
