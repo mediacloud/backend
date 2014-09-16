@@ -50,10 +50,18 @@ sub index : Path : Args(0)
 {
     my ( $self, $c ) = @_;
 
-    say STDERR "quitting server";
+    if ( exists $ENV{ MEDIACLOUD_ENABLE_SHUTDOWN_URL } && $ENV{ MEDIACLOUD_ENABLE_SHUTDOWN_URL } )
+    {
+        say STDERR "quitting server";
 
-    $c->response->body( "Shutting down server\n" );
-    quit();
+        $c->response->body( "Shutting down server\n" );
+        quit();
+    }
+    else
+    {
+        $c->response->body( '$MEDIACLOUD_ENABLE_SHUTDOWN_URL must be set to allow url based server shutdown' . "\n" );
+    }
+
     return;
 }
 

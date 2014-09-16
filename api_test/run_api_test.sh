@@ -86,7 +86,7 @@ if MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION=1 MEDIAWORDS_FORCE_USING_TEST_DATABASE=1 
 
     echo "starting mediacloud server"
 
-    MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION=1 MEDIAWORDS_FORCE_USING_TEST_DATABASE=1 ./script/run_server_with_carton.sh &
+    MEDIACLOUD_ENABLE_SHUTDOWN_URL=1 MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION=1 MEDIAWORDS_FORCE_USING_TEST_DATABASE=1 ./script/run_server_with_carton.sh &
     mc_server_pid=$!
 
     echo "Media Cloud server PID $mc_server_pid"
