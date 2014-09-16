@@ -395,18 +395,28 @@ sub write_story_link_counts_dump
 create temporary table dump_story_link_counts $_temporary_tablespace as
     select distinct ps.stories_id, 
             coalesce( ilc.inlink_count, 0 ) inlink_count, 
-            coalesce( olc.outlink_count, 0 ) outlink_count
+            coalesce( olc.outlink_count, 0 ) outlink_count,
+            cd.story_bitly_statistics.bitly_click_count as bitly_click_count,
+            cd.story_bitly_statistics.bitly_referrer_count as bitly_referrer_count
         from dump_period_stories ps
             left join 
-                ( select cl.ref_stories_id, count( distinct cl.stories_id ) inlink_count 
-                    from dump_controversy_links_cross_media cl, dump_period_stories ps
-                    where cl.stories_id = ps.stories_id
-                    group by cl.ref_stories_id ) ilc on ( ps.stories_id = ilc.ref_stories_id )
+                ( select cl.ref_stories_id,
+                         count( distinct cl.stories_id ) inlink_count 
+                  from dump_controversy_links_cross_media cl,
+                       dump_period_stories ps
+                  where cl.stories_id = ps.stories_id
+                  group by cl.ref_stories_id
+                ) ilc on ( ps.stories_id = ilc.ref_stories_id )
             left join 
-                ( select cl.stories_id, count( distinct cl.ref_stories_id ) outlink_count 
-                    from dump_controversy_links_cross_media cl, dump_period_stories ps
-                    where cl.ref_stories_id = ps.stories_id
-                    group by cl.stories_id ) olc on ( ps.stories_id = olc.stories_id )
+                ( select cl.stories_id,
+                         count( distinct cl.ref_stories_id ) outlink_count 
+                  from dump_controversy_links_cross_media cl,
+                       dump_period_stories ps
+                  where cl.ref_stories_id = ps.stories_id
+                  group by cl.stories_id
+                ) olc on ( ps.stories_id = olc.stories_id )
+            left join cd.story_bitly_statistics
+                on ps.stories_id = cd.story_bitly_statistics.stories_id
 END
 
     if ( !$is_model )
@@ -517,8 +527,12 @@ sub write_medium_link_counts_dump
 
     $db->query( <<END );
 create temporary table dump_medium_link_counts $_temporary_tablespace as   
-    select m.media_id, sum( slc.inlink_count) inlink_count, sum( slc.outlink_count) outlink_count,
-            count(*) story_count
+    select m.media_id,
+           sum( slc.inlink_count) inlink_count,
+           sum( slc.outlink_count) outlink_count,
+           count(*) story_count,
+           sum( slc.bitly_click_count ) bitly_click_count,
+           sum( slc.bitly_referrer_count ) bitly_referrer_count
         from dump_media m, dump_stories s, dump_story_link_counts slc 
         where m.media_id = s.media_id and s.stories_id = slc.stories_id
         group by m.media_id
