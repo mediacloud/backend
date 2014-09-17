@@ -27,6 +27,10 @@ use DateTime::Duration;
 use constant BITLY_API_ENDPOINT     => 'https://api-ssl.bitly.com/';
 use constant BITLY_GRIDFS_USE_BZIP2 => 0;                              # Gzip works better in Bit.ly's case
 
+# Error message printed when Bit.ly rate limit is exceeded; used for naive
+# exception handling, see error_is_rate_limit_exceeded()
+use constant BITLY_ERROR_LIMIT_EXCEEDED => 'Bit.ly rate limit exceeded. Please wait for a bit and try again.';
+
 # (Lazy-initialized) Bit.ly access token
 my $_bitly_access_token = lazy
 {
@@ -266,7 +270,7 @@ sub request($$)
     {
         if ( $json->{ status_code } == 403 and $json->{ status_txt } eq 'RATE_LIMIT_EXCEEDED' )
         {
-            die 'Bit.ly rate limit exceeded. Please wait for a bit and try again.';
+            die BITLY_ERROR_LIMIT_EXCEEDED;
 
         }
         elsif ( $json->{ status_code } == 500 and $json->{ status_txt } eq 'INVALID_ARG_UNIT_REFERENCE_TS' )
@@ -1398,6 +1402,24 @@ EOF
         $controversies_id
     )->flat;
     if ( $all_controversy_stories_have_bitly_statistics )
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+# Given the error message ($@ after unsuccessful eval{}), determine whether the
+# error is because of the exceeded Bit.ly rate limit
+sub error_is_rate_limit_exceeded($)
+{
+    my $error_message = shift;
+
+    my $expected_message = BITLY_ERROR_LIMIT_EXCEEDED . '';
+
+    if ( $error_message =~ /$expected_message/ )
     {
         return 1;
     }
