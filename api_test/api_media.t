@@ -115,7 +115,7 @@ sub test_media
             }
         ];
 
-        say STDERR Dumper( $actual_response );
+        #say STDERR Dumper( $actual_response );
 
         cmp_deeply( $actual_response, $expected_response, "response format mismatch for $url" );
 
