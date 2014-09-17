@@ -1191,13 +1191,24 @@ sub collect_story_stats($$$$;$)
 
         my $bitly_id = $link_lookup->{ $link };
 
-        say STDERR "Fetching stats for Bit.ly ID $bitly_id...";
         if ( $link_stats->{ 'data' }->{ $bitly_id } )
         {
             die "Bit.ly ID $bitly_id already exists in link stats hashref: " . Dumper( $link_stats );
         }
 
         $link_stats->{ 'data' }->{ $bitly_id } = {};
+
+        # Append link
+        $link_stats->{ 'data' }->{ $bitly_id }->{ 'url' } = $link;
+
+        # Append "/v3/link/info" block
+        unless ( $bitly_info->{ $bitly_id } )
+        {
+            die "Bit.ly ID $bitly_id was not found in the 'info' hashref: " . Dumper( $bitly_info );
+        }
+        $link_stats->{ 'data' }->{ $bitly_id }->{ 'info' } = $bitly_info->{ $bitly_id };
+
+        say STDERR "Fetching stats for Bit.ly ID $bitly_id...";
 
         if ( $stats_to_fetch->{ fetch_categories } )
         {
