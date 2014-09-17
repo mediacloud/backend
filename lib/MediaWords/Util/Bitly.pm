@@ -71,7 +71,7 @@ my $_bitly_timeout = lazy
 # b) each Gearman worker is a separate process so there shouldn't be any resource clashes.
 my $_gridfs_store = lazy
 {
-    unless ( MediaWords::Util::Bitly::bitly_processing_is_enabled() )
+    unless ( bitly_processing_is_enabled() )
     {
         fatal_error( "Bit.ly processing is not enabled; why are you accessing this variable?" );
     }
@@ -1028,7 +1028,7 @@ sub story_is_processed($$)
 {
     my ( $db, $stories_id ) = @_;
 
-    unless ( MediaWords::Util::Bitly::bitly_processing_is_enabled() )
+    unless ( bitly_processing_is_enabled() )
     {
         die "Bit.ly processing is not enabled.";
     }
@@ -1107,7 +1107,7 @@ sub collect_story_stats($$$$;$)
 {
     my ( $db, $stories_id, $start_timestamp, $end_timestamp, $stats_to_fetch ) = @_;
 
-    unless ( MediaWords::Util::Bitly::bitly_processing_is_enabled() )
+    unless ( bitly_processing_is_enabled() )
     {
         die "Bit.ly processing is not enabled.";
     }
@@ -1149,7 +1149,7 @@ sub collect_story_stats($$$$;$)
     my $string_end_date   = _gmt_date_string_from_timestamp( $end_timestamp );
 
     my $link_lookup;
-    eval { $link_lookup = MediaWords::Util::Bitly::bitly_link_lookup_hashref_all_variants( $stories_url ); };
+    eval { $link_lookup = bitly_link_lookup_hashref_all_variants( $stories_url ); };
     if ( $@ or ( !$link_lookup ) )
     {
         die "Unable to lookup story ID $stories_id with URL $stories_url: $@";
@@ -1164,7 +1164,7 @@ sub collect_story_stats($$$$;$)
     say STDERR "Fetching info for Bit.ly IDs " . join( ', ', @{ $bitly_ids } ) . "...";
     if ( scalar( @{ $bitly_ids } ) )
     {
-        eval { $bitly_info = MediaWords::Util::Bitly::bitly_info_hashref( $bitly_ids ); };
+        eval { $bitly_info = bitly_info_hashref( $bitly_ids ); };
         if ( $@ or ( !$bitly_info ) )
         {
             die "Unable to fetch Bit.ly info for Bit.ly IDs " . join( ', ', @{ $bitly_ids } ) . ": $@";
@@ -1202,8 +1202,7 @@ sub collect_story_stats($$$$;$)
         if ( $stats_to_fetch->{ fetch_categories } )
         {
             say STDERR "Fetching categories for Bit.ly ID $bitly_id...";
-            $link_stats->{ 'data' }->{ $bitly_id }->{ 'categories' } =
-              MediaWords::Util::Bitly::bitly_link_categories( $bitly_id );
+            $link_stats->{ 'data' }->{ $bitly_id }->{ 'categories' } = bitly_link_categories( $bitly_id );
         }
         if ( $stats_to_fetch->{ fetch_clicks } )
         {
@@ -1211,7 +1210,7 @@ sub collect_story_stats($$$$;$)
             $link_stats->{ 'data' }->{ $bitly_id }->{ 'clicks' } = [
 
                 # array because one might want to make multiple requests with various dates
-                MediaWords::Util::Bitly::bitly_link_clicks( $bitly_id, $start_timestamp, $end_timestamp )
+                bitly_link_clicks( $bitly_id, $start_timestamp, $end_timestamp )
             ];
         }
         if ( $stats_to_fetch->{ fetch_referrers } )
@@ -1220,7 +1219,7 @@ sub collect_story_stats($$$$;$)
             $link_stats->{ 'data' }->{ $bitly_id }->{ 'referrers' } = [
 
                 # array because one might want to make multiple requests with various dates
-                MediaWords::Util::Bitly::bitly_link_referrers( $bitly_id, $start_timestamp, $end_timestamp )
+                bitly_link_referrers( $bitly_id, $start_timestamp, $end_timestamp )
             ];
         }
         if ( $stats_to_fetch->{ fetch_shares } )
@@ -1229,7 +1228,7 @@ sub collect_story_stats($$$$;$)
             $link_stats->{ 'data' }->{ $bitly_id }->{ 'shares' } = [
 
                 # array because one might want to make multiple requests with various dates
-                MediaWords::Util::Bitly::bitly_link_shares( $bitly_id, $start_timestamp, $end_timestamp )
+                bitly_link_shares( $bitly_id, $start_timestamp, $end_timestamp )
             ];
         }
 
@@ -1266,7 +1265,7 @@ sub write_story_stats($$$)
 {
     my ( $db, $stories_id, $stats ) = @_;
 
-    unless ( MediaWords::Util::Bitly::bitly_processing_is_enabled() )
+    unless ( bitly_processing_is_enabled() )
     {
         die "Bit.ly processing is not enabled.";
     }
@@ -1324,7 +1323,7 @@ sub read_story_stats($$)
 {
     my ( $db, $stories_id ) = @_;
 
-    unless ( MediaWords::Util::Bitly::bitly_processing_is_enabled() )
+    unless ( bitly_processing_is_enabled() )
     {
         die "Bit.ly processing is not enabled.";
     }
