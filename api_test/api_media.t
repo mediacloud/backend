@@ -91,11 +91,21 @@ sub test_media
                     {
                         'tag_sets_id'     => 1,
                         'show_on_stories' => undef,
-                        'tags_id'         => 1,
+                        'tags_id'         => 17,
                         'description'     => undef,
                         'show_on_media'   => undef,
                         'tag_set'         => 'collection',
-                        'tag'             => 'news collection:cc',
+                        'tag'             => 'cc',
+                        'label'           => undef
+                    },
+                    {
+                        'tag_sets_id'     => 1,
+                        'show_on_stories' => undef,
+                        'tags_id'         => 18,
+                        'description'     => undef,
+                        'show_on_media'   => undef,
+                        'tag_set'         => 'collection',
+                        'tag'             => 'news',
                         'label'           => undef
                     }
                 ],
@@ -104,6 +114,8 @@ sub test_media
                 'media_sets' => []
             }
         ];
+
+        say STDERR Dumper( $actual_response );
 
         cmp_deeply( $actual_response, $expected_response, "response format mismatch for $url" );
 
