@@ -52,7 +52,7 @@ before_script:
     - MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM=1 ./script/run_with_carton.sh ./script/mediawords_create_db.pl
 script:
     # Run Media Cloud's test suite, report test coverage to https://coveralls.io/r/berkmancenter/mediacloud
-    - ./script/run_test_suite_for_devel_cover.sh coveralls --destroy-solr
+    - MEDIACLOUD_ENABLE_PYTHON_API_TESTS = 1 ./script/run_test_suite_for_devel_cover.sh coveralls --destroy-solr
 after_failure:
     # Print out the test log
     - echo
