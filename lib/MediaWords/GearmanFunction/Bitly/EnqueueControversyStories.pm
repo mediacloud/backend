@@ -77,14 +77,8 @@ sub run($;$)
     say STDERR "Fetching controversy's $controversies_id start and end timestamps...";
     my $timestamps = $db->query(
         <<EOF,
-        SELECT LEAST(
-                   EXTRACT(EPOCH FROM MIN( start_date )::timestamp),
-                   EXTRACT(EPOCH FROM CURRENT_TIMESTAMP AT TIME ZONE 'GMT')
-               )::integer AS start_timestamp,
-               LEAST(
-                   EXTRACT(EPOCH FROM MAX( end_date )::timestamp),
-                   EXTRACT(EPOCH FROM CURRENT_TIMESTAMP AT TIME ZONE 'GMT')
-               )::integer AS end_timestamp
+        SELECT EXTRACT(EPOCH FROM MIN( start_date )::timestamp) AS start_timestamp,
+               EXTRACT(EPOCH FROM MAX( end_date )::timestamp) AS end_timestamp
         FROM controversies_with_dates
         WHERE controversies_id = ?
 EOF
@@ -102,8 +96,28 @@ EOF
         die "Start timestamp ($start_timestamp) is bigger or equal to end timestamp ($end_timestamp).";
     }
 
-    say STDERR "Start timestamp: " . DateTime->from_epoch( epoch => $start_timestamp )->ymd();
-    say STDERR "End timestamp: " . DateTime->from_epoch( epoch => $end_timestamp )->ymd();
+    my $now = time();
+    if ( $start_timestamp > $now )
+    {
+        say STDERR
+"Start timestamp $start_timestamp is bigger than current timestamp $now, so worker will use current timestamp as start date.";
+        $start_timestamp = undef;
+    }
+    else
+    {
+        say STDERR "Start timestamp: " . DateTime->from_epoch( epoch => $start_timestamp )->ymd();
+    }
+
+    if ( $end_timestamp > $now )
+    {
+        say STDERR
+"End timestamp $end_timestamp is bigger than current timestamp $now, so worker will use current timestamp as end date.";
+        $end_timestamp = undef;
+    }
+    else
+    {
+        say STDERR "End timestamp: " . DateTime->from_epoch( epoch => $end_timestamp )->ymd();
+    }
 
     say STDERR "Done fetching controversy's $controversies_id start and end timestamps.";
 

@@ -55,11 +55,21 @@ sub run($;$)
     # Postpone connecting to the database so that compile test doesn't do that
     $db ||= MediaWords::DB::connect_to_db();
 
-    my $stories_id      = $args->{ stories_id }      or die "'stories_id' is not set.";
-    my $start_timestamp = $args->{ start_timestamp } or die "'start_timestamp' is not set.";
-    my $end_timestamp   = $args->{ end_timestamp }   or die "'end_timestamp' is not set.";
+    my $stories_id      = $args->{ stories_id } or die "'stories_id' is not set.";
+    my $start_timestamp = $args->{ start_timestamp };
+    my $end_timestamp   = $args->{ end_timestamp };
 
-    say STDERR "Fetching story stats for story $stories_id...";
+    my $now = time();
+    unless ( $start_timestamp )
+    {
+        say STDERR "Start timestamp is not set, so I will use current timestamp $now as start date.";
+        $start_timestamp = $now;
+    }
+    unless ( $end_timestamp )
+    {
+        say STDERR "End timestamp is not set, so I will use current timestamp $now as end date.";
+        $end_timestamp = $now;
+    }
 
     my $stats =
       MediaWords::Util::Bitly::collect_story_stats( $db, $stories_id, $start_timestamp, $end_timestamp, $stats_to_fetch );
