@@ -600,6 +600,14 @@ EOF
     $upgrade_sql .= get_sql_function_definitions();
     $upgrade_sql .= "\n-- --------------------------------\n\n\n";
 
+    # Wrap into a transaction
+    if ( $upgrade_sql =~ /BEGIN;/i or $upgrade_sql =~ /COMMIT;/i )
+    {
+        die "Upgrade script already BEGINs and COMMITs a transaction. Please upgrade the database manually.";
+    }
+    $upgrade_sql = "BEGIN;\n\n\n" . $upgrade_sql;
+    $upgrade_sql .= "COMMIT;\n\n";
+
     if ( $echo_instead_of_executing )
     {
         print "$upgrade_sql";
