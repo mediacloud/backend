@@ -370,14 +370,10 @@ sub postgresql_response_line_is_expected($)
     my $line = shift;
 
     unless ( $line =~
-/^NOTICE:|^CREATE|^ALTER|^\SET|^COMMENT|^INSERT|^ enum_add.*|^----------.*|^\s+|^\(\d+ rows?\)|^$|^Time:|^DROP LANGUAGE|^DROP VIEW|^DROP TABLE|^drop cascades to view |^UPDATE \d+|^DROP TRIGGER|^Timing is on\.|^DROP INDEX|^psql.*: NOTICE:|^DELETE|^SELECT 0/
+/^NOTICE:|^CREATE|^ALTER|^\SET|^COMMENT|^INSERT|^ enum_add.*|^----------.*|^\s+|^\(\d+ rows?\)|^$|^Time:|^DROP LANGUAGE|^DROP VIEW|^DROP TABLE|^DROP FUNCTION|^drop cascades to view |^UPDATE \d+|^DROP TRIGGER|^Timing is on\.|^DROP INDEX|^psql.*: NOTICE:|^DELETE|^SELECT 0/
       )
     {
-        # Make an exception for the fancy way of creating Pg languages
-        unless ( $line =~ /^DROP FUNCTION/ )
-        {
-            return 0;
-        }
+        return 0;
     }
 
     return 1;
