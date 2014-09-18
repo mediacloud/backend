@@ -116,10 +116,15 @@ END
             }
 
             # insert stopwords and stopword stems
-            $sql .=
-              'INSERT INTO stopwords_' . $stoplist_size . ' (stopword, language) VALUES ' . join( ', ', @stopwords ) . ';';
-            $sql .= 'INSERT INTO stopword_stems_' . $stoplist_size . ' (stopword_stem, language) VALUES ' .
-              join( ', ', @stopword_stems ) . ';';
+            my $joined_stopwords      = join( ', ', @stopwords );
+            my $joined_stopword_stems = join( ', ', @stopword_stems );
+            $sql .= <<"EOF";
+                INSERT INTO stopwords_${ stoplist_size } (stopword, language)
+                VALUES $joined_stopwords;
+
+                INSERT INTO stopword_stems_${ stoplist_size } (stopword_stem, language)
+                VALUES $joined_stopword_stems;
+EOF
         }
 
     }
