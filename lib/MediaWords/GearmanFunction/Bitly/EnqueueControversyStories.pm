@@ -27,9 +27,9 @@ use MediaWords::CommonLibs;
 
 use MediaWords::DB;
 use MediaWords::Util::Bitly;
+use MediaWords::Util::DateTime;
 use MediaWords::GearmanFunction::Bitly::FetchStoryStats;
 use Readonly;
-use DateTime;
 
 # Having a global database object should be safe because
 # Gearman::JobScheduler's workers don't support fork()s anymore
@@ -105,7 +105,7 @@ EOF
     }
     else
     {
-        say STDERR "Start timestamp: " . DateTime->from_epoch( epoch => $start_timestamp )->ymd();
+        say STDERR "Start timestamp: " . gmt_date_string_from_timestamp( $start_timestamp );
     }
 
     if ( $end_timestamp > $now )
@@ -116,7 +116,7 @@ EOF
     }
     else
     {
-        say STDERR "End timestamp: " . DateTime->from_epoch( epoch => $end_timestamp )->ymd();
+        say STDERR "End timestamp: " . gmt_date_string_from_timestamp( $end_timestamp );
     }
 
     say STDERR "Done fetching controversy's $controversies_id start and end timestamps.";

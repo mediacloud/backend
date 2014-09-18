@@ -15,6 +15,7 @@ use MediaWords::Util::Web;
 use MediaWords::Util::URL;
 use MediaWords::Util::Config;
 use MediaWords::Util::JSON;
+use MediaWords::Util::DateTime;
 use MediaWords::KeyValueStore::GridFS;
 use URI;
 use URI::QueryParam;
@@ -95,24 +96,6 @@ my $_gridfs_store = lazy
     return $gridfs_store;
 };
 
-# Using UNIX timestamp as a parameter, return a DateTime object using GMT
-# timezone
-sub _gmt_datetime_from_timestamp($)
-{
-    my $timestamp = shift;
-
-    return DateTime->from_epoch( epoch => $timestamp, time_zone => 'Etc/GMT' );
-}
-
-# Using UNIX timestamp as a parameter, return a string date (in ISO8601 format,
-# e.g. "2014-09-03T15:44:23") using GMT timezone
-sub _gmt_date_string_from_timestamp($)
-{
-    my $timestamp = shift;
-
-    return _gmt_datetime_from_timestamp( $timestamp )->iso8601();
-}
-
 # From $start_timestamp and $end_timestamp parameters, return API parameters "unit_reference_ts" and "units"
 # die()s on error
 sub _unit_reference_ts_and_units_from_start_end_timestamps($$$)
@@ -153,8 +136,8 @@ sub _unit_reference_ts_and_units_from_start_end_timestamps($$$)
     if ( defined $start_timestamp and defined $end_timestamp )
     {
 
-        my $start_date = _gmt_datetime_from_timestamp( $start_timestamp );
-        my $end_date   = _gmt_datetime_from_timestamp( $end_timestamp );
+        my $start_date = gmt_datetime_from_timestamp( $start_timestamp );
+        my $end_date   = gmt_datetime_from_timestamp( $end_timestamp );
 
         # Round timestamps to the nearest day
         $start_date->set( hour => 0, minute => 0, second => 0 );
@@ -281,7 +264,7 @@ sub request($$)
             if ( defined $params->{ unit_reference_ts } )
             {
                 $error_message .= $params->{ unit_reference_ts };
-                $error_message .= ' (' . _gmt_date_string_from_timestamp( $params->{ unit_reference_ts } ) . ')';
+                $error_message .= ' (' . gmt_date_string_from_timestamp( $params->{ unit_reference_ts } ) . ')';
             }
             else
             {
@@ -1149,8 +1132,8 @@ sub collect_story_stats($$$$;$)
         die "Story URL for story ID $stories_id is empty.";
     }
 
-    my $string_start_date = _gmt_date_string_from_timestamp( $start_timestamp );
-    my $string_end_date   = _gmt_date_string_from_timestamp( $end_timestamp );
+    my $string_start_date = gmt_date_string_from_timestamp( $start_timestamp );
+    my $string_end_date   = gmt_date_string_from_timestamp( $end_timestamp );
 
     my $link_lookup;
     eval { $link_lookup = bitly_link_lookup_hashref_all_variants( $stories_url ); };
