@@ -11,7 +11,7 @@ use strict;
 use warnings;
 
 use IPC::Run3;
-use Carp;
+use Carp qw/ confess /;
 use FindBin;
 
 # get is_stop_stem() stopword + stopword stem tables and a pl/pgsql function definition
@@ -362,6 +362,27 @@ sub reset_all_schemas($)
     reset_schema( $db, 'stories_tags_map_media_sub_tables' );
 }
 
+# Given the PostgreSQL response line (notice) returned while importing schema,
+# return 1 if the response line is something that is likely to be in the
+# initial schema and 0 otherwise
+sub postgresql_response_line_is_expected($)
+{
+    my $line = shift;
+
+    unless ( $line =~
+/^NOTICE:|^CREATE|^ALTER|^\SET|^COMMENT|^INSERT|^ enum_add.*|^----------.*|^\s+|^\(\d+ rows?\)|^$|^Time:|^DROP LANGUAGE|^DROP VIEW|^DROP TABLE|^drop cascades to view |^UPDATE \d+|^DROP TRIGGER|^Timing is on\.|^DROP INDEX|^psql.*: NOTICE:|^DELETE|^SELECT 0/
+      )
+    {
+        # Make an exception for the fancy way of creating Pg languages
+        unless ( $line =~ /^DROP FUNCTION/ )
+        {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
 # loads and runs a given SQL file
 # useful for rebuilding the database schema after a call to reset_schema
 sub load_sql_file
@@ -374,21 +395,12 @@ sub load_sql_file
 
         chomp( $line );
 
-        #say "Got line: '$line'";
+        # say "Got line: '$line'";
 
         # Die on unexpected SQL (e.g. DROP TABLE)
-        if (
-            not $line =~
-/^NOTICE:|^CREATE|^ALTER|^\SET|^COMMENT|^INSERT|^ enum_add.*|^----------.*|^\s+|^\(\d+ rows?\)|^$|^Time:|^DROP LANGUAGE|^DROP VIEW|^DROP TABLE|^drop cascades to view |^UPDATE \d+|^DROP TRIGGER|^Timing is on\.|^DROP INDEX|^psql.*: NOTICE:|^DELETE|^SELECT 0/
-          )
+        unless ( postgresql_response_line_is_expected( $line ) )
         {
-
-            # Make an exception for the fancy way of creating Pg languages
-            if ( not $line =~ /^DROP FUNCTION/ )
-            {
-                carp "Evil line: '$line'";
-                die "Evil line: '$line'";
-            }
+            confess "Unexpected PostgreSQL response line: '$line'";
         }
 
         return "$line\n";
