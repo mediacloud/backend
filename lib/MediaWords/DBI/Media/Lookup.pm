@@ -28,9 +28,9 @@ select m.*, mtm.tags_id spidered_tags_id
         m.url ilike ( '%'||?||'%' )
 END
 
-    my $nu = MediaWords::Util::URL::normalize_url( $url );
+    my $nu = MediaWords::Util::URL::normalize_url_lossy( $url );
 
-    return [ grep { MediaWords::Util::URL::normalize_url( $_->{ url } ) eq $nu } @{ $media } ];
+    return [ grep { MediaWords::Util::URL::normalize_url_lossy( $_->{ url } ) eq $nu } @{ $media } ];
 }
 
 # sort sub to produce list of media sorted by spidered status, dup_media_id status, and the media_id

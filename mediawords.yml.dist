@@ -48,6 +48,9 @@ database:
     ### (optional) Database for storing CoreNLP annotator results
     #corenlp:
         #database_name : "mediacloud_corenlp"
+    ### (optional) Database for storing Bit.ly API results
+    #bitly:
+        #database_name : "mediacloud_bitly"
 
 ### Amazon S3 connection settings
 #amazon_s3:
@@ -151,6 +154,9 @@ database:
         #solr
         #solr_facets_wrapper_server
         #annotate_with_corenlp
+        #bitly_enqueue_controversy_stories
+        #bitly_fetch_story_stats
+        #bitly_aggregate_story_stats
         
 
 ### CoreNLP annotator
@@ -218,6 +224,19 @@ database:
     ### More threads will serve more model runner requests per seconds, but
     ### will take up more memory.
     #number_of_threads: 32
+
+### Bit.ly API
+#bitly:
+
+    ### Enable Bit.ly processing
+    #enabled: "no"
+
+    ### (Generic) Access Token
+    ### Get one at: https://bitly.com/a/oauth_apps
+    #access_token: ""
+
+    ### API request timeout (in seconds)
+    #timeout: 60
 
 #mail:
     # Email address to receive bug report emails; leave empty for no bug reports via email

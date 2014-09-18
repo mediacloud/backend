@@ -13,6 +13,15 @@
 
         <div class="boxtitle">
             Query
+
+            [% IF controversy.process_with_bitly %]
+                [% IF bitly_processing_is_enabled %]
+                    <a id="boxcommand" href="[% c.uri_for( '/admin/cm/enqueue_stories_for_bitly/' _ controversy.controversies_id ) %]">enqueue stories for bit.ly</a>
+                [% ELSE %]
+                    <a id="boxcommand" href="javascript:alert('Bit.ly processing is not enabled in the configuration.')">bit.ly is disabled</a>
+                [% END %]
+            [% END %]
+
             <a id="boxcommand" href="[% c.uri_for( '/admin/cm/delete_stories/' _ controversy.controversies_id ) %]">remove stories</a>
             <a id="boxcommand" href="[% c.uri_for( '/admin/cm/merge_stories_list/' _ controversy.controversies_id ) %]">merge stories</a>
             <a id="boxcommand" href="[% c.uri_for( '/admin/cm/edit_dates/' _ controversy.controversies_id ) %]">edit dates</a>

@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4471;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4472;
     
 BEGIN
 
@@ -261,7 +261,7 @@ CREATE OR REPLACE FUNCTION update_story_sentences_updated_time_by_story_sentence
 $$
     DECLARE
         path_change boolean;
-        reference_story_sentences_id integer default null;
+        reference_story_sentences_id bigint default null;
     BEGIN
 
         IF TG_OP = 'INSERT' THEN
@@ -1546,23 +1546,6 @@ CREATE TABLE popular_queries (
 CREATE UNIQUE INDEX popular_queries_da_up ON popular_queries(dashboard_action, url_params);
 CREATE UNIQUE INDEX popular_queries_query_ids ON popular_queries( queries_id_0,  queries_id_1);
 CREATE INDEX popular_queries_dashboards_id_count on popular_queries(dashboards_id, count);
-
-create table query_story_searches (
-    query_story_searches_id     serial primary key,
-    queries_id                  int not null references queries,
-    pattern                     text,
-    search_completed            boolean default false
-);
-
-create unique index query_story_searches_query_pattern on query_story_searches( queries_id, pattern );
-  
-create table query_story_searches_stories_map (
-    query_story_searches_id     int references query_story_searches on delete cascade,
-    stories_id                  int references stories on delete cascade
-);
-
-create unique index query_story_searches_stories_map_u on query_story_searches_stories_map ( query_story_searches_id, stories_id );
-create index query_story_searches_stories_map_story on query_story_searches_stories_map ( stories_id );
     
 create table story_similarities (
     story_similarities_id   serial primary key,
@@ -1588,20 +1571,17 @@ create table controversies (
     solr_seed_query         text not null,
     solr_seed_query_run     boolean not null default false,
     description             text not null,
-    query_story_searches_id int not null references query_story_searches,
     controversy_tag_sets_id int not null references tag_sets,
-    media_type_tag_sets_id  int references tag_sets
+    media_type_tag_sets_id  int references tag_sets,
+    process_with_bitly      boolean not null default false
 );
+
+COMMENT ON COLUMN controversies.process_with_bitly
+    IS 'Enable processing controversy''s stories with Bit.ly; enqueue all new controversy stories for Bit.ly processing';
 
 create unique index controversies_name on controversies( name );
 create unique index controversies_tag_set on controversies( controversy_tag_sets_id );
 create unique index controversies_media_type_tag_set on controversies( media_type_tag_sets_id );
-
-create view controversies_with_search_info as
-    select c.controversies_id, c.name, c.query_story_searches_id, q.start_date::date, q.end_date::date, qss.pattern, qss.queries_id
-        from controversies c
-            left join query_story_searches qss on ( c.query_story_searches_id = qss.query_story_searches_id )
-            left join queries q on ( qss.queries_id = q.queries_id );
             
 create function insert_controversy_tag_set() returns trigger as $insert_controversy_tag_set$
     begin
@@ -1783,6 +1763,87 @@ create table cd.stories (
 );
 create index stories_id on cd.stories ( controversy_dumps_id, stories_id );    
 
+
+-- Bit.ly stats for stories
+CREATE TABLE cd.story_bitly_statistics (
+    story_bitly_statistics_id   SERIAL  PRIMARY KEY,
+    stories_id                  INT     NOT NULL UNIQUE REFERENCES public.stories ON DELETE CASCADE,
+
+    -- Bit.ly stats
+    bitly_click_count           INT     NOT NULL,
+    bitly_referrer_count        INT     NOT NULL
+);
+CREATE UNIQUE INDEX story_bitly_statistics_stories_id
+    ON cd.story_bitly_statistics ( stories_id );
+
+-- Helper to INSERT / UPDATE story's Bit.ly statistics
+CREATE FUNCTION cd.upsert_story_bitly_statistics (
+    param_stories_id INT,
+    param_bitly_click_count INT,
+    param_bitly_referrer_count INT
+) RETURNS VOID AS
+$$
+BEGIN
+    LOOP
+        -- Try UPDATing
+        UPDATE cd.story_bitly_statistics
+            SET bitly_click_count = param_bitly_click_count,
+                bitly_referrer_count = param_bitly_referrer_count
+            WHERE stories_id = param_stories_id;
+        IF FOUND THEN RETURN; END IF;
+
+        -- Nothing to UPDATE, try to INSERT a new record
+        BEGIN
+            INSERT INTO cd.story_bitly_statistics (stories_id, bitly_click_count, bitly_referrer_count)
+            VALUES (param_stories_id, param_bitly_click_count, param_bitly_referrer_count);
+            RETURN;
+        EXCEPTION WHEN UNIQUE_VIOLATION THEN
+            -- If someone else INSERTs the same key concurrently,
+            -- we will get a unique-key failure. In that case, do
+            -- nothing and loop to try the UPDATE again.
+        END;
+    END LOOP;
+END;
+$$
+LANGUAGE plpgsql;
+
+-- Helper to test if all controversy's stories have aggregated Bit.ly stats already
+CREATE FUNCTION cd.all_controversy_stories_have_bitly_statistics (param_controversies_id INT) RETURNS BOOL AS
+$$
+DECLARE
+    controversy_exists BOOL;
+    stories_without_bitly_statistics INT;
+BEGIN
+
+    SELECT 1 INTO controversy_exists
+    FROM controversies
+    WHERE controversies_id = param_controversies_id
+      AND process_with_bitly = 't';
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Controversy % does not exist or is not set up for Bit.ly processing.', param_controversies_id;
+        RETURN FALSE;
+    END IF;
+
+    SELECT COUNT(stories_id) INTO stories_without_bitly_statistics
+    FROM controversy_stories
+    WHERE controversies_id = param_controversies_id
+      AND stories_id NOT IN (
+        SELECT stories_id
+        FROM cd.story_bitly_statistics
+    )
+    GROUP BY controversies_id;
+    IF FOUND THEN
+        RAISE NOTICE 'Some stories (% of them) still don''t have aggregated Bit.ly statistics for controversy %.', stories_without_bitly_statistics, param_controversies_id;
+        RETURN FALSE;
+    END IF;
+
+    RETURN TRUE;
+
+END;
+$$
+LANGUAGE plpgsql;
+
+
 create table cd.controversy_stories (
     controversy_dumps_id            int not null references controversy_dumps on delete cascade,    
     controversy_stories_id          int,
@@ -1892,7 +1953,12 @@ create table cd.story_link_counts (
                                             references controversy_dump_time_slices on delete cascade,
     stories_id                              int not null,
     inlink_count                            int not null,
-    outlink_count                           int not null
+    outlink_count                           int not null,
+
+    -- Bit.ly stats
+    -- (values can be NULL if Bit.ly is not enabled / configured for a controversy)
+    bitly_click_count                       int null,
+    bitly_referrer_count                    int null
 );
 
 -- TODO: add complex foreign key to check that stories_id exists for the controversy_dump stories snapshot
@@ -1905,7 +1971,12 @@ create table cd.medium_link_counts (
     media_id                        int not null,
     inlink_count                    int not null,
     outlink_count                   int not null,
-    story_count                     int not null
+    story_count                     int not null,
+
+    -- Bit.ly (aggregated) stats
+    -- (values can be NULL if Bit.ly is not enabled / configured for a controversy)
+    bitly_click_count               int null,
+    bitly_referrer_count            int null
 );
 
 -- TODO: add complex foreign key to check that media_id exists for the controversy_dump media snapshot

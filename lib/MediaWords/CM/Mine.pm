@@ -25,6 +25,8 @@ use MediaWords::Solr;
 use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
+use MediaWords::Util::Bitly;
+use MediaWords::GearmanFunction::Bitly::EnqueueControversyStories;
 
 # number of times to run through the recursive link weight process
 use constant LINK_WEIGHT_ITERATIONS => 3;
@@ -207,7 +209,7 @@ sub get_links_from_story
     my $boingboing_links  = get_boingboing_links( $db, $story );
 
     my $link_lookup = {};
-    map { $link_lookup->{ MediaWords::Util::URL::normalize_url( $_->{ url } ) } = $_ } @{ $links };
+    map { $link_lookup->{ MediaWords::Util::URL::normalize_url_lossy( $_->{ url } ) } = $_ } @{ $links };
 
     return [ values( %{ $link_lookup } ) ];
 }
@@ -276,7 +278,7 @@ sub lookup_medium_by_url
 {
     my ( $db, $url ) = @_;
 
-    if ( !$_media_url_lookup->{ MediaWords::Util::URL::normalize_url( $url ) } )
+    if ( !$_media_url_lookup->{ MediaWords::Util::URL::normalize_url_lossy( $url ) } )
     {
         my $max_media_id = 0;
         if ( $_media_url_lookup )
@@ -292,11 +294,11 @@ sub lookup_medium_by_url
             $medium = $dup_medium ? $dup_medium : $medium;
 
             croak( "foreign rss medium $medium->{ media_id }" ) if ( $medium->{ foreign_rss_links } );
-            $_media_url_lookup->{ MediaWords::Util::URL::normalize_url( $medium->{ url } ) } = $medium;
+            $_media_url_lookup->{ MediaWords::Util::URL::normalize_url_lossy( $medium->{ url } ) } = $medium;
         }
     }
 
-    return $_media_url_lookup->{ MediaWords::Util::URL::normalize_url( $url ) };
+    return $_media_url_lookup->{ MediaWords::Util::URL::normalize_url_lossy( $url ) };
 }
 
 # add medium to media_url_lookup
@@ -304,7 +306,7 @@ sub add_medium_to_url_lookup
 {
     my ( $medium ) = @_;
 
-    $_media_url_lookup->{ MediaWords::Util::URL::normalize_url( $medium->{ url } ) } = $medium;
+    $_media_url_lookup->{ MediaWords::Util::URL::normalize_url_lossy( $medium->{ url } ) } = $medium;
 }
 
 # derive the url and a media source name from the given story's url
@@ -312,7 +314,7 @@ sub generate_medium_url_and_name_from_url
 {
     my ( $story_url ) = @_;
 
-    my $normalized_url = MediaWords::Util::URL::normalize_url( $story_url );
+    my $normalized_url = MediaWords::Util::URL::normalize_url_lossy( $story_url );
 
     if ( !( $normalized_url =~ m~(http.?://([^/]+))~i ) )
     {
@@ -590,7 +592,7 @@ sub ignore_redirect
 
     my ( $medium_url, $medium_name ) = generate_medium_url_and_name_from_url( $link->{ redirect_url } );
 
-    my $u = MediaWords::Util::URL::normalize_url( $medium_url );
+    my $u = MediaWords::Util::URL::normalize_url_lossy( $medium_url );
 
     my $match = $db->query( "select 1 from controversy_ignore_redirects where url = ?", $u )->hash;
 
@@ -894,8 +896,8 @@ sub get_matching_story_from_db ($$)
         $ru = $link->{ redirect_url } ? substr( $link->{ redirect_url }, 0, 1024 ) : $u;
     }
 
-    my $nu  = MediaWords::Util::URL::normalize_url( $u );
-    my $nru = MediaWords::Util::URL::normalize_url( $ru );
+    my $nu  = MediaWords::Util::URL::normalize_url_lossy( $u );
+    my $nru = MediaWords::Util::URL::normalize_url_lossy( $ru );
 
     # look for matching stories, ignore those in foreign_rss_links media
     my $stories = $db->query( <<'END', $u, $ru, $nu, $nru )->hashes;
@@ -1702,7 +1704,7 @@ sub add_medium_url_to_ignore_redirects
 {
     my ( $db, $medium ) = @_;
 
-    my $url = MediaWords::Util::URL::normalize_url( $medium->{ url } );
+    my $url = MediaWords::Util::URL::normalize_url_lossy( $medium->{ url } );
 
     my $ir = $db->query( "select * from controversy_ignore_redirects where url = ?", $url )->hash;
 
@@ -1760,7 +1762,7 @@ sub get_redirect_url_lookup
 select a.* from ${ table } a where ${ story_field } = ? and controversies_id = ?
 END
     my $lookup = {};
-    map { push( @{ $lookup->{ MediaWords::Util::URL::normalize_url( $_->{ url } ) } }, $_ ) } @{ $rows };
+    map { push( @{ $lookup->{ MediaWords::Util::URL::normalize_url_lossy( $_->{ url } ) } }, $_ ) } @{ $rows };
 
     return $lookup;
 }
@@ -1772,7 +1774,7 @@ sub unredirect_story_url
 
     my $story_field = get_story_field_from_url_table( $table );
 
-    my $nu = MediaWords::Util::URL::normalize_url( $url->{ url } );
+    my $nu = MediaWords::Util::URL::normalize_url_lossy( $url->{ url } );
 
     for my $row ( @{ $lookup->{ $nu } } )
     {
@@ -1842,7 +1844,7 @@ END
     my $normalized_urls_map = {};
     for my $url ( @{ $urls } )
     {
-        my $nu = MediaWords::Util::URL::normalize_url( $url->{ url } );
+        my $nu = MediaWords::Util::URL::normalize_url_lossy( $url->{ url } );
         $normalized_urls_map->{ $nu } = $url;
     }
 
@@ -1975,65 +1977,83 @@ sub mine_controversy ($$;$)
         $options )
       || die( "Unable to log the 'cm_mine_controversy' activity." );
 
-    print STDERR "importing solr seed query ...\n";
+    say STDERR "importing solr seed query ...";
     import_solr_seed_query( $db, $controversy );
 
-    print STDERR "importing seed urls ...\n";
+    say STDERR "importing seed urls ...";
     import_seed_urls( $db, $controversy );
 
     # merge dup media and stories here to avoid redundant link processing for imported urls
-    print STDERR "merging media_dup stories ...\n";
+    say STDERR "merging media_dup stories ...";
     merge_dup_media_stories( $db, $controversy );
 
-    print STDERR "merging dup stories ...\n";
+    say STDERR "merging dup stories ...";
     find_and_merge_dup_stories( $db, $controversy );
 
-    return if ( $options->{ import_only } );
+    unless ( $options->{ import_only } )
+    {
+        say STDERR "merging foreign_rss stories ...";
+        merge_foreign_rss_stories( $db, $controversy );
 
-    print STDERR "merging foreign_rss stories ...\n";
-    merge_foreign_rss_stories( $db, $controversy );
+        say STDERR "adding redirect urls to controversy stories ...";
+        add_redirect_urls_to_controversy_stories( $db, $controversy );
 
-    print STDERR "adding redirect urls to controversy stories ...\n";
-    add_redirect_urls_to_controversy_stories( $db, $controversy );
+        say STDERR "mining controversy stories ...";
+        mine_controversy_stories( $db, $controversy );
 
-    print STDERR "mining controversy stories ...\n";
-    mine_controversy_stories( $db, $controversy );
+        say STDERR "running spider ...";
+        run_spider( $db, $controversy );
 
-    print STDERR "running spider ...\n";
-    run_spider( $db, $controversy );
+        # disabling because there are too many foreign_rss_links media sources
+        # with bogus feeds that pollute the results
+        # if ( !$options->{ skip_outgoing_foreign_rss_links } )
+        # {
+        #     say STDERR "adding outgoing foreign rss links ...";
+        #     add_outgoing_foreign_rss_links( $db, $controversy );
+        # }
 
-    # disabling because there are too many foreign_rss_links media sources
-    # with bogus feeds that pollute the results
-    # if ( !$options->{ skip_outgoing_foreign_rss_links } )
-    # {
-    #     print STDERR "adding outgoing foreign rss links ...\n";
-    #     add_outgoing_foreign_rss_links( $db, $controversy );
-    # }
+        # merge dup media and stories again to catch dups from spidering
+        say STDERR "merging media_dup stories ...";
+        merge_dup_media_stories( $db, $controversy );
 
-    # merge dup media and stories again to catch dups from spidering
-    print STDERR "merging media_dup stories ...\n";
-    merge_dup_media_stories( $db, $controversy );
+        say STDERR "merging dup stories ...";
+        find_and_merge_dup_stories( $db, $controversy );
 
-    print STDERR "merging dup stories ...\n";
-    find_and_merge_dup_stories( $db, $controversy );
+        say STDERR "adding source link dates ...";
+        add_source_link_dates( $db, $controversy );
 
-    print STDERR "adding source link dates ...\n";
-    add_source_link_dates( $db, $controversy );
+        say STDERR "updating story_tags ...";
+        update_controversy_tags( $db, $controversy );
 
-    print STDERR "updating story_tags ...\n";
-    update_controversy_tags( $db, $controversy );
+        # my $stories = get_stories_with_sources( $db, $controversy );
 
-    # my $stories = get_stories_with_sources( $db, $controversy );
+        # say STDERR "generating link weights ...";
+        # generate_link_weights( $db, $controversy, $stories );
 
-    # print STDERR "generating link weights ...\n";
-    # generate_link_weights( $db, $controversy, $stories );
+        # say STDERR "generating link text similarities ...";
+        # generate_link_text_similarities( $db, $stories );
 
-    # print STDERR "generating link text similarities ...\n";
-    # generate_link_text_similarities( $db, $stories );
+        say STDERR "analyzing controversy tables...";
+        $db->query( "analyze controversy_stories" );
+        $db->query( "analyze controversy_links" );
+    }
 
-    print STDERR "analyzing controversy tables...\n";
-    $db->query( "analyze controversy_stories" );
-    $db->query( "analyze controversy_links" );
+    if ( $controversy->{ process_with_bitly } )
+    {
+        unless ( MediaWords::Util::Bitly::bitly_processing_is_enabled() )
+        {
+            die "Bit.ly processing is not enabled.";
+        }
+
+        say STDERR "enqueueing all (new) stories for Bit.ly processing ...";
+
+        # For the sake of simplicity, just re-enqueue all controversy's stories for
+        # Bit.ly processing. The ones that are already processed (have a respective
+        # record in the GridFS database) will be skipped, and the new ones will be
+        # enqueued further for fetching Bit.ly stats.
+        my $args = { controversies_id => $controversy->{ controversies_id } };
+        MediaWords::GearmanFunction::Bitly::EnqueueControversyStories->enqueue_on_gearman( $args );
+    }
 }
 
 1;

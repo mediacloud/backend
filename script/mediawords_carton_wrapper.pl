@@ -16,7 +16,7 @@ BEGIN
 #use MediaWords::DBI::DownloadTexts;
 #use MediaWords::DBI::Stories;
 #use MediaWords::StoryVectors;
-#use MediaWords::Util::MC_Fork;
+#use MediaWords::Util::Process;
 
 #!/home/dlarochelle/perl5/perlbrew/perls/perl-5.14.2/bin/perl
 

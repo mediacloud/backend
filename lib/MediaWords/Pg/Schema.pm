@@ -11,7 +11,8 @@ use strict;
 use warnings;
 
 use IPC::Run3;
-use Carp;
+use Carp qw/ confess /;
+use File::Slurp;
 use FindBin;
 
 # get is_stop_stem() stopword + stopword stem tables and a pl/pgsql function definition
@@ -116,10 +117,15 @@ END
             }
 
             # insert stopwords and stopword stems
-            $sql .=
-              'INSERT INTO stopwords_' . $stoplist_size . ' (stopword, language) VALUES ' . join( ', ', @stopwords ) . ';';
-            $sql .= 'INSERT INTO stopword_stems_' . $stoplist_size . ' (stopword_stem, language) VALUES ' .
-              join( ', ', @stopword_stems ) . ';';
+            my $joined_stopwords      = join( ', ', @stopwords );
+            my $joined_stopword_stems = join( ', ', @stopword_stems );
+            $sql .= <<"EOF";
+                INSERT INTO stopwords_${ stoplist_size } (stopword, language)
+                VALUES $joined_stopwords;
+
+                INSERT INTO stopword_stems_${ stoplist_size } (stopword_stem, language)
+                VALUES $joined_stopword_stems;
+EOF
         }
 
     }
@@ -208,15 +214,6 @@ sub get_sql_function_definitions
     return $sql;
 }
 
-# add all of the functions defined in $_functions to the database
-sub add_functions
-{
-    my ( $db ) = @_;
-
-    my $sql = get_sql_function_definitions();
-    $db->query( $sql );
-}
-
 # Path to where the "pgcrypto.sql" is located (on 8.4 and 9.0)
 sub _path_to_pgcrypto_sql_file_84_90()
 {
@@ -290,7 +287,9 @@ sub _pgcrypto_is_installed($)
     }
 }
 
-# Returns PostgreSQL version (e.g. "PostgreSQL 8.4.17 on i386-apple-darwin13.0.0, compiled by GCC Apple LLVM version 5.0 (clang-500.2.78) (based on LLVM 3.3svn), 64-bit")
+# Returns PostgreSQL version (e.g. "PostgreSQL 8.4.17 on
+# i386-apple-darwin13.0.0, compiled by GCC Apple LLVM version 5.0
+# (clang-500.2.78) (based on LLVM 3.3svn), 64-bit")
 sub _postgresql_version($)
 {
     my ( $db ) = @_;
@@ -360,6 +359,51 @@ sub reset_all_schemas($)
     reset_schema( $db, 'stories_tags_map_media_sub_tables' );
 }
 
+# Given the PostgreSQL response line (notice) returned while importing schema,
+# return 1 if the response line is something that is likely to be in the
+# initial schema and 0 otherwise
+sub postgresql_response_line_is_expected($)
+{
+    my $line = shift;
+
+    # Escape whitespace (" ") when adding new options below
+    my $expected_line_pattern = qr/
+          ^NOTICE:
+        | ^CREATE
+        | ^ALTER
+        | ^\SET
+        | ^COMMENT
+        | ^INSERT
+        | ^\ enum_add.*
+        | ^----------.*
+        | ^\s+
+        | ^\(\d+\ rows?\)
+        | ^$
+        | ^Time:
+        | ^DROP\ LANGUAGE
+        | ^DROP\ VIEW
+        | ^DROP\ TABLE
+        | ^DROP\ FUNCTION
+        | ^drop\ cascades\ to\ view\ 
+        | ^UPDATE\ \d+
+        | ^DROP\ TRIGGER
+        | ^Timing\ is\ on\.
+        | ^DROP\ INDEX
+        | ^psql.*:\ NOTICE:
+        | ^DELETE
+        | ^SELECT\ 0
+    /x;
+
+    if ( $line =~ $expected_line_pattern )
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 # loads and runs a given SQL file
 # useful for rebuilding the database schema after a call to reset_schema
 sub load_sql_file
@@ -372,21 +416,12 @@ sub load_sql_file
 
         chomp( $line );
 
-        #say "Got line: '$line'";
+        # say "Got line: '$line'";
 
         # Die on unexpected SQL (e.g. DROP TABLE)
-        if (
-            not $line =~
-/^NOTICE:|^CREATE|^ALTER|^\SET|^COMMENT|^INSERT|^ enum_add.*|^----------.*|^\s+|^\(\d+ rows?\)|^$|^Time:|^DROP LANGUAGE|^DROP VIEW|^DROP TABLE|^drop cascades to view |^UPDATE \d+|^DROP TRIGGER|^Timing is on\.|^DROP INDEX|^psql.*: NOTICE:|^DELETE|^SELECT 0/
-          )
+        unless ( postgresql_response_line_is_expected( $line ) )
         {
-
-            # Make an exception for the fancy way of creating Pg languages
-            if ( not $line =~ /^DROP FUNCTION/ )
-            {
-                carp "Evil line: '$line'";
-                die "Evil line: '$line'";
-            }
+            confess "Unexpected PostgreSQL response line: '$line'";
         }
 
         return "$line\n";
@@ -430,7 +465,7 @@ sub recreate_db
     reset_all_schemas( $db );
 
     # say STDERR "add functions ...";
-    MediaWords::Pg::Schema::add_functions( $db );
+    $db->query( get_sql_function_definitions() );
 
     my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
 
@@ -451,7 +486,7 @@ sub recreate_db
 }
 
 # Upgrade database schema to the latest version
-# (returns 1 on success, 0 on failure)
+# die()s on error
 sub upgrade_db($;$)
 {
     my ( $label, $echo_instead_of_executing ) = @_;
@@ -467,17 +502,20 @@ sub upgrade_db($;$)
     }
 
     # Current schema version
-    my $schema_version_query =
-      "SELECT value AS schema_version FROM database_variables WHERE name = 'database-schema-version' LIMIT 1";
+    my $schema_version_query = <<EOF;
+        SELECT value AS schema_version
+        FROM database_variables
+        WHERE name = 'database-schema-version'
+        LIMIT 1
+EOF
     my @schema_versions        = $db->query( $schema_version_query )->flat();
     my $current_schema_version = $schema_versions[ 0 ] + 0;
     unless ( $current_schema_version )
     {
-        # say STDERR "Invalid current schema version.";
-        return 0;
+        die "Invalid current schema version.";
     }
 
-    # say STDERR "Current schema version: $current_schema_version";
+    say STDERR "Current schema version: $current_schema_version";
 
     # Target schema version
     open SQLFILE, "$script_dir/mediawords.sql" or die $!;
@@ -486,21 +524,19 @@ sub upgrade_db($;$)
     my $target_schema_version = MediaWords::Util::SchemaVersion::schema_version_from_lines( @sql );
     unless ( $target_schema_version )
     {
-        say STDERR "Invalid target schema version.";
-        return 0;
+        die "Invalid target schema version.";
     }
 
-    # say STDERR "Target schema version: $target_schema_version";
+    say STDERR "Target schema version: $target_schema_version";
 
     if ( $current_schema_version == $target_schema_version )
     {
         say STDERR "Schema is up-to-date, nothing to upgrade.";
-        return 1;
+        return;
     }
     if ( $current_schema_version > $target_schema_version )
     {
-        say STDERR "Current schema version is newer than the target schema version, please update the source code.";
-        return 0;
+        die "Current schema version is newer than the target schema version, please update the source code.";
     }
 
     # Check if the SQL diff files that are needed for upgrade are present before doing anything else
@@ -510,86 +546,81 @@ sub upgrade_db($;$)
         my $diff_filename = './sql_migrations/mediawords-' . $version . '-' . ( $version + 1 ) . '.sql';
         unless ( -e $diff_filename )
         {
-            say STDERR "SQL diff file '$diff_filename' does not exist.";
-            return 0;
+            die "SQL diff file '$diff_filename' does not exist.";
         }
 
         push( @sql_diff_files, $diff_filename );
     }
 
+    my $upgrade_sql = '';
+
     # Install "pgcrypto"
     unless ( _pgcrypto_is_installed( $db ) )
     {
-        # say STDERR "Adding 'pgcrypto' extension...";
-
-        if ( $echo_instead_of_executing )
-        {
-
-            my $pgcrypto_sql = _pgcrypto_extension_sql( $db );
-
-            print "-- --------------------------------\n";
-            print "-- 'pgcrypto' extension\n";
-            print "-- --------------------------------\n\n\n";
-
-            print $pgcrypto_sql;
-
-        }
-        else
-        {
-
-            _add_pgcrypto_extension( $db );
-
-        }
+        $upgrade_sql .= <<EOF;
+--
+-- "pgcrypto" extension
+--
+EOF
+        $upgrade_sql .= _pgcrypto_extension_sql( $db );
+        $upgrade_sql .= "\n\n";
     }
 
-    # Import diff files one-by-one
+    if ( $echo_instead_of_executing )
+    {
+        $upgrade_sql .= <<"EOF";
+-- --------------------------------
+-- This is a concatenated schema diff between versions
+-- $current_schema_version and $target_schema_version.
+--
+-- Please review this schema diff and import it manually.
+-- --------------------------------
+
+EOF
+    }
+
+    # Add SQL diff files one-by-one
     foreach my $diff_filename ( @sql_diff_files )
     {
-        if ( $echo_instead_of_executing )
+        my $sql_diff = read_file( $diff_filename );
+        unless ( defined $sql_diff )
         {
-            say STDERR "Echoing out $diff_filename to STDOUT...";
-
-            print "-- --------------------------------\n";
-            print "-- This is a concatenated schema diff between versions " .
-              "$current_schema_version and $target_schema_version.\n";
-            print "-- Please review this schema diff and import it manually.\n";
-            print "-- --------------------------------\n\n\n";
-
-            open DIFF, "< $diff_filename" or die "Can't open $diff_filename : $!\n";
-            while ( <DIFF> )
-            {
-                print;
-            }
-            close DIFF;
-
-            print "\n-- --------------------------------\n\n\n";
-
+            die "Unable to read SQL diff file: $sql_diff";
         }
-        else
+        unless ( $sql_diff )
         {
-            say STDERR "Importing $diff_filename...";
-
-            my $load_sql_file_result = load_sql_file( $label, $diff_filename );
-            if ( $load_sql_file_result )
-            {
-                say STDERR "Executing SQL diff file '$diff_filename' failed.";
-                return 1;
-            }
+            die "SQL diff file is empty: $sql_diff";
         }
 
+        $upgrade_sql .= $sql_diff;
+        $upgrade_sql .= "\n-- --------------------------------\n\n\n";
     }
 
-    if ( !$echo_instead_of_executing )
+    # Append functions
+    $upgrade_sql .= get_sql_function_definitions();
+    $upgrade_sql .= "\n-- --------------------------------\n\n\n";
+
+    # Wrap into a transaction
+    if ( $upgrade_sql =~ /BEGIN;/i or $upgrade_sql =~ /COMMIT;/i )
     {
-        say STDERR "(Re-)adding functions...";
-        MediaWords::Pg::Schema::add_functions( $db );
+        die "Upgrade script already BEGINs and COMMITs a transaction. Please upgrade the database manually.";
+    }
+    $upgrade_sql = "BEGIN;\n\n\n" . $upgrade_sql;
+    $upgrade_sql .= "COMMIT;\n\n";
+
+    if ( $echo_instead_of_executing )
+    {
+        binmode( STDOUT, ":utf8" );
+        binmode( STDERR, ":utf8" );
+
+        print "$upgrade_sql";
+    }
+    else
+    {
+        $db->query( $upgrade_sql );
     }
 
     $db->disconnect;
-
-    say STDERR "Done.";
-
-    return 1;
 }
 
 1;

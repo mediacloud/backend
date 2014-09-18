@@ -96,26 +96,21 @@ sub test_live_stories
     };
     $query = $db->create( 'queries', $query );
 
-    my $query_story_search = { queries_id => $query->{ queries_id } };
-    $query_story_search = $db->create( 'query_story_searches', $query_story_search );
-
     my $controversy_a = {
-        name                    => 'controversy a',
-        query_story_searches_id => $query_story_search->{ query_story_searches_id },
-        pattern                 => '',
-        solr_seed_query         => '',
-        solr_seed_query_run     => 'f',
-        description             => 'Controversy A'
+        name                => 'controversy a',
+        pattern             => '',
+        solr_seed_query     => '',
+        solr_seed_query_run => 'f',
+        description         => 'Controversy A'
     };
     $controversy_a = $db->create( 'controversies', $controversy_a );
 
     my $controversy_b = {
-        name                    => 'controversy b',
-        query_story_searches_id => $query_story_search->{ query_story_searches_id },
-        pattern                 => '',
-        solr_seed_query         => '',
-        solr_seed_query_run     => 'f',
-        description             => 'Controversy B'
+        name                => 'controversy b',
+        pattern             => '',
+        solr_seed_query     => '',
+        solr_seed_query_run => 'f',
+        description         => 'Controversy B'
     };
     $controversy_b = $db->create( 'controversies', $controversy_b );
 

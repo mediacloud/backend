@@ -45,19 +45,34 @@ sub main
 
     my $db = MediaWords::DB::connect_to_db();
     my $controversies = MediaWords::CM::require_controversies_by_opt( $db, $controversy_opt );
+    unless ( $controversies )
+    {
+        die "Unable to find controversies for option '$controversy_opt'";
+    }
 
     for my $controversy ( @{ $controversies } )
     {
+        my $controversies_id = $controversy->{ controversies_id };
+
+        # Check if controversy's stories have been processed through Bit.ly
+        if ( $controversy->{ process_with_bitly } )
+        {
+            unless ( MediaWords::Util::Bitly::all_controversy_stories_have_bitly_statistics( $db, $controversies_id ) )
+            {
+                die "Not all controversy's $controversies_id stories have been processed with Bit.ly yet.";
+            }
+        }
+
         if ( $direct_job )
         {
-            MediaWords::CM::Dump::dump_controversy( $db, $controversy->{ controversies_id } );
+            MediaWords::CM::Dump::dump_controversy( $db, $controversies_id );
             next;
         }
 
-        my $args = { controversies_id => $controversy->{ controversies_id } };
+        my $args = { controversies_id => $controversies_id };
         my $gearman_job_id = MediaWords::GearmanFunction::CM::DumpControversy->enqueue_on_gearman( $args );
         say STDERR
-"Enqueued controversy ID $controversy->{ controversies_id } ('$controversy->{ name }') on Gearman with job ID: $gearman_job_id";
+          "Enqueued controversy ID $controversies_id ('$controversy->{ name }') on Gearman with job ID: $gearman_job_id";
 
         # The following call might fail if the job takes some time to start,
         # so consider adding:

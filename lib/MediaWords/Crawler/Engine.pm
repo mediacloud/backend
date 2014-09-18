@@ -25,7 +25,7 @@ use Time::HiRes;
 use MediaWords::Crawler::Fetcher;
 use MediaWords::Crawler::Handler;
 use MediaWords::Crawler::Provider;
-use MediaWords::Util::MC_Fork;
+use MediaWords::Util::Process;
 
 sub new
 {

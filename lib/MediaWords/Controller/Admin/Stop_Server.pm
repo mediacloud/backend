@@ -38,6 +38,7 @@ use File::stat;
 use Data::Google::Visualization::DataTable::MediaWords;
 use Date::Parse;
 use DateTime::Format::Pg;
+use Time::HiRes;
 
 # statics for state between print_time() calls
 my $_start_time;
@@ -49,18 +50,19 @@ sub index : Path : Args(0)
 {
     my ( $self, $c ) = @_;
 
-    say STDERR "quitting server";
-    quit();
-}
+    if ( exists $ENV{ MEDIACLOUD_ENABLE_SHUTDOWN_URL } && $ENV{ MEDIACLOUD_ENABLE_SHUTDOWN_URL } )
+    {
+        say STDERR "quitting server";
 
-# generate main dashboard page
-sub view : Local : FormConfig
-{
-    my ( $self, $c ) = @_;
+        $c->response->body( "Shutting down server\n" );
+        quit();
+    }
+    else
+    {
+        $c->response->body( '$MEDIACLOUD_ENABLE_SHUTDOWN_URL must be set to allow url based server shutdown' . "\n" );
+    }
 
-    say STDERR "Monitor view";
-
-    $c->stash->{ template } = 'monitor/crawler_stats.tt2';
+    return;
 }
 
 1;

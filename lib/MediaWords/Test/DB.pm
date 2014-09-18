@@ -40,8 +40,7 @@ sub _create_test_database
     close( FILE );
 
     $test_db->query( $schema_sql );
-
-    MediaWords::Pg::Schema::add_functions( $test_db );
+    $test_db->query( MediaWords::Pg::Schema::get_sql_function_definitions() );
 
     # make sure the stories table exists as a sanity check for the schema
     $test_db->query( "select * from stories" );

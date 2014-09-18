@@ -14,10 +14,7 @@ package MediaWords::GearmanFunction::CM::MineControversy;
 # * dedup_stories - run story deduping code over existing controversy stories;
 #   only necessary to rerun new dedup code
 #
-# * import_only - only import query_story_searches and controversy_seed_urls;
-#   do not run spider cache_broken_downloads - cache broken downloads found in
-#   query_story_search; speeds up spider if there are many broken downloads;
-#   slows it down considerably if there are not
+# * import_only - only run import_seed_urls and import_solr_seed and return
 #
 # Start this worker script by running:
 #

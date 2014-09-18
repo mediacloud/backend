@@ -37,7 +37,7 @@ MediaWords::Test::DB::test_on_test_database(
         MediaWords::Pg::Schema::reset_all_schemas( $db );
 
         my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir };
-        MediaWords::Pg::Schema::add_functions( $db );
+        $db->query( MediaWords::Pg::Schema::get_sql_function_definitions() );
         say STDERR "add enum functions ...";
         my $load_dklab_postgresql_enum_result =
           MediaWords::Pg::Schema::load_sql_file( 'test', "$script_dir/dklab_postgresql_enum_2009-02-26.sql" );

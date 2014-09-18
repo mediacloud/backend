@@ -46,3 +46,6 @@ data/run_test_suite.log
 solr/mediacloud-shard-*/
 solr/logs
 solr/mediacloud/velocity.log
+
+# MediaWords::CM::Dump output
+/dump_layout_*

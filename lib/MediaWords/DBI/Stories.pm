@@ -1276,7 +1276,7 @@ sub get_medium_dup_stories_by_url
     my $url_lookup = {};
     for my $story ( @{ $stories } )
     {
-        my $nu = MediaWords::Util::URL::normalize_url( $story->{ url } )->as_string;
+        my $nu = MediaWords::Util::URL::normalize_url_lossy( $story->{ url } )->as_string;
         $story->{ normalized_url } = $nu;
         push( @{ $url_lookup->{ $nu } }, $story );
     }

@@ -63,7 +63,7 @@ sub mark_canonical_url_duplicates
 {
     my ( $db, $domain, $media ) = @_;
 
-    map { $_->{ url_c } = MediaWords::Util::URL::normalize_url( $_->{ url } ) } @{ $media };
+    map { $_->{ url_c } = MediaWords::Util::URL::normalize_url_lossy( $_->{ url } ) } @{ $media };
 
     $media = [ sort { length( $a->{ url } ) <=> length( $b->{ url } ) } @{ $media } ];
 
