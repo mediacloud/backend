@@ -12,6 +12,7 @@ use warnings;
 
 use IPC::Run3;
 use Carp qw/ confess /;
+use File::Slurp;
 use FindBin;
 
 # get is_stop_stem() stopword + stopword stem tables and a pl/pgsql function definition
@@ -560,69 +561,58 @@ EOF
         push( @sql_diff_files, $diff_filename );
     }
 
+    my $upgrade_sql = '';
+
     # Install "pgcrypto"
     unless ( _pgcrypto_is_installed( $db ) )
     {
-        # say STDERR "Adding 'pgcrypto' extension...";
-
-        if ( $echo_instead_of_executing )
-        {
-
-            my $pgcrypto_sql = _pgcrypto_extension_sql( $db );
-
-            print "-- --------------------------------\n";
-            print "-- 'pgcrypto' extension\n";
-            print "-- --------------------------------\n\n\n";
-
-            print $pgcrypto_sql;
-
-        }
-        else
-        {
-
-            _add_pgcrypto_extension( $db );
-
-        }
+        $upgrade_sql .= <<EOF;
+--
+-- "pgcrypto" extension
+--
+EOF
+        $upgrade_sql .= _pgcrypto_extension_sql( $db );
+        $upgrade_sql .= "\n\n";
     }
 
-    # Import diff files one-by-one
+    if ( $echo_instead_of_executing )
+    {
+        $upgrade_sql .= <<"EOF";
+-- --------------------------------
+-- This is a concatenated schema diff between versions
+-- $current_schema_version and $target_schema_version.
+--
+-- Please review this schema diff and import it manually.
+-- --------------------------------
+
+EOF
+    }
+
+    # Add SQL diff files one-by-one
     foreach my $diff_filename ( @sql_diff_files )
     {
-        if ( $echo_instead_of_executing )
+        my $sql_diff = read_file( $diff_filename );
+        unless ( defined $sql_diff )
         {
-            say STDERR "Echoing out $diff_filename to STDOUT...";
-
-            print "-- --------------------------------\n";
-            print "-- This is a concatenated schema diff between versions " .
-              "$current_schema_version and $target_schema_version.\n";
-            print "-- Please review this schema diff and import it manually.\n";
-            print "-- --------------------------------\n\n\n";
-
-            open DIFF, "< $diff_filename" or die "Can't open $diff_filename : $!\n";
-            while ( <DIFF> )
-            {
-                print;
-            }
-            close DIFF;
-
-            print "\n-- --------------------------------\n\n\n";
-
+            die "Unable to read SQL diff file: $sql_diff";
         }
-        else
+        unless ( $sql_diff )
         {
-            say STDERR "Importing $diff_filename...";
-
-            my $load_sql_file_result = load_sql_file( $label, $diff_filename );
-            if ( $load_sql_file_result )
-            {
-                die "Executing SQL diff file '$diff_filename' failed.";
-            }
+            die "SQL diff file is empty: $sql_diff";
         }
 
+        $upgrade_sql .= $sql_diff;
+        $upgrade_sql .= "\n-- --------------------------------\n\n\n";
     }
 
-    if ( !$echo_instead_of_executing )
+    if ( $echo_instead_of_executing )
     {
+        print "$upgrade_sql";
+    }
+    else
+    {
+        $db->query( $upgrade_sql );
+
         say STDERR "(Re-)adding functions...";
         add_functions( $db );
     }
