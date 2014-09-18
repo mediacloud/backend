@@ -610,6 +610,9 @@ EOF
 
     if ( $echo_instead_of_executing )
     {
+        binmode( STDOUT, ":utf8" );
+        binmode( STDERR, ":utf8" );
+
         print "$upgrade_sql";
     }
     else
