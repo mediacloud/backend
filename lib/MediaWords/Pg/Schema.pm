@@ -290,7 +290,9 @@ sub _pgcrypto_is_installed($)
     }
 }
 
-# Returns PostgreSQL version (e.g. "PostgreSQL 8.4.17 on i386-apple-darwin13.0.0, compiled by GCC Apple LLVM version 5.0 (clang-500.2.78) (based on LLVM 3.3svn), 64-bit")
+# Returns PostgreSQL version (e.g. "PostgreSQL 8.4.17 on
+# i386-apple-darwin13.0.0, compiled by GCC Apple LLVM version 5.0
+# (clang-500.2.78) (based on LLVM 3.3svn), 64-bit")
 sub _postgresql_version($)
 {
     my ( $db ) = @_;
