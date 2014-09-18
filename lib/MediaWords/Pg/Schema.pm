@@ -473,7 +473,7 @@ sub recreate_db
     reset_all_schemas( $db );
 
     # say STDERR "add functions ...";
-    MediaWords::Pg::Schema::add_functions( $db );
+    add_functions( $db );
 
     my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
 
@@ -624,7 +624,7 @@ EOF
     if ( !$echo_instead_of_executing )
     {
         say STDERR "(Re-)adding functions...";
-        MediaWords::Pg::Schema::add_functions( $db );
+        add_functions( $db );
     }
 
     $db->disconnect;
