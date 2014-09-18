@@ -133,6 +133,30 @@ programs = gearmand
     default_nice=10
 %]
 
+[% INCLUDE program_config
+    program='bitly_enqueue_controversy_stories'
+    gearman_worker_module='Bitly/EnqueueControversyStories.pm'
+    default_autorestart='true'
+    default_autostart='true'
+    default_nice=10
+%]
+
+[% INCLUDE program_config
+    program='bitly_fetch_story_stats'
+    gearman_worker_module='Bitly/FetchStoryStats.pm'
+    default_autorestart='true'
+    default_autostart='true'
+    default_nice=10
+%]
+
+[% INCLUDE program_config
+    program='bitly_aggregate_story_stats'
+    gearman_worker_module='Bitly/AggregateStoryStats.pm'
+    default_autorestart='true'
+    default_autostart='true'
+    default_nice=10
+%]
+
 [group:solr]
 programs = solr
 

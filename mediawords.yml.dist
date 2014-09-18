@@ -154,6 +154,9 @@ database:
         #solr
         #solr_facets_wrapper_server
         #annotate_with_corenlp
+        #bitly_enqueue_controversy_stories
+        #bitly_fetch_story_stats
+        #bitly_aggregate_story_stats
         
 
 ### CoreNLP annotator
