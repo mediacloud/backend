@@ -46,22 +46,13 @@ sub main
 
     GetOptions( 'import' => \$import, 'db_label=s' => \$db_label ) or die "$usage\n";
 
-    my $echo_instead_of_executing = 1;
-    if ( !MediaWords::Pg::Schema::upgrade_db( $db_label, ( !$import ) ) )
+    say STDERR ( $import ? 'Upgrading...' : 'Printing SQL statements for upgrade to STDOUT...' );
+    eval { MediaWords::Pg::Schema::upgrade_db( $db_label, ( !$import ) ); };
+    if ( $@ )
     {
-        if ( $import )
-        {
-            say STDERR 'ERROR: Error while trying to upgrade database schema.';
-        }
-        else
-        {
-            say STDERR 'ERROR: Error while trying to echo the database schema diff.';
-        }
-
-        return 1;
+        die "Error while upgrading: $@";
     }
-
-    return 0;
+    say STDERR "Done.";
 }
 
 main();

@@ -453,7 +453,7 @@ sub recreate_db
 }
 
 # Upgrade database schema to the latest version
-# (returns 1 on success, 0 on failure)
+# die()s on error
 sub upgrade_db($;$)
 {
     my ( $label, $echo_instead_of_executing ) = @_;
@@ -469,14 +469,17 @@ sub upgrade_db($;$)
     }
 
     # Current schema version
-    my $schema_version_query =
-      "SELECT value AS schema_version FROM database_variables WHERE name = 'database-schema-version' LIMIT 1";
+    my $schema_version_query = <<EOF;
+        SELECT value AS schema_version
+        FROM database_variables
+        WHERE name = 'database-schema-version'
+        LIMIT 1
+EOF
     my @schema_versions        = $db->query( $schema_version_query )->flat();
     my $current_schema_version = $schema_versions[ 0 ] + 0;
     unless ( $current_schema_version )
     {
-        # say STDERR "Invalid current schema version.";
-        return 0;
+        die "Invalid current schema version.";
     }
 
     # say STDERR "Current schema version: $current_schema_version";
@@ -488,8 +491,7 @@ sub upgrade_db($;$)
     my $target_schema_version = MediaWords::Util::SchemaVersion::schema_version_from_lines( @sql );
     unless ( $target_schema_version )
     {
-        say STDERR "Invalid target schema version.";
-        return 0;
+        die "Invalid target schema version.";
     }
 
     # say STDERR "Target schema version: $target_schema_version";
@@ -497,12 +499,11 @@ sub upgrade_db($;$)
     if ( $current_schema_version == $target_schema_version )
     {
         say STDERR "Schema is up-to-date, nothing to upgrade.";
-        return 1;
+        return;
     }
     if ( $current_schema_version > $target_schema_version )
     {
-        say STDERR "Current schema version is newer than the target schema version, please update the source code.";
-        return 0;
+        die "Current schema version is newer than the target schema version, please update the source code.";
     }
 
     # Check if the SQL diff files that are needed for upgrade are present before doing anything else
@@ -512,8 +513,7 @@ sub upgrade_db($;$)
         my $diff_filename = './sql_migrations/mediawords-' . $version . '-' . ( $version + 1 ) . '.sql';
         unless ( -e $diff_filename )
         {
-            say STDERR "SQL diff file '$diff_filename' does not exist.";
-            return 0;
+            die "SQL diff file '$diff_filename' does not exist.";
         }
 
         push( @sql_diff_files, $diff_filename );
@@ -574,8 +574,7 @@ sub upgrade_db($;$)
             my $load_sql_file_result = load_sql_file( $label, $diff_filename );
             if ( $load_sql_file_result )
             {
-                say STDERR "Executing SQL diff file '$diff_filename' failed.";
-                return 1;
+                die "Executing SQL diff file '$diff_filename' failed.";
             }
         }
 
@@ -588,10 +587,6 @@ sub upgrade_db($;$)
     }
 
     $db->disconnect;
-
-    say STDERR "Done.";
-
-    return 1;
 }
 
 1;
