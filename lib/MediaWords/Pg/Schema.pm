@@ -596,6 +596,10 @@ EOF
         $upgrade_sql .= "\n-- --------------------------------\n\n\n";
     }
 
+    # Append functions
+    $upgrade_sql .= get_sql_function_definitions();
+    $upgrade_sql .= "\n-- --------------------------------\n\n\n";
+
     if ( $echo_instead_of_executing )
     {
         print "$upgrade_sql";
@@ -603,9 +607,6 @@ EOF
     else
     {
         $db->query( $upgrade_sql );
-
-        say STDERR "(Re-)adding functions...";
-        $db->query( get_sql_function_definitions() );
     }
 
     $db->disconnect;
