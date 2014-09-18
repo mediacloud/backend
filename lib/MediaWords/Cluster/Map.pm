@@ -549,7 +549,7 @@ sub _get_protovis_json
         for my $i ( 0 .. $#{ $_ } ) { $_->[ $i ]->{ i } = $i; }
     } ( $nodes, $centroids, $media_sets );
 
-    return MediaWords::Util::JSON::get_json_from_perl( { nodes => $nodes, clusters => $centroids, sets => $media_sets } );
+    return MediaWords::Util::JSON::encode_json( { nodes => $nodes, clusters => $centroids, sets => $media_sets } );
 }
 
 # store the poles and all similarity scores between the poles and each media source

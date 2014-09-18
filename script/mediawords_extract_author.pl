@@ -28,7 +28,7 @@ use MediaWords::DBI::Stories;
 use MediaWords::StoryVectors;
 
 use MediaWords::DBI::Authors;
-use MediaWords::Util::MC_Fork;
+use MediaWords::Util::Process;
 use Data::Dumper;
 
 sub extract_author

@@ -25,7 +25,7 @@ BEGIN
 
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
-use MediaWords::Util::MC_Fork;
+use MediaWords::Util::Process;
 
 use MediaWords::DB;
 use MediaWords::GearmanFunction::ExtractAndVector;

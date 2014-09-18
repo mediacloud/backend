@@ -12,12 +12,15 @@ use File::Temp;
 use FileHandle;
 use Getopt::Long;
 use XML::Simple;
+use Readonly;
 
 use MediaWords::CM::Model;
 use MediaWords::DBI::Media;
+use MediaWords::Util::Bitly;
 use MediaWords::Util::CSV;
 use MediaWords::Util::Colors;
 use MediaWords::Util::Config;
+use MediaWords::Util::Paths;
 use MediaWords::Util::SQL;
 use MediaWords::DBI::Activities;
 
@@ -393,18 +396,28 @@ sub write_story_link_counts_dump
 create temporary table dump_story_link_counts $_temporary_tablespace as
     select distinct ps.stories_id, 
             coalesce( ilc.inlink_count, 0 ) inlink_count, 
-            coalesce( olc.outlink_count, 0 ) outlink_count
+            coalesce( olc.outlink_count, 0 ) outlink_count,
+            cd.story_bitly_statistics.bitly_click_count as bitly_click_count,
+            cd.story_bitly_statistics.bitly_referrer_count as bitly_referrer_count
         from dump_period_stories ps
             left join 
-                ( select cl.ref_stories_id, count( distinct cl.stories_id ) inlink_count 
-                    from dump_controversy_links_cross_media cl, dump_period_stories ps
-                    where cl.stories_id = ps.stories_id
-                    group by cl.ref_stories_id ) ilc on ( ps.stories_id = ilc.ref_stories_id )
+                ( select cl.ref_stories_id,
+                         count( distinct cl.stories_id ) inlink_count 
+                  from dump_controversy_links_cross_media cl,
+                       dump_period_stories ps
+                  where cl.stories_id = ps.stories_id
+                  group by cl.ref_stories_id
+                ) ilc on ( ps.stories_id = ilc.ref_stories_id )
             left join 
-                ( select cl.stories_id, count( distinct cl.ref_stories_id ) outlink_count 
-                    from dump_controversy_links_cross_media cl, dump_period_stories ps
-                    where cl.ref_stories_id = ps.stories_id
-                    group by cl.stories_id ) olc on ( ps.stories_id = olc.stories_id )
+                ( select cl.stories_id,
+                         count( distinct cl.ref_stories_id ) outlink_count 
+                  from dump_controversy_links_cross_media cl,
+                       dump_period_stories ps
+                  where cl.ref_stories_id = ps.stories_id
+                  group by cl.stories_id
+                ) olc on ( ps.stories_id = olc.stories_id )
+            left join cd.story_bitly_statistics
+                on ps.stories_id = cd.story_bitly_statistics.stories_id
 END
 
     if ( !$is_model )
@@ -515,8 +528,12 @@ sub write_medium_link_counts_dump
 
     $db->query( <<END );
 create temporary table dump_medium_link_counts $_temporary_tablespace as   
-    select m.media_id, sum( slc.inlink_count) inlink_count, sum( slc.outlink_count) outlink_count,
-            count(*) story_count
+    select m.media_id,
+           sum( slc.inlink_count) inlink_count,
+           sum( slc.outlink_count) outlink_count,
+           count(*) story_count,
+           sum( slc.bitly_click_count ) bitly_click_count,
+           sum( slc.bitly_referrer_count ) bitly_referrer_count
         from dump_media m, dump_stories s, dump_story_link_counts slc 
         where m.media_id = s.media_id and s.stories_id = slc.stories_id
         group by m.media_id
@@ -803,11 +820,31 @@ sub layout_gexf
     $fh->print( encode( 'utf8', $nolayout_gexf ) );
     $fh->close();
 
-    my $cmd =
-"java -cp $FindBin::Bin/../java/GephiLayout/build/jar/GephiLayout.jar:$FindBin::Bin/../java/GephiLayout/lib/gephi-toolkit.jar edu.law.harvard.cyber.mediacloud.layout.GephiLayout $nolayout_path $layout_path";
+    Readonly my $PATH_TO_GEPHILAYOUT_DIR     => MediaWords::Util::Paths::mc_root_path() . '/java/GephiLayout/';
+    Readonly my $PATH_TO_GEPHILAYOUT_JAR     => "$PATH_TO_GEPHILAYOUT_DIR/build/jar/GephiLayout.jar";
+    Readonly my $PATH_TO_GEPHILAYOUT_TOOLKIT => "$PATH_TO_GEPHILAYOUT_DIR/lib/gephi-toolkit.jar";
+    unless ( -f $PATH_TO_GEPHILAYOUT_JAR )
+    {
+        die "GephiLayout.jar does not exist at path: $PATH_TO_GEPHILAYOUT_JAR";
+    }
+    unless ( -f $PATH_TO_GEPHILAYOUT_TOOLKIT )
+    {
+        die "gephi-toolkit.jar does not exist at path: $PATH_TO_GEPHILAYOUT_TOOLKIT";
+    }
+
+    my $cmd = "";
+    $cmd .= "java -cp $PATH_TO_GEPHILAYOUT_JAR:$PATH_TO_GEPHILAYOUT_TOOLKIT";
+    $cmd .= " ";
+    $cmd .= "edu.law.harvard.cyber.mediacloud.layout.GephiLayout";
+    $cmd .= " ";
+    $cmd .= "$nolayout_path $layout_path";
 
     # print STDERR "$cmd\n";
-    system( $cmd );
+    my $exit_code = system( $cmd );
+    unless ( $exit_code == 0 )
+    {
+        die "Command '$cmd' failed with exit code $exit_code.";
+    }
 
     post_process_gexf( $db, $layout_path );
 
@@ -1601,10 +1638,19 @@ sub dump_controversy ($$)
 
     my $periods = [ qw(custom overall weekly monthly) ];
 
-    $db->dbh->{ PrintWarn } = 0;    # avoid noisy, extraneous postgres notices from drops
-
     my $controversy = $db->find_by_id( 'controversies', $controversies_id )
       || die( "Unable to find controversy '$controversies_id'" );
+
+    # Check if controversy's stories have been processed through Bit.ly
+    if ( $controversy->{ process_with_bitly } )
+    {
+        unless ( MediaWords::Util::Bitly::all_controversy_stories_have_bitly_statistics( $db, $controversies_id ) )
+        {
+            die "Not all controversy's $controversies_id stories have been processed with Bit.ly yet.";
+        }
+    }
+
+    $db->dbh->{ PrintWarn } = 0;    # avoid noisy, extraneous postgres notices from drops
 
     # Log activity that's about to start
     my $changes = {};

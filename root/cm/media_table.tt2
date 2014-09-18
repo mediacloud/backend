@@ -16,6 +16,8 @@
         <th># Stories</th>
         <th># Inlinks</th>
         <th># Outlinks</th>
+        <th># Bit.ly clicks</th>
+        <th># Bit.ly referrers</th>
     </tr>
 
 [% IF display_media %]
@@ -33,6 +35,8 @@
         <td>[% m.story_count | html %]</td>
         <td>[% m.inlink_count | html %]</td>
         <td>[% m.outlink_count | html %]</td>
+        <td>[% m.bitly_click_count | html %]</td>
+        <td>[% m.bitly_referrer_count | html %]</td>
     </tr>
 
     [% END %]
