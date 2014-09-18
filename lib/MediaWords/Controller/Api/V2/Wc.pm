@@ -49,7 +49,7 @@ sub list_GET : Local : PathPrefix( '/api' )
         $c->req->params->{ sample_size } = 100_000;
     }
 
-    my $wc = MediaWords::Solr::WordCounts->new( db => $c->dbis, cgi_params => $c->req->params );
+    my $wc = MediaWords::Solr::WordCounts->new( { db => $c->dbis, cgi_params => $c->req->params } );
 
     my $words = $wc->get_words;
 

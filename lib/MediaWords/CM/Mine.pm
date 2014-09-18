@@ -15,10 +15,12 @@ use Encode;
 use Getopt::Long;
 use HTML::LinkExtractor;
 use URI;
+use URI::Split;
 use URI::Escape;
 
 use MediaWords::CM::GuessDate;
 use MediaWords::CM::GuessDate::Result;
+use MediaWords::DBI::Activities;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
@@ -39,7 +41,7 @@ my $_ignore_link_pattern =
   '(www.addtoany.com)|(novostimira.com)|(ads\.pheedo)|(www.dailykos.com\/user)|' .
   '(livejournal.com\/(tag|profile))|(sfbayview.com\/tag)|(absoluteastronomy.com)|' .
   '(\/share.*http)|(digg.com\/submit)|(facebook.com.*mediacontentsharebutton)|' .
-  '(feeds.wordpress.com\/.*\/go)|(sharetodiaspora.github.io\/)';
+  '(feeds.wordpress.com\/.*\/go)|(sharetodiaspora.github.io\/|iconosquare.com|unz.com)';
 
 # cache of media by media id
 my $_media_cache = {};
