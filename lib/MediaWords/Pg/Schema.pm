@@ -214,15 +214,6 @@ sub get_sql_function_definitions
     return $sql;
 }
 
-# add all of the functions defined in $_functions to the database
-sub add_functions
-{
-    my ( $db ) = @_;
-
-    my $sql = get_sql_function_definitions();
-    $db->query( $sql );
-}
-
 # Path to where the "pgcrypto.sql" is located (on 8.4 and 9.0)
 sub _path_to_pgcrypto_sql_file_84_90()
 {
@@ -474,7 +465,7 @@ sub recreate_db
     reset_all_schemas( $db );
 
     # say STDERR "add functions ...";
-    add_functions( $db );
+    $db->query( get_sql_function_definitions() );
 
     my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
 
@@ -614,7 +605,7 @@ EOF
         $db->query( $upgrade_sql );
 
         say STDERR "(Re-)adding functions...";
-        add_functions( $db );
+        $db->query( get_sql_function_definitions() );
     }
 
     $db->disconnect;
