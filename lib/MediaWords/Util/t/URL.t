@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 43;
+use Test::More tests => 51;
 
 use Readonly;
 use HTTP::HashServer;
@@ -19,6 +19,22 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 
     use_ok( 'MediaWords::Util::URL' );
+}
+
+sub test_is_http_url()
+{
+    is( MediaWords::Util::URL::is_http_url( undef ), 0, 'is_http_url() - undef' );
+    is( MediaWords::Util::URL::is_http_url( 0 ),     0, 'is_http_url() - 0' );
+    is( MediaWords::Util::URL::is_http_url( '' ),    0, 'is_http_url() - empty string' );
+
+    is( MediaWords::Util::URL::is_http_url( 'abc' ), 0, 'is_http_url() - no scheme' );
+
+    is( MediaWords::Util::URL::is_http_url( 'gopher://gopher.floodgap.com/0/v2/vstat' ), 0, 'is_http_url() - Gopher URL' );
+    is( MediaWords::Util::URL::is_http_url( 'ftp://ftp.freebsd.org/pub/FreeBSD/' ),      0, 'is_http_url() - FTP URL' );
+
+    is( MediaWords::Util::URL::is_http_url( 'http://cyber.law.harvard.edu/about' ), 1, 'is_http_url() - HTTP URL' );
+    is( MediaWords::Util::URL::is_http_url( 'https://github.com/berkmancenter/mediacloud' ), 1,
+        'is_http_url() - HTTPS URL' );
 }
 
 sub test_normalize_url()
@@ -427,6 +443,7 @@ sub main()
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
+    test_is_http_url();
     test_normalize_url();
     test_normalize_url_lossy();
     test_get_url_domain();
