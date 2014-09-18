@@ -369,14 +369,42 @@ sub postgresql_response_line_is_expected($)
 {
     my $line = shift;
 
-    unless ( $line =~
-/^NOTICE:|^CREATE|^ALTER|^\SET|^COMMENT|^INSERT|^ enum_add.*|^----------.*|^\s+|^\(\d+ rows?\)|^$|^Time:|^DROP LANGUAGE|^DROP VIEW|^DROP TABLE|^DROP FUNCTION|^drop cascades to view |^UPDATE \d+|^DROP TRIGGER|^Timing is on\.|^DROP INDEX|^psql.*: NOTICE:|^DELETE|^SELECT 0/
-      )
+    # Escape whitespace (" ") when adding new options below
+    my $expected_line_pattern = qr/
+          ^NOTICE:
+        | ^CREATE
+        | ^ALTER
+        | ^\SET
+        | ^COMMENT
+        | ^INSERT
+        | ^\ enum_add.*
+        | ^----------.*
+        | ^\s+
+        | ^\(\d+\ rows?\)
+        | ^$
+        | ^Time:
+        | ^DROP\ LANGUAGE
+        | ^DROP\ VIEW
+        | ^DROP\ TABLE
+        | ^DROP\ FUNCTION
+        | ^drop\ cascades\ to\ view\ 
+        | ^UPDATE\ \d+
+        | ^DROP\ TRIGGER
+        | ^Timing\ is\ on\.
+        | ^DROP\ INDEX
+        | ^psql.*:\ NOTICE:
+        | ^DELETE
+        | ^SELECT\ 0
+    /x;
+
+    if ( $line =~ $expected_line_pattern )
+    {
+        return 1;
+    }
+    else
     {
         return 0;
     }
-
-    return 1;
 }
 
 # loads and runs a given SQL file
