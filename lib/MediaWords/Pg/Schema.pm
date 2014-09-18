@@ -523,7 +523,7 @@ EOF
         die "Invalid current schema version.";
     }
 
-    # say STDERR "Current schema version: $current_schema_version";
+    say STDERR "Current schema version: $current_schema_version";
 
     # Target schema version
     open SQLFILE, "$script_dir/mediawords.sql" or die $!;
@@ -535,7 +535,7 @@ EOF
         die "Invalid target schema version.";
     }
 
-    # say STDERR "Target schema version: $target_schema_version";
+    say STDERR "Target schema version: $target_schema_version";
 
     if ( $current_schema_version == $target_schema_version )
     {
