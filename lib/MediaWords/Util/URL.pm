@@ -20,7 +20,7 @@ sub is_http_url($)
 
     unless ( $url )
     {
-        warn "URL is undefined";
+        say STDERR "URL is undefined";
         return 0;
     }
 
@@ -28,12 +28,12 @@ sub is_http_url($)
 
     unless ( $uri->scheme )
     {
-        warn "Scheme is undefined for URL $url";
+        say STDERR "Scheme is undefined for URL $url";
         return 0;
     }
     unless ( $uri->scheme eq 'http' or $uri->scheme eq 'https' )
     {
-        warn "Scheme is not HTTP(s) or FTP for URL $url";
+        say STDERR "Scheme is not HTTP(s) for URL $url";
         return 0;
     }
 
