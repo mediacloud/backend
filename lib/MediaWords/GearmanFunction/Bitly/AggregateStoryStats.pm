@@ -12,7 +12,9 @@ use strict;
 use warnings;
 
 use Moose;
-with 'MediaWords::GearmanFunction';
+
+# Don't log each and every extraction job into the database
+with 'Gearman::JobScheduler::AbstractFunction';
 
 BEGIN
 {
