@@ -13,11 +13,11 @@
         <th>Name</th>
         <th>Url</th>
         <th>Media Type</th>
-        <th># Stories</th>
-        <th># Inlinks</th>
-        <th># Outlinks</th>
-        <th># Bit.ly clicks</th>
-        <th># Bit.ly referrers</th>
+        <th>Stories</th>
+        <th>Inlinks</th>
+        <th>Outlinks</th>
+        <th>Clicks</th>
+        <th>Referers</th>
     </tr>
 
 [% IF display_media %]
