@@ -100,8 +100,8 @@ $(document).ready(function () {
         <th>Medium</th>
         <th>Inlinks</th>
         <th>Outlinks</th>
-        <th>Bit.ly click count</th>
-        <th>Bit.ly referrer count</th>
+        <th>Clicks</th>
+        <th>Referers</th>
     </tr>
 
 [% IF display_stories.size() < 1 %]
