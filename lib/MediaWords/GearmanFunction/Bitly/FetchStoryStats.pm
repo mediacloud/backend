@@ -30,6 +30,7 @@ use MediaWords::CommonLibs;
 use MediaWords::DB;
 use MediaWords::Util::Bitly;
 use MediaWords::Util::Process;
+use MediaWords::Util::GearmanJobSchedulerConfiguration;
 use MediaWords::GearmanFunction::Bitly::AggregateStoryStats;
 use Readonly;
 use Data::Dumper;

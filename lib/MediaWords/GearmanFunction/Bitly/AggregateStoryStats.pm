@@ -28,6 +28,7 @@ use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use MediaWords::DB;
+use MediaWords::Util::GearmanJobSchedulerConfiguration;
 use MediaWords::Util::Bitly;
 use Readonly;
 use Data::Dumper;
