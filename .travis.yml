@@ -38,6 +38,10 @@ before_install:
     - ./install_scripts/travis-pour_or_bundle_carton_modules.sh
     # Install Python dependencies
     - sudo pip install -r python_scripts/requirements.txt
+    # install Media Cloud testing variant of the Python  Client
+    - git clone https://github.com/dlarochelle/MediaCloud-API-Client.git
+    - sudo easy_install MediaCloud-API-Client/dist/mediacloud-2.10-py2.7.egg
+    
 install:
     # Use default configuration
     - cp mediawords.yml.dist mediawords.yml
@@ -48,7 +52,7 @@ before_script:
     - MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM=1 ./script/run_with_carton.sh ./script/mediawords_create_db.pl
 script:
     # Run Media Cloud's test suite, report test coverage to https://coveralls.io/r/berkmancenter/mediacloud
-    - ./script/run_test_suite_for_devel_cover.sh coveralls --destroy-solr
+    - MEDIACLOUD_ENABLE_PYTHON_API_TESTS=1 ./script/run_test_suite_for_devel_cover.sh coveralls --destroy-solr
 after_failure:
     # Print out the test log
     - echo

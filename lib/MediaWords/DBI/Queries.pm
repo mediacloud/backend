@@ -1808,59 +1808,6 @@ sub query_has_sw_data
     return $ret;
 }
 
-# search all of the sentences within the query to find all stories matching the given pattern
-sub search_stories
-{
-    my ( $db, $query, $query_story_search ) = @_;
-
-    my $media_sets_ids_list = join( ',', @{ $query->{ media_sets_ids } } );
-
-    # we're switching to lucene queries soon, and nothing uses topic story searches any way
-    die( "story search on topic queries not supported" ) if ( @{ $query->{ dashboard_topics_ids } } );
-
-    my $date_clause =
-      _get_date_clause( $query->{ start_date }, $query->{ end_date }, 1, "DATE_TRUNC( 'day', ss.publish_date )" );
-
-    my $sql = <<END;
-SELECT q.stories_id,
-       s.url,
-       s.title,
-       s.publish_date,
-       s.language,
-       m.media_id,
-       m.name AS media_name,
-       m.url AS media_url,
-       ms.name AS media_set_name
-FROM 
-    ( 
-        SELECT DISTINCT ss.stories_id, msmm.media_sets_id
-            FROM 
-                stories s
-                    join story_sentences ss on ( ss.stories_id = s.stories_id )
-                    join media_sets_media_map msmm on ( msmm.media_id = ss.media_id )
-                    join query_story_searches qss on 
-                        ( qss.query_story_searches_id = $query_story_search->{ query_story_searches_id } )
-                    join queries AS q on ( qss.queries_id = q.queries_id )
-                    left join story_sentence_counts ssc on 
-                        ( ss.stories_id = ssc.first_stories_id and ss.sentence_number = ssc.first_sentence_number )
-            WHERE 
-                msmm.media_sets_id IN ( $media_sets_ids_list ) AND
-                $date_clause AND
-                ( ( ss.sentence ~* qss.pattern AND ssc.sentence_count < 2 ) OR 
-                    s.title ~* qss.pattern )
-        ) q 
-    join stories s on ( q.stories_id = s.stories_id )
-    join media m on ( s.media_id = m.media_id )
-    join media_sets ms on ( ms.media_sets_id = q.media_sets_id )
-ORDER BY ms.name, s.publish_date, s.stories_id ASC
-LIMIT 100000
-END
-
-    my $stories = $db->query( $sql )->hashes;
-
-    return $stories;
-}
-
 # return the full description of the query, without the ellipses in the { decription } field as set by _get_description
 sub get_full_description
 {

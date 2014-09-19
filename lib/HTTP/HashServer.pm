@@ -8,10 +8,10 @@ package HTTP::HashServer;
 # my $pages =  {
 #     '/' => 'home',
 #     '/foo' => 'foo',
-#     '/bar' => { content => '<html>bar</html>', header => 'Content-Type:text/html' }
+#     '/bar' => { content => '<html>bar</html>', header => 'Content-Type: text/html' }
 #     '/foo-bar' => { redirect => '/bar' },
 #     '/localhost' => { redirect => "http://localhost:$_port/" },
-#     '/127-foo' => { redirect => "http://127.0.0.1:$_port/foo" }
+#     '/127-foo' => { redirect => "http://127.0.0.1:$_port/foo", http_status_code => 303 }
 # };
 #
 # if the value for a page is a string, that string is passed as the content (so 'foo' is transformed into '
@@ -27,12 +27,16 @@ use HTML::Entities;
 use HTTP::Server::Simple;
 use HTTP::Server::Simple::CGI;
 use LWP::Simple;
+use HTTP::Status;
 use Encode;
 
 use base qw(HTTP::Server::Simple::CGI);
 
 # argument for die called by handle_response when a request with the path /die is received
 use constant DIE_REQUEST_MESSAGE => 'received /die request';
+
+# Default HTTP status code for redirects ("301 Moved Permanently")
+use constant DEFAULT_REDIRECT_STATUS_CODE => 301;
 
 # create a new server object
 sub new
@@ -140,12 +144,10 @@ END
 
     if ( !$page )
     {
-        print <<END;
-HTTP/1.0 404 Not found
-Content-Type: text/plain
-
-Not found :(
-END
+        print "HTTP/1.0 404 Not found\r\n";
+        print "Content-Type: text/plain\r\n";
+        print "\r\n";
+        print "Not found :(";
         return;
     }
 
@@ -154,26 +156,37 @@ END
     if ( my $redirect = $page->{ redirect } )
     {
         my $enc_redirect = HTML::Entities::encode_entities( $redirect );
-        print <<END
-HTTP/1.0 301 Moved Permanently
-Content-Type: text/html; charset=UTF-8
-Location: $redirect
 
-<html><body>Website was moved to <a href="$enc_redirect">$enc_redirect</a></body></html>
-END
+        my $http_status_code = $page->{ http_status_code } // DEFAULT_REDIRECT_STATUS_CODE;
+        my $http_status_message = HTTP::Status::status_message( $http_status_code );
+        unless ( defined $http_status_message )
+        {
+            die "HTTP status code $http_status_code is unknown.";
+        }
+
+        print "HTTP/1.0 $http_status_code $http_status_message\r\n";
+        print "Content-Type: text/html; charset=UTF-8\r\n";
+        print "Location: $redirect\r\n";
+        print "\r\n";
+        print '<html><body>Website was moved to <a href="' . $enc_redirect . '">' . $enc_redirect . '</a></body></html>';
+
+        END;
     }
     else
     {
         my $header  = $page->{ header }  || 'Content-Type: text/html; charset=UTF-8';
         my $content = $page->{ content } || "<body><html>Filler content for $path</html><body>";
+
+        if ( $header =~ /\n/ and $header !~ /\r/ )
+        {
+            $header =~ s/\n/\r\n/gs;
+        }
         $content = encode( 'utf-8', $content );
 
-        print <<END;
-HTTP/1.0 200 OK
-$header
-
-$content
-END
+        print "HTTP/1.0 200 OK\r\n";
+        print "$header\r\n";
+        print "\r\n";
+        print "$content";
     }
 }
 

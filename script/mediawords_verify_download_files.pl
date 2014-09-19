@@ -16,7 +16,7 @@ use MediaWords::CommonLibs;
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
 use MediaWords::StoryVectors;
-use MediaWords::Util::MC_Fork;
+use MediaWords::Util::Process;
 use Parallel::ForkManager;
 
 sub verify_downloads_files

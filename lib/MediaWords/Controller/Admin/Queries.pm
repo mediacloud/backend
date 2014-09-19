@@ -11,7 +11,6 @@ use parent 'Catalyst::Controller';
 use Data::Dumper;
 
 use MediaWords::DBI::Queries;
-use MediaWords::GearmanFunction::SearchStories;
 use MediaWords::Languages::Language;
 use MediaWords::Util::CSV;
 
@@ -493,88 +492,6 @@ sub stories : Local
     my $stories = MediaWords::DBI::Queries::get_stories_with_text( $c->dbis, $query );
 
     MediaWords::Util::CSV::send_hashes_as_csv_page( $c, $stories, "stories.csv" );
-}
-
-sub queue_story_search : Local
-{
-    my ( $self, $c, $queries_id ) = @_;
-
-    my $query = MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $queries_id )
-      || die( "Unable to find query $queries_id" );
-
-    my $form = $c->create_form(
-        {
-            load_config_file => $c->path_to() . '/root/forms/queue_story_search.yml',
-            method           => 'post',
-        }
-    );
-
-    $form->process( $c->request );
-
-    if ( !$form->submitted_and_valid() )
-    {
-        my $searches = $c->dbis->query(
-            <<"EOF",
-            SELECT *
-            FROM query_story_searches
-            WHERE queries_id = ?
-            ORDER BY query_story_searches_id ASC
-EOF
-            $queries_id
-        )->hashes;
-
-        $c->stash->{ query }    = $query;
-        $c->stash->{ searches } = $searches;
-        $c->stash->{ form }     = $form;
-        $c->stash->{ template } = 'queries/queue_story_search.tt2';
-        return;
-    }
-
-    my $pattern = $c->req->params->{ pattern };
-
-    my $existing_search = $c->dbis->query(
-        <<EOF,
-        SELECT *
-        FROM query_story_searches
-        WHERE queries_id = ?
-              AND pattern = ?
-EOF
-        $queries_id, $pattern
-    )->hash;
-
-    if ( $existing_search )
-    {
-        $c->response->redirect(
-            $c->uri_for(
-                "/admin/queries/queue_story_search/$query->{ queries_id }",
-                { status_msg => 'Story search already exists.' }
-            )
-        );
-        return;
-    }
-
-    my $query_story_search = $c->dbis->create( 'query_story_searches', { queries_id => $queries_id, pattern => $pattern } );
-
-    MediaWords::GearmanFunction::SearchStories->enqueue_on_gearman(
-        { query_story_searches_id => $query_story_search->{ query_story_searches_id } } );
-
-    $c->response->redirect(
-        $c->uri_for( "/admin/queries/queue_story_search/$query->{ queries_id }", { status_msg => 'Story search queued.' } )
-    );
-}
-
-sub story_search_csv : Local
-{
-    my ( $self, $c, $query_story_searches_id ) = @_;
-
-    my $query_story_search = $c->dbis->find_by_id( 'query_story_searches', $query_story_searches_id )
-      || die( "Unable to find query_story_search '$query_story_searches_id'" );
-
-    $c->res->header( 'Content-Disposition', qq[attachment; filename="query_story_searches.csv"] );
-    $c->res->header( 'Content-Length',      bytes::length( $query_story_search->{ csv_text } ) );
-    $c->res->content_type( 'text/csv; charset=UTF-8' );
-    $c->res->body( $query_story_search->{ csv_text } );
-
 }
 
 1;

@@ -100,6 +100,8 @@ $(document).ready(function () {
         <th>Medium</th>
         <th>Inlinks</th>
         <th>Outlinks</th>
+        <th>Bit.ly click count</th>
+        <th>Bit.ly referrer count</th>
     </tr>
 
 [% IF display_stories.size() < 1 %]
@@ -132,6 +134,8 @@ $(document).ready(function () {
         <td><a href="[% medium_url | html %]">[% s.medium_name | truncate( 32 ) | html %]</a></td>
         <td>[% s.inlink_count %]</td>
         <td>[% s.outlink_count %]</td>
+        <td>[% s.bitly_click_count %]</td>
+        <td>[% s.bitly_referrer_count %]</td>
     </tr>
 
     [% END # FOREACH s -%]
