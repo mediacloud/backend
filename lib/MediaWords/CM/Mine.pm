@@ -181,7 +181,7 @@ sub get_links_from_story_text
     my $text = MediaWords::DBI::Stories::get_text( $db, $story );
 
     my $links = [];
-    while ( $text =~ m~(https?://[^\s\.\")]+)~g )
+    while ( $text =~ m~(https?://[^\s\")]+)~g )
     {
         push( @{ $links }, $1 );
     }
