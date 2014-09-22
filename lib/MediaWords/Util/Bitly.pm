@@ -986,7 +986,7 @@ sub bitly_link_shares($;$$)
 
 {
     # Object to determine what kind of stats to fetch from Bit.ly (used in
-    # collect_story_stats())
+    # fetch_story_stats())
     package MediaWords::Util::Bitly::StatsToFetch;
 
     sub new($;$$$$)
@@ -1011,7 +1011,7 @@ sub bitly_link_shares($;$$)
 
 # Check if story is processed with Bit.ly (stats are fetched)
 # Return 1 if stats for story are fetched, 0 otherwise, die() on error, exit() on fatal error
-sub story_is_processed($$)
+sub story_stats_are_fetched($$)
 {
     my ( $db, $stories_id ) = @_;
 
@@ -1037,7 +1037,7 @@ sub story_is_processed($$)
     }
 }
 
-# Collect story URL statistics from Bit.ly API
+# Fetch story URL statistics from Bit.ly API
 #
 # Params:
 # * $db - database object
@@ -1090,7 +1090,7 @@ sub story_is_processed($$)
 #    };
 #
 # die()s on error
-sub collect_story_stats($$$$;$)
+sub fetch_story_stats($$$$;$)
 {
     my ( $db, $stories_id, $start_timestamp, $end_timestamp, $stats_to_fetch ) = @_;
 
@@ -1278,9 +1278,9 @@ sub write_story_stats($$$)
     }
 
     # Check if something is already stored
-    if ( story_is_processed( $db, $stories_id ) )
+    if ( story_stats_are_fetched( $db, $stories_id ) )
     {
-        warn "Story $stories_id is already processed with Bit.ly, so I will overwrite it.";
+        warn "Story's $stories_id stats are already fetched from Bit.ly, so I will overwrite it.";
     }
 
     # Convert results to a minimized JSON
@@ -1332,7 +1332,7 @@ sub read_story_stats($$)
     }
 
     # Check if something is already stored
-    unless ( story_is_processed( $db, $stories_id ) )
+    unless ( story_stats_are_fetched( $db, $stories_id ) )
     {
         warn "Story $stories_id is not processed with Bit.ly.";
         return undef;
@@ -1373,25 +1373,23 @@ sub read_story_stats($$)
     return $json_hashref;
 }
 
-# Return true if all controversy's stories have aggregated Bit.ly statistics
-sub all_controversy_stories_have_bitly_statistics($$)
+# Return the number of controversy's stories that don't yet have aggregated Bit.ly statistics
+sub num_controversy_stories_without_bitly_statistics($$)
 {
     my ( $db, $controversies_id ) = @_;
 
-    my ( $all_controversy_stories_have_bitly_statistics ) = $db->query(
+    my ( $num_controversy_stories_without_bitly_statistics ) = $db->query(
         <<EOF,
-        SELECT cd.all_controversy_stories_have_bitly_statistics(?)
+        SELECT num_controversy_stories_without_bitly_statistics(?)
 EOF
         $controversies_id
     )->flat;
-    if ( $all_controversy_stories_have_bitly_statistics )
+    unless ( defined $num_controversy_stories_without_bitly_statistics )
     {
-        return 1;
+        die "'num_controversy_stories_without_bitly_statistics' is undefined.";
     }
-    else
-    {
-        return 0;
-    }
+
+    return $num_controversy_stories_without_bitly_statistics;
 }
 
 # Given the error message ($@ after unsuccessful eval{}), determine whether the

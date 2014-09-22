@@ -117,7 +117,7 @@ sub run($;$)
     # Store stats ("upsert" the record into "story_bitly_statistics" table)
     $db->query(
         <<EOF,
-        SELECT cd.upsert_story_bitly_statistics(?, ?, ?)
+        SELECT upsert_story_bitly_statistics(?, ?, ?)
 EOF
         $stories_id, $click_count, $referrer_count
     );

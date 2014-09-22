@@ -319,11 +319,33 @@ END
         $latest_activities->[ $x ] = $activity;
     }
 
+    # Bit.ly
+    my $bitly_processing_is_enabled = MediaWords::Util::Bitly::bitly_processing_is_enabled();
+    if ( $bitly_processing_is_enabled and $controversy->{ process_with_bitly } )
+    {
+
+        my $controversies_id = $controversy->{ controversies_id };
+
+        my ( $bitly_total_stories ) = $db->query(
+            <<EOF,
+            SELECT COUNT(stories_id) AS total_stories
+            FROM controversy_stories
+            WHERE controversies_id = ?
+EOF
+            $controversies_id
+        )->flat;
+        $c->stash->{ bitly_total_stories } = $bitly_total_stories;
+
+        my $bitly_unprocessed_stories =
+          MediaWords::Util::Bitly::num_controversy_stories_without_bitly_statistics( $db, $controversies_id );
+        $c->stash->{ bitly_unprocessed_stories } = $bitly_unprocessed_stories;
+    }
+
     $c->stash->{ controversy }                 = $controversy;
     $c->stash->{ controversy_dumps }           = $controversy_dumps;
     $c->stash->{ latest_full_dump }            = $latest_full_dump;
     $c->stash->{ latest_activities }           = $latest_activities;
-    $c->stash->{ bitly_processing_is_enabled } = MediaWords::Util::Bitly::bitly_processing_is_enabled();
+    $c->stash->{ bitly_processing_is_enabled } = $bitly_processing_is_enabled;
     $c->stash->{ template }                    = 'cm/view.tt2';
 }
 
