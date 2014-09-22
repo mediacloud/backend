@@ -1380,7 +1380,7 @@ sub all_controversy_stories_have_bitly_statistics($$)
 
     my ( $all_controversy_stories_have_bitly_statistics ) = $db->query(
         <<EOF,
-        SELECT cd.all_controversy_stories_have_bitly_statistics(?)
+        SELECT all_controversy_stories_have_bitly_statistics(?)
 EOF
         $controversies_id
     )->flat;

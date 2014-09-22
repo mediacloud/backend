@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4472;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4473;
     
 BEGIN
 
@@ -1765,19 +1765,19 @@ create index stories_id on cd.stories ( controversy_dumps_id, stories_id );
 
 
 -- Bit.ly stats for stories
-CREATE TABLE cd.story_bitly_statistics (
+CREATE TABLE story_bitly_statistics (
     story_bitly_statistics_id   SERIAL  PRIMARY KEY,
-    stories_id                  INT     NOT NULL UNIQUE REFERENCES public.stories ON DELETE CASCADE,
+    stories_id                  INT     NOT NULL UNIQUE REFERENCES stories ON DELETE CASCADE,
 
     -- Bit.ly stats
     bitly_click_count           INT     NOT NULL,
     bitly_referrer_count        INT     NOT NULL
 );
 CREATE UNIQUE INDEX story_bitly_statistics_stories_id
-    ON cd.story_bitly_statistics ( stories_id );
+    ON story_bitly_statistics ( stories_id );
 
 -- Helper to INSERT / UPDATE story's Bit.ly statistics
-CREATE FUNCTION cd.upsert_story_bitly_statistics (
+CREATE FUNCTION upsert_story_bitly_statistics (
     param_stories_id INT,
     param_bitly_click_count INT,
     param_bitly_referrer_count INT
@@ -1786,7 +1786,7 @@ $$
 BEGIN
     LOOP
         -- Try UPDATing
-        UPDATE cd.story_bitly_statistics
+        UPDATE story_bitly_statistics
             SET bitly_click_count = param_bitly_click_count,
                 bitly_referrer_count = param_bitly_referrer_count
             WHERE stories_id = param_stories_id;
@@ -1794,7 +1794,7 @@ BEGIN
 
         -- Nothing to UPDATE, try to INSERT a new record
         BEGIN
-            INSERT INTO cd.story_bitly_statistics (stories_id, bitly_click_count, bitly_referrer_count)
+            INSERT INTO story_bitly_statistics (stories_id, bitly_click_count, bitly_referrer_count)
             VALUES (param_stories_id, param_bitly_click_count, param_bitly_referrer_count);
             RETURN;
         EXCEPTION WHEN UNIQUE_VIOLATION THEN
@@ -1808,7 +1808,7 @@ $$
 LANGUAGE plpgsql;
 
 -- Helper to test if all controversy's stories have aggregated Bit.ly stats already
-CREATE FUNCTION cd.all_controversy_stories_have_bitly_statistics (param_controversies_id INT) RETURNS BOOL AS
+CREATE FUNCTION all_controversy_stories_have_bitly_statistics (param_controversies_id INT) RETURNS BOOL AS
 $$
 DECLARE
     controversy_exists BOOL;
@@ -1829,7 +1829,7 @@ BEGIN
     WHERE controversies_id = param_controversies_id
       AND stories_id NOT IN (
         SELECT stories_id
-        FROM cd.story_bitly_statistics
+        FROM story_bitly_statistics
     )
     GROUP BY controversies_id;
     IF FOUND THEN
