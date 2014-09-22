@@ -12,7 +12,9 @@ use strict;
 use warnings;
 
 use Moose;
-with 'MediaWords::GearmanFunction';
+
+# Don't log each and every extraction job into the database
+with 'Gearman::JobScheduler::AbstractFunction';
 
 BEGIN
 {
@@ -28,6 +30,7 @@ use MediaWords::CommonLibs;
 use MediaWords::DB;
 use MediaWords::Util::Bitly;
 use MediaWords::Util::Process;
+use MediaWords::Util::GearmanJobSchedulerConfiguration;
 use MediaWords::GearmanFunction::Bitly::AggregateStoryStats;
 use Readonly;
 use Data::Dumper;
@@ -85,7 +88,7 @@ sub run($;$)
     {
         say STDERR "Fetching story stats for story $stories_id" . ( $retry ? " (retry $retry)" : '' ) . "...";
         eval {
-            $stats = MediaWords::Util::Bitly::collect_story_stats( $db, $stories_id, $start_timestamp, $end_timestamp,
+            $stats = MediaWords::Util::Bitly::fetch_story_stats( $db, $stories_id, $start_timestamp, $end_timestamp,
                 $stats_to_fetch );
         };
         $error_message = $@;
@@ -118,7 +121,7 @@ sub run($;$)
     }
     unless ( ref( $stats ) eq ref( {} ) )
     {
-        # No point die()ing and continuing with other jobs (something wrong with collect_story_stats())
+        # No point die()ing and continuing with other jobs (something wrong with fetch_story_stats())
         fatal_error( "Stats for story ID $stories_id is not a hashref." );
     }
     say STDERR "Done fetching story stats for story $stories_id.";

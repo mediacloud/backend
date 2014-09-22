@@ -12,7 +12,9 @@ use strict;
 use warnings;
 
 use Moose;
-with 'MediaWords::GearmanFunction';
+
+# Don't log each and every extraction job into the database
+with 'Gearman::JobScheduler::AbstractFunction';
 
 BEGIN
 {
@@ -26,6 +28,7 @@ use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use MediaWords::DB;
+use MediaWords::Util::GearmanJobSchedulerConfiguration;
 use MediaWords::Util::Bitly;
 use Readonly;
 use Data::Dumper;
@@ -114,7 +117,7 @@ sub run($;$)
     # Store stats ("upsert" the record into "story_bitly_statistics" table)
     $db->query(
         <<EOF,
-        SELECT cd.upsert_story_bitly_statistics(?, ?, ?)
+        SELECT upsert_story_bitly_statistics(?, ?, ?)
 EOF
         $stories_id, $click_count, $referrer_count
     );
