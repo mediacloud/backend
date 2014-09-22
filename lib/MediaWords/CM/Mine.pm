@@ -74,17 +74,19 @@ sub add_redirect_links
     }
 }
 
+my $_link_extractor;
+
 # return a list of all links that appear in the html
 sub get_links_from_html
 {
     my ( $html ) = @_;
 
-    my $link_extractor = new HTML::LinkExtractor();
+    $_link_extractor ||= new HTML::LinkExtractor();
 
-    $link_extractor->parse( \$html );
+    $_link_extractor->parse( \$html );
 
     my $links = [];
-    for my $link ( @{ $link_extractor->links } )
+    for my $link ( @{ $_link_extractor->links } )
     {
         next if ( !$link->{ href } );
 

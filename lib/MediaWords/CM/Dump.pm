@@ -362,7 +362,8 @@ END
 select distinct s.stories_id, s.title, s.url,
         case when ( stm.tags_id is null ) then s.publish_date::text else 'undateable' end as publish_date,
         m.name media_name, m.url media_url, m.media_id,
-        slc.inlink_count, slc.outlink_count $tag_clause_list
+        slc.inlink_count, slc.outlink_count, slc.bitly_click_count, slc.bitly_referrer_count
+        $tag_clause_list
 	from dump_stories s
 	    join dump_media m on ( s.media_id = m.media_id )
 	    join dump_story_link_counts slc on ( s.stories_id = slc.stories_id ) 
@@ -491,7 +492,8 @@ sub get_media_csv
     my ( $db, $cdts ) = @_;
 
     my $res = $db->query( <<END );
-select m.media_id, m.name, m.url, mlc.inlink_count, mlc.outlink_count, mlc.story_count
+select m.media_id, m.name, m.url, mlc.inlink_count, mlc.outlink_count, 
+        mlc.story_count, mlc.bitly_click_count, mlc.bitly_referrer_count
     from dump_media m, dump_medium_link_counts mlc
     where m.media_id = mlc.media_id
     order by mlc.inlink_count desc;
