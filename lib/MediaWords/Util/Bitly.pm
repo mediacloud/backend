@@ -87,11 +87,11 @@ my $_gridfs_store = lazy
     my $gridfs_database_name = $config->{ mongodb_gridfs }->{ bitly }->{ database_name };
     unless ( $gridfs_database_name )
     {
-        fatal_error( "CoreNLP annotator is enabled, but MongoDB GridFS database name is not set." );
+        fatal_error( "Bit.ly processing is enabled, but MongoDB GridFS database name is not set." );
     }
 
     my $gridfs_store = MediaWords::KeyValueStore::GridFS->new( { database_name => $gridfs_database_name } );
-    say STDERR "Will write CoreNLP annotator results to GridFS database: $gridfs_database_name";
+    say STDERR "Will write Bit.ly stats to GridFS database: $gridfs_database_name";
 
     return $gridfs_store;
 };
