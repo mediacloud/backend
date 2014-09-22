@@ -1373,25 +1373,23 @@ sub read_story_stats($$)
     return $json_hashref;
 }
 
-# Return true if all controversy's stories have aggregated Bit.ly statistics
-sub all_controversy_stories_have_bitly_statistics($$)
+# Return the number of controversy's stories that don't yet have aggregated Bit.ly statistics
+sub num_controversy_stories_without_bitly_statistics($$)
 {
     my ( $db, $controversies_id ) = @_;
 
-    my ( $all_controversy_stories_have_bitly_statistics ) = $db->query(
+    my ( $num_controversy_stories_without_bitly_statistics ) = $db->query(
         <<EOF,
-        SELECT all_controversy_stories_have_bitly_statistics(?)
+        SELECT num_controversy_stories_without_bitly_statistics(?)
 EOF
         $controversies_id
     )->flat;
-    if ( $all_controversy_stories_have_bitly_statistics )
+    unless ( defined $num_controversy_stories_without_bitly_statistics )
     {
-        return 1;
+        die "'num_controversy_stories_without_bitly_statistics' is undefined.";
     }
-    else
-    {
-        return 0;
-    }
+
+    return $num_controversy_stories_without_bitly_statistics;
 }
 
 # Given the error message ($@ after unsuccessful eval{}), determine whether the

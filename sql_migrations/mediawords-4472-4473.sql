@@ -21,6 +21,9 @@ SET search_path = public, pg_catalog;
 ALTER TABLE cd.story_bitly_statistics
     SET SCHEMA public;
 
+DROP FUNCTION cd.all_controversy_stories_have_bitly_statistics (INT);
+
+
 -- Recreate function because both the schema and the definition changes
 DROP FUNCTION cd.upsert_story_bitly_statistics (INT, INT, INT);
 CREATE FUNCTION upsert_story_bitly_statistics (
@@ -54,11 +57,11 @@ $$
 LANGUAGE plpgsql;
 
 -- Helper to return a number of stories for which we don't have Bit.ly statistics yet
-CREATE FUNCTION controversy_stories_that_do_not_have_bitly_statistics (param_controversies_id INT) RETURNS INT AS
+CREATE FUNCTION num_controversy_stories_without_bitly_statistics (param_controversies_id INT) RETURNS INT AS
 $$
 DECLARE
     controversy_exists BOOL;
-    stories_without_bitly_statistics INT;
+    num_stories_without_bitly_statistics INT;
 BEGIN
 
     SELECT 1 INTO controversy_exists
@@ -70,7 +73,7 @@ BEGIN
         RETURN FALSE;
     END IF;
 
-    SELECT COUNT(stories_id) INTO stories_without_bitly_statistics
+    SELECT COUNT(stories_id) INTO num_stories_without_bitly_statistics
     FROM controversy_stories
     WHERE controversies_id = param_controversies_id
       AND stories_id NOT IN (
@@ -79,35 +82,10 @@ BEGIN
     )
     GROUP BY controversies_id;
     IF NOT FOUND THEN
-        stories_without_bitly_statistics := 0;
+        num_stories_without_bitly_statistics := 0;
     END IF;
 
-    RETURN stories_without_bitly_statistics;
-END;
-$$
-LANGUAGE plpgsql;
-
--- Recreate function because both the schema and the definition changes
-DROP FUNCTION cd.all_controversy_stories_have_bitly_statistics (INT);
-CREATE FUNCTION all_controversy_stories_have_bitly_statistics (param_controversies_id INT) RETURNS BOOL AS
-$$
-DECLARE
-    stories_without_bitly_statistics INT;
-BEGIN
-
-    -- "controversy_stories_that_do_not_have_bitly_statistics(INT) checks
-    -- whether or not the controversy exists
-
-    SELECT controversy_stories_that_do_not_have_bitly_statistics(param_controversies_id)
-        INTO stories_without_bitly_statistics;
-
-    IF stories_without_bitly_statistics > 0 THEN
-        RAISE NOTICE 'Some stories (% of them) still don''t have aggregated Bit.ly statistics for controversy %.', stories_without_bitly_statistics, param_controversies_id;
-        RETURN FALSE;
-    END IF;
-
-    RETURN TRUE;
-
+    RETURN num_stories_without_bitly_statistics;
 END;
 $$
 LANGUAGE plpgsql;
