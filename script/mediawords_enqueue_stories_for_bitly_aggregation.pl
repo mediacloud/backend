@@ -65,7 +65,7 @@ EOF
         {
             my $stories_id = $story->{ stories_id };
 
-            unless ( MediaWords::Util::Bitly::story_is_processed( $db, $stories_id ) )
+            unless ( MediaWords::Util::Bitly::story_stats_are_fetched( $db, $stories_id ) )
             {
                 say STDERR "Story $stories_id has not been fetched yet.";
                 next;

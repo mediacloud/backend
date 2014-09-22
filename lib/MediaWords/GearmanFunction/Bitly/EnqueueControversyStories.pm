@@ -161,7 +161,7 @@ EOF
 
             $offset_controversy_stories_id = $controversy_stories_id;
 
-            if ( MediaWords::Util::Bitly::story_is_processed( $db, $stories_id ) )
+            if ( MediaWords::Util::Bitly::story_stats_are_fetched( $db, $stories_id ) )
             {
                 if ( $overwrite )
                 {
