@@ -1,0 +1,11 @@
+The Python based API tests will be skipped unless the MEDIACLOUD_ENABLE_PYTHON_API_TESTS environment variable is set.
+
+The Python tests assume that the following commands have been run in the Media Cloud directory.
+
+    - git clone https://github.com/dlarochelle/MediaCloud-API-Client.git
+    - sudo easy_install MediaCloud-API-Client/dist/mediacloud-2.10-py2.7.egg
+
+(These commands are specified in .travis.xml and thus run under Travis.CI during the install phase.)
+
+This installs a custom version of the Media Cloud Python Client which hits the local server instead of hitting api.mediacloud.org and also has special tests for the local database.
+
