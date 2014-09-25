@@ -59,6 +59,10 @@ sub _user_email_and_roles($$)
         @user_roles = $c->user->roles;
 
     }
+    else
+    {
+        say STDERR "user not logged in and key paramater not provided";
+    }
 
     return ( $user_email, \@user_roles );
 }

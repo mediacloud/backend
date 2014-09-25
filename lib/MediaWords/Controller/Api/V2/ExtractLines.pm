@@ -38,6 +38,8 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 __PACKAGE__->config(    #
     action => {         #
         story_lines_GET => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
+              # story_lines => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
+        story_lines_PUT => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
       }    #
 );         #
 
@@ -51,11 +53,20 @@ sub story_lines : Local : ActionClass('REST')
 
 sub story_lines_GET : Local
 {
-    my ( $self, $c ) = @_;
-    my $body_html = $c->req->param( 'body_html' );
-    $body_html //= ROWS_PER_PAGE;
+}
 
-    # say STDERR "rows $rows";
+sub story_lines_PUT : Local
+{
+    my ( $self, $c ) = @_;
+
+    #say STDERR Dumper( $c->req->params );
+    #say STDERR Dumper( $c->req->data );
+
+    say STDERR "body_html";
+    my $body_html = $c->req->data->{ body_html };
+
+    say STDERR "body_html";
+    say STDERR length( $body_html );
 
     my $lines = [ split( /[\n\r]+/, $body_html ) ];
 
@@ -63,6 +74,26 @@ sub story_lines_GET : Local
 
     $self->status_ok( $c, entity => $lines );
 }
+
+# sub story_lines_GET : Local
+# {
+#     my ( $self, $c ) = @_;
+
+#     say STDERR "body_html";
+
+#     my $body_html = $c->req->param( 'body_html' );
+
+#     #$body_html //= ROWS_PER_PAGE;
+
+#     say STDERR "body_html";
+#     say STDERR length($body_html);
+
+#     my $lines = [ split( /[\n\r]+/, $body_html ) ];
+
+#     $lines = MediaWords::Crawler::Extractor::preprocess( $lines );
+
+#     $self->status_ok( $c, entity => $lines );
+# }
 
 sub extract : Local : ActionClass('REST')    # action roles are to be set for each derivative sub-actions
 {
