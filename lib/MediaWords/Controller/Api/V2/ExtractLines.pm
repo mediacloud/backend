@@ -99,17 +99,15 @@ sub extract : Local : ActionClass('REST')    # action roles are to be set for ea
 {
 }
 
-sub extract_GET : Local
+sub extract_PUT : Local
 {
     my ( $self, $c ) = @_;
 
-    my $temp               = $c->req->param( 'preprocessed_lines' );
-    my $pp_lines           = encode_utf8( $temp );
-    my $preprocessed_lines = decode_json( $pp_lines );
-    my $story_title        = $c->req->param( 'story_title' );
-    my $story_description  = $c->req->param( 'story_description' );
+    my $preprocessed_lines = $c->req->data->{ preprocessed_lines };
+    my $story_title        = $c->req->data->{ 'story_title' };
+    my $story_description  = $c->req->data->{ 'story_description' };
 
-    my $extractor_method = $c->req->param( 'extractor_method' );
+    my $extractor_method = $c->req->data->{ 'extractor_method' };
 
     if ( defined( $extractor_method ) )
     {
