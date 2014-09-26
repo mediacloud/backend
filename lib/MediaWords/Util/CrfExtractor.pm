@@ -41,7 +41,7 @@ sub get_path_to_extractor_model()
 
 sub _initialize_crf
 {
-    return unless ( $_crf_init );
+    return if ( defined( $_crf_init ) );
 
     $_crf_init = 1;
 
@@ -104,6 +104,8 @@ sub _get_extracted_lines_with_crf
     die unless scalar( @$non_autoexcluded_line_infos ) == scalar( @$feature_strings );
 
     my $model_file_name = $_model_file_name;
+
+    die unless defined( $model_file_name );
 
     #say STDERR "using model file: '$model_file_name'";
 
