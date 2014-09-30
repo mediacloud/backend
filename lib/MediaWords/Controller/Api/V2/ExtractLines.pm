@@ -39,7 +39,8 @@ __PACKAGE__->config(    #
     action => {         #
         story_lines_GET => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
               # story_lines => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
-        story_lines_PUT => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
+        story_lines_PUT              => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
+        extractor_training_lines_GET => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
       }    #
 );         #
 
@@ -120,6 +121,21 @@ sub extract_PUT : Local
 
     my $ret = $extractor->extract_preprocessed_lines_for_story( $preprocessed_lines, $story_title, $story_description );
     $self->status_ok( $c, entity => $ret );
+}
+
+sub extractor_training_lines : Local : ActionClass('REST')
+{
+}
+
+sub extractor_training_lines_GET : Local
+{
+    my ( $self, $c, $downloads_id ) = @_;
+
+    my $query = "select * from extractor_training_lines where downloads_id = ? ";
+
+    my $items = $c->dbis->query( $query, $downloads_id )->hashes();
+
+    $self->status_ok( $c, entity => $items );
 }
 
 =head1 AUTHOR
