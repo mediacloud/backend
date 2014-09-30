@@ -41,7 +41,7 @@ sub get_path_to_extractor_model()
 
 sub _initialize_crf
 {
-    return unless ( $_crf_init );
+    return if ( defined( $_crf_init ) );
 
     $_crf_init = 1;
 
@@ -105,6 +105,8 @@ sub _get_extracted_lines_with_crf
 
     my $model_file_name = $_model_file_name;
 
+    die unless defined( $model_file_name );
+
     #say STDERR "using model file: '$model_file_name'";
 
     my $results = Mallet::CrfWrapper::run_model_inline_java_data_array( $model_file_name, $feature_strings );
@@ -138,6 +140,8 @@ sub _get_extracted_lines_with_crf
     while ( $line_index < scalar( @{ $line_infos } ) )
     {
         my $score;
+
+        $score->{ line_number } = $line_index;
 
         if ( $line_infos->[ $line_index ]->{ auto_excluded } )
         {
