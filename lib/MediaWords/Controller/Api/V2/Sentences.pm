@@ -208,10 +208,9 @@ sub _get_count_with_split
     my $facet_date_gap;
 
     if    ( $split_daily ) { $facet_date_gap = '+1DAY' }
-    elsif ( $days < 15 )   { $facet_date_gap = '+1DAY' }
-    elsif ( $days < 45 )   { $facet_date_gap = '+3DAYS' }
-    elsif ( $days < 105 )  { $facet_date_gap = '+7DAYS' }
-    else                   { $facet_date_gap = '+1MONTH' }
+    elsif ( $days < 90 )   { $facet_date_gap = '+1DAY' }
+    elsif ( $days < 180 )  { $facet_date_gap = '+3DAYS' }
+    else                   { $facet_date_gap = '+7DAYS' }
 
     my $params;
     $params->{ q }                  = $q;
