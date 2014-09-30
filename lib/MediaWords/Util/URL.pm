@@ -433,6 +433,12 @@ sub all_url_variants($)
 {
     my $url = shift;
 
+    if ( !is_http_url( $url ) )
+    {
+        my @urls = ( $url );
+        return @urls;
+    }
+
     # Get URL after HTTP / HTML redirects
     my ( $url_after_redirects, $data_after_redirects ) = url_and_data_after_redirects( $url );
 

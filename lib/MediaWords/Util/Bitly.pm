@@ -492,14 +492,6 @@ sub bitly_link_lookup($)
         die "URLs is not an arrayref.";
     }
 
-    foreach my $url ( @{ $urls } )
-    {
-        unless ( MediaWords::Util::URL::is_http_url( $url ) )
-        {
-            die "One of the URLs is invalid: $url";
-        }
-    }
-
     my $result = request( '/v3/link/lookup', { url => $urls } );
 
     # Sanity check
