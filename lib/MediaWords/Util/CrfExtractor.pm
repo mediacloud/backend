@@ -141,6 +141,8 @@ sub _get_extracted_lines_with_crf
     {
         my $score;
 
+        $score->{ line_number } = $line_index;
+
         if ( $line_infos->[ $line_index ]->{ auto_excluded } )
         {
             $score->{ is_story }     = 0;
