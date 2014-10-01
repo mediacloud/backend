@@ -570,10 +570,9 @@ The number of days in each date range depends on the total number of days betwee
 
 | Total Days | Days in each range
 | ---------- | ------------------
-| < 15       | 1 day
-| < 45       | 3 days
-| < 105      | 7 days
-| >= 105     | 1 month
+| < 90       | 1 day
+| < 180      | 3 days
+| >= 180     | 7 days
 
 Note that the total count returned by a split query is for all sentences found by the solr query, which query might or might not
 include a date restriction.  So in the example africa query below, the 236372 count is for all sentences matching africa, not just those within the split date range.
