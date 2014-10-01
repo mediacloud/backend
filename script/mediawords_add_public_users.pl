@@ -20,7 +20,7 @@ use MediaWords::CommonLibs;
 
 use MediaWords::DB;
 use MediaWords::DBI::Auth;
-use Mediawords::Util::CSV;
+use MediaWords::Util::CSV;
 
 # return true if an auth_users row with the email already exists
 sub user_exists
