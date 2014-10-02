@@ -67,6 +67,22 @@
     </p>
 </fieldset>
 
+[% IF hide_media.size > 0 %]
+    <br />
+    <fieldset>
+        The following media were not included because of lack of content.  The lack of content may be because there are no stories
+        for the given time slice, because the stories the stories for the given medium have no significant content associated 
+        with them (for instance, photo or video pages), or because the Media Cloud extractor failed to 
+        detect content that it should have for the stories.
+        <ul>        
+            [% FOREACH m IN hide_media %]
+                [% SET medium_url = c.uri_for( '/admin/cm/medium/' _ m.media_id, { cdts => cdts.controversy_dump_time_slices_id, l => live } ) %]
+                <li><a href="[% medium_url | html %]" title="[% m.name | html %]">[% m.name | html %]</a></li>
+            [% END %]
+        </ul>
+    </fieldset>
+[% END %]
+
 </div>
 
 [% INCLUDE include/footer.tt2 %]
