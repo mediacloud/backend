@@ -1327,15 +1327,18 @@ sub _get_solr_params_for_time_slice_query
 
 # get the top words used by the given set of stories, sorted by tfidf against all words
 # in the controversy
-sub _get_story_words ($$$$$)
+sub _get_story_words ($$$$$;$)
 {
-    my ( $db, $controversy, $cdts, $q, $sort_by_count ) = @_;
+    my ( $db, $controversy, $cdts, $q, $sort_by_count, $num_words ) = @_;
 
     my $solr_p = _get_solr_params_for_time_slice_query( $cdts, $q );
     my $stories_ids = MediaWords::Solr::search_for_stories_ids( $db, $solr_p );
 
-    my $num_words = int( log( scalar( @{ $stories_ids } ) + 1 ) * 10 );
-    $num_words = ( $num_words < 100 ) ? $num_words : 100;
+    if ( !$num_words )
+    {
+        $num_words = int( log( scalar( @{ $stories_ids } ) + 1 ) * 10 );
+        $num_words = ( $num_words < 100 ) ? $num_words : 100;
+    }
 
     my $story_words = MediaWords::Solr::WordCounts->new( db => $db, %{ $solr_p } )->get_words;
 
@@ -2285,14 +2288,27 @@ sub influential_media_words : Local
     my $num_media = 10;
     my $num_words = 20;
 
-    splice( @{ $top_media }, $num_media );
-
+    my $display_media = [];
+    my $hide_media    = [];
     for my $medium ( @{ $top_media } )
     {
         my $q = "media_id:$medium->{ media_id }";
-        $medium->{ words } = _get_story_words( $db, $controversy, $cdts, $q, 1 );
+        $medium->{ words } = _get_story_words( $db, $controversy, $cdts, $q, 1, 20 );
         splice( @{ $medium->{ words } }, $num_words );
+
+        if ( @{ $medium->{ words } } >= ( $num_words / 2 ) )
+        {
+            push( @{ $display_media }, $medium );
+        }
+        else
+        {
+            push( @{ $hide_media }, $medium );
+        }
+
+        last if ( @{ $display_media } >= $num_media );
     }
+
+    $top_media = $display_media;
 
     my $top_words = _get_story_words( $db, $controversy, $cdts, undef, 1 );
 
@@ -2303,6 +2319,7 @@ sub influential_media_words : Local
     $c->stash->{ controversy } = $controversy;
     $c->stash->{ live }        = $live;
     $c->stash->{ top_media }   = $top_media;
+    $c->stash->{ hide_media }  = $hide_media;
     $c->stash->{ q }           = $q;
     $c->stash->{ top_words }   = $top_words;
     $c->stash->{ overall }     = $overall;

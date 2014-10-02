@@ -9,5 +9,6 @@ bitly_api
 ipython[all]
 psycopg2
 choice
+#pandas
 requests==2.2.1
 thrift==0.9.1

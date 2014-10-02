@@ -283,14 +283,14 @@ sub get_words_from_solr_server
         sort => 'random_1 asc'
     };
 
-    print STDERR "executing solr query ...\n";
-    print STDERR Dumper( $solr_params );
+    # print STDERR "executing solr query ...\n";
+    # print STDERR Dumper( $solr_params );
     my $data = MediaWords::Solr::query( $self->db, $solr_params );
 
     my $sentences_found = $data->{ response }->{ numFound };
     my @sentences = map { $_->{ sentence } } @{ $data->{ response }->{ docs } };
 
-    print STDERR "counting sentences...\n";
+    # print STDERR "counting sentences...\n";
     my $block_words = $self->count_stems( \@sentences );
 
     my $words = {};
@@ -298,17 +298,17 @@ sub get_words_from_solr_server
 
     my $merge_end_time = time;
 
-    print STDERR "generating word list ...\n";
+    # print STDERR "generating word list ...\n";
     my @word_list;
     while ( my ( $stem, $count ) = each( %{ $words } ) )
     {
         push( @word_list, [ $stem, $count->{ count } ] );
     }
 
-    print STDERR "sorting ...\n";
+    # print STDERR "sorting ...\n";
     @word_list = sort { $b->[ 1 ] <=> $a->[ 1 ] } @word_list;
 
-    print STDERR "cutting list ...\n";
+    # print STDERR "cutting list ...\n";
     my $m = ( 1 + @{ $self->languages } );
     my $num_pre_sw_words = ( 1000 * $m ) + ( $self->num_words * $m );
 
