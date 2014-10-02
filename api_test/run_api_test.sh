@@ -91,7 +91,7 @@ if MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION=1 MEDIAWORDS_FORCE_USING_TEST_DATABASE=1 
     if [ $MEDIACLOUD_ENABLE_PYTHON_API_TESTS = 1 ]; then
         echo "starting mediacloud server"
 
-        CARTON_EXTRA_PERL5OPT='-MDevel::Cover=+ignore,local/,+ignore,^foreign_modules/,+ignore,\.t$' MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION=1 MEDIACLOUD_ENABLE_SHUTDOWN_URL=1 MEDIAWORDS_FORCE_USING_TEST_DATABASE=1 ./script/run_wrappered_carton.sh exec `pwd`/script/mediawords_server.pl 
+        CARTON_EXTRA_PERL5OPT='-MDevel::Cover=+ignore,local/,+ignore,^foreign_modules/,+ignore,\.t$' MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION=1 MEDIACLOUD_ENABLE_SHUTDOWN_URL=1 MEDIAWORDS_FORCE_USING_TEST_DATABASE=1 ./script/run_wrappered_carton.sh exec `pwd`/script/mediawords_server.pl &
         mc_server_pid=$!
 
         echo "Media Cloud server PID $mc_server_pid"
