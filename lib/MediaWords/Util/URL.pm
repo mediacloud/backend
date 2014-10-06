@@ -438,6 +438,11 @@ sub all_url_variants($)
 {
     my $url = shift;
 
+    unless ( defined $url )
+    {
+        die "URL is undefined";
+    }
+
     if ( !is_http_url( $url ) )
     {
         my @urls = ( $url );
