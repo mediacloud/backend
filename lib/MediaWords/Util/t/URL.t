@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 56;
+use Test::More tests => 58;
 
 use Readonly;
 use HTTP::HashServer;
@@ -178,6 +178,14 @@ sub test_get_url_domain()
         'yesmeck.com', 'get_url_domain() - yesmeck.com' );
     is( MediaWords::Util::URL::get_url_domain( 'http://status.livejournal.org/' ),
         'livejournal.org', 'get_url_domain() - livejournal.org' );
+
+    # ".(gov|org|com).XX" exception
+    is( MediaWords::Util::URL::get_url_domain( 'http://www.stat.gov.lt/' ),
+        'stat.gov.lt', 'get_url_domain() - www.stat.gov.lt' );
+
+    # "wordpress.com|blogspot|livejournal.com|privet.ru|wikia.com|feedburner.com|24open.ru|patch.com|tumblr.com" exception
+    is( MediaWords::Util::URL::get_url_domain( 'https://en.blog.wordpress.com/' ),
+        'en.blog.wordpress.com', 'get_url_domain() - en.blog.wordpress.com' );
 
   # FIXME - invalid URL
   # is(MediaWords::Util::URL::get_url_domain('http:///www.facebook.com/'), undef, 'get_url_domain() - invalid facebook.com');
