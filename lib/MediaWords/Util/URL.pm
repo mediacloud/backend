@@ -461,10 +461,10 @@ sub all_url_variants($)
         'after_redirects' => $url_after_redirects,
 
         # Canonical URL
-        'canonical' => normalize_url( $url ),
+        'normalized' => normalize_url( $url ),
 
         # Canonical URL after redirects
-        'after_redirects_canonical' => normalize_url( $url_after_redirects )
+        'after_redirects_normalized' => normalize_url( $url_after_redirects )
     );
 
     # If <link rel="canonical" /> is present, try that one too
@@ -476,7 +476,7 @@ sub all_url_variants($)
             say STDERR "Found <link rel=\"canonical\" /> for URL $url_after_redirects " .
               "(original URL: $url): $url_link_rel_canonical";
 
-            $urls{ 'after_redirects_canonical_via_link_rel' } = $url_link_rel_canonical;
+            $urls{ 'after_redirects_canonical' } = $url_link_rel_canonical;
         }
     }
 
