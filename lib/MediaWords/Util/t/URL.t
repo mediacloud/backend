@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 58;
+use Test::More tests => 59;
 
 use Readonly;
 use HTTP::HashServer;
@@ -293,6 +293,12 @@ EOF
     $base_url     = 'http://example.com/fourth/fifth/';
     $expected_url = 'http://example.com/first/second/third/';
     is( MediaWords::Util::URL::meta_refresh_url_from_html( $html, $base_url ), $expected_url, 'Absolute path' );
+
+    # Invalid URL without base URL
+    $html = <<EOF;
+        <meta http-equiv="refresh" content="0; url=/first/second/third/" />
+EOF
+    is( MediaWords::Util::URL::meta_refresh_url_from_html( $html ), undef, 'Invalid URL without base URL' );
 }
 
 sub test_link_canonical_url_from_html()
