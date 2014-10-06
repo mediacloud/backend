@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 60;
+use Test::More tests => 65;
 
 use Readonly;
 use HTTP::HashServer;
@@ -395,6 +395,12 @@ EOF
 
 sub test_url_and_data_after_redirects_http()
 {
+    eval { MediaWords::Util::URL::url_and_data_after_redirects( undef ); };
+    ok( $@, 'Undefined URL' );
+
+    eval { MediaWords::Util::URL::url_and_data_after_redirects( 'gopher://gopher.floodgap.com/0/v2/vstat' ); };
+    ok( $@, 'Non-HTTP(S) URL' );
+
     Readonly my $TEST_HTTP_SERVER_URL => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
     my $starting_url = $TEST_HTTP_SERVER_URL . '/first';
 
@@ -417,6 +423,26 @@ sub test_url_and_data_after_redirects_http()
 
     is( $url_after_redirects,  $TEST_HTTP_SERVER_URL . '/fifth', 'URL after HTTP redirects' );
     is( $data_after_redirects, $pages->{ '/fifth' },             'Data after HTTP redirects' );
+}
+
+sub test_url_and_data_after_redirects_nonexistent()
+{
+    Readonly my $TEST_HTTP_SERVER_URL => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
+    my $starting_url = $TEST_HTTP_SERVER_URL . '/first';
+
+    # Nonexistent URL ("/first")
+    my $pages = {};
+
+    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my ( $url_after_redirects, $data_after_redirects ) =
+      MediaWords::Util::URL::url_and_data_after_redirects( $starting_url );
+
+    $hs->stop();
+
+    is( $url_after_redirects,  $starting_url, 'URL after unsuccessful HTTP redirects' );
+    is( $data_after_redirects, undef,         'Data after unsuccessful HTTP redirects' );
 }
 
 sub test_url_and_data_after_redirects_html()
@@ -446,7 +472,7 @@ sub test_url_and_data_after_redirects_html()
     is( $data_after_redirects, $pages->{ '/fifth' },             'Data after HTML redirects' );
 }
 
-sub test_url_and_data_after_redirects_loop()
+sub test_url_and_data_after_redirects_http_loop()
 {
     Readonly my $TEST_HTTP_SERVER_URL => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
     my $starting_url = $TEST_HTTP_SERVER_URL . '/first';
@@ -478,6 +504,29 @@ sub test_url_and_data_after_redirects_loop()
     is( $url_after_redirects, $TEST_HTTP_SERVER_URL . '/second', 'URL after HTTP redirect loop' );
 }
 
+sub test_url_and_data_after_redirects_html_loop()
+{
+    Readonly my $TEST_HTTP_SERVER_URL => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
+    my $starting_url = $TEST_HTTP_SERVER_URL . '/first';
+
+    # HTML redirects
+    my $pages = {
+        '/first'  => '<meta http-equiv="refresh" content="0; URL=/second" />',
+        '/second' => '<meta http-equiv="refresh" content="0; URL=/third" />',
+        '/third'  => '<meta http-equiv="refresh" content="0; URL=/second" />',
+    };
+
+    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my ( $url_after_redirects, $data_after_redirects ) =
+      MediaWords::Util::URL::url_and_data_after_redirects( $starting_url );
+
+    $hs->stop();
+
+    is( $url_after_redirects, $TEST_HTTP_SERVER_URL . '/second', 'URL after HTML redirect loop' );
+}
+
 sub main()
 {
     my $builder = Test::More->builder;
@@ -491,9 +540,11 @@ sub main()
     test_get_url_domain();
     test_meta_refresh_url_from_html();
     test_link_canonical_url_from_html();
+    test_url_and_data_after_redirects_nonexistent();
     test_url_and_data_after_redirects_http();
     test_url_and_data_after_redirects_html();
-    test_url_and_data_after_redirects_loop();
+    test_url_and_data_after_redirects_http_loop();
+    test_url_and_data_after_redirects_html_loop();
 }
 
 main();
