@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 69;
+use Test::More tests => 70;
 
 use Readonly;
 use HTTP::HashServer;
@@ -588,6 +588,28 @@ sub test_all_url_variants()
         [ sort @actual_url_variants ],
         [ sort @expected_url_variants ],
         '<link rel="canonical" /> all_url_variants() test'
+    );
+
+    # Redirect to a homepage
+    $pages = {
+        '/first'  => '<meta http-equiv="refresh" content="0; URL=/second' . $cruft . '" />',
+        '/second' => '<meta http-equiv="refresh" content="0; URL=/',
+    };
+
+    $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+    @actual_url_variants = MediaWords::Util::URL::all_url_variants( $starting_url );
+    $hs->stop();
+
+    @expected_url_variants = (
+        $starting_url_without_cruft, $starting_url,
+        $TEST_HTTP_SERVER_URL . '/second',
+        $TEST_HTTP_SERVER_URL . '/second' . $cruft
+    );
+    is_deeply(
+        [ sort @actual_url_variants ],
+        [ sort @expected_url_variants ],
+        '"Redirect to homepage" all_url_variants() test'
     );
 }
 

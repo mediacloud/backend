@@ -480,6 +480,37 @@ sub all_url_variants($)
         }
     }
 
+    sub _url_is_homepage($)
+    {
+        my $url = shift;
+
+        my $uri = URI->new( $url )->canonical;
+
+        if ( $uri->path eq '/' or $uri->path eq '' )
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    # If URL gets redirected to the homepage (e.g.
+    # http://m.wired.com/threatlevel/2011/12/sopa-watered-down-amendment/ leads
+    # to http://www.wired.com/), don't use those redirects
+    unless ( _url_is_homepage( $url ) )
+    {
+        foreach my $key ( keys %urls )
+        {
+            if ( _url_is_homepage( $urls{ $key } ) )
+            {
+                say STDERR "URL $url got redirected to $urls{$key} which looks like a homepage, so I'm skipping that.";
+                delete $urls{ $key };
+            }
+        }
+    }
+
     return uniq( values %urls );
 }
 
