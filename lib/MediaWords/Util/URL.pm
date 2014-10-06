@@ -313,6 +313,11 @@ sub url_and_data_after_redirects($;$$)
 {
     my ( $orig_url, $max_http_redirect, $max_meta_redirect ) = @_;
 
+    unless ( defined $orig_url )
+    {
+        die "URL is undefined.";
+    }
+
     unless ( is_http_url( $orig_url ) )
     {
         die "URL is not HTTP(s): $orig_url";
