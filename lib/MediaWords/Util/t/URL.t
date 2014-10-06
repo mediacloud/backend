@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 65;
+use Test::More tests => 69;
 
 use Readonly;
 use HTTP::HashServer;
@@ -527,6 +527,66 @@ sub test_url_and_data_after_redirects_html_loop()
     is( $url_after_redirects, $TEST_HTTP_SERVER_URL . '/second', 'URL after HTML redirect loop' );
 }
 
+sub test_all_url_variants()
+{
+    my @actual_url_variants;
+    my @expected_url_variants;
+
+    # Undefined URL
+    eval { MediaWords::Util::URL::all_url_variants( undef ); };
+    ok( $@, 'Undefined URL' );
+
+    # Non-HTTP(S) URL
+    Readonly my $gopher_url => 'gopher://gopher.floodgap.com/0/v2/vstat';
+    @actual_url_variants   = MediaWords::Util::URL::all_url_variants( $gopher_url );
+    @expected_url_variants = ( $gopher_url );
+    is_deeply( [ sort @actual_url_variants ], [ sort @expected_url_variants ], 'Non-HTTP(S) URL' );
+
+    # Basic test
+    Readonly my $TEST_HTTP_SERVER_URL       => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
+    Readonly my $starting_url_without_cruft => $TEST_HTTP_SERVER_URL . '/first';
+    Readonly my $cruft                      => '?utm_source=A&utm_medium=B&utm_campaign=C';
+    Readonly my $starting_url               => $starting_url_without_cruft . $cruft;
+
+    my $pages = {
+        '/first'  => '<meta http-equiv="refresh" content="0; URL=/second' . $cruft . '" />',
+        '/second' => '<meta http-equiv="refresh" content="0; URL=/third' . $cruft . '" />',
+        '/third'  => 'This is where the redirect chain should end.',
+    };
+
+    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+    @actual_url_variants = MediaWords::Util::URL::all_url_variants( $starting_url );
+    $hs->stop();
+
+    @expected_url_variants = (
+        $starting_url, $starting_url_without_cruft,
+        $TEST_HTTP_SERVER_URL . '/third',
+        $TEST_HTTP_SERVER_URL . '/third' . $cruft
+    );
+    is_deeply( [ sort @actual_url_variants ], [ sort @expected_url_variants ], 'Basic all_url_variants() test' );
+
+    # <link rel="canonical" />
+    $pages = {
+        '/first'  => '<meta http-equiv="refresh" content="0; URL=/second' . $cruft . '" />',
+        '/second' => '<meta http-equiv="refresh" content="0; URL=/third' . $cruft . '" />',
+        '/third'  => '<link rel="canonical" href="' . $TEST_HTTP_SERVER_URL . '/fourth" />',
+    };
+
+    $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+    @actual_url_variants = MediaWords::Util::URL::all_url_variants( $starting_url );
+    $hs->stop();
+
+    @expected_url_variants = (
+        $starting_url, $starting_url_without_cruft,
+        $TEST_HTTP_SERVER_URL . '/third',
+        $TEST_HTTP_SERVER_URL . '/third' . $cruft,
+        $TEST_HTTP_SERVER_URL . '/fourth',
+    );
+    is_deeply( [ sort @actual_url_variants ], [ sort @expected_url_variants ], 'Basic all_url_variants() test' );
+}
+
 sub main()
 {
     my $builder = Test::More->builder;
@@ -545,6 +605,7 @@ sub main()
     test_url_and_data_after_redirects_html();
     test_url_and_data_after_redirects_http_loop();
     test_url_and_data_after_redirects_html_loop();
+    test_all_url_variants();
 }
 
 main();
