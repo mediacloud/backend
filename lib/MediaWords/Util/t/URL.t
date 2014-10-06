@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 51;
+use Test::More tests => 56;
 
 use Readonly;
 use HTTP::HashServer;
@@ -39,6 +39,14 @@ sub test_is_http_url()
 
 sub test_normalize_url()
 {
+    # Bad URLs
+    eval { MediaWords::Util::URL::normalize_url( undef ); };
+    ok( $@, 'normalize_url() - undefined URL' );
+    eval { MediaWords::Util::URL::normalize_url( 'url.com/without/scheme/' ); };
+    ok( $@, 'normalize_url() - URL without scheme' );
+    eval { MediaWords::Util::URL::normalize_url( 'gopher://gopher.floodgap.com/0/v2/vstat' ); };
+    ok( $@, 'normalize_url() - URL is of unsupported scheme' );
+
     # Basic
     is(
         MediaWords::Util::URL::normalize_url( 'HTTP://CYBER.LAW.HARVARD.EDU/node/9244' ),
@@ -109,6 +117,20 @@ sub test_normalize_url()
         ),
         'http://www.nytimes.com/2014/08/20/upshot/data-on-transfer-of-military-gear-to-police-departments.html',
         'normalize_url() - nytimes.com 3'
+    );
+
+    # Facebook
+    is(
+        MediaWords::Util::URL::normalize_url( 'https://www.facebook.com/BerkmanCenter?ref=br_tf' ),
+        'https://www.facebook.com/BerkmanCenter',
+        'normalize_url() - facebook.com'
+    );
+
+    # LiveJournal
+    is(
+        MediaWords::Util::URL::normalize_url( 'http://zyalt.livejournal.com/1178735.html?thread=396696687#t396696687' ),
+        'http://zyalt.livejournal.com/1178735.html',
+        'normalize_url() - livejournal.com'
     );
 }
 
