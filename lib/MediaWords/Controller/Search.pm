@@ -127,13 +127,17 @@ sub _generate_story_tag_data
     my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ stories_id } } @{ $stories } ] );
 
     my $story_tags = $db->query( <<END )->hashes;
-select distinct stm.stories_id, t.description,
+with itm as (
+    select stm.stories_id, stm.tags_id
+        from stories_tags_map stm join $ids_table i on ( stm.stories_id = i.id )
+)
+
+select distinct itm.stories_id, t.description,
         t.tags_id, coalesce( ts.label, ts.name ) || ' - ' || coalesce( t.label, t.tag ) tag_name
-    from stories_tags_map stm
-        join tags t on ( stm.tags_id = t.tags_id )
+    from itm
+        join tags t on ( itm.tags_id = t.tags_id )
         join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
     where 
-        stm.stories_id in ( select id from $ids_table ) and
         ( t.show_on_media or t.show_on_stories or ts.show_on_media or ts.show_on_stories )
     
 union
@@ -144,8 +148,8 @@ select distinct s.stories_id, t.description,
         join media_tags_map mtm on ( s.media_id = mtm.media_id )
         join tags t on ( mtm.tags_id = t.tags_id )
         join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
+        join $ids_table i on ( s.stories_id = i.id )
     where 
-        s.stories_id in ( select id from $ids_table ) and
         ( t.show_on_media or t.show_on_stories or ts.show_on_media or ts.show_on_stories )
 
 END
@@ -289,7 +293,7 @@ sub index : Path : Args(0)
         $num_stories = int( MediaWords::Solr::get_last_num_found() / MediaWords::Solr::get_last_sentences_per_story() );
     }
 
-    my $tag_counts = _generate_story_tag_data( $db, $stories );
+    my $tag_counts = $csv ? [] : _generate_story_tag_data( $db, $stories );
 
     if ( $csv )
     {
