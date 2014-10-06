@@ -584,7 +584,11 @@ sub test_all_url_variants()
         $TEST_HTTP_SERVER_URL . '/third' . $cruft,
         $TEST_HTTP_SERVER_URL . '/fourth',
     );
-    is_deeply( [ sort @actual_url_variants ], [ sort @expected_url_variants ], 'Basic all_url_variants() test' );
+    is_deeply(
+        [ sort @actual_url_variants ],
+        [ sort @expected_url_variants ],
+        '<link rel="canonical" /> all_url_variants() test'
+    );
 }
 
 sub main()
