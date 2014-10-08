@@ -36,15 +36,26 @@ sub main
 
     my $db = MediaWords::DB::connect_to_db;
 
+    unless ( MediaWords::Util::Bitly::bitly_processing_is_enabled() )
+    {
+        die "Bit.ly processing is not enabled.";
+    }
+
     my $controversies = MediaWords::CM::require_controversies_by_opt( $db, $controversy_opt );
 
     for my $controversy ( @{ $controversies } )
     {
         my $controversies_id = $controversy->{ controversies_id };
 
+        unless ( $controversy->{ process_with_bitly } )
+        {
+            say STDERR "Controversy $controversies_id is not set up for Bit.ly, skipping.";
+            next;
+        }
+
         if ( MediaWords::Util::Bitly::num_controversy_stories_without_bitly_statistics( $db, $controversies_id ) == 0 )
         {
-            say STDERR "All controversy's $controversies_id stories are processed against Bit.ly.";
+            say STDERR "All controversy's $controversies_id stories are processed against Bit.ly, skipping.";
             next;
         }
 
