@@ -43,7 +43,11 @@ sub list : Local
     my $db = $c->dbis;
 
     my $controversies = $db->query( <<END )->hashes;
-select * from controversies order by controversies_id desc
+select c.* 
+    from controversies c
+        join controversy_dumps cd on ( c.controversies_id = cd.controversies_id )
+    group by c.controversies_id
+    order by max( cd.dump_date ) desc
 END
 
     $c->stash->{ controversies } = $controversies;
