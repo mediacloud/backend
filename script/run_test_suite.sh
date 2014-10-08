@@ -45,6 +45,12 @@ SERIAL_TESTS="`egrep -l 'HashServer|LocalServer|Test\:\:DB' $TEST_FILES | grep -
 
 echo "starting tests.  see data/run_test_suite.log for stderr."
 
-./script/run_carton.sh exec prove -j 4 -Ilib/ $* $PARALLEL_TESTS 2> data/run_test_suite.log || exit 1
+./script/run_carton.sh exec prove -j 4 -Ilib/ $* $PARALLEL_TESTS 2> data/run_test_suite.log || {
+    echo "One or more parallel unit tests have failed with error code $?."
+    exit 1
+}
 
-./script/run_carton.sh exec prove -Ilib/ $* $SERIAL_TESTS 2>> data/run_test_suite.log 
+./script/run_carton.sh exec prove -Ilib/ $* $SERIAL_TESTS 2>> data/run_test_suite.log || {
+    echo "One or more serial unit tests have failed with error code $?."
+    exit 1
+}
