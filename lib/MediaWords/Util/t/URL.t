@@ -47,12 +47,14 @@ sub test_is_homepage_url()
 
     is( MediaWords::Util::URL::is_homepage_url( 'http://www.wired.com' ),    1, 'is_homepage_url() - Wired' );
     is( MediaWords::Util::URL::is_homepage_url( 'http://www.wired.com/' ),   1, 'is_homepage_url() - Wired "/"' );
-    is( MediaWords::Util::URL::is_homepage_url( 'http://www.wired.com///' ), 1, 'is_homepage_url() - Wired "///"' );
-    is( MediaWords::Util::URL::is_homepage_url( 'http://m.wired.com///' ),   1, 'is_homepage_url() - m.Wired "///"' );
     is( MediaWords::Util::URL::is_homepage_url( 'http://m.wired.com/#abc' ), 1, 'is_homepage_url() - Wired "/#abc"' );
 
     is( MediaWords::Util::URL::is_homepage_url( 'http://m.wired.com/threatlevel/2011/12/sopa-watered-down-amendment/' ),
         0, 'is_homepage_url() - Wired article' );
+
+    # Technically, server is not required to normalize "///" path into "/"
+    is( MediaWords::Util::URL::is_homepage_url( 'http://www.wired.com///' ), 0, 'is_homepage_url() - Wired "///"' );
+    is( MediaWords::Util::URL::is_homepage_url( 'http://m.wired.com///' ),   0, 'is_homepage_url() - m.Wired "///"' );
 }
 
 sub test_normalize_url()
