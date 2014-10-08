@@ -44,14 +44,22 @@ PARALLEL_TESTS="t/compile.t t/test_crawler.t `egrep -L 'HashServer|LocalServer|T
 # tests that use the Test::DB or one of [Hash|Local]Server modules are not parallel safe
 SERIAL_TESTS="`egrep -l 'HashServer|LocalServer|Test\:\:DB' $TEST_FILES | grep -v t/test_crawler.t`"
 
-echo "starting tests.  see data/run_test_suite.log for stderr."
+echo "Starting tests. See data/run_test_suite.log for stderr."
 
+# Let one of the unit test stages fail, run all stages anyway
+UNIT_TESTS_FAILED=false
 ./script/run_carton.sh exec prove -j 4 -Ilib/ $* $PARALLEL_TESTS 2> data/run_test_suite.log || {
     echo "One or more parallel unit tests have failed with error code $?."
+    UNIT_TESTS_FAILED=true
     exit 1
 }
 
 ./script/run_carton.sh exec prove -Ilib/ $* $SERIAL_TESTS 2>> data/run_test_suite.log || {
     echo "One or more serial unit tests have failed with error code $?."
-    exit 1
+    UNIT_TESTS_FAILED=true
 }
+
+if [ "$UNIT_TESTS_FAILED" = true ]; then
+    echo "Unit tests have failed. See data/run_test_suite.log for stderr."
+    exit 1
+fi
