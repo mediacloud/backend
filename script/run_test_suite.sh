@@ -16,6 +16,26 @@ function hostname_help {
     echo "and then try again."    
 }
 
+# Returns true (0) if the test suite is being run under Devel::Cover
+function running_under_devel_cover {
+
+    # HARNESS_PERL_SWITCHES=-MDevel::Cover make test
+    if [ "${HARNESS_PERL_SWITCHES+defined}" = defined ]; then
+        if [[ "${HARNESS_PERL_SWITCHES}" == *-MDevel::Cover* ]]; then
+            return 0    # true
+        fi
+    fi
+
+    # PERL5OPT=-MDevel::Cover make test
+    if [ "${PERL5OPT+defined}" = defined ]; then
+        if [[ "${PERL5OPT}" == *-MDevel::Cover* ]]; then
+            return 0    # true
+        fi
+    fi
+
+    return 1    # false
+}
+
 system_hostname=`hostname`
 shell_hostname="$HOSTNAME"      # internal bash variable
 if [[ -z "$system_hostname" || "$system_hostname" == "(none)" 
@@ -46,9 +66,18 @@ SERIAL_TESTS="`egrep -l 'HashServer|LocalServer|Test\:\:DB' $TEST_FILES | grep -
 
 echo "Starting tests. See data/run_test_suite.log for stderr."
 
+# Parallel tests seem to fail when running with Devel::Cover
+PARALLEL_JOBS=4
+if running_under_devel_cover; then
+    echo "Tests seem to be running under Devel::Cover, so I will not"
+    echo "parallelize tests in order to not corrupt test coverage database"
+    echo "(which sometimes happens)."
+    PARALLEL_JOBS=1
+fi
+
 # Let one of the unit test stages fail, run all stages anyway
 UNIT_TESTS_FAILED=false
-./script/run_carton.sh exec prove -j 4 -Ilib/ $* $PARALLEL_TESTS 2> data/run_test_suite.log || {
+./script/run_carton.sh exec prove -j $PARALLEL_JOBS -Ilib/ $* $PARALLEL_TESTS 2> data/run_test_suite.log || {
     echo "One or more parallel unit tests have failed with error code $?."
     UNIT_TESTS_FAILED=true
     exit 1
