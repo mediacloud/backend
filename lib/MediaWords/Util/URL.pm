@@ -40,6 +40,35 @@ sub is_http_url($)
     return 1;
 }
 
+# Returns true if URL is homepage (e.g. http://www.wired.com/) and not a child
+# page (e.g. http://m.wired.com/threatlevel/2011/12/sopa-watered-down-amendment/)
+sub is_homepage_url($)
+{
+    my $url = shift;
+
+    unless ( $url )
+    {
+        say STDERR "URL is empty or undefined.";
+        return 0;
+    }
+
+    my $uri = URI->new( $url )->canonical;
+    unless ( $uri->scheme )
+    {
+        say STDERR "Scheme is undefined for URL $url";
+        return 0;
+    }
+
+    if ( $uri->path eq '/' or $uri->path eq '' )
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 # Normalize URL:
 #
 # * Fix common mistypes, e.g. "http://http://..."
@@ -480,30 +509,14 @@ sub all_url_variants($)
         }
     }
 
-    sub _url_is_homepage($)
-    {
-        my $url = shift;
-
-        my $uri = URI->new( $url )->canonical;
-
-        if ( $uri->path eq '/' or $uri->path eq '' )
-        {
-            return 1;
-        }
-        else
-        {
-            return 0;
-        }
-    }
-
     # If URL gets redirected to the homepage (e.g.
     # http://m.wired.com/threatlevel/2011/12/sopa-watered-down-amendment/ leads
     # to http://www.wired.com/), don't use those redirects
-    unless ( _url_is_homepage( $url ) )
+    unless ( is_homepage_url( $url ) )
     {
         foreach my $key ( keys %urls )
         {
-            if ( _url_is_homepage( $urls{ $key } ) )
+            if ( is_homepage_url( $urls{ $key } ) )
             {
                 say STDERR "URL $url got redirected to $urls{$key} which looks like a homepage, so I'm skipping that.";
                 delete $urls{ $key };

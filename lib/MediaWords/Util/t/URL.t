@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 70;
+use Test::More tests => 80;
 
 use Readonly;
 use HTTP::HashServer;
@@ -35,6 +35,24 @@ sub test_is_http_url()
     is( MediaWords::Util::URL::is_http_url( 'http://cyber.law.harvard.edu/about' ), 1, 'is_http_url() - HTTP URL' );
     is( MediaWords::Util::URL::is_http_url( 'https://github.com/berkmancenter/mediacloud' ), 1,
         'is_http_url() - HTTPS URL' );
+}
+
+sub test_is_homepage_url()
+{
+    is( MediaWords::Util::URL::is_homepage_url( undef ), 0, 'is_homepage_url() - undef' );
+    is( MediaWords::Util::URL::is_homepage_url( 0 ),     0, 'is_homepage_url() - 0' );
+    is( MediaWords::Util::URL::is_homepage_url( '' ),    0, 'is_homepage_url() - empty string' );
+
+    is( MediaWords::Util::URL::is_homepage_url( 'abc' ), 0, 'is_homepage_url() - no scheme' );
+
+    is( MediaWords::Util::URL::is_homepage_url( 'http://www.wired.com' ),    1, 'is_homepage_url() - Wired' );
+    is( MediaWords::Util::URL::is_homepage_url( 'http://www.wired.com/' ),   1, 'is_homepage_url() - Wired "/"' );
+    is( MediaWords::Util::URL::is_homepage_url( 'http://www.wired.com///' ), 1, 'is_homepage_url() - Wired "///"' );
+    is( MediaWords::Util::URL::is_homepage_url( 'http://m.wired.com///' ),   1, 'is_homepage_url() - m.Wired "///"' );
+    is( MediaWords::Util::URL::is_homepage_url( 'http://m.wired.com/#abc' ), 1, 'is_homepage_url() - Wired "/#abc"' );
+
+    is( MediaWords::Util::URL::is_homepage_url( 'http://m.wired.com/threatlevel/2011/12/sopa-watered-down-amendment/' ),
+        0, 'is_homepage_url() - Wired article' );
 }
 
 sub test_normalize_url()
@@ -621,6 +639,7 @@ sub main()
     binmode $builder->todo_output,    ":utf8";
 
     test_is_http_url();
+    test_is_homepage_url();
     test_normalize_url();
     test_normalize_url_lossy();
     test_get_url_domain();
