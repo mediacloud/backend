@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -u
+set -e
 set -o  errexit
 
 # Some dedicated server companies set the hostnames of their
