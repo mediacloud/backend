@@ -192,7 +192,7 @@ sub _print_csv_to_file_from_csr
 
     $db->dbh->do( "close csr" );
 
-    return [ keys { %{ $imported_stories_ids } } ];
+    return [ keys %{ $imported_stories_ids } ];
 }
 
 # get the date clause that restricts the import of all subsequent queries to just the
@@ -318,14 +318,15 @@ sub print_csv_to_file
             my $file = "$file_spec-$proc";
             push( @{ $files }, $file );
 
-            push( $threads, threads->create( \&_print_csv_to_file_single_job, undef, $file, $num_proc, $proc, $delta ) );
+            push( @{ $threads },
+                threads->create( \&_print_csv_to_file_single_job, undef, $file, $num_proc, $proc, $delta ) );
         }
 
         my $all_stories_ids = [];
         for my $thread ( @{ $threads } )
         {
             my $stories_ids = $thread->join();
-            push( $all_stories_ids, $stories_ids );
+            push( @{ $all_stories_ids }, $stories_ids );
         }
 
         return $all_stories_ids;
@@ -407,7 +408,7 @@ sub import_csv_files
         my $threads = [];
         for my $file ( @{ $files } )
         {
-            push( $threads, threads->create( \&_import_csv_single_file, $file, $delta, $staging ) );
+            push( @{ $threads }, threads->create( \&_import_csv_single_file, $file, $delta, $staging ) );
         }
 
         $r = 1;
