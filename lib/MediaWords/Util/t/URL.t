@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 51;
+use Test::More tests => 80;
 
 use Readonly;
 use HTTP::HashServer;
@@ -37,8 +37,36 @@ sub test_is_http_url()
         'is_http_url() - HTTPS URL' );
 }
 
+sub test_is_homepage_url()
+{
+    is( MediaWords::Util::URL::is_homepage_url( undef ), 0, 'is_homepage_url() - undef' );
+    is( MediaWords::Util::URL::is_homepage_url( 0 ),     0, 'is_homepage_url() - 0' );
+    is( MediaWords::Util::URL::is_homepage_url( '' ),    0, 'is_homepage_url() - empty string' );
+
+    is( MediaWords::Util::URL::is_homepage_url( 'abc' ), 0, 'is_homepage_url() - no scheme' );
+
+    is( MediaWords::Util::URL::is_homepage_url( 'http://www.wired.com' ),    1, 'is_homepage_url() - Wired' );
+    is( MediaWords::Util::URL::is_homepage_url( 'http://www.wired.com/' ),   1, 'is_homepage_url() - Wired "/"' );
+    is( MediaWords::Util::URL::is_homepage_url( 'http://m.wired.com/#abc' ), 1, 'is_homepage_url() - Wired "/#abc"' );
+
+    is( MediaWords::Util::URL::is_homepage_url( 'http://m.wired.com/threatlevel/2011/12/sopa-watered-down-amendment/' ),
+        0, 'is_homepage_url() - Wired article' );
+
+    # Technically, server is not required to normalize "///" path into "/"
+    is( MediaWords::Util::URL::is_homepage_url( 'http://www.wired.com///' ), 0, 'is_homepage_url() - Wired "///"' );
+    is( MediaWords::Util::URL::is_homepage_url( 'http://m.wired.com///' ),   0, 'is_homepage_url() - m.Wired "///"' );
+}
+
 sub test_normalize_url()
 {
+    # Bad URLs
+    eval { MediaWords::Util::URL::normalize_url( undef ); };
+    ok( $@, 'normalize_url() - undefined URL' );
+    eval { MediaWords::Util::URL::normalize_url( 'url.com/without/scheme/' ); };
+    ok( $@, 'normalize_url() - URL without scheme' );
+    eval { MediaWords::Util::URL::normalize_url( 'gopher://gopher.floodgap.com/0/v2/vstat' ); };
+    ok( $@, 'normalize_url() - URL is of unsupported scheme' );
+
     # Basic
     is(
         MediaWords::Util::URL::normalize_url( 'HTTP://CYBER.LAW.HARVARD.EDU/node/9244' ),
@@ -110,6 +138,20 @@ sub test_normalize_url()
         'http://www.nytimes.com/2014/08/20/upshot/data-on-transfer-of-military-gear-to-police-departments.html',
         'normalize_url() - nytimes.com 3'
     );
+
+    # Facebook
+    is(
+        MediaWords::Util::URL::normalize_url( 'https://www.facebook.com/BerkmanCenter?ref=br_tf' ),
+        'https://www.facebook.com/BerkmanCenter',
+        'normalize_url() - facebook.com'
+    );
+
+    # LiveJournal
+    is(
+        MediaWords::Util::URL::normalize_url( 'http://zyalt.livejournal.com/1178735.html?thread=396696687#t396696687' ),
+        'http://zyalt.livejournal.com/1178735.html',
+        'normalize_url() - livejournal.com'
+    );
 }
 
 sub test_normalize_url_lossy()
@@ -156,6 +198,14 @@ sub test_get_url_domain()
         'yesmeck.com', 'get_url_domain() - yesmeck.com' );
     is( MediaWords::Util::URL::get_url_domain( 'http://status.livejournal.org/' ),
         'livejournal.org', 'get_url_domain() - livejournal.org' );
+
+    # ".(gov|org|com).XX" exception
+    is( MediaWords::Util::URL::get_url_domain( 'http://www.stat.gov.lt/' ),
+        'stat.gov.lt', 'get_url_domain() - www.stat.gov.lt' );
+
+    # "wordpress.com|blogspot|livejournal.com|privet.ru|wikia.com|feedburner.com|24open.ru|patch.com|tumblr.com" exception
+    is( MediaWords::Util::URL::get_url_domain( 'https://en.blog.wordpress.com/' ),
+        'en.blog.wordpress.com', 'get_url_domain() - en.blog.wordpress.com' );
 
   # FIXME - invalid URL
   # is(MediaWords::Util::URL::get_url_domain('http:///www.facebook.com/'), undef, 'get_url_domain() - invalid facebook.com');
@@ -263,6 +313,12 @@ EOF
     $base_url     = 'http://example.com/fourth/fifth/';
     $expected_url = 'http://example.com/first/second/third/';
     is( MediaWords::Util::URL::meta_refresh_url_from_html( $html, $base_url ), $expected_url, 'Absolute path' );
+
+    # Invalid URL without base URL
+    $html = <<EOF;
+        <meta http-equiv="refresh" content="0; url=/first/second/third/" />
+EOF
+    is( MediaWords::Util::URL::meta_refresh_url_from_html( $html ), undef, 'Invalid URL without base URL' );
 }
 
 sub test_link_canonical_url_from_html()
@@ -349,10 +405,22 @@ EOF
     $base_url     = 'http://example.com/fourth/fifth/';
     $expected_url = 'http://example.com/first/second/third/';
     is( MediaWords::Util::URL::link_canonical_url_from_html( $html, $base_url ), $expected_url, 'Absolute path' );
+
+    # Invalid URL without base URL
+    $html = <<EOF;
+        <link rel="canonical" href="/first/second/third/" />
+EOF
+    is( MediaWords::Util::URL::link_canonical_url_from_html( $html ), undef, 'Invalid URL without base URL' );
 }
 
 sub test_url_and_data_after_redirects_http()
 {
+    eval { MediaWords::Util::URL::url_and_data_after_redirects( undef ); };
+    ok( $@, 'Undefined URL' );
+
+    eval { MediaWords::Util::URL::url_and_data_after_redirects( 'gopher://gopher.floodgap.com/0/v2/vstat' ); };
+    ok( $@, 'Non-HTTP(S) URL' );
+
     Readonly my $TEST_HTTP_SERVER_URL => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
     my $starting_url = $TEST_HTTP_SERVER_URL . '/first';
 
@@ -375,6 +443,26 @@ sub test_url_and_data_after_redirects_http()
 
     is( $url_after_redirects,  $TEST_HTTP_SERVER_URL . '/fifth', 'URL after HTTP redirects' );
     is( $data_after_redirects, $pages->{ '/fifth' },             'Data after HTTP redirects' );
+}
+
+sub test_url_and_data_after_redirects_nonexistent()
+{
+    Readonly my $TEST_HTTP_SERVER_URL => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
+    my $starting_url = $TEST_HTTP_SERVER_URL . '/first';
+
+    # Nonexistent URL ("/first")
+    my $pages = {};
+
+    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my ( $url_after_redirects, $data_after_redirects ) =
+      MediaWords::Util::URL::url_and_data_after_redirects( $starting_url );
+
+    $hs->stop();
+
+    is( $url_after_redirects,  $starting_url, 'URL after unsuccessful HTTP redirects' );
+    is( $data_after_redirects, undef,         'Data after unsuccessful HTTP redirects' );
 }
 
 sub test_url_and_data_after_redirects_html()
@@ -404,7 +492,7 @@ sub test_url_and_data_after_redirects_html()
     is( $data_after_redirects, $pages->{ '/fifth' },             'Data after HTML redirects' );
 }
 
-sub test_url_and_data_after_redirects_loop()
+sub test_url_and_data_after_redirects_http_loop()
 {
     Readonly my $TEST_HTTP_SERVER_URL => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
     my $starting_url = $TEST_HTTP_SERVER_URL . '/first';
@@ -436,6 +524,115 @@ sub test_url_and_data_after_redirects_loop()
     is( $url_after_redirects, $TEST_HTTP_SERVER_URL . '/second', 'URL after HTTP redirect loop' );
 }
 
+sub test_url_and_data_after_redirects_html_loop()
+{
+    Readonly my $TEST_HTTP_SERVER_URL => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
+    my $starting_url = $TEST_HTTP_SERVER_URL . '/first';
+
+    # HTML redirects
+    my $pages = {
+        '/first'  => '<meta http-equiv="refresh" content="0; URL=/second" />',
+        '/second' => '<meta http-equiv="refresh" content="0; URL=/third" />',
+        '/third'  => '<meta http-equiv="refresh" content="0; URL=/second" />',
+    };
+
+    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my ( $url_after_redirects, $data_after_redirects ) =
+      MediaWords::Util::URL::url_and_data_after_redirects( $starting_url );
+
+    $hs->stop();
+
+    is( $url_after_redirects, $TEST_HTTP_SERVER_URL . '/second', 'URL after HTML redirect loop' );
+}
+
+sub test_all_url_variants()
+{
+    my @actual_url_variants;
+    my @expected_url_variants;
+
+    # Undefined URL
+    eval { MediaWords::Util::URL::all_url_variants( undef ); };
+    ok( $@, 'Undefined URL' );
+
+    # Non-HTTP(S) URL
+    Readonly my $gopher_url => 'gopher://gopher.floodgap.com/0/v2/vstat';
+    @actual_url_variants   = MediaWords::Util::URL::all_url_variants( $gopher_url );
+    @expected_url_variants = ( $gopher_url );
+    is_deeply( [ sort @actual_url_variants ], [ sort @expected_url_variants ], 'Non-HTTP(S) URL' );
+
+    # Basic test
+    Readonly my $TEST_HTTP_SERVER_URL       => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
+    Readonly my $starting_url_without_cruft => $TEST_HTTP_SERVER_URL . '/first';
+    Readonly my $cruft                      => '?utm_source=A&utm_medium=B&utm_campaign=C';
+    Readonly my $starting_url               => $starting_url_without_cruft . $cruft;
+
+    my $pages = {
+        '/first'  => '<meta http-equiv="refresh" content="0; URL=/second' . $cruft . '" />',
+        '/second' => '<meta http-equiv="refresh" content="0; URL=/third' . $cruft . '" />',
+        '/third'  => 'This is where the redirect chain should end.',
+    };
+
+    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+    @actual_url_variants = MediaWords::Util::URL::all_url_variants( $starting_url );
+    $hs->stop();
+
+    @expected_url_variants = (
+        $starting_url, $starting_url_without_cruft,
+        $TEST_HTTP_SERVER_URL . '/third',
+        $TEST_HTTP_SERVER_URL . '/third' . $cruft
+    );
+    is_deeply( [ sort @actual_url_variants ], [ sort @expected_url_variants ], 'Basic all_url_variants() test' );
+
+    # <link rel="canonical" />
+    $pages = {
+        '/first'  => '<meta http-equiv="refresh" content="0; URL=/second' . $cruft . '" />',
+        '/second' => '<meta http-equiv="refresh" content="0; URL=/third' . $cruft . '" />',
+        '/third'  => '<link rel="canonical" href="' . $TEST_HTTP_SERVER_URL . '/fourth" />',
+    };
+
+    $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+    @actual_url_variants = MediaWords::Util::URL::all_url_variants( $starting_url );
+    $hs->stop();
+
+    @expected_url_variants = (
+        $starting_url, $starting_url_without_cruft,
+        $TEST_HTTP_SERVER_URL . '/third',
+        $TEST_HTTP_SERVER_URL . '/third' . $cruft,
+        $TEST_HTTP_SERVER_URL . '/fourth',
+    );
+    is_deeply(
+        [ sort @actual_url_variants ],
+        [ sort @expected_url_variants ],
+        '<link rel="canonical" /> all_url_variants() test'
+    );
+
+    # Redirect to a homepage
+    $pages = {
+        '/first'  => '<meta http-equiv="refresh" content="0; URL=/second' . $cruft . '" />',
+        '/second' => '<meta http-equiv="refresh" content="0; URL=/',
+    };
+
+    $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+    @actual_url_variants = MediaWords::Util::URL::all_url_variants( $starting_url );
+    $hs->stop();
+
+    @expected_url_variants = (
+        $starting_url_without_cruft, $starting_url,
+        $TEST_HTTP_SERVER_URL . '/second',
+        $TEST_HTTP_SERVER_URL . '/second' . $cruft
+    );
+    is_deeply(
+        [ sort @actual_url_variants ],
+        [ sort @expected_url_variants ],
+        '"Redirect to homepage" all_url_variants() test'
+    );
+}
+
 sub main()
 {
     my $builder = Test::More->builder;
@@ -444,14 +641,18 @@ sub main()
     binmode $builder->todo_output,    ":utf8";
 
     test_is_http_url();
+    test_is_homepage_url();
     test_normalize_url();
     test_normalize_url_lossy();
     test_get_url_domain();
     test_meta_refresh_url_from_html();
     test_link_canonical_url_from_html();
+    test_url_and_data_after_redirects_nonexistent();
     test_url_and_data_after_redirects_http();
     test_url_and_data_after_redirects_html();
-    test_url_and_data_after_redirects_loop();
+    test_url_and_data_after_redirects_http_loop();
+    test_url_and_data_after_redirects_html_loop();
+    test_all_url_variants();
 }
 
 main();

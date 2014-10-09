@@ -40,6 +40,35 @@ sub is_http_url($)
     return 1;
 }
 
+# Returns true if URL is homepage (e.g. http://www.wired.com/) and not a child
+# page (e.g. http://m.wired.com/threatlevel/2011/12/sopa-watered-down-amendment/)
+sub is_homepage_url($)
+{
+    my $url = shift;
+
+    unless ( $url )
+    {
+        say STDERR "URL is empty or undefined.";
+        return 0;
+    }
+
+    my $uri = URI->new( $url )->canonical;
+    unless ( $uri->scheme )
+    {
+        say STDERR "Scheme is undefined for URL $url";
+        return 0;
+    }
+
+    if ( $uri->path eq '/' or $uri->path eq '' )
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 # Normalize URL:
 #
 # * Fix common mistypes, e.g. "http://http://..."
@@ -313,6 +342,11 @@ sub url_and_data_after_redirects($;$$)
 {
     my ( $orig_url, $max_http_redirect, $max_meta_redirect ) = @_;
 
+    unless ( defined $orig_url )
+    {
+        die "URL is undefined.";
+    }
+
     unless ( is_http_url( $orig_url ) )
     {
         die "URL is not HTTP(s): $orig_url";
@@ -433,6 +467,11 @@ sub all_url_variants($)
 {
     my $url = shift;
 
+    unless ( defined $url )
+    {
+        die "URL is undefined";
+    }
+
     if ( !is_http_url( $url ) )
     {
         my @urls = ( $url );
@@ -451,10 +490,10 @@ sub all_url_variants($)
         'after_redirects' => $url_after_redirects,
 
         # Canonical URL
-        'canonical' => normalize_url( $url ),
+        'normalized' => normalize_url( $url ),
 
         # Canonical URL after redirects
-        'after_redirects_canonical' => normalize_url( $url_after_redirects )
+        'after_redirects_normalized' => normalize_url( $url_after_redirects )
     );
 
     # If <link rel="canonical" /> is present, try that one too
@@ -466,7 +505,22 @@ sub all_url_variants($)
             say STDERR "Found <link rel=\"canonical\" /> for URL $url_after_redirects " .
               "(original URL: $url): $url_link_rel_canonical";
 
-            $urls{ 'after_redirects_canonical_via_link_rel' } = $url_link_rel_canonical;
+            $urls{ 'after_redirects_canonical' } = $url_link_rel_canonical;
+        }
+    }
+
+    # If URL gets redirected to the homepage (e.g.
+    # http://m.wired.com/threatlevel/2011/12/sopa-watered-down-amendment/ leads
+    # to http://www.wired.com/), don't use those redirects
+    unless ( is_homepage_url( $url ) )
+    {
+        foreach my $key ( keys %urls )
+        {
+            if ( is_homepage_url( $urls{ $key } ) )
+            {
+                say STDERR "URL $url got redirected to $urls{$key} which looks like a homepage, so I'm skipping that.";
+                delete $urls{ $key };
+            }
         }
     }
 
