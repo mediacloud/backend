@@ -30,6 +30,7 @@ use MediaWords::CommonLibs;
 use MediaWords::DB;
 use MediaWords::Util::GearmanJobSchedulerConfiguration;
 use MediaWords::Util::Bitly;
+use MediaWords::Util::URL;
 use Readonly;
 use Data::Dumper;
 
@@ -48,6 +49,12 @@ sub run($;$)
     my $stories_id = $args->{ stories_id } or die "'stories_id' is not set.";
 
     say STDERR "Aggregating story stats for story $stories_id...";
+
+    my $story = $db->find_by_id( 'stories', $stories_id );
+    unless ( $story )
+    {
+        die "Unable to find story $stories_id.";
+    }
 
     my $stats = MediaWords::Util::Bitly::read_story_stats( $db, $stories_id );
     unless ( defined $stats )
@@ -76,6 +83,8 @@ sub run($;$)
     }
     else
     {
+        my $stories_original_url             = $story->{ url };
+        my $stories_original_url_is_homepage = MediaWords::Util::URL::is_homepage_url( $stories_original_url );
 
         unless ( $stats->{ 'data' } )
         {
@@ -85,6 +94,20 @@ sub run($;$)
         foreach my $bitly_id ( keys %{ $stats->{ 'data' } } )
         {
             my $bitly_data = $stats->{ 'data' }->{ $bitly_id };
+
+            # If URL gets redirected to the homepage (e.g.
+            # http://m.wired.com/threatlevel/2011/12/sopa-watered-down-amendment/ leads
+            # to http://www.wired.com/), don't use those redirects
+            my $url = $bitly_data->{ 'url' };
+            unless ( $stories_original_url_is_homepage )
+            {
+                if ( MediaWords::Util::URL::is_homepage_url( $url ) )
+                {
+                    say STDERR
+                      "URL $stories_original_url got redirected to $url which looks like a homepage, so I'm skipping that.";
+                    next;
+                }
+            }
 
             # Click count (indiscriminate from date range)
             unless ( $bitly_data->{ 'clicks' } )

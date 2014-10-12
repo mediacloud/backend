@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -u
+set -e
 set -o  errexit
 
 # Some dedicated server companies set the hostnames of their
@@ -13,6 +14,26 @@ function hostname_help {
     echo "    sudo hostname mediacloud"
     echo "    echo 127.0.0.1 \`hostname\` | sudo tee -a /etc/hosts"
     echo "and then try again."    
+}
+
+# Returns true (0) if the test suite is being run under Devel::Cover
+function running_under_devel_cover {
+
+    # HARNESS_PERL_SWITCHES=-MDevel::Cover make test
+    if [ "${HARNESS_PERL_SWITCHES+defined}" = defined ]; then
+        if [[ "${HARNESS_PERL_SWITCHES}" == *-MDevel::Cover* ]]; then
+            return 0    # true
+        fi
+    fi
+
+    # PERL5OPT=-MDevel::Cover make test
+    if [ "${PERL5OPT+defined}" = defined ]; then
+        if [[ "${PERL5OPT}" == *-MDevel::Cover* ]]; then
+            return 0    # true
+        fi
+    fi
+
+    return 1    # false
 }
 
 system_hostname=`hostname`
@@ -43,8 +64,31 @@ PARALLEL_TESTS="t/compile.t t/test_crawler.t `egrep -L 'HashServer|LocalServer|T
 # tests that use the Test::DB or one of [Hash|Local]Server modules are not parallel safe
 SERIAL_TESTS="`egrep -l 'HashServer|LocalServer|Test\:\:DB' $TEST_FILES | grep -v t/test_crawler.t`"
 
-echo "starting tests.  see data/run_test_suite.log for stderr."
+echo "Starting tests. See data/run_test_suite.log for stderr."
 
-./script/run_carton.sh exec prove -j 4 -Ilib/ $* $PARALLEL_TESTS 2> data/run_test_suite.log || exit 1
+# Parallel tests seem to fail when running with Devel::Cover
+PARALLEL_JOBS=4
+if running_under_devel_cover; then
+    echo "Tests seem to be running under Devel::Cover, so I will not"
+    echo "parallelize tests in order to not corrupt test coverage database"
+    echo "(which sometimes happens)."
+    PARALLEL_JOBS=1
+fi
 
-./script/run_carton.sh exec prove -Ilib/ $* $SERIAL_TESTS 2>> data/run_test_suite.log 
+# Let one of the unit test stages fail, run all stages anyway
+UNIT_TESTS_FAILED=false
+./script/run_carton.sh exec prove -j $PARALLEL_JOBS -Ilib/ $* $PARALLEL_TESTS 2> data/run_test_suite.log || {
+    echo "One or more parallel unit tests have failed with error code $?."
+    UNIT_TESTS_FAILED=true
+    exit 1
+}
+
+./script/run_carton.sh exec prove -Ilib/ $* $SERIAL_TESTS 2>> data/run_test_suite.log || {
+    echo "One or more serial unit tests have failed with error code $?."
+    UNIT_TESTS_FAILED=true
+}
+
+if [ "$UNIT_TESTS_FAILED" = true ]; then
+    echo "Unit tests have failed. See data/run_test_suite.log for stderr."
+    exit 1
+fi
