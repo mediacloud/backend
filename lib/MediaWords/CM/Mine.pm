@@ -41,7 +41,7 @@ my $_ignore_link_pattern =
   '(www.addtoany.com)|(novostimira.com)|(ads\.pheedo)|(www.dailykos.com\/user)|' .
   '(livejournal.com\/(tag|profile))|(sfbayview.com\/tag)|(absoluteastronomy.com)|' .
   '(\/share.*http)|(digg.com\/submit)|(facebook.com.*mediacontentsharebutton)|' .
-  '(feeds.wordpress.com\/.*\/go)|(sharetodiaspora.github.io\/|iconosquare.com|unz.com)';
+  '(feeds.wordpress.com\/.*\/go)|(sharetodiaspora.github.io\/|iconosquare.com)|' . 'unz.com|answers.com';
 
 # cache of media by media id
 my $_media_cache = {};
