@@ -2,7 +2,24 @@
    
 <div id="wholecolumn" class="clearfix">
 
-    [% IF !controversy.solr_seed_query_run %]
+    [% IF mining_status AND !latest_full_dump %]
+        [% SET ms = mining_status %]
+        <fieldset>
+            <p>
+            Mining for this controversy is currently in process.  There are [% ms.queued_urls %] urls queued
+            for spidering, but this number may increase as new urls are discovered while mining those urls.
+            </p>
+            <p>
+            The spider has found the following number of stories by spider iteration:
+            </p>
+            <table class="even_rows_grey" >
+                <tr><th>iteration</th><th>stories</th></tr>
+                [% FOREACH iteration IN ms.stories_by_iteration %]
+                    <tr><td>[% iteration.iteration %]</td><td>[% iteration.count %]</td></th>
+                [% END %]
+            </table>
+        </fieldset>
+    [% ELSIF !controversy.solr_seed_query_run %]
         <fieldset>
             The solr seed query has been changed since it has been run last.  Run a 'mine controversy' job to
             add stories from the new query.

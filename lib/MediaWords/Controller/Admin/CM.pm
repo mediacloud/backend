@@ -43,11 +43,11 @@ sub list : Local
     my $db = $c->dbis;
 
     my $controversies = $db->query( <<END )->hashes;
-select c.* 
+select c.*
     from controversies c
-        join controversy_dumps cd on ( c.controversies_id = cd.controversies_id )
+        left join controversy_dumps cd on ( c.controversies_id = cd.controversies_id )
     group by c.controversies_id
-    order by max( cd.dump_date ) desc
+    order by max( coalesce( cd.dump_date, '2000-01-01'::date ) ) desc
 END
 
     $c->stash->{ controversies } = $controversies;
@@ -280,6 +280,32 @@ sub get_latest_full_dump_with_time_slices
     return $latest_full_dump;
 }
 
+# if there are pending controversy_links, return a hash describing the status
+# of the mining process with the following fields: stories_by_iteration, queued_urls
+sub _get_mining_status
+{
+    my ( $db, $controversy ) = @_;
+
+    my $cid = $controversy->{ controversies_id };
+
+    my $queued_urls = $db->query( <<END, $cid )->list;
+select count(*) from controversy_links where controversies_id = ? and ref_stories_id is null
+END
+
+    return undef unless ( $queued_urls );
+
+    my $stories_by_iteration = $db->query( <<END, $cid )->hashes;
+select iteration, count(*) count
+    from controversy_stories
+    where controversies_id = ?
+    group by iteration
+    order by iteration asc
+END
+
+    return { queued_urls => $queued_urls, stories_by_iteration => $stories_by_iteration };
+
+}
+
 # view the details of a single controversy
 sub view : Local
 {
@@ -345,11 +371,14 @@ EOF
         $c->stash->{ bitly_unprocessed_stories } = $bitly_unprocessed_stories;
     }
 
+    my $mining_status = _get_mining_status( $db, $controversy );
+
     $c->stash->{ controversy }                 = $controversy;
     $c->stash->{ controversy_dumps }           = $controversy_dumps;
     $c->stash->{ latest_full_dump }            = $latest_full_dump;
     $c->stash->{ latest_activities }           = $latest_activities;
     $c->stash->{ bitly_processing_is_enabled } = $bitly_processing_is_enabled;
+    $c->stash->{ mining_status }               = $mining_status;
     $c->stash->{ template }                    = 'cm/view.tt2';
 }
 
