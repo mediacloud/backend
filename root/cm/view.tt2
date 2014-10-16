@@ -10,7 +10,8 @@
             for spidering, but this number may increase as new urls are discovered while mining those urls.
             </p>
             <p>
-            The spider has found the following number of stories by spider iteration:
+            The spider has found the following number of stories by spider iteration.  The spider runs until it
+            finds now more new urls or for 15 iterations, whichever comes first.
             </p>
             <table class="even_rows_grey" >
                 <tr><th>iteration</th><th>stories</th></tr>
