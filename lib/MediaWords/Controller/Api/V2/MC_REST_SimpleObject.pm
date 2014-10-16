@@ -272,8 +272,15 @@ sub _fetch_list
     my $extra_where_clause  = $self->get_extra_where_clause( $c );
     my $order_by_clause     = $self->order_by_clause || "$id_field asc";
 
-    my $query =
-      "select * from $table_name where $id_field > ? $name_clause  $filter_field_clause order by $order_by_clause limit ? ";
+    my $query = <<END;
+select * 
+    from $table_name 
+    where 
+        $id_field > ? $name_clause 
+        $extra_where_clause 
+        $filter_field_clause 
+    order by $order_by_clause limit ?
+END
 
     $list = $c->dbis->query( $query, $last_id, $rows )->hashes;
 

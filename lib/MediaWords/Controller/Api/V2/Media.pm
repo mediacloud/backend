@@ -144,6 +144,19 @@ END
     $db->commit;
 }
 
+sub get_extra_where_clause
+{
+    my ( $self, $c ) = @_;
+
+    my $tags_id = $c->req->params->{ tags_id };
+
+    return '' unless ( $tags_id );
+
+    $tags_id += 0;
+
+    return "and media_id in ( select mtm.media_id from media_tags_map mtm where mtm.tags_id = $tags_id )";
+}
+
 sub list_GET : Local
 {
     my ( $self, $c ) = @_;
