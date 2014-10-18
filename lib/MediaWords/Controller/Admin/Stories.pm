@@ -14,7 +14,9 @@ use Carp;
 
 use MediaWords::DBI::Stories;
 use MediaWords::DBI::Activities;
+use MediaWords::Util::Bitly;
 use MediaWords::Util::CoreNLP;
+use MediaWords::Util::JSON;
 
 =head1 NAME
 
@@ -149,23 +151,62 @@ END
 
     $c->stash->{ stories_id } = $stories_id;
 
+    # Show CoreNLP JSON
     if ( MediaWords::Util::CoreNLP::annotator_is_enabled() )
     {
         $c->stash->{ corenlp_is_enabled } = 1;
-        if ( MediaWords::Util::CoreNLP::story_is_annotated( $c->dbis, $story->{ stories_id } ) )
+
+        if ( MediaWords::Util::CoreNLP::story_is_annotatable( $c->dbis, $story->{ stories_id } ) )
         {
-            $c->stash->{ corenlp_story_is_annotated } = 1;
-            $c->stash->{ corenlp_sentences_concatenation_index } =
-              MediaWords::Util::CoreNLP::sentences_concatenation_index();
+            $c->stash->{ corenlp_story_is_annotatable } = 1;
+
+            if ( MediaWords::Util::CoreNLP::story_is_annotated( $c->dbis, $story->{ stories_id } ) )
+            {
+                $c->stash->{ corenlp_story_is_annotated } = 1;
+                $c->stash->{ corenlp_sentences_concatenation_index } =
+                  MediaWords::Util::CoreNLP::sentences_concatenation_index();
+            }
+            else
+            {
+                $c->stash->{ corenlp_story_is_annotated } = 0;
+            }
         }
         else
         {
-            $c->stash->{ corenlp_story_is_annotated } = 0;
+            $c->stash->{ corenlp_story_is_annotatable } = 0;
         }
     }
     else
     {
         $c->stash->{ corenlp_is_enabled } = 0;
+    }
+
+    # Show Bit.ly JSON
+    if ( MediaWords::Util::Bitly::bitly_processing_is_enabled() )
+    {
+        $c->stash->{ bitly_is_enabled } = 1;
+
+        if ( MediaWords::Util::Bitly::story_is_enabled_for_processing( $c->dbis, $story->{ stories_id } ) )
+        {
+            $c->stash->{ bitly_story_is_enabled_for_processing } = 1;
+
+            if ( MediaWords::Util::Bitly::story_stats_are_fetched( $c->dbis, $story->{ stories_id } ) )
+            {
+                $c->stash->{ bitly_story_stats_are_fetched } = 1;
+            }
+            else
+            {
+                $c->stash->{ bitly_story_stats_are_fetched } = 0;
+            }
+        }
+        else
+        {
+            $c->stash->{ bitly_story_is_enabled_for_processing } = 0;
+        }
+    }
+    else
+    {
+        $c->stash->{ bitly_is_enabled } = 0;
     }
 
     $c->stash->{ template } = 'stories/view.tt2';
@@ -191,6 +232,11 @@ sub corenlp_json : Local
         confess "CoreNLP annotator is not enabled in the configuration.";
     }
 
+    unless ( MediaWords::Util::CoreNLP::story_is_annotatable( $c->dbis, $stories_id ) )
+    {
+        confess "Story $stories_id is not annotatable (media.annotate_with_corenlp is not 't').";
+    }
+
     unless ( MediaWords::Util::CoreNLP::story_is_annotated( $c->dbis, $stories_id ) )
     {
         confess "Story $stories_id is not annotated.";
@@ -200,6 +246,45 @@ sub corenlp_json : Local
 
     $c->response->content_type( 'application/json; charset=UTF-8' );
     return $c->res->body( $corenlp_json );
+}
+
+# view Bit.ly JSON
+sub bitly_json : Local
+{
+    my ( $self, $c, $stories_id ) = @_;
+
+    unless ( $stories_id )
+    {
+        confess "No stories_id";
+    }
+
+    unless ( $c->dbis->find_by_id( 'stories', $stories_id ) )
+    {
+        confess "Story $stories_id does not exist.";
+    }
+
+    unless ( MediaWords::Util::Bitly::bitly_processing_is_enabled() )
+    {
+        confess "Bit.ly processing is not enabled in the configuration.";
+    }
+
+    unless ( MediaWords::Util::Bitly::story_stats_are_fetched( $c->dbis, $stories_id ) )
+    {
+        confess "Story's $stories_id Bit.ly stats are not fetched.";
+    }
+
+    my $bitly_stats_hashref = MediaWords::Util::Bitly::read_story_stats( $c->dbis, $stories_id );
+    unless ( $bitly_stats_hashref )
+    {
+        confess "Story's $stories_id Bit.ly stats are undefined.";
+    }
+
+    Readonly my $json_pretty => 1;
+    Readonly my $json_utf8   => 1;
+    my $bitly_stats_json = MediaWords::Util::JSON::encode_json( $bitly_stats_hashref, $json_pretty, $json_utf8 );
+
+    $c->response->content_type( 'application/json; charset=UTF-8' );
+    return $c->res->body( $bitly_stats_json );
 }
 
 # edit a single story

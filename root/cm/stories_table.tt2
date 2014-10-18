@@ -105,7 +105,7 @@ $(document).ready(function () {
     </tr>
 
 [% IF display_stories.size() < 1 %]
-    <tr><td colspan="7">(no stories)</td></tr>
+    <tr><td colspan="9">(no stories)</td></tr>
 [% END %]
 
 [% FOREACH s IN display_stories -%]
