@@ -3,6 +3,13 @@
 
 [% INCLUDE include/header.tt2 %]
 
+[% jsonview_help = '
+    For nicer JSON rendering, consider installing <em>JSONView</em> for
+    <a href="https://addons.mozilla.org/en-us/firefox/addon/jsonview/" target="_blank">Firefox</a> or
+    <a href="https://chrome.google.com/webstore/detail/jsonview/chklaanhfefbnpoihckbnefhakgolnmc?hl=en" target="_blank">Chrome</a>.
+    <em>JSONView</em> will only work when JSON is being viewed in a new page.
+' %]
+
 <table border="1">
 
     <tr>
@@ -128,6 +135,7 @@
             </ul>
         </td>
     </tr>
+
     [% IF corenlp_is_enabled %]
         <tr>
             <th>
@@ -149,9 +157,7 @@
                         <li>index "<code>[% corenlp_sentences_concatenation_index | html %]</code>" is concatenation of all sentences.</li>
                     </ul>
 
-                    <p>
-                        For nicer JSON rendering, consider installing <em>JSONView</em> for <a href="https://addons.mozilla.org/en-us/firefox/addon/jsonview/" target="_blank">Firefox</a> or <a href="https://chrome.google.com/webstore/detail/jsonview/chklaanhfefbnpoihckbnefhakgolnmc?hl=en" target="_blank">Chrome</a>. <em>JSONView</em> will only work when JSON is being viewed in a new page.
-                    </p>
+                    <p>[% jsonview_help %]</p>
 
                 [% ELSE %]
                     not annotated
@@ -159,7 +165,31 @@
             </td>
         </tr>
     [% ELSE %]
-        <!-- CoreNLP is not enabled in the configuration -->
+        <!-- CoreNLP annotation is not enabled in the configuration -->
+    [% END %]
+
+    [% IF bitly_is_enabled %]
+        <tr>
+            <th>
+                Bit.ly JSON:</th>
+            <td>
+                [% IF bitly_story_stats_are_fetched %]
+
+                    <iframe src="[% c.uri_for( '/admin/stories/bitly_json/' _ story.stories_id ) | html %]" style="width: 99%; height: 480px; background-color: white"></iframe>
+
+                    <p>
+                        <a href="[% c.uri_for( '/admin/stories/bitly_json/' _ story.stories_id ) | html %]" target="_blank">[open in new page]</a>
+                    </p>
+
+                    <p>[% jsonview_help %]</p>
+
+                [% ELSE %]
+                    stats not fetched
+                [% END %]
+            </td>
+        </tr>
+    [% ELSE %]
+        <!-- Bit.ly processing is not enabled in the configuration -->
     [% END %]
 
 </table>
