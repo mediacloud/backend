@@ -185,15 +185,24 @@ END
     if ( MediaWords::Util::Bitly::bitly_processing_is_enabled() )
     {
         $c->stash->{ bitly_is_enabled } = 1;
-        if ( MediaWords::Util::Bitly::story_stats_are_fetched( $c->dbis, $story->{ stories_id } ) )
+
+        if ( MediaWords::Util::Bitly::story_is_enabled_for_processing( $c->dbis, $story->{ stories_id } ) )
         {
-            $c->stash->{ bitly_story_stats_are_fetched } = 1;
+            $c->stash->{ bitly_story_is_enabled_for_processing } = 1;
+
+            if ( MediaWords::Util::Bitly::story_stats_are_fetched( $c->dbis, $story->{ stories_id } ) )
+            {
+                $c->stash->{ bitly_story_stats_are_fetched } = 1;
+            }
+            else
+            {
+                $c->stash->{ bitly_story_stats_are_fetched } = 0;
+            }
         }
         else
         {
-            $c->stash->{ bitly_story_stats_are_fetched } = 0;
+            $c->stash->{ bitly_story_is_enabled_for_processing } = 0;
         }
-
     }
     else
     {
