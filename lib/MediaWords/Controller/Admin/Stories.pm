@@ -155,15 +155,25 @@ END
     if ( MediaWords::Util::CoreNLP::annotator_is_enabled() )
     {
         $c->stash->{ corenlp_is_enabled } = 1;
-        if ( MediaWords::Util::CoreNLP::story_is_annotated( $c->dbis, $story->{ stories_id } ) )
+
+        if ( MediaWords::Util::CoreNLP::story_is_annotatable( $c->dbis, $story->{ stories_id } ) )
         {
-            $c->stash->{ corenlp_story_is_annotated } = 1;
-            $c->stash->{ corenlp_sentences_concatenation_index } =
-              MediaWords::Util::CoreNLP::sentences_concatenation_index();
+            $c->stash->{ corenlp_story_is_annotatable } = 1;
+
+            if ( MediaWords::Util::CoreNLP::story_is_annotated( $c->dbis, $story->{ stories_id } ) )
+            {
+                $c->stash->{ corenlp_story_is_annotated } = 1;
+                $c->stash->{ corenlp_sentences_concatenation_index } =
+                  MediaWords::Util::CoreNLP::sentences_concatenation_index();
+            }
+            else
+            {
+                $c->stash->{ corenlp_story_is_annotated } = 0;
+            }
         }
         else
         {
-            $c->stash->{ corenlp_story_is_annotated } = 0;
+            $c->stash->{ corenlp_story_is_annotatable } = 0;
         }
     }
     else
@@ -211,6 +221,11 @@ sub corenlp_json : Local
     unless ( MediaWords::Util::CoreNLP::annotator_is_enabled() )
     {
         confess "CoreNLP annotator is not enabled in the configuration.";
+    }
+
+    unless ( MediaWords::Util::CoreNLP::story_is_annotatable( $c->dbis, $stories_id ) )
+    {
+        confess "Story $stories_id is not annotatable (media.annotate_with_corenlp is not 't').";
     }
 
     unless ( MediaWords::Util::CoreNLP::story_is_annotated( $c->dbis, $stories_id ) )

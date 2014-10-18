@@ -141,26 +141,30 @@
             <th>
                 CoreNLP annotation:</th>
             <td>
-                [% IF corenlp_story_is_annotated %]
+                [% IF corenlp_story_is_annotatable %]
+                    [% IF corenlp_story_is_annotated %]
 
-                    <iframe src="[% c.uri_for( '/admin/stories/corenlp_json/' _ story.stories_id ) | html %]" style="width: 99%; height: 480px; background-color: white"></iframe>
+                        <iframe src="[% c.uri_for( '/admin/stories/corenlp_json/' _ story.stories_id ) | html %]" style="width: 99%; height: 480px; background-color: white"></iframe>
 
-                    <p>
-                        <a href="[% c.uri_for( '/admin/stories/corenlp_json/' _ story.stories_id ) | html %]" target="_blank">[open in new page]</a>
-                    </p>
+                        <p>
+                            <a href="[% c.uri_for( '/admin/stories/corenlp_json/' _ story.stories_id ) | html %]" target="_blank">[open in new page]</a>
+                        </p>
 
-                    <p>
-                        <strong>Notes:</strong>
-                    </p>
-                    <ul>
-                        <li>Integer index is <code>story_sentences_id</code>;</li>
-                        <li>index "<code>[% corenlp_sentences_concatenation_index | html %]</code>" is concatenation of all sentences.</li>
-                    </ul>
+                        <p>
+                            <strong>Notes:</strong>
+                        </p>
+                        <ul>
+                            <li>Integer index is <code>story_sentences_id</code>;</li>
+                            <li>index "<code>[% corenlp_sentences_concatenation_index | html %]</code>" is concatenation of all sentences.</li>
+                        </ul>
 
-                    <p>[% jsonview_help %]</p>
+                        <p>[% jsonview_help %]</p>
 
+                    [% ELSE %]
+                        not annotated
+                    [% END %]
                 [% ELSE %]
-                    not annotated
+                    not annotatable (<code>media.annotate_with_corenlp</code> is not set to <code>'t'</code>)
                 [% END %]
             </td>
         </tr>
