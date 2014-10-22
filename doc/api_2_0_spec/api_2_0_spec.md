@@ -102,6 +102,9 @@ Response:
 | `name`                            | none    | Name of media source for which to search
 | `controversy_dump_time_slices_id` | null    | Return media within the given controversy time slice
 | `controversy_mode`                | null    | If set to 'live', return media from live controversies
+| `tags_id`                         | null    | Return media associate with the given tag
+| `q`                               | null    | Return media with at least one sentence that matches the solr query
+
 
 If the name parameter is specified, the call returns only media sources that match a case insensitive search 
 specified value.  If the specified value is less than 3 characters long, the call returns an empty list.
@@ -109,6 +112,9 @@ specified value.  If the specified value is less than 3 characters long, the cal
 If the controversy_dump_time_slices_id parameter is specified, return media within the given time slice,
 sorted by descending inlink_count within the controversy time slice.  If controversy_mode is set to
 'live', return media from the live controversy stories rather than from the frozen controversy dump.
+
+If the 'q' parameter is specified, return only media that include at least on sentence that matches the given 
+solr query.  For a description of the solr query format, see the stories\_public/list call.
 
 #### Example
 
