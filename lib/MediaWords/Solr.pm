@@ -562,4 +562,43 @@ sub get_num_found ($$)
     return $res->{ response }->{ numFound };
 }
 
+# return all of the media ids that match the solr query
+sub search_for_media_ids ($$)
+{
+    my ( $db, $params ) = @_;
+
+    my $p = { %{ $params } };
+
+    $p->{ fl }            = 'media_id';
+    $p->{ group }         = 'true';
+    $p->{ 'group.field' } = 'media_id';
+    $p->{ sort }          = 'random_1 asc';
+    $p->{ rows }          = 200_000;
+
+    my $response = query( $db, $p );
+
+    my $groups = $response->{ grouped }->{ media_id }->{ groups };
+    my $media_ids = [ map { $_->{ groupValue } } @{ $groups } ];
+
+    return $media_ids;
+}
+
+# return media.* for all media matching the give solr query
+sub search_for_media ($$)
+{
+    my ( $db, $params ) = @_;
+
+    my $media_ids = search_for_media_ids( $db, $params );
+
+    $db->begin;
+
+    my $ids_table = $db->get_temporary_ids_table( $media_ids );
+
+    my $media = $db->query( "select * from media where media_id in ( select id from $ids_table ) " )->hashes;
+
+    $db->commit;
+
+    return $media;
+}
+
 1;
