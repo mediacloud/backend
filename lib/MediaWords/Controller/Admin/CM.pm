@@ -1502,7 +1502,7 @@ sub search_stories : Local
         WHERE s.stories_id = slc.stories_id
           AND s.media_id = m.media_id
           AND s.stories_id IN ( $search_query )
-        ORDER BY $order_clause DESC
+        ORDER BY $order_clause
 END
     )->hashes;
 
