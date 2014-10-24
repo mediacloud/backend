@@ -1484,6 +1484,9 @@ sub search_stories : Local
     my $query = $c->req->params->{ q };
     my $search_query = _get_stories_id_search_query( $db, $query );
 
+    my $order = $c->req->params->{ order };
+    my $order_clause = $order eq 'bitly_click_count' ? 'slc.bitly_click_count desc' : 'slc.inlink_count desc';
+
     my $stories = $db->query(
         <<"END"
         SELECT s.*,
@@ -1499,7 +1502,7 @@ sub search_stories : Local
         WHERE s.stories_id = slc.stories_id
           AND s.media_id = m.media_id
           AND s.stories_id IN ( $search_query )
-        ORDER BY slc.inlink_count DESC
+        ORDER BY $order_clause DESC
 END
     )->hashes;
 
@@ -1602,6 +1605,9 @@ sub search_media : Local
     my $query = $c->req->param( 'q' );
     my $search_query = _get_stories_id_search_query( $db, $query );
 
+    my $order = $c->req->params->{ order };
+    my $order_clause = $order eq 'bitly_click_count' ? 'mlc.bitly_click_count desc' : 'mlc.inlink_count desc';
+
     my $media = $db->query(
         <<"END"
         SELECT DISTINCT m.*,
@@ -1618,7 +1624,7 @@ sub search_media : Local
           AND s.media_id = m.media_id
           AND s.media_id = mlc.media_id
           AND s.stories_id IN ( $search_query )
-        ORDER BY mlc.inlink_count DESC
+        ORDER BY $order_clause
 END
     )->hashes;
 
