@@ -175,28 +175,9 @@ sub list_GET : Local
 {
     my ( $self, $c ) = @_;
 
-    # we have to setup a transaction here to be able to use the temporary table from
-    # _get_temporary_table_ids in get_extra_where_clause
-    $c->dbis->begin;
+    $self->_create_controversy_media_table( $c );
 
-    my $r;
-    eval {
-        $self->_create_controversy_media_table( $c );
-
-        my $r = $self->SUPER::list_GET( $c );
-    };
-
-    if ( $@ )
-    {
-        $c->dbis->rollback;
-        die( $@ );
-    }
-    else
-    {
-        $c->dbis->commit;
-    }
-
-    return $r;
+    return $self->SUPER::list_GET( $c );
 }
 
 =head1 AUTHOR

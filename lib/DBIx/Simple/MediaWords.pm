@@ -604,7 +604,7 @@ sub get_temporary_ids_table ($)
         $table = "_tmp_ids_" . int( rand( 100000 ) );
     }
 
-    $db->query( "create temporary table $table ( id bigint ) on commit drop" );
+    $db->query( "create temporary table $table ( id bigint )" );
 
     eval { $db->dbh->do( "copy $table from STDIN" ) };
     die( " Error on copy: $@" ) if ( $@ );
