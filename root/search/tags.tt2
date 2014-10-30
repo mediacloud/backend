@@ -11,9 +11,10 @@
 
     <tr>
         <th>ID</th>
-        <th>Tag</th>
         <th>Label</th>
-        <th>Media Sets</th>
+        <th>Tag</th>
+        <th>Description</th>
+        <th>Public</th>
         <th>Num Media</th>
         <th>List Media</th>
         [% IF c.acl_user_can_visit('/admin/tags/edit') %]
@@ -25,9 +26,10 @@
 
         <tr [% IF even %]class="even"[% END %]>
             <td>[% tag.tags_id %]</td>
-            <td>[% tag.tag | html %]</td>
             <td>[% tag.label | html %]</td>
-            <td>[% tag.media_set_names | html %]</td>
+            <td>[% tag.tag | html %]</td>
+            <td>[% tag.description | html %]</td>
+            <td>[% IF tag.show_on_media %]yes[% ELSE %]no[% END %]</td>
             <td>[% tag.media_count %]</td>
             <td><a href="[% c.uri_for( '/search/media/' _ tag.tags_id ) %]">list media</a></td>
             [% IF c.acl_user_can_visit('/admin/tags/edit') %]
