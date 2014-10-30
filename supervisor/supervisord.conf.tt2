@@ -96,7 +96,7 @@ programs = gearmand
 [% INCLUDE program_config
     program='add_default_feeds'
     gearman_worker_module='AddDefaultFeeds.pm'
-    default_autorestart='true'
+    default_autorestart='false'
     default_autostart='true'
     default_nice=10
 %]
@@ -104,7 +104,7 @@ programs = gearmand
 [% INCLUDE program_config
     program='extract_and_vector'
     gearman_worker_module='ExtractAndVector.pm'
-    default_autorestart='true'
+    default_autorestart='false'
     default_autostart='true'
     default_nice=12
 %]
@@ -112,7 +112,7 @@ programs = gearmand
 [% INCLUDE program_config
     program='cm_mine_controversy'
     gearman_worker_module='CM/MineControversy.pm'
-    default_autorestart='true'
+    default_autorestart='false'
     default_autostart='true'
     default_nice=10
 %]
@@ -120,7 +120,7 @@ programs = gearmand
 [% INCLUDE program_config
     program='cm_dump_controversy'
     gearman_worker_module='CM/DumpControversy.pm'
-    default_autorestart='true'
+    default_autorestart='false'
     default_autostart='true'
     default_nice=10
 %]
@@ -128,7 +128,7 @@ programs = gearmand
 [% INCLUDE program_config
     program='annotate_with_corenlp'
     gearman_worker_module='AnnotateWithCoreNLP.pm'
-    default_autorestart='true'
+    default_autorestart='false'
     default_autostart='true'
     default_nice=10
 %]
@@ -136,7 +136,7 @@ programs = gearmand
 [% INCLUDE program_config
     program='bitly_enqueue_controversy_stories'
     gearman_worker_module='Bitly/EnqueueControversyStories.pm'
-    default_autorestart='true'
+    default_autorestart='false'
     default_autostart='true'
     default_nice=10
 %]
@@ -144,7 +144,7 @@ programs = gearmand
 [% INCLUDE program_config
     program='bitly_fetch_story_stats'
     gearman_worker_module='Bitly/FetchStoryStats.pm'
-    default_autorestart='true'
+    default_autorestart='false'
     default_autostart='true'
     default_nice=10
 %]
@@ -152,7 +152,7 @@ programs = gearmand
 [% INCLUDE program_config
     program='bitly_aggregate_story_stats'
     gearman_worker_module='Bitly/AggregateStoryStats.pm'
-    default_autorestart='true'
+    default_autorestart='false'
     default_autostart='true'
     default_nice=10
 %]
