@@ -26,14 +26,6 @@ elements:
     constraints:
         - Required
 
-  - type: Checkbox
-    name: solr_seed_query_run
-    id: solr_seed_query_run
-    label: "Solr Seed Query Run"
-    value: 1
-    attributes:
-        checked: checked
-
   - type: Text
     name: description
     id: description
