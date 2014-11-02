@@ -168,14 +168,13 @@ sub create : Local
 
     # At this point the form is submitted
 
-    my $c_name                = $c->req->params->{ name };
-    my $c_pattern             = $c->req->params->{ pattern };
-    my $c_solr_seed_query     = $c->req->params->{ solr_seed_query };
-    my $c_solr_seed_query_run = ( $c->req->params->{ solr_seed_query_run } ? 't' : 'f' );
-    my $c_description         = $c->req->params->{ description };
-    my $c_start_date          = $c->req->params->{ start_date };
-    my $c_end_date            = $c->req->params->{ end_date };
-    my $c_process_with_bitly  = ( $c->req->params->{ process_with_bitly } ? 't' : 'f' );
+    my $c_name               = $c->req->params->{ name };
+    my $c_pattern            = $c->req->params->{ pattern };
+    my $c_solr_seed_query    = $c->req->params->{ solr_seed_query };
+    my $c_description        = $c->req->params->{ description };
+    my $c_start_date         = $c->req->params->{ start_date };
+    my $c_end_date           = $c->req->params->{ end_date };
+    my $c_process_with_bitly = ( $c->req->params->{ process_with_bitly } ? 't' : 'f' );
 
     if ( $c->req->params->{ preview } )
     {
@@ -191,7 +190,7 @@ sub create : Local
             name                => $c_name,
             pattern             => $c_pattern,
             solr_seed_query     => $c_solr_seed_query,
-            solr_seed_query_run => $c_solr_seed_query_run,
+            solr_seed_query_run => 'f',
             description         => $c_description,
             process_with_bitly  => $c_process_with_bitly
         }
