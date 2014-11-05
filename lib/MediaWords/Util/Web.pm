@@ -11,7 +11,10 @@ use strict;
 use File::Temp;
 use FindBin;
 use LWP::UserAgent;
+use LWP::UserAgent::Determined;
+use HTTP::Status qw(:constants);
 use Storable;
+use Readonly;
 
 use MediaWords::Util::Paths;
 use MediaWords::Util::Config;
@@ -23,16 +26,31 @@ use constant MAX_REDIRECT      => 15;
 # number of links to prefetch at a time for the cached downloads
 use constant LINK_CACHE_SIZE => 100;
 
+# for how many times and at what intervals should LWP::UserAgent::Determined
+# retry requests
+use constant DETERMINED_RETRIES => '1,2,4,8,16,32,64';
+
+# on which HTTP codes should requests be retried
+Readonly my @DETERMINED_HTTP_CODES => (
+
+    HTTP_REQUEST_TIMEOUT,
+    HTTP_INTERNAL_SERVER_ERROR,
+    HTTP_BAD_GATEWAY,
+    HTTP_SERVICE_UNAVAILABLE,
+    HTTP_GATEWAY_TIMEOUT,
+
+);
+
 # list of downloads to precache downloads for
 my $_link_downloads_list;
 
 # precached link downloads
 my $_link_downloads_cache;
 
-# return a user agent with media cloud default settings
-sub UserAgent
+# set default Media Cloud properties for LWP::UserAgent objects
+sub _set_lwp_useragent_properties($)
 {
-    my $ua = LWP::UserAgent->new();
+    my $ua = shift;
 
     my $config = MediaWords::Util::Config::get_config;
 
@@ -45,6 +63,26 @@ sub UserAgent
     $ua->env_proxy;
 
     return $ua;
+}
+
+# return a user agent with media cloud default settings
+sub UserAgent
+{
+    my $ua = LWP::UserAgent->new();
+    return _set_lwp_useragent_properties( $ua );
+}
+
+# return a "determined" (retrying) user agent with media cloud default settings
+sub UserAgentDetermined
+{
+    my $ua = LWP::UserAgent::Determined->new();
+
+    $ua->timing( DETERMINED_RETRIES . '' );
+
+    my %http_codes_hr = map { $_ => 1 } @DETERMINED_HTTP_CODES;
+    $ua->codes_to_determinate( \%http_codes_hr );
+
+    return _set_lwp_useragent_properties( $ua );
 }
 
 # simple get for a url using the UserAgent above. return the decoded content
