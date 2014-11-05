@@ -24,6 +24,7 @@ sub stop_time
     my ( $name, $t0 ) = @_;
     my $time_diff = tv_interval $t0, [ gettimeofday ];
     print STDERR "Finished $name in $time_diff seconds\n\n";
+    return $time_diff;
 }
 
 1;
