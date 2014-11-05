@@ -29,7 +29,7 @@ my $_link_downloads_list;
 # precached link downloads
 my $_link_downloads_cache;
 
-# return a user agent with media cloud default settings (
+# return a user agent with media cloud default settings
 sub UserAgent
 {
     my $ua = LWP::UserAgent->new();
