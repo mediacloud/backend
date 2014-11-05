@@ -221,7 +221,7 @@ sub _annotate_text($)
     }
 
     # Make a request
-    my $ua = MediaWords::Util::Web::UserAgent;
+    my $ua = MediaWords::Util::Web::UserAgentDetermined;
     $ua->timeout( $_corenlp_annotator_timeout );
     $ua->max_size( undef );
 
