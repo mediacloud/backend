@@ -82,6 +82,39 @@ sub UserAgentDetermined
     my %http_codes_hr = map { $_ => 1 } @DETERMINED_HTTP_CODES;
     $ua->codes_to_determinate( \%http_codes_hr );
 
+    $ua->before_determined_callback(
+        sub {
+            my ( $ua, $timing, $duration, $codes_to_determinate, $lwp_args ) = @_;
+            my $request = $lwp_args->[ 0 ];
+            my $url     = $request->uri;
+
+          # my $message = "Trying $url..., ";
+          # $message .= "will " . (defined $duration ? "retry after $duration seconds" : "give up") . " if request fails...";
+          # say STDERR $message;
+        }
+    );
+    $ua->after_determined_callback(
+        sub {
+            my ( $ua, $timing, $duration, $codes_to_determinate, $lwp_args, $response ) = @_;
+            my $request = $lwp_args->[ 0 ];
+            my $url     = $request->uri;
+
+            unless ( $response->is_success )
+            {
+                my $will_retry = 0;
+                if ( $codes_to_determinate->{ $response->code } )
+                {
+                    $will_retry = 1;
+                }
+
+                my $message = "Request to $url failed (" . $response->status_line . "), ";
+                $message .= "will " .
+                  ( $will_retry ? ( defined $duration ? "retry after $duration seconds" : "give up" ) : "not retry" );
+                say STDERR $message;
+            }
+        }
+    );
+
     return _set_lwp_useragent_properties( $ua );
 }
 
