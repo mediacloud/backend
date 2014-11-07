@@ -1,7 +1,7 @@
 import re, logging, json, urllib, datetime, sys
 from collections import namedtuple
 import xml.etree.ElementTree, requests
-import mediacloud
+import mediacloud, mediacloud.error
 
 class MediaCloud(object):
     '''
@@ -240,7 +240,11 @@ class MediaCloud(object):
         if r.status_code is not 200:
             self._logger.error('Bad HTTP response to '+r.url +' : '+str(r.status_code)  + ' ' +  str( r.reason) )
             self._logger.error('\t' + r.content )
-            raise Exception('Error - got a HTTP status code of '+str(r.status_code) + ' with the message "' +  str( r.reason) + '"')
+            msg = 'Error - got a HTTP status code of %s with the message "%s"' % (
+                str(r.status_code)
+                , str(r.reason)
+            )
+            raise mediacloud.error.MCException(msg, r.status_code)
         return r
 
 # used when calling WriteableMediaCloud.tagStories
