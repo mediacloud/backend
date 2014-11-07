@@ -41,6 +41,16 @@ class MediaCloud(object):
             self._logger.warn("AuthToken request for "+username+" failed!")
             raise Exception(response['result'])
 
+    def verifyAuthToken(self):
+        try:
+            self.tagSetList(0, 1)
+            return True
+        except mediacloud.error.MCException:
+            return False
+        except Exception as exception:
+            self._logger.warn("AuthToken verify failed: %s" % exception)
+        return False
+
     def media(self, media_id):
         '''
         Details about one media source
