@@ -18,10 +18,14 @@ use Encode;
 use URI;
 use Carp qw/confess cluck/;
 use Scalar::Defer;
+use Readonly;
 use Data::Dumper;
 
 # Store / fetch downloads using Bzip2 compression
-use constant CORENLP_GRIDFS_USE_BZIP2 => 1;
+Readonly my $CORENLP_GRIDFS_USE_BZIP2 => 1;
+
+# Requested text length limit (0 for no limit)
+Readonly my $CORENLP_REQUEST_TEXT_LENGTH_LIMIT => 50 * 1024;
 
 # (Lazy-initialized) CoreNLP annotator URL
 my $_corenlp_annotator_url = lazy
@@ -177,18 +181,33 @@ sub _annotate_text($)
         fatal_error( "GridFS handler is not initialized." );
     }
 
-    if ( defined $text )
+    unless ( defined $text )
     {
-        # Trim the text because that's what the CoreNLP annotator will do, and
-        # if the text is empty, we want to fail early without making a request
-        # to the annotator at all
-        $text =~ s/^\s+|\s+$//g;
+        fatal_error( "Text is undefined." );
     }
     unless ( $text )
     {
-        # CoreNLP doesn't accept empty strings, but that might happen with some stories
-        die "Text is undefined or empty.";
+        # CoreNLP doesn't accept empty strings, but that might happen with some
+        # stories so we're just die()ing here
+        die "Text is empty.";
     }
+
+    # Trim the text because that's what the CoreNLP annotator will do, and
+    # if the text is empty, we want to fail early without making a request
+    # to the annotator at all
+    $text =~ s/^\s+|\s+$//g;
+
+    if ( $CORENLP_REQUEST_TEXT_LENGTH_LIMIT > 0 )
+    {
+        my $text_length = length( $text );
+        if ( $text_length > $CORENLP_REQUEST_TEXT_LENGTH_LIMIT )
+        {
+            say STDERR "Text length ($text_length) has exceeded the request text " .
+              "length limit ($CORENLP_REQUEST_TEXT_LENGTH_LIMIT) so I will truncate it.";
+            $text = substr( $text, 0, $CORENLP_REQUEST_TEXT_LENGTH_LIMIT );
+        }
+    }
+
     unless ( MediaWords::Util::Text::is_valid_utf8( $text ) )
     {
         # Text will be encoded to JSON, so we test the UTF-8 validity before doing anything else
@@ -348,9 +367,9 @@ sub _fetch_annotation_from_gridfs_for_story($$)
     # Fetch annotation
     my $json_ref = undef;
 
-    my $param_object_path                   = undef;                         # no such thing, objects are indexed by filename
-    my $param_skip_uncompress_and_decode    = 0;                             # objects are compressed...
-    my $param_use_bunzip2_instead_of_gunzip = CORENLP_GRIDFS_USE_BZIP2 + 0;  # ...with Bzip2
+    my $param_object_path                   = undef;                        # no such thing, objects are indexed by filename
+    my $param_skip_uncompress_and_decode    = 0;                            # objects are compressed...
+    my $param_use_bunzip2_instead_of_gunzip = $CORENLP_GRIDFS_USE_BZIP2;    # ...with Bzip2
 
     eval {
         $json_ref = $_gridfs_store->fetch_content(
@@ -549,8 +568,8 @@ EOF
 
     # Write to GridFS, index by stories_id
     eval {
-        my $param_skip_encode_and_compress  = 0;                               # objects should be compressed...
-        my $param_use_bzip2_instead_of_gzip = CORENLP_GRIDFS_USE_BZIP2 + 0;    # ...with Bzip2
+        my $param_skip_encode_and_compress  = 0;                            # objects should be compressed...
+        my $param_use_bzip2_instead_of_gzip = $CORENLP_GRIDFS_USE_BZIP2;    # ...with Bzip2
 
         my $path = $_gridfs_store->store_content(
             $db, $stories_id, \$json_annotation,
