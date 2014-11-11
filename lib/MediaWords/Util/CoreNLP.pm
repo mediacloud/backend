@@ -18,10 +18,11 @@ use Encode;
 use URI;
 use Carp qw/confess cluck/;
 use Scalar::Defer;
+use Readonly;
 use Data::Dumper;
 
 # Store / fetch downloads using Bzip2 compression
-use constant CORENLP_GRIDFS_USE_BZIP2 => 1;
+Readonly my $CORENLP_GRIDFS_USE_BZIP2 => 1;
 
 # (Lazy-initialized) CoreNLP annotator URL
 my $_corenlp_annotator_url = lazy
@@ -348,9 +349,9 @@ sub _fetch_annotation_from_gridfs_for_story($$)
     # Fetch annotation
     my $json_ref = undef;
 
-    my $param_object_path                   = undef;                         # no such thing, objects are indexed by filename
-    my $param_skip_uncompress_and_decode    = 0;                             # objects are compressed...
-    my $param_use_bunzip2_instead_of_gunzip = CORENLP_GRIDFS_USE_BZIP2 + 0;  # ...with Bzip2
+    my $param_object_path                   = undef;                        # no such thing, objects are indexed by filename
+    my $param_skip_uncompress_and_decode    = 0;                            # objects are compressed...
+    my $param_use_bunzip2_instead_of_gunzip = $CORENLP_GRIDFS_USE_BZIP2;    # ...with Bzip2
 
     eval {
         $json_ref = $_gridfs_store->fetch_content(
@@ -549,8 +550,8 @@ EOF
 
     # Write to GridFS, index by stories_id
     eval {
-        my $param_skip_encode_and_compress  = 0;                               # objects should be compressed...
-        my $param_use_bzip2_instead_of_gzip = CORENLP_GRIDFS_USE_BZIP2 + 0;    # ...with Bzip2
+        my $param_skip_encode_and_compress  = 0;                            # objects should be compressed...
+        my $param_use_bzip2_instead_of_gzip = $CORENLP_GRIDFS_USE_BZIP2;    # ...with Bzip2
 
         my $path = $_gridfs_store->store_content(
             $db, $stories_id, \$json_annotation,
