@@ -14,6 +14,8 @@
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
+alter table auth_users add created_date timestamp not null default now();
+
 --
 -- 2 of 2. Reset the database version.
 --
