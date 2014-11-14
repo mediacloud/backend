@@ -28,7 +28,7 @@ use constant LINK_CACHE_SIZE => 100;
 
 # for how many times and at what intervals should LWP::UserAgent::Determined
 # retry requests
-use constant DETERMINED_RETRIES => '1,2,4,8,16,32,64';
+use constant DETERMINED_RETRIES => '1,2,4,8';
 
 # on which HTTP codes should requests be retried
 Readonly my @DETERMINED_HTTP_CODES => (
