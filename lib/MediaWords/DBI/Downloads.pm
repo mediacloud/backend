@@ -227,6 +227,16 @@ sub _download_store_for_reading($)
             $download_store = 'gridfs';
         }
 
+        elsif ( $location eq 'postgresql' )
+        {
+            $download_store = 'postgresql';
+        }
+
+        elsif ( $location eq 'amazon_s3' )
+        {
+            $download_store = 'amazon_s3';
+        }
+
         elsif ( $location eq 'gridfs' )
         {
             $download_store = 'gridfs';
