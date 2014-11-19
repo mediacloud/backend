@@ -200,7 +200,8 @@ sub normalize_url_lossy($)
     # r2.ly redirects through the hostname, ala http://543.r2.ly
     if ( $url !~ /r2\.ly/ )
     {
-        $url =~ s/^(https?:\/\/)(m|media|data|image|www|cdn|topic|article|news|archive|blog|video|\d+?).?\./$1/i;
+        $url =~
+s/^(https?:\/\/)(m|beta|media|data|image|www?|cdn|topic|article|news|archive|blog|video|search|preview|shop|sports?|act|donate|press|web|photos?|\d+?).?\./$1/i;
     }
 
     $url =~ s/\#.*//;

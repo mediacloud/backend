@@ -7,6 +7,7 @@ use strict;
 use Encode;
 use JSON;
 use Text::CSV_XS;
+use Text::CSV;
 
 # various functions for outputting csv
 

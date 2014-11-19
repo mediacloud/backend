@@ -43,7 +43,11 @@ sub list : Local
     my $db = $c->dbis;
 
     my $controversies = $db->query( <<END )->hashes;
-select * from controversies order by controversies_id desc
+select c.*
+    from controversies c
+        left join controversy_dumps cd on ( c.controversies_id = cd.controversies_id )
+    group by c.controversies_id
+    order by max( coalesce( cd.dump_date, '2000-01-01'::date ) ) desc
 END
 
     $c->stash->{ controversies } = $controversies;
@@ -164,14 +168,13 @@ sub create : Local
 
     # At this point the form is submitted
 
-    my $c_name                = $c->req->params->{ name };
-    my $c_pattern             = $c->req->params->{ pattern };
-    my $c_solr_seed_query     = $c->req->params->{ solr_seed_query };
-    my $c_solr_seed_query_run = ( $c->req->params->{ solr_seed_query_run } ? 't' : 'f' );
-    my $c_description         = $c->req->params->{ description };
-    my $c_start_date          = $c->req->params->{ start_date };
-    my $c_end_date            = $c->req->params->{ end_date };
-    my $c_process_with_bitly  = ( $c->req->params->{ process_with_bitly } ? 't' : 'f' );
+    my $c_name               = $c->req->params->{ name };
+    my $c_pattern            = $c->req->params->{ pattern };
+    my $c_solr_seed_query    = $c->req->params->{ solr_seed_query };
+    my $c_description        = $c->req->params->{ description };
+    my $c_start_date         = $c->req->params->{ start_date };
+    my $c_end_date           = $c->req->params->{ end_date };
+    my $c_process_with_bitly = ( $c->req->params->{ process_with_bitly } ? 't' : 'f' );
 
     if ( $c->req->params->{ preview } )
     {
@@ -187,7 +190,7 @@ sub create : Local
             name                => $c_name,
             pattern             => $c_pattern,
             solr_seed_query     => $c_solr_seed_query,
-            solr_seed_query_run => $c_solr_seed_query_run,
+            solr_seed_query_run => 'f',
             description         => $c_description,
             process_with_bitly  => $c_process_with_bitly
         }
@@ -276,6 +279,32 @@ sub get_latest_full_dump_with_time_slices
     return $latest_full_dump;
 }
 
+# if there are pending controversy_links, return a hash describing the status
+# of the mining process with the following fields: stories_by_iteration, queued_urls
+sub _get_mining_status
+{
+    my ( $db, $controversy ) = @_;
+
+    my $cid = $controversy->{ controversies_id };
+
+    my $queued_urls = $db->query( <<END, $cid )->list;
+select count(*) from controversy_links where controversies_id = ? and ref_stories_id is null
+END
+
+    return undef unless ( $queued_urls );
+
+    my $stories_by_iteration = $db->query( <<END, $cid )->hashes;
+select iteration, count(*) count
+    from controversy_stories
+    where controversies_id = ?
+    group by iteration
+    order by iteration asc
+END
+
+    return { queued_urls => $queued_urls, stories_by_iteration => $stories_by_iteration };
+
+}
+
 # view the details of a single controversy
 sub view : Local
 {
@@ -341,11 +370,14 @@ EOF
         $c->stash->{ bitly_unprocessed_stories } = $bitly_unprocessed_stories;
     }
 
+    my $mining_status = _get_mining_status( $db, $controversy );
+
     $c->stash->{ controversy }                 = $controversy;
     $c->stash->{ controversy_dumps }           = $controversy_dumps;
     $c->stash->{ latest_full_dump }            = $latest_full_dump;
     $c->stash->{ latest_activities }           = $latest_activities;
     $c->stash->{ bitly_processing_is_enabled } = $bitly_processing_is_enabled;
+    $c->stash->{ mining_status }               = $mining_status;
     $c->stash->{ template }                    = 'cm/view.tt2';
 }
 
@@ -1451,6 +1483,9 @@ sub search_stories : Local
     my $query = $c->req->params->{ q };
     my $search_query = _get_stories_id_search_query( $db, $query );
 
+    my $order = $c->req->params->{ order };
+    my $order_clause = $order eq 'bitly_click_count' ? 'slc.bitly_click_count desc' : 'slc.inlink_count desc';
+
     my $stories = $db->query(
         <<"END"
         SELECT s.*,
@@ -1466,7 +1501,7 @@ sub search_stories : Local
         WHERE s.stories_id = slc.stories_id
           AND s.media_id = m.media_id
           AND s.stories_id IN ( $search_query )
-        ORDER BY slc.inlink_count DESC
+        ORDER BY $order_clause
 END
     )->hashes;
 
@@ -1569,6 +1604,9 @@ sub search_media : Local
     my $query = $c->req->param( 'q' );
     my $search_query = _get_stories_id_search_query( $db, $query );
 
+    my $order = $c->req->params->{ order };
+    my $order_clause = $order eq 'bitly_click_count' ? 'mlc.bitly_click_count desc' : 'mlc.inlink_count desc';
+
     my $media = $db->query(
         <<"END"
         SELECT DISTINCT m.*,
@@ -1585,7 +1623,7 @@ sub search_media : Local
           AND s.media_id = m.media_id
           AND s.media_id = mlc.media_id
           AND s.stories_id IN ( $search_query )
-        ORDER BY mlc.inlink_count DESC
+        ORDER BY $order_clause
 END
     )->hashes;
 

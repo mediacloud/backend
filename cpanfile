@@ -93,6 +93,7 @@ requires 'List::Uniq';
 requires 'Locale::Country::Multilingual';
 requires 'Log::Log4perl';
 requires 'LWP::Protocol::https';
+requires 'LWP::UserAgent::Determined';
 requires 'Math::Random';
 requires 'Memoize';
 requires 'Modern::Perl', '1.20121103';

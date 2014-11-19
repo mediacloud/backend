@@ -83,7 +83,7 @@ select t.*, ms.media_set_names, mtm.media_count
             group by ms.tags_id
         ) ms on ( t.tags_id = ms.tags_id )
 
-    order by media_set_names, t.tags_id
+    order by t.show_on_media is null, t.show_on_media desc, t.label, t.tag
 END
 
     $c->stash->{ tags }     = $tags;

@@ -7,23 +7,17 @@ VAGRANTFILE_API_VERSION = "2"
 # AWS defaults
 #
 
-# 1. Go to http://cloud-images.ubuntu.com/locator/ec2/
-# 2. Enter architecture into the search box (e.g. "amd64")
-# 3. Append region to the search box (e.g. "amd64 us-east-1")
-# 4. Append OS version to the search box (e.g. "amd64 us-east-1 12.04")
-# 5. Append "ebs" to the search box (e.g. "amd64 us-east-1 12.04 ebs")
-# 6. Click the AMI to open up AWS website in order to make sure that the instance is supported
-# 7. Copy the region and AMI here
-AWS_AMI           = ENV['AWS_AMI']            || "ami-d9a98cb0"
+# AMI (see https://cloud-images.ubuntu.com/locator/ec2/)
+AWS_AMI           = ENV['AWS_AMI']            || "ami-34cc7a5c"
 AWS_REGION        = ENV['AWS_REGION']         || "us-east-1"
 AWS_INSTANCE_NAME = ENV['AWS_INSTANCE_NAME']  || "Media Cloud Vagrant test box"
 
 # "t1.tiny" is not enough to install and run Media Cloud because it doesn't
 # have enough RAM available.
-# "m1.small" is just enough to install Media Cloud and run the full unit test
+# "m3.medium" is just enough to install Media Cloud and run the full unit test
 # suite. However, you might want to run Media Cloud on a bigger instance with
 # more RAM if you are about to use Media Cloud in production environments.
-AWS_INSTANCE_TYPE = ENV['AWS_AMI']            || "m1.small"
+AWS_INSTANCE_TYPE = ENV['AWS_AMI']            || "m3.medium"
 
 #
 # Main configuration

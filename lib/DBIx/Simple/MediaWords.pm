@@ -596,15 +596,13 @@ sub get_temporary_ids_table ($)
 {
     my ( $db, $ids ) = @_;
 
-    die( "get_temporary_ids_table: must be in a transaction" ) if ( $db->dbh->{ AutoCommit } );
-
     my $table = "_tmp_ids_" . int( rand( 100000 ) );
     while ( $db->query( "select 1 from pg_class where relname = ?", $table )->hash )
     {
         $table = "_tmp_ids_" . int( rand( 100000 ) );
     }
 
-    $db->query( "create temporary table $table ( id bigint ) on commit drop" );
+    $db->query( "create temporary table $table ( id bigint )" );
 
     eval { $db->dbh->do( "copy $table from STDIN" ) };
     die( " Error on copy: $@" ) if ( $@ );

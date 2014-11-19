@@ -144,6 +144,33 @@ END
     $db->commit;
 }
 
+sub get_extra_where_clause
+{
+    my ( $self, $c ) = @_;
+
+    my $clauses = [];
+
+    if ( my $tags_id = $c->req->params->{ tags_id } )
+    {
+        $tags_id += 0;
+
+        push( @{ $clauses },
+            "and media_id in ( select mtm.media_id from media_tags_map mtm where mtm.tags_id = $tags_id )" );
+    }
+
+    if ( my $q = $c->req->params->{ q } )
+    {
+        my $solr_params = { q => $q };
+        my $media_ids = MediaWords::Solr::search_for_media_ids( $c->dbis, $solr_params );
+
+        my $ids_table = $c->dbis->get_temporary_ids_table( $media_ids );
+
+        push( @{ $clauses }, "and media_id in ( select id from $ids_table )" );
+    }
+
+    return @{ $clauses } ? join( "  ", @{ $clauses } ) : '';
+}
+
 sub list_GET : Local
 {
     my ( $self, $c ) = @_;
