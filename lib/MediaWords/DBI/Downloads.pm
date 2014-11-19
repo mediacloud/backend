@@ -194,25 +194,6 @@ sub _download_stores_for_writing($)
     return $stores;
 }
 
-# return true if the system is configured to override the given storage location with gridfs
-sub _override_store_with_gridfs
-{
-    my ( $location ) = @_;
-
-    if ( ( $location eq 'tar' ) and ( lc( get_config->{ mediawords }->{ read_tar_downloads_from_gridfs } eq 'yes' ) ) )
-    {
-        return 1;
-    }
-
-    if (    ( $location eq 'localfile' )
-        and ( lc( get_config->{ mediawords }->{ read_file_downloads_from_gridfs } eq 'yes' ) ) )
-    {
-        return 1;
-    }
-
-    return 0;
-}
-
 # Returns store for fetching downloads from
 sub _download_store_for_reading($)
 {
@@ -238,9 +219,27 @@ sub _download_store_for_reading($)
         return $_download_store_lookup->{ databaseinline };
     }
 
-    if ( _override_store_with_gridfs( $location ) )
+    # Tar downloads have to be fetched from GridFS?
+    if ( $location eq 'tar' )
     {
-        return $_download_store_lookup->{ gridfs };
+        if ( lc( get_config->{ mediawords }->{ read_tar_downloads_from_gridfs } eq 'yes' ) )
+        {
+            return $_download_store_lookup->{ gridfs };
+        }
+    }
+
+    # GridFS downloads have to be fetched from S3?
+    if ( $location eq 'gridfs' )
+    {
+        if ( lc( get_config->{ mediawords }->{ read_gridfs_downloads_from_s3 } eq 'yes' ) )
+        {
+            unless ( defined $_download_store_lookup->{ amazon_s3 } )
+            {
+                die "'read_gridfs_downloads_from_s3' is set, but Amazon S3 download store is not configured.";
+            }
+
+            return $_download_store_lookup->{ amazon_s3 };
+        }
     }
 
     my $store = $_download_store_lookup->{ lc( $1 ) };
@@ -249,7 +248,11 @@ sub _download_store_for_reading($)
         return $store;
     }
 
-    if ( _override_store_with_gridfs( 'localfile' ) )
+    # At this point no other download storage methods have been identified, so
+    # download is assumed to be stored on a filesystem
+
+    # File downloads have to be fetched from GridFS?
+    if ( lc( get_config->{ mediawords }->{ read_file_downloads_from_gridfs } eq 'yes' ) )
     {
         return $_download_store_lookup->{ gridfs };
     }
