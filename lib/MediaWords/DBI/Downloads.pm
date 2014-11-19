@@ -228,6 +228,20 @@ sub _download_store_for_reading($)
         }
     }
 
+    # GridFS downloads have to be fetched from S3?
+    if ( $location eq 'gridfs' )
+    {
+        if ( lc( get_config->{ mediawords }->{ read_gridfs_downloads_from_s3 } eq 'yes' ) )
+        {
+            unless ( defined $_download_store_lookup->{ amazon_s3 } )
+            {
+                die "'read_gridfs_downloads_from_s3' is set, but Amazon S3 download store is not configured.";
+            }
+
+            return $_download_store_lookup->{ amazon_s3 };
+        }
+    }
+
     my $store = $_download_store_lookup->{ lc( $1 ) };
     if ( $store )
     {
