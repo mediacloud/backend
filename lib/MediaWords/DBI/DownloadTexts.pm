@@ -156,22 +156,6 @@ sub update_extractor_results_with_text_and_html
     return $extractor_results;
 }
 
-# get the extracted html from the database for the given download
-sub _get_extracted_html_from_db
-{
-    my ( $db, $download_text ) = @_;
-
-    my $extracted_line_numbers =
-      $db->query( "SELECT line_number from extracted_lines where download_texts_id = ? order by line_number asc",
-        $download_text->{ download_texts_id } )->flat;
-
-    my $download = $db->query( 'SELECT * from downloads where downloads_id = ? ', $download_text->{ downloads_id } )->hash;
-
-    my $lines = MediaWords::DBI::Downloads::fetch_preprocessed_content_lines( $db, $download );
-
-    return _get_extracted_html( $lines, $extracted_line_numbers );
-}
-
 # extract the text from a download and store that text in download_texts.
 # also add the extracted line numbers to extracted_lines
 sub create_from_download
@@ -182,13 +166,18 @@ sub create_from_download
 
     # say STDERR Dumper( $extract );
 
-    my $included_line_numbers = $extract->{ included_line_numbers };
+    my $extracted_html;
 
-    $db->query( "delete from download_texts where downloads_id = ?", $download->{ downloads_id } );
+    if ( exists $extract->{ included_line_numbers } )
+    {
+        my $included_line_numbers = $extract->{ included_line_numbers };
 
-    my $download_lines = $extract->{ download_lines };
+        $db->query( "delete from download_texts where downloads_id = ?", $download->{ downloads_id } );
 
-    my $extracted_html = _get_extracted_html( $download_lines, $included_line_numbers );
+        my $download_lines = $extract->{ download_lines };
+
+        $extracted_html = _get_extracted_html( $download_lines, $included_line_numbers );
+    }
 
     my $extracted_text = html_strip( $extracted_html );
 
@@ -200,14 +189,17 @@ insert into download_texts ( download_text, downloads_id, download_text_length )
     returning *
 END
 
-    $db->dbh->do( "copy extracted_lines(download_texts_id, line_number) from STDIN" );
-    foreach my $included_line_number ( @{ $included_line_numbers } )
+    if ( exists $extract->{ included_line_numbers } )
     {
+        my $included_line_numbers = $extract->{ included_line_numbers };
+        $db->dbh->do( "copy extracted_lines(download_texts_id, line_number) from STDIN" );
+        foreach my $included_line_number ( @{ $included_line_numbers } )
+        {
+            $db->dbh->pg_putcopydata( $download_text->{ download_texts_id } . "\t" . $included_line_number . "\n" );
+        }
 
-        $db->dbh->pg_putcopydata( $download_text->{ download_texts_id } . "\t" . $included_line_number . "\n" );
+        $db->dbh->pg_putcopyend();
     }
-
-    $db->dbh->pg_putcopyend();
 
     $db->query( "update downloads set extracted = 't' where downloads_id = ?", $download->{ downloads_id } );
 
