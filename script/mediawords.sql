@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4473;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4474;
     
 BEGIN
 
@@ -2328,7 +2328,10 @@ CREATE TABLE auth_users (
 
     -- Timestamp of the last unsuccessful attempt to log in; used for delaying successive
     -- attempts in order to prevent brute-force attacks
-    last_unsuccessful_login_attempt     TIMESTAMP NOT NULL DEFAULT TIMESTAMP 'epoch'
+    last_unsuccessful_login_attempt     TIMESTAMP NOT NULL DEFAULT TIMESTAMP 'epoch',
+    
+    created_date                        timestamp not null default now()
+    
 );
 
 create index auth_users_email on auth_users( email );

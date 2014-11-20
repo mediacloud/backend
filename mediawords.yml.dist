@@ -310,6 +310,11 @@ mediawords:
     #read_tar_downloads_from_gridfs  : "no"
     #read_file_downloads_from_gridfs : "no"
 
+    ### Uncomment to force reading GridFS downloads from Amazon S3
+    ### (useful if you're experiencing MongoDB downtime for some reason or are
+    ### in the process of restoring downloads from S3 back to GridFS)
+    #read_gridfs_downloads_from_s3 : "no"
+
     ### fetch content from another instance of MediaCloud?
     #fetch_remote_content          : "yes"
     #fetch_remote_content_user     : username

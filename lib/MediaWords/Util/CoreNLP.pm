@@ -244,6 +244,29 @@ sub _annotate_text($)
     $ua->timeout( $_corenlp_annotator_timeout );
     $ua->max_size( undef );
 
+    my $old_after_determined_callback = $ua->after_determined_callback;
+    $ua->after_determined_callback(
+        sub {
+            my ( $ua, $timing, $duration, $codes_to_determinate, $lwp_args, $response ) = @_;
+            my $request = $lwp_args->[ 0 ];
+            my $url     = $request->uri;
+
+            unless ( $response->is_success )
+            {
+                if ( lc( $response->status_line ) eq '500 read timeout' )
+                {
+                    # die() on request timeouts without retrying anything
+                    # because those usually mean that we posted something funky
+                    # to the CoreNLP annotator service and it got stuck
+                    die "The request timed out, giving up.";
+                }
+            }
+
+            # Otherwise call the original callback subroutine
+            $old_after_determined_callback->( $ua, $timing, $duration, $codes_to_determinate, $lwp_args, $response );
+        }
+    );
+
     my $request = HTTP::Request->new( POST => $_corenlp_annotator_url );
     $request->content_type( 'application/json; charset=utf8' );
     $request->content( $text_json_encoded );
