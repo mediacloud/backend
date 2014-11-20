@@ -24,6 +24,128 @@ use MediaWords::GearmanFunction::AnnotateWithCoreNLP;
 # Database inline content length limit
 use constant INLINE_CONTENT_LENGTH => 256;
 
+my $_block_level_element_tags = [
+    qw ( h1 h2 h3 h4 h5 h6 p div dl dt dd ol ul li dir menu
+      address blockquote center div hr ins noscript pre )
+];
+
+my $tag_list = join '|', ( map { quotemeta $_ } ( @{ $_block_level_element_tags } ) );
+
+my $_block_level_start_tag_re = qr{
+                   < (:? $tag_list ) (:? > | \s )
+           }ix
+  ;
+
+my $_block_level_end_tag_re = qr{
+                   </ (:? $tag_list ) >
+           }ix
+  ;
+
+sub _contains_block_level_tags
+{
+    my ( $string ) = @_;
+
+    if ( $string =~ $_block_level_start_tag_re )
+    {
+        return 1;
+    }
+
+    if ( $string =~ $_block_level_end_tag_re )
+    {
+        return 1;
+    }
+
+    return 0;
+}
+
+sub _new_lines_around_block_level_tags
+{
+    my ( $string ) = @_;
+
+    #say STDERR "_new_lines_around_block_level_tags '$string'";
+
+    return $string if ( !_contains_block_level_tags( $string ) );
+
+    $string =~ s{
+       ( $_block_level_start_tag_re
+      )
+      }
+      {\n\n$1}gsxi;
+
+    $string =~ s{
+       (
+$_block_level_end_tag_re
+     )
+     }
+     {$1\n\n}gsxi;
+
+    #say STDERR "_new_lines_around_block_level_tags '$string'";
+
+    #exit;
+
+    #$string = 'sddd';
+
+    return $string;
+
+}
+
+sub _get_extracted_html
+{
+    my ( $lines, $included_lines ) = @_;
+
+    my $is_line_included = { map { $_ => 1 } @{ $included_lines } };
+
+    my $config = MediaWords::Util::Config::get_config;
+    my $dont_add_double_new_line_for_block_elements =
+      defined( $config->{ mediawords }->{ disable_block_element_sentence_splitting } )
+      && ( $config->{ mediawords }->{ disable_block_element_sentence_splitting } eq 'yes' );
+
+    my $extracted_html = '';
+
+    # This variable is used to make sure we don't add unnecessary double newlines
+    my $previous_concated_line_was_story = 0;
+
+    for ( my $i = 0 ; $i < @{ $lines } ; $i++ )
+    {
+        if ( $is_line_included->{ $i } )
+        {
+            my $line_text;
+
+            $previous_concated_line_was_story = 1;
+
+            unless ( $dont_add_double_new_line_for_block_elements )
+            {
+
+                $line_text = _new_lines_around_block_level_tags( $lines->[ $i ] );
+            }
+            else
+            {
+                $line_text = $lines->[ $i ];
+            }
+
+            $extracted_html .= ' ' . $line_text;
+        }
+        elsif ( _contains_block_level_tags( $lines->[ $i ] ) )
+        {
+
+            unless ( $dont_add_double_new_line_for_block_elements )
+            {
+                ## '\n\n\ is used as a sentence splitter so no need to add it more than once between text lines
+                if ( $previous_concated_line_was_story )
+                {
+
+                    # Add double newline bc/ it will be recognized by the sentence splitter as a sentence boundary.
+                    $extracted_html .= "\n\n";
+
+                    $previous_concated_line_was_story = 0;
+                }
+            }
+        }
+    }
+
+    return $extracted_html;
+}
+
 # lookup table for download store objects; initialized in BEGIN below
 my $_download_store_lookup = lazy
 {
@@ -375,7 +497,7 @@ sub extractor_results_for_download($$)
     my $download_lines        = $ret->{ download_lines };
     my $included_line_numbers = $ret->{ included_line_numbers };
 
-    my $extracted_html = MediaWords::DBI::DownloadTexts::_get_extracted_html( $download_lines, $included_line_numbers );
+    my $extracted_html = _get_extracted_html( $download_lines, $included_line_numbers );
 
     my $extracted_text = html_strip( $extracted_html );
 
