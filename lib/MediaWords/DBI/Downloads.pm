@@ -8,6 +8,7 @@ use strict;
 
 use Carp;
 use Scalar::Defer;
+use Readonly;
 
 use MediaWords::Crawler::Extractor;
 use MediaWords::Util::Config qw(get_config);
@@ -199,65 +200,94 @@ sub _download_store_for_reading($)
 {
     my $download = shift;
 
+    my $download_store;
+
     my $fetch_remote = get_config->{ mediawords }->{ fetch_remote_content } || 'no';
     if ( $fetch_remote eq 'yes' )
     {
-        return $_download_store_lookup->{ remote };
+        $download_store = 'remote';
     }
-
-    my $path = $download->{ path };
-    unless ( $path and ( $path =~ /^([\w]+):/ ) )
+    else
     {
-        say STDERR "Download path is not set or invalid for download $download->{ downloads_id }";
-        return undef;
+        my $path = $download->{ path };
+        unless ( $path and ( $path =~ /^([\w]+):/ ) )
+        {
+            die "Download path is not set or invalid for download $download->{ downloads_id }";
+        }
+
+        Readonly my $location => lc( $1 );
+
+        if ( $location eq 'content' )
+        {
+            $download_store = 'databaseinline';
+        }
+
+        elsif ( $location eq 'tar' )
+        {
+            $download_store = 'gridfs';
+        }
+
+        elsif ( $location eq 'postgresql' )
+        {
+            $download_store = 'postgresql';
+        }
+
+        elsif ( $location eq 'amazon_s3' )
+        {
+            $download_store = 'amazon_s3';
+        }
+
+        elsif ( $location eq 'gridfs' )
+        {
+            $download_store = 'gridfs';
+        }
+        else
+        {
+            # Assume it's stored in a filesystem
+            $download_store = 'localfile';
+        }
     }
 
-    my $location = lc( $1 );
-
-    if ( $location eq 'content' )
+    unless ( defined $download_store )
     {
-        return $_download_store_lookup->{ databaseinline };
+        die "Download store is undefined for download " . $download->{ downloads_id };
     }
+
+    # Overrides:
 
     # Tar downloads have to be fetched from GridFS?
-    if ( $location eq 'tar' )
+    if ( $download_store eq 'tar' )
     {
         if ( lc( get_config->{ mediawords }->{ read_tar_downloads_from_gridfs } eq 'yes' ) )
         {
-            return $_download_store_lookup->{ gridfs };
+            $download_store = 'gridfs';
+        }
+    }
+
+    # File downloads have to be fetched from GridFS?
+    if ( $download_store eq 'localfile' )
+    {
+        if ( lc( get_config->{ mediawords }->{ read_file_downloads_from_gridfs } eq 'yes' ) )
+        {
+            $download_store = 'gridfs';
         }
     }
 
     # GridFS downloads have to be fetched from S3?
-    if ( $location eq 'gridfs' )
+    if ( $download_store eq 'gridfs' )
     {
         if ( lc( get_config->{ mediawords }->{ read_gridfs_downloads_from_s3 } eq 'yes' ) )
         {
-            unless ( defined $_download_store_lookup->{ amazon_s3 } )
-            {
-                die "'read_gridfs_downloads_from_s3' is set, but Amazon S3 download store is not configured.";
-            }
-
-            return $_download_store_lookup->{ amazon_s3 };
+            $download_store = 'amazon_s3';
         }
     }
 
-    my $store = $_download_store_lookup->{ lc( $1 ) };
-    if ( $store )
+    unless ( defined $_download_store_lookup->{ $download_store } )
     {
-        return $store;
+        die "Download store '$download_store' is not initialized for download " . $download->{ downloads_id };
     }
 
-    # At this point no other download storage methods have been identified, so
-    # download is assumed to be stored on a filesystem
-
-    # File downloads have to be fetched from GridFS?
-    if ( lc( get_config->{ mediawords }->{ read_file_downloads_from_gridfs } eq 'yes' ) )
-    {
-        return $_download_store_lookup->{ gridfs };
-    }
-
-    return $_download_store_lookup->{ localfile };
+    return $_download_store_lookup->{ $download_store };
 }
 
 # fetch the content for the given download as a content_ref
