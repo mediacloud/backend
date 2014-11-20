@@ -139,23 +139,6 @@ sub _get_extracted_html
     return $extracted_html;
 }
 
-# sub update_extractor_results_with_text_and_html
-# {
-#     my ( $extractor_results ) = @_;
-
-#     my $download_lines = $extractor_results->{ download_lines };
-
-#     my $included_line_numbers = $extractor_results->{ included_line_numbers };
-#     my $extracted_html = _get_extracted_html( $download_lines, $included_line_numbers );
-
-#     my $extracted_text = html_strip( $extracted_html );
-
-#     $extractor_results->{ extracted_html } = $extracted_html;
-#     $extractor_results->{ extracted_text } = $extracted_text;
-
-#     return $extractor_results;
-# }
-
 # extract the text from a download and store that text in download_texts.
 # also add the extracted line numbers to extracted_lines
 sub create_from_download
