@@ -370,7 +370,19 @@ sub extractor_results_for_download($$)
 
     # print "PREPROCESSED LINES:\n**\n" . join( "\n", @{ $lines } ) . "\n**\n";
 
-    return extract_preprocessed_lines_for_story( $lines, $story->{ title }, $story->{ description } );
+    my $ret = extract_preprocessed_lines_for_story( $lines, $story->{ title }, $story->{ description } );
+
+    my $download_lines        = $ret->{ download_lines };
+    my $included_line_numbers = $ret->{ included_line_numbers };
+
+    my $extracted_html = MediaWords::DBI::DownloadTexts::_get_extracted_html( $download_lines, $included_line_numbers );
+
+    my $extracted_text = html_strip( $extracted_html );
+
+    $ret->{ extracted_html } = $extracted_html;
+    $ret->{ extracted_text } = $extracted_text;
+
+    return $ret;
 }
 
 # if the given line looks like a tagline for another story and is missing an ending period, add a period

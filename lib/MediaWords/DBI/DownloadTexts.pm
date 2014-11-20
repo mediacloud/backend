@@ -139,22 +139,22 @@ sub _get_extracted_html
     return $extracted_html;
 }
 
-sub update_extractor_results_with_text_and_html
-{
-    my ( $extractor_results ) = @_;
+# sub update_extractor_results_with_text_and_html
+# {
+#     my ( $extractor_results ) = @_;
 
-    my $download_lines = $extractor_results->{ download_lines };
+#     my $download_lines = $extractor_results->{ download_lines };
 
-    my $included_line_numbers = $extractor_results->{ included_line_numbers };
-    my $extracted_html = _get_extracted_html( $download_lines, $included_line_numbers );
+#     my $included_line_numbers = $extractor_results->{ included_line_numbers };
+#     my $extracted_html = _get_extracted_html( $download_lines, $included_line_numbers );
 
-    my $extracted_text = html_strip( $extracted_html );
+#     my $extracted_text = html_strip( $extracted_html );
 
-    $extractor_results->{ extracted_html } = $extracted_html;
-    $extractor_results->{ extracted_text } = $extracted_text;
+#     $extractor_results->{ extracted_html } = $extracted_html;
+#     $extractor_results->{ extracted_text } = $extracted_text;
 
-    return $extractor_results;
-}
+#     return $extractor_results;
+# }
 
 # extract the text from a download and store that text in download_texts.
 # also add the extracted line numbers to extracted_lines
@@ -168,18 +168,9 @@ sub create_from_download
 
     my $extracted_html;
 
-    if ( exists $extract->{ included_line_numbers } )
-    {
-        my $included_line_numbers = $extract->{ included_line_numbers };
+    $db->query( "delete from download_texts where downloads_id = ?", $download->{ downloads_id } );
 
-        $db->query( "delete from download_texts where downloads_id = ?", $download->{ downloads_id } );
-
-        my $download_lines = $extract->{ download_lines };
-
-        $extracted_html = _get_extracted_html( $download_lines, $included_line_numbers );
-    }
-
-    my $extracted_text = html_strip( $extracted_html );
+    my $extracted_text = $extract->{ extracted_text };
 
     # say STDERR "EXTRACT\n**\n$extracted_text\n**\n";
 
@@ -199,6 +190,10 @@ END
         }
 
         $db->dbh->pg_putcopyend();
+    }
+    else
+    {
+        die 'unimplemented';
     }
 
     $db->query( "update downloads set extracted = 't' where downloads_id = ?", $download->{ downloads_id } );

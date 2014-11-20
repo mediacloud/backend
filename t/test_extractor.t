@@ -65,7 +65,7 @@ sub extract_and_compare
 
     #   my $results = MediaWords::DBI::Downloads::_do_extraction_from_content_ref( \$content, $title, '');
 
-    MediaWords::DBI::DownloadTexts::update_extractor_results_with_text_and_html( $results );
+    #MediaWords::DBI::DownloadTexts::update_extractor_results_with_text_and_html( $results );
 
     is(
         substr( $results->{ extracted_text }, 0, 100 ),
