@@ -82,7 +82,7 @@ $_block_level_end_tag_re
 
 }
 
-sub get_extracted_html
+sub _get_extracted_html
 {
     my ( $lines, $included_lines ) = @_;
 
@@ -146,7 +146,7 @@ sub update_extractor_results_with_text_and_html
     my $download_lines = $extractor_results->{ download_lines };
 
     my $included_line_numbers = $extractor_results->{ included_line_numbers };
-    my $extracted_html = get_extracted_html( $download_lines, $included_line_numbers );
+    my $extracted_html = _get_extracted_html( $download_lines, $included_line_numbers );
 
     my $extracted_text = html_strip( $extracted_html );
 
@@ -157,7 +157,7 @@ sub update_extractor_results_with_text_and_html
 }
 
 # get the extracted html from the database for the given download
-sub get_extracted_html_from_db
+sub _get_extracted_html_from_db
 {
     my ( $db, $download_text ) = @_;
 
@@ -169,14 +169,14 @@ sub get_extracted_html_from_db
 
     my $lines = MediaWords::DBI::Downloads::fetch_preprocessed_content_lines( $db, $download );
 
-    return get_extracted_html( $lines, $extracted_line_numbers );
+    return _get_extracted_html( $lines, $extracted_line_numbers );
 }
 
 sub update_text
 {
     my ( $db, $download_text ) = @_;
 
-    my $extracted_html = get_extracted_html_from_db( $db, $download_text );
+    my $extracted_html = _get_extracted_html_from_db( $db, $download_text );
 
     my $extracted_text = html_strip( $extracted_html );
 
@@ -208,7 +208,7 @@ sub create_from_download
 
     my $download_lines = $extract->{ download_lines };
 
-    my $extracted_html = get_extracted_html( $download_lines, $included_line_numbers );
+    my $extracted_html = _get_extracted_html( $download_lines, $included_line_numbers );
 
     my $extracted_text = html_strip( $extracted_html );
 
