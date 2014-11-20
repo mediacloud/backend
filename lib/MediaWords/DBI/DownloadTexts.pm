@@ -172,26 +172,6 @@ sub _get_extracted_html_from_db
     return _get_extracted_html( $lines, $extracted_line_numbers );
 }
 
-sub update_text
-{
-    my ( $db, $download_text ) = @_;
-
-    my $extracted_html = _get_extracted_html_from_db( $db, $download_text );
-
-    my $extracted_text = html_strip( $extracted_html );
-
-    $download_text->{ download_text }        = $extracted_text;
-    $download_text->{ download_text_length } = length( $extracted_text );
-
-    #say Dumper ( $download_text );
-
-    $db->update_by_id( 'download_texts', $download_text->{ download_texts_id }, $download_text );
-
-    #say Dumper ( $download_text );
-
-    return;
-}
-
 # extract the text from a download and store that text in download_texts.
 # also add the extracted line numbers to extracted_lines
 sub create_from_download
@@ -230,8 +210,6 @@ END
     $db->dbh->pg_putcopyend();
 
     $db->query( "update downloads set extracted = 't' where downloads_id = ?", $download->{ downloads_id } );
-
-    #    update_text( $db, $download_text );
 
 #die "Extractor text length mismatch for $download_text->{ download_texts_id } :    " . length($extracted_text) . " != " . length($download_text->{download_text }) unless length($extracted_text) eq length($download_text->{download_text });
 
