@@ -17,6 +17,26 @@ use Try::Tiny;
 
 #use Regexp::Optimizer;
 
+## TODO rename this function
+sub get_extracted_html_from_db
+{
+    my ( $self, $db ) = @_;
+
+    my $downloads = $db->query(
+        "select d.* from downloads d, download_texts dt " .
+          "  where dt.downloads_id = d.downloads_id order by d.downloads_id",
+        $self->{ downloads_id }
+    );
+
+    die unless scalar( @$downloads ) == 1;
+
+    my $download = $downloads->[ 0 ];
+
+    my $extract = MediaWords::DBI::Downloads::extractor_results_for_download( $db, $download );
+
+    return $extract->{ extracted_html };
+}
+
 # extract the text from a download and store that text in download_texts.
 # also add the extracted line numbers to extracted_lines
 sub create_from_download
