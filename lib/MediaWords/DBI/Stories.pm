@@ -503,6 +503,7 @@ EOF
     return join( ".\n\n", map { $_->{ download_text } } @{ $download_texts } );
 }
 
+## TODO rename this function
 sub get_extracted_html_from_db
 {
     my ( $db, $story ) = @_;
