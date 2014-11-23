@@ -9,9 +9,9 @@
 <table class="even_rows_grey">
     
     <tr>
+        <th>Rank</th>
         <th>Media_id</th>
         <th>Name</th>
-        <th>Url</th>
         <th>Media Type</th>
         <th>Stories</th>
         <th>Inlinks</th>
@@ -28,9 +28,9 @@
                                      l => live } ) %]
 
     <tr>
+        <td>[% loop.count %]</td>
         <td><a href="[% medium_url | html %]">[% m.media_id | html %]</a></td>
-        <td>[% m.name | truncate( 36 ) | html %]</td>
-        <td><a href="[% m.url | html %]">[% m.url | truncate( 36 ) | html %]</a></td>
+        <td><a href="[% m.url | html %]">[% m.name | truncate( 36 ) | html %]</a></td>
         <td>[% m.media_type | html %]</td>
         <td>[% m.story_count | html %]</td>
         <td>[% m.inlink_count | html %]</td>
