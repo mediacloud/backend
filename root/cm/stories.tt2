@@ -6,11 +6,13 @@
 
 [% PROCESS cm/header.tt2 %]
 
+
 <div id="wholecolumn">
 
     <div class="boxtitle">
         Search Stories
     </div>
+
     <fieldset>
         [% search_url = c.uri_for( "/admin/cm/search_stories" ) %]
         <form method="get" action="[% search_url | html %]">
@@ -19,6 +21,7 @@
             <input type="text" name="q" size="64" value="[% query | html %]" />
             <input type="submit" name="submit" value="Search" />
         </form>
+        [% IF stories.size == 1000 %]<p>Results limited to first 1000.</p>[% END %]
     </fieldset>
 
     [% INCLUDE cm/stories_table.tt2 
