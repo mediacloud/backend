@@ -1,9 +1,5 @@
 #!/usr/bin/env perl
 
-#
-# Enqueue MediaWords::GearmanFunction::CM::DumpControversy job
-#
-
 use strict;
 use warnings;
 
@@ -17,14 +13,13 @@ use Getopt::Long;
 
 use MediaWords::CommonLibs;
 
-#use MediaWords::CM::Dump;
-#use MediaWords::DB;
-#use MediaWords::CM;
-#use MediaWords::GearmanFunction;
-#use MediaWords::GearmanFunction::CM::DumpControversy;
-#use Gearman::JobScheduler;
-
 use MediaWords::Thrift::Extractor;
+use MediaWords::Util::ThriftExtractor;
+
+use File::Slurp;
+
+use Encode qw(decode encode encode_utf8);
+use utf8;
 
 sub main
 {
@@ -38,11 +33,26 @@ sub main
 
     die( "Usage: $0 --file < html file >" ) unless ( $file_name );
 
-    my $raw_html = "<html><title>article title</title><body><p>paragraph 1</p></body>";
+    #my $raw_html = "<html><title>article title</title><body><p>paragraph 1</p></body>";
 
-    my $result = MediaWords::Thrift::Extractor::extract_html( $raw_html );
+    my $raw_html = read_file( $file_name );    #, binmode => ':utf8' ) ;
+
+    my $result = MediaWords::Util::ThriftExtractor::get_extracted_html( $raw_html );
+
+    #MediaWords::Thrift::Extractor::extract_html( $raw_html );
 
     say Dumper( $result );
+
+    #my $res =  $result->[1];
+
+    #utf8::upgrade( $res );
+
+    #say ($res);
+
+    #say utf8::encode( $res );
+
+    #say 'he’ll ';
+
 }
 
 main();
