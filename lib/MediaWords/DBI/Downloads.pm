@@ -20,6 +20,7 @@ use MediaWords::Util::Paths;
 use MediaWords::Util::ExtractorFactory;
 use MediaWords::Util::HeuristicExtractor;
 use MediaWords::GearmanFunction::AnnotateWithCoreNLP;
+use MediaWords::Util::ThriftExtractor;
 
 # Database inline content length limit
 use constant INLINE_CONTENT_LENGTH => 256;
@@ -486,18 +487,34 @@ sub extractor_results_for_download($$)
 {
     my ( $db, $download ) = @_;
 
-    my $story = $db->query( "select * from stories where stories_id = ?", $download->{ stories_id } )->hash;
+    my $config           = MediaWords::Util::Config::get_config;
+    my $extractor_method = $config->{ mediawords }->{ extractor_method };
 
-    my $lines = fetch_preprocessed_content_lines( $db, $download );
+    my $extracted_html;
+    my $ret;
 
-    # print "PREPROCESSED LINES:\n**\n" . join( "\n", @{ $lines } ) . "\n**\n";
+    if ( $extractor_method eq 'PythonReadability' )
+    {
+        my $content_ref = fetch_content( $db, $download );
 
-    my $ret = extract_preprocessed_lines_for_story( $lines, $story->{ title }, $story->{ description } );
+        $ret            = {};
+        $extracted_html = MediaWords::Util::ThriftExtractor::get_extracted_html( $$content_ref );
+    }
+    else
+    {
+        my $story = $db->query( "select * from stories where stories_id = ?", $download->{ stories_id } )->hash;
 
-    my $download_lines        = $ret->{ download_lines };
-    my $included_line_numbers = $ret->{ included_line_numbers };
+        my $lines = fetch_preprocessed_content_lines( $db, $download );
 
-    my $extracted_html = _get_extracted_html( $download_lines, $included_line_numbers );
+        # print "PREPROCESSED LINES:\n**\n" . join( "\n", @{ $lines } ) . "\n**\n";
+
+        $ret = extract_preprocessed_lines_for_story( $lines, $story->{ title }, $story->{ description } );
+
+        my $download_lines        = $ret->{ download_lines };
+        my $included_line_numbers = $ret->{ included_line_numbers };
+
+        $extracted_html = _get_extracted_html( $download_lines, $included_line_numbers );
+    }
 
     my $extracted_text = html_strip( $extracted_html );
 
