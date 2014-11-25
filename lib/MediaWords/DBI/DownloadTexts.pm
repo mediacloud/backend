@@ -49,6 +49,7 @@ sub create_from_download
 
     my $extracted_html;
 
+    ## NOTE due to a foreign key, deleting from download_texts will also delete the corresponding extracted_lines entries.
     $db->query( "delete from download_texts where downloads_id = ?", $download->{ downloads_id } );
 
     my $extracted_text = $extract->{ extracted_text };
@@ -74,7 +75,7 @@ END
     }
     else
     {
-        #die 'unimplemented';
+        die unless MediaWords::Util::Config::get_config()->{ mediawords }->{ extractor_method } eq 'PythonReadability';
     }
 
     $db->query( "update downloads set extracted = 't' where downloads_id = ?", $download->{ downloads_id } );
