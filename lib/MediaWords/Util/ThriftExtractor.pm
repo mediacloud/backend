@@ -16,7 +16,11 @@ sub get_extracted_html
 {
     my ( $raw_html ) = @_;
 
-    return MediaWords::Thrift::Extractor::extract_html( $raw_html );
+    my $html_blocks = MediaWords::Thrift::Extractor::extract_html( $raw_html );
+
+    my $ret = join( "\n\n", @$html_blocks );
+
+    return $ret;
 }
 
 1;
