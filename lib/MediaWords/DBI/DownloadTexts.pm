@@ -74,7 +74,7 @@ END
     }
     else
     {
-        die 'unimplemented';
+        #die 'unimplemented';
     }
 
     $db->query( "update downloads set extracted = 't' where downloads_id = ?", $download->{ downloads_id } );
