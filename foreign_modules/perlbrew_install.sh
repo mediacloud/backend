@@ -1,6 +1,8 @@
 #!/bin/sh
 
-PERLBREWURL=https://raw.github.com/gugod/App-perlbrew/master/perlbrew
+if [ "x${PERLBREWURL}" == "x" ]; then
+    PERLBREWURL=http://gugod.github.io/App-perlbrew/perlbrew
+fi
 
 if [ -z "$TMPDIR" ]; then
     if [ -d "/tmp" ]; then
@@ -16,11 +18,11 @@ LOCALINSTALLER="perlbrew-$$"
 
 echo
 if type curl >/dev/null 2>&1; then
-  PERLBREWDOWNLOAD="curl -f -sS -Lo $LOCALINSTALLER $PERLBREWURL"
+  PERLBREWDOWNLOAD="curl -f -k -sS -Lo $LOCALINSTALLER $PERLBREWURL"
 elif type fetch >/dev/null 2>&1; then
-  PERLBREWDOWNLOAD="fetch -o $LOCALINSTALLER $PERLBREWURL"
+  PERLBREWDOWNLOAD="fetch --no-verify-peer -o $LOCALINSTALLER $PERLBREWURL"
 elif type wget >/dev/null 2>&1; then
-  PERLBREWDOWNLOAD="wget -nv -O $LOCALINSTALLER $PERLBREWURL"
+  PERLBREWDOWNLOAD="wget -nv --no-check-certificate -O $LOCALINSTALLER $PERLBREWURL"
 else
   echo "Need wget or curl to use $0"
   exit 1
