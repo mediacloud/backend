@@ -12,7 +12,8 @@ if [ `getconf LONG_BIT` != '64' ]; then
     exit 1
 fi
 
-TMPDIR="." ./foreign_modules/perlbrew_install.sh
+\curl -L http://install.perlbrew.pl | bash
+
 set +u
 source ~/perl5/perlbrew/etc/bashrc
 set -u
