@@ -4,6 +4,7 @@ working_dir=`dirname $0`
 
 cd $working_dir
 
+set -e
 set -u
 set -o  errexit
 
