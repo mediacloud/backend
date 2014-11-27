@@ -4,6 +4,7 @@ working_dir=`dirname $0`
 
 cd $working_dir
 
+set -e
 set -u
 set -o  errexit
 
@@ -13,7 +14,7 @@ if [ `getconf LONG_BIT` != '64' ]; then
 fi
 
 echo "Installing Perlbrew..."
-\curl -L http://install.perlbrew.pl | bash
+curl -LsS http://install.perlbrew.pl | bash
 
 echo "Loading Perlbrew environment variables..."
 set +u
