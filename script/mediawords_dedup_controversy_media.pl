@@ -57,6 +57,51 @@ sub mark_medium_is_not_dup
     $db->query( "update media set is_not_dup = true where media_id = ?", $medium->{ media_id } );
 }
 
+# if one medium has the root domain as the url, mark everything as the dup of that medium
+sub mark_dups_of_root_domain
+{
+    my ( $db, $domain, $media ) = @_;
+
+    return if ( @{ $media } > 3 );
+
+    for my $a ( @{ $media } )
+    {
+        if ( !$a->{ dup_media_id } && ( $a->{ url_c } =~ m~^https?://(www\.)?$domain/?~ ) )
+        {
+            for my $b ( @{ $media } )
+            {
+                next if ( $a->{ media_id } == $b->{ media_id } || $b->{ dup_media_id } );
+
+                mark_medium_as_dup( $db, $b, $a );
+            }
+        }
+    }
+}
+
+# if one medium already has other media pointing to it as the dup, use that medium
+# as the dup for all other media in the domain
+sub mark_dups_of_existing_dup
+{
+    my ( $db, $domain, $media ) = @_;
+
+    return if ( @{ $media } > 3 );
+
+    for my $m ( @{ $media } )
+    {
+        if ( $m->{ dup_media_id } )
+        {
+            my $a = $db->find_by_id( 'media', $m->{ dup_media_id } );
+
+            for my $b ( @{ $media } )
+            {
+                next if ( $a->{ media_id } == $b->{ media_id } || $b->{ dup_media_id } );
+
+                mark_medium_as_dup( $db, $b, $a );
+            }
+        }
+    }
+}
+
 # check for media that are canonical url duplicates and mark one of each
 # pair as a duplicate
 sub mark_canonical_url_duplicates
@@ -248,8 +293,11 @@ END
     while ( my ( $domain, $domain_media ) = each( %{ $media_domain_lookup } ) )
     {
         print( "\n" . $i++ . "/ $num_domains\n" );
+        map { print "\t$_->{ url }\n" } @{ $domain_media };
 
+        mark_dups_of_existing_dup( $db, $domain, $domain_media );
         mark_canonical_url_duplicates( $db, $domain, $domain_media );
+        mark_dups_of_root_domain( $db, $domain, $domain_media );
 
         my $unprocessed_media = get_unprocessed_media( $domain_media );
 
