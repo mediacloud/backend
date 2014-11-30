@@ -62,7 +62,7 @@ sub mark_dups_of_root_domain
 {
     my ( $db, $domain, $media ) = @_;
 
-    return if ( @{ $media } > 3 );
+    return if ( @{ $media } > 5 );
 
     for my $a ( @{ $media } )
     {
@@ -84,7 +84,7 @@ sub mark_dups_of_existing_dup
 {
     my ( $db, $domain, $media ) = @_;
 
-    return if ( @{ $media } > 3 );
+    return if ( @{ $media } > 5 );
 
     for my $m ( @{ $media } )
     {
@@ -293,7 +293,6 @@ END
     while ( my ( $domain, $domain_media ) = each( %{ $media_domain_lookup } ) )
     {
         print( "\n" . $i++ . "/ $num_domains\n" );
-        map { print "\t$_->{ url }\n" } @{ $domain_media };
 
         mark_dups_of_existing_dup( $db, $domain, $domain_media );
         mark_canonical_url_duplicates( $db, $domain, $domain_media );
