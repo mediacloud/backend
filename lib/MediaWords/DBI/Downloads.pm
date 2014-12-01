@@ -112,7 +112,9 @@ sub _get_extracted_html
 
             $previous_concated_line_was_story = 1;
 
-            $line_text = _new_lines_around_block_level_tags( $lines->[ $i ] );
+            $line_text = $lines->[ $i ];
+
+            #_new_lines_around_block_level_tags( $lines->[ $i ] );
 
             $extracted_html .= ' ' . $line_text;
         }
@@ -502,7 +504,7 @@ sub extractor_results_for_download($$)
         $extracted_html = _get_extracted_html( $download_lines, $included_line_numbers );
     }
 
-    my $extracted_text = html_strip( $extracted_html );
+    my $extracted_text = html_strip( _new_lines_around_block_level_tags( $extracted_html ) );
 
     $ret->{ extracted_html } = $extracted_html;
     $ret->{ extracted_text } = $extracted_text;
