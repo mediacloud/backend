@@ -305,8 +305,7 @@ sub register : Local
     }
     else
     {
-        $c->req->params->{ username } = $user_email;
-        $self->index( $c );
+        $c->stash->{ template } = 'auth/welcome.tt2';
     }
 }
 

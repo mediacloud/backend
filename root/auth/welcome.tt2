@@ -1,0 +1,31 @@
+[% title = 'Welcome to Media Cloud' %]
+
+[% INCLUDE include/auth/header.tt2 %]
+
+<p>
+The Media Cloud team is committed to providing open access to our <a href="https://github.com/berkmancenter/mediacloud">code</a>, 
+<a href="http://mediacloud.org/category/blog/tool-blog/">tools</a>, and <a href="http://mediacloud.org/api">data</a> so that others 
+can build on the work we have done to better understand how online media impacts our society.
+</p>
+
+<p>
+You can use the user account you have just created to access Media Cloud tools like the
+<a href="http://dashboard.mediameter.org">Media Meter Dashboard</a> and to make calls 
+to the <a href="http://mediacloud.org/api">Media Cloud API</a>.  For information
+about our tools and API, visit <a href="http://mediacloud.org/get-involved">http://mediacloud.org/get-involved</a>.
+</p>
+
+<p>
+If you have any questions about the Media Cloud project, please join the 
+<a href="https://cyber.law.harvard.edu/lists/arc/mediacloud-users">mediacloud-users</a>
+mailing list.  We encourage you to join the mediacloud-users list just to share how you are using
+Media Cloud, even if you do not have any specific questions.  
+</p>
+
+<p>
+If you have questions 
+about your account or other private questions, 
+you can email <a href="mailto:info@mediacloud.org">info@mediacloud.org</a>.
+</p>
+
+[% INCLUDE include/auth/footer.tt2 %]

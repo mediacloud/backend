@@ -23,7 +23,7 @@ echo "Run './script/run_carton.sh exec nytprofhtml' to convert profile output to
 
 echo "Run './script/run_carton.sh exec nytprofcsv' to convert profile output to csv after profiling is complete."
 
-export CARTON_EXTRA_PERL5OPT="-mDevel::NYTProf"
+export CARTON_EXTRA_PERL5OPT="-d:NYTProf -mDevel::NYTProf"
 exec ./script/run_wrappered_carton.sh exec "$full_path_str" "$@"
 
 

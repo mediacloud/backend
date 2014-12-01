@@ -93,9 +93,9 @@ $(document).ready(function () {
 
 <table class="even_rows_grey">
     <tr>
+        <th>Rank</th>
         <th>Stories_id</th>
         <th>Title</th>
-        <th>Url</th>
         <th>Publish Date</th>
         <th>Medium</th>
         <th>Inlinks</th>
@@ -119,10 +119,9 @@ $(document).ready(function () {
     [% edit_url = c.uri_for( "/admin/stories/edit/$s.stories_id" ) %]
 
     <tr>
-
+        <td>[% loop.count %]</td>
         <td><a href="[% story_url  | html %]">[% s.stories_id %]</a></td>
-        <td>[% s.title | truncate( 48 ) | html %]</td>
-        <td><a href="[% s.url | html %]" target="blank">[% s.url | truncate ( 32 ) | html %]</a></td>   
+        <td><a href="[% s.url | html %]" target="blank">[% s.title | truncate( 48 ) | html %]</a></td>
         [% story_date = s.undateable ? 'undateable' : datetime.format( s.publish_date ) %]
         [% IF s.date_is_reliable %]
             <td id="reliable_story_date">[% story_date | html %]</td>

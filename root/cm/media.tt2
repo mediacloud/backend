@@ -5,10 +5,11 @@
 [% END %]
 
 [% PROCESS cm/header.tt2 %]
-    
+        
 <div id="wholecolumn">
 
     <div class="boxtitle">Search Media</div>
+    
     <fieldset>
         [% search_url = c.uri_for( "/admin/cm/search_media" ) %]
         <form method="get" action="[% search_url | html %]">
@@ -17,12 +18,15 @@
             <input type="text" name="q" width="64" value="[% query | html %]" />
             <input type="submit" name="submit" value="Search" />
         </form>
+        [% IF media.size == 1000 %]<p>Results limited to first 1000.</p>[% END %]
     </fieldset>
 
+    
     [% INCLUDE cm/media_table.tt2
         display_media=media
         display_media_title="Search Results" %]
 
 </div>
+
 
 [% INCLUDE include/footer.tt2 %]
