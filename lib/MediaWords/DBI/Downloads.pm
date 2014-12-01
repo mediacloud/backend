@@ -112,32 +112,20 @@ sub _get_extracted_html
 
             $previous_concated_line_was_story = 1;
 
-            unless ( $dont_add_double_new_line_for_block_elements )
-            {
-
-                $line_text = _new_lines_around_block_level_tags( $lines->[ $i ] );
-            }
-            else
-            {
-                $line_text = $lines->[ $i ];
-            }
+            $line_text = _new_lines_around_block_level_tags( $lines->[ $i ] );
 
             $extracted_html .= ' ' . $line_text;
         }
         elsif ( _contains_block_level_tags( $lines->[ $i ] ) )
         {
-
-            unless ( $dont_add_double_new_line_for_block_elements )
+            ## '\n\n\ is used as a sentence splitter so no need to add it more than once between text lines
+            if ( $previous_concated_line_was_story )
             {
-                ## '\n\n\ is used as a sentence splitter so no need to add it more than once between text lines
-                if ( $previous_concated_line_was_story )
-                {
 
-                    # Add double newline bc/ it will be recognized by the sentence splitter as a sentence boundary.
-                    $extracted_html .= "\n\n";
+                # Add double newline bc/ it will be recognized by the sentence splitter as a sentence boundary.
+                $extracted_html .= "\n\n";
 
-                    $previous_concated_line_was_story = 0;
-                }
+                $previous_concated_line_was_story = 0;
             }
         }
     }
