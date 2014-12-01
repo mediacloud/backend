@@ -340,9 +340,6 @@ mediawords:
     #Uncomment to disable the use of a precalculated version of the top_500_words.
     #disable_json_top_500_words_cache: "yes"
 
-    # Uncomment to allow sentences to cross block level html elments such a <p> or <div>
-    #disable_block_element_sentence_splitting: "yes"
-
     # Uncomment to cause feeds to be downloaded and stories but not processed for stories.
     # Generally the only reason you would want to do this is to run a backup crawler
     #do_not_process_feeds: 'yes'

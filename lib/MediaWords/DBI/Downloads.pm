@@ -96,10 +96,8 @@ sub _get_extracted_html
 
     my $is_line_included = { map { $_ => 1 } @{ $included_lines } };
 
-    my $config = MediaWords::Util::Config::get_config;
-    my $dont_add_double_new_line_for_block_elements =
-      defined( $config->{ mediawords }->{ disable_block_element_sentence_splitting } )
-      && ( $config->{ mediawords }->{ disable_block_element_sentence_splitting } eq 'yes' );
+    my $config                                      = MediaWords::Util::Config::get_config;
+    my $dont_add_double_new_line_for_block_elements = 0;
 
     my $extracted_html = '';
 
