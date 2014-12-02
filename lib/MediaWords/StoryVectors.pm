@@ -502,20 +502,25 @@ sub update_story_sentence_words_and_language
         }
     }
 
-    # Determine TLD
-    my $story_tld = '';
-    if ( defined( $story->{ url } ) )
-    {
-        my $story_url = $story->{ url };
-        my $story_tld = MediaWords::Util::IdentifyLanguage::tld_from_url( $story_url );
-    }
-    else
-    {
-        say STDERR "Story's URL for story ID " . $story->{ stories_id } . " is not defined.";
-    }
+    ## TODO - The code below to retrieve the story_tld is buggy -- the assignment to the shadow $story_tld has no effect
+    ## TO avoid confusion I'm commenting it out.
+    ## Since we're going to reextract all comment with the new extractor, I'm going to deferr any decsion about fixing the bug until that
+    ## point to avoid creating data artifacts do to language detection changes.
+
+    # # Determine TLD
+    # my $story_tld = '';
+    # if ( defined( $story->{ url } ) )
+    # {
+    #     my $story_url = $story->{ url };
+    #     my $story_tld = MediaWords::Util::IdentifyLanguage::tld_from_url( $story_url );
+    # }
+    # else
+    # {
+    #     say STDERR "Story's URL for story ID " . $story->{ stories_id } . " is not defined.";
+    # }
 
     # Identify the language of the full story
-    my $story_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $story_text, $story_tld );
+    my $story_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $story_text, '' );
 
     if ( !$story->{ language } || ( $story_lang ne $story->{ language } ) )
     {
@@ -555,7 +560,7 @@ sub update_story_sentence_words_and_language
         my $sentence = $sentences->[ $sentence_num ];
 
         # Identify the language of each of the sentences
-        my $sentence_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $sentence, $story_tld );
+        my $sentence_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $sentence, '' );
         if ( $sentence_lang ne $story_lang )
         {
 
