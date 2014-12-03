@@ -214,6 +214,21 @@ class MediaCloud(object):
         return self._queryForJson(self.V2_API_URL+'tag_sets/list',
             { 'last_tag_sets_id': last_tag_sets_id, 'rows':rows })
 
+    def controversy(self, controversies_id):
+        '''
+        Details about one controversy
+        '''
+        return self._queryForJson(self.V2_API_URL+'controversies/single/'+str(controversies_id))[0]
+
+    def controversyList(self, name=None):
+        '''
+        List all the controversies
+        '''
+        args = {}
+        if name is not None:
+            args['name'] = name
+        return self._queryForJson(self.V2_API_URL+'controversies/list',args)    
+
     def _queryForJson(self, url, params={}, http_method='GET'):
         '''
         Helper that returns queries to the API as real objects

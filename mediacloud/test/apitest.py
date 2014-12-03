@@ -66,6 +66,25 @@ class ApiMediaTest(ApiBaseTest):
         longer_list = self._mc.mediaList(0,200)
         self.assertEqual(len(longer_list),200)
 
+class ApiControversyTest(ApiBaseTest):
+
+    def testControversy(self):
+        controversy = self._mc.controversy(1)
+        self.assertEqual(controversy['controversies_id'],1)
+        self.assertEqual(controversy['name'],'trayvon')
+
+    def testControversyList(self):
+        # verify it pulls some
+        controversy_list = self._mc.controversyList()
+        self.assertTrue(len(controversy_list)>1)
+        # make sure the filtering works
+        pop_controversy_list = self._mc.controversyList('prop')
+        self.assertTrue(len(pop_controversy_list)>1)
+        self.assertTrue(len(pop_controversy_list)<len(controversy_list))
+        # make sure a failure case works
+        random_controversy_list = self._mc.controversyList('12335452432')
+        self.assertEqual(len(random_controversy_list),0)
+
 class ApiTagsTest(ApiBaseTest):
 
     def testTags(self):
