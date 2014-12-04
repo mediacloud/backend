@@ -15,6 +15,9 @@ use Moose;
 use namespace::autoclean;
 use List::Compare;
 use Carp;
+use MediaWords::DBI::Downloads;
+use MediaWords::Util::IdentifyLanguage;
+use MediaWords::Util::HTML;
 
 =head1 NAME
 
@@ -117,9 +120,24 @@ sub extract_PUT : Local
 
     die unless defined( $preprocessed_lines );
 
+    ## TODO merge with DBI::Downloads::extractor_results_for_download
+
     my $extractor = MediaWords::Util::ExtractorFactory::createExtractor( $extractor_method );
 
     my $ret = $extractor->extract_preprocessed_lines_for_story( $preprocessed_lines, $story_title, $story_description );
+
+    my $download_lines        = $ret->{ download_lines };
+    my $included_line_numbers = $ret->{ included_line_numbers };
+
+    my $extracted_html = MediaWords::DBI::Downloads::_get_extracted_html( $download_lines, $included_line_numbers );
+
+    #$extracted_html = _new_lines_around_block_level_tags( $extracted_html );
+    #my $extracted_text = html_strip( $extracted_html );
+
+    $ret->{ extracted_html } = $extracted_html;
+
+    #$ret->{ extracted_text } = $extracted_text;
+
     $self->status_ok( $c, entity => $ret );
 }
 
@@ -136,6 +154,33 @@ sub extractor_training_lines_GET : Local
     my $items = $c->dbis->query( $query, $downloads_id )->hashes();
 
     $self->status_ok( $c, entity => $items );
+}
+
+sub sentences_from_html : Local : ActionClass('REST')    # action roles are to be set for each derivative sub-actions
+{
+}
+
+sub sentences_from_html_PUT : Local
+{
+    my ( $self, $c ) = @_;
+
+    die unless exists $c->req->data->{ story_html };
+
+    my $story_html = $c->req->data->{ story_html };
+
+    die "'$story_html' is not a scalar " . ref( $story_html ) if ref( $story_html );
+
+    $story_html = MediaWords::DBI::Downloads::_new_lines_around_block_level_tags( $story_html );
+    my $story_text = html_strip( $story_html );
+
+    # Identify the language of the full story
+    my $story_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $story_text, '' );
+
+    my $sentences = MediaWords::StoryVectors::_get_sentences_from_story_text( $story_text, $story_lang );
+
+    #say STDERR Dumper( $sentences );
+
+    $self->status_ok( $c, entity => [ @$sentences ] );
 }
 
 =head1 AUTHOR
