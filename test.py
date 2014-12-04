@@ -9,7 +9,7 @@ test_classes = [
 	ApiMediaTest, ApiMediaSetTest, ApiFeedsTest, ApiDashboardsTest, ApiTagsTest, ApiTagSetsTest, 
 	ApiStoriesTest, ApiWordCountTest, ApiSentencesTest,
 	MongoStorageTest,
-	ApiControversyTest, ApiControversyDumpTest
+	ApiControversyTest, ApiControversyDumpTest, ApiControversyDumpTimeSliceTest,
 	AuthTokenTest,
 	WriteableApiTest
 ]
@@ -17,7 +17,7 @@ test_classes = [
 # set up all logging to DEBUG (cause we're running tests here!)
 logging.basicConfig(level=logging.DEBUG)
 log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-log_handler = logging.FileHandler('mediacloud-api.log')
+log_handler = logging.FileHandler('mediacloud-api-test.log')
 log_handler.setFormatter(log_formatter)
 # set up mediacloud logging to the file
 mc_logger = logging.getLogger('mediacloud')

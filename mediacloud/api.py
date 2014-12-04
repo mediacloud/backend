@@ -244,6 +244,30 @@ class MediaCloud(object):
             args['controversies_id'] = controversies_id
         return self._queryForJson(self.V2_API_URL+'controversy_dumps/list',args)    
 
+    def controversyDumpTimeSlice(self,controversy_dump_time_slices_id):
+        '''
+        Details about one controversy dump time slice
+        '''
+        return self._queryForJson(self.V2_API_URL+'controversy_dump_time_slices/single/'+str(controversy_dump_time_slices_id))[0]
+
+    def controversyDumpTimeSliceList(self, controversy_dumps_id=None, tags_id=None, period=None, 
+                                     start_date=None, end_date=None):
+        '''
+        List all the controversy dumps time slices in a controversy dump
+        '''
+        args = {}
+        if controversy_dumps_id is not None:
+            args['controversy_dumps_id'] = controversy_dumps_id
+        if tags_id is not None:
+            args['tags_id'] = tags_id
+        if period is not None:
+            args['period'] = period
+        if start_date is not None:
+            args['start_date'] = start_date
+        if end_date is not None:
+            args['end_date'] = end_date
+        return self._queryForJson(self.V2_API_URL+'controversy_dumps/list',args)    
+
     def _queryForJson(self, url, params={}, http_method='GET'):
         '''
         Helper that returns queries to the API as real objects

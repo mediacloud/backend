@@ -85,7 +85,6 @@ class ApiControversyTest(ApiBaseTest):
         random_controversy_list = self._mc.controversyList('12335')
         self.assertEqual(len(random_controversy_list),0)
 
-
 class ApiControversyDumpTest(ApiBaseTest):
 
     def testControversyDump(self):
@@ -104,6 +103,23 @@ class ApiControversyDumpTest(ApiBaseTest):
         # make sure a failure case works
         random_controversy_dump_list = self._mc.controversyDumpList('12335')
         self.assertEqual(len(random_controversy_dump_list),0)
+
+class ApiControversyDumpTimeSliceTest(ApiBaseTest):
+
+    def testControversyDumpTimeSlice(self):
+        dump_time_slice = self._mc.controversyDumpTimeSlice(145)
+        self.assertEqual(dump_time_slice['controversy_dump_time_slices_id'],145)
+        self.assertEqual(dump_time_slice['controversy_dumps_id'],16)
+        self.assertEqual(dump_time_slice['model_num_media'],4)
+
+    def testControversyDumpTimeSliceList(self):
+        # verify it pulls some
+        dump_time_slice_list = self._mc.controversyDumpTimeSliceList()
+        self.assertTrue(len(dump_time_slice_list)>1)
+        # make sure the filtering works
+        specific_dump_time_slice_list = self._mc.controversyDumpTimeSliceList(controversy_dumps_id=5)
+        self.assertTrue(len(specific_dump_time_slice_list)>1)
+        self.assertTrue(len(specific_dump_time_slice_list)<=len(dump_time_slice_list))
 
 class ApiTagsTest(ApiBaseTest):
 
