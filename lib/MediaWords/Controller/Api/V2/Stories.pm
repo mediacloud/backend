@@ -79,6 +79,27 @@ sub put_tags_PUT : Local
     return;
 }
 
+sub corenlp : Local
+{
+    my ( $self, $c, $stories_id ) = @_;
+
+    my $db = $c->dbis;
+
+    my $json;
+    if ( !MediaWords::Util::CoreNLP::story_is_annotated( $db, $stories_id ) )
+    {
+        $json = encode_json( { corenlp => 'story is not annotated' } );
+    }
+    else
+    {
+        $json = MediaWords::Util::CoreNLP::fetch_annotation_json_for_story_and_all_sentences( $db, $stories_id );
+    }
+
+    $c->response->content_type( 'application/json; charset=UTF-8' );
+    $c->response->content_length( bytes::length( $json ) );
+    $c->response->body( $json );
+}
+
 =head1 AUTHOR
 
 David Larochelle
