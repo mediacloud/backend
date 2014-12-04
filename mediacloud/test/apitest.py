@@ -295,22 +295,22 @@ class ApiSentencesTest(ApiBaseTest):
         # basic counting
         results = self._mc.sentenceCount('obama','+media_id:1')
         self.assertTrue(int(results['count'])>10000)
-        # counting with a default split weekly
-        results = self._mc.sentenceCount('obama','+media_id:1',True,'2014-01-01','2014-03-01')
+        # counting with a default split weekly (>180 days)
+        results = self._mc.sentenceCount('obama','+media_id:1',True,'2013-01-01','2014-01-01')
         self.assertEqual(results['split']['gap'],'+7DAYS')
-        self.assertEqual(len(results['split']),12)
-        # counting with a default split 3-day
-        results = self._mc.sentenceCount('obama','+media_id:1',True,'2014-01-01','2014-02-01')
+        self.assertEqual(len(results['split']),56)
+        # counting with a default split 3-day (<180 days, >90 days)
+        results = self._mc.sentenceCount('obama','+media_id:1',True,'2014-01-01','2014-06-01')
         self.assertEqual(results['split']['gap'],'+3DAYS')
-        self.assertEqual(len(results['split']),14)
-        # counting with a default split daily
+        self.assertEqual(len(results['split']),54)
+        # counting with a default split daily (<90 days)
         results = self._mc.sentenceCount('obama','+media_id:1',True,'2014-01-01','2014-01-07')
         self.assertEqual(results['split']['gap'],'+1DAY')
         self.assertEqual(len(results['split']),9)
         # test forcing a daily split
-        results = self._mc.sentenceCount('obama','+media_id:1',True,'2014-01-01','2014-02-01',True)
+        results = self._mc.sentenceCount('obama','+media_id:1',True,'2014-01-01','2014-06-01',True)
         self.assertEqual(results['split']['gap'],'+1DAY')
-        self.assertEqual(len(results['split']),34)
+        self.assertEqual(len(results['split']),154)
 
 class ApiWordCountTest(ApiBaseTest):
 
