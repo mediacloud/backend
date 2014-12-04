@@ -9,7 +9,7 @@ test_classes = [
 	ApiMediaTest, ApiMediaSetTest, ApiFeedsTest, ApiDashboardsTest, ApiTagsTest, ApiTagSetsTest, 
 	ApiStoriesTest, ApiWordCountTest, ApiSentencesTest,
 	MongoStorageTest,
-	ApiControversyTest,
+	ApiControversyTest, ApiControversyDumpTest
 	AuthTokenTest,
 	WriteableApiTest
 ]

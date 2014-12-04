@@ -82,8 +82,28 @@ class ApiControversyTest(ApiBaseTest):
         self.assertTrue(len(pop_controversy_list)>1)
         self.assertTrue(len(pop_controversy_list)<len(controversy_list))
         # make sure a failure case works
-        random_controversy_list = self._mc.controversyList('12335452432')
+        random_controversy_list = self._mc.controversyList('12335')
         self.assertEqual(len(random_controversy_list),0)
+
+
+class ApiControversyDumpTest(ApiBaseTest):
+
+    def testControversyDump(self):
+        controversy_dump = self._mc.controversyDump(557)
+        self.assertEqual(controversy_dump['controversy_dumps_id'],557)
+        self.assertEqual(controversy_dump['controversies_id'],1)
+
+    def testControversyDumpList(self):
+        # verify it pulls some
+        controversy_dump_list = self._mc.controversyDumpList()
+        self.assertTrue(len(controversy_dump_list)>1)
+        # make sure the filtering works
+        specific_controversy_dump_list = self._mc.controversyDumpList(1)
+        self.assertTrue(len(specific_controversy_dump_list)>1)
+        self.assertTrue(len(specific_controversy_dump_list)<len(controversy_dump_list))
+        # make sure a failure case works
+        random_controversy_dump_list = self._mc.controversyDumpList('12335')
+        self.assertEqual(len(random_controversy_dump_list),0)
 
 class ApiTagsTest(ApiBaseTest):
 
