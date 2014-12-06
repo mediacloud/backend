@@ -462,6 +462,22 @@ EOF
     return;
 }
 
+sub _get_sentences_from_story_text
+{
+    my ( $story_text, $story_lang ) = @_;
+
+    # Tokenize into sentences
+    my $lang = MediaWords::Languages::Language::language_for_code( $story_lang );
+    if ( !$lang )
+    {
+        $lang = MediaWords::Languages::Language::default_language();
+    }
+
+    my $sentences = $lang->get_sentences( $story_text );
+
+    return $sentences;
+}
+
 # update story vectors for the given story, updating story_sentences and story_sentence_words
 # if no_delete is true, do not try to delete existing entries in the above table before creating new ones
 # (useful for optimization if you are very sure no story vectors exist for this story).  If
@@ -502,33 +518,33 @@ sub update_story_sentence_words_and_language
         }
     }
 
-    # Determine TLD
-    my $story_tld = '';
-    if ( defined( $story->{ url } ) )
-    {
-        my $story_url = $story->{ url };
-        my $story_tld = MediaWords::Util::IdentifyLanguage::tld_from_url( $story_url );
-    }
-    else
-    {
-        say STDERR "Story's URL for story ID " . $story->{ stories_id } . " is not defined.";
-    }
+    ## TODO - The code below to retrieve the story_tld is buggy -- the assignment to the shadow $story_tld has no effect
+    ## TO avoid confusion I'm commenting it out.
+    ## Since we're going to reextract all comment with the new extractor, I'm going to deferr any decsion about fixing the bug until that
+    ## point to avoid creating data artifacts do to language detection changes.
+
+    # # Determine TLD
+    # my $story_tld = '';
+    # if ( defined( $story->{ url } ) )
+    # {
+    #     my $story_url = $story->{ url };
+    #     my $story_tld = MediaWords::Util::IdentifyLanguage::tld_from_url( $story_url );
+    # }
+    # else
+    # {
+    #     say STDERR "Story's URL for story ID " . $story->{ stories_id } . " is not defined.";
+    # }
 
     # Identify the language of the full story
-    my $story_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $story_text, $story_tld );
+    my $story_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $story_text, '' );
+
+    my $sentences = _get_sentences_from_story_text( $story_text, $story_lang );
 
     if ( !$story->{ language } || ( $story_lang ne $story->{ language } ) )
     {
         $db->query( "UPDATE stories SET language = ? WHERE stories_id = ?", $story_lang, $story->{ stories_id } );
     }
 
-    # Tokenize into sentences
-    my $lang = MediaWords::Languages::Language::language_for_code( $story_lang );
-    if ( !$lang )
-    {
-        $lang = MediaWords::Languages::Language::default_language();
-    }
-    my $sentences = $lang->get_sentences( $story_text );
     unless ( defined $sentences )
     {
         die "Sentences for story " . $story->{ stories_id } . " are undefined.";
@@ -555,7 +571,7 @@ sub update_story_sentence_words_and_language
         my $sentence = $sentences->[ $sentence_num ];
 
         # Identify the language of each of the sentences
-        my $sentence_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $sentence, $story_tld );
+        my $sentence_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $sentence, '' );
         if ( $sentence_lang ne $story_lang )
         {
 

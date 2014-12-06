@@ -20,6 +20,7 @@ use MediaWords::Util::Paths;
 use MediaWords::Util::ExtractorFactory;
 use MediaWords::Util::HeuristicExtractor;
 use MediaWords::GearmanFunction::AnnotateWithCoreNLP;
+use MediaWords::Util::ThriftExtractor;
 
 # Database inline content length limit
 use constant INLINE_CONTENT_LENGTH => 256;
@@ -95,10 +96,8 @@ sub _get_extracted_html
 
     my $is_line_included = { map { $_ => 1 } @{ $included_lines } };
 
-    my $config = MediaWords::Util::Config::get_config;
-    my $dont_add_double_new_line_for_block_elements =
-      defined( $config->{ mediawords }->{ disable_block_element_sentence_splitting } )
-      && ( $config->{ mediawords }->{ disable_block_element_sentence_splitting } eq 'yes' );
+    my $config                                      = MediaWords::Util::Config::get_config;
+    my $dont_add_double_new_line_for_block_elements = 0;
 
     my $extracted_html = '';
 
@@ -113,32 +112,22 @@ sub _get_extracted_html
 
             $previous_concated_line_was_story = 1;
 
-            unless ( $dont_add_double_new_line_for_block_elements )
-            {
+            $line_text = $lines->[ $i ];
 
-                $line_text = _new_lines_around_block_level_tags( $lines->[ $i ] );
-            }
-            else
-            {
-                $line_text = $lines->[ $i ];
-            }
+            #_new_lines_around_block_level_tags( $lines->[ $i ] );
 
             $extracted_html .= ' ' . $line_text;
         }
         elsif ( _contains_block_level_tags( $lines->[ $i ] ) )
         {
-
-            unless ( $dont_add_double_new_line_for_block_elements )
+            ## '\n\n\ is used as a sentence splitter so no need to add it more than once between text lines
+            if ( $previous_concated_line_was_story )
             {
-                ## '\n\n\ is used as a sentence splitter so no need to add it more than once between text lines
-                if ( $previous_concated_line_was_story )
-                {
 
-                    # Add double newline bc/ it will be recognized by the sentence splitter as a sentence boundary.
-                    $extracted_html .= "\n\n";
+                # Add double newline bc/ it will be recognized by the sentence splitter as a sentence boundary.
+                $extracted_html .= "\n\n";
 
-                    $previous_concated_line_was_story = 0;
-                }
+                $previous_concated_line_was_story = 0;
             }
         }
     }
@@ -486,19 +475,36 @@ sub extractor_results_for_download($$)
 {
     my ( $db, $download ) = @_;
 
-    my $story = $db->query( "select * from stories where stories_id = ?", $download->{ stories_id } )->hash;
+    my $config           = MediaWords::Util::Config::get_config;
+    my $extractor_method = $config->{ mediawords }->{ extractor_method };
 
-    my $lines = fetch_preprocessed_content_lines( $db, $download );
+    my $extracted_html;
+    my $ret;
 
-    # print "PREPROCESSED LINES:\n**\n" . join( "\n", @{ $lines } ) . "\n**\n";
+    if ( $extractor_method eq 'PythonReadability' )
+    {
+        my $content_ref = fetch_content( $db, $download );
 
-    my $ret = extract_preprocessed_lines_for_story( $lines, $story->{ title }, $story->{ description } );
+        $ret            = {};
+        $extracted_html = MediaWords::Util::ThriftExtractor::get_extracted_html( $$content_ref );
+    }
+    else
+    {
+        my $story = $db->query( "select * from stories where stories_id = ?", $download->{ stories_id } )->hash;
 
-    my $download_lines        = $ret->{ download_lines };
-    my $included_line_numbers = $ret->{ included_line_numbers };
+        my $lines = fetch_preprocessed_content_lines( $db, $download );
 
-    my $extracted_html = _get_extracted_html( $download_lines, $included_line_numbers );
+        # print "PREPROCESSED LINES:\n**\n" . join( "\n", @{ $lines } ) . "\n**\n";
 
+        $ret = extract_preprocessed_lines_for_story( $lines, $story->{ title }, $story->{ description } );
+
+        my $download_lines        = $ret->{ download_lines };
+        my $included_line_numbers = $ret->{ included_line_numbers };
+
+        $extracted_html = _get_extracted_html( $download_lines, $included_line_numbers );
+    }
+
+    $extracted_html = _new_lines_around_block_level_tags( $extracted_html );
     my $extracted_text = html_strip( $extracted_html );
 
     $ret->{ extracted_html } = $extracted_html;

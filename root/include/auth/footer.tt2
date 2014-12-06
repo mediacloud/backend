@@ -11,6 +11,7 @@
 				<ul>
 					<li><a href="http://www.mediacloud.org">Media Cloud Home</a></li>
 					<li><a href="http://dashboard.mediameter.org">Media Cloud Dashboard</a></li>
+					<li><a href="http://mediacloud.org/api">Media Cloud API</a></li>
 					<li><a href="[% c.uri_for( '/admin/profile' ) %]">Media Cloud Profile</a></li>
 				</ul>
 		    </aside>
