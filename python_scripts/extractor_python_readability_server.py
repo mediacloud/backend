@@ -1,13 +1,17 @@
 #!/usr/bin/python
 
 import sys
+import os
 import glob
-sys.path.append("python_scripts/gen-py")
-sys.path.append("gen-py/thrift_solr/")
+#sys.path.append(os.path.join(os.path.dirname(__file__), "gen-py"))
+sys.path.append(os.path.join(os.path.dirname(__file__),"gen-py/thrift_solr/"))
+sys.path.append(os.path.dirname(__file__) )
 
 from thrift.transport import TSocket 
 from thrift.server import TServer 
 #import thrift_solr
+
+
 import ExtractorService
 
 import sys
@@ -25,12 +29,12 @@ def extract_with_python_readability( raw_content ):
 class ExtractorHandler:
     def extract_html( self, raw_html ):
 
-        print raw_html
+        #print raw_html
 
         #raw_html = raw_html.encode( 'utf-8' )
 
         ret =  extract_with_python_readability( raw_html )
-        print ret[1]
+        #print ret[1]
         return ret
 
 handler = ExtractorHandler()
