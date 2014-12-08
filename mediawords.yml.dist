@@ -140,7 +140,7 @@ database:
             #autostart: 'true'
             #autorestart: 'false'
             
-        #extractor_and_vector:
+        #extract_and_vector:
             #numprocs: 1
             #autostart: 'true'
             #autorestart: 'true'
