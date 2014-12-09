@@ -29,5 +29,7 @@ if [[ "$CARTON_VERSION" == cartonv0* ]]; then
     exit 1
 fi
 
+export PERL_LWP_SSL_VERIFY_HOSTNAME=0
+
 #echo carton "$@"
 exec carton "$@"
