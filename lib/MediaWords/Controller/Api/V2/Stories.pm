@@ -81,20 +81,41 @@ sub put_tags_PUT : Local
 
 sub corenlp : Local
 {
-    my ( $self, $c, $stories_id ) = @_;
+    my ( $self, $c ) = @_;
 
     my $db = $c->dbis;
+    
+    my $stories_ids = $c->req->params->{ stories_id };
+    
+    $stories_ids = [ $stories_ids ] unless ( ref( $stories_ids ) );
 
-    my $json;
-    if ( !MediaWords::Util::CoreNLP::story_is_annotated( $db, $stories_id ) )
+    my $json_list = {};
+    for my $stories_id ( @{ $stories_ids } )
     {
-        $json = encode_json( { corenlp => 'story is not annotated' } );
-    }
-    else
-    {
-        $json = MediaWords::Util::CoreNLP::fetch_annotation_json_for_story_and_all_sentences( $db, $stories_id );
-    }
+        next if ( $json_list->{ $stories_id } );
+        
+        my $json;
+        eval { $json = MediaWords::Util::CoreNLP::fetch_annotation_json_for_story_and_all_sentences( $db, $stories_id ) };
+        $json ||= '"story is not annotated"';
 
+        $json_list->{ $stories_id } = $json;
+        
+    }
+   
+    my $json_items = [];
+    for my $stories_id ( keys( %{ $json_list } ) )
+    {
+        my $json_item = <<"END";
+{ 
+  "stories_id": $stories_id,
+  "corenlp": $json_list->{ $stories_id }
+}
+END
+        push( @{ $json_items }, $json_item );
+    }
+    
+    my $json = "[\n" . join( ",\n", @{ $json_items } ) . "\n]\n";
+    
     $c->response->content_type( 'application/json; charset=UTF-8' );
     $c->response->content_length( bytes::length( $json ) );
     $c->response->body( $json );
