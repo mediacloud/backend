@@ -183,17 +183,17 @@ sub _add_nested_data
         group by s.stories_id
 END
         MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $story_text_data );
-    }
 
-    my $extracted_data = $db->query( <<END )->hashes;
-select s.stories_id,
-        BOOL_AND( extracted ) is_fully_extracted
-    from stories s
-        join downloads d on ( s.stories_id = d.stories_id )
-    where s.stories_id in ( select id from $ids_table )
-    group by s.stories_id
+        my $extracted_data = $db->query( <<END )->hashes;
+    select s.stories_id,
+            BOOL_AND( extracted ) is_fully_extracted
+        from stories s
+            join downloads d on ( s.stories_id = d.stories_id )
+        where s.stories_id in ( select id from $ids_table )
+        group by s.stories_id
 END
-    MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $extracted_data );
+        MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $extracted_data );
+    }
 
     if ( $self->{ show_sentences } )
     {
