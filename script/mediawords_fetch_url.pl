@@ -4,7 +4,7 @@
 
 use strict;
 
-#use warnings;
+use warnings;
 
 BEGIN
 {
