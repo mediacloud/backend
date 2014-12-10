@@ -3,8 +3,7 @@
 # create media_tag_tag_counts table by querying the database tags / feeds / stories
 
 use strict;
-
-#use warnings;
+use warnings;
 
 BEGIN
 {
