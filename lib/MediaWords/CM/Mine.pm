@@ -36,6 +36,9 @@ use constant LINK_WEIGHT_ITERATIONS => 3;
 # tag that will be associate with all controversy_stories at the end of the script
 use constant ALL_TAG => 'all';
 
+# max number of solely self linked stories to include
+use constant MAX_SELF_LINKED_STORIES => 200;
+
 # ignore links that match this pattern
 my $_ignore_link_pattern =
   '(www.addtoany.com)|(novostimira.com)|(ads\.pheedo)|(www.dailykos.com\/user)|' .
@@ -1023,6 +1026,53 @@ END
     }
 }
 
+# return true if this story is already a controversy story or
+# if the story has the same media_id as the source linking story and
+# there are already MAX_SELF_LINKED_STORIES solely self linked stories for the given
+# media source.  this prevents the spider from downloading too many pages within a single
+# site that self links a lot, like freedictionary.com, youtube, or google books
+sub skip_controversy_story
+{
+    my ( $db, $controversy, $story, $link ) = @_;
+
+    return 1 if ( story_is_controversy_story( $db, $controversy, $story ) );
+
+    my $ss = $db->find_by_id( 'stories', $link->{ stories_id } );
+    return 0 if ( $ss->{ media_id } != $story->{ media_id } );
+
+    # this query is much quicker than the below one, so do it first
+    my ( $num_stories ) = $db->query( <<END, $controversy->{ controversies_id }, $story->{ media_id } )->flat;
+select count(*) from cd.live_stories where controversies_id = ? and media_id = ?
+END
+
+    my $MAX_SELF_LINKED_STORIES = MAX_SELF_LINKED_STORIES;
+    return 0 if ( $num_stories <= $MAX_SELF_LINKED_STORIES );
+
+    my ( $num_cross_linked_stories ) = $db->query( <<END, $controversy->{ controversies_id }, $story->{ media_id } )->flat;
+select count( distinct rs.stories_id )
+    from cd.live_stories rs
+        join controversy_links cl on ( cl.controversies_id = \$1 and rs.stories_id = cl.ref_stories_id )
+        join cd.live_stories ss on ( ss.controversies_id = \$1 and cl.stories_id = ss.stories_id )
+    where 
+        rs.controversies_id = \$1 and 
+        rs.media_id = \$2 and
+        ss.media_id <> rs.media_id
+    limit ( $num_stories - $MAX_SELF_LINKED_STORIES )
+END
+
+    my $num_self_linked_stories = $num_stories - $num_cross_linked_stories;
+
+    if ( $num_self_linked_stories > $MAX_SELF_LINKED_STORIES )
+    {
+        say STDERR "skip self linked story: $story->{ url }";
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 # if the story matches the controversy pattern, add it to controversy_stories and controversy_links
 sub add_to_controversy_stories_and_links_if_match
 {
@@ -1030,7 +1080,7 @@ sub add_to_controversy_stories_and_links_if_match
 
     set_controversy_link_ref_story( $db, $story, $link ) if ( $link->{ controversy_links_id } );
 
-    return if ( story_is_controversy_story( $db, $controversy, $story ) );
+    return if ( skip_controversy_story( $db, $controversy, $story, $link ) );
 
     if ( $link->{ assume_match } || story_matches_controversy_pattern( $db, $controversy, $story ) )
     {
