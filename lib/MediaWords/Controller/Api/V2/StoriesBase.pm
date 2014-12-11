@@ -61,7 +61,6 @@ sub get_table_name
 # to the { raw_first_download_file } field.
 sub _add_raw_1st_download
 {
-    say STDERR "add_raw_1st_download\n";
     my ( $db, $stories ) = @_;
 
     $db->begin;
@@ -94,7 +93,6 @@ END
 # for each story, add the corenlp anno
 sub _add_corenlp
 {
-    say STDERR "add_corenlp\n";
     my ( $db, $stories, $ids_table ) = @_;
 
     die( "corenlp annotator is not enabled" ) unless ( MediaWords::Util::CoreNLP::annotator_is_enabled );
@@ -122,8 +120,6 @@ sub _add_corenlp
 
 sub add_extra_data
 {
-    say STDERR "add_extra_data\n";
-
     my ( $self, $c, $stories ) = @_;
 
     my $raw_1st_download = $c->req->params->{ raw_1st_download };
@@ -160,7 +156,6 @@ sub _split_sentence_tags_list
 
 sub _add_nested_data
 {
-    say STDERR "add_nested_data\n";
     my ( $self, $db, $stories ) = @_;
 
     return unless ( @{ $stories } );
@@ -225,7 +220,6 @@ END
 
 sub _get_list_last_id_param_name
 {
-    say STDERR "get_list_last_id_param_name\n";
     my ( $self, $c ) = @_;
 
     return "last_processed_stories_id";
@@ -233,8 +227,6 @@ sub _get_list_last_id_param_name
 
 sub _get_object_ids
 {
-    say STDERR "get_object_iods\n";
-
     my ( $self, $c, $last_id, $rows ) = @_;
 
     my $q = $c->req->param( 'q' ) || '*:*';
@@ -247,7 +239,6 @@ sub _get_object_ids
 
 sub _fetch_list
 {
-    say STDERR "fetch_list\n";
     my ( $self, $c, $last_id, $table_name, $id_field, $rows ) = @_;
 
     $self->{ show_sentences } = $c->req->params->{ sentences };
