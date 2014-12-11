@@ -1,9 +1,6 @@
 #!/usr/bin/env perl
 
-# create media_tag_tag_counts table by querying the database tags / feeds / stories
-
 use strict;
-
 use warnings;
 
 BEGIN
@@ -12,9 +9,7 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
-use LWP::UserAgent;
-
-use MediaWords::Util::Config;
+use MediaWords::Util::Web;
 
 sub main
 {
@@ -22,17 +17,9 @@ sub main
 
     die( "usage: $0 < url >" ) unless ( $url );
 
-    my $ua     = LWP::UserAgent->new();
-    my $config = MediaWords::Util::Config::get_config;
+    my $ua = MediaWords::Util::Web::UserAgent;
 
-    $ua->from( $config->{ mediawords }->{ owner } );
-    $ua->agent( $config->{ mediawords }->{ user_agent } );
     $ua->cookie_jar( {} );
-
-    $ua->timeout( 20 );
-    $ua->max_size( 1024 * 1024 );
-    $ua->max_redirect( 15 );
-    $ua->env_proxy;
 
     my $response = $ua->get( $url );
 
