@@ -1258,14 +1258,15 @@ sub spider_new_links
 {
     my ( $db, $controversy, $iteration ) = @_;
 
-    my $new_links = $db->query(
-        "select distinct cs.iteration, cl.* from controversy_links cl, controversy_stories cs " .
-          "  where cl.ref_stories_id is null and cl.stories_id = cs.stories_id and cs.iteration < ? and " .
-          "    cs.controversies_id = ? and cl.controversies_id = ? ",
-        $iteration,
-        $controversy->{ controversies_id },
-        $controversy->{ controversies_id }
-    )->hashes;
+    my $new_links = $db->query( <<END, $iteration, $controversy->{ controversies_id } )->hashes;
+select distinct cs.iteration, cl.* from controversy_links cl, controversy_stories cs
+    where 
+        cl.ref_stories_id is null and 
+        cl.stories_id = cs.stories_id and 
+        ( cs.iteration < \$1 or cs.iteration == 1000 ) and
+        cs.controversies_id = \$2 and 
+        cl.controversies_id = \$2
+END
 
     add_new_links( $db, $controversy, $iteration, $new_links );
 }
