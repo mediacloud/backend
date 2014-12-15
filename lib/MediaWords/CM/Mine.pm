@@ -1263,7 +1263,7 @@ select distinct cs.iteration, cl.* from controversy_links cl, controversy_storie
     where 
         cl.ref_stories_id is null and 
         cl.stories_id = cs.stories_id and 
-        ( cs.iteration < \$1 or cs.iteration == 1000 ) and
+        ( cs.iteration < \$1 or cs.iteration = 1000 ) and
         cs.controversies_id = \$2 and 
         cl.controversies_id = \$2
 END
