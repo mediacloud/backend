@@ -243,7 +243,7 @@ sub get_url_domain($)
     }
     else
     {
-        $domain = join( ".", $name_parts->[ $n - 1 ], $name_parts->[ $n ] );
+        $domain = join( ".", $name_parts->[ $n - 1 ] || '', $name_parts->[ $n ] || '' );
     }
 
     return lc( $domain );
