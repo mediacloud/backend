@@ -628,44 +628,6 @@ sub _get_stem_word_counts_for_sentence($$;$)
     return $word_counts;
 }
 
-# fill the story_sentence_words table with all stories in ssw_queue
-sub fill_story_sentence_words
-{
-    my ( $db ) = @_;
-
-    my $block_size = 1;
-
-    my $count = 0;
-    while (
-        my $stories = $db->query_with_large_work_mem(
-            <<"EOF"
-            SELECT stories_id,
-                   publish_date,
-                   media_id
-            FROM ssw_queue
-            ORDER BY stories_id
-            LIMIT $block_size
-EOF
-        )->hashes
-      )
-    {
-        if ( !@{ $stories } )
-        {
-            last;
-        }
-
-        for my $story ( @{ $stories } )
-        {
-            say STDERR "story [ $story->{ stories_id } ] " . ++$count . " ...";
-
-            update_story_sentence_words_and_language( $db, $story, 0 );
-
-            $db->query( "DELETE FROM ssw_queue WHERE stories_id = ?", $story->{ stories_id } );
-        }
-        $db->commit();
-    }
-}
-
 # return a where clause that restricts the media_sets_id to the given media_sets_id or else
 # adds no restriction at all if the media_sets_id is not defined
 sub _get_media_set_clause
