@@ -49,3 +49,7 @@ solr/mediacloud/velocity.log
 
 # MediaWords::CM::Dump output
 /dump_layout_*
+
+# Cloned API client repo
+/MediaCloud-API-Client
+
