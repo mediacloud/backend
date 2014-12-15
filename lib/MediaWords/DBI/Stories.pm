@@ -1069,18 +1069,15 @@ sub get_all_sentences
     my $all_sentences = [];
     for my $sentence ( @{ $raw_sentences } )
     {
-        my $dup_sentence =
-          $db->query( <<END, $sentence, $story->{ media_id }, $story->{ publish_date }, $story->{ stories_id } )->hash;
+        my $ssc = $db->query( <<END, $sentence, $story->{ media_id }, $story->{ publish_date } )->hash;
 select * 
     from story_sentence_counts 
     where sentence_md5 = MD5( ? ) and
         media_id = ? and
-        publish_week = DATE_TRUNC( 'week', ?::date ) and
-        first_stories_id <> ?
+        publish_week = DATE_TRUNC( 'week', ?::date )
     limit 1
 END
-        my $dup_stories_id = $dup_sentence ? $dup_sentence->{ first_stories_id } : undef;
-        push( @{ $all_sentences }, { sentence => $sentence, dup_stories_id => $dup_stories_id } );
+        push( @{ $all_sentences }, { sentence => $sentence, count => $ssc, stories_id => $story->{ stories_id } } );
     }
 
     return $all_sentences;
