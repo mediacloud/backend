@@ -14,6 +14,8 @@ class MediaCloud(object):
     SORT_PUBLISH_DATE_DESC = "publish_date_desc"
     SORT_RANDOM = "random"
 
+    MSG_CORE_NLP_NOT_ANNOTATED = "story is not annotated"
+
     SENTENCE_PUBLISH_DATE_FORMAT = "%Y-%m-%d %H:%M:%S" # use with datetime.datetime.strptime
 
     def __init__(self, auth_token=None):
@@ -131,7 +133,8 @@ class MediaCloud(object):
         return self._queryForJson(self.V2_API_URL+'stories/single/'+str(stories_id),
                 {'raw_1st_download': 1 if raw_1st_download else 0, 'corenlp': 1 if corenlp else 0} )[0]
 
-    def storyList(self, solr_query='', solr_filter='', last_processed_stories_id=0, rows=20, raw_1st_download=False, corenlp=False):
+    def storyList(self, solr_query='', solr_filter='', last_processed_stories_id=0, rows=20, 
+                  raw_1st_download=False, corenlp=False, show_sentences=True, show_text=True):
         '''
         Search for stories and page through results
         '''
@@ -141,8 +144,21 @@ class MediaCloud(object):
                  'last_processed_stories_id': last_processed_stories_id,
                  'rows': rows,
                  'raw_1st_download': 1 if raw_1st_download else 0, 
-                 'corenlp': 1 if corenlp else 0
+                 'corenlp': 1 if corenlp else 0,    # this is slow - use storyCoreNlList instead
+                 'show_sentences': 1 if show_sentences else 0,
+                 'show_text': 1 if show_text else 0
                 }) 
+
+    def storyCoreNlpList(self, story_id_list):
+        '''
+        The stories/corenlp call takes as many stories_id= parameters as you want to pass it, 
+        and it returns the corenlp for each.  
+        { stories_id => 1, corenlp => { <corenlp data> } }
+        If no corenlp annotation is available for a given story, the json element for that story looks like:
+        { stories_id => 1, corenlp => 'story is not annotated' }
+        '''
+        return self._queryForJson(self.V2_API_URL+'stories/corenlp',
+            {'stories_id': story_id_list} )
 
     def sentenceList(self, solr_query, solr_filter='', start=0, rows=1000, sort=SORT_PUBLISH_DATE_ASC):
         '''

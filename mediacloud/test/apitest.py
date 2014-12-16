@@ -218,10 +218,10 @@ class ApiStoriesTest(ApiBaseTest):
     def testStory(self):
         story = self._mc.story(27456565)
         self.assertEqual(story['media_id'],1144)
-        self.assertTrue(len(story['story_sentences'])>0)
+        self.assertFalse('story_sentences' in story)
 
     def testStoryList(self):
-        results = self._mc.storyList('+obama', '+publish_date:[2013-01-01T00:00:00Z TO 2013-02-01T00:00:00Z] AND +media_sets_id:1')
+        results = self._mc.storyList(self.QUERY, self.FILTER_QUERY)
         self.assertNotEqual(len(results),0)
 
     def testStoryPublic(self):
@@ -230,8 +230,52 @@ class ApiStoriesTest(ApiBaseTest):
         self.assertTrue('story_sentences' not in story)
 
     def testStoryPublicList(self):
-        results = self._mc.storyList('+obama', '+publish_date:[2013-01-01T00:00:00Z TO 2013-02-01T00:00:00Z] AND +media_sets_id:1')
+        results = self._mc.storyList(self.QUERY, self.FILTER_QUERY)
         self.assertNotEqual(len(results),0)
+
+    def testStoryCoreNlpList(self):
+        results = self._mc.storyCoreNlpList([261784668,261784669])
+        self.assertEqual(len(results),2)
+        for story in results:
+            self.assertFalse('story_sentences' in story)
+            self.assertFalse('story_text' in story)
+            self.assertFalse('fully_extracted' in story)
+            self.assertTrue('corenlp' in story)
+            self.assertTrue('stories_id' in story)
+
+'''
+    def testStoryListDefaults(self):
+        results = self._mc.storyList(self.QUERY, self.FILTER_QUERY)
+        for story in results:
+            self.assertTrue('story_sentences' in story)
+            self.assertTrue('story_text' in story)
+            self.assertTrue('fully_extracted' in story)
+            self.assertFalse('corenlp' in story)
+
+    def testStoryListWithCoreNlp(self):
+        results = self._mc.storyList(self.QUERY, self.FILTER_QUERY, corenlp=True)
+        for story in results:
+            self.assertFalse('story_sentences' in story)
+            self.assertTrue('story_text' in story)
+            self.assertTrue('fully_extracted' in story)
+            self.assertFalse('corenlp' in story)
+
+    def testStoryListWithoutSentences(self):
+        results = self._mc.storyList(self.QUERY, self.FILTER_QUERY, show_sentences=False)
+        for story in results:
+            self.assertFalse('story_sentences' in story)
+            self.assertTrue('story_text' in story)
+            self.assertTrue('fully_extracted' in story)
+            self.assertFalse('corenlp' in story)
+
+    def testStoryListWithoutText(self):
+        results = self._mc.storyList(self.QUERY, self.FILTER_QUERY, show_text=False)
+        for story in results:
+            self.assertTrue('story_sentences' in story)
+            self.assertFalse('story_text' in story)
+            self.assertFalse('fully_extracted' in story)
+            self.assertFalse('corenlp' in story)
+'''
 
 class ApiSentencesTest(ApiBaseTest):
 
