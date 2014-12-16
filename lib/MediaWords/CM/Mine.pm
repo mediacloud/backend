@@ -14,6 +14,7 @@ use DateTime;
 use Encode;
 use Getopt::Long;
 use HTML::LinkExtractor;
+use List::Util;
 use URI;
 use URI::Split;
 use URI::Escape;
@@ -1480,6 +1481,23 @@ sub generate_link_weights
     }
 }
 
+# get the smaller iteration of the two stories
+sub get_merged_iteration
+{
+    my ( $db, $controversy, $delete_story, $keep_story ) = @_;
+
+    my $cid = $controversy->{ controversies_id };
+    my $i = $db->query( <<END, $cid, $delete_story->{ stories_id }, $keep_story->{ stories_id } )->flat;
+select iteration
+    from controversy_stories
+    where 
+        controversies_id  = \$1 and
+        stories_id in ( \$2, \$3 )
+END
+
+    return List::Util::min( @{ $i } );
+}
+
 # merge delete_story into keep_story by making sure all links that are in delete_story are also in keep_story
 # and making sure that keep_story is in controversy_stories.  once done, delete delete_story from controversy_stories (but not
 # from stories)
@@ -1504,8 +1522,11 @@ END
         set_controversy_link_ref_story( $db, $keep_story, $ref_controversy_link );
     }
 
-    add_to_controversy_stories( $db, $controversy, $keep_story, 1000, 1 )
-      unless ( story_is_controversy_story( $db, $controversy, $keep_story ) );
+    if ( !story_is_controversy_story( $db, $controversy, $keep_story ) )
+    {
+        my $merged_iteration = get_merged_iteration( $db, $controversy, $delete_story, $keep_story );
+        add_to_controversy_stories( $db, $controversy, $keep_story, $merged_iteration, 1 );
+    }
 
     my $controversy_links = $db->query( <<END, $delete_story->{ stories_id }, $controversies_id )->hashes;
 select * from controversy_links where stories_id = ? and controversies_id = ?
@@ -2057,8 +2078,8 @@ sub mine_controversy ($$;$)
         say STDERR "mining controversy stories ...";
         mine_controversy_stories( $db, $controversy );
 
-        say STDERR "running spider ...";
-        run_spider( $db, $controversy );
+        # say STDERR "running spider ...";
+        # run_spider( $db, $controversy );
 
         # disabling because there are too many foreign_rss_links media sources
         # with bogus feeds that pollute the results
