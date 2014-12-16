@@ -2078,8 +2078,8 @@ sub mine_controversy ($$;$)
         say STDERR "mining controversy stories ...";
         mine_controversy_stories( $db, $controversy );
 
-        # say STDERR "running spider ...";
-        # run_spider( $db, $controversy );
+        say STDERR "running spider ...";
+        run_spider( $db, $controversy );
 
         # disabling because there are too many foreign_rss_links media sources
         # with bogus feeds that pollute the results
