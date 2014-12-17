@@ -31,13 +31,6 @@ All of the vectoring code is in MediaWords::StoryVectors.  The relevant MediaWor
   less frequently and it will do the right thing, filling in the data for any missing days / week.  You can execute
   this from the command line via the script script/mediawords_update_aggregate_vectors.pl .
 
-* fill_story_sentence_words( $db ) - Refill all of the story vectors for all stories pointed to by ssw_queue (and delete each story from
-  ssw_queue as it is filled). Only refills 1000 stories at a time, so you have to run this repeatedly to fill all stories (postgres
-  procedures have to act as single transaction, so it's important to do this work in chunks to avoid Very Long Running Transactions).
-  THERE'S NO NEED TO CALL THIS UNLESS YOU WANT TO REGENERATE ALL VECTORS BECAUSE YOU'VE CHANGED THE VECTORING CODE.  The vectors
-  should be getting updated continuously updated during the extraction process.  If you're sure you need to, you can execute this
-  from the command line via the script script/mediawords_fill_story_words.pl . 
-
 The stopwording code lives in MediaWords::Util::StopWords.  We currently stopword against a combined English and Russian list, 
 against tiny (~150 words for each language), short (~1k), and long (~4k) lists of words.
 

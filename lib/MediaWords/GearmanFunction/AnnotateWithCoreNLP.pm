@@ -1,7 +1,7 @@
 package MediaWords::GearmanFunction::AnnotateWithCoreNLP;
 
 #
-# Process download with CoreNLP annotator HTTP service
+# Process story with CoreNLP annotator HTTP service
 #
 # Start this worker script by running:
 #
@@ -49,29 +49,40 @@ sub run($;$)
         $db = MediaWords::DB::connect_to_db();
     }
 
-    my $downloads_id = $args->{ downloads_id } + 0;
-    unless ( $downloads_id )
+    my $stories_id = $args->{ stories_id } + 0;
+    unless ( $stories_id )
     {
-        die "'downloads_id' is undefined.";
+        # Backwards compatibility
+        my $downloads_id = $args->{ downloads_id } + 0;
+        unless ( $downloads_id )
+        {
+            die "'stories_id' and 'downloads_id' are undefined.";
+        }
+
+        my $download = $db->find_by_id( 'downloads', $downloads_id );
+        unless ( $download->{ downloads_id } )
+        {
+            die "Download with ID $downloads_id was not found.";
+        }
+
+        $stories_id = $download->{ stories_id } + 0;
     }
 
     $db->begin_work;
 
-    my $download = $db->find_by_id( 'downloads', $downloads_id );
-    unless ( $download->{ downloads_id } )
+    my $story = $db->find_by_id( 'stories', $stories_id );
+    unless ( $story->{ stories_id } )
     {
         $db->rollback;
-        die "Download with ID $downloads_id was not found.";
+        die "Story with ID $stories_id was not found.";
     }
-
-    my $stories_id = $download->{ stories_id } + 0;
 
     # Annotate story with CoreNLP
     eval { MediaWords::Util::CoreNLP::store_annotation_for_story( $db, $stories_id ); };
     if ( $@ )
     {
         $db->rollback;
-        die "Unable to process download $downloads_id with CoreNLP: $@\n";
+        die "Unable to process story $stories_id with CoreNLP: $@\n";
     }
 
     # Mark the story as processed in "processed_stories" (which might contain duplicate records)
