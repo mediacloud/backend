@@ -568,47 +568,51 @@ sub process_download_for_extractor($$$;$$$)
 
     #say STDERR "Got download_text";
 
+    my $has_remaining_download = $db->query(
+        <<EOF,
+        SELECT downloads_id
+        FROM downloads
+        WHERE stories_id = ?
+          AND extracted = 'f'
+          AND type = 'content'
+EOF
+        $stories_id
+    )->hash;
+
     unless ( $no_vector )
     {
         # Vector
-        my $remaining_download = $db->query(
-            <<EOF,
-            SELECT downloads_id
-            FROM downloads
-            WHERE stories_id = ?
-              AND extracted = 'f'
-              AND type = 'content'
-EOF
-            $stories_id
-        )->hash;
-        unless ( $remaining_download )
+        if ( $has_remaining_download )
+        {
+            say STDERR "[$process_num] pending more downloads ...";
+        }
+        else
         {
             my $story = $db->find_by_id( 'stories', $stories_id );
 
             MediaWords::StoryVectors::update_story_sentence_words_and_language( $db, $story, 0, $no_dedup_sentences );
         }
+    }
+
+    unless ( $has_remaining_download )
+    {
+
+        if (    MediaWords::Util::CoreNLP::annotator_is_enabled()
+            and MediaWords::Util::CoreNLP::story_is_annotatable( $db, $stories_id ) )
+        {
+            # Story is annotatable with CoreNLP; enqueue for CoreNLP annotation
+            # (which will run mark_as_processed() on its own)
+            MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman(
+                { downloads_id => $download->{ downloads_id } } );
+
+        }
         else
         {
-            say STDERR "[$process_num] pending more downloads ...";
-        }
-    }
-
-    if (    MediaWords::Util::CoreNLP::annotator_is_enabled()
-        and MediaWords::Util::CoreNLP::story_is_annotatable( $db, $stories_id ) )
-    {
-
-        # Story is annotatable with CoreNLP; enqueue for CoreNLP annotation (which will run mark_as_processed() on its own)
-        MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman(
-            { downloads_id => $download->{ downloads_id } } );
-
-    }
-    else
-    {
-
-        # Story is not annotatable with CoreNLP; add to "processed_stories" right away
-        unless ( MediaWords::DBI::Stories::mark_as_processed( $db, $stories_id ) )
-        {
-            die "Unable to mark story ID $stories_id as processed";
+            # Story is not annotatable with CoreNLP; add to "processed_stories" right away
+            unless ( MediaWords::DBI::Stories::mark_as_processed( $db, $stories_id ) )
+            {
+                die "Unable to mark story ID $stories_id as processed";
+            }
         }
     }
 }
