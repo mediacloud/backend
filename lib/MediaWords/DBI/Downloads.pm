@@ -602,8 +602,7 @@ EOF
         {
             # Story is annotatable with CoreNLP; enqueue for CoreNLP annotation
             # (which will run mark_as_processed() on its own)
-            MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman(
-                { downloads_id => $download->{ downloads_id } } );
+            MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman( { stories_id => $stories_id } );
 
         }
         else

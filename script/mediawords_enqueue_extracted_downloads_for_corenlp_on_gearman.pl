@@ -295,7 +295,8 @@ EOF
 
                 ++$downloads_found;
 
-                MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman( { downloads_id => $downloads_id } );
+                # Duplicate story IDs will be merged into a single Gearman job
+                MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman( { stories_id => $stories_id } );
 
                 say STDERR "Done enqueuing download " . $downloads_id if ( _verbose() );
 
