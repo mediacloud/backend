@@ -473,17 +473,19 @@ sub update_story_sentence_words_and_language
     my $sentence_word_counts;
     my $story = _get_story( $db, $story_ref );
 
+    my $stories_id = $story->{ stories_id };
+
     unless ( $no_delete )
     {
-        $db->query( "DELETE FROM story_sentence_words WHERE stories_id = ?",        $story->{ stories_id } );
-        $db->query( "DELETE FROM story_sentences WHERE stories_id = ?",             $story->{ stories_id } );
-        $db->query( "DELETE FROM story_sentence_counts WHERE first_stories_id = ?", $story->{ stories_id } );
+        $db->query( "DELETE FROM story_sentence_words WHERE stories_id = ?",        $stories_id );
+        $db->query( "DELETE FROM story_sentences WHERE stories_id = ?",             $stories_id );
+        $db->query( "DELETE FROM story_sentence_counts WHERE first_stories_id = ?", $stories_id );
     }
 
     unless ( $ignore_date_range or _story_within_media_source_story_words_date_range( $db, $story ) )
     {
         say STDERR "Won't split story " .
-          $story->{ stories_id } . " " . "into sentences / words and determine their language because " .
+          $stories_id . " " . "into sentences / words and determine their language because " .
           "story is *not* within media source's story words date range and 'ignore_date_range' is not set.";
         return;
     }
@@ -516,7 +518,7 @@ sub update_story_sentence_words_and_language
     # }
     # else
     # {
-    #     say STDERR "Story's URL for story ID " . $story->{ stories_id } . " is not defined.";
+    #     say STDERR "Story's URL for story ID " . $stories_id . " is not defined.";
     # }
 
     # Identify the language of the full story
@@ -524,7 +526,7 @@ sub update_story_sentence_words_and_language
 
     if ( !$story->{ language } || ( $story_lang ne $story->{ language } ) )
     {
-        $db->query( "UPDATE stories SET language = ? WHERE stories_id = ?", $story_lang, $story->{ stories_id } );
+        $db->query( "UPDATE stories SET language = ? WHERE stories_id = ?", $story_lang, $stories_id );
     }
 
     # Tokenize into sentences
@@ -536,18 +538,17 @@ sub update_story_sentence_words_and_language
     my $sentences = $lang->get_sentences( $story_text );
     unless ( defined $sentences )
     {
-        die "Sentences for story " . $story->{ stories_id } . " are undefined.";
+        die "Sentences for story $stories_id are undefined.";
     }
     unless ( scalar @{ $sentences } )
     {
-        warn "Story " . $story->{ stories_id } . " doesn't have any sentences.";
+        warn "Story $stories_id doesn't have any sentences.";
         return;
     }
 
     if ( $no_dedup_sentences )
     {
-        say STDERR "Won't de-duplicate sentences for story " .
-          $story->{ stories_id } . " because 'no_dedup_sentences' is set.";
+        say STDERR "Won't de-duplicate sentences for story $stories_id because 'no_dedup_sentences' is set.";
     }
     else
     {
@@ -576,7 +577,7 @@ sub update_story_sentence_words_and_language
         $sentence_ref->{ sentence }        = $sentence;
         $sentence_ref->{ language }        = $sentence_lang;
         $sentence_ref->{ sentence_number } = $sentence_num;
-        $sentence_ref->{ stories_id }      = $story->{ stories_id };
+        $sentence_ref->{ stories_id }      = $stories_id;
         $sentence_ref->{ media_id }        = $story->{ media_id };
         $sentence_ref->{ publish_date }    = $story->{ publish_date };
 
