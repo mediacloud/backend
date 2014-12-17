@@ -15,6 +15,7 @@ use MediaWords::Util::Countries;
 use MediaWords::Util::HTML;
 use MediaWords::Util::IdentifyLanguage;
 use MediaWords::Util::SQL;
+use MediaWords::Util::CoreNLP;
 
 use Date::Format;
 use Date::Parse;
@@ -587,6 +588,18 @@ sub update_story_sentence_words_and_language
     _insert_story_sentences( $db, $story, $sentence_refs );
 
     $db->dbh->{ AutoCommit } || $db->commit;
+
+    if (    MediaWords::Util::CoreNLP::annotator_is_enabled()
+        and MediaWords::Util::CoreNLP::story_is_annotatable( $db, $stories_id ) )
+    {
+        # (Re)enqueue for CoreNLP annotation
+        #
+        # We enqueue an identical job in MediaWords::DBI::Downloads::process_download_for_extractor() too,
+        # but duplicate the enqueue_on_gearman() call here just to make sure that story gets reannotated
+        # on each sentence change. Both of these jobs are to be merged into a single job by Gearman.
+        MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman( { stories_id => $stories_id } );
+
+    }
 }
 
 sub _get_stem_word_counts_for_sentence($$;$)
