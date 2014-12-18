@@ -10,9 +10,9 @@ use MediaWords::CommonLibs;
 
 use Encode;
 use IO::Compress::Gzip qw(:level);
-use IO::Uncompress::Gunzip qw();
+use IO::Uncompress::Gunzip qw($GunzipError);
 use IO::Compress::Bzip2 qw();
-use IO::Uncompress::Bunzip2 qw();
+use IO::Uncompress::Bunzip2 qw($Bunzip2Error);
 
 # Encode data into UTF-8; die() on error
 sub _encode_to_utf8($)
@@ -84,16 +84,27 @@ sub bunzip2($)
         die 'Data is empty (no way an empty string is a valid Bzip2 archive)';
     }
 
+    # Using OO interface because it supports Transparent and Strict options
+    my $z = new IO::Uncompress::Bunzip2 \$data,
+      Transparent => 0,
+      Strict      => 1
+      or die "Unable to Bunzip2 data: $Bunzip2Error\n";
     my $bunzipped2_data;
-
-    unless ( IO::Uncompress::Bunzip2::bunzip2 \$data => \$bunzipped2_data )
+    if ( $z->eof() )
     {
-        die "Unable to Bunzip2 data: $IO::Uncompress::Bunzip2::Bunzip2Error\n";
+        # Because when an uncompressed string is empty, <$z> returns undef
+        # instead of empty string
+        $bunzipped2_data = '';
+    }
+    else
+    {
+        local $/;
+        $bunzipped2_data = <$z>;
     }
 
     unless ( defined $bunzipped2_data )
     {
-        die "Bunzip2ped data is undefined.";
+        die "Bunzipped2 data is undefined.";
     }
 
     return $bunzipped2_data;
@@ -170,11 +181,22 @@ sub gunzip($)
         die 'Data is empty (no way an empty string is a valid Gzip archive)';
     }
 
+    # Using OO interface because it supports Transparent and Strict options
+    my $z = new IO::Uncompress::Gunzip \$data,
+      Transparent => 0,
+      Strict      => 1
+      or die "Unable to Gunzip data: $GunzipError\n";
     my $gunzipped_data;
-
-    unless ( IO::Uncompress::Gunzip::gunzip \$data => \$gunzipped_data )
+    if ( $z->eof() )
     {
-        die "Unable to Gunzip data: $IO::Uncompress::Gunzip::GunzipError\n";
+        # Because when an uncompressed string is empty, <$z> returns undef
+        # instead of empty string
+        $gunzipped_data = '';
+    }
+    else
+    {
+        local $/;
+        $gunzipped_data = <$z>;
     }
 
     unless ( defined $gunzipped_data )
