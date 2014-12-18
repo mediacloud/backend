@@ -304,6 +304,14 @@ sub fetch_content($$$;$$$)
     }
     else
     {
+        unless ( defined $gzipped_content and $gzipped_content ne '' )
+        {
+            # MongoDB returns empty strings on some cases of corrupt data, but
+            # an empty string can't be a valid Gzip/Bzip2 archive, so we're
+            # checking if we're about to attempt to decompress an empty string
+            confess "GridFS: Compressed data is empty for filename $filename.\n";
+        }
+
         $decoded_content = $self->uncompress_and_decode( \$gzipped_content, $object_id, $use_bunzip2_instead_of_gunzip );
     }
 
