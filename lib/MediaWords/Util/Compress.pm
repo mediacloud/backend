@@ -79,6 +79,10 @@ sub bunzip2($)
     {
         die "Data to bunzip2 is undefined.";
     }
+    if ( $data eq '' )
+    {
+        die 'Data is empty (no way an empty string is a valid Bzip2 archive)';
+    }
 
     my $bunzipped2_data;
 
@@ -102,6 +106,10 @@ sub bunzip2_and_decode($)
     unless ( defined $data )
     {
         die "Data to bunzip2 and decode is undefined.";
+    }
+    if ( $data eq '' )
+    {
+        die 'Data is empty (no way an empty string is a valid Bzip2 archive)';
     }
 
     my $bunzipped2_data = bunzip2( $data );
@@ -157,6 +165,10 @@ sub gunzip($)
     {
         die "Data to gunzip is undefined.";
     }
+    if ( $data eq '' )
+    {
+        die 'Data is empty (no way an empty string is a valid Gzip archive)';
+    }
 
     my $gunzipped_data;
 
@@ -180,6 +192,10 @@ sub gunzip_and_decode($)
     unless ( defined $data )
     {
         die "Data to gunzip and decode is undefined.";
+    }
+    if ( $data eq '' )
+    {
+        die 'Data is empty (no way an empty string is a valid Gzip archive)';
     }
 
     my $gunzipped_data = gunzip( $data );
