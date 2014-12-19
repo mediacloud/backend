@@ -47,6 +47,18 @@ use constant ROWS_PER_PAGE => 20;
 
 use MediaWords::Tagger;
 
+sub single_GET : Local
+{
+    my ( $self, $c, $id ) = @_;
+
+    shift;    # to get rid of $self
+
+    $self->{ show_sentences } = $c->req->params->{ sentences };
+    $self->{ show_text }      = $c->req->params->{ text };
+
+    $self->SUPER::single_GET( @_ );
+}
+
 sub put_tags : Local : ActionClass('REST')
 {
 }
@@ -84,24 +96,24 @@ sub corenlp : Local
     my ( $self, $c ) = @_;
 
     my $db = $c->dbis;
-    
+
     my $stories_ids = $c->req->params->{ stories_id };
-    
+
     $stories_ids = [ $stories_ids ] unless ( ref( $stories_ids ) );
 
     my $json_list = {};
     for my $stories_id ( @{ $stories_ids } )
     {
         next if ( $json_list->{ $stories_id } );
-        
+
         my $json;
         eval { $json = MediaWords::Util::CoreNLP::fetch_annotation_json_for_story_and_all_sentences( $db, $stories_id ) };
         $json ||= '"story is not annotated"';
 
         $json_list->{ $stories_id } = $json;
-        
+
     }
-   
+
     my $json_items = [];
     for my $stories_id ( keys( %{ $json_list } ) )
     {
@@ -113,9 +125,9 @@ sub corenlp : Local
 END
         push( @{ $json_items }, $json_item );
     }
-    
+
     my $json = "[\n" . join( ",\n", @{ $json_items } ) . "\n]\n";
-    
+
     $c->response->content_type( 'application/json; charset=UTF-8' );
     $c->response->content_length( bytes::length( $json ) );
     $c->response->body( $json );
