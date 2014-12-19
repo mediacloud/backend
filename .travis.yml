@@ -40,7 +40,7 @@ before_install:
     - sudo pip install -r python_scripts/requirements.txt
     # install Media Cloud testing variant of the Python  Client
     - git clone https://github.com/dlarochelle/MediaCloud-API-Client.git
-    - sudo easy_install MediaCloud-API-Client/dist/mediacloud-2.10-py2.7.egg
+    - sudo easy_install MediaCloud-API-Client/
     
 install:
     # Use default configuration
