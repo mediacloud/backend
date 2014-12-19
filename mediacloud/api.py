@@ -145,8 +145,8 @@ class MediaCloud(object):
                  'rows': rows,
                  'raw_1st_download': 1 if raw_1st_download else 0, 
                  'corenlp': 1 if corenlp else 0,    # this is slow - use storyCoreNlList instead
-                 'show_sentences': 1 if show_sentences else 0,
-                 'show_text': 1 if show_text else 0
+                 'sentences': 1 if show_sentences else 0,
+                 'text': 1 if show_text else 0
                 }) 
 
     def storyCoreNlpList(self, story_id_list):
