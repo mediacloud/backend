@@ -308,29 +308,24 @@ sub fetch_content($$)
     my $store = _download_store_for_reading( $download );
     unless ( defined $store )
     {
-        die "No download path or the state is not 'success' for download ID " . $download->{ downloads_id };
+        croak "No download path or the state is not 'success' for download ID " . $download->{ downloads_id };
     }
 
     # Fetch content
-    if ( my $content_ref = $store->fetch_content( $db, $download->{ downloads_id }, $download->{ path } ) )
+    my $content_ref = $store->fetch_content( $db, $download->{ downloads_id }, $download->{ path } );
+    unless ( $content_ref and ref( $content_ref ) eq 'SCALAR' )
     {
-
-        # horrible hack to fix old content that is not stored in unicode
-        my $ascii_hack_downloads_id = get_config->{ mediawords }->{ ascii_hack_downloads_id };
-        if ( $ascii_hack_downloads_id and ( $download->{ downloads_id } < $ascii_hack_downloads_id ) )
-        {
-            $$content_ref =~ s/[^[:ascii:]]/ /g;
-        }
-
-        return $content_ref;
+        croak "Unable to fetch content for download " . $download->{ downloads_id };
     }
-    else
+
+    # horrible hack to fix old content that is not stored in unicode
+    my $ascii_hack_downloads_id = get_config->{ mediawords }->{ ascii_hack_downloads_id };
+    if ( $ascii_hack_downloads_id and ( $download->{ downloads_id } < $ascii_hack_downloads_id ) )
     {
-        warn "Unable to fetch content for download " . $download->{ downloads_id } . "\n";
-
-        my $ret = '';
-        return \$ret;
+        $$content_ref =~ s/[^[:ascii:]]/ /g;
     }
+
+    return $content_ref;
 }
 
 # fetch the content as lines in an array after running through the extractor preprocessor

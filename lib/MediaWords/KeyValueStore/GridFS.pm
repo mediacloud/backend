@@ -266,17 +266,22 @@ sub fetch_content($$$;$$$)
 
             # Read
             my $gridfs_file = $self->_mongodb_gridfs->find_one( { 'filename' => $filename } );
+            $attempt_to_read_succeeded = 1;
+
             unless ( defined $gridfs_file )
             {
                 confess "GridFS: unable to find file '$filename'.";
             }
-            $file                      = $gridfs_file->slurp;
-            $attempt_to_read_succeeded = 1;
+            $file = $gridfs_file->slurp;
         };
 
         if ( $@ )
         {
             say STDERR "GridFS: Read from '$filename' didn't succeed because: $@";
+            if ( $attempt_to_read_succeeded )
+            {
+                last;
+            }
         }
         else
         {
@@ -284,14 +289,19 @@ sub fetch_content($$$;$$$)
         }
     }
 
-    unless ( $attempt_to_read_succeeded )
+    if ( $attempt_to_read_succeeded )
+    {
+        unless ( defined $file )
+        {
+            confess "GridFS: Could not get file '$filename' (probably the file does not exist).\n";
+        }
+    }
+    else
     {
         confess "GridFS: Unable to read object ID $object_id from GridFS after " . MONGODB_READ_RETRIES . " retries.\n";
     }
-
     unless ( defined( $file ) )
     {
-        confess "GridFS: Could not get file '$filename'.\n";
     }
 
     my $gzipped_content = $file;
@@ -304,6 +314,14 @@ sub fetch_content($$$;$$$)
     }
     else
     {
+        unless ( defined $gzipped_content and $gzipped_content ne '' )
+        {
+            # MongoDB returns empty strings on some cases of corrupt data, but
+            # an empty string can't be a valid Gzip/Bzip2 archive, so we're
+            # checking if we're about to attempt to decompress an empty string
+            confess "GridFS: Compressed data is empty for filename $filename.\n";
+        }
+
         $decoded_content = $self->uncompress_and_decode( \$gzipped_content, $object_id, $use_bunzip2_instead_of_gunzip );
     }
 
