@@ -27,7 +27,7 @@ using any of this code or if you have any questions.  We are very interested in
 knowing who's using the code and for what.
 
 For a brief roadmap of the code contained in this release, see
-[README.code](doc/README.code).
+[README.code.markdown](doc/README.code.markdown).
 
 
 Build Status
