@@ -461,8 +461,7 @@ sub delete_stories
 
         my $chunk_ids_list = join( ' ', @{ $chunk_ids } );
         my $r =
-          _solr_request( "update?commit=true&stream.body=<delete><query>+stories_id:(${ chunk_ids_list })</query></delete>",
-            $staging );
+          _solr_request( "update?stream.body=<delete><query>+stories_id:(${ chunk_ids_list })</query></delete>", $staging );
 
         return 0 unless $r;
     }
