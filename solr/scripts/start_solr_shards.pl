@@ -51,7 +51,7 @@ sub main
 
         if ( -e "master" )
         {
-            my $master_memory = ( $memory * 2 );
+            my $master_memory = $memory;
             system( "java " .
                   JVM_OPTS . " -server -Xmx${ master_memory }g $log_config -DzkRun -jar start.jar > $log_file 2>&1 &" );
         }
