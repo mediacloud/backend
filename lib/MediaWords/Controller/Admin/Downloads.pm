@@ -362,7 +362,6 @@ sub mextract : Local
     {
         if ( $developer_ui_param )
         {
-            print STDERR "Setting flash - 1\n";
             $c->flash->{ developer_ui } = 1;
         }
         else
@@ -374,8 +373,6 @@ sub mextract : Local
     my $developer_ui = $c->flash->{ developer_ui } || '';
 
     $self->keepMextractFlashSettings( $c );
-
-    print STDERR ( $c->flash->{ developer_ui } || '' ) . ' ' . $developer_ui . "\n";
 
     if ( !$developer_ui )
     {
