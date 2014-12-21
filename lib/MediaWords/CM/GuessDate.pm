@@ -33,6 +33,18 @@ use constant DEFAULT_HOUR => 12;
 # of the existing date for the story
 my $_date_guess_functions = [
     {
+        name     => 'guess_by_og_article_published_time',
+        function => \&_guess_by_og_article_published_time
+    },
+    {
+        name     => 'guess_by_url_and_date_text',
+        function => \&_guess_by_url_and_date_text
+    },
+    {
+        name     => 'guess_by_url',
+        function => \&_guess_by_url
+    },
+    {
         name     => 'guess_by_dc_date_issued',
         function => \&_guess_by_dc_date_issued
     },
@@ -55,10 +67,6 @@ my $_date_guess_functions = [
     {
         name     => 'guess_by_meta_item_publish_date',
         function => \&_guess_by_meta_item_publish_date
-    },
-    {
-        name     => 'guess_by_og_article_published_time',
-        function => \&_guess_by_og_article_published_time
     },
     {
         name     => 'guess_by_sailthru_date',
@@ -87,14 +95,6 @@ my $_date_guess_functions = [
     {
         name     => 'guess_by_datetime_pubdate',
         function => \&_guess_by_datetime_pubdate
-    },
-    {
-        name     => 'guess_by_url_and_date_text',
-        function => \&_guess_by_url_and_date_text
-    },
-    {
-        name     => 'guess_by_url',
-        function => \&_guess_by_url
     },
     {
         name     => 'guess_by_class_date',
