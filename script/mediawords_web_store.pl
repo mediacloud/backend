@@ -53,7 +53,7 @@ sub get_request_domain
     {
         $domain = join( ".", ( $name_parts->[ $n - 2 ], $name_parts->[ $n - 1 ], $name_parts->[ $n ] ) );
     }
-    elsif ( $host =~ /localhost|blogspot.com|livejournal.com|wordpress.com/ )
+    elsif ( $host =~ /localhost|blogspot.com|wordpress.com/ )
     {
         $domain = $request->{ url };
     }
