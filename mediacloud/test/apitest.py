@@ -217,8 +217,27 @@ class ApiStoriesTest(ApiBaseTest):
 
     def testStory(self):
         story = self._mc.story(27456565)
+        self.assertEqual(int(story['stories_id']),27456565)
         self.assertEqual(story['media_id'],1144)
         self.assertFalse('story_sentences' in story)
+        self.assertFalse('story_text' in story)
+        self.assertFalse('is_fully_extracted' in story)
+
+    def testStoryWithSentences(self):
+        story = self._mc.story(27456565, sentences=True)
+        self.assertEqual(int(story['stories_id']),27456565)
+        self.assertEqual(story['media_id'],1144)
+        self.assertTrue('story_sentences' in story)
+        self.assertFalse('story_text' in story)
+        self.assertFalse('is_fully_extracted' in story)
+
+    def testStoryWithText(self):
+        story = self._mc.story(27456565, text=True)
+        self.assertEqual(int(story['stories_id']),27456565)
+        self.assertEqual(story['media_id'],1144)
+        self.assertFalse('story_sentences' in story)
+        self.assertTrue('story_text' in story)
+        self.assertTrue('is_fully_extracted' in story)
 
     def testStoryList(self):
         results = self._mc.storyList(self.QUERY, self.FILTER_QUERY)
@@ -239,43 +258,41 @@ class ApiStoriesTest(ApiBaseTest):
         for story in results:
             self.assertFalse('story_sentences' in story)
             self.assertFalse('story_text' in story)
-            self.assertFalse('fully_extracted' in story)
+            self.assertFalse('is_fully_extracted' in story)
             self.assertTrue('corenlp' in story)
             self.assertTrue('stories_id' in story)
 
-'''
     def testStoryListDefaults(self):
-        results = self._mc.storyList(self.QUERY, self.FILTER_QUERY)
+        results = self._mc.storyList(self.QUERY, self.FILTER_QUERY, rows=10)
         for story in results:
-            self.assertTrue('story_sentences' in story)
-            self.assertTrue('story_text' in story)
-            self.assertTrue('fully_extracted' in story)
+            self.assertFalse('story_sentences' in story)
+            self.assertFalse('story_text' in story)
+            self.assertFalse('is_fully_extracted' in story)
             self.assertFalse('corenlp' in story)
 
     def testStoryListWithCoreNlp(self):
-        results = self._mc.storyList(self.QUERY, self.FILTER_QUERY, corenlp=True)
+        results = self._mc.storyList(self.QUERY, self.FILTER_QUERY, corenlp=True, rows=10)
         for story in results:
             self.assertFalse('story_sentences' in story)
-            self.assertTrue('story_text' in story)
-            self.assertTrue('fully_extracted' in story)
-            self.assertFalse('corenlp' in story)
+            self.assertFalse('story_text' in story)
+            self.assertFalse('is_fully_extracted' in story)
+            self.assertTrue('corenlp' in story)
 
-    def testStoryListWithoutSentences(self):
-        results = self._mc.storyList(self.QUERY, self.FILTER_QUERY, show_sentences=False)
-        for story in results:
-            self.assertFalse('story_sentences' in story)
-            self.assertTrue('story_text' in story)
-            self.assertTrue('fully_extracted' in story)
-            self.assertFalse('corenlp' in story)
-
-    def testStoryListWithoutText(self):
-        results = self._mc.storyList(self.QUERY, self.FILTER_QUERY, show_text=False)
+    def testStoryListWithSentences(self):
+        results = self._mc.storyList(self.QUERY, self.FILTER_QUERY, sentences=True, rows=10)
         for story in results:
             self.assertTrue('story_sentences' in story)
             self.assertFalse('story_text' in story)
-            self.assertFalse('fully_extracted' in story)
+            self.assertFalse('is_fully_extracted' in story)
             self.assertFalse('corenlp' in story)
-'''
+
+    def testStoryListWithText(self):
+        results = self._mc.storyList(self.QUERY, self.FILTER_QUERY, text=True, rows=10)
+        for story in results:
+            self.assertFalse('story_sentences' in story)
+            self.assertTrue('story_text' in story)
+            self.assertTrue('is_fully_extracted' in story)
+            self.assertFalse('corenlp' in story)
 
 class ApiSentencesTest(ApiBaseTest):
 
@@ -409,7 +426,7 @@ class WriteableApiTest(unittest.TestCase):
         response = self._mc.tagStories(desired_tags)
         self.assertEqual(len(response),len(desired_tags))
         # make sure it worked
-        story = self._mc.story(test_story_id)
+        story = self._mc.story(test_story_id,sentences=True)
         tags_on_story = [t for t in story['story_tags'] if t['tag_set']==tag_set_name]
         self.assertEqual(len(tags_on_story),len(desired_tags))
         # now remove one
@@ -417,7 +434,7 @@ class WriteableApiTest(unittest.TestCase):
         response = self._mc.tagStories(desired_tags, clear_others=True)
         self.assertEqual(len(response),len(desired_tags))
         # and check it
-        story = self._mc.story(test_story_id)
+        story = self._mc.story(test_story_id,sentences=True)
         tags_on_story = [t for t in story['story_tags'] if t['tag_set']==tag_set_name]
         self.assertEqual(len(tags_on_story),len(desired_tags))
 
@@ -427,7 +444,7 @@ class WriteableApiTest(unittest.TestCase):
         test_tag_id2 = '8878342' # rahulb@media.mit.edu:test_tag2
         tag_set_name = "rahulb@media.mit.edu"
         # grab some sentence_ids to test with
-        orig_story = self._mc.story(test_story_id)
+        orig_story = self._mc.story(test_story_id,sentences=True)
         self.assertTrue( len(orig_story['story_sentences']) > 2 )
         sentence_ids = [ s['story_sentences_id'] for s in orig_story['story_sentences'][0:2] ]
         # add a tag
@@ -436,7 +453,7 @@ class WriteableApiTest(unittest.TestCase):
         response = self._mc.tagSentences(desired_tags)
         self.assertEqual(len(response),len(desired_tags))
         # and verify it worked
-        tagged_story = self._mc.story(test_story_id)
+        tagged_story = self._mc.story(test_story_id,sentences=True)
         tagged_sentences = [ s for s in orig_story['story_sentences'] if len(s['tags']) > 0 ]
         for s in tagged_sentences:
             if s['story_sentences_id'] in sentence_ids:
@@ -447,7 +464,7 @@ class WriteableApiTest(unittest.TestCase):
         response = self._mc.tagSentences(desired_tags)
         self.assertEqual(len(response),len(desired_tags))
         # and verify it worked
-        tagged_story = self._mc.story(test_story_id)
+        tagged_story = self._mc.story(test_story_id,sentences=True)
         tagged_sentences = [ s for s in tagged_story['story_sentences'] if len(s['tags']) > 0 ]
         for s in tagged_sentences:
             if s['story_sentences_id'] in sentence_ids:
@@ -459,7 +476,7 @@ class WriteableApiTest(unittest.TestCase):
         response = self._mc.tagSentences(desired_tags, clear_others=True)
         self.assertEqual(len(response),len(desired_tags))
         # and check it
-        tagged_story = self._mc.story(test_story_id)
+        tagged_story = self._mc.story(test_story_id,sentences=True)
         tagged_sentences = [ s for s in tagged_story['story_sentences'] if len(s['tags']) > 0 ]
         for s in tagged_sentences:
             if s['story_sentences_id'] in sentence_ids:
