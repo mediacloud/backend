@@ -151,7 +151,7 @@ class MediaCloud(object):
                  'corenlp': 1 if corenlp else 0,    # this is slow - use storyCoreNlList instead
                  'sentences': 1 if sentences else 0,
                  'text': 1 if text else 0
-                }) 
+                 }) 
 
     def storyCoreNlpList(self, story_id_list):
         '''
