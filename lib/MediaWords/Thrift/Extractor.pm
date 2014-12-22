@@ -79,6 +79,11 @@ sub extract_html
 
     $transport->close();
 
+    foreach my $html ( @$ret )
+    {
+        utf8::upgrade( $html );
+    }
+
     return $ret;
 }
 
