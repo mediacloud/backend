@@ -20,6 +20,10 @@ sub get_extracted_html
 
     my $ret = join( "\n\n", @$html_blocks );
 
+    utf8::upgrade( $ret );
+
+    die unless Encode::is_utf8( $ret );
+
     return $ret;
 }
 

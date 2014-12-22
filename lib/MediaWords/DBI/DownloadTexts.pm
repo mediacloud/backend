@@ -56,6 +56,8 @@ sub create_from_download
 
     # say STDERR "EXTRACT\n**\n$extracted_text\n**\n";
 
+    die unless Encode::is_utf8( $extracted_text );
+
     my $download_text = $db->query( <<END, $extracted_text, $download->{ downloads_id } )->hash;
 insert into download_texts ( download_text, downloads_id, download_text_length )
     values ( \$1, \$2, char_length( \$1 ) )
