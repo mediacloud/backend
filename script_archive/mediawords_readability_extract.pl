@@ -37,6 +37,8 @@ sub main
 
     my $raw_html = read_file( $file_name );    #, binmode => ':utf8' ) ;
 
+    utf8::upgrade( $raw_html );
+
     my $result = MediaWords::Util::ThriftExtractor::get_extracted_html( $raw_html );
 
     #MediaWords::Thrift::Extractor::extract_html( $raw_html );
