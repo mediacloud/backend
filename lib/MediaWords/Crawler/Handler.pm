@@ -265,6 +265,48 @@ sub _process_content
     say STDERR "fetcher " . $self->engine->fetcher_number . " finished _process_content for  " . $download->{ downloads_id };
 }
 
+# deal with various errors returned by the response
+sub handle_error
+{
+    my ( $self, $download, $response ) = @_;
+
+    return 0 if ( $response->is_success );
+
+    my $dbs = $self->dbs;
+
+    my $error_num;
+    $error_num = ( $download->{ error_message } =~ /\[error_num: (\d+)\]$/ ) ? $1  + 1: 1;
+
+    my $error_message = encode( 'utf8', $response->status_line . "\n[error_num: $error_num]" );
+
+    if ( ( $response->status_line =~ /^5/ ) && ( $error_num < $MAX_5XX_RETRIES ) )
+    {
+        my $interval = "$error_num hours";
+        
+        $dbs->query( <<END, $interval, $enc_error_message, $download->{ downloads_id },  );
+update downloads set 
+        state = 'pending', 
+        download_time = now() + interval \$1 , 
+        error_message = \$2 
+    where downloads_id = \$3
+END
+    }
+    else
+    {
+        $dbs->query( <<END, $enc_error_message, $download->{ downloads_id } );
+UPDATE downloads
+SET state = 'error',
+    error_message = ?,
+    -- reset the file status in case it's one of the "missing" downloads:
+    file_status = DEFAULT
+WHERE downloads_id = ?
+END
+    }
+
+    return 1;
+}
+
+# after the downloads has been fetched, handle the resulting content (store the content, parse a feed, etc).
 sub handle_response
 {
     my ( $self, $download, $response ) = @_;
@@ -273,24 +315,7 @@ sub handle_response
 
     my $dbs = $self->engine->dbs;
 
-    unless ( $response->is_success )
-    {
-        $dbs->query(
-            <<EOF,
-            UPDATE downloads
-            SET state = 'error',
-                error_message = ?,
-                -- reset the file status in case it's one of the "missing" downloads:
-                file_status = DEFAULT
-            WHERE downloads_id = ?
-EOF
-            encode( 'utf-8', $response->status_line ),
-            $download->{ downloads_id }
-        );
-
-        # TODO uncomment $dbs->update_by_id( "downloads", $download->{ downloads_id }, $download );
-        return;
-    }
+    return if ( $self->handle_error( $download, $response ) );
 
     $self->_restrict_content_type( $response );
 
