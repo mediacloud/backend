@@ -308,7 +308,10 @@ sub _add_pending_downloads
                COALESCE( site_from_host( d.host ), 'non-media' ) AS site
         FROM downloads AS d
             LEFT JOIN feeds AS f ON f.feeds_id = d.feeds_id
-        WHERE state = 'pending'
+        WHERE 
+            state = 'pending' and
+            -- downloads can be embargoed for later by setting download_time to a future time
+            ( ( download_time is null ) or ( download_time < now() ) )
         LIMIT ?
 END
         MAX_QUEUED_DOWNLOADS
