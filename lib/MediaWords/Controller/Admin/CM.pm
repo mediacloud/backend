@@ -638,9 +638,10 @@ select * from controversies_with_dates where controversies_id = ?
 END
 
     # add shortcut field names to make it easier to refer to in tt2
-    $cdts->{ cdts_id } = $cdts->{ controversy_dump_time_slices_id };
-    $cdts->{ cd_id }   = $cdts->{ controversy_dumps_id };
-    $cd->{ cd_id }     = $cdts->{ controversy_dumps_id };
+    $cdts->{ cdts_id }          = $cdts->{ controversy_dump_time_slices_id };
+    $cdts->{ cd_id }            = $cdts->{ controversy_dumps_id };
+    $cdts->{ controversy_dump } = $cd;
+    $cd->{ cd_id }              = $cdts->{ controversy_dumps_id };
 
     _add_cdts_model_reliability( $db, $cdts );
 
@@ -826,15 +827,21 @@ sub dump_medium_links : Local
 # download the gexf file for the time slice
 sub gexf : Local
 {
-    my ( $self, $c, $controversy_dump_time_slices_id, $csv ) = @_;
+    my ( $self, $c, $cdts_id, $csv ) = @_;
+
+    my $l = $c->req->params->{ l };
 
     my $db = $c->dbis;
+    
+    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
 
-    my $cdts = $db->find_by_id( 'controversy_dump_time_slices', $controversy_dump_time_slices_id );
+    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $l );    
 
-    my ( $gexf ) = $db->query( <<END, $cdts->{ controversy_dump_time_slices_id } )->flat;
-select file_content from cdts_files where controversy_dump_time_slices_id = ? and file_name = 'media.gexf'
-END
+    my $gexf = MediaWords::CM::Dump::get_gexf_dump( $db, $cdts );
+
+#     my ( $gexf ) = $db->query( <<END, $cdts->{ controversy_dump_time_slices_id } )->flat;
+# select file_content from cdts_files where controversy_dump_time_slices_id = ? and file_name = 'media.gexf'
+# END
 
     my $base_url = $c->uri_for( '/' );
 
@@ -1605,11 +1612,21 @@ sub search_media : Local
     MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $live );
 
     my $query = $c->req->param( 'q' );
-    my $search_query = _get_stories_id_search_query( $db, $query );
+    my $search_query;
+    
+    if ( $query )
+    {
+        my $stories_id_query = _get_stories_id_search_query( $db, $query );
+        $search_query = "AND m.media_id IN ( select media_id from dump_stories where stories_id in ( $stories_id_query ) )";
+    }
+    else
+    {
+        $search_query = '';
+    }
 
     my $order = $c->req->params->{ order } || '';
     my $order_clause = $order eq 'bitly_click_count' ? 'mlc.bitly_click_count desc' : 'mlc.inlink_count desc';
-
+    
     my $media = $db->query(
         <<"END"
         SELECT DISTINCT m.*,
@@ -1618,14 +1635,10 @@ sub search_media : Local
                         mlc.bitly_click_count,
                         mlc.bitly_referrer_count,
                         mlc.story_count
-        FROM dump_stories AS s,
-             dump_media_with_types AS m,
-             dump_story_link_counts AS slc,
+        FROM dump_media_with_types AS m,
              dump_medium_link_counts AS mlc
-        WHERE s.stories_id = slc.stories_id
-          AND s.media_id = m.media_id
-          AND s.media_id = mlc.media_id
-          AND s.stories_id IN ( $search_query )
+        WHERE m.media_id = mlc.media_id
+          $search_query
         ORDER BY $order_clause
         limit 1000
 END
