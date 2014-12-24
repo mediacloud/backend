@@ -19,7 +19,7 @@ use Time::Seconds;
 use Math::Random;
 
 # how often to download each feed (seconds)
-use constant STALE_FEED_INTERVAL => 3 * 4 * ONE_HOUR;
+use constant STALE_FEED_INTERVAL => ONE_WEEK;
 
 # how often to check for feeds to download (seconds)
 use constant STALE_FEED_CHECK_INTERVAL => 30 * ONE_MINUTE;
