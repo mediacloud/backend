@@ -21,12 +21,29 @@ use Test::More;
 use HTML::CruftText 0.02;
 use Test::Deep;
 
-my $test_cases = [
-    {
-        test_name    => 'standard_single_item',
-        media_id     => 1,
-        publish_date => '2012-01-10T06:20:10',
-        feed_input   => <<'__END_TEST_CASE__',
+use MediaWords::DB;
+
+sub convert_to_local_time_zone
+{
+    my ( $db, $sql_date ) = @_;
+
+    my ( $local_sql_date ) = $db->query( "select ( ?::timestamptz )::timestamp", $sql_date )->flat;
+
+    say STDERR "$sql_date -> $local_sql_date";
+
+    return $local_sql_date;
+}
+
+sub main
+{
+    my $db = MediaWords::DB::connect_to_db || die( "can't connect to db" );
+
+    my $test_cases = [
+        {
+            test_name    => 'standard_single_item',
+            media_id     => 1,
+            publish_date => convert_to_local_time_zone( $db, '2012-01-09 06:20:10-0' ),
+            feed_input   => <<'__END_TEST_CASE__',
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0"
 	xmlns:content="http://purl.org/rss/1.0/modules/content/"
@@ -70,25 +87,26 @@ my $test_cases = [
         </channel>
 </rss>
 __END_TEST_CASE__
-        ,
-        test_output => [
-            {
-                'collect_date' => '2012-01-10T20:03:48',
-                'media_id'     => 1,
-                'publish_date' => '2012-01-09T06:20:10',
-                'url' => 'https://blogs.law.harvard.edu/dlarochelle/2012/01/09/why-life-is-too-short-for-spiral-notebooks/',
-                'title' => 'Why Life is Too Short for Spiral Notebooks',
-                'guid'  => 'http://blogs.law.harvard.edu/dlarochelle/?p=350',
-                'description' =>
-                  'One of the things that I learned in 2011 is that spiral notebooks should be avoid where ever possible.'
-            }
-        ]
-    },
-    {
-        test_name    => 'no title or time',
-        media_id     => 1,
-        publish_date => '2012-01-10 06:20:10',
-        feed_input   => <<'__END_TEST_CASE__',
+            ,
+            test_output => [
+                {
+                    'collect_date' => '2012-01-10T20:03:48',
+                    'media_id'     => 1,
+                    'publish_date' => convert_to_local_time_zone( $db, '2012-01-09 06:20:10-0' ),
+                    'url' =>
+                      'https://blogs.law.harvard.edu/dlarochelle/2012/01/09/why-life-is-too-short-for-spiral-notebooks/',
+                    'title' => 'Why Life is Too Short for Spiral Notebooks',
+                    'guid'  => 'http://blogs.law.harvard.edu/dlarochelle/?p=350',
+                    'description' =>
+'One of the things that I learned in 2011 is that spiral notebooks should be avoid where ever possible.'
+                }
+            ]
+        },
+        {
+            test_name    => 'no title or time',
+            media_id     => 1,
+            publish_date => convert_to_local_time_zone( $db, '2012-01-09 06:20:10-0' ),
+            feed_input   => <<'__END_TEST_CASE__',
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0"
 	xmlns:content="http://purl.org/rss/1.0/modules/content/"
@@ -144,48 +162,57 @@ __END_TEST_CASE__
         </channel>
 </rss>
 __END_TEST_CASE__
-        ,
-        test_output => [
-            {
-                'collect_date' => '2012-01-10T20:03:48',
-                'media_id'     => 1,
-                'publish_date' => '2012-01-10 06:20:10',
-                'url' => 'https://blogs.law.harvard.edu/dlarochelle/2012/01/09/why-life-is-too-short-for-spiral-notebooks/',
-                'title' => '(no title)',
-                'guid'  => 'http://blogs.law.harvard.edu/dlarochelle/?p=350',
-                'description' =>
-                  'One of the things that I learned in 2011 is that spiral notebooks should be avoid where ever possible.'
-            }
-        ]
-    },
-];
+            ,
+            test_output => [
+                {
+                    'collect_date' => '2012-01-10T20:03:48',
+                    'media_id'     => 1,
+                    'publish_date' => convert_to_local_time_zone( $db, '2012-01-09 06:20:10-0' ),
+                    'url' =>
+                      'https://blogs.law.harvard.edu/dlarochelle/2012/01/09/why-life-is-too-short-for-spiral-notebooks/',
+                    'title' => '(no title)',
+                    'guid'  => 'http://blogs.law.harvard.edu/dlarochelle/?p=350',
+                    'description' =>
+'One of the things that I learned in 2011 is that spiral notebooks should be avoid where ever possible.'
+                }
+            ]
+        },
+    ];
 
-my $num_tests = scalar @{ $test_cases };
-plan tests => $num_tests + 1;
+    my $num_tests = scalar @{ $test_cases };
+    plan tests => $num_tests + 1;
 
-foreach my $test_case ( @{ $test_cases } )
-{
-    my $feed_input = $test_case->{ feed_input };
-
-    say Dumper ( $test_case->{ publish_date } );
-
-    my $stories = MediaWords::Crawler::FeedHandler::_get_stories_from_feed_contents_impl(
-        $feed_input,
-        $test_case->{ media_id },
-        $test_case->{ publish_date }
-    );
-
-    foreach my $story ( @$stories )
+    foreach my $test_case ( @{ $test_cases } )
     {
-        undef( $story->{ collect_date } );
+        my $feed_input = $test_case->{ feed_input };
+
+        say Dumper ( $test_case->{ publish_date } );
+
+        my $stories = MediaWords::Crawler::FeedHandler::_get_stories_from_feed_contents_impl(
+            $feed_input,
+            $test_case->{ media_id },
+            $test_case->{ publish_date }
+        );
+
+        foreach my $story ( @$stories )
+        {
+            undef( $story->{ collect_date } );
+        }
+
+        my $test_output = $test_case->{ test_output };
+        foreach my $element ( @$test_output )
+        {
+            undef( $element->{ collect_date } );
+        }
+
+        print STDERR Dumper( $stories );
+        print STDERR Dumper( $test_case->{ test_output } );
+
+        is( $test_case->{ test_output }->[ 0 ]->{ publish_date }, $stories->[ 0 ]->{ publish_date }, 'publish_date' );
+
+        cmp_deeply( $test_case->{ test_output }, $stories );
+
     }
-
-    my $test_output = $test_case->{ test_output };
-    foreach my $element ( @$test_output )
-    {
-        undef( $element->{ collect_date } );
-    }
-
-    cmp_deeply( $stories, $test_case->{ test_output } );
-
 }
+
+main();

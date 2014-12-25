@@ -4,12 +4,12 @@ use MediaWords::CommonLibs;
 
 use strict;
 
-use DateTime;
 use LWP::UserAgent;
 
 use MediaWords::DB;
 use DBIx::Simple::MediaWords;
 use MediaWords::Util::Config;
+use MediaWords::Util::SQL;
 
 sub new
 {
@@ -23,24 +23,24 @@ sub new
     return $self;
 }
 
-# alarabiya uses an interstitial that requires javascript.  if the download url 
+# alarabiya uses an interstitial that requires javascript.  if the download url
 # matches alarabiya and returns the 'requires JavaScript' page, manually parse
 # out the necessary cookie and add it to the $ua so that the request will work
 sub fix_alarabiya_response
 {
     my ( $download, $ua, $response ) = @_;
-    
+
     return $response unless ( $download->{ url } =~ /alarabiya/ );
-    
+
     if ( $response->content !~ /This site requires JavaScript and Cookies to be enabled/ )
     {
         return $response;
     }
-    
+
     if ( $response->content =~ /setCookie\('([^']+)', '([^']+)'/ )
     {
         my $response = $ua->get( $download->{ url }, Cookie => "$1=$2" );
-        
+
         return $response;
     }
     else
@@ -50,20 +50,17 @@ sub fix_alarabiya_response
     }
 }
 
-
-
 sub do_fetch
 {
     my ( $download, $dbs ) = @_;
 
-    $download->{ download_time } = DateTime->now->datetime;
+    $download->{ download_time } = MediaWords::Util::SQL::sql_now;
     $download->{ state }         = 'fetching';
 
     $dbs->update_by_id( "downloads", $download->{ downloads_id }, $download );
 
     my $ua     = LWP::UserAgent->new();
     my $config = MediaWords::Util::Config::get_config;
-
 
     $ua->from( $config->{ mediawords }->{ owner } );
     $ua->agent( $config->{ mediawords }->{ user_agent } );
@@ -77,7 +74,7 @@ sub do_fetch
     my $response = $ua->get( $download->{ url } );
 
     $response = fix_alarabiya_response( $download, $ua, $response );
-    
+
     return $response;
 }
 

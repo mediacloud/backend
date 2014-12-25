@@ -25,6 +25,7 @@ use MediaWords::DBI::Activities;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
+use MediaWords::Util::SQL;
 use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
@@ -561,10 +562,10 @@ END
     }
     elsif ( $date->{ result } eq MediaWords::CM::GuessDate::Result::INAPPLICABLE )
     {
-        return ( 'undateable', $source_story ? $source_story->{ publish_date } : DateTime->now->datetime );
+        return ( 'undateable', $source_story ? $source_story->{ publish_date } : MediaWords::Util::SQL::sql_now );
     }
 
-    return ( 'current_time', DateTime->now->datetime );
+    return ( 'current_time', MediaWords::Util::SQL::sql_now );
 }
 my $reliable_methods = [ qw(guess_by_url guess_by_url_and_date_text merged_story_rss manual) ];
 
@@ -618,7 +619,7 @@ sub generate_new_story_hash
         url          => $old_story->{ url },
         guid         => $old_story->{ url },
         media_id     => $medium->{ media_id },
-        collect_date => DateTime->now->datetime,
+        collect_date => MediaWords::Util::SQL::sql_now,
         title        => encode( 'utf8', $old_story->{ title } ),
         description  => ''
     };
@@ -648,17 +649,16 @@ sub create_download_for_new_story
     my ( $db, $story, $feed ) = @_;
 
     my $download = {
-        feeds_id      => $feed->{ feeds_id },
-        stories_id    => $story->{ stories_id },
-        url           => $story->{ url },
-        host          => lc( ( URI::Split::uri_split( $story->{ url } ) )[ 1 ] ),
-        type          => 'content',
-        sequence      => 1,
-        state         => 'success',
-        path          => 'content:pending',
-        priority      => 1,
-        download_time => DateTime->now->datetime,
-        extracted     => 't'
+        feeds_id   => $feed->{ feeds_id },
+        stories_id => $story->{ stories_id },
+        url        => $story->{ url },
+        host       => lc( ( URI::Split::uri_split( $story->{ url } ) )[ 1 ] ),
+        type       => 'content',
+        sequence   => 1,
+        state      => 'success',
+        path       => 'content:pending',
+        priority   => 1,
+        extracted  => 't'
     };
 
     $download = $db->create( 'downloads', $download );

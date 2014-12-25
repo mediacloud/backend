@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4474;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4475;
     
 BEGIN
 
@@ -844,7 +844,7 @@ create table stories (
     title                       text            not null,
     description                 text            null,
     publish_date                timestamp       not null,
-    collect_date                timestamp       not null,
+    collect_date                timestamp       not null default now(),
     full_text_rss               boolean         not null default 'f',
     db_row_last_updated                timestamp with time zone,
     language                    varchar(3)      null   -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
@@ -878,7 +878,7 @@ create table downloads (
     parent              int             null,
     url                 varchar(1024)   not null,
     host                varchar(1024)   not null,
-    download_time       timestamp       not null,
+    download_time       timestamp       not null default now(),
     type                download_type   not null,
     state               download_state  not null,
     path                text            null,

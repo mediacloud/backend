@@ -15,7 +15,6 @@ use warnings;
 
 use Data::Dumper;
 use Date::Parse;
-use DateTime;
 use Encode;
 use FindBin;
 use URI::Split;
@@ -26,18 +25,21 @@ use Carp;
 use List::Util qw (max maxstr);
 
 use Feed::Scrape::MediaWords;
+use MediaWords::Crawler::FeedHandler;
 use MediaWords::Crawler::Pager;
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories;
-use MediaWords::Util::Config;
-use MediaWords::DBI::Stories;
-use MediaWords::Crawler::FeedHandler;
 use MediaWords::GearmanFunction::ExtractAndVector;
+use MediaWords::Util::Config;
+use MediaWords::Util::SQL;
 
 # CONSTANTS
 
 # max number of pages the handler will download for a single story
 use constant MAX_PAGES => 10;
+
+# max number of times to try a page after a 5xx error
+use constant MAX_5XX_RETRIES => 10;
 
 # METHODS
 
@@ -183,17 +185,16 @@ END
         $dbs->create(
             'downloads',
             {
-                feeds_id      => $download->{ feeds_id },
-                stories_id    => $download->{ stories_id },
-                parent        => $download->{ downloads_id },
-                url           => $next_page_url,
-                host          => lc( ( URI::Split::uri_split( $next_page_url ) )[ 1 ] ),
-                type          => 'content',
-                sequence      => $download->{ sequence } + 1,
-                state         => 'pending',
-                priority      => $download->{ priority } + 1,
-                download_time => DateTime->now->datetime,
-                extracted     => 'f'
+                feeds_id   => $download->{ feeds_id },
+                stories_id => $download->{ stories_id },
+                parent     => $download->{ downloads_id },
+                url        => $next_page_url,
+                host       => lc( ( URI::Split::uri_split( $next_page_url ) )[ 1 ] ),
+                type       => 'content',
+                sequence   => $download->{ sequence } + 1,
+                state      => 'pending',
+                priority   => $download->{ priority } + 1,
+                extracted  => 'f'
             }
         );
     }
@@ -275,15 +276,15 @@ sub handle_error
     my $dbs = $self->dbs;
 
     my $error_num;
-    $error_num = ( $download->{ error_message } =~ /\[error_num: (\d+)\]$/ ) ? $1  + 1: 1;
+    $error_num = ( $download->{ error_message } =~ /\[error_num: (\d+)\]$/ ) ? $1 + 1 : 1;
 
-    my $error_message = encode( 'utf8', $response->status_line . "\n[error_num: $error_num]" );
+    my $enc_error_message = encode( 'utf8', $response->status_line . "\n[error_num: $error_num]" );
 
-    if ( ( $response->status_line =~ /^5/ ) && ( $error_num < $MAX_5XX_RETRIES ) )
+    if ( ( $response->status_line =~ /^5/ ) && ( $error_num < MAX_5XX_RETRIES ) )
     {
         my $interval = "$error_num hours";
-        
-        $dbs->query( <<END, $interval, $enc_error_message, $download->{ downloads_id },  );
+
+        $dbs->query( <<END, $interval, $enc_error_message, $download->{ downloads_id }, );
 update downloads set 
         state = 'pending', 
         download_time = now() + interval \$1 , 
