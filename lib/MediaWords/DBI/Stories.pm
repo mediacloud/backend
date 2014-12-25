@@ -930,7 +930,8 @@ END
         $tag_lookup->{ $tag->{ tag_set_name } }->{ $tag->{ tag } } = 1;
     }
 
-    my $reliable_methods = [ qw(guess_by_url guess_by_url_and_date_text merged_story_rss manual) ];
+    my $reliable_methods =
+      [ qw(guess_by_og_article_published_time guess_by_url guess_by_url_and_date_text merged_story_rss manual) ];
 
     if ( grep { $tag_lookup->{ date_guess_method }->{ $_ } } @{ $reliable_methods } )
     {

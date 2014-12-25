@@ -1029,7 +1029,7 @@ END
 
 # return true if this story is already a controversy story or
 # if the story has the same media_id as the source linking story and
-# there are already MAX_SELF_LINKED_STORIES solely self linked stories for the given
+# there are already MAX_SELF_LINKED_STORIES solely self linked spidered stories for the given
 # media source.  this prevents the spider from downloading too many pages within a single
 # site that self links a lot, like freedictionary.com, youtube, or google books
 sub skip_controversy_story
@@ -1038,26 +1038,45 @@ sub skip_controversy_story
 
     return 1 if ( story_is_controversy_story( $db, $controversy, $story ) );
 
+    my $spidered_tag = get_spidered_tag( $db );
+
+    # never do a self linked story skip for stories that were not spidered
+    return 0 unless ( $db->query( <<END, $link->{ stories_id }, $spidered_tag->{ tags_id } )->hash );
+select 1 from stories_tags_map where stories_id = ? and tags_id = ?
+END
+
     my $ss = $db->find_by_id( 'stories', $link->{ stories_id } );
     return 0 if ( $ss->{ media_id } != $story->{ media_id } );
 
+    my $cid = $controversy->{ controversies_id };
+
     # this query is much quicker than the below one, so do it first
-    my ( $num_stories ) = $db->query( <<END, $controversy->{ controversies_id }, $story->{ media_id } )->flat;
-select count(*) from cd.live_stories where controversies_id = ? and media_id = ?
+    my ( $num_stories ) = $db->query( <<END, $cid, $story->{ media_id }, $spidered_tag->{ tags_id } )->flat;
+select count(*) 
+    from cd.live_stories s
+        join stories_tags_map stm on ( s.stories_id = stm.stories_id )
+    where 
+        s.controversies_id = ? and 
+        s.media_id = ? and
+        stm.tags_id = ?
 END
 
     my $MAX_SELF_LINKED_STORIES = MAX_SELF_LINKED_STORIES;
     return 0 if ( $num_stories <= $MAX_SELF_LINKED_STORIES );
 
-    my ( $num_cross_linked_stories ) = $db->query( <<END, $controversy->{ controversies_id }, $story->{ media_id } )->flat;
+    my ( $num_cross_linked_stories ) = $db->query( <<END, $cid, $story->{ media_id }, $spidered_tag->{ tags_id } )->flat;
 select count( distinct rs.stories_id )
     from cd.live_stories rs
         join controversy_links cl on ( cl.controversies_id = \$1 and rs.stories_id = cl.ref_stories_id )
         join cd.live_stories ss on ( ss.controversies_id = \$1 and cl.stories_id = ss.stories_id )
+        join stories_tags_map sstm on ( sstm.stories_id = ss.stories_id )
+        join stories_tags_map rstm on ( rstm.stories_id = rs.stories_id )
     where 
         rs.controversies_id = \$1 and 
         rs.media_id = \$2 and
-        ss.media_id <> rs.media_id
+        ss.media_id <> rs.media_id and
+        sstm.tags_id = \$3 and
+        rstm.tags_id = \$3
     limit ( $num_stories - $MAX_SELF_LINKED_STORIES )
 END
 
@@ -1065,7 +1084,7 @@ END
 
     if ( $num_self_linked_stories > $MAX_SELF_LINKED_STORIES )
     {
-        say STDERR "skip self linked story: $story->{ url }";
+        say STDERR "SKIP SELF LINKED STORY: $story->{ url } [$num_self_linked_stories]";
         return 1;
     }
     else
