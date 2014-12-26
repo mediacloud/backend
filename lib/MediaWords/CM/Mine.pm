@@ -101,6 +101,8 @@ sub get_links_from_html
 
         $link =~ s/www-nc.nytimes/www.nytimes/i;
 
+        say STDERR "link: $link->{ href }";
+
         push( @{ $links }, { url => $link->{ href } } );
     }
 
@@ -190,14 +192,11 @@ sub get_links_from_story_text
     my $links = [];
     while ( $text =~ m~(https?://[^\s\")]+)~g )
     {
-        push( @{ $links }, $1 );
-    }
+        my $url = $1;
 
-    if ( @{ $links } )
-    {
-        print STDERR "TEXT LINKS:\n";
-        print STDERR Dumper( $links );
-        sleep 1;
+        $url =~ s/[^a-z]+$//;
+
+        push( @{ $links }, { url => $1 } );
     }
 
     return $links;
@@ -217,8 +216,10 @@ sub get_links_from_story
     my $description_links = get_links_from_html( $story->{ description } );
     my $boingboing_links  = get_boingboing_links( $db, $story );
 
+    my @all_links = ( @{ $links }, @{ $text_links }, @{ $description_links }, @{ $boingboing_links } );
+
     my $link_lookup = {};
-    map { $link_lookup->{ MediaWords::Util::URL::normalize_url_lossy( $_->{ url } ) } = $_ } @{ $links };
+    map { $link_lookup->{ MediaWords::Util::URL::normalize_url_lossy( $_->{ url } ) } = $_ } @all_links;
 
     return [ values( %{ $link_lookup } ) ];
 }
