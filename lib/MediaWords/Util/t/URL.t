@@ -11,6 +11,8 @@ use HTTP::Status qw(:constants);
 use URI::Escape;
 use Data::Dumper;
 
+use MediaWords::Test::DB;
+
 Readonly my $TEST_HTTP_SERVER_PORT => 9998;
 
 BEGIN
@@ -547,18 +549,20 @@ sub test_url_and_data_after_redirects_html_loop()
     is( $url_after_redirects, $TEST_HTTP_SERVER_URL . '/second', 'URL after HTML redirect loop' );
 }
 
-sub test_all_url_variants()
+sub test_all_url_variants($)
 {
+    my ( $db ) = @_;
+
     my @actual_url_variants;
     my @expected_url_variants;
 
     # Undefined URL
-    eval { MediaWords::Util::URL::all_url_variants( undef ); };
+    eval { MediaWords::Util::URL::all_url_variants( $db, undef ); };
     ok( $@, 'Undefined URL' );
 
     # Non-HTTP(S) URL
     Readonly my $gopher_url => 'gopher://gopher.floodgap.com/0/v2/vstat';
-    @actual_url_variants   = MediaWords::Util::URL::all_url_variants( $gopher_url );
+    @actual_url_variants = MediaWords::Util::URL::all_url_variants( $db, $gopher_url );
     @expected_url_variants = ( $gopher_url );
     is_deeply( [ sort @actual_url_variants ], [ sort @expected_url_variants ], 'Non-HTTP(S) URL' );
 
@@ -576,7 +580,7 @@ sub test_all_url_variants()
 
     my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
-    @actual_url_variants = MediaWords::Util::URL::all_url_variants( $starting_url );
+    @actual_url_variants = MediaWords::Util::URL::all_url_variants( $db, $starting_url );
     $hs->stop();
 
     @expected_url_variants = (
@@ -595,7 +599,7 @@ sub test_all_url_variants()
 
     $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
-    @actual_url_variants = MediaWords::Util::URL::all_url_variants( $starting_url );
+    @actual_url_variants = MediaWords::Util::URL::all_url_variants( $db, $starting_url );
     $hs->stop();
 
     @expected_url_variants = (
@@ -618,7 +622,7 @@ sub test_all_url_variants()
 
     $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
-    @actual_url_variants = MediaWords::Util::URL::all_url_variants( $starting_url );
+    @actual_url_variants = MediaWords::Util::URL::all_url_variants( $db, $starting_url );
     $hs->stop();
 
     @expected_url_variants = (
@@ -631,6 +635,91 @@ sub test_all_url_variants()
         [ sort @expected_url_variants ],
         '"Redirect to homepage" all_url_variants() test'
     );
+}
+
+sub test_get_controversy_url_variants
+{
+    my ( $db ) = @_;
+
+    my $data = {
+        A => {
+            B => [ 1, 2, 3 ],
+            C => [ 4, 5, 6 ]
+        },
+        D => { E => [ 7, 8, 9 ] }
+    };
+
+    my $media = MediaWords::Test::DB::create_test_story_stack( $db, $data );
+
+    my $story_1 = $media->{ A }->{ feeds }->{ B }->{ stories }->{ 1 };
+    my $story_2 = $media->{ A }->{ feeds }->{ B }->{ stories }->{ 2 };
+    my $story_3 = $media->{ A }->{ feeds }->{ B }->{ stories }->{ 3 };
+
+    $db->query( <<END, $story_1->{ stories_id }, $story_2->{ stories_id } );
+insert into controversy_merged_stories_map ( source_stories_id, target_stories_id ) values( ?, ? )
+END
+
+    my $tag_set = $db->create( 'tag_sets', { name => 'foo' } );
+
+    my $controversy = {
+        name                    => 'foo',
+        pattern                 => 'foo',
+        solr_seed_query         => 'foo',
+        description             => 'foo',
+        controversy_tag_sets_id => $tag_set->{ tag_sets_id }
+    };
+    $controversy = $db->create( 'controversies', $controversy );
+
+    $db->create(
+        'controversy_links',
+        {
+            controversies_id => $controversy->{ controversies_id },
+            stories_id       => $story_1->{ stories_id },
+            url              => $story_1->{ url },
+            redirect_url     => $story_1->{ url } . "/redirect_url"
+        }
+    );
+
+    $db->create(
+        'controversy_links',
+        {
+            controversies_id => $controversy->{ controversies_id },
+            stories_id       => $story_2->{ stories_id },
+            url              => $story_2->{ url },
+            redirect_url     => $story_2->{ url } . "/redirect_url"
+        }
+    );
+
+    $db->create(
+        'controversy_links',
+        {
+            controversies_id => $controversy->{ controversies_id },
+            stories_id       => $story_3->{ stories_id },
+            url              => $story_3->{ url },
+            redirect_url     => $story_1->{ url } . "/redirect_url"
+        }
+    );
+
+    my $expected_urls = [
+        $story_1->{ url },
+        $story_2->{ url },
+        $story_1->{ url } . "/redirect_url",
+        $story_2->{ url } . "/redirect_url",
+        $story_3->{ url }
+    ];
+
+    my $url_variants = MediaWords::Util::URL::get_controversy_url_variants( $db, $story_1->{ url } );
+
+    is(
+        scalar( @{ $expected_urls } ),
+        scalar( @{ $url_variants } ),
+        'test_get_controversy_url_variants: same number variants'
+    );
+
+    for ( my $i = 0 ; $i < @{ $expected_urls } ; $i++ )
+    {
+        is( $expected_urls->[ $i ], $url_variants->[ $i ], 'test_get_controversy_url_variants: url variant match $i' );
+    }
 }
 
 sub main()
@@ -652,7 +741,23 @@ sub main()
     test_url_and_data_after_redirects_html();
     test_url_and_data_after_redirects_http_loop();
     test_url_and_data_after_redirects_html_loop();
-    test_all_url_variants();
+
+    MediaWords::Test::DB::test_on_test_database(
+        sub {
+            my ( $db ) = @_;
+
+            test_all_url_variants( $db );
+        }
+    );
+
+    MediaWords::Test::DB::test_on_test_database(
+        sub {
+            my ( $db ) = @_;
+
+            test_get_controversy_url_variants( $db );
+        }
+    );
+
 }
 
 main();

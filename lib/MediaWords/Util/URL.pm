@@ -458,15 +458,71 @@ sub url_and_data_after_redirects($;$$)
     return ( $uri->as_string, $html );
 }
 
+# for a given set of stories, get all the stories that are source or target merged stories
+# in controversy_merged_stories_map.  repeat recursively up to 10 times, or until no new stories are found.
+sub _get_merged_stories_ids
+{
+    my ( $db, $stories_ids, $n ) = @_;
+
+    return [] unless ( @{ $stories_ids } );
+
+    my $stories_ids_list = join( ',', @{ $stories_ids } );
+
+    my $merged_stories_ids = $db->query( <<END )->flat;
+select distinct target_stories_id, source_stories_id 
+    from controversy_merged_stories_map
+    where target_stories_id in ( $stories_ids_list ) or source_stories_id in ( $stories_ids_list )
+END
+
+    my $all_stories_ids = [ List::MoreUtils::distinct( @{ $stories_ids }, @{ $merged_stories_ids } ) ];
+
+    $n ||= 0;
+    if ( ( $n > 10 ) || ( @{ $stories_ids } == @{ $stories_ids } ) )
+    {
+        return $all_stories_ids;
+    }
+    else
+    {
+        return _get_merged_storieds_ids( $db, $stories_ids, $n + 1 );
+    }
+}
+
+# get any alternative urls for the given url from controversy_merged_stories or controversy_links
+sub get_controversy_url_variants
+{
+    my ( $db, $urls ) = @_;
+
+    my $stories_ids = $db->query( "select stories_id from stories where url in (??)", $urls )->flat;
+
+    my $all_stories_ids = _get_merged_stories_ids( $db, $stories_ids );
+
+    return $urls unless ( @{ $all_stories_ids } );
+
+    my $all_stories_ids_list = join( ',', @{ $stories_ids } );
+
+    my $all_urls = $db->query( <<END )->flat;
+select distinct url from ( 
+    select redirect_url from controversy_links where stories_id in ( $all_stories_ids_list )
+    union
+    select url from controversy_links where stories_id in( $all_stories_ids_list )
+    union
+    select url from stories where stories_id in ( $all_stories_ids_list )
+) q
+END
+
+    return $all_urls;
+}
+
 # Given the URL, return all URL variants that we can think of:
 # 1) Normal URL (the one passed as a parameter)
 # 2) URL after redirects (i.e., fetch the URL, see if it gets redirected somewhere)
 # 3) Canonical URL (after removing #fragments, session IDs, tracking parameters, etc.)
 # 4) Canonical URL after redirects (do the redirect check first, then strip the tracking parameters from the URL)
 # 5) URL from <link rel="canonical" /> (if any)
-sub all_url_variants($)
+# 6) Any alternative URLs from controversy_merged_stories or controversy_links
+sub all_url_variants($$)
 {
-    my $url = shift;
+    my ( $db, $url ) = @_;
 
     unless ( defined $url )
     {
@@ -525,7 +581,9 @@ sub all_url_variants($)
         }
     }
 
-    return uniq( values %urls );
+    my $all_urls = get_controversy_url_variants( $db, [ values %urls ] );
+
+    return @{ $all_urls };
 }
 
 1;
