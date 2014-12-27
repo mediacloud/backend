@@ -38,7 +38,7 @@ use constant LINK_WEIGHT_ITERATIONS => 3;
 use constant ALL_TAG => 'all';
 
 # max number of solely self linked stories to include
-use constant MAX_SELF_LINKED_STORIES => 200;
+use constant MAX_SELF_LINKED_STORIES => 100;
 
 # ignore links that match this pattern
 my $_ignore_link_pattern =
@@ -1028,11 +1028,18 @@ END
     }
 }
 
-# return true if this story is already a controversy story or
 # if the story has the same media_id as the source linking story and
 # there are already MAX_SELF_LINKED_STORIES solely self linked spidered stories for the given
 # media source.  this prevents the spider from downloading too many pages within a single
 # site that self links a lot, like freedictionary.com, youtube, or google books
+sub skip_self_linked_story
+{
+    my ( $db, $controversy, $story ) = @_;
+
+}
+
+# return true if this story is already a controversy story or
+# if the story should be skipped or being a self linked story (see skup_self_linked_story())
 sub skip_controversy_story
 {
     my ( $db, $controversy, $story, $link ) = @_;
@@ -1042,7 +1049,7 @@ sub skip_controversy_story
     my $spidered_tag = get_spidered_tag( $db );
 
     # never do a self linked story skip for stories that were not spidered
-    return 0 unless ( $db->query( <<END, $link->{ stories_id }, $spidered_tag->{ tags_id } )->hash );
+    return 0 unless ( $db->query( <<END, $story->{ stories_id }, $spidered_tag->{ tags_id } )->hash );
 select 1 from stories_tags_map where stories_id = ? and tags_id = ?
 END
 
