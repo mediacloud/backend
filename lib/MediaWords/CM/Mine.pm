@@ -174,7 +174,7 @@ sub get_extracted_html
     eval { $extracted_html = MediaWords::DBI::Stories::get_extracted_html_from_db( $db, $story ); };
     if ( $@ )
     {
-        say STDERR "fixing story download: $@";
+        # say STDERR "fixing story download: $@";
         MediaWords::DBI::Stories::fix_story_downloads_if_needed( $db, $story );
         eval { $extracted_html = MediaWords::DBI::Stories::get_extracted_html_from_db( $db, $story ); };
     }
