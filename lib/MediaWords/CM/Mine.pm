@@ -84,8 +84,10 @@ my $_link_extractor;
 # return a list of all links that appear in the html
 sub get_links_from_html
 {
-    my ( $html ) = @_;
+    my ( $html, $url ) = @_;
 
+    # we choose not to pass the base url here to avoid collecting relative urls.  we end up with too many
+    # stories linked from the same media source when we allow relative links.
     $_link_extractor ||= new HTML::LinkExtractor();
 
     $_link_extractor->parse( \$html );
@@ -99,9 +101,7 @@ sub get_links_from_html
 
         next if ( $link->{ href } =~ $_ignore_link_pattern );
 
-        $link =~ s/www-nc.nytimes/www.nytimes/i;
-
-        say STDERR "link: $link->{ href }";
+        $link =~ s/www[a-z0-9]+.nytimes/www.nytimes/i;
 
         push( @{ $links }, { url => $link->{ href } } );
     }
@@ -161,7 +161,7 @@ sub get_boingboing_links
         return [];
     }
 
-    return get_links_from_html( $content );
+    return get_links_from_html( $content, $story->{ url } );
 }
 
 # get the extracted html for the story.  fix the story downloads by redownloading
@@ -181,8 +181,7 @@ sub get_extracted_html
     return $extracted_html;
 }
 
-# get all urls that appear in the text or description of the story using
-# a simple kludgy regex
+# get all urls that appear in the text or description of the story using a simple kludgy regex
 sub get_links_from_story_text
 {
     my ( $db, $story ) = @_;
@@ -196,7 +195,7 @@ sub get_links_from_story_text
 
         $url =~ s/[^a-z]+$//;
 
-        push( @{ $links }, { url => $1 } );
+        push( @{ $links }, { url => $url } );
     }
 
     return $links;
@@ -211,10 +210,10 @@ sub get_links_from_story
 
     my $extracted_html = get_extracted_html( $db, $story );
 
-    my $links             = get_links_from_html( $extracted_html );
-    my $text_links        = get_links_from_story_text( $db, $story );
-    my $description_links = get_links_from_html( $story->{ description } );
-    my $boingboing_links  = get_boingboing_links( $db, $story );
+    my $links = get_links_from_html( $extracted_html, $story->{ url } );
+    my $text_links = get_links_from_story_text( $db, $story );
+    my $description_links = get_links_from_html( $story->{ description }, $story->{ url } );
+    my $boingboing_links = get_boingboing_links( $db, $story );
 
     my @all_links = ( @{ $links }, @{ $text_links }, @{ $description_links }, @{ $boingboing_links } );
 
@@ -233,17 +232,17 @@ sub generate_controversy_links
     {
         my $links = get_links_from_story( $db, $story );
 
-        #print STDERR "links found:\n" . join( "\n", map { "  ->" . $_->{ url } } @{ $links } ) . "\n";
-        # print Dumper( $links );
-
         for my $link ( @{ $links } )
         {
+            next if ( $link->{ url } eq $story->{ url } );
+
             my $link_exists = $db->query(
                 "select * from controversy_links where stories_id = ? and url = ? and controversies_id = ?",
                 $story->{ stories_id },
                 encode( 'utf8', $link->{ url } ),
                 $controversy->{ controversies_id }
             )->hash;
+
             if ( $link_exists )
             {
                 print STDERR "    -> dup: $link->{ url }\n";
