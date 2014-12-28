@@ -1089,7 +1089,7 @@ END
     {
         say STDERR "SKIP SELF LINKED STORY: $story->{ url } [$num_self_linked_stories]";
 
-        my $medium_domain = MediaWords::Util::URL::get_url_domain( $story->{ url } );
+        my $medium_domain = MediaWords::Util::URL::get_url_domain( $link->{ url } );
         $_skip_self_linked_domain->{ $medium_domain } = 1;
 
         return 1;
