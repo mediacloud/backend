@@ -1193,6 +1193,19 @@ sub add_new_links
 
         add_to_controversy_stories_and_links_if_match( $db, $controversy, $story, $link );
     }
+
+    $db->begin;
+
+    # delete any links that were skipped for whatever reason
+    for my $link ( @{ $new_links } )
+    {
+        if ( !$link->{ ref_stories_id } && $link->{ controversy_links_id } )
+        {
+            $db->query( "delete from controversy_links where controversy_links_id = ?", $link->{ controversy_links_id } );
+        }
+    }
+    $db->commit;
+
 }
 
 # build a lookup table of aliases for a url based on url and redirect_url fields in the
