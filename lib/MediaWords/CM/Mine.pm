@@ -57,6 +57,9 @@ my $_spidered_tag;
 # cache of media by sanitized url
 my $_media_url_lookup;
 
+# lookup of self linked domains, for efficient skipping before adding a story
+my $_skip_self_linked_domain = {};
+
 # fetch each link and add a { redirect_url } field if the
 # { url } field redirects to another url
 sub add_redirect_links
@@ -1028,16 +1031,6 @@ END
     }
 }
 
-# if the story has the same media_id as the source linking story and
-# there are already MAX_SELF_LINKED_STORIES solely self linked spidered stories for the given
-# media source.  this prevents the spider from downloading too many pages within a single
-# site that self links a lot, like freedictionary.com, youtube, or google books
-sub skip_self_linked_story
-{
-    my ( $db, $controversy, $story ) = @_;
-
-}
-
 # return true if this story is already a controversy story or
 # if the story should be skipped or being a self linked story (see skup_self_linked_story())
 sub skip_controversy_story
@@ -1055,6 +1048,8 @@ END
 
     my $ss = $db->find_by_id( 'stories', $link->{ stories_id } );
     return 0 if ( $ss->{ media_id } != $story->{ media_id } );
+
+    return 1 if ( _skip_self_linked_domain( $db, $link ) );
 
     my $cid = $controversy->{ controversies_id };
 
@@ -1093,12 +1088,14 @@ END
     if ( $num_self_linked_stories > $MAX_SELF_LINKED_STORIES )
     {
         say STDERR "SKIP SELF LINKED STORY: $story->{ url } [$num_self_linked_stories]";
+
+        my $medium_domain = MediaWords::Util::URL::get_url_domain( $story->{ url } );
+        $_skip_self_linked_domain->{ $medium_domain } = 1;
+
         return 1;
     }
-    else
-    {
-        return 0;
-    }
+
+    return 0;
 }
 
 # if the story matches the controversy pattern, add it to controversy_stories and controversy_links
@@ -1119,6 +1116,34 @@ sub add_to_controversy_stories_and_links_if_match
 
 }
 
+# return true if the domain of the linked url is different
+# than the domain of the linking story and the domain is in
+# $_skip_self_linked_domain
+sub _skip_self_linked_domain
+{
+    my ( $db, $link ) = @_;
+
+    my $domain = MediaWords::Util::URL::get_url_domain( $link->{ url } );
+    return 0 unless ( $_skip_self_linked_domain->{ $domain } );
+
+    # only skip if the media source of the linking story is different than the media
+    # source of the linked story.  we can't know the media source of the linked story
+    # without adding it first, though, which we want to skip because it's time
+    # expensive to do so.  so we just compare the url domain as a proxy for
+    # media source instead.
+    my $source_story = $db->find_by_id( 'stories', $link->{ stories_id } );
+
+    my $source_domain = MediaWords::Util::URL::get_url_domain( $source_story->{ url } );
+
+    if ( $source_domain ne $domain )
+    {
+        print STDERR "SKIP SELF LINKED DOMAIN: $domain\n";
+        return 1;
+    }
+
+    return 0;
+}
+
 # download any unmatched link in new_links, add it as a story, extract it, add any links to the controversy_links list.
 # each hash within new_links can either be a controversy_links hash or simply a hash with a { url } field.  if
 # the link is a controversy_links hash, the controversy_link will be updated in the database to point ref_stories_id
@@ -1134,6 +1159,8 @@ sub add_new_links
         next if ( $link->{ ref_stories_id } );
 
         print STDERR "spidering $link->{ url } ...\n";
+
+        next if ( _skip_self_linked_domain( $db, $link ) );
 
         if ( my $story = get_matching_story_from_db( $db, $link ) )
         {
@@ -1154,6 +1181,8 @@ sub add_new_links
         next if ( $link->{ ref_stories_id } );
 
         print STDERR "fetch spidering $link->{ url } ...\n";
+
+        next if ( _skip_self_linked_domain( $db, $link ) );
 
         add_redirect_url_to_link( $db, $link );
         my $story = get_matching_story_from_db( $db, $link )
@@ -2087,12 +2116,12 @@ sub mine_controversy ($$;$)
     say STDERR "importing seed urls ...";
     import_seed_urls( $db, $controversy );
 
-    # merge dup media and stories here to avoid redundant link processing for imported urls
-    say STDERR "merging media_dup stories ...";
-    merge_dup_media_stories( $db, $controversy );
-
-    say STDERR "merging dup stories ...";
-    find_and_merge_dup_stories( $db, $controversy );
+    # # merge dup media and stories here to avoid redundant link processing for imported urls
+    # say STDERR "merging media_dup stories ...";
+    # merge_dup_media_stories( $db, $controversy );
+    #
+    # say STDERR "merging dup stories ...";
+    # find_and_merge_dup_stories( $db, $controversy );
 
     unless ( $options->{ import_only } )
     {
