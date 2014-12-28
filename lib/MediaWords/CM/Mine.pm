@@ -2116,12 +2116,12 @@ sub mine_controversy ($$;$)
     say STDERR "importing seed urls ...";
     import_seed_urls( $db, $controversy );
 
-    # # merge dup media and stories here to avoid redundant link processing for imported urls
-    # say STDERR "merging media_dup stories ...";
-    # merge_dup_media_stories( $db, $controversy );
-    #
-    # say STDERR "merging dup stories ...";
-    # find_and_merge_dup_stories( $db, $controversy );
+    # merge dup media and stories here to avoid redundant link processing for imported urls
+    say STDERR "merging media_dup stories ...";
+    merge_dup_media_stories( $db, $controversy );
+
+    say STDERR "merging dup stories ...";
+    find_and_merge_dup_stories( $db, $controversy );
 
     unless ( $options->{ import_only } )
     {
