@@ -1124,6 +1124,7 @@ sub _skip_self_linked_domain
     my ( $db, $link ) = @_;
 
     my $domain = MediaWords::Util::URL::get_url_domain( $link->{ url } );
+
     return 0 unless ( $_skip_self_linked_domain->{ $domain } );
 
     # only skip if the media source of the linking story is different than the media
@@ -1135,7 +1136,7 @@ sub _skip_self_linked_domain
 
     my $source_domain = MediaWords::Util::URL::get_url_domain( $source_story->{ url } );
 
-    if ( $source_domain ne $domain )
+    if ( $source_domain eq $domain )
     {
         print STDERR "SKIP SELF LINKED DOMAIN: $domain\n";
         return 1;
