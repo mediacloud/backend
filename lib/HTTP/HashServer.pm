@@ -95,7 +95,7 @@ sub stop
 {
     my ( $self ) = @_;
 
-    say STDERR "Stopping server with PID " . $self->{ pid } . " from PID $$";
+    # say STDERR "Stopping server with PID " . $self->{ pid } . " from PID $$";
 
     kill( 'KILL', $self->{ pid } );
 }

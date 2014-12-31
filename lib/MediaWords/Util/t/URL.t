@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 80;
+use Test::More tests => 87;
 
 use Readonly;
 use HTTP::HashServer;
@@ -655,7 +655,10 @@ sub test_get_controversy_url_variants
     my $story_2 = $media->{ A }->{ feeds }->{ B }->{ stories }->{ 2 };
     my $story_3 = $media->{ A }->{ feeds }->{ B }->{ stories }->{ 3 };
 
-    $db->query( <<END, $story_1->{ stories_id }, $story_2->{ stories_id } );
+    $db->query( <<END, $story_2->{ stories_id }, $story_1->{ stories_id } );
+insert into controversy_merged_stories_map ( source_stories_id, target_stories_id ) values( ?, ? )
+END
+    $db->query( <<END, $story_3->{ stories_id }, $story_2->{ stories_id } );
 insert into controversy_merged_stories_map ( source_stories_id, target_stories_id ) values( ?, ? )
 END
 
@@ -671,12 +674,28 @@ END
     $controversy = $db->create( 'controversies', $controversy );
 
     $db->create(
+        'controversy_stories',
+        {
+            controversies_id => $controversy->{ controversies_id },
+            stories_id       => $story_1->{ stories_id }
+        }
+    );
+
+    $db->create(
         'controversy_links',
         {
             controversies_id => $controversy->{ controversies_id },
             stories_id       => $story_1->{ stories_id },
             url              => $story_1->{ url },
             redirect_url     => $story_1->{ url } . "/redirect_url"
+        }
+    );
+
+    $db->create(
+        'controversy_stories',
+        {
+            controversies_id => $controversy->{ controversies_id },
+            stories_id       => $story_2->{ stories_id }
         }
     );
 
@@ -691,12 +710,19 @@ END
     );
 
     $db->create(
+        'controversy_stories',
+        {
+            controversies_id => $controversy->{ controversies_id },
+            stories_id       => $story_3->{ stories_id }
+        }
+    );
+
+    $db->create(
         'controversy_links',
         {
             controversies_id => $controversy->{ controversies_id },
             stories_id       => $story_3->{ stories_id },
-            url              => $story_3->{ url },
-            redirect_url     => $story_1->{ url } . "/redirect_url"
+            url              => $story_3->{ url } . '/alternate',
         }
     );
 
@@ -705,20 +731,24 @@ END
         $story_2->{ url },
         $story_1->{ url } . "/redirect_url",
         $story_2->{ url } . "/redirect_url",
-        $story_3->{ url }
+        $story_3->{ url },
+        $story_3->{ url } . "/alternate"
     ];
 
     my $url_variants = MediaWords::Util::URL::get_controversy_url_variants( $db, $story_1->{ url } );
 
+    $url_variants  = [ sort { $a cmp $b } @{ $url_variants } ];
+    $expected_urls = [ sort { $a cmp $b } @{ $expected_urls } ];
+
     is(
-        scalar( @{ $expected_urls } ),
         scalar( @{ $url_variants } ),
+        scalar( @{ $expected_urls } ),
         'test_get_controversy_url_variants: same number variants'
     );
 
     for ( my $i = 0 ; $i < @{ $expected_urls } ; $i++ )
     {
-        is( $expected_urls->[ $i ], $url_variants->[ $i ], 'test_get_controversy_url_variants: url variant match $i' );
+        is( $url_variants->[ $i ], $expected_urls->[ $i ], 'test_get_controversy_url_variants: url variant match $i' );
     }
 }
 

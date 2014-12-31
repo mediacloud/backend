@@ -20,7 +20,7 @@ sub is_http_url($)
 
     unless ( $url )
     {
-        say STDERR "URL is undefined";
+        # say STDERR "URL is undefined";
         return 0;
     }
 
@@ -28,12 +28,12 @@ sub is_http_url($)
 
     unless ( $uri->scheme )
     {
-        say STDERR "Scheme is undefined for URL $url";
+        # say STDERR "Scheme is undefined for URL $url";
         return 0;
     }
     unless ( $uri->scheme eq 'http' or $uri->scheme eq 'https' )
     {
-        say STDERR "Scheme is not HTTP(s) for URL $url";
+        # say STDERR "Scheme is not HTTP(s) for URL $url";
         return 0;
     }
 
@@ -48,14 +48,14 @@ sub is_homepage_url($)
 
     unless ( $url )
     {
-        say STDERR "URL is empty or undefined.";
+        # say STDERR "URL is empty or undefined.";
         return 0;
     }
 
     my $uri = URI->new( $url )->canonical;
     unless ( $uri->scheme )
     {
-        say STDERR "Scheme is undefined for URL $url";
+        # say STDERR "Scheme is undefined for URL $url";
         return 0;
     }
 
@@ -276,8 +276,8 @@ sub meta_refresh_url_from_html($;$)
                         }
                         else
                         {
-                            say STDERR
-                              "HTML <meta http-equiv=\"refresh\"/> found, but the new URL ($url) doesn't seem to be valid.";
+                           # say STDERR
+                           #   "HTML <meta http-equiv=\"refresh\"/> found, but the new URL ($url) doesn't seem to be valid.";
                         }
                     }
                     else
@@ -320,8 +320,8 @@ sub link_canonical_url_from_html($;$)
                         }
                         else
                         {
-                            say STDERR
-                              "HTML <link rel=\"canonical\"/> found, but the new URL ($url) doesn't seem to be valid.";
+                            # say STDERR
+                            #   "HTML <link rel=\"canonical\"/> found, but the new URL ($url) doesn't seem to be valid.";
                         }
                     }
                     else
@@ -386,7 +386,7 @@ sub url_and_data_after_redirects($;$$)
                     $error_message .= "to: " . $redirect->header( 'Location' ) . "\n";
                 }
 
-                say STDERR $error_message;
+                # say STDERR $error_message;
 
                 # Return the original URL (unless we find a URL being a substring of another URL, see below)
                 $uri = URI->new( $orig_url )->canonical;
@@ -401,8 +401,8 @@ sub url_and_data_after_redirects($;$$)
                     if ( my ( $matched_url ) = grep /$encoded_url_redirected_to/, @urls_redirected_to )
                     {
 
-                        say STDERR
-"Encoded URL $encoded_url_redirected_to is a substring of another URL $matched_url, so I'll assume that $url_redirected_to is the correct one.";
+#                         say STDERR
+# "Encoded URL $encoded_url_redirected_to is a substring of another URL $matched_url, so I'll assume that $url_redirected_to is the correct one.";
                         $uri = URI->new( $url_redirected_to )->canonical;
                         last;
 
@@ -412,7 +412,7 @@ sub url_and_data_after_redirects($;$$)
             }
             else
             {
-                say STDERR "Request to " . $uri->as_string . " was unsuccessful: " . $response->status_line;
+                # say STDERR "Request to " . $uri->as_string . " was unsuccessful: " . $response->status_line;
 
                 # Return the original URL and give up
                 $uri = URI->new( $orig_url )->canonical;
@@ -477,13 +477,13 @@ END
     my $all_stories_ids = [ List::MoreUtils::distinct( @{ $stories_ids }, @{ $merged_stories_ids } ) ];
 
     $n ||= 0;
-    if ( ( $n > 10 ) || ( @{ $stories_ids } == @{ $stories_ids } ) )
+    if ( ( $n > 10 ) || ( @{ $stories_ids } == @{ $all_stories_ids } ) )
     {
         return $all_stories_ids;
     }
     else
     {
-        return _get_merged_storieds_ids( $db, $stories_ids, $n + 1 );
+        return _get_merged_stories_ids( $db, $all_stories_ids, $n + 1 );
     }
 }
 
@@ -498,16 +498,17 @@ sub get_controversy_url_variants
 
     return $urls unless ( @{ $all_stories_ids } );
 
-    my $all_stories_ids_list = join( ',', @{ $stories_ids } );
+    my $all_stories_ids_list = join( ',', @{ $all_stories_ids } );
 
     my $all_urls = $db->query( <<END )->flat;
 select distinct url from ( 
-    select redirect_url from controversy_links where stories_id in ( $all_stories_ids_list )
+    select redirect_url url from controversy_links where stories_id in ( $all_stories_ids_list )
     union
     select url from controversy_links where stories_id in( $all_stories_ids_list )
     union
     select url from stories where stories_id in ( $all_stories_ids_list )
 ) q
+    where q is not null
 END
 
     return $all_urls;
@@ -559,8 +560,8 @@ sub all_url_variants($$)
         my $url_link_rel_canonical = link_canonical_url_from_html( $data_after_redirects, $url_after_redirects );
         if ( $url_link_rel_canonical )
         {
-            say STDERR "Found <link rel=\"canonical\" /> for URL $url_after_redirects " .
-              "(original URL: $url): $url_link_rel_canonical";
+            # say STDERR "Found <link rel=\"canonical\" /> for URL $url_after_redirects " .
+            #   "(original URL: $url): $url_link_rel_canonical";
 
             $urls{ 'after_redirects_canonical' } = $url_link_rel_canonical;
         }
