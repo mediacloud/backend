@@ -38,7 +38,7 @@ use constant LINK_WEIGHT_ITERATIONS => 3;
 use constant ALL_TAG => 'all';
 
 # max number of solely self linked stories to include
-use constant MAX_SELF_LINKED_STORIES => 200;
+use constant MAX_SELF_LINKED_STORIES => 100;
 
 # ignore links that match this pattern
 my $_ignore_link_pattern =
@@ -56,6 +56,9 @@ my $_spidered_tag;
 
 # cache of media by sanitized url
 my $_media_url_lookup;
+
+# lookup of self linked domains, for efficient skipping before adding a story
+my $_skip_self_linked_domain = {};
 
 # fetch each link and add a { redirect_url } field if the
 # { url } field redirects to another url
@@ -84,8 +87,10 @@ my $_link_extractor;
 # return a list of all links that appear in the html
 sub get_links_from_html
 {
-    my ( $html ) = @_;
+    my ( $html, $url ) = @_;
 
+    # we choose not to pass the base url here to avoid collecting relative urls.  we end up with too many
+    # stories linked from the same media source when we allow relative links.
     $_link_extractor ||= new HTML::LinkExtractor();
 
     $_link_extractor->parse( \$html );
@@ -99,7 +104,7 @@ sub get_links_from_html
 
         next if ( $link->{ href } =~ $_ignore_link_pattern );
 
-        $link =~ s/www-nc.nytimes/www.nytimes/i;
+        $link =~ s/www[a-z0-9]+.nytimes/www.nytimes/i;
 
         push( @{ $links }, { url => $link->{ href } } );
     }
@@ -159,7 +164,7 @@ sub get_boingboing_links
         return [];
     }
 
-    return get_links_from_html( $content );
+    return get_links_from_html( $content, $story->{ url } );
 }
 
 # get the extracted html for the story.  fix the story downloads by redownloading
@@ -172,6 +177,7 @@ sub get_extracted_html
     eval { $extracted_html = MediaWords::DBI::Stories::get_extracted_html_from_db( $db, $story ); };
     if ( $@ )
     {
+        # say STDERR "fixing story download: $@";
         MediaWords::DBI::Stories::fix_story_downloads_if_needed( $db, $story );
         eval { $extracted_html = MediaWords::DBI::Stories::get_extracted_html_from_db( $db, $story ); };
     }
@@ -179,8 +185,7 @@ sub get_extracted_html
     return $extracted_html;
 }
 
-# get all urls that appear in the text or description of the story using
-# a simple kludgy regex
+# get all urls that appear in the text or description of the story using a simple kludgy regex
 sub get_links_from_story_text
 {
     my ( $db, $story ) = @_;
@@ -190,14 +195,11 @@ sub get_links_from_story_text
     my $links = [];
     while ( $text =~ m~(https?://[^\s\")]+)~g )
     {
-        push( @{ $links }, $1 );
-    }
+        my $url = $1;
 
-    if ( @{ $links } )
-    {
-        print STDERR "TEXT LINKS:\n";
-        print STDERR Dumper( $links );
-        sleep 1;
+        $url =~ s/[^a-z]+$//;
+
+        push( @{ $links }, { url => $url } );
     }
 
     return $links;
@@ -212,13 +214,15 @@ sub get_links_from_story
 
     my $extracted_html = get_extracted_html( $db, $story );
 
-    my $links             = get_links_from_html( $extracted_html );
-    my $text_links        = get_links_from_story_text( $db, $story );
-    my $description_links = get_links_from_html( $story->{ description } );
-    my $boingboing_links  = get_boingboing_links( $db, $story );
+    my $links = get_links_from_html( $extracted_html, $story->{ url } );
+    my $text_links = get_links_from_story_text( $db, $story );
+    my $description_links = get_links_from_html( $story->{ description }, $story->{ url } );
+    my $boingboing_links = get_boingboing_links( $db, $story );
+
+    my @all_links = ( @{ $links }, @{ $text_links }, @{ $description_links }, @{ $boingboing_links } );
 
     my $link_lookup = {};
-    map { $link_lookup->{ MediaWords::Util::URL::normalize_url_lossy( $_->{ url } ) } = $_ } @{ $links };
+    map { $link_lookup->{ MediaWords::Util::URL::normalize_url_lossy( $_->{ url } ) } = $_ } @all_links;
 
     return [ values( %{ $link_lookup } ) ];
 }
@@ -232,17 +236,17 @@ sub generate_controversy_links
     {
         my $links = get_links_from_story( $db, $story );
 
-        #print STDERR "links found:\n" . join( "\n", map { "  ->" . $_->{ url } } @{ $links } ) . "\n";
-        # print Dumper( $links );
-
         for my $link ( @{ $links } )
         {
+            next if ( $link->{ url } eq $story->{ url } );
+
             my $link_exists = $db->query(
                 "select * from controversy_links where stories_id = ? and url = ? and controversies_id = ?",
                 $story->{ stories_id },
                 encode( 'utf8', $link->{ url } ),
                 $controversy->{ controversies_id }
             )->hash;
+
             if ( $link_exists )
             {
                 print STDERR "    -> dup: $link->{ url }\n";
@@ -1028,36 +1032,54 @@ END
 }
 
 # return true if this story is already a controversy story or
-# if the story has the same media_id as the source linking story and
-# there are already MAX_SELF_LINKED_STORIES solely self linked stories for the given
-# media source.  this prevents the spider from downloading too many pages within a single
-# site that self links a lot, like freedictionary.com, youtube, or google books
+# if the story should be skipped or being a self linked story (see skup_self_linked_story())
 sub skip_controversy_story
 {
     my ( $db, $controversy, $story, $link ) = @_;
 
     return 1 if ( story_is_controversy_story( $db, $controversy, $story ) );
 
+    my $spidered_tag = get_spidered_tag( $db );
+
+    # never do a self linked story skip for stories that were not spidered
+    return 0 unless ( $db->query( <<END, $story->{ stories_id }, $spidered_tag->{ tags_id } )->hash );
+select 1 from stories_tags_map where stories_id = ? and tags_id = ?
+END
+
     my $ss = $db->find_by_id( 'stories', $link->{ stories_id } );
     return 0 if ( $ss->{ media_id } != $story->{ media_id } );
 
+    return 1 if ( _skip_self_linked_domain( $db, $link ) );
+
+    my $cid = $controversy->{ controversies_id };
+
     # this query is much quicker than the below one, so do it first
-    my ( $num_stories ) = $db->query( <<END, $controversy->{ controversies_id }, $story->{ media_id } )->flat;
-select count(*) from cd.live_stories where controversies_id = ? and media_id = ?
+    my ( $num_stories ) = $db->query( <<END, $cid, $story->{ media_id }, $spidered_tag->{ tags_id } )->flat;
+select count(*) 
+    from cd.live_stories s
+        join stories_tags_map stm on ( s.stories_id = stm.stories_id )
+    where 
+        s.controversies_id = ? and 
+        s.media_id = ? and
+        stm.tags_id = ?
 END
 
     my $MAX_SELF_LINKED_STORIES = MAX_SELF_LINKED_STORIES;
     return 0 if ( $num_stories <= $MAX_SELF_LINKED_STORIES );
 
-    my ( $num_cross_linked_stories ) = $db->query( <<END, $controversy->{ controversies_id }, $story->{ media_id } )->flat;
+    my ( $num_cross_linked_stories ) = $db->query( <<END, $cid, $story->{ media_id }, $spidered_tag->{ tags_id } )->flat;
 select count( distinct rs.stories_id )
     from cd.live_stories rs
         join controversy_links cl on ( cl.controversies_id = \$1 and rs.stories_id = cl.ref_stories_id )
         join cd.live_stories ss on ( ss.controversies_id = \$1 and cl.stories_id = ss.stories_id )
+        join stories_tags_map sstm on ( sstm.stories_id = ss.stories_id )
+        join stories_tags_map rstm on ( rstm.stories_id = rs.stories_id )
     where 
         rs.controversies_id = \$1 and 
         rs.media_id = \$2 and
-        ss.media_id <> rs.media_id
+        ss.media_id <> rs.media_id and
+        sstm.tags_id = \$3 and
+        rstm.tags_id = \$3
     limit ( $num_stories - $MAX_SELF_LINKED_STORIES )
 END
 
@@ -1065,13 +1087,15 @@ END
 
     if ( $num_self_linked_stories > $MAX_SELF_LINKED_STORIES )
     {
-        say STDERR "skip self linked story: $story->{ url }";
+        say STDERR "SKIP SELF LINKED STORY: $story->{ url } [$num_self_linked_stories]";
+
+        my $medium_domain = MediaWords::Util::URL::get_url_domain( $link->{ url } );
+        $_skip_self_linked_domain->{ $medium_domain } = 1;
+
         return 1;
     }
-    else
-    {
-        return 0;
-    }
+
+    return 0;
 }
 
 # if the story matches the controversy pattern, add it to controversy_stories and controversy_links
@@ -1092,6 +1116,35 @@ sub add_to_controversy_stories_and_links_if_match
 
 }
 
+# return true if the domain of the linked url is different
+# than the domain of the linking story and the domain is in
+# $_skip_self_linked_domain
+sub _skip_self_linked_domain
+{
+    my ( $db, $link ) = @_;
+
+    my $domain = MediaWords::Util::URL::get_url_domain( $link->{ url } );
+
+    return 0 unless ( $_skip_self_linked_domain->{ $domain } );
+
+    # only skip if the media source of the linking story is different than the media
+    # source of the linked story.  we can't know the media source of the linked story
+    # without adding it first, though, which we want to skip because it's time
+    # expensive to do so.  so we just compare the url domain as a proxy for
+    # media source instead.
+    my $source_story = $db->find_by_id( 'stories', $link->{ stories_id } );
+
+    my $source_domain = MediaWords::Util::URL::get_url_domain( $source_story->{ url } );
+
+    if ( $source_domain eq $domain )
+    {
+        print STDERR "SKIP SELF LINKED DOMAIN: $domain\n";
+        return 1;
+    }
+
+    return 0;
+}
+
 # download any unmatched link in new_links, add it as a story, extract it, add any links to the controversy_links list.
 # each hash within new_links can either be a controversy_links hash or simply a hash with a { url } field.  if
 # the link is a controversy_links hash, the controversy_link will be updated in the database to point ref_stories_id
@@ -1107,6 +1160,8 @@ sub add_new_links
         next if ( $link->{ ref_stories_id } );
 
         print STDERR "spidering $link->{ url } ...\n";
+
+        next if ( _skip_self_linked_domain( $db, $link ) );
 
         if ( my $story = get_matching_story_from_db( $db, $link ) )
         {
@@ -1128,6 +1183,8 @@ sub add_new_links
 
         print STDERR "fetch spidering $link->{ url } ...\n";
 
+        next if ( _skip_self_linked_domain( $db, $link ) );
+
         add_redirect_url_to_link( $db, $link );
         my $story = get_matching_story_from_db( $db, $link )
           || add_new_story( $db, $link, undef, $controversy );
@@ -1136,6 +1193,19 @@ sub add_new_links
 
         add_to_controversy_stories_and_links_if_match( $db, $controversy, $story, $link );
     }
+
+    $db->begin;
+
+    # delete any links that were skipped for whatever reason
+    for my $link ( @{ $new_links } )
+    {
+        if ( !$link->{ ref_stories_id } && $link->{ controversy_links_id } )
+        {
+            $db->query( "delete from controversy_links where controversy_links_id = ?", $link->{ controversy_links_id } );
+        }
+    }
+    $db->commit;
+
 }
 
 # build a lookup table of aliases for a url based on url and redirect_url fields in the
