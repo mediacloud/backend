@@ -582,7 +582,9 @@ sub all_url_variants($$)
         }
     }
 
-    my $all_urls = get_controversy_url_variants( $db, [ values %urls ] );
+    my $distinct_urls = [ List::MoreUtils::distinct( values( %urls ) ) ];
+
+    my $all_urls = get_controversy_url_variants( $db, $distinct_urls );
 
     return @{ $all_urls };
 }
