@@ -41,6 +41,7 @@
                                         { cdts => cdts.controversy_dump_time_slices_id,
                                           l => live } ) %]
         <a href="[% all_stories_url | html %]">View All Stories</a>
+        <br />
     </div>
     
     
