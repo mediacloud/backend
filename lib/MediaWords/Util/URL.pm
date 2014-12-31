@@ -237,8 +237,9 @@ sub get_url_domain($)
         $domain = join( ".", ( $name_parts->[ $n - 2 ], $name_parts->[ $n - 1 ] ) );
     }
     elsif ( $host =~
-        /wordpress.com|blogspot|livejournal.com|privet.ru|wikia.com|feedburner.com|24open.ru|patch.com|tumblr.com/i )
+        /go.com|wordpress.com|blogspot|livejournal.com|privet.ru|wikia.com|feedburner.com|24open.ru|patch.com|tumblr.com/i )
     {
+        # identify sites in these domains at the third domain level (abcnews.go.com instead of go.com)
         $domain = $host;
     }
     else
