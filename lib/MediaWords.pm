@@ -55,7 +55,7 @@ use HTML::FormFu::Unicode;
 my $config = __PACKAGE__->config( -name => 'MediaWords' );
 
 # Configure authentication scheme
-__PACKAGE__->config( 'Plugin::Static::Simple' => { dirs => [ 'gexf' ] } );
+__PACKAGE__->config( 'Plugin::Static::Simple' => { dirs => [ 'gexf', 'nv' ] } );
 
 # Exit an action chain when there is an error raised in any action (thus
 # terminating the chain early)
