@@ -19,7 +19,7 @@
   },
   "features": {
     "search": true,
-    "groupSelectorAttribute": "media_type",
+    "groupSelectorAttribute": "partisan_code",
     "hoverBehavior": "dim"
   },
   "informationPanel": {

@@ -514,6 +514,80 @@ END
     $c->res->body( encode_json( $media_with_cdts_counts ) );
 }
 
+# get json config file for network visualization
+sub nv_config : Local
+{
+    my ( $self, $c, $cdts_id ) = @_;
+
+    my $db = $c->dbis;
+
+    my $live = $c->req->param( 'l' ) || '';
+
+    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
+
+    my $gexf_url = $c->uri_for( '/admin/cm/gexf/' . $cdts->{ controversy_dump_time_slices_id }, { l => $live } )->as_string;
+
+    my $config_data = {
+        "type"    => "network",
+        "version" => "1.0",
+        "data"    => $gexf_url,
+        "logo"    => {
+            "text" => "",
+            "file" => "",
+            "link" => ""
+        },
+        "text" => {
+            "title" => "Link Network Map for $controversy->{ name }",
+            "more"  => "",
+            "intro" => "Time Slice: $cdts->{ period } $cdts->{ start_date } - $cdts->{ end_date }"
+        },
+        "legend" => {
+            "edgeLabel"  => "Hyperlinks",
+            "colorLabel" => "Media Type",
+            "nodeLabel"  => "Media Source"
+        },
+        "features" => {
+            "search"                 => JSON::true,
+            "groupSelectorAttribute" => "partisan_code",
+            "hoverBehavior"          => "dim"
+        },
+        "informationPanel" => {
+            "imageAttribute"       => JSON::false,
+            "groupByEdgeDirection" => JSON::true
+        },
+        "sigma" => {
+            "graphProperties" => {
+                "minEdgeSize" => 0.1,
+                "maxNodeSize" => 15,
+                "maxEdgeSize" => 0.1,
+                "minNodeSize" => 2
+            },
+            "drawingProperties" => {
+                "labelThreshold"           => 10,
+                "hoverFontStyle"           => "bold",
+                "defaultEdgeType"          => "curve",
+                "defaultLabelColor"        => "#000",
+                "defaultLabelHoverColor"   => "#fff",
+                "defaultLabelSize"         => 14,
+                "activeFontStyle"          => "bold",
+                "fontStyle"                => "bold",
+                "defaultHoverLabelBGColor" => "#002147",
+                "defaultLabelBGColor"      => "#ddd"
+            },
+            "mouseProperties" => {
+                "minRatio" => 0.75,
+                "maxRatio" => 20
+            }
+        }
+    };
+
+    my $config_json = MediaWords::Util::JSON::encode_json( $config_data, 1, 1 );
+
+    $c->response->content_type( 'application/json; charset=UTF-8' );
+    $c->response->content_length( bytes::length( $config_json ) );
+    $c->res->body( $config_json );
+}
+
 # generate the d3 chart of the weekly counts for any medium in the top
 # ten media in any week
 sub mot : Local
@@ -832,16 +906,16 @@ sub gexf : Local
     my $l = $c->req->params->{ l };
 
     my $db = $c->dbis;
-    
+
     my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
 
-    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $l );    
+    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $l );
 
     my $gexf = MediaWords::CM::Dump::get_gexf_dump( $db, $cdts );
 
-#     my ( $gexf ) = $db->query( <<END, $cdts->{ controversy_dump_time_slices_id } )->flat;
-# select file_content from cdts_files where controversy_dump_time_slices_id = ? and file_name = 'media.gexf'
-# END
+    #     my ( $gexf ) = $db->query( <<END, $cdts->{ controversy_dump_time_slices_id } )->flat;
+    # select file_content from cdts_files where controversy_dump_time_slices_id = ? and file_name = 'media.gexf'
+    # END
 
     my $base_url = $c->uri_for( '/' );
 
@@ -1613,7 +1687,7 @@ sub search_media : Local
 
     my $query = $c->req->param( 'q' );
     my $search_query;
-    
+
     if ( $query )
     {
         my $stories_id_query = _get_stories_id_search_query( $db, $query );
@@ -1626,7 +1700,7 @@ sub search_media : Local
 
     my $order = $c->req->params->{ order } || '';
     my $order_clause = $order eq 'bitly_click_count' ? 'mlc.bitly_click_count desc' : 'mlc.inlink_count desc';
-    
+
     my $media = $db->query(
         <<"END"
         SELECT DISTINCT m.*,
