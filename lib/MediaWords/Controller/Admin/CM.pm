@@ -514,6 +514,25 @@ END
     $c->res->body( encode_json( $media_with_cdts_counts ) );
 }
 
+# display network viz
+sub nv : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $live    = $c->req->params->{ l };
+    my $cdts_id = $c->req->params->{ cdts };
+
+    my $db = $c->dbis;
+
+    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
+
+    $c->stash->{ cdts }             = $cdts;
+    $c->stash->{ controversy_dump } = $cd;
+    $c->stash->{ controversy }      = $controversy;
+    $c->stash->{ live }             = $live;
+    $c->stash->{ template }         = 'nv/nv.tt2';
+}
+
 # get json config file for network visualization.
 # nv implemented in root/nv from the gephi sigma export template
 sub nv_config : Local

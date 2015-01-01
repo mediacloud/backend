@@ -133,11 +133,11 @@ function setupGUI(config) {
 	if (config.logo.link) logo="<a href=\"" + config.logo.link + "\">"+logo+"</a>";
 	$("#maintitle").html(logo);
 
-	// #title
-	$("#title").html("<h2>"+config.text.title+"</h2>");
-
-	// #titletext
-	$("#titletext").html(config.text.intro);
+    // // #title
+    // $("#title").html("<h2>"+config.text.title+"</h2>");
+    // 
+    // // #titletext
+    // $("#titletext").html(config.text.intro);
 
 	// More information
 	if (config.text.more) {
