@@ -514,18 +514,25 @@ END
     $c->res->body( encode_json( $media_with_cdts_counts ) );
 }
 
-# get json config file for network visualization
+# get json config file for network visualization.
+# nv implemented in root/nv from the gephi sigma export template
 sub nv_config : Local
 {
-    my ( $self, $c, $cdts_id ) = @_;
+    my ( $self, $c, $cdts_id, $live, $color_field ) = @_;
 
     my $db = $c->dbis;
 
-    my $live = $c->req->param( 'l' ) || '';
+    $live ||= '';
 
     my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
 
-    my $gexf_url = $c->uri_for( '/admin/cm/gexf/' . $cdts->{ controversy_dump_time_slices_id }, { l => $live } )->as_string;
+    my $gexf_url = $c->uri_for(
+        '/admin/cm/gexf/' . $cdts->{ controversy_dump_time_slices_id },
+        {
+            l  => $live,
+            cf => $color_field
+        }
+    )->as_string;
 
     my $config_data = {
         "type"    => "network",
@@ -898,24 +905,33 @@ sub dump_medium_links : Local
     _download_cdts_csv( $c, $controversy_dump_time_slices_id, 'medium_links', $c->req->params->{ l } );
 }
 
-# download the gexf file for the time slice
+# download the gexf file for the time slice.  if the 'l' param is 1, use live data instead of
+# dumped data for the time slice.  if using a dump, use an existing media.gexf file if it exists.
 sub gexf : Local
 {
     my ( $self, $c, $cdts_id, $csv ) = @_;
 
-    my $l = $c->req->params->{ l };
+    my $l           = $c->req->params->{ l };
+    my $color_field = $c->req->params->{ cf };
 
     my $db = $c->dbis;
 
     my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
 
-    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $l );
+    my $gexf;
 
-    my $gexf = MediaWords::CM::Dump::get_gexf_dump( $db, $cdts );
+    if ( !$l )
+    {
+        ( $gexf ) = $db->query( <<END, $cdts->{ controversy_dump_time_slices_id } )->flat;
+select file_content from cdts_files where controversy_dump_time_slices_id = ? and file_name = 'media.gexf'
+END
+    }
 
-    #     my ( $gexf ) = $db->query( <<END, $cdts->{ controversy_dump_time_slices_id } )->flat;
-    # select file_content from cdts_files where controversy_dump_time_slices_id = ? and file_name = 'media.gexf'
-    # END
+    if ( !$gexf )
+    {
+        MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $l );
+        $gexf = MediaWords::CM::Dump::get_gexf_dump( $db, $cdts, $color_field );
+    }
 
     my $base_url = $c->uri_for( '/' );
 

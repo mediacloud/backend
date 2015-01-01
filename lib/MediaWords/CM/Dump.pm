@@ -33,10 +33,7 @@ use constant MIN_NODE_SIZE => 7;
 use constant MAX_MAP_WIDTH => 800;
 
 # max number of media to include in gexf map
-use constant MAX_GEXF_MEDIA => 200;
-
-# consistent colors for media types
-my $_media_type_color_map;
+use constant MAX_GEXF_MEDIA => 500;
 
 # attributes to include in gexf dump
 my $_media_static_gexf_attribute_types = {
@@ -523,12 +520,13 @@ sub add_extra_fields_to_dump_media
 {
     my ( $db, $cdts, $media ) = @_;
 
-    my $code_fields = add_codes_to_dump_media( $db, $cdts, $media );
+    # my $code_fields = add_codes_to_dump_media( $db, $cdts, $media );
 
     # my $tag_fields = add_tags_to_dump_media( $db, $cdts, $media );
     my $partisan_field = add_partisan_code_to_dump_media( $db, $cdts, $media );
 
-    my $all_fields = [ @{ $code_fields }, $partisan_field ];
+    # my $all_fields = [ @{ $code_fields }, @{ $tag_fields }, $partisan_field ];
+    my $all_fields = [ $partisan_field ];
 
     map { $_media_static_gexf_attribute_types->{ $_ } = 'string'; } @{ $all_fields };
 }
@@ -739,32 +737,27 @@ sub get_color_hash_from_hex
     };
 }
 
-sub get_media_type_color
+# get a consistent color from MediaWords::Util::Colors.  convert to a color hash as needed by gexf.  translate
+# the set to a controversy specific color set value for get_consistent_color.
+sub get_color
 {
-    my ( $db, $cdts, $media_type ) = @_;
+    my ( $db, $cdts, $set, $id ) = @_;
 
-    $media_type ||= 'none';
-
-    return $_media_type_color_map->{ $media_type } if ( $_media_type_color_map );
-
-    my $all_media_types = $db->query( <<END )->flat;
-select distinct media_type from dump_media_with_types
-END
-
-    my $num_colors = scalar( @{ $all_media_types } ) + 1;
-
-    my $hex_colors = MediaWords::Util::Colors::get_colors( $num_colors );
-    my $color_list = [ map { get_color_hash_from_hex( $_ ) } @{ $hex_colors } ];
-
-    $_media_type_color_map = {};
-    for my $media_type ( @{ $all_media_types } )
+    my $color_set;
+    if ( grep { $_ eq $set } qw(partisan_code media_type) )
     {
-        $_media_type_color_map->{ $media_type } = pop( @{ $color_list } );
+        $color_set = $set;
+    }
+    else
+    {
+        $color_set = "controversy_${set}_$cdts->{ controversy_dump }->{ controversies_id }";
     }
 
-    $_media_type_color_map->{ none } = pop( @{ $color_list } );
+    $id ||= 'none';
 
-    return $_media_type_color_map->{ $media_type };
+    my $color = MediaWords::Util::Colors::get_consistent_color( $db, $color_set, $id );
+
+    return get_color_hash_from_hex( $color );
 }
 
 # gephi removes the weights from the media links.  add them back in.
@@ -1077,7 +1070,9 @@ sub layout_gexf_with_graphviz_1
 # write gexf dump of nodes
 sub get_gexf_dump
 {
-    my ( $db, $cdts ) = @_;
+    my ( $db, $cdts, $color_field ) = @_;
+
+    $color_field ||= 'media_type';
 
     my $media = $db->query( <<END, MAX_GEXF_MEDIA )->hashes;
 select distinct * 
@@ -1155,7 +1150,7 @@ END
         #     push( @{ $node->{ spells }->{ spell } }, { start => $story_date, end => $story_date } );
         # }
 
-        $node->{ 'viz:color' } = [ get_media_type_color( $db, $cdts, $medium->{ media_type } ) ];
+        $node->{ 'viz:color' } = [ get_color( $db, $cdts, $color_field, $medium->{ $color_field } ) ];
         $node->{ 'viz:size' } = { value => $medium->{ inlink_count } + 1 };
 
         push( @{ $graph->{ nodes }->{ node } }, $node );
