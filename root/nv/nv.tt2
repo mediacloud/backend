@@ -35,23 +35,11 @@
 <div id="mainpanel">
   <div class="col">
 		<div id="maintitle"></div>
-    <div id="title">[% title | html %]</div>
+    <div id="title"><a href="[% ts_url | html %]">[% title | html %]</a></div>
     <div id="titletext">
-        <p><a href="[% ts_url | html %]">Time Slice Home</a></p>
+        <p><a href="[% c.uri_for( "/admin/cm/gexf/${cdts.controversy_dump_time_slices_id}/${live}/${color_field}") | html %]">download gexf</a>
+</p>
     </div>
-<div id="legend">
-	<div class="box">
-		<h2>Legend:</h2>
-		<dl>
-		<dt class="node"></dt>
-		<dd></dd>
-		<dt class="edge"></dt>
-		<dd></dd>
-		<dt class="colours"></dt>
-		<dd></dd>		
-		</dl>
-	</div>
-</div> 
     <div class="b1">
     <form>
       <div id="search" class="cf"><h2>Search:</h2>

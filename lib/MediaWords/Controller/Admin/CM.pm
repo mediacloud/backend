@@ -521,6 +521,7 @@ sub nv : Local
 
     my $live    = $c->req->params->{ l };
     my $cdts_id = $c->req->params->{ cdts };
+    my $color_field = $c->req->params->{ cf };
 
     my $db = $c->dbis;
 
@@ -530,6 +531,7 @@ sub nv : Local
     $c->stash->{ controversy_dump } = $cd;
     $c->stash->{ controversy }      = $controversy;
     $c->stash->{ live }             = $live;
+    $c->stash->{ color_field }      = $color_field;
     $c->stash->{ template }         = 'nv/nv.tt2';
 }
 
@@ -540,6 +542,8 @@ sub nv_config : Local
     my ( $self, $c, $cdts_id, $live, $color_field ) = @_;
 
     my $db = $c->dbis;
+    
+    $color_field ||= 'media_type';
 
     $live ||= '';
 
@@ -563,18 +567,18 @@ sub nv_config : Local
             "link" => ""
         },
         "text" => {
-            "title" => "Link Network Map for $controversy->{ name }",
+            "title" => "",
             "more"  => "",
-            "intro" => "Time Slice: $cdts->{ period } $cdts->{ start_date } - $cdts->{ end_date }"
+            "intro" => ""
         },
         "legend" => {
-            "edgeLabel"  => "Hyperlinks",
-            "colorLabel" => "Media Type",
-            "nodeLabel"  => "Media Source"
+            "edgeLabel"  => "",
+            "colorLabel" => "",
+            "nodeLabel"  => ""
         },
         "features" => {
             "search"                 => JSON::true,
-            "groupSelectorAttribute" => "partisan_code",
+            "groupSelectorAttribute" => $color_field,
             "hoverBehavior"          => "dim"
         },
         "informationPanel" => {
@@ -583,9 +587,9 @@ sub nv_config : Local
         },
         "sigma" => {
             "graphProperties" => {
-                "minEdgeSize" => 0.1,
+                "minEdgeSize" => 0.2,
                 "maxNodeSize" => 15,
-                "maxEdgeSize" => 0.1,
+                "maxEdgeSize" => 0.4,
                 "minNodeSize" => 2
             },
             "drawingProperties" => {

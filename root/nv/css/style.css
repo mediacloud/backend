@@ -221,7 +221,7 @@ margin-right:10px;
 
 #maintitle {
 width: 100%;
-height: 72px;
+height: 0px;
 background-repeat: no-repeat;
 margin-bottom:20px;
 }
@@ -231,7 +231,7 @@ display: none;
 }
 
 #mainpanel {
-margin-top: 50px;
+margin-top: 10px;
 margin-left: 25px;
 background:#fff;
 background-color:rgba(255,255,255,0.8);
@@ -335,7 +335,7 @@ user-select: none;
 #attributeselect .select {
 	border: 1px solid #999;
 	padding: 5px 7px 4px 7px;
-	color: #fff;
+	color: #999999;
 	cursor: pointer;
 	background-color: #999;
 	background-image: url('../images/sprite.png');
@@ -349,28 +349,28 @@ background-position: 200px -8px;
 
 #attributeselect .list {
 	display: none;
-	border: 1px solid 
-	#999;
+	border: 1px solid #999;
 	padding: 6px;
-	height: 150px;
+	height: 250px;
 	width: 226px;
 	overflow-y: scroll;
 	overflow-x: hidden;
-	background-color: #999;
+    background-color:rgba(255,255,255,0.8);
+	/*background-color: #999;*/
 	/*position: relative;
 		left: 240px;
 		bottom: 164px;*/
 	position:absolute;
-	margin-left: 240px;
-	margin-top:-164px;
-	color: white;
+	margin-left: 0px;
+	margin-top: 0px;
+	color: #999999;
 }	
 
 #attributeselect .list a {
 display:block;
 padding: 2px;
 text-decoration: none;
-color: #fff;
+color: #999999;
 }
 
 #attributeselect .list a:hover {

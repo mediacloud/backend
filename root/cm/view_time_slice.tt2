@@ -47,6 +47,38 @@
     
     
     <div id="narrowcolumn">
+        <div class="boxtitle">Stats</div>
+        <table class="even_rows_grey">
+            <tr>
+                <td># Stories</td>
+                <td>[% cdts.story_count %]</td>
+                <td><a href="[% c.uri_for( '/admin/cm/dump_stories/' _ cdts.controversy_dump_time_slices_id, { l => live } ) %]">CSV</a></td>
+            </tr>
+            <tr>
+                <td># Story Links</td>
+                <td>[% cdts.story_link_count %]</td>
+                <td><a href="[% c.uri_for( '/admin/cm/dump_story_links/' _ cdts.controversy_dump_time_slices_id, { l => live } ) %]">CSV</a></td>
+            </tr>
+            <tr>
+                <td># Media</td>
+                <td>[% cdts.medium_count %]</td>
+                <td><a href="[% c.uri_for( '/admin/cm/dump_media/' _ cdts.controversy_dump_time_slices_id, { l => live } ) %]">CSV</a></tr>
+            </tr>
+            <tr>
+                <td># Medium Links</td>
+                <td>[% cdts.medium_link_count %]</td>
+                <td><a href="[% c.uri_for( '/admin/cm/dump_medium_links/' _ cdts.controversy_dump_time_slices_id, { l => live } ) %]">CSV</a></td>
+            </tr>
+            <tr>
+                <td># Modeled Top Media</td>
+                <td>[% cdts.model_num_media %]</td>
+                <td />
+            </tr>
+            <tr>
+                <td colspan="3">dates: [% INCLUDE cm/model_reliability.tt2 model_reliability_include_numbers=1 %]</td>
+            </tr>
+        </table>
+
         <div class="boxtitle">Search Stories</div>
         <fieldset>
             [% story_search_url = c.uri_for( "/admin/cm/search_stories" ) %]
@@ -70,10 +102,10 @@
         <div class="boxtitle">Network Maps</div>
         <fieldset>
             [% SET nv_config = c.uri_for( "/admin/cm/nv_config/$cdts.controversy_dump_time_slices_id/$live" ) %]
-            [% SET nv_url = c.uri_for( '/admin/cm/nv' )  _ "?cdts=${cdts.controversy_dump_time_slices_id}&l=${live}&config=" _ nv_config %]
-            [% SET nv_url_partisan = "$nv_url/partisan_code"  %]
-            <p><a href="[% nv_url | html %]">Link Network Map</a></p>
-            <p><a href="[% nv_url_partisan | html %]">Link Network Map (partisan)</a></p>
+            [% SET nv_url_media_type = c.uri_for( '/admin/cm/nv' )  _ "?cf=media_type&cdts=${cdts.controversy_dump_time_slices_id}&l=${live}&config=${nv_config}/media_type" %]
+            [% SET nv_url_partisan = c.uri_for( '/admin/cm/nv' )  _ "?cf=partisan_code&cdts=${cdts.controversy_dump_time_slices_id}&l=${live}&config=${nv_config}/partisan_code" %]
+            <p><a href="[% nv_url_media_type | html %]">Network Map - media types</a></p>
+            <p><a href="[% nv_url_partisan | html %]">Network Map - partisan</a></p>
         </fieldset>
             
         
@@ -103,33 +135,6 @@
             [% END %]
         </table>
     
-        <div class="boxtitle">Downloads</div>
-        <table class="even_rows_grey">
-            <tr>
-                <td># Stories</td>
-                <td>[% cdts.story_count %]</td>
-                <td><a href="[% c.uri_for( '/admin/cm/dump_stories/' _ cdts.controversy_dump_time_slices_id, { l => live } ) %]">CSV</a></td>
-            </tr>
-            <tr>
-                <td># Story Links</td>
-                <td>[% cdts.story_link_count %]</td>
-                <td><a href="[% c.uri_for( '/admin/cm/dump_story_links/' _ cdts.controversy_dump_time_slices_id, { l => live } ) %]">CSV</a></td>
-            </tr>
-            <tr>
-                <td># Media</td>
-                <td>[% cdts.medium_count %]</td>
-                <td><a href="[% c.uri_for( '/admin/cm/dump_media/' _ cdts.controversy_dump_time_slices_id, { l => live } ) %]">CSV</a></tr>
-            </tr>
-            <tr>
-                <td># Medium Links</td>
-                <td>[% cdts.medium_link_count %]</td>
-                <td><a href="[% c.uri_for( '/admin/cm/dump_medium_links/' _ cdts.controversy_dump_time_slices_id, { l => live } ) %]">CSV</a></td>
-            </tr>
-            <tr>
-                <td># Modeled Top Media</td>
-                <td>[% cdts.model_num_media %]</td>
-                <td />
-        </table>
         
     </div>
 

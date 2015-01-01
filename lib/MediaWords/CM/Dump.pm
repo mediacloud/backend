@@ -1377,11 +1377,6 @@ sub generate_cdts ($$$$$$)
 
     MediaWords::CM::Model::print_model_matches( $db, $cdts, $all_models_top_media );
     MediaWords::CM::Model::update_model_correlation( $db, $cdts, $all_models_top_media );
-
-    # my $confidence = get_model_confidence( $db, $cdts, $all_models_top_media );
-    # print "confidence: $confidence\n";
-
-    write_gexf_dump( $db, $cdts );
 }
 
 # decrease the given date to the latest monday equal to or before the date
