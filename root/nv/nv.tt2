@@ -35,11 +35,16 @@
 <div id="mainpanel">
   <div class="col">
 		<div id="maintitle"></div>
-    <div id="title"><a href="[% ts_url | html %]">[% title | html %]</a></div>
+    <div id="title"><a href="[% ts_url | html %]">[% controversy.name _ ': ' | html %]<br />[% date.format( cdts.start_date ) _ ' - ' _ date.format( cdts.end_date ) | html %]</a></div>
     <div id="titletext">
-        <p><a href="[% c.uri_for( "/admin/cm/gexf/${cdts.controversy_dump_time_slices_id}/${live}/${color_field}") | html %]">download gexf</a>
-</p>
+        This is a force-based layout of the top 500 media sources in this controversy / time slice, by number of inlinks, 
+        with hyperlinks as unweighted edges.  
+    <div class="info cf">
+      <dl>
+            <a href="#information" class="fb">more information...</a>
+      </dl>
     </div>
+
     <div class="b1">
     <form>
       <div id="search" class="cf"><h2>Search:</h2>
@@ -54,6 +59,19 @@
     </div>
   </div>
   <div id="information">
+            <p>
+                This is a force-based layout of the top 500 media sources in this controversy / time slice, by number of inlinks.  
+                Each edge represents a hyperlink between the two media sources.  The direction of hyperlinks is not
+                taken into account for the layout, and edges between nodes are unweighted.
+            </p>
+            <p>
+                The size of each node is determined by the number of inlinks from all media sources in the controversy 
+                (not just the top 500).  Only media sources with at least one link to or from another top 500 media source 
+                on the map are shown.
+            </p>
+            <p>
+                <a href="[% c.uri_for( "/admin/cm/gexf/${cdts.controversy_dump_time_slices_id}/${live}/${color_field}") | html %]">download gexf</a>
+            </p>
   </div>
 </div>
 	<div id="zoom">

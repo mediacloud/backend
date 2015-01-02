@@ -149,12 +149,12 @@ function setupGUI(config) {
     // $("#titletext").html(config.text.intro);
 
 	// More information
-	if (config.text.more) {
-		$("#information").html(config.text.more);
-	} else {
-		//hide more information link
-		$("#moreinformation").hide();
-	}
+    // if (config.text.more) {
+    //  $("#information").html(config.text.more);
+    // } else {
+    //  //hide more information link
+    //  $("#moreinformation").hide();
+    // }
 
 	// Legend
 
