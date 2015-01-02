@@ -230,6 +230,7 @@ sub get_url_domain($)
     my $domain;
     if ( $host =~ /\.(gov|org|com?)\...$/i )
     {
+        # foo.co.uk -> foo.co.uk instead of co.uk
         $domain = join( ".", ( $name_parts->[ $n - 2 ], $name_parts->[ $n - 1 ], $name_parts->[ $n ] ) );
     }
     elsif ( $host =~ /\.(edu|gov)$/i )
@@ -237,8 +238,9 @@ sub get_url_domain($)
         $domain = join( ".", ( $name_parts->[ $n - 2 ], $name_parts->[ $n - 1 ] ) );
     }
     elsif ( $host =~
-        /wordpress.com|blogspot|livejournal.com|privet.ru|wikia.com|feedburner.com|24open.ru|patch.com|tumblr.com/i )
+        /go.com|wordpress.com|blogspot|livejournal.com|privet.ru|wikia.com|feedburner.com|24open.ru|patch.com|tumblr.com/i )
     {
+        # identify sites in these domains as the whole host name (abcnews.go.com instead of go.com)
         $domain = $host;
     }
     else
