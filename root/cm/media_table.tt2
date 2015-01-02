@@ -6,17 +6,22 @@
     [% END %]
     </div>
 [% END %]
+
+[% SET self_url = c.uri_for( '/admin/cm/search_media', { 
+    cdts = cdts.controversy_dump_time_slices_id,
+    l = live,
+    q = q } )%]
+
 <table class="even_rows_grey">
-    
     <tr>
         <th>Rank</th>
         <th>Media_id</th>
         <th>Name</th>
         <th>Media Type</th>
         <th>Stories</th>
-        <th>Inlinks</th>
+        <th><a href="[% self_url  | html %]">Inlinks</a></th>
         <th>Outlinks</th>
-        <th>Clicks</th>
+        <th><a href="[% self_url _ '&order=bitly_click_count' | html %]">Clicks</a></th>
         <th>Referers</th>
     </tr>
 
