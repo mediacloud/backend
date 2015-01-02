@@ -20,8 +20,11 @@ along with Gephi.  If not, see <http://www.gnu.org/licenses/>.
 */
 package edu.law.harvard.cyber.mediacloud.layout;
 
+import java.awt.geom.Rectangle2D;
+import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 
 import org.gephi.graph.api.DirectedGraph;
 import org.gephi.graph.api.GraphController;
@@ -34,10 +37,16 @@ import org.gephi.io.importer.api.EdgeDefault;
 import org.gephi.io.importer.api.ImportController;
 import org.gephi.io.processor.plugin.DefaultProcessor;
 import org.gephi.layout.plugin.forceAtlas2.ForceAtlas2;
+import org.gephi.layout.plugin.fruchterman.FruchtermanReingold;
+import org.gephi.layout.plugin.force.StepDisplacement;
+import org.gephi.layout.plugin.force.yifanHu.YifanHuLayout;
 import org.gephi.layout.plugin.labelAdjust.LabelAdjust;
 import org.gephi.project.api.ProjectController;
 import org.gephi.project.api.Workspace;
+import org.gephi.visualization.impl.TextDataImpl;
+import org.gephi.visualization.impl.TextDataImpl.TextLine;
 import org.openide.util.Lookup;
+
 
 /**
     This program uses the gephi toolkit to layout a graph using gephi's force atlas 2 layout
@@ -94,35 +103,67 @@ public class GephiLayout
         
         System.out.println( "layout ...");
 
-        ForceAtlas2 layout = new ForceAtlas2( null );
-        layout.setGraphModel( graphModel );
-        layout.resetPropertiesValues();
-        layout.setGravity( new Double( graph.getNodeCount() ) );
-        layout.setScalingRatio( graph.getNodeCount() * 1.5 );
-        layout.setOutboundAttractionDistribution( true );
-        layout.setAdjustSizes( true );
+        // ForceAtlas2 layout = new ForceAtlas2( null );
+        // layout.setGraphModel( graphModel );
+        // layout.resetPropertiesValues();
+        // layout.setGravity( new Double( graph.getNodeCount() ) );
+        // layout.setScalingRatio( graph.getNodeCount() * 1.5 );
+        // layout.setOutboundAttractionDistribution( true );
+        // layout.setAdjustSizes( true );
+
+        FruchtermanReingold layout = new FruchtermanReingold( null );
+        layout.setGraphModel( graphModel );        
+        layout.setArea( new Float( 10000 ) );
+        layout.setGravity( 1.0 );
+        layout.setSpeed( 1.0 );
+
+        // StepDisplacement sd = new StepDisplacement( 20 );
+        // 
+        // YifanHuLayout layout = new YifanHuLayout( null, sd );
+        // layout.setGraphModel( graphModel );
+        // layout.setOptimalDistance( new Float( 10 ) );
+        // layout.setRelativeStrength( new Float( 1 ) );
 
         layout.initAlgo();
-        for ( int i = 0; i < 200 && layout.canAlgo(); i++ ) 
+        for ( int i = 0; i < 5000 && layout.canAlgo(); i++ ) 
         {
             layout.goAlgo();
         }
-        
-        for( Node node: graphModel.getGraph().getNodes().toArray() )
+            
+        try 
+        {    
+            for ( Node node: graphModel.getGraph().getNodes().toArray() )
+            {
+               TextDataImpl td = ( TextDataImpl ) node.getNodeData().getTextData();
+               String labelText = node.getNodeData().getLabel();
+               td.setText( labelText );
+               //Could perhaps used getFontMetrics here to be more accurate but
+               // this heuristic seems to work for me:
+               Rectangle2D bounds=new Rectangle(labelText.length()*10,10);
+               //Use reflection to set the protected Bounds data to non-zero sizes.
+               Field protectedLineField = TextDataImpl.class.getDeclaredField( "line" );
+               protectedLineField.setAccessible(true);        
+               TextLine line = (TextLine) protectedLineField.get(td);
+               line.setBounds(bounds);
+            }
+        }
+        catch (Exception ex) 
         {
-            node.getNodeData().getTextData().setText(node.getNodeData().getLabel());
+            ex.printStackTrace();
+            return;
         }
 
 
         LabelAdjust labelAdjust = new LabelAdjust( null );
+        labelAdjust.setGraphModel( graphModel );
         labelAdjust.setAdjustBySize( true );
         
         labelAdjust.initAlgo();
-        for ( int i = 0; i < 200 && labelAdjust.canAlgo(); i++ ) 
+        for ( int i = 0; i < 5000 && labelAdjust.canAlgo(); i++ ) 
         {
             labelAdjust.goAlgo();
         }
-
+        
         ExportController ec = Lookup.getDefault().lookup( ExportController.class );
         ExporterGEXF exporter = (ExporterGEXF) ec.getExporter("gexf");
         exporter.setExportDynamic( false );

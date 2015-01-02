@@ -397,6 +397,11 @@ sub get_all_models_top_media ($$)
 
     my $config     = MediaWords::Util::Config::get_config;
     my $model_reps = $config->{ mediawords }->{ controversy_model_reps };
+    
+    if ( $model_reps == 0 )
+    {
+        return undef;
+    }
 
     print "copying temporary tables ...\n";
     MediaWords::CM::Dump::copy_temporary_tables( $db );
@@ -405,7 +410,6 @@ sub get_all_models_top_media ($$)
     my $all_models_top_media = [];
     for my $i ( 1 .. $model_reps )
     {
-
         # these make the data tweaking process and other operations much faster
         $db->query( "create index dump_stories_story on dump_stories ( stories_id )" );
         $db->query( "create index dump_tags_tag on dump_tags ( tags_id )" );
