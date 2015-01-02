@@ -14,8 +14,8 @@
         <input type="submit" name="submit" value="Go" />
     </form>
     <p>
-        <a href="[% c.uri_for( '/search' ) %]">Search stories</a><br />
-        <a href="[% c.uri_for( '/search/readme' ) %]">Query instructions</a><br />
+        <a href="[% c.uri_for( '/search' ) %]">Search stories</a> | 
+        <a href="[% c.uri_for( '/search/readme' ) %]">Query instructions</a> | 
         <a href="[% c.uri_for( '/search/tags' ) | html %]">List available media tags</a>
     </p>
 
