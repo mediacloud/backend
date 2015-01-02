@@ -273,7 +273,7 @@ sub handle_error
 
     return 0 if ( $response->is_success );
 
-    my $dbs = $self->dbs;
+    my $dbs = $self->engine->dbs;
 
     my $error_num;
     $error_num = ( $download->{ error_message } =~ /\[error_num: (\d+)\]$/ ) ? $1 + 1 : 1;
@@ -287,7 +287,7 @@ sub handle_error
         $dbs->query( <<END, $interval, $enc_error_message, $download->{ downloads_id }, );
 update downloads set 
         state = 'pending', 
-        download_time = now() + interval \$1 , 
+        download_time = now() + \$1::interval , 
         error_message = \$2 
     where downloads_id = \$3
 END
