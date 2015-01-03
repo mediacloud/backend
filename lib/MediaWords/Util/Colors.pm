@@ -17,6 +17,8 @@ sub get_colors
 {
     my ( $num_colors, $format ) = @_;
 
+    $num_colors ||= @{ $_mc_colors };
+
     my $colors;
     if ( $num_colors <= @{ $_mc_colors } )
     {
@@ -52,6 +54,50 @@ sub get_rgbp_format
       hex( substr( $hex, 0, 2 ) ) . ',' .
       hex( substr( $hex, 2, 2 ) ) . ',' .
       hex( substr( $hex, 4, 2 ) ) . ')';
+}
+
+# return the same color for the same set / id combination every time this function
+# is called
+sub get_consistent_color
+{
+    my ( $db, $set, $id ) = @_;
+
+    # always return grey for null or not typed values
+    return '999999' if ( grep { lc( $id ) eq $_ } ( 'null', 'not typed' ) );
+
+    my ( $color ) = $db->query( 'select color from color_sets where color_set = ? and id = ?', $set, $id )->flat;
+
+    return $color if ( $color );
+
+    my $set_colors = $db->query( 'select color from color_sets where color_set = ?', $set )->flat;
+
+    my $existing_colors = {};
+    map { $existing_colors->{ $_ } = 1 } @{ $set_colors };
+
+    # use the hard coded pallete of 25 colors if possible
+    my $new_color;
+    for my $c ( @{ get_colors() } )
+    {
+        if ( !$existing_colors->{ $c } )
+        {
+            $new_color = $c;
+            last;
+        }
+    }
+
+    # otherwise, just generate a random color
+    if ( !$new_color )
+    {
+        use Color::Mix;
+        my $color_mix = Color::Mix->new;
+        my $colors = [ $color_mix->analogous( '0000ff', 255, 255 ) ];
+
+        $new_color = $colors->[ int( rand() * 255 ) ];
+    }
+
+    $db->create( 'color_sets', { color_set => $set, id => $id, color => $new_color } );
+
+    return $new_color;
 }
 
 1;

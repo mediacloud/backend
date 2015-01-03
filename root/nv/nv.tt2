@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en" xmlns:og="http://opengraphprotocol.org/schema/" xmlns:fb="http://www.facebook.com/2008/fbml" itemscope itemtype="http://schema.org/Map">
+
+[% USE datetime = date(format => '%Y-%m-%d %H:%M:%S', locale => 'en_GB') %]
+[% USE date = date(format => '%Y-%m-%d', locale => 'en_GB') %]
+[% SET title=controversy.name _ ': ' _ date.format( cdts.start_date ) _ ' - ' _ date.format( cdts.end_date ) _ ' Time Slice' %]
+
+<head>
+<title>Network Map: [% title | html %]</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,height=device-height,initial-scale=1,user-scalable=no" />
+<meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+
+
+<!--[if IE]><script type="text/javascript" src="js/excanvas.js"></script><![endif]--> <!-- js/default.js -->
+  <script src="[% c.uri_for( '/nv/js/jquery/jquery.min.js' )  | html %]" type="text/javascript"></script>
+  <script src="[% c.uri_for( '/nv/js/sigma/sigma.min.js' ) | html %]" type="text/javascript" language="javascript"></script>
+    <script src="[% c.uri_for( '/nv/js/sigma/sigma.parseJson.js' ) | html %]" type="text/javascript" language="javascript"></script>
+    <script src="[% c.uri_for( '/nv/js/sigma/sigma.parseGexf.js' ) | html %]" type="text/javascript" language="javascript"></script>
+  <script src="[% c.uri_for( '/nv/js/fancybox/jquery.fancybox.pack.js' ) | html %]" type="text/javascript" language="javascript"></script>
+  <script src="[% c.uri_for( '/nv/js/main.js' ) | html %]" type="text/javascript" language="javascript"></script>
+
+  <link rel="stylesheet" type="text/css" href="[% c.uri_for( '/nv/js/fancybox/jquery.fancybox.css ') | html %]"/>
+  <link rel="stylesheet" href="[% c.uri_for( '/nv/css/style.css' ) | html %]" type="text/css" media="screen" />
+  <link rel="stylesheet" media="screen and (max-height: 770px)" href="[% c.uri_for( '/nv/css/tablet.css' ) | html %]" />
+</head>
+
+[% SET ts_url = c.uri_for( "/admin/cm/view_time_slice/${cdts.controversy_dump_time_slices_id}",  { l => live } ) %]
+
+<body>
+  <div class="sigma-parent">
+    <div class="sigma-expand" id="sigma-canvas"></div>
+  </div>
+<div id="mainpanel">
+  <div class="col">
+		<div id="maintitle"></div>
+    <div id="title"><a href="[% ts_url | html %]">[% controversy.name _ ': ' | html %]<br />[% date.format( cdts.start_date ) _ ' - ' _ date.format( cdts.end_date ) | html %]</a></div>
+    <div id="titletext">
+        This is a force-based layout of the top 500 media sources in this controversy / time slice, by number of inlinks, 
+        with hyperlinks as unweighted edges.  
+    <div class="info cf">
+      <dl>
+            <a href="#information" class="fb">more information...</a>
+      </dl>
+    </div>
+
+    <div class="b1">
+    <form>
+      <div id="search" class="cf"><h2>Search:</h2>
+        <input type="text" name="search" value="Search by name" class="empty"/><div class="state"></div>
+        <div class="results"></div>
+      </div>
+      <div class="cf" id="attributeselect"><h2>Group Selector:</h2>
+        <div class="select">Select Group</div>
+	<div class="list cf"></div>
+      </div>
+    </form>
+    </div>
+  </div>
+  <div id="information">
+            <p>
+                This is a force-based layout of the top 500 media sources in this controversy / time slice, by number of inlinks.  
+                Each edge represents a hyperlink between the two media sources.  The direction of hyperlinks is not
+                taken into account for the layout, and edges between nodes are unweighted.
+            </p>
+            <p>
+                The size of each node is determined by the number of inlinks from all media sources in the controversy 
+                (not just the top 500).  Only media sources with at least one link to or from another top 500 media source 
+                on the map are shown.
+            </p>
+            <p>
+                <a href="[% c.uri_for( "/admin/cm/gexf/${cdts.controversy_dump_time_slices_id}/${live}/${color_field}") | html %]">download gexf</a>
+            </p>
+  </div>
+</div>
+	<div id="zoom">
+  		<div class="z" rel="in"></div> <div class="z" rel="out"></div> <div class="z" rel="center"></div>
+	</div>
+	<div id="copyright">
+		<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/"><img alt="Creative Commons License" style="border-width:0" src="[% c.uri_for( '/nv/images/CC.png' ) | html %]" /></a></div>
+	</div>
+<div id="attributepane">
+<div class="text">
+	<div title="Close" class="left-close returntext"><div class="c cf"><span>Return to the full network</span></div></div>	
+<div class="headertext">
+	<span>Information Pane</span>
+</div>	
+  <div class="nodeattributes">
+    <div class="name"></div>
+	<div class="data"></div>
+    <div class="p">Connections:</div>
+    <div class="link">
+      <ul>
+      </ul>
+    </div>
+  </div>
+	</div>
+</div>
+<div id="developercontainer">
+	<a href="http://www.oii.ox.ac.uk" title="Oxford Internet Institute"><div id="oii"><span>OII</span></div></a>
+	<a href="http://jisc.ac.uk" title="JISC"><div id="jisc"><span>JISC</span></div></a>	
+</div>
+</body>
+</html>

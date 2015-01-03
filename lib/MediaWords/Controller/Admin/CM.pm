@@ -514,6 +514,110 @@ END
     $c->res->body( encode_json( $media_with_cdts_counts ) );
 }
 
+# display network viz
+sub nv : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $live    = $c->req->params->{ l };
+    my $cdts_id = $c->req->params->{ cdts };
+    my $color_field = $c->req->params->{ cf };
+
+    my $db = $c->dbis;
+
+    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
+
+    $c->stash->{ cdts }             = $cdts;
+    $c->stash->{ controversy_dump } = $cd;
+    $c->stash->{ controversy }      = $controversy;
+    $c->stash->{ live }             = $live;
+    $c->stash->{ color_field }      = $color_field;
+    $c->stash->{ template }         = 'nv/nv.tt2';
+}
+
+# get json config file for network visualization.
+# nv implemented in root/nv from the gephi sigma export template
+sub nv_config : Local
+{
+    my ( $self, $c, $cdts_id, $live, $color_field ) = @_;
+
+    my $db = $c->dbis;
+    
+    $color_field ||= 'media_type';
+
+    $live ||= '';
+
+    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
+
+    my $gexf_url = $c->uri_for(
+        '/admin/cm/gexf/' . $cdts->{ controversy_dump_time_slices_id },
+        {
+            l  => $live,
+            cf => $color_field
+        }
+    ) . '';
+
+    my $config_data = {
+        "type"    => "network",
+        "version" => "1.0",
+        "data"    => $gexf_url,
+        "logo"    => {
+            "text" => "",
+            "file" => "",
+            "link" => ""
+        },
+        "text" => {
+            "title" => "",
+            "more"  => "",
+            "intro" => ""
+        },
+        "legend" => {
+            "edgeLabel"  => "",
+            "colorLabel" => "",
+            "nodeLabel"  => ""
+        },
+        "features" => {
+            "search"                 => JSON::true,
+            "groupSelectorAttribute" => $color_field,
+            "hoverBehavior"          => "dim"
+        },
+        "informationPanel" => {
+            "imageAttribute"       => JSON::false,
+            "groupByEdgeDirection" => JSON::true
+        },
+        "sigma" => {
+            "graphProperties" => {
+                "minEdgeSize" => 0.2,
+                "maxNodeSize" => 15,
+                "maxEdgeSize" => 0.4,
+                "minNodeSize" => 2
+            },
+            "drawingProperties" => {
+                "labelThreshold"           => 10,
+                "hoverFontStyle"           => "bold",
+                "defaultEdgeType"          => "curve",
+                "defaultLabelColor"        => "#000",
+                "defaultLabelHoverColor"   => "#fff",
+                "defaultLabelSize"         => 14,
+                "activeFontStyle"          => "bold",
+                "fontStyle"                => "bold",
+                "defaultHoverLabelBGColor" => "#002147",
+                "defaultLabelBGColor"      => "#ddd"
+            },
+            "mouseProperties" => {
+                "minRatio" => 0.75,
+                "maxRatio" => 20
+            }
+        }
+    };
+
+    my $config_json = MediaWords::Util::JSON::encode_json( $config_data, 1, 1 );
+
+    $c->response->content_type( 'application/json; charset=UTF-8' );
+    $c->response->content_length( bytes::length( $config_json ) );
+    $c->res->body( $config_json );
+}
+
 # generate the d3 chart of the weekly counts for any medium in the top
 # ten media in any week
 sub mot : Local
@@ -638,9 +742,10 @@ select * from controversies_with_dates where controversies_id = ?
 END
 
     # add shortcut field names to make it easier to refer to in tt2
-    $cdts->{ cdts_id } = $cdts->{ controversy_dump_time_slices_id };
-    $cdts->{ cd_id }   = $cdts->{ controversy_dumps_id };
-    $cd->{ cd_id }     = $cdts->{ controversy_dumps_id };
+    $cdts->{ cdts_id }          = $cdts->{ controversy_dump_time_slices_id };
+    $cdts->{ cd_id }            = $cdts->{ controversy_dumps_id };
+    $cdts->{ controversy_dump } = $cd;
+    $cd->{ cd_id }              = $cdts->{ controversy_dumps_id };
 
     _add_cdts_model_reliability( $db, $cdts );
 
@@ -823,18 +928,33 @@ sub dump_medium_links : Local
     _download_cdts_csv( $c, $controversy_dump_time_slices_id, 'medium_links', $c->req->params->{ l } );
 }
 
-# download the gexf file for the time slice
+# download the gexf file for the time slice.  if the 'l' param is 1, use live data instead of
+# dumped data for the time slice.  if using a dump, use an existing media.gexf file if it exists.
 sub gexf : Local
 {
-    my ( $self, $c, $controversy_dump_time_slices_id, $csv ) = @_;
+    my ( $self, $c, $cdts_id, $csv ) = @_;
+
+    my $l           = $c->req->params->{ l };
+    my $color_field = $c->req->params->{ cf };
 
     my $db = $c->dbis;
 
-    my $cdts = $db->find_by_id( 'controversy_dump_time_slices', $controversy_dump_time_slices_id );
+    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
 
-    my ( $gexf ) = $db->query( <<END, $cdts->{ controversy_dump_time_slices_id } )->flat;
+    my $gexf;
+
+    if ( !$l )
+    {
+        ( $gexf ) = $db->query( <<END, $cdts->{ controversy_dump_time_slices_id } )->flat;
 select file_content from cdts_files where controversy_dump_time_slices_id = ? and file_name = 'media.gexf'
 END
+    }
+
+    if ( !$gexf )
+    {
+        MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $l );
+        $gexf = MediaWords::CM::Dump::get_gexf_dump( $db, $cdts, $color_field );
+    }
 
     my $base_url = $c->uri_for( '/' );
 
@@ -1605,7 +1725,17 @@ sub search_media : Local
     MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $live );
 
     my $query = $c->req->param( 'q' );
-    my $search_query = _get_stories_id_search_query( $db, $query );
+    my $search_query;
+
+    if ( $query )
+    {
+        my $stories_id_query = _get_stories_id_search_query( $db, $query );
+        $search_query = "AND m.media_id IN ( select media_id from dump_stories where stories_id in ( $stories_id_query ) )";
+    }
+    else
+    {
+        $search_query = '';
+    }
 
     my $order = $c->req->params->{ order } || '';
     my $order_clause = $order eq 'bitly_click_count' ? 'mlc.bitly_click_count desc' : 'mlc.inlink_count desc';
@@ -1618,14 +1748,10 @@ sub search_media : Local
                         mlc.bitly_click_count,
                         mlc.bitly_referrer_count,
                         mlc.story_count
-        FROM dump_stories AS s,
-             dump_media_with_types AS m,
-             dump_story_link_counts AS slc,
+        FROM dump_media_with_types AS m,
              dump_medium_link_counts AS mlc
-        WHERE s.stories_id = slc.stories_id
-          AND s.media_id = m.media_id
-          AND s.media_id = mlc.media_id
-          AND s.stories_id IN ( $search_query )
+        WHERE m.media_id = mlc.media_id
+          $search_query
         ORDER BY $order_clause
         limit 1000
 END
