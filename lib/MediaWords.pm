@@ -198,6 +198,7 @@ sub setup_acl()
       /search/index
       /search/wc
       /search/readme
+      /search/diff
       |;
 
     foreach my $path ( @acl_admin_readonly )

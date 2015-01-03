@@ -38,7 +38,7 @@ use constant LINK_WEIGHT_ITERATIONS => 3;
 use constant ALL_TAG => 'all';
 
 # max number of solely self linked stories to include
-use constant MAX_SELF_LINKED_STORIES => 200;
+use constant MAX_SELF_LINKED_STORIES => 100;
 
 # ignore links that match this pattern
 my $_ignore_link_pattern =
@@ -56,6 +56,9 @@ my $_spidered_tag;
 
 # cache of media by sanitized url
 my $_media_url_lookup;
+
+# lookup of self linked domains, for efficient skipping before adding a story
+my $_skip_self_linked_domain = {};
 
 # fetch each link and add a { redirect_url } field if the
 # { url } field redirects to another url
@@ -1029,10 +1032,7 @@ END
 }
 
 # return true if this story is already a controversy story or
-# if the story has the same media_id as the source linking story and
-# there are already MAX_SELF_LINKED_STORIES solely self linked spidered stories for the given
-# media source.  this prevents the spider from downloading too many pages within a single
-# site that self links a lot, like freedictionary.com, youtube, or google books
+# if the story should be skipped or being a self linked story (see skup_self_linked_story())
 sub skip_controversy_story
 {
     my ( $db, $controversy, $story, $link ) = @_;
@@ -1042,12 +1042,14 @@ sub skip_controversy_story
     my $spidered_tag = get_spidered_tag( $db );
 
     # never do a self linked story skip for stories that were not spidered
-    return 0 unless ( $db->query( <<END, $link->{ stories_id }, $spidered_tag->{ tags_id } )->hash );
+    return 0 unless ( $db->query( <<END, $story->{ stories_id }, $spidered_tag->{ tags_id } )->hash );
 select 1 from stories_tags_map where stories_id = ? and tags_id = ?
 END
 
     my $ss = $db->find_by_id( 'stories', $link->{ stories_id } );
     return 0 if ( $ss->{ media_id } != $story->{ media_id } );
+
+    return 1 if ( _skip_self_linked_domain( $db, $link ) );
 
     my $cid = $controversy->{ controversies_id };
 
@@ -1086,12 +1088,14 @@ END
     if ( $num_self_linked_stories > $MAX_SELF_LINKED_STORIES )
     {
         say STDERR "SKIP SELF LINKED STORY: $story->{ url } [$num_self_linked_stories]";
+
+        my $medium_domain = MediaWords::Util::URL::get_url_domain( $link->{ url } );
+        $_skip_self_linked_domain->{ $medium_domain } = 1;
+
         return 1;
     }
-    else
-    {
-        return 0;
-    }
+
+    return 0;
 }
 
 # if the story matches the controversy pattern, add it to controversy_stories and controversy_links
@@ -1112,6 +1116,35 @@ sub add_to_controversy_stories_and_links_if_match
 
 }
 
+# return true if the domain of the linked url is different
+# than the domain of the linking story and the domain is in
+# $_skip_self_linked_domain
+sub _skip_self_linked_domain
+{
+    my ( $db, $link ) = @_;
+
+    my $domain = MediaWords::Util::URL::get_url_domain( $link->{ url } );
+
+    return 0 unless ( $_skip_self_linked_domain->{ $domain } );
+
+    # only skip if the media source of the linking story is different than the media
+    # source of the linked story.  we can't know the media source of the linked story
+    # without adding it first, though, which we want to skip because it's time
+    # expensive to do so.  so we just compare the url domain as a proxy for
+    # media source instead.
+    my $source_story = $db->find_by_id( 'stories', $link->{ stories_id } );
+
+    my $source_domain = MediaWords::Util::URL::get_url_domain( $source_story->{ url } );
+
+    if ( $source_domain eq $domain )
+    {
+        print STDERR "SKIP SELF LINKED DOMAIN: $domain\n";
+        return 1;
+    }
+
+    return 0;
+}
+
 # download any unmatched link in new_links, add it as a story, extract it, add any links to the controversy_links list.
 # each hash within new_links can either be a controversy_links hash or simply a hash with a { url } field.  if
 # the link is a controversy_links hash, the controversy_link will be updated in the database to point ref_stories_id
@@ -1127,6 +1160,8 @@ sub add_new_links
         next if ( $link->{ ref_stories_id } );
 
         print STDERR "spidering $link->{ url } ...\n";
+
+        next if ( _skip_self_linked_domain( $db, $link ) );
 
         if ( my $story = get_matching_story_from_db( $db, $link ) )
         {
@@ -1148,6 +1183,8 @@ sub add_new_links
 
         print STDERR "fetch spidering $link->{ url } ...\n";
 
+        next if ( _skip_self_linked_domain( $db, $link ) );
+
         add_redirect_url_to_link( $db, $link );
         my $story = get_matching_story_from_db( $db, $link )
           || add_new_story( $db, $link, undef, $controversy );
@@ -1156,6 +1193,19 @@ sub add_new_links
 
         add_to_controversy_stories_and_links_if_match( $db, $controversy, $story, $link );
     }
+
+    $db->begin;
+
+    # delete any links that were skipped for whatever reason
+    for my $link ( @{ $new_links } )
+    {
+        if ( !$link->{ ref_stories_id } && $link->{ controversy_links_id } )
+        {
+            $db->query( "delete from controversy_links where controversy_links_id = ?", $link->{ controversy_links_id } );
+        }
+    }
+    $db->commit;
+
 }
 
 # build a lookup table of aliases for a url based on url and redirect_url fields in the

@@ -248,6 +248,77 @@ END
     return 1;
 }
 
+# search for stories matching two solr queries and return a csv with the resulting diff
+sub diff : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $qa = $c->req->params->{ a } || '';
+    my $qb = $c->req->params->{ b } || '';
+
+    $c->stash->{ a }        = $qa;
+    $c->stash->{ b }        = $qb;
+    $c->stash->{ template } = 'search/diff.tt2';
+
+    if ( !$qa || !$qb )
+    {
+        $c->stash->{ error_msg } = 'Must specify a and b queries.' if ( $c->req->params->{ submit } eq 'Go' );
+        return;
+    }
+
+    my $db = $c->dbis;
+
+    my ( $stories_a, $stories_b );
+    eval {
+        $stories_a = MediaWords::Solr::search_for_stories( $db, { q => $qa, rows => 100_000 } );
+        $stories_b = MediaWords::Solr::search_for_stories( $db, { q => $qb, rows => 100_000 } );
+    };
+    if ( $@ )
+    {
+        $c->stash->{ error_msg } = "Error executing query: $@.";
+        return;
+    }
+
+    map { delete( $_->{ sentences } ) } ( @{ $stories_a }, @{ $stories_b } );
+
+    my $stories_lookup = {};
+
+    for my $story ( @{ $stories_a } )
+    {
+        $story->{ compare } = 'A';
+        $stories_lookup->{ $story->{ stories_id } } = $story;
+    }
+
+    for my $story ( @{ $stories_b } )
+    {
+        if ( my $story_a = $stories_lookup->{ $story->{ stories_id } } )
+        {
+            $story_a->{ compare } = 'AB';
+        }
+        else
+        {
+            $story->{ compare } = 'B';
+            $stories_lookup->{ $story->{ stories_id } } = $story;
+        }
+    }
+
+    my $all_stories = [ values( %{ $stories_lookup } ) ];
+
+    my $sorted_stories = [ sort { $a->{ compare } cmp $b->{ compare } } @{ $all_stories } ];
+
+    my $encoded_csv = MediaWords::Util::CSV::get_hashes_as_encoded_csv( $sorted_stories );
+
+    my $num_stories = scalar( @{ $stories_a } ) + scalar( @{ $stories_b } );
+
+    # number of stories + the request itself
+    MediaWords::ActionRole::Logged::set_requested_items_count( $c, $num_stories + 1 );
+
+    $c->response->header( "Content-Disposition" => "attachment;filename=stories.csv" );
+    $c->response->content_type( 'text/csv; charset=UTF-8' );
+    $c->response->content_length( bytes::length( $encoded_csv ) );
+    $c->response->body( $encoded_csv );
+}
+
 # search for stories using solr and return either a sampled list of stories in html or the full list in csv
 sub index : Path : Args(0)
 {
