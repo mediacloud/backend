@@ -555,7 +555,7 @@ sub nv_config : Local
             l  => $live,
             cf => $color_field
         }
-    )->as_string;
+    ) . '';
 
     my $config_data = {
         "type"    => "network",

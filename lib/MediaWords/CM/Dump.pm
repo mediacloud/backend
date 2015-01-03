@@ -529,6 +529,8 @@ sub add_extra_fields_to_dump_media
     my $all_fields = [ $partisan_field ];
 
     map { $_media_static_gexf_attribute_types->{ $_ } = 'string'; } @{ $all_fields };
+    
+    return $all_fields;
 }
 
 sub get_media_csv
