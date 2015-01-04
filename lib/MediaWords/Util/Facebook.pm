@@ -17,20 +17,20 @@ sub _get_single_url_share_count
 {
     my ( $ua, $url ) = @_;
 
+    # this is mostly to be able to generate an error for testing
+    die( "invalid url: '$url'" ) if ( $url !~ /^http/i );
+
     my $response = $ua->get( 'https://graph.facebook.com/?id=' . uri_escape( $url ) );
 
     if ( !$response->is_success )
     {
-        warn( "error fetching for url '$url'" );
-        return 0;
+        die( "error fetching for url '$url'" );
     }
     my $decoded_content = $response->decoded_content;
 
     my $data = MediaWords::Util::JSON::decode_json( $decoded_content );
 
     my $shares = $data->{ shares } || 0;
-
-    say STDERR "$url: $shares";
 
     return $shares || 0;
 }
@@ -56,4 +56,30 @@ sub get_url_share_count
     return List::Util::sum( keys( %{ $url_counts } ) );
 }
 
+sub get_and_store_share_count
+{
+    my ( $db, $story ) = @_;
+    
+    my $count;
+    eval { 
+        $count = get_url_share_count( $db, $story->{ url } );
+    };
+    my $error = $@ ? $@ : undef;;
+    $count ||= 0;
+
+    $db->query( <<END, $story->{ stories_id }, $count, $error );
+with try_update as (
+  update story_statistics 
+        set facebook_share_count = \$2, facebook_share_count_error = \$3
+        where stories_id = \$1
+        returning *
+)
+insert into story_statistics ( stories_id, facebook_share_count, facebook_share_count_error )
+    select \$1, \$2, \$3
+        where not exists ( select * from try_update );
+END
+
+    return $count;
+
+}
 1;

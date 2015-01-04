@@ -3,7 +3,9 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 5;
+use Test::More tests => 10;
+
+use Data::Dumper;
 
 use MediaWords::Test::DB;
 
@@ -33,6 +35,35 @@ sub test_share_count($)
     ok( $zero_count == 0,            "zero count '$zero_count' should be 0" );
 }
 
+sub test_store_result($)
+{
+    my ( $db ) = @_;
+    
+    my $media = MediaWords::Test::DB::create_test_story_stack( $db, { A => { B => [ 1, 2, 3 ] } } );
+    
+    my $story = $media->{ A }->{ feeds }->{ B }->{ stories }->{ 1 };
+    
+    $story->{ url } = 'http://google.com';
+    
+    my $count = MediaWords::Util::Facebook::get_and_store_share_count( $db, $story );
+    
+    my $ss = $db->query( 'select * from story_statistics where stories_id = ?', $story->{ stories_id } )->hash;
+    
+    ok( $ss, 'story_statistics row exists after initial insert' );
+    
+    is( $ss->{ facebook_share_count }, $count, "stored url share count" );
+    ok( !defined( $ss->{ facebook_share_count_error } ), "null url share count error" );
+    
+    $story->{ url } = 'foobar';
+    
+    MediaWords::Util::Facebook::get_and_store_share_count( $db, $story );
+    
+    my $sse = $db->query( 'select * from story_statistics where stories_id = ?', $story->{ stories_id } )->hash;
+    
+    is( $sse->{ facebook_share_count }, 0, "stored url share count should 0 after error" );
+    ok( defined( $sse->{ facebook_share_count_error } ), "stored url share count should contain error" );
+}
+
 sub main()
 {
     my $builder = Test::More->builder;
@@ -45,6 +76,7 @@ sub main()
             my ( $db ) = @_;
 
             test_share_count( $db );
+            test_store_result( $db );
         }
     );
 }
