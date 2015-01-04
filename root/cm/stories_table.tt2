@@ -91,6 +91,12 @@ $(document).ready(function () {
     </div>
 [% END %]
 
+[% SET self_url = c.uri_for( '/admin/cm/search_stories', { 
+    cdts = cdts.controversy_dump_time_slices_id,
+    l = live,
+    title = title,
+    q = display_stories_solr_query } ) %]
+
 <table class="even_rows_grey">
     <tr>
         <th>Rank</th>
@@ -98,9 +104,9 @@ $(document).ready(function () {
         <th>Title</th>
         <th>Publish Date</th>
         <th>Medium</th>
-        <th>Inlinks</th>
+        <th><a href="[% self_url | html %]">Inlinks</a></th>
         <th>Outlinks</th>
-        <th>Clicks</th>
+        <th><a href="[% self_url _ '&order=bitly_click_count' | html %]">Clicks</th>
         <th>Referers</th>
     </tr>
 
