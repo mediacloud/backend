@@ -49,17 +49,17 @@ END
 
         say STDERR "$story->{ url }";
         
-        if ( !$ss || !defined( $ss->{ twitter_url_tweet_count } ) )
+        if ( !$ss || $ss->{ twitter_url_tweet_count_error } || !defined( $ss->{ twitter_url_tweet_count } ) )
         {            
             my $count = MediaWords::Util::Twitter::get_and_store_tweet_count( $db, $story );
             say STDERR "url_tweet_count: $count";
         }
         
-        if ( !$ss || !defined( $ss->{ facebook_share_count } ) )
-        {
-            my $count = MediaWords::Util::Facebook::get_and_store_share_count( $db, $story );
-            say STDERR "facebook_share_count: $count";
-        }
+        # if ( !$ss || $ss->{ facebook_share_count_error} || !defined( $ss->{ facebook_share_count } ) )
+        # {
+        #     my $count = MediaWords::Util::Facebook::get_and_store_share_count( $db, $story );
+        #     say STDERR "facebook_share_count: $count";
+        # }
     }
 
 }
