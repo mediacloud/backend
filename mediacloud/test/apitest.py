@@ -151,6 +151,14 @@ class ApiTagsTest(ApiBaseTest):
         public_list = self._mc.tagList(6, rows=200, public_only=True)
         self.assertNotEqual( len(full_list), len(public_list))
 
+    def testTagListSearch(self):
+        # verify search works at all
+        collection_tags = self._mc.tagList(name_like="collection")
+        self.assertTrue(len(collection_tags)>0, "Got %d tags matching 'collection'" % len(collection_tags))
+        # verify search works on tags without descriptions
+        geo_tags = self._mc.tagList(name_like="geonames_")
+        self.assertTrue(len(geo_tags)>0, "Got %d tags matching 'geonames_'" % len(geo_tags))
+
 class ApiTagSetsTest(ApiBaseTest):
 
     def testTagSet(self):
