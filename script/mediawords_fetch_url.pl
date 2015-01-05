@@ -9,6 +9,10 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
+use Modern::Perl "2013";
+use MediaWords::CommonLibs;
+
+use MediaWords::DB;
 use MediaWords::Util::Web;
 
 sub main
@@ -18,9 +22,9 @@ sub main
     die( "usage: $0 < url >" ) unless ( $url );
     if ( $url =~ /^\d+$/ )
     {
-          my $db = MediaWords::DB::connect_to_db || die( "no db" );
-          my $download = $db->find_by_id( 'downloads', $url ) || die( "no download '$url'" );
-          $url = $download->{ url };
+        my $db = MediaWords::DB::connect_to_db || die( "no db" );
+        my $download = $db->find_by_id( 'downloads', $url ) || die( "no download '$url'" );
+        $url = $download->{ url };
     }
 
     my $ua = MediaWords::Util::Web::UserAgent;
