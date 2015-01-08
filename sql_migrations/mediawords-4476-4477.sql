@@ -14,6 +14,9 @@
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
+alter table downloads alter download_time set default now();
+alter table stories alter collect_date set default now();
+
 --
 -- 2 of 2. Reset the database version.
 --
