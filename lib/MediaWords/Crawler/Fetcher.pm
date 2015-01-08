@@ -50,6 +50,37 @@ sub fix_alarabiya_response
     }
 }
 
+# cache domain http auth lookup from config
+my $_domain_http_auth_lookup;
+sub _get_domain_http_auth_lookup
+{
+    return $_domain_http_auth_lookup if ( defined( $_domain_http_auth_lookup ) );
+    
+    my $config = MediaWords::Util::get_config;
+    
+    my $domains = $config->{ crawler_authenticated_domains };
+    
+    map { $_domain_http_auth_lookup->{ lc( $_->{ domain } ) } = $_ } @{ $domains };
+
+    return $_domain_http_auth_lookup;
+}
+
+
+# if there are http auth credentials for the requested site, add them to the request
+sub add_http_auth
+{
+    my ( $download, $request ) = @_;
+    
+    my $auth_lookup ||= _get_domain_http_auth_lookup();
+
+    my $domain = MediaWords::Util::URL::get_url_domain( $download->{ url } );
+    
+    if ( my $auth = $auth_lookup->{ lc( $domain ) } )
+    {
+        $request->authorization_basic( $auth->{ user }, $auth->{ password } );
+    }
+}
+
 sub do_fetch
 {
     my ( $download, $dbs ) = @_;
@@ -71,7 +102,11 @@ sub do_fetch
     $ua->max_redirect( 15 );
     $ua->env_proxy;
 
-    my $response = $ua->get( $download->{ url } );
+    my $request =  HTTP::Request->new( GET => $download->{ url } );
+
+    add_http_auth( $download, $request );
+
+    my $response = $ua->request( $request );
 
     $response = fix_alarabiya_response( $download, $ua, $response );
 
