@@ -14,7 +14,7 @@ setParams({
         /*
             Default state of the "use lens" button
         */
-    zoomLevel : -2,
+    zoomLevel : 2,
         /*
             Default zoom level. At zoom = 0, the graph should fill a 800x700px zone
          */
@@ -28,8 +28,8 @@ setParams({
             Change this parameter for wider or narrower edges
             this setting can't be changed from the User Interface
         */
-    minEdgeWidth : 1,
-    maxEdgeWidth : 50,
+    minEdgeWidth : 0.25,
+    maxEdgeWidth : 0.25,
     nodeSizeFactor : 1,
         /*
             Change this parameter for smaller or larger nodes

@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4475;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4477;
     
 BEGIN
 
@@ -835,6 +835,20 @@ create index dashboard_topics_dashboard on dashboard_topics ( dashboards_id );
 create index dashboard_topics_vectors_added on dashboard_topics ( vectors_added );
 
 CREATE VIEW dashboard_topics_tt2_locale_format as select distinct on (tt2_value) '[% c.loc("' || name || '") %]' || ' - ' || '[% c.loc("' || lower(name) || '") %]' as tt2_value from (select * from dashboard_topics order by name, dashboard_topics_id) AS dashboard_topic_names order by tt2_value;
+
+create table color_sets (
+    color_sets_id               serial          primary key,
+    color                       varchar( 256 )  not null,
+    color_set                   varchar( 256 )  not null,
+    id                          varchar( 256 )  not null
+);
+  
+create unique index color_sets_set_id on color_sets ( color_set, id );
+    
+-- prefill colors for partisan_code set so that liberal is blue and conservative is red
+insert into color_sets ( color, color_set, id ) values ( 'c10032', 'partisan_code', 'partisan_2012_conservative' );
+insert into color_sets ( color, color_set, id ) values ( '00519b', 'partisan_code', 'partisan_2012_liberal' );
+insert into color_sets ( color, color_set, id ) values ( '009543', 'partisan_code', 'partisan_2012_libertarian' );
 
 create table stories (
     stories_id                  serial          primary key,
@@ -1763,6 +1777,18 @@ create table cd.stories (
 );
 create index stories_id on cd.stories ( controversy_dumps_id, stories_id );    
 
+-- stats for various externally dervied statistics about a story.  keeping this separate for now
+-- from the bitly stats for simplicity sake during implementatino and testing
+create table story_statistics (
+    story_statistics_id             serial  primary key,
+    stories_id                      int     not null references stories on delete cascade,
+    twitter_url_tweet_count         int     null,
+    twitter_url_tweet_count_error   text    null,
+    facebook_share_count            int     null,
+    facebook_share_count_error      text    null
+);
+
+create unique index story_statistics_story on story_statistics ( stories_id );
 
 -- Bit.ly stats for stories
 CREATE TABLE story_bitly_statistics (

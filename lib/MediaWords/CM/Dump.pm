@@ -26,26 +26,22 @@ use MediaWords::Util::SQL;
 use MediaWords::DBI::Activities;
 
 # max and mind node sizes for gexf dump
-use constant MAX_NODE_SIZE => 15;
-use constant MIN_NODE_SIZE => 2;
+use constant MAX_NODE_SIZE => 35;
+use constant MIN_NODE_SIZE => 7;
 
 # max map width for gexf dump
 use constant MAX_MAP_WIDTH => 800;
 
 # max number of media to include in gexf map
-use constant MAX_GEXF_MEDIA => 200;
-
-# consistent colors for media types
-my $_media_type_color_map;
+use constant MAX_GEXF_MEDIA => 500;
 
 # attributes to include in gexf dump
 my $_media_static_gexf_attribute_types = {
-    url           => 'string',
-    inlink_count  => 'integer',
-    story_count   => 'integer',
-    view_medium   => 'string',
-    media_type    => 'string',
-    partisan_code => 'string'
+    url          => 'string',
+    inlink_count => 'integer',
+    story_count  => 'integer',
+    view_medium  => 'string',
+    media_type   => 'string'
 };
 
 # all tables that the dump process snapshots for each controversy_dump
@@ -438,30 +434,57 @@ sub add_tags_to_dump_media
 {
     my ( $db, $cdts, $media ) = @_;
 
-    my $tags = $db->query( <<END, 'foo' )->hashes;
-select * from dump_tags t, dump_tag_sets ts
-  where t.tag_sets_id = ts.tag_sets_id and ts.name = ? and t.tag <> 'all'
+    my $tag_sets = $db->query( <<END )->hashes;
+select * from dump_tag_sets
+    where tag_sets_id in 
+        ( select tag_sets_id
+            from dump_tags t join dump_media_tags_map mtm on ( t.tags_id = mtm.tags_id ) )
 END
 
-    my $tag_fields = [];
-    for my $tag ( @{ $tags } )
+    my $fields = [];
+    for my $tag_set ( @{ $tag_sets } )
     {
-        my $label = "tagged_" . $tag->{ tag };
+        my $label = "tag_" . $tag_set->{ name };
 
-        push( @{ $tag_fields }, $label );
+        push( @{ $fields }, $label );
 
-        my $media_tags = $db->query( <<END, $tag->{ tags_id } )->hashes;
-select s.media_id, stm.* 
-    from dump_stories s, dump_story_link_counts slc, dump_stories_tags_map stm 
-    where s.stories_id = slc.stories_id and s.stories_id = stm.stories_id and stm.tags_id = ?
+        my $media_tags = $db->query( <<END, $tag_set->{ tag_sets_id } )->hashes;
+select dmtm.*, dt.tag
+    from dump_media_tags_map dmtm
+        join dump_tags dt on ( dmtm.tags_id = dt.tags_id )
+    where dt.tag_sets_id = ?
 END
-        my $media_tags_map = {};
-        map { $media_tags_map->{ $_->{ media_id } } += 1 } @{ $media_tags };
+        my $map = {};
+        map { $map->{ $_->{ media_id } } = $_->{ tag } } @{ $media_tags };
 
-        map { $_->{ $label } = $media_tags_map->{ $_->{ media_id } } || 0 } @{ $media };
+        map { $_->{ $label } = $map->{ $_->{ media_id } } || 'null' } @{ $media };
     }
 
-    return $tag_fields;
+    return $fields;
+}
+
+sub add_partisan_code_to_dump_media
+{
+    my ( $db, $cdts, $media ) = @_;
+
+    my $label = 'partisan_code';
+
+    my $partisan_tags = $db->query( <<END )->hashes;
+select dmtm.*, dt.tag
+    from dump_media_tags_map dmtm
+        join dump_tags dt on ( dmtm.tags_id = dt.tags_id )
+        join dump_tag_sets dts on ( dts.tag_sets_id = dt.tag_sets_id )
+    where 
+        dts.name = 'collection' and
+        dt.tag like 'partisan_2012_%'
+END
+
+    my $map = {};
+    map { $map->{ $_->{ media_id } } = $_->{ tag } } @{ $partisan_tags };
+
+    map { $_->{ $label } = $map->{ $_->{ media_id } } || 'null' } @{ $media };
+
+    return $label;
 }
 
 sub add_codes_to_dump_media
@@ -491,6 +514,25 @@ END
     return $code_fields;
 }
 
+# add tags, codes, partisanship and other extra data to all dump media for the purpose
+# of making a gexf or csv dump.  return the list of extra fields added.
+sub add_extra_fields_to_dump_media
+{
+    my ( $db, $cdts, $media ) = @_;
+
+    # my $code_fields = add_codes_to_dump_media( $db, $cdts, $media );
+
+    # my $tag_fields = add_tags_to_dump_media( $db, $cdts, $media );
+    my $partisan_field = add_partisan_code_to_dump_media( $db, $cdts, $media );
+
+    # my $all_fields = [ @{ $code_fields }, @{ $tag_fields }, $partisan_field ];
+    my $all_fields = [ $partisan_field ];
+
+    map { $_media_static_gexf_attribute_types->{ $_ } = 'string'; } @{ $all_fields };
+    
+    return $all_fields;
+}
+
 sub get_media_csv
 {
     my ( $db, $cdts ) = @_;
@@ -506,11 +548,9 @@ END
     my $fields = $res->columns;
     my $media  = $res->hashes;
 
-    my $code_fields = add_codes_to_dump_media( $db, $cdts, $media );
-    my $tag_fields = add_tags_to_dump_media( $db, $cdts, $media );
+    my $extra_fields = add_extra_fields_to_dump_media( $db, $cdts, $media );
 
-    push( @{ $fields }, @{ $code_fields } );
-    push( @{ $fields }, @{ $tag_fields } );
+    push( @{ $fields }, @{ $extra_fields } );
 
     my $csv = MediaWords::Util::CSV::get_hashes_as_encoded_csv( $media, $fields );
 
@@ -640,31 +680,9 @@ sub attach_stories_to_media
     map { push( @{ $media_lookup->{ $_->{ media_id } }->{ stories } }, $_ ) } @{ $stories };
 }
 
-sub add_tags_to_gexf_attribute_types
-{
-    my ( $db, $cdts ) = @_;
-
-    my $tagset_name = "controversy_$cdts->{ controversy_dump }->{ controversy }->{ name }";
-
-    my $tags = $db->query( <<END, $tagset_name )->hashes;
-select * from dump_tags t, dump_tag_sets ts where t.tag_sets_id = ts.tag_sets_id and ts.name = ? and t.tag <> 'all'
-END
-
-    map { $_media_static_gexf_attribute_types->{ "tagged_" . $_->{ tag } } = 'integer' } @{ $tags };
-}
-
-sub add_codes_to_gexf_attribute_types
-{
-    my ( $db, $cdts ) = @_;
-
-    my $code_types = $db->query( "select distinct code_type from dump_controversy_media_codes" )->flat;
-
-    map { $_media_static_gexf_attribute_types->{ "code_" . $_ } = 'string' } @{ $code_types };
-}
-
 sub get_link_weighted_edges
 {
-    my ( $db ) = @_;
+    my ( $db, $media ) = @_;
 
     my $media_links = $db->query( <<END, MAX_GEXF_MEDIA )->hashes;
 with top_media as (
@@ -678,10 +696,14 @@ select *
         ref_media_id in ( select media_id from top_media )
 END
 
+    my $media_map = {};
+    map { $media_map->{ $_->{ media_id } } = 1 } @{ $media };
+
     my $edges = [];
     my $k     = 0;
     for my $media_link ( @{ $media_links } )
     {
+        next unless ( $media_map->{ $media_link->{ source_media_id } } && $media_map->{ $media_link->{ ref_media_id } } );
         my $edge = {
             id     => $k++,
             source => $media_link->{ source_media_id },
@@ -699,9 +721,9 @@ END
 
 sub get_weighted_edges
 {
-    my ( $db ) = @_;
+    my ( $db, $media ) = @_;
 
-    return get_link_weighted_edges( $db );
+    return get_link_weighted_edges( $db, $media );
 }
 
 # given an rgb hex string, return a hash in the form { r => 12, g => 0, b => 255 }, which is
@@ -717,32 +739,27 @@ sub get_color_hash_from_hex
     };
 }
 
-sub get_media_type_color
+# get a consistent color from MediaWords::Util::Colors.  convert to a color hash as needed by gexf.  translate
+# the set to a controversy specific color set value for get_consistent_color.
+sub get_color
 {
-    my ( $db, $cdts, $media_type ) = @_;
+    my ( $db, $cdts, $set, $id ) = @_;
 
-    $media_type ||= 'none';
-
-    return $_media_type_color_map->{ $media_type } if ( $_media_type_color_map );
-
-    my $all_media_types = $db->query( <<END )->flat;
-select distinct media_type from dump_media_with_types
-END
-
-    my $num_colors = scalar( @{ $all_media_types } ) + 1;
-
-    my $hex_colors = MediaWords::Util::Colors::get_colors( $num_colors );
-    my $color_list = [ map { get_color_hash_from_hex( $_ ) } @{ $hex_colors } ];
-
-    $_media_type_color_map = {};
-    for my $media_type ( @{ $all_media_types } )
+    my $color_set;
+    if ( grep { $_ eq $set } qw(partisan_code media_type) )
     {
-        $_media_type_color_map->{ $media_type } = pop( @{ $color_list } );
+        $color_set = $set;
+    }
+    else
+    {
+        $color_set = "controversy_${set}_$cdts->{ controversy_dump }->{ controversies_id }";
     }
 
-    $_media_type_color_map->{ none } = pop( @{ $color_list } );
+    $id ||= 'none';
 
-    return $_media_type_color_map->{ $media_type };
+    my $color = MediaWords::Util::Colors::get_consistent_color( $db, $color_set, $id );
+
+    return get_color_hash_from_hex( $color );
 }
 
 # gephi removes the weights from the media links.  add them back in.
@@ -1055,21 +1072,19 @@ sub layout_gexf_with_graphviz_1
 # write gexf dump of nodes
 sub get_gexf_dump
 {
-    my ( $db, $cdts ) = @_;
+    my ( $db, $cdts, $color_field ) = @_;
 
-    add_tags_to_gexf_attribute_types( $db, $cdts );
-    add_codes_to_gexf_attribute_types( $db, $cdts );
+    $color_field ||= 'media_type';
 
     my $media = $db->query( <<END, MAX_GEXF_MEDIA )->hashes;
-select * 
+select distinct * 
     from dump_media_with_types m, dump_medium_link_counts mlc 
     where m.media_id = mlc.media_id
     order by mlc.inlink_count desc
     limit ?     
 END
 
-    add_codes_to_dump_media( $db, $cdts, $media );
-    add_tags_to_dump_media( $db, $cdts, $media );
+    add_extra_fields_to_dump_media( $db, $cdts, $media );
 
     my $gexf = {
         'xmlns'              => "http://www.gexf.net/1.2draft",
@@ -1084,7 +1099,9 @@ END
 
     push( @{ $meta->{ creator } }, 'Berkman Center' );
 
-    my $controversy = $cdts->{ controversy_dump }->{ controversy };
+    my $controversy = $cdts->{ controversy_dump }->{ controversy }
+      || $db->find_by_id( 'controversies', $cdts->{ controversy_dump }->{ controversies_id } );
+
     push( @{ $meta->{ description } }, "Media discussions of $controversy->{ name }" );
 
     my $graph = {
@@ -1102,7 +1119,7 @@ END
         push( @{ $attributes->{ attribute } }, { id => $i++, title => $name, type => $type } );
     }
 
-    my $edges = get_weighted_edges( $db );
+    my $edges = get_weighted_edges( $db, $media );
     $graph->{ edges }->{ edge } = $edges;
 
     my $edge_lookup;
@@ -1135,7 +1152,7 @@ END
         #     push( @{ $node->{ spells }->{ spell } }, { start => $story_date, end => $story_date } );
         # }
 
-        $node->{ 'viz:color' } = [ get_media_type_color( $db, $cdts, $medium->{ media_type } ) ];
+        $node->{ 'viz:color' } = [ get_color( $db, $cdts, $color_field, $medium->{ $color_field } ) ];
         $node->{ 'viz:size' } = { value => $medium->{ inlink_count } + 1 };
 
         push( @{ $graph->{ nodes }->{ node } }, $node );
@@ -1362,11 +1379,6 @@ sub generate_cdts ($$$$$$)
 
     MediaWords::CM::Model::print_model_matches( $db, $cdts, $all_models_top_media );
     MediaWords::CM::Model::update_model_correlation( $db, $cdts, $all_models_top_media );
-
-    # my $confidence = get_model_confidence( $db, $cdts, $all_models_top_media );
-    # print "confidence: $confidence\n";
-
-    write_gexf_dump( $db, $cdts );
 }
 
 # decrease the given date to the latest monday equal to or before the date
@@ -1632,13 +1644,13 @@ END
     $db->query( <<END );
 create temporary table dump_tags $_temporary_tablespace as
     select distinct t.* from tags t where t.tags_id in
-        ( select distinct a.tags_id
+        ( select a.tags_id
             from tags a
                 join dump_media_tags_map amtm on ( a.tags_id = amtm.tags_id )
         
           union
 
-          select distinct b.tags_id
+          select b.tags_id
             from tags b
                 join dump_stories_tags_map bstm on ( b.tags_id = bstm.tags_id )
         )

@@ -154,8 +154,8 @@ sub create_test_story
             guid          => "guid://story/$label",
             title         => "story $label",
             description   => "description $label",
-            publish_date  => MediaWords::Util::SQL::get_sql_date_from_epoch( time() - 100000 ),
-            collect_date  => MediaWords::Util::SQL::get_sql_date_from_epoch( time() - 200000 ),
+            publish_date  => \'now() - interval \'100000 seconds\'',
+            collect_date  => \'now() - interval \'200000 seconds\'',
             full_text_rss => 't'
         }
     );

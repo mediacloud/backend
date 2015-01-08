@@ -630,16 +630,16 @@ sub bitly_link_lookup_hashref($)
 #     };
 #
 # die()s on error
-sub bitly_link_lookup_hashref_all_variants($)
+sub bitly_link_lookup_hashref_all_variants($$)
 {
-    my $url = shift;
+    my ( $db, $url ) = @_;
 
     unless ( bitly_processing_is_enabled() )
     {
         die "Bit.ly processing is not enabled.";
     }
 
-    my @urls = MediaWords::Util::URL::all_url_variants( $url );
+    my @urls = MediaWords::Util::URL::all_url_variants( $db, $url );
     unless ( scalar @urls )
     {
         die "No URLs returned for URL $url";
@@ -1159,7 +1159,7 @@ sub fetch_story_stats($$$$;$)
     my $string_end_date   = gmt_date_string_from_timestamp( $end_timestamp );
 
     my $link_lookup;
-    eval { $link_lookup = bitly_link_lookup_hashref_all_variants( $stories_url ); };
+    eval { $link_lookup = bitly_link_lookup_hashref_all_variants( $db, $stories_url ); };
     if ( $@ or ( !$link_lookup ) )
     {
         die "Unable to lookup story ID $stories_id with URL $stories_url: $@";

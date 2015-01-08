@@ -95,7 +95,7 @@ sub stop
 {
     my ( $self ) = @_;
 
-    say STDERR "Stopping server with PID " . $self->{ pid } . " from PID $$";
+    # say STDERR "Stopping server with PID " . $self->{ pid } . " from PID $$";
 
     kill( 'KILL', $self->{ pid } );
 }
@@ -158,11 +158,8 @@ END
         my $enc_redirect = HTML::Entities::encode_entities( $redirect );
 
         my $http_status_code = $page->{ http_status_code } // DEFAULT_REDIRECT_STATUS_CODE;
-        my $http_status_message = HTTP::Status::status_message( $http_status_code );
-        unless ( defined $http_status_message )
-        {
-            die "HTTP status code $http_status_code is unknown.";
-        }
+        my $http_status_message = HTTP::Status::status_message( $http_status_code )
+          || die( "unknown status code '$http_status_code'" );
 
         print "HTTP/1.0 $http_status_code $http_status_message\r\n";
         print "Content-Type: text/html; charset=UTF-8\r\n";
@@ -176,6 +173,10 @@ END
     {
         my $header  = $page->{ header }  || 'Content-Type: text/html; charset=UTF-8';
         my $content = $page->{ content } || "<body><html>Filler content for $path</html><body>";
+
+        my $http_status_code = $page->{ http_status_code } // 200;
+        my $http_status_message = HTTP::Status::status_message( $http_status_code )
+          || die( "unknown status code '$http_status_code'" );
 
         if ( $header =~ /\n/ and $header !~ /\r/ )
         {
