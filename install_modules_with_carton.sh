@@ -45,6 +45,24 @@ mkdir -p local/
 # so we're installing Spiffy manually
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ Spiffy
 
+# (Re-)install a newer version of CPAN::Meta::Requirements because otherwise Carton (while installing for Perl 5.16) fails with:
+#
+# <...>
+# ! Couldn't find module or a distribution CPAN::Meta::Requirements (2.121)
+# ! Installing the dependencies failed: Installed version (2.120630) of
+# CPAN::Meta::Requirements is not in range '2.121'
+# ! Bailing out the installation for CPAN-Meta-2.141520.
+# ! Installing the dependencies failed: Installed version (2.120630) of
+# CPAN::Meta::Requirements is not in range '2.121', Installed version
+# (2.120630) of CPAN::Meta::Prereqs is not in range '2.132830'
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ CPAN::Meta::Requirements
+
+# (Re-)install a newer version of JSON::PP because otherwise Carton (while installing for Perl 5.16) fails with:
+#
+# <...>
+# ! Couldn't find module or a distribution JSON::PP (2.27202)
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ JSON::PP
+
 # Install the rest of the modules; run the command twice because the first
 # attempt might fail
 source ./script/set_java_home.sh
