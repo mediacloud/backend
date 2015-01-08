@@ -65,6 +65,8 @@ sub new
         my $page = $pages->{ $path };
 
         die( "path must start with /: '$path'" ) unless ( $path =~ /^\// );
+
+        # redirect foo to foo/ unless foo/ already has a page
         if ( $path =~ /.\/$/ )
         {
             my $redirect_path = $path;
@@ -127,7 +129,7 @@ sub handler
 sub header
 {
     my ( $self, $name, $val ) = @_;
-    
+
     $self->{ headers }->{ $name } = $val;
 }
 
@@ -136,40 +138,40 @@ sub header
 sub request_failed_authentication
 {
     my ( $self, $page ) = @_;
-    
+
     my $page_auth = $page->{ auth } || return 0;
-    
+
     my $fail_authentication_page = <<END;
 HTTP/1.1 401 Access Denied
 WWW-Authenticate: Basic realm="HashServer"
 Content-Length: 0
 END
-    
+
     my $client_auth = $self->{ headers }->{ Authorization };
-    
+
     if ( !$client_auth )
     {
         print $fail_authentication_page;
         return 1;
     }
-    
+
     if ( !( $client_auth =~ /Basic (.*)$/ ) )
     {
         say STDERR "unable to parse Authorization header: $client_auth";
         print $fail_authentication_page;
         return 1;
     }
-    
+
     my $encoded = $1;
-    
-    my $userpass = decode_base64($encoded);
-    
+
+    my $userpass = decode_base64( $encoded );
+
     if ( !( $userpass eq $page_auth ) )
     {
         print $fail_authentication_page;
         return 1;
     }
-    
+
     return 0;
 }
 
@@ -204,7 +206,7 @@ END
     }
 
     $page = { content => $page } unless ( ref( $page ) );
-    
+
     return 0 if ( request_failed_authentication( $self, $page ) );
 
     if ( my $redirect = $page->{ redirect } )
