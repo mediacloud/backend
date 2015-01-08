@@ -11,7 +11,8 @@ package HTTP::HashServer;
 #     '/bar' => { content => '<html>bar</html>', header => 'Content-Type: text/html' }
 #     '/foo-bar' => { redirect => '/bar' },
 #     '/localhost' => { redirect => "http://localhost:$_port/" },
-#     '/127-foo' => { redirect => "http://127.0.0.1:$_port/foo", http_status_code => 303 }
+#     '/127-foo' => { redirect => "http://127.0.0.1:$_port/foo", http_status_code => 303 },
+#     '/auth' => { auth => 'user:password' }
 # };
 #
 # if the value for a page is a string, that string is passed as the content (so 'foo' is transformed into '
@@ -23,12 +24,13 @@ use warnings;
 use English;
 
 use Data::Dumper;
+use Encode;
 use HTML::Entities;
 use HTTP::Server::Simple;
 use HTTP::Server::Simple::CGI;
-use LWP::Simple;
 use HTTP::Status;
-use Encode;
+use LWP::Simple;
+use MIME::Base64;
 
 use base qw(HTTP::Server::Simple::CGI);
 
@@ -121,6 +123,56 @@ sub handler
     }
 }
 
+# setup $self->{ headers } with the headers for the current request
+sub header
+{
+    my ( $self, $name, $val ) = @_;
+    
+    $self->{ headers }->{ $name } = $val;
+}
+
+# if auth is required for this page and the auth was not supplied by the request,
+# print a 401 page and return 1; otherwise return 0.
+sub request_failed_authentication
+{
+    my ( $self, $page ) = @_;
+    
+    my $page_auth = $page->{ auth } || return 0;
+    
+    my $fail_authentication_page = <<END;
+HTTP/1.1 401 Access Denied
+WWW-Authenticate: Basic realm="HashServer"
+Content-Length: 0
+END
+    
+    my $client_auth = $self->{ headers }->{ Authorization };
+    
+    if ( !$client_auth )
+    {
+        print $fail_authentication_page;
+        return 1;
+    }
+    
+    if ( !( $client_auth =~ /Basic (.*)$/ ) )
+    {
+        say STDERR "unable to parse Authorization header: $client_auth";
+        print $fail_authentication_page;
+        return 1;
+    }
+    
+    my $encoded = $1;
+    
+    my $userpass = decode_base64($encoded);
+    
+    if ( !( $userpass eq $page_auth ) )
+    {
+        print $fail_authentication_page;
+        return 1;
+    }
+    
+    return 0;
+}
+
 # send a response according to the $pages hash passed into new() -- see above for $pages format
 sub handle_request
 {
@@ -152,6 +204,8 @@ END
     }
 
     $page = { content => $page } unless ( ref( $page ) );
+    
+    return 0 if ( request_failed_authentication( $self, $page ) );
 
     if ( my $redirect = $page->{ redirect } )
     {
