@@ -167,6 +167,14 @@ END
         print "\r\n";
         print '<html><body>Website was moved to <a href="' . $enc_redirect . '">' . $enc_redirect . '</a></body></html>';
     }
+    elsif ( my $callback = $page->{ callback } )
+    {
+        if ( ref $callback ne 'CODE' )
+        {
+            die "'callback' parameter exists but is not a subroutine reference.";
+        }
+        $callback->( $self, $cgi );
+    }
     else
     {
         my $header  = $page->{ header }  || 'Content-Type: text/html; charset=UTF-8';
