@@ -3,13 +3,14 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 87;
+use Test::More tests => 89;
 
 use Readonly;
 use HTTP::HashServer;
 use HTTP::Status qw(:constants);
 use URI::Escape;
 use Data::Dumper;
+use CGI::Cookie;
 
 use MediaWords::Test::DB;
 
@@ -549,6 +550,105 @@ sub test_url_and_data_after_redirects_html_loop()
     is( $url_after_redirects, $TEST_HTTP_SERVER_URL . '/second', 'URL after HTML redirect loop' );
 }
 
+# Test if the subroutine acts nicely when the server decides to ensure that the
+# client supports cookies (e.g.
+# http://www.dailytelegraph.com.au/news/world/charlie-hebdo-attack-police-close-in-on-two-armed-massacre-suspects-as-manhunt-continues-across-france/story-fni0xs63-1227178925700)
+sub test_url_and_data_after_redirects_cookies()
+{
+    Readonly my $TEST_HTTP_SERVER_URL => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
+    my $starting_url = $TEST_HTTP_SERVER_URL . '/first';
+    Readonly my $TEST_CONTENT => 'This is the content.';
+
+    Readonly my $COOKIE_NAME    => "test_cookie";
+    Readonly my $COOKIE_VALUE   => "I'm a cookie and I know it!";
+    Readonly my $DEFAULT_HEADER => "Content-Type: text/html; charset=UTF-8";
+
+    # HTTP redirects
+    my $pages = {
+        '/first' => {
+            callback => sub {
+                my ( $self, $cgi ) = @_;
+
+                my $received_cookie = $cgi->cookie( $COOKIE_NAME );
+
+                if ( $received_cookie and $received_cookie eq $COOKIE_VALUE )
+                {
+
+                    # say STDERR "Cookie was set previously, showing page";
+
+                    print "HTTP/1.0 200 OK\r\n";
+                    print "$DEFAULT_HEADER\r\n";
+                    print "\r\n";
+                    print $TEST_CONTENT;
+
+                }
+                else
+                {
+
+                    # say STDERR "Setting cookie, redirecting to /check_cookie";
+
+                    my $cookie = CGI::Cookie->new(
+                        -name  => $COOKIE_NAME,
+                        -value => $COOKIE_VALUE
+                    );
+
+                    print "HTTP/1.0 302 Moved Temporarily\r\n";
+                    print "$DEFAULT_HEADER\r\n";
+                    print "Location: /check_cookie\r\n";
+                    print "Set-Cookie: $cookie\r\n";
+                    print "\r\n";
+                    print "Redirecting to the cookie check page...";
+                }
+            }
+        },
+
+        '/check_cookie' => {
+            callback => sub {
+
+                my ( $self, $cgi ) = @_;
+
+                my $received_cookie = $cgi->cookie( $COOKIE_NAME );
+
+                if ( $received_cookie and $received_cookie eq $COOKIE_VALUE )
+                {
+
+                    # say STDERR "Cookie was set previously, redirecting back to the initial page";
+
+                    print "HTTP/1.0 302 Moved Temporarily\r\n";
+                    print "$DEFAULT_HEADER\r\n";
+                    print "Location: $starting_url\r\n";
+                    print "\r\n";
+                    print "Cookie looks fine, redirecting you back to the article...";
+
+                }
+                else
+                {
+
+                    # say STDERR 'Cookie wasn\'t found, redirecting you to the /no_cookies page...';
+
+                    print "HTTP/1.0 302 Moved Temporarily\r\n";
+                    print "$DEFAULT_HEADER\r\n";
+                    print "Location: /no_cookies\r\n";
+                    print "\r\n";
+                    print 'Cookie wasn\'t found, redirecting you to the "no cookies" page...';
+                }
+            }
+        },
+        '/no_cookies' => "No cookie support, go away, we don\'t like you."
+    };
+
+    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my ( $url_after_redirects, $data_after_redirects ) =
+      MediaWords::Util::URL::url_and_data_after_redirects( $starting_url );
+
+    $hs->stop();
+
+    is( $url_after_redirects,  $starting_url, 'URL after HTTP redirects (cookie)' );
+    is( $data_after_redirects, $TEST_CONTENT, 'Data after HTTP redirects (cookie)' );
+}
+
 sub test_all_url_variants($)
 {
     my ( $db ) = @_;
@@ -771,6 +871,7 @@ sub main()
     test_url_and_data_after_redirects_html();
     test_url_and_data_after_redirects_http_loop();
     test_url_and_data_after_redirects_html_loop();
+    test_url_and_data_after_redirects_cookies();
 
     MediaWords::Test::DB::test_on_test_database(
         sub {
