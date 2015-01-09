@@ -166,8 +166,6 @@ END
         print "Location: $redirect\r\n";
         print "\r\n";
         print '<html><body>Website was moved to <a href="' . $enc_redirect . '">' . $enc_redirect . '</a></body></html>';
-
-        END;
     }
     else
     {
