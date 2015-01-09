@@ -29,8 +29,6 @@ sub convert_to_local_time_zone
 
     my ( $local_sql_date ) = $db->query( "select ( ?::timestamptz )::timestamp", $sql_date )->flat;
 
-    say STDERR "$sql_date -> $local_sql_date";
-
     return $local_sql_date;
 }
 
@@ -180,13 +178,11 @@ __END_TEST_CASE__
     ];
 
     my $num_tests = scalar @{ $test_cases };
-    plan tests => $num_tests + 1;
+    plan tests => ( 2 * $num_tests ) + 1;
 
     foreach my $test_case ( @{ $test_cases } )
     {
         my $feed_input = $test_case->{ feed_input };
-
-        say Dumper ( $test_case->{ publish_date } );
 
         my $stories = MediaWords::Crawler::FeedHandler::_get_stories_from_feed_contents_impl(
             $feed_input,
@@ -205,12 +201,9 @@ __END_TEST_CASE__
             undef( $element->{ collect_date } );
         }
 
-        print STDERR Dumper( $stories );
-        print STDERR Dumper( $test_case->{ test_output } );
+        is( $stories->[ 0 ]->{ publish_date }, $test_case->{ test_output }->[ 0 ]->{ publish_date }, 'publish_date' );
 
-        is( $test_case->{ test_output }->[ 0 ]->{ publish_date }, $stories->[ 0 ]->{ publish_date }, 'publish_date' );
-
-        cmp_deeply( $test_case->{ test_output }, $stories );
+        cmp_deeply( $stories, $test_case->{ test_output } );
 
     }
 }

@@ -120,8 +120,6 @@ sub _get_stories_from_feed_contents_impl
             description  => _no_ref( $item->description ),
         };
 
-        say STDERR Dumper( $story );
-
         push @{ $ret }, $story;
     }
 

@@ -34,7 +34,11 @@ sub get_sql_date_from_epoch
     my $dt = DateTime->from_epoch( epoch => $epoch );
     $dt->set_time_zone( $_local_tz );
 
-    return $dt->datetime;
+    my $date = $dt->datetime;
+
+    $date =~ s/(\d)T(\d)/$1 $2/;
+
+    return $date;
 }
 
 sub sql_now
