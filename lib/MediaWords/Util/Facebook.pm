@@ -59,12 +59,10 @@ sub get_url_share_count
 sub get_and_store_share_count
 {
     my ( $db, $story ) = @_;
-    
+
     my $count;
-    eval { 
-        $count = get_url_share_count( $db, $story->{ url } );
-    };
-    my $error = $@ ? $@ : undef;;
+    eval { $count = get_url_share_count( $db, $story->{ url } ); };
+    my $error = $@ ? $@ : undef;
     $count ||= 0;
 
     $db->query( <<END, $story->{ stories_id }, $count, $error );

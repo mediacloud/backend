@@ -59,12 +59,10 @@ sub get_url_tweet_count
 sub get_and_store_tweet_count
 {
     my ( $db, $story ) = @_;
-    
+
     my $count;
-    eval { 
-        $count = get_url_tweet_count( $db, $story->{ url } );
-    };
-    my $error = $@ ? $@ : undef;;
+    eval { $count = get_url_tweet_count( $db, $story->{ url } ); };
+    my $error = $@ ? $@ : undef;
     $count ||= 0;
 
     $db->query( <<END, $story->{ stories_id }, $count, $error );
