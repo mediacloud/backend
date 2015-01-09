@@ -13,7 +13,7 @@ use MediaWords::Util::JSON;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 
-sub _get_single_url_tweet_count
+sub _get_single_url_json
 {
     my ( $ua, $url ) = @_;
 
@@ -29,6 +29,19 @@ sub _get_single_url_tweet_count
     my $decoded_content = $response->decoded_content;
 
     my $data = MediaWords::Util::JSON::decode_json( $decoded_content );
+    unless ( $data and ref( $data ) eq ref( {} ) )
+    {
+        die "Returned JSON is empty or invalid.";
+    }
+
+    return $data;
+}
+
+sub _get_single_url_tweet_count
+{
+    my ( $ua, $url ) = @_;
+
+    my $data = _get_single_url_json( $ua, $url );
 
     return $data->{ count };
 }
