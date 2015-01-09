@@ -21,7 +21,7 @@ sub test_tweet_count($)
 {
     my ( $db ) = @_;
 
-    my $google_count = MediaWords::Util::Twitter::get_url_tweet_count( $db, 'http://google.com' );
+    my $google_count = MediaWords::Util::Twitter::get_url_tweet_count( $db, 'http://www.google.com/' );
 
     my $nyt_ferguson_count = MediaWords::Util::Twitter::get_url_tweet_count( $db,
         'http://www.nytimes.com/interactive/2014/08/13/us/ferguson-missouri-town-under-siege-after-police-shooting.html' );
