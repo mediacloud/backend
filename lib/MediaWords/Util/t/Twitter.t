@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 10;
+use Test::More tests => 13;
 
 use MediaWords::Test::DB;
 
@@ -16,6 +16,18 @@ BEGIN
 }
 
 my $_last_request_time;
+
+sub test_request()
+{
+    my $ua = MediaWords::Util::Web::UserAgent;
+
+    my $number_sign_url =
+      'http://www.nbcnews.com/#/health/health-news/inside-ebola-clinic-doctors-fight-out-control-virus-%20n150391';
+    my $number_sign_data = MediaWords::Util::Twitter::_get_single_url_json( $ua, $number_sign_url );
+    ok( $number_sign_data,            'Number sign: data is defined' );
+    ok( $number_sign_data->{ 'url' }, 'Number sign: data has "url"' );
+    is( $number_sign_data->{ 'url' }, $number_sign_url, 'Number sign: URL matches' );
+}
 
 sub test_tweet_count($)
 {
@@ -68,6 +80,8 @@ sub main()
     binmode $builder->output,         ":utf8";
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
+
+    test_request();
 
     MediaWords::Test::DB::test_on_test_database(
         sub {
