@@ -275,12 +275,15 @@ sub handle_error
 
     my $dbs = $self->engine->dbs;
 
-    my $error_num;
-    $error_num = ( $download->{ error_message } =~ /\[error_num: (\d+)\]$/ ) ? $1 + 1 : 1;
+    my $error_num = 1;
+    if ( my $error = $download->{ error_message } )
+    {
+        $error_num = ( $error =~ /\[error_num: (\d+)\]$/ ) ? $1 + 1 : 1;
+    }
 
     my $enc_error_message = encode( 'utf8', $response->status_line . "\n[error_num: $error_num]" );
 
-    if ( ( $response->status_line =~ /^5/ ) && ( $error_num < MAX_5XX_RETRIES ) )
+    if ( ( $response->status_line =~ /^5/ ) && ( $error_num <= MAX_5XX_RETRIES ) )
     {
         my $interval = "$error_num hours";
 
@@ -312,7 +315,10 @@ sub handle_response
 {
     my ( $self, $download, $response ) = @_;
 
-    say STDERR "fetcher " . $self->engine->fetcher_number . " starting handle response: " . $download->{ url };
+    if ( defined( $self->engine->fetcher_number ) )
+    {
+        say STDERR "fetcher " . $self->engine->fetcher_number . " starting handle response: " . $download->{ url };
+    }
 
     my $dbs = $self->engine->dbs;
 
@@ -358,7 +364,10 @@ END
 
     }
 
-    say STDERR "fetcher " . $self->engine->fetcher_number . " completed handle response: " . $download->{ url };
+    if ( defined( $self->engine->fetcher_number ) )
+    {
+        say STDERR "fetcher " . $self->engine->fetcher_number . " completed handle response: " . $download->{ url };
+    }
 }
 
 # calling engine

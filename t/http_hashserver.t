@@ -3,12 +3,11 @@ use warnings;
 
 # test HTTP::HashServer
 
-use Test::More tests => 11;
+use Test::More tests => 13;
 
 use HTTP::Request;
 use LWP::Simple;
 use LWP::UserAgent;
-
 
 BEGIN
 {
@@ -39,7 +38,8 @@ sub main
         '/foo-bar'   => { redirect => '/bar' },
         '/localhost' => { redirect => "http://localhost:$_port/" },
         '/127-foo'   => { redirect => "http://127.0.0.1:$_port/foo" },
-        '/auth'      => { auth => 'foo:bar', content => 'foo bar' }
+        '/auth'      => { auth => 'foo:bar', content => 'foo bar' },
+        '/404'       => { content => 'not found', http_status_code => 404 },
     };
 
     my $hs = HTTP::HashServer->new( $_port, $pages );
@@ -54,24 +54,29 @@ sub main
     test_page( "http://localhost:$_port/foo-bar",   'bar' );
     test_page( "http://127.0.0.1:$_port/localhost", 'home' );
     test_page( "http://localhost:$_port/127-foo",   'foo' );
-    
+
+    my $ua_404       = LWP::UserAgent->new;
+    my $response_404 = $ua_404->get( "http://localhost:$_port/404" );
+    ok( !$response_404->is_success, "404 response should not succeed" );
+    is( $response_404->status_line, "404 Not Found", "404 status line" );
+
     my $auth_url = "http://localhost:$_port/auth";
-    
+
     my $content = LWP::Simple::get( $auth_url );
     is( $content, undef, 'fail auth / no auth' );
-    
+
     my $ua = LWP::UserAgent->new;
-    my $request =  HTTP::Request->new( GET => $auth_url );
+    my $request = HTTP::Request->new( GET => $auth_url );
     $request->authorization_basic( 'foo', 'bar' );
     my $response = $ua->request( $request );
-    
+
     is( $response->content, 'foo bar', 'pass auth' );
-    
+
     $ua = LWP::UserAgent->new;
-    $request =  HTTP::Request->new( GET => $auth_url );
+    $request = HTTP::Request->new( GET => $auth_url );
     $request->authorization_basic( 'foo', 'foo' );
     $response = $ua->request( $request );
-    
+
     is( $response->status_line, "401 Access Denied", 'fail auth / bad password' );
 
     $hs->stop();

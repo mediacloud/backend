@@ -7,6 +7,7 @@ use MediaWords::CommonLibs;
 use strict;
 
 use DateTime;
+use DateTime::Format::Pg;
 use Time::Local;
 
 my $_local_tz = DateTime::TimeZone->new( name => 'local' );
@@ -46,11 +47,10 @@ sub get_epoch_from_sql_date
 {
     my ( $date ) = @_;
 
-    my $year  = substr( $date, 0, 4 );
-    my $month = substr( $date, 5, 2 );
-    my $day   = substr( $date, 8, 2 );
+    my $dt = DateTime::Format::Pg->parse_datetime( $date );
+    $dt->set_time_zone( $_local_tz );
 
-    return Time::Local::timelocal( 0, 0, 0, $day, $month - 1, $year );
+    return $dt->epoch;
 }
 
 # given a date in the sql format 'YYYY-MM-DD', increment it by $days days

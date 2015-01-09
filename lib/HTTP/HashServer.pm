@@ -240,7 +240,7 @@ END
         }
         $content = encode( 'utf-8', $content );
 
-        print "HTTP/1.0 200 OK\r\n";
+        print "HTTP/1.0 $http_status_code $http_status_message\r\n";
         print "$header\r\n";
         print "\r\n";
         print "$content";
