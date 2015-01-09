@@ -20,7 +20,7 @@ sub _get_single_url_tweet_count
     # this is mostly to be able to generate an error for testing
     die( "invalid url: '$url'" ) if ( $url !~ /^http/i );
 
-    my $response = $ua->get( 'https://cdn.api.twitter.com/1/urls/count.json?url=' . uri_escape( $url ) );
+    my $response = $ua->get( 'https://cdn.api.twitter.com/1/urls/count.json?url=' . uri_escape_utf8( $url ) );
 
     if ( !$response->is_success )
     {
