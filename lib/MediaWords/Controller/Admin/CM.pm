@@ -519,8 +519,8 @@ sub nv : Local
 {
     my ( $self, $c ) = @_;
 
-    my $live    = $c->req->params->{ l };
-    my $cdts_id = $c->req->params->{ cdts };
+    my $live        = $c->req->params->{ l };
+    my $cdts_id     = $c->req->params->{ cdts };
     my $color_field = $c->req->params->{ cf };
 
     my $db = $c->dbis;
@@ -542,7 +542,7 @@ sub nv_config : Local
     my ( $self, $c, $cdts_id, $live, $color_field ) = @_;
 
     my $db = $c->dbis;
-    
+
     $color_field ||= 'media_type';
 
     $live ||= '';
@@ -555,7 +555,8 @@ sub nv_config : Local
             l  => $live,
             cf => $color_field
         }
-    ) . '';
+      ) .
+      '';
 
     my $config_data = {
         "type"    => "network",
@@ -587,10 +588,10 @@ sub nv_config : Local
         },
         "sigma" => {
             "graphProperties" => {
-                "minEdgeSize" => 0.2,
+                "minEdgeSize" => 0.1,
                 "maxNodeSize" => 15,
-                "maxEdgeSize" => 0.4,
-                "minNodeSize" => 2
+                "maxEdgeSize" => 0.1,
+                "minNodeSize" => 0.5
             },
             "drawingProperties" => {
                 "labelThreshold"           => 10,
