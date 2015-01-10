@@ -20,6 +20,7 @@ use List::MoreUtils qw(any);
 use MediaWords::CommonLibs;
 use MediaWords::CM::GuessDate;
 use MediaWords::DB;
+use MediaWords::Util::SQL;
 
 # threshold of number of days a guess date can be before the source link
 # story date without dropping the guess
