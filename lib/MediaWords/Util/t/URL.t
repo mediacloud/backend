@@ -10,7 +10,6 @@ use HTTP::HashServer;
 use HTTP::Status qw(:constants);
 use URI::Escape;
 use Data::Dumper;
-use CGI::Cookie;
 
 use MediaWords::Test::DB;
 
@@ -598,15 +597,10 @@ sub test_url_and_data_after_redirects_cookies()
 
                     # say STDERR "Setting cookie, redirecting to /check_cookie";
 
-                    my $cookie = CGI::Cookie->new(
-                        -name  => $COOKIE_NAME,
-                        -value => $COOKIE_VALUE
-                    );
-
                     print "HTTP/1.0 302 Moved Temporarily\r\n";
                     print "$DEFAULT_HEADER\r\n";
                     print "Location: /check_cookie\r\n";
-                    print "Set-Cookie: $cookie\r\n";
+                    print "Set-Cookie: $COOKIE_NAME=$COOKIE_VALUE\r\n";
                     print "\r\n";
                     print "Redirecting to the cookie check page...";
                 }
