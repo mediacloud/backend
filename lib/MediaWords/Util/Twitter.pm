@@ -11,6 +11,7 @@ use URI;
 use URI::Escape;
 
 use Readonly;
+use Data::Dumper;
 
 use MediaWords::Util::JSON;
 use MediaWords::Util::URL;
@@ -57,6 +58,11 @@ sub _get_single_url_json
     unless ( $data and ref( $data ) eq ref( {} ) )
     {
         die "Returned JSON is empty or invalid.";
+    }
+
+    unless ( defined $data->{ url } and defined $data->{ count } )
+    {
+        die "Returned JSON doesn't have 'url' and / or 'count' keys for URL: $url; JSON: " . Dumper( $data );
     }
 
     return $data;
