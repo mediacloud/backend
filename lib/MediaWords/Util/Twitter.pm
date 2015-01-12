@@ -36,6 +36,17 @@ sub _get_single_url_json
         die "Unable to create URI object for URL: $url";
     }
 
+    # Skip homepage URLs
+    if ( MediaWords::Util::URL::is_homepage_url( $url ) )
+    {
+        # ...unless the #fragment part looks like a path because Twitter will
+        # then accept those
+        unless ( $uri->fragment and $uri->fragment =~ /^\// )
+        {
+            die "URL is homepage: $url";
+        }
+    }
+
     # If there's no slash at the end of the URL, Twitter API will always add
     # it, so we might as well do it ourselves
     if ( substr( $uri->path . '', -1 ) ne '/' )
