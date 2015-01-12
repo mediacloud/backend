@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 91;
+use Test::More tests => 90;
 
 use Readonly;
 use HTTP::HashServer;
@@ -739,19 +739,6 @@ sub test_all_url_variants($)
         [ sort @actual_url_variants ],
         [ sort @expected_url_variants ],
         '"Redirect to homepage" all_url_variants() test'
-    );
-
-    # Another redirect to a homepage
-    Readonly my $nbc_url =>
-      'http://www.nbcnews.com/#/health/health-news/inside-ebola-clinic-doctors-fight-out-control-virus-%20n150391';
-    Readonly my $treat_fragment_as_path => 1;
-    @actual_url_variants = MediaWords::Util::URL::all_url_variants( $db, $nbc_url, $treat_fragment_as_path );
-
-    @expected_url_variants = ( $nbc_url );
-    is_deeply(
-        [ sort @actual_url_variants ],
-        [ sort @expected_url_variants ],
-        '"Redirect to homepage NBCNews.com" all_url_variants() test'
     );
 }
 
