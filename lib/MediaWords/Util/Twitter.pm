@@ -109,8 +109,7 @@ sub get_url_tweet_count
 {
     my ( $db, $url ) = @_;
 
-    Readonly my $treat_fragment_as_path => 1;
-    my $all_urls = [ MediaWords::Util::URL::all_url_variants( $db, $url, $treat_fragment_as_path ) ];
+    my $all_urls = [ MediaWords::Util::URL::all_url_variants( $db, $url ) ];
 
     my $ua = MediaWords::Util::Web::UserAgentDetermined();
     $ua->timing( '1,3,15,60,300,600' );
