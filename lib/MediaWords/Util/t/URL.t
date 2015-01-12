@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 90;
+use Test::More tests => 89;
 
 use Readonly;
 use HTTP::HashServer;
@@ -57,17 +57,6 @@ sub test_is_homepage_url()
     # Technically, server is not required to normalize "///" path into "/"
     is( MediaWords::Util::URL::is_homepage_url( 'http://www.wired.com///' ), 0, 'is_homepage_url() - Wired "///"' );
     is( MediaWords::Util::URL::is_homepage_url( 'http://m.wired.com///' ),   0, 'is_homepage_url() - m.Wired "///"' );
-
-    # Treat #fragment as a potential part of the path
-    Readonly my $treat_fragment_as_path => 1;
-    is(
-        MediaWords::Util::URL::is_homepage_url(
-            'http://www.nbcnews.com/#/health/health-news/inside-ebola-clinic-doctors-fight-out-control-virus-%20n150391',
-            $treat_fragment_as_path
-        ),
-        0,
-        'is_homepage_url() - Treat fragment as path'
-    );
 }
 
 sub test_normalize_url()

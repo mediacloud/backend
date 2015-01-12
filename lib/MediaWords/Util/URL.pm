@@ -42,13 +42,9 @@ sub is_http_url($)
 
 # Returns true if URL is homepage (e.g. http://www.wired.com/) and not a child
 # page (e.g. http://m.wired.com/threatlevel/2011/12/sopa-watered-down-amendment/)
-#
-# If $treat_fragment_as_path parameter is true, subroutine will treat URL's
-# #fragment as a potential part of path (thus, if #fragment is set, the URL
-# will be claimed to not be a homepage)
-sub is_homepage_url($;$)
+sub is_homepage_url($)
 {
-    my ( $url, $treat_fragment_as_path ) = @_;
+    my $url = shift;
 
     unless ( $url )
     {
@@ -65,12 +61,6 @@ sub is_homepage_url($;$)
 
     if ( $uri->path eq '/' or $uri->path eq '' )
     {
-        if ( $treat_fragment_as_path and $uri->fragment and length( $uri->fragment ) > 0 )
-        {
-            # e.g. http://www.nbcnews.com/#/health/health-news/inside-ebola-clinic-doctors-fight-out-control-virus-%20n150391
-            return 0;
-        }
-
         return 1;
     }
     else
@@ -539,9 +529,9 @@ END
 # 4) Canonical URL after redirects (do the redirect check first, then strip the tracking parameters from the URL)
 # 5) URL from <link rel="canonical" /> (if any)
 # 6) Any alternative URLs from controversy_merged_stories or controversy_links
-sub all_url_variants($$;$)
+sub all_url_variants($$)
 {
-    my ( $db, $url, $treat_fragment_as_path ) = @_;
+    my ( $db, $url ) = @_;
 
     unless ( defined $url )
     {
@@ -588,11 +578,11 @@ sub all_url_variants($$;$)
     # If URL gets redirected to the homepage (e.g.
     # http://m.wired.com/threatlevel/2011/12/sopa-watered-down-amendment/ leads
     # to http://www.wired.com/), don't use those redirects
-    unless ( is_homepage_url( $url, $treat_fragment_as_path ) )
+    unless ( is_homepage_url( $url ) )
     {
         foreach my $key ( keys %urls )
         {
-            if ( is_homepage_url( $urls{ $key }, $treat_fragment_as_path ) )
+            if ( is_homepage_url( $urls{ $key } ) )
             {
                 say STDERR "URL $url got redirected to $urls{$key} which looks like a homepage, so I'm skipping that.";
                 delete $urls{ $key };
