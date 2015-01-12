@@ -7,7 +7,9 @@ package MediaWords::Util::Twitter;
 use strict;
 use warnings;
 
+use URI;
 use URI::Escape;
+
 use Readonly;
 
 use MediaWords::Util::JSON;
@@ -23,6 +25,22 @@ sub _get_single_url_json
     {
         die "Invalid URL: $url";
     }
+
+    # Get canonical URL
+    my $uri = URI->new( $url )->canonical;
+    unless ( $uri )
+    {
+        die "Unable to create URI object for URL: $url";
+    }
+
+    # If there's no slash at the end of the URL, Twitter API will always add
+    # it, so we might as well do it ourselves
+    if ( substr( $uri->path . '', -1 ) ne '/' )
+    {
+        $uri->path( $uri->path . '/' );
+    }
+
+    $url = $uri->as_string;
 
     my $api_url = 'https://cdn.api.twitter.com/1/urls/count.json?url=' . uri_escape_utf8( $url );
 
