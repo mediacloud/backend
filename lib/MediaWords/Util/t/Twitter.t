@@ -21,12 +21,16 @@ sub test_request()
 {
     my $ua = MediaWords::Util::Web::UserAgent;
 
-    my $number_sign_url =
-      'http://www.nbcnews.com/#/health/health-news/inside-ebola-clinic-doctors-fight-out-control-virus-%20n150391';
-    my $number_sign_data = MediaWords::Util::Twitter::_get_single_url_json( $ua, $number_sign_url );
-    ok( $number_sign_data,            'Number sign: data is defined' );
-    ok( $number_sign_data->{ 'url' }, 'Number sign: data has "url"' );
-    is( $number_sign_data->{ 'url' }, $number_sign_url, 'Number sign: URL matches' );
+    my @urls =
+      ( 'http://www.nbcnews.com/#/health/health-news/inside-ebola-clinic-doctors-fight-out-control-virus-%20n150391' );
+
+    foreach my $url ( @urls )
+    {
+        my $data = MediaWords::Util::Twitter::_get_single_url_json( $ua, $url );
+        ok( $data,            "Data is defined for URL $url" );
+        ok( $data->{ 'url' }, "Data has 'url' key for URL $url" );
+        is( $data->{ 'url' }, $url, "URL matches for URL $url" );
+    }
 }
 
 sub test_tweet_count($)
