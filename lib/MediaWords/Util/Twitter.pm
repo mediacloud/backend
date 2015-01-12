@@ -19,7 +19,10 @@ sub _get_single_url_json
     my ( $ua, $url ) = @_;
 
     # this is mostly to be able to generate an error for testing
-    die( "invalid url: '$url'" ) if ( $url !~ /^http/i );
+    unless ( MediaWords::Util::URL::is_http_url( $url ) )
+    {
+        die "Invalid URL: $url";
+    }
 
     my $response = $ua->get( 'https://cdn.api.twitter.com/1/urls/count.json?url=' . uri_escape_utf8( $url ) );
 
