@@ -8,10 +8,12 @@ use strict;
 use warnings;
 
 use URI;
+use URI::QueryParam;
 use URI::Escape;
 
 use Readonly;
 use Data::Dumper;
+use Data::Compare;
 
 use MediaWords::Util::JSON;
 use MediaWords::Util::URL;
@@ -63,6 +65,28 @@ sub _get_single_url_json
     unless ( defined $data->{ url } and defined $data->{ count } )
     {
         die "Returned JSON doesn't have 'url' and / or 'count' keys for URL: $url; JSON: " . Dumper( $data );
+    }
+
+    my $returned_uri = URI->new( $data->{ url } )->canonical;
+    unless ( $uri )
+    {
+        die "Unable to create URI object for returned URL: $data->{ url }";
+    }
+
+    unless ( $uri->eq( $returned_uri ) )
+    {
+        # Twitter sometimes reorders ?query=parameters, so compare them separately
+        my $uri_without_query_params = $uri;
+        $uri_without_query_params->query( undef );
+        my $returned_uri_without_query_params = $returned_uri;
+        $returned_uri->query( undef );
+
+        unless ( $uri_without_query_params->eq( $returned_uri_without_query_params )
+            and Compare( $uri->query_form_hash, $returned_uri->query_form_hash ) )
+        {
+
+            die "Returned URL (" . $returned_uri->as_string . ") is not the same as requested URL ($url)";
+        }
     }
 
     return $data;
