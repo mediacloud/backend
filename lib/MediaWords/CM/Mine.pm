@@ -168,6 +168,53 @@ sub get_boingboing_links
     return get_links_from_html( $content, $story->{ url } );
 }
 
+# get the html for the first download of the story.  fix the story download by redownloading
+# as necessary
+sub get_first_download_content
+{
+    my ( $db, $story ) = @_;
+
+    my $download = $db->query( <<END, $story->{ stories_id } )->hash;
+select d.* from downloads d where stories_id = ? order by downloads_id asc limit 1
+END
+
+    my $content_ref;
+    eval { $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download ); };
+    if ( $@ )
+    {
+        MediaWords::DBI::Stories::fix_story_downloads_if_needed( $db, $story );
+        $download = $db->find_by_id( 'downloads', $download->{ downloads_id } );
+        eval { $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download ); };
+        warn( "error refetching content: $@" ) if ( $@ );
+    }
+
+    return $content_ref ? $$content_ref : '';
+}
+
+# parse the full first download of the given story for youtube embeds
+sub get_youtube_embed_links
+{
+    my ( $db, $story ) = @_;
+
+    my $html = get_first_download_content( $db, $story );
+
+    my $links = [];
+    while ( $html =~ /src\=[\'\"]((http:)?\/\/(www\.)?youtube(-nocookie)?\.com\/[^\'\"]*)/g )
+    {
+        my $url = $1;
+
+        $url = "http:$url/" unless ( $url =~ /^http/ );
+
+        $url =~ s/\?.*//;
+        $url =~ s/\/$//;
+        $url =~ s/youtube-nocookie/youtube/i;
+
+        push( @{ $links }, { url => $url } );
+    }
+
+    return $links;
+}
+
 # get the extracted html for the story.  fix the story downloads by redownloading
 # as necessary
 sub get_extracted_html
@@ -219,6 +266,7 @@ sub get_links_from_story
     my $text_links = get_links_from_story_text( $db, $story );
     my $description_links = get_links_from_html( $story->{ description }, $story->{ url } );
     my $boingboing_links = get_boingboing_links( $db, $story );
+    my $youtube_links = get_youtube_embed_links( $db, $story );
 
     my @all_links = ( @{ $links }, @{ $text_links }, @{ $description_links }, @{ $boingboing_links } );
 
@@ -1028,6 +1076,7 @@ END
         $db->query( <<END, $story->{ stories_id }, $controversy_link->{ controversy_links_id } );
 update controversy_links set ref_stories_id = ? where controversy_links_id = ?
 END
+        $controversy_link->{ ref_stories_id } = $story->{ stories_id };
     }
 }
 
@@ -1201,7 +1250,11 @@ sub add_new_links
     {
         if ( !$link->{ ref_stories_id } && $link->{ controversy_links_id } )
         {
-            $db->query( "delete from controversy_links where controversy_links_id = ?", $link->{ controversy_links_id } );
+            # include ref_stories_id is null to make sure we don't delete a
+            # valid link
+            $db->query( <<END, $link->{ controversy_links_id } );
+delete from controversy_links where controversy_links_id = ? and ref_stories_id is null
+END
         }
     }
     $db->commit;
@@ -2192,15 +2245,4 @@ sub mine_controversy ($$;$)
             die "Bit.ly processing is not enabled.";
         }
 
-        say STDERR "enqueueing all (new) stories for Bit.ly processing ...";
-
-        # For the sake of simplicity, just re-enqueue all controversy's stories for
-        # Bit.ly processing. The ones that are already processed (have a respective
-        # record in the GridFS database) will be skipped, and the new ones will be
-        # enqueued further for fetching Bit.ly stats.
-        my $args = { controversies_id => $controversy->{ controversies_id } };
-        MediaWords::GearmanFunction::Bitly::EnqueueControversyStories->enqueue_on_gearman( $args );
-    }
-}
-
-1;
+        say STDERR "enqueu
