@@ -152,6 +152,12 @@ sub normalize_url($)
         @parameters_to_remove = ( @parameters_to_remove, qw/ thread nojs / );
     }
 
+    if ( $uri->host =~ /google\./i )
+    {
+        # Additional parameters specifically for the google.[com,lt,...] host
+        @parameters_to_remove = ( @parameters_to_remove, qw/ gws_rd ei / );
+    }
+
     # Some other parameters (common for tracking session IDs, advertising, etc.)
     @parameters_to_remove = (
         @parameters_to_remove,
