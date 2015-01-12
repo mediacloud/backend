@@ -351,10 +351,10 @@ sub provide_downloads
     $self->_add_pending_downloads();
 
     # Add some missing downloads if the functions above didn't fill up the queue
-    if ( $self->{ downloads }->_get_downloads_size < QUEUED_DOWNLOADS_IDLE_COUNT )
-    {
-        $self->_add_missing_downloads( MISSING_DOWNLOADS_CHUNK_COUNT );
-    }
+    # if ( $self->{ downloads }->_get_downloads_size < QUEUED_DOWNLOADS_IDLE_COUNT )
+    # {
+    #     $self->_add_missing_downloads( MISSING_DOWNLOADS_CHUNK_COUNT );
+    # }
 
     my @downloads;
   MEDIA_ID:
