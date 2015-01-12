@@ -507,11 +507,11 @@ sub get_extracted_html_from_db
 {
     my ( $db, $story ) = @_;
 
-    my $download_texts = $db->query(
-        "select dt.* from downloads d, download_texts dt " .
-          "  where dt.downloads_id = d.downloads_id and d.stories_id = ? order by d.downloads_id",
-        $story->{ stories_id }
-    )->hashes;
+    my $download_texts = $db->query( <<END, $story->{ stories_id } )->hashes;
+select dt.downloads_id, dt.download_texts_id 
+	from downloads d, download_texts dt
+	where dt.downloads_id = d.downloads_id and d.stories_id = ? order by d.downloads_id
+END
 
     return join( "\n", map { MediaWords::DBI::DownloadTexts::get_extracted_html_from_db( $db, $_ ) } @{ $download_texts } );
 }

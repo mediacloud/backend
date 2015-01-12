@@ -36,6 +36,11 @@ sub get_sql_date_from_epoch
     return $dt->datetime;
 }
 
+sub sql_now
+{
+    return get_sql_date_from_epoch( time() );
+}
+
 # given a date in the sql format 'YYYY-MM-DD', return the epoch time
 sub get_epoch_from_sql_date
 {
