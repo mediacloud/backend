@@ -24,11 +24,14 @@ sub _get_single_url_json
         die "Invalid URL: $url";
     }
 
-    my $response = $ua->get( 'https://cdn.api.twitter.com/1/urls/count.json?url=' . uri_escape_utf8( $url ) );
+    my $api_url = 'https://cdn.api.twitter.com/1/urls/count.json?url=' . uri_escape_utf8( $url );
 
-    if ( !$response->is_success )
+    # say STDERR "API URL: " . $api_url;
+    my $response = $ua->get( $api_url );
+
+    unless ( $response->is_success )
     {
-        die( "error fetching tweet count for url '$url'" );
+        die "error fetching tweet count for URL: $url";
     }
     my $decoded_content = $response->decoded_content;
 
