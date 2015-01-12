@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 13;
+use Test::More tests => 22;
 
 use MediaWords::Test::DB;
 
@@ -21,8 +21,16 @@ sub test_request()
 {
     my $ua = MediaWords::Util::Web::UserAgent;
 
-    my @urls =
-      ( 'http://www.nbcnews.com/#/health/health-news/inside-ebola-clinic-doctors-fight-out-control-virus-%20n150391' );
+    my @urls = (
+        'http://www.nbcnews.com/#/health/health-news/inside-ebola-clinic-doctors-fight-out-control-virus-%20n150391',
+        'http://www.nbcnews.com/#/health/',
+        'http://www.nbcnews.com/#/health',
+        'http://www.nbcnews.com/#/',
+
+        # Twitter API works only when the #fragment starts with a slash (/)
+        # 'http://www.nbcnews.com/#health',
+        # 'http://www.nbcnews.com/#health/'
+    );
 
     foreach my $url ( @urls )
     {
