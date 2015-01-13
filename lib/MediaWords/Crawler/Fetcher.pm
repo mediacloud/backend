@@ -59,7 +59,7 @@ sub _get_domain_http_auth_lookup
 
     my $config = MediaWords::Util::Config::get_config;
 
-    my $domains = $config->{ crawler_authenticated_domains };
+    my $domains = $config->{ mediawords }->{ crawler_authenticated_domains };
 
     map { $_domain_http_auth_lookup->{ lc( $_->{ domain } ) } = $_ } @{ $domains };
 
