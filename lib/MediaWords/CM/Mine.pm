@@ -701,17 +701,16 @@ sub create_download_for_new_story
     my ( $db, $story, $feed ) = @_;
 
     my $download = {
-        feeds_id      => $feed->{ feeds_id },
-        stories_id    => $story->{ stories_id },
-        url           => $story->{ url },
-        host          => lc( ( URI::Split::uri_split( $story->{ url } ) )[ 1 ] ),
-        type          => 'content',
-        sequence      => 1,
-        state         => 'success',
-        path          => 'content:pending',
-        priority      => 1,
-        extracted     => 't',
-        download_time => MediaWords::Util::SQL::sql_now()
+        feeds_id   => $feed->{ feeds_id },
+        stories_id => $story->{ stories_id },
+        url        => $story->{ url },
+        host       => lc( ( URI::Split::uri_split( $story->{ url } ) )[ 1 ] ),
+        type       => 'content',
+        sequence   => 1,
+        state      => 'success',
+        path       => 'content:pending',
+        priority   => 1,
+        extracted  => 't'
     };
 
     $download = $db->create( 'downloads', $download );
@@ -2258,3 +2257,4 @@ sub mine_controversy ($$;$)
 }
 
 1;
+

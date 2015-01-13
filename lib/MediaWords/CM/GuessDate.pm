@@ -20,6 +20,7 @@ use List::MoreUtils qw(any);
 use MediaWords::CommonLibs;
 use MediaWords::CM::GuessDate;
 use MediaWords::DB;
+use MediaWords::Util::SQL;
 
 # threshold of number of days a guess date can be before the source link
 # story date without dropping the guess
@@ -906,8 +907,6 @@ sub guess_date_impl
 
     my $story_timestamp = $story->{ publish_date } ? _make_unix_timestamp( $story->{ publish_date } ) : undef;
 
-# print STDERR "story timestamp: " . DateTime->from_epoch( epoch => $story_timestamp )->datetime . "\n" if ( $story_timestamp );
-
     for my $date_guess_function ( @{ $_date_guess_functions } )
     {
         if ( my $timestamp = _make_unix_timestamp( $date_guess_function->{ function }->( $story, $html, $html_tree ) ) )
@@ -916,8 +915,6 @@ sub guess_date_impl
                 && $use_threshold
                 && ( ( $timestamp - $story_timestamp ) > ( DATE_GUESS_THRESHOLD * 86400 ) ) )
             {
-
-                # print STDERR "MISSED THRESHOLD: " . DateTime->from_epoch( epoch => $timestamp )->datetime . "\n";
                 next;
             }
 
@@ -925,7 +922,7 @@ sub guess_date_impl
             $result->{ result }       = MediaWords::CM::GuessDate::Result::FOUND;
             $result->{ guess_method } = $date_guess_function->{ name };
             $result->{ timestamp }    = $timestamp;
-            $result->{ date }         = DateTime->from_epoch( epoch => $timestamp )->datetime;
+            $result->{ date }         = MediaWords::Util::SQL::get_sql_date_from_epoch( $timestamp );
             return $result;
         }
     }
@@ -937,7 +934,7 @@ sub guess_date_impl
         $result->{ result }       = MediaWords::CM::GuessDate::Result::FOUND;
         $result->{ guess_method } = 'source_link';
         $result->{ timestamp }    = $story_timestamp;
-        $result->{ date }         = DateTime->from_epoch( epoch => $story_timestamp )->datetime;
+        $result->{ date }         = MediaWords::Util::SQL::get_sql_date_from_epoch( $story_timestamp );
         return $result;
     }
 
