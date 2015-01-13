@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 29;
+use Test::More tests => 32;
 
 use MediaWords::Test::DB;
 
@@ -28,6 +28,7 @@ sub test_request()
         'http://www.nbcnews.com/#/health/',
         'http://www.nbcnews.com/#/health',
         'http://www.nbcnews.com/#/',
+        'http://foo.com/#/bar/',
 
         # Twitter API works only when the #fragment starts with a slash (/)
         # 'http://www.nbcnews.com/#health',
