@@ -2245,4 +2245,16 @@ sub mine_controversy ($$;$)
             die "Bit.ly processing is not enabled.";
         }
 
-        say STDERR "enqueu
+        say STDERR "enqueueing all (new) stories for Bit.ly processing ...";
+
+        # For the sake of simplicity, just re-enqueue all controversy's stories for
+        # Bit.ly processing. The ones that are already processed (have a respective
+        # record in the GridFS database) will be skipped, and the new ones will be
+        # enqueued further for fetching Bit.ly stats.
+        my $args = { controversies_id => $controversy->{ controversies_id } };
+        MediaWords::GearmanFunction::Bitly::EnqueueControversyStories->enqueue_on_gearman( $args );
+    }
+}
+
+1;
+
