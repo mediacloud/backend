@@ -16,19 +16,23 @@ BEGIN
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
+use Getopt::Long;
+
 use MediaWords::DB;
 use MediaWords::Util::Twitter;
 use MediaWords::Util::Facebook;
 
 sub main
 {
-    my ( $controversy_name ) = @ARGV;
-    
-    die( "usage: $0 < controversy name >" ) unless ( $controversy_name );
-    
+    my $controversy_opt;
+
+    Getopt::Long::GetOptions( "controversy=s" => \$controversy_opt ) || return;
+
+    die( "Usage: $0 --controversy < id >" ) unless ( $controversy_opt );
+
     my $db = MediaWords::DB::connect_to_db;
 
-    my $stories = $db->query( <<END, $controversy_name )->hashes;
+    my $stories = $db->query( <<END, $controversy_opt )->hashes;
 select s.stories_id, s.url
     from stories s
         join controversy_stories cs on ( cs.stories_id = s.stories_id )
@@ -39,22 +43,22 @@ END
 
     if ( !@{ $stories } )
     {
-        say STDERR "No stories found for controversy '$controversy_name'";
+        say STDERR "No stories found for controversy '$controversy_opt'";
     }
-    
+
     for my $story ( @{ $stories } )
     {
-        
+
         my $ss = $db->query( "select * from story_statistics where stories_id = ?", $story->{ stories_id } )->hash;
 
         say STDERR "$story->{ url }";
-        
+
         if ( !$ss || $ss->{ twitter_url_tweet_count_error } || !defined( $ss->{ twitter_url_tweet_count } ) )
-        {            
+        {
             my $count = MediaWords::Util::Twitter::get_and_store_tweet_count( $db, $story );
             say STDERR "url_tweet_count: $count";
         }
-        
+
         # if ( !$ss || $ss->{ facebook_share_count_error} || !defined( $ss->{ facebook_share_count } ) )
         # {
         #     my $count = MediaWords::Util::Facebook::get_and_store_share_count( $db, $story );
