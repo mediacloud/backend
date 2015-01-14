@@ -26,19 +26,20 @@ use MediaWords::GearmanFunction::Twitter::FetchStoryStats;
 
 sub main
 {
-    my ( $controversy_opt, $direct_job );
+    my ( $controversy_opt, $direct_job, $overwrite );
 
     binmode( STDOUT, 'utf8' );
     binmode( STDERR, 'utf8' );
     $| = 1;
 
     Readonly my $usage => <<EOF;
-Usage: $0 --controversy < id > [--direct_job]
+Usage: $0 --controversy < id > [--direct_job] [--overwrite]
 EOF
 
     Getopt::Long::GetOptions(
         "controversy=s" => \$controversy_opt,
-        "direct_job!"   => \$direct_job
+        "direct_job!"   => \$direct_job,
+        "overwrite!"    => \$overwrite,
     ) or die $usage;
     die $usage unless ( $controversy_opt );
 
@@ -79,7 +80,10 @@ END
 
             my $ss = $db->query( "select * from story_statistics where stories_id = ?", $stories_id )->hash;
 
-            if ( !$ss or $ss->{ twitter_url_tweet_count_error } or !defined( $ss->{ twitter_url_tweet_count } ) )
+            if (   $overwrite
+                or !$ss
+                or $ss->{ twitter_url_tweet_count_error }
+                or !defined( $ss->{ twitter_url_tweet_count } ) )
             {
                 if ( $direct_job )
                 {
