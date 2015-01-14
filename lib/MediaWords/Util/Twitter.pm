@@ -76,13 +76,13 @@ sub _get_single_url_json
     unless ( $uri->eq( $returned_uri ) )
     {
         # Twitter sometimes reorders ?query=parameters, so compare them separately
-        my $uri_without_query_params = $uri;
+        my $uri_without_query_params = $uri->clone;
         $uri_without_query_params->query( undef );
-        my $returned_uri_without_query_params = $returned_uri;
+        my $returned_uri_without_query_params = $returned_uri->clone;
         $returned_uri->query( undef );
 
         unless ( $uri_without_query_params->eq( $returned_uri_without_query_params )
-            and Compare( $uri->query_form_hash, $returned_uri->query_form_hash ) )
+            and Compare( $uri_without_query_params->query_form_hash, $returned_uri_without_query_params->query_form_hash ) )
         {
             die "Returned URL (" .
               $returned_uri->as_string . ") is not the same as requested URL (" . $uri_without_query_params->as_string . ")";
