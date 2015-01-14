@@ -95,7 +95,7 @@ sub _get_single_url_json
         unless ( $uri_without_query_params->eq( $returned_uri_without_query_params )
             and Compare( $uri_without_query_params->query_form_hash, $returned_uri_without_query_params->query_form_hash ) )
         {
-            die "Returned URL (" .
+            warn "Returned URL (" .
               $returned_uri->as_string . ") is not the same as requested URL (" . $uri_without_query_params->as_string . ")";
         }
     }
