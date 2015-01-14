@@ -141,17 +141,14 @@ sub _add_story_using_parent_download
         return;
     }
 
-    try
-    {
-        $story = $dbs->create( "stories", $story );
-    }
-    catch
+    eval { $story = $dbs->create( "stories", $story ); };
+
+    if ( $@ )
     {
 
         $dbs->rollback;
 
-        #TODO handle race conditions differently
-        if ( $@ =~ /unique constraint "stories_guid/ )
+        if ( $@ =~ /unique constraint \"stories_guid/ )
         {
             warn "failed to add story for '." . $story->{ url } . "' to guid conflict ( guid =  '" . $story->{ guid } . "')";
 
@@ -159,11 +156,9 @@ sub _add_story_using_parent_download
         }
         else
         {
-            say STDERR 'error adding story dying';
-            say STDERR Dumper( $story );
-            die( $_ );
+            die( "error adding story: $@\n" . Dumper( $story ) );
         }
-    };
+    }
 
     MediaWords::DBI::Stories::update_rss_full_text_field( $dbs, $story );
 
