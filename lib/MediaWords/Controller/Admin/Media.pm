@@ -378,10 +378,18 @@ sub _search_paged_media
 
     $q = "'%$q%'";
 
-    return $c->dbis->query_paged_hashes(
-"select distinct m.media_id as media_id, m.name as name, m.url as url from media m left join ( media_tags_map mtm join (tags t join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id) ) on ( mtm.tags_id = t.tags_id) ) on (m.media_id = mtm.media_id) where (m.name ilike $q or m.url ilike $q or lower(ts.name||':'||t.tag) ilike $q) order by m.name",
-        [], $page, $rows_per_page
-    );
+    return $c->dbis->query_paged_hashes( <<END, [], $page, $rows_per_page );
+select distinct m.media_id as media_id, m.name as name, m.url as url 
+    from media m 
+        left join ( 
+            media_tags_map mtm join (
+                tags t join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id) ) 
+            on ( mtm.tags_id = t.tags_id) ) 
+        on (m.media_id = mtm.media_id) 
+    where (m.name ilike $q or m.url ilike $q or lower(ts.name||':'||t.tag) ilike $q) 
+    order by m.media_id
+END
+
 }
 
 # return any media that might be a candidate for merging with the given media source
@@ -616,16 +624,16 @@ sub search : Local
         ( $media, $pager ) = $c->dbis->query_paged_hashes( <<END, [], $p, ROWS_PER_PAGE );
 select * from media m
     where not exists (select 1 from feeds f where f.media_id = m.media_id and feed_status = 'active')
-    order by media_id desc
+    order by media_id
 END
     }
     elsif ( @m )
     {
-        $media = $c->dbis->query( "select * from media where media_id in (??) order by name", @m )->hashes;
+        $media = $c->dbis->query( "select * from media where media_id in (??) order by media_id", @m )->hashes;
     }
     else
     {
-        ( $media, $pager ) = $c->dbis->query_paged_hashes( "select * from media order by name", [], $p, ROWS_PER_PAGE );
+        ( $media, $pager ) = $c->dbis->query_paged_hashes( "select * from media order by media_id", [], $p, ROWS_PER_PAGE );
     }
 
     for my $m ( @{ $media } )
