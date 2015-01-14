@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 34;
+use Test::More tests => 35;
 
 use MediaWords::Test::DB;
 
@@ -66,6 +66,10 @@ sub test_tweet_count($)
 
     my $homepage_count = MediaWords::Util::Twitter::get_url_tweet_count( $db, 'http://cyber.law.harvard.edu/' );
     ok( $homepage_count == 0, "homepage count '$homepage_count' should be 0" );
+
+    my $suspended_count =
+      MediaWords::Util::Twitter::get_url_tweet_count( $db, 'https://twitter.com/Todd__Kincannon/status/518499096974614529' );
+    ok( $suspended_count > 40, "suspended count '$suspended_count' should be > 40" );
 
     eval { MediaWords::Util::Twitter::get_url_tweet_count( $db, 'totally.bogus.url.123456' ); };
     ok( $@, 'Bogus URL' );
