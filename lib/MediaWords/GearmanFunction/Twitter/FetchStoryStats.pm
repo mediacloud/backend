@@ -62,16 +62,10 @@ sub run($;$)
         {
             die "Story URL for story ID $stories_id is empty.";
         }
+        say STDERR "Story URL: $stories_url";
 
-        my $ss = $db->query( "select * from story_statistics where stories_id = ?", $stories_id )->hash;
-
-        say STDERR "Story URL: $story->{ url }";
-
-        if ( !$ss or $ss->{ twitter_url_tweet_count_error } or !defined( $ss->{ twitter_url_tweet_count } ) )
-        {
-            my $count = MediaWords::Util::Twitter::get_and_store_tweet_count( $db, $story );
-            say STDERR "url_tweet_count: $count";
-        }
+        my $count = MediaWords::Util::Twitter::get_and_store_tweet_count( $db, $story );
+        say STDERR "url_tweet_count: $count";
     };
     if ( $@ )
     {
