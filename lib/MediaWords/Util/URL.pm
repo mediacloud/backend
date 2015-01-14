@@ -6,12 +6,19 @@ use warnings;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
+use Readonly;
 use URI;
 use URI::QueryParam;
 use Regexp::Common qw /URI/;
 use MediaWords::Util::Web;
 use URI::Escape;
 use List::MoreUtils qw/uniq/;
+
+Readonly my @INVALID_URL_VARIANT_REGEXES => (
+
+    # Twitter's "suspended" accounts
+    qr#^https?://twitter.com/account/suspended#i,
+);
 
 # Returns true if URL is in the "http" ("https") scheme
 sub is_http_url($)
@@ -604,6 +611,12 @@ sub all_url_variants($$)
     my $distinct_urls = [ List::MoreUtils::distinct( values( %urls ) ) ];
 
     my $all_urls = get_controversy_url_variants( $db, $distinct_urls );
+
+    # Remove URLs that can't be variants of the initial URL
+    foreach my $invalid_url_variant_regex ( @INVALID_URL_VARIANT_REGEXES )
+    {
+        $all_urls = [ grep { !/$invalid_url_variant_regex/ } @{ $all_urls } ];
+    }
 
     return @{ $all_urls };
 }

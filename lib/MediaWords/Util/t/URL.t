@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 98;
+use Test::More tests => 99;
 
 use Readonly;
 use HTTP::HashServer;
@@ -765,6 +765,24 @@ sub test_all_url_variants($)
     );
 }
 
+sub test_all_url_variants_invalid_variants($)
+{
+    my ( $db ) = @_;
+
+    my @actual_url_variants;
+    my @expected_url_variants;
+
+    # Invalid URL variant (suspended Twitter account)
+    Readonly my $invalid_url_variant => 'https://twitter.com/Todd__Kincannon/status/518499096974614529';
+    @actual_url_variants = MediaWords::Util::URL::all_url_variants( $db, $invalid_url_variant );
+    @expected_url_variants = ( $invalid_url_variant );
+    is_deeply(
+        [ sort @actual_url_variants ],
+        [ sort @expected_url_variants ],
+        'Invalid URL variant (suspended Twitter account)'
+    );
+}
+
 sub test_get_controversy_url_variants
 {
     my ( $db ) = @_;
@@ -907,6 +925,14 @@ sub main()
             my ( $db ) = @_;
 
             test_all_url_variants( $db );
+        }
+    );
+
+    MediaWords::Test::DB::test_on_test_database(
+        sub {
+            my ( $db ) = @_;
+
+            test_all_url_variants_invalid_variants( $db );
         }
     );
 
