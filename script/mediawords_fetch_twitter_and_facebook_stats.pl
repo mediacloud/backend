@@ -77,22 +77,27 @@ END
             my $stories_id = $story->{ stories_id };
             my $args = { stories_id => $stories_id };
 
-            if ( $direct_job )
-            {
-                say STDERR "Running local job for story $stories_id...";
-                MediaWords::GearmanFunction::Twitter::FetchStoryStats->run_locally( $args );
-            }
-            else
-            {
-                say STDERR "Enqueueing Gearman job for story $stories_id...";
-                MediaWords::GearmanFunction::Twitter::FetchStoryStats->enqueue_on_gearman( $args );
-            }
+            my $ss = $db->query( "select * from story_statistics where stories_id = ?", $stories_id )->hash;
 
-            # if ( !$ss || $ss->{ facebook_share_count_error} || !defined( $ss->{ facebook_share_count } ) )
-            # {
-            #     my $count = MediaWords::Util::Facebook::get_and_store_share_count( $db, $story );
-            #     say STDERR "facebook_share_count: $count";
-            # }
+            if ( !$ss or $ss->{ twitter_url_tweet_count_error } or !defined( $ss->{ twitter_url_tweet_count } ) )
+            {
+                if ( $direct_job )
+                {
+                    say STDERR "Running local job for story $stories_id...";
+                    MediaWords::GearmanFunction::Twitter::FetchStoryStats->run_locally( $args );
+                }
+                else
+                {
+                    say STDERR "Enqueueing Gearman job for story $stories_id...";
+                    MediaWords::GearmanFunction::Twitter::FetchStoryStats->enqueue_on_gearman( $args );
+                }
+
+                # if ( !$ss || $ss->{ facebook_share_count_error} || !defined( $ss->{ facebook_share_count } ) )
+                # {
+                #     my $count = MediaWords::Util::Facebook::get_and_store_share_count( $db, $story );
+                #     say STDERR "facebook_share_count: $count";
+                # }
+            }
         }
     }
 }
