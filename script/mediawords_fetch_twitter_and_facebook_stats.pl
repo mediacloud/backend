@@ -66,6 +66,7 @@ EOF
             SELECT stories_id
             FROM controversy_stories
             WHERE controversies_id = ?
+            ORDER BY controversy_stories_id
 END
 
         unless ( scalar @{ $stories } )
