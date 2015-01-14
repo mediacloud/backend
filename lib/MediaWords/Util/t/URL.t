@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 97;
+use Test::More tests => 98;
 
 use Readonly;
 use HTTP::HashServer;
@@ -153,6 +153,15 @@ sub test_normalize_url()
         MediaWords::Util::URL::normalize_url( 'http://zyalt.livejournal.com/1178735.html?thread=396696687#t396696687' ),
         'http://zyalt.livejournal.com/1178735.html',
         'normalize_url() - livejournal.com'
+    );
+
+    # "nk" parameter
+    is(
+        MediaWords::Util::URL::normalize_url(
+'http://www.adelaidenow.com.au/news/south-australia/sa-court-told-prominent-adelaide-businessman-yasser-shahin-was-assaulted-by-police-officer-norman-hoy-in-september-2010-traffic-stop/story-fni6uo1m-1227184460050?nk=440cd48fd95a4e1f1c23bcd15df36da7'
+        ),
+'http://www.adelaidenow.com.au/news/south-australia/sa-court-told-prominent-adelaide-businessman-yasser-shahin-was-assaulted-by-police-officer-norman-hoy-in-september-2010-traffic-stop/story-fni6uo1m-1227184460050',
+        'normalize_url() - "nk" parameter'
     );
 }
 

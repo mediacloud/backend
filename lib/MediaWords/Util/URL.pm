@@ -163,6 +163,17 @@ sub normalize_url($)
     # Some other parameters (common for tracking session IDs, advertising, etc.)
     push( @parameters_to_remove, 'sort' );
 
+    # Some Australian websites append the "nk" parameter with a tracking hash
+    my @nk_values = $uri->query_param( 'nk' );
+    foreach my $nk_value ( @nk_values )
+    {
+        if ( $nk_value =~ /^[0-9a-fA-F]+$/i )
+        {
+            push( @parameters_to_remove, 'nk' );
+            last;
+        }
+    }
+
     # Delete the "empty" parameter (e.g. in http://www-nc.nytimes.com/2011/06/29/us/politics/29marriage.html?=_r%3D6)
     push( @parameters_to_remove, '' );
 
