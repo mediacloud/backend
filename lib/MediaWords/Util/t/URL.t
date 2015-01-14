@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 89;
+use Test::More tests => 97;
 
 use Readonly;
 use HTTP::HashServer;
@@ -643,6 +643,31 @@ sub test_url_and_data_after_redirects_cookies()
     is( $data_after_redirects, $TEST_CONTENT, 'Data after HTTP redirects (cookie)' );
 }
 
+# Test if the subroutine acts nicely when the server decides to ensure that the
+# client supports cookies
+# This is basically test_url_and_data_after_redirects_cookies(), but with live
+# URLs, so if (when) they change, update / disable this test
+sub test_url_and_data_after_redirects_cookies_live()
+{
+    my @urls = (
+'http://www.adelaidenow.com.au/news/south-australia/sa-court-told-prominent-adelaide-businessman-yasser-shahin-was-assaulted-by-police-officer-norman-hoy-in-september-2010-traffic-stop/story-fni6uo1m-1227184460050',
+        'http://www.nejm.org/doi/full/10.1056/NEJMoa1408932',
+'http://www.dailytelegraph.com.au/news/national/prime-minister-tony-abbott-defends-reforms-to-gp-visits/story-fni0xqrc-1227184272355',
+        'http://www.staradvertiser.com/news/breaking/20150113_HECO_says_no_rolling_blackouts_Tuesday_night.html?id=288468481'
+    );
+
+    foreach my $url ( @urls )
+    {
+        my ( $url_after_redirects, $data_after_redirects ) = MediaWords::Util::URL::url_and_data_after_redirects( $url );
+
+        ok( $url_after_redirects =~ /^\Q$url\E/,
+            "URL after HTTP redirects (cookie, live URL: $url, after redirects URL: $url_after_redirects)" );
+        ok( $data_after_redirects,
+            "Data after HTTP redirects (cookie, live URL: $url, after redirects URL: $url_after_redirects)" );
+    }
+
+}
+
 sub test_all_url_variants($)
 {
     my ( $db ) = @_;
@@ -866,6 +891,7 @@ sub main()
     test_url_and_data_after_redirects_http_loop();
     test_url_and_data_after_redirects_html_loop();
     test_url_and_data_after_redirects_cookies();
+    test_url_and_data_after_redirects_cookies_live();
 
     MediaWords::Test::DB::test_on_test_database(
         sub {
