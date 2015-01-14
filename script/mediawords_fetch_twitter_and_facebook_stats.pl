@@ -27,6 +27,10 @@ sub main
 {
     my $controversy_opt;
 
+    binmode( STDOUT, 'utf8' );
+    binmode( STDERR, 'utf8' );
+    $| = 1;
+
     Getopt::Long::GetOptions( "controversy=s" => \$controversy_opt ) || return;
 
     die( "Usage: $0 --controversy < id >" ) unless ( $controversy_opt );
