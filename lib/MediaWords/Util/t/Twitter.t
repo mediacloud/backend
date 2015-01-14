@@ -46,6 +46,10 @@ sub test_request()
         ok( $data->{ 'url' }, "Data has 'url' key for URL $url" );
         is( $data->{ 'url' }, $url, "URL matches for URL $url" );
     }
+
+    # URLs with #fragment that's about to be removed
+    my $data = MediaWords::Util::Twitter::_get_single_url_json( $ua,
+        'http://www.macworld.com/article/2154541/podcast-we-got-the-beats.html#tk.rss_all' );
 }
 
 sub test_tweet_count($)

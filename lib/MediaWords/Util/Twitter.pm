@@ -81,6 +81,17 @@ sub _get_single_url_json
         my $returned_uri_without_query_params = $returned_uri->clone;
         $returned_uri->query( undef );
 
+        # Don't compare URL #fragment if it doesn't start with a slash because
+        # Twitter will strip it
+        if ( $uri_without_query_params->fragment )
+        {
+            unless ( $uri_without_query_params->fragment =~ /^\// )
+            {
+                $uri_without_query_params->fragment( undef );
+                $returned_uri_without_query_params->fragment( undef );
+            }
+        }
+
         unless ( $uri_without_query_params->eq( $returned_uri_without_query_params )
             and Compare( $uri_without_query_params->query_form_hash, $returned_uri_without_query_params->query_form_hash ) )
         {
