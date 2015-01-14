@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 33;
+use Test::More tests => 34;
 
 use MediaWords::Test::DB;
 
@@ -92,7 +92,8 @@ sub test_store_result($)
 
     $story->{ url } = 'foobar';
 
-    MediaWords::Util::Twitter::get_and_store_tweet_count( $db, $story );
+    eval { MediaWords::Util::Twitter::get_and_store_tweet_count( $db, $story ); };
+    ok( $@, 'bogus URL should die() while fetching tweet count' );
 
     my $sse = $db->query( 'select * from story_statistics where stories_id = ?', $story->{ stories_id } )->hash;
 
