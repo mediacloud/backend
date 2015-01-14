@@ -146,12 +146,16 @@ sub get_and_store_tweet_count
 {
     my ( $db, $story ) = @_;
 
+    my $stories_id  = $story->{ stories_id };
+    my $stories_url = $story->{ url };
+
     my $count;
-    eval { $count = get_url_tweet_count( $db, $story->{ url } ); };
-    my $error = $@ ? $@ : undef;
+    eval { $count = get_url_tweet_count( $db, $stories_url ); };
+    my $error = $@;
+
     $count ||= 0;
 
-    $db->query( <<END, $story->{ stories_id }, $count, $error );
+    $db->query( <<END, $stories_id, $count, $error );
 with try_update as (
   update story_statistics 
         set twitter_url_tweet_count = \$2, twitter_url_tweet_count_error = \$3
@@ -162,6 +166,11 @@ insert into story_statistics ( stories_id, twitter_url_tweet_count, twitter_url_
     select \$1, \$2, \$3
         where not exists ( select * from try_update );
 END
+
+    if ( $error )
+    {
+        die "Error while fetching Twitter stats for story $stories_id ($stories_url): $error";
+    }
 
     return $count;
 

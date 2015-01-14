@@ -69,7 +69,7 @@ sub run($;$)
     };
     if ( $@ )
     {
-        say STDERR "Twitter helper died while fetching and storing statistics: $@";
+        die "Twitter helper died while fetching and storing statistics: $@";
     }
     else
     {

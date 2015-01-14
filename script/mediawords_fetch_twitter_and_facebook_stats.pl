@@ -88,7 +88,11 @@ END
                 if ( $direct_job )
                 {
                     say STDERR "Running local job for story $stories_id...";
-                    MediaWords::GearmanFunction::Twitter::FetchStoryStats->run_locally( $args );
+                    eval { MediaWords::GearmanFunction::Twitter::FetchStoryStats->run_locally( $args ); };
+                    if ( $@ )
+                    {
+                        say STDERR "Gearman worker died while fetching and storing statistics: $@";
+                    }
                 }
                 else
                 {
