@@ -154,7 +154,7 @@ sub get_and_store_tweet_count
 
     my $count;
     eval { $count = get_url_tweet_count( $db, $stories_url ); };
-    my $error = $@;
+    my $error = $@ ? $@ : undef;
 
     $count ||= 0;
 
