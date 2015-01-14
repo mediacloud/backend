@@ -29,8 +29,6 @@ sub main
 
     my $ua = MediaWords::Util::Web::UserAgent;
 
-    $ua->cookie_jar( {} );
-
     my $response = $ua->get( $url );
 
     print $response->as_string;

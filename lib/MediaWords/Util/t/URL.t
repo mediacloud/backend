@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 87;
+use Test::More tests => 99;
 
 use Readonly;
 use HTTP::HashServer;
@@ -153,6 +153,15 @@ sub test_normalize_url()
         MediaWords::Util::URL::normalize_url( 'http://zyalt.livejournal.com/1178735.html?thread=396696687#t396696687' ),
         'http://zyalt.livejournal.com/1178735.html',
         'normalize_url() - livejournal.com'
+    );
+
+    # "nk" parameter
+    is(
+        MediaWords::Util::URL::normalize_url(
+'http://www.adelaidenow.com.au/news/south-australia/sa-court-told-prominent-adelaide-businessman-yasser-shahin-was-assaulted-by-police-officer-norman-hoy-in-september-2010-traffic-stop/story-fni6uo1m-1227184460050?nk=440cd48fd95a4e1f1c23bcd15df36da7'
+        ),
+'http://www.adelaidenow.com.au/news/south-australia/sa-court-told-prominent-adelaide-businessman-yasser-shahin-was-assaulted-by-police-officer-norman-hoy-in-september-2010-traffic-stop/story-fni6uo1m-1227184460050',
+        'normalize_url() - "nk" parameter'
     );
 }
 
@@ -549,6 +558,125 @@ sub test_url_and_data_after_redirects_html_loop()
     is( $url_after_redirects, $TEST_HTTP_SERVER_URL . '/second', 'URL after HTML redirect loop' );
 }
 
+# Test if the subroutine acts nicely when the server decides to ensure that the
+# client supports cookies (e.g.
+# http://www.dailytelegraph.com.au/news/world/charlie-hebdo-attack-police-close-in-on-two-armed-massacre-suspects-as-manhunt-continues-across-france/story-fni0xs63-1227178925700)
+sub test_url_and_data_after_redirects_cookies()
+{
+    Readonly my $TEST_HTTP_SERVER_URL => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
+    my $starting_url = $TEST_HTTP_SERVER_URL . '/first';
+    Readonly my $TEST_CONTENT => 'This is the content.';
+
+    Readonly my $COOKIE_NAME    => "test_cookie";
+    Readonly my $COOKIE_VALUE   => "I'm a cookie and I know it!";
+    Readonly my $DEFAULT_HEADER => "Content-Type: text/html; charset=UTF-8";
+
+    # HTTP redirects
+    my $pages = {
+        '/first' => {
+            callback => sub {
+                my ( $self, $cgi ) = @_;
+
+                my $received_cookie = $cgi->cookie( $COOKIE_NAME );
+
+                if ( $received_cookie and $received_cookie eq $COOKIE_VALUE )
+                {
+
+                    # say STDERR "Cookie was set previously, showing page";
+
+                    print "HTTP/1.0 200 OK\r\n";
+                    print "$DEFAULT_HEADER\r\n";
+                    print "\r\n";
+                    print $TEST_CONTENT;
+
+                }
+                else
+                {
+
+                    # say STDERR "Setting cookie, redirecting to /check_cookie";
+
+                    print "HTTP/1.0 302 Moved Temporarily\r\n";
+                    print "$DEFAULT_HEADER\r\n";
+                    print "Location: /check_cookie\r\n";
+                    print "Set-Cookie: $COOKIE_NAME=$COOKIE_VALUE\r\n";
+                    print "\r\n";
+                    print "Redirecting to the cookie check page...";
+                }
+            }
+        },
+
+        '/check_cookie' => {
+            callback => sub {
+
+                my ( $self, $cgi ) = @_;
+
+                my $received_cookie = $cgi->cookie( $COOKIE_NAME );
+
+                if ( $received_cookie and $received_cookie eq $COOKIE_VALUE )
+                {
+
+                    # say STDERR "Cookie was set previously, redirecting back to the initial page";
+
+                    print "HTTP/1.0 302 Moved Temporarily\r\n";
+                    print "$DEFAULT_HEADER\r\n";
+                    print "Location: $starting_url\r\n";
+                    print "\r\n";
+                    print "Cookie looks fine, redirecting you back to the article...";
+
+                }
+                else
+                {
+
+                    # say STDERR 'Cookie wasn\'t found, redirecting you to the /no_cookies page...';
+
+                    print "HTTP/1.0 302 Moved Temporarily\r\n";
+                    print "$DEFAULT_HEADER\r\n";
+                    print "Location: /no_cookies\r\n";
+                    print "\r\n";
+                    print 'Cookie wasn\'t found, redirecting you to the "no cookies" page...';
+                }
+            }
+        },
+        '/no_cookies' => "No cookie support, go away, we don\'t like you."
+    };
+
+    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my ( $url_after_redirects, $data_after_redirects ) =
+      MediaWords::Util::URL::url_and_data_after_redirects( $starting_url );
+
+    $hs->stop();
+
+    is( $url_after_redirects,  $starting_url, 'URL after HTTP redirects (cookie)' );
+    is( $data_after_redirects, $TEST_CONTENT, 'Data after HTTP redirects (cookie)' );
+}
+
+# Test if the subroutine acts nicely when the server decides to ensure that the
+# client supports cookies
+# This is basically test_url_and_data_after_redirects_cookies(), but with live
+# URLs, so if (when) they change, update / disable this test
+sub test_url_and_data_after_redirects_cookies_live()
+{
+    my @urls = (
+'http://www.adelaidenow.com.au/news/south-australia/sa-court-told-prominent-adelaide-businessman-yasser-shahin-was-assaulted-by-police-officer-norman-hoy-in-september-2010-traffic-stop/story-fni6uo1m-1227184460050',
+        'http://www.nejm.org/doi/full/10.1056/NEJMoa1408932',
+'http://www.dailytelegraph.com.au/news/national/prime-minister-tony-abbott-defends-reforms-to-gp-visits/story-fni0xqrc-1227184272355',
+        'http://www.staradvertiser.com/news/breaking/20150113_HECO_says_no_rolling_blackouts_Tuesday_night.html?id=288468481'
+    );
+
+    foreach my $url ( @urls )
+    {
+        my ( $url_after_redirects, $data_after_redirects ) = MediaWords::Util::URL::url_and_data_after_redirects( $url );
+
+        ok( $url_after_redirects =~ /^\Q$url\E/,
+            "URL after HTTP redirects (cookie, live URL: $url, after redirects URL: $url_after_redirects)" );
+        ok( $data_after_redirects,
+            "Data after HTTP redirects (cookie, live URL: $url, after redirects URL: $url_after_redirects)" );
+    }
+
+}
+
 sub test_all_url_variants($)
 {
     my ( $db ) = @_;
@@ -634,6 +762,24 @@ sub test_all_url_variants($)
         [ sort @actual_url_variants ],
         [ sort @expected_url_variants ],
         '"Redirect to homepage" all_url_variants() test'
+    );
+}
+
+sub test_all_url_variants_invalid_variants($)
+{
+    my ( $db ) = @_;
+
+    my @actual_url_variants;
+    my @expected_url_variants;
+
+    # Invalid URL variant (suspended Twitter account)
+    Readonly my $invalid_url_variant => 'https://twitter.com/Todd__Kincannon/status/518499096974614529';
+    @actual_url_variants = MediaWords::Util::URL::all_url_variants( $db, $invalid_url_variant );
+    @expected_url_variants = ( $invalid_url_variant );
+    is_deeply(
+        [ sort @actual_url_variants ],
+        [ sort @expected_url_variants ],
+        'Invalid URL variant (suspended Twitter account)'
     );
 }
 
@@ -771,12 +917,22 @@ sub main()
     test_url_and_data_after_redirects_html();
     test_url_and_data_after_redirects_http_loop();
     test_url_and_data_after_redirects_html_loop();
+    test_url_and_data_after_redirects_cookies();
+    test_url_and_data_after_redirects_cookies_live();
 
     MediaWords::Test::DB::test_on_test_database(
         sub {
             my ( $db ) = @_;
 
             test_all_url_variants( $db );
+        }
+    );
+
+    MediaWords::Test::DB::test_on_test_database(
+        sub {
+            my ( $db ) = @_;
+
+            test_all_url_variants_invalid_variants( $db );
         }
     );
 

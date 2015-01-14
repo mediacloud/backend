@@ -152,8 +152,6 @@ sub main
 
         print STDERR "fetch [$i/$total] : $request->{ url }\n";
 
-        $ua->cookie_jar( {} );
-
         my $response = $ua->get( $request->{ url } );
 
         print STDERR "got [$i/$total]: $request->{ url }\n";
