@@ -136,6 +136,9 @@ sub get_url_tweet_count
     for my $u ( @{ $all_urls } )
     {
         my $count = _get_single_url_tweet_count( $ua, $u );
+
+        say STDERR "* Count: $count, URL variant: $u";
+
         $url_counts->{ $count } = $u;
     }
 
