@@ -79,7 +79,7 @@ sub _get_single_url_json
         my $uri_without_query_params = $uri->clone;
         $uri_without_query_params->query( undef );
         my $returned_uri_without_query_params = $returned_uri->clone;
-        $returned_uri->query( undef );
+        $returned_uri_without_query_params->query( undef );
 
         # Don't compare URL #fragment if it doesn't start with a slash because
         # Twitter will strip it
@@ -95,8 +95,8 @@ sub _get_single_url_json
         unless ( $uri_without_query_params->eq( $returned_uri_without_query_params )
             and Compare( $uri_without_query_params->query_form_hash, $returned_uri_without_query_params->query_form_hash ) )
         {
-            warn "Returned URL (" .
-              $returned_uri->as_string . ") is not the same as requested URL (" . $uri_without_query_params->as_string . ")";
+            warn "Returned URL (" . $returned_uri_without_query_params->as_string .
+              ") is not the same as requested URL (" . $uri_without_query_params->as_string . ")";
         }
     }
 
