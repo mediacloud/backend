@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 38;
+use Test::More tests => 39;
 
 use MediaWords::Test::DB;
 
@@ -83,6 +83,11 @@ sub test_tweet_count($)
     my $wikipedia_user_page_count = MediaWords::Util::Twitter::get_url_tweet_count( $db,
         'http://en.wikipedia.org/w/index.php?title=User:David_Dyer_Lawson/sandbox&diff=604927908&oldid=604927831' );
     ok( defined $wikipedia_user_page_count, "Wikipedia user page count is defined" );
+
+    my $dailymail_count = MediaWords::Util::Twitter::get_url_tweet_count( $db,
+'http://www.dailymail.co.uk/news/article-2629261/Is-Netflix-hike-prices-Streaming-service-forced-pay-video-flowing-boxset-junkies-bear-brunt.html?ITO=1490&ns_mchannel=rss&ns_campaign=1490'
+    );
+    ok( $dailymail_count > 10, "Dailymail count '$dailymail_count' should be > 10" );
 
     eval { MediaWords::Util::Twitter::get_url_tweet_count( $db, 'totally.bogus.url.123456' ); };
     ok( $@, 'Bogus URL' );
