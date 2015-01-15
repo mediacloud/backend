@@ -19,6 +19,28 @@ use MediaWords::Util::JSON;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 
+# Returns true if URL is one of Gawker's feed URLs
+# (e.g. http://feeds.gawker.com/~r/gizmodo/full/~3/qIhlxlB7gmw/foo-bar-baz-1234567890)
+sub _is_gawker_feed_url($)
+{
+    my $url = shift;
+
+    my $uri = URI->new( $url )->canonical;
+    unless ( $uri )
+    {
+        die "Unable to create URI object for URL: $url";
+    }
+
+    if ( $uri->host =~ /\.gawker\.com$/i and $uri->path =~ /~/ )
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 sub _get_single_url_json
 {
     my ( $ua, $url ) = @_;
@@ -34,6 +56,30 @@ sub _get_single_url_json
     unless ( $uri )
     {
         die "Unable to create URI object for URL: $url";
+    }
+
+    # die() on Gawker's feed URLs because they won't work anyway
+    if ( _is_gawker_feed_url( $url ) )
+    {
+        die <<"EOF";
+URL:
+
+    $url
+
+seems to be Gawker's feed URL (http://feeds.gawker.com/~r/<...>).
+
+Twitter's API seems to strip everything after the component with a tilde, e.g. URL:
+
+    http://feeds.gawker.com/~r/gizmodo/full/~3/qIhlxlB7gmw/foo-bar-baz-1234567890
+
+might become:
+
+    http://feeds.gawker.com/~r/
+
+Please resolve this URL to the destination article (consider using
+MediaWords::Util::URL::normalize_url()), and then try calling this subroutine
+with the normalized URL.
+EOF
     }
 
     # If there's no slash at the end of the URL, Twitter API will always add
@@ -79,7 +125,7 @@ sub _get_single_url_json
         my $uri_without_query_params = $uri->clone;
         $uri_without_query_params->query( undef );
         my $returned_uri_without_query_params = $returned_uri->clone;
-        $returned_uri->query( undef );
+        $returned_uri_without_query_params->query( undef );
 
         # Don't compare URL #fragment if it doesn't start with a slash because
         # Twitter will strip it
@@ -95,8 +141,8 @@ sub _get_single_url_json
         unless ( $uri_without_query_params->eq( $returned_uri_without_query_params )
             and Compare( $uri_without_query_params->query_form_hash, $returned_uri_without_query_params->query_form_hash ) )
         {
-            warn "Returned URL (" .
-              $returned_uri->as_string . ") is not the same as requested URL (" . $uri_without_query_params->as_string . ")";
+            warn "Returned URL (" . $returned_uri_without_query_params->as_string .
+              ") is not the same as requested URL (" . $uri_without_query_params->as_string . ")";
         }
     }
 
@@ -139,6 +185,14 @@ sub get_url_tweet_count
     my ( $db, $url ) = @_;
 
     my $all_urls = [ MediaWords::Util::URL::all_url_variants( $db, $url ) ];
+
+    # Filter out Gawker feed URLs because they will get trimmed and  provide incorrect counts
+    $all_urls = [ grep { !_is_gawker_feed_url( $_ ) } @{ $all_urls } ];
+    if ( scalar @{ $all_urls } == 0 )
+    {
+        die "After removing Gawker feed URLs, the list is empty " .
+          "(so that must mean that the redirect didn't work for the Gawker feed URL)";
+    }
 
     my $ua = MediaWords::Util::Web::UserAgentDetermined();
     $ua->timing( '1,3,15,60,300,600' );
