@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 37;
+use Test::More tests => 38;
 
 use MediaWords::Test::DB;
 
@@ -79,6 +79,10 @@ sub test_tweet_count($)
         'http://feedproxy.google.com/~r/democracynow/hVoT/~3/aolsftAM2Xo/when_cruel_and_unusual_punishment_becomes' );
     ok( $returned_url_count > 220, "returned URL count '$returned_url_count' should be > 220" );
     ok( $returned_url_count < 270, "returned URL count '$returned_url_count' should be < 270" );
+
+    my $wikipedia_user_page_count = MediaWords::Util::Twitter::get_url_tweet_count( $db,
+        'http://en.wikipedia.org/w/index.php?title=User:David_Dyer_Lawson/sandbox&diff=604927908&oldid=604927831' );
+    ok( defined $wikipedia_user_page_count, "Wikipedia user page count is defined" );
 
     eval { MediaWords::Util::Twitter::get_url_tweet_count( $db, 'totally.bogus.url.123456' ); };
     ok( $@, 'Bogus URL' );
