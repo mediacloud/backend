@@ -161,7 +161,7 @@ sub normalize_url($)
         qw/ PHPSESSID PHPSESSIONID
           cid s_cid sid ncid ir
           ref oref eref
-          ns_mchannel ns_campaign
+          ns_mchannel ns_campaign ITO
           wprss custom_click source
           feedName feedType
           skipmobile skip_mobile /
