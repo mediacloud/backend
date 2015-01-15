@@ -283,7 +283,7 @@ sub handle_error
 
     my $enc_error_message = encode( 'utf8', $response->status_line . "\n[error_num: $error_num]" );
 
-    if ( ( $response->status_line =~ /^5/ ) && ( $error_num <= MAX_5XX_RETRIES ) )
+    if ( ( $response->status_line =~ /^(503|500 read timeout)/ ) && ( $error_num <= MAX_5XX_RETRIES ) )
     {
         my $interval = "$error_num hours";
 

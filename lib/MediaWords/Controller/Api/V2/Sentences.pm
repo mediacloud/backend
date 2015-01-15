@@ -16,6 +16,7 @@ use namespace::autoclean;
 use List::Compare;
 
 use MediaWords::Solr;
+use MediaWords::Solr::SentenceFieldCounts;
 
 =head1 NAME
 
@@ -35,16 +36,15 @@ Catalyst Controller.
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 
-__PACKAGE__->config(    #
-    action => {         #
-        single_GET => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] }
-        ,               # overrides "MC_REST_SimpleObject"
-        list_GET => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] }
-        ,               # overrides "MC_REST_SimpleObject"
-        put_tags_PUT => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
-        count_GET    => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },       #
-      }    #
-);         #
+__PACKAGE__->config(
+    action => {
+        single_GET      => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        list_GET        => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        put_tags_PUT    => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        count_GET       => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        field_count_GET => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+    }
+);
 
 use MediaWords::Tagger;
 
@@ -285,6 +285,26 @@ sub put_tags_PUT : Local
     $self->status_ok( $c, entity => $story_tags );
 
     return;
+}
+
+sub field_count : Local : ActionClass('REST')
+{
+}
+
+sub field_count_GET : Local
+{
+    my ( $self, $c ) = @_;
+
+    if ( $c->req->params->{ sample_size } && ( $c->req->params->{ sample_size } > 100_000 ) )
+    {
+        $c->req->params->{ sample_size } = 100_000;
+    }
+
+    my $fc = MediaWords::Solr::SentenceFieldCounts->new( { db => $c->dbis, cgi_params => $c->req->params } );
+
+    my $counts = $fc->get_counts;
+
+    $self->status_ok( $c, entity => $counts );
 }
 
 1;
