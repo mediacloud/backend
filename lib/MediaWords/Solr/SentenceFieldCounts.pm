@@ -2,25 +2,23 @@ package MediaWords::Solr::SentenceFieldCounts;
 
 use Moose;
 
-# get a sample of ss ids for the given query
+# return counts of how many sentnces match any of the following fields:
+# media_id, language,
 
 use strict;
 use warnings;
 
 use Data::Dumper;
-use Encode;
-use Getopt::Long;
-use HTTP::Request::Common;
-use HTTP::Server::Simple::CGI;
-use IO::Socket::INET;
-use JSON;
-use LWP::UserAgent;
-use Lingua::Stem::Snowball;
-use List::Util;
-use URI::Escape;
 
 use MediaWords::Solr;
 use MediaWords::Util::Config;
+
+# list of fields that can be queried.  the id field to return from solr.  the values from
+# the id_field are joined to the tag_map_table to return tags_id counts.
+my $_field_definitions = {
+    tags_id_stories         => { id_field => 'stories_id',         tag_map_table => 'stories_tags_map' },
+    tags_id_story_sentences => { id_field => 'story_sentences_id', tag_map_table => 'story_sentences_tags_map' }
+};
 
 # mediawords.fc_cache_version from config
 my $_fc_cache_version;
@@ -30,13 +28,14 @@ my $_fc_cache_version;
 has 'q'             => ( is => 'rw', isa => 'Str' );
 has 'fq'            => ( is => 'rw', isa => 'ArrayRef' );
 has 'sample_size'   => ( is => 'rw', isa => 'Int', default => 1000 );
+has 'field'         => ( is => 'rw', isa => 'Str', default => 'tags_id_story_sentences' );
 has 'include_stats' => ( is => 'rw', isa => 'Bool' );
 has 'db' => ( is => 'rw' );
 
 # list of all attribute names that should be exposed as cgi params
 sub get_cgi_param_attributes
 {
-    return [ qw(q fq sample_size include_stats) ];
+    return [ qw(q fq sample_size include_stats field) ];
 }
 
 # return hash of attributes for use as cgi params
@@ -103,21 +102,21 @@ around BUILDARGS => sub {
 # given the list of ssids, get the counts for the various related fields
 sub _get_counts
 {
-    my ( $self, $ss_ids ) = @_;
+    my ( $self, $ids, $field_definition ) = @_;
 
-    my $ids_table = $self->db->get_temporary_ids_table( $ss_ids );
+    my $id_field      = $field_definition->{ id_field };
+    my $tag_map_table = $field_definition->{ tag_map_table };
 
-    my $story_sentences = $self->db->query( <<END )->hashes;
-select ss.media_id, coalesce( ss.language, 'none' ) lang, date_trunc( 'day', ss.publish_date ) publish_day 
-    from stories ss 
-    where ss.stories_id in ( select id from $ids_table )
-END
+    my $ids_table = $self->db->get_temporary_ids_table( $ids );
 
-    my $counts = {};
-    for my $ss ( @{ $story_sentences } )
-    {
-        map { $counts->{ $_ }->{ $ss->{ $_ } }++ } qw(media_id publish_day lang);
-    }
+    my $counts = $self->db->query( <<SQL )->hashes;
+    select count(*) count, t.tags_id tags_id, t.tag, t.label
+    from $tag_map_table m 
+        join tags t on ( m.tags_id = t.tags_id )
+    where m.$id_field in ( select id from $ids_table )
+    group by t.tags_id
+    order by count(*) desc
+SQL
 
     return $counts;
 }
@@ -127,7 +126,12 @@ sub get_counts_from_solr_server
 {
     my ( $self ) = @_;
 
+    my $field_definition = $_field_definitions->{ $self->{ field } };
+    die( "unknown field '" . $self->field . "'" ) unless ( $field_definition );
+
     return [] unless ( $self->q() || ( $self->fq && @{ $self->fq } ) );
+
+    my $id_field = $field_definition->{ id_field };
 
     my $start_generation_time = time();
 
@@ -135,22 +139,22 @@ sub get_counts_from_solr_server
         q    => $self->q(),
         fq   => $self->fq,
         rows => $self->sample_size,
-        fl   => 'stories_id',
+        fl   => $id_field,
         sort => 'random_1 asc'
     };
 
     my $data = MediaWords::Solr::query( $self->db, $solr_params );
 
     my $sentences_found = $data->{ response }->{ numFound };
-    my $ss_ids = [ map { $_->{ stories_id } } @{ $data->{ response }->{ docs } } ];
+    my $ids = [ map { $_->{ $id_field } } @{ $data->{ response }->{ docs } } ];
 
-    my $counts = $self->_get_counts( $ss_ids );
+    my $counts = $self->_get_counts( $ids, $field_definition );
 
     if ( $self->include_stats )
     {
         return {
             stats => {
-                num_sentences_returned => scalar( @{ $ss_ids } ),
+                num_sentences_returned => scalar( @{ $ids } ),
                 num_sentences_found    => $sentences_found,
                 sample_size_param      => $self->sample_size
             },
