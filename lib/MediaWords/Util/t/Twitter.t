@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 56;
+use Test::More tests => 58;
 
 use MediaWords::Test::DB;
 
@@ -122,6 +122,12 @@ sub test_tweet_count($)
         'http://rss.cnn.com/~r/rss/cnn_latest/~3/5XRdY42Bpxw/index.html' );
     ok( $cnn_count > 5,  "CNN count '$cnn_count' should be > 5" );
     ok( $cnn_count < 40, "CNN count '$cnn_count' should be < 40" );
+
+    my $google_feed_count = MediaWords::Util::Twitter::get_url_tweet_count( $db,
+'http://feedproxy.google.com/~r/typepad/alleyinsider/silicon_alley_insider/~3/XxwBg7jXEX0/hola-tv-watch-olympics-vpn-blocker-netflix-world-2014-1'
+    );
+    ok( $google_feed_count > 600, "Google feed count '$google_feed_count' should be > 600" );
+    ok( $google_feed_count < 800, "Google feed count '$google_feed_count' should be < 800" );
 
     eval { MediaWords::Util::Twitter::get_url_tweet_count( $db, 'totally.bogus.url.123456' ); };
     ok( $@, 'Bogus URL' );
