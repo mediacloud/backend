@@ -163,7 +163,8 @@ sub normalize_url($)
           ref oref eref
           ns_mchannel ns_campaign
           wprss custom_click source
-          feedName feedType /
+          feedName feedType
+          skipmobile skip_mobile /
     );
 
     # Make the sorting default (e.g. on Reddit)
