@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 48;
+use Test::More tests => 51;
 
 use MediaWords::Test::DB;
 
@@ -37,7 +37,8 @@ sub test_request()
         # URLs with ~tilde
         'http://cyber.law.harvard.edu/~lvaliukas/test.html/',
         'http://cyber.law.harvard.edu/~lvaliukas/test.html/#/foo',
-        'http://feeds.please-note-that-this-url-is-not-gawker.com/~r/gizmodo/full/~3/qIhlxlB7gmw/foo-bar-baz-1234567890/'
+        'http://feeds.please-note-that-this-url-is-not-gawker.com/~r/gizmodo/full/~3/qIhlxlB7gmw/foo-bar-baz-1234567890/',
+        'http://feeds.boingboing.net/~r/boingboing/iBag/~3/W1mgVFzEwm4/last-chance-to-save-net-neutra.html/'
     );
 
     foreach my $url ( @urls )
