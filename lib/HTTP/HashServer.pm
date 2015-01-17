@@ -222,8 +222,14 @@ END
         print "Location: $redirect\r\n";
         print "\r\n";
         print '<html><body>Website was moved to <a href="' . $enc_redirect . '">' . $enc_redirect . '</a></body></html>';
-
-        END;
+    }
+    elsif ( my $callback = $page->{ callback } )
+    {
+        if ( ref $callback ne 'CODE' )
+        {
+            die "'callback' parameter exists but is not a subroutine reference.";
+        }
+        $callback->( $self, $cgi );
     }
     else
     {

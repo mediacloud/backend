@@ -6,12 +6,19 @@ use warnings;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
+use Readonly;
 use URI;
 use URI::QueryParam;
 use Regexp::Common qw /URI/;
 use MediaWords::Util::Web;
 use URI::Escape;
 use List::MoreUtils qw/uniq/;
+
+Readonly my @INVALID_URL_VARIANT_REGEXES => (
+
+    # Twitter's "suspended" accounts
+    qr#^https?://twitter.com/account/suspended#i,
+);
 
 # Returns true if URL is in the "http" ("https") scheme
 sub is_http_url($)
@@ -142,20 +149,38 @@ sub normalize_url($)
         @parameters_to_remove = ( @parameters_to_remove, qw/ thread nojs / );
     }
 
+    if ( $uri->host =~ /google\./i )
+    {
+        # Additional parameters specifically for the google.[com,lt,...] host
+        @parameters_to_remove = ( @parameters_to_remove, qw/ gws_rd ei / );
+    }
+
     # Some other parameters (common for tracking session IDs, advertising, etc.)
     @parameters_to_remove = (
         @parameters_to_remove,
         qw/ PHPSESSID PHPSESSIONID
           cid s_cid sid ncid ir
           ref oref eref
-          ns_mchannel ns_campaign
+          ns_mchannel ns_campaign ITO
           wprss custom_click source
-          feedName feedType /
+          feedName feedType
+          skipmobile skip_mobile /
     );
 
     # Make the sorting default (e.g. on Reddit)
     # Some other parameters (common for tracking session IDs, advertising, etc.)
     push( @parameters_to_remove, 'sort' );
+
+    # Some Australian websites append the "nk" parameter with a tracking hash
+    my @nk_values = $uri->query_param( 'nk' );
+    foreach my $nk_value ( @nk_values )
+    {
+        if ( $nk_value =~ /^[0-9a-fA-F]+$/i )
+        {
+            push( @parameters_to_remove, 'nk' );
+            last;
+        }
+    }
 
     # Delete the "empty" parameter (e.g. in http://www-nc.nytimes.com/2011/06/29/us/politics/29marriage.html?=_r%3D6)
     push( @parameters_to_remove, '' );
@@ -587,6 +612,12 @@ sub all_url_variants($$)
     my $distinct_urls = [ List::MoreUtils::distinct( values( %urls ) ) ];
 
     my $all_urls = get_controversy_url_variants( $db, $distinct_urls );
+
+    # Remove URLs that can't be variants of the initial URL
+    foreach my $invalid_url_variant_regex ( @INVALID_URL_VARIANT_REGEXES )
+    {
+        $all_urls = [ grep { !/$invalid_url_variant_regex/ } @{ $all_urls } ];
+    }
 
     return @{ $all_urls };
 }

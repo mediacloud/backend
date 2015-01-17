@@ -20,7 +20,7 @@ sub _get_single_url_share_count
     # this is mostly to be able to generate an error for testing
     die( "invalid url: '$url'" ) if ( $url !~ /^http/i );
 
-    my $response = $ua->get( 'https://graph.facebook.com/?id=' . uri_escape( $url ) );
+    my $response = $ua->get( 'https://graph.facebook.com/?id=' . uri_escape_utf8( $url ) );
 
     if ( !$response->is_success )
     {
@@ -59,12 +59,10 @@ sub get_url_share_count
 sub get_and_store_share_count
 {
     my ( $db, $story ) = @_;
-    
+
     my $count;
-    eval { 
-        $count = get_url_share_count( $db, $story->{ url } );
-    };
-    my $error = $@ ? $@ : undef;;
+    eval { $count = get_url_share_count( $db, $story->{ url } ); };
+    my $error = $@ ? $@ : undef;
     $count ||= 0;
 
     $db->query( <<END, $story->{ stories_id }, $count, $error );

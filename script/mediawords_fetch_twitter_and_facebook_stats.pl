@@ -16,65 +16,97 @@ BEGIN
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
+use Getopt::Long;
+
 use MediaWords::DB;
-use MediaWords::Util::Twitter;
+use MediaWords::CM;
 use MediaWords::Util::Facebook;
+use MediaWords::GearmanFunction;
+use MediaWords::GearmanFunction::Twitter::FetchStoryStats;
 
 sub main
 {
-    my ( $arg ) = @ARGV;
-    
-    die( "usage: $0 < controversy_name | url | stories_id >" ) unless ( $arg );
-    
+    my ( $controversy_opt, $direct_job, $overwrite );
+
+    binmode( STDOUT, 'utf8' );
+    binmode( STDERR, 'utf8' );
+    $| = 1;
+
+    Readonly my $usage => <<EOF;
+Usage: $0 --controversy < id > [--direct_job] [--overwrite]
+EOF
+
+    Getopt::Long::GetOptions(
+        "controversy=s" => \$controversy_opt,
+        "direct_job!"   => \$direct_job,
+        "overwrite!"    => \$overwrite,
+    ) or die $usage;
+    die $usage unless ( $controversy_opt );
+
+    unless ( $direct_job )
+    {
+        unless ( MediaWords::GearmanFunction::gearman_is_enabled() )
+        {
+            die "Gearman is disabled.";
+        }
+    }
 
     my $db = MediaWords::DB::connect_to_db;
+    my $controversies = MediaWords::CM::require_controversies_by_opt( $db, $controversy_opt );
+    unless ( $controversies )
+    {
+        die "Unable to find controversies for option '$controversy_opt'";
+    }
 
-    my $story;
-    if ( $arg =~ /^\d+$/i )
+    for my $controversy ( @{ $controversies } )
     {
-        my $story = $db->find_by_id( 'stories', $arg ) || die( "Unable to find story '$arg'" );
-        
-        say MediaWords::Util::Twitter::get_url_tweet_count( $db, $story->{ url } );
-    }
-    elsif ( $arg =~ /^http/ )
-    {
-        say MediaWords::Util::Twitter::get_url_tweet_count( $db, $arg );
-    }
-    else
-    {
-        my $controversy_name = $arg;
-        my $stories = $db->query( <<END, $controversy_name )->hashes;
-    select s.stories_id, s.url
-        from stories s
-            join controversy_stories cs on ( cs.stories_id = s.stories_id )
-            join controversies c on ( cs.controversies_id = c.controversies_id )
-        where
-            c.name = ?
+        my $controversies_id = $controversy->{ controversies_id };
+
+        my $stories = $db->query( <<END, $controversies_id )->hashes;
+            SELECT stories_id
+            FROM controversy_stories
+            WHERE controversies_id = ?
+            ORDER BY controversy_stories_id
 END
 
-        if ( !@{ $stories } )
+        unless ( scalar @{ $stories } )
         {
-            say STDERR "No stories found for controversy '$controversy_name'";
+            say STDERR "No stories found for controversy '$controversy->{ name }' ('$controversy_opt')";
         }
-    
+
         for my $story ( @{ $stories } )
         {
-        
-            my $ss = $db->query( "select * from story_statistics where stories_id = ?", $story->{ stories_id } )->hash;
+            my $stories_id = $story->{ stories_id };
+            my $args = { stories_id => $stories_id };
 
-            say STDERR "$story->{ url }";
-        
-            if ( !$ss || $ss->{ twitter_url_tweet_count_error } || !defined( $ss->{ twitter_url_tweet_count } ) )
-            {            
-                my $count = MediaWords::Util::Twitter::get_and_store_tweet_count( $db, $story );
-                say STDERR "url_tweet_count: $count";
+            my $ss = $db->query( "select * from story_statistics where stories_id = ?", $stories_id )->hash;
+
+            if (   $overwrite
+                or !$ss
+                or $ss->{ twitter_url_tweet_count_error }
+                or !defined( $ss->{ twitter_url_tweet_count } ) )
+            {
+                if ( $direct_job )
+                {
+                    say STDERR "Running local job for story $stories_id...";
+                    eval { MediaWords::GearmanFunction::Twitter::FetchStoryStats->run_locally( $args ); };
+                    if ( $@ )
+                    {
+                        say STDERR "Gearman worker died while fetching and storing statistics: $@";
+                    }
+                }
+                else
+                {
+                    say STDERR "Enqueueing Gearman job for story $stories_id...";
+                    MediaWords::GearmanFunction::Twitter::FetchStoryStats->enqueue_on_gearman( $args );
+                }
+
+                # if ( !$ss || $ss->{ facebook_share_count_error} || !defined( $ss->{ facebook_share_count } ) )
+                # {
+                #     my $count = MediaWords::Util::Facebook::get_and_store_share_count( $db, $story );
+                #     say STDERR "facebook_share_count: $count";
+                # }
             }
-        
-            # if ( !$ss || $ss->{ facebook_share_count_error} || !defined( $ss->{ facebook_share_count } ) )
-            # {
-            #     my $count = MediaWords::Util::Facebook::get_and_store_share_count( $db, $story );
-            #     say STDERR "facebook_share_count: $count";
-            # }
         }
     }
 }

@@ -10,6 +10,7 @@ use MediaWords::DB;
 use DBIx::Simple::MediaWords;
 use MediaWords::Util::Config;
 use MediaWords::Util::SQL;
+use MediaWords::Util::Web;
 
 sub new
 {
@@ -90,17 +91,7 @@ sub do_fetch
 
     $dbs->update_by_id( "downloads", $download->{ downloads_id }, $download );
 
-    my $ua     = LWP::UserAgent->new();
-    my $config = MediaWords::Util::Config::get_config;
-
-    $ua->from( $config->{ mediawords }->{ owner } );
-    $ua->agent( $config->{ mediawords }->{ user_agent } );
-    $ua->cookie_jar( {} );
-
-    $ua->timeout( 20 );
-    $ua->max_size( 1024 * 1024 );
-    $ua->max_redirect( 15 );
-    $ua->env_proxy;
+    my $ua = MediaWords::Util::Web::UserAgent;
 
     my $request = HTTP::Request->new( GET => $download->{ url } );
 
