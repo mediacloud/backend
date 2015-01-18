@@ -653,7 +653,7 @@ Setting the 'stats' field to true changes includes the following fields in the r
 | ---------------------------- | -------------------------------------------------------------------
 | num_sentences_returned       | The number of sentences returned by the call, up to sample_size
 | num_sentences_found          | The total number of sentences found by solr to match the query 
-| sample_size_param            | the sample size passed into the call, or the default value
+| sample_size_param            | The sample size passed into the call, or the default value
 
 ### Example
 
@@ -730,7 +730,7 @@ Following fields are included in the stats response:
 | num_sentences_returned       | The number of sentences returned by the call, up to sample_size
 | num_sentences_found          | The total number of sentences found by solr to match the query 
 | num_words_param              | The num_words param passed into the call, or the default value
-| sample_size_param            | the sample size passed into the call, or the default value
+| sample_size_param            | The sample size passed into the call, or the default value
 
 ### Example
 
