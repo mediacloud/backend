@@ -138,6 +138,9 @@ sub header
     my ( $self, $name, $val ) = @_;
 
     $self->{ headers }->{ $name } = $val;
+
+    # Process HTTP headers with parent package (HTTP::Server::Simple::CGI) too
+    $self->SUPER::header( $name, $val );
 }
 
 # if auth is required for this page and the auth was not supplied by the request,
