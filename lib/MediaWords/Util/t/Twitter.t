@@ -114,8 +114,8 @@ sub test_tweet_count($)
     my $gawker_count = MediaWords::Util::Twitter::get_url_tweet_count( $db,
 'http://feeds.gawker.com/~r/gawker/full/~3/FjKCT99u_M8/wall-street-is-doing-devious-shit-while-america-sleeps-1679519880'
     );
-    ok( $gawker_count > 100, "Gawker count '$gawker_count' should be > 100" );
-    ok( $gawker_count < 200, "Gawker count '$gawker_count' should be < 200" );
+    ok( $gawker_count > 100,  "Gawker count '$gawker_count' should be > 100" );
+    ok( $gawker_count < 2000, "Gawker count '$gawker_count' should be < 2000" );
 
     my $google_feed_count = MediaWords::Util::Twitter::get_url_tweet_count( $db,
 'http://feedproxy.google.com/~r/typepad/alleyinsider/silicon_alley_insider/~3/XxwBg7jXEX0/hola-tv-watch-olympics-vpn-blocker-netflix-world-2014-1'
