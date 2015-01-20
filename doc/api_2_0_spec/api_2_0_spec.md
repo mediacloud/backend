@@ -620,6 +620,71 @@ URL: https://api.mediacloud.org/api/v2/sentences/count?q=sentence:africa+AND+tag
 }
 ````
 
+### api/v2/sentences/field\_count\_
+
+Returns the number of times a given field is associated with a given sentence.  Supported fields
+are currently `tags_id_stories` and `tags_id_story_sentences`.
+
+#### Query Parameters
+
+| Parameter           | Default | Notes
+| ------------------- | ---------------------------- | ----------------------------------------------------------------
+| `q`                 | n/a                          | `q` ("query") parameter which is passed directly to Solr
+| `fq`                | `null`                       | `fq` ("filter query") parameter which is passed directly to Solr
+| `sample_size`       | 1000                         | number of sentences to sample, max 100,000
+| `include_stats`     | 0                            | include stats about the request as a whole
+| `field`             | `tags\_id\_story\_sentences` | field to count 
+
+See above /api/v2/stories_public/list for Solr query syntax.
+
+If the field is set to `tags\_id\_story\_sentences`, the call returns all of the tags associated with
+sentences matching the query along with a count of how many times each tag is associated with each
+matching sentence.  If the field is set to `tags\_id\_stories`, the call returns all of the tags associated with
+story including a sentence matching the query along with a count of how many times each tag is associated with 
+each matching story.
+
+To provide quick results, the api counts field values in a randomly sampled set of sentences returned
+by the given query.  By default, the request will sample 1000 sentences.  You can make the api sample 
+more sentences (up to 100,000) at the cost of increased time.
+
+Setting the 'stats' field to true changes includes the following fields in the response:
+
+| Field                        | Description
+| ---------------------------- | -------------------------------------------------------------------
+| num_sentences_returned       | The number of sentences returned by the call, up to sample_size
+| num_sentences_found          | The total number of sentences found by solr to match the query 
+| sample_size_param            | The sample size passed into the call, or the default value
+
+### Example
+
+Gets the tag counts for all sentences containing the word `'obama'` in The New York Times
+
+URL:  https://api.mediacloud.org/api/v2/sentences/field_count?q=obama+AND+media_id:1
+
+```json
+[
+    {
+        "count": "68",
+        "label": null,
+        "tag": "geonames_2306104",
+        "tags_id": 8881223
+    },
+    {
+        "count": "39",
+        "label": null,
+        "tag": "geonames_2300660",
+        "tags_id": 8879465
+    },
+    {
+        "count": "5",
+        "label": null,
+        "tag": "geonames_6252001",
+        "tags_id": 8878461
+    }
+]
+```
+
+
 ## Word Counting
 
 ### api/v2/wc/list
@@ -665,7 +730,7 @@ Following fields are included in the stats response:
 | num_sentences_returned       | The number of sentences returned by the call, up to sample_size
 | num_sentences_found          | The total number of sentences found by solr to match the query 
 | num_words_param              | The num_words param passed into the call, or the default value
-| sample_size_param            | the sample size passed into the call, or the default value
+| sample_size_param            | The sample size passed into the call, or the default value
 
 ### Example
 

@@ -219,6 +219,8 @@ sub _test_stories($$$$)
       MediaWords::Test::Data::stories_arrayref_from_hashref(
         MediaWords::Test::Data::fetch_test_data_from_individual_files( "crawler_stories/$test_prefix" ) );
 
+    MediaWords::Test::Data::adjust_test_timezone( $test_stories, $test_stories->[ 0 ]->{ timezone } );
+
     # replace stories_id with urls so that the order of stories
     # doesn't matter
     _replace_stories_ids_with_urls( $stories );
@@ -272,6 +274,8 @@ sub _test_stories($$$$)
             map { delete( $_->{ db_row_last_updated } ) }
               ( @{ $story->{ story_sentences } }, @{ $test_story->{ story_sentences } } );
 
+            MediaWords::Test::Data::adjust_test_timezone( $test_story->{ story_sentences }, $test_story->{ timezone } );
+
             cmp_deeply(
                 $story->{ story_sentences },
                 $test_story->{ story_sentences },
@@ -291,9 +295,10 @@ sub _sanity_test_stories($$$)
 
     for my $story ( @{ $stories } )
     {
+        next if ( $story->{ title } =~ /inline/ );    # expect inline stories to be short
         my $all_sentences = join( '. ', map { $_->{ sentence } } @{ $story->{ story_sentences } } );
         ok( length( $all_sentences ) >= 80,
-            "$test_name - story '$story->{ url }' has at least 60 characters in its sentences" );
+            "$test_name - story '$story->{ url }' has at least 80 characters in its sentences" );
     }
 }
 
@@ -303,6 +308,10 @@ sub _dump_stories($$$)
     my ( $db, $test_name, $test_prefix ) = @_;
 
     my $stories = _get_expanded_stories( $db );
+
+    my $tz = DateTime::TimeZone->new( name => 'local' )->name;
+
+    map { $_->{ timezone } = $tz } @{ $stories };
 
     MediaWords::Test::Data::store_test_data_to_individual_files( "crawler_stories/$test_prefix",
         MediaWords::Test::Data::stories_hashref_from_arrayref( $stories ) );

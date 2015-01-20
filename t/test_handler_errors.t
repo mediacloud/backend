@@ -13,7 +13,7 @@ BEGIN
 use English '-no_match_vars';
 
 use Data::Dumper;
-use Test::More tests => 35;
+use Test::More tests => 32;
 
 use HTTP::HashServer;
 
@@ -100,12 +100,6 @@ sub test_errors
     my $download_404 = fetch_and_handle_response( $db, $port, $feed, '/404' );
 
     is( $download_404->{ state }, 'error', '404 download state' );
-
-    my $download_500 = fetch_and_handle_response( $db, $port, $feed, '/500' );
-
-    is( $download_500->{ state }, 'pending', '500 download state' );
-    is_date_in_future( $download_500->{ download_time }, "500" );
-    ok( $download_500->{ error_message } =~ /\[error_num: 1\]$/, '500 download error message includes error num' );
 
     my $download_503 = fetch_and_handle_response( $db, $port, $feed, '/503' );
     is( $download_503->{ state }, 'pending', '503 download 1 state' );

@@ -126,6 +126,8 @@ sub test_stories
       MediaWords::Test::Data::stories_arrayref_from_hashref(
         MediaWords::Test::Data::fetch_test_data_from_individual_files( 'crawler_stories/gv' ) );
 
+    MediaWords::Test::Data::adjust_test_timezone( $test_stories, $test_stories->[ 0 ]->{ timezone } );
+
     my $test_story_hash;
     map { $test_story_hash->{ $_->{ title } } = $_ } @{ $test_stories };
 
@@ -170,6 +172,8 @@ sub test_stories
             # don't compare timestamp-dependent "db_row_last_updated" fields
             map { delete( $_->{ db_row_last_updated } ) }
               ( @{ $story->{ story_sentences } }, @{ $test_story->{ story_sentences } } );
+
+            MediaWords::Test::Data::adjust_test_timezone( $test_story->{ story_sentences }, $test_story->{ timezone } );
 
             cmp_deeply(
                 $story->{ story_sentences },

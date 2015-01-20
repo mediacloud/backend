@@ -9,12 +9,7 @@ use warnings;
 
 use Data::Dumper;
 use Encode;
-use Getopt::Long;
-use HTTP::Request::Common;
-use HTTP::Server::Simple::CGI;
-use IO::Socket::INET;
 use JSON;
-use LWP::UserAgent;
 use Lingua::Stem::Snowball;
 use List::Util;
 use URI::Escape;
