@@ -148,11 +148,10 @@ sub request_failed_authentication
 
     my $page_auth = $page->{ auth } || return 0;
 
-    my $fail_authentication_page = <<END;
-HTTP/1.1 401 Access Denied
-WWW-Authenticate: Basic realm="HashServer"
-Content-Length: 0
-END
+    my $fail_authentication_page = '';
+    $fail_authentication_page .= "HTTP/1.1 401 Access Denied\r\n";
+    $fail_authentication_page .= "WWW-Authenticate: Basic realm=\"HashServer\"\r\n";
+    $fail_authentication_page .= "Content-Length: 0\r\n";
 
     my $client_auth = $self->{ headers }->{ Authorization };
 
@@ -192,12 +191,11 @@ sub handle_request
     if ( $path eq '/die' )
     {
         $| = 1;
-        print <<END;
-HTTP/1.0 404 Not found
-Content-Type: text/plain
+        print "HTTP/1.0 404 Not found\r\n";
+        print "Content-Type: text/plain\r\n";
+        print "\r\n";
+        print "Killing server.";
 
-Killing server.
-END
         die( DIE_REQUEST_MESSAGE );
     }
 
