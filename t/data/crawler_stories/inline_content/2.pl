@@ -1,9 +1,9 @@
 #<<<
 $VAR1 = {
-          'collect_date' => '2014-07-19 20:46:10',
+          'collect_date' => '2015-01-17 02:33:38.075338',
           'content' => '<p>This is the second item.</p>
 ',
-          'db_row_last_updated' => '2014-07-19 15:46:13.863643-05',
+          'db_row_last_updated' => '2015-01-17 02:33:43.100766-05',
           'description' => 'RSS description of the second inline item.',
           'extracted_text' => 'Second inline item
 ***
@@ -17,14 +17,14 @@ RSS description of the second inline item.
           'guid' => 'http://www.example.com/inline_content/item_2.html',
           'language' => 'en',
           'media_id' => 1,
-          'publish_date' => '2009-06-11 10:57:00',
+          'publish_date' => '2009-06-11 06:57:00',
           'stories_id' => 2,
           'story_sentences' => [
                                  {
-                                   'db_row_last_updated' => '2014-07-19 15:46:13.863643-05',
+                                   'db_row_last_updated' => '2015-01-17 02:33:43.100766-05',
                                    'language' => 'en',
                                    'media_id' => 1,
-                                   'publish_date' => '2009-06-11 10:57:00',
+                                   'publish_date' => '2009-06-11 06:57:00',
                                    'sentence' => 'Second inline item.RSS description of the second inline item.',
                                    'sentence_number' => 0,
                                    'stories_id' => 2,
@@ -32,7 +32,8 @@ RSS description of the second inline item.
                                  }
                                ],
           'tags' => [],
+          'timezone' => 'America/New_York',
           'title' => 'Second inline item',
-          'url' => 'http://metaverse:34492/inline_content/item_2.html'
+          'url' => 'http://amanda.law.harvard.edu:36893/inline_content/item_2.html'
         };
 #>>>

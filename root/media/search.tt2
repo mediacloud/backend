@@ -22,9 +22,6 @@
         [% IF c.acl_user_can_visit('/admin/media/delete') %]
             <th>delete</th>
         [% END -%]
-        [% IF c.acl_user_can_visit('/admin/downloads/list') %]
-            <th>downloads</th>
-        [% END -%]
         <th>health</th>
     </tr>
 
@@ -53,9 +50,8 @@
             <td><a href="[% c.uri_for('/admin/media/delete/') _ medium.media_id | url %]">delete</a></td>
         [% END -%]
         [% IF c.acl_user_can_visit('/admin/downloads/list') %]
-            <td><<a href="[% c.uri_for('/admin/health/medium/') | url %]?m=[% medium.media_id | uri %]">health</a></td>
+            <td><a href="[% c.uri_for('/admin/health/medium/' _ medium.media_id ) | url %]">health</a></td>
         [% END -%]
-        <td>
     </tr>
 
     [%  SET even = !even %]

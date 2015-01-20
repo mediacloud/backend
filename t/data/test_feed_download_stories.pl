@@ -1,8 +1,8 @@
 #<<<
 $VAR1 = [
           {
-            'collect_date' => '2014-06-14 20:12:42',
-            'db_row_last_updated' => '2014-06-14 23:12:42.113815+03',
+            'collect_date' => '2015-01-09 23:29:15.432862',
+            'db_row_last_updated' => '2015-01-09 23:29:15.432862-05',
             'description' => "<p style=\"text-align: left;\">
 <div id=\"attachment_79258\" class=\"wp-caption alignleft\" style=\"width: 167px\"><a rel=\"attachment wp-att-79258\" href=\"http://globalvoicesonline.org/2009/06/11/amplified-conversation-fighting-the-digital-crimes-bill-in-brazil/3512371729_b3dd79e8d5/\"><img class=\"size-full wp-image-79258\" title=\"3512371729_b3dd79e8d5\" src=\"http://globalvoicesonline.org/wp-content/uploads/2009/06/3512371729_b3dd79e8d5.jpg\" alt=\"Art: Luciano Matsuzaki and Mariana Lettis\" width=\"157\" height=\"206\" /></a><p class=\"wp-caption-text\">Art: Luciano Matsuzaki and Mariana Lettis</p></div>
 <p>On May 14th a <a href=\"http://meganao.wordpress.com/2009/05/06/ato-contra-o-ai-5-digital/\">protest</a> [pt] against the <a href=\"http://globalvoicesonline.org/2006/11/11/holding-the-line-for-internet-freedoms-in-brazilian-cyberspace/\">Digital Crimes Bill</a> proposed by Senator Azeredo to typify crimes on the Internet took place in S\x{e3}o Paulo to promote debate. On May 25th, it was time for a <a href=\"http://www.softwarelivre.org/news/13553\" target=\"_blank\">demonstration</a> in Porto Alegre. On June 1st, a similar protest happened in Minas Gerais and a <a href=\"http://twitter.com/mega_nao/status/2092707194\">new one is being planned</a> now in Rio de Janeiro.</p>
@@ -27,14 +27,14 @@ $VAR1 = [
             'guid' => 'http://globalvoicesonline.org/?p=79204',
             'language' => undef,
             'media_id' => 1,
-            'publish_date' => '2009-06-11 10:57:00',
+            'publish_date' => '2009-06-11 06:57:00',
             'stories_id' => 1,
             'title' => 'Brazil: Amplified conversations to fight the Digital Crimes Bill',
-            'url' => 'http://tundra.local:58730/gv/index.html.1'
+            'url' => 'http://amanda.law.harvard.edu:56246/gv/index.html.1'
           },
           {
-            'collect_date' => '2014-06-14 20:12:42',
-            'db_row_last_updated' => '2014-06-14 23:12:42.148144+03',
+            'collect_date' => '2015-01-09 23:29:15.496673',
+            'db_row_last_updated' => '2015-01-09 23:29:15.496673-05',
             'description' => "<p>Homosexuality is perceived as a new phenomenon in Africa and a taboo. It is outlawed in many African countries. Many African leaders have condemned homosexuality as being un-African. The Zimbabwean President, Robert Mugabe once described<a href=\"http://www.newzimbabwe.com/pages/powell41.13819.html\"> gays as worse than dogs and pigs</a>. Former Namibia&#39;s President, Sam Nujoma, <a href=\"http://www.iglhrc.org/cgi-bin/iowa/article/takeaction/resourcecenter/88.html\">once stated that</a> &#8220;Homosexuals must be condemned and rejected in our society.&#8221; </p>
 <p>Nigeria introduced a bill in 2007 banning same sex marriage. <a href=\"http://rodonline.typepad.com/rodonline/2007/01/nigeria_prepare.html\">According to Rod 2.0</a> the bill is the most comprehensive homophobic legislation ever proposed in the world. Early this year homosexuals in Nigeria <a href=\"http://allafrica.com/stories/200903120143.html\">stormed the National Assembly </a>seeking for legislation that will guarantee the protection. </p>
 <p>Lifestyle, culture and religion have become the invisible fence to many homosexuals in Africa barring them from their freedom of sexual expression. A Kenyan blogger, <a href=\"http://wildeyearnings.blogspot.com/\">Wilde Yearnings</a>, <a href=\"http://wildeyearnings.blogspot.com/2009/06/colour-me-impressed.html\">was quite optimistic </a>after US President Barack Obama officially declared June being a gay pride month and decriminalizing of homosexuality all over the world earlier this month. He posted Obama&#39;s speech on his blog:</p>
@@ -82,14 +82,14 @@ This blog is in violation of Blogger&#39;s Terms of Service and is open to autho
             'guid' => 'http://globalvoicesonline.org/?p=79012',
             'language' => undef,
             'media_id' => 1,
-            'publish_date' => '2009-06-10 17:22:14',
+            'publish_date' => '2009-06-10 13:22:14',
             'stories_id' => 2,
             'title' => 'Africa: Gay and lesbian voices in African blogosphere',
-            'url' => 'http://tundra.local:58730/gv/index.html.2'
+            'url' => 'http://amanda.law.harvard.edu:56246/gv/index.html.2'
           },
           {
-            'collect_date' => '2014-06-14 20:12:42',
-            'db_row_last_updated' => '2014-06-14 23:12:42.161593+03',
+            'collect_date' => '2015-01-09 23:29:15.514848',
+            'db_row_last_updated' => '2015-01-09 23:29:15.514848-05',
             'description' => "<p>One of the main topics during any Iranian presidential election is &#8216;to vote or not to vote&#39;. In other words whether to take part in the election or boycott it. Although several opposition groups <a href=\"http://www.iranian.com/main/blog/masoud-kazemzadeh/iranian-leftists-comdemn-moussavi-and-call-boycott-pseudo-election\">have called for boycotting </a>the coming June 12\x{a0}<a href=\"http://en.wikipedia.org/wiki/Iranian_presidential_election,_2009\"> presidential election</a>, it seems the weight of boycotting groups is much less than four years ago. A strong student association such as <a href=\"http://en.wikipedia.org/wiki/Office_for_Strengthening_Unity\">Tahkim Vahdat</a>, contrary to four years ago, supports a reformist candidate, Mehdi Karoubi and calls for voting for change.</p>
 <p><a href=\"http://www.voteforiran.com/\"><img class=\"aligncenter\" size-full wp-image-79091\" title=\"voteforchange1\" src=\"http://globalvoicesonline.org/wp-content/uploads/2009/06/voteforchange1.gif\" alt=\"voteforchange1\" width=\"340\" height=\"126\" /></a></p>
 <p>Probabaly the most creative initiative to encourage people to vote is launched in Netherlands. <em>Kamran Ashtary</em>, Netherlands based blogger and artist, and his two friends Farhad Golyardi, editor of <a href=\"http://www.eutopia.nl\">Eutopia</a> and Shervin Nekuee, an Iranian sociologist, launched a site named<em> &#8216;<a href=\"http://www.voteforiran.com/\">Vote for Iran</a>.&#8221;</em></p>
@@ -107,14 +107,14 @@ This blog is in violation of Blogger&#39;s Terms of Service and is open to autho
             'guid' => 'http://globalvoicesonline.org/?p=79082',
             'language' => undef,
             'media_id' => 1,
-            'publish_date' => '2009-06-10 16:56:04',
+            'publish_date' => '2009-06-10 12:56:04',
             'stories_id' => 3,
             'title' => 'Iran: To Vote or not to Vote',
-            'url' => 'http://tundra.local:58730/gv/index.html.3'
+            'url' => 'http://amanda.law.harvard.edu:56246/gv/index.html.3'
           },
           {
-            'collect_date' => '2014-06-14 20:12:42',
-            'db_row_last_updated' => '2014-06-14 23:12:42.173071+03',
+            'collect_date' => '2015-01-09 23:29:15.527318',
+            'db_row_last_updated' => '2015-01-09 23:29:15.527318-05',
             'description' => "<p>Chinese information activists have been testing and collecting information about the government sponsored filter software, &#8220;Green Dam Youth Escort&#8221; via blog posts, twitter (search <a href=http://search.twitter.com/search?q=%23greendam>#greendam</a>) and collaborative platforms since the <a href=http://online.wsj.com/article/SB124440211524192081.html>WSJ&#39;s news about Beijing government required PC makers to install filter software for all the PCs shipped to China from July 1 2009 onward</a> popped up. Some of them collectively put together a technical analysis of the software at <a href=https://docs.google.com/Edit?docid=afk7vnz54wt_12f8jzj9gw>google document</a> and the result shows that the filter is full of flaws:</p>
 <p><strong>Collaborative Testing: a leaking dam</strong></p>
 <blockquote><p>Current versions only support Windows; effective only when used in conjunction with Internet Explorer or Google Chrome, it has no effect when used with Firefox. The harmful information screened by the software includes politically-related harmful information, and the software relies on non-conventional methods to install, also ineffective within Firefox, closing the browser and adding the website address onto a banned list without confirmation. In Internet Explorer, the software&#39;s ability to classify clearly political content as &#8220;harmful information&#8221; is unreliable; for pornographic content, Green Dam is able to make relatively accurate assessments. When used with Firefox, however, the software shows no response.</p></blockquote>
@@ -159,14 +159,14 @@ Imagethief - <a href=http://news.imagethief.com/blogs/china/default.aspx>Why I&#
             'guid' => 'http://globalvoicesonline.org/?p=79281',
             'language' => undef,
             'media_id' => 1,
-            'publish_date' => '2009-06-10 06:34:45',
+            'publish_date' => '2009-06-10 02:34:45',
             'stories_id' => 4,
             'title' => 'China: A leaking dam?',
-            'url' => 'http://tundra.local:58730/gv/index.html.4'
+            'url' => 'http://amanda.law.harvard.edu:56246/gv/index.html.4'
           },
           {
-            'collect_date' => '2014-06-14 20:12:42',
-            'db_row_last_updated' => '2014-06-14 23:12:42.184888+03',
+            'collect_date' => '2015-01-09 23:29:15.539274',
+            'db_row_last_updated' => '2015-01-09 23:29:15.539274-05',
             'description' => "<p>News coming out of Pyongyang is not encouraging. After being accused of illegally crossing the border to North Korea, American Current TV journalists Laura Ling and Euna Lee have been <a href=\"http://www.cnn.com/2009/WORLD/asiapcf/06/08/nkorea.journalists/index.html\">sentenced</a> to 12 years of hard labor (according to CNN).\x{a0} Jillian York <a href=\"http://globalvoicesonline.org/2009/06/04/united-states-journalists-to-stand-trial-in-north-korea/?preview=true&amp;preview_id=78290&amp;preview_nonce=e6ca1b96c9\">rounded up blog posts</a> for Global Voices prior to the journalists&#39; sentencing.</p>
 <p>The bleak outcome is eliciting strong reactions online from those who support freedom of press and want North Korea to release the two journalists. A <a href=\"http:/www.facebook.com/group.php?gid=60755553149&amp;ref=ts\">Facebook page for Laura and Euna</a> already has more than five thousand members. Today they are asking the public to respect the families privacy at this moment and not to get emotional:</p>
 <blockquote><p>&#8220;You will have many emotions racing. Please try to stay clear of anger. Anger is a waste of energy and what North Korea wants of you.We can and will work together and use our minds, to work this through.&#8221;</p></blockquote>
@@ -195,14 +195,14 @@ Imagethief - <a href=http://news.imagethief.com/blogs/china/default.aspx>Why I&#
             'guid' => 'http://globalvoicesonline.org/?p=79086',
             'language' => undef,
             'media_id' => 1,
-            'publish_date' => '2009-06-09 20:28:59',
+            'publish_date' => '2009-06-09 16:28:59',
             'stories_id' => 5,
             'title' => 'North Korea: Two American Journalists Sentenced to Hard Labor',
-            'url' => 'http://tundra.local:58730/gv/index.html.5'
+            'url' => 'http://amanda.law.harvard.edu:56246/gv/index.html.5'
           },
           {
-            'collect_date' => '2014-06-14 20:12:42',
-            'db_row_last_updated' => '2014-06-14 23:12:42.196065+03',
+            'collect_date' => '2015-01-09 23:29:15.550884',
+            'db_row_last_updated' => '2015-01-09 23:29:15.550884-05',
             'description' => '<p>One of the main themes of my research on digital activism is that <a href="http://www.gauravonomics.com/blog/my-talk-on-the-good-and-bad-sides-of-digital-activism-at-the-computers-freedom-and-privacy-2009-conference/">social technologies are value-agnostic</a>.</p>
 <p>At each of the <a href="http://www.gauravonomics.com/blog/the-4cs-social-media-framework/">four levels of Content, Collaboration, Community and Collective Intelligence</a>, social technologies can lead to both good and bad outcomes.</p>
 <p>I have written before about <a href="http://www.gauravonomics.com/blog/shiv-senas-orkut-campaign-the-limits-to-freedom-of-expression-in-an-intolerant-india/">Shiv Sena&#39;s militant approach towards Orkut communities critical of the party, its leader Bal Thakeray, or its Hindutva ideology</a>. <a href="http://differentstrokes.blogspot.com/2006/09/caste-communities-on-orkut.html">Caste-based communities</a> on <a href="http://orkut.com">Orkut</a> are another disturbing example of online communities mirroring the dysfunctions in Indian society.</p>
@@ -231,14 +231,14 @@ Imagethief - <a href=http://news.imagethief.com/blogs/china/default.aspx>Why I&#
             'guid' => 'http://globalvoicesonline.org/?p=79129',
             'language' => undef,
             'media_id' => 1,
-            'publish_date' => '2009-06-09 16:40:27',
+            'publish_date' => '2009-06-09 12:40:27',
             'stories_id' => 6,
             'title' => 'Caste Based Communities on Orkut Mirror India\'s Splintered Society',
-            'url' => 'http://tundra.local:58730/gv/index.html.6'
+            'url' => 'http://amanda.law.harvard.edu:56246/gv/index.html.6'
           },
           {
-            'collect_date' => '2014-06-14 20:12:42',
-            'db_row_last_updated' => '2014-06-14 23:12:42.205816+03',
+            'collect_date' => '2015-01-09 23:29:15.562736',
+            'db_row_last_updated' => '2015-01-09 23:29:15.562736-05',
             'description' => "<p><img class=\"size-medium wp-image-78926 alignleft\" title=\"Illustration graciously given by Hamza Lahloumi Art Director of IMAGENCY\" src=\"http://globalvoicesonline.org/wp-content/uploads/2009/06/obama-hussein-193x300.jpg\" alt=\"Illustration graciously given by Hamza Lahloumi Art Director of IMAGENCY\" width=\"193\" height=\"300\" />US President Barack Obama&#39;s Cairo address to the Muslim world sparked a blaze of reactions across the region and beyond; not least amongst bloggers from the Maghreb where a fiery of blog posts and instant tweets conveyed a whole spectrum of opinions ranging from outright, full endorsement to deep skepticism and even scorn and mistrust.</p>
 <p>Even before Obama&#39;s inauguration, and well before he decided which Middle Eastern or North African country he would choose to deliver his so called foreign policy speech in, some Moroccan-Americans lobbied for President Obama to come to Rabat. Some others suggested Casablanca. A website, <a id=\"qy-e\" title=\"President Obama to Speak in Morocco\" href=\"http://www.obamatospeakinmorocco.com/\" target=\"_blank\"><em>President Obama to Speak in Morocco</em></a>, was even set up for that purpose:</p>
 <blockquote><p>[We invite] President Obama to make Morocco the home for his first foreign policy speech abroad.<br />
@@ -307,14 +307,14 @@ The American president succeeded in capturing the imagination of the Arabic herd
             'guid' => 'http://globalvoicesonline.org/?p=78917',
             'language' => undef,
             'media_id' => 1,
-            'publish_date' => '2009-06-08 20:27:40',
+            'publish_date' => '2009-06-08 16:27:40',
             'stories_id' => 7,
             'title' => 'Moroccans Love/Hate Affair with Obama',
-            'url' => 'http://tundra.local:58730/gv/index.html.7'
+            'url' => 'http://amanda.law.harvard.edu:56246/gv/index.html.7'
           },
           {
-            'collect_date' => '2014-06-14 20:12:42',
-            'db_row_last_updated' => '2014-06-14 23:12:42.213379+03',
+            'collect_date' => '2015-01-09 23:29:15.573596',
+            'db_row_last_updated' => '2015-01-09 23:29:15.573596-05',
             'description' => "<p>The <a href=\"http://globalvoicesonline.org/2009/06/05/peru-clashes-break-out-in-the-amazon-region/\">recent events in the Peruvian city of Bagua</a>, located in the jungle region have caused quite a reaction from the Peruvian blogosphere. Many are criticizing President Alan Garc\x{ed}a and his government for their failure to enforce treaties and agreements that require the consultation with local communities before any action take place on their lands. This led to the protests and roadblocks in this region, and as a result of the police&#39;s attempt to clear the blockade, it produced the conflict in which indigenous community members and police were killed.</p>
 <p>There is also criticism of the way that the media is handling the situation, and opinions that many outlets are minimizing the deaths of the indigenous residents.</p>
 <p>Silvio Rend\x{f3}n of <em>Gran Combo Club [es]</em> writes about the neglect from the government to enforce the regulations outlined by the Free Trade Agreement with the United States and the International Labor Organization, <a href=\"http://grancomboclub.com/2009/06/%C2%BFla-revolucion-amazonica-de-2009.html\">which stipulates that there must be consultation with indigenous communities in regards to the use of their lands</a>. He continues:</p>
@@ -353,14 +353,14 @@ The American president succeeded in capturing the imagination of the Arabic herd
             'guid' => 'http://globalvoicesonline.org/?p=79079',
             'language' => undef,
             'media_id' => 1,
-            'publish_date' => '2009-06-08 18:13:48',
+            'publish_date' => '2009-06-08 14:13:48',
             'stories_id' => 8,
             'title' => 'Peru: Responsibility for the Casualties in Amazon Conflict',
-            'url' => 'http://tundra.local:58730/gv/index.html.8'
+            'url' => 'http://amanda.law.harvard.edu:56246/gv/index.html.8'
           },
           {
-            'collect_date' => '2014-06-14 20:12:42',
-            'db_row_last_updated' => '2014-06-14 23:12:42.221902+03',
+            'collect_date' => '2015-01-09 23:29:15.583423',
+            'db_row_last_updated' => '2015-01-09 23:29:15.583423-05',
             'description' => "<p>On 4th of June, there were more than 150,000 Hong Kong citizens gathered in and around the Victoria Park to commemorate the 20 anniversary of the 1989 Tiananmen massacre. The number of attendees has broken the record since 1990, telling the world that Hong Kong people have not given up the demand for vindication of June 4th. However, more than half of the local newspapers and the most viewed TV station decided to downplay the news.</p>
 <p>ESWN <a href=\"http://www.zonaeuropa.com/200906a.brief.htm\">collected the front page of local newspapers on June 5</a>. Among the 13 Chinese newspapers, only 4 had placed the candle night vigil on the frontpage. Headline News and Sing Pao put the passing away of a local actor Sek Kin on the front page; Hong Kong Commerical Press and Hong Kong Economic Journal put up the interview of the future-to-be CEO of Hong Kong stock exchange; Sing Tao, Hong Kong Daily News, Oriental Daily and the Sun highlight stories on youth&#39;s deviant behavior - drug abuse and sex work. Wen Wei Po stressed Chinese government&#39;s favorable polices to Hong Kong. Below are the images of the 4 cover stories (via ESWN):</p>
 <div id=\"attachment_78993\" class=\"wp-caption aligncenter\" style=\"width: 262px\"><img class=\"size-full wp-image-78993\" title=\"apple-daily\" src=\"http://globalvoicesonline.org/wp-content/uploads/2009/06/apple-daily.jpg\" alt=\"june 4 2009\" width=\"252\" height=\"200\" /><p class=\"wp-caption-text\">The Backbone of China, The Vanguard of History 200,000 Commemorate 6.4 in Sorrow</p></div>
@@ -390,14 +390,14 @@ The American president succeeded in capturing the imagination of the Arabic herd
             'guid' => 'http://globalvoicesonline.org/?p=78992',
             'language' => undef,
             'media_id' => 1,
-            'publish_date' => '2009-06-08 06:57:42',
+            'publish_date' => '2009-06-08 02:57:42',
             'stories_id' => 9,
             'title' => 'Hong Kong: Say No to CCTVB',
-            'url' => 'http://tundra.local:58730/gv/index.html.9'
+            'url' => 'http://amanda.law.harvard.edu:56246/gv/index.html.9'
           },
           {
-            'collect_date' => '2014-06-14 20:12:42',
-            'db_row_last_updated' => '2014-06-14 23:12:42.228267+03',
+            'collect_date' => '2015-01-09 23:29:15.592753',
+            'db_row_last_updated' => '2015-01-09 23:29:15.592753-05',
             'description' => "<p>Sunday night, French media announced the death of President <a href=\"http://en.wikipedia.org/wiki/Omar_Bongo\">Omar Bongo</a> of Gabon, who had spent 41 of his 73 years in power. French newspaper Le Point <a href=\"http://www.lepoint.fr/actualites-politique/2009-06-07/au-pouvoir-depuis-41-ans-le-president-gabonais-omar-bongo-est-mort/917/0/350399\">reported</a> that they received news of his death, by cancer, in a private clinic in Barcelona, through a &#8220;source close to the President&#39;s entourage&#8221;. AFP, on the other hand, <a href=\"http://www.google.com/hostednews/afp/article/ALeqM5gmh-vG8pht1d7rLFZ0CaiagGuLNw\">reported</a> a French governmental source. But later Prime Minister Jean Eyeghe Ndong told Gabonese TV that he had been &#8220;<a href=\"http://news.bbc.co.uk/2/hi/africa/8088382.stm\">very surprised</a>&#8221; to read the reports.</p>
 <p><img class=\"aligncenter size-full wp-image-78977\" title=\"Omar Bongo\" src=\"http://globalvoicesonline.org/wp-content/uploads/2009/06/omar-bongo.jpg\" alt=\"Omar Bongo\" width=\"440\" height=\"302\" /></p>
 <p>When Omar Bongo was admitted in Barcelona&#39;s Quir\x{f3}n clinic earlier in May, a comment by Akin a the <em>African Loft</em> <a href=\"http://www.africanloft.com/omar-bongo-is-the-end-near-for-africas-longest-serving-tyrant/#comment-42737\">predicted</a> his death away from his subjects:</p>
@@ -433,14 +433,14 @@ The American president succeeded in capturing the imagination of the Arabic herd
             'guid' => 'http://globalvoicesonline.org/?p=66463',
             'language' => undef,
             'media_id' => 1,
-            'publish_date' => '2009-06-08 05:50:18',
+            'publish_date' => '2009-06-08 01:50:18',
             'stories_id' => 10,
             'title' => 'Gabon: On President Omar Bongo\'s death',
-            'url' => 'http://tundra.local:58730/gv/index.html.10'
+            'url' => 'http://amanda.law.harvard.edu:56246/gv/index.html.10'
           },
           {
-            'collect_date' => '2014-06-14 20:12:42',
-            'db_row_last_updated' => '2014-06-14 23:12:42.234536+03',
+            'collect_date' => '2015-01-09 23:29:15.602298',
+            'db_row_last_updated' => '2015-01-09 23:29:15.602298-05',
             'description' => "<p>The French airbus that vanished from radar on Sunday on its way from Rio de Janeiro, Brazil, to Paris, France, has caused much grieving, question marks and, of course, media speculation. Air France flight number <a href=\"http://en.wikipedia.org/wiki/Air_France_Flight_447\">AF 447</a> took off from Brazil on Sunday 31th of May with 216 passengers and 12 crew members and was expected to arrive at its destination the next day. It never arrived.</p>
 <div>
 <div id=\"attachment_78648\" class=\"wp-caption aligncenter\" style=\"width: 310px\"><a href=\"http://commons.wikimedia.org/wiki/File:AF_447_path-en.svg\"><img class=\"size-medium wp-image-78648\" title=\"Flight path of Air France Flight 447 on 31 May/1 June\" src=\"http://globalvoicesonline.org/wp-content/uploads/2009/06/358px-af_447_path-ensvg-300x237.png\" alt=\"Picture by Mysid (Wikiedia Commons author), used under a public domain license.\" width=\"300\" height=\"237\" /></a><p class=\"wp-caption-text\">Picture by Mysid (Wikiedia Commons author), used under a public domain license.</p></div>
@@ -507,14 +507,14 @@ Regardless of the number of victims, for each of those involved it is extremely 
             'guid' => 'http://globalvoicesonline.org/?p=78038',
             'language' => undef,
             'media_id' => 1,
-            'publish_date' => '2009-06-06 21:37:36',
+            'publish_date' => '2009-06-06 17:37:36',
             'stories_id' => 11,
             'title' => 'Air Bus AF 447: Sorrow, lack of information and sensationalism',
-            'url' => 'http://tundra.local:58730/gv/index.html.11'
+            'url' => 'http://amanda.law.harvard.edu:56246/gv/index.html.11'
           },
           {
-            'collect_date' => '2014-06-14 20:12:42',
-            'db_row_last_updated' => '2014-06-14 23:12:42.241146+03',
+            'collect_date' => '2015-01-09 23:29:15.613109',
+            'db_row_last_updated' => '2015-01-09 23:29:15.613109-05',
             'description' => "<p>As expected, US President Barack Obama&#39;s speech was received with different and contradicting reactions in the Egyptian blogosphere. While many praised his eloquence, charisma, intelligence and awareness of Arab and Islamic history, more believed it was just the same talk they had heard from other presidents but in a better wrapping. Also, they almost all agreed they are waiting for &#8220;action&#8221; to prove the supposed &#8220;good intentions.&#8221;</p>
 <p>The first <a href=\"http://blog.ahmedsays.com/2009/06/blog-post.html \">optimistic opinion</a> came from <em>Ahmed</em>, who said how happy he is with Obama&#39;s gesture of approaching the Islamic world: </p>
 <div class=\"arabic\">\x{641}\x{64a} \x{627}\x{644}\x{646}\x{647}\x{627}\x{64a}\x{629} \x{623}\x{646}\x{627} \x{645}\x{62a}\x{641}\x{627}\x{621}\x{644} \x{641}\x{644}\x{645} \x{62a}\x{643}\x{646} \x{623}\x{631}\x{648}\x{639} \x{637}\x{645}\x{648}\x{62d}\x{627}\x{62a}\x{64a} \x{62a}\x{630}\x{647}\x{628} \x{625}\x{644}\x{64a} \x{623}\x{646} \x{64a}\x{62a}\x{643}\x{644}\x{645} \x{631}\x{626}\x{64a}\x{633} \x{623}\x{645}\x{631}\x{64a}\x{643}\x{64a} \x{628}\x{647}\x{630}\x{647} \x{627}\x{644}\x{644}\x{647}\x{62c}\x{629} \x{627}\x{644}\x{623}\x{642}\x{631}\x{628} \x{625}\x{644}\x{64a} \x{627}\x{644}\x{62d}\x{64a}\x{627}\x{62f} \x{648}\x{644}\x{627} \x{628}\x{647}\x{630}\x{647} \x{627}\x{644}\x{645}\x{641}\x{627}\x{62a}\x{62d}\x{629} \x{627}\x{644}\x{623}\x{62f}\x{646}\x{64a} \x{625}\x{644}\x{64a} \x{627}\x{644}\x{627}\x{639}\x{62a}\x{630}\x{627}\x{631}.</div>
@@ -578,14 +578,14 @@ He was a man of vision, and an insight for the future.</div>
             'guid' => 'http://globalvoicesonline.org/?p=78504',
             'language' => undef,
             'media_id' => 1,
-            'publish_date' => '2009-06-06 03:27:31',
+            'publish_date' => '2009-06-05 23:27:31',
             'stories_id' => 12,
             'title' => 'Egypt: Will there be any action after Obama\'s Talk?',
-            'url' => 'http://tundra.local:58730/gv/index.html.12'
+            'url' => 'http://amanda.law.harvard.edu:56246/gv/index.html.12'
           },
           {
-            'collect_date' => '2014-06-14 20:12:42',
-            'db_row_last_updated' => '2014-06-14 23:12:42.247446+03',
+            'collect_date' => '2015-01-09 23:29:15.623177',
+            'db_row_last_updated' => '2015-01-09 23:29:15.623177-05',
             'description' => "<p>The continuing tense situation in the Amazon Region of Peru has taken a turn for the worst and has become unbearable in city of Bagua. Reports coming from that area are truly alarming: RPP says: <a href=\"http://www.rpp.com.pe/2009-06-05-emergencia-en-bagua-policias-mueren-y-pobladores-destruyen-inmuebles-noticia_186075.html\">Emergency in Bagua: Police are killed and residents destroy buildings [es]</a>. El Comercio reported that demonstrators <a href=\"http://www.elcomercio.com.pe/noticia/296546/manifestantes-quedan-locales-estatales-apra-bagua-grande\">burned government buildings [es]</a>, as well as the Apra political party headquarters in Bagua Grande. There are no official reports of deaths of indigenous residents, but SERVINDI does mention: <a href=\"http://www.servindi.org/actualidad/12430\">Peru: 20 Awaj\x{fa}n-Wampis indigenous die during conflicts in Bagua [es]</a>. </p>
 <div id=\"attachment_78662\" class=\"wp-caption alignnone\" style=\"width: 410px\"><a href=\"http://globalvoicesonline.org/wp-content/uploads/2009/06/bagua.jpg\"><img src=\"http://globalvoicesonline.org/wp-content/uploads/2009/06/bagua.jpg\" alt=\"Photo of Conflict in Bagua by TV Cultura and used under Creative Commons license. http://www.flickr.com/photos/tvcultura/3597959493/\" title=\"bagua\" width=\"400\" height=\"300\" class=\"size-full wp-image-78662\" /></a><p class=\"wp-caption-text\">Photo of Conflict in Bagua by TV Cultura and used under Creative Commons license. http://www.flickr.com/photos/tvcultura/3597959493/</p></div>
 <p>These protests are<a href=\"http://globalvoicesonline.org/2009/05/07/peru-indigenous-communities-continue-protests/\"> a continuation of the demands from indigenous communities,</a> who are concerned that the government will take away their lands that are believed to be rich in minerals and oil.  As a result, more than 2,000 indigenous residents have been blockading the highway in the area of Devil&#39;s Curve in Bagua Grande for the past week and a half, <a href=\"http://enlacenacional.com/2009/06/05/enfrentamiento-entre-policias-y-nativos-en-bagua-deja-tragico-saldo/\">according</a> to <em>Enlace Nacional [es]</em>. As a result, supplies have been running out in the area.</p>
@@ -622,14 +622,14 @@ He was a man of vision, and an insight for the future.</div>
             'guid' => 'http://globalvoicesonline.org/?p=78659',
             'language' => undef,
             'media_id' => 1,
-            'publish_date' => '2009-06-05 20:54:35',
+            'publish_date' => '2009-06-05 16:54:35',
             'stories_id' => 13,
             'title' => 'Peru: Clashes Break Out in the Amazon Region',
-            'url' => 'http://tundra.local:58730/gv/index.html.13'
+            'url' => 'http://amanda.law.harvard.edu:56246/gv/index.html.13'
           },
           {
-            'collect_date' => '2014-06-14 20:12:42',
-            'db_row_last_updated' => '2014-06-14 23:12:42.253533+03',
+            'collect_date' => '2015-01-09 23:29:15.632366',
+            'db_row_last_updated' => '2015-01-09 23:29:15.632366-05',
             'description' => "<p>From being described as the &#8220;self-appointed world leader&#8221; to questioning his choice of speech venue to choosing to turn a deaf ear to his speech, blogs across the Middle East are reacting to US President Barack Obama&#39;s policy speech on the Middle East just delivered in Cairo, Egypt. </p>
 <p>After listening to the speech, <i><a href=\"http://stilettosinthesand.blogspot.com/2009/06/54-minutes-and-22-seconds.html\">Stiletos in the Sand</a></i>, an American based in Saudi Arabia, writes: </p>
 <blockquote><p>54 minutes and 22 seconds .. of my life I can never get back. Speech in Cairo by the jeja is here in four separate parts. Really no reason for any other leaders of the world to continue ruling their own little domains. The jeja seems to have it all under control and will be the first, self-appointed, world leader from hereon out. Oh, sure. He says everything he has aspirations for, that he thinks can be achieved in the world, will need to be done &#8220;together.&#8221; Don&#39;t believe him for one single skinny second. If his lips are moving, he is lying. Hoo Boy.</p></blockquote>
@@ -654,14 +654,14 @@ He was a man of vision, and an insight for the future.</div>
             'guid' => 'http://globalvoicesonline.org/?p=78619',
             'language' => undef,
             'media_id' => 1,
-            'publish_date' => '2009-06-05 16:00:18',
+            'publish_date' => '2009-06-05 12:00:18',
             'stories_id' => 14,
             'title' => 'Middle East: Bloggers React to Obama\'s Address',
-            'url' => 'http://tundra.local:58730/gv/index.html.14'
+            'url' => 'http://amanda.law.harvard.edu:56246/gv/index.html.14'
           },
           {
-            'collect_date' => '2014-06-14 20:12:42',
-            'db_row_last_updated' => '2014-06-14 23:12:42.259179+03',
+            'collect_date' => '2015-01-09 23:29:15.641397',
+            'db_row_last_updated' => '2015-01-09 23:29:15.641397-05',
             'description' => "<p><a href=\"http://globalvoicesonline.org/wp-content/uploads/2009/06/thumb.jpg\"><img src=\"http://globalvoicesonline.org/wp-content/uploads/2009/06/thumb.jpg\" alt=\"thumb\" title=\"thumb\" width=\"150\" height=\"229\" class=\"alignleft size-full wp-image-78600\" /></a>Do you want to show support for Myanmar opposition leader and global democracy icon <a href=\"http://www.irrawaddy.org/article.php?art_id=15745\">Aung San Suu Kyi</a>? A new website was launched last week where anyone from around the world can leave a 64-word message of solidarity for imprisoned leader Aung San Suu Kyi. The website <a href=\"http://64forsuu.org/\">64forSuu.org</a> is named as such to mark Suu Kyi\x{2019}s 64th birthday on June 19.</p>
 <p>Supporters of Aung San Suu Kyi can <a href=\"http://64forsuu.org/about.php\">leave and view</a> video, text, twitter and picture messages on the website. A <a href=\"http://64forsuu.blogspot.com/2009/05/64forsuuorg-global-campaign-to-free.html\">sample</a> of 64-word message of support: </p>
 <blockquote><p>\x{201c}Nineteen years ago, the Burmese people chose Aung San Suu Kyi as their next leader. For most of those 19 years she has been kept under house arrest by the military junta that runs the country. We must not stand by as she is silenced again. Now is the time for the international community to speak with one voice: Free Aung San Suu Kyi.\x{201d}</p></blockquote>
@@ -686,10 +686,10 @@ He was a man of vision, and an insight for the future.</div>
             'guid' => 'http://globalvoicesonline.org/?p=78594',
             'language' => undef,
             'media_id' => 1,
-            'publish_date' => '2009-06-05 14:53:47',
+            'publish_date' => '2009-06-05 10:53:47',
             'stories_id' => 15,
             'title' => 'Myanmar: 64 Words for Aung San Suu Kyi',
-            'url' => 'http://tundra.local:58730/gv/index.html.15'
+            'url' => 'http://amanda.law.harvard.edu:56246/gv/index.html.15'
           }
         ];
 #>>>

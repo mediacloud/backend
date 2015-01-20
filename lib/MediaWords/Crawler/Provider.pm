@@ -308,7 +308,10 @@ sub _add_pending_downloads
                COALESCE( site_from_host( d.host ), 'non-media' ) AS site
         FROM downloads AS d
             LEFT JOIN feeds AS f ON f.feeds_id = d.feeds_id
-        WHERE state = 'pending'
+        WHERE 
+            state = 'pending' and
+            -- downloads can be embargoed for later by setting download_time to a future time
+            ( ( download_time is null ) or ( download_time < now() ) )
         LIMIT ?
 END
         MAX_QUEUED_DOWNLOADS
@@ -348,10 +351,10 @@ sub provide_downloads
     $self->_add_pending_downloads();
 
     # Add some missing downloads if the functions above didn't fill up the queue
-    if ( $self->{ downloads }->_get_downloads_size < QUEUED_DOWNLOADS_IDLE_COUNT )
-    {
-        $self->_add_missing_downloads( MISSING_DOWNLOADS_CHUNK_COUNT );
-    }
+    # if ( $self->{ downloads }->_get_downloads_size < QUEUED_DOWNLOADS_IDLE_COUNT )
+    # {
+    #     $self->_add_missing_downloads( MISSING_DOWNLOADS_CHUNK_COUNT );
+    # }
 
     my @downloads;
   MEDIA_ID:

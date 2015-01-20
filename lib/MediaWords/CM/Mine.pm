@@ -25,6 +25,7 @@ use MediaWords::DBI::Activities;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
+use MediaWords::Util::SQL;
 use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
@@ -167,6 +168,53 @@ sub get_boingboing_links
     return get_links_from_html( $content, $story->{ url } );
 }
 
+# get the html for the first download of the story.  fix the story download by redownloading
+# as necessary
+sub get_first_download_content
+{
+    my ( $db, $story ) = @_;
+
+    my $download = $db->query( <<END, $story->{ stories_id } )->hash;
+select d.* from downloads d where stories_id = ? order by downloads_id asc limit 1
+END
+
+    my $content_ref;
+    eval { $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download ); };
+    if ( $@ )
+    {
+        MediaWords::DBI::Stories::fix_story_downloads_if_needed( $db, $story );
+        $download = $db->find_by_id( 'downloads', $download->{ downloads_id } );
+        eval { $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download ); };
+        warn( "error refetching content: $@" ) if ( $@ );
+    }
+
+    return $content_ref ? $$content_ref : '';
+}
+
+# parse the full first download of the given story for youtube embeds
+sub get_youtube_embed_links
+{
+    my ( $db, $story ) = @_;
+
+    my $html = get_first_download_content( $db, $story );
+
+    my $links = [];
+    while ( $html =~ /src\=[\'\"]((http:)?\/\/(www\.)?youtube(-nocookie)?\.com\/[^\'\"]*)/g )
+    {
+        my $url = $1;
+
+        $url = "http:$url/" unless ( $url =~ /^http/ );
+
+        $url =~ s/\?.*//;
+        $url =~ s/\/$//;
+        $url =~ s/youtube-nocookie/youtube/i;
+
+        push( @{ $links }, { url => $url } );
+    }
+
+    return $links;
+}
+
 # get the extracted html for the story.  fix the story downloads by redownloading
 # as necessary
 sub get_extracted_html
@@ -218,6 +266,7 @@ sub get_links_from_story
     my $text_links = get_links_from_story_text( $db, $story );
     my $description_links = get_links_from_html( $story->{ description }, $story->{ url } );
     my $boingboing_links = get_boingboing_links( $db, $story );
+    my $youtube_links = get_youtube_embed_links( $db, $story );
 
     my @all_links = ( @{ $links }, @{ $text_links }, @{ $description_links }, @{ $boingboing_links } );
 
@@ -565,10 +614,10 @@ END
     }
     elsif ( $date->{ result } eq MediaWords::CM::GuessDate::Result::INAPPLICABLE )
     {
-        return ( 'undateable', $source_story ? $source_story->{ publish_date } : DateTime->now->datetime );
+        return ( 'undateable', $source_story ? $source_story->{ publish_date } : MediaWords::Util::SQL::sql_now );
     }
 
-    return ( 'current_time', DateTime->now->datetime );
+    return ( 'current_time', MediaWords::Util::SQL::sql_now );
 }
 my $reliable_methods = [ qw(guess_by_url guess_by_url_and_date_text merged_story_rss manual) ];
 
@@ -622,7 +671,7 @@ sub generate_new_story_hash
         url          => $old_story->{ url },
         guid         => $old_story->{ url },
         media_id     => $medium->{ media_id },
-        collect_date => DateTime->now->datetime,
+        collect_date => MediaWords::Util::SQL::sql_now,
         title        => encode( 'utf8', $old_story->{ title } ),
         description  => ''
     };
@@ -652,17 +701,16 @@ sub create_download_for_new_story
     my ( $db, $story, $feed ) = @_;
 
     my $download = {
-        feeds_id      => $feed->{ feeds_id },
-        stories_id    => $story->{ stories_id },
-        url           => $story->{ url },
-        host          => lc( ( URI::Split::uri_split( $story->{ url } ) )[ 1 ] ),
-        type          => 'content',
-        sequence      => 1,
-        state         => 'success',
-        path          => 'content:pending',
-        priority      => 1,
-        download_time => DateTime->now->datetime,
-        extracted     => 't'
+        feeds_id   => $feed->{ feeds_id },
+        stories_id => $story->{ stories_id },
+        url        => $story->{ url },
+        host       => lc( ( URI::Split::uri_split( $story->{ url } ) )[ 1 ] ),
+        type       => 'content',
+        sequence   => 1,
+        state      => 'success',
+        path       => 'content:pending',
+        priority   => 1,
+        extracted  => 't'
     };
 
     $download = $db->create( 'downloads', $download );
@@ -1028,6 +1076,7 @@ END
         $db->query( <<END, $story->{ stories_id }, $controversy_link->{ controversy_links_id } );
 update controversy_links set ref_stories_id = ? where controversy_links_id = ?
 END
+        $controversy_link->{ ref_stories_id } = $story->{ stories_id };
     }
 }
 
@@ -1201,7 +1250,11 @@ sub add_new_links
     {
         if ( !$link->{ ref_stories_id } && $link->{ controversy_links_id } )
         {
-            $db->query( "delete from controversy_links where controversy_links_id = ?", $link->{ controversy_links_id } );
+            # include ref_stories_id is null to make sure we don't delete a
+            # valid link
+            $db->query( <<END, $link->{ controversy_links_id } );
+delete from controversy_links where controversy_links_id = ? and ref_stories_id is null
+END
         }
     }
     $db->commit;
@@ -2204,3 +2257,4 @@ sub mine_controversy ($$;$)
 }
 
 1;
+
