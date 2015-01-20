@@ -127,6 +127,8 @@ sub test_stories
 
     my $test_stories = MediaWords::Test::Data::fetch_test_data( 'test_feed_download_stories' );
 
+    MediaWords::Test::Data::adjust_test_timezone( $test_stories, $test_stories->[ 0 ]->{ timezone } );
+
     my $test_story_hash;
     map { $test_story_hash->{ $_->{ title } } = $_ } @{ $test_stories };
 
