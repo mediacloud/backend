@@ -29,6 +29,7 @@ $VAR1 = [
             'media_id' => 1,
             'publish_date' => '2009-06-11 06:57:00',
             'stories_id' => 1,
+            'timezone' => 'America/New_York',
             'title' => 'Brazil: Amplified conversations to fight the Digital Crimes Bill',
             'url' => 'http://amanda.law.harvard.edu:56246/gv/index.html.1'
           },
@@ -84,6 +85,7 @@ This blog is in violation of Blogger&#39;s Terms of Service and is open to autho
             'media_id' => 1,
             'publish_date' => '2009-06-10 13:22:14',
             'stories_id' => 2,
+            'timezone' => 'America/New_York',
             'title' => 'Africa: Gay and lesbian voices in African blogosphere',
             'url' => 'http://amanda.law.harvard.edu:56246/gv/index.html.2'
           },
@@ -109,6 +111,7 @@ This blog is in violation of Blogger&#39;s Terms of Service and is open to autho
             'media_id' => 1,
             'publish_date' => '2009-06-10 12:56:04',
             'stories_id' => 3,
+            'timezone' => 'America/New_York',
             'title' => 'Iran: To Vote or not to Vote',
             'url' => 'http://amanda.law.harvard.edu:56246/gv/index.html.3'
           },
@@ -161,6 +164,7 @@ Imagethief - <a href=http://news.imagethief.com/blogs/china/default.aspx>Why I&#
             'media_id' => 1,
             'publish_date' => '2009-06-10 02:34:45',
             'stories_id' => 4,
+            'timezone' => 'America/New_York',
             'title' => 'China: A leaking dam?',
             'url' => 'http://amanda.law.harvard.edu:56246/gv/index.html.4'
           },
@@ -197,6 +201,7 @@ Imagethief - <a href=http://news.imagethief.com/blogs/china/default.aspx>Why I&#
             'media_id' => 1,
             'publish_date' => '2009-06-09 16:28:59',
             'stories_id' => 5,
+            'timezone' => 'America/New_York',
             'title' => 'North Korea: Two American Journalists Sentenced to Hard Labor',
             'url' => 'http://amanda.law.harvard.edu:56246/gv/index.html.5'
           },
@@ -233,6 +238,7 @@ Imagethief - <a href=http://news.imagethief.com/blogs/china/default.aspx>Why I&#
             'media_id' => 1,
             'publish_date' => '2009-06-09 12:40:27',
             'stories_id' => 6,
+            'timezone' => 'America/New_York',
             'title' => 'Caste Based Communities on Orkut Mirror India\'s Splintered Society',
             'url' => 'http://amanda.law.harvard.edu:56246/gv/index.html.6'
           },
@@ -309,6 +315,7 @@ The American president succeeded in capturing the imagination of the Arabic herd
             'media_id' => 1,
             'publish_date' => '2009-06-08 16:27:40',
             'stories_id' => 7,
+            'timezone' => 'America/New_York',
             'title' => 'Moroccans Love/Hate Affair with Obama',
             'url' => 'http://amanda.law.harvard.edu:56246/gv/index.html.7'
           },
@@ -355,6 +362,7 @@ The American president succeeded in capturing the imagination of the Arabic herd
             'media_id' => 1,
             'publish_date' => '2009-06-08 14:13:48',
             'stories_id' => 8,
+            'timezone' => 'America/New_York',
             'title' => 'Peru: Responsibility for the Casualties in Amazon Conflict',
             'url' => 'http://amanda.law.harvard.edu:56246/gv/index.html.8'
           },
@@ -392,6 +400,7 @@ The American president succeeded in capturing the imagination of the Arabic herd
             'media_id' => 1,
             'publish_date' => '2009-06-08 02:57:42',
             'stories_id' => 9,
+            'timezone' => 'America/New_York',
             'title' => 'Hong Kong: Say No to CCTVB',
             'url' => 'http://amanda.law.harvard.edu:56246/gv/index.html.9'
           },
@@ -435,6 +444,7 @@ The American president succeeded in capturing the imagination of the Arabic herd
             'media_id' => 1,
             'publish_date' => '2009-06-08 01:50:18',
             'stories_id' => 10,
+            'timezone' => 'America/New_York',
             'title' => 'Gabon: On President Omar Bongo\'s death',
             'url' => 'http://amanda.law.harvard.edu:56246/gv/index.html.10'
           },
@@ -509,6 +519,7 @@ Regardless of the number of victims, for each of those involved it is extremely 
             'media_id' => 1,
             'publish_date' => '2009-06-06 17:37:36',
             'stories_id' => 11,
+            'timezone' => 'America/New_York',
             'title' => 'Air Bus AF 447: Sorrow, lack of information and sensationalism',
             'url' => 'http://amanda.law.harvard.edu:56246/gv/index.html.11'
           },
@@ -580,6 +591,7 @@ He was a man of vision, and an insight for the future.</div>
             'media_id' => 1,
             'publish_date' => '2009-06-05 23:27:31',
             'stories_id' => 12,
+            'timezone' => 'America/New_York',
             'title' => 'Egypt: Will there be any action after Obama\'s Talk?',
             'url' => 'http://amanda.law.harvard.edu:56246/gv/index.html.12'
           },
@@ -624,6 +636,7 @@ He was a man of vision, and an insight for the future.</div>
             'media_id' => 1,
             'publish_date' => '2009-06-05 16:54:35',
             'stories_id' => 13,
+            'timezone' => 'America/New_York',
             'title' => 'Peru: Clashes Break Out in the Amazon Region',
             'url' => 'http://amanda.law.harvard.edu:56246/gv/index.html.13'
           },
@@ -656,6 +669,7 @@ He was a man of vision, and an insight for the future.</div>
             'media_id' => 1,
             'publish_date' => '2009-06-05 12:00:18',
             'stories_id' => 14,
+            'timezone' => 'America/New_York',
             'title' => 'Middle East: Bloggers React to Obama\'s Address',
             'url' => 'http://amanda.law.harvard.edu:56246/gv/index.html.14'
           },
@@ -688,6 +702,7 @@ He was a man of vision, and an insight for the future.</div>
             'media_id' => 1,
             'publish_date' => '2009-06-05 10:53:47',
             'stories_id' => 15,
+            'timezone' => 'America/New_York',
             'title' => 'Myanmar: 64 Words for Aung San Suu Kyi',
             'url' => 'http://amanda.law.harvard.edu:56246/gv/index.html.15'
           }
