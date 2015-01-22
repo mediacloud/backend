@@ -70,7 +70,7 @@
                 on the map are shown.
             </p>
             <p>
-                <a href="[% c.uri_for( "/admin/cm/gexf/${cdts.controversy_dump_time_slices_id}/${live}/${color_field}") | html %]">download gexf</a>
+                <a href="[% c.uri_for( "/admin/cm/gexf/${cdts.controversy_dump_time_slices_id}", { l => live, cf => color_field, nm => num_media } ) | html %]">download gexf</a>
             </p>
   </div>
 </div>

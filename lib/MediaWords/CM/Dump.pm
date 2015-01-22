@@ -680,11 +680,11 @@ sub attach_stories_to_media
     map { push( @{ $media_lookup->{ $_->{ media_id } }->{ stories } }, $_ ) } @{ $stories };
 }
 
-sub get_link_weighted_edges
+sub get_weighted_edges
 {
-    my ( $db, $media ) = @_;
+    my ( $db, $media, $max_gexf_media ) = @_;
 
-    my $media_links = $db->query( <<END, MAX_GEXF_MEDIA )->hashes;
+    my $media_links = $db->query( <<END, $max_gexf_media )->hashes;
 with top_media as (
     select media_id from dump_medium_link_counts order by inlink_count desc limit ?
 )
@@ -717,13 +717,6 @@ END
     }
 
     return $edges;
-}
-
-sub get_weighted_edges
-{
-    my ( $db, $media ) = @_;
-
-    return get_link_weighted_edges( $db, $media );
 }
 
 # given an rgb hex string, return a hash in the form { r => 12, g => 0, b => 255 }, which is
@@ -1050,11 +1043,12 @@ sub layout_gexf_with_graphviz_1
 # write gexf dump of nodes
 sub get_gexf_dump
 {
-    my ( $db, $cdts, $color_field ) = @_;
+    my ( $db, $cdts, $color_field, $max_media ) = @_;
 
     $color_field ||= 'media_type';
+    $max_media   ||= MAX_GEXF_MEDIA;
 
-    my $media = $db->query( <<END, MAX_GEXF_MEDIA )->hashes;
+    my $media = $db->query( <<END, $max_media )->hashes;
 select distinct * 
     from dump_media_with_types m, dump_medium_link_counts mlc 
     where m.media_id = mlc.media_id
@@ -1097,7 +1091,7 @@ END
         push( @{ $attributes->{ attribute } }, { id => $i++, title => $name, type => $type } );
     }
 
-    my $edges = get_weighted_edges( $db, $media );
+    my $edges = get_weighted_edges( $db, $media, $max_media );
     $graph->{ edges }->{ edge } = $edges;
 
     my $edge_lookup;
