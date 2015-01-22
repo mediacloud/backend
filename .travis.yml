@@ -22,10 +22,10 @@ env:
         - secure: "Ek4Y2M1JO+ryFLPMrwQfNLnvIlh7H2X39p0aAVS5Bn9dILjKKWgvHlNjIJWgm8Wb5qfJmh94c6pDNRTqjqdPKPcR4IUmFY7cRgH1tai8Hcq0rUyu8GQ4dWOJqttCUzTuBpKVpwdX4SVD9MRhrouJfflfAD0+9znIs0sH2xvbfWw="
 before_install:
     # Travis artifacts (for caching "local/" to S3)
-    - gem install fog-json
-    - gem install travis-artifacts
+    - travis_retry gem install fog-json
+    - travis_retry gem install travis-artifacts
     # Update package listings (don't upgrade the packages though because it takes too much time)
-    - sudo apt-get -y update
+    - travis_retry sudo apt-get -y update
     # Create + switch to the Media Cloud's Perlbrew library
     - perlbrew lib create mediacloud
     - perlbrew switch @mediacloud
@@ -37,11 +37,10 @@ before_install:
     # 2) build the Carton dependencies, bundle them and upload to S3
     - ./install_scripts/travis-pour_or_bundle_carton_modules.sh
     # Install Python dependencies
-    - sudo pip install -r python_scripts/requirements.txt
+    - travis_retry sudo pip install -r python_scripts/requirements.txt
     # install Media Cloud testing variant of the Python  Client
-    - git clone https://github.com/dlarochelle/MediaCloud-API-Client.git
-    - sudo easy_install MediaCloud-API-Client/
-    
+    - travis_retry git clone https://github.com/dlarochelle/MediaCloud-API-Client.git
+    - travis_retry sudo easy_install MediaCloud-API-Client/
 install:
     # Use default configuration
     - cp mediawords.yml.dist mediawords.yml
