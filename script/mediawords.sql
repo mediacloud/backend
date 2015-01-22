@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4477;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4478;
     
 BEGIN
 
@@ -1708,6 +1708,16 @@ create table controversy_ignore_redirects (
 
 create index controversy_ignore_redirects_url on controversy_ignore_redirects ( url );
 
+create table controversy_query_slices (
+    controversy_query_slices_id     serial primary key,
+    controversies_id                int not null references controversies on delete cascade,
+    name                            varchar ( 1024 ) not null,
+    query                           text not null,
+    all_time_slices                 boolean not null
+);
+
+create index controversy_query_slices_controversy on controversy_query_slices ( controversies_id );
+
 create table controversy_dumps (
     controversy_dumps_id            serial primary key,
     controversies_id                int not null references controversies on delete cascade,
@@ -1725,6 +1735,7 @@ create type cd_period_type AS ENUM ( 'overall', 'weekly', 'monthly', 'custom' );
 create table controversy_dump_time_slices (
     controversy_dump_time_slices_id serial primary key,
     controversy_dumps_id            int not null references controversy_dumps on delete cascade,
+    controversy_query_slices_id     int null references controversy_query_slices on delete set null,
     start_date                      timestamp not null,
     end_date                        timestamp not null,
     period                          cd_period_type not null,
@@ -1735,6 +1746,11 @@ create table controversy_dump_time_slices (
     story_link_count                int not null,
     medium_count                    int not null,
     medium_link_count               int not null,
+    
+    -- is this just a shell cdts with no data actually dumped into it
+    -- we use shell cdtss to display query slices on live data with having to make a real dump
+    -- first
+    is_shell                        boolean not null default false,
     tags_id                         int references tags -- keep on cascade to avoid accidental deletion
 );
 

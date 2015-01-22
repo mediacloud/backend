@@ -245,13 +245,16 @@ sub _get_cdts_from_cd
 {
     my ( $db, $cd ) = @_;
 
-    return $db->query( <<END, $cd->{ controversy_dumps_id } )->hashes;
+    return $db->query( <<SQL, $cd->{ controversy_dumps_id } )->hashes;
 select cdts.*, coalesce( t.tag, '(all stories/no tag)' ) tag_name
-    from controversy_dump_time_slices cdts
+    from 
+        controversy_dump_time_slices cdts
         left join tags t on ( cdts.tags_id = t.tags_id )
-    where controversy_dumps_id = ?
+    where 
+        controversy_dumps_id = ? and
+        controversy_query_slices_id is null
     order by cdts.tags_id desc, period, start_date, end_date
-END
+SQL
 }
 
 sub get_latest_full_dump_with_time_slices
@@ -372,12 +375,17 @@ EOF
 
     my $mining_status = _get_mining_status( $db, $controversy );
 
+    my $query_slices = $db->query( <<SQL, $controversies_id )->hashes;
+select * from controversy_query_slices where controversies_id = ? order by name
+SQL
+
     $c->stash->{ controversy }                 = $controversy;
     $c->stash->{ controversy_dumps }           = $controversy_dumps;
     $c->stash->{ latest_full_dump }            = $latest_full_dump;
     $c->stash->{ latest_activities }           = $latest_activities;
     $c->stash->{ bitly_processing_is_enabled } = $bitly_processing_is_enabled;
     $c->stash->{ mining_status }               = $mining_status;
+    $c->stash->{ query_slices }                = $query_slices;
     $c->stash->{ template }                    = 'cm/view.tt2';
 }
 
@@ -2818,7 +2826,7 @@ END
 
     $c->dbis->query( "delete from tags where tags_id = ?", $tags_id );
 
-    my $status_msg = "Media type has been delete.";
+    my $status_msg = "Media type has been deleted.";
     $c->res->redirect(
         $c->uri_for( "/admin/cm/edit_media_types/$controversy->{ controversies_id }", { status_msg => $status_msg } ) );
 }
@@ -3013,6 +3021,136 @@ sub enqueue_stories_for_bitly : Local
     my $url = $c->uri_for( "/admin/cm/view/$controversies_id",
         { status_msg => "Controversy's stories will soon be enqueued for Bit.ly processing." } );
     $c->res->redirect( $url );
+}
+
+# create a controersy_query_slice and associated shell controversy_dump_time_slices
+# for the query slice in the latest controversy_dump
+sub _create_query_slice
+{
+    my ( $db, $controversy, $p ) = @_;
+
+    my $query_slice = {
+        controversies_id => $controversy->{ controversies_id },
+        name             => $p->{ name },
+        query            => $p->{ query },
+        all_time_slices  => $p->{ all_time_slices } || 0
+    };
+
+    my $cqs = $db->create( 'controversy_query_slices', $query_slice );
+
+    my $controversy_dumps = $db->query( <<END, $controversy->{ controversies_id } )->hashes;
+select * from controversy_dumps where controversies_id = ?
+    order by controversy_dumps_id desc
+END
+
+    map { add_periods_to_controversy_dump( $db, $_ ) } @{ $controversy_dumps };
+
+    my $latest_full_dump = get_latest_full_dump_with_time_slices( $db, $controversy_dumps, $controversy );
+
+    my $cdtss = $latest_full_dump->{ controversy_dump_time_slices };
+    $cdtss = [ $cdtss->[ 0 ] ] unless ( $cqs->{ all_time_slices } );
+
+    for my $cdts ( @{ $cdtss } )
+    {
+        delete( $cdts->{ controversy_dump_time_slices_id } );
+        delete( $cdts->{ model_reliability } );
+        delete( $cdts->{ tag_name } );
+
+        $cdts->{ controversy_query_slices_id } = $cqs->{ controversy_query_slices_id };
+        $cdts->{ is_shell }                    = 1;
+
+        $db->create( 'controversy_dump_time_slices', $cdts );
+    }
+}
+
+# add a new query slice
+sub add_query_slice : Local
+{
+    my ( $self, $c, $controversies_id ) = @_;
+
+    my $form = $c->create_form( { load_config_file => $c->path_to() . '/root/forms/admin/cm/controversy_query_slice.yml' } );
+
+    my $db = $c->dbis;
+
+    my $controversy = $db->find_by_id( 'controversies', $controversies_id ) || die( "Unable to find controversy" );
+
+    $c->stash->{ controversy } = $controversy;
+    $c->stash->{ form }        = $form;
+    $c->stash->{ template }    = 'cm/add_query_slice.tt2';
+
+    $form->process( $c->request );
+
+    return unless ( $form->submitted_and_valid );
+
+    my $p            = $form->params;
+    my $redirect_url = "/admin/cm/edit_query_slices/$controversy->{ controversies_id }";
+
+    my $query_slice = $db->query( <<SQL, $controversies_id, $p->{ name } )->hash;
+select * from controversy_query_slices where controversies_id = ? and lower( name ) = lower( ? )
+SQL
+
+    if ( $query_slice )
+    {
+        return $c->res->redirect( $redirect_url, { error_msg => "Slice with the name '$p->{ name }' already exists." } );
+    }
+
+    _create_query_slice( $db, $controversy, $p );
+
+    $c->res->redirect( $c->uri_for( $redirect_url, { status_msg => "Query slice has been created." } ) );
+}
+
+# delete a single media type
+sub delete_query_slice : Local
+{
+    my ( $self, $c, $controversy_query_slices_id ) = @_;
+
+    my $db = $c->dbis;
+
+    my $cqs = $db->find_by_id( 'controversy_query_slices', $controversy_query_slices_id ) || die( "Slice not found" );
+
+    $db->begin;
+
+    # try to delete all empty shell time slices before deleting the query time slices
+    $db->query( <<SQL, $controversy_query_slices_id );
+delete from controversy_dump_time_slices where controversy_query_slices_id = ? and is_shell
+SQL
+
+    # this will fail and generate an error if there are any non empty time slices, which
+    # is fine because the ui shouldn't allow the user to call on a query that has any non-empty time slices
+    $db->delete_by_id( "controversy_query_slices", $controversy_query_slices_id );
+    $db->commit;
+
+    my $status_msg = "Query slice has been deleted.";
+    $c->res->redirect(
+        $c->uri_for( "/admin/cm/edit_query_slices/$cqs->{ controversies_id }", { status_msg => $status_msg } ) );
+}
+
+# edit list of controversy specific media types
+sub edit_query_slices : Local
+{
+    my ( $self, $c, $controversies_id ) = @_;
+
+    my $db = $c->dbis;
+
+    my $controversy = $db->find_by_id( 'controversies', $controversies_id ) || die( "Unable to find controversy" );
+
+    my $query_slices = $db->query( <<SQL, $controversies_id )->hashes;
+select cqs.*,
+    exists (
+        select 1 
+        from controversy_dump_time_slices cdts 
+        where
+            cdts.controversy_query_slices_id = cqs.controversy_query_slices_id and
+            not( cdts.is_shell )
+    ) has_non_shell_time_slice
+from controversy_query_slices cqs
+where controversies_id = ? 
+order by name
+SQL
+
+    $c->stash->{ controversy }  = $controversy;
+    $c->stash->{ query_slices } = $query_slices;
+    $c->stash->{ template }     = 'cm/edit_query_slices.tt2';
 }
 
 1;
