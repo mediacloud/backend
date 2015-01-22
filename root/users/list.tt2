@@ -4,15 +4,16 @@
 <table id="users">
 
 <tr>
-    <th>ID</th>
     <th>Email</th>
     <th>Full name</th>
-    <th>Notes</th>
-    <th>Active?</th>
     <th>Roles</th>
+    <th>Full API</th>
 
-    [% IF c.acl_user_can_visit('/admin/users/edit') OR c.acl_user_can_visit('/admin/users/delete') %]
-        <th>Actions</th>
+    [% IF c.acl_user_can_visit('/admin/users/edit') %]
+        <th>Edit</th>
+    [% END -%]
+    [% IF c.acl_user_can_visit('/admin/users/delete') %]
+        <th>Delete</th>
     [% END -%]
 </tr>
 
@@ -20,45 +21,29 @@
 
     <tr [% IF even %]class="even"[% END %]>
 
-        <td>[% user.auth_users_id | html %]</td>
-
         <td><code>[% user.email | html %]</code></td>
 
         <td>[% user.full_name | html %]</td>
 
-        <td>[% user.notes | html %]</td>
-
-        <td>[% user.active | html %]</td>
-
         <td>
-            <ul>
-                [% FOREACH role IN user.roles.keys.sort -%]
-                    <li>
-                        <abbr title="[% role_descriptions.$role | html %]"><code>[% role | html %]</code></abbr>
-                        =
-                        [% user.roles.$role | html %]
-                    </li>
-                [% END # FOREACH user.roles -%]
-            </ul>
+            [% SET role_list = [] %]
+            [% FOREACH role IN user.roles.keys.sort -%]
+                [% IF user.roles.$role %]
+                    [% role_list.push( role )%]
+                [% END %]
+            [% END %]
+            [% role_list.join( '|') | html %]
         </td>
+        
+        <td>[% user.non_public_api %]</td>
 
-        [% IF c.acl_user_can_visit('/admin/users/edit') OR c.acl_user_can_visit('/admin/users/delete') %]
-            <td>
-                <ul class="user_actions">
-                    [% IF c.acl_user_can_visit('/admin/users/edit') %]
-                        <li>
-                            <a href="[% c.uri_for('/admin/users/edit') %]?email=[% user.email | uri %]">Edit</a>
-                        </li>
-                    [% END -%]
-                    [% IF c.acl_user_can_visit('/admin/users/delete') %]
-                        <li class="user_action_delete">
-                            <a href="[% c.uri_for('/admin/users/delete') %]?email=[% user.email | uri %]">Delete</a>
-                        </li>
-                    [% END -%]
-                </ul>
-            </td>
-        [% END -%]
+        [% IF c.acl_user_can_visit('/admin/users/edit') %]
+            <td><a href="[% c.uri_for('/admin/users/edit') %]?email=[% user.email | uri %]">Edit</a></td>
+        [% END %]
 
+        [% IF c.acl_user_can_visit('/admin/users/delete') %]
+            <td><a href="[% c.uri_for('/admin/users/delete') %]?email=[% user.email | uri %]">Delete</a></td>
+        [% END %]
     </tr>
 
     [%  SET even = !even %]
