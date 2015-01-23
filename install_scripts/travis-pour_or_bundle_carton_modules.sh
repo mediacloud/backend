@@ -108,10 +108,10 @@ echo "TGZ filename: $TGZ_FILENAME"
 BUNDLE_URL="http://${S3_BUCKET_NAME}.s3-website-${S3_REGION}.amazonaws.com/${S3_PATH}/${TGZ_FILENAME}"
 echo "Bundle URL: $BUNDLE_URL"
 
-if curl --output /dev/null --silent --head --fail "$BUNDLE_URL" > /dev/null; then
+if curl --retry 3 --retry-delay 3 --output /dev/null --silent --head --fail "$BUNDLE_URL" > /dev/null; then
 
     echo "Bundle at URL exists, fetching and pouring..."
-    curl -0 "$BUNDLE_URL" | tar -zx || {
+    curl --retry 3 --retry-delay 3 -0 "$BUNDLE_URL" | tar -zx || {
         echo "Bundle exists at the URL, but I've failed to download and pour it, so giving up."
         exit 1
     }

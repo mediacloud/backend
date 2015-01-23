@@ -522,6 +522,7 @@ sub nv : Local
     my $live        = $c->req->params->{ l };
     my $cdts_id     = $c->req->params->{ cdts };
     my $color_field = $c->req->params->{ cf };
+    my $num_media   = $c->req->params->{ nm };
 
     my $db = $c->dbis;
 
@@ -532,6 +533,7 @@ sub nv : Local
     $c->stash->{ controversy }      = $controversy;
     $c->stash->{ live }             = $live;
     $c->stash->{ color_field }      = $color_field;
+    $c->stash->{ num_media }        = $num_media;
     $c->stash->{ template }         = 'nv/nv.tt2';
 }
 
@@ -539,7 +541,7 @@ sub nv : Local
 # nv implemented in root/nv from the gephi sigma export template
 sub nv_config : Local
 {
-    my ( $self, $c, $cdts_id, $live, $color_field ) = @_;
+    my ( $self, $c, $cdts_id, $live, $color_field, $num_media ) = @_;
 
     my $db = $c->dbis;
 
@@ -553,7 +555,8 @@ sub nv_config : Local
         '/admin/cm/gexf/' . $cdts->{ controversy_dump_time_slices_id },
         {
             l  => $live,
-            cf => $color_field
+            cf => $color_field,
+            nm => $num_media
         }
       ) .
       '';
@@ -937,6 +940,7 @@ sub gexf : Local
 
     my $l           = $c->req->params->{ l };
     my $color_field = $c->req->params->{ cf };
+    my $num_media   = $c->req->params->{ nm };
 
     my $db = $c->dbis;
 
@@ -954,7 +958,7 @@ END
     if ( !$gexf )
     {
         MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $l );
-        $gexf = MediaWords::CM::Dump::get_gexf_dump( $db, $cdts, $color_field );
+        $gexf = MediaWords::CM::Dump::get_gexf_dump( $db, $cdts, $color_field, $num_media );
     }
 
     my $base_url = $c->uri_for( '/' );
