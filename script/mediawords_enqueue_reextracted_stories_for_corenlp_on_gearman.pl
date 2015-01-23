@@ -6,8 +6,7 @@
 #
 #     mediawords_enqueue_reextracted_stories_for_corenlp_on_gearman.pl \
 #         [--resume_stories_id_log=corenlp-enqueue-resume-stories_id.log] \
-#         [--media_id=1] \
-#         [--overwrite_annotations]
+#         [--media_id=1]
 #
 # (then, to resume from where the script stopped, run the very same command again)
 #
