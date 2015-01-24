@@ -81,7 +81,7 @@ sub extract_html
 
     foreach my $html ( @$ret )
     {
-        utf8::upgrade( $html );
+        utf8::decode( $html );
     }
 
     return $ret;
