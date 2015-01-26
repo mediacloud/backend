@@ -130,7 +130,7 @@
         <table><tr><td bgcolor="#ffffff">
             [% IF query_slices.size > 0 %]
                 [% FOREACH qs IN query_slices %]
-                    <a href="[% c.uri_for( '/admin/cm/view_query_slice/' _ qs.controversy_query_slices_id ) | html %]">[% qs.name | html %]</a><br />
+                    <a href="[% c.uri_for( '/admin/cm/view/' _ controversy.controversies_id, { qs => qs.controversy_query_slices_id } ) | html %]">[% qs.name | html %]</a><br />
                 [% END %]
             [% ELSE %]
                 (no query slices added yet)<br />

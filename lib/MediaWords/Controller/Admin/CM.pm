@@ -243,23 +243,36 @@ END
 # with a tag_name field added
 sub _get_cdts_from_cd
 {
-    my ( $db, $cd ) = @_;
+    my ( $db, $cd, $qs_id ) = @_;
 
-    return $db->query( <<SQL, $cd->{ controversy_dumps_id } )->hashes;
+    my $qs_clause = ( $qs_id ) ? "controversy_query_slices_id = $qs_id" : 'controversy_query_slices_id is null';
+
+    my $cdtss = $db->query( <<SQL, $cd->{ controversy_dumps_id } )->hashes;
 select cdts.*, coalesce( t.tag, '(all stories/no tag)' ) tag_name
     from 
         controversy_dump_time_slices cdts
         left join tags t on ( cdts.tags_id = t.tags_id )
     where 
         controversy_dumps_id = ? and
-        controversy_query_slices_id is null
+        $qs_clause
     order by cdts.tags_id desc, period, start_date, end_date
 SQL
+
+    if ( $qs_id )
+    {
+        my $qs = $db->find_by_id( 'controversy_query_slices', $qs_id );
+        map { $_->{ controversy_query_slice } = $qs } @{ $cdtss };
+    }
+
+    return $cdtss;
+
 }
 
+# get the latest full dump (dump with all periods) and add time slices to it
+# under the controversy_dump_time_slices field
 sub get_latest_full_dump_with_time_slices
 {
-    my ( $db, $controversy_dumps, $controversy ) = @_;
+    my ( $db, $controversy_dumps, $controversy, $qs_id ) = @_;
 
     my $latest_full_dump;
     for my $cd ( @{ $controversy_dumps } )
@@ -273,7 +286,7 @@ sub get_latest_full_dump_with_time_slices
 
     return unless ( $latest_full_dump );
 
-    my $controversy_dump_time_slices = _get_cdts_from_cd( $db, $latest_full_dump );
+    my $controversy_dump_time_slices = _get_cdts_from_cd( $db, $latest_full_dump, $qs_id );
 
     map { _add_cdts_model_reliability( $db, $_ ) } @{ $controversy_dump_time_slices };
 
@@ -305,28 +318,42 @@ select iteration, count(*) count
 END
 
     return { queued_urls => $queued_urls, stories_by_iteration => $stories_by_iteration };
-
 }
 
-# view the details of a single controversy
-sub view : Local
+# get the controversy dumps associated with the given controversy and optional query slice.  attach
+# periods label to each dump.
+sub _get_controversy_dumps_with_periods
 {
-    my ( $self, $c, $controversies_id ) = @_;
+    my ( $db, $controversy, $query_slices_id ) = @_;
 
-    my $db = $c->dbis;
+    my $query_slice_clause = '';
+    if ( $query_slices_id )
+    {
+        $query_slice_clause = <<SQL
+and exists (
+    select 1 from controversy_dump_time_slices cdts
+    where cdts.controversy_query_slices_id = $query_slices_id and 
+        cdts.controversy_dumps_id = cd.controversy_dumps_id
+)
+SQL
+    }
 
-    my $controversy = $db->query( <<END, $controversies_id )->hash;
-select * from controversies_with_dates where controversies_id = ?
-END
-
-    my $controversy_dumps = $db->query( <<END, $controversy->{ controversies_id } )->hashes;
-select * from controversy_dumps where controversies_id = ?
-    order by controversy_dumps_id desc
-END
+    my $controversy_dumps = $db->query( <<SQL, $controversy->{ controversies_id } )->hashes;
+select * 
+from controversy_dumps cd
+where cd.controversies_id = ? $query_slice_clause
+order by controversy_dumps_id desc
+SQL
 
     map { add_periods_to_controversy_dump( $db, $_ ) } @{ $controversy_dumps };
 
-    my $latest_full_dump = get_latest_full_dump_with_time_slices( $db, $controversy_dumps, $controversy );
+    return $controversy_dumps;
+}
+
+# get a list of the latest activities
+sub _get_latest_activities
+{
+    my ( $db, $controversies_id ) = @_;
 
     # Latest activities
     my Readonly $LATEST_ACTIVITIES_COUNT = 20;
@@ -335,43 +362,66 @@ END
     my $sql_latest_activities =
       MediaWords::DBI::Activities::sql_activities_which_reference_column( 'controversies.controversies_id',
         $controversies_id );
+
     $sql_latest_activities .= ' LIMIT ?';
 
-    my $latest_activities = $db->query( $sql_latest_activities, $LATEST_ACTIVITIES_COUNT )->hashes;
+    my $activities = $db->query( $sql_latest_activities, $LATEST_ACTIVITIES_COUNT )->hashes;
 
-    # FIXME put activity preparation (JSON decoding, description fetching) into
-    # a subroutine in order to not repeat oneself.
-    for ( my $x = 0 ; $x < scalar @{ $latest_activities } ; ++$x )
-    {
-        my $activity = $latest_activities->[ $x ];
+    # get activity descriptions
+    map { $_->{ activity } = MediaWords::DBI::Activities::activity( $_->{ name } ) } @{ $activities };
 
-        # Get activity description
-        $activity->{ activity } = MediaWords::DBI::Activities::activity( $activity->{ name } );
+    return $activities;
+}
 
-        $latest_activities->[ $x ] = $activity;
-    }
+# return hash with bitly_processed_is_enabled, bitly_total_stories, bitly_unprocessed_stories fields.
+sub _get_bitly_status
+{
+    my ( $db, $controversy ) = @_;
 
-    # Bit.ly
     my $bitly_processing_is_enabled = MediaWords::Util::Bitly::bitly_processing_is_enabled();
-    if ( $bitly_processing_is_enabled and $controversy->{ process_with_bitly } )
+
+    if ( !( $bitly_processing_is_enabled and $controversy->{ process_with_bitly } ) )
     {
-
-        my $controversies_id = $controversy->{ controversies_id };
-
-        my ( $bitly_total_stories ) = $db->query(
-            <<EOF,
-            SELECT COUNT(stories_id) AS total_stories
-            FROM controversy_stories
-            WHERE controversies_id = ?
-EOF
-            $controversies_id
-        )->flat;
-        $c->stash->{ bitly_total_stories } = $bitly_total_stories;
-
-        my $bitly_unprocessed_stories =
-          MediaWords::Util::Bitly::num_controversy_stories_without_bitly_statistics( $db, $controversies_id );
-        $c->stash->{ bitly_unprocessed_stories } = $bitly_unprocessed_stories;
+        return { bitly_processed_is_enabled => 0, bitly_total_stories => 0, bitly_unprocessed_stories => 0 };
     }
+
+    my $controversies_id = $controversy->{ controversies_id };
+
+    my ( $total_stories ) = $db->query( <<SQL, $controversies_id )->flat;
+SELECT COUNT(stories_id) AS total_stories 
+FROM controversy_stories
+WHERE controversies_id = ?
+SQL
+
+    my $unprocessed_stories =
+      MediaWords::Util::Bitly::num_controversy_stories_without_bitly_statistics( $db, $controversies_id );
+
+    return {
+        bitly_processing_is_enabled => 1,
+        bitly_total_stories         => $total_stories,
+        bitly_unprocessed_stories   => $unprocessed_stories
+    };
+}
+
+# view the details of a single controversy
+sub view : Local
+{
+    my ( $self, $c, $controversies_id ) = @_;
+
+    my $query_slices_id = $c->req->params->{ qs };
+
+    my $db = $c->dbis;
+
+    my $controversy = $db->query( <<END, $controversies_id )->hash;
+select * from controversies_with_dates where controversies_id = ?
+END
+
+    my $controversy_dumps = _get_controversy_dumps_with_periods( $db, $controversy, $query_slices_id );
+    my $latest_full_dump = get_latest_full_dump_with_time_slices( $db, $controversy_dumps, $controversy, $query_slices_id );
+
+    my $latest_activities = _get_latest_activities( $db, $controversies_id );
+
+    my $bitly_status = _get_bitly_status( $db, $controversy );
 
     my $mining_status = _get_mining_status( $db, $controversy );
 
@@ -383,7 +433,9 @@ SQL
     $c->stash->{ controversy_dumps }           = $controversy_dumps;
     $c->stash->{ latest_full_dump }            = $latest_full_dump;
     $c->stash->{ latest_activities }           = $latest_activities;
-    $c->stash->{ bitly_processing_is_enabled } = $bitly_processing_is_enabled;
+    $c->stash->{ bitly_processing_is_enabled } = $bitly_status->{ bitly_processing_is_enabled };
+    $c->stash->{ bitly_total_stories }         = $bitly_status->{ bitly_total_stories };
+    $c->stash->{ bitly_unprocessed_stories }   = $bitly_status->{ bitly_unprocessed_stories };
     $c->stash->{ mining_status }               = $mining_status;
     $c->stash->{ query_slices }                = $query_slices;
     $c->stash->{ template }                    = 'cm/view.tt2';

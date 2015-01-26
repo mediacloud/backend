@@ -6,6 +6,12 @@
 
 [% controversy_link = '<a href="' _ c.uri_for( "/admin/cm/view/" _ controversy.controversies_id ) _ '">' _ HTML.escape( controversy.name ) _ '</a>' %]
 
+[% IF cdts.controversy_query_slice %]
+    [% query_slice_link = '&gt; <a href="' _ c.uri_for( "/admin/cm/view/" _ controversy.controversies_id, { qs => cdts.controversy_query_slice.controversy_query_slices_id } ) _ '">' _ HTML.escape( cdts.controversy_query_slice.name ) _ '</a>'%]
+[% ELSE %]
+    [% query_slice_link = ''%]
+[% END %]
+
 [% IF live %]
     [% dump_link = '&gt; <a href="' _ c.uri_for( "/admin/cm/view/" _ controversy.controversies_id ) _ '">Live</a>' %]
 [% ELSIF controversy_dump %]
