@@ -1,26 +1,8 @@
-[% PROCESS cm/header.tt2 title=controversy.name %]
+[% PROCESS cm/header.tt2 title="Home"%]
    
 <div id="wholecolumn" class="clearfix">
 
-    [% IF mining_status AND !latest_full_dump %]
-        [% SET ms = mining_status %]
-        <fieldset>
-            <p>
-            Mining for this controversy is currently in process.  There are [% ms.queued_urls %] urls queued
-            for spidering, but this number may increase as new urls are discovered while mining those urls.
-            </p>
-            <p>
-            The spider has found the following number of stories by spider iteration.  The spider runs until it
-            finds now more new urls or for 15 iterations, whichever comes first.
-            </p>
-            <table class="even_rows_grey" >
-                <tr><th>iteration</th><th>stories</th></tr>
-                [% FOREACH iteration IN ms.stories_by_iteration %]
-                    <tr><td>[% iteration.iteration %]</td><td>[% iteration.count %]</td></th>
-                [% END %]
-            </table>
-        </fieldset>
-    [% ELSIF !controversy.solr_seed_query_run %]
+    [% IF !controversy.solr_seed_query_run %]
         <fieldset>
             The solr seed query has been changed since it has been run last.  Run a 'mine controversy' job to
             add stories from the new query.
@@ -86,7 +68,7 @@
 
                 <tr>
 
-                    <td><a href="[% c.uri_for( '/admin/cm/view_dump/' _ cd.controversy_dumps_id )%]">[% datetime.format( cd.dump_date ) %]</a></td>
+                    <td><a href="[% c.uri_for( '/admin/cm/view_dump/' _ cd.controversy_dumps_id, { qs => query_slices_id } )%]">[% datetime.format( cd.dump_date ) %]</a></td>
 
                     <td>[% date.format( cd.start_date ) %]</td>
 
@@ -132,15 +114,27 @@
                 [% FOREACH qs IN query_slices %]
                     <a href="[% c.uri_for( '/admin/cm/view/' _ controversy.controversies_id, { qs => qs.controversy_query_slices_id } ) | html %]">[% qs.name | html %]</a><br />
                 [% END %]
-            [% ELSE %]
-                (no query slices added yet)<br />
             [% END %]
-            
+            <a href="[% c.uri_for( '/admin/cm/view/' _ controversy.controversies_id ) | html %]">(all stories)</a><br />
         </td></tr></table>
 
+        [% IF mining_status.queued_urls %]
+            [% SET ms = mining_status %]
+            <div class="boxtitle">Mining Status</a>
+            <table class="even_rows_grey" >
+                <tr><th>iteration</th><th>stories</th></tr>
+                [% FOREACH iteration IN ms.stories_by_iteration %]
+                    <tr><td>[% iteration.iteration %]</td><td>[% iteration.count %]</td></th>
+                [% END %]
+                <tr><td colspan=2>[% ms.queued_urls %] urls queued</td></tr>
+            </table>
+        [% END %]
+        
         [% INCLUDE cm/include/latest_activities.tt2
                    activities=latest_activities
                    controversy=controversy %]
+        
+        
 
     </div>
 

@@ -258,12 +258,6 @@ select cdts.*, coalesce( t.tag, '(all stories/no tag)' ) tag_name
     order by cdts.tags_id desc, period, start_date, end_date
 SQL
 
-    if ( $qs_id )
-    {
-        my $qs = $db->find_by_id( 'controversy_query_slices', $qs_id );
-        map { $_->{ controversy_query_slice } = $qs } @{ $cdtss };
-    }
-
     return $cdtss;
 
 }
@@ -273,6 +267,14 @@ SQL
 sub get_latest_full_dump_with_time_slices
 {
     my ( $db, $controversy_dumps, $controversy, $qs_id ) = @_;
+
+    # refetch controversy dumps allowing for shell only dumps, because we are using this
+    # function to return the latest dump to return a list of time slices to use as
+    # live time slices
+    if ( !@{ $controversy_dumps } )
+    {
+        $controversy_dumps = _get_controversy_dumps_with_periods( $db, $controversy, $qs_id, 1 );
+    }
 
     my $latest_full_dump;
     for my $cd ( @{ $controversy_dumps } )
@@ -307,7 +309,7 @@ sub _get_mining_status
 select count(*) from controversy_links where controversies_id = ? and ref_stories_id is null
 END
 
-    return undef unless ( $queued_urls );
+    return { queued_urls => $queued_urls } unless ( $queued_urls );
 
     my $stories_by_iteration = $db->query( <<END, $cid )->hashes;
 select iteration, count(*) count
@@ -324,16 +326,17 @@ END
 # periods label to each dump.
 sub _get_controversy_dumps_with_periods
 {
-    my ( $db, $controversy, $query_slices_id ) = @_;
+    my ( $db, $controversy, $query_slices_id, $allow_shell ) = @_;
 
     my $query_slice_clause = '';
     if ( $query_slices_id )
     {
+        my $shell_clause = $allow_shell ? '' : 'and not cdts.is_shell';
         $query_slice_clause = <<SQL
 and exists (
     select 1 from controversy_dump_time_slices cdts
     where cdts.controversy_query_slices_id = $query_slices_id and 
-        cdts.controversy_dumps_id = cd.controversy_dumps_id
+        cdts.controversy_dumps_id = cd.controversy_dumps_id $shell_clause
 )
 SQL
     }
@@ -403,6 +406,24 @@ SQL
     };
 }
 
+# get the controversy with the given id, attach the controversy_query_slice associated with
+# the query_slices_id, if any
+sub _get_controversy_with_query_slice
+{
+    my ( $db, $controversies_id, $query_slices_id ) = @_;
+
+    my $controversy = $db->query( <<END, $controversies_id )->hash;
+select * from controversies_with_dates where controversies_id = ?
+END
+
+    if ( $query_slices_id )
+    {
+        $controversy->{ controversy_query_slice } = $db->find_by_id( 'controversy_query_slices', $query_slices_id );
+    }
+
+    return $controversy;
+}
+
 # view the details of a single controversy
 sub view : Local
 {
@@ -412,9 +433,7 @@ sub view : Local
 
     my $db = $c->dbis;
 
-    my $controversy = $db->query( <<END, $controversies_id )->hash;
-select * from controversies_with_dates where controversies_id = ?
-END
+    my $controversy = _get_controversy_with_query_slice( $db, $controversies_id, $query_slices_id );
 
     my $controversy_dumps = _get_controversy_dumps_with_periods( $db, $controversy, $query_slices_id );
     my $latest_full_dump = get_latest_full_dump_with_time_slices( $db, $controversy_dumps, $controversy, $query_slices_id );
@@ -437,6 +456,7 @@ SQL
     $c->stash->{ bitly_total_stories }         = $bitly_status->{ bitly_total_stories };
     $c->stash->{ bitly_unprocessed_stories }   = $bitly_status->{ bitly_unprocessed_stories };
     $c->stash->{ mining_status }               = $mining_status;
+    $c->stash->{ query_slices_id }             = $query_slices_id;
     $c->stash->{ query_slices }                = $query_slices;
     $c->stash->{ template }                    = 'cm/view.tt2';
 }
@@ -461,14 +481,17 @@ sub view_dump : Local
 {
     my ( $self, $c, $controversy_dumps_id ) = @_;
 
+    my $query_slices_id = $c->req->params->{ qs };
+
     my $db = $c->dbis;
 
     my $controversy_dump = $db->query( <<END, $controversy_dumps_id )->hash;
 select * from controversy_dumps where controversy_dumps_id = ?
 END
-    my $controversy = $db->find_by_id( 'controversies', $controversy_dump->{ controversies_id } );
 
-    my $controversy_dump_time_slices = _get_cdts_from_cd( $db, $controversy_dump );
+    my $controversy = _get_controversy_with_query_slice( $db, $controversy_dump->{ controversies_id }, $query_slices_id );
+
+    my $controversy_dump_time_slices = _get_cdts_from_cd( $db, $controversy_dump, $query_slices_id );
 
     map { _add_cdts_model_reliability( $db, $_ ) } @{ $controversy_dump_time_slices };
 
@@ -804,6 +827,13 @@ sub _get_controversy_objects
     my $controversy = $db->query( <<END, $cd->{ controversies_id } )->hash;
 select * from controversies_with_dates where controversies_id = ?
 END
+
+    if ( my $qs_id = $cdts->{ controversy_query_slices_id } )
+    {
+        $cdts->{ controversy_query_slice }        = $db->find_by_id( 'controversy_query_slices', $qs_id );
+        $cd->{ controversy_query_slice }          = $cdts->{ controversy_query_slice };
+        $controversy->{ controversy_query_slice } = $cdts->{ controversy_query_slice };
+    }
 
     # add shortcut field names to make it easier to refer to in tt2
     $cdts->{ cdts_id }          = $cdts->{ controversy_dump_time_slices_id };
