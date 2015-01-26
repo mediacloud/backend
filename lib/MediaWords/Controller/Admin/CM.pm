@@ -3134,14 +3134,14 @@ END
 
     for my $cdts ( @{ $cdtss } )
     {
-        delete( $cdts->{ controversy_dump_time_slices_id } );
-        delete( $cdts->{ model_reliability } );
-        delete( $cdts->{ tag_name } );
+        my $qs_cdts = {};
+        map { $qs_cdts->{ $_ } = $cdts->{ $_ } } qw(controversy_dumps_id start_date end_date period);
+        map { $qs_cdts->{ $_ } = -1 } qw(story_count story_link_count medium_count medium_link_count);
 
-        $cdts->{ controversy_query_slices_id } = $cqs->{ controversy_query_slices_id };
-        $cdts->{ is_shell }                    = 1;
+        $qs_cdts->{ controversy_query_slices_id } = $cqs->{ controversy_query_slices_id };
+        $qs_cdts->{ is_shell }                    = 1;
 
-        $db->create( 'controversy_dump_time_slices', $cdts );
+        $db->create( 'controversy_dump_time_slices', $qs_cdts );
     }
 }
 
