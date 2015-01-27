@@ -174,7 +174,7 @@ else
 
             # Try to download and install
             CLDTEMPDIR=`mktemp -d -t cldXXXXX`
-            wget -O "$CLDTEMPDIR/cld.deb" "$CLD_URL_DEBIAN"
+            wget --quiet -O "$CLDTEMPDIR/cld.deb" "$CLD_URL_DEBIAN"
             sudo dpkg -i "$CLDTEMPDIR/cld.deb"
             rm -rf "$CLDTEMPDIR"
 
@@ -193,7 +193,7 @@ else
 
             # Try to download and install
             VAGRANTTEMPDIR=`mktemp -d -t vagrantXXXXX`
-            wget -O "$VAGRANTTEMPDIR/vagrant.deb" "$VAGRANT_URL_DEBIAN"
+            wget --quiet -O "$VAGRANTTEMPDIR/vagrant.deb" "$VAGRANT_URL_DEBIAN"
             sudo dpkg -i "$VAGRANTTEMPDIR/vagrant.deb"
             rm -rf "$VAGRANTTEMPDIR"
 
