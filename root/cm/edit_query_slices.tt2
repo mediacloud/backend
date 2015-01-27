@@ -1,0 +1,42 @@
+[% INCLUDE cm/header.tt2 title = "CM: Edit Query Slices for ${ controversy.name }" %]
+
+<div id="boxtitle">Edit Query Slices</a>
+<div id="wholecolumn">
+    <fieldset>
+        <p>
+            Use this page to add or remove query slices for a controversy.  A query slice is a way of viewing a controversy
+            as only those stories belonging to the controversy that also match some solr query.  Unlike merely searching
+            within a controversy, a query slice generates all metrics, analysis, maps, etc as if the controversy
+            consists only of stories matching that query.
+        </p>
+    </fieldset>
+</div>
+
+<div id="wholecolumn">
+    <div id="boxtitle">
+        Query Slices
+        <a id="boxcommand" href="[% c.uri_for( "/admin/cm/add_query_slice/$controversy.controversies_id" ) | html %]">Add Query Slice</a>
+    </div>
+    <table class="even_rows_grey">
+        <tr>
+            <th>Name</th>
+            <th>Query</th>
+            <th>All Time Slices</th>
+            <th>Edit</th>
+            <th>Delete</th>
+        </tr>
+        [% FOREACH qs IN query_slices %]
+            [% SET delete_url = c.uri_for( "/admin/cm/delete_query_slice/$qs.controversy_query_slices_id" ) %]
+            [% SET edit_url = c.uri_for( "/admin/cm/edit_query_slice/$qs.controversy_query_slices_id" ) %]
+            <tr>
+                <td>[% qs.name | html %]</td>
+                <td>[% qs.query | html %]</td>
+                <td>[% qs.all_time_slices | html %]</td>
+                <td><a href="[% edit_url | html %]">edit</a></td>
+                <td><a href="[% delete_url | html %]">delete</a></td>
+            </tr>
+        [% END %]
+    </table>
+</div>
+
+[% INCLUDE include/footer.tt2 %]

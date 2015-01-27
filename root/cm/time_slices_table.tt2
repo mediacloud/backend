@@ -24,16 +24,15 @@ Time Slices
         [% cdts_url = c.uri_for( '/admin/cm/view_time_slice/' _ cdts.controversy_dump_time_slices_id, { l => live_periods } ) %]
 
         <tr>
-
             <td><a href="[% cdts_url | html %]">[% cdts.period | html %]</a></td>
             <td>[% cdts.tag_name | truncate( 32 ) | html %]</td>
             <td>[% date.format( cdts.start_date ) %] - [% date.format( cdts.end_date ) %]</td>
             <td>[% INCLUDE cm/model_reliability.tt2 %]</td>
             <td>[% cdts.model_num_media %]</td>
-            <td>[% cdts.story_count | html %]</td>
-            <td>[% cdts.story_link_count | html %]</td>
-            <td>[% cdts.medium_count | html %]</td>
-            <td>[% cdts.medium_link_count | html %]</td>
+            <td>[% IF cdts.story_count > -1 %][% cdts.story_count %][% ELSE %]NA[% END %]</td>
+            <td>[% IF cdts.story_link_count > -1 %][% cdts.story_link_count %][% ELSE %]NA[% END %]</td>
+            <td>[% IF cdts.medium_count > -1 %][% cdts.medium_count %][% ELSE %]NA[% END %]</td>
+            <td>[% IF cdts.medium_link_count > -1 %][% cdts.medium_link_count %][% ELSE %]NA[% END %]</td>
         </tr>
 
     [% END # FOREACH stories -%]

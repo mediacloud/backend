@@ -47,7 +47,7 @@
     [% END %]
 [% ELSE %]
 
-<tr><td colspan=6>(no media found)</td></tr>
+<tr><td colspan=9>(no media found)</td></tr>
 
 [% END %]
 

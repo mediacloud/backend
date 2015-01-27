@@ -89,19 +89,6 @@ sub setup_acl()
       /admin/media/media_tags_search_json
       /admin/media/search
       /admin/mediasets/list
-      /admin/monitor/crawler_google_data_table
-      /admin/monitor/index
-      /admin/monitor/view
-      /admin/queries/compare
-      /admin/queries/index
-      /admin/queries/list
-      /admin/queries/sentences
-      /admin/queries/stories
-      /admin/queries/terms
-      /admin/queries/view
-      /admin/queries/view_media
-      /admin/stats/index
-      /admin/stats/media_tag_counts
       /admin/stories/list
       /admin/stories/retag
       /admin/stories/stories_query_json
@@ -110,7 +97,6 @@ sub setup_acl()
       /admin/topics/index
       /admin/topics/list
       /admin/users/list
-      /admin/visualize
       |;
 
     # query-create role; can do everything admin-readonly can + create queries, dashboards,
@@ -124,7 +110,6 @@ sub setup_acl()
       /admin/mediasets/create
       /admin/mediasets/edit_cluster_run
       /admin/mediasets/edit_cluster_run_do
-      /admin/queries/create
       /admin/topics/create_do
       |;
 
@@ -255,14 +240,10 @@ sub setup_acl()
     __PACKAGE__->deny_access_unless_any( "/search", [ qw/admin/ ] );
 
     # Public interface
-    __PACKAGE__->allow_access( "/dashboard" );
     __PACKAGE__->allow_access( "/login" );
     __PACKAGE__->allow_access( "/logout" );
 
     # we need to protect this with .htaccess until we can implement an easy to login via the api
-    __PACKAGE__->allow_access( "/admin/query/sentences" );
-    __PACKAGE__->allow_access( "/admin/query/wc" );
-
     __PACKAGE__->allow_access( "/admin/stop_server" );
 
 }
