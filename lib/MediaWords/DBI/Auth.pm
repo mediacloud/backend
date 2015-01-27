@@ -601,6 +601,7 @@ sub all_users($)
             auth_users.email,
             auth_users.full_name,
             auth_users.notes,
+            auth_users.non_public_api,
             auth_users.active,
 
             -- Role from a list of all roles
@@ -630,11 +631,12 @@ EOF
     for my $user ( @{ $users } )
     {
         my $auth_users_id = $user->{ auth_users_id } + 0;
-        $unique_users->{ $auth_users_id }->{ 'auth_users_id' } = $auth_users_id;
-        $unique_users->{ $auth_users_id }->{ 'email' }         = $user->{ email };
-        $unique_users->{ $auth_users_id }->{ 'full_name' }     = $user->{ full_name };
-        $unique_users->{ $auth_users_id }->{ 'notes' }         = $user->{ notes };
-        $unique_users->{ $auth_users_id }->{ 'active' }        = $user->{ active };
+        $unique_users->{ $auth_users_id }->{ 'auth_users_id' }  = $auth_users_id;
+        $unique_users->{ $auth_users_id }->{ 'email' }          = $user->{ email };
+        $unique_users->{ $auth_users_id }->{ 'full_name' }      = $user->{ full_name };
+        $unique_users->{ $auth_users_id }->{ 'notes' }          = $user->{ notes };
+        $unique_users->{ $auth_users_id }->{ 'active' }         = $user->{ active };
+        $unique_users->{ $auth_users_id }->{ 'non_public_api' } = $user->{ non_public_api };
 
         if ( !ref( $unique_users->{ $auth_users_id }->{ 'roles' } ) eq 'HASH' )
         {
