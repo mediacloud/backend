@@ -87,6 +87,13 @@ sub is_homepage_url($)
         return 0;
     }
 
+    # If we still have something for a query of the URL after the
+    # normalization, always assume that the URL is *not* a homepage
+    if ( defined $uri->query and $uri->query . '' )
+    {
+        return 0;
+    }
+
     my $uri_path = $uri->path;
     foreach my $homepage_url_path_regex ( @HOMEPAGE_URL_PATH_REGEXES )
     {
