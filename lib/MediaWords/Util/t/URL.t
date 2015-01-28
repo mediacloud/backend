@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 114;
+use Test::More tests => 118;
 
 use Readonly;
 use HTTP::HashServer;
@@ -198,6 +198,14 @@ sub test_normalize_url()
 'http://www.adelaidenow.com.au/news/south-australia/sa-court-told-prominent-adelaide-businessman-yasser-shahin-was-assaulted-by-police-officer-norman-hoy-in-september-2010-traffic-stop/story-fni6uo1m-1227184460050',
         'normalize_url() - "nk" parameter'
     );
+}
+
+sub test_is_shortened_url()
+{
+    ok( !MediaWords::Util::URL::is_shortened_url( undef ),              'is_shortened_url() - undef' );
+    ok( !MediaWords::Util::URL::is_shortened_url( 'http://bit.ly' ),    'is_shortened_url() - homepage without slash' );
+    ok( !MediaWords::Util::URL::is_shortened_url( 'http://bit.ly/' ),   'is_shortened_url() - homepage with slash' );
+    ok( MediaWords::Util::URL::is_shortened_url( 'http://bit.ly/abc' ), 'is_shortened_url() - shortened URL' );
 }
 
 sub test_normalize_url_lossy()
@@ -942,6 +950,7 @@ sub main()
 
     test_is_http_url();
     test_is_homepage_url();
+    test_is_shortened_url();
     test_normalize_url();
     test_normalize_url_lossy();
     test_get_url_domain();
