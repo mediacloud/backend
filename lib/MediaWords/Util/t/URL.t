@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 118;
+use Test::More tests => 119;
 
 use Readonly;
 use HTTP::HashServer;
@@ -67,6 +67,10 @@ sub test_is_homepage_url()
     ok(
         !MediaWords::Util::URL::is_homepage_url( 'https://bit.ly/1uSjCJp' ),
         'is_homepage_url() - Bit.ly shortened URL (path has a number)'
+    );
+    ok(
+        !MediaWords::Util::URL::is_homepage_url( 'https://bit.ly/defghi' ),
+        'is_homepage_url() - Bit.ly shortened URL (path does not have a number, but the host is in the URL shorteners list)'
     );
     ok( !MediaWords::Util::URL::is_homepage_url( 'https://i.imgur.com/gbu5YNM.jpg' ), 'is_homepage_url() - link to JPG' );
 

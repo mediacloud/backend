@@ -530,6 +530,13 @@ sub is_homepage_url($)
         return 0;
     }
 
+    # The shortened URL may lead to a homepage URL, but the shortened URL
+    # itself is not a homepage URL
+    if ( is_shortened_url( $url ) )
+    {
+        return 0;
+    }
+
     # If we still have something for a query of the URL after the
     # normalization, always assume that the URL is *not* a homepage
     if ( defined $uri->query and $uri->query . '' )
