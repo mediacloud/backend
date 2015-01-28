@@ -29,7 +29,7 @@ END
     my $new_users = $db->query( <<END )->hashes;
 select * 
     from auth_users
-    where date_trunc( 'day', created_date ) > date_trunc( 'day', now() - interval '1 day' )
+    where date_trunc( 'day', created_date ) >= date_trunc( 'day', now() - interval '1 day' )
     order by created_date
 END
 
