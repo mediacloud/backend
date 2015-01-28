@@ -5,8 +5,10 @@ working_dir=`dirname $0`
 cd $working_dir
 
 set -e
-set -u
 set -o  errexit
+
+# Apparently Perlbrew's scripts contain a lot of uninitialized variables
+set +u
 
 if [ `getconf LONG_BIT` != '64' ]; then
     echo "Install failed, you must have a 64 bit OS."
@@ -17,9 +19,7 @@ echo "Installing Perlbrew..."
 curl -LsS http://install.perlbrew.pl | bash
 
 echo "Loading Perlbrew environment variables..."
-set +u
 source ~/perl5/perlbrew/etc/bashrc
-set -u
 
 echo "Running 'perlbrew init'..."
 perlbrew init
@@ -40,3 +40,6 @@ echo "Switching to 'mediacloud' library..."
 perlbrew switch perl-5.16.3@mediacloud
 
 echo "Done installing Perl with Perlbrew."
+
+# Set back to "fail on unitialized variables"
+set -u
