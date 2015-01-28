@@ -14,10 +14,23 @@ use MediaWords::Util::Web;
 use URI::Escape;
 use List::MoreUtils qw/uniq/;
 
+# Regular expressions for invalid "variants" of the resolved URL
 Readonly my @INVALID_URL_VARIANT_REGEXES => (
 
     # Twitter's "suspended" accounts
     qr#^https?://twitter.com/account/suspended#i,
+);
+
+# Regular expressions for URL's path that, when matched, mean that the URL is a
+# homepage URL
+Readonly my @HOMEPAGE_URL_PATH_REGEXES => (
+
+    # Empty path (e.g. http://www.nytimes.com)
+    qr#^$#i,
+
+    # Single slash (e.g. http://www.nytimes.com/)
+    qr#^/$#i,
+
 );
 
 # Returns true if URL is in the "http" ("https") scheme
@@ -66,14 +79,16 @@ sub is_homepage_url($)
         return 0;
     }
 
-    if ( $uri->path eq '/' or $uri->path eq '' )
+    my $uri_path = $uri->path;
+    foreach my $homepage_url_path_regex ( @HOMEPAGE_URL_PATH_REGEXES )
     {
-        return 1;
+        if ( $uri_path =~ $homepage_url_path_regex )
+        {
+            return 1;
+        }
     }
-    else
-    {
-        return 0;
-    }
+
+    return 0;
 }
 
 # Normalize URL:
