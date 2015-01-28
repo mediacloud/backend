@@ -72,6 +72,14 @@ sub is_homepage_url($)
         return 0;
     }
 
+    # Remove cruft from the URL first
+    eval { $url = normalize_url( $url ); };
+    if ( $@ )
+    {
+        # say STDERR "Unable to normalize URL '$url' before checking if it's a homepage: $@";
+        return 0;
+    }
+
     my $uri = URI->new( $url )->canonical;
     unless ( $uri->scheme )
     {
