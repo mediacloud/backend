@@ -28,8 +28,8 @@ Readonly my @HOMEPAGE_URL_PATH_REGEXES => (
     # Empty path (e.g. http://www.nytimes.com)
     qr#^$#i,
 
-    # Single slash (e.g. http://www.nytimes.com/)
-    qr#^/$#i,
+    # One or more slash (e.g. http://www.nytimes.com/, http://m.wired.com///)
+    qr#^/+$#i,
 
 );
 

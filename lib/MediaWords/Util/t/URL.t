@@ -53,9 +53,10 @@ sub test_is_homepage_url()
     ok( !MediaWords::Util::URL::is_homepage_url( 'http://m.wired.com/threatlevel/2011/12/sopa-watered-down-amendment/' ),
         'is_homepage_url() - Wired article' );
 
-    # Technically, server is not required to normalize "///" path into "/"
-    ok( !MediaWords::Util::URL::is_homepage_url( 'http://www.wired.com///' ), 'is_homepage_url() - Wired "///"' );
-    ok( !MediaWords::Util::URL::is_homepage_url( 'http://m.wired.com///' ),   'is_homepage_url() - m.Wired "///"' );
+    # Technically, server is not required to normalize "///" path into "/", but
+    # most of them do anyway
+    ok( MediaWords::Util::URL::is_homepage_url( 'http://www.wired.com///' ), 'is_homepage_url() - Wired "///"' );
+    ok( MediaWords::Util::URL::is_homepage_url( 'http://m.wired.com///' ),   'is_homepage_url() - m.Wired "///"' );
 }
 
 sub test_normalize_url()
