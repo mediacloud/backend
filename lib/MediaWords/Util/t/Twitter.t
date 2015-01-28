@@ -73,7 +73,7 @@ sub test_tweet_count($)
     my ( $db ) = @_;
 
     my $popular_page_count =
-      MediaWords::Util::Twitter::get_url_tweet_count( $db, 'https://dev.twitter.com/web/tweet-button' );
+      MediaWords::Util::Twitter::get_url_tweet_count( $db, 'https://twitter.com/theellenshow/status/440322224407314432' );
     ok( $popular_page_count > 900, "popular page count '$popular_page_count' should be big" );
 
     my $nyt_ferguson_count = MediaWords::Util::Twitter::get_url_tweet_count( $db,
