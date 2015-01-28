@@ -31,6 +31,21 @@ Readonly my @HOMEPAGE_URL_PATH_REGEXES => (
     # One or more slash (e.g. http://www.nytimes.com/, http://m.wired.com///)
     qr#^/+$#i,
 
+    # Limited number of either all-lowercase or all-uppercase (but not both)
+    # characters and no numbers, e.g.:
+    #
+    # * /en/,
+    # * /US
+    # * /global/,
+    # * /trends/explore
+    #
+    # but not:
+    #
+    # * /oKyFAMiZMbU
+    # * /1uSjCJp
+    qr#^[a-z/\-_]{1,18}/?$#,
+    qr#^[A-Z/\-_]{1,18}/?$#,
+
 );
 
 # Returns true if URL is in the "http" ("https") scheme

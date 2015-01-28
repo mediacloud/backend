@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 99;
+use Test::More tests => 114;
 
 use Readonly;
 use HTTP::HashServer;
@@ -51,12 +51,47 @@ sub test_is_homepage_url()
     ok( MediaWords::Util::URL::is_homepage_url( 'http://m.wired.com/#abc' ), 'is_homepage_url() - Wired "/#abc"' );
 
     ok( !MediaWords::Util::URL::is_homepage_url( 'http://m.wired.com/threatlevel/2011/12/sopa-watered-down-amendment/' ),
-        'is_homepage_url() - Wired article' );
+        'is_homepage_url() - Wired article (article identifier as path)' );
+    ok(
+        !MediaWords::Util::URL::is_homepage_url(
+'http://www.delfi.lt/news/daily/world/prancuzijoje-tukstanciai-pareigunu-sukuoja-apylinkes-blokuojami-keliai.d?id=66850094'
+        ),
+        'is_homepage_url() - DELFI article (article identifier as query parameter)'
+    );
+    ok( !MediaWords::Util::URL::is_homepage_url( 'http://bash.org/?244321' ),
+        'is_homepage_url() - Bash.org quote (path is empty, article identifier as query parameter)' );
+    ok(
+        !MediaWords::Util::URL::is_homepage_url( 'http://youtu.be/oKyFAMiZMbU' ),
+        'is_homepage_url() - YouTube shortened URL (path consists of letters with varying cases)'
+    );
+    ok(
+        !MediaWords::Util::URL::is_homepage_url( 'https://bit.ly/1uSjCJp' ),
+        'is_homepage_url() - Bit.ly shortened URL (path has a number)'
+    );
+    ok( !MediaWords::Util::URL::is_homepage_url( 'https://i.imgur.com/gbu5YNM.jpg' ), 'is_homepage_url() - link to JPG' );
 
     # Technically, server is not required to normalize "///" path into "/", but
     # most of them do anyway
     ok( MediaWords::Util::URL::is_homepage_url( 'http://www.wired.com///' ), 'is_homepage_url() - Wired "///"' );
     ok( MediaWords::Util::URL::is_homepage_url( 'http://m.wired.com///' ),   'is_homepage_url() - m.Wired "///"' );
+
+    # Smarter homepage identification ("/en/", "/news/", ...)
+    ok( MediaWords::Util::URL::is_homepage_url( 'http://www.latimes.com/entertainment/' ),
+        'is_homepage_url() - "/entertainment/"' );
+    ok( MediaWords::Util::URL::is_homepage_url( 'http://www.scidev.net/global/' ), 'is_homepage_url() - "/global/"' );
+    ok( MediaWords::Util::URL::is_homepage_url( 'http://abcnews.go.com/US' ),      'is_homepage_url() - "/US/"' );
+    ok( MediaWords::Util::URL::is_homepage_url( 'http://www.example.com/news/' ),  'is_homepage_url() - "/news/"' );
+    ok( MediaWords::Util::URL::is_homepage_url( 'http://www.france24.com/en/' ),   'is_homepage_url() - "/en/"' );
+    ok( MediaWords::Util::URL::is_homepage_url( 'http://www.france24.com/en/?altcast_code=0adb03a8a4' ),
+        'is_homepage_url() - "/en/" with "altcast_code"' );
+    ok( MediaWords::Util::URL::is_homepage_url( 'http://www.google.com/trends/explore' ),
+        'is_homepage_url() - "/trends/explore"' );
+    ok( MediaWords::Util::URL::is_homepage_url( 'http://www.google.com/trends/explore#q=Ebola' ),
+        'is_homepage_url() - "/trends/explore#q=Ebola"' );
+    ok( MediaWords::Util::URL::is_homepage_url( 'http://www.nytimes.com/pages/todayspaper/' ),
+        'is_homepage_url() - NYTimes bulletin board' );
+    ok( MediaWords::Util::URL::is_homepage_url( 'http://www.politico.com/playbook/' ),
+        'is_homepage_url() - Politico bulletin board' );
 }
 
 sub test_normalize_url()
