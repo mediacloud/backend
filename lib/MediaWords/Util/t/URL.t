@@ -25,38 +25,37 @@ BEGIN
 
 sub test_is_http_url()
 {
-    is( MediaWords::Util::URL::is_http_url( undef ), 0, 'is_http_url() - undef' );
-    is( MediaWords::Util::URL::is_http_url( 0 ),     0, 'is_http_url() - 0' );
-    is( MediaWords::Util::URL::is_http_url( '' ),    0, 'is_http_url() - empty string' );
+    ok( !MediaWords::Util::URL::is_http_url( undef ), 'is_http_url() - undef' );
+    ok( !MediaWords::Util::URL::is_http_url( 0 ),     'is_http_url() - 0' );
+    ok( !MediaWords::Util::URL::is_http_url( '' ),    'is_http_url() - empty string' );
 
-    is( MediaWords::Util::URL::is_http_url( 'abc' ), 0, 'is_http_url() - no scheme' );
+    ok( !MediaWords::Util::URL::is_http_url( 'abc' ), 'is_http_url() - no scheme' );
 
-    is( MediaWords::Util::URL::is_http_url( 'gopher://gopher.floodgap.com/0/v2/vstat' ), 0, 'is_http_url() - Gopher URL' );
-    is( MediaWords::Util::URL::is_http_url( 'ftp://ftp.freebsd.org/pub/FreeBSD/' ),      0, 'is_http_url() - FTP URL' );
+    ok( !MediaWords::Util::URL::is_http_url( 'gopher://gopher.floodgap.com/0/v2/vstat' ), 'is_http_url() - Gopher URL' );
+    ok( !MediaWords::Util::URL::is_http_url( 'ftp://ftp.freebsd.org/pub/FreeBSD/' ),      'is_http_url() - FTP URL' );
 
-    is( MediaWords::Util::URL::is_http_url( 'http://cyber.law.harvard.edu/about' ), 1, 'is_http_url() - HTTP URL' );
-    is( MediaWords::Util::URL::is_http_url( 'https://github.com/berkmancenter/mediacloud' ), 1,
-        'is_http_url() - HTTPS URL' );
+    ok( MediaWords::Util::URL::is_http_url( 'http://cyber.law.harvard.edu/about' ),          'is_http_url() - HTTP URL' );
+    ok( MediaWords::Util::URL::is_http_url( 'https://github.com/berkmancenter/mediacloud' ), 'is_http_url() - HTTPS URL' );
 }
 
 sub test_is_homepage_url()
 {
-    is( MediaWords::Util::URL::is_homepage_url( undef ), 0, 'is_homepage_url() - undef' );
-    is( MediaWords::Util::URL::is_homepage_url( 0 ),     0, 'is_homepage_url() - 0' );
-    is( MediaWords::Util::URL::is_homepage_url( '' ),    0, 'is_homepage_url() - empty string' );
+    ok( !MediaWords::Util::URL::is_homepage_url( undef ), 'is_homepage_url() - undef' );
+    ok( !MediaWords::Util::URL::is_homepage_url( 0 ),     'is_homepage_url() - 0' );
+    ok( !MediaWords::Util::URL::is_homepage_url( '' ),    'is_homepage_url() - empty string' );
 
-    is( MediaWords::Util::URL::is_homepage_url( 'abc' ), 0, 'is_homepage_url() - no scheme' );
+    ok( !MediaWords::Util::URL::is_homepage_url( 'abc' ), 'is_homepage_url() - no scheme' );
 
-    is( MediaWords::Util::URL::is_homepage_url( 'http://www.wired.com' ),    1, 'is_homepage_url() - Wired' );
-    is( MediaWords::Util::URL::is_homepage_url( 'http://www.wired.com/' ),   1, 'is_homepage_url() - Wired "/"' );
-    is( MediaWords::Util::URL::is_homepage_url( 'http://m.wired.com/#abc' ), 1, 'is_homepage_url() - Wired "/#abc"' );
+    ok( MediaWords::Util::URL::is_homepage_url( 'http://www.wired.com' ),    'is_homepage_url() - Wired' );
+    ok( MediaWords::Util::URL::is_homepage_url( 'http://www.wired.com/' ),   'is_homepage_url() - Wired "/"' );
+    ok( MediaWords::Util::URL::is_homepage_url( 'http://m.wired.com/#abc' ), 'is_homepage_url() - Wired "/#abc"' );
 
-    is( MediaWords::Util::URL::is_homepage_url( 'http://m.wired.com/threatlevel/2011/12/sopa-watered-down-amendment/' ),
-        0, 'is_homepage_url() - Wired article' );
+    ok( !MediaWords::Util::URL::is_homepage_url( 'http://m.wired.com/threatlevel/2011/12/sopa-watered-down-amendment/' ),
+        'is_homepage_url() - Wired article' );
 
     # Technically, server is not required to normalize "///" path into "/"
-    is( MediaWords::Util::URL::is_homepage_url( 'http://www.wired.com///' ), 0, 'is_homepage_url() - Wired "///"' );
-    is( MediaWords::Util::URL::is_homepage_url( 'http://m.wired.com///' ),   0, 'is_homepage_url() - m.Wired "///"' );
+    ok( !MediaWords::Util::URL::is_homepage_url( 'http://www.wired.com///' ), 'is_homepage_url() - Wired "///"' );
+    ok( !MediaWords::Util::URL::is_homepage_url( 'http://m.wired.com///' ),   'is_homepage_url() - m.Wired "///"' );
 }
 
 sub test_normalize_url()
