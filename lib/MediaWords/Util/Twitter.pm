@@ -153,15 +153,22 @@ sub _get_single_url_tweet_count
 {
     my ( $ua, $url ) = @_;
 
+    my $uri = URI->new( $url )->canonical;
+    unless ( $uri )
+    {
+        die "Unable to create URI object for URL: $url";
+    }
+
+    # Skip Google Search URLs
+    if ( $uri->host =~ /google\..{2,7}$/i and $uri->path =~ /^\/?webhp/i )
+    {
+        say STDERR "Skipping Google Search URL";
+        return 0;
+    }
+
     # Skip homepage URLs
     if ( MediaWords::Util::URL::is_homepage_url( $url ) )
     {
-        my $uri = URI->new( $url )->canonical;
-        unless ( $uri )
-        {
-            die "Unable to create URI object for URL: $url";
-        }
-
         # ...unless the #fragment part looks like a path because Twitter will
         # then accept those
         unless ( $uri->fragment and $uri->fragment =~ /^\// )

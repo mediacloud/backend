@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 56;
+use Test::More tests => 57;
 
 use MediaWords::Test::DB;
 
@@ -130,6 +130,10 @@ sub test_tweet_count($)
     my $google_trends_count =
       MediaWords::Util::Twitter::get_url_tweet_count( $db, 'http://www.google.com/trends/explore#q=net%20neutrality' );
     ok( $google_trends_count == 0, "Google Trends count '$google_trends_count' should be 0" );
+
+    my $google_search_count = MediaWords::Util::Twitter::get_url_tweet_count( $db,
+        'https://www.google.com/webhp?sourceid=chrome-instant&ion=1&espv=2&ie=UTF-8#pws=0&q=net+neutrality&tbm=nws' );
+    ok( $google_search_count == 0, "Google Search count '$google_search_count' should be 0" );
 
     eval { MediaWords::Util::Twitter::get_url_tweet_count( $db, 'totally.bogus.url.123456' ); };
     ok( $@, 'Bogus URL' );
