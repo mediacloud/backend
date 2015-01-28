@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 53;
+use Test::More tests => 55;
 
 use MediaWords::Test::DB;
 
@@ -122,6 +122,10 @@ sub test_tweet_count($)
     );
     ok( $google_feed_count > 600, "Google feed count '$google_feed_count' should be > 600" );
     ok( $google_feed_count < 800, "Google feed count '$google_feed_count' should be < 800" );
+
+    my $bbc_count = MediaWords::Util::Twitter::get_url_tweet_count( $db, 'http://www.bbc.co.uk/news/world-africa-19224159' );
+    ok( $bbc_count > 56000, "BBC count '$bbc_count' should be > 56000" );
+    ok( $bbc_count < 60000, "BBC count '$bbc_count' should be < 60000" );
 
     eval { MediaWords::Util::Twitter::get_url_tweet_count( $db, 'totally.bogus.url.123456' ); };
     ok( $@, 'Bogus URL' );
