@@ -24,6 +24,9 @@ Readonly my @URL_PATTERNS_WHICH_WONT_WORK => (
 
     # Gawker's feed URLs (e.g. http://feeds.gawker.com/~r/gizmodo/full/~3/qIhlxlB7gmw/foo-bar-baz-1234567890)
     qr#^https?://.+?\.gawker\.com/.*?~.+?#i,
+
+    # Google Search URLs
+    qr#^https?://.*?\.google\..{2,7}/(search|webhp).+?#i,
 );
 
 sub _get_single_url_json
@@ -127,13 +130,6 @@ sub _get_single_url_tweet_count
     unless ( $uri )
     {
         die "Unable to create URI object for URL: $url";
-    }
-
-    # Skip Google Search URLs
-    if ( $uri->host =~ /google\..{2,7}$/i and $uri->path =~ /^\/?webhp/i )
-    {
-        say STDERR "Skipping Google Search URL: $url";
-        return 0;
     }
 
     my $data = _get_single_url_json( $ua, $url );
