@@ -162,7 +162,7 @@ sub _get_single_url_tweet_count
     # Skip Google Search URLs
     if ( $uri->host =~ /google\..{2,7}$/i and $uri->path =~ /^\/?webhp/i )
     {
-        say STDERR "Skipping Google Search URL";
+        say STDERR "Skipping Google Search URL: $url";
         return 0;
     }
 
