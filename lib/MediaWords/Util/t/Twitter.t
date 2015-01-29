@@ -127,13 +127,16 @@ sub test_tweet_count($)
     ok( $bbc_count > 56000, "BBC count '$bbc_count' should be > 56000" );
     ok( $bbc_count < 60000, "BBC count '$bbc_count' should be < 60000" );
 
-    my $google_trends_count =
-      MediaWords::Util::Twitter::get_url_tweet_count( $db, 'http://www.google.com/trends/explore#q=net%20neutrality' );
-    ok( $google_trends_count == 0, "Google Trends count '$google_trends_count' should be 0" );
+    eval {
+        MediaWords::Util::Twitter::get_url_tweet_count( $db,
+            'https://www.google.com/webhp?sourceid=chrome-instant&ion=1&espv=2&ie=UTF-8#pws=0&q=net+neutrality&tbm=nws' );
+    };
+    ok( $@, 'Google Search URL' );
 
-    my $google_search_count = MediaWords::Util::Twitter::get_url_tweet_count( $db,
-        'https://www.google.com/webhp?sourceid=chrome-instant&ion=1&espv=2&ie=UTF-8#pws=0&q=net+neutrality&tbm=nws' );
-    ok( $google_search_count == 0, "Google Search count '$google_search_count' should be 0" );
+    eval {
+        MediaWords::Util::Twitter::get_url_tweet_count( $db, 'http://www.google.com/trends/explore#q=net%20neutrality' );
+    };
+    ok( $@, 'Google Trends URL' );
 
     eval { MediaWords::Util::Twitter::get_url_tweet_count( $db, 'totally.bogus.url.123456' ); };
     ok( $@, 'Bogus URL' );
