@@ -19,27 +19,12 @@ use MediaWords::Util::JSON;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 
-# Returns true if URL is one of Gawker's feed URLs
-# (e.g. http://feeds.gawker.com/~r/gizmodo/full/~3/qIhlxlB7gmw/foo-bar-baz-1234567890)
-sub _is_gawker_feed_url($)
-{
-    my $url = shift;
+# URL patterns for which we're sure we won't get correct results (so we won't even try)
+Readonly my @URL_PATTERNS_WHICH_WONT_WORK => (
 
-    my $uri = URI->new( $url )->canonical;
-    unless ( $uri )
-    {
-        die "Unable to create URI object for URL: $url";
-    }
-
-    if ( $uri->host =~ /\.gawker\.com$/i and $uri->path =~ /~/ )
-    {
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
-}
+    # Gawker's feed URLs (e.g. http://feeds.gawker.com/~r/gizmodo/full/~3/qIhlxlB7gmw/foo-bar-baz-1234567890)
+    qr#^https?://.+?\.gawker\.com/.*?~.+?#i,
+);
 
 sub _get_single_url_json
 {
@@ -58,28 +43,13 @@ sub _get_single_url_json
         die "Unable to create URI object for URL: $url";
     }
 
-    # die() on Gawker's feed URLs because they won't work anyway
-    if ( _is_gawker_feed_url( $url ) )
+    # Remove URLs that won't work anyway
+    foreach my $url_pattern_which_wont_work ( @URL_PATTERNS_WHICH_WONT_WORK )
     {
-        die <<"EOF";
-URL:
-
-    $url
-
-seems to be Gawker's feed URL (http://feeds.gawker.com/~r/<...>).
-
-Twitter's API seems to strip everything after the component with a tilde, e.g. URL:
-
-    http://feeds.gawker.com/~r/gizmodo/full/~3/qIhlxlB7gmw/foo-bar-baz-1234567890
-
-might become:
-
-    http://feeds.gawker.com/~r/
-
-Please resolve this URL to the destination article (consider using
-MediaWords::Util::URL::normalize_url()), and then try calling this subroutine
-with the normalized URL.
-EOF
+        if ( $url =~ $url_pattern_which_wont_work )
+        {
+            die "URL $url matches one of the patterns for URLs that won't work against Twitter API.";
+        }
     }
 
     # If there's no slash at the end of the URL, Twitter API will always add
@@ -181,12 +151,15 @@ sub get_url_tweet_count
 
     my $all_urls = [ MediaWords::Util::URL::all_url_variants( $db, $url ) ];
 
-    # Filter out Gawker feed URLs because they will get trimmed and  provide incorrect counts
-    $all_urls = [ grep { !_is_gawker_feed_url( $_ ) } @{ $all_urls } ];
+    # Filter out URLs which won't work anyway
+    foreach my $url_pattern_which_wont_work ( @URL_PATTERNS_WHICH_WONT_WORK )
+    {
+        $all_urls = [ grep { !/$url_pattern_which_wont_work/ } @{ $all_urls } ];
+    }
+
     if ( scalar @{ $all_urls } == 0 )
     {
-        die "After removing Gawker feed URLs, the list is empty " .
-          "(so that must mean that the redirect didn't work for the Gawker feed URL)";
+        die "After removing URLs which won't work, the list is empty";
     }
 
     my $ua = MediaWords::Util::Web::UserAgentDetermined();
