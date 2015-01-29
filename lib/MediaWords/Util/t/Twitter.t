@@ -84,7 +84,9 @@ sub test_tweet_count($)
         'http://cyber.law.harvard.edu/~lvaliukas/most-boring-blog-post.html' );
     ok( $zero_count == 0, "zero count '$zero_count' should be 0" );
 
-    my $homepage_count = MediaWords::Util::Twitter::get_url_tweet_count( $db, 'http://cyber.law.harvard.edu/' );
+    # URL that gets redirected to a homepage
+    my $homepage_count = MediaWords::Util::Twitter::get_url_tweet_count( $db,
+        'http://cyber.law.harvard.edu/~lvaliukas/redirect-to-homepage.html' );
     ok( $homepage_count == 0, "homepage count '$homepage_count' should be 0" );
 
     my $suspended_count =
