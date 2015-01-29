@@ -166,18 +166,6 @@ sub _get_single_url_tweet_count
         return 0;
     }
 
-    # Skip homepage URLs
-    if ( MediaWords::Util::URL::is_homepage_url( $url ) )
-    {
-        # ...unless the #fragment part looks like a path because Twitter will
-        # then accept those
-        unless ( $uri->fragment and $uri->fragment =~ /^\// )
-        {
-            say STDERR "URL is homepage: $url";
-            return 0;
-        }
-    }
-
     my $data = _get_single_url_json( $ua, $url );
 
     return $data->{ count };
