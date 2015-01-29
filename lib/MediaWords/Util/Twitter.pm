@@ -25,8 +25,11 @@ Readonly my @URL_PATTERNS_WHICH_WONT_WORK => (
     # Gawker's feed URLs (e.g. http://feeds.gawker.com/~r/gizmodo/full/~3/qIhlxlB7gmw/foo-bar-baz-1234567890)
     qr#^https?://.+?\.gawker\.com/.*?~.+?#i,
 
-    # Google Search URLs
+    # Google Search
     qr#^https?://.*?\.google\..{2,7}/(search|webhp).+?#i,
+
+    # Google Trends
+    qr#^https?://.*?\.google\..{2,7}/trends/explore.*?#i,
 );
 
 sub _get_single_url_json
