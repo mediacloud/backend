@@ -14,11 +14,467 @@ use MediaWords::Util::Web;
 use URI::Escape;
 use List::MoreUtils qw/uniq/;
 
+# Regular expressions for invalid "variants" of the resolved URL
 Readonly my @INVALID_URL_VARIANT_REGEXES => (
 
     # Twitter's "suspended" accounts
     qr#^https?://twitter.com/account/suspended#i,
 );
+
+# Regular expressions for URL's path that, when matched, mean that the URL is a
+# homepage URL
+Readonly my @HOMEPAGE_URL_PATH_REGEXES => (
+
+    # Empty path (e.g. http://www.nytimes.com)
+    qr#^$#i,
+
+    # One or more slash (e.g. http://www.nytimes.com/, http://m.wired.com///)
+    qr#^/+$#i,
+
+    # Limited number of either all-lowercase or all-uppercase (but not both)
+    # characters and no numbers, e.g.:
+    #
+    # * /en/,
+    # * /US
+    # * /global/,
+    # * /trends/explore
+    #
+    # but not:
+    #
+    # * /oKyFAMiZMbU
+    # * /1uSjCJp
+    qr#^[a-z/\-_]{1,18}/?$#,
+    qr#^[A-Z/\-_]{1,18}/?$#,
+
+);
+
+# URL shortener hostnames
+#
+# Sources:
+# * http://www.techmaish.com/list-of-230-free-url-shorteners-services/
+# * http://longurl.org/services
+Readonly my @URL_SHORTENER_HOSTNAMES => qw/
+  0rz.tw
+  1link.in
+  1url.com
+  2.gp
+  2big.at
+  2pl.us
+  2tu.us
+  2ya.com
+  3.ly
+  307.to
+  4ms.me
+  4sq.com
+  4url.cc
+  6url.com
+  7.ly
+  a.gg
+  a.nf
+  a2a.me
+  aa.cx
+  abbrr.com
+  abcurl.net
+  ad.vu
+  adf.ly
+  adjix.com
+  afx.cc
+  all.fuseurl.com
+  alturl.com
+  amzn.to
+  ar.gy
+  arst.ch
+  atu.ca
+  azc.cc
+  b23.ru
+  b2l.me
+  bacn.me
+  bcool.bz
+  binged.it
+  bit.ly
+  bizj.us
+  bkite.com
+  bloat.me
+  bravo.ly
+  bsa.ly
+  budurl.com
+  buk.me
+  burnurl.com
+  c-o.in
+  canurl.com
+  chilp.it
+  chzb.gr
+  cl.lk
+  cl.ly
+  clck.ru
+  cli.gs
+  cliccami.info
+  clickmeter.com
+  clickthru.ca
+  clop.in
+  conta.cc
+  cort.as
+  cot.ag
+  crks.me
+  ctvr.us
+  cutt.us
+  cuturl.com
+  dai.ly
+  decenturl.com
+  dfl8.me
+  digbig.com
+  digg.com
+  disq.us
+  dld.bz
+  dlvr.it
+  do.my
+  doiop.com
+  dopen.us
+  dwarfurl.com
+  dy.fi
+  easyuri.com
+  easyurl.net
+  eepurl.com
+  esyurl.com
+  eweri.com
+  ewerl.com
+  fa.b
+  fa.by
+  fav.me
+  fb.me
+  fbshare.me
+  ff.im
+  fff.to
+  fhurl.com
+  fire.to
+  firsturl.de
+  firsturl.net
+  flic.kr
+  flq.us
+  fly2.ws
+  fon.gs
+  freak.to
+  fuseurl.com
+  fuzzy.to
+  fwd4.me
+  fwib.net
+  g.ro.lt
+  gizmo.do
+  gl.am
+  go.9nl.com
+  go.ign.com
+  go.usa.gov
+  go2.me
+  go2cut.com
+  goo.gl
+  goshrink.com
+  gowat.ch
+  gri.ms
+  gurl.es
+  hellotxt.com
+  hex.io
+  hiderefer.com
+  hmm.ph
+  hover.com
+  href.in
+  hsblinks.com
+  htxt.it
+  huff.to
+  hugeurl.com
+  hulu.com
+  hurl.it
+  hurl.me
+  hurl.ws
+  icanhaz.com
+  idek.net
+  ilix.in
+  inreply.to
+  is.gd
+  iscool.net
+  iterasi.net
+  its.my
+  ix.lt
+  j.mp
+  jijr.com
+  jmp2.net
+  just.as
+  kissa.be
+  kl.am
+  klck.me
+  korta.nu
+  krunchd.com
+  l9k.net
+  lat.ms
+  liip.to
+  liltext.com
+  lin.cr
+  linkbee.com
+  linkbun.ch
+  liurl.cn
+  ln-s.net
+  ln-s.ru
+  lnk.gd
+  lnk.in
+  lnk.ms
+  lnkd.in
+  lnkurl.com
+  loopt.us
+  lru.jp
+  lt.tl
+  lurl.no
+  macte.ch
+  mash.to
+  merky.de
+  metamark.net
+  migre.me
+  minilien.com
+  miniurl.com
+  minurl.fr
+  mke.me
+  moby.to
+  moourl.com
+  mrte.ch
+  myloc.me
+  myurl.in
+  n.pr
+  nbc.co
+  nblo.gs
+  ne1.net
+  njx.me
+  nn.nf
+  not.my
+  notlong.com
+  nsfw.in
+  nutshellurl.com
+  nxy.in
+  nyti.ms
+  o-x.fr
+  oc1.us
+  om.ly
+  omf.gd
+  omoikane.net
+  on.cnn.com
+  on.mktw.net
+  onforb.es
+  orz.se
+  ow.ly
+  pd.am
+  pic.gd
+  ping.fm
+  piurl.com
+  pli.gs
+  pnt.me
+  politi.co
+  poprl.com
+  post.ly
+  posted.at
+  pp.gg
+  profile.to
+  ptiturl.com
+  pub.vitrue.com
+  qicute.com
+  qlnk.net
+  qte.me
+  qu.tc
+  quip-art.com
+  qy.fi
+  r.im
+  rb6.me
+  read.bi
+  readthis.ca
+  reallytinyurl.com
+  redir.ec
+  redirects.ca
+  redirx.com
+  retwt.me
+  ri.ms
+  rickroll.it
+  riz.gd
+  rsmonkey.com
+  rt.nu
+  ru.ly
+  rubyurl.com
+  rurl.org
+  rww.tw
+  s4c.in
+  s7y.us
+  safe.mn
+  sameurl.com
+  sdut.us
+  shar.es
+  sharein.com
+  sharetabs.com
+  shink.de
+  shorl.com
+  short.ie
+  short.to
+  shortlinks.co.uk
+  shortna.me
+  shorturl.com
+  shoturl.us
+  shout.to
+  show.my
+  shrinkify.com
+  shrinkr.com
+  shrinkster.com
+  shrt.fr
+  shrt.st
+  shrten.com
+  shrunkin.com
+  shw.me
+  simurl.com
+  slate.me
+  smallr.com
+  smsh.me
+  smurl.name
+  sn.im
+  snipr.com
+  snipurl.com
+  snurl.com
+  sp2.ro
+  spedr.com
+  sqrl.it
+  srnk.net
+  srs.li
+  starturl.com
+  sturly.com
+  su.pr
+  surl.co.uk
+  surl.hu
+  t.cn
+  t.co
+  t.lh.com
+  ta.gd
+  tbd.ly
+  tcrn.ch
+  tgr.me
+  tgr.ph
+  thrdl.es
+  tighturl.com
+  tiniuri.com
+  tiny.cc
+  tiny.ly
+  tiny.pl
+  tiny123.com
+  tinyarro.ws
+  tinylink.in
+  tinytw.it
+  tinyuri.ca
+  tinyurl.com
+  tinyvid.io
+  tk.
+  tl.gd
+  tmi.me
+  tnij.org
+  tnw.to
+  tny.com
+  to.
+  to.ly
+  togoto.us
+  totc.us
+  toysr.us
+  tpm.ly
+  tr.im
+  tr.my
+  tra.kz
+  traceurl.com
+  trunc.it
+  turo.us
+  tweetburner.com
+  twhub.com
+  twirl.at
+  twit.ac
+  twitclicks.com
+  twitterpan.com
+  twitterurl.net
+  twitterurl.org
+  twitthis.com
+  twiturl.de
+  twurl.cc
+  twurl.nl
+  u.mavrev.com
+  u.nu
+  u6e.de
+  u76.org
+  ub0.cc
+  ulu.lu
+  updating.me
+  ur1.ca
+  url.az
+  url.co.uk
+  url.ie
+  url360.me
+  url4.eu
+  urlao.com
+  urlborg.com
+  urlbrief.com
+  urlcover.com
+  urlcut.com
+  urlenco.de
+  urlhawk.com
+  urli.nl
+  urlkiss.com
+  urlot.com
+  urlpire.com
+  urls.im
+  urlshorteningservicefortwitter.com
+  urlx.ie
+  urlx.org
+  urlzen.com
+  usat.ly
+  use.my
+  vb.ly
+  vgn.am
+  virl.com
+  vl.am
+  vm.lc
+  w3t.org
+  w55.de
+  wapo.st
+  wapurl.co.uk
+  wipi.es
+  wp.me
+  x.se
+  x.vu
+  xaddr.com
+  xeeurl.com
+  xr.com
+  xrl.in
+  xrl.us
+  xurl.es
+  xurl.jp
+  xzb.cc
+  y.ahoo.it
+  yatuc.com
+  ye.pe
+  yep.it
+  yfrog.com
+  yhoo.it
+  yiyd.com
+  youtu.be
+  yuarel.com
+  yweb.com
+  z0p.de
+  zi.ma
+  zi.mu
+  zi.pe
+  zipmyurl.com
+  zud.me
+  zurl.ws
+  zz.gd
+  zzang.kr
+  ›.ws
+  ✩.ws
+  ✿.ws
+  ❥.ws
+  ➔.ws
+  ➞.ws
+  ➡.ws
+  ➨.ws
+  ➯.ws
+  ➹.ws
+  ➽.ws
+  /;
 
 # Returns true if URL is in the "http" ("https") scheme
 sub is_http_url($)
@@ -59,6 +515,14 @@ sub is_homepage_url($)
         return 0;
     }
 
+    # Remove cruft from the URL first
+    eval { $url = normalize_url( $url ); };
+    if ( $@ )
+    {
+        # say STDERR "Unable to normalize URL '$url' before checking if it's a homepage: $@";
+        return 0;
+    }
+
     my $uri = URI->new( $url )->canonical;
     unless ( $uri->scheme )
     {
@@ -66,14 +530,68 @@ sub is_homepage_url($)
         return 0;
     }
 
-    if ( $uri->path eq '/' or $uri->path eq '' )
-    {
-        return 1;
-    }
-    else
+    # The shortened URL may lead to a homepage URL, but the shortened URL
+    # itself is not a homepage URL
+    if ( is_shortened_url( $url ) )
     {
         return 0;
     }
+
+    # If we still have something for a query of the URL after the
+    # normalization, always assume that the URL is *not* a homepage
+    if ( defined $uri->query and $uri->query . '' )
+    {
+        return 0;
+    }
+
+    my $uri_path = $uri->path;
+    foreach my $homepage_url_path_regex ( @HOMEPAGE_URL_PATH_REGEXES )
+    {
+        if ( $uri_path =~ $homepage_url_path_regex )
+        {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+# Returns true if URL is a shortened URL (e.g. with Bit.ly)
+sub is_shortened_url($)
+{
+    my $url = shift;
+
+    unless ( $url )
+    {
+        # say STDERR "URL is empty or undefined.";
+        return 0;
+    }
+
+    my $uri = URI->new( $url )->canonical;
+    unless ( $uri->scheme )
+    {
+        # say STDERR "Scheme is undefined for URL $url";
+        return 0;
+    }
+
+    if ( defined $uri->path and ( $uri->path eq '' or $uri->path eq '/' ) )
+    {
+        # Assume that most of the URL shorteners use something like
+        # bit.ly/abcdef, so if there's no path or if it's empty, it's not a
+        # shortened URL
+        return 0;
+    }
+
+    my $uri_host = lc( $uri->host );
+    foreach my $url_shortener_hostname ( @URL_SHORTENER_HOSTNAMES )
+    {
+        if ( $uri_host eq lc( $url_shortener_hostname ) )
+        {
+            return 1;
+        }
+    }
+
+    return 0;
 }
 
 # Normalize URL:
@@ -164,7 +682,8 @@ sub normalize_url($)
           ns_mchannel ns_campaign ITO
           wprss custom_click source
           feedName feedType
-          skipmobile skip_mobile /
+          skipmobile skip_mobile
+          altcast_code /
     );
 
     # Make the sorting default (e.g. on Reddit)
