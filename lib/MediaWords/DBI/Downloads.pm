@@ -210,36 +210,45 @@ sub _download_store_for_reading($)
     else
     {
         my $path = $download->{ path };
-        unless ( $path and ( $path =~ /^([\w]+):/ ) )
+        unless ( $path )
         {
-            die "Download path is not set or invalid for download $download->{ downloads_id }";
+            die "Download path is not set for download $download->{ downloads_id }";
         }
 
-        Readonly my $location => lc( $1 );
-
-        if ( $location eq 'content' )
+        if ( $path =~ /^([\w]+):/ )
         {
-            $download_store = 'databaseinline';
-        }
+            Readonly my $location => lc( $1 );
 
-        elsif ( $location eq 'tar' )
-        {
-            $download_store = 'gridfs';
-        }
+            if ( $location eq 'content' )
+            {
+                $download_store = 'databaseinline';
+            }
 
-        elsif ( $location eq 'postgresql' )
-        {
-            $download_store = 'postgresql';
-        }
+            elsif ( $location eq 'tar' )
+            {
+                $download_store = 'gridfs';
+            }
 
-        elsif ( $location eq 'amazon_s3' )
-        {
-            $download_store = 'amazon_s3';
-        }
+            elsif ( $location eq 'postgresql' )
+            {
+                $download_store = 'postgresql';
+            }
 
-        elsif ( $location eq 'gridfs' )
-        {
-            $download_store = 'gridfs';
+            elsif ( $location eq 'amazon_s3' )
+            {
+                $download_store = 'amazon_s3';
+            }
+
+            elsif ( $location eq 'gridfs' )
+            {
+                $download_store = 'gridfs';
+            }
+
+            else
+            {
+                die "Download location '$location' is unknown for download $download->{ downloads_id }";
+            }
+
         }
         else
         {
