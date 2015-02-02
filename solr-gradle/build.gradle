@@ -14,7 +14,7 @@ buildDir = "solr-dist"
 
 ext {
     // Port to listen to
-    listenPort = 8082
+    listenPort = 8983
 
     // Package versions
     solrVersion = "4.6.0"
