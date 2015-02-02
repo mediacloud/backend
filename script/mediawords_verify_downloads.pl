@@ -81,6 +81,9 @@ sub main
             from downloads
             where downloads_id = ?
               and state = 'success'
+              -- Missing "feed" downloads weren't redownloaded, so limit the
+              -- selection to "content" downloads only
+              and type = 'content'
               -- File (no prefix), Tar ("tar:" prefix) and GridFS ("gridfs:"
               -- prefix) downloads are being stored in GridFS, so filter out
               -- those which aren't
