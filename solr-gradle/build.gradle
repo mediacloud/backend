@@ -19,6 +19,9 @@ ext {
     // Solr home directory
     solrHomeDir = "./mediacloud"
 
+    // Solr data directory
+    solrDataDir = "./../data/solr"
+
     // Package versions
     solrVersion = "4.6.0"
     postgresqlVersion = "9.3-1102-jdbc41"
@@ -103,5 +106,7 @@ runSolr.doFirst {
 
     // Solr properties
     System.setProperty("solr.solr.home", solrHomeDir)
+    System.setProperty("mediacloud.collection1.data.dir", "${solrDataDir}/collection1/")
+    System.setProperty("mediacloud.collection2.data.dir", "${solrDataDir}/collection2/")
 
 }
