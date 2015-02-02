@@ -24,7 +24,7 @@ sub main
 
     die( "can't find mediacloud/solr.xml" ) unless ( -f 'mediacloud/solr.xml' );
 
-    my $gradle_cmd = "JAVA_OPTS=\"" . JVM_OPTS . "\" gradle runSolr -Dsolr.clustering.enabled=true";
+    my $gradle_cmd = "JAVA_OPTS=\"" . JVM_OPTS . " -Xmx${ memory }g\" gradle runSolr -Dsolr.clustering.enabled=true";
 
     print STDERR "running $gradle_cmd ...\n";
 
