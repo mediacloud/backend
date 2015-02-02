@@ -109,7 +109,6 @@ else
         echo "Adding MongoDB 10gen repository..."
         sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
         echo "deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen" | sudo tee -a "$APT_SOURCES_MONGODB"
-        sudo apt-get update
     fi
 
     # Apt's versions of Supervisor, Vagrant, MongoDB are too old
@@ -127,6 +126,9 @@ else
             exit 1
         }
     done
+
+    # Apt's version of Gradle is too old
+    sudo add-apt-repository -y ppa:cwchien/gradle
 
     # Install Gearman from PPA repository
     sudo apt-get -y install python-software-properties
@@ -147,9 +149,12 @@ else
             libgearman-dbg libgearman-dev libgearman-doc libgearman6
 
        sudo add-apt-repository -y ppa:gearman-developers/ppa
-       sudo apt-get -y update
     fi
 
+    # Fetch new repositories (if any)
+    sudo apt-get -y update
+
+    # Install Gearman
     sudo apt-get -y install gearman-job-server gearman-tools libgearman-dev
 
     # Install the rest of the packages
