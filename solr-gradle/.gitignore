@@ -1,4 +1,6 @@
 # Gradle
 .gradle
-solr
+
+# Solr installed by Gradle
+solr-dist
 

@@ -10,7 +10,7 @@ apply plugin: 'java'
 apply plugin: 'jetty'
 
 // Destination directory
-buildDir = 'solr'
+buildDir = "solr-dist"
 
 ext {
     // Port to listen to
