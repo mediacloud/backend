@@ -1,0 +1,94 @@
+import org.gradle.api.plugins.jetty.JettyRunWar
+
+apply plugin: 'java'
+apply plugin: 'jetty'
+
+// Destination directory
+buildDir = 'solr'
+
+ext {
+    // Port to listen to
+    listenPort = 8082
+
+    // Package versions
+    solrVersion = "4.6.0"
+    slf4jSimpleVersion = "1.6.1"
+    commonsLoggingVersion = "1.1.3"
+    jUnitVersion = "4.10"
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        // for org.restlet.jee:org.restlet dependency
+        url "http://maven.restlet.org"
+    }
+}
+
+// custom configuration for running the webapp
+configurations {
+    solrWebApp
+    additionalSolrJars
+    additionalJettyLoggingJars
+}
+
+dependencies {
+    solrWebApp "org.apache.solr:solr:${solrVersion}@war"
+
+    // Additional Solr JARs
+    additionalSolrJars "org.apache.solr:solr-analysis-extras:${solrVersion}"
+    additionalSolrJars "org.apache.solr:solr-cell:${solrVersion}"
+    additionalSolrJars "org.apache.solr:solr-clustering:${solrVersion}"
+    additionalSolrJars "org.apache.solr:solr-dataimporthandler:${solrVersion}"
+    additionalSolrJars "org.apache.solr:solr-dataimporthandler-extras:${solrVersion}"
+    additionalSolrJars "org.apache.solr:solr-langid:${solrVersion}"
+    additionalSolrJars "org.apache.solr:solr-solrj:${solrVersion}"
+    additionalSolrJars "org.apache.solr:solr-uima:${solrVersion}"
+    additionalSolrJars "org.apache.solr:solr-velocity:${solrVersion}"
+
+    // Jetty's JARs for logging
+    additionalJettyLoggingJars "org.slf4j:slf4j-simple:${slf4jSimpleVersion}"
+    additionalJettyLoggingJars "commons-logging:commons-logging:${commonsLoggingVersion}"
+
+    testCompile "junit:junit:${jUnitVersion}"
+    testCompile "org.apache.solr:solr-test-framework:${solrVersion}"
+    testCompile "org.slf4j:slf4j-simple:${slf4jSimpleVersion}"
+    testCompile "commons-logging:commons-logging:${commonsLoggingVersion}"
+}
+
+def explodedWebAppDir = "${buildDir}/explodedWebAppDir"
+
+// I didn't find a good way to add the slf4j libs to the classpath
+// this workaround copies the contents of the war file to a folder
+// and adds the jars in WEB-INF/lib 
+task runSolr(type: JettyRun, dependsOn: ['copyWar', 'copyAdditionalSolrJars', 'copyAdditionalJettyLoggingJars']) {
+    description 'Run Apache Solr.'
+    // jetty configuration
+    httpPort = listenPort
+    contextPath = 'solr'
+    webAppSourceDirectory = file(explodedWebAppDir)
+}
+
+task copyWar(type:Copy) {
+    into explodedWebAppDir 
+    from zipTree(configurations.solrWebApp.singleFile)
+}
+
+task copyAdditionalSolrJars(type:Copy) {
+    into explodedWebAppDir + "/WEB-INF/lib/"
+    from configurations.additionalSolrJars
+}
+
+task copyAdditionalJettyLoggingJars(type:Copy) {
+    into explodedWebAppDir + "/WEB-INF/lib/"
+    from configurations.additionalJettyLoggingJars
+}
+
+// executed before jetty plugin
+runSolr.doFirst {
+    // Jetty properties
+    System.setProperty("org.eclipse.jetty.server.Request.maxFormContentSize", "4194304")
+
+    // Solr properties
+    System.setProperty("solr.solr.home", "./mediacloud")
+}
