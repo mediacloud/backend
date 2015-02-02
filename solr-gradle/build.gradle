@@ -1,8 +1,8 @@
-#
-# To start Solr, run:
-#
-#     gradle runSolr
-#
+//
+// To start Solr, run:
+//
+//     gradle runSolr
+//
 
 import org.gradle.api.plugins.jetty.JettyRunWar
 
