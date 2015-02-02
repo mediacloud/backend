@@ -1,3 +1,9 @@
+#
+# To start Solr, run:
+#
+#     gradle runSolr
+#
+
 import org.gradle.api.plugins.jetty.JettyRunWar
 
 apply plugin: 'java'
