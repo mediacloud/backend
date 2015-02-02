@@ -16,6 +16,9 @@ ext {
     // Port to listen to
     listenPort = 8983
 
+    // Solr home directory
+    solrHomeDir = "./mediacloud"
+
     // Package versions
     solrVersion = "4.6.0"
     postgresqlVersion = "9.3-1102-jdbc41"
@@ -94,9 +97,11 @@ task copyAdditionalJettyLoggingJars(type:Copy) {
 
 // executed before jetty plugin
 runSolr.doFirst {
+
     // Jetty properties
     System.setProperty("org.eclipse.jetty.server.Request.maxFormContentSize", "4194304")
 
     // Solr properties
-    System.setProperty("solr.solr.home", "./mediacloud")
+    System.setProperty("solr.solr.home", solrHomeDir)
+
 }
