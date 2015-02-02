@@ -35,13 +35,13 @@ fi
 
 echo "testing for runnning solr"
 
-if ps aux | grep java | grep -- '-Dsolr' | grep start.jar > /dev/null; then
+if ps aux | grep java | grep runSolr > /dev/null; then
     echo "Solr is already running (it shouldn't)."
     exit 1
 fi
 
 echo "Starting Solr..."
-./script/run_with_carton.sh ./solr/scripts/run_singleton_solr_server.pl > /dev/null&
+./script/run_with_carton.sh ./solr-gradle/scripts/run_singleton_solr_server.pl > /dev/null&
 solr_pid=$!
 
 SOLR_IS_UP=0
