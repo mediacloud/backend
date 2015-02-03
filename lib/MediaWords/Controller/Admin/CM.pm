@@ -243,20 +243,38 @@ END
 # with a tag_name field added
 sub _get_cdts_from_cd
 {
-    my ( $db, $cd ) = @_;
+    my ( $db, $cd, $qs_id ) = @_;
 
-    return $db->query( <<END, $cd->{ controversy_dumps_id } )->hashes;
+    my $qs_clause = ( $qs_id ) ? "controversy_query_slices_id = $qs_id" : 'controversy_query_slices_id is null';
+
+    my $cdtss = $db->query( <<SQL, $cd->{ controversy_dumps_id } )->hashes;
 select cdts.*, coalesce( t.tag, '(all stories/no tag)' ) tag_name
-    from controversy_dump_time_slices cdts
+    from 
+        controversy_dump_time_slices cdts
         left join tags t on ( cdts.tags_id = t.tags_id )
-    where controversy_dumps_id = ?
+    where 
+        controversy_dumps_id = ? and
+        $qs_clause
     order by cdts.tags_id desc, period, start_date, end_date
-END
+SQL
+
+    return $cdtss;
+
 }
 
+# get the latest full dump (dump with all periods) and add time slices to it
+# under the controversy_dump_time_slices field
 sub get_latest_full_dump_with_time_slices
 {
-    my ( $db, $controversy_dumps, $controversy ) = @_;
+    my ( $db, $controversy_dumps, $controversy, $qs_id ) = @_;
+
+    # refetch controversy dumps allowing for shell only dumps, because we are using this
+    # function to return the latest dump to return a list of time slices to use as
+    # live time slices
+    if ( !@{ $controversy_dumps } )
+    {
+        $controversy_dumps = _get_controversy_dumps_with_periods( $db, $controversy, $qs_id, 1 );
+    }
 
     my $latest_full_dump;
     for my $cd ( @{ $controversy_dumps } )
@@ -270,7 +288,7 @@ sub get_latest_full_dump_with_time_slices
 
     return unless ( $latest_full_dump );
 
-    my $controversy_dump_time_slices = _get_cdts_from_cd( $db, $latest_full_dump );
+    my $controversy_dump_time_slices = _get_cdts_from_cd( $db, $latest_full_dump, $qs_id );
 
     map { _add_cdts_model_reliability( $db, $_ ) } @{ $controversy_dump_time_slices };
 
@@ -291,7 +309,7 @@ sub _get_mining_status
 select count(*) from controversy_links where controversies_id = ? and ref_stories_id is null
 END
 
-    return undef unless ( $queued_urls );
+    return { queued_urls => $queued_urls } unless ( $queued_urls );
 
     my $stories_by_iteration = $db->query( <<END, $cid )->hashes;
 select iteration, count(*) count
@@ -302,28 +320,43 @@ select iteration, count(*) count
 END
 
     return { queued_urls => $queued_urls, stories_by_iteration => $stories_by_iteration };
-
 }
 
-# view the details of a single controversy
-sub view : Local
+# get the controversy dumps associated with the given controversy and optional query slice.  attach
+# periods label to each dump.
+sub _get_controversy_dumps_with_periods
 {
-    my ( $self, $c, $controversies_id ) = @_;
+    my ( $db, $controversy, $query_slices_id, $allow_shell ) = @_;
 
-    my $db = $c->dbis;
+    my $query_slice_clause = '';
+    if ( $query_slices_id )
+    {
+        my $shell_clause = $allow_shell ? '' : 'and not cdts.is_shell';
+        $query_slice_clause = <<SQL
+and exists (
+    select 1 from controversy_dump_time_slices cdts
+    where cdts.controversy_query_slices_id = $query_slices_id and 
+        cdts.controversy_dumps_id = cd.controversy_dumps_id $shell_clause
+)
+SQL
+    }
 
-    my $controversy = $db->query( <<END, $controversies_id )->hash;
-select * from controversies_with_dates where controversies_id = ?
-END
-
-    my $controversy_dumps = $db->query( <<END, $controversy->{ controversies_id } )->hashes;
-select * from controversy_dumps where controversies_id = ?
-    order by controversy_dumps_id desc
-END
+    my $controversy_dumps = $db->query( <<SQL, $controversy->{ controversies_id } )->hashes;
+select * 
+from controversy_dumps cd
+where cd.controversies_id = ? $query_slice_clause
+order by controversy_dumps_id desc
+SQL
 
     map { add_periods_to_controversy_dump( $db, $_ ) } @{ $controversy_dumps };
 
-    my $latest_full_dump = get_latest_full_dump_with_time_slices( $db, $controversy_dumps, $controversy );
+    return $controversy_dumps;
+}
+
+# get a list of the latest activities
+sub _get_latest_activities
+{
+    my ( $db, $controversies_id ) = @_;
 
     # Latest activities
     my Readonly $LATEST_ACTIVITIES_COUNT = 20;
@@ -332,52 +365,99 @@ END
     my $sql_latest_activities =
       MediaWords::DBI::Activities::sql_activities_which_reference_column( 'controversies.controversies_id',
         $controversies_id );
+
     $sql_latest_activities .= ' LIMIT ?';
 
-    my $latest_activities = $db->query( $sql_latest_activities, $LATEST_ACTIVITIES_COUNT )->hashes;
+    my $activities = $db->query( $sql_latest_activities, $LATEST_ACTIVITIES_COUNT )->hashes;
 
-    # FIXME put activity preparation (JSON decoding, description fetching) into
-    # a subroutine in order to not repeat oneself.
-    for ( my $x = 0 ; $x < scalar @{ $latest_activities } ; ++$x )
-    {
-        my $activity = $latest_activities->[ $x ];
+    # get activity descriptions
+    map { $_->{ activity } = MediaWords::DBI::Activities::activity( $_->{ name } ) } @{ $activities };
 
-        # Get activity description
-        $activity->{ activity } = MediaWords::DBI::Activities::activity( $activity->{ name } );
+    return $activities;
+}
 
-        $latest_activities->[ $x ] = $activity;
-    }
+# return hash with bitly_processed_is_enabled, bitly_total_stories, bitly_unprocessed_stories fields.
+sub _get_bitly_status
+{
+    my ( $db, $controversy ) = @_;
 
-    # Bit.ly
     my $bitly_processing_is_enabled = MediaWords::Util::Bitly::bitly_processing_is_enabled();
-    if ( $bitly_processing_is_enabled and $controversy->{ process_with_bitly } )
+
+    if ( !( $bitly_processing_is_enabled and $controversy->{ process_with_bitly } ) )
     {
-
-        my $controversies_id = $controversy->{ controversies_id };
-
-        my ( $bitly_total_stories ) = $db->query(
-            <<EOF,
-            SELECT COUNT(stories_id) AS total_stories
-            FROM controversy_stories
-            WHERE controversies_id = ?
-EOF
-            $controversies_id
-        )->flat;
-        $c->stash->{ bitly_total_stories } = $bitly_total_stories;
-
-        my $bitly_unprocessed_stories =
-          MediaWords::Util::Bitly::num_controversy_stories_without_bitly_statistics( $db, $controversies_id );
-        $c->stash->{ bitly_unprocessed_stories } = $bitly_unprocessed_stories;
+        return { bitly_processed_is_enabled => 0, bitly_total_stories => 0, bitly_unprocessed_stories => 0 };
     }
+
+    my $controversies_id = $controversy->{ controversies_id };
+
+    my ( $total_stories ) = $db->query( <<SQL, $controversies_id )->flat;
+SELECT COUNT(stories_id) AS total_stories 
+FROM controversy_stories
+WHERE controversies_id = ?
+SQL
+
+    my $unprocessed_stories =
+      MediaWords::Util::Bitly::num_controversy_stories_without_bitly_statistics( $db, $controversies_id );
+
+    return {
+        bitly_processing_is_enabled => 1,
+        bitly_total_stories         => $total_stories,
+        bitly_unprocessed_stories   => $unprocessed_stories
+    };
+}
+
+# get the controversy with the given id, attach the controversy_query_slice associated with
+# the query_slices_id, if any
+sub _get_controversy_with_query_slice
+{
+    my ( $db, $controversies_id, $query_slices_id ) = @_;
+
+    my $controversy = $db->query( <<END, $controversies_id )->hash;
+select * from controversies_with_dates where controversies_id = ?
+END
+
+    if ( $query_slices_id )
+    {
+        $controversy->{ controversy_query_slice } = $db->find_by_id( 'controversy_query_slices', $query_slices_id );
+    }
+
+    return $controversy;
+}
+
+# view the details of a single controversy
+sub view : Local
+{
+    my ( $self, $c, $controversies_id ) = @_;
+
+    my $query_slices_id = $c->req->params->{ qs };
+
+    my $db = $c->dbis;
+
+    my $controversy = _get_controversy_with_query_slice( $db, $controversies_id, $query_slices_id );
+
+    my $controversy_dumps = _get_controversy_dumps_with_periods( $db, $controversy, $query_slices_id );
+    my $latest_full_dump = get_latest_full_dump_with_time_slices( $db, $controversy_dumps, $controversy, $query_slices_id );
+
+    my $latest_activities = _get_latest_activities( $db, $controversies_id );
+
+    my $bitly_status = _get_bitly_status( $db, $controversy );
 
     my $mining_status = _get_mining_status( $db, $controversy );
+
+    my $query_slices = $db->query( <<SQL, $controversies_id )->hashes;
+select * from controversy_query_slices where controversies_id = ? order by name
+SQL
 
     $c->stash->{ controversy }                 = $controversy;
     $c->stash->{ controversy_dumps }           = $controversy_dumps;
     $c->stash->{ latest_full_dump }            = $latest_full_dump;
     $c->stash->{ latest_activities }           = $latest_activities;
-    $c->stash->{ bitly_processing_is_enabled } = $bitly_processing_is_enabled;
+    $c->stash->{ bitly_processing_is_enabled } = $bitly_status->{ bitly_processing_is_enabled };
+    $c->stash->{ bitly_total_stories }         = $bitly_status->{ bitly_total_stories };
+    $c->stash->{ bitly_unprocessed_stories }   = $bitly_status->{ bitly_unprocessed_stories };
     $c->stash->{ mining_status }               = $mining_status;
+    $c->stash->{ query_slices_id }             = $query_slices_id;
+    $c->stash->{ query_slices }                = $query_slices;
     $c->stash->{ template }                    = 'cm/view.tt2';
 }
 
@@ -401,14 +481,17 @@ sub view_dump : Local
 {
     my ( $self, $c, $controversy_dumps_id ) = @_;
 
+    my $query_slices_id = $c->req->params->{ qs };
+
     my $db = $c->dbis;
 
     my $controversy_dump = $db->query( <<END, $controversy_dumps_id )->hash;
 select * from controversy_dumps where controversy_dumps_id = ?
 END
-    my $controversy = $db->find_by_id( 'controversies', $controversy_dump->{ controversies_id } );
 
-    my $controversy_dump_time_slices = _get_cdts_from_cd( $db, $controversy_dump );
+    my $controversy = _get_controversy_with_query_slice( $db, $controversy_dump->{ controversies_id }, $query_slices_id );
+
+    my $controversy_dump_time_slices = _get_cdts_from_cd( $db, $controversy_dump, $query_slices_id );
 
     map { _add_cdts_model_reliability( $db, $_ ) } @{ $controversy_dump_time_slices };
 
@@ -512,6 +595,114 @@ END
     my $media_with_cdts_counts = _get_media_with_cdts_counts( $db, $controversy_dump );
 
     $c->res->body( encode_json( $media_with_cdts_counts ) );
+}
+
+# display network viz
+sub nv : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $live        = $c->req->params->{ l };
+    my $cdts_id     = $c->req->params->{ cdts };
+    my $color_field = $c->req->params->{ cf };
+    my $num_media   = $c->req->params->{ nm };
+
+    my $db = $c->dbis;
+
+    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
+
+    $c->stash->{ cdts }             = $cdts;
+    $c->stash->{ controversy_dump } = $cd;
+    $c->stash->{ controversy }      = $controversy;
+    $c->stash->{ live }             = $live;
+    $c->stash->{ color_field }      = $color_field;
+    $c->stash->{ num_media }        = $num_media;
+    $c->stash->{ template }         = 'nv/nv.tt2';
+}
+
+# get json config file for network visualization.
+# nv implemented in root/nv from the gephi sigma export template
+sub nv_config : Local
+{
+    my ( $self, $c, $cdts_id, $live, $color_field, $num_media ) = @_;
+
+    my $db = $c->dbis;
+
+    $color_field ||= 'media_type';
+
+    $live ||= '';
+
+    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
+
+    my $gexf_url = $c->uri_for(
+        '/admin/cm/gexf/' . $cdts->{ controversy_dump_time_slices_id },
+        {
+            l  => $live,
+            cf => $color_field,
+            nm => $num_media
+        }
+      ) .
+      '';
+
+    my $config_data = {
+        "type"    => "network",
+        "version" => "1.0",
+        "data"    => $gexf_url,
+        "logo"    => {
+            "text" => "",
+            "file" => "",
+            "link" => ""
+        },
+        "text" => {
+            "title" => "",
+            "more"  => "",
+            "intro" => ""
+        },
+        "legend" => {
+            "edgeLabel"  => "",
+            "colorLabel" => "",
+            "nodeLabel"  => ""
+        },
+        "features" => {
+            "search"                 => JSON::true,
+            "groupSelectorAttribute" => $color_field,
+            "hoverBehavior"          => "dim"
+        },
+        "informationPanel" => {
+            "imageAttribute"       => JSON::false,
+            "groupByEdgeDirection" => JSON::true
+        },
+        "sigma" => {
+            "graphProperties" => {
+                "minEdgeSize" => 0.1,
+                "maxNodeSize" => 15,
+                "maxEdgeSize" => 0.1,
+                "minNodeSize" => 0.5
+            },
+            "drawingProperties" => {
+                "labelThreshold"           => 10,
+                "hoverFontStyle"           => "bold",
+                "defaultEdgeType"          => "curve",
+                "defaultLabelColor"        => "#000",
+                "defaultLabelHoverColor"   => "#fff",
+                "defaultLabelSize"         => 14,
+                "activeFontStyle"          => "bold",
+                "fontStyle"                => "bold",
+                "defaultHoverLabelBGColor" => "#002147",
+                "defaultLabelBGColor"      => "#ddd"
+            },
+            "mouseProperties" => {
+                "minRatio" => 0.75,
+                "maxRatio" => 20
+            }
+        }
+    };
+
+    my $config_json = MediaWords::Util::JSON::encode_json( $config_data, 1, 1 );
+
+    $c->response->content_type( 'application/json; charset=UTF-8' );
+    $c->response->content_length( bytes::length( $config_json ) );
+    $c->res->body( $config_json );
 }
 
 # generate the d3 chart of the weekly counts for any medium in the top
@@ -637,10 +828,18 @@ sub _get_controversy_objects
 select * from controversies_with_dates where controversies_id = ?
 END
 
+    if ( my $qs_id = $cdts->{ controversy_query_slices_id } )
+    {
+        $cdts->{ controversy_query_slice }        = $db->find_by_id( 'controversy_query_slices', $qs_id );
+        $cd->{ controversy_query_slice }          = $cdts->{ controversy_query_slice };
+        $controversy->{ controversy_query_slice } = $cdts->{ controversy_query_slice };
+    }
+
     # add shortcut field names to make it easier to refer to in tt2
-    $cdts->{ cdts_id } = $cdts->{ controversy_dump_time_slices_id };
-    $cdts->{ cd_id }   = $cdts->{ controversy_dumps_id };
-    $cd->{ cd_id }     = $cdts->{ controversy_dumps_id };
+    $cdts->{ cdts_id }          = $cdts->{ controversy_dump_time_slices_id };
+    $cdts->{ cd_id }            = $cdts->{ controversy_dumps_id };
+    $cdts->{ controversy_dump } = $cd;
+    $cd->{ cd_id }              = $cdts->{ controversy_dumps_id };
 
     _add_cdts_model_reliability( $db, $cdts );
 
@@ -823,18 +1022,34 @@ sub dump_medium_links : Local
     _download_cdts_csv( $c, $controversy_dump_time_slices_id, 'medium_links', $c->req->params->{ l } );
 }
 
-# download the gexf file for the time slice
+# download the gexf file for the time slice.  if the 'l' param is 1, use live data instead of
+# dumped data for the time slice.  if using a dump, use an existing media.gexf file if it exists.
 sub gexf : Local
 {
-    my ( $self, $c, $controversy_dump_time_slices_id, $csv ) = @_;
+    my ( $self, $c, $cdts_id, $csv ) = @_;
+
+    my $l           = $c->req->params->{ l };
+    my $color_field = $c->req->params->{ cf };
+    my $num_media   = $c->req->params->{ nm };
 
     my $db = $c->dbis;
 
-    my $cdts = $db->find_by_id( 'controversy_dump_time_slices', $controversy_dump_time_slices_id );
+    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
 
-    my ( $gexf ) = $db->query( <<END, $cdts->{ controversy_dump_time_slices_id } )->flat;
+    my $gexf;
+
+    if ( !$l )
+    {
+        ( $gexf ) = $db->query( <<END, $cdts->{ controversy_dump_time_slices_id } )->flat;
 select file_content from cdts_files where controversy_dump_time_slices_id = ? and file_name = 'media.gexf'
 END
+    }
+
+    if ( !$gexf )
+    {
+        MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $l );
+        $gexf = MediaWords::CM::Dump::get_gexf_dump( $db, $cdts, $color_field, $num_media );
+    }
 
     my $base_url = $c->uri_for( '/' );
 
@@ -1605,7 +1820,17 @@ sub search_media : Local
     MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $live );
 
     my $query = $c->req->param( 'q' );
-    my $search_query = _get_stories_id_search_query( $db, $query );
+    my $search_query;
+
+    if ( $query )
+    {
+        my $stories_id_query = _get_stories_id_search_query( $db, $query );
+        $search_query = "AND m.media_id IN ( select media_id from dump_stories where stories_id in ( $stories_id_query ) )";
+    }
+    else
+    {
+        $search_query = '';
+    }
 
     my $order = $c->req->params->{ order } || '';
     my $order_clause = $order eq 'bitly_click_count' ? 'mlc.bitly_click_count desc' : 'mlc.inlink_count desc';
@@ -1618,14 +1843,10 @@ sub search_media : Local
                         mlc.bitly_click_count,
                         mlc.bitly_referrer_count,
                         mlc.story_count
-        FROM dump_stories AS s,
-             dump_media_with_types AS m,
-             dump_story_link_counts AS slc,
+        FROM dump_media_with_types AS m,
              dump_medium_link_counts AS mlc
-        WHERE s.stories_id = slc.stories_id
-          AND s.media_id = m.media_id
-          AND s.media_id = mlc.media_id
-          AND s.stories_id IN ( $search_query )
+        WHERE m.media_id = mlc.media_id
+          $search_query
         ORDER BY $order_clause
         limit 1000
 END
@@ -2687,7 +2908,7 @@ END
 
     $c->dbis->query( "delete from tags where tags_id = ?", $tags_id );
 
-    my $status_msg = "Media type has been delete.";
+    my $status_msg = "Media type has been deleted.";
     $c->res->redirect(
         $c->uri_for( "/admin/cm/edit_media_types/$controversy->{ controversies_id }", { status_msg => $status_msg } ) );
 }
@@ -2882,6 +3103,136 @@ sub enqueue_stories_for_bitly : Local
     my $url = $c->uri_for( "/admin/cm/view/$controversies_id",
         { status_msg => "Controversy's stories will soon be enqueued for Bit.ly processing." } );
     $c->res->redirect( $url );
+}
+
+# create a controersy_query_slice and associated shell controversy_dump_time_slices
+# for the query slice in the latest controversy_dump
+sub _create_query_slice
+{
+    my ( $db, $controversy, $p ) = @_;
+
+    my $query_slice = {
+        controversies_id => $controversy->{ controversies_id },
+        name             => $p->{ name },
+        query            => $p->{ query },
+        all_time_slices  => $p->{ all_time_slices } || 0
+    };
+
+    my $cqs = $db->create( 'controversy_query_slices', $query_slice );
+
+    my $controversy_dumps = $db->query( <<END, $controversy->{ controversies_id } )->hashes;
+select * from controversy_dumps where controversies_id = ?
+    order by controversy_dumps_id desc
+END
+
+    map { add_periods_to_controversy_dump( $db, $_ ) } @{ $controversy_dumps };
+
+    my $latest_full_dump = get_latest_full_dump_with_time_slices( $db, $controversy_dumps, $controversy );
+
+    my $cdtss = $latest_full_dump->{ controversy_dump_time_slices };
+    $cdtss = [ $cdtss->[ 0 ] ] unless ( $cqs->{ all_time_slices } );
+
+    for my $cdts ( @{ $cdtss } )
+    {
+        my $qs_cdts = {};
+        map { $qs_cdts->{ $_ } = $cdts->{ $_ } } qw(controversy_dumps_id start_date end_date period);
+        map { $qs_cdts->{ $_ } = -1 } qw(story_count story_link_count medium_count medium_link_count);
+
+        $qs_cdts->{ controversy_query_slices_id } = $cqs->{ controversy_query_slices_id };
+        $qs_cdts->{ is_shell }                    = 1;
+
+        $db->create( 'controversy_dump_time_slices', $qs_cdts );
+    }
+}
+
+# add a new query slice
+sub add_query_slice : Local
+{
+    my ( $self, $c, $controversies_id ) = @_;
+
+    my $form = $c->create_form( { load_config_file => $c->path_to() . '/root/forms/admin/cm/controversy_query_slice.yml' } );
+
+    my $db = $c->dbis;
+
+    my $controversy = $db->find_by_id( 'controversies', $controversies_id ) || die( "Unable to find controversy" );
+
+    $c->stash->{ controversy } = $controversy;
+    $c->stash->{ form }        = $form;
+    $c->stash->{ template }    = 'cm/add_query_slice.tt2';
+
+    $form->process( $c->request );
+
+    return unless ( $form->submitted_and_valid );
+
+    my $p            = $form->params;
+    my $redirect_url = "/admin/cm/edit_query_slices/$controversy->{ controversies_id }";
+
+    my $query_slice = $db->query( <<SQL, $controversies_id, $p->{ name } )->hash;
+select * from controversy_query_slices where controversies_id = ? and lower( name ) = lower( ? )
+SQL
+
+    if ( $query_slice )
+    {
+        return $c->res->redirect( $redirect_url, { error_msg => "Slice with the name '$p->{ name }' already exists." } );
+    }
+
+    _create_query_slice( $db, $controversy, $p );
+
+    $c->res->redirect( $c->uri_for( $redirect_url, { status_msg => "Query slice has been created." } ) );
+}
+
+# delete a single media type
+sub delete_query_slice : Local
+{
+    my ( $self, $c, $controversy_query_slices_id ) = @_;
+
+    my $db = $c->dbis;
+
+    my $cqs = $db->find_by_id( 'controversy_query_slices', $controversy_query_slices_id ) || die( "Slice not found" );
+
+    $db->begin;
+
+    # try to delete all empty shell time slices before deleting the query time slices
+    $db->query( <<SQL, $controversy_query_slices_id );
+delete from controversy_dump_time_slices where controversy_query_slices_id = ? and is_shell
+SQL
+
+    # this will fail and generate an error if there are any non empty time slices, which
+    # is fine because the ui shouldn't allow the user to call on a query that has any non-empty time slices
+    $db->delete_by_id( "controversy_query_slices", $controversy_query_slices_id );
+    $db->commit;
+
+    my $status_msg = "Query slice has been deleted.";
+    $c->res->redirect(
+        $c->uri_for( "/admin/cm/edit_query_slices/$cqs->{ controversies_id }", { status_msg => $status_msg } ) );
+}
+
+# edit list of controversy specific media types
+sub edit_query_slices : Local
+{
+    my ( $self, $c, $controversies_id ) = @_;
+
+    my $db = $c->dbis;
+
+    my $controversy = $db->find_by_id( 'controversies', $controversies_id ) || die( "Unable to find controversy" );
+
+    my $query_slices = $db->query( <<SQL, $controversies_id )->hashes;
+select cqs.*,
+    exists (
+        select 1 
+        from controversy_dump_time_slices cdts 
+        where
+            cdts.controversy_query_slices_id = cqs.controversy_query_slices_id and
+            not( cdts.is_shell )
+    ) has_non_shell_time_slice
+from controversy_query_slices cqs
+where controversies_id = ? 
+order by name
+SQL
+
+    $c->stash->{ controversy }  = $controversy;
+    $c->stash->{ query_slices } = $query_slices;
+    $c->stash->{ template }     = 'cm/edit_query_slices.tt2';
 }
 
 1;

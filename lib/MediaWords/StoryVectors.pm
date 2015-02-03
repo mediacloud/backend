@@ -15,6 +15,7 @@ use MediaWords::Util::Countries;
 use MediaWords::Util::HTML;
 use MediaWords::Util::IdentifyLanguage;
 use MediaWords::Util::SQL;
+use MediaWords::Util::CoreNLP;
 
 use Date::Format;
 use Date::Parse;
@@ -489,17 +490,19 @@ sub update_story_sentence_words_and_language
     my $sentence_word_counts;
     my $story = _get_story( $db, $story_ref );
 
+    my $stories_id = $story->{ stories_id };
+
     unless ( $no_delete )
     {
-        $db->query( "DELETE FROM story_sentence_words WHERE stories_id = ?",        $story->{ stories_id } );
-        $db->query( "DELETE FROM story_sentences WHERE stories_id = ?",             $story->{ stories_id } );
-        $db->query( "DELETE FROM story_sentence_counts WHERE first_stories_id = ?", $story->{ stories_id } );
+        $db->query( "DELETE FROM story_sentence_words WHERE stories_id = ?",        $stories_id );
+        $db->query( "DELETE FROM story_sentences WHERE stories_id = ?",             $stories_id );
+        $db->query( "DELETE FROM story_sentence_counts WHERE first_stories_id = ?", $stories_id );
     }
 
     unless ( $ignore_date_range or _story_within_media_source_story_words_date_range( $db, $story ) )
     {
         say STDERR "Won't split story " .
-          $story->{ stories_id } . " " . "into sentences / words and determine their language because " .
+          $stories_id . " " . "into sentences / words and determine their language because " .
           "story is *not* within media source's story words date range and 'ignore_date_range' is not set.";
         return;
     }
@@ -532,7 +535,7 @@ sub update_story_sentence_words_and_language
     # }
     # else
     # {
-    #     say STDERR "Story's URL for story ID " . $story->{ stories_id } . " is not defined.";
+    #     say STDERR "Story's URL for story ID " . $stories_id . " is not defined.";
     # }
 
     # Identify the language of the full story
@@ -542,23 +545,22 @@ sub update_story_sentence_words_and_language
 
     if ( !$story->{ language } || ( $story_lang ne $story->{ language } ) )
     {
-        $db->query( "UPDATE stories SET language = ? WHERE stories_id = ?", $story_lang, $story->{ stories_id } );
+        $db->query( "UPDATE stories SET language = ? WHERE stories_id = ?", $story_lang, $stories_id );
     }
 
     unless ( defined $sentences )
     {
-        die "Sentences for story " . $story->{ stories_id } . " are undefined.";
+        die "Sentences for story $stories_id are undefined.";
     }
     unless ( scalar @{ $sentences } )
     {
-        warn "Story " . $story->{ stories_id } . " doesn't have any sentences.";
+        warn "Story $stories_id doesn't have any sentences.";
         return;
     }
 
     if ( $no_dedup_sentences )
     {
-        say STDERR "Won't de-duplicate sentences for story " .
-          $story->{ stories_id } . " because 'no_dedup_sentences' is set.";
+        say STDERR "Won't de-duplicate sentences for story $stories_id because 'no_dedup_sentences' is set.";
     }
     else
     {
@@ -587,7 +589,7 @@ sub update_story_sentence_words_and_language
         $sentence_ref->{ sentence }        = $sentence;
         $sentence_ref->{ language }        = $sentence_lang;
         $sentence_ref->{ sentence_number } = $sentence_num;
-        $sentence_ref->{ stories_id }      = $story->{ stories_id };
+        $sentence_ref->{ stories_id }      = $stories_id;
         $sentence_ref->{ media_id }        = $story->{ media_id };
         $sentence_ref->{ publish_date }    = $story->{ publish_date };
 
@@ -597,6 +599,18 @@ sub update_story_sentence_words_and_language
     _insert_story_sentences( $db, $story, $sentence_refs );
 
     $db->dbh->{ AutoCommit } || $db->commit;
+
+    if (    MediaWords::Util::CoreNLP::annotator_is_enabled()
+        and MediaWords::Util::CoreNLP::story_is_annotatable( $db, $stories_id ) )
+    {
+        # (Re)enqueue for CoreNLP annotation
+        #
+        # We enqueue an identical job in MediaWords::DBI::Downloads::process_download_for_extractor() too,
+        # but duplicate the enqueue_on_gearman() call here just to make sure that story gets reannotated
+        # on each sentence change. Both of these jobs are to be merged into a single job by Gearman.
+        MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman( { stories_id => $stories_id } );
+
+    }
 }
 
 sub _get_stem_word_counts_for_sentence($$;$)
@@ -637,44 +651,6 @@ sub _get_stem_word_counts_for_sentence($$;$)
     }
 
     return $word_counts;
-}
-
-# fill the story_sentence_words table with all stories in ssw_queue
-sub fill_story_sentence_words
-{
-    my ( $db ) = @_;
-
-    my $block_size = 1;
-
-    my $count = 0;
-    while (
-        my $stories = $db->query_with_large_work_mem(
-            <<"EOF"
-            SELECT stories_id,
-                   publish_date,
-                   media_id
-            FROM ssw_queue
-            ORDER BY stories_id
-            LIMIT $block_size
-EOF
-        )->hashes
-      )
-    {
-        if ( !@{ $stories } )
-        {
-            last;
-        }
-
-        for my $story ( @{ $stories } )
-        {
-            say STDERR "story [ $story->{ stories_id } ] " . ++$count . " ...";
-
-            update_story_sentence_words_and_language( $db, $story, 0 );
-
-            $db->query( "DELETE FROM ssw_queue WHERE stories_id = ?", $story->{ stories_id } );
-        }
-        $db->commit();
-    }
 }
 
 # return a where clause that restricts the media_sets_id to the given media_sets_id or else

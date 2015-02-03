@@ -70,17 +70,11 @@
             [% IF c.acl_user_can_visit('/admin/media/create_batch') %]
                 <a href="[% c.uri_for('/admin/media/create_batch') %]">Add Media</a>
             [% END -%]
+            [% IF c.acl_user_can_visit('/admin/health') %]
+                <a href="[% c.uri_for('/admin/health') %]">Media Health</a>
+            [% END -%]
             [% IF c.acl_user_can_visit('/admin/media/moderate') %]
                 <a href="[% c.uri_for('/admin/media/moderate_tags') %]">Moderate Media</a>
-            [% END -%]
-            [% IF c.acl_user_can_visit('/admin/downloads/list') %]
-                <a href="[% c.uri_for('/admin/downloads/list') %]">All Downloads</a>
-            [% END -%]
-            [% IF c.acl_user_can_visit('/admin/queries/list') %]
-                <a href="[% c.uri_for('/admin/queries/list') %]">Queries</a>
-            [% END -%]
-            [% IF c.acl_user_can_visit('/admin/dashboards/list') %]
-                <a href="[% c.uri_for('/admin/dashboards/list') %]">Dashboards</a>
             [% END -%]
             [% IF c.acl_user_can_visit('/admin/users/list') %]
                 <a href="[% c.uri_for('/admin/users/list') %]">Users</a>

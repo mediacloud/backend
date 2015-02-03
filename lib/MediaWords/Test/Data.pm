@@ -210,4 +210,26 @@ sub stories_arrayref_from_hashref($)
     return \@array;
 }
 
+# adjust the publish_date of each story to be in the local time zone
+sub adjust_test_timezone
+{
+    my ( $test_stories, $test_timezone ) = @_;
+
+    my $test_tz  = DateTime::TimeZone->new( name => $test_timezone );
+    my $local_tz = DateTime::TimeZone->new( name => 'local' );
+
+    for my $story ( @{ $test_stories } )
+    {
+        next unless ( $story->{ publish_date } );
+        my $epoch_date = MediaWords::Util::SQL::get_epoch_from_sql_date( $story->{ publish_date } );
+        my $dt = DateTime->from_epoch( epoch => $epoch_date );
+
+        my $tz_diff = $test_tz->offset_for_datetime( $dt ) - $local_tz->offset_for_datetime( $dt );
+
+        $epoch_date -= $tz_diff;
+        $story->{ publish_date } = MediaWords::Util::SQL::get_sql_date_from_epoch( $epoch_date );
+    }
+
+}
+
 1;

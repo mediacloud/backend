@@ -224,7 +224,7 @@ sub test_stories_public
         $url = "$base_url?key=$key";
     }
 
-    $url .= "&q=sentence:obama&rows=2";
+    $url .= "&q=sentence:obama&rows=2&sentences=1&text=1";
 
     say STDERR $url;
 
@@ -278,7 +278,7 @@ sub test_stories_non_public
         $url = "$base_url?key=$key";
     }
 
-    $url .= "&q=sentence:obama&rows=2";
+    $url .= "&q=sentence:obama&rows=2&sentences=1&text=1";
 
     say STDERR $url;
 

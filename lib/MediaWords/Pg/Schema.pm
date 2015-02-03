@@ -392,6 +392,7 @@ sub postgresql_response_line_is_expected($)
         | ^psql.*:\ NOTICE:
         | ^DELETE
         | ^SELECT\ 0
+        | ^Pager\ usage\ is\ off
     /x;
 
     if ( $line =~ $expected_line_pattern )

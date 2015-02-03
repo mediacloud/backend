@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4474;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4478;
     
 BEGIN
 
@@ -836,6 +836,20 @@ create index dashboard_topics_vectors_added on dashboard_topics ( vectors_added 
 
 CREATE VIEW dashboard_topics_tt2_locale_format as select distinct on (tt2_value) '[% c.loc("' || name || '") %]' || ' - ' || '[% c.loc("' || lower(name) || '") %]' as tt2_value from (select * from dashboard_topics order by name, dashboard_topics_id) AS dashboard_topic_names order by tt2_value;
 
+create table color_sets (
+    color_sets_id               serial          primary key,
+    color                       varchar( 256 )  not null,
+    color_set                   varchar( 256 )  not null,
+    id                          varchar( 256 )  not null
+);
+  
+create unique index color_sets_set_id on color_sets ( color_set, id );
+    
+-- prefill colors for partisan_code set so that liberal is blue and conservative is red
+insert into color_sets ( color, color_set, id ) values ( 'c10032', 'partisan_code', 'partisan_2012_conservative' );
+insert into color_sets ( color, color_set, id ) values ( '00519b', 'partisan_code', 'partisan_2012_liberal' );
+insert into color_sets ( color, color_set, id ) values ( '009543', 'partisan_code', 'partisan_2012_libertarian' );
+
 create table stories (
     stories_id                  serial          primary key,
     media_id                    int             not null references media on delete cascade,
@@ -844,7 +858,7 @@ create table stories (
     title                       text            not null,
     description                 text            null,
     publish_date                timestamp       not null,
-    collect_date                timestamp       not null,
+    collect_date                timestamp       not null default now(),
     full_text_rss               boolean         not null default 'f',
     db_row_last_updated                timestamp with time zone,
     language                    varchar(3)      null   -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
@@ -878,7 +892,7 @@ create table downloads (
     parent              int             null,
     url                 varchar(1024)   not null,
     host                varchar(1024)   not null,
-    download_time       timestamp       not null,
+    download_time       timestamp       not null default now(),
     type                download_type   not null,
     state               download_state  not null,
     path                text            null,
@@ -1694,6 +1708,16 @@ create table controversy_ignore_redirects (
 
 create index controversy_ignore_redirects_url on controversy_ignore_redirects ( url );
 
+create table controversy_query_slices (
+    controversy_query_slices_id     serial primary key,
+    controversies_id                int not null references controversies on delete cascade,
+    name                            varchar ( 1024 ) not null,
+    query                           text not null,
+    all_time_slices                 boolean not null
+);
+
+create index controversy_query_slices_controversy on controversy_query_slices ( controversies_id );
+
 create table controversy_dumps (
     controversy_dumps_id            serial primary key,
     controversies_id                int not null references controversies on delete cascade,
@@ -1711,6 +1735,7 @@ create type cd_period_type AS ENUM ( 'overall', 'weekly', 'monthly', 'custom' );
 create table controversy_dump_time_slices (
     controversy_dump_time_slices_id serial primary key,
     controversy_dumps_id            int not null references controversy_dumps on delete cascade,
+    controversy_query_slices_id     int null references controversy_query_slices on delete set null,
     start_date                      timestamp not null,
     end_date                        timestamp not null,
     period                          cd_period_type not null,
@@ -1721,6 +1746,11 @@ create table controversy_dump_time_slices (
     story_link_count                int not null,
     medium_count                    int not null,
     medium_link_count               int not null,
+    
+    -- is this just a shell cdts with no data actually dumped into it
+    -- we use shell cdtss to display query slices on live data with having to make a real dump
+    -- first
+    is_shell                        boolean not null default false,
     tags_id                         int references tags -- keep on cascade to avoid accidental deletion
 );
 
@@ -1763,6 +1793,18 @@ create table cd.stories (
 );
 create index stories_id on cd.stories ( controversy_dumps_id, stories_id );    
 
+-- stats for various externally dervied statistics about a story.  keeping this separate for now
+-- from the bitly stats for simplicity sake during implementatino and testing
+create table story_statistics (
+    story_statistics_id             serial  primary key,
+    stories_id                      int     not null references stories on delete cascade,
+    twitter_url_tweet_count         int     null,
+    twitter_url_tweet_count_error   text    null,
+    facebook_share_count            int     null,
+    facebook_share_count_error      text    null
+);
+
+create unique index story_statistics_story on story_statistics ( stories_id );
 
 -- Bit.ly stats for stories
 CREATE TABLE story_bitly_statistics (

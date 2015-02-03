@@ -321,40 +321,53 @@ sub _download_store_for_reading($)
     else
     {
         my $path = $download->{ path };
-        unless ( $path and ( $path =~ /^([\w]+):/ ) )
+        unless ( $path )
         {
-            die "Download path is not set or invalid for download $download->{ downloads_id }";
+            die "Download path is not set for download $download->{ downloads_id }";
         }
 
-        Readonly my $location => lc( $1 );
-
-        if ( $location eq 'content' )
+        if ( $path =~ /^([\w]+):/ )
         {
-            $download_store = 'databaseinline';
-        }
+            Readonly my $location => lc( $1 );
 
-        elsif ( $location eq 'tar' )
-        {
-            $download_store = 'gridfs';
-        }
+            if ( $location eq 'content' )
+            {
+                $download_store = 'databaseinline';
+            }
 
-        elsif ( $location eq 'postgresql' )
-        {
-            $download_store = 'postgresql';
-        }
+            elsif ( $location eq 'tar' )
+            {
+                $download_store = 'gridfs';
+            }
 
-        elsif ( $location eq 'amazon_s3' )
-        {
-            $download_store = 'amazon_s3';
-        }
+            elsif ( $location eq 'postgresql' )
+            {
+                $download_store = 'postgresql';
+            }
 
-        elsif ( $location eq 'gridfs' )
-        {
-            $download_store = 'gridfs';
+            elsif ( $location eq 'amazon_s3' )
+            {
+                $download_store = 'amazon_s3';
+            }
+
+            elsif ( $location eq 'gridfs' )
+            {
+                $download_store = 'gridfs';
+            }
+
+            else
+            {
+                die "Download location '$location' is unknown for download $download->{ downloads_id }";
+            }
+
         }
         else
         {
-            # Assume it's stored in a filesystem
+            # Assume it's stored in a filesystem (the downloads.path contains a
+            # full path to the download).
+            #
+            # We will probably decide to read this "file" download from GridFS
+            # right away.
             $download_store = 'localfile';
         }
     }
@@ -419,29 +432,24 @@ sub fetch_content($$)
     my $store = _download_store_for_reading( $download );
     unless ( defined $store )
     {
-        die "No download path or the state is not 'success' for download ID " . $download->{ downloads_id };
+        croak "No download path or the state is not 'success' for download ID " . $download->{ downloads_id };
     }
 
     # Fetch content
-    if ( my $content_ref = $store->fetch_content( $db, $download->{ downloads_id }, $download->{ path } ) )
+    my $content_ref = $store->fetch_content( $db, $download->{ downloads_id }, $download->{ path } );
+    unless ( $content_ref and ref( $content_ref ) eq 'SCALAR' )
     {
-
-        # horrible hack to fix old content that is not stored in unicode
-        my $ascii_hack_downloads_id = get_config->{ mediawords }->{ ascii_hack_downloads_id };
-        if ( $ascii_hack_downloads_id and ( $download->{ downloads_id } < $ascii_hack_downloads_id ) )
-        {
-            $$content_ref =~ s/[^[:ascii:]]/ /g;
-        }
-
-        return $content_ref;
+        croak "Unable to fetch content for download " . $download->{ downloads_id };
     }
-    else
+
+    # horrible hack to fix old content that is not stored in unicode
+    my $ascii_hack_downloads_id = get_config->{ mediawords }->{ ascii_hack_downloads_id };
+    if ( $ascii_hack_downloads_id and ( $download->{ downloads_id } < $ascii_hack_downloads_id ) )
     {
-        warn "Unable to fetch content for download " . $download->{ downloads_id } . "\n";
-
-        my $ret = '';
-        return \$ret;
+        $$content_ref =~ s/[^[:ascii:]]/ /g;
     }
+
+    return $content_ref;
 }
 
 # fetch the content as lines in an array after running through the extractor preprocessor
@@ -708,47 +716,50 @@ sub process_download_for_extractor($$$;$$$)
 
     #say STDERR "Got download_text";
 
+    my $has_remaining_download = $db->query(
+        <<EOF,
+        SELECT downloads_id
+        FROM downloads
+        WHERE stories_id = ?
+          AND extracted = 'f'
+          AND type = 'content'
+EOF
+        $stories_id
+    )->hash;
+
     unless ( $no_vector )
     {
         # Vector
-        my $remaining_download = $db->query(
-            <<EOF,
-            SELECT downloads_id
-            FROM downloads
-            WHERE stories_id = ?
-              AND extracted = 'f'
-              AND type = 'content'
-EOF
-            $stories_id
-        )->hash;
-        unless ( $remaining_download )
+        if ( $has_remaining_download )
+        {
+            say STDERR "[$process_num] pending more downloads ...";
+        }
+        else
         {
             my $story = $db->find_by_id( 'stories', $stories_id );
 
             MediaWords::StoryVectors::update_story_sentence_words_and_language( $db, $story, 0, $no_dedup_sentences );
         }
+    }
+
+    unless ( $has_remaining_download )
+    {
+
+        if (    MediaWords::Util::CoreNLP::annotator_is_enabled()
+            and MediaWords::Util::CoreNLP::story_is_annotatable( $db, $stories_id ) )
+        {
+            # Story is annotatable with CoreNLP; enqueue for CoreNLP annotation
+            # (which will run mark_as_processed() on its own)
+            MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman( { stories_id => $stories_id } );
+
+        }
         else
         {
-            say STDERR "[$process_num] pending more downloads ...";
-        }
-    }
-
-    if (    MediaWords::Util::CoreNLP::annotator_is_enabled()
-        and MediaWords::Util::CoreNLP::story_is_annotatable( $db, $stories_id ) )
-    {
-
-        # Story is annotatable with CoreNLP; enqueue for CoreNLP annotation (which will run mark_as_processed() on its own)
-        MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman(
-            { downloads_id => $download->{ downloads_id } } );
-
-    }
-    else
-    {
-
-        # Story is not annotatable with CoreNLP; add to "processed_stories" right away
-        unless ( MediaWords::DBI::Stories::mark_as_processed( $db, $stories_id ) )
-        {
-            die "Unable to mark story ID $stories_id as processed";
+            # Story is not annotatable with CoreNLP; add to "processed_stories" right away
+            unless ( MediaWords::DBI::Stories::mark_as_processed( $db, $stories_id ) )
+            {
+                die "Unable to mark story ID $stories_id as processed";
+            }
         }
     }
 }
@@ -759,10 +770,7 @@ sub extract_and_vector($$$;$$$)
 {
     my ( $db, $download, $process_num, $no_dedup_sentences, $no_vector ) = @_;
 
-    eval {
-        MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, $process_num, $no_dedup_sentences,
-            $no_vector );
-    };
+    eval { process_download_for_extractor( $db, $download, $process_num, $no_dedup_sentences, $no_vector ); };
 
     if ( $@ )
     {

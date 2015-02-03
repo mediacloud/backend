@@ -11,11 +11,13 @@ use Encode;
 use File::Temp;
 use FileHandle;
 use Getopt::Long;
+use GraphViz2;
 use XML::Simple;
 use Readonly;
 
 use MediaWords::CM::Model;
 use MediaWords::DBI::Media;
+use MediaWords::Solr;
 use MediaWords::Util::Bitly;
 use MediaWords::Util::CSV;
 use MediaWords::Util::Colors;
@@ -25,21 +27,22 @@ use MediaWords::Util::SQL;
 use MediaWords::DBI::Activities;
 
 # max and mind node sizes for gexf dump
-use constant MAX_NODE_SIZE => 50;
-use constant MIN_NODE_SIZE => 5;
+use constant MAX_NODE_SIZE => 17;
+use constant MIN_NODE_SIZE => 1;
 
 # max map width for gexf dump
 use constant MAX_MAP_WIDTH => 800;
 
-# consistent colors for media types
-my $_media_type_color_map;
+# max number of media to include in gexf map
+use constant MAX_GEXF_MEDIA => 500;
 
 # attributes to include in gexf dump
 my $_media_static_gexf_attribute_types = {
     url          => 'string',
     inlink_count => 'integer',
     story_count  => 'integer',
-    view_medium  => 'string'
+    view_medium  => 'string',
+    media_type   => 'string'
 };
 
 # all tables that the dump process snapshots for each controversy_dump
@@ -152,20 +155,31 @@ sub discard_temp_tables
     $db->query( "discard temp" );
 }
 
-# remove stories from dump_period_stories that don't match the $csts->{ tags_id }, if present
-sub restrict_period_stories_to_tag
+# remove stories from dump_period_stories that don't math solr query in the associated query slice, if any
+sub restrict_period_stories_to_query_slice
 {
     my ( $db, $cdts ) = @_;
 
-    return unless ( $cdts->{ tags_id } );
+    return unless ( $cdts->{ controversy_query_slices_id } );
 
-    # it may be a little slower to add all the rows and then delete them, but
-    # it makes the code much cleaner
-    $db->query( <<END, $cdts->{ tags_id } );
-delete from dump_period_stories s where not exists
-        ( select 1 from stories_tags_map stm where stm.stories_id = s.stories_id and stm.tags_id = ? )
-END
+    my $qs = $db->find_by_id( 'controversy_query_slices', $cdts->{ controversy_query_slices_id } );
 
+    my $dump_period_stories_ids = $db->query( "select stories_id from dump_period_stories" )->flat;
+
+    if ( !@{ $dump_period_stories_ids } )
+    {
+        $db->query( "truncate table dump_period_stories" );
+        return;
+    }
+
+    my $stories_ids_list = join( ' ', @{ $dump_period_stories_ids } );
+
+    my $solr_q = "( $qs->{ query } ) and stories_id:( $stories_ids_list )";
+    my $solr_stories_ids = MediaWords::Solr::search_for_stories_ids( $db, { q => $solr_q } );
+
+    my $ids_table = $db->get_temporary_ids_table( $solr_stories_ids );
+
+    $db->query( "delete from dump_period_stories where stories_id not in ( select id from $ids_table )" );
 }
 
 # get the where clause that will restrict the dump_period_stories creation
@@ -201,7 +215,7 @@ sub write_period_stories
 
     $db->query( "drop table if exists dump_period_stories" );
 
-    if ( !$cdts || ( !$cdts->{ tags_id } && ( $cdts->{ period } eq 'overall' ) ) )
+    if ( !$cdts || ( $cdts->{ period } eq 'overall' ) )
     {
         $db->query( <<END );
 create temporary table dump_period_stories $_temporary_tablespace as select stories_id from dump_stories
@@ -235,9 +249,9 @@ END
         $db->query( "drop view dump_undateable_stories" );
     }
 
-    if ( $cdts->{ tags_id } )
+    if ( $cdts->{ controversy_query_slices_id } )
     {
-        restrict_period_stories_to_tag( $db, $cdts );
+        restrict_period_stories_to_query_slice( $db, $cdts );
     }
 }
 
@@ -432,32 +446,57 @@ sub add_tags_to_dump_media
 {
     my ( $db, $cdts, $media ) = @_;
 
-    my $tagset_name = "controversy_$cdts->{ controversy_dump }->{ controversy }->{ name }";
-
-    my $tags = $db->query( <<END, $tagset_name )->hashes;
-select * from dump_tags t, dump_tag_sets ts
-  where t.tag_sets_id = ts.tag_sets_id and ts.name = ? and t.tag <> 'all'
+    my $tag_sets = $db->query( <<END )->hashes;
+select * from dump_tag_sets
+    where tag_sets_id in 
+        ( select tag_sets_id
+            from dump_tags t join dump_media_tags_map mtm on ( t.tags_id = mtm.tags_id ) )
 END
 
-    my $tag_fields = [];
-    for my $tag ( @{ $tags } )
+    my $fields = [];
+    for my $tag_set ( @{ $tag_sets } )
     {
-        my $label = "tagged_" . $tag->{ tag };
+        my $label = "tag_" . $tag_set->{ name };
 
-        push( @{ $tag_fields }, $label );
+        push( @{ $fields }, $label );
 
-        my $media_tags = $db->query( <<END, $tag->{ tags_id } )->hashes;
-select s.media_id, stm.* 
-    from dump_stories s, dump_story_link_counts slc, dump_stories_tags_map stm 
-    where s.stories_id = slc.stories_id and s.stories_id = stm.stories_id and stm.tags_id = ?
+        my $media_tags = $db->query( <<END, $tag_set->{ tag_sets_id } )->hashes;
+select dmtm.*, dt.tag
+    from dump_media_tags_map dmtm
+        join dump_tags dt on ( dmtm.tags_id = dt.tags_id )
+    where dt.tag_sets_id = ?
 END
-        my $media_tags_map = {};
-        map { $media_tags_map->{ $_->{ media_id } } += 1 } @{ $media_tags };
+        my $map = {};
+        map { $map->{ $_->{ media_id } } = $_->{ tag } } @{ $media_tags };
 
-        map { $_->{ $label } = $media_tags_map->{ $_->{ media_id } } || 0 } @{ $media };
+        map { $_->{ $label } = $map->{ $_->{ media_id } } || 'null' } @{ $media };
     }
 
-    return $tag_fields;
+    return $fields;
+}
+
+sub add_partisan_code_to_dump_media
+{
+    my ( $db, $cdts, $media ) = @_;
+
+    my $label = 'partisan_code';
+
+    my $partisan_tags = $db->query( <<END )->hashes;
+select dmtm.*, dt.tag
+    from dump_media_tags_map dmtm
+        join dump_tags dt on ( dmtm.tags_id = dt.tags_id )
+        join dump_tag_sets dts on ( dts.tag_sets_id = dt.tag_sets_id )
+    where 
+        dts.name = 'collection' and
+        dt.tag like 'partisan_2012_%'
+END
+
+    my $map = {};
+    map { $map->{ $_->{ media_id } } = $_->{ tag } } @{ $partisan_tags };
+
+    map { $_->{ $label } = $map->{ $_->{ media_id } } || 'null' } @{ $media };
+
+    return $label;
 }
 
 sub add_codes_to_dump_media
@@ -487,6 +526,25 @@ END
     return $code_fields;
 }
 
+# add tags, codes, partisanship and other extra data to all dump media for the purpose
+# of making a gexf or csv dump.  return the list of extra fields added.
+sub add_extra_fields_to_dump_media
+{
+    my ( $db, $cdts, $media ) = @_;
+
+    # my $code_fields = add_codes_to_dump_media( $db, $cdts, $media );
+
+    # my $tag_fields = add_tags_to_dump_media( $db, $cdts, $media );
+    my $partisan_field = add_partisan_code_to_dump_media( $db, $cdts, $media );
+
+    # my $all_fields = [ @{ $code_fields }, @{ $tag_fields }, $partisan_field ];
+    my $all_fields = [ $partisan_field ];
+
+    map { $_media_static_gexf_attribute_types->{ $_ } = 'string'; } @{ $all_fields };
+
+    return $all_fields;
+}
+
 sub get_media_csv
 {
     my ( $db, $cdts ) = @_;
@@ -502,11 +560,9 @@ END
     my $fields = $res->columns;
     my $media  = $res->hashes;
 
-    my $code_fields = add_codes_to_dump_media( $db, $cdts, $media );
-    my $tag_fields = add_tags_to_dump_media( $db, $cdts, $media );
+    my $extra_fields = add_extra_fields_to_dump_media( $db, $cdts, $media );
 
-    push( @{ $fields }, @{ $code_fields } );
-    push( @{ $fields }, @{ $tag_fields } );
+    push( @{ $fields }, @{ $extra_fields } );
 
     my $csv = MediaWords::Util::CSV::get_hashes_as_encoded_csv( $media, $fields );
 
@@ -636,56 +692,43 @@ sub attach_stories_to_media
     map { push( @{ $media_lookup->{ $_->{ media_id } }->{ stories } }, $_ ) } @{ $stories };
 }
 
-sub add_tags_to_gexf_attribute_types
+sub get_weighted_edges
 {
-    my ( $db, $cdts ) = @_;
+    my ( $db, $media, $max_gexf_media ) = @_;
 
-    my $tagset_name = "controversy_$cdts->{ controversy_dump }->{ controversy }->{ name }";
+    my $media_links = $db->query( <<END, $max_gexf_media )->hashes;
+with top_media as (
+    select media_id from dump_medium_link_counts order by inlink_count desc limit ?
+)
 
-    my $tags = $db->query( <<END, $tagset_name )->hashes;
-select * from dump_tags t, dump_tag_sets ts where t.tag_sets_id = ts.tag_sets_id and ts.name = ? and t.tag <> 'all'
+select * 
+    from dump_medium_links
+    where 
+        source_media_id in ( select media_id from top_media ) and
+        ref_media_id in ( select media_id from top_media )
 END
 
-    map { $_media_static_gexf_attribute_types->{ "tagged_" . $_->{ tag } } = 'integer' } @{ $tags };
-}
-
-sub add_codes_to_gexf_attribute_types
-{
-    my ( $db, $cdts ) = @_;
-
-    my $code_types = $db->query( "select distinct code_type from dump_controversy_media_codes" )->flat;
-
-    map { $_media_static_gexf_attribute_types->{ "code_" . $_ } = 'string' } @{ $code_types };
-}
-
-sub get_link_weighted_edges
-{
-    my ( $db ) = @_;
-
-    my $media_links = $db->query( "select * from dump_medium_links" )->hashes;
+    my $media_map = {};
+    map { $media_map->{ $_->{ media_id } } = 1 } @{ $media };
 
     my $edges = [];
     my $k     = 0;
     for my $media_link ( @{ $media_links } )
     {
+        next unless ( $media_map->{ $media_link->{ source_media_id } } && $media_map->{ $media_link->{ ref_media_id } } );
         my $edge = {
             id     => $k++,
             source => $media_link->{ source_media_id },
             target => $media_link->{ ref_media_id },
-            weight => $media_link->{ inlink_count }
+            weight => 1
+
+              # weight => $media_link->{ inlink_count }
         };
 
         push( @{ $edges }, $edge );
     }
 
     return $edges;
-}
-
-sub get_weighted_edges
-{
-    my ( $db ) = @_;
-
-    return get_link_weighted_edges( $db );
 }
 
 # given an rgb hex string, return a hash in the form { r => 12, g => 0, b => 255 }, which is
@@ -701,32 +744,27 @@ sub get_color_hash_from_hex
     };
 }
 
-sub get_media_type_color
+# get a consistent color from MediaWords::Util::Colors.  convert to a color hash as needed by gexf.  translate
+# the set to a controversy specific color set value for get_consistent_color.
+sub get_color
 {
-    my ( $db, $cdts, $media_type ) = @_;
+    my ( $db, $cdts, $set, $id ) = @_;
 
-    $media_type ||= 'none';
-
-    return $_media_type_color_map->{ $media_type } if ( $_media_type_color_map );
-
-    my $all_media_types = $db->query( <<END )->flat;
-select distinct media_type from dump_media_with_types
-END
-
-    my $num_colors = scalar( @{ $all_media_types } ) + 1;
-
-    my $hex_colors = MediaWords::Util::Colors::get_colors( $num_colors );
-    my $color_list = [ map { get_color_hash_from_hex( $_ ) } @{ $hex_colors } ];
-
-    $_media_type_color_map = {};
-    for my $media_type ( @{ $all_media_types } )
+    my $color_set;
+    if ( grep { $_ eq $set } qw(partisan_code media_type) )
     {
-        $_media_type_color_map->{ $media_type } = pop( @{ $color_list } );
+        $color_set = $set;
+    }
+    else
+    {
+        $color_set = "controversy_${set}_$cdts->{ controversy_dump }->{ controversies_id }";
     }
 
-    $_media_type_color_map->{ none } = pop( @{ $color_list } );
+    $id ||= 'none';
 
-    return $_media_type_color_map->{ $media_type };
+    my $color = MediaWords::Util::Colors::get_consistent_color( $db, $color_set, $id );
+
+    return get_color_hash_from_hex( $color );
 }
 
 # gephi removes the weights from the media links.  add them back in.
@@ -750,37 +788,36 @@ sub add_weights_to_gexf_edges
     }
 }
 
-# scale the size of the map described in the gexf file to 800 x 700.
+# scale the size of the map described in the gexf file to MAX_MAP_WIDTH and center on 0,0.
 # gephi can return really large maps that make the absolute node size relatively tiny.
 # we need to scale the map to get consistent, reasonable node sizes across all maps
 sub scale_gexf_nodes
 {
-    my ( $db, $gexf ) = @_;
+    my ( $gexf ) = @_;
 
     # print Dumper( $gexf );
 
-    my $nodes = $gexf->{ graph }->[ 0 ]->{ nodes }->[ 0 ]->{ node };
+    my $nodes = $gexf->{ graph }->[ 0 ]->{ nodes }->{ node };
 
-    # we assume that the gephi maps are symmetrical and so only check the
-    my $max_x = 0;
-    for my $node ( @{ $nodes } )
+    # my $nodes = $gexf->{ graph }->[ 0 ]->{ nodes }->[ 0 ]->{ node };
+
+    my @undefined_c = grep { !defined( $_->{ 'viz:position' }->{ x } ) } @{ $nodes };
+
+    for my $c ( qw(x y) )
     {
-        my $p = $node->{ 'viz:position' }->[ 0 ];
-        $max_x = $p->{ x } if ( !defined( $max_x ) || ( $p->{ x } > $max_x ) );
-    }
+        my @defined_c = grep { defined( $_->{ 'viz:position' }->{ $c } ) } @{ $nodes };
+        my $max = List::Util::max( map { $_->{ 'viz:position' }->{ $c } } @defined_c );
+        my $min = List::Util::min( map { $_->{ 'viz:position' }->{ $c } } @defined_c );
 
-    my $map_width = $max_x * 2;
+        my $adjust = 0 - $min - ( $max - $min ) / 2;
 
-    if ( $map_width > MAX_MAP_WIDTH )
-    {
+        map { $_->{ 'viz:position' }->{ $c } += $adjust } @{ $nodes };
+
+        my $map_width = $max - $min;
+        $map_width ||= 1;
+
         my $scale = MAX_MAP_WIDTH / $map_width;
-
-        for my $node ( @{ $nodes } )
-        {
-            my $p = $node->{ 'viz:position' }->[ 0 ];
-            $p->{ x } *= $scale;
-            $p->{ y } *= $scale;
-        }
+        map { $_->{ 'viz:position' }->{ $c } *= $scale } @{ $nodes };
     }
 }
 
@@ -793,9 +830,9 @@ sub post_process_gexf
 
     my $gexf = XML::Simple::XMLin( $gexf_file, ForceArray => 1, ForceContent => 1, KeyAttr => [] );
 
-    add_weights_to_gexf_edges( $db, $gexf );
+    # add_weights_to_gexf_edges( $db, $gexf );
 
-    scale_gexf_nodes( $db, $gexf );
+    scale_gexf_nodes( $gexf );
 
     open( FILE, ">$gexf_file" ) || die( "Unable to open file '$gexf_file': $!" );
 
@@ -866,27 +903,6 @@ sub layout_gexf
     return $layout_gexf;
 }
 
-# get the size of the individual node based on the medium and the total number of links in the graph
-sub get_node_size
-{
-    my ( $medium, $total_link_count ) = @_;
-
-    print STDERR "get_node_size: $medium->{ name } [ $medium->{ inlink_count } / $total_link_count ]\n";
-
-    my $scale = 100;
-
-    # my $min_size = $scale * ( 1 / $total_link_count );
-    # $scale = 3 * ( $scale / $min_size ) if ( $min_size < 3 );
-
-    my $size = $scale * ( ( $medium->{ inlink_count } + 1 ) / $total_link_count );
-
-    $size = 1 if ( $size < 1 );
-
-    #print STDERR "size: $size\n";
-
-    return $size;
-}
-
 # scale the nodes such that the biggest node size is MAX_NODE_SIZE and the smallest is MIN_NODE_SIZE
 sub scale_node_sizes
 {
@@ -895,13 +911,13 @@ sub scale_node_sizes
     map { $_->{ 'viz:size' }->{ value } += 1 } @{ $nodes };
 
     my $max_size = 1;
-    map { my $s = $_->{ 'viz:size' }->{ value }; $max_size = $s if ( $max_size < $s ); } @{ $nodes };
+    for my $node ( @{ $nodes } )
+    {
+        my $s = $node->{ 'viz:size' }->{ value };
+        $max_size = $s if ( $max_size < $s );
+    }
 
     my $scale = MAX_NODE_SIZE / $max_size;
-    if ( $scale > 1 )
-    {
-        $scale = 0.5 + ( $scale / 2 );
-    }
 
     # my $scale = ( $max_size > ( MAX_NODE_SIZE / MIN_NODE_SIZE ) ) ? ( MAX_NODE_SIZE / $max_size ) : 1;
 
@@ -919,20 +935,140 @@ sub scale_node_sizes
     }
 }
 
-# write gexf dump of nodes
-sub write_gexf_dump
+# remove edges going into the top $num nodes.  return the pruned edges.
+sub prune_links_to_top_nodes
 {
-    my ( $db, $cdts ) = @_;
+    my ( $nodes, $edges, $num ) = @_;
 
-    add_tags_to_gexf_attribute_types( $db, $cdts );
-    add_codes_to_gexf_attribute_types( $db, $cdts );
+    return $edges unless ( @{ $nodes } && @{ $edges } && ( $num > 0 ) );
 
-    my $media = $db->query( <<END )->hashes;
-select * from dump_media_with_types m, dump_medium_link_counts mlc where m.media_id = mlc.media_id
+    my $prune_lookup = {};
+    map { $prune_lookup->{ $_->{ id } } = 1 } @{ $nodes }[ 0 .. $num - 1 ];
+
+    my $pruned_edges = [];
+    for my $edge ( @{ $edges } )
+    {
+        push( @{ $pruned_edges }, $edge ) unless ( $prune_lookup->{ $edge->{ target } } );
+    }
+
+    say STDERR "pruned edges: " . ( @{ $edges } - @{ $pruned_edges } );
+
+    return $pruned_edges;
+}
+
+# remove all edges to any node with a size greater than the min size
+sub prune_links_to_min_size
+{
+    my ( $nodes, $edges ) = @_;
+
+    my $min_size = List::Util::min( map { $_->{ 'viz:size' }->{ value } } @{ $nodes } );
+
+    my $min_size_nodes = {};
+    map { $min_size_nodes->{ $_->{ id } } = 1 if ( $_->{ 'viz:size' }->{ value } <= $min_size ) } @{ $nodes };
+
+    my $pruned_edges = [];
+    for my $edge ( @{ $edges } )
+    {
+        push( @{ $pruned_edges }, $edge ) if ( $min_size_nodes->{ $edge->{ target } } );
+    }
+
+    say STDERR "pruned edges: " . ( @{ $edges } - @{ $pruned_edges } );
+
+    return $pruned_edges;
+}
+
+# add layout to gexf by calling graphviz
+sub layout_gexf_with_graphviz
+{
+    my ( $gexf ) = @_;
+
+    my $nodes = $gexf->{ graph }->[ 0 ]->{ nodes }->{ node };
+    my $edges = $gexf->{ graph }->[ 0 ]->{ edges }->{ edge };
+
+    # $edges = prune_links_to_top_nodes( $nodes, $edges, 5 );
+    # $edges = prune_links_to_min_size( $nodes, $edges, 5 );
+
+    my $graph_size       = 800;
+    my $graph_attributes = {
+        driver => '/usr/bin/neato',
+        height => $graph_size,
+        width  => $graph_size,
+        format => 'dot'
+    };
+
+    my $graph = GraphViz2->new( global => $graph_attributes );
+
+    my $node_lookup = {};
+    map { $node_lookup->{ $_->{ id } } = $_; $graph->add_node( name => $_->{ id } ) } @{ $nodes };
+    map { $graph->add_edge( from => $_->{ source }, to => $_->{ target } ) } @{ $edges };
+
+    $graph->run;
+    my $output = $graph->dot_output;
+
+    while ( $output =~ /(\d+) \[pos="(\d+(?:\.\d+)?),(\d+(?:\.\d+)?)"/g )
+    {
+        my ( $node_id, $x, $y ) = ( $1, $2, $3 );
+
+        $node_lookup->{ $node_id }->{ 'viz:position' }->{ x } = $x;
+        $node_lookup->{ $node_id }->{ 'viz:position' }->{ y } = $y;
+    }
+
+    scale_gexf_nodes( $gexf );
+}
+
+# add layout to gexf by calling graphviz
+sub layout_gexf_with_graphviz_1
+{
+    my ( $gexf ) = @_;
+
+    my $nodes = $gexf->{ graph }->[ 0 ]->{ nodes }->{ node };
+    my $edges = $gexf->{ graph }->[ 0 ]->{ edges }->{ edge };
+
+    # $edges = prune_links_to_top_nodes( $nodes, $edges, 5 );
+    # $edges = prune_links_to_min_size( $nodes, $edges, 5 );
+
+    my $graph_size = 800;
+    my $graph      = GraphViz->new(
+        layout => "/usr/bin/sfdp",
+        height => $graph_size,
+        width  => $graph_size,
+        k      => 10
+    );
+
+    my $node_lookup = {};
+    map { $node_lookup->{ $_->{ id } } = $_; $graph->add_node( $_->{ id } ) } @{ $nodes };
+    map { $graph->add_edge( $_->{ source }, $_->{ target } ) } @{ $edges };
+
+    my $output = $graph->as_text;
+
+    while ( $output =~ /label=(\d+), pos="(\d+(?:\.\d+)?),(\d+(?:\.\d+)?)"/g )
+    {
+        my ( $node_id, $x, $y ) = ( $1, $2, $3 );
+
+        $node_lookup->{ $node_id }->{ 'viz:position' }->{ x } = $x;
+        $node_lookup->{ $node_id }->{ 'viz:position' }->{ y } = $y;
+    }
+
+    scale_gexf_nodes( $gexf );
+}
+
+# write gexf dump of nodes
+sub get_gexf_dump
+{
+    my ( $db, $cdts, $color_field, $max_media ) = @_;
+
+    $color_field ||= 'media_type';
+    $max_media   ||= MAX_GEXF_MEDIA;
+
+    my $media = $db->query( <<END, $max_media )->hashes;
+select distinct * 
+    from dump_media_with_types m, dump_medium_link_counts mlc 
+    where m.media_id = mlc.media_id
+    order by mlc.inlink_count desc
+    limit ?     
 END
 
-    add_codes_to_dump_media( $db, $cdts, $media );
-    add_tags_to_dump_media( $db, $cdts, $media );
+    add_extra_fields_to_dump_media( $db, $cdts, $media );
 
     my $gexf = {
         'xmlns'              => "http://www.gexf.net/1.2draft",
@@ -947,13 +1083,14 @@ END
 
     push( @{ $meta->{ creator } }, 'Berkman Center' );
 
-    my $controversy = $cdts->{ controversy_dump }->{ controversy };
+    my $controversy = $cdts->{ controversy_dump }->{ controversy }
+      || $db->find_by_id( 'controversies', $cdts->{ controversy_dump }->{ controversies_id } );
+
     push( @{ $meta->{ description } }, "Media discussions of $controversy->{ name }" );
 
     my $graph = {
-        'mode'            => "dynamic",
+        'mode'            => "static",
         'defaultedgetype' => "directed",
-        'timeformat'      => "date"
     };
     push( @{ $gexf->{ graph } }, $graph );
 
@@ -966,22 +1103,18 @@ END
         push( @{ $attributes->{ attribute } }, { id => $i++, title => $name, type => $type } );
     }
 
-    my $edges = get_weighted_edges( $db );
+    my $edges = get_weighted_edges( $db, $media, $max_media );
     $graph->{ edges }->{ edge } = $edges;
 
-    my $edge_lookup = {};
-    for my $edge ( @{ $edges } )
-    {
-        $edge_lookup->{ $edge->{ source } } ||= 0;
-        $edge_lookup->{ $edge->{ target } } += $edge->{ weight } || 0;
-    }
+    my $edge_lookup;
+    map { $edge_lookup->{ $_->{ source } } = 1; $edge_lookup->{ $_->{ target } } = 1; } @{ $edges };
 
     my $total_link_count = 1;
     map { $total_link_count += $_->{ inlink_count } } @{ $media };
 
     for my $medium ( @{ $media } )
     {
-        next unless ( $medium->{ inlink_count } || $medium->{ outlink_count } );
+        next unless ( $edge_lookup->{ $medium->{ media_id } } );
 
         my $node = {
             id    => $medium->{ media_id },
@@ -1003,7 +1136,7 @@ END
         #     push( @{ $node->{ spells }->{ spell } }, { start => $story_date, end => $story_date } );
         # }
 
-        $node->{ 'viz:color' } = [ get_media_type_color( $db, $cdts, $medium->{ media_type } ) ];
+        $node->{ 'viz:color' } = [ get_color( $db, $cdts, $color_field, $medium->{ $color_field } ) ];
         $node->{ 'viz:size' } = { value => $medium->{ inlink_count } + 1 };
 
         push( @{ $graph->{ nodes }->{ node } }, $node );
@@ -1011,11 +1144,16 @@ END
 
     scale_node_sizes( $graph->{ nodes }->{ node } );
 
-    my $nolayout_gexf = XML::Simple::XMLout( $gexf, XMLDecl => 1, RootName => 'gexf' );
+    layout_gexf_with_graphviz( $gexf );
+    my $layout_gexf = XML::Simple::XMLout( $gexf, XMLDecl => 1, RootName => 'gexf' );
 
-    my $layout_gexf = layout_gexf( $db, $cdts, $nolayout_gexf );
+    # my $nolayout_gexf = XML::Simple::XMLout( $gexf, XMLDecl => 1, RootName => 'gexf' );
+    #
+    # my $layout_gexf = layout_gexf( $db, $cdts, $nolayout_gexf );
 
-    create_cdts_file( $db, $cdts, 'media.gexf', encode( 'utf8', $layout_gexf ) );
+    #create_cdts_file( $db, $cdts, 'media.gexf', encode( 'utf8', $layout_gexf ) );
+
+    return $layout_gexf;
 }
 
 # return true if there are any stories in the current controversy_stories_dump_ table
@@ -1131,18 +1269,18 @@ END
 
 sub create_controversy_dump_time_slice ($$$$$$)
 {
-    my ( $db, $cd, $start_date, $end_date, $period, $tag ) = @_;
+    my ( $db, $cd, $start_date, $end_date, $period, $query_slice ) = @_;
 
     my $cdts = {
-        controversy_dumps_id => $cd->{ controversy_dumps_id },
-        start_date           => $start_date,
-        end_date             => $end_date,
-        period               => $period,
-        story_count          => 0,
-        story_link_count     => 0,
-        medium_count         => 0,
-        medium_link_count    => 0,
-        tags_id              => $tag ? $tag->{ tags_id } : undef
+        controversy_dumps_id        => $cd->{ controversy_dumps_id },
+        start_date                  => $start_date,
+        end_date                    => $end_date,
+        period                      => $period,
+        story_count                 => 0,
+        story_link_count            => 0,
+        medium_count                => 0,
+        medium_link_count           => 0,
+        controversy_query_slices_id => $query_slice ? $query_slice->{ controversy_query_slices_id } : undef
     };
 
     $cdts = $db->create( 'controversy_dump_time_slices', $cdts );
@@ -1207,11 +1345,13 @@ sub update_cdts_counts ($$;$)
 # generate the dump time slices for the given period, dates, and tag
 sub generate_cdts ($$$$$$)
 {
-    my ( $db, $cd, $start_date, $end_date, $period, $tag ) = @_;
+    my ( $db, $cd, $start_date, $end_date, $period, $query_slice ) = @_;
 
-    my $cdts = create_controversy_dump_time_slice( $db, $cd, $start_date, $end_date, $period, $tag );
+    my $cdts = create_controversy_dump_time_slice( $db, $cd, $start_date, $end_date, $period, $query_slice );
 
-    my $dump_label = "${ period }: ${ start_date } - ${ end_date } " . ( $tag ? "[ $tag->{ tag } ]" : "" );
+    my $dump_label = "${ period }: ${ start_date } - ${ end_date } ";
+    $dump_label .= "[ $query_slice->{ name } ]" if ( $query_slice );
+
     print "generating $dump_label ...\n";
 
     my $all_models_top_media = MediaWords::CM::Model::get_all_models_top_media( $db, $cdts );
@@ -1221,16 +1361,10 @@ sub generate_cdts ($$$$$$)
 
     update_cdts_counts( $db, $cdts );
 
-    if ( $all_models_top_media )
-    {
-        MediaWords::CM::Model::print_model_matches( $db, $cdts, $all_models_top_media );
-        MediaWords::CM::Model::update_model_correlation( $db, $cdts, $all_models_top_media );
-    }
+    $all_models_top_media ||= [ MediaWords::CM::Model::get_top_media_link_counts( $db, $cdts ) ];
 
-    # my $confidence = get_model_confidence( $db, $cdts, $all_models_top_media );
-    # print "confidence: $confidence\n";
-
-    write_gexf_dump( $db, $cdts );
+    MediaWords::CM::Model::print_model_matches( $db, $cdts, $all_models_top_media );
+    MediaWords::CM::Model::update_model_correlation( $db, $cdts, $all_models_top_media );
 }
 
 # decrease the given date to the latest monday equal to or before the date
@@ -1263,7 +1397,7 @@ sub truncate_to_start_of_month ($)
 # generate dumps for the periods in controversy_dates
 sub generate_custom_period_dump ($$$ )
 {
-    my ( $db, $cd, $tag ) = @_;
+    my ( $db, $cd, $query_slice ) = @_;
 
     my $controversy_dates = $db->query( <<END, $cd->{ controversies_id } )->hashes;
 select * from controversy_dates where controversies_id = ? order by start_date, end_date
@@ -1273,21 +1407,25 @@ END
     {
         my $start_date = $controversy_date->{ start_date };
         my $end_date   = $controversy_date->{ end_date };
-        generate_cdts( $db, $cd, $start_date, $end_date, 'custom', $tag );
+        generate_cdts( $db, $cd, $start_date, $end_date, 'custom', $query_slice );
     }
 }
 
 # generate dump for the given period (overall, monthly, weekly, or custom) and the given tag
 sub generate_period_dump ($$$$)
 {
-    my ( $db, $cd, $period, $tag ) = @_;
+    my ( $db, $cd, $period, $query_slice ) = @_;
 
     my $start_date = $cd->{ start_date };
     my $end_date   = $cd->{ end_date };
 
     if ( $period eq 'overall' )
     {
-        generate_cdts( $db, $cd, $start_date, $end_date, $period, $tag );
+        generate_cdts( $db, $cd, $start_date, $end_date, $period, $query_slice );
+    }
+    elsif ( $query_slice && !$query_slice->{ all_time_slices } )
+    {
+        return;
     }
     elsif ( $period eq 'weekly' )
     {
@@ -1296,7 +1434,7 @@ sub generate_period_dump ($$$$)
         {
             my $w_end_date = MediaWords::Util::SQL::increment_day( $w_start_date, 7 );
 
-            generate_cdts( $db, $cd, $w_start_date, $w_end_date, $period, $tag );
+            generate_cdts( $db, $cd, $w_start_date, $w_end_date, $period, $query_slice );
 
             $w_start_date = $w_end_date;
         }
@@ -1309,14 +1447,14 @@ sub generate_period_dump ($$$$)
             my $m_end_date = MediaWords::Util::SQL::increment_day( $m_start_date, 32 );
             $m_end_date = truncate_to_start_of_month( $m_end_date );
 
-            generate_cdts( $db, $cd, $m_start_date, $m_end_date, $period, $tag );
+            generate_cdts( $db, $cd, $m_start_date, $m_end_date, $period, $query_slice );
 
             $m_start_date = $m_end_date;
         }
     }
     elsif ( $period eq 'custom' )
     {
-        generate_custom_period_dump( $db, $cd, $tag );
+        generate_custom_period_dump( $db, $cd, $query_slice );
     }
     else
     {
@@ -1496,13 +1634,13 @@ END
     $db->query( <<END );
 create temporary table dump_tags $_temporary_tablespace as
     select distinct t.* from tags t where t.tags_id in
-        ( select distinct a.tags_id
+        ( select a.tags_id
             from tags a
                 join dump_media_tags_map amtm on ( a.tags_id = amtm.tags_id )
         
           union
 
-          select distinct b.tags_id
+          select b.tags_id
             from tags b
                 join dump_stories_tags_map bstm on ( b.tags_id = bstm.tags_id )
         )
@@ -1621,18 +1759,6 @@ sub get_periods ($)
     return ( $period eq 'all' ) ? $all_periods : [ $period ];
 }
 
-# get the tags associated with the controversy through controversy_dump_tags
-sub get_dump_tags
-{
-    my ( $db, $controversy ) = @_;
-
-    my $tags = $db->query( <<END, $controversy->{ controversies_id } )->hashes;
-select distinct t.*
-    from tags t
-        join controversy_dump_tags cdt on ( t.tags_id = cdt.tags_id and cdt.controversies_id = ? )
-END
-}
-
 # create a controversy_dump for the given controversy
 sub dump_controversy ($$)
 {
@@ -1664,7 +1790,9 @@ sub dump_controversy ($$)
 
     my ( $start_date, $end_date ) = get_default_dates( $db, $controversy );
 
-    my $dump_tags = get_dump_tags( $db, $controversy );
+    my $query_slices = $db->query( <<SQL, $controversy->{ controversies_id } )->hashes;
+select * from controversy_query_slices where controversies_id = ?
+SQL
 
     my $cd = create_controversy_dump( $db, $controversy, $start_date, $end_date );
 
@@ -1672,11 +1800,11 @@ sub dump_controversy ($$)
 
     generate_snapshots_from_temporary_dump_tables( $db, $cd );
 
-    for my $t ( undef, @{ $dump_tags } )
+    for my $qs ( undef, @{ $query_slices } )
     {
         for my $p ( @{ $periods } )
         {
-            generate_period_dump( $db, $cd, $p, $t );
+            generate_period_dump( $db, $cd, $p, $qs );
         }
     }
 

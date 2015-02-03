@@ -171,7 +171,10 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
     display_stories_id = 'outlink_stories'
     display_stories_solr_query = "{~ controversy_dump_time_slice:${cdts.controversy_dump_time_slices_id} link_from_story:${story.stories_id} }" %]
 
-<div class="boxtitle">Collected Story Text</div>
+<div class="boxtitle">
+    Collected Story Text
+    <a id="boxcommand" href="[% c.uri_for( '/admin/stories/view/' _ story.stories_id ) | html %]">full story details</a>
+</div>
 <table>
     <tr>
         <td>Description (from rss description field)</td>

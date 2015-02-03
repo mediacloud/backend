@@ -1,7 +1,8 @@
 body {
     font-color: red;
     font-family: verdana, helvetica, arial;
-    font-size: 80%;    
+    font-size: 80%; 
+    margin-bottom: 30px;   
 }
 
 table {

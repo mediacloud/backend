@@ -15,7 +15,6 @@ use warnings;
 
 use Data::Dumper;
 use Date::Parse;
-use DateTime;
 use Encode;
 use FindBin;
 use URI::Split;
@@ -26,18 +25,21 @@ use Carp;
 use List::Util qw (max maxstr);
 
 use Feed::Scrape::MediaWords;
+use MediaWords::Crawler::FeedHandler;
 use MediaWords::Crawler::Pager;
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories;
-use MediaWords::Util::Config;
-use MediaWords::DBI::Stories;
-use MediaWords::Crawler::FeedHandler;
 use MediaWords::GearmanFunction::ExtractAndVector;
+use MediaWords::Util::Config;
+use MediaWords::Util::SQL;
 
 # CONSTANTS
 
 # max number of pages the handler will download for a single story
 use constant MAX_PAGES => 10;
+
+# max number of times to try a page after a 5xx error
+use constant MAX_5XX_RETRIES => 10;
 
 # METHODS
 
@@ -183,17 +185,16 @@ END
         $dbs->create(
             'downloads',
             {
-                feeds_id      => $download->{ feeds_id },
-                stories_id    => $download->{ stories_id },
-                parent        => $download->{ downloads_id },
-                url           => $next_page_url,
-                host          => lc( ( URI::Split::uri_split( $next_page_url ) )[ 1 ] ),
-                type          => 'content',
-                sequence      => $download->{ sequence } + 1,
-                state         => 'pending',
-                priority      => $download->{ priority } + 1,
-                download_time => DateTime->now->datetime,
-                extracted     => 'f'
+                feeds_id   => $download->{ feeds_id },
+                stories_id => $download->{ stories_id },
+                parent     => $download->{ downloads_id },
+                url        => $next_page_url,
+                host       => lc( ( URI::Split::uri_split( $next_page_url ) )[ 1 ] ),
+                type       => 'content',
+                sequence   => $download->{ sequence } + 1,
+                state      => 'pending',
+                priority   => $download->{ priority } + 1,
+                extracted  => 'f'
             }
         );
     }
@@ -265,32 +266,63 @@ sub _process_content
     say STDERR "fetcher " . $self->engine->fetcher_number . " finished _process_content for  " . $download->{ downloads_id };
 }
 
+# deal with various errors returned by the response
+sub handle_error
+{
+    my ( $self, $download, $response ) = @_;
+
+    return 0 if ( $response->is_success );
+
+    my $dbs = $self->engine->dbs;
+
+    my $error_num = 1;
+    if ( my $error = $download->{ error_message } )
+    {
+        $error_num = ( $error =~ /\[error_num: (\d+)\]$/ ) ? $1 + 1 : 1;
+    }
+
+    my $enc_error_message = encode( 'utf8', $response->status_line . "\n[error_num: $error_num]" );
+
+    if ( ( $response->status_line =~ /^(503|500 read timeout)/ ) && ( $error_num <= MAX_5XX_RETRIES ) )
+    {
+        my $interval = "$error_num hours";
+
+        $dbs->query( <<END, $interval, $enc_error_message, $download->{ downloads_id }, );
+update downloads set 
+        state = 'pending', 
+        download_time = now() + \$1::interval , 
+        error_message = \$2 
+    where downloads_id = \$3
+END
+    }
+    else
+    {
+        $dbs->query( <<END, $enc_error_message, $download->{ downloads_id } );
+UPDATE downloads
+SET state = 'error',
+    error_message = ?,
+    -- reset the file status in case it's one of the "missing" downloads:
+    file_status = DEFAULT
+WHERE downloads_id = ?
+END
+    }
+
+    return 1;
+}
+
+# after the downloads has been fetched, handle the resulting content (store the content, parse a feed, etc).
 sub handle_response
 {
     my ( $self, $download, $response ) = @_;
 
-    say STDERR "fetcher " . $self->engine->fetcher_number . " starting handle response: " . $download->{ url };
+    if ( defined( $self->engine->fetcher_number ) )
+    {
+        say STDERR "fetcher " . $self->engine->fetcher_number . " starting handle response: " . $download->{ url };
+    }
 
     my $dbs = $self->engine->dbs;
 
-    unless ( $response->is_success )
-    {
-        $dbs->query(
-            <<EOF,
-            UPDATE downloads
-            SET state = 'error',
-                error_message = ?,
-                -- reset the file status in case it's one of the "missing" downloads:
-                file_status = DEFAULT
-            WHERE downloads_id = ?
-EOF
-            encode( 'utf-8', $response->status_line ),
-            $download->{ downloads_id }
-        );
-
-        # TODO uncomment $dbs->update_by_id( "downloads", $download->{ downloads_id }, $download );
-        return;
-    }
+    return if ( $self->handle_error( $download, $response ) );
 
     $self->_restrict_content_type( $response );
 
@@ -332,7 +364,10 @@ END
 
     }
 
-    say STDERR "fetcher " . $self->engine->fetcher_number . " completed handle response: " . $download->{ url };
+    if ( defined( $self->engine->fetcher_number ) )
+    {
+        say STDERR "fetcher " . $self->engine->fetcher_number . " completed handle response: " . $download->{ url };
+    }
 }
 
 # calling engine

@@ -25,7 +25,7 @@ use MediaWords::GearmanFunction::ExtractAndVector;
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories;
 use MediaWords::Util::Config;
-use MediaWords::DBI::Stories;
+use MediaWords::Util::SQL;
 
 # CONSTANTS
 
@@ -90,15 +90,12 @@ sub _get_stories_from_feed_contents_impl
 
         my $publish_date;
 
-        if ( _no_ref( $item->pubDate() ) )
+        if ( my $date_string = _no_ref( $item->pubDate() ) )
         {
+            # Date::Parse is more robust at parsing date than postgres
             try
             {
-                my $date_string = _no_ref( $item->pubDate() );
-
-                $date_string =~ s/(\d\d\d\d-\d\d-\d\dT\d\d\:\d\d\:\d\d)-\d\d\d\:\d\d/$1/;
-
-                $publish_date = DateTime->from_epoch( epoch => Date::Parse::str2time( $date_string ) )->datetime;
+                $publish_date = MediaWords::Util::SQL::get_sql_date_from_epoch( Date::Parse::str2time( $date_string ) );
             }
             catch
             {
@@ -119,7 +116,6 @@ sub _get_stories_from_feed_contents_impl
             guid         => $guid,
             media_id     => $media_id,
             publish_date => $publish_date,
-            collect_date => DateTime->now->datetime,
             title        => _no_ref( $item->title ) || '(no title)',
             description  => _no_ref( $item->description ),
         };
@@ -145,17 +141,14 @@ sub _add_story_using_parent_download
         return;
     }
 
-    try
-    {
-        $story = $dbs->create( "stories", $story );
-    }
-    catch
+    eval { $story = $dbs->create( "stories", $story ); };
+
+    if ( $@ )
     {
 
         $dbs->rollback;
 
-        #TODO handle race conditions differently
-        if ( $@ =~ /unique constraint "stories_guid/ )
+        if ( $@ =~ /unique constraint \"stories_guid/ )
         {
             warn "failed to add story for '." . $story->{ url } . "' to guid conflict ( guid =  '" . $story->{ guid } . "')";
 
@@ -163,11 +156,9 @@ sub _add_story_using_parent_download
         }
         else
         {
-            say STDERR 'error adding story dying';
-            say STDERR Dumper( $story );
-            die( $_ );
+            die( "error adding story: $@\n" . Dumper( $story ) );
         }
-    };
+    }
 
     MediaWords::DBI::Stories::update_rss_full_text_field( $dbs, $story );
 
@@ -191,17 +182,16 @@ sub _create_child_download_for_story
     $dbs->create(
         'downloads',
         {
-            feeds_id      => $parent_download->{ feeds_id },
-            stories_id    => $story->{ stories_id },
-            parent        => $parent_download->{ downloads_id },
-            url           => $story->{ url },
-            host          => lc( ( URI::Split::uri_split( $story->{ url } ) )[ 1 ] ),
-            type          => 'content',
-            sequence      => 1,
-            state         => 'pending',
-            priority      => $parent_download->{ priority },
-            download_time => DateTime->now->datetime,
-            extracted     => 'f'
+            feeds_id   => $parent_download->{ feeds_id },
+            stories_id => $story->{ stories_id },
+            parent     => $parent_download->{ downloads_id },
+            url        => $story->{ url },
+            host       => lc( ( URI::Split::uri_split( $story->{ url } ) )[ 1 ] ),
+            type       => 'content',
+            sequence   => 1,
+            state      => 'pending',
+            priority   => $parent_download->{ priority },
+            extracted  => 'f'
         }
     );
 }
@@ -290,8 +280,7 @@ sub handle_web_page_content
             url          => $download->{ url },
             guid         => $guid,
             media_id     => $feed->{ media_id },
-            publish_date => DateTime->now->datetime,
-            collect_date => DateTime->now->datetime,
+            publish_date => MediaWords::Util::SQL::sql_now,
             title        => $title
         }
     );

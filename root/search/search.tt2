@@ -10,13 +10,16 @@
     [% search_url = c.uri_for( "/search" ) %]
     <form method="get" action="[% search_url | html %]">
         Query: <input type="text" name="q" size="96" value="[% q | html %]" /> <br />
+        <input type="hidden" name="pq" value="[% q | html %]" />
         <input type="hidden" name="languages" size="32" value="[% languages | html %]" />
         <input type="submit" name="submit" value="Go" />
     </form>
     <p>
-        <a href="[% c.uri_for( '/search/wc' ) %]">Search words</a><br />
-        <a href="[% c.uri_for( '/search/readme' ) %]">Query instructions</a><br />
-        <a href="[% c.uri_for( '/search/tags' ) | html %]">List available media tags</a>
+        <a href="[% c.uri_for( '/search/wc' ) %]">Search words</a> | 
+        <a href="[% c.uri_for( '/search/readme' ) %]">Query instructions</a> | 
+        <a href="[% c.uri_for( '/search/tags' ) | html %]">List available media tags</a> |
+        <a href="[% c.uri_for( '/search/diff' ) | html %]">Compare queries</a>
+        
     </p>
 
 </fieldset>
@@ -39,6 +42,11 @@
         [% IF stories %]
             <p><a href="#tag_counts">Summary of tag counts for this query</a></p>
         [% END %]
+        
+        [% IF pq %]
+            <p><a href="[% c.uri_for( '/search', { 'q' => q, 'languages' => languages, 'csv' => 1 } ) %]">CSV diff to previous query:
+        [% END %]
+
     </fieldset>
     
     [% IF stories %]

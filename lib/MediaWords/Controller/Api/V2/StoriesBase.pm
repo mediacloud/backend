@@ -156,49 +156,54 @@ sub _split_sentence_tags_list
 
 sub _add_nested_data
 {
-    my ( $self, $db, $stories, $show_raw_1st_download ) = @_;
+    my ( $self, $db, $stories ) = @_;
 
     return unless ( @{ $stories } );
 
-    $db->begin;
-
     my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ stories_id } } @{ $stories } ] );
 
-    my $story_text_data = $db->query( <<END )->hashes;
-select s.stories_id,
-        case when BOOL_AND( m.full_text_rss ) then s.description
-            else string_agg( dt.download_text, E'.\n\n' )
-        end story_text
-    from stories s
-        join media m on ( s.media_id = m.media_id )
-        join downloads d on ( s.stories_id = d.stories_id )
-        left join download_texts dt on ( d.downloads_id = dt.downloads_id )
-    where s.stories_id in ( select id from $ids_table )
-    group by s.stories_id
-END
-    MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $story_text_data );
+    if ( $self->{ show_text } )
+    {
 
-    my $extracted_data = $db->query( <<END )->hashes;
-select s.stories_id,
-        BOOL_AND( extracted ) is_fully_extracted
-    from stories s
-        join downloads d on ( s.stories_id = d.stories_id )
-    where s.stories_id in ( select id from $ids_table )
-    group by s.stories_id
+        my $story_text_data = $db->query( <<END )->hashes;
+    select s.stories_id,
+            case when BOOL_AND( m.full_text_rss ) then s.description
+                else string_agg( dt.download_text, E'.\n\n' )
+            end story_text
+        from stories s
+            join media m on ( s.media_id = m.media_id )
+            join downloads d on ( s.stories_id = d.stories_id )
+            left join download_texts dt on ( d.downloads_id = dt.downloads_id )
+        where s.stories_id in ( select id from $ids_table )
+        group by s.stories_id
 END
-    MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $extracted_data );
+        MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $story_text_data );
 
-    my $sentences = $db->query( <<END )->hashes;
-select s.*, string_agg( sstm.tags_id::text, ';' ) tags_list
-    from story_sentences s
-        left join story_sentences_tags_map sstm on ( s.story_sentences_id = sstm.story_sentences_id )
-    where s.stories_id in ( select id from $ids_table )
-    group by s.story_sentences_id
-    order by s.sentence_number
+        my $extracted_data = $db->query( <<END )->hashes;
+    select s.stories_id,
+            BOOL_AND( extracted ) is_fully_extracted
+        from stories s
+            join downloads d on ( s.stories_id = d.stories_id )
+        where s.stories_id in ( select id from $ids_table )
+        group by s.stories_id
 END
-    MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $sentences, 'story_sentences' );
+        MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $extracted_data );
+    }
 
-    _split_sentence_tags_list( $stories );
+    if ( $self->{ show_sentences } )
+    {
+        my $sentences = $db->query( <<END )->hashes;
+    select s.*, string_agg( sstm.tags_id::text, ';' ) tags_list
+        from story_sentences s
+            left join story_sentences_tags_map sstm on ( s.story_sentences_id = sstm.story_sentences_id )
+        where s.stories_id in ( select id from $ids_table )
+        group by s.story_sentences_id
+        order by s.sentence_number
+END
+        MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $sentences, 'story_sentences' );
+
+        _split_sentence_tags_list( $stories );
+    }
 
     my $tag_data = $db->query( <<END )->hashes;
 select s.stories_id, t.tags_id, t.tag, ts.tag_sets_id, ts.name as tag_set 
@@ -209,8 +214,6 @@ select s.stories_id, t.tags_id, t.tag, ts.tag_sets_id, ts.name as tag_set
     order by t.tags_id
 END
     MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $tag_data, 'story_tags' );
-
-    $db->commit;
 
     return $stories;
 }
@@ -237,6 +240,9 @@ sub _get_object_ids
 sub _fetch_list
 {
     my ( $self, $c, $last_id, $table_name, $id_field, $rows ) = @_;
+
+    $self->{ show_sentences } = $c->req->params->{ sentences };
+    $self->{ show_text }      = $c->req->params->{ text };
 
     $rows //= 20;
     $rows = List::Util::min( $rows, 10_000 );

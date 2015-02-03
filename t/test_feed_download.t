@@ -113,6 +113,10 @@ sub dump_stories
 
     my $stories = get_expanded_stories( $db, $feed );
 
+    my $tz = DateTime::TimeZone->new( name => 'local' )->name;
+
+    map { $_->{ timezone } = $tz } @{ $stories };
+
     MediaWords::Test::Data::store_test_data( 'test_feed_download_stories', $stories );
 }
 
@@ -126,6 +130,8 @@ sub test_stories
     is( @{ $stories }, 15, "story count" );
 
     my $test_stories = MediaWords::Test::Data::fetch_test_data( 'test_feed_download_stories' );
+
+    MediaWords::Test::Data::adjust_test_timezone( $test_stories, $test_stories->[ 0 ]->{ timezone } );
 
     my $test_story_hash;
     map { $test_story_hash->{ $_->{ title } } = $_ } @{ $test_stories };

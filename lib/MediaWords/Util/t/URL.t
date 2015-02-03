@@ -3,13 +3,15 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 80;
+use Test::More tests => 119;
 
 use Readonly;
 use HTTP::HashServer;
 use HTTP::Status qw(:constants);
 use URI::Escape;
 use Data::Dumper;
+
+use MediaWords::Test::DB;
 
 Readonly my $TEST_HTTP_SERVER_PORT => 9998;
 
@@ -23,38 +25,77 @@ BEGIN
 
 sub test_is_http_url()
 {
-    is( MediaWords::Util::URL::is_http_url( undef ), 0, 'is_http_url() - undef' );
-    is( MediaWords::Util::URL::is_http_url( 0 ),     0, 'is_http_url() - 0' );
-    is( MediaWords::Util::URL::is_http_url( '' ),    0, 'is_http_url() - empty string' );
+    ok( !MediaWords::Util::URL::is_http_url( undef ), 'is_http_url() - undef' );
+    ok( !MediaWords::Util::URL::is_http_url( 0 ),     'is_http_url() - 0' );
+    ok( !MediaWords::Util::URL::is_http_url( '' ),    'is_http_url() - empty string' );
 
-    is( MediaWords::Util::URL::is_http_url( 'abc' ), 0, 'is_http_url() - no scheme' );
+    ok( !MediaWords::Util::URL::is_http_url( 'abc' ), 'is_http_url() - no scheme' );
 
-    is( MediaWords::Util::URL::is_http_url( 'gopher://gopher.floodgap.com/0/v2/vstat' ), 0, 'is_http_url() - Gopher URL' );
-    is( MediaWords::Util::URL::is_http_url( 'ftp://ftp.freebsd.org/pub/FreeBSD/' ),      0, 'is_http_url() - FTP URL' );
+    ok( !MediaWords::Util::URL::is_http_url( 'gopher://gopher.floodgap.com/0/v2/vstat' ), 'is_http_url() - Gopher URL' );
+    ok( !MediaWords::Util::URL::is_http_url( 'ftp://ftp.freebsd.org/pub/FreeBSD/' ),      'is_http_url() - FTP URL' );
 
-    is( MediaWords::Util::URL::is_http_url( 'http://cyber.law.harvard.edu/about' ), 1, 'is_http_url() - HTTP URL' );
-    is( MediaWords::Util::URL::is_http_url( 'https://github.com/berkmancenter/mediacloud' ), 1,
-        'is_http_url() - HTTPS URL' );
+    ok( MediaWords::Util::URL::is_http_url( 'http://cyber.law.harvard.edu/about' ),          'is_http_url() - HTTP URL' );
+    ok( MediaWords::Util::URL::is_http_url( 'https://github.com/berkmancenter/mediacloud' ), 'is_http_url() - HTTPS URL' );
 }
 
 sub test_is_homepage_url()
 {
-    is( MediaWords::Util::URL::is_homepage_url( undef ), 0, 'is_homepage_url() - undef' );
-    is( MediaWords::Util::URL::is_homepage_url( 0 ),     0, 'is_homepage_url() - 0' );
-    is( MediaWords::Util::URL::is_homepage_url( '' ),    0, 'is_homepage_url() - empty string' );
+    ok( !MediaWords::Util::URL::is_homepage_url( undef ), 'is_homepage_url() - undef' );
+    ok( !MediaWords::Util::URL::is_homepage_url( 0 ),     'is_homepage_url() - 0' );
+    ok( !MediaWords::Util::URL::is_homepage_url( '' ),    'is_homepage_url() - empty string' );
 
-    is( MediaWords::Util::URL::is_homepage_url( 'abc' ), 0, 'is_homepage_url() - no scheme' );
+    ok( !MediaWords::Util::URL::is_homepage_url( 'abc' ), 'is_homepage_url() - no scheme' );
 
-    is( MediaWords::Util::URL::is_homepage_url( 'http://www.wired.com' ),    1, 'is_homepage_url() - Wired' );
-    is( MediaWords::Util::URL::is_homepage_url( 'http://www.wired.com/' ),   1, 'is_homepage_url() - Wired "/"' );
-    is( MediaWords::Util::URL::is_homepage_url( 'http://m.wired.com/#abc' ), 1, 'is_homepage_url() - Wired "/#abc"' );
+    ok( MediaWords::Util::URL::is_homepage_url( 'http://www.wired.com' ),    'is_homepage_url() - Wired' );
+    ok( MediaWords::Util::URL::is_homepage_url( 'http://www.wired.com/' ),   'is_homepage_url() - Wired "/"' );
+    ok( MediaWords::Util::URL::is_homepage_url( 'http://m.wired.com/#abc' ), 'is_homepage_url() - Wired "/#abc"' );
 
-    is( MediaWords::Util::URL::is_homepage_url( 'http://m.wired.com/threatlevel/2011/12/sopa-watered-down-amendment/' ),
-        0, 'is_homepage_url() - Wired article' );
+    ok( !MediaWords::Util::URL::is_homepage_url( 'http://m.wired.com/threatlevel/2011/12/sopa-watered-down-amendment/' ),
+        'is_homepage_url() - Wired article (article identifier as path)' );
+    ok(
+        !MediaWords::Util::URL::is_homepage_url(
+'http://www.delfi.lt/news/daily/world/prancuzijoje-tukstanciai-pareigunu-sukuoja-apylinkes-blokuojami-keliai.d?id=66850094'
+        ),
+        'is_homepage_url() - DELFI article (article identifier as query parameter)'
+    );
+    ok( !MediaWords::Util::URL::is_homepage_url( 'http://bash.org/?244321' ),
+        'is_homepage_url() - Bash.org quote (path is empty, article identifier as query parameter)' );
+    ok(
+        !MediaWords::Util::URL::is_homepage_url( 'http://youtu.be/oKyFAMiZMbU' ),
+        'is_homepage_url() - YouTube shortened URL (path consists of letters with varying cases)'
+    );
+    ok(
+        !MediaWords::Util::URL::is_homepage_url( 'https://bit.ly/1uSjCJp' ),
+        'is_homepage_url() - Bit.ly shortened URL (path has a number)'
+    );
+    ok(
+        !MediaWords::Util::URL::is_homepage_url( 'https://bit.ly/defghi' ),
+        'is_homepage_url() - Bit.ly shortened URL (path does not have a number, but the host is in the URL shorteners list)'
+    );
+    ok( !MediaWords::Util::URL::is_homepage_url( 'https://i.imgur.com/gbu5YNM.jpg' ), 'is_homepage_url() - link to JPG' );
 
-    # Technically, server is not required to normalize "///" path into "/"
-    is( MediaWords::Util::URL::is_homepage_url( 'http://www.wired.com///' ), 0, 'is_homepage_url() - Wired "///"' );
-    is( MediaWords::Util::URL::is_homepage_url( 'http://m.wired.com///' ),   0, 'is_homepage_url() - m.Wired "///"' );
+    # Technically, server is not required to normalize "///" path into "/", but
+    # most of them do anyway
+    ok( MediaWords::Util::URL::is_homepage_url( 'http://www.wired.com///' ), 'is_homepage_url() - Wired "///"' );
+    ok( MediaWords::Util::URL::is_homepage_url( 'http://m.wired.com///' ),   'is_homepage_url() - m.Wired "///"' );
+
+    # Smarter homepage identification ("/en/", "/news/", ...)
+    ok( MediaWords::Util::URL::is_homepage_url( 'http://www.latimes.com/entertainment/' ),
+        'is_homepage_url() - "/entertainment/"' );
+    ok( MediaWords::Util::URL::is_homepage_url( 'http://www.scidev.net/global/' ), 'is_homepage_url() - "/global/"' );
+    ok( MediaWords::Util::URL::is_homepage_url( 'http://abcnews.go.com/US' ),      'is_homepage_url() - "/US/"' );
+    ok( MediaWords::Util::URL::is_homepage_url( 'http://www.example.com/news/' ),  'is_homepage_url() - "/news/"' );
+    ok( MediaWords::Util::URL::is_homepage_url( 'http://www.france24.com/en/' ),   'is_homepage_url() - "/en/"' );
+    ok( MediaWords::Util::URL::is_homepage_url( 'http://www.france24.com/en/?altcast_code=0adb03a8a4' ),
+        'is_homepage_url() - "/en/" with "altcast_code"' );
+    ok( MediaWords::Util::URL::is_homepage_url( 'http://www.google.com/trends/explore' ),
+        'is_homepage_url() - "/trends/explore"' );
+    ok( MediaWords::Util::URL::is_homepage_url( 'http://www.google.com/trends/explore#q=Ebola' ),
+        'is_homepage_url() - "/trends/explore#q=Ebola"' );
+    ok( MediaWords::Util::URL::is_homepage_url( 'http://www.nytimes.com/pages/todayspaper/' ),
+        'is_homepage_url() - NYTimes bulletin board' );
+    ok( MediaWords::Util::URL::is_homepage_url( 'http://www.politico.com/playbook/' ),
+        'is_homepage_url() - Politico bulletin board' );
 }
 
 sub test_normalize_url()
@@ -152,6 +193,23 @@ sub test_normalize_url()
         'http://zyalt.livejournal.com/1178735.html',
         'normalize_url() - livejournal.com'
     );
+
+    # "nk" parameter
+    is(
+        MediaWords::Util::URL::normalize_url(
+'http://www.adelaidenow.com.au/news/south-australia/sa-court-told-prominent-adelaide-businessman-yasser-shahin-was-assaulted-by-police-officer-norman-hoy-in-september-2010-traffic-stop/story-fni6uo1m-1227184460050?nk=440cd48fd95a4e1f1c23bcd15df36da7'
+        ),
+'http://www.adelaidenow.com.au/news/south-australia/sa-court-told-prominent-adelaide-businessman-yasser-shahin-was-assaulted-by-police-officer-norman-hoy-in-september-2010-traffic-stop/story-fni6uo1m-1227184460050',
+        'normalize_url() - "nk" parameter'
+    );
+}
+
+sub test_is_shortened_url()
+{
+    ok( !MediaWords::Util::URL::is_shortened_url( undef ),              'is_shortened_url() - undef' );
+    ok( !MediaWords::Util::URL::is_shortened_url( 'http://bit.ly' ),    'is_shortened_url() - homepage without slash' );
+    ok( !MediaWords::Util::URL::is_shortened_url( 'http://bit.ly/' ),   'is_shortened_url() - homepage with slash' );
+    ok( MediaWords::Util::URL::is_shortened_url( 'http://bit.ly/abc' ), 'is_shortened_url() - shortened URL' );
 }
 
 sub test_normalize_url_lossy()
@@ -547,18 +605,139 @@ sub test_url_and_data_after_redirects_html_loop()
     is( $url_after_redirects, $TEST_HTTP_SERVER_URL . '/second', 'URL after HTML redirect loop' );
 }
 
-sub test_all_url_variants()
+# Test if the subroutine acts nicely when the server decides to ensure that the
+# client supports cookies (e.g.
+# http://www.dailytelegraph.com.au/news/world/charlie-hebdo-attack-police-close-in-on-two-armed-massacre-suspects-as-manhunt-continues-across-france/story-fni0xs63-1227178925700)
+sub test_url_and_data_after_redirects_cookies()
 {
+    Readonly my $TEST_HTTP_SERVER_URL => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
+    my $starting_url = $TEST_HTTP_SERVER_URL . '/first';
+    Readonly my $TEST_CONTENT => 'This is the content.';
+
+    Readonly my $COOKIE_NAME    => "test_cookie";
+    Readonly my $COOKIE_VALUE   => "I'm a cookie and I know it!";
+    Readonly my $DEFAULT_HEADER => "Content-Type: text/html; charset=UTF-8";
+
+    # HTTP redirects
+    my $pages = {
+        '/first' => {
+            callback => sub {
+                my ( $self, $cgi ) = @_;
+
+                my $received_cookie = $cgi->cookie( $COOKIE_NAME );
+
+                if ( $received_cookie and $received_cookie eq $COOKIE_VALUE )
+                {
+
+                    # say STDERR "Cookie was set previously, showing page";
+
+                    print "HTTP/1.0 200 OK\r\n";
+                    print "$DEFAULT_HEADER\r\n";
+                    print "\r\n";
+                    print $TEST_CONTENT;
+
+                }
+                else
+                {
+
+                    # say STDERR "Setting cookie, redirecting to /check_cookie";
+
+                    print "HTTP/1.0 302 Moved Temporarily\r\n";
+                    print "$DEFAULT_HEADER\r\n";
+                    print "Location: /check_cookie\r\n";
+                    print "Set-Cookie: $COOKIE_NAME=$COOKIE_VALUE\r\n";
+                    print "\r\n";
+                    print "Redirecting to the cookie check page...";
+                }
+            }
+        },
+
+        '/check_cookie' => {
+            callback => sub {
+
+                my ( $self, $cgi ) = @_;
+
+                my $received_cookie = $cgi->cookie( $COOKIE_NAME );
+
+                if ( $received_cookie and $received_cookie eq $COOKIE_VALUE )
+                {
+
+                    # say STDERR "Cookie was set previously, redirecting back to the initial page";
+
+                    print "HTTP/1.0 302 Moved Temporarily\r\n";
+                    print "$DEFAULT_HEADER\r\n";
+                    print "Location: $starting_url\r\n";
+                    print "\r\n";
+                    print "Cookie looks fine, redirecting you back to the article...";
+
+                }
+                else
+                {
+
+                    # say STDERR 'Cookie wasn\'t found, redirecting you to the /no_cookies page...';
+
+                    print "HTTP/1.0 302 Moved Temporarily\r\n";
+                    print "$DEFAULT_HEADER\r\n";
+                    print "Location: /no_cookies\r\n";
+                    print "\r\n";
+                    print 'Cookie wasn\'t found, redirecting you to the "no cookies" page...';
+                }
+            }
+        },
+        '/no_cookies' => "No cookie support, go away, we don\'t like you."
+    };
+
+    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my ( $url_after_redirects, $data_after_redirects ) =
+      MediaWords::Util::URL::url_and_data_after_redirects( $starting_url );
+
+    $hs->stop();
+
+    is( $url_after_redirects,  $starting_url, 'URL after HTTP redirects (cookie)' );
+    is( $data_after_redirects, $TEST_CONTENT, 'Data after HTTP redirects (cookie)' );
+}
+
+# Test if the subroutine acts nicely when the server decides to ensure that the
+# client supports cookies
+# This is basically test_url_and_data_after_redirects_cookies(), but with live
+# URLs, so if (when) they change, update / disable this test
+sub test_url_and_data_after_redirects_cookies_live()
+{
+    my @urls = (
+'http://www.adelaidenow.com.au/news/south-australia/sa-court-told-prominent-adelaide-businessman-yasser-shahin-was-assaulted-by-police-officer-norman-hoy-in-september-2010-traffic-stop/story-fni6uo1m-1227184460050',
+        'http://www.nejm.org/doi/full/10.1056/NEJMoa1408932',
+'http://www.dailytelegraph.com.au/news/national/prime-minister-tony-abbott-defends-reforms-to-gp-visits/story-fni0xqrc-1227184272355',
+        'http://www.staradvertiser.com/news/breaking/20150113_HECO_says_no_rolling_blackouts_Tuesday_night.html?id=288468481'
+    );
+
+    foreach my $url ( @urls )
+    {
+        my ( $url_after_redirects, $data_after_redirects ) = MediaWords::Util::URL::url_and_data_after_redirects( $url );
+
+        ok( $url_after_redirects =~ /^\Q$url\E/,
+            "URL after HTTP redirects (cookie, live URL: $url, after redirects URL: $url_after_redirects)" );
+        ok( $data_after_redirects,
+            "Data after HTTP redirects (cookie, live URL: $url, after redirects URL: $url_after_redirects)" );
+    }
+
+}
+
+sub test_all_url_variants($)
+{
+    my ( $db ) = @_;
+
     my @actual_url_variants;
     my @expected_url_variants;
 
     # Undefined URL
-    eval { MediaWords::Util::URL::all_url_variants( undef ); };
+    eval { MediaWords::Util::URL::all_url_variants( $db, undef ); };
     ok( $@, 'Undefined URL' );
 
     # Non-HTTP(S) URL
     Readonly my $gopher_url => 'gopher://gopher.floodgap.com/0/v2/vstat';
-    @actual_url_variants   = MediaWords::Util::URL::all_url_variants( $gopher_url );
+    @actual_url_variants = MediaWords::Util::URL::all_url_variants( $db, $gopher_url );
     @expected_url_variants = ( $gopher_url );
     is_deeply( [ sort @actual_url_variants ], [ sort @expected_url_variants ], 'Non-HTTP(S) URL' );
 
@@ -576,7 +755,7 @@ sub test_all_url_variants()
 
     my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
-    @actual_url_variants = MediaWords::Util::URL::all_url_variants( $starting_url );
+    @actual_url_variants = MediaWords::Util::URL::all_url_variants( $db, $starting_url );
     $hs->stop();
 
     @expected_url_variants = (
@@ -595,7 +774,7 @@ sub test_all_url_variants()
 
     $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
-    @actual_url_variants = MediaWords::Util::URL::all_url_variants( $starting_url );
+    @actual_url_variants = MediaWords::Util::URL::all_url_variants( $db, $starting_url );
     $hs->stop();
 
     @expected_url_variants = (
@@ -618,7 +797,7 @@ sub test_all_url_variants()
 
     $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
-    @actual_url_variants = MediaWords::Util::URL::all_url_variants( $starting_url );
+    @actual_url_variants = MediaWords::Util::URL::all_url_variants( $db, $starting_url );
     $hs->stop();
 
     @expected_url_variants = (
@@ -633,6 +812,139 @@ sub test_all_url_variants()
     );
 }
 
+sub test_all_url_variants_invalid_variants($)
+{
+    my ( $db ) = @_;
+
+    my @actual_url_variants;
+    my @expected_url_variants;
+
+    # Invalid URL variant (suspended Twitter account)
+    Readonly my $invalid_url_variant => 'https://twitter.com/Todd__Kincannon/status/518499096974614529';
+    @actual_url_variants = MediaWords::Util::URL::all_url_variants( $db, $invalid_url_variant );
+    @expected_url_variants = ( $invalid_url_variant );
+    is_deeply(
+        [ sort @actual_url_variants ],
+        [ sort @expected_url_variants ],
+        'Invalid URL variant (suspended Twitter account)'
+    );
+}
+
+sub test_get_controversy_url_variants
+{
+    my ( $db ) = @_;
+
+    my $data = {
+        A => {
+            B => [ 1, 2, 3 ],
+            C => [ 4, 5, 6 ]
+        },
+        D => { E => [ 7, 8, 9 ] }
+    };
+
+    my $media = MediaWords::Test::DB::create_test_story_stack( $db, $data );
+
+    my $story_1 = $media->{ A }->{ feeds }->{ B }->{ stories }->{ 1 };
+    my $story_2 = $media->{ A }->{ feeds }->{ B }->{ stories }->{ 2 };
+    my $story_3 = $media->{ A }->{ feeds }->{ B }->{ stories }->{ 3 };
+
+    $db->query( <<END, $story_2->{ stories_id }, $story_1->{ stories_id } );
+insert into controversy_merged_stories_map ( source_stories_id, target_stories_id ) values( ?, ? )
+END
+    $db->query( <<END, $story_3->{ stories_id }, $story_2->{ stories_id } );
+insert into controversy_merged_stories_map ( source_stories_id, target_stories_id ) values( ?, ? )
+END
+
+    my $tag_set = $db->create( 'tag_sets', { name => 'foo' } );
+
+    my $controversy = {
+        name                    => 'foo',
+        pattern                 => 'foo',
+        solr_seed_query         => 'foo',
+        description             => 'foo',
+        controversy_tag_sets_id => $tag_set->{ tag_sets_id }
+    };
+    $controversy = $db->create( 'controversies', $controversy );
+
+    $db->create(
+        'controversy_stories',
+        {
+            controversies_id => $controversy->{ controversies_id },
+            stories_id       => $story_1->{ stories_id }
+        }
+    );
+
+    $db->create(
+        'controversy_links',
+        {
+            controversies_id => $controversy->{ controversies_id },
+            stories_id       => $story_1->{ stories_id },
+            url              => $story_1->{ url },
+            redirect_url     => $story_1->{ url } . "/redirect_url"
+        }
+    );
+
+    $db->create(
+        'controversy_stories',
+        {
+            controversies_id => $controversy->{ controversies_id },
+            stories_id       => $story_2->{ stories_id }
+        }
+    );
+
+    $db->create(
+        'controversy_links',
+        {
+            controversies_id => $controversy->{ controversies_id },
+            stories_id       => $story_2->{ stories_id },
+            url              => $story_2->{ url },
+            redirect_url     => $story_2->{ url } . "/redirect_url"
+        }
+    );
+
+    $db->create(
+        'controversy_stories',
+        {
+            controversies_id => $controversy->{ controversies_id },
+            stories_id       => $story_3->{ stories_id }
+        }
+    );
+
+    $db->create(
+        'controversy_links',
+        {
+            controversies_id => $controversy->{ controversies_id },
+            stories_id       => $story_3->{ stories_id },
+            url              => $story_3->{ url } . '/alternate',
+        }
+    );
+
+    my $expected_urls = [
+        $story_1->{ url },
+        $story_2->{ url },
+        $story_1->{ url } . "/redirect_url",
+        $story_2->{ url } . "/redirect_url",
+        $story_3->{ url },
+        $story_3->{ url } . "/alternate"
+    ];
+
+    my $url_variants = MediaWords::Util::URL::get_controversy_url_variants( $db, $story_1->{ url } );
+
+    $url_variants  = [ sort { $a cmp $b } @{ $url_variants } ];
+    $expected_urls = [ sort { $a cmp $b } @{ $expected_urls } ];
+
+    is(
+        scalar( @{ $url_variants } ),
+        scalar( @{ $expected_urls } ),
+        'test_get_controversy_url_variants: same number variants'
+    );
+
+    for ( my $i = 0 ; $i < @{ $expected_urls } ; $i++ )
+    {
+        is( $url_variants->[ $i ], $expected_urls->[ $i ], 'test_get_controversy_url_variants: url variant match $i' );
+    }
+}
+
 sub main()
 {
     my $builder = Test::More->builder;
@@ -642,6 +954,7 @@ sub main()
 
     test_is_http_url();
     test_is_homepage_url();
+    test_is_shortened_url();
     test_normalize_url();
     test_normalize_url_lossy();
     test_get_url_domain();
@@ -652,7 +965,33 @@ sub main()
     test_url_and_data_after_redirects_html();
     test_url_and_data_after_redirects_http_loop();
     test_url_and_data_after_redirects_html_loop();
-    test_all_url_variants();
+    test_url_and_data_after_redirects_cookies();
+    test_url_and_data_after_redirects_cookies_live();
+
+    MediaWords::Test::DB::test_on_test_database(
+        sub {
+            my ( $db ) = @_;
+
+            test_all_url_variants( $db );
+        }
+    );
+
+    MediaWords::Test::DB::test_on_test_database(
+        sub {
+            my ( $db ) = @_;
+
+            test_all_url_variants_invalid_variants( $db );
+        }
+    );
+
+    MediaWords::Test::DB::test_on_test_database(
+        sub {
+            my ( $db ) = @_;
+
+            test_get_controversy_url_variants( $db );
+        }
+    );
+
 }
 
 main();

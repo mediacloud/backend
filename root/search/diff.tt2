@@ -1,0 +1,18 @@
+[% title = 'Compare Search Queries' %]
+[% INCLUDE include/header.tt2 %]
+
+<fieldset>
+
+    [% search_url = c.uri_for( "/search/diff" ) %]
+    <form method="get" action="[% search_url | html %]">
+        Query A: <input type="text" name="a" value="[% a | html %]" size="96" /> <br />
+        Query B: <input type="text" name="b" value="[% b | html %]" size="96" /> <br />
+        <input type="submit" name="submit" value="Go" />
+    </form>
+    <p>
+        This form will return a csv with results from each of the above queries.  In addition to all of the
+        fields in a signle query csv, the resulting csv will have a 'compare' column that will have
+        a value of either 'A', 'B', or 'AB'.
+    </p>
+
+</fieldset>

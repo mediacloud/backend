@@ -31,7 +31,10 @@ and tags_id in (
         from tags t 
             join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
         where 
-            ( t.tag || ' ' || t.label || ' ' || ts.name || ' ' || ts.label ) ilike '%' || $qv || '%'
+            t.tag ilike '%' || $qv || '%' or
+            t.label ilike '%' || $qv || '%' or
+            ts.name ilike '%' || $qv || '%' or
+            ts.label ilike '%' || $qv || '%'
 )
 END
 }

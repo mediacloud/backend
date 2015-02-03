@@ -20,6 +20,7 @@ use MediaWords::Languages::Language;
 use MediaWords::StoryVectors;
 use List::Compare;
 
+# cached ids of tags, which should change rarely
 my $_tags_id_cache = {};
 
 # get cached id of the tag.  create the tag if necessary.
@@ -508,11 +509,11 @@ sub get_extracted_html_from_db
 {
     my ( $db, $story ) = @_;
 
-    my $download_texts = $db->query(
-        "select dt.* from downloads d, download_texts dt " .
-          "  where dt.downloads_id = d.downloads_id and d.stories_id = ? order by d.downloads_id",
-        $story->{ stories_id }
-    )->hashes;
+    my $download_texts = $db->query( <<END, $story->{ stories_id } )->hashes;
+select dt.downloads_id, dt.download_texts_id
+	from downloads d, download_texts dt
+	where dt.downloads_id = d.downloads_id and d.stories_id = ? order by d.downloads_id
+END
 
     return join( "\n", map { MediaWords::DBI::DownloadTexts::get_extracted_html_from_db( $db, $_ ) } @{ $download_texts } );
 }
@@ -698,7 +699,7 @@ sub is_new
     my $db_story = $dbs->query( <<"END", $story->{ guid }, $story->{ media_id } )->hash;
 SELECT *
     FROM stories
-    WHERE 
+    WHERE
         guid = ?
         AND media_id = ?
 END
@@ -733,11 +734,11 @@ END
     $db_story = $dbs->query( <<END, $title, $story->{ media_id }, $story->{ publish_date } )->hash;
 SELECT 1
     FROM stories
-    WHERE 
+    WHERE
         md5( title ) = md5( ? ) AND
         media_id = ? AND
-        date_trunc( 'day', publish_date )  + interval '1 second' = 
-            date_trunc( 'day', ?::date ) + interval '1 second' 
+        date_trunc( 'day', publish_date )  + interval '1 second' =
+            date_trunc( 'day', ?::date ) + interval '1 second'
     FOR UPDATE
 END
 
@@ -931,7 +932,8 @@ END
         $tag_lookup->{ $tag->{ tag_set_name } }->{ $tag->{ tag } } = 1;
     }
 
-    my $reliable_methods = [ qw(guess_by_url guess_by_url_and_date_text merged_story_rss manual) ];
+    my $reliable_methods =
+      [ qw(guess_by_og_article_published_time guess_by_url guess_by_url_and_date_text merged_story_rss manual) ];
 
     if ( grep { $tag_lookup->{ date_guess_method }->{ $_ } } @{ $reliable_methods } )
     {
@@ -956,7 +958,7 @@ sub mark_undateable
     $db->query( <<END, $story->{ stories_id } );
 delete from stories_tags_map stm
     using tags t
-        join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id ) 
+        join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
     where
         t.tags_id = stm.tags_id and
         ts.name = 'date_invalid' and
@@ -1003,7 +1005,7 @@ sub assign_date_guess_method
 delete from stories_tags_map stm
     using tags t
         join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id )
-    where 
+    where
         t.tags_id = stm.tags_id and
         ts.name = ? and
         stm.stories_id = ?
@@ -1070,18 +1072,15 @@ sub get_all_sentences
     my $all_sentences = [];
     for my $sentence ( @{ $raw_sentences } )
     {
-        my $dup_sentence =
-          $db->query( <<END, $sentence, $story->{ media_id }, $story->{ publish_date }, $story->{ stories_id } )->hash;
-select * 
-    from story_sentence_counts 
+        my $ssc = $db->query( <<END, $sentence, $story->{ media_id }, $story->{ publish_date } )->hash;
+select *
+    from story_sentence_counts
     where sentence_md5 = MD5( ? ) and
         media_id = ? and
-        publish_week = DATE_TRUNC( 'week', ?::date ) and
-        first_stories_id <> ?
+        publish_week = DATE_TRUNC( 'week', ?::date )
     limit 1
 END
-        my $dup_stories_id = $dup_sentence ? $dup_sentence->{ first_stories_id } : undef;
-        push( @{ $all_sentences }, { sentence => $sentence, dup_stories_id => $dup_stories_id } );
+        push( @{ $all_sentences }, { sentence => $sentence, count => $ssc, stories_id => $story->{ stories_id } } );
     }
 
     return $all_sentences;
