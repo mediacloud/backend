@@ -474,6 +474,28 @@ sub fetch_preprocessed_content_lines($$)
     return $lines;
 }
 
+sub _get_current_extractor_version
+{
+    my $config           = MediaWords::Util::Config::get_config;
+    my $extractor_method = $config->{ mediawords }->{ extractor_method };
+
+    my $extractor_version;
+
+    if ( $extractor_method eq 'PythonReadability' )
+    {
+        $extractor_version = MediaWords::Util::ThriftExtractor::extractor_version();
+    }
+    else
+    {
+        my $old_extractor = MediaWords::Util::ExtractorFactory::createExtractor();
+        $extractor_version = $old_extractor->extractor_version();
+    }
+
+    die unless defined( $extractor_version ) && $extractor_version;
+
+    return $extractor_version;
+}
+
 # run MediaWords::Crawler::Extractor against the download content and return a hash in the form of:
 # { extracted_html => $html,    # a string with the extracted html
 #   extracted_text => $text,    # a string with the extracted html strippped to text
@@ -739,6 +761,8 @@ EOF
             my $story = $db->find_by_id( 'stories', $stories_id );
 
             MediaWords::StoryVectors::update_story_sentence_words_and_language( $db, $story, 0, $no_dedup_sentences );
+
+            MediaWords::DBI::Stories::update_extractor_version_tag( $db, $story, _get_current_extractor_version() );
         }
     }
 

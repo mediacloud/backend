@@ -1022,6 +1022,31 @@ END
 
 }
 
+# add extractor version tag
+sub update_extractor_version_tag
+{
+    my ( $db, $story, $extractor_version ) = @_;
+
+    for my $tag_set_name ( 'extractor_version' )
+    {
+        $db->query( <<END, $tag_set_name, $story->{ stories_id } );
+delete from stories_tags_map stm
+    using tags t
+        join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id )
+    where
+        t.tags_id = stm.tags_id and
+        ts.name = ? and
+        stm.stories_id = ?
+END
+    }
+
+    my $date_guess_method_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, "extractor_version:$extractor_version" );
+    $db->query( <<END, $story->{ stories_id }, $date_guess_method_tag->{ tags_id } );
+insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )
+END
+
+}
+
 # if no story_sentences exist for the story, add them
 sub add_missing_story_sentences
 {

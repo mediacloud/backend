@@ -12,6 +12,11 @@ use Scalar::Defer;
 use Readonly;
 use MediaWords::Thrift::Extractor;
 
+sub extractor_version
+{
+    return 'readability-lxml-0.3.0.5';
+}
+
 sub get_extracted_html
 {
     my ( $raw_html ) = @_;
