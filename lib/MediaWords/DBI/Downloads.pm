@@ -761,13 +761,13 @@ EOF
             my $story = $db->find_by_id( 'stories', $stories_id );
 
             MediaWords::StoryVectors::update_story_sentence_words_and_language( $db, $story, 0, $no_dedup_sentences );
-
-            MediaWords::DBI::Stories::update_extractor_version_tag( $db, $story, _get_current_extractor_version() );
         }
     }
 
     unless ( $has_remaining_download )
     {
+        my $story = $db->find_by_id( 'stories', $stories_id );
+        MediaWords::DBI::Stories::update_extractor_version_tag( $db, $story, _get_current_extractor_version() );
 
         if (    MediaWords::Util::CoreNLP::annotator_is_enabled()
             and MediaWords::Util::CoreNLP::story_is_annotatable( $db, $stories_id ) )
