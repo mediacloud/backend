@@ -8,7 +8,11 @@ sys.path.append(os.path.join(os.path.dirname(__file__),"gen-py/thrift_solr/"))
 sys.path.append(os.path.dirname(__file__) )
 
 from thrift.transport import TSocket 
+from thrift.transport import TTransport
+from thrift.protocol import TBinaryProtocol
 from thrift.server import TServer 
+from thrift.protocol.TBinaryProtocol import TBinaryProtocolAccelerated
+
 #import thrift_solr
 
 
@@ -40,7 +44,11 @@ class ExtractorHandler:
 handler = ExtractorHandler()
 processor = ExtractorService.Processor(handler)
 listening_socket = TSocket.TServerSocket(port=9090)
-server = TServer.TThreadPoolServer(processor, listening_socket)
+tfactory = TTransport.TBufferedTransportFactory()
+#pfactory = TBinaryProtocol.TBinaryProtocolFactory()
+pfactory = TBinaryProtocol.TBinaryProtocolAcceleratedFactory()
+
+server = TServer.TThreadPoolServer(processor, listening_socket, tfactory, pfactory)
 
 print ("[Server] Started")
 server.serve()
