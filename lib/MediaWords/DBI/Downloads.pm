@@ -252,7 +252,11 @@ sub _download_store_for_reading($)
         }
         else
         {
-            # Assume it's stored in a filesystem
+            # Assume it's stored in a filesystem (the downloads.path contains a
+            # full path to the download).
+            #
+            # We will probably decide to read this "file" download from GridFS
+            # right away.
             $download_store = 'localfile';
         }
     }
