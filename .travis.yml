@@ -41,6 +41,8 @@ before_install:
     # install Media Cloud testing variant of the Python  Client
     - travis_retry git clone https://github.com/dlarochelle/MediaCloud-API-Client.git
     - travis_retry sudo easy_install MediaCloud-API-Client/
+    # Install Solr via Gradle ("gradle runSolr" would do it by itself, but we're speeding things up here)
+    - cd solr-gradle/; gradle build; cd ../
 install:
     # Use default configuration
     - cp mediawords.yml.dist mediawords.yml
