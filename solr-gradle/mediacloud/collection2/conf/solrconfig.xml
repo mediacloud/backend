@@ -1143,6 +1143,7 @@
     </lst>
     <lst name="defaults">
       <str name="echoParams">all</str>
+      <str name="df">sentence</str>
     </lst>
     <!-- An optional feature of the PingRequestHandler is to configure the 
          handler with a "healthcheckFile" which can be used to enable/disable 
