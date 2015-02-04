@@ -9,9 +9,6 @@ import org.gradle.api.plugins.jetty.JettyRunWar
 apply plugin: 'java'
 apply plugin: 'jetty'
 
-// Destination directory
-buildDir = "solr-dist"
-
 ext {
     // Port to listen to
     listenPort = 8983
@@ -77,6 +74,13 @@ dependencies {
     testCompile "commons-logging:commons-logging:${commonsLoggingVersion}"
 }
 
+// Destination directory
+buildDir = "solr-dist"
+
+// Where to look for web app
+project.webAppDirName = "solr-dist"
+
+// Web application directory
 def explodedWebAppDir = "${buildDir}/explodedWebAppDir"
 
 // I didn't find a good way to add the slf4j libs to the classpath
