@@ -51,7 +51,7 @@ sub store_preprocessed_result
 
     say STDERR "Preprocessed_lines:\n";
 
-    MediaWords::DBI::DownloadTexts::update_extractor_results_with_text_and_html( $extract_results );
+    #MediaWords::DBI::DownloadTexts::update_extractor_results_with_text_and_html( $extract_results );
 
     say STDERR "EXTRACTED HTML $extract_results->{ extracted_html }";
     say STDERR "EXTRACTED TEXT $extract_results->{ extracted_text }";

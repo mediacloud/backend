@@ -20,9 +20,120 @@ use MediaWords::Util::Paths;
 use MediaWords::Util::ExtractorFactory;
 use MediaWords::Util::HeuristicExtractor;
 use MediaWords::GearmanFunction::AnnotateWithCoreNLP;
+use MediaWords::Util::ThriftExtractor;
 
 # Database inline content length limit
 use constant INLINE_CONTENT_LENGTH => 256;
+
+my $_block_level_element_tags = [
+    qw ( h1 h2 h3 h4 h5 h6 p div dl dt dd ol ul li dir menu
+      address blockquote center div hr ins noscript pre )
+];
+
+my $tag_list = join '|', ( map { quotemeta $_ } ( @{ $_block_level_element_tags } ) );
+
+my $_block_level_start_tag_re = qr{
+                   < (:? $tag_list ) (:? > | \s )
+           }ix
+  ;
+
+my $_block_level_end_tag_re = qr{
+                   </ (:? $tag_list ) >
+           }ix
+  ;
+
+sub _contains_block_level_tags
+{
+    my ( $string ) = @_;
+
+    if ( $string =~ $_block_level_start_tag_re )
+    {
+        return 1;
+    }
+
+    if ( $string =~ $_block_level_end_tag_re )
+    {
+        return 1;
+    }
+
+    return 0;
+}
+
+sub _new_lines_around_block_level_tags
+{
+    my ( $string ) = @_;
+
+    #say STDERR "_new_lines_around_block_level_tags '$string'";
+
+    return $string if ( !_contains_block_level_tags( $string ) );
+
+    $string =~ s{
+       ( $_block_level_start_tag_re
+      )
+      }
+      {\n\n$1}gsxi;
+
+    $string =~ s{
+       (
+$_block_level_end_tag_re
+     )
+     }
+     {$1\n\n}gsxi;
+
+    #say STDERR "_new_lines_around_block_level_tags '$string'";
+
+    #exit;
+
+    #$string = 'sddd';
+
+    return $string;
+
+}
+
+sub _get_extracted_html
+{
+    my ( $lines, $included_lines ) = @_;
+
+    my $is_line_included = { map { $_ => 1 } @{ $included_lines } };
+
+    my $config                                      = MediaWords::Util::Config::get_config;
+    my $dont_add_double_new_line_for_block_elements = 0;
+
+    my $extracted_html = '';
+
+    # This variable is used to make sure we don't add unnecessary double newlines
+    my $previous_concated_line_was_story = 0;
+
+    for ( my $i = 0 ; $i < @{ $lines } ; $i++ )
+    {
+        if ( $is_line_included->{ $i } )
+        {
+            my $line_text;
+
+            $previous_concated_line_was_story = 1;
+
+            $line_text = $lines->[ $i ];
+
+            #_new_lines_around_block_level_tags( $lines->[ $i ] );
+
+            $extracted_html .= ' ' . $line_text;
+        }
+        elsif ( _contains_block_level_tags( $lines->[ $i ] ) )
+        {
+            ## '\n\n\ is used as a sentence splitter so no need to add it more than once between text lines
+            if ( $previous_concated_line_was_story )
+            {
+
+                # Add double newline bc/ it will be recognized by the sentence splitter as a sentence boundary.
+                $extracted_html .= "\n\n";
+
+                $previous_concated_line_was_story = 0;
+            }
+        }
+    }
+
+    return $extracted_html;
+}
 
 # lookup table for download store objects; initialized in BEGIN below
 my $_download_store_lookup = lazy
@@ -363,6 +474,28 @@ sub fetch_preprocessed_content_lines($$)
     return $lines;
 }
 
+sub _get_current_extractor_version
+{
+    my $config           = MediaWords::Util::Config::get_config;
+    my $extractor_method = $config->{ mediawords }->{ extractor_method };
+
+    my $extractor_version;
+
+    if ( $extractor_method eq 'PythonReadability' )
+    {
+        $extractor_version = MediaWords::Util::ThriftExtractor::extractor_version();
+    }
+    else
+    {
+        my $old_extractor = MediaWords::Util::ExtractorFactory::createExtractor();
+        $extractor_version = $old_extractor->extractor_version();
+    }
+
+    die unless defined( $extractor_version ) && $extractor_version;
+
+    return $extractor_version;
+}
+
 # run MediaWords::Crawler::Extractor against the download content and return a hash in the form of:
 # { extracted_html => $html,    # a string with the extracted html
 #   extracted_text => $text,    # a string with the extracted html strippped to text
@@ -372,13 +505,42 @@ sub extractor_results_for_download($$)
 {
     my ( $db, $download ) = @_;
 
-    my $story = $db->query( "select * from stories where stories_id = ?", $download->{ stories_id } )->hash;
+    my $config           = MediaWords::Util::Config::get_config;
+    my $extractor_method = $config->{ mediawords }->{ extractor_method };
 
-    my $lines = fetch_preprocessed_content_lines( $db, $download );
+    my $extracted_html;
+    my $ret;
 
-    # print "PREPROCESSED LINES:\n**\n" . join( "\n", @{ $lines } ) . "\n**\n";
+    if ( $extractor_method eq 'PythonReadability' )
+    {
+        my $content_ref = fetch_content( $db, $download );
 
-    return extract_preprocessed_lines_for_story( $lines, $story->{ title }, $story->{ description } );
+        $ret            = {};
+        $extracted_html = MediaWords::Util::ThriftExtractor::get_extracted_html( $$content_ref );
+    }
+    else
+    {
+        my $story = $db->query( "select * from stories where stories_id = ?", $download->{ stories_id } )->hash;
+
+        my $lines = fetch_preprocessed_content_lines( $db, $download );
+
+        # print "PREPROCESSED LINES:\n**\n" . join( "\n", @{ $lines } ) . "\n**\n";
+
+        $ret = extract_preprocessed_lines_for_story( $lines, $story->{ title }, $story->{ description } );
+
+        my $download_lines        = $ret->{ download_lines };
+        my $included_line_numbers = $ret->{ included_line_numbers };
+
+        $extracted_html = _get_extracted_html( $download_lines, $included_line_numbers );
+    }
+
+    $extracted_html = _new_lines_around_block_level_tags( $extracted_html );
+    my $extracted_text = html_strip( $extracted_html );
+
+    $ret->{ extracted_html } = $extracted_html;
+    $ret->{ extracted_text } = $extracted_text;
+
+    return $ret;
 }
 
 # if the given line looks like a tagline for another story and is missing an ending period, add a period
@@ -604,6 +766,8 @@ EOF
 
     unless ( $has_remaining_download )
     {
+        my $story = $db->find_by_id( 'stories', $stories_id );
+        MediaWords::DBI::Stories::update_extractor_version_tag( $db, $story, _get_current_extractor_version() );
 
         if (    MediaWords::Util::CoreNLP::annotator_is_enabled()
             and MediaWords::Util::CoreNLP::story_is_annotatable( $db, $stories_id ) )
