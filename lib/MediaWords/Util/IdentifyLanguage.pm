@@ -252,6 +252,30 @@ use Readonly;
         return $language_names_to_codes{ $language_name };
     }
 
+    # # Returns an ISO 690 language code for the plain text passed as a parameter
+    # # Parameters:
+    # #  * Text that should be identified (required)
+    # #  * Top-level domain that can help with the identification (optional)
+    # #  * True if the content is (X)HTML, false otherwise (optional)
+    # # Returns: ISO 690 language code (e.g. 'en') on successful identification, empty string ('') on failure
+    # sub language_code_for_text_and_url($;$$)
+    # {
+    # 	my ( $text, $url, $tld, $is_html ) = @_;
+
+    # 	my $story_tld = '';
+
+    # 	if ( defined( $url ) )
+    # 	{
+    # 	    my $story_url = $story->{ url };
+    # 	    my $story_tld = MediaWords::Util::IdentifyLanguage::tld_from_url( $story_url );
+    # 	}
+    # else
+    # {
+    #     say STDERR "Story's URL for story ID " . $story->{ stories_id } . " is not defined.";
+    # }
+
+    # }
+
     # Returns 1 if the language identification for the text passed as a parameter is likely to be reliable; 0 otherwise
     # Parameters:
     #  * Text that should be identified (required)

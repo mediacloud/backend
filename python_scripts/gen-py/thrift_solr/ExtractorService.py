@@ -18,13 +18,10 @@ except:
 
 
 class Iface:
-  def media_counts(self, q, facet_field, fq, mincount):
+  def extract_html(self, raw_html):
     """
     Parameters:
-     - q
-     - facet_field
-     - fq
-     - mincount
+     - raw_html
     """
     pass
 
@@ -36,29 +33,23 @@ class Client(Iface):
       self._oprot = oprot
     self._seqid = 0
 
-  def media_counts(self, q, facet_field, fq, mincount):
+  def extract_html(self, raw_html):
     """
     Parameters:
-     - q
-     - facet_field
-     - fq
-     - mincount
+     - raw_html
     """
-    self.send_media_counts(q, facet_field, fq, mincount)
-    return self.recv_media_counts()
+    self.send_extract_html(raw_html)
+    return self.recv_extract_html()
 
-  def send_media_counts(self, q, facet_field, fq, mincount):
-    self._oprot.writeMessageBegin('media_counts', TMessageType.CALL, self._seqid)
-    args = media_counts_args()
-    args.q = q
-    args.facet_field = facet_field
-    args.fq = fq
-    args.mincount = mincount
+  def send_extract_html(self, raw_html):
+    self._oprot.writeMessageBegin('extract_html', TMessageType.CALL, self._seqid)
+    args = extract_html_args()
+    args.raw_html = raw_html
     args.write(self._oprot)
     self._oprot.writeMessageEnd()
     self._oprot.trans.flush()
 
-  def recv_media_counts(self):
+  def recv_extract_html(self):
     iprot = self._iprot
     (fname, mtype, rseqid) = iprot.readMessageBegin()
     if mtype == TMessageType.EXCEPTION:
@@ -66,19 +57,19 @@ class Client(Iface):
       x.read(iprot)
       iprot.readMessageEnd()
       raise x
-    result = media_counts_result()
+    result = extract_html_result()
     result.read(iprot)
     iprot.readMessageEnd()
     if result.success is not None:
       return result.success
-    raise TApplicationException(TApplicationException.MISSING_RESULT, "media_counts failed: unknown result");
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "extract_html failed: unknown result");
 
 
 class Processor(Iface, TProcessor):
   def __init__(self, handler):
     self._handler = handler
     self._processMap = {}
-    self._processMap["media_counts"] = Processor.process_media_counts
+    self._processMap["extract_html"] = Processor.process_extract_html
 
   def process(self, iprot, oprot):
     (name, type, seqid) = iprot.readMessageBegin()
@@ -95,13 +86,13 @@ class Processor(Iface, TProcessor):
       self._processMap[name](self, seqid, iprot, oprot)
     return True
 
-  def process_media_counts(self, seqid, iprot, oprot):
-    args = media_counts_args()
+  def process_extract_html(self, seqid, iprot, oprot):
+    args = extract_html_args()
     args.read(iprot)
     iprot.readMessageEnd()
-    result = media_counts_result()
-    result.success = self._handler.media_counts(args.q, args.facet_field, args.fq, args.mincount)
-    oprot.writeMessageBegin("media_counts", TMessageType.REPLY, seqid)
+    result = extract_html_result()
+    result.success = self._handler.extract_html(args.raw_html)
+    oprot.writeMessageBegin("extract_html", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
     oprot.trans.flush()
@@ -109,28 +100,19 @@ class Processor(Iface, TProcessor):
 
 # HELPER FUNCTIONS AND STRUCTURES
 
-class media_counts_args:
+class extract_html_args:
   """
   Attributes:
-   - q
-   - facet_field
-   - fq
-   - mincount
+   - raw_html
   """
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRING, 'q', None, None, ), # 1
-    (2, TType.STRING, 'facet_field', None, None, ), # 2
-    (3, TType.LIST, 'fq', (TType.STRING,None), None, ), # 3
-    (4, TType.I32, 'mincount', None, None, ), # 4
+    (1, TType.STRING, 'raw_html', None, None, ), # 1
   )
 
-  def __init__(self, q=None, facet_field=None, fq=None, mincount=None,):
-    self.q = q
-    self.facet_field = facet_field
-    self.fq = fq
-    self.mincount = mincount
+  def __init__(self, raw_html=None,):
+    self.raw_html = raw_html
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -143,27 +125,7 @@ class media_counts_args:
         break
       if fid == 1:
         if ftype == TType.STRING:
-          self.q = iprot.readString().decode('utf-8')
-        else:
-          iprot.skip(ftype)
-      elif fid == 2:
-        if ftype == TType.STRING:
-          self.facet_field = iprot.readString().decode('utf-8')
-        else:
-          iprot.skip(ftype)
-      elif fid == 3:
-        if ftype == TType.LIST:
-          self.fq = []
-          (_etype3, _size0) = iprot.readListBegin()
-          for _i4 in xrange(_size0):
-            _elem5 = iprot.readString().decode('utf-8')
-            self.fq.append(_elem5)
-          iprot.readListEnd()
-        else:
-          iprot.skip(ftype)
-      elif fid == 4:
-        if ftype == TType.I32:
-          self.mincount = iprot.readI32();
+          self.raw_html = iprot.readString().decode('utf-8')
         else:
           iprot.skip(ftype)
       else:
@@ -175,25 +137,10 @@ class media_counts_args:
     if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
       oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
       return
-    oprot.writeStructBegin('media_counts_args')
-    if self.q is not None:
-      oprot.writeFieldBegin('q', TType.STRING, 1)
-      oprot.writeString(self.q.encode('utf-8'))
-      oprot.writeFieldEnd()
-    if self.facet_field is not None:
-      oprot.writeFieldBegin('facet_field', TType.STRING, 2)
-      oprot.writeString(self.facet_field.encode('utf-8'))
-      oprot.writeFieldEnd()
-    if self.fq is not None:
-      oprot.writeFieldBegin('fq', TType.LIST, 3)
-      oprot.writeListBegin(TType.STRING, len(self.fq))
-      for iter6 in self.fq:
-        oprot.writeString(iter6.encode('utf-8'))
-      oprot.writeListEnd()
-      oprot.writeFieldEnd()
-    if self.mincount is not None:
-      oprot.writeFieldBegin('mincount', TType.I32, 4)
-      oprot.writeI32(self.mincount)
+    oprot.writeStructBegin('extract_html_args')
+    if self.raw_html is not None:
+      oprot.writeFieldBegin('raw_html', TType.STRING, 1)
+      oprot.writeString(self.raw_html.encode('utf-8'))
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
@@ -204,10 +151,7 @@ class media_counts_args:
 
   def __hash__(self):
     value = 17
-    value = (value * 31) ^ hash(self.q)
-    value = (value * 31) ^ hash(self.facet_field)
-    value = (value * 31) ^ hash(self.fq)
-    value = (value * 31) ^ hash(self.mincount)
+    value = (value * 31) ^ hash(self.raw_html)
     return value
 
   def __repr__(self):
@@ -221,14 +165,14 @@ class media_counts_args:
   def __ne__(self, other):
     return not (self == other)
 
-class media_counts_result:
+class extract_html_result:
   """
   Attributes:
    - success
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.STRING,None,TType.I32,None), None, ), # 0
+    (0, TType.LIST, 'success', (TType.STRING,None), None, ), # 0
   )
 
   def __init__(self, success=None,):
@@ -244,14 +188,13 @@ class media_counts_result:
       if ftype == TType.STOP:
         break
       if fid == 0:
-        if ftype == TType.MAP:
-          self.success = {}
-          (_ktype8, _vtype9, _size7 ) = iprot.readMapBegin()
-          for _i11 in xrange(_size7):
-            _key12 = iprot.readString().decode('utf-8')
-            _val13 = iprot.readI32();
-            self.success[_key12] = _val13
-          iprot.readMapEnd()
+        if ftype == TType.LIST:
+          self.success = []
+          (_etype19, _size16) = iprot.readListBegin()
+          for _i20 in xrange(_size16):
+            _elem21 = iprot.readString().decode('utf-8')
+            self.success.append(_elem21)
+          iprot.readListEnd()
         else:
           iprot.skip(ftype)
       else:
@@ -263,14 +206,13 @@ class media_counts_result:
     if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
       oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
       return
-    oprot.writeStructBegin('media_counts_result')
+    oprot.writeStructBegin('extract_html_result')
     if self.success is not None:
-      oprot.writeFieldBegin('success', TType.MAP, 0)
-      oprot.writeMapBegin(TType.STRING, TType.I32, len(self.success))
-      for kiter14,viter15 in self.success.items():
-        oprot.writeString(kiter14.encode('utf-8'))
-        oprot.writeI32(viter15)
-      oprot.writeMapEnd()
+      oprot.writeFieldBegin('success', TType.LIST, 0)
+      oprot.writeListBegin(TType.STRING, len(self.success))
+      for iter22 in self.success:
+        oprot.writeString(iter22.encode('utf-8'))
+      oprot.writeListEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()

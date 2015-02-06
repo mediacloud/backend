@@ -10,6 +10,7 @@ use Moose::Role;
 
 requires 'getExtractedLines';
 requires 'getScoresAndLines';
+requires 'extractor_version';
 
 sub getExtractedLines
 {

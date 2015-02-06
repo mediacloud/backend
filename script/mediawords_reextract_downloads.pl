@@ -64,70 +64,6 @@ sub reextract_downloads
     }
 }
 
-sub regenerate_download_texts_for_downloads
-{
-
-    my $downloads = shift;
-
-    say STDERR "regenerate_download_texts_for_downloads";
-
-    my $dbs = MediaWords::DB::connect_to_db;
-
-    my @download_ids = map { $_->{ downloads_id } } @{ $downloads };
-
-    #say Dumper ( [ @download_ids ] );
-
-    my $download_texts =
-      $dbs->query( " SELECT * from download_texts where downloads_id in (??) order by downloads_id", @download_ids )->hashes;
-
-    #say Dumper ( $download_texts );
-
-    my @downloads = @{ $downloads };
-
-    @downloads = sort { $a->{ downloads_id } <=> $b->{ downloads_id } } @downloads;
-
-    foreach my $download_text ( @$download_texts )
-    {
-        MediaWords::DBI::DownloadTexts::update_text( $dbs, $download_text );
-
-        #say Dumper ( $download_text );
-    }
-
-    #return;
-
-    for my $download ( @downloads )
-    {
-        die "Non-content type download: $download->{ downloads_id } $download->{ type } "
-          unless $download->{ type } eq 'content';
-
-        say "Processing download $download->{downloads_id}";
-        my $remaining_download = $dbs->query(
-            "select downloads_id from downloads " . "where stories_id = ? and extracted = 'f' and type = 'content' ",
-            $download->{ stories_id } )->hash;
-        if ( !$remaining_download )
-        {
-            my $story = $dbs->find_by_id( 'stories', $download->{ stories_id } );
-
-            # my $tags = MediaWords::DBI::Stories::add_default_tags( $db, $story );
-            #
-            # print STDERR "[$process_num] download: $download->{downloads_id} ($download->{feeds_id}) \n";
-            # while ( my ( $module, $module_tags ) = each( %{$tags} ) )
-            # {
-            #     print STDERR "[$process_num] $download->{downloads_id} $module: "
-            #       . join( ' ', map { "<$_>" } @{ $module_tags->{tags} } ) . "\n";
-            # }
-
-            say "Updating story sentence words ";
-
-            MediaWords::StoryVectors::update_story_sentence_words_and_language( $dbs, $story );
-        }
-        else
-        {
-            print STDERR " pending more downloads ...\n";
-        }
-    }
-}
-
 # do a test run of the text extractor
 sub main
 {
@@ -174,8 +110,6 @@ sub main
     say STDERR scalar( @$downloads ) . ' downloads';
 
     reextract_downloads( $downloads );
-
-    #regenerate_download_texts_for_downloads( $downloads );
 
     say STDERR "completed extraction";
 }
