@@ -30,8 +30,8 @@ use base qw(DBIx::Simple);
 # cache of table primary key columns
 my $_primary_key_columns = {};
 
-# PID for which the schema version has been checked
-my $_schema_version_check_pid;
+# PIDs for which the schema version has been checked
+my %_schema_version_check_pids;
 
 # METHODS
 
@@ -55,7 +55,7 @@ sub connect($$$$$;$)
     # to check schema version, check it once per PID
     unless ( defined $do_not_check_schema_version )
     {
-        if ( defined $_schema_version_check_pid and $_schema_version_check_pid == $$ )
+        if ( $_schema_version_check_pids{ $$ } )
         {
             $do_not_check_schema_version = 1;
         }
@@ -78,7 +78,7 @@ sub connect($$$$$;$)
     }
 
     # If schema is not up-to-date, connect() dies and we don't get to set PID here
-    $_schema_version_check_pid = $$;
+    $_schema_version_check_pids{ $$ } = 1;
 
     return $ret;
 }
