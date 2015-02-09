@@ -12,4 +12,4 @@ set -u
 set -o  errexit
 
 thrift -r  --gen perl solr.thrift
-thrift -r  --gen py   solr.thrift
+thrift -r  --gen py:utf8strings   solr.thrift

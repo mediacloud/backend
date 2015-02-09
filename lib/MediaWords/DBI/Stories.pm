@@ -504,6 +504,7 @@ EOF
     return join( ".\n\n", map { $_->{ download_text } } @{ $download_texts } );
 }
 
+## TODO rename this function
 sub get_extracted_html_from_db
 {
     my ( $db, $story ) = @_;
@@ -1016,6 +1017,46 @@ END
 
     my $date_guess_method_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, "$tag_set_name:$date_guess_method" );
     $db->query( <<END, $story->{ stories_id }, $date_guess_method_tag->{ tags_id } );
+insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )
+END
+
+}
+
+my $_extractor_version_tag_set;
+
+sub _get_extractor_version_tag_set
+{
+
+    my ( $db ) = @_;
+
+    if ( !defined( $_extractor_version_tag_set ) )
+    {
+        $_extractor_version_tag_set = MediaWords::Util::Tags::lookup_or_create_tag_set( $db, "extractor_version" );
+    }
+
+    return $_extractor_version_tag_set;
+}
+
+# add extractor version tag
+sub update_extractor_version_tag
+{
+    my ( $db, $story, $extractor_version ) = @_;
+
+    my $tag_set = _get_extractor_version_tag_set( $db );
+
+    $db->query( <<END, $tag_set->{ tag_sets_id }, $story->{ stories_id } );
+delete from stories_tags_map stm
+    using tags t
+        join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id )
+    where
+        t.tags_id = stm.tags_id and
+        ts.tag_sets_id = ? and
+        stm.stories_id = ?
+END
+
+    my $tags_id = _get_tags_id( $db, $tag_set->{ tag_sets_id }, $extractor_version );
+
+    $db->query( <<END, $story->{ stories_id }, $tags_id );
 insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )
 END
 
