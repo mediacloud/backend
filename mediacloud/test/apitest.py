@@ -381,6 +381,26 @@ class ApiSentencesTest(ApiBaseTest):
         self.assertEqual(results['split']['gap'],'+1DAY')
         self.assertEqual(len(results['split']),154)
 
+    def testSentenceFieldCount(self):
+        # regular call for sentence counts
+        sentence_results = self._mc.sentenceFieldCount('obama','+media_id:1')
+        self.assertFalse('stats' in sentence_results)
+        self.assertFalse('counts' in sentence_results)
+        self.assertTrue(len(sentence_results)>0)
+        [self.assertTrue(tag['count']) for tag in sentence_results]
+        # regular call for story counts
+        story_results = self._mc.sentenceFieldCount('obama','+media_id:1',field='tags_id_stories')
+        self.assertFalse('stats' in story_results)
+        self.assertFalse('counts' in story_results)
+        self.assertTrue(len(story_results)>0)
+        [self.assertTrue(tag['count']) for tag in story_results]
+        # compare
+        self.assertTrue(len(story_results)!=len(sentence_results))
+        # with stats
+        results = self._mc.sentenceFieldCount('obama','+media_id:1',include_stats=True)
+        self.assertTrue('stats' in results)
+        self.assertTrue('counts' in results)
+
 class ApiWordCountTest(ApiBaseTest):
 
     QUERY = 'robots'
