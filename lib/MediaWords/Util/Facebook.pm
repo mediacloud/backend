@@ -68,17 +68,25 @@ sub get_and_store_share_count
     my $error = $@ ? $@ : undef;
     $count ||= 0;
 
-    $db->query( <<END, $story->{ stories_id }, $count, $error );
-with try_update as (
-  update story_statistics 
-        set facebook_share_count = \$2, facebook_api_error = \$3
-        where stories_id = \$1
-        returning *
-)
-insert into story_statistics ( stories_id, facebook_share_count, facebook_api_error )
-    select \$1, \$2, \$3
-        where not exists ( select * from try_update );
+    $db->query(
+        <<END,
+        WITH try_update AS (
+            UPDATE story_statistics 
+            SET facebook_share_count = \$2,
+                facebook_api_error = \$3
+            WHERE stories_id = \$1
+            RETURNING *
+        )
+        INSERT INTO story_statistics (
+            stories_id,
+            facebook_share_count,
+            facebook_api_error
+        )
+            SELECT \$1, \$2, \$3
+            WHERE NOT EXISTS ( SELECT * FROM try_update )
 END
+        $story->{ stories_id }, $count, $error
+    );
 
     return $count;
 
