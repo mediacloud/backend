@@ -18,7 +18,8 @@
 SET search_path = public, pg_catalog;
 
 ALTER TABLE story_statistics
-    RENAME COLUMN twitter_url_tweet_count_error TO twitter_api_error,
+    RENAME COLUMN twitter_url_tweet_count_error TO twitter_api_error;
+ALTER TABLE story_statistics
     RENAME COLUMN facebook_share_count_error TO facebook_api_error;
 
 ALTER TABLE story_statistics
