@@ -1801,6 +1801,7 @@ create table story_statistics (
     twitter_url_tweet_count     int     null,
     twitter_api_error           text    null,
     facebook_share_count        int     null,
+    facebook_comment_count      int     null,
     facebook_api_error          text    null
 );
 

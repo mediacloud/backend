@@ -64,8 +64,8 @@ sub run($;$)
         }
         say STDERR "Story URL: $stories_url";
 
-        my $count = MediaWords::Util::Facebook::get_and_store_share_count( $db, $story );
-        say STDERR "share_count: $count";
+        my ( $share_count, $comment_count ) = MediaWords::Util::Facebook::get_and_store_share_comment_counts( $db, $story );
+        say STDERR "share count: $share_count, comment count: $comment_count";
     };
     if ( $@ )
     {

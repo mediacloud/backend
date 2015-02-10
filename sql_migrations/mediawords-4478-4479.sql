@@ -21,6 +21,9 @@ ALTER TABLE story_statistics
     RENAME COLUMN twitter_url_tweet_count_error TO twitter_api_error,
     RENAME COLUMN facebook_share_count_error TO facebook_api_error;
 
+ALTER TABLE story_statistics
+    ADD COLUMN facebook_comment_count INT NULL;
+
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     
