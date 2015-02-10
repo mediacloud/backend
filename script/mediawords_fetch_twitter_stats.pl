@@ -100,12 +100,6 @@ END
                     say STDERR "Enqueueing Gearman job for story $stories_id...";
                     MediaWords::GearmanFunction::Twitter::FetchStoryStats->enqueue_on_gearman( $args );
                 }
-
-                # if ( !$ss || $ss->{ facebook_share_count_error} || !defined( $ss->{ facebook_share_count } ) )
-                # {
-                #     my $count = MediaWords::Util::Facebook::get_and_store_share_count( $db, $story );
-                #     say STDERR "facebook_share_count: $count";
-                # }
             }
         }
     }
