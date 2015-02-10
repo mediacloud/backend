@@ -71,11 +71,11 @@ sub get_and_store_share_count
     $db->query( <<END, $story->{ stories_id }, $count, $error );
 with try_update as (
   update story_statistics 
-        set facebook_share_count = \$2, facebook_share_count_error = \$3
+        set facebook_share_count = \$2, facebook_api_error = \$3
         where stories_id = \$1
         returning *
 )
-insert into story_statistics ( stories_id, facebook_share_count, facebook_share_count_error )
+insert into story_statistics ( stories_id, facebook_share_count, facebook_api_error )
     select \$1, \$2, \$3
         where not exists ( select * from try_update );
 END

@@ -193,11 +193,11 @@ sub get_and_store_tweet_count
     $db->query( <<END, $stories_id, $count, $error );
 with try_update as (
   update story_statistics 
-        set twitter_url_tweet_count = \$2, twitter_url_tweet_count_error = \$3
+        set twitter_url_tweet_count = \$2, twitter_api_error = \$3
         where stories_id = \$1
         returning *
 )
-insert into story_statistics ( stories_id, twitter_url_tweet_count, twitter_url_tweet_count_error )
+insert into story_statistics ( stories_id, twitter_url_tweet_count, twitter_api_error )
     select \$1, \$2, \$3
         where not exists ( select * from try_update );
 END

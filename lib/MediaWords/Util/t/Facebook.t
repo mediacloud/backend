@@ -52,7 +52,7 @@ sub test_store_result($)
     ok( $ss, 'story_statistics row exists after initial insert' );
     
     is( $ss->{ facebook_share_count }, $count, "stored url share count" );
-    ok( !defined( $ss->{ facebook_share_count_error } ), "null url share count error" );
+    ok( !defined( $ss->{ facebook_api_error } ), "null url share count error" );
     
     $story->{ url } = 'foobar';
     
@@ -61,7 +61,7 @@ sub test_store_result($)
     my $sse = $db->query( 'select * from story_statistics where stories_id = ?', $story->{ stories_id } )->hash;
     
     is( $sse->{ facebook_share_count }, 0, "stored url share count should 0 after error" );
-    ok( defined( $sse->{ facebook_share_count_error } ), "stored url share count should contain error" );
+    ok( defined( $sse->{ facebook_api_error } ), "stored url share count should contain error" );
 }
 
 sub main()
