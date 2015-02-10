@@ -53,6 +53,9 @@ sub get_url_share_comment_counts
     for my $u ( @{ $all_urls } )
     {
         my ( $share_count, $comment_count ) = _get_single_url_share_comment_counts( $ua, $u );
+
+        say STDERR "* Share count: $share_count, comment count: $comment_count, URL variant: $u";
+
         $url_share_counts->{ $share_count }     = $u;
         $url_comment_counts->{ $comment_count } = $u;
     }
