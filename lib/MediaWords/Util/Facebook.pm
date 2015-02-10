@@ -7,8 +7,6 @@ package MediaWords::Util::Facebook;
 use strict;
 use warnings;
 
-use URI::Escape;
-
 use MediaWords::Util::JSON;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
