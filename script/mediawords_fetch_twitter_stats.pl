@@ -1,7 +1,6 @@
 #!/usr/bin/env perl
-
 #
-# fetch twitter and facebook statistics for all stories in a controversy
+# fetch Twitter statistics for all stories in a controversy
 #
 
 use strict;
@@ -20,7 +19,6 @@ use Getopt::Long;
 
 use MediaWords::DB;
 use MediaWords::CM;
-use MediaWords::Util::Facebook;
 use MediaWords::GearmanFunction;
 use MediaWords::GearmanFunction::Twitter::FetchStoryStats;
 
