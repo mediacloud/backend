@@ -20,7 +20,10 @@ sub _get_single_url_share_count
     # this is mostly to be able to generate an error for testing
     die( "invalid url: '$url'" ) if ( $url !~ /^http/i );
 
-    my $response = $ua->get( 'https://graph.facebook.com/?id=' . uri_escape_utf8( $url ) );
+    my $api_uri = URI->new( 'https://graph.facebook.com/' );
+    $api_uri->query_form( 'id' => $url );
+
+    my $response = $ua->get( $api_uri->as_string );
 
     if ( !$response->is_success )
     {
