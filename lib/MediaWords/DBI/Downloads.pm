@@ -724,6 +724,48 @@ sub get_medium($$)
     return $medium;
 }
 
+sub extract_only( $$ )
+{
+    my ( $db, $download ) = @_;
+
+    my $download_text = MediaWords::DBI::DownloadTexts::create_from_download( $db, $download );
+
+    #say STDERR "Got download_text";
+
+    return $download_text;
+}
+
+sub _process_extracted_story
+{
+    my ( $story, $db, $no_dedup_sentences, $no_vector ) = @_;
+
+    unless ( $no_vector )
+    {
+        MediaWords::StoryVectors::update_story_sentence_words_and_language( $db, $story, 0, $no_dedup_sentences );
+    }
+
+    MediaWords::DBI::Stories::update_extractor_version_tag( $db, $story, _get_current_extractor_version() );
+
+    my $stories_id = $story->{ stories_id };
+
+    if (    MediaWords::Util::CoreNLP::annotator_is_enabled()
+        and MediaWords::Util::CoreNLP::story_is_annotatable( $db, $stories_id ) )
+    {
+        # Story is annotatable with CoreNLP; enqueue for CoreNLP annotation
+        # (which will run mark_as_processed() on its own)
+        MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman( { stories_id => $stories_id } );
+
+    }
+    else
+    {
+        # Story is not annotatable with CoreNLP; add to "processed_stories" right away
+        unless ( MediaWords::DBI::Stories::mark_as_processed( $db, $stories_id ) )
+        {
+            die "Unable to mark story ID $stories_id as processed";
+        }
+    }
+}
+
 sub process_download_for_extractor($$$;$$$)
 {
     my ( $db, $download, $process_num, $no_dedup_sentences, $no_vector ) = @_;
@@ -732,9 +774,8 @@ sub process_download_for_extractor($$$;$$$)
 
     my $stories_id = $download->{ stories_id };
 
-    # Extract
     say STDERR "[$process_num] extract: $download->{ downloads_id } $stories_id $download->{ url }";
-    my $download_text = MediaWords::DBI::DownloadTexts::create_from_download( $db, $download );
+    my $download_text = MediaWords::DBI::Downloads::extract_only( $db, $download );
 
     #say STDERR "Got download_text";
 
@@ -749,42 +790,16 @@ EOF
         $stories_id
     )->hash;
 
-    unless ( $no_vector )
-    {
-        # Vector
-        if ( $has_remaining_download )
-        {
-            say STDERR "[$process_num] pending more downloads ...";
-        }
-        else
-        {
-            my $story = $db->find_by_id( 'stories', $stories_id );
+    my $story = $db->find_by_id( 'stories', $stories_id );
 
-            MediaWords::StoryVectors::update_story_sentence_words_and_language( $db, $story, 0, $no_dedup_sentences );
-        }
+    if ( !( $has_remaining_download ) )
+    {
+        _process_extracted_story( $story, $db, $no_dedup_sentences, $no_vector );
     }
-
-    unless ( $has_remaining_download )
+    elsif ( !( $no_vector ) )
     {
-        my $story = $db->find_by_id( 'stories', $stories_id );
-        MediaWords::DBI::Stories::update_extractor_version_tag( $db, $story, _get_current_extractor_version() );
 
-        if (    MediaWords::Util::CoreNLP::annotator_is_enabled()
-            and MediaWords::Util::CoreNLP::story_is_annotatable( $db, $stories_id ) )
-        {
-            # Story is annotatable with CoreNLP; enqueue for CoreNLP annotation
-            # (which will run mark_as_processed() on its own)
-            MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman( { stories_id => $stories_id } );
-
-        }
-        else
-        {
-            # Story is not annotatable with CoreNLP; add to "processed_stories" right away
-            unless ( MediaWords::DBI::Stories::mark_as_processed( $db, $stories_id ) )
-            {
-                die "Unable to mark story ID $stories_id as processed";
-            }
-        }
+        say STDERR "[$process_num] pending more downloads ...";
     }
 }
 
