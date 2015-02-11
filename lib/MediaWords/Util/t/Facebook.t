@@ -71,34 +71,43 @@ sub test_store_result($)
 sub main()
 {
     my $config = MediaWords::Util::Config::get_config;
-    unless ( $config->{ facebook }->{ enabled } eq 'yes' )
+    unless ($config->{ facebook }->{ enabled } eq 'yes'
+        and $config->{ facebook }->{ app_id }
+        and $config->{ facebook }->{ app_secret } )
     {
-        plan skip_all => "Facebook's API is not enabled.";
-
-    }
-    else
-    {
-        unless ( $config->{ facebook }->{ app_id } and $config->{ facebook }->{ app_secret } )
+        # Facebook's API is not enabled, but maybe there are environment
+        # variables set by the automated testing environment
+        if ( defined $ENV{ 'FACEBOOK_APP_ID' } and defined $ENV{ 'FACEBOOK_APP_SECRET' } )
         {
-            die "Facebook's API is enabled, but credentials are not configured.";
+            $config->{ facebook }->{ enabled }    = 'yes';
+            $config->{ facebook }->{ app_id }     = $ENV{ 'FACEBOOK_APP_ID' };
+            $config->{ facebook }->{ app_secret } = $ENV{ 'FACEBOOK_APP_SECRET' };
+
+            # FIXME Awful trick to modify config's cache
+            $MediaWords::Util::Config::_config = $config;
         }
-
-        plan tests => 12;
-
-        my $builder = Test::More->builder;
-        binmode $builder->output,         ":utf8";
-        binmode $builder->failure_output, ":utf8";
-        binmode $builder->todo_output,    ":utf8";
-
-        MediaWords::Test::DB::test_on_test_database(
-            sub {
-                my ( $db ) = @_;
-
-                test_share_comment_counts( $db );
-                test_store_result( $db );
-            }
-        );
+        else
+        {
+            plan skip_all => "Facebook's API is not enabled.";
+            return;
+        }
     }
+
+    plan tests => 12;
+
+    my $builder = Test::More->builder;
+    binmode $builder->output,         ":utf8";
+    binmode $builder->failure_output, ":utf8";
+    binmode $builder->todo_output,    ":utf8";
+
+    MediaWords::Test::DB::test_on_test_database(
+        sub {
+            my ( $db ) = @_;
+
+            test_share_comment_counts( $db );
+            test_store_result( $db );
+        }
+    );
 }
 
 main();

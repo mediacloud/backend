@@ -20,6 +20,9 @@ env:
         - "ARTIFACTS_S3_BUCKET=travis-ci-cache-mediacloud-pypt-lt"
         - secure: "dbil5PHZMwJ0Hn5d/asLj+yXX8ozkhnhJfDoOyhW7aLo7jW8HL0cmmlXeaEhitU3gk++BwM7xu9weX+8W5vKRPnbOkEJtV5EtkXwLG59Mg02GSKpdF1lbfVNJe6JaIPbXnckzieaITF/H+U06GRRfKphYzoRcaYYI2Yik4rNmxA="
         - secure: "Ek4Y2M1JO+ryFLPMrwQfNLnvIlh7H2X39p0aAVS5Bn9dILjKKWgvHlNjIJWgm8Wb5qfJmh94c6pDNRTqjqdPKPcR4IUmFY7cRgH1tai8Hcq0rUyu8GQ4dWOJqttCUzTuBpKVpwdX4SVD9MRhrouJfflfAD0+9znIs0sH2xvbfWw="
+        # Facebook Graph API credentials for testing
+        - secure: "BgP5lOHOeb/Bv92o3ItUxRzzV1/aRCSMlAqTEf1ox1pniYmRhHB1+8P21QOPbMH6bxm2uaBhnPOKCQ8b37SmFk/TNBuXZyec4d1deGB+0u4N4bPX4MN7Q9f9IV1PxEVjr3dIzKtdpuTM9giNK/R9HpjYIftZw6UT+nyWufJ7hZg="
+        - secure: "TrvXE5MJHDZb8a0KfnnElEqKZYXPpYSNGQO7ZtDAMC71B4CSthgr1beBxFkd9qSqFP304dLSIVWAs2Rhe9FahIwFIBcrLYlpoYCq8rTZo2txC+Xvg9qgP4uM59s83fYHeD7AfWFsIleYhV4gRsF8ZFxsPhf2IgVyH1mTGVaZyEU="
 before_install:
     # Travis artifacts (for caching "local/" to S3)
     - travis_retry gem install fog-json
