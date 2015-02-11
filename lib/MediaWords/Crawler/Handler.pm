@@ -214,40 +214,41 @@ sub _queue_extraction($$)
     MediaWords::GearmanFunction::ExtractAndVector->extract_for_crawler( $db, $download, $fetcher_number );
 }
 
-sub _queue_author_extraction($$;$)
-{
-    my ( $self, $download, $response ) = @_;
+#DRL - commenting out likely dead code
+# sub _queue_author_extraction($$;$)
+# {
+#     my ( $self, $download, $response ) = @_;
 
-    say STDERR "fetcher " .
-      $self->engine->fetcher_number . " starting _queue_author_extraction for download " . $download->{ downloads_id };
+#     say STDERR "fetcher " .
+#       $self->engine->fetcher_number . " starting _queue_author_extraction for download " . $download->{ downloads_id };
 
-    if ( $download->{ sequence } > 1 )
-    {
+#     if ( $download->{ sequence } > 1 )
+#     {
 
-        #Only extractor author from the first page
-        return;
-    }
+#         #Only extractor author from the first page
+#         return;
+#     }
 
-    my $dbs = $self->engine->dbs;
+#     my $dbs = $self->engine->dbs;
 
-    my $download_media_source = MediaWords::DBI::Downloads::get_medium( $dbs, $download );
+#     my $download_media_source = MediaWords::DBI::Downloads::get_medium( $dbs, $download );
 
-    if ( $download_media_source->{ extract_author } )
-    {
+#     if ( $download_media_source->{ extract_author } )
+#     {
 
-        die Dumper( $download ) unless $download->{ state } eq 'success';
+#         die Dumper( $download ) unless $download->{ state } eq 'success';
 
-        $dbs->create(
-            'authors_stories_queue',
-            {
-                stories_id => $download->{ stories_id },
-                state      => 'queued',
-            }
-        );
-    }
+#         $dbs->create(
+#             'authors_stories_queue',
+#             {
+#                 stories_id => $download->{ stories_id },
+#                 state      => 'queued',
+#             }
+#         );
+#     }
 
-    say STDERR "queued story extraction";
-}
+#     say STDERR "queued story extraction";
+# }
 
 # call the content module to parse the text from the html and add pending downloads
 # for any additional content
@@ -261,7 +262,8 @@ sub _process_content
 
     $self->_queue_extraction( $download );
 
-    $self->_queue_author_extraction( $download );
+    ## DRL - commenting out author_extraction code since this doesn't seem to be used anymore 2/11/2015
+    ##$self->_queue_author_extraction( $download );
 
     say STDERR "fetcher " . $self->engine->fetcher_number . " finished _process_content for  " . $download->{ downloads_id };
 }
