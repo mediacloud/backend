@@ -238,6 +238,12 @@ database:
     ### API request timeout (in seconds)
     #timeout: 60
 
+### Facebook API
+#facebook:
+
+    ### Enable Facebook processing
+    #enabled: "yes"
+
 #mail:
     # Email address to receive bug report emails; leave empty for no bug reports via email
     #bug_email : ""

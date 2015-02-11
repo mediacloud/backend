@@ -28,6 +28,7 @@ use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use MediaWords::DB;
+use MediaWords::Util::Config;
 use MediaWords::Util::Facebook;
 use MediaWords::Util::Process;
 use MediaWords::Util::GearmanJobSchedulerConfiguration;
@@ -42,6 +43,12 @@ my $db = undef;
 sub run($;$)
 {
     my ( $self, $args ) = @_;
+
+    my $config = MediaWords::Util::Config::get_config();
+    unless ( $config->{ facebook }->{ enabled } eq 'yes' )
+    {
+        fatal_error( 'Facebook API processing is not enabled.' );
+    }
 
     # Postpone connecting to the database so that compile test doesn't do that
     $db ||= MediaWords::DB::connect_to_db();

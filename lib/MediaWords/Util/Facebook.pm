@@ -7,7 +7,9 @@ package MediaWords::Util::Facebook;
 use strict;
 use warnings;
 
+use MediaWords::Util::Config;
 use MediaWords::Util::JSON;
+use MediaWords::Util::Process;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 
@@ -69,6 +71,12 @@ sub get_url_share_comment_counts
 sub get_and_store_share_comment_counts
 {
     my ( $db, $story ) = @_;
+
+    my $config = MediaWords::Util::Config::get_config();
+    unless ( $config->{ facebook }->{ enabled } eq 'yes' )
+    {
+        fatal_error( 'Facebook API processing is not enabled.' );
+    }
 
     my ( $share_count, $comment_count );
     eval { ( $share_count, $comment_count ) = get_url_share_comment_counts( $db, $story->{ url } ); };
