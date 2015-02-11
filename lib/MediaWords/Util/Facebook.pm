@@ -13,6 +13,11 @@ use MediaWords::Util::Process;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 
+use Readonly;
+
+# Facebook Graph API version to use
+Readonly my $FACEBOOK_GRAPH_API_VERSION => 'v2.2';
+
 sub _get_single_url_share_comment_counts
 {
     my ( $ua, $url ) = @_;
@@ -20,8 +25,8 @@ sub _get_single_url_share_comment_counts
     # this is mostly to be able to generate an error for testing
     die( "invalid url: '$url'" ) if ( $url !~ /^http/i );
 
-    my $api_uri = URI->new( 'https://graph.facebook.com/' );
-    $api_uri->query_form( 'id' => $url );
+    my $api_uri = URI->new( "https://graph.facebook.com/$FACEBOOK_GRAPH_API_VERSION/" );
+    $api_uri->query_param_append( 'id', $url );
 
     my $response = $ua->get( $api_uri->as_string );
 
@@ -33,8 +38,23 @@ sub _get_single_url_share_comment_counts
 
     my $data = MediaWords::Util::JSON::decode_json( $decoded_content );
 
-    my $share_count   = $data->{ shares }   || 0;
-    my $comment_count = $data->{ comments } || 0;
+    if ( defined $data->{ error } )
+    {
+        my $error_message = $data->{ error }->{ message };
+        my $error_type    = $data->{ error }->{ type };
+        my $error_code    = $data->{ error }->{ code };
+
+        die "Facebook API returned an error while fetching stats for " .
+          "URL $url: ($error_code $error_type) $error_message";
+    }
+
+    unless ( defined $data->{ og_object } and defined $data->{ share } and defined $data->{ id } )
+    {
+        die "Returned data JSON is invalid for URL $url: " . Dumper( $data );
+    }
+
+    my $share_count   = $data->{ share }->{ share_count }   || 0;
+    my $comment_count = $data->{ share }->{ comment_count } || 0;
 
     return ( $share_count, $comment_count );
 }
