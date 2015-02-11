@@ -244,10 +244,10 @@ database:
     ### Enable Facebook processing
     #enabled: "yes"
 
-    ## App ID (if empty, will use public API)
+    ## App ID
     #app_id: ""
 
-    ## App Secret (if App ID is set)
+    ## App Secret
     #app_secret: ""
 
 #mail:
