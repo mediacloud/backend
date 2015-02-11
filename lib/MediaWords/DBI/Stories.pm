@@ -766,6 +766,37 @@ sub reextract_download
     }
 }
 
+sub process_extracted_story
+{
+    my ( $story, $db, $no_dedup_sentences, $no_vector ) = @_;
+
+    unless ( $no_vector )
+    {
+        MediaWords::StoryVectors::update_story_sentence_words_and_language( $db, $story, 0, $no_dedup_sentences );
+    }
+
+    MediaWords::DBI::Stories::update_extractor_version_tag( $db, $story, _get_current_extractor_version() );
+
+    my $stories_id = $story->{ stories_id };
+
+    if (    MediaWords::Util::CoreNLP::annotator_is_enabled()
+        and MediaWords::Util::CoreNLP::story_is_annotatable( $db, $stories_id ) )
+    {
+        # Story is annotatable with CoreNLP; enqueue for CoreNLP annotation
+        # (which will run mark_as_processed() on its own)
+        MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman( { stories_id => $stories_id } );
+
+    }
+    else
+    {
+        # Story is not annotatable with CoreNLP; add to "processed_stories" right away
+        unless ( MediaWords::DBI::Stories::mark_as_processed( $db, $stories_id ) )
+        {
+            die "Unable to mark story ID $stories_id as processed";
+        }
+    }
+}
+
 sub restore_download_content
 {
     my ( $db, $download, $story_content ) = @_;
