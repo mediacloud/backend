@@ -244,6 +244,12 @@ database:
     ### Enable Facebook processing
     #enabled: "yes"
 
+    ## App ID (if empty, will use public API)
+    #app_id: ""
+
+    ## App Secret (if App ID is set)
+    #app_secret: ""
+
 #mail:
     # Email address to receive bug report emails; leave empty for no bug reports via email
     #bug_email : ""

@@ -14,6 +14,7 @@ use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 
 use Readonly;
+use URI::QueryParam;
 
 # Facebook Graph API version to use
 Readonly my $FACEBOOK_GRAPH_API_VERSION => 'v2.2';
@@ -27,6 +28,13 @@ sub _get_single_url_share_comment_counts
 
     my $api_uri = URI->new( "https://graph.facebook.com/$FACEBOOK_GRAPH_API_VERSION/" );
     $api_uri->query_param_append( 'id', $url );
+
+    my $config = MediaWords::Util::Config::get_config();
+    if ( $config->{ facebook }->{ app_id } and $config->{ facebook }->{ app_secret } )
+    {
+        my $access_token = $config->{ facebook }->{ app_id } . '|' . $config->{ facebook }->{ app_secret };
+        $api_uri->query_param_append( 'access_token', $access_token );
+    }
 
     my $response = $ua->get( $api_uri->as_string );
 
