@@ -23,8 +23,10 @@ sub _get_single_url_share_comment_counts
 {
     my ( $ua, $url ) = @_;
 
-    # this is mostly to be able to generate an error for testing
-    die( "invalid url: '$url'" ) if ( $url !~ /^http/i );
+    unless ( MediaWords::Util::URL::is_http_url( $url ) )
+    {
+        die "Invalid URL: $url";
+    }
 
     my $api_uri = URI->new( "https://graph.facebook.com/$FACEBOOK_GRAPH_API_VERSION/" );
     $api_uri->query_param_append( 'id', $url );
