@@ -30,9 +30,9 @@ sub _get_single_url_share_comment_counts
 
     my $response = $ua->get( $api_uri->as_string );
 
-    if ( !$response->is_success )
+    unless ( $response->is_success )
     {
-        die( "error fetching for url '$url'" );
+        die "Error fetching stats for URL: $url";
     }
     my $decoded_content = $response->decoded_content;
 
