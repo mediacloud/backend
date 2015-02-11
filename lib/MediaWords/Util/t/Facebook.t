@@ -2,19 +2,17 @@ use strict;
 use warnings;
 
 use utf8;
-use Test::NoWarnings;
-use Test::More tests => 14;
+use Test::More;
 
 use Data::Dumper;
 
 use MediaWords::Test::DB;
+use MediaWords::Util::Facebook;
 
 BEGIN
 {
     use FindBin;
     use lib "$FindBin::Bin/../lib";
-
-    use_ok( 'MediaWords::Util::Facebook' );
 }
 
 my $_last_request_time;
@@ -72,19 +70,35 @@ sub test_store_result($)
 
 sub main()
 {
-    my $builder = Test::More->builder;
-    binmode $builder->output,         ":utf8";
-    binmode $builder->failure_output, ":utf8";
-    binmode $builder->todo_output,    ":utf8";
+    my $config = MediaWords::Util::Config::get_config;
+    unless ( $config->{ facebook }->{ enabled } eq 'yes' )
+    {
+        plan skip_all => "Facebook's API is not enabled.";
 
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            my ( $db ) = @_;
-
-            test_share_comment_counts( $db );
-            test_store_result( $db );
+    }
+    else
+    {
+        unless ( $config->{ facebook }->{ app_id } and $config->{ facebook }->{ app_secret } )
+        {
+            die "Facebook's API is enabled, but credentials are not configured.";
         }
-    );
+
+        plan tests => 12;
+
+        my $builder = Test::More->builder;
+        binmode $builder->output,         ":utf8";
+        binmode $builder->failure_output, ":utf8";
+        binmode $builder->todo_output,    ":utf8";
+
+        MediaWords::Test::DB::test_on_test_database(
+            sub {
+                my ( $db ) = @_;
+
+                test_share_comment_counts( $db );
+                test_store_result( $db );
+            }
+        );
+    }
 }
 
 main();
