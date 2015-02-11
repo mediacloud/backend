@@ -31,12 +31,9 @@ sub _get_single_url_share_comment_counts
     my $api_uri = URI->new( "https://graph.facebook.com/$FACEBOOK_GRAPH_API_VERSION/" );
     $api_uri->query_param_append( 'id', $url );
 
-    my $config = MediaWords::Util::Config::get_config();
-    if ( $config->{ facebook }->{ app_id } and $config->{ facebook }->{ app_secret } )
-    {
-        my $access_token = $config->{ facebook }->{ app_id } . '|' . $config->{ facebook }->{ app_secret };
-        $api_uri->query_param_append( 'access_token', $access_token );
-    }
+    my $config       = MediaWords::Util::Config::get_config();
+    my $access_token = $config->{ facebook }->{ app_id } . '|' . $config->{ facebook }->{ app_secret };
+    $api_uri->query_param_append( 'access_token', $access_token );
 
     my $response = $ua->get( $api_uri->as_string );
 
@@ -106,6 +103,10 @@ sub get_and_store_share_comment_counts
     unless ( $config->{ facebook }->{ enabled } eq 'yes' )
     {
         fatal_error( 'Facebook API processing is not enabled.' );
+    }
+    unless ( $config->{ facebook }->{ app_id } and $config->{ facebook }->{ app_secret } )
+    {
+        fatal_error( 'Facebook API processing is enabled, but authentication credentials are not set.' );
     }
 
     my ( $share_count, $comment_count );
