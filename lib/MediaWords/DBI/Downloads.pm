@@ -774,9 +774,12 @@ EOF
 
 # Extract and vector the download; on error, store the error message in the
 # "downloads" table
-sub extract_and_vector($$$;$$$)
+sub extract_and_vector
 {
-    my ( $db, $download, $process_num, $no_dedup_sentences, $no_vector ) = @_;
+    my ( $db, $download, $process_num ) = @_;
+
+    my $no_dedup_sentences = 0;
+    my $no_vector          = 0;
 
     eval { process_download_for_extractor( $db, $download, $process_num, $no_dedup_sentences, $no_vector ); };
 
