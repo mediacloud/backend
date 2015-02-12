@@ -17,6 +17,45 @@ BEGIN
 
 my $_last_request_time;
 
+# URLs that might fail
+sub test_bogus_urls($)
+{
+    my ( $db ) = @_;
+
+    my @bogus_urls = (
+
+        # URLs with #fragment
+        'http://www.nbcnews.com/#/health/health-news/inside-ebola-clinic-doctors-fight-out-control-virus-%20n150391',
+        'http://www.nbcnews.com/#/health/',
+        'http://www.nbcnews.com/#/health',
+        'http://www.nbcnews.com/#/',
+        'http://foo.com/#/bar/',
+
+        # Twitter API works only when the #fragment starts with a slash (/)
+        # 'http://www.nbcnews.com/#health',
+        # 'http://www.nbcnews.com/#health/',
+
+        # URLs with ~tilde
+        'http://cyber.law.harvard.edu/~lvaliukas/test.html/',
+        'http://cyber.law.harvard.edu/~lvaliukas/test.html/#/foo',
+        'http://feeds.please-note-that-this-url-is-not-gawker.com/~r/gizmodo/full/~3/qIhlxlB7gmw/foo-bar-baz-1234567890/',
+        'http://feeds.boingboing.net/~r/boingboing/iBag/~3/W1mgVFzEwm4/last-chance-to-save-net-neutra.html/',
+
+        # URLs with #fragment that's about to be removed
+        'http://www.macworld.com/article/2154541/podcast-we-got-the-beats.html#tk.rss_all',
+
+        # Gawker's feed URLs
+'http://feeds.gawker.com/~r/gizmodo/full/~3/qIhlxlB7gmw/how-to-yell-at-the-fcc-about-how-much-you-hate-its-net-1576943170',
+'http://feeds.gawker.com/~r/gawker/full/~3/FjKCT99u_M8/wall-street-is-doing-devious-shit-while-america-sleeps-1679519880',
+    );
+
+    foreach my $bogus_url ( @bogus_urls )
+    {
+        eval { MediaWords::Util::Facebook::get_url_share_comment_counts( $db, $bogus_url ); };
+        ok( !$@, "Stats were fetched for bogus URL '$bogus_url'" );
+    }
+}
+
 sub test_share_comment_counts($)
 {
     my ( $db ) = @_;
@@ -93,7 +132,7 @@ sub main()
         }
     }
 
-    plan tests => 12;
+    plan tests => 24;
 
     my $builder = Test::More->builder;
     binmode $builder->output,         ":utf8";
@@ -104,6 +143,7 @@ sub main()
         sub {
             my ( $db ) = @_;
 
+            test_bogus_urls( $db );
             test_share_comment_counts( $db );
             test_store_result( $db );
         }
