@@ -370,6 +370,11 @@ sub main
     # Errors might want to print out UTF-8 characters
     binmode( STDERR, ':utf8' );
     binmode( STDOUT, ':utf8' );
+    my $builder = Test::More->builder;
+
+    binmode $builder->output,         ":utf8";
+    binmode $builder->failure_output, ":utf8";
+    binmode $builder->todo_output,    ":utf8";
 
     # Test short inline "content:..." downloads
     _test_crawler( 'Short "inline" downloads', 'inline_content', 4, '2008-02-03', '2020-02-27' );
