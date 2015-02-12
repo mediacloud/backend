@@ -68,6 +68,14 @@ sub _get_single_url_share_comment_counts
         die "Returned data JSON is invalid for URL $url: " . Dumper( $data );
     }
 
+    # Verify that we got stats for the right URL
+    my $returned_url = $data->{ id };
+    my $returned_uri = URI->new( $returned_url )->canonical;
+    unless ( $returned_uri->eq( $uri ) )
+    {
+        die "Returned URL ($returned_url) is not the same as requested URL ($url)";
+    }
+
     my $share_count   = $data->{ share }->{ share_count }   || 0;
     my $comment_count = $data->{ share }->{ comment_count } || 0;
 
