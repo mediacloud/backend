@@ -310,7 +310,6 @@ sub _add_pending_downloads
 WITH feeds_media as (
     select feeds_id, media_id
         from feeds
-        where feed_status = 'active'
 )
 
 SELECT d.*,
