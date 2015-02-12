@@ -30,6 +30,9 @@ use base qw(DBIx::Simple);
 # cache of table primary key columns
 my $_primary_key_columns = {};
 
+# PIDs for which the schema version has been checked
+my %_schema_version_check_pids;
+
 # METHODS
 
 sub new
@@ -48,9 +51,23 @@ sub connect($$$$$;$)
 {
     my ( $self, $dsn, $user, $pass, $options, $do_not_check_schema_version ) = @_;
 
+    # If the user didn't clearly (via 'true' or 'false') state whether or not
+    # to check schema version, check it once per PID
+    unless ( defined $do_not_check_schema_version )
+    {
+        if ( $_schema_version_check_pids{ $$ } )
+        {
+            $do_not_check_schema_version = 1;
+        }
+        else
+        {
+            $do_not_check_schema_version = 0;
+        }
+    }
+
     my $ret = $self->SUPER::connect( $dsn, $user, $pass, $options );
 
-    if ( !$do_not_check_schema_version )
+    unless ( $do_not_check_schema_version )
     {
 
         # It would make sense to check the MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION environment variable
@@ -59,6 +76,9 @@ sub connect($$$$$;$)
 
         die "Database schema is not up-to-date.\n" unless $ret->schema_is_up_to_date();
     }
+
+    # If schema is not up-to-date, connect() dies and we don't get to set PID here
+    $_schema_version_check_pids{ $$ } = 1;
 
     return $ret;
 }
