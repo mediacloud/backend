@@ -19,9 +19,11 @@ use URI::QueryParam;
 # Facebook Graph API version to use
 Readonly my $FACEBOOK_GRAPH_API_VERSION => 'v2.2';
 
-sub _get_single_url_share_comment_counts
+# use https://graph.facebook.com/?id= to get number of shares for the given url
+# https://graph.facebook.com/?id=http://www.google.com/
+sub get_url_share_comment_counts
 {
-    my ( $ua, $url ) = @_;
+    my ( $db, $url ) = @_;
 
     unless ( MediaWords::Util::URL::is_http_url( $url ) )
     {
@@ -42,6 +44,9 @@ sub _get_single_url_share_comment_counts
     my $config       = MediaWords::Util::Config::get_config();
     my $access_token = $config->{ facebook }->{ app_id } . '|' . $config->{ facebook }->{ app_secret };
     $api_uri->query_param_append( 'access_token', $access_token );
+
+    my $ua = MediaWords::Util::Web::UserAgentDetermined();
+    $ua->timing( '1,3,15,60,300,600' );
 
     my $response = $ua->get( $api_uri->as_string );
 
@@ -79,36 +84,9 @@ sub _get_single_url_share_comment_counts
     my $share_count   = $data->{ share }->{ share_count }   || 0;
     my $comment_count = $data->{ share }->{ comment_count } || 0;
 
+    say STDERR "* Share count: $share_count, comment count: $comment_count";
+
     return ( $share_count, $comment_count );
-}
-
-# use https://graph.facebook.com/?id= to get number of shares for the given url
-# https://graph.facebook.com/?id=http://www.google.com/
-sub get_url_share_comment_counts
-{
-    my ( $db, $url ) = @_;
-
-    my $all_urls = [ MediaWords::Util::URL::all_url_variants( $db, $url ) ];
-
-    my $ua = MediaWords::Util::Web::UserAgentDetermined();
-    $ua->timing( '1,3,15,60,300,600' );
-
-    my $url_share_counts   = {};
-    my $url_comment_counts = {};
-    for my $u ( @{ $all_urls } )
-    {
-        my ( $share_count, $comment_count ) = _get_single_url_share_comment_counts( $ua, $u );
-
-        say STDERR "* Share count: $share_count, comment count: $comment_count, URL variant: $u";
-
-        $url_share_counts->{ $share_count }     = $u;
-        $url_comment_counts->{ $comment_count } = $u;
-    }
-
-    my $share_count_sum   = List::Util::sum( keys( %{ $url_share_counts } ) );
-    my $comment_count_sum = List::Util::sum( keys( %{ $url_comment_counts } ) );
-
-    return ( $share_count_sum, $comment_count_sum );
 }
 
 sub get_and_store_share_comment_counts
