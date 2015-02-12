@@ -33,8 +33,8 @@ def extract_with_python_readability( raw_content ):
 class ExtractorHandler:
     def extract_html( self, raw_html ):
 
-        print >> sys.stderr, "in ExtractorHandler.extract_html"
-        print >> sys.stderr, "type: ", type ( raw_html )
+        #print >> sys.stderr, "in ExtractorHandler.extract_html"
+        #print >> sys.stderr, "type: ", type ( raw_html )
 
         #print raw_html
 
