@@ -26,7 +26,7 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
-use Test::More tests => 193;
+use Test::More tests => 244;
 use Test::Differences;
 use Test::Deep;
 
@@ -381,6 +381,15 @@ sub main
 
     # Test Global Voices downloads
     _test_crawler( 'Global Voices', 'gv', 16, '2008-02-03', '2020-02-27' );
+
+    # Test multilanguage downloads
+    _test_crawler(
+        'Multilanguage downloads',
+        'multilanguage',
+        6 - 1,    # there are 6 tests, but one of them is an empty page
+        '2008-02-03',
+        '2020-02-27'
+    );
 
     Test::NoWarnings::had_no_warnings();
 }
