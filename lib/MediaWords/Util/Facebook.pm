@@ -28,6 +28,14 @@ sub _get_single_url_share_comment_counts
         die "Invalid URL: $url";
     }
 
+    # Canonicalize URL
+    my $uri = URI->new( $url )->canonical;
+    unless ( $uri )
+    {
+        die "Unable to create URI object for URL: $url";
+    }
+    $url = $uri->as_string;
+
     my $api_uri = URI->new( "https://graph.facebook.com/$FACEBOOK_GRAPH_API_VERSION/" );
     $api_uri->query_param_append( 'id', $url );
 
