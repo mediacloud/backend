@@ -182,15 +182,15 @@ programs=solr_facets_wrapper_server,extractor_python_readability_server
 [% INCLUDE program_config
     program='solr_facets_wrapper_server'
     command='python python_scripts/solr_facets_wrapper_server.py'
-    default_autorestart='true'
+    default_autorestart='false'
     default_autostart='false'
 %]
 
 [% INCLUDE program_config
     program='extractor_python_readability_server'
     command='python python_scripts/extractor_python_readability_server.py'
-    default_autorestart='false'
-    default_autostart='false'
+    default_autorestart='true'
+    default_autostart='true'
 %]
 
 

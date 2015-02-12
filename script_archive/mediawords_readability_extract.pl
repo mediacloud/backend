@@ -35,9 +35,9 @@ sub main
 
     #my $raw_html = "<html><title>article title</title><body><p>paragraph 1</p></body>";
 
-    my $raw_html = read_file( $file_name );    #, binmode => ':utf8' ) ;
+    my $raw_html = read_file( $file_name, binmode => ':utf8' );
 
-    utf8::upgrade( $raw_html );
+    #utf8::upgrade( $raw_html );
 
     my $result = MediaWords::Util::ThriftExtractor::get_extracted_html( $raw_html );
 
