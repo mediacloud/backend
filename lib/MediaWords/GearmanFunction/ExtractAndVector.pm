@@ -144,21 +144,18 @@ sub configuration()
 # keep retrying on enqueue error.
 sub extract_for_crawler
 {
-    my ( $self, $db, $download, $fetcher_number ) = @_;
+    my ( $self, $db, $args, $fetcher_number ) = @_;
 
     if ( MediaWords::Util::Config::get_config->{ mediawords }->{ extract_in_process } )
     {
         say STDERR "extracting in process...";
-        MediaWords::GearmanFunction::ExtractAndVector->run( { downloads_id => $download->{ downloads_id } } );
+        MediaWords::GearmanFunction::ExtractAndVector->run( $args );
     }
     else
     {
         while ( 1 )
         {
-            eval {
-                MediaWords::GearmanFunction::ExtractAndVector->enqueue_on_gearman(
-                    { downloads_id => $download->{ downloads_id } } );
-            };
+            eval { MediaWords::GearmanFunction::ExtractAndVector->enqueue_on_gearman( $args ); };
 
             if ( $@ )
             {
