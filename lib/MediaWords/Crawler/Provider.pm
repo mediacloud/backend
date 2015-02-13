@@ -303,16 +303,29 @@ sub _add_pending_downloads
 
     my $downloads = $db->query(
         <<END,
-        SELECT d.*,
-               f.media_id AS _media_id,
-               COALESCE( site_from_host( d.host ), 'non-media' ) AS site
-        FROM downloads AS d
-            LEFT JOIN feeds AS f ON f.feeds_id = d.feeds_id
-        WHERE 
-            state = 'pending' and
-            -- downloads can be embargoed for later by setting download_time to a future time
-            ( ( download_time is null ) or ( download_time < now() ) )
-        LIMIT ?
+-- postgres was using a nested loop to fetch the feed data, which is
+-- very slow when the download queue nears 100k rows; using a cte forces
+-- postgres just to do a seq scan of the feeds table, which should only take a
+-- few seconds in the worst case
+WITH feeds_media as (
+    select feeds_id, media_id
+        from feeds
+)
+
+SELECT d.*,
+       f.media_id AS _media_id,
+       COALESCE( site_from_host( d.host ), 'non-media' ) AS site
+FROM downloads AS d
+    LEFT JOIN feeds_media AS f ON f.feeds_id = d.feeds_id
+WHERE
+    state = 'pending' and
+    -- downloads can be embargoed for later by setting download_time to a future time
+    ( ( download_time is null ) or ( download_time < now() ) )
+
+-- order by download_time / error_message is null first so that we get all downloads that have not been attempted first,
+-- then by downloads_id so downloads don't get stuck in download_time < now embargo limbo forever
+ORDER BY download_time is null desc, error_message is null desc, downloads_id asc
+LIMIT ?
 END
         MAX_QUEUED_DOWNLOADS
     )->hashes;
