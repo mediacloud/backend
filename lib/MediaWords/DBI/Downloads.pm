@@ -576,22 +576,6 @@ sub _do_extraction_from_content_ref($$$)
     return extract_preprocessed_lines_for_story( $lines, $title, $description );
 }
 
-sub _get_included_line_numbers($)
-{
-    my $scores = shift;
-
-    my @included_lines;
-    for ( my $i = 0 ; $i < @{ $scores } ; $i++ )
-    {
-        if ( $scores->[ $i ]->{ is_story } )
-        {
-            push @included_lines, $i;
-        }
-    }
-
-    return \@included_lines;
-}
-
 sub extract_preprocessed_lines_for_story($$$)
 {
     my ( $lines, $story_title, $story_description ) = @_;

@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4478;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4479;
     
 BEGIN
 
@@ -2703,6 +2703,8 @@ CREATE TRIGGER gearman_job_queue_sync_lastmod
 CREATE OR REPLACE FUNCTION story_is_annotatable_with_corenlp(corenlp_stories_id INT) RETURNS boolean AS $$
 BEGIN
 
+    -- FIXME this function is not really optimized for performance
+
     -- Check "media.annotate_with_corenlp"
     IF NOT EXISTS (
 
@@ -2714,6 +2716,22 @@ BEGIN
 
     ) THEN
         RAISE NOTICE 'Story % is not annotatable with CoreNLP because media is not set for annotation.', corenlp_stories_id;
+        RETURN FALSE;
+
+    -- Annotate English language stories only because they're the only ones
+    -- supported by CoreNLP at the time.
+    ELSEIF NOT EXISTS (
+
+        SELECT 1
+        FROM stories
+
+        -- Stories with language field set to NULL are the ones fetched before
+        -- introduction of the multilanguage support, so they are assumed to be
+        -- English.
+        WHERE stories.language = 'en' OR stories.language IS NULL
+
+    ) THEN
+        RAISE NOTICE 'Story % is not annotatable with CoreNLP because it is not in English.', corenlp_stories_id;
         RETURN FALSE;
 
     -- Check if story has sentences
