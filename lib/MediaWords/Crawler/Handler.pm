@@ -205,7 +205,7 @@ END
     return $ret;
 }
 
-sub _queue_extraction($$)
+sub _queue_story_extraction($$)
 {
     my ( $self, $download ) = @_;
 
@@ -214,7 +214,7 @@ sub _queue_extraction($$)
 
     say STDERR "fetcher $fetcher_number starting extraction for download " . $download->{ downloads_id };
 
-    MediaWords::GearmanFunction::ExtractAndVector->extract_for_crawler( $db, { downloads_id => $download->{ downloads_id } },
+    MediaWords::GearmanFunction::ExtractAndVector->extract_for_crawler( $db, { stories_id => $download->{ stories_id } },
         $fetcher_number );
 }
 
@@ -226,9 +226,16 @@ sub _process_content
 
     say STDERR "fetcher " . $self->engine->fetcher_number . " starting _process_content for  " . $download->{ downloads_id };
 
-    $self->call_pager( $dbs, $download, $response->decoded_content );
+    my $next_page = $self->call_pager( $dbs, $download, $response->decoded_content );
 
-    $self->_queue_extraction( $download );
+    if ( !$next_page )
+    {
+        $self->_queue_story_extraction( $download );
+    }
+    else
+    {
+        say STDERR "fetcher skipping extraction download " . $download->{ downloads_id } . " until all pages are available";
+    }
 
     say STDERR "fetcher " . $self->engine->fetcher_number . " finished _process_content for  " . $download->{ downloads_id };
 }
