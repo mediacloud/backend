@@ -192,4 +192,9 @@ sub _get_extracted_lines_with_crf
 
     return $scores;
 }
+
+sub extractor_version
+{
+    return 'crf-1.0';
+}
 1;

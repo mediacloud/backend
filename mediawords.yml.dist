@@ -140,7 +140,7 @@ database:
             #autostart: 'true'
             #autorestart: 'false'
             
-        #extractor_and_vector:
+        #extract_and_vector:
             #numprocs: 1
             #autostart: 'true'
             #autorestart: 'true'
@@ -260,6 +260,7 @@ database:
 #      domainname: "<DOMAIN>"
 
 mediawords:
+    #extractor_method: PythonReadability
     ### defaults to http://$hostname:$port/.
     #base_url: "http://your.mediacloud.server/and/path"
 
@@ -339,9 +340,6 @@ mediawords:
 
     #Uncomment to disable the use of a precalculated version of the top_500_words.
     #disable_json_top_500_words_cache: "yes"
-
-    # Uncomment to allow sentences to cross block level html elments such a <p> or <div>
-    #disable_block_element_sentence_splitting: "yes"
 
     # Uncomment to cause feeds to be downloaded and stories but not processed for stories.
     # Generally the only reason you would want to do this is to run a backup crawler

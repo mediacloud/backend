@@ -144,10 +144,10 @@ sub _add_stale_feeds
     $dbs->query( 'SET client_min_messages=NOTICE' );
 
     $dbs->query( <<END );
-create temporary table feeds_to_queue as 
-    select feeds_id, url from feeds 
-        where $constraint and 
-            feed_status = 'active' and 
+create temporary table feeds_to_queue as
+    select feeds_id, url from feeds
+        where $constraint and
+            feed_status = 'active' and
             lower( url ) like 'http%'
 END
 
@@ -157,9 +157,9 @@ UPDATE feeds SET last_attempted_download_time = now()
 END
 
     my $downloads = $dbs->query( <<END )->hashes;
-insert into downloads 
+insert into downloads
     ( feeds_id, url, host, type, sequence, state, priority, download_time, extracted )
-    select 
+    select
             feeds_id,
             url,
             lower( substring( url from '.*://([^/]*)' ) ),

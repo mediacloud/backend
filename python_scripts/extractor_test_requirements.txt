@@ -1,2 +1,5 @@
 pandas
 readability-lxml
+goose-extractor
+boilerpipe
+justext

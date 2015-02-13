@@ -18,7 +18,6 @@ use Test::Differences;
 use Test::Deep;
 
 use MediaWords::Crawler::Engine;
-use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::MediaSets;
 use MediaWords::DBI::Stories;
 use MediaWords::Test::DB;
@@ -64,8 +63,6 @@ sub extract_and_compare
       MediaWords::DBI::Downloads::_do_extraction_from_content_ref( \$content, $story->{ title }, $story->{ description } );
 
     #   my $results = MediaWords::DBI::Downloads::_do_extraction_from_content_ref( \$content, $title, '');
-
-    MediaWords::DBI::DownloadTexts::update_extractor_results_with_text_and_html( $results );
 
     is(
         substr( $results->{ extracted_text }, 0, 100 ),

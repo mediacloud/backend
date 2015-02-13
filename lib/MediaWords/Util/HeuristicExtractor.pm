@@ -34,4 +34,9 @@ sub getExtractedLines
     return $scores_and_lines->{ included_line_numbers };
 }
 
+sub extractor_version
+{
+    return 'heuristic-1.0';
+}
+
 1;
