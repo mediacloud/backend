@@ -474,28 +474,6 @@ sub fetch_preprocessed_content_lines($$)
     return $lines;
 }
 
-sub _get_current_extractor_version
-{
-    my $config           = MediaWords::Util::Config::get_config;
-    my $extractor_method = $config->{ mediawords }->{ extractor_method };
-
-    my $extractor_version;
-
-    if ( $extractor_method eq 'PythonReadability' )
-    {
-        $extractor_version = MediaWords::Util::ThriftExtractor::extractor_version();
-    }
-    else
-    {
-        my $old_extractor = MediaWords::Util::ExtractorFactory::createExtractor();
-        $extractor_version = $old_extractor->extractor_version();
-    }
-
-    die unless defined( $extractor_version ) && $extractor_version;
-
-    return $extractor_version;
-}
-
 # run MediaWords::Crawler::Extractor against the download content and return a hash in the form of:
 # { extracted_html => $html,    # a string with the extracted html
 #   extracted_text => $text,    # a string with the extracted html strippped to text
@@ -511,6 +489,8 @@ sub extractor_results_for_download($$)
     my $extracted_html;
     my $ret;
 
+    #say STDERR "DBI::Downloads::extractor_results_for_download extractor_method $extractor_method";
+
     if ( $extractor_method eq 'PythonReadability' )
     {
         my $content_ref = fetch_content( $db, $download );
@@ -518,7 +498,7 @@ sub extractor_results_for_download($$)
         $ret            = {};
         $extracted_html = MediaWords::Util::ThriftExtractor::get_extracted_html( $$content_ref );
     }
-    else
+    elsif ( $extractor_method eq 'HeuristicExtractor' )
     {
         my $story = $db->query( "select * from stories where stories_id = ?", $download->{ stories_id } )->hash;
 
@@ -532,6 +512,10 @@ sub extractor_results_for_download($$)
         my $included_line_numbers = $ret->{ included_line_numbers };
 
         $extracted_html = _get_extracted_html( $download_lines, $included_line_numbers );
+    }
+    else
+    {
+        die "invalid extractor method: $extractor_method";
     }
 
     $extracted_html = _new_lines_around_block_level_tags( $extracted_html );
@@ -763,7 +747,7 @@ EOF
 
     if ( !( $has_remaining_download ) )
     {
-        MediaWords::DBI::Downloads::process_extracted_story( $story, $db, $no_dedup_sentences, $no_vector );
+        MediaWords::DBI::Stories::process_extracted_story( $story, $db, $no_dedup_sentences, $no_vector );
     }
     elsif ( !( $no_vector ) )
     {
