@@ -39,6 +39,21 @@ sub run($$)
     my $db = MediaWords::DB::connect_to_db();
     $db->dbh->{ AutoCommit } = 0;
 
+    if ( exists $args->{ extractor_method } )
+    {
+        #set the extractor method
+        #NOTE: assumes single threaded processes
+        my $config = MediaWords::Util::Config::get_config();
+
+        $config->{ mediawords }->{ extractor_method } = $args->{ extractor_method };
+
+        say STDERR "setting extractor_method to " . $args->{ extractor_method };
+    }
+    else
+    {
+        say STDERR "extractor method not set ";
+    }
+
     my $downloads_id = $args->{ downloads_id };
     unless ( defined $downloads_id )
     {
