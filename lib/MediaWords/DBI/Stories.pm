@@ -788,6 +788,40 @@ sub _get_current_extractor_version
     return $extractor_version;
 }
 
+sub extract_and_process_story
+{
+    my ( $story, $db, $process_num ) = @_;
+
+    #say STDERR "Starting extract_and_process_story for " . $story->{ stories_id };
+
+    my $query = <<"EOF";
+        SELECT *
+        FROM downloads
+        WHERE stories_id = ?
+              AND type = 'content'
+        ORDER BY downloads_id ASC
+EOF
+
+    my $downloads = $db->query( $query, $story->{ stories_id } )->hashes();
+
+    foreach my $download ( @{ $downloads } )
+    {
+        my $download_text = MediaWords::DBI::Downloads::extract_only( $db, $download );
+
+        #say STDERR "Got download_text";
+    }
+
+    my $no_dedup_sentences = 0;
+    my $no_vector          = 0;
+
+    process_extracted_story( $story, $db, 0, 0 );
+
+    #say STDERR "Finished extract_and_process_story for " . $story->{ stories_id };
+
+    # Extraction succeeded
+    $db->commit;
+}
+
 sub process_extracted_story
 {
     my ( $story, $db, $no_dedup_sentences, $no_vector ) = @_;
