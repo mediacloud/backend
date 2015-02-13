@@ -55,33 +55,40 @@ sub run($$)
 
     my $original_extractor_method = $config->{ mediawords }->{ extractor_method };
 
+    my $alter_extractor_method;
+    my $new_extractor_method;
     if ( exists $args->{ extractor_method } )
     {
-        #set the extractor method
-        #NOTE: assumes single threaded processes
-
-        $config->{ mediawords }->{ extractor_method } = $args->{ extractor_method };
-
-        #say STDERR "setting extractor_method to " . $args->{ extractor_method };
+        $alter_extractor_method = 1;
+        $new_extractor_method   = $args->{ extractor_method };
+        die unless defined( $new_extractor_method );
     }
     else
     {
-        #say STDERR "extractor method not set using default extractor method $original_extractor_method";
+        $alter_extractor_method = 0;
     }
 
     eval {
 
         my $process_id = 'gearman:' . $$;
+
+        if ( $alter_extractor_method )
+        {
+            $config->{ mediawords }->{ extractor_method } = $new_extractor_method;
+        }
+
         MediaWords::DBI::Downloads::extract_and_vector( $db, $download, $process_id );
         $config->{ mediawords }->{ extractor_method } = $original_extractor_method;
     };
     if ( $@ )
     {
-        $config->{ mediawords }->{ extractor_method } = $original_extractor_method;
+        if ( $alter_extractor_method )
+        {
+            $config->{ mediawords }->{ extractor_method } = $original_extractor_method;
+        }
 
         # Probably the download was not found
         die "Extractor died: $@\n";
-
     }
 
     return 1;
