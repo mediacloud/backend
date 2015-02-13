@@ -91,7 +91,19 @@ sub run($$)
         }
         elsif ( $extract_by_stories_id )
         {
-            die "not implemented ";
+            my $stories_id = $args->{ stories_id };
+            unless ( defined $stories_id )
+            {
+                die "'stories_id' is undefined.";
+            }
+
+            my $story = $db->find_by_id( 'stories', $stories_id );
+            unless ( $story->{ stories_id } )
+            {
+                die "Download with ID $stories_id was not found.";
+            }
+
+            MediaWords::DBI::Stories::extract_and_process_story( $story, $db, $process_id );
         }
         else
         {
