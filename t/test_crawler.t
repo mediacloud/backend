@@ -26,7 +26,7 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
-use Test::More tests => 193;
+use Test::More tests => 244;
 use Test::Differences;
 use Test::Deep;
 
@@ -370,12 +370,26 @@ sub main
     # Errors might want to print out UTF-8 characters
     binmode( STDERR, ':utf8' );
     binmode( STDOUT, ':utf8' );
+    my $builder = Test::More->builder;
+
+    binmode $builder->output,         ":utf8";
+    binmode $builder->failure_output, ":utf8";
+    binmode $builder->todo_output,    ":utf8";
 
     # Test short inline "content:..." downloads
     _test_crawler( 'Short "inline" downloads', 'inline_content', 4, '2008-02-03', '2020-02-27' );
 
     # Test Global Voices downloads
     _test_crawler( 'Global Voices', 'gv', 16, '2008-02-03', '2020-02-27' );
+
+    # Test multilanguage downloads
+    _test_crawler(
+        'Multilanguage downloads',
+        'multilanguage',
+        6 - 1,    # there are 6 tests, but one of them is an empty page
+        '2008-02-03',
+        '2020-02-27'
+    );
 
     Test::NoWarnings::had_no_warnings();
 }
