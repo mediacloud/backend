@@ -31,7 +31,7 @@ use MediaWords::DB;
 use MediaWords::DBI::Downloads;
 use MediaWords::Util::GearmanJobSchedulerConfiguration;
 
-# extract + vector the download; die() and / or return false on error
+# extract , vector, and process the download or story; die() and / or return false on error
 sub run($$)
 {
     my ( $self, $args ) = @_;
@@ -149,7 +149,7 @@ sub extract_for_crawler
     if ( MediaWords::Util::Config::get_config->{ mediawords }->{ extract_in_process } )
     {
         say STDERR "extracting in process...";
-        MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, $fetcher_number );
+        MediaWords::GearmanFunction::ExtractAndVector->run( { downloads_id => $download->{ downloads_id } } );
     }
     else
     {
