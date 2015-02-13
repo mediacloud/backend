@@ -174,6 +174,8 @@ END
         return;
     }
 
+    my $ret;
+
     my $validate_url = sub { !$dbs->query( "select 1 from downloads where url = ?", $_[ 0 ] ) };
 
     my $next_page_url = MediaWords::Crawler::Pager->get_next_page_url( $validate_url, $download->{ url }, $content );
@@ -182,7 +184,7 @@ END
     {
         print STDERR "next page: $next_page_url\nprev page: $download->{ url }\n";
 
-        $dbs->create(
+        $ret = $dbs->create(
             'downloads',
             {
                 feeds_id   => $download->{ feeds_id },
@@ -200,6 +202,7 @@ END
     }
 
     set_use_pager( $dbs, $medium, $next_page_url );
+    return $ret;
 }
 
 sub _queue_extraction($$)
@@ -211,7 +214,8 @@ sub _queue_extraction($$)
 
     say STDERR "fetcher $fetcher_number starting extraction for download " . $download->{ downloads_id };
 
-    MediaWords::GearmanFunction::ExtractAndVector->extract_for_crawler( $db, $download, $fetcher_number );
+    MediaWords::GearmanFunction::ExtractAndVector->extract_for_crawler( $db, { downloads_id => $download->{ downloads_id } },
+        $fetcher_number );
 }
 
 #DRL - commenting out likely dead code
