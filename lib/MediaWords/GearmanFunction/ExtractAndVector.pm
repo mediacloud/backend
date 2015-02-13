@@ -39,21 +39,6 @@ sub run($$)
     my $db = MediaWords::DB::connect_to_db();
     $db->dbh->{ AutoCommit } = 0;
 
-    if ( exists $args->{ extractor_method } )
-    {
-        #set the extractor method
-        #NOTE: assumes single threaded processes
-        my $config = MediaWords::Util::Config::get_config();
-
-        $config->{ mediawords }->{ extractor_method } = $args->{ extractor_method };
-
-        say STDERR "setting extractor_method to " . $args->{ extractor_method };
-    }
-    else
-    {
-        say STDERR "extractor method not set ";
-    }
-
     my $downloads_id = $args->{ downloads_id };
     unless ( defined $downloads_id )
     {
@@ -66,14 +51,33 @@ sub run($$)
         die "Download with ID $downloads_id was not found.";
     }
 
+    my $config = MediaWords::Util::Config::get_config();
+
+    my $original_extractor_method = $config->{ mediawords }->{ extractor_method };
+
+    if ( exists $args->{ extractor_method } )
+    {
+        #set the extractor method
+        #NOTE: assumes single threaded processes
+
+        $config->{ mediawords }->{ extractor_method } = $args->{ extractor_method };
+
+        #say STDERR "setting extractor_method to " . $args->{ extractor_method };
+    }
+    else
+    {
+        #say STDERR "extractor method not set using default extractor method $original_extractor_method";
+    }
+
     eval {
 
         my $process_id = 'gearman:' . $$;
         MediaWords::DBI::Downloads::extract_and_vector( $db, $download, $process_id );
-
+        $config->{ mediawords }->{ extractor_method } = $original_extractor_method;
     };
     if ( $@ )
     {
+        $config->{ mediawords }->{ extractor_method } = $original_extractor_method;
 
         # Probably the download was not found
         die "Extractor died: $@\n";
