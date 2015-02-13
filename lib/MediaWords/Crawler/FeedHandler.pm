@@ -401,7 +401,8 @@ sub handle_feed_content
 
         if ( $feed_type eq 'web_page' )
         {
-            MediaWords::GearmanFunction::ExtractAndVector->extract_for_crawler( $dbs, $download, 0 );
+            MediaWords::GearmanFunction::ExtractAndVector->extract_for_crawler( $dbs,
+                { downloads_id => $download->{ downloads_id } }, 0 );
         }
     };
 
