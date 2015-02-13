@@ -36,20 +36,13 @@ sub run($$)
 {
     my ( $self, $args ) = @_;
 
-    my $db = MediaWords::DB::connect_to_db();
-    $db->dbh->{ AutoCommit } = 0;
+    die unless ( exists $args->{ downloads_id } || exists $args->{ stories_id } );
 
-    my $downloads_id = $args->{ downloads_id };
-    unless ( defined $downloads_id )
-    {
-        die "'downloads_id' is undefined.";
-    }
+    die "can't use both downloads_id and stories_id " if ( exists $args->{ downloads_id }
+        and exists $args->{ stories_id } );
 
-    my $download = $db->find_by_id( 'downloads', $downloads_id );
-    unless ( $download->{ downloads_id } )
-    {
-        die "Download with ID $downloads_id was not found.";
-    }
+    my $extract_by_downloads_id = exists $args->{ downloads_id };
+    my $extract_by_stories_id   = exists $args->{ stories_id };
 
     my $config = MediaWords::Util::Config::get_config();
 
@@ -68,6 +61,9 @@ sub run($$)
         $alter_extractor_method = 0;
     }
 
+    my $db = MediaWords::DB::connect_to_db();
+    $db->dbh->{ AutoCommit } = 0;
+
     eval {
 
         my $process_id = 'gearman:' . $$;
@@ -77,9 +73,34 @@ sub run($$)
             $config->{ mediawords }->{ extractor_method } = $new_extractor_method;
         }
 
-        MediaWords::DBI::Downloads::extract_and_vector( $db, $download, $process_id );
+        if ( $extract_by_downloads_id )
+        {
+            my $downloads_id = $args->{ downloads_id };
+            unless ( defined $downloads_id )
+            {
+                die "'downloads_id' is undefined.";
+            }
+
+            my $download = $db->find_by_id( 'downloads', $downloads_id );
+            unless ( $download->{ downloads_id } )
+            {
+                die "Download with ID $downloads_id was not found.";
+            }
+
+            MediaWords::DBI::Downloads::extract_and_vector( $db, $download, $process_id );
+        }
+        elsif ( $extract_by_stories_id )
+        {
+            die "not implemented ";
+        }
+        else
+        {
+            die "shouldn't be reached";
+        }
+
         $config->{ mediawords }->{ extractor_method } = $original_extractor_method;
     };
+
     if ( $@ )
     {
         if ( $alter_extractor_method )
