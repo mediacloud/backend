@@ -766,6 +766,28 @@ sub reextract_download
     }
 }
 
+sub _get_current_extractor_version
+{
+    my $config           = MediaWords::Util::Config::get_config;
+    my $extractor_method = $config->{ mediawords }->{ extractor_method };
+
+    my $extractor_version;
+
+    if ( $extractor_method eq 'PythonReadability' )
+    {
+        $extractor_version = MediaWords::Util::ThriftExtractor::extractor_version();
+    }
+    else
+    {
+        my $old_extractor = MediaWords::Util::ExtractorFactory::createExtractor();
+        $extractor_version = $old_extractor->extractor_version();
+    }
+
+    die unless defined( $extractor_version ) && $extractor_version;
+
+    return $extractor_version;
+}
+
 sub process_extracted_story
 {
     my ( $story, $db, $no_dedup_sentences, $no_vector ) = @_;
