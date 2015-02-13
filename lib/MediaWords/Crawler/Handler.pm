@@ -152,7 +152,7 @@ sub set_use_pager
 }
 
 # call get_page_urls from the pager module for the download's feed
-sub call_pager
+sub _call_pager
 {
     my ( $self, $dbs, $download ) = @_;
     my $content = \$_[ 3 ];
@@ -226,7 +226,7 @@ sub _process_content
 
     say STDERR "fetcher " . $self->engine->fetcher_number . " starting _process_content for  " . $download->{ downloads_id };
 
-    my $next_page = $self->call_pager( $dbs, $download, $response->decoded_content );
+    my $next_page = $self->_call_pager( $dbs, $download, $response->decoded_content );
 
     if ( !$next_page )
     {
