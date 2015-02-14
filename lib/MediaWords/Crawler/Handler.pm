@@ -152,7 +152,7 @@ sub set_use_pager
 }
 
 # call get_page_urls from the pager module for the download's feed
-sub call_pager
+sub _call_pager
 {
     my ( $self, $dbs, $download ) = @_;
     my $content = \$_[ 3 ];
@@ -174,6 +174,8 @@ END
         return;
     }
 
+    my $ret;
+
     my $validate_url = sub { !$dbs->query( "select 1 from downloads where url = ?", $_[ 0 ] ) };
 
     my $next_page_url = MediaWords::Crawler::Pager->get_next_page_url( $validate_url, $download->{ url }, $content );
@@ -182,7 +184,7 @@ END
     {
         print STDERR "next page: $next_page_url\nprev page: $download->{ url }\n";
 
-        $dbs->create(
+        $ret = $dbs->create(
             'downloads',
             {
                 feeds_id   => $download->{ feeds_id },
@@ -200,9 +202,10 @@ END
     }
 
     set_use_pager( $dbs, $medium, $next_page_url );
+    return $ret;
 }
 
-sub _queue_extraction($$)
+sub _queue_story_extraction($$)
 {
     my ( $self, $download ) = @_;
 
@@ -211,42 +214,8 @@ sub _queue_extraction($$)
 
     say STDERR "fetcher $fetcher_number starting extraction for download " . $download->{ downloads_id };
 
-    MediaWords::GearmanFunction::ExtractAndVector->extract_for_crawler( $db, $download, $fetcher_number );
-}
-
-sub _queue_author_extraction($$;$)
-{
-    my ( $self, $download, $response ) = @_;
-
-    say STDERR "fetcher " .
-      $self->engine->fetcher_number . " starting _queue_author_extraction for download " . $download->{ downloads_id };
-
-    if ( $download->{ sequence } > 1 )
-    {
-
-        #Only extractor author from the first page
-        return;
-    }
-
-    my $dbs = $self->engine->dbs;
-
-    my $download_media_source = MediaWords::DBI::Downloads::get_medium( $dbs, $download );
-
-    if ( $download_media_source->{ extract_author } )
-    {
-
-        die Dumper( $download ) unless $download->{ state } eq 'success';
-
-        $dbs->create(
-            'authors_stories_queue',
-            {
-                stories_id => $download->{ stories_id },
-                state      => 'queued',
-            }
-        );
-    }
-
-    say STDERR "queued story extraction";
+    MediaWords::GearmanFunction::ExtractAndVector->extract_for_crawler( $db, { stories_id => $download->{ stories_id } },
+        $fetcher_number );
 }
 
 # call the content module to parse the text from the html and add pending downloads
@@ -257,11 +226,16 @@ sub _process_content
 
     say STDERR "fetcher " . $self->engine->fetcher_number . " starting _process_content for  " . $download->{ downloads_id };
 
-    $self->call_pager( $dbs, $download, $response->decoded_content );
+    my $next_page = $self->_call_pager( $dbs, $download, $response->decoded_content );
 
-    $self->_queue_extraction( $download );
-
-    $self->_queue_author_extraction( $download );
+    if ( !$next_page )
+    {
+        $self->_queue_story_extraction( $download );
+    }
+    else
+    {
+        say STDERR "fetcher skipping extraction download " . $download->{ downloads_id } . " until all pages are available";
+    }
 
     say STDERR "fetcher " . $self->engine->fetcher_number . " finished _process_content for  " . $download->{ downloads_id };
 }

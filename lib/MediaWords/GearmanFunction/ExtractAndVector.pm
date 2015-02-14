@@ -31,38 +31,97 @@ use MediaWords::DB;
 use MediaWords::DBI::Downloads;
 use MediaWords::Util::GearmanJobSchedulerConfiguration;
 
-# extract + vector the download; die() and / or return false on error
+# extract , vector, and process the download or story; die() and / or return false on error
 sub run($$)
 {
     my ( $self, $args ) = @_;
 
+    die unless ( exists $args->{ downloads_id } || exists $args->{ stories_id } );
+
+    die "can't use both downloads_id and stories_id " if ( exists $args->{ downloads_id }
+        and exists $args->{ stories_id } );
+
+    my $extract_by_downloads_id = exists $args->{ downloads_id };
+    my $extract_by_stories_id   = exists $args->{ stories_id };
+
+    my $config = MediaWords::Util::Config::get_config();
+
+    my $original_extractor_method = $config->{ mediawords }->{ extractor_method };
+
+    my $alter_extractor_method;
+    my $new_extractor_method;
+    if ( exists $args->{ extractor_method } )
+    {
+        $alter_extractor_method = 1;
+        $new_extractor_method   = $args->{ extractor_method };
+        die unless defined( $new_extractor_method );
+    }
+    else
+    {
+        $alter_extractor_method = 0;
+    }
+
     my $db = MediaWords::DB::connect_to_db();
     $db->dbh->{ AutoCommit } = 0;
-
-    my $downloads_id = $args->{ downloads_id };
-    unless ( defined $downloads_id )
-    {
-        die "'downloads_id' is undefined.";
-    }
-
-    my $download = $db->find_by_id( 'downloads', $downloads_id );
-    unless ( $download->{ downloads_id } )
-    {
-        die "Download with ID $downloads_id was not found.";
-    }
 
     eval {
 
         my $process_id = 'gearman:' . $$;
-        MediaWords::DBI::Downloads::extract_and_vector( $db, $download, $process_id );
 
+        if ( $alter_extractor_method )
+        {
+            $config->{ mediawords }->{ extractor_method } = $new_extractor_method;
+        }
+
+        if ( $extract_by_downloads_id )
+        {
+            my $downloads_id = $args->{ downloads_id };
+            unless ( defined $downloads_id )
+            {
+                die "'downloads_id' is undefined.";
+            }
+
+            my $download = $db->find_by_id( 'downloads', $downloads_id );
+            unless ( $download->{ downloads_id } )
+            {
+                die "Download with ID $downloads_id was not found.";
+            }
+
+            MediaWords::DBI::Downloads::extract_and_vector( $db, $download, $process_id );
+        }
+        elsif ( $extract_by_stories_id )
+        {
+            my $stories_id = $args->{ stories_id };
+            unless ( defined $stories_id )
+            {
+                die "'stories_id' is undefined.";
+            }
+
+            my $story = $db->find_by_id( 'stories', $stories_id );
+            unless ( $story->{ stories_id } )
+            {
+                die "Download with ID $stories_id was not found.";
+            }
+
+            MediaWords::DBI::Stories::extract_and_process_story( $story, $db, $process_id );
+        }
+        else
+        {
+            die "shouldn't be reached";
+        }
+
+        $config->{ mediawords }->{ extractor_method } = $original_extractor_method;
     };
+
     if ( $@ )
     {
+        if ( $alter_extractor_method )
+        {
+            $config->{ mediawords }->{ extractor_method } = $original_extractor_method;
+        }
 
         # Probably the download was not found
         die "Extractor died: $@\n";
-
     }
 
     return 1;
@@ -85,21 +144,18 @@ sub configuration()
 # keep retrying on enqueue error.
 sub extract_for_crawler
 {
-    my ( $self, $db, $download, $fetcher_number ) = @_;
+    my ( $self, $db, $args, $fetcher_number ) = @_;
 
     if ( MediaWords::Util::Config::get_config->{ mediawords }->{ extract_in_process } )
     {
         say STDERR "extracting in process...";
-        MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, $fetcher_number );
+        MediaWords::GearmanFunction::ExtractAndVector->run( $args );
     }
     else
     {
         while ( 1 )
         {
-            eval {
-                MediaWords::GearmanFunction::ExtractAndVector->enqueue_on_gearman(
-                    { downloads_id => $download->{ downloads_id } } );
-            };
+            eval { MediaWords::GearmanFunction::ExtractAndVector->enqueue_on_gearman( $args ); };
 
             if ( $@ )
             {
