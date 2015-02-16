@@ -109,6 +109,11 @@ sub get_and_store_share_comment_counts
     eval { ( $share_count, $comment_count ) = get_url_share_comment_counts( $db, $story->{ url } ); };
     my $error = $@ ? $@ : undef;
 
+    if ( $error )
+    {
+        say STDERR "Error while fetching Facebook share / comment counts for story $story->{ stories_id }: $error";
+    }
+
     $share_count   ||= 0;
     $comment_count ||= 0;
 
