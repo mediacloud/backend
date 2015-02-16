@@ -47,6 +47,7 @@ sub get_url_share_comment_counts
 
     my $ua = MediaWords::Util::Web::UserAgentDetermined();
     $ua->timing( '1,3,15,60,300,600' );
+    $ua->timeout( $config->{ facebook }->{ timeout } );
 
     my $response = $ua->get( $api_uri->as_string );
 

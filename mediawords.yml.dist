@@ -250,6 +250,9 @@ database:
     ## App Secret
     #app_secret: ""
 
+    ## Request timeout
+    #timeout: 60
+
 #mail:
     # Email address to receive bug report emails; leave empty for no bug reports via email
     #bug_email : ""
