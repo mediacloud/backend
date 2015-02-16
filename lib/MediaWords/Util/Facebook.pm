@@ -72,7 +72,7 @@ sub get_url_share_comment_counts
 
     unless ( defined $data->{ og_object } and defined $data->{ share } and defined $data->{ id } )
     {
-        die "Returned data JSON is invalid for URL $url: " . Dumper( $data );
+        fatal_error( "Returned data JSON is invalid for URL $url: " . Dumper( $data ) );
     }
 
     # Verify that we got stats for the right URL
