@@ -47,6 +47,9 @@ sub test_bogus_urls($)
         # Gawker's feed URLs
 'http://feeds.gawker.com/~r/gizmodo/full/~3/qIhlxlB7gmw/how-to-yell-at-the-fcc-about-how-much-you-hate-its-net-1576943170',
 'http://feeds.gawker.com/~r/gawker/full/~3/FjKCT99u_M8/wall-street-is-doing-devious-shit-while-america-sleeps-1679519880',
+
+        # URL that doesn't return "share" or "og_object" keys
+'http://feeds.chicagotribune.com/~r/chicagotribune/views/~3/weNQRdjizS8/sns-rt-us-usa-court-netneutrality-20140114,0,5487975.story',
     );
 
     foreach my $bogus_url ( @bogus_urls )
@@ -132,7 +135,7 @@ sub main()
         }
     }
 
-    plan tests => 24;
+    plan tests => 25;
 
     my $builder = Test::More->builder;
     binmode $builder->output,         ":utf8";
