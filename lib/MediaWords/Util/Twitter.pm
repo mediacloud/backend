@@ -195,6 +195,7 @@ sub get_and_store_tweet_count
         WITH try_update AS (
             UPDATE story_statistics 
             SET twitter_url_tweet_count = \$2,
+                twitter_api_collect_date = NOW(),
                 twitter_api_error = \$3
             WHERE stories_id = \$1
             RETURNING *
@@ -202,9 +203,10 @@ sub get_and_store_tweet_count
         INSERT INTO story_statistics (
             stories_id,
             twitter_url_tweet_count,
+            twitter_api_collect_date,
             twitter_api_error
         )
-            SELECT \$1, \$2, \$3
+            SELECT \$1, \$2, NOW(), \$3
             WHERE NOT EXISTS ( SELECT * FROM try_update )
 END
         $stories_id, $count, $error

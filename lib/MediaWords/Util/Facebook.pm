@@ -224,6 +224,7 @@ sub get_and_store_share_comment_counts
             UPDATE story_statistics 
             SET facebook_share_count = \$2,
                 facebook_comment_count = \$3,
+                facebook_api_collect_date = NOW(),
                 facebook_api_error = \$4
             WHERE stories_id = \$1
             RETURNING *
@@ -232,9 +233,10 @@ sub get_and_store_share_comment_counts
             stories_id,
             facebook_share_count,
             facebook_comment_count,
+            facebook_api_collect_date,
             facebook_api_error
         )
-            SELECT \$1, \$2, \$3, \$4
+            SELECT \$1, \$2, \$3, NOW(), \$4
             WHERE NOT EXISTS ( SELECT * FROM try_update )
 END
         $story->{ stories_id }, $share_count, $comment_count, $error
