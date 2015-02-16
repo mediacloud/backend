@@ -111,65 +111,64 @@ sub get_url_share_comment_counts
 
         eval { $data = MediaWords::Util::JSON::decode_json( $decoded_content ); };
 
-        unless ( $response->is_success )
+        if ( $response->is_success )
         {
-            if ( $decoded_content )
-            {
-                if ( $data )
-                {
-                    if ( defined $data->{ error } )
-                    {
-                        my $error_message = $data->{ error }->{ message };
-                        my $error_type    = $data->{ error }->{ type };
-                        my $error_code    = $data->{ error }->{ code } + 0;
-
-                        if ( any { $_ == $error_code } @FACEBOOK_GRAPH_API_TEMPORARY_ERROR_CODES )
-                        {
-
-                            # Error is temporary - sleep() and then retry
-                            say STDERR "Facebook API returned a temporary error " .
-                              "while fetching stats for URL $url: ($error_code " . "$error_type) $error_message";
-                            say STDERR "Will retry after $FACEBOOK_GRAPH_API_RETRY_WAIT seconds";
-                            sleep( $FACEBOOK_GRAPH_API_RETRY_WAIT );
-                            next;
-
-                        }
-                        else
-                        {
-
-                            # Error response is JSON -- most of Facebook's errors mean
-                            # that we can't continue further
-                            fatal_error( "Facebook API returned an error while " .
-                                  "fetching stats for URL $url: ($error_code " . "$error_type) $error_message" );
-                        }
-                    }
-                }
-
-                # Error response is not in JSON
-                fatal_error( "Error fetching stats for URL $url: $decoded_content" );
-            }
-
-            # Error response is empty
-            fatal_error( "Unknown error fetching stats for URL $url" );
+            # Response was successful - break from the retry loop
+            last;
 
         }
         else
         {
-
-            # Response was successful
-
             unless ( $decoded_content )
             {
-                fatal_error( "Response was successful, but we didn't get any data" );
-            }
-            unless ( $data )
-            {
-                fatal_error( "Response was successful, but we weren't able to decode JSON" );
+                # Error response is empty
+                fatal_error( "Unknown error fetching stats for URL $url" );
             }
 
-            # Break from the retry loop
-            last;
+            unless ( $data )
+            {
+                # Error response is not in JSON
+                fatal_error( "Error fetching stats for URL $url: $decoded_content" );
+            }
+
+            unless ( defined $data->{ error } )
+            {
+                # 'error' key is not present in returned JSON
+                fatal_error( "No 'error' key in returned error for URL $url: " . Dumper( $data ) );
+            }
+
+            my $error_message = $data->{ error }->{ message };
+            my $error_type    = $data->{ error }->{ type };
+            my $error_code    = $data->{ error }->{ code } + 0;
+
+            if ( any { $_ == $error_code } @FACEBOOK_GRAPH_API_TEMPORARY_ERROR_CODES )
+            {
+                # Error is temporary - sleep() and then retry
+                say STDERR "Facebook API returned a temporary error " .
+                  "while fetching stats for URL $url: ($error_code $error_type) $error_message";
+                say STDERR "Will retry after $FACEBOOK_GRAPH_API_RETRY_WAIT seconds";
+                sleep( $FACEBOOK_GRAPH_API_RETRY_WAIT );
+
+                # Continue the retry loop
+                next;
+            }
+            else
+            {
+                # Error response is JSON -- most of Facebook's errors mean
+                # that we can't continue further
+                fatal_error( "Facebook API returned an error while " .
+                      "fetching stats for URL $url: ($error_code $error_type) $error_message" );
+            }
         }
+    }
+
+    unless ( $decoded_content )
+    {
+        fatal_error( "Response was successful, but we didn't get any data (probably ran out of retries)" );
+    }
+    unless ( $data )
+    {
+        fatal_error( "Response was successful, but we weren't able to decode JSON" );
     }
 
     unless ( defined $data->{ og_object } and defined $data->{ share } and defined $data->{ id } )
