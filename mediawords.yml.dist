@@ -238,6 +238,21 @@ database:
     ### API request timeout (in seconds)
     #timeout: 60
 
+### Facebook API
+#facebook:
+
+    ### Enable Facebook processing
+    #enabled: "yes"
+
+    ## App ID
+    #app_id: ""
+
+    ## App Secret
+    #app_secret: ""
+
+    ## Request timeout
+    #timeout: 60
+
 #mail:
     # Email address to receive bug report emails; leave empty for no bug reports via email
     #bug_email : ""
