@@ -165,6 +165,14 @@ programs = gearmand
     default_nice=10
 %]
 
+[% INCLUDE program_config
+    program='facebook_fetch_story_stats'
+    gearman_worker_module='Facebook/FetchStoryStats.pm'
+    default_autorestart='false'
+    default_autostart='true'
+    default_nice=10
+%]
+
 [group:solr]
 programs = solr
 
