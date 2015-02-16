@@ -16,9 +16,48 @@ use MediaWords::Util::Web;
 use Readonly;
 use URI::QueryParam;
 use Data::Dumper;
+use List::MoreUtils qw/any/;
 
 # Facebook Graph API version to use
 Readonly my $FACEBOOK_GRAPH_API_VERSION => 'v2.2';
+
+# Number of retries to do on temporary Facebook Graph API errors (such as rate
+# limiting issues or API downtime)
+Readonly my $FACEBOOK_GRAPH_API_RETRY_COUNT => 6;
+
+# Time to wait (in seconds) between retries on temporary Facebook Graph API
+# errors
+Readonly my $FACEBOOK_GRAPH_API_RETRY_WAIT => 10 * 60;
+
+# Facebook Graph API's error codes of temporary errors on which we should retry
+# after waiting for a while
+#
+# (https://developers.facebook.com/docs/graph-api/using-graph-api/v2.2#errors)
+Readonly my @FACEBOOK_GRAPH_API_TEMPORARY_ERROR_CODES => (
+
+    # API Unknown -- Possibly a temporary issue due to downtime - retry the
+    # operation after waiting, if it occurs again, check you are requesting an
+    # existing API.
+    1,
+
+    # API Service -- Temporary issue due to downtime - retry the operation
+    # after waiting.
+    2,
+
+    # API Too Many Calls -- Temporary issue due to throttling - retry the
+    # operation after waiting and examine your API request volume.
+    4,
+
+    # API User Too Many Calls -- emporary issue due to throttling - retry the
+    # operation after waiting and examine your API request volume.
+    17,
+
+    # Application limit reached -- Temporary issue due to downtime or
+    # throttling - retry the operation after waiting and examine your API
+    # request volume.
+    341
+
+);
 
 # use https://graph.facebook.com/?id= to get number of shares for the given url
 # https://graph.facebook.com/?id=http://www.google.com/
@@ -46,46 +85,91 @@ sub get_url_share_comment_counts
     my $access_token = $config->{ facebook }->{ app_id } . '|' . $config->{ facebook }->{ app_secret };
     $api_uri->query_param_append( 'access_token', $access_token );
 
-    my $ua = MediaWords::Util::Web::UserAgentDetermined();
-    $ua->timing( '1,3,15,60,300,600' );
-    $ua->timeout( $config->{ facebook }->{ timeout } );
-
-    my $response;
-    eval { $response = $ua->get( $api_uri->as_string ); };
-    if ( $@ )
+    my ( $decoded_content, $data );
+    for ( my $retry = 1 ; $retry <= $FACEBOOK_GRAPH_API_RETRY_COUNT ; ++$retry )
     {
-        fatal_error( 'LWP::UserAgent::Determined died while fetching response: ' . $@ );
-    }
-
-    my $decoded_content = $response->decoded_content;
-    my $data;
-    eval { $data = MediaWords::Util::JSON::decode_json( $decoded_content ); };
-
-    unless ( $response->is_success )
-    {
-        if ( $decoded_content )
+        if ( $retry > 1 )
         {
-            if ( $data )
-            {
-                if ( defined $data->{ error } )
-                {
-                    my $error_message = $data->{ error }->{ message };
-                    my $error_type    = $data->{ error }->{ type };
-                    my $error_code    = $data->{ error }->{ code } + 0;
-
-                    # Error response is JSON -- most of Facebook's errors mean
-                    # that we can't continue further
-                    fatal_error( "Facebook API returned an error while " .
-                          "fetching stats for URL $url: ($error_code " . "$error_type) $error_message" );
-                }
-            }
-
-            # Error response is not in JSON
-            fatal_error( "Error fetching stats for URL $url: $decoded_content" );
+            say STDERR 'Retrying #' . $retry . '...';
         }
 
-        # Error response is empty
-        fatal_error( "Unknown error fetching stats for URL $url" );
+        my $ua = MediaWords::Util::Web::UserAgentDetermined();
+        $ua->timeout( $config->{ facebook }->{ timeout } );
+
+        # UserAgentDetermined will retry on server-side errors; client-side errors
+        # will be handled by this module
+        $ua->timing( '1,3,15,60,300,600' );
+
+        my $response;
+        eval { $response = $ua->get( $api_uri->as_string ); };
+        if ( $@ )
+        {
+            fatal_error( 'LWP::UserAgent::Determined died while fetching response: ' . $@ );
+        }
+
+        $decoded_content = $response->decoded_content;
+
+        eval { $data = MediaWords::Util::JSON::decode_json( $decoded_content ); };
+
+        unless ( $response->is_success )
+        {
+            if ( $decoded_content )
+            {
+                if ( $data )
+                {
+                    if ( defined $data->{ error } )
+                    {
+                        my $error_message = $data->{ error }->{ message };
+                        my $error_type    = $data->{ error }->{ type };
+                        my $error_code    = $data->{ error }->{ code } + 0;
+
+                        if ( any { $_ == $error_code } @FACEBOOK_GRAPH_API_TEMPORARY_ERROR_CODES )
+                        {
+
+                            # Error is temporary - sleep() and then retry
+                            say STDERR "Facebook API returned a temporary error " .
+                              "while fetching stats for URL $url: ($error_code " . "$error_type) $error_message";
+                            say STDERR "Will retry after $FACEBOOK_GRAPH_API_RETRY_WAIT seconds";
+                            sleep( $FACEBOOK_GRAPH_API_RETRY_WAIT );
+                            next;
+
+                        }
+                        else
+                        {
+
+                            # Error response is JSON -- most of Facebook's errors mean
+                            # that we can't continue further
+                            fatal_error( "Facebook API returned an error while " .
+                                  "fetching stats for URL $url: ($error_code " . "$error_type) $error_message" );
+                        }
+                    }
+                }
+
+                # Error response is not in JSON
+                fatal_error( "Error fetching stats for URL $url: $decoded_content" );
+            }
+
+            # Error response is empty
+            fatal_error( "Unknown error fetching stats for URL $url" );
+
+        }
+        else
+        {
+
+            # Response was successful
+
+            unless ( $decoded_content )
+            {
+                fatal_error( "Response was successful, but we didn't get any data" );
+            }
+            unless ( $data )
+            {
+                fatal_error( "Response was successful, but we weren't able to decode JSON" );
+            }
+
+            # Break from the retry loop
+            last;
+        }
     }
 
     unless ( defined $data->{ og_object } and defined $data->{ share } and defined $data->{ id } )
