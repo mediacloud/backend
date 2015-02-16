@@ -15,6 +15,7 @@ use MediaWords::Util::Web;
 
 use Readonly;
 use URI::QueryParam;
+use Data::Dumper;
 
 # Facebook Graph API version to use
 Readonly my $FACEBOOK_GRAPH_API_VERSION => 'v2.2';
