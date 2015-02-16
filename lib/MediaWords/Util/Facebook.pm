@@ -171,7 +171,7 @@ sub get_url_share_comment_counts
         fatal_error( "Response was successful, but we weren't able to decode JSON" );
     }
 
-    unless ( defined $data->{ og_object } and defined $data->{ share } and defined $data->{ id } )
+    unless ( defined $data->{ share } and defined $data->{ id } )
     {
         fatal_error( "Returned data JSON is invalid for URL $url: " . Dumper( $data ) );
     }
