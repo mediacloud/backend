@@ -171,7 +171,7 @@ sub get_url_share_comment_counts
         fatal_error( "Response was successful, but we weren't able to decode JSON" );
     }
 
-    unless ( defined $data->{ share } and defined $data->{ id } )
+    unless ( defined $data->{ id } )
     {
         fatal_error( "Returned data JSON is invalid for URL $url: " . Dumper( $data ) );
     }
@@ -184,8 +184,8 @@ sub get_url_share_comment_counts
         die "Returned URL ($returned_url) is not the same as requested URL ($url)";
     }
 
-    my $share_count   = $data->{ share }->{ share_count }   || 0;
-    my $comment_count = $data->{ share }->{ comment_count } || 0;
+    my $share_count   = $data->{ share }->{ share_count }   // 0;
+    my $comment_count = $data->{ share }->{ comment_count } // 0;
 
     say STDERR "* Share count: $share_count, comment count: $comment_count";
 
