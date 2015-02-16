@@ -50,24 +50,42 @@ sub get_url_share_comment_counts
     $ua->timing( '1,3,15,60,300,600' );
     $ua->timeout( $config->{ facebook }->{ timeout } );
 
-    my $response = $ua->get( $api_uri->as_string );
+    my $response;
+    eval { $response = $ua->get( $api_uri->as_string ); };
+    if ( $@ )
+    {
+        fatal_error( 'LWP::UserAgent::Determined died while fetching response: ' . $@ );
+    }
+
+    my $decoded_content = $response->decoded_content;
+    my $data;
+    eval { $data = MediaWords::Util::JSON::decode_json( $decoded_content ); };
 
     unless ( $response->is_success )
     {
-        die "Error fetching stats for URL: $url";
-    }
-    my $decoded_content = $response->decoded_content;
+        if ( $decoded_content )
+        {
+            if ( $data )
+            {
+                if ( defined $data->{ error } )
+                {
+                    my $error_message = $data->{ error }->{ message };
+                    my $error_type    = $data->{ error }->{ type };
+                    my $error_code    = $data->{ error }->{ code } + 0;
 
-    my $data = MediaWords::Util::JSON::decode_json( $decoded_content );
+                    # Error response is JSON -- most of Facebook's errors mean
+                    # that we can't continue further
+                    fatal_error( "Facebook API returned an error while " .
+                          "fetching stats for URL $url: ($error_code " . "$error_type) $error_message" );
+                }
+            }
 
-    if ( defined $data->{ error } )
-    {
-        my $error_message = $data->{ error }->{ message };
-        my $error_type    = $data->{ error }->{ type };
-        my $error_code    = $data->{ error }->{ code };
+            # Error response is not in JSON
+            fatal_error( "Error fetching stats for URL $url: $decoded_content" );
+        }
 
-        die "Facebook API returned an error while fetching stats for " .
-          "URL $url: ($error_code $error_type) $error_message";
+        # Error response is empty
+        fatal_error( "Unknown error fetching stats for URL $url" );
     }
 
     unless ( defined $data->{ og_object } and defined $data->{ share } and defined $data->{ id } )
