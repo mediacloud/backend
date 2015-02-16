@@ -32,12 +32,12 @@ The Media Cloud returns an appropriate HTTP status code for any error, along wit
 
 ## Request Limits
 
-Each user is limited to 1,000 API calls and 20,000 stories returned in any 7 day period.  Requests submitted beyond this 
+Each user is limited to 1,000 API calls and 20,000 stories returned in any 7 day period.  Requests submitted beyond this
 limit will result in a status 403 error.  Users who need access to more requests should email info@mediacloud.org.
 
 ## Media
 
-The Media api calls provide information about media sources.  A media source is a publisher of content, such as the New York 
+The Media api calls provide information about media sources.  A media source is a publisher of content, such as the New York
 Times or Instapundit.  Every story belongs to a single media source.  Each media source can have zero or more feeds.
 
 ### api/v2/media/single/
@@ -46,7 +46,7 @@ Times or Instapundit.  Every story belongs to a single media source.  Each media
 | -------------------------------- | -------------------------------------------------------------
 | `api/v2/media/single/<media_id>` | Return the media source in which `media_id` equals `<media_id>`
 
-#### Query Parameters 
+#### Query Parameters
 
 None.
 
@@ -93,7 +93,7 @@ Response:
 | ------------------- | -----------------------------
 | `api/v2/media/list` | Return multiple media sources
 
-#### Query Parameters 
+#### Query Parameters
 
 | Parameter                         | Default | Notes
 | --------------------------------- | ------- | -----------------------------------------------------------------
@@ -106,14 +106,14 @@ Response:
 | `q`                               | null    | Return media with at least one sentence that matches the solr query
 
 
-If the name parameter is specified, the call returns only media sources that match a case insensitive search 
+If the name parameter is specified, the call returns only media sources that match a case insensitive search
 specified value.  If the specified value is less than 3 characters long, the call returns an empty list.
 
 If the controversy_dump_time_slices_id parameter is specified, return media within the given time slice,
 sorted by descending inlink_count within the controversy time slice.  If controversy_mode is set to
 'live', return media from the live controversy stories rather than from the frozen controversy dump.
 
-If the 'q' parameter is specified, return only media that include at least on sentence that matches the given 
+If the 'q' parameter is specified, return only media that include at least on sentence that matches the given
 solr query.  For a description of the solr query format, see the stories\_public/list call.
 
 #### Example
@@ -124,7 +124,7 @@ Output format is the same as for api/v2/media/single above.
 
 ## Media Sets
 
-A media set is a collection of media sources, such as U.S. Top 25 Mainstream Media or Global Voices Cited Blogs.  Each 
+A media set is a collection of media sources, such as U.S. Top 25 Mainstream Media or Global Voices Cited Blogs.  Each
 media source can belong to zero or more media sets.  Each media set belongs to zero or more dashboards.
 
 ### api/v2/media_set/single
@@ -269,7 +269,7 @@ https://api.mediacloud.org/api/v2/media_sets/single/1
 | ------------------------ | --------------------------
 | `api/v2/media_sets/list` | Return multiple media sets
 
-#### Query Parameters 
+#### Query Parameters
 
 | Parameter            | Default | Notes
 | -------------------- | ------- | -----------------------------------------------------------------
@@ -285,7 +285,7 @@ Output is the same as the api/v2/media_set/single example above.
 ## Feeds
 
 A feed is either a syndicated feed, such as an RSS feed, or a single web page.  Each feed is downloaded between once
-an hour and once a day depending on traffic.  Each time a syndicated feed is downloaded, each new URL found in the feed is 
+an hour and once a day depending on traffic.  Each time a syndicated feed is downloaded, each new URL found in the feed is
 added to the feed's media source as a story.  Each time a web page feed is downloaded, that web page itself is added as
 a story for the feed's media source.
 
@@ -297,7 +297,7 @@ Each feed belongs to a single media source.  Each story can belong to one or mor
 | -------------------------------- | --------------------------------------------------------
 | `api/v2/feeds/single/<feeds_id>` | Return the feed for which `feeds_id` equals `<feeds_id>`
 
-#### Query Parameters 
+#### Query Parameters
 
 None.
 
@@ -348,7 +348,7 @@ media sets related to some topic, usually a country.  Each media set can belong 
 | ----------------------------------------- | ----------------------------------------------------------------------
 | `api/v2/dashboard/single/<dashboards_id>` | Return the dashboard for which `dashboards_id` equals `<dashboards_id>`
 
-#### Query Parameters 
+#### Query Parameters
 
 | Parameter     | Default | Notes
 | ------------- | ------- | -------------------------------------------------------------------------------------
@@ -393,7 +393,7 @@ https://api.mediacloud.org/api/v2/dashboards/single/2
 | ------------------------ | --------------------------
 | `api/v2/dashboards/list` | Return multiple dashboards
 
-#### Query Parameters 
+#### Query Parameters
 
 | Parameter            | Default | Notes
 | -------------------- | ------- | -------------------------------------------------------------------------------------
@@ -409,9 +409,9 @@ Output is the same as the api/v2/dashboard/single example above.
 
 ## Stories
 
-A story represents a single published piece of content.  Each unique URL downloaded from any syndicated feed within 
-a single media source is represented by a single story.  For example, a single New York Times newspaper story is a 
-Media Cloud story, as is a single Instapundit blog post.  Only one story may exist for a given title for each 24 hours 
+A story represents a single published piece of content.  Each unique URL downloaded from any syndicated feed within
+a single media source is represented by a single story.  For example, a single New York Times newspaper story is a
+Media Cloud story, as is a single Instapundit blog post.  Only one story may exist for a given title for each 24 hours
 within a single media source.
 
 ### Output description
@@ -461,12 +461,12 @@ URL: https://api.mediacloud.org/api/v2/stories_public/single/27456565
 ```
 
 ### api/v2/stories_public/list
-  
+
 | URL                             | Function
 | ------------------------------- | ---------------------------------
 | `api/v2/stories_public/list` | Return multiple processed stories
 
-#### Query Parameters 
+#### Query Parameters
 
 | Parameter                    | Default | Notes
 | ---------------------------- | ------- | ------------------------------------------------------------------------------
@@ -476,16 +476,16 @@ URL: https://api.mediacloud.org/api/v2/stories_public/single/27456565
 | `fq`                         | null    | If specified, file results by the given Solr query.  More than one `fq` parameter may be included.
 
 
-The `last_processed_stories_id` parameter can be used to page through these results. The API will return stories with a 
-`processed_stories_id` greater than this value.  To get a continuous stream of stories as they are processed by Media Cloud, 
-the user must make a series of calls to api/v2/stories_public/list in which `last_processed_stories_id` for each 
+The `last_processed_stories_id` parameter can be used to page through these results. The API will return stories with a
+`processed_stories_id` greater than this value.  To get a continuous stream of stories as they are processed by Media Cloud,
+the user must make a series of calls to api/v2/stories_public/list in which `last_processed_stories_id` for each
 call is set to the `processed_stories_id` of the last story in the previous call to the API.
 
 *Note:* `stories_id` and `processed_stories_id` are separate values. The order in which stories are processed is different than the `stories_id` order. The processing pipeline involves downloading, extracting, and vectoring stories. Requesting by the `processed_stories_id` field guarantees that the user will receive every story (matching the query criteria if present) in
 the order it is processed by the system.
 
 The `q` and `fq` parameters specify queries to be sent to a Solr server that indexes all Media Cloud stories.  The Solr
-server provides full text search indexing of each sentence collected by Media Cloud.  All content is stored as individual 
+server provides full text search indexing of each sentence collected by Media Cloud.  All content is stored as individual
 sentences.  The api/v2/stories_public/list call searches for sentences matching the `q` and / or `fq` parameters if specified and
 the stories that include at least one sentence returned by the specified query.
 
@@ -496,7 +496,7 @@ The `q` and `fq` parameters are passed directly through to Solr.  Documentation 
 | sentence                     | the text of the sentence
 | stories_id                   | a story ID
 | media_id                     | the Media Cloud media source ID of a story
-| publish_date                 | the publish date of a story 
+| publish_date                 | the publish date of a story
 | tags_id_story                | the ID of a tag associated with a story
 | tags_id_media                | the ID of a tag associated with a media source
 | media_sets_id                | the ID of a media set
@@ -531,7 +531,7 @@ live stories from controversy_dump_time_slice 1234:
 
 {~ controversy_dump_time_slice:1234-1 }
 
-The link_* pseudo query fields all must be within the same {~ } clause as a controversy_dump_time_slice query and 
+The link_* pseudo query fields all must be within the same {~ } clause as a controversy_dump_time_slice query and
 return links from the associated controversy_dump_time_slice.  For example, the following returns stories that
 link to story 5678 within the specified time slice:
 
@@ -552,7 +552,7 @@ Return a stream of all stories from The New York Times mentioning `'obama'` grea
 ## Sentences
 
 The text of every story processed by Media Cloud is parsed into individual sentences.  Duplicate sentences within
-the same media source in the same week are dropped (the large majority of those duplicate sentences are 
+the same media source in the same week are dropped (the large majority of those duplicate sentences are
 navigational snippets wrongly included in the extracted text by the extractor algorithm).
 
 ### api/v2/sentences/count
@@ -571,7 +571,7 @@ The q and fq parameters are passed directly through to Solr (see description of 
 
 The call returns the number of sentences returned by Solr for the specified query.
 
-If split is specified, split the counts into regular date ranges for dates between split\_start\_date and split\_end\_date. 
+If split is specified, split the counts into regular date ranges for dates between split\_start\_date and split\_end\_date.
 The number of days in each date range depends on the total number of days between split\_start\_date and split\_end\_date:
 
 | Total Days | Days in each range
@@ -620,7 +620,7 @@ URL: https://api.mediacloud.org/api/v2/sentences/count?q=sentence:africa+AND+tag
 }
 ````
 
-### api/v2/sentences/field\_count\_
+### api/v2/sentences/field\_count
 
 Returns the number of times a given field is associated with a given sentence.  Supported fields
 are currently `tags_id_stories` and `tags_id_story_sentences`.
@@ -633,18 +633,18 @@ are currently `tags_id_stories` and `tags_id_story_sentences`.
 | `fq`                | `null`                       | `fq` ("filter query") parameter which is passed directly to Solr
 | `sample_size`       | 1000                         | number of sentences to sample, max 100,000
 | `include_stats`     | 0                            | include stats about the request as a whole
-| `field`             | `tags\_id\_story\_sentences` | field to count 
+| `field`             | `tags_id_story_sentences`    | field to count
 
 See above /api/v2/stories_public/list for Solr query syntax.
 
-If the field is set to `tags\_id\_story\_sentences`, the call returns all of the tags associated with
+If the field is set to `tags_id_story_sentences`, the call returns all of the tags associated with
 sentences matching the query along with a count of how many times each tag is associated with each
-matching sentence.  If the field is set to `tags\_id\_stories`, the call returns all of the tags associated with
-story including a sentence matching the query along with a count of how many times each tag is associated with 
+matching sentence.  If the field is set to `tags_id_stories`, the call returns all of the tags associated with
+story including a sentence matching the query along with a count of how many times each tag is associated with
 each matching story.
 
 To provide quick results, the api counts field values in a randomly sampled set of sentences returned
-by the given query.  By default, the request will sample 1000 sentences.  You can make the api sample 
+by the given query.  By default, the request will sample 1000 sentences.  You can make the api sample
 more sentences (up to 100,000) at the cost of increased time.
 
 Setting the 'stats' field to true changes includes the following fields in the response:
@@ -652,10 +652,10 @@ Setting the 'stats' field to true changes includes the following fields in the r
 | Field                        | Description
 | ---------------------------- | -------------------------------------------------------------------
 | num_sentences_returned       | The number of sentences returned by the call, up to sample_size
-| num_sentences_found          | The total number of sentences found by solr to match the query 
+| num_sentences_found          | The total number of sentences found by solr to match the query
 | sample_size_param            | The sample size passed into the call, or the default value
 
-### Example
+#### Example
 
 Gets the tag counts for all sentences containing the word `'obama'` in The New York Times
 
@@ -689,10 +689,10 @@ URL:  https://api.mediacloud.org/api/v2/sentences/field_count?q=obama+AND+media_
 
 ### api/v2/wc/list
 
-Returns word frequency counts of the most common words in a randomly sampled set of all sentences 
-returned by querying Solr using the `q` and `fq` parameters, with stopwords removed by default.  Words are 
-stemmed before being counted.  For each word, the call returns the stem and the full term most used 
-with the given stem (for example, in the below example, 'democrat' is the stem that appeared 
+Returns word frequency counts of the most common words in a randomly sampled set of all sentences
+returned by querying Solr using the `q` and `fq` parameters, with stopwords removed by default.  Words are
+stemmed before being counted.  For each word, the call returns the stem and the full term most used
+with the given stem (for example, in the below example, 'democrat' is the stem that appeared
 58 times and 'democrats' is the word that was most commonly stemmed into 'democract').
 
 #### Query Parameters
@@ -714,9 +714,9 @@ by the given query.  By default, the request will sample 1000 sentences and retu
 can make the api sample more sentences.  The system takes about one second to process each multiple of
 1000 sentences.
 
-By default, the system stems and stopwords the list in English.  If you specify the 'l' parameter, 
-the system will stem and stopword the words by each of the listed langauges serially.  To do no stemming 
-or stopwording, specify 'none'.  The following language are supported (by 2 letter language code): 
+By default, the system stems and stopwords the list in English.  If you specify the 'l' parameter,
+the system will stem and stopword the words by each of the listed langauges serially.  To do no stemming
+or stopwording, specify 'none'.  The following language are supported (by 2 letter language code):
 'da' (Danish), 'de' (German), 'en' (English), 'es' (Spanish), 'fi' (Finnish), 'fr' (French),
 'hu' (Hungarian), 'it' (Italian), 'lt' (Lithuanian), 'nl' (Dutch), 'no' (Norwegian), 'pt' (Portuguese),
 'ro' (Romanian), 'ru' (Russian), 'sv' (Swedish), 'tr' (Turkish).
@@ -728,7 +728,7 @@ Following fields are included in the stats response:
 | ---------------------------- | -------------------------------------------------------------------
 | num_words_returned           | The number of words returned by the call, up to num_words
 | num_sentences_returned       | The number of sentences returned by the call, up to sample_size
-| num_sentences_found          | The total number of sentences found by solr to match the query 
+| num_sentences_found          | The total number of sentences found by solr to match the query
 | num_words_param              | The num_words param passed into the call, or the default value
 | sample_size_param            | The sample size passed into the call, or the default value
 
@@ -781,7 +781,7 @@ URL:  https://api.mediacloud.org/api/v2/wc/list?q=obama+AND+media_id:1&stats=1
 ```json
 
 { "stats":
-  { 
+  {
      "num_words_returned":5123,
      "num_sentences_returned":899
      "num_sentences_found":899
@@ -825,9 +825,9 @@ URL:  https://api.mediacloud.org/api/v2/wc/list?q=obama+AND+media_id:1&stats=1
 
 ## Tags and Tag Sets
 
-Media Cloud associates tags with media sources, stories, and individual sentences.  A tag consists of a short snippet of text, 
+Media Cloud associates tags with media sources, stories, and individual sentences.  A tag consists of a short snippet of text,
 a `tags_id`, and `tag_sets_id`.  Each tag belongs to a single tag set.  The tag set provides a separate name space for a group
-of related tags.  Each tag has a unique name ('tag') within its tag set.  Each tag set consists of a tag_sets_id and a uniaue 
+of related tags.  Each tag has a unique name ('tag') within its tag set.  Each tag set consists of a tag_sets_id and a uniaue
 name.
 
 For example, the `'gv_country'` tag set includes the tags `japan`, `brazil`, `haiti` and so on.  Each of these tags is associated with
@@ -840,7 +840,7 @@ in a Global Voices post).
 | -------------------------------- | -------------------------------------------------------------
 | `api/v2/tags/single/<tags_id>`   | Return the tag in which `tags_id` equals `<tags_id>`
 
-#### Query Parameters 
+#### Query Parameters
 
 None.
 
@@ -895,7 +895,7 @@ Response:
 | ------------------- | -----------------------------
 | `api/v2/tags/list`  | Return multiple tags
 
-#### Query Parameters 
+#### Query Parameters
 
 | Parameter       | Default    | Notes
 | --------------- | ---------- | -----------------------------------------------------------------
@@ -928,11 +928,11 @@ URL: https://api.mediacloud.org/api/v2/tags/list?rows=2&tag_sets_id=5&last_tags_
 | -------------------------------------- | -------------------------------------------------------------
 | `api/v2/tag_sets/single/<tag_sets_id>` | Return the tag set in which `tag_sets_id` equals `<tag_sets_id>`
 
-#### Query Parameters 
+#### Query Parameters
 
 None.
 
-### Output description
+#### Output description
 
 | Field                 | Description
 |-----------------------|-----------------------------------
@@ -976,7 +976,7 @@ Response:
 | ----------------------- | -----------------------------
 | `api/v2/tag_sets/list`  | Return all `tag_sets`
 
-#### Query Parameters 
+#### Query Parameters
 
 | Parameter          | Default | Notes
 | ------------------ | ------- | -----------------------------------------------------------------
@@ -993,8 +993,8 @@ URL: https://api.mediacloud.org/api/v2/tag_sets/list
 
 Controversies are collections of stories within some date range that match some pattern
 indicating that they belong to some topic.  Controversies both stories matched from
-crawled Media Cloud content and stories discovered by spidering out from the links of 
-those matched stories. For more information about controversies and how they are generated, 
+crawled Media Cloud content and stories discovered by spidering out from the links of
+those matched stories. For more information about controversies and how they are generated,
 see:
 
 http://cyber.law.harvard.edu/publications/2013/social_mobilization_and_the_networked_public_sphere
@@ -1005,7 +1005,7 @@ for researchers and also includes analytical results like link counts.  A contro
 represents the set of stories active in a controversy within a given date range.  Every controversy time
 slice belongs to a controversy dump.
 
-Controversy data can be used to search stories and media sources as well.  Use the 
+Controversy data can be used to search stories and media sources as well.  Use the
 controversy_dump_time_slices_id param to list the media sources within a given controversy
 time slice.  See the documentation for solr pseudo queries for documentation of how to
 query for stories within a controversy.
@@ -1016,7 +1016,7 @@ query for stories within a controversy.
 | -------------------------------------------------- | -------------------------------------------------------------
 | `api/v2/controversies/single/<controversies_id>`   | Return a single controversy
 
-#### Query Parameters 
+#### Query Parameters
 
 None.
 
@@ -1049,7 +1049,7 @@ Response:
 | ---------------------------- | -----------------------------
 | `api/v2/controversies/list`  | Return controversies
 
-#### Query Parameters 
+#### Query Parameters
 
 | Parameter       | Default    | Notes
 | --------------- | ---------- | -----------------------------------------------------------------
@@ -1065,7 +1065,7 @@ URL: https://api.mediacloud.org/api/v2/controversies/list
 | ---------------------------------------- | -------------------------------------------------------------
 | `api/v2/controversy_dumps/single/<id>`   | Return a single controversy dump
 
-#### Query Parameters 
+#### Query Parameters
 
 None.
 
@@ -1096,7 +1096,7 @@ Response:
 | -------------------------------- | ---------------------------------------------------
 | `api/v2/controversy_dumps/list`  | Return controversy dumps sorted by descending date
 
-#### Query Parameters 
+#### Query Parameters
 
 | Parameter          | Default    | Notes
 | ------------------ | ---------- | -----------------------------------------------------------------
@@ -1112,7 +1112,7 @@ URL: https://api.mediacloud.org/api/v2/controversy_dumps/list?controversies_id=6
 | --------------------------------------------------- | -------------------------------------------------------------
 | `api/v2/controversy_dump_time_slices/single/<id>`   | Return a single controversy dump time slice
 
-#### Query Parameters 
+#### Query Parameters
 
 None.
 
@@ -1151,7 +1151,7 @@ Response:
 | ------------------------------------------- | ---------------------------------------------------
 | `api/v2/controversy_dump_time_slices/list`  | Return controversy dump time slices
 
-#### Query Parameters 
+#### Query Parameters
 # controversy_dumps_id tags_id period start_date end_date
 | Parameter              | Default | Notes
 | ---------------------- | ------- | -----------------------------------------------------------------
@@ -1168,17 +1168,17 @@ URL: https://api.mediacloud.org/api/v2/controversy_dump_time_slices/list?controv
 # Extended Examples
 
 ## Output Format / JSON
-  
+
 The format of the API responses is determined by the `Accept` header on the request. The default is `application/json`. Other supported formats include `text/html`, `text/x-json`, and `text/x-php-serialization`. It's recommended that you explicitly set the `Accept` header rather than relying on the default.
- 
+
 Here's an example of setting the `Accept` header in Python:
 
 ```python  
 import pkg_resources  
 
-import requests   
+import requests
 assert pkg_resources.get_distribution("requests").version >= '1.2.3'
- 
+
 r = requests.get( 'https://api.mediacloud.org/api/v2/media/list', params = params, headers = { 'Accept': 'application/json'}, headers = { 'Accept': 'application/json'} )  
 
 data = r.json()
@@ -1202,7 +1202,7 @@ while True:
       start += rows
       media.extend( data )
 
-fieldnames = [ 
+fieldnames = [
  u'media_id',
  u'url',
  u'moderated',
@@ -1220,7 +1220,7 @@ with open( '/tmp/media.csv', 'wb') as csvfile:
 
 ## Grab all processed stories from US Top 25 MSM as a stream
 
-This is broken down into multiple steps for convenience and because that's probably how a real user would do it. 
+This is broken down into multiple steps for convenience and because that's probably how a real user would do it.
 
 ### Find the media set
 
@@ -1268,7 +1268,7 @@ curl https://api.mediacloud.org/api/v2/dashboards/single/1
 	 "description":"Top 25 mainstream media sources by monthly unique users from the U.S. according to the Google AdPlanner service.",
 	 media:
 	   [
-	     NOT SHOWN FOR SPACE REASONS 
+	     NOT SHOWN FOR SPACE REASONS
 	   ]
 	 },
    	 {
@@ -1277,7 +1277,7 @@ curl https://api.mediacloud.org/api/v2/dashboards/single/1
 	 "description":"1000 most popular feeds in bloglines.",
 	  media:
 	   [
-	     NOT SHOWN FOR SPACE REASONS 
+	     NOT SHOWN FOR SPACE REASONS
 	   ]
    	   }
    ]  
@@ -1290,7 +1290,7 @@ After looking at this output, the user decides that she is interested in the "To
 
 ### Grab stories by querying stories_public/list
 
-We can obtain all stories by repeatedly querying api/v2/stories_public/list using the `q` parameter to restrict to `media_sets_id = 1` and changing the `last_processed_stories_id` parameter. 
+We can obtain all stories by repeatedly querying api/v2/stories_public/list using the `q` parameter to restrict to `media_sets_id = 1` and changing the `last_processed_stories_id` parameter.
 
 This is shown in the Python code below where `process_stories` is a user provided function to process this data.
 
@@ -1335,7 +1335,7 @@ import requests
 start = 0
 rows  = 100
 while True:
-      params = { 'last_processed_stories_id': start, 
+      params = { 'last_processed_stories_id': start,
       'rows': rows, 'q': 'media_set_id:1', 'fq': 'publish_date:[2010-10-01T00:00:00Z TO 2010-11-01T00:00:00Z]'  }
 
       print "Fetching {} stories starting from {}".format( rows, start)
@@ -1352,7 +1352,7 @@ while True:
 
 ## Get word counts for top words for sentences matching 'trayvon' in U.S. Political Blogs during April 2012
 
-This is broken down into multiple steps for convenience and because that's probably how a real user would do it. 
+This is broken down into multiple steps for convenience and because that's probably how a real user would do it.
 
 
 ### Find the media set
@@ -1401,7 +1401,7 @@ curl https://api.mediacloud.org/api/v2/dashboards/single/1
 	 "description":"Top 25 mainstream media sources by monthly unique users from the U.S. according to the Google AdPlanner service.",
 	 media:
 	   [
-	     NOT SHOWN FOR SPACE REASONS 
+	     NOT SHOWN FOR SPACE REASONS
 	   ]
 	 },
    	 {
@@ -1410,7 +1410,7 @@ curl https://api.mediacloud.org/api/v2/dashboards/single/1
 	 "description":"1000 most popular feeds in bloglines.",
 	  "media":
 	   [
-	     NOT SHOWN FOR SPACE REASONS 
+	     NOT SHOWN FOR SPACE REASONS
 	   ]
    	 },
 	 {
@@ -1419,7 +1419,7 @@ curl https://api.mediacloud.org/api/v2/dashboards/single/1
 	     "description": "1000 most influential U.S. political blogs according to Technorati, pruned of mainstream media sources.",
 	     "media":
 	   [
-	     NOT SHOWN FOR SPACE REASONS 
+	     NOT SHOWN FOR SPACE REASONS
 	   ]
 
 	  }
@@ -1530,7 +1530,7 @@ def find_tags_id( tag_name, tag_sets_id):
           last_tags_id = max( tag[ 'tags_id' ], last_tags_id )
 
    return -1
-   
+
 ```
 
 ###Request a word count using the `tags_id`

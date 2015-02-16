@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+
+<channel>
+    <title>Multilanguage downloads test</title>
+    <link>http://www.example.com/</link>
+    <description><![CDATA[
+        This RSS feed is used to test whether the story language gets identified correctly.
+    ]]></description>
+
+    <!-- Language that is both supported by CLD and Media Cloud (English) -->
+    <item>
+        <title>English: The quick brown fox jumps over the lazy dog</title>
+        <pubDate>Thu, 11 Jun 2009 10:57:00 +0000</pubDate>
+        <link><BASE_WEBSITE_URL/>multilanguage/english.html</link>
+        <guid isPermaLink="false">http://www.example.com/multilanguage/english.html</guid>
+        <description>English: The quick brown fox jumps over the lazy dog.</description>
+    </item>
+
+    <!-- Non-English language that is both supported by CLD and Media Cloud (Russian) -->
+    <item>
+        <title>По русскй: В чащах юга жил бы цитрус? Да, но фальшивый экземпляр!</title>
+        <pubDate>Thu, 11 Jun 2009 10:57:00 +0000</pubDate>
+        <link><BASE_WEBSITE_URL/>multilanguage/russian.html</link>
+        <guid isPermaLink="false">http://www.example.com/multilanguage/russian.html</guid>
+        <description>По русскй: В чащах юга жил бы цитрус? Да, но фальшивый экземпляр!</description>
+    </item>
+
+    <!-- Language that is supported by CLD but not Media Cloud (Hebrew) -->
+    <item>
+        <title>עברית: דג סקרן שט בים מאוכזב ולפתע מצא לו חברה איך הקליטה</title>
+        <pubDate>Thu, 11 Jun 2009 10:57:00 +0000</pubDate>
+        <link><BASE_WEBSITE_URL/>multilanguage/hebrew.html</link>
+        <guid isPermaLink="false">http://www.example.com/multilanguage/hebrew.html</guid>
+        <description>עברית: דג סקרן שט בים מאוכזב ולפתע מצא לו חברה איך הקליטה.</description>
+    </item>
+
+    <!-- Not a language -->
+    <item>
+        <title><![CDATA[*yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC]]></title>
+        <pubDate>Thu, 11 Jun 2009 10:57:00 +0000</pubDate>
+        <link><BASE_WEBSITE_URL/>multilanguage/not_a_language.html</link>
+        <guid isPermaLink="false">http://www.example.com/multilanguage/not_a_language.html</guid>
+        <description><![CDATA[*yZ>)32{3&&<?<W!1U>:9VCElW`fugG,:'DY>uh?CK]sJWw(0p#m;f|)t^=l]#yP7M<"@Tz}KC]]></description>
+    </item>
+
+    <!-- Empty page -- won't even show up among extractor's results -->
+    <item>
+        <title></title>
+        <pubDate>Thu, 11 Jun 2009 10:57:00 +0000</pubDate>
+        <link><BASE_WEBSITE_URL/>multilanguage/empty_page.html</link>
+        <guid isPermaLink="false">http://www.example.com/multilanguage/empty_page.html</guid>
+        <description></description>
+    </item>
+
+</channel>
+
+</rss>
