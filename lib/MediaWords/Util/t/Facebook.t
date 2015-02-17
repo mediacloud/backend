@@ -62,6 +62,25 @@ sub test_bogus_urls($)
     }
 }
 
+# URLs that won't work so shouldn't be tried against Facebook API
+sub test_urls_which_wont_work($)
+{
+    my ( $db ) = @_;
+
+    my @urls_which_wont_work = (
+
+        'http://www.google.com/trends/explore#q=net%20neutrality.',
+        'https://www.google.com/webhp?sourceid=chrome-instant&ion=1&espv=2&ie=UTF-8#safe=off&q=net+neutrality'
+
+    );
+
+    foreach my $url_which_wont_work ( @urls_which_wont_work )
+    {
+        eval { MediaWords::Util::Facebook::get_url_share_comment_counts( $db, $url_which_wont_work ); };
+        ok( $@, "Stats shouldn't have been fetched for URL '$url_which_wont_work'" );
+    }
+}
+
 sub test_share_comment_counts($)
 {
     my ( $db ) = @_;
@@ -138,7 +157,7 @@ sub main()
         }
     }
 
-    plan tests => 26;
+    plan tests => 28;
 
     my $builder = Test::More->builder;
     binmode $builder->output,         ":utf8";
@@ -150,6 +169,7 @@ sub main()
             my ( $db ) = @_;
 
             test_bogus_urls( $db );
+            test_urls_which_wont_work( $db );
             test_share_comment_counts( $db );
             test_store_result( $db );
         }
