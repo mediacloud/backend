@@ -828,7 +828,7 @@ sub meta_refresh_url_from_html($;$)
                 $url = $1;
                 if ( $url )
                 {
-                    if ( $url !~ /$RE{URI}/ )
+                    unless ( $url =~ /$RE{URI}/i )
                     {
                         # Maybe it's relative / absolute path?
                         if ( $base_url )
