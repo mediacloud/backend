@@ -239,6 +239,7 @@ database:
     #timeout: 60
 
 ### Facebook API
+### (see doc/README.facebook_api.markdown)
 #facebook:
 
     ### Enable Facebook processing
