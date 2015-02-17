@@ -532,18 +532,17 @@ sub is_homepage_url($)
         return 0;
     }
 
+    unless ( is_http_url( $url ) )
+    {
+        # say STDERR "URL is not valid";
+        return 0;
+    }
+
     # Remove cruft from the URL first
     eval { $url = normalize_url( $url ); };
     if ( $@ )
     {
         # say STDERR "Unable to normalize URL '$url' before checking if it's a homepage: $@";
-        return 0;
-    }
-
-    my $uri = URI->new( $url )->canonical;
-    unless ( $uri->scheme )
-    {
-        # say STDERR "Scheme is undefined for URL $url";
         return 0;
     }
 
@@ -556,6 +555,7 @@ sub is_homepage_url($)
 
     # If we still have something for a query of the URL after the
     # normalization, always assume that the URL is *not* a homepage
+    my $uri = URI->new( $url )->canonical;
     if ( defined $uri->query and $uri->query . '' )
     {
         return 0;
@@ -584,13 +584,13 @@ sub is_shortened_url($)
         return 0;
     }
 
-    my $uri = URI->new( $url )->canonical;
-    unless ( $uri->scheme )
+    unless ( is_http_url( $url ) )
     {
-        # say STDERR "Scheme is undefined for URL $url";
+        # say STDERR "URL is not valid";
         return 0;
     }
 
+    my $uri = URI->new( $url )->canonical;
     if ( defined $uri->path and ( $uri->path eq '' or $uri->path eq '/' ) )
     {
         # Assume that most of the URL shorteners use something like
@@ -634,16 +634,12 @@ sub normalize_url($)
 
     $url = fix_common_url_mistakes( $url );
 
-    my $uri = URI->new( $url )->canonical;
-    unless ( $uri->scheme )
+    unless ( is_http_url( $url ) )
     {
-        die "Scheme is undefined for URL $url";
+        die "URL is not valid";
     }
 
-    unless ( $uri->scheme eq 'http' or $uri->scheme eq 'https' or $uri->scheme eq 'ftp' )
-    {
-        die "Scheme is not HTTP(s) or FTP for URL $url";
-    }
+    my $uri = URI->new( $url )->canonical;
 
     # Remove #fragment
     $uri->fragment( undef );
