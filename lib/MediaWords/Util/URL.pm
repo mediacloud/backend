@@ -476,6 +476,17 @@ Readonly my @URL_SHORTENER_HOSTNAMES => qw/
   ➽.ws
   /;
 
+# Fixes common URL mistakes (mistypes, etc.)
+sub fix_common_url_mistakes($)
+{
+    my $url = shift;
+
+    # Fix broken URLs that look like this: http://http://www.al-monitor.com/pulse
+    $url =~ s~(https?://)https?:?//~$1~i;
+
+    return $url;
+}
+
 # Returns true if URL is in the "http" ("https") scheme
 sub is_http_url($)
 {
@@ -615,8 +626,7 @@ sub normalize_url($)
         die "URL is undefined";
     }
 
-    # Fix broken URLs that look like this: http://http://www.al-monitor.com/pulse
-    $url =~ s~(https?)://https?:?//~$1://~i;
+    $url = fix_common_url_mistakes( $url );
 
     my $uri = URI->new( $url )->canonical;
     unless ( $uri->scheme )
@@ -739,6 +749,13 @@ sub normalize_url_lossy($)
 {
     my $url = shift;
 
+    unless ( $url )
+    {
+        die "URL is undefined";
+    }
+
+    $url = fix_common_url_mistakes( $url );
+
     $url = lc( $url );
 
     # r2.ly redirects through the hostname, ala http://543.r2.ly
@@ -752,9 +769,6 @@ s/^(https?:\/\/)(m|beta|media|data|image|www?|cdn|topic|article|news|archive|blo
 
     $url =~ s/\/+$//;
 
-    # fix broken urls that look like this: http://http://www.al-monitor.com/pulse
-    $url =~ s~(https?)://https?:?//~$1://~i;
-
     return scalar( URI->new( $url )->canonical );
 }
 
@@ -762,6 +776,8 @@ s/^(https?:\/\/)(m|beta|media|data|image|www?|cdn|topic|article|news|archive|blo
 sub get_url_domain($)
 {
     my $url = shift;
+
+    $url = fix_common_url_mistakes( $url );
 
     $url =~ m~https?://([^/#]*)~ || return $url;
 
@@ -893,6 +909,8 @@ sub url_and_data_after_redirects($;$$)
     {
         die "URL is undefined.";
     }
+
+    $orig_url = fix_common_url_mistakes( $orig_url );
 
     unless ( is_http_url( $orig_url ) )
     {
@@ -1076,7 +1094,9 @@ sub all_url_variants($$)
         die "URL is undefined";
     }
 
-    if ( !is_http_url( $url ) )
+    $url = fix_common_url_mistakes( $url );
+
+    unless ( is_http_url( $url ) )
     {
         my @urls = ( $url );
         return @urls;

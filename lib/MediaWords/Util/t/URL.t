@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 119;
+use Test::More tests => 122;
 
 use Readonly;
 use HTTP::HashServer;
@@ -21,6 +21,28 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 
     use_ok( 'MediaWords::Util::URL' );
+}
+
+sub test_fix_common_url_mistakes()
+{
+    my %urls = (
+
+        # "http://http://"
+        'http://http://www.al-monitor.com/pulse' => 'http://www.al-monitor.com/pulse',
+    );
+
+    foreach my $orig_url ( keys %urls )
+    {
+        my $fixed_url = $urls{ $orig_url };
+
+        # Fix once
+        is( MediaWords::Util::URL::fix_common_url_mistakes( $orig_url ),
+            $fixed_url, "fix_common_url_mistakes() - $orig_url" );
+
+        # Try fixing the same URL twice, see what happens
+        is( MediaWords::Util::URL::fix_common_url_mistakes( MediaWords::Util::URL::fix_common_url_mistakes( $orig_url ) ),
+            $fixed_url, "fix_common_url_mistakes() - $orig_url" );
+    }
 }
 
 sub test_is_http_url()
@@ -216,15 +238,17 @@ sub test_normalize_url_lossy()
 {
     # FIXME - some resulting URLs look funny, not sure if I can change them easily though
     is(
-        MediaWords::Util::URL::normalize_url_lossy( 'http://HTTP://WWW.nytimes.COM/ARTICLE/12345/?ab=cd#def#ghi/' ),
-        'http://www.nytimes.com/article/12345/?ab=cd',
+        MediaWords::Util::URL::normalize_url_lossy( 'HTTP://WWW.nytimes.COM/ARTICLE/12345/?ab=cd#def#ghi/' ),
+        'http://nytimes.com/article/12345/?ab=cd',
         'normalize_url_lossy() - nytimes.com'
     );
     is(
-        MediaWords::Util::URL::normalize_url_lossy( 'http://http://www.al-monitor.com/pulse' ),
-        'http://www.al-monitor.com/pulse',
-        'normalize_url_lossy() - www.al-monitor.com'
+        MediaWords::Util::URL::normalize_url_lossy( 'http://HTTP://WWW.nytimes.COM/ARTICLE/12345/?ab=cd#def#ghi/' ),
+        'http://nytimes.com/article/12345/?ab=cd',
+        'normalize_url_lossy() - nytimes.com'
     );
+    is( MediaWords::Util::URL::normalize_url_lossy( 'http://http://www.al-monitor.com/pulse' ),
+        'http://al-monitor.com/pulse', 'normalize_url_lossy() - www.al-monitor.com' );
     is( MediaWords::Util::URL::normalize_url_lossy( 'http://m.delfi.lt/foo' ),
         'http://delfi.lt/foo', 'normalize_url_lossy() - m.delfi.lt' );
     is(
@@ -952,6 +976,7 @@ sub main()
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
+    test_fix_common_url_mistakes();
     test_is_http_url();
     test_is_homepage_url();
     test_is_shortened_url();
