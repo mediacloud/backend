@@ -498,7 +498,7 @@ sub is_http_url($)
         return 0;
     }
 
-    unless ( $url =~ /$RE{URI}/i )
+    unless ( $url =~ /$RE{URI}{HTTP}{-scheme => '(?:http|https)'}/i )
     {
         # say STDERR "URL does not match URL's regexp";
         return 0;
