@@ -65,6 +65,8 @@ sub get_url_share_comment_counts
 {
     my ( $db, $url ) = @_;
 
+    $url = MediaWords::Util::URL::fix_common_url_mistakes( $url );
+
     unless ( MediaWords::Util::URL::is_http_url( $url ) )
     {
         die "Invalid URL: $url";
