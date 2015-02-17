@@ -498,6 +498,12 @@ sub is_http_url($)
         return 0;
     }
 
+    unless ( $url =~ /$RE{URI}/i )
+    {
+        # say STDERR "URL does not match URL's regexp";
+        return 0;
+    }
+
     my $uri = URI->new( $url )->canonical;
 
     unless ( $uri->scheme )
