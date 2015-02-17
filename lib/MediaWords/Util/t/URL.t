@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 122;
+use Test::More tests => 125;
 
 use Readonly;
 use HTTP::HashServer;
@@ -29,6 +29,10 @@ sub test_fix_common_url_mistakes()
 
         # "http://http://"
         'http://http://www.al-monitor.com/pulse' => 'http://www.al-monitor.com/pulse',
+
+        # With only one slash ("http:/www.")
+        'http:/www.theinquirer.net/inquirer/news/2322928/net-neutrality-rules-lie-in-tatters-as-fcc-overruled' =>
+          'http://www.theinquirer.net/inquirer/news/2322928/net-neutrality-rules-lie-in-tatters-as-fcc-overruled',
     );
 
     foreach my $orig_url ( keys %urls )
@@ -58,6 +62,15 @@ sub test_is_http_url()
 
     ok( MediaWords::Util::URL::is_http_url( 'http://cyber.law.harvard.edu/about' ),          'is_http_url() - HTTP URL' );
     ok( MediaWords::Util::URL::is_http_url( 'https://github.com/berkmancenter/mediacloud' ), 'is_http_url() - HTTPS URL' );
+
+# URLs with mistakes fixable by fix_common_url_mistakes()
+#ok( !MediaWords::Util::URL::is_http_url( 'http://http://www.al-monitor.com/pulse' ), 'is_http_url() - URL with http://http://' );
+    ok(
+        !MediaWords::Util::URL::is_http_url(
+            'http:/www.theinquirer.net/inquirer/news/2322928/net-neutrality-rules-lie-in-tatters-as-fcc-overruled'
+        ),
+        'is_http_url() - URL with only one slash'
+    );
 }
 
 sub test_is_homepage_url()

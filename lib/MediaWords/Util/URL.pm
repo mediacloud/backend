@@ -484,6 +484,9 @@ sub fix_common_url_mistakes($)
     # Fix broken URLs that look like this: http://http://www.al-monitor.com/pulse
     $url =~ s~(https?://)https?:?//~$1~i;
 
+    # Fix URLs with only one slash after "http" ("http:/www.")
+    $url =~ s~(https?:/)(www)~$1/$2~i;
+
     return $url;
 }
 
