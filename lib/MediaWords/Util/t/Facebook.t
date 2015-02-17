@@ -50,6 +50,9 @@ sub test_bogus_urls($)
 
         # URL that doesn't return "share" or "og_object" keys
 'http://feeds.chicagotribune.com/~r/chicagotribune/views/~3/weNQRdjizS8/sns-rt-us-usa-court-netneutrality-20140114,0,5487975.story',
+
+        # Bogus URL with "http:/www" (fixable by fix_common_url_mistakes())
+        'http:/www.theinquirer.net/inquirer/news/2322928/net-neutrality-rules-lie-in-tatters-as-fcc-overruled',
     );
 
     foreach my $bogus_url ( @bogus_urls )
@@ -135,7 +138,7 @@ sub main()
         }
     }
 
-    plan tests => 25;
+    plan tests => 26;
 
     my $builder = Test::More->builder;
     binmode $builder->output,         ":utf8";

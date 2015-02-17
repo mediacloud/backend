@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 119;
+use Test::More tests => 125;
 
 use Readonly;
 use HTTP::HashServer;
@@ -23,6 +23,32 @@ BEGIN
     use_ok( 'MediaWords::Util::URL' );
 }
 
+sub test_fix_common_url_mistakes()
+{
+    my %urls = (
+
+        # "http://http://"
+        'http://http://www.al-monitor.com/pulse' => 'http://www.al-monitor.com/pulse',
+
+        # With only one slash ("http:/www.")
+        'http:/www.theinquirer.net/inquirer/news/2322928/net-neutrality-rules-lie-in-tatters-as-fcc-overruled' =>
+          'http://www.theinquirer.net/inquirer/news/2322928/net-neutrality-rules-lie-in-tatters-as-fcc-overruled',
+    );
+
+    foreach my $orig_url ( keys %urls )
+    {
+        my $fixed_url = $urls{ $orig_url };
+
+        # Fix once
+        is( MediaWords::Util::URL::fix_common_url_mistakes( $orig_url ),
+            $fixed_url, "fix_common_url_mistakes() - $orig_url" );
+
+        # Try fixing the same URL twice, see what happens
+        is( MediaWords::Util::URL::fix_common_url_mistakes( MediaWords::Util::URL::fix_common_url_mistakes( $orig_url ) ),
+            $fixed_url, "fix_common_url_mistakes() - $orig_url" );
+    }
+}
+
 sub test_is_http_url()
 {
     ok( !MediaWords::Util::URL::is_http_url( undef ), 'is_http_url() - undef' );
@@ -36,6 +62,15 @@ sub test_is_http_url()
 
     ok( MediaWords::Util::URL::is_http_url( 'http://cyber.law.harvard.edu/about' ),          'is_http_url() - HTTP URL' );
     ok( MediaWords::Util::URL::is_http_url( 'https://github.com/berkmancenter/mediacloud' ), 'is_http_url() - HTTPS URL' );
+
+# URLs with mistakes fixable by fix_common_url_mistakes()
+#ok( !MediaWords::Util::URL::is_http_url( 'http://http://www.al-monitor.com/pulse' ), 'is_http_url() - URL with http://http://' );
+    ok(
+        !MediaWords::Util::URL::is_http_url(
+            'http:/www.theinquirer.net/inquirer/news/2322928/net-neutrality-rules-lie-in-tatters-as-fcc-overruled'
+        ),
+        'is_http_url() - URL with only one slash'
+    );
 }
 
 sub test_is_homepage_url()
@@ -216,15 +251,17 @@ sub test_normalize_url_lossy()
 {
     # FIXME - some resulting URLs look funny, not sure if I can change them easily though
     is(
-        MediaWords::Util::URL::normalize_url_lossy( 'http://HTTP://WWW.nytimes.COM/ARTICLE/12345/?ab=cd#def#ghi/' ),
-        'http://www.nytimes.com/article/12345/?ab=cd',
+        MediaWords::Util::URL::normalize_url_lossy( 'HTTP://WWW.nytimes.COM/ARTICLE/12345/?ab=cd#def#ghi/' ),
+        'http://nytimes.com/article/12345/?ab=cd',
         'normalize_url_lossy() - nytimes.com'
     );
     is(
-        MediaWords::Util::URL::normalize_url_lossy( 'http://http://www.al-monitor.com/pulse' ),
-        'http://www.al-monitor.com/pulse',
-        'normalize_url_lossy() - www.al-monitor.com'
+        MediaWords::Util::URL::normalize_url_lossy( 'http://HTTP://WWW.nytimes.COM/ARTICLE/12345/?ab=cd#def#ghi/' ),
+        'http://nytimes.com/article/12345/?ab=cd',
+        'normalize_url_lossy() - nytimes.com'
     );
+    is( MediaWords::Util::URL::normalize_url_lossy( 'http://http://www.al-monitor.com/pulse' ),
+        'http://al-monitor.com/pulse', 'normalize_url_lossy() - www.al-monitor.com' );
     is( MediaWords::Util::URL::normalize_url_lossy( 'http://m.delfi.lt/foo' ),
         'http://delfi.lt/foo', 'normalize_url_lossy() - m.delfi.lt' );
     is(
@@ -952,6 +989,7 @@ sub main()
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
+    test_fix_common_url_mistakes();
     test_is_http_url();
     test_is_homepage_url();
     test_is_shortened_url();
