@@ -82,6 +82,7 @@ END
             if (   $overwrite
                 or !$ss
                 or $ss->{ twitter_api_error }
+                or !defined( $ss->{ twitter_api_collect_date } )
                 or !defined( $ss->{ twitter_url_tweet_count } ) )
             {
                 if ( $direct_job )

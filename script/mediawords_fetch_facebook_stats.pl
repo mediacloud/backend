@@ -82,6 +82,7 @@ END
             if (   $overwrite
                 or !$ss
                 or $ss->{ facebook_api_error }
+                or !defined( $ss->{ facebook_api_collect_date } )
                 or !defined( $ss->{ facebook_share_count } )
                 or !defined( $ss->{ facebook_comment_count } ) )
             {
