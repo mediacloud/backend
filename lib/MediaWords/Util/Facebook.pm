@@ -59,6 +59,16 @@ Readonly my @FACEBOOK_GRAPH_API_TEMPORARY_ERROR_CODES => (
 
 );
 
+# URL patterns for which we're sure we won't get correct results (so we won't even try)
+Readonly my @URL_PATTERNS_WHICH_WONT_WORK => (
+
+    # Google Search
+    qr#^https?://.*?\.google\..{2,7}/(search|webhp).+?#i,
+
+    # Google Trends
+    qr#^https?://.*?\.google\..{2,7}/trends/explore.*?#i,
+);
+
 # use https://graph.facebook.com/?id= to get number of shares for the given url
 # https://graph.facebook.com/?id=http://www.google.com/
 sub get_url_share_comment_counts
@@ -70,6 +80,14 @@ sub get_url_share_comment_counts
     unless ( MediaWords::Util::URL::is_http_url( $url ) )
     {
         die "Invalid URL: $url";
+    }
+
+    foreach my $url_pattern_which_wont_work ( @URL_PATTERNS_WHICH_WONT_WORK )
+    {
+        if ( $url =~ $url_pattern_which_wont_work )
+        {
+            die "URL $url matches one of the patterns for URLs that won't work against Facebook API.";
+        }
     }
 
     # Canonicalize URL
@@ -208,8 +226,21 @@ sub get_and_store_share_comment_counts
         fatal_error( 'Facebook API processing is enabled, but authentication credentials are not set.' );
     }
 
+    my $story_url = $story->{ url };
+
     my ( $share_count, $comment_count );
-    eval { ( $share_count, $comment_count ) = get_url_share_comment_counts( $db, $story->{ url } ); };
+    eval {
+        # die() on URLs for which stats will be incorrect
+        foreach my $url_pattern_which_wont_work ( @URL_PATTERNS_WHICH_WONT_WORK )
+        {
+            if ( $story_url =~ $url_pattern_which_wont_work )
+            {
+                die "URL $story_url matches one of the patterns for URLs that won't work against Facebook API.";
+            }
+        }
+
+        ( $share_count, $comment_count ) = get_url_share_comment_counts( $db, $story_url );
+    };
     my $error = $@ ? $@ : undef;
 
     if ( $error )

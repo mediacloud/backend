@@ -49,7 +49,7 @@ sub _get_single_url_json
         die "Unable to create URI object for URL: $url";
     }
 
-    # Remove URLs that won't work anyway
+    # die() on URLs that won't work anyway
     foreach my $url_pattern_which_wont_work ( @URL_PATTERNS_WHICH_WONT_WORK )
     {
         if ( $url =~ $url_pattern_which_wont_work )
