@@ -52,6 +52,6 @@ pfactory = TBinaryProtocol.TBinaryProtocolFactory()
 #pfactory = TBinaryProtocol.TBinaryProtocolAcceleratedFactory()
 
 server = TServer.TThreadPoolServer(processor, listening_socket, tfactory, pfactory)
-server.settNumThreads( 30 )
+server.setNumThreads( 30 )
 print ("[Server] Started")
 server.serve()
