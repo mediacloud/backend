@@ -101,7 +101,7 @@ database:
         ### Email subject prefix (default is "[GJS]"; if not set, will fallback
         ### to an empty string)
         #subject_prefix: "[GJS]"
-                
+
 
 ### Gearman server (gearmand) configuration
 #gearmand:
@@ -127,24 +127,24 @@ database:
     ### The log directory for child process logs (absolute or relative to Media
     ### Cloud's root; must already exist)
     #childlogdir: "data/supervisor_logs/"
-    
+
     # configure supervisor settings for mediacloud background daemons here.
     # the defaults should work for a small dev setup, but you will want to increase
     # numprocs for some daemons depending on load.  you can also set some daemons
     # not to autostart -- for instance you might want to change crawler.autostart
     # to 'false' to prevent the crawler from starting automatically on a dev machine.
     #programs:
-    
+
         #crawler:
             #numprocs: 1
             #autostart: 'true'
             #autorestart: 'false'
-            
+
         #extract_and_vector:
             #numprocs: 1
             #autostart: 'true'
             #autorestart: 'true'
-        
+
         # other configurable supervisor programs
         #crf_web_service
         #gearmand
@@ -157,7 +157,7 @@ database:
         #bitly_enqueue_controversy_stories
         #bitly_fetch_story_stats
         #bitly_aggregate_story_stats
-        
+
 
 ### CoreNLP annotator
 #corenlp:
@@ -282,7 +282,7 @@ mediawords:
 
     ### parent directory of the content/ directory with all downloaded content is stored
     #data_dir: "<bindir>/../data"
-    
+
     ### Uncomment to use the directory given by <PATH> to temporarily store CSV files generated in the public data dumps
     ### Note that since these are uncompressed files they can be very large.
     #data_dump_tmp_dir : <PATH>
@@ -385,31 +385,31 @@ mediawords:
     #default_home_page: "dashboard/view"
     # downloads id under which to strip all non-ascii characters
     #ascii_hack_downloads_id: 123456789
-    
+
     # settings for mediawords_web_store.pl script that does in process parallel fetching
     # web_store_num_parallel: 10
     # web_store_timeout: 90
     # web_store_per_domain_timeout: 1
-    
+
     # tablespace in which to create temporary tables -- defaults to the postgres default
     # temporary_table_tablespace: temporary_tablespace
-    
+
     # number of times to run each controversy_dump_time_slice model in MediaWords::CM::Model
     # controversy_model_reps: 25
-    
+
     # url for solr word counting url.  if this is set, fetch word counts from a remote server
     # using this url; otherwise, generate word counts locally
     # solr_wc_url: http://localhost/api/v2/wc
 
     # mc api key for appending to sol_wc_url for fetching remote word counts
     # solr_wc_key: FOO
-    
+
     # urls for solr queries, include multiple to make mc choose a random url from
     # the list for each solr query
     # solr_url:
     #    - http://localhost:8983/solr
     #    - http://127.0.0.1:8983/solr
-    
+
     # By default API requests require a invalid 'key' param.
     # comment to allow api requests without a key.
     # WARNING DO NOT enable on a production or Internet connected instance
@@ -417,10 +417,12 @@ mediawords:
 
     # set to "yes" to skip requirement to run on the correct database schema version
     # ignore_schema_version: "no"
-    
+
     # increment wc_cache_version to invalidate existing cache
     # wc_cache_version: 1
-    
+
     # max number of iterations by the the spider in MediaWords::CM::Mine
     # mc_spider_iterations: 15
 
+    # if set to 1, do all extractions in process rather than queueing to gearman
+    # extract_in_process: 0
