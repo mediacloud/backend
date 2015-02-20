@@ -20,8 +20,6 @@ use MediaWords::StoryVectors;
 
 sub main
 {
-    return;
-
     my $db = MediaWords::DB::connect_to_db;
 
     my ( $num_stories ) = $db->query( "select count(*) from scratch.revector_stories" )->flat;
@@ -40,7 +38,7 @@ END
         my $stories = $db->query( <<END )->hashes;
 select s.*, string_agg( dt.download_text, E'.\n\n' ) story_text
     from stories s
-        join downloads d on ( d.stories_id = s.stories_id ) 
+        join downloads d on ( d.stories_id = s.stories_id )
         join download_texts dt on ( dt.downloads_id = d.downloads_id )
     where
         s.stories_id in ( $stories_id_list )
@@ -51,7 +49,7 @@ END
         {
             # prevent usswal from refetching empty download_texts
             $story->{ story_text } ||= ' ';
-            MediaWords::StoryVectors::update_story_sentence_words_and_language( $db, $story, 1 );
+            MediaWords::StoryVectors::update_story_sentence_words_and_language( $db, $story );
         }
 
         $db->query( <<END );
