@@ -27,20 +27,14 @@ sub get_extractor_results_for_story
     my $download_results = {};
     for my $download ( @{ $downloads } )
     {
+        say STDERR "extracting \n" . Dumper( $download );
         my $res = MediaWords::DBI::Downloads::extractor_results_for_download( $db, $download );
-        $res->{ text } = join( "\n", map { $res->{ download_lines }->[ $_ ] } @{ $res->{ included_line_numbers } } );
-        delete( $res->{ download_lines } );
 
-        $download_results->{ $download->{ downloads_id } } = $res;
+        say STDERR "extractor result\n" . Dumper( $res );
+
     }
 
-    my $text = join( "\n****\n", map { html_strip( $_->{ text } ) } values( %{ $download_results } ) );
-
-    return {
-        text             => $text,
-        download_results => $download_results,
-        story            => $story
-    };
+    return;
 }
 
 sub main
@@ -54,8 +48,6 @@ sub main
     my $story = $db->find_by_id( 'stories', $stories_id );
 
     my $res = get_extractor_results_for_story( $db, $story );
-
-    say STDERR $res->{ text };
 
     # print Dumper( $res );
 }

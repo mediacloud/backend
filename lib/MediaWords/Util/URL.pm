@@ -476,6 +476,20 @@ Readonly my @URL_SHORTENER_HOSTNAMES => qw/
   ➽.ws
   /;
 
+# Fixes common URL mistakes (mistypes, etc.)
+sub fix_common_url_mistakes($)
+{
+    my $url = shift;
+
+    # Fix broken URLs that look like this: http://http://www.al-monitor.com/pulse
+    $url =~ s~(https?://)https?:?//~$1~i;
+
+    # Fix URLs with only one slash after "http" ("http:/www.")
+    $url =~ s~(https?:/)(www)~$1/$2~i;
+
+    return $url;
+}
+
 # Returns true if URL is in the "http" ("https") scheme
 sub is_http_url($)
 {
@@ -484,6 +498,12 @@ sub is_http_url($)
     unless ( $url )
     {
         # say STDERR "URL is undefined";
+        return 0;
+    }
+
+    unless ( $url =~ /$RE{URI}{HTTP}{-scheme => '(?:http|https)'}/i )
+    {
+        # say STDERR "URL does not match URL's regexp";
         return 0;
     }
 
@@ -515,18 +535,17 @@ sub is_homepage_url($)
         return 0;
     }
 
+    unless ( is_http_url( $url ) )
+    {
+        # say STDERR "URL is not valid";
+        return 0;
+    }
+
     # Remove cruft from the URL first
     eval { $url = normalize_url( $url ); };
     if ( $@ )
     {
         # say STDERR "Unable to normalize URL '$url' before checking if it's a homepage: $@";
-        return 0;
-    }
-
-    my $uri = URI->new( $url )->canonical;
-    unless ( $uri->scheme )
-    {
-        # say STDERR "Scheme is undefined for URL $url";
         return 0;
     }
 
@@ -539,6 +558,7 @@ sub is_homepage_url($)
 
     # If we still have something for a query of the URL after the
     # normalization, always assume that the URL is *not* a homepage
+    my $uri = URI->new( $url )->canonical;
     if ( defined $uri->query and $uri->query . '' )
     {
         return 0;
@@ -567,13 +587,13 @@ sub is_shortened_url($)
         return 0;
     }
 
-    my $uri = URI->new( $url )->canonical;
-    unless ( $uri->scheme )
+    unless ( is_http_url( $url ) )
     {
-        # say STDERR "Scheme is undefined for URL $url";
+        # say STDERR "URL is not valid";
         return 0;
     }
 
+    my $uri = URI->new( $url )->canonical;
     if ( defined $uri->path and ( $uri->path eq '' or $uri->path eq '/' ) )
     {
         # Assume that most of the URL shorteners use something like
@@ -615,19 +635,14 @@ sub normalize_url($)
         die "URL is undefined";
     }
 
-    # Fix broken URLs that look like this: http://http://www.al-monitor.com/pulse
-    $url =~ s~(https?)://https?:?//~$1://~i;
+    $url = fix_common_url_mistakes( $url );
+
+    unless ( is_http_url( $url ) )
+    {
+        die "URL is not valid";
+    }
 
     my $uri = URI->new( $url )->canonical;
-    unless ( $uri->scheme )
-    {
-        die "Scheme is undefined for URL $url";
-    }
-
-    unless ( $uri->scheme eq 'http' or $uri->scheme eq 'https' or $uri->scheme eq 'ftp' )
-    {
-        die "Scheme is not HTTP(s) or FTP for URL $url";
-    }
 
     # Remove #fragment
     $uri->fragment( undef );
@@ -739,6 +754,13 @@ sub normalize_url_lossy($)
 {
     my $url = shift;
 
+    unless ( $url )
+    {
+        die "URL is undefined";
+    }
+
+    $url = fix_common_url_mistakes( $url );
+
     $url = lc( $url );
 
     # r2.ly redirects through the hostname, ala http://543.r2.ly
@@ -752,9 +774,6 @@ s/^(https?:\/\/)(m|beta|media|data|image|www?|cdn|topic|article|news|archive|blo
 
     $url =~ s/\/+$//;
 
-    # fix broken urls that look like this: http://http://www.al-monitor.com/pulse
-    $url =~ s~(https?)://https?:?//~$1://~i;
-
     return scalar( URI->new( $url )->canonical );
 }
 
@@ -762,6 +781,8 @@ s/^(https?:\/\/)(m|beta|media|data|image|www?|cdn|topic|article|news|archive|blo
 sub get_url_domain($)
 {
     my $url = shift;
+
+    $url = fix_common_url_mistakes( $url );
 
     $url =~ m~https?://([^/#]*)~ || return $url;
 
@@ -812,7 +833,7 @@ sub meta_refresh_url_from_html($;$)
                 $url = $1;
                 if ( $url )
                 {
-                    if ( $url !~ /$RE{URI}/ )
+                    unless ( is_http_url( $url ) )
                     {
                         # Maybe it's relative / absolute path?
                         if ( $base_url )
@@ -893,6 +914,8 @@ sub url_and_data_after_redirects($;$$)
     {
         die "URL is undefined.";
     }
+
+    $orig_url = fix_common_url_mistakes( $orig_url );
 
     unless ( is_http_url( $orig_url ) )
     {
@@ -1076,7 +1099,9 @@ sub all_url_variants($$)
         die "URL is undefined";
     }
 
-    if ( !is_http_url( $url ) )
+    $url = fix_common_url_mistakes( $url );
+
+    unless ( is_http_url( $url ) )
     {
         my @urls = ( $url );
         return @urls;

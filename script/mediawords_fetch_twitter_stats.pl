@@ -1,7 +1,6 @@
 #!/usr/bin/env perl
-
 #
-# fetch twitter and facebook statistics for all stories in a controversy
+# fetch Twitter statistics for all stories in a controversy
 #
 
 use strict;
@@ -20,7 +19,6 @@ use Getopt::Long;
 
 use MediaWords::DB;
 use MediaWords::CM;
-use MediaWords::Util::Facebook;
 use MediaWords::GearmanFunction;
 use MediaWords::GearmanFunction::Twitter::FetchStoryStats;
 
@@ -83,7 +81,8 @@ END
 
             if (   $overwrite
                 or !$ss
-                or $ss->{ twitter_url_tweet_count_error }
+                or $ss->{ twitter_api_error }
+                or !defined( $ss->{ twitter_api_collect_date } )
                 or !defined( $ss->{ twitter_url_tweet_count } ) )
             {
                 if ( $direct_job )
@@ -100,12 +99,6 @@ END
                     say STDERR "Enqueueing Gearman job for story $stories_id...";
                     MediaWords::GearmanFunction::Twitter::FetchStoryStats->enqueue_on_gearman( $args );
                 }
-
-                # if ( !$ss || $ss->{ facebook_share_count_error} || !defined( $ss->{ facebook_share_count } ) )
-                # {
-                #     my $count = MediaWords::Util::Facebook::get_and_store_share_count( $db, $story );
-                #     say STDERR "facebook_share_count: $count";
-                # }
             }
         }
     }
