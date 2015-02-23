@@ -474,28 +474,6 @@ sub fetch_preprocessed_content_lines($$)
     return $lines;
 }
 
-sub _get_current_extractor_version
-{
-    my $config           = MediaWords::Util::Config::get_config;
-    my $extractor_method = $config->{ mediawords }->{ extractor_method };
-
-    my $extractor_version;
-
-    if ( $extractor_method eq 'PythonReadability' )
-    {
-        $extractor_version = MediaWords::Util::ThriftExtractor::extractor_version();
-    }
-    else
-    {
-        my $old_extractor = MediaWords::Util::ExtractorFactory::createExtractor();
-        $extractor_version = $old_extractor->extractor_version();
-    }
-
-    die unless defined( $extractor_version ) && $extractor_version;
-
-    return $extractor_version;
-}
-
 # run MediaWords::Crawler::Extractor against the download content and return a hash in the form of:
 # { extracted_html => $html,    # a string with the extracted html
 #   extracted_text => $text,    # a string with the extracted html strippped to text
@@ -511,6 +489,8 @@ sub extractor_results_for_download($$)
     my $extracted_html;
     my $ret;
 
+    #say STDERR "DBI::Downloads::extractor_results_for_download extractor_method $extractor_method";
+
     if ( $extractor_method eq 'PythonReadability' )
     {
         my $content_ref = fetch_content( $db, $download );
@@ -518,7 +498,7 @@ sub extractor_results_for_download($$)
         $ret            = {};
         $extracted_html = MediaWords::Util::ThriftExtractor::get_extracted_html( $$content_ref );
     }
-    else
+    elsif ( $extractor_method eq 'HeuristicExtractor' )
     {
         my $story = $db->query( "select * from stories where stories_id = ?", $download->{ stories_id } )->hash;
 
@@ -532,6 +512,10 @@ sub extractor_results_for_download($$)
         my $included_line_numbers = $ret->{ included_line_numbers };
 
         $extracted_html = _get_extracted_html( $download_lines, $included_line_numbers );
+    }
+    else
+    {
+        die "invalid extractor method: $extractor_method";
     }
 
     $extracted_html = _new_lines_around_block_level_tags( $extracted_html );
@@ -574,22 +558,6 @@ sub _do_extraction_from_content_ref($$$)
     $lines = MediaWords::Crawler::Extractor::preprocess( $lines );
 
     return extract_preprocessed_lines_for_story( $lines, $title, $description );
-}
-
-sub _get_included_line_numbers($)
-{
-    my $scores = shift;
-
-    my @included_lines;
-    for ( my $i = 0 ; $i < @{ $scores } ; $i++ )
-    {
-        if ( $scores->[ $i ]->{ is_story } )
-        {
-            push @included_lines, $i;
-        }
-    }
-
-    return \@included_lines;
 }
 
 sub extract_preprocessed_lines_for_story($$$)
@@ -724,6 +692,17 @@ sub get_medium($$)
     return $medium;
 }
 
+sub extract_only( $$ )
+{
+    my ( $db, $download ) = @_;
+
+    my $download_text = MediaWords::DBI::DownloadTexts::create_from_download( $db, $download );
+
+    #say STDERR "Got download_text";
+
+    return $download_text;
+}
+
 sub process_download_for_extractor($$$;$$$)
 {
     my ( $db, $download, $process_num, $no_dedup_sentences, $no_vector ) = @_;
@@ -732,9 +711,8 @@ sub process_download_for_extractor($$$;$$$)
 
     my $stories_id = $download->{ stories_id };
 
-    # Extract
     say STDERR "[$process_num] extract: $download->{ downloads_id } $stories_id $download->{ url }";
-    my $download_text = MediaWords::DBI::DownloadTexts::create_from_download( $db, $download );
+    my $download_text = MediaWords::DBI::Downloads::extract_only( $db, $download );
 
     #say STDERR "Got download_text";
 
@@ -749,50 +727,27 @@ EOF
         $stories_id
     )->hash;
 
-    unless ( $no_vector )
-    {
-        # Vector
-        if ( $has_remaining_download )
-        {
-            say STDERR "[$process_num] pending more downloads ...";
-        }
-        else
-        {
-            my $story = $db->find_by_id( 'stories', $stories_id );
+    my $story = $db->find_by_id( 'stories', $stories_id );
 
-            MediaWords::StoryVectors::update_story_sentence_words_and_language( $db, $story, 0, $no_dedup_sentences );
-        }
+    if ( !( $has_remaining_download ) )
+    {
+        MediaWords::DBI::Stories::process_extracted_story( $story, $db, $no_dedup_sentences, $no_vector );
     }
-
-    unless ( $has_remaining_download )
+    elsif ( !( $no_vector ) )
     {
-        my $story = $db->find_by_id( 'stories', $stories_id );
-        MediaWords::DBI::Stories::update_extractor_version_tag( $db, $story, _get_current_extractor_version() );
 
-        if (    MediaWords::Util::CoreNLP::annotator_is_enabled()
-            and MediaWords::Util::CoreNLP::story_is_annotatable( $db, $stories_id ) )
-        {
-            # Story is annotatable with CoreNLP; enqueue for CoreNLP annotation
-            # (which will run mark_as_processed() on its own)
-            MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman( { stories_id => $stories_id } );
-
-        }
-        else
-        {
-            # Story is not annotatable with CoreNLP; add to "processed_stories" right away
-            unless ( MediaWords::DBI::Stories::mark_as_processed( $db, $stories_id ) )
-            {
-                die "Unable to mark story ID $stories_id as processed";
-            }
-        }
+        say STDERR "[$process_num] pending more downloads ...";
     }
 }
 
 # Extract and vector the download; on error, store the error message in the
 # "downloads" table
-sub extract_and_vector($$$;$$$)
+sub extract_and_vector
 {
-    my ( $db, $download, $process_num, $no_dedup_sentences, $no_vector ) = @_;
+    my ( $db, $download, $process_num ) = @_;
+
+    my $no_dedup_sentences = 0;
+    my $no_vector          = 0;
 
     eval { process_download_for_extractor( $db, $download, $process_num, $no_dedup_sentences, $no_vector ); };
 

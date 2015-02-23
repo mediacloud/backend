@@ -161,7 +161,7 @@ sub test_store_result($)
     ok( $ss, 'story_statistics row exists after initial insert' );
 
     is( $ss->{ twitter_url_tweet_count }, $count, "stored url tweet count" );
-    ok( !defined( $ss->{ twitter_url_tweet_count_error } ), "null url tweet count error" );
+    ok( !defined( $ss->{ twitter_api_error } ), "null url tweet count error" );
 
     $story->{ url } = 'foobar';
 
@@ -171,7 +171,7 @@ sub test_store_result($)
     my $sse = $db->query( 'select * from story_statistics where stories_id = ?', $story->{ stories_id } )->hash;
 
     is( $sse->{ twitter_url_tweet_count }, 0, "stored url tweet count should 0 after error" );
-    ok( defined( $sse->{ twitter_url_tweet_count_error } ), "stored url tweet count should contain error" );
+    ok( defined( $sse->{ twitter_api_error } ), "stored url tweet count should contain error" );
 }
 
 sub main()

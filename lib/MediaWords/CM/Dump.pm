@@ -112,7 +112,7 @@ sub create_temporary_dump_views
     for my $t ( @{ $snapshot_tables } )
     {
         $db->query( <<END );
-create temporary view dump_$t as select * from cd.$t 
+create temporary view dump_$t as select * from cd.$t
     where controversy_dumps_id = $cdts->{ controversy_dumps_id }
 END
     }
@@ -120,7 +120,7 @@ END
     for my $t ( qw(story_link_counts story_links medium_link_counts medium_links) )
     {
         $db->query( <<END )
-create temporary view dump_$t as select * from cd.$t 
+create temporary view dump_$t as select * from cd.$t
     where controversy_dump_time_slices_id = $cdts->{ controversy_dump_time_slices_id }
 END
     }
@@ -174,8 +174,10 @@ sub restrict_period_stories_to_query_slice
 
     my $stories_ids_list = join( ' ', @{ $dump_period_stories_ids } );
 
-    my $solr_q = "( $qs->{ query } ) and stories_id:( $stories_ids_list )";
-    my $solr_stories_ids = MediaWords::Solr::search_for_stories_ids( $db, { q => $solr_q } );
+    my $solr_q = $qs->{ query };
+    $solr_q = "( $solr_q )" if ( $solr_q =~ /or/i );
+    $solr_q = "$solr_q and stories_id:( $stories_ids_list )";
+    my $solr_stories_ids = MediaWords::Solr::search_for_stories_ids( $db, { rows => 1000000, q => $solr_q } );
 
     my $ids_table = $db->get_temporary_ids_table( $solr_stories_ids );
 
@@ -189,7 +191,7 @@ sub get_period_stories_date_where_clause
     my ( $cdts ) = @_;
 
     my $date_clause = <<END;
-( ( s.publish_date between \$1::timestamp and \$2::timestamp - interval '1 second' 
+( ( s.publish_date between \$1::timestamp and \$2::timestamp - interval '1 second'
       and s.stories_id not in ( select stories_id from dump_undateable_stories ) ) or
   ( ss.publish_date between \$1::timestamp and \$2::timestamp - interval '1 second'
       and ss.stories_id not in ( select stories_id from dump_undateable_stories ) )
@@ -242,7 +244,7 @@ create temporary table dump_period_stories $_temporary_tablespace as
         from dump_stories s
             left join dump_controversy_links_cross_media cl on ( cl.ref_stories_id = s.stories_id )
             left join dump_stories ss on ( cl.stories_id = ss.stories_id )
-        where 
+        where
             $date_where_clause
 END
 
@@ -294,14 +296,14 @@ sub get_story_links_csv
     my ( $db, $cdts ) = @_;
 
     my $csv = MediaWords::Util::CSV::get_query_as_csv( $db, <<END );
-select distinct sl.source_stories_id source_stories_id, ss.title source_title, ss.url source_url, 
+select distinct sl.source_stories_id source_stories_id, ss.title source_title, ss.url source_url,
         sm.name source_media_name, sm.url source_media_url, sm.media_id source_media_id,
-		sl.ref_stories_id ref_stories_id, rs.title ref_title, rs.url ref_url, rm.name ref_media_name, rm.url ref_media_url, 
+		sl.ref_stories_id ref_stories_id, rs.title ref_title, rs.url ref_url, rm.name ref_media_name, rm.url ref_media_url,
 		rm.media_id ref_media_id
 	from dump_story_links sl, cd.live_stories ss, media sm, cd.live_stories rs, media rm
-	where sl.source_stories_id = ss.stories_id and 
-	    ss.media_id = sm.media_id and 
-	    sl.ref_stories_id = rs.stories_id and 
+	where sl.source_stories_id = ss.stories_id and
+	    ss.media_id = sm.media_id and
+	    sl.ref_stories_id = rs.stories_id and
 	    rs.media_id = rm.media_id
 END
 
@@ -353,7 +355,7 @@ END
     my $tagset_name = "Controversy $cdts->{ controversy_dump }->{ controversy }->{ name }";
 
     my $tags = $db->query( <<END, $tagset_name )->hashes;
-select * from dump_tags t, dump_tag_sets ts 
+select * from dump_tags t, dump_tag_sets ts
     where t.tag_sets_id = ts.tag_sets_id and ts.name = ? and t.tag <> 'all'
 END
 
@@ -380,7 +382,7 @@ select distinct s.stories_id, s.title, s.url,
         $tag_clause_list
 	from dump_stories s
 	    join dump_media m on ( s.media_id = m.media_id )
-	    join dump_story_link_counts slc on ( s.stories_id = slc.stories_id ) 
+	    join dump_story_link_counts slc on ( s.stories_id = slc.stories_id )
 	    left join (
 	        stories_tags_map stm
                 join tags t on ( stm.tags_id = t.tags_id  and t.tag = 'undateable' )
@@ -409,23 +411,23 @@ sub write_story_link_counts_dump
 
     $db->query( <<END );
 create temporary table dump_story_link_counts $_temporary_tablespace as
-    select distinct ps.stories_id, 
-            coalesce( ilc.inlink_count, 0 ) inlink_count, 
+    select distinct ps.stories_id,
+            coalesce( ilc.inlink_count, 0 ) inlink_count,
             coalesce( olc.outlink_count, 0 ) outlink_count,
             story_bitly_statistics.bitly_click_count as bitly_click_count,
             story_bitly_statistics.bitly_referrer_count as bitly_referrer_count
         from dump_period_stories ps
-            left join 
+            left join
                 ( select cl.ref_stories_id,
-                         count( distinct cl.stories_id ) inlink_count 
+                         count( distinct cl.stories_id ) inlink_count
                   from dump_controversy_links_cross_media cl,
                        dump_period_stories ps
                   where cl.stories_id = ps.stories_id
                   group by cl.ref_stories_id
                 ) ilc on ( ps.stories_id = ilc.ref_stories_id )
-            left join 
+            left join
                 ( select cl.stories_id,
-                         count( distinct cl.ref_stories_id ) outlink_count 
+                         count( distinct cl.ref_stories_id ) outlink_count
                   from dump_controversy_links_cross_media cl,
                        dump_period_stories ps
                   where cl.ref_stories_id = ps.stories_id
@@ -448,7 +450,7 @@ sub add_tags_to_dump_media
 
     my $tag_sets = $db->query( <<END )->hashes;
 select * from dump_tag_sets
-    where tag_sets_id in 
+    where tag_sets_id in
         ( select tag_sets_id
             from dump_tags t join dump_media_tags_map mtm on ( t.tags_id = mtm.tags_id ) )
 END
@@ -486,7 +488,7 @@ select dmtm.*, dt.tag
     from dump_media_tags_map dmtm
         join dump_tags dt on ( dmtm.tags_id = dt.tags_id )
         join dump_tag_sets dts on ( dts.tag_sets_id = dt.tag_sets_id )
-    where 
+    where
         dts.name = 'collection' and
         dt.tag like 'partisan_2012_%'
 END
@@ -550,7 +552,7 @@ sub get_media_csv
     my ( $db, $cdts ) = @_;
 
     my $res = $db->query( <<END );
-select m.media_id, m.name, m.url, mlc.inlink_count, mlc.outlink_count, 
+select m.media_id, m.name, m.url, mlc.inlink_count, mlc.outlink_count,
         mlc.story_count, mlc.bitly_click_count, mlc.bitly_referrer_count
     from dump_media m, dump_medium_link_counts mlc
     where m.media_id = mlc.media_id
@@ -585,14 +587,14 @@ sub write_medium_link_counts_dump
     $db->query( "drop table if exists dump_medium_link_counts" );
 
     $db->query( <<END );
-create temporary table dump_medium_link_counts $_temporary_tablespace as   
+create temporary table dump_medium_link_counts $_temporary_tablespace as
     select m.media_id,
            sum( slc.inlink_count) inlink_count,
            sum( slc.outlink_count) outlink_count,
            count(*) story_count,
            sum( slc.bitly_click_count ) bitly_click_count,
            sum( slc.bitly_referrer_count ) bitly_referrer_count
-        from dump_media m, dump_stories s, dump_story_link_counts slc 
+        from dump_media m, dump_stories s, dump_story_link_counts slc
         where m.media_id = s.media_id and s.stories_id = slc.stories_id
         group by m.media_id
 END
@@ -610,7 +612,7 @@ sub get_medium_links_csv
 
     my $csv = MediaWords::Util::CSV::get_query_as_csv( $db, <<END );
 select ml.source_media_id, sm.name source_name, sm.url source_url,
-        ml.ref_media_id, rm.name ref_name, rm.url ref_url, ml.link_count 
+        ml.ref_media_id, rm.name ref_name, rm.url ref_url, ml.link_count
     from dump_medium_links ml, media sm, media rm
     where ml.source_media_id = sm.media_id and ml.ref_media_id = rm.media_id
 END
@@ -701,9 +703,9 @@ with top_media as (
     select media_id from dump_medium_link_counts order by inlink_count desc limit ?
 )
 
-select * 
+select *
     from dump_medium_links
-    where 
+    where
         source_media_id in ( select media_id from top_media ) and
         ref_media_id in ( select media_id from top_media )
 END
@@ -1061,11 +1063,11 @@ sub get_gexf_dump
     $max_media   ||= MAX_GEXF_MEDIA;
 
     my $media = $db->query( <<END, $max_media )->hashes;
-select distinct * 
-    from dump_media_with_types m, dump_medium_link_counts mlc 
+select distinct *
+    from dump_media_with_types m, dump_medium_link_counts mlc
     where m.media_id = mlc.media_id
     order by mlc.inlink_count desc
-    limit ?     
+    limit ?
 END
 
     add_extra_fields_to_dump_media( $db, $cdts, $media );
@@ -1170,10 +1172,10 @@ sub write_post_dated_links_dump
     my ( $db, $controversy ) = @_;
 
     write_dump_as_csv( $db, $controversy, 'controversy_post_dated_links_dump', <<END );
-select count(*) post_dated_links, sb.stories_id, min( sb.url ) url, min( sb.publish_date ) publish_date 
-    from stories sa, stories sb, controversy_links_cross_media cl 
-    where sa.stories_id = cl.stories_id and sb.stories_id = cl.ref_stories_id and 
-        sa.publish_date < sb.publish_date - interval '1 day' and 
+select count(*) post_dated_links, sb.stories_id, min( sb.url ) url, min( sb.publish_date ) publish_date
+    from stories sa, stories sb, controversy_links_cross_media cl
+    where sa.stories_id = cl.stories_id and sb.stories_id = cl.ref_stories_id and
+        sa.publish_date < sb.publish_date - interval '1 day' and
         not ( sa.url like '%google.search%' ) and
         cl.controversies_id = $controversy->{ controversies_id }
     group by sb.stories_id order by count(*) desc;
@@ -1187,12 +1189,12 @@ sub write_post_dated_stories_dump
     my ( $db, $controversy ) = @_;
 
     write_dump_as_csv( $db, $controversy, 'controversy_post_dated_stories_dump', <<END );
-select distinct sa.stories_id, sa.url, sa.publish_date, 
-        count(sa.stories_id) OVER (PARTITION BY sb.stories_id) post_dated_stories, sb.stories_id ref_stories_id, 
-        sb.url ref_url, sb.publish_date ref_publish_date 
-    from stories sa, stories sb, controversy_links_cross_media cl 
-    where sa.stories_id = cl.stories_id and sb.stories_id = cl.ref_stories_id and 
-        sa.publish_date < sb.publish_date - interval '1 day' and 
+select distinct sa.stories_id, sa.url, sa.publish_date,
+        count(sa.stories_id) OVER (PARTITION BY sb.stories_id) post_dated_stories, sb.stories_id ref_stories_id,
+        sb.url ref_url, sb.publish_date ref_publish_date
+    from stories sa, stories sb, controversy_links_cross_media cl
+    where sa.stories_id = cl.stories_id and sb.stories_id = cl.ref_stories_id and
+        sa.publish_date < sb.publish_date - interval '1 day' and
         not ( sa.url like '%sopa.google.search%' ) and
         cl.controversies_id = $controversy->{ controversies_id }
     order by post_dated_stories desc, sb.stories_id, sa.publish_date;
@@ -1207,9 +1209,9 @@ sub write_media_domains_dump
 
     my $res = $db->query( <<END );
 select m.* from media m
-    where m.media_id in 
+    where m.media_id in
         ( select s.media_id from stories s, controversy_stories cs
-              where s.stories_id = cs.stories_id and 
+              where s.stories_id = cs.stories_id and
                   cs.controversies_id = $controversy->{ controversies_id } )
     order by m.media_id
 END
@@ -1257,13 +1259,13 @@ select sa.title, sa.stories_id stories_id_a, sa.publish_date publish_date_a, sa.
         sb.media_id media_id_b, mb.url media_url_b, mb.name media_name_b
     from controversy_stories csa, stories sa, media ma,
         controversy_stories csb, stories sb, media mb
-    where csa.controversies_id = $controversy->{ controversies_id } and 
+    where csa.controversies_id = $controversy->{ controversies_id } and
         csa.stories_id = sa.stories_id and sa.media_id = ma.media_id and
-        csb.controversies_id = csa.controversies_id and 
+        csb.controversies_id = csa.controversies_id and
         csb.stories_id = sb.stories_id and sb.media_id = mb.media_id and
         sa.stories_id > sb.stories_id and sa.title = sb.title and
         length( sa.title ) > 16
-    order by sa.title, sa.stories_id, sb.stories_id        
+    order by sa.title, sa.stories_id, sb.stories_id
 END
 }
 
@@ -1296,7 +1298,7 @@ sub write_word_counts
     my ( $db, $cdts ) = @_;
 
     $db->query( <<END, $cdts->{ controversy_dump_time_slices_id } );
-insert into cd.word_counts 
+insert into cd.word_counts
     ( controversy_dump_time_slices_id, stem, term, stem_count )
     select ?, ssw.stem, min( term ) term, sum( ssw.stem_count ) stem_count
         from story_sentence_words ssw
@@ -1537,7 +1539,7 @@ sub create_snapshot
     say STDERR "snapshot $table...";
 
     my $column_names = [ $db->query( <<END, $table, $key )->flat ];
-select column_name from information_schema.columns 
+select column_name from information_schema.columns
     where table_name = ? and table_schema = 'cd' and
         column_name not in ( ? )
     order by ordinal_position asc
@@ -1579,14 +1581,14 @@ sub write_temporary_dump_tables
     set_temporary_table_tablespace();
 
     $db->query( <<END, $controversies_id );
-create temporary table dump_controversy_stories $_temporary_tablespace as 
+create temporary table dump_controversy_stories $_temporary_tablespace as
     select cs.*
         from controversy_stories cs
         where cs.controversies_id = ?
 END
 
     $db->query( <<END, $controversies_id );
-create temporary table dump_controversy_media_codes $_temporary_tablespace as 
+create temporary table dump_controversy_media_codes $_temporary_tablespace as
     select cmc.*
         from controversy_media_codes cmc
         where cmc.controversies_id = ?
@@ -1637,14 +1639,14 @@ create temporary table dump_tags $_temporary_tablespace as
         ( select a.tags_id
             from tags a
                 join dump_media_tags_map amtm on ( a.tags_id = amtm.tags_id )
-        
+
           union
 
           select b.tags_id
             from tags b
                 join dump_stories_tags_map bstm on ( b.tags_id = bstm.tags_id )
         )
-     
+
 END
 
     $db->query( <<END );
@@ -1668,9 +1670,9 @@ create or replace view dump_media_with_types as
         select controversies_id from dump_controversy_stories limit 1
     )
 
-    select 
-            m.*, 
-            case 
+    select
+            m.*,
+            case
                 when ( ct.label <> 'Not Typed' )
                     then ct.label
                 when ( ut.label is not null )
@@ -1678,7 +1680,7 @@ create or replace view dump_media_with_types as
                 else
                     'Not Typed'
                 end as media_type
-        from 
+        from
             dump_media m
             left join (
                 dump_tags ut
@@ -1717,7 +1719,7 @@ sub create_controversy_dump ($$$$)
     my ( $db, $controversy, $start_date, $end_date ) = @_;
 
     my $cd = $db->query( <<END, $controversy->{ controversies_id }, $start_date, $end_date )->hash;
-insert into controversy_dumps 
+insert into controversy_dumps
     ( controversies_id, start_date, end_date, dump_date )
     values ( ?, ?, ?, now() )
     returning *

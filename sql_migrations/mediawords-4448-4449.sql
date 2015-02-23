@@ -36,6 +36,13 @@ BEGIN
           -- Media is marked for CoreNLP annotation
           AND media.annotate_with_corenlp = 't'
 
+          -- English language stories only because they're the only ones
+          -- supported by CoreNLP at the time.
+          -- Stories with language field set to NULL are the ones fetched
+          -- before introduction of the multilanguage support, so they are
+          -- assumed to be in English
+          AND (stories.language = 'en' OR stories.language IS NULL)
+
           -- Story not yet marked as "processed"
           AND NOT EXISTS (
             SELECT 1
