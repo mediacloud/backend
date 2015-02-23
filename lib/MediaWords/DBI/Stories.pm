@@ -42,6 +42,9 @@ sub _get_tags_id
         }
     );
 
+    #Commit to make sure cache and database are consistent
+    $db->commit;
+
     $_tags_id_cache->{ $tag_sets_id }->{ $term } = $tag->{ tags_id };
 
     return $tag->{ tags_id };
@@ -1224,9 +1227,8 @@ sub mark_as_processed($$)
 {
     my ( $db, $stories_id ) = @_;
 
-    my $result = undef;
-    eval { $result = $db->create( 'processed_stories', { stories_id => $stories_id } ); };
-    if ( $@ or ( !$result ) )
+    eval { $db->insert( 'processed_stories', { stories_id => $stories_id } ); };
+    if ( $@ )
     {
         warn "Unable to insert story ID $stories_id into 'processed_stories': $@";
         return 0;
