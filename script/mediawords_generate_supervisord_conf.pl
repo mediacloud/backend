@@ -33,7 +33,8 @@ sub main
     # template toolkit converts unquoted true and false values to '1' and '0', which
     # confuses the template processing
     $config->{ supervisor }->{ programs } ||= {};
-    my $boolean_fields = [ 'autostart', 'autorestart' ];
+    my $boolean_fields = [ 'autostart', 'autorestart', 'killasgroup', 'stopasgroup' ];
+
     for my $b ( @{ $boolean_fields } )
     {
         for my $program ( values( %{ $config->{ supervisor }->{ programs } } ) )
