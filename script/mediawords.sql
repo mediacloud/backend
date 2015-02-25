@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4480;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4481;
     
 BEGIN
 
@@ -204,6 +204,29 @@ $$
 $$
 LANGUAGE 'plpgsql';
 
+-- Store whether story triggers should be enable in PRIVATE.use_story_triggers
+-- This variable is session based. If it's not set, set it to enable triggers and return true
+CREATE OR REPLACE FUNCTION  story_triggers_enabled() RETURNS boolean  LANGUAGE  plpgsql AS $$
+BEGIN
+
+    return current_setting('PRIVATE.use_story_triggers') = 'yes';
+     EXCEPTION when undefined_object then
+        perform enable_story_triggers();
+        return true;
+END$$;
+
+CREATE OR REPLACE FUNCTION  enable_story_triggers() RETURNS void LANGUAGE  plpgsql AS $$
+DECLARE
+BEGIN
+        perform set_config('PRIVATE.use_story_triggers', 'yes', false );
+END$$;
+
+CREATE OR REPLACE FUNCTION  disable_story_triggers() RETURNS void LANGUAGE  plpgsql AS $$
+DECLARE
+BEGIN
+        perform set_config('PRIVATE.use_story_triggers', 'no', false );
+END$$;
+
 CREATE OR REPLACE FUNCTION last_updated_trigger () RETURNS trigger AS
 $$
    DECLARE
@@ -227,6 +250,11 @@ $$
    DECLARE
       path_change boolean;
    BEGIN
+
+        IF NOT story_triggers_enabled() THEN
+           RETURN NULL;
+        END IF;
+
 	UPDATE story_sentences set db_row_last_updated = now() where stories_id = NEW.stories_id;
 	RETURN NULL;
    END;
@@ -239,6 +267,10 @@ $$
         path_change boolean;
         reference_stories_id integer default null;
     BEGIN
+
+       IF NOT story_triggers_enabled() THEN
+           RETURN NULL;
+        END IF;
 
         IF TG_OP = 'INSERT' THEN
             -- The "old" record doesn't exist
@@ -263,6 +295,10 @@ $$
         path_change boolean;
         reference_story_sentences_id bigint default null;
     BEGIN
+
+       IF NOT story_triggers_enabled() THEN
+           RETURN NULL;
+        END IF;
 
         IF TG_OP = 'INSERT' THEN
             -- The "old" record doesn't exist
