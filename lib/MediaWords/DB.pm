@@ -66,8 +66,16 @@ sub connect_to_db(;$$)
         $ret->query( " SET statement_timeout TO ? ", $config->{ mediawords }->{ db_statement_timeout } );
     }
 
-    # Reset the session variable in case the database connection is being reused due to pooling.
-    $ret->query( "SELECT enable_story_triggers(); " );
+    eval {
+        # Reset the session variable in case the database connection is being reused due to pooling.
+        $ret->query( "SELECT enable_story_triggers(); " );
+    };
+
+    if ( $@ )
+    {
+        warn;
+        udef( $@ );
+    }
 
     return $ret;
 }
