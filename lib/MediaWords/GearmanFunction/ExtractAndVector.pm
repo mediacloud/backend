@@ -64,6 +64,15 @@ sub run($$)
     my $db = MediaWords::DB::connect_to_db();
     $db->dbh->{ AutoCommit } = 0;
 
+    if ( exists $args->{ disable_story_triggers } && $args->{ disable_story_triggers } )
+    {
+        $db->query( "SELECT disable_story_triggers(); " );
+    }
+    else
+    {
+        $db->query( "SELECT enable_story_triggers(); " );
+    }
+
     eval {
 
         my $process_id = 'gearman:' . $$;
