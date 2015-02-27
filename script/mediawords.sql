@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4481;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4482;
     
 BEGIN
 
@@ -1190,6 +1190,12 @@ CREATE TRIGGER story_sentences_last_updated_trigger BEFORE INSERT OR UPDATE ON s
 -- update media stats table for new story sentence.
 create function insert_ss_media_stats() returns trigger as $$
 begin
+
+
+    IF NOT story_triggers_enabled() THEN
+      RETURN NULL;
+    END IF;
+
     update media_stats set num_sentences = num_sentences + 1
         where media_id = NEW.media_id and stat_date = date_trunc( 'day', NEW.publish_date );
 
@@ -1205,6 +1211,10 @@ declare
     new_date date;
     old_date date;
 begin
+
+    IF NOT story_triggers_enabled() THEN
+       RETURN NULL;
+    END IF;
     
     select date_trunc( 'day', NEW.publish_date ) into new_date;
     select date_trunc( 'day', OLD.publish_date ) into old_date;
@@ -1225,6 +1235,10 @@ create trigger ss_update_story_media_stats after update
 -- update media stats table for deleted story sentence
 create function delete_ss_media_stats() returns trigger as $$
 begin
+
+    IF NOT story_triggers_enabled() THEN
+       RETURN NULL;
+    END IF;
     
     update media_stats set num_sentences = num_sentences - 1
     where media_id = OLD.media_id and stat_date = date_trunc( 'day', OLD.publish_date );
@@ -1238,6 +1252,10 @@ create trigger story_delete_ss_media_stats after delete
 -- update media stats table for new story. create the media / day row if needed.  
 create or replace function insert_story_media_stats() returns trigger as $insert_story_media_stats$
 begin
+
+    IF NOT story_triggers_enabled() THEN
+       RETURN NULL;
+    END IF;
     
     insert into media_stats ( media_id, num_stories, num_sentences, stat_date )
         select NEW.media_id, 0, 0, date_trunc( 'day', NEW.publish_date )
@@ -1260,6 +1278,10 @@ declare
     new_date date;
     old_date date;
 begin
+
+    IF NOT story_triggers_enabled() THEN
+       RETURN NULL;
+    END IF;
     
     select date_trunc( 'day', NEW.publish_date ) into new_date;
     select date_trunc( 'day', OLD.publish_date ) into old_date;
@@ -1290,6 +1312,10 @@ create trigger stories_update_story_media_stats after update
 create function delete_story_media_stats() returns trigger as $delete_story_media_stats$
 begin
     
+    IF NOT story_triggers_enabled() THEN
+       RETURN NULL;
+    END IF;
+
     update media_stats set num_stories = num_stories - 1
     where media_id = OLD.media_id and stat_date = date_trunc( 'day', OLD.publish_date );
 
