@@ -56,8 +56,8 @@ sub main
         }
 
         my $rows = $db->query(
-"select ps.* from processed_stories ps where processed_stories_id > ? EXCEPT select ps.* from processed_stories ps, stories_tags_map stm where ps.stories_id = stm.stories_id AND processed_stories_id > ? AND tags_id = ? order by processed_stories_id asc limit ? ",
-            $last_processed_stories_id, $last_processed_stories_id, $tags_id, $story_batch_size )->hashes;
+"select ps.* from processed_stories ps left join  stories_tags_map stm on ( ps.stories_id=stm.stories_id and stm.tags_id=? ) where processed_stories_id > ? and tags_id is null order by processed_stories_id asc limit ?;",
+            $tags_id, $last_processed_stories_id, $story_batch_size )->hashes;
 
         my $stories_ids = [ map { $_->{ stories_id } } @$rows ];
 
