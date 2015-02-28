@@ -33,11 +33,13 @@ sub main
     my $tags_id = MediaWords::DBI::Stories::get_current_extractor_version_tags_id( $db );
 
     my $last_processed_stories_id = 0;
-    my $story_batch_size          = 10;
-    my $gearman_queue_limit       = 8;
+    my $story_batch_size          = 1000;
+    my $gearman_queue_limit       = 200;
     my $sleep_time                = 20;
 
     my $gearman_db = MediaWords::DB::connect_to_db( "gearman" );
+
+    my $total_stories_enqueued = 0;
 
     while ( 1 )
     {
@@ -76,7 +78,14 @@ sub main
 
         }
 
+        $total_stories_enqueued += scalar( @$stories_ids );
+
+        say STDERR "last_processed_stories_id  $last_processed_stories_id ";
+        say STDERR "total_stories_enqueued $total_stories_enqueued";
     }
+
+    say STDERR "all stories extracted with readability";
+
 }
 
 main();
