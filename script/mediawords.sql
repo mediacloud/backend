@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4482;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4483;
     
 BEGIN
 
@@ -2783,6 +2783,18 @@ BEGIN
 
     ) THEN
         RAISE NOTICE 'Story % is not annotatable with CoreNLP because media is not set for annotation.', corenlp_stories_id;
+        RETURN FALSE;
+
+    -- Check if the story is extracted
+    ELSEIF EXISTS (
+
+        SELECT 1
+        FROM downloads
+        WHERE stories_id = corenlp_stories_id
+          AND extracted = 'f'
+
+    ) THEN
+        RAISE NOTICE 'Story % is not annotatable with CoreNLP because it is not extracted.', corenlp_stories_id;
         RETURN FALSE;
 
     -- Annotate English language stories only because they're the only ones
