@@ -1,12 +1,18 @@
 #!/usr/bin/env perl
 #
-# Enqueue reextracted stories for CoreNLP annotation.
+# Enqueue (extracted) stories for CoreNLP processing (either all of them of
+# only a part of the stories based on a certain criteria).
 #
 # Usage:
 #
-#     mediawords_enqueue_reextracted_stories_for_corenlp_on_gearman.pl \
-#         [--resume_stories_id_log=corenlp-enqueue-resume-stories_id.log] \
-#         [--media_id=1]
+#     mediawords_enqueue_stories_for_corenlp_processing.pl \
+#         [--resume_stories_id_log=stories_id.log] \    # file to keep the last processed "stories_id" in
+#         [--overwrite] \                               # overwrite existing annotations (default is not to do that)
+#         [--media_id=1] \      # enqueue only stories with a specific "media_id"; may be comma-separated list
+#         [--feeds_id=1] \      # enqueue only stories with a specific "feeds_id"; may be comma-separated list
+#         [--stories_id=1] \    # enqueue only stories with a specific "stories_id"; may be a comma-separated list
+#         [--media_tags_id=1] \ # enqueue only stories with a specific "media_tags_id"; may be a comma-separated list
+#         [--stories_tags_id=1] \ # enqueue only stories with a specific "stories_tags_id"; may be a comma-separated list
 #
 # (then, to resume from where the script stopped, run the very same command again)
 #
@@ -134,17 +140,28 @@ sub _write_stories_id_resume_log($$)
     }
 
     # Enqueue stories for CoreNLP annotation
-    sub enqueue_stories_to_corenlp($$$)
+    sub enqueue_stories_to_corenlp($$$$)
     {
-        my ( $resume_stories_id_log, $resume_stories_id, $media_id ) = @_;
+        my ( $resume_stories_id_log, $resume_stories_id, $limit_by, $overwrite ) = @_;
 
-        if ( defined $media_id )
+        for my $limit_by_key ( keys %{ $limit_by } )
         {
-            unless ( looks_like_number( $media_id ) )
+            if ( $limit_by->{ $limit_by_key } )
             {
-                die "Media ID '$media_id' is not a number.";
+                unless ( ref $limit_by->{ $limit_by_key } eq 'ARRAY' )
+                {
+                    die "'$limit_by_key' is not arrayref.";
+                }
+                foreach my $limit_by_value ( @{ $limit_by->{ $limit_by_key } } )
+                {
+                    unless ( looks_like_number( $limit_by_value ) )
+                    {
+                        die "'$limit_by_key' value $limit_by_value is not a number.";
+                    }
+
+                    $limit_by_value = $limit_by_value + 0;
+                }
             }
-            $media_id = $media_id + 0;
         }
 
         $global_resume_stories_id_log = $resume_stories_id_log;
@@ -160,14 +177,37 @@ sub _write_stories_id_resume_log($$)
 
         $row = $resume_stories_id;
 
+        my @limit_by_conditions;
+
         my $media_id_sql = '';
-        if ( defined $media_id )
+        if ( $limit_by->{ media_id } )
         {
-            $media_id_sql = 'media_id = ' . $media_id;
+            push( @limit_by_conditions, 'stories.media_id IN (' . join( ', ', @{ $limit_by->{ media_id } } ) . ')' );
         }
-        else
+        if ( $limit_by->{ feeds_id } )
         {
-            $media_id_sql = "'t'";
+            push( @limit_by_conditions,
+                'feeds_stories_map.feeds_id IN (' . join( ', ', @{ $limit_by->{ feeds_id } } ) . ')' );
+        }
+        if ( $limit_by->{ stories_id } )
+        {
+            push( @limit_by_conditions, 'stories.stories_id IN (' . join( ', ', @{ $limit_by->{ stories_id } } ) . ')' );
+        }
+        if ( $limit_by->{ media_tags_id } )
+        {
+            push( @limit_by_conditions,
+                'media_tags_map.tags_id IN (' . join( ', ', @{ $limit_by->{ media_tags_id } } ) . ')' );
+        }
+        if ( $limit_by->{ stories_tags_id } )
+        {
+            push( @limit_by_conditions,
+                'stories_tags_map.tags_id IN (' . join( ', ', @{ $limit_by->{ stories_tags_id } } ) . ')' );
+        }
+
+        my $limit_by_conditions_str = '';
+        if ( scalar @limit_by_conditions )
+        {
+            $limit_by_conditions_str = ' AND ' . join( ' AND ', @limit_by_conditions );
         }
 
         my $stories = [ 'non-empty array' ];
@@ -179,13 +219,18 @@ sub _write_stories_id_resume_log($$)
 
             $stories = $db->query(
                 <<"EOF"
-                SELECT stories_id
+                SELECT DISTINCT stories.stories_id
                 FROM stories
-                WHERE stories_id > $resume_stories_id
-                  AND db_row_last_updated > collect_date + interval '1 day'
-                  AND story_is_annotatable_with_corenlp(stories_id) = 't'
-                  AND $media_id_sql
-                ORDER BY stories_id
+                    LEFT JOIN feeds_stories_map
+                        ON stories.stories_id = feeds_stories_map.stories_id
+                    LEFT JOIN media_tags_map
+                        ON stories.media_id = media_tags_map.media_id
+                    LEFT JOIN stories_tags_map
+                        ON stories.stories_id = stories_tags_map.stories_id
+                WHERE stories.stories_id > $resume_stories_id
+                  AND story_is_annotatable_with_corenlp(stories.stories_id) = 't'
+                  $limit_by_conditions_str
+                ORDER BY stories.stories_id
                 LIMIT $chunk_size
 EOF
             )->hashes;
@@ -207,6 +252,19 @@ EOF
 
                 # Write the offset
                 _write_stories_id_resume_log( $resume_stories_id_log, $stories_id );
+
+                if ( MediaWords::Util::CoreNLP::story_is_annotated( $db, $stories_id ) )
+                {
+                    if ( $overwrite )
+                    {
+                        warn "Story $stories_id is already annotated with CoreNLP, will overwrite.";
+                    }
+                    else
+                    {
+                        warn "Story $stories_id is already annotated with CoreNLP, skipping.";
+                        next;
+                    }
+                }
 
                 say STDERR "Will attempt to enqueue story " . $stories_id if ( _verbose() );
 
@@ -244,15 +302,41 @@ sub main
     binmode( STDERR, ':utf8' );
 
     my $resume_stories_id_log = undef;    # (optional) file into which a resume story ID should be written
-    my $media_id              = undef;    # (optional) media ID to which stories should be limited to
+    my $overwrite             = undef;    # (optional) whether to overwrite existing annotations
+    my $media_id              = undef;    # (optional) media ID(s) to which stories should be limited to
+    my $feeds_id              = undef;    # (optional) feed ID(s) to which stories should be limited to
+    my $stories_id            = undef;    # (optional) stories ID(s) to which stories should be limited to
+    my $media_tags_id         = undef;    # (optional) media tag ID(s) to which stories should be limited to
+    my $stories_tags_id       = undef;    # (optional) story tag ID(s) to which stories should be limited to
 
-    my Readonly $usage =
-      'Usage: ' . $0 . ' [--resume_stories_id_log=corenlp-enqueue-resume-stories_id.log]' . ' [--media_id=media_id]';
+    my Readonly $usage = <<"EOF";
+        Usage: $0 \
+            [--resume_stories_id_log=stories_id.log] \
+            [--overwrite] \
+            [--media_id=media_id] \
+            [--feeds_id=feeds_id] \
+            [--stories_id=stories_id] \
+            [--media_tags_id=media_tags_id] \
+            [--stories_tags_id=stories_tags_id]
+EOF
 
     GetOptions(
         'resume_stories_id_log:s' => \$resume_stories_id_log,
-        'media_id:i'              => \$media_id,
+        'overwrite'               => \$overwrite,
+        'media_id:s'              => \$media_id,
+        'feeds_id:s'              => \$feeds_id,
+        'stories_id:s'            => \$stories_id,
+        'media_tags_id:s'         => \$media_tags_id,
+        'stories_tags_id:s'       => \$stories_tags_id,
     ) or die "$usage\n";
+
+    my $limit_by = {
+        media_id        => $media_id        ? [ split( /,/, $media_id ) ]        : undef,
+        feeds_id        => $feeds_id        ? [ split( /,/, $feeds_id ) ]        : undef,
+        stories_id      => $stories_id      ? [ split( /,/, $stories_id ) ]      : undef,
+        media_tags_id   => $media_tags_id   ? [ split( /,/, $media_tags_id ) ]   : undef,
+        stories_tags_id => $stories_tags_id ? [ split( /,/, $stories_tags_id ) ] : undef,
+    };
 
     say STDERR "starting --  " . localtime();
 
@@ -273,16 +357,29 @@ sub main
         say STDERR "Will start from beginning.";
     }
 
-    if ( defined $media_id )
+    if ( $overwrite )
     {
-        say STDERR "Will enqueue only stories with media_id = $media_id.";
+        say STDERR "Will overwrite existing annotations.";
     }
     else
     {
-        say STDERR "Will enqueue all applicable stories.";
+        say STDERR "Will *not* overwrite existing annotations.";
     }
 
-    enqueue_stories_to_corenlp( $resume_stories_id_log, $resume_stories_id, $media_id );
+    for my $limit_by_key ( keys %{ $limit_by } )
+    {
+        if ( $limit_by->{ $limit_by_key } )
+        {
+            say STDERR "Will enqueue only stories with $limit_by_key IN (" .
+              join( ', ', @{ $limit_by->{ $limit_by_key } } ) . ').';
+        }
+        else
+        {
+            say STDERR "Will not limit stories by $limit_by_key.";
+        }
+    }
+
+    enqueue_stories_to_corenlp( $resume_stories_id_log, $resume_stories_id, $limit_by, $overwrite );
 
     say STDERR "finished --  " . localtime();
 }
