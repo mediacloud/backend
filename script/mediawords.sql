@@ -2789,6 +2789,18 @@ BEGIN
         RAISE NOTICE 'Story % is not annotatable with CoreNLP because media is not set for annotation.', corenlp_stories_id;
         RETURN FALSE;
 
+    -- Check if the story is extracted
+    ELSEIF EXISTS (
+
+        SELECT 1
+        FROM downloads
+        WHERE stories_id = corenlp_stories_id
+          AND extracted = 'f'
+
+    ) THEN
+        RAISE NOTICE 'Story % is not annotatable with CoreNLP because it is not extracted.', corenlp_stories_id;
+        RETURN FALSE;
+
     -- Annotate English language stories only because they're the only ones
     -- supported by CoreNLP at the time.
     ELSEIF NOT EXISTS (
