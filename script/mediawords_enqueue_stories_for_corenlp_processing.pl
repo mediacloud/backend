@@ -177,29 +177,35 @@ sub _write_stories_id_resume_log($$)
 
         $row = $resume_stories_id;
 
+        my @left_joins;
         my @limit_by_conditions;
 
         my $media_id_sql = '';
         if ( $limit_by->{ media_id } )
         {
+            # nothing to LEFT JOIN
             push( @limit_by_conditions, 'stories.media_id IN (' . join( ', ', @{ $limit_by->{ media_id } } ) . ')' );
         }
         if ( $limit_by->{ feeds_id } )
         {
+            push( @left_joins, 'LEFT JOIN feeds_stories_map ON stories.stories_id = feeds_stories_map.stories_id' );
             push( @limit_by_conditions,
                 'feeds_stories_map.feeds_id IN (' . join( ', ', @{ $limit_by->{ feeds_id } } ) . ')' );
         }
         if ( $limit_by->{ stories_id } )
         {
+            # nothing to LEFT JOIN
             push( @limit_by_conditions, 'stories.stories_id IN (' . join( ', ', @{ $limit_by->{ stories_id } } ) . ')' );
         }
         if ( $limit_by->{ media_tags_id } )
         {
+            push( @left_joins, 'LEFT JOIN media_tags_map ON stories.media_id = media_tags_map.media_id' );
             push( @limit_by_conditions,
                 'media_tags_map.tags_id IN (' . join( ', ', @{ $limit_by->{ media_tags_id } } ) . ')' );
         }
         if ( $limit_by->{ stories_tags_id } )
         {
+            push( @left_joins, 'LEFT JOIN stories_tags_map ON stories.stories_id = stories_tags_map.stories_id' );
             push( @limit_by_conditions,
                 'stories_tags_map.tags_id IN (' . join( ', ', @{ $limit_by->{ stories_tags_id } } ) . ')' );
         }
@@ -208,6 +214,12 @@ sub _write_stories_id_resume_log($$)
         if ( scalar @limit_by_conditions )
         {
             $limit_by_conditions_str = ' AND ' . join( ' AND ', @limit_by_conditions );
+        }
+
+        my $left_joins_str = '';
+        if ( scalar @left_joins )
+        {
+            $left_joins_str = join( ' ', @left_joins );
         }
 
         my $stories = [ 'non-empty array' ];
@@ -221,12 +233,7 @@ sub _write_stories_id_resume_log($$)
                 <<"EOF"
                 SELECT DISTINCT stories.stories_id
                 FROM stories
-                    LEFT JOIN feeds_stories_map
-                        ON stories.stories_id = feeds_stories_map.stories_id
-                    LEFT JOIN media_tags_map
-                        ON stories.media_id = media_tags_map.media_id
-                    LEFT JOIN stories_tags_map
-                        ON stories.stories_id = stories_tags_map.stories_id
+                    $left_joins_str
                 WHERE stories.stories_id > $resume_stories_id
                   AND story_is_annotatable_with_corenlp(stories.stories_id) = 't'
                   $limit_by_conditions_str
