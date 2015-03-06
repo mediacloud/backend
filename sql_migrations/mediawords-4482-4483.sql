@@ -42,6 +42,7 @@ BEGIN
         SELECT 1
         FROM downloads
         WHERE stories_id = corenlp_stories_id
+          AND type = 'content'
           AND extracted = 'f'
 
     ) THEN
@@ -54,11 +55,12 @@ BEGIN
 
         SELECT 1
         FROM stories
+        WHERE stories_id = corenlp_stories_id
 
         -- Stories with language field set to NULL are the ones fetched before
         -- introduction of the multilanguage support, so they are assumed to be
         -- English.
-        WHERE stories.language = 'en' OR stories.language IS NULL
+          AND ( stories.language = 'en' OR stories.language IS NULL )
 
     ) THEN
         RAISE NOTICE 'Story % is not annotatable with CoreNLP because it is not in English.', corenlp_stories_id;
