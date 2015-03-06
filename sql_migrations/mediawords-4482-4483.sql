@@ -42,6 +42,7 @@ BEGIN
         SELECT 1
         FROM downloads
         WHERE stories_id = corenlp_stories_id
+          AND type = 'content'
           AND extracted = 'f'
 
     ) THEN
