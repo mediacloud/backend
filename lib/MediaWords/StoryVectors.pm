@@ -479,6 +479,22 @@ sub _get_sentences_from_story_text
     return $sentences;
 }
 
+# apply manual filters to clean out sentences that we think are junk. edits the $sentences array in place with splice
+sub clean_sentences
+{
+    my ( $sentences ) = @_;
+
+    # first walk through the array, then prune any sentences we want to drop; this approach allows to splice in place
+    my $prune_indices = [];
+    for ( my $i = 0; $i < @{ $sentences }; $i++ )
+    {
+        push( @{ $prune_indicies }, $i ) if ( $sentence->[ $i ] =~ /(\[.*\{){5,}/ );
+    }
+
+    map { splice( @{ $sentences }, $_, 1 ) } @{ $prune_indices }
+
+}
+
 # update story vectors for the given story, updating story_sentences and story_sentence_words
 # if no_delete is true, do not try to delete existing entries in the above table before creating new ones
 # (useful for optimization if you are very sure no story vectors exist for this story).  If
@@ -558,6 +574,8 @@ sub update_story_sentence_words_and_language
         return;
     }
 
+    clean_sentences( $sentences );
+
     if ( $no_dedup_sentences )
     {
         say STDERR "Won't de-duplicate sentences for story $stories_id because 'no_dedup_sentences' is set.";
@@ -566,6 +584,7 @@ sub update_story_sentence_words_and_language
     {
         $sentences = dedup_sentences( $db, $story_ref, $sentences );
     }
+
 
     my $sentence_refs = [];
     for ( my $sentence_num = 0 ; $sentence_num < @{ $sentences } ; $sentence_num++ )
@@ -1021,7 +1040,7 @@ EOF
                         $update_clauses
                         AND NOT is_stop_stem( 'long', stem, null::text )
                         AND stem ~ '[^[:digit:][:punct:][:cntrl:][:space:]]'
-            ) AS q 
+            ) AS q
             WHERE stem_rank < 500
             ORDER BY stem_rank ASC
 EOF
@@ -1772,7 +1791,7 @@ sub _story_data_exists_for_date
             media_id IN (
                 SELECT media_id
                 FROM media_sets_media_map
-                WHERE media_sets_id = 11752 
+                WHERE media_sets_id = 11752
             )
 EOF
     }
