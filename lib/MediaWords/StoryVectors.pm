@@ -31,31 +31,6 @@ use constant MIN_STEM_LENGTH => 3;
 Readonly my $sentence_study_table_prefix => 'sen_study_old_';
 Readonly my $sentence_study_table_suffix => '_2011_01_03_2011_01_10';
 
-# if story is a ref, return itself, otherwise treat it as a stories_id and query for the story ref
-sub _get_story
-{
-    my ( $db, $story ) = @_;
-
-    if ( ref( $story ) )
-    {
-        return $story;
-    }
-    else
-    {
-        return $db->query(
-            <<"EOF",
-            SELECT stories_id,
-                   publish_date,
-                   media_id,
-                   url
-            FROM stories
-            WHERE stories_id = ?
-EOF
-            $story
-        )->hash;
-    }
-}
-
 # given a hash of word counts by sentence, insert the words into the db
 sub _insert_story_sentence_words
 {
@@ -502,9 +477,12 @@ sub clean_sentences
 # small set of stories)
 sub update_story_sentence_words_and_language
 {
-    my ( $db, $story_ref, $no_delete, $no_dedup_sentences, $ignore_date_range ) = @_;
+    my ( $db, $story, $no_delete, $no_dedup_sentences, $ignore_date_range ) = @_;
+
+    die unless ref $story;
+    die unless $story->{ stories_id };
+
     my $sentence_word_counts;
-    my $story = _get_story( $db, $story_ref );
 
     my $stories_id = $story->{ stories_id };
 
@@ -582,7 +560,7 @@ sub update_story_sentence_words_and_language
     }
     else
     {
-        $sentences = dedup_sentences( $db, $story_ref, $sentences );
+        $sentences = dedup_sentences( $db, $story, $sentences );
     }
 
 

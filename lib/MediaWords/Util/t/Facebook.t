@@ -85,10 +85,9 @@ sub test_share_comment_counts($)
 {
     my ( $db ) = @_;
 
-    my ( $google_share_count, $google_comment_count ) =
-      MediaWords::Util::Facebook::get_url_share_comment_counts( $db, 'http://google.com' );
-    ok( $google_share_count > 10090300, "google share count '$google_share_count' should be greater than 10,090,300" );
-    ok( $google_comment_count > 10000,  "google comment count '$google_comment_count' should be greater than 10,000" );
+    my ( $reddit_share_count, $reddit_comment_count ) =
+      MediaWords::Util::Facebook::get_url_share_comment_counts( $db, 'http://www.reddit.com/' );
+    ok( $reddit_share_count > 180000, "reddit share count '$reddit_share_count' should be greater than 180,000" );
 
     my ( $nyt_ferguson_share_count, $nyt_ferguson_comment_count ) =
       MediaWords::Util::Facebook::get_url_share_comment_counts( $db,
@@ -157,7 +156,7 @@ sub main()
         }
     }
 
-    plan tests => 28;
+    plan tests => 27;
 
     my $builder = Test::More->builder;
     binmode $builder->output,         ":utf8";

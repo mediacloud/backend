@@ -42,6 +42,9 @@ sub _get_tags_id
         }
     );
 
+    #Commit to make sure cache and database are consistent
+    $db->dbh->{ AutoCommit } || $db->commit;
+
     $_tags_id_cache->{ $tag_sets_id }->{ $term } = $tag->{ tags_id };
 
     return $tag->{ tags_id };
@@ -831,7 +834,7 @@ sub process_extracted_story
         MediaWords::StoryVectors::update_story_sentence_words_and_language( $db, $story, 0, $no_dedup_sentences );
     }
 
-    MediaWords::DBI::Stories::update_extractor_version_tag( $db, $story, _get_current_extractor_version() );
+    MediaWords::DBI::Stories::_update_extractor_version_tag( $db, $story );
 
     my $stories_id = $story->{ stories_id };
 
@@ -1124,10 +1127,22 @@ sub _get_extractor_version_tag_set
     return $_extractor_version_tag_set;
 }
 
-# add extractor version tag
-sub update_extractor_version_tag
+sub get_current_extractor_version_tags_id
 {
-    my ( $db, $story, $extractor_version ) = @_;
+    my ( $db ) = @_;
+
+    my $extractor_version = _get_current_extractor_version();
+    my $tag_set           = _get_extractor_version_tag_set( $db );
+
+    my $tags_id = _get_tags_id( $db, $tag_set->{ tag_sets_id }, $extractor_version );
+
+    return $tags_id;
+}
+
+# add extractor version tag
+sub _update_extractor_version_tag
+{
+    my ( $db, $story ) = @_;
 
     my $tag_set = _get_extractor_version_tag_set( $db );
 
@@ -1141,7 +1156,7 @@ delete from stories_tags_map stm
         stm.stories_id = ?
 END
 
-    my $tags_id = _get_tags_id( $db, $tag_set->{ tag_sets_id }, $extractor_version );
+    my $tags_id = get_current_extractor_version_tags_id( $db );
 
     $db->query( <<END, $story->{ stories_id }, $tags_id );
 insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )
@@ -1224,9 +1239,8 @@ sub mark_as_processed($$)
 {
     my ( $db, $stories_id ) = @_;
 
-    my $result = undef;
-    eval { $result = $db->create( 'processed_stories', { stories_id => $stories_id } ); };
-    if ( $@ or ( !$result ) )
+    eval { $db->insert( 'processed_stories', { stories_id => $stories_id } ); };
+    if ( $@ )
     {
         warn "Unable to insert story ID $stories_id into 'processed_stories': $@";
         return 0;

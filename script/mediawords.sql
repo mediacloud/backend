@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4480;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4483;
     
 BEGIN
 
@@ -204,6 +204,29 @@ $$
 $$
 LANGUAGE 'plpgsql';
 
+-- Store whether story triggers should be enable in PRIVATE.use_story_triggers
+-- This variable is session based. If it's not set, set it to enable triggers and return true
+CREATE OR REPLACE FUNCTION  story_triggers_enabled() RETURNS boolean  LANGUAGE  plpgsql AS $$
+BEGIN
+
+    return current_setting('PRIVATE.use_story_triggers') = 'yes';
+     EXCEPTION when undefined_object then
+        perform enable_story_triggers();
+        return true;
+END$$;
+
+CREATE OR REPLACE FUNCTION  enable_story_triggers() RETURNS void LANGUAGE  plpgsql AS $$
+DECLARE
+BEGIN
+        perform set_config('PRIVATE.use_story_triggers', 'yes', false );
+END$$;
+
+CREATE OR REPLACE FUNCTION  disable_story_triggers() RETURNS void LANGUAGE  plpgsql AS $$
+DECLARE
+BEGIN
+        perform set_config('PRIVATE.use_story_triggers', 'no', false );
+END$$;
+
 CREATE OR REPLACE FUNCTION last_updated_trigger () RETURNS trigger AS
 $$
    DECLARE
@@ -227,6 +250,11 @@ $$
    DECLARE
       path_change boolean;
    BEGIN
+
+        IF NOT story_triggers_enabled() THEN
+           RETURN NULL;
+        END IF;
+
 	UPDATE story_sentences set db_row_last_updated = now() where stories_id = NEW.stories_id;
 	RETURN NULL;
    END;
@@ -239,6 +267,10 @@ $$
         path_change boolean;
         reference_stories_id integer default null;
     BEGIN
+
+       IF NOT story_triggers_enabled() THEN
+           RETURN NULL;
+        END IF;
 
         IF TG_OP = 'INSERT' THEN
             -- The "old" record doesn't exist
@@ -263,6 +295,10 @@ $$
         path_change boolean;
         reference_story_sentences_id bigint default null;
     BEGIN
+
+       IF NOT story_triggers_enabled() THEN
+           RETURN NULL;
+        END IF;
 
         IF TG_OP = 'INSERT' THEN
             -- The "old" record doesn't exist
@@ -1154,6 +1190,12 @@ CREATE TRIGGER story_sentences_last_updated_trigger BEFORE INSERT OR UPDATE ON s
 -- update media stats table for new story sentence.
 create function insert_ss_media_stats() returns trigger as $$
 begin
+
+
+    IF NOT story_triggers_enabled() THEN
+      RETURN NULL;
+    END IF;
+
     update media_stats set num_sentences = num_sentences + 1
         where media_id = NEW.media_id and stat_date = date_trunc( 'day', NEW.publish_date );
 
@@ -1169,6 +1211,10 @@ declare
     new_date date;
     old_date date;
 begin
+
+    IF NOT story_triggers_enabled() THEN
+       RETURN NULL;
+    END IF;
     
     select date_trunc( 'day', NEW.publish_date ) into new_date;
     select date_trunc( 'day', OLD.publish_date ) into old_date;
@@ -1189,6 +1235,10 @@ create trigger ss_update_story_media_stats after update
 -- update media stats table for deleted story sentence
 create function delete_ss_media_stats() returns trigger as $$
 begin
+
+    IF NOT story_triggers_enabled() THEN
+       RETURN NULL;
+    END IF;
     
     update media_stats set num_sentences = num_sentences - 1
     where media_id = OLD.media_id and stat_date = date_trunc( 'day', OLD.publish_date );
@@ -1202,6 +1252,10 @@ create trigger story_delete_ss_media_stats after delete
 -- update media stats table for new story. create the media / day row if needed.  
 create or replace function insert_story_media_stats() returns trigger as $insert_story_media_stats$
 begin
+
+    IF NOT story_triggers_enabled() THEN
+       RETURN NULL;
+    END IF;
     
     insert into media_stats ( media_id, num_stories, num_sentences, stat_date )
         select NEW.media_id, 0, 0, date_trunc( 'day', NEW.publish_date )
@@ -1224,6 +1278,10 @@ declare
     new_date date;
     old_date date;
 begin
+
+    IF NOT story_triggers_enabled() THEN
+       RETURN NULL;
+    END IF;
     
     select date_trunc( 'day', NEW.publish_date ) into new_date;
     select date_trunc( 'day', OLD.publish_date ) into old_date;
@@ -1254,6 +1312,10 @@ create trigger stories_update_story_media_stats after update
 create function delete_story_media_stats() returns trigger as $delete_story_media_stats$
 begin
     
+    IF NOT story_triggers_enabled() THEN
+       RETURN NULL;
+    END IF;
+
     update media_stats set num_stories = num_stories - 1
     where media_id = OLD.media_id and stat_date = date_trunc( 'day', OLD.publish_date );
 
@@ -2723,17 +2785,31 @@ BEGIN
         RAISE NOTICE 'Story % is not annotatable with CoreNLP because media is not set for annotation.', corenlp_stories_id;
         RETURN FALSE;
 
+    -- Check if the story is extracted
+    ELSEIF EXISTS (
+
+        SELECT 1
+        FROM downloads
+        WHERE stories_id = corenlp_stories_id
+          AND type = 'content'
+          AND extracted = 'f'
+
+    ) THEN
+        RAISE NOTICE 'Story % is not annotatable with CoreNLP because it is not extracted.', corenlp_stories_id;
+        RETURN FALSE;
+
     -- Annotate English language stories only because they're the only ones
     -- supported by CoreNLP at the time.
     ELSEIF NOT EXISTS (
 
         SELECT 1
         FROM stories
+        WHERE stories_id = corenlp_stories_id
 
         -- Stories with language field set to NULL are the ones fetched before
         -- introduction of the multilanguage support, so they are assumed to be
         -- English.
-        WHERE stories.language = 'en' OR stories.language IS NULL
+          AND ( stories.language = 'en' OR stories.language IS NULL )
 
     ) THEN
         RAISE NOTICE 'Story % is not annotatable with CoreNLP because it is not in English.', corenlp_stories_id;
