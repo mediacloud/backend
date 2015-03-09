@@ -77,6 +77,9 @@ WHEN undefined_function THEN
     -- This exception will be raised if the database is uninitialized at this point.
     -- So, don't emit any kind of error because of an non-existent function.
     NULL;
+WHEN OTHERS THEN
+    -- Forward the exception
+    RAISE;
 END
 $$;
 
