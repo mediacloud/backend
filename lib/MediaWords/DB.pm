@@ -74,7 +74,9 @@ BEGIN
 PERFORM enable_story_triggers();
 EXCEPTION 
 WHEN undefined_function THEN
-  RAISE NOTICE 'undefined_function';
+    -- This exception will be raised if the database is uninitialized at this point.
+    -- So, don't emit any kind of error because of an non-existent function.
+    NULL;
 END
 $$;
 
