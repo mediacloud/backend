@@ -234,7 +234,7 @@ $$
    BEGIN
       -- RAISE NOTICE 'BEGIN ';                                                                                                                            
 
-      IF ( story_triggers_enabled() ) AND ( ( TG_OP = 'UPDATE' ) OR (TG_OP = 'INSERT') ) then
+      IF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'INSERT') then
 
       	 NEW.db_row_last_updated = now();
 
@@ -2177,10 +2177,6 @@ create trigger controversy_stories_insert_live_story after insert on controversy
 
 create function update_live_story() returns trigger as $update_live_story$
     begin
-
-        IF NOT story_triggers_enabled() then
-	  RETURN NEW;
-        END IF;
 
         update cd.live_stories set
                 media_id = NEW.media_id,
