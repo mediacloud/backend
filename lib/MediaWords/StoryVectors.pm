@@ -461,9 +461,9 @@ sub clean_sentences
 
     # first walk through the array, then prune any sentences we want to drop; this approach allows to splice in place
     my $prune_indices = [];
-    for ( my $i = 0; $i < @{ $sentences }; $i++ )
+    for ( my $i = 0 ; $i < @{ $sentences } ; $i++ )
     {
-        push( @{ $prune_indicies }, $i ) if ( $sentence->[ $i ] =~ /(\[.*\{){5,}/ );
+        push( @{ $prune_indices }, $i ) if ( $sentences->[ $i ] =~ /(\[.*\{){5,}/ );
     }
 
     map { splice( @{ $sentences }, $_, 1 ) } @{ $prune_indices }
@@ -562,7 +562,6 @@ sub update_story_sentence_words_and_language
     {
         $sentences = dedup_sentences( $db, $story, $sentences );
     }
-
 
     my $sentence_refs = [];
     for ( my $sentence_num = 0 ; $sentence_num < @{ $sentences } ; $sentence_num++ )
