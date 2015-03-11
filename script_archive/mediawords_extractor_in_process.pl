@@ -36,7 +36,8 @@ sub main
     my $i = 0;
     for my $stories_id ( @{ $stories_ids } )
     {
-        MediaWords::GearmanFunction::ExtractAndVector->run_locally( { stories_id => $stories_id } );
+        MediaWords::GearmanFunction::ExtractAndVector->run_locally(
+            { stories_id => $stories_id, disable_story_triggers => 1 } );
 
         #$db->query( "delete from scratch.reextract_stories where stories_id = ?", $stories_id );
         if ( !( ++$i % 100 ) )

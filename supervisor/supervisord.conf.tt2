@@ -24,6 +24,8 @@ command = [% command %]
 directory = %(here)s/../
 autorestart = [% supervisor.programs.$program.autorestart_b|| default_autorestart  %]
 autostart = [% supervisor.programs.$program.autostart_b || default_autostart  %]
+stopasgroup = [% supervisor.programs.$program.stopasgroup_b || default_stopasgroup  %]
+;killasgroup = [% supervisor.programs.$program.killasgroup_b || default_killasgroup %]
 priority = [% priority || 20 %]
     [%- UNLESS skip_numprocs %]
     [%- numprocs = supervisor.programs.$program.numprocs || default_numprocs || 1 %]
@@ -66,6 +68,8 @@ programs = crawler,crf_web_service
 [% INCLUDE program_config
     program='crawler'
     command="bash ./script/run_with_carton.sh ./script/mediawords_crawl.pl $crawler_numprocs"
+    default_stopasgroup='false'
+    default_killasgroup='false'
     default_autorestart='false'
     default_autostart='true'
     skip_numprocs=1
@@ -75,6 +79,8 @@ programs = crawler,crf_web_service
 [% INCLUDE program_config
     program='crf_web_service'
     command='bash ./script/crfwebservice_wrapper.sh'
+    default_stopasgroup='false'
+    default_killasgroup='false'
     default_autorestart='true'
     default_autostart='false'
     priority=5
@@ -88,6 +94,8 @@ programs = gearmand
 [% INCLUDE program_config
     program='gearmand'
     command='bash ./script/gearmand_wrapper.sh'
+    default_stopasgroup='false'
+    default_killasgroup='false'
     default_autorestart='true'
     default_autostart='true'
     priority=10
@@ -96,6 +104,8 @@ programs = gearmand
 [% INCLUDE program_config
     program='add_default_feeds'
     gearman_worker_module='AddDefaultFeeds.pm'
+    default_stopasgroup='false'
+    default_killasgroup='false'
     default_autorestart='false'
     default_autostart='true'
     default_nice=10
@@ -104,6 +114,8 @@ programs = gearmand
 [% INCLUDE program_config
     program='extract_and_vector'
     gearman_worker_module='ExtractAndVector.pm'
+    default_stopasgroup='false'
+    default_killasgroup='false'
     default_autorestart='false'
     default_autostart='true'
     default_nice=12
@@ -112,6 +124,8 @@ programs = gearmand
 [% INCLUDE program_config
     program='cm_mine_controversy'
     gearman_worker_module='CM/MineControversy.pm'
+    default_stopasgroup='false'
+    default_killasgroup='false'
     default_autorestart='false'
     default_autostart='true'
     default_nice=10
@@ -120,6 +134,8 @@ programs = gearmand
 [% INCLUDE program_config
     program='cm_dump_controversy'
     gearman_worker_module='CM/DumpControversy.pm'
+    default_stopasgroup='false'
+    default_killasgroup='false'
     default_autorestart='false'
     default_autostart='true'
     default_nice=10
@@ -128,6 +144,8 @@ programs = gearmand
 [% INCLUDE program_config
     program='annotate_with_corenlp'
     gearman_worker_module='AnnotateWithCoreNLP.pm'
+    default_stopasgroup='false'
+    default_killasgroup='false'
     default_autorestart='false'
     default_autostart='true'
     default_nice=10
@@ -136,6 +154,8 @@ programs = gearmand
 [% INCLUDE program_config
     program='bitly_enqueue_controversy_stories'
     gearman_worker_module='Bitly/EnqueueControversyStories.pm'
+    default_stopasgroup='false'
+    default_killasgroup='false'
     default_autorestart='false'
     default_autostart='true'
     default_nice=10
@@ -144,6 +164,8 @@ programs = gearmand
 [% INCLUDE program_config
     program='bitly_fetch_story_stats'
     gearman_worker_module='Bitly/FetchStoryStats.pm'
+    default_stopasgroup='false'
+    default_killasgroup='false'
     default_autorestart='false'
     default_autostart='true'
     default_nice=10
@@ -152,6 +174,8 @@ programs = gearmand
 [% INCLUDE program_config
     program='bitly_aggregate_story_stats'
     gearman_worker_module='Bitly/AggregateStoryStats.pm'
+    default_stopasgroup='false'
+    default_killasgroup='false'
     default_autorestart='false'
     default_autostart='true'
     default_nice=10
@@ -160,6 +184,8 @@ programs = gearmand
 [% INCLUDE program_config
     program='twitter_fetch_story_stats'
     gearman_worker_module='Twitter/FetchStoryStats.pm'
+    default_stopasgroup='false'
+    default_killasgroup='false'
     default_autorestart='false'
     default_autostart='true'
     default_nice=10
@@ -168,6 +194,8 @@ programs = gearmand
 [% INCLUDE program_config
     program='facebook_fetch_story_stats'
     gearman_worker_module='Facebook/FetchStoryStats.pm'
+    default_stopasgroup='false'
+    default_killasgroup='false'
     default_autorestart='false'
     default_autostart='true'
     default_nice=10
@@ -179,6 +207,8 @@ programs = solr
 [% INCLUDE program_config
     program='solr'
     command='bash ./script/run_with_carton.sh ./solr/scripts/run_singleton_solr_server.pl'
+    default_stopasgroup='false'
+    default_killasgroup='false'
     default_autorestart='true'
     default_autostart='true'
     stopwaitsecs=20
@@ -190,6 +220,8 @@ programs=solr_facets_wrapper_server,extractor_python_readability_server
 [% INCLUDE program_config
     program='solr_facets_wrapper_server'
     command='python python_scripts/solr_facets_wrapper_server.py'
+    default_stopasgroup='false'
+    default_killasgroup='false'
     default_autorestart='false'
     default_autostart='false'
 %]
@@ -197,6 +229,8 @@ programs=solr_facets_wrapper_server,extractor_python_readability_server
 [% INCLUDE program_config
     program='extractor_python_readability_server'
     command='python python_scripts/extractor_python_readability_server.py'
+    default_stopasgroup='true'
+    default_killasgroup='true'
     default_autorestart='true'
     default_autostart='true'
 %]

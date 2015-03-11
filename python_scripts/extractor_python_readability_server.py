@@ -12,6 +12,7 @@ from thrift.transport import TTransport
 from thrift.protocol import TBinaryProtocol
 from thrift.server import TServer 
 from thrift.protocol.TBinaryProtocol import TBinaryProtocolAccelerated
+from thrift.server.TProcessPoolServer import TProcessPoolServer
 
 #import thrift_solr
 
@@ -51,7 +52,9 @@ tfactory = TTransport.TBufferedTransportFactory()
 pfactory = TBinaryProtocol.TBinaryProtocolFactory()
 #pfactory = TBinaryProtocol.TBinaryProtocolAcceleratedFactory()
 
-server = TServer.TThreadPoolServer(processor, listening_socket, tfactory, pfactory)
-server.settNumThreads( 30 )
+#server = TServer.TThreadPoolServer(processor, listening_socket, tfactory, pfactory)
+#server.setNumThreads( 30 )
+server = TProcessPoolServer(processor, listening_socket, tfactory, pfactory)
+server.setNumWorkers( 30 )
 print ("[Server] Started")
 server.serve()

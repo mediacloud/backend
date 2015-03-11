@@ -64,6 +64,15 @@ sub run($$)
     my $db = MediaWords::DB::connect_to_db();
     $db->dbh->{ AutoCommit } = 0;
 
+    if ( exists $args->{ disable_story_triggers } && $args->{ disable_story_triggers } )
+    {
+        $db->query( "SELECT disable_story_triggers(); " );
+    }
+    else
+    {
+        $db->query( "SELECT enable_story_triggers(); " );
+    }
+
     eval {
 
         my $process_id = 'gearman:' . $$;
@@ -111,17 +120,26 @@ sub run($$)
         }
 
         $config->{ mediawords }->{ extractor_method } = $original_extractor_method;
+        ## Enable story triggers in case the connection is reused due to connection pooling.
+        $db->query( "SELECT enable_story_triggers(); " );
+
+        #say STDERR "completed extraction job for " . Dumper( $args );
     };
 
     if ( $@ )
     {
+        my $error_message = "$@";
+
         if ( $alter_extractor_method )
         {
             $config->{ mediawords }->{ extractor_method } = $original_extractor_method;
         }
 
+        ## Enable story triggers in case the connection is reused due to connection pooling.
+        $db->query( "SELECT enable_story_triggers(); " );
+
         # Probably the download was not found
-        die "Extractor died: $@\n";
+        die "Extractor died " . "Args: " . Dumper( $args ) . "Extractor Error: $error_message\n";
     }
 
     return 1;
