@@ -53,7 +53,7 @@ sub main
         {
             say STDERR
 "Gearman queue contains more then $gearman_queue_limit jobs ( $gearman_queued_jobs) sleeping $sleep_time seconds";
-            sleep 20;
+            sleep $sleep_time;
             next;
         }
 

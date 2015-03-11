@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4483;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4486;
     
 BEGIN
 
@@ -234,7 +234,7 @@ $$
    BEGIN
       -- RAISE NOTICE 'BEGIN ';                                                                                                                            
 
-      IF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'INSERT') then
+      IF ( story_triggers_enabled() ) AND ( ( TG_OP = 'UPDATE' ) OR (TG_OP = 'INSERT') ) then
 
       	 NEW.db_row_last_updated = now();
 
@@ -1044,7 +1044,7 @@ create table stories_tags_map
     stories_tags_map_id     serial  primary key,
     stories_id              int     not null references stories on delete cascade,
     tags_id                 int     not null references tags on delete cascade,
-    db_row_last_updated                timestamp with time zone not null
+    db_row_last_updated                timestamp with time zone not null default now()
 );
 
 DROP TRIGGER IF EXISTS stories_tags_map_last_updated_trigger on stories_tags_map CASCADE;
@@ -1330,7 +1330,7 @@ create table story_sentences_tags_map
     story_sentences_tags_map_id     bigserial  primary key,
     story_sentences_id              bigint     not null references story_sentences on delete cascade,
     tags_id                 int     not null references tags on delete cascade,
-    db_row_last_updated                timestamp with time zone not null
+    db_row_last_updated                timestamp with time zone not null default now()
 );
 
 DROP TRIGGER IF EXISTS story_sentences_tags_map_last_updated_trigger on story_sentences_tags_map CASCADE;
@@ -2177,6 +2177,10 @@ create trigger controversy_stories_insert_live_story after insert on controversy
 
 create function update_live_story() returns trigger as $update_live_story$
     begin
+
+        IF NOT story_triggers_enabled() then
+	  RETURN NEW;
+        END IF;
 
         update cd.live_stories set
                 media_id = NEW.media_id,
