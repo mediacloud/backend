@@ -3,28 +3,31 @@
 
 <fieldset>
     <a href="[% c.uri_for( '/admin/health/tag_sets' ) %]">List Tag Sets</a>
+    <p>stories and sentences numbers are average for last 90 days</p>
 </fieldset>
 
 <table>
     <tr>
         <th>ID</th>
         <th>Tag</th>
-        <th>Media Sets</th>
-        <th>Media</th>        
+        <th>Label</th>
+        <th>Media</th>
+        <th>Healthy</th>
         <th>Stories</th>
         <th>Sentences</th>
     </tr>
-    
+
     [% FOREACH tag IN tags -%]
 
         <tr [% IF even %]class="even"[% END %]>
             <td>[% tag.tags_id %]</td>
             <td><a href="[% c.uri_for( '/admin/health/tag/' _ tag.tags_id ) %]">[% tag.tag | html %]</a></td>
-            <td>[% tag.media_set_names | html %]</td>
-            <td>[% tag.num_media || 0 %]</td>
-            <td>[% tag.num_stories || 0 %]</td>
-            <td>[% tag.num_sentences || 0 %]</td>        
-            
+            <td><a href="[% c.uri_for( '/admin/health/tag/' _ tag.tags_id ) %]">[% tag.label | html %]</a></td>
+            <td align=right>[% tag.num_media || 0 %]</td>
+            <td align=right>[% tag.num_healthy || 0 %]</td>
+            <td align=right>[% tag.num_stories_90 || 0 | format( '%d' ) %]</td>
+            <td align=right>[% tag.num_sentences_90 || 0 | format( '%d' ) %]</td>
+
         </tr>
 
         [%  SET even = !even %]
