@@ -355,6 +355,44 @@ sub _die_unless_tag_set_matches_user_email
       unless $c->stash->{ api_auth }->{ email } eq $tag_set;
 }
 
+#tag_set permissions apply_tags, create_tags, edit_tag_set_descriptors, edit_tag_descriptors
+
+sub _die_unless_user_can_apply_tag_set_tags
+{
+    my ( $self, $c, $tag_set );
+
+    return if $c->stash->{ api_auth }->{ email } eq $tag_set->{ name };
+
+    die;
+}
+
+sub _die_unless_user_can_create_tag_set_tags
+{
+    my ( $self, $c, $tag_set );
+
+    return if $c->stash->{ api_auth }->{ email } eq $tag_set->{ name };
+
+    die;
+}
+
+sub _die_unless_user_can_edit_tag_set_descriptors
+{
+    my ( $self, $c, $tag_set );
+
+    return if $c->stash->{ api_auth }->{ email } eq $tag_set->{ name };
+
+    die;
+}
+
+sub _die_unless_user_can_edit_tag_set_tag_descriptors
+{
+    my ( $self, $c, $tag_set );
+
+    return if $c->stash->{ api_auth }->{ email } eq $tag_set->{ name };
+
+    die;
+}
+
 sub _get_tags_id
 {
     my ( $self, $c, $tag_string ) = @_;
@@ -373,15 +411,15 @@ sub _get_tags_id
         #say STDERR Dumper( $c->stash );
         my $user_email = $c->stash->{ api_auth }->{ email };
 
-        if ( $user_email ne $tag_set )
-        {
-            die "Illegal tag_set name '" . $tag_set . "' tag_set must be user email ( '$user_email' ) ";
-        }
-
         my $tag_sets = $c->dbis->query( "SELECT * from tag_sets where name = ?", $tag_set )->hashes;
 
         if ( !scalar( @$tag_sets ) > 0 )
         {
+            if ( $user_email ne $tag_set )
+            {
+                die "Illegal tag_set name '" . $tag_set . "' tag_set must be user email ( '$user_email' ) ";
+            }
+
             $tag_sets = [ $c->dbis->create( 'tag_sets', { 'name' => $tag_set } ) ];
         }
 
@@ -390,7 +428,10 @@ sub _get_tags_id
         # say STDERR "tag_sets";
         # say STDERR Dumper( $tag_sets );
 
-        my $tag_sets_id = $tag_sets->[ 0 ]->{ tag_sets_id };
+        my $tag_set     = $tag_sets->[ 0 ];
+        my $tag_sets_id = $tag_set->{ tag_sets_id };
+
+        $self->_die_unless_user_can_apply_tag_set_tags( $c, $tag_set );
 
         my $tags =
           $c->dbis->query( "SELECT * from tags where tag_sets_id = ? and tag = ? ", $tag_sets_id, $tag_name )->hashes;
@@ -401,6 +442,7 @@ sub _get_tags_id
 
         if ( !scalar( @$tags ) )
         {
+            $self->_die_unless_user_can_create_tag_set_tags( $c, $tag_set );
             $tag = $c->dbis->create( 'tags', { tag => $tag_name, tag_sets_id => $tag_sets_id } );
         }
         else
@@ -465,7 +507,7 @@ sub _add_tags
 
         my $tags_id = $self->_get_tags_id( $c, $tag );
 
-        $self->_die_unless_tag_set_matches_user_email( $c, $tags_id );
+        $self->_die_unless_user_can_apply_tag_set_tags( $c, $tags_id );
 
         # say STDERR "$id, $tags_id";
 
