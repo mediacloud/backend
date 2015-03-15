@@ -57,7 +57,7 @@ select t.*,
         sum( case when is_healthy then 1 else 0 end ) num_healthy,
         sum( case when has_active_feed then 1 else 0 end ) num_active_feeds,
         count( * ) num_media
-    from media_health_foo mh
+    from media_health mh
         join media_tags_map mtm on ( mtm.media_id = mh.media_id )
         join tags t on ( mtm.tags_id = t.tags_id )
     where
@@ -79,7 +79,7 @@ sub _assign_health_data_to_tag
 select m.*, mh.*
     from media m
         join media_tags_map mtm on ( mtm.media_id = m.media_id )
-        left join media_health_foo mh on ( mh.media_id = m.media_id )
+        left join media_health mh on ( mh.media_id = m.media_id )
     where
         mtm.tags_id = ?
 SQL
@@ -171,7 +171,7 @@ sub medium : Local
     $db->find_by_id( 'media', $media_id ) || die( "unknown medium '$media_id'" );
 
     my $medium = $db->query( <<SQL, $media_id )->hash;
-select m.*, mh.* from media m join media_health_foo mh on ( m.media_id = mh.media_id ) where m.media_id = ?
+select m.*, mh.* from media m join media_health mh on ( m.media_id = mh.media_id ) where m.media_id = ?
 SQL
 
     my $media_stats = $db->query( <<SQL, $media_id )->hashes;
