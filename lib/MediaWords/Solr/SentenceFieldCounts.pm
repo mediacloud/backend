@@ -29,13 +29,14 @@ has 'q'             => ( is => 'rw', isa => 'Str' );
 has 'fq'            => ( is => 'rw', isa => 'ArrayRef' );
 has 'sample_size'   => ( is => 'rw', isa => 'Int', default => 1000 );
 has 'field'         => ( is => 'rw', isa => 'Str', default => 'tags_id_story_sentences' );
+has 'tag_sets_id'   => ( is => 'rw', isa => 'Int' );
 has 'include_stats' => ( is => 'rw', isa => 'Bool' );
 has 'db' => ( is => 'rw' );
 
 # list of all attribute names that should be exposed as cgi params
 sub get_cgi_param_attributes
 {
-    return [ qw(q fq sample_size include_stats field) ];
+    return [ qw(q fq sample_size include_stats field tag_sets_id) ];
 }
 
 # return hash of attributes for use as cgi params
@@ -99,7 +100,7 @@ around BUILDARGS => sub {
     return $class->$orig( $vals );
 };
 
-# given the list of ssids, get the counts for the various related fields
+# given the list of ids, get the counts for the various related fields
 sub _get_counts
 {
     my ( $self, $ids, $field_definition ) = @_;
@@ -107,13 +108,17 @@ sub _get_counts
     my $id_field      = $field_definition->{ id_field };
     my $tag_map_table = $field_definition->{ tag_map_table };
 
+    my $tag_set_clause = $self->tag_sets_id ? "and t.tag_sets_id = " . ( $self->tag_sets_id + 0 ) : '';
+
     my $ids_table = $self->db->get_temporary_ids_table( $ids );
 
     my $counts = $self->db->query( <<SQL )->hashes;
-    select count(*) count, t.tags_id tags_id, t.tag, t.label
-    from $tag_map_table m 
-        join tags t on ( m.tags_id = t.tags_id )
-    where m.$id_field in ( select id from $ids_table )
+select
+        count(*) count, t.tags_id tags_id, t.tag, t.label, t.tag_sets_id
+    from $tag_map_table m
+        join tags t on ( m.tags_id = t.tags_id $tag_set_clause )
+    where
+        m.$id_field in ( select id from $ids_table )
     group by t.tags_id
     order by count(*) desc
 SQL
