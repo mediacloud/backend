@@ -15,6 +15,8 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
+use Data::Dumper;
+
 use MediaWords::DB;
 
 # create the media_health table by executing big analytical query
@@ -104,7 +106,8 @@ select m.media_id,
         msy.num_sentences num_sentences_y,
         msw.num_sentences num_sentences_w,
         ms90.num_sentences num_sentences_90,
-        is_healthy 'true'::boolean
+        'false'::boolean is_health,
+        'true'::boolean has_active_feed
 
     from media m
         join media_stats_0 ms0 on ( m.media_id = ms0.media_id )
@@ -113,7 +116,7 @@ select m.media_id,
         join media_stats_week msw on ( m.media_id = msw.media_id )
 SQL
 
-    $db->query( "create index media_health_medium on media_health ( media_id )") ;
+    $db->query( "create index media_health_medium on media_health ( media_id )" );
 
     $db->query( "analyze media_health" );
 
@@ -127,7 +130,7 @@ sub update_media_health_status
 
     $db->query( "update media_health mh set is_healthy = 't'" );
     $db->query( <<SQL );
-update media_health_foo set is_healthy = 'f'
+update media_health set is_healthy = 'f'
     where
         ( ( num_stories_90 > 50 ) and
           ( ( ( num_stories / num_stories_y ) < 0.25 ) or
@@ -151,7 +154,7 @@ SQL
 
     $db->query( "update media_health mh set has_active_feed = 'f'" );
     $db->query( <<SQL );
-update media_health_foo mh set has_active_feed = 't'
+update media_health mh set has_active_feed = 't'
     where
         num_stories_90 > 1 or
         (
@@ -172,8 +175,9 @@ SQL
 # print some summary health statistics and a list of unhealthy media
 sub print_health_report
 {
+    my ( $db ) = @_;
 
-    my $mhs = $db->query( <<SQL );
+    my $mhs = $db->query( <<SQL )->hash;
 select
         round( sum( num_stories ), 0 ) num_stories,
         round( sum( num_stories_y ), 0 ) num_stories_y,
@@ -187,26 +191,27 @@ select
 SQL
 
     my $unhealthy_media = $db->query( <<SQL )->hashes;
-select *
+select m.*, mh.*, t.tags_id
     from media m
         join media_health mh on ( m.media_id = mh.media_id )
         left join
             ( media_tags_map mtm
-                join tags t on ( mtm.tags_id = t.tags_id and t.tag = 'ap_english_foo' )
+                join tags t on ( mtm.tags_id = t.tags_id and t.tag = 'ap_english_us_top25_20100110' )
                 join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id and ts.name = 'collection' )
             ) on mh.media_id = mtm.media_id
     where
-        !mh.is_healthy
-    order by t.tags_id is not null desc, m.num_stories_90 desc, m.num_stories_y desc
+        not mh.is_healthy
+    order by t.tags_id is not null desc, num_stories_90 desc, num_stories_y desc
+    limit 50
 SQL
 
-    print <<END
+    print <<END;
 SUMMARY
 
 stories (0, w, 90, y)   - $mhs->{ num_stories }, $mhs->{ num_stories_w }, $mhs->{ num_stories_90 }, $mhs->{ num_stories_y }
 sentences (0, w, 90, y) - $mhs->{ num_sentences }, $mhs->{ num_sentences_w }, $mhs->{ num_sentences_90 }, $mhs->{ num_sentences_y }
 
-UNHEALTHY MEDIA
+TOP 50 UNHEALTHY MEDIA
 
 END
 
@@ -214,8 +219,8 @@ END
     {
         print <<END;
 $m->{ name }:
-    $m->{ num_stories }, $m->{ num_stories_w }, $m->{ num_stories_90 }, $m->{ num_stories_y }
-    $m->{ num_sentences }, $m->{ num_sentences_w }, $m->{ num_sentences_90 }, $m->{ num_sentences_y }
+    stories (0, w, 90, y)   - $m->{ num_stories }, $m->{ num_stories_w }, $m->{ num_stories_90 }, $m->{ num_stories_y }
+    sentences (0, w, 90, y) - $m->{ num_sentences }, $m->{ num_sentences_w }, $m->{ num_sentences_90 }, $m->{ num_sentences_y }
 
 END
     }
@@ -223,11 +228,15 @@ END
 
 sub main
 {
+    binmode( STDOUT, ':utf8' );
+
     my $db = MediaWords::DB::connect_to_db;
 
-    #generate_media_health( $db );
+    generate_media_health( $db );
 
     update_media_health_status( $db );
 
     print_health_report( $db );
 }
+
+main();
