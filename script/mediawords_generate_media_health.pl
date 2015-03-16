@@ -106,7 +106,7 @@ select m.media_id,
         msy.num_sentences num_sentences_y,
         msw.num_sentences num_sentences_w,
         ms90.num_sentences num_sentences_90,
-        'false'::boolean is_health,
+        'false'::boolean is_healthy,
         'true'::boolean has_active_feed
 
     from media m
