@@ -61,11 +61,13 @@ sub dump_table_single
     # reconnect after starting new process
     my $db = MediaWords::DB::connect_to_db;
 
+    $| = 1;
+
     $db->query( <<SQL );
 copy
     ( select * from $table where $key between $min and ( $min + $range ) )
     to STDOUT
-    with csv header
+    with csv
 SQL
 
     my $lines_buf = [];
@@ -83,6 +85,19 @@ SQL
     close( $fh );
 }
 
+# print the csv header line once before the parallel processes start writing to stdout
+sub print_csv_header
+{
+    my ( $db, $table ) = @_;
+
+    $db->query( "copy ( select * from $table where false ) to STDOUT with csv header" );
+
+    my $line = '';
+    $db->dbh->pg_getcopydata( $line );
+
+    print $line;
+}
+
 sub dump_table
 {
     my ( $db, $table, $num_proc ) = @_;
@@ -94,6 +109,8 @@ sub dump_table
     my $range = int( ( $max - $min ) / $num_proc ) + 1;
 
     my $pm = new Parallel::ForkManager( $num_proc );
+
+    print_csv_header( $db, $table );
 
     my $lock_file = "/tmp/dump-$table-$day-$$";
 
@@ -119,6 +136,8 @@ sub dump_table
 sub main
 {
     my ( $table, $jobs );
+
+    $| = 1;
 
     Getopt::Long::GetOptions(
         "jobs=i"  => \$jobs,

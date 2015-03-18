@@ -17,6 +17,8 @@ BEGIN
 
 use Data::Dumper;
 
+use Getopt::Long;
+
 use MediaWords::DB;
 
 # create the media_health table by executing big analytical query
@@ -128,17 +130,26 @@ sub update_media_health_status
 {
     my ( $db ) = @_;
 
+    # only check the single day during the week day
+    my $wday = ( localtime( time() - 86400 ) )[ 6 ];
+
+    my $is_weekend = grep { $wday == $_ } ( 0, 6 );
+
+    my $day_check_clause = $is_weekend ? 'false' : <<SQL;
+( ( num_stories_90 > 50 ) and
+  ( ( ( num_stories / num_stories_y ) < 0.25 ) or
+    ( ( num_stories / num_stories_90 ) < 0.25 ) or
+    ( ( num_sentences / num_sentences_y ) < 0.25 ) or
+    ( ( num_sentences / num_sentences_90 ) < 0.25 )
+  )
+)
+SQL
+
     $db->query( "update media_health mh set is_healthy = 't'" );
     $db->query( <<SQL );
 update media_health set is_healthy = 'f'
     where
-        ( ( num_stories_90 > 50 ) and
-          ( ( ( num_stories / num_stories_y ) < 0.25 ) or
-            ( ( num_stories / num_stories_90 ) < 0.25 ) or
-            ( ( num_sentences / num_sentences_y ) < 0.25 ) or
-            ( ( num_sentences / num_sentences_90 ) < 0.25 )
-          )
-        )
+        $day_check_clause
         or
         ( ( num_stories_90 > 10 ) and
           ( ( ( num_stories_w / num_stories_y ) < 0.25 ) or
@@ -230,9 +241,13 @@ sub main
 {
     binmode( STDOUT, ':utf8' );
 
+    my ( $skip_generation ) = @_;
+
+    Getopt::Long::GetOptions( "skip_generation!" => \$skip_generation, ) || return;
+
     my $db = MediaWords::DB::connect_to_db;
 
-    generate_media_health( $db );
+    generate_media_health( $db ) unless ( $skip_generation );
 
     update_media_health_status( $db );
 
