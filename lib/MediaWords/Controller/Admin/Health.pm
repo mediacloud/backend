@@ -63,7 +63,7 @@ select t.*,
     where
         $tag_clause
     group by t.tags_id
-    order by num_stories desc
+    order by num_stories_90 desc
 SQL
 
     return $tags;
