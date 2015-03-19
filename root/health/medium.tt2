@@ -7,8 +7,8 @@
         <th>Stories</th>
         <th>Sentences</th>
     </tr>
-    
-    [% FOREACH ms IN medium.media_stats -%]
+
+    [% FOREACH ms IN media_stats -%]
 
         <tr [% IF even %]class="even"[% END %]>
             <td><a href="[% c.uri_for( '/admin/health/stories/' _ medium.media_id, { date => ms.stat_date } ) %]">[% ms.stat_date | html %]</a></td>

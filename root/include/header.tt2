@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-    
+
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -13,9 +13,9 @@
     <!-- Sorting tables -->
     <script type="text/javascript" src="/script/jquery.metadata.js"></script>
     <script type="text/javascript" src="/script/jquery.tablesorter.min.js"></script>
-    
+
     <!-- <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script> -->
-    
+
     <title>
       Media Words: [% title | html %]
     </title>
@@ -35,8 +35,8 @@
     @import "[% c.uri_for('/include/clusterstyle.css') %]";
     /*]]>*/
     </style> -->
-    
-    
+
+
     <link href="[% c.uri_for('/include/style.css') %]" rel="stylesheet" type="text/css" />
     <link href="[% c.uri_for('/include/vertically-aligned.css') %]" rel="stylesheet" type="text/css" />
     <link href="[% c.uri_for('/include/clusterstyle.css') %]" rel="stylesheet" type="text/css" />
@@ -45,7 +45,6 @@
 
     <script src="[% c.uri_for('/include/libs/handsontable-0.13.0/dist/handsontable.full.js') %]"></script>  
     <link rel="stylesheet" media="screen" href="[% c.uri_for('/include/libs/handsontable-0.13.0/dist/handsontable.full.css') %]">
-
     <!--[if IE]>
   <style type="text/css" media="all">
     @import "[% c.uri_for('/include/vertically-aligned-ie.css') %]";
@@ -73,7 +72,7 @@
             [% IF c.acl_user_can_visit('/admin/media/create_batch') %]
                 <a href="[% c.uri_for('/admin/media/create_batch') %]">Add Media</a>
             [% END -%]
-            [% IF c.acl_user_can_visit('/admin/health') %]
+            [% IF c.acl_user_can_visit('/admin/health/tag') %]
                 <a href="[% c.uri_for('/admin/health') %]">Media Health</a>
             [% END -%]
             [% IF c.acl_user_can_visit('/admin/media/moderate') %]
@@ -95,29 +94,26 @@
     [% END #[% IF menu_items -%]
 
     [% END #[% IF c.user -%]
-    
+
     <h1>[% title | html %]</h1>
-    
+
     [% IF breadcrumbs %]
         <div id="breadcrumbs">[% breadcrumbs %]</div>
     [% END %]
 
-    
-    [% IF status_msg || c.request.params.status_msg -%] 
-        [% SET msgs = status_msg || c.request.params.status_msg -%] 
+
+    [% IF status_msg || c.request.params.status_msg -%]
+        [% SET msgs = status_msg || c.request.params.status_msg -%]
         [% SET msg_list = msgs.split("\n") -%]
         <div id="status">
             [% FOREACH msg IN msg_list -%] [% msg | html %]<br />[% END %]
         </div>
     [% END %]
-      
-    [% IF error_msg || c.request.params.error_msg -%] 
-        [% SET msgs = error_msg || c.request.params.error_msg -%] 
+
+    [% IF error_msg || c.request.params.error_msg -%]
+        [% SET msgs = error_msg || c.request.params.error_msg -%]
         [% SET msg_list = msgs.split("\n") -%]
         <div id="error">
             [% FOREACH msg IN msg_list -%] [% msg | html %]<br />[% END %]
         </div>
     [% END %]
-    
-
-

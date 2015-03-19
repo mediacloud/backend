@@ -634,6 +634,7 @@ are currently `tags_id_stories` and `tags_id_story_sentences`.
 | `sample_size`       | 1000                         | number of sentences to sample, max 100,000
 | `include_stats`     | 0                            | include stats about the request as a whole
 | `field`             | `tags_id_story_sentences`    | field to count
+| `tag_sets_id`       | `null`                       | return only tags belonging to the given tag set
 
 See above /api/v2/stories_public/list for Solr query syntax.
 
@@ -665,18 +666,21 @@ URL:  https://api.mediacloud.org/api/v2/sentences/field_count?q=obama+AND+media_
 [
     {
         "count": "68",
+        "tag_sets_id": 1011,
         "label": null,
         "tag": "geonames_2306104",
         "tags_id": 8881223
     },
     {
         "count": "39",
+        "tag_sets_id": 1011,
         "label": null,
         "tag": "geonames_2300660",
         "tags_id": 8879465
     },
     {
         "count": "5",
+        "tag_sets_id": 1011,
         "label": null,
         "tag": "geonames_6252001",
         "tags_id": 8878461

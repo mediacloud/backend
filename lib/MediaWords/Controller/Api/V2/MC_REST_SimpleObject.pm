@@ -499,6 +499,11 @@ sub _add_tags
     my $tags_map_table = $self->get_table_name() . '_tags_map';
     my $table_id_name  = $self->get_table_name() . '_id';
 
+    # DRL 3/18/2015 this is a hack to make sure that triggers are enabled so that changes reach solr
+    # This is needed because we use connection pooling in production and db connections with triggers disabled are reused
+    # We;re also explicitly enabling story triggers when the database is created, which should be enough but isn't
+    $c->dbis->query( "SELECT enable_story_triggers() " );
+
     foreach my $story_tag ( @$story_tags )
     {
         # say STDERR "story_tag $story_tag";
