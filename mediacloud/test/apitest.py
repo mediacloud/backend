@@ -207,7 +207,7 @@ class ApiFeedsTest(ApiBaseTest):
         self.assertEqual(len(second_list),20)
         self.assertEqual(first_list[19]['feeds_id'], second_list[0]['feeds_id'])
         longer_list = self._mc.feedList(1,0,200)
-        self.assertEqual(len(longer_list),140)
+        self.assertEqual(len(longer_list),141)
 
 class ApiDashboardsTest(ApiBaseTest):
 
@@ -305,6 +305,13 @@ class ApiStoriesTest(ApiBaseTest):
 class ApiSentencesTest(ApiBaseTest):
 
     SENTENCE_COUNT = 100
+
+    def testSentence(self):
+        sentence_id = '3841125325'
+        sentence = self._mc.sentence(sentence_id)
+        self.assertEqual(sentence['story_sentences_id'],sentence_id)
+        self.assertEqual(sentence['stories_id'],321728712)
+        self.assertTrue(len(sentence['sentence'])>0)
 
     def testSentenceListSortingAscending(self):
         results = self._mc.sentenceList(self.QUERY,self.FILTER_QUERY,0,self.SENTENCE_COUNT,

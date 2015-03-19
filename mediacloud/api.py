@@ -164,6 +164,12 @@ class MediaCloud(object):
         return self._queryForJson(self.V2_API_URL+'stories/corenlp',
             {'stories_id': story_id_list} )
 
+    def sentence(self,story_sentences_id):
+        '''
+        Return info about a single sentence
+        '''
+        return self._queryForJson(self.V2_API_URL+'sentences/single/'+str(story_sentences_id))[0]
+
     def sentenceList(self, solr_query, solr_filter='', start=0, rows=1000, sort=SORT_PUBLISH_DATE_ASC):
         '''
         Search for sentences and page through results
