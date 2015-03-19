@@ -413,6 +413,118 @@ sub edit : Local
     $c->response->redirect( $c->uri_for( '/admin/users/list', { status_msg => $status_msg } ) );
 }
 
+sub tag_set_permissions_json : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $user_email = $c->request->param( 'email' );
+
+    die "missing required param user_email" unless $user_email;
+
+    my $userinfo = MediaWords::DBI::Auth::user_info( $c->dbis, $user_email );
+    my $roles = MediaWords::DBI::Auth::user_auth( $c->dbis, $user_email );
+
+    my $auth_users_tag_set_permissions =
+      $c->dbis->query( "SELECT * from auth_users_tag_sets_permissions where auth_users_id = ? ",
+        $userinfo->{ auth_users_id } )->hashes();
+
+    $c->res->body( encode_json( $auth_users_tag_set_permissions ) );
+}
+
+# show the user edit form
+sub edit_tag_set_permissions : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $form = $c->create_form(
+        {
+            load_config_file => $c->path_to() . '/root/forms/users/edit.yml',
+            method           => 'POST',
+            action           => $c->uri_for( '/admin/users/edit' )
+        }
+    );
+
+    my $user_email = $c->request->param( 'email' );
+    if ( !$user_email )
+    {
+        $c->stash( error_msg => "Empty email." );
+        $c->stash->{ c }        = $c;
+        $c->stash->{ form }     = $form;
+        $c->stash->{ template } = 'users/edit_tag_set_permissions.tt2';
+        return;
+    }
+
+    # Fetch information about the user and roles
+    my $userinfo = MediaWords::DBI::Auth::user_info( $c->dbis, $user_email );
+    my $roles = MediaWords::DBI::Auth::user_auth( $c->dbis, $user_email );
+    unless ( $userinfo and $roles )
+    {
+        die "Unable to find user '$user_email' in the database.";
+    }
+
+    my %user_roles = map { $_ => 1 } @{ $roles->{ roles } };
+
+    $form->process( $c->request );
+
+    unless ( $form->submitted_and_valid() )
+    {
+
+        # Fetch list of available roles
+        my $available_roles = MediaWords::DBI::Auth::all_user_roles( $c->dbis );
+        my @roles_options;
+        for my $role ( @{ $available_roles } )
+        {
+            my $html_role_attributes = {};
+            if ( exists( $user_roles{ $role->{ role } } ) )
+            {
+                $html_role_attributes = { checked => 'checked' };
+            }
+
+            push(
+                @roles_options,
+                {
+                    value      => $role->{ auth_roles_id },
+                    label      => $role->{ role } . ': ' . $role->{ description },
+                    attributes => $html_role_attributes
+                }
+            );
+        }
+
+        my $el_roles = $form->get_element( { name => 'roles', type => 'Checkboxgroup' } );
+        $el_roles->options( \@roles_options );
+
+        my $el_regenerate_api_token = $form->get_element( { name => 'regenerate_api_token', type => 'Button' } );
+        $el_regenerate_api_token->comment( $userinfo->{ api_token } );
+
+        $form->default_values(
+            {
+                email                        => $user_email,
+                full_name                    => $userinfo->{ full_name },
+                notes                        => $userinfo->{ notes },
+                active                       => $userinfo->{ active },
+                weekly_requests_limit        => $userinfo->{ weekly_requests_limit },
+                non_public_api_access        => $userinfo->{ non_public_api },
+                weekly_requested_items_limit => $userinfo->{ weekly_requested_items_limit }
+            }
+        );
+
+        # Re-process the form
+        $form->process( $c->request );
+
+        # Show the form
+        $c->stash->{ auth_users_id } = $userinfo->{ auth_users_id };
+        $c->stash->{ email }         = $userinfo->{ email };
+        $c->stash->{ full_name }     = $userinfo->{ full_name };
+        $c->stash->{ notes }         = $userinfo->{ notes };
+        $c->stash->{ active }        = $userinfo->{ active };
+        $c->stash->{ c }             = $c;
+        $c->stash->{ form }          = $form;
+        $c->stash->{ template }      = 'users/edit_tag_set_permissions.tt2';
+
+        return;
+    }
+}
+
 # view usage report page
 sub usage : Local
 {
