@@ -16,12 +16,8 @@ easy_install mediacloud-VERSION-py2.7.egg
 *Dependencies*
 
 ```
-pip install requests
-```
-
-If you want to use the storage helpers built in, then run:
-```
-pip install pypubsub pymongo couchdb-python
+pip install -r requirements.pip
+easy_install pypubsub
 ```
 
 Examples
