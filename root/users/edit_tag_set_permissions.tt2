@@ -1,0 +1,90 @@
+[% title = 'Edit User Tag Set Permissions' -%]
+[% INCLUDE include/users_header.tt2 -%]
+
+<h2>Editing user permissions <code>[% email | html %]</code></h2>
+
+[% auth_users_id | html  %]
+
+Auth [% auth_users_tag_sets_permissions | html %]
+
+<div id="dynamic_table"></div>
+
+<button id="save_button">save</button>
+
+<!-- Edit user form -->
+<!--
+<fieldset id="editUser" class="formNameValue">
+    [% # form.render %]
+</fieldset>
+-->
+
+
+<script type="text/javascript"><!--
+
+
+
+  
+    $(document).ready(function() {
+        $.getJSON( "[%c.uri_for( '/admin/users/tag_set_permissions_json') %]?email=[% email | uri %]",
+	   function( data) {
+
+	      var $container = $("#dynamic_table");
+
+	      //alert( data );
+	      $container.handsontable({
+		  data: data,
+		  //startRows: 5,
+		  //startCols: 5,
+		  //minRows: 5,
+		  //minCols: 5,
+		  //maxRows: 10,
+		  //maxCols: 10,
+		  rowHeaders: false,
+		  colHeaders: [  "auth_users_tag_sets_permissions_id", "auth_users_id",  "tag_sets_id", "edit_tag_descriptors", "edit_tag_set_descriptors", "apply_tags", "create_tags"],
+		  minSpareRows: 0,
+		  columns: [ 
+		      {
+                                 data: "auth_users_tag_sets_permissions_id",
+                                 readOnly: true
+                      }, 
+		      {
+                                  data: "auth_users_id",
+                                  readOnly: true
+		      },   
+		      {
+                                  data: "tag_sets_id",
+                                  readOnly: true
+		      },  
+		      {
+                                  data: "edit_tag_descriptors",
+                          type: 'checkbox',
+			  checkedTemplate:1,
+			  uncheckedTemplate: 0             
+		      },  
+		      {
+                                  data: "edit_tag_set_descriptors",
+                          type: 'checkbox'  ,                    
+			  checkedTemplate:1,
+			  uncheckedTemplate: 0      		      },  
+		      {
+                                  data: "apply_tags",
+                          type: 'checkbox'                      ,
+			  checkedTemplate:1,
+			  uncheckedTemplate: 0      		      },  
+		      {
+                                  data: "create_tags",
+                          type: 'checkbox' ,                     
+			  checkedTemplate:1,
+			  uncheckedTemplate: 0      
+		      }
+		  ]
+		  //contextMenu: true
+	      });	      
+
+	      // alert ( 'table data' );	       
+	      });
+      });
+
+--></script>
+  
+[% INCLUDE include/footer.tt2 %]
