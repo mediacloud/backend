@@ -137,7 +137,7 @@ sub mark_canonical_url_duplicates
 }
 
 # prompt user for media merge command and return the command
-sub prompt_for_dup_media
+ sub prompt_for_dup_media
 {
     my ( $db, $domain, $media ) = @_;
 

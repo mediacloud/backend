@@ -175,6 +175,8 @@ sub create : Local
     my $c_start_date         = $c->req->params->{ start_date };
     my $c_end_date           = $c->req->params->{ end_date };
     my $c_process_with_bitly = ( $c->req->params->{ process_with_bitly } ? 't' : 'f' );
+    my $c_num_iterations     = $c->req->params->{ num_iterations };
+    my $c_url_pattern        = $c->req->params->{ url_pattern };
 
     if ( $c->req->params->{ preview } )
     {
@@ -192,7 +194,9 @@ sub create : Local
             solr_seed_query     => $c_solr_seed_query,
             solr_seed_query_run => 'f',
             description         => $c_description,
-            process_with_bitly  => $c_process_with_bitly
+            process_with_bitly  => $c_process_with_bitly,
+            num_iterations      => $c_num_iterations,
+            url_pattern         => $c_url_pattern
         }
     );
 
@@ -249,10 +253,10 @@ sub _get_cdts_from_cd
 
     my $cdtss = $db->query( <<SQL, $cd->{ controversy_dumps_id } )->hashes;
 select cdts.*, coalesce( t.tag, '(all stories/no tag)' ) tag_name
-    from 
+    from
         controversy_dump_time_slices cdts
         left join tags t on ( cdts.tags_id = t.tags_id )
-    where 
+    where
         controversy_dumps_id = ? and
         $qs_clause
     order by cdts.tags_id desc, period, start_date, end_date
@@ -335,14 +339,14 @@ sub _get_controversy_dumps_with_periods
         $query_slice_clause = <<SQL
 and exists (
     select 1 from controversy_dump_time_slices cdts
-    where cdts.controversy_query_slices_id = $query_slices_id and 
+    where cdts.controversy_query_slices_id = $query_slices_id and
         cdts.controversy_dumps_id = cd.controversy_dumps_id $shell_clause
 )
 SQL
     }
 
     my $controversy_dumps = $db->query( <<SQL, $controversy->{ controversies_id } )->hashes;
-select * 
+select *
 from controversy_dumps cd
 where cd.controversies_id = ? $query_slice_clause
 order by controversy_dumps_id desc
@@ -391,7 +395,7 @@ sub _get_bitly_status
     my $controversies_id = $controversy->{ controversies_id };
 
     my ( $total_stories ) = $db->query( <<SQL, $controversies_id )->flat;
-SELECT COUNT(stories_id) AS total_stories 
+SELECT COUNT(stories_id) AS total_stories
 FROM controversy_stories
 WHERE controversies_id = ?
 SQL
@@ -524,22 +528,22 @@ with ranked_media as (
             join controversy_dumps cd on ( cdts.controversy_dumps_id = cd.controversy_dumps_id )
             join cd.medium_link_counts mlc on ( cdts.controversy_dump_time_slices_id = mlc.controversy_dump_time_slices_id )
             join cd.media m on ( mlc.media_id = m.media_id and cd.controversy_dumps_id = m.controversy_dumps_id )
-        where 
+        where
             cd.controversy_dumps_id = \$1 and
             cdts.period = 'weekly' and
-            mlc.inlink_count > 1        
+            mlc.inlink_count > 1
         window w as (
             partition by mlc.controversy_dump_time_slices_id
-                order by mlc.inlink_count desc )                
+                order by mlc.inlink_count desc )
 )
 
-select * 
-    from 
+select *
+    from
         ranked_media
     where
         inlink_count_row_number <= 10 and
         inlink_count_row_number <= model_num_media
-        
+
     order by start_date asc, inlink_count_rank asc, media_id asc
 END
 
@@ -878,7 +882,7 @@ with media_type_stats as (
             count(*) num_stories,
             sum( inlink_count ) link_weight
         from
-            dump_stories_with_types s 
+            dump_stories_with_types s
             join dump_story_link_counts slc on ( s.stories_id = slc.stories_id )
         where
             $stories_clause
@@ -893,17 +897,17 @@ select
         media_type,
         num_stories,
         case when sum_num_stories = 0
-            then 
+            then
                 0
-            else 
-                round( ( num_stories / sum_num_stories ) * 100 ) 
+            else
+                round( ( num_stories / sum_num_stories ) * 100 )
             end percent_stories,
         link_weight,
         case when sum_link_weight = 0
             then
                 0
             else
-                round( ( link_weight / sum_link_weight ) * 100 ) 
+                round( ( link_weight / sum_link_weight ) * 100 )
             end percent_link_weight
     from
         media_type_stats
@@ -1717,7 +1721,7 @@ sub search_stories : Local
              dump_story_link_counts AS slc
         WHERE s.stories_id = slc.stories_id
           AND s.media_id = m.media_id
-          AND s.stories_id IN ( $search_query )          
+          AND s.stories_id IN ( $search_query )
         ORDER BY $order_clause
         limit 1000
 END
@@ -2354,9 +2358,9 @@ sub _get_partisan_link_metrics
     my $query = <<END;
 -- partisan collection tags
 with partisan_tags as (
-    select t.* 
+    select t.*
         from
-            tags t 
+            tags t
             join tag_sets ts on (t.tag_sets_id = ts.tag_sets_id )
         where
             ts.name = 'collection' and
@@ -2366,7 +2370,7 @@ with partisan_tags as (
 -- all stories in the controversy belonging to the media tagged with one of the partisan collection tags
 partisan_stories as (
     select s.*, t.*
-        from 
+        from
             dump_stories s
             join dump_media_tags_map mtm on ( s.media_id = mtm.media_id )
             join dump_tags t on ( mtm.tags_id = t.tags_id )
@@ -2377,28 +2381,28 @@ partisan_stories as (
 ),
 
 -- full matrix of all partisan tags joined to one another
-partisan_tags_matrix as ( 
-    select 
-            at.tags_id tags_id_a, 
-            at.tag tag_a, 
+partisan_tags_matrix as (
+    select
+            at.tags_id tags_id_a,
+            at.tag tag_a,
             at.label label_a,
-            bt.tags_id tags_id_b, 
-            bt.tag tag_b, 
+            bt.tags_id tags_id_b,
+            bt.tag tag_b,
             bt.label label_b
-        from 
+        from
             partisan_tags at
             cross join partisan_tags bt
 ),
 
 -- matrix of all partisan tags that have links to one another
 sparse_matrix as (
-    select distinct 
+    select distinct
             ss.tags_id source_tags_id,
             rs.tags_id ref_tags_id,
             count(*) over w media_link_count,
             sum( log( count(*) + 1 ) / log ( 2 ) ) over w log_inlink_count,
             sum( count(*) ) over w inlink_count
-        from 
+        from
             partisan_stories ss
             join dump_story_links sl on ( ss.stories_id = sl.source_stories_id )
             join partisan_stories rs on ( rs.stories_id = sl.ref_stories_id )
@@ -2421,7 +2425,7 @@ select
         coalesce( sm.inlink_count, 0 ) inlink_count
     from
         partisan_tags_matrix ptm
-        left join sparse_matrix sm on 
+        left join sparse_matrix sm on
             ( ptm.tags_id_a = sm.source_tags_id and ptm.tags_id_b = sm.ref_tags_id )
 
 END
@@ -2603,9 +2607,9 @@ END
     {
         $db->query( <<END, $medium->{ media_id }, $controversy->{ media_type_tag_sets_id } );
 delete from media_tags_map mtm
-    using 
+    using
         tags t
-    where 
+    where
         mtm.tags_id = t.tags_id and
         t.tag_sets_id = \$2 and
         mtm.media_id = \$1
@@ -2652,13 +2656,13 @@ sub _get_media_for_typing : Local
 
     my $media = $db->query( <<END, $retype_media_type )->hashes;
 with ranked_media as (
-    select m.*, 
-            mlc.inlink_count, 
-            mlc.outlink_count, 
+    select m.*,
+            mlc.inlink_count,
+            mlc.outlink_count,
             mlc.story_count,
             rank() over ( order by mlc.inlink_count desc, m.media_id desc ) r
-        from 
-            dump_media_with_types m, 
+        from
+            dump_media_with_types m,
             dump_medium_link_counts mlc
         where
             m.media_id = mlc.media_id
@@ -2666,13 +2670,13 @@ with ranked_media as (
 )
 
 select *
-    from 
+    from
         ranked_media m
     where
         m.media_type = ? and
         ( ( $last_media_id = 0 ) or
           ( r > ( select r from ranked_media where media_id = $last_media_id limit 1 ) ) )
-    limit 10    
+    limit 10
 END
 
     $db->commit;
@@ -2810,7 +2814,7 @@ sub edit_dates : Local
     my $controversy = $db->find_by_id( 'controversies', $controversies_id ) || die( "Unable to find controversy" );
 
     my $controversy_dates = $db->query( <<END, $controversies_id )->hashes;
-select cd.* from controversy_dates cd where cd.controversies_id = ? order by cd.start_date, cd.end_date desc 
+select cd.* from controversy_dates cd where cd.controversies_id = ? order by cd.start_date, cd.end_date desc
 END
 
     $c->stash->{ controversy }       = $controversy;
@@ -2965,11 +2969,11 @@ sub edit_media_types : Local
     my $controversy = $db->find_by_id( 'controversies', $controversies_id ) || die( "Unable to find controversy" );
 
     my $media_types = $db->query( <<END, $controversies_id )->hashes;
-select t.* 
+select t.*
     from tags t
         join controversies c on ( c.media_type_tag_sets_id = t.tag_sets_id )
-    where 
-        c.controversies_id = ? 
+    where
+        c.controversies_id = ?
     order by t.tag
 END
 
@@ -2994,9 +2998,9 @@ sub _get_partisan_counts
     my $query = <<END;
 -- partisan collection tags
 with partisan_tags as (
-    select t.* 
+    select t.*
         from
-            tags t 
+            tags t
             join tag_sets ts on (t.tag_sets_id = ts.tag_sets_id )
         where
             ts.name = 'collection' and
@@ -3006,7 +3010,7 @@ with partisan_tags as (
 -- all stories in the controversy belonging to the media tagged with one of the partisan collection tags
 partisan_stories as (
     select s.*, t.*
-        from 
+        from
             dump_stories s
             join dump_media_tags_map mtm on ( s.media_id = mtm.media_id )
             join dump_tags t on ( mtm.tags_id = t.tags_id )
@@ -3219,14 +3223,14 @@ sub edit_query_slices : Local
     my $query_slices = $db->query( <<SQL, $controversies_id )->hashes;
 select cqs.*,
     exists (
-        select 1 
-        from controversy_dump_time_slices cdts 
+        select 1
+        from controversy_dump_time_slices cdts
         where
             cdts.controversy_query_slices_id = cqs.controversy_query_slices_id and
             not( cdts.is_shell )
     ) has_non_shell_time_slice
 from controversy_query_slices cqs
-where controversies_id = ? 
+where controversies_id = ?
 order by name
 SQL
 

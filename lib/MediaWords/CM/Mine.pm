@@ -835,10 +835,16 @@ END
 }
 
 # return the type of match if the story title, url, description, or sentences match controversy search pattern.
+# if the controversy has a url_pattern, the story url must also match the controversy pattern
 # return undef if no match is found.
 sub story_matches_controversy_pattern
 {
     my ( $db, $controversy, $story, $metadata_only ) = @_;
+
+    if ( my $url_pattern = $controversy->{ url_pattern } )
+    {
+        return undef unless ( $story->{ url } =~ /$url_pattern/ );
+    }
 
     my $perl_re = $controversy->{ pattern };
 
@@ -1104,11 +1110,11 @@ END
 
     # this query is much quicker than the below one, so do it first
     my ( $num_stories ) = $db->query( <<END, $cid, $story->{ media_id }, $spidered_tag->{ tags_id } )->flat;
-select count(*) 
+select count(*)
     from cd.live_stories s
         join stories_tags_map stm on ( s.stories_id = stm.stories_id )
-    where 
-        s.controversies_id = ? and 
+    where
+        s.controversies_id = ? and
         s.media_id = ? and
         stm.tags_id = ?
 END
@@ -1123,8 +1129,8 @@ select count( distinct rs.stories_id )
         join cd.live_stories ss on ( ss.controversies_id = \$1 and cl.stories_id = ss.stories_id )
         join stories_tags_map sstm on ( sstm.stories_id = ss.stories_id )
         join stories_tags_map rstm on ( rstm.stories_id = rs.stories_id )
-    where 
-        rs.controversies_id = \$1 and 
+    where
+        rs.controversies_id = \$1 and
         rs.media_id = \$2 and
         ss.media_id <> rs.media_id and
         sstm.tags_id = \$3 and
@@ -1384,25 +1390,23 @@ sub spider_new_links
 
     my $new_links = $db->query( <<END, $iteration, $controversy->{ controversies_id } )->hashes;
 select distinct cs.iteration, cl.* from controversy_links cl, controversy_stories cs
-    where 
-        cl.ref_stories_id is null and 
-        cl.stories_id = cs.stories_id and 
+    where
+        cl.ref_stories_id is null and
+        cl.stories_id = cs.stories_id and
         ( cs.iteration < \$1 or cs.iteration = 1000 ) and
-        cs.controversies_id = \$2 and 
+        cs.controversies_id = \$2 and
         cl.controversies_id = \$2
 END
 
     add_new_links( $db, $controversy, $iteration, $new_links );
 }
 
-# run the spider over any new links, for $num_iterations iterations
+# run the spider over any new links
 sub run_spider
 {
     my ( $db, $controversy ) = @_;
 
-    my $num_iterations = MediaWords::Util::Config->get_config->{ mediawords }->{ cm_spider_iterations };
-
-    for my $i ( 1 .. $num_iterations )
+    for my $i ( 1 .. $controversy->{ num_iterations } )
     {
         spider_new_links( $db, $controversy, $i );
     }
@@ -1613,7 +1617,7 @@ sub get_merged_iteration
     my $i = $db->query( <<END, $cid, $delete_story->{ stories_id }, $keep_story->{ stories_id } )->flat;
 select iteration
     from controversy_stories
-    where 
+    where
         controversies_id  = \$1 and
         stories_id in ( \$2, \$3 )
 END
@@ -2257,4 +2261,3 @@ sub mine_controversy ($$;$)
 }
 
 1;
-
