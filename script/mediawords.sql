@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4486;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4487;
     
 BEGIN
 
@@ -2647,6 +2647,19 @@ $$
 $$
 LANGUAGE SQL;
 
+CREATE TABLE auth_users_tag_sets_permissions (
+    auth_users_tag_sets_permissions_id SERIAL  PRIMARY KEY,
+    auth_users_id                      integer references auth_users not null,
+    tag_sets_id                        integer references tag_sets not null,
+    apply_tags                         boolean NOT NULL,
+    create_tags                        boolean NOT NULL,
+    edit_tag_set_descriptors           boolean NOT NULL,
+    edit_tag_descriptors               boolean NOT NULL
+);
+
+CREATE UNIQUE INDEX auth_users_tag_sets_permissions_auth_user_tag_set on  auth_users_tag_sets_permissions( auth_users_id , tag_sets_id );
+CREATE UNIQUE INDEX auth_users_tag_sets_permissions_auth_user         on  auth_users_tag_sets_permissions( auth_users_id );
+CREATE UNIQUE INDEX auth_users_tag_sets_permissions_tag_sets          on  auth_users_tag_sets_permissions( tag_sets_id );
 
 --
 -- Activity log
