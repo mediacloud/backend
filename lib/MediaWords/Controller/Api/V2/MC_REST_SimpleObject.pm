@@ -359,7 +359,7 @@ sub _die_unless_tag_set_matches_user_email
 
 sub _die_unless_user_can_apply_tag_set_tags
 {
-    my ( $self, $c, $tag_set );
+    my ( $self, $c, $tag_set ) = @_;
 
     return if $c->stash->{ api_auth }->{ email } eq $tag_set->{ name };
 
@@ -368,7 +368,7 @@ sub _die_unless_user_can_apply_tag_set_tags
 
 sub _die_unless_user_can_create_tag_set_tags
 {
-    my ( $self, $c, $tag_set );
+    my ( $self, $c, $tag_set ) = @_;
 
     return if $c->stash->{ api_auth }->{ email } eq $tag_set->{ name };
 
@@ -377,7 +377,7 @@ sub _die_unless_user_can_create_tag_set_tags
 
 sub _die_unless_user_can_edit_tag_set_descriptors
 {
-    my ( $self, $c, $tag_set );
+    my ( $self, $c, $tag_set ) = @_;
 
     return if $c->stash->{ api_auth }->{ email } eq $tag_set->{ name };
 
@@ -386,7 +386,7 @@ sub _die_unless_user_can_edit_tag_set_descriptors
 
 sub _die_unless_user_can_edit_tag_set_tag_descriptors
 {
-    my ( $self, $c, $tag_set );
+    my ( $self, $c, $tag_set ) = @_;
 
     return if $c->stash->{ api_auth }->{ email } eq $tag_set->{ name };
 
@@ -406,21 +406,21 @@ sub _get_tags_id
     {
         # say STDERR "processing tag_sets:tag_name";
 
-        my ( $tag_set, $tag_name ) = split ':', $tag_string;
+        my ( $tag_set_name, $tag_name ) = split ':', $tag_string;
 
         #say STDERR Dumper( $c->stash );
         my $user_email = $c->stash->{ api_auth }->{ email };
 
-        my $tag_sets = $c->dbis->query( "SELECT * from tag_sets where name = ?", $tag_set )->hashes;
+        my $tag_sets = $c->dbis->query( "SELECT * from tag_sets where name = ?", $tag_set_name )->hashes;
 
         if ( !scalar( @$tag_sets ) > 0 )
         {
-            if ( $user_email ne $tag_set )
+            if ( $user_email ne $tag_set_name )
             {
-                die "Illegal tag_set name '" . $tag_set . "' tag_set must be user email ( '$user_email' ) ";
+                die "Illegal tag_set name '" . $tag_set_name . "' tag_set must be user email ( '$user_email' ) ";
             }
 
-            $tag_sets = [ $c->dbis->create( 'tag_sets', { 'name' => $tag_set } ) ];
+            $tag_sets = [ $c->dbis->create( 'tag_sets', { 'name' => $tag_set_name } ) ];
         }
 
         die "invalid tag set " unless scalar( @$tag_sets ) > 0;
