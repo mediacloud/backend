@@ -35,6 +35,12 @@ listening_socket = TSocket.TServerSocket(port=9090)
 tfactory = TTransport.TBufferedTransportFactory()
 pfactory = TBinaryProtocol.TBinaryProtocolFactory()
 
+# Test the extractor real quick; if it doesn't work, don't proceed to creating the server
+test_html = "<html><body><p>Media Cloud</p></body></html>"
+extracted_text = handler.extract_html( test_html )
+if not extracted_text:
+    raise ImportError("'readability' module has been imported, but I'm unable to extract anything with it")
+
 server = TProcessPoolServer(processor, listening_socket, tfactory, pfactory)
 server.setNumWorkers( 30 )
 print ("[Server] Started")
