@@ -26,16 +26,7 @@ def extract_with_python_readability( raw_content ):
 
 class ExtractorHandler:
     def extract_html( self, raw_html ):
-
-        #print >> sys.stderr, "in ExtractorHandler.extract_html"
-        #print >> sys.stderr, "type: ", type ( raw_html )
-
-        #print raw_html
-
-        #raw_html = raw_html.encode( 'utf-8' )
-
-        ret =  extract_with_python_readability( raw_html )
-        #print ret[1]
+        ret = extract_with_python_readability( raw_html )
         return ret
 
 handler = ExtractorHandler()
@@ -43,10 +34,7 @@ processor = ExtractorService.Processor(handler)
 listening_socket = TSocket.TServerSocket(port=9090)
 tfactory = TTransport.TBufferedTransportFactory()
 pfactory = TBinaryProtocol.TBinaryProtocolFactory()
-#pfactory = TBinaryProtocol.TBinaryProtocolAcceleratedFactory()
 
-#server = TServer.TThreadPoolServer(processor, listening_socket, tfactory, pfactory)
-#server.setNumThreads( 30 )
 server = TProcessPoolServer(processor, listening_socket, tfactory, pfactory)
 server.setNumWorkers( 30 )
 print ("[Server] Started")
