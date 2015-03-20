@@ -94,7 +94,6 @@ use XML::LibXML;
 #     <language>en_US_and_ru_RU</language>
 #     <owner>mediawords@cyber.law.harvard.edu</owner>
 #     <read_file_downloads_from_gridfs>no</read_file_downloads_from_gridfs>
-#     <read_tar_downloads_from_gridfs>no</read_tar_downloads_from_gridfs>
 #     <recaptcha_private_key>...</recaptcha_private_key>
 #     <recaptcha_public_key>...</recaptcha_public_key>
 #     <script_dir>/Users/pypt/Dropbox/etc-MediaCloud/trunk/script/../lib/MediaWords/Util/../../../script</script_dir>

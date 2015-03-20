@@ -314,17 +314,14 @@ mediawords:
         #- postgresql
         ### store downloads in local files under "./data/content/" (see "data_dir" above)
         #- localfile
-        ### store downloads in Tar archives
-        #- tar
         ### store downloads in Amazon S3
         #- amazon_s3
         ### store downloads in MongoDB GridFS database
         #- gridfs
 
-    ### Uncomment both to force reading Tar and file downloads from GridFS
-    ### (useful if you moved downloads from Tar archives into GridFS and don't
+    ### Uncomment both to force reading file downloads from GridFS
+    ### (useful if you moved downloads files into GridFS and don't
     ### want to / can't change 'downloads.path' on PostgreSQL just now)
-    #read_tar_downloads_from_gridfs  : "no"
     #read_file_downloads_from_gridfs : "no"
 
     ### Uncomment to force reading GridFS downloads from Amazon S3

@@ -78,7 +78,7 @@ package MediaWords::KeyValueStore;
 #
 # Removing data:
 #
-#     # Some storage methods don't support removing data, e.g. Tar
+#     # Some storage methods might not support removing data
 #     eval {
 #         $store->remove_content( $db, 'Mister Bigglesworth' );
 #     };
@@ -88,7 +88,7 @@ package MediaWords::KeyValueStore;
 #
 # Checking if data exists:
 #
-#     # Some storage methods don't support checking if the data exists, e.g. Tar
+#     # Some storage methods might not support checking whether the data exists
 #     if ($store->content_exists( $db, 'Mister Bigglesworth' )) {
 #         say "Yes it does";
 #     } else {

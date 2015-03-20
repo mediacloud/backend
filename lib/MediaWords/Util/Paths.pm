@@ -98,7 +98,7 @@ sub get_download_path($$)
     return join( '/', @path );
 }
 
-# Return a directory to which the Tar / file downloads should be stored (with trailing slash)
+# Return a directory to which the file downloads should be stored (with trailing slash)
 #
 # Returns: directory (e.g. data/content/) to which downloads will be stored
 sub get_data_content_dir()

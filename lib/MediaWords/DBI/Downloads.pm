@@ -146,7 +146,6 @@ my $_download_store_lookup = lazy
     require MediaWords::KeyValueStore::LocalFile;
     require MediaWords::KeyValueStore::PostgreSQL;
     require MediaWords::KeyValueStore::Remote;
-    require MediaWords::KeyValueStore::Tar;
 
     my $download_store_lookup = {
 
@@ -161,10 +160,6 @@ my $_download_store_lookup = lazy
         # downloads.path is prefixed with "postgresql:";
         # download is stored in "raw_downloads" table
         postgresql => undef,
-
-        # downloads.path is prefixed with "tar:";
-        # download is stored in a Tar archive in a filesystem
-        tar => undef,
 
         # downloads.path is prefixed with "amazon_s3:";
         # download is stored in Amazon S3
@@ -262,9 +257,6 @@ my $_download_store_lookup = lazy
         );
     }
 
-    $download_store_lookup->{ tar } =
-      MediaWords::KeyValueStore::Tar->new( { data_content_dir => MediaWords::Util::Paths::get_data_content_dir } );
-
     return $download_store_lookup;
 };
 
@@ -335,11 +327,6 @@ sub _download_store_for_reading($)
                 $download_store = 'databaseinline';
             }
 
-            elsif ( $location eq 'tar' )
-            {
-                $download_store = 'gridfs';
-            }
-
             elsif ( $location eq 'postgresql' )
             {
                 $download_store = 'postgresql';
@@ -350,7 +337,7 @@ sub _download_store_for_reading($)
                 $download_store = 'amazon_s3';
             }
 
-            elsif ( $location eq 'gridfs' )
+            elsif ( $location eq 'gridfs' or $location eq 'tar' )
             {
                 $download_store = 'gridfs';
             }
@@ -379,15 +366,6 @@ sub _download_store_for_reading($)
 
     # Overrides:
 
-    # Tar downloads have to be fetched from GridFS?
-    if ( $download_store eq 'tar' )
-    {
-        if ( lc( get_config->{ mediawords }->{ read_tar_downloads_from_gridfs } eq 'yes' ) )
-        {
-            $download_store = 'gridfs';
-        }
-    }
-
     # File downloads have to be fetched from GridFS?
     if ( $download_store eq 'localfile' )
     {
@@ -398,7 +376,7 @@ sub _download_store_for_reading($)
     }
 
     # GridFS downloads have to be fetched from S3?
-    if ( $download_store eq 'gridfs' )
+    if ( $download_store eq 'gridfs' or $download_store eq 'tar' )
     {
         if ( lc( get_config->{ mediawords }->{ read_gridfs_downloads_from_s3 } eq 'yes' ) )
         {

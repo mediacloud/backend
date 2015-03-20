@@ -3825,12 +3825,6 @@ DISTRIBUTIONS
       FileHandle 0
       strict 0
       warnings 0
-  File-Touch-0.08
-    pathname: N/NW/NWETTERS/File-Touch-0.08.tar.gz
-    provides:
-      File::Touch 0.08
-    requirements:
-      ExtUtils::MakeMaker 0
   File-Which-1.09
     pathname: A/AD/ADAMK/File-Which-1.09.tar.gz
     provides:
