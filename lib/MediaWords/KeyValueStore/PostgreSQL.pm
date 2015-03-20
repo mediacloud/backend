@@ -32,22 +32,14 @@ sub BUILD($$)
 }
 
 # Moose method
-sub store_content($$$$;$)
+sub store_content($$$$)
 {
-    my ( $self, $db, $object_id, $content_ref, $skip_encode_and_compress ) = @_;
+    my ( $self, $db, $object_id, $content_ref ) = @_;
 
     my $table_name = $self->_conf_table_name;
 
     # Encode + gzip
-    my $content_to_store;
-    if ( $skip_encode_and_compress )
-    {
-        $content_to_store = $$content_ref;
-    }
-    else
-    {
-        $content_to_store = $self->encode_and_compress( $content_ref, $object_id );
-    }
+    my $content_to_store = $self->encode_and_compress( $content_ref, $object_id );
 
     my $use_transaction = $db->dbh->{ AutoCommit };
 
@@ -90,9 +82,9 @@ EOF
 }
 
 # Moose method
-sub fetch_content($$$;$$)
+sub fetch_content($$$;$)
 {
-    my ( $self, $db, $object_id, $object_path, $skip_uncompress_and_decode ) = @_;
+    my ( $self, $db, $object_id, $object_path ) = @_;
 
     my $table_name = $self->_conf_table_name;
 
@@ -113,15 +105,7 @@ EOF
     $gzipped_content = $gzipped_content->[ 0 ];
 
     # Gunzip + decode
-    my $decoded_content;
-    if ( $skip_uncompress_and_decode )
-    {
-        $decoded_content = $gzipped_content;
-    }
-    else
-    {
-        $decoded_content = $self->uncompress_and_decode( \$gzipped_content, $object_id );
-    }
+    my $decoded_content = $self->uncompress_and_decode( \$gzipped_content, $object_id );
 
     return \$decoded_content;
 }

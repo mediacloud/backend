@@ -39,19 +39,15 @@ package MediaWords::KeyValueStore;
 #     # parameters for store_content() that define how the object is processed.
 #     # For example, MediaWords::KeyValueStore::GridFS::store_content() supports
 #     # the following parameters:
-#     # * $skip_encode_and_compress -- skip encoding with Encode and compressing
-#     #   data with Gzip
 #     # * $use_bzip2_instead_of_gzip -- use Bzip2 compression instead of Gzip
 #     # Make sure to read the declaration of the store_content() for the specific
 #     # subpackage subroutine before using it.
 #
-#     my $skip_encode_and_compress = undef;   # default value
 #     my $use_bzip2_instead_of_gzip = 1;
 #     $gridfs_store->store_content(
 #         $db,
 #         'Cuddles McCracken',
 #         \read_file('cuddles.jpg'),
-#         $skip_encode_and_compress,
 #         $use_bzip2_instead_of_gzip
 #     );
 #
@@ -67,20 +63,16 @@ package MediaWords::KeyValueStore;
 #     # For example, MediaWords::KeyValueStore::GridFS::fetch_content() supports
 #     # the following parameters:
 #     # * $object_path -- object path (MongoDB OID); not used
-#     # * $skip_uncompress_and_decode -- skip uncompressing with Gunzip and
-#     #   decoding with Encode
 #     # * $use_bzip2_instead_of_gzip -- use Bzip2 uncompression instead of Gzip
 #     # Make sure to read the declaration of the fetch_content() for the specific
 #     # subpackage subroutine before using it.
 #
 #     my $object_path = undef;    # default value
-#     my $skip_uncompress_and_decode = undef; # default value
 #     my $use_bzip2_instead_of_gzip = 1;
 #     my $content_ref = $gridfs_store->fetch_content(
 #         $db,
 #         'Mister Bigglesworth',
 #         $object_path,
-#         $skip_uncompress_and_decode,
 #         $use_bzip2_instead_of_gzip
 #     );
 #

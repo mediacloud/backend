@@ -68,9 +68,9 @@ sub _get_data_dir()
 #
 # Parameters: database connection, download, (optional) skip gzipping or not
 # Returns: string download path
-sub get_download_path($$;$)
+sub get_download_path($$)
 {
-    my ( $db, $downloads_id, $skip_encode_and_compress ) = @_;
+    my ( $db, $downloads_id ) = @_;
 
     my $download = $db->query( 'SELECT * FROM downloads WHERE downloads_id = ?', $downloads_id )->hash;
     unless ( $download )
@@ -93,7 +93,7 @@ sub get_download_path($$;$)
         push( @path, $p->{ downloads_id } );
     }
 
-    push( @path, $download->{ downloads_id } . ( $skip_encode_and_compress ? '' : '.gz' ) );
+    push( @path, $download->{ downloads_id } . '.gz' );
 
     return join( '/', @path );
 }

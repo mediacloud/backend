@@ -307,22 +307,12 @@ EOF
 
                     say STDERR "Download does not exist in GridFS, will attempt to copy." if ( _verbose() );
 
-                    # Skipping gunzipping, decoding, encoding and gzipping again would improve the
-                    # migration speed, but for the sake of trying MongoDBs stability and performance
-                    # we go the full way.
-                    my Readonly $skip_uncompress_and_decode = 0;
-                    my Readonly $skip_encode_and_compress   = 0;
-
                     # Fetch from Tar
                     my $content_ref;
                     eval {
                         say STDERR "Fetching download..." if ( _verbose() );
-                        $content_ref = $store->fetch_content(
-                            $db,
-                            $download->{ downloads_id },
-                            $download->{ downloads_path },
-                            $skip_uncompress_and_decode
-                        );
+                        $content_ref =
+                          $store->fetch_content( $db, $download->{ downloads_id }, $download->{ downloads_path } );
                         say STDERR "Done fetching download." if ( _verbose() );
                     };
                     if ( $@ or ( !$content_ref ) )
@@ -336,8 +326,7 @@ EOF
                     say STDERR "Will store download to GridFS..." if ( _verbose() );
 
                     # Store to GridFS
-                    my $gridfs_path = $gridfs_store->store_content( $db, $download->{ downloads_id },
-                        $content_ref, $skip_encode_and_compress );
+                    my $gridfs_path = $gridfs_store->store_content( $db, $download->{ downloads_id }, $content_ref );
                     unless ( $gridfs_path )
                     {
                         die "Unable to store content for download " . $download->{ downloads_id };

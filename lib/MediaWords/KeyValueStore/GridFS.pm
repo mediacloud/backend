@@ -167,22 +167,14 @@ sub remove_content($$$;$)
 }
 
 # Moose method
-sub store_content($$$$;$$)
+sub store_content($$$$;$)
 {
-    my ( $self, $db, $object_id, $content_ref, $skip_encode_and_compress, $use_bzip2_instead_of_gzip ) = @_;
+    my ( $self, $db, $object_id, $content_ref, $use_bzip2_instead_of_gzip ) = @_;
 
     $self->_connect_to_mongodb_or_die();
 
     # Encode + gzip
-    my $content_to_store;
-    if ( $skip_encode_and_compress )
-    {
-        $content_to_store = $$content_ref;
-    }
-    else
-    {
-        $content_to_store = $self->encode_and_compress( $content_ref, $object_id, $use_bzip2_instead_of_gzip );
-    }
+    my $content_to_store = $self->encode_and_compress( $content_ref, $object_id, $use_bzip2_instead_of_gzip );
 
     my $filename = '' . $object_id;
     my $gridfs_id;
@@ -236,9 +228,9 @@ sub store_content($$$$;$$)
 }
 
 # Moose method
-sub fetch_content($$$;$$$)
+sub fetch_content($$$;$$)
 {
-    my ( $self, $db, $object_id, $object_path, $skip_uncompress_and_decode, $use_bunzip2_instead_of_gunzip ) = @_;
+    my ( $self, $db, $object_id, $object_path, $use_bunzip2_instead_of_gunzip ) = @_;
 
     $self->_connect_to_mongodb_or_die();
 
@@ -307,23 +299,15 @@ sub fetch_content($$$;$$$)
     my $gzipped_content = $file;
 
     # Gunzip + decode
-    my $decoded_content;
-    if ( $skip_uncompress_and_decode )
+    unless ( defined $gzipped_content and $gzipped_content ne '' )
     {
-        $decoded_content = $gzipped_content;
+        # MongoDB returns empty strings on some cases of corrupt data, but
+        # an empty string can't be a valid Gzip/Bzip2 archive, so we're
+        # checking if we're about to attempt to decompress an empty string
+        confess "GridFS: Compressed data is empty for filename $filename.\n";
     }
-    else
-    {
-        unless ( defined $gzipped_content and $gzipped_content ne '' )
-        {
-            # MongoDB returns empty strings on some cases of corrupt data, but
-            # an empty string can't be a valid Gzip/Bzip2 archive, so we're
-            # checking if we're about to attempt to decompress an empty string
-            confess "GridFS: Compressed data is empty for filename $filename.\n";
-        }
 
-        $decoded_content = $self->uncompress_and_decode( \$gzipped_content, $object_id, $use_bunzip2_instead_of_gunzip );
-    }
+    my $decoded_content = $self->uncompress_and_decode( \$gzipped_content, $object_id, $use_bunzip2_instead_of_gunzip );
 
     return \$decoded_content;
 }
