@@ -329,12 +329,6 @@ mediawords:
     ### in the process of restoring downloads from S3 back to GridFS)
     #read_gridfs_downloads_from_s3 : "no"
 
-    ### fetch content from another instance of MediaCloud?
-    #fetch_remote_content          : "yes"
-    #fetch_remote_content_user     : username
-    #fetch_remote_content_password : password
-    #fetch_remote_content_url      : "http://admin.mediacloud.org/admin/downloads/view/"
-
     #### Defaults to kmeans uncomment to use Cluto
     #clustering_engine: "cluto"
     #cluto_binary: "/usr/local/cluto/bin/vcluster"

@@ -145,7 +145,6 @@ my $_download_store_lookup = lazy
     require MediaWords::KeyValueStore::GridFS;
     require MediaWords::KeyValueStore::LocalFile;
     require MediaWords::KeyValueStore::PostgreSQL;
-    require MediaWords::KeyValueStore::Remote;
 
     my $download_store_lookup = {
 
@@ -168,10 +167,6 @@ my $_download_store_lookup = lazy
         # downloads.path is prefixed with "gridfs:";
         # download is stored in MongoDB GridFS
         gridfs => undef,    # might remain 'undef' if not configured
-
-        # downloads.path has no prefix, but /mediawords/fetch_remote_content is set to "yes";
-        # download is stored in a remote HTTP server
-        remote => undef,    # might remain 'undef' if not configured
     };
 
     # Early sanity check on configuration
@@ -185,7 +180,7 @@ my $_download_store_lookup = lazy
     {
         my $location = lc( $download_storage_location );
 
-        if ( grep { $_ eq $location } qw(remote databaseinline) )
+        if ( $location eq 'databaseinline' )
         {
             die "download_storage_location $location is not valid for storage";
         }
@@ -246,17 +241,6 @@ my $_download_store_lookup = lazy
     $download_store_lookup->{ postgresql } =
       MediaWords::KeyValueStore::PostgreSQL->new( { table_name => 'raw_downloads' } );
 
-    if ( get_config->{ mediawords }->{ fetch_remote_content_url } )
-    {
-        $download_store_lookup->{ remote } = MediaWords::KeyValueStore::Remote->new(
-            {
-                url      => get_config->{ mediawords }->{ fetch_remote_content_url },
-                username => get_config->{ mediawords }->{ fetch_remote_content_user },
-                password => get_config->{ mediawords }->{ fetch_remote_content_password }
-            }
-        );
-    }
-
     return $download_store_lookup;
 };
 
@@ -305,58 +289,50 @@ sub _download_store_for_reading($)
 
     my $download_store;
 
-    my $fetch_remote = get_config->{ mediawords }->{ fetch_remote_content } || 'no';
-    if ( $fetch_remote eq 'yes' )
+    my $path = $download->{ path };
+    unless ( $path )
     {
-        $download_store = 'remote';
+        die "Download path is not set for download $download->{ downloads_id }";
+    }
+
+    if ( $path =~ /^([\w]+):/ )
+    {
+        Readonly my $location => lc( $1 );
+
+        if ( $location eq 'content' )
+        {
+            $download_store = 'databaseinline';
+        }
+
+        elsif ( $location eq 'postgresql' )
+        {
+            $download_store = 'postgresql';
+        }
+
+        elsif ( $location eq 'amazon_s3' )
+        {
+            $download_store = 'amazon_s3';
+        }
+
+        elsif ( $location eq 'gridfs' or $location eq 'tar' )
+        {
+            $download_store = 'gridfs';
+        }
+
+        else
+        {
+            die "Download location '$location' is unknown for download $download->{ downloads_id }";
+        }
+
     }
     else
     {
-        my $path = $download->{ path };
-        unless ( $path )
-        {
-            die "Download path is not set for download $download->{ downloads_id }";
-        }
-
-        if ( $path =~ /^([\w]+):/ )
-        {
-            Readonly my $location => lc( $1 );
-
-            if ( $location eq 'content' )
-            {
-                $download_store = 'databaseinline';
-            }
-
-            elsif ( $location eq 'postgresql' )
-            {
-                $download_store = 'postgresql';
-            }
-
-            elsif ( $location eq 'amazon_s3' )
-            {
-                $download_store = 'amazon_s3';
-            }
-
-            elsif ( $location eq 'gridfs' or $location eq 'tar' )
-            {
-                $download_store = 'gridfs';
-            }
-
-            else
-            {
-                die "Download location '$location' is unknown for download $download->{ downloads_id }";
-            }
-
-        }
-        else
-        {
-            # Assume it's stored in a filesystem (the downloads.path contains a
-            # full path to the download).
-            #
-            # We will probably decide to read this "file" download from GridFS
-            # right away.
-            $download_store = 'localfile';
-        }
+        # Assume it's stored in a filesystem (the downloads.path contains a
+        # full path to the download).
+        #
+        # We will probably decide to read this "file" download from GridFS
+        # right away.
+        $download_store = 'localfile';
     }
 
     unless ( defined $download_store )
