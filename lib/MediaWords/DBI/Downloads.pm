@@ -143,7 +143,6 @@ my $_download_store_lookup = lazy
     require MediaWords::KeyValueStore::AmazonS3;
     require MediaWords::KeyValueStore::DatabaseInline;
     require MediaWords::KeyValueStore::GridFS;
-    require MediaWords::KeyValueStore::LocalFile;
     require MediaWords::KeyValueStore::PostgreSQL;
 
     my $download_store_lookup = {
@@ -151,10 +150,6 @@ my $_download_store_lookup = lazy
         # downloads.path is prefixed with "content:";
         # download is stored in downloads.path itself
         databaseinline => undef,
-
-        # downloads.path has no prefix;
-        # download is stored in a filesystem
-        localfile => undef,
 
         # downloads.path is prefixed with "postgresql:";
         # download is stored in "raw_downloads" table
@@ -234,9 +229,6 @@ my $_download_store_lookup = lazy
                 { database_name => get_config->{ mongodb_gridfs }->{ downloads }->{ database_name } } );
         }
     }
-
-    $download_store_lookup->{ localfile } =
-      MediaWords::KeyValueStore::LocalFile->new( { data_content_dir => MediaWords::Util::Paths::get_data_content_dir } );
 
     $download_store_lookup->{ postgresql } =
       MediaWords::KeyValueStore::PostgreSQL->new( { table_name => 'raw_downloads' } );
@@ -330,9 +322,8 @@ sub _download_store_for_reading($)
         # Assume it's stored in a filesystem (the downloads.path contains a
         # full path to the download).
         #
-        # We will probably decide to read this "file" download from GridFS
-        # right away.
-        $download_store = 'localfile';
+        # Those downloads have been migrated to GridFS.
+        $download_store = 'gridfs';
     }
 
     unless ( defined $download_store )
@@ -341,15 +332,6 @@ sub _download_store_for_reading($)
     }
 
     # Overrides:
-
-    # File downloads have to be fetched from GridFS?
-    if ( $download_store eq 'localfile' )
-    {
-        if ( lc( get_config->{ mediawords }->{ read_file_downloads_from_gridfs } eq 'yes' ) )
-        {
-            $download_store = 'gridfs';
-        }
-    }
 
     # GridFS downloads have to be fetched from S3?
     if ( $download_store eq 'gridfs' or $download_store eq 'tar' )

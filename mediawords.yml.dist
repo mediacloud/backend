@@ -280,7 +280,7 @@ mediawords:
     ### defaults to http://$hostname:$port/.
     #base_url: "http://your.mediacloud.server/and/path"
 
-    ### parent directory of the content/ directory with all downloaded content is stored
+    ### Directory in which various kinds of data (logs, etc.) is being stored
     #data_dir: "<bindir>/../data"
 
     ### Uncomment to use the directory given by <PATH> to temporarily store CSV files generated in the public data dumps
@@ -312,17 +312,10 @@ mediawords:
     #download_storage_locations:
         ### store downloads in the PostgreSQL database, "raw_downloads" table
         #- postgresql
-        ### store downloads in local files under "./data/content/" (see "data_dir" above)
-        #- localfile
         ### store downloads in Amazon S3
         #- amazon_s3
         ### store downloads in MongoDB GridFS database
         #- gridfs
-
-    ### Uncomment both to force reading file downloads from GridFS
-    ### (useful if you moved downloads files into GridFS and don't
-    ### want to / can't change 'downloads.path' on PostgreSQL just now)
-    #read_file_downloads_from_gridfs : "no"
 
     ### Uncomment to force reading GridFS downloads from Amazon S3
     ### (useful if you're experiencing MongoDB downtime for some reason or are

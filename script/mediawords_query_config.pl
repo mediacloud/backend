@@ -88,12 +88,11 @@ use XML::LibXML;
 #     <data_dir>/Users/pypt/Dropbox/etc-MediaCloud/trunk/script/../lib/MediaWords/Util/../../../data</data_dir>
 #     <default_home_page>admin/media/list</default_home_page>
 #     <disable_json_top_500_words_cache>no</disable_json_top_500_words_cache>
-#     <download_storage_locations>localfile</download_storage_locations>
+#     <download_storage_locations>postgresql</download_storage_locations>
 #     <extractor_method>CrfExtractor</extractor_method>
 #     <inline_java_jni>no</inline_java_jni>
 #     <language>en_US_and_ru_RU</language>
 #     <owner>mediawords@cyber.law.harvard.edu</owner>
-#     <read_file_downloads_from_gridfs>no</read_file_downloads_from_gridfs>
 #     <recaptcha_private_key>...</recaptcha_private_key>
 #     <recaptcha_public_key>...</recaptcha_public_key>
 #     <script_dir>/Users/pypt/Dropbox/etc-MediaCloud/trunk/script/../lib/MediaWords/Util/../../../script</script_dir>
