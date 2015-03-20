@@ -3,7 +3,6 @@
 import sys
 import os
 import glob
-#sys.path.append(os.path.join(os.path.dirname(__file__), "gen-py"))
 sys.path.append(os.path.join(os.path.dirname(__file__),"gen-py/thrift_solr/"))
 sys.path.append(os.path.dirname(__file__) )
 
@@ -14,16 +13,10 @@ from thrift.server import TServer
 from thrift.protocol.TBinaryProtocol import TBinaryProtocolAccelerated
 from thrift.server.TProcessPoolServer import TProcessPoolServer
 
-#import thrift_solr
-
-
 import ExtractorService
-
 import sys
-
 import readability
 
-import readability
 
 def extract_with_python_readability( raw_content ):
     doc = readability.Document( raw_content )
