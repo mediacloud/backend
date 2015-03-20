@@ -15,11 +15,11 @@ from thrift.server.TProcessPoolServer import TProcessPoolServer
 
 import ExtractorService
 import sys
-import readability
+from readability.readability import Document
 
 
 def extract_with_python_readability( raw_content ):
-    doc = readability.Document( raw_content )
+    doc = Document( raw_content )
     
     return [ u'' + doc.short_title(),
              u'' + doc.summary() ]
