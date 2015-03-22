@@ -8,7 +8,7 @@ use warnings;
 use utf8;
 use Test::NoWarnings;
 use Readonly;
-use Test::More tests => 23;
+use Test::More tests => 25;
 
 # Run the comparison multiple times so that the performance difference is more obvious
 use constant TEST_ITERATIONS => 100;
@@ -301,6 +301,12 @@ sub test_encode_decode_utf8()
     }
 }
 
+sub test_is_valid_utf8()
+{
+    ok( MediaWords::Util::Text::is_valid_utf8( 'pnoןɔ ɐıpǝɯ' ), 'Valid UTF-8' );
+    ok( !MediaWords::Util::Text::is_valid_utf8( "\xc3\x28" ),         'Invalid UTF-8' );
+}
+
 sub main()
 {
     my $builder = Test::More->builder;
@@ -310,6 +316,7 @@ sub main()
 
     test_get_similarity_score();
     test_encode_decode_utf8();
+    test_is_valid_utf8();
 }
 
 main();
