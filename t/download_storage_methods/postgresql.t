@@ -1,5 +1,6 @@
 use strict;
 use warnings;
+use utf8;
 
 use Test::More tests => 20 + 1;
 
@@ -151,8 +152,13 @@ sub main()
             my ( $db ) = @_;
 
             # Errors might want to print out UTF-8 characters
-            binmode( STDOUT, ':utf8' );
             binmode( STDERR, ':utf8' );
+            binmode( STDOUT, ':utf8' );
+            my $builder = Test::More->builder;
+
+            binmode $builder->output,         ":utf8";
+            binmode $builder->failure_output, ":utf8";
+            binmode $builder->todo_output,    ":utf8";
 
             my $postgresql = MediaWords::KeyValueStore::PostgreSQL->new( { table_name => 'raw_downloads' } );
 
