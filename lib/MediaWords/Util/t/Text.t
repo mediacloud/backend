@@ -7,7 +7,8 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 7 + 4;
+use Readonly;
+use Test::More tests => 23;
 
 # Run the comparison multiple times so that the performance difference is more obvious
 use constant TEST_ITERATIONS => 100;
@@ -266,6 +267,40 @@ EOF
     _compare_similarity_score( 'Italian RSS description and body (Global Voices)', $text_2, $text_1, 'it', 0.04 );
 }
 
+sub test_encode_decode_utf8()
+{
+    Readonly my @test_strings => (
+
+        # ASCII
+        "Media Cloud\r\nMedia Cloud\nMedia Cloud\r\n",
+
+        # UTF-8
+        "Media Cloud\r\nąčęėįšųūž\n您好\r\n",
+
+        # Empty string
+        "",
+
+        # Invalid UTF-8 sequences
+        "\xc3\x28",
+        "\xa0\xa1",
+        "\xe2\x28\xa1",
+        "\xe2\x82\x28",
+        "\xf0\x28\x8c\xbc",
+        "\xf0\x90\x28\xbc",
+        "\xf0\x28\x8c\x28",
+        "\xf8\xa1\xa1\xa1\xa1",
+        "\xfc\xa1\xa1\xa1\xa1\xa1",
+
+    );
+
+    foreach my $test_string ( @test_strings )
+    {
+        my $encoded_string = MediaWords::Util::Text::encode_to_utf8( $test_string );
+        my $decoded_string = MediaWords::Util::Text::decode_from_utf8( $encoded_string );
+        is( $decoded_string, $test_string, "Encoded+decoded string matches" );
+    }
+}
+
 sub main()
 {
     my $builder = Test::More->builder;
@@ -274,6 +309,7 @@ sub main()
     binmode $builder->todo_output,    ":utf8";
 
     test_get_similarity_score();
+    test_encode_decode_utf8();
 }
 
 main();
