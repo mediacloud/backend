@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 34;
+use Test::More tests => 106;
 use Readonly;
 
 BEGIN
@@ -79,6 +79,18 @@ sub main()
 
         # Empty string
         "",
+
+        # Invalid UTF-8 sequences
+        "\xc3\x28",
+        "\xa0\xa1",
+        "\xe2\x28\xa1",
+        "\xe2\x82\x28",
+        "\xf0\x28\x8c\xbc",
+        "\xf0\x90\x28\xbc",
+        "\xf0\x28\x8c\x28",
+        "\xf8\xa1\xa1\xa1\xa1",
+        "\xfc\xa1\xa1\xa1\xa1\xa1",
+
     );
 
     foreach my $test_string ( @test_strings )
