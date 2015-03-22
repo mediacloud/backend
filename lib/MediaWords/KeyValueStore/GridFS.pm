@@ -12,6 +12,7 @@ use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use MediaWords::Util::Config;
+use MediaWords::Util::Compress;
 use MongoDB 0.704.1.0;
 use MongoDB::GridFS;
 use Carp;
@@ -174,7 +175,21 @@ sub store_content($$$$;$)
     $self->_connect_to_mongodb_or_die();
 
     # Encode + gzip
-    my $content_to_store = $self->encode_and_compress( $content_ref, $object_id, $use_bzip2_instead_of_gzip );
+    my $content_to_store;
+    eval {
+        if ( $use_bzip2_instead_of_gzip )
+        {
+            $content_to_store = MediaWords::Util::Compress::encode_and_bzip2( $$content_ref );
+        }
+        else
+        {
+            $content_to_store = MediaWords::Util::Compress::encode_and_gzip( $$content_ref );
+        }
+    };
+    if ( $@ or ( !defined $content_to_store ) )
+    {
+        die "Unable to compress object ID $object_id: $@";
+    }
 
     my $filename = '' . $object_id;
     my $gridfs_id;
@@ -307,7 +322,12 @@ sub fetch_content($$$;$$)
         confess "GridFS: Compressed data is empty for filename $filename.\n";
     }
 
-    my $decoded_content = $self->uncompress_and_decode( \$gzipped_content, $object_id, $use_bunzip2_instead_of_gunzip );
+    my $decoded_content;
+    eval { $decoded_content = MediaWords::Util::Compress::gunzip_and_decode( $gzipped_content ); };
+    if ( $@ or ( !defined $decoded_content ) )
+    {
+        die "Unable to uncompress object ID $object_id: $@";
+    }
 
     return \$decoded_content;
 }

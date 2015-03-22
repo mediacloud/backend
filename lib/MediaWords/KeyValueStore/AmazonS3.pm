@@ -12,6 +12,7 @@ use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use MediaWords::Util::Config;
+use MediaWords::Util::Compress;
 use Net::Amazon::S3;
 use Net::Amazon::S3::Client;
 use Net::Amazon::S3::Client::Bucket;
@@ -245,7 +246,12 @@ sub store_content($$$$)
     }
 
     # Encode + gzip
-    my $content_to_store = $self->encode_and_compress( $content_ref, $object_id );
+    my $content_to_store;
+    eval { $content_to_store = MediaWords::Util::Compress::encode_and_gzip( $$content_ref ); };
+    if ( $@ or ( !defined $content_to_store ) )
+    {
+        die "Unable to compress object ID $object_id: $@";
+    }
 
     my $write_was_successful = 0;
     my $object;
@@ -335,7 +341,12 @@ sub fetch_content($$$;$)
     }
 
     # Gunzip + decode
-    my $decoded_content = $self->uncompress_and_decode( \$gzipped_content, $object_id );
+    my $decoded_content;
+    eval { $decoded_content = MediaWords::Util::Compress::gunzip_and_decode( $gzipped_content ); };
+    if ( $@ or ( !defined $decoded_content ) )
+    {
+        die "Unable to uncompress object ID $object_id: $@";
+    }
 
     return \$decoded_content;
 }
