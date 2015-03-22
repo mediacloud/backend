@@ -62,7 +62,7 @@ sub test_store_content($$)
 
     my $test_downloads_id   = MOCK_DOWNLOADS_ID + 0;
     my $test_downloads_path = undef;
-    my $test_content        = 'Loren ipsum dolor sit amet.';
+    my $test_content        = 'Media Cloud - pnoןɔ ɐıpǝɯ';    # UTF-8
     my $content_ref;
 
     # Store content
