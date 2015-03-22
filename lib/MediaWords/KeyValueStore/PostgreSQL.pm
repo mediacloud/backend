@@ -1,6 +1,7 @@
 package MediaWords::KeyValueStore::PostgreSQL;
 
-# class for storing / loading objects (raw downloads, CoreNLP annotator results, ...) to / from PostgreSQL
+# class for storing / loading objects (raw downloads,
+# CoreNLP annotator results, ...) to / from PostgreSQL
 
 use strict;
 use warnings;
