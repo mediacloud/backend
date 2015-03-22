@@ -7,30 +7,12 @@ use warnings;
 
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
+use MediaWords::Util::Text;
 
-use Encode;
 use IO::Compress::Gzip qw(:level);
 use IO::Uncompress::Gunzip qw($GunzipError);
 use IO::Compress::Bzip2 qw();
 use IO::Uncompress::Bunzip2 qw($Bunzip2Error);
-
-# Encode data into UTF-8; die() on error
-sub _encode_to_utf8($)
-{
-    my $data = shift;
-
-    # Will croak on error
-    return Encode::encode( 'utf-8', $data );
-}
-
-# Decode data from UTF-8; die() on error
-sub _decode_from_utf8($)
-{
-    my $data = shift;
-
-    # Will croak on error
-    return Encode::decode( 'utf-8', $data );
-}
 
 # Bzip2 data; die() on error
 sub bzip2($)
@@ -65,7 +47,7 @@ sub encode_and_bzip2($)
         die "Data to encode and bzip2 is undefined.";
     }
 
-    my $encoded_data  = _encode_to_utf8( $data );
+    my $encoded_data  = MediaWords::Util::Text::encode_to_utf8( $data );
     my $bzipped2_data = bzip2( $encoded_data );
 
     return $bzipped2_data;
@@ -124,7 +106,7 @@ sub bunzip2_and_decode($)
     }
 
     my $bunzipped2_data = bunzip2( $data );
-    my $decoded_data    = _decode_from_utf8( $bunzipped2_data );
+    my $decoded_data    = MediaWords::Util::Text::decode_from_utf8( $bunzipped2_data );
 
     return $decoded_data;
 }
@@ -162,7 +144,7 @@ sub encode_and_gzip($)
         die "Data to encode and gzip is undefined.";
     }
 
-    my $encoded_data = _encode_to_utf8( $data );
+    my $encoded_data = MediaWords::Util::Text::encode_to_utf8( $data );
     my $gzipped_data = gzip( $encoded_data );
 
     return $gzipped_data;
@@ -221,7 +203,7 @@ sub gunzip_and_decode($)
     }
 
     my $gunzipped_data = gunzip( $data );
-    my $decoded_data   = _decode_from_utf8( $gunzipped_data );
+    my $decoded_data   = MediaWords::Util::Text::decode_from_utf8( $gunzipped_data );
 
     return $decoded_data;
 }
