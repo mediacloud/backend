@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+new#!/usr/bin/env perl
 
 # accept a list of urls and file names on standard input and get those in parallel.  for each url, store the
 # Storable of the response in the associated file name.
@@ -23,6 +23,7 @@ BEGIN
 use Parallel::ForkManager;
 use Storable;
 
+use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 
 # number of processes to run in parallel
@@ -44,7 +45,7 @@ sub get_request_domain
 
     my $name_parts = [ split( /\./, $host ) ];
 
-    my $n = @{ $name_parts } - 1;
+    my $n = scalar( @{ $name_parts } ) - 1;
 
     my $domain;
 
@@ -95,6 +96,17 @@ sub get_scheduled_requests
     return [ sort { $a->{ time } <=> $b->{ time } } @{ $scheduled_requests } ];
 }
 
+# given the response and request, parse the content for a meta refresh url and return if present.
+# otherwise, return undef
+sub get_meta_refresh_url
+{
+    my ( $response, $request ) = @_;
+
+    return undef unless ( $response->is_success );
+
+    MediaWords::Util::URL::meta_refresh_url_from_html( $response->decoded_content, $request->{ url } );
+}
+
 sub main
 {
     my $requests;
@@ -113,7 +125,7 @@ sub main
 
     }
 
-    if ( !$requests || !@{ $requests } )
+    if ( !$requests || !scalar( @{ $requests } ) )
     {
         return;
     }
@@ -153,6 +165,11 @@ sub main
         print STDERR "fetch [$i/$total] : $request->{ url }\n";
 
         my $response = $ua->get( $request->{ url } );
+
+        for ( my $i = 0; ( $i < 10 ) && ( my $url = get_meta_refresh_url( $response, $request ) ); $i++ )
+        {
+            $response = $ua->get( $url );
+        }
 
         print STDERR "got [$i/$total]: $request->{ url }\n";
 
