@@ -20,12 +20,12 @@ use Try::Tiny;
 ## TODO rename this function
 sub get_extracted_html_from_db
 {
-    my ( $self, $db ) = @_;
+    my ( $db, $download_text ) = @_;
 
     my $downloads = $db->query(
         "select d.* from downloads d, download_texts dt " .
           "  where dt.downloads_id = d.downloads_id order by d.downloads_id",
-        $self->{ downloads_id }
+        $download_text->{ downloads_id }
     );
 
     die unless scalar( @$downloads ) == 1;
