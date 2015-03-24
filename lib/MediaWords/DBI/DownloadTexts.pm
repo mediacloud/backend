@@ -22,15 +22,7 @@ sub get_extracted_html_from_db
 {
     my ( $db, $download_text ) = @_;
 
-    my $downloads = $db->query(
-        "select d.* from downloads d, download_texts dt " .
-          "  where dt.downloads_id = d.downloads_id order by d.downloads_id",
-        $download_text->{ downloads_id }
-    );
-
-    die unless scalar( @$downloads ) == 1;
-
-    my $download = $downloads->[ 0 ];
+    my $download = $db->find_by_id( 'downloads', $download_text->{ downloads_id } );
 
     my $extract = MediaWords::DBI::Downloads::extractor_results_for_download( $db, $download );
 
