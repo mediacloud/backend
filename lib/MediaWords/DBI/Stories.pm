@@ -1425,4 +1425,36 @@ sub get_medium_dup_stories_by_url
     return [ grep { ( @{ $_ } > 1 ) && ( @{ $_ } < 6 ) } values( %{ $url_lookup } ) ];
 }
 
+# parse the content for tags that might indicate the story's title
+sub get_story_title_from_content
+{
+    my ( $content, $url ) = @_;
+
+    my $title;
+
+    if ( $content =~ m~<meta property=\"og:title\" content=\"([^\"]+)\"~si )
+    {
+        $title = $1;
+    }
+    elsif ( $content =~ m~<meta property=\"og:title\" content=\'([^\']+)\'~si )
+    {
+        $title = $1;
+    }
+    elsif ( $content =~ m~<title>([^<]+)</title>~si )
+    {
+        $title = $1;
+    }
+    else
+    {
+        $title = $url;
+    }
+
+    if ( length( $title ) > 1024 )
+    {
+        $title = substr( $title, 0, 1024 );
+    }
+
+    return $title;
+}
+
 1;
