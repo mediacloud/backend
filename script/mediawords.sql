@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4487;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4488;
     
 BEGIN
 
@@ -209,10 +209,17 @@ LANGUAGE 'plpgsql';
 CREATE OR REPLACE FUNCTION  story_triggers_enabled() RETURNS boolean  LANGUAGE  plpgsql AS $$
 BEGIN
 
-    return current_setting('PRIVATE.use_story_triggers') = 'yes';
-     EXCEPTION when undefined_object then
+    BEGIN
+       IF current_setting('PRIVATE.use_story_triggers') = '' THEN
+          perform enable_story_triggers();
+       END IF;
+       EXCEPTION when undefined_object then
         perform enable_story_triggers();
-        return true;
+
+     END;
+
+    return true;
+    return current_setting('PRIVATE.use_story_triggers') = 'yes';
 END$$;
 
 CREATE OR REPLACE FUNCTION  enable_story_triggers() RETURNS void LANGUAGE  plpgsql AS $$
