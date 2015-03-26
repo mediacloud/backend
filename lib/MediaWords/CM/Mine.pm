@@ -580,6 +580,7 @@ sub extract_download
         $db->query( <<SQL, $download->{ downloads_id }, $error );
 update downloads set status = 'error', error_message = \$2 where downloads_id = \$1
 SQL
+    }
 }
 
 # get a date for a new story by trying each of the following, in this order:
