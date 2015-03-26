@@ -573,7 +573,14 @@ sub extract_download
     return if ( $download->{ url } =~ /livejournal.com\/(tag|profile)/i );
 
     eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, "controversy", 0, 1 ); };
-    warn "extract error processing download $download->{ downloads_id }: $@" if ( $@ );
+
+    if ( my $error = $@ )
+    {
+        warn "extract error processing download $download->{ downloads_id }: $error";
+        $db->query( <<SQL, $download->{ downloads_id }, $error );
+update downloads set status = 'error', error_message = \$2 where downloads_id = \$1
+SQL
+    }
 }
 
 # get a date for a new story by trying each of the following, in this order:
@@ -1104,11 +1111,11 @@ END
 
     # this query is much quicker than the below one, so do it first
     my ( $num_stories ) = $db->query( <<END, $cid, $story->{ media_id }, $spidered_tag->{ tags_id } )->flat;
-select count(*) 
+select count(*)
     from cd.live_stories s
         join stories_tags_map stm on ( s.stories_id = stm.stories_id )
-    where 
-        s.controversies_id = ? and 
+    where
+        s.controversies_id = ? and
         s.media_id = ? and
         stm.tags_id = ?
 END
@@ -1123,8 +1130,8 @@ select count( distinct rs.stories_id )
         join cd.live_stories ss on ( ss.controversies_id = \$1 and cl.stories_id = ss.stories_id )
         join stories_tags_map sstm on ( sstm.stories_id = ss.stories_id )
         join stories_tags_map rstm on ( rstm.stories_id = rs.stories_id )
-    where 
-        rs.controversies_id = \$1 and 
+    where
+        rs.controversies_id = \$1 and
         rs.media_id = \$2 and
         ss.media_id <> rs.media_id and
         sstm.tags_id = \$3 and
@@ -1384,11 +1391,11 @@ sub spider_new_links
 
     my $new_links = $db->query( <<END, $iteration, $controversy->{ controversies_id } )->hashes;
 select distinct cs.iteration, cl.* from controversy_links cl, controversy_stories cs
-    where 
-        cl.ref_stories_id is null and 
-        cl.stories_id = cs.stories_id and 
+    where
+        cl.ref_stories_id is null and
+        cl.stories_id = cs.stories_id and
         ( cs.iteration < \$1 or cs.iteration = 1000 ) and
-        cs.controversies_id = \$2 and 
+        cs.controversies_id = \$2 and
         cl.controversies_id = \$2
 END
 
@@ -1613,7 +1620,7 @@ sub get_merged_iteration
     my $i = $db->query( <<END, $cid, $delete_story->{ stories_id }, $keep_story->{ stories_id } )->flat;
 select iteration
     from controversy_stories
-    where 
+    where
         controversies_id  = \$1 and
         stories_id in ( \$2, \$3 )
 END
@@ -2257,4 +2264,3 @@ sub mine_controversy ($$;$)
 }
 
 1;
-
