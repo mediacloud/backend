@@ -45,6 +45,10 @@
 
     <script src="[% c.uri_for('/include/libs/handsontable-0.13.0/dist/handsontable.full.js') %]"></script>  
     <link rel="stylesheet" media="screen" href="[% c.uri_for('/include/libs/handsontable-0.13.0/dist/handsontable.full.css') %]">
+
+    <script src="[% c.uri_for('/include/libs/handsontable-0.13.0/plugins/removeRow/handsontable.removeRow.js') %]"></script>
+    <link rel="stylesheet" media="screen" href="[% c.uri_for('/include/libs/handsontable-0.13.0/plugins/removeRow/handsontable.removeRow.css') %]">
+
     <!--[if IE]>
   <style type="text/css" media="all">
     @import "[% c.uri_for('/include/vertically-aligned-ie.css') %]";
