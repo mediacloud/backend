@@ -10,6 +10,17 @@
 <button id="save_button">save</button>
 <button id="cancel_button">cancel changes</button>
 
+<button id="opener">open the dialog</button>
+
+<div id="dialog" title="Dialog Title">
+<h1>Select TAG SET</h1>
+
+<div id="tag_set_selector">
+I'm a dialog
+</div>
+</div>
+ 
+</script>
 <br/>
 <br/>
 
@@ -123,8 +134,15 @@ $(document).ready(function() {
 		      });
 		  }
 					 );
+
+$( "#dialog" ).dialog({ autoOpen: false,   modal: true });
+$( "#opener" ).click(function() {
+  $( "#dialog" ).dialog( "open" );
+});
+
 		 });
 
+$( "#opener").hide();
 --></script>
   
 [% INCLUDE include/footer.tt2 %]
