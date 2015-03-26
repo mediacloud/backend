@@ -9,8 +9,8 @@ package MediaWords::ScrapeStories;
 # * story_url_pattern - regex for pages to add as stories
 # * media_id - media source to which to add stories
 # * max_pages (optional) - max num of pages to scrape by recursively finding urls matching page_url_pattern
-# * start_date (optional) - start date of stories from media_id to use for deduping
-# * end_date (optional) - end date of stories from media_id to use for deduping
+# * start_date (optional) - start date of stories to scrape and dedup
+# * end_date (optional) - end date of stories to scrape and dedup
 # * debug (optional) - print debug messages urls crawled and stories created
 # * dry_run (optional) - do everything but actually insert stories into db
 #
@@ -231,9 +231,30 @@ sub _parse_urls_from_content
     return ( $story_urls, $page_urls );
 }
 
+sub _get_stories_in_date_range
+{
+    my ( $self, $stories ) = @_;
+
+    my $dated_stories = [];
+    for my $story ( @{ $stories } )
+    {
+        say STDERR join( ' - ', $self->start_date, $self->end_date, $story->{ publish_date } );
+        if ( ( $self->start_date le $story->{ publish_date } ) && ( $self->end_date le $story->{ publish_date } ) )
+        {
+            say STDERR "KEEP";
+            push( @{ $dated_stories }, $story );
+        }
+    }
+
+    say STDERR "kept " . scalar( @{ $dated_stories } ) . " / " . scalar( @{ $stories } ) . " after date restriction";
+
+    return $dated_stories;
+}
+
 # start with start_url; for each url, download that url, add any urls that match story_url_pattern to the
 # story url list, add any urls that match page_url_pattern to the queue to repeat this process. once we have
-# all of the story urls, download each story url and return the list of stories
+# all of the story urls, download each story url and return the list of stories.  only return stories
+# between start_date and end_date
 sub _scrape_new_stories
 {
     my ( $self ) = @_;
@@ -260,7 +281,11 @@ sub _scrape_new_stories
         push( @{ $story_urls }, @{ $new_story_urls } );
     }
 
-    return $self->_get_stories_from_story_urls( $story_urls );
+    my $all_stories = $self->_get_stories_from_story_urls( $story_urls );
+
+    my $dated_stories = $self->_get_stories_in_date_range( $all_stories );
+
+    return $dated_stories;
 }
 
 # get all stories belonging to the media source between the given dates
