@@ -464,6 +464,25 @@ sub tag_set_permissions_json : Local
     $c->res->body( encode_json( $auth_users_tag_set_permissions ) );
 }
 
+sub available_tag_sets_json : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $user_email = $c->request->param( 'email' );
+
+    die "missing required param user_email" unless $user_email;
+
+    my $userinfo = MediaWords::DBI::Auth::user_info( $c->dbis, $user_email );
+    my $roles = MediaWords::DBI::Auth::user_auth( $c->dbis, $user_email );
+
+    my $available_tag_sets = $c->dbis->query(
+"SELECT * from tag_sets where tag_sets_id not in ( select tag_sets_id from auth_users_tag_sets_permissions where auth_users_id = ?)  ",
+        $userinfo->{ auth_users_id }
+    )->hashes();
+
+    $c->res->body( encode_json( $available_tag_sets ) );
+}
+
 # show the user edit form
 sub edit_tag_set_permissions : Local
 {
