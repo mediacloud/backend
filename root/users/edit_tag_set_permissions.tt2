@@ -25,12 +25,18 @@ Auth [% auth_users_tag_sets_permissions | html %]
 
   
     $(document).ready(function() {
+
+	var data_object;
+
         $.getJSON( "[%c.uri_for( '/admin/users/tag_set_permissions_json') %]?email=[% email | uri %]",
 	   function( data) {
 
 	      var $container = $("#dynamic_table");
 
 	      //alert( data );
+
+	       data_object = data;
+
 	      $container.handsontable({
 		  data: data,
 		  //startRows: 5,
@@ -83,6 +89,20 @@ Auth [% auth_users_tag_sets_permissions | html %]
 
 	      // alert ( 'table data' );	       
 	      });
+
+	       $("#save_button").click( function() {
+		   $.ajax({
+		       dataType: "json",
+		       url: "[%c.uri_for( '/admin/users/update_tag_set_permissions_json') %]?email=[% email | uri %]",
+		       method: 'POST',
+		       type: 'POST',
+		       contentType: "application/json; charset=utf-8",
+		       data: JSON.stringify(data_object)
+		      //success: success
+		   });
+		   alert(data_object);
+	       }
+				      );
       });
 
 --></script>
