@@ -3,13 +3,19 @@
 
 <h2>Editing user permissions <code>[% email | html %]</code></h2>
 
-[% auth_users_id | html  %]
+<div id="dynamic_table" style=" overflow: scroll" class="htRemoveRow handsontable" data-originalstyle="width: 400px; height: 300px; overflow: scroll"></div>
 
-Auth [% auth_users_tag_sets_permissions | html %]
 
-<div id="dynamic_table"></div>
-
+<br/>
 <button id="save_button">save</button>
+<button id="cancel_button">cancel changes</button>
+
+<br/>
+<br/>
+
+<h1>
+Mouse to the left of rows to delete.
+</h1>
 
 <!-- Edit user form -->
 <!--
@@ -24,86 +30,100 @@ Auth [% auth_users_tag_sets_permissions | html %]
 
 
   
-    $(document).ready(function() {
+$(document).ready(function() {
 
-	var data_object;
+    var data_object;
+
+    function load_edit_table() {
 
         $.getJSON( "[%c.uri_for( '/admin/users/tag_set_permissions_json') %]?email=[% email | uri %]",
-	   function( data) {
+		   function( data) {
 
-	      var $container = $("#dynamic_table");
+		       var $container = $("#dynamic_table");
 
-	      //alert( data );
+		       //alert( data );
 
-	       data_object = data;
+		       data_object = data;
 
-	      $container.handsontable({
-		  data: data,
-		  //startRows: 5,
-		  //startCols: 5,
-		  //minRows: 5,
-		  //minCols: 5,
-		  //maxRows: 10,
-		  //maxCols: 10,
-		  rowHeaders: false,
-		  colHeaders: [  "auth_users_tag_sets_permissions_id", "auth_users_id",  "tag_sets_id", "edit_tag_descriptors", "edit_tag_set_descriptors", "apply_tags", "create_tags"],
-		  minSpareRows: 0,
-		  columns: [ 
-		      {
-                                 data: "auth_users_tag_sets_permissions_id",
-                                 readOnly: true
-                      }, 
-		      {
-                                  data: "auth_users_id",
-                                  readOnly: true
-		      },   
-		      {
-                                  data: "tag_sets_id",
-                                  readOnly: true
-		      },  
-		      {
-                                  data: "edit_tag_descriptors",
-                          type: 'checkbox',
-			  checkedTemplate:1,
-			  uncheckedTemplate: 0             
-		      },  
-		      {
-                                  data: "edit_tag_set_descriptors",
-                          type: 'checkbox'  ,                    
-			  checkedTemplate:1,
-			  uncheckedTemplate: 0      		      },  
-		      {
-                                  data: "apply_tags",
-                          type: 'checkbox'                      ,
-			  checkedTemplate:1,
-			  uncheckedTemplate: 0      		      },  
-		      {
-                                  data: "create_tags",
-                          type: 'checkbox' ,                     
-			  checkedTemplate:1,
-			  uncheckedTemplate: 0      
-		      }
-		  ]
-		  //contextMenu: true
-	      });	      
+		       $container.handsontable({
+			   data: data,
+			   //startRows: 5,
+			   //startCols: 5,
+			   //minRows: 5,
+			   //minCols: 5,
+			   //maxRows: 10,
+			   //maxCols: 10,
+			   //minSpareCols: 1,
+			   rowHeaders: true,
+			   colHeaders: true,
+			   removeRowPlugin: true,
+			   rowHeaders: false,
+			   contextMenu: false,
+			   outsideClickDeselects: false,
+			   colHeaders: [  "auth_users_tag_sets_permissions_id", "auth_users_id",  "tag_sets_id", "edit_tag_descriptors", "edit_tag_set_descriptors", "apply_tags", "create_tags"],
+			   minSpareRows: 0,
+			   columns: [ 
+			       {
+                                   data: "auth_users_tag_sets_permissions_id",
+                                   readOnly: true
+			       }, 
+			       {
+                                   data: "auth_users_id",
+                                   readOnly: true
+			       },   
+			       {
+                                   data: "tag_sets_id",
+                                   readOnly: true
+			       },  
+			       {
+                                   data: "edit_tag_descriptors",
+				   type: 'checkbox',
+				   checkedTemplate:1,
+				   uncheckedTemplate: 0             
+			       },  
+			       {
+                                   data: "edit_tag_set_descriptors",
+				   type: 'checkbox'  ,                    
+				   checkedTemplate:1,
+				   uncheckedTemplate: 0      		      },  
+			       {
+                                   data: "apply_tags",
+				   type: 'checkbox'                      ,
+				   checkedTemplate:1,
+				   uncheckedTemplate: 0      		      },  
+			       {
+                                   data: "create_tags",
+				   type: 'checkbox' ,                     
+				   checkedTemplate:1,
+				   uncheckedTemplate: 0      
+			       }
+			   ]
+			   //contextMenu: true
+		       });	      
 
-	      // alert ( 'table data' );	       
-	      });
-
-	       $("#save_button").click( function() {
-		   $.ajax({
-		       dataType: "json",
-		       url: "[%c.uri_for( '/admin/users/update_tag_set_permissions_json') %]?email=[% email | uri %]",
-		       method: 'POST',
-		       type: 'POST',
-		       contentType: "application/json; charset=utf-8",
-		       data: JSON.stringify(data_object)
-		      //success: success
+		       // alert ( 'table data' );	       
 		   });
-		   alert(data_object);
-	       }
-				      );
-      });
+    }; // END function load_edit_table()
+
+		  load_edit_table();
+
+		  $("#cancel_button").click( function() {
+		      load_edit_table();
+		  }
+					 );
+		  $("#save_button").click( function() {
+		      $.ajax({
+			  dataType: "json",
+			  url: "[%c.uri_for( '/admin/users/update_tag_set_permissions_json') %]?email=[% email | uri %]",
+			  method: 'POST',
+			  type: 'POST',
+			  contentType: "application/json; charset=utf-8",
+			  data: JSON.stringify(data_object),
+			  success: function(){ load_edit_table(); }
+		      });
+		  }
+					 );
+		 });
 
 --></script>
   
