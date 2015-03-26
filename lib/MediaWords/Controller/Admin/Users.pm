@@ -413,6 +413,39 @@ sub edit : Local
     $c->response->redirect( $c->uri_for( '/admin/users/list', { status_msg => $status_msg } ) );
 }
 
+sub update_tag_set_permissions_json : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $data = $c->req->body_data;
+
+    # say STDERR Dumper( $data );
+    # say STDERR Dumper( $c->req );
+
+    foreach my $tag_set_permission ( @{ $data } )
+    {
+        say STDERR Dumper( $tag_set_permission );
+        $c->dbis->query(
+            "DELETE from auth_users_tag_sets_permissions where auth_users_id = ? and tag_sets_id = ?",
+            $tag_set_permission->{ auth_users_id },
+            $tag_set_permission->{ tag_sets_id }
+        );
+
+        $c->dbis->query(
+"INSERT INTO auth_users_tag_sets_permissions( auth_users_id, tag_sets_id, apply_tags, create_tags, edit_tag_descriptors, edit_tag_set_descriptors) "
+              . "  VALUES ( ?, ?, ?, ?, ?, ? )",
+            $tag_set_permission->{ auth_users_id },
+            $tag_set_permission->{ tag_sets_id },
+            $tag_set_permission->{ apply_tags },
+            $tag_set_permission->{ create_tags },
+            $tag_set_permission->{ edit_tag_descriptors },
+            $tag_set_permission->{ edit_tag_set_descriptors }
+        );
+    }
+
+    $c->res->body( encode_json( $data ) );
+}
+
 sub tag_set_permissions_json : Local
 {
     my ( $self, $c ) = @_;
