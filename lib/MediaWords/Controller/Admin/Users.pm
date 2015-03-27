@@ -490,21 +490,23 @@ sub edit_tag_set_permissions : Local
 {
     my ( $self, $c ) = @_;
 
-    my $form = $c->create_form(
-        {
-            load_config_file => $c->path_to() . '/root/forms/users/edit.yml',
-            method           => 'POST',
-            action           => $c->uri_for( '/admin/users/edit' )
-        }
-    );
+    # my $form = $c->create_form(
+    #     {
+    #         load_config_file => $c->path_to() . '/root/forms/users/edit.yml',
+    #         method           => 'POST',
+    #         action           => $c->uri_for( '/admin/users/edit' )
+    #     }
+    # );
 
     my $user_email = $c->request->param( 'email' );
     if ( !$user_email )
     {
         $c->stash( error_msg => "Empty email." );
-        $c->stash->{ c }        = $c;
-        $c->stash->{ form }     = $form;
+        $c->stash->{ c } = $c;
+
+        #$c->stash->{ form }     = $form;
         $c->stash->{ template } = 'users/edit_tag_set_permissions.tt2';
+        die "user email missing";
         return;
     }
 
@@ -518,9 +520,9 @@ sub edit_tag_set_permissions : Local
 
     my %user_roles = map { $_ => 1 } @{ $roles->{ roles } };
 
-    $form->process( $c->request );
+    #$form->process( $c->request );
 
-    unless ( $form->submitted_and_valid() )
+    # unless ( $form->submitted_and_valid() )
     {
 
         # Fetch list of available roles
@@ -544,26 +546,26 @@ sub edit_tag_set_permissions : Local
             );
         }
 
-        my $el_roles = $form->get_element( { name => 'roles', type => 'Checkboxgroup' } );
-        $el_roles->options( \@roles_options );
+        #my $el_roles = $form->get_element( { name => 'roles', type => 'Checkboxgroup' } );
+        #$el_roles->options( \@roles_options );
 
-        my $el_regenerate_api_token = $form->get_element( { name => 'regenerate_api_token', type => 'Button' } );
-        $el_regenerate_api_token->comment( $userinfo->{ api_token } );
+        #my $el_regenerate_api_token = $form->get_element( { name => 'regenerate_api_token', type => 'Button' } );
+        #$el_regenerate_api_token->comment( $userinfo->{ api_token } );
 
-        $form->default_values(
-            {
-                email                        => $user_email,
-                full_name                    => $userinfo->{ full_name },
-                notes                        => $userinfo->{ notes },
-                active                       => $userinfo->{ active },
-                weekly_requests_limit        => $userinfo->{ weekly_requests_limit },
-                non_public_api_access        => $userinfo->{ non_public_api },
-                weekly_requested_items_limit => $userinfo->{ weekly_requested_items_limit }
-            }
-        );
+        # $form->default_values(
+        #     {
+        #         email                        => $user_email,
+        #         full_name                    => $userinfo->{ full_name },
+        #         notes                        => $userinfo->{ notes },
+        #         active                       => $userinfo->{ active },
+        #         weekly_requests_limit        => $userinfo->{ weekly_requests_limit },
+        #         non_public_api_access        => $userinfo->{ non_public_api },
+        #         weekly_requested_items_limit => $userinfo->{ weekly_requested_items_limit }
+        #     }
+        # );
 
-        # Re-process the form
-        $form->process( $c->request );
+        # # Re-process the form
+        # $form->process( $c->request );
 
         # Show the form
         $c->stash->{ auth_users_id } = $userinfo->{ auth_users_id };
@@ -572,8 +574,9 @@ sub edit_tag_set_permissions : Local
         $c->stash->{ notes }         = $userinfo->{ notes };
         $c->stash->{ active }        = $userinfo->{ active };
         $c->stash->{ c }             = $c;
-        $c->stash->{ form }          = $form;
-        $c->stash->{ template }      = 'users/edit_tag_set_permissions.tt2';
+
+        # $c->stash->{ form }          = $form;
+        $c->stash->{ template } = 'users/edit_tag_set_permissions.tt2';
 
         return;
     }
