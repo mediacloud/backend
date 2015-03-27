@@ -10,13 +10,15 @@
 <button id="save_button">save</button>
 <button id="cancel_button">cancel changes</button>
 
-<button id="opener">open the dialog</button>
+<button id="opener">Add New Tag Set Permissions</button>
 
 <div id="dialog" title="Dialog Title">
-<h1>Select TAG SET</h1>
+<h1>Select Tag Set to Which to Add User Permssions</h1>
 
 <div id="tag_set_selector">
+
 I'm a dialog
+
 </div>
 </div>
  
@@ -71,17 +73,17 @@ $(document).ready(function() {
 			   rowHeaders: false,
 			   contextMenu: false,
 			   outsideClickDeselects: false,
-			   colHeaders: [  "auth_users_tag_sets_permissions_id", "auth_users_id",  "tag_sets_id", "edit_tag_descriptors", "edit_tag_set_descriptors", "apply_tags", "create_tags"],
+			   colHeaders: [  "tag_sets_id", "edit_tag_descriptors", "edit_tag_set_descriptors", "apply_tags", "create_tags"],
 			   minSpareRows: 0,
 			   columns: [ 
-			       {
-                                   data: "auth_users_tag_sets_permissions_id",
-                                   readOnly: true
-			       }, 
-			       {
-                                   data: "auth_users_id",
-                                   readOnly: true
-			       },   
+			      // {
+                              //     data: "auth_users_tag_sets_permissions_id",
+                              //     readOnly: true
+			      // }, 
+			      // {
+                              //     data: "auth_users_id",
+                              //     readOnly: true
+			      // }, 
 			       {
                                    data: "tag_sets_id",
                                    readOnly: true
@@ -138,11 +140,40 @@ $(document).ready(function() {
 $( "#dialog" ).dialog({ autoOpen: false,   modal: true });
 $( "#opener" ).click(function() {
   $( "#dialog" ).dialog( "open" );
+
+   $.getJSON( "[%c.uri_for( '/admin/users/available_tag_sets_json') %]?email=[% email | uri %]",
+		   function( data) {
+
+                       $("#tag_set_selector").empty();
+                       $("#tag_set_selector").append( $('<button/>').text('Add Row').click( function() {
+                                                         var tag_sets_id = $("#tag_set_selector").find("select").val();
+
+                                                         alert ( tag_sets_id );
+
+                                                         data_object[ data_object.length ] = { 
+                                                         auth_users_id: [% auth_users_id | html %],  tag_sets_id: tag_sets_id, edit_tag_descriptors: 0, edit_tag_set_descriptors: 0, 
+                                                         apply_tags: 0, create_tags: 0  };
+                                                         $("#dynamic_table").handsontable( "render");
+                                                         alert('foo');
+                                                         
+                                                          $( "#dialog" ).dialog( "close" );
+                                                        }) );
+
+                       var $selector = $("<select/>");
+                       $.each( data, function( index, value) {
+                        $selector.append($('<option/>' ).val( value['tag_sets_id']).text(value['name'] ) );
+                       });
+                       $("#tag_set_selector" ).append( $selector );
+
+                       } );
+		   
+
+
 });
 
 		 });
 
-$( "#opener").hide();
+//$( "#opener").hide();
 --></script>
   
 [% INCLUDE include/footer.tt2 %]
