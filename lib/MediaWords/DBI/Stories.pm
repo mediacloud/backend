@@ -1381,7 +1381,7 @@ sub get_medium_dup_stories_by_title
             }
 
             $title_part_counts->{ $title_part }->{ count }++;
-            $title_part_counts->{ $title_part }->{ stories }->{ $story->{ stories_id } } = $story;
+            $title_part_counts->{ $title_part }->{ stories }->{ $story->{ guid } } = $story;
         }
     }
 

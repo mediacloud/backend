@@ -220,8 +220,10 @@ sub _parse_urls_from_content
 
     for my $url ( @{ $urls } )
     {
-        push( @{ $story_urls }, $url ) if ( $url =~ /$story_url_pattern/i );
-        push( @{ $page_urls },  $url ) if ( $url =~ /$page_url_pattern/i );
+        my $nu = MediaWords::Util::URL::normalize_url( $url );
+
+        push( @{ $story_urls }, $nu ) if ( $nu =~ /$story_url_pattern/i );
+        push( @{ $page_urls },  $nu ) if ( $nu =~ /$page_url_pattern/i );
     }
 
     say STDERR "page_urls: " . Dumper( $page_urls )                          if ( $self->debug );
@@ -238,10 +240,8 @@ sub _get_stories_in_date_range
     my $dated_stories = [];
     for my $story ( @{ $stories } )
     {
-        say STDERR join( ' - ', $self->start_date, $self->end_date, $story->{ publish_date } );
-        if ( ( $self->start_date le $story->{ publish_date } ) && ( $self->end_date le $story->{ publish_date } ) )
+        if ( ( $self->start_date le $story->{ publish_date } ) && ( $self->end_date ge $story->{ publish_date } ) )
         {
-            say STDERR "KEEP";
             push( @{ $dated_stories }, $story );
         }
     }
