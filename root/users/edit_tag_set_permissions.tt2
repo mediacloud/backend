@@ -151,12 +151,12 @@ $( "#opener" ).click(function() {
                        $("#tag_set_selector").empty();
                        $("#tag_set_selector").append( $('<button/>').text('Add Row').click( function() {
                                                          var tag_sets_id = $("#tag_set_selector").find("select").val();
-                                                         var tag_set_name = $("#tag_set_selector").find("select").text();
+                                                         var tag_set_name = $("#tag_set_selector").find(":selected").text();
 
-                                                         alert ( tag_set_name );
+                                                         //alert ( tag_set_name );
 
                                                          data_object[ data_object.length ] = { 
-                                                         auth_users_id: [% auth_users_id | html %],  tag_sets_id: tag_sets_id, edit_tag_descriptors: 0, edit_tag_set_descriptors: 0, 
+                                                         auth_users_id: [% auth_users_id | html %],  tag_sets_id: tag_sets_id, tag_set_name: tag_set_name, edit_tag_descriptors: 0, edit_tag_set_descriptors: 0, 
                                                          apply_tags: 0, create_tags: 0  };
                                                          $("#dynamic_table").handsontable( "render");
                                                          
