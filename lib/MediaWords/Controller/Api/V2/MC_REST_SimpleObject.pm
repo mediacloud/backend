@@ -398,7 +398,7 @@ sub _die_unless_user_can_create_tag_set_tags
       unless defined( $permissions ) && $permissions->{ create_tags };
 }
 
-sub _die_unless_user_can_edit_tag_set_descriptors
+sub die_unless_user_can_edit_tag_set_descriptors
 {
     my ( $self, $c, $tag_set ) = @_;
 
@@ -408,7 +408,9 @@ sub _die_unless_user_can_edit_tag_set_descriptors
 
     #say STDERR Dumper( $permissions );
 
-    die unless defined( $permissions ) && $permissions->{ edit_tag_set_descriptors };
+    die "User " . $c->stash->{ api_auth }->{ email } .
+      " doesn't have permission to edit tag set descriptors for tag set id " . $tag_set->{ tag_sets_id }
+      unless defined( $permissions ) && $permissions->{ edit_tag_set_descriptors };
 }
 
 sub _die_unless_user_can_edit_tag_set_tag_descriptors
