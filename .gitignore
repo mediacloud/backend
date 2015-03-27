@@ -53,3 +53,5 @@ solr/mediacloud/velocity.log
 # Cloned API client repo
 /MediaCloud-API-Client
 
+# atom sync config
+.remote-sync.json

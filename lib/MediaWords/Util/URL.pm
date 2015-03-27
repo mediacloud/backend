@@ -828,7 +828,7 @@ sub meta_refresh_url_from_html($;$)
 
         if ( $meta_element =~ m~http-equiv\s*?=\s*?["']\s*?refresh\s*?["']~i )
         {
-            if ( $meta_element =~ m~content\s*?=\s*?["']\d*?\s*?;?\s*?URL\s*?=\s*?(.+?)["']~i )
+            if ( $meta_element =~ m~content\s*=\s*["']\d*\s*;\s*URL\s*=\s*["']([^']+)["']~i )
             {
                 $url = $1;
                 if ( $url )
@@ -1038,7 +1038,7 @@ sub _get_merged_stories_ids
     my $stories_ids_list = join( ',', @{ $stories_ids } );
 
     my $merged_stories_ids = $db->query( <<END )->flat;
-select distinct target_stories_id, source_stories_id 
+select distinct target_stories_id, source_stories_id
     from controversy_merged_stories_map
     where target_stories_id in ( $stories_ids_list ) or source_stories_id in ( $stories_ids_list )
 END
@@ -1070,7 +1070,7 @@ sub get_controversy_url_variants
     my $all_stories_ids_list = join( ',', @{ $all_stories_ids } );
 
     my $all_urls = $db->query( <<END )->flat;
-select distinct url from ( 
+select distinct url from (
     select redirect_url url from controversy_links where stories_id in ( $all_stories_ids_list )
     union
     select url from controversy_links where stories_id in( $all_stories_ids_list )
