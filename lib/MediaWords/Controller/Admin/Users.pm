@@ -457,9 +457,11 @@ sub tag_set_permissions_json : Local
     my $userinfo = MediaWords::DBI::Auth::user_info( $c->dbis, $user_email );
     my $roles = MediaWords::DBI::Auth::user_auth( $c->dbis, $user_email );
 
-    my $auth_users_tag_set_permissions =
-      $c->dbis->query( "SELECT * from auth_users_tag_sets_permissions where auth_users_id = ? ",
-        $userinfo->{ auth_users_id } )->hashes();
+    my $auth_users_tag_set_permissions = $c->dbis->query(
+"SELECT autsp.*, ts.name as tag_set_name from auth_users_tag_sets_permissions autsp, tag_sets ts where auth_users_id = ? "
+          . " AND ts.tag_sets_id = autsp.tag_sets_id ",
+        $userinfo->{ auth_users_id }
+    )->hashes();
 
     $c->res->body( encode_json( $auth_users_tag_set_permissions ) );
 }
