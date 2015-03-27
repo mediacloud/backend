@@ -417,19 +417,19 @@ sub update_tag_set_permissions_json : Local
 {
     my ( $self, $c ) = @_;
 
-    my $data = $c->req->body_data;
+    my $tag_set_permissions = $c->req->body_data;
 
     # say STDERR Dumper( $data );
     # say STDERR Dumper( $c->req );
 
-    foreach my $tag_set_permission ( @{ $data } )
+    $c->dbis->query(
+        "DELETE from auth_users_tag_sets_permissions where auth_users_id = ?",
+        $tag_set_permissions->[ 0 ]->{ auth_users_id },
+    );
+
+    foreach my $tag_set_permission ( @{ $tag_set_permissions } )
     {
         say STDERR Dumper( $tag_set_permission );
-        $c->dbis->query(
-            "DELETE from auth_users_tag_sets_permissions where auth_users_id = ? and tag_sets_id = ?",
-            $tag_set_permission->{ auth_users_id },
-            $tag_set_permission->{ tag_sets_id }
-        );
 
         $c->dbis->query(
 "INSERT INTO auth_users_tag_sets_permissions( auth_users_id, tag_sets_id, apply_tags, create_tags, edit_tag_descriptors, edit_tag_set_descriptors) "
@@ -443,7 +443,7 @@ sub update_tag_set_permissions_json : Local
         );
     }
 
-    $c->res->body( encode_json( $data ) );
+    $c->res->body( encode_json( $tag_set_permissions ) );
 }
 
 sub tag_set_permissions_json : Local
