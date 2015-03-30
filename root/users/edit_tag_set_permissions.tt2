@@ -1,0 +1,183 @@
+[% title = 'Edit User Tag Set Permissions' -%]
+[% INCLUDE include/users_header.tt2 -%]
+
+<h2>Editing user permissions <code>[% email | html %]</code></h2>
+
+<div id="dynamic_table" style=" overflow: scroll" class="htRemoveRow handsontable" data-originalstyle="width: 400px; height: 300px; overflow: scroll"></div>
+
+<br/>
+<h1>
+Mouse to the left of rows to delete.
+</h1>
+
+<br/>
+<button id="save_button">save</button>
+<button id="cancel_button">cancel changes</button>
+
+<button id="opener">Add New Tag Set Permissions</button>
+
+<div id="dialog" title="Dialog Title">
+<h1>Select Tag Set to Which to Add User Permssions</h1>
+
+<div id="tag_set_selector">
+
+I'm a dialog
+
+</div>
+</div>
+ 
+</script>
+<br/>
+<br/>
+
+<!-- Edit user form -->
+<!--
+<fieldset id="editUser" class="formNameValue">
+    [% # form.render %]
+</fieldset>
+-->
+
+
+<script type="text/javascript"><!--
+
+
+
+  
+$(document).ready(function() {
+
+    var data_object;
+
+    function load_edit_table() {
+
+        $.getJSON( "[%c.uri_for( '/admin/users/tag_set_permissions_json') %]?email=[% email | uri %]",
+		   function( data) {
+
+		       var $container = $("#dynamic_table");
+
+		       //alert( data );
+
+		       data_object = data;
+
+		       $container.handsontable({
+			   data: data,
+			   //startRows: 5,
+			   //startCols: 5,
+			   //minRows: 5,
+			   //minCols: 5,
+			   //maxRows: 10,
+			   //maxCols: 10,
+			   //minSpareCols: 1,
+			   rowHeaders: true,
+			   colHeaders: true,
+			   removeRowPlugin: true,
+			   rowHeaders: false,
+			   contextMenu: false,
+			   outsideClickDeselects: false,
+			   colHeaders: [  "tag set", "tag_sets_id", "edit_tag_descriptors", "edit_tag_set_descriptors", "apply_tags", "create_tags"],
+			   minSpareRows: 0,
+			   columns: [ 
+			      // {
+                              //     data: "auth_users_tag_sets_permissions_id",
+                              //     readOnly: true
+			      // }, 
+			      // {
+                              //     data: "auth_users_id",
+                              //     readOnly: true
+			      // }, 
+			       {
+                                   data: "tag_set_name",
+                                   readOnly: true
+			       },
+                               {
+                                   data: "tag_sets_id",
+                                   readOnly: true
+			       },  
+			       {
+                                   data: "edit_tag_descriptors",
+				   type: 'checkbox',
+				   checkedTemplate:1,
+				   uncheckedTemplate: 0             
+			       },  
+			       {
+                                   data: "edit_tag_set_descriptors",
+				   type: 'checkbox'  ,                    
+				   checkedTemplate:1,
+				   uncheckedTemplate: 0      		      },  
+			       {
+                                   data: "apply_tags",
+				   type: 'checkbox'                      ,
+				   checkedTemplate:1,
+				   uncheckedTemplate: 0      		      },  
+			       {
+                                   data: "create_tags",
+				   type: 'checkbox' ,                     
+				   checkedTemplate:1,
+				   uncheckedTemplate: 0      
+			       }
+			   ]
+			   //contextMenu: true
+		       });	      
+
+		       // alert ( 'table data' );	       
+		   });
+    }; // END function load_edit_table()
+
+		  load_edit_table();
+
+		  $("#cancel_button").click( function() {
+		      load_edit_table();
+		  }
+					 );
+		  $("#save_button").click( function() {
+		      $.ajax({
+			  dataType: "json",
+			  url: "[%c.uri_for( '/admin/users/update_tag_set_permissions_json') %]?email=[% email | uri %]",
+			  method: 'POST',
+			  type: 'POST',
+			  contentType: "application/json; charset=utf-8",
+			  data: JSON.stringify(data_object),
+			  success: function(){ load_edit_table(); }
+		      });
+		  }
+					 );
+
+$( "#dialog" ).dialog({ autoOpen: false,   modal: true });
+$( "#opener" ).click(function() {
+  $( "#dialog" ).dialog( "open" );
+
+   $.getJSON( "[%c.uri_for( '/admin/users/available_tag_sets_json') %]?email=[% email | uri %]",
+		   function( data) {
+
+                       $("#tag_set_selector").empty();
+                       $("#tag_set_selector").append( $('<button/>').text('Add Row').click( function() {
+                                                         var tag_sets_id = $("#tag_set_selector").find("select").val();
+                                                         var tag_set_name = $("#tag_set_selector").find(":selected").text();
+
+                                                         //alert ( tag_set_name );
+
+                                                         data_object[ data_object.length ] = { 
+                                                         auth_users_id: [% auth_users_id | html %],  tag_sets_id: tag_sets_id, tag_set_name: tag_set_name, edit_tag_descriptors: 0, edit_tag_set_descriptors: 0, 
+                                                         apply_tags: 0, create_tags: 0  };
+                                                         $("#dynamic_table").handsontable( "render");
+                                                         
+                                                          $( "#dialog" ).dialog( "close" );
+                                                        }) );
+
+                       var $selector = $("<select/>");
+                       $.each( data, function( index, value) {
+                        $selector.append($('<option/>' ).val( value['tag_sets_id']).text(value['name'] ) );
+                       });
+                       $("#tag_set_selector" ).append( $selector );
+
+                       } );
+		   
+
+
+});
+
+		 });
+
+//$( "#opener").hide();
+--></script>
+  
+[% INCLUDE include/footer.tt2 %]

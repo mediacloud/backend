@@ -12,6 +12,9 @@
     [% IF c.acl_user_can_visit('/admin/users/edit') %]
         <th>Edit</th>
     [% END -%]
+    [% IF c.acl_user_can_visit('/admin/users/edit_tag_set_permissions') %]
+        <th>Edit User Permissions</th>
+    [% END -%]
     [% IF c.acl_user_can_visit('/admin/users/delete') %]
         <th>Delete</th>
     [% END -%]
@@ -39,6 +42,10 @@
 
         [% IF c.acl_user_can_visit('/admin/users/edit') %]
             <td><a href="[% c.uri_for('/admin/users/edit') %]?email=[% user.email | uri %]">Edit</a></td>
+        [% END %]
+
+        [% IF c.acl_user_can_visit('/admin/users/edit_tag_set_permissions') %]
+            <td><a href="[% c.uri_for('/admin/users/edit_tag_set_permissions') %]?email=[% user.email | uri %]">Edit Tag Set Permissions</a></td>
         [% END %]
 
         [% IF c.acl_user_can_visit('/admin/users/delete') %]
