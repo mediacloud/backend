@@ -13,6 +13,14 @@ use namespace::autoclean;
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 
+__PACKAGE__->config(
+    action => {
+        single_GET => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        list_GET   => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        update_PUT => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+    }
+);
+
 sub get_name_search_clause
 {
     my ( $self, $c ) = @_;
@@ -88,6 +96,55 @@ create temporary view tags as
 END
 
     return MediaWords::Controller::Api::V2::MC_REST_SimpleObject::_fetch_list( @_ );
+}
+
+sub update : Local : ActionClass('REST')
+{
+}
+
+sub update_PUT : Local
+{
+    my ( $self, $c, $id ) = @_;
+
+    my $tag_name    = $c->req->params->{ 'tag' };
+    my $label       = $c->req->params->{ 'label' };
+    my $description = $c->req->params->{ 'description' };
+
+    my $tag = $c->dbis->find_by_id( 'tags', $id );
+
+    die 'tag not found ' unless defined( $tag );
+
+    my $tag_set = $c->dbis->find_by_id( 'tag_sets', $tag->{ tag_sets_id } );
+
+    die 'tag set not found ' unless defined( $tag_set );
+
+    $self->die_unless_user_can_edit_tag_set_tag_descriptors( $c, $tag_set );
+
+    if ( defined( $tag_name ) )
+    {
+        say STDERR "updating tag name to '$tag_name'";
+        $c->dbis->query( "UPDATE tags set tag = ? where tags_id = ? ", $tag_name, $id );
+    }
+
+    if ( defined( $label ) )
+    {
+        say STDERR "updating label to '$label'";
+        $c->dbis->query( "UPDATE tags set label = ? where tags_id = ? ", $label, $id );
+    }
+
+    if ( defined( $description ) )
+    {
+        say STDERR "updating description to '$description'";
+        $c->dbis->query( "UPDATE tags set description = ? where tags_id = ? ", $description, $id );
+    }
+
+    die unless defined( $tag_name ) || defined( $label ) || defined( $description );
+
+    $tag_set = $c->dbis->find_by_id( 'tags', $id );
+
+    $self->status_ok( $c, entity => $tag_set );
+
+    return;
 }
 
 1;

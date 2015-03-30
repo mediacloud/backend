@@ -413,6 +413,139 @@ sub edit : Local
     $c->response->redirect( $c->uri_for( '/admin/users/list', { status_msg => $status_msg } ) );
 }
 
+sub update_tag_set_permissions_json : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $tag_set_permissions = $c->req->body_data;
+
+    # say STDERR Dumper( $data );
+    # say STDERR Dumper( $c->req );
+
+    $c->dbis->query(
+        "DELETE from auth_users_tag_sets_permissions where auth_users_id = ?",
+        $tag_set_permissions->[ 0 ]->{ auth_users_id },
+    );
+
+    foreach my $tag_set_permission ( @{ $tag_set_permissions } )
+    {
+        say STDERR Dumper( $tag_set_permission );
+
+        $c->dbis->query(
+"INSERT INTO auth_users_tag_sets_permissions( auth_users_id, tag_sets_id, apply_tags, create_tags, edit_tag_descriptors, edit_tag_set_descriptors) "
+              . "  VALUES ( ?, ?, ?, ?, ?, ? )",
+            $tag_set_permission->{ auth_users_id },
+            $tag_set_permission->{ tag_sets_id },
+            $tag_set_permission->{ apply_tags },
+            $tag_set_permission->{ create_tags },
+            $tag_set_permission->{ edit_tag_descriptors },
+            $tag_set_permission->{ edit_tag_set_descriptors }
+        );
+    }
+
+    $c->res->body( encode_json( $tag_set_permissions ) );
+}
+
+sub tag_set_permissions_json : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $user_email = $c->request->param( 'email' );
+
+    die "missing required param user_email" unless $user_email;
+
+    my $userinfo = MediaWords::DBI::Auth::user_info( $c->dbis, $user_email );
+    my $roles = MediaWords::DBI::Auth::user_auth( $c->dbis, $user_email );
+
+    my $auth_users_tag_set_permissions = $c->dbis->query(
+"SELECT autsp.*, ts.name as tag_set_name from auth_users_tag_sets_permissions autsp, tag_sets ts where auth_users_id = ? "
+          . " AND ts.tag_sets_id = autsp.tag_sets_id ",
+        $userinfo->{ auth_users_id }
+    )->hashes();
+
+    $c->res->body( encode_json( $auth_users_tag_set_permissions ) );
+}
+
+sub available_tag_sets_json : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $user_email = $c->request->param( 'email' );
+
+    die "missing required param user_email" unless $user_email;
+
+    my $userinfo = MediaWords::DBI::Auth::user_info( $c->dbis, $user_email );
+    my $roles = MediaWords::DBI::Auth::user_auth( $c->dbis, $user_email );
+
+    my $available_tag_sets = $c->dbis->query(
+"SELECT * from tag_sets where tag_sets_id not in ( select tag_sets_id from auth_users_tag_sets_permissions where auth_users_id = ?)  ",
+        $userinfo->{ auth_users_id }
+    )->hashes();
+
+    $c->res->body( encode_json( $available_tag_sets ) );
+}
+
+# show the user edit form
+sub edit_tag_set_permissions : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $user_email = $c->request->param( 'email' );
+    if ( !$user_email )
+    {
+        $c->stash( error_msg => "Empty email." );
+        $c->stash->{ c } = $c;
+
+        #$c->stash->{ form }     = $form;
+        $c->stash->{ template } = 'users/edit_tag_set_permissions.tt2';
+        die "user email missing";
+        return;
+    }
+
+    # Fetch information about the user and roles
+    my $userinfo = MediaWords::DBI::Auth::user_info( $c->dbis, $user_email );
+    my $roles = MediaWords::DBI::Auth::user_auth( $c->dbis, $user_email );
+    unless ( $userinfo and $roles )
+    {
+        die "Unable to find user '$user_email' in the database.";
+    }
+
+    my %user_roles = map { $_ => 1 } @{ $roles->{ roles } };
+
+    # Fetch list of available roles
+    my $available_roles = MediaWords::DBI::Auth::all_user_roles( $c->dbis );
+    my @roles_options;
+    for my $role ( @{ $available_roles } )
+    {
+        my $html_role_attributes = {};
+        if ( exists( $user_roles{ $role->{ role } } ) )
+        {
+            $html_role_attributes = { checked => 'checked' };
+        }
+
+        push(
+            @roles_options,
+            {
+                value      => $role->{ auth_roles_id },
+                label      => $role->{ role } . ': ' . $role->{ description },
+                attributes => $html_role_attributes
+            }
+        );
+    }
+
+    $c->stash->{ auth_users_id } = $userinfo->{ auth_users_id };
+    $c->stash->{ email }         = $userinfo->{ email };
+    $c->stash->{ full_name }     = $userinfo->{ full_name };
+    $c->stash->{ notes }         = $userinfo->{ notes };
+    $c->stash->{ active }        = $userinfo->{ active };
+    $c->stash->{ c }             = $c;
+
+    # $c->stash->{ form }          = $form;
+    $c->stash->{ template } = 'users/edit_tag_set_permissions.tt2';
+
+    return;
+}
+
 # view usage report page
 sub usage : Local
 {
