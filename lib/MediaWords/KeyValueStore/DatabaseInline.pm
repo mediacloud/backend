@@ -21,18 +21,18 @@ sub BUILD($$)
 }
 
 # Moose method
-sub store_content($$$$;$)
+sub store_content($$$$)
 {
-    my ( $self, $db, $object_id, $content_ref, $skip_encode_and_compress ) = @_;
+    my ( $self, $db, $object_id, $content_ref ) = @_;
 
     my $path = 'content:' . $$content_ref;
     return $path;
 }
 
 # Moose method
-sub fetch_content($$$$;$)
+sub fetch_content($$$$)
 {
-    my ( $self, $db, $object_id, $object_path, $skip_uncompress_and_decode ) = @_;
+    my ( $self, $db, $object_id, $object_path ) = @_;
 
     unless ( defined $object_path )
     {

@@ -12,6 +12,7 @@ use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use MediaWords::Util::Config;
+use MediaWords::Util::Compress;
 use Net::Amazon::S3;
 use Net::Amazon::S3::Client;
 use Net::Amazon::S3::Client::Bucket;
@@ -229,9 +230,9 @@ sub remove_content($$$;$)
 }
 
 # Moose method
-sub store_content($$$$;$)
+sub store_content($$$$)
 {
-    my ( $self, $db, $object_id, $content_ref, $skip_encode_and_compress ) = @_;
+    my ( $self, $db, $object_id, $content_ref ) = @_;
 
     $self->_initialize_s3_or_die();
 
@@ -246,13 +247,10 @@ sub store_content($$$$;$)
 
     # Encode + gzip
     my $content_to_store;
-    if ( $skip_encode_and_compress )
+    eval { $content_to_store = MediaWords::Util::Compress::encode_and_gzip( $$content_ref ); };
+    if ( $@ or ( !defined $content_to_store ) )
     {
-        $content_to_store = $$content_ref;
-    }
-    else
-    {
-        $content_to_store = $self->encode_and_compress( $content_ref, $object_id );
+        die "Unable to compress object ID $object_id: $@";
     }
 
     my $write_was_successful = 0;
@@ -294,9 +292,9 @@ sub store_content($$$$;$)
 }
 
 # Moose method
-sub fetch_content($$$;$$)
+sub fetch_content($$$;$)
 {
-    my ( $self, $db, $object_id, $object_path, $skip_uncompress_and_decode ) = @_;
+    my ( $self, $db, $object_id, $object_path ) = @_;
 
     $self->_initialize_s3_or_die();
 
@@ -344,13 +342,10 @@ sub fetch_content($$$;$$)
 
     # Gunzip + decode
     my $decoded_content;
-    if ( $skip_uncompress_and_decode )
+    eval { $decoded_content = MediaWords::Util::Compress::gunzip_and_decode( $gzipped_content ); };
+    if ( $@ or ( !defined $decoded_content ) )
     {
-        $decoded_content = $gzipped_content;
-    }
-    else
-    {
-        $decoded_content = $self->uncompress_and_decode( \$gzipped_content, $object_id );
+        die "Unable to uncompress object ID $object_id: $@";
     }
 
     return \$decoded_content;
