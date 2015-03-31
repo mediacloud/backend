@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4489;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4490;
     
 BEGIN
 
@@ -1034,6 +1034,11 @@ CREATE TABLE raw_downloads (
     raw_data            BYTEA       NOT NULL
 );
 CREATE UNIQUE INDEX raw_downloads_object_id ON raw_downloads (object_id);
+
+-- Don't (attempt to) compress BLOBs in "raw_data" because they're going to be
+-- compressed already
+ALTER TABLE raw_downloads
+    ALTER COLUMN raw_data SET STORAGE EXTERNAL;
 
 
 create table feeds_stories_map

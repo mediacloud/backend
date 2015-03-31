@@ -1318,14 +1318,9 @@ sub write_story_stats($$$)
 
     # Write to GridFS, index by stories_id
     eval {
-        my $param_skip_encode_and_compress  = 0;                            # Objects should be compressed
         my $param_use_bzip2_instead_of_gzip = BITLY_GRIDFS_USE_BZIP2 + 0;
 
-        my $path = $_gridfs_store->store_content(
-            $db, $stories_id, \$json_stats,
-            $param_skip_encode_and_compress,
-            $param_use_bzip2_instead_of_gzip
-        );
+        my $path = $_gridfs_store->store_content( $db, $stories_id, \$json_stats, $param_use_bzip2_instead_of_gzip );
     };
     if ( $@ )
     {
@@ -1365,15 +1360,11 @@ sub read_story_stats($$)
     my $json_ref = undef;
 
     my $param_object_path                   = undef;
-    my $param_skip_uncompress_and_decode    = 0;
     my $param_use_bunzip2_instead_of_gunzip = BITLY_GRIDFS_USE_BZIP2 + 0;
 
     eval {
-        $json_ref = $_gridfs_store->fetch_content(
-            $db, $stories_id, $param_object_path,
-            $param_skip_uncompress_and_decode,
-            $param_use_bunzip2_instead_of_gunzip
-        );
+        $json_ref =
+          $_gridfs_store->fetch_content( $db, $stories_id, $param_object_path, $param_use_bunzip2_instead_of_gunzip );
     };
     if ( $@ or ( !defined $json_ref ) )
     {
