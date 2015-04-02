@@ -174,7 +174,7 @@ sub store_content($$$$;$)
 
     $self->_connect_to_mongodb_or_die();
 
-    # Encode + gzip
+    # Encode + compress
     my $content_to_store;
     eval {
         if ( $use_bzip2_instead_of_gzip )
@@ -311,10 +311,10 @@ sub fetch_content($$$;$$)
     {
     }
 
-    my $gzipped_content = $file;
+    my $compressed_content = $file;
 
-    # Gunzip + decode
-    unless ( defined $gzipped_content and $gzipped_content ne '' )
+    # Uncompress + decode
+    unless ( defined $compressed_content and $compressed_content ne '' )
     {
         # MongoDB returns empty strings on some cases of corrupt data, but
         # an empty string can't be a valid Gzip/Bzip2 archive, so we're
@@ -323,7 +323,16 @@ sub fetch_content($$$;$$)
     }
 
     my $decoded_content;
-    eval { $decoded_content = MediaWords::Util::Compress::gunzip_and_decode( $gzipped_content ); };
+    eval {
+        if ( $use_bunzip2_instead_of_gunzip )
+        {
+            $decoded_content = MediaWords::Util::Compress::bunzip2_and_decode( $compressed_content );
+        }
+        else
+        {
+            $decoded_content = MediaWords::Util::Compress::gunzip_and_decode( $compressed_content );
+        }
+    };
     if ( $@ or ( !defined $decoded_content ) )
     {
         die "Unable to uncompress object ID $object_id: $@";
