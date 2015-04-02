@@ -41,6 +41,8 @@ END
 
     delete( $live_story->{ controversies_id } );
     delete( $live_story->{ controversy_stories_id } );
+    delete( $live_story->{ disable_triggers } );
+    delete( $story->{ disable_triggers } );
 
     $live_story->{ publish_date } =~ s/T/ /g;
     $live_story->{ collect_date } =~ s/T/ /g;
