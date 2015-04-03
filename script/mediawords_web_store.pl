@@ -1,4 +1,4 @@
-new#!/usr/bin/env perl
+#!/usr/bin/env perl
 
 # accept a list of urls and file names on standard input and get those in parallel.  for each url, store the
 # Storable of the response in the associated file name.
@@ -166,7 +166,7 @@ sub main
 
         my $response = $ua->get( $request->{ url } );
 
-        for ( my $i = 0; ( $i < 10 ) && ( my $url = get_meta_refresh_url( $response, $request ) ); $i++ )
+        for ( my $i = 0 ; ( $i < 10 ) && ( my $url = get_meta_refresh_url( $response, $request ) ) ; $i++ )
         {
             $response = $ua->get( $url );
         }
