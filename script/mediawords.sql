@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4490;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4491;
     
 BEGIN
 
@@ -904,7 +904,8 @@ create table stories (
     collect_date                timestamp       not null default now(),
     full_text_rss               boolean         not null default 'f',
     db_row_last_updated                timestamp with time zone,
-    language                    varchar(3)      null   -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
+    language                    varchar(3)      null,   -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
+    disable_triggers            boolean  null
 );
 
 create index stories_media_id on stories (media_id);
@@ -1183,7 +1184,8 @@ create table story_sentences (
        media_id                     int             not null, -- references media on delete cascade,
        publish_date                 timestamp       not null,
        db_row_last_updated          timestamp with time zone, -- time this row was last updated
-       language                     varchar(3)      null      -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
+       language                     varchar(3)      null,      -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
+       disable_triggers             boolean  null
 );
 
 create index story_sentences_story on story_sentences (stories_id, sentence_number);
@@ -2217,7 +2219,8 @@ create trigger stories_update_live_story after update on stories
                                         
 create table processed_stories (
     processed_stories_id        bigserial          primary key,
-    stories_id                  int             not null references stories on delete cascade
+    stories_id                  int             not null references stories on delete cascade,
+    disable_triggers            boolean  null
 );
 
 create index processed_stories_story on processed_stories ( stories_id );
