@@ -58,8 +58,11 @@ sub main
         }
 
         my $rows = $db->query(
-"select ps.* from processed_stories ps left join  stories_tags_map stm on ( ps.stories_id=stm.stories_id and stm.tags_id=? ) where processed_stories_id > ? and tags_id is null order by processed_stories_id asc limit ?;",
-            $tags_id, $last_processed_stories_id, $story_batch_size )->hashes;
+            <<"END_SQL",
+        WITH  reextract_stories as (select ps.* from processed_stories ps left join  stories_tags_map stm on ( ps.stories_id=stm.stories_id and stm.tags_id=? ) where processed_stories_id > ? and tags_id is null order by processed_stories_id asc limit ?) select processed_stories_id, reextract_stories.stories_id from downloads, reextract_stories where downloads.stories_id = reextract_stories.stories_id and downloads.state not in ( 'error', 'fetching', 'pending', 'queued' ) group by processed_stories_id, reextract_stories.stories_id order by processed_stories_id, reextract_stories.stories_id limit ?;
+END_SQL
+            $tags_id, $last_processed_stories_id, $story_batch_size * 3, $story_batch_size
+        )->hashes;
 
         my $stories_ids = [ map { $_->{ stories_id } } @$rows ];
 
