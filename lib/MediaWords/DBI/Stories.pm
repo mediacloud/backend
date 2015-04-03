@@ -1280,8 +1280,10 @@ sub get_medium_dup_stories_by_title
                 $title_part_counts->{ $title_parts->[ 0 ] }->{ solo } = 1;
             }
 
+            my $id = $story->{ stories_id } || $story->{ guid };
+
             $title_part_counts->{ $title_part }->{ count }++;
-            $title_part_counts->{ $title_part }->{ stories }->{ $story->{ guid } } = $story;
+            $title_part_counts->{ $title_part }->{ stories }->{ $id } = $story;
         }
     }
 
