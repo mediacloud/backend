@@ -1139,7 +1139,10 @@ sub mark_as_processed($$)
 {
     my ( $db, $stories_id ) = @_;
 
-    eval { $db->insert( 'processed_stories', { stories_id => $stories_id } ); };
+    eval {
+        $db->insert( 'processed_stories',
+            { stories_id => $stories_id, disable_triggers => MediaWords::DB::story_triggers_disabled() } );
+    };
     if ( $@ )
     {
         warn "Unable to insert story ID $stories_id into 'processed_stories': $@";
