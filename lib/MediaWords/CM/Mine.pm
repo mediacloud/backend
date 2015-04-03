@@ -578,7 +578,7 @@ sub extract_download
     {
         warn "extract error processing download $download->{ downloads_id }: $error";
         $db->query( <<SQL, $download->{ downloads_id }, $error );
-update downloads set status = 'error', error_message = \$2 where downloads_id = \$1
+update downloads set state = 'error', error_message = \$2 where downloads_id = \$1
 SQL
     }
 }
