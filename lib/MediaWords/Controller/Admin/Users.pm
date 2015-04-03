@@ -417,19 +417,19 @@ sub update_tag_set_permissions_json : Local
 {
     my ( $self, $c ) = @_;
 
-    my $data = $c->req->body_data;
+    my $tag_set_permissions = $c->req->body_data;
 
     # say STDERR Dumper( $data );
     # say STDERR Dumper( $c->req );
 
-    foreach my $tag_set_permission ( @{ $data } )
+    $c->dbis->query(
+        "DELETE from auth_users_tag_sets_permissions where auth_users_id = ?",
+        $tag_set_permissions->[ 0 ]->{ auth_users_id },
+    );
+
+    foreach my $tag_set_permission ( @{ $tag_set_permissions } )
     {
         say STDERR Dumper( $tag_set_permission );
-        $c->dbis->query(
-            "DELETE from auth_users_tag_sets_permissions where auth_users_id = ? and tag_sets_id = ?",
-            $tag_set_permission->{ auth_users_id },
-            $tag_set_permission->{ tag_sets_id }
-        );
 
         $c->dbis->query(
 "INSERT INTO auth_users_tag_sets_permissions( auth_users_id, tag_sets_id, apply_tags, create_tags, edit_tag_descriptors, edit_tag_set_descriptors) "
@@ -443,7 +443,7 @@ sub update_tag_set_permissions_json : Local
         );
     }
 
-    $c->res->body( encode_json( $data ) );
+    $c->res->body( encode_json( $tag_set_permissions ) );
 }
 
 sub tag_set_permissions_json : Local
@@ -457,9 +457,11 @@ sub tag_set_permissions_json : Local
     my $userinfo = MediaWords::DBI::Auth::user_info( $c->dbis, $user_email );
     my $roles = MediaWords::DBI::Auth::user_auth( $c->dbis, $user_email );
 
-    my $auth_users_tag_set_permissions =
-      $c->dbis->query( "SELECT * from auth_users_tag_sets_permissions where auth_users_id = ? ",
-        $userinfo->{ auth_users_id } )->hashes();
+    my $auth_users_tag_set_permissions = $c->dbis->query(
+"SELECT autsp.*, ts.name as tag_set_name from auth_users_tag_sets_permissions autsp, tag_sets ts where auth_users_id = ? "
+          . " AND ts.tag_sets_id = autsp.tag_sets_id ",
+        $userinfo->{ auth_users_id }
+    )->hashes();
 
     $c->res->body( encode_json( $auth_users_tag_set_permissions ) );
 }
@@ -488,21 +490,15 @@ sub edit_tag_set_permissions : Local
 {
     my ( $self, $c ) = @_;
 
-    my $form = $c->create_form(
-        {
-            load_config_file => $c->path_to() . '/root/forms/users/edit.yml',
-            method           => 'POST',
-            action           => $c->uri_for( '/admin/users/edit' )
-        }
-    );
-
     my $user_email = $c->request->param( 'email' );
     if ( !$user_email )
     {
         $c->stash( error_msg => "Empty email." );
-        $c->stash->{ c }        = $c;
-        $c->stash->{ form }     = $form;
+        $c->stash->{ c } = $c;
+
+        #$c->stash->{ form }     = $form;
         $c->stash->{ template } = 'users/edit_tag_set_permissions.tt2';
+        die "user email missing";
         return;
     }
 
@@ -516,65 +512,38 @@ sub edit_tag_set_permissions : Local
 
     my %user_roles = map { $_ => 1 } @{ $roles->{ roles } };
 
-    $form->process( $c->request );
-
-    unless ( $form->submitted_and_valid() )
+    # Fetch list of available roles
+    my $available_roles = MediaWords::DBI::Auth::all_user_roles( $c->dbis );
+    my @roles_options;
+    for my $role ( @{ $available_roles } )
     {
-
-        # Fetch list of available roles
-        my $available_roles = MediaWords::DBI::Auth::all_user_roles( $c->dbis );
-        my @roles_options;
-        for my $role ( @{ $available_roles } )
+        my $html_role_attributes = {};
+        if ( exists( $user_roles{ $role->{ role } } ) )
         {
-            my $html_role_attributes = {};
-            if ( exists( $user_roles{ $role->{ role } } ) )
-            {
-                $html_role_attributes = { checked => 'checked' };
-            }
-
-            push(
-                @roles_options,
-                {
-                    value      => $role->{ auth_roles_id },
-                    label      => $role->{ role } . ': ' . $role->{ description },
-                    attributes => $html_role_attributes
-                }
-            );
+            $html_role_attributes = { checked => 'checked' };
         }
 
-        my $el_roles = $form->get_element( { name => 'roles', type => 'Checkboxgroup' } );
-        $el_roles->options( \@roles_options );
-
-        my $el_regenerate_api_token = $form->get_element( { name => 'regenerate_api_token', type => 'Button' } );
-        $el_regenerate_api_token->comment( $userinfo->{ api_token } );
-
-        $form->default_values(
+        push(
+            @roles_options,
             {
-                email                        => $user_email,
-                full_name                    => $userinfo->{ full_name },
-                notes                        => $userinfo->{ notes },
-                active                       => $userinfo->{ active },
-                weekly_requests_limit        => $userinfo->{ weekly_requests_limit },
-                non_public_api_access        => $userinfo->{ non_public_api },
-                weekly_requested_items_limit => $userinfo->{ weekly_requested_items_limit }
+                value      => $role->{ auth_roles_id },
+                label      => $role->{ role } . ': ' . $role->{ description },
+                attributes => $html_role_attributes
             }
         );
-
-        # Re-process the form
-        $form->process( $c->request );
-
-        # Show the form
-        $c->stash->{ auth_users_id } = $userinfo->{ auth_users_id };
-        $c->stash->{ email }         = $userinfo->{ email };
-        $c->stash->{ full_name }     = $userinfo->{ full_name };
-        $c->stash->{ notes }         = $userinfo->{ notes };
-        $c->stash->{ active }        = $userinfo->{ active };
-        $c->stash->{ c }             = $c;
-        $c->stash->{ form }          = $form;
-        $c->stash->{ template }      = 'users/edit_tag_set_permissions.tt2';
-
-        return;
     }
+
+    $c->stash->{ auth_users_id } = $userinfo->{ auth_users_id };
+    $c->stash->{ email }         = $userinfo->{ email };
+    $c->stash->{ full_name }     = $userinfo->{ full_name };
+    $c->stash->{ notes }         = $userinfo->{ notes };
+    $c->stash->{ active }        = $userinfo->{ active };
+    $c->stash->{ c }             = $c;
+
+    # $c->stash->{ form }          = $form;
+    $c->stash->{ template } = 'users/edit_tag_set_permissions.tt2';
+
+    return;
 }
 
 # view usage report page

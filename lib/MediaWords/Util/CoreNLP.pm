@@ -391,15 +391,11 @@ sub _fetch_annotation_from_gridfs_for_story($$)
     my $json_ref = undef;
 
     my $param_object_path                   = undef;                        # no such thing, objects are indexed by filename
-    my $param_skip_uncompress_and_decode    = 0;                            # objects are compressed...
     my $param_use_bunzip2_instead_of_gunzip = $CORENLP_GRIDFS_USE_BZIP2;    # ...with Bzip2
 
     eval {
-        $json_ref = $_gridfs_store->fetch_content(
-            $db, $stories_id, $param_object_path,
-            $param_skip_uncompress_and_decode,
-            $param_use_bunzip2_instead_of_gunzip
-        );
+        $json_ref =
+          $_gridfs_store->fetch_content( $db, $stories_id, $param_object_path, $param_use_bunzip2_instead_of_gunzip );
     };
     if ( $@ or ( !defined $json_ref ) )
     {
@@ -591,14 +587,10 @@ EOF
 
     # Write to GridFS, index by stories_id
     eval {
-        my $param_skip_encode_and_compress  = 0;                            # objects should be compressed...
-        my $param_use_bzip2_instead_of_gzip = $CORENLP_GRIDFS_USE_BZIP2;    # ...with Bzip2
+        # objects should be compressed with Bzip2
+        my $param_use_bzip2_instead_of_gzip = $CORENLP_GRIDFS_USE_BZIP2;
 
-        my $path = $_gridfs_store->store_content(
-            $db, $stories_id, \$json_annotation,
-            $param_skip_encode_and_compress,
-            $param_use_bzip2_instead_of_gzip
-        );
+        my $path = $_gridfs_store->store_content( $db, $stories_id, \$json_annotation, $param_use_bzip2_instead_of_gzip );
     };
     if ( $@ )
     {

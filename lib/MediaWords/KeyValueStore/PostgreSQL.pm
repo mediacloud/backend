@@ -1,6 +1,7 @@
 package MediaWords::KeyValueStore::PostgreSQL;
 
-# class for storing / loading objects (raw downloads, CoreNLP annotator results, ...) to / from PostgreSQL
+# class for storing / loading objects (raw downloads,
+# CoreNLP annotator results, ...) to / from PostgreSQL
 
 use strict;
 use warnings;
@@ -10,6 +11,7 @@ with 'MediaWords::KeyValueStore';
 
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
+use MediaWords::Util::Compress;
 use DBD::Pg qw(:pg_types);
 
 # Configuration
@@ -32,21 +34,18 @@ sub BUILD($$)
 }
 
 # Moose method
-sub store_content($$$$;$)
+sub store_content($$$$)
 {
-    my ( $self, $db, $object_id, $content_ref, $skip_encode_and_compress ) = @_;
+    my ( $self, $db, $object_id, $content_ref ) = @_;
 
     my $table_name = $self->_conf_table_name;
 
     # Encode + gzip
     my $content_to_store;
-    if ( $skip_encode_and_compress )
+    eval { $content_to_store = MediaWords::Util::Compress::encode_and_gzip( $$content_ref ); };
+    if ( $@ or ( !defined $content_to_store ) )
     {
-        $content_to_store = $$content_ref;
-    }
-    else
-    {
-        $content_to_store = $self->encode_and_compress( $content_ref, $object_id );
+        die "Unable to compress object ID $object_id: $@";
     }
 
     my $use_transaction = $db->dbh->{ AutoCommit };
@@ -90,9 +89,9 @@ EOF
 }
 
 # Moose method
-sub fetch_content($$$;$$)
+sub fetch_content($$$;$)
 {
-    my ( $self, $db, $object_id, $object_path, $skip_uncompress_and_decode ) = @_;
+    my ( $self, $db, $object_id, $object_path ) = @_;
 
     my $table_name = $self->_conf_table_name;
 
@@ -114,13 +113,10 @@ EOF
 
     # Gunzip + decode
     my $decoded_content;
-    if ( $skip_uncompress_and_decode )
+    eval { $decoded_content = MediaWords::Util::Compress::gunzip_and_decode( $gzipped_content ); };
+    if ( $@ or ( !defined $decoded_content ) )
     {
-        $decoded_content = $gzipped_content;
-    }
-    else
-    {
-        $decoded_content = $self->uncompress_and_decode( \$gzipped_content, $object_id );
+        die "Unable to uncompress object ID $object_id: $@";
     }
 
     return \$decoded_content;

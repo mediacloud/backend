@@ -1,3 +1,4 @@
+
 package MediaWords::Controller::Api::V2::MC_REST_SimpleObject;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
@@ -355,6 +356,19 @@ sub _die_unless_tag_set_matches_user_email
       unless $c->stash->{ api_auth }->{ email } eq $tag_set;
 }
 
+sub _get_user_tag_set_permissions
+{
+    my ( $api_auth, $tag_set, $dbis ) = @_;
+
+    my $permissions = $dbis->query(
+        "SELECT * from  auth_users_tag_sets_permissions where auth_users_id = ? and tag_sets_id = ? ",
+        $api_auth->{ auth_users_id },
+        $tag_set->{ tag_sets_id }
+    )->hashes()->[ 0 ];
+
+    return $permissions;
+}
+
 #tag_set permissions apply_tags, create_tags, edit_tag_set_descriptors, edit_tag_descriptors
 
 sub _die_unless_user_can_apply_tag_set_tags
@@ -363,7 +377,11 @@ sub _die_unless_user_can_apply_tag_set_tags
 
     return if $c->stash->{ api_auth }->{ email } eq $tag_set->{ name };
 
-    die;
+    my $permissions = _get_user_tag_set_permissions( $c->stash->{ api_auth }, $tag_set, $c->dbis );
+
+    #say STDERR Dumper( $permissions );
+
+    die "user does not have apply tag set tags permissions" unless defined( $permissions ) && $permissions->{ apply_tags };
 }
 
 sub _die_unless_user_can_create_tag_set_tags
@@ -372,25 +390,42 @@ sub _die_unless_user_can_create_tag_set_tags
 
     return if $c->stash->{ api_auth }->{ email } eq $tag_set->{ name };
 
-    die;
+    my $permissions = _get_user_tag_set_permissions( $c->stash->{ api_auth }, $tag_set, $c->dbis );
+
+    #say STDERR Dumper( $permissions );
+
+    die "user does not have create tag permissions for tag set"
+      unless defined( $permissions ) && $permissions->{ create_tags };
 }
 
-sub _die_unless_user_can_edit_tag_set_descriptors
+sub die_unless_user_can_edit_tag_set_descriptors
 {
     my ( $self, $c, $tag_set ) = @_;
 
     return if $c->stash->{ api_auth }->{ email } eq $tag_set->{ name };
 
-    die;
+    my $permissions = _get_user_tag_set_permissions( $c->stash->{ api_auth }, $tag_set, $c->dbis );
+
+    #say STDERR Dumper( $permissions );
+
+    die "User " . $c->stash->{ api_auth }->{ email } .
+      " doesn't have permission to edit tag set descriptors for tag set id " . $tag_set->{ tag_sets_id }
+      unless defined( $permissions ) && $permissions->{ edit_tag_set_descriptors };
 }
 
-sub _die_unless_user_can_edit_tag_set_tag_descriptors
+sub die_unless_user_can_edit_tag_set_tag_descriptors
 {
     my ( $self, $c, $tag_set ) = @_;
 
     return if $c->stash->{ api_auth }->{ email } eq $tag_set->{ name };
 
-    die;
+    my $permissions = _get_user_tag_set_permissions( $c->stash->{ api_auth }, $tag_set, $c->dbis );
+
+    #say STDERR Dumper( $permissions );
+
+    die "User " . $c->stash->{ api_auth }->{ email } .
+      " doesn't have permission to edit tag descriptors in tag set id " . $tag_set->{ tag_sets_id }
+      unless defined( $permissions ) && $permissions->{ edit_tag_descriptors };
 }
 
 sub _get_tags_id
@@ -512,7 +547,11 @@ sub _add_tags
 
         my $tags_id = $self->_get_tags_id( $c, $tag );
 
-        $self->_die_unless_user_can_apply_tag_set_tags( $c, $tags_id );
+        my $tag_set = $c->dbis->query(
+            " SELECT * from tag_sets where tag_sets_id in ( select tag_sets_id from tags where tags_id = ? ) ", $tags_id )
+          ->hashes->[ 0 ];
+
+        $self->_die_unless_user_can_apply_tag_set_tags( $c, $tag_set );
 
         # say STDERR "$id, $tags_id";
 
