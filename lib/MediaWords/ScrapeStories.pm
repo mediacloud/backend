@@ -111,17 +111,8 @@ sub _fetch_url
 
         $content = $response->decoded_content;
 
-<<<<<<< HEAD
-        if ( $refresh_loops > 10 )
-        {
-            return $content;
-        }
-
-        if ( my $refresh_url = MediaWords::Util::URL::meta_refresh_url_from_html( $content, $url ) )
-=======
         if (   ( $refresh_loops++ < 10 )
             && ( my $refresh_url = MediaWords::Util::URL::meta_refresh_url_from_html( $content, $url ) ) )
->>>>>>> master
         {
             $url     = $refresh_url;
             $content = '';
