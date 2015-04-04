@@ -487,6 +487,9 @@ sub fix_common_url_mistakes($)
     # Fix URLs with only one slash after "http" ("http:/www.")
     $url =~ s~(https?:/)(www)~$1/$2~i;
 
+    # replace backslashes with forward
+    $url =~ s/\\/\//g;
+
     return $url;
 }
 
@@ -1038,7 +1041,7 @@ sub _get_merged_stories_ids
     my $stories_ids_list = join( ',', @{ $stories_ids } );
 
     my $merged_stories_ids = $db->query( <<END )->flat;
-select distinct target_stories_id, source_stories_id 
+select distinct target_stories_id, source_stories_id
     from controversy_merged_stories_map
     where target_stories_id in ( $stories_ids_list ) or source_stories_id in ( $stories_ids_list )
 END
@@ -1070,7 +1073,7 @@ sub get_controversy_url_variants
     my $all_stories_ids_list = join( ',', @{ $all_stories_ids } );
 
     my $all_urls = $db->query( <<END )->flat;
-select distinct url from ( 
+select distinct url from (
     select redirect_url url from controversy_links where stories_id in ( $all_stories_ids_list )
     union
     select url from controversy_links where stories_id in( $all_stories_ids_list )
