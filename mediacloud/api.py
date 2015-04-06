@@ -41,7 +41,7 @@ class MediaCloud(object):
             return response['token']
         else:
             self._logger.warn("AuthToken request for "+username+" failed!")
-            raise Exception(response['result'])
+            raise RuntimeError(response['result'])
 
     def verifyAuthToken(self):
         try:
@@ -312,30 +312,30 @@ class MediaCloud(object):
         # print json.dumps(response_json,indent=2)
         if 'error' in response_json:
             self._logger.error('Error in response from server on request to '+url+' : '+response_json['error'])
-            raise Exception(response_json['error'])
+            raise mediacloud.error.MCException(response_json['error'], requests.codes.ok)
         return response_json
 
     def _query(self, url, params={}, http_method='GET'):
         self._logger.debug("query "+http_method+" to "+url+" with "+str(params))
         if not isinstance(params, dict):
-            raise Exception('Queries must include a dict of parameters')
+            raise ValueError('Queries must include a dict of parameters')
         if 'key' not in params:
             params['key'] = self._auth_token
         if http_method is 'GET':
             try:
                 r = requests.get(url, params=params, headers={ 'Accept': 'application/json'} )
             except Exception as e:
-                self._logger.error('Failed to load url '+url+' because '+str(e))
-                raise Exception("Error - failed to fetch data from mediacloud.org server")
+                self._logger.error('Failed to GET url '+url+' because '+str(e))
+                raise e
         elif http_method is 'PUT':
             try:
                 r = requests.put( url, params=params, headers={ 'Accept': 'application/json'} )
             except Exception as e:
-                self._logger.error('Failed to load url '+url+' because '+str(e))
-                raise Exception("Error - failed to fetch data from mediacloud.org server")
+                self._logger.error('Failed to PUT url '+url+' because '+str(e))
+                raise e
         else:
-            raise Exception('Error - unsupported HTTP method '+str(http_method))
-        if r.status_code is not 200:
+            raise ValueError('Error - unsupported HTTP method %s' % http_method)
+        if r.status_code is not requests.codes.ok:
             self._logger.error('Bad HTTP response to '+r.url +' : '+str(r.status_code)  + ' ' +  str( r.reason) )
             self._logger.error('\t' + r.content )
             msg = 'Error - got a HTTP status code of %s with the message "%s"' % (
@@ -369,7 +369,7 @@ class WriteableMediaCloud(MediaCloud):
         custom_tags = []
         for tag in tags:
             if tag.__class__ is not StoryTag:
-                raise Exception('To use tagStories you must send in a list of StoryTag objects')
+                raise ValueError('To use tagStories you must send in a list of StoryTag objects')
             custom_tags.append( '{},{}:{}'.format( tag.stories_id, tag.tag_set_name, tag.tag_name ) )
         params['story_tag'] = custom_tags
         return self._queryForJson( self.V2_API_URL+'stories/put_tags', params, 'PUT')
@@ -384,7 +384,7 @@ class WriteableMediaCloud(MediaCloud):
         custom_tags = []
         for tag in tags:
             if tag.__class__ is not SentenceTag:
-                raise Exception('To use tagSentences you must send in a list of SentenceTag objects')
+                raise ValueError('To use tagSentences you must send in a list of SentenceTag objects')
             custom_tags.append( '{},{}:{}'.format( tag.story_sentences_id, tag.tag_set_name, tag.tag_name ) )
         params['sentence_tag'] = custom_tags
         return self._queryForJson( self.V2_API_URL+'sentences/put_tags', params, 'PUT')
