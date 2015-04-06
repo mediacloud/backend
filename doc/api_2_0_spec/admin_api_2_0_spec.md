@@ -3,8 +3,6 @@
 
 #API URLs
 
-*Note:* by default the API only returns a subset of the available fields in returned objects. The returned fields are those that we consider to be the most relevant to users of the API. If the `all_fields` parameter is provided and is non-zero, then a more complete list of fields will be returned. For space reasons, we do not list the `all_fields` parameter on individual API descriptions.
-
 ## Authentication
 
 This document describes API calls for administrative users. These calls are intended for users running their own install of Media Cloud.
