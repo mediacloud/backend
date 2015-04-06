@@ -11,6 +11,7 @@ use DBIx::Simple::MediaWords;
 use MediaWords::Util::Config;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Web;
+use MediaWords::Util::URL;
 
 sub new
 {
@@ -93,7 +94,9 @@ sub do_fetch
 
     my $ua = MediaWords::Util::Web::UserAgent;
 
-    my $request = HTTP::Request->new( GET => $download->{ url } );
+    my $url = MediaWords::Util::URL::fix_common_url_mistakes( $download->{ url } );
+
+    my $request = HTTP::Request->new( GET => $url );
 
     add_http_auth( $download, $request );
 
