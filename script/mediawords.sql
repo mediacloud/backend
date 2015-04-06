@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4491;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4492;
     
 BEGIN
 
@@ -238,8 +238,20 @@ CREATE OR REPLACE FUNCTION last_updated_trigger () RETURNS trigger AS
 $$
    DECLARE
       path_change boolean;
+      table_with_trigger_column  boolean default false;
    BEGIN
       -- RAISE NOTICE 'BEGIN ';                                                                                                                            
+        IF TG_TABLE_NAME in ( 'processed_stories', 'stories', 'story_sentences') THEN
+           table_with_trigger_column = true;
+        ELSE
+           table_with_trigger_column = false;
+        END IF;
+
+	IF table_with_trigger_column THEN
+	   IF ( ( TG_OP = 'UPDATE' ) OR (TG_OP = 'INSERT') ) AND NEW.disable_triggers THEN
+     	       RETURN NULL;
+           END IF;
+      END IF;
 
       IF ( story_triggers_enabled() ) AND ( ( TG_OP = 'UPDATE' ) OR (TG_OP = 'INSERT') ) then
 
@@ -272,12 +284,27 @@ CREATE OR REPLACE FUNCTION update_stories_updated_time_by_stories_id_trigger () 
 $$
     DECLARE
         path_change boolean;
+        table_with_trigger_column  boolean default false;
         reference_stories_id integer default null;
     BEGIN
 
        IF NOT story_triggers_enabled() THEN
            RETURN NULL;
         END IF;
+
+        IF TG_TABLE_NAME in ( 'processed_stories', 'stories', 'story_sentences') THEN
+           table_with_trigger_column = true;
+        ELSE
+           table_with_trigger_column = false;
+        END IF;
+
+	IF table_with_trigger_column THEN
+	   IF TG_OP = 'INSERT' AND NEW.disable_triggers THEN
+	       RETURN NULL;
+	   ELSEIF ( ( TG_OP = 'UPDATE' ) OR (TG_OP = 'DELETE') ) AND OLD.disable_triggers THEN
+     	       RETURN NULL;
+           END IF;
+       END IF;
 
         IF TG_OP = 'INSERT' THEN
             -- The "old" record doesn't exist
@@ -300,12 +327,31 @@ CREATE OR REPLACE FUNCTION update_story_sentences_updated_time_by_story_sentence
 $$
     DECLARE
         path_change boolean;
+        table_with_trigger_column  boolean default false;
         reference_story_sentences_id bigint default null;
     BEGIN
 
        IF NOT story_triggers_enabled() THEN
            RETURN NULL;
         END IF;
+
+       IF NOT story_triggers_enabled() THEN
+           RETURN NULL;
+        END IF;
+
+        IF TG_TABLE_NAME in ( 'processed_stories', 'stories', 'story_sentences') THEN
+           table_with_trigger_column = true;
+        ELSE
+           table_with_trigger_column = false;
+        END IF;
+
+	IF table_with_trigger_column THEN
+	   IF TG_OP = 'INSERT' AND NEW.disable_triggers THEN
+	       RETURN NULL;
+	   ELSEIF ( ( TG_OP = 'UPDATE' ) OR (TG_OP = 'DELETE') ) AND OLD.disable_triggers THEN
+     	       RETURN NULL;
+           END IF;
+       END IF;
 
         IF TG_OP = 'INSERT' THEN
             -- The "old" record doesn't exist
