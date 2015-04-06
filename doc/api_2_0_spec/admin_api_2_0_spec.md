@@ -8,9 +8,10 @@
 ## Authentication
 
 This document describes API calls for administrative users. These calls are intended for users running their own install of Media Cloud.
+Users of the mediacloud.org API should refer instead to the Media Cloud API 2.0 Spec.
 
 Please refer to the Media Cloud Api spec for general information on how requests should be constructed. 
-Because the functionality of the admin api is largely a superset of the regular API, we do not include duplicative information in this document.
+Because the functionality of the admin api is largely a superset of the regular API, we do not include duplicative information in that document.
 
 
 ## Write Back API
@@ -39,10 +40,10 @@ the parameter value can be in one of two formats -- either the `tags_id` of the 
 in `<tag set>:<tag>` format, for example `gv_country:japan`.
     
 If the tag is specified in the latter format and the given tag set does not exist, a new tag set with that 
-name will be created owned by the current user.  If the tag does not exist, a new tag will be created 
+name will be created by the current user.  If the tag does not exist, a new tag will be created 
 within the given tag set.
 
-A user may only write put tags (or create new tags) within a tag set owned by that user.
+A user may only write put tags (or create new tags) within a tag set for which they have permission.
 
 #### Example
 
@@ -124,4 +125,32 @@ curl -X PUT -d 'tag=test_tagXX' -d 'label=YY' -d 'description=Bfoo' http://api.m
 ```
 curl -X PUT -d 'name=collection' -d 'label=XXXX' -d 'description=foo' http://api.mediacloud.org/api/v2/tag_sets/update/1
 ```
+
+### Tag Set Permissions
+
+Within the administrative backend users are granted permissions at the tag set level.
+For each tag set a users may have up to 4 of the following permissions: edit_tag_descriptors, edit_tag_descriptors, appy_tags, and create_tags.
+
+These permissions are described below:
+
+| Parameter                   | Notes
+| --------------------        | --------------------------------------------------------------------------
+| ` edit_tag_descriptors`     | For all tags in the tag set, the user may alter the tag name, tag description, and tag label using the api/v2/tags/update API call
+| ` edit_tag_set_descriptors` | The user may alter the tag set name, tag set description, and tag  set label for the tag set using the api/v2/tag_sets/update API call
+| `apply_tags`                | The user may apply existing tags within the tag set to stories and sentences
+| `create_tags`               | The user may create new tags within the tag set
+
+
+#### Granting Permissions
+
+Tag set permissions must be explicitly granted to users in the administrative backend UI. 
+To grant user permissions go to  https://core.mediacloud.org/admin/users/list and click the Edit Tag Set Permissions link for that user.
+
+Do to the importance of tags and the potential for confusion and accidential misuse, permissions must be explicitly granted on a per user basis by administrators. With the exception of user name tag sets (see below), the default is for users to have no tag set permissions that have not been explicitly granted.
+
+#### Exceptions - user name tag sets
+
+If the name of the tag_set matches the user's email address, they will be granted all 4 of the permissions above for that tag set.  For example, a user with the email address jdoe@mediacloud.org would be able to 
+
+Note that this exception is based purely on a string comparison of the tag set name with the user's email. Thus if a user creates a tag set that matched their email address, they will be able to alter this tag set and its tags. However, if the user changes the name of the tag_set, through a call to api/v2/tag_sets/update, so that it no longer matches their email address, they will no longer have permissions for this tag set unless they have been explicitly given access in the administrative backend.
 
