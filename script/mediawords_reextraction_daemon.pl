@@ -66,8 +66,28 @@ END_SQL
 
         my $stories_ids = [ map { $_->{ stories_id } } @$rows ];
 
-        last if scalar( @$stories_ids ) == 0;
+        if ( scalar( @$stories_ids ) == 0 )
+        {
+            say STDERR "No non-error stories found in batch. Checking for errored stories";
+            my $processed_stories = $db->query(
+                <<"END_SQL",
+select ps.* from processed_stories ps left join stories_tags_map stm on ( ps.stories_id=stm.stories_id and stm.tags_id=? ) where processed_stories_id > ? and tags_id is null order by processed_stories_id asc limit ?
+END_SQL
+                $tags_id, $last_processed_stories_id, $story_batch_size * 3
+            )->hashes();
 
+            if ( scalar( @$processed_stories ) > 0 )
+            {
+
+                $last_processed_stories_id = $processed_stories->[ -1 ]->{ processed_stories_id };
+                say STDERR "Setting processed_stories id to $last_processed_stories_id to move past download errors";
+                next;
+            }
+            else
+            {
+                last;
+            }
+        }
         $last_processed_stories_id = $rows->[ -1 ]->{ processed_stories_id };
 
         my $i = 0;
