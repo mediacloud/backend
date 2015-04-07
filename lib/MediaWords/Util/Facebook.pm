@@ -19,7 +19,7 @@ use Data::Dumper;
 use List::MoreUtils qw/any/;
 
 # Facebook Graph API version to use
-Readonly my $FACEBOOK_GRAPH_API_VERSION => 'v2.2';
+Readonly my $FACEBOOK_GRAPH_API_VERSION => 'v2.3';
 
 # Number of retries to do on temporary Facebook Graph API errors (such as rate
 # limiting issues or API downtime)
