@@ -1863,39 +1863,4 @@ sub update_aggregate_author_words
     $db->commit;
 }
 
-# if dashbaord_topics_id or media_sets_id are specified, only update for the given
-# dashboard_topic or media_set
-sub update_country_counts
-{
-
-    # disabling this rather than fixing it temporarily to remove the language stuff
-    # because we'll be obsoleting it when we move to lucene in any case - hal 2013-07-15
-    return;
-
-    my ( $db, $start_date, $end_date, $force, $dashboard_topics_id, $media_sets_id ) = @_;
-
-    $start_date ||= '2008-06-01';
-    $end_date ||= Date::Format::time2str( "%Y-%m-%d", time - 86400 );
-
-    my $days          = 0;
-    my $update_weekly = 0;
-
-    for ( my $date = $start_date ; $date le $end_date ; $date = _increment_day( $date ) )
-    {
-        say STDERR "update_aggregate_country_counts: $date ($start_date - $end_date) $days";
-
-        if ( $force || !_aggregate_data_exists_for_date( $db, $date, $dashboard_topics_id, $media_sets_id ) )
-        {
-            _update_daily_country_counts( $db, $date, $dashboard_topics_id, $media_sets_id );
-            $update_weekly = 1;
-        }
-
-        $db->commit();
-
-        $days++;
-    }
-
-    $db->commit;
-}
-
 1;
