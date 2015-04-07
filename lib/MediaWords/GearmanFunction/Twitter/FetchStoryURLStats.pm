@@ -1,11 +1,11 @@
-package MediaWords::GearmanFunction::Twitter::FetchStoryStats;
+package MediaWords::GearmanFunction::Twitter::FetchStoryURLStats;
 
 #
 # Fetch story's tweet count statistics via Twitter API
 #
 # Start this worker script by running:
 #
-# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/Twitter/FetchStoryStats.pm
+# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/Twitter/FetchStoryURLStats.pm
 #
 
 use strict;
