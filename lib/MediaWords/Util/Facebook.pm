@@ -71,7 +71,7 @@ Readonly my @URL_PATTERNS_WHICH_WONT_WORK => (
 
 # Make Facebook API request
 # Returns resulting JSON on success, die()s on error
-sub _request($$)
+sub api_request($$)
 {
     my ( $node, $params ) = @_;
 
@@ -225,7 +225,7 @@ sub get_url_share_comment_counts
 
     # Make API request (https://developers.facebook.com/docs/graph-api/reference/v2.3/url)
     my $data;
-    eval { $data = _request( '', [ { key => 'id', value => $url } ] ); };
+    eval { $data = api_request( '', [ { key => 'id', value => $url } ] ); };
     if ( $@ )
     {
         fatal_error( 'Error while fetching Facebook stats for URL $url: ' . $@ );
