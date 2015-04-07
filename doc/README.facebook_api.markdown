@@ -1,6 +1,6 @@
 # Facebook API
 
-# Getting App ID and App Secret credentials
+## Getting App ID and App Secret credentials
 
 To get App ID and App Secret API authentication credentials:
 
