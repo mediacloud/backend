@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #
-# fetch Facebook URL statistics for all stories in a controversy
+# Fetch Facebook URL statistics for all stories in a controversy
 #
 
 use strict;
@@ -24,8 +24,6 @@ use MediaWords::GearmanFunction::Facebook::FetchStoryURLStats;
 
 sub main
 {
-    my ( $controversy_opt, $direct_job, $overwrite );
-
     binmode( STDOUT, 'utf8' );
     binmode( STDERR, 'utf8' );
     $| = 1;
@@ -34,6 +32,7 @@ sub main
 Usage: $0 --controversy < id > [--direct_job] [--overwrite]
 EOF
 
+    my ( $controversy_opt, $direct_job, $overwrite );
     Getopt::Long::GetOptions(
         "controversy=s" => \$controversy_opt,
         "direct_job!"   => \$direct_job,
