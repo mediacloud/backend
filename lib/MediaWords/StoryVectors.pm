@@ -31,50 +31,6 @@ use constant MIN_STEM_LENGTH => 3;
 Readonly my $sentence_study_table_prefix => 'sen_study_old_';
 Readonly my $sentence_study_table_suffix => '_2011_01_03_2011_01_10';
 
-# given a hash of word counts by sentence, insert the words into the db
-sub _insert_story_sentence_words
-{
-    my ( $db, $story, $word_counts ) = @_;
-
-    my $copy = <<END;
-copy story_sentence_words (stories_id, stem_count, sentence_number, stem, term, publish_day, media_id) from STDIN
-END
-    eval { $db->dbh->do( $copy ) };
-    if ( $@ )
-    {
-        die( " Error on copy for story_sentence_words: $@" );
-    }
-
-    while ( my ( $sentence_num, $sentence_counts ) = each( %{ $word_counts } ) )
-    {
-        while ( my ( $stem, $hash ) = each( %{ $sentence_counts } ) )
-        {
-            my $data = join( "\t",
-                $story->{ stories_id },
-                $hash->{ count },
-                $sentence_num,
-                encode_utf8( $stem ),
-                encode_utf8( lc( $hash->{ word } ) ),
-                $story->{ publish_date },
-                $story->{ media_id } );
-
-            eval { $db->dbh->pg_putcopydata( "$data\n" ); };
-
-            if ( $@ )
-            {
-                die( " Error on pg_putcopydata for story_sentence_words: $@" );
-            }
-        }
-    }
-
-    eval { $db->dbh->pg_putcopyend(); };
-
-    if ( $@ )
-    {
-        die( " Error on pg_putcopyend for story_sentence_words: $@" );
-    }
-}
-
 # return 1 if the stem passes various tests
 sub _valid_stem
 {
