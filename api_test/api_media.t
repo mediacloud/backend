@@ -430,10 +430,12 @@ sub test_stories_non_public
         {
             delete $row->{ 'description' };
             delete $row->{ 'db_row_last_updated' };
+            delete $row->{ 'disable_triggers' };
 
             for my $sentence ( @{ $row->{ 'story_sentences' } } )
             {
                 delete $sentence->{ 'db_row_last_updated' };
+                delete $sentence->{ 'disable_triggers' };
             }
 
         }
