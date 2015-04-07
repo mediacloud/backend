@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4492;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4493;
     
 BEGIN
 
@@ -249,7 +249,7 @@ $$
 
 	IF table_with_trigger_column THEN
 	   IF ( ( TG_OP = 'UPDATE' ) OR (TG_OP = 'INSERT') ) AND NEW.disable_triggers THEN
-     	       RETURN NULL;
+     	       RETURN NEW;
            END IF;
       END IF;
 
@@ -271,6 +271,10 @@ $$
    BEGIN
 
         IF NOT story_triggers_enabled() THEN
+           RETURN NULL;
+        END IF;
+
+        IF NEW.disable_triggers THEN
            RETURN NULL;
         END IF;
 
@@ -315,10 +319,17 @@ $$
             RAISE EXCEPTION 'Unconfigured operation: %', TG_OP;
         END IF;
 
-        UPDATE stories
-        SET db_row_last_updated = now()
-        WHERE stories_id = reference_stories_id;
-	RETURN NULL;
+	IF table_with_trigger_column THEN
+            UPDATE stories
+               SET db_row_last_updated = now()
+               WHERE stories_id = reference_stories_id;
+            RETURN NULL;
+        ELSE
+            UPDATE stories
+               SET db_row_last_updated = now()
+               WHERE stories_id = reference_stories_id and (disable_triggers is NOT true);
+            RETURN NULL;
+        END IF;
    END;
 $$
 LANGUAGE 'plpgsql';
@@ -362,10 +373,17 @@ $$
             RAISE EXCEPTION 'Unconfigured operation: %', TG_OP;
         END IF;
 
-        UPDATE story_sentences
-        SET db_row_last_updated = now()
-        WHERE story_sentences_id = reference_story_sentences_id;
-	RETURN NULL;
+	IF table_with_trigger_column THEN
+            UPDATE story_sentences
+              SET db_row_last_updated = now()
+              WHERE story_sentences_id = reference_story_sentences_id;
+            RETURN NULL;
+        ELSE
+            UPDATE story_sentences
+              SET db_row_last_updated = now()
+              WHERE story_sentences_id = reference_story_sentences_id and (disable_triggers is NOT true);
+            RETURN NULL;
+        END IF;
    END;
 $$
 LANGUAGE 'plpgsql';
