@@ -92,7 +92,7 @@ sub _insert_story_sentences
 {
     my ( $db, $story, $sentences ) = @_;
 
-    my $fields = [ qw/stories_id sentence_number sentence language publish_date media_id/ ];
+    my $fields = [ qw/stories_id sentence_number sentence language publish_date media_id disable_triggers / ];
     my $field_list = join( ',', @{ $fields } );
 
     my $copy = <<END;
@@ -582,12 +582,13 @@ sub update_story_sentence_words_and_language
 
         # Insert the sentence into the database
         my $sentence_ref = {};
-        $sentence_ref->{ sentence }        = $sentence;
-        $sentence_ref->{ language }        = $sentence_lang;
-        $sentence_ref->{ sentence_number } = $sentence_num;
-        $sentence_ref->{ stories_id }      = $stories_id;
-        $sentence_ref->{ media_id }        = $story->{ media_id };
-        $sentence_ref->{ publish_date }    = $story->{ publish_date };
+        $sentence_ref->{ sentence }         = $sentence;
+        $sentence_ref->{ language }         = $sentence_lang;
+        $sentence_ref->{ sentence_number }  = $sentence_num;
+        $sentence_ref->{ stories_id }       = $stories_id;
+        $sentence_ref->{ media_id }         = $story->{ media_id };
+        $sentence_ref->{ publish_date }     = $story->{ publish_date };
+        $sentence_ref->{ disable_triggers } = MediaWords::DB::story_triggers_disabled();
 
         push( @{ $sentence_refs }, $sentence_ref );
     }
