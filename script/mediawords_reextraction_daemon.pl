@@ -41,6 +41,8 @@ sub main
 
     my $total_stories_enqueued = 0;
 
+    MediaWords::DB::disable_story_triggers();
+
     while ( 1 )
     {
         my $gearman_queued_jobs = $gearman_db->query(
@@ -88,6 +90,7 @@ END_SQL
                 last;
             }
         }
+
         $last_processed_stories_id = $rows->[ -1 ]->{ processed_stories_id };
 
         my $i = 0;
