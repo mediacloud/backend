@@ -67,10 +67,12 @@ sub run($$)
     if ( exists $args->{ disable_story_triggers } && $args->{ disable_story_triggers } )
     {
         $db->query( "SELECT disable_story_triggers(); " );
+        MediaWords::DB::disable_story_triggers();
     }
     else
     {
         $db->query( "SELECT enable_story_triggers(); " );
+        MediaWords::DB::enable_story_triggers();
     }
 
     eval {
