@@ -13,7 +13,8 @@ To get App ID and App Secret API authentication credentials:
 4. Click *Create App*
 5. Click *Settings* on the left:
     1. In *Basic* tab, fill in your *Contact Email* and click *Save Changes*
-    2. In *Advanced* tab, switch *Native or desktop app?* to `Yes` and click *Save Changes*
+    2. In *Advanced* tab, switch *Native or desktop app?* to `No` and click *Save Changes*
+        * If you forget this, you'll start getting `OAuthException: (#15) Requires session when calling from a desktop app` errors for certain actions.
     3. In *Advanced* tab, switch *Social Discovery* to `No` and click *Save Changes*
 6. From the *Settings* -> *Basic*, copy the *App ID*, *App Secret* and paste them into `mediawords.yml`
 
