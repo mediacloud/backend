@@ -70,13 +70,15 @@ sub fetch_facebook_page_links($)
         say STDERR "\tOpen Graph object ID: $og_object_id";
 
         # # Fetch page's feed
-        # my $feed = MediaWords::Util::Facebook::api_request( $og_object_id . '/feed', [] );
-        # unless ( defined($feed->{ data })) {
-        #     die "Feed object doesn't have 'data' key.";
-        # }
-        # unless ( defined($feed->{ paging })) {
-        #     die "Feed object doesn't have 'paging' key.";
-        # }
+        my $feed = MediaWords::Util::Facebook::api_request( $og_object_id . '/feed', [] );
+        unless ( defined( $feed->{ data } ) )
+        {
+            die "Feed object doesn't have 'data' key.";
+        }
+        unless ( defined( $feed->{ paging } ) )
+        {
+            die "Feed object doesn't have 'paging' key.";
+        }
 
     }
 }
