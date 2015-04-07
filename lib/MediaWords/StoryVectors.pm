@@ -330,70 +330,6 @@ sub _story_within_media_source_story_words_date_range
     return 1;
 }
 
-sub purge_story_words_data_for_unretained_dates
-{
-    my ( $db ) = @_;
-
-    my $default_story_words_start_date = get_default_story_words_start_date();
-    my $default_story_words_end_date   = get_default_story_words_end_date();
-
-    $db->query( " SELECT purge_story_words( ? , ? )", $default_story_words_start_date, $default_story_words_end_date );
-
-    return;
-}
-
-sub purge_story_sentences_data_for_unretained_dates
-{
-    my ( $db ) = @_;
-
-    my $default_story_words_start_date = get_default_story_words_start_date();
-    my $default_story_words_end_date   = get_default_story_words_end_date();
-
-    $db->query(
-        " SELECT purge_story_sentences( ?::date , ?::date )",
-        $default_story_words_start_date,
-        $default_story_words_end_date
-    );
-
-    return;
-}
-
-sub purge_story_sentence_counts_data_for_unretained_dates
-{
-    my ( $db ) = @_;
-
-    my $default_story_words_start_date = get_default_story_words_start_date();
-    my $default_story_words_end_date   = get_default_story_words_end_date();
-
-    $db->query(
-        " SELECT purge_story_sentence_counts( ?::date , ?::date )",
-        $default_story_words_start_date,
-        $default_story_words_end_date
-    );
-
-    return;
-}
-
-sub purge_daily_words_data_for_unretained_dates
-{
-    my ( $db ) = @_;
-
-    my $default_story_words_start_date = get_default_story_words_start_date();
-    my $default_story_words_end_date   = get_default_story_words_end_date();
-
-    $db->query(
-        <<"EOF",
-        SELECT purge_daily_words_for_media_set( media_sets_id, ?::date, ?::date)
-        FROM media_sets
-        ORDER BY media_sets_id
-EOF
-        $default_story_words_start_date,
-        $default_story_words_end_date
-    );
-
-    return;
-}
-
 sub _get_sentences_from_story_text
 {
     my ( $story_text, $story_lang ) = @_;
@@ -1001,46 +937,6 @@ EOF
 EOF
     );
 }
-
-# sub _update_daily_stories_counts
-# {
-#     my ( $db, $sql_date, $dashboard_topics_id, $media_sets_id ) = @_;
-
-#     say STDERR "aggregate: update_daily_stories_counts $sql_date";
-
-#     my $dashboard_topic_clause = _get_dashboard_topic_clause( $dashboard_topics_id );
-#     my $media_set_clause       = _get_media_set_clause( $media_sets_id );
-#     my $update_clauses         = _get_update_clauses( $dashboard_topics_id, $media_sets_id );
-
-#     $db->query( "DELETE FROM daily_story_count WHERE publish_day = '${ sql_date }'::date $update_clauses" );
-
-#     #$db->query( "DELETE FROM daily_words WHERE publish_day = '${ sql_date }'::date $update_clauses" );
-#     #$db->query(
-#     #    "DELETE FROM total_daily_words WHERE publish_day = '${ sql_date }'::date $update_clauses" );
-
-#     if ( !$dashboard_topics_id )
-#     {
-
-#         my $sql = <<"EOF";
-# INSERT INTO daily_story_count (media_sets_id, dashboard_topics_id, publish_day, story_count)
-#     SELECT media_sets_id,
-#            NULL AS dashboard_topics_id,
-#            MIN(publish_day) AS publish_day,
-#            COUNT(*) AS story_count
-#     FROM story_sentence_words AS ssw,
-#          media_sets_media_map AS msmm
-#     WHERE ssw.publish_day = '${sql_date}'::date
-#           AND ssw.media_id = msmm.media_id
-#           AND $media_set_clause
-#     GROUP BY msmm.media_sets_id,
-#              ssw.publish_day
-# EOF
-
-#         $db->query( $sql );
-
-#     }
-
-# }
 
 # get quoted, comma separate list of the dates in the week starting with
 # the given date
