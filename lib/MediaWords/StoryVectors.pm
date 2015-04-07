@@ -1751,30 +1751,4 @@ EOF
     return $ret;
 }
 
-# add one day to the date in sql format
-# use a postgres query to make sure we're doing the same thing as postgres, including dst
-sub _increment_day
-{
-    my ( $date ) = @_;
-
-    my $new_date = Date::Format::time2str( "%Y-%m-%d", Date::Parse::str2time( $date ) + 100000 );
-}
-
-#Convert the date to YYYY-MM-DD format is necessary and get rid of hours and minutes
-sub _truncate_as_day
-{
-    my ( $date ) = @_;
-
-    my $new_date = Date::Format::time2str( "%Y-%m-%d", Date::Parse::str2time( $date ) );
-
-    return $new_date;
-}
-
-sub _date_is_sunday
-{
-    my ( $date ) = @_;
-
-    return !( localtime( Date::Parse::str2time( $date ) ) )[ 6 ];
-}
-
 1;
