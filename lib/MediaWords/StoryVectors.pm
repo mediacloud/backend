@@ -1821,46 +1821,4 @@ sub _date_is_sunday
     return !( localtime( Date::Parse::str2time( $date ) ) )[ 6 ];
 }
 
-sub update_aggregate_author_words
-{
-    my ( $db, $start_date, $end_date, $force, $dashboard_topics_id, $media_sets_id ) = @_;
-
-    $start_date ||= '2008-06-01';
-    $end_date ||= Date::Format::time2str( "%Y-%m-%d", time - 86400 );
-
-    $start_date = _truncate_as_day( $start_date );
-    $end_date   = _truncate_as_day( $end_date );
-
-    my $days          = 0;
-    my $update_weekly = 0;
-
-    for ( my $date = $start_date ; $date le $end_date ; $date = _increment_day( $date ) )
-    {
-        say STDERR "update_aggregate_words: $date ($start_date - $end_date) $days";
-
-        $update_weekly = 1;
-
-        {
-            _update_daily_author_words( $db, $date, $dashboard_topics_id, $media_sets_id );
-        }
-
-        # update weeklies either if there was a daily update for the week and if we are at the end of the date range
-        # or the end of a week
-        if ( $update_weekly && ( ( $date eq $end_date ) || _date_is_sunday( $date ) ) )
-        {
-            {
-                _update_weekly_author_words( $db, $date, $dashboard_topics_id, $media_sets_id );
-                _update_top_500_weekly_author_words( $db, $date, $dashboard_topics_id, $media_sets_id );
-            }
-            $update_weekly = 0;
-        }
-
-        $db->commit();
-
-        $days++;
-    }
-
-    $db->commit;
-}
-
 1;
