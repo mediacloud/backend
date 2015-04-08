@@ -41,7 +41,8 @@ sub main
 
     my $gearman_db = MediaWords::DB::connect_to_db( "gearman" );
 
-    my $total_stories_enqueued = 0;
+    my $total_stories_enqueued     = 0;
+    my $total_gearman_enqueue_time = 0;
 
     MediaWords::DB::disable_story_triggers();
 
@@ -120,9 +121,14 @@ END_SQL
         say STDERR "story_query_time " . ( $query_end_time - $query_start_time );
 
         my $gearman_enqueue_time = $gearman_enqueue_end_time - $gearman_enqueue_start_time;
+        $total_gearman_enqueue_time += $gearman_enqueue_time;
 
         say STDERR "gearman_enqueue_ time $gearman_enqueue_time for $enqueued_stories stories -- per story " .
           $gearman_enqueue_time / $enqueued_stories;
+
+        say STDERR
+          "total gearman_enqueue_time $total_gearman_enqueue_time for $total_stories_enqueued stories -- per story " .
+          $total_gearman_enqueue_time / $total_stories_enqueued;
     }
 
     say STDERR "all stories extracted with readability";
