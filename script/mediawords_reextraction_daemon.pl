@@ -123,8 +123,6 @@ END_SQL
 	my $gearman_enqueue_time = $gearman_enqueue_end_time - $gearman_enqueue_start_time;
 
 	say STDERR "gearman_enqueue_ time $gearman_enqueue_time for $enqueued_stories stories -- per story " . $gearman_enqueue_time / $enqueued_stories;
-
-        last;
     }
 
     say STDERR "all stories extracted with readability";
