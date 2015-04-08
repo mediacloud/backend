@@ -20,6 +20,7 @@ use MediaWords::Util::URL;
 use Getopt::Long;
 use File::Slurp;
 use Scalar::Util qw/looks_like_number/;
+use List::MoreUtils qw/uniq/;
 use Data::Dumper;
 
 # Returns true of Open Graph object belongs to a Facebook page
@@ -38,6 +39,33 @@ sub _is_facebook_page($)
     {
         return 1;
     }
+}
+
+sub _process_facebook_post($)
+{
+    my $post = shift;
+
+    my @links;
+
+    my $post_link = $post->{ link };
+    if ( $post_link )
+    {
+        push( @links, $post_link );
+    }
+
+    my $post_message = $post->{ message };
+    if ( $post_message )
+    {
+        my $message_links = MediaWords::Util::URL::http_urls_in_string( $post_message );
+        foreach my $message_link ( @{ $message_links } )
+        {
+            push( @links, $message_link );
+        }
+    }
+
+    @links = uniq @links;
+
+    say STDERR "Links in post: " . Dumper( \@links );
 }
 
 sub fetch_facebook_page_links($)
@@ -80,6 +108,14 @@ sub fetch_facebook_page_links($)
             die "Feed object doesn't have 'paging' key or the value is not a hashref.";
         }
 
+        my $posts      = $feed->{ data };
+        my $post_count = scalar( @{ $posts } );
+        say STDERR "Number of posts in a chunk: $post_count";
+
+        foreach my $post ( @{ $posts } )
+        {
+            _process_facebook_post( $post );
+        }
     }
 }
 
