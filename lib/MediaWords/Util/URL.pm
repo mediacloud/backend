@@ -1169,4 +1169,21 @@ sub all_url_variants($$)
     return @{ $all_urls };
 }
 
+# Extract http(s):// URLs from a string
+# Returns arrayref of unique URLs in a string, die()s on error
+sub http_urls_in_string($)
+{
+    my $string = shift;
+
+    unless ( defined( $string ) )
+    {
+        die "String is undefined.";
+    }
+
+    my @urls = $string =~ /($RE{URI}{HTTP}{-scheme => '(?:http|https)'})/ig;
+    @urls = uniq @urls;
+
+    return \@urls;
+}
+
 1;
