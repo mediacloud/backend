@@ -47,10 +47,39 @@ sub _process_facebook_post($)
 
     my @links;
 
+    my $post_type = $post->{ type };
+    unless ( defined $post_type )
+    {
+        die "Post type is undefined.";
+    }
+
+    my $post_status_type = $post->{ status_type };
+    unless ( defined $post_status_type )
+    {
+        die "Post status type is undefined.";
+    }
+
     my $post_link = $post->{ link };
     if ( $post_link )
     {
-        push( @links, $post_link );
+        my $skip_adding_post_link = 0;
+
+        # Ignore cases when page posts photos from its own Facebook's album
+        if ( $post_type eq 'photo' and $post_status_type eq 'added_photos' )
+        {
+            $skip_adding_post_link = 1;
+        }
+
+        # Ignore cases when page posts photos from some other page
+        if ( $post_type eq 'photo' and $post_status_type eq 'shared_story' )
+        {
+            $skip_adding_post_link = 1;
+        }
+
+        unless ( $skip_adding_post_link )
+        {
+            push( @links, $post_link );
+        }
     }
 
     my $post_message = $post->{ message };
