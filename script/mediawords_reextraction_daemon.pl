@@ -34,7 +34,7 @@ sub main
 
     my $tags_id = MediaWords::DBI::Stories::get_current_extractor_version_tags_id( $db );
 
-    my $last_processed_stories_id = 0; #84695570;
+    my $last_processed_stories_id = 0;      #84695570;
     my $story_batch_size          = 1000;
     my $gearman_queue_limit       = 200;
     my $sleep_time                = 10;
@@ -61,17 +61,16 @@ sub main
             next;
         }
 
-	my $query_start_time = time();
+        my $query_start_time = time();
 
         my $rows = $db->query(
             <<"END_SQL",
-        WITH  reextract_stories as (select ps.* from processed_stories ps left join  stories_tags_map stm on ( ps.stories_id=stm.stories_id and stm.tags_id=? ) where processed_stories_id > ? and tags_id is null order by processed_stories_id asc limit ?) select processed_stories_id, reextract_stories.stories_id from downloads, reextract_stories where downloads.stories_id = reextract_stories.stories_id and downloads.state not in ( 'error', 'fetching', 'pending', 'queued' ) group by processed_stories_id, reextract_stories.stories_id order by processed_stories_id, reextract_stories.stories_id limit ?;
+        WITH  reextract_stories as (select ps.* from processed_stories ps left join  stories_tags_map stm on ( ps.stories_id=stm.stories_id and stm.tags_id=? ) where processed_stories_id > ? and tags_id is null order by processed_stories_id asc limit ?) select processed_stories_id, reextract_stories.stories_id from downloads, reextract_stories where downloads.stories_id = reextract_stories.stories_id and downloads.state not in ( 'error', 'fetching', 'pending', 'queued' ) and file_status <> 'missing' group by processed_stories_id, reextract_stories.stories_id order by processed_stories_id, reextract_stories.stories_id limit ?;
 END_SQL
             $tags_id, $last_processed_stories_id, $story_batch_size * 3, $story_batch_size
         )->hashes;
 
-
-	my $query_end_time = time();
+        my $query_end_time = time();
 
         my $stories_ids = [ map { $_->{ stories_id } } @$rows ];
 
@@ -104,25 +103,26 @@ END_SQL
 
         #say Dumper( $stories_ids );
 
-	my $gearman_enqueue_start_time = time();
+        my $gearman_enqueue_start_time = time();
         for my $stories_id ( @{ $stories_ids } )
         {
             MediaWords::GearmanFunction::ExtractAndVector->enqueue_on_gearman(
                 { stories_id => $stories_id, disable_story_triggers => 1 } );
 
         }
-	my $gearman_enqueue_end_time = time();
+        my $gearman_enqueue_end_time = time();
 
-	my $enqueued_stories =  scalar( @$stories_ids );
+        my $enqueued_stories = scalar( @$stories_ids );
         $total_stories_enqueued += $enqueued_stories;
 
         say STDERR "last_processed_stories_id  $last_processed_stories_id ";
         say STDERR "total_stories_enqueued $total_stories_enqueued";
-	say STDERR "story_query_time " . ($query_end_time - $query_start_time);
+        say STDERR "story_query_time " . ( $query_end_time - $query_start_time );
 
-	my $gearman_enqueue_time = $gearman_enqueue_end_time - $gearman_enqueue_start_time;
+        my $gearman_enqueue_time = $gearman_enqueue_end_time - $gearman_enqueue_start_time;
 
-	say STDERR "gearman_enqueue_ time $gearman_enqueue_time for $enqueued_stories stories -- per story " . $gearman_enqueue_time / $enqueued_stories;
+        say STDERR "gearman_enqueue_ time $gearman_enqueue_time for $enqueued_stories stories -- per story " .
+          $gearman_enqueue_time / $enqueued_stories;
     }
 
     say STDERR "all stories extracted with readability";
