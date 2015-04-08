@@ -1261,7 +1261,7 @@ sub get_medium_dup_stories_by_title
 
     for my $story ( @{ $stories } )
     {
-        my $title_parts = $story->{ title_parts } = get_title_parts( $story->{ title } );
+        my $title_parts = get_title_parts( $story->{ title } );
 
         for ( my $i = 0 ; $i < @{ $title_parts } ; $i++ )
         {
