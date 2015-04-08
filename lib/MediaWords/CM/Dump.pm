@@ -1771,15 +1771,6 @@ sub dump_controversy ($$)
     my $controversy = $db->find_by_id( 'controversies', $controversies_id )
       || die( "Unable to find controversy '$controversies_id'" );
 
-    # Check if controversy's stories have been processed through Bit.ly
-    if ( $controversy->{ process_with_bitly } )
-    {
-        unless ( MediaWords::Util::Bitly::num_controversy_stories_without_bitly_statistics( $db, $controversies_id ) == 0 )
-        {
-            die "Not all controversy's $controversies_id stories have been processed with Bit.ly yet.";
-        }
-    }
-
     $db->dbh->{ PrintWarn } = 0;    # avoid noisy, extraneous postgres notices from drops
 
     # Log activity that's about to start
