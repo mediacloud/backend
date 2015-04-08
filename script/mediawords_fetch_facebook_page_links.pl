@@ -71,13 +71,13 @@ sub fetch_facebook_page_links($)
 
         say STDERR "\tFetching page's $og_object_id feed...";
         my $feed = MediaWords::Util::Facebook::api_request( $og_object_id . '/feed', [] );
-        unless ( defined( $feed->{ data } ) )
+        unless ( defined( $feed->{ data } ) and ref( $feed->{ data } ) eq ref( [] ) )
         {
-            die "Feed object doesn't have 'data' key.";
+            die "Feed object doesn't have 'data' key of the value is not an arrayref.";
         }
-        unless ( defined( $feed->{ paging } ) )
+        unless ( defined( $feed->{ paging } ) and ref( $feed->{ paging } ) eq ref( {} ) )
         {
-            die "Feed object doesn't have 'paging' key.";
+            die "Feed object doesn't have 'paging' key or the value is not a hashref.";
         }
 
     }
