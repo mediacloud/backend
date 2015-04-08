@@ -734,6 +734,12 @@ sub process_extracted_story
         MediaWords::StoryVectors::update_story_sentence_words_and_language( $db, $story, 0, $no_dedup_sentences );
     }
 
+    $db->query(
+        "UPDATE stories SET disable_triggers  = ? WHERE stories_id = ?",
+        MediaWords::DB::story_triggers_disabled(),
+        $story->{ stories_id }
+    );
+
     MediaWords::DBI::Stories::_update_extractor_version_tag( $db, $story );
 
     my $stories_id = $story->{ stories_id };
@@ -1139,7 +1145,10 @@ sub mark_as_processed($$)
 {
     my ( $db, $stories_id ) = @_;
 
-    eval { $db->insert( 'processed_stories', { stories_id => $stories_id } ); };
+    eval {
+        $db->insert( 'processed_stories',
+            { stories_id => $stories_id, disable_triggers => MediaWords::DB::story_triggers_disabled() } );
+    };
     if ( $@ )
     {
         warn "Unable to insert story ID $stories_id into 'processed_stories': $@";

@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4490;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4493;
     
 BEGIN
 
@@ -238,8 +238,20 @@ CREATE OR REPLACE FUNCTION last_updated_trigger () RETURNS trigger AS
 $$
    DECLARE
       path_change boolean;
+      table_with_trigger_column  boolean default false;
    BEGIN
       -- RAISE NOTICE 'BEGIN ';                                                                                                                            
+        IF TG_TABLE_NAME in ( 'processed_stories', 'stories', 'story_sentences') THEN
+           table_with_trigger_column = true;
+        ELSE
+           table_with_trigger_column = false;
+        END IF;
+
+	IF table_with_trigger_column THEN
+	   IF ( ( TG_OP = 'UPDATE' ) OR (TG_OP = 'INSERT') ) AND NEW.disable_triggers THEN
+     	       RETURN NEW;
+           END IF;
+      END IF;
 
       IF ( story_triggers_enabled() ) AND ( ( TG_OP = 'UPDATE' ) OR (TG_OP = 'INSERT') ) then
 
@@ -262,6 +274,10 @@ $$
            RETURN NULL;
         END IF;
 
+        IF NEW.disable_triggers THEN
+           RETURN NULL;
+        END IF;
+
 	UPDATE story_sentences set db_row_last_updated = now() where stories_id = NEW.stories_id;
 	RETURN NULL;
    END;
@@ -272,12 +288,27 @@ CREATE OR REPLACE FUNCTION update_stories_updated_time_by_stories_id_trigger () 
 $$
     DECLARE
         path_change boolean;
+        table_with_trigger_column  boolean default false;
         reference_stories_id integer default null;
     BEGIN
 
        IF NOT story_triggers_enabled() THEN
            RETURN NULL;
         END IF;
+
+        IF TG_TABLE_NAME in ( 'processed_stories', 'stories', 'story_sentences') THEN
+           table_with_trigger_column = true;
+        ELSE
+           table_with_trigger_column = false;
+        END IF;
+
+	IF table_with_trigger_column THEN
+	   IF TG_OP = 'INSERT' AND NEW.disable_triggers THEN
+	       RETURN NULL;
+	   ELSEIF ( ( TG_OP = 'UPDATE' ) OR (TG_OP = 'DELETE') ) AND OLD.disable_triggers THEN
+     	       RETURN NULL;
+           END IF;
+       END IF;
 
         IF TG_OP = 'INSERT' THEN
             -- The "old" record doesn't exist
@@ -288,10 +319,17 @@ $$
             RAISE EXCEPTION 'Unconfigured operation: %', TG_OP;
         END IF;
 
-        UPDATE stories
-        SET db_row_last_updated = now()
-        WHERE stories_id = reference_stories_id;
-	RETURN NULL;
+	IF table_with_trigger_column THEN
+            UPDATE stories
+               SET db_row_last_updated = now()
+               WHERE stories_id = reference_stories_id;
+            RETURN NULL;
+        ELSE
+            UPDATE stories
+               SET db_row_last_updated = now()
+               WHERE stories_id = reference_stories_id and (disable_triggers is NOT true);
+            RETURN NULL;
+        END IF;
    END;
 $$
 LANGUAGE 'plpgsql';
@@ -300,12 +338,31 @@ CREATE OR REPLACE FUNCTION update_story_sentences_updated_time_by_story_sentence
 $$
     DECLARE
         path_change boolean;
+        table_with_trigger_column  boolean default false;
         reference_story_sentences_id bigint default null;
     BEGIN
 
        IF NOT story_triggers_enabled() THEN
            RETURN NULL;
         END IF;
+
+       IF NOT story_triggers_enabled() THEN
+           RETURN NULL;
+        END IF;
+
+        IF TG_TABLE_NAME in ( 'processed_stories', 'stories', 'story_sentences') THEN
+           table_with_trigger_column = true;
+        ELSE
+           table_with_trigger_column = false;
+        END IF;
+
+	IF table_with_trigger_column THEN
+	   IF TG_OP = 'INSERT' AND NEW.disable_triggers THEN
+	       RETURN NULL;
+	   ELSEIF ( ( TG_OP = 'UPDATE' ) OR (TG_OP = 'DELETE') ) AND OLD.disable_triggers THEN
+     	       RETURN NULL;
+           END IF;
+       END IF;
 
         IF TG_OP = 'INSERT' THEN
             -- The "old" record doesn't exist
@@ -316,10 +373,17 @@ $$
             RAISE EXCEPTION 'Unconfigured operation: %', TG_OP;
         END IF;
 
-        UPDATE story_sentences
-        SET db_row_last_updated = now()
-        WHERE story_sentences_id = reference_story_sentences_id;
-	RETURN NULL;
+	IF table_with_trigger_column THEN
+            UPDATE story_sentences
+              SET db_row_last_updated = now()
+              WHERE story_sentences_id = reference_story_sentences_id;
+            RETURN NULL;
+        ELSE
+            UPDATE story_sentences
+              SET db_row_last_updated = now()
+              WHERE story_sentences_id = reference_story_sentences_id and (disable_triggers is NOT true);
+            RETURN NULL;
+        END IF;
    END;
 $$
 LANGUAGE 'plpgsql';
@@ -904,7 +968,8 @@ create table stories (
     collect_date                timestamp       not null default now(),
     full_text_rss               boolean         not null default 'f',
     db_row_last_updated                timestamp with time zone,
-    language                    varchar(3)      null   -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
+    language                    varchar(3)      null,   -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
+    disable_triggers            boolean  null
 );
 
 create index stories_media_id on stories (media_id);
@@ -1183,7 +1248,8 @@ create table story_sentences (
        media_id                     int             not null, -- references media on delete cascade,
        publish_date                 timestamp       not null,
        db_row_last_updated          timestamp with time zone, -- time this row was last updated
-       language                     varchar(3)      null      -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
+       language                     varchar(3)      null,      -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
+       disable_triggers             boolean  null
 );
 
 create index story_sentences_story on story_sentences (stories_id, sentence_number);
@@ -2217,7 +2283,8 @@ create trigger stories_update_live_story after update on stories
                                         
 create table processed_stories (
     processed_stories_id        bigserial          primary key,
-    stories_id                  int             not null references stories on delete cascade
+    stories_id                  int             not null references stories on delete cascade,
+    disable_triggers            boolean  null
 );
 
 create index processed_stories_story on processed_stories ( stories_id );

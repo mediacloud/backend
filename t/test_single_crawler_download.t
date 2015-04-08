@@ -113,6 +113,17 @@ sub _purge_stories_id_field
     }
 }
 
+sub _purge_disable_triggers_field
+{
+    my ( $sentences ) = @_;
+
+    for my $sentence ( @$sentences )
+    {
+        $sentence->{ disable_triggers } = '';
+        delete $sentence->{ disable_triggers };
+    }
+}
+
 # test various results of the crawler
 sub test_stories
 {
@@ -168,6 +179,10 @@ sub test_stories
             #HACK so that feedless media doesn't break things.
             _purge_stories_id_field( $story->{ story_sentences } );
             _purge_stories_id_field( $test_story->{ story_sentences } );
+
+            #HACK to allow us to verify code with the disable_triggers field
+            _purge_disable_triggers_field( $story->{ story_sentences } );
+            _purge_disable_triggers_field( $test_story->{ story_sentences } );
 
             # don't compare timestamp-dependent "db_row_last_updated" fields
             map { delete( $_->{ db_row_last_updated } ) }

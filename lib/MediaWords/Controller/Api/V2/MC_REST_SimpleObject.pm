@@ -505,9 +505,20 @@ sub _clear_tags
     my $tags_map_table = $self->get_table_name() . '_tags_map';
     my $table_id_name  = $self->get_table_name() . '_id';
 
+    my $table_name = $self->get_table_name();
+
     while ( my ( $id, $tags_ids ) = each( %{ $tags_map } ) )
     {
         my $tags_ids_list = join( ',', @{ $tags_ids } );
+
+        my $disable_triggers_query = <<END;
+UPDATE $table_name set disable_triggers = \$1
+               where $table_id_name = \$2 and
+                    ( (disable_triggers is null) or (disable_triggers <> \$1 ) )
+END
+
+        $c->dbis->query( $disable_triggers_query, MediaWords::DB::story_triggers_disabled(), $id );
+
         $c->dbis->query( <<END, $id );
 delete from $tags_map_table stm
     using tags keep_tags, tags delete_tags
@@ -534,6 +545,8 @@ sub _add_tags
     my $tags_map_table = $self->get_table_name() . '_tags_map';
     my $table_id_name  = $self->get_table_name() . '_id';
 
+    my $table_name = $self->get_table_name();
+
     # DRL 3/18/2015 this is a hack to make sure that triggers are enabled so that changes reach solr
     # This is needed because we use connection pooling in production and db connections with triggers disabled are reused
     # We;re also explicitly enabling story triggers when the database is created, which should be enough but isn't
@@ -554,6 +567,14 @@ sub _add_tags
         $self->_die_unless_user_can_apply_tag_set_tags( $c, $tag_set );
 
         # say STDERR "$id, $tags_id";
+
+        my $disable_triggers_query = <<END;
+UPDATE $table_name set disable_triggers = \$1
+               where $table_id_name = \$2 and
+                    ( (disable_triggers is null) or (disable_triggers <> \$1 ) )
+END
+
+        $c->dbis->query( $disable_triggers_query, MediaWords::DB::story_triggers_disabled(), $id );
 
         my $query = <<END;
 INSERT INTO $tags_map_table ( $table_id_name, tags_id) 
