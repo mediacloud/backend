@@ -184,6 +184,25 @@ sub run_block_with_large_work_mem( &$ )
     DBIx::Simple::MediaWords::run_block_with_large_work_mem { $block->() } $db;
 }
 
+my $_disable_story_triggers = 0;
+
+sub story_triggers_disabled
+{
+    return $_disable_story_triggers;
+}
+
+sub disable_story_triggers
+{
+    $_disable_story_triggers = 1;
+    return;
+}
+
+sub enable_story_triggers
+{
+    $_disable_story_triggers = 0;
+    return;
+}
+
 # You can replace this text with custom content, and it will be preserved on regeneration
 1;
 

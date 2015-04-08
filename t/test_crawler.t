@@ -202,6 +202,17 @@ sub _replace_stories_ids_with_urls($)
     }
 }
 
+sub _purge_disable_triggers_field
+{
+    my ( $sentences ) = @_;
+
+    for my $sentence ( @$sentences )
+    {
+        $sentence->{ disable_triggers } = '';
+        delete $sentence->{ disable_triggers };
+    }
+}
+
 # test various results of the crawler
 sub _test_stories($$$$)
 {
@@ -262,6 +273,10 @@ sub _test_stories($$$$)
 
             _purge_story_sentences_id_field( $story->{ story_sentences } );
             _purge_story_sentences_id_field( $test_story->{ story_sentences } );
+
+            #HACK to allow us to verify code with the disable_triggers field
+            _purge_disable_triggers_field( $story->{ story_sentences } );
+            _purge_disable_triggers_field( $test_story->{ story_sentences } );
 
             # as above, don't compare dates for web_page stories
             if ( $story->{ feed_type } eq 'web_page' )
