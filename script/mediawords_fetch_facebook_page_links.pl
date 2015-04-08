@@ -49,7 +49,7 @@ sub fetch_facebook_page_links($)
     $facebook_page_url = MediaWords::Util::URL::normalize_url( $facebook_page_url );
     say STDERR "\tNormalized page URL: $facebook_page_url";
 
-    # Fetch Open Graph object
+    say STDERR "\tFetching Open Graph object...";
     my $og_object = MediaWords::Util::Facebook::api_request( '', [ { key => 'id', value => $facebook_page_url } ] );
     unless ( _is_facebook_page( $og_object ) )
     {
@@ -69,7 +69,7 @@ sub fetch_facebook_page_links($)
         $og_object_id = $og_object_id + 0;
         say STDERR "\tOpen Graph object ID: $og_object_id";
 
-        # # Fetch page's feed
+        say STDERR "\tFetching page's $og_object_id feed...";
         my $feed = MediaWords::Util::Facebook::api_request( $og_object_id . '/feed', [] );
         unless ( defined( $feed->{ data } ) )
         {
