@@ -62,7 +62,7 @@ sub main
             next;
         }
 
-        my $query_start_time = time();
+        my $query_start_time = Time::HiRes::time();
 
         my $rows = $db->query(
             <<"END_SQL",
@@ -71,7 +71,7 @@ END_SQL
             $tags_id, $last_processed_stories_id, $story_batch_size * 3, $story_batch_size
         )->hashes;
 
-        my $query_end_time = time();
+        my $query_end_time = Time::HiRes::time();
 
         my $stories_ids = [ map { $_->{ stories_id } } @$rows ];
 
@@ -104,14 +104,14 @@ END_SQL
 
         #say Dumper( $stories_ids );
 
-        my $gearman_enqueue_start_time = time();
+        my $gearman_enqueue_start_time = Time::HiRes::time();
         for my $stories_id ( @{ $stories_ids } )
         {
             MediaWords::GearmanFunction::ExtractAndVector->enqueue_on_gearman(
                 { stories_id => $stories_id, disable_story_triggers => 1 } );
 
         }
-        my $gearman_enqueue_end_time = time();
+        my $gearman_enqueue_end_time = Time::HiRes::time();
 
         my $enqueued_stories = scalar( @$stories_ids );
         $total_stories_enqueued += $enqueued_stories;
