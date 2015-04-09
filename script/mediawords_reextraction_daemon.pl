@@ -43,8 +43,13 @@ sub main
 
     my $total_stories_enqueued     = 0;
     my $total_gearman_enqueue_time = 0;
+    my $total_story_query_time     = 0;
 
     MediaWords::DB::disable_story_triggers();
+
+    my $start_time = Time::HiRes::time();
+
+    my $total_sleep_time = 0;
 
     while ( 1 )
     {
@@ -59,6 +64,7 @@ sub main
             say STDERR
 "Gearman queue contains more then $gearman_queue_limit jobs ( $gearman_queued_jobs) sleeping $sleep_time seconds";
             sleep $sleep_time;
+            $total_sleep_time += $sleep_time;
             next;
         }
 
@@ -116,19 +122,40 @@ END_SQL
         my $enqueued_stories = scalar( @$stories_ids );
         $total_stories_enqueued += $enqueued_stories;
 
+        my $story_query_time = $query_end_time - $query_start_time;
+        $total_story_query_time += $story_query_time;
+
         say STDERR "last_processed_stories_id  $last_processed_stories_id ";
         say STDERR "total_stories_enqueued $total_stories_enqueued";
-        say STDERR "story_query_time " . ( $query_end_time - $query_start_time );
+        say STDERR "story_query_time $story_query_time";
 
         my $gearman_enqueue_time = $gearman_enqueue_end_time - $gearman_enqueue_start_time;
         $total_gearman_enqueue_time += $gearman_enqueue_time;
 
+        my $total_time = Time::HiRes::time() - $start_time;
+
+        my $total_other_time = $total_time - ( $total_gearman_enqueue_time + $total_story_query_time + $total_sleep_time );
+
         say STDERR "gearman_enqueue_ time $gearman_enqueue_time for $enqueued_stories stories -- per story " .
           $gearman_enqueue_time / $enqueued_stories;
+
+        say STDERR "total time $total_time for $total_stories_enqueued stories -- per story " .
+          $total_time / $total_stories_enqueued;
 
         say STDERR
           "total gearman_enqueue_time $total_gearman_enqueue_time for $total_stories_enqueued stories -- per story " .
           $total_gearman_enqueue_time / $total_stories_enqueued;
+
+        say STDERR "total story_query_time $total_story_query_time for $total_stories_enqueued stories -- per story " .
+          $total_story_query_time / $total_stories_enqueued;
+
+        say STDERR
+          "total sleep time for long gearman queues $total_sleep_time for $total_stories_enqueued stories -- per story " .
+          $total_sleep_time / $total_stories_enqueued;
+
+        say STDERR "total time (other) $total_other_time for $total_stories_enqueued stories -- per story " .
+          $total_other_time / $total_stories_enqueued;
+
     }
 
     say STDERR "all stories extracted with readability";
