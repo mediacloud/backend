@@ -17,6 +17,7 @@ BEGIN
 use Modern::Perl "2013";
 
 use Time::HiRes qw (time );
+use Parallel::ForkManager;
 
 use MediaWords::CommonLibs;
 use MediaWords::GearmanFunction;
@@ -30,16 +31,12 @@ sub main
         die "Gearman is disabled.";
     }
 
-    my $db = MediaWords::DB::connect_to_db;
-
-    my $tags_id = MediaWords::DBI::Stories::get_current_extractor_version_tags_id( $db );
+    my $tags_id = MediaWords::DBI::Stories::get_current_extractor_version_tags_id( MediaWords::DB::connect_to_db() );
 
     my $last_processed_stories_id = 0;      #84695570;
     my $story_batch_size          = 1000;
     my $gearman_queue_limit       = 200;
     my $sleep_time                = 10;
-
-    my $gearman_db = MediaWords::DB::connect_to_db( "gearman" );
 
     my $total_stories_enqueued     = 0;
     my $total_gearman_enqueue_time = 0;
@@ -51,8 +48,13 @@ sub main
 
     my $total_sleep_time = 0;
 
+    my $default_db_label = MediaWords::DB::connect_settings()->{ label };
+
     while ( 1 )
     {
+        my $gearman_db = MediaWords::DB::connect_to_db( "gearman" );
+        my $db         = MediaWords::DB::connect_to_db( $default_db_label );
+
         my $gearman_queued_jobs = $gearman_db->query(
             "SELECT count(*) from queue where function_name = 'MediaWords::GearmanFunction::ExtractAndVector' " )->flat()
           ->[ 0 ];
@@ -111,12 +113,22 @@ END_SQL
         #say Dumper( $stories_ids );
 
         my $gearman_enqueue_start_time = Time::HiRes::time();
+
+        my $pm = new Parallel::ForkManager( 20 );
+
         for my $stories_id ( @{ $stories_ids } )
         {
-            MediaWords::GearmanFunction::ExtractAndVector->enqueue_on_gearman(
-                { stories_id => $stories_id, disable_story_triggers => 1 } );
+            unless ( $pm->start )
+            {
+                MediaWords::GearmanFunction::ExtractAndVector->enqueue_on_gearman(
+                    { stories_id => $stories_id, disable_story_triggers => 1 } );
+                $pm->finish;
+            }
 
         }
+
+        $pm->wait_all_children;
+
         my $gearman_enqueue_end_time = Time::HiRes::time();
 
         my $enqueued_stories = scalar( @$stories_ids );
