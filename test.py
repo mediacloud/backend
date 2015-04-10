@@ -7,11 +7,11 @@ from mediacloud.test.storagetest import *
 
 test_classes = [
 	ApiMediaTest, ApiMediaSetTest, ApiFeedsTest, ApiDashboardsTest, ApiTagsTest, ApiTagSetsTest, 
-	ApiStoriesTest, ApiWordCountTest, ApiSentencesTest,
+	ApiStoriesTest, AdminApiStoriesTest, ApiWordCountTest, ApiSentencesTest, AdminApiSentencesTest,
 	MongoStorageTest,
 	ApiControversyTest, ApiControversyDumpTest, ApiControversyDumpTimeSliceTest,
 	AuthTokenTest,
-	WriteableApiTest
+	AdminApiTaggingTest
 ]
 
 # set up all logging to DEBUG (cause we're running tests here!)

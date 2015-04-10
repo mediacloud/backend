@@ -111,11 +111,24 @@ class MediaCloud(object):
 
     def storyPublic(self, stories_id):
         '''
+        Maintained for backwards compatability
+        '''
+        return self.story(stories_id)
+
+    def story(self, stories_id):
+        '''
         Authenticated Public Users: Details about one story
         '''
         return self._queryForJson(self.V2_API_URL+'stories_public/single/'+str(stories_id))[0]
 
+
     def storyPublicList(self, solr_query='', solr_filter='', last_processed_stories_id=0, rows=20):
+        '''
+        Maintained for backwards compatability
+        '''
+        return self.storyList(solr_query,solr_filter,last_processed_stories_id, rows)
+
+    def storyList(self, solr_query='', solr_filter='', last_processed_stories_id=0, rows=20):
         '''
         Authenticated Public Users: Search for stories and page through results
         '''
@@ -124,33 +137,6 @@ class MediaCloud(object):
                  'fq': solr_filter,
                  'last_processed_stories_id': last_processed_stories_id,
                  'rows': rows
-                }) 
-
-    def story(self, stories_id, raw_1st_download=False, corenlp=False, sentences=False, text=False):
-        '''
-        Details about one story.  Handy shortcut to storyList if you want sentences broken out
-        '''
-        return self._queryForJson(self.V2_API_URL+'stories/single/'+str(stories_id),
-                {'raw_1st_download': 1 if raw_1st_download else 0, 
-                 'corenlp': 1 if corenlp else 0,
-                 'sentences': 1 if sentences else 0,
-                 'text': 1 if text else 0
-                })[0]
-
-    def storyList(self, solr_query='', solr_filter='', last_processed_stories_id=0, rows=20, 
-                  raw_1st_download=False, corenlp=False, sentences=False, text=False):
-        '''
-        Search for stories and page through results
-        '''
-        return self._queryForJson(self.V2_API_URL+'stories/list',
-                {'q': solr_query,
-                 'fq': solr_filter,
-                 'last_processed_stories_id': last_processed_stories_id,
-                 'rows': rows,
-                 'raw_1st_download': 1 if raw_1st_download else 0, 
-                 'corenlp': 1 if corenlp else 0,    # this is slow - use storyCoreNlList instead
-                 'sentences': 1 if sentences else 0,
-                 'text': 1 if text else 0
                 }) 
 
     def storyCoreNlpList(self, story_id_list):
@@ -169,18 +155,6 @@ class MediaCloud(object):
         Return info about a single sentence
         '''
         return self._queryForJson(self.V2_API_URL+'sentences/single/'+str(story_sentences_id))[0]
-
-    def sentenceList(self, solr_query, solr_filter='', start=0, rows=1000, sort=SORT_PUBLISH_DATE_ASC):
-        '''
-        Search for sentences and page through results
-        '''
-        return self._queryForJson(self.V2_API_URL+'sentences/list',
-                {'q': solr_query,
-                 'fq': solr_filter,
-                 'start': start,
-                 'rows': rows,
-                 'sort': sort
-                }) 
 
     def sentenceCount(self, solr_query, solr_filter=' ',split=False,split_start_date=None,split_end_date=None,split_daily=False):
         params = {'q':solr_query, 'fq':solr_filter}
@@ -345,18 +319,56 @@ class MediaCloud(object):
             raise mediacloud.error.MCException(msg, r.status_code)
         return r
 
-# used when calling WriteableMediaCloud.tagStories
+# used when calling AdminMediaCloud.tagStories
 StoryTag = namedtuple('StoryTag',['stories_id','tag_set_name','tag_name'])
 
-# used when calling WriteableMediaCloud.tagSentences
+# used when calling AdminMediaCloud.tagSentences
 SentenceTag = namedtuple('SentenceTag',['story_sentences_id','tag_set_name','tag_name'])
 
-class WriteableMediaCloud(MediaCloud):
+class AdminMediaCloud(MediaCloud):
     '''
-    A MediaCloud API client that includes methods to write back data to MediaCloud.
-    This is separated out from the base MediaCloud object to make it hard to accidentally 
-    write data.
+    A MediaCloud API client that includes admin-only methods, including to writing back 
+    data to MediaCloud.
     '''
+
+    def story(self, stories_id, raw_1st_download=False, corenlp=False, sentences=False, text=False):
+        '''
+        Full details about one story.  Handy shortcut to storyList if you want sentences broken out
+        '''
+        return self._queryForJson(self.V2_API_URL+'stories/single/'+str(stories_id),
+                {'raw_1st_download': 1 if raw_1st_download else 0, 
+                 'corenlp': 1 if corenlp else 0,
+                 'sentences': 1 if sentences else 0,
+                 'text': 1 if text else 0
+                })[0]
+
+    def storyList(self, solr_query='', solr_filter='', last_processed_stories_id=0, rows=20, 
+                  raw_1st_download=False, corenlp=False, sentences=False, text=False):
+        '''
+        Search for stories and page through results
+        '''
+        return self._queryForJson(self.V2_API_URL+'stories/list',
+                {'q': solr_query,
+                 'fq': solr_filter,
+                 'last_processed_stories_id': last_processed_stories_id,
+                 'rows': rows,
+                 'raw_1st_download': 1 if raw_1st_download else 0, 
+                 'corenlp': 1 if corenlp else 0,    # this is slow - use storyCoreNlList instead
+                 'sentences': 1 if sentences else 0,
+                 'text': 1 if text else 0
+                }) 
+
+    def sentenceList(self, solr_query, solr_filter='', start=0, rows=1000, sort=MediaCloud.SORT_PUBLISH_DATE_ASC):
+        '''
+        Search for sentences and page through results
+        '''
+        return self._queryForJson(self.V2_API_URL+'sentences/list',
+                {'q': solr_query,
+                 'fq': solr_filter,
+                 'start': start,
+                 'rows': rows,
+                 'sort': sort
+                }) 
 
     def tagStories(self, tags={}, clear_others=False):
         '''

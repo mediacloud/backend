@@ -5,11 +5,19 @@ class ApiBaseTest(unittest.TestCase):
 
     QUERY = '( mars OR robot )'
     FILTER_QUERY = '+publish_date:[2013-01-01T00:00:00Z TO 2013-02-01T00:00:00Z] AND +media_sets_id:1'
+    SENTENCE_COUNT = 100
 
     def setUp(self):
         self._config = ConfigParser.ConfigParser()
         self._config.read('mc-client.config')
         self._mc = mediacloud.api.MediaCloud( self._config.get('api','key'))
+
+class AdminApiBaseTest(unittest.TestCase):
+
+    def setUp(self):
+        self._config = ConfigParser.ConfigParser()
+        self._config.read('mc-client.config')
+        self._mc = mediacloud.api.AdminMediaCloud( self._config.get('api','key') )
 
 class AuthTokenTest(ApiBaseTest):
 
@@ -221,15 +229,7 @@ class ApiDashboardsTest(ApiBaseTest):
         first_list = self._mc.dashboardList()
         self.assertTrue(len(first_list)>0)
 
-class ApiStoriesTest(ApiBaseTest):
-
-    def testStory(self):
-        story = self._mc.story(27456565)
-        self.assertEqual(int(story['stories_id']),27456565)
-        self.assertEqual(story['media_id'],1144)
-        self.assertFalse('story_sentences' in story)
-        self.assertFalse('story_text' in story)
-        self.assertFalse('is_fully_extracted' in story)
+class AdminApiStoriesTest(AdminApiBaseTest):
 
     def testStoryWithSentences(self):
         story = self._mc.story(27456565, sentences=True)
@@ -248,16 +248,7 @@ class ApiStoriesTest(ApiBaseTest):
         self.assertTrue('is_fully_extracted' in story)
 
     def testStoryList(self):
-        results = self._mc.storyList(self.QUERY, self.FILTER_QUERY)
-        self.assertNotEqual(len(results),0)
-
-    def testStoryPublic(self):
-        story = self._mc.storyPublic(27456565)
-        self.assertEqual(story['media_id'],1144)
-        self.assertTrue('story_sentences' not in story)
-
-    def testStoryPublicList(self):
-        results = self._mc.storyList(self.QUERY, self.FILTER_QUERY)
+        results = self._mc.storyList(ApiBaseTest.QUERY, ApiBaseTest.FILTER_QUERY)
         self.assertNotEqual(len(results),0)
 
     def testStoryCoreNlpList(self):
@@ -271,7 +262,7 @@ class ApiStoriesTest(ApiBaseTest):
             self.assertTrue('stories_id' in story)
 
     def testStoryListDefaults(self):
-        results = self._mc.storyList(self.QUERY, self.FILTER_QUERY, rows=10)
+        results = self._mc.storyList(ApiBaseTest.QUERY, ApiBaseTest.FILTER_QUERY, rows=10)
         for story in results:
             self.assertFalse('story_sentences' in story)
             self.assertFalse('story_text' in story)
@@ -279,7 +270,7 @@ class ApiStoriesTest(ApiBaseTest):
             self.assertFalse('corenlp' in story)
 
     def testStoryListWithCoreNlp(self):
-        results = self._mc.storyList(self.QUERY, self.FILTER_QUERY, corenlp=True, rows=10)
+        results = self._mc.storyList(ApiBaseTest.QUERY, ApiBaseTest.FILTER_QUERY, corenlp=True, rows=10)
         for story in results:
             self.assertFalse('story_sentences' in story)
             self.assertFalse('story_text' in story)
@@ -287,7 +278,7 @@ class ApiStoriesTest(ApiBaseTest):
             self.assertTrue('corenlp' in story)
 
     def testStoryListWithSentences(self):
-        results = self._mc.storyList(self.QUERY, self.FILTER_QUERY, sentences=True, rows=10)
+        results = self._mc.storyList(ApiBaseTest.QUERY, ApiBaseTest.FILTER_QUERY, sentences=True, rows=10)
         for story in results:
             self.assertTrue('story_sentences' in story)
             self.assertFalse('story_text' in story)
@@ -295,28 +286,38 @@ class ApiStoriesTest(ApiBaseTest):
             self.assertFalse('corenlp' in story)
 
     def testStoryListWithText(self):
-        results = self._mc.storyList(self.QUERY, self.FILTER_QUERY, text=True, rows=10)
+        results = self._mc.storyList(ApiBaseTest.QUERY, ApiBaseTest.FILTER_QUERY, text=True, rows=10)
         for story in results:
             self.assertFalse('story_sentences' in story)
             self.assertTrue('story_text' in story)
             self.assertTrue('is_fully_extracted' in story)
             self.assertFalse('corenlp' in story)
 
-class ApiSentencesTest(ApiBaseTest):
+class ApiStoriesTest(ApiBaseTest):
 
-    SENTENCE_COUNT = 100
+    def testStory(self):
+        story = self._mc.story(27456565)
+        self.assertEqual(int(story['stories_id']),27456565)
+        self.assertEqual(story['media_id'],1144)
+        self.assertFalse('story_sentences' in story)
+        self.assertFalse('story_text' in story)
+        self.assertFalse('is_fully_extracted' in story)
 
-    def testSentence(self):
-        sentence_id = '3841125325'
-        sentence = self._mc.sentence(sentence_id)
-        self.assertEqual(sentence['story_sentences_id'],sentence_id)
-        self.assertEqual(sentence['stories_id'],321728712)
-        self.assertTrue(len(sentence['sentence'])>0)
+    def testStoryPublic(self):
+        story = self._mc.story(27456565)
+        self.assertEqual(story['media_id'],1144)
+        self.assertTrue('story_sentences' not in story)
+
+    def testStoryPublicList(self):
+        results = self._mc.storyList(self.QUERY, self.FILTER_QUERY)
+        self.assertNotEqual(len(results),0)
+
+class AdminApiSentencesTest(AdminApiBaseTest):
 
     def testSentenceListSortingAscending(self):
-        results = self._mc.sentenceList(self.QUERY,self.FILTER_QUERY,0,self.SENTENCE_COUNT,
+        results = self._mc.sentenceList(ApiBaseTest.QUERY,ApiBaseTest.FILTER_QUERY,0,ApiBaseTest.SENTENCE_COUNT,
             self._mc.SORT_PUBLISH_DATE_ASC)
-        self.assertEqual(len(results['response']['docs']), self.SENTENCE_COUNT)
+        self.assertEqual(len(results['response']['docs']), ApiBaseTest.SENTENCE_COUNT)
         last_date = None
         for sentence in results['response']['docs']:
             this_date = datetime.datetime.strptime(sentence['publish_date'],self._mc.SENTENCE_PUBLISH_DATE_FORMAT)
@@ -327,9 +328,9 @@ class ApiSentencesTest(ApiBaseTest):
             last_date = this_date
         
     def testSentenceListSortingDescending(self):
-        results = self._mc.sentenceList(self.QUERY,self.FILTER_QUERY,0,self.SENTENCE_COUNT,
+        results = self._mc.sentenceList(ApiBaseTest.QUERY,ApiBaseTest.FILTER_QUERY,0,ApiBaseTest.SENTENCE_COUNT,
             self._mc.SORT_PUBLISH_DATE_DESC)
-        self.assertEqual(len(results['response']['docs']), self.SENTENCE_COUNT)
+        self.assertEqual(len(results['response']['docs']), ApiBaseTest.SENTENCE_COUNT)
         last_date = None
         for sentence in results['response']['docs']:
             this_date = datetime.datetime.strptime(sentence['publish_date'],self._mc.SENTENCE_PUBLISH_DATE_FORMAT)
@@ -341,31 +342,40 @@ class ApiSentencesTest(ApiBaseTest):
 
     def testSentenceListSortingRadom(self):
         # we do random sort by telling we want the random sort, and then offsetting to a different start index
-        results1 = self._mc.sentenceList(self.QUERY,self.FILTER_QUERY,0,self.SENTENCE_COUNT,
+        results1 = self._mc.sentenceList(ApiBaseTest.QUERY,ApiBaseTest.FILTER_QUERY,0,ApiBaseTest.SENTENCE_COUNT,
             self._mc.SORT_RANDOM)
-        self.assertEqual(len(results1['response']['docs']), self.SENTENCE_COUNT)
-        results2 = self._mc.sentenceList(self.QUERY,self.FILTER_QUERY,self.SENTENCE_COUNT,self.SENTENCE_COUNT,
+        self.assertEqual(len(results1['response']['docs']), ApiBaseTest.SENTENCE_COUNT)
+        results2 = self._mc.sentenceList(ApiBaseTest.QUERY,ApiBaseTest.FILTER_QUERY,ApiBaseTest.SENTENCE_COUNT,ApiBaseTest.SENTENCE_COUNT,
             self._mc.SORT_RANDOM)
-        self.assertEqual(len(results2['response']['docs']), self.SENTENCE_COUNT)
-        for idx in range(0,self.SENTENCE_COUNT):
+        self.assertEqual(len(results2['response']['docs']), ApiBaseTest.SENTENCE_COUNT)
+        for idx in range(0,ApiBaseTest.SENTENCE_COUNT):
             self.assertNotEqual(results1['response']['docs'][idx]['stories_id'],results2['response']['docs'][idx]['stories_id'],
                 "Stories in two different random sets are the same :-(")
 
     def testSentenceList(self):
-        results = self._mc.sentenceList(self.QUERY, self.FILTER_QUERY)
+        results = self._mc.sentenceList(ApiBaseTest.QUERY, ApiBaseTest.FILTER_QUERY)
         self.assertEqual(int(results['responseHeader']['status']),0)
         self.assertEqual(int(results['response']['numFound']),6739)
         self.assertEqual(len(results['response']['docs']), 1000)
 
     def testSentenceListPaging(self):
         # test limiting rows returned
-        results = self._mc.sentenceList(self.QUERY, self.FILTER_QUERY,0,100)
+        results = self._mc.sentenceList(ApiBaseTest.QUERY, ApiBaseTest.FILTER_QUERY,0,100)
         self.assertEqual(int(results['response']['numFound']), 6739)
         self.assertEqual(len(results['response']['docs']), 100)
         # test starting offset
-        results = self._mc.sentenceList(self.QUERY, self.FILTER_QUERY,6700)
+        results = self._mc.sentenceList(ApiBaseTest.QUERY, ApiBaseTest.FILTER_QUERY,6700)
         self.assertEqual(int(results['response']['numFound']), 6739)
         self.assertEqual(len(results['response']['docs']), 39)
+
+class ApiSentencesTest(ApiBaseTest):
+
+    def testSentence(self):
+        sentence_id = '3841125325'
+        sentence = self._mc.sentence(sentence_id)
+        self.assertEqual(sentence['story_sentences_id'],sentence_id)
+        self.assertEqual(sentence['stories_id'],321728712)
+        self.assertTrue(len(sentence['sentence'])>0)
 
     def testSentenceCount(self):
         # basic counting
@@ -445,12 +455,7 @@ class ApiWordCountTest(ApiBaseTest):
         self.assertTrue( 'stats' in term_freq.keys() )
         self.assertTrue( 'words' in term_freq.keys() )
 
-class WriteableApiTest(unittest.TestCase):
-
-    def setUp(self):
-        self._config = ConfigParser.ConfigParser()
-        self._config.read('mc-client.config')
-        self._mc = mediacloud.api.WriteableMediaCloud( self._config.get('api','key') )
+class AdminApiTaggingTest(AdminApiBaseTest):
 
     def testTagStories(self):
         test_story_id = 1
