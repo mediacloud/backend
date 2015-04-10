@@ -167,11 +167,13 @@ class MediaCloud(object):
             params['split_end_date'] = split_end_date
         return self._queryForJson(self.V2_API_URL+'sentences/count', params)
 
-    def sentenceFieldCount(self,solr_query, solr_filter=' ', sample_size=1000, include_stats=False, field='tags_id_story_sentences'):
+    def sentenceFieldCount(self,solr_query, solr_filter=' ', sample_size=1000, include_stats=False, field='tags_id_story_sentences',tag_sets_id=None):
         '''
         Right now the fields supported are 'tags_id_stories' or 'tags_id_story_sentences'
         '''
         params = {'q':solr_query, 'fq':solr_filter, 'sample_size':sample_size, 'field':field}
+        if tag_sets_id is not None:
+            params['tag_sets_id'] = tag_sets_id
         params['include_stats'] = 1 if include_stats is True else 0
         return self._queryForJson(self.V2_API_URL+'sentences/field_count',params)
 
