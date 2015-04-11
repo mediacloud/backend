@@ -53,7 +53,7 @@ has 'start_date' => ( is => 'rw', isa => 'Str', required => 0, default => '1000-
 has 'end_date'   => ( is => 'rw', isa => 'Str', required => 0, default => '3000-01-01' );
 has 'scrape_feed' => ( is => 'rw', isa => 'Ref', required => 0 );
 
-# return CHI cache for word counts
+# return CHI 1 for word counts
 sub _get_cache
 {
     my $mediacloud_data_dir = MediaWords::Util::Config::get_config->{ mediawords }->{ data_dir };
@@ -100,6 +100,9 @@ sub _fetch_url
     my $url           = $original_url;
     while ( !$content )
     {
+        warn( "skipping uncached url: $url" );
+        return undef;
+
         say STDERR "fetch_url: $url" if ( $self->debug );
         my $response = $ua->get( $url );
 
@@ -153,6 +156,8 @@ sub _generate_story
         $story->{ publish_date } = MediaWords::Util::SQL::sql_now();
     }
 
+    $story->{ content } = $content;
+
     return $story;
 }
 
@@ -169,7 +174,7 @@ sub _get_stories_from_story_urls
     for my $url ( @{ $story_urls } )
     {
         my $content = $self->_fetch_url( $url );
-        push( @{ $stories }, $self->_generate_story( $content, $url ) );
+        push( @{ $stories }, $self->_generate_story( $content, $url ) ) if ( $content );
     }
 
     return $stories;
@@ -351,12 +356,12 @@ sub _get_scrape_feed
 
     my $feed_name = 'Scrape Feed';
 
-    my $feed = $db->query( <<SQL, $medium->{ media_id }, $medium->{ url }, $feed_name )->hash;
+    my $feed = $db->query( <<SQL, $medium->{ media_id }, $medium->{ url }, encode( 'utf8', $feed_name ) )->hash;
 select * from feeds where media_id = ? and url = ? order by ( name = ? )
 SQL
 
-    $feed ||= $db->query( <<SQL, $medium->{ media_id }, $medium->{ url }, $feed_name )->hash;
-insert into feeds ( media_id, url, name, feed_status ) values ( ?, ?, ? )
+    $feed ||= $db->query( <<SQL, $medium->{ media_id }, $medium->{ url }, encode( 'utf8', $feed_name ) )->hash;
+insert into feeds ( media_id, url, name, feed_status ) values ( ?, ?, ?, 'inactive' )
 SQL
 
     $self->scrape_feed( $feed );
@@ -369,14 +374,16 @@ sub _add_story_to_scrape_feed
 {
     my ( $self, $story ) = @_;
 
-    $self->db->create( 'feeds_stories_map',
-        { feeds_id => $self->_get_scrape_feed->{ feeds_id }, stories_id => $story->{ stories_id } } );
+    $self->db->query( <<SQL, $self->_get_scrape_feed->{ feeds_id }, $story->{ stories_id } );
+insert into feeds_stories_map ( feeds_id, stories_id ) values ( ?, ? )
+SQL
+
 }
 
 # add and extract download for story
 sub _add_story_download
 {
-    my ( $self, $story ) = @_;
+    my ( $self, $story, $content ) = @_;
 
     my $db = $self->db;
 
@@ -395,11 +402,9 @@ sub _add_story_download
 
     $download = $db->create( 'downloads', $download );
 
-    MediaWords::DBI::Downloads::store_content_determinedly( $db, $download, $self->content );
+    MediaWords::DBI::Downloads::store_content_determinedly( $db, $download, $content );
 
-    eval {
-        MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, "mediawords_scrape_stories.pl", 0, 1 );
-    };
+    eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, "ss", 0, 1 ); };
 
     warn "extract error processing download $download->{ downloads_id }: $@" if ( $@ );
 }
@@ -415,15 +420,16 @@ sub _add_new_stories
     for my $story ( @{ $stories } )
     {
         my $content = $story->{ content };
+
         delete( $story->{ content } );
         delete( $story->{ normalized_url } );
 
         eval { $story = $self->db->create( 'stories', $story ) };
         carp( $@ . " - " . Dumper( $story ) ) if ( $@ );
 
-        my $feed = $self->_add_story_to_scrape_feed( $story );
+        $self->_add_story_to_scrape_feed( $story );
 
-        $self->_add_story_download( $story, $feed );
+        $self->_add_story_download( $story, $content );
 
         push( @{ $added_stories }, $story );
     }
