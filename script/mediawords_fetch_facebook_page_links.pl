@@ -94,7 +94,10 @@ sub _process_facebook_post($)
 
     @links = uniq @links;
 
-    say STDERR "Links in post: " . Dumper( \@links );
+    if ( scalar @links )
+    {
+        say STDERR "Links in post: " . Dumper( \@links );
+    }
 }
 
 sub fetch_facebook_page_links($)
