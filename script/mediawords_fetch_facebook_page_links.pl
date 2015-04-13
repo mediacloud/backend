@@ -197,22 +197,20 @@ sub fetch_facebook_page_links($)
             }
         }
 
-        # Facebook says that if there's no "paging/next" URL, we should stop fetching data
-        unless ( $paging_next_url )
-        {
-            last;
-        }
-
       } while (
-        (
-            # no limit
+
+        # There's a "next page" URL returned by the API
+        $paging_next_url
+
+        and (
+            # Either no limit, or
             $FACEBOOK_MAX_POSTS_TO_PROCESS == 0
 
-            # didn't hit the limit
+            # ... didn't hit the limit yet
             or $posts_processed < $FACEBOOK_MAX_POSTS_TO_PROCESS
         )
 
-        # there still are posts to process
+        # Last page had posts
         and scalar( @{ $posts } ) > 0
       );
 
