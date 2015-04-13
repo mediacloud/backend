@@ -110,41 +110,40 @@ sub fetch_facebook_page_links($)
     my $og_object = MediaWords::Util::Facebook::api_request( '', [ { key => 'id', value => $facebook_page_url } ] );
     unless ( _is_facebook_page( $og_object ) )
     {
-        say STDERR "URL $facebook_page_url is not a Facebook page";
+        warn "URL $facebook_page_url is not a Facebook page\n";
+        return;
     }
-    else
+
+    my $og_object_id = $og_object->{ id };
+    unless ( defined $og_object_id )
     {
-        my $og_object_id = $og_object->{ id };
-        unless ( defined $og_object_id )
-        {
-            die "Object ID for URL $facebook_page_url is undefined.";
-        }
-        unless ( looks_like_number( $og_object_id ) )
-        {
-            die "Object ID for URL $facebook_page_url does not look like a number.";
-        }
-        $og_object_id = $og_object_id + 0;
-        say STDERR "\tOpen Graph object ID: $og_object_id";
+        die "Object ID for URL $facebook_page_url is undefined.";
+    }
+    unless ( looks_like_number( $og_object_id ) )
+    {
+        die "Object ID for URL $facebook_page_url does not look like a number.";
+    }
+    $og_object_id = $og_object_id + 0;
+    say STDERR "\tOpen Graph object ID: $og_object_id";
 
-        say STDERR "\tFetching page's $og_object_id feed...";
-        my $feed = MediaWords::Util::Facebook::api_request( $og_object_id . '/feed', [] );
-        unless ( defined( $feed->{ data } ) and ref( $feed->{ data } ) eq ref( [] ) )
-        {
-            die "Feed object doesn't have 'data' key of the value is not an arrayref.";
-        }
-        unless ( defined( $feed->{ paging } ) and ref( $feed->{ paging } ) eq ref( {} ) )
-        {
-            die "Feed object doesn't have 'paging' key or the value is not a hashref.";
-        }
+    say STDERR "\tFetching page's $og_object_id feed...";
+    my $feed = MediaWords::Util::Facebook::api_request( $og_object_id . '/feed', [] );
+    unless ( defined( $feed->{ data } ) and ref( $feed->{ data } ) eq ref( [] ) )
+    {
+        die "Feed object doesn't have 'data' key of the value is not an arrayref.";
+    }
+    unless ( defined( $feed->{ paging } ) and ref( $feed->{ paging } ) eq ref( {} ) )
+    {
+        die "Feed object doesn't have 'paging' key or the value is not a hashref.";
+    }
 
-        my $posts      = $feed->{ data };
-        my $post_count = scalar( @{ $posts } );
-        say STDERR "Number of posts in a chunk: $post_count";
+    my $posts      = $feed->{ data };
+    my $post_count = scalar( @{ $posts } );
+    say STDERR "Number of posts in a chunk: $post_count";
 
-        foreach my $post ( @{ $posts } )
-        {
-            _process_facebook_post( $post );
-        }
+    foreach my $post ( @{ $posts } )
+    {
+        _process_facebook_post( $post );
     }
 }
 
