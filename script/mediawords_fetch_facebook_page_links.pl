@@ -139,7 +139,7 @@ sub fetch_facebook_page_links($)
 
     my $posts      = $feed->{ data };
     my $post_count = scalar( @{ $posts } );
-    say STDERR "Number of posts in a chunk: $post_count";
+    say STDERR "\tNumber of posts in a chunk: $post_count";
 
     foreach my $post ( @{ $posts } )
     {
