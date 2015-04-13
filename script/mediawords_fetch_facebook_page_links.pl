@@ -175,13 +175,16 @@ sub fetch_facebook_page_links($)
         {
             die "Feed object doesn't have 'data' key of the value is not an arrayref.";
         }
-        unless ( defined( $feed->{ paging } ) and ref( $feed->{ paging } ) eq ref( {} ) )
-        {
-            die "Feed object doesn't have 'paging' key or the value is not a hashref.";
-        }
 
-        $posts           = $feed->{ data };
-        $paging_next_url = $feed->{ paging }->{ next };
+        $posts = $feed->{ data };
+        if ( defined( $feed->{ paging } ) and ref( $feed->{ paging } ) eq ref( {} ) )
+        {
+            $paging_next_url = $feed->{ paging }->{ next };
+        }
+        else
+        {
+            $paging_next_url = undef;
+        }
 
         foreach my $post ( @{ $posts } )
         {
