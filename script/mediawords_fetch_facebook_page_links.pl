@@ -21,7 +21,13 @@ use Getopt::Long;
 use File::Slurp;
 use Scalar::Util qw/looks_like_number/;
 use List::MoreUtils qw/uniq/;
+use Readonly;
+use URI;
+use URI::QueryParam;
 use Data::Dumper;
+
+# Max. number of Facebook feed posts to process; 0 for no limit
+Readonly my $FACEBOOK_MAX_POSTS_TO_PROCESS => 100;
 
 # Returns true of Open Graph object belongs to a Facebook page
 # (https://developers.facebook.com/docs/graph-api/reference/page)
@@ -129,25 +135,85 @@ sub fetch_facebook_page_links($)
     $og_object_id = $og_object_id + 0;
     say STDERR "\tOpen Graph object ID: $og_object_id";
 
-    say STDERR "\tFetching page's $og_object_id feed...";
-    my $feed = MediaWords::Util::Facebook::api_request( $og_object_id . '/feed', [] );
-    unless ( defined( $feed->{ data } ) and ref( $feed->{ data } ) eq ref( [] ) )
-    {
-        die "Feed object doesn't have 'data' key of the value is not an arrayref.";
-    }
-    unless ( defined( $feed->{ paging } ) and ref( $feed->{ paging } ) eq ref( {} ) )
-    {
-        die "Feed object doesn't have 'paging' key or the value is not a hashref.";
-    }
+    my $posts_processed = 0;
+    my $posts;
+    my $paging_next_url    = undef;
+    my $page_being_fetched = 0;
 
-    my $posts      = $feed->{ data };
-    my $post_count = scalar( @{ $posts } );
-    say STDERR "\tNumber of posts in a chunk: $post_count";
-
-    foreach my $post ( @{ $posts } )
+    do
     {
-        _process_facebook_post( $post );
-    }
+        my $api_request_params;
+
+        if ( $paging_next_url )
+        {
+            # Copy parameters from the "next" URL into a parameter arrayref
+            my $paging_next_uri = URI->new( $paging_next_url );
+            foreach my $param_name ( $paging_next_uri->query_param )
+            {
+                foreach my $param_value ( $paging_next_uri->query_param( $param_name ) )
+                {
+                    push(
+                        @{ $api_request_params },
+                        {
+                            key   => $param_name,
+                            value => $param_value,
+                        }
+                    );
+                }
+            }
+        }
+        else
+        {
+            $api_request_params = [];
+        }
+
+        ++$page_being_fetched;
+        say STDERR "\tFetching page's $og_object_id feed (page $page_being_fetched)...";
+
+        my $feed = MediaWords::Util::Facebook::api_request( $og_object_id . '/feed', $api_request_params );
+        unless ( defined( $feed->{ data } ) and ref( $feed->{ data } ) eq ref( [] ) )
+        {
+            die "Feed object doesn't have 'data' key of the value is not an arrayref.";
+        }
+        unless ( defined( $feed->{ paging } ) and ref( $feed->{ paging } ) eq ref( {} ) )
+        {
+            die "Feed object doesn't have 'paging' key or the value is not a hashref.";
+        }
+
+        $posts           = $feed->{ data };
+        $paging_next_url = $feed->{ paging }->{ next };
+
+        foreach my $post ( @{ $posts } )
+        {
+            _process_facebook_post( $post );
+
+            ++$posts_processed;
+            if ( $posts_processed >= $FACEBOOK_MAX_POSTS_TO_PROCESS )
+            {
+                last;
+            }
+        }
+
+        # Facebook says that if there's no "paging/next" URL, we should stop fetching data
+        unless ( $paging_next_url )
+        {
+            last;
+        }
+
+      } while (
+        (
+            # no limit
+            $FACEBOOK_MAX_POSTS_TO_PROCESS == 0
+
+            # didn't hit the limit
+            or $posts_processed < $FACEBOOK_MAX_POSTS_TO_PROCESS
+        )
+
+        # there still are posts to process
+        and scalar( @{ $posts } ) > 0
+      );
+
+    say STDERR "\tProcessed $posts_processed posts.";
 }
 
 sub main
