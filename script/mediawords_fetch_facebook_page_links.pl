@@ -98,6 +98,26 @@ sub _process_facebook_post($)
         }
     }
 
+    # Fetch comments from the first chunk only
+    my $post_comments = $post->{ comments }->{ data };
+    if ( $post_comments )
+    {
+        unless ( ref( $post_comments ) eq ref( [] ) )
+        {
+            die "Comments is not an arrayref.";
+        }
+
+        foreach my $comment ( @{ $post_comments } )
+        {
+            my $comment_message       = $comment->{ message };
+            my $comment_message_links = MediaWords::Util::URL::http_urls_in_string( $comment_message );
+            foreach my $comment_message_link ( @{ $comment_message_links } )
+            {
+                push( @links, $comment_message_link );
+            }
+        }
+    }
+
     @links = uniq @links;
 
     if ( scalar @links )
