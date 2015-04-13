@@ -50,6 +50,15 @@ sub main
 
     my $default_db_label = MediaWords::DB::connect_settings()->{ label };
 
+    {
+	my $db         = MediaWords::DB::connect_to_db( $default_db_label );
+
+	my $max_stories_id =  $db->query( "select max(stories_id) from scratch.reextract_stories2" )->flat()->[0];
+
+	$last_stories_id = $max_stories_id + 1;
+	say STDERR "last stories id $last_stories_id";
+    }
+
     while ( 1 )
     {
         my $gearman_db = MediaWords::DB::connect_to_db( "gearman" );
@@ -74,7 +83,7 @@ sub main
 
         my $rows = $db->query(
             <<"END_SQL",
-        select stories_id from scratch.reextract_stories2 where stories_id > ? order by stories_id limit ?;
+        select stories_id from scratch.reextract_stories2 where stories_id < ? order by stories_id desc limit ?;
 END_SQL
             $last_stories_id, $story_batch_size
         )->hashes;
