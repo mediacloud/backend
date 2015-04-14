@@ -45,6 +45,7 @@ gearmand:
     enabled: yes
     listen: 127.0.0.1
     port: 4731
+    threads: 0
 corenlp:
     enabled: no
     annotator_url: ''
