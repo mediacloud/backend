@@ -121,7 +121,7 @@ database:
     ### Supervisord. Default is 4731.
     #port: 4731
 
-    ### Number of threads
+    ### Number of threads (http://gearman.org/manual/job_server/#threading_model):
     ### * 0  -- everything will happen within a single thread
     ### * 1  -- there will be a thread for listening/management and a thread
     ###         for I/O and processing
