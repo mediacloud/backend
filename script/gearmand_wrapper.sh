@@ -119,6 +119,7 @@ export PGDATABASE=`$QUERY_CONFIG "//database[label='gearman']/db"`
 GEARMAN_LISTEN=`$QUERY_CONFIG "//gearmand/listen"`
 GEARMAN_PORT=`$QUERY_CONFIG "//gearmand/port"`
 GEARMAN_THREADS=`$QUERY_CONFIG "//gearmand/threads"`
+GEARMAN_WORKER_WAKEUP=`$QUERY_CONFIG "//gearmand/worker_wakeup"`
 
 GEARMAND_PARAMS=""
 if [[ ! -z "$GEARMAN_LISTEN" ]]; then
@@ -131,7 +132,7 @@ GEARMAND_PARAMS="$GEARMAND_PARAMS --verbose NOTICE"
 GEARMAND_PARAMS="$GEARMAND_PARAMS --log-file stderr"
 GEARMAND_PARAMS="$GEARMAND_PARAMS --threads $GEARMAN_THREADS"
 # GEARMAND_PARAMS="$GEARMAND_PARAMS --keepalive"
-GEARMAND_PARAMS="$GEARMAND_PARAMS --worker-wakeup 0"
+GEARMAND_PARAMS="$GEARMAND_PARAMS --worker-wakeup $GEARMAN_WORKER_WAKEUP"
 
 echo "Executing: gearmand $GEARMAND_PARAMS"
 exec gearmand $GEARMAND_PARAMS

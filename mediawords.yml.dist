@@ -129,6 +129,10 @@ database:
     ### * >2 -- more I/O threads will get created
     #threads: 0
 
+    ### Number of workers to wakeup for each job received. The default (0) is
+    ### to wakeup all available workers.
+    #worker_wakeup: 0
+
 ### Supervisor (supervisord) configuration
 #supervisor:
 
