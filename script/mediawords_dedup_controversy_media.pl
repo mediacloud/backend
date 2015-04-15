@@ -2,6 +2,15 @@
 
 # dedup controversy spidered media
 
+# the basic method of this script is to:
+# * group media sources by identical domains (eg. www.nytimes.com, nytimes.com, and articles.nytimes.com);
+# * for each domain group, aggressively try to identify cases for which we should just automatically
+#   merge all media within the given group (as in the above example);
+# * otherwise, prompt the user to choose whether and how to dedup the media within the domain.
+#
+# currently this script just marks media as dups by setting the dup_media_id field in the media source.
+# in the future, we are moving to actually removing the duplicate media source.
+
 use strict;
 use warnings;
 
@@ -102,8 +111,7 @@ sub mark_dups_of_existing_dup
     }
 }
 
-# check for media that are canonical url duplicates and mark one of each
-# pair as a duplicate
+# check for media that are canonical url duplicates and mark one of each pair as a duplicate
 sub mark_canonical_url_duplicates
 {
     my ( $db, $domain, $media ) = @_;
@@ -126,17 +134,6 @@ sub mark_canonical_url_duplicates
             }
         }
     }
-}
-
-# create new media source for the entire given domain
-sub create_domain_medium
-{
-    my ( $db, $domain ) = @_;
-
-    my $existing_domain_medium = $db->query( <<END, $domain )->hash;
-select 1 from media where lower( url ) = lower( ? ) or n
-END
-
 }
 
 # prompt user for media merge command and return the command
@@ -178,7 +175,7 @@ END
         my $command = [ split( / /, $line ) ];
 
         my $help = <<END;
-<n> 
+<n>
 to mark all remaining media as not dups
 
 or
@@ -196,11 +193,6 @@ END
         {
             return undef;
         }
-
-        # elsif ( $command->[ 0 ] eq 'd' )
-        # {
-        #     push( @{ $media }, create_domain_medium( $db, $domain );
-        # }
         elsif ( @{ $command } eq 2 )
         {
             my ( $s, $t ) = @{ $command };
@@ -267,14 +259,14 @@ sub main
     # only dedup media that are either not spidered or are associated with controversy stories
     # (this eliminates spidered media not actually associated with any controversy story)
     my $media = $db->query( <<END, $spidered_tag->{ tags_id } )->hashes;
-select m.*, 
+select m.*,
         coalesce( mtm.tags_id, 0 ) is_spidered
-    from 
-        media m 
+    from
+        media m
         left join media_tags_map mtm on ( m.media_id = mtm.media_id and mtm.tags_id = ? )
-    where 
+    where
         m.dup_media_id is null and
-        ( ( mtm.tags_id is null ) or 
+        ( ( mtm.tags_id is null ) or
             m.media_id in ( select distinct( cs.media_id ) from cd.live_stories cs ) )
   order by m.media_id
 END
@@ -282,22 +274,26 @@ END
     my $media_domain_lookup = {};
     map { push( @{ $media_domain_lookup->{ MediaWords::DBI::Media::get_medium_domain( $_ ) } }, $_ ) } @{ $media };
 
+    # find just the domains that have more than one unprocessed media source
     while ( my ( $domain, $domain_media ) = each( %{ $media_domain_lookup } ) )
     {
         my $unprocessed_media = get_unprocessed_media( $domain_media );
         delete( $media_domain_lookup->{ $domain } ) if ( !$domain || @{ $unprocessed_media } < 2 );
     }
 
-    my $i           = 1;
     my $num_domains = scalar( values( %{ $media_domain_lookup } ) );
+
+    my $i = 1;
     while ( my ( $domain, $domain_media ) = each( %{ $media_domain_lookup } ) )
     {
         print( "\n" . $i++ . "/ $num_domains\n" );
 
+        # try to auto-dedup via various methods
         mark_dups_of_existing_dup( $db, $domain, $domain_media );
         mark_canonical_url_duplicates( $db, $domain, $domain_media );
         mark_dups_of_root_domain( $db, $domain, $domain_media );
 
+        # only do the manual deduping if the auto-deduping fails to mark all dups
         my $unprocessed_media = get_unprocessed_media( $domain_media );
 
         dedup_media( $db, $domain, $domain_media ) if ( @{ $unprocessed_media } > 1 );

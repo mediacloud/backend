@@ -22,151 +22,75 @@ sub index : Path : Args(0)
     return list( @_ );
 }
 
-# get the status of the given period by checking whether period $i
-# is less than 10% (red) or 50% (yellow) of any subsequent period
-# for any of num_stories or num_sentences
-sub _get_health_status
+# get the tags.* fields with the following health data attached:
+# num_media, num_sentences(_y/90/w), num_healthy, num_active_feeds
+#
+# param should be either { tags_id => $id } or { tag_sets_id => $id }
+sub _get_tag_stats
 {
-    my ( $stats, $i ) = @_;
+    my ( $db, $params ) = @_;
 
-    my $status = 'green';
-
-    my $a = $stats->[ $i ];
-    for ( my $j = $i + 1 ; $j < @{ $stats } ; $j++ )
+    my ( $tag_clause, $tag_id );
+    if ( my $id = $params->{ tags_id } )
     {
-        my $b = $stats->[ $j ];
-        for my $k ( qw/num_stories num_sentences/ )
-        {
-            next unless ( $b->{ $k } );
-
-            my $a_value = $a->{ $k } || 1;
-            my $b_value = $b->{ $k };
-
-            if ( ( $a_value / $b_value ) < 0.10 )
-            {
-                return 'red';
-            }
-            elsif ( ( $a_value / $b_value ) < 0.25 )
-            {
-                $status = 'yellow';
-            }
-        }
+        ( $tag_clause, $tag_id ) = ( "t.tags_id = ?", $id );
+    }
+    elsif ( $id = $params->{ tag_sets_id } )
+    {
+        ( $tag_clause, $tag_id ) = ( "t.tag_sets_id = ?", $id );
+    }
+    else
+    {
+        die( "Unrecognized param: " . Dumper( $params ) );
     }
 
-    return $status;
-}
+    my $tags = $db->query( <<SQL, $tag_id )->hashes;
+select t.*,
+        sum( num_stories ) num_stories,
+        sum( num_sentences ) num_sentences,
+        sum( num_stories_w ) num_stories_w,
+        sum( num_sentences_w ) num_sentences_w,
+        sum( num_stories_90 ) num_stories_90,
+        sum( num_sentences_90 ) num_sentences_90,
+        sum( num_stories_y ) num_stories_y,
+        sum( num_sentences_y ) num_sentences_y,
+        sum( case when is_healthy then 1 else 0 end ) num_healthy,
+        sum( case when has_active_feed then 1 else 0 end ) num_active_feeds,
+        count( * ) num_media
+    from media_health mh
+        join media_tags_map mtm on ( mtm.media_id = mh.media_id )
+        join tags t on ( mtm.tags_id = t.tags_id )
+    where
+        $tag_clause
+    group by t.tags_id
+    order by num_stories_90 desc
+SQL
 
-# assign health data to the media source as the following stats
-sub _assign_health_data_to_medium
-{
-    my ( $db, $medium ) = @_;
-
-    my $medium_stats = $db->query( <<END, $medium->{ media_id } )->hashes;
-select * from media_stats
-    where media_id = ? and stat_date < now() - interval '1 day'
-    order by stat_date desc
-END
-
-    $medium->{ media_stats } ||= [];
-
-    for my $ms ( @{ $medium_stats } )
-    {
-        push( @{ $medium->{ media_stats } }, $ms );
-
-        my $fields = [ qw/num_stories num_sentences/ ];
-        map { $medium->{ $_ } += $ms->{ $_ } || 0 } @{ $fields };
-    }
-
-    my $media_stats = $medium->{ media_stats };
-    for ( my $i = 0 ; $i < @{ $media_stats } ; $i++ )
-    {
-        $media_stats->[ $i ]->{ status } = _get_health_status( $media_stats, $i );
-    }
-
-    $medium->{ status } = $media_stats->[ 0 ]->{ status } || '';
+    return $tags;
 }
 
 # assign aggregate health data about the media sources associated with the tag.
-# assigns the following fields to the tag: media, num_stories, num_sentences,
-# num_media, num_healthy_media, percent_health_media
+# assigns the following fields to the tag: media, num_media, num_sentences(_y/90/w),
+# num_healthy, num_active_feeds
 sub _assign_health_data_to_tag
 {
     my ( $db, $tag ) = @_;
 
-    my $media = $db->query( <<END, $tag->{ tags_id } )->hashes;
-with ranked_media_dates as (
-    select media_id, stat_date, 
-            rank() over ( partition by media_id order by stat_date desc ) r 
-        from media_stats 
-        where num_sentences > 0
-),
-    
-latest_media_dates as (
-    select * from ranked_media_dates where r = 1
-),   
-    
-
-aggregated_media_stats as (
-    select m.*,
-            sum( ms.num_stories ) num_stories,
-            sum( ms.num_sentences ) num_sentences
-        from media m 
-            join media_stats ms on ( m.media_id = ms.media_id )
-            join latest_media_dates lmd on ( m.media_id = lmd.media_id )
-        group by m.media_id
-        order by m.media_id
-)
-
-select ams.*, lmd.stat_date latest_story_date
-    from 
-        aggregated_media_stats ams
-        join media_tags_map mtm on ( ams.media_id = mtm.media_id ) 
-        join latest_media_dates lmd on ( ams.media_id = lmd.media_id )
+    my $media = $db->query( <<SQL, $tag->{ tags_id } )->hashes;
+select m.*, mh.*
+    from media m
+        join media_tags_map mtm on ( mtm.media_id = m.media_id )
+        left join media_health mh on ( mh.media_id = m.media_id )
     where
         mtm.tags_id = ?
-END
+SQL
 
-    for my $medium ( @{ $media } )
-    {
-        # say STDERR "_assign_health_data_to_tag: " . Dumper( $medium );
-        #
-        # _assign_health_data_to_medium( $db, $medium );
+    $tag->{ media } = $media;
 
-        my $fields = [ qw/num_stories num_sentences/ ];
-        map { $tag->{ $_ } += $medium->{ $_ } || 0 } @{ $fields };
-    }
+    my $tags = _get_tag_stats( $db, { tags_id => $tag->{ tags_id } } );
+    my $stats = $tags->[ 0 ];
 
-    $tag->{ media }     = $media;
-    $tag->{ num_media } = scalar( @{ $media } );
-
-    # $tag->{ num_healthy_media } = scalar( grep { $_->{ status } ne 'red' } @{ $media } );
-    # if ( $tag->{ num_media } )
-    # {
-    #     $tag->{ percent_healthy_media } = int( 100 * ( $tag->{ num_healthy_media } / $tag->{ num_media } ) );
-    # }
-    # else
-    # {
-    #     $tag->{ percent_healthy_media } = 'na';
-    # }
-    #
-}
-
-# find any media set and dashboard associated with the tag and
-# add the corresponding media_set_name and dashboard_name fields
-sub _assign_media_set_to_tag
-{
-    my ( $db, $tag ) = @_;
-
-    my $media_sets = $db->query( <<END, $tag->{ tags_id } )->hashes;
-select ms.*, d.name dashboard_name
-    from media_sets ms
-        join dashboard_media_sets dms on ( dms.media_sets_id = ms.media_sets_id )
-        join dashboards d on ( d.dashboards_id = dms.dashboards_id ) 
-    where
-        ms.tags_id = ?
-END
-
-    $tag->{ media_set_names } = join( '; ', map { "$_->{ dashboard_name }:$_->{ name }" } @{ $media_sets } );
+    map { $tag->{ $_ } = $stats->{ $_ } } keys( %{ $stats } );
 }
 
 # get tag_sets_id for collection: tag set
@@ -192,53 +116,7 @@ sub list : Local
     my $tag_set = $db->find_by_id( 'tag_sets', $tag_sets_id )
       || die( "Unable to find tag set '$tag_sets_id'" );
 
-    # sample 1 / $sample_factor days from the past year
-    my $sample_factor = 13;
-
-    my $query = <<END;
-with collection_tags as (
-    select t.* from tags t where t.tag_sets_id = ?
-)
-        
-select t.*, s.*,
-        media_set_names
-    from collection_tags t
-    
-        left join (
-            select 
-                mtm.tags_id,
-                count( distinct mtm.media_id ) num_media,
-                sum( ms.num_stories ) * $sample_factor num_stories,
-                sum( ms.num_sentences ) * $sample_factor num_sentences
-            from 
-                media_tags_map mtm
-                    left join media_stats ms on ( ms.media_id = mtm.media_id )
-            where ms.media_stats_id % $sample_factor = 0 and
-                ms.stat_date > now() - '1 year'::interval
-            group by mtm.tags_id
-            
-        ) s on ( t.tags_id = s.tags_id )
-        
-        left join (
-            select ms.tags_id,
-                array_to_string( array_agg( d.name || ':' || ms.name ), '; ' ) media_set_names
-            from media_sets ms
-                join dashboard_media_sets dms on ( dms.media_sets_id = ms.media_sets_id )
-                join dashboards d on ( d.dashboards_id = dms.dashboards_id ) 
-            where ms.tags_id is not null
-            group by ms.tags_id
-        ) ms on ( t.tags_id = ms.tags_id )
-
-    order by media_set_names, t.tags_id
-END
-
-    my $tags = $db->query( $query, $tag_sets_id )->hashes;
-
-    for my $tag ( @{ $tags } )
-    {
-        # _assign_health_data_to_tag( $db, $tag );
-        _assign_media_set_to_tag( $db, $tag );
-    }
+    my $tags = _get_tag_stats( $db, { tag_sets_id => $tag_sets_id } );
 
     $c->stash->{ tags }     = $tags;
     $c->stash->{ tag_set }  = $tag_set;
@@ -255,10 +133,10 @@ sub tag_sets : Local
     my $tag_sets = $db->query( <<END )->hashes;
 select ts.*
     from tag_sets ts
-    where 
-        exists ( 
-            select 1 
-                from media_tags_map mtm 
+    where
+        exists (
+            select 1
+                from media_tags_map mtm
                     join tags t on ( mtm.tags_id = t.tags_id )
                 where t.tag_sets_id = ts.tag_sets_id
         )
@@ -279,7 +157,6 @@ sub tag : Local
     my $tag = $db->find_by_id( 'tags', $tags_id ) || die( "unknown tag '$tags_id'" );
 
     _assign_health_data_to_tag( $db, $tag );
-    _assign_media_set_to_tag( $db, $tag );
 
     $c->stash->{ tag }      = $tag;
     $c->stash->{ template } = 'health/tag.tt2';
@@ -292,12 +169,23 @@ sub medium : Local
 
     my $db = $c->dbis;
 
-    my $medium = $db->find_by_id( 'media', $media_id ) || die( "unknown medium '$media_id'" );
+    $db->find_by_id( 'media', $media_id ) || die( "unknown medium '$media_id'" );
 
-    _assign_health_data_to_medium( $db, $medium );
+    my $medium = $db->query( <<SQL, $media_id )->hash;
+select m.*, mh.* from media m join media_health mh on ( m.media_id = mh.media_id ) where m.media_id = ?
+SQL
 
-    $c->stash->{ 'medium' }   = $medium;
-    $c->stash->{ 'template' } = 'health/medium.tt2';
+    my $media_stats = $db->query( <<SQL, $media_id )->hashes;
+select ms.*
+    from media_stats ms
+    where
+        ms.media_id = ?
+    order by stat_date desc
+SQL
+
+    $c->stash->{ 'medium' }      = $medium;
+    $c->stash->{ 'media_stats' } = $media_stats;
+    $c->stash->{ 'template' }    = 'health/medium.tt2';
 }
 
 sub stories : Local
@@ -317,25 +205,25 @@ with media_stories as (
             join downloads d on ( d.stories_id = s.stories_id )
         where media_id = \$1 and date_trunc( 'day', publish_date ) = \$2
 )
-            
-select s.*, 
-    coalesce( ss_ag.num_sentences, 0 ) num_sentences, 
+
+select s.*,
+    coalesce( ss_ag.num_sentences, 0 ) num_sentences,
     coalesce( dt_ag.text_length, 0 ) text_length
 
     from media_stories s
-    
-        left join 
-            ( select ss.stories_id, count(*) num_sentences 
-                from story_sentences ss 
+
+        left join
+            ( select ss.stories_id, count(*) num_sentences
+                from story_sentences ss
                 where ss.stories_id in
                     ( select stories_id from media_stories )
-                group by ss.stories_id ) ss_ag on ( s.stories_id = ss_ag.stories_id ) 
+                group by ss.stories_id ) ss_ag on ( s.stories_id = ss_ag.stories_id )
 
-        left join 
+        left join
             ( select ms.stories_id, sum( dt.download_text_length ) text_length
                 from media_stories ms
                     join download_texts dt on ( ms.downloads_id = dt.downloads_id )
-                group by ms.stories_id ) dt_ag on ( s.stories_id = dt_ag.stories_id ) 
+                group by ms.stories_id ) dt_ag on ( s.stories_id = dt_ag.stories_id )
 
     order by publish_date
 END

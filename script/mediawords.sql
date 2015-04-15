@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4486;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4493;
     
 BEGIN
 
@@ -209,10 +209,17 @@ LANGUAGE 'plpgsql';
 CREATE OR REPLACE FUNCTION  story_triggers_enabled() RETURNS boolean  LANGUAGE  plpgsql AS $$
 BEGIN
 
-    return current_setting('PRIVATE.use_story_triggers') = 'yes';
-     EXCEPTION when undefined_object then
+    BEGIN
+       IF current_setting('PRIVATE.use_story_triggers') = '' THEN
+          perform enable_story_triggers();
+       END IF;
+       EXCEPTION when undefined_object then
         perform enable_story_triggers();
-        return true;
+
+     END;
+
+    return true;
+    return current_setting('PRIVATE.use_story_triggers') = 'yes';
 END$$;
 
 CREATE OR REPLACE FUNCTION  enable_story_triggers() RETURNS void LANGUAGE  plpgsql AS $$
@@ -231,8 +238,20 @@ CREATE OR REPLACE FUNCTION last_updated_trigger () RETURNS trigger AS
 $$
    DECLARE
       path_change boolean;
+      table_with_trigger_column  boolean default false;
    BEGIN
       -- RAISE NOTICE 'BEGIN ';                                                                                                                            
+        IF TG_TABLE_NAME in ( 'processed_stories', 'stories', 'story_sentences') THEN
+           table_with_trigger_column = true;
+        ELSE
+           table_with_trigger_column = false;
+        END IF;
+
+	IF table_with_trigger_column THEN
+	   IF ( ( TG_OP = 'UPDATE' ) OR (TG_OP = 'INSERT') ) AND NEW.disable_triggers THEN
+     	       RETURN NEW;
+           END IF;
+      END IF;
 
       IF ( story_triggers_enabled() ) AND ( ( TG_OP = 'UPDATE' ) OR (TG_OP = 'INSERT') ) then
 
@@ -255,6 +274,10 @@ $$
            RETURN NULL;
         END IF;
 
+        IF NEW.disable_triggers THEN
+           RETURN NULL;
+        END IF;
+
 	UPDATE story_sentences set db_row_last_updated = now() where stories_id = NEW.stories_id;
 	RETURN NULL;
    END;
@@ -265,12 +288,27 @@ CREATE OR REPLACE FUNCTION update_stories_updated_time_by_stories_id_trigger () 
 $$
     DECLARE
         path_change boolean;
+        table_with_trigger_column  boolean default false;
         reference_stories_id integer default null;
     BEGIN
 
        IF NOT story_triggers_enabled() THEN
            RETURN NULL;
         END IF;
+
+        IF TG_TABLE_NAME in ( 'processed_stories', 'stories', 'story_sentences') THEN
+           table_with_trigger_column = true;
+        ELSE
+           table_with_trigger_column = false;
+        END IF;
+
+	IF table_with_trigger_column THEN
+	   IF TG_OP = 'INSERT' AND NEW.disable_triggers THEN
+	       RETURN NULL;
+	   ELSEIF ( ( TG_OP = 'UPDATE' ) OR (TG_OP = 'DELETE') ) AND OLD.disable_triggers THEN
+     	       RETURN NULL;
+           END IF;
+       END IF;
 
         IF TG_OP = 'INSERT' THEN
             -- The "old" record doesn't exist
@@ -281,10 +319,17 @@ $$
             RAISE EXCEPTION 'Unconfigured operation: %', TG_OP;
         END IF;
 
-        UPDATE stories
-        SET db_row_last_updated = now()
-        WHERE stories_id = reference_stories_id;
-	RETURN NULL;
+	IF table_with_trigger_column THEN
+            UPDATE stories
+               SET db_row_last_updated = now()
+               WHERE stories_id = reference_stories_id;
+            RETURN NULL;
+        ELSE
+            UPDATE stories
+               SET db_row_last_updated = now()
+               WHERE stories_id = reference_stories_id and (disable_triggers is NOT true);
+            RETURN NULL;
+        END IF;
    END;
 $$
 LANGUAGE 'plpgsql';
@@ -293,12 +338,31 @@ CREATE OR REPLACE FUNCTION update_story_sentences_updated_time_by_story_sentence
 $$
     DECLARE
         path_change boolean;
+        table_with_trigger_column  boolean default false;
         reference_story_sentences_id bigint default null;
     BEGIN
 
        IF NOT story_triggers_enabled() THEN
            RETURN NULL;
         END IF;
+
+       IF NOT story_triggers_enabled() THEN
+           RETURN NULL;
+        END IF;
+
+        IF TG_TABLE_NAME in ( 'processed_stories', 'stories', 'story_sentences') THEN
+           table_with_trigger_column = true;
+        ELSE
+           table_with_trigger_column = false;
+        END IF;
+
+	IF table_with_trigger_column THEN
+	   IF TG_OP = 'INSERT' AND NEW.disable_triggers THEN
+	       RETURN NULL;
+	   ELSEIF ( ( TG_OP = 'UPDATE' ) OR (TG_OP = 'DELETE') ) AND OLD.disable_triggers THEN
+     	       RETURN NULL;
+           END IF;
+       END IF;
 
         IF TG_OP = 'INSERT' THEN
             -- The "old" record doesn't exist
@@ -309,10 +373,17 @@ $$
             RAISE EXCEPTION 'Unconfigured operation: %', TG_OP;
         END IF;
 
-        UPDATE story_sentences
-        SET db_row_last_updated = now()
-        WHERE story_sentences_id = reference_story_sentences_id;
-	RETURN NULL;
+	IF table_with_trigger_column THEN
+            UPDATE story_sentences
+              SET db_row_last_updated = now()
+              WHERE story_sentences_id = reference_story_sentences_id;
+            RETURN NULL;
+        ELSE
+            UPDATE story_sentences
+              SET db_row_last_updated = now()
+              WHERE story_sentences_id = reference_story_sentences_id and (disable_triggers is NOT true);
+            RETURN NULL;
+        END IF;
    END;
 $$
 LANGUAGE 'plpgsql';
@@ -897,7 +968,8 @@ create table stories (
     collect_date                timestamp       not null default now(),
     full_text_rss               boolean         not null default 'f',
     db_row_last_updated                timestamp with time zone,
-    language                    varchar(3)      null   -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
+    language                    varchar(3)      null,   -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
+    disable_triggers            boolean  null
 );
 
 create index stories_media_id on stories (media_id);
@@ -1027,6 +1099,11 @@ CREATE TABLE raw_downloads (
     raw_data            BYTEA       NOT NULL
 );
 CREATE UNIQUE INDEX raw_downloads_object_id ON raw_downloads (object_id);
+
+-- Don't (attempt to) compress BLOBs in "raw_data" because they're going to be
+-- compressed already
+ALTER TABLE raw_downloads
+    ALTER COLUMN raw_data SET STORAGE EXTERNAL;
 
 
 create table feeds_stories_map
@@ -1171,7 +1248,8 @@ create table story_sentences (
        media_id                     int             not null, -- references media on delete cascade,
        publish_date                 timestamp       not null,
        db_row_last_updated          timestamp with time zone, -- time this row was last updated
-       language                     varchar(3)      null      -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
+       language                     varchar(3)      null,      -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
+       disable_triggers             boolean  null
 );
 
 create index story_sentences_story on story_sentences (stories_id, sentence_number);
@@ -2205,7 +2283,8 @@ create trigger stories_update_live_story after update on stories
                                         
 create table processed_stories (
     processed_stories_id        bigserial          primary key,
-    stories_id                  int             not null references stories on delete cascade
+    stories_id                  int             not null references stories on delete cascade,
+    disable_triggers            boolean  null
 );
 
 create index processed_stories_story on processed_stories ( stories_id );
@@ -2647,6 +2726,19 @@ $$
 $$
 LANGUAGE SQL;
 
+CREATE TABLE auth_users_tag_sets_permissions (
+    auth_users_tag_sets_permissions_id SERIAL  PRIMARY KEY,
+    auth_users_id                      integer references auth_users not null,
+    tag_sets_id                        integer references tag_sets not null,
+    apply_tags                         boolean NOT NULL,
+    create_tags                        boolean NOT NULL,
+    edit_tag_set_descriptors           boolean NOT NULL,
+    edit_tag_descriptors               boolean NOT NULL
+);
+
+CREATE UNIQUE INDEX auth_users_tag_sets_permissions_auth_user_tag_set on  auth_users_tag_sets_permissions( auth_users_id , tag_sets_id );
+CREATE INDEX auth_users_tag_sets_permissions_auth_user         on  auth_users_tag_sets_permissions( auth_users_id );
+CREATE INDEX auth_users_tag_sets_permissions_tag_sets          on  auth_users_tag_sets_permissions( tag_sets_id );
 
 --
 -- Activity log

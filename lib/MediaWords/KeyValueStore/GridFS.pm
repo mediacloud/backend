@@ -12,6 +12,7 @@ use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use MediaWords::Util::Config;
+use MediaWords::Util::Compress;
 use MongoDB 0.704.1.0;
 use MongoDB::GridFS;
 use Carp;
@@ -167,21 +168,27 @@ sub remove_content($$$;$)
 }
 
 # Moose method
-sub store_content($$$$;$$)
+sub store_content($$$$;$)
 {
-    my ( $self, $db, $object_id, $content_ref, $skip_encode_and_compress, $use_bzip2_instead_of_gzip ) = @_;
+    my ( $self, $db, $object_id, $content_ref, $use_bzip2_instead_of_gzip ) = @_;
 
     $self->_connect_to_mongodb_or_die();
 
-    # Encode + gzip
+    # Encode + compress
     my $content_to_store;
-    if ( $skip_encode_and_compress )
+    eval {
+        if ( $use_bzip2_instead_of_gzip )
+        {
+            $content_to_store = MediaWords::Util::Compress::encode_and_bzip2( $$content_ref );
+        }
+        else
+        {
+            $content_to_store = MediaWords::Util::Compress::encode_and_gzip( $$content_ref );
+        }
+    };
+    if ( $@ or ( !defined $content_to_store ) )
     {
-        $content_to_store = $$content_ref;
-    }
-    else
-    {
-        $content_to_store = $self->encode_and_compress( $content_ref, $object_id, $use_bzip2_instead_of_gzip );
+        die "Unable to compress object ID $object_id: $@";
     }
 
     my $filename = '' . $object_id;
@@ -236,9 +243,9 @@ sub store_content($$$$;$$)
 }
 
 # Moose method
-sub fetch_content($$$;$$$)
+sub fetch_content($$$;$$)
 {
-    my ( $self, $db, $object_id, $object_path, $skip_uncompress_and_decode, $use_bunzip2_instead_of_gunzip ) = @_;
+    my ( $self, $db, $object_id, $object_path, $use_bunzip2_instead_of_gunzip ) = @_;
 
     $self->_connect_to_mongodb_or_die();
 
@@ -304,25 +311,31 @@ sub fetch_content($$$;$$$)
     {
     }
 
-    my $gzipped_content = $file;
+    my $compressed_content = $file;
 
-    # Gunzip + decode
-    my $decoded_content;
-    if ( $skip_uncompress_and_decode )
+    # Uncompress + decode
+    unless ( defined $compressed_content and $compressed_content ne '' )
     {
-        $decoded_content = $gzipped_content;
+        # MongoDB returns empty strings on some cases of corrupt data, but
+        # an empty string can't be a valid Gzip/Bzip2 archive, so we're
+        # checking if we're about to attempt to decompress an empty string
+        confess "GridFS: Compressed data is empty for filename $filename.\n";
     }
-    else
-    {
-        unless ( defined $gzipped_content and $gzipped_content ne '' )
-        {
-            # MongoDB returns empty strings on some cases of corrupt data, but
-            # an empty string can't be a valid Gzip/Bzip2 archive, so we're
-            # checking if we're about to attempt to decompress an empty string
-            confess "GridFS: Compressed data is empty for filename $filename.\n";
-        }
 
-        $decoded_content = $self->uncompress_and_decode( \$gzipped_content, $object_id, $use_bunzip2_instead_of_gunzip );
+    my $decoded_content;
+    eval {
+        if ( $use_bunzip2_instead_of_gunzip )
+        {
+            $decoded_content = MediaWords::Util::Compress::bunzip2_and_decode( $compressed_content );
+        }
+        else
+        {
+            $decoded_content = MediaWords::Util::Compress::gunzip_and_decode( $compressed_content );
+        }
+    };
+    if ( $@ or ( !defined $decoded_content ) )
+    {
+        die "Unable to uncompress object ID $object_id: $@";
     }
 
     return \$decoded_content;

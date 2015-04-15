@@ -1,3 +1,4 @@
+
 package MediaWords::Controller::Api::V2::MC_REST_SimpleObject;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
@@ -355,6 +356,78 @@ sub _die_unless_tag_set_matches_user_email
       unless $c->stash->{ api_auth }->{ email } eq $tag_set;
 }
 
+sub _get_user_tag_set_permissions
+{
+    my ( $api_auth, $tag_set, $dbis ) = @_;
+
+    my $permissions = $dbis->query(
+        "SELECT * from  auth_users_tag_sets_permissions where auth_users_id = ? and tag_sets_id = ? ",
+        $api_auth->{ auth_users_id },
+        $tag_set->{ tag_sets_id }
+    )->hashes()->[ 0 ];
+
+    return $permissions;
+}
+
+#tag_set permissions apply_tags, create_tags, edit_tag_set_descriptors, edit_tag_descriptors
+
+sub _die_unless_user_can_apply_tag_set_tags
+{
+    my ( $self, $c, $tag_set ) = @_;
+
+    return if $c->stash->{ api_auth }->{ email } eq $tag_set->{ name };
+
+    my $permissions = _get_user_tag_set_permissions( $c->stash->{ api_auth }, $tag_set, $c->dbis );
+
+    #say STDERR Dumper( $permissions );
+
+    die "user does not have apply tag set tags permissions" unless defined( $permissions ) && $permissions->{ apply_tags };
+}
+
+sub _die_unless_user_can_create_tag_set_tags
+{
+    my ( $self, $c, $tag_set ) = @_;
+
+    return if $c->stash->{ api_auth }->{ email } eq $tag_set->{ name };
+
+    my $permissions = _get_user_tag_set_permissions( $c->stash->{ api_auth }, $tag_set, $c->dbis );
+
+    #say STDERR Dumper( $permissions );
+
+    die "user does not have create tag permissions for tag set"
+      unless defined( $permissions ) && $permissions->{ create_tags };
+}
+
+sub die_unless_user_can_edit_tag_set_descriptors
+{
+    my ( $self, $c, $tag_set ) = @_;
+
+    return if $c->stash->{ api_auth }->{ email } eq $tag_set->{ name };
+
+    my $permissions = _get_user_tag_set_permissions( $c->stash->{ api_auth }, $tag_set, $c->dbis );
+
+    #say STDERR Dumper( $permissions );
+
+    die "User " . $c->stash->{ api_auth }->{ email } .
+      " doesn't have permission to edit tag set descriptors for tag set id " . $tag_set->{ tag_sets_id }
+      unless defined( $permissions ) && $permissions->{ edit_tag_set_descriptors };
+}
+
+sub die_unless_user_can_edit_tag_set_tag_descriptors
+{
+    my ( $self, $c, $tag_set ) = @_;
+
+    return if $c->stash->{ api_auth }->{ email } eq $tag_set->{ name };
+
+    my $permissions = _get_user_tag_set_permissions( $c->stash->{ api_auth }, $tag_set, $c->dbis );
+
+    #say STDERR Dumper( $permissions );
+
+    die "User " . $c->stash->{ api_auth }->{ email } .
+      " doesn't have permission to edit tag descriptors in tag set id " . $tag_set->{ tag_sets_id }
+      unless defined( $permissions ) && $permissions->{ edit_tag_descriptors };
+}
+
 sub _get_tags_id
 {
     my ( $self, $c, $tag_string ) = @_;
@@ -368,21 +441,21 @@ sub _get_tags_id
     {
         # say STDERR "processing tag_sets:tag_name";
 
-        my ( $tag_set, $tag_name ) = split ':', $tag_string;
+        my ( $tag_set_name, $tag_name ) = split ':', $tag_string;
 
         #say STDERR Dumper( $c->stash );
         my $user_email = $c->stash->{ api_auth }->{ email };
 
-        if ( $user_email ne $tag_set )
-        {
-            die "Illegal tag_set name '" . $tag_set . "' tag_set must be user email ( '$user_email' ) ";
-        }
-
-        my $tag_sets = $c->dbis->query( "SELECT * from tag_sets where name = ?", $tag_set )->hashes;
+        my $tag_sets = $c->dbis->query( "SELECT * from tag_sets where name = ?", $tag_set_name )->hashes;
 
         if ( !scalar( @$tag_sets ) > 0 )
         {
-            $tag_sets = [ $c->dbis->create( 'tag_sets', { 'name' => $tag_set } ) ];
+            if ( $user_email ne $tag_set_name )
+            {
+                die "Illegal tag_set name '" . $tag_set_name . "' tag_set must be user email ( '$user_email' ) ";
+            }
+
+            $tag_sets = [ $c->dbis->create( 'tag_sets', { 'name' => $tag_set_name } ) ];
         }
 
         die "invalid tag set " unless scalar( @$tag_sets ) > 0;
@@ -390,7 +463,10 @@ sub _get_tags_id
         # say STDERR "tag_sets";
         # say STDERR Dumper( $tag_sets );
 
-        my $tag_sets_id = $tag_sets->[ 0 ]->{ tag_sets_id };
+        my $tag_set     = $tag_sets->[ 0 ];
+        my $tag_sets_id = $tag_set->{ tag_sets_id };
+
+        $self->_die_unless_user_can_apply_tag_set_tags( $c, $tag_set );
 
         my $tags =
           $c->dbis->query( "SELECT * from tags where tag_sets_id = ? and tag = ? ", $tag_sets_id, $tag_name )->hashes;
@@ -401,6 +477,7 @@ sub _get_tags_id
 
         if ( !scalar( @$tags ) )
         {
+            $self->_die_unless_user_can_create_tag_set_tags( $c, $tag_set );
             $tag = $c->dbis->create( 'tags', { tag => $tag_name, tag_sets_id => $tag_sets_id } );
         }
         else
@@ -428,9 +505,20 @@ sub _clear_tags
     my $tags_map_table = $self->get_table_name() . '_tags_map';
     my $table_id_name  = $self->get_table_name() . '_id';
 
+    my $table_name = $self->get_table_name();
+
     while ( my ( $id, $tags_ids ) = each( %{ $tags_map } ) )
     {
         my $tags_ids_list = join( ',', @{ $tags_ids } );
+
+        my $disable_triggers_query = <<END;
+UPDATE $table_name set disable_triggers = \$1
+               where $table_id_name = \$2 and
+                    ( (disable_triggers is null) or (disable_triggers <> \$1 ) )
+END
+
+        $c->dbis->query( $disable_triggers_query, MediaWords::DB::story_triggers_disabled(), $id );
+
         $c->dbis->query( <<END, $id );
 delete from $tags_map_table stm
     using tags keep_tags, tags delete_tags
@@ -457,6 +545,13 @@ sub _add_tags
     my $tags_map_table = $self->get_table_name() . '_tags_map';
     my $table_id_name  = $self->get_table_name() . '_id';
 
+    my $table_name = $self->get_table_name();
+
+    # DRL 3/18/2015 this is a hack to make sure that triggers are enabled so that changes reach solr
+    # This is needed because we use connection pooling in production and db connections with triggers disabled are reused
+    # We;re also explicitly enabling story triggers when the database is created, which should be enough but isn't
+    $c->dbis->query( "SELECT enable_story_triggers() " );
+
     foreach my $story_tag ( @$story_tags )
     {
         # say STDERR "story_tag $story_tag";
@@ -465,9 +560,21 @@ sub _add_tags
 
         my $tags_id = $self->_get_tags_id( $c, $tag );
 
-        $self->_die_unless_tag_set_matches_user_email( $c, $tags_id );
+        my $tag_set = $c->dbis->query(
+            " SELECT * from tag_sets where tag_sets_id in ( select tag_sets_id from tags where tags_id = ? ) ", $tags_id )
+          ->hashes->[ 0 ];
+
+        $self->_die_unless_user_can_apply_tag_set_tags( $c, $tag_set );
 
         # say STDERR "$id, $tags_id";
+
+        my $disable_triggers_query = <<END;
+UPDATE $table_name set disable_triggers = \$1
+               where $table_id_name = \$2 and
+                    ( (disable_triggers is null) or (disable_triggers <> \$1 ) )
+END
+
+        $c->dbis->query( $disable_triggers_query, MediaWords::DB::story_triggers_disabled(), $id );
 
         my $query = <<END;
 INSERT INTO $tags_map_table ( $table_id_name, tags_id) 

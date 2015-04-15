@@ -9,17 +9,15 @@ use warnings;
 use MediaWords::CM::GuessDate::Result;
 
 use DateTime;
-use Date::Parse;
 use HTML::TreeBuilder::LibXML;
 use LWP::Simple;
 use Regexp::Common qw(time);
-use Date::Parse;
 use List::Util qw(max min);
 use List::MoreUtils qw(any);
 
 use MediaWords::CommonLibs;
-use MediaWords::CM::GuessDate;
 use MediaWords::DB;
+use MediaWords::Util::DateParse;
 use MediaWords::Util::SQL;
 
 # threshold of number of days a guess date can be before the source link
@@ -138,7 +136,7 @@ sub _validate_date_parts
 
     return 0 if ( ( $year < 2000 ) || ( $year > 2020 ) );
 
-    return Date::Parse::str2time( "$year-$month-$day 12:00 PM", 'GMT' );
+    return MediaWords::Util::DateParse::str2time( "$year-$month-$day 12:00 PM", 'GMT' );
 }
 
 # if the date is exactly midnight, round it to noon because noon is a better guess of the publication time
@@ -350,6 +348,8 @@ sub _guess_by_url
     {
         return _validate_date_parts( $1, $2, $3 );
     }
+
+    return undef;
 }
 
 # look for any element with a class='date' attribute
@@ -445,7 +445,7 @@ sub _results_from_matching_date_patterns($$)
             $d_hour += 12 if ( lc( $d_am_pm ) eq 'pm' and $d_hour != 12 );
         }
 
-        # Create a date parseable by Date::Parse correctly, e.g. 2013-05-13 23:52:00 GMT
+        # Create a date parseable by MediaWords::Util::DateParse correctly, e.g. 2013-05-13 23:52:00 GMT
         my $date_string = sprintf( '%04d-%02d-%02d %02d:%02d:%02d %s',
             $d_year, $d_month, $d_day, $d_hour, $d_minute, $d_second, $d_timezone );
         my $time = str2time( $date_string ) || str2time( $whole_date );
@@ -555,7 +555,7 @@ sub timestamp_from_html($)
             $pattern_not_digit_or_word_start
             (
                 $pattern_month
-                $pattern_date_part_separators                
+                $pattern_date_part_separators
                 $pattern_day_of_month
                 $pattern_date_part_separators
                 $pattern_year
@@ -770,7 +770,7 @@ sub _make_unix_timestamp
 
     return $date if ( $date =~ /^\d+$/ );
 
-    my $timestamp = Date::Parse::str2time( $date, 'GMT' );
+    my $timestamp = MediaWords::Util::DateParse::str2time( $date, 'GMT' );
 
     return undef unless ( $timestamp );
 
@@ -909,20 +909,18 @@ sub guess_date_impl
 
     for my $date_guess_function ( @{ $_date_guess_functions } )
     {
-        if ( my $timestamp = _make_unix_timestamp( $date_guess_function->{ function }->( $story, $html, $html_tree ) ) )
-        {
-            if (   $story_timestamp
-                && $use_threshold
-                && ( ( $timestamp - $story_timestamp ) > ( DATE_GUESS_THRESHOLD * 86400 ) ) )
-            {
-                next;
-            }
+        my $date_guess = $date_guess_function->{ function }->( $story, $html, $html_tree );
 
-            # Found
+        if ( my $timestamp = _make_unix_timestamp( $date_guess ) )
+        {
+            my $threshold = DATE_GUESS_THRESHOLD * 86400;
+            next if ( $story_timestamp && $use_threshold && ( ( $timestamp - $story_timestamp ) > $threshold ) );
+
             $result->{ result }       = MediaWords::CM::GuessDate::Result::FOUND;
             $result->{ guess_method } = $date_guess_function->{ name };
             $result->{ timestamp }    = $timestamp;
             $result->{ date }         = MediaWords::Util::SQL::get_sql_date_from_epoch( $timestamp );
+
             return $result;
         }
     }

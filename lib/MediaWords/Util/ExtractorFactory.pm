@@ -3,7 +3,6 @@ use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 use MediaWords::Util::Config;
 use MediaWords::Util::HeuristicExtractor;
-use MediaWords::Util::CrfExtractor;
 
 use strict;
 
@@ -24,10 +23,6 @@ sub createExtractor
     if ( $extractor_method eq 'HeuristicExtractor' )
     {
         $ret = MediaWords::Util::HeuristicExtractor->new();
-    }
-    elsif ( $extractor_method eq 'CrfExtractor' )
-    {
-        $ret = MediaWords::Util::CrfExtractor->new();
     }
     else
     {

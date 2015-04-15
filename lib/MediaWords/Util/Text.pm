@@ -159,6 +159,24 @@ sub get_similarity_score($$;$)
     return $f_measure;
 }
 
+# Encode data into UTF-8; die() on error
+sub encode_to_utf8($)
+{
+    my $data = shift;
+
+    # Will croak on error
+    return Encode::encode( 'utf-8', $data );
+}
+
+# Decode data from UTF-8; die() on error
+sub decode_from_utf8($)
+{
+    my $data = shift;
+
+    # Will croak on error
+    return Encode::decode( 'utf-8', $data );
+}
+
 # Check whether the string is valid UTF-8
 sub is_valid_utf8($)
 {
