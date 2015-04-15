@@ -89,7 +89,7 @@
        replication is in use, this should match the replication
        configuration.
     -->
-  <dataDir>${mediacloud.collection2.data.dir:}</dataDir>
+  <dataDir>${mediacloud.collection2.data.dir}</dataDir>
 
 
   <!-- The DirectoryFactory to use for indexes.
