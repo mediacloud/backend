@@ -115,8 +115,44 @@ task prepareForSolrRun(dependsOn: ['copyWar', 'copyAdditionalSolrJars', 'copyAdd
     // Solr properties
     System.setProperty("solr.solr.home", solrHomeDir)
     System.setProperty("mediacloud.luceneMatchVersion", luceneMatchVersion)
-    System.setProperty("mediacloud.collection1.data.dir", "${solrDataDir}/no-sharding/collection1/")
-    System.setProperty("mediacloud.collection2.data.dir", "${solrDataDir}/no-sharding/collection2/")
+
+    // Set data dirs for all collections
+    File collectionsDir = file(solrHomeDir + "/collections")
+    FileCollection collections = files { collectionsDir.listFiles() }
+    collections.each {File collection ->
+        if (collection.isDirectory()) {
+            String collectionName = collection.name
+            
+            // Create data directory if it doesn't exist
+            File collectionDataDir = new File(solrDataDir + "/no-sharding/" + collectionName + "/")
+            if (! collectionDataDir.isDirectory()) {
+                println "Collection's '" + collectionName +
+                        "' data directory '" + collectionDataDir.getPath() +
+                        "' does not exist, creating..."
+                collectionDataDir.mkdirs()
+            }
+
+            // Make sure that solrconfig.xml exists
+            File solrConfigFile = new File(solrHomeDir + "/collections/" + collectionName + "/conf/solrconfig.xml")
+            if (! solrConfigFile.exists()) {
+                throw new GradleException("solrconfig.xml at '" + solrConfigFile.getPath() + "' does not exist.")
+            }
+
+            String dataDirJavaProperty = "mediacloud." + collectionName + ".data.dir"
+
+            // Make sure that solrconfig.xml contains correct "dataDir"
+            String solrConfigFileContents = solrConfigFile.getText("UTF-8")
+            String expectedDataDirXML = "<dataDir>\${" + dataDirJavaProperty + "}</dataDir>"
+            if (! solrConfigFileContents.contains( expectedDataDirXML )) {
+                throw new GradleException("solrconfig.xml at '" + solrConfigFile.getPath() +
+                    "' does not contain an expected <dataDir> XML element which should look like this: " +
+                    expectedDataDirXML)
+            }
+
+            // Set Java property so that Solr can later read it
+            System.setProperty(dataDirJavaProperty, collectionDataDir.getPath())
+        }
+    }
 }
 
 // Run Solr
