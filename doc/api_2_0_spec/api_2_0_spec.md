@@ -10,9 +10,9 @@
 Every call below includes a `key` parameter which will authenticate the user to the API service.  The key parameter is excluded
 from the examples in the below sections for brevity.
 
-To get a key, register for a user through our beta program here:
+To get a key, register for a user:
 
-https://docs.google.com/forms/d/1sNtQU9LXwU0As1HUIbeXKSpT4OaP2CWZMnVdLe_paQ8/viewform?usp=send_form
+https://core.mediacloud.org/login/register
 
 Once you have an account go here to see your key:
 
