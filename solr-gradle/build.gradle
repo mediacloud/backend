@@ -3,6 +3,10 @@
 //
 //     gradle runSolr
 //
+// To start Solr with sharding enabled, run:
+//
+//     gradle runSolrShards
+//
 
 import org.gradle.api.plugins.jetty.JettyRunWar
 
@@ -83,16 +87,9 @@ project.webAppDirName = "solr-dist"
 // Web application directory
 def explodedWebAppDir = "${buildDir}/explodedWebAppDir"
 
-// I didn't find a good way to add the slf4j libs to the classpath
-// this workaround copies the contents of the war file to a folder
-// and adds the jars in WEB-INF/lib 
-task runSolr(type: JettyRun, dependsOn: ['copyWar', 'copyAdditionalSolrJars', 'copyAdditionalJettyLoggingJars']) {
-    description 'Run Apache Solr.'
-    // jetty configuration
-    httpPort = listenPort
-    contextPath = 'solr'
-    webAppSourceDirectory = file(explodedWebAppDir)
-}
+//
+// ---
+//
 
 task copyWar(type:Copy) {
     into explodedWebAppDir 
@@ -109,8 +106,8 @@ task copyAdditionalJettyLoggingJars(type:Copy) {
     from configurations.additionalJettyLoggingJars
 }
 
-// executed before jetty plugin
-runSolr.doFirst {
+// Prepare for running Solr
+task prepareForSolrRun(dependsOn: ['copyWar', 'copyAdditionalSolrJars', 'copyAdditionalJettyLoggingJars']) {
 
     // Jetty properties
     System.setProperty("org.eclipse.jetty.server.Request.maxFormContentSize", "4194304")
@@ -120,5 +117,22 @@ runSolr.doFirst {
     System.setProperty("mediacloud.luceneMatchVersion", luceneMatchVersion)
     System.setProperty("mediacloud.collection1.data.dir", "${solrDataDir}/collection1/")
     System.setProperty("mediacloud.collection2.data.dir", "${solrDataDir}/collection2/")
+}
 
+// Run Solr
+task runSolr(type: JettyRun, dependsOn: ['prepareForSolrRun']) {
+    description 'Run Apache Solr.'
+    // Jetty configuration
+    httpPort = listenPort
+    contextPath = 'solr'
+    webAppSourceDirectory = file(explodedWebAppDir)
+}
+
+// Run Solr with sharding enabled
+task runSolrShards(type: JettyRun, dependsOn: ['prepareForSolrRun']) {
+    description 'Run Apache Solr with sharding enabled.'
+    // Jetty configuration
+    httpPort = listenPort
+    contextPath = 'solr'
+    webAppSourceDirectory = file(explodedWebAppDir)
 }
