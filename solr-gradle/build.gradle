@@ -115,8 +115,8 @@ task prepareForSolrRun(dependsOn: ['copyWar', 'copyAdditionalSolrJars', 'copyAdd
     // Solr properties
     System.setProperty("solr.solr.home", solrHomeDir)
     System.setProperty("mediacloud.luceneMatchVersion", luceneMatchVersion)
-    System.setProperty("mediacloud.collection1.data.dir", "${solrDataDir}/collection1/")
-    System.setProperty("mediacloud.collection2.data.dir", "${solrDataDir}/collection2/")
+    System.setProperty("mediacloud.collection1.data.dir", "${solrDataDir}/no-sharding/collection1/")
+    System.setProperty("mediacloud.collection2.data.dir", "${solrDataDir}/no-sharding/collection2/")
 }
 
 // Run Solr
