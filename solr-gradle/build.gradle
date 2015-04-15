@@ -110,7 +110,7 @@ task copyAdditionalJettyLoggingJars(type:Copy) {
 task prepareForSolrRun(dependsOn: ['copyWar', 'copyAdditionalSolrJars', 'copyAdditionalJettyLoggingJars']) {
 
     // Jetty properties
-    System.setProperty("org.eclipse.jetty.server.Request.maxFormContentSize", "4194304")
+    System.setProperty("org.eclipse.jetty.server.Request.maxFormContentSize", Integer.toString(4 * 1024 * 1024))
 
     // Solr properties
     System.setProperty("solr.solr.home", solrHomeDir)
