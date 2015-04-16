@@ -29,7 +29,7 @@ use DBI;
 use DBD::SQLite;
 
 # Max. number of Facebook feed posts to process; 0 for no limit
-Readonly my $FACEBOOK_MAX_POSTS_TO_PROCESS => 100;
+Readonly my $FACEBOOK_MAX_POSTS_TO_PROCESS => 200;
 
 # Returns true of Open Graph object belongs to a Facebook page
 # (https://developers.facebook.com/docs/graph-api/reference/page)
