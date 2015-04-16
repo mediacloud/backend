@@ -1,11 +1,11 @@
-package MediaWords::GearmanFunction::Facebook::FetchStoryStats;
+package MediaWords::GearmanFunction::Facebook::FetchStoryURLStats;
 
 #
 # Fetch story's share count statistics via Facebook's Graph API
 #
 # Start this worker script by running:
 #
-# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/Facebook/FetchStoryStats.pm
+# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/Facebook/FetchStoryURLStats.pm
 #
 
 use strict;

@@ -1,11 +1,11 @@
-package MediaWords::GearmanFunction::Bitly::FetchStoryStats;
+package MediaWords::GearmanFunction::Bitly::FetchStoryURLStats;
 
 #
 # Fetch story's click / referrer count statistics via Bit.ly API
 #
 # Start this worker script by running:
 #
-# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/Bitly/FetchStoryStats.pm
+# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/Bitly/FetchStoryURLStats.pm
 #
 
 use strict;
