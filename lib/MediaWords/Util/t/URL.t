@@ -3,7 +3,8 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 117;
+use Test::Deep;
+use Test::More tests => 121;
 
 use Readonly;
 use HTTP::HashServer;
@@ -736,6 +737,50 @@ sub test_url_and_data_after_redirects_cookies()
     is( $data_after_redirects, $TEST_CONTENT, 'Data after HTTP redirects (cookie)' );
 }
 
+sub test_http_urls_in_string()
+{
+    my $test_string;
+    my $expected_urls;
+
+    # Basic test
+    $test_string = <<EOF;
+        These are my favourite websites:
+        * http://www.mediacloud.org/
+        * http://cyber.law.harvard.edu/
+        * about:blank
+EOF
+    $expected_urls = [ 'http://www.mediacloud.org/', 'http://cyber.law.harvard.edu/', ];
+    cmp_bag( MediaWords::Util::URL::http_urls_in_string( $test_string ), $expected_urls,
+        'test_http_urls_in_string - basic' );
+
+    # Duplicate URLs
+    $test_string = <<EOF;
+        These are my favourite (duplicate) websites:
+        * http://www.mediacloud.org/
+        * http://www.mediacloud.org/
+        * http://cyber.law.harvard.edu/
+        * http://cyber.law.harvard.edu/
+        * http://www.mediacloud.org/
+        * http://www.mediacloud.org/
+EOF
+    $expected_urls = [ 'http://www.mediacloud.org/', 'http://cyber.law.harvard.edu/', ];
+    cmp_bag( MediaWords::Util::URL::http_urls_in_string( $test_string ),
+        $expected_urls, 'test_http_urls_in_string - duplicate URLs' );
+
+    # No http:// URLs
+    $test_string = <<EOF;
+        This test text doesn't have any http:// URLs, only a ftp:// one:
+        ftp://ftp.ubuntu.com/ubuntu/
+EOF
+    $expected_urls = [];
+    cmp_bag( MediaWords::Util::URL::http_urls_in_string( $test_string ),
+        $expected_urls, 'test_http_urls_in_string - no HTTP URLs' );
+
+    # Erroneous input
+    eval { MediaWords::Util::URL::http_urls_in_string( undef ); };
+    ok( $@, 'test_http_urls_in_string - erroneous input' );
+}
+
 sub test_all_url_variants($)
 {
     my ( $db ) = @_;
@@ -979,6 +1024,7 @@ sub main()
     test_url_and_data_after_redirects_http_loop();
     test_url_and_data_after_redirects_html_loop();
     test_url_and_data_after_redirects_cookies();
+    test_http_urls_in_string();
 
     MediaWords::Test::DB::test_on_test_database(
         sub {

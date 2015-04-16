@@ -73,7 +73,29 @@ sub extract_html
     my $transport = _get_transport();
     my $client    = _get_client( $transport );
 
-    $transport->open();
+    my $start_time = time();
+
+    while ( 1 )
+    {
+        eval { $transport->open(); };
+
+        my $e = $@;
+        if ( $e )
+        {
+            if ( ( time() - $start_time ) < 300 )
+            {
+                sleep 1;
+                say STDERR "Retrying connecting to thrift server";
+                next;
+            }
+
+            say STDERR "Giving up trying to connect to thrift server";
+            say STDERR Dumper( $e );
+            die $e;
+        }
+
+        last;
+    }
 
     my $ret = $client->extract_html( $raw_html );
 
