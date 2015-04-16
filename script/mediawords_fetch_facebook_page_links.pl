@@ -25,6 +25,8 @@ use Readonly;
 use URI;
 use URI::QueryParam;
 use Data::Dumper;
+use DBI;
+use DBD::SQLite;
 
 # Max. number of Facebook feed posts to process; 0 for no limit
 Readonly my $FACEBOOK_MAX_POSTS_TO_PROCESS => 100;
@@ -47,7 +49,7 @@ sub _is_facebook_page($)
     }
 }
 
-sub _process_facebook_post($)
+sub _links_in_facebook_post($)
 {
     my $post = shift;
 
@@ -124,11 +126,15 @@ sub _process_facebook_post($)
     {
         say STDERR "Links in post: " . Dumper( \@links );
     }
+
+    return \@links;
 }
 
-sub fetch_facebook_page_links($)
+sub fetch_facebook_page_links($$)
 {
-    my $facebook_page_url = shift;
+    my ( $facebook_page_url, $sqlite3_dbh ) = @_;
+
+    my $sth;
 
     say STDERR "Fetching stats for Facebook page URL $facebook_page_url";
 
@@ -142,6 +148,15 @@ sub fetch_facebook_page_links($)
         warn "URL $facebook_page_url is not a Facebook page\n";
         return;
     }
+
+    # Upsert the Facebook page URL
+    $sth = $sqlite3_dbh->prepare(
+        <<EOF
+        INSERT OR IGNORE INTO facebook_pages (page_url) VALUES (?)
+EOF
+    );
+    $sth->bind_param( 1, $facebook_page_url );
+    $sth->execute();
 
     my $og_object_id = $og_object->{ id };
     unless ( defined $og_object_id )
@@ -208,7 +223,40 @@ sub fetch_facebook_page_links($)
 
         foreach my $post ( @{ $posts } )
         {
-            _process_facebook_post( $post );
+            my $links = _links_in_facebook_post( $post );
+            if ( scalar( @{ $links } ) )
+            {
+
+                foreach my $link ( @{ $links } )
+                {
+
+                    $sth = $sqlite3_dbh->prepare(
+                        <<EOF
+                        INSERT INTO facebook_page_links (facebook_pages_id, url)
+                            SELECT facebook_pages_id, ?
+                            FROM facebook_pages
+                            WHERE page_url = ?
+                              AND NOT EXISTS (
+                                -- Unless it exists already for the same Facebook page
+                                SELECT 1
+                                FROM facebook_page_links
+                                    INNER JOIN facebook_pages
+                                        ON facebook_page_links.facebook_pages_id = facebook_pages.facebook_pages_id
+                                WHERE facebook_page_links.url = ?
+                                  AND facebook_pages.page_url = ?
+                              )
+EOF
+                    );
+                    $sth->bind_param( 1, $link );
+                    $sth->bind_param( 2, $facebook_page_url );
+                    $sth->bind_param( 3, $link );
+                    $sth->bind_param( 4, $facebook_page_url );
+                    unless ( $sth->execute() )
+                    {
+                        die "Adding link '$link' to Facebook page '$facebook_page_url' failed.";
+                    }
+                }
+            }
 
             ++$posts_processed;
             if ( $posts_processed >= $FACEBOOK_MAX_POSTS_TO_PROCESS )
@@ -244,20 +292,64 @@ sub main
     $| = 1;
 
     Readonly my $usage => <<EOF;
-Usage: $0 --pages_file facebook-pages.txt
+Usage: $0 --pages_file facebook-pages.txt --output_database results.sqlite3
 EOF
 
     my $pages_file;
-    Getopt::Long::GetOptions( "pages_file=s" => \$pages_file, ) or die $usage;
-    die $usage unless ( $pages_file );
+    my $output_database;
+    Getopt::Long::GetOptions(
+        "pages_file=s"      => \$pages_file,
+        "output_database=s" => \$output_database,
+    ) or die $usage;
+    die $usage unless ( $pages_file and $output_database );
 
     my @page_urls = split( /\r?\n/, read_file( $pages_file ) );
+
+    say STDERR "Initializing output database '$output_database'...";
+    my $sqlite3_dbh = DBI->connect( "dbi:SQLite:dbname=$output_database", "", "" );
+    $sqlite3_dbh->do( 'PRAGMA foreign_keys = ON' );
+    $sqlite3_dbh->do(
+        <<EOF
+        CREATE TABLE IF NOT EXISTS facebook_pages (
+            facebook_pages_id INTEGER NOT NULL PRIMARY KEY,
+            page_url TEXT NOT NULL
+        )
+EOF
+    );
+    $sqlite3_dbh->do(
+        <<EOF
+        CREATE UNIQUE INDEX IF NOT EXISTS facebook_pages_page_url_idx
+        ON facebook_pages (page_url)
+EOF
+    );
+    $sqlite3_dbh->do(
+        <<EOF
+        CREATE TABLE IF NOT EXISTS facebook_page_links (
+            facebook_page_links_id INTEGER NOT NULL PRIMARY KEY,
+            facebook_pages_id INTEGER NOT NULL,
+            url TEXT NOT NULL,
+            FOREIGN KEY (facebook_pages_id) REFERENCES facebook_pages (facebook_pages_id)
+        )
+EOF
+    );
+    $sqlite3_dbh->do(
+        <<EOF
+        CREATE INDEX IF NOT EXISTS facebook_page_links_facebook_pages_id_idx
+        ON facebook_page_links (facebook_pages_id)
+EOF
+    );
+    $sqlite3_dbh->do(
+        <<EOF
+        CREATE UNIQUE INDEX IF NOT EXISTS facebook_page_links_facebook_pages_id_url_idx
+        ON facebook_page_links (facebook_pages_id, url)
+EOF
+    );
 
     foreach my $page_url ( @page_urls )
     {
         if ( $page_url )
         {
-            fetch_facebook_page_links( $page_url );
+            fetch_facebook_page_links( $page_url, $sqlite3_dbh );
         }
     }
 }
