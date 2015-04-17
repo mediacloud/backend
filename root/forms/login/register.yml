@@ -52,10 +52,6 @@ elements:
     attributes:
       placeholder: correct horse battery staple
 
-  - type: reCAPTCHA
-    label: CAPTCHA
-    name: recaptcha
-
   - type: Submit
     name: submit
     value: Create

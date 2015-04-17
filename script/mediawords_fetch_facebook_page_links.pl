@@ -61,11 +61,7 @@ sub _links_in_facebook_post($)
         die "Post type is undefined.";
     }
 
-    my $post_status_type = $post->{ status_type };
-    unless ( defined $post_status_type )
-    {
-        die "Post status type is undefined.";
-    }
+    my $post_status_type = $post->{ status_type } // '';
 
     my $post_link = $post->{ link };
     if ( $post_link )
