@@ -281,11 +281,15 @@ sub activate : Local
 
     if ( !$token_is_valid )
     {
-        # Don't stash form (because the token is invalid)
-        $c->stash( error_msg => "Password reset token is invalid." );
-        $c->stash->{ c } = $c;
-        $c->stash( template => 'auth/reset.tt2' );
-
+        $c->response->redirect(
+            $c->uri_for(
+                '/login/forgot',
+                {
+                    email     => $email,
+                    error_msg => "Password reset token is invalid."
+                }
+            )
+        );
         return;
     }
 
