@@ -8,7 +8,9 @@ content of online media.
 For more information on Media Cloud, go to
 [mediacloud.org](http://mediacloud.org/).
 
-**NOTE:** Most users prefer to use Media Cloud's [API and public tools](http://mediacloud.org/get-involved/) to query our data instead of running their own Media Cloud instance. This code will be of interest to those users who wish to run their own Media Cloud instance and users of the public tools who want to understand how Media Cloud is implemented.
+**NOTE:** Most users prefer to use Media Cloud's [API and public tools](http://mediacloud.org/get-involved/) to query our data instead of running their own Media Cloud instance. 
+
+The code in this repository will be of interest to those users who wish to run their own Media Cloud instance and users of the public tools who want to understand how Media Cloud is implemented.
 
 The Media Cloud code here does three things:
 
