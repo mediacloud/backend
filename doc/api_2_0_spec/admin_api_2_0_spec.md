@@ -35,6 +35,14 @@ The following table describes the meaning and origin of fields returned by the a
 | `story_sentences`   | A list of sentences in the story.<br />Generated from `story_text` by splitting it into sentences and removing any duplicate sentences occurring within the same source for the same week.
 | `raw_1st_download`  | The contents of the first HTML page of the story.<br />Available regardless of the value of `full_text_rss`.<br />*Note:* only provided if the `raw_1st_download` parameter is non-zero.
 
+
+
+### api/v2/stories/single
+
+| URL                                  | Function
+| ------------------------------------ | ------------------------------------------------------
+| `api/v2/stories/single/<stories_id>` | Return the story for which `stories_id` equals `<stories_id>`
+
 ### api/v2/stories/list
   
 | URL                             | Function
@@ -64,10 +72,8 @@ the order it is processed by the system.
 The `q` and `fq` parameters specify queries to be sent to a Solr server that indexes all Media Cloud stories.  The Solr
 server provides full text search indexing of each sentence collected by Media Cloud.  All content is stored as individual 
 sentences.  The api/v2/stories/list call searches for sentences matching the `q` and / or `fq` parameters if specified and
-the stories that include at least one sentence returned by the specified query.
-
-The `q` and `fq` parameters are passed directly through to Solr.  Documentation of the format of the `q` and `fq` parameters is [here](http://lucene.apache.org/core/4_6_1/queryparser/org/apache/lucene/queryparser/classic/package-summary.html#package_description).  All the return fields (in the example return value in the api/v2/sentences/list call below) may be used 
-as solr query parameters, for example 'sentence:obama AND media_id:1'. Be aware that ':' is usually replaced with '%3A' in programmatically generated URLs.
+the stories that include at least one sentence returned by the specified query. **Refer to the stories_public/list access point in the
+Media Cloud API 2.0 Spec for a more detailed description of the `q` and `fq` parameters.
 
 #### Example
 
