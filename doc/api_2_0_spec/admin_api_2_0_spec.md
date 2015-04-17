@@ -24,7 +24,7 @@ detection system has determined that the full text of each story can be found in
 
 ### Output description
 
-The following table describes the meaning and origin of fields returned by both api/v2/stories/single and api/v2/stories/list in which we felt clarification was necessary.
+The following table describes the meaning and origin of fields returned by the admin API for both api/v2/stories/single and api/v2/stories/list. (The admin API also returns all the fields available through the general API. Refer to the Media Cloud API 2.0 Spec for a list and description of these fields.)
 
 | Field               | Description
 | ------------------- | ----------------------------------------------------------------------
@@ -34,13 +34,6 @@ The following table describes the meaning and origin of fields returned by both 
 | `story_text`        | The text of the story.<br />If `full_text_rss` is non-zero, this is formed by stripping HTML from the title and description and concatenating them.<br />If `full_text_rss` is zero, this is formed by extracting the article text from the HTML.
 | `story_sentences`   | A list of sentences in the story.<br />Generated from `story_text` by splitting it into sentences and removing any duplicate sentences occurring within the same source for the same week.
 | `raw_1st_download`  | The contents of the first HTML page of the story.<br />Available regardless of the value of `full_text_rss`.<br />*Note:* only provided if the `raw_1st_download` parameter is non-zero.
-| `publish_date`      | The publish date of the story as specified in the RSS feed.
-| `tags` | A list of any tags associated with this story, including those written through the write-back api.
-| `collect_date`      | The date the RSS feed was actually downloaded.
-| `guid`              | The GUID field in the RSS feed. Defaults to the URL if no GUID is specified in the RSS feed.
-| `corenlp`           | The raw json result from running the story text through the CoreNLP pipeline.
-
-
 
 ### api/v2/stories/list
   
