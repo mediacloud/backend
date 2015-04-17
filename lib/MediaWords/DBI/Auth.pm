@@ -458,6 +458,24 @@ sub validate_password_requirements_or_return_error_message($$$)
     return '';
 }
 
+# Activate the user
+sub _activate_user_or_return_error_message($$)
+{
+    my ( $db, $email ) = @_;
+
+    # Set the password hash
+    $db->query(
+        <<"EOF",
+        UPDATE auth_users
+        SET active = TRUE
+        WHERE email = ?
+EOF
+        $email
+    );
+
+    return;
+}
+
 # Change password; returns error message on failure, empty string on success
 sub _change_password_or_return_error_message($$$$;$)
 {
@@ -576,6 +594,35 @@ sub change_password_via_token_or_return_error_message($$$$$)
 
     # Execute the change
     my $error_message = _change_password_or_return_error_message( $db, $email, $password_new, $password_new_repeat );
+    if ( $error_message )
+    {
+        return $error_message;
+    }
+
+    # Unset the password reset token
+    post_successful_login( $db, $email );
+
+    return $error_message;
+}
+
+# Change password with a password token sent by email; returns error message on failure, empty string on success
+sub activate_user_via_token_or_return_error_message($$$)
+{
+    my ( $db, $email, $password_reset_token ) = @_;
+
+    if ( !$password_reset_token )
+    {
+        return 'Password reset token is empty.';
+    }
+
+    # Validate the token once more (was pre-validated in controller)
+    if ( !validate_password_reset_token( $db, $email, $password_reset_token ) )
+    {
+        return 'Password reset token is invalid.';
+    }
+
+    # Execute the change
+    my $error_message = _activate_user_or_return_error_message( $db, $email );
     if ( $error_message )
     {
         return $error_message;
