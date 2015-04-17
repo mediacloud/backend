@@ -499,7 +499,7 @@ sub _change_password_or_return_error_message($$$$;$)
     $db->query(
         <<"EOF",
         UPDATE auth_users
-        SET password_hash = ?
+        SET password_hash = ?, active = true
         WHERE email = ?
 EOF
         $password_new_hash, $email
