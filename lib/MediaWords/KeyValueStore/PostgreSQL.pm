@@ -93,6 +93,11 @@ sub fetch_content($$$;$)
 {
     my ( $self, $db, $object_id, $object_path ) = @_;
 
+    unless ( defined $object_id )
+    {
+        die "Object ID is undefined.\n";
+    }
+
     my $table_name = $self->_conf_table_name;
 
     my $gzipped_content = $db->query(
