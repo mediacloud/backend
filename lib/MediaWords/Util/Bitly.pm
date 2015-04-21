@@ -1337,7 +1337,7 @@ sub write_story_stats($$$)
 # * $db - database object
 # * $stories_id - story ID
 #
-# Returns hashref with decoded JSON, undef if story is not annotated; die()s on error
+# Returns hashref with decoded JSON, undef if story is not processed; die()s on error
 sub read_story_stats($$)
 {
     my ( $db, $stories_id ) = @_;
@@ -1359,7 +1359,7 @@ sub read_story_stats($$)
         return undef;
     }
 
-    # Fetch annotation
+    # Fetch processing result
     my $json_ref = undef;
 
     my $param_object_path                   = undef;
