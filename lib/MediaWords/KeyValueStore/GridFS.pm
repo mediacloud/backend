@@ -16,17 +16,18 @@ use MediaWords::Util::Compress;
 use MongoDB 0.704.1.0;
 use MongoDB::GridFS;
 use Carp;
+use Readonly;
 
 # MongoDB's query timeout, in ms
 # (default timeout is 30 s, but MongoDB sometimes creates a new 2 GB data file for ~38 seconds,
 #  so we set it to 60 s)
-use constant MONGODB_QUERY_TIMEOUT => 60 * 1000;
+Readonly my $MONGODB_QUERY_TIMEOUT => 60 * 1000;
 
 # MongoDB's number of read / write retries
 # (in case waiting 60 seconds for the read / write to happen doesn't help, the instance should
 #  retry writing a couple of times)
-use constant MONGODB_READ_RETRIES  => 10;
-use constant MONGODB_WRITE_RETRIES => 10;
+Readonly my $MONGODB_READ_RETRIES  => 10;
+Readonly my $MONGODB_WRITE_RETRIES => 10;
 
 # MongoDB client, GridFS instance (lazy-initialized to prevent multiple forks using the same object)
 has '_mongodb_client'   => ( is => 'rw' );
@@ -97,7 +98,7 @@ sub _connect_to_mongodb_or_die($)
                 host          => sprintf( 'mongodb://%s:%d', $self->_conf_host, $self->_conf_port ),
                 username      => $self->_conf_username,
                 password      => $self->_conf_password,
-                query_timeout => MONGODB_QUERY_TIMEOUT
+                query_timeout => $MONGODB_QUERY_TIMEOUT
             )
         );
     }
@@ -107,7 +108,7 @@ sub _connect_to_mongodb_or_die($)
         $self->_mongodb_client(
             MongoDB::MongoClient->new(
                 host          => sprintf( 'mongodb://%s:%d', $self->_conf_host, $self->_conf_port ),
-                query_timeout => MONGODB_QUERY_TIMEOUT
+                query_timeout => $MONGODB_QUERY_TIMEOUT
             )
         );
     }
@@ -196,7 +197,7 @@ sub store_content($$$$;$)
 
     # MongoDB sometimes times out when writing because it's busy creating a new data file,
     # so we'll try to write several times
-    for ( my $retry = 0 ; $retry < MONGODB_WRITE_RETRIES ; ++$retry )
+    for ( my $retry = 0 ; $retry < $MONGODB_WRITE_RETRIES ; ++$retry )
     {
         if ( $retry > 0 )
         {
@@ -236,7 +237,7 @@ sub store_content($$$$;$)
 
     unless ( $gridfs_id )
     {
-        confess "GridFS: Unable to store object ID $object_id to GridFS after " . MONGODB_WRITE_RETRIES . " retries.";
+        confess "GridFS: Unable to store object ID $object_id to GridFS after $MONGODB_WRITE_RETRIES retries.";
     }
 
     return $gridfs_id;
@@ -262,7 +263,7 @@ sub fetch_content($$$;$$)
     # so we'll try to read several times
     my $attempt_to_read_succeeded = 0;
     my $file                      = undef;
-    for ( my $retry = 0 ; $retry < MONGODB_READ_RETRIES ; ++$retry )
+    for ( my $retry = 0 ; $retry < $MONGODB_READ_RETRIES ; ++$retry )
     {
         if ( $retry > 0 )
         {
@@ -305,7 +306,7 @@ sub fetch_content($$$;$$)
     }
     else
     {
-        confess "GridFS: Unable to read object ID $object_id from GridFS after " . MONGODB_READ_RETRIES . " retries.";
+        confess "GridFS: Unable to read object ID $object_id from GridFS after $MONGODB_READ_RETRIES retries.";
     }
     unless ( defined( $file ) )
     {

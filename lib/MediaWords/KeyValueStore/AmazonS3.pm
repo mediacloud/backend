@@ -18,33 +18,30 @@ use Net::Amazon::S3::Client;
 use Net::Amazon::S3::Client::Bucket;
 use POSIX qw(floor);
 use Carp;
+use Readonly;
 
 # Should the Amazon S3 module use secure (SSL-encrypted) connections?
-use constant AMAZON_S3_USE_SSL => 0;
+Readonly my $AMAZON_S3_USE_SSL => 0;
 
 # How many seconds should the module wait before bailing on a request to S3 (in seconds)
-# (Timeout should "fit in" at least AMAZON_S3_READ_ATTEMPTS number of retries
+# (Timeout should "fit in" at least $AMAZON_S3_READ_ATTEMPTS number of retries
 # within the time period)
-use constant AMAZON_S3_TIMEOUT => 60;
+Readonly my $AMAZON_S3_TIMEOUT => 60;
 
 # Check if content exists before storing (good for debugging, slows down the stores)
-use constant AMAZON_S3_CHECK_IF_EXISTS_BEFORE_STORING => 1;
+Readonly my $AMAZON_S3_CHECK_IF_EXISTS_BEFORE_STORING => 1;
 
 # Check if content exists before fetching (good for debugging, slows down the fetches)
-use constant AMAZON_S3_CHECK_IF_EXISTS_BEFORE_FETCHING => 1;
+Readonly my $AMAZON_S3_CHECK_IF_EXISTS_BEFORE_FETCHING => 1;
 
 # Check if content exists before deleting (good for debugging, slows down the deletes)
-use constant AMAZON_S3_CHECK_IF_EXISTS_BEFORE_DELETING => 1;
+Readonly my $AMAZON_S3_CHECK_IF_EXISTS_BEFORE_DELETING => 1;
 
 # S3's number of read / write attempts
 # (in case waiting 20 seconds for the read / write to happen doesn't help, the instance should
 # retry writing a couple of times)
-use constant AMAZON_S3_READ_ATTEMPTS  => 3;
-use constant AMAZON_S3_WRITE_ATTEMPTS => 3;
-
-# Properties for a bucket in case we need to create one
-use constant AMAZON_S3_CREATE_ACL_SHORT           => 'private';
-use constant AMAZON_S3_CREATE_LOCATION_CONSTRAINT => 'US';
+Readonly my $AMAZON_S3_READ_ATTEMPTS  => 3;
+Readonly my $AMAZON_S3_WRITE_ATTEMPTS => 3;
 
 # Configuration
 has '_conf_access_key_id'     => ( is => 'rw' );
@@ -74,11 +71,11 @@ sub BUILD($$)
     my $directory_name = $args->{ directory_name } || '';
 
     # Validate constants
-    if ( AMAZON_S3_READ_ATTEMPTS < 1 )
+    if ( $AMAZON_S3_READ_ATTEMPTS < 1 )
     {
         confess "AMAZON_S3_READ_ATTEMPTS must be >= 1";
     }
-    if ( AMAZON_S3_WRITE_ATTEMPTS < 1 )
+    if ( $AMAZON_S3_WRITE_ATTEMPTS < 1 )
     {
         confess "AMAZON_S3_WRITE_ATTEMPTS must be >= 1";
     }
@@ -126,9 +123,9 @@ sub _initialize_s3_or_die($)
         return;
     }
 
-    # Timeout should "fit in" at least AMAZON_S3_READ_ATTEMPTS number of retries
+    # Timeout should "fit in" at least $AMAZON_S3_READ_ATTEMPTS number of retries
     # within the time period
-    my $request_timeout = floor( ( AMAZON_S3_TIMEOUT / AMAZON_S3_READ_ATTEMPTS ) - 1 );
+    my $request_timeout = floor( ( $AMAZON_S3_TIMEOUT / $AMAZON_S3_READ_ATTEMPTS ) - 1 );
     if ( $request_timeout < 10 )
     {
         confess "Amazon S3 request timeout ($request_timeout) too small.";
@@ -140,7 +137,7 @@ sub _initialize_s3_or_die($)
             aws_access_key_id     => $self->_conf_access_key_id,
             aws_secret_access_key => $self->_conf_secret_access_key,
             retry                 => 1,
-            secure                => AMAZON_S3_USE_SSL,
+            secure                => $AMAZON_S3_USE_SSL,
             timeout               => $request_timeout
         )
     );
@@ -215,7 +212,7 @@ sub remove_content($$$;$)
 
     $self->_initialize_s3_or_die();
 
-    if ( AMAZON_S3_CHECK_IF_EXISTS_BEFORE_DELETING )
+    if ( $AMAZON_S3_CHECK_IF_EXISTS_BEFORE_DELETING )
     {
         unless ( $self->content_exists( $db, $object_id, $object_path ) )
         {
@@ -237,7 +234,7 @@ sub store_content($$$$)
 
     $self->_initialize_s3_or_die();
 
-    if ( AMAZON_S3_CHECK_IF_EXISTS_BEFORE_STORING )
+    if ( $AMAZON_S3_CHECK_IF_EXISTS_BEFORE_STORING )
     {
         if ( $self->content_exists( $db, $object_id ) )
         {
@@ -258,7 +255,7 @@ sub store_content($$$$)
     my $object;
 
     # S3 sometimes times out when writing, so we'll try to write several times
-    for ( my $retry = 0 ; $retry < AMAZON_S3_WRITE_ATTEMPTS ; ++$retry )
+    for ( my $retry = 0 ; $retry < $AMAZON_S3_WRITE_ATTEMPTS ; ++$retry )
     {
         if ( $retry > 0 )
         {
@@ -286,7 +283,7 @@ sub store_content($$$$)
 
     unless ( $write_was_successful )
     {
-        confess "Unable to write object ID $object_id to Amazon S3 after " . AMAZON_S3_WRITE_ATTEMPTS . " retries.";
+        confess "Unable to write object ID $object_id to Amazon S3 after $AMAZON_S3_WRITE_ATTEMPTS retries.";
     }
 
     return 's3:' . $object->key;
@@ -299,7 +296,7 @@ sub fetch_content($$$;$)
 
     $self->_initialize_s3_or_die();
 
-    if ( AMAZON_S3_CHECK_IF_EXISTS_BEFORE_FETCHING )
+    if ( $AMAZON_S3_CHECK_IF_EXISTS_BEFORE_FETCHING )
     {
         unless ( $self->content_exists( $db, $object_id, $object_path ) )
         {
@@ -311,7 +308,7 @@ sub fetch_content($$$;$)
     my $gzipped_content;
 
     # S3 sometimes times out when reading, so we'll try to read several times
-    for ( my $retry = 0 ; $retry < AMAZON_S3_READ_ATTEMPTS ; ++$retry )
+    for ( my $retry = 0 ; $retry < $AMAZON_S3_READ_ATTEMPTS ; ++$retry )
     {
         if ( $retry > 0 )
         {
@@ -338,7 +335,7 @@ sub fetch_content($$$;$)
 
     unless ( defined $gzipped_content )
     {
-        confess "Unable to read object ID $object_id from Amazon S3 after " . AMAZON_S3_READ_ATTEMPTS . " retries.";
+        confess "Unable to read object ID $object_id from Amazon S3 after $AMAZON_S3_READ_ATTEMPTS retries.";
     }
 
     # Gunzip + decode
