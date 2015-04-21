@@ -37,12 +37,14 @@ use MediaWords::DB;
 use MediaWords::DBI::Stories;
 use MediaWords::Util::Config;
 use MediaWords::Util::SQL;
+use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
 
 has 'db'                => ( is => 'rw', isa => 'Ref', required => 1 );
 has 'start_url'         => ( is => 'rw', isa => 'Str', required => 1 );
 has 'page_url_pattern'  => ( is => 'rw', isa => 'Str', required => 1 );
 has 'story_url_pattern' => ( is => 'rw', isa => 'Str', required => 1 );
+has 'content_pattern'   => ( is => 'rw', isa => 'Str', required => 1 );
 has 'media_id'          => ( is => 'rw', isa => 'Int', required => 1 );
 
 has 'debug'   => ( is => 'rw', isa => 'Int', required => 0 );
@@ -402,11 +404,35 @@ sub _add_story_download
 
     $download = $db->create( 'downloads', $download );
 
+    if ( $self->content_pattern )
+    {
+        my $content_pattern = $self->content_pattern;
+
+        $content =~ /($content_pattern)/ims;
+
+        $content = $1 || '';
+    }
+    die( length( $content ) . " " . $content );
+
     MediaWords::DBI::Downloads::store_content_determinedly( $db, $download, $content );
 
-    eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, "ss", 0, 1 ); };
+    eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, "ss" ); };
 
     warn "extract error processing download $download->{ downloads_id }: $@" if ( $@ );
+}
+
+my $_scraped_tag;
+
+sub _add_scraped_tag_to_story
+{
+    my ( $self, $story ) = @_;
+
+    $_scraped_tag ||= MediaWords::Util::Tags::lookup_or_create_tag( $self->db, 'scraped:scraped' );
+
+    $self->db->query( <<SQL, $_scraped_tag->{ tags_id }, $story->{ stories_id } );
+insert into stories_tags_map ( tags_id, stories_id ) values ( ?, ? )
+SQL
+
 }
 
 # add the stories to the database, including downloads
@@ -426,6 +452,8 @@ sub _add_new_stories
 
         eval { $story = $self->db->create( 'stories', $story ) };
         carp( $@ . " - " . Dumper( $story ) ) if ( $@ );
+
+        $self->_add_scraped_tag_to_story( $story );
 
         $self->_add_story_to_scrape_feed( $story );
 
