@@ -21,6 +21,9 @@ use Scalar::Defer;
 use Readonly;
 use Data::Dumper;
 
+# PostgreSQL table name for storing raw CoreNLP annotations
+Readonly my $CORENLP_POSTGRESQL_KVS_TABLE_NAME => 'corenlp_annotations';
+
 # Store / fetch downloads using Bzip2 compression
 Readonly my $CORENLP_USE_BZIP2 => 1;
 
@@ -108,7 +111,35 @@ my $_corenlp_annotator_level = lazy
     return $corenlp_annotator_level;
 };
 
+# (Lazy-initialized) PostgreSQL key-value store
+#
+# We use a static, package-wide variable here because:
+# a) PostgreSQL handler should support being used by multiple threads by now, and
+# b) each Gearman worker is a separate process so there shouldn't be any resource clashes.
+my $_postgresql_store = lazy
+{
+    # this is (probably) an expensive module to load, so lazy load it
+    require MediaWords::KeyValueStore::PostgreSQL;
+
+    unless ( annotator_is_enabled() )
+    {
+        fatal_error( "CoreNLP annotator is not enabled; why are you accessing this variable?" );
+    }
+
+    my $config = MediaWords::Util::Config->get_config();
+
+    # PostgreSQL storage
+    my $postgresql_store =
+      MediaWords::KeyValueStore::PostgreSQL->new( { table_name => $CORENLP_POSTGRESQL_KVS_TABLE_NAME } );
+    say STDERR "Will read / write CoreNLP annotator results to PostgreSQL database: $CORENLP_POSTGRESQL_KVS_TABLE_NAME";
+
+    return $postgresql_store;
+};
+
 # (Lazy-initialized) MongoDB GridFS key-value store
+#
+# Used for annotations not yet migrated to PostgreSQL key-value store.
+#
 # We use a static, package-wide variable here because:
 # a) MongoDB handler should support being used by multiple threads by now, and
 # b) each Gearman worker is a separate process so there shouldn't be any resource clashes.
@@ -132,7 +163,7 @@ my $_gridfs_store = lazy
     }
 
     my $gridfs_store = MediaWords::KeyValueStore::GridFS->new( { database_name => $gridfs_database_name } );
-    say STDERR "Will write CoreNLP annotator results to GridFS database: $gridfs_database_name";
+    say STDERR "Will read CoreNLP annotator results from GridFS database: $gridfs_database_name";
 
     return $gridfs_store;
 };
@@ -175,6 +206,10 @@ sub _annotate_text($)
     unless ( $_corenlp_annotator_url )
     {
         fatal_error( "Unable to determine CoreNLP annotator URL to use." );
+    }
+    unless ( $_postgresql_store )
+    {
+        fatal_error( "PostgreSQL handler is not initialized." );
     }
     unless ( $_gridfs_store )
     {
@@ -395,12 +430,41 @@ sub _fetch_raw_annotation_for_story($$)
     my $param_use_bunzip2_instead_of_gunzip = $CORENLP_USE_BZIP2;    # ...with Bzip2
 
     eval {
-        $json_ref =
-          $_gridfs_store->fetch_content( $db, $stories_id, $param_object_path, $param_use_bunzip2_instead_of_gunzip );
+
+        # Try PostgreSQL first, GridFS later, die() if not found on either
+        if ( $_postgresql_store->content_exists( $db, $stories_id, $param_object_path ) )
+        {
+
+            $json_ref =
+              $_postgresql_store->fetch_content( $db, $stories_id, $param_object_path,
+                $param_use_bunzip2_instead_of_gunzip );
+            unless ( defined $json_ref )
+            {
+                die "PostgreSQL was able to fetch story $stories_id, but the content is undefined.";
+            }
+
+        }
+        elsif ( $_gridfs_store->content_exists( $db, $stories_id, $param_object_path ) )
+        {
+
+            $json_ref =
+              $_gridfs_store->fetch_content( $db, $stories_id, $param_object_path, $param_use_bunzip2_instead_of_gunzip );
+            unless ( defined $json_ref )
+            {
+                die "GridFS was able to fetch story $stories_id, but the content is undefined.";
+            }
+
+        }
+        else
+        {
+
+            die "Story's $stories_id annotation is stored neither in PostgreSQL nor in GridFS.";
+
+        }
     };
     if ( $@ or ( !defined $json_ref ) )
     {
-        die "GridFS died while fetching annotation for story $stories_id: $@\n";
+        die "Store died while fetching annotation for story $stories_id: $@\n";
     }
 
     my $json = $$json_ref;
@@ -487,10 +551,18 @@ sub story_is_annotated($$)
     }
 
     my $annotation_exists = undef;
-    eval { $annotation_exists = $_gridfs_store->content_exists( $db, $stories_id ); };
+    eval {
+
+        # Try PostgreSQL first, GridFS later
+        $annotation_exists = $_postgresql_store->content_exists( $db, $stories_id );
+        unless ( $annotation_exists )
+        {
+            $annotation_exists = $_gridfs_store->content_exists( $db, $stories_id );
+        }
+    };
     if ( $@ )
     {
-        die "GridFS died while testing whether or not an annotation exists for story $stories_id: $@";
+        die "Storage died while testing whether or not an annotation exists for story $stories_id: $@";
     }
 
     if ( $annotation_exists )
@@ -586,12 +658,13 @@ EOF
 
     say STDERR "Storing annotation results for story $stories_id...";
 
-    # Write to GridFS, index by stories_id
+    # Write to PostgreSQL, index by stories_id
     eval {
         # objects should be compressed with Bzip2
         my $param_use_bzip2_instead_of_gzip = $CORENLP_USE_BZIP2;
 
-        my $path = $_gridfs_store->store_content( $db, $stories_id, \$json_annotation, $param_use_bzip2_instead_of_gzip );
+        my $path =
+          $_postgresql_store->store_content( $db, $stories_id, \$json_annotation, $param_use_bzip2_instead_of_gzip );
     };
     if ( $@ )
     {
