@@ -988,6 +988,8 @@ END
     return $tag ? 1 : 0;
 }
 
+my $_date_guess_method_tag_lookup = {};
+
 # assign a tag to the story for the date guess method
 sub assign_date_guess_method
 {
@@ -1010,8 +1012,15 @@ END
     }
 
     my $tag_set_name = ( $date_guess_method eq 'undateable' ) ? 'date_invalid' : 'date_guess_method';
+    my $tag_name = "$tag_set_name:$date_guess_method";
 
-    my $date_guess_method_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, "$tag_set_name:$date_guess_method" );
+    my $date_guess_method_tag = $_date_guess_method_tag_lookup->{ $tag_name };
+    if ( !$date_guess_method_tag )
+    {
+        $date_guess_method_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, "$tag_set_name:$date_guess_method" );
+        $_date_guess_method_tag_lookup->{ $tag_name } = $date_guess_method_tag;
+    }
+
     $db->query( <<END, $story->{ stories_id }, $date_guess_method_tag->{ tags_id } );
 insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )
 END
