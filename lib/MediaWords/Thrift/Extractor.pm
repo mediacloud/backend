@@ -91,7 +91,8 @@ sub extract_html
 
             say STDERR "Giving up trying to connect to thrift server";
             say STDERR Dumper( $e );
-            die $e;
+            say STDERR "Gearman work is terminating so that the extractor job remains in the Gearman queue";
+            exit();
         }
 
         last;
