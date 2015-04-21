@@ -13,6 +13,7 @@ use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 use MediaWords::Util::Compress;
 use DBD::Pg qw(:pg_types);
+use Carp;
 
 # Configuration
 has '_conf_table_name' => ( is => 'rw' );
@@ -34,15 +35,24 @@ sub BUILD($$)
 }
 
 # Moose method
-sub store_content($$$$)
+sub store_content($$$$;$)
 {
-    my ( $self, $db, $object_id, $content_ref ) = @_;
+    my ( $self, $db, $object_id, $content_ref, $use_bzip2_instead_of_gzip ) = @_;
 
     my $table_name = $self->_conf_table_name;
 
-    # Encode + gzip
+    # Encode + compress
     my $content_to_store;
-    eval { $content_to_store = MediaWords::Util::Compress::encode_and_gzip( $$content_ref ); };
+    eval {
+        if ( $use_bzip2_instead_of_gzip )
+        {
+            $content_to_store = MediaWords::Util::Compress::encode_and_bzip2( $$content_ref );
+        }
+        else
+        {
+            $content_to_store = MediaWords::Util::Compress::encode_and_gzip( $$content_ref );
+        }
+    };
     if ( $@ or ( !defined $content_to_store ) )
     {
         die "Unable to compress object ID $object_id: $@";
@@ -89,9 +99,9 @@ EOF
 }
 
 # Moose method
-sub fetch_content($$$;$)
+sub fetch_content($$$;$$)
 {
-    my ( $self, $db, $object_id, $object_path ) = @_;
+    my ( $self, $db, $object_id, $object_path, $use_bunzip2_instead_of_gunzip ) = @_;
 
     unless ( defined $object_id )
     {
@@ -100,7 +110,7 @@ sub fetch_content($$$;$)
 
     my $table_name = $self->_conf_table_name;
 
-    my $gzipped_content = $db->query(
+    my $compressed_content = $db->query(
         <<"EOF",
         SELECT raw_data
         FROM $table_name
@@ -109,16 +119,34 @@ EOF
         $object_id
     )->flat;
 
-    unless ( $gzipped_content->[ 0 ] )
+    unless ( $compressed_content->[ 0 ] )
     {
         die "Object with ID $object_id was not found in '$table_name' table.\n";
     }
 
-    $gzipped_content = $gzipped_content->[ 0 ];
+    $compressed_content = $compressed_content->[ 0 ];
 
-    # Gunzip + decode
+    # Uncompress + decode
+    unless ( defined $compressed_content and $compressed_content ne '' )
+    {
+        # PostgreSQL might return an empty string on some cases of corrupt
+        # data (technically), but an empty string can't be a valid Gzip/Bzip2
+        # archive, so we're checking if we're about to attempt to decompress an
+        # empty string
+        confess "Compressed data is empty for object $object_id.\n";
+    }
+
     my $decoded_content;
-    eval { $decoded_content = MediaWords::Util::Compress::gunzip_and_decode( $gzipped_content ); };
+    eval {
+        if ( $use_bunzip2_instead_of_gunzip )
+        {
+            $decoded_content = MediaWords::Util::Compress::bunzip2_and_decode( $compressed_content );
+        }
+        else
+        {
+            $decoded_content = MediaWords::Util::Compress::gunzip_and_decode( $compressed_content );
+        }
+    };
     if ( $@ or ( !defined $decoded_content ) )
     {
         die "Unable to uncompress object ID $object_id: $@";
