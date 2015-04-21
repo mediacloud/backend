@@ -24,13 +24,14 @@ use Scalar::Util qw/looks_like_number/;
 use Scalar::Defer;
 use DateTime;
 use DateTime::Duration;
+use Readonly;
 
-use constant BITLY_API_ENDPOINT     => 'https://api-ssl.bitly.com/';
-use constant BITLY_GRIDFS_USE_BZIP2 => 0;                              # Gzip works better in Bit.ly's case
+Readonly my $BITLY_API_ENDPOINT     => 'https://api-ssl.bitly.com/';
+Readonly my $BITLY_GRIDFS_USE_BZIP2 => 0;                              # Gzip works better in Bit.ly's case
 
 # Error message printed when Bit.ly rate limit is exceeded; used for naive
 # exception handling, see error_is_rate_limit_exceeded()
-use constant BITLY_ERROR_LIMIT_EXCEEDED => 'Bit.ly rate limit exceeded. Please wait for a bit and try again.';
+Readonly my $BITLY_ERROR_LIMIT_EXCEEDED => 'Bit.ly rate limit exceeded. Please wait for a bit and try again.';
 
 # (Lazy-initialized) Bit.ly access token
 my $_bitly_access_token = lazy
@@ -216,7 +217,7 @@ sub request($$)
     }
     $params->{ access_token } = $_bitly_access_token;
 
-    my $uri = URI->new( BITLY_API_ENDPOINT );
+    my $uri = URI->new( $BITLY_API_ENDPOINT );
     $uri->path( $path );
     foreach my $params_key ( keys %{ $params } )
     {
@@ -253,7 +254,7 @@ sub request($$)
     {
         if ( $json->{ status_code } == 403 and $json->{ status_txt } eq 'RATE_LIMIT_EXCEEDED' )
         {
-            die BITLY_ERROR_LIMIT_EXCEEDED;
+            die $BITLY_ERROR_LIMIT_EXCEEDED;
 
         }
         elsif ( $json->{ status_code } == 500 and $json->{ status_txt } eq 'INVALID_ARG_UNIT_REFERENCE_TS' )
@@ -1318,7 +1319,7 @@ sub write_story_stats($$$)
 
     # Write to GridFS, index by stories_id
     eval {
-        my $param_use_bzip2_instead_of_gzip = BITLY_GRIDFS_USE_BZIP2 + 0;
+        my $param_use_bzip2_instead_of_gzip = $BITLY_GRIDFS_USE_BZIP2;
 
         my $path = $_gridfs_store->store_content( $db, $stories_id, \$json_stats, $param_use_bzip2_instead_of_gzip );
     };
@@ -1360,7 +1361,7 @@ sub read_story_stats($$)
     my $json_ref = undef;
 
     my $param_object_path                   = undef;
-    my $param_use_bunzip2_instead_of_gunzip = BITLY_GRIDFS_USE_BZIP2 + 0;
+    my $param_use_bunzip2_instead_of_gunzip = $BITLY_GRIDFS_USE_BZIP2;
 
     eval {
         $json_ref =
@@ -1412,9 +1413,7 @@ sub error_is_rate_limit_exceeded($)
 {
     my $error_message = shift;
 
-    my $expected_message = BITLY_ERROR_LIMIT_EXCEEDED . '';
-
-    if ( $error_message =~ /$expected_message/ )
+    if ( $error_message =~ /$BITLY_ERROR_LIMIT_EXCEEDED/ )
     {
         return 1;
     }
