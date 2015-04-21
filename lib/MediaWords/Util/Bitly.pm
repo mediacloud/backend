@@ -25,8 +25,11 @@ use DateTime;
 use DateTime::Duration;
 use Readonly;
 
+# API endpoint
 Readonly my $BITLY_API_ENDPOINT => 'https://api-ssl.bitly.com/';
-Readonly my $BITLY_USE_BZIP2    => 0;                              # Gzip works better in Bit.ly's case
+
+# Whether to compress processing results using Bzip2 instead of Gzip
+Readonly my $BITLY_USE_BZIP2 => 0;    # Gzip works better in Bit.ly's case
 
 # Error message printed when Bit.ly rate limit is exceeded; used for naive
 # exception handling, see error_is_rate_limit_exceeded()
