@@ -16,7 +16,6 @@ use MediaWords::Util::URL;
 use MediaWords::Util::Config;
 use MediaWords::Util::JSON;
 use MediaWords::Util::DateTime;
-use MediaWords::KeyValueStore::GridFS;
 use URI;
 use URI::QueryParam;
 use JSON;
@@ -24,13 +23,20 @@ use Scalar::Util qw/looks_like_number/;
 use Scalar::Defer;
 use DateTime;
 use DateTime::Duration;
+use Readonly;
 
-use constant BITLY_API_ENDPOINT     => 'https://api-ssl.bitly.com/';
-use constant BITLY_GRIDFS_USE_BZIP2 => 0;                              # Gzip works better in Bit.ly's case
+# API endpoint
+Readonly my $BITLY_API_ENDPOINT => 'https://api-ssl.bitly.com/';
+
+# PostgreSQL table name for storing raw Bit.ly processing results
+Readonly my $BITLY_POSTGRESQL_KVS_TABLE_NAME => 'bitly_processing_results';
+
+# Whether to compress processing results using Bzip2 instead of Gzip
+Readonly my $BITLY_USE_BZIP2 => 0;    # Gzip works better in Bit.ly's case
 
 # Error message printed when Bit.ly rate limit is exceeded; used for naive
 # exception handling, see error_is_rate_limit_exceeded()
-use constant BITLY_ERROR_LIMIT_EXCEEDED => 'Bit.ly rate limit exceeded. Please wait for a bit and try again.';
+Readonly my $BITLY_ERROR_LIMIT_EXCEEDED => 'Bit.ly rate limit exceeded. Please wait for a bit and try again.';
 
 # (Lazy-initialized) Bit.ly access token
 my $_bitly_access_token = lazy
@@ -70,12 +76,40 @@ my $_bitly_timeout = lazy
     return $timeout;
 };
 
+# (Lazy-initialized) PostgreSQL key-value store
+#
+# We use a static, package-wide variable here because:
+# a) MongoDB handler should support being used by multiple threads by now, and
+# b) each Gearman worker is a separate process so there shouldn't be any resource clashes.
+my $_postgresql_store = lazy
+{
+    # this is (probably) an expensive module to load, so lazy load it
+    require MediaWords::KeyValueStore::PostgreSQL;
+
+    unless ( bitly_processing_is_enabled() )
+    {
+        fatal_error( "Bit.ly processing is not enabled; why are you accessing this variable?" );
+    }
+
+    # PostgreSQL storage
+    my $postgresql_store = MediaWords::KeyValueStore::PostgreSQL->new( { table_name => $BITLY_POSTGRESQL_KVS_TABLE_NAME } );
+    say STDERR "Will read / write Bit.ly stats to PostgreSQL table: $BITLY_POSTGRESQL_KVS_TABLE_NAME";
+
+    return $postgresql_store;
+};
+
 # (Lazy-initialized) MongoDB GridFS key-value store
+#
+# Used for processing results not yet migrated to PostgreSQL key-value store.
+#
 # We use a static, package-wide variable here because:
 # a) MongoDB handler should support being used by multiple threads by now, and
 # b) each Gearman worker is a separate process so there shouldn't be any resource clashes.
 my $_gridfs_store = lazy
 {
+    # this is a very expensive module to load, so lazy load it
+    require MediaWords::KeyValueStore::GridFS;
+
     unless ( bitly_processing_is_enabled() )
     {
         fatal_error( "Bit.ly processing is not enabled; why are you accessing this variable?" );
@@ -91,7 +125,7 @@ my $_gridfs_store = lazy
     }
 
     my $gridfs_store = MediaWords::KeyValueStore::GridFS->new( { database_name => $gridfs_database_name } );
-    say STDERR "Will write Bit.ly stats to GridFS database: $gridfs_database_name";
+    say STDERR "Will read Bit.ly processing results from GridFS database: $gridfs_database_name";
 
     return $gridfs_store;
 };
@@ -216,7 +250,7 @@ sub request($$)
     }
     $params->{ access_token } = $_bitly_access_token;
 
-    my $uri = URI->new( BITLY_API_ENDPOINT );
+    my $uri = URI->new( $BITLY_API_ENDPOINT );
     $uri->path( $path );
     foreach my $params_key ( keys %{ $params } )
     {
@@ -253,7 +287,7 @@ sub request($$)
     {
         if ( $json->{ status_code } == 403 and $json->{ status_txt } eq 'RATE_LIMIT_EXCEEDED' )
         {
-            die BITLY_ERROR_LIMIT_EXCEEDED;
+            die $BITLY_ERROR_LIMIT_EXCEEDED;
 
         }
         elsif ( $json->{ status_code } == 500 and $json->{ status_txt } eq 'INVALID_ARG_UNIT_REFERENCE_TS' )
@@ -1044,10 +1078,18 @@ sub story_stats_are_fetched($$)
     }
 
     my $record_exists = undef;
-    eval { $record_exists = $_gridfs_store->content_exists( $db, $stories_id ); };
+    eval {
+
+        # Try PostgreSQL first, GridFS later
+        $record_exists = $_postgresql_store->content_exists( $db, $stories_id );
+        unless ( $record_exists )
+        {
+            $record_exists = $_gridfs_store->content_exists( $db, $stories_id );
+        }
+    };
     if ( $@ )
     {
-        die "GridFS died while testing whether or not a Bit.ly record exists for story $stories_id: $@";
+        die "Storage died while testing whether or not a Bit.ly record exists for story $stories_id: $@";
     }
 
     if ( $record_exists )
@@ -1273,8 +1315,8 @@ sub fetch_story_stats($$$$;$)
     return $link_stats;
 }
 
-# Write Bit.ly story statistics to GridFS; overwrite if a record already exists
-# in GridFS
+# Write Bit.ly story statistics to key-value store; overwrite if a record
+# already exists in the store
 #
 # Params:
 # * $db - database object
@@ -1316,25 +1358,25 @@ sub write_story_stats($$$)
 
     say STDERR 'JSON length: ' . length( $json_stats );
 
-    # Write to GridFS, index by stories_id
+    # Write to key-value store, index by stories_id
     eval {
-        my $param_use_bzip2_instead_of_gzip = BITLY_GRIDFS_USE_BZIP2 + 0;
+        my $param_use_bzip2_instead_of_gzip = $BITLY_USE_BZIP2;
 
-        my $path = $_gridfs_store->store_content( $db, $stories_id, \$json_stats, $param_use_bzip2_instead_of_gzip );
+        my $path = $_postgresql_store->store_content( $db, $stories_id, \$json_stats, $param_use_bzip2_instead_of_gzip );
     };
     if ( $@ )
     {
-        die "Unable to store Bit.ly result to GridFS: $@";
+        die "Unable to store Bit.ly result to store: $@";
     }
 }
 
-# Read Bit.ly story statistics from GridFS
+# Read Bit.ly story statistics from key-value store
 #
 # Params:
 # * $db - database object
 # * $stories_id - story ID
 #
-# Returns hashref with decoded JSON, undef if story is not annotated; die()s on error
+# Returns hashref with decoded JSON, undef if story is not processed; die()s on error
 sub read_story_stats($$)
 {
     my ( $db, $stories_id ) = @_;
@@ -1356,19 +1398,45 @@ sub read_story_stats($$)
         return undef;
     }
 
-    # Fetch annotation
+    # Fetch processing result
     my $json_ref = undef;
 
     my $param_object_path                   = undef;
-    my $param_use_bunzip2_instead_of_gunzip = BITLY_GRIDFS_USE_BZIP2 + 0;
+    my $param_use_bunzip2_instead_of_gunzip = $BITLY_USE_BZIP2;
 
     eval {
-        $json_ref =
-          $_gridfs_store->fetch_content( $db, $stories_id, $param_object_path, $param_use_bunzip2_instead_of_gunzip );
+
+        # Try PostgreSQL first, GridFS later, die() if not found on either
+        if ( $_postgresql_store->content_exists( $db, $stories_id, $param_object_path ) )
+        {
+            $json_ref =
+              $_postgresql_store->fetch_content( $db, $stories_id, $param_object_path,
+                $param_use_bunzip2_instead_of_gunzip );
+            unless ( defined $json_ref )
+            {
+                die "PostgreSQL was able to fetch story's $stories_id processing result, but the content is undefined.";
+            }
+
+        }
+        elsif ( $_gridfs_store->content_exists( $db, $stories_id, $param_object_path ) )
+        {
+            $json_ref =
+              $_gridfs_store->fetch_content( $db, $stories_id, $param_object_path, $param_use_bunzip2_instead_of_gunzip );
+            unless ( defined $json_ref )
+            {
+                die "GridFS was able to fetch story's $stories_id processing result, but the content is undefined.";
+            }
+
+        }
+        else
+        {
+            die "Story's $stories_id processing result is stored neither in PostgreSQL nor in GridFS.";
+        }
+
     };
     if ( $@ or ( !defined $json_ref ) )
     {
-        die "GridFS died while fetching Bit.ly stats for story $stories_id: $@\n";
+        die "Storage died while fetching Bit.ly stats for story $stories_id: $@\n";
     }
 
     my $json = $$json_ref;
@@ -1412,9 +1480,7 @@ sub error_is_rate_limit_exceeded($)
 {
     my $error_message = shift;
 
-    my $expected_message = BITLY_ERROR_LIMIT_EXCEEDED . '';
-
-    if ( $error_message =~ /$expected_message/ )
+    if ( $error_message =~ /$BITLY_ERROR_LIMIT_EXCEEDED/ )
     {
         return 1;
     }

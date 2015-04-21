@@ -11,6 +11,7 @@ with 'MediaWords::KeyValueStore';
 
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
+use Carp;
 
 # Constructor
 sub BUILD($$)
@@ -36,7 +37,7 @@ sub fetch_content($$$$)
 
     unless ( defined $object_path )
     {
-        confess "Object path for object ID $object_id is undefined.\n";
+        confess "Object path for object ID $object_id is undefined.";
     }
 
     my $content = $object_path;
@@ -51,10 +52,10 @@ sub remove_content($$$$)
 
     unless ( defined $object_path )
     {
-        confess "Object path for object ID $object_id is undefined.\n";
+        confess "Object path for object ID $object_id is undefined.";
     }
 
-    die "Not sure how to remove inline content for object ID $object_id.\n";
+    confess "Not sure how to remove inline content for object ID $object_id.";
 
     return 0;
 }
@@ -66,10 +67,10 @@ sub content_exists($$$$)
 
     unless ( defined $object_path )
     {
-        confess "Object path for object ID $object_id is undefined.\n";
+        confess "Object path for object ID $object_id is undefined.";
     }
 
-    die "Not sure how to check whether inline content exists for object ID $object_id.\n";
+    confess "Not sure how to check whether inline content exists for object ID $object_id.";
 
     return 0;
 }
