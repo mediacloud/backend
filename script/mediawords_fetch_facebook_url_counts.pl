@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #
-# fetch Facebook statistics for all stories in a controversy
+# Fetch Facebook URL statistics for all stories in a controversy
 #
 
 use strict;
@@ -20,12 +20,10 @@ use Getopt::Long;
 use MediaWords::DB;
 use MediaWords::CM;
 use MediaWords::GearmanFunction;
-use MediaWords::GearmanFunction::Facebook::FetchStoryStats;
+use MediaWords::GearmanFunction::Facebook::FetchStoryURLStats;
 
 sub main
 {
-    my ( $controversy_opt, $direct_job, $overwrite );
-
     binmode( STDOUT, 'utf8' );
     binmode( STDERR, 'utf8' );
     $| = 1;
@@ -34,6 +32,7 @@ sub main
 Usage: $0 --controversy < id > [--direct_job] [--overwrite]
 EOF
 
+    my ( $controversy_opt, $direct_job, $overwrite );
     Getopt::Long::GetOptions(
         "controversy=s" => \$controversy_opt,
         "direct_job!"   => \$direct_job,
@@ -89,7 +88,7 @@ END
                 if ( $direct_job )
                 {
                     say STDERR "Running local job for story $stories_id...";
-                    eval { MediaWords::GearmanFunction::Facebook::FetchStoryStats->run_locally( $args ); };
+                    eval { MediaWords::GearmanFunction::Facebook::FetchStoryURLStats->run_locally( $args ); };
                     if ( $@ )
                     {
                         say STDERR "Gearman worker died while fetching and storing statistics: $@";
@@ -98,7 +97,7 @@ END
                 else
                 {
                     say STDERR "Enqueueing Gearman job for story $stories_id...";
-                    MediaWords::GearmanFunction::Facebook::FetchStoryStats->enqueue_on_gearman( $args );
+                    MediaWords::GearmanFunction::Facebook::FetchStoryURLStats->enqueue_on_gearman( $args );
                 }
             }
         }

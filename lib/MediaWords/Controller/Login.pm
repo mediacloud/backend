@@ -256,6 +256,66 @@ sub reset : Local
 
 }
 
+# "Activate a new account"
+sub activate : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $email                = $c->request->param( 'email' );
+    my $password_reset_token = $c->request->param( 'token' );
+
+    # Check if the password token (a required parameter in all cases for this action) exists
+    my $token_is_valid = MediaWords::DBI::Auth::validate_password_reset_token( $c->dbis, $email, $password_reset_token );
+
+    $c->stash->{ email } = $email;
+
+    my $user_info = MediaWords::DBI::Auth::user_info( $c->dbis, $email );
+
+    #Check if the user has already been activated
+    if ( $user_info && $user_info->{ active } )
+    {
+        say STDERR "User $email has already been activated";
+        $c->stash->{ template } = 'auth/welcome.tt2';
+        return;
+    }
+
+    if ( !$token_is_valid )
+    {
+        $c->response->redirect(
+            $c->uri_for(
+                '/login/forgot',
+                {
+                    email     => $email,
+                    error_msg => "Password reset token is invalid."
+                }
+            )
+        );
+        return;
+    }
+
+    # At this point the token has been validated and the form has been submitted.
+
+    my $error_message =
+      MediaWords::DBI::Auth::activate_user_via_token_or_return_error_message( $c->dbis, $email, $password_reset_token );
+    if ( $error_message ne '' )
+    {
+
+        #$c->stash->{ form }  = $form;
+        $c->stash->{ c } = $c;
+        $c->stash( template  => 'auth/reset.tt2' );
+        $c->stash( error_msg => $error_message );
+        say STDERR "Error activating user $email";
+    }
+    else
+    {
+        say STDERR "Activated user $email";
+        $c->stash->{ template } = 'auth/welcome.tt2';
+
+        #$c->response->redirect( $c->uri_for( '/login/welcome', { status_msg => "Your account has been activated." } ) );
+    }
+
+}
+
 sub register : Local
 {
     my ( $self, $c ) = @_;
@@ -267,6 +327,12 @@ sub register : Local
             action           => $c->uri_for( '/login/register' )
         }
     );
+
+    # Set reCAPTCHA API keys
+    my $config = MediaWords::Util::Config::get_config;
+    my $el_recaptcha = $form->get_element( { name => 'recaptcha', type => 'reCAPTCHA' } );
+    $el_recaptcha->public_key( $config->{ mediawords }->{ recaptcha_public_key } );
+    $el_recaptcha->private_key( $config->{ mediawords }->{ recaptcha_private_key } );
 
     $form->process( $c->request );
 
@@ -285,7 +351,7 @@ sub register : Local
 
     my $user_full_name                    = $form->param_value( 'full_name' );
     my $user_notes                        = $form->param_value( 'notes' );
-    my $user_is_active                    = 1;
+    my $user_is_active                    = 0;
     my $user_roles                        = [ $search_role->{ auth_roles_id } ];
     my $user_weekly_requests_limit        = 1000;
     my $user_weekly_requested_items_limit = 20000;
@@ -305,7 +371,31 @@ sub register : Local
     }
     else
     {
-        $c->stash->{ template } = 'auth/welcome.tt2';
+
+        my $error_message =
+          MediaWords::DBI::Auth::send_password_reset_token_or_return_error_message( $c->dbis, $user_email,
+            $c->uri_for( '/login/activate' ), 1 );
+
+        if ( $error_message )
+        {
+
+            $c->stash( error_msg => $error_message );
+        }
+        else
+        {
+            say STDERR "email sent to $user_email";
+
+            $c->stash->{ c } = $c;
+
+            # # Do not stash the form because the link has already been sent
+            # $c->stash( template => 'auth/forgot.tt2' );
+            # $c->stash( status_msg => "The password reset link was sent to email address '" .
+            #       $user_email . "' (given that such user exists in the user database)." );
+
+            $c->stash->{ email }    = $user_email;
+            $c->stash->{ template } = 'auth/email_authentication_needed.tt2';
+        }
+
     }
 }
 

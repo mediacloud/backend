@@ -31,7 +31,7 @@ use MediaWords::DB;
 use MediaWords::Util::GearmanJobSchedulerConfiguration;
 use MediaWords::Util::Bitly;
 use MediaWords::Util::DateTime;
-use MediaWords::GearmanFunction::Bitly::FetchStoryStats;
+use MediaWords::GearmanFunction::Bitly::FetchStoryURLStats;
 use Readonly;
 
 # Having a global database object should be safe because
@@ -183,7 +183,7 @@ EOF
                 start_timestamp => $start_timestamp,
                 end_timestamp   => $end_timestamp
             };
-            MediaWords::GearmanFunction::Bitly::FetchStoryStats->enqueue_on_gearman( $args );
+            MediaWords::GearmanFunction::Bitly::FetchStoryURLStats->enqueue_on_gearman( $args );
 
             say STDERR "Done enqueueing story $stories_id for Bit.ly processing.";
         }

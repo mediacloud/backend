@@ -33,10 +33,10 @@ sub main
 
     my $tags_id = MediaWords::DBI::Stories::get_current_extractor_version_tags_id( MediaWords::DB::connect_to_db() );
 
-    my $last_processed_stories_id = 0;      #84695570;
-    my $story_batch_size          = 1000;
-    my $gearman_queue_limit       = 200;
-    my $sleep_time                = 10;
+    my $last_stories_id     = 0;
+    my $story_batch_size    = 1000;
+    my $gearman_queue_limit = 200;
+    my $sleep_time          = 10;
 
     my $total_stories_enqueued     = 0;
     my $total_gearman_enqueue_time = 0;
@@ -49,6 +49,15 @@ sub main
     my $total_sleep_time = 0;
 
     my $default_db_label = MediaWords::DB::connect_settings()->{ label };
+
+    {
+	my $db         = MediaWords::DB::connect_to_db( $default_db_label );
+
+	my $max_stories_id =  $db->query( "select max(stories_id) from scratch.reextract_stories2" )->flat()->[0];
+
+	$last_stories_id = $max_stories_id + 1;
+	say STDERR "last stories id $last_stories_id";
+    }
 
     while ( 1 )
     {
@@ -74,9 +83,9 @@ sub main
 
         my $rows = $db->query(
             <<"END_SQL",
-        WITH  reextract_stories as (select ps.* from processed_stories ps left join  stories_tags_map stm on ( ps.stories_id=stm.stories_id and stm.tags_id=? ) where processed_stories_id > ? and tags_id is null order by processed_stories_id asc limit ?) select processed_stories_id, reextract_stories.stories_id from downloads, reextract_stories where downloads.stories_id = reextract_stories.stories_id and downloads.state not in ( 'error', 'fetching', 'pending', 'queued' ) and file_status <> 'missing' group by processed_stories_id, reextract_stories.stories_id order by processed_stories_id, reextract_stories.stories_id limit ?;
+        select stories_id from scratch.reextract_stories2 where stories_id < ? order by stories_id desc limit ?;
 END_SQL
-            $tags_id, $last_processed_stories_id, $story_batch_size * 3, $story_batch_size
+            $last_stories_id, $story_batch_size
         )->hashes;
 
         my $query_end_time = Time::HiRes::time();
@@ -85,28 +94,10 @@ END_SQL
 
         if ( scalar( @$stories_ids ) == 0 )
         {
-            say STDERR "No non-error stories found in batch. Checking for errored stories";
-            my $processed_stories = $db->query(
-                <<"END_SQL",
-select ps.* from processed_stories ps left join stories_tags_map stm on ( ps.stories_id=stm.stories_id and stm.tags_id=? ) where processed_stories_id > ? and tags_id is null order by processed_stories_id asc limit ?
-END_SQL
-                $tags_id, $last_processed_stories_id, $story_batch_size * 3
-            )->hashes();
-
-            if ( scalar( @$processed_stories ) > 0 )
-            {
-
-                $last_processed_stories_id = $processed_stories->[ -1 ]->{ processed_stories_id };
-                say STDERR "Setting processed_stories id to $last_processed_stories_id to move past download errors";
-                next;
-            }
-            else
-            {
-                last;
-            }
+            last;
         }
 
-        $last_processed_stories_id = $rows->[ -1 ]->{ processed_stories_id };
+        $last_stories_id = $rows->[ -1 ]->{ stories_id };
 
         my $i = 0;
 
@@ -137,7 +128,7 @@ END_SQL
         my $story_query_time = $query_end_time - $query_start_time;
         $total_story_query_time += $story_query_time;
 
-        say STDERR "last_processed_stories_id  $last_processed_stories_id ";
+        say STDERR "last_stories_id  $last_stories_id ";
         say STDERR "total_stories_enqueued $total_stories_enqueued";
         say STDERR "story_query_time $story_query_time";
 
