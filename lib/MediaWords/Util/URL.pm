@@ -757,10 +757,7 @@ sub normalize_url_lossy($)
 {
     my $url = shift;
 
-    unless ( $url )
-    {
-        die "URL is undefined";
-    }
+    return undef unless ( $url );
 
     $url = fix_common_url_mistakes( $url );
 
