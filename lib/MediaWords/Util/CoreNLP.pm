@@ -126,12 +126,10 @@ my $_postgresql_store = lazy
         fatal_error( "CoreNLP annotator is not enabled; why are you accessing this variable?" );
     }
 
-    my $config = MediaWords::Util::Config->get_config();
-
     # PostgreSQL storage
     my $postgresql_store =
       MediaWords::KeyValueStore::PostgreSQL->new( { table_name => $CORENLP_POSTGRESQL_KVS_TABLE_NAME } );
-    say STDERR "Will read / write CoreNLP annotator results to PostgreSQL database: $CORENLP_POSTGRESQL_KVS_TABLE_NAME";
+    say STDERR "Will read / write CoreNLP annotator results to PostgreSQL table: $CORENLP_POSTGRESQL_KVS_TABLE_NAME";
 
     return $postgresql_store;
 };
