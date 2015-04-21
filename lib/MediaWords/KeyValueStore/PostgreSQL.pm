@@ -26,7 +26,7 @@ sub BUILD($$)
     # Get arguments
     unless ( $args->{ table_name } )
     {
-        die "Please provide 'table_name' argument.\n";
+        confess "Please provide 'table_name' argument.";
     }
     my $table_name = $args->{ table_name };
 
@@ -55,7 +55,7 @@ sub store_content($$$$;$)
     };
     if ( $@ or ( !defined $content_to_store ) )
     {
-        die "Unable to compress object ID $object_id: $@";
+        confess "Unable to compress object ID $object_id: $@";
     }
 
     my $use_transaction = $db->dbh->{ AutoCommit };
@@ -105,7 +105,7 @@ sub fetch_content($$$;$$)
 
     unless ( defined $object_id )
     {
-        die "Object ID is undefined.\n";
+        confess "Object ID is undefined.";
     }
 
     my $table_name = $self->_conf_table_name;
@@ -121,7 +121,7 @@ EOF
 
     unless ( $compressed_content->[ 0 ] )
     {
-        die "Object with ID $object_id was not found in '$table_name' table.\n";
+        confess "Object with ID $object_id was not found in '$table_name' table.";
     }
 
     $compressed_content = $compressed_content->[ 0 ];
@@ -133,7 +133,7 @@ EOF
         # data (technically), but an empty string can't be a valid Gzip/Bzip2
         # archive, so we're checking if we're about to attempt to decompress an
         # empty string
-        confess "Compressed data is empty for object $object_id.\n";
+        confess "Compressed data is empty for object $object_id.";
     }
 
     my $decoded_content;
@@ -149,7 +149,7 @@ EOF
     };
     if ( $@ or ( !defined $decoded_content ) )
     {
-        die "Unable to uncompress object ID $object_id: $@";
+        confess "Unable to uncompress object ID $object_id: $@";
     }
 
     return \$decoded_content;

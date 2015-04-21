@@ -51,7 +51,7 @@ sub BUILD($$)
     # Get arguments
     unless ( $args->{ database_name } )
     {
-        confess "Please provide 'database_name' argument.\n";
+        confess "Please provide 'database_name' argument.";
     }
     my $gridfs_database_name = $args->{ database_name };
 
@@ -64,7 +64,7 @@ sub BUILD($$)
 
     unless ( $gridfs_host and $gridfs_port )
     {
-        confess "GridFS: MongoDB connection settings in mediawords.yml are not configured properly.\n";
+        confess "GridFS: MongoDB connection settings in mediawords.yml are not configured properly.";
     }
 
     # Store configuration
@@ -113,19 +113,19 @@ sub _connect_to_mongodb_or_die($)
     }
     unless ( $self->_mongodb_client )
     {
-        confess "GridFS: Unable to connect to MongoDB.\n";
+        confess "GridFS: Unable to connect to MongoDB.";
     }
 
     $self->_mongodb_database( $self->_mongodb_client->get_database( $self->_conf_database_name ) );
     unless ( $self->_mongodb_database )
     {
-        confess "GridFS: Unable to choose a MongoDB database.\n";
+        confess "GridFS: Unable to choose a MongoDB database.";
     }
 
     $self->_mongodb_gridfs( $self->_mongodb_database->get_gridfs );
     unless ( $self->_mongodb_gridfs )
     {
-        confess "GridFS: Unable to connect use the MongoDB database as GridFS.\n";
+        confess "GridFS: Unable to connect use the MongoDB database as GridFS.";
     }
 
     # Save PID
@@ -188,7 +188,7 @@ sub store_content($$$$;$)
     };
     if ( $@ or ( !defined $content_to_store ) )
     {
-        die "Unable to compress object ID $object_id: $@";
+        confess "Unable to compress object ID $object_id: $@";
     }
 
     my $filename = '' . $object_id;
@@ -236,7 +236,7 @@ sub store_content($$$$;$)
 
     unless ( $gridfs_id )
     {
-        confess "GridFS: Unable to store object ID $object_id to GridFS after " . MONGODB_WRITE_RETRIES . " retries.\n";
+        confess "GridFS: Unable to store object ID $object_id to GridFS after " . MONGODB_WRITE_RETRIES . " retries.";
     }
 
     return $gridfs_id;
@@ -251,7 +251,7 @@ sub fetch_content($$$;$$)
 
     unless ( defined $object_id )
     {
-        confess "GridFS: Object ID is undefined.\n";
+        confess "GridFS: Object ID is undefined.";
     }
 
     my $filename = '' . $object_id;
@@ -300,12 +300,12 @@ sub fetch_content($$$;$$)
     {
         unless ( defined $file )
         {
-            confess "GridFS: Could not get file '$filename' (probably the file does not exist).\n";
+            confess "GridFS: Could not get file '$filename' (probably the file does not exist).";
         }
     }
     else
     {
-        confess "GridFS: Unable to read object ID $object_id from GridFS after " . MONGODB_READ_RETRIES . " retries.\n";
+        confess "GridFS: Unable to read object ID $object_id from GridFS after " . MONGODB_READ_RETRIES . " retries.";
     }
     unless ( defined( $file ) )
     {
@@ -319,7 +319,7 @@ sub fetch_content($$$;$$)
         # MongoDB returns empty strings on some cases of corrupt data, but
         # an empty string can't be a valid Gzip/Bzip2 archive, so we're
         # checking if we're about to attempt to decompress an empty string
-        confess "GridFS: Compressed data is empty for filename $filename.\n";
+        confess "GridFS: Compressed data is empty for filename $filename.";
     }
 
     my $decoded_content;
@@ -335,7 +335,7 @@ sub fetch_content($$$;$$)
     };
     if ( $@ or ( !defined $decoded_content ) )
     {
-        die "Unable to uncompress object ID $object_id: $@";
+        confess "Unable to uncompress object ID $object_id: $@";
     }
 
     return \$decoded_content;

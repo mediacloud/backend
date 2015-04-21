@@ -17,6 +17,7 @@ use Net::Amazon::S3;
 use Net::Amazon::S3::Client;
 use Net::Amazon::S3::Client::Bucket;
 use POSIX qw(floor);
+use Carp;
 
 # Should the Amazon S3 module use secure (SSL-encrypted) connections?
 use constant AMAZON_S3_USE_SSL => 0;
@@ -67,7 +68,7 @@ sub BUILD($$)
     # Get arguments
     unless ( $args->{ bucket_name } )
     {
-        die "Please provide 'bucket_name' argument.\n";
+        confess "Please provide 'bucket_name' argument.";
     }
     my $bucket_name = $args->{ bucket_name };
     my $directory_name = $args->{ directory_name } || '';
@@ -75,11 +76,11 @@ sub BUILD($$)
     # Validate constants
     if ( AMAZON_S3_READ_ATTEMPTS < 1 )
     {
-        die "AMAZON_S3_READ_ATTEMPTS must be >= 1\n";
+        confess "AMAZON_S3_READ_ATTEMPTS must be >= 1";
     }
     if ( AMAZON_S3_WRITE_ATTEMPTS < 1 )
     {
-        die "AMAZON_S3_WRITE_ATTEMPTS must be >= 1\n";
+        confess "AMAZON_S3_WRITE_ATTEMPTS must be >= 1";
     }
 
     # Get configuration
@@ -87,7 +88,7 @@ sub BUILD($$)
 
     unless ( defined( $config->{ amazon_s3 } ) )
     {
-        die "AmazonS3: Amazon S3 connection settings in mediawords.yml are not configured properly.\n";
+        confess "AmazonS3: Amazon S3 connection settings in mediawords.yml are not configured properly.";
     }
 
     my $access_key_id     = $config->{ amazon_s3 }->{ access_key_id };
@@ -96,7 +97,7 @@ sub BUILD($$)
     # Directory is optional
     unless ( $access_key_id and $secret_access_key and $bucket_name )
     {
-        die "AmazonS3: Amazon S3 connection settings in mediawords.yml are not configured properly.\n";
+        confess "AmazonS3: Amazon S3 connection settings in mediawords.yml are not configured properly.";
     }
 
     # Add slash to the end of the directory name (if it doesn't exist yet)
@@ -130,7 +131,7 @@ sub _initialize_s3_or_die($)
     my $request_timeout = floor( ( AMAZON_S3_TIMEOUT / AMAZON_S3_READ_ATTEMPTS ) - 1 );
     if ( $request_timeout < 10 )
     {
-        die "Amazon S3 request timeout ($request_timeout) too small.\n";
+        confess "Amazon S3 request timeout ($request_timeout) too small.";
     }
 
     # Initialize
@@ -145,7 +146,7 @@ sub _initialize_s3_or_die($)
     );
     unless ( $self->_s3 )
     {
-        die "AmazonS3: Unable to initialize Net::Amazon::S3 instance.\n";
+        confess "AmazonS3: Unable to initialize Net::Amazon::S3 instance.";
     }
     $self->_s3_client( Net::Amazon::S3::Client->new( s3 => $self->_s3 ) );
 
@@ -160,7 +161,7 @@ sub _initialize_s3_or_die($)
     }
     unless ( $self->_s3_bucket )
     {
-        die "AmazonS3: Unable to get bucket '" . $self->_conf_bucket_name . "'.\n";
+        confess "AmazonS3: Unable to get bucket '" . $self->_conf_bucket_name . "'.";
     }
 
     # Save PID
@@ -180,7 +181,7 @@ sub _object_for_object_id($$)
 
     unless ( defined $object_id )
     {
-        die "Object ID is undefined.";
+        confess "Object ID is undefined.";
     }
 
     my $filename = $self->_conf_directory_name . $object_id;
@@ -218,7 +219,7 @@ sub remove_content($$$;$)
     {
         unless ( $self->content_exists( $db, $object_id, $object_path ) )
         {
-            die "AmazonS3: object with ID " . $object_id . " does not exist.\n";
+            confess "AmazonS3: object with ID " . $object_id . " does not exist.";
         }
     }
 
@@ -241,7 +242,7 @@ sub store_content($$$$)
         if ( $self->content_exists( $db, $object_id ) )
         {
             say STDERR "AmazonS3: object ID $object_id already exists, " .
-              "will store a new version or overwrite (depending on whether or not versioning is enabled).\n";
+              "will store a new version or overwrite (depending on whether or not versioning is enabled).";
         }
     }
 
@@ -250,7 +251,7 @@ sub store_content($$$$)
     eval { $content_to_store = MediaWords::Util::Compress::encode_and_gzip( $$content_ref ); };
     if ( $@ or ( !defined $content_to_store ) )
     {
-        die "Unable to compress object ID $object_id: $@";
+        confess "Unable to compress object ID $object_id: $@";
     }
 
     my $write_was_successful = 0;
@@ -285,7 +286,7 @@ sub store_content($$$$)
 
     unless ( $write_was_successful )
     {
-        die "Unable to write object ID " . $object_id . " to Amazon S3 after " . AMAZON_S3_WRITE_ATTEMPTS . " retries.\n";
+        confess "Unable to write object ID $object_id to Amazon S3 after " . AMAZON_S3_WRITE_ATTEMPTS . " retries.";
     }
 
     return 's3:' . $object->key;
@@ -302,7 +303,7 @@ sub fetch_content($$$;$)
     {
         unless ( $self->content_exists( $db, $object_id, $object_path ) )
         {
-            die "AmazonS3: object ID " . $object_id . " does not exist.\n";
+            confess "AmazonS3: object ID $object_id does not exist.";
         }
     }
 
@@ -337,7 +338,7 @@ sub fetch_content($$$;$)
 
     unless ( defined $gzipped_content )
     {
-        die "Unable to read object ID " . $object_id . "' from Amazon S3 after " . AMAZON_S3_READ_ATTEMPTS . " retries.\n";
+        confess "Unable to read object ID $object_id from Amazon S3 after " . AMAZON_S3_READ_ATTEMPTS . " retries.";
     }
 
     # Gunzip + decode
@@ -345,7 +346,7 @@ sub fetch_content($$$;$)
     eval { $decoded_content = MediaWords::Util::Compress::gunzip_and_decode( $gzipped_content ); };
     if ( $@ or ( !defined $decoded_content ) )
     {
-        die "Unable to uncompress object ID $object_id: $@";
+        confess "Unable to uncompress object ID $object_id: $@";
     }
 
     return \$decoded_content;
