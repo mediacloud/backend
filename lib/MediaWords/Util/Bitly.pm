@@ -16,7 +16,6 @@ use MediaWords::Util::URL;
 use MediaWords::Util::Config;
 use MediaWords::Util::JSON;
 use MediaWords::Util::DateTime;
-use MediaWords::KeyValueStore::GridFS;
 use URI;
 use URI::QueryParam;
 use JSON;
@@ -77,6 +76,9 @@ my $_bitly_timeout = lazy
 # b) each Gearman worker is a separate process so there shouldn't be any resource clashes.
 my $_gridfs_store = lazy
 {
+    # this is a very expensive module to load, so lazy load it
+    require MediaWords::KeyValueStore::GridFS;
+
     unless ( bitly_processing_is_enabled() )
     {
         fatal_error( "Bit.ly processing is not enabled; why are you accessing this variable?" );
