@@ -438,7 +438,7 @@ sub _fetch_raw_annotation_for_story($$)
                 $param_use_bunzip2_instead_of_gunzip );
             unless ( defined $json_ref )
             {
-                die "PostgreSQL was able to fetch story $stories_id, but the content is undefined.";
+                die "PostgreSQL was able to fetch story's $stories_id processing result, but the content is undefined.";
             }
 
         }
@@ -449,7 +449,7 @@ sub _fetch_raw_annotation_for_story($$)
               $_gridfs_store->fetch_content( $db, $stories_id, $param_object_path, $param_use_bunzip2_instead_of_gunzip );
             unless ( defined $json_ref )
             {
-                die "GridFS was able to fetch story $stories_id, but the content is undefined.";
+                die "GridFS was able to fetch story's $stories_id processing, but the content is undefined.";
             }
 
         }
