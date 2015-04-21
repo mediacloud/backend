@@ -25,8 +25,8 @@ use DateTime;
 use DateTime::Duration;
 use Readonly;
 
-Readonly my $BITLY_API_ENDPOINT     => 'https://api-ssl.bitly.com/';
-Readonly my $BITLY_GRIDFS_USE_BZIP2 => 0;                              # Gzip works better in Bit.ly's case
+Readonly my $BITLY_API_ENDPOINT => 'https://api-ssl.bitly.com/';
+Readonly my $BITLY_USE_BZIP2    => 0;                              # Gzip works better in Bit.ly's case
 
 # Error message printed when Bit.ly rate limit is exceeded; used for naive
 # exception handling, see error_is_rate_limit_exceeded()
@@ -1050,7 +1050,7 @@ sub story_stats_are_fetched($$)
     eval { $record_exists = $_gridfs_store->content_exists( $db, $stories_id ); };
     if ( $@ )
     {
-        die "GridFS died while testing whether or not a Bit.ly record exists for story $stories_id: $@";
+        die "Storage died while testing whether or not a Bit.ly record exists for story $stories_id: $@";
     }
 
     if ( $record_exists )
@@ -1276,8 +1276,8 @@ sub fetch_story_stats($$$$;$)
     return $link_stats;
 }
 
-# Write Bit.ly story statistics to GridFS; overwrite if a record already exists
-# in GridFS
+# Write Bit.ly story statistics to key-value store; overwrite if a record
+# already exists in the store
 #
 # Params:
 # * $db - database object
@@ -1319,19 +1319,19 @@ sub write_story_stats($$$)
 
     say STDERR 'JSON length: ' . length( $json_stats );
 
-    # Write to GridFS, index by stories_id
+    # Write to key-value store, index by stories_id
     eval {
-        my $param_use_bzip2_instead_of_gzip = $BITLY_GRIDFS_USE_BZIP2;
+        my $param_use_bzip2_instead_of_gzip = $BITLY_USE_BZIP2;
 
         my $path = $_gridfs_store->store_content( $db, $stories_id, \$json_stats, $param_use_bzip2_instead_of_gzip );
     };
     if ( $@ )
     {
-        die "Unable to store Bit.ly result to GridFS: $@";
+        die "Unable to store Bit.ly result to store: $@";
     }
 }
 
-# Read Bit.ly story statistics from GridFS
+# Read Bit.ly story statistics from key-value store
 #
 # Params:
 # * $db - database object
@@ -1363,7 +1363,7 @@ sub read_story_stats($$)
     my $json_ref = undef;
 
     my $param_object_path                   = undef;
-    my $param_use_bunzip2_instead_of_gunzip = $BITLY_GRIDFS_USE_BZIP2;
+    my $param_use_bunzip2_instead_of_gunzip = $BITLY_USE_BZIP2;
 
     eval {
         $json_ref =
@@ -1371,7 +1371,7 @@ sub read_story_stats($$)
     };
     if ( $@ or ( !defined $json_ref ) )
     {
-        die "GridFS died while fetching Bit.ly stats for story $stories_id: $@\n";
+        die "Storage died while fetching Bit.ly stats for story $stories_id: $@\n";
     }
 
     my $json = $$json_ref;
