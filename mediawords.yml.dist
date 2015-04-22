@@ -45,9 +45,6 @@ database:
     ### Database for testing
     #test:
         #database_name : "mediacloud_downloads_gridfs_test"
-    ### (optional) Database for storing CoreNLP annotator results
-    #corenlp:
-        #database_name : "mediacloud_corenlp"
 
 ### Amazon S3 connection settings
 #amazon_s3:
