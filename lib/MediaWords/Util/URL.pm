@@ -828,7 +828,7 @@ sub meta_refresh_url_from_html($;$)
 
         if ( $meta_element =~ m~http-equiv\s*?=\s*?["']\s*?refresh\s*?["']~i )
         {
-            if ( $meta_element =~ m~content\s*?=\s*?["']\d*?\s*?;?\s*?URL\s*?=\s*?["'](.+?)["']~i )
+            if ( $meta_element =~ m~content\s*?=\s*?["']\d*?\s*?;?\s*?URL\s*?=\s*?(.+?)["']~i )
             {
                 $url = $1;
                 if ( $url )
