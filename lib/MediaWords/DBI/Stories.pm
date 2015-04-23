@@ -731,7 +731,7 @@ sub process_extracted_story
 
     unless ( $no_vector )
     {
-        MediaWords::StoryVectors::update_story_sentence_words_and_language( $db, $story, 0, $no_dedup_sentences );
+        MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story, 0, $no_dedup_sentences );
     }
 
     $db->query(
@@ -1090,7 +1090,7 @@ sub add_missing_story_sentences
 
     print STDERR "ADD SENTENCES [$story->{ stories_id }]\n";
 
-    MediaWords::StoryVectors::update_story_sentence_words_and_language( $db, $story, 0, 0, 1 );
+    MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story, 0, 0, 1 );
 }
 
 # get list of all sentences in story from the extracted text and annotate each with a dup_stories_id

@@ -45,7 +45,7 @@ sub main
         $story->{ full_text_rss } = 1;
         $db->update_by_id( 'stories', $story->{ stories_id }, { full_text_rss => 1 } );
 
-        MediaWords::StoryVectors::update_story_sentence_words_and_language( $db, $story );
+        MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story );
 
         print STDERR ++$i . " / " . scalar( @{ $stories } ) . "\n";
 

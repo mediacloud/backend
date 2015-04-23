@@ -367,7 +367,7 @@ sub clean_sentences
 # (useful for optimization if you are very sure no story vectors exist for this story).  If
 # $no_dedup_sentences is true, do not perform sentence deduplication (useful if you are reprocessing a
 # small set of stories)
-sub update_story_sentence_words_and_language
+sub update_story_sentences_and_language
 {
     my ( $db, $story, $no_delete, $no_dedup_sentences, $ignore_date_range ) = @_;
 
