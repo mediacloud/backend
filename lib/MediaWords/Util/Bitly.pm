@@ -79,7 +79,7 @@ my $_bitly_timeout = lazy
 # (Lazy-initialized) PostgreSQL key-value store
 #
 # We use a static, package-wide variable here because:
-# a) MongoDB handler should support being used by multiple threads by now, and
+# a) PostgreSQL handler should support being used by multiple threads by now, and
 # b) each Gearman worker is a separate process so there shouldn't be any resource clashes.
 my $_postgresql_store = lazy
 {
@@ -96,38 +96,6 @@ my $_postgresql_store = lazy
     say STDERR "Will read / write Bit.ly stats to PostgreSQL table: $BITLY_POSTGRESQL_KVS_TABLE_NAME";
 
     return $postgresql_store;
-};
-
-# (Lazy-initialized) MongoDB GridFS key-value store
-#
-# Used for processing results not yet migrated to PostgreSQL key-value store.
-#
-# We use a static, package-wide variable here because:
-# a) MongoDB handler should support being used by multiple threads by now, and
-# b) each Gearman worker is a separate process so there shouldn't be any resource clashes.
-my $_gridfs_store = lazy
-{
-    # this is a very expensive module to load, so lazy load it
-    require MediaWords::KeyValueStore::GridFS;
-
-    unless ( bitly_processing_is_enabled() )
-    {
-        fatal_error( "Bit.ly processing is not enabled; why are you accessing this variable?" );
-    }
-
-    my $config = MediaWords::Util::Config->get_config();
-
-    # GridFS storage
-    my $gridfs_database_name = $config->{ mongodb_gridfs }->{ bitly }->{ database_name };
-    unless ( $gridfs_database_name )
-    {
-        fatal_error( "Bit.ly processing is enabled, but MongoDB GridFS database name is not set." );
-    }
-
-    my $gridfs_store = MediaWords::KeyValueStore::GridFS->new( { database_name => $gridfs_database_name } );
-    say STDERR "Will read Bit.ly processing results from GridFS database: $gridfs_database_name";
-
-    return $gridfs_store;
 };
 
 # From $start_timestamp and $end_timestamp parameters, return API parameters "unit_reference_ts" and "units"
@@ -1078,15 +1046,7 @@ sub story_stats_are_fetched($$)
     }
 
     my $record_exists = undef;
-    eval {
-
-        # Try PostgreSQL first, GridFS later
-        $record_exists = $_postgresql_store->content_exists( $db, $stories_id );
-        unless ( $record_exists )
-        {
-            $record_exists = $_gridfs_store->content_exists( $db, $stories_id );
-        }
-    };
+    eval { $record_exists = $_postgresql_store->content_exists( $db, $stories_id ); };
     if ( $@ )
     {
         die "Storage died while testing whether or not a Bit.ly record exists for story $stories_id: $@";
@@ -1405,34 +1365,8 @@ sub read_story_stats($$)
     my $param_use_bunzip2_instead_of_gunzip = $BITLY_USE_BZIP2;
 
     eval {
-
-        # Try PostgreSQL first, GridFS later, die() if not found on either
-        if ( $_postgresql_store->content_exists( $db, $stories_id, $param_object_path ) )
-        {
-            $json_ref =
-              $_postgresql_store->fetch_content( $db, $stories_id, $param_object_path,
-                $param_use_bunzip2_instead_of_gunzip );
-            unless ( defined $json_ref )
-            {
-                die "PostgreSQL was able to fetch story's $stories_id processing result, but the content is undefined.";
-            }
-
-        }
-        elsif ( $_gridfs_store->content_exists( $db, $stories_id, $param_object_path ) )
-        {
-            $json_ref =
-              $_gridfs_store->fetch_content( $db, $stories_id, $param_object_path, $param_use_bunzip2_instead_of_gunzip );
-            unless ( defined $json_ref )
-            {
-                die "GridFS was able to fetch story's $stories_id processing result, but the content is undefined.";
-            }
-
-        }
-        else
-        {
-            die "Story's $stories_id processing result is stored neither in PostgreSQL nor in GridFS.";
-        }
-
+        $json_ref =
+          $_postgresql_store->fetch_content( $db, $stories_id, $param_object_path, $param_use_bunzip2_instead_of_gunzip );
     };
     if ( $@ or ( !defined $json_ref ) )
     {
