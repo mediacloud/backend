@@ -424,23 +424,6 @@ sub _get_centroids_from_plotted_nodes
     return $centroids;
 }
 
-# get a table that associates each media_sets_id in media_sets with a shape
-sub _get_media_set_shape_lookup
-{
-    my ( $media_sets ) = @_;
-
-    my $lookup = {};
-
-    my $shapes = [ qw(circle triangle diamond square tick bar) ];
-
-    for my $m ( 0 .. $#{ $media_sets } )
-    {
-        $lookup->{ $media_sets->[ $m ]->{ media_sets_id } } = $shapes->[ $m ] || $shapes->[ 0 ];
-    }
-
-    return $lookup;
-}
-
 # if the clusters are from a media_sets cluster run and the query
 # has a dahsboards_id, then assign consistent colors from the
 # dashboard_media_sets table
