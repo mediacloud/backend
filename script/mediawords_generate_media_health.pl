@@ -135,27 +135,15 @@ sub update_media_health_status
 
     my $is_weekend = grep { $wday == $_ } ( 0, 6 );
 
-    my $day_check_clause = $is_weekend ? 'false' : <<SQL;
-( ( num_stories_90 > 50 ) and
-  ( ( ( num_stories / num_stories_y ) < 0.25 ) or
-    ( ( num_stories / num_stories_90 ) < 0.25 ) or
-    ( ( num_sentences / num_sentences_y ) < 0.25 ) or
-    ( ( num_sentences / num_sentences_90 ) < 0.25 )
-  )
-)
-SQL
-
     $db->query( "update media_health mh set is_healthy = 't'" );
     $db->query( <<SQL );
 update media_health set is_healthy = 'f'
     where
-        $day_check_clause
-        or
         ( ( num_stories_90 > 10 ) and
-          ( ( ( num_stories_w / num_stories_y ) < 0.25 ) or
-            ( ( num_stories_w / num_stories_90 ) < 0.25 ) or
-            ( ( num_sentences_w / num_sentences_y ) < 0.25 ) or
-            ( ( num_sentences_w / num_sentences_90 ) < 0.25 )
+          ( ( ( num_stories_w / greatest( num_stories_y, 1 ) ) < 0.25 ) or
+            ( ( num_stories_w / greatest( num_stories_90, 1 ) ) < 0.25 ) or
+            ( ( num_sentences_w / greatest( num_sentences_y, 1 ) ) < 0.25 ) or
+            ( ( num_sentences_w / greatest( num_sentences_90, 1 ) ) < 0.25 )
           )
         )
         or

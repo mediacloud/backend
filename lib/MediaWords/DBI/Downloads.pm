@@ -663,10 +663,10 @@ EOF
         $stories_id
     )->hash;
 
-    my $story = $db->find_by_id( 'stories', $stories_id );
-
     if ( !( $has_remaining_download ) )
     {
+        my $story = $db->find_by_id( 'stories', $stories_id );
+
         MediaWords::DBI::Stories::process_extracted_story( $story, $db, $no_dedup_sentences, $no_vector );
     }
     elsif ( !( $no_vector ) )

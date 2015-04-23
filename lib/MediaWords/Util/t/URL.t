@@ -4,7 +4,7 @@ use warnings;
 use utf8;
 use Test::NoWarnings;
 use Test::Deep;
-use Test::More tests => 121;
+use Test::More tests => 123;
 
 use Readonly;
 use HTTP::HashServer;
@@ -384,6 +384,42 @@ EOF
     is( MediaWords::Util::URL::meta_refresh_url_from_html( $html, $base_url ),
         $expected_url, 'Basic XHTML sans the seconds part' );
 
+    # Basic XHTML with quoted url
+    $html = <<EOF;
+        <html>
+        <head>
+            <title>This is a test</title>
+            <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+            <meta http-equiv="refresh" content="url='http://example.com/'" />
+        </head>
+        <body>
+            <p>This is a test.</p>
+        </body>
+        </html>
+EOF
+    $base_url     = 'http://example.com/';
+    $expected_url = 'http://example.com/';
+    is( MediaWords::Util::URL::meta_refresh_url_from_html( $html, $base_url ),
+        $expected_url, 'Basic XHTML with quoted url' );
+
+    # Basic XHTML with reverse quoted url
+    $html = <<EOF;
+        <html>
+        <head>
+            <title>This is a test</title>
+            <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+            <meta http-equiv="refresh" content='url="http://example.com/"' />
+        </head>
+        <body>
+            <p>This is a test.</p>
+        </body>
+        </html>
+EOF
+    $base_url     = 'http://example.com/';
+    $expected_url = 'http://example.com/';
+    is( MediaWords::Util::URL::meta_refresh_url_from_html( $html, $base_url ),
+        $expected_url, 'Basic XHTML with reverse quoted url' );
+
     # Relative path (base URL with trailing slash)
     $html = <<EOF;
         <meta http-equiv="refresh" content="0; url=second/third/" />
@@ -687,7 +723,7 @@ sub test_url_and_data_after_redirects_cookies()
                     print "\r\n";
                     print "Redirecting to the cookie check page...";
                 }
-            }
+              }
         },
 
         '/check_cookie' => {
@@ -720,7 +756,7 @@ sub test_url_and_data_after_redirects_cookies()
                     print "\r\n";
                     print 'Cookie wasn\'t found, redirecting you to the "no cookies" page...';
                 }
-            }
+              }
         },
         '/no_cookies' => "No cookie support, go away, we don\'t like you."
     };

@@ -39,9 +39,9 @@ sub main
     my $p = {};
 
     Getopt::Long::GetOptions(
-        $p,           "start_url=s",  "story_url_pattern=s", "page_url_pattern=s",
-        "media_id=i", "start_date=s", "end_date=s",          "max_pages=i",
-        "debug!",     "dry_run!"
+        $p,                  "start_url=s", "story_url_pattern=s", "page_url_pattern=s",
+        "content_pattern=s", "media_id=i",  "start_date=s",        "end_date=s",
+        "max_pages=i",       "debug!",      "dry_run!"
     ) || return;
 
     if ( !( $p->{ start_url } && $p->{ story_url_pattern } && $p->{ page_url_pattern } && $p->{ media_id } ) )
