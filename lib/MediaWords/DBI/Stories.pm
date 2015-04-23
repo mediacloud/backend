@@ -186,50 +186,6 @@ sub get_content_for_first_download($$)
     return $content_ref;
 }
 
-# store any content returned by the tagging module in the downloads table
-sub _store_tags_content
-{
-    my ( $db, $story, $module, $tags ) = @_;
-
-    unless ( $tags->{ content } )
-    {
-        warn "Tags doesn't have 'content' for story " . $story->{ stories_id };
-        return;
-    }
-
-    my $download = $db->query(
-        <<"EOF",
-        SELECT *
-        FROM downloads
-        WHERE stories_id = ?
-              AND type = 'content'
-        ORDER BY downloads_id ASC
-        LIMIT 1
-EOF
-        $story->{ stories_id }
-    )->hash;
-
-    my $tags_download = $db->create(
-        'downloads',
-        {
-            feeds_id      => $download->{ feeds_id },
-            stories_id    => $story->{ stories_id },
-            parent        => $download->{ downloads_id },
-            url           => $download->{ url },
-            host          => $download->{ host },
-            download_time => 'NOW()',
-            type          => $module,
-            state         => 'pending',
-            priority      => 10,
-            sequence      => 1
-        }
-    );
-
-    #my $content = $tags->{content};
-
-    MediaWords::DBI::Downloads::store_content( $db, $tags_download, \$tags->{ content } );
-}
-
 sub get_existing_tags
 {
     my ( $db, $story, $module ) = @_;
