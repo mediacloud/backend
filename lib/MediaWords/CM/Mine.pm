@@ -1724,49 +1724,6 @@ sub get_stories_with_sources
     return $stories;
 }
 
-# for each cross media controversy link, add a text similarity score that is the cos sim
-# of the text of the source and ref stories.  assumes the $stories argument comes
-# with each story with a { source_stories } field that includes all of the source
-# stories for that ref story
-sub generate_link_text_similarities
-{
-    my ( $db, $controversy, $stories ) = @_;
-
-    for my $story ( @{ $stories } )
-    {
-        for my $source_story ( @{ $story->{ source_stories } } )
-        {
-            my $has_sim = $db->query(
-                "select 1 from controversy_links " .
-                  "  where stories_id = ? and ref_stories_id = ? and text_similarity > 0 and controversies_id = ?",
-                $source_story->{ stories_id },
-                $story->{ stories_id },
-                $controversy->{ controversies_id }
-            )->list;
-            next if ( $has_sim );
-
-            MediaWords::DBI::Stories::add_word_vectors( $db, [ $story, $source_story ], 1 );
-            MediaWords::DBI::Stories::add_cos_similarities( $db, [ $story, $source_story ] );
-
-            my $sim = $story->{ similarities }->[ 1 ];
-
-            print STDERR "link sim:\n\t$story->{ title } [ $story->{ stories_id } ]\n" .
-              "\t$source_story->{ title } [ $source_story->{ stories_id } ]\n\t$sim\n\n";
-
-            $db->query(
-                "update controversy_links set text_similarity = ? " .
-                  "  where stories_id = ? and ref_stories_id = ? and controversies_id = ?",
-                $sim,
-                $source_story->{ stories_id },
-                $story->{ stories_id },
-                $controversy->{ controversies_id }
-            );
-
-            map { $_->{ similarities } = undef } ( $story, $source_story );
-        }
-    }
-}
-
 # generate a link weight score for each cross media controversy_link
 # by adding a point for each incoming link, then adding the some of the
 # link weights of each link source divided by the ( iteration * 10 ) of the recursive
