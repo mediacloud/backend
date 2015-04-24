@@ -278,6 +278,36 @@ sub get_links_from_story
     return [ values( %{ $link_lookup } ) ];
 }
 
+# return true if the publish date of the story is within 7 days of the controversy date range or if the
+# story is undateable
+sub story_within_controversy_date_range
+{
+    my ( $db, $controversy, $story ) = @_;
+
+    my $story_date = substr( $story->{ publish_date }, 0, 10 );
+
+    if ( !$controversy->{ start_date } )
+    {
+        my ( $start_date, $end_date ) = $db->query( <<SQL, $controversy->{ controversies_id } )->flat;
+select start_date, end_date from controversy_dates where controversies_id = ? and boundary
+SQL
+        $controversy->{ start_date } = $start_date;
+        $controversy->{ end_date }   = $end_date;
+    }
+
+    my $start_date = $controversy->{ start_date };
+    $start_date = MediaWords::Util::SQL::increment_day( $start_date, -7 );
+    $start_date = substr( $start_date, 0, 10 );
+
+    my $end_date = $controversy->{ end_date };
+    $end_date = MediaWords::Util::SQL::increment_day( $end_date, 7 );
+    $end_date = substr( $end_date, 0, 10 );
+
+    return 1 if ( ( $story_date ge $start_date ) && ( $story_date le $end_date ) );
+
+    return MediaWords::DBI::Stories::is_undateable( $db, $story );
+}
+
 # for each story, return a list of the links found in either the extracted html or the story description
 sub generate_controversy_links
 {
@@ -303,39 +333,50 @@ sub generate_controversy_links
         my $db = MediaWords::DB::connect_to_db;
         $db->dbh->{ AutoCommit } = 0;
 
-        my $links = get_links_from_story( $db, $story );
+        my $story_in_date_range = story_within_controversy_date_range( $db, $controversy, $story );
 
-        my $link_lookup = {};
-
-        for my $link ( @{ $links } )
+        if ( !$story_in_date_range )
         {
-            next if ( $link->{ url } eq $story->{ url } );
+            say STDERR "OUT OF DATE RANGE: $story->{ publish_date }" unless ( $story_in_date_range );
+        }
+        else
+        {
+            say STDERR "IN DATE RANGE: $story->{ publish_date }" unless ( $story_in_date_range );
 
-            my $link_exists = $link_lookup->{ $link->{ url } };
-            $link_lookup->{ $link->{ url } } = 1;
+            my $links = $story_in_date_range ? get_links_from_story( $db, $story ) : [];
 
-            $link_exists ||= $db->query(
-                "select * from controversy_links where stories_id = ? and url = ? and controversies_id = ?",
-                $story->{ stories_id },
-                encode( 'utf8', $link->{ url } ),
-                $controversy->{ controversies_id }
-            )->hash;
+            my $link_lookup = {};
 
-            if ( $link_exists )
+            for my $link ( @{ $links } )
             {
-                print STDERR "    -> dup: $link->{ url }\n";
-            }
-            else
-            {
-                print STDERR "    -> new: $link->{ url }\n";
-                $db->create(
-                    "controversy_links",
-                    {
-                        stories_id       => $story->{ stories_id },
-                        url              => encode( 'utf8', $link->{ url } ),
-                        controversies_id => $controversy->{ controversies_id }
-                    }
-                );
+                next if ( $link->{ url } eq $story->{ url } );
+
+                my $link_exists = $link_lookup->{ $link->{ url } };
+                $link_lookup->{ $link->{ url } } = 1;
+
+                $link_exists ||= $db->query(
+                    "select * from controversy_links where stories_id = ? and url = ? and controversies_id = ?",
+                    $story->{ stories_id },
+                    encode( 'utf8', $link->{ url } ),
+                    $controversy->{ controversies_id }
+                )->hash;
+
+                if ( $link_exists )
+                {
+                    print STDERR "    -> dup: $link->{ url }\n";
+                }
+                else
+                {
+                    print STDERR "    -> new: $link->{ url }\n";
+                    $db->create(
+                        "controversy_links",
+                        {
+                            stories_id       => $story->{ stories_id },
+                            url              => encode( 'utf8', $link->{ url } ),
+                            controversies_id => $controversy->{ controversies_id }
+                        }
+                    );
+                }
             }
         }
 
@@ -2443,7 +2484,7 @@ sub mine_controversy ($$;$)
     say STDERR "mining controversy stories ...";
     mine_controversy_stories( $db, $controversy );
 
-    # merge dup media and stories here to avoid redundant link processing for imported urls
+    # # merge dup media and stories here to avoid redundant link processing for imported urls
     say STDERR "merging media_dup stories ...";
     merge_dup_media_stories( $db, $controversy );
 
