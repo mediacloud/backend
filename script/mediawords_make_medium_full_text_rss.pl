@@ -2,7 +2,7 @@
 
 # set the given medium to have full_text_rss == true.  reprocess all of the
 # stories for the given medium to use the story->{ description } for the
-# story_sentence_words entries.
+# story sentences
 
 # note that this script does not reprocess any of the aggregation --
 # that has to be done separately.
