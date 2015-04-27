@@ -168,7 +168,9 @@ sub main
 
         for ( my $i = 0 ; ( $i < 10 ) && ( my $url = get_meta_refresh_url( $response, $request ) ) ; $i++ )
         {
-            $response = $ua->get( $url );
+            my $meta_refresh_response = $ua->get( $url );
+            $meta_refresh_response->previous( $response );
+            $response = $meta_refresh_response;
         }
 
         print STDERR "got [$i/$total]: $request->{ url }\n";
