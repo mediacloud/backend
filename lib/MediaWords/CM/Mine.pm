@@ -1135,7 +1135,7 @@ sub story_is_controversy_story
         $controversy->{ controversies_id }
     )->flat;
 
-    print STDERR "EXISTING CONTROVERSY STORY\n" if ( $is_old );
+    print STDERR "EXISTING CONTROVERSY STORY: $story->{ url }\n" if ( $is_old );
 
     return $is_old;
 }
@@ -2074,8 +2074,8 @@ sub merge_dup_media_stories
 
     my $dup_media_stories = $db->query( <<END, $controversy->{ controversies_id } )->hashes;
 SELECT distinct s.*
-    FROM stories s
-        join controversy_stories cs on ( s.stories_id = cs.stories_id )
+    FROM cd.live_stories s
+        join controversy_stories cs on ( s.stories_id = cs.stories_id and s.controversies_id = cs.controversies_id )
         join media m on ( s.media_id = m.media_id )
     WHERE
         m.dup_media_id is not null and
@@ -2393,10 +2393,8 @@ sub get_controversy_stories_by_medium
 
     my $stories = $db->query( <<END, $controversy->{ controversies_id } )->hashes;
 select s.stories_id, s.media_id, s.title, s.url
-    from stories s
-        join controversy_stories cs on ( cs.stories_id = s.stories_id )
-    where cs.controversies_id = ?
-    group by s.stories_id
+    from cd.live_stories s
+    where s.controversies_id = ?
 END
 
     my $media_lookup = {};
