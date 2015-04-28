@@ -15,8 +15,8 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 
 __PACKAGE__->config(
     action => {
-        single_GET => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        list_GET   => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        single_GET => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        list_GET   => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
         update_PUT => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
     }
 );
@@ -34,11 +34,11 @@ sub get_name_search_clause
     my $qv = $c->dbis->dbh->quote( $v );
 
     return <<END;
-and tags_id in ( 
-    select t.tags_id 
-        from tags t 
+and tags_id in (
+    select t.tags_id
+        from tags t
             join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
-        where 
+        where
             t.tag ilike '%' || $qv || '%' or
             t.label ilike '%' || $qv || '%' or
             ts.name ilike '%' || $qv || '%' or
@@ -62,13 +62,13 @@ sub single_GET : Local
     my ( $self, $c, $id ) = @_;
 
     my $items = $c->dbis->query( <<END, $id )->hashes();
-select t.tags_id, t.tag_sets_id, t.label, t.description, t.tag, 
+select t.tags_id, t.tag_sets_id, t.label, t.description, t.tag,
         ts.name tag_set_name, ts.label tag_set_label, ts.description tag_set_description,
         t.show_on_media OR ts.show_on_media show_on_media,
         t.show_on_stories OR ts.show_on_stories show_on_stories
     from tags t
         join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
-    where 
+    where
         t.tags_id = ?
 END
 
@@ -86,7 +86,7 @@ sub _fetch_list
 
     $c->dbis->query( <<END );
 create temporary view tags as
-    select t.tags_id, t.tag_sets_id, t.label, t.description, t.tag, 
+    select t.tags_id, t.tag_sets_id, t.label, t.description, t.tag,
         ts.name tag_set_name, ts.label tag_set_label, ts.description tag_set_description,
         t.show_on_media OR ts.show_on_media show_on_media,
         t.show_on_stories OR ts.show_on_stories show_on_stories

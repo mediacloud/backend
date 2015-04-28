@@ -24,7 +24,7 @@ use constant TIMEOUT           => 20;
 use constant MAX_REDIRECT      => 15;
 
 # number of links to prefetch at a time for the cached downloads
-use constant LINK_CACHE_SIZE => 100;
+use constant LINK_CACHE_SIZE => 200;
 
 # for how many times and at what intervals should LWP::UserAgent::Determined
 # retry requests
@@ -222,7 +222,7 @@ sub cache_link_downloads
     }
 }
 
-# if the url has been precached, return it, otherwise download the current links and the next ten links
+# if the url has been precached, return it, otherwise download the current links and the next LINK_CACHE_SIZE links
 sub get_cached_link_download
 {
     my ( $link ) = @_;
@@ -232,9 +232,10 @@ sub get_cached_link_download
 
     my $link_num = $link->{ _link_num };
 
-    if ( my $response = $_link_downloads_cache->{ $link_num } )
+    my $r = $_link_downloads_cache->{ $link_num };
+    if ( defined( $r ) )
     {
-        return ( ref( $response ) ? $response->decoded_content : $response );
+        return ( ref( $r ) ? $r->decoded_content : $r );
     }
 
     my $links      = $_link_downloads_list;
@@ -259,6 +260,10 @@ sub get_cached_link_download
     {
         my $original_url = MediaWords::Util::Web->get_original_request( $response )->uri->as_string;
         my $response_link_nums = [ map { $_->{ _link_num } } @{ $url_lookup->{ $original_url } } ];
+        if ( !@{ $response_link_nums } )
+        {
+            warn( "NO LINK_NUM FOUND FOR URL '$original_url' " );
+        }
 
         for my $response_link_num ( @{ $response_link_nums } )
         {
