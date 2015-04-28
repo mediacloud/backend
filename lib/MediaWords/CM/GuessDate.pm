@@ -750,16 +750,6 @@ sub _guess_by_url_and_date_text
     }
 }
 
-# just return the existing publish_date of the story.
-# this is useful as a last resort so that we can keep
-# track of the '_guess_by_existing_story_date' method
-sub _guess_by_existing_story_date
-{
-    my ( $story, $html, $html_tree ) = @_;
-
-    return $story->{ publish_date };
-}
-
 # if the date is a number, assume it is an UNIX timestamp and return it; otherwise, parse
 # it and return the UNIX timestamp
 sub _make_unix_timestamp
