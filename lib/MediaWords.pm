@@ -87,7 +87,6 @@ sub setup_acl()
       /admin/media/search
       /admin/mediasets/list
       /admin/stories/list
-      /admin/stories/retag
       /admin/stories/stories_query_json
       /admin/stories/tag
       /admin/stories/view
