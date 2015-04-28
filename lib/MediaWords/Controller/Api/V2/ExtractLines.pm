@@ -49,8 +49,6 @@ __PACKAGE__->config(    #
 
 use constant ROWS_PER_PAGE => 20;
 
-use MediaWords::Tagger;
-
 sub story_lines : Local : ActionClass('REST')
 {
 }
