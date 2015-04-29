@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4496;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4497;
     
 BEGIN
 
@@ -1388,69 +1388,6 @@ create table solr_import_stories (
 create index solr_import_stories_story on solr_import_stories ( stories_id );
 
 create index solr_imports_date on solr_imports ( import_date );
-    
-create table weekly_words (
-       weekly_words_id              bigserial          primary key,
-       media_sets_id                int             not null, -- references media_sets,
-       dashboard_topics_id          int             null,     -- references dashboard_topics,
-       term                         varchar(256)    not null,
-       stem                         varchar(256)    not null,
-       stem_count                   int             not null,
-       publish_week                 date            not null
-);
-
-create UNIQUE index weekly_words_media on weekly_words(publish_week, media_sets_id, dashboard_topics_id, stem);
-create index weekly_words_count on weekly_words(publish_week, media_sets_id, dashboard_topics_id, stem_count);
-create index weekly_words_topic on weekly_words (publish_week, dashboard_topics_id);
-
-ALTER TABLE  weekly_words ADD CONSTRAINT weekly_words_publish_week_is_monday CHECK ( EXTRACT ( ISODOW from publish_week) = 1 );
-
-create table top_500_weekly_words (
-       top_500_weekly_words_id      serial          primary key,
-       media_sets_id                int             not null, -- references media_sets on delete cascade,
-       dashboard_topics_id          int             null,     -- references dashboard_topics,
-       term                         varchar(256)    not null,
-       stem                         varchar(256)    not null,
-       stem_count                   int             not null,
-       publish_week                 date            not null
-);
-
-create UNIQUE index top_500_weekly_words_media on top_500_weekly_words(publish_week, media_sets_id, dashboard_topics_id, stem);
-create index top_500_weekly_words_media_null_dashboard on top_500_weekly_words (publish_week,media_sets_id, dashboard_topics_id) 
-    where dashboard_topics_id is null;
-create index top_500_weekly_words_dmds on top_500_weekly_words using btree (publish_week, media_sets_id, dashboard_topics_id, stem);
-
-ALTER TABLE  top_500_weekly_words ADD CONSTRAINT top_500_weekly_words_publish_week_is_monday CHECK ( EXTRACT ( ISODOW from publish_week) = 1 );
-  
-create table total_top_500_weekly_words (
-       total_top_500_weekly_words_id       serial          primary key,
-       media_sets_id                int             not null references media_sets on delete cascade, 
-       dashboard_topics_id          int             null references dashboard_topics,
-       publish_week                 date            not null,
-       total_count                  int             not null
-);
-ALTER TABLE total_top_500_weekly_words ADD CONSTRAINT total_top_500_weekly_words_publish_week_is_monday CHECK ( EXTRACT ( ISODOW from publish_week) = 1 );
-
-create unique index total_top_500_weekly_words_media 
-    on total_top_500_weekly_words(publish_week, media_sets_id, dashboard_topics_id);
-
-create view top_500_weekly_words_with_totals as select t5.*, tt5.total_count from top_500_weekly_words t5, total_top_500_weekly_words tt5       where t5.media_sets_id = tt5.media_sets_id and t5.publish_week = tt5.publish_week and         ( ( t5.dashboard_topics_id = tt5.dashboard_topics_id ) or           ( t5.dashboard_topics_id is null and tt5.dashboard_topics_id is null ) );
-
-create view top_500_weekly_words_normalized
-    as select t5.stem, min(t5.term) as term,             ( least( 0.01, sum(t5.stem_count)::numeric / sum(t5.total_count)::numeric ) * count(*) ) as stem_count, t5.media_sets_id, t5.publish_week, t5.dashboard_topics_id         from top_500_weekly_words_with_totals t5    group by t5.stem, t5.publish_week, t5.media_sets_id, t5.dashboard_topics_id;
-    
-create table total_weekly_words (
-       total_weekly_words_id         serial          primary key,
-       media_sets_id                 int             not null references media_sets on delete cascade, 
-       dashboard_topics_id           int             null references dashboard_topics on delete cascade,
-       publish_week                  date            not null,
-       total_count                   int             not null
-);
-create index total_weekly_words_media_sets_id on total_weekly_words (media_sets_id);
-create index total_weekly_words_media_sets_id_publish_day on total_weekly_words (media_sets_id,publish_week);
-create unique index total_weekly_words_ms_id_dt_id_p_week on total_weekly_words(media_sets_id, dashboard_topics_id, publish_week);
-CREATE INDEX total_weekly_words_publish_week on total_weekly_words(publish_week);
-INSERT INTO total_weekly_words(media_sets_id, dashboard_topics_id, publish_week, total_count) select media_sets_id, dashboard_topics_id, publish_week, sum(stem_count) as total_count from weekly_words group by media_sets_id, dashboard_topics_id, publish_week order by publish_week asc, media_sets_id, dashboard_topics_id ;
 
 create view story_extracted_texts as select stories_id, array_to_string(array_agg(download_text), ' ') as extracted_text 
        from (select * from downloads natural join download_texts order by downloads_id) as downloads group by stories_id;
@@ -2211,12 +2148,6 @@ CREATE VIEW downloads_in_past_day as select * from downloads where download_time
 CREATE VIEW downloads_with_error_in_past_day as select * from downloads_in_past_day where state = 'error';
 
 CREATE VIEW daily_stats as select * from (SELECT count(*) as daily_downloads from downloads_in_past_day) as dd, (select count(*) as daily_stories from stories_collected_in_past_day) ds , (select count(*) as downloads_to_be_extracted from downloads_to_be_extracted) dex, (select count(*) as download_errors from downloads_with_error_in_past_day ) er;
-
-CREATE TABLE queries_top_weekly_words_json (
-   queries_top_weekly_words_json_id serial primary key,
-   queries_id integer references queries on delete cascade not null unique,
-   top_weekly_words_json text not null 
-);
 
 CREATE TABLE feedless_stories (
         stories_id integer,
