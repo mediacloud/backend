@@ -50,7 +50,7 @@ sub main
 
     #say STDERR Dumper([@indexes]);
 
-    my $non_reindexed_prefixes = [ qw ( downloads_ stories_ daily_words_ ) ];
+    my $non_reindexed_prefixes = [ qw ( downloads_ stories_ ) ];
 
     foreach my $non_reindexed_prefix ( @$non_reindexed_prefixes )
     {

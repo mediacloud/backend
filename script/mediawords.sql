@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4495;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4496;
     
 BEGIN
 
@@ -843,36 +843,6 @@ $$
 LANGUAGE 'plpgsql' STABLE
  ;
 
-CREATE OR REPLACE FUNCTION purge_daily_words_for_media_set(v_media_sets_id int, default_start_day date, default_end_day date)
-RETURNS VOID AS 
-$$
-DECLARE
-    media_rec record;
-    current_time timestamp;
-    start_date   date;
-    end_date     date;
-BEGIN
-    current_time := timeofday()::timestamp;
-
-    RAISE NOTICE ' purge_daily_words_for_media_set media_sets_id %, time - %', v_media_sets_id, current_time;
-
-    media_rec = media_set_sw_data_retention_dates( v_media_sets_id, default_start_day,  default_end_day );
-
-    start_date = media_rec.start_date; 
-    end_date = media_rec.end_date;
-
-    RAISE NOTICE 'start date - %', start_date;
-    RAISE NOTICE 'end date - %', end_date;
-
-    DELETE from daily_words where media_sets_id = v_media_sets_id and (publish_day < start_date or publish_day > end_date) ;
-    DELETE from total_daily_words where media_sets_id = v_media_sets_id and (publish_day < start_date or publish_day > end_date) ;
-
-    return;
-END;
-$$
-LANGUAGE 'plpgsql' 
- ;
-
 -- dashboard_media_sets associates certain 'collection' type media_sets with a given dashboard.
 -- Those assocaited media_sets will appear on the dashboard page, and the media associated with
 -- the collections will be available from autocomplete box.
@@ -1419,22 +1389,6 @@ create index solr_import_stories_story on solr_import_stories ( stories_id );
 
 create index solr_imports_date on solr_imports ( import_date );
     
-create table daily_words (
-       daily_words_id               bigserial          primary key,
-       media_sets_id                int             not null, -- references media_sets,
-       dashboard_topics_id          int             null,     -- references dashboard_topics,
-       term                         varchar(256)    not null,
-       stem                         varchar(256)    not null,
-       stem_count                   int             not null,
-       publish_day                  date            not null
-);
-
-create index daily_words_media on daily_words(publish_day, media_sets_id, dashboard_topics_id, stem);
-create index daily_words_count on daily_words(publish_day, media_sets_id, dashboard_topics_id, stem_count);
-create index daily_words_publish_week on daily_words(week_start_date(publish_day));
-
-CREATE INDEX daily_words_day_topic ON daily_words USING btree (publish_day, dashboard_topics_id);
-
 create table weekly_words (
        weekly_words_id              bigserial          primary key,
        media_sets_id                int             not null, -- references media_sets,
@@ -1485,21 +1439,6 @@ create view top_500_weekly_words_with_totals as select t5.*, tt5.total_count fro
 create view top_500_weekly_words_normalized
     as select t5.stem, min(t5.term) as term,             ( least( 0.01, sum(t5.stem_count)::numeric / sum(t5.total_count)::numeric ) * count(*) ) as stem_count, t5.media_sets_id, t5.publish_week, t5.dashboard_topics_id         from top_500_weekly_words_with_totals t5    group by t5.stem, t5.publish_week, t5.media_sets_id, t5.dashboard_topics_id;
     
-create table total_daily_words (
-       total_daily_words_id         serial          primary key,
-       media_sets_id                int             not null, -- references media_sets on delete cascade,
-       dashboard_topics_id           int            null,     -- references dashboard_topics,
-       publish_day                  date            not null,
-       total_count                  int             not null
-);
-
-create index total_daily_words_media_sets_id on total_daily_words (media_sets_id);
-create index total_daily_words_media_sets_id_publish_day on total_daily_words (media_sets_id,publish_day);
-create index total_daily_words_publish_day on total_daily_words (publish_day);
-create index total_daily_words_publish_week on total_daily_words (week_start_date(publish_day));
-create unique index total_daily_words_media_sets_id_dashboard_topic_id_publish_day ON total_daily_words (media_sets_id, dashboard_topics_id, publish_day);
-
-
 create table total_weekly_words (
        total_weekly_words_id         serial          primary key,
        media_sets_id                 int             not null references media_sets on delete cascade, 
@@ -1512,8 +1451,6 @@ create index total_weekly_words_media_sets_id_publish_day on total_weekly_words 
 create unique index total_weekly_words_ms_id_dt_id_p_week on total_weekly_words(media_sets_id, dashboard_topics_id, publish_week);
 CREATE INDEX total_weekly_words_publish_week on total_weekly_words(publish_week);
 INSERT INTO total_weekly_words(media_sets_id, dashboard_topics_id, publish_week, total_count) select media_sets_id, dashboard_topics_id, publish_week, sum(stem_count) as total_count from weekly_words group by media_sets_id, dashboard_topics_id, publish_week order by publish_week asc, media_sets_id, dashboard_topics_id ;
-
-create view daily_words_with_totals as select d.*, t.total_count from daily_words d, total_daily_words t where d.media_sets_id = t.media_sets_id and d.publish_day = t.publish_day and ( ( d.dashboard_topics_id = t.dashboard_topics_id ) or ( d.dashboard_topics_id is null and t.dashboard_topics_id is null ) );
 
 create view story_extracted_texts as select stories_id, array_to_string(array_agg(download_text), ' ') as extracted_text 
        from (select * from downloads natural join download_texts order by downloads_id) as downloads group by stories_id;
