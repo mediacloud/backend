@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4494;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4495;
     
 BEGIN
 
@@ -97,40 +97,6 @@ $$
 LANGUAGE 'plpgsql' IMMUTABLE
   COST 10;
 
-
-CREATE OR REPLACE FUNCTION purge_story_words(default_start_day date, default_end_day date)
-  RETURNS VOID  AS
-$$
-DECLARE
-    media_rec record;
-    current_time timestamp;
-BEGIN
-    current_time := timeofday()::timestamp;
-
-    RAISE NOTICE 'time - %', current_time;
-
-    IF ( ( not default_start_day is null ) and ( not default_end_day is null ) ) THEN
-       RAISE NOTICE 'deleting for media without explict sw dates';
-       DELETE from story_sentence_words where not media_id in ( select media_id from media where ( not (sw_data_start_date is null)) and (not (sw_data_end_date is null)) )
-          AND ( publish_day < default_start_day or publish_day > default_end_day);
-    END IF;
-
-    FOR media_rec in  SELECT media_id, coalesce( sw_data_start_date, default_start_day ) as start_date FROM media where not (coalesce ( sw_data_start_date, default_start_day ) is null ) and (not sw_data_start_date is null) and (not sw_data_end_date is null) ORDER BY media_id LOOP
-        current_time := timeofday()::timestamp;
-        RAISE NOTICE 'media_id is %, start_date - % time - %', media_rec.media_id, media_rec.start_date, current_time;
-        DELETE from story_sentence_words where media_id = media_rec.media_id and publish_day < media_rec.start_date; 
-    END LOOP;
-
-  RAISE NOTICE 'time - %', current_time;  -- Prints 30
-  FOR media_rec in  SELECT media_id, coalesce( sw_data_end_date, default_end_day ) as end_date FROM media where not (coalesce ( sw_data_end_date, default_end_day ) is null ) and (not sw_data_start_date is null) and (not sw_data_end_date is null) ORDER BY media_id LOOP
-        current_time := timeofday()::timestamp;
-        RAISE NOTICE 'media_id is %, end_date - % time - %', media_rec.media_id, media_rec.end_date, current_time;
-        DELETE from story_sentence_words where media_id = media_rec.media_id and publish_day > media_rec.end_date; 
-    END LOOP;
-END;
-$$
-LANGUAGE 'plpgsql'
- ;
 
 CREATE OR REPLACE FUNCTION purge_story_sentences(default_start_day date, default_end_day date)
   RETURNS VOID  AS
@@ -1453,22 +1419,6 @@ create index solr_import_stories_story on solr_import_stories ( stories_id );
 
 create index solr_imports_date on solr_imports ( import_date );
     
-create table story_sentence_words (
-       stories_id                   int             not null, -- references stories on delete cascade,
-       term                         varchar(256)    not null,
-       stem                         varchar(256)    not null,
-       stem_count                   smallint        not null,
-       sentence_number              smallint        not null,
-       media_id                     int             not null, -- references media on delete cascade,
-       publish_day                  date            not null
-);
-
-create index story_sentence_words_story on story_sentence_words (stories_id, sentence_number);
-create index story_sentence_words_dsm on story_sentence_words (publish_day, stem, media_id);
-create index story_sentence_words_dm on story_sentence_words (publish_day, media_id);
---ALTER TABLE  story_sentence_words ADD CONSTRAINT story_sentence_words_media_id_fkey FOREIGN KEY (media_id) REFERENCES media(media_id) ON DELETE CASCADE;
---ALTER TABLE  story_sentence_words ADD CONSTRAINT story_sentence_words_stories_id_fkey FOREIGN KEY (stories_id) REFERENCES stories(stories_id) ON DELETE CASCADE;
-
 create table daily_words (
        daily_words_id               bigserial          primary key,
        media_sets_id                int             not null, -- references media_sets,
