@@ -17,9 +17,9 @@
 
 SET search_path = public, pg_catalog;
 
-DROP VIEW top_500_weekly_words_with_totals;
-
 DROP VIEW top_500_weekly_words_normalized;
+
+DROP VIEW top_500_weekly_words_with_totals;
 
 DROP TABLE weekly_words;
 
