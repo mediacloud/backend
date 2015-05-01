@@ -69,10 +69,10 @@ sub connect_to_db(;$$)
     # Reset the session variable in case the database connection is being reused due to pooling.
 
     my $query = <<'END_SQL';
-DO $$ 
+DO $$
 BEGIN
 PERFORM enable_story_triggers();
-EXCEPTION 
+EXCEPTION
 WHEN undefined_function THEN
     -- This exception will be raised if the database is uninitialized at this point.
     -- So, don't emit any kind of error because of an non-existent function.
@@ -203,6 +203,17 @@ sub enable_story_triggers
     return;
 }
 
+# return a new db for a forked process, taking care to deactivate the existing
+# handle to avoid having the child process kill the parent db on exit
+sub reset_forked_db
+{
+    my ( $db ) = @_;
+
+    $db->dbh->{ InactiveDestroy } = 1;
+    $db->{ dbh } = undef;
+
+    return connect_to_db;
+}
+
 # You can replace this text with custom content, and it will be preserved on regeneration
 1;
-

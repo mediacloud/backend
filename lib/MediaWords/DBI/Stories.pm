@@ -1337,12 +1337,28 @@ sub get_medium_dup_stories_by_url
     my $url_lookup = {};
     for my $story ( @{ $stories } )
     {
+        die( "no url in story: " . Dumper( $story ) ) unless ( $story->{ url } );
         my $nu = MediaWords::Util::URL::normalize_url_lossy( $story->{ url } )->as_string;
         $story->{ normalized_url } = $nu;
         push( @{ $url_lookup->{ $nu } }, $story );
     }
 
     return [ grep { ( @{ $_ } > 1 ) && ( @{ $_ } < 6 ) } values( %{ $url_lookup } ) ];
+}
+
+# get duplicate stories within the given set that have duplicate guids
+sub get_medium_dup_stories_by_guid
+{
+    my ( $db, $stories ) = @_;
+
+    my $guid_lookup = {};
+    for my $story ( @{ $stories } )
+    {
+        die( "no guid in story: " . Dumper( $story ) ) unless ( $story->{ guid } );
+        push( @{ $guid_lookup->{ $story->{ guid } } }, $story );
+    }
+
+    return [ grep { @{ $_ } > 1 } values( %{ $guid_lookup } ) ];
 }
 
 # parse the content for tags that might indicate the story's title
