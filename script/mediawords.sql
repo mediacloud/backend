@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4497;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4498;
     
 BEGIN
 
@@ -624,24 +624,6 @@ create table media_rss_full_text_detection_data (
 );
 
 create index media_rss_full_text_detection_data_media on media_rss_full_text_detection_data (media_id);
-
-create table media_cluster_runs (
-	media_cluster_runs_id   serial          primary key,
-	queries_id              int             not null references queries,
-	num_clusters			int			    not null,
-	state                   varchar(32)     not null default 'pending',
-    clustering_engine       varchar(256)    not null
-);
-
-alter table media_cluster_runs add constraint media_cluster_runs_state check (state in ('pending', 'executing', 'completed'));
-
-create table media_clusters (
-	media_clusters_id		serial	primary key,
-	media_cluster_runs_id	int	    not null references media_cluster_runs on delete cascade,
-	description             text    null,
-	centroid_media_id       int     null references media on delete cascade
-);
-CREATE INDEX media_clusters_runs_id on media_clusters(media_cluster_runs_id);
    
 -- Sets of media sources that should appear in the dashboard
 -- The contents of the row depend on the set_type, which can be one of:
@@ -656,7 +638,6 @@ create table media_sets (
     set_type                    text        not null,
     media_id                    int         references media on delete cascade,
     tags_id                     int         references tags on delete cascade,
-    media_clusters_id           int         references media_clusters on delete cascade,
     creation_date               timestamp   default now(),
     vectors_added               boolean     default false,
     include_in_dump             boolean     default true
@@ -676,99 +657,15 @@ create table queries_media_sets_map (
 create index queries_media_sets_map_query on queries_media_sets_map ( queries_id );
 create index queries_media_sets_map_media_set on queries_media_sets_map ( media_sets_id );
 
-create table media_cluster_maps (
-    media_cluster_maps_id       serial          primary key,
-    method                      varchar(256)    not null,
-    map_type                    varchar(32)     not null default 'cluster',
-    name                        text            not null,
-    json                        text            not null,
-    nodes_total                 int             not null,
-    nodes_rendered              int             not null,
-    links_rendered              int             not null,
-    media_cluster_runs_id       int             not null references media_cluster_runs on delete cascade
-);
-    
-alter table media_cluster_maps add constraint media_cluster_maps_type check( map_type in ('cluster', 'polar' ));
-
-create index media_cluster_maps_run on media_cluster_maps( media_cluster_runs_id );
-
-create table media_cluster_map_poles (
-    media_cluster_map_poles_id      serial      primary key,
-    name                            text        not null,
-    media_cluster_maps_id           int         not null references media_cluster_maps on delete cascade,
-    pole_number                     int         not null,
-    queries_id                      int         not null references queries on delete cascade
-);
-
-create index media_cluster_map_poles_map on media_cluster_map_poles( media_cluster_maps_id );
-    
-create table media_cluster_map_pole_similarities (
-    media_cluster_map_pole_similarities_id  serial  primary key,
-    media_id                                int     not null references media on delete cascade,
-    queries_id                              int     not null references queries on delete cascade,
-    similarity                              int     not null,
-    media_cluster_maps_id                   int     not null references media_cluster_maps on delete cascade
-);
-
-create index media_cluster_map_pole_similarities_map ON media_cluster_map_pole_similarities (media_cluster_maps_id);
-
-create table media_clusters_media_map (
-    media_clusters_media_map_id     serial primary key,
-	media_clusters_id               int   not null references media_clusters on delete cascade,
-	media_id		                int   not null references media on delete cascade
-);
-
-create index media_clusters_media_map_cluster on media_clusters_media_map (media_clusters_id);
-create index media_clusters_media_map_media on media_clusters_media_map (media_id);
-
-create table media_cluster_words (
-	media_cluster_words_id	serial	primary key,
-	media_clusters_id       int	    not null references media_clusters on delete cascade,
-    internal                boolean not null,
-	weight			        float	not null,
-	stem			        text	not null,
-	term                    text    not null
-);
-
-create index media_cluster_words_cluster on media_cluster_words (media_clusters_id);
-
--- Jon's table for storing links between media sources
--- -> Used in Protovis' force visualization. 
-create table media_cluster_links (
-  media_cluster_links_id    serial  primary key,
-  media_cluster_runs_id	    int	    not null     references media_cluster_runs on delete cascade,
-  source_media_id           int     not null     references media              on delete cascade,
-  target_media_id           int     not null     references media              on delete cascade,
-  weight                    float   not null
-);
-
--- A table to store the internal/external zscores for
--- every source analyzed by Cluto
--- (the external/internal similarity scores for
--- clusters will be stored in media_clusters, if at all)
-create table media_cluster_zscores (
-  media_cluster_zscores_id  serial primary key,
-	media_cluster_runs_id	    int 	 not null     references media_cluster_runs on delete cascade,
-	media_clusters_id         int    not null     references media_clusters     on delete cascade,
-  media_id                  int    not null     references media              on delete cascade,
-  internal_zscore           float  not null, 
-  internal_similarity       float  not null,
-  external_zscore           float  not null,
-  external_similarity       float  not null     
-);
-
--- alter table media_cluster_runs add constraint media_cluster_runs_media_set_fk foreign key ( media_sets_id ) references media_sets;
-  
 alter table media_sets add constraint dashboard_media_sets_type
 check ( ( ( set_type = 'medium' ) and ( media_id is not null ) )
         or
         ( ( set_type = 'collection' ) and ( tags_id is not null ) )
         or
-        ( ( set_type = 'cluster' ) and ( media_clusters_id is not null ) ) );
+        ( ( set_type = 'cluster' ) ) );
 
 create unique index media_sets_medium on media_sets ( media_id );
 create index media_sets_tag on media_sets ( tags_id );
-create index media_sets_cluster on media_sets ( media_clusters_id );
 create index media_sets_vectors_added on media_sets ( vectors_added );
         
 create table media_sets_media_map (
@@ -852,7 +749,6 @@ create table dashboard_media_sets (
     dashboard_media_sets_id     serial          primary key,
     dashboards_id               int             not null references dashboards on delete cascade,
     media_sets_id               int             not null references media_sets on delete cascade,
-    media_cluster_runs_id       int             null references media_cluster_runs on delete set null,
     color                       text            null
 );
 

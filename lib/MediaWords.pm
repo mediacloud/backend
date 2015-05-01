@@ -101,8 +101,6 @@ sub setup_acl()
       /admin/dashboards/create
       /admin/dashboards/create_topic
       /admin/mediasets/create
-      /admin/mediasets/edit_cluster_run
-      /admin/mediasets/edit_cluster_run_do
       /admin/topics/create_do
       |;
 
@@ -144,8 +142,6 @@ sub setup_acl()
       /admin/media/merge
       /admin/media/moderate
       /admin/mediasets/create
-      /admin/mediasets/edit_cluster_run
-      /admin/mediasets/edit_cluster_run_do
       /admin/health
       /admin/health/list
       /admin/health/tag
