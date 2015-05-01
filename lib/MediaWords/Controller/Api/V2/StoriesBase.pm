@@ -40,8 +40,6 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 
 use constant ROWS_PER_PAGE => 20;
 
-use MediaWords::Tagger;
-
 sub has_extra_data
 {
     return 1;

@@ -71,24 +71,6 @@ sub _gr_url($$;$)
     return _gr( $db, $html, $story_url, $story_publish_date );
 }
 
-# Returns timestamp of the page or undef; also fetches the URL
-sub _gt_url($$;$)
-{
-    my ( $db, $story_url, $story_publish_date ) = @_;
-
-    my $result = _gr_url( $db, $story_url, $story_publish_date );
-
-    # say STDERR Dumper($result);
-    if ( $result->{ result } eq MediaWords::CM::GuessDate::Result::FOUND )
-    {
-        return $result->{ timestamp };
-    }
-    else
-    {
-        return undef;
-    }
-}
-
 # Shorthand for timestamp_from_html()
 sub _ts_from_html($)
 {

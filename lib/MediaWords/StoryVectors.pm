@@ -2,7 +2,7 @@ package MediaWords::StoryVectors;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
-# methods to generate the story_sentences and story_sentence_words and associated aggregated tables
+# methods to generate the story_sentences and associated aggregated tables
 
 use strict;
 use warnings;
@@ -25,7 +25,6 @@ use utf8;
 use Readonly;
 use Text::CSV_XS;
 
-# minimum length of words in story_sentence_words
 use constant MIN_STEM_LENGTH => 3;
 
 Readonly my $sentence_study_table_prefix => 'sen_study_old_';
@@ -362,12 +361,12 @@ sub clean_sentences
 
 }
 
-# update story vectors for the given story, updating story_sentences and story_sentence_words
+# update story vectors for the given story, updating story_sentences
 # if no_delete is true, do not try to delete existing entries in the above table before creating new ones
 # (useful for optimization if you are very sure no story vectors exist for this story).  If
 # $no_dedup_sentences is true, do not perform sentence deduplication (useful if you are reprocessing a
 # small set of stories)
-sub update_story_sentence_words_and_language
+sub update_story_sentences_and_language
 {
     my ( $db, $story, $no_delete, $no_dedup_sentences, $ignore_date_range ) = @_;
 
@@ -380,7 +379,6 @@ sub update_story_sentence_words_and_language
 
     unless ( $no_delete )
     {
-        $db->query( "DELETE FROM story_sentence_words WHERE stories_id = ?",        $stories_id );
         $db->query( "DELETE FROM story_sentences WHERE stories_id = ?",             $stories_id );
         $db->query( "DELETE FROM story_sentence_counts WHERE first_stories_id = ?", $stories_id );
     }

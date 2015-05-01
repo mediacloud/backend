@@ -45,8 +45,6 @@ __PACKAGE__->config(
 
 use constant ROWS_PER_PAGE => 20;
 
-use MediaWords::Tagger;
-
 sub single_GET : Local
 {
     my ( $self, $c, $id ) = @_;

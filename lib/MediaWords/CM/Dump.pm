@@ -1292,21 +1292,6 @@ sub create_controversy_dump_time_slice ($$$$$$)
     return $cdts;
 }
 
-# write cd.word_counts table for time slice
-sub write_word_counts
-{
-    my ( $db, $cdts ) = @_;
-
-    $db->query( <<END, $cdts->{ controversy_dump_time_slices_id } );
-insert into cd.word_counts
-    ( controversy_dump_time_slices_id, stem, term, stem_count )
-    select ?, ssw.stem, min( term ) term, sum( ssw.stem_count ) stem_count
-        from story_sentence_words ssw
-            join dump_period_stories ps on ( ssw.stories_id = ps.stories_id )
-        group by ssw.stem
-END
-}
-
 # generate data for the story_links, story_link_counts, media_links, media_link_counts tables
 # based on the data in the temporary dump_* tables
 sub generate_cdts_data ($$;$)
@@ -1320,7 +1305,6 @@ sub generate_cdts_data ($$;$)
     write_medium_link_counts_dump( $db, $cdts, $is_model );
     write_medium_links_dump( $db, $cdts, $is_model );
 
-    #write_word_counts( $db, $cdts ) unless ( $is_model );
 }
 
 # update *_count fields in cdts.  save to db unless $live is specified.

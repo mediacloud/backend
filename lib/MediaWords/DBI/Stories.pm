@@ -186,50 +186,6 @@ sub get_content_for_first_download($$)
     return $content_ref;
 }
 
-# store any content returned by the tagging module in the downloads table
-sub _store_tags_content
-{
-    my ( $db, $story, $module, $tags ) = @_;
-
-    unless ( $tags->{ content } )
-    {
-        warn "Tags doesn't have 'content' for story " . $story->{ stories_id };
-        return;
-    }
-
-    my $download = $db->query(
-        <<"EOF",
-        SELECT *
-        FROM downloads
-        WHERE stories_id = ?
-              AND type = 'content'
-        ORDER BY downloads_id ASC
-        LIMIT 1
-EOF
-        $story->{ stories_id }
-    )->hash;
-
-    my $tags_download = $db->create(
-        'downloads',
-        {
-            feeds_id      => $download->{ feeds_id },
-            stories_id    => $story->{ stories_id },
-            parent        => $download->{ downloads_id },
-            url           => $download->{ url },
-            host          => $download->{ host },
-            download_time => 'NOW()',
-            type          => $module,
-            state         => 'pending',
-            priority      => 10,
-            sequence      => 1
-        }
-    );
-
-    #my $content = $tags->{content};
-
-    MediaWords::DBI::Downloads::store_content( $db, $tags_download, \$tags->{ content } );
-}
-
 sub get_existing_tags
 {
     my ( $db, $story, $module ) = @_;
@@ -450,84 +406,6 @@ sub get_initial_download_content($$)
     return $content;
 }
 
-# get word vectors for the top 1000 words for each story.
-# add a { vector } field to each story where the vector for each
-# query is the list of the counts of each word, with each word represented
-# by an index value shared across the union of all words for all stories.
-# if keep_words is true, also add a { words } field to each story
-# with the list of words for each story in { stem => s, term => s, stem_count => s } form.
-# if a { words } field is present, reuse that field rather than querying
-# the data from the database.
-# if $num_words is included, use $num_words max words per story.  default to 100.
-# if $stopword_length is included, use 'tiny', 'short', or 'long'.  default to 'short'.
-sub add_word_vectors
-{
-    my ( $db, $stories, $keep_words, $num_words, $stopword_length ) = @_;
-
-    $num_words ||= 100;
-
-    $stopword_length ||= 'short';
-
-    die( "unknown stopword_length '$stopword_length'" ) unless ( grep { $_ eq $stopword_length } qw(tiny short long) );
-
-    my $word_hash;
-
-    my $i               = 0;
-    my $next_word_index = 0;
-    for my $story ( @{ $stories } )
-    {
-        print STDERR "add_word_vectors: " . $i++ . "[ $story->{ stories_id } ]\n" unless ( $i % 100 );
-
-        my $sw_check;
-        if ( $stopword_length eq 'tiny' )
-        {
-            $sw_check = '';
-        }
-        else
-        {
-            $sw_check = "AND NOT is_stop_stem( '$stopword_length', ssw.stem, ssw.language )";
-        }
-
-        my $words = $story->{ words } || $db->query(
-            <<"EOF",
-            SELECT ssw.stem,
-                   MIN(ssw.term) AS term,
-                   SUM(stem_count) AS stem_count
-            FROM story_sentence_words AS ssw
-            WHERE ssw.stories_id = ?
-                  $sw_check
-            GROUP BY ssw.stem
-            ORDER BY SUM(stem_count) DESC
-            LIMIT ?
-EOF
-            $story->{ stories_id },
-            $num_words
-        )->hashes;
-
-        $story->{ vector } = [ 0 ];
-
-        for my $word ( @{ $words } )
-        {
-            if ( !defined( $word_hash->{ $word->{ stem } } ) )
-            {
-                $word_hash->{ $word->{ stem } } = $next_word_index++;
-            }
-
-            my $word_index = $word_hash->{ $word->{ stem } };
-
-            $story->{ vector }->[ $word_index ] = $word->{ stem_count };
-        }
-
-        if ( $keep_words )
-        {
-            print STDERR "keep words: " . scalar( @{ $words } ) . "\n";
-            $story->{ words } = $words;
-        }
-    }
-
-    return $stories;
-}
-
 # add a { similarities } field that holds the cosine similarity scores between each of the
 # stories to each other story.  Assumes that a { vector } has been added to each story
 # using add_word_vectors above.
@@ -731,7 +609,7 @@ sub process_extracted_story
 
     unless ( $no_vector )
     {
-        MediaWords::StoryVectors::update_story_sentence_words_and_language( $db, $story, 0, $no_dedup_sentences );
+        MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story, 0, $no_dedup_sentences );
     }
 
     $db->query(
@@ -1090,7 +968,7 @@ sub add_missing_story_sentences
 
     print STDERR "ADD SENTENCES [$story->{ stories_id }]\n";
 
-    MediaWords::StoryVectors::update_story_sentence_words_and_language( $db, $story, 0, 0, 1 );
+    MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story, 0, 0, 1 );
 }
 
 # get list of all sentences in story from the extracted text and annotate each with a dup_stories_id

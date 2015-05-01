@@ -15,7 +15,6 @@ use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use DBIx::Simple::MediaWords;
-use MediaWords::Tagger;
 use MediaWords::DBI::Downloads;
 use List::Uniq ':all';
 
