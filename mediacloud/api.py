@@ -402,3 +402,25 @@ class AdminMediaCloud(MediaCloud):
             custom_tags.append( '{},{}:{}'.format( tag.story_sentences_id, tag.tag_set_name, tag.tag_name ) )
         params['sentence_tag'] = custom_tags
         return self._queryForJson( self.V2_API_URL+'sentences/put_tags', params, 'PUT')
+
+    def updateTag(self, tags_id,name,label,description):
+        params = {}
+        if name is not None:
+            params['tag'] = name
+        if label is not None:
+            params['label'] = label
+        if description is not None:
+            params['description'] = description
+        return self._queryForJson( (self.V2_API_URL+'tags/update/%d') % tags_id, params, 'PUT')
+
+    def updateTagSet(self, tag_sets_id,name,label,description):
+        params = {}
+        if name is not None:
+            params['name'] = name
+        if label is not None:
+            params['label'] = label
+        if description is not None:
+            params['description'] = description
+        return self._queryForJson( (self.V2_API_URL+'tag_sets/update/%d') % tag_sets_id, params, 'PUT')
+
+

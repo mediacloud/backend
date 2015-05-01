@@ -11,7 +11,7 @@ test_classes = [
 	MongoStorageTest,
 	ApiControversyTest, ApiControversyDumpTest, ApiControversyDumpTimeSliceTest,
 	AuthTokenTest,
-	AdminApiTaggingTest
+	AdminApiTaggingContentTest, AdminApiTaggingUpdateTest
 ]
 
 # set up all logging to DEBUG (cause we're running tests here!)

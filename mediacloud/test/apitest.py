@@ -345,7 +345,7 @@ class AdminApiSentencesTest(AdminApiBaseTest):
         results1 = self._mc.sentenceList(ApiBaseTest.QUERY,ApiBaseTest.FILTER_QUERY,0,ApiBaseTest.SENTENCE_COUNT,
             self._mc.SORT_RANDOM)
         self.assertEqual(len(results1['response']['docs']), ApiBaseTest.SENTENCE_COUNT)
-        results2 = self._mc.sentenceList(ApiBaseTest.QUERY,ApiBaseTest.FILTER_QUERY,ApiBaseTest.SENTENCE_COUNT,ApiBaseTest.SENTENCE_COUNT,
+        results2 = self._mc.sentenceList(ApiBaseTest.QUERY,ApiBaseTest.FILTER_QUERY,ApiBaseTest.SENTENCE_COUNT+3,ApiBaseTest.SENTENCE_COUNT,
             self._mc.SORT_RANDOM)
         self.assertEqual(len(results2['response']['docs']), ApiBaseTest.SENTENCE_COUNT)
         for idx in range(0,ApiBaseTest.SENTENCE_COUNT):
@@ -459,7 +459,43 @@ class ApiWordCountTest(ApiBaseTest):
         self.assertTrue( 'stats' in term_freq.keys() )
         self.assertTrue( 'words' in term_freq.keys() )
 
-class AdminApiTaggingTest(AdminApiBaseTest):
+class AdminApiTaggingUpdateTest(AdminApiBaseTest):
+
+    def testTagUpdate(self):
+        example_tag_id = 8878305
+        # grab the tag info
+        tag = self._mc.tag(example_tag_id)
+        # change the name, label and description
+        result = self._mc.updateTag(example_tag_id, 'modified tag', 'modified label', 'modified description')
+        modified_tag = self._mc.tag(example_tag_id)
+        self.assertEqual(modified_tag['tag'],'modified tag')
+        self.assertEqual(modified_tag['label'],'modified label')
+        self.assertEqual(modified_tag['description'],'modified description')
+        # set it back
+        result = self._mc.updateTag(example_tag_id, 'example tag', 'example label', 'This is an exampel tag used in api client test scripts')
+        modified_tag = self._mc.tag(example_tag_id)
+        self.assertEqual(modified_tag['tag'],'example tag')
+        self.assertEqual(modified_tag['label'],'example label')
+        self.assertEqual(modified_tag['description'],'This is an exampel tag used in api client test scripts')
+
+    def testTagSetUpdate(self):
+        example_tag_sets_id = 1011
+        # grab the tag info
+        tag_set = self._mc.tagSet(example_tag_sets_id)
+        # change the name, label and description
+        result = self._mc.updateTagSet(example_tag_sets_id, 'rahulb@media.mit.edu', 'modified label', 'modified description')
+        modified_tag = self._mc.tagSet(example_tag_sets_id)
+        self.assertEqual(modified_tag['name'],'rahulb@media.mit.edu')
+        self.assertEqual(modified_tag['label'],'modified label')
+        self.assertEqual(modified_tag['description'],'modified description')
+        # set it back
+        result = self._mc.updateTagSet(example_tag_sets_id, 'rahulb@media.mit.edu', 'rahulbot', 'The tag set of Rahul!')
+        modified_tag = self._mc.tagSet(example_tag_sets_id)
+        self.assertEqual(modified_tag['name'],'rahulb@media.mit.edu')
+        self.assertEqual(modified_tag['label'],'rahulbot')
+        self.assertEqual(modified_tag['description'],'The tag set of Rahul!')
+
+class AdminApiTaggingContentTest(AdminApiBaseTest):
 
     def testTagStories(self):
         test_story_id = 1
