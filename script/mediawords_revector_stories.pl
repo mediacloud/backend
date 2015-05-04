@@ -49,7 +49,7 @@ END
         {
             # prevent usswal from refetching empty download_texts
             $story->{ story_text } ||= ' ';
-            MediaWords::StoryVectors::update_story_sentence_words_and_language( $db, $story );
+            MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story );
         }
 
         $db->query( <<END );

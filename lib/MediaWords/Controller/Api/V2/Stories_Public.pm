@@ -18,7 +18,6 @@ use MediaWords::DBI::Stories;
 use MediaWords::Solr;
 
 use constant ROWS_PER_PAGE => 20;
-use MediaWords::Tagger;
 
 BEGIN
 {

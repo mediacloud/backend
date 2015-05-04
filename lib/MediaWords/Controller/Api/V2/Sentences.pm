@@ -46,8 +46,6 @@ __PACKAGE__->config(
     }
 );
 
-use MediaWords::Tagger;
-
 sub get_table_name
 {
     return "story_sentences";

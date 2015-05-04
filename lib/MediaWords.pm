@@ -71,9 +71,6 @@ sub setup_acl()
 
     # Admin read-only interface
     my @acl_admin_readonly = qw|
-      /admin/clusters/index
-      /admin/clusters/view
-      /admin/clusters/view_time_slice_map
       /admin/dashboards/list
       /admin/dashboards/list_topics
       /admin/downloads/list
@@ -90,7 +87,6 @@ sub setup_acl()
       /admin/media/search
       /admin/mediasets/list
       /admin/stories/list
-      /admin/stories/retag
       /admin/stories/stories_query_json
       /admin/stories/tag
       /admin/stories/view
@@ -102,14 +98,9 @@ sub setup_acl()
     # query-create role; can do everything admin-readonly can + create queries, dashboards,
     # dashboard topics, media sets
     my @acl_query_create = qw|
-      /admin/clusters/create
-      /admin/clusters/create_cluster_map
-      /admin/clusters/create_polar_map
       /admin/dashboards/create
       /admin/dashboards/create_topic
       /admin/mediasets/create
-      /admin/mediasets/edit_cluster_run
-      /admin/mediasets/edit_cluster_run_do
       /admin/topics/create_do
       |;
 
@@ -151,8 +142,6 @@ sub setup_acl()
       /admin/media/merge
       /admin/media/moderate
       /admin/mediasets/create
-      /admin/mediasets/edit_cluster_run
-      /admin/mediasets/edit_cluster_run_do
       /admin/health
       /admin/health/list
       /admin/health/tag

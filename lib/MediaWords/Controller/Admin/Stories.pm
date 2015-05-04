@@ -36,8 +36,6 @@ Catalyst Controller.
 
 use constant ROWS_PER_PAGE => 100;
 
-use MediaWords::Tagger;
-
 # list of stories with the given feed id
 sub list : Local
 {
@@ -640,22 +638,6 @@ sub stories_query_json : Local
 
     $c->response->content_type( 'application/json; charset=UTF-8' );
     return $c->res->body( encode_json( $stories ) );
-}
-
-# display regenerated tags for story
-sub retag : Local
-{
-    my ( $self, $c, $stories_id ) = @_;
-
-    my $story = $c->dbis->find_by_id( 'stories', $stories_id );
-    my $story_text = MediaWords::DBI::Stories::get_text( $c->dbis, $story );
-
-    my $tags = MediaWords::Tagger::get_all_tags( $story_text );
-
-    $c->stash->{ story }      = $story;
-    $c->stash->{ story_text } = $story_text;
-    $c->stash->{ tags }       = $tags;
-    $c->stash->{ template }   = 'stories/retag.tt2';
 }
 
 =head1 AUTHOR

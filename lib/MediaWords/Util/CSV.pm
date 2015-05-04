@@ -116,12 +116,6 @@ sub get_query_as_csv
     return $csv_string;
 }
 
-# get a short snippet of the given encoded json for error reporting
-sub _json_snippet
-{
-    return substr( decode( 'utf8', $_[ 0 ] ), 0, 32 );
-}
-
 # accepts a file handle from which to read.  assumes that each line is a json
 # object.  prints out a csv line for each json object, assuming that the
 # keys for all json objects are the same as for the first.
