@@ -32,7 +32,7 @@ Catalyst Controller.
 
 =cut
 
-=head2 index 
+=head2 index
 
 =cut
 
@@ -65,7 +65,7 @@ sub _add_raw_1st_download
     my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ stories_id } } @{ $stories } ] );
 
     my $downloads = $db->query( <<END )->hashes;
-select d.* 
+select d.*
     from downloads d
         join (
             select min( s.downloads_id ) over ( partition by s.stories_id ) downloads_id
@@ -152,6 +152,54 @@ sub _split_sentence_tags_list
     }
 }
 
+# give the story ids in $ids_table, query the db for a list of stories_ids each with an
+# ap_stories_id present if the story is syndicated from some ap story
+sub _get_ap_stories_ids
+{
+    my ( $db, $ids_table ) = @_;
+
+    my $ap_stories_ids = $db->query( <<SQL )->hashes;
+with ap_sentences as
+(
+    select
+            ssc.first_stories_id stories_id,
+            ap.first_stories_id ap_stories_id
+        from story_sentence_counts ssc
+            join story_sentence_counts ap on ( ssc.sentence_md5 = ap.sentence_md5 )
+        where
+            ssc.first_stories_id in ( select id from $ids_table ) and
+            ssc.first_stories_id <> ap.first_stories_id and
+
+            -- the following exists is to make postgres avoid a bad query plan
+            exists (
+                select 1 from media m where m.name = 'Associated Press - Full Feed' and ap.media_id = m.media_id
+            ) and
+
+            -- we don't want to join story_sentences other than for the small
+            -- number of sentences that have some match
+            exists (
+                select 1
+                    from story_sentences ss
+                    where
+                        ss.stories_id = ssc.first_stories_id and
+                        ss.sentence_number = ssc.first_sentence_number and
+                        length( ss.sentence ) > 32
+            )
+),
+
+min_ap_sentences as
+(
+    select stories_id, ap_stories_id from ap_sentences group by stories_id, ap_stories_id having count(*) > 3
+)
+
+select ids.id stories_id, ap.ap_stories_id
+    from $ids_table ids
+        left join min_ap_sentences ap on ( ids.id = ap.stories_id )
+SQL
+
+    return $ap_stories_ids;
+}
+
 sub _add_nested_data
 {
     my ( $self, $db, $stories ) = @_;
@@ -203,8 +251,15 @@ END
         _split_sentence_tags_list( $stories );
     }
 
+    if ( $self->{ show_ap_stories_id } )
+    {
+        my $ap_stories_ids = _get_ap_stories_ids( $db, $ids_table );
+
+        MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $ap_stories_ids );
+    }
+
     my $tag_data = $db->query( <<END )->hashes;
-select s.stories_id, t.tags_id, t.tag, ts.tag_sets_id, ts.name as tag_set 
+select s.stories_id, t.tags_id, t.tag, ts.tag_sets_id, ts.name as tag_set
     from stories_tags_map s
         join tags t on ( t.tags_id = s.tags_id )
         join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id )
@@ -239,8 +294,9 @@ sub _fetch_list
 {
     my ( $self, $c, $last_id, $table_name, $id_field, $rows ) = @_;
 
-    $self->{ show_sentences } = $c->req->params->{ sentences };
-    $self->{ show_text }      = $c->req->params->{ text };
+    $self->{ show_sentences }     = $c->req->params->{ sentences };
+    $self->{ show_text }          = $c->req->params->{ text };
+    $self->{ show_ap_stories_id } = $c->req->params->{ ap_stories_id };
 
     $rows //= 20;
     $rows = List::Util::min( $rows, 10_000 );
@@ -258,7 +314,7 @@ sub _fetch_list
     my $stories = $db->query( <<END )->hashes;
 with ps_ids as
 
-    ( select processed_stories_id, stories_id 
+    ( select processed_stories_id, stories_id
         from processed_stories
         where processed_stories_id in ( select id from $ids_table ) )
 
