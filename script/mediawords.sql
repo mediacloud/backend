@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4500;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4501;
     
 BEGIN
 
@@ -648,15 +648,6 @@ CREATE INDEX media_sets_description_trgm on media_sets USING gin (description gi
 
 CREATE VIEW media_sets_tt2_locale_format as select  '[% c.loc("' || COALESCE( name, '') || '") %]' || E'\n' ||  '[% c.loc("' || COALESCE (description, '') || '") %] ' as tt2_value from media_sets where set_type = 'collection' order by media_sets_id;
 
-    
-create table queries_media_sets_map (
-    queries_id              int                 not null references queries on delete cascade,
-    media_sets_id           int                 not null references media_sets on delete cascade
-);
-
-create index queries_media_sets_map_query on queries_media_sets_map ( queries_id );
-create index queries_media_sets_map_media_set on queries_media_sets_map ( media_sets_id );
-
 alter table media_sets add constraint dashboard_media_sets_type
 check ( ( ( set_type = 'medium' ) and ( media_id is not null ) )
         or
@@ -978,19 +969,6 @@ create table extractor_training_lines
 
 create unique index extractor_training_lines_line on extractor_training_lines(line_number, downloads_id);
 create index extractor_training_lines_download on extractor_training_lines(downloads_id);
-        
-CREATE TABLE top_ten_tags_for_media (
-    media_id integer NOT NULL,
-    tags_id integer NOT NULL,
-    media_tag_count integer NOT NULL,
-    tag_name character varying(512) NOT NULL,
-    tag_sets_id integer NOT NULL
-);
-
-
-CREATE INDEX media_id_and_tag_sets_id_index ON top_ten_tags_for_media USING btree (media_id, tag_sets_id);
-CREATE INDEX media_id_index ON top_ten_tags_for_media USING btree (media_id);
-CREATE INDEX tag_sets_id_index ON top_ten_tags_for_media USING btree (tag_sets_id);
 
 CREATE TABLE download_texts (
     download_texts_id integer NOT NULL,
@@ -1292,41 +1270,6 @@ create view story_extracted_texts as select stories_id, array_to_string(array_ag
 
 CREATE VIEW media_feed_counts as (SELECT media_id, count(*) as feed_count FROM feeds GROUP by media_id);
 
-CREATE TABLE daily_country_counts (
-    media_sets_id integer  not null references media_sets on delete cascade,
-    publish_day date not null,
-    country character varying not null,
-    country_count bigint not null,
-    dashboard_topics_id integer references dashboard_topics on delete cascade
-);
-
-CREATE INDEX daily_country_counts_day_media_dashboard ON daily_country_counts USING btree (publish_day, media_sets_id, dashboard_topics_id);
-
-create table queries_dashboard_topics_map (
-    queries_id              int                 not null references queries on delete cascade,
-    dashboard_topics_id     int                 not null references dashboard_topics on delete cascade
-);
-
-create index queries_dashboard_topics_map_query on queries_dashboard_topics_map ( queries_id );
-create index queries_dashboard_topics_map_dashboard_topic on queries_dashboard_topics_map ( dashboard_topics_id );
-
-create table story_similarities (
-    story_similarities_id   serial primary key,
-    stories_id_a            int,
-    publish_day_a           date,
-    stories_id_b            int,
-    publish_day_b           date,
-    similarity              int
-);
-
-create index story_similarities_a_b on story_similarities ( stories_id_a, stories_id_b );
-create index story_similarities_a_s on story_similarities ( stories_id_a, similarity, publish_day_b );
-create index story_similarities_b_s on story_similarities ( stories_id_b, similarity, publish_day_a );
-create index story_similarities_day on story_similarities ( publish_day_a, publish_day_b ); 
-     
-create view story_similarities_transitive as
-    ( select story_similarities_id, stories_id_a, publish_day_a, stories_id_b, publish_day_b, similarity from story_similarities ) union  ( select story_similarities_id, stories_id_b as stories_id_a, publish_day_b as publish_day_a, stories_id_a as stories_id_b, publish_day_a as publish_day_b, similarity from story_similarities );
-            
 create table controversies (
     controversies_id        serial primary key,
     name                    varchar(1024) not null,
