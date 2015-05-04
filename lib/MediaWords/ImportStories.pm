@@ -247,30 +247,47 @@ sub _add_story_download
 {
     my ( $self, $story, $content ) = @_;
 
-    $content ||= $self->_get_story_content( $story->{ url } );
-
     my $db = $self->db;
 
-    my $download = {
-        feeds_id   => $self->_get_scrape_feed->{ feeds_id },
-        stories_id => $story->{ stories_id },
-        url        => $story->{ url },
-        host       => lc( ( URI::Split::uri_split( $story->{ url } ) )[ 1 ] ),
-        type       => 'content',
-        sequence   => 1,
-        state      => 'success',
-        path       => 'content:pending',
-        priority   => 1,
-        extracted  => 't'
-    };
+    if ( $content )
+    {
+        my $download = {
+            feeds_id   => $self->_get_scrape_feed->{ feeds_id },
+            stories_id => $story->{ stories_id },
+            url        => $story->{ url },
+            host       => lc( ( URI::Split::uri_split( $story->{ url } ) )[ 1 ] ),
+            type       => 'content',
+            sequence   => 1,
+            state      => 'success',
+            path       => 'content:pending',
+            priority   => 1,
+            extracted  => 't'
+        };
 
-    $download = $db->create( 'downloads', $download );
+        $download = $db->create( 'downloads', $download );
 
-    MediaWords::DBI::Downloads::store_content_determinedly( $db, $download, $content );
+        MediaWords::DBI::Downloads::store_content_determinedly( $db, $download, $content );
 
-    eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, "ss" ); };
+        eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, "ss" ); };
 
-    warn "extract error processing download $download->{ downloads_id }: $@" if ( $@ );
+        warn "extract error processing download $download->{ downloads_id }: $@" if ( $@ );
+    }
+    else
+    {
+        my $download = {
+            feeds_id   => $self->_get_scrape_feed->{ feeds_id },
+            stories_id => $story->{ stories_id },
+            url        => $story->{ url },
+            host       => lc( ( URI::Split::uri_split( $story->{ url } ) )[ 1 ] ),
+            type       => 'content',
+            sequence   => 1,
+            state      => 'pending',
+            priority   => 1,
+            extracted  => 'f'
+        };
+
+        $download = $db->create( 'downloads', $download );
+    }
 }
 
 my $_scraped_tag;
@@ -297,19 +314,11 @@ sub _add_new_stories
     my $total_stories = scalar( @{ $stories } );
     my $i             = 1;
 
-    $| = 1;
-
-    my $pm = Parallel::ForkManager->new( 4 );
-
     my $added_stories = [];
     for my $story ( @{ $stories } )
     {
+        $self->db->begin;
         say STDERR "story: " . $i++ . " / $total_stories";
-
-        $pm->start and next;
-
-        my $db = MediaWords::DB::reset_forked_db( $self->db );
-        $self->db( $db );
 
         my $content = $story->{ content };
 
@@ -320,7 +329,8 @@ sub _add_new_stories
         if ( $@ )
         {
             carp( $@ . " - " . Dumper( $story ) );
-            $pm->finish;
+            $self->db->rollback;
+            next;
         }
 
         $self->_add_scraped_tag_to_story( $story );
@@ -330,11 +340,8 @@ sub _add_new_stories
         $self->_add_story_download( $story, $content );
 
         push( @{ $added_stories }, $story );
-
-        $pm->finish;
+        $self->db->commit;
     }
-
-    $pm->wait_all_children;
 }
 
 # print stories
