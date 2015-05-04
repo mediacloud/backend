@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4498;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4499;
     
 BEGIN
 
@@ -1302,34 +1302,6 @@ CREATE TABLE daily_country_counts (
 
 CREATE INDEX daily_country_counts_day_media_dashboard ON daily_country_counts USING btree (publish_day, media_sets_id, dashboard_topics_id);
 
-CREATE TABLE authors (
-    authors_id serial          PRIMARY KEY,
-    author_name character varying UNIQUE NOT NULL
-);
-create index authors_name_varchar_pattern on authors(lower(author_name) varchar_pattern_ops);
-create index authors_name_varchar_pattern_1 on authors(lower(split_part(author_name, ' ', 1)) varchar_pattern_ops);
-create index authors_name_varchar_pattern_2 on authors(lower(split_part(author_name, ' ', 2)) varchar_pattern_ops);
-create index authors_name_varchar_pattern_3 on authors(lower(split_part(author_name, ' ', 3)) varchar_pattern_ops);
-
-CREATE TABLE authors_stories_map (
-    authors_stories_map_id  serial            primary key,
-    authors_id int                not null references authors on delete cascade,
-    stories_id int                not null references stories on delete cascade
-);
-
-CREATE INDEX authors_stories_map_authors_id on authors_stories_map(authors_id);
-CREATE INDEX authors_stories_map_stories_id on authors_stories_map(stories_id);
-
-CREATE TYPE authors_stories_queue_type AS ENUM ('queued', 'pending', 'success', 'failed');
-
-CREATE TABLE authors_stories_queue (
-    authors_stories_queue_id  serial            primary key,
-    stories_id int                not null references stories on delete cascade,
-    state      authors_stories_queue_type not null
-);
-
-create index authors_stories_queue_story on authors_stories_queue( stories_id );
-       
 create table queries_dashboard_topics_map (
     queries_id              int                 not null references queries on delete cascade,
     dashboard_topics_id     int                 not null references dashboard_topics on delete cascade
@@ -1337,73 +1309,6 @@ create table queries_dashboard_topics_map (
 
 create index queries_dashboard_topics_map_query on queries_dashboard_topics_map ( queries_id );
 create index queries_dashboard_topics_map_dashboard_topic on queries_dashboard_topics_map ( dashboard_topics_id );
-
-CREATE TABLE daily_author_words (
-    daily_author_words_id           serial                  primary key,
-    authors_id                      integer                 not null references authors on delete cascade,
-    media_sets_id                   integer                 not null references media_sets on delete cascade,
-    term                            character varying(256)  not null,
-    stem                            character varying(256)  not null,
-    stem_count                      int                     not null,
-    publish_day                     date                    not null
-);
-
-create UNIQUE index daily_author_words_media on daily_author_words(publish_day, authors_id, media_sets_id, stem);
-create index daily_author_words_count on daily_author_words(publish_day, authors_id, media_sets_id, stem_count);
-
-create table total_daily_author_words (
-       total_daily_author_words_id  serial          primary key,
-       authors_id                   int             not null references authors on delete cascade,
-       media_sets_id                int             not null references media_sets on delete cascade, 
-       publish_day                  timestamp       not null,
-       total_count                  int             not null
-);
-
-create index total_daily_author_words_authors_id_media_sets_id on total_daily_author_words (authors_id, media_sets_id);
-create unique index total_daily_author_words_authors_id_media_sets_id_publish_day on total_daily_author_words (authors_id, media_sets_id,publish_day);
-
-create table weekly_author_words (
-       weekly_author_words_id       serial          primary key,
-       media_sets_id                int             not null references media_sets on delete cascade,
-       authors_id                   int             not null references authors on delete cascade,
-       term                         varchar(256)    not null,
-       stem                         varchar(256)    not null,
-       stem_count                   int             not null,
-       publish_week                 date            not null
-);
-
-create index weekly_author_words_media on weekly_author_words(publish_week, authors_id, media_sets_id, stem);
-create index weekly_author_words_count on weekly_author_words(publish_week, authors_id, media_sets_id, stem_count);
-
-create UNIQUE index weekly_author_words_unique on weekly_author_words(publish_week, authors_id, media_sets_id, stem);
-
-create table top_500_weekly_author_words (
-       top_500_weekly_author_words_id      serial          primary key,
-       media_sets_id                int             not null references media_sets on delete cascade,
-       authors_id                   int             not null references authors on delete cascade,
-       term                         varchar(256)    not null,
-       stem                         varchar(256)    not null,
-       stem_count                   int             not null,
-       publish_week                 date            not null
-);
-
-create index top_500_weekly_author_words_media on top_500_weekly_author_words(publish_week, media_sets_id, authors_id);
-create index top_500_weekly_author_words_authors on top_500_weekly_author_words(authors_id, publish_week, media_sets_id);
-create UNIQUE index top_500_weekly_author_words_authors_stem on top_500_weekly_author_words(authors_id, publish_week, media_sets_id, stem);
-create index top_500_weekly_author_words_publish_week on top_500_weekly_author_words (publish_week);
-    
-create table total_top_500_weekly_author_words (
-       total_top_500_weekly_author_words_id       serial          primary key,
-       media_sets_id                int             not null references media_sets on delete cascade,
-       authors_id                   int             not null references authors on delete cascade,
-       publish_week                 date            not null,
-       total_count                  int             not null
-);
-
-create UNIQUE index total_top_500_weekly_author_words_media 
-    on total_top_500_weekly_author_words(publish_week, media_sets_id, authors_id);
-create UNIQUE index total_top_500_weekly_author_words_authors 
-    on total_top_500_weekly_author_words(authors_id, publish_week, media_sets_id);
 
 CREATE TABLE popular_queries (
     popular_queries_id  serial          primary key,
