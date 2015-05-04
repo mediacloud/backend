@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4499;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4500;
     
 BEGIN
 
@@ -1310,22 +1310,6 @@ create table queries_dashboard_topics_map (
 create index queries_dashboard_topics_map_query on queries_dashboard_topics_map ( queries_id );
 create index queries_dashboard_topics_map_dashboard_topic on queries_dashboard_topics_map ( dashboard_topics_id );
 
-CREATE TABLE popular_queries (
-    popular_queries_id  serial          primary key,
-    queries_id_0 integer NOT NULL,
-    queries_id_1 integer,
-    query_0_description character varying(1024) NOT NULL,
-    query_1_description character varying(1024),
-    dashboard_action character varying(1024),
-    url_params character varying(1024),
-    count integer DEFAULT 0,
-    dashboards_id integer references dashboards NOT NULL
-);
-
-CREATE UNIQUE INDEX popular_queries_da_up ON popular_queries(dashboard_action, url_params);
-CREATE UNIQUE INDEX popular_queries_query_ids ON popular_queries( queries_id_0,  queries_id_1);
-CREATE INDEX popular_queries_dashboards_id_count on popular_queries(dashboards_id, count);
-    
 create table story_similarities (
     story_similarities_id   serial primary key,
     stories_id_a            int,
