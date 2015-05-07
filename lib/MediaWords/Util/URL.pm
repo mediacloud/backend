@@ -481,6 +481,8 @@ sub fix_common_url_mistakes($)
 {
     my $url = shift;
 
+    return undef unless ( defined( $url ) );
+
     # Fix broken URLs that look like this: http://http://www.al-monitor.com/pulse
     $url =~ s~(https?://)https?:?//~$1~i;
 
