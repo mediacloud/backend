@@ -73,4 +73,19 @@ sub increment_day
     return sprintf( '%04d-%02d-%02d', $year + 1900, $month + 1, $day );
 }
 
+# in many cases, querying a date field with an in() clause with individual dates
+# is much faster than using date >= $start_date and < $end_date
+sub get_days_clause
+{
+    my ( $start_date, $end_date ) = @_;
+
+    my $dates = [];
+    for ( my $d = $start_date ; $d le $end_date ; $d = MediaWords::Util::SQL::increment_day( $d, 1 ) )
+    {
+        push( @{ $dates }, $d );
+    }
+
+    return "in ( " . join( ',', map { "'$_'" } @{ $dates } ) . " )";
+}
+
 1;

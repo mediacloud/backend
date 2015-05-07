@@ -362,7 +362,7 @@ sub fetch_content($$)
 
     unless ( grep { $_ eq $download->{ state } } ( 'success', 'extractor_error', 'feed_error' ) )
     {
-        croak "attempt to fetch content for unsuccessful download $download->{ downloads_id }  / $download->{ state }";
+        confess "attempt to fetch content for unsuccessful download $download->{ downloads_id }  / $download->{ state }";
     }
 
     my $store = _download_store_for_reading( $download );

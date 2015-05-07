@@ -158,6 +158,8 @@ sub _get_ap_stories_ids
 {
     my ( $db, $ids_table ) = @_;
 
+    $db->query( "analyze $ids_table" );
+
     my $ap_stories_ids = $db->query( <<SQL )->hashes;
 with ap_sentences as
 (
