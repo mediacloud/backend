@@ -22,10 +22,6 @@ ALTER table media DROP CONSTRAINT media_dup_media_id_fkey;
 ALTER TABLE media add constraint media_dup_media_id_fkey FOREIGN KEY (dup_media_id) REFERENCES media(media_id) ON DELETE SET NULL DEFERRABLE;
 ALTER table media DROP CONSTRAINT media_dup_media_id_fkey_deferrable;
 
-
-ALTER TABLE media
-	ALTER COLUMN dup_media_id TYPE int             null references media on delete set null deferrable /* TYPE change - table: media original: int             null references media on delete set new: int             null references media on delete set null deferrable */;
-
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     
