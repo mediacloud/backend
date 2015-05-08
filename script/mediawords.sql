@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4501;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4502;
     
 BEGIN
 
@@ -396,7 +396,7 @@ create table media (
     -- problems for the cm spider, which finds those foreign rss links and
     -- thinks that the urls belong to the parent media source.
     foreign_rss_links   boolean         not null default( false ),
-    dup_media_id        int             null references media on delete set null,
+    dup_media_id        int             null references media on delete set null deferrable,
     is_not_dup          boolean         null,
     use_pager           boolean         null,
     unpaged_stories     int             not null default 0,
