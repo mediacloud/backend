@@ -18,6 +18,8 @@ class MediaCloud(object):
 
     SENTENCE_PUBLISH_DATE_FORMAT = "%Y-%m-%d %H:%M:%S" # use with datetime.datetime.strptime
 
+    _all_fields = False
+
     def __init__(self, auth_token=None):
         self._logger = logging.getLogger(__name__)
         self.setAuthToken(auth_token)
@@ -298,6 +300,9 @@ class MediaCloud(object):
         if 'key' not in params:
             params['key'] = self._auth_token
         if http_method is 'GET':
+            if self._all_fields:
+                params['all_fields'] = 1
+
             try:
                 r = requests.get(url, params=params, headers={ 'Accept': 'application/json'} )
             except Exception as e:
