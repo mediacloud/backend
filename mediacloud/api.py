@@ -18,12 +18,17 @@ class MediaCloud(object):
 
     SENTENCE_PUBLISH_DATE_FORMAT = "%Y-%m-%d %H:%M:%S" # use with datetime.datetime.strptime
 
-    _all_fields = False
-
-    def __init__(self, auth_token=None):
+    def __init__(self, auth_token=None, all_fields=False):
         self._logger = logging.getLogger(__name__)
         self.setAuthToken(auth_token)
+        self.setAllFields(all_fields)
 
+    def setAllFields(self, all_fields):
+        '''
+        Specify the value of the all_fields param to use for all future requests
+        '''
+        self._all_fields = all_fields
+        
     def setAuthToken(self, auth_token):
         '''
         Specify the auth_token to use for all future requests
