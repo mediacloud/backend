@@ -614,8 +614,6 @@ function showCluster(a) {
 
         sigInst.clustersHidden[a] = sigInst.clustersHidden[a] ? false : true;
 
-        console.log( sigInst.clustersHidden[a] );
-
         for (var f = [], e = [], c = 0, g = b.length; c < g; c++) {
             var d = sigInst._core.graph.nodesIndex[b[c]];
             e.push(b[c]);
