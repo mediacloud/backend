@@ -19,6 +19,23 @@ class AdminApiBaseTest(unittest.TestCase):
         self._config.read('mc-client.config')
         self._mc = mediacloud.api.AdminMediaCloud( self._config.get('api','key') )
 
+class ApiAllFieldsOptionTest(ApiBaseTest):
+
+    def testAllFieldsOnMedia(self):
+        # do a regular query
+        media = self._mc.media(1751)
+        self.assertNotEqual(media, None)
+        self.assertEqual(media['media_id'],1751)
+        self.assertFalse('foreign_rss_links' in media)
+        self.assertTrue('url' in media)
+        # do an all fields regular query and verify extra fields are there
+        self._mc.setAllFields(True)
+        media = self._mc.media(1751)
+        self.assertNotEqual(media, None)
+        self.assertEqual(media['media_id'],1751)
+        self.assertTrue('foreign_rss_links' in media)
+        self.assertTrue('url' in media)
+
 class AuthTokenTest(ApiBaseTest):
 
     def testAuthToken(self):

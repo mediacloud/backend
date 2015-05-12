@@ -307,7 +307,6 @@ class MediaCloud(object):
         if http_method is 'GET':
             if self._all_fields:
                 params['all_fields'] = 1
-
             try:
                 r = requests.get(url, params=params, headers={ 'Accept': 'application/json'} )
             except Exception as e:

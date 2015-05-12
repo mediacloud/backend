@@ -11,6 +11,7 @@ test_classes = [
 	MongoStorageTest,
 	ApiControversyTest, ApiControversyDumpTest, ApiControversyDumpTimeSliceTest,
 	AuthTokenTest,
+	ApiAllFieldsOptionTest,
 	AdminApiTaggingContentTest, AdminApiTaggingUpdateTest
 ]
 
