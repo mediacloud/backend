@@ -10,7 +10,7 @@ Installation
 
 Download the distribution egg, then run
 ```
-easy_install mediacloud-VERSION-py2.7.egg
+easy_install mediacloud-VERSION-py2.X.egg
 ```
 
 *Dependencies*
