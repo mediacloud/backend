@@ -27,8 +27,8 @@ use MediaWords::Util::SQL;
 use MediaWords::DBI::Activities;
 
 # max and mind node sizes for gexf dump
-use constant MAX_NODE_SIZE => 17;
-use constant MIN_NODE_SIZE => 1;
+use constant MAX_NODE_SIZE => 20;
+use constant MIN_NODE_SIZE => 2;
 
 # max map width for gexf dump
 use constant MAX_MAP_WIDTH => 800;
