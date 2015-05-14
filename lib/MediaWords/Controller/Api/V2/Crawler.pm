@@ -56,7 +56,7 @@ sub add_feed_download_PUT : Local
     my $download        = $c->req->data->{ download };
     my $decoded_content = $c->req->data->{ download };
 
-    $download = $c->dbs->insert( 'downloads', $download );
+    $download = $c->dbs->create( 'downloads', $download );
 
     MediaWords::Crawler::FeedHandler( $c->dbs, $download, $decoded_content );
 
