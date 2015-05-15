@@ -54,11 +54,16 @@ sub add_feed_download_PUT : Local
     #say STDERR Dumper( $c->req->data );
 
     my $download        = $c->req->data->{ download };
-    my $decoded_content = $c->req->data->{ download };
+    my $decoded_content = $c->req->data->{ raw_content };
 
-    $download = $c->dbs->create( 'downloads', $download );
+    #say STDERR Dumper ( $download );
 
-    MediaWords::Crawler::FeedHandler( $c->dbs, $download, $decoded_content );
+    $download->{ downloads_id } = undef;
+    delete $download->{ downloads_id };
+
+    $download = $c->dbis->create( 'downloads', $download );
+
+    MediaWords::Crawler::FeedHandler::handle_feed_content( $c->dbis, $download, $decoded_content );
 
     $self->status_ok( $c, entity => $download );
 }
