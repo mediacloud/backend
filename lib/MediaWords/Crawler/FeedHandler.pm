@@ -394,7 +394,7 @@ sub handle_feed_content
         if ( $download->{ state } ne 'feed_error' )
         {
             $dbs->query(
-"UPDATE feeds SET last_successful_download_time = greater( last_successful_download_time, ?  ) WHERE feeds_id = ?",
+"UPDATE feeds SET last_successful_download_time = greatest( last_successful_download_time, ? ) WHERE feeds_id = ?",
                 $download->{ download_time },
                 $download->{ feeds_id }
             );
