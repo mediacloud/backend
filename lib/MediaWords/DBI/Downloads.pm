@@ -725,7 +725,7 @@ sub download_successful
 
     my $state = $download->{ state };
 
-    return $state eq 'success' or $state eq 'feed_error' or $state eq 'extractor_error';
+    return ( $state eq 'success' ) || ( $state eq 'feed_error' ) || ( $state eq 'extractor_error' );
 }
 
 1;
