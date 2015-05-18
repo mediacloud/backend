@@ -55,7 +55,7 @@ sub _add_nested_data
 
     foreach my $download ( @$downloads )
     {
-        if ( $download->{ state } eq 'success' )
+        if ( MediaWords::DBI::Downloads::download_successful( $download ) )
         {
             my $raw_content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download );
 
