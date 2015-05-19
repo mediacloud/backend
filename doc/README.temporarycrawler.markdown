@@ -2,6 +2,8 @@
 
 1. Setup a machine with Ubuntu installed. For example, by creating an AWS instance.
 
+ **NOTE:** make sure the machine has sufficient disk space. For example, if using AWS, you will need to either create the instance with a large root partition or mount additional storage and use symlinks to get Postgresql to use this storage instead of the root partition.
+
 2. **Make sure that the time zone of your machine is set to Eastern Time.** Run `date`, if the result isn't EDT or EST, run `sudo dpkg-reconfigure tzdata` and select America/New_York.
 
  **Be aware that AWS machines are often initially setup with UTC as the timezone instead of Eastern.**
