@@ -13,3 +13,4 @@ requests==2.2.1
 thrift==0.9.2
 readability-lxml==0.3.0.5
 prompter
+argparse
