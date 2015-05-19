@@ -1,45 +1,22 @@
 # -*- coding: utf-8 -*-
-# <nbformat>3.0</nbformat>
 
-# <codecell>
 
-import cPickle
-import os.path
-
-api_key = cPickle.load( file( os.path.expanduser( '~/mediacloud_api_key.pickle' ), 'r' ) )
-
-import cPickle
-import os.path
 from prompter import yesno
 
-cPickle.dump( api_key, file( os.path.expanduser( '~/mediacloud_api_key.pickle' ), 'wb' ) )
-
 import sys
-#print (sys.path)
-#sys.path.append('../')
-#sys.path
 import mc_database
-
-# <codecell>
 
 import psycopg2
 import psycopg2.extras
 
-# <codecell>
-
 import mediacloud, json
-
-
-# <codecell>
+import argparse
 
 def cast_fields_to_bool( dict_obj, fields ):
     for field in fields:
         if dict_obj[ field ] is not None:
             dict_obj[ field ] = bool( dict_obj[field])
 
-    
-
-# <codecell>
 
 def non_list_pairs( item ):
     item = { k: item[k]  for k in  item.keys() if type(item[k]) != list  }
@@ -55,7 +32,6 @@ def insert_into_table( cursor, table_name, item ):
     #print query
     cursor.execute( query , item )
 
-# <codecell>
 
 def update_db_sequences( conn ):
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
@@ -73,8 +49,6 @@ def update_db_sequences( conn ):
     cursor.close()
     conn.commit()
 
-# <codecell>
-
 def truncate_tables( conn ):
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cursor.execute( "SELECT count(*)  > 10000 as has_many_downloads from downloads")
@@ -85,9 +59,6 @@ def truncate_tables( conn ):
     cursor.execute( "TRUNCATE media CASCADE" )
     cursor.execute( "TRUNCATE feeds CASCADE" )
     conn.commit()
-        
-
-# <codecell>
 
 def get_tag_sets( mc ):
     all_tag_sets = []
@@ -108,7 +79,6 @@ def get_tag_sets( mc ):
         
     return all_tag_sets   
 
-# <codecell>
 
 def add_tag_sets_to_database( conn, all_tag_sets ):
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
@@ -118,7 +88,6 @@ def add_tag_sets_to_database( conn, all_tag_sets ):
         print 'inserted ' + tag_set['name']
     conn.commit()    
 
-# <codecell>
 
 def add_media_to_database( conn, all_media ):
     
@@ -145,8 +114,6 @@ def add_media_to_database( conn, all_media ):
     cursor.close()
     conn.commit()
 
-# <codecell>
-
 def get_media( mc ):
     all_media = []
 
@@ -169,8 +136,6 @@ def get_media( mc ):
     
     return all_media
 
-# <codecell>
-
 def add_feeds_from_media_to_database( conn, mc, media ):
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     
@@ -190,13 +155,20 @@ def add_feeds_from_media_to_database( conn, mc, media ):
     
     conn.commit()
     cursor.close()
-    conn.commit()
-    
+    conn.commit()    
 
 def main():
 
+    parser = argparse.ArgumentParser(description='Import media and feeds listing from the production machine into the local database.')
+
+    parser.add_argument( '--api-key', required=True )
+
+    args = parser.parse_args()
+    api_key = args.api_key
+
     if not yesno('This will erase all data in the current media cloud database. Are you sure you want to continue?'):
         exit()
+
 
     mc = mediacloud.api.MediaCloud(api_key, all_fields=True)
 
