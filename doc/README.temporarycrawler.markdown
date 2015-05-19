@@ -10,7 +10,7 @@
 
 4. cd to the Media Cloud installation directory
 
-5. Import media and feeds from the production server by running `python python_scripts/media_import.py`
+5. Import media and feeds from the production server by running `python python_scripts/media_import.py --api-key API-KEY` where API-KEY is an API key for mediacloud.org.
 
 6. Start supvisisor by running `./supervisor/supervisord.sh`
 
