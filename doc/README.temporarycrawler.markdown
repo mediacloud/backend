@@ -10,15 +10,17 @@
 
 3. Install Media Cloud on the machine.
 
-4. cd to the Media Cloud installation directory
+5. Install the Media Cloud API Python client from https://github.com/c4fcm/MediaCloud-API-Client
 
-5. Import media and feeds from the production server by running `python python_scripts/media_import.py --api-key API-KEY` where API-KEY is an API key for mediacloud.org.
+5. cd to the Media Cloud installation directory
 
-6. Start supvisisor by running `./supervisor/supervisord.sh`
+6. Import media and feeds from the production server by running `python python_scripts/media_import.py --api-key API-KEY` where API-KEY is an API key for mediacloud.org.
 
-7. Optional: Stop the extractor workers by running `./supervisor/supervisorctl.sh stop extract_and_vector`
+7. Start supvisisor by running `./supervisor/supervisord.sh`
 
-8. Let the crawler on this machine run as long as desired.
+8. Optional: Stop the extractor workers by running `./supervisor/supervisorctl.sh stop extract_and_vector`
+
+9. Let the crawler on this machine run as long as desired.
 
 # Exporting
 
