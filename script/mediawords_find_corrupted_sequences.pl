@@ -31,11 +31,9 @@ FROM   (SELECT t.oid     AS tableid,
                JOIN pg_class t
                  ON ( c.conrelid = t.oid )
         WHERE  conname LIKE '%_pkey'
-               AND NOT (t.relname in 
-                    ( 'url_discover_counts' ) )
+          AND  t.relname NOT IN ( 'url_discover_counts' )
         ORDER  BY t.relname) AS tables_with_pkeys
-WHERE  NOT ( tablename IN ( 'url_discovery_counts'
-                                       ) );  
+WHERE  tablename NOT IN ( 'url_discovery_counts' )
 SQL
 
     my $tables = $db->query( $table_query )->hashes;
