@@ -30,7 +30,10 @@ FROM   (SELECT t.oid     AS tableid,
         FROM   pg_constraint c
                JOIN pg_class t
                  ON ( c.conrelid = t.oid )
+               JOIN pg_namespace nsp
+                 ON nsp.oid = t.relnamespace
         WHERE  conname LIKE '%_pkey'
+          AND  nsp.nspname = 'public'
           AND  t.relname NOT IN ( 'url_discover_counts' )
         ORDER  BY t.relname) AS tables_with_pkeys
 WHERE  tablename NOT IN ( 'url_discovery_counts' )
