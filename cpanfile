@@ -100,7 +100,7 @@ requires 'Memoize';
 requires 'Modern::Perl', '1.20121103';
 requires 'Module::Install';
 requires 'Module::Pluggable::Object';
-requires 'MongoDB', '0.704.1.0';
+requires 'MongoDB', '== 0.705.0.0';
 requires 'Moose', '== 2.1005';
 requires 'namespace::autoclean';
 requires 'Net::Amazon::S3';
