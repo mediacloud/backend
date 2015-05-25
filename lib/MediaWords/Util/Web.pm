@@ -119,6 +119,21 @@ sub UserAgentDetermined
     return _set_lwp_useragent_properties( $ua );
 }
 
+sub get_original_url_from_momento_archive_url
+{
+    my ( $archive_site_url ) = @_;
+    my $ua = MediaWords::Util::Web::UserAgent();
+    my $response = $ua->get( $archive_site_url );
+
+    my $link_header =  $response->headers()->{ link };
+
+    my @urls = ( $link_header =~ /\<(http[^>]*)\>/g );
+
+    my $original_url = $urls[0];
+
+    return $original_url;    
+}
+
 # simple get for a url using the UserAgent above. return the decoded content
 # if the response is successful and undef if not.
 sub get_decoded_content
