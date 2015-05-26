@@ -88,7 +88,6 @@ sub main
 
         }
 
-        #MediaWords::CM::Mine::dedup_stories( $db, $controversy );
     }
 }
 
