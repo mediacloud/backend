@@ -54,7 +54,7 @@ else
     }
     else
     {
-        plan tests => 20;
+        plan tests => 26;
     }
 }
 
@@ -144,5 +144,18 @@ MediaWords::Test::DB::test_on_test_database(
             ( !$gridfs->content_exists( $db, $test_downloads_id, $test_downloads_path ) ),
             "content_exists() reports that content exists (although it shouldn't)"
         );
+
+        #
+        # Store empty string, fetch it, compare
+        #
+        my $empty_content = '';
+        eval { $gridfs_id = $gridfs->store_content( $db, $test_downloads_id, \$empty_content ); };
+        ok( ( !$@ ), "Storing empty content failed: $@" );
+        ok( $gridfs_id,                                                          'Object ID was returned' );
+        ok( length( $gridfs_id ) == length( 'gridfs:5152138e3e7062d55800057c' ), 'Object ID is of the valid size' );
+        eval { $content_ref = $gridfs->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };
+        ok( ( !$@ ), "Fetching empty content failed: $@" );
+        ok( $content_ref, "Fetching empty content did not die but content ref is undefined" );
+        is( $$content_ref, $empty_content, "Empty content doesn't match." );
     }
 );

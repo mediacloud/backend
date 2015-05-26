@@ -5568,29 +5568,29 @@ DISTRIBUTIONS
       Module::Build 0.40
       Test::More 0
       perl v5.5.3
-  MongoDB-v0.704.1.0
-    pathname: M/MO/MONGODB/MongoDB-v0.704.1.0.tar.gz
+  MongoDB-v0.705.0.0
+    pathname: M/MO/MONGODB/MongoDB-v0.705.0.0.tar.gz
     provides:
-      MongoDB 0.704001000
-      MongoDB::BSON 0.704001000
-      MongoDB::BSON::Binary 0.704001000
-      MongoDB::BSON::Regexp 0.704001000
-      MongoDB::BulkWrite 0.704001000
-      MongoDB::BulkWriteView 0.704001000
-      MongoDB::Code 0.704001000
-      MongoDB::Collection 0.704001000
-      MongoDB::CommandResult 0.704001000
-      MongoDB::Connection 0.704001000
-      MongoDB::Cursor 0.704001000
-      MongoDB::DBRef 0.704001000
-      MongoDB::Database 0.704001000
-      MongoDB::Error 0.704001000
-      MongoDB::GridFS 0.704001000
-      MongoDB::GridFS::File 0.704001000
-      MongoDB::MongoClient 0.704001000
-      MongoDB::OID 0.704001000
-      MongoDB::Timestamp 0.704001000
-      MongoDB::WriteResult 0.704001000
+      MongoDB 0.705000000
+      MongoDB::BSON 0.705000000
+      MongoDB::BSON::Binary 0.705000000
+      MongoDB::BSON::Regexp 0.705000000
+      MongoDB::BulkWrite 0.705000000
+      MongoDB::BulkWriteView 0.705000000
+      MongoDB::Code 0.705000000
+      MongoDB::Collection 0.705000000
+      MongoDB::CommandResult 0.705000000
+      MongoDB::Connection 0.705000000
+      MongoDB::Cursor 0.705000000
+      MongoDB::DBRef 0.705000000
+      MongoDB::Database 0.705000000
+      MongoDB::Error 0.705000000
+      MongoDB::GridFS 0.705000000
+      MongoDB::GridFS::File 0.705000000
+      MongoDB::MongoClient 0.705000000
+      MongoDB::OID 0.705000000
+      MongoDB::Timestamp 0.705000000
+      MongoDB::WriteResult 0.705000000
     requirements:
       Carp 0
       Class::MOP::Class 0
