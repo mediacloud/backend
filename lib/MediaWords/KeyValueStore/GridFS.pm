@@ -15,6 +15,7 @@ use MediaWords::Util::Config;
 use MediaWords::Util::Compress;
 use MongoDB 0.704.1.0;
 use MongoDB::GridFS;
+use FileHandle;
 use Carp;
 use Readonly;
 
@@ -216,7 +217,9 @@ sub store_content($$$$;$)
             # Write
             my $basic_fh;
             open( $basic_fh, '<', \$content_to_store );
-            $gridfs_id = $self->_mongodb_gridfs->put( $basic_fh, { "filename" => $filename } );
+            my $fh = FileHandle->new;
+            $fh->fdopen( $basic_fh, 'r' );
+            $gridfs_id = $self->_mongodb_gridfs->put( $fh, { "filename" => $filename } );
             unless ( $gridfs_id )
             {
                 confess "GridFS: MongoDBs OID is empty.";
