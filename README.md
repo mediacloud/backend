@@ -31,12 +31,12 @@ stories = mc.storyList('( hacking AND civic ) OR ( hackathon AND civic)', '+publ
 print json.dumps(stories)
 ```
 
-Get a list of all the sentences from the US mainstream media that mentioned "Zimbabwe" and "president" in 2013:
+Find out how many sentences in the US mainstream media that mentioned "Zimbabwe" and "president" in 2013:
 ```python
 import mediacloud
 mc = mediacloud.api.MediaCloud('MY_API_KEY')
-res = mc.sentenceList('( zimbabwe AND president)', '+publish_date:[2013-01-01T00:00:00Z TO 2013-12-31T00:00:00Z] AND +media_sets_id:1')
-print res['response']['numFound'] # prints the number of sentences found
+res = mc.sentenceCount('( zimbabwe AND president)', '+publish_date:[2013-01-01T00:00:00Z TO 2013-12-31T00:00:00Z] AND +media_sets_id:1')
+print res['count'] # prints the number of sentences found
 ```
 
 Find the most commonly used words in sentences from the US mainstream media that mentioned "Zimbabwe" and "president" in 2013:
