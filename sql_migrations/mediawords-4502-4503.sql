@@ -18,6 +18,9 @@
 SET search_path = public, pg_catalog;
 
 
+-- Dropping temporarily; will recreate afterwards
+drop view media_with_media_types;
+
 ALTER TABLE public.media
     DROP COLUMN feeds_added;
 ALTER TABLE cd.media
@@ -41,6 +44,18 @@ CREATE VIEW media_with_collections AS
       AND mtm.tags_id = t.tags_id
       AND mtm.media_id = m.media_id
     ORDER BY m.media_id;
+
+-- Recreating temporarily dropped view
+create view media_with_media_types as
+    select m.*, mtm.tags_id media_type_tags_id, t.label media_type
+    from
+        media m
+        left join (
+            tags t
+            join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id and ts.name = 'media_type' )
+            join media_tags_map mtm on ( mtm.tags_id = t.tags_id )
+        ) on ( m.media_id = mtm.media_id );
+
 
 CREATE OR REPLACE FUNCTION media_has_feeds(param_media_id INT) RETURNS boolean AS $$
 BEGIN
