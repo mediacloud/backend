@@ -107,7 +107,7 @@
 
         [% IF ! medium.feeds_added %]
             <p>
-                <b>Feeds have not yet been automaticaly added to this media source.</b>
+                <b>Feeds have not yet been automatically added to this media source.</b>
             </p>
         [% END %]
 
