@@ -21,12 +21,15 @@ SET search_path = public, pg_catalog;
 -- Dropping temporarily; will recreate afterwards
 drop view media_with_media_types;
 
+-- Dropping to recreate with a different list of columns
+DROP VIEW media_with_collections;
+
 ALTER TABLE public.media
     DROP COLUMN feeds_added;
 ALTER TABLE cd.media
     DROP COLUMN feeds_added;
 
-DROP VIEW media_with_collections;
+-- Recreating with a different list of columns
 CREATE VIEW media_with_collections AS
     SELECT t.tag,
            m.media_id,
@@ -45,7 +48,7 @@ CREATE VIEW media_with_collections AS
       AND mtm.media_id = m.media_id
     ORDER BY m.media_id;
 
--- Recreating temporarily dropped view
+-- Recreating temporarily dropped views
 create view media_with_media_types as
     select m.*, mtm.tags_id media_type_tags_id, t.label media_type
     from
