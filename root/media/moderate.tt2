@@ -105,12 +105,6 @@
             [% END %]
         </p>
 
-        [% IF ! medium.feeds_added %]
-            <p>
-                <b>Feeds have not yet been automatically added to this media source.</b>
-            </p>
-        [% END %]
-
     </fieldset>
 
     <br/>
