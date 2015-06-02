@@ -108,17 +108,40 @@ BEGIN
     current_time := timeofday()::timestamp;
 
     RAISE NOTICE 'time - %', current_time;
-    FOR media_rec in  SELECT media_id, coalesce( sw_data_start_date, default_start_day ) as start_date FROM media where not (coalesce ( sw_data_start_date, default_start_day ) is null ) ORDER BY media_id LOOP
+
+    FOR media_rec IN (
+          SELECT media_id,
+                 COALESCE( sw_data_start_date, default_start_day ) AS start_date
+          FROM media
+          WHERE NOT (COALESCE( sw_data_start_date, default_start_day ) IS NULL )
+          ORDER BY media_id
+      ) LOOP
         current_time := timeofday()::timestamp;
+
         RAISE NOTICE 'media_id is %, start_date - % time - %', media_rec.media_id, media_rec.start_date, current_time;
-        DELETE from story_sentences where media_id = media_rec.media_id and date_trunc( 'day', publish_date ) < date_trunc( 'day', media_rec.start_date ); 
+
+        DELETE FROM story_sentences
+        WHERE media_id = media_rec.media_id
+          AND date_trunc( 'day', publish_date ) < date_trunc( 'day', media_rec.start_date );
+
     END LOOP;
 
   RAISE NOTICE 'time - %', current_time;  -- Prints 30
-  FOR media_rec in  SELECT media_id, coalesce( sw_data_end_date, default_end_day ) as end_date FROM media where not (coalesce ( sw_data_end_date, default_end_day ) is null ) ORDER BY media_id LOOP
+  FOR media_rec IN (
+          SELECT media_id,
+                 COALESCE( sw_data_end_date, default_end_day ) AS end_date
+          FROM media
+          WHERE NOT (COALESCE( sw_data_end_date, default_end_day ) IS NULL )
+          ORDER BY media_id
+      ) LOOP
         current_time := timeofday()::timestamp;
+
         RAISE NOTICE 'media_id is %, end_date - % time - %', media_rec.media_id, media_rec.end_date, current_time;
-        DELETE from story_sentences where media_id = media_rec.media_id and date_trunc( 'day', publish_date ) > date_trunc( 'day', media_rec.end_date ); 
+
+        DELETE from story_sentences
+        WHERE media_id = media_rec.media_id
+          AND date_trunc( 'day', publish_date ) > date_trunc( 'day', media_rec.end_date );
+
     END LOOP;
 END;
 $$
@@ -135,14 +158,26 @@ BEGIN
     current_time := timeofday()::timestamp;
 
     RAISE NOTICE 'time - %', current_time;
-    FOR media_rec in  SELECT media_id, coalesce( sw_data_start_date, default_start_day ) as start_date FROM media where not (coalesce ( sw_data_start_date, default_start_day ) is null ) ORDER BY media_id LOOP
+    FOR media_rec IN (
+          SELECT media_id,
+                 COALESCE( sw_data_start_date, default_start_day ) AS start_date
+          FROM media
+          WHERE NOT (COALESCE ( sw_data_start_date, default_start_day ) IS NULL )
+          ORDER BY media_id
+      ) LOOP
         current_time := timeofday()::timestamp;
         RAISE NOTICE 'media_id is %, start_date - % time - %', media_rec.media_id, media_rec.start_date, current_time;
         DELETE from story_sentence_counts where media_id = media_rec.media_id and publish_week < date_trunc( 'day', media_rec.start_date ); 
     END LOOP;
 
   RAISE NOTICE 'time - %', current_time;  -- Prints 30
-  FOR media_rec in  SELECT media_id, coalesce( sw_data_end_date, default_end_day ) as end_date FROM media where not (coalesce ( sw_data_end_date, default_end_day ) is null ) ORDER BY media_id LOOP
+  FOR media_rec IN (
+          SELECT media_id,
+                 COALESCE( sw_data_end_date, default_end_day ) AS end_date
+          FROM media
+          WHERE NOT (COALESCE ( sw_data_end_date, default_end_day ) IS NULL )
+          ORDER BY media_id
+      ) LOOP
         current_time := timeofday()::timestamp;
         RAISE NOTICE 'media_id is %, end_date - % time - %', media_rec.media_id, media_rec.end_date, current_time;
         DELETE from story_sentence_counts where media_id = media_rec.media_id and publish_week > date_trunc( 'day', media_rec.end_date ); 
@@ -436,6 +471,8 @@ create table media_stats (
 );
 
 create index media_stats_medium on media_stats( media_id );
+
+-- Function to check whether media item has feeds added
     
 create type feed_feed_type AS ENUM ( 'syndicated', 'web_page' );
     
@@ -521,22 +558,102 @@ create index tags_tag_3 on tags (split_part(tag, ' ', 3));
 
 create view tags_with_sets as select t.*, ts.name as tag_set_name from tags t, tag_sets ts where t.tag_sets_id = ts.tag_sets_id;
     
-insert into tag_sets ( name, label, description ) values ( 'media_type', 'Media Type', 'High level topology for media sources for use across a variety of different topics' );
+insert into tag_sets ( name, label, description ) values (
+    'media_type',
+    'Media Type',
+    'High level topology for media sources for use across a variety of different topics'
+);
 
 create temporary table media_type_tags ( name text, label text, description text );
 insert into media_type_tags values
-    ( 'Not Typed', 'Not Typed', 'The medium has not yet been typed.' ),
-    ( 'Other', 'Other', 'The medium does not fit in any listed type.' ),
-    ( 'Independent Group', 'Ind. Group', 'An academic or nonprofit group that is not affiliated with the private sector or government, such as the Electronic Frontier Foundation or the Center for Democracy and Technology)' ),
-    ( 'Social Linking Site', 'Social Linking', 'A site that aggregates links based at least partially on user submissions and/or ranking, such as Reddit, Digg, Slashdot, MetaFilter, StumbleUpon, and other social news sites' ),
-    ( 'Blog', 'Blog', 'A web log, written by one or more individuals, that is not associated with a professional or advocacy organization or institution' ), 
-    ( 'General Online News Media', 'General News', 'A site that is a mainstream media outlet, such as The New York Times and The Washington Post; an online-only news outlet, such as Slate, Salon, or the Huffington Post; or a citizen journalism or non-profit news outlet, such as Global Voices or ProPublica' ),
-    ( 'Issue Specific Campaign', 'Issue', 'A site specifically dedicated to campaigning for or against a single issue.' ),
-    ( 'News Aggregator', 'News Agg.', 'A site that contains little to no original content and compiles news from other sites, such as Yahoo News or Google News' ),
-    ( 'Tech Media', 'Tech Media', 'A site that focuses on technological news and information produced by a news organization, such as Arstechnica, Techdirt, or Wired.com' ),
-    ( 'Private Sector', 'Private Sec.', 'A non-news media for-profit actor, including, for instance, trade organizations, industry sites, and domain registrars' ), 
-    ( 'Government', 'Government', 'A site associated with and run by a government-affiliated entity, such as the DOJ website, White House blog, or a U.S. Senator official website' ),
-    ( 'User-Generated Content Platform', 'User Gen.', 'A general communication and networking platform or tool, like Wikipedia, YouTube, Twitter, and Scribd, or a search engine like Google or speech platform like the Daily Kos' );
+    (
+        'Not Typed',
+        'Not Typed',
+        'The medium has not yet been typed.'
+    ),
+    (
+        'Other',
+        'Other',
+        'The medium does not fit in any listed type.'
+    ),
+    (
+        'Independent Group',
+        'Ind. Group',
+
+        -- Single multiline string
+        'An academic or nonprofit group that is not affiliated with the private sector or government, '
+        'such as the Electronic Frontier Foundation or the Center for Democracy and Technology)'
+    ),
+    (
+        'Social Linking Site',
+        'Social Linking',
+
+        -- Single multiline string
+        'A site that aggregates links based at least partially on user submissions and/or ranking, '
+        'such as Reddit, Digg, Slashdot, MetaFilter, StumbleUpon, and other social news sites'
+    ),
+    (
+        'Blog',
+        'Blog',
+
+        -- Single multiline string
+        'A web log, written by one or more individuals, that is not associated with a professional '
+        'or advocacy organization or institution'
+    ),
+    (
+        'General Online News Media',
+        'General News',
+
+        -- Single multiline string
+        'A site that is a mainstream media outlet, such as The New York Times and The Washington Post; '
+        'an online-only news outlet, such as Slate, Salon, or the Huffington Post; '
+        'or a citizen journalism or non-profit news outlet, such as Global Voices or ProPublica'
+    ),
+    (
+        'Issue Specific Campaign',
+        'Issue',
+        'A site specifically dedicated to campaigning for or against a single issue.'
+    ),
+    (
+        'News Aggregator',
+        'News Agg.',
+
+        -- Single multiline string
+        'A site that contains little to no original content and compiles news from other sites, '
+        'such as Yahoo News or Google News'
+    ),
+    (
+        'Tech Media',
+        'Tech Media',
+
+        -- Single multiline string
+        'A site that focuses on technological news and information produced by a news organization, '
+        'such as Arstechnica, Techdirt, or Wired.com'
+    ),
+    (
+        'Private Sector',
+        'Private Sec.',
+
+        -- Single multiline string
+        'A non-news media for-profit actor, including, for instance, trade organizations, industry '
+        'sites, and domain registrars'
+    ),
+    (
+        'Government',
+        'Government',
+
+        -- Single multiline string
+        'A site associated with and run by a government-affiliated entity, such as the DOJ website, '
+        'White House blog, or a U.S. Senator official website'
+    ),
+    (
+        'User-Generated Content Platform',
+        'User Gen.',
+
+        -- Single multiline string
+        'A general communication and networking platform or tool, like Wikipedia, YouTube, Twitter, '
+        'and Scribd, or a search engine like Google or speech platform like the Daily Kos'
+    );
     
 insert into tags ( tag_sets_id, tag, label, description )
     select ts.tag_sets_id, mtt.name, mtt.name, mtt.description 
@@ -646,7 +763,11 @@ create table media_sets (
 CREATE INDEX media_sets_name_trgm on media_sets USING gin (name gin_trgm_ops);
 CREATE INDEX media_sets_description_trgm on media_sets USING gin (description gin_trgm_ops);
 
-CREATE VIEW media_sets_tt2_locale_format as select  '[% c.loc("' || COALESCE( name, '') || '") %]' || E'\n' ||  '[% c.loc("' || COALESCE (description, '') || '") %] ' as tt2_value from media_sets where set_type = 'collection' order by media_sets_id;
+CREATE VIEW media_sets_tt2_locale_format AS
+    SELECT '[% c.loc("' || COALESCE( name, '') || '") %]' || E'\n' ||  '[% c.loc("' || COALESCE (description, '') || '") %] ' AS tt2_value
+    FROM media_sets
+    WHERE set_type = 'collection'
+    ORDER BY media_sets_id;
 
 alter table media_sets add constraint dashboard_media_sets_type
 check ( ( ( set_type = 'medium' ) and ( media_id is not null ) )
@@ -674,7 +795,14 @@ CREATE TRIGGER msmm_last_updated BEFORE INSERT OR UPDATE OR DELETE
     ON media_sets_media_map FOR EACH ROW EXECUTE PROCEDURE update_media_last_updated() ;
 
 
-CREATE OR REPLACE FUNCTION media_set_sw_data_retention_dates(v_media_sets_id int, default_start_day date, default_end_day date, OUT start_date date, OUT end_date date) AS
+CREATE OR REPLACE FUNCTION media_set_sw_data_retention_dates(
+    v_media_sets_id int,
+    default_start_day date,
+    default_end_day date,
+
+    OUT start_date date,
+    OUT end_date date
+) AS
 $$
 DECLARE
     media_rec record;
@@ -684,7 +812,15 @@ BEGIN
 
     --RAISE NOTICE 'time - % ', current_time;
 
-    SELECT media_sets_id, min(coalesce (media.sw_data_start_date, default_start_day )) as sw_data_start_date, max( coalesce ( media.sw_data_end_date,  default_end_day )) as sw_data_end_date INTO media_rec from media_sets_media_map join media on (media_sets_media_map.media_id = media.media_id ) and media_sets_id = v_media_sets_id  group by media_sets_id;
+    SELECT media_sets_id,
+           MIN(coalesce (media.sw_data_start_date, default_start_day)) AS sw_data_start_date,
+           max(coalesce (media.sw_data_end_date,  default_end_day)) AS sw_data_end_date
+    INTO media_rec
+    FROM media_sets_media_map
+        JOIN media
+          ON media_sets_media_map.media_id = media.media_id
+         AND media_sets_id = v_media_sets_id
+    GROUP BY media_sets_id;
 
     start_date = media_rec.sw_data_start_date; 
     end_date = media_rec.sw_data_end_date;
@@ -698,13 +834,40 @@ $$
 LANGUAGE 'plpgsql' STABLE
  ;
 
-CREATE VIEW media_sets_explict_sw_data_dates as  select media_sets_id, min(media.sw_data_start_date) as sw_data_start_date, max( media.sw_data_end_date) as sw_data_end_date from media_sets_media_map join media on (media_sets_media_map.media_id = media.media_id )   group by media_sets_id;
+CREATE VIEW media_sets_explict_sw_data_dates AS
+    SELECT media_sets_id,
+           MIN(media.sw_data_start_date) AS sw_data_start_date,
+           MAX(media.sw_data_end_date) AS sw_data_end_date
+    FROM media_sets_media_map
+        JOIN media ON media_sets_media_map.media_id = media.media_id
+    GROUP BY media_sets_id;
 
 CREATE VIEW media_with_collections AS
-    SELECT t.tag, m.media_id, m.url, m.name, m.moderated, m.feeds_added, m.moderation_notes, m.full_text_rss FROM media m, tags t, tag_sets ts, media_tags_map mtm WHERE (((((ts.name)::text = 'collection'::text) AND (ts.tag_sets_id = t.tag_sets_id)) AND (mtm.tags_id = t.tags_id)) AND (mtm.media_id = m.media_id)) ORDER BY m.media_id;
+    SELECT t.tag,
+           m.media_id,
+           m.url,
+           m.name,
+           m.moderated,
+           m.feeds_added,
+           m.moderation_notes,
+           m.full_text_rss
+    FROM media m,
+         tags t,
+         tag_sets ts,
+         media_tags_map mtm
+    WHERE ts.name::text = 'collection'::text
+      AND ts.tag_sets_id = t.tag_sets_id
+      AND mtm.tags_id = t.tags_id
+      AND mtm.media_id = m.media_id
+    ORDER BY m.media_id;
 
 
-CREATE OR REPLACE FUNCTION media_set_retains_sw_data_for_date(v_media_sets_id int, test_date date, default_start_day date, default_end_day date)
+CREATE OR REPLACE FUNCTION media_set_retains_sw_data_for_date(
+    v_media_sets_id int,
+    test_date date,
+    default_start_day date,
+    default_end_day date
+)
   RETURNS BOOLEAN AS
 $$
 DECLARE
@@ -764,7 +927,15 @@ create table dashboard_topics (
 create index dashboard_topics_dashboard on dashboard_topics ( dashboards_id );
 create index dashboard_topics_vectors_added on dashboard_topics ( vectors_added );
 
-CREATE VIEW dashboard_topics_tt2_locale_format as select distinct on (tt2_value) '[% c.loc("' || name || '") %]' || ' - ' || '[% c.loc("' || lower(name) || '") %]' as tt2_value from (select * from dashboard_topics order by name, dashboard_topics_id) AS dashboard_topic_names order by tt2_value;
+CREATE VIEW dashboard_topics_tt2_locale_format AS
+    SELECT DISTINCT ON (tt2_value) '[% c.loc("' || name || '") %]' || ' - ' || '[% c.loc("' || lower(name) || '") %]' AS tt2_value
+    FROM (
+        SELECT *
+        FROM dashboard_topics
+        ORDER BY name,
+                 dashboard_topics_id
+    ) AS dashboard_topic_names
+    ORDER BY tt2_value;
 
 create table color_sets (
     color_sets_id               serial          primary key,
@@ -809,12 +980,44 @@ create index stories_publish_day on stories( date_trunc( 'day', publish_date ) )
 DROP TRIGGER IF EXISTS stories_last_updated_trigger on stories CASCADE;
 CREATE TRIGGER stories_last_updated_trigger BEFORE INSERT OR UPDATE ON stories FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
 DROP TRIGGER IF EXISTS stories_update_story_sentences_last_updated_trigger on stories CASCADE;
-CREATE TRIGGER stories_update_story_sentences_last_updated_trigger AFTER INSERT OR UPDATE ON stories FOR EACH ROW EXECUTE PROCEDURE update_story_sentences_updated_time_trigger() ;
 
-CREATE TYPE download_state AS ENUM ('error', 'fetching', 'pending', 'queued', 'success', 'feed_error', 'extractor_error');    
-CREATE TYPE download_type  AS ENUM ('Calais', 'calais', 'content', 'feed', 'spider_blog_home', 'spider_posting', 'spider_rss', 'spider_blog_friends_list', 'spider_validation_blog_home','spider_validation_rss','archival_only');    
+CREATE TRIGGER stories_update_story_sentences_last_updated_trigger
+    AFTER INSERT OR UPDATE ON stories
+    FOR EACH ROW EXECUTE PROCEDURE update_story_sentences_updated_time_trigger() ;
 
-CREATE TYPE download_file_status AS ENUM ( 'tbd', 'missing', 'na', 'present', 'inline', 'redownloaded', 'error_redownloading' );
+CREATE TYPE download_state AS ENUM (
+    'error',
+    'fetching',
+    'pending',
+    'queued',
+    'success',
+    'feed_error',
+    'extractor_error'
+);
+
+CREATE TYPE download_type AS ENUM (
+    'Calais',
+    'calais',
+    'content',
+    'feed',
+    'spider_blog_home',
+    'spider_posting',
+    'spider_rss',
+    'spider_blog_friends_list',
+    'spider_validation_blog_home',
+    'spider_validation_rss',
+    'archival_only'
+);
+
+CREATE TYPE download_file_status AS ENUM (
+    'tbd',
+    'missing',
+    'na',
+    'present',
+    'inline',
+    'redownloaded',
+    'error_redownloading'
+);
 
 create table downloads (
     downloads_id        serial          primary key,
@@ -858,7 +1061,19 @@ alter table downloads alter feeds_id set statistics 1000;
 
 -- Temporary hack so that we don't have to rewrite the entire download to alter the type column
 
-ALTER TABLE downloads add constraint valid_download_type check( type NOT in ( 'spider_blog_home','spider_posting','spider_rss','spider_blog_friends_list','spider_validation_blog_home','spider_validation_rss','archival_only') );
+ALTER TABLE downloads
+    ADD CONSTRAINT valid_download_type
+    CHECK( type NOT IN
+      (
+      'spider_blog_home',
+      'spider_posting',
+      'spider_rss',
+      'spider_blog_friends_list',
+      'spider_validation_blog_home',
+      'spider_validation_rss',
+      'archival_only'
+      )
+    );
 
 create index downloads_parent on downloads (parent);
 -- create unique index downloads_host_fetching 
@@ -876,17 +1091,32 @@ create index downloads_url on downloads(url);
 CREATE INDEX downloads_state_downloads_id_pending on downloads(state,downloads_id) where state='pending';
 create index downloads_extracted on downloads(extracted, state, type) 
     where extracted = 'f' and state = 'success' and type = 'content';
-CREATE INDEX downloads_stories_to_be_extracted on downloads (stories_id) where extracted = false AND state = 'success' AND type = 'content';        
+
+CREATE INDEX downloads_stories_to_be_extracted
+    ON downloads (stories_id)
+    WHERE extracted = false AND state = 'success' AND type = 'content';        
 
 CREATE INDEX downloads_extracted_stories on downloads (stories_id) where type='content' and state='success';
 CREATE INDEX downloads_state_queued_or_fetching on downloads(state) where state='queued' or state='fetching';
 CREATE INDEX downloads_state_fetching ON downloads(state, downloads_id) where state = 'fetching';
 
-CREATE INDEX downloads_in_old_format ON downloads USING btree (downloads_id) WHERE ((state = 'success'::download_state) AND (path ~~ 'content/%'::text));
+CREATE INDEX downloads_in_old_format
+    ON downloads USING btree (downloads_id)
+    WHERE state = 'success'::download_state
+      AND path ~~ 'content/%'::text;
 
-CREATE INDEX file_status_downloads_time_new_format ON downloads USING btree (file_status, download_time) WHERE (relative_file_path ~~ 'mediacloud-%'::text);
+CREATE INDEX file_status_downloads_time_new_format
+    ON downloads USING btree (file_status, download_time)
+    WHERE relative_file_path ~~ 'mediacloud-%'::text;
 
-CREATE INDEX relative_file_paths_new_format_to_verify ON downloads USING btree (relative_file_path) WHERE ((((((file_status = 'tbd'::download_file_status) AND (relative_file_path <> 'tbd'::text)) AND (relative_file_path <> 'error'::text)) AND (relative_file_path <> 'na'::text)) AND (relative_file_path <> 'inline'::text)) AND (relative_file_path ~~ 'mediacloud-%'::text));
+CREATE INDEX relative_file_paths_new_format_to_verify
+    ON downloads USING btree (relative_file_path)
+    WHERE file_status = 'tbd'::download_file_status
+      AND relative_file_path <> 'tbd'::text
+      AND relative_file_path <> 'error'::text
+      AND relative_file_path <> 'na'::text
+      AND relative_file_path <> 'inline'::text
+      AND relative_file_path ~~ 'mediacloud-%'::text;
 
 create view downloads_media as select d.*, f.media_id as _media_id from downloads d, feeds f where d.feeds_id = f.feeds_id;
 
@@ -901,7 +1131,9 @@ END;
 $$
 LANGUAGE 'plpgsql' IMMUTABLE;
 
-CREATE UNIQUE INDEX downloads_for_extractor_trainer on downloads ( downloads_id, feeds_id) where file_status <> 'missing' and type = 'content' and state = 'success';
+CREATE UNIQUE INDEX downloads_for_extractor_trainer
+    ON downloads ( downloads_id, feeds_id)
+    WHERE file_status <> 'missing' and type = 'content' and state = 'success';
 
 CREATE INDEX downloads_sites_pending on downloads ( site_from_host( host ) ) where state='pending';
 
@@ -948,9 +1180,16 @@ create table stories_tags_map
 );
 
 DROP TRIGGER IF EXISTS stories_tags_map_last_updated_trigger on stories_tags_map CASCADE;
-CREATE TRIGGER stories_tags_map_last_updated_trigger BEFORE INSERT OR UPDATE ON stories_tags_map FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
+
+CREATE TRIGGER stories_tags_map_last_updated_trigger
+    BEFORE INSERT OR UPDATE ON stories_tags_map
+    FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
+
 DROP TRIGGER IF EXISTS stories_tags_map_update_stories_last_updated_trigger on stories_tags_map;
-CREATE TRIGGER stories_tags_map_update_stories_last_updated_trigger AFTER INSERT OR UPDATE OR DELETE ON stories_tags_map FOR EACH ROW EXECUTE PROCEDURE update_stories_updated_time_by_stories_id_trigger();
+
+CREATE TRIGGER stories_tags_map_update_stories_last_updated_trigger
+    AFTER INSERT OR UPDATE OR DELETE ON stories_tags_map
+    FOR EACH ROW EXECUTE PROCEDURE update_stories_updated_time_by_stories_id_trigger();
 
 CREATE index stories_tags_map_db_row_last_updated on stories_tags_map ( db_row_last_updated );
 create unique index stories_tags_map_story on stories_tags_map (stories_id, tags_id);
@@ -1016,19 +1255,96 @@ INSERT  into url_discovery_counts VALUES ('not_yet_processed');
 -- VIEWS
 
 CREATE VIEW media_extractor_training_downloads_count AS
-    SELECT media.media_id, COALESCE(foo.extractor_training_downloads_for_media_id, (0)::bigint) AS extractor_training_download_count FROM (media LEFT JOIN (SELECT stories.media_id, count(stories.media_id) AS extractor_training_downloads_for_media_id FROM extractor_training_lines, downloads, stories WHERE ((extractor_training_lines.downloads_id = downloads.downloads_id) AND (downloads.stories_id = stories.stories_id)) GROUP BY stories.media_id ORDER BY stories.media_id) foo ON ((media.media_id = foo.media_id)));
+    SELECT media.media_id,
+           COALESCE(foo.extractor_training_downloads_for_media_id, (0)::bigint) AS extractor_training_download_count
+    FROM media
+        LEFT JOIN (
+            SELECT stories.media_id,
+                   COUNT(stories.media_id) AS extractor_training_downloads_for_media_id
+            FROM extractor_training_lines,
+                 downloads,
+                 stories
+            WHERE extractor_training_lines.downloads_id = downloads.downloads_id
+              AND downloads.stories_id = stories.stories_id
+            GROUP BY stories.media_id
+            ORDER BY stories.media_id
+        ) AS foo ON media.media_id = foo.media_id;
 
 CREATE VIEW yahoo_top_political_2008_media AS
-    SELECT DISTINCT media_tags_map.media_id FROM media_tags_map, (SELECT tags.tags_id FROM tags, (SELECT DISTINCT media_tags_map.tags_id FROM media_tags_map ORDER BY media_tags_map.tags_id) media_tags WHERE ((tags.tags_id = media_tags.tags_id) AND ((tags.tag)::text ~~ 'yahoo_top_political_2008'::text))) interesting_media_tags WHERE (media_tags_map.tags_id = interesting_media_tags.tags_id) ORDER BY media_tags_map.media_id;
+    SELECT DISTINCT media_tags_map.media_id
+    FROM media_tags_map,
+         (
+            SELECT tags.tags_id
+            FROM tags,
+                 (
+                    SELECT DISTINCT media_tags_map.tags_id
+                    FROM media_tags_map
+                    ORDER BY media_tags_map.tags_id
+                 ) AS media_tags
+            WHERE tags.tags_id = media_tags.tags_id
+              AND (tags.tag)::text ~~ 'yahoo_top_political_2008'::text
+         ) AS interesting_media_tags
+    WHERE media_tags_map.tags_id = interesting_media_tags.tags_id
+    ORDER BY media_tags_map.media_id;
 
 CREATE VIEW technorati_top_political_2008_media AS
-    SELECT DISTINCT media_tags_map.media_id FROM media_tags_map, (SELECT tags.tags_id FROM tags, (SELECT DISTINCT media_tags_map.tags_id FROM media_tags_map ORDER BY media_tags_map.tags_id) media_tags WHERE ((tags.tags_id = media_tags.tags_id) AND ((tags.tag)::text ~~ 'technorati_top_political_2008'::text))) interesting_media_tags WHERE (media_tags_map.tags_id = interesting_media_tags.tags_id) ORDER BY media_tags_map.media_id;
+    SELECT DISTINCT media_tags_map.media_id
+    FROM media_tags_map,
+         (
+            SELECT tags.tags_id
+            FROM tags,
+                 (
+                    SELECT DISTINCT media_tags_map.tags_id
+                    FROM media_tags_map
+                    ORDER BY media_tags_map.tags_id
+                 ) AS media_tags
+            WHERE tags.tags_id = media_tags.tags_id
+              AND (tags.tag)::text ~~ 'technorati_top_political_2008'::text
+         ) AS interesting_media_tags
+    WHERE media_tags_map.tags_id = interesting_media_tags.tags_id
+    ORDER BY media_tags_map.media_id;
 
 CREATE VIEW media_extractor_training_downloads_count_adjustments AS
-    SELECT yahoo.media_id, yahoo.yahoo_count_adjustment, tech.technorati_count_adjustment FROM (SELECT media_extractor_training_downloads_count.media_id, COALESCE(foo.yahoo_count_adjustment, 0) AS yahoo_count_adjustment FROM (media_extractor_training_downloads_count LEFT JOIN (SELECT yahoo_top_political_2008_media.media_id, 1 AS yahoo_count_adjustment FROM yahoo_top_political_2008_media) foo ON ((foo.media_id = media_extractor_training_downloads_count.media_id)))) yahoo, (SELECT media_extractor_training_downloads_count.media_id, COALESCE(foo.count_adjustment, 0) AS technorati_count_adjustment FROM (media_extractor_training_downloads_count LEFT JOIN (SELECT technorati_top_political_2008_media.media_id, 1 AS count_adjustment FROM technorati_top_political_2008_media) foo ON ((foo.media_id = media_extractor_training_downloads_count.media_id)))) tech WHERE (tech.media_id = yahoo.media_id);
+    SELECT yahoo.media_id,
+           yahoo.yahoo_count_adjustment,
+           tech.technorati_count_adjustment
+    FROM (
+            SELECT media_extractor_training_downloads_count.media_id,
+                   COALESCE(foo.yahoo_count_adjustment, 0) AS yahoo_count_adjustment
+            FROM (media_extractor_training_downloads_count
+                LEFT JOIN (
+                    SELECT yahoo_top_political_2008_media.media_id,
+                           1 AS yahoo_count_adjustment
+                    FROM yahoo_top_political_2008_media
+                ) AS foo ON foo.media_id = media_extractor_training_downloads_count.media_id
+        )) AS yahoo,
+        (
+            SELECT media_extractor_training_downloads_count.media_id,
+                   COALESCE(foo.count_adjustment, 0) AS technorati_count_adjustment
+            FROM (media_extractor_training_downloads_count
+                LEFT JOIN (
+                    SELECT technorati_top_political_2008_media.media_id,
+                           1 AS count_adjustment
+                    FROM technorati_top_political_2008_media
+                ) AS foo ON foo.media_id = media_extractor_training_downloads_count.media_id
+        )) AS tech
+    WHERE tech.media_id = yahoo.media_id;
 
 CREATE VIEW media_adjusted_extractor_training_downloads_count AS
-    SELECT media_extractor_training_downloads_count.media_id, ((media_extractor_training_downloads_count.extractor_training_download_count - (2 * media_extractor_training_downloads_count_adjustments.yahoo_count_adjustment)) - (2 * media_extractor_training_downloads_count_adjustments.technorati_count_adjustment)) AS count FROM (media_extractor_training_downloads_count JOIN media_extractor_training_downloads_count_adjustments ON ((media_extractor_training_downloads_count.media_id = media_extractor_training_downloads_count_adjustments.media_id))) ORDER BY ((media_extractor_training_downloads_count.extractor_training_download_count - (2 * media_extractor_training_downloads_count_adjustments.yahoo_count_adjustment)) - (2 * media_extractor_training_downloads_count_adjustments.technorati_count_adjustment));
+    SELECT media_extractor_training_downloads_count.media_id,
+           (
+               (media_extractor_training_downloads_count.extractor_training_download_count -
+               (2 * media_extractor_training_downloads_count_adjustments.yahoo_count_adjustment)) -
+               (2 * media_extractor_training_downloads_count_adjustments.technorati_count_adjustment)
+           ) AS count
+    FROM media_extractor_training_downloads_count
+        JOIN media_extractor_training_downloads_count_adjustments
+            ON media_extractor_training_downloads_count.media_id = media_extractor_training_downloads_count_adjustments.media_id
+    ORDER BY (
+        (media_extractor_training_downloads_count.extractor_training_download_count -
+        (2 * media_extractor_training_downloads_count_adjustments.yahoo_count_adjustment)) -
+        (2 * media_extractor_training_downloads_count_adjustments.technorati_count_adjustment)
+    );
 
 CREATE TABLE extractor_results_cache (
     extractor_results_cache_id integer NOT NULL,
@@ -1045,7 +1361,11 @@ CREATE SEQUENCE extractor_results_cache_extractor_results_cache_id_seq
     NO MINVALUE
     CACHE 1;
 ALTER SEQUENCE extractor_results_cache_extractor_results_cache_id_seq OWNED BY extractor_results_cache.extractor_results_cache_id;
-ALTER TABLE extractor_results_cache ALTER COLUMN extractor_results_cache_id SET DEFAULT nextval('extractor_results_cache_extractor_results_cache_id_seq'::regclass);
+
+ALTER TABLE extractor_results_cache
+    ALTER COLUMN extractor_results_cache_id
+        SET DEFAULT nextval('extractor_results_cache_extractor_results_cache_id_seq'::regclass);
+
 ALTER TABLE ONLY extractor_results_cache
     ADD CONSTRAINT extractor_results_cache_pkey PRIMARY KEY (extractor_results_cache_id);
 CREATE INDEX extractor_results_cache_downloads_id_index ON extractor_results_cache USING btree (downloads_id);
@@ -1068,11 +1388,19 @@ create index story_sentences_language on story_sentences(language);
 create index story_sentences_media_id    on story_sentences( media_id );
 create index story_sentences_db_row_last_updated    on story_sentences( db_row_last_updated );
 
-ALTER TABLE  story_sentences ADD CONSTRAINT story_sentences_media_id_fkey FOREIGN KEY (media_id) REFERENCES media(media_id) ON DELETE CASCADE;
-ALTER TABLE  story_sentences ADD CONSTRAINT story_sentences_stories_id_fkey FOREIGN KEY (stories_id) REFERENCES stories(stories_id) ON DELETE CASCADE;
+ALTER TABLE story_sentences
+    ADD CONSTRAINT story_sentences_media_id_fkey
+        FOREIGN KEY (media_id) REFERENCES media(media_id) ON DELETE CASCADE;
+
+ALTER TABLE story_sentences
+    ADD CONSTRAINT story_sentences_stories_id_fkey
+        FOREIGN KEY (stories_id) REFERENCES stories(stories_id) ON DELETE CASCADE;
 
 DROP TRIGGER IF EXISTS story_sentences_last_updated_trigger on story_sentences CASCADE;
-CREATE TRIGGER story_sentences_last_updated_trigger BEFORE INSERT OR UPDATE ON story_sentences FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
+
+CREATE TRIGGER story_sentences_last_updated_trigger
+    BEFORE INSERT OR UPDATE ON story_sentences
+    FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
 
     
 -- update media stats table for new story sentence.
@@ -1222,9 +1550,16 @@ create table story_sentences_tags_map
 );
 
 DROP TRIGGER IF EXISTS story_sentences_tags_map_last_updated_trigger on story_sentences_tags_map CASCADE;
-CREATE TRIGGER story_sentences_tags_map_last_updated_trigger BEFORE INSERT OR UPDATE ON story_sentences_tags_map FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
+
+CREATE TRIGGER story_sentences_tags_map_last_updated_trigger
+    BEFORE INSERT OR UPDATE ON story_sentences_tags_map
+    FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
+
 DROP TRIGGER IF EXISTS story_sentences_tags_map_update_story_sentences_last_updated_trigger on story_sentences_tags_map;
-CREATE TRIGGER story_sentences_tags_map_update_story_sentences_last_updated_trigger AFTER INSERT OR UPDATE OR DELETE ON story_sentences_tags_map FOR EACH ROW EXECUTE PROCEDURE update_story_sentences_updated_time_by_story_sentences_id_trigger();
+
+CREATE TRIGGER story_sentences_tags_map_update_story_sentences_last_updated_trigger
+    AFTER INSERT OR UPDATE OR DELETE ON story_sentences_tags_map FOR EACH ROW
+    EXECUTE PROCEDURE update_story_sentences_updated_time_by_story_sentences_id_trigger();
 
 CREATE index story_sentences_tags_map_db_row_last_updated on story_sentences_tags_map ( db_row_last_updated );
 create unique index story_sentences_tags_map_story on story_sentences_tags_map (story_sentences_id, tags_id);
@@ -1376,8 +1711,28 @@ create unique index controversy_links_scr on controversy_links ( stories_id, con
 create index controversy_links_controversy on controversy_links ( controversies_id );
 create index controversy_links_ref_story on controversy_links ( ref_stories_id );
     
-create view controversy_links_cross_media as
-  select s.stories_id, sm.name as media_name, r.stories_id as ref_stories_id, rm.name as ref_media_name, cl.url as url, cs.controversies_id, cl.controversy_links_id from media sm, media rm, controversy_links cl, stories s, stories r, controversy_stories cs where cl.ref_stories_id <> cl.stories_id and s.stories_id = cl.stories_id and cl.ref_stories_id = r.stories_id and s.media_id <> r.media_id and sm.media_id = s.media_id and rm.media_id = r.media_id and cs.stories_id = cl.ref_stories_id and cs.controversies_id = cl.controversies_id;
+CREATE VIEW controversy_links_cross_media AS
+    SELECT s.stories_id,
+           sm.name AS media_name,
+           r.stories_id AS ref_stories_id,
+           rm.name AS ref_media_name,
+           cl.url AS url,
+           cs.controversies_id,
+           cl.controversy_links_id
+    FROM media sm,
+         media rm,
+         controversy_links cl,
+         stories s,
+         stories r,
+         controversy_stories cs
+    WHERE cl.ref_stories_id != cl.stories_id
+      AND s.stories_id = cl.stories_id
+      AND cl.ref_stories_id = r.stories_id
+      AND s.media_id != r.media_id
+      AND sm.media_id = s.media_id
+      AND rm.media_id = r.media_id
+      AND cs.stories_id = cl.ref_stories_id
+      AND cs.controversies_id = cl.controversies_id;
 
 create table controversy_seed_urls (
     controversy_seed_urls_id        serial primary key,
@@ -1840,7 +2195,10 @@ create table processed_stories (
 );
 
 create index processed_stories_story on processed_stories ( stories_id );
-CREATE TRIGGER processed_stories_update_stories_last_updated_trigger AFTER INSERT OR UPDATE OR DELETE ON processed_stories FOR EACH ROW EXECUTE PROCEDURE update_stories_updated_time_by_stories_id_trigger();
+
+CREATE TRIGGER processed_stories_update_stories_last_updated_trigger
+    AFTER INSERT OR UPDATE OR DELETE ON processed_stories
+    FOR EACH ROW EXECUTE PROCEDURE update_stories_updated_time_by_stories_id_trigger();
 
 create table story_subsets (
     story_subsets_id        bigserial          primary key,
@@ -1875,7 +2233,24 @@ CREATE VIEW downloads_to_be_extracted as select * from downloads where extracted
 CREATE VIEW downloads_in_past_day as select * from downloads where download_time > now() - interval '1 day';
 CREATE VIEW downloads_with_error_in_past_day as select * from downloads_in_past_day where state = 'error';
 
-CREATE VIEW daily_stats as select * from (SELECT count(*) as daily_downloads from downloads_in_past_day) as dd, (select count(*) as daily_stories from stories_collected_in_past_day) ds , (select count(*) as downloads_to_be_extracted from downloads_to_be_extracted) dex, (select count(*) as download_errors from downloads_with_error_in_past_day ) er;
+CREATE VIEW daily_stats AS
+    SELECT *
+    FROM (
+            SELECT COUNT(*) AS daily_downloads
+            FROM downloads_in_past_day
+         ) AS dd,
+         (
+            SELECT COUNT(*) AS daily_stories
+            FROM stories_collected_in_past_day
+         ) AS ds,
+         (
+            SELECT COUNT(*) AS downloads_to_be_extracted
+            FROM downloads_to_be_extracted
+         ) AS dex,
+         (
+            SELECT COUNT(*) AS download_errors
+            FROM downloads_with_error_in_past_day
+         ) AS er;
 
 CREATE TABLE feedless_stories (
         stories_id integer,
@@ -1993,9 +2368,18 @@ $$
 LANGUAGE 'plpgsql';
 
 DROP TRIGGER IF EXISTS download_relative_file_path_trigger on downloads CASCADE;
-CREATE TRIGGER download_relative_file_path_trigger BEFORE INSERT OR UPDATE ON downloads FOR EACH ROW EXECUTE PROCEDURE  download_relative_file_path_trigger() ;
 
-CREATE INDEX relative_file_paths_to_verify ON downloads USING btree (relative_file_path) WHERE (((((file_status = 'tbd'::download_file_status) AND (relative_file_path <> 'tbd'::text)) AND (relative_file_path <> 'error'::text)) AND (relative_file_path <> 'na'::text)) AND (relative_file_path <> 'inline'::text));
+CREATE TRIGGER download_relative_file_path_trigger
+    BEFORE INSERT OR UPDATE ON downloads
+    FOR EACH ROW EXECUTE PROCEDURE  download_relative_file_path_trigger() ;
+
+CREATE INDEX relative_file_paths_to_verify
+    ON downloads USING btree (relative_file_path)
+    WHERE file_status = 'tbd'::download_file_status
+      AND relative_file_path <> 'tbd'::text
+      AND relative_file_path <> 'error'::text
+      AND relative_file_path <> 'na'::text
+      AND relative_file_path <> 'inline'::text;
 
 CREATE OR REPLACE FUNCTION show_stat_activity()
  RETURNS SETOF  pg_stat_activity  AS
@@ -2052,7 +2436,9 @@ CREATE TABLE auth_users (
 
     -- API authentication token
     -- (must be 64 bytes in order to prevent someone from resetting it to empty string somehow)
-    api_token       VARCHAR(64)     UNIQUE NOT NULL DEFAULT generate_api_token() CONSTRAINT api_token_64_characters CHECK(LENGTH(api_token) = 64),
+    api_token       VARCHAR(64)     UNIQUE NOT NULL DEFAULT generate_api_token()
+        CONSTRAINT api_token_64_characters
+            CHECK(LENGTH(api_token) = 64),
 
     full_name       TEXT    NOT NULL,
     notes           TEXT    NULL,
@@ -2062,7 +2448,9 @@ CREATE TABLE auth_users (
 
     -- Salted hash of a password reset token (with Crypt::SaltedHash, algorithm => 'SHA-256',
     -- salt_len=>64) or NULL
-    password_reset_token_hash TEXT  UNIQUE NULL CONSTRAINT password_reset_token_hash_sha256 CHECK(LENGTH(password_reset_token_hash) = 137 OR password_reset_token_hash IS NULL),
+    password_reset_token_hash TEXT  UNIQUE NULL
+        CONSTRAINT password_reset_token_hash_sha256
+            CHECK(LENGTH(password_reset_token_hash) = 137 OR password_reset_token_hash IS NULL),
 
     -- Timestamp of the last unsuccessful attempt to log in; used for delaying successive
     -- attempts in order to prevent brute-force attacks
@@ -2088,7 +2476,9 @@ create table auth_registration_queue (
 create table auth_user_ip_tokens (
     auth_user_ip_tokens_id  serial      primary key,
     auth_users_id           int         not null references auth_users on delete cascade,
-    api_token               varchar(64) unique not null default generate_api_token() constraint api_token_64_characters check( length( api_token ) = 64 ),
+    api_token               varchar(64) unique not null default generate_api_token()
+        constraint api_token_64_characters
+            check( length( api_token ) = 64 ),
     ip_address              inet    not null
 );
 
