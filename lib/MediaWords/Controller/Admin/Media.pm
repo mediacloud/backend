@@ -436,7 +436,7 @@ sub moderate_tags : Local
 
                 -- number of media sources associated with the tag: not yet processed by add_default_feeds
                 COUNT(
-                    CASE WHEN media.feeds_added = 'f' THEN 1 ELSE NULL END
+                    CASE WHEN media_has_feeds(media.media_id) THEN NULL ELSE 1 END
                 ) AS count_not_processed,
 
                 -- number of media sources associated with the tag: in moderation for which there are no feeds
@@ -488,7 +488,7 @@ sub moderate : Local
     $prev_media_id ||= 0;
     if ( $prev_media_id && $approve )
     {
-        $c->dbis->update_by_id( 'media', $prev_media_id, { feeds_added => 1, moderated => 1 } );
+        $c->dbis->update_by_id( 'media', $prev_media_id, { moderated => 1 } );
         $c->dbis->query( <<END, $prev_media_id );
 UPDATE FEEDS SET feed_status = 'active' where feed_status = 'inactive' and media_id = ?
 END
@@ -543,7 +543,7 @@ EOF
             SELECT *
             FROM media
             WHERE moderated = 'f'
-              AND feeds_added = 't'
+              AND media_has_feeds(media_id)
               AND media_id > ?
               AND $media_set_clauses
             ORDER BY media_id
@@ -576,7 +576,7 @@ EOF
     }
 
     my ( $num_media_pending_feeds ) =
-      $c->dbis->query( "SELECT COUNT(*) FROM media WHERE feeds_added = 'f' AND moderated = 'f'" )->flat;
+      $c->dbis->query( "SELECT COUNT(*) FROM media WHERE media_has_feeds(media_id) = 'f' AND moderated = 'f'" )->flat;
 
     $c->stash->{ media_sets_id } = $media_sets_id;
     $c->stash->{ medium }        = $medium;
@@ -1082,7 +1082,8 @@ sub eval_rss_full_text : Local
 
     my ( $medium ) = $c->dbis->query(
         <<EOF,
-        SELECT *
+        SELECT *,
+               media_has_feeds(media_id) AS media_has_feeds
         FROM media_rss_full_text_detection_data
             NATURAL JOIN media
         WHERE media_id = ?

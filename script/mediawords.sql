@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4502;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4503;
     
 BEGIN
 
@@ -419,7 +419,6 @@ create table media (
     url                 varchar(1024)   not null,
     name                varchar(128)    not null,
     moderated           boolean         not null,
-    feeds_added         boolean         not null,
     moderation_notes    text            null,       
     full_text_rss       boolean,
     extract_author      boolean         default(false),
@@ -469,6 +468,43 @@ create table media_stats (
     num_sentences               int         not null,
     stat_date                   date        not null
 );
+
+--
+-- Returns true if media has added feeds
+--
+CREATE OR REPLACE FUNCTION media_has_feeds(param_media_id INT)
+RETURNS boolean AS $$
+BEGIN
+
+    -- Check if media exists
+    IF NOT EXISTS (
+
+        SELECT 1
+        FROM media
+        WHERE media_id = param_media_id
+
+    ) THEN
+        RAISE EXCEPTION 'Media % does not exist.', param_media_id;
+        RETURN FALSE;
+    END IF;
+
+    -- Check if media has feeds
+    IF EXISTS (
+
+        SELECT 1
+        FROM feeds
+        WHERE media_id = param_media_id
+
+    ) THEN
+        RETURN TRUE;
+    ELSE
+        RETURN FALSE;
+    END IF;
+    
+END;
+$$
+LANGUAGE 'plpgsql';
+
 
 create index media_stats_medium on media_stats( media_id );
 
@@ -848,7 +884,6 @@ CREATE VIEW media_with_collections AS
            m.url,
            m.name,
            m.moderated,
-           m.feeds_added,
            m.moderation_notes,
            m.full_text_rss
     FROM media m,
@@ -1975,7 +2010,6 @@ create table cd.media (
     url                     varchar(1024)   not null,
     name                    varchar(128)    not null,
     moderated               boolean         not null,
-    feeds_added             boolean         not null,
     moderation_notes        text            null,       
     full_text_rss           boolean,
     extract_author          boolean         default(false),

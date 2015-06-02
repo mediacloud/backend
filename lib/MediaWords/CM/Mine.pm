@@ -548,10 +548,9 @@ END
     $medium_url = get_unique_medium_url( $db, $medium_url );
 
     $medium = {
-        name        => encode( 'utf8', $medium_name ),
-        url         => encode( 'utf8', $medium_url ),
-        moderated   => 't',
-        feeds_added => 't'
+        name      => encode( 'utf8', $medium_name ),
+        url       => encode( 'utf8', $medium_url ),
+        moderated => 't'
     };
 
     $medium = $db->create( 'media', $medium );

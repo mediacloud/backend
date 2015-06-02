@@ -68,7 +68,7 @@ sub run($;$)
 
     $db->begin_work;
 
-    my $medium = $db->query( "SELECT * FROM media WHERE media_id = ? AND feeds_added = 'f'", $media_id )->hash;
+    my $medium = $db->query( "SELECT * FROM media WHERE media_id = ? AND media_has_feeds(media_id) = 'f'", $media_id )->hash;
     unless ( $medium )
     {
         die "Media ID $media_id does not exist or is already moderated.";
@@ -124,7 +124,7 @@ END
     my $moderated = $need_to_moderate ? 'f' : 't';
 
     $db->query(
-        "UPDATE media SET feeds_added = 't', moderation_notes = ?, moderated = ? WHERE media_id = ?",
+        "UPDATE media SET moderation_notes = ?, moderated = ? WHERE media_id = ?",
         $medium->{ moderation_notes },
         $moderated, $medium->{ media_id }
     );

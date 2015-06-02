@@ -82,8 +82,6 @@ sub _add_feeds_for_feedless_media
 select * from feeds where media_id = ? and feed_status = 'active' and feed_type = 'syndicated'
 END
 
-        $db->query( "update media set feeds_added = 'f' where media_id = ?", $medium->{ media_id } );
-
         enqueue_add_default_feeds( $medium ) unless ( @{ $feeds } );
     }
 }
@@ -209,10 +207,9 @@ sub _add_missing_media_from_urls
                 $medium = $dbis->create(
                     'media',
                     {
-                        name        => encode( 'UTF-8', $title ),
-                        url         => encode( 'UTF-8', $url ),
-                        moderated   => 'f',
-                        feeds_added => 'f'
+                        name      => encode( 'UTF-8', $title ),
+                        url       => encode( 'UTF-8', $url ),
+                        moderated => 'f',
                     }
                 );
                 enqueue_add_default_feeds( $medium );
@@ -332,7 +329,7 @@ sub enqueue_add_default_feeds_for_unmoderated_media($)
 {
     my ( $db ) = @_;
 
-    my $media = $db->query( "select * from media where feeds_added = 'f'" )->hashes;
+    my $media = $db->query( "select * from media where media_has_feeds(media_id) = 'f'" )->hashes;
 
     map { enqueue_add_default_feeds( $_ ) } @{ $media };
 
