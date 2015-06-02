@@ -1076,24 +1076,37 @@ sub _get_next_media_id
 
 sub eval_rss_full_text : Local
 {
-    my ( $self, $c, $id ) = @_;
+    my ( $self, $c, $media_id ) = @_;
 
-    $id += 0;
+    $media_id += 0;
 
-    my ( $medium ) =
-      $c->dbis->query( " select * from media_rss_full_text_detection_data natural join media where media_id = ? ", $id )
-      ->hashes->[ 0 ];
+    my ( $medium ) = $c->dbis->query(
+        <<EOF,
+        SELECT *
+        FROM media_rss_full_text_detection_data
+            NATURAL JOIN media
+        WHERE media_id = ?
+EOF
+        $media_id
+    )->hashes->[ 0 ];
 
     $medium->{ full_text_rss_rating } = _rate_full_text_rss_likely_hood( $medium );
 
     #say STDERR Dumper( $medium );
 
-    my $action = $c->uri_for( '/admin/media/do_eval_rss_full_text/' ) . $id;
+    my $action = $c->uri_for( '/admin/media/do_eval_rss_full_text/' ) . $media_id;
 
     my $recent_stories = $c->dbis->query(
-        "select stories.* from stories natural join downloads natural join download_texts " .
-          " where media_id = ? order by publish_date desc limit 3",
-        $id
+        <<EOF,
+        SELECT stories.*
+        FROM stories
+            NATURAL JOIN downloads
+            NATURAL JOIN download_texts
+        WHERE media_id = ?
+        ORDER BY publish_date DESC
+        LIMIT 3
+EOF
+        $media_id
     )->hashes;
 
     foreach my $story ( @{ $recent_stories } )
@@ -1101,7 +1114,7 @@ sub eval_rss_full_text : Local
         $story->{ extracted_text } = MediaWords::DBI::Stories::get_extracted_text( $c->dbis, $story );
     }
 
-    my $next_media_id = $self->_get_next_media_id( $c, $id );
+    my $next_media_id = $self->_get_next_media_id( $c, $media_id );
 
     # say STDERR Dumper( $recent_stories );
 
