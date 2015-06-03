@@ -126,7 +126,12 @@ INSERT INTO media_rescraping (media_id, disable, last_rescrape_time)
            'f',
            -- Span across 1 year so that all media doesn't get rescraped at the same time
            (NOW() - RANDOM() * (NOW() - (NOW() - INTERVAL '1 year')))
-    FROM media;
+    FROM media
+    WHERE NOT EXISTS (
+        SELECT 1
+        FROM media_rescraping
+        WHERE media_rescraping.media_id = media.media_id
+    );
 
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
