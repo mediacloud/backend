@@ -93,6 +93,33 @@ $$
 LANGUAGE 'plpgsql';
 
 
+-- Media feed rescraping state
+CREATE TABLE media_rescraping (
+    media_id            int                       NOT NULL REFERENCES media ON DELETE CASCADE,
+
+    -- Disable periodic rescraping?
+    disable             BOOLEAN                   NOT NULL DEFAULT 'f',
+
+    -- Timestamp of last rescrape; NULL means that media was never scraped at all
+    last_rescrape_time  TIMESTAMP WITH TIME ZONE  NULL
+);
+
+-- Insert new rows to "media_rescraping" for each new row in "media"
+CREATE OR REPLACE FUNCTION media_rescraping_add_initial_state_trigger() RETURNS trigger AS
+$$
+    BEGIN
+        INSERT INTO media_rescraping (media_id, disable, last_rescrape_time)
+        VALUES (NEW.media_id, 'f', NULL);
+        RETURN NEW;
+   END;
+$$
+LANGUAGE 'plpgsql';
+
+CREATE TRIGGER media_rescraping_add_initial_state_trigger
+    AFTER INSERT ON media
+    FOR EACH ROW EXECUTE PROCEDURE media_rescraping_add_initial_state_trigger();
+
+
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     
