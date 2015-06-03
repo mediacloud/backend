@@ -434,7 +434,7 @@ sub moderate_tags : Local
                     CASE WHEN media.moderated = 'f' THEN 1 ELSE NULL END
                 ) AS count_in_moderation_queue,
 
-                -- number of media sources associated with the tag: not yet processed by add_default_feeds
+                -- number of media sources associated with the tag: not yet processed by RescrapeMedia
                 COUNT(
                     CASE WHEN media_has_feeds(media.media_id) THEN NULL ELSE 1 END
                 ) AS count_not_processed,

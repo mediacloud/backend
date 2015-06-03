@@ -1,4 +1,4 @@
-package MediaWords::GearmanFunction::AddDefaultFeeds;
+package MediaWords::GearmanFunction::RescrapeMedia;
 
 #
 # Search and add new feeds for unmoderated media (media sources that have not
@@ -10,7 +10,7 @@ package MediaWords::GearmanFunction::AddDefaultFeeds;
 #
 # Start this worker script by running:
 #
-# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/AddDefaultFeeds.pm
+# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/RescrapeMedia.pm
 #
 # FIXME some output of the job is still logged to STDOUT and not to the log:
 #

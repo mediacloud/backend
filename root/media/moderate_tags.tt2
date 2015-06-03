@@ -7,7 +7,7 @@
             <th>tag</th>
             <th>media:<br />total</th>
             <th>media:<br />in moderation queue</th>
-            <th>media:<br />not yet processed by <code>add_default_feeds</code></th>
+            <th>media:<br />not yet processed by <code>RescrapeMedia</code></th>
             <th>media:<br />in moderation, no feeds</th>
             <th>media:<br />in moderation, 1+ feeds</th>
         </tr>

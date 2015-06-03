@@ -12,7 +12,7 @@ use Text::Trim;
 use MediaWords::CommonLibs;
 use MediaWords::DBI::Media::Lookup;
 use MediaWords::GearmanFunction;
-use MediaWords::GearmanFunction::AddDefaultFeeds;
+use MediaWords::GearmanFunction::RescrapeMedia;
 use MediaWords::Util::HTML;
 use MediaWords::Util::URL;
 
@@ -70,7 +70,7 @@ END
     return $domain_map;
 }
 
-# for each medium in $media, enqueue an add_default_feeds job for any medium
+# for each medium in $media, enqueue an RescrapeMedia job for any medium
 # that is lacking feeds
 sub _add_feeds_for_feedless_media
 {
@@ -82,7 +82,7 @@ sub _add_feeds_for_feedless_media
 select * from feeds where media_id = ? and feed_status = 'active' and feed_type = 'syndicated'
 END
 
-        enqueue_add_default_feeds( $medium ) unless ( @{ $feeds } );
+        enqueue_rescrape_media( $medium ) unless ( @{ $feeds } );
     }
 }
 
@@ -212,7 +212,7 @@ sub _add_missing_media_from_urls
                         moderated => 'f',
                     }
                 );
-                enqueue_add_default_feeds( $medium );
+                enqueue_rescrape_media( $medium );
             }
         }
 
@@ -315,23 +315,23 @@ sub get_medium_domain
 }
 
 # add default feeds for a single medium
-sub enqueue_add_default_feeds($)
+sub enqueue_rescrape_media($)
 {
     my ( $medium ) = @_;
 
-    return MediaWords::GearmanFunction::AddDefaultFeeds->enqueue_on_gearman( { media_id => $medium->{ media_id } } );
+    return MediaWords::GearmanFunction::RescrapeMedia->enqueue_on_gearman( { media_id => $medium->{ media_id } } );
 }
 
-# (re-)enqueue AddDefaultFeeds jobs for all unmoderated media
-# ("AddDefaultFeeds" Gearman function is "unique", so Gearman will skip media
+# (re-)enqueue RescrapeMedia jobs for all unmoderated media
+# ("RescrapeMedia" Gearman function is "unique", so Gearman will skip media
 # IDs that are already enqueued)
-sub enqueue_add_default_feeds_for_unmoderated_media($)
+sub enqueue_rescrape_media_for_unmoderated_media($)
 {
     my ( $db ) = @_;
 
     my $media = $db->query( "select * from media where media_has_feeds(media_id) = 'f'" )->hashes;
 
-    map { enqueue_add_default_feeds( $_ ) } @{ $media };
+    map { enqueue_rescrape_media( $_ ) } @{ $media };
 
     return 1;
 }

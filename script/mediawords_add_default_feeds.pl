@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 #
-# Enqueue MediaWords::GearmanFunction::AddDefaultFeeds job
+# Enqueue MediaWords::GearmanFunction::RescrapeMedia job
 #
 
 use strict;
