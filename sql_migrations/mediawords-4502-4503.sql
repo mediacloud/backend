@@ -122,7 +122,10 @@ CREATE TRIGGER media_rescraping_add_initial_state_trigger
 
 -- Set the initial rescraping state for all existing media types
 INSERT INTO media_rescraping (media_id, disable, last_rescrape_time)
-    SELECT media_id, 'f', NULL
+    SELECT media_id,
+           'f',
+           -- Span across 1 year so that all media doesn't get rescraped at the same time
+           (NOW() - RANDOM() * (NOW() - (NOW() - INTERVAL '1 year')))
     FROM media;
 
 
