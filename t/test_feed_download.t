@@ -54,7 +54,7 @@ sub add_test_feed
     Readonly my $sw_data_end_date   => '2014-02-27';
 
     my $test_medium = $db->query(
-"insert into media (name, url, moderated, sw_data_start_date, sw_data_end_date) values (?, ?, ?, ?, ?, ?) returning *",
+        "insert into media (name, url, moderated, sw_data_start_date, sw_data_end_date) values (?, ?, ?, ?, ?) returning *",
         '_ Crawler Test', $url_to_crawl, 0, $sw_data_start_date, $sw_data_end_date
     )->hash;
 
