@@ -120,6 +120,12 @@ CREATE TRIGGER media_rescraping_add_initial_state_trigger
     FOR EACH ROW EXECUTE PROCEDURE media_rescraping_add_initial_state_trigger();
 
 
+-- Set the initial rescraping state for all existing media types
+INSERT INTO media_rescraping (media_id, disable, last_rescrape_time)
+    SELECT media_id, 'f', NULL
+    FROM media;
+
+
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     
