@@ -3,10 +3,6 @@ package MediaWords::GearmanFunction::RescrapeMedia;
 #
 # Search and add new feeds for unmoderated media (media sources that have not
 # had default feeds added to them).
-# Look for feeds that are most likely to be real feeds.  If we find more than
-# one but no more than MAX_DEFAULT_FEEDS of those feeds, use the first such one
-# and do not moderate the source.  Else, do a more expansive search and mark
-# for moderation.
 #
 # Start this worker script by running:
 #
@@ -49,16 +45,13 @@ BEGIN
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
-use DBIx::Simple::MediaWords;
-use Feed::Scrape::MediaWords;
 use MediaWords::DB;
+use MediaWords::DBI::Media::Rescrape;
 
 # Run job
 sub run($;$)
 {
     my ( $self, $args ) = @_;
-
-    my $db = MediaWords::DB::connect_to_db();
 
     my $media_id = $args->{ media_id };
     unless ( defined $media_id )
@@ -66,70 +59,9 @@ sub run($;$)
         die "'media_id' is undefined.";
     }
 
-    $db->begin_work;
+    my $db = MediaWords::DB::connect_to_db();
 
-    my $medium = $db->query( "SELECT * FROM media WHERE media_id = ? AND media_has_feeds(media_id) = 'f'", $media_id )->hash;
-    unless ( $medium )
-    {
-        die "Media ID $media_id does not exist or is already moderated.";
-    }
-
-    my ( $feed_links, $need_to_moderate, $existing_urls ) =
-      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
-
-    for my $feed_link ( @{ $feed_links } )
-    {
-        my $feed = {
-            name        => $feed_link->{ name },
-            url         => $feed_link->{ url },
-            media_id    => $medium->{ media_id },
-            feed_type   => $feed_link->{ feed_type } || 'syndicated',
-            feed_status => $need_to_moderate ? 'inactive' : 'active',
-        };
-
-        my $existing_feed = $db->query( <<END, $feed_link->{ url }, $medium->{ media_id } )->hash;
-select * from feeds where url = ? and media_id = ?
-END
-        if ( $existing_feed )
-        {
-            $db->update_by_id( 'feeds', $existing_feed->{ feeds_id }, $feed );
-        }
-        else
-        {
-            eval { $db->create( 'feeds', $feed ); };
-        }
-
-        if ( $@ )
-        {
-            my $error = "Error adding feed $feed_link->{ url }: $@\n";
-            $medium->{ moderation_notes } .= $error;
-            print $error;
-            next;
-        }
-        else
-        {
-            say STDERR "ADDED $medium->{ name }: $feed->{ name } " .
-              "[$feed->{ feed_type }, $feed->{ feed_status }]" . " - $feed->{ url }\n";
-        }
-    }
-
-    if ( @{ $existing_urls } )
-    {
-        my $error = "These urls were found but already exist in the database:\n" .
-          join( "\n", map { "\t$_" } @{ $existing_urls } ) . "\n";
-        $medium->{ moderation_notes } .= $error;
-        print $error;
-    }
-
-    my $moderated = $need_to_moderate ? 'f' : 't';
-
-    $db->query(
-        "UPDATE media SET moderation_notes = ?, moderated = ? WHERE media_id = ?",
-        $medium->{ moderation_notes },
-        $moderated, $medium->{ media_id }
-    );
-
-    $db->commit;
+    MediaWords::DBI::Media::Rescrape::rescrape_media( $db, $media_id );
 }
 
 no Moose;    # gets rid of scaffolding
