@@ -95,7 +95,7 @@ LANGUAGE 'plpgsql';
 
 -- Media feed rescraping state
 CREATE TABLE media_rescraping (
-    media_id            int                       NOT NULL REFERENCES media ON DELETE CASCADE,
+    media_id            int                       NOT NULL UNIQUE REFERENCES media ON DELETE CASCADE,
 
     -- Disable periodic rescraping?
     disable             BOOLEAN                   NOT NULL DEFAULT 'f',
