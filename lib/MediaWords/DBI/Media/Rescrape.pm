@@ -15,6 +15,14 @@ use MediaWords::DBI::Media;
 use MediaWords::GearmanFunction::RescrapeMedia;
 use Feed::Scrape::MediaWords;
 
+# add default feeds for a single medium
+sub enqueue_rescrape_media($)
+{
+    my ( $medium ) = @_;
+
+    return MediaWords::GearmanFunction::RescrapeMedia->enqueue_on_gearman( { media_id => $medium->{ media_id } } );
+}
+
 # for each medium in $media, enqueue an RescrapeMedia job for any medium
 # that is lacking feeds
 sub add_feeds_for_feedless_media
@@ -34,16 +42,8 @@ END
             $medium->{ media_id }
         )->hashes;
 
-        MediaWords::DBI::Media::Rescrape::enqueue_rescrape_media( $medium ) unless ( @{ $feeds } );
+        enqueue_rescrape_media( $medium ) unless ( @{ $feeds } );
     }
-}
-
-# add default feeds for a single medium
-sub enqueue_rescrape_media($)
-{
-    my ( $medium ) = @_;
-
-    return MediaWords::GearmanFunction::RescrapeMedia->enqueue_on_gearman( { media_id => $medium->{ media_id } } );
 }
 
 # (re-)enqueue RescrapeMedia jobs for all unmoderated media
