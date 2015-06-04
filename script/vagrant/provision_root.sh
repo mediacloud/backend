@@ -23,7 +23,7 @@ service hostname restart
 echo "127.0.0.1 $MC_HOSTNAME $MC_HOSTNAME.$MC_DOMAINNAME" >> /etc/hosts
 
 echo "Setting timezone to Eastern Time..."
-timedatectl set-timezone America/New_York
+ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
 
 echo "Setting default locale (or else Perl's test locale.t will fail)..."
 locale-gen $MC_LOCALE_LANG
