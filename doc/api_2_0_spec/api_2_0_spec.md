@@ -1,11 +1,7 @@
 % Media Cloud API Version 2
 %
 
-#API URLs
-
-*Note:* by default the API only returns a subset of the available fields in returned objects. The returned fields are those that we consider to be the most relevant to users of the API. If the `all_fields` parameter is provided and is non-zero, then a more complete list of fields will be returned. For space reasons, we do not list the `all_fields` parameter on individual API descriptions.
-
-## Authentication
+# Authentication
 
 Every call below includes a `key` parameter which will authenticate the user to the API service.  The key parameter is excluded
 from the examples in the below sections for brevity.
@@ -22,6 +18,21 @@ https://core.mediacloud.org/admin/profile
 
 https://api.mediacloud.org/api/v2/media/single/1?key=KRN4T5JGJ2A
 
+
+## Request Limits
+
+Each user is limited to 1,000 API calls and 20,000 stories returned in any 7 day period.  Requests submitted beyond this
+limit will result in a status 403 error.  Users who need access to more requests should email info@mediacloud.org.
+
+#Python Client
+
+A Python client for our API is now available. Users who develop in Python will probably find it easier to use this client than to make web requests directly.
+The Python client is available [ here ] ( https://github.com/c4fcm/MediaCloud-API-Client ).
+
+#API URLs
+
+*Note:* by default the API only returns a subset of the available fields in returned objects. The returned fields are those that we consider to be the most relevant to users of the API. If the `all_fields` parameter is provided and is non-zero, then a more complete list of fields will be returned. For space reasons, we do not list the `all_fields` parameter on individual API descriptions.
+
 ## Errors
 
 The Media Cloud returns an appropriate HTTP status code for any error, along with a json document in the following format:
@@ -29,11 +40,6 @@ The Media Cloud returns an appropriate HTTP status code for any error, along wit
 ```json
 { "error": "error message" }
 ```
-
-## Request Limits
-
-Each user is limited to 1,000 API calls and 20,000 stories returned in any 7 day period.  Requests submitted beyond this
-limit will result in a status 403 error.  Users who need access to more requests should email info@mediacloud.org.
 
 ## Media
 
