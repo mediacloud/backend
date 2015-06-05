@@ -1,18 +1,19 @@
 #! /usr/bin/env python
 
 import unittest, logging
+import sys
 
 from mediacloud.test.apitest import *
 from mediacloud.test.storagetest import *
 
 test_classes = [
-	ApiMediaTest, ApiMediaSetTest, ApiFeedsTest, ApiDashboardsTest, ApiTagsTest, ApiTagSetsTest, 
-	ApiStoriesTest, AdminApiStoriesTest, ApiWordCountTest, ApiSentencesTest, AdminApiSentencesTest,
-	MongoStorageTest,
-	ApiControversyTest, ApiControversyDumpTest, ApiControversyDumpTimeSliceTest,
-	AuthTokenTest,
-	ApiAllFieldsOptionTest,
-	AdminApiTaggingContentTest, AdminApiTaggingUpdateTest
+    ApiMediaTest, ApiMediaSetTest, ApiFeedsTest, ApiDashboardsTest, ApiTagsTest, ApiTagSetsTest, 
+    ApiStoriesTest, AdminApiStoriesTest, ApiWordCountTest, ApiSentencesTest, AdminApiSentencesTest,
+    MongoStorageTest,
+    ApiControversyTest, ApiControversyDumpTest, ApiControversyDumpTimeSliceTest,
+    AuthTokenTest,
+    ApiAllFieldsOptionTest,
+    AdminApiTaggingContentTest, AdminApiTaggingUpdateTest
 ]
 
 # set up all logging to DEBUG (cause we're running tests here!)
@@ -33,7 +34,7 @@ requests_logger.addHandler(log_handler)
 suites = [ unittest.TestLoader().loadTestsFromTestCase(test_class) for test_class in test_classes ]
 
 if __name__ == "__main__":
-	suite = unittest.TestSuite(suites)
-	unittest.TextTestRunner(verbosity=2).run(suite)	
-
-# SUITE THESE ALL UP for better outputs
+    suite = unittest.TestSuite(suites)
+    test_result = unittest.TextTestRunner(verbosity=2).run(suite)
+    if not test_result.wasSuccessful():
+        sys.exit(1)

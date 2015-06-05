@@ -1,8 +1,24 @@
 language: python
 python:
-  - "2.7"
-  - "2.6"
-# command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
-install: "pip install requests"
-# command to run tests, e.g. python setup.py test
-script:  python test.py
+    - "2.7"
+# Unit tests on Python 3 fail because of ImportErrors:
+#    - "3.2"
+#    - "3.3"
+#    - "3.4"
+env:
+    global:
+        - secure: "1FKYs8WYCo9Wzvnvb5qQ+8sNn/UGbLyaqkYdzVQPYSyFSaAPi88sGEki7au7OsMNkxlvPyjTcjRyoa+GuEOQ5bKPFshGwmBMbanjqV2Cl7anwB9cM51mmHmTffAAazTkxrXxdQviuVu6vcJ77OUrkuCvTstj9kHIbKbTN3573VA="
+before_install:
+    # Install MongoDB for storage tests
+    - sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
+    - echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | sudo tee /etc/apt/sources.list.d/mongodb.list
+    - sudo apt-get update
+    - sudo apt-get install -y mongodb-org
+    # Set up test configuration
+    - cp mc-client.config.template mc-client.config
+    - sed -i "s/api_v2_key/$MC_API_KEY/" mc-client.config
+install:
+    - pip install --allow-external pypubsub .
+    - pip install --allow-external pypubsub -r requirements.txt
+script:
+    - python test.py
