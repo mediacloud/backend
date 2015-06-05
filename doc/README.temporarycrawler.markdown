@@ -6,34 +6,34 @@
 
    You might want to consider using [Media Cloud's Vagrant configuration](README.vagrant.markdown) to automate the process. To start a new EC2 Media Cloud instance with 40 GB of disk space, run:
    
-       # Check out a new Media Cloud copy because it will be synced to that EC2 instance
-       https://github.com/berkmancenter/mediacloud.git
-       cd mediacloud/
+        # Check out a new Media Cloud copy because it will be synced to that EC2 instance
+        https://github.com/berkmancenter/mediacloud.git
+        cd mediacloud/
        
-       # Check out the release branch because it is more stable and the database schema
-       # will be in sync with whatever's running in production
-       #
-       # Note: the exact name of the release branch might be outdated
-       git checkout RELEASE_20140325
+        # Check out the release branch because it is more stable and the database schema
+        # will be in sync with whatever's running in production
+        #
+        # Note: the exact name of the release branch might be outdated
+        git checkout RELEASE_20140325
        
-       cd script/vagrant/
+        cd script/vagrant/
        
-       # Start EC2 instance, install Media Cloud in it
-       #
-       # It takes 1-2 hours to set everything up.
-       #
-       # See doc/README.vagrant.markdown for instructions on how to set the environment
-       # variables below.
-       AWS_INSTANCE_NAME="mc-temporary-crawler" \
-         AWS_ACCESS_KEY_ID="AKIAIOSFODNN7EXAMPLE" \
-         AWS_SECRET_ACCESS_KEY="wJalrXUtnFEMI/K7MDENG" \
-         AWS_KEYPAIR_NAME="development" \
-         AWS_SSH_PRIVKEY="~/development.pem" \
-         AWS_SECURITY_GROUP="default" \
-         vagrant up --provider=aws &> temporary_crawler.log
+        # Start EC2 instance, install Media Cloud in it
+        #
+        # It takes 1-2 hours to set everything up.
+        #
+        # See doc/README.vagrant.markdown for instructions on how to set the environment
+        # variables below.
+        AWS_INSTANCE_NAME="mc-temporary-crawler" \
+          AWS_ACCESS_KEY_ID="AKIAIOSFODNN7EXAMPLE" \
+          AWS_SECRET_ACCESS_KEY="wJalrXUtnFEMI/K7MDENG" \
+          AWS_KEYPAIR_NAME="development" \
+          AWS_SSH_PRIVKEY="~/development.pem" \
+          AWS_SECURITY_GROUP="default" \
+          vagrant up --provider=aws &> temporary_crawler.log
        
-       # SSH into the newly setup instance
-       vagrant ssh
+        # SSH into the newly setup instance
+        vagrant ssh
 
    **Note:** make sure the machine has sufficient disk space. For example, if using AWS, you will need to either create the instance with a large root partition or mount additional storage and use symlinks to get PostgreSQL to use this storage instead of the root partition. At the time of writing, Vagrant sets up EC2 machines with 40 GB of disk space.
    
@@ -43,13 +43,13 @@
 
    Run `date`, if the result isn't EDT or EST, run:
    
-       sudo dpkg-reconfigure tzdata
+        sudo dpkg-reconfigure tzdata
    
    and select `America/New_York`.
    
    **Be aware that AWS machines are often initially setup with UTC as the timezone instead of Eastern.** Vagrant should be able to do this automatically for you.
 
-3. Install Media Cloud on the machine.
+3. Install Media Cloud on the machine (if it didn't get installed by Vagrant already).
 
 5. Install the Media Cloud API Python client from [https://github.com/c4fcm/MediaCloud-API-Client](https://github.com/c4fcm/MediaCloud-API-Client)
 
