@@ -542,6 +542,7 @@ class AdminApiTaggingContentTest(AdminApiBaseTest):
         tag_set_name = "rahulb@media.mit.edu"
         # grab some sentence_ids to test with
         orig_story = self._mc.story(test_story_id,sentences=True)
+        self.assertTrue( 'story_sentences' in orig_story )
         self.assertTrue( len(orig_story['story_sentences']) > 2 )
         sentence_ids = [ s['story_sentences_id'] for s in orig_story['story_sentences'][0:2] ]
         # add a tag
