@@ -1177,7 +1177,7 @@ URL: https://api.mediacloud.org/api/v2/controversy_dump_time_slices/list?controv
 
 # Extended Examples
 
-Note: The Python examples below are included for reference purpose. However, a [Python client]( https://github.com/c4fcm/MediaCloud-API-Client ) for our API is now available and most Python users will find it much easier to use the API client instead of making web requests directly.
+Note: The Python examples below are included for reference purposes. However, a [Python client]( https://github.com/c4fcm/MediaCloud-API-Client ) for our API is now available and most Python users will find it much easier to use the API client instead of making web requests directly.
 
 ## Output Format / JSON
 
