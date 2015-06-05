@@ -1203,7 +1203,7 @@ media = []
 start = 0
 rows  = 100
 while True:
-      params = { 'start': start, 'rows': rows, key: MY_KEY }
+      params = { 'start': start, 'rows': rows, 'key': MY_KEY }
       print "start:{} rows:{}".format( start, rows)
       r = requests.get( 'https://api.mediacloud.org/api/v2/media/list', params = params, headers = { 'Accept': 'application/json'} )
       data = r.json()
@@ -1312,7 +1312,7 @@ import requests
 start = 0
 rows  = 100
 while True:
-      params = { 'last_processed_stories_id': start, 'rows': rows, 'q': 'media_sets_id:1', key: MY_KEY }
+      params = { 'last_processed_stories_id': start, 'rows': rows, 'q': 'media_sets_id:1', 'key': MY_KEY }
 
       print "Fetching {} stories starting from {}".format( rows, start)
       r = requests.get( 'https://api.mediacloud.org/api/v2/stories_public/list/', params = params, headers = { 'Accept': 'application/json'} )
@@ -1348,7 +1348,7 @@ start = 0
 rows  = 100
 while True:
       params = { 'last_processed_stories_id': start,
-      'rows': rows, 'q': 'media_set_id:1', 'fq': 'publish_date:[2010-10-01T00:00:00Z TO 2010-11-01T00:00:00Z]', key: MY_KEY  }
+      'rows': rows, 'q': 'media_set_id:1', 'fq': 'publish_date:[2010-10-01T00:00:00Z TO 2010-11-01T00:00:00Z]', 'key': MY_KEY  }
 
       print "Fetching {} stories starting from {}".format( rows, start)
       r = requests.get( 'https://api.mediacloud.org/api/v2/stories_public/list/', params = params, headers = { 'Accept': 'application/json'} )
@@ -1498,7 +1498,7 @@ def find_tags_id( tag_name, tag_sets_id):
    last_tags_id = 0
    rows  = 100
    while True:
-      params = { 'last_tags_id': last_tags_id, 'rows': rows, key: MY_KEY }
+      params = { 'last_tags_id': last_tags_id, 'rows': rows, 'key': MY_KEY }
       print "start:{} rows:{}".format( start, rows)
       r = requests.get( 'https://api.mediacloud.org/api/v2/tags/list/' + tag_sets_id , params = params, headers = { 'Accept': 'application/json'} )
       tags = r.json()
@@ -1545,7 +1545,7 @@ import requests
 start = 0
 rows  = 100
 while True:
-      params = { 'last_processed_stories_id': start, 'rows': rows, 'q': 'tags_id_stories:678910', key: MY_KEY }
+      params = { 'last_processed_stories_id': start, 'rows': rows, 'q': 'tags_id_stories:678910', 'key': MY_KEY }
 
       print "Fetching {} stories starting from {}".format( rows, start)
       r = requests.get( 'https://api.mediacloud.org/api/v2/stories_public/list/', params = params, headers = { 'Accept': 'application/json'} )
