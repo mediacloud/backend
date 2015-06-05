@@ -216,8 +216,8 @@ sub _add_nested_data
 
         my $story_text_data = $db->query( <<END )->hashes;
     select s.stories_id, s.full_text_rss,
-            case when BOOL_AND( s.full_text_rss ) then s.description
-                else string_agg( dt.download_text, E'.\n\n' )
+            case when BOOL_AND( s.full_text_rss ) then s.title || E'.\n\n' || s.description
+                else string_agg( dt.download_text, E'.\n\n'::text )
             end story_text
         from stories s
             join downloads d on ( s.stories_id = d.stories_id )
