@@ -91,6 +91,12 @@ See doc/README.vagrant.markdown for instructions on how to set those variables.
     aws.instance_type = AWS_INSTANCE_TYPE
     aws.tags = { 'Name' => AWS_INSTANCE_NAME }
 
+    # Media Cloud barely fits into instance's default 8 GB
+    aws.block_device_mapping = [{
+      'DeviceName' => '/dev/sda1',
+      'Ebs.VolumeSize' => 40
+    }]
+
     # Wait for more than the default (120 seconds) for the instance to start
     aws.instance_ready_timeout = 360
 

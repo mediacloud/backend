@@ -1453,35 +1453,6 @@ curl 'https://api.mediacloud.org/api/v2/wc?q=sentence:trayvon+AND+media_sets_id:
 ```
 
 
-## Tag sentences of a story based on whether they have an odd or even number of characters
-
-For simplicity, we assume that the user is interested in the story with `stories_id = 100` and is using a tag set called `'ts'`.
-
-```python
-
-stories_id = 100
-r = requests.get( 'https://api.mediacloud.org/api/v2/story/single/' + stories_id, headers = { 'Accept': 'application/json'} )
-data = r.json()
-story = data[0]
-
-custom_tags = []
-tag_set_name = 'ts'
-for story_sentence in story['story_sentences']:
-    sentence_length = len( story_sentence['sentence'] )
-    story_sentences_id = story_sentence[ 'story_sentences_id' ]
-
-    if sentence_length %2 == 0:
-       tag_name = 'even'
-    else:
-       tag_name = 'odd'
-
-    custom_tags.append( '{},{}:{}'.format( story_sentences_id, tag_set_name, tag_name )
-
-
-r = requests.put( 'https://api.mediacloud.org/api/v2/sentences/put_tags/', { 'sentence_tag': custom_tags }, headers = { 'Accept': 'application/json'} )  
-
-```
-
 ## Get word counts for top words for sentences with the tag `'odd'` in `tag_set = 'ts'`
 
 
