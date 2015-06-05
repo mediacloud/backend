@@ -49,7 +49,8 @@ my $_ignore_link_pattern =
   '(livejournal.com\/(tag|profile))|(sfbayview.com\/tag)|(absoluteastronomy.com)|' .
   '(\/share.*http)|(digg.com\/submit)|(facebook.com.*mediacontentsharebutton)|' .
   '(feeds.wordpress.com\/.*\/go)|(sharetodiaspora.github.io\/)|(iconosquare.com)|' .
-  '(unz.com)|(answers.com)|(downwithtyranny.com\/search)|(scoop\.?it)|(sco\.lt)';
+  '(unz.com)|(answers.com)|(downwithtyranny.com\/search)|(scoop\.?it)|(sco\.lt)|' .
+  '((raymondpronk|pronkpops)\.wordpress\.com\/(tag|category))';
 
 # cache of media by media id
 my $_media_cache = {};
@@ -272,6 +273,8 @@ sub get_links_from_story
 
     my @all_links = ( @{ $links }, @{ $text_links }, @{ $description_links }, @{ $boingboing_links } );
 
+    @all_links = grep { $_->{ url } !~ $_ignore_link_pattern } @all_links;
+
     my $link_lookup = {};
     map { $link_lookup->{ MediaWords::Util::URL::normalize_url_lossy( $_->{ url } ) } = $_ } @all_links;
 
@@ -326,11 +329,8 @@ sub generate_controversy_links
     {
         $pm->start and next;
 
-        # if we don't set inactivedestroy, the child process will kill the parent's db handle on exit
-        $db->dbh->{ InactiveDestroy } = 1;
-        $db->{ dbh } = undef;
+        $db = MediaWords::DB::reset_forked_db( $db );
 
-        my $db = MediaWords::DB::connect_to_db;
         $db->dbh->{ AutoCommit } = 0;
 
         my $story_in_date_range = story_within_controversy_date_range( $db, $controversy, $story );
@@ -349,7 +349,7 @@ sub generate_controversy_links
 
             for my $link ( @{ $links } )
             {
-                next if ( $link->{ url } eq $story->{ url } );
+                next if ( ( $link->{ url } eq $story->{ url } ) || _skip_self_linked_domain( $db, $link ) );
 
                 my $link_exists = $link_lookup->{ $link->{ url } };
                 $link_lookup->{ $link->{ url } } = 1;
@@ -660,6 +660,11 @@ sub extract_download
 
         warn "extract error processing download $download->{ downloads_id }: $error";
     }
+    else
+    {
+        my $story = $db->find_by_id( 'stories', $download->{ stories_id } );
+        add_missing_story_sentences( $db, $story );
+    }
 }
 
 # get a date for a new story by trying each of the following, in this order:
@@ -838,8 +843,12 @@ sub add_new_story
     print STDERR "add_new_story: $old_story->{ url }\n";
 
     # if neither the url nor the content match the pattern, it cannot be a match so return and don't add the story
-    if ( $check_pattern
-        && !potential_story_matches_controversy_pattern( $controversy, $old_story->{ url }, $story_content ) )
+    if (
+        $check_pattern
+        && !potential_story_matches_controversy_pattern(
+            $controversy, $link->{ url }, $link->{ redirect_url }, $story_content
+        )
+      )
     {
         say STDERR "SKIP - NO POTENTIAL MATCH";
         return;
@@ -851,11 +860,11 @@ sub add_new_story
       || get_spider_medium( $db, $old_story->{ url } );
     my $feed = get_spider_feed( $db, $medium );
 
+    my $spidered_tag = get_spidered_tag( $db );
+
     my ( $story, $date_guess_method ) = generate_new_story_hash( $db, $story_content, $old_story, $link, $medium );
 
     $story = safely_create_story( $db, $story );
-
-    my $spidered_tag = get_spidered_tag( $db );
 
     $db->create( 'stories_tags_map', { stories_id => $story->{ stories_id }, tags_id => $spidered_tag->{ tags_id } } );
 
@@ -938,14 +947,47 @@ sub translate_pattern_to_perl
     return $s;
 }
 
+my $_no_potential_match_urls = {};
+
 # test whether the url or content of a potential story matches the controversy pattern
 sub potential_story_matches_controversy_pattern
 {
-    my ( $controversy, $url, $content ) = @_;
+    my ( $controversy, $url, $redirect_url, $content ) = @_;
 
     my $re = translate_pattern_to_perl( $controversy->{ pattern } );
 
-    return ( ( $url =~ /$re/isx ) || ( $content =~ /$re/isx ) ) ? 1 : 0;
+    my $match = ( ( $redirect_url =~ /$re/isx ) || ( $url =~ /$re/isx ) || ( $content =~ /$re/isx ) ) ? 1 : 0;
+
+    if ( !$match )
+    {
+        $_no_potential_match_urls->{ $url }          = 1;
+        $_no_potential_match_urls->{ $redirect_url } = 1;
+    }
+
+    return $match;
+}
+
+# return true if this url already failed a potential match, so we don't have to download it again
+sub url_failed_potential_match
+{
+    my ( $url ) = @_;
+
+    return $url && $_no_potential_match_urls->{ $url };
+}
+
+my $_story_sentences_added = {};
+
+# add missing story sentences, but only do so once per runtime so that we don't repeatedly try
+# to add sentences to stories with no sentences
+sub add_missing_story_sentences
+{
+    my ( $db, $story ) = @_;
+
+    return if ( $_story_sentences_added->{ $story->{ stories_id } } );
+
+    MediaWords::DBI::Stories::add_missing_story_sentences( $db, $story );
+
+    $_story_sentences_added->{ $story->{ stories_id } } = 1;
 }
 
 # return the type of match if the story title, url, description, or sentences match controversy search pattern.
@@ -960,18 +1002,15 @@ sub story_matches_controversy_pattern
     {
         if ( $story->{ $field } && ( $story->{ $field } =~ /$perl_re/isx ) )
         {
-            MediaWords::DBI::Stories::add_missing_story_sentences( $db, $story );
             return $field;
         }
     }
 
     return 0 if ( $metadata_only );
 
-    # check for download_texts match first because some stories don't have
-    # story_sentences, and it is expensive to generate the missing story_sentences
-    return 0 unless ( story_download_text_matches_pattern( $db, $story, $controversy ) );
-
-    MediaWords::DBI::Stories::add_missing_story_sentences( $db, $story );
+    # # check for download_texts match first because some stories don't have
+    # # story_sentences, and it is expensive to generate the missing story_sentences
+    # return 0 unless ( story_download_text_matches_pattern( $db, $story, $controversy ) );
 
     return story_sentence_matches_pattern( $db, $story, $controversy ) ? 'sentence' : 0;
 }
@@ -1214,7 +1253,7 @@ END
 }
 
 # return true if this story is already a controversy story or
-# if the story should be skipped or being a self linked story (see skup_self_linked_story())
+# if the story should be skipped for being a self linked story (see skup_self_linked_story())
 sub skip_controversy_story
 {
     my ( $db, $controversy, $story, $link ) = @_;
@@ -1298,18 +1337,18 @@ sub add_to_controversy_stories_and_links_if_match
 
 }
 
-# return true if the domain of the linked url is different
-# than the domain of the linking story and the domain is in
-# $_skip_self_linked_domain
+# return true if the domain of the linked url is the same
+# as the domain of the linking story and either the domain is in
+# $_skip_self_linked_domain or the linked url is a /tag or /category page
 sub _skip_self_linked_domain
 {
     my ( $db, $link ) = @_;
 
     my $domain = MediaWords::Util::URL::get_url_domain( $link->{ url } );
 
-    return 0 unless ( $_skip_self_linked_domain->{ $domain } );
+    return 0 unless ( $_skip_self_linked_domain->{ $domain } || ( $link->{ url } =~ /\/(tag|category|author|search)/ ) );
 
-    # only skip if the media source of the linking story is different than the media
+    # only skip if the media source of the linking story is the same as the media
     # source of the linked story.  we can't know the media source of the linked story
     # without adding it first, though, which we want to skip because it's time
     # expensive to do so.  so we just compare the url domain as a proxy for
@@ -1425,11 +1464,8 @@ sub extract_stories
     {
         $pm->start and next;
 
-        # if we don't set inactivedestroy, the child process will kill the parent's db handle on exit
-        $db->dbh->{ InactiveDestroy } = 1;
-        $db->{ dbh } = undef;
+        $db = MediaWords::DB::reset_forked_db( $db );
 
-        my $db = MediaWords::DB::connect_to_db;
         $db->dbh->{ AutoCommit } = 0;
 
         if ( !story_has_download_text( $db, $story ) )
@@ -1439,8 +1475,6 @@ select * from downloads where stories_id = ? order by downloads_id asc limit 1
 SQL
             extract_download( $db, $download );
         }
-
-        MediaWords::DBI::Stories::add_missing_story_sentences( $db, $story );
 
         $db->commit;
 
@@ -1459,6 +1493,21 @@ sub add_new_links
     my ( $db, $controversy, $iteration, $new_links ) = @_;
 
     $db->dbh->{ AutoCommit } = 0;
+
+    my $trimmed_links = [];
+    for my $link ( @{ $new_links } )
+    {
+        my $skip_link = url_failed_potential_match( $link->{ url } )
+          || url_failed_potential_match( $link->{ redirect_url } );
+        if ( $skip_link )
+        {
+            say STDERR "ALREADY SKIPPED LINK: $link->{ url }";
+        }
+        else
+        {
+            push( @{ $trimmed_links }, $link );
+        }
+    }
 
     my $fetch_links = add_links_with_matching_stories( $db, $controversy, $new_links );
 
@@ -2067,12 +2116,15 @@ END
 
     add_new_links( $db, $controversy, 0, $seed_urls );
 
+    $db->dbh->{ AutoCommit } = 0;
     for my $seed_url ( @{ $seed_urls } )
     {
         $db->query( <<END, $seed_url->{ story }->{ stories_id }, $seed_url->{ controversy_seed_urls_id } );
 update controversy_seed_urls set stories_id = ?, processed = 't' where controversy_seed_urls_id = ?
 END
     }
+    $db->commit;
+    $db->dbh->{ AutoCommit } = 1;
 
 }
 

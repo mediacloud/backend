@@ -230,6 +230,37 @@ URL:  http://www.mediacloud.org/api/v2/sentences/list?q=sentence:obama&rows=10&f
 }
 ```
 
+## Downloads
+
+The provides access to the downloads table.
+
+**Note:** Downloads are an internal implementation detail. Most users will be better served by interacting with the API at the story level and should not use this access point. 
+
+The fields of the returned objects include all fields in the downloads table within Postgresql plus 'raw_content' which contains the raw html is the download was successful. (If the download was not successful 'raw_content' is omitted.
+
+
+### api/v2/downloads/single/
+
+| URL                              | Function
+| -------------------------------- | -------------------------------------------------------------
+| `api/v2/downloads/single/<downloads_id>` | Return the downloads source in which `downloads_id` equals `<downloads_id>`
+
+#### Query Parameters
+
+None.
+
+### api/v2/downloads/list/
+
+| URL                 | Function
+| ------------------- | -----------------------------
+| `api/v2/downloads/list` | Return multiple downloads
+
+#### Query Parameters
+
+| Parameter                         | Default | Notes
+| --------------------------------- | ------- | -----------------------------------------------------------------
+| `last_downloads_id`               | 0       | Return downloads sources with a `downloads_id` greater than this value
+| `rows`                            | 20      | Number of downloads sources to return. Cannot be larger than 100
 
 ## Write Back API
 

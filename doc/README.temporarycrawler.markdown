@@ -1,44 +1,43 @@
-# Temporary crawler
+# Setup the temporary crawler
 
-## Setting up a temporary crawler
+1. Setup a machine with Ubuntu installed. For example, by creating an AWS instance.
 
-On the system with permanent crawler:
+ **NOTE:** make sure the machine has sufficient disk space. For example, if using AWS, you will need to either create the instance with a large root partition or mount additional storage and use symlinks to get Postgresql to use this storage instead of the root partition.
 
-    cd mediacloud/script
-    ./dump_media_and_feeds_information.sh
+2. **Make sure that the time zone of your machine is set to Eastern Time.** Run `date`, if the result isn't EDT or EST, run `sudo dpkg-reconfigure tzdata` and select America/New_York.
 
-Copy the contents of `mediacloud/data/media_and_feed_list` on the permanent system to `mediacloud/data/media_and_feed_list` on the backup system.
+ **Be aware that AWS machines are often initially setup with UTC as the timezone instead of Eastern.**
 
-On the back up system:
+3. Install Media Cloud on the machine.
 
-* Create a new media cloud database on the backup system and set `$PGDATABASE` to the name of this database
-* Add the new media cloud database to `mediawords.yml` and set it as the default db
-* Run `./script/run_with_carton.sh ./script/mediawords_psql_wrapper.pl --dump-env-commands` and copy paste + execute all 4 commands
-* Run `./script/run_with_carton.sh ./script/mediawords_create_db.pl`
-    * WARNING: RUNNING THIS COMMAND WILL PURGE WHATEVER DATABASE IS LISTED AS THE DEFAULT IN `MEDIAWORDS.YML`
-* `cd` to `mediacloud/script` and run: `./restore_media_and_feed_information.sh`
-* Edit `mediawords.yml` and set `mediawords: do_not_process_feeds` to `yes`
+5. Install the Media Cloud API Python client from https://github.com/c4fcm/MediaCloud-API-Client
 
+5. cd to the Media Cloud installation directory
 
-## Stop the crawler on the permanent system
+6. Import media and feeds from the production server by running `python python_scripts/media_import.py --api-key API-KEY` where API-KEY is an API key for mediacloud.org.
 
-Run the crawler on the backup system.
+7. Start supvisisor by running `./supervisor/supervisord.sh`
 
-When you're ready to switch back to the permanent system, stop the crawler on the backup system
+8. Optional: Stop the extractor workers by running `./supervisor/supervisorctl.sh stop extract_and_vector`
 
-Start the crawler on the production system
+9. Let the crawler on this machine run as long as desired.
 
-Stop the crawler on the backup system
+# Exporting
 
-On the backup system run `./script/mediawords_export_feed_downloads.pl`
+When you're ready to export:
 
-After this script completes copy files `/tmp/downloads*.xml` to the permanent system.
+1. Stop the crawler by running `./supervisor/supervisorctl.sh stop mc:crawler`
 
-On the permanent system, CD to the directory with the `download*.xml` files and run a command like the following:
+2. Start the mediacloud server by running `./script/run_server_with_carton.sh` and leave it running in its own terminal
 
-    find `pwd` -iname '*.xml' -print | \
-    sort | \
-    nohup time parallel --keep-order --max-procs +5 \
-    /space/mediacloud/mediacloud/script/run_with_carton.sh \
-    /space/mediacloud/mediacloud_RELEASE_20140325/script/mediawords_import_feed_downloads.pl | \
-    tee downloads_import.log
+3. Find the API key for the local Media Cloud user by running `./script/run_with_carton.sh ./script/mediawords_manage_users.pl  --action=show --email=jdoe@mediacloud.org`
+
+4. Export feed_downloads to the production system by running. `python python_scripts/export_feed_downloads_through_api.py --source-api-key SOURCE_API_KEY --dest-api-key DEST_API_KEY --source-media-cloud-api_url SOURCE_MEDIA_CLOUD_API_URL --dest-media-cloud-api_url DEST_MEDIA_CLOUD_API_URL`
+
+ Where SOURCE_API_KEY is the local API key found above, DEST_API_KEY is an API key on the Media Cloud server to which you are exporting, SOURCE_MEDIA_CLOUD_API_URL is the base URL of the local server from which you are exporting downloads (this will almost always be 'http://localhost:3000/'), and DEST_MEDIA_CLOUD_API_URL is the base URL of the server to which you are exporting downloads (this will almost always be 'https://api.mediacloud.org/')
+
+ E.g.
+
+ `python python_scripts/export_feed_downloads_through_api.py --source-api-key 'e07cf98dd0d457351354ee520635c226acd238ecf15ec9e853346e185343bf7b' --dest-api-key  '1161251f5de4f381a198eea4dc20350fd992f5eef7cb2fdc284c245ff3d4f3ca' --source-media-cloud-api_url  'http://localhost:3000/' --dest-media-cloud-api_url https://api.mediacloud.org/
+
+5. Verify that this script completed successfully by examining the output.

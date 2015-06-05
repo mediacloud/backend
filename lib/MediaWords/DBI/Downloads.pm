@@ -360,9 +360,9 @@ sub fetch_content($$)
         croak "fetch_content called with invalid download";
     }
 
-    unless ( grep { $_ eq $download->{ state } } ( 'success', 'extractor_error', 'feed_error' ) )
+    unless ( download_successful( $download ) )
     {
-        croak "attempt to fetch content for unsuccessful download $download->{ downloads_id }  / $download->{ state }";
+        confess "attempt to fetch content for unsuccessful download $download->{ downloads_id }  / $download->{ state }";
     }
 
     my $store = _download_store_for_reading( $download );
@@ -714,6 +714,18 @@ EOF
     $db->commit;
 
     return 1;
+}
+
+# Return true if the download was downloaded successfully.
+# This method is needed because there are cases it which the download was sucessfully downloaded \
+# but had a subsequent processing error. e.g. 'extractor_error' and 'feed_error'
+sub download_successful
+{
+    my ( $download ) = @_;
+
+    my $state = $download->{ state };
+
+    return ( $state eq 'success' ) || ( $state eq 'feed_error' ) || ( $state eq 'extractor_error' );
 }
 
 1;

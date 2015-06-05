@@ -87,7 +87,7 @@ sub test_share_comment_counts($)
 
     my ( $reddit_share_count, $reddit_comment_count ) =
       MediaWords::Util::Facebook::get_url_share_comment_counts( $db, 'http://www.reddit.com/' );
-    ok( $reddit_share_count > 180000, "reddit share count '$reddit_share_count' should be greater than 180,000" );
+    ok( $reddit_share_count > 100000, "reddit share count '$reddit_share_count' should be greater than 100,000" );
 
     my ( $nyt_ferguson_share_count, $nyt_ferguson_comment_count ) =
       MediaWords::Util::Facebook::get_url_share_comment_counts( $db,
