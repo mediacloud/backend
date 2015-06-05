@@ -26,8 +26,8 @@ limit will result in a status 403 error.  Users who need access to more requests
 
 #Python Client
 
-A Python client for our API is now available. Users who develop in Python will probably find it easier to use this client than to make web requests directly.
-The Python client is available [ here ] ( https://github.com/c4fcm/MediaCloud-API-Client ).
+A [Python client]( https://github.com/c4fcm/MediaCloud-API-Client ) for our API is now available. Users who develop in Python will probably find it easier to use this client than to make web requests directly.
+The Python client is available [here]( https://github.com/c4fcm/MediaCloud-API-Client ).
 
 #API URLs
 
@@ -1176,6 +1176,8 @@ Response:
 URL: https://api.mediacloud.org/api/v2/controversy_dump_time_slices/list?controversies_dumps_id=5
 
 # Extended Examples
+
+Note: The Python examples below are included for reference purpose. However, a [Python client]( https://github.com/c4fcm/MediaCloud-API-Client ) for our API is now available and most Python users will find it much easier to use the API client instead of making web requests directly.
 
 ## Output Format / JSON
 
