@@ -19,6 +19,7 @@ use Carp;
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
 use MediaWords::Util::CoreNLP;
+use MediaWords::Util::HTML;
 
 =head1 NAME
 
@@ -214,17 +215,25 @@ sub _add_nested_data
     {
 
         my $story_text_data = $db->query( <<END )->hashes;
-    select s.stories_id,
-            case when BOOL_AND( m.full_text_rss ) then s.description
+    select s.stories_id, s.full_text_rss,
+            case when BOOL_AND( s.full_text_rss ) then s.description
                 else string_agg( dt.download_text, E'.\n\n' )
             end story_text
         from stories s
-            join media m on ( s.media_id = m.media_id )
             join downloads d on ( s.stories_id = d.stories_id )
             left join download_texts dt on ( d.downloads_id = dt.downloads_id )
         where s.stories_id in ( select id from $ids_table )
         group by s.stories_id
 END
+
+        for my $story_text_data ( @$story_text_data )
+        {
+            if ( $story_text_data->{ full_text_rss } )
+            {
+                $story_text_data->{ story_text } = html_strip( $story_text_data->{ story_text } );
+            }
+        }
+
         MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $story_text_data );
 
         my $extracted_data = $db->query( <<END )->hashes;
