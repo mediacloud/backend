@@ -124,7 +124,8 @@ class MediaCloud(object):
 
     def story(self, stories_id):
         '''
-        Authenticated Public Users: Details about one story
+        Authenticated Public Users: Details about one story.
+        Note that this does NOT include text, nor sentences (due to copyright limitations).
         '''
         return self._queryForJson(self.V2_API_URL+'stories_public/single/'+str(stories_id))[0]
 
