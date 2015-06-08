@@ -471,6 +471,9 @@ CREATE TABLE media_rescraping (
     last_rescrape_time  TIMESTAMP WITH TIME ZONE  NULL
 );
 
+CREATE UNIQUE INDEX media_rescraping_media_id on media_rescraping(media_id);
+CREATE INDEX media_rescraping_last_rescrape_time on media_rescraping(last_rescrape_time);
+
 -- Insert new rows to "media_rescraping" for each new row in "media"
 CREATE OR REPLACE FUNCTION media_rescraping_add_initial_state_trigger() RETURNS trigger AS
 $$
