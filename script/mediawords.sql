@@ -591,6 +591,18 @@ create index feeds_reparse on feeds(reparse);
 create index feeds_last_attempted_download_time on feeds(last_attempted_download_time);
 create index feeds_last_successful_download_time on feeds(last_successful_download_time);
 
+-- Feeds for media item that were found after (re)scraping
+CREATE TABLE feeds_after_rescraping (
+    feeds_after_rescraping_id   SERIAL          PRIMARY KEY,
+    media_id                    INT             NOT NULL REFERENCES media ON DELETE CASCADE,
+    name                        VARCHAR(512)    NOT NULL,
+    url                         VARCHAR(1024)   NOT NULL
+);
+CREATE INDEX feeds_after_rescraping_media_id ON feeds_after_rescraping(media_id);
+CREATE INDEX feeds_after_rescraping_name ON feeds_after_rescraping(name);
+CREATE UNIQUE INDEX feeds_after_rescraping_url ON feeds_after_rescraping(url, media_id);
+
+
 create table tag_sets (
     tag_sets_id            serial            primary key,
     name                varchar(512)    not null,
