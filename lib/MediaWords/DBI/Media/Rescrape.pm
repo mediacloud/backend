@@ -100,9 +100,16 @@ sub rescrape_media($$)
             feed_status => $need_to_moderate ? 'inactive' : 'active',
         };
 
-        my $existing_feed = $db->query( <<END, $feed_link->{ url }, $medium->{ media_id } )->hash;
-select * from feeds where url = ? and media_id = ?
-END
+        my $existing_feed = $db->query(
+            <<EOF,
+            SELECT *
+            FROM feeds
+            WHERE url = ?
+              AND media_id = ?
+EOF
+            $feed_link->{ url }, $medium->{ media_id }
+        )->hash;
+
         if ( $existing_feed )
         {
             $db->update_by_id( 'feeds', $existing_feed->{ feeds_id }, $feed );
@@ -114,30 +121,35 @@ END
 
         if ( $@ )
         {
-            my $error = "Error adding feed $feed_link->{ url }: $@\n";
+            my $error = "Error adding feed $feed_link->{ url }: $@";
             $medium->{ moderation_notes } .= $error;
-            print $error;
+            say STDERR $error;
             next;
         }
         else
         {
             say STDERR "ADDED $medium->{ name }: $feed->{ name } " .
-              "[$feed->{ feed_type }, $feed->{ feed_status }]" . " - $feed->{ url }\n";
+              "[$feed->{ feed_type }, $feed->{ feed_status }]" . " - $feed->{ url }";
         }
     }
 
     if ( @{ $existing_urls } )
     {
-        my $error = "These urls were found but already exist in the database:\n" .
-          join( "\n", map { "\t$_" } @{ $existing_urls } ) . "\n";
+        my $error =
+          "These urls were found but already exist in the database:\n" . join( "\n", map { "\t$_" } @{ $existing_urls } );
         $medium->{ moderation_notes } .= $error;
-        print $error;
+        say STDERR $error;
     }
 
     my $moderated = $need_to_moderate ? 'f' : 't';
 
     $db->query(
-        "UPDATE media SET moderation_notes = ?, moderated = ? WHERE media_id = ?",
+        <<EOF,
+        UPDATE media
+        SET moderation_notes = ?,
+            moderated = ?
+        WHERE media_id = ?
+EOF
         $medium->{ moderation_notes },
         $moderated, $medium->{ media_id }
     );
