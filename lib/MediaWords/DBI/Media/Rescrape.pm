@@ -53,7 +53,13 @@ sub enqueue_rescrape_media_for_unmoderated_media($)
 {
     my ( $db ) = @_;
 
-    my $media = $db->query( "SELECT * FROM media WHERE media_has_active_syndicated_feeds(media_id) = 'f'" )->hashes;
+    my $media = $db->query(
+        <<EOF
+        SELECT *
+        FROM media
+        WHERE media_has_active_syndicated_feeds(media_id) = 'f'
+EOF
+    )->hashes;
 
     map { enqueue_rescrape_media( $_ ) } @{ $media };
 
