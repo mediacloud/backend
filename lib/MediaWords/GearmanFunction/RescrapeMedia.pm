@@ -12,17 +12,7 @@ package MediaWords::GearmanFunction::RescrapeMedia;
 #
 #    fetch [1/1] : http://www.delfi.lt/
 #    got [1/1]: http://www.delfi.lt/
-#    fetch [1/22] : http://www.delfi.lt/index.xml
-#    got [1/22]: http://www.delfi.lt/index.xml
-#    fetch [2/22] : http://www.delfi.lt/atom.xml
-#    got [2/22]: http://www.delfi.lt/atom.xml
-#    fetch [3/22] : http://www.delfi.lt/feeds
-#    got [3/22]: http://www.delfi.lt/feeds
-#    fetch [4/22] : http://www.delfi.lt/feeds/default
-#    got [4/22]: http://www.delfi.lt/feeds/default
-#    fetch [5/22] : http://www.delfi.lt/feed
-#    got [5/22]: http://www.delfi.lt/feed
-#    fetch [6/22] : http://www.delfi.lt/feed/default
+#    <...>
 #
 # That's because MediaWords::Util::Web::ParallelGet() starts a child process
 # for fetching URLs (instead of a fork()).
