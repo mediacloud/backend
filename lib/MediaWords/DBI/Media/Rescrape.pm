@@ -68,6 +68,67 @@ EOF
     return 1;
 }
 
+# Move feeds from "feeds_after_rescraping" to "feeds" table
+# Note: it doesn't create a transaction itself, so make sure to do that in a caller
+sub move_feeds_after_rescraping_to_feeds($$)
+{
+    my ( $db, $feeds_after_rescraping ) = @_;
+
+    unless ( ref $feeds_after_rescraping eq ref [] )
+    {
+        die "'feeds_after_rescraping' is not an arrayref.";
+    }
+
+    foreach my $feed_after_rescraping ( @{ $feeds_after_rescraping } )
+    {
+
+        unless ( ref $feed_after_rescraping eq ref {} )
+        {
+            die "Feed is not a hashref.";
+        }
+        unless ($feed_after_rescraping->{ feeds_after_rescraping_id }
+            and $feed_after_rescraping->{ media_id } )
+        {
+            die "Feed hashref doesn't have required keys.";
+        }
+
+        my $feed = {
+            media_id    => $feed_after_rescraping->{ media_id },
+            name        => $feed_after_rescraping->{ name },
+            url         => $feed_after_rescraping->{ url },
+            feed_type   => $feed_after_rescraping->{ feed_type },
+            feed_status => 'active',
+        };
+
+        my $existing_feed = $db->query(
+            <<EOF,
+            SELECT *
+            FROM feeds
+            WHERE url = ?
+              AND media_id = ?
+EOF
+            $feed_after_rescraping->{ url },
+            $feed_after_rescraping->{ media_id }
+        )->hash;
+        if ( $existing_feed )
+        {
+            $db->update_by_id( 'feeds', $existing_feed->{ feeds_id }, $feed );
+        }
+        else
+        {
+            $db->create( 'feeds', $feed );
+        }
+
+        $db->query(
+            <<EOF,
+            DELETE FROM feeds_after_rescraping
+            WHERE feeds_after_rescraping_id = ?
+EOF
+            $feeds_after_rescraping->{ feeds_after_rescraping_id }
+        );
+    }
+}
+
 # Search and add new feeds for unmoderated media (media sources that have not
 # had default feeds added to them).
 #
@@ -90,69 +151,57 @@ sub rescrape_media($$)
 
     $db->begin_work;
 
+    $db->query(
+        <<EOF,
+        DELETE FROM feeds_after_rescraping
+        WHERE media_id = ?
+EOF
+        $media_id
+    );
+
     for my $feed_link ( @{ $feed_links } )
     {
         my $feed = {
-            name        => $feed_link->{ name },
-            url         => $feed_link->{ url },
-            media_id    => $medium->{ media_id },
-            feed_type   => $feed_link->{ feed_type } || 'syndicated',
-            feed_status => $need_to_moderate ? 'inactive' : 'active',
+            media_id  => $media_id,
+            name      => $feed_link->{ name },
+            url       => $feed_link->{ url },
+            feed_type => $feed_link->{ feed_type } || 'syndicated',
         };
 
-        my $existing_feed = $db->query(
+        $db->create( 'feeds_after_rescraping', $feed );
+    }
+
+    unless ( $need_to_moderate )
+    {
+
+        # Move all newly scraped feeds to "feeds" table
+        my $feeds_after_rescraping = $db->query(
             <<EOF,
             SELECT *
-            FROM feeds
-            WHERE url = ?
-              AND media_id = ?
+            FROM feeds_after_rescraping
+            WHERE media_id = ?
 EOF
-            $feed_link->{ url }, $medium->{ media_id }
-        )->hash;
+            $media_id
+        );
+        move_feeds_after_rescraping_to_feeds( $db, $feeds_after_rescraping );
 
-        if ( $existing_feed )
-        {
-            $db->update_by_id( 'feeds', $existing_feed->{ feeds_id }, $feed );
-        }
-        else
-        {
-            eval { $db->create( 'feeds', $feed ); };
-        }
+        # Update "last rescraped" value
+        $db->query(
+            <<EOF,
+                UPDATE media_rescraping
+                SET last_rescrape_time = NOW()
+                WHERE media_id = ?
+EOF
+            $media_id
+        );
 
-        if ( $@ )
-        {
-            my $error = "Error adding feed $feed_link->{ url }: $@";
-            $medium->{ moderation_notes } .= $error;
-            say STDERR $error;
-            next;
-        }
-        else
-        {
-            say STDERR "ADDED $medium->{ name }: $feed->{ name } " .
-              "[$feed->{ feed_type }, $feed->{ feed_status }]" . " - $feed->{ url }";
-        }
     }
-
-    if ( @{ $existing_urls } )
+    else
     {
-        my $error =
-          "These urls were found but already exist in the database:\n" . join( "\n", map { "\t$_" } @{ $existing_urls } );
-        $medium->{ moderation_notes } .= $error;
-        say STDERR $error;
+
+        # no-op -- sending feeds to moderation page
+
     }
-
-    my $moderated = $need_to_moderate ? 'f' : 't';
-
-    $db->query(
-        <<EOF,
-        UPDATE media
-        SET moderation_notes = ?,
-            moderated = ?
-        WHERE media_id = ?
-EOF
-        $medium->{ moderation_notes },
-        $moderated, $medium->{ media_id }
-    );
 
     $db->commit;
 }
