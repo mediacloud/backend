@@ -173,7 +173,6 @@ EOF
 
     unless ( $need_to_moderate )
     {
-
         # Move all newly scraped feeds to "feeds" table
         my $feeds_after_rescraping = $db->query(
             <<EOF,
@@ -195,12 +194,20 @@ EOF
             $media_id
         );
 
+        # Set moderated = 't' because maybe this is a new media item that
+        # didn't have any feeds previously
+        $db->query(
+            <<EOF,
+                UPDATE media
+                SET moderated = 't'
+                WHERE media_id = ?
+EOF
+            $media_id
+        );
     }
     else
     {
-
         # no-op -- sending feeds to moderation page
-
     }
 
     $db->commit;
