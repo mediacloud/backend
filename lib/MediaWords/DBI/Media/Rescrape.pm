@@ -31,18 +31,20 @@ sub add_feeds_for_feedless_media
 
     for my $medium ( @{ $media } )
     {
-        my $feeds = $db->query(
+        my $media_has_active_syndicated_feeds = $db->query(
             <<END,
-            SELECT *
-            FROM feeds
+            SELECT 1
+            FROM media
             WHERE media_id = ?
-              AND feed_status = 'active'
-              AND feed_type = 'syndicated'
+              AND media_has_active_syndicated_feeds(media_id) = 't'
 END
             $medium->{ media_id }
-        )->hashes;
+        )->hash;
 
-        enqueue_rescrape_media( $medium ) unless ( @{ $feeds } );
+        unless ( $media_has_active_syndicated_feeds )
+        {
+            enqueue_rescrape_media( $medium );
+        }
     }
 }
 
