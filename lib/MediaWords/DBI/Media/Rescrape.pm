@@ -53,7 +53,7 @@ sub enqueue_rescrape_media_for_unmoderated_media($)
 {
     my ( $db ) = @_;
 
-    my $media = $db->query( "SELECT * FROM media WHERE media_has_feeds(media_id) = 'f'" )->hashes;
+    my $media = $db->query( "SELECT * FROM media WHERE media_has_active_syndicated_feeds(media_id) = 'f'" )->hashes;
 
     map { enqueue_rescrape_media( $_ ) } @{ $media };
 
@@ -71,7 +71,15 @@ sub rescrape_media($$)
 {
     my ( $db, $media_id ) = @_;
 
-    my $medium = $db->query( "SELECT * FROM media WHERE media_id = ? AND media_has_feeds(media_id) = 'f'", $media_id )->hash;
+    my $medium = $db->query(
+        <<EOF,
+        SELECT *
+        FROM media
+        WHERE media_id = ?
+          AND media_has_active_syndicated_feeds(media_id) = 'f'
+EOF
+        $media_id
+    )->hash;
     unless ( $medium )
     {
         die "Media ID $media_id does not exist or is already moderated.";

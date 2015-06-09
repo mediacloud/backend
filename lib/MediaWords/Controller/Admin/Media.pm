@@ -436,7 +436,7 @@ sub moderate_tags : Local
 
                 -- number of media sources associated with the tag: not yet processed by RescrapeMedia
                 COUNT(
-                    CASE WHEN media_has_feeds(media.media_id) THEN NULL ELSE 1 END
+                    CASE WHEN media_has_active_syndicated_feeds(media.media_id) THEN NULL ELSE 1 END
                 ) AS count_not_processed,
 
                 -- number of media sources associated with the tag: in moderation for which there are no feeds
@@ -543,7 +543,7 @@ EOF
             SELECT *
             FROM media
             WHERE moderated = 'f'
-              AND media_has_feeds(media_id)
+              AND media_has_active_syndicated_feeds(media_id)
               AND media_id > ?
               AND $media_set_clauses
             ORDER BY media_id
@@ -575,8 +575,14 @@ EOF
         $#{ $merge_media } = List::Util::min( $#{ $merge_media }, 2 );
     }
 
-    my ( $num_media_pending_feeds ) =
-      $c->dbis->query( "SELECT COUNT(*) FROM media WHERE media_has_feeds(media_id) = 'f' AND moderated = 'f'" )->flat;
+    my ( $num_media_pending_feeds ) = $c->dbis->query(
+        <<EOF
+        SELECT COUNT(*)
+        FROM media
+        WHERE media_has_active_syndicated_feeds(media_id) = 'f'
+          AND moderated = 'f'"
+EOF
+    )->flat;
 
     $c->stash->{ media_sets_id } = $media_sets_id;
     $c->stash->{ medium }        = $medium;
@@ -1083,7 +1089,7 @@ sub eval_rss_full_text : Local
     my ( $medium ) = $c->dbis->query(
         <<EOF,
         SELECT *,
-               media_has_feeds(media_id) AS media_has_feeds
+               media_has_active_syndicated_feeds(media_id) AS media_has_active_syndicated_feeds
         FROM media_rss_full_text_detection_data
             NATURAL JOIN media
         WHERE media_id = ?

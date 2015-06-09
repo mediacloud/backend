@@ -15,7 +15,7 @@
         <td><a href="[% medium.url | url %]">[% medium.url | html %]</a></td>
         [% IF c.acl_user_can_visit('/admin/feeds/list') %]
             <td>
-                <a href="[% c.uri_for('/admin/feeds/list/') _ medium.media_id | url %]">feeds</a>&nbsp;([% medium.media_has_feeds %])
+                <a href="[% c.uri_for('/admin/feeds/list/') _ medium.media_id | url %]">feeds</a>&nbsp;([% medium.media_has_active_syndicated_feeds %])
             </td>
         [% END -%]
         <td>
@@ -39,7 +39,7 @@
     <tr><td>url                  </td><td> [% medium.url                   | html_strip %]</td></tr>
     <tr><td>name                 </td><td> [% medium.name                  | html_strip %]</td></tr>
     <tr><td>moderated            </td><td> [% medium.moderated             | html_strip %]</td></tr>
-    <tr><td>media_has_feeds      </td><td> [% medium.media_has_feeds       | html_strip %]</td></tr>
+    <tr><td>media_has_active_syndicated_feeds      </td><td> [% medium.media_has_active_syndicated_feeds       | html_strip %]</td></tr>
     <tr><td>moderation_notes     </td><td> [% medium.moderation_notes      | html_strip %]</td></tr>
     <tr><td>full_text_rss        </td><td> [% medium.full_text_rss         | html_strip %]</td></tr>
     <tr><td>max_similarity       </td><td> [% medium.max_similarity        | html_strip %]</td></tr>

@@ -60,7 +60,7 @@ create view media_with_media_types as
         ) on ( m.media_id = mtm.media_id );
 
 
-CREATE OR REPLACE FUNCTION media_has_feeds(param_media_id INT) RETURNS boolean AS $$
+CREATE OR REPLACE FUNCTION media_has_active_syndicated_feeds(param_media_id INT) RETURNS boolean AS $$
 BEGIN
 
     -- Check if media exists

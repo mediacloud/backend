@@ -501,9 +501,9 @@ create table media_stats (
 );
 
 --
--- Returns true if media has added feeds
+-- Returns true if media has active RSS feeds
 --
-CREATE OR REPLACE FUNCTION media_has_feeds(param_media_id INT)
+CREATE OR REPLACE FUNCTION media_has_active_syndicated_feeds(param_media_id INT)
 RETURNS boolean AS $$
 BEGIN
 
