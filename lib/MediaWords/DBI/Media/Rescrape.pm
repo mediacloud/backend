@@ -79,18 +79,10 @@ sub rescrape_media($$)
 {
     my ( $db, $media_id ) = @_;
 
-    my $medium = $db->query(
-        <<EOF,
-        SELECT *
-        FROM media
-        WHERE media_id = ?
-          AND media_has_active_syndicated_feeds(media_id) = 'f'
-EOF
-        $media_id
-    )->hash;
+    my $medium = $db->find_by_id( 'media', $media_id );
     unless ( $medium )
     {
-        die "Media ID $media_id does not exist or is already moderated.";
+        die "Media ID $media_id does not exist.";
     }
 
     my ( $feed_links, $need_to_moderate, $existing_urls ) =
