@@ -525,6 +525,7 @@ BEGIN
         SELECT 1
         FROM feeds
         WHERE media_id = param_media_id
+          AND feed_status = 'active'
 
     ) THEN
         RETURN TRUE;
