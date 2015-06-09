@@ -146,7 +146,8 @@ CREATE TABLE feeds_after_rescraping (
     feeds_after_rescraping_id   SERIAL          PRIMARY KEY,
     media_id                    INT             NOT NULL REFERENCES media ON DELETE CASCADE,
     name                        VARCHAR(512)    NOT NULL,
-    url                         VARCHAR(1024)   NOT NULL
+    url                         VARCHAR(1024)   NOT NULL,
+    feed_type                   feed_feed_type  NOT NULL DEFAULT 'syndicated'
 );
 CREATE INDEX feeds_after_rescraping_media_id ON feeds_after_rescraping(media_id);
 CREATE INDEX feeds_after_rescraping_name ON feeds_after_rescraping(name);
