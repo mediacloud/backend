@@ -124,7 +124,7 @@ EOF
             DELETE FROM feeds_after_rescraping
             WHERE feeds_after_rescraping_id = ?
 EOF
-            $feeds_after_rescraping->{ feeds_after_rescraping_id }
+            $feed_after_rescraping->{ feeds_after_rescraping_id }
         );
     }
 }
