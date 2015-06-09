@@ -181,7 +181,7 @@ EOF
             WHERE media_id = ?
 EOF
             $media_id
-        );
+        )->hashes;
         move_feeds_after_rescraping_to_feeds( $db, $feeds_after_rescraping );
 
         # Update "last rescraped" value
