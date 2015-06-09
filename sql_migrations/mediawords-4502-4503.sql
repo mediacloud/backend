@@ -83,6 +83,9 @@ BEGIN
         WHERE media_id = param_media_id
           AND feed_status = 'active'
 
+          -- Website might introduce RSS feeds later
+          AND feed_type = 'syndicated'
+
     ) THEN
         RETURN TRUE;
     ELSE
