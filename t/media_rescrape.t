@@ -51,8 +51,8 @@ EOF
     $hs->start();
 
     # Create a test media that doesn't need rescraping
-    Readonly my $urls_string            => $TEST_HTTP_SERVER_URL;
-    Readonly my $tags_string            => '';
+    Readonly my $urls_string => $TEST_HTTP_SERVER_URL;
+    Readonly my $tags_string => '';
     my $medium = {
         name      => 'Acme News',
         url       => $TEST_HTTP_SERVER_URL,
