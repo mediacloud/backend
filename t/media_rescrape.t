@@ -27,6 +27,7 @@ Readonly my $TEST_HTTP_SERVER_URL  => 'http://localhost:' . $TEST_HTTP_SERVER_PO
 
 Readonly my $HTTP_CONTENT_TYPE_RSS => 'Content-Type: application/rss+xml; charset=UTF-8';
 
+# Media without any feeds
 sub test_media_no_feeds($)
 {
     my $db = shift;
