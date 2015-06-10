@@ -75,7 +75,7 @@ EOF
         my $feeds = $db->query( 'SELECT * FROM feeds WHERE media_id = ?', $media_id )->hashes;
 
         # say STDERR 'Feeds: ' . Dumper( $feeds );
-        ok( scalar( @{ $feeds } ), 'Only a single feed must have been added' );
+        is( scalar( @{ $feeds } ), 1, 'Only a single feed must have been added' );
         my $webpage_feed = $feeds->[ 0 ];
         is( $webpage_feed->{ feed_type }, 'web_page',            "Single feed's type must be 'web_page'" );
         is( $webpage_feed->{ url },       $TEST_HTTP_SERVER_URL, "Single feed's URL must be test server" );
@@ -84,7 +84,7 @@ EOF
           $db->query( 'SELECT * FROM feeds_after_rescraping WHERE media_id = ?', $media_id )->hashes;
 
         # say STDERR 'Feeds after rescraping: ' . Dumper( $feeds_after_rescraping );
-        ok( scalar( @{ $feeds_after_rescraping } ) == 0, "'feeds_after_rescraping' table must be empty after rescraping" );
+        is( scalar( @{ $feeds_after_rescraping } ), 0, "'feeds_after_rescraping' table must be empty after rescraping" );
 
     }
 
@@ -158,7 +158,7 @@ EOF
         my $feeds = $db->query( 'SELECT * FROM feeds WHERE media_id = ?', $media_id )->hashes;
 
         # say STDERR 'Feeds: ' . Dumper( $feeds );
-        ok( scalar( @{ $feeds } ), 'Only a single feed must have been added' );
+        is( scalar( @{ $feeds } ), 1, 'Only a single feed must have been added' );
         my $rss_feed = $feeds->[ 0 ];
         is( $rss_feed->{ feed_type }, 'syndicated', "Single feed's type must be 'syndicated'" );
         is( $rss_feed->{ url },       $feed_url,    "Single feed's URL must match" );
@@ -167,7 +167,7 @@ EOF
           $db->query( 'SELECT * FROM feeds_after_rescraping WHERE media_id = ?', $media_id )->hashes;
 
         # say STDERR 'Feeds after rescraping: ' . Dumper( $feeds_after_rescraping );
-        ok( scalar( @{ $feeds_after_rescraping } ) == 0, "'feeds_after_rescraping' table must be empty after rescraping" );
+        is( scalar( @{ $feeds_after_rescraping } ), 0, "'feeds_after_rescraping' table must be empty after rescraping" );
     }
 
     $hs->stop();
