@@ -75,7 +75,7 @@ EOF
         my $feeds = $db->query( 'SELECT * FROM feeds WHERE media_id = ?', $media_id )->hashes;
 
         # say STDERR 'Feeds: ' . Dumper( $feeds );
-        ok( scalar( @{ $feeds } ), 'Only a single feed must be added' );
+        ok( scalar( @{ $feeds } ), 'Only a single feed must have been added' );
         my $webpage_feed = $feeds->[ 0 ];
         is( $webpage_feed->{ feed_type }, 'web_page',            "Single feed's type must be 'web_page'" );
         is( $webpage_feed->{ url },       $TEST_HTTP_SERVER_URL, "Single feed's URL must be test server" );
