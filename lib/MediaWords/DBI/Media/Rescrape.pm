@@ -119,6 +119,23 @@ EOF
             $db->create( 'feeds', $feed );
         }
 
+        if ( $feed->{ feed_type } eq 'syndicated' )
+        {
+            # If media is getting rescraped and syndicated feeds were just
+            # found, disable the "web_page" feeds that we might have added
+            # previously
+            $db->query(
+                <<EOF,
+                UPDATE feeds
+                SET feed_status = 'inactive'
+                WHERE media_id = ?
+                  AND feed_type = 'web_page'
+                  AND feed_status = 'active'
+EOF
+                $feed->{ media_id }
+            );
+        }
+
         $db->query(
             <<EOF,
             DELETE FROM feeds_after_rescraping
