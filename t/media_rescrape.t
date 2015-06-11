@@ -27,27 +27,62 @@ Readonly my $TEST_HTTP_SERVER_URL  => 'http://localhost:' . $TEST_HTTP_SERVER_PO
 
 Readonly my $HTTP_CONTENT_TYPE_RSS => 'Content-Type: application/rss+xml; charset=UTF-8';
 
+Readonly my $PAGES_NO_FEEDS => {
+
+    # Index page
+    '/' => <<EOF,
+        <h1>Acme News</h1>
+        <p>
+            Blah blah yada yada.
+        </p>
+        <hr />
+        <p>
+            This website doesn't have any RSS feeds, so it should be added
+            as an "web_page" feed.
+        </p>
+EOF
+};
+
+Readonly my $PAGES_SINGLE_FEED_URL => $TEST_HTTP_SERVER_URL . '/feed.xml';
+Readonly my $PAGES_SINGLE_FEED     => {
+
+    # Index page
+    '/' => <<"EOF",
+        <html>
+        <head>
+            <link rel="alternate" href="$PAGES_SINGLE_FEED_URL" type="application/rss+xml" title="Acme News RSS feed" />
+        </head>
+        <body>
+        <h1>Acme News</h1>
+        <p>
+            This website has a single feed that doesn't change after rescraping.
+        </p>
+        </body>
+        </html>
+EOF
+    '/feed.xml' => <<"EOF",
+<?xml version="1.0" encoding="UTF-8"?>
+        <rss version="2.0">
+            <channel>
+                <title>Acme News RSS feed</title>
+                <link>$TEST_HTTP_SERVER_URL</link>
+                <description>This is a sample RSS feed.</description>
+                <item>
+                    <title>First post</title>
+                    <link>$TEST_HTTP_SERVER_URL/first.html</link>
+                    <description>Here goes the first post in a sample RSS feed.</description>
+                </item>
+            </channel>
+        </rss>
+EOF
+};
+
 # Media without any feeds
 sub test_media_no_feeds($)
 {
     my $db = shift;
 
-    my $pages = {
-
-        # Index page
-        '/' => <<EOF,
-            <h1>Acme News</h1>
-            <p>
-                Blah blah yada yada.
-            </p>
-            <hr />
-            <p>
-                This website doesn't have any RSS feeds, so it should be added
-                as an "web_page" feed.
-            </p>
-EOF
-    };
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_NO_FEEDS );
     $hs->start();
 
     # Create a test media that doesn't need rescraping
@@ -96,40 +131,7 @@ sub test_media_single_feed($)
 {
     my $db = shift;
 
-    Readonly my $feed_url => $TEST_HTTP_SERVER_URL . '/feed.xml';
-    my $pages = {
-
-        # Index page
-        '/' => <<"EOF",
-            <html>
-            <head>
-                <link rel="alternate" href="$feed_url" type="application/rss+xml" title="Acme News RSS feed" />
-            </head>
-            <body>
-            <h1>Acme News</h1>
-            <p>
-                This website has a single feed that doesn't change after rescraping.
-            </p>
-            </body>
-            </html>
-EOF
-        '/feed.xml' => <<"EOF",
-<?xml version="1.0" encoding="UTF-8"?>
-            <rss version="2.0">
-                <channel>
-                    <title>Acme News RSS feed</title>
-                    <link>$TEST_HTTP_SERVER_URL</link>
-                    <description>This is a sample RSS feed.</description>
-                    <item>
-                        <title>First post</title>
-                        <link>$TEST_HTTP_SERVER_URL/first.html</link>
-                        <description>Here goes the first post in a sample RSS feed.</description>
-                    </item>
-                </channel>
-            </rss>
-EOF
-    };
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_SINGLE_FEED );
     $hs->start();
 
     # Create a test media that doesn't need rescraping
@@ -160,8 +162,8 @@ EOF
         # say STDERR 'Feeds: ' . Dumper( $feeds );
         is( scalar( @{ $feeds } ), 1, 'Only a single feed must have been added' );
         my $rss_feed = $feeds->[ 0 ];
-        is( $rss_feed->{ feed_type }, 'syndicated', "Single feed's type must be 'syndicated'" );
-        is( $rss_feed->{ url },       $feed_url,    "Single feed's URL must match" );
+        is( $rss_feed->{ feed_type }, 'syndicated',           "Single feed's type must be 'syndicated'" );
+        is( $rss_feed->{ url },       $PAGES_SINGLE_FEED_URL, "Single feed's URL must match" );
 
         my $feeds_after_rescraping =
           $db->query( 'SELECT * FROM feeds_after_rescraping WHERE media_id = ?', $media_id )->hashes;
@@ -178,56 +180,6 @@ sub test_media_no_feeds_then_single_feed($)
 {
     my $db = shift;
 
-    my $pages_no_feeds = {
-
-        # Index page
-        '/' => <<EOF,
-            <h1>Acme News</h1>
-            <p>
-                Blah blah yada yada.
-            </p>
-            <hr />
-            <p>
-                This website doesn't have any RSS feeds, so it should be added
-                as an "web_page" feed.
-            </p>
-EOF
-    };
-
-    Readonly my $feed_url => $TEST_HTTP_SERVER_URL . '/feed.xml';
-    my $pages_single_feed = {
-
-        # Index page
-        '/' => <<"EOF",
-            <html>
-            <head>
-                <link rel="alternate" href="$feed_url" type="application/rss+xml" title="Acme News RSS feed" />
-            </head>
-            <body>
-            <h1>Acme News</h1>
-            <p>
-                This website has a single feed that doesn't change after rescraping.
-            </p>
-            </body>
-            </html>
-EOF
-        '/feed.xml' => <<"EOF",
-<?xml version="1.0" encoding="UTF-8"?>
-            <rss version="2.0">
-                <channel>
-                    <title>Acme News RSS feed</title>
-                    <link>$TEST_HTTP_SERVER_URL</link>
-                    <description>This is a sample RSS feed.</description>
-                    <item>
-                        <title>First post</title>
-                        <link>$TEST_HTTP_SERVER_URL/first.html</link>
-                        <description>Here goes the first post in a sample RSS feed.</description>
-                    </item>
-                </channel>
-            </rss>
-EOF
-    };
-
     # Create a test media that doesn't need rescraping
     Readonly my $urls_string => $TEST_HTTP_SERVER_URL;
     Readonly my $tags_string => '';
@@ -242,7 +194,7 @@ EOF
     #
     # Do initial scraping
     #
-    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages_no_feeds );
+    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_NO_FEEDS );
     $hs->start();
     MediaWords::DBI::Media::Rescrape::rescrape_media( $db, $media_id );
     $hs->stop();
@@ -268,7 +220,7 @@ EOF
     #
     # Do rescraping (with a RSS feed now present)
     #
-    $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages_single_feed );
+    $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_SINGLE_FEED );
     $hs->start();
     MediaWords::DBI::Media::Rescrape::rescrape_media( $db, $media_id );
     $hs->stop();
@@ -289,8 +241,8 @@ EOF
     is( $webpage_feed->{ feed_status }, 'inactive', "First feed should be deactivated (because we now have RSS feeds)" );
 
     my $rss_feed = $feeds->[ 1 ];
-    is( $rss_feed->{ feed_type }, 'syndicated', "Second feed's type must be 'syndicated'" );
-    is( $rss_feed->{ url },       $feed_url,    "Second feed's URL must match" );
+    is( $rss_feed->{ feed_type }, 'syndicated',           "Second feed's type must be 'syndicated'" );
+    is( $rss_feed->{ url },       $PAGES_SINGLE_FEED_URL, "Second feed's URL must match" );
 
     $feeds_after_rescraping = $db->query( 'SELECT * FROM feeds_after_rescraping WHERE media_id = ?', $media_id )->hashes;
 
