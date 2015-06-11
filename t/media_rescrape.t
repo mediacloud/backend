@@ -25,8 +25,6 @@ use Data::Dumper;
 Readonly my $TEST_HTTP_SERVER_PORT => 9998;
 Readonly my $TEST_HTTP_SERVER_URL  => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
 
-Readonly my $HTTP_CONTENT_TYPE_RSS => 'Content-Type: application/rss+xml; charset=UTF-8';
-
 Readonly my $PAGES_NO_FEEDS => {
 
     # Index page
@@ -60,7 +58,9 @@ Readonly my $PAGES_SINGLE_FEED     => {
         </body>
         </html>
 EOF
-    '/feed.xml' => <<"EOF",
+    '/feed.xml' => {
+        header  => 'Content-Type: application/rss+xml; charset=UTF-8',
+        content => <<"EOF",
 <?xml version="1.0" encoding="UTF-8"?>
         <rss version="2.0">
             <channel>
@@ -75,6 +75,7 @@ EOF
             </channel>
         </rss>
 EOF
+    }
 };
 
 # Media without any feeds
