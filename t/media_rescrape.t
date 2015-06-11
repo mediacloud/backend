@@ -8,7 +8,7 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
-use Test::More tests => 37;
+use Test::More tests => 59;
 use Test::NoWarnings;
 use Test::Deep;
 
@@ -251,9 +251,127 @@ sub test_media_no_feeds_then_single_feed($)
     is( scalar( @{ $feeds_after_rescraping } ), 0, "'feeds_after_rescraping' table must be empty after rescraping" );
 }
 
+# Media with a single feed at initial scraping and no feeds after rescraping
+# (mimicking a scenario when a website is "down for maintenance" when
+# rescraping)
+sub test_media_single_feed_then_no_feeds_then_single_feed_again($)
+{
+    my $db = shift;
+
+    # Create a test media that doesn't need rescraping
+    Readonly my $urls_string => $TEST_HTTP_SERVER_URL;
+    Readonly my $tags_string => '';
+    my $medium = {
+        name      => 'Acme News',
+        url       => $TEST_HTTP_SERVER_URL,
+        moderated => 'f',
+    };
+    $medium = $db->create( 'media', $medium );
+    my $media_id = $medium->{ media_id };
+
+    #
+    # Do initial scraping (with a single feed being present)
+    #
+    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_SINGLE_FEED );
+    $hs->start();
+    MediaWords::DBI::Media::Rescrape::rescrape_media( $db, $media_id );
+    $hs->stop();
+
+    $medium = $db->find_by_id( 'media', $media_id );
+
+    # say STDERR 'Medium: ' . Dumper( $medium );
+    ok( $medium->{ moderated }, "Media must be moderated after rescraping (because there was only a single feed added)" );
+
+    my $feeds = $db->query( 'SELECT * FROM feeds WHERE media_id = ?', $media_id )->hashes;
+
+    # say STDERR 'Feeds: ' . Dumper( $feeds );
+    is( scalar( @{ $feeds } ), 1, 'Only a single feed must have been added' );
+    my $rss_feed = $feeds->[ 0 ];
+    is( $rss_feed->{ feed_type }, 'syndicated',           "Single feed's type must be 'syndicated'" );
+    is( $rss_feed->{ url },       $PAGES_SINGLE_FEED_URL, "Single feed's URL must match" );
+
+    my $feeds_after_rescraping = $db->query( 'SELECT * FROM feeds_after_rescraping WHERE media_id = ?', $media_id )->hashes;
+
+    # say STDERR 'Feeds after rescraping: ' . Dumper( $feeds_after_rescraping );
+    is( scalar( @{ $feeds_after_rescraping } ), 0, "'feeds_after_rescraping' table must be empty after rescraping" );
+
+    #
+    # Do rescraping with no syndicated feeds being available now (for example,
+    # the site is in the "maintenance mode" at the moment)
+    #
+    $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_NO_FEEDS );
+    $hs->start();
+    MediaWords::DBI::Media::Rescrape::rescrape_media( $db, $media_id );
+    $hs->stop();
+
+    $medium = $db->find_by_id( 'media', $media_id );
+
+    # say STDERR 'Medium: ' . Dumper( $medium );
+    ok( $medium->{ moderated }, 'Media must be moderated after rescraping' );
+
+    $feeds = $db->query( 'SELECT * FROM feeds WHERE media_id = ? ORDER BY feeds_id', $media_id )->hashes;
+
+    # say STDERR 'Feeds: ' . Dumper( $feeds );
+    is( scalar( @{ $feeds } ),
+        2, 'Two feeds must be present (one for "syndicated" feed created previously, another one ("web_page") just added)' );
+
+    $rss_feed = $feeds->[ 0 ];
+    is( $rss_feed->{ feed_type }, 'syndicated',           "First feed's type must be 'syndicated'" );
+    is( $rss_feed->{ url },       $PAGES_SINGLE_FEED_URL, "First feed's URL must match" );
+
+    my $webpage_feed = $feeds->[ 1 ];
+    is( $webpage_feed->{ feed_type },   'web_page',            "Second feed's type must be 'web_page'" );
+    is( $webpage_feed->{ url },         $TEST_HTTP_SERVER_URL, "Second feed's URL must be test server" );
+    is( $webpage_feed->{ feed_status }, 'active',              "Second feed should be deactivated" );
+
+    $feeds_after_rescraping = $db->query( 'SELECT * FROM feeds_after_rescraping WHERE media_id = ?', $media_id )->hashes;
+
+    # say STDERR 'Feeds after rescraping: ' . Dumper( $feeds_after_rescraping );
+    is( scalar( @{ $feeds_after_rescraping } ), 0, "'feeds_after_rescraping' table must be empty after rescraping" );
+
+    #
+    # Rescrape one last time, with syndicated feeds now being available once again
+    #
+    $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_SINGLE_FEED );
+    $hs->start();
+    MediaWords::DBI::Media::Rescrape::rescrape_media( $db, $media_id );
+    $hs->stop();
+
+    $medium = $db->find_by_id( 'media', $media_id );
+
+    # say STDERR 'Medium: ' . Dumper( $medium );
+    ok( $medium->{ moderated }, "Media must be moderated after rescraping (because there was only a single feed added)" );
+
+    $feeds = $db->query( 'SELECT * FROM feeds WHERE media_id = ? ORDER BY feeds_id', $media_id )->hashes;
+
+    # say STDERR 'Feeds: ' . Dumper( $feeds );
+    is( scalar( @{ $feeds } ),
+        2, 'Two feeds must be present (one for "syndicated" feed created previously, another one ("web_page") just added)' );
+
+    $rss_feed = $feeds->[ 0 ];
+    is( $rss_feed->{ feed_type }, 'syndicated',           "First feed's type must be 'syndicated'" );
+    is( $rss_feed->{ url },       $PAGES_SINGLE_FEED_URL, "First feed's URL must match" );
+
+    $webpage_feed = $feeds->[ 1 ];
+    is( $webpage_feed->{ feed_type }, 'web_page',            "Second feed's type must be 'web_page'" );
+    is( $webpage_feed->{ url },       $TEST_HTTP_SERVER_URL, "Second feed's URL must be test server" );
+    is( $webpage_feed->{ feed_status },
+        'inactive', "Second feed should be deactivated (because now RSS feeds are alive again)" );
+
+    $feeds_after_rescraping = $db->query( 'SELECT * FROM feeds_after_rescraping WHERE media_id = ?', $media_id )->hashes;
+
+    # say STDERR 'Feeds after rescraping: ' . Dumper( $feeds_after_rescraping );
+    is( scalar( @{ $feeds_after_rescraping } ), 0, "'feeds_after_rescraping' table must be empty after rescraping" );
+}
+
 sub main()
 {
-    my @test_subroutines = ( \&test_media_no_feeds, \&test_media_single_feed, \&test_media_no_feeds_then_single_feed, );
+    my @test_subroutines = (
+        \&test_media_no_feeds,                                            #
+        \&test_media_single_feed,                                         #
+        \&test_media_no_feeds_then_single_feed,                           #
+        \&test_media_single_feed_then_no_feeds_then_single_feed_again,    #
+    );
 
     foreach my $test_subroutine_ref ( @test_subroutines )
     {
