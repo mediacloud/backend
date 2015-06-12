@@ -8,9 +8,17 @@ This is the source code of the python client for the [MediaCloud API v2](https:/
 Installation
 ------------
 
-Download the distribution egg, then run
+Clone this git repo
+
+Install the distribution egg from the ```dist``` directory by running:
+
 ```
-easy_install mediacloud-VERSION-py2.X.egg
+sudo easy_install dist/mediacloud-<VERSION>.egg
+```
+where **<VERSION>** is the egg version. E.g.
+
+```
+sudo easy_install dist/mediacloud-2.22.0-py2.7.egg
 ```
 
 *Dependencies*
