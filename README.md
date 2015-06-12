@@ -15,7 +15,7 @@ Install the distribution egg from the ```dist``` directory by running:
 ```
 sudo easy_install dist/mediacloud-<VERSION>.egg
 ```
-where `**<VERSION>**` is the egg version. E.g.
+where `<VERSION>` is the egg version. E.g.
 
 ```
 sudo easy_install dist/mediacloud-2.22.0-py2.7.egg
