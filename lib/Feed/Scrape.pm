@@ -535,19 +535,6 @@ sub get_feed_urls_from_html($$$)
     return $urls;
 }
 
-# combination of get_feeds_urls_from_html and get_valid_feeds_from_urls
-sub get_valid_feeds_from_html
-{
-
-    my $class    = shift( @_ );
-    my $base_url = shift( @_ );
-    my $html     = shift( @_ );
-
-    my $urls = $class->get_feed_urls_from_html( $base_url, $html );
-
-    return $class->get_valid_feeds_from_urls( $urls, @_ );
-}
-
 # (recursive helper)
 #
 # try to find all rss feeds for a site from the home page url of the site.  return a list
