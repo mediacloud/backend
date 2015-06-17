@@ -320,9 +320,10 @@ sub test_media_single_feed_then_no_feeds_then_single_feed_again($)
     is( $rss_feed->{ url },       $PAGES_SINGLE_FEED_URL, "First feed's URL must match" );
 
     my $webpage_feed = $feeds->[ 1 ];
-    is( $webpage_feed->{ feed_type },   'web_page',            "Second feed's type must be 'web_page'" );
-    is( $webpage_feed->{ url },         $TEST_HTTP_SERVER_URL, "Second feed's URL must be test server" );
-    is( $webpage_feed->{ feed_status }, 'active',              "Second feed should be deactivated" );
+    is( $webpage_feed->{ feed_type }, 'web_page',            "Second feed's type must be 'web_page'" );
+    is( $webpage_feed->{ url },       $TEST_HTTP_SERVER_URL, "Second feed's URL must be test server" );
+    is( $webpage_feed->{ feed_status },
+        'active', "Second feed should be active (because no syndicated feeds are available at the moment)" );
 
     $feeds_after_rescraping = $db->query( 'SELECT * FROM feeds_after_rescraping WHERE media_id = ?', $media_id )->hashes;
 
