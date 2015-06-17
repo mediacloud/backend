@@ -31,11 +31,9 @@ The following table describes the meaning and origin of fields returned by the a
 | `title`             | The story title as defined in the RSS feed. May contain HTML (depending on the source).
 | `description`       | The story description as defined in the RSS feed. May contain HTML (depending on the source).
 | `full_text_rss`     | If 1, the text of the story was obtained through the RSS feed.<br />If 0, the text of the story was obtained by extracting the article text from the HTML.
-| `story_text`        | The text of the story.<br />If `full_text_rss` is non-zero, this is formed by stripping HTML from the title and description and concatenating them.<br />If `full_text_rss` is zero, this is formed by extracting the article text from the HTML.
-| `story_sentences`   | A list of sentences in the story.<br />Generated from `story_text` by splitting it into sentences and removing any duplicate sentences occurring within the same source for the same week.
+| `story_text`        | The text of the story.<br />If `full_text_rss` is non-zero, this is formed by stripping HTML from the title and description and concatenating them.<br />If `full_text_rss` is zero, this is formed by extracting the article text from the HTML.<br /> Not included by default - see below.
+| `story_sentences`   | A list of sentences in the story.<br />Generated from `story_text` by splitting it into sentences and removing any duplicate sentences occurring within the same source for the same week.<br /> Not included by default - see below.
 | `raw_1st_download`  | The contents of the first HTML page of the story.<br />Available regardless of the value of `full_text_rss`.<br />*Note:* only provided if the `raw_1st_download` parameter is non-zero.
-
-
 
 ### api/v2/stories/single
 
@@ -56,9 +54,11 @@ The following table describes the meaning and origin of fields returned by the a
 | `last_processed_stories_id`  | 0       | Return stories in which the `processed_stories_id` is greater than this value.
 | `rows`                       | 20      | Number of stories to return.
 | `raw_1st_download`           | 0       | If non-zero, include the full HTML of the first page of the story.
+| `sentences`                  | 0       | If non-zero, include the `story_sentences` field described above in the output.
+| `text`                       | 0       | If non-zero, include the `story_text` field described above in the output.
 | `corenlp`                    | 0       | If non-zero, include the corenlp json document with each story and each sentence
 | `q`                          | null    | If specified, return only results that match the given Solr query.  Only one `q` parameter may be included.
-| `fq`                         | null    | If specified, file results by the given Solr query.  More than one `fq` parameter may be included.
+| `fq`                         | null    | If specified, filter results by the given Solr query.  More than one `fq` parameter may be included.
 
 
 The `last_processed_stories_id` parameter can be used to page through these results. The API will return stories with a 
