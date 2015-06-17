@@ -892,7 +892,7 @@ sub get_feed_links_and_need_to_moderate($$)
     # otherwise do an expansive search
     my $feed_links;
     my $need_to_moderate;
-    if ( !@{ $default_feed_links } )
+    if ( scalar @{ $default_feed_links } == 0 )
     {
         $need_to_moderate = 1;
         $feed_links =
