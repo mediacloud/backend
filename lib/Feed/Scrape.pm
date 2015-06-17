@@ -64,21 +64,7 @@ use constant URL_IGNORE_PATTERNS => (
 # Note that Feed::Scrape uses the non-threaded, pseudo parallel fetching of just submitting a
 # bunch of requests serially and then collecting the results from each request as each server responds.
 
-# STATICS
-
-my $_verbose = 0;
-
 # INTERNAL METHODS
-
-sub _log_message
-{
-    my @args = @_;
-
-    if ( $_verbose )
-    {
-        warn( @args );
-    }
-}
 
 # given a list of urls, return a list of feeds in the form of { name => $name, url => $url, feed_type => 'syndicated' }
 # representing all of the links that refer to valid feeds (rss, rdf, or atom)
@@ -94,7 +80,7 @@ sub _validate_and_name_feed_urls
     {
         if ( !$response->is_success )
         {
-            _log_message( "failed to get url: " . $response->request->url . " with error: " . $response->status_line );
+            say STDERR "Failed to get URL: " . $response->request->url . " with error: " . $response->status_line;
             next;
         }
 
@@ -331,7 +317,7 @@ sub get_feed_urls_from_html_links
 
     my $url_hash = {};
 
-    #_log_message("scrape html: $html");
+    #say STDERR "Scrape HTML: $html";
 
     my $urls = [];
 
@@ -347,7 +333,7 @@ sub get_feed_urls_from_html_links
             {
                 my $url = $class->_resolve_relative_url( $base_url, $1 );
 
-                _log_message( "match link: $url" );
+                say STDERR "Match link: $url";
                 push( @{ $urls }, $url );
             }
         }
@@ -442,7 +428,7 @@ sub get_feed_urls_from_html($$$)
 
     my $url_hash = {};
 
-    #_log_message("scrape html: $html");
+    #say STDERR "Scrape html: $html";
 
     my $urls = [];
 
@@ -498,7 +484,7 @@ sub get_feed_urls_from_html($$$)
 
         if ( $class->_is_valid_url( $quoted_url ) )
         {
-            _log_message( "matched quoted url: $quoted_url" );
+            say STDERR "Matched quoted URL: $quoted_url";
             push( @{ $urls }, $quoted_url );
         }
     }
@@ -510,7 +496,7 @@ sub get_feed_urls_from_html($$$)
 
         if ( $class->_is_valid_url( $unquoted_url ) )
         {
-            _log_message( "matched unquoted url: $unquoted_url" );
+            say STDERR "Matched unquoted URL: $unquoted_url";
             push( @{ $urls }, $unquoted_url );
         }
     }
@@ -525,7 +511,7 @@ sub get_feed_urls_from_html($$$)
 
             if ( $class->_is_valid_url( $quoted_url ) )
             {
-                _log_message( "matched unlinked url: $quoted_url" );
+                say STDERR "Matched unlinked URL: $quoted_url";
                 push( @{ $urls }, $quoted_url );
             }
         }
