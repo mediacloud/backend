@@ -119,7 +119,7 @@ sub _resolve_relative_url
 }
 
 # check whether the url passes various validity tests
-sub _is_valid_url
+sub _is_valid_feed_url
 {
     my ( $class, $url ) = @_;
 
@@ -472,7 +472,7 @@ sub get_feed_urls_from_html($$$)
 
         my $quoted_url = $class->_resolve_relative_url( $base_url, $url );
 
-        if ( $class->_is_valid_url( $quoted_url ) )
+        if ( $class->_is_valid_feed_url( $quoted_url ) )
         {
             say STDERR "Matched quoted URL: $quoted_url";
             push( @{ $urls }, $quoted_url );
@@ -484,7 +484,7 @@ sub get_feed_urls_from_html($$$)
     {
         my $unquoted_url = $class->_resolve_relative_url( $base_url, $1 );
 
-        if ( $class->_is_valid_url( $unquoted_url ) )
+        if ( $class->_is_valid_feed_url( $unquoted_url ) )
         {
             say STDERR "Matched unquoted URL: $unquoted_url";
             push( @{ $urls }, $unquoted_url );
@@ -499,7 +499,7 @@ sub get_feed_urls_from_html($$$)
         {
             my $quoted_url = $class->_resolve_relative_url( $base_url, $url );
 
-            if ( $class->_is_valid_url( $quoted_url ) )
+            if ( $class->_is_valid_feed_url( $quoted_url ) )
             {
                 say STDERR "Matched unlinked URL: $quoted_url";
                 push( @{ $urls }, $quoted_url );
