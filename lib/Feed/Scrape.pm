@@ -133,17 +133,7 @@ sub _is_valid_url
         return 0;
     }
 
-    if ( $url !~ /$RE{URI}/ )
-    {
-        return 0;
-    }
-
-    if ( $url !~ /^https?/i )
-    {
-        return 0;
-    }
-
-    return 1;
+    return MediaWords::Util::URL::is_http_url( $url );
 }
 
 # METHODS
