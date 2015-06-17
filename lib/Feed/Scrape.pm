@@ -9,7 +9,6 @@ use Encode;
 use Feed::Find;
 use HTML::Entities;
 use List::Util;
-use Regexp::Common qw /URI/;
 use URI::URL;
 use URI::Escape;
 use Modern::Perl "2013";
@@ -492,9 +491,9 @@ sub get_feed_urls_from_html($$$)
     }
 
     # look for unlinked urls
-    while ( $html =~ m~($RE{URI}{HTTP})~gi )
+    my $unlinked_urls = MediaWords::Util::URL::http_urls_in_string( $html );
+    foreach my $url ( @{ $unlinked_urls } )
     {
-        my $url = $1;
         if ( $url =~ m~feed|rss|xml|syndication|sitemap|rdf|atom~gi )
         {
             my $quoted_url = $class->_resolve_relative_url( $base_url, $url );
