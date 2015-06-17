@@ -580,7 +580,7 @@ EOF
         SELECT COUNT(*)
         FROM media
         WHERE media_has_active_syndicated_feeds(media_id) = 'f'
-          AND moderated = 'f'"
+          AND moderated = 'f'
 EOF
     )->flat;
 
