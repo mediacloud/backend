@@ -555,13 +555,12 @@ sub get_valid_feeds_from_html
 #
 # fetch the html for the page at the $index url.  call get_valid_feeds_from_urls on the
 # urls scraped from that page.
-sub _recurse_get_valid_feeds_from_index_url($$$$$$$)
+sub _recurse_get_valid_feeds_from_index_url($$$$$$)
 {
-    my ( $class, $urls, $db, $ignore_patterns, $existing_urls, $recurse_urls_to_skip, $recurse_levels_left ) = @_;
+    my ( $class, $urls, $db, $ignore_patterns, $recurse_urls_to_skip, $recurse_levels_left ) = @_;
 
     # say STDERR "URLs: " . Dumper($urls);
     # say STDERR "Ignore patterns: " . Dumper($ignore_patterns);
-    # say STDERR "Existing URLs: " . Dumper($existing_urls);
     # say STDERR "Recurse URLs to skip: " . Dumper($recurse_urls_to_skip);
     # say STDERR "Recurse levels left: " . Dumper($recurse_levels_left);
 
@@ -589,7 +588,7 @@ sub _recurse_get_valid_feeds_from_index_url($$$$$$$)
 
     $#{ $scraped_urls } = List::Util::min( $#{ $scraped_urls }, MAX_INDEX_URLS - 1 );
 
-    my $valid_feeds = $class->get_valid_feeds_from_urls( $scraped_urls, $db, $ignore_patterns, $existing_urls );
+    my $valid_feeds = $class->get_valid_feeds_from_urls( $scraped_urls, $db, $ignore_patterns );
 
     if ( scalar @{ $scraped_urls } > 0 )
     {
@@ -602,8 +601,8 @@ sub _recurse_get_valid_feeds_from_index_url($$$$$$$)
             push(
                 @{ $valid_feeds },
                 @{
-                    $class->_recurse_get_valid_feeds_from_index_url( $scraped_urls, $db, $ignore_patterns, $existing_urls,
-                        $valid_feeds, $recurse_levels_left )
+                    $class->_recurse_get_valid_feeds_from_index_url( $scraped_urls, $db, $ignore_patterns, $valid_feeds,
+                        $recurse_levels_left )
                 }
             );
 
@@ -621,9 +620,9 @@ sub _recurse_get_valid_feeds_from_index_url($$$$$$$)
 #
 # fetch the html for the page at the $index url.  call get_valid_feeds_from_urls on the
 # urls scraped from that page.
-sub get_valid_feeds_from_index_url($$$$$$)
+sub get_valid_feeds_from_index_url($$$$$)
 {
-    my ( $class, $urls, $recurse, $db, $ignore_patterns, $existing_urls ) = @_;
+    my ( $class, $urls, $recurse, $db, $ignore_patterns ) = @_;
 
     # say STDERR 'get_valid_feeds_from_index_url';
     # say Dumper( $urls );
@@ -642,8 +641,7 @@ sub get_valid_feeds_from_index_url($$$$$$)
         $recurse_levels_left = 0;
     }
 
-    return $class->_recurse_get_valid_feeds_from_index_url( $urls, $db, $ignore_patterns, $existing_urls, [],
-        $recurse_levels_left );
+    return $class->_recurse_get_valid_feeds_from_index_url( $urls, $db, $ignore_patterns, [], $recurse_levels_left );
 }
 
 # return a normalized version of the feed to help avoid duplicate feeds
@@ -913,11 +911,9 @@ sub _immediate_redirection_url_for_medium($$)
 
 # Add default feeds for the media by searching for them in the index page, then (if not found)
 # in a couple of child pages
-sub get_feed_links_and_need_to_moderate_and_existing_urls($$)
+sub get_feed_links_and_need_to_moderate($$)
 {
     my ( $db, $medium ) = @_;
-
-    my $existing_urls = [];
 
     # if the website's main URL has been changed to a new one, update the URL to the new one
     # (don't touch the database though)
@@ -938,7 +934,7 @@ sub get_feed_links_and_need_to_moderate_and_existing_urls($$)
     {
         $need_to_moderate = 1;
         $feed_links =
-          Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ $medium->{ url } ], 1, $db, [], $existing_urls );
+          Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ $medium->{ url } ], 1, $db, [] );
 
         $default_feed_links = _default_feed_links( $medium, $feed_links );
     }
@@ -970,7 +966,7 @@ sub get_feed_links_and_need_to_moderate_and_existing_urls($$)
         $need_to_moderate = 0;
     }
 
-    return ( $feed_links, $need_to_moderate, $existing_urls );
+    return ( $feed_links, $need_to_moderate );
 }
 
 1;
