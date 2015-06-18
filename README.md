@@ -3,30 +3,15 @@ MediaCloud Python API Client
 
 This is the source code of the python client for the [MediaCloud API v2](https://github.com/berkmancenter/mediacloud/blob/master/doc/api_2_0_spec/api_2_0_spec.md).
 
-*You need an API key to use this, so be sure to ask us for one first!*
-
-Installation
-------------
-
-Clone this git repo
-
-Install the distribution egg from the ```dist``` directory by running:
+Usage
+-----
 
 ```
-sudo easy_install dist/mediacloud-<VERSION>.egg
-```
-where `<VERSION>` is the egg version. E.g.
-
-```
-sudo easy_install dist/mediacloud-2.22.0-py2.7.egg
+pip install mediacloud
 ```
 
-*Dependencies*
+Then [sign up for an API key](https://core.mediacloud.org/login/register):
 
-```
-pip install -r requirements.pip
-easy_install pypubsub
-```
 
 Examples
 --------
@@ -75,16 +60,18 @@ print db.storyCount()
 
 Take a look at the `apitest.py` and `storagetest.py` for more detailed examples.
 
-Testing
--------
+Development
+-----------
+
+## Testing
 
 First run all the tests.  Copy `mc-client.config.template` to `mc-client.config` and edit it.
 Then run `python tests.py`.
 
 Notice you get a `mediacloud-api.log` that tells you about each query it runs.
 
-Distribution
-------------
+## Distribution
 
-To build the distributon, update the version numbers in `mediacloud/__init__.py` and `setup.py`.
-Then run `python setup.py bdist_egg` and a new egg will be laid in the `dist` directory.
+To build the distributon, update the version number in `mediacloud/__init__.py`.
+Then run `python setup.py sdist` to test out a version.
+Then when you're ready to push to pypi run `python setup.py sdist upload -r pypi`.

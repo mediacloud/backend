@@ -4,3 +4,5 @@ mc-client.config
 build
 mediacloud.egg-info
 venv
+dist
+README.rst
