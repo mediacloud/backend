@@ -33,6 +33,8 @@ sub get_controversy
 {
     my ( $db, $csv_url, $default_controversy ) = @_;
 
+    return $default_controversy if ( $default_controversy );
+
     my $controversies_id = $csv_url->{ controversy };
 
     die( "no controversy specified for url '$csv_url->{ url }'" ) unless ( $default_controversy || $controversies_id );
