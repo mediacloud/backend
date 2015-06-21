@@ -35,6 +35,11 @@ The Media Cloud returns an appropriate HTTP status code for any error, along wit
 Each user is limited to 1,000 API calls and 20,000 stories returned in any 7 day period.  Requests submitted beyond this
 limit will result in a status 403 error.  Users who need access to more requests should email info@mediacloud.org.
 
+## Python Client
+
+We use a python client library to access the api for our own work (incluing the dashboard implementation at
+dashboard.mediameter.org).  That library is available on [github](https://github.com/c4fcm/MediaCloud-API-Client).
+
 ## Media
 
 The Media api calls provide information about media sources.  A media source is a publisher of content, such as the New York
@@ -471,7 +476,7 @@ URL: https://api.mediacloud.org/api/v2/stories_public/single/27456565
 | Parameter                    | Default | Notes
 | ---------------------------- | ------- | ------------------------------------------------------------------------------
 | `last_processed_stories_id`  | 0       | Return stories in which the `processed_stories_id` is greater than this value.
-| `rows`                       | 20      | Number of stories to return.
+| `rows`                       | 20      | Number of stories to return, max 10,000.
 | `q`                          | null    | If specified, return only results that match the given Solr query.  Only one `q` parameter may be included.
 | `fq`                         | null    | If specified, file results by the given Solr query.  More than one `fq` parameter may be included.
 
@@ -479,7 +484,9 @@ URL: https://api.mediacloud.org/api/v2/stories_public/single/27456565
 The `last_processed_stories_id` parameter can be used to page through these results. The API will return stories with a
 `processed_stories_id` greater than this value.  To get a continuous stream of stories as they are processed by Media Cloud,
 the user must make a series of calls to api/v2/stories_public/list in which `last_processed_stories_id` for each
-call is set to the `processed_stories_id` of the last story in the previous call to the API.
+call is set to the `processed_stories_id` of the last story in the previous call to the API.  A single call can only
+return up to 10,000 results, but you can get the full list of results by paging through the full list using
+`last_processed_stories_id`. 
 
 *Note:* `stories_id` and `processed_stories_id` are separate values. The order in which stories are processed is different than the `stories_id` order. The processing pipeline involves downloading, extracting, and vectoring stories. Requesting by the `processed_stories_id` field guarantees that the user will receive every story (matching the query criteria if present) in
 the order it is processed by the system.
