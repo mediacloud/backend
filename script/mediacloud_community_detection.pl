@@ -32,24 +32,44 @@ sub main
 
     my $net = SNA::Network->new();
 
-    my @array  = ();
-    my @array2 = ();
-    my @in_ar  = ();
-    my @in_ar2 = ();
-    my $k      = 0;
-    my %h1     = ();
-    my %h2     = ();
+    my @array     = ();
+    my @array2    = ();
+    my @in_ar     = ();
+    my @in_ar2    = ();
+    my $k         = 0;
+    my %h1        = ();
+    my %h2        = ();
+    my @linkarray = ();
+    my @linkstore = ();
+
+    for ( my $i = 0 ; $i < $file_no ; $i = $i + 1 )
+    {
+        my $source_mediaid = $media->[ $i ]->{ 'source_media_id' };
+        my $links          = $media->[ $i ]->{ 'link_count' };
+        $linkstore[ $i ] = 0;
+        if ( !( $source_mediaid ~~ @linkarray ) )
+        {
+            $linkstore[ $source_mediaid ] = $links;
+            $linkarray[ $i ]              = $media->[ $i ]->{ 'source_media_id' };
+        }
+        else
+        {
+            $linkstore[ $source_mediaid ] = $linkstore[ $source_mediaid ] + $links;
+            $linkarray[ $i ]              = 0;
+        }
+    }
 
     for ( my $i = 0 ; $i < $file_no ; $i = $i + 1 )
     {
         my $source_mediaid = $media->[ $i ]->{ 'source_media_id' };
         my $source_name    = $media->[ $i ]->{ 'name' };
         my $refid          = $media->[ $i ]->{ 'ref_media_id' };
+        my $links          = $media->[ $i ]->{ 'link_count' };
 
         if ( !( $source_mediaid ~~ @array ) )
         {
             $in_ar[ $i ] = $k;
-            $net->create_node_at_index( index => $k, name => $source_mediaid );
+            $net->create_node_at_index( index => $k, name => $source_mediaid, links => $linkstore[ $source_mediaid ] );
             $h1{ $source_mediaid } = $k;
             $k                     = $k + 1;
             $array[ $i ]           = $media->[ $i ]->{ 'source_media_id' };
@@ -60,6 +80,7 @@ sub main
             $array[ $i ] = 0;
         }
     }
+
     my $j = $k;
 
     for ( my $i = 0 ; $i < $file_no ; $i = $i + 1 )
@@ -105,7 +126,16 @@ sub main
     {
         foreach my $member ( $community->members )
         {
-            say "Media_url/name:" . Dumper( $member->{ 'index' } ), "Community-id: ", $community->index, "\n";
+            if ( exists( $member->{ 'links' } ) )
+            {
+                my $unformatted_links = Dumper( $member->{ 'links' } );
+                my $unformatted_id    = Dumper( $member->{ 'name' } );
+                $unformatted_links =~ s{\A\$VAR\d+\s*=\s*}{};
+                $unformatted_id =~ s{\A\$VAR\d+\s*=\s*}{};
+                my $formatted_links = eval $unformatted_links;
+                my $formatted_id    = eval $unformatted_id;
+                say "Media_id:", $formatted_id, " ", "Community-id: ", $community->index, " ", "Links:", $formatted_links;
+            }
         }
     }
 
