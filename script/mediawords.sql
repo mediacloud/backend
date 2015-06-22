@@ -2409,7 +2409,7 @@ CREATE TRIGGER gearman_job_queue_sync_lastmod
 -- Extra stories to be annotated with CoreNLP that don't have "media.annotate_with_corenlp = 't'"
 CREATE TABLE extra_corenlp_stories (
     extra_corenlp_stories_id  SERIAL  PRIMARY KEY,
-    stories_id                INTEGER NOT NULL REFERENCES stories (stories_id)
+    stories_id                INTEGER NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE
 );
 CREATE INDEX extra_corenlp_stories_stories_id ON extra_corenlp_stories (stories_id);
 

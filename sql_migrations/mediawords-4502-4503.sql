@@ -20,7 +20,7 @@ SET search_path = public, pg_catalog;
 
 CREATE TABLE extra_corenlp_stories (
 	extra_corenlp_stories_id SERIAL  PRIMARY KEY,
-	stories_id INTEGER NOT NULL REFERENCES stories (stories_id)
+	stories_id INTEGER NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE
 );
 CREATE INDEX extra_corenlp_stories_stories_id ON extra_corenlp_stories (stories_id);
 
