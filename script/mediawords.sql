@@ -2421,7 +2421,7 @@ BEGIN
 
     -- FIXME this function is not really optimized for performance
 
-    -- Check "media.annotate_with_corenlp"
+    -- Check "media.annotate_with_corenlp" and "extra_corenlp_stories"
     IF NOT EXISTS (
 
         SELECT 1
@@ -2430,8 +2430,14 @@ BEGIN
         WHERE stories.stories_id = corenlp_stories_id
           AND media.annotate_with_corenlp = 't'
 
+    ) AND NOT EXISTS (
+
+        SELECT 1
+        FROM extra_corenlp_stories
+        WHERE extra_corenlp_stories.stories_id = corenlp_stories_id
+
     ) THEN
-        RAISE NOTICE 'Story % is not annotatable with CoreNLP because media is not set for annotation.', corenlp_stories_id;
+        RAISE NOTICE 'Story % is not annotatable with CoreNLP because it is not enabled for annotation.', corenlp_stories_id;
         RETURN FALSE;
 
     -- Check if the story is extracted
