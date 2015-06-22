@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4502;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4503;
     
 BEGIN
 
@@ -2406,6 +2406,13 @@ CREATE TRIGGER gearman_job_queue_sync_lastmod
     FOR EACH ROW EXECUTE PROCEDURE gearman_job_queue_sync_lastmod();
 
 
+-- Extra stories to be annotated with CoreNLP that don't have "media.annotate_with_corenlp = 't'"
+CREATE TABLE extra_corenlp_stories (
+    extra_corenlp_stories_id  SERIAL  PRIMARY KEY,
+    stories_id                INTEGER NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE
+);
+CREATE INDEX extra_corenlp_stories_stories_id ON extra_corenlp_stories (stories_id);
+
 --
 -- Returns true if the story can + should be annotated with CoreNLP
 --
@@ -2414,7 +2421,7 @@ BEGIN
 
     -- FIXME this function is not really optimized for performance
 
-    -- Check "media.annotate_with_corenlp"
+    -- Check "media.annotate_with_corenlp" and "extra_corenlp_stories"
     IF NOT EXISTS (
 
         SELECT 1
@@ -2423,8 +2430,14 @@ BEGIN
         WHERE stories.stories_id = corenlp_stories_id
           AND media.annotate_with_corenlp = 't'
 
+    ) AND NOT EXISTS (
+
+        SELECT 1
+        FROM extra_corenlp_stories
+        WHERE extra_corenlp_stories.stories_id = corenlp_stories_id
+
     ) THEN
-        RAISE NOTICE 'Story % is not annotatable with CoreNLP because media is not set for annotation.', corenlp_stories_id;
+        RAISE NOTICE 'Story % is not annotatable with CoreNLP because it is not enabled for annotation.', corenlp_stories_id;
         RETURN FALSE;
 
     -- Check if the story is extracted
