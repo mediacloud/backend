@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4502;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4503;
     
 BEGIN
 
@@ -2405,6 +2405,13 @@ CREATE TRIGGER gearman_job_queue_sync_lastmod
     BEFORE UPDATE ON gearman_job_queue
     FOR EACH ROW EXECUTE PROCEDURE gearman_job_queue_sync_lastmod();
 
+
+-- Extra stories to be annotated with CoreNLP that don't have "media.annotate_with_corenlp = 't'"
+CREATE TABLE extra_corenlp_stories (
+    extra_corenlp_stories_id  SERIAL  PRIMARY KEY,
+    stories_id                INTEGER NOT NULL REFERENCES stories (stories_id)
+);
+CREATE INDEX extra_corenlp_stories_stories_id ON extra_corenlp_stories (stories_id);
 
 --
 -- Returns true if the story can + should be annotated with CoreNLP
