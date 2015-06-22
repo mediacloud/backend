@@ -21,17 +21,18 @@ use MediaWords::Controller::Admin::CM;
 use Text::CSV;
 use CGI qw(:standard);
 
-sub main
+# query the db for media and links and create an SNA::Network graph from the results.
+# return the SNA::Network object.
+sub create_graph
 {
-    my $db = MediaWords::DB::connect_to_db;
+    my ( $db )      = @_;
     my ( $cdts_id ) = @ARGV;
     my ( $cdts, $cd, $controversy ) = MediaWords::Controller::Admin::CM::_get_controversy_objects( $db, $cdts_id );
     MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, 1 );
-    my $media   = $db->query( "SELECT * FROM dump_medium_links" )->hashes;
-    my $file_no = scalar( @{ $media } );
-
     my $net = SNA::Network->new();
 
+    my $media     = $db->query( "SELECT * FROM dump_medium_links" )->hashes;
+    my $file_no   = scalar( @{ $media } );
     my @array     = ();
     my @array2    = ();
     my @in_ar     = ();
@@ -121,7 +122,16 @@ sub main
         my $target_mediaid = $media->[ $i ]->{ 'ref_media_id' };
         $net->create_edge( source_index => $in_ar[ $i ], target_index => $in_ar2[ $i ], weight => 1.0 );
     }
-    my $num_communities = $net->identify_communities_with_louvain;
+    return $net;
+}
+
+# given an SNA::Network object with a graph representing the media graph
+sub detect_communities
+{
+
+    my ( $net ) = @_;
+
+    my $num_communities = SNA::Network::Algorithm::Louvain::identify_communities_with_louvain( $net );
     foreach my $community ( $net->communities )
     {
         foreach my $member ( $community->members )
@@ -139,5 +149,12 @@ sub main
         }
     }
 
+}
+
+sub main
+{
+    my $db  = MediaWords::DB::connect_to_db;
+    my $net = create_graph( $db );
+    detect_communities( $net );
 }
 main();
