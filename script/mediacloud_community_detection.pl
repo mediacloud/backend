@@ -21,6 +21,7 @@ use MediaWords::Controller::Admin::CM;
 use Text::CSV;
 use CGI qw(:standard);
 
+# beginner's mistake in commit message
 # query the db for media and links and create an SNA::Network graph from the results.
 # return the SNA::Network object.
 sub create_graph
