@@ -2,6 +2,7 @@ import re, logging, json, urllib, datetime, sys
 from collections import namedtuple
 import xml.etree.ElementTree, requests
 import mediacloud, mediacloud.error
+import datetime
 
 class MediaCloud(object):
     '''
