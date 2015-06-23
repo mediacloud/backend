@@ -61,6 +61,32 @@ class AuthTokenTest(ApiBaseTest):
         except:
             self.assertTrue(True)
 
+class PublishDateQueryTest(ApiBaseTest):
+
+    def testPublishDateQuery(self):
+        start_date = datetime.date(2014,06,02 )
+        end_date = datetime.date(2014,06,03 )
+        date_query_default = self._mc.publish_date_query( start_date, end_date )
+        self.assertEqual( date_query_default, "publish_date:[2014-06-02T00:00:00Z TO 2014-06-03T00:00:00Z}" )
+
+        date_query_inclusive_exclusive = self._mc.publish_date_query( start_date, end_date, start_date_inclusive=True, end_date_inclusive=False)
+        self.assertEqual( date_query_inclusive_exclusive, "publish_date:[2014-06-02T00:00:00Z TO 2014-06-03T00:00:00Z}") 
+
+        date_query_inclusive_inclusive = self._mc.publish_date_query( start_date, end_date, start_date_inclusive=True, end_date_inclusive=True)
+        self.assertEqual( date_query_inclusive_inclusive, "publish_date:[2014-06-02T00:00:00Z TO 2014-06-03T00:00:00Z]") 
+
+        date_query_exclusive_inclusive = self._mc.publish_date_query( start_date, end_date, start_date_inclusive=False, end_date_inclusive=True)
+        self.assertEqual( date_query_exclusive_inclusive, "publish_date:{2014-06-02T00:00:00Z TO 2014-06-03T00:00:00Z]") 
+
+        date_query_exclusive_exclusive = self._mc.publish_date_query( start_date, end_date, start_date_inclusive=False, end_date_inclusive=False)
+        self.assertEqual( date_query_exclusive_exclusive, "publish_date:{2014-06-02T00:00:00Z TO 2014-06-03T00:00:00Z}") 
+
+        self.assertTrue( self._mc.sentenceCount( date_query_default )[ 'count' ] > 0 )
+        self.assertTrue( self._mc.sentenceCount( date_query_inclusive_exclusive )[ 'count' ] > 0 )
+        self.assertTrue( self._mc.sentenceCount( date_query_inclusive_inclusive )[ 'count' ] > 0 )
+        self.assertTrue( self._mc.sentenceCount( date_query_exclusive_exclusive )[ 'count' ] > 0 )
+        self.assertTrue( self._mc.sentenceCount( date_query_exclusive_inclusive )[ 'count' ] > 0 )
+
 class ApiMediaTest(ApiBaseTest):
 
     def testMedia(self):
