@@ -125,49 +125,97 @@
 
     [% END #[% IF medium.moderation_notes %]
 
-    <fieldset>
+    <!-- Existing and rescraped feeds -->
+    <p><strong>Feeds</strong></p>
 
-        <p><b>[% feeds.size %] Feeds Found</b></p>
-
-        <p>
-            [% IF c.acl_user_can_visit('/admin/media/moderate/skip_feeds') %]
-                <a href="[% c.uri_for('/admin/media/moderate/skip_feeds/') _ medium.media_id | url %]?media_tags_id=[% media_tags_id %]">skip all feeds</a> |
-            [% END -%]
-            [% IF c.acl_user_can_visit('/admin/feeds/create') %]
-                <a href="[% c.uri_for('/admin/feeds/create/') _ medium.media_id | url %]?media_tags_id=[% media_tags_id %]">add feed</a> |
-            [% END -%]
-            [% IF c.acl_user_can_visit('/admin/feeds/scrape') %]
-                <a href="[% c.uri_for('/admin/feeds/scrape/') _ medium.media_id | url %]?media_tags_id=[% media_tags_id %]">scrape feeds</a>
-            [% END -%]
-            [% IF c.acl_user_can_visit('/admin/feeds/add_web_page_feed') %]
-                [% IF feeds.size == 0 %]
-                    | <a href="[% c.uri_for('/admin/feeds/add_web_page_feed/') _ medium.media_id | url %]?media_tags_id=[% media_tags_id %]">add 'web page' feed</a>
-                [% END %]
+    <p>
+        [% IF c.acl_user_can_visit('/admin/media/moderate/skip_feeds') %]
+            <a href="[% c.uri_for('/admin/media/moderate/skip_feeds/') _ medium.media_id | url %]?media_tags_id=[% media_tags_id %]">skip all feeds</a> |
+        [% END -%]
+        [% IF c.acl_user_can_visit('/admin/feeds/create') %]
+            <a href="[% c.uri_for('/admin/feeds/create/') _ medium.media_id | url %]?media_tags_id=[% media_tags_id %]">add feed</a> |
+        [% END -%]
+        [% IF c.acl_user_can_visit('/admin/feeds/scrape') %]
+            <a href="[% c.uri_for('/admin/feeds/scrape/') _ medium.media_id | url %]?media_tags_id=[% media_tags_id %]">scrape feeds</a>
+        [% END -%]
+        [% IF c.acl_user_can_visit('/admin/feeds/add_web_page_feed') %]
+            [% IF feeds.size == 0 %]
+                | <a href="[% c.uri_for('/admin/feeds/add_web_page_feed/') _ medium.media_id | url %]?media_tags_id=[% media_tags_id %]">add 'web page' feed</a>
             [% END %]
-        </p>
+        [% END %]
+    </p>
 
-        <ul>
+    <table>
+        <tr>
+            <th colspan="3">existing feeds</th>
+            <th colspan="3">rescraped feeds</th>
+            <th rowspan="2">diff</th>
+            <th rowspan="2">actions</th>
+        </tr>
+        <tr>
+            <!-- existing feeds -->
+            <th>name</th>
+            <th>type</th>
+            <th>url</th>
 
-            [% FOREACH feed IN feeds %]
-            <li>
-                [% IF feed.feed_type == "web_page" %]
-                    <em>("web page" feed)</em>
-                [% END %]
-                [% feed.name | html %] -
-                <a href="[% feed.url %]">[% feed.url | html %]</a> 
-                [% IF c.acl_user_can_visit('/admin/media/moderate/skip_unmoderated_feed') %]
-                    [<a href="[% c.uri_for( '/admin/media/moderate/skip_unmoderated_feed/') _ feed.feeds_id | url %]?media_tags_id=[% media_tags_id %]">skip</a>]
-                [% END -%]
-                [% IF c.acl_user_can_visit('/admin/media/moderate/keep_single_feed') %]
-                    [<a href="[% c.uri_for( '/admin/media/moderate/keep_single_feed/') _ feed.feeds_id | url %]?media_tags_id=[% media_tags_id %]">keep single</a>]
-                    [<a href="[% c.uri_for( '/admin/media/moderate/keep_single_feed/') _ feed.feeds_id | url %]?approve=1&amp;media_tags_id=[% media_tags_id %]">keep single + approve</a>]
-                [% END -%]
-            </li>
-            [% END #[% FOREACH feed IN feeds %]
+            <!-- rescraped feeds -->
+            <th>name</th>
+            <th>type</th>
+            <th>url</th>
+        </tr>
 
-        </ul>
+        [% FOREACH feed IN feeds %]
+            [% SWITCH feed.diff %]
 
-    </fieldset>
+                [% CASE 'unchanged' %]
+                    <tr>
+                        <td>[% feed.name | html %]</td>
+                        <td><code>[% feed.feed_type %]</code</td>
+                        <td><a href="[% feed.url %]">[% feed.url | html %]</a></td>
+
+                        <td>[% feed.name | html %]</td>
+                        <td><code>[% feed.feed_type %]</code</td>
+                        <td><a href="[% feed.url %]">[% feed.url | html %]</a></td>
+
+                        <td>[% feed.diff %]
+                        <td>actions</td>
+                    </tr>
+
+                [% CASE 'added' %]
+                    <tr style="background-color: lightgreen">
+                        <td>-</td>
+                        <td><code>-</code</td>
+                        <td>-</td>
+
+                        <td>[% feed.name | html %]</td>
+                        <td><code>[% feed.feed_type %]</code</td>
+                        <td><a href="[% feed.url %]">[% feed.url | html %]</a></td>
+
+                        <td>[% feed.diff %]
+                        <td>actions</td>
+                    </tr>
+
+                [% CASE 'removed' %]
+                    <tr style="background-color: lightpink">
+                        <td>[% feed.name | html %]</td>
+                        <td><code>[% feed.feed_type %]</code</td>
+                        <td><a href="[% feed.url %]">[% feed.url | html %]</a></td>
+
+                        <td>-</td>
+                        <td><code>-</code</td>
+                        <td>-</td>
+
+                        <td>[% feed.diff %]
+                        <td>actions</td>
+                    </tr>
+
+                [% CASE %]
+                    <tr><td>Error: unknown feed 'diff' value</td></tr>
+                    
+            [% END -%]
+        [% END -%]
+
+    </table>
 
 [% ELSE #[% IF medium %]
 
