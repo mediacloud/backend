@@ -8,7 +8,7 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
-use Test::More tests => 64;
+use Test::More tests => 94;
 use Test::NoWarnings;
 use Test::Deep;
 
@@ -171,10 +171,9 @@ sub test_media_no_feeds($)
     $medium = $db->create( 'media', $medium );
     my $media_id = $medium->{ media_id };
 
-    # Test the whole process two times to simulate initial scraping and rescraping
-    for ( my $x = 0 ; $x < 2 ; ++$x )
+    # Test the whole process multiple times to simulate initial scraping and rescraping
+    for ( my $x = 0 ; $x < 5 ; ++$x )
     {
-
         MediaWords::DBI::Media::Rescrape::rescrape_media( $db, $media_id );
 
         $medium = $db->find_by_id( 'media', $media_id );
@@ -220,10 +219,9 @@ sub test_media_single_feed($)
     $medium = $db->create( 'media', $medium );
     my $media_id = $medium->{ media_id };
 
-    # Test the whole process two times to simulate initial scraping and rescraping
-    for ( my $x = 0 ; $x < 2 ; ++$x )
+    # Test the whole process multiple times to simulate initial scraping and rescraping
+    for ( my $x = 0 ; $x < 5 ; ++$x )
     {
-
         MediaWords::DBI::Media::Rescrape::rescrape_media( $db, $media_id );
 
         $medium = $db->find_by_id( 'media', $media_id );
