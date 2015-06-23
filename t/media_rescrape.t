@@ -8,7 +8,7 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
-use Test::More tests => 59;
+use Test::More tests => 64;
 use Test::NoWarnings;
 use Test::Deep;
 
@@ -18,12 +18,48 @@ use MediaWords::Test::DB;
 use MediaWords::DBI::Media;
 
 use HTTP::HashServer;
+use HTML::Entities;
+use Encode;
 use Readonly;
 use Data::Dumper;
 
 # must contain a hostname ('localhost') because a foreign feed link test requires it
-Readonly my $TEST_HTTP_SERVER_PORT => 9998;
-Readonly my $TEST_HTTP_SERVER_URL  => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
+Readonly my $TEST_HTTP_SERVER_PORT  => 9998;
+Readonly my $TEST_HTTP_SERVER_URL   => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
+Readonly my $TEST_HTTP_SERVER_URL_2 => 'http://127.0.0.1:' . $TEST_HTTP_SERVER_PORT;
+
+my Readonly $HTTP_CONTENT_TYPE_RSS = 'Content-Type: application/rss+xml; charset=UTF-8';
+
+sub _sample_rss_feed($;$)
+{
+    my ( $base_url, $title ) = @_;
+
+    $title ||= 'Sample RSS feed';
+
+    $base_url = encode_entities( $base_url, '<>&' );
+    $title    = encode_entities( $title,    '<>&' );
+
+    return <<"EOF";
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+    <channel>
+        <title>$title</title>
+        <link>$base_url</link>
+        <description>This is a sample RSS feed.</description>
+        <item>
+            <title>First post</title>
+            <link>$base_url/first</link>
+            <description>Here goes the first post in a sample RSS feed.</description>
+        </item>
+        <item>
+            <title>Second post</title>
+            <link>$base_url/second</link>
+            <description>Here goes the second post in a sample RSS feed.</description>
+        </item>
+    </channel>
+</rss>
+EOF
+}
 
 Readonly my $PAGES_NO_FEEDS => {
 
@@ -59,23 +95,61 @@ Readonly my $PAGES_SINGLE_FEED     => {
         </html>
 EOF
     '/feed.xml' => {
-        header  => 'Content-Type: application/rss+xml; charset=UTF-8',
-        content => <<"EOF",
-<?xml version="1.0" encoding="UTF-8"?>
-        <rss version="2.0">
-            <channel>
-                <title>Acme News RSS feed</title>
-                <link>$TEST_HTTP_SERVER_URL</link>
-                <description>This is a sample RSS feed.</description>
-                <item>
-                    <title>First post</title>
-                    <link>$TEST_HTTP_SERVER_URL/first.html</link>
-                    <description>Here goes the first post in a sample RSS feed.</description>
-                </item>
-            </channel>
-        </rss>
-EOF
+        header  => $HTTP_CONTENT_TYPE_RSS,
+        content => _sample_rss_feed( $TEST_HTTP_SERVER_URL, 'Acme News RSS feed' ),
     }
+};
+
+Readonly my $PAGES_REQUIRES_MODERATION_FEED_URL => $TEST_HTTP_SERVER_URL_2 . '/feed.xml';
+Readonly my $PAGES_REQUIRES_MODERATION          => {
+
+    # Index page
+    '/' => <<EOF,
+            <h1>Acme News</h1>
+            <p>
+                We didn't bother to add proper &lt;link&gt; links to our pages, but
+                here's a link to the RSS link listing:<br />
+                <a href="/rss">RSS</a>
+            </p>
+EOF
+
+    # RSS listing page
+    '/rss' => <<"EOF",
+            <h1>Acme News</h1>
+            <p>
+            Our RSS feeds (on an "external" host to confuse the scraper so that
+            it decides to require moderation):
+            </p>
+            <ul>
+                <li><a href="$TEST_HTTP_SERVER_URL_2/feed1.xml">Acme News RSS feed 1</a></li>
+                <li><a href="$TEST_HTTP_SERVER_URL_2/feed2.xml">Acme News RSS feed 2</a></li>
+                <li><a href="$TEST_HTTP_SERVER_URL_2/feed3.xml">Acme News RSS feed 3</a></li>
+                <li><a href="$TEST_HTTP_SERVER_URL_2/feed4.xml">Acme News RSS feed 4</a></li>
+                <li><a href="$TEST_HTTP_SERVER_URL_2/feed5.xml">Acme News RSS feed 5</a></li>
+            </ul>
+EOF
+
+    # RSS feeds (on a "different" host in order to trigger moderation)
+    '/feed1.xml' => {
+        header  => $HTTP_CONTENT_TYPE_RSS,
+        content => _sample_rss_feed( $TEST_HTTP_SERVER_URL, 'Acme News RSS feed 1' ),
+    },
+    '/feed2.xml' => {
+        header  => $HTTP_CONTENT_TYPE_RSS,
+        content => _sample_rss_feed( $TEST_HTTP_SERVER_URL, 'Acme News RSS feed 2' ),
+    },
+    '/feed3.xml' => {
+        header  => $HTTP_CONTENT_TYPE_RSS,
+        content => _sample_rss_feed( $TEST_HTTP_SERVER_URL, 'Acme News RSS feed 3' ),
+    },
+    '/feed4.xml' => {
+        header  => $HTTP_CONTENT_TYPE_RSS,
+        content => _sample_rss_feed( $TEST_HTTP_SERVER_URL, 'Acme News RSS feed 4' ),
+    },
+    '/feed5.xml' => {
+        header  => $HTTP_CONTENT_TYPE_RSS,
+        content => _sample_rss_feed( $TEST_HTTP_SERVER_URL, 'Acme News RSS feed 5' ),
+    },
 };
 
 # Media without any feeds
@@ -365,6 +439,78 @@ sub test_media_single_feed_then_no_feeds_then_single_feed_again($)
     is( scalar( @{ $feeds_after_rescraping } ), 0, "'feeds_after_rescraping' table must be empty after rescraping" );
 }
 
+# Test cases when media would require moderation after each rescrape but the
+# scraper always comes up with the same set of feeds so we skip moderation in
+# those cases (because one can say that we already made a decision on that set
+# of feeds)
+sub test_media_that_requires_moderation_with_same_set_of_feeds()
+{
+    my $db = shift;
+
+    # Create test media
+    Readonly my $urls_string => $TEST_HTTP_SERVER_URL;
+    Readonly my $tags_string => '';
+    my $medium = {
+        name      => 'Acme News',
+        url       => $TEST_HTTP_SERVER_URL,
+        moderated => 'f',
+    };
+    $medium = $db->create( 'media', $medium );
+    my $media_id = $medium->{ media_id };
+
+    # Do initial scraping for media that requires moderation
+    my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_REQUIRES_MODERATION );
+    $hs->start();
+    MediaWords::DBI::Media::Rescrape::rescrape_media( $db, $media_id );
+    $hs->stop();
+
+    $medium = $db->find_by_id( 'media', $media_id );
+
+    ok( !$medium->{ moderated }, "Media must *not* be moderated after initial scraping" );
+
+    # "Moderate" the media
+    $db->query(
+        <<EOF,
+        INSERT INTO feeds (media_id, name, url, feed_type, feed_status)
+            SELECT media_id, name, url, feed_type, 'active'
+            FROM feeds_after_rescraping
+            WHERE media_id = ?
+EOF
+        $media_id
+    );
+    $db->query(
+        <<EOF,
+        DELETE FROM feeds_after_rescraping
+        WHERE media_id = ?
+EOF
+        $media_id
+    );
+    $db->query(
+        <<EOF,
+        UPDATE media
+        SET moderated = 't'
+        WHERE media_id  =?
+EOF
+        $media_id
+    );
+
+    $medium = $db->find_by_id( 'media', $media_id );
+    ok( $medium->{ moderated }, "Media must be moderated" );
+
+    # Rescrape the media and expect it to stay moderated because we've already
+    # moderated the very same set of feeds previously
+    $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_REQUIRES_MODERATION );
+    $hs->start();
+    MediaWords::DBI::Media::Rescrape::rescrape_media( $db, $media_id );
+    $hs->stop();
+
+    $medium = $db->find_by_id( 'media', $media_id );
+    ok( $medium->{ moderated }, "Media must still be moderated" );
+
+    my $feeds_after_rescraping = $db->query( 'SELECT * FROM feeds_after_rescraping WHERE media_id = ?', $media_id )->hashes;
+    is( scalar( @{ $feeds_after_rescraping } ), 0, "'feeds_after_rescraping' table must be empty after rescraping" );
+}
+
 sub main()
 {
     my @test_subroutines = (
@@ -372,6 +518,7 @@ sub main()
         \&test_media_single_feed,                                         #
         \&test_media_no_feeds_then_single_feed,                           #
         \&test_media_single_feed_then_no_feeds_then_single_feed_again,    #
+        \&test_media_that_requires_moderation_with_same_set_of_feeds,     #
     );
 
     foreach my $test_subroutine_ref ( @test_subroutines )

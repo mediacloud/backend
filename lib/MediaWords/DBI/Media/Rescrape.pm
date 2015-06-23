@@ -187,6 +187,45 @@ EOF
         $db->create( 'feeds_after_rescraping', $feed );
     }
 
+    # If we came up with the very same set of feeds after rescraping and the
+    # media would need moderation, but we have moderated the very same set of
+    # links before (i.e. made the decision about this particular set of feeds),
+    # just leave the current set of feeds intact
+    my $live_feeds = $db->query(
+        <<EOF,
+        SELECT media_id,
+               name,
+               url,
+               feed_type
+        FROM feeds
+        WHERE media_id = ?
+          AND feed_type = 'syndicated'
+        ORDER BY name, url, feed_type
+EOF
+        $media_id
+    )->hashes;
+    my $rescraped_feeds = $db->query(
+        <<EOF,
+        SELECT media_id,
+               name,
+               url,
+               feed_type
+        FROM feeds_after_rescraping
+        WHERE media_id = ?
+          AND feed_type = 'syndicated'
+        ORDER BY name, url, feed_type
+EOF
+        $media_id
+    )->hashes;
+
+    local $Data::Dumper::Sortkeys = 1;
+    if ( $medium->{ moderated } and $need_to_moderate and Dumper( $rescraped_feeds ) eq Dumper( $live_feeds ) )
+    {
+        say STDERR
+"Media $media_id would need rescraping but we have moderated the very same feeds previously so disabling moderation";
+        $need_to_moderate = 0;
+    }
+
     if ( $need_to_moderate )
     {
         # (Re)set moderated = 'f' so that the media shows up in the moderation page
