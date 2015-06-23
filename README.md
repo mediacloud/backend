@@ -97,3 +97,11 @@ Notice you get a `mediacloud-api.log` that tells you about each query it runs.
 To build the distributon, update the version number in `mediacloud/__init__.py`.
 Then run `python setup.py sdist` to test out a version.
 Then when you're ready to push to pypi run `python setup.py sdist upload -r pypi`.
+
+Version History
+---------------
+
+* __v2.23.0__: add solr date generation helpers
+* __v2.22.2__: PyPI fixes
+* __v2.22.1__: move `sentenceList` to the admin client, first PyPI release
+* __v2.22.0__: adds the option to enable `all_fields` at the API client level (ie. for all requests) 
