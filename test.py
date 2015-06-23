@@ -13,6 +13,7 @@ test_classes = [
     ApiControversyTest, ApiControversyDumpTest, ApiControversyDumpTimeSliceTest,
     AuthTokenTest,
     ApiAllFieldsOptionTest,
+    PublishDateQueryTest,
     AdminApiTaggingContentTest, AdminApiTaggingUpdateTest
 ]
 
