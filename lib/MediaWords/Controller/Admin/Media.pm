@@ -432,19 +432,25 @@ sub moderate_tags : Local
                 -- number of media sources associated with the tag: in moderation queue
                 COUNT(
                     CASE WHEN media.moderated = 'f' THEN 1 ELSE NULL END
-                ) AS count_in_moderation_queue,
+                ) AS count_unmoderated_total,
 
                 -- number of media sources associated with the tag: not yet processed by RescrapeMedia
                 COUNT(
-                    CASE WHEN media_has_active_syndicated_feeds(media.media_id) THEN NULL ELSE 1 END
-                ) AS count_not_processed,
+                    CASE WHEN media.moderated = 'f' AND NOT EXISTS (
+                        SELECT 1
+                        FROM feeds_after_rescraping
+                        WHERE feeds_after_rescraping.media_id = media.media_id
+                    ) THEN 1 ELSE NULL END
+                ) AS count_unmoderated_unprocessed,
 
                 -- number of media sources associated with the tag: in moderation for which there are multiple feeds
                 COUNT(
                     CASE WHEN media.moderated = 'f' AND EXISTS (
-                        SELECT 1 FROM feeds WHERE feeds.media_id = media.media_id
+                        SELECT 1
+                        FROM feeds_after_rescraping
+                        WHERE feeds_after_rescraping.media_id = media.media_id
                     ) THEN 1 ELSE NULL END
-                ) AS count_in_moderation_queue_with_feeds
+                ) AS count_unmoderated_processed
 
             FROM tag_sets
                 INNER JOIN tags ON tag_sets.tag_sets_id = tags.tag_sets_id

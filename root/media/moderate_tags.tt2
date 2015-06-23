@@ -4,11 +4,14 @@
 <table id="moderate_media_tags" summary="Media tags and statistics for associated media" class="tablesorter">
     <thead>
         <tr>
-            <th>tag</th>
-            <th>media:<br />total</th>
-            <th>media:<br />in moderation queue</th>
-            <th>media:<br />not yet processed</th>
-            <th>media:<br />processed</th>
+            <th rowspan="2">tag</th>
+            <th rowspan="2">media:<br />total</th>
+            <th colspan="3">not moderated media:</th>
+        </tr>
+        <tr>
+            <th>total:</th>
+            <th>not yet processed by <code>RescrapeMedia</code>:</th>
+            <th>processed by <code>RescrapeMedia</code>, awaiting moderation:</th>
         </tr>
     </thead>
     <tbody>
@@ -21,9 +24,9 @@
                     </a>
                 </td>
                 <td>[% tag.count_total %]</td>
-                <td>[% tag.count_in_moderation_queue %]</td>
-                <td>[% tag.count_not_processed %]</td>
-                <td>[% tag.count_in_moderation_queue_with_feeds %]</td>
+                <td>[% tag.count_unmoderated_total %]</td>
+                <td>[% tag.count_unmoderated_unprocessed %]</td>
+                <td>[% tag.count_unmoderated_processed %]</td>
             </tr>
 
         [% END %]
