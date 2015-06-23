@@ -581,8 +581,15 @@ EOF
             $medium->{ media_id }
         )->flat;
 
-        $feeds = $c->dbis->query( "select * from feeds where media_id = ? and feed_status = 'active' order by name",
-            $medium->{ media_id } )->hashes;
+        $feeds = $c->dbis->query(
+            <<EOF,
+            SELECT *
+            FROM feeds_after_rescraping
+            WHERE media_id = ?
+            ORDER BY name
+EOF
+            $medium->{ media_id }
+        )->hashes;
 
         $merge_media = $self->_get_potential_merge_media( $c, $medium );
 
