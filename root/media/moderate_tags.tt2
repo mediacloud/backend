@@ -7,9 +7,8 @@
             <th>tag</th>
             <th>media:<br />total</th>
             <th>media:<br />in moderation queue</th>
-            <th>media:<br />not yet processed by <code>RescrapeMedia</code></th>
-            <th>media:<br />in moderation, no feeds</th>
-            <th>media:<br />in moderation, 1+ feeds</th>
+            <th>media:<br />not yet processed</th>
+            <th>media:<br />processed</th>
         </tr>
     </thead>
     <tbody>
@@ -24,7 +23,6 @@
                 <td>[% tag.count_total %]</td>
                 <td>[% tag.count_in_moderation_queue %]</td>
                 <td>[% tag.count_not_processed %]</td>
-                <td>[% tag.count_in_moderation_queue_no_feeds %]</td>
                 <td>[% tag.count_in_moderation_queue_with_feeds %]</td>
             </tr>
 
