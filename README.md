@@ -88,15 +88,15 @@ Development
 ## Testing
 
 First run all the tests.  Copy `mc-client.config.template` to `mc-client.config` and edit it.
-Then run `python tests.py`.
-
-Notice you get a `mediacloud-api.log` that tells you about each query it runs.
+Then run `python tests.py`. Notice you get a `mediacloud-api.log` that tells you about each query it runs.
 
 ## Distribution
 
-To build the distributon, update the version number in `mediacloud/__init__.py`.
-Then run `python setup.py sdist` to test out a version.
-Then when you're ready to push to pypi run `python setup.py sdist upload -r pypi`.
+1. Update the version number in `mediacloud/__init__.py`
+2. Make a breif note in the version history section in the README file about the changes
+3. Run `python setup.py sdist` to test out a version locally
+4. Then run `python setup.py sdist upload -r pypitest` to make sure the release works
+5. When you're ready to push to pypi run `python setup.py sdist upload -r pypi`
 
 Version History
 ---------------
