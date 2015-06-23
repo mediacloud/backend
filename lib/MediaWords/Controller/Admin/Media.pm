@@ -487,10 +487,21 @@ sub moderate : Local
     $prev_media_id ||= 0;
     if ( $prev_media_id && $approve )
     {
+        $c->dbis->begin_work;
+
+        $c->dbis->query(
+            <<EOF,
+                UPDATE feeds
+                SET feed_status = 'active'
+                WHERE feed_status = 'inactive'
+                  AND media_id = ?
+EOF
+            $prev_media_id
+        );
+
         $c->dbis->update_by_id( 'media', $prev_media_id, { moderated => 1 } );
-        $c->dbis->query( <<END, $prev_media_id );
-UPDATE FEEDS SET feed_status = 'active' where feed_status = 'inactive' and media_id = ?
-END
+
+        $c->dbis->commit;
     }
 
     my $media_tag;
