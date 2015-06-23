@@ -335,6 +335,8 @@ sub keep_single_feed : Local
 
     my $db = $c->dbis;
 
+    $feeds_id += 0;
+
     my $media_tags_id = $c->request->param( 'media_tags_id' ) || 0;
 
     my $medium =
@@ -351,9 +353,6 @@ sub keep_single_feed : Local
         );
         return;
     }
-
-    # make sure feeds_id is a num
-    $feeds_id += 0;
 
     $db->query(
         "update feeds set feed_status = 'skipped' where media_id = $medium->{ media_id } and feeds_id <> $feeds_id" );
