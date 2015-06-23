@@ -8,7 +8,7 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
-use Test::More tests => 94;
+use Test::More tests => 96;
 use Test::NoWarnings;
 use Test::Deep;
 
@@ -326,7 +326,7 @@ sub test_media_no_feeds_then_single_feed($)
 # Media with a single feed at initial scraping and no feeds after rescraping
 # (mimicking a scenario when a website is "down for maintenance" when
 # rescraping)
-sub test_media_single_feed_then_no_feeds_then_single_feed_again($)
+sub test_media_single_feed_then_no_feeds_then_single_feed_then_no_feeds_again($)
 {
     my $db = shift;
 
@@ -403,7 +403,7 @@ sub test_media_single_feed_then_no_feeds_then_single_feed_again($)
     is( scalar( @{ $feeds_after_rescraping } ), 0, "'feeds_after_rescraping' table must be empty after rescraping" );
 
     #
-    # Rescrape one last time, with syndicated feeds now being available once again
+    # Rescrape once more, with syndicated feeds now being available once again
     #
     $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_SINGLE_FEED );
     $hs->start();
@@ -435,6 +435,22 @@ sub test_media_single_feed_then_no_feeds_then_single_feed_again($)
 
     # say STDERR 'Feeds after rescraping: ' . Dumper( $feeds_after_rescraping );
     is( scalar( @{ $feeds_after_rescraping } ), 0, "'feeds_after_rescraping' table must be empty after rescraping" );
+
+    #
+    # Rescrape one last time with no feeds, to make sure "web_page" feed doesn't get added twice
+    $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $PAGES_NO_FEEDS );
+    $hs->start();
+    MediaWords::DBI::Media::Rescrape::rescrape_media( $db, $media_id );
+    $hs->stop();
+
+    $medium = $db->find_by_id( 'media', $media_id );
+
+    ok( $medium->{ moderated }, "Media must still be moderated after rescraping" );
+
+    $feeds = $db->query( 'SELECT * FROM feeds WHERE media_id = ? ORDER BY feeds_id', $media_id )->hashes;
+
+    # say STDERR 'Feeds: ' . Dumper( $feeds );
+    is( scalar( @{ $feeds } ), 2, 'Two feeds must be present (like in the previous rescraping)' );
 }
 
 # Test cases when media would require moderation after each rescrape but the
@@ -512,11 +528,11 @@ EOF
 sub main()
 {
     my @test_subroutines = (
-        \&test_media_no_feeds,                                            #
-        \&test_media_single_feed,                                         #
-        \&test_media_no_feeds_then_single_feed,                           #
-        \&test_media_single_feed_then_no_feeds_then_single_feed_again,    #
-        \&test_media_that_requires_moderation_with_same_set_of_feeds,     #
+        \&test_media_no_feeds,                                                          #
+        \&test_media_single_feed,                                                       #
+        \&test_media_no_feeds_then_single_feed,                                         #
+        \&test_media_single_feed_then_no_feeds_then_single_feed_then_no_feeds_again,    #
+        \&test_media_that_requires_moderation_with_same_set_of_feeds,                   #
     );
 
     foreach my $test_subroutine_ref ( @test_subroutines )
