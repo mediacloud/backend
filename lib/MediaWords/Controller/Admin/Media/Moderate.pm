@@ -258,13 +258,7 @@ sub skip_feeds : Local
         return;
     }
 
-    if ( !defined( $confirm ) )
-    {
-        $c->stash->{ medium }        = $medium;
-        $c->stash->{ media_tags_id } = $media_tags_id;
-        $c->stash->{ template }      = 'media/moderate/skip_feeds.tt2';
-    }
-    else
+    if ( defined( $confirm ) )
     {
         my $status_msg;
         if ( $confirm ne 'yes' )
@@ -283,6 +277,12 @@ sub skip_feeds : Local
                 { status_msg => $status_msg, media_tags_id => $media_tags_id }
             )
         );
+    }
+    else
+    {
+        $c->stash->{ medium }        = $medium;
+        $c->stash->{ media_tags_id } = $media_tags_id;
+        $c->stash->{ template }      = 'media/moderate/skip_feeds.tt2';
     }
 }
 
