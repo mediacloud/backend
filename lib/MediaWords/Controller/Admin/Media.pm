@@ -77,6 +77,8 @@ sub _make_edit_form
 {
     my ( $self, $c, $action ) = @_;
 
+    my $db = $c->dbis;
+
     my $form = HTML::FormFu->new(
         {
             load_config_file => $c->path_to() . '/root/forms/media.yml',
@@ -87,7 +89,7 @@ sub _make_edit_form
 
     $form->stash->{ c } = $c;
 
-    my $media_types = MediaWords::DBI::Media::get_media_type_tags( $c->dbis );
+    my $media_types = MediaWords::DBI::Media::get_media_type_tags( $db );
 
     my $media_type_options = [ map { [ $_->{ tags_id }, $_->{ label } ] } @{ $media_types } ];
 
@@ -109,6 +111,8 @@ sub media_tags_search_json : Local
 {
     my ( $self, $c ) = @_;
 
+    my $db = $c->dbis;
+
     my $term = $c->req->param( 'term' ) || 0;
 
     say STDERR "$term";
@@ -122,7 +126,7 @@ sub media_tags_search_json : Local
     if ( !defined( $tag_part ) || $tag_part eq '' )
     {
         $tag_part = $tag_set_part;
-        $terms    = $c->dbis->query(
+        $terms    = $db->query(
 "select name ||':' || tag from tag_sets natural join tags where tags_id in ( select distinct(tags_id) from media_tags_map ) "
               . " and (name like ? or tag like ? ) order by name, tag;",
             $tag_set_part, $tag_part
@@ -130,7 +134,7 @@ sub media_tags_search_json : Local
     }
     else
     {
-        $terms = $c->dbis->query(
+        $terms = $db->query(
 "select name ||':' || tag from tag_sets natural join tags where tags_id in ( select distinct(tags_id) from media_tags_map ) "
               . " and (name = ? and tag like ? ) order by name, tag;",
             $tag_set_part, $tag_part
@@ -150,8 +154,10 @@ sub create_do : Local
 {
     my ( $self, $c ) = @_;
 
+    my $db = $c->dbis;
+
     my $error_messages = MediaWords::DBI::Media::find_or_create_media_from_urls(
-        $c->dbis,
+        $db,
         $c->request->param( 'urls' ),
         $c->request->param( 'tags' )
     );
@@ -236,10 +242,12 @@ sub edit_do : Local
 {
     my ( $self, $c, $id ) = @_;
 
+    my $db = $c->dbis;
+
     $id += 0;
 
     my $form = $self->_make_edit_form( $c, $c->uri_for( "/admin/media/edit_do/$id" ) );
-    my $medium = $c->dbis->query( "select * from media_with_media_types where media_id = ?", $id )->hash
+    my $medium = $db->query( "select * from media_with_media_types where media_id = ?", $id )->hash
       || die( "unknown medium: $id" );
 
     _add_controversy_media_type( $c, $medium );
@@ -270,15 +278,15 @@ sub edit_do : Local
         $form_params->{ full_text_rss }     ||= 0;
         $form_params->{ foreign_rss_links } ||= 0;
 
-        MediaWords::DBI::Media::update_media_type( $c->dbis, $medium, $c->req->params->{ media_type_tags_id } );
-        MediaWords::DBI::Media::update_media_type( $c->dbis, $medium, $c->req->params->{ controversy_media_type_tags_id } );
+        MediaWords::DBI::Media::update_media_type( $db, $medium, $c->req->params->{ media_type_tags_id } );
+        MediaWords::DBI::Media::update_media_type( $db, $medium, $c->req->params->{ controversy_media_type_tags_id } );
         delete( $form_params->{ media_type_tags_id } );
         delete( $form_params->{ controversy_media_type_tags_id } );
 
-        $c->dbis->update_by_id( 'media', $id, $form_params );
+        $db->update_by_id( 'media', $id, $form_params );
 
         # Make a logged update
-        $c->dbis->update_by_id_and_log( 'media', $id, $medium, $form_params, 'media_edit', $form->params->{ reason },
+        $db->update_by_id_and_log( 'media', $id, $medium, $form_params, 'media_edit', $form->params->{ reason },
             $c->user->username );
 
         my $msg = "Media source updated.";
@@ -311,16 +319,18 @@ sub delete : Local
 {
     my ( $self, $c, $id, $confirm ) = @_;
 
+    my $db = $c->dbis;
+
     my $media_tags_id = $c->request->param( 'media_tags_id' ) || 0;
 
-    my $medium = $c->dbis->find_by_id( 'media', $id );
+    my $medium = $db->find_by_id( 'media', $id );
 
     my $status_msg;
 
-    my $deleteme_tags_id = MediaWords::Util::Tags::lookup_or_create_tag( $c->dbis, 'workflow:deleteme' )->{ tags_id };
+    my $deleteme_tags_id = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'workflow:deleteme' )->{ tags_id };
 
     my ( $marked_for_deletion ) =
-      $c->dbis->query( "select 1 from media_tags_map " . "where tags_id = $deleteme_tags_id and media_id = ?", $id )->flat;
+      $db->query( "select 1 from media_tags_map " . "where tags_id = $deleteme_tags_id and media_id = ?", $id )->flat;
 
     if ( $marked_for_deletion )
     {
@@ -341,8 +351,8 @@ sub delete : Local
         }
         else
         {
-            $c->dbis->query( "insert into media_tags_map (tags_id, media_id) values (?, ?)", $deleteme_tags_id, $id );
-            $c->dbis->query( "update media set moderated = true where media_id = ?", $medium->{ media_id } );
+            $db->query( "insert into media_tags_map (tags_id, media_id) values (?, ?)", $deleteme_tags_id, $id );
+            $db->query( "update media set moderated = true where media_id = ?", $medium->{ media_id } );
 
             $status_msg = 'Media source marked for deletion.';
         }
@@ -372,13 +382,15 @@ sub _search_paged_media
 {
     my ( $self, $c, $q, $page, $rows_per_page ) = @_;
 
+    my $db = $c->dbis;
+
     $q =~ s/^\s+//g;
     $q =~ s/\s+$//g;
     $q =~ s/[^\w]/_/g;
 
     $q = "'%$q%'";
 
-    return $c->dbis->query_paged_hashes( <<END, [], $page, $rows_per_page );
+    return $db->query_paged_hashes( <<END, [], $page, $rows_per_page );
 select distinct m.media_id as media_id, m.name as name, m.url as url 
     from media m 
         left join ( 
@@ -397,6 +409,8 @@ sub _get_potential_merge_media
 {
     my ( $self, $c, $medium ) = @_;
 
+    my $db = $c->dbis;
+
     my $host = lc( ( URI::Split::uri_split( $medium->{ url } ) )[ 1 ] );
 
     my @name_parts = split( /\./, $host );
@@ -409,7 +423,7 @@ sub _get_potential_merge_media
 
     my $pattern = "%$second_level_domain%";
 
-    return $c->dbis->query( "select * from media where ( name like ? or url like ? ) and media_id <> ?",
+    return $db->query( "select * from media where ( name like ? or url like ? ) and media_id <> ?",
         $pattern, $pattern, $medium->{ media_id } )->hashes;
 }
 
@@ -418,7 +432,9 @@ sub moderate_tags : Local
 {
     my ( $self, $c ) = @_;
 
-    my $media_tags = $c->dbis->query(
+    my $db = $c->dbis;
+
+    my $media_tags = $db->query(
         <<"EOF"
             SELECT
                 tag_sets.tag_sets_id,
@@ -481,15 +497,17 @@ sub moderate : Local
 {
     my ( $self, $c, $prev_media_id, $media_sets_id ) = @_;
 
+    my $db = $c->dbis;
+
     my $approve = $c->request->param( 'approve' );
     my $media_tags_id = $c->request->param( 'media_tags_id' ) || 0;
 
     $prev_media_id ||= 0;
     if ( $prev_media_id && $approve )
     {
-        $c->dbis->begin_work;
+        $db->begin_work;
 
-        $c->dbis->query(
+        $db->query(
             <<EOF,
                 UPDATE feeds
                 SET feed_status = 'active'
@@ -499,15 +517,15 @@ EOF
             $prev_media_id
         );
 
-        $c->dbis->update_by_id( 'media', $prev_media_id, { moderated => 1 } );
+        $db->update_by_id( 'media', $prev_media_id, { moderated => 1 } );
 
-        $c->dbis->commit;
+        $db->commit;
     }
 
     my $media_tag;
     if ( $media_tags_id )
     {
-        $media_tag = $c->dbis->query(
+        $media_tag = $db->query(
             <<"EOF",
             SELECT
                 tag_sets.tag_sets_id,
@@ -548,7 +566,7 @@ EOF
         $media_set_clauses = '1 = 1';
     }
 
-    my $media = $c->dbis->query(
+    my $media = $db->query(
         <<"EOF",
             SELECT *
             FROM media
@@ -570,7 +588,7 @@ EOF
     if ( @{ $media } )
     {
         $medium    = $media->[ 0 ];
-        $tag_names = $c->dbis->query(
+        $tag_names = $db->query(
             <<"EOF",
                 SELECT ts.name || ':' || t.tag
                 FROM tags t, media_tags_map mtm, tag_sets ts
@@ -581,7 +599,7 @@ EOF
             $medium->{ media_id }
         )->flat;
 
-        $feeds = $c->dbis->query(
+        $feeds = $db->query(
             <<EOF,
             SELECT *
             FROM feeds_after_rescraping
@@ -596,7 +614,7 @@ EOF
         $#{ $merge_media } = List::Util::min( $#{ $merge_media }, 2 );
     }
 
-    my ( $num_media_pending_feeds ) = $c->dbis->query(
+    my ( $num_media_pending_feeds ) = $db->query(
         <<EOF
         SELECT COUNT(*)
         FROM media
@@ -629,6 +647,8 @@ sub search : Local
 {
     my ( $self, $c ) = @_;
 
+    my $db = $c->dbis;
+
     my $form = HTML::FormFu->new(
         {
             load_config_file => $c->path_to() . '/root/forms/media_search.yml',
@@ -652,7 +672,7 @@ sub search : Local
     }
     elsif ( $f )
     {
-        ( $media, $pager ) = $c->dbis->query_paged_hashes( <<END, [], $p, ROWS_PER_PAGE );
+        ( $media, $pager ) = $db->query_paged_hashes( <<END, [], $p, ROWS_PER_PAGE );
 select * from media m
     where not exists (select 1 from feeds f where f.media_id = m.media_id and feed_status = 'active')
     order by media_id
@@ -660,16 +680,16 @@ END
     }
     elsif ( @m )
     {
-        $media = $c->dbis->query( "select * from media where media_id in (??) order by media_id", @m )->hashes;
+        $media = $db->query( "select * from media where media_id in (??) order by media_id", @m )->hashes;
     }
     else
     {
-        ( $media, $pager ) = $c->dbis->query_paged_hashes( "select * from media order by media_id", [], $p, ROWS_PER_PAGE );
+        ( $media, $pager ) = $db->query_paged_hashes( "select * from media order by media_id", [], $p, ROWS_PER_PAGE );
     }
 
     for my $m ( @{ $media } )
     {
-        $m->{ tag_names } = $c->dbis->query(
+        $m->{ tag_names } = $db->query(
             <<"EOF",
                 SELECT ts.name || ':' || t.tag
                 FROM tags t, media_tags_map mtm, tag_sets ts
@@ -679,7 +699,7 @@ END
 EOF
             $m->{ media_id }
         )->flat;
-        ( $m->{ feed_count } ) = $c->dbis->query( <<END, $m->{ media_id } )->flat;
+        ( $m->{ feed_count } ) = $db->query( <<END, $m->{ media_id } )->flat;
 select count(*) from feeds where media_id = ? and feed_status = 'active'
 END
     }
@@ -767,9 +787,11 @@ sub skip_feeds : Local
 {
     my ( $self, $c, $media_id, $confirm ) = @_;
 
+    my $db = $c->dbis;
+
     my $media_tags_id = $c->req->params( 'media_tags_id' ) || 0;
 
-    my $medium = $c->dbis->query( "select * from media where media_id = ?", $media_id )->hash;
+    my $medium = $db->query( "select * from media where media_id = ?", $media_id )->hash;
 
     if ( $medium->{ moderated } )
     {
@@ -798,7 +820,7 @@ sub skip_feeds : Local
         }
         else
         {
-            $c->dbis->query( "update feeds set feed_status = 'skipped' where media_id = ?", $media_id );
+            $db->query( "update feeds set feed_status = 'skipped' where media_id = ?", $media_id );
             $status_msg = 'Media source feeds skipped.';
         }
 
@@ -816,11 +838,12 @@ sub skip_unmoderated_feed : Local
 {
     my ( $self, $c, $feeds_id ) = @_;
 
+    my $db = $c->dbis;
+
     my $media_tags_id = $c->request->param( 'media_tags_id' ) || 0;
 
     my $medium =
-      $c->dbis->query( "select m.* from media m, feeds f where f.feeds_id = ? and f.media_id = m.media_id", $feeds_id )
-      ->hash;
+      $db->query( "select m.* from media m, feeds f where f.feeds_id = ? and f.media_id = m.media_id", $feeds_id )->hash;
 
     if ( $medium->{ moderated } )
     {
@@ -834,7 +857,7 @@ sub skip_unmoderated_feed : Local
         return;
     }
 
-    $c->dbis->query( "update feeds set feed_status = 'skipped' where feeds_id = ?", $feeds_id );
+    $db->query( "update feeds set feed_status = 'skipped' where feeds_id = ?", $feeds_id );
     my $status_msg = 'Media source feed skipped.';
 
     $c->response->redirect(
@@ -850,11 +873,12 @@ sub keep_single_feed : Local
 {
     my ( $self, $c, $feeds_id ) = @_;
 
+    my $db = $c->dbis;
+
     my $media_tags_id = $c->request->param( 'media_tags_id' ) || 0;
 
     my $medium =
-      $c->dbis->query( "select m.* from media m, feeds f where f.feeds_id = ? and f.media_id = m.media_id", $feeds_id )
-      ->hash;
+      $db->query( "select m.* from media m, feeds f where f.feeds_id = ? and f.media_id = m.media_id", $feeds_id )->hash;
 
     if ( $medium->{ moderated } )
     {
@@ -871,7 +895,7 @@ sub keep_single_feed : Local
     # make sure feeds_id is a num
     $feeds_id += 0;
 
-    $c->dbis->query(
+    $db->query(
         "update feeds set feed_status = 'skipped' where media_id = $medium->{ media_id } and feeds_id <> $feeds_id" );
     my $status_msg = 'Media source feeds skipped.';
 
@@ -897,12 +921,13 @@ sub _merge_media_tags
 {
     my ( $self, $c, $medium_a, $medium_b ) = @_;
 
-    my $tags_ids =
-      $c->dbis->query( "select tags_id from media_tags_map mtm where media_id = ?", $medium_a->{ media_id } )->flat;
+    my $db = $c->dbis;
+
+    my $tags_ids = $db->query( "select tags_id from media_tags_map mtm where media_id = ?", $medium_a->{ media_id } )->flat;
 
     for my $tags_id ( @{ $tags_ids } )
     {
-        $c->dbis->find_or_create( 'media_tags_map', { media_id => $medium_b->{ media_id }, tags_id => $tags_id } );
+        $db->find_or_create( 'media_tags_map', { media_id => $medium_b->{ media_id }, tags_id => $tags_id } );
     }
 }
 
@@ -911,10 +936,12 @@ sub merge : Local
 {
     my ( $self, $c, $media_id_a, $media_id_b, $confirm ) = @_;
 
+    my $db = $c->dbis;
+
     my $media_tags_id = $c->request->param( 'media_tags_id' ) || 0;
 
-    my $medium_a = $c->dbis->find_by_id( 'media', $media_id_a );
-    my $medium_b = $c->dbis->find_by_id( 'media', $media_id_b );
+    my $medium_a = $db->find_by_id( 'media', $media_id_a );
+    my $medium_b = $db->find_by_id( 'media', $media_id_b );
 
     $confirm ||= 'no';
 
@@ -922,7 +949,7 @@ sub merge : Local
     {
         $self->_merge_media_tags( $c, $medium_a, $medium_b );
 
-        $c->dbis->delete_by_id( 'media', $medium_a->{ media_id } );
+        $db->delete_by_id( 'media', $medium_a->{ media_id } );
 
         $c->response->redirect(
             $c->uri_for( '/admin/media/moderate/' . $medium_a->{ media_id }, { media_tags_id => $media_tags_id } ) );
@@ -972,6 +999,8 @@ sub do_find_likely_full_text_rss : Local
 {
     my ( $self, $c ) = @_;
 
+    my $db = $c->dbis;
+
     my $media_ids = $c->request->parameters->{ full_text_rss };
 
     my $post_params = $c->request->body_parameters();
@@ -993,15 +1022,15 @@ sub do_find_likely_full_text_rss : Local
 
         if ( $full_text_value == 1 )
         {
-            $c->dbis->query( "UPDATE media set full_text_rss = true where media_id = ?", $media_id );
+            $db->query( "UPDATE media set full_text_rss = true where media_id = ?", $media_id );
         }
         elsif ( $full_text_value == 0 )
         {
-            $c->dbis->query( "UPDATE media set full_text_rss = false where media_id = ?", $media_id );
+            $db->query( "UPDATE media set full_text_rss = false where media_id = ?", $media_id );
         }
         elsif ( $full_text_value eq '' )
         {
-            $c->dbis->query( "UPDATE media set full_text_rss = NULL where media_id = ?", $media_id );
+            $db->query( "UPDATE media set full_text_rss = NULL where media_id = ?", $media_id );
         }
         else
         {
@@ -1009,7 +1038,7 @@ sub do_find_likely_full_text_rss : Local
         }
     }
 
-    #$c->dbis->query( "UPDATE media set full_text_rss = true where media_id in (??) ", @$media_ids );
+    #$db->query( "UPDATE media set full_text_rss = true where media_id in (??) ", @$media_ids );
 
     my $status_msg = "updated";
 
@@ -1024,8 +1053,10 @@ sub _get_likely_rss_full_text_media_list
 {
     my ( $self, $c ) = @_;
 
+    my $db = $c->dbis;
+
     my $media =
-      $c->dbis->query( "select * from media_rss_full_text_detection_data natural join media where full_text_rss is null" )
+      $db->query( "select * from media_rss_full_text_detection_data natural join media where full_text_rss is null" )
       ->hashes;
 
     $media = [ grep { $_->{ avg_similarity } ne 'NaN' } @{ $media } ];
@@ -1047,6 +1078,8 @@ sub find_likely_full_text_rss : Local
 {
     my ( $self, $c ) = @_;
 
+    my $db = $c->dbis;
+
     my $form = HTML::FormFu->new(
         {
             load_config_file => $c->path_to() . '/root/forms/media_search.yml',
@@ -1066,7 +1099,7 @@ sub find_likely_full_text_rss : Local
 
     for my $m ( @{ $media } )
     {
-        ( $m->{ feed_count } ) = $c->dbis->query( <<END, $m->{ media_id } )->flat;
+        ( $m->{ feed_count } ) = $db->query( <<END, $m->{ media_id } )->flat;
 select count(*) from feeds where media_id = ? and feed_status = 'active'
 END
     }
@@ -1109,9 +1142,11 @@ sub eval_rss_full_text : Local
 {
     my ( $self, $c, $media_id ) = @_;
 
+    my $db = $c->dbis;
+
     $media_id += 0;
 
-    my ( $medium ) = $c->dbis->query(
+    my ( $medium ) = $db->query(
         <<EOF,
         SELECT *,
                media_has_active_syndicated_feeds(media_id) AS media_has_active_syndicated_feeds
@@ -1128,7 +1163,7 @@ EOF
 
     my $action = $c->uri_for( '/admin/media/do_eval_rss_full_text/' ) . $media_id;
 
-    my $recent_stories = $c->dbis->query(
+    my $recent_stories = $db->query(
         <<EOF,
         SELECT stories.*
         FROM stories
@@ -1143,7 +1178,7 @@ EOF
 
     foreach my $story ( @{ $recent_stories } )
     {
-        $story->{ extracted_text } = MediaWords::DBI::Stories::get_extracted_text( $c->dbis, $story );
+        $story->{ extracted_text } = MediaWords::DBI::Stories::get_extracted_text( $db, $story );
     }
 
     my $next_media_id = $self->_get_next_media_id( $c, $media_id );
@@ -1165,6 +1200,8 @@ sub do_eval_rss_full_text : Local
 {
     my ( $self, $c, $id ) = @_;
 
+    my $db = $c->dbis;
+
     my $full_text_state = $c->request->parameters->{ full_text_rss };
 
     die "New RSS full text value undefined " if !defined( $full_text_state );
@@ -1173,11 +1210,11 @@ sub do_eval_rss_full_text : Local
 
     if ( $full_text_state ne '' )
     {
-        $c->dbis->query( "UPDATE media set full_text_rss = ? where media_id = ?", $full_text_state, $id );
+        $db->query( "UPDATE media set full_text_rss = ? where media_id = ?", $full_text_state, $id );
     }
     else
     {
-        $c->dbis->query( "UPDATE media set full_text_rss = NULL where media_id = ?", $id );
+        $db->query( "UPDATE media set full_text_rss = NULL where media_id = ?", $id );
     }
 
     my $next_media_id = $self->_get_next_media_id( $c, $id );
