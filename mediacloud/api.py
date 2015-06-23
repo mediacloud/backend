@@ -329,6 +329,33 @@ class MediaCloud(object):
             raise mediacloud.error.MCException(msg, r.status_code)
         return r
 
+    def _zi_time(self, d):
+	return datetime.datetime.combine(d, datetime.time.min).isoformat() + "Z"
+
+    def _solr_date_range( self, start_date, end_date, start_date_inclusive=True, end_date_inclusive=False):
+        ret = ''
+
+        if start_date_inclusive:
+            ret += '['
+        else:
+            ret += '{'
+
+        ret += self._zi_time( start_date )
+
+        ret += " TO "
+
+        ret += self._zi_time( end_date )
+
+        if end_date_inclusive:
+            ret += ']'
+        else:
+            ret += '}'
+
+        return ret
+
+    def publish_date_query( self, start_date, end_date, start_date_inclusive=True, end_date_inclusive=False):
+        return 'publish_date:' + self._solr_date_range( start_date, end_date, start_date_inclusive, end_date_inclusive)
+
 # used when calling AdminMediaCloud.tagStories
 StoryTag = namedtuple('StoryTag',['stories_id','tag_set_name','tag_name'])
 
