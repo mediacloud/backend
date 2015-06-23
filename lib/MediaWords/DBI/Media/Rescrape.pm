@@ -187,7 +187,19 @@ EOF
         $db->create( 'feeds_after_rescraping', $feed );
     }
 
-    unless ( $need_to_moderate )
+    if ( $need_to_moderate )
+    {
+        # (Re)set moderated = 'f' so that the media shows up in the moderation page
+        $db->query(
+            <<EOF,
+                UPDATE media
+                SET moderated = 'f'
+                WHERE media_id = ?
+EOF
+            $media_id
+        );
+    }
+    else
     {
         # Move all newly scraped feeds to "feeds" table
         my $feeds_after_rescraping = $db->query(
@@ -220,10 +232,6 @@ EOF
 EOF
             $media_id
         );
-    }
-    else
-    {
-        # no-op -- sending feeds to moderation page
     }
 
     $db->commit;
