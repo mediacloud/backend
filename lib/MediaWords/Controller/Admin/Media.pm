@@ -542,7 +542,11 @@ EOF
             SELECT *
             FROM media
             WHERE moderated = 'f'
-              AND media_has_active_syndicated_feeds(media_id)
+              AND EXISTS (
+                SELECT 1
+                FROM feeds_after_rescraping
+                WHERE feeds_after_rescraping.media_id = media.media_id
+              )
               AND media_id > ?
               AND $media_set_clauses
             ORDER BY media_id
@@ -578,7 +582,11 @@ EOF
         <<EOF
         SELECT COUNT(*)
         FROM media
-        WHERE media_has_active_syndicated_feeds(media_id) = 'f'
+        WHERE EXISTS (
+            SELECT 1
+            FROM feeds_after_rescraping
+            WHERE feeds_after_rescraping.media_id = media.media_id
+          )
           AND moderated = 'f'
 EOF
     )->flat;
