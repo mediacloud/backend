@@ -79,8 +79,8 @@
             [% IF c.acl_user_can_visit('/admin/health/tag') %]
                 <a href="[% c.uri_for('/admin/health') %]">Media Health</a>
             [% END -%]
-            [% IF c.acl_user_can_visit('/admin/media/moderate') %]
-                <a href="[% c.uri_for('/admin/media/moderate_tags') %]">Moderate Media</a>
+            [% IF c.acl_user_can_visit('/admin/media/moderate/tags') %]
+                <a href="[% c.uri_for('/admin/media/moderate/tags') %]">Moderate Media</a>
             [% END -%]
             [% IF c.acl_user_can_visit('/admin/users/list') %]
                 <a href="[% c.uri_for('/admin/users/list') %]">Users</a>

@@ -79,7 +79,7 @@
             </p>
         [% END -%]
 
-        [% IF c.acl_user_can_visit('/admin/media/merge') %]
+        [% IF c.acl_user_can_visit('/admin/media/moderate/merge') %]
             [% IF merge_media %]
                 <p>
                     Potential media sources to merge: 
@@ -88,13 +88,13 @@
 
                         <a href="[% merge_medium.url %]">[% merge_medium.name | html %]</a> 
                         (<a href="[% c.uri_for( '/admin/feeds/list/' ) _ merge_medium.media_id %]">feeds</a> |
-                        <a href="[% c.uri_for( '/admin/media/merge/' ) _ medium.media_id _ '/' _ merge_medium.media_id %]?media_tags_id=[% media_tags_id %]">merge</a>);
+                        <a href="[% c.uri_for( '/admin/media/moderate/merge/' ) _ medium.media_id _ '/' _ merge_medium.media_id %]?media_tags_id=[% media_tags_id %]">merge</a>);
 
                     [% END #[% FOREACH merge_medium IN merge_media %]
 
                     </p>
             [% END #[% IF merge_media %]
-        [% END # [% IF c.acl_user_can_visit('/admin/media/merge') %]
+        [% END # [% IF c.acl_user_can_visit('/admin/media/moderate/merge') %]
 
         <p>
             [% IF media_tags_id %]
@@ -130,8 +130,8 @@
         <p><b>[% feeds.size %] Feeds Found</b></p>
 
         <p>
-            [% IF c.acl_user_can_visit('/admin/media/skip_feeds') %]
-                <a href="[% c.uri_for('/admin/media/skip_feeds/') _ medium.media_id | url %]?media_tags_id=[% media_tags_id %]">skip all feeds</a> |
+            [% IF c.acl_user_can_visit('/admin/media/moderate/skip_feeds') %]
+                <a href="[% c.uri_for('/admin/media/moderate/skip_feeds/') _ medium.media_id | url %]?media_tags_id=[% media_tags_id %]">skip all feeds</a> |
             [% END -%]
             [% IF c.acl_user_can_visit('/admin/feeds/create') %]
                 <a href="[% c.uri_for('/admin/feeds/create/') _ medium.media_id | url %]?media_tags_id=[% media_tags_id %]">add feed</a> |
@@ -155,12 +155,12 @@
                 [% END %]
                 [% feed.name | html %] -
                 <a href="[% feed.url %]">[% feed.url | html %]</a> 
-                [% IF c.acl_user_can_visit('/admin/media/skip_unmoderated_feed') %]
-                    [<a href="[% c.uri_for( '/admin/media/skip_unmoderated_feed/') _ feed.feeds_id | url %]?media_tags_id=[% media_tags_id %]">skip</a>]
+                [% IF c.acl_user_can_visit('/admin/media/moderate/skip_unmoderated_feed') %]
+                    [<a href="[% c.uri_for( '/admin/media/moderate/skip_unmoderated_feed/') _ feed.feeds_id | url %]?media_tags_id=[% media_tags_id %]">skip</a>]
                 [% END -%]
-                [% IF c.acl_user_can_visit('/admin/media/keep_single_feed') %]
-                    [<a href="[% c.uri_for( '/admin/media/keep_single_feed/') _ feed.feeds_id | url %]?media_tags_id=[% media_tags_id %]">keep single</a>]
-                    [<a href="[% c.uri_for( '/admin/media/keep_single_feed/') _ feed.feeds_id | url %]?approve=1&amp;media_tags_id=[% media_tags_id %]">keep single + approve</a>]
+                [% IF c.acl_user_can_visit('/admin/media/moderate/keep_single_feed') %]
+                    [<a href="[% c.uri_for( '/admin/media/moderate/keep_single_feed/') _ feed.feeds_id | url %]?media_tags_id=[% media_tags_id %]">keep single</a>]
+                    [<a href="[% c.uri_for( '/admin/media/moderate/keep_single_feed/') _ feed.feeds_id | url %]?approve=1&amp;media_tags_id=[% media_tags_id %]">keep single + approve</a>]
                 [% END -%]
             </li>
             [% END #[% FOREACH feed IN feeds %]

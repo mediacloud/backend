@@ -132,15 +132,15 @@ sub setup_acl()
       /admin/media/create_batch
       /admin/media/create_do
       /admin/media/delete
-      /admin/media/skip_feeds
-      /admin/media/skip_unmoderated_feed
+      /admin/media/moderate/keep_single_feed
+      /admin/media/moderate/skip_feeds
+      /admin/media/moderate/skip_unmoderated_feed
       /admin/media/edit
       /admin/media/edit_do
       /admin/media/edit_tags
       /admin/media/edit_tags_do
-      /admin/media/keep_single_feed
-      /admin/media/merge
       /admin/media/moderate
+      /admin/media/moderate/merge
       /admin/mediasets/create
       /admin/health
       /admin/health/list

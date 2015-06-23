@@ -7,7 +7,7 @@ Are you sure you want to skip all of the feeds from the '[% medium.name | html %
 The feeds will be left in the database inact, just that they will never be fetched.
 </p>
 
-<form action="[% c.uri_for('/admin/media/skip_feeds/') _ medium.media_id _ '/' _ 'yes' %]">
+<form action="[% c.uri_for('/admin/media/moderate/skip_feeds/') _ medium.media_id _ '/' _ 'yes' %]">
 <input type="submit" value="Skip" />
 </form>
 
