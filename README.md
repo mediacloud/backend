@@ -103,7 +103,7 @@ Then run `python tests.py`. Notice you get a `mediacloud-api.log` that tells you
 Version History
 ---------------
 
-* __v2.23.0__: add solr date generation helpers
-* __v2.22.2__: PyPI fixes
-* __v2.22.1__: move `sentenceList` to the admin client, first PyPI release
+* __v2.23.0__: adds solr date generation helpers
+* __v2.22.2__: fixes the PyPI readme
+* __v2.22.1__: moves `sentenceList` to the admin client, preps for PyPI release
 * __v2.22.0__: adds the option to enable `all_fields` at the API client level (ie. for all requests) 
