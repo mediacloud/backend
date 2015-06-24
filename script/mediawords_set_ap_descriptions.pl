@@ -13,6 +13,8 @@ BEGIN
 }
 
 use Data::Dumper;
+use Encode;
+
 use Modern::Perl "2013";
 
 use Feed::Scrape::MediaWords;
@@ -38,17 +40,23 @@ sub reprocess_download
 {
     my ( $db, $download, $media_id ) = @_;
 
-    my $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download );
+    my $content_ref;
+    eval { $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download ) };
 
-    if ( !$content_ref )
+    if ( $@ || !$content_ref )
     {
-        warn( "Unable to fetch content for download $download->{ downloads_id }" );
+        my $err = $@ ? $@ : "empty content";
+        warn( "Unable to fetch content for download $download->{ downloads_id }: $err" );
         return;
     }
 
     my $feed = Feed::Scrape::MediaWords->parse_feed( $$content_ref );
 
-    die( "Unable to parse feed for download $download->{ downloads_id }" ) unless $feed;
+    if ( !$feed )
+    {
+        warn( "Unable to parse feed for download $download->{ downloads_id }" );
+        return;
+    }
 
     my $items = [ $feed->get_item ];
 
@@ -76,7 +84,14 @@ sub reprocess_download
 
         $description = MediaWords::Util::HTML::html_strip( $description );
 
-        $db->query( "update stories set description = ? where stories_id = ?", $description, $story->{ stories_id } );
+        if ( $description ne $story->{ description } )
+        {
+            $db->query(
+                "update stories set description = ? where stories_id = ?",
+                encode( 'utf8', $description ),
+                $story->{ stories_id }
+            );
+        }
 
         say STDERR "set $story->{ stories_id } (length: " . length( $description ) . ")";
 
@@ -101,11 +116,12 @@ select *
         ) and
         d.state = 'success' and
         d.type = 'feed'
-    limit 1
 SQL
 
+    my $i = 0;
     for my $download ( @{ $ap_downloads } )
     {
+        say STDERR "download $download->{ downloads_id } [" . ++$i . "/" . scalar( @{ $ap_downloads } ) . "]";
         reprocess_download( $db, $download, $media_id );
     }
 
