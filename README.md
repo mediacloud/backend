@@ -96,7 +96,9 @@ Then run `python tests.py`. Notice you get a `mediacloud-api.log` that tells you
 2. Make a breif note in the version history section in the README file about the changes
 3. Run `python setup.py sdist` to test out a version locally
 4. Then run `python setup.py sdist upload -r pypitest` to make sure the release works
-5. When you're ready to push to pypi run `python setup.py sdist upload -r pypi`
+5. Run `pip install -i https://testpypi.python.org/pypi mediacloud` somewhere and then use it with Pytho to make sure the test release works.
+6. When you're ready to push to pypi run `python setup.py sdist upload -r pypi`
+7. Run `pip install mediacloud` somewhere and then try it to make sure it worked.
 
 Version History
 ---------------
