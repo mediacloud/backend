@@ -87,6 +87,18 @@ programs = crawler,crf_web_service
     default_nice=12
 %]
 
+
+[% INCLUDE program_config
+    program='reextraction_daemon'
+    command="bash ./script/run_with_carton.sh ./script/mediawords_reextraction_daemon.pl"
+    default_stopasgroup='true'
+    default_killasgroup='true'
+    default_autorestart='false'
+    default_autostart='false'
+    priority=5
+    default_nice=12
+%]
+
 ; Gearman (p5-Gearman-JobScheduler) functions
 [group:gearman]
 programs = gearmand
