@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4503;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4504;
     
 BEGIN
 
@@ -2190,28 +2190,33 @@ DECLARE
 
 BEGIN
 
+    -- Try to prevent deadlocks
+    LOCK TABLE auth_user_request_daily_counts IN SHARE ROW EXCLUSIVE MODE;
+
     request_date := DATE_TRUNC('day', NEW.request_timestamp)::DATE;
 
-    -- Try to UPDATE a previously INSERTed day
-    UPDATE auth_user_request_daily_counts
-    SET requests_count = requests_count + 1,
-        requested_items_count = requested_items_count + NEW.requested_items_count
-    WHERE email = NEW.email
-      AND day = request_date;
-
-    IF FOUND THEN
-        RETURN NULL;
-    END IF;
-
-    -- If UPDATE was not successful, do an INSERT (new day!)
+    WITH upsert AS (
+        -- Try to UPDATE a previously INSERTed day
+        UPDATE auth_user_request_daily_counts
+        SET requests_count = requests_count + 1,
+            requested_items_count = requested_items_count + NEW.requested_items_count
+        WHERE email = NEW.email
+          AND day = request_date
+        RETURNING *
+    )
     INSERT INTO auth_user_request_daily_counts (email, day, requests_count, requested_items_count)
-    VALUES (NEW.email, request_date, 1, NEW.requested_items_count);
+        SELECT NEW.email, request_date, 1, NEW.requested_items_count
+        WHERE NOT EXISTS (
+            SELECT *
+            FROM upsert
+        );
 
     RETURN NULL;
 
 END;
 $$
 LANGUAGE 'plpgsql';
+
 
 CREATE TRIGGER auth_user_requests_update_daily_counts
     AFTER INSERT ON auth_user_requests
