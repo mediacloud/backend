@@ -6,12 +6,10 @@ This is the source code of the python client for the [MediaCloud API v2](https:/
 Usage
 -----
 
+First [sign up for an API key](https://core.mediacloud.org/login/register).  Then
 ```
 pip install mediacloud
 ```
-
-Then [sign up for an API key](https://core.mediacloud.org/login/register):
-
 
 Examples
 --------
@@ -85,6 +83,8 @@ Take a look at the `apitest.py` and `storagetest.py` for more detailed examples.
 Development
 -----------
 
+If you are interested in adding code to this module, first clone [the GitHub repository](https://github.com/c4fcm/MediaCloud-API-Client).
+
 ## Testing
 
 First run all the tests.  Copy `mc-client.config.template` to `mc-client.config` and edit it.
@@ -96,7 +96,7 @@ Then run `python tests.py`. Notice you get a `mediacloud-api.log` that tells you
 2. Make a brief note in the version history section in the README file about the changes
 3. Run `python setup.py sdist` to test out a version locally
 4. Then run `python setup.py sdist upload -r pypitest` to release a test version to PyPI's test server
-5. Run `pip install -i https://testpypi.python.org/pypi mediacloud` somewhere and then use it with Pytho to make sure the test release works.
+5. Run `pip install -i https://testpypi.python.org/pypi mediacloud` somewhere and then use it with Python to make sure the test release works.
 6. When you're ready to push to pypi run `python setup.py sdist upload -r pypi`
 7. Run `pip install mediacloud` somewhere and then try it to make sure it worked.
 
