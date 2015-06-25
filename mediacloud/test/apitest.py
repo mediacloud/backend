@@ -117,6 +117,10 @@ class ApiMediaTest(ApiBaseTest):
         longer_list = self._mc.mediaList(0,200)
         self.assertEqual(len(longer_list),200)
 
+    def testMediaListWithTagId(self):
+        matchingList = self._mc.mediaList(tags_id=8875027)  # US MSM
+        self.assertTrue(len(matchingList)>0)
+
 class ApiControversyTest(ApiBaseTest):
 
     def testControversy(self):

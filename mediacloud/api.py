@@ -67,15 +67,23 @@ class MediaCloud(object):
         '''
         return self._queryForJson(self.V2_API_URL+'media/single/'+str(media_id))[0]
 
-    def mediaList(self, last_media_id=0, rows=20, name_like=None):
+    def mediaList(self, last_media_id=0, rows=20, name_like=None, 
+                controversy_dump_time_slices_id=None, controversy_mode=None, tags_id=None, q=None):
         '''
         Page through all media sources
         '''
         params = {'last_media_id':last_media_id, 'rows':rows}
         if name_like is not None:
             params['name'] = name_like
-        return self._queryForJson(self.V2_API_URL+'media/list', 
-                params)
+        if controversy_dump_time_slices_id is not None:
+            params['controversy_dump_time_slices_id'] = controversy_dump_time_slices_id
+        if controversy_mode is not None:
+            params['controversy_mode'] = controversy_mode
+        if tags_id is not None:
+            params['tags_id'] = tags_id
+        if q is not None:
+            params['q'] = q
+        return self._queryForJson(self.V2_API_URL+'media/list', params)
 
     def mediaSet(self, media_sets_id):
         '''
