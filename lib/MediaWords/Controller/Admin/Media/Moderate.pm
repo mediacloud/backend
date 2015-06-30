@@ -283,48 +283,6 @@ sub skip_feeds : Local
     }
 }
 
-# skip the feed without confirmation, but only if it is from an unmoderated media source
-sub skip_unmoderated_feed : Local
-{
-    my ( $self, $c, $feeds_id ) = @_;
-
-    my $db = $c->dbis;
-
-    my $media_tags_id = $c->request->param( 'media_tags_id' ) || 0;
-
-    my $medium = $db->query(
-        <<EOF,
-        SELECT m.*
-        FROM media m, feeds f
-        WHERE f.feeds_id = ?
-        AND f.media_id = m.media_id
-EOF
-        $feeds_id
-    )->hash;
-
-    if ( $medium->{ moderated } )
-    {
-        my $error = "You can only skip the feeds of media sources that have not yet been moderated";
-        $c->response->redirect(
-            $c->uri_for(
-                "/admin/media/moderate/" . ( $medium->{ media_id } - 1 ),
-                { status_msg => $error, media_tags_id => $media_tags_id }
-            )
-        );
-        return;
-    }
-
-    $db->query( "update feeds set feed_status = 'skipped' where feeds_id = ?", $feeds_id );
-    my $status_msg = 'Media source feed skipped.';
-
-    $c->response->redirect(
-        $c->uri_for(
-            "/admin/media/moderate/" . ( $medium->{ media_id } - 1 ),
-            { status_msg => $status_msg, media_tags_id => $media_tags_id }
-        )
-    );
-}
-
 # merge one media source the tags of medium_a into medium_b and delete medium_b
 sub merge : Local
 {

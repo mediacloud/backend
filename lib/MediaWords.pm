@@ -133,7 +133,6 @@ sub setup_acl()
       /admin/media/create_do
       /admin/media/delete
       /admin/media/moderate/skip_feeds
-      /admin/media/moderate/skip_unmoderated_feed
       /admin/media/edit
       /admin/media/edit_do
       /admin/media/edit_tags
