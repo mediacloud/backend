@@ -325,53 +325,6 @@ EOF
     );
 }
 
-# keep only the one feed for the medium
-sub keep_single_feed : Local
-{
-    my ( $self, $c, $feeds_id ) = @_;
-
-    my $db = $c->dbis;
-
-    $feeds_id += 0;
-
-    my $media_tags_id = $c->request->param( 'media_tags_id' ) || 0;
-
-    my $medium =
-      $db->query( "select m.* from media m, feeds f where f.feeds_id = ? and f.media_id = m.media_id", $feeds_id )->hash;
-
-    if ( $medium->{ moderated } )
-    {
-        my $error = "You can only skip the feeds of media sources that have not yet been moderated";
-        $c->response->redirect(
-            $c->uri_for(
-                "/admin/media/moderate/" . ( $medium->{ media_id } - 1 ),
-                { status_msg => $error, media_tags_id => $media_tags_id }
-            )
-        );
-        return;
-    }
-
-    $db->query(
-        "update feeds set feed_status = 'skipped' where media_id = $medium->{ media_id } and feeds_id <> $feeds_id" );
-    my $status_msg = 'Media source feeds skipped.';
-
-    if ( $c->req->param( 'approve' ) )
-    {
-        $c->response->redirect(
-            $c->uri_for( "/admin/media/moderate/$medium->{ media_id }", { approve => 1, media_tags_id => $media_tags_id } )
-        );
-    }
-    else
-    {
-        $c->response->redirect(
-            $c->uri_for(
-                "/admin/media/moderate/" . ( $medium->{ media_id } - 1 ),
-                { status_msg => $status_msg, media_tags_id => $media_tags_id }
-            )
-        );
-    }
-}
-
 # merge one media source the tags of medium_a into medium_b and delete medium_b
 sub merge : Local
 {

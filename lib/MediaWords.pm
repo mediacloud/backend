@@ -132,7 +132,6 @@ sub setup_acl()
       /admin/media/create_batch
       /admin/media/create_do
       /admin/media/delete
-      /admin/media/moderate/keep_single_feed
       /admin/media/moderate/skip_feeds
       /admin/media/moderate/skip_unmoderated_feed
       /admin/media/edit
