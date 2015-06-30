@@ -2144,9 +2144,9 @@ END
     for my $story ( @{ $stories } )
     {
         my $source_link = $db->query( <<END, $controversy->{ controversies_id } )->hash;
-select cl.*, s.publish_date from controversy_links cl, stories s
-    where cl.ref_stories_id = s.stories_id
-    order by ( controversies_id = ? ) asc, s.publish_date asc
+select cl.*, s.publish_date from controversy_links cl, cd.live_stories s
+    where cl.ref_stories_id = s.stories_id and cl.controversies_id = s.controversies_id
+    order by ( cl.controversies_id = ? ) asc, s.publish_date asc
 END
 
         next unless ( $source_link );

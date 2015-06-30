@@ -54,9 +54,13 @@ sub _get_stories_from_json_data
 
         next unless ( $self->story_is_in_date_range( $publish_date ) );
 
+        my $guid = "feedly:$item->{ originId }";
+        my $url =
+          ( $item->{ alternate } && $item->{ alternate }->[ 0 ]->{ href } ) ? $item->{ alternate }->[ 0 ]->{ href } : $guid;
+
         my $story = {
-            url          => $item->{ originId },
-            guid         => $item->{ originId },
+            url          => $url,
+            guid         => $guid,
             media_id     => $self->media_id,
             collect_date => MediaWords::Util::SQL::sql_now(),
             publish_date => $publish_date,

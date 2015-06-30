@@ -18,140 +18,90 @@
 SET search_path = public, pg_catalog;
 
 
--- Dropping temporarily; will recreate afterwards
-drop view media_with_media_types;
-
--- Dropping to recreate with a different list of columns
-DROP VIEW media_with_collections;
-
-ALTER TABLE public.media
-    DROP COLUMN feeds_added;
-ALTER TABLE cd.media
-    DROP COLUMN feeds_added;
-
--- Recreating with a different list of columns
-CREATE VIEW media_with_collections AS
-    SELECT t.tag,
-           m.media_id,
-           m.url,
-           m.name,
-           m.moderated,
-           m.moderation_notes,
-           m.full_text_rss
-    FROM media m,
-         tags t,
-         tag_sets ts,
-         media_tags_map mtm
-    WHERE ts.name::text = 'collection'::text
-      AND ts.tag_sets_id = t.tag_sets_id
-      AND mtm.tags_id = t.tags_id
-      AND mtm.media_id = m.media_id
-    ORDER BY m.media_id;
-
--- Recreating temporarily dropped views
-create view media_with_media_types as
-    select m.*, mtm.tags_id media_type_tags_id, t.label media_type
-    from
-        media m
-        left join (
-            tags t
-            join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id and ts.name = 'media_type' )
-            join media_tags_map mtm on ( mtm.tags_id = t.tags_id )
-        ) on ( m.media_id = mtm.media_id );
+CREATE TABLE extra_corenlp_stories (
+	extra_corenlp_stories_id SERIAL  PRIMARY KEY,
+	stories_id INTEGER NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE
+);
+CREATE INDEX extra_corenlp_stories_stories_id ON extra_corenlp_stories (stories_id);
 
 
-CREATE OR REPLACE FUNCTION media_has_active_syndicated_feeds(param_media_id INT) RETURNS boolean AS $$
+--
+-- Returns true if the story can + should be annotated with CoreNLP
+--
+CREATE OR REPLACE FUNCTION story_is_annotatable_with_corenlp(corenlp_stories_id INT) RETURNS boolean AS $$
 BEGIN
 
-    -- Check if media exists
+    -- FIXME this function is not really optimized for performance
+
+    -- Check "media.annotate_with_corenlp" and "extra_corenlp_stories"
     IF NOT EXISTS (
 
         SELECT 1
-        FROM media
-        WHERE media_id = param_media_id
+        FROM stories
+            INNER JOIN media ON stories.media_id = media.media_id
+        WHERE stories.stories_id = corenlp_stories_id
+          AND media.annotate_with_corenlp = 't'
 
-    ) THEN
-        RAISE EXCEPTION 'Media % does not exist.', param_media_id;
-        RETURN FALSE;
-    END IF;
-
-    -- Check if media has feeds
-    IF EXISTS (
+    ) AND NOT EXISTS (
 
         SELECT 1
-        FROM feeds
-        WHERE media_id = param_media_id
-          AND feed_status = 'active'
-
-          -- Website might introduce RSS feeds later
-          AND feed_type = 'syndicated'
+        FROM extra_corenlp_stories
+        WHERE extra_corenlp_stories.stories_id = corenlp_stories_id
 
     ) THEN
-        RETURN TRUE;
-    ELSE
+        RAISE NOTICE 'Story % is not annotatable with CoreNLP because it is not enabled for annotation.', corenlp_stories_id;
         RETURN FALSE;
+
+    -- Check if the story is extracted
+    ELSEIF EXISTS (
+
+        SELECT 1
+        FROM downloads
+        WHERE stories_id = corenlp_stories_id
+          AND type = 'content'
+          AND extracted = 'f'
+
+    ) THEN
+        RAISE NOTICE 'Story % is not annotatable with CoreNLP because it is not extracted.', corenlp_stories_id;
+        RETURN FALSE;
+
+    -- Annotate English language stories only because they're the only ones
+    -- supported by CoreNLP at the time.
+    ELSEIF NOT EXISTS (
+
+        SELECT 1
+        FROM stories
+        WHERE stories_id = corenlp_stories_id
+
+        -- Stories with language field set to NULL are the ones fetched before
+        -- introduction of the multilanguage support, so they are assumed to be
+        -- English.
+          AND ( stories.language = 'en' OR stories.language IS NULL )
+
+    ) THEN
+        RAISE NOTICE 'Story % is not annotatable with CoreNLP because it is not in English.', corenlp_stories_id;
+        RETURN FALSE;
+
+    -- Check if story has sentences
+    ELSEIF NOT EXISTS (
+
+        SELECT 1
+        FROM story_sentences
+        WHERE stories_id = corenlp_stories_id
+
+    ) THEN
+        RAISE NOTICE 'Story % is not annotatable with CoreNLP because it has no sentences.', corenlp_stories_id;
+        RETURN FALSE;
+
+    -- Things are fine
+    ELSE
+        RETURN TRUE;
+
     END IF;
     
 END;
 $$
 LANGUAGE 'plpgsql';
-
-
--- Media feed rescraping state
-CREATE TABLE media_rescraping (
-    media_id            int                       NOT NULL UNIQUE REFERENCES media ON DELETE CASCADE,
-
-    -- Disable periodic rescraping?
-    disable             BOOLEAN                   NOT NULL DEFAULT 'f',
-
-    -- Timestamp of last rescrape; NULL means that media was never scraped at all
-    last_rescrape_time  TIMESTAMP WITH TIME ZONE  NULL
-);
-
-CREATE UNIQUE INDEX media_rescraping_media_id on media_rescraping(media_id);
-CREATE INDEX media_rescraping_last_rescrape_time on media_rescraping(last_rescrape_time);
-
--- Insert new rows to "media_rescraping" for each new row in "media"
-CREATE OR REPLACE FUNCTION media_rescraping_add_initial_state_trigger() RETURNS trigger AS
-$$
-    BEGIN
-        INSERT INTO media_rescraping (media_id, disable, last_rescrape_time)
-        VALUES (NEW.media_id, 'f', NULL);
-        RETURN NEW;
-   END;
-$$
-LANGUAGE 'plpgsql';
-
-CREATE TRIGGER media_rescraping_add_initial_state_trigger
-    AFTER INSERT ON media
-    FOR EACH ROW EXECUTE PROCEDURE media_rescraping_add_initial_state_trigger();
-
-
--- Set the initial rescraping state for all existing media types
-INSERT INTO media_rescraping (media_id, disable, last_rescrape_time)
-    SELECT media_id,
-           'f',
-           -- Span across 1 year so that all media doesn't get rescraped at the same time
-           (NOW() - RANDOM() * (NOW() - (NOW() - INTERVAL '1 year')))
-    FROM media
-    WHERE NOT EXISTS (
-        SELECT 1
-        FROM media_rescraping
-        WHERE media_rescraping.media_id = media.media_id
-    );
-
-
--- Feeds for media item that were found after (re)scraping
-CREATE TABLE feeds_after_rescraping (
-    feeds_after_rescraping_id   SERIAL          PRIMARY KEY,
-    media_id                    INT             NOT NULL REFERENCES media ON DELETE CASCADE,
-    name                        VARCHAR(512)    NOT NULL,
-    url                         VARCHAR(1024)   NOT NULL,
-    feed_type                   feed_feed_type  NOT NULL DEFAULT 'syndicated'
-);
-CREATE INDEX feeds_after_rescraping_media_id ON feeds_after_rescraping(media_id);
-CREATE INDEX feeds_after_rescraping_name ON feeds_after_rescraping(name);
-CREATE UNIQUE INDEX feeds_after_rescraping_url ON feeds_after_rescraping(url, media_id);
 
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$

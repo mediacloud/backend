@@ -200,7 +200,7 @@ select * from feeds where media_id = ? and url = ? order by ( name = ? )
 SQL
 
     $feed ||= $db->query( <<SQL, $medium->{ media_id }, $medium->{ url }, encode( 'utf8', $feed_name ) )->hash;
-insert into feeds ( media_id, url, name, feed_status ) values ( ?, ?, ?, 'inactive' )
+insert into feeds ( media_id, url, name, feed_status ) values ( ?, ?, ?, 'inactive' ) returning *
 SQL
 
     $self->scrape_feed( $feed );
