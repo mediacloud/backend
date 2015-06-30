@@ -132,6 +132,10 @@ EOF
 EOF
             $media_tags_id
         )->hash;
+        unless ( $media_tag )
+        {
+            die "Media tag ID $media_tags_id was not found.";
+        }
     }
 
     # limit by media set or media tag
