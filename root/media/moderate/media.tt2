@@ -33,6 +33,19 @@
         });
     }
 
+    function disable_all_feeds()
+    {
+        $( "input.feed_action" ).each(function( index ) {
+            var input_radio = $( this );
+
+            if ( input_radio.val() === "disable" || input_radio.val() === "skip_perm" ) {
+                input_radio.attr( "checked", "checked" );
+            } else {
+                input_radio.removeAttr( "checked" );
+            }
+        });
+    }
+
     </script>
 
     <table>
@@ -156,15 +169,15 @@
     <p><strong>Feeds</strong></p>
 
     <p>
-        [% IF c.acl_user_can_visit('/admin/media/moderate/skip_feeds') %]
-            <a href="[% c.uri_for('/admin/media/moderate/skip_feeds/') _ medium.media_id | url %]?media_tags_id=[% media_tags_id %]">skip all feeds</a> |
-        [% END -%]
+        <a href="javascript:void(0)" onclick="disable_all_feeds();">disable all feeds</a> |
         [% IF c.acl_user_can_visit('/admin/feeds/create') %]
             <a href="[% c.uri_for('/admin/feeds/create/') _ medium.media_id | url %]?media_tags_id=[% media_tags_id %]">add feed</a> |
         [% END -%]
         [% IF c.acl_user_can_visit('/admin/feeds/scrape') %]
             <a href="[% c.uri_for('/admin/feeds/scrape/') _ medium.media_id | url %]?media_tags_id=[% media_tags_id %]">scrape feeds</a>
         [% END -%]
+
+        <a id="boxcommand" style="font-weight: bold" href="#FIXME">save and go to next media</a>
     </p>
 
     <table>

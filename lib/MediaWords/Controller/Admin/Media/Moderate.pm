@@ -232,57 +232,6 @@ EOF
     $c->stash->{ template }                = 'media/moderate/media.tt2';
 }
 
-# mark all feeds belonging to this media source as 'skip'
-sub skip_feeds : Local
-{
-    my ( $self, $c, $media_id, $confirm ) = @_;
-
-    my $db = $c->dbis;
-
-    my $media_tags_id = $c->req->params( 'media_tags_id' ) || 0;
-
-    my $medium = $db->query( "select * from media where media_id = ?", $media_id )->hash;
-
-    if ( $medium->{ moderated } )
-    {
-        my $error = "You can only skip the feeds of media sources that have not yet been moderated";
-        $c->response->redirect(
-            $c->uri_for(
-                "/admin/media/moderate/" . ( $medium->{ media_id } - 1 ),
-                { status_msg => $error, media_tags_id => $media_tags_id }
-            )
-        );
-        return;
-    }
-
-    if ( defined( $confirm ) )
-    {
-        my $status_msg;
-        if ( $confirm ne 'yes' )
-        {
-            $status_msg = 'Media source feed skipping cancelled.';
-        }
-        else
-        {
-            $db->query( "update feeds set feed_status = 'skipped' where media_id = ?", $media_id );
-            $status_msg = 'Media source feeds skipped.';
-        }
-
-        $c->response->redirect(
-            $c->uri_for(
-                "/admin/media/moderate/" . ( $medium->{ media_id } - 1 ),
-                { status_msg => $status_msg, media_tags_id => $media_tags_id }
-            )
-        );
-    }
-    else
-    {
-        $c->stash->{ medium }        = $medium;
-        $c->stash->{ media_tags_id } = $media_tags_id;
-        $c->stash->{ template }      = 'media/moderate/skip_feeds.tt2';
-    }
-}
-
 # merge one media source the tags of medium_a into medium_b and delete medium_b
 sub merge : Local
 {
