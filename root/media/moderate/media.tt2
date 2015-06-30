@@ -290,7 +290,7 @@
                         <td><code>[% feed.feed_type %]</code</td>
                         <td class="force-word-wrap"><a href="[% feed.url %]">[% feed.url | html %]</a></td>
 
-                        <td>[% feed.diff %]
+                        <td>[% feed.diff %]</td>
                         <td>
                             [% feed_action_nothing(default="1") %]
                             [% feed_action_disable() %]
@@ -301,14 +301,14 @@
                 [% CASE 'added' %]
                     <tr style="background-color: lightgreen">
                         <td>-</td>
-                        <td><code>-</code</td>
+                        <td><code>-</code></td>
                         <td>-</td>
 
                         <td>[% feed.name | html %]</td>
                         <td><code>[% feed.feed_type %]</code</td>
                         <td><a href="[% feed.url %]">[% feed.url | html %]</a></td>
 
-                        <td>[% feed.diff %]
+                        <td>[% feed.diff %]</td>
                         <td>
                             [% feed_action_add_to_feeds(default="1") %]
                             [% feed_action_skip_temp() %]
@@ -324,7 +324,7 @@
                         <td><a href="[% feed.url %]">[% feed.url | html %]</a></td>
 
                         <td>-</td>
-                        <td><code>-</code</td>
+                        <td><code>-</code></td>
                         <td>-</td>
 
                         <td>[% feed.diff %]
