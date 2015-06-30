@@ -57,7 +57,7 @@
 
         <tr>
             <td>[% medium.name | html %]</td>
-            <td><a href="[% medium.url | url %]">[% medium.url | html %]</a></td>
+            <td class="force-word-wrap"><a href="[% medium.url | url %]">[% medium.url | html %]</a></td>
             <td>
                 <div style="font-size: 80%;">
                     [% tag_names.join(', ') | html %]
@@ -271,11 +271,11 @@
                     <tr>
                         <td>[% feed.name | html %]</td>
                         <td><code>[% feed.feed_type %]</code</td>
-                        <td><a href="[% feed.url %]">[% feed.url | html %]</a></td>
+                        <td class="force-word-wrap"><a href="[% feed.url %]">[% feed.url | html %]</a></td>
 
                         <td>[% feed.name | html %]</td>
                         <td><code>[% feed.feed_type %]</code</td>
-                        <td><a href="[% feed.url %]">[% feed.url | html %]</a></td>
+                        <td class="force-word-wrap"><a href="[% feed.url %]">[% feed.url | html %]</a></td>
 
                         <td>[% feed.diff %]
                         <td>
