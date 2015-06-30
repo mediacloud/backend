@@ -554,6 +554,8 @@ EOF
                 die "Feed is not among existing feeds neither rescraped feeds; probably hashing didn't work.";
             }
         }
+
+        $feed->{ hash } = $feed_hash;
         $feed->{ diff } = $feed_diff;
     }
 
