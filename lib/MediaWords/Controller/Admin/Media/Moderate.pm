@@ -14,6 +14,7 @@ use URI::Split;
 
 use Data::Dumper;
 use URI;
+use Digest::SHA qw(sha256_hex);
 
 sub index : Path : Args(0)
 {
@@ -474,21 +475,21 @@ EOF
         $media_id
     )->hashes;
 
-    # say STDERR "Existing feeds: " . Dumper( $existing_feeds );
-    # say STDERR "Rescraped feeds: " . Dumper( $rescraped_feeds );
-
+    # Returns unique hash string that can be used to identify a feed
     sub feed_hash($)
     {
         my $feed = shift;
-        local $Data::Dumper::Sortkeys = 1;
-        unless ( defined $feed )
-        {
-            die "Feed is undefined.";
-        }
-        my $feed_hash = Dumper( $feed );
 
-        # say STDERR "Feed hash: $feed_hash";
-        return $feed_hash;
+        unless ( $feed->{ media_id } and $feed->{ name } and $feed->{ url } and $feed->{ feed_type } )
+        {
+            die "Feed hashref is not valid.";
+        }
+
+        my $feed_hash_data =
+          sprintf( "%s\n%s\n%s\n%s", $feed->{ media_id }, $feed->{ name }, $feed->{ url }, $feed->{ feed_type } );
+        my $feed_sha256 = sha256_hex( $feed_hash_data );
+
+        return $feed_sha256;
     }
 
     sub feed_uniq(@)
