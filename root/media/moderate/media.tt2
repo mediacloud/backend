@@ -327,7 +327,31 @@
                         <td><code>-</code></td>
                         <td>-</td>
 
-                        <td>[% feed.diff %]
+                        <td>[% feed.diff %]</td>
+                        <td>
+                            [% feed_action_disable(default="1") %]
+                            [% feed_action_nothing() %]
+                        </td>
+                    </tr>
+
+                [% CASE 'stale' %]
+                    <tr style="background-color: peachpuff">
+                        <td>[% feed.name | html %]</td>
+                        <td><code>[% feed.feed_type %]</code</td>
+                        <td><a href="[% feed.url %]">[% feed.url | html %]</a></td>
+
+                        <td>-</td>
+                        <td><code>-</code></td>
+                        <td>-</td>
+
+                        <td>
+                            [% feed.diff %]<br />
+                            [% IF feed.last_new_story_time %]
+                                (last new story fetched on [% feed.last_new_story_time %])
+                            [% ELSE %]
+                                (no fetched stories)
+                            [% END %]
+                        </td>
                         <td>
                             [% feed_action_disable(default="1") %]
                             [% feed_action_nothing() %]

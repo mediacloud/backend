@@ -317,7 +317,12 @@ sub _existing_and_rescraped_feeds($$)
     # rescraped feeds in "feeds_after_rescraping" table
     my $existing_feeds = $db->query(
         <<EOF,
-        SELECT media_id, name, url, feed_type
+        SELECT media_id,
+               name,
+               url,
+               feed_type,
+               last_new_story_time,
+               feed_is_stale(feeds.feeds_id) AS is_stale
         FROM feeds
         WHERE media_id = ?
         ORDER BY media_id, name, url, feed_type
@@ -327,7 +332,10 @@ EOF
 
     my $rescraped_feeds = $db->query(
         <<EOF,
-        SELECT media_id, name, url, feed_type
+        SELECT media_id,
+               name,
+               url,
+               feed_type
         FROM feeds_after_rescraping
         WHERE media_id = ?
         ORDER BY media_id, name, url, feed_type
@@ -367,7 +375,14 @@ EOF
         } @_;
     }
 
-    my @existing_and_rescraped_feeds = _feed_uniq( @{ $existing_feeds }, @{ $rescraped_feeds } );
+    my @existing_and_rescraped_feeds = _feed_uniq(
+
+        # Existing feeds is passed first, so we'll have extra
+        # "last_new_story_time" and "is_stale" columns included into the output
+        @{ $existing_feeds },
+
+        @{ $rescraped_feeds }
+    );
 
     # say STDERR "Existing and rescraped feeds: " . Dumper( \@existing_and_rescraped_feeds );
     foreach my $feed ( @existing_and_rescraped_feeds )
@@ -395,23 +410,30 @@ EOF
         }
 
         my $feed_diff = '';
-        if ( $feed_is_among_existing_feeds and $feed_is_among_rescraped_feeds )
+        if ( $feed_is_among_existing_feeds and $feed->{ is_stale } )
         {
-            $feed_diff = 'unchanged';
+            $feed_diff = 'stale';
         }
         else
         {
-            if ( $feed_is_among_existing_feeds and ( !$feed_is_among_rescraped_feeds ) )
+            if ( $feed_is_among_existing_feeds and $feed_is_among_rescraped_feeds )
             {
-                $feed_diff = 'removed';
-            }
-            elsif ( ( !$feed_is_among_existing_feeds ) and $feed_is_among_rescraped_feeds )
-            {
-                $feed_diff = 'added';
+                $feed_diff = 'unchanged';
             }
             else
             {
-                die "Feed is not among existing feeds neither rescraped feeds; probably hashing didn't work.";
+                if ( $feed_is_among_existing_feeds and ( !$feed_is_among_rescraped_feeds ) )
+                {
+                    $feed_diff = 'removed';
+                }
+                elsif ( ( !$feed_is_among_existing_feeds ) and $feed_is_among_rescraped_feeds )
+                {
+                    $feed_diff = 'added';
+                }
+                else
+                {
+                    die "Feed is not among existing feeds neither rescraped feeds; probably hashing didn't work.";
+                }
             }
         }
 
