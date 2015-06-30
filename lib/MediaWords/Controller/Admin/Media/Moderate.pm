@@ -476,7 +476,7 @@ EOF
     )->hashes;
 
     # Returns unique hash string that can be used to identify a feed
-    sub feed_hash($)
+    sub _feed_hash($)
     {
         my $feed = shift;
 
@@ -492,12 +492,11 @@ EOF
         return $feed_sha256;
     }
 
-    sub feed_uniq(@)
+    sub _feed_uniq(@)
     {
         my %h;
         map {
-            my $feed_hash = feed_hash( $_ );
-            if ( $h{ $feed_hash }++ == 0 )
+            if ( $h{ _feed_hash( $_ ) }++ == 0 )
             {
                 $_;
             }
@@ -508,17 +507,17 @@ EOF
         } @_;
     }
 
-    my @existing_and_rescraped_feeds = feed_uniq( @{ $existing_feeds }, @{ $rescraped_feeds } );
+    my @existing_and_rescraped_feeds = _feed_uniq( @{ $existing_feeds }, @{ $rescraped_feeds } );
 
     # say STDERR "Existing and rescraped feeds: " . Dumper( \@existing_and_rescraped_feeds );
     foreach my $feed ( @existing_and_rescraped_feeds )
     {
-        my $feed_hash = feed_hash( $feed );
+        my $feed_hash = _feed_hash( $feed );
 
         my $feed_is_among_existing_feeds = 0;
         foreach my $existing_feed ( @{ $existing_feeds } )
         {
-            my $existing_feed_hash = feed_hash( $existing_feed );
+            my $existing_feed_hash = _feed_hash( $existing_feed );
             if ( $feed_hash eq $existing_feed_hash )
             {
                 $feed_is_among_existing_feeds = 1;
@@ -528,7 +527,7 @@ EOF
         my $feed_is_among_rescraped_feeds = 0;
         foreach my $rescraped_feed ( @{ $rescraped_feeds } )
         {
-            my $rescraped_feed_hash = feed_hash( $rescraped_feed );
+            my $rescraped_feed_hash = _feed_hash( $rescraped_feed );
             if ( $feed_hash eq $rescraped_feed_hash )
             {
                 $feed_is_among_rescraped_feeds = 1;
