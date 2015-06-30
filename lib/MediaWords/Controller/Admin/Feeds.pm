@@ -240,33 +240,6 @@ END
     }
 }
 
-sub add_web_page_feed : Local
-{
-    my ( $self, $c, $media_id ) = @_;
-
-    my $media_tags_id = $c->request->param( 'media_tags_id' ) || 0;
-
-    $media_id += 0;
-
-    my $medium = $c->dbis->find_by_id( 'media', $media_id );
-
-    my $feed = {
-        media_id  => $media_id,
-        name      => $medium->{ name },
-        url       => $medium->{ url },
-        feed_type => 'web_page'
-    };
-
-    $feed = $c->dbis->create( 'feeds', $feed );
-
-    $c->response->redirect(
-        $c->uri_for(
-            '/media/moderate/' . ( $medium->{ media_id } - 1 ),
-            { status_msg => '"Web page" feed added.', media_tags_id => $media_tags_id }
-        )
-    );
-}
-
 sub make_scrape_form
 {
     my ( $self, $c, $medium ) = @_;

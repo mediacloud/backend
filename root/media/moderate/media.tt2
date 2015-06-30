@@ -138,11 +138,6 @@
         [% IF c.acl_user_can_visit('/admin/feeds/scrape') %]
             <a href="[% c.uri_for('/admin/feeds/scrape/') _ medium.media_id | url %]?media_tags_id=[% media_tags_id %]">scrape feeds</a>
         [% END -%]
-        [% IF c.acl_user_can_visit('/admin/feeds/add_web_page_feed') %]
-            [% IF feeds.size == 0 %]
-                | <a href="[% c.uri_for('/admin/feeds/add_web_page_feed/') _ medium.media_id | url %]?media_tags_id=[% media_tags_id %]">add 'web page' feed</a>
-            [% END %]
-        [% END %]
     </p>
 
     <table>
