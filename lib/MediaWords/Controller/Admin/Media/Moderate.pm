@@ -200,112 +200,7 @@ EOF
 
         $#{ $merge_media } = List::Util::min( $#{ $merge_media }, 2 );
 
-        # Calculate a "diff" between existing feeds in "feeds" table and
-        # rescraped feeds in "feeds_after_rescraping" table
-        my $existing_feeds = $db->query(
-            <<EOF,
-            SELECT media_id, name, url, feed_type
-            FROM feeds
-            WHERE media_id = ?
-            ORDER BY media_id, name, url, feed_type
-EOF
-            $medium->{ media_id }
-        )->hashes;
-
-        my $rescraped_feeds = $db->query(
-            <<EOF,
-            SELECT media_id, name, url, feed_type
-            FROM feeds_after_rescraping
-            WHERE media_id = ?
-            ORDER BY media_id, name, url, feed_type
-EOF
-            $medium->{ media_id }
-        )->hashes;
-
-        # say STDERR "Existing feeds: " . Dumper( $existing_feeds );
-        # say STDERR "Rescraped feeds: " . Dumper( $rescraped_feeds );
-
-        sub feed_hash($)
-        {
-            my $feed = shift;
-            local $Data::Dumper::Sortkeys = 1;
-            unless ( defined $feed )
-            {
-                die "Feed is undefined.";
-            }
-            my $feed_hash = Dumper( $feed );
-
-            # say STDERR "Feed hash: $feed_hash";
-            return $feed_hash;
-        }
-
-        sub feed_uniq(@)
-        {
-            my %h;
-            map {
-                my $feed_hash = feed_hash( $_ );
-                if ( $h{ $feed_hash }++ == 0 )
-                {
-                    $_;
-                }
-                else
-                {
-                    ();
-                }
-            } @_;
-        }
-
-        my @existing_and_rescraped_feeds = feed_uniq( @{ $existing_feeds }, @{ $rescraped_feeds } );
-
-        # say STDERR "Existing and rescraped feeds: " . Dumper( \@existing_and_rescraped_feeds );
-        foreach my $feed ( @existing_and_rescraped_feeds )
-        {
-            my $feed_hash = feed_hash( $feed );
-
-            my $feed_is_among_existing_feeds = 0;
-            foreach my $existing_feed ( @{ $existing_feeds } )
-            {
-                my $existing_feed_hash = feed_hash( $existing_feed );
-                if ( $feed_hash eq $existing_feed_hash )
-                {
-                    $feed_is_among_existing_feeds = 1;
-                }
-            }
-
-            my $feed_is_among_rescraped_feeds = 0;
-            foreach my $rescraped_feed ( @{ $rescraped_feeds } )
-            {
-                my $rescraped_feed_hash = feed_hash( $rescraped_feed );
-                if ( $feed_hash eq $rescraped_feed_hash )
-                {
-                    $feed_is_among_rescraped_feeds = 1;
-                }
-            }
-
-            my $feed_diff = '';
-            if ( $feed_is_among_existing_feeds and $feed_is_among_rescraped_feeds )
-            {
-                $feed_diff = 'unchanged';
-            }
-            else
-            {
-                if ( $feed_is_among_existing_feeds and ( !$feed_is_among_rescraped_feeds ) )
-                {
-                    $feed_diff = 'removed';
-                }
-                elsif ( ( !$feed_is_among_existing_feeds ) and $feed_is_among_rescraped_feeds )
-                {
-                    $feed_diff = 'added';
-                }
-                else
-                {
-                    die "Feed is not among existing feeds neither rescraped feeds; probably hashing didn't work.";
-                }
-            }
-            $feed->{ diff } = $feed_diff;
-        }
-
-        $feeds = \@existing_and_rescraped_feeds;
+        $feeds = _existing_and_rescraped_feeds( $db, $medium->{ media_id } );
     }
 
     my ( $num_media_pending_feeds ) = $db->query(
@@ -551,6 +446,118 @@ sub _merge_media_tags
     {
         $db->find_or_create( 'media_tags_map', { media_id => $medium_b->{ media_id }, tags_id => $tags_id } );
     }
+}
+
+sub _existing_and_rescraped_feeds($$)
+{
+    my ( $db, $media_id ) = @_;
+
+    # Calculate a "diff" between existing feeds in "feeds" table and
+    # rescraped feeds in "feeds_after_rescraping" table
+    my $existing_feeds = $db->query(
+        <<EOF,
+        SELECT media_id, name, url, feed_type
+        FROM feeds
+        WHERE media_id = ?
+        ORDER BY media_id, name, url, feed_type
+EOF
+        $media_id
+    )->hashes;
+
+    my $rescraped_feeds = $db->query(
+        <<EOF,
+        SELECT media_id, name, url, feed_type
+        FROM feeds_after_rescraping
+        WHERE media_id = ?
+        ORDER BY media_id, name, url, feed_type
+EOF
+        $media_id
+    )->hashes;
+
+    # say STDERR "Existing feeds: " . Dumper( $existing_feeds );
+    # say STDERR "Rescraped feeds: " . Dumper( $rescraped_feeds );
+
+    sub feed_hash($)
+    {
+        my $feed = shift;
+        local $Data::Dumper::Sortkeys = 1;
+        unless ( defined $feed )
+        {
+            die "Feed is undefined.";
+        }
+        my $feed_hash = Dumper( $feed );
+
+        # say STDERR "Feed hash: $feed_hash";
+        return $feed_hash;
+    }
+
+    sub feed_uniq(@)
+    {
+        my %h;
+        map {
+            my $feed_hash = feed_hash( $_ );
+            if ( $h{ $feed_hash }++ == 0 )
+            {
+                $_;
+            }
+            else
+            {
+                ();
+            }
+        } @_;
+    }
+
+    my @existing_and_rescraped_feeds = feed_uniq( @{ $existing_feeds }, @{ $rescraped_feeds } );
+
+    # say STDERR "Existing and rescraped feeds: " . Dumper( \@existing_and_rescraped_feeds );
+    foreach my $feed ( @existing_and_rescraped_feeds )
+    {
+        my $feed_hash = feed_hash( $feed );
+
+        my $feed_is_among_existing_feeds = 0;
+        foreach my $existing_feed ( @{ $existing_feeds } )
+        {
+            my $existing_feed_hash = feed_hash( $existing_feed );
+            if ( $feed_hash eq $existing_feed_hash )
+            {
+                $feed_is_among_existing_feeds = 1;
+            }
+        }
+
+        my $feed_is_among_rescraped_feeds = 0;
+        foreach my $rescraped_feed ( @{ $rescraped_feeds } )
+        {
+            my $rescraped_feed_hash = feed_hash( $rescraped_feed );
+            if ( $feed_hash eq $rescraped_feed_hash )
+            {
+                $feed_is_among_rescraped_feeds = 1;
+            }
+        }
+
+        my $feed_diff = '';
+        if ( $feed_is_among_existing_feeds and $feed_is_among_rescraped_feeds )
+        {
+            $feed_diff = 'unchanged';
+        }
+        else
+        {
+            if ( $feed_is_among_existing_feeds and ( !$feed_is_among_rescraped_feeds ) )
+            {
+                $feed_diff = 'removed';
+            }
+            elsif ( ( !$feed_is_among_existing_feeds ) and $feed_is_among_rescraped_feeds )
+            {
+                $feed_diff = 'added';
+            }
+            else
+            {
+                die "Feed is not among existing feeds neither rescraped feeds; probably hashing didn't work.";
+            }
+        }
+        $feed->{ diff } = $feed_diff;
+    }
+
+    return \@existing_and_rescraped_feeds;
 }
 
 1;
