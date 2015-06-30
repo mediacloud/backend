@@ -188,7 +188,7 @@
 
         [% FOREACH feed IN feeds %]
 
-            [% feed_action_name = 'feed_action_' + feed.hash %]
+            [% feed_action_name = 'feed_action_' _ feed.hash %]
 
             [% MACRO feed_action_nothing BLOCK %]
                 <input type="radio" class="feed_action"
