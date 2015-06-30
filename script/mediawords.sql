@@ -608,6 +608,41 @@ CREATE INDEX feeds_after_rescraping_name ON feeds_after_rescraping(name);
 CREATE UNIQUE INDEX feeds_after_rescraping_url ON feeds_after_rescraping(url, media_id);
 
 
+-- Feed is "stale" (hasn't provided a new story in some time)
+-- Not to be confused with "stale feeds" in extractor!
+CREATE OR REPLACE FUNCTION feed_is_stale(param_feeds_id INT) RETURNS boolean AS $$
+BEGIN
+
+    -- Check if feed exists at all
+    IF NOT EXISTS (
+        SELECT 1
+        FROM feeds
+        WHERE feeds.feeds_id = param_feeds_id
+    ) THEN
+        RAISE EXCEPTION 'Feed % does not exist.', param_feeds_id;
+        RETURN FALSE;
+    END IF;
+
+    -- Check if feed is active
+    IF EXISTS (
+        SELECT 1
+        FROM feeds
+        WHERE feeds.feeds_id = param_feeds_id
+          AND (
+              feeds.last_new_story_time IS NULL
+           OR feeds.last_new_story_time < NOW() - INTERVAL '6 months'
+          )
+    ) THEN
+        RETURN TRUE;
+    ELSE
+        RETURN FALSE;
+    END IF;
+
+END;
+$$
+LANGUAGE 'plpgsql';
+
+
 create table tag_sets (
     tag_sets_id            serial            primary key,
     name                varchar(512)    not null,
