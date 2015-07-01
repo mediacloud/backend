@@ -12,22 +12,22 @@
 
     function leave_only_this_feed(feed_hash)
     {
-        $( "input.feed_action" ).each(function( index ) {
-            var input_radio = $( this );
+        $( "option.feed_action" ).each(function( index ) {
+            var option_action = $( this );
 
-            if ( input_radio.data( "feed-hash" ) === feed_hash ) {
-                // Check
-                if ( input_radio.val() === "add" || input_radio.val() === "nothing" ) {
-                    input_radio.attr( "checked", "checked" );
+            if ( option_action.data( "feed-hash" ) === feed_hash ) {
+                // Select
+                if ( option_action.val() === "add" || option_action.val() === "nothing" ) {
+                    option_action.attr( "selected", "selected" );
                 } else {
-                    input_radio.removeAttr( "checked" );
+                    option_action.removeAttr( "selected" );
                 }
             } else {
-                // Uncheck
-                if ( input_radio.val() === "disable" || input_radio.val() === "skip_perm" ) {
-                    input_radio.attr( "checked", "checked" );
+                // Deselect
+                if ( option_action.val() === "disable" || option_action.val() === "skip_perm" ) {
+                    option_action.attr( "selected", "selected" );
                 } else {
-                    input_radio.removeAttr( "checked" );
+                    option_action.removeAttr( "selected" );
                 }
             }
         });
@@ -35,13 +35,13 @@
 
     function disable_all_feeds()
     {
-        $( "input.feed_action" ).each(function( index ) {
-            var input_radio = $( this );
+        $( "option.feed_action" ).each(function( index ) {
+            var option_action = $( this );
 
-            if ( input_radio.val() === "disable" || input_radio.val() === "skip_perm" ) {
-                input_radio.attr( "checked", "checked" );
+            if ( option_action.val() === "disable" || option_action.val() === "skip_perm" ) {
+                option_action.attr( "selected", "selected" );
             } else {
-                input_radio.removeAttr( "checked" );
+                option_action.removeAttr( "selected" );
             }
         });
     }
