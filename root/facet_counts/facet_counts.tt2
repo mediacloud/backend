@@ -18,7 +18,7 @@
 
     [% IF counts %]
         <p>
-            <a id="boxcommand" href="[% c.uri_for( '/admin/facetcounts', { 'q' => q, 'csv' => 1 } ) %]">Download as CSV</a>
+            <a class="boxcommand" href="[% c.uri_for( '/admin/facetcounts', { 'q' => q, 'csv' => 1 } ) %]">Download as CSV</a>
         </p>
 	
         <table>

@@ -64,7 +64,7 @@ $(document).ready(function () {
     ([% display_stories.size %] stories)
 
     [% IF display_stories_remove_button %]
-        <a id="boxcommand" href="#" class="remove_story_[% display_stories_id %]">remove all</a>        
+        <a href="#" class="boxcommand remove_story_[% display_stories_id %]">remove all</a>        
     [% END %]
 
     [% SET wc_url = c.uri_for( '/admin/cm/word_cloud', { 
@@ -84,9 +84,9 @@ $(document).ready(function () {
     [% SET dashboard_url = 'https://dashboard.mediameter.org/#query/["' _ dashboard_q _ '"]/[{}]/["' _ controversy.start_date _ '"]/["' _ controversy.end_date _ '"]' %]
     
 
-    <a id="boxcommand" href="[% wc_url | html %]">word cloud</a>
-    <a id="boxcommand" target="new" href="[% dashboard_url | html %]">dashboard query</a>
-    <a id="boxcommand" href="[% stats_url | html %]">story stats</a>
+    <a class="boxcommand" href="[% wc_url | html %]">word cloud</a>
+    <a class="boxcommand" target="new" href="[% dashboard_url | html %]">dashboard query</a>
+    <a class="boxcommand" href="[% stats_url | html %]">story stats</a>
 
     </div>
 [% END %]

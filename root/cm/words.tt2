@@ -17,7 +17,7 @@
         sort_by_count = !sort_by_count,
         q = q } ) %]
     [% SET sort_label = sort_by_count ? 'sort by tfidf' : 'sort by simple count' %]
-    <a id="boxcommand" href="[% wc_url | html %]">[% sort_label | html %]</a>   
+    <a class="boxcommand" href="[% wc_url | html %]">[% sort_label | html %]</a>   
     
 </div>
 

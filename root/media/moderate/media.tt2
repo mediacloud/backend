@@ -177,7 +177,7 @@
             <a href="[% c.uri_for('/admin/feeds/scrape/') _ medium.media_id | url %]?media_tags_id=[% media_tags_id %]">scrape feeds</a>
         [% END -%]
 
-        <a id="boxcommand" style="font-weight: bold" href="#FIXME">save and go to next media</a>
+        <a class="boxcommand" style="font-weight: bold" href="#FIXME">save and go to next media</a>
     </p>
 
     <table>
