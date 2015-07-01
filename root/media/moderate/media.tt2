@@ -46,6 +46,18 @@
         });
     }
 
+    // Confirm "Disable all feeds" click
+    jQuery(function( ) {
+        $( "a#link_disable_all_feeds" ).click(function( ) {
+            var message = "Are you sure you want to disable all of the feeds from this media source?\n\n";
+            message += "The feeds will be left in the database inact, just that they will never be fetched.";
+
+            if (confirm(message)) {
+                disable_all_feeds();
+            }
+        });
+    });
+
     </script>
 
     <table>
@@ -169,7 +181,7 @@
     <p><strong>Feeds</strong></p>
 
     <p>
-        <a href="javascript:void(0)" onclick="disable_all_feeds();">disable all feeds</a> |
+        <a href="javascript:void(0)" id="link_disable_all_feeds">disable all feeds</a> |
         [% IF c.acl_user_can_visit('/admin/feeds/create') %]
             <a href="[% c.uri_for('/admin/feeds/create/') _ medium.media_id | url %]?media_tags_id=[% media_tags_id %]">add feed</a> |
         [% END -%]
