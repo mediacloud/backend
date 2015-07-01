@@ -58,6 +58,28 @@
         });
     });
 
+    // Confirm "Leave only this feed" click
+    jQuery(function( ) {
+        $( "a.link_leave_only_this_feed" ).click(function( ) {
+
+            var link = $( this );
+            var feed_hash = link.data( "feed-hash" );
+
+            if ( typeof feed_hash === "undefined" ) {
+                console.log("Feed hash is undefined.");
+                alert("Feed hash is undefined.");
+                return;
+            }
+
+            var message = "Are you sure you want to leave only a single feed for this media source?\n\n";
+            message += "The rest of the feeds will be left in the database inact, just that they will never be fetched.";
+
+            if (confirm( message )) {
+                leave_only_this_feed( feed_hash );
+            }
+        });
+    });
+
     </script>
 
     <table>
@@ -269,7 +291,7 @@
         [% END %]
 
         [% MACRO feed_action_leave_only_this_feed BLOCK %]
-            <a href="javascript:void(0)" onclick="leave_only_this_feed('[% feed.hash %]');">Leave only this feed</a>
+            <a href="javascript:void(0)" data-feed-hash="[% feed.hash %]" class="link_leave_only_this_feed">Leave only this feed</a>
         [% END %]
 
         <!-- List feeds -->
