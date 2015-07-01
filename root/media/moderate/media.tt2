@@ -246,14 +246,12 @@
             <td><code>[% feed.feed_type %]</code</td>
             <td class="force-word-wrap"><a href="[% feed.url %]">[% feed.url | html %]</a></td>
             <td>
-                [% feed.diff %]
                 [% IF feed.diff == 'stale' %]
-                    <br />
-                    [% IF feed.last_new_story_time %]
-                        (last new story fetched on [% feed.last_new_story_time %])
-                    [% ELSE %]
-                        (no fetched stories)
-                    [% END %]
+                    <abbr title="[% IF feed.last_new_story_time %]last new story fetched on [% feed.last_new_story_time %][% ELSE %]no fetched stories[% END %]">
+                        [% feed.diff %]
+                    </abbr>
+                [% ELSE %]
+                    [% feed.diff %]
                 [% END %]
             </td>
         [% END %]
