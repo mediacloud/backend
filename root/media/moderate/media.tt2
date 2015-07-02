@@ -214,7 +214,7 @@
         <a class="boxcommand" style="font-weight: bold" href="#FIXME">save and go to next media</a>
     </p>
 
-    <table>
+    <table id="media_feeds" summary="Media's feeds and their moderation status">
         <tr>
             <th colspan="3" style="width: 50%">feed</th>
             <th rowspan="2" style="width: 20%">diff</th>
