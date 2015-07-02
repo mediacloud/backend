@@ -21,7 +21,6 @@ use MediaWords::Controller::Admin::CM;
 use Text::CSV;
 use CGI qw(:standard);
 
-# beginner's mistake in commit message
 # query the db for media and links and create an SNA::Network graph from the results.
 # return the SNA::Network object.
 sub create_graph
@@ -30,98 +29,53 @@ sub create_graph
     my ( $cdts_id ) = @ARGV;
     my ( $cdts, $cd, $controversy ) = MediaWords::Controller::Admin::CM::_get_controversy_objects( $db, $cdts_id );
     MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, 1 );
-    my $net = SNA::Network->new();
+    my $net   = SNA::Network->new();
+    my $media = $db->query(
+        "select dm.*, dmlc.*
+  from dump_media dm, dump_medium_link_counts dmlc
+  where dm.media_id in
+    ( ( select source_media_id from dump_medium_links ) union
+      ( select ref_media_id from dump_medium_links ) ) and dm.media_id = dmlc.media_id  
+   order by dmlc.inlink_count desc limit 500"
+    )->hashes;
 
-    my $media     = $db->query( "SELECT * FROM dump_medium_links" )->hashes;
-    my $file_no   = scalar( @{ $media } );
-    my @array     = ();
-    my @array2    = ();
-    my @in_ar     = ();
-    my @in_ar2    = ();
-    my $k         = 0;
-    my %h1        = ();
-    my %h2        = ();
-    my @linkarray = ();
-    my @linkstore = ();
+    my $media_links         = $db->query( "select * from dump_medium_links" )->hashes;
+    my $node_id             = 0;
+    my %medium_lookup       = ();
+    my %medium_index_lookup = ();
 
-    for ( my $i = 0 ; $i < $file_no ; $i = $i + 1 )
+    #my %medium_links = count_aggregate_links( $media_links );
+
+    for my $medium ( @{ $media } )
     {
-        my $source_mediaid = $media->[ $i ]->{ 'source_media_id' };
-        my $links          = $media->[ $i ]->{ 'link_count' };
-        $linkstore[ $i ] = 0;
-        if ( !( $source_mediaid ~~ @linkarray ) )
+        my $mediaid = $medium->{ 'media_id' };
+        my $name    = $medium->{ 'name' };
+        my $links   = $medium->{ 'inlink_count' };
+        if ( !exists( $medium_lookup{ $mediaid } ) )
         {
-            $linkstore[ $source_mediaid ] = $links;
-            $linkarray[ $i ]              = $media->[ $i ]->{ 'source_media_id' };
-        }
-        else
-        {
-            $linkstore[ $source_mediaid ] = $linkstore[ $source_mediaid ] + $links;
-            $linkarray[ $i ]              = 0;
+            $net->create_node_at_index(
+                index    => $node_id,
+                name     => $name,
+                media_id => $mediaid,
+                links    => $links
+            );
+            $medium_lookup{ $mediaid }       = $mediaid;
+            $medium_index_lookup{ $mediaid } = $node_id;
+            $node_id++;
         }
     }
-
-    for ( my $i = 0 ; $i < $file_no ; $i = $i + 1 )
+    for my $medium ( @{ $media_links } )
     {
-        my $source_mediaid = $media->[ $i ]->{ 'source_media_id' };
-        my $source_name    = $media->[ $i ]->{ 'name' };
-        my $refid          = $media->[ $i ]->{ 'ref_media_id' };
-        my $links          = $media->[ $i ]->{ 'link_count' };
-
-        if ( !( $source_mediaid ~~ @array ) )
+        my $source_mediaid = $medium->{ 'source_media_id' };
+        my $target_mediaid = $medium->{ 'ref_media_id' };
+        if ( ( exists $medium_lookup{ $source_mediaid } ) and ( exists $medium_lookup{ $target_mediaid } ) )
         {
-            $in_ar[ $i ] = $k;
-            $net->create_node_at_index( index => $k, name => $source_mediaid, links => $linkstore[ $source_mediaid ] );
-            $h1{ $source_mediaid } = $k;
-            $k                     = $k + 1;
-            $array[ $i ]           = $media->[ $i ]->{ 'source_media_id' };
+            $net->create_edge(
+                source_index => $medium_index_lookup{ $source_mediaid },
+                target_index => $medium_index_lookup{ $target_mediaid },
+                weight       => 1.0
+            );
         }
-        else
-        {
-            $in_ar[ $i ] = $k - 1;
-            $array[ $i ] = 0;
-        }
-    }
-
-    my $j = $k;
-
-    for ( my $i = 0 ; $i < $file_no ; $i = $i + 1 )
-    {
-        my $source_mediaid = $media->[ $i ]->{ 'source_media_id' };
-        my $target_mediaid = $media->[ $i ]->{ 'ref_media_id' };
-
-        if ( !( $target_mediaid ~~ @array2 ) and !( $target_mediaid ~~ @array ) )
-        {
-
-            $in_ar2[ $i ] = $j;
-            $net->create_node_at_index( index => $j, name => $target_mediaid );
-            $h2{ $target_mediaid } = $j;
-            $j                     = $j + 1;
-            $array2[ $i ]          = $media->[ $i ]->{ 'ref_media_id' };
-        }
-        elsif ( $target_mediaid ~~ @array )
-        {
-            if ( exists $h1{ $target_mediaid } )
-            {
-                $in_ar2[ $i ] = $h1{ $target_mediaid };
-            }
-
-            $array2[ $i ] = 0;
-        }
-        else
-        {
-            if ( exists $h2{ $target_mediaid } )
-            {
-                $in_ar2[ $i ] = $h2{ $target_mediaid };
-            }
-            $array2[ $i ] = 0;
-        }
-    }
-    for ( my $i = 0 ; $i < $file_no ; $i = $i + 1 )
-    {
-        my $source_mediaid = $media->[ $i ]->{ 'source_media_id' };
-        my $target_mediaid = $media->[ $i ]->{ 'ref_media_id' };
-        $net->create_edge( source_index => $in_ar[ $i ], target_index => $in_ar2[ $i ], weight => 1.0 );
     }
     return $net;
 }
@@ -129,27 +83,29 @@ sub create_graph
 # given an SNA::Network object with a graph representing the media graph
 sub detect_communities
 {
-
     my ( $net ) = @_;
-
+    my $fh;
     my $num_communities = SNA::Network::Algorithm::Louvain::identify_communities_with_louvain( $net );
+    open $fh, ">:encoding(utf8)", "communities.csv";
+    say $fh "Media_id:", "\t", "Media_name:", "\t", "Community_id: ", "\t", "Links:";
     foreach my $community ( $net->communities )
     {
+
         foreach my $member ( $community->members )
         {
-            if ( exists( $member->{ 'links' } ) )
-            {
-                my $unformatted_links = Dumper( $member->{ 'links' } );
-                my $unformatted_id    = Dumper( $member->{ 'name' } );
-                $unformatted_links =~ s{\A\$VAR\d+\s*=\s*}{};
-                $unformatted_id =~ s{\A\$VAR\d+\s*=\s*}{};
-                my $formatted_links = eval $unformatted_links;
-                my $formatted_id    = eval $unformatted_id;
-                say "Media_id:", $formatted_id, " ", "Community-id: ", $community->index, " ", "Links:", $formatted_links;
-            }
+            my $unformatted_links = Dumper( $member->{ 'links' } );
+            my $unformatted_name  = Dumper( $member->{ 'name' } );
+            my $unformatted_id    = Dumper( $member->{ 'media_id' } );
+            $unformatted_links =~ s{\A\$VAR\d+\s*=\s*}{};
+            $unformatted_name =~ s{\A\$VAR\d+\s*=\s*}{};
+            $unformatted_id =~ s{\A\$VAR\d+\s*=\s*}{};
+            my $formatted_links = eval $unformatted_links;
+            my $formatted_name  = eval $unformatted_name;
+            my $formatted_id    = eval $unformatted_id;
+            say $fh $formatted_id, "\t", $formatted_name, "\t", $community->index, "\t", $formatted_links;
         }
     }
-
+    close $fh;
 }
 
 sub main
