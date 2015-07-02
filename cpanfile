@@ -119,6 +119,7 @@ requires 'Scalar::Defer';
 requires 'Set::Jaccard::SimilarityCoefficient';
 requires 'Set::Scalar';
 requires 'Smart::Comments';
+requires 'SNA::Network';
 requires 'Statistics::Basic';
 requires 'Sys::RunAlone';
 requires 'Template';
