@@ -10,6 +10,13 @@
 
     <script type="text/javascript">
 
+    $( document ).ready(function( ) {
+        $( "table#media_feeds" ).tablesorter({
+            // sort on the "diff" column, order asc (so that "unchanged" appears in the bottom)
+            sortList: [[3,0]]
+        });
+    });
+
     function leave_only_this_feed(feed_hash)
     {
         $( "option.feed_action" ).each(function( index ) {
@@ -214,154 +221,158 @@
         <a class="boxcommand" style="font-weight: bold" href="#FIXME">save and go to next media</a>
     </p>
 
-    <table id="media_feeds" summary="Media's feeds and their moderation status">
-        <tr>
-            <th colspan="3" style="width: 50%">feed</th>
-            <th rowspan="2" style="width: 20%">diff</th>
-            <th colspan="2" style="width: 30%">action</th>
-        </tr>
-        <tr>
-            <!-- feed -->
-            <th>name</th>
-            <th>type</th>
-            <th>url</th>
-            <th style="width: 15%">feed action</th>
-            <th style="width: 15%">leave only this feed</th>
-        </tr>
+    <table id="media_feeds" summary="Media's feeds and their moderation status" class="tablesorter">
+        <thead>
+            <tr>
+                <th colspan="3" style="width: 50%">feed</th>
+                <th rowspan="2" style="width: 20%">diff</th>
+                <th colspan="2" style="width: 30%">action</th>
+            </tr>
+            <tr>
+                <!-- feed -->
+                <th>name</th>
+                <th>type</th>
+                <th>url</th>
+                <th style="width: 15%">feed action</th>
+                <th style="width: 15%">leave only this feed</th>
+            </tr>
+        </thead>
+        <tbody>
 
-        <!-- Shortcuts for various actions of what to do with each feed -->
-        [% MACRO feed_action_nothing BLOCK %]
-            <option class="feed_action"
-                id="feed_action_nothing_[% feed.hash %]"
-                data-feed-hash="[% feed.hash %]"
-                data-action-description=""
-                value="nothing"
-                [% IF default %]selected="selected"[% END %]>Do nothing</option>
-        [% END %]
+            <!-- Shortcuts for various actions of what to do with each feed -->
+            [% MACRO feed_action_nothing BLOCK %]
+                <option class="feed_action"
+                    id="feed_action_nothing_[% feed.hash %]"
+                    data-feed-hash="[% feed.hash %]"
+                    data-action-description=""
+                    value="nothing"
+                    [% IF default %]selected="selected"[% END %]>Do nothing</option>
+            [% END %]
 
-        [% MACRO feed_action_disable BLOCK %]
-            <option class="feed_action"
-                id="feed_action_disable_[% feed.hash %]"
-                data-feed-hash="[% feed.hash %]"
-                data-action-description="Disable the feed in &quot;feeds&quot; table so that it doesn't get scraped anymore"
-                value="disable"
-                [% IF default %]selected="selected"[% END %]>Disable</option>
-        [% END %]
+            [% MACRO feed_action_disable BLOCK %]
+                <option class="feed_action"
+                    id="feed_action_disable_[% feed.hash %]"
+                    data-feed-hash="[% feed.hash %]"
+                    data-action-description="Disable the feed in &quot;feeds&quot; table so that it doesn't get scraped anymore"
+                    value="disable"
+                    [% IF default %]selected="selected"[% END %]>Disable</option>
+            [% END %]
 
-        [% MACRO feed_action_add_to_feeds BLOCK %]
-            <option class="feed_action"
-                id="feed_action_add_[% feed.hash %]"
-                data-feed-hash="[% feed.hash %]"
-                data-action-description="Accept the feed and add it to &quot;feeds&quot; table so that it starts getting crawled"
-                value="add"
-                [% IF default %]selected="selected"[% END %]>Accept</option>
-        [% END %]
+            [% MACRO feed_action_add_to_feeds BLOCK %]
+                <option class="feed_action"
+                    id="feed_action_add_[% feed.hash %]"
+                    data-feed-hash="[% feed.hash %]"
+                    data-action-description="Accept the feed and add it to &quot;feeds&quot; table so that it starts getting crawled"
+                    value="add"
+                    [% IF default %]selected="selected"[% END %]>Accept</option>
+            [% END %]
 
-        [% MACRO feed_action_skip_temp BLOCK %]
-            <option class="feed_action"
-                id="feed_action_skip_temp_[% feed.hash %]"
-                data-feed-hash="[% feed.hash %]"
-                data-action-description="Reject the feed temporarily and don't add it to &quot;feeds&quot; table; feed will show up again after next rescraping for you to decide upon"
-                value="skip_temp"
-                [% IF default %]selected="selected"[% END %]>Reject temporarily</option>
-        [% END %]
+            [% MACRO feed_action_skip_temp BLOCK %]
+                <option class="feed_action"
+                    id="feed_action_skip_temp_[% feed.hash %]"
+                    data-feed-hash="[% feed.hash %]"
+                    data-action-description="Reject the feed temporarily and don't add it to &quot;feeds&quot; table; feed will show up again after next rescraping for you to decide upon"
+                    value="skip_temp"
+                    [% IF default %]selected="selected"[% END %]>Reject temporarily</option>
+            [% END %]
 
-        [% MACRO feed_action_skip_perm BLOCK %]
-            <option class="feed_action"
-                id="feed_action_skip_perm_[% feed.hash %]"
-                data-feed-hash="[% feed.hash %]"
-                data-action-description="Reject the feed by adding it to &quot;feeds&quot; table and then disabling it right away; feed will not show up again after next rescraping"
-                value="skip_perm"
-                [% IF default %]selected="selected"[% END %]>Reject permanently</option>
-        [% END %]
+            [% MACRO feed_action_skip_perm BLOCK %]
+                <option class="feed_action"
+                    id="feed_action_skip_perm_[% feed.hash %]"
+                    data-feed-hash="[% feed.hash %]"
+                    data-action-description="Reject the feed by adding it to &quot;feeds&quot; table and then disabling it right away; feed will not show up again after next rescraping"
+                    value="skip_perm"
+                    [% IF default %]selected="selected"[% END %]>Reject permanently</option>
+            [% END %]
 
-        [% MACRO feed_columns BLOCK %]
-            <td>[% feed.name | html %]</td>
-            <td><code>[% feed.feed_type %]</code</td>
-            <td class="force-word-wrap"><a href="[% feed.url %]">[% feed.url | html %]</a></td>
-            <td>
-                [% IF feed.diff == 'stale' %]
-                    <abbr title="[% IF feed.last_new_story_time %]last new story fetched on [% feed.last_new_story_time %][% ELSE %]no fetched stories[% END %]">
+            [% MACRO feed_columns BLOCK %]
+                <td>[% feed.name | html %]</td>
+                <td><code>[% feed.feed_type %]</code</td>
+                <td class="force-word-wrap"><a href="[% feed.url %]">[% feed.url | html %]</a></td>
+                <td>
+                    [% IF feed.diff == 'stale' %]
+                        <abbr title="[% IF feed.last_new_story_time %]last new story fetched on [% feed.last_new_story_time %][% ELSE %]no fetched stories[% END %]">
+                            [% feed.diff %]
+                        </abbr>
+                    [% ELSE %]
                         [% feed.diff %]
-                    </abbr>
-                [% ELSE %]
-                    [% feed.diff %]
-                [% END %]
-            </td>
-        [% END %]
+                    [% END %]
+                </td>
+            [% END %]
 
-        [% MACRO feed_action_leave_only_this_feed BLOCK %]
-            <a href="javascript:void(0)" data-feed-hash="[% feed.hash %]" class="link_leave_only_this_feed">Leave only this feed</a>
-        [% END %]
+            [% MACRO feed_action_leave_only_this_feed BLOCK %]
+                <a href="javascript:void(0)" data-feed-hash="[% feed.hash %]" class="link_leave_only_this_feed">Leave only this feed</a>
+            [% END %]
 
-        <!-- List feeds -->
-        [% FOREACH feed IN feeds %]
+            <!-- List feeds -->
+            [% FOREACH feed IN feeds %]
 
-            [% feed_action_name = 'feed_action_' _ feed.hash %]
+                [% feed_action_name = 'feed_action_' _ feed.hash %]
 
-            [% SWITCH feed.diff %]
+                [% SWITCH feed.diff %]
 
-                [% CASE 'unchanged' %]
-                    <tr style="background-color: inherit">
-                        [% feed_columns %]
-                        <td>
-                            <select name="[% feed_action_name %]">
-                                [% feed_action_nothing(default="1") %]
-                                [% feed_action_disable() %]
-                            </select>
-                        </td>
-                        <td>
-                            [% feed_action_leave_only_this_feed %]
-                        </td>
-                    </tr>
+                    [% CASE 'unchanged' %]
+                        <tr style="background-color: inherit">
+                            [% feed_columns %]
+                            <td>
+                                <select name="[% feed_action_name %]">
+                                    [% feed_action_nothing(default="1") %]
+                                    [% feed_action_disable() %]
+                                </select>
+                            </td>
+                            <td>
+                                [% feed_action_leave_only_this_feed %]
+                            </td>
+                        </tr>
 
-                [% CASE 'added' %]
-                    <tr style="background-color: lightgreen">
-                        [% feed_columns %]
-                        <td>
-                            <select name="[% feed_action_name %]">
-                                [% feed_action_add_to_feeds(default="1") %]
-                                [% feed_action_skip_temp() %]
-                                [% feed_action_skip_perm() %]
-                            </select>
-                        </td>
-                        <td>
-                            [% feed_action_leave_only_this_feed %]
-                        </td>
-                    </tr>
+                    [% CASE 'added' %]
+                        <tr style="background-color: lightgreen">
+                            [% feed_columns %]
+                            <td>
+                                <select name="[% feed_action_name %]">
+                                    [% feed_action_add_to_feeds(default="1") %]
+                                    [% feed_action_skip_temp() %]
+                                    [% feed_action_skip_perm() %]
+                                </select>
+                            </td>
+                            <td>
+                                [% feed_action_leave_only_this_feed %]
+                            </td>
+                        </tr>
 
-                [% CASE 'removed' %]
-                    <tr style="background-color: lightpink">
-                        [% feed_columns %]
-                        <td>
-                            <select name="[% feed_action_name %]">
-                                [% feed_action_disable(default="1") %]
-                                [% feed_action_nothing() %]
-                            </select>
-                        </td>
-                        <td>-</td>
-                    </tr>
+                    [% CASE 'removed' %]
+                        <tr style="background-color: lightpink">
+                            [% feed_columns %]
+                            <td>
+                                <select name="[% feed_action_name %]">
+                                    [% feed_action_disable(default="1") %]
+                                    [% feed_action_nothing() %]
+                                </select>
+                            </td>
+                            <td>-</td>
+                        </tr>
 
-                [% CASE 'stale' %]
-                    <tr style="background-color: peachpuff">
-                        [% feed_columns %]
-                        <td>
-                            <select name="[% feed_action_name %]">
-                                [% feed_action_disable(default="1") %]
-                                [% feed_action_nothing() %]
-                            </select>
-                        </td>
-                        <td>-</td>
-                    </tr>
+                    [% CASE 'stale' %]
+                        <tr style="background-color: peachpuff">
+                            [% feed_columns %]
+                            <td>
+                                <select name="[% feed_action_name %]">
+                                    [% feed_action_disable(default="1") %]
+                                    [% feed_action_nothing() %]
+                                </select>
+                            </td>
+                            <td>-</td>
+                        </tr>
 
-                [% CASE %]
-                    <tr>
-                        <td colspan="5">Error: unknown feed 'diff' value</td>
-                    </tr>
-                    
+                    [% CASE %]
+                        <tr>
+                            <td colspan="5">Error: unknown feed 'diff' value</td>
+                        </tr>
+                        
+                [% END -%]
             [% END -%]
-        [% END -%]
 
+        </tbody>
     </table>
 
 [% ELSE #[% IF medium %]
