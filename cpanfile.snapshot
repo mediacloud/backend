@@ -366,6 +366,13 @@ DISTRIBUTIONS
       Scalar::Util 0
       strict 0
       warnings 0
+  Carp-Always-0.13
+    pathname: F/FE/FERREIRA/Carp-Always-0.13.tar.gz
+    provides:
+      Carp::Always 0.13
+    requirements:
+      Carp 0
+      ExtUtils::MakeMaker 0
   Carp-Assert-0.20
     pathname: M/MS/MSCHWERN/Carp-Assert-0.20.tar.gz
     provides:
@@ -3771,6 +3778,12 @@ DISTRIBUTIONS
       FileHandle 0
       strict 0
       warnings 0
+  File-Touch-0.08
+    pathname: N/NW/NWETTERS/File-Touch-0.08.tar.gz
+    provides:
+      File::Touch 0.08
+    requirements:
+      ExtUtils::MakeMaker 0
   File-Which-1.09
     pathname: A/AD/ADAMK/File-Which-1.09.tar.gz
     provides:

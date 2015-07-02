@@ -45,7 +45,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4502;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4504;
     
 BEGIN
 
@@ -2190,28 +2190,33 @@ DECLARE
 
 BEGIN
 
+    -- Try to prevent deadlocks
+    LOCK TABLE auth_user_request_daily_counts IN SHARE ROW EXCLUSIVE MODE;
+
     request_date := DATE_TRUNC('day', NEW.request_timestamp)::DATE;
 
-    -- Try to UPDATE a previously INSERTed day
-    UPDATE auth_user_request_daily_counts
-    SET requests_count = requests_count + 1,
-        requested_items_count = requested_items_count + NEW.requested_items_count
-    WHERE email = NEW.email
-      AND day = request_date;
-
-    IF FOUND THEN
-        RETURN NULL;
-    END IF;
-
-    -- If UPDATE was not successful, do an INSERT (new day!)
+    WITH upsert AS (
+        -- Try to UPDATE a previously INSERTed day
+        UPDATE auth_user_request_daily_counts
+        SET requests_count = requests_count + 1,
+            requested_items_count = requested_items_count + NEW.requested_items_count
+        WHERE email = NEW.email
+          AND day = request_date
+        RETURNING *
+    )
     INSERT INTO auth_user_request_daily_counts (email, day, requests_count, requested_items_count)
-    VALUES (NEW.email, request_date, 1, NEW.requested_items_count);
+        SELECT NEW.email, request_date, 1, NEW.requested_items_count
+        WHERE NOT EXISTS (
+            SELECT *
+            FROM upsert
+        );
 
     RETURN NULL;
 
 END;
 $$
 LANGUAGE 'plpgsql';
+
 
 CREATE TRIGGER auth_user_requests_update_daily_counts
     AFTER INSERT ON auth_user_requests
@@ -2406,6 +2411,13 @@ CREATE TRIGGER gearman_job_queue_sync_lastmod
     FOR EACH ROW EXECUTE PROCEDURE gearman_job_queue_sync_lastmod();
 
 
+-- Extra stories to be annotated with CoreNLP that don't have "media.annotate_with_corenlp = 't'"
+CREATE TABLE extra_corenlp_stories (
+    extra_corenlp_stories_id  SERIAL  PRIMARY KEY,
+    stories_id                INTEGER NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE
+);
+CREATE INDEX extra_corenlp_stories_stories_id ON extra_corenlp_stories (stories_id);
+
 --
 -- Returns true if the story can + should be annotated with CoreNLP
 --
@@ -2414,7 +2426,7 @@ BEGIN
 
     -- FIXME this function is not really optimized for performance
 
-    -- Check "media.annotate_with_corenlp"
+    -- Check "media.annotate_with_corenlp" and "extra_corenlp_stories"
     IF NOT EXISTS (
 
         SELECT 1
@@ -2423,8 +2435,14 @@ BEGIN
         WHERE stories.stories_id = corenlp_stories_id
           AND media.annotate_with_corenlp = 't'
 
+    ) AND NOT EXISTS (
+
+        SELECT 1
+        FROM extra_corenlp_stories
+        WHERE extra_corenlp_stories.stories_id = corenlp_stories_id
+
     ) THEN
-        RAISE NOTICE 'Story % is not annotatable with CoreNLP because media is not set for annotation.', corenlp_stories_id;
+        RAISE NOTICE 'Story % is not annotatable with CoreNLP because it is not enabled for annotation.', corenlp_stories_id;
         RETURN FALSE;
 
     -- Check if the story is extracted

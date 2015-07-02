@@ -120,6 +120,11 @@ sub _get_stories_from_feed_contents_impl
             description  => _no_ref( $item->description ),
         };
 
+        if ( my $description = $item->get( 'content' ) )
+        {
+            $story->{ description } = MediaWords::Util::HTML::html_strip( $description );
+        }
+
         push @{ $ret }, $story;
     }
 
