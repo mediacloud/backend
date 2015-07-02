@@ -12,6 +12,7 @@ use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use MediaWords::DBI::Media;
+use MediaWords::DBI::Feeds;
 use MediaWords::GearmanFunction::RescrapeMedia;
 use Feed::Scrape::MediaWords;
 
@@ -124,16 +125,20 @@ EOF
             # If media is getting rescraped and syndicated feeds were just
             # found, disable the "web_page" feeds that we might have added
             # previously
-            $db->query(
+            my $active_webpage_feeds = $db->query(
                 <<EOF,
-                UPDATE feeds
-                SET feed_status = 'inactive'
+                SELECT *
+                FROM feeds
                 WHERE media_id = ?
                   AND feed_type = 'web_page'
                   AND feed_status = 'active'
 EOF
                 $feed->{ media_id }
-            );
+            )->hashes;
+            foreach my $active_webpage_feed ( @{ $active_webpage_feeds } )
+            {
+                MediaWords::DBI::Feeds::disable_feed( $db, $active_webpage_feed->{ feeds_id } );
+            }
         }
 
         $db->query(
