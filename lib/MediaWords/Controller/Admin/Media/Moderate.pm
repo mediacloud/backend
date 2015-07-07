@@ -141,7 +141,7 @@ sub media : Local
             {
 
                 # Add active feed to "feeds" table
-                $feed = $db->create( 'feeds', $feed );
+                MediaWords::DBI::Media::Rescrape::add_feed_by_media_name_url_type( $db, $feed );
                 MediaWords::DBI::Media::Rescrape::delete_rescraped_feed_by_media_name_url_type( $db, $feed );
 
             }
@@ -164,8 +164,8 @@ sub media : Local
             {
 
                 # Add inactive feed to "feeds" table
-                $feed = $db->create( 'feeds', $feed );
-                MediaWords::DBI::Feeds::disable_feed( $db, $feed->{ feeds_id } );
+                $feed->{ feed_status } = 'inactive';
+                MediaWords::DBI::Media::Rescrape::add_feed_by_media_name_url_type( $db, $feed );
             }
         }
 

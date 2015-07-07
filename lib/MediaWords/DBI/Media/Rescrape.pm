@@ -320,6 +320,29 @@ sub merge_media_tags($$$)
     }
 }
 
+sub add_feed_by_media_name_url_type($$)
+{
+    my ( $db, $feed ) = @_;
+
+    unless ( $feed->{ media_id } and $feed->{ name } and $feed->{ url } and $feed->{ feed_type } )
+    {
+        die "Feed hashref is not valid.";
+    }
+
+    unless ( $feed->{ feed_status } )
+    {
+        $feed->{ feed_status } = 'active';
+    }
+
+    $db->query(
+        <<EOF,
+        INSERT INTO feeds (media_id, name, url, feed_type, feed_status)
+        VALUES (?, ?, ?, ?, ?)
+EOF
+        $feed->{ media_id }, $feed->{ name }, $feed->{ url }, $feed->{ feed_type }, $feed->{ feed_status }
+    );
+}
+
 sub get_feed_by_media_name_url_type($$)
 {
     my ( $db, $feed ) = @_;
