@@ -231,9 +231,18 @@ EOF
     local $Data::Dumper::Sortkeys = 1;
     if ( $medium->{ moderated } and $need_to_moderate and Dumper( $rescraped_feeds ) eq Dumper( $live_feeds ) )
     {
-        say STDERR
-"Media $media_id would need rescraping but we have moderated the very same feeds previously so disabling moderation";
+        say STDERR "Media $media_id would need rescraping but we have " .
+          "moderated the very same feeds previously so disabling moderation";
         $need_to_moderate = 0;
+
+        # Delete them so that move_feeds_after_rescraping_to_feeds() doesn't make those feeds active
+        $db->query(
+            <<EOF,
+            DELETE FROM feeds_after_rescraping
+            WHERE media_id = ?
+EOF
+            $media_id
+        );
     }
 
     if ( $need_to_moderate )
