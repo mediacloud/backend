@@ -107,6 +107,17 @@ sub media : Local
             say STDERR "media_id is unset.";
         }
 
+        my $media = $db->find_by_id( 'media', $media_id );
+        unless ( $media )
+        {
+            die "Media with ID $media_id was not found.";
+        }
+        if ( $media->{ moderated } )
+        {
+            # Maybe user pressed F5
+            die "Media with ID $media_id is already moderated.";
+        }
+
         my $feeds = MediaWords::DBI::Media::Rescrape::existing_and_rescraped_feeds( $db, $media_id );
         unless ( scalar @{ $feeds } )
         {
