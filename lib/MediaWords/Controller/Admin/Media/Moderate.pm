@@ -153,6 +153,10 @@ sub media : Local
                 $feed->{ feed_status } = 'inactive';
                 MediaWords::DBI::Media::Rescrape::add_feed_by_media_name_url_type( $db, $feed );
             }
+            else
+            {
+                die "Unknown feed action: $feed_action";
+            }
 
             MediaWords::DBI::Media::Rescrape::delete_rescraped_feed_by_media_name_url_type( $db, $feed );
         }
