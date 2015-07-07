@@ -131,13 +131,7 @@ sub media : Local
                 die "Feed action is undefined, tried parameter '$feed_action_param'; feed: " . Dumper( $feed );
             }
 
-            if ( $feed_action eq 'nothing' )
-            {
-
-                # no-op
-
-            }
-            elsif ( $feed_action eq 'add' )
+            if ( $feed_action eq 'add' )
             {
 
                 # Add active feed to "feeds" table
@@ -153,7 +147,7 @@ sub media : Local
                 MediaWords::DBI::Feeds::disable_feed( $db, $existing_feed->{ feeds_id } );
 
             }
-            elsif ( $feed_action eq 'skip_temp' )
+            elsif ( $feed_action eq 'nothing' or $feed_action eq 'skip_temp' )
             {
 
                 # Ignore (re)scraped feed in "feeds_after_rescraping"
