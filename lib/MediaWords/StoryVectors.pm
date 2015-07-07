@@ -115,6 +115,25 @@ END
     die( "Error on pg_putcopyend for story_sentence_counts: $@" ) if ( $@ );
 }
 
+# get unique sentences from the list, maintaining the original order
+sub _get_unique_sentences
+{
+    my ( $sentences ) = @_;
+
+    my $unique_sentences       = [];
+    my $unique_sentence_lookup = {};
+    for my $sentence ( @{ $sentences } )
+    {
+        if ( !$unique_sentence_lookup->{ $sentence } )
+        {
+            $unique_sentence_lookup->{ $sentence } = 1;
+            push( @{ $unique_sentences }, $sentence );
+        }
+    }
+
+    return $unique_sentences;
+}
+
 # return the sentences from the set that are dups within the same media source and calendar week.
 # also adds the sentence to the story_sentences_count table and/or increments the count in that table
 # for the sentence.
@@ -131,9 +150,11 @@ sub get_deduped_sentences
 {
     my ( $db, $story, $sentences ) = @_;
 
+    my $unique_sentences = _get_unique_sentences( $sentences );
+
     my $sentence_md5_lookup = {};
     my $i                   = 0;
-    for my $sentence ( @{ $sentences } )
+    for my $sentence ( @{ $unique_sentences } )
     {
         my $sentence_utf8 = encode_utf8( $sentence );
         unless ( defined $sentence_utf8 )

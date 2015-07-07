@@ -1,10 +1,11 @@
 #<<<
 $VAR1 = {
-          'collect_date' => '2015-01-17 02:33:38.09069',
+          'collect_date' => '2015-07-06 22:56:06.293853',
           'content' => '<p>This is the third item.</p>
 ',
-          'db_row_last_updated' => '2015-01-17 02:33:43.227392-05',
+          'db_row_last_updated' => '2015-07-06 22:56:11.3683-04',
           'description' => 'RSS description of the third inline item.',
+          'disable_triggers' => 0,
           'extracted_text' => 'Third inline item
 ***
 
@@ -21,7 +22,8 @@ RSS description of the third inline item.
           'stories_id' => 3,
           'story_sentences' => [
                                  {
-                                   'db_row_last_updated' => '2015-01-17 02:33:43.227392-05',
+                                   'db_row_last_updated' => '2015-07-06 22:56:11.3683-04',
+                                   'disable_triggers' => 0,
                                    'language' => 'en',
                                    'media_id' => 1,
                                    'publish_date' => '2009-06-11 06:57:00',
@@ -34,6 +36,6 @@ RSS description of the third inline item.
           'tags' => [],
           'timezone' => 'America/New_York',
           'title' => 'Third inline item',
-          'url' => 'http://amanda.law.harvard.edu:36893/inline_content/item_3.html'
+          'url' => 'http://amanda.law.harvard.edu:46825/inline_content/item_3.html'
         };
 #>>>
