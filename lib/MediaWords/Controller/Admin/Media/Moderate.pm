@@ -133,15 +133,11 @@ sub media : Local
 
             if ( $feed_action eq 'add' )
             {
-
                 # Add active feed to "feeds" table
                 MediaWords::DBI::Media::Rescrape::add_feed_by_media_name_url_type( $db, $feed );
-                MediaWords::DBI::Media::Rescrape::delete_rescraped_feed_by_media_name_url_type( $db, $feed );
-
             }
             elsif ( $feed_action eq 'disable' )
             {
-
                 # Disable existing feed
                 my $existing_feed = MediaWords::DBI::Media::Rescrape::get_feed_by_media_name_url_type( $db, $feed );
                 MediaWords::DBI::Feeds::disable_feed( $db, $existing_feed->{ feeds_id } );
@@ -149,19 +145,16 @@ sub media : Local
             }
             elsif ( $feed_action eq 'nothing' or $feed_action eq 'skip_temp' )
             {
-
-                # Ignore (re)scraped feed in "feeds_after_rescraping"
-                MediaWords::DBI::Media::Rescrape::delete_rescraped_feed_by_media_name_url_type( $db, $feed );
-
+                # no-op
             }
             elsif ( $feed_action eq 'skip_perm' )
             {
-
                 # Add inactive feed to "feeds" table
                 $feed->{ feed_status } = 'inactive';
                 MediaWords::DBI::Media::Rescrape::add_feed_by_media_name_url_type( $db, $feed );
-                MediaWords::DBI::Media::Rescrape::delete_rescraped_feed_by_media_name_url_type( $db, $feed );
             }
+
+            MediaWords::DBI::Media::Rescrape::delete_rescraped_feed_by_media_name_url_type( $db, $feed );
         }
 
         $db->query(
