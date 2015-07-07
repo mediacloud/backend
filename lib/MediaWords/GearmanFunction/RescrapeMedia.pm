@@ -54,6 +54,12 @@ sub run($;$)
     MediaWords::DBI::Media::Rescrape::rescrape_media( $db, $media_id );
 }
 
+# write a single log instead of many separate logs
+sub unify_logs()
+{
+    return 1;
+}
+
 no Moose;    # gets rid of scaffolding
 
 # Return package name instead of 1 or otherwise worker.pl won't know the name of the package it's loading
