@@ -239,14 +239,7 @@ EOF
     if ( $need_to_moderate )
     {
         # (Re)set moderated = 'f' so that the media shows up in the moderation page
-        $db->query(
-            <<EOF,
-                UPDATE media
-                SET moderated = 'f'
-                WHERE media_id = ?
-EOF
-            $media_id
-        );
+        make_media_unmoderated( $db, $media_id );
     }
     else
     {
@@ -261,29 +254,57 @@ EOF
         )->hashes;
         move_feeds_after_rescraping_to_feeds( $db, $feeds_after_rescraping );
 
-        # Update "last rescraped" value
-        $db->query(
-            <<EOF,
-                UPDATE media_rescraping
-                SET last_rescrape_time = NOW()
-                WHERE media_id = ?
-EOF
-            $media_id
-        );
+        update_last_rescraped_time( $db, $media_id );
 
         # Set moderated = 't' because maybe this is a new media item that
         # didn't have any feeds previously
-        $db->query(
-            <<EOF,
-                UPDATE media
-                SET moderated = 't'
-                WHERE media_id = ?
-EOF
-            $media_id
-        );
+        make_media_moderated( $db, $media_id );
     }
 
     $db->commit;
+}
+
+# update last_rescraped_time for media
+sub update_last_rescraped_time($$)
+{
+    my ( $db, $media_id ) = @_;
+
+    $db->query(
+        <<EOF,
+            UPDATE media_rescraping
+            SET last_rescrape_time = NOW()
+            WHERE media_id = ?
+EOF
+        $media_id
+    );
+}
+
+sub make_media_unmoderated($$)
+{
+    my ( $db, $media_id ) = @_;
+
+    $db->query(
+        <<EOF,
+            UPDATE media
+            SET moderated = 'f'
+            WHERE media_id = ?
+EOF
+        $media_id
+    );
+}
+
+sub make_media_moderated($$)
+{
+    my ( $db, $media_id ) = @_;
+
+    $db->query(
+        <<EOF,
+            UPDATE media
+            SET moderated = 't'
+            WHERE media_id = ?
+EOF
+        $media_id
+    );
 }
 
 # return any media that might be a candidate for merging with the given media source

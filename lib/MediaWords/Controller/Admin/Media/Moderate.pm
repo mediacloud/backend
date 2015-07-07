@@ -172,23 +172,9 @@ sub media : Local
             MediaWords::DBI::Media::Rescrape::delete_rescraped_feed_by_media_name_url_type( $db, $feed );
         }
 
-        $db->query(
-            <<EOF,
-            UPDATE media
-            SET moderated = 't'
-            WHERE media_id = ?
-EOF
-            $media_id
-        );
+        MediaWords::DBI::Media::Rescrape::update_last_rescraped_time( $db, $media_id );
 
-        $db->query(
-            <<EOF,
-            UPDATE media_rescraping
-            SET last_rescrape_time = NOW()
-            WHERE media_id = ?
-EOF
-            $media_id
-        );
+        MediaWords::DBI::Media::Rescrape::make_media_moderated( $db, $media_id );
 
         $db->commit;
     }
