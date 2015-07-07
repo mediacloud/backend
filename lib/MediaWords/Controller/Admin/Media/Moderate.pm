@@ -16,6 +16,8 @@ use Data::Dumper;
 use URI;
 use Digest::SHA qw(sha256_hex);
 
+use MediaWords::DBI::Feeds;
+
 sub index : Path : Args(0)
 {
     return media( @_ );
@@ -89,29 +91,101 @@ EOF
 # go to the next media source in the moderation queue
 sub media : Local
 {
-    my ( $self, $c, $prev_media_id, $media_sets_id ) = @_;
+    my ( $self, $c ) = @_;
 
     my $db = $c->dbis;
 
-    my $approve = $c->request->param( 'approve' );
-    my $media_tags_id = $c->request->param( 'media_tags_id' ) || 0;
+    my $media_tags_id = $c->request->param( 'media_tags_id' ) + 0 || 0;
 
-    $prev_media_id ||= 0;
-    if ( $prev_media_id && $approve )
+    # Save the moderation
+    if ( $c->request->param( 'moderate' ) )
     {
+
+        my $media_id = $c->request->param( 'media_id' ) + 0;
+        unless ( $media_id )
+        {
+            say STDERR "media_id is unset.";
+        }
+
+        my $feeds = _existing_and_rescraped_feeds( $db, $media_id );
+        unless ( scalar @{ $feeds } )
+        {
+            die "No feeds for media ID $media_id";
+        }
+
         $db->begin_work;
+
+        foreach my $feed ( @{ $feeds } )
+        {
+
+            my $feed_hash = $feed->{ hash };
+            unless ( $feed_hash )
+            {
+                die "Feed hash is undefined; feed: " . Dumper( $feed );
+            }
+
+            my $feed_action_param = 'feed_action_' . $feed_hash;
+            my $feed_action       = $c->request->param( $feed_action_param );
+            unless ( $feed_action )
+            {
+                die "Feed action is undefined, tried parameter '$feed_action_param'; feed: " . Dumper( $feed );
+            }
+
+            if ( $feed_action eq 'nothing' )
+            {
+
+                # no-op
+
+            }
+            elsif ( $feed_action eq 'add' )
+            {
+
+                # Add active feed to "feeds" table
+                $feed = $db->create( 'feeds', $feed );
+                _delete_rescraped_feed_by_media_name_url_type( $db, $feed );
+
+            }
+            elsif ( $feed_action eq 'disable' )
+            {
+
+                # Disable existing feed
+                my $existing_feed = _select_feed_by_media_name_url_type( $db, $feed );
+                MediaWords::DBI::Feeds::disable_feed( $db, $existing_feed->{ feeds_id } );
+
+            }
+            elsif ( $feed_action eq 'skip_temp' )
+            {
+
+                # Ignore (re)scraped feed in "feeds_after_rescraping"
+                _delete_rescraped_feed_by_media_name_url_type( $db, $feed );
+
+            }
+            elsif ( $feed_action eq 'skip_perm' )
+            {
+
+                # Add inactive feed to "feeds" table
+                $feed = $db->create( 'feeds', $feed );
+                MediaWords::DBI::Feeds::disable_feed( $db, $feed->{ feeds_id } );
+            }
+        }
 
         $db->query(
             <<EOF,
-                UPDATE feeds
-                SET feed_status = 'active'
-                WHERE feed_status = 'inactive'
-                  AND media_id = ?
+            UPDATE media
+            SET moderated = 't'
+            WHERE media_id = ?
 EOF
-            $prev_media_id
+            $media_id
         );
 
-        $db->update_by_id( 'media', $prev_media_id, { moderated => 1 } );
+        $db->query(
+            <<EOF,
+            UPDATE media_rescraping
+            SET last_rescrape_time = NOW()
+            WHERE media_id = ?
+EOF
+            $media_id
+        );
 
         $db->commit;
     }
@@ -140,32 +214,14 @@ EOF
     }
 
     # limit by media set or media tag
-    my $media_set_clauses = [];
-    if ( defined( $media_sets_id ) )
-    {
-        $media_sets_id += 0;
-        push(
-            @{ $media_set_clauses },
-            "media_id IN ( SELECT media_id FROM media_sets_media_map WHERE media_sets_id = $media_sets_id )"
-        );
-    }
+    my $media_set_clauses = '1 = 1';    # default
     if ( $media_tags_id )
     {
-        $media_tags_id += 0;
-        push( @{ $media_set_clauses },
-            "media_id IN ( SELECT media_id FROM media_tags_map WHERE tags_id = $media_tags_id )" );
-    }
-    if ( scalar( @{ $media_set_clauses } ) > 0 )
-    {
-        $media_set_clauses = join( ' AND ', @{ $media_set_clauses } );
-    }
-    else
-    {
-        $media_set_clauses = '1 = 1';
+        $media_set_clauses = "media_id IN ( SELECT media_id FROM media_tags_map WHERE tags_id = $media_tags_id )";
     }
 
     my $media = $db->query(
-        <<"EOF",
+        <<"EOF"
             SELECT *
             FROM media
             WHERE moderated = 'f'
@@ -174,11 +230,9 @@ EOF
                 FROM feeds_after_rescraping
                 WHERE feeds_after_rescraping.media_id = media.media_id
               )
-              AND media_id > ?
               AND $media_set_clauses
             ORDER BY media_id
 EOF
-        $prev_media_id
     )->hashes;
 
     my ( $medium, $tag_names, $feeds, $merge_media );
@@ -217,12 +271,11 @@ EOF
 EOF
     )->flat;
 
-    $c->stash->{ media_sets_id } = $media_sets_id;
-    $c->stash->{ medium }        = $medium;
-    $c->stash->{ tag_names }     = $tag_names;
-    $c->stash->{ feeds }         = $feeds;
-    $c->stash->{ queue_size }    = scalar( @{ $media } );
-    $c->stash->{ merge_media }   = $merge_media;
+    $c->stash->{ medium }      = $medium;
+    $c->stash->{ tag_names }   = $tag_names;
+    $c->stash->{ feeds }       = $feeds;
+    $c->stash->{ queue_size }  = scalar( @{ $media } );
+    $c->stash->{ merge_media } = $merge_media;
     if ( $media_tags_id )
     {
         $c->stash->{ media_tags_id } = $media_tags_id;
@@ -442,6 +495,51 @@ EOF
     }
 
     return \@existing_and_rescraped_feeds;
+}
+
+sub _select_feed_by_media_name_url_type($$)
+{
+    my ( $db, $feed ) = @_;
+
+    my $existing_feed = $db->query(
+        <<EOF,
+        SELECT *
+        FROM feeds
+        WHERE media_id = ?
+          AND name = ?
+          AND url = ?
+          AND feed_type = ?
+EOF
+        $feed->{ media_id }, $feed->{ name }, $feed->{ url }, $feed->{ feed_type }
+    )->hashes;
+    unless ( scalar( @{ $existing_feed } ) )
+    {
+        die "Feed for media ID $feed->{ media_id } was not found; feed: " . Dumper( $feed );
+    }
+    if ( scalar( @{ $existing_feed } ) > 1 )
+    {
+        die "More than one feed for media ID $feed->{ media_id } was not found; feed: " . Dumper( $feed );
+    }
+
+    $existing_feed = $existing_feed->[ 0 ];
+
+    return $existing_feed;
+}
+
+sub _delete_rescraped_feed_by_media_name_url_type($$)
+{
+    my ( $db, $feed ) = @_;
+
+    $db->query(
+        <<EOF,
+        DELETE FROM feeds_after_rescraping
+        WHERE media_id = ?
+          AND name = ?
+          AND url = ?
+          AND feed_type = ?
+EOF
+        $feed->{ media_id }, $feed->{ name }, $feed->{ url }, $feed->{ feed_type }
+    );
 }
 
 1;

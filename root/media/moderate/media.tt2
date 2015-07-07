@@ -148,18 +148,6 @@
 
     <fieldset>
 
-        [% IF c.acl_user_can_visit('/admin/media/moderate') %]
-            <p>
-                [% IF media_sets_id %]
-                    <a href="[% c.uri_for('/admin/media/moderate/') _ medium.media_id _ '/' _ media_sets_id %]?approve=1&amp;media_tags_id=[% media_tags_id %]">Approve this media source</a><br />
-                    <a href="[% c.uri_for('/admin/media/moderate/') _ medium.media_id _ '/' _ media_sets_id %]?media_tags_id=[% media_tags_id %]">Skip this media source</a><br />
-                [% ELSE %]
-                    <a href="[% c.uri_for('/admin/media/moderate/') _ medium.media_id %]?approve=1&amp;media_tags_id=[% media_tags_id %]">Approve this media source</a><br />
-                    <a href="[% c.uri_for('/admin/media/moderate/') _ medium.media_id %]?media_tags_id=[% media_tags_id %]">Skip this media source</a><br />
-                [% END %]
-            </p>
-        [% END -%]
-
         [% IF c.acl_user_can_visit('/admin/media/moderate/merge') %]
             [% IF merge_media %]
                 <p>
@@ -206,6 +194,11 @@
 
     [% END #[% IF medium.moderation_notes %]
 
+    <form id="media_feeds_moderate" action="" method="post">
+
+    <input type="hidden" name="moderate" value="yes" />
+    <input type="hidden" name="media_id" value="[% medium.media_id %]" />
+
     <!-- Existing and rescraped feeds -->
     <p><strong>Feeds</strong></p>
 
@@ -218,7 +211,7 @@
             <a href="[% c.uri_for('/admin/feeds/scrape/') _ medium.media_id | url %]?media_tags_id=[% media_tags_id %]">scrape feeds</a>
         [% END -%]
 
-        <a class="boxcommand" style="font-weight: bold" href="#FIXME">save and go to next media</a>
+        <a class="boxcommand" style="font-weight: bold" href="javascript:void(0);" onclick="$('form#media_feeds_moderate').submit()">save and go to next media</a>
     </p>
 
     <table id="media_feeds" summary="Media's feeds and their moderation status" class="tablesorter">
@@ -374,6 +367,8 @@
 
         </tbody>
     </table>
+
+    </form>
 
 [% ELSE #[% IF medium %]
 
