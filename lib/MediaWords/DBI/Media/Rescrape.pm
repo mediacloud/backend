@@ -388,6 +388,24 @@ EOF
     );
 }
 
+# Returns an arrayref of hashrefs with unique feeds from both "feeds"
+# (existing feeds table) and "feeds_after_rescraping" (rescraped feeds table)
+#
+# Apart from the default "media_id", "name", "url" and "feed_type" keys, feed
+# hashrefs carry the following extra keys:
+#
+# * "hash" -- SHA256 hash uniquely identifying the feed; based on its media_id,
+#   name, URL, and feed_type
+# * "diff" -- state of the feed, one of the following values:
+#     * "unchanged" -- feed that hasn't changed after rescraping
+#     * "added" -- new feed found while rescraping
+#     * "removed" -- feed is gone after rescraping
+#     * "stale" -- feed is stale (didn't come up with any new stories in quite
+#       some time)
+# * "last_new_story_time" (only for existing feeds) -- timestamp of when last
+#   story was fetched from the feed
+# * "is_stale" (only for existing feeds) -- whether or not the feed is "stale"
+#   (doesn't provide any new stories for some time; dead)
 sub existing_and_rescraped_feeds($$)
 {
     my ( $db, $media_id ) = @_;
