@@ -254,12 +254,12 @@ EOF
         )->hashes;
         move_feeds_after_rescraping_to_feeds( $db, $feeds_after_rescraping );
 
-        update_last_rescraped_time( $db, $media_id );
-
         # Set moderated = 't' because maybe this is a new media item that
         # didn't have any feeds previously
         make_media_moderated( $db, $media_id );
     }
+
+    update_last_rescraped_time( $db, $media_id );
 
     $db->commit;
 }
