@@ -10,12 +10,12 @@ use base 'Catalyst::Controller';
 
 use Encode;
 use List::Util;
-use URI::Split;
 
 use Data::Dumper;
 use URI;
-use Digest::SHA qw(sha256_hex);
 
+use MediaWords::DBI::Media;
+use MediaWords::DBI::Media::Rescrape;
 use MediaWords::DBI::Feeds;
 
 sub index : Path : Args(0)
@@ -107,7 +107,7 @@ sub media : Local
             say STDERR "media_id is unset.";
         }
 
-        my $feeds = _existing_and_rescraped_feeds( $db, $media_id );
+        my $feeds = MediaWords::DBI::Media::Rescrape::existing_and_rescraped_feeds( $db, $media_id );
         unless ( scalar @{ $feeds } )
         {
             die "No feeds for media ID $media_id";
@@ -142,14 +142,14 @@ sub media : Local
 
                 # Add active feed to "feeds" table
                 $feed = $db->create( 'feeds', $feed );
-                _delete_rescraped_feed_by_media_name_url_type( $db, $feed );
+                MediaWords::DBI::Media::Rescrape::delete_rescraped_feed_by_media_name_url_type( $db, $feed );
 
             }
             elsif ( $feed_action eq 'disable' )
             {
 
                 # Disable existing feed
-                my $existing_feed = _select_feed_by_media_name_url_type( $db, $feed );
+                my $existing_feed = MediaWords::DBI::Media::Rescrape::get_feed_by_media_name_url_type( $db, $feed );
                 MediaWords::DBI::Feeds::disable_feed( $db, $existing_feed->{ feeds_id } );
 
             }
@@ -157,7 +157,7 @@ sub media : Local
             {
 
                 # Ignore (re)scraped feed in "feeds_after_rescraping"
-                _delete_rescraped_feed_by_media_name_url_type( $db, $feed );
+                MediaWords::DBI::Media::Rescrape::delete_rescraped_feed_by_media_name_url_type( $db, $feed );
 
             }
             elsif ( $feed_action eq 'skip_perm' )
@@ -251,11 +251,11 @@ EOF
             $medium->{ media_id }
         )->flat;
 
-        $merge_media = $self->_get_potential_merge_media( $c, $medium );
+        $merge_media = MediaWords::DBI::Media::Rescrape::get_potential_merge_media( $db, $medium );
 
         $#{ $merge_media } = List::Util::min( $#{ $merge_media }, 2 );
 
-        $feeds = _existing_and_rescraped_feeds( $db, $medium->{ media_id } );
+        $feeds = MediaWords::DBI::Media::Rescrape::existing_and_rescraped_feeds( $db, $medium->{ media_id } );
     }
 
     my ( $num_media_pending_feeds ) = $db->query(
@@ -301,7 +301,7 @@ sub merge : Local
 
     if ( !$medium_a->{ moderated } && ( $confirm eq 'yes' ) )
     {
-        $self->_merge_media_tags( $c, $medium_a, $medium_b );
+        MediaWords::DBI::Media::Rescrape::merge_media_tags( $db, $medium_a, $medium_b );
 
         $db->delete_by_id( 'media', $medium_a->{ media_id } );
 
@@ -322,224 +322,6 @@ sub merge : Local
         $c->stash->{ status_msg }    = $status_msg;
         $c->stash->{ template }      = 'media/moderate/merge.tt2';
     }
-}
-
-# return any media that might be a candidate for merging with the given media source
-sub _get_potential_merge_media
-{
-    my ( $self, $c, $medium ) = @_;
-
-    my $db = $c->dbis;
-
-    my $host = lc( ( URI::Split::uri_split( $medium->{ url } ) )[ 1 ] );
-
-    my @name_parts = split( /\./, $host );
-
-    my $second_level_domain = $name_parts[ $#name_parts - 1 ];
-    if ( ( $second_level_domain eq 'com' ) || ( $second_level_domain eq 'co' ) )
-    {
-        $second_level_domain = $name_parts[ $#name_parts - 2 ] || 'domainnotfound';
-    }
-
-    my $pattern = "%$second_level_domain%";
-
-    return $db->query( "select * from media where ( name like ? or url like ? ) and media_id <> ?",
-        $pattern, $pattern, $medium->{ media_id } )->hashes;
-}
-
-# merge the tags of medium_a into medium_b
-sub _merge_media_tags
-{
-    my ( $self, $c, $medium_a, $medium_b ) = @_;
-
-    my $db = $c->dbis;
-
-    my $tags_ids = $db->query( "select tags_id from media_tags_map mtm where media_id = ?", $medium_a->{ media_id } )->flat;
-
-    for my $tags_id ( @{ $tags_ids } )
-    {
-        $db->find_or_create( 'media_tags_map', { media_id => $medium_b->{ media_id }, tags_id => $tags_id } );
-    }
-}
-
-sub _existing_and_rescraped_feeds($$)
-{
-    my ( $db, $media_id ) = @_;
-
-    # Calculate a "diff" between existing feeds in "feeds" table and
-    # rescraped feeds in "feeds_after_rescraping" table
-    my $existing_feeds = $db->query(
-        <<EOF,
-        SELECT media_id,
-               name,
-               url,
-               feed_type,
-               last_new_story_time,
-               feed_is_stale(feeds.feeds_id) AS is_stale
-        FROM feeds
-        WHERE media_id = ?
-        ORDER BY media_id, name, url, feed_type
-EOF
-        $media_id
-    )->hashes;
-
-    my $rescraped_feeds = $db->query(
-        <<EOF,
-        SELECT media_id,
-               name,
-               url,
-               feed_type
-        FROM feeds_after_rescraping
-        WHERE media_id = ?
-        ORDER BY media_id, name, url, feed_type
-EOF
-        $media_id
-    )->hashes;
-
-    # Returns unique hash string that can be used to identify a feed
-    sub _feed_hash($)
-    {
-        my $feed = shift;
-
-        unless ( $feed->{ media_id } and $feed->{ name } and $feed->{ url } and $feed->{ feed_type } )
-        {
-            die "Feed hashref is not valid.";
-        }
-
-        my $feed_hash_data =
-          sprintf( "%s\n%s\n%s\n%s", $feed->{ media_id }, $feed->{ name }, $feed->{ url }, $feed->{ feed_type } );
-        my $feed_sha256 = sha256_hex( $feed_hash_data );
-
-        return $feed_sha256;
-    }
-
-    sub _feed_uniq(@)
-    {
-        my %h;
-        map {
-            if ( $h{ _feed_hash( $_ ) }++ == 0 )
-            {
-                $_;
-            }
-            else
-            {
-                ();
-            }
-        } @_;
-    }
-
-    my @existing_and_rescraped_feeds = _feed_uniq(
-
-        # Existing feeds is passed first, so we'll have extra
-        # "last_new_story_time" and "is_stale" columns included into the output
-        @{ $existing_feeds },
-
-        @{ $rescraped_feeds }
-    );
-
-    # say STDERR "Existing and rescraped feeds: " . Dumper( \@existing_and_rescraped_feeds );
-    foreach my $feed ( @existing_and_rescraped_feeds )
-    {
-        my $feed_hash = _feed_hash( $feed );
-
-        my $feed_is_among_existing_feeds = 0;
-        foreach my $existing_feed ( @{ $existing_feeds } )
-        {
-            my $existing_feed_hash = _feed_hash( $existing_feed );
-            if ( $feed_hash eq $existing_feed_hash )
-            {
-                $feed_is_among_existing_feeds = 1;
-            }
-        }
-
-        my $feed_is_among_rescraped_feeds = 0;
-        foreach my $rescraped_feed ( @{ $rescraped_feeds } )
-        {
-            my $rescraped_feed_hash = _feed_hash( $rescraped_feed );
-            if ( $feed_hash eq $rescraped_feed_hash )
-            {
-                $feed_is_among_rescraped_feeds = 1;
-            }
-        }
-
-        my $feed_diff = '';
-        if ( $feed_is_among_existing_feeds and $feed->{ is_stale } )
-        {
-            $feed_diff = 'stale';
-        }
-        else
-        {
-            if ( $feed_is_among_existing_feeds and $feed_is_among_rescraped_feeds )
-            {
-                $feed_diff = 'unchanged';
-            }
-            else
-            {
-                if ( $feed_is_among_existing_feeds and ( !$feed_is_among_rescraped_feeds ) )
-                {
-                    $feed_diff = 'removed';
-                }
-                elsif ( ( !$feed_is_among_existing_feeds ) and $feed_is_among_rescraped_feeds )
-                {
-                    $feed_diff = 'added';
-                }
-                else
-                {
-                    die "Feed is not among existing feeds neither rescraped feeds; probably hashing didn't work.";
-                }
-            }
-        }
-
-        $feed->{ hash } = $feed_hash;
-        $feed->{ diff } = $feed_diff;
-    }
-
-    return \@existing_and_rescraped_feeds;
-}
-
-sub _select_feed_by_media_name_url_type($$)
-{
-    my ( $db, $feed ) = @_;
-
-    my $existing_feed = $db->query(
-        <<EOF,
-        SELECT *
-        FROM feeds
-        WHERE media_id = ?
-          AND name = ?
-          AND url = ?
-          AND feed_type = ?
-EOF
-        $feed->{ media_id }, $feed->{ name }, $feed->{ url }, $feed->{ feed_type }
-    )->hashes;
-    unless ( scalar( @{ $existing_feed } ) )
-    {
-        die "Feed for media ID $feed->{ media_id } was not found; feed: " . Dumper( $feed );
-    }
-    if ( scalar( @{ $existing_feed } ) > 1 )
-    {
-        die "More than one feed for media ID $feed->{ media_id } was not found; feed: " . Dumper( $feed );
-    }
-
-    $existing_feed = $existing_feed->[ 0 ];
-
-    return $existing_feed;
-}
-
-sub _delete_rescraped_feed_by_media_name_url_type($$)
-{
-    my ( $db, $feed ) = @_;
-
-    $db->query(
-        <<EOF,
-        DELETE FROM feeds_after_rescraping
-        WHERE media_id = ?
-          AND name = ?
-          AND url = ?
-          AND feed_type = ?
-EOF
-        $feed->{ media_id }, $feed->{ name }, $feed->{ url }, $feed->{ feed_type }
-    );
 }
 
 1;
