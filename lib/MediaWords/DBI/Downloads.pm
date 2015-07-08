@@ -290,8 +290,8 @@ sub _download_stores_for_writing($)
     return $stores;
 }
 
-# Returns store for fetching downloads from
-sub _download_store_for_reading($)
+# Returns stores to try fetching download from
+sub _download_stores_for_reading($)
 {
     my $download = shift;
 
@@ -363,7 +363,8 @@ sub _download_store_for_reading($)
         die "Download store '$download_store' is not initialized for download " . $download->{ downloads_id };
     }
 
-    return $_download_store_lookup->{ $download_store };
+    my @stores = ( $_download_store_lookup->{ $download_store } );
+    return \@stores;
 }
 
 # fetch the content for the given download as a content_ref
@@ -381,17 +382,25 @@ sub fetch_content($$)
         confess "attempt to fetch content for unsuccessful download $download->{ downloads_id }  / $download->{ state }";
     }
 
-    my $store = _download_store_for_reading( $download );
-    unless ( defined $store )
+    my $stores = _download_stores_for_reading( $download );
+    unless ( scalar( @{ $stores } ) )
     {
-        croak "No download path or the state is not 'success' for download ID " . $download->{ downloads_id };
+        croak "No stores for reading download " . $download->{ downloads_id };
     }
 
     # Fetch content
-    my $content_ref = $store->fetch_content( $db, $download->{ downloads_id }, $download->{ path } );
+    my $content_ref;
+    foreach my $store ( @{ $stores } )
+    {
+        if ( $store->content_exists( $db, $download->{ downloads_id }, $download->{ path } ) )
+        {
+            $content_ref = $store->fetch_content( $db, $download->{ downloads_id }, $download->{ path } );
+            last;
+        }
+    }
     unless ( $content_ref and ref( $content_ref ) eq 'SCALAR' )
     {
-        croak "Unable to fetch content for download " . $download->{ downloads_id };
+        croak "Unable to fetch content for download " . $download->{ downloads_id } . "; tried stores: " . Dumper( $stores );
     }
 
     # horrible hack to fix old content that is not stored in unicode
