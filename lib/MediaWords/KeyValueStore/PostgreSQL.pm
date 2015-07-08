@@ -10,38 +10,89 @@ use Moose;
 with 'MediaWords::KeyValueStore';
 
 use Modern::Perl "2013";
+use MediaWords::DB;
 use MediaWords::CommonLibs;
 use MediaWords::Util::Compress;
 use DBD::Pg qw(:pg_types);
 use Carp;
 
+# Database instance
+has '_db' => ( is => 'rw' );
+
+# Process PID (to prevent forks attempting to clone the DBD::Pg objects)
+has '_pid' => ( is => 'rw', default => 0 );
+
 # Configuration
-has '_conf_table' => ( is => 'rw' );
+has '_conf_database_label' => ( is => 'rw' );
+has '_conf_table'          => ( is => 'rw' );
 
 # Constructor
 sub BUILD($$)
 {
     my ( $self, $args ) = @_;
 
-    # Get arguments
     unless ( $args->{ table } )
     {
         die "'table' is undefined.";
     }
 
     $self->_conf_table( $args->{ table } );
+    $self->_conf_database_label( $args->{ database_label } );
+}
+
+sub _connect_to_postgres_or_die($)
+{
+    my ( $self ) = @_;
+
+    if ( $self->_pid == $$ and $self->_db )
     {
+        # Already connected on the very same process
+        return;
     }
 
-    # Store configuration
+    my $db;
+    eval { $db = MediaWords::DB::connect_to_db( $self->_conf_database_label ); };
+    if ( $@ )
+    {
+        die "Unable to connect to database label '" . $self->_conf_database_label . "': $@";
+    }
+
+    # Test if table exists and we have access to it
+    my @table_exists = $db->query(
+        <<EOF,
+        SELECT EXISTS(
+            SELECT 1
+            FROM information_schema.tables
+            WHERE table_schema = CURRENT_SCHEMA()
+              AND table_catalog = CURRENT_DATABASE()
+              AND table_name = ?
+        )
+EOF
+        $self->_conf_table
+    )->flat();
+    unless ( $table_exists[ 0 ] + 0 )
+    {
+        die "Table '" . $self->_conf_table . "' does not exist in database '" . $self->_conf_database_label . "'";
+    }
+
+    $self->_db( $db );
+
+    # Save PID
+    $self->_pid( $$ );
+
+    say STDERR "PostgreSQL: Connected to PostgreSQL database '" .
+      ( $self->_conf_database_label // '' ) . "', table '" . $self->_conf_table . "' for PID $$.";
 }
 
 # Moose method
 sub store_content($$$$;$)
 {
-    my ( $self, $db, $object_id, $content_ref, $use_bzip2_instead_of_gzip ) = @_;
+    my ( $self, $_not_used_db, $object_id, $content_ref, $use_bzip2_instead_of_gzip ) = @_;
+
+    $self->_connect_to_postgres_or_die();
 
     my $table = $self->_conf_table;
+    my $db    = $self->_db;
 
     # Encode + compress
     my $content_to_store;
@@ -103,7 +154,9 @@ EOF
 # Moose method
 sub fetch_content($$$;$$)
 {
-    my ( $self, $db, $object_id, $object_path, $use_bunzip2_instead_of_gunzip ) = @_;
+    my ( $self, $_not_used_db, $object_id, $object_path, $use_bunzip2_instead_of_gunzip ) = @_;
+
+    $self->_connect_to_postgres_or_die();
 
     unless ( defined $object_id )
     {
@@ -111,6 +164,7 @@ sub fetch_content($$$;$$)
     }
 
     my $table = $self->_conf_table;
+    my $db    = $self->_db;
 
     my $compressed_content = $db->query(
         <<"EOF",
@@ -160,9 +214,12 @@ EOF
 # Moose method
 sub remove_content($$$;$)
 {
-    my ( $self, $db, $object_id, $object_path ) = @_;
+    my ( $self, $_not_used_db, $object_id, $object_path ) = @_;
+
+    $self->_connect_to_postgres_or_die();
 
     my $table = $self->_conf_table;
+    my $db    = $self->_db;
 
     $db->query(
         <<"EOF",
@@ -178,9 +235,12 @@ EOF
 # Moose method
 sub content_exists($$$;$)
 {
-    my ( $self, $db, $object_id, $object_path ) = @_;
+    my ( $self, $_not_used_db, $object_id, $object_path ) = @_;
+
+    $self->_connect_to_postgres_or_die();
 
     my $table = $self->_conf_table;
+    my $db    = $self->_db;
 
     my $object_exists = $db->query(
         <<"EOF",
