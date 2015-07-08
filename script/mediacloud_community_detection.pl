@@ -31,8 +31,7 @@ sub create_graph
     MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, 1 );
     my $net   = SNA::Network->new();
     my $media = $db->query(
-        "select dm.*, dmlc.*
-  from dump_media dm, dump_medium_link_counts dmlc
+        "select dm.*, dmlc.* from dump_media dm, dump_medium_link_counts dmlc
   where dm.media_id in
     ( ( select source_media_id from dump_medium_links ) union
       ( select ref_media_id from dump_medium_links ) ) and dm.media_id = dmlc.media_id  
@@ -68,12 +67,13 @@ sub create_graph
     {
         my $source_mediaid = $medium->{ 'source_media_id' };
         my $target_mediaid = $medium->{ 'ref_media_id' };
+        my $links          = $medium->{ 'link_count' };
         if ( ( exists $medium_lookup{ $source_mediaid } ) and ( exists $medium_lookup{ $target_mediaid } ) )
         {
             $net->create_edge(
                 source_index => $medium_index_lookup{ $source_mediaid },
                 target_index => $medium_index_lookup{ $target_mediaid },
-                weight       => 1.0
+                weight       => 1
             );
         }
     }
