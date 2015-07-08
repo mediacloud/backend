@@ -990,6 +990,43 @@ END
     $c->response->body( $csv );
 }
 
+# download a csv file with the facebook and twitter stats for the controversy stories
+sub dump_social : Local
+{
+    my ( $self, $c, $cdts_id ) = @_;
+
+    my $live = $c->req->param( 'l' );
+
+    my $db = $c->dbis;
+
+    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
+
+    $db->begin;
+
+    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $live );
+
+    my $csv = MediaWords::Util::CSV::get_query_as_csv( $db, <<SQL );
+select
+        s.stories_id, s.url, s.title, m.name medium_name, m.media_id, m.url medium_url,
+        ss.twitter_url_tweet_count, ss.twitter_api_collect_date,
+        ss.facebook_share_count, ss.facebook_comment_count, ss.facebook_api_collect_date
+    from dump_stories s
+        join dump_media m on ( s.media_id = m.media_id )
+        join story_statistics ss on ( s.stories_id = ss.stories_id )
+SQL
+
+    MediaWords::CM::Dump::discard_temp_tables( $db );
+
+    $db->commit;
+
+    my $file = "dump_social_${ cdts_id }.csv";
+
+    $c->response->header( "Content-Disposition" => "attachment;filename=$file" );
+    $c->response->content_type( 'text/csv; charset=UTF-8' );
+    $c->response->content_length( bytes::length( $csv ) );
+    $c->response->body( $csv );
+}
+
 # download the stories_csv for the given time slice
 sub dump_stories : Local
 {
