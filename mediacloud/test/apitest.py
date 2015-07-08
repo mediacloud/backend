@@ -354,6 +354,8 @@ class ApiStoriesTest(ApiBaseTest):
         story = self._mc.story(27456565)
         self.assertEqual(story['media_id'],1144)
         self.assertTrue('story_sentences' not in story)
+        self.assertTrue('language' in story)
+        self.assertTrue('title' in story)
 
     def testStoryPublicList(self):
         results = self._mc.storyList(self.QUERY, self.FILTER_QUERY)
