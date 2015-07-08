@@ -13,6 +13,7 @@ use Readonly;
 use MediaWords::Crawler::Extractor;
 use MediaWords::Util::Config qw(get_config);
 use MediaWords::Util::HTML;
+use MediaWords::DB;
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
 use MediaWords::StoryVectors;
@@ -230,9 +231,23 @@ my $_download_store_lookup = lazy
         }
     }
 
-    $download_store_lookup->{ postgresql } = MediaWords::KeyValueStore::PostgreSQL->new({
-        table => 'raw_downloads',                   #
-    });
+    my $raw_downloads_db_label = 'raw_downloads';    # as set up in mediawords.yml
+
+    my $connect_settings;
+    my $args;
+    unless ( grep { $_ eq $raw_downloads_db_label } MediaWords::DB::get_db_labels() )
+    {
+
+        say STDERR "No such label '$raw_downloads_db_label', falling back to default database";
+        $raw_downloads_db_label = undef;
+    }
+
+    $download_store_lookup->{ postgresql } = MediaWords::KeyValueStore::PostgreSQL->new(
+        {
+            database_label => $raw_downloads_db_label,    #
+            table          => 'raw_downloads',            #
+        }
+    );
 
     return $download_store_lookup;
 };
