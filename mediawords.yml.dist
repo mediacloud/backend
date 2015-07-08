@@ -16,7 +16,7 @@ database:
 
     # raw download storage
     # (this section might be absent; in that case, we're going to fallback to
-    # "production" database's "raw_downloads" table)
+    # "production" database)
     #- label : "raw_downloads"
     #  type  : "pg"
     #  host  : "localhost"
@@ -24,7 +24,6 @@ database:
     #  db    : "mediacloud"
     #  user  : "mediaclouduser"
     #  pass  : "mediacloud"
-    #  table : "raw_downloads"
 
     # unit tests
     - label : "test"
