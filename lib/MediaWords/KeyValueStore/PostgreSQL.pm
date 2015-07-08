@@ -16,7 +16,7 @@ use DBD::Pg qw(:pg_types);
 use Carp;
 
 # Configuration
-has '_conf_table_name' => ( is => 'rw' );
+has '_conf_table' => ( is => 'rw' );
 
 # Constructor
 sub BUILD($$)
@@ -24,14 +24,16 @@ sub BUILD($$)
     my ( $self, $args ) = @_;
 
     # Get arguments
-    unless ( $args->{ table_name } )
+    unless ( $args->{ table } )
     {
-        confess "Please provide 'table_name' argument.";
+        die "'table' is undefined.";
     }
-    my $table_name = $args->{ table_name };
+
+    $self->_conf_table( $args->{ table } );
+    {
+    }
 
     # Store configuration
-    $self->_conf_table_name( $table_name );
 }
 
 # Moose method
@@ -39,7 +41,7 @@ sub store_content($$$$;$)
 {
     my ( $self, $db, $object_id, $content_ref, $use_bzip2_instead_of_gzip ) = @_;
 
-    my $table_name = $self->_conf_table_name;
+    my $table = $self->_conf_table;
 
     # Encode + compress
     my $content_to_store;
@@ -67,7 +69,7 @@ sub store_content($$$$;$)
 
     $sth = $db->dbh->prepare(
         <<"EOF",
-    	UPDATE $table_name
+    	UPDATE $table
     	SET raw_data = ?
     	WHERE object_id = ?
 EOF
@@ -78,11 +80,11 @@ EOF
 
     $sth = $db->dbh->prepare(
         <<"EOF",
-    	INSERT INTO $table_name (object_id, raw_data)
+    	INSERT INTO $table (object_id, raw_data)
 			SELECT ?, ?
 			WHERE NOT EXISTS (
 				SELECT 1
-				FROM $table_name
+				FROM $table
 				WHERE object_id = ?
 			)
 EOF
@@ -94,7 +96,7 @@ EOF
 
     $db->commit if ( $use_transaction );
 
-    my $path = 'postgresql:' . $table_name;
+    my $path = 'postgresql:' . $table;
     return $path;
 }
 
@@ -108,12 +110,12 @@ sub fetch_content($$$;$$)
         confess "Object ID is undefined.";
     }
 
-    my $table_name = $self->_conf_table_name;
+    my $table = $self->_conf_table;
 
     my $compressed_content = $db->query(
         <<"EOF",
         SELECT raw_data
-        FROM $table_name
+        FROM $table
         WHERE object_id = ?
 EOF
         $object_id
@@ -121,7 +123,7 @@ EOF
 
     unless ( $compressed_content->[ 0 ] )
     {
-        confess "Object with ID $object_id was not found in '$table_name' table.";
+        confess "Object with ID $object_id was not found in '$table' table.";
     }
 
     $compressed_content = $compressed_content->[ 0 ];
@@ -160,11 +162,11 @@ sub remove_content($$$;$)
 {
     my ( $self, $db, $object_id, $object_path ) = @_;
 
-    my $table_name = $self->_conf_table_name;
+    my $table = $self->_conf_table;
 
     $db->query(
         <<"EOF",
-        DELETE FROM $table_name
+        DELETE FROM $table
         WHERE object_id = ?
 EOF
         $object_id
@@ -178,12 +180,12 @@ sub content_exists($$$;$)
 {
     my ( $self, $db, $object_id, $object_path ) = @_;
 
-    my $table_name = $self->_conf_table_name;
+    my $table = $self->_conf_table;
 
     my $object_exists = $db->query(
         <<"EOF",
         SELECT 1
-        FROM $table_name
+        FROM $table
         WHERE object_id = ?
 EOF
         $object_id

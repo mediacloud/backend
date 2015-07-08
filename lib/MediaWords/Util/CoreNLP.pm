@@ -127,8 +127,7 @@ my $_postgresql_store = lazy
     }
 
     # PostgreSQL storage
-    my $postgresql_store =
-      MediaWords::KeyValueStore::PostgreSQL->new( { table_name => $CORENLP_POSTGRESQL_KVS_TABLE_NAME } );
+    my $postgresql_store = MediaWords::KeyValueStore::PostgreSQL->new( { table => $CORENLP_POSTGRESQL_KVS_TABLE_NAME } );
     say STDERR "Will read / write CoreNLP annotator results to PostgreSQL table: $CORENLP_POSTGRESQL_KVS_TABLE_NAME";
 
     return $postgresql_store;

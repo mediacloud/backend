@@ -230,8 +230,9 @@ my $_download_store_lookup = lazy
         }
     }
 
-    $download_store_lookup->{ postgresql } =
-      MediaWords::KeyValueStore::PostgreSQL->new( { table_name => 'raw_downloads' } );
+    $download_store_lookup->{ postgresql } = MediaWords::KeyValueStore::PostgreSQL->new({
+        table => 'raw_downloads',                   #
+    });
 
     return $download_store_lookup;
 };

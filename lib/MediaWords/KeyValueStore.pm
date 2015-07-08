@@ -25,7 +25,7 @@ package MediaWords::KeyValueStore;
 #         # PostgreSQL table name for storing the data in a table's
 #         # "raw_data BYTEA NOT NULL" column  (see definition of "raw_downloads"
 #         # table in script/mediawords.sql for a schema example)
-#         table_name => 'pictures_of_my_cats'
+#         table => 'pictures_of_my_cats'
 #     });
 #
 # Storing data:
