@@ -15,7 +15,7 @@
 --
 
 INSERT INTO auth_roles (role, description) VALUES
-    ('cm-readonly', 'Controversy mapper; excludes media and story editing'),
+    ('cm-readonly', 'Controversy mapper; excludes media and story editing');
 
 --
 -- 2 of 2. Reset the database version.
