@@ -57,6 +57,8 @@ sub _connect_to_postgres_or_die($)
         die "Unable to connect to database label '" . $self->_conf_database_label . "': $@";
     }
 
+    $db->dbh->{ AutoCommit } = 1;
+
     # Test if table exists and we have access to it
     my @table_exists = $db->query(
         <<EOF,
