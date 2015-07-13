@@ -237,7 +237,6 @@ my $_download_store_lookup = lazy
     my $args;
     unless ( grep { $_ eq $raw_downloads_db_label } MediaWords::DB::get_db_labels() )
     {
-
         say STDERR "No such label '$raw_downloads_db_label', falling back to default database";
         $raw_downloads_db_label = undef;
     }
@@ -245,7 +244,6 @@ my $_download_store_lookup = lazy
     $download_store_lookup->{ postgresql } = MediaWords::KeyValueStore::PostgreSQL->new(
         {
             database_label => $raw_downloads_db_label,    #
-            table          => 'raw_downloads',            #
         }
     );
 

@@ -24,20 +24,27 @@ has '_pid' => ( is => 'rw', default => 0 );
 
 # Configuration
 has '_conf_database_label' => ( is => 'rw' );
-has '_conf_table'          => ( is => 'rw' );
+has '_conf_table' => ( is => 'rw', default => 'raw_downloads' );
 
 # Constructor
 sub BUILD($$)
 {
     my ( $self, $args ) = @_;
 
-    unless ( $args->{ table } )
+    my $database_label = $args->{ database_label };
+    $self->_conf_database_label( $database_label );
+
+    unless ( grep { $_ eq $database_label } MediaWords::DB::get_db_labels() )
     {
-        die "'table' is undefined.";
+        say STDERR "No such label '$database_label', falling back to default database";
+        $database_label = undef;
     }
 
-    $self->_conf_table( $args->{ table } );
-    $self->_conf_database_label( $args->{ database_label } );
+    my $connect_settings = MediaWords::DB::connect_settings( $database_label );
+    if ( $connect_settings->{ table } )
+    {
+        $self->_conf_table( $connect_settings->{ table } );
+    }
 }
 
 sub _connect_to_postgres_or_die($)

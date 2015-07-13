@@ -24,6 +24,7 @@ database:
     #  db    : "mediacloud"
     #  user  : "mediaclouduser"
     #  pass  : "mediacloud"
+    #  table : "raw_downloads"  # optional
 
     # unit tests
     - label : "test"
