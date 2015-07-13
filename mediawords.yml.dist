@@ -15,8 +15,8 @@ database:
       pass  : "mediacloud"
 
     # raw download storage
-    # (this section might be absent; in that case, we're going to fallback to
-    # "production" database)
+    # (this section is optional; if absent, we're going to use production
+    # database's "raw_downloads" table)
     #- label : "raw_downloads"
     #  type  : "pg"
     #  host  : "localhost"
@@ -25,6 +25,18 @@ database:
     #  user  : "mediaclouduser"
     #  pass  : "mediacloud"
     #  table : "raw_downloads"  # optional
+
+    # fallback raw download storage that will be used when download is not
+    # found on the main download storage
+    # (this section is optional)
+    #- label : "raw_downloads_fallback"
+    #  type  : "pg"
+    #  host  : "localhost"
+    #  port  : 5432
+    #  db    : "mediacloud"
+    #  user  : "mediaclouduser"
+    #  pass  : "mediacloud"
+    #  table : "raw_downloads_fallback"  # optional
 
     # unit tests
     - label : "test"
