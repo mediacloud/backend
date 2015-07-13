@@ -31,13 +31,15 @@ sub BUILD($$)
 {
     my ( $self, $args ) = @_;
 
-    my $database_label = $args->{ database_label } // '';
+    my $database_label = $args->{ database_label };
     $self->_conf_database_label( $database_label );
 
-    unless ( grep { $_ eq $database_label } MediaWords::DB::get_db_labels() )
+    if ( defined $database_label )
     {
-        say STDERR "No such label '$database_label', falling back to default database";
-        $database_label = undef;
+        unless ( grep { $_ eq $database_label } MediaWords::DB::get_db_labels() )
+        {
+            die "No such database label '$database_label'";
+        }
     }
 
     my $connect_settings = MediaWords::DB::connect_settings( $database_label );
