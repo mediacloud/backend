@@ -50,6 +50,13 @@ sub _connect_to_postgres_or_die($)
         return;
     }
 
+    if ( $self->_db )
+    {
+        say STDERR "Disconnecting from database because PID has changed";
+        $self->_db->{ dbh }->{ InactiveDestroy } = 1;
+        $self->_db->{ dbh } = undef;
+    }
+
     my $db;
     eval { $db = MediaWords::DB::connect_to_db( $self->_conf_database_label ); };
     if ( $@ )
