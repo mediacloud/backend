@@ -91,13 +91,21 @@ EOF
         die "Table '" . $self->_conf_table . "' does not exist in database '" . $self->_conf_database_label . "'";
     }
 
+    # Get database name
+    my $current_schema_database = $db->query(
+        <<EOF
+        SELECT CURRENT_SCHEMA() AS schema,
+               CURRENT_DATABASE() AS database
+EOF
+    )->hash;
+
     $self->_db( $db );
 
     # Save PID
     $self->_pid( $$ );
 
-    say STDERR "PostgreSQL: Connected to PostgreSQL database '" .
-      ( $self->_conf_database_label // '' ) . "', table '" . $self->_conf_table . "' for PID $$.";
+    say STDERR "PostgreSQL: Connected to PostgreSQL database '" . $current_schema_database->{ schema } .
+      "." . $current_schema_database->{ database } . "', table '" . $self->_conf_table . "' for PID $$.";
 }
 
 # Moose method
