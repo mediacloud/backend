@@ -145,6 +145,7 @@ my $_download_store_lookup = lazy
     require MediaWords::KeyValueStore::DatabaseInline;
     require MediaWords::KeyValueStore::GridFS;
     require MediaWords::KeyValueStore::PostgreSQL;
+    require MediaWords::KeyValueStore::PostgreSQLFallback;
 
     my $download_store_lookup = {
 
@@ -252,7 +253,7 @@ my $_download_store_lookup = lazy
     my $raw_downloads_fallback_db_label = 'raw_downloads_fallback';    # as set up in mediawords.yml
     if ( grep { $_ eq $raw_downloads_fallback_db_label } MediaWords::DB::get_db_labels() )
     {
-        $download_store_lookup->{ postgresql_fallback } = MediaWords::KeyValueStore::PostgreSQL->new(
+        $download_store_lookup->{ postgresql_fallback } = MediaWords::KeyValueStore::PostgreSQLFallback->new(
             {
                 database_label => $raw_downloads_fallback_db_label,    #
             }
@@ -425,7 +426,8 @@ sub fetch_content($$)
     }
     unless ( $content_ref and ref( $content_ref ) eq 'SCALAR' )
     {
-        croak "Unable to fetch content for download " . $download->{ downloads_id } . "; tried stores: " . Dumper( $stores );
+        croak "Unable to fetch content for download " . $download->{ downloads_id } . "; tried stores: " .
+          join( ', ', map { ref $_ } @{ $stores } );
     }
 
     # horrible hack to fix old content that is not stored in unicode
