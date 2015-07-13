@@ -156,6 +156,9 @@ my $_download_store_lookup = lazy
         # download is stored in "raw_downloads" table
         postgresql => undef,
 
+        # Fallback database for "postgresql" downloads
+        postgresql_fallback => undef,
+
         # downloads.path is prefixed with "amazon_s3:";
         # download is stored in Amazon S3
         amazon_s3 => undef,    # might remain 'undef' if not configured
@@ -231,6 +234,7 @@ my $_download_store_lookup = lazy
         }
     }
 
+    # Main raw downloads database / table
     my $raw_downloads_db_label = 'raw_downloads';    # as set up in mediawords.yml
     unless ( grep { $_ eq $raw_downloads_db_label } MediaWords::DB::get_db_labels() )
     {
@@ -243,6 +247,22 @@ my $_download_store_lookup = lazy
             database_label => $raw_downloads_db_label,    #
         }
     );
+
+    # Fallback raw downloads database / table
+    my $raw_downloads_fallback_db_label = 'raw_downloads_fallback';    # as set up in mediawords.yml
+    if ( grep { $_ eq $raw_downloads_fallback_db_label } MediaWords::DB::get_db_labels() )
+    {
+        $download_store_lookup->{ postgresql_fallback } = MediaWords::KeyValueStore::PostgreSQL->new(
+            {
+                database_label => $raw_downloads_fallback_db_label,    #
+            }
+        );
+    }
+    else
+    {
+        say STDERR "No such label '$raw_downloads_fallback_db_label', fallback table disabled";
+        $download_store_lookup->{ postgresql_fallback } = undef;
+    }
 
     return $download_store_lookup;
 };
@@ -359,6 +379,16 @@ sub _download_stores_for_reading($)
     }
 
     my @stores = ( $_download_store_lookup->{ $download_store } );
+
+    # Add PostgreSQL fallback storage if one is set up
+    if ( $download_store eq 'postgresql' )
+    {
+        if ( defined $_download_store_lookup->{ postgresql_fallback } )
+        {
+            push( @stores, $_download_store_lookup->{ postgresql_fallback } );
+        }
+    }
+
     return \@stores;
 }
 
