@@ -31,7 +31,7 @@ sub BUILD($$)
 {
     my ( $self, $args ) = @_;
 
-    my $database_label = $args->{ database_label };
+    my $database_label = $args->{ database_label } // '';
     $self->_conf_database_label( $database_label );
 
     unless ( grep { $_ eq $database_label } MediaWords::DB::get_db_labels() )
