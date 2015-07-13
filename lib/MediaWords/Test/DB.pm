@@ -63,6 +63,8 @@ sub test_on_test_database
 {
     my ( $sub ) = @_;
 
+    $ENV{ MEDIAWORDS_FORCE_USING_TEST_DATABASE } = 1;
+
     my $result = MediaWords::Pg::Schema::recreate_db( 'test' );
 
     die "Error recreating the test db" unless $result == 0;
