@@ -74,7 +74,7 @@ sub _connect_to_postgres_or_die($)
     $db->dbh->{ AutoCommit } = 1;
 
     # Test if table exists and we have access to it
-    my @table_exists = $db->query(
+    my ( $table_exists ) = $db->query(
         <<EOF,
         SELECT EXISTS(
             SELECT 1
@@ -85,8 +85,8 @@ sub _connect_to_postgres_or_die($)
         )
 EOF
         $self->_conf_table
-    )->flat();
-    unless ( $table_exists[ 0 ] + 0 )
+    )->flat;
+    unless ( $table_exists + 0 )
     {
         die "Table '" . $self->_conf_table . "' does not exist in database '" . $self->_conf_database_label . "'";
     }
