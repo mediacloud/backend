@@ -232,9 +232,6 @@ my $_download_store_lookup = lazy
     }
 
     my $raw_downloads_db_label = 'raw_downloads';    # as set up in mediawords.yml
-
-    my $connect_settings;
-    my $args;
     unless ( grep { $_ eq $raw_downloads_db_label } MediaWords::DB::get_db_labels() )
     {
         say STDERR "No such label '$raw_downloads_db_label', falling back to default database";
