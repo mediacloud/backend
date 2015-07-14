@@ -16,6 +16,46 @@ addons:
     postgresql: "9.3"
     hosts:
         - mediacloud.local
+    apt:
+        sources:
+            # We need an up-to-date version of Gearman
+            - gearman-developers
+            # ...and a recent version of MongoDB too
+            - mongodb-upstart
+        # Keep in sync with "install_mediacloud_system_package_dependencies.sh"
+        packages:
+            - build-essential
+            - cpanminus
+            - curl
+            - g++
+            - gawk
+            - gcc
+            - gearman-job-server
+            - gearman-tools
+            - graphviz
+            - graphviz-dev
+            - libdb-dev
+            - libexpat1
+            - libexpat1-dev
+            - libgearman-dev
+            - libgraph4
+            - libgraphviz-dev
+            - libtidy
+            - libxml2-dev
+            - libxslt1-dbg
+            - libxslt1-dev
+            - libxslt1.1
+            - libyaml-0-2
+            - libyaml-dev
+            - make
+            - mongodb-10gen
+            - netcat
+            - openjdk-7-jdk
+            - openjdk-7-jre-headless
+            - pandoc
+            - postgresql-server-dev-all
+            - python-dev
+            - python-software-properties
 env:
     global:
         # Amazon S3 credentials for caching Carton dependencies ("local/")
@@ -34,7 +74,6 @@ before_install:
     - perlbrew lib create mediacloud
     - perlbrew switch @mediacloud
     # Install Media Cloud system package dependencies
-    - ./install_mediacloud_system_package_dependencies.sh
     - ./install_modules_outside_of_carton.sh
     # Either:
     # 1) download Carton dependencies bundle from S3 and extract it as "local/", or
