@@ -39,7 +39,6 @@ addons:
             - libgearman-dev
             - libgraph4
             - libgraphviz-dev
-            - libtidy
             - libxml2-dev
             - libxslt1-dbg
             - libxslt1-dev
@@ -55,6 +54,7 @@ addons:
             - postgresql-server-dev-all
             - python-dev
             - python-software-properties
+            - tidy
 env:
     global:
         # Amazon S3 credentials for caching Carton dependencies ("local/")
