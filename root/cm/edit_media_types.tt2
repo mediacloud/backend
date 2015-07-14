@@ -14,7 +14,7 @@
 <div id="wholecolumn">
     <div id="boxtitle">
         Media Types
-        <a id="boxcommand" href="[% c.uri_for( "/admin/cm/add_media_type/$controversy.controversies_id" ) | html %]">Add Media Type</a>
+        <a class="boxcommand" href="[% c.uri_for( "/admin/cm/add_media_type/$controversy.controversies_id" ) | html %]">Add Media Type</a>
     </div>
     <table class="even_rows_grey">
         <tr>

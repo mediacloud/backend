@@ -49,8 +49,8 @@ MediaWords::Test::DB::test_on_test_database(
         # transaction success
         $db->transaction(
             sub {
-                $db->query( 'INSERT INTO media (url, name, moderated, feeds_added) VALUES(?, ?, ?, ?)',
-                    'http://www.example.com/', 'Example.com', 0, 0 );
+                $db->query( 'INSERT INTO media (url, name, moderated) VALUES(?, ?, ?)',
+                    'http://www.example.com/', 'Example.com', 0 );
                 return 1;
             }
         );
@@ -61,8 +61,8 @@ MediaWords::Test::DB::test_on_test_database(
         eval {
             $db->transaction(
                 sub {
-                    $db->query( 'INSERT INTO media (url, name, moderated, feeds_added) VALUES(?, ?, ?, ?)',
-                        'http://www.example.net/', 'Example.net', 0, 0 );
+                    $db->query( 'INSERT INTO media (url, name, moderated) VALUES(?, ?, ?)',
+                        'http://www.example.net/', 'Example.net', 0 );
                     die "I did too much work in the transaction!";
                 }
             );
@@ -74,8 +74,8 @@ MediaWords::Test::DB::test_on_test_database(
         # transaction abortion
         $db->transaction(
             sub {
-                $db->query( 'INSERT INTO media (url, name, moderated, feeds_added) VALUES(?, ?, ?, ?)',
-                    'http://www.example.org/', 'Example.org', 0, 0 );
+                $db->query( 'INSERT INTO media (url, name, moderated) VALUES(?, ?, ?)',
+                    'http://www.example.org/', 'Example.org', 0 );
                 return 0;
             }
         );

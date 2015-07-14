@@ -120,10 +120,9 @@ sub create_test_medium
     return $db->create(
         'media',
         {
-            name        => $label,
-            url         => "http://media.test/$label",
-            moderated   => 't',
-            feeds_added => 't'
+            name      => $label,
+            url       => "http://media.test/$label",
+            moderated => 't',
         }
     );
 }

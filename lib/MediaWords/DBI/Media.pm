@@ -11,8 +11,7 @@ use Text::Trim;
 
 use MediaWords::CommonLibs;
 use MediaWords::DBI::Media::Lookup;
-use MediaWords::GearmanFunction;
-use MediaWords::GearmanFunction::AddDefaultFeeds;
+use MediaWords::DBI::Media::Rescrape;
 use MediaWords::Util::HTML;
 use MediaWords::Util::URL;
 
@@ -70,24 +69,6 @@ END
     return $domain_map;
 }
 
-# for each medium in $media, enqueue an add_default_feeds job for any medium
-# that is lacking feeds
-sub _add_feeds_for_feedless_media
-{
-    my ( $db, $media ) = @_;
-
-    for my $medium ( @{ $media } )
-    {
-        my $feeds = $db->query( <<END, $medium->{ media_id } )->hashes;
-select * from feeds where media_id = ? and feed_status = 'active' and feed_type = 'syndicated'
-END
-
-        $db->query( "update media set feeds_added = 'f' where media_id = ?", $medium->{ media_id } );
-
-        enqueue_add_default_feeds( $medium ) unless ( @{ $feeds } );
-    }
-}
-
 # for each url in $urls, either find the medium associated with that
 # url or the medium assocaited with the title from the given url or,
 # if no medium is found, a newly created medium.  Return the list of
@@ -102,7 +83,7 @@ sub find_or_create_media_from_urls
 
     _add_media_tags_from_strings( $dbis, $url_media, $tags_string );
 
-    _add_feeds_for_feedless_media( $dbis, [ map { $_->{ medium } } @{ $url_media } ] );
+    MediaWords::DBI::Media::Rescrape::add_feeds_for_feedless_media( $dbis, [ map { $_->{ medium } } @{ $url_media } ] );
 
     return [ grep { $_ } map { $_->{ message } } @{ $url_media } ];
 }
@@ -209,13 +190,12 @@ sub _add_missing_media_from_urls
                 $medium = $dbis->create(
                     'media',
                     {
-                        name        => encode( 'UTF-8', $title ),
-                        url         => encode( 'UTF-8', $url ),
-                        moderated   => 'f',
-                        feeds_added => 'f'
+                        name      => encode( 'UTF-8', $title ),
+                        url       => encode( 'UTF-8', $url ),
+                        moderated => 'f',
                     }
                 );
-                enqueue_add_default_feeds( $medium );
+                MediaWords::DBI::Media::Rescrape::enqueue_rescrape_media( $medium );
             }
         }
 
@@ -315,28 +295,6 @@ sub get_medium_domain
     my ( $medium ) = @_;
 
     return MediaWords::Util::URL::get_url_domain( $medium->{ url } );
-}
-
-# add default feeds for a single medium
-sub enqueue_add_default_feeds($)
-{
-    my ( $medium ) = @_;
-
-    return MediaWords::GearmanFunction::AddDefaultFeeds->enqueue_on_gearman( { media_id => $medium->{ media_id } } );
-}
-
-# (re-)enqueue AddDefaultFeeds jobs for all unmoderated media
-# ("AddDefaultFeeds" Gearman function is "unique", so Gearman will skip media
-# IDs that are already enqueued)
-sub enqueue_add_default_feeds_for_unmoderated_media($)
-{
-    my ( $db ) = @_;
-
-    my $media = $db->query( "select * from media where feeds_added = 'f'" )->hashes;
-
-    map { enqueue_add_default_feeds( $_ ) } @{ $media };
-
-    return 1;
 }
 
 # get all of the media_type: tags. append the tags from the controversies.media_type_tags_sets_id

@@ -30,10 +30,9 @@ sub test_dedup_sentences
     my ( $db ) = @_;
 
     my $medium = {
-        name        => "test dedup sentences",
-        url         => "url://test/dedup/sentences",
-        moderated   => 't',
-        feeds_added => 't'
+        name      => "test dedup sentences",
+        url       => "url://test/dedup/sentences",
+        moderated => 't',
     };
     $medium = $db->create( 'media', $medium );
 

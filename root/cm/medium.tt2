@@ -51,9 +51,9 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
 
 <div class="boxtitle">
     Basic Data for [% medium.name | html %] [% IF cdts %] in [% cdts_date_range %] Time Slice[% END %]
-    <a id="boxcommand" href="[% merge_url | html %]">merge</a>
-    <a id="boxcommand" href="[% unredirect_url | html %]">un-redirect</a>
-    <a id="boxcommand" href="[% edit_url | html %]">edit</a>
+    <a class="boxcommand" href="[% merge_url | html %]">merge</a>
+    <a class="boxcommand" href="[% unredirect_url | html %]">un-redirect</a>
+    <a class="boxcommand" href="[% edit_url | html %]">edit</a>
 </div>
 <table class="even_rows_grey">
 
