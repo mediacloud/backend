@@ -25,7 +25,7 @@ else
     S3_BUCKET_NAME="$ARTIFACTS_S3_BUCKET"
 fi
 S3_PATH="carton-bundles"
-S3_PREFIX="local"
+S3_PREFIX="local-travisc"
 
 # ---
 
