@@ -12,8 +12,6 @@ use DBIx::Simple::MediaWords;
 
 use MediaWords::Util::Config;
 
-my $_connect_settings;
-
 # takes a hashref to a hash of settings and returns an array
 #  with DBI connect info
 sub _create_connect_info_from_settings
@@ -116,18 +114,19 @@ sub connect_settings
 
     defined( $all_settings ) or croak( "No database connections configured" );
 
+    my $connect_settings;
     if ( defined( $label ) )
     {
-        $_connect_settings = first { $_->{ label } eq $label } @{ $all_settings }
+        $connect_settings = first { $_->{ label } eq $label } @{ $all_settings }
           or croak "No database connection settings labeled '$label'";
     }
 
-    if ( !defined( $_connect_settings ) )
+    unless ( defined( $connect_settings ) )
     {
-        $_connect_settings = $all_settings->[ 0 ];
+        $connect_settings = $all_settings->[ 0 ];
     }
 
-    return $_connect_settings;
+    return $connect_settings;
 }
 
 sub get_db_labels
