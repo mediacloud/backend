@@ -41,10 +41,10 @@ before_install:
     # 2) build the Carton dependencies, bundle them and upload to S3
     - ./install_scripts/travis-pour_or_bundle_carton_modules.sh
     # Install Python dependencies
-    - travis_retry sudo pip install -r python_scripts/requirements.txt
+    - travis_retry pip install -r python_scripts/requirements.txt
     # install Media Cloud testing variant of the Python  Client
     - travis_retry git clone https://github.com/dlarochelle/MediaCloud-API-Client.git
-    - travis_retry sudo easy_install MediaCloud-API-Client/
+    - travis_retry easy_install MediaCloud-API-Client/
 install:
     # Use default configuration
     - cp mediawords.yml.dist mediawords.yml
