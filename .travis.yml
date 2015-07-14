@@ -84,6 +84,8 @@ before_install:
     # install Media Cloud testing variant of the Python  Client
     - travis_retry git clone https://github.com/dlarochelle/MediaCloud-API-Client.git
     - travis_retry easy_install MediaCloud-API-Client/
+    # Install Supervisor
+    - easy_install supervisor
 install:
     # Use default configuration
     - cp mediawords.yml.dist mediawords.yml
