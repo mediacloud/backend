@@ -34,7 +34,6 @@ before_install:
     - perlbrew lib create mediacloud
     - perlbrew switch @mediacloud
     # Install Media Cloud system package dependencies
-    - ./install_postgresql_server_packages.sh
     - ./install_mediacloud_system_package_dependencies.sh
     - ./install_modules_outside_of_carton.sh
     # Either:
