@@ -51,7 +51,13 @@ function run_psql {
         local run_psql_result=`/usr/local/bin/psql $PSQL_OPTIONS --command="$sql_command" 2>&1 || echo `
     else
         # assume Ubuntu
-        local run_psql_result=`sudo su -l postgres -c "psql $PSQL_OPTIONS --command=\" $sql_command \" 2>&1 " || echo `
+        if [ -z ${TRAVIS+x} ]; then
+            # not Travis
+            local run_psql_result=`sudo su -l postgres -c "psql $PSQL_OPTIONS --command=\" $sql_command \" 2>&1 " || echo `
+        else
+            # Travis
+            local run_psql_result=`psql -U postgres $PSQL_OPTIONS --command=\" $sql_command \" 2>&1`
+        fi
     fi
     echo "$run_psql_result"
 }
@@ -71,7 +77,13 @@ function run_dropdb {
         local run_dropdb_result=`/usr/local/bin/dropdb $DROPDB_OPTIONS $db_name 2>&1 || echo `
     else
         # assume Ubuntu
-        local run_dropdb_result=`sudo su -l postgres -c "dropdb $DROPDB_OPTIONS $db_name 2>&1 " || echo `
+        if [ -z ${TRAVIS+x} ]; then
+            # not Travis
+            local run_dropdb_result=`sudo su -l postgres -c "dropdb $DROPDB_OPTIONS $db_name 2>&1 " || echo `
+        else
+            # Travis
+            local run_dropdb_result=`dropdb -U postgres $DROPDB_OPTIONS $db_name 2>&1`
+        fi
     fi
     echo "$run_dropdb_result"
 }
@@ -103,7 +115,13 @@ function run_createdb {
         local run_createdb_result=`/usr/local/bin/createdb $CREATEDB_OPTIONS $db_name 2>&1 || echo `
     else
         # assume Ubuntu
-        local run_createdb_result=`sudo su -l postgres -c "createdb $CREATEDB_OPTIONS $db_name 2>&1 " || echo `
+        if [ -z ${TRAVIS+x} ]; then
+            # not Travis
+            local run_createdb_result=`sudo su -l postgres -c "createdb $CREATEDB_OPTIONS $db_name 2>&1 " || echo `
+        else
+            # Travis
+            local run_createdb_result=`createdb -U postgres $CREATEDB_OPTIONS $db_name 2>&1`
+        fi
     fi
     echo "$run_createdb_result"
 }

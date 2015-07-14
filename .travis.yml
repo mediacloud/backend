@@ -49,7 +49,7 @@ install:
     # Use default configuration
     - cp mediawords.yml.dist mediawords.yml
     # Create PostgreSQL database
-    - sudo ./install_scripts/create_default_db_user_and_databases.sh
+    - ./install_scripts/create_default_db_user_and_databases.sh
 before_script:
     # Initialize PostgreSQL database
     - MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM=1 ./script/run_with_carton.sh ./script/mediawords_create_db.pl
