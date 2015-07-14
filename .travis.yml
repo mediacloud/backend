@@ -30,8 +30,7 @@ addons:
             - g++
             - gawk
             - gcc
-            - gearman-job-server
-            - gearman-tools
+            - gearmand
             - graphviz
             - graphviz-dev
             - libdb-dev
