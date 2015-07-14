@@ -201,12 +201,16 @@ EOF
         $object_id
     )->flat;
 
-    unless ( $compressed_content->[ 0 ] )
+    unless ( defined $compressed_content->[ 0 ] )
     {
         confess "Object with ID $object_id was not found in '$table' table.";
     }
 
     $compressed_content = $compressed_content->[ 0 ];
+    if ( $compressed_content eq '' )
+    {
+        confess "Object's with ID $object_id data is empty in '$table' table.";
+    }
 
     # Uncompress + decode
     unless ( defined $compressed_content and $compressed_content ne '' )
