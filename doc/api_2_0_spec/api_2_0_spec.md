@@ -445,6 +445,8 @@ The following table describes the meaning and origin of fields returned by both 
 | `collect_date`      | The date the RSS feed was actually downloaded.
 | `url`               | The URL field in the RSS feed.
 | `guid`              | The GUID field in the RSS feed. Defaults to the URL if no GUID is specified in the RSS feed.
+| `language`          | The language of the story as detected by the chromium compact language detector library.
+| `title`             | The title of the story as found in the RSS feed.
 
 
 ### api/v2/stories_public/single
@@ -1197,13 +1199,13 @@ The format of the API responses is determined by the `Accept` header on the requ
 
 Here's an example of setting the `Accept` header in Python:
 
-```python  
-import pkg_resources  
+```python
+import pkg_resources
 
 import requests
 assert pkg_resources.get_distribution("requests").version >= '1.2.3'
 
-r = requests.get( 'https://api.mediacloud.org/api/v2/media/list', params = params, headers = { 'Accept': 'application/json'}, headers = { 'Accept': 'application/json'} )  
+r = requests.get( 'https://api.mediacloud.org/api/v2/media/list', params = params, headers = { 'Accept': 'application/json'}, headers = { 'Accept': 'application/json'} )
 
 data = r.json()
 ```
@@ -1304,7 +1306,7 @@ curl https://api.mediacloud.org/api/v2/dashboards/single/1
 	     NOT SHOWN FOR SPACE REASONS
 	   ]
    	   }
-   ]  
+   ]
 ]
 ```
 
@@ -1447,7 +1449,7 @@ curl https://api.mediacloud.org/api/v2/dashboards/single/1
 	   ]
 
 	  }
-   ]  
+   ]
 ]
 ```
 

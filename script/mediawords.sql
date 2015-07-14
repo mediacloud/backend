@@ -36,16 +36,16 @@ DROP FUNCTION create_language_plpgsql();
 -- Database properties (variables) table
 create table database_variables (
     database_variables_id        serial          primary key,
-    name                varchar(512)    not null unique,        
+    name                varchar(512)    not null unique,
     value               varchar(1024)   not null
 );
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
-    
+
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4505;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4507;
     
 BEGIN
 
@@ -54,7 +54,7 @@ BEGIN
     INSERT INTO database_variables (name, value) VALUES ('database-schema-version', MEDIACLOUD_DATABASE_SCHEMA_VERSION::int);
 
     return true;
-    
+
 END;
 $$
 LANGUAGE 'plpgsql';
@@ -62,9 +62,9 @@ LANGUAGE 'plpgsql';
 
 -- Set the version number right away
 SELECT set_database_schema_version();
-INSERT INTO database_variables( name, value ) values ( 'LAST_STORY_SENTENCES_ID_PROCESSED', '0' ); 
+INSERT INTO database_variables( name, value ) values ( 'LAST_STORY_SENTENCES_ID_PROCESSED', '0' );
 
--- This function is needed because date_trunc('week', date) is not consider immutable 
+-- This function is needed because date_trunc('week', date) is not consider immutable
 -- See http://www.mentby.com/Group/pgsql-general/datetrunc-on-date-is-immutable.html
 --
 CREATE OR REPLACE FUNCTION week_start_date(day date)
@@ -90,7 +90,7 @@ BEGIN
    LOOP
     temp := temp + 1;
     perform pg_sleep( 1 );
-    RAISE NOTICE 'time - %', temp; 
+    RAISE NOTICE 'time - %', temp;
    END LOOP;
 END;
 $$
@@ -167,7 +167,7 @@ BEGIN
       ) LOOP
         current_time := timeofday()::timestamp;
         RAISE NOTICE 'media_id is %, start_date - % time - %', media_rec.media_id, media_rec.start_date, current_time;
-        DELETE from story_sentence_counts where media_id = media_rec.media_id and publish_week < date_trunc( 'day', media_rec.start_date ); 
+        DELETE from story_sentence_counts where media_id = media_rec.media_id and publish_week < date_trunc( 'day', media_rec.start_date );
     END LOOP;
 
   RAISE NOTICE 'time - %', current_time;  -- Prints 30
@@ -180,13 +180,13 @@ BEGIN
       ) LOOP
         current_time := timeofday()::timestamp;
         RAISE NOTICE 'media_id is %, end_date - % time - %', media_rec.media_id, media_rec.end_date, current_time;
-        DELETE from story_sentence_counts where media_id = media_rec.media_id and publish_week > date_trunc( 'day', media_rec.end_date ); 
+        DELETE from story_sentence_counts where media_id = media_rec.media_id and publish_week > date_trunc( 'day', media_rec.end_date );
     END LOOP;
 END;
 $$
 LANGUAGE 'plpgsql'
  ;
- 
+
 CREATE OR REPLACE FUNCTION update_media_last_updated () RETURNS trigger AS
 $$
    DECLARE
@@ -195,7 +195,7 @@ $$
       IF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'INSERT') THEN
       	 update media set db_row_last_updated = now() where media_id = NEW.media_id;
       END IF;
-      
+
       IF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'DELETE') THEN
       	 update media set db_row_last_updated = now() where media_id = OLD.media_id;
       END IF;
@@ -241,7 +241,7 @@ $$
       path_change boolean;
       table_with_trigger_column  boolean default false;
    BEGIN
-      -- RAISE NOTICE 'BEGIN ';                                                                                                                            
+      -- RAISE NOTICE 'BEGIN ';
         IF TG_TABLE_NAME in ( 'processed_stories', 'stories', 'story_sentences') THEN
            table_with_trigger_column = true;
         ELSE
@@ -437,7 +437,10 @@ create table media (
 
     -- Annotate stories from this media source with CoreNLP?
     annotate_with_corenlp   BOOLEAN     NOT NULL DEFAULT(false),
-    
+
+    -- Delay content downloads for this media source this many hours
+    content_delay       int             null,
+
     db_row_last_updated         timestamp with time zone,
 
     CONSTRAINT media_name_not_empty CHECK ( ( (name)::text <> ''::text ) ),
@@ -452,7 +455,7 @@ create index media_db_row_last_updated on media( db_row_last_updated );
 CREATE INDEX media_name_trgm on media USING gin (name gin_trgm_ops);
 CREATE INDEX media_url_trgm on media USING gin (url gin_trgm_ops);
 
--- list of media sources for which the stories should be updated to be at 
+-- list of media sources for which the stories should be updated to be at
 -- at least db_row_last_updated
 create table media_update_time_queue (
     media_id                    int         not null references media on delete cascade,
@@ -543,10 +546,8 @@ LANGUAGE 'plpgsql';
 
 create index media_stats_medium on media_stats( media_id );
 
--- Function to check whether media item has feeds added
-    
 create type feed_feed_type AS ENUM ( 'syndicated', 'web_page' );
-    
+
 -- Feed statuses that determine whether the feed will be fetched
 -- or skipped
 CREATE TYPE feed_feed_status AS ENUM (
@@ -563,7 +564,7 @@ CREATE TYPE feed_feed_status AS ENUM (
 create table feeds (
     feeds_id            serial              primary key,
     media_id            int                 not null references media on delete cascade,
-    name                varchar(512)        not null,        
+    name                varchar(512)        not null,
     url                 varchar(1024)       not null,
     reparse             boolean             null,
     feed_type           feed_feed_type      not null default 'syndicated',
@@ -775,7 +776,7 @@ insert into media_type_tags values
     );
     
 insert into tags ( tag_sets_id, tag, label, description )
-    select ts.tag_sets_id, mtt.name, mtt.name, mtt.description 
+    select ts.tag_sets_id, mtt.name, mtt.name, mtt.description
         from tag_sets ts cross join media_type_tags mtt
         where ts.name = 'media_type';
 
@@ -796,11 +797,11 @@ create table media_tags_map (
 
 create unique index media_tags_map_media on media_tags_map (media_id, tags_id);
 create index media_tags_map_tag on media_tags_map (tags_id);
-    
+
 DROP TRIGGER IF EXISTS mtm_last_updated on media_tags_map CASCADE;
-CREATE TRIGGER mtm_last_updated BEFORE INSERT OR UPDATE OR DELETE 
+CREATE TRIGGER mtm_last_updated BEFORE INSERT OR UPDATE OR DELETE
     ON media_tags_map FOR EACH ROW EXECUTE PROCEDURE update_media_last_updated() ;
-    
+
 create view media_with_media_types as
     select m.*, mtm.tags_id media_type_tags_id, t.label media_type
     from
@@ -813,7 +814,7 @@ create view media_with_media_types as
 
 
 -- A dashboard defines which collections, dates, and topics appear together within a given dashboard screen.
--- For example, a dashboard might include three media_sets for russian collections, a set of dates for which 
+-- For example, a dashboard might include three media_sets for russian collections, a set of dates for which
 -- to generate a dashboard for those collections, and a set of topics to use for specific dates for all media
 -- sets within the collection
 create table dashboards (
@@ -860,7 +861,7 @@ create table media_rss_full_text_detection_data (
 );
 
 create index media_rss_full_text_detection_data_media on media_rss_full_text_detection_data (media_id);
-   
+
 -- Sets of media sources that should appear in the dashboard
 -- The contents of the row depend on the set_type, which can be one of:
 --  medium -- a single medium (media_id)
@@ -898,19 +899,19 @@ check ( ( ( set_type = 'medium' ) and ( media_id is not null ) )
 create unique index media_sets_medium on media_sets ( media_id );
 create index media_sets_tag on media_sets ( tags_id );
 create index media_sets_vectors_added on media_sets ( vectors_added );
-        
+
 create table media_sets_media_map (
     media_sets_media_map_id     serial  primary key,
-    media_sets_id               int     not null references media_sets on delete cascade,    
+    media_sets_id               int     not null references media_sets on delete cascade,
     media_id                    int     not null references media on delete cascade
 );
 
 
 create index media_sets_media_map_set on media_sets_media_map ( media_sets_id );
 create index media_sets_media_map_media on media_sets_media_map ( media_id );
-    
+
 DROP TRIGGER IF EXISTS msmm_last_updated on media_sets_media_map CASCADE;
-CREATE TRIGGER msmm_last_updated BEFORE INSERT OR UPDATE OR DELETE 
+CREATE TRIGGER msmm_last_updated BEFORE INSERT OR UPDATE OR DELETE
     ON media_sets_media_map FOR EACH ROW EXECUTE PROCEDURE update_media_last_updated() ;
 
 
@@ -941,7 +942,7 @@ BEGIN
          AND media_sets_id = v_media_sets_id
     GROUP BY media_sets_id;
 
-    start_date = media_rec.sw_data_start_date; 
+    start_date = media_rec.sw_data_start_date;
     end_date = media_rec.sw_data_end_date;
 
     --RAISE NOTICE 'start date - %', start_date;
@@ -1000,7 +1001,7 @@ BEGIN
 
    media_rec = media_set_sw_data_retention_dates( v_media_sets_id, default_start_day,  default_end_day ); -- INTO (media_rec);
 
-   start_date = media_rec.start_date; 
+   start_date = media_rec.start_date;
    end_date = media_rec.end_date;
 
     -- RAISE NOTICE 'start date - %', start_date;
@@ -1041,7 +1042,7 @@ create table dashboard_topics (
     end_date                    timestamp       not null,
     vectors_added               boolean         default false
 );
-    
+
 create index dashboard_topics_dashboard on dashboard_topics ( dashboards_id );
 create index dashboard_topics_vectors_added on dashboard_topics ( vectors_added );
 
@@ -1061,9 +1062,9 @@ create table color_sets (
     color_set                   varchar( 256 )  not null,
     id                          varchar( 256 )  not null
 );
-  
+
 create unique index color_sets_set_id on color_sets ( color_set, id );
-    
+
 -- prefill colors for partisan_code set so that liberal is blue and conservative is red
 insert into color_sets ( color, color_set, id ) values ( 'c10032', 'partisan_code', 'partisan_2012_conservative' );
 insert into color_sets ( color, color_set, id ) values ( '00519b', 'partisan_code', 'partisan_2012_liberal' );
@@ -1164,10 +1165,10 @@ CREATE UNIQUE INDEX downloads_file_status on downloads(file_status, downloads_id
 CREATE UNIQUE INDEX downloads_relative_path on downloads( relative_file_path, downloads_id);
 
 
-alter table downloads add constraint downloads_parent_fkey 
+alter table downloads add constraint downloads_parent_fkey
     foreign key (parent) references downloads on delete set null;
 alter table downloads add constraint downloads_path
-    check ((state = 'success' and path is not null) or 
+    check ((state = 'success' and path is not null) or
            (state != 'success'));
 alter table downloads add constraint downloads_feed_id_valid
       check (feeds_id is not null);
@@ -1194,10 +1195,10 @@ ALTER TABLE downloads
     );
 
 create index downloads_parent on downloads (parent);
--- create unique index downloads_host_fetching 
+-- create unique index downloads_host_fetching
 --     on downloads(host, (case when state='fetching' then 1 else null end));
 create index downloads_time on downloads (download_time);
-    
+
 create index downloads_feed_download_time on downloads ( feeds_id, download_time );
 
 -- create index downloads_sequence on downloads (sequence);
@@ -1207,7 +1208,7 @@ create index downloads_feed_state on downloads(feeds_id, state);
 create index downloads_story on downloads(stories_id);
 create index downloads_url on downloads(url);
 CREATE INDEX downloads_state_downloads_id_pending on downloads(state,downloads_id) where state='pending';
-create index downloads_extracted on downloads(extracted, state, type) 
+create index downloads_extracted on downloads(extracted, state, type)
     where extracted = 'f' and state = 'success' and type = 'content';
 
 CREATE INDEX downloads_stories_to_be_extracted
@@ -1322,7 +1323,7 @@ create table extractor_training_lines
     downloads_id                    int         not null references downloads on delete cascade,
     "time" timestamp without time zone,
     submitter character varying(256)
-);      
+);
 
 create unique index extractor_training_lines_line on extractor_training_lines(line_number, downloads_id);
 create index extractor_training_lines_download on extractor_training_lines(downloads_id);
@@ -1352,7 +1353,7 @@ ALTER TABLE ONLY download_texts
 
 ALTER TABLE download_texts add CONSTRAINT download_text_length_is_correct CHECK (length(download_text)=download_text_length);
 
-    
+
 create table extracted_lines
 (
     extracted_lines_id          serial          primary key,
@@ -1363,13 +1364,13 @@ create table extracted_lines
 create index extracted_lines_download_text on extracted_lines(download_texts_id);
 
 CREATE TYPE url_discovery_status_type as ENUM ('already_processed', 'not_yet_processed');
-CREATE TABLE url_discovery_counts ( 
-       url_discovery_status url_discovery_status_type PRIMARY KEY, 
+CREATE TABLE url_discovery_counts (
+       url_discovery_status url_discovery_status_type PRIMARY KEY,
        num_urls INT DEFAULT  0);
 
 INSERT  into url_discovery_counts VALUES ('already_processed');
 INSERT  into url_discovery_counts VALUES ('not_yet_processed');
-    
+
 -- VIEWS
 
 CREATE VIEW media_extractor_training_downloads_count AS
@@ -1520,7 +1521,7 @@ CREATE TRIGGER story_sentences_last_updated_trigger
     BEFORE INSERT OR UPDATE ON story_sentences
     FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
 
-    
+
 -- update media stats table for new story sentence.
 create function insert_ss_media_stats() returns trigger as $$
 begin
@@ -1536,7 +1537,7 @@ begin
     return NEW;
 END;
 $$ LANGUAGE plpgsql;
-create trigger ss_insert_story_media_stats after insert 
+create trigger ss_insert_story_media_stats after insert
     on story_sentences for each row execute procedure insert_ss_media_stats();
 
 -- update media stats table for updated story_sentence date
@@ -1549,10 +1550,10 @@ begin
     IF NOT story_triggers_enabled() THEN
        RETURN NULL;
     END IF;
-    
+
     select date_trunc( 'day', NEW.publish_date ) into new_date;
     select date_trunc( 'day', OLD.publish_date ) into old_date;
-    
+
     IF ( new_date <> old_date ) THEN
         update media_stats set num_sentences = num_sentences - 1
             where media_id = NEW.media_id and stat_date = old_date;
@@ -1563,7 +1564,7 @@ begin
     return NEW;
 END;
 $$ LANGUAGE plpgsql;
-create trigger ss_update_story_media_stats after update 
+create trigger ss_update_story_media_stats after update
     on story_sentences for each row execute procedure update_ss_media_stats();
 
 -- update media stats table for deleted story sentence
@@ -1573,24 +1574,24 @@ begin
     IF NOT story_triggers_enabled() THEN
        RETURN NULL;
     END IF;
-    
+
     update media_stats set num_sentences = num_sentences - 1
     where media_id = OLD.media_id and stat_date = date_trunc( 'day', OLD.publish_date );
 
     return NEW;
 END;
 $$ LANGUAGE plpgsql;
-create trigger story_delete_ss_media_stats after delete 
+create trigger story_delete_ss_media_stats after delete
     on story_sentences for each row execute procedure delete_ss_media_stats();
-    
--- update media stats table for new story. create the media / day row if needed.  
+
+-- update media stats table for new story. create the media / day row if needed.
 create or replace function insert_story_media_stats() returns trigger as $insert_story_media_stats$
 begin
 
     IF NOT story_triggers_enabled() THEN
        RETURN NULL;
     END IF;
-    
+
     insert into media_stats ( media_id, num_stories, num_sentences, stat_date )
         select NEW.media_id, 0, 0, date_trunc( 'day', NEW.publish_date )
             where not exists (
@@ -1602,7 +1603,7 @@ begin
     return NEW;
 END;
 $insert_story_media_stats$ LANGUAGE plpgsql;
-create trigger stories_insert_story_media_stats after insert 
+create trigger stories_insert_story_media_stats after insert
     on stories for each row execute procedure insert_story_media_stats();
 
 
@@ -1616,10 +1617,10 @@ begin
     IF NOT story_triggers_enabled() THEN
        RETURN NULL;
     END IF;
-    
+
     select date_trunc( 'day', NEW.publish_date ) into new_date;
     select date_trunc( 'day', OLD.publish_date ) into old_date;
-    
+
     IF ( new_date <> old_date ) THEN
         update media_stats set num_stories = num_stories - 1
             where media_id = NEW.media_id and stat_date = old_date;
@@ -1631,21 +1632,21 @@ begin
 
         update media_stats set num_stories = num_stories + 1
             where media_id = NEW.media_id and stat_date = new_date;
-            
+
         update story_sentences set publish_date = new_date where stories_id = OLD.stories_id;
     END IF;
 
     return NEW;
 END;
 $update_story_media_stats$ LANGUAGE plpgsql;
-create trigger stories_update_story_media_stats after update 
+create trigger stories_update_story_media_stats after update
     on stories for each row execute procedure update_story_media_stats();
 
 
 -- update media stats table for deleted story
 create function delete_story_media_stats() returns trigger as $delete_story_media_stats$
 begin
-    
+
     IF NOT story_triggers_enabled() THEN
        RETURN NULL;
     END IF;
@@ -1656,7 +1657,7 @@ begin
     return NEW;
 END;
 $delete_story_media_stats$ LANGUAGE plpgsql;
-create trigger story_delete_story_media_stats after delete 
+create trigger story_delete_story_media_stats after delete
     on stories for each row execute procedure delete_story_media_stats();
 
 create table story_sentences_tags_map
@@ -1716,7 +1717,7 @@ create index solr_import_stories_story on solr_import_stories ( stories_id );
 
 create index solr_imports_date on solr_imports ( import_date );
 
-create view story_extracted_texts as select stories_id, array_to_string(array_agg(download_text), ' ') as extracted_text 
+create view story_extracted_texts as select stories_id, array_to_string(array_agg(download_text), ' ') as extracted_text
        from (select * from downloads natural join download_texts order by downloads_id) as downloads group by stories_id;
 
 
@@ -1741,12 +1742,12 @@ COMMENT ON COLUMN controversies.process_with_bitly
 create unique index controversies_name on controversies( name );
 create unique index controversies_tag_set on controversies( controversy_tag_sets_id );
 create unique index controversies_media_type_tag_set on controversies( media_type_tag_sets_id );
-            
+
 create function insert_controversy_tag_set() returns trigger as $insert_controversy_tag_set$
     begin
         insert into tag_sets ( name, label, description )
             select 'controversy_'||NEW.name, NEW.name||' controversy', 'Tag set for stories within the '||NEW.name||' controversy.';
-        
+
         select tag_sets_id into NEW.controversy_tag_sets_id from tag_sets where name = 'controversy_'||NEW.name;
 
         return NEW;
@@ -1754,8 +1755,8 @@ create function insert_controversy_tag_set() returns trigger as $insert_controve
 $insert_controversy_tag_set$ LANGUAGE plpgsql;
 
 create trigger controversy_tag_set before insert on controversies
-    for each row execute procedure insert_controversy_tag_set();         
-    
+    for each row execute procedure insert_controversy_tag_set();
+
 create table controversy_dates (
     controversy_dates_id    serial primary key,
     controversies_id        int not null references controversies on delete cascade,
@@ -1765,13 +1766,13 @@ create table controversy_dates (
 );
 
 create view controversies_with_dates as
-    select c.*, 
-            to_char( cd.start_date, 'YYYY-MM-DD' ) start_date, 
+    select c.*,
+            to_char( cd.start_date, 'YYYY-MM-DD' ) start_date,
             to_char( cd.end_date, 'YYYY-MM-DD' ) end_date
-        from 
-            controversies c 
+        from
+            controversies c
             join controversy_dates cd on ( c.controversies_id = cd.controversies_id )
-        where 
+        where
             cd.boundary;
 
 create table controversy_dump_tags (
@@ -1794,7 +1795,7 @@ create table controversy_merged_stories_map (
 
 create index controversy_merged_stories_map_source on controversy_merged_stories_map ( source_stories_id );
 create index controversy_merged_stories_map_story on controversy_merged_stories_map ( target_stories_id );
-    
+
 create table controversy_stories (
     controversy_stories_id          serial primary key,
     controversies_id                int not null references controversies on delete cascade,
@@ -1810,7 +1811,7 @@ create unique index controversy_stories_sc on controversy_stories ( stories_id, 
 
 -- no foreign key constraints on controversies_id and stories_id because
 --   we have the combined foreign key constraint pointing to controversy_stories
---   below 
+--   below
 create table controversy_links (
     controversy_links_id        serial primary key,
     controversies_id            int not null,
@@ -1821,7 +1822,7 @@ create table controversy_links (
     link_spidered               boolean default 'f'
 );
 
-alter table controversy_links add constraint controversy_links_controversy_story_stories_id 
+alter table controversy_links add constraint controversy_links_controversy_story_stories_id
     foreign key ( stories_id, controversies_id ) references controversy_stories ( stories_id, controversies_id )
     on delete cascade;
 
@@ -1865,7 +1866,7 @@ create table controversy_seed_urls (
 create index controversy_seed_urls_controversy on controversy_seed_urls( controversies_id );
 create index controversy_seed_urls_url on controversy_seed_urls( url );
 create index controversy_seed_urls_story on controversy_seed_urls ( stories_id );
-        
+
 create table controversy_ignore_redirects (
     controversy_ignore_redirects_id     serial primary key,
     url                                 varchar( 1024 )
@@ -1911,7 +1912,7 @@ create table controversy_dump_time_slices (
     story_link_count                int not null,
     medium_count                    int not null,
     medium_link_count               int not null,
-    
+
     -- is this just a shell cdts with no data actually dumped into it
     -- we use shell cdtss to display query slices on live data with having to make a real dump
     -- first
@@ -1920,7 +1921,7 @@ create table controversy_dump_time_slices (
 );
 
 create index controversy_dump_time_slices_dump on controversy_dump_time_slices ( controversy_dumps_id );
-    
+
 create table cdts_files (
     cdts_files_id                   serial primary key,
     controversy_dump_time_slices_id int not null references controversy_dump_time_slices on delete cascade,
@@ -1938,7 +1939,7 @@ create table cd_files (
 );
 
 create index cd_files_cd on cd_files ( controversy_dumps_id );
-    
+
 -- schema to hold the various controversy dump snapshot tables
 create schema cd;
 
@@ -1956,7 +1957,7 @@ create table cd.stories (
     full_text_rss               boolean         not null default 'f',
     language                    varchar(3)      null   -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
 );
-create index stories_id on cd.stories ( controversy_dumps_id, stories_id );    
+create index stories_id on cd.stories ( controversy_dumps_id, stories_id );
 
 -- stats for various externally dervied statistics about a story.  keeping this separate for now
 -- from the bitly stats for simplicity sake during implementatino and testing
@@ -1967,7 +1968,7 @@ create table story_statistics (
     twitter_url_tweet_count     int         null,
     twitter_api_collect_date    timestamp   null,
     twitter_api_error           text        null,
-    
+
     facebook_share_count        int         null,
     facebook_comment_count      int         null,
     facebook_api_collect_date   timestamp   null,
@@ -2055,7 +2056,7 @@ LANGUAGE plpgsql;
 
 
 create table cd.controversy_stories (
-    controversy_dumps_id            int not null references controversy_dumps on delete cascade,    
+    controversy_dumps_id            int not null references controversy_dumps on delete cascade,
     controversy_stories_id          int,
     controversies_id                int not null,
     stories_id                      int not null,
@@ -2068,7 +2069,7 @@ create table cd.controversy_stories (
 create index controversy_stories_id on cd.controversy_stories ( controversy_dumps_id, stories_id );
 
 create table cd.controversy_links_cross_media (
-    controversy_dumps_id        int not null references controversy_dumps on delete cascade,    
+    controversy_dumps_id        int not null references controversy_dumps on delete cascade,
     controversy_links_id        int,
     controversies_id            int not null,
     stories_id                  int not null,
@@ -2079,16 +2080,16 @@ create index controversy_links_story on cd.controversy_links_cross_media ( contr
 create index controversy_links_ref on cd.controversy_links_cross_media ( controversy_dumps_id, ref_stories_id );
 
 create table cd.controversy_media_codes (
-    controversy_dumps_id    int not null references controversy_dumps on delete cascade,    
+    controversy_dumps_id    int not null references controversy_dumps on delete cascade,
     controversies_id        int not null,
     media_id                int not null,
     code_type               text,
     code                    text
 );
 create index controversy_media_codes_medium on cd.controversy_media_codes ( controversy_dumps_id, media_id );
-    
+
 create table cd.media (
-    controversy_dumps_id    int not null references controversy_dumps on delete cascade,    
+    controversy_dumps_id    int not null references controversy_dumps on delete cascade,
     media_id                int,
     url                     varchar(1024)   not null,
     name                    varchar(128)    not null,
@@ -2105,19 +2106,19 @@ create table cd.media (
     unpaged_stories         int             not null default 0
 );
 create index media_id on cd.media ( controversy_dumps_id, media_id );
-    
+
 create table cd.media_tags_map (
-    controversy_dumps_id    int not null    references controversy_dumps on delete cascade,    
+    controversy_dumps_id    int not null    references controversy_dumps on delete cascade,
     media_tags_map_id       int,
     media_id                int             not null,
     tags_id                 int             not null
 );
 create index media_tags_map_medium on cd.media_tags_map ( controversy_dumps_id, media_id );
 create index media_tags_map_tag on cd.media_tags_map ( controversy_dumps_id, tags_id );
-    
+
 create table cd.stories_tags_map
 (
-    controversy_dumps_id    int not null    references controversy_dumps on delete cascade,    
+    controversy_dumps_id    int not null    references controversy_dumps on delete cascade,
     stories_tags_map_id     int,
     stories_id              int,
     tags_id                 int
@@ -2126,7 +2127,7 @@ create index stories_tags_map_story on cd.stories_tags_map ( controversy_dumps_i
 create index stories_tags_map_tag on cd.stories_tags_map ( controversy_dumps_id, tags_id );
 
 create table cd.tags (
-    controversy_dumps_id    int not null    references controversy_dumps on delete cascade,    
+    controversy_dumps_id    int not null    references controversy_dumps on delete cascade,
     tags_id                 int,
     tag_sets_id             int,
     tag                     varchar(512),
@@ -2136,11 +2137,11 @@ create table cd.tags (
 create index tags_id on cd.tags ( controversy_dumps_id, tags_id );
 
 create table cd.tag_sets (
-    controversy_dumps_id    int not null    references controversy_dumps on delete cascade,    
+    controversy_dumps_id    int not null    references controversy_dumps on delete cascade,
     tag_sets_id             int,
     name                    varchar(512),
     label                   text,
-    description             text   
+    description             text
 );
 create index tag_sets_id on cd.tag_sets ( controversy_dumps_id, tag_sets_id );
 
@@ -2152,13 +2153,13 @@ create table cd.story_links (
     ref_stories_id                          int not null
 );
 
--- TODO: add complex foreign key to check that *_stories_id exist for the controversy_dump stories snapshot    
+-- TODO: add complex foreign key to check that *_stories_id exist for the controversy_dump stories snapshot
 create index story_links_source on cd.story_links( controversy_dump_time_slices_id, source_stories_id );
 create index story_links_ref on cd.story_links( controversy_dump_time_slices_id, ref_stories_id );
 
 -- link counts for stories within a cdts
 create table cd.story_link_counts (
-    controversy_dump_time_slices_id         int not null 
+    controversy_dump_time_slices_id         int not null
                                             references controversy_dump_time_slices on delete cascade,
     stories_id                              int not null,
     inlink_count                            int not null,
@@ -2222,7 +2223,7 @@ create table cd.weekly_date_counts (
 
 create index weekly_date_counts_date on cd.weekly_date_counts( controversy_dumps_id, publish_date );
 create index weekly_date_counts_tag on cd.weekly_date_counts( controversy_dumps_id, tags_id );
-    
+
 -- create a mirror of the stories table with the stories for each controversy.  this is to make
 -- it much faster to query the stories associated with a given controversy, rather than querying the
 -- contested and bloated stories table.  only inserts and updates on stories are triggered, because
@@ -2244,12 +2245,12 @@ create table cd.live_stories (
 );
 create index live_story_controversy on cd.live_stories ( controversies_id );
 create unique index live_stories_story on cd.live_stories ( controversies_id, stories_id );
-    
+
 create table cd.word_counts (
     controversy_dump_time_slices_id int             not null references controversy_dump_time_slices on delete cascade,
     term                            varchar(256)    not null,
     stem                            varchar(256)    not null,
-    stem_count                      smallint        not null    
+    stem_count                      smallint        not null
 );
 
 create index word_counts_cdts_stem on cd.word_counts ( controversy_dump_time_slices_id, stem );
@@ -2257,24 +2258,24 @@ create index word_counts_cdts_stem on cd.word_counts ( controversy_dump_time_sli
 create function insert_live_story() returns trigger as $insert_live_story$
     begin
 
-        insert into cd.live_stories 
-            ( controversies_id, controversy_stories_id, stories_id, media_id, url, guid, title, description, 
-                publish_date, collect_date, full_text_rss, language, 
+        insert into cd.live_stories
+            ( controversies_id, controversy_stories_id, stories_id, media_id, url, guid, title, description,
+                publish_date, collect_date, full_text_rss, language,
                 db_row_last_updated )
-            select NEW.controversies_id, NEW.controversy_stories_id, NEW.stories_id, s.media_id, s.url, s.guid, 
+            select NEW.controversies_id, NEW.controversy_stories_id, NEW.stories_id, s.media_id, s.url, s.guid,
                     s.title, s.description, s.publish_date, s.collect_date, s.full_text_rss, s.language,
                     s.db_row_last_updated
                 from controversy_stories cs
                     join stories s on ( cs.stories_id = s.stories_id )
-                where 
-                    cs.stories_id = NEW.stories_id and 
+                where
+                    cs.stories_id = NEW.stories_id and
                     cs.controversies_id = NEW.controversies_id;
 
         return NEW;
     END;
 $insert_live_story$ LANGUAGE plpgsql;
 
-create trigger controversy_stories_insert_live_story after insert on controversy_stories 
+create trigger controversy_stories_insert_live_story after insert on controversy_stories
     for each row execute procedure insert_live_story();
 
 create function update_live_story() returns trigger as $update_live_story$
@@ -2296,15 +2297,15 @@ create function update_live_story() returns trigger as $update_live_story$
                 language = NEW.language,
                 db_row_last_updated = NEW.db_row_last_updated
             where
-                stories_id = NEW.stories_id;         
-        
+                stories_id = NEW.stories_id;
+
         return NEW;
     END;
 $update_live_story$ LANGUAGE plpgsql;
-        
-create trigger stories_update_live_story after update on stories 
+
+create trigger stories_update_live_story after update on stories
     for each row execute procedure update_live_story();
-                                        
+
 create table processed_stories (
     processed_stories_id        bigserial          primary key,
     stories_id                  int             not null references stories on delete cascade,
@@ -2342,7 +2343,7 @@ create table controversy_query_story_searches_imported_stories_map (
 
 create index cqssism_c on controversy_query_story_searches_imported_stories_map ( controversies_id );
 create index cqssism_s on controversy_query_story_searches_imported_stories_map ( stories_id );
-    
+
 CREATE VIEW stories_collected_in_past_day as select * from stories where collect_date > now() - interval '1 day';
 
 CREATE VIEW downloads_to_be_extracted as select * from downloads where extracted = 'f' and state = 'success' and type = 'content';
@@ -2378,12 +2379,12 @@ CREATE INDEX feedless_stories_story ON feedless_stories USING btree (stories_id)
 CREATE TABLE queries_country_counts_json (
    queries_country_counts_json_id serial primary key,
    queries_id integer references queries on delete cascade not null unique,
-   country_counts_json text not null 
+   country_counts_json text not null
 );
 
 
 CREATE OR REPLACE FUNCTION add_query_version (new_query_version_enum_string character varying) RETURNS void
-AS 
+AS
 $body$
 DECLARE
     range_of_old_enum TEXT;
@@ -2430,11 +2431,11 @@ BEGIN
 
     IF path ~ regex_tar_format THEN
          relative_file_path =  regexp_replace(path, E'tar\\:\\d*\\:\\d*\\:(mediacloud-content-\\d*\.tar).*', E'\\1') ;
-    ELSIF  path like 'content:%' THEN 
+    ELSIF  path like 'content:%' THEN
          relative_file_path =  'inline';
     ELSEIF path like 'content/%' THEN
          relative_file_path =  regexp_replace(path, E'content\\/', E'\/') ;
-    ELSE  
+    ELSE
          relative_file_path = 'error';
     END IF;
 
@@ -2448,7 +2449,7 @@ LANGUAGE 'plpgsql' IMMUTABLE
 
 UPDATE downloads set relative_file_path = get_relative_file_path(path) where relative_file_path = 'tbd';
 
-CREATE OR REPLACE FUNCTION download_relative_file_path_trigger() RETURNS trigger AS 
+CREATE OR REPLACE FUNCTION download_relative_file_path_trigger() RETURNS trigger AS
 $$
    DECLARE
       path_change boolean;
@@ -2459,8 +2460,8 @@ $$
 
 	  -- The second part is needed because of the way comparisons with null are handled.
 	  path_change := ( OLD.path <> NEW.path )  AND (  ( OLD.path is not null) <> (NEW.path is not null) ) ;
-	  -- RAISE NOTICE 'test result % ', path_change; 
-	  
+	  -- RAISE NOTICE 'test result % ', path_change;
+
           IF path_change is null THEN
 	       -- RAISE NOTICE 'Path change % != %', OLD.path, NEW.path;
                NEW.relative_file_path = get_relative_file_path(NEW.path);
@@ -2481,7 +2482,7 @@ $$
 
       RETURN NEW;
    END;
-$$ 
+$$
 LANGUAGE 'plpgsql';
 
 DROP TRIGGER IF EXISTS download_relative_file_path_trigger on downloads CASCADE;
@@ -2559,7 +2560,7 @@ CREATE TABLE auth_users (
 
     full_name       TEXT    NOT NULL,
     notes           TEXT    NULL,
-    
+
     non_public_api  BOOLEAN NOT NULL DEFAULT false,
     active          BOOLEAN NOT NULL DEFAULT true,
 
@@ -2572,14 +2573,14 @@ CREATE TABLE auth_users (
     -- Timestamp of the last unsuccessful attempt to log in; used for delaying successive
     -- attempts in order to prevent brute-force attacks
     last_unsuccessful_login_attempt     TIMESTAMP NOT NULL DEFAULT TIMESTAMP 'epoch',
-    
+
     created_date                        timestamp not null default now()
-    
+
 );
 
 create index auth_users_email on auth_users( email );
 create index auth_users_token on auth_users( api_token );
-    
+
 create table auth_registration_queue (
     auth_registration_queue_id  serial  primary key,
     name                        text    not null,
@@ -2628,6 +2629,7 @@ INSERT INTO auth_roles (role, description) VALUES
     ('media-edit', 'Add / edit media; includes feeds.'),
     ('stories-edit', 'Add / edit stories.'),
     ('cm', 'Controversy mapper; includes media and story editing'),
+    ('cm-readonly', 'Controversy mapper; excludes media and story editing'),
     ('stories-api', 'Access to the stories api'),
     ('search', 'Access to the /search pages');
 
@@ -2998,7 +3000,7 @@ BEGIN
         RETURN TRUE;
 
     END IF;
-    
+
 END;
 $$
 LANGUAGE 'plpgsql';

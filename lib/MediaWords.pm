@@ -194,7 +194,7 @@ sub setup_acl()
 
     for my $path ( @acl_cm )
     {
-        __PACKAGE__->allow_access_if_any( $path, [ qw/cm/ ] );
+        __PACKAGE__->allow_access_if_any( $path, [ qw/cm cm-readonly/ ] );
     }
 
     for my $path ( @acl_search )
