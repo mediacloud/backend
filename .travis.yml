@@ -30,8 +30,6 @@ before_install:
     # Travis artifacts (for caching "local/" to S3)
     - travis_retry gem install fog-json
     - travis_retry gem install travis-artifacts
-    # Update package listings (don't upgrade the packages though because it takes too much time)
-    - travis_retry sudo apt-get -y update
     # Create + switch to the Media Cloud's Perlbrew library
     - perlbrew lib create mediacloud
     - perlbrew switch @mediacloud
