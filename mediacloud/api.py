@@ -339,7 +339,7 @@ class MediaCloud(object):
         return r
 
     def _zi_time(self, d):
-	return datetime.datetime.combine(d, datetime.time.min).isoformat() + "Z"
+        return datetime.datetime.combine(d, datetime.time.min).isoformat() + "Z"
 
     def _solr_date_range( self, start_date, end_date, start_date_inclusive=True, end_date_inclusive=False):
         ret = ''
