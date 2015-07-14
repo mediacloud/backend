@@ -19,6 +19,16 @@ my $_connect_settings;
 sub _create_connect_info_from_settings
 {
     my ( $settings ) = @_;
+
+    unless ( defined $settings )
+    {
+        confess "Settings is undefined";
+    }
+    unless ( $settings->{ db } and $settings->{ host } )
+    {
+        confess "Settings is uncomplete ('db' and 'host' must both be set)";
+    }
+
     my $data_source = 'dbi:Pg:dbname=' . $settings->{ db } . ';host=' . $settings->{ host };
 
     if ( defined( $settings->{ port } ) )
