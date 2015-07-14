@@ -55,11 +55,11 @@ sub _add_test_feed($$$$$$)
 
     my $test_medium = $db->query(
         <<EOF,
-        INSERT INTO media (name, url, moderated, feeds_added, sw_data_start_date, sw_data_end_date)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO media (name, url, moderated, sw_data_start_date, sw_data_end_date)
+        VALUES (?, ?, ?, ?, ?)
         RETURNING *
 EOF
-        '_ Crawler Test', $url_to_crawl, 0, 0, $sw_data_start_date, $sw_data_end_date
+        '_ Crawler Test', $url_to_crawl, 0, $sw_data_start_date, $sw_data_end_date
     )->hash;
 
     ok( MediaWords::StoryVectors::_medium_has_story_words_start_date( $test_medium ),

@@ -11,7 +11,7 @@ use Feed::Scrape;
 # local version of get_valid_feeds_from_urls that ignores urls that match one of the ignore patterns
 sub get_valid_feeds_from_urls
 {
-    my ( $class, $urls, $db, $ignore_patterns_string, $existing_urls ) = @_;
+    my ( $class, $urls, $db, $ignore_patterns_string ) = @_;
 
     my $ignore_patterns = [ split( ' ', $ignore_patterns_string ) ];
 

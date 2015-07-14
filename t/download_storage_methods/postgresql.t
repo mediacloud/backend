@@ -28,8 +28,8 @@ sub _create_mock_download($$)
 
     $db->query(
         <<EOF
-		INSERT INTO media (media_id, url, name, moderated, feeds_added)
-		VALUES (1, 'http://', 'Test Media', 't', 't')
+		INSERT INTO media (media_id, url, name, moderated)
+		VALUES (1, 'http://', 'Test Media', 't')
 EOF
     );
 

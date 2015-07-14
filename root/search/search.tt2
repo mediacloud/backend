@@ -54,8 +54,8 @@
     
         <div class="boxtitle">
             Search Results
-            <a id="boxcommand" href="[% c.uri_for( '/search', { 'q' => q, 'languages' => languages, 'csv' => 1 } ) %]">CSV</a>
-            <a id="boxcommand" href="[% c.uri_for( '/search/wc', { 'q' => q, 'languages' => languages } ) %]">words</a>
+            <a class="boxcommand" href="[% c.uri_for( '/search', { 'q' => q, 'languages' => languages, 'csv' => 1 } ) %]">CSV</a>
+            <a class="boxcommand" href="[% c.uri_for( '/search/wc', { 'q' => q, 'languages' => languages } ) %]">words</a>
         </div>
         <table>
             <tr>

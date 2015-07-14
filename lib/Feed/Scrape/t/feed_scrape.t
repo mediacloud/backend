@@ -8,7 +8,7 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
-use Test::More tests => 35;
+use Test::More tests => 28;
 use Test::NoWarnings;
 use Test::Deep;
 
@@ -1040,7 +1040,6 @@ EOF
         }
     ];
     my $expected_need_to_moderate = 0;
-    my $expected_existing_urls    = [];
 
     my $medium = { url => $TEST_HTTP_SERVER_URL };
 
@@ -1050,15 +1049,13 @@ EOF
     $hs1->start();
     $hs2->start();
 
-    my ( $feed_links, $need_to_moderate, $existing_urls ) =
-      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
+    my ( $feed_links, $need_to_moderate ) = Feed::Scrape::get_feed_links_and_need_to_moderate( $db, $medium );
 
     $hs1->stop();
     $hs2->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_rss_immediate_redirect_via_http_header feed_links' );
     is( $need_to_moderate, $expected_need_to_moderate, 'test_rss_immediate_redirect_via_http_header need_to_moderate' );
-    cmp_bag( $existing_urls, $expected_existing_urls, 'test_rss_immediate_redirect_via_http_header existing_urls' );
 }
 
 sub test_rss_immediate_redirect_via_html_meta_refresh($)
@@ -1124,7 +1121,6 @@ EOF
         }
     ];
     my $expected_need_to_moderate = 0;
-    my $expected_existing_urls    = [];
 
     my $medium = { url => $TEST_HTTP_SERVER_URL };
 
@@ -1134,8 +1130,7 @@ EOF
     $hs1->start();
     $hs2->start();
 
-    my ( $feed_links, $need_to_moderate, $existing_urls ) =
-      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
+    my ( $feed_links, $need_to_moderate ) = Feed::Scrape::get_feed_links_and_need_to_moderate( $db, $medium );
 
     $hs1->stop();
     $hs2->stop();
@@ -1143,7 +1138,6 @@ EOF
     cmp_bag( $feed_links, $expected_links, 'test_rss_immediate_redirect_via_html_meta_refresh feed_links' );
     is( $need_to_moderate, $expected_need_to_moderate,
         'test_rss_immediate_redirect_via_html_meta_refresh need_to_moderate' );
-    cmp_bag( $existing_urls, $expected_existing_urls, 'test_rss_immediate_redirect_via_html_meta_refresh existing_urls' );
 }
 
 # <base href="" />, like in http://www.thejakartaglobe.com
@@ -1402,24 +1396,21 @@ EOF
         },
     ];
     my $expected_need_to_moderate = 0;
-    my $expected_existing_urls    = [];
 
     my $medium = { url => $TEST_HTTP_SERVER_URL };
 
     my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
-    my ( $feed_links, $need_to_moderate, $existing_urls ) =
-      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
+    my ( $feed_links, $need_to_moderate ) = Feed::Scrape::get_feed_links_and_need_to_moderate( $db, $medium );
 
     $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_rss_external_feeds feed_links' );
     is( $need_to_moderate, $expected_need_to_moderate, 'test_rss_external_feeds need_to_moderate' );
-    cmp_bag( $existing_urls, $expected_existing_urls, 'test_rss_external_feeds existing_urls' );
 }
 
-sub test_get_feed_links_and_need_to_moderate_and_existing_urls($)
+sub test_get_feed_links_and_need_to_moderate($)
 {
     my $db = shift;
 
@@ -1472,23 +1463,18 @@ EOF
         }
     ];
     my $expected_need_to_moderate = 1;
-    my $expected_existing_urls    = [];
 
     my $medium = { url => $TEST_HTTP_SERVER_URL };
 
     my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
-    my ( $feed_links, $need_to_moderate, $existing_urls ) =
-      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
+    my ( $feed_links, $need_to_moderate ) = Feed::Scrape::get_feed_links_and_need_to_moderate( $db, $medium );
 
     $hs->stop();
 
-    cmp_bag( $feed_links, $expected_links, 'test_get_feed_links_and_need_to_moderate_and_existing_urls feed_links' );
-    is( $need_to_moderate, $expected_need_to_moderate,
-        'test_get_feed_links_and_need_to_moderate_and_existing_urls need_to_moderate' );
-    cmp_bag( $existing_urls, $expected_existing_urls,
-        'test_get_feed_links_and_need_to_moderate_and_existing_urls existing_urls' );
+    cmp_bag( $feed_links, $expected_links, 'test_get_feed_links_and_need_to_moderate feed_links' );
+    is( $need_to_moderate, $expected_need_to_moderate, 'test_get_feed_links_and_need_to_moderate need_to_moderate' );
 }
 
 sub test_feeds_with_common_prefix($)
@@ -1564,21 +1550,18 @@ EOF
     ];
 
     my $expected_need_to_moderate = 0;
-    my $expected_existing_urls    = [];
 
     my $medium = { url => $TEST_HTTP_SERVER_URL };
 
     my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
-    my ( $feed_links, $need_to_moderate, $existing_urls ) =
-      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
+    my ( $feed_links, $need_to_moderate ) = Feed::Scrape::get_feed_links_and_need_to_moderate( $db, $medium );
 
     $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_feeds_with_common_prefix feed_links' );
     is( $need_to_moderate, $expected_need_to_moderate, 'test_feeds_with_common_prefix need_to_moderate' );
-    cmp_bag( $existing_urls, $expected_existing_urls, 'test_feeds_with_common_prefix existing_urls' );
 }
 
 sub test_feed_aggregator_urls($)
@@ -1630,21 +1613,18 @@ EOF
     ];
 
     my $expected_need_to_moderate = 0;
-    my $expected_existing_urls    = [];
 
     my $medium = { url => $TEST_HTTP_SERVER_URL };
 
     my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
-    my ( $feed_links, $need_to_moderate, $existing_urls ) =
-      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
+    my ( $feed_links, $need_to_moderate ) = Feed::Scrape::get_feed_links_and_need_to_moderate( $db, $medium );
 
     $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_feed_aggregator_urls feed_links' );
     is( $need_to_moderate, $expected_need_to_moderate, 'test_feed_aggregator_urls need_to_moderate' );
-    cmp_bag( $existing_urls, $expected_existing_urls, 'test_feed_aggregator_urls existing_urls' );
 }
 
 sub test_web_page_feed($)
@@ -1677,19 +1657,16 @@ EOF
     ];
 
     my $expected_need_to_moderate = 0;
-    my $expected_existing_urls    = [];
 
     my $hs = HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
-    my ( $feed_links, $need_to_moderate, $existing_urls ) =
-      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
+    my ( $feed_links, $need_to_moderate ) = Feed::Scrape::get_feed_links_and_need_to_moderate( $db, $medium );
 
     $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_web_page_feed feed_links' );
     is( $need_to_moderate, $expected_need_to_moderate, 'test_web_page_feed need_to_moderate' );
-    cmp_bag( $existing_urls, $expected_existing_urls, 'test_web_page_feed existing_urls' );
 }
 
 sub main
@@ -1717,7 +1694,7 @@ sub main
             test_rss_unlinked_urls( $db );
             test_rss_image_link( $db );
             test_rss_external_feeds( $db );
-            test_get_feed_links_and_need_to_moderate_and_existing_urls( $db );
+            test_get_feed_links_and_need_to_moderate( $db );
             test_feeds_with_common_prefix( $db );
             test_feed_aggregator_urls( $db );
             test_web_page_feed( $db );
