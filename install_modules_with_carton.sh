@@ -66,6 +66,9 @@ mkdir -p local/
 # Install GraphViz separately because it fails on Travis CI container builds
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm --verbose -L local/ GraphViz
 
+# Install Gearman::XS separately because it fails on Travis CI container builds
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm --verbose -L local/ Gearman::XS
+
 # Install the rest of the modules; run the command twice because the first
 # attempt might fail
 source ./script/set_java_home.sh
