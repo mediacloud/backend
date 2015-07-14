@@ -154,7 +154,7 @@ database:
         # other configurable supervisor programs
         #crf_web_service
         #gearmand
-        #add_default_feeds
+        #rescrape_media
         #cm_mine_controversy
         #cm_dump_controversy
         #solr

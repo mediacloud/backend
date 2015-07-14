@@ -40,18 +40,16 @@ sub test_story_matches
     my ( $db ) = @_;
 
     my $medium_media_id = {
-        name        => "media id",
-        url         => "http://test/media/id",
-        moderated   => 't',
-        feeds_added => 't'
+        name      => "media id",
+        url       => "http://test/media/id",
+        moderated => 't',
     };
     $medium_media_id = $db->create( 'media', $medium_media_id );
 
     my $medium_dup_target = {
-        name        => "dup target",
-        url         => "http://test/dup/target",
-        moderated   => 't',
-        feeds_added => 't'
+        name      => "dup target",
+        url       => "http://test/dup/target",
+        moderated => 't',
     };
     $medium_dup_target = $db->create( 'media', $medium_dup_target );
 
@@ -59,24 +57,21 @@ sub test_story_matches
         name         => "dup source",
         url          => "http://test/dup/source",
         moderated    => 't',
-        feeds_added  => 't',
         dup_media_id => $medium_dup_target->{ media_id }
     };
     $medium_dup_source = $db->create( 'media', $medium_dup_source );
 
     my $medium_domain = {
-        name        => "domain match",
-        url         => "http://foo.domainmatch.com/bar",
-        moderated   => 't',
-        feeds_added => 't'
+        name      => "domain match",
+        url       => "http://foo.domainmatch.com/bar",
+        moderated => 't',
     };
     $medium_domain = $db->create( 'media', $medium_domain );
 
     my $medium_ignore = {
-        name        => "ignore",
-        url         => "http://test/ignore",
-        moderated   => 't',
-        feeds_added => 't'
+        name      => "ignore",
+        url       => "http://test/ignore",
+        moderated => 't',
     };
     $medium_ignore = $db->create( 'media', $medium_ignore );
 

@@ -1,0 +1,392 @@
+[% IF media_tags_id %]
+    [% title = 'Moderate Media (' _ media_tag.tag_sets_name _ ':' _ media_tag.tags_name _ ')' %]
+[% ELSE %]
+    [% title = 'Moderate Media' %]
+[% END %]
+
+[% INCLUDE include/header.tt2 %]
+
+[% IF medium %]
+
+    <script type="text/javascript">
+
+    $( document ).ready(function( ) {
+        $( "table#media_feeds" ).tablesorter({
+            // sort on the "diff" column, order asc (so that "unchanged" appears in the bottom)
+            sortList: [[3,0]]
+        });
+    });
+
+    function leave_only_this_feed(feed_hash)
+    {
+        $( "option.feed_action" ).each(function( index ) {
+            var option_action = $( this );
+
+            if ( option_action.data( "feed-hash" ) === feed_hash ) {
+                // Select
+                if ( option_action.val() === "add" || option_action.val() === "nothing" ) {
+                    option_action.attr( "selected", "selected" );
+                } else {
+                    option_action.removeAttr( "selected" );
+                }
+            } else {
+                // Deselect
+                if ( option_action.val() === "disable" || option_action.val() === "skip_perm" ) {
+                    option_action.attr( "selected", "selected" );
+                } else {
+                    option_action.removeAttr( "selected" );
+                }
+            }
+        });
+    }
+
+    function disable_all_feeds()
+    {
+        $( "option.feed_action" ).each(function( index ) {
+            var option_action = $( this );
+
+            if ( option_action.val() === "disable" || option_action.val() === "skip_perm" ) {
+                option_action.attr( "selected", "selected" );
+            } else {
+                option_action.removeAttr( "selected" );
+            }
+        });
+    }
+
+    // Confirm "Disable all feeds" click
+    jQuery(function( ) {
+        $( "a#link_disable_all_feeds" ).click(function( ) {
+            var message = "Are you sure you want to disable all of the feeds from this media source?\n\n";
+            message += "The feeds will be left in the database inact, just that they will never be fetched.";
+
+            if (confirm(message)) {
+                disable_all_feeds();
+            }
+        });
+    });
+
+    // Confirm "Leave only this feed" click
+    jQuery(function( ) {
+        $( "a.link_leave_only_this_feed" ).click(function( ) {
+
+            var link = $( this );
+            var feed_hash = link.data( "feed-hash" );
+
+            if ( typeof feed_hash === "undefined" ) {
+                console.log("Feed hash is undefined.");
+                alert("Feed hash is undefined.");
+                return;
+            }
+
+            var message = "Are you sure you want to leave only a single feed for this media source?\n\n";
+            message += "The rest of the feeds will be left in the database inact, just that they will never be fetched.";
+
+            if (confirm( message )) {
+                leave_only_this_feed( feed_hash );
+            }
+        });
+    });
+
+    </script>
+
+    <table>
+
+        <tr>
+            <th>name</th>
+            <th>url</th>
+            <th>tags</th>
+            [% IF c.acl_user_can_visit('/admin/feeds/list') %]
+                <th>feeds</th>
+            [% END -%]
+            [% IF c.acl_user_can_visit('/admin/media/edit') %]
+                <th>edit</th>
+            [% END -%]
+            [% IF c.acl_user_can_visit('/admin/media/delete') %]
+                <th>delete</th>
+            [% END -%]
+            [% IF c.acl_user_can_visit('/admin/downloads/list') %]
+                <th>downloads</th>
+            [% END -%]
+        </tr>
+
+        <tr>
+            <td>[% medium.name | html %]</td>
+            <td class="force-word-wrap"><a href="[% medium.url | url %]">[% medium.url | html %]</a></td>
+            <td>
+                <div style="font-size: 80%;">
+                    [% tag_names.join(', ') | html %]
+                    [% IF c.acl_user_can_visit('/admin/media/edit_tags') %]
+                        (<a href="[% c.uri_for('/admin/media/edit_tags/') _ medium.media_id | url %]?media_tags_id=[% media_tags_id %]">edit</a>)
+                    [% END # [% IF c.acl_user_can_visit('/admin/media/edit_tags') %]
+                </div>
+            </td>
+            [% IF c.acl_user_can_visit('/admin/feeds/list') %]
+                <td>
+                    <a href="[% c.uri_for('/admin/feeds/list/') _ medium.media_id | url %]">feeds</a>&nbsp;([% feeds.size %])
+                </td>
+            [% END -%]
+            [% IF c.acl_user_can_visit('/admin/media/edit') %]
+                <td>
+                    <a href="[% c.uri_for('/admin/media/edit/') _ medium.media_id | url %]?media_tags_id=[% media_tags_id %]">edit</a>
+                </td>
+            [% END -%]
+            [% IF c.acl_user_can_visit('/admin/media/delete') %]
+                <td>
+                    <a href="[% c.uri_for('/admin/media/delete/') _ medium.media_id | url %]?media_tags_id=[% media_tags_id %]">delete</a>
+                </td>
+            [% END -%]
+            [% IF c.acl_user_can_visit('/admin/downloads/list') %]
+                <td>
+                    <a href="[% c.uri_for('/admin/downloads/list') %]?m=[% medium.media_id | url %]">view dls</a>
+                </td>
+            [% END -%]
+        </tr>
+
+    </table>
+
+    <br />
+
+    <fieldset>
+
+        [% IF c.acl_user_can_visit('/admin/media/moderate/merge') %]
+            [% IF merge_media %]
+                <p>
+                    Potential media sources to merge: 
+
+                    [% FOREACH merge_medium IN merge_media %]
+
+                        <a href="[% merge_medium.url %]">[% merge_medium.name | html %]</a> 
+                        (<a href="[% c.uri_for( '/admin/feeds/list/' ) _ merge_medium.media_id %]">feeds</a> |
+                        <a href="[% c.uri_for( '/admin/media/moderate/merge/' ) _ medium.media_id _ '/' _ merge_medium.media_id %]?media_tags_id=[% media_tags_id %]">merge</a>);
+
+                    [% END #[% FOREACH merge_medium IN merge_media %]
+
+                    </p>
+            [% END #[% IF merge_media %]
+        [% END # [% IF c.acl_user_can_visit('/admin/media/moderate/merge') %]
+
+        <p>
+            [% IF media_tags_id %]
+                [% queue_size %] media sources left in moderation queue
+                for tag <code>[% media_tag.tag_sets_name %]:[% media_tag.tags_name %]</code>.
+            [% ELSE %]
+                [% queue_size %] media sources left in moderation queue.
+            [% END %]
+        </p>
+
+    </fieldset>
+
+    <br/>
+
+    [% IF medium.moderation_notes %]
+
+        <fieldset>
+
+            <p><b>Moderation Notes</b></p>
+
+            <p>
+                [% medium.moderation_notes | html | html_line_break %]
+            </p>
+
+            </fieldset>
+
+        <br />
+
+    [% END #[% IF medium.moderation_notes %]
+
+    <form id="media_feeds_moderate" action="" method="post">
+
+    <input type="hidden" name="moderate" value="yes" />
+    <input type="hidden" name="media_id" value="[% medium.media_id %]" />
+
+    <!-- Existing and rescraped feeds -->
+    <p><strong>Feeds</strong></p>
+
+    <p>
+        <a href="javascript:void(0)" id="link_disable_all_feeds">disable all feeds</a> |
+        [% IF c.acl_user_can_visit('/admin/feeds/create') %]
+            <a href="[% c.uri_for('/admin/feeds/create/') _ medium.media_id | url %]?media_tags_id=[% media_tags_id %]">add feed</a> |
+        [% END -%]
+        [% IF c.acl_user_can_visit('/admin/feeds/scrape') %]
+            <a href="[% c.uri_for('/admin/feeds/scrape/') _ medium.media_id | url %]?media_tags_id=[% media_tags_id %]">scrape feeds</a>
+        [% END -%]
+
+        <a class="boxcommand" style="font-weight: bold" href="javascript:void(0);" onclick="$('form#media_feeds_moderate').submit()">save and go to next media</a>
+    </p>
+
+    <table id="media_feeds" summary="Media's feeds and their moderation status" class="tablesorter">
+        <thead>
+            <tr>
+                <th colspan="3" style="width: 50%">feed</th>
+                <th rowspan="2" style="width: 20%">diff</th>
+                <th colspan="2" style="width: 30%">action</th>
+            </tr>
+            <tr>
+                <!-- feed -->
+                <th>name</th>
+                <th>type</th>
+                <th>url</th>
+                <th style="width: 15%">feed action</th>
+                <th style="width: 15%">leave only this feed</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            <!-- Shortcuts for various actions of what to do with each feed -->
+            [% MACRO feed_action_nothing BLOCK %]
+                <option class="feed_action"
+                    id="feed_action_nothing_[% feed.hash %]"
+                    data-feed-hash="[% feed.hash %]"
+                    data-action-description=""
+                    value="nothing"
+                    [% IF default %]selected="selected"[% END %]>Do nothing</option>
+            [% END %]
+
+            [% MACRO feed_action_disable BLOCK %]
+                <option class="feed_action"
+                    id="feed_action_disable_[% feed.hash %]"
+                    data-feed-hash="[% feed.hash %]"
+                    data-action-description="Disable the feed in &quot;feeds&quot; table so that it doesn't get scraped anymore"
+                    value="disable"
+                    [% IF default %]selected="selected"[% END %]>Disable</option>
+            [% END %]
+
+            [% MACRO feed_action_add_to_feeds BLOCK %]
+                <option class="feed_action"
+                    id="feed_action_add_[% feed.hash %]"
+                    data-feed-hash="[% feed.hash %]"
+                    data-action-description="Accept the feed and add it to &quot;feeds&quot; table so that it starts getting crawled"
+                    value="add"
+                    [% IF default %]selected="selected"[% END %]>Accept</option>
+            [% END %]
+
+            [% MACRO feed_action_skip_temp BLOCK %]
+                <option class="feed_action"
+                    id="feed_action_skip_temp_[% feed.hash %]"
+                    data-feed-hash="[% feed.hash %]"
+                    data-action-description="Reject the feed temporarily and don't add it to &quot;feeds&quot; table; feed will show up again after next rescraping for you to decide upon"
+                    value="skip_temp"
+                    [% IF default %]selected="selected"[% END %]>Reject temporarily</option>
+            [% END %]
+
+            [% MACRO feed_action_skip_perm BLOCK %]
+                <option class="feed_action"
+                    id="feed_action_skip_perm_[% feed.hash %]"
+                    data-feed-hash="[% feed.hash %]"
+                    data-action-description="Reject the feed by adding it to &quot;feeds&quot; table and then disabling it right away; feed will not show up again after next rescraping"
+                    value="skip_perm"
+                    [% IF default %]selected="selected"[% END %]>Reject permanently</option>
+            [% END %]
+
+            [% MACRO feed_columns BLOCK %]
+                <td>[% feed.name | html %]</td>
+                <td><code>[% feed.feed_type %]</code</td>
+                <td class="force-word-wrap"><a href="[% feed.url %]">[% feed.url | html %]</a></td>
+                <td>
+                    [% IF feed.diff == 'stale' %]
+                        <abbr title="[% IF feed.last_new_story_time %]last new story fetched on [% feed.last_new_story_time %][% ELSE %]no fetched stories[% END %]">
+                            [% feed.diff %]
+                        </abbr>
+                    [% ELSE %]
+                        [% feed.diff %]
+                    [% END %]
+                </td>
+            [% END %]
+
+            [% MACRO feed_action_leave_only_this_feed BLOCK %]
+                <a href="javascript:void(0)" data-feed-hash="[% feed.hash %]" class="link_leave_only_this_feed">Leave only this feed</a>
+            [% END %]
+
+            <!-- List feeds -->
+            [% FOREACH feed IN feeds %]
+
+                [% feed_action_name = 'feed_action_' _ feed.hash %]
+
+                [% SWITCH feed.diff %]
+
+                    [% CASE 'unchanged' %]
+                        <tr style="background-color: inherit">
+                            [% feed_columns %]
+                            <td>
+                                <select name="[% feed_action_name %]">
+                                    [% feed_action_nothing(default="1") %]
+                                    [% feed_action_disable() %]
+                                </select>
+                            </td>
+                            <td>
+                                [% feed_action_leave_only_this_feed %]
+                            </td>
+                        </tr>
+
+                    [% CASE 'added' %]
+                        <tr style="background-color: lightgreen">
+                            [% feed_columns %]
+                            <td>
+                                <select name="[% feed_action_name %]">
+                                    [% feed_action_add_to_feeds(default="1") %]
+                                    [% feed_action_skip_temp() %]
+                                    [% feed_action_skip_perm() %]
+                                </select>
+                            </td>
+                            <td>
+                                [% feed_action_leave_only_this_feed %]
+                            </td>
+                        </tr>
+
+                    [% CASE 'removed' %]
+                        <tr style="background-color: lightpink">
+                            [% feed_columns %]
+                            <td>
+                                <select name="[% feed_action_name %]">
+                                    [% feed_action_disable(default="1") %]
+                                    [% feed_action_nothing() %]
+                                </select>
+                            </td>
+                            <td>-</td>
+                        </tr>
+
+                    [% CASE 'stale' %]
+                        <tr style="background-color: peachpuff">
+                            [% feed_columns %]
+                            <td>
+                                <select name="[% feed_action_name %]">
+                                    [% feed_action_disable(default="1") %]
+                                    [% feed_action_nothing() %]
+                                </select>
+                            </td>
+                            <td>-</td>
+                        </tr>
+
+                    [% CASE %]
+                        <tr>
+                            <td colspan="5">Error: unknown feed 'diff' value</td>
+                        </tr>
+                        
+                [% END -%]
+            [% END -%]
+
+        </tbody>
+    </table>
+
+    </form>
+
+[% ELSE #[% IF medium %]
+
+    <fieldset>
+
+        <p>
+            [% IF media_tags_id %]
+                There are no more media sources in the moderation queue
+                for tag <code>[% media_tag.tag_sets_name %]:[% media_tag.tags_name %]</code>.
+            [% ELSE %]
+                There are no more media sources in the moderation queue.
+            [% END %]
+        </p>
+
+        <p>The system is still looking for feeds for [% num_media_pending_feeds %] media sources (among all tags) which will appear in the moderation queue when feed detection is done.</p>
+
+    </fieldset>
+
+[% END #[% IF medium %]
+
+[% INCLUDE include/footer.tt2 %]
