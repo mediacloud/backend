@@ -56,7 +56,7 @@ function run_psql {
             local run_psql_result=`sudo su -l postgres -c "psql $PSQL_OPTIONS --command=\" $sql_command \" 2>&1 " || echo `
         else
             # Travis
-            local run_psql_result=`psql -U postgres $PSQL_OPTIONS --command=\" $sql_command \" 2>&1`
+            local run_psql_result=`psql -U postgres $PSQL_OPTIONS --command="$sql_command " 2>&1 || echo `
         fi
     fi
     echo "$run_psql_result"
