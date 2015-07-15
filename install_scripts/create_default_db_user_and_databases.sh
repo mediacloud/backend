@@ -33,7 +33,6 @@ for db_selector in "${DB_CREDENTIALS_SELECTORS[@]}"; do
 EOF
 )
     createuser_exec=`run_psql "$db_credentials_host" "$createuser_sql"`
-    echo "$createuser_exec"
     if [[ "$createuser_exec" == *"ERROR"* ]]; then
         if [[ "$createuser_exec" == *"already exists"* ]]; then
             echo "        User '$db_credentials_user' already exists, skipping creation."
@@ -49,7 +48,6 @@ EOF
     #
     echo "    Creating database '$db_credentials_db' on host '$db_credentials_host' with owner '$db_credentials_user'..."
     createdb_exec=`run_createdb "$db_credentials_host" "$db_credentials_db" "$db_credentials_user"`
-    echo "$createdb_exec"
 
     if [[ "$createdb_exec" == *"ERROR"* ]]; then
         if [[ "$createdb_exec" == *"already exists"* ]]; then
