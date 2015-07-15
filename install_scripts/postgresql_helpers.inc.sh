@@ -51,7 +51,13 @@ function run_psql {
         local run_psql_result=`/usr/local/bin/psql $PSQL_OPTIONS --command="$sql_command" 2>&1 || echo `
     else
         # assume Ubuntu
-        local run_psql_result=`sudo su -l postgres -c "psql $PSQL_OPTIONS --command=\" $sql_command \" 2>&1 " || echo `
+        if [ -z ${TRAVIS+x} ]; then
+            # not Travis
+            local run_psql_result=`sudo su -l postgres -c "psql $PSQL_OPTIONS --command=\" $sql_command \" 2>&1 " || echo `
+        else
+            # Travis
+            local run_psql_result=`psql -U postgres $PSQL_OPTIONS --command="$sql_command " 2>&1 || echo `
+        fi
     fi
     echo "$run_psql_result"
 }
@@ -61,18 +67,13 @@ function run_dropdb {
     local db_host="$1"
     local db_name="$2"
 
-    DROPDB_OPTIONS=""
-    if ! _host_is_localhost "$db_host"; then
-        DROPDB_OPTIONS="$DROPDB_OPTIONS --host=$db_host"
-    fi
+    dropdb_sql=$( cat <<EOF
+        DROP DATABASE $db_name
+EOF
+)
 
-    if [ `uname` == 'Darwin' ]; then
-        # Mac OS X
-        local run_dropdb_result=`/usr/local/bin/dropdb $DROPDB_OPTIONS $db_name 2>&1 || echo `
-    else
-        # assume Ubuntu
-        local run_dropdb_result=`sudo su -l postgres -c "dropdb $DROPDB_OPTIONS $db_name 2>&1 " || echo `
-    fi
+    run_dropdb_result=`run_psql "$db_credentials_host" "$dropdb_sql"`
+
     echo "$run_dropdb_result"
 }
 
@@ -82,28 +83,25 @@ function run_createdb {
     local db_name="$2"
     local db_owner="$3"
 
-    CREATEDB_OPTIONS=""
-    if ! _host_is_localhost "$db_host"; then
-        CREATEDB_OPTIONS="$CREATEDB_OPTIONS --host=$db_host"
-    fi
+    createdb_sql=$( cat <<EOF
 
-    CREATEDB_OPTIONS="$CREATEDB_OPTIONS --owner=$db_owner"
+        CREATE DATABASE $db_name WITH
 
-    # Force UTF-8 encoding because some PostgreSQL installations default to
-    # "LATIN1" and then LENGTH() and similar functions don't work correctly
-    CREATEDB_OPTIONS="$CREATEDB_OPTIONS --encoding=UTF-8"
-    CREATEDB_OPTIONS="$CREATEDB_OPTIONS --lc-collate=en_US.UTF-8"
-    CREATEDB_OPTIONS="$CREATEDB_OPTIONS --lc-ctype=en_US.UTF-8"
-    # "template1" is preinitialized with "LATIN1" encoding on some systems and
-    # thus doesn't work, so using a cleaner "template0":
-    CREATEDB_OPTIONS="$CREATEDB_OPTIONS --template=template0"
+        OWNER = $db_owner
 
-    if [ `uname` == 'Darwin' ]; then
-        # Mac OS X
-        local run_createdb_result=`/usr/local/bin/createdb $CREATEDB_OPTIONS $db_name 2>&1 || echo `
-    else
-        # assume Ubuntu
-        local run_createdb_result=`sudo su -l postgres -c "createdb $CREATEDB_OPTIONS $db_name 2>&1 " || echo `
-    fi
+        -- "template1" is preinitialized with "LATIN1" encoding on some systems and
+        -- thus doesn't work, so using a cleaner "template0":
+        TEMPLATE = template0
+
+        -- Force UTF-8 encoding because some PostgreSQL installations default to
+        -- "LATIN1" and then LENGTH() and similar functions don't work correctly
+        ENCODING = 'UTF-8'
+        LC_COLLATE = 'en_US.UTF-8'
+        LC_CTYPE = 'en_US.UTF-8'
+EOF
+)
+
+    run_createdb_result=`run_psql "$db_credentials_host" "$createdb_sql"`
+
     echo "$run_createdb_result"
 }
