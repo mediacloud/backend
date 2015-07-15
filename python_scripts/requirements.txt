@@ -6,7 +6,9 @@ flask
 nltk
 joblib
 bitly_api
-ipython[all]
+ipython[notebook]
+ipython[parallel]
+ipython[terminal]
 psycopg2
 choice
 requests==2.2.1
