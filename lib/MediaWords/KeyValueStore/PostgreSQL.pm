@@ -10,36 +10,115 @@ use Moose;
 with 'MediaWords::KeyValueStore';
 
 use Modern::Perl "2013";
+use MediaWords::DB;
 use MediaWords::CommonLibs;
 use MediaWords::Util::Compress;
 use DBD::Pg qw(:pg_types);
 use Carp;
 
+# Database instance
+has '_db' => ( is => 'rw' );
+
+# Process PID (to prevent forks attempting to clone the DBD::Pg objects)
+has '_pid' => ( is => 'rw', default => 0 );
+
 # Configuration
-has '_conf_table_name' => ( is => 'rw' );
+has '_conf_database_label' => ( is => 'rw' );
+has '_conf_table' => ( is => 'rw', default => 'raw_downloads' );
 
 # Constructor
 sub BUILD($$)
 {
     my ( $self, $args ) = @_;
 
-    # Get arguments
-    unless ( $args->{ table_name } )
-    {
-        confess "Please provide 'table_name' argument.";
-    }
-    my $table_name = $args->{ table_name };
+    my $database_label = $args->{ database_label };
+    $self->_conf_database_label( $database_label );
 
-    # Store configuration
-    $self->_conf_table_name( $table_name );
+    if ( defined $database_label )
+    {
+        unless ( grep { $_ eq $database_label } MediaWords::DB::get_db_labels() )
+        {
+            die "No such database label '$database_label'";
+        }
+    }
+
+    my $connect_settings = MediaWords::DB::connect_settings( $database_label );
+    if ( $connect_settings->{ table } )
+    {
+        $self->_conf_table( $connect_settings->{ table } );
+    }
+}
+
+sub _connect_to_postgres_or_die($)
+{
+    my ( $self ) = @_;
+
+    if ( $self->_pid == $$ and $self->_db )
+    {
+        # Already connected on the very same process
+        return;
+    }
+
+    if ( $self->_db )
+    {
+        say STDERR "Disconnecting from database because PID has changed";
+        $self->_db->{ dbh }->{ InactiveDestroy } = 1;
+        $self->_db->{ dbh } = undef;
+    }
+
+    my $db;
+    eval { $db = MediaWords::DB::connect_to_db( $self->_conf_database_label ); };
+    if ( $@ )
+    {
+        die "Unable to connect to database label '" . $self->_conf_database_label . "': $@";
+    }
+
+    $db->dbh->{ AutoCommit } = 1;
+
+    # Test if table exists and we have access to it
+    my ( $table_exists ) = $db->query(
+        <<EOF,
+        SELECT EXISTS(
+            SELECT 1
+            FROM information_schema.tables
+            WHERE table_schema = CURRENT_SCHEMA()
+              AND table_catalog = CURRENT_DATABASE()
+              AND table_name = ?
+        )
+EOF
+        $self->_conf_table
+    )->flat;
+    unless ( $table_exists + 0 )
+    {
+        die "Table '" . $self->_conf_table . "' does not exist in database '" . $self->_conf_database_label . "'";
+    }
+
+    # Get database name
+    my $current_schema_database = $db->query(
+        <<EOF
+        SELECT CURRENT_SCHEMA() AS schema,
+               CURRENT_DATABASE() AS database
+EOF
+    )->hash;
+
+    $self->_db( $db );
+
+    # Save PID
+    $self->_pid( $$ );
+
+    say STDERR "PostgreSQL: Connected to PostgreSQL database '" . $current_schema_database->{ schema } .
+      "." . $current_schema_database->{ database } . "', table '" . $self->_conf_table . "' for PID $$.";
 }
 
 # Moose method
 sub store_content($$$$;$)
 {
-    my ( $self, $db, $object_id, $content_ref, $use_bzip2_instead_of_gzip ) = @_;
+    my ( $self, $_not_used_db, $object_id, $content_ref, $use_bzip2_instead_of_gzip ) = @_;
 
-    my $table_name = $self->_conf_table_name;
+    $self->_connect_to_postgres_or_die();
+
+    my $table = $self->_conf_table;
+    my $db    = $self->_db;
 
     # Encode + compress
     my $content_to_store;
@@ -67,7 +146,7 @@ sub store_content($$$$;$)
 
     $sth = $db->dbh->prepare(
         <<"EOF",
-    	UPDATE $table_name
+    	UPDATE $table
     	SET raw_data = ?
     	WHERE object_id = ?
 EOF
@@ -78,11 +157,11 @@ EOF
 
     $sth = $db->dbh->prepare(
         <<"EOF",
-    	INSERT INTO $table_name (object_id, raw_data)
+    	INSERT INTO $table (object_id, raw_data)
 			SELECT ?, ?
 			WHERE NOT EXISTS (
 				SELECT 1
-				FROM $table_name
+				FROM $table
 				WHERE object_id = ?
 			)
 EOF
@@ -94,37 +173,44 @@ EOF
 
     $db->commit if ( $use_transaction );
 
-    my $path = 'postgresql:' . $table_name;
+    my $path = 'postgresql:' . $table;
     return $path;
 }
 
 # Moose method
 sub fetch_content($$$;$$)
 {
-    my ( $self, $db, $object_id, $object_path, $use_bunzip2_instead_of_gunzip ) = @_;
+    my ( $self, $_not_used_db, $object_id, $object_path, $use_bunzip2_instead_of_gunzip ) = @_;
+
+    $self->_connect_to_postgres_or_die();
 
     unless ( defined $object_id )
     {
         confess "Object ID is undefined.";
     }
 
-    my $table_name = $self->_conf_table_name;
+    my $table = $self->_conf_table;
+    my $db    = $self->_db;
 
     my $compressed_content = $db->query(
         <<"EOF",
         SELECT raw_data
-        FROM $table_name
+        FROM $table
         WHERE object_id = ?
 EOF
         $object_id
     )->flat;
 
-    unless ( $compressed_content->[ 0 ] )
+    unless ( defined $compressed_content->[ 0 ] )
     {
-        confess "Object with ID $object_id was not found in '$table_name' table.";
+        confess "Object with ID $object_id was not found in '$table' table.";
     }
 
     $compressed_content = $compressed_content->[ 0 ];
+    if ( $compressed_content eq '' )
+    {
+        confess "Object's with ID $object_id data is empty in '$table' table.";
+    }
 
     # Uncompress + decode
     unless ( defined $compressed_content and $compressed_content ne '' )
@@ -158,13 +244,16 @@ EOF
 # Moose method
 sub remove_content($$$;$)
 {
-    my ( $self, $db, $object_id, $object_path ) = @_;
+    my ( $self, $_not_used_db, $object_id, $object_path ) = @_;
 
-    my $table_name = $self->_conf_table_name;
+    $self->_connect_to_postgres_or_die();
+
+    my $table = $self->_conf_table;
+    my $db    = $self->_db;
 
     $db->query(
         <<"EOF",
-        DELETE FROM $table_name
+        DELETE FROM $table
         WHERE object_id = ?
 EOF
         $object_id
@@ -176,14 +265,17 @@ EOF
 # Moose method
 sub content_exists($$$;$)
 {
-    my ( $self, $db, $object_id, $object_path ) = @_;
+    my ( $self, $_not_used_db, $object_id, $object_path ) = @_;
 
-    my $table_name = $self->_conf_table_name;
+    $self->_connect_to_postgres_or_die();
+
+    my $table = $self->_conf_table;
+    my $db    = $self->_db;
 
     my $object_exists = $db->query(
         <<"EOF",
         SELECT 1
-        FROM $table_name
+        FROM $table
         WHERE object_id = ?
 EOF
         $object_id

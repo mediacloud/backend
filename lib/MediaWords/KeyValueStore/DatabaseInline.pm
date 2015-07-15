@@ -67,12 +67,18 @@ sub content_exists($$$$)
 
     unless ( defined $object_path )
     {
-        confess "Object path for object ID $object_id is undefined.";
+        say STDERR "Object path for object ID $object_id is undefined.";
+        return 0;
     }
 
-    confess "Not sure how to check whether inline content exists for object ID $object_id.";
-
-    return 0;
+    if ( $object_path =~ /^content:/ )
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 no Moose;    # gets rid of scaffolding
