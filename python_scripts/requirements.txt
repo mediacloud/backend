@@ -4,7 +4,7 @@ choice
 dateutils
 flask
 ipdb
-ipython[notebook]
+ipython
 joblib
 lxml
 mediacloud
