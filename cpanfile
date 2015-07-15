@@ -122,6 +122,8 @@ requires 'Set::Jaccard::SimilarityCoefficient';
 requires 'Set::Scalar';
 requires 'Smart::Comments';
 requires 'Statistics::Basic';
+requires 'Sub::Name', '0.14';
+requires 'Sub::Util', '1.42';
 requires 'Sys::RunAlone';
 requires 'Template';
 requires 'Term::Prompt';
