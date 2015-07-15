@@ -55,6 +55,7 @@ addons:
             - postgresql-server-dev-all
             - python-dev
             - python-software-properties
+            - python-virtualenv
             - tidy
 env:
     global:
@@ -67,6 +68,10 @@ env:
         - secure: "BgP5lOHOeb/Bv92o3ItUxRzzV1/aRCSMlAqTEf1ox1pniYmRhHB1+8P21QOPbMH6bxm2uaBhnPOKCQ8b37SmFk/TNBuXZyec4d1deGB+0u4N4bPX4MN7Q9f9IV1PxEVjr3dIzKtdpuTM9giNK/R9HpjYIftZw6UT+nyWufJ7hZg="
         - secure: "TrvXE5MJHDZb8a0KfnnElEqKZYXPpYSNGQO7ZtDAMC71B4CSthgr1beBxFkd9qSqFP304dLSIVWAs2Rhe9FahIwFIBcrLYlpoYCq8rTZo2txC+Xvg9qgP4uM59s83fYHeD7AfWFsIleYhV4gRsF8ZFxsPhf2IgVyH1mTGVaZyEU="
 before_install:
+    # Set up local Media Cloud environment for Python
+    - mkdir ~/mc-python
+    - virtualenv ~/mc-python
+    - source ~/mc-python/bin/activate
     # Travis artifacts (for caching "local/" to S3)
     - travis_retry gem install fog-json
     - travis_retry gem install travis-artifacts
