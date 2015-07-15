@@ -92,13 +92,14 @@ Then run `python tests.py`. Notice you get a `mediacloud-api.log` that tells you
 
 ## Distribution
 
-1. Update the version number in `mediacloud/__init__.py`
-2. Make a brief note in the version history section in the README file about the changes
-3. Run `python setup.py sdist` to test out a version locally
-4. Then run `python setup.py sdist upload -r pypitest` to release a test version to PyPI's test server
-5. Run `pip install -i https://testpypi.python.org/pypi mediacloud` somewhere and then use it with Python to make sure the test release works.
-6. When you're ready to push to pypi run `python setup.py sdist upload -r pypi`
-7. Run `pip install mediacloud` somewhere and then try it to make sure it worked.
+1. Run `python test.py` to make sure all the test pass
+2. Update the version number in `mediacloud/__init__.py`
+3. Make a brief note in the version history section in the README file about the changes
+4. Run `python setup.py sdist` to test out a version locally
+5. Then run `python setup.py sdist upload -r pypitest` to release a test version to PyPI's test server
+6. Run `pip install -i https://testpypi.python.org/pypi mediacloud` somewhere and then use it with Python to make sure the test release works.
+7. When you're ready to push to pypi run `python setup.py sdist upload -r pypi`
+8. Run `pip install mediacloud` somewhere and then try it to make sure it worked.
 
 Version History
 ---------------
