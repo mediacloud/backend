@@ -61,6 +61,10 @@ cache:
     directories:
         # Carton dependencies
         - local/
+        # Pip cache
+        - $HOME/.cache/pip
+before_cache:
+    - rm -f $HOME/.cache/pip/log/debug.log
 env:
     global:
         # Facebook Graph API credentials for testing
