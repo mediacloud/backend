@@ -103,6 +103,7 @@ Then run `python tests.py`. Notice you get a `mediacloud-api.log` that tells you
 Version History
 ---------------
 
+* __v2.24.1__: fixes tab/spaces bug
 * __v2.24.0__: adds new params to the `mediaList` query (searching by controversey, solr query, tags_id, etc)
 * __v2.23.0__: adds solr date generation helpers
 * __v2.22.2__: fixes the PyPI readme
