@@ -75,9 +75,6 @@ before_install:
     - mkdir $HOME/mc-python
     - virtualenv $HOME/mc-python
     - source $HOME/mc-python/bin/activate
-    # Travis artifacts (for caching "local/" to S3)
-    - travis_retry gem install fog-json
-    - travis_retry gem install travis-artifacts
     # Create + switch to the Media Cloud's Perlbrew library
     - perlbrew lib create mediacloud
     - perlbrew switch @mediacloud
