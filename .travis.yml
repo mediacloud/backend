@@ -17,11 +17,13 @@ addons:
     hosts:
         - mediacloud.local
     apt:
+        # Whitelist: https://github.com/travis-ci/apt-source-whitelist
         sources:
             # We need an up-to-date version of Gearman
             - gearman-developers
             # ...and a recent version of MongoDB too
             - mongodb-upstart
+        # Whitelist: https://github.com/travis-ci/apt-package-whitelist
         # Keep in sync with "install_mediacloud_system_package_dependencies.sh"
         packages:
             - build-essential
