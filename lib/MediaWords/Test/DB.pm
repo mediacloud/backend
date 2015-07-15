@@ -68,7 +68,13 @@ sub test_on_test_database
     die "Error recreating the test db" unless $result == 0;
 
     my $db = MediaWords::DB::connect_to_db( 'test' );
+
+    my $previous_force_using_test_db_value = $ENV{ MEDIAWORDS_FORCE_USING_TEST_DATABASE };
+    $ENV{ MEDIAWORDS_FORCE_USING_TEST_DATABASE } = 1;
+
     eval { $sub->( $db ); };
+
+    $ENV{ MEDIAWORDS_FORCE_USING_TEST_DATABASE } = $previous_force_using_test_db_value;
 
     if ( $@ )
     {

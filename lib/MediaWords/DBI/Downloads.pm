@@ -13,6 +13,7 @@ use Readonly;
 use MediaWords::Crawler::Extractor;
 use MediaWords::Util::Config qw(get_config);
 use MediaWords::Util::HTML;
+use MediaWords::DB;
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
 use MediaWords::StoryVectors;
@@ -144,6 +145,7 @@ my $_download_store_lookup = lazy
     require MediaWords::KeyValueStore::DatabaseInline;
     require MediaWords::KeyValueStore::GridFS;
     require MediaWords::KeyValueStore::PostgreSQL;
+    require MediaWords::KeyValueStore::PostgreSQLFallback;
 
     my $download_store_lookup = {
 
@@ -154,6 +156,9 @@ my $_download_store_lookup = lazy
         # downloads.path is prefixed with "postgresql:";
         # download is stored in "raw_downloads" table
         postgresql => undef,
+
+        # Fallback database for "postgresql" downloads
+        postgresql_fallback => undef,
 
         # downloads.path is prefixed with "amazon_s3:";
         # download is stored in Amazon S3
@@ -230,8 +235,35 @@ my $_download_store_lookup = lazy
         }
     }
 
-    $download_store_lookup->{ postgresql } =
-      MediaWords::KeyValueStore::PostgreSQL->new( { table_name => 'raw_downloads' } );
+    # Main raw downloads database / table
+    my $raw_downloads_db_label = 'raw_downloads';    # as set up in mediawords.yml
+    unless ( grep { $_ eq $raw_downloads_db_label } MediaWords::DB::get_db_labels() )
+    {
+        say STDERR "No such label '$raw_downloads_db_label', falling back to default database";
+        $raw_downloads_db_label = undef;
+    }
+
+    $download_store_lookup->{ postgresql } = MediaWords::KeyValueStore::PostgreSQL->new(
+        {
+            database_label => $raw_downloads_db_label,    #
+        }
+    );
+
+    # Fallback raw downloads database / table
+    my $raw_downloads_fallback_db_label = 'raw_downloads_fallback';    # as set up in mediawords.yml
+    if ( grep { $_ eq $raw_downloads_fallback_db_label } MediaWords::DB::get_db_labels() )
+    {
+        $download_store_lookup->{ postgresql_fallback } = MediaWords::KeyValueStore::PostgreSQLFallback->new(
+            {
+                database_label => $raw_downloads_fallback_db_label,    #
+            }
+        );
+    }
+    else
+    {
+        say STDERR "No such label '$raw_downloads_fallback_db_label', fallback table disabled";
+        $download_store_lookup->{ postgresql_fallback } = undef;
+    }
 
     return $download_store_lookup;
 };
@@ -274,8 +306,8 @@ sub _download_stores_for_writing($)
     return $stores;
 }
 
-# Returns store for fetching downloads from
-sub _download_store_for_reading($)
+# Returns stores to try fetching download from
+sub _download_stores_for_reading($)
 {
     my $download = shift;
 
@@ -347,7 +379,18 @@ sub _download_store_for_reading($)
         die "Download store '$download_store' is not initialized for download " . $download->{ downloads_id };
     }
 
-    return $_download_store_lookup->{ $download_store };
+    my @stores = ( $_download_store_lookup->{ $download_store } );
+
+    # Add PostgreSQL fallback storage if one is set up
+    if ( $download_store eq 'postgresql' )
+    {
+        if ( defined $_download_store_lookup->{ postgresql_fallback } )
+        {
+            push( @stores, $_download_store_lookup->{ postgresql_fallback } );
+        }
+    }
+
+    return \@stores;
 }
 
 # fetch the content for the given download as a content_ref
@@ -365,17 +408,26 @@ sub fetch_content($$)
         confess "attempt to fetch content for unsuccessful download $download->{ downloads_id }  / $download->{ state }";
     }
 
-    my $store = _download_store_for_reading( $download );
-    unless ( defined $store )
+    my $stores = _download_stores_for_reading( $download );
+    unless ( scalar( @{ $stores } ) )
     {
-        croak "No download path or the state is not 'success' for download ID " . $download->{ downloads_id };
+        croak "No stores for reading download " . $download->{ downloads_id };
     }
 
     # Fetch content
-    my $content_ref = $store->fetch_content( $db, $download->{ downloads_id }, $download->{ path } );
+    my $content_ref;
+    foreach my $store ( @{ $stores } )
+    {
+        if ( $store->content_exists( $db, $download->{ downloads_id }, $download->{ path } ) )
+        {
+            $content_ref = $store->fetch_content( $db, $download->{ downloads_id }, $download->{ path } );
+            last;
+        }
+    }
     unless ( $content_ref and ref( $content_ref ) eq 'SCALAR' )
     {
-        croak "Unable to fetch content for download " . $download->{ downloads_id };
+        croak "Unable to fetch content for download " . $download->{ downloads_id } . "; tried stores: " .
+          join( ', ', map { ref $_ } @{ $stores } );
     }
 
     # horrible hack to fix old content that is not stored in unicode
