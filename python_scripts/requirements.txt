@@ -5,8 +5,6 @@ dateutils
 flask
 ipdb
 ipython[notebook]
-ipython[parallel]
-ipython[terminal]
 joblib
 lxml
 mediacloud
