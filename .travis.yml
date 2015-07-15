@@ -74,7 +74,7 @@ env:
         - secure: "TrvXE5MJHDZb8a0KfnnElEqKZYXPpYSNGQO7ZtDAMC71B4CSthgr1beBxFkd9qSqFP304dLSIVWAs2Rhe9FahIwFIBcrLYlpoYCq8rTZo2txC+Xvg9qgP4uM59s83fYHeD7AfWFsIleYhV4gRsF8ZFxsPhf2IgVyH1mTGVaZyEU="
 before_install:
     # Set up local Media Cloud environment for Python
-    - mkdir $HOME/mc-python
+    - mkdir -p $HOME/mc-python
     - virtualenv $HOME/mc-python
     - source $HOME/mc-python/bin/activate
     # Create + switch to the Media Cloud's Perlbrew library
