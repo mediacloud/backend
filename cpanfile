@@ -102,6 +102,7 @@ requires 'Modern::Perl', '1.20121103';
 requires 'Module::Install';
 requires 'Module::Pluggable::Object';
 requires 'MongoDB', '== 0.705.0.0';
+requires 'Moo', '2.000001';
 requires 'Moose', '== 2.1005';
 requires 'namespace::autoclean';
 requires 'Net::Amazon::S3';
