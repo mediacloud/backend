@@ -32,7 +32,6 @@ addons:
             - g++
             - gawk
             - gcc
-            - gearmand
             - graphviz
             - graphviz-dev
             - libdb-dev
