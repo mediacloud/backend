@@ -70,7 +70,7 @@ sub _connect_to_postgres_or_die($)
     eval { $db = MediaWords::DB::connect_to_db( $self->_conf_database_label ); };
     if ( $@ )
     {
-        die "Unable to connect to database label '" . $self->_conf_database_label . "': $@";
+        die "Unable to connect to database label '" . ( $self->_conf_database_label // 'undef' ) . "': $@";
     }
 
     $db->dbh->{ AutoCommit } = 1;
@@ -90,7 +90,8 @@ EOF
     )->flat;
     unless ( $table_exists + 0 )
     {
-        die "Table '" . $self->_conf_table . "' does not exist in database '" . $self->_conf_database_label . "'";
+        die "Table '" . $self->_conf_table . "' does not exist in database '" .
+          ( $self->_conf_database_label // 'undef' ) . "'";
     }
 
     # Get database name
@@ -106,7 +107,8 @@ EOF
     # Save PID
     $self->_pid( $$ );
 
-    say STDERR "PostgreSQL: Connected to PostgreSQL database '" . $current_schema_database->{ schema } .
+    say STDERR "PostgreSQL: Connected to PostgreSQL label '" .
+      ( $self->_conf_database_label // 'undef' ) . "', database '" . $current_schema_database->{ schema } .
       "." . $current_schema_database->{ database } . "', table '" . $self->_conf_table . "' for PID $$.";
 }
 
