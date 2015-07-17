@@ -2,7 +2,7 @@
 
 # dump a single table in parallel.  dumping a table with parallel jobs is much faster that doing it individually
 
-# usage: $0 --table < table name > --jobs < num jobs >
+# usage: $0 --table < table name > --jobs < num jobs > [ --column column1 --column column2 ... ]
 
 use strict;
 use warnings;
@@ -19,12 +19,31 @@ use Encode;
 use Fcntl qw(:flock);
 use Getopt::Long;
 use Parallel::ForkManager;
+use Readonly;
 
 use MediaWords::DB;
 use MediaWords::Util::SQL;
 
+# Return a string of columns to select for an arrayref of columns
+sub _str_columns($)
+{
+    my ( $columns ) = @_;
+
+    my $str_columns;
+    if ( scalar( @{ $columns } ) )
+    {
+        $str_columns = join( ', ', @{ $columns } );
+    }
+    else
+    {
+        $str_columns = '*';
+    }
+
+    return $str_columns;
+}
+
 # get the min primary id and max primary id of the table
-sub get_key_min_max
+sub get_key_min_max($$)
 {
     my ( $db, $table ) = @_;
 
@@ -39,7 +58,7 @@ SQL
     return ( $key, $min, $max );
 }
 
-sub flush_lines_buf
+sub flush_lines_buf($$)
 {
     my ( $fh, $lines ) = @_;
 
@@ -52,9 +71,9 @@ sub flush_lines_buf
     @{ $lines } = ();
 }
 
-sub dump_table_single
+sub dump_table_single($$$$$$)
 {
-    my ( $lock_file, $table, $key, $min, $range ) = @_;
+    my ( $lock_file, $table, $columns, $key, $min, $range ) = @_;
 
     open( my $fh, ">$lock_file" ) || die( "Unable to open lock file '$lock_file': $!" );
 
@@ -63,9 +82,11 @@ sub dump_table_single
 
     $| = 1;
 
-    $db->query( <<SQL );
+    my $str_columns = _str_columns( $columns );
+
+    $db->query( <<"SQL" );
 copy
-    ( select * from $table where $key between $min and ( $min + $range ) )
+    ( select $str_columns from $table where $key between $min and ( $min + $range ) )
     to STDOUT
     with csv
 SQL
@@ -86,11 +107,13 @@ SQL
 }
 
 # print the csv header line once before the parallel processes start writing to stdout
-sub print_csv_header
+sub print_csv_header($$$)
 {
-    my ( $db, $table ) = @_;
+    my ( $db, $table, $columns ) = @_;
 
-    $db->query( "copy ( select * from $table where false ) to STDOUT with csv header" );
+    my $str_columns = _str_columns( $columns );
+
+    $db->query( "copy ( select $str_columns from $table where false ) to STDOUT with csv header" );
 
     my $line = '';
     $db->dbh->pg_getcopydata( $line );
@@ -98,9 +121,9 @@ sub print_csv_header
     print $line;
 }
 
-sub dump_table
+sub dump_table($$$$)
 {
-    my ( $db, $table, $num_proc ) = @_;
+    my ( $db, $table, $num_proc, $columns ) = @_;
 
     my $day = substr( MediaWords::Util::SQL::sql_now, 0, 10 );
 
@@ -110,7 +133,7 @@ sub dump_table
 
     my $pm = new Parallel::ForkManager( $num_proc );
 
-    print_csv_header( $db, $table );
+    print_csv_header( $db, $table, $columns );
 
     my $lock_file = "/tmp/dump-$table-$day-$$";
 
@@ -122,7 +145,7 @@ sub dump_table
         }
         else
         {
-            dump_table_single( $lock_file, $table, $key, $min, $range );
+            dump_table_single( $lock_file, $table, $columns, $key, $min, $range );
             $pm->finish;
         }
     }
@@ -135,20 +158,25 @@ sub dump_table
 
 sub main
 {
-    my ( $table, $jobs );
+    my ( $table, $jobs, @columns );
 
     $| = 1;
 
-    Getopt::Long::GetOptions(
-        "jobs=i"  => \$jobs,
-        "table=s" => \$table
-    ) || return;
+    Readonly my $usage => <<"EOF";
+Usage: $0 --table < table name > --jobs < num jobs > [ --column column1 --column column2 ... ]
+EOF
 
-    die( "usage:  $0 --table < table name > --jobs < num jobs >" ) if ( !$jobs || !$table );
+    Getopt::Long::GetOptions(
+        "jobs=i"   => \$jobs,
+        "table=s"  => \$table,
+        "column=s" => \@columns,
+    ) or die $usage;
+
+    die $usage unless ( $jobs and $table );
 
     my $db = MediaWords::DB::connect_to_db;
 
-    dump_table( $db, $table, $jobs );
+    dump_table( $db, $table, $jobs, \@columns );
 }
 
 main();
