@@ -70,7 +70,7 @@ sub _connect_to_postgres_or_die($)
     eval { $db = MediaWords::DB::connect_to_db( $self->_conf_database_label ); };
     if ( $@ )
     {
-        die "Unable to connect to database label '" . $self->_conf_database_label . "': $@";
+        die "Unable to connect to database label '" . ( $self->_conf_database_label // 'undef' ) . "': $@";
     }
 
     $db->dbh->{ AutoCommit } = 1;
@@ -90,7 +90,8 @@ EOF
     )->flat;
     unless ( $table_exists + 0 )
     {
-        die "Table '" . $self->_conf_table . "' does not exist in database '" . $self->_conf_database_label . "'";
+        die "Table '" . $self->_conf_table . "' does not exist in database '" .
+          ( $self->_conf_database_label // 'undef' ) . "'";
     }
 
     # Get database name
@@ -106,7 +107,8 @@ EOF
     # Save PID
     $self->_pid( $$ );
 
-    say STDERR "PostgreSQL: Connected to PostgreSQL database '" . $current_schema_database->{ schema } .
+    say STDERR "PostgreSQL: Connected to PostgreSQL label '" .
+      ( $self->_conf_database_label // 'undef' ) . "', database '" . $current_schema_database->{ schema } .
       "." . $current_schema_database->{ database } . "', table '" . $self->_conf_table . "' for PID $$.";
 }
 
@@ -144,6 +146,7 @@ sub store_content($$$$;$)
 
     my $sth;
 
+    say STDERR "Storing object $object_id to table '$table'...";
     $sth = $db->dbh->prepare(
         <<"EOF",
     	UPDATE $table
@@ -192,6 +195,7 @@ sub fetch_content($$$;$$)
     my $table = $self->_conf_table;
     my $db    = $self->_db;
 
+    say STDERR "Fetching object $object_id from table '$table'...";
     my $compressed_content = $db->query(
         <<"EOF",
         SELECT raw_data
@@ -251,6 +255,7 @@ sub remove_content($$$;$)
     my $table = $self->_conf_table;
     my $db    = $self->_db;
 
+    say STDERR "Removing object $object_id from table '$table'...";
     $db->query(
         <<"EOF",
         DELETE FROM $table
@@ -272,6 +277,7 @@ sub content_exists($$$;$)
     my $table = $self->_conf_table;
     my $db    = $self->_db;
 
+    say STDERR "Testing if object $object_id exists in table '$table'...";
     my $object_exists = $db->query(
         <<"EOF",
         SELECT 1
