@@ -146,7 +146,6 @@ sub store_content($$$$;$)
 
     my $sth;
 
-    say STDERR "Storing object $object_id to table '$table'...";
     $sth = $db->dbh->prepare(
         <<"EOF",
     	UPDATE $table
@@ -195,7 +194,6 @@ sub fetch_content($$$;$$)
     my $table = $self->_conf_table;
     my $db    = $self->_db;
 
-    say STDERR "Fetching object $object_id from table '$table'...";
     my $compressed_content = $db->query(
         <<"EOF",
         SELECT raw_data
@@ -255,7 +253,6 @@ sub remove_content($$$;$)
     my $table = $self->_conf_table;
     my $db    = $self->_db;
 
-    say STDERR "Removing object $object_id from table '$table'...";
     $db->query(
         <<"EOF",
         DELETE FROM $table
@@ -277,7 +274,6 @@ sub content_exists($$$;$)
     my $table = $self->_conf_table;
     my $db    = $self->_db;
 
-    say STDERR "Testing if object $object_id exists in table '$table'...";
     my $object_exists = $db->query(
         <<"EOF",
         SELECT 1
