@@ -24,7 +24,7 @@ has '_pid' => ( is => 'rw', default => 0 );
 
 # Configuration
 has '_conf_database_label' => ( is => 'rw' );
-has '_conf_table' => ( is => 'rw', default => 'raw_downloads' );
+has '_conf_table'          => ( is => 'rw' );
 
 # Constructor
 sub BUILD($$)
@@ -55,10 +55,12 @@ sub BUILD($$)
         $table = $connect_settings->{ table };
     }
 
-    if ( defined $table )
+    unless ( $table )
     {
-        $self->_conf_table( $table );
+        die "Table is unset (it wasn't in the database settings neither it was passed as a parameter).";
     }
+
+    $self->_conf_table( $table );
 }
 
 sub _connect_to_postgres_or_die($)
