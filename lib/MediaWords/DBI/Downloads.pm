@@ -245,17 +245,18 @@ my $_download_store_lookup = lazy
 
     $download_store_lookup->{ postgresql } = MediaWords::KeyValueStore::PostgreSQL->new(
         {
-            database_label => $raw_downloads_db_label,    #
+            database_label => $raw_downloads_db_label,                         #
+            table => ( $raw_downloads_db_label ? undef : 'raw_downloads' ),    #
         }
     );
 
     # Fallback raw downloads database / table
-    my $raw_downloads_fallback_db_label = 'raw_downloads_fallback';    # as set up in mediawords.yml
+    my $raw_downloads_fallback_db_label = 'raw_downloads_fallback';            # as set up in mediawords.yml
     if ( grep { $_ eq $raw_downloads_fallback_db_label } MediaWords::DB::get_db_labels() )
     {
         $download_store_lookup->{ postgresql_fallback } = MediaWords::KeyValueStore::PostgreSQLFallback->new(
             {
-                database_label => $raw_downloads_fallback_db_label,    #
+                database_label => $raw_downloads_fallback_db_label,            #
             }
         );
     }
