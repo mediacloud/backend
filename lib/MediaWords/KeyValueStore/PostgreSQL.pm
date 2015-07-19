@@ -31,6 +31,11 @@ sub BUILD($$)
 {
     my ( $self, $args ) = @_;
 
+    unless ( $args->{ database_label } or $args->{ table } )
+    {
+        die "Set database label and / or table to use; I'm nervous to use the main database and table as defaults.";
+    }
+
     my $database_label = $args->{ database_label };
     $self->_conf_database_label( $database_label );
 
@@ -42,10 +47,17 @@ sub BUILD($$)
         }
     }
 
-    my $connect_settings = MediaWords::DB::connect_settings( $database_label );
-    if ( $connect_settings->{ table } )
+    # Table name either from constructor arguments or from database label's "table" key
+    my $table = $args->{ table };
+    unless ( $table )
     {
-        $self->_conf_table( $connect_settings->{ table } );
+        my $connect_settings = MediaWords::DB::connect_settings( $database_label );
+        $table = $connect_settings->{ table };
+    }
+
+    if ( defined $table )
+    {
+        $self->_conf_table( $table );
     }
 }
 
