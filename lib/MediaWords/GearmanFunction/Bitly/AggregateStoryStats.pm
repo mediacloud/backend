@@ -123,13 +123,16 @@ sub run($;$)
             }
 
             # Referrer count (indiscriminate from date range)
-            unless ( $bitly_data->{ 'referrers' } )
+            if ( $bitly_data->{ 'referrers' } )
             {
-                die "Bit.ly stats hashref doesn't have 'referrers' key for Bit.ly ID $bitly_id, story $stories_id.";
+                foreach my $bitly_referrers ( @{ $bitly_data->{ 'referrers' } } )
+                {
+                    $referrer_count += scalar( @{ $bitly_referrers->{ 'referrers' } } );
+                }
             }
-            foreach my $bitly_referrers ( @{ $bitly_data->{ 'referrers' } } )
+            else
             {
-                $referrer_count += scalar( @{ $bitly_referrers->{ 'referrers' } } );
+                say STDERR "Bit.ly stats hashref doesn't have 'referrers' key for Bit.ly ID $bitly_id, story $stories_id.";
             }
         }
     }
