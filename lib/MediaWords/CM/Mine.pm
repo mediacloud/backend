@@ -548,10 +548,9 @@ END
     $medium_url = get_unique_medium_url( $db, $medium_url );
 
     $medium = {
-        name        => encode( 'utf8', $medium_name ),
-        url         => encode( 'utf8', $medium_url ),
-        moderated   => 't',
-        feeds_added => 't'
+        name      => encode( 'utf8', $medium_name ),
+        url       => encode( 'utf8', $medium_url ),
+        moderated => 't',
     };
 
     $medium = $db->create( 'media', $medium );
@@ -1347,6 +1346,8 @@ sub _skip_self_linked_domain
     my $domain = MediaWords::Util::URL::get_url_domain( $link->{ url } );
 
     return 0 unless ( $_skip_self_linked_domain->{ $domain } || ( $link->{ url } =~ /\/(tag|category|author|search)/ ) );
+
+    return 0 unless ( $link->{ stories_id } );
 
     # only skip if the media source of the linking story is the same as the media
     # source of the linked story.  we can't know the media source of the linked story
