@@ -1454,7 +1454,7 @@ create index controversy_dump_time_slices_dump on controversy_dump_time_slices (
 -- louvain communities for a controversy
 create table controversy_communities (
     controversy_communities_id      serial primary key,
-    controversies_id                int not null reference controversies on delete cascade,
+    controversies_id                int not null references controversies on delete cascade,
     name                            text not null,
     creation_date                   timestamp not null default now()
 );
