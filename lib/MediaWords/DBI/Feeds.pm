@@ -35,4 +35,19 @@ END
     $db->query( "delete from feeds where feeds_id = ?", $feeds_id );
 }
 
+# (Temporarily) disable feed
+sub disable_feed($$)
+{
+    my ( $db, $feeds_id ) = @_;
+
+    $db->query(
+        <<EOF,
+        UPDATE feeds
+        SET feed_status = 'inactive'
+        WHERE feeds_id = ?
+EOF
+        $feeds_id
+    );
+}
+
 1;

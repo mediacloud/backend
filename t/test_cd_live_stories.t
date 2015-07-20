@@ -83,10 +83,9 @@ sub test_live_stories
     my ( $db ) = @_;
 
     my $medium = {
-        name        => "test live stories",
-        url         => "url://test/live/stories",
-        moderated   => 't',
-        feeds_added => 't'
+        name      => "test live stories",
+        url       => "url://test/live/stories",
+        moderated => 't',
     };
     $medium = $db->create( 'media', $medium );
 

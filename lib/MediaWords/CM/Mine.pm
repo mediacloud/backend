@@ -550,7 +550,11 @@ END
     $medium = {
         name      => encode( 'utf8', $medium_name ),
         url       => encode( 'utf8', $medium_url ),
+<<<<<<< HEAD
         moderated => 't',
+=======
+        moderated => 't'
+>>>>>>> e2ae99d4d0a6c3355411366390b6e2e83eb31652
     };
 
     $medium = $db->create( 'media', $medium );

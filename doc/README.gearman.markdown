@@ -86,14 +86,14 @@ Screenshots: http://imgur.com/a/RjJWc
 A full example of a Gearman job is located in:
 
 * `script/mediawords_add_default_feeds.pl` (client)
-* `lib/MediaWords/GearmanFunction/AddDefaultFeeds.pm` (worker)
+* `lib/MediaWords/GearmanFunction/RescrapeMedia.pm` (worker)
 
 
 ### Starting a Gearman worker
 
 To start a single instance of the Gearman worker, run:
 
-    ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/AddDefaultFeeds.pm
+    ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/RescrapeMedia.pm
 
 To start a single instance of *all* Gearman workers in a subdirectory, run:
 
@@ -101,7 +101,7 @@ To start a single instance of *all* Gearman workers in a subdirectory, run:
 
 To start 4 instances of the Gearman worker, run:
 
-    ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/AddDefaultFeeds.pm 4
+    ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/RescrapeMedia.pm 4
 
 To start 4 instances of *all* Gearman workers in a subdirectory, run:
 
@@ -112,33 +112,33 @@ To start 4 instances of *all* Gearman workers in a subdirectory, run:
 
 To enqueue a job for the worker, run:
 
-    MediaWords::GearmanFunction::AddDefaultFeeds->enqueue_on_gearman();
+    MediaWords::GearmanFunction::RescrapeMedia->enqueue_on_gearman();
 
 To pass arguments to the worker, add them as a hashref parameter:
 
-    MediaWords::GearmanFunction::AddDefaultFeeds->enqueue_on_gearman({ one => 'two', three => 'four' });
+    MediaWords::GearmanFunction::RescrapeMedia->enqueue_on_gearman({ one => 'two', three => 'four' });
 
 `enqueue_on_gearman()` returns a Gearman job ID if the job was enqueued successfully:
 
-    my $gearman_job_id = MediaWords::GearmanFunction::AddDefaultFeeds->enqueue_on_gearman();
+    my $gearman_job_id = MediaWords::GearmanFunction::RescrapeMedia->enqueue_on_gearman();
 
 You can use the job ID to *get the path to the log of the running job*:
 
     my $log_path = Gearman::JobScheduler::log_path_for_gearman_job(
-        MediaWords::GearmanFunction::AddDefaultFeeds->name(),
+        MediaWords::GearmanFunction::RescrapeMedia->name(),
         $gearman_job_id
     );
 
 Or to *cancel an enqueued job which isn't running yet*:
 
     Gearman::JobScheduler::cancel_gearman_job(
-        MediaWords::GearmanFunction::AddDefaultFeeds->name(),
+        MediaWords::GearmanFunction::RescrapeMedia->name(),
         $gearman_job_id
     );
 
 Or to *get the job status of enqueued / running Gearman job*:
 
     print Dumper( Gearman::JobScheduler::job_status(
-        MediaWords::GearmanFunction::AddDefaultFeeds->name(),
+        MediaWords::GearmanFunction::RescrapeMedia->name(),
         $gearman_job_id
     ));

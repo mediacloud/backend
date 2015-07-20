@@ -92,7 +92,7 @@ my $_postgresql_store = lazy
     }
 
     # PostgreSQL storage
-    my $postgresql_store = MediaWords::KeyValueStore::PostgreSQL->new( { table_name => $BITLY_POSTGRESQL_KVS_TABLE_NAME } );
+    my $postgresql_store = MediaWords::KeyValueStore::PostgreSQL->new( { table => $BITLY_POSTGRESQL_KVS_TABLE_NAME } );
     say STDERR "Will read / write Bit.ly stats to PostgreSQL table: $BITLY_POSTGRESQL_KVS_TABLE_NAME";
 
     return $postgresql_store;

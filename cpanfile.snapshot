@@ -5642,37 +5642,37 @@ DISTRIBUTIONS
       namespace::clean 0
       perl 5.008004
       version 0
-  Moo-1.004002
-    pathname: H/HA/HAARG/Moo-1.004002.tar.gz
+  Moo-2.000001
+    pathname: H/HA/HAARG/Moo-2.000001.tar.gz
     provides:
       Method::Generate::Accessor undef
       Method::Generate::BuildAll undef
       Method::Generate::Constructor undef
       Method::Generate::DemolishAll undef
       Method::Inliner undef
-      Moo 1.004002
+      Moo 2.000001
       Moo::HandleMoose undef
       Moo::HandleMoose::FakeConstructor undef
       Moo::HandleMoose::FakeMetaClass undef
       Moo::HandleMoose::_TypeMap undef
       Moo::Object undef
-      Moo::Role 1.004002
+      Moo::Role 2.000001
       Moo::_Utils undef
       Moo::_mro undef
+      Moo::_strictures undef
       Moo::sification undef
-      Sub::Defer 1.004002
-      Sub::Quote 1.004002
+      Sub::Defer 2.000001
+      Sub::Quote 2.000001
       oo undef
     requirements:
       Class::Method::Modifiers 1.1
       Devel::GlobalDestruction 0.11
-      Dist::CheckConflicts 0.02
+      Exporter 5.57
       ExtUtils::MakeMaker 0
-      Import::Into 1.002
-      Module::Runtime 0.012
-      Role::Tiny 1.003002
-      perl 5.008001
-      strictures 1.004003
+      Module::Runtime 0.014
+      Role::Tiny 2
+      Scalar::Util 0
+      perl 5.006
   MooX-Types-MooseLike-0.25
     pathname: M/MA/MATEU/MooX-Types-MooseLike-0.25.tar.gz
     provides:
@@ -7261,11 +7261,11 @@ DISTRIBUTIONS
       POSIX 0
       Regexp::Common 0
       Test::More 0.40
-  Role-Tiny-1.003003
-    pathname: H/HA/HAARG/Role-Tiny-1.003003.tar.gz
+  Role-Tiny-2.000001
+    pathname: H/HA/HAARG/Role-Tiny-2.000001.tar.gz
     provides:
-      Role::Tiny 1.003003
-      Role::Tiny::With 1.003003
+      Role::Tiny 2.000001
+      Role::Tiny::With 2.000001
     requirements:
       Exporter 5.57
       perl 5.006
@@ -7305,12 +7305,13 @@ DISTRIBUTIONS
       Class::InsideOut 0
       Exporter::Lite 0
       ExtUtils::MakeMaker 6.42
-  Scalar-List-Utils-1.39
-    pathname: P/PE/PEVANS/Scalar-List-Utils-1.39.tar.gz
+  Scalar-List-Utils-1.42
+    pathname: P/PE/PEVANS/Scalar-List-Utils-1.42.tar.gz
     provides:
-      List::Util 1.39
-      List::Util::XS 1.39
-      Scalar::Util 1.39
+      List::Util 1.42
+      List::Util::XS 1.42
+      Scalar::Util 1.42
+      Sub::Util 1.42
     requirements:
       ExtUtils::MakeMaker 0
       Test::More 0
@@ -7523,17 +7524,17 @@ DISTRIBUTIONS
       Scalar::Util 0
       strict 0
       warnings 0
-  Sub-Name-0.09
-    pathname: E/ET/ETHER/Sub-Name-0.09.tar.gz
+  Sub-Name-0.14
+    pathname: E/ET/ETHER/Sub-Name-0.14.tar.gz
     provides:
-      Sub::Name 0.09
+      Sub::Name 0.14
     requirements:
-      Devel::CheckBin 0
-      DynaLoader 0
-      Exporter 0
+      Exporter 5.57
       ExtUtils::MakeMaker 0
-      Test::More 0
+      XSLoader 0
       perl 5.006
+      strict 0
+      warnings 0
   Sub-Override-0.09
     pathname: O/OV/OVID/Sub-Override-0.09.tar.gz
     provides:
