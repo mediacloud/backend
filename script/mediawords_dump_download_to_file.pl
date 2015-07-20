@@ -38,17 +38,12 @@ sub dump_downloads_to_file
 
     my @downloads = @{ $downloads };
 
-    say STDERR "Starting reextract_downloads";
-
     @downloads = sort { $a->{ downloads_id } <=> $b->{ downloads_id } } @downloads;
 
     my $db = MediaWords::DB::connect_to_db;
 
     for my $download ( @downloads )
     {
-        die "Non-content type download: $download->{ downloads_id } $download->{ type } "
-          unless $download->{ type } eq 'content';
-
         my $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download );
 
         my $downloads_id = $download->{ downloads_id };
@@ -74,17 +69,28 @@ sub main
 
     my $file;
     my @download_ids;
+    my $query;
 
-    GetOptions( 'downloads|d=s' => \@download_ids, ) or die;
+    GetOptions(
+        'downloads|d=s' => \@download_ids,
+        'query|q=s'     => \$query
+    ) or die;
 
-    unless ( ( @download_ids ) )
+    unless ( @download_ids || $query )
     {
         die "no options given ";
     }
 
     my $downloads;
 
-    $downloads = $dbs->query( "SELECT * from downloads where downloads_id in (??)", @download_ids )->hashes;
+    if ( @download_ids )
+    {
+        $downloads = $dbs->query( "SELECT * from downloads where downloads_id in (??)", @download_ids )->hashes;
+    }
+    else
+    {
+        $downloads = $dbs->query( $query )->hashes;
+    }
 
     die 'no downloads found ' unless scalar( @$downloads );
 
