@@ -15,7 +15,7 @@
 <div id="wholecolumn">
     <div id="boxtitle">
         Query Slices
-        <a id="boxcommand" href="[% c.uri_for( "/admin/cm/add_query_slice/$controversy.controversies_id" ) | html %]">Add Query Slice</a>
+        <a class="boxcommand" href="[% c.uri_for( "/admin/cm/add_query_slice/$controversy.controversies_id" ) | html %]">Add Query Slice</a>
     </div>
     <table class="even_rows_grey">
         <tr>

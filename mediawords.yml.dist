@@ -14,6 +14,30 @@ database:
       user  : "mediaclouduser"
       pass  : "mediacloud"
 
+    # raw download storage
+    # (this section is optional; if absent, we're going to use production
+    # database's "raw_downloads" table)
+    #- label : "raw_downloads"
+    #  type  : "pg"
+    #  host  : "localhost"
+    #  port  : 5432
+    #  db    : "mediacloud"
+    #  user  : "mediaclouduser"
+    #  pass  : "mediacloud"
+    #  table : "raw_downloads"  # optional
+
+    # fallback raw download storage that will be used when download is not
+    # found on the main download storage
+    # (this section is optional)
+    #- label : "raw_downloads_fallback"
+    #  type  : "pg"
+    #  host  : "localhost"
+    #  port  : 5432
+    #  db    : "mediacloud"
+    #  user  : "mediaclouduser"
+    #  pass  : "mediacloud"
+    #  table : "raw_downloads_fallback"  # optional
+
     # unit tests
     - label : "test"
       type  : "pg"
@@ -154,7 +178,7 @@ database:
         # other configurable supervisor programs
         #crf_web_service
         #gearmand
-        #add_default_feeds
+        #rescrape_media
         #cm_mine_controversy
         #cm_dump_controversy
         #solr

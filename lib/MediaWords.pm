@@ -132,15 +132,12 @@ sub setup_acl()
       /admin/media/create_batch
       /admin/media/create_do
       /admin/media/delete
-      /admin/media/skip_feeds
-      /admin/media/skip_unmoderated_feed
       /admin/media/edit
       /admin/media/edit_do
       /admin/media/edit_tags
       /admin/media/edit_tags_do
-      /admin/media/keep_single_feed
-      /admin/media/merge
       /admin/media/moderate
+      /admin/media/moderate/merge
       /admin/mediasets/create
       /admin/health
       /admin/health/list
@@ -197,7 +194,7 @@ sub setup_acl()
 
     for my $path ( @acl_cm )
     {
-        __PACKAGE__->allow_access_if_any( $path, [ qw/cm/ ] );
+        __PACKAGE__->allow_access_if_any( $path, [ qw/cm cm-readonly/ ] );
     }
 
     for my $path ( @acl_search )

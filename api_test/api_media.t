@@ -252,7 +252,10 @@ sub test_stories_public
             'stories_id'           => 67,
             'url'                  => 'http://boingboing.net/2014/06/01/this-day-in-blogging-history-228.html',
             'guid'                 => 'http://boingboing.net/2014/06/01/this-day-in-blogging-history-228.html',
-            'media_url'            => 'http://boingboing.net/'
+            'media_url'            => 'http://boingboing.net/',
+            'language'             => 'en',
+            'title' =>
+'This Day in Blogging History: Turkish Spring in Gezi; Obama supports torture-evidence suppression law; Quaker football&#160;cheer',
         }
     ];
 

@@ -114,8 +114,8 @@ programs = gearmand
 %]
 
 [% INCLUDE program_config
-    program='add_default_feeds'
-    gearman_worker_module='AddDefaultFeeds.pm'
+    program='rescrape_media'
+    gearman_worker_module='RescrapeMedia.pm'
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'

@@ -28,11 +28,10 @@ sub test_use_pager
     my ( $db ) = @_;
 
     my $medium = {
-        name        => "test use pager $PROCESS_ID",
-        url         => "url://test/use/pager/$PROCESS_ID",
-        moderated   => 't',
-        feeds_added => 't',
-        use_pager   => 't'
+        name      => "test use pager $PROCESS_ID",
+        url       => "url://test/use/pager/$PROCESS_ID",
+        moderated => 't',
+        use_pager => 't'
     };
     $medium = $db->create( 'media', $medium );
 

@@ -24,10 +24,9 @@ sub test_feed_checksums
     my ( $db ) = @_;
 
     my $medium = {
-        name        => "test feed checksum $PROCESS_ID",
-        url         => "url://test/feed/checksum/$PROCESS_ID",
-        moderated   => 't',
-        feeds_added => 't'
+        name      => "test feed checksum $PROCESS_ID",
+        url       => "url://test/feed/checksum/$PROCESS_ID",
+        moderated => 't',
     };
     $medium = $db->create( 'media', $medium );
 

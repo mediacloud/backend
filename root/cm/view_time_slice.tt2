@@ -9,9 +9,9 @@
 <!--
         <div class="boxtitle">Network Map</div>
         <fieldset>
-        
+
             [% IF live %]
-                <p>No network map is available for live data.  To see a network map, view this time slice in the 
+                <p>No network map is available for live data.  To see a network map, view this time slice in the
                 <a href="[% c.uri_for( "/admin/cm/view_time_slice/$cdts.controversy_dump_time_slices_id" ) %]">latest dump</a>.  For that latest dump, the modeled reliability for this data is below.</p>
             [% ELSE %]
                 [% map_url= c.uri_for( '/gexf/index.html#' ) _ c.uri_for( '/admin/cm/gexf/' _ cdts.controversy_dump_time_slices_id ) %]
@@ -28,7 +28,7 @@
         [% INCLUDE cm/media_table.tt2
             display_media = top_media
             display_media_title = "Top Media" %]
-        [% all_media_url = c.uri_for( '/admin/cm/search_media', 
+        [% all_media_url = c.uri_for( '/admin/cm/search_media',
                                       { cdts => cdts.controversy_dump_time_slices_id,
                                         l => live } ) %]
         <a href="[% all_media_url | html %]">View All Media</a>
@@ -36,16 +36,16 @@
         [% INCLUDE cm/stories_table.tt2
             display_stories = top_stories
             display_stories_short_title = "Top Stories"
-            display_stories_full_title = title _ ": Top Stories" 
+            display_stories_full_title = title _ ": Top Stories"
             display_stories_id = "top_stories" %]
-        [% all_stories_url = c.uri_for( '/admin/cm/search_stories', 
+        [% all_stories_url = c.uri_for( '/admin/cm/search_stories',
                                         { cdts => cdts.controversy_dump_time_slices_id,
                                           l => live } ) %]
         <a href="[% all_stories_url | html %]">View All Stories</a>
         <br />
     </div>
-    
-    
+
+
     <div id="narrowcolumn">
         <div class="boxtitle">Stats</div>
         <table class="even_rows_grey">
@@ -70,12 +70,19 @@
                 <td><a href="[% c.uri_for( '/admin/cm/dump_medium_links/' _ cdts.controversy_dump_time_slices_id, { l => live } ) %]">CSV</a></td>
             </tr>
             <tr>
+                <td>Twitter / Facebook</td>
+                <td>&nbsp;</td>
+            </tr>
+            <tr>
                 <td># Modeled Top Media</td>
                 <td>[% cdts.model_num_media %]</td>
                 <td />
             </tr>
             <tr>
                 <td colspan="3">dates: [% INCLUDE cm/model_reliability.tt2 model_reliability_include_numbers=1 %]</td>
+            </tr>
+            <tr>
+                <td colspan="3"><a href="[% c.uri_for( '/admin/cm/dump_social/' _ cdts.controversy_dump_time_slices_id, { l => live } ) %]">download twitter / facebook stats</a></td>
             </tr>
         </table>
 
@@ -107,8 +114,8 @@
             <p><a href="[% nv_url_media_type | html %]">Network Map - media types</a></p>
             <p><a href="[% nv_url_partisan | html %]">Network Map - partisan</a></p>
         </fieldset>
-            
-        
+
+
         <div class="boxtitle">Tools</div>
         <fieldset>
             [% SET imt_url = c.uri_for( '/admin/cm/influential_media_words', { cdts => cdts.controversy_dump_time_slices_id, l => live } ) %]
@@ -120,7 +127,7 @@
             <p><a href="[% partisan_url | html %]">Partisanship</a></p>
             <p><a href="[% type_url | html %]">Add Media Types</a></p>
         </fieldset>
-        
+
         <div class="boxtitle">Media Types - Link Weight</div>
         <table class="even_rows_grey">
             [% FOREACH mt IN media_type_stats.link_weight %]
@@ -134,12 +141,11 @@
                 <tr><td>[% mt.media_type | html %]</td><td>[% mt.percent_stories %]%</td></tr>
             [% END %]
         </table>
-    
-        
+
+
     </div>
 
 
 </div>
 
 [% INCLUDE include/footer.tt2 %]
-
