@@ -1790,7 +1790,7 @@ create table controversy_communities_media_map (
     media_id                int not null references media on delete cascade
 );
 
-create index controversy_communities_media_map_c on controversy_communities_media_map ( controvoversies_id );
+create index controversy_communities_media_map_c on controversy_communities_media_map ( controversies_id );
 create index controversy_communities_media_map_m on controversy_communities_media_map ( media_id );
 
 create table controversy_dump_tags (
