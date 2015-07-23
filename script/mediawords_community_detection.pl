@@ -96,7 +96,7 @@ sub detect_communities
     foreach my $community ( $net->communities )
     {
         my $id                    = $controversies_id->{ 'controversies_id' };
-        my $name                  = "community_" . $community->index . "_" . $id . "_" . $cdts_id;
+        my $name                  = "community_" . $community->index . "_" . $id;
         my $controversy_community = $db->query( <<SQL, $id, $name )->hash;
 insert into controversy_communities
     ( controversies_id, name )
@@ -114,7 +114,7 @@ SQL
             $unformatted_id =~ s{\A\$VAR\d+\s*=\s*}{};
             my $formatted_id = eval $unformatted_id;
 
-            $db->query( <<SQL, $controversy_communities_id, $formatted_id );
+            $db->query( <<SQL, $controversy_communities_id, $member->{ 'media_id' } );
 insert into controversy_communities_media_map
   ( controversy_communities_id, media_id )
   values ( ?, ? )
