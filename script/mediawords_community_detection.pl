@@ -110,10 +110,6 @@ SQL
 
         foreach my $member ( $community->members )
         {
-            my $unformatted_id = Dumper( $member->{ 'media_id' } );
-            $unformatted_id =~ s{\A\$VAR\d+\s*=\s*}{};
-            my $formatted_id = eval $unformatted_id;
-
             $db->query( <<SQL, $controversy_communities_id, $member->{ 'media_id' } );
 insert into controversy_communities_media_map
   ( controversy_communities_id, media_id )
