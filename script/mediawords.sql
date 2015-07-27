@@ -45,8 +45,8 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4508;
-    
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4509;
+
 BEGIN
 
     -- Update / set database schema version
@@ -419,7 +419,7 @@ create table media (
     url                 varchar(1024)   not null,
     name                varchar(128)    not null,
     moderated           boolean         not null,
-    moderation_notes    text            null,       
+    moderation_notes    text            null,
     full_text_rss       boolean,
     extract_author      boolean         default(false),
     sw_data_start_date  date            default(null),
@@ -538,7 +538,7 @@ BEGIN
     ELSE
         RETURN FALSE;
     END IF;
-    
+
 END;
 $$
 LANGUAGE 'plpgsql';
@@ -677,7 +677,7 @@ create index tags_tag_2 on tags (split_part(tag, ' ', 2));
 create index tags_tag_3 on tags (split_part(tag, ' ', 3));
 
 create view tags_with_sets as select t.*, ts.name as tag_set_name from tags t, tag_sets ts where t.tag_sets_id = ts.tag_sets_id;
-    
+
 insert into tag_sets ( name, label, description ) values (
     'media_type',
     'Media Type',
@@ -774,7 +774,7 @@ insert into media_type_tags values
         'A general communication and networking platform or tool, like Wikipedia, YouTube, Twitter, '
         'and Scribd, or a search engine like Google or speech platform like the Daily Kos'
     );
-    
+
 insert into tags ( tag_sets_id, tag, label, description )
     select ts.tag_sets_id, mtt.name, mtt.name, mtt.description
         from tag_sets ts cross join media_type_tags mtt
@@ -1213,7 +1213,7 @@ create index downloads_extracted on downloads(extracted, state, type)
 
 CREATE INDEX downloads_stories_to_be_extracted
     ON downloads (stories_id)
-    WHERE extracted = false AND state = 'success' AND type = 'content';        
+    WHERE extracted = false AND state = 'success' AND type = 'content';
 
 CREATE INDEX downloads_extracted_stories on downloads (stories_id) where type='content' and state='success';
 CREATE INDEX downloads_state_queued_or_fetching on downloads(state) where state='queued' or state='fetching';
@@ -1829,7 +1829,7 @@ alter table controversy_links add constraint controversy_links_controversy_story
 create unique index controversy_links_scr on controversy_links ( stories_id, controversies_id, ref_stories_id );
 create index controversy_links_controversy on controversy_links ( controversies_id );
 create index controversy_links_ref_story on controversy_links ( ref_stories_id );
-    
+
 CREATE VIEW controversy_links_cross_media AS
     SELECT s.stories_id,
            sm.name AS media_name,
@@ -2094,7 +2094,7 @@ create table cd.media (
     url                     varchar(1024)   not null,
     name                    varchar(128)    not null,
     moderated               boolean         not null,
-    moderation_notes        text            null,       
+    moderation_notes        text            null,
     full_text_rss           boolean,
     extract_author          boolean         default(false),
     sw_data_start_date      date            default(null),
