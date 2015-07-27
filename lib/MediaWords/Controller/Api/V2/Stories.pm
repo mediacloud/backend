@@ -171,15 +171,16 @@ sub fetch_bitly_clicks : Local
         die "Both 'start_timestamp' and 'end_timestamp' should be set.";
     }
 
-    my $json_list          = {};
-    my $total_click_counts = {};
+    my $story_stats = {};
     for my $stories_id ( @{ $stories_ids } )
     {
         $stories_id = $stories_id + 0;
 
-        next if ( $json_list->{ $stories_id } );
+        next if ( $story_stats->{ $stories_id } );
 
-        my ( $response, $total_click_count );
+        my $response = { stories_id => $stories_id + 0, };
+
+        my ( $bitly_clicks, $total_click_count );
         eval {
             my $story = $db->find_by_id( 'stories', $stories_id );
             unless ( $story )
@@ -187,34 +188,32 @@ sub fetch_bitly_clicks : Local
                 die "Unable to find story $stories_id.";
             }
 
-            $response = MediaWords::Util::Bitly::fetch_story_stats( $db, $stories_id, $start_timestamp, $end_timestamp,
+            $bitly_clicks = MediaWords::Util::Bitly::fetch_story_stats( $db, $stories_id, $start_timestamp, $end_timestamp,
                 $stats_to_fetch );
 
             # Aggregate stats and come up with a total click count for both
             # convenience and the reason that the count could be different
             # (e.g. because of homepage redirects being skipped)
-            my $stats = MediaWords::Util::Bitly::aggregate_story_stats( $story, $response );
+            my $stats = MediaWords::Util::Bitly::aggregate_story_stats( $story, $bitly_clicks );
             $total_click_count = $stats->{ click_count };
         };
-        if ( $@ )
+        unless ( $@ )
         {
-            $response = { 'error' => 'Unable to fetch Bit.ly stats: ' . $@, };
+            $response->{ bitly_clicks }      = $bitly_clicks;
+            $response->{ total_click_count } = $total_click_count;
+        }
+        else
+        {
+            $response->{ error } = $@;
         }
 
-        $json_list->{ $stories_id }          = $response;
-        $total_click_counts->{ $stories_id } = $total_click_count;
+        $story_stats->{ $stories_id } = $response;
     }
 
     my $json_items = [];
-    for my $stories_id ( keys( %{ $json_list } ) )
+    for my $stories_id ( keys( %{ $story_stats } ) )
     {
-        my $total_click_count = $total_click_counts->{ $stories_id } // 0;
-        my $json_item = {
-            stories_id        => $stories_id + 0,
-            total_click_count => $total_click_count,
-            bitly_clicks      => $json_list->{ $stories_id },
-        };
-        push( @{ $json_items }, $json_item );
+        push( @{ $json_items }, $story_stats->{ $stories_id } );
     }
 
     my $json = MediaWords::Util::JSON::encode_json( $json_items );
