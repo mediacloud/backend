@@ -16,6 +16,20 @@ use Carp;
 
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
+use MediaWords::Util::Bitly;
+use MediaWords::Util::JSON;
+
+# What stats to fetch for each story
+Readonly my $BITLY_FETCH_CATEGORIES => 0;
+Readonly my $BITLY_FETCH_CLICKS     => 1;
+Readonly my $BITLY_FETCH_REFERRERS  => 0;
+Readonly my $BITLY_FETCH_SHARES     => 0;
+Readonly my $stats_to_fetch         => MediaWords::Util::Bitly::StatsToFetch->new(
+    $BITLY_FETCH_CATEGORIES,    # "/v3/link/category"
+    $BITLY_FETCH_CLICKS,        # "/v3/link/clicks"
+    $BITLY_FETCH_REFERRERS,     # "/v3/link/referrers"
+    $BITLY_FETCH_SHARES         # "/v3/link/shares"
+);
 
 =head1 NAME
 
@@ -119,6 +133,69 @@ sub corenlp : Local
 { 
   "stories_id": $stories_id,
   "corenlp": $json_list->{ $stories_id }
+}
+END
+        push( @{ $json_items }, $json_item );
+    }
+
+    my $json = "[\n" . join( ",\n", @{ $json_items } ) . "\n]\n";
+
+    $c->response->content_type( 'application/json; charset=UTF-8' );
+    $c->response->content_length( bytes::length( $json ) );
+    $c->response->body( $json );
+}
+
+sub fetch_bitly_clicks : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my $stories_ids     = $c->req->params->{ stories_id };
+    my $start_timestamp = $c->req->params->{ start_timestamp };
+    my $end_timestamp   = $c->req->params->{ end_timestamp };
+
+    unless ( $stories_ids )
+    {
+        die "Story IDs are unset.";
+    }
+
+    $stories_ids = [ $stories_ids ] unless ( ref( $stories_ids ) );
+    unless ( scalar( @{ $stories_ids } ) )
+    {
+        die "Story IDs are empty.";
+    }
+
+    unless ( $start_timestamp and $end_timestamp )
+    {
+        die "Both 'start_timestamp' and 'end_timestamp' should be set.";
+    }
+
+    my $json_list = {};
+    for my $stories_id ( @{ $stories_ids } )
+    {
+        next if ( $json_list->{ $stories_id } );
+
+        my $response;
+        eval {
+            $response = MediaWords::Util::Bitly::fetch_story_stats( $db, $stories_id, $start_timestamp, $end_timestamp,
+                $stats_to_fetch );
+        };
+        if ( $@ )
+        {
+            $response = { 'error' => 'Unable to fetch Bit.ly stats: ' . $@, };
+        }
+
+        $json_list->{ $stories_id } = MediaWords::Util::JSON::encode_json( $response );
+    }
+
+    my $json_items = [];
+    for my $stories_id ( keys( %{ $json_list } ) )
+    {
+        my $json_item = <<"END";
+{ 
+  "stories_id": $stories_id,
+  "bitly_clicks": $json_list->{ $stories_id }
 }
 END
         push( @{ $json_items }, $json_item );
