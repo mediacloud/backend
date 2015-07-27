@@ -13,6 +13,7 @@ use Moose;
 use namespace::autoclean;
 use List::Compare;
 use Carp;
+use HTTP::Status qw(:constants);
 
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
@@ -164,6 +165,7 @@ sub fetch_bitly_clicks : Local
         die "Both 'start_timestamp' and 'end_timestamp' should be set.";
     }
 
+    my $http_status = HTTP_OK;
     my $response = { stories_id => $stories_id };
 
     my ( $bitly_clicks, $total_click_count );
@@ -190,11 +192,13 @@ sub fetch_bitly_clicks : Local
     }
     else
     {
+        $http_status = HTTP_INTERNAL_SERVER_ERROR;
         $response->{ error } = $@;
     }
 
     my $json = MediaWords::Util::JSON::encode_json( $response );
 
+    $c->response->status( $http_status );
     $c->response->content_type( 'application/json; charset=UTF-8' );
     $c->response->content_length( bytes::length( $json ) );
     $c->response->body( $json );
