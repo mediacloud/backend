@@ -1424,4 +1424,126 @@ sub error_is_rate_limit_exceeded($)
     }
 }
 
+{
+    # Single story statistics
+    package MediaWords::Util::Bitly::StoryStats;
+
+    sub new($$;$$$)
+    {
+        my $class = shift;
+        my ( $stories_id, $click_count, $referrer_count ) = @_;
+
+        my $self = {};
+        bless $self, $class;
+
+        unless ( $stories_id )
+        {
+            die "stories_id is unset.";
+        }
+
+        $self->{ stories_id }     = $stories_id;
+        $self->{ click_count }    = $click_count // 0;
+        $self->{ referrer_count } = $referrer_count // 0;
+
+        return $self;
+    }
+
+    1;
+}
+
+# Returns MediaWords::Util::Bitly::StoryStats object with story statistics
+# die()s on error
+sub aggregate_story_stats($$)
+{
+    my ( $db, $stories_id ) = @_;
+
+    say STDERR "Aggregating story stats for story $stories_id...";
+
+    my $story = $db->find_by_id( 'stories', $stories_id );
+    unless ( $story )
+    {
+        die "Unable to find story $stories_id.";
+    }
+
+    my $stats = read_story_stats( $db, $stories_id );
+    unless ( defined $stats )
+    {
+        die "Stats for story $stories_id is undefined; perhaps story is not (yet) processed with Bit.ly?";
+    }
+    unless ( ref( $stats ) eq ref( {} ) )
+    {
+        die "Stats for story $stories_id is not a hashref.";
+    }
+
+    my $click_count    = 0;
+    my $referrer_count = 0;
+
+    # Aggregate stats
+    if ( $stats->{ 'error' } )
+    {
+        if ( $stats->{ 'error' } eq 'NOT_FOUND' )
+        {
+            say STDERR "Story $stories_id was not found on Bit.ly, so click / referrer count is 0.";
+        }
+        else
+        {
+            die "Story $stories_id has encountered unknown error while collecting Bit.ly stats: " . $stats->{ 'error' };
+        }
+    }
+    else
+    {
+        my $stories_original_url             = $story->{ url };
+        my $stories_original_url_is_homepage = MediaWords::Util::URL::is_homepage_url( $stories_original_url );
+
+        unless ( $stats->{ 'data' } )
+        {
+            die "'data' is not set for story's $stories_id stats hashref.";
+        }
+
+        foreach my $bitly_id ( keys %{ $stats->{ 'data' } } )
+        {
+            my $bitly_data = $stats->{ 'data' }->{ $bitly_id };
+
+            # If URL gets redirected to the homepage (e.g.
+            # http://m.wired.com/threatlevel/2011/12/sopa-watered-down-amendment/ leads
+            # to http://www.wired.com/), don't use those redirects
+            my $url = $bitly_data->{ 'url' };
+            unless ( $stories_original_url_is_homepage )
+            {
+                if ( MediaWords::Util::URL::is_homepage_url( $url ) )
+                {
+                    say STDERR
+                      "URL $stories_original_url got redirected to $url which looks like a homepage, so I'm skipping that.";
+                    next;
+                }
+            }
+
+            # Click count (indiscriminate from date range)
+            unless ( $bitly_data->{ 'clicks' } )
+            {
+                die "Bit.ly stats hashref doesn't have 'clicks' key for Bit.ly ID $bitly_id, story $stories_id.";
+            }
+            foreach my $bitly_clicks ( @{ $bitly_data->{ 'clicks' } } )
+            {
+                foreach my $link_clicks ( @{ $bitly_clicks->{ 'link_clicks' } } )
+                {
+                    $click_count += $link_clicks->{ 'clicks' };
+                }
+            }
+
+            # Referrer count (indiscriminate from date range)
+            unless ( $bitly_data->{ 'referrers' } )
+            {
+                die "Bit.ly stats hashref doesn't have 'referrers' key for Bit.ly ID $bitly_id, story $stories_id.";
+            }
+            foreach my $bitly_referrers ( @{ $bitly_data->{ 'referrers' } } )
+            {
+                $referrer_count += scalar( @{ $bitly_referrers->{ 'referrers' } } );
+            }
+        }
+    }
+
+    return MediaWords::Util::Bitly::StoryStats->new( $stories_id, $click_count, $referrer_count );
+}
+
 1;
