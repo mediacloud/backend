@@ -179,6 +179,12 @@ sub fetch_bitly_clicks : Local
         $bitly_clicks =
           MediaWords::Util::Bitly::fetch_story_stats( $db, $stories_id, $start_timestamp, $end_timestamp, $stats_to_fetch );
 
+        # die() on non-fatal errors so that eval{} could catch them
+        if ( $bitly_clicks->{ error } )
+        {
+            die $bitly_clicks->{ error };
+        }
+
         # Aggregate stats and come up with a total click count for both
         # convenience and the reason that the count could be different
         # (e.g. because of homepage redirects being skipped)
@@ -192,8 +198,23 @@ sub fetch_bitly_clicks : Local
     }
     else
     {
-        $http_status = HTTP_INTERNAL_SERVER_ERROR;
-        $response->{ error } = $@;
+        my $error_message = $@;
+        $response->{ error } = $error_message;
+
+        if ( MediaWords::Util::Bitly::error_is_rate_limit_exceeded( $error_message ) )
+        {
+            $http_status = HTTP_TOO_MANY_REQUESTS;
+
+        }
+        elsif ( $error_message =~ /NOT_FOUND/i )
+        {
+            $http_status = HTTP_NOT_FOUND;
+
+        }
+        else
+        {
+            $http_status = HTTP_INTERNAL_SERVER_ERROR;
+        }
     }
 
     my $json = MediaWords::Util::JSON::encode_json( $response );
