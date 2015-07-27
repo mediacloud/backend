@@ -1521,7 +1521,7 @@ sub aggregate_story_stats($$)
             # Click count (indiscriminate from date range)
             unless ( $bitly_data->{ 'clicks' } )
             {
-                die "Bit.ly stats hashref doesn't have 'clicks' key for Bit.ly ID $bitly_id, story $stories_id.";
+                say "Bit.ly stats hashref doesn't have 'clicks' key for Bit.ly ID $bitly_id, story $stories_id.";
             }
             foreach my $bitly_clicks ( @{ $bitly_data->{ 'clicks' } } )
             {
@@ -1534,7 +1534,7 @@ sub aggregate_story_stats($$)
             # Referrer count (indiscriminate from date range)
             unless ( $bitly_data->{ 'referrers' } )
             {
-                die "Bit.ly stats hashref doesn't have 'referrers' key for Bit.ly ID $bitly_id, story $stories_id.";
+                say "Bit.ly stats hashref doesn't have 'referrers' key for Bit.ly ID $bitly_id, story $stories_id.";
             }
             foreach my $bitly_referrers ( @{ $bitly_data->{ 'referrers' } } )
             {
