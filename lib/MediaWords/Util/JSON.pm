@@ -18,21 +18,21 @@ use Data::Dumper;
 # Encode hashref to JSON, die() on error
 sub encode_json($;$$)
 {
-    my ( $hashref, $pretty, $utf8 ) = @_;
+    my ( $object, $pretty, $utf8 ) = @_;
 
     $pretty = ( $pretty ? 1 : 0 );
     $utf8   = ( $utf8   ? 1 : 0 );    # if you set this to 1, make sure you don't double-encode
 
-    unless ( ref( $hashref ) eq ref( {} ) )
+    unless ( ref( $object ) eq ref( {} ) or ref( $object ) eq ref( [] ) )
     {
-        die "Parameter is not a hashref: " . Dumper( $hashref );
+        die "Object is neither a hashref nor an arrayref: " . Dumper( $object );
     }
 
     my $json;
-    eval { $json = JSON->new->utf8( $utf8 )->pretty( $pretty )->encode( $hashref ); };
+    eval { $json = JSON->new->utf8( $utf8 )->pretty( $pretty )->encode( $object ); };
     if ( $@ or ( !$json ) )
     {
-        die "Unable to encode hashref to JSON: $@\nHashref: " . Dumper( $hashref );
+        die "Unable to encode object to JSON: $@\nObject: " . Dumper( $object );
     }
 
     return $json;
@@ -54,7 +54,7 @@ sub decode_json($;$)
     eval { $hashref = JSON->new->utf8( $utf8 )->decode( $json ); };
     if ( $@ or ( !$hashref ) )
     {
-        die "Unable to decode JSON to hashref: $@\nJSON: $json";
+        die "Unable to decode JSON to object: $@\nJSON: $json";
     }
 
     return $hashref;
