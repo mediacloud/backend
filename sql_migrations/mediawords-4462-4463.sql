@@ -19,21 +19,21 @@ drop view controversies_with_search_info;
 alter table controversy_dates add boundary boolean  not null default 'false';
 
 create view controversies_with_dates as
-    select c.*, 
-            to_char( cd.start_date, 'YYYY-MM-DD' ) start_date, 
+    select c.*,
+            to_char( cd.start_date, 'YYYY-MM-DD' ) start_date,
             to_char( cd.end_date, 'YYYY-MM-DD' ) end_date
-        from 
-            controversies c 
+        from
+            controversies c
             join controversy_dates cd on ( c.controversies_id = cd.controversies_id )
-        where 
+        where
             cd.boundary;
 
 create temporary table boundary_controversy_dates as
-    select controversy_dates_id 
+    select controversy_dates_id
         from (
             select controversy_dates_id,
-                    rank() over ( 
-                        partition by controversies_id 
+                    rank() over (
+                        partition by controversies_id
                         order by ( end_date - start_date ) desc
                     ) date_range_rank
                 from controversy_dates
@@ -42,7 +42,7 @@ create temporary table boundary_controversy_dates as
 
 update controversy_dates set boundary = 't'
     where controversy_dates_id in ( select controversy_dates_id from boundary_controversy_dates );
-    
+
 create view media_with_media_types as
     select m.*, mtm.tags_id media_type_tags_id, t.label media_type
     from
@@ -57,11 +57,13 @@ create temporary table media_type_tags ( name text, label text, description text
 insert into media_type_tags values
     ( 'Not Typed', 'Not Typed', 'The medium has not yet been typed.' ),
     ( 'Other', 'Other', 'The medium does not fit in any listed type.' );
-    
+
 insert into tags ( tag_sets_id, tag, label, description )
-    select ts.tag_sets_id, mtt.name, mtt.name, mtt.description 
+    select ts.tag_sets_id, mtt.name, mtt.name, mtt.description
         from tag_sets ts cross join media_type_tags mtt
         where ts.name = 'media_type';
+
+discard temp;
 
 --
 -- 2 of 2. Reset the database version.
@@ -69,11 +71,11 @@ insert into tags ( tag_sets_id, tag, label, description )
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
-    
+
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
     MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4463;
-    
+
 BEGIN
 
     -- Update / set database schema version
@@ -81,11 +83,9 @@ BEGIN
     INSERT INTO database_variables (name, value) VALUES ('database-schema-version', MEDIACLOUD_DATABASE_SCHEMA_VERSION::int);
 
     return true;
-    
+
 END;
 $$
 LANGUAGE 'plpgsql';
 
 SELECT set_database_schema_version();
-
-
