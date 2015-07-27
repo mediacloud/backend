@@ -151,72 +151,49 @@ sub fetch_bitly_clicks : Local
 
     my $db = $c->dbis;
 
-    my $stories_ids     = $c->req->params->{ stories_id };
+    my $stories_id      = $c->req->params->{ stories_id } + 0;
     my $start_timestamp = $c->req->params->{ start_timestamp };
     my $end_timestamp   = $c->req->params->{ end_timestamp };
 
-    unless ( $stories_ids )
+    unless ( $stories_id )
     {
-        die "Story IDs are unset.";
+        die "Story ID is unset.";
     }
-
-    $stories_ids = [ $stories_ids ] unless ( ref( $stories_ids ) );
-    unless ( scalar( @{ $stories_ids } ) )
-    {
-        die "Story IDs are empty.";
-    }
-
     unless ( $start_timestamp and $end_timestamp )
     {
         die "Both 'start_timestamp' and 'end_timestamp' should be set.";
     }
 
-    my $story_stats = {};
-    for my $stories_id ( @{ $stories_ids } )
-    {
-        $stories_id = $stories_id + 0;
+    my $response = { stories_id => $stories_id };
 
-        next if ( $story_stats->{ $stories_id } );
-
-        my $response = { stories_id => $stories_id + 0, };
-
-        my ( $bitly_clicks, $total_click_count );
-        eval {
-            my $story = $db->find_by_id( 'stories', $stories_id );
-            unless ( $story )
-            {
-                die "Unable to find story $stories_id.";
-            }
-
-            $bitly_clicks = MediaWords::Util::Bitly::fetch_story_stats( $db, $stories_id, $start_timestamp, $end_timestamp,
-                $stats_to_fetch );
-
-            # Aggregate stats and come up with a total click count for both
-            # convenience and the reason that the count could be different
-            # (e.g. because of homepage redirects being skipped)
-            my $stats = MediaWords::Util::Bitly::aggregate_story_stats( $story, $bitly_clicks );
-            $total_click_count = $stats->{ click_count };
-        };
-        unless ( $@ )
+    my ( $bitly_clicks, $total_click_count );
+    eval {
+        my $story = $db->find_by_id( 'stories', $stories_id );
+        unless ( $story )
         {
-            $response->{ bitly_clicks }      = $bitly_clicks;
-            $response->{ total_click_count } = $total_click_count;
-        }
-        else
-        {
-            $response->{ error } = $@;
+            die "Unable to find story $stories_id.";
         }
 
-        $story_stats->{ $stories_id } = $response;
-    }
+        $bitly_clicks =
+          MediaWords::Util::Bitly::fetch_story_stats( $db, $stories_id, $start_timestamp, $end_timestamp, $stats_to_fetch );
 
-    my $json_items = [];
-    for my $stories_id ( keys( %{ $story_stats } ) )
+        # Aggregate stats and come up with a total click count for both
+        # convenience and the reason that the count could be different
+        # (e.g. because of homepage redirects being skipped)
+        my $stats = MediaWords::Util::Bitly::aggregate_story_stats( $story, $bitly_clicks );
+        $total_click_count = $stats->{ click_count };
+    };
+    unless ( $@ )
     {
-        push( @{ $json_items }, $story_stats->{ $stories_id } );
+        $response->{ bitly_clicks }      = $bitly_clicks;
+        $response->{ total_click_count } = $total_click_count;
+    }
+    else
+    {
+        $response->{ error } = $@;
     }
 
-    my $json = MediaWords::Util::JSON::encode_json( $json_items );
+    my $json = MediaWords::Util::JSON::encode_json( $response );
 
     $c->response->content_type( 'application/json; charset=UTF-8' );
     $c->response->content_length( bytes::length( $json ) );
