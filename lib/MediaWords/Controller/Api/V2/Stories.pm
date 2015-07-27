@@ -175,6 +175,8 @@ sub fetch_bitly_clicks : Local
     my $total_click_counts = {};
     for my $stories_id ( @{ $stories_ids } )
     {
+        $stories_id = $stories_id + 0;
+
         next if ( $json_list->{ $stories_id } );
 
         my ( $response, $total_click_count );
@@ -199,7 +201,7 @@ sub fetch_bitly_clicks : Local
             $response = { 'error' => 'Unable to fetch Bit.ly stats: ' . $@, };
         }
 
-        $json_list->{ $stories_id }          = MediaWords::Util::JSON::encode_json( $response );
+        $json_list->{ $stories_id }          = $response;
         $total_click_counts->{ $stories_id } = $total_click_count;
     }
 
@@ -207,17 +209,15 @@ sub fetch_bitly_clicks : Local
     for my $stories_id ( keys( %{ $json_list } ) )
     {
         my $total_click_count = $total_click_counts->{ $stories_id } // 0;
-        my $json_item = <<"END";
-{ 
-  "stories_id": $stories_id,
-  "total_click_count": $total_click_count,
-  "bitly_clicks": $json_list->{ $stories_id }
-}
-END
+        my $json_item = {
+            stories_id        => $stories_id + 0,
+            total_click_count => $total_click_count,
+            bitly_clicks      => $json_list->{ $stories_id },
+        };
         push( @{ $json_items }, $json_item );
     }
 
-    my $json = "[\n" . join( ",\n", @{ $json_items } ) . "\n]\n";
+    my $json = MediaWords::Util::JSON::encode_json( $json_items );
 
     $c->response->content_type( 'application/json; charset=UTF-8' );
     $c->response->content_length( bytes::length( $json ) );
