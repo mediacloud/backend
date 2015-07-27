@@ -171,30 +171,46 @@ sub fetch_bitly_clicks : Local
         die "Both 'start_timestamp' and 'end_timestamp' should be set.";
     }
 
-    my $json_list = {};
+    my $json_list          = {};
+    my $total_click_counts = {};
     for my $stories_id ( @{ $stories_ids } )
     {
         next if ( $json_list->{ $stories_id } );
 
-        my $response;
+        my ( $response, $total_click_count );
         eval {
+            my $story = $db->find_by_id( 'stories', $stories_id );
+            unless ( $story )
+            {
+                die "Unable to find story $stories_id.";
+            }
+
             $response = MediaWords::Util::Bitly::fetch_story_stats( $db, $stories_id, $start_timestamp, $end_timestamp,
                 $stats_to_fetch );
+
+            # Aggregate stats and come up with a total click count for both
+            # convenience and the reason that the count could be different
+            # (e.g. because of homepage redirects being skipped)
+            my $stats = MediaWords::Util::Bitly::aggregate_story_stats( $story, $response );
+            $total_click_count = $stats->{ click_count };
         };
         if ( $@ )
         {
             $response = { 'error' => 'Unable to fetch Bit.ly stats: ' . $@, };
         }
 
-        $json_list->{ $stories_id } = MediaWords::Util::JSON::encode_json( $response );
+        $json_list->{ $stories_id }          = MediaWords::Util::JSON::encode_json( $response );
+        $total_click_counts->{ $stories_id } = $total_click_count;
     }
 
     my $json_items = [];
     for my $stories_id ( keys( %{ $json_list } ) )
     {
+        my $total_click_count = $total_click_counts->{ $stories_id } // 0;
         my $json_item = <<"END";
 { 
   "stories_id": $stories_id,
+  "total_click_count": $total_click_count,
   "bitly_clicks": $json_list->{ $stories_id }
 }
 END
