@@ -47,7 +47,25 @@ sub run($;$)
 
     my $stories_id = $args->{ stories_id } or die "'stories_id' is not set.";
 
-    my $agg_stats      = MediaWords::Util::Bitly::aggregate_story_stats( $db, $stories_id );
+    say STDERR "Aggregating story stats for story $stories_id...";
+
+    my $story = $db->find_by_id( 'stories', $stories_id );
+    unless ( $story )
+    {
+        die "Unable to find story $stories_id.";
+    }
+
+    my $stats = MediaWords::Util::Bitly::read_story_stats( $db, $stories_id );
+    unless ( defined $stats )
+    {
+        die "Stats for story $stories_id is undefined; perhaps story is not (yet) processed with Bit.ly?";
+    }
+    unless ( ref( $stats ) eq ref( {} ) )
+    {
+        die "Stats for story $stories_id is not a hashref.";
+    }
+
+    my $agg_stats      = MediaWords::Util::Bitly::aggregate_story_stats( $story, $stats );
     my $click_count    = $agg_stats->{ click_count };
     my $referrer_count = $agg_stats->{ referrer_count };
 

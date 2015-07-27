@@ -1455,28 +1455,12 @@ sub error_is_rate_limit_exceeded($)
 # die()s on error
 sub aggregate_story_stats($$)
 {
-    my ( $db, $stories_id ) = @_;
-
-    say STDERR "Aggregating story stats for story $stories_id...";
-
-    my $story = $db->find_by_id( 'stories', $stories_id );
-    unless ( $story )
-    {
-        die "Unable to find story $stories_id.";
-    }
-
-    my $stats = read_story_stats( $db, $stories_id );
-    unless ( defined $stats )
-    {
-        die "Stats for story $stories_id is undefined; perhaps story is not (yet) processed with Bit.ly?";
-    }
-    unless ( ref( $stats ) eq ref( {} ) )
-    {
-        die "Stats for story $stories_id is not a hashref.";
-    }
+    my ( $story, $stats ) = @_;
 
     my $click_count    = 0;
     my $referrer_count = 0;
+
+    my $stories_id = $story->{ stories_id };
 
     # Aggregate stats
     if ( $stats->{ 'error' } )
