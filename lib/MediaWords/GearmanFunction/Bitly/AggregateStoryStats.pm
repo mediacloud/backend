@@ -65,7 +65,7 @@ sub run($;$)
         die "Stats for story $stories_id is not a hashref.";
     }
 
-    my $agg_stats      = MediaWords::Util::Bitly::aggregate_story_stats( $story, $stats );
+    my $agg_stats      = MediaWords::Util::Bitly::aggregate_story_stats( $stories_id, $story->{ url }, $stats );
     my $click_count    = $agg_stats->{ click_count };
     my $referrer_count = $agg_stats->{ referrer_count };
 

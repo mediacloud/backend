@@ -1458,11 +1458,6 @@ sub error_is_rate_limit_exceeded($)
         my $self = {};
         bless $self, $class;
 
-        unless ( $stories_id )
-        {
-            die "stories_id is unset.";
-        }
-
         $self->{ stories_id }     = $stories_id;
         $self->{ click_count }    = $click_count // 0;
         $self->{ referrer_count } = $referrer_count // 0;
@@ -1475,14 +1470,12 @@ sub error_is_rate_limit_exceeded($)
 
 # Returns MediaWords::Util::Bitly::StoryStats object with story statistics
 # die()s on error
-sub aggregate_story_stats($$)
+sub aggregate_story_stats($$$)
 {
-    my ( $story, $stats ) = @_;
+    my ( $stories_id, $stories_original_url, $stats ) = @_;
 
     my $click_count    = 0;
     my $referrer_count = 0;
-
-    my $stories_id = $story->{ stories_id };
 
     # Aggregate stats
     if ( $stats->{ 'error' } )
@@ -1498,7 +1491,6 @@ sub aggregate_story_stats($$)
     }
     else
     {
-        my $stories_original_url             = $story->{ url };
         my $stories_original_url_is_homepage = MediaWords::Util::URL::is_homepage_url( $stories_original_url );
 
         unless ( $stats->{ 'data' } )

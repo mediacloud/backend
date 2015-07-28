@@ -154,12 +154,13 @@ sub fetch_bitly_clicks : Local
     my $db = $c->dbis;
 
     my $stories_id      = $c->req->params->{ stories_id } + 0;
+    my $stories_url     = $c->req->params->{ url };
     my $start_timestamp = $c->req->params->{ start_timestamp };
     my $end_timestamp   = $c->req->params->{ end_timestamp };
 
-    unless ( $stories_id )
+    unless ( $stories_id xor $stories_url )
     {
-        die "Story ID is unset.";
+        die "Either the story ID ('stories_id') or URL ('url') should be set.";
     }
     unless ( $start_timestamp and $end_timestamp )
     {
@@ -167,18 +168,47 @@ sub fetch_bitly_clicks : Local
     }
 
     my $http_status = HTTP_OK;
-    my $response = { stories_id => $stories_id };
+    my $response    = {};
+    if ( $stories_id )
+    {
+        $response->{ stories_id } = $stories_id;
+    }
+    elsif ( $stories_url )
+    {
+        $response->{ url } = $stories_url;
+    }
 
     my ( $bitly_clicks, $total_click_count );
     eval {
-        my $story = $db->find_by_id( 'stories', $stories_id );
-        unless ( $story )
-        {
-            die "Unable to find story $stories_id.";
-        }
 
-        $bitly_clicks = MediaWords::Util::Bitly::fetch_stats_for_story( $db, $stories_id, $start_timestamp, $end_timestamp,
-            $stats_to_fetch );
+        my ( $agg_stories_id, $agg_stories_url );
+
+        if ( $stories_id )
+        {
+
+            my $story = $db->find_by_id( 'stories', $stories_id );
+            unless ( $story )
+            {
+                die "Unable to find story $stories_id.";
+            }
+
+            $bitly_clicks =
+              MediaWords::Util::Bitly::fetch_stats_for_story( $db, $stories_id, $start_timestamp, $end_timestamp,
+                $stats_to_fetch );
+
+            ( $agg_stories_id, $agg_stories_url ) = ( $stories_id, $story->{ url } );
+
+        }
+        elsif ( $stories_url )
+        {
+
+            $bitly_clicks =
+              MediaWords::Util::Bitly::fetch_stats_for_url( $db, $stories_url, $start_timestamp, $end_timestamp,
+                $stats_to_fetch );
+
+            ( $agg_stories_id, $agg_stories_url ) = ( 0, $stories_url );
+
+        }
 
         # die() on non-fatal errors so that eval{} could catch them
         if ( $bitly_clicks->{ error } )
@@ -189,7 +219,7 @@ sub fetch_bitly_clicks : Local
         # Aggregate stats and come up with a total click count for both
         # convenience and the reason that the count could be different
         # (e.g. because of homepage redirects being skipped)
-        my $stats = MediaWords::Util::Bitly::aggregate_story_stats( $story, $bitly_clicks );
+        my $stats = MediaWords::Util::Bitly::aggregate_story_stats( $agg_stories_id, $agg_stories_url, $bitly_clicks );
         $total_click_count = $stats->{ click_count };
     };
     unless ( $@ )
