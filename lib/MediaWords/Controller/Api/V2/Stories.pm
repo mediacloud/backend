@@ -13,9 +13,24 @@ use Moose;
 use namespace::autoclean;
 use List::Compare;
 use Carp;
+use HTTP::Status qw(:constants);
 
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
+use MediaWords::Util::Bitly;
+use MediaWords::Util::JSON;
+
+# What stats to fetch for each story
+Readonly my $BITLY_FETCH_CATEGORIES => 0;
+Readonly my $BITLY_FETCH_CLICKS     => 1;
+Readonly my $BITLY_FETCH_REFERRERS  => 0;
+Readonly my $BITLY_FETCH_SHARES     => 0;
+Readonly my $stats_to_fetch         => MediaWords::Util::Bitly::StatsToFetch->new(
+    $BITLY_FETCH_CATEGORIES,    # "/v3/link/category"
+    $BITLY_FETCH_CLICKS,        # "/v3/link/clicks"
+    $BITLY_FETCH_REFERRERS,     # "/v3/link/referrers"
+    $BITLY_FETCH_SHARES         # "/v3/link/shares"
+);
 
 =head1 NAME
 
@@ -37,9 +52,10 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::StoriesBase' }
 
 __PACKAGE__->config(
     action => {
-        single_GET   => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        list_GET     => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        put_tags_PUT => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        single_GET         => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        list_GET           => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        put_tags_PUT       => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        fetch_bitly_clicks => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
@@ -126,6 +142,85 @@ END
 
     my $json = "[\n" . join( ",\n", @{ $json_items } ) . "\n]\n";
 
+    $c->response->content_type( 'application/json; charset=UTF-8' );
+    $c->response->content_length( bytes::length( $json ) );
+    $c->response->body( $json );
+}
+
+sub fetch_bitly_clicks : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my $stories_id      = $c->req->params->{ stories_id } + 0;
+    my $start_timestamp = $c->req->params->{ start_timestamp };
+    my $end_timestamp   = $c->req->params->{ end_timestamp };
+
+    unless ( $stories_id )
+    {
+        die "Story ID is unset.";
+    }
+    unless ( $start_timestamp and $end_timestamp )
+    {
+        die "Both 'start_timestamp' and 'end_timestamp' should be set.";
+    }
+
+    my $http_status = HTTP_OK;
+    my $response = { stories_id => $stories_id };
+
+    my ( $bitly_clicks, $total_click_count );
+    eval {
+        my $story = $db->find_by_id( 'stories', $stories_id );
+        unless ( $story )
+        {
+            die "Unable to find story $stories_id.";
+        }
+
+        $bitly_clicks =
+          MediaWords::Util::Bitly::fetch_story_stats( $db, $stories_id, $start_timestamp, $end_timestamp, $stats_to_fetch );
+
+        # die() on non-fatal errors so that eval{} could catch them
+        if ( $bitly_clicks->{ error } )
+        {
+            die $bitly_clicks->{ error };
+        }
+
+        # Aggregate stats and come up with a total click count for both
+        # convenience and the reason that the count could be different
+        # (e.g. because of homepage redirects being skipped)
+        my $stats = MediaWords::Util::Bitly::aggregate_story_stats( $story, $bitly_clicks );
+        $total_click_count = $stats->{ click_count };
+    };
+    unless ( $@ )
+    {
+        $response->{ bitly_clicks }      = $bitly_clicks;
+        $response->{ total_click_count } = $total_click_count;
+    }
+    else
+    {
+        my $error_message = $@;
+        $response->{ error } = $error_message;
+
+        if ( MediaWords::Util::Bitly::error_is_rate_limit_exceeded( $error_message ) )
+        {
+            $http_status = HTTP_TOO_MANY_REQUESTS;
+
+        }
+        elsif ( $error_message =~ /NOT_FOUND/i )
+        {
+            $http_status = HTTP_NOT_FOUND;
+
+        }
+        else
+        {
+            $http_status = HTTP_INTERNAL_SERVER_ERROR;
+        }
+    }
+
+    my $json = MediaWords::Util::JSON::encode_json( $response );
+
+    $c->response->status( $http_status );
     $c->response->content_type( 'application/json; charset=UTF-8' );
     $c->response->content_length( bytes::length( $json ) );
     $c->response->body( $json );
