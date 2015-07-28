@@ -980,7 +980,7 @@ sub bitly_link_shares($;$$)
 
 {
     # Object to determine what kind of stats to fetch from Bit.ly (used in
-    # fetch_story_stats())
+    # fetch_stats_for_story())
     package MediaWords::Util::Bitly::StatsToFetch;
 
     sub new($;$$$$)
@@ -1073,6 +1073,35 @@ sub story_stats_are_fetched($$)
 #   "MediaWords::Util::Bitly::StatsToFetch" which determines what kind of
 #   statistics to fetch for the story
 #
+# Returns: see fetch_stats_for_url()
+#
+# die()s on error
+sub fetch_stats_for_story($$$$;$)
+{
+    my ( $db, $stories_id, $start_timestamp, $end_timestamp, $stats_to_fetch ) = @_;
+
+    my $story = $db->find_by_id( 'stories', $stories_id );
+    unless ( $story )
+    {
+        die "Story ID $stories_id was not found.";
+    }
+
+    my $stories_url = $story->{ url };
+
+    return fetch_stats_for_url( $db, $stories_url, $start_timestamp, $end_timestamp, $stats_to_fetch );
+}
+
+# Fetch story URL statistics from Bit.ly API
+#
+# Params:
+# * $db - database object
+# * $stories_url - story URL
+# * $start_timestamp - starting date (offset) for fetching statistics
+# * $end_timestamp - ending date (limit) for fetching statistics
+# * $stats_to_fetch (optional) - object of type
+#   "MediaWords::Util::Bitly::StatsToFetch" which determines what kind of
+#   statistics to fetch for the story
+#
 # Returns: hashref with statistics, e.g.:
 #    {
 #        'collection_timestamp' => 1409135396,
@@ -1115,9 +1144,14 @@ sub story_stats_are_fetched($$)
 #    };
 #
 # die()s on error
-sub fetch_story_stats($$$$;$)
+sub fetch_stats_for_url($$$$;$)
 {
-    my ( $db, $stories_id, $start_timestamp, $end_timestamp, $stats_to_fetch ) = @_;
+    my ( $db, $stories_url, $start_timestamp, $end_timestamp, $stats_to_fetch ) = @_;
+
+    unless ( $stories_url )
+    {
+        die "Story URL is empty.";
+    }
 
     unless ( bitly_processing_is_enabled() )
     {
@@ -1145,18 +1179,6 @@ sub fetch_story_stats($$$$;$)
         }
     }
 
-    my $story = $db->find_by_id( 'stories', $stories_id );
-    unless ( $story )
-    {
-        die "Story ID $stories_id was not found.";
-    }
-
-    my $stories_url = $story->{ url };
-    unless ( $stories_url )
-    {
-        die "Story URL for story ID $stories_id is empty.";
-    }
-
     my $string_start_date = gmt_date_string_from_timestamp( $start_timestamp );
     my $string_end_date   = gmt_date_string_from_timestamp( $end_timestamp );
 
@@ -1164,7 +1186,7 @@ sub fetch_story_stats($$$$;$)
     eval { $link_lookup = bitly_link_lookup_hashref_all_variants( $db, $stories_url ); };
     if ( $@ or ( !$link_lookup ) )
     {
-        die "Unable to lookup story ID $stories_id with URL $stories_url: $@";
+        die "Unable to lookup story with URL $stories_url: $@";
     }
 
     say STDERR "Link lookup: " . Dumper( $link_lookup );

@@ -177,8 +177,8 @@ sub fetch_bitly_clicks : Local
             die "Unable to find story $stories_id.";
         }
 
-        $bitly_clicks =
-          MediaWords::Util::Bitly::fetch_story_stats( $db, $stories_id, $start_timestamp, $end_timestamp, $stats_to_fetch );
+        $bitly_clicks = MediaWords::Util::Bitly::fetch_stats_for_story( $db, $stories_id, $start_timestamp, $end_timestamp,
+            $stats_to_fetch );
 
         # die() on non-fatal errors so that eval{} could catch them
         if ( $bitly_clicks->{ error } )
