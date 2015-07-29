@@ -113,6 +113,8 @@
             [% SET nv_url_partisan = c.uri_for( '/admin/cm/nv' )  _ "?cf=partisan_code&cdts=${cdts.controversy_dump_time_slices_id}&l=${live}&config=${nv_config}/partisan_code" %]
             <p><a href="[% nv_url_media_type | html %]">Network Map - media types</a></p>
             <p><a href="[% nv_url_partisan | html %]">Network Map - partisan</a></p>
+            <p><a href="[% c.uri_for( '/admin/cm/list_communities/' ) | html %]"> Community Detection </a> 
+</p>
         </fieldset>
 
 

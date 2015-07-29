@@ -147,6 +147,7 @@ SQL
 
         foreach my $member ( $community->members )
         {
+
             $db->query( <<SQL, $controversy_communities_id, $member->{ 'media_id' } );
 insert into controversy_communities_media_map
   ( controversy_communities_id, media_id )
@@ -162,10 +163,12 @@ sub list_communities : Local
     my $db = $c->dbis;
 
     my ( $net, $controversies_id, $cdts_id ) = create_graph( $db );
+
     detect_communities( $db, $net, $controversies_id, $cdts_id );
-    my $communities = $db->query( <<END )->hashes;
-select * from controversy_communities  
-END
+    my $communities = $db->query( <<SQL)->hashes;
+select * from controversy_communities 
+where controversies_id = $controversies_id->{'controversies_id'}
+SQL
     $c->stash->{ communities } = $communities;
     $c->stash->{ template }    = 'cm/list_communities.tt2';
 }
@@ -176,7 +179,7 @@ sub view_members : Local
     my $db = $c->dbis;
 
     my $communities_map = $db->query( <<END )->hashes;
-select c.* from controversy_communities_media_map c 
+select * from controversy_communities_media_map 
 where controversy_communities_id = $controversy_communities_id
 END
     $c->stash->{ communities_map } = $communities_map;
