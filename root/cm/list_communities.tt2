@@ -1,0 +1,27 @@
+[% title = 'CM: Communities List' %]
+[% INCLUDE include/header.tt2 %]
+
+[% USE datetime = date(format => '%Y-%m-%d %H:%M:%S', locale => 'en_GB') %]
+[% USE date = date(format => '%Y-%m-%d', locale => 'en_GB') %]    
+
+<table class="even_rows_grey">
+
+<tr>
+<th>Communities</th>
+</tr>
+
+    [% FOREACH community IN communities -%]
+
+        <tr>
+
+            <td>
+                  <a href="[%  c.uri_for('/admin/cm/view_members/'  _ community.controversy_communities_id ) %]">                   
+                    [% community.name | html %]
+                  </a>
+            </td>
+        </tr>
+    [% END -%]
+
+</table>
+
+[% INCLUDE include/footer.tt2 %]

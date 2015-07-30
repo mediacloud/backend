@@ -5,8 +5,15 @@ use MediaWords::CommonLibs;
 use strict;
 use warnings;
 
+use SNA::Network;
 use Digest::MD5;
 use JSON;
+use Encode;
+use XML::FeedPP;
+use List::Util qw(first);
+use List::MoreUtils qw(firstidx);
+use CGI qw(:standard);
+
 use List::Compare;
 use Data::Dumper;
 use Gearman::JobScheduler;
@@ -52,6 +59,131 @@ END
 
     $c->stash->{ controversies } = $controversies;
     $c->stash->{ template }      = 'cm/list.tt2';
+}
+
+sub create_graph
+{
+    my ( $db )      = @_;
+    my ( $cdts_id ) = 2;
+    my ( $cdts, $cd, $controversy ) = MediaWords::Controller::Admin::CM::_get_controversy_objects( $db, $cdts_id );
+    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, 1 );
+    my $net   = SNA::Network->new();
+    my $media = $db->query(
+        "select dm.*, dmlc.* from dump_media dm, dump_medium_link_counts dmlc
+  where dm.media_id in
+    ( ( select source_media_id from dump_medium_links ) union
+      ( select ref_media_id from dump_medium_links ) ) and dm.media_id = dmlc.media_id  
+   order by dmlc.inlink_count desc limit 500"
+    )->hashes;
+
+    my $controversies_id = $db->query(
+        "select controversies_id
+  from controversy_dumps cd
+    join controversy_dump_time_slices cdts
+      on ( cd.controversy_dumps_id = cdts.controversy_dumps_id )
+   where cdts.controversy_dump_time_slices_id = $cdts_id"
+    )->hash;
+
+    my $media_links         = $db->query( "select * from dump_medium_links" )->hashes;
+    my $node_id             = 0;
+    my %medium_lookup       = ();
+    my %medium_index_lookup = ();
+
+    for my $medium ( @{ $media } )
+    {
+        my $mediaid = $medium->{ 'media_id' };
+        my $name    = $medium->{ 'name' };
+        my $links   = $medium->{ 'inlink_count' };
+        if ( !exists( $medium_lookup{ $mediaid } ) )
+        {
+            $net->create_node_at_index(
+                index    => $node_id,
+                name     => $name,
+                media_id => $mediaid,
+                links    => $links
+            );
+            $medium_lookup{ $mediaid }       = $mediaid;
+            $medium_index_lookup{ $mediaid } = $node_id;
+            $node_id++;
+        }
+    }
+    for my $medium ( @{ $media_links } )
+    {
+        my $source_mediaid = $medium->{ 'source_media_id' };
+        my $target_mediaid = $medium->{ 'ref_media_id' };
+        my $links          = $medium->{ 'link_count' };
+        if ( ( exists $medium_lookup{ $source_mediaid } ) and ( exists $medium_lookup{ $target_mediaid } ) )
+        {
+            $net->create_edge(
+                source_index => $medium_index_lookup{ $source_mediaid },
+                target_index => $medium_index_lookup{ $target_mediaid },
+                weight       => 1
+            );
+        }
+    }
+    return $net, $controversies_id, $cdts_id;
+}
+
+# given an SNA::Network object with a graph representing the media graph
+
+sub detect_communities
+{
+    my ( $db, $net, $controversies_id, $cdts_id ) = @_;
+    my $num_communities = SNA::Network::Algorithm::Louvain::identify_communities_with_louvain( $net );
+    foreach my $community ( $net->communities )
+    {
+        my $id                    = $controversies_id->{ 'controversies_id' };
+        my $name                  = "community_" . $community->index . "_" . $id;
+        my $controversy_community = $db->query( <<SQL, $id, $name )->hash;
+insert into controversy_communities
+    ( controversies_id, name )
+    values ( ?, ? )
+    returning *
+SQL
+        my $controversy_communities_id = $db->query(
+            "select controversy_communities_id from controversy_communities where controversy_communities.name = '$name' " )
+          ->hash;
+        $controversy_communities_id = $controversy_communities_id->{ 'controversy_communities_id' };
+
+        foreach my $member ( $community->members )
+        {
+
+            $db->query( <<SQL, $controversy_communities_id, $member->{ 'media_id' } );
+insert into controversy_communities_media_map
+  ( controversy_communities_id, media_id )
+  values ( ?, ? )
+SQL
+        }
+    }
+}
+
+sub list_communities : Local
+{
+    my ( $self, $c ) = @_;
+    my $db = $c->dbis;
+
+    my ( $net, $controversies_id, $cdts_id ) = create_graph( $db );
+
+    detect_communities( $db, $net, $controversies_id, $cdts_id );
+    my $communities = $db->query( <<SQL)->hashes;
+select * from controversy_communities 
+where controversies_id = $controversies_id->{'controversies_id'}
+SQL
+    $c->stash->{ communities } = $communities;
+    $c->stash->{ template }    = 'cm/list_communities.tt2';
+}
+
+sub view_members : Local
+{
+    my ( $self, $c, $controversy_communities_id ) = @_;
+    my $db = $c->dbis;
+
+    my $communities_map = $db->query( <<END )->hashes;
+select * from controversy_communities_media_map 
+where controversy_communities_id = $controversy_communities_id
+END
+    $c->stash->{ communities_map } = $communities_map;
+    $c->stash->{ template }        = 'cm/view_members.tt2';
 }
 
 sub _add_controversy_date
