@@ -352,6 +352,10 @@ mediawords:
     ### in the process of restoring downloads from S3 back to GridFS)
     #read_gridfs_downloads_from_s3 : "no"
 
+    ### Uncomment to fallback PostgreSQL downloads to Amazon S3 (if download
+    ### doesn't exist in PostgreSQL storage, S3 will be tried instead)
+    #fallback_postgresql_downloads_to_s3 : "no"
+
     #### Defaults to kmeans uncomment to use Cluto
     #clustering_engine: "cluto"
     #cluto_binary: "/usr/local/cluto/bin/vcluster"
