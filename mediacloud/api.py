@@ -293,7 +293,7 @@ class MediaCloud(object):
             args['start_date'] = start_date
         if end_date is not None:
             args['end_date'] = end_date
-        return self._queryForJson(self.V2_API_URL+'controversy_dumps/list',args)    
+        return self._queryForJson(self.V2_API_URL+'controversy_dump_time_slices/list',args)    
 
     def _queryForJson(self, url, params={}, http_method='GET'):
         '''
