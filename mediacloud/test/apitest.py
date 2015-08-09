@@ -172,7 +172,7 @@ class ApiControversyDumpTimeSliceTest(ApiBaseTest):
         dump_time_slice_list = self._mc.controversyDumpTimeSliceList()
         self.assertTrue(len(dump_time_slice_list)>1)
         # make sure the filtering works
-        specific_dump_time_slice_list = self._mc.controversyDumpTimeSliceList(controversy_dumps_id=5)
+        specific_dump_time_slice_list = self._mc.controversyDumpTimeSliceList(controversy_dumps_id=16)
         self.assertTrue(len(specific_dump_time_slice_list)>1)
         self.assertTrue(len(specific_dump_time_slice_list)<=len(dump_time_slice_list))
 
