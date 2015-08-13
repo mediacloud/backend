@@ -389,7 +389,7 @@ class AdminMediaCloud(MediaCloud):
                 })[0]
 
     def storyList(self, solr_query='', solr_filter='', last_processed_stories_id=0, rows=20, 
-                  raw_1st_download=False, corenlp=False, sentences=False, text=False):
+                  raw_1st_download=False, corenlp=False, sentences=False, text=False, ap_stories_id=0):
         '''
         Search for stories and page through results
         '''
@@ -401,7 +401,8 @@ class AdminMediaCloud(MediaCloud):
                  'raw_1st_download': 1 if raw_1st_download else 0, 
                  'corenlp': 1 if corenlp else 0,    # this is slow - use storyCoreNlList instead
                  'sentences': 1 if sentences else 0,
-                 'text': 1 if text else 0
+                 'text': 1 if text else 0,
+                 'ap_stories_id': 1 if ap_stories_id else 0
                 }) 
 
     def sentenceList(self, solr_query, solr_filter='', start=0, rows=1000, sort=MediaCloud.SORT_PUBLISH_DATE_ASC):
