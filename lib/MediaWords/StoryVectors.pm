@@ -231,14 +231,13 @@ sub dedup_sentences
         return [];
     }
 
-    if ( !$db->dbh->{ AutoCommit } )
-    {
-        $db->query( "LOCK TABLE story_sentence_counts IN ROW EXCLUSIVE MODE" );
-    }
+    $db->begin if ( $db->dbh->{ AutoCommit } );
+
+    $db->query( "LOCK TABLE story_sentence_counts IN ROW EXCLUSIVE MODE" );
 
     my $deduped_sentences = get_deduped_sentences( $db, $story, $sentences );
 
-    $db->dbh->{ AutoCommit } || $db->commit;
+    $db->commit;
 
     if ( @{ $sentences } && !@{ $deduped_sentences } )
     {

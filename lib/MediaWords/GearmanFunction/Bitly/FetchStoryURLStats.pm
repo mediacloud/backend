@@ -44,7 +44,7 @@ Readonly my $BITLY_RATE_LIMIT_TRIES => 7;                    # try fetching 7 ti
 # What stats to fetch for each story
 Readonly my $BITLY_FETCH_CATEGORIES => 0;
 Readonly my $BITLY_FETCH_CLICKS     => 1;
-Readonly my $BITLY_FETCH_REFERRERS  => 1;
+Readonly my $BITLY_FETCH_REFERRERS  => 0;
 Readonly my $BITLY_FETCH_SHARES     => 0;
 Readonly my $stats_to_fetch         => MediaWords::Util::Bitly::StatsToFetch->new(
     $BITLY_FETCH_CATEGORIES,                                 # "/v3/link/category"
@@ -88,7 +88,7 @@ sub run($;$)
     {
         say STDERR "Fetching story stats for story $stories_id" . ( $retry ? " (retry $retry)" : '' ) . "...";
         eval {
-            $stats = MediaWords::Util::Bitly::fetch_story_stats( $db, $stories_id, $start_timestamp, $end_timestamp,
+            $stats = MediaWords::Util::Bitly::fetch_stats_for_story( $db, $stories_id, $start_timestamp, $end_timestamp,
                 $stats_to_fetch );
         };
         $error_message = $@;
@@ -121,7 +121,7 @@ sub run($;$)
     }
     unless ( ref( $stats ) eq ref( {} ) )
     {
-        # No point die()ing and continuing with other jobs (something wrong with fetch_story_stats())
+        # No point die()ing and continuing with other jobs (something wrong with fetch_stats_for_story())
         fatal_error( "Stats for story ID $stories_id is not a hashref." );
     }
     say STDERR "Done fetching story stats for story $stories_id.";

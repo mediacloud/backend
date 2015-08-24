@@ -67,6 +67,8 @@ sub _connect_to_postgres_or_die($)
 {
     my ( $self ) = @_;
 
+    return MediaWords::DB::connect_to_db( $self->_conf_database_label );
+
     if ( $self->_pid == $$ and $self->_db )
     {
         # Already connected on the very same process
@@ -131,10 +133,11 @@ sub store_content($$$$;$)
 {
     my ( $self, $_not_used_db, $object_id, $content_ref, $use_bzip2_instead_of_gzip ) = @_;
 
-    $self->_connect_to_postgres_or_die();
+    my $db = $self->_connect_to_postgres_or_die();
 
     my $table = $self->_conf_table;
-    my $db    = $self->_db;
+
+    # my $db    = $self->_db;
 
     # Encode + compress
     my $content_to_store;
@@ -198,7 +201,7 @@ sub fetch_content($$$;$$)
 {
     my ( $self, $_not_used_db, $object_id, $object_path, $use_bunzip2_instead_of_gunzip ) = @_;
 
-    $self->_connect_to_postgres_or_die();
+    my $db = $self->_connect_to_postgres_or_die();
 
     unless ( defined $object_id )
     {
@@ -206,7 +209,8 @@ sub fetch_content($$$;$$)
     }
 
     my $table = $self->_conf_table;
-    my $db    = $self->_db;
+
+    # my $db    = $self->_db;
 
     my $compressed_content = $db->query(
         <<"EOF",
@@ -262,10 +266,11 @@ sub remove_content($$$;$)
 {
     my ( $self, $_not_used_db, $object_id, $object_path ) = @_;
 
-    $self->_connect_to_postgres_or_die();
+    my $db = $self->_connect_to_postgres_or_die();
 
     my $table = $self->_conf_table;
-    my $db    = $self->_db;
+
+    # my $db    = $self->_db;
 
     $db->query(
         <<"EOF",
@@ -283,10 +288,11 @@ sub content_exists($$$;$)
 {
     my ( $self, $_not_used_db, $object_id, $object_path ) = @_;
 
-    $self->_connect_to_postgres_or_die();
+    my $db = $self->_connect_to_postgres_or_die();
 
     my $table = $self->_conf_table;
-    my $db    = $self->_db;
+
+    #my $db    = $self->_db;
 
     my $object_exists = $db->query(
         <<"EOF",

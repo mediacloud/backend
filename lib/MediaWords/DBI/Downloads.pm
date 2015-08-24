@@ -391,6 +391,22 @@ sub _download_stores_for_reading($)
         }
     }
 
+    # Add Amazon S3 fallback storage if needed
+    if ( $download_store eq 'postgresql' )
+    {
+        if ( lc( get_config->{ mediawords }->{ fallback_postgresql_downloads_to_s3 } eq 'yes' ) )
+        {
+            if ( defined $_download_store_lookup->{ amazon_s3 } )
+            {
+                push( @stores, $_download_store_lookup->{ amazon_s3 } );
+            }
+            else
+            {
+                warn "'fallback_postgresql_downloads_to_s3' is enabled, but Amazon S3 download storage is not set up.";
+            }
+        }
+    }
+
     return \@stores;
 }
 
