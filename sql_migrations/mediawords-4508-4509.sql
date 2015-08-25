@@ -1,23 +1,32 @@
 --
 -- This is a Media Cloud PostgreSQL schema difference file (a "diff") between schema
--- versions 4469 and 4470.
+-- versions 4508 and 4509.
 --
 -- If you are running Media Cloud with a database that was set up with a schema version
--- 4469, and you would like to upgrade both the Media Cloud and the
--- database to be at version 4470, import this SQL file:
+-- 4508, and you would like to upgrade both the Media Cloud and the
+-- database to be at version 4509, import this SQL file:
 --
---     psql mediacloud < mediawords-4469-4470.sql
+--     psql mediacloud < mediawords-4508-4509.sql
 --
 -- You might need to import some additional schema diff files to reach the desired version.
 --
 --
 -- 1 of 2. Import the output of 'apgdiff':
 --
-create index controversy_merged_stories_map_story on controversy_merged_stories_map ( target_stories_id );
-create index controversy_links_ref_story on controversy_links ( ref_stories_id );
-create index controversy_seed_urls_story on controversy_seed_urls ( stories_id );
-create index authors_stories_queue_story on authors_stories_queue( stories_id );
-create index story_subsets_processed_stories_map_processed_stories_id on story_subsets_processed_stories_map ( processed_stories_id );
+
+alter table controversies drop column if exists query_story_searches_id cascade;
+
+drop view if exists controversies_with_dates;
+
+create view controversies_with_dates as
+    select c.*,
+            to_char( cd.start_date, 'YYYY-MM-DD' ) start_date,
+            to_char( cd.end_date, 'YYYY-MM-DD' ) end_date
+        from
+            controversies c
+            join controversy_dates cd on ( c.controversies_id = cd.controversies_id )
+        where
+            cd.boundary;
 
 --
 -- 2 of 2. Reset the database version.
@@ -28,7 +37,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4470;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4509;
 
 BEGIN
 
