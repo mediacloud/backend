@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 34;
+use Test::More tests => 33;
 
 use Readonly;
 
@@ -34,7 +34,6 @@ sub test_postgresql_response_line_is_expected()
     is( MediaWords::Pg::Schema::postgresql_response_line_is_expected( 'DROP LANGUAGE' ),                      1 );
     is( MediaWords::Pg::Schema::postgresql_response_line_is_expected( 'DROP VIEW' ),                          1 );
     is( MediaWords::Pg::Schema::postgresql_response_line_is_expected( 'DROP TABLE' ),                         1 );
-    is( MediaWords::Pg::Schema::postgresql_response_line_is_expected( 'drop cascades to view "foo"' ),        1 );
     is( MediaWords::Pg::Schema::postgresql_response_line_is_expected( 'UPDATE 123' ),                         1 );
     is( MediaWords::Pg::Schema::postgresql_response_line_is_expected( 'DROP TRIGGER' ),                       1 );
     is( MediaWords::Pg::Schema::postgresql_response_line_is_expected( 'Timing is on.' ),                      1 );
