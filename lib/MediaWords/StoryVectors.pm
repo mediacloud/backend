@@ -225,9 +225,10 @@ sub dedup_sentences
         return [];
     }
 
+    # commit to release any existing locks, then start a new transaction to get a fresh lock on ssc
+    $db->commit unless ( $db->dbh->{ AutoCommit } );
     $db->begin if ( $db->dbh->{ AutoCommit } );
-
-    $db->query( "LOCK TABLE story_sentence_counts" );
+    $db->query( "LOCK TABLE story_sentence_counts IN ROW EXCLUSIVE MODE" );
 
     my $deduped_sentences = get_deduped_sentences( $db, $story, $sentences );
 
