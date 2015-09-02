@@ -398,7 +398,7 @@ sub _get_cache
         expires_in       => '1 day',
         expires_variance => '0.1',
         root_dir         => "${ mediacloud_data_dir }/cache/word_counts",
-        cache_size       => '1g'
+        depth            => 4
     );
 }
 
