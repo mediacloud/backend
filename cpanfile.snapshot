@@ -195,33 +195,34 @@ DISTRIBUTIONS
       Storable 0
       Test::Deep 0
       Test::More 0
-  CHI-0.58
-    pathname: H/HA/HAARG/CHI-0.58.tar.gz
+  CHI-0.60
+    pathname: J/JS/JSWARTZ/CHI-0.60.tar.gz
     provides:
-      CHI 0.58
-      CHI::CacheObject 0.58
-      CHI::Driver 0.58
-      CHI::Driver::Base::CacheContainer 0.58
-      CHI::Driver::CacheCache 0.58
-      CHI::Driver::FastMmap 0.58
-      CHI::Driver::File 0.58
-      CHI::Driver::Memory 0.58
-      CHI::Driver::Metacache 0.58
-      CHI::Driver::Null 0.58
-      CHI::Driver::RawMemory 0.58
-      CHI::Driver::Role::HasSubcaches 0.58
-      CHI::Driver::Role::IsSizeAware 0.58
-      CHI::Driver::Role::IsSubcache 0.58
-      CHI::Stats 0.58
+      CHI 0.60
+      CHI::CacheObject 0.60
+      CHI::Driver 0.60
+      CHI::Driver::Base::CacheContainer 0.60
+      CHI::Driver::CacheCache 0.60
+      CHI::Driver::FastMmap 0.60
+      CHI::Driver::File 0.60
+      CHI::Driver::Memory 0.60
+      CHI::Driver::Metacache 0.60
+      CHI::Driver::Null 0.60
+      CHI::Driver::RawMemory 0.60
+      CHI::Driver::Role::HasSubcaches 0.60
+      CHI::Driver::Role::IsSizeAware 0.60
+      CHI::Driver::Role::IsSubcache 0.60
+      CHI::Stats 0.60
     requirements:
       Carp::Assert 0.20
+      Class::Load 0
       Data::UUID 0
       Digest::JHash 0
       Digest::MD5 0
-      ExtUtils::MakeMaker 6.30
+      ExtUtils::MakeMaker 0
       File::Spec 0.80
       Hash::MoreUtils 0
-      JSON 0
+      JSON::MaybeXS 1.003003
       List::MoreUtils 0.13
       Log::Any 0.08
       Moo 1.003
@@ -4858,16 +4859,19 @@ DISTRIBUTIONS
       inc::MakeMaker undef
     requirements:
       ExtUtils::MakeMaker 6.30
-  JSON-MaybeXS-1.001000
-    pathname: M/MS/MSTROUT/JSON-MaybeXS-1.001000.tar.gz
+  JSON-MaybeXS-1.003005
+    pathname: E/ET/ETHER/JSON-MaybeXS-1.003005.tar.gz
     provides:
-      JSON::MaybeXS 1.001000
+      JSON::MaybeXS 1.003005
     requirements:
-      Cpanel::JSON::XS 2.3310
+      Carp 0
+      ExtUtils::CBuilder 0.27
       ExtUtils::MakeMaker 0
+      File::Spec 0
+      File::Temp 0
       JSON::PP 2.27202
-      Test::More 0.88
-      Test::Without::Module 0.17
+      Scalar::Util 0
+      perl 5.006
   JSON-XS-3.01
     pathname: M/ML/MLEHMANN/JSON-XS-3.01.tar.gz
     provides:
