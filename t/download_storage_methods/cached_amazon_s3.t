@@ -9,9 +9,9 @@ BEGIN
     use lib "$FindBin::Bin/";
 }
 
-use MediaWords::KeyValueStore::AmazonS3;
+use MediaWords::KeyValueStore::CachedAmazonS3;
 
 require 'amazon_s3_tests.inc.pl';
 
-my $s3_handler_class = 'MediaWords::KeyValueStore::AmazonS3';
+my $s3_handler_class = 'MediaWords::KeyValueStore::CachedAmazonS3';
 test_amazon_s3( $s3_handler_class );
