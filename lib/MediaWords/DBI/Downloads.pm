@@ -334,7 +334,7 @@ sub _download_stores_for_reading($)
             $download_store = 'postgresql';
         }
 
-        elsif ( $location eq 'amazon_s3' )
+        elsif ( ( $location eq 's3' ) || ( $location eq 'amazon_s3' ) )
         {
             $download_store = 'amazon_s3';
         }
