@@ -356,6 +356,9 @@ mediawords:
     ### doesn't exist in PostgreSQL storage, S3 will be tried instead)
     #fallback_postgresql_downloads_to_s3 : "no"
 
+    ### Enable local (CHI-based) Amazon S3 download caching?
+    #cache_s3_downloads : "no"
+
     #### Defaults to kmeans uncomment to use Cluto
     #clustering_engine: "cluto"
     #cluto_binary: "/usr/local/cluto/bin/vcluster"
