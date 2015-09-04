@@ -31,7 +31,7 @@ requires 'Catalyst::Restarter';
 requires 'Catalyst::Runtime', '5.90030';
 requires 'Catalyst::View::TT';
 requires 'CGI';
-requires 'CHI';
+requires 'CHI', '>= 0.60';
 requires 'Class::CSV';
 requires 'Class::Std';
 requires 'Color::Mix';
