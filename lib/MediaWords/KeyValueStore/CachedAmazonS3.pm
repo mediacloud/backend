@@ -116,9 +116,8 @@ sub _try_retrieving_object_from_cache($$)
     my $cached_content;
     eval {
         my $cached_gzipped_content = $self->_chi->get( $object_id );
-        if ( defined $cached_content )
+        if ( defined $cached_gzipped_content )
         {
-
             # Gunzip + decode
             eval { $cached_content = MediaWords::Util::Compress::gunzip_and_decode( $cached_gzipped_content ); };
             if ( $@ or ( !defined $cached_content ) )
