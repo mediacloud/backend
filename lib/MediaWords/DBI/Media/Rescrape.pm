@@ -47,6 +47,7 @@ END
 
     unless ( $media_has_active_syndicated_feeds )
     {
+        say STDERR "Enqueuing media " . $medium->{ media_id } . " for rescraping";
         enqueue_rescrape_media( $medium );
     }
 }
@@ -73,7 +74,7 @@ EOF
 
 # Move feed from "feeds_after_rescraping" to "feeds" table
 # Note: it doesn't create a transaction itself, so make sure to do that in a caller
-sub move_rescraped_feed_to_feeds_table($$)
+sub _move_rescraped_feed_to_feeds_table($$)
 {
     my ( $db, $feed_after_rescraping ) = @_;
 
@@ -223,7 +224,7 @@ EOF
           "moderated the very same feeds previously so disabling moderation";
         $need_to_moderate = 0;
 
-        # Delete them so that move_rescraped_feed_to_feeds_table() doesn't make those feeds active
+        # Delete them so that _move_rescraped_feed_to_feeds_table() doesn't make those feeds active
         $db->query(
             <<EOF,
             DELETE FROM feeds_after_rescraping
@@ -251,7 +252,7 @@ EOF
         )->hashes;
         foreach my $rescraped_feed ( @{ $feeds_after_rescraping } )
         {
-            move_rescraped_feed_to_feeds_table( $db, $rescraped_feed );
+            _move_rescraped_feed_to_feeds_table( $db, $rescraped_feed );
         }
 
         # Set moderated = 't' because maybe this is a new media item that
