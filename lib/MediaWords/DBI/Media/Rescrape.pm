@@ -227,27 +227,27 @@ EOF
       $media_id . "; moderated: " . $medium->{ moderated } . "; need to moderate: " . $need_to_moderate .
       "; rescraped_feeds feeds: " . dump_terse( $rescraped_feeds ) . "; live feeds: " . dump_terse( $live_feeds );
 
-    if ( $medium->{ moderated } and $need_to_moderate and dump_terse( $rescraped_feeds ) eq dump_terse( $live_feeds ) )
-    {
-        say STDERR "Media $media_id would need rescraping but we have " .
-          "moderated the very same feeds previously so disabling moderation";
-        $need_to_moderate = 0;
-
-        # Delete them so that _move_rescraped_feed_to_feeds_table() doesn't make those feeds active
-        $db->query(
-            <<EOF,
-            DELETE FROM feeds_after_rescraping
-            WHERE media_id = ?
-EOF
-            $media_id
-        );
-    }
-
     if ( $need_to_moderate )
     {
-        # (Re)set moderated = 'f' so that the media shows up in the moderation page
-        say STDERR "Unmoderating media ID $media_id because rescraped feeds require moderation";
-        make_media_unmoderated( $db, $media_id );
+        if ( $medium->{ moderated } and dump_terse( $rescraped_feeds ) eq dump_terse( $live_feeds ) )
+        {
+            say STDERR "Media $media_id would need rescraping but we have " .
+              "moderated the very same feeds previously so disabling moderation";
+
+            $db->query(
+                <<EOF,
+                DELETE FROM feeds_after_rescraping
+                WHERE media_id = ?
+EOF
+                $media_id
+            );
+        }
+        else
+        {
+            # (Re)set moderated = 'f' so that the media shows up in the moderation page
+            say STDERR "Unmoderating media ID $media_id because rescraped feeds require moderation";
+            make_media_unmoderated( $db, $media_id );
+        }
     }
     else
     {
