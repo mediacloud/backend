@@ -16,12 +16,6 @@ use CHI;
 use Carp;
 use Readonly;
 
-Readonly my $avg_downloads_per_day => 325200;
-Readonly my $avg_download_size     => 16 * 1024;
-
-Readonly my $CACHED_AMAZON_S3_EXPIRES_IN_DAYS => 3;
-Readonly my $CACHED_AMAZON_S3_MAX_SIZE => $avg_downloads_per_day * $avg_download_size * $CACHED_AMAZON_S3_EXPIRES_IN_DAYS;
-
 # Configuration
 has '_conf_cache_root_dir' => ( is => 'rw' );
 
@@ -67,20 +61,21 @@ sub _initialize_chi_or_die($)
 
     $self->_chi(
         CHI->new(
-            driver     => 'File',
-            root_dir   => $self->_conf_cache_root_dir,
-            expires_in => "$CACHED_AMAZON_S3_EXPIRES_IN_DAYS days",
-            cache_size => $CACHED_AMAZON_S3_MAX_SIZE,
-            max_size   => $CACHED_AMAZON_S3_MAX_SIZE,
+            driver   => 'File',
+            root_dir => $self->_conf_cache_root_dir,
+
+            # No "expires_in", "cache_size" or "max_size" here because CHI's
+            # "File" driver sometimes throws assertions when trying to
+            # invalidate old objects. Instead, use:
+            #
+            #     find data/s3_downloads/ -type f -mtime +3 -exec rm {} \;
         )
     );
 
     # Save PID
     $self->_pid( $$ );
 
-    my $cache_size_in_gb = sprintf( '%.2f', $CACHED_AMAZON_S3_MAX_SIZE / 1024 / 1024 / 1024 );
-
-    say STDERR "CachedAmazonS3: Initialized cached Amazon S3 storage ($cache_size_in_gb GB) for PID $$.";
+    say STDERR "CachedAmazonS3: Initialized cached Amazon S3 storage for PID $$.";
 }
 
 sub _try_storing_object_in_cache($$$)
