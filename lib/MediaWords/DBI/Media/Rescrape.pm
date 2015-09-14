@@ -33,24 +33,21 @@ sub enqueue_rescrape_media($)
 # that is lacking feeds
 sub add_feeds_for_feedless_media
 {
-    my ( $db, $media ) = @_;
+    my ( $db, $medium ) = @_;
 
-    for my $medium ( @{ $media } )
-    {
-        my $media_has_active_syndicated_feeds = $db->query(
-            <<END,
-            SELECT 1
-            FROM media
-            WHERE media_id = ?
-              AND media_has_active_syndicated_feeds(media_id) = 't'
+    my $media_has_active_syndicated_feeds = $db->query(
+        <<END,
+        SELECT 1
+        FROM media
+        WHERE media_id = ?
+          AND media_has_active_syndicated_feeds(media_id) = 't'
 END
-            $medium->{ media_id }
-        )->hash;
+        $medium->{ media_id }
+    )->hash;
 
-        unless ( $media_has_active_syndicated_feeds )
-        {
-            enqueue_rescrape_media( $medium );
-        }
+    unless ( $media_has_active_syndicated_feeds )
+    {
+        enqueue_rescrape_media( $medium );
     }
 }
 
@@ -74,86 +71,77 @@ EOF
     return 1;
 }
 
-# Move feeds from "feeds_after_rescraping" to "feeds" table
+# Move feed from "feeds_after_rescraping" to "feeds" table
 # Note: it doesn't create a transaction itself, so make sure to do that in a caller
-sub move_feeds_after_rescraping_to_feeds($$)
+sub move_rescraped_feed_to_feeds_table($$)
 {
-    my ( $db, $feeds_after_rescraping ) = @_;
+    my ( $db, $feed_after_rescraping ) = @_;
 
-    unless ( ref $feeds_after_rescraping eq ref [] )
+    unless ( ref $feed_after_rescraping eq ref {} )
     {
-        die "'feeds_after_rescraping' is not an arrayref.";
+        die "Feed is not a hashref.";
+    }
+    unless ($feed_after_rescraping->{ feeds_after_rescraping_id }
+        and $feed_after_rescraping->{ media_id } )
+    {
+        die "Feed hashref doesn't have required keys.";
     }
 
-    foreach my $feed_after_rescraping ( @{ $feeds_after_rescraping } )
+    my $feed = {
+        media_id    => $feed_after_rescraping->{ media_id },
+        name        => $feed_after_rescraping->{ name },
+        url         => $feed_after_rescraping->{ url },
+        feed_type   => $feed_after_rescraping->{ feed_type },
+        feed_status => 'active',
+    };
+
+    my $existing_feed = $db->query(
+        <<EOF,
+        SELECT *
+        FROM feeds
+        WHERE url = ?
+          AND media_id = ?
+EOF
+        $feed_after_rescraping->{ url },
+        $feed_after_rescraping->{ media_id }
+    )->hash;
+    if ( $existing_feed )
     {
+        $db->update_by_id( 'feeds', $existing_feed->{ feeds_id }, $feed );
+    }
+    else
+    {
+        $db->create( 'feeds', $feed );
+    }
 
-        unless ( ref $feed_after_rescraping eq ref {} )
-        {
-            die "Feed is not a hashref.";
-        }
-        unless ($feed_after_rescraping->{ feeds_after_rescraping_id }
-            and $feed_after_rescraping->{ media_id } )
-        {
-            die "Feed hashref doesn't have required keys.";
-        }
-
-        my $feed = {
-            media_id    => $feed_after_rescraping->{ media_id },
-            name        => $feed_after_rescraping->{ name },
-            url         => $feed_after_rescraping->{ url },
-            feed_type   => $feed_after_rescraping->{ feed_type },
-            feed_status => 'active',
-        };
-
-        my $existing_feed = $db->query(
+    if ( $feed->{ feed_type } eq 'syndicated' )
+    {
+        # If media is getting rescraped and syndicated feeds were just
+        # found, disable the "web_page" feeds that we might have added
+        # previously
+        my $active_webpage_feeds = $db->query(
             <<EOF,
             SELECT *
             FROM feeds
-            WHERE url = ?
-              AND media_id = ?
+            WHERE media_id = ?
+              AND feed_type = 'web_page'
+              AND feed_status = 'active'
 EOF
-            $feed_after_rescraping->{ url },
-            $feed_after_rescraping->{ media_id }
-        )->hash;
-        if ( $existing_feed )
+            $feed->{ media_id }
+        )->hashes;
+        foreach my $active_webpage_feed ( @{ $active_webpage_feeds } )
         {
-            $db->update_by_id( 'feeds', $existing_feed->{ feeds_id }, $feed );
+            MediaWords::DBI::Feeds::disable_feed( $db, $active_webpage_feed->{ feeds_id } );
         }
-        else
-        {
-            $db->create( 'feeds', $feed );
-        }
-
-        if ( $feed->{ feed_type } eq 'syndicated' )
-        {
-            # If media is getting rescraped and syndicated feeds were just
-            # found, disable the "web_page" feeds that we might have added
-            # previously
-            my $active_webpage_feeds = $db->query(
-                <<EOF,
-                SELECT *
-                FROM feeds
-                WHERE media_id = ?
-                  AND feed_type = 'web_page'
-                  AND feed_status = 'active'
-EOF
-                $feed->{ media_id }
-            )->hashes;
-            foreach my $active_webpage_feed ( @{ $active_webpage_feeds } )
-            {
-                MediaWords::DBI::Feeds::disable_feed( $db, $active_webpage_feed->{ feeds_id } );
-            }
-        }
-
-        $db->query(
-            <<EOF,
-            DELETE FROM feeds_after_rescraping
-            WHERE feeds_after_rescraping_id = ?
-EOF
-            $feed_after_rescraping->{ feeds_after_rescraping_id }
-        );
     }
+
+    $db->query(
+        <<EOF,
+        DELETE FROM feeds_after_rescraping
+        WHERE feeds_after_rescraping_id = ?
+EOF
+        $feed_after_rescraping->{ feeds_after_rescraping_id }
+    );
 }
 
 # Search and add new feeds for unmoderated media (media sources that have not
@@ -235,7 +223,7 @@ EOF
           "moderated the very same feeds previously so disabling moderation";
         $need_to_moderate = 0;
 
-        # Delete them so that move_feeds_after_rescraping_to_feeds() doesn't make those feeds active
+        # Delete them so that move_rescraped_feed_to_feeds_table() doesn't make those feeds active
         $db->query(
             <<EOF,
             DELETE FROM feeds_after_rescraping
@@ -261,7 +249,10 @@ EOF
 EOF
             $media_id
         )->hashes;
-        move_feeds_after_rescraping_to_feeds( $db, $feeds_after_rescraping );
+        foreach my $rescraped_feed ( @{ $feeds_after_rescraping } )
+        {
+            move_rescraped_feed_to_feeds_table( $db, $rescraped_feed );
+        }
 
         # Set moderated = 't' because maybe this is a new media item that
         # didn't have any feeds previously
