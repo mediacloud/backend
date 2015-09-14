@@ -19,17 +19,17 @@ BEGIN
 
 sub test_is_http_url()
 {
-    is(
+    like(
         MediaWords::Util::Web::get_original_url_from_momento_archive_url(
             'https://web.archive.org/web/20150204024130/http://www.john-daly.com/hockey/hockey.htm'
         ),
-        'http://www.john-daly.com/hockey/hockey.htm',
+        qr|^http://(www\.)?john\-daly\.com/hockey/hockey\.htm$|,
         'archive.org test '
     );
 
-    is(
+    like(
         MediaWords::Util::Web::get_original_url_from_momento_archive_url( 'https://archive.is/1Zcql' ),
-        'https://www.whitehouse.gov/my2k',
+        qr|^https?://www\.whitehouse\.gov/my2k/?$|,
         'archive.is test'
     );
 }
