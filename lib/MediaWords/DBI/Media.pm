@@ -83,7 +83,11 @@ sub find_or_create_media_from_urls
 
     _add_media_tags_from_strings( $dbis, $url_media, $tags_string );
 
-    MediaWords::DBI::Media::Rescrape::add_feeds_for_feedless_media( $dbis, [ map { $_->{ medium } } @{ $url_media } ] );
+    foreach my $url_medium ( @{ $url_media } )
+    {
+        my $medium = $url_medium->{ medium };
+        MediaWords::DBI::Media::Rescrape::add_feeds_for_feedless_medium( $dbis, $medium );
+    }
 
     return [ grep { $_ } map { $_->{ message } } @{ $url_media } ];
 }
