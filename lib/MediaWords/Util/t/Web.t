@@ -29,7 +29,7 @@ sub test_is_http_url()
 
     is(
         MediaWords::Util::Web::get_original_url_from_momento_archive_url( 'https://archive.is/1Zcql' ),
-        'http://www.whitehouse.gov/my2k',
+        'https://www.whitehouse.gov/my2k',
         'archive.is test'
     );
 }

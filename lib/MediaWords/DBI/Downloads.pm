@@ -5,6 +5,7 @@ use MediaWords::CommonLibs;
 # various helper functions for downloads
 
 use strict;
+use warnings;
 
 use Carp;
 use Scalar::Defer;
@@ -142,6 +143,7 @@ my $_download_store_lookup = lazy
     # lazy load these modules because some of them are very expensive to load
     # and are tangentially loaded by indirect module dependency
     require MediaWords::KeyValueStore::AmazonS3;
+    require MediaWords::KeyValueStore::CachedAmazonS3;
     require MediaWords::KeyValueStore::DatabaseInline;
     require MediaWords::KeyValueStore::GridFS;
     require MediaWords::KeyValueStore::PostgreSQL;
@@ -212,12 +214,25 @@ my $_download_store_lookup = lazy
     # Initialize key value stores for downloads
     if ( get_config->{ amazon_s3 } )
     {
-        $download_store_lookup->{ amazon_s3 } = MediaWords::KeyValueStore::AmazonS3->new(
-            {
-                bucket_name    => get_config->{ amazon_s3 }->{ downloads }->{ bucket_name },
-                directory_name => get_config->{ amazon_s3 }->{ downloads }->{ directory_name }
-            }
-        );
+        if ( get_config->{ mediawords }->{ cache_s3_downloads } eq 'yes' )
+        {
+            $download_store_lookup->{ amazon_s3 } = MediaWords::KeyValueStore::CachedAmazonS3->new(
+                {
+                    bucket_name    => get_config->{ amazon_s3 }->{ downloads }->{ bucket_name },
+                    directory_name => get_config->{ amazon_s3 }->{ downloads }->{ directory_name },
+                    cache_root_dir => get_config->{ mediawords }->{ data_dir } . '/cache/s3_downloads',
+                }
+            );
+        }
+        else
+        {
+            $download_store_lookup->{ amazon_s3 } = MediaWords::KeyValueStore::AmazonS3->new(
+                {
+                    bucket_name    => get_config->{ amazon_s3 }->{ downloads }->{ bucket_name },
+                    directory_name => get_config->{ amazon_s3 }->{ downloads }->{ directory_name }
+                }
+            );
+        }
     }
 
     $download_store_lookup->{ databaseinline } = MediaWords::KeyValueStore::DatabaseInline->new(
@@ -334,7 +349,7 @@ sub _download_stores_for_reading($)
             $download_store = 'postgresql';
         }
 
-        elsif ( $location eq 'amazon_s3' )
+        elsif ( ( $location eq 's3' ) || ( $location eq 'amazon_s3' ) )
         {
             $download_store = 'amazon_s3';
         }

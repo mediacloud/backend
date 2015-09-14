@@ -140,12 +140,6 @@ sub _get_unique_sentences
 #
 # NOTE: you must wrap a 'lock story_sentence_counts in row exclusive mode' around all calls to this within the
 # same transaction to avoid deadlocks
-#
-# NOTE ALSO: There is a known concurrency issue if this function is called by multiple threads see #1599
-# However, we have determined that the issue is rare enough in practice that it is not of particular concern.
-# So we have decided to simply leave things in place as they are rather than risk the performance and code complexity issues
-# of ensuring atomic updates.
-#
 sub get_deduped_sentences
 {
     my ( $db, $story, $sentences ) = @_;
@@ -231,8 +225,9 @@ sub dedup_sentences
         return [];
     }
 
+    # commit to release any existing locks, then start a new transaction to get a fresh lock on ssc
+    $db->commit unless ( $db->dbh->{ AutoCommit } );
     $db->begin if ( $db->dbh->{ AutoCommit } );
-
     $db->query( "LOCK TABLE story_sentence_counts IN ROW EXCLUSIVE MODE" );
 
     my $deduped_sentences = get_deduped_sentences( $db, $story, $sentences );

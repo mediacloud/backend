@@ -50,7 +50,7 @@ my $_ignore_link_pattern =
   '(\/share.*http)|(digg.com\/submit)|(facebook.com.*mediacontentsharebutton)|' .
   '(feeds.wordpress.com\/.*\/go)|(sharetodiaspora.github.io\/)|(iconosquare.com)|' .
   '(unz.com)|(answers.com)|(downwithtyranny.com\/search)|(scoop\.?it)|(sco\.lt)|' .
-  '((raymondpronk|pronkpops)\.wordpress\.com\/(tag|category))';
+  '(pronk.*\.wordpress\.com\/(tag|category))|(wn\.com)';
 
 # cache of media by media id
 my $_media_cache = {};
@@ -2017,6 +2017,57 @@ SQL
     return $story;
 }
 
+# given a story in archive_is, find the destination domain and merge into the associated medium
+sub merge_archive_is_story
+{
+    my ( $db, $controversy, $story ) = @_;
+
+    my $original_url = MediaWords::Util::Web::get_original_url_from_momento_archive_url( $story->{ url } );
+
+    if ( !$original_url )
+    {
+        say STDERR "could not get original URL for $story->{ url } SKIPPING";
+        return;
+    }
+
+    say STDERR "Archive: $story->{ url }, Original $original_url";
+    my $link_medium = get_spider_medium( $db, $original_url );
+
+    my $new_story = $db->query(
+        <<END, $link_medium->{ media_id }, $original_url, $story->{ guid }, $story->{ title }, $story->{ publish_date } )->hash;
+SELECT s.* FROM stories s
+    WHERE s.media_id = \$1 and
+        ( ( \$2 in ( s.url, s.guid ) ) or
+          ( \$3 in ( s.url, s.guid ) ) or
+          ( s.title = \$4 and date_trunc( 'day', s.publish_date ) = \$5 ) )
+END
+
+    $new_story ||= clone_story( $db, $controversy, $story, $link_medium );
+
+    merge_dup_story( $db, $controversy, $story, $new_story );
+}
+
+# merge all stories belonging to the 'archive.is' medium into the linked domain media
+sub merge_archive_is_stories
+{
+    my ( $db, $controversy ) = @_;
+
+    my $archive_is_stories = $db->query( <<END, $controversy->{ controversies_id } )->hashes;
+SELECT distinct s.*
+    FROM cd.live_stories s
+        join controversy_stories cs on ( s.stories_id = cs.stories_id and s.controversies_id = cs.controversies_id )
+        join media m on ( s.media_id = m.media_id )
+    WHERE
+        cs.controversies_id = ? and
+        m.name = 'is';
+
+END
+
+    print STDERR "merging " . scalar( @{ $archive_is_stories } ) . " archive.is stories\n" if ( @{ $archive_is_stories } );
+
+    map { merge_archive_is_story( $db, $controversy, $_ ) } @{ $archive_is_stories };
+}
+
 # given a story in a dup_media_id medium, look for or create a story in the medium pointed to by dup_media_id
 sub merge_dup_media_story
 {
@@ -2520,6 +2571,9 @@ sub mine_controversy ($$;$)
         #     say STDERR "adding outgoing foreign rss links ...";
         #     add_outgoing_foreign_rss_links( $db, $controversy );
         # }
+
+        say STDERR "merging archive_is stories ...";
+        merge_archive_is_stories( $db, $controversy );
 
         # merge dup media and stories again to catch dups from spidering
         say STDERR "merging media_dup stories ...";
