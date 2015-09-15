@@ -53,6 +53,19 @@
         });
     }
 
+    function enable_all_feeds()
+    {
+        $( "option.feed_action" ).each(function( index ) {
+            var option_action = $( this );
+
+            if ( option_action.val() === "disable" || option_action.val() === "skip_temp" || option_action.val() === "skip_perm" ) {
+                option_action.removeAttr( "selected" );
+            } else {
+                option_action.attr( "selected", "selected" );
+            }
+        });
+    }
+
     // Confirm "Disable all feeds" click
     jQuery(function( ) {
         $( "a#link_disable_all_feeds" ).click(function( ) {
@@ -61,6 +74,17 @@
 
             if (confirm(message)) {
                 disable_all_feeds();
+            }
+        });
+    });
+
+    // Confirm "Enable all feeds" click
+    jQuery(function( ) {
+        $( "a#link_enable_all_feeds" ).click(function( ) {
+            var message = "Are you sure you want to enable all of the feeds from this media source?";
+
+            if (confirm(message)) {
+                enable_all_feeds();
             }
         });
     });
@@ -204,6 +228,7 @@
 
     <p>
         <a href="javascript:void(0)" id="link_disable_all_feeds">disable all feeds</a> |
+        <a href="javascript:void(0)" id="link_enable_all_feeds">enable all feeds</a> |
         [% IF c.acl_user_can_visit('/admin/feeds/create') %]
             <a href="[% c.uri_for('/admin/feeds/create/') _ medium.media_id | url %]?media_tags_id=[% media_tags_id %]">add feed</a> |
         [% END -%]
@@ -212,6 +237,7 @@
         [% END -%]
 
         <a class="boxcommand" style="font-weight: bold" href="javascript:void(0);" onclick="$('form#media_feeds_moderate').submit()">save and go to next media</a>
+        <a class="boxcommand" href="[% c.uri_for('/admin/media/moderate/') %]?media_tags_id=[% media_tags_id %]&amp;skip_until_media_id=[% medium.media_id | url %]">skip for now</a>
     </p>
 
     <table id="media_feeds" summary="Media's feeds and their moderation status" class="tablesorter">
@@ -285,7 +311,7 @@
                 <td>
                     [% IF feed.diff == 'stale' %]
                         <abbr title="[% IF feed.last_new_story_time %]last new story fetched on [% feed.last_new_story_time %][% ELSE %]no fetched stories[% END %]">
-                            [% feed.diff %]
+                            [% feed.diff %] ([% IF feed.last_new_story_time %]stories too old[% ELSE %]no stories[% END %])
                         </abbr>
                     [% ELSE %]
                         [% feed.diff %]
@@ -384,6 +410,10 @@
         </p>
 
         <p>The system is still looking for feeds for [% num_media_pending_feeds %] media sources (among all tags) which will appear in the moderation queue when feed detection is done.</p>
+
+        [% IF skip_until_media_id %]
+            Please note that you have temporarily skipped moderating some media sources, so you might want to <a href="[% c.uri_for('/admin/media/moderate/') %]?media_tags_id=[% media_tags_id %]">take another look at those</a>.
+        [% END %]
 
     </fieldset>
 

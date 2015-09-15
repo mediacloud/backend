@@ -86,7 +86,7 @@ sub find_or_create_media_from_urls
     foreach my $url_medium ( @{ $url_media } )
     {
         my $medium = $url_medium->{ medium };
-        MediaWords::DBI::Media::Rescrape::add_feeds_for_feedless_medium( $dbis, $medium );
+        MediaWords::DBI::Media::Rescrape::add_feeds_for_feedless_media( $dbis, $medium );
     }
 
     return [ grep { $_ } map { $_->{ message } } @{ $url_media } ];
