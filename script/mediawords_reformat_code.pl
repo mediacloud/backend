@@ -41,7 +41,7 @@ sub _test_syntax($)
 
         # Compile and check for errors
         my $PERL        = $^X || 'perl';
-        my $eval        = `$PERL $inc -c -w \"$file\" 2>&1`;
+        my $eval        = `$PERL $inc -MO=Lint -c -w \"$file\" 2>&1`;
         my $quoted_file = quotemeta( $file );
         my $ok          = $eval =~ qr!$quoted_file syntax OK!ms;
 
