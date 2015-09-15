@@ -58,7 +58,7 @@ EOF
         SELECT media_id
         FROM media_rescraping
         WHERE disable = 'f'
-          AND (last_rescrape_time IS NULL OR last_rescrape_time < NOW() - INTERVAL '3 months')
+          AND (last_rescrape_time IS NULL OR last_rescrape_time < NOW() - INTERVAL '1 year - 1 day')
           $tag_condition
         ORDER BY media_id
 EOF
