@@ -39,13 +39,39 @@ sub _test_syntax($)
             $inc = "-I $inc";
         }
 
+        # http://perldoc.perl.org/B/Lint.html#OPTIONS-AND-LINT-CHECKS
+        my @lint_options = (
+            'magic-diamond',
+            'context',
+
+            # 'implicit-read',
+            # 'implicit-write',
+
+            'bare-subs',
+
+            # 'dollar-underscore',
+
+            'private-names',
+            'undefined-subs',
+            'regexp-variables',
+        );
+        my $str_lint_options = join( ',', @lint_options );
+
         # Compile and check for errors
         my $PERL        = $^X || 'perl';
-        my $eval        = `$PERL $inc -c \"$file\" 2>&1`;
+        my $eval        = `$PERL $inc -MO=Lint,$str_lint_options -c -w \"$file\" 2>&1`;
         my $quoted_file = quotemeta( $file );
         my $ok          = $eval =~ qr!$quoted_file syntax OK!ms;
 
-        unless ( $ok )
+        if ( $ok )
+        {
+            my $number_of_lines = () = $eval =~ /\n/g;
+            if ( $number_of_lines > 1 )
+            {
+                print STDERR "$eval\n";
+            }
+        }
+        else
         {
             die "Syntax check for file '$file' failed: $eval";
         }
