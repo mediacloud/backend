@@ -61,10 +61,17 @@ sub _test_syntax($)
         my $PERL        = $^X || 'perl';
         my $eval        = `$PERL $inc -MO=Lint,$str_lint_options -c -w \"$file\" 2>&1`;
         my $quoted_file = quotemeta( $file );
-        print STDERR "$eval\n";
-        my $ok = $eval =~ qr!$quoted_file syntax OK!ms;
+        my $ok          = $eval =~ qr!$quoted_file syntax OK!ms;
 
-        unless ( $ok )
+        if ( $ok )
+        {
+            my $number_of_lines = () = $eval =~ /\n/g;
+            if ( $number_of_lines > 1 )
+            {
+                print STDERR "$eval\n";
+            }
+        }
+        else
         {
             die "Syntax check for file '$file' failed: $eval";
         }
