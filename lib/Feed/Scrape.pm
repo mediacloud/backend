@@ -45,9 +45,19 @@ use constant MAX_RECURSE_LEVELS => 1;
 
 # list of url patterns to ignore
 use constant URL_IGNORE_PATTERNS => (
-    'add.my.yahoo.com', 'login.',   'fusion.google.com/add', 'gif',      'jpg',       'png',
-    'xml:lang',         'feedback', 'error',                 'digg.com', 'bloglines', 'doubleclick',
-    'classified'
+    'add.my.yahoo.com',         #
+    'login.',                   #
+    'fusion.google.com/add',    #
+    'gif',                      #
+    'jpg',                      #
+    'png',                      #
+    'xml:lang',                 #
+    'feedback',                 #
+    'error',                    #
+    'digg.com',                 #
+    'bloglines',                #
+    'doubleclick',              #
+    'classified',               #
 );
 
 #
