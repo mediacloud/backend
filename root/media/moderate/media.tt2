@@ -53,6 +53,19 @@
         });
     }
 
+    function enable_all_feeds()
+    {
+        $( "option.feed_action" ).each(function( index ) {
+            var option_action = $( this );
+
+            if ( option_action.val() === "disable" || option_action.val() === "skip_temp" || option_action.val() === "skip_perm" ) {
+                option_action.removeAttr( "selected" );
+            } else {
+                option_action.attr( "selected", "selected" );
+            }
+        });
+    }
+
     // Confirm "Disable all feeds" click
     jQuery(function( ) {
         $( "a#link_disable_all_feeds" ).click(function( ) {
@@ -61,6 +74,17 @@
 
             if (confirm(message)) {
                 disable_all_feeds();
+            }
+        });
+    });
+
+    // Confirm "Enable all feeds" click
+    jQuery(function( ) {
+        $( "a#link_enable_all_feeds" ).click(function( ) {
+            var message = "Are you sure you want to enable all of the feeds from this media source?";
+
+            if (confirm(message)) {
+                enable_all_feeds();
             }
         });
     });
@@ -204,6 +228,7 @@
 
     <p>
         <a href="javascript:void(0)" id="link_disable_all_feeds">disable all feeds</a> |
+        <a href="javascript:void(0)" id="link_enable_all_feeds">enable all feeds</a> |
         [% IF c.acl_user_can_visit('/admin/feeds/create') %]
             <a href="[% c.uri_for('/admin/feeds/create/') _ medium.media_id | url %]?media_tags_id=[% media_tags_id %]">add feed</a> |
         [% END -%]
