@@ -359,7 +359,7 @@ sub add_feed_by_media_name_url_type($$)
 {
     my ( $db, $feed ) = @_;
 
-    unless ( $feed->{ media_id } and $feed->{ name } and $feed->{ url } and $feed->{ feed_type } )
+    unless ( $feed->{ media_id } and defined $feed->{ name } and $feed->{ url } and $feed->{ feed_type } )
     {
         die "Feed hashref is not valid.";
     }
@@ -480,7 +480,7 @@ EOF
     {
         my $feed = shift;
 
-        unless ( $feed->{ media_id } and $feed->{ name } and $feed->{ url } and $feed->{ feed_type } )
+        unless ( $feed->{ media_id } and defined $feed->{ name } and $feed->{ url } and $feed->{ feed_type } )
         {
             die "Feed hashref is not valid.";
         }
