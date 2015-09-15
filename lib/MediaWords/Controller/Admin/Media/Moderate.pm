@@ -95,7 +95,9 @@ sub media : Local
 
     my $db = $c->dbis;
 
-    my $media_tags_id = $c->request->param( 'media_tags_id' ) + 0 || 0;
+    my $media_tags_id       = $c->request->param( 'media_tags_id' )       // 0;
+
+    $media_tags_id       = $media_tags_id + 0;
 
     # Save the moderation
     if ( $c->request->param( 'moderate' ) )
