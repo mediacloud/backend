@@ -45,19 +45,19 @@ use constant MAX_RECURSE_LEVELS => 1;
 
 # list of url patterns to ignore
 use constant URL_IGNORE_PATTERNS => (
-    'add.my.yahoo.com',         #
-    'login.',                   #
-    'fusion.google.com/add',    #
-    'gif',                      #
-    'jpg',                      #
-    'png',                      #
-    'xml:lang',                 #
-    'feedback',                 #
-    'error',                    #
-    'digg.com',                 #
-    'bloglines',                #
-    'doubleclick',              #
-    'classified',               #
+    qr|add\.my\.yahoo\.com|i,        #
+    qr|login\.|i,                    #
+    qr|fusion\.google\.com/add|i,    #
+    qr|gif|i,                        #
+    qr|jpg|i,                        #
+    qr|png|i,                        #
+    qr|xml:lang|i,                   #
+    qr|feedback|i,                   #
+    qr|error|i,                      #
+    qr|digg\.com|i,                  #
+    qr|bloglines|i,                  #
+    qr|doubleclick|i,                #
+    qr|classified|i,                 #
 );
 
 #
@@ -137,7 +137,7 @@ sub _is_valid_feed_url
         return 0;
     }
 
-    if ( grep { $url =~ /$_/i } URL_IGNORE_PATTERNS )
+    if ( grep { $url =~ $_ } URL_IGNORE_PATTERNS )
     {
         return 0;
     }
