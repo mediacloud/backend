@@ -310,7 +310,7 @@
                 <td>
                     [% IF feed.diff == 'stale' %]
                         <abbr title="[% IF feed.last_new_story_time %]last new story fetched on [% feed.last_new_story_time %][% ELSE %]no fetched stories[% END %]">
-                            [% feed.diff %]
+                            [% feed.diff %] ([% IF feed.last_new_story_time %]stories too old[% ELSE %]no stories[% END %])
                         </abbr>
                     [% ELSE %]
                         [% feed.diff %]
