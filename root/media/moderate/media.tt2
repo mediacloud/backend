@@ -237,6 +237,7 @@
         [% END -%]
 
         <a class="boxcommand" style="font-weight: bold" href="javascript:void(0);" onclick="$('form#media_feeds_moderate').submit()">save and go to next media</a>
+        <a class="boxcommand" href="[% c.uri_for('/admin/media/moderate/') %]?media_tags_id=[% media_tags_id %]&amp;skip_until_media_id=[% medium.media_id | url %]">skip for now</a>
     </p>
 
     <table id="media_feeds" summary="Media's feeds and their moderation status" class="tablesorter">
@@ -409,6 +410,10 @@
         </p>
 
         <p>The system is still looking for feeds for [% num_media_pending_feeds %] media sources (among all tags) which will appear in the moderation queue when feed detection is done.</p>
+
+        [% IF skip_until_media_id %]
+            Please note that you have temporarily skipped moderating some media sources, so you might want to <a href="[% c.uri_for('/admin/media/moderate/') %]?media_tags_id=[% media_tags_id %]">take another look at those</a>.
+        [% END %]
 
     </fieldset>
 

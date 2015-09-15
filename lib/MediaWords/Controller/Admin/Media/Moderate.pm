@@ -96,8 +96,10 @@ sub media : Local
     my $db = $c->dbis;
 
     my $media_tags_id       = $c->request->param( 'media_tags_id' )       // 0;
+    my $skip_until_media_id = $c->request->param( 'skip_until_media_id' ) // 0;
 
     $media_tags_id       = $media_tags_id + 0;
+    $skip_until_media_id = $skip_until_media_id + 0;
 
     # Save the moderation
     if ( $c->request->param( 'moderate' ) )
@@ -211,6 +213,13 @@ EOF
         $media_set_clauses = "media_id IN ( SELECT media_id FROM media_tags_map WHERE tags_id = $media_tags_id )";
     }
 
+    # Skip some media if asked to do so
+    my $skip_until_media_id_clauses = '1 = 1';    # default
+    if ( $skip_until_media_id )
+    {
+        $skip_until_media_id_clauses = "media_id > $skip_until_media_id";
+    }
+
     my $media = $db->query(
         <<"EOF"
             SELECT *
@@ -222,6 +231,7 @@ EOF
                 WHERE feeds_after_rescraping.media_id = media.media_id
               )
               AND $media_set_clauses
+              AND $skip_until_media_id_clauses
             ORDER BY media_id
 EOF
     )->hashes;
@@ -267,6 +277,10 @@ EOF
     $c->stash->{ feeds }       = $feeds;
     $c->stash->{ queue_size }  = scalar( @{ $media } );
     $c->stash->{ merge_media } = $merge_media;
+    if ( $skip_until_media_id )
+    {
+        $c->stash->{ skip_until_media_id } = $skip_until_media_id;
+    }
     if ( $media_tags_id )
     {
         $c->stash->{ media_tags_id } = $media_tags_id;
