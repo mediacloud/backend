@@ -58,8 +58,34 @@ EOF
         SELECT media_id
         FROM media_rescraping
         WHERE disable = 'f'
-          AND (last_rescrape_time IS NULL OR last_rescrape_time < NOW() - INTERVAL '1 year - 1 day')
+          AND (last_rescrape_time IS NULL OR last_rescrape_time < NOW() - INTERVAL '1 year - 2 days')
           $tag_condition
+
+          -- skip spidered media
+        AND NOT (
+
+            -- does not have "spidered:spidered" tag
+            EXISTS (
+                SELECT 1
+                FROM tags AS tags
+                    INNER JOIN media_tags_map
+                        ON tags.tags_id = media_tags_map.tags_id
+                    INNER JOIN tag_sets
+                        ON tags.tag_sets_id = tag_sets.tag_sets_id
+                WHERE media_tags_map.media_id = media_rescraping.media_id
+                  AND tag_sets.name = 'spidered'
+                  AND tags.tag = 'spidered'
+            )
+
+            -- does not have any active feeds
+            AND NOT EXISTS (
+                SELECT 1
+                FROM feeds
+                WHERE feeds.media_id = media_rescraping.media_id
+                AND feed_status = 'active'
+            )
+        )
+
         ORDER BY media_id
 EOF
     )->hashes;
