@@ -27,7 +27,7 @@ DECLARE
 BEGIN
 
     SET client_min_messages TO WARNING;
-    DROP TEMPORARY TABLE IF EXISTS temp_corrupted_sequences;
+    DROP TABLE IF EXISTS temp_corrupted_sequences;
     CREATE TEMPORARY TABLE temp_corrupted_sequences (
         tablename VARCHAR NOT NULL UNIQUE,
         maxid BIGINT,
