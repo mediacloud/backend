@@ -3096,7 +3096,7 @@ BEGIN
                            ( SELECT last_value FROM ' || r.serialsequence || ') AS sequenceval
                     FROM ' || r.tablename || '
                 ) AS id_and_sequence
-                WHERE maxid >= sequenceval
+                WHERE maxid > sequenceval
         ';
 
     END LOOP;
