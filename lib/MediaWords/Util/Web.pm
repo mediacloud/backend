@@ -351,4 +351,34 @@ sub response_error_is_client_side($)
     }
 }
 
+# given the response and request, parse the content for a meta refresh url and return if present.
+# otherwise, return undef
+sub get_meta_refresh_url
+{
+    my ( $response, $request ) = @_;
+
+    return undef unless ( $response->is_success );
+
+    MediaWords::Util::URL::meta_refresh_url_from_html( $response->decoded_content, $request->{ url } );
+}
+
+# if the response has a meta refresh tag, fetch the meta refresh content and
+# insert the response into the redirect response chain as a normal redirect
+sub get_meta_refresh_response
+{
+    my ( $response, $request ) = @_;
+
+    my $meta_refresh_url = get_meta_refresh_url( $response, $request );
+
+    return $response unless ( $meta_refresh_url );
+
+    my $ua = UserAgent;
+
+    my $meta_refresh_response = $ua->get( $meta_refresh_url );
+
+    $meta_refresh_response->previous( $response );
+
+    return $meta_refresh_response;
+}
+
 1;

@@ -857,7 +857,7 @@ sub meta_refresh_url_from_html($;$)
 {
     my ( $html, $base_url ) = @_;
 
-    while ( $html =~ m~(<\s*?meta.+?>)~gi )
+    while ( $html =~ m~(<\s*meta[^>]+>)~gi )
     {
         my $tag = $1;
 
