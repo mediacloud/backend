@@ -43,6 +43,9 @@ sub main
 
         $p->{ db } = MediaWords::DB::connect_to_db;
 
+        my $medium = $p->{ db }->find_by_id( 'media', $p->{ media_id } );
+        die( "Unable to find media id '$p->{ media_id }'" ) unless $medium;
+
         eval( 'MediaWords::ImportStories::' . $module . '->new( $p )->scrape_stories()' );
         die( $@ ) if ( $@ );
     }
