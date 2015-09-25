@@ -110,6 +110,7 @@ requires 'Net::Calais';
 requires 'Net::IP';
 requires 'Parallel::Fork::BossWorkerAsync';
 requires 'Parallel::ForkManager';
+requires 'Parse::BooleanLogic';
 requires 'PDL';
 requires 'Perl::Tidy', '20140328';
 requires 'RDF::Simple::Parser';
