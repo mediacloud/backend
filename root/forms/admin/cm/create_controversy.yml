@@ -26,6 +26,13 @@ elements:
     constraints:
         - Required
 
+  - type: Checkbox
+    name: skip_solr_query
+    id: skip_solr_query
+    label: Skip Solr Query
+    comment: do not run the solr query to seed the controversy
+    value: 1
+
   - type: Text
     name: description
     id: description
@@ -33,7 +40,7 @@ elements:
     comment: "Human readable description of controversy including a human description of the solr seed query"
     constraints:
         - Required
-        
+
   - type: Text
     name: start_date
     id: start_date
@@ -54,13 +61,22 @@ elements:
         - type: Regex
           regex: '^\d\d\d\d-\d\d-\d\d$'
 
+  - type: Number
+    name: max_iterations
+    id: max_iterations
+    label: Max Iterations
+    comment: maximum level of links for the spider to crawl through
+    default: 15
+    constraints:
+        - Required
+
   - type: Checkbox
     name: process_with_bitly
     id: process_with_bitly
     label: Process with Bit.ly
     comment: Enqueue all new controversy stories for Bit.ly processing
     value: 1
-    
+
   - type: Checkbox
     name: preview
     id: preview

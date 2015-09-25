@@ -515,6 +515,9 @@ sub extractor_results_for_download($$)
     {
         my $content_ref = fetch_content( $db, $download );
 
+        # don't run through expensive extractor if the content is short and has no html
+        return $$content_ref unless ( ( length( $$content_ref ) < 4096 ) && ( $$content_ref !~ /\<.*\>/ ) );
+
         $ret            = {};
         $extracted_html = MediaWords::Util::ThriftExtractor::get_extracted_html( $$content_ref );
     }
