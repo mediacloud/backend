@@ -6888,6 +6888,15 @@ DISTRIBUTIONS
       strict 0
       vars 0
       warnings 0
+  Parse-BooleanLogic-0.09
+    pathname: R/RU/RUZ/Parse-BooleanLogic-0.09.tar.gz
+    provides:
+      Parse::BooleanLogic 0.09
+    requirements:
+      ExtUtils::MakeMaker 6.98
+      Regexp::Common 0
+      Test::Deep 0
+      Test::More 0
   Parse-CPAN-Meta-1.4414
     pathname: D/DA/DAGOLDEN/Parse-CPAN-Meta-1.4414.tar.gz
     provides:
