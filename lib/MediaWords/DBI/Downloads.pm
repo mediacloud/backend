@@ -591,9 +591,7 @@ sub _do_extraction_from_content_ref($$$)
 {
     my ( $content_ref, $title, $description ) = @_;
 
-    my $lines = [ split( /[\n\r]+/, $$content_ref ) ];
-
-    $lines = MediaWords::Crawler::Extractor::preprocess( $lines );
+    my $lines = _preprocess_content_lines( $content_ref );
 
     return extract_preprocessed_lines_for_story( $lines, $title, $description );
 }
