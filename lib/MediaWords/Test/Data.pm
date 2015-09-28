@@ -14,6 +14,7 @@ BEGIN
 
 use File::Basename;
 use Data::Dumper;
+use MediaWords::Util::SQL;
 
 # get path to where data file(s) should be stored
 sub get_path_to_data_files(;$)
