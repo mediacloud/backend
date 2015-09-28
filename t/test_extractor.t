@@ -1,8 +1,9 @@
+#
+# Basic sanity test of extractor functionality
+#
+
 use strict;
 use warnings;
-use Data::Dumper;
-
-# basic sanity test of crawler functionality
 
 BEGIN
 {
@@ -11,32 +12,26 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
-require Test::NoWarnings;
-
-use Test::More skip_all => "need to figure out why tests haven't worked";
+use Test::More tests => 3;
 use Test::Differences;
 use Test::Deep;
+use Test::NoWarnings;
 
-use MediaWords::Crawler::Engine;
-use MediaWords::DBI::MediaSets;
 use MediaWords::DBI::Stories;
-use MediaWords::Test::DB;
 use MediaWords::Test::Data;
-use DBIx::Simple::MediaWords;
-use MediaWords::StoryVectors;
-use LWP::UserAgent;
+use MediaWords::Util::Text;
 
-use Data::Sorting qw( :basics :arrays :extras );
+use Data::Dumper;
 use Readonly;
-use Encode;
+use File::Slurp;
 
-sub extract_and_compare
+sub extract_and_compare($$$)
 {
-    my ( $file, $title ) = @_;
+    my ( $test_dataset, $file, $title ) = @_;
 
     my $test_stories =
       MediaWords::Test::Data::stories_arrayref_from_hashref(
-        MediaWords::Test::Data::fetch_test_data_from_individual_files( 'crawler_stories' ) );
+        MediaWords::Test::Data::fetch_test_data_from_individual_files( 'crawler_stories/' . $test_dataset ) );
 
     my $test_story_hash;
     map { $test_story_hash->{ $_->{ title } } = $_ } @{ $test_stories };
@@ -45,45 +40,46 @@ sub extract_and_compare
 
     die "story '$title' not found " unless $story;
 
-    my $path = "$FindBin::Bin/data/crawler/gv/$file";
+    my $data_files_path = MediaWords::Test::Data::get_path_to_data_files( 'crawler/' . $test_dataset );
+    my $path            = $data_files_path . '/' . $file;
 
-    if ( !open( FILE, $path ) )
-    {
-        return undef;
-    }
+    my $content = MediaWords::Util::Text::decode_from_utf8( read_file( $path ) );
 
-    my $content;
-
-    while ( my $line = <FILE> )
-    {
-        $content .= decode( 'utf-8', $line );
-    }
-
-    my $results =
-      MediaWords::DBI::Downloads::_do_extraction_from_content_ref( \$content, $story->{ title }, $story->{ description } );
-
-    #   my $results = MediaWords::DBI::Downloads::_do_extraction_from_content_ref( \$content, $title, '');
-
-    is(
-        substr( $results->{ extracted_text }, 0, 100 ),
-        substr( $story->{ extracted_text },   0, 100 ),
-        "Extracted text comparison for $title"
+    my $results = MediaWords::DBI::Downloads::extract_content_ref(
+        \$content,
+        $story->{ title },
+        $story->{ description },
+        'HeuristicExtractor'
     );
 
-    #say Dumper ( $results );
+    # crawler test squeezes in story title and description into the expected output
+    my @download_texts = ( $results->{ extracted_text } );
+    my $combined_text  = MediaWords::DBI::Stories::combine_story_title_description_text(
+        $story->{ title },
+        $story->{ description },
+        \@download_texts
+    );
 
-    #exit;
+    my $expected_text = $story->{ extracted_text };
+    my $actual_text   = $combined_text;
+
+    is( $actual_text, $expected_text, "Extracted text comparison for $title" );
 }
 
 sub main
 {
+    # Errors might want to print out UTF-8 characters
+    binmode( STDERR, ':utf8' );
+    binmode( STDOUT, ':utf8' );
+    my $builder = Test::More->builder;
 
-    my $dump = @ARGV;
-    extract_and_compare( 'index.html.1', 'Brazil: Amplified conversations to fight the Digital Crimes Bill' );
+    binmode $builder->output,         ":utf8";
+    binmode $builder->failure_output, ":utf8";
+    binmode $builder->todo_output,    ":utf8";
+
+    extract_and_compare( 'gv', 'index.html.1', 'Brazil: Amplified conversations to fight the Digital Crimes Bill' );
 
     Test::NoWarnings::had_no_warnings();
-
 }
 
 main();
-
