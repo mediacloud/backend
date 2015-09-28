@@ -220,11 +220,11 @@ sub _test_stories($$$$)
 
     my $download_errors = $db->query( "select * from downloads where state = 'error'" )->hashes;
     is( scalar( @{ $download_errors } ), 0, "$test_name - download errors" );
-    die( "errors: " . Dumper( $download_errors ) ) if ( @{ $download_errors } );
+    die( "errors: " . Dumper( $download_errors ) ) if ( scalar @{ $download_errors } );
 
     my $stories = _get_expanded_stories( $db );
 
-    is( @{ $stories }, $stories_count, "$test_name - story count" );
+    is( scalar @{ $stories }, $stories_count, "$test_name - story count" );
 
     my $test_stories =
       MediaWords::Test::Data::stories_arrayref_from_hashref(
