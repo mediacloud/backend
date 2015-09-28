@@ -334,21 +334,6 @@ sub _dump_stories($$$)
     _sanity_test_stories( $stories, $test_name, $test_prefix );
 }
 
-sub _get_crawler_data_directory()
-{
-    my $crawler_data_location;
-
-    {
-        use FindBin;
-
-        my $bin = $FindBin::Bin;
-        say "Bin = '$bin' ";
-        $crawler_data_location = "$FindBin::Bin/data/crawler";
-    }
-
-    return $crawler_data_location;
-}
-
 sub _test_crawler($$$$$)
 {
     my ( $test_name, $test_prefix, $stories_count, $sw_data_start_date, $sw_data_end_date ) = @_;
@@ -357,7 +342,7 @@ sub _test_crawler($$$$$)
         sub {
             my ( $db ) = @_;
 
-            my $crawler_data_location = _get_crawler_data_directory();
+            my $crawler_data_location = MediaWords::Test::Data::get_path_to_data_files( 'crawler' );
 
             my $test_http_server = MediaWords::Test::LocalServer->new( $crawler_data_location );
             $test_http_server->start();

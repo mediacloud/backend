@@ -16,7 +16,7 @@ use File::Basename;
 use Data::Dumper;
 
 # get path to where data file(s) should be stored
-sub _get_path_to_data_files(;$)
+sub get_path_to_data_files(;$)
 {
     my $subdirectory = shift;
 
@@ -49,7 +49,7 @@ sub _get_data_file($;$)
         die "Test data basename can only include /[a-z0-9_]/i";
     }
 
-    return _get_path_to_data_files( $subdirectory ) . "/$basename" . _get_data_file_extension();
+    return get_path_to_data_files( $subdirectory ) . "/$basename" . _get_data_file_extension();
 }
 
 # write the given data to disk under the given basename
@@ -94,7 +94,7 @@ sub store_test_data_to_individual_files($$)
 
     # Remove all files before overwriting them (in case the new unit test
     # contains *less* stories, we don't want old files lying around)
-    my $glob_path_to_old_data_files = _get_path_to_data_files( $basename ) . '/*' . _get_data_file_extension();
+    my $glob_path_to_old_data_files = get_path_to_data_files( $basename ) . '/*' . _get_data_file_extension();
     my @old_data_files              = glob( $glob_path_to_old_data_files );
 
     # say STDERR "Will remove old data files at path '$glob_path_to_old_data_files': " . Dumper(\@old_data_files);
@@ -154,7 +154,7 @@ sub fetch_test_data_from_individual_files($)
 {
     my $basename = shift;
 
-    my $glob_path_to_data_files = _get_path_to_data_files( $basename ) . '/*' . _get_data_file_extension();
+    my $glob_path_to_data_files = get_path_to_data_files( $basename ) . '/*' . _get_data_file_extension();
     my @data_files              = glob( $glob_path_to_data_files );
 
     my %data_hash;
