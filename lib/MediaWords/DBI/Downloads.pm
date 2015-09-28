@@ -472,6 +472,18 @@ sub fetch_content($$)
     return $content_ref;
 }
 
+# return content as lines in an array after running through the extractor preprocessor
+sub _preprocess_content_lines($)
+{
+    my ( $content_ref ) = @_;
+
+    my $lines = [ split( /[\n\r]+/, $$content_ref ) ];
+
+    $lines = MediaWords::Crawler::Extractor::preprocess( $lines );
+
+    return $lines;
+}
+
 # fetch the content as lines in an array after running through the extractor preprocessor
 sub fetch_preprocessed_content_lines($$)
 {
@@ -487,18 +499,14 @@ sub fetch_preprocessed_content_lines($$)
         return [];
     }
 
-    my $lines = [ split( /[\n\r]+/, $$content_ref ) ];
-
-    $lines = MediaWords::Crawler::Extractor::preprocess( $lines );
-
-    return $lines;
+    return _preprocess_content_lines( $content_ref );
 }
 
 # run MediaWords::Crawler::Extractor against the download content and return a hash in the form of:
 # { extracted_html => $html,    # a string with the extracted html
 #   extracted_text => $text,    # a string with the extracted html strippped to text
-#   download_lines => $lines,   # an array of the lines of original html
-#   scores => $scores }         # the scores returned by Mediawords::Crawler::Extractor::score_lines
+#   download_lines => $lines,   # (optional) an array of the lines of original html
+#   scores => $scores }         # (optional) the scores returned by Mediawords::Crawler::Extractor::score_lines
 sub extractor_results_for_download($$)
 {
     my ( $db, $download ) = @_;
@@ -507,42 +515,52 @@ sub extractor_results_for_download($$)
     my $extractor_method = $config->{ mediawords }->{ extractor_method };
 
     my $extracted_html;
-    my $ret;
+    my $ret = {};
 
-    #say STDERR "DBI::Downloads::extractor_results_for_download extractor_method $extractor_method";
+    my $content_ref = fetch_content( $db, $download );
 
-    if ( $extractor_method eq 'PythonReadability' )
+    # Don't run through expensive extractor if the content is short and has no html
+    if ( ( length( $$content_ref ) < 4096 ) and ( $$content_ref !~ /\<.*\>/ ) )
     {
-        my $content_ref = fetch_content( $db, $download );
-
-        $ret            = {};
-        $extracted_html = MediaWords::Util::ThriftExtractor::get_extracted_html( $$content_ref );
-    }
-    elsif ( $extractor_method eq 'HeuristicExtractor' )
-    {
-        my $story = $db->query( "select * from stories where stories_id = ?", $download->{ stories_id } )->hash;
-
-        my $lines = fetch_preprocessed_content_lines( $db, $download );
-
-        # print "PREPROCESSED LINES:\n**\n" . join( "\n", @{ $lines } ) . "\n**\n";
-
-        $ret = extract_preprocessed_lines_for_story( $lines, $story->{ title }, $story->{ description } );
-
-        my $download_lines        = $ret->{ download_lines };
-        my $included_line_numbers = $ret->{ included_line_numbers };
-
-        $extracted_html = _get_extracted_html( $download_lines, $included_line_numbers );
+        $ret = {
+            extracted_html => $$content_ref,
+            extracted_text => $$content_ref,
+        };
     }
     else
     {
-        die "invalid extractor method: $extractor_method";
+        #say STDERR "DBI::Downloads::extractor_results_for_download extractor_method $extractor_method";
+
+        if ( $extractor_method eq 'PythonReadability' )
+        {
+            $extracted_html = MediaWords::Util::ThriftExtractor::get_extracted_html( $$content_ref );
+        }
+        elsif ( $extractor_method eq 'HeuristicExtractor' )
+        {
+            my $lines = _preprocess_content_lines( $content_ref );
+
+            # print "PREPROCESSED LINES:\n**\n" . join( "\n", @{ $lines } ) . "\n**\n";
+
+            my $story = $db->find_by_id( 'stories', $download->{ stories_id } );
+
+            $ret = extract_preprocessed_lines_for_story( $lines, $story->{ title }, $story->{ description } );
+
+            my $download_lines        = $ret->{ download_lines };
+            my $included_line_numbers = $ret->{ included_line_numbers };
+
+            $extracted_html = _get_extracted_html( $download_lines, $included_line_numbers );
+        }
+        else
+        {
+            die "invalid extractor method: $extractor_method";
+        }
+
+        $extracted_html = _new_lines_around_block_level_tags( $extracted_html );
+        my $extracted_text = html_strip( $extracted_html );
+
+        $ret->{ extracted_html } = $extracted_html;
+        $ret->{ extracted_text } = $extracted_text;
     }
-
-    $extracted_html = _new_lines_around_block_level_tags( $extracted_html );
-    my $extracted_text = html_strip( $extracted_html );
-
-    $ret->{ extracted_html } = $extracted_html;
-    $ret->{ extracted_text } = $extracted_text;
 
     return $ret;
 }

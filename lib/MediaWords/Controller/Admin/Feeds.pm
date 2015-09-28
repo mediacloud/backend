@@ -27,7 +27,7 @@ Catalyst Controller.
 
 =cut
 
-=head2 index 
+=head2 index
 
 =cut
 
@@ -42,10 +42,10 @@ sub _attach_activity_data
     return unless ( @{ $feeds } );
 
     my $feed_story_data = $db->query( <<END, $feeds->[ 0 ]->{ media_id } )->hashes;
-select count(*) num_stories, fsm.feeds_id 
-    from feeds_stories_map fsm 
-        join feeds f on ( f.feeds_id = fsm.feeds_id ) 
-    where f.media_id = ? 
+select count(*) num_stories, fsm.feeds_id
+    from feeds_stories_map fsm
+        join feeds f on ( f.feeds_id = fsm.feeds_id )
+    where f.media_id = ?
     group by fsm.feeds_id;
 END
 
@@ -58,17 +58,17 @@ END
         $feed->{ num_stories } = $fsd ? $fsd->{ num_stories } : 0;
 
         ( $feed->{ most_recent_download_state } ) = $db->query( <<END, $feed->{ feeds_id } )->flat;
-select state 
+select state
     from downloads d
-    where feeds_id = ? and state not in ( 'pending', 'fetching' ) 
+    where feeds_id = ? and state not in ( 'pending', 'fetching' )
     order by download_time desc limit 1;
 END
 
         ( $feed->{ most_recent_story_publish_date } ) = $db->query( <<END, $feed->{ feeds_id } )->flat;
-select publish_date 
+select publish_date
     from stories s
         join feeds_stories_map fsm on ( s.stories_id = fsm.stories_id )
-    where fsm.feeds_id = ? 
+    where fsm.feeds_id = ?
     order by fsm.stories_id desc limit 1;
 END
 

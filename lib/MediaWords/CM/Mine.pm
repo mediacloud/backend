@@ -690,6 +690,12 @@ END
         return ( $old_story_method, $old_story->{ publish_date } );
     }
 
+    # otherwise, if there's a publish_date in the link hash, use that
+    elsif ( $source_link->{ publish_date } )
+    {
+        return ( 'manual', $source_link->{ publish_date } );
+    }
+
     my $source_story;
     if ( $source_link && $source_link->{ stories_id } )
     {
@@ -759,19 +765,26 @@ sub generate_new_story_hash
 
     my $story = {
         url          => $old_story->{ url },
-        guid         => $old_story->{ url },
+        guid         => $link->{ guid } || $old_story->{ url },
         media_id     => $medium->{ media_id },
         collect_date => MediaWords::Util::SQL::sql_now,
         title        => encode( 'utf8', $old_story->{ title } ),
+        publish_date => $link->{ publish_date },
         description  => ''
     };
 
-    my ( $date_guess_method, $publish_date ) = get_new_story_date( $db, $story, $story_content, $old_story, $link );
-    print STDERR "date guess: $date_guess_method: $publish_date\n";
+    if ( $link->{ publish_date } )
+    {
+        return ( $story, 'manual' );
+    }
+    else
+    {
+        my ( $date_guess_method, $publish_date ) = get_new_story_date( $db, $story, $story_content, $old_story, $link );
+        print STDERR "date guess: $date_guess_method: $publish_date\n";
 
-    $story->{ publish_date } = $publish_date;
-
-    return ( $story, $date_guess_method );
+        $story->{ publish_date } = $publish_date;
+        return ( $story, $date_guess_method );
+    }
 }
 
 # wrap create story in eval
@@ -816,10 +829,17 @@ sub add_new_story
     die( "only one of $link or $old_story should be set" ) if ( $link && $old_story );
 
     my $story_content;
-    if ( $link )
+    if ( $link && $link->{ content } )
+    {
+        $story_content = $link->{ content };
+        $link->{ redirect_url } ||= $link->{ url };
+        $link->{ title }        ||= $link->{ url };
+    }
+    elsif ( $link )
     {
         $story_content = MediaWords::Util::Web::get_cached_link_download( $link );
         $link->{ redirect_url } ||= MediaWords::Util::Web::get_cached_link_download_redirect_url( $link );
+
         if ( ignore_redirect( $db, $link ) )
         {
             $old_story->{ title } = "dead link: $link->{ url }";
@@ -829,7 +849,7 @@ sub add_new_story
         else
         {
             $old_story->{ url } = $link->{ redirect_url } || $link->{ url };
-            $old_story->{ title } = get_story_title_from_content( $story_content, $old_story->{ url } );
+            $old_story->{ title } = $link->{ title } || get_story_title_from_content( $story_content, $old_story->{ url } );
         }
     }
     else
@@ -1493,6 +1513,8 @@ sub add_new_links
 {
     my ( $db, $controversy, $iteration, $new_links ) = @_;
 
+    die( "add_new_links: " . scalar( @{ $new_links } ) );
+
     $db->dbh->{ AutoCommit } = 0;
 
     my $trimmed_links = [];
@@ -1682,7 +1704,7 @@ sub run_spider
 {
     my ( $db, $controversy ) = @_;
 
-    my $num_iterations = MediaWords::Util::Config->get_config->{ mediawords }->{ cm_spider_iterations };
+    my $num_iterations = $controversy->{ max_iterations };
 
     for my $i ( 1 .. $num_iterations )
     {
@@ -2166,7 +2188,18 @@ END
 select * from controversy_seed_urls where controversies_id = ? and processed = 'f'
 END
 
-    add_new_links( $db, $controversy, 0, $seed_urls );
+    for my $csu ( @{ $seed_urls } )
+    {
+        if ( $csu->{ content } )
+        {
+            my $story = add_new_story( $db, $csu, undef, $controversy, 0, 1 );
+            add_to_controversy_stories_and_links_if_match( $db, $controversy, $story, 1 );
+        }
+        else
+        {
+            add_new_links( $db, $controversy, 0, $seed_urls );
+        }
+    }
 
     $db->dbh->{ AutoCommit } = 0;
     for my $seed_url ( @{ $seed_urls } )

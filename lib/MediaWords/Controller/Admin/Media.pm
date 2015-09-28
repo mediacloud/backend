@@ -44,11 +44,11 @@ sub _add_controversy_media_type_to_form
     my $db = $c->dbis;
 
     my $media_types = $db->query( <<END, $controversies_id )->hashes;
-select t.* 
+select t.*
     from tags t
         join controversies c on ( c.media_type_tag_sets_id = t.tag_sets_id )
-    where 
-        c.controversies_id = ? 
+    where
+        c.controversies_id = ?
     order by t.label = 'Not Typed' desc, t.tag
 END
 
@@ -391,14 +391,14 @@ sub _search_paged_media
     $q = "'%$q%'";
 
     return $db->query_paged_hashes( <<END, [], $page, $rows_per_page );
-select distinct m.media_id as media_id, m.name as name, m.url as url 
-    from media m 
-        left join ( 
+select distinct m.media_id as media_id, m.name as name, m.url as url
+    from media m
+        left join (
             media_tags_map mtm join (
-                tags t join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id) ) 
-            on ( mtm.tags_id = t.tags_id) ) 
-        on (m.media_id = mtm.media_id) 
-    where (m.name ilike $q or m.url ilike $q or lower(ts.name||':'||t.tag) ilike $q) 
+                tags t join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id) )
+            on ( mtm.tags_id = t.tags_id) )
+        on (m.media_id = mtm.media_id)
+    where (m.name ilike $q or m.url ilike $q or lower(ts.name||':'||t.tag) ilike $q)
     order by m.media_id
 END
 
