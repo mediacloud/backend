@@ -26,11 +26,11 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
-use Test::More tests => 244;
+use Test::More tests => 245;
 use Test::Differences;
 use Test::Deep;
 
-require Test::NoWarnings;
+use Test::NoWarnings;
 
 use MediaWords::Crawler::Engine;
 use MediaWords::DBI::DownloadTexts;
