@@ -131,7 +131,7 @@ sub test_stories
 
     my $stories = get_expanded_stories( $db, $feed );
 
-    is( @{ $stories }, 1, "story count" );
+    is( scalar @{ $stories }, 1, "story count" );
 
     my $test_stories =
       MediaWords::Test::Data::stories_arrayref_from_hashref(
