@@ -228,7 +228,7 @@ sub _test_stories($$$$)
 
     my $test_stories =
       MediaWords::Test::Data::stories_arrayref_from_hashref(
-        MediaWords::Test::Data::fetch_test_data_from_individual_files( "crawler_stories/$test_prefix" ) );
+        MediaWords::Test::Data::fetch_test_data_from_individual_files( "crawler_stories/$test_prefix/HeuristicExtractor" ) );
 
     MediaWords::Test::Data::adjust_test_timezone( $test_stories, $test_stories->[ 0 ]->{ timezone } );
 
@@ -328,7 +328,7 @@ sub _dump_stories($$$)
 
     map { $_->{ timezone } = $tz } @{ $stories };
 
-    MediaWords::Test::Data::store_test_data_to_individual_files( "crawler_stories/$test_prefix",
+    MediaWords::Test::Data::store_test_data_to_individual_files( "crawler_stories/$test_prefix/HeuristicExtractor",
         MediaWords::Test::Data::stories_hashref_from_arrayref( $stories ) );
 
     _sanity_test_stories( $stories, $test_name, $test_prefix );

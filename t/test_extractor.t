@@ -1,6 +1,10 @@
 #
 # Basic sanity test of extractor functionality
 #
+# Start ./python_scripts/extractor_python_readability_server.py and set
+# MC_TEST_EXTRACTOR_PYTHONREADABILITY environment variable to to test Python
+# Readability extractor
+#
 
 use strict;
 use warnings;
@@ -12,7 +16,7 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
-use Test::More tests => 3;
+use Test::More;
 use Test::Differences;
 use Test::Deep;
 use Test::NoWarnings;
@@ -25,13 +29,13 @@ use Data::Dumper;
 use Readonly;
 use File::Slurp;
 
-sub extract_and_compare($$$)
+sub extract_and_compare($$$$)
 {
-    my ( $test_dataset, $file, $title ) = @_;
+    my ( $test_dataset, $file, $title, $extractor_method ) = @_;
 
     my $test_stories =
       MediaWords::Test::Data::stories_arrayref_from_hashref(
-        MediaWords::Test::Data::fetch_test_data_from_individual_files( 'crawler_stories/' . $test_dataset ) );
+        MediaWords::Test::Data::fetch_test_data_from_individual_files( "crawler_stories/$test_dataset/$extractor_method" ) );
 
     my $test_story_hash;
     map { $test_story_hash->{ $_->{ title } } = $_ } @{ $test_stories };
@@ -49,7 +53,7 @@ sub extract_and_compare($$$)
         \$content,
         $story->{ title },
         $story->{ description },
-        'HeuristicExtractor'
+        $extractor_method
     );
 
     # crawler test squeezes in story title and description into the expected output
@@ -77,7 +81,22 @@ sub main
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
-    extract_and_compare( 'gv', 'index.html.1', 'Brazil: Amplified conversations to fight the Digital Crimes Bill' );
+    my @extractor_methods_to_test = ( 'HeuristicExtractor' );
+    my $tests_planned             = 3;
+    if ( defined $ENV{ MC_TEST_EXTRACTOR_PYTHONREADABILITY } )
+    {
+        push( @extractor_methods_to_test, 'PythonReadability' );
+        ++$tests_planned;
+    }
+
+    plan tests => $tests_planned;
+
+    foreach my $extractor_method ( @extractor_methods_to_test )
+    {
+        say STDERR "Testing extractor '$extractor_method'...";
+        extract_and_compare( 'gv', 'index.html.1', 'Brazil: Amplified conversations to fight the Digital Crimes Bill',
+            $extractor_method );
+    }
 
     Test::NoWarnings::had_no_warnings();
 }

@@ -135,7 +135,7 @@ sub test_stories
 
     my $test_stories =
       MediaWords::Test::Data::stories_arrayref_from_hashref(
-        MediaWords::Test::Data::fetch_test_data_from_individual_files( 'crawler_stories/gv' ) );
+        MediaWords::Test::Data::fetch_test_data_from_individual_files( 'crawler_stories/gv/HeuristicExtractor' ) );
 
     MediaWords::Test::Data::adjust_test_timezone( $test_stories, $test_stories->[ 0 ]->{ timezone } );
 
