@@ -14,6 +14,7 @@ use List::Util;
 use MediaWords::Languages::Language;
 use MediaWords::Util::Config;
 use MediaWords::Util::Web;
+use MediaWords::Util::Process;
 use List::MoreUtils qw ( uniq );
 
 BEGIN
@@ -90,10 +91,11 @@ sub extract_html
                 next;
             }
 
-            say STDERR "Giving up trying to connect to thrift server";
-            say STDERR Dumper( $e );
-            say STDERR "Gearman work is terminating so that the extractor job remains in the Gearman queue";
-            exit();
+            my $error_message = "Giving up trying to connect to thrift server:\n";
+            $error_message .= Dumper( $e ) . "\n";
+            $error_message .= "Gearman worker is terminating so that the extractor job remains in the Gearman queue";
+
+            fatal_error( $error_message );
         }
 
         last;
