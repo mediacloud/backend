@@ -1,6 +1,7 @@
 package MediaWords::Thrift::Extractor;
 
 use strict;
+use warnings;
 
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
