@@ -214,9 +214,9 @@ sub _purge_disable_triggers_field
 }
 
 # test various results of the crawler
-sub _test_stories($$$$)
+sub _test_stories($$$$$)
 {
-    my ( $db, $test_name, $test_prefix, $stories_count ) = @_;
+    my ( $db, $test_name, $test_prefix, $stories_count, $extractor_method ) = @_;
 
     my $download_errors = $db->query( "select * from downloads where state = 'error'" )->hashes;
     is( scalar( @{ $download_errors } ), 0, "$test_name - download errors" );
@@ -228,7 +228,7 @@ sub _test_stories($$$$)
 
     my $test_stories =
       MediaWords::Test::Data::stories_arrayref_from_hashref(
-        MediaWords::Test::Data::fetch_test_data_from_individual_files( "crawler_stories/$test_prefix/HeuristicExtractor" ) );
+        MediaWords::Test::Data::fetch_test_data_from_individual_files( "crawler_stories/$test_prefix/$extractor_method" ) );
 
     MediaWords::Test::Data::adjust_test_timezone( $test_stories, $test_stories->[ 0 ]->{ timezone } );
 
@@ -318,9 +318,9 @@ sub _sanity_test_stories($$$)
 }
 
 # store the stories as test data to compare against in subsequent runs
-sub _dump_stories($$$)
+sub _dump_stories($$$$)
 {
-    my ( $db, $test_name, $test_prefix ) = @_;
+    my ( $db, $test_name, $test_prefix, $extractor_method ) = @_;
 
     my $stories = _get_expanded_stories( $db );
 
@@ -328,15 +328,15 @@ sub _dump_stories($$$)
 
     map { $_->{ timezone } = $tz } @{ $stories };
 
-    MediaWords::Test::Data::store_test_data_to_individual_files( "crawler_stories/$test_prefix/HeuristicExtractor",
+    MediaWords::Test::Data::store_test_data_to_individual_files( "crawler_stories/$test_prefix/$extractor_method",
         MediaWords::Test::Data::stories_hashref_from_arrayref( $stories ) );
 
     _sanity_test_stories( $stories, $test_name, $test_prefix );
 }
 
-sub _test_crawler($$$$$)
+sub _test_crawler($$$$$$)
 {
-    my ( $test_name, $test_prefix, $stories_count, $sw_data_start_date, $sw_data_end_date ) = @_;
+    my ( $test_name, $test_prefix, $stories_count, $sw_data_start_date, $sw_data_end_date, $extractor_method ) = @_;
 
     MediaWords::Test::DB::test_on_test_database(
         sub {
@@ -354,10 +354,10 @@ sub _test_crawler($$$$$)
 
             if ( defined( $ARGV[ 0 ] ) && ( $ARGV[ 0 ] eq '-d' ) )
             {
-                _dump_stories( $db, $test_name, $test_prefix );
+                _dump_stories( $db, $test_name, $test_prefix, $extractor_method );
             }
 
-            _test_stories( $db, $test_name, $test_prefix, $stories_count );
+            _test_stories( $db, $test_name, $test_prefix, $stories_count, $extractor_method );
 
             say STDERR "Killing server";
             $test_http_server->stop();
@@ -367,6 +367,15 @@ sub _test_crawler($$$$$)
 
 sub main
 {
+    # Extractor method to use
+    #
+    # Please note that this constant doesn't mean that extractor will extract
+    # test stories using this particular method; it only means that the unit
+    # test itself will assume that stories got extracted using this extractor
+    # method and thus will load input / save output data from appropriate
+    # directories.
+    Readonly my $extractor_method => 'HeuristicExtractor';
+
     # Errors might want to print out UTF-8 characters
     binmode( STDERR, ':utf8' );
     binmode( STDOUT, ':utf8' );
@@ -377,10 +386,10 @@ sub main
     binmode $builder->todo_output,    ":utf8";
 
     # Test short inline "content:..." downloads
-    _test_crawler( 'Short "inline" downloads', 'inline_content', 4, '2008-02-03', '2020-02-27' );
+    _test_crawler( 'Short "inline" downloads', 'inline_content', 4, '2008-02-03', '2020-02-27', $extractor_method );
 
     # Test Global Voices downloads
-    _test_crawler( 'Global Voices', 'gv', 16, '2008-02-03', '2020-02-27' );
+    _test_crawler( 'Global Voices', 'gv', 16, '2008-02-03', '2020-02-27', $extractor_method );
 
     # Test multilanguage downloads
     _test_crawler(
@@ -388,7 +397,8 @@ sub main
         'multilanguage',
         6 - 1,    # there are 6 tests, but one of them is an empty page
         '2008-02-03',
-        '2020-02-27'
+        '2020-02-27',
+        $extractor_method
     );
 
     Test::NoWarnings::had_no_warnings();

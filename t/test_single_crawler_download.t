@@ -125,9 +125,9 @@ sub _purge_disable_triggers_field
 }
 
 # test various results of the crawler
-sub test_stories
+sub test_stories($$$)
 {
-    my ( $db, $feed ) = @_;
+    my ( $db, $feed, $extractor_method ) = @_;
 
     my $stories = get_expanded_stories( $db, $feed );
 
@@ -135,7 +135,7 @@ sub test_stories
 
     my $test_stories =
       MediaWords::Test::Data::stories_arrayref_from_hashref(
-        MediaWords::Test::Data::fetch_test_data_from_individual_files( 'crawler_stories/gv/HeuristicExtractor' ) );
+        MediaWords::Test::Data::fetch_test_data_from_individual_files( "crawler_stories/gv/$extractor_method" ) );
 
     MediaWords::Test::Data::adjust_test_timezone( $test_stories, $test_stories->[ 0 ]->{ timezone } );
 
@@ -204,6 +204,14 @@ sub test_stories
 
 sub main
 {
+    # Extractor method to use
+    #
+    # Please note that this constant doesn't mean that extractor will extract
+    # test stories using this particular method; it only means that the unit
+    # test itself will assume that stories got extracted using this extractor
+    # method and thus will load input / save output data from appropriate
+    # directories.
+    Readonly my $extractor_method => 'HeuristicExtractor';
 
     my ( $dump ) = @ARGV;
 
@@ -256,7 +264,7 @@ sub main
             # Wait for a bit for the crawler to finish crawling
             sleep( 10 );
 
-            test_stories( $db, $feed );
+            test_stories( $db, $feed, $extractor_method );
 
             say STDERR "Killing server";
             $test_http_server->stop();
