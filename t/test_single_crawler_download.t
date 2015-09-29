@@ -202,23 +202,6 @@ sub test_stories
 
 }
 
-sub get_crawler_data_directory
-{
-    my $crawler_data_location;
-
-    {
-        use FindBin;
-
-        my $bin = $FindBin::Bin;
-        say "Bin = '$bin' ";
-        $crawler_data_location = "$FindBin::Bin/data/crawler";
-    }
-
-    print "crawler data '$crawler_data_location'\n";
-
-    return $crawler_data_location;
-}
-
 sub main
 {
 
@@ -229,7 +212,7 @@ sub main
             use Encode;
             my ( $db ) = @_;
 
-            my $crawler_data_location = get_crawler_data_directory();
+            my $crawler_data_location = MediaWords::Test::Data::get_path_to_data_files( 'crawler' );
 
             my $test_http_server = MediaWords::Test::LocalServer->new( $crawler_data_location );
             $test_http_server->start();
