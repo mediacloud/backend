@@ -67,7 +67,7 @@ sub extract_and_compare($$$$)
     my $expected_text = $story->{ extracted_text };
     my $actual_text   = $combined_text;
 
-    is( $actual_text, $expected_text, "Extracted text comparison for $title" );
+    eq_or_diff( $actual_text, $expected_text, "Extracted text comparison for $title" );
 }
 
 sub main
