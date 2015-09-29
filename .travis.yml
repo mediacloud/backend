@@ -76,6 +76,8 @@ env:
         - MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM=1
         # Enable Python API tests in ./script/run_test_suite_for_devel_cover.sh
         - MEDIACLOUD_ENABLE_PYTHON_API_TESTS=1
+        # Test PythonReadability extractor method in t/test_extractor.t
+        - MC_TEST_EXTRACTOR_PYTHONREADABILITY=1
 before_install:
     # Set up local Media Cloud environment for Python
     - mkdir -p $HOME/mc-python
@@ -104,6 +106,8 @@ before_script:
     # Initialize PostgreSQL database
     - ./script/run_with_carton.sh ./script/mediawords_create_db.pl
 script:
+    # Start Readability service for testing "PythonReadability" extractor method on t/test_extractor.t
+    - "python python_scripts/extractor_python_readability_server.py &"
     # Run Media Cloud's test suite, report test coverage to https://coveralls.io/r/berkmancenter/mediacloud
     - ./script/run_test_suite_for_devel_cover.sh coveralls --destroy-solr
 after_failure:
