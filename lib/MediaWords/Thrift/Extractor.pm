@@ -84,7 +84,7 @@ sub extract_html
         my $e = $@;
         if ( $e )
         {
-            if ( ( time() - $start_time ) < 300 )
+            if ( ( time() - $start_time ) < 60 )
             {
                 sleep 1;
                 say STDERR "Retrying connecting to thrift server";
