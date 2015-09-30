@@ -18,7 +18,6 @@ use Readonly;
 
 use MediaWords::Util::Paths;
 use MediaWords::Util::Config;
-use MediaWords::Util::URL;
 
 Readonly my $MAX_DOWNLOAD_SIZE => 1024 * 1024;
 Readonly my $TIMEOUT           => 20;
