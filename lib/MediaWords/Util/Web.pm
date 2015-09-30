@@ -18,6 +18,7 @@ use Readonly;
 
 use MediaWords::Util::Paths;
 use MediaWords::Util::Config;
+use MediaWords::Util::URL;
 
 use constant MAX_DOWNLOAD_SIZE => 1024 * 1024;
 use constant TIMEOUT           => 20;
