@@ -20,16 +20,16 @@ use MediaWords::Util::Paths;
 use MediaWords::Util::Config;
 use MediaWords::Util::URL;
 
-use constant MAX_DOWNLOAD_SIZE => 1024 * 1024;
-use constant TIMEOUT           => 20;
-use constant MAX_REDIRECT      => 15;
+Readonly my $MAX_DOWNLOAD_SIZE => 1024 * 1024;
+Readonly my $TIMEOUT           => 20;
+Readonly my $MAX_REDIRECT      => 15;
 
 # number of links to prefetch at a time for the cached downloads
-use constant LINK_CACHE_SIZE => 200;
+Readonly my $LINK_CACHE_SIZE => 200;
 
 # for how many times and at what intervals should LWP::UserAgent::Determined
 # retry requests
-use constant DETERMINED_RETRIES => '1,2,4,8';
+Readonly my $DETERMINED_RETRIES => '1,2,4,8';
 
 # on which HTTP codes should requests be retried
 Readonly my @DETERMINED_HTTP_CODES => (
@@ -58,9 +58,9 @@ sub _set_lwp_useragent_properties($)
     $ua->from( $config->{ mediawords }->{ owner } );
     $ua->agent( $config->{ mediawords }->{ user_agent } );
 
-    $ua->timeout( TIMEOUT );
-    $ua->max_size( MAX_DOWNLOAD_SIZE );
-    $ua->max_redirect( MAX_REDIRECT );
+    $ua->timeout( $TIMEOUT );
+    $ua->max_size( $MAX_DOWNLOAD_SIZE );
+    $ua->max_redirect( $MAX_REDIRECT );
     $ua->env_proxy;
     $ua->cookie_jar( {} );    # temporary cookie jar for an object
 
@@ -79,7 +79,7 @@ sub UserAgentDetermined
 {
     my $ua = LWP::UserAgent::Determined->new();
 
-    $ua->timing( DETERMINED_RETRIES . '' );
+    $ua->timing( $DETERMINED_RETRIES . '' );
 
     my %http_codes_hr = map { $_ => 1 } @DETERMINED_HTTP_CODES;
     $ua->codes_to_determinate( \%http_codes_hr );
@@ -226,9 +226,9 @@ sub get_original_request
     return $original_response->request;
 }
 
-# cache link downloads LINK_CACHE_SIZE at a time so that we can do them in parallel.
+# cache link downloads $LINK_CACHE_SIZE at a time so that we can do them in parallel.
 # this doesn't actually do any caching -- it just sets the list of
-# links so that they can be done LINK_CACHE_SIZE at a time by get_cached_link_download.
+# links so that they can be done $LINK_CACHE_SIZE at a time by get_cached_link_download.
 sub cache_link_downloads
 {
     my ( $links ) = @_;
@@ -243,7 +243,7 @@ sub cache_link_downloads
     }
 }
 
-# if the url has been precached, return it, otherwise download the current links and the next LINK_CACHE_SIZE links
+# if the url has been precached, return it, otherwise download the current links and the next $LINK_CACHE_SIZE links
 sub get_cached_link_download
 {
     my ( $link ) = @_;
@@ -262,7 +262,7 @@ sub get_cached_link_download
     my $links      = $_link_downloads_list;
     my $urls       = [];
     my $url_lookup = {};
-    for ( my $i = 0 ; $links->[ $link_num + $i ] && $i < LINK_CACHE_SIZE ; $i++ )
+    for ( my $i = 0 ; $links->[ $link_num + $i ] && $i < $LINK_CACHE_SIZE ; $i++ )
     {
         my $link = $links->[ $link_num + $i ];
         my $u    = URI->new( $link->{ _fetch_url } )->as_string;
