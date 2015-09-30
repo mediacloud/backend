@@ -834,6 +834,8 @@ sub add_new_story
         $story_content = $link->{ content };
         $link->{ redirect_url } ||= $link->{ url };
         $link->{ title }        ||= $link->{ url };
+        $old_story->{ url }     ||= $link->{ url };
+        $old_story->{ title }   ||= $link->{ title };
     }
     elsif ( $link )
     {
@@ -1323,7 +1325,18 @@ select count( distinct rs.stories_id )
     limit ( $num_stories - $MAX_SELF_LINKED_STORIES )
 END
 
-    my $num_self_linked_stories = $num_stories - $num_cross_linked_stories;
+    my ( $num_unlinked_stories ) = $db->query( <<END, $cid, $story->{ media_id } )->flat;
+select count( distinct rs.stories_id )
+from cd.live_stories rs
+    left join controversy_links cl on ( cl.controversies_id = \$1 and rs.stories_id = cl.ref_stories_id )
+where
+    rs.controversies_id = \$1 and
+    rs.media_id = \$2 and
+    cl.ref_stories_id is null
+limit ( $num_stories - $MAX_SELF_LINKED_STORIES )
+END
+
+    my $num_self_linked_stories = $num_stories - $num_cross_linked_stories - $num_unlinked_stories;
 
     if ( $num_self_linked_stories > $MAX_SELF_LINKED_STORIES )
     {
@@ -1512,8 +1525,6 @@ SQL
 sub add_new_links
 {
     my ( $db, $controversy, $iteration, $new_links ) = @_;
-
-    die( "add_new_links: " . scalar( @{ $new_links } ) );
 
     $db->dbh->{ AutoCommit } = 0;
 
@@ -2192,8 +2203,9 @@ END
     {
         if ( $csu->{ content } )
         {
-            my $story = add_new_story( $db, $csu, undef, $controversy, 0, 1 );
-            add_to_controversy_stories_and_links_if_match( $db, $controversy, $story, 1 );
+            my $story = get_matching_story_from_db( $db, $csu )
+              || add_new_story( $db, $csu, undef, $controversy, 0, 1 );
+            add_to_controversy_stories_if_match( $db, $controversy, $story, $csu );
         }
         else
         {
