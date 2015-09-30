@@ -60,14 +60,16 @@ sub _get_full_text_from_rss
 }
 
 # get the combined story title, story description, and download text of the text
-sub _get_text_from_download_text
+sub combine_story_title_description_text($$$)
 {
-    my ( $story, $download_texts ) = @_;
+    my ( $story_title, $story_description, $download_texts ) = @_;
 
-    return join( "\n***\n\n",
-        html_strip( $story->{ title }       || '' ),
-        html_strip( $story->{ description } || '' ),
-        @{ $download_texts } );
+    return join(
+        "\n***\n\n",
+        html_strip( $story_title       || '' ),    #
+        html_strip( $story_description || '' ),    #
+        @{ $download_texts }                       #
+    );
 }
 
 # get the concatenation of the story title and description and all of the download_texts associated with the story
@@ -108,8 +110,7 @@ EOF
         push( @{ $download_texts }, "(downloads pending extraction)" );
     }
 
-    return _get_text_from_download_text( $story, $download_texts );
-
+    return combine_story_title_description_text( $story->{ title }, $story->{ description }, $download_texts );
 }
 
 # Like get_text but it doesn't include both the rss information and the extracted text.

@@ -96,17 +96,6 @@ sub get_scheduled_requests
     return [ sort { $a->{ time } <=> $b->{ time } } @{ $scheduled_requests } ];
 }
 
-# given the response and request, parse the content for a meta refresh url and return if present.
-# otherwise, return undef
-sub get_meta_refresh_url
-{
-    my ( $response, $request ) = @_;
-
-    return undef unless ( $response->is_success );
-
-    MediaWords::Util::URL::meta_refresh_url_from_html( $response->decoded_content, $request->{ url } );
-}
-
 sub main
 {
     my $requests;
@@ -166,12 +155,7 @@ sub main
 
         my $response = $ua->get( $request->{ url } );
 
-        for ( my $i = 0 ; ( $i < 10 ) && ( my $url = get_meta_refresh_url( $response, $request ) ) ; $i++ )
-        {
-            my $meta_refresh_response = $ua->get( $url );
-            $meta_refresh_response->previous( $response );
-            $response = $meta_refresh_response;
-        }
+        $response = MediaWords::Util::Web::get_meta_refresh_response( $response, $request );
 
         print STDERR "got [$i/$total]: $request->{ url }\n";
 

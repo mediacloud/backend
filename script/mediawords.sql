@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4510;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4512;
 
 BEGIN
 
@@ -1707,6 +1707,7 @@ create table solr_imports (
     solr_imports_id     serial primary key,
     import_date         timestamp not null,
     full_import         boolean not null default false
+    num_stories         bigint,
 );
 
 create table solr_import_stories (
@@ -1733,7 +1734,8 @@ create table controversies (
     description             text not null,
     controversy_tag_sets_id int not null references tag_sets,
     media_type_tag_sets_id  int references tag_sets,
-    process_with_bitly      boolean not null default false
+    process_with_bitly      boolean not null default false,
+    max_iterations          int not null default 15
 );
 
 COMMENT ON COLUMN controversies.process_with_bitly
@@ -1860,7 +1862,11 @@ create table controversy_seed_urls (
     source                          text,
     stories_id                      int references stories on delete cascade,
     processed                       boolean not null default false,
-    assume_match                    boolean not null default false
+    assume_match                    boolean not null default false,
+    content                         text,
+    guid                            text,
+    title                           text,
+    publish_date                    text
 );
 
 create index controversy_seed_urls_controversy on controversy_seed_urls( controversies_id );

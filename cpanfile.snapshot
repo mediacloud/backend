@@ -176,6 +176,36 @@ DISTRIBUTIONS
       Carp::Clan 5.3
       ExtUtils::MakeMaker 0
       Storable 2.21
+  CGI-4.13
+    pathname: L/LE/LEEJO/CGI-4.13.tar.gz
+    provides:
+      CGI 4.13
+      CGI::Carp 4.13
+      CGI::Cookie 4.13
+      CGI::File::Temp 4.13
+      CGI::Pretty 4.13
+      CGI::Push 4.13
+      CGI::Util 4.13
+      Fh 4.13
+      MultipartBuffer 4.13
+    requirements:
+      Carp 0
+      Config 0
+      Encode 0
+      Exporter 0
+      ExtUtils::MakeMaker 0
+      File::Spec 0.82
+      File::Temp 0
+      HTML::Entities 3.69
+      base 0
+      constant 0
+      if 0
+      overload 0
+      parent 0.225
+      perl 5.008001
+      strict 0
+      utf8 0
+      warnings 0
   CGI-Simple-1.113
     pathname: A/AN/ANDYA/CGI-Simple-1.113.tar.gz
     provides:
@@ -6858,6 +6888,15 @@ DISTRIBUTIONS
       strict 0
       vars 0
       warnings 0
+  Parse-BooleanLogic-0.09
+    pathname: R/RU/RUZ/Parse-BooleanLogic-0.09.tar.gz
+    provides:
+      Parse::BooleanLogic 0.09
+    requirements:
+      ExtUtils::MakeMaker 6.98
+      Regexp::Common 0
+      Test::Deep 0
+      Test::More 0
   Parse-CPAN-Meta-1.4414
     pathname: D/DA/DAGOLDEN/Parse-CPAN-Meta-1.4414.tar.gz
     provides:
