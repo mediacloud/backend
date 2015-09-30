@@ -89,10 +89,10 @@ sub UserAgentDetermined
             my $request = $lwp_args->[ 0 ];
             my $url     = $request->uri;
 
-            my $message = "Trying $url..., ";
-            $message .=
-              "will " . ( defined $duration ? "retry after $duration seconds" : "give up" ) . " if request fails...";
-            say STDERR $message;
+            # my $message = "Trying $url..., ";
+            # $message .=
+            #   "will " . ( defined $duration ? "retry after $duration seconds" : "give up" ) . " if request fails...";
+            # say STDERR $message;
         }
     );
     $ua->after_determined_callback(
