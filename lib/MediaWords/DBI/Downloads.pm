@@ -254,7 +254,7 @@ my $_download_store_lookup = lazy
     my $raw_downloads_db_label = 'raw_downloads';    # as set up in mediawords.yml
     unless ( grep { $_ eq $raw_downloads_db_label } MediaWords::DB::get_db_labels() )
     {
-        say STDERR "No such label '$raw_downloads_db_label', falling back to default database";
+        #say STDERR "No such label '$raw_downloads_db_label', falling back to default database";
         $raw_downloads_db_label = undef;
     }
 
@@ -277,7 +277,7 @@ my $_download_store_lookup = lazy
     }
     else
     {
-        say STDERR "No such label '$raw_downloads_fallback_db_label', fallback table disabled";
+        #say STDERR "No such label '$raw_downloads_fallback_db_label', fallback table disabled";
         $download_store_lookup->{ postgresql_fallback } = undef;
     }
 
