@@ -89,9 +89,10 @@ sub UserAgentDetermined
             my $request = $lwp_args->[ 0 ];
             my $url     = $request->uri;
 
-          # my $message = "Trying $url..., ";
-          # $message .= "will " . (defined $duration ? "retry after $duration seconds" : "give up") . " if request fails...";
-          # say STDERR $message;
+            my $message = "Trying $url..., ";
+            $message .=
+              "will " . ( defined $duration ? "retry after $duration seconds" : "give up" ) . " if request fails...";
+            say STDERR $message;
         }
     );
     $ua->after_determined_callback(
@@ -109,6 +110,10 @@ sub UserAgentDetermined
                 }
 
                 my $message = "Request to $url failed (" . $response->status_line . "), ";
+                if ( response_error_is_client_side( $response ) )
+                {
+                    $message .= 'error is on the client side, ';
+                }
                 $message .= "will " .
                   ( $will_retry ? ( defined $duration ? "retry after $duration seconds" : "give up" ) : "not retry" );
                 say STDERR $message;
