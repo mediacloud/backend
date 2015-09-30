@@ -10,6 +10,7 @@ use warnings;
 use URI;
 use URI::QueryParam;
 use URI::Escape;
+use Carp;
 
 use Readonly;
 use Data::Dumper;
@@ -39,14 +40,14 @@ sub _get_single_url_json
     # this is mostly to be able to generate an error for testing
     unless ( MediaWords::Util::URL::is_http_url( $url ) )
     {
-        die "Invalid URL: $url";
+        confess "Invalid URL: $url";
     }
 
     # Get canonical URL
     my $uri = URI->new( $url )->canonical;
     unless ( $uri )
     {
-        die "Unable to create URI object for URL: $url";
+        confess "Unable to create URI object for URL: $url";
     }
 
     # die() on URLs that won't work anyway
@@ -54,7 +55,7 @@ sub _get_single_url_json
     {
         if ( $url =~ $url_pattern_which_wont_work )
         {
-            die "URL $url matches one of the patterns for URLs that won't work against Twitter API.";
+            confess "URL $url matches one of the patterns for URLs that won't work against Twitter API.";
         }
     }
 
@@ -74,25 +75,25 @@ sub _get_single_url_json
 
     unless ( $response->is_success )
     {
-        die "error fetching tweet count for URL: $url";
+        confess "Error fetching tweet count for URL $url: " . $response->status_line;
     }
     my $decoded_content = $response->decoded_content;
 
     my $data = MediaWords::Util::JSON::decode_json( $decoded_content );
     unless ( $data and ref( $data ) eq ref( {} ) )
     {
-        die "Returned JSON is empty or invalid.";
+        confess "Returned JSON is empty or invalid.";
     }
 
     unless ( defined $data->{ url } and defined $data->{ count } )
     {
-        die "Returned JSON doesn't have 'url' and / or 'count' keys for URL: $url; JSON: " . Dumper( $data );
+        confess "Returned JSON doesn't have 'url' and / or 'count' keys for URL: $url; JSON: " . Dumper( $data );
     }
 
     my $returned_uri = URI->new( $data->{ url } )->canonical;
     unless ( $uri )
     {
-        die "Unable to create URI object for returned URL: $data->{ url }";
+        confess "Unable to create URI object for returned URL: $data->{ url }";
     }
 
     unless ( $uri->eq( $returned_uri ) )
@@ -132,7 +133,7 @@ sub _get_single_url_tweet_count
     my $uri = URI->new( $url )->canonical;
     unless ( $uri )
     {
-        die "Unable to create URI object for URL: $url";
+        confess "Unable to create URI object for URL: $url";
     }
 
     my $data = _get_single_url_json( $ua, $url );
@@ -158,7 +159,7 @@ sub get_url_tweet_count
 
     if ( scalar @{ $all_urls } == 0 )
     {
-        die "After removing URLs which won't work, the list is empty";
+        confess "After removing URLs which won't work, the list is empty";
     }
 
     my $ua = MediaWords::Util::Web::UserAgentDetermined();
@@ -214,7 +215,7 @@ END
 
     if ( $error )
     {
-        die "Error while fetching Twitter stats for story $stories_id ($stories_url): $error";
+        confess "Error while fetching Twitter stats for story $stories_id ($stories_url): $error";
     }
 
     return $count;
