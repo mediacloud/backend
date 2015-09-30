@@ -74,7 +74,7 @@ sub _get_single_url_json
 
     unless ( $response->is_success )
     {
-        die "error fetching tweet count for URL: $url";
+        die "Error fetching tweet count for URL $url: " . $response->status_line;
     }
     my $decoded_content = $response->decoded_content;
 
