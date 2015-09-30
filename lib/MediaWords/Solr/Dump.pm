@@ -98,11 +98,11 @@ declare csr cursor for
         ss.sentence,
         null title,
         ss.language
-    
+
     from story_sentences ss
-        
+
     where ( ss.stories_id % $num_proc = $proc - 1 )
-        $date_clause    
+        $date_clause
 END
 
 }
@@ -126,11 +126,11 @@ declare csr cursor for
         null sentence,
         s.title,
         s.language
-    
+
     from stories s
-        
+
     where ( s.stories_id % $num_proc = $proc - 1 )
-        $date_clause    
+        $date_clause
 END
 
 }
@@ -435,12 +435,15 @@ sub mark_import_date
 # store the date marked by mark_import_date in solr_imports
 sub save_import_date
 {
-    my ( $db, $delta ) = @_;
+    my ( $db, $delta, $stories_ids ) = @_;
 
     die( "import date has not been marked" ) unless ( $_import_date );
 
     my $full_import = $delta ? 'f' : 't';
-    $db->query( "insert into solr_imports( import_date, full_import ) values ( ?, ? )", $_import_date, $full_import );
+    $db->query( <<SQL, $_import_date, $full_import, scalar( @{ $stories_ids } ) );
+insert into solr_imports( import_date, full_import, num_stories ) values ( ?, ?, ? )
+SQL
+
 }
 
 # delete the given stories from solr
@@ -544,7 +547,7 @@ sub generate_and_import_data
     print STDERR "importing dump ...\n";
     import_csv_files( [ $dump_file ], $delta, $staging ) || die( "import failed." );
 
-    save_import_date( $db, $delta );
+    save_import_date( $db, $delta, $stories_ids );
     delete_stories_from_import_queue( $db, $delta );
 
     # if we're doing a full import, do a delta to catchup with the data since the start of the import
