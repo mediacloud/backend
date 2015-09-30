@@ -1706,8 +1706,8 @@ create index story_sentence_counts_first_stories_id on story_sentence_counts( fi
 create table solr_imports (
     solr_imports_id     serial primary key,
     import_date         timestamp not null,
-    full_import         boolean not null default false
-    num_stories         bigint,
+    full_import         boolean not null default false,
+    num_stories         bigint
 );
 
 create table solr_import_stories (
