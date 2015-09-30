@@ -1154,9 +1154,12 @@ sub get_medium_dup_stories_by_title
     my ( $db, $stories ) = @_;
 
     my $title_part_counts = {};
-
     for my $story ( @{ $stories } )
     {
+        # don't try to dedup twitter stories by title, because the title of a tweet
+        # is just the tweet, and we want to capture retweets
+        next if ( $_->{ url } && ( $_->{ url } =~ /https?:\/\/(twitter\.com|t\.co)/i ) );
+
         my $title_parts = get_title_parts( $story->{ title } );
 
         for ( my $i = 0 ; $i < @{ $title_parts } ; $i++ )
