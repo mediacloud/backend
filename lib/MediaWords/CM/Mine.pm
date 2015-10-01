@@ -248,7 +248,7 @@ sub get_links_from_story_text
     {
         my $url = $1;
 
-        $url =~ s/[^a-z]+$//;
+        $url =~ s/\W+$//;
 
         push( @{ $links }, { url => $url } );
     }
@@ -1109,7 +1109,7 @@ sub get_preferred_story
           || ( $a->{ media_id } <=> $b->{ media_id } );
     }
 
-    my $sorted_media = [ sort _compare_media @{ $media } ];
+    my $sorted_media = [ sort( _compare_media( @{ $media } ) ) ];
 
     return $sorted_media->[ 0 ]->{ story };
 }
@@ -1809,7 +1809,7 @@ sub add_link_weights
 
     $story->{ link_weight } += ( 1 / $path_depth ) if ( !$path_depth );
 
-    return if ( !@{ $story->{ links } } );
+    return if ( !scalar( @{ $story->{ links } } ) );
 
     $link_path_lookup->{ $story->{ stories_id } } = 1;
 
@@ -1858,7 +1858,7 @@ sub generate_link_weights
     my ( $db, $controversy, $stories ) = @_;
 
     map { $_->{ source_stories } ||= []; } @{ $stories };
-    map { $_->{ link_weight } = @{ $_->{ source_stories } } } @{ $stories };
+    map { $_->{ link_weight } = scalar( @{ $_->{ source_stories } } ) } @{ $stories };
 
     for my $i ( 1 .. LINK_WEIGHT_ITERATIONS )
     {
@@ -2096,7 +2096,8 @@ SELECT distinct s.*
 
 END
 
-    print STDERR "merging " . scalar( @{ $archive_is_stories } ) . " archive.is stories\n" if ( @{ $archive_is_stories } );
+    print STDERR "merging " . scalar( @{ $archive_is_stories } ) . " archive.is stories\n"
+      if ( scalar( @{ $archive_is_stories } ) );
 
     map { merge_archive_is_story( $db, $controversy, $_ ) } @{ $archive_is_stories };
 }
@@ -2173,7 +2174,7 @@ SELECT distinct s.*
         cs.controversies_id = ?
 END
 
-    print STDERR "merging " . scalar( @{ $dup_media_stories } ) . " stories\n" if ( @{ $dup_media_stories } );
+    print STDERR "merging " . scalar( @{ $dup_media_stories } ) . " stories\n" if ( scalar( @{ $dup_media_stories } ) );
 
     map { merge_dup_media_story( $db, $controversy, $_ ) } @{ $dup_media_stories };
 }
