@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4511;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4512;
 
 BEGIN
 
@@ -1706,7 +1706,8 @@ create index story_sentence_counts_first_stories_id on story_sentence_counts( fi
 create table solr_imports (
     solr_imports_id     serial primary key,
     import_date         timestamp not null,
-    full_import         boolean not null default false
+    full_import         boolean not null default false,
+    num_stories         bigint
 );
 
 create table solr_import_stories (

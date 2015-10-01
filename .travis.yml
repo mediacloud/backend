@@ -72,6 +72,12 @@ env:
         # Facebook Graph API credentials for testing
         - secure: "BgP5lOHOeb/Bv92o3ItUxRzzV1/aRCSMlAqTEf1ox1pniYmRhHB1+8P21QOPbMH6bxm2uaBhnPOKCQ8b37SmFk/TNBuXZyec4d1deGB+0u4N4bPX4MN7Q9f9IV1PxEVjr3dIzKtdpuTM9giNK/R9HpjYIftZw6UT+nyWufJ7hZg="
         - secure: "TrvXE5MJHDZb8a0KfnnElEqKZYXPpYSNGQO7ZtDAMC71B4CSthgr1beBxFkd9qSqFP304dLSIVWAs2Rhe9FahIwFIBcrLYlpoYCq8rTZo2txC+Xvg9qgP4uM59s83fYHeD7AfWFsIleYhV4gRsF8ZFxsPhf2IgVyH1mTGVaZyEU="
+        # Do not ask for confirmation when running ./script/mediawords_create_db.pl
+        - MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM=1
+        # Enable Python API tests in ./script/run_test_suite_for_devel_cover.sh
+        - MEDIACLOUD_ENABLE_PYTHON_API_TESTS=1
+        # Test PythonReadability extractor method in t/test_extractor.t
+        - MC_TEST_EXTRACTOR_PYTHONREADABILITY=1
 before_install:
     # Set up local Media Cloud environment for Python
     - mkdir -p $HOME/mc-python
@@ -98,10 +104,12 @@ install:
     - ./install_scripts/create_default_db_user_and_databases.sh
 before_script:
     # Initialize PostgreSQL database
-    - MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM=1 ./script/run_with_carton.sh ./script/mediawords_create_db.pl
+    - ./script/run_with_carton.sh ./script/mediawords_create_db.pl
 script:
+    # Start Readability service for testing "PythonReadability" extractor method on t/test_extractor.t
+    - "python python_scripts/extractor_python_readability_server.py &"
     # Run Media Cloud's test suite, report test coverage to https://coveralls.io/r/berkmancenter/mediacloud
-    - MEDIACLOUD_ENABLE_PYTHON_API_TESTS=1 ./script/run_test_suite_for_devel_cover.sh coveralls --destroy-solr
+    - ./script/run_test_suite_for_devel_cover.sh coveralls --destroy-solr
 after_failure:
     # Print out the test log
     - echo

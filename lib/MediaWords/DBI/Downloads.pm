@@ -254,7 +254,7 @@ my $_download_store_lookup = lazy
     my $raw_downloads_db_label = 'raw_downloads';    # as set up in mediawords.yml
     unless ( grep { $_ eq $raw_downloads_db_label } MediaWords::DB::get_db_labels() )
     {
-        say STDERR "No such label '$raw_downloads_db_label', falling back to default database";
+        #say STDERR "No such label '$raw_downloads_db_label', falling back to default database";
         $raw_downloads_db_label = undef;
     }
 
@@ -277,7 +277,7 @@ my $_download_store_lookup = lazy
     }
     else
     {
-        say STDERR "No such label '$raw_downloads_fallback_db_label', fallback table disabled";
+        #say STDERR "No such label '$raw_downloads_fallback_db_label', fallback table disabled";
         $download_store_lookup->{ postgresql_fallback } = undef;
     }
 
@@ -511,58 +511,13 @@ sub extractor_results_for_download($$)
 {
     my ( $db, $download ) = @_;
 
-    my $config           = MediaWords::Util::Config::get_config;
-    my $extractor_method = $config->{ mediawords }->{ extractor_method };
-
-    my $extracted_html;
-    my $ret = {};
-
     my $content_ref = fetch_content( $db, $download );
 
-    # Don't run through expensive extractor if the content is short and has no html
-    if ( ( length( $$content_ref ) < 4096 ) and ( $$content_ref !~ /\<.*\>/ ) )
-    {
-        $ret = {
-            extracted_html => $$content_ref,
-            extracted_text => $$content_ref,
-        };
-    }
-    else
-    {
-        #say STDERR "DBI::Downloads::extractor_results_for_download extractor_method $extractor_method";
+    # FIXME if we're using Readability extractor, there's no point fetching
+    # story title and description as Readability doesn't use it
+    my $story = $db->find_by_id( 'stories', $download->{ stories_id } );
 
-        if ( $extractor_method eq 'PythonReadability' )
-        {
-            $extracted_html = MediaWords::Util::ThriftExtractor::get_extracted_html( $$content_ref );
-        }
-        elsif ( $extractor_method eq 'HeuristicExtractor' )
-        {
-            my $lines = _preprocess_content_lines( $content_ref );
-
-            # print "PREPROCESSED LINES:\n**\n" . join( "\n", @{ $lines } ) . "\n**\n";
-
-            my $story = $db->find_by_id( 'stories', $download->{ stories_id } );
-
-            $ret = extract_preprocessed_lines_for_story( $lines, $story->{ title }, $story->{ description } );
-
-            my $download_lines        = $ret->{ download_lines };
-            my $included_line_numbers = $ret->{ included_line_numbers };
-
-            $extracted_html = _get_extracted_html( $download_lines, $included_line_numbers );
-        }
-        else
-        {
-            die "invalid extractor method: $extractor_method";
-        }
-
-        $extracted_html = _new_lines_around_block_level_tags( $extracted_html );
-        my $extracted_text = html_strip( $extracted_html );
-
-        $ret->{ extracted_html } = $extracted_html;
-        $ret->{ extracted_text } = $extracted_text;
-    }
-
-    return $ret;
+    return extract_content_ref( $content_ref, $story->{ title }, $story->{ description } );
 }
 
 # if the given line looks like a tagline for another story and is missing an ending period, add a period
@@ -587,15 +542,62 @@ sub add_period_to_tagline($$$)
     }
 }
 
-sub _do_extraction_from_content_ref($$$)
+# Extract content referenced by $content_ref
+sub extract_content_ref($$$;$)
 {
-    my ( $content_ref, $title, $description ) = @_;
+    my ( $content_ref, $story_title, $story_description, $extractor_method ) = @_;
 
-    my $lines = [ split( /[\n\r]+/, $$content_ref ) ];
+    unless ( $extractor_method )
+    {
+        my $config = MediaWords::Util::Config::get_config;
+        $extractor_method = $config->{ mediawords }->{ extractor_method };
+    }
 
-    $lines = MediaWords::Crawler::Extractor::preprocess( $lines );
+    my $extracted_html;
+    my $ret = {};
 
-    return extract_preprocessed_lines_for_story( $lines, $title, $description );
+    # Don't run through expensive extractor if the content is short and has no html
+    if ( ( length( $$content_ref ) < 4096 ) and ( $$content_ref !~ /\<.*\>/ ) )
+    {
+        $ret = {
+            extracted_html => $$content_ref,
+            extracted_text => $$content_ref,
+        };
+    }
+    else
+    {
+        #say STDERR "DBI::Downloads::extractor_results_for_download extractor_method $extractor_method";
+
+        if ( $extractor_method eq 'PythonReadability' )
+        {
+            $extracted_html = MediaWords::Util::ThriftExtractor::get_extracted_html( $$content_ref );
+        }
+        elsif ( $extractor_method eq 'HeuristicExtractor' )
+        {
+            my $lines = _preprocess_content_lines( $content_ref );
+
+            # print "PREPROCESSED LINES:\n**\n" . join( "\n", @{ $lines } ) . "\n**\n";
+
+            $ret = extract_preprocessed_lines_for_story( $lines, $story_title, $story_description );
+
+            my $download_lines        = $ret->{ download_lines };
+            my $included_line_numbers = $ret->{ included_line_numbers };
+
+            $extracted_html = _get_extracted_html( $download_lines, $included_line_numbers );
+        }
+        else
+        {
+            die "invalid extractor method: $extractor_method";
+        }
+
+        $extracted_html = _new_lines_around_block_level_tags( $extracted_html );
+        my $extracted_text = html_strip( $extracted_html );
+
+        $ret->{ extracted_html } = $extracted_html;
+        $ret->{ extracted_text } = $extracted_text;
+    }
+
+    return $ret;
 }
 
 sub extract_preprocessed_lines_for_story($$$)
