@@ -47,7 +47,7 @@ sub _test_syntax($)
             # 'implicit-read',
             # 'implicit-write',
 
-            'bare-subs',
+            #'bare-subs',
 
             # 'dollar-underscore',
 
