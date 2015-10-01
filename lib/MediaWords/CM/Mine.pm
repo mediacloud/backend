@@ -248,7 +248,7 @@ sub get_links_from_story_text
     {
         my $url = $1;
 
-        $url =~ s/[^a-z]+$//;
+        $url =~ s/\W+$//;
 
         push( @{ $links }, { url => $url } );
     }
@@ -834,6 +834,8 @@ sub add_new_story
         $story_content = $link->{ content };
         $link->{ redirect_url } ||= $link->{ url };
         $link->{ title }        ||= $link->{ url };
+        $old_story->{ url }     ||= $link->{ url };
+        $old_story->{ title }   ||= $link->{ title };
     }
     elsif ( $link )
     {
@@ -1323,7 +1325,18 @@ select count( distinct rs.stories_id )
     limit ( $num_stories - $MAX_SELF_LINKED_STORIES )
 END
 
-    my $num_self_linked_stories = $num_stories - $num_cross_linked_stories;
+    my ( $num_unlinked_stories ) = $db->query( <<END, $cid, $story->{ media_id } )->flat;
+select count( distinct rs.stories_id )
+from cd.live_stories rs
+    left join controversy_links cl on ( cl.controversies_id = \$1 and rs.stories_id = cl.ref_stories_id )
+where
+    rs.controversies_id = \$1 and
+    rs.media_id = \$2 and
+    cl.ref_stories_id is null
+limit ( $num_stories - $MAX_SELF_LINKED_STORIES )
+END
+
+    my $num_self_linked_stories = $num_stories - $num_cross_linked_stories - $num_unlinked_stories;
 
     if ( $num_self_linked_stories > $MAX_SELF_LINKED_STORIES )
     {
@@ -1512,8 +1525,6 @@ SQL
 sub add_new_links
 {
     my ( $db, $controversy, $iteration, $new_links ) = @_;
-
-    die( "add_new_links: " . scalar( @{ $new_links } ) );
 
     $db->dbh->{ AutoCommit } = 0;
 
@@ -1798,7 +1809,7 @@ sub add_link_weights
 
     $story->{ link_weight } += ( 1 / $path_depth ) if ( !$path_depth );
 
-    return if ( !@{ $story->{ links } } );
+    return if ( !scalar( @{ $story->{ links } } ) );
 
     $link_path_lookup->{ $story->{ stories_id } } = 1;
 
@@ -1847,7 +1858,7 @@ sub generate_link_weights
     my ( $db, $controversy, $stories ) = @_;
 
     map { $_->{ source_stories } ||= []; } @{ $stories };
-    map { $_->{ link_weight } = @{ $_->{ source_stories } } } @{ $stories };
+    map { $_->{ link_weight } = scalar( @{ $_->{ source_stories } } ) } @{ $stories };
 
     for my $i ( 1 .. LINK_WEIGHT_ITERATIONS )
     {
@@ -2085,7 +2096,8 @@ SELECT distinct s.*
 
 END
 
-    print STDERR "merging " . scalar( @{ $archive_is_stories } ) . " archive.is stories\n" if ( @{ $archive_is_stories } );
+    print STDERR "merging " . scalar( @{ $archive_is_stories } ) . " archive.is stories\n"
+      if ( scalar( @{ $archive_is_stories } ) );
 
     map { merge_archive_is_story( $db, $controversy, $_ ) } @{ $archive_is_stories };
 }
@@ -2162,7 +2174,7 @@ SELECT distinct s.*
         cs.controversies_id = ?
 END
 
-    print STDERR "merging " . scalar( @{ $dup_media_stories } ) . " stories\n" if ( @{ $dup_media_stories } );
+    print STDERR "merging " . scalar( @{ $dup_media_stories } ) . " stories\n" if ( scalar( @{ $dup_media_stories } ) );
 
     map { merge_dup_media_story( $db, $controversy, $_ ) } @{ $dup_media_stories };
 }
@@ -2192,8 +2204,9 @@ END
     {
         if ( $csu->{ content } )
         {
-            my $story = add_new_story( $db, $csu, undef, $controversy, 0, 1 );
-            add_to_controversy_stories_and_links_if_match( $db, $controversy, $story, 1 );
+            my $story = get_matching_story_from_db( $db, $csu )
+              || add_new_story( $db, $csu, undef, $controversy, 0, 1 );
+            add_to_controversy_stories_if_match( $db, $controversy, $story, $csu );
         }
         else
         {
