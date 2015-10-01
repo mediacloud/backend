@@ -1109,7 +1109,7 @@ sub get_preferred_story
           || ( $a->{ media_id } <=> $b->{ media_id } );
     }
 
-    my $sorted_media = [ sort( _compare_media( @{ $media } ) ) ];
+    my $sorted_media = [ sort _compare_media @{ $media } ];
 
     return $sorted_media->[ 0 ]->{ story };
 }
