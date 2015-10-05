@@ -20,9 +20,10 @@ use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 use MediaWords::DB;
 use MediaWords::Util::SQL;
+use Readonly;
 
 # number of recent ids to index
-use constant INDEX_SIZE => 10000;
+Readonly my $INDEX_SIZE => 10000;
 
 # drop the index if it already exists
 sub drop_index_if_exists
@@ -62,12 +63,12 @@ sub main
     my $db = MediaWords::DB::connect_to_db;
 
     my ( $max_downloads_id ) = $db->query( "select max( downloads_id ) from downloads" )->flat;
-    my $min_downloads_id = $max_downloads_id - INDEX_SIZE;
+    my $min_downloads_id = $max_downloads_id - $INDEX_SIZE;
 
     recreate_index( $db, 'downloads_downloads_id_recent', 'downloads', 'downloads_id', $min_downloads_id );
 
     my ( $max_stories_id ) = $db->query( "select max( stories_id ) from stories" )->flat;
-    my $min_stories_id = $max_stories_id - INDEX_SIZE;
+    my $min_stories_id = $max_stories_id - $INDEX_SIZE;
 
     recreate_index( $db, 'stories_stories_id_recent', 'stories', 'stories_id', $min_stories_id );
 

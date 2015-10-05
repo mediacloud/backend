@@ -68,10 +68,6 @@ END
 
         $db->dbh->pg_putcopyend();
     }
-    else
-    {
-        die unless MediaWords::Util::Config::get_config()->{ mediawords }->{ extractor_method } eq 'PythonReadability';
-    }
 
     $db->query( "update downloads set extracted = 't' where downloads_id = ?", $download->{ downloads_id } );
 

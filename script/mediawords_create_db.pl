@@ -23,8 +23,9 @@ use MediaWords::CommonLibs;
 use MediaWords::Pg::Schema;
 
 use Term::Prompt;
+use Readonly;
 
-use constant MAX_STORIES => 1000;
+Readonly my $MAX_STORIES => 1000;
 
 sub too_many_stories
 {
@@ -34,16 +35,16 @@ sub too_many_stories
 
     return 0 unless ( $stories_exists );
 
-    my ( $num_stories ) = $db->query( "select count(*) from ( select 1 from stories limit ? ) q", MAX_STORIES )->flat;
+    my ( $num_stories ) = $db->query( "select count(*) from ( select 1 from stories limit ? ) q", $MAX_STORIES )->flat;
 
-    return ( $num_stories >= MAX_STORIES ) ? 1 : 0;
+    return ( $num_stories >= $MAX_STORIES ) ? 1 : 0;
 }
 
 sub main
 {
     if ( too_many_stories() )
     {
-        say "Refusing to drop database with at least " . MAX_STORIES . " stories";
+        say "Refusing to drop database with at least $MAX_STORIES stories";
         return 1;
     }
 

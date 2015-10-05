@@ -47,8 +47,6 @@ __PACKAGE__->config(    #
       }    #
 );         #
 
-use constant ROWS_PER_PAGE => 20;
-
 sub story_lines : Local : ActionClass('REST')
 {
 }
@@ -76,26 +74,6 @@ sub story_lines_PUT : Local
 
     $self->status_ok( $c, entity => $lines );
 }
-
-# sub story_lines_GET : Local
-# {
-#     my ( $self, $c ) = @_;
-
-#     say STDERR "body_html";
-
-#     my $body_html = $c->req->param( 'body_html' );
-
-#     #$body_html //= ROWS_PER_PAGE;
-
-#     say STDERR "body_html";
-#     say STDERR length($body_html);
-
-#     my $lines = [ split( /[\n\r]+/, $body_html ) ];
-
-#     $lines = MediaWords::Crawler::Extractor::preprocess( $lines );
-
-#     $self->status_ok( $c, entity => $lines );
-# }
 
 sub extract : Local : ActionClass('REST')    # action roles are to be set for each derivative sub-actions
 {

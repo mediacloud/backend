@@ -22,18 +22,19 @@ BEGIN
 
 use Parallel::ForkManager;
 use Storable;
+use Readonly;
 
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 
 # number of processes to run in parallel
-use constant DEFAULT_NUM_PARALLEL => 10;
+Readonly my $DEFAULT_NUM_PARALLEL => 10;
 
 # timeout any given request after this many seconds
-use constant DEFAULT_TIMEOUT => 90;
+Readonly my $DEFAULT_TIMEOUT => 90;
 
 # number of seconds to wait before sending a new request to a given domain
-use constant DEFAULT_PER_DOMAIN_TIMEOUT => 1;
+Readonly my $DEFAULT_PER_DOMAIN_TIMEOUT => 1;
 
 sub get_request_domain
 {
@@ -121,12 +122,12 @@ sub main
 
     my $config = MediaWords::Util::Config::get_config;
 
-    my $num_parallel       = $config->{ mediawords }->{ web_store_num_parallel } || DEFAULT_NUM_PARALLEL;
+    my $num_parallel       = $config->{ mediawords }->{ web_store_num_parallel } || $DEFAULT_NUM_PARALLEL;
     my $timeout            = $config->{ mediawords }->{ web_store_timeout };
     my $per_domain_timeout = $config->{ mediawords }->{ web_store_per_domain_timeout };
 
-    $timeout            = DEFAULT_TIMEOUT            unless ( defined( $timeout ) );
-    $per_domain_timeout = DEFAULT_PER_DOMAIN_TIMEOUT unless ( defined( $per_domain_timeout ) );
+    $timeout            = $DEFAULT_TIMEOUT            unless ( defined( $timeout ) );
+    $per_domain_timeout = $DEFAULT_PER_DOMAIN_TIMEOUT unless ( defined( $per_domain_timeout ) );
 
     my $pm = new Parallel::ForkManager( $num_parallel );
 

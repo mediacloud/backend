@@ -12,6 +12,8 @@ use Moose;
 use namespace::autoclean;
 use List::Compare;
 use Carp;
+use MediaWords::Solr;
+use MediaWords::CM::Dump;
 
 =head1 NAME
 
@@ -30,8 +32,6 @@ Catalyst Controller.
 =cut
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
-
-use constant ROWS_PER_PAGE => 20;
 
 sub get_table_name
 {
