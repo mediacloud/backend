@@ -15,6 +15,7 @@ use namespace::autoclean;
 use List::Compare;
 use Carp;
 use MediaWords::DBI::Downloads;
+use MediaWords::Crawler::FeedHandler;
 
 =head1 NAME
 
@@ -39,8 +40,6 @@ __PACKAGE__->config(    #
         add_feed_download_PUT => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
       }    #
 );         #
-
-use constant ROWS_PER_PAGE => 20;
 
 sub add_feed_download : Local : ActionClass('REST')
 {

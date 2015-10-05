@@ -18,8 +18,9 @@ use Domain::PublicSuffix;
 use Carp;
 use HTML::LinkExtractor;
 use HTML::Entities;
+use Readonly;
 
-use constant MAX_DEFAULT_FEEDS => 4;
+Readonly my $MAX_DEFAULT_FEEDS => 4;
 
 #use XML::FeedPP;
 use XML::LibXML;
@@ -35,16 +36,16 @@ use Data::Dumper;
 use XML::FeedPP::MediaWords;
 
 # max urls that get_valid_feeds_from_index_url will fetch
-use constant MAX_INDEX_URLS => 1000;
+Readonly my $MAX_INDEX_URLS => 1000;
 
 # max length of scraped urls
-use constant MAX_SCRAPED_URL_LENGTH => 256;
+Readonly my $MAX_SCRAPED_URL_LENGTH => 256;
 
 # max number of recursive calls to _recurse_get_valid_feeds_from_index_url()
-use constant MAX_RECURSE_LEVELS => 1;
+Readonly my $MAX_RECURSE_LEVELS => 1;
 
 # list of url patterns to ignore
-use constant URL_IGNORE_PATTERNS => (
+Readonly my @URL_IGNORE_PATTERNS => (
     qr|add\.my\.yahoo\.com|i,        #
     qr|login\.|i,                    #
     qr|fusion\.google\.com/add|i,    #
@@ -132,12 +133,12 @@ sub _is_valid_feed_url
 {
     my ( $class, $url ) = @_;
 
-    if ( length( $url ) > MAX_SCRAPED_URL_LENGTH )
+    if ( length( $url ) > $MAX_SCRAPED_URL_LENGTH )
     {
         return 0;
     }
 
-    if ( grep { $url =~ $_ } URL_IGNORE_PATTERNS )
+    if ( grep { $url =~ $_ } @URL_IGNORE_PATTERNS )
     {
         return 0;
     }
@@ -538,7 +539,7 @@ sub _recurse_get_valid_feeds_from_index_url($$$$$$)
 
     carp '$urls must be a reference ' unless ref( $urls );
 
-    $#{ $urls } = List::Util::min( $#{ $urls }, MAX_INDEX_URLS - 1 );
+    $#{ $urls } = List::Util::min( $#{ $urls }, $MAX_INDEX_URLS - 1 );
 
     my $responses = MediaWords::Util::Web::ParallelGet( $urls );
 
@@ -558,7 +559,7 @@ sub _recurse_get_valid_feeds_from_index_url($$$$$$)
 
     my $scraped_urls = [ keys( %{ $scraped_url_lookup } ) ];
 
-    $#{ $scraped_urls } = List::Util::min( $#{ $scraped_urls }, MAX_INDEX_URLS - 1 );
+    $#{ $scraped_urls } = List::Util::min( $#{ $scraped_urls }, $MAX_INDEX_URLS - 1 );
 
     my $valid_feeds = $class->get_valid_feeds_from_urls( $scraped_urls, $db, $ignore_patterns );
 
@@ -603,8 +604,8 @@ sub get_valid_feeds_from_index_url($$$$$)
     if ( $recurse )
     {
 
-        # Run recursively with up to MAX_RECURSE_LEVELS
-        $recurse_levels_left = MAX_RECURSE_LEVELS;
+        # Run recursively with up to $MAX_RECURSE_LEVELS
+        $recurse_levels_left = $MAX_RECURSE_LEVELS;
     }
     else
     {
@@ -912,11 +913,11 @@ sub get_feed_links_and_need_to_moderate($$)
     }
 
     # if there are more than 0 default feeds, use those.  If there are no more than
-    # MAX_DEFAULT_FEEDS, use the first one and don't moderate.
+    # $MAX_DEFAULT_FEEDS, use the first one and don't moderate.
     if ( scalar @{ $default_feed_links } > 0 )
     {
         $default_feed_links = [ sort { length( $a->{ url } ) <=> length( $b->{ url } ) } @{ $default_feed_links } ];
-        if ( @{ $default_feed_links } <= MAX_DEFAULT_FEEDS )
+        if ( scalar @{ $default_feed_links } <= $MAX_DEFAULT_FEEDS )
         {
             $default_feed_links = [ $default_feed_links->[ 0 ] ];
         }

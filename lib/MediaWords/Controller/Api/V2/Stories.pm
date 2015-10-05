@@ -14,6 +14,7 @@ use namespace::autoclean;
 use List::Compare;
 use Carp;
 use HTTP::Status qw(:constants);
+use Readonly;
 
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
@@ -58,8 +59,6 @@ __PACKAGE__->config(
         fetch_bitly_clicks => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
     }
 );
-
-use constant ROWS_PER_PAGE => 20;
 
 sub single_GET : Local
 {

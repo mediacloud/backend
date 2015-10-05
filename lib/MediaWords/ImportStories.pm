@@ -74,7 +74,7 @@ sub generate_story
     };
 
     my $date_guess = MediaWords::CM::GuessDate::guess_date( $db, $story, $content, 1 );
-    if ( $date_guess->{ result } eq MediaWords::CM::GuessDate::Result::FOUND )
+    if ( $date_guess->{ result } eq $MediaWords::CM::GuessDate::Result::FOUND )
     {
         $story->{ publish_date } = $date_guess->{ date };
     }
