@@ -19,7 +19,7 @@ my $_last_request_time;
 
 sub test_request()
 {
-    my $ua = MediaWords::Util::Web::UserAgent;
+    my $ua = MediaWords::Util::Web::UserAgentDetermined;
 
     my @urls = (
 
