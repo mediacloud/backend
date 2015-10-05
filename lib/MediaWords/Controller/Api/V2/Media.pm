@@ -12,6 +12,8 @@ use Moose;
 use namespace::autoclean;
 use List::Compare;
 use Carp;
+use MediaWords::Solr;
+use MediaWords::CM::Dump;
 
 =head1 NAME
 

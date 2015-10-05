@@ -15,6 +15,7 @@ use namespace::autoclean;
 use List::Compare;
 use Carp;
 use MediaWords::DBI::Downloads;
+use MediaWords::Crawler::FeedHandler;
 
 =head1 NAME
 

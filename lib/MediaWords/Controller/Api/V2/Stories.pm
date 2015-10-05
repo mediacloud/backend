@@ -14,6 +14,7 @@ use namespace::autoclean;
 use List::Compare;
 use Carp;
 use HTTP::Status qw(:constants);
+use Readonly;
 
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;

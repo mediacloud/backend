@@ -22,6 +22,7 @@ use MediaWords::CommonLibs;
 use URI::Escape;
 
 use MediaWords::Util::JSON;
+use MediaWords::Util::SQL;
 use MediaWords::Util::Web;
 
 # number of stories to return in each feedly request

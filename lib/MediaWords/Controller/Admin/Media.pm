@@ -24,6 +24,7 @@ use MediaWords::Util::Web;
 use MediaWords::Util::HTML;
 use MediaWords::DBI::Feeds;
 use MediaWords::DBI::Media;
+use MediaWords::DBI::Stories;
 use JSON;
 use Readonly;
 use URI;
