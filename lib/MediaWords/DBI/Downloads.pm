@@ -25,7 +25,7 @@ use MediaWords::GearmanFunction::AnnotateWithCoreNLP;
 use MediaWords::Util::ThriftExtractor;
 
 # Database inline content length limit
-use constant INLINE_CONTENT_LENGTH => 256;
+Readonly my $INLINE_CONTENT_LENGTH => 256;
 
 my $_block_level_element_tags = [
     qw ( h1 h2 h3 h4 h5 h6 p div dl dt dd ol ul li dir menu
@@ -291,7 +291,7 @@ sub _download_stores_for_writing($)
 
     my $stores = [];
 
-    if ( length( $$content_ref ) < INLINE_CONTENT_LENGTH )
+    if ( length( $$content_ref ) < $INLINE_CONTENT_LENGTH )
     {
         unless ( $_download_store_lookup->{ databaseinline } )
         {

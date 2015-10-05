@@ -25,7 +25,7 @@ use MediaWords::Util::JSON;
 use MediaWords::Util::Web;
 
 # number of stories to return in each feedly request
-use constant FEEDLY_COUNT => 10000;
+Readonly my $FEEDLY_COUNT => 10_000;
 
 has 'feed_url' => ( is => 'rw', isa => 'Str', required => 1 );
 
@@ -95,7 +95,7 @@ sub _get_stories_from_feedly
     $ua->timing( '1,15,60,300,300' );
 
     my $esc_feed_url = uri_escape( $self->feed_url );
-    my $url          = "http://cloud.feedly.com/v3/streams/contents?streamId=feed/$esc_feed_url&count=" . FEEDLY_COUNT;
+    my $url          = "http://cloud.feedly.com/v3/streams/contents?streamId=feed/$esc_feed_url&count=$FEEDLY_COUNT";
 
     if ( $self->continuation_id )
     {

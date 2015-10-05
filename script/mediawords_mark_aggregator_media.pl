@@ -2,7 +2,7 @@
 
 # set media.foreign_rss_links to true for any media use foreign links in their rss feeds, which can confuse some analyses.
 # we detect those media by just looking at urls of the last 200 stories from the feed, parsing out the domain from each,
-# and marking foreign_rss_links to true for any medium that has more than MAX_DIFFERENT_DOMAINS different domains
+# and marking foreign_rss_links to true for any medium that has more than $MAX_DIFFERENT_DOMAINS different domains
 
 use strict;
 use warnings;
@@ -16,8 +16,9 @@ BEGIN
 use MediaWords::DB;
 use MediaWords::Util::CSV;
 use MediaWords::DBI::Media;
+use Readonly;
 
-use constant MAX_DIFFERENT_DOMAINS => 10;
+Readonly my $MAX_DIFFERENT_DOMAINS => 10;
 
 sub main
 {
@@ -41,7 +42,7 @@ END
 
         my $num_domains = scalar( values( %{ $domain_map } ) );
 
-        my $foreign_rss_links = ( $num_domains > MAX_DIFFERENT_DOMAINS ) ? 't' : 'f';
+        my $foreign_rss_links = ( $num_domains > $MAX_DIFFERENT_DOMAINS ) ? 't' : 'f';
 
         print STDERR "$medium->{ name } [ $medium->{ media_id } ]: $num_domains - $foreign_rss_links\n";
 

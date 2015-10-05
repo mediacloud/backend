@@ -11,7 +11,7 @@ use Readonly;
 use Test::More tests => 25;
 
 # Run the comparison multiple times so that the performance difference is more obvious
-use constant TEST_ITERATIONS => 100;
+Readonly my $TEST_ITERATIONS => 100;
 
 BEGIN
 {
@@ -38,7 +38,7 @@ sub _compare_similarity_score($$$$$)
 
     # Text::Similarity::Overlaps
     $time_before = Time::HiRes::time();
-    for ( my $x = 0 ; $x < TEST_ITERATIONS ; ++$x )
+    for ( my $x = 0 ; $x < $TEST_ITERATIONS ; ++$x )
     {
         $expected_score = $sim->getSimilarityStrings( $text_1, $text_2 );
     }
@@ -50,7 +50,7 @@ sub _compare_similarity_score($$$$$)
 
     # Media Cloud's implementation
     $time_before = Time::HiRes::time();
-    for ( my $x = 0 ; $x < TEST_ITERATIONS ; ++$x )
+    for ( my $x = 0 ; $x < $TEST_ITERATIONS ; ++$x )
     {
         $actual_score = MediaWords::Util::Text::get_similarity_score( $text_1, $text_2, $language );
     }

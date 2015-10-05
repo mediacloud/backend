@@ -38,14 +38,15 @@ use HTTP::Server::Simple::CGI;
 use HTTP::Status;
 use LWP::Simple;
 use MIME::Base64;
+use Readonly;
 
 use base qw(HTTP::Server::Simple::CGI);
 
 # argument for die called by handle_response when a request with the path /die is received
-use constant DIE_REQUEST_MESSAGE => 'received /die request';
+Readonly my $DIE_REQUEST_MESSAGE => 'received /die request';
 
 # Default HTTP status code for redirects ("301 Moved Permanently")
-use constant DEFAULT_REDIRECT_STATUS_CODE => 301;
+Readonly my $DEFAULT_REDIRECT_STATUS_CODE => 301;
 
 # create a new server object
 sub new
@@ -121,7 +122,7 @@ sub handler
 
     if ( $@ )
     {
-        if ( substr( $@, 0, length( DIE_REQUEST_MESSAGE ) ) eq DIE_REQUEST_MESSAGE )
+        if ( substr( $@, 0, length( $DIE_REQUEST_MESSAGE ) ) eq $DIE_REQUEST_MESSAGE )
         {
             die( $@ );
         }
@@ -199,7 +200,7 @@ sub handle_request
         print "\r\n";
         print "Killing server.";
 
-        die( DIE_REQUEST_MESSAGE );
+        die( $DIE_REQUEST_MESSAGE );
     }
 
     my $page = $self->{ pages }->{ $path };
@@ -221,7 +222,7 @@ sub handle_request
     {
         my $enc_redirect = HTML::Entities::encode_entities( $redirect );
 
-        my $http_status_code = $page->{ http_status_code } // DEFAULT_REDIRECT_STATUS_CODE;
+        my $http_status_code = $page->{ http_status_code } // $DEFAULT_REDIRECT_STATUS_CODE;
         my $http_status_message = HTTP::Status::status_message( $http_status_code )
           || die( "unknown status code '$http_status_code'" );
 

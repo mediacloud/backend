@@ -40,8 +40,6 @@ __PACKAGE__->config(    #
       }    #
 );         #
 
-use constant ROWS_PER_PAGE => 20;
-
 sub add_feed_download : Local : ActionClass('REST')
 {
 }

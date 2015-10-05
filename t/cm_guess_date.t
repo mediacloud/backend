@@ -17,10 +17,11 @@ use utf8;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 use MediaWords::Test::DB;
+use Readonly;
 
 # Integer constants (in case Date::Parse::str2time fails)
-use constant _TIMESTAMP_12_00_GMT => 1326801600;    # Tue, 17 Jan 2012 12:00:00 GMT (UTC); for dates without time / timezone
-use constant _TIMESTAMP_12_00_EST => 1326819600;    # Tue, 17 Jan 2012 12:00:00 EST (-05:00)
+Readonly my $TIMESTAMP_12_00_GMT => 1326801600;    # Tue, 17 Jan 2012 12:00:00 GMT (UTC); for dates without time / timezone
+Readonly my $TIMESTAMP_12_00_EST => 1326819600;    # Tue, 17 Jan 2012 12:00:00 EST (-05:00)
 
 BEGIN { use_ok 'MediaWords::CM::GuessDate' }
 BEGIN { use_ok 'MediaWords::CM::GuessDate::Result' }
@@ -45,7 +46,7 @@ sub _gt($$;$$)
     my ( $db, $html, $story_url, $story_publish_date ) = @_;
 
     my $result = _gr( $db, $html, $story_url, $story_publish_date );
-    if ( $result->{ result } eq MediaWords::CM::GuessDate::Result::FOUND )
+    if ( $result->{ result } eq $MediaWords::CM::GuessDate::Result::FOUND )
     {
         return $result->{ timestamp };
     }
@@ -91,57 +92,57 @@ sub test_dates($)
     my $db = shift;
 
     is( _gt( $db, '<meta name="DC.date.issued" content="2012-01-17T12:00:00-05:00" />' ),
-        _TIMESTAMP_12_00_EST, 'guess_by_dc_date_issued' );
+        $TIMESTAMP_12_00_EST, 'guess_by_dc_date_issued' );
     is(
         _gt(
             $db,
             '<li property="dc:date dc:created" ' . 'content="2012-01-17T12:00:00-05:00" ' .
               'datatype="xsd:dateTime" class="created">' . 'January 17, 2012</li>'
         ),
-        _TIMESTAMP_12_00_EST,
+        $TIMESTAMP_12_00_EST,
         'guess_by_dc_created'
     );
     is( _gt( $db, '<meta name="item-publish-date" content="Tue, 17 Jan 2012 12:00:00 EST" />' ),
-        _TIMESTAMP_12_00_EST, 'guess_by_meta_publish_date' );
+        $TIMESTAMP_12_00_EST, 'guess_by_meta_publish_date' );
 
     is( _gt( $db, '<meta property="article:published_time" content="2012-01-17T12:00:00-05:00" />' ),
-        _TIMESTAMP_12_00_EST, 'guess_by_og_article_published_time' );
+        $TIMESTAMP_12_00_EST, 'guess_by_og_article_published_time' );
 
     is( _gt( $db, '<meta name="sailthru.date" content="Tue, 17 Jan 2012 12:00:00 -0500">' ),
-        _TIMESTAMP_12_00_EST, 'guess_by_sailthru_date' );
+        $TIMESTAMP_12_00_EST, 'guess_by_sailthru_date' );
 
     # Assume that the timezone is GMT
-    is( _gt( $db, '<p class="storydate">Tue, Jan 17th 2012</p>' ), _TIMESTAMP_12_00_GMT, 'guess_by_storydate' );
+    is( _gt( $db, '<p class="storydate">Tue, Jan 17th 2012</p>' ), $TIMESTAMP_12_00_GMT, 'guess_by_storydate' );
 
     is( _gt( $db, '<span class="date" data-time="1326819600">Jan 17, 2012 12:00 pm EST</span>' ),
-        _TIMESTAMP_12_00_EST, 'guess_by_datatime' );
+        $TIMESTAMP_12_00_EST, 'guess_by_datatime' );
 
     # FIXME _guess_by_datetime_pubdate() ignores contents, uses @datetime instead;
     # and @datetime assumes that the timezone is GMT.
     is( _gt( $db, '<time datetime="2012-01-17" pubdate>Jan 17, 2012 12:00 pm EST</time>' ),
-        _TIMESTAMP_12_00_GMT, 'guess_by_datetime_pubdate' );
+        $TIMESTAMP_12_00_GMT, 'guess_by_datetime_pubdate' );
 
     is( _gt( $db, '<p>Hello!</p>', 'http://www.example.com/news/2012/01/17/hello.html' ),
-        _TIMESTAMP_12_00_GMT, 'guess_by_url' );
+        $TIMESTAMP_12_00_GMT, 'guess_by_url' );
 
     # Expected to prefer the date in text, fallback to the date in URL
     is( _gt( $db, 'Jan 17th, 2012, 05:00 AM GMT', 'http://www.example.com/news/2012/01/17/hello.html' ),
-        _TIMESTAMP_12_00_GMT, 'guess_by_url_and_date_text in URL' );
+        $TIMESTAMP_12_00_GMT, 'guess_by_url_and_date_text in URL' );
     is( _gt( $db, 'Jan 17th, 2012, 12:00 PM EST', 'http://www.example.com/news/2012/01/17/hello.html' ),
-        _TIMESTAMP_12_00_EST, 'guess_by_url_and_date_text in text and URL' );
+        $TIMESTAMP_12_00_EST, 'guess_by_url_and_date_text in text and URL' );
 
-    is( _gt( $db, '<p class="date">Jan 17, 2012</p>' ), _TIMESTAMP_12_00_GMT, 'guess_by_class_date' );
+    is( _gt( $db, '<p class="date">Jan 17, 2012</p>' ), $TIMESTAMP_12_00_GMT, 'guess_by_class_date' );
     is( _gt( $db, '<p>foo bar</p><p class="dateline>published on Jan 17th, 2012, 12:00 PM EST' ),
-        _TIMESTAMP_12_00_EST, 'guess_by_date_text' );
-    is( _gt( $db, '<p>Hey!</p>', undef, '2012-01-17T12:00:00-05:00' ), _TIMESTAMP_12_00_EST,
+        $TIMESTAMP_12_00_EST, 'guess_by_date_text' );
+    is( _gt( $db, '<p>Hey!</p>', undef, '2012-01-17T12:00:00-05:00' ), $TIMESTAMP_12_00_EST,
         'guess_by_existing_story_date' );
-    is( _gt( $db, '<meta name="pubdate" content="2012-01-17 12:00:00" />' ), _TIMESTAMP_12_00_GMT, 'guess_by_meta_pubdate' );
+    is( _gt( $db, '<meta name="pubdate" content="2012-01-17 12:00:00" />' ), $TIMESTAMP_12_00_GMT, 'guess_by_meta_pubdate' );
 
     # LiveJournal
     is( _gt( $db, '<abbr class="updated" title="2012-01-17T12:00:00-05:00">' ),
-        _TIMESTAMP_12_00_EST, '_guess_by_abbr_published_updated_date' );
+        $TIMESTAMP_12_00_EST, '_guess_by_abbr_published_updated_date' );
     is( _gt( $db, '<abbr class="published" title="2012-01-17T12:00:00-05:00">' ),
-        _TIMESTAMP_12_00_EST, '_guess_by_abbr_published_updated_date' );
+        $TIMESTAMP_12_00_EST, '_guess_by_abbr_published_updated_date' );
 }
 
 sub test_date_matching($)
@@ -226,63 +227,63 @@ sub test_inapplicable($)
 
     is(
         _gr_url( $db, 'http://www.easyvoterguide.org/propositions/' )->{ result },
-        MediaWords::CM::GuessDate::Result::INAPPLICABLE,
+        $MediaWords::CM::GuessDate::Result::INAPPLICABLE,
         'inapplicable: no digits in URL'
     );
     is(
         _gr_url( $db, 'http://www.calchannel.com/proposition-36-three-strikes-law/' )->{ result },
-        MediaWords::CM::GuessDate::Result::INAPPLICABLE,
+        $MediaWords::CM::GuessDate::Result::INAPPLICABLE,
         'inapplicable: 404 Not Found'
     );
     is(
         _gr_url( $db, 'http://www.15min.lt/////' )->{ result },
-        MediaWords::CM::GuessDate::Result::INAPPLICABLE,
+        $MediaWords::CM::GuessDate::Result::INAPPLICABLE,
         'inapplicable: no path in URL'
     );
     is(
         _gr_url( $db, 'http://en.wikipedia.org/wiki/1980s_in_fashion' )->{ result },
-        MediaWords::CM::GuessDate::Result::INAPPLICABLE,
+        $MediaWords::CM::GuessDate::Result::INAPPLICABLE,
         'inapplicable: Wikipedia URL'
     );
     is(
         _gr_url( $db, 'https://www.phpbb.com/community/viewforum.php?f=14' )->{ result },
-        MediaWords::CM::GuessDate::Result::INAPPLICABLE,
+        $MediaWords::CM::GuessDate::Result::INAPPLICABLE,
         'inapplicable: phpBB forum'
     );
     is(
         _gr_url( $db, 'https://twitter.com/ladygaga' )->{ result },
-        MediaWords::CM::GuessDate::Result::INAPPLICABLE,
+        $MediaWords::CM::GuessDate::Result::INAPPLICABLE,
         'inapplicable: Twitter user URL'
     );
     is(
         _gr_url( $db,
 'https://www.facebook.com/notes/facebook-engineering/adding-face-to-every-ip-celebrating-ipv6s-one-year-anniversary/10151492544578920'
           )->{ result },
-        MediaWords::CM::GuessDate::Result::INAPPLICABLE,
+        $MediaWords::CM::GuessDate::Result::INAPPLICABLE,
         'inapplicable: Facebook URL'
     );
     is(
         _gr_url( $db, 'http://vimeo.com/blog/archive/year:2013' )->{ result },
-        MediaWords::CM::GuessDate::Result::INAPPLICABLE,
+        $MediaWords::CM::GuessDate::Result::INAPPLICABLE,
         'inapplicable: looks like URL of archive'
     );
     is(
         _gr_url( $db,
             'http://www.timesunion.com/news/crime/article/3-strikes-law-reformed-fewer-harsh-sentences-4013514.php' )
           ->{ result },
-        MediaWords::CM::GuessDate::Result::INAPPLICABLE,
+        $MediaWords::CM::GuessDate::Result::INAPPLICABLE,
         'inapplicable: timesunion.com HTTP 404 Not Found'
     );
     is(
         _gr_url( $db,
             'http://www.seattlepi.com/news/crime/article/ACLU-challenges-human-trafficking-initiative-4018819.php' )
           ->{ result },
-        MediaWords::CM::GuessDate::Result::INAPPLICABLE,
+        $MediaWords::CM::GuessDate::Result::INAPPLICABLE,
         'inapplicable: seattlepi.com HTTP 404 Not Found'
     );
     is(
         _gr_url( $db, 'http://www.kgoam810.com/Article.asp?id=2569360&spid=' )->{ result },
-        MediaWords::CM::GuessDate::Result::INAPPLICABLE,
+        $MediaWords::CM::GuessDate::Result::INAPPLICABLE,
         'inapplicable: kgoam810.com HTTP access denied'
     );
 }

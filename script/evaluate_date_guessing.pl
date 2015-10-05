@@ -201,17 +201,17 @@ END
         my $actual_result = MediaWords::CM::GuessDate::Result->new();
         if ( $actual_date eq 'not found' )
         {
-            $actual_result->{ result } = MediaWords::CM::GuessDate::Result::NOT_FOUND;
+            $actual_result->{ result } = $MediaWords::CM::GuessDate::Result::NOT_FOUND;
         }
         elsif ( $actual_date eq 'unavailable' or $actual_date eq 'inapplicable' )
         {
 
             # Treat HTTP 404 errors as "inapplicable"
-            $actual_result->{ result } = MediaWords::CM::GuessDate::Result::INAPPLICABLE;
+            $actual_result->{ result } = $MediaWords::CM::GuessDate::Result::INAPPLICABLE;
         }
         else
         {
-            $actual_result->{ result }    = MediaWords::CM::GuessDate::Result::FOUND;
+            $actual_result->{ result }    = $MediaWords::CM::GuessDate::Result::FOUND;
             $actual_result->{ timestamp } = Date::Parse::str2time( $actual_date, 'GMT' );
             $actual_result->{ date }      = _timestamp_to_date( $actual_result->{ timestamp } );  # for display purposes only
         }
@@ -241,13 +241,13 @@ END
             $guessed_result = MediaWords::CM::GuessDate::Result->new();
             if ( $guessed_timestamp )
             {
-                $guessed_result->{ result }    = MediaWords::CM::GuessDate::Result::FOUND;
+                $guessed_result->{ result }    = $MediaWords::CM::GuessDate::Result::FOUND;
                 $guessed_result->{ timestamp } = $guessed_timestamp;
                 $guessed_result->{ date }      = _timestamp_to_date( $guessed_timestamp );    # for display purposes only
             }
             else
             {
-                $guessed_result->{ result } = MediaWords::CM::GuessDate::Result::NOT_FOUND;
+                $guessed_result->{ result } = $MediaWords::CM::GuessDate::Result::NOT_FOUND;
             }
         }
         say STDERR "\tGuessed date: " . ( $guessed_result->{ date } || $guessed_result->{ result } ) .
@@ -256,8 +256,8 @@ END
 
         # Write down numbers
         ++$guesses->{ _total };
-        if (    $actual_result->{ result } eq MediaWords::CM::GuessDate::Result::FOUND
-            and $guessed_result->{ result } eq MediaWords::CM::GuessDate::Result::FOUND )
+        if (    $actual_result->{ result } eq $MediaWords::CM::GuessDate::Result::FOUND
+            and $guessed_result->{ result } eq $MediaWords::CM::GuessDate::Result::FOUND )
         {
 
             # Both are dateable
@@ -325,14 +325,14 @@ END
             {
                 say STDERR "\tExact match (both '" . $actual_result->{ result } . "')";
 
-                if ( $actual_result->{ result } eq MediaWords::CM::GuessDate::Result::NOT_FOUND )
+                if ( $actual_result->{ result } eq $MediaWords::CM::GuessDate::Result::NOT_FOUND )
                 {
                     ++$guesses->{ correct }->{ _total };
                     ++$guesses->{ correct }->{ undateable }->{ _total };
                     ++$guesses->{ correct }->{ undateable }->{ not_found };
 
                 }
-                elsif ( $actual_result->{ result } eq MediaWords::CM::GuessDate::Result::INAPPLICABLE )
+                elsif ( $actual_result->{ result } eq $MediaWords::CM::GuessDate::Result::INAPPLICABLE )
                 {
                     ++$guesses->{ correct }->{ _total };
                     ++$guesses->{ correct }->{ undateable }->{ _total };
@@ -355,14 +355,14 @@ END
                 ++$guesses->{ incorrect }->{ _total };
                 ++$guesses->{ incorrect }->{ undateable }->{ _total };
 
-                if ( $actual_result->{ result } eq MediaWords::CM::GuessDate::Result::FOUND )
+                if ( $actual_result->{ result } eq $MediaWords::CM::GuessDate::Result::FOUND )
                 {
 
-                    if ( $guessed_result->{ result } eq MediaWords::CM::GuessDate::Result::NOT_FOUND )
+                    if ( $guessed_result->{ result } eq $MediaWords::CM::GuessDate::Result::NOT_FOUND )
                     {
                         ++$guesses->{ incorrect }->{ undateable }->{ expected_date }->{ got_not_found };
                     }
-                    elsif ( $guessed_result->{ result } eq MediaWords::CM::GuessDate::Result::INAPPLICABLE )
+                    elsif ( $guessed_result->{ result } eq $MediaWords::CM::GuessDate::Result::INAPPLICABLE )
                     {
                         ++$guesses->{ incorrect }->{ undateable }->{ expected_date }->{ got_inapplicable };
                     }
@@ -372,14 +372,14 @@ END
                     }
 
                 }
-                elsif ( $actual_result->{ result } eq MediaWords::CM::GuessDate::Result::NOT_FOUND )
+                elsif ( $actual_result->{ result } eq $MediaWords::CM::GuessDate::Result::NOT_FOUND )
                 {
 
-                    if ( $guessed_result->{ result } eq MediaWords::CM::GuessDate::Result::FOUND )
+                    if ( $guessed_result->{ result } eq $MediaWords::CM::GuessDate::Result::FOUND )
                     {
                         ++$guesses->{ incorrect }->{ undateable }->{ expected_not_found }->{ got_date };
                     }
-                    elsif ( $guessed_result->{ result } eq MediaWords::CM::GuessDate::Result::INAPPLICABLE )
+                    elsif ( $guessed_result->{ result } eq $MediaWords::CM::GuessDate::Result::INAPPLICABLE )
                     {
                         ++$guesses->{ incorrect }->{ undateable }->{ expected_not_found }->{ got_inapplicable };
                     }
@@ -389,14 +389,14 @@ END
                     }
 
                 }
-                elsif ( $actual_result->{ result } eq MediaWords::CM::GuessDate::Result::INAPPLICABLE )
+                elsif ( $actual_result->{ result } eq $MediaWords::CM::GuessDate::Result::INAPPLICABLE )
                 {
 
-                    if ( $guessed_result->{ result } eq MediaWords::CM::GuessDate::Result::FOUND )
+                    if ( $guessed_result->{ result } eq $MediaWords::CM::GuessDate::Result::FOUND )
                     {
                         ++$guesses->{ incorrect }->{ undateable }->{ expected_inapplicable }->{ got_date };
                     }
-                    elsif ( $guessed_result->{ result } eq MediaWords::CM::GuessDate::Result::NOT_FOUND )
+                    elsif ( $guessed_result->{ result } eq $MediaWords::CM::GuessDate::Result::NOT_FOUND )
                     {
                         ++$guesses->{ incorrect }->{ undateable }->{ expected_inapplicable }->{ got_not_found };
                     }

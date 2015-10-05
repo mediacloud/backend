@@ -13,10 +13,6 @@ use HTML::Entities;
 
 use MediaWords::Crawler::Extractor;
 
-# CONSTANTS
-
-use constant ROWS_PER_PAGE => 100;
-
 # METHODS
 
 sub index : Path : Args(0)

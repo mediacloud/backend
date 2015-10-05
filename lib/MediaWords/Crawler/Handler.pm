@@ -17,6 +17,7 @@ use Data::Dumper;
 use Date::Parse;
 use Encode;
 use FindBin;
+use Readonly;
 use URI::Split;
 use if $] < 5.014, Switch => 'Perl6';
 use if $] >= 5.014, feature => 'switch';
@@ -36,10 +37,10 @@ use MediaWords::Util::SQL;
 # CONSTANTS
 
 # max number of pages the handler will download for a single story
-use constant MAX_PAGES => 10;
+Readonly my $MAX_PAGES => 10;
 
 # max number of times to try a page after a 5xx error
-use constant MAX_5XX_RETRIES => 10;
+Readonly my $MAX_5XX_RETRIES => 10;
 
 # METHODS
 
@@ -163,9 +164,9 @@ END
 
     return unless ( use_pager( $medium ) );
 
-    if ( $download->{ sequence } > MAX_PAGES )
+    if ( $download->{ sequence } > $MAX_PAGES )
     {
-        print STDERR "reached max pages (" . MAX_PAGES . ") for url '$download->{ url }'\n";
+        print STDERR "reached max pages ($MAX_PAGES) for url '$download->{ url }'\n";
         return;
     }
 
@@ -257,7 +258,7 @@ sub handle_error
 
     my $enc_error_message = encode( 'utf8', $response->status_line . "\n[error_num: $error_num]" );
 
-    if ( ( $response->status_line =~ /^(503|500 read timeout)/ ) && ( $error_num <= MAX_5XX_RETRIES ) )
+    if ( ( $response->status_line =~ /^(503|500 read timeout)/ ) && ( $error_num <= $MAX_5XX_RETRIES ) )
     {
         my $interval = "$error_num hours";
 

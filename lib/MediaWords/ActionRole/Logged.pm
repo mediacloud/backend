@@ -15,8 +15,9 @@ with 'MediaWords::ActionRole::AbstractAuthenticatedActionRole';
 use namespace::autoclean;
 
 use HTTP::Status qw(:constants);
+use Readonly;
 
-use constant NUMBER_OF_REQUESTED_ITEMS_KEY => 'MediaWords::ActionRole::Logged::requested_items_count';
+Readonly my $NUMBER_OF_REQUESTED_ITEMS_KEY => 'MediaWords::ActionRole::Logged::requested_items_count';
 
 around execute => sub {
 
@@ -41,7 +42,7 @@ around execute => sub {
             die 'request_path is undef';
         }
 
-        my $requested_items_count = $c->stash->{ NUMBER_OF_REQUESTED_ITEMS_KEY } // 1;
+        my $requested_items_count = $c->stash->{ $NUMBER_OF_REQUESTED_ITEMS_KEY } // 1;
 
         # Log the request
         my $db = $c->dbis;
@@ -74,7 +75,7 @@ sub set_requested_items_count($$)
     my ( $c, $requested_items_count ) = @_;
 
     # Will use it later in after{}
-    $c->stash->{ NUMBER_OF_REQUESTED_ITEMS_KEY } = $requested_items_count;
+    $c->stash->{ $NUMBER_OF_REQUESTED_ITEMS_KEY } = $requested_items_count;
 }
 
 1;
