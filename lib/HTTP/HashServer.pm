@@ -12,13 +12,13 @@ package HTTP::HashServer;
 #     '/foo-bar' => { redirect => '/bar' },
 #     '/localhost' => { redirect => "http://localhost:$_port/" },
 #     '/127-foo' => { redirect => "http://127.0.0.1:$_port/foo", http_status_code => 303 },
-#     '/callback' => sub {
+#     '/callback' => { callback => sub {
 #         my ( $self, $cgi ) = @_;
 #         print "HTTP/1.0 200 OK\r\n";
 #         print "Content-Type: text/plain\r\n";
 #         print "\r\n";
 #         print "This is callback.";
-#     },
+#     }},
 #     '/auth' => { auth => 'user:password' }
 # };
 #
