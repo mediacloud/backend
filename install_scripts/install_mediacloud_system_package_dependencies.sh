@@ -203,6 +203,9 @@ else
                 echo_vagrant_instructions
                 exit 1
             fi
+
+            # Install AWS plugin (https://github.com/mitchellh/vagrant-aws)
+            vagrant plugin install vagrant-aws
         fi
     fi
 
