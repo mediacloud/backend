@@ -205,7 +205,7 @@ else
             fi
 
             # Install AWS plugin (https://github.com/mitchellh/vagrant-aws)
-            vagrant plugin install vagrant-aws
+            vagrant plugin install vagrant-aws --plugin-version 0.5.0
         fi
     fi
 
