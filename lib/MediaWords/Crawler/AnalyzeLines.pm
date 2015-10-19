@@ -1,5 +1,8 @@
 package MediaWords::Crawler::AnalyzeLines;
 
+use strict;
+use warnings;
+
 use List::MoreUtils qw( uniq distinct :all );
 use List::Util qw( sum  );
 use Text::Trim;
@@ -14,30 +17,28 @@ use MediaWords::Util::IdentifyLanguage;
 use Carp;
 use HTML::Entities;
 use Set::Jaccard::SimilarityCoefficient;
+use Readonly;
 
 # extract substantive new story text from html pages
 
-use strict;
-use warnings;
-
 # don't count paragraph tags as much as others
-use constant P_DISCOUNT => .1;
+Readonly my $P_DISCOUNT => .1;
 
 # don't count a tags as much as others after the first one
-use constant A_DISCOUNT => .5;
+Readonly my $A_DISCOUNT => .5;
 
 # lists are bad
-use constant LI_DISCOUNT => 10;
+Readonly my $LI_DISCOUNT => 10;
 
 # apply discount for similarity with story description.
 # set to 0 to disable
-use constant DESCRIPTION_SIMILARITY_DISCOUNT => .5;
+Readonly my $DESCRIPTION_SIMILARITY_DISCOUNT => .5;
 
 # only apply similarity test to this many characters of the story text and desciption
-use constant MAX_SIMILARITY_LENGTH => 8192;
+Readonly my $MAX_SIMILARITY_LENGTH => 8192;
 
 # only calculate the html_density for the first of this many characters of each line
-use constant MAX_HTML_DENSITY_LENGTH => 65536;
+Readonly my $MAX_HTML_DENSITY_LENGTH => 65536;
 
 #todo explain what this function really does
 # return the ratio of html characters to text characters
@@ -50,7 +51,7 @@ sub _get_html_density($$)
         return 1;
     }
 
-    $line = substr( $line, 0, MAX_HTML_DENSITY_LENGTH );
+    $line = substr( $line, 0, $MAX_HTML_DENSITY_LENGTH );
 
     my $a_tag_found;
     my $html_length = 0;
@@ -60,11 +61,11 @@ sub _get_html_density($$)
 
         if ( $tag_name eq 'p' )
         {
-            $len *= P_DISCOUNT;
+            $len *= $P_DISCOUNT;
         }
         elsif ( $tag_name eq 'li' )
         {
-            $len *= LI_DISCOUNT;
+            $len *= $LI_DISCOUNT;
         }
         elsif ( $tag_name eq 'a' )
         {
@@ -74,7 +75,7 @@ sub _get_html_density($$)
             }
             elsif ( pos( $line ) > 32 )
             {
-                $len *= A_DISCOUNT;
+                $len *= $A_DISCOUNT;
             }
         }
 
@@ -135,14 +136,14 @@ sub _get_description_similarity_discount($$$)
         return 1;
     }
 
-    if ( length( $line ) > MAX_SIMILARITY_LENGTH )
+    if ( length( $line ) > $MAX_SIMILARITY_LENGTH )
     {
-        $line = substr( $line, 0, MAX_SIMILARITY_LENGTH );
+        $line = substr( $line, 0, $MAX_SIMILARITY_LENGTH );
     }
 
-    if ( length( $description ) > MAX_SIMILARITY_LENGTH )
+    if ( length( $description ) > $MAX_SIMILARITY_LENGTH )
     {
-        $description = substr( $description, 0, MAX_SIMILARITY_LENGTH );
+        $description = substr( $description, 0, $MAX_SIMILARITY_LENGTH );
     }
 
     my $stripped_line        = html_strip( $line );
@@ -150,13 +151,13 @@ sub _get_description_similarity_discount($$$)
 
     my $score = MediaWords::Util::Text::get_similarity_score( $stripped_line, $stripped_description, $language_code );
 
-    if (   ( DESCRIPTION_SIMILARITY_DISCOUNT > 1 )
-        || ( DESCRIPTION_SIMILARITY_DISCOUNT < 0 ) )
+    if (   ( $DESCRIPTION_SIMILARITY_DISCOUNT > 1 )
+        || ( $DESCRIPTION_SIMILARITY_DISCOUNT < 0 ) )
     {
         die( "DESCRIPTION_SIMILARITY_DISCOUNT must be between 0 and 1" );
     }
 
-    my $power = 1 / DESCRIPTION_SIMILARITY_DISCOUNT;
+    my $power = 1 / $DESCRIPTION_SIMILARITY_DISCOUNT;
 
     # 1 means complete similarity and 0 means none
     # so invert it
@@ -173,14 +174,14 @@ sub _get_description_jaccard($$)
         return 0;
     }
 
-    if ( length( $line ) > MAX_SIMILARITY_LENGTH )
+    if ( length( $line ) > $MAX_SIMILARITY_LENGTH )
     {
-        $line = substr( $line, 0, MAX_SIMILARITY_LENGTH );
+        $line = substr( $line, 0, $MAX_SIMILARITY_LENGTH );
     }
 
-    if ( length( $description ) > MAX_SIMILARITY_LENGTH )
+    if ( length( $description ) > $MAX_SIMILARITY_LENGTH )
     {
-        $description = substr( $description, 0, MAX_SIMILARITY_LENGTH );
+        $description = substr( $description, 0, $MAX_SIMILARITY_LENGTH );
     }
 
     my $stripped_line        = html_strip( $line );
@@ -206,12 +207,11 @@ sub _calculate_line_extraction_metrics($$$$$$)
 
     my $article_has_clickprint = $has_clickprint;
 
-    my $article_has_sphereit_map        = defined( $sphereit_map );
-    my $sphereit_map_includes_line      = ( defined( $sphereit_map ) && $sphereit_map->{ $i } );
-    my $description_similarity_discount = _get_description_similarity_discount( $line, $description, $language_code );
+    my $article_has_sphereit_map   = defined( $sphereit_map );
+    my $sphereit_map_includes_line = ( defined( $sphereit_map ) && $sphereit_map->{ $i } );
+    my $dsd                        = _get_description_similarity_discount( $line, $description, $language_code );
 
-    return ( $article_has_clickprint, $article_has_sphereit_map, $description_similarity_discount,
-        $sphereit_map_includes_line );
+    return ( $article_has_clickprint, $article_has_sphereit_map, $dsd, $sphereit_map_includes_line );
 }
 
 #
@@ -301,8 +301,8 @@ sub _calculate_full_line_metrics($$$$$$$$$)
 
     my ( $copyright_count ) = _get_copyright_count( $line, $language_code );
 
-    my ( $article_has_clickprint, $article_has_sphereit_map, $description_similarity_discount, $sphereit_map_includes_line )
-      = _calculate_line_extraction_metrics( $line_number, $description, $line, $sphereit_map, $has_clickprint,
+    my ( $article_has_clickprint, $article_has_sphereit_map, $dsd, $sphereit_map_includes_line ) =
+      _calculate_line_extraction_metrics( $line_number, $description, $line, $sphereit_map, $has_clickprint,
         $language_code );
 
     my $description_jaccard = _get_description_jaccard( $description, $line );
@@ -312,7 +312,7 @@ sub _calculate_full_line_metrics($$$$$$$$$)
     $line_info->{ copyright_copy }                  = $copyright_count;
     $line_info->{ article_has_clickprint }          = $article_has_clickprint;
     $line_info->{ article_has_sphereit_map }        = $article_has_sphereit_map;
-    $line_info->{ description_similarity_discount } = $description_similarity_discount;
+    $line_info->{ description_similarity_discount } = $dsd;
 
     $line_info->{ description_jaccard } = $description_jaccard;
 

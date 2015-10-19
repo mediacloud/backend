@@ -154,7 +154,7 @@ EOF
 # had default feeds added to them).
 #
 # Look for feeds that are most likely to be real feeds.  If we find more than
-# one but no more than MAX_DEFAULT_FEEDS of those feeds, use the first such one
+# one but no more than $MAX_DEFAULT_FEEDS of those feeds, use the first such one
 # and do not moderate the source.  Else, do a more expansive search and mark
 # for moderation.
 sub rescrape_media($$)

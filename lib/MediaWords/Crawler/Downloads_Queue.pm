@@ -18,7 +18,7 @@ use Readonly;
 #use Tie::File;
 use Carp qw( croak confess );
 
-use constant _DEBUG_MODE => 0;
+Readonly my $DEBUG_MODE => 0;
 
 sub new
 {
@@ -210,7 +210,7 @@ sub _get_downloads_size
 {
     my ( $self ) = @_;
 
-    if ( _DEBUG_MODE + 0 )
+    if ( $DEBUG_MODE )
     {
         $self->_verify_downloads_count();
     }

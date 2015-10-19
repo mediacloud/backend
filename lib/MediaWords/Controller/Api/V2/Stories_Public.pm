@@ -17,8 +17,6 @@ use Carp;
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
 
-use constant ROWS_PER_PAGE => 20;
-
 BEGIN
 {
     extends 'MediaWords::Controller::Api::V2::StoriesBase'    # private

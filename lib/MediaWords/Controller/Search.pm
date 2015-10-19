@@ -12,6 +12,7 @@ use MediaWords::Solr;
 use MediaWords::Solr::WordCounts;
 use MediaWords::Util::CSV;
 use MediaWords::ActionRole::Logged;
+use Readonly;
 
 =head1 NAME>
 
@@ -31,7 +32,7 @@ __PACKAGE__->config(
 );
 
 # number of stories to sample for the search
-use constant NUM_SAMPLED_STORIES => 100;
+Readonly my $NUM_SAMPLED_STORIES => 100;
 
 # get tag_sets_id for collection: tag set
 sub _get_collection_tag_sets_id
@@ -346,7 +347,7 @@ sub index : Path : Args(0)
     else
     {
         $solr_params->{ sort } = 'random_1 asc';
-        $solr_params->{ rows } = NUM_SAMPLED_STORIES;
+        $solr_params->{ rows } = $NUM_SAMPLED_STORIES;
     }
 
     my $stories;
@@ -359,7 +360,7 @@ sub index : Path : Args(0)
     _match_stories_to_pattern( $db, $stories, $pattern ) if ( defined( $pattern ) );
 
     my $num_stories = @{ $stories };
-    if ( @{ $stories } >= ( NUM_SAMPLED_STORIES - 5 ) )
+    if ( @{ $stories } >= ( $NUM_SAMPLED_STORIES - 5 ) )
     {
         $num_stories = int( MediaWords::Solr::get_last_num_found() / MediaWords::Solr::get_last_sentences_per_story() );
     }

@@ -11,9 +11,6 @@
 # (extracts with 20 total processes, divided into 2 jobs, of which this is the first one)
 #
 
-# number of downloads to fetch at a time
-use constant PROCESS_SIZE => 100;
-
 use strict;
 use warnings;
 
@@ -29,6 +26,10 @@ use MediaWords::Util::Process;
 
 use MediaWords::DB;
 use MediaWords::GearmanFunction::ExtractAndVector;
+use Readonly;
+
+# number of downloads to fetch at a time
+Readonly my $PROCESS_SIZE => 100;
 
 # extract, story, and tag downloaded text a slice of downloads.
 # downloads are extracted by a total of num_total_jobs processings
@@ -59,7 +60,7 @@ sub extract_text($$$$)
             ORDER BY stories_id ASC
             LIMIT ?
 EOF
-            $job_process_num, $num_total_processes, PROCESS_SIZE
+            $job_process_num, $num_total_processes, $PROCESS_SIZE
         );
 
         my $at_least_one_download_found = 0;

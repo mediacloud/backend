@@ -1,6 +1,4 @@
 package MediaWords::DBI::Auth;
-use Modern::Perl "2013";
-use MediaWords::CommonLibs;
 
 #
 # Authentication helpers
@@ -9,11 +7,8 @@ use MediaWords::CommonLibs;
 use strict;
 use warnings;
 
-# Post-unsuccessful login delay (in seconds)
-use constant POST_UNSUCCESSFUL_LOGIN_DELAY => 1;
-
-# API token HTTP GET parameter
-use constant API_TOKEN_PARAMETER => 'key';
+use Modern::Perl "2013";
+use MediaWords::CommonLibs;
 
 use Digest::SHA qw/sha256_hex/;
 use Crypt::SaltedHash;
@@ -21,8 +16,14 @@ use MediaWords::Util::Mail;
 use POSIX qw(strftime);
 use URI::Escape;
 use Net::IP;
-
 use Data::Dumper;
+use Readonly;
+
+# Post-unsuccessful login delay (in seconds)
+Readonly my $POST_UNSUCCESSFUL_LOGIN_DELAY => 1;
+
+# API token HTTP GET parameter
+Readonly my $API_TOKEN_PARAMETER => 'key';
 
 # Validate a password / password token with Crypt::SaltedHash; return 1 on success, 0 on error
 sub password_hash_is_valid($$)
@@ -185,7 +186,7 @@ sub user_is_trying_to_login_too_soon($$)
 {
     my ( $db, $email ) = @_;
 
-    my $interval = POST_UNSUCCESSFUL_LOGIN_DELAY . ' seconds';
+    my $interval = "$POST_UNSUCCESSFUL_LOGIN_DELAY seconds";
 
     my $user = $db->query(
         <<"EOF",
@@ -332,7 +333,7 @@ sub user_for_api_token_catalyst($)
 {
     my $c = shift;
 
-    my $api_token = $c->request->param( API_TOKEN_PARAMETER . '' );
+    my $api_token = $c->request->param( $API_TOKEN_PARAMETER . '' );
 
     return user_for_api_token( $c, $api_token );
 }
@@ -360,8 +361,8 @@ sub post_unsuccessful_login($$)
 {
     my ( $db, $email ) = @_;
 
-    say STDERR "Login failed for $email, will delay any successive login attempt for " . POST_UNSUCCESSFUL_LOGIN_DELAY .
-      " seconds.";
+    say STDERR
+      "Login failed for $email, will delay any successive login attempt for $POST_UNSUCCESSFUL_LOGIN_DELAY seconds.";
 
     # Set the unsuccessful login timestamp
     # (TIMESTAMP 'now' returns "current transaction's start time", so using LOCALTIMESTAMP instead)
@@ -374,12 +375,12 @@ EOF
         $email
     );
 
-    # It might make sense to sleep() here for the duration of POST_UNSUCCESSFUL_LOGIN_DELAY seconds
+    # It might make sense to sleep() here for the duration of $POST_UNSUCCESSFUL_LOGIN_DELAY seconds
     # to prevent legitimate users from trying to log in too fast.
     # However, when being actually brute-forced through multiple HTTP connections, this approach might
     # end up creating a lot of processes that would sleep() and take up memory.
     # So, let's return the error page ASAP and hope that a legitimate user won't be able to reenter
-    # his / her password before the POST_UNSUCCESSFUL_LOGIN_DELAY amount of seconds pass.
+    # his / her password before the $POST_UNSUCCESSFUL_LOGIN_DELAY amount of seconds pass.
 
     return 1;
 }

@@ -19,8 +19,6 @@ my $_last_request_time;
 
 sub test_request()
 {
-    my $ua = MediaWords::Util::Web::UserAgent;
-
     my @urls = (
 
         # URLs with #fragment
@@ -43,25 +41,25 @@ sub test_request()
 
     foreach my $url ( @urls )
     {
-        my $data = MediaWords::Util::Twitter::_get_single_url_json( $ua, $url );
+        my $data = MediaWords::Util::Twitter::_get_single_url_json( $url );
         ok( $data,            "Data is defined for URL $url" );
         ok( $data->{ 'url' }, "Data has 'url' key for URL $url" );
         is( $data->{ 'url' }, $url, "URL matches for URL $url" );
     }
 
     # URLs with #fragment that's about to be removed
-    my $data = MediaWords::Util::Twitter::_get_single_url_json( $ua,
+    my $data = MediaWords::Util::Twitter::_get_single_url_json(
         'http://www.macworld.com/article/2154541/podcast-we-got-the-beats.html#tk.rss_all' );
 
     # Gawker's feed URLs
     eval {
-        $data = MediaWords::Util::Twitter::_get_single_url_json( $ua,
+        $data = MediaWords::Util::Twitter::_get_single_url_json(
 'http://feeds.gawker.com/~r/gizmodo/full/~3/qIhlxlB7gmw/how-to-yell-at-the-fcc-about-how-much-you-hate-its-net-1576943170'
         );
     };
     ok( $@, "Gawker's feed URL #1" );
     eval {
-        $data = MediaWords::Util::Twitter::_get_single_url_json( $ua,
+        $data = MediaWords::Util::Twitter::_get_single_url_json(
 'http://feeds.gawker.com/~r/gawker/full/~3/FjKCT99u_M8/wall-street-is-doing-devious-shit-while-america-sleeps-1679519880'
         );
     };
