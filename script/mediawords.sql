@@ -3265,6 +3265,7 @@ BEGIN
             SELECT *
             FROM rescraping_changes_feeds_added
             WHERE media_id = r_media.media_id
+            ORDER BY feeds_id
         LOOP
             RAISE NOTICE '    ADDED feed: feeds_id=%, feed_type=%, feed_status=%, name="%", url="%"',
                 r_feed.feeds_id,
@@ -3279,6 +3280,7 @@ BEGIN
             SELECT *
             FROM rescraping_changes_feeds_deleted
             WHERE media_id = r_media.media_id
+            ORDER BY feeds_id
         LOOP
             RAISE NOTICE '    DELETED feed: feeds_id=%, feed_type=%, feed_status=%, name="%", url="%"',
                 r_feed.feeds_id,
