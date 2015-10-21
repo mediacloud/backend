@@ -14,8 +14,8 @@
 
 [% INCLUDE include/header.tt2 %]
 
-<script src='http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js'></script>
-<script type="text/javascript" src="http://dev.jquery.com/view/trunk/plugins/treeview/jquery.treeview.js"></script>
+<script src='//ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js'></script>
+<script type="text/javascript" src="//raw.githubusercontent.com/jzaefferer/jquery-treeview/master/jquery.treeview.js"></script>
 
 <script type="text/javascript"><!--
     $(document).ready(function(){
