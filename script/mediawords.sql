@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4513;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4514;
 
 BEGIN
 
@@ -3171,9 +3171,10 @@ BEGIN
         WHERE media_id IN (
             SELECT DISTINCT media_id
             FROM (
-                SELECT feeds_id, media_id, feed_type, feed_status, name, url FROM feeds_from_yesterday
+                -- Don't compare "name" because it's insignificant
+                SELECT feeds_id, media_id, feed_type, feed_status, url FROM feeds_from_yesterday
                 EXCEPT
-                SELECT feeds_id, media_id, feed_type, feed_status, name, url FROM feeds
+                SELECT feeds_id, media_id, feed_type, feed_status, url FROM feeds
             ) AS modified_feeds
         )
         ORDER BY media_id
@@ -3235,8 +3236,8 @@ BEGIN
                 INNER JOIN feeds AS feeds_after ON (
                     feeds_before.feeds_id = feeds_after.feeds_id
                     AND (
-                        feeds_before.name != feeds_after.name
-                     OR feeds_before.url != feeds_after.url
+                        -- Don't compare "name" because it's insignificant
+                        feeds_before.url != feeds_after.url
                      OR feeds_before.feed_type != feeds_after.feed_type
                      OR feeds_before.feed_status != feeds_after.feed_status
                     )
