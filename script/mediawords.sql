@@ -3252,9 +3252,41 @@ BEGIN
     RAISE NOTICE '';
 
     FOR r_media IN
-        SELECT *
+        SELECT *,
+
+        -- Prioritize US MSM media
+        EXISTS (
+            SELECT 1
+            FROM tags AS tags
+                INNER JOIN media_tags_map
+                    ON tags.tags_id = media_tags_map.tags_id
+                INNER JOIN tag_sets
+                    ON tags.tag_sets_id = tag_sets.tag_sets_id
+            WHERE media_tags_map.media_id = rescraping_changes_media.media_id
+              AND tag_sets.name = 'collection'
+              AND tags.tag = 'ap_english_us_top25_20100110'
+        ) AS belongs_to_us_msm,
+
+        -- Prioritize media with "show_on_media"
+        EXISTS (
+            SELECT 1
+            FROM tags AS tags
+                INNER JOIN media_tags_map
+                    ON tags.tags_id = media_tags_map.tags_id
+                INNER JOIN tag_sets
+                    ON tags.tag_sets_id = tag_sets.tag_sets_id
+            WHERE media_tags_map.media_id = rescraping_changes_media.media_id
+              AND (
+                tag_sets.show_on_media
+                OR tags.show_on_media
+              )
+        ) AS show_on_media
+
         FROM rescraping_changes_media
-        ORDER BY media_id
+
+        ORDER BY belongs_to_us_msm DESC,
+                 show_on_media DESC,
+                 media_id
     LOOP
         RAISE NOTICE 'MODIFIED media: media_id=%, name="%", url="%"',
             r_media.media_id,
