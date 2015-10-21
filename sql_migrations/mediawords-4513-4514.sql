@@ -46,9 +46,15 @@ BEGIN
             SELECT DISTINCT media_id
             FROM (
                 -- Don't compare "name" because it's insignificant
-                SELECT feeds_id, media_id, feed_type, feed_status, url FROM feeds_from_yesterday
-                EXCEPT
-                SELECT feeds_id, media_id, feed_type, feed_status, url FROM feeds
+                (
+                    SELECT feeds_id, media_id, feed_type, feed_status, url FROM feeds_from_yesterday
+                    EXCEPT
+                    SELECT feeds_id, media_id, feed_type, feed_status, url FROM feeds
+                ) UNION ALL (
+                    SELECT feeds_id, media_id, feed_type, feed_status, url FROM feeds
+                    EXCEPT
+                    SELECT feeds_id, media_id, feed_type, feed_status, url FROM feeds_from_yesterday
+                )
             ) AS modified_feeds
         )
         ORDER BY media_id
