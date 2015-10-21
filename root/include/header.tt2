@@ -14,8 +14,6 @@
     <script type="text/javascript" src="/script/jquery.metadata.js"></script>
     <script type="text/javascript" src="/script/jquery.tablesorter.min.js"></script>
 
-    <!-- <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script> -->
-
     <title>
       Media Words: [% title | html %]
     </title>
