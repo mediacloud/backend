@@ -3150,6 +3150,7 @@ LANGUAGE 'plpgsql';
 CREATE OR REPLACE FUNCTION rescraping_changes() RETURNS VOID AS
 $$
 DECLARE
+    r_count RECORD;
     r_media RECORD;
     r_feed RECORD;
 BEGIN
@@ -3238,6 +3239,16 @@ BEGIN
 
     -- Print out changes
     RAISE NOTICE 'Changes between "feeds" and "feeds_from_yesterday":';
+    RAISE NOTICE '';
+
+    SELECT COUNT(1) AS media_count INTO r_count FROM rescraping_changes_media;
+    RAISE NOTICE '* Modified media: %', r_count.media_count;
+    SELECT COUNT(1) AS feeds_added_count INTO r_count FROM rescraping_changes_feeds_added;
+    RAISE NOTICE '* Added feeds: %', r_count.feeds_added_count;
+    SELECT COUNT(1) AS feeds_deleted_count INTO r_count FROM rescraping_changes_feeds_deleted;
+    RAISE NOTICE '* Deleted feeds: %', r_count.feeds_deleted_count;
+    SELECT COUNT(1) AS feeds_modified_count INTO r_count FROM rescraping_changes_feeds_modified;
+    RAISE NOTICE '* Modified feeds: %', r_count.feeds_modified_count;
     RAISE NOTICE '';
 
     FOR r_media IN
