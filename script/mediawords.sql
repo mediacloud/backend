@@ -3162,10 +3162,8 @@ BEGIN
         RAISE EXCEPTION '"feeds_from_yesterday" table is empty.';
     END IF;
 
-    RAISE NOTICE 'Changes between "feeds" and "feeds_from_yesterday":';
-    RAISE NOTICE '';
-
-    FOR r_media IN
+    -- Fill temp. tables with changes to print out later
+    CREATE TEMPORARY TABLE rescraping_changes_media ON COMMIT DROP AS
         SELECT *
         FROM media
         WHERE media_id IN (
@@ -3182,7 +3180,69 @@ BEGIN
                     SELECT feeds_id, media_id, feed_type, feed_status, url FROM feeds_from_yesterday
                 )
             ) AS modified_feeds
-        )
+        );
+
+    CREATE TEMPORARY TABLE rescraping_changes_feeds_added ON COMMIT DROP AS
+        SELECT *
+        FROM feeds
+        WHERE media_id IN (
+            SELECT media_id
+            FROM rescraping_changes_media
+          )
+          AND feeds_id NOT IN (
+            SELECT feeds_id
+            FROM feeds_from_yesterday
+        );
+
+    CREATE TEMPORARY TABLE rescraping_changes_feeds_deleted ON COMMIT DROP AS
+        SELECT *
+        FROM feeds_from_yesterday
+        WHERE media_id IN (
+            SELECT media_id
+            FROM rescraping_changes_media
+          )
+          AND feeds_id NOT IN (
+            SELECT feeds_id
+            FROM feeds
+        );
+
+    CREATE TEMPORARY TABLE rescraping_changes_feeds_modified ON COMMIT DROP AS
+        SELECT feeds_before.media_id,
+               feeds_before.feeds_id,
+
+               feeds_before.name AS before_name,
+               feeds_before.url AS before_url,
+               feeds_before.feed_type AS before_feed_type,
+               feeds_before.feed_status AS before_feed_status,
+
+               feeds_after.name AS after_name,
+               feeds_after.url AS after_url,
+               feeds_after.feed_type AS after_feed_type,
+               feeds_after.feed_status AS after_feed_status
+
+        FROM feeds_from_yesterday AS feeds_before
+            INNER JOIN feeds AS feeds_after ON (
+                feeds_before.feeds_id = feeds_after.feeds_id
+                AND (
+                    -- Don't compare "name" because it's insignificant
+                    feeds_before.url != feeds_after.url
+                 OR feeds_before.feed_type != feeds_after.feed_type
+                 OR feeds_before.feed_status != feeds_after.feed_status
+                )
+            )
+
+        WHERE feeds_before.media_id IN (
+            SELECT media_id
+            FROM rescraping_changes_media
+        );
+
+    -- Print out changes
+    RAISE NOTICE 'Changes between "feeds" and "feeds_from_yesterday":';
+    RAISE NOTICE '';
+
+    FOR r_media IN
+        SELECT *
+        FROM rescraping_changes_media
         ORDER BY media_id
     LOOP
         RAISE NOTICE 'MODIFIED media: media_id=%, name="%", url="%"',
@@ -3192,12 +3252,8 @@ BEGIN
 
         FOR r_feed IN
             SELECT *
-            FROM feeds
+            FROM rescraping_changes_feeds_added
             WHERE media_id = r_media.media_id
-              AND feeds_id NOT IN (
-                SELECT feeds_id
-                FROM feeds_from_yesterday
-            )
         LOOP
             RAISE NOTICE '    ADDED feed: feeds_id=%, feed_type=%, feed_status=%, name="%", url="%"',
                 r_feed.feeds_id,
@@ -3210,12 +3266,8 @@ BEGIN
         -- Feeds shouldn't get deleted but we're checking anyways
         FOR r_feed IN
             SELECT *
-            FROM feeds_from_yesterday
+            FROM rescraping_changes_feeds_deleted
             WHERE media_id = r_media.media_id
-              AND feeds_id NOT IN (
-                SELECT feeds_id
-                FROM feeds
-            )
         LOOP
             RAISE NOTICE '    DELETED feed: feeds_id=%, feed_type=%, feed_status=%, name="%", url="%"',
                 r_feed.feeds_id,
@@ -3226,32 +3278,10 @@ BEGIN
         END LOOP;
 
         FOR r_feed IN
-            SELECT feeds_before.feeds_id,
-
-                   feeds_before.name AS before_name,
-                   feeds_before.url AS before_url,
-                   feeds_before.feed_type AS before_feed_type,
-                   feeds_before.feed_status AS before_feed_status,
-
-                   feeds_after.name AS after_name,
-                   feeds_after.url AS after_url,
-                   feeds_after.feed_type AS after_feed_type,
-                   feeds_after.feed_status AS after_feed_status
-
-            FROM feeds_from_yesterday AS feeds_before
-                INNER JOIN feeds AS feeds_after ON (
-                    feeds_before.feeds_id = feeds_after.feeds_id
-                    AND (
-                        -- Don't compare "name" because it's insignificant
-                        feeds_before.url != feeds_after.url
-                     OR feeds_before.feed_type != feeds_after.feed_type
-                     OR feeds_before.feed_status != feeds_after.feed_status
-                    )
-                )
-
-            WHERE feeds_before.media_id = r_media.media_id
-
-            ORDER BY feeds_before.feeds_id
+            SELECT *
+            FROM rescraping_changes_feeds_modified
+            WHERE media_id = r_media.media_id
+            ORDER BY feeds_id
         LOOP
             RAISE NOTICE '    MODIFIED feed: feeds_id=%', r_feed.feeds_id;
             RAISE NOTICE '        BEFORE: feed_type=%, feed_status=%, name="%", url="%"',
