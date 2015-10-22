@@ -2200,6 +2200,7 @@ END
 select * from controversy_seed_urls where controversies_id = ? and processed = 'f'
 END
 
+    my $non_content_urls = [];
     for my $csu ( @{ $seed_urls } )
     {
         if ( $csu->{ content } )
@@ -2210,9 +2211,11 @@ END
         }
         else
         {
-            add_new_links( $db, $controversy, 0, $seed_urls );
+            push( @{ $non_content_urls }, $csu );
         }
     }
+
+    add_new_links( $db, $controversy, 0, $non_content_urls );
 
     $db->dbh->{ AutoCommit } = 0;
     for my $seed_url ( @{ $seed_urls } )
