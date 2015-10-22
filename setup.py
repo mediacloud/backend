@@ -34,5 +34,5 @@ setup(name='mediacloud',
     install_requires=['requests'],
     license='MIT',
     zip_safe=False,
-    extras_require={'db': ['pypubsub','pymongo']}
+    extras_require={'db': ['pymongo']}
 )

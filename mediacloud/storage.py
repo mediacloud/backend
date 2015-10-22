@@ -20,7 +20,6 @@ class StoryDatabase(object):
         Save a story based on it's sentences to the database.  Return success or failure boolean.
         This is pairs well with mediacloud.sentencesMatchingByStory(...).  This saves or updates.
         '''
-        from pubsub import pub
         # if nothing to save, bail
         if len(story_sentences)==0:
             return False
@@ -59,16 +58,13 @@ class StoryDatabase(object):
         if not self.storyExists(story['stories_id']):
             return self.addStory(story,extra_attributes)
         else:
-            from pubsub import pub
             story_to_save = copy.deepcopy( story )
             story_to_save = dict(story_to_save.items() + extra_attributes.items())
             story_to_save['stories_id'] = story['stories_id']
             if 'story_sentences' in story:
                 story_to_save['story_sentences_count'] = len(story['story_sentences'])
-            pub.sendMessage(self.EVENT_PRE_STORY_SAVE, db_story=story_to_save, raw_story=story)
             self._updateStory(story_to_save)
             saved_story = self.getStory( story['stories_id'] )
-            pub.sendMessage(self.EVENT_POST_STORY_SAVE, db_story=saved_story, raw_story=story)
             self._logger.debug('Updated '+str(story['stories_id']))
 
     def addStory(self, story, extra_attributes={}):
@@ -76,7 +72,6 @@ class StoryDatabase(object):
         Save a story (python object) to the database. This does NOT update stories.
         Return success or failure boolean.
         '''
-        from pubsub import pub
         if self.storyExists(story['stories_id']):
             self._logger.warn('Not saving '+str(story['stories_id'])+' - already exists')
             return False
@@ -85,10 +80,8 @@ class StoryDatabase(object):
         story_to_save['_stories_id'] = story['stories_id']
         if 'story_sentences' in story:
             story_to_save['story_sentences_count'] = len(story['story_sentences'])
-        pub.sendMessage(self.EVENT_PRE_STORY_SAVE, db_story=story_to_save, raw_story=story)
         self._saveStory( story_to_save )
         saved_story = self.getStory( story['stories_id'] )
-        pub.sendMessage(self.EVENT_POST_STORY_SAVE, db_story=saved_story, raw_story=story)
         self._logger.debug('Saved '+str(story['stories_id']))
         return True
 

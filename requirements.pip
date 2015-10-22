@@ -1,3 +1,2 @@
 requests
---allow-external pypubsub
 pymongo
