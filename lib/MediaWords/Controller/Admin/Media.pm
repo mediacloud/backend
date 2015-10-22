@@ -24,13 +24,15 @@ use MediaWords::Util::Web;
 use MediaWords::Util::HTML;
 use MediaWords::DBI::Feeds;
 use MediaWords::DBI::Media;
+use MediaWords::DBI::Stories;
 use JSON;
+use Readonly;
 use URI;
 
 use if $] < 5.014, Switch => 'Perl6';
 use if $] >= 5.014, feature => 'switch';
 
-use constant ROWS_PER_PAGE => 25;
+Readonly my $ROWS_PER_PAGE => 25;
 
 # if called with a controversies_id param, add the controversy specific media
 # types to the form
@@ -380,7 +382,7 @@ sub delete : Local
 # Data::Page object for the results
 sub _search_paged_media
 {
-    my ( $self, $c, $q, $page, $rows_per_page ) = @_;
+    my ( $self, $c, $q, $page, $row_count ) = @_;
 
     my $db = $c->dbis;
 
@@ -390,7 +392,7 @@ sub _search_paged_media
 
     $q = "'%$q%'";
 
-    return $db->query_paged_hashes( <<END, [], $page, $rows_per_page );
+    return $db->query_paged_hashes( <<END, [], $page, $row_count );
 select distinct m.media_id as media_id, m.name as name, m.url as url
     from media m
         left join (
@@ -430,11 +432,11 @@ sub search : Local
 
     if ( $q )
     {
-        ( $media, $pager ) = $self->_search_paged_media( $c, $q, $p, ROWS_PER_PAGE );
+        ( $media, $pager ) = $self->_search_paged_media( $c, $q, $p, $ROWS_PER_PAGE );
     }
     elsif ( $f )
     {
-        ( $media, $pager ) = $db->query_paged_hashes( <<END, [], $p, ROWS_PER_PAGE );
+        ( $media, $pager ) = $db->query_paged_hashes( <<END, [], $p, $ROWS_PER_PAGE );
 select * from media m
     where not exists (select 1 from feeds f where f.media_id = m.media_id and feed_status = 'active')
     order by media_id
@@ -446,7 +448,7 @@ END
     }
     else
     {
-        ( $media, $pager ) = $db->query_paged_hashes( "select * from media order by media_id", [], $p, ROWS_PER_PAGE );
+        ( $media, $pager ) = $db->query_paged_hashes( "select * from media order by media_id", [], $p, $ROWS_PER_PAGE );
     }
 
     for my $m ( @{ $media } )

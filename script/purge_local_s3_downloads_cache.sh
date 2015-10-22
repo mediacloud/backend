@@ -37,6 +37,6 @@ if [ ! -d "$S3_CACHE_DEFAULT_DIR/0" ]; then
     exit 1
 fi
 
-find "$S3_CACHE_DEFAULT_DIR" -name "*.dat" -type f -mtime "+$MAX_AGE_DAYS" -print0 | xargs -0 rm
+find "$S3_CACHE_DEFAULT_DIR" -name "*.dat" -type f -mtime "+$MAX_AGE_DAYS" -print0 | xargs -r -0 rm
 
 exit 0

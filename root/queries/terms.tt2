@@ -1,6 +1,6 @@
 [% title = 'View Terms ' _ terms_string _ ' ' _ query.description %]
 [% INCLUDE include/header.tt2 %]
-<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+<script type="text/javascript" src="//www.google.com/jsapi"></script>
 <script type="text/javascript"  src="[% c.uri_for('/include/annotatedTimeLineChart.js') %]"></script> 
 
 <script type="text/javascript"><!--

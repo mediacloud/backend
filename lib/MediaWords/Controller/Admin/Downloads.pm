@@ -5,24 +5,22 @@ use MediaWords::CommonLibs;
 use strict;
 use warnings;
 use base 'Catalyst::Controller';
-use DateTime;
 
 # MODULES
-
+use Data::Dumper;
+use DateTime;
+use Encode;
 use HTML::Entities;
+use Readonly;
 
 use MediaWords::Crawler::Extractor;
 use MediaWords::Crawler::Engine;
 use MediaWords::Crawler::Provider;
 use MediaWords::Crawler::Handler;
 use MediaWords::DBI::Downloads;
-use Data::Dumper;
-
-use Encode;
 
 # CONSTANTS
-
-use constant ROWS_PER_PAGE => 100;
+Readonly my $ROWS_PER_PAGE => 100;
 
 # METHODS
 
@@ -61,7 +59,7 @@ sub list : Local
 
     $query .= " order by download_time desc";
 
-    my ( $downloads, $pager ) = $c->dbis->query_paged_hashes( $query, [], $p, ROWS_PER_PAGE );
+    my ( $downloads, $pager ) = $c->dbis->query_paged_hashes( $query, [], $p, $ROWS_PER_PAGE );
 
     for my $d ( @{ $downloads } )
     {

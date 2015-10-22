@@ -15,34 +15,33 @@ use List::MoreUtils;
 use MediaWords::DB;
 use MediaWords::Crawler::Downloads_Queue;
 use Readonly;
-use Time::Seconds;
 use Math::Random;
 
 # how often to download each feed (seconds)
-use constant STALE_FEED_INTERVAL => ONE_WEEK;
+Readonly my $STALE_FEED_INTERVAL => 60 * 60 * 24 * 7;
 
 # how often to check for feeds to download (seconds)
-use constant STALE_FEED_CHECK_INTERVAL => 30 * ONE_MINUTE;
+Readonly my $STALE_FEED_CHECK_INTERVAL => 60 * 30;
 
 # timeout for download in fetching state (seconds)
-use constant STALE_DOWNLOAD_INTERVAL => 5 * ONE_MINUTE;
+Readonly my $STALE_DOWNLOAD_INTERVAL => 60 * 5;
 
 # how many downloads to store in memory queue
-use constant MAX_QUEUED_DOWNLOADS => 50000;
+Readonly my $MAX_QUEUED_DOWNLOADS => 50_000;
 
 # how many queued downloads mean the queue is more or less idle
 # and thus can be filled with missing downloads
-use constant QUEUED_DOWNLOADS_IDLE_COUNT => 1000;
+Readonly my $QUEUED_DOWNLOADS_IDLE_COUNT => 1000;
 
 # how many missing downloads to enqueue each and every time the queue is idle
 # (has to fit in memory because this is how much downloads are passed to
 # _queue_download_list_with_per_site_limit())
-use constant MISSING_DOWNLOADS_CHUNK_COUNT => 1000;
+Readonly my $MISSING_DOWNLOADS_CHUNK_COUNT => 1000;
 
 # how often to check the database for new pending downloads (seconds)
-use constant DEFAULT_PENDING_CHECK_INTERVAL => 10 * ONE_MINUTE;
+Readonly my $DEFAULT_PENDING_CHECK_INTERVAL => 60 * 10;
 
-use constant DOWNLOAD_TIMED_OUT_ERROR_MESSAGE => 'Download timed out by Fetcher::_timeout_stale_downloads';
+Readonly my $DOWNLOAD_TIMED_OUT_ERROR_MESSAGE => 'Download timed out by Fetcher::_timeout_stale_downloads';
 
 sub new
 {
@@ -91,7 +90,7 @@ sub _timeout_stale_downloads
 {
     my ( $self ) = @_;
 
-    if ( $self->{ last_stale_download_check } > ( time() - STALE_DOWNLOAD_INTERVAL ) )
+    if ( $self->{ last_stale_download_check } > ( time() - $STALE_DOWNLOAD_INTERVAL ) )
     {
         return;
     }
@@ -105,7 +104,7 @@ sub _timeout_stale_downloads
     for my $download ( @downloads )
     {
         $download->{ state }         = ( 'error' );
-        $download->{ error_message } = ( DOWNLOAD_TIMED_OUT_ERROR_MESSAGE . '' );
+        $download->{ error_message } = ( $DOWNLOAD_TIMED_OUT_ERROR_MESSAGE . '' );
         $download->{ download_time } = ( 'now()' );
 
         $dbs->update_by_id( "downloads", $download->{ downloads_id }, $download );
@@ -121,7 +120,7 @@ sub _add_stale_feeds
 {
     my ( $self ) = @_;
 
-    if ( ( time() - $self->{ last_stale_feed_check } ) < STALE_FEED_CHECK_INTERVAL )
+    if ( ( time() - $self->{ last_stale_feed_check } ) < $STALE_FEED_CHECK_INTERVAL )
     {
         return;
     }
@@ -136,7 +135,7 @@ sub _add_stale_feeds
 " ( now() > last_attempted_download_time + ( last_attempted_download_time - last_new_story_time ) + interval '5 minutes' ) ";
 
     my $constraint = "((last_attempted_download_time IS NULL " . "OR (last_attempted_download_time < (NOW() - interval ' " .
-      STALE_FEED_INTERVAL . " seconds')) OR $last_new_story_time_clause ) " . "AND url ~ 'https?://')";
+      $STALE_FEED_INTERVAL . " seconds')) OR $last_new_story_time_clause ) " . "AND url ~ 'https?://')";
 
     # If the table doesn't exist, PostgreSQL sends a NOTICE which breaks the "no warnings" unit test
     $dbs->query( 'SET client_min_messages=WARNING' );
@@ -228,9 +227,9 @@ sub _queue_download_list_with_per_site_limit
 # add missing downloads
 sub _add_missing_downloads($$)
 {
-    my ( $self, $missing_downloads_chunk_count ) = @_;
+    my ( $self, $count ) = @_;
 
-    unless ( $missing_downloads_chunk_count )
+    unless ( $count )
     {
         say STDERR "Missing downloads chunk count is 0";
         return;
@@ -262,7 +261,7 @@ sub _add_missing_downloads($$)
           AND d.state = 'success'
         LIMIT ?
 END
-        $missing_downloads_chunk_count
+        $count
     )->hashes;
 
     my $missing_download_sites = [ List::MoreUtils::uniq( map { $_->{ site } } @{ $missing_downloads } ) ];
@@ -272,7 +271,7 @@ END
 
     if ( @{ $missing_download_sites } )
     {
-        my $site_missing_download_queue_limit = int( MAX_QUEUED_DOWNLOADS / scalar( @{ $missing_download_sites } ) );
+        my $site_missing_download_queue_limit = int( $MAX_QUEUED_DOWNLOADS / scalar( @{ $missing_download_sites } ) );
 
         for my $missing_download_site ( @{ $missing_download_sites } )
         {
@@ -287,13 +286,13 @@ sub _add_pending_downloads
 {
     my ( $self ) = @_;
 
-    my $interval = $self->engine->pending_check_interval || DEFAULT_PENDING_CHECK_INTERVAL;
+    my $interval = $self->engine->pending_check_interval || $DEFAULT_PENDING_CHECK_INTERVAL;
 
     return if ( !$self->engine->test_mode && ( $self->{ last_pending_check } > ( time() - $interval ) ) );
 
     $self->{ last_pending_check } = time();
 
-    if ( $self->{ downloads }->_get_downloads_size > MAX_QUEUED_DOWNLOADS )
+    if ( $self->{ downloads }->_get_downloads_size > $MAX_QUEUED_DOWNLOADS )
     {
         print STDERR "skipping add pending downloads due to queue size\n";
         return;
@@ -327,7 +326,7 @@ WHERE
 ORDER BY download_time is null desc, error_message is null desc, downloads_id asc
 LIMIT ?
 END
-        MAX_QUEUED_DOWNLOADS
+        $MAX_QUEUED_DOWNLOADS
     )->hashes;
 
     my $sites = [ List::MoreUtils::uniq( map { $_->{ site } } @{ $downloads } ) ];
@@ -337,7 +336,7 @@ END
 
     if ( @{ $sites } )
     {
-        my $site_download_queue_limit = int( MAX_QUEUED_DOWNLOADS / scalar( @{ $sites } ) );
+        my $site_download_queue_limit = int( $MAX_QUEUED_DOWNLOADS / scalar( @{ $sites } ) );
 
         for my $site ( @{ $sites } )
         {
@@ -364,9 +363,9 @@ sub provide_downloads
     $self->_add_pending_downloads();
 
     # Add some missing downloads if the functions above didn't fill up the queue
-    # if ( $self->{ downloads }->_get_downloads_size < QUEUED_DOWNLOADS_IDLE_COUNT )
+    # if ( $self->{ downloads }->_get_downloads_size < $QUEUED_DOWNLOADS_IDLE_COUNT )
     # {
-    #     $self->_add_missing_downloads( MISSING_DOWNLOADS_CHUNK_COUNT );
+    #     $self->_add_missing_downloads( $MISSING_DOWNLOADS_CHUNK_COUNT );
     # }
 
     my @downloads;

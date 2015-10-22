@@ -16,6 +16,7 @@ use Getopt::Long;
 use HTML::LinkExtractor;
 use List::Util;
 use Parallel::ForkManager;
+use Readonly;
 use URI;
 use URI::Split;
 use URI::Escape;
@@ -35,13 +36,10 @@ use MediaWords::Util::Bitly;
 use MediaWords::GearmanFunction::Bitly::EnqueueControversyStories;
 
 # number of times to run through the recursive link weight process
-use constant LINK_WEIGHT_ITERATIONS => 3;
-
-# tag that will be associate with all controversy_stories at the end of the script
-use constant ALL_TAG => 'all';
+Readonly my $LINK_WEIGHT_ITERATIONS => 3;
 
 # max number of solely self linked stories to include
-use constant MAX_SELF_LINKED_STORIES => 100;
+Readonly my $MAX_SELF_LINKED_STORIES => 100;
 
 # ignore links that match this pattern
 my $_ignore_link_pattern =
@@ -704,11 +702,11 @@ END
     }
 
     my $date = MediaWords::CM::GuessDate::guess_date( $db, $story, $story_content, 1 );
-    if ( $date->{ result } eq MediaWords::CM::GuessDate::Result::FOUND )
+    if ( $date->{ result } eq $MediaWords::CM::GuessDate::Result::FOUND )
     {
         return ( $date->{ guess_method }, $date->{ date } );
     }
-    elsif ( $date->{ result } eq MediaWords::CM::GuessDate::Result::INAPPLICABLE )
+    elsif ( $date->{ result } eq $MediaWords::CM::GuessDate::Result::INAPPLICABLE )
     {
         return ( 'undateable', $source_story ? $source_story->{ publish_date } : MediaWords::Util::SQL::sql_now );
     }
@@ -1306,7 +1304,6 @@ select count(*)
         stm.tags_id = ?
 END
 
-    my $MAX_SELF_LINKED_STORIES = MAX_SELF_LINKED_STORIES;
     return 0 if ( $num_stories <= $MAX_SELF_LINKED_STORIES );
 
     my ( $num_cross_linked_stories ) = $db->query( <<END, $cid, $story->{ media_id }, $spidered_tag->{ tags_id } )->flat;
@@ -1860,7 +1857,7 @@ sub generate_link_weights
     map { $_->{ source_stories } ||= []; } @{ $stories };
     map { $_->{ link_weight } = scalar( @{ $_->{ source_stories } } ) } @{ $stories };
 
-    for my $i ( 1 .. LINK_WEIGHT_ITERATIONS )
+    for my $i ( 1 .. $LINK_WEIGHT_ITERATIONS )
     {
         for my $story ( @{ $stories } )
         {

@@ -33,9 +33,9 @@ Readonly my @URL_PATTERNS_WHICH_WONT_WORK => (
     qr#^https?://.*?\.google\..{2,7}/trends/explore.*?#i,
 );
 
-sub _get_single_url_json
+sub _get_single_url_json($)
 {
-    my ( $ua, $url ) = @_;
+    my ( $url ) = @_;
 
     # this is mostly to be able to generate an error for testing
     unless ( MediaWords::Util::URL::is_http_url( $url ) )
@@ -69,6 +69,9 @@ sub _get_single_url_json
     $url = $uri->as_string;
 
     my $api_url = 'https://cdn.api.twitter.com/1/urls/count.json?url=' . uri_escape_utf8( $url );
+
+    my $ua = MediaWords::Util::Web::UserAgentDetermined();
+    $ua->timing( '1,3,15,60,300,600' );
 
     # say STDERR "API URL: " . $api_url;
     my $response = $ua->get( $api_url );
@@ -126,9 +129,9 @@ sub _get_single_url_json
     return $data;
 }
 
-sub _get_single_url_tweet_count
+sub _get_single_url_tweet_count($)
 {
-    my ( $ua, $url ) = @_;
+    my ( $url ) = @_;
 
     my $uri = URI->new( $url )->canonical;
     unless ( $uri )
@@ -136,7 +139,7 @@ sub _get_single_url_tweet_count
         confess "Unable to create URI object for URL: $url";
     }
 
-    my $data = _get_single_url_json( $ua, $url );
+    my $data = _get_single_url_json( $url );
 
     return $data->{ count };
 }
@@ -145,7 +148,7 @@ sub _get_single_url_tweet_count
 # of the url we can figure out
 #
 # https://cdn.api.twitter.com/1/urls/count.json?url=http://www.theonion.com/articles/how-to-protect-yourself-against-ebola,37085
-sub get_url_tweet_count
+sub get_url_tweet_count($$)
 {
     my ( $db, $url ) = @_;
 
@@ -162,13 +165,10 @@ sub get_url_tweet_count
         confess "After removing URLs which won't work, the list is empty";
     }
 
-    my $ua = MediaWords::Util::Web::UserAgentDetermined();
-    $ua->timing( '1,3,15,60,300,600' );
-
     my $url_counts = {};
     for my $u ( @{ $all_urls } )
     {
-        my $count = _get_single_url_tweet_count( $ua, $u );
+        my $count = _get_single_url_tweet_count( $u );
 
         say STDERR "* Count: $count, URL variant: $u";
 
@@ -178,7 +178,7 @@ sub get_url_tweet_count
     return List::Util::sum( keys( %{ $url_counts } ) );
 }
 
-sub get_and_store_tweet_count
+sub get_and_store_tweet_count($$)
 {
     my ( $db, $story ) = @_;
 

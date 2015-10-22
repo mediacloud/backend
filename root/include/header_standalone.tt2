@@ -8,8 +8,6 @@
     <script type="text/javascript" src="[% c.uri_for( '/script/jquery.tipsy.js' ) %]"></script>
     <script type="text/javascript" src="[% c.uri_for( '/script/tipsy.js' ) %]"></script>
     
-    <!-- <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script> -->
-    
     <title>
       Media Words: [% title | html %]
     </title>

@@ -10,6 +10,7 @@ use JSON;
 use List::Compare;
 use Data::Dumper;
 use Gearman::JobScheduler;
+use Readonly;
 
 use MediaWords::CM;
 use MediaWords::CM::Dump;
@@ -22,7 +23,7 @@ use MediaWords::Solr::WordCounts;
 use MediaWords::Util::Bitly;
 use MediaWords::GearmanFunction::Bitly::EnqueueControversyStories;
 
-use constant ROWS_PER_PAGE => 25;
+Readonly my $ROWS_PER_PAGE => 25;
 
 use utf8;
 
@@ -2250,7 +2251,7 @@ END
       MediaWords::DBI::Activities::sql_activities_which_reference_column( 'controversies.controversies_id',
         $controversies_id );
 
-    my ( $activities, $pager ) = $c->dbis->query_paged_hashes( $sql_activities, [], $p, ROWS_PER_PAGE );
+    my ( $activities, $pager ) = $c->dbis->query_paged_hashes( $sql_activities, [], $p, $ROWS_PER_PAGE );
 
     # FIXME put activity preparation (JSON decoding, description fetching) into
     # a subroutine in order to not repeat oneself.

@@ -25,7 +25,7 @@ use utf8;
 use Readonly;
 use Text::CSV_XS;
 
-use constant MIN_STEM_LENGTH => 3;
+Readonly my $MIN_STEM_LENGTH => 3;
 
 Readonly my $sentence_study_table_prefix => 'sen_study_old_';
 Readonly my $sentence_study_table_suffix => '_2011_01_03_2011_01_10';
@@ -36,7 +36,7 @@ sub _valid_stem
     my ( $stem, $word, $stop_stems ) = @_;
 
     return ( $stem
-          && ( length( $stem ) >= MIN_STEM_LENGTH )
+          && ( length( $stem ) >= $MIN_STEM_LENGTH )
           && ( !$stop_stems->{ $stem } )
           && ( $word !~ /[^[:print:]]/ )
           && ( $word =~ /[^[:digit:][:punct:]]/ ) );

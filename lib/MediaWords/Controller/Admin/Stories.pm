@@ -7,6 +7,7 @@ use warnings;
 use base 'Catalyst::Controller';
 use JSON;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
+use Readonly;
 use URI;
 use URI::Escape;
 use URI::QueryParam;
@@ -34,7 +35,7 @@ Catalyst Controller.
 
 =cut
 
-use constant ROWS_PER_PAGE => 100;
+Readonly my $ROWS_PER_PAGE => 100;
 
 # list of stories with the given feed id
 sub list : Local
@@ -57,15 +58,15 @@ sub list : Local
     my ( $stories, $pager ) = $c->dbis->query_paged_hashes(
         "select s.* from stories s, feeds_stories_map fsm where s.stories_id = fsm.stories_id " .
           "and fsm.feeds_id = $feeds_id " . "and publish_date > now() - interval '30 days' " . "order by publish_date desc",
-        [], $p, ROWS_PER_PAGE
+        [], $p, $ROWS_PER_PAGE
     );
 
-    if ( @{ $stories } < ROWS_PER_PAGE )
+    if ( scalar @{ $stories } < $ROWS_PER_PAGE )
     {
         ( $stories, $pager ) = $c->dbis->query_paged_hashes(
             "select s.* from stories s, feeds_stories_map fsm where s.stories_id = fsm.stories_id " .
               "and fsm.feeds_id = $feeds_id " . "order by publish_date desc",
-            [], $p, ROWS_PER_PAGE
+            [], $p, $ROWS_PER_PAGE
         );
     }
 

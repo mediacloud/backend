@@ -8,8 +8,9 @@ use v5.10;
 
 use FindBin;
 use Getopt::Long;
+use Readonly;
 
-use constant JVM_OPTS => '-server -XX:MaxGCPauseMillis=1000';
+Readonly my $JVM_OPTS => '-server -XX:MaxGCPauseMillis=1000';
 
 sub main
 {
@@ -26,7 +27,7 @@ sub main
 
     chdir( 'mediacloud' ) || die( "unable to cd into mediacloud: $!" );
 
-    my $java_cmd = "java " . JVM_OPTS . " -Dsolr.clustering.enabled=true -Xmx${ memory }g -jar start.jar";
+    my $java_cmd = "java $JVM_OPTS -Dsolr.clustering.enabled=true -Xmx${ memory }g -jar start.jar";
 
     print STDERR "running $java_cmd ...\n";
 

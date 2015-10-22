@@ -101,7 +101,7 @@ EOF
             </ul>
 EOF
 
-        # RSS feeds (the total count exceeding Feed::Scrape::MAX_DEFAULT_FEEDS)
+        # RSS feeds (the total count exceeding $Feed::Scrape::MAX_DEFAULT_FEEDS)
         '/syndicated/all.xml' => {
             header  => $HTTP_CONTENT_TYPE_RSS,
             content => _sample_rss_feed( $test_http_server_url, 'All News' )
