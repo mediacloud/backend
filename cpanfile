@@ -108,6 +108,7 @@ requires 'namespace::autoclean';
 requires 'Net::Amazon::S3';
 requires 'Net::Calais';
 requires 'Net::IP';
+requires 'Net::Twitter';
 requires 'Parallel::Fork::BossWorkerAsync';
 requires 'Parallel::ForkManager';
 requires 'Parse::BooleanLogic';
