@@ -11,6 +11,7 @@
     <form method="[% form_method | html %]" action="[% search_url | html %]">
         Query: <input type="text" name="q" size="96" value="[% q | html %]" /> <br />
         <input type="hidden" name="pq" value="[% q | html %]" />
+        <input type="hidden" name="form_method" value="[% form_method | html %]" />
         <input type="hidden" name="languages" size="32" value="[% languages | html %]" />
         <input type="submit" name="submit" value="Go" />
     </form>
