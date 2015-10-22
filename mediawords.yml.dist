@@ -284,6 +284,12 @@ database:
     ## Request timeout
     #timeout: 60
 
+#twitter:
+#    consumer_key: ""
+#    consumer_secret: ""
+#    access_token: ""
+#    access_token_secret: ""    
+
 #mail:
     # Email address to receive bug report emails; leave empty for no bug reports via email
     #bug_email : ""
