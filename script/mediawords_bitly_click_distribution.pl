@@ -23,6 +23,7 @@ use MediaWords::Util::SQL;
 
 use Getopt::Long;
 use Readonly;
+use DateTime;
 
 sub main
 {
@@ -38,6 +39,9 @@ EOF
     Getopt::Long::GetOptions( 'limit=i' => \$limit, ) or die $usage;
 
     my $db = MediaWords::DB::connect_to_db;
+
+    my $publish_timestamp_lower_bound = DateTime->new( year => 2008, month => 01, day => 01 )->epoch;
+    my $publish_timestamp_upper_bound = DateTime->now()->epoch;
 
     say STDERR "Fetching (up to) $limit story IDs...";
     my $story_ids = $db->query(
@@ -70,9 +74,14 @@ EOF
         }
 
         my $publish_timestamp = MediaWords::Util::SQL::get_epoch_from_sql_date( $publish_date );
-        if ( $publish_timestamp < 1 )
+        if ( $publish_timestamp <= $publish_timestamp_lower_bound )
         {
-            say STDERR "Incorrect publish timestamp for story $stories_id";
+            say STDERR "Publish timestamp is lower than the lower bound for story $stories_id";
+            next;
+        }
+        if ( $publish_timestamp >= $publish_timestamp_upper_bound )
+        {
+            say STDERR "Publish timestamp is bigger than the upper bound for story $stories_id";
             next;
         }
 
