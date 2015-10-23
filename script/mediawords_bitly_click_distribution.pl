@@ -73,6 +73,7 @@ EOF
         if ( $publish_timestamp < 1 )
         {
             say STDERR "Incorrect publish timestamp for story $stories_id";
+            next;
         }
 
         my $story_stats = MediaWords::Util::Bitly::read_story_stats( $db, $stories_id );
