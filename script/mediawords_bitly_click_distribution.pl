@@ -24,6 +24,7 @@ use MediaWords::Util::SQL;
 use Getopt::Long;
 use Readonly;
 use DateTime;
+use Statistics::Histogram;
 
 sub main
 {
@@ -54,8 +55,7 @@ EOF
         $limit
     )->flat;
 
-    # CSV header
-    say '"Hours since publish_date"';
+    my @histogram_data;
 
     my $min_publish_timestamp = undef;
     my $max_publish_timestamp = undef;
@@ -112,7 +112,7 @@ EOF
 
                     for ( my $x = 0 ; $x < $clicks ; ++$x )
                     {
-                        say "$diff_hours";
+                        push( @histogram_data, $diff_hours );
                     }
                 }
             }
@@ -121,6 +121,12 @@ EOF
 
     say STDERR "Min. publish timestamp: $min_publish_timestamp";
     say STDERR "Max. publish timestamp: $max_publish_timestamp";
+
+    say STDERR "Generating histogram...";
+    Readonly my $num_bins          => 24;
+    Readonly my $use_linear_axes   => 0;
+    Readonly my $use_integral_bins => 1;
+    print get_histogram( \@histogram_data, $num_bins, $use_linear_axes, $use_integral_bins );
 
     say STDERR "Done.";
 }
