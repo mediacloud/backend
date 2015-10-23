@@ -57,6 +57,9 @@ EOF
     # CSV header
     say '"Hours since publish_date"';
 
+    my $min_publish_timestamp = undef;
+    my $max_publish_timestamp = undef;
+
     foreach my $stories_id ( @{ $story_ids } )
     {
         my $story = $db->find_by_id( 'stories', $stories_id );
@@ -85,6 +88,11 @@ EOF
             next;
         }
 
+        $min_publish_timestamp = $publish_timestamp
+          if !defined $min_publish_timestamp or $min_publish_timestamp > $publish_timestamp;
+        $max_publish_timestamp = $publish_timestamp
+          if !defined $max_publish_timestamp or $max_publish_timestamp < $publish_timestamp;
+
         my $story_stats = MediaWords::Util::Bitly::read_story_stats( $db, $stories_id );
         unless ( $story_stats )
         {
@@ -110,6 +118,9 @@ EOF
             }
         }
     }
+
+    say STDERR "Min. publish timestamp: $min_publish_timestamp";
+    say STDERR "Max. publish timestamp: $max_publish_timestamp";
 
     say STDERR "Done.";
 }
