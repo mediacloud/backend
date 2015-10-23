@@ -19,6 +19,7 @@ use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 use MediaWords::DB;
 use MediaWords::Util::Bitly;
+use MediaWords::Util::DateTime;
 use MediaWords::Util::SQL;
 
 use Getopt::Long;
@@ -87,6 +88,11 @@ EOF
             say STDERR "Publish timestamp is bigger than the upper bound for story $stories_id";
             next;
         }
+
+        # Round timestamp to the nearest day because that's what Bitly.pm does
+        my $publish_datetime = gmt_datetime_from_timestamp( $publish_timestamp );
+        $publish_datetime->set( hour => 0, minute => 0, second => 0 );
+        $publish_timestamp = $publish_datetime->epoch;
 
         $min_publish_timestamp = $publish_timestamp
           if !defined $min_publish_timestamp or $min_publish_timestamp > $publish_timestamp;
