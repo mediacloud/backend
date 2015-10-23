@@ -3,7 +3,7 @@
 # Bit.ly click distribution histogram
 #
 # Usage:
-# ./script/run_with_carton.sh ./script/mediawords_bitly_click_distribution.pl [--limit 200] > histogram.csv
+# ./script/run_with_carton.sh ./script/mediawords_bitly_click_distribution.pl [--limit 200] > bitly_click_distrib.csv
 #
 
 use strict;
@@ -44,6 +44,26 @@ EOF
     my $publish_timestamp_lower_bound = DateTime->new( year => 2008, month => 01, day => 01 )->epoch;
     my $publish_timestamp_upper_bound = DateTime->now()->epoch;
 
+    # Buckets for the histogram
+    my $buckets = [
+        { from => undef,       to => -7 * 24 },
+        { from => -7 * 24 + 1, to => -6 * 24 },
+        { from => -6 * 24 + 1, to => -5 * 24 },
+        { from => -5 * 24 + 1, to => -4 * 24 },
+        { from => -4 * 24 + 1, to => -3 * 24 },
+        { from => -3 * 24 + 1, to => -2 * 24 },
+        { from => -2 * 24 + 1, to => -1 * 24 },
+        { from => -1 * 24 + 1, to => 0 },
+        { from => 1,           to => 1 * 24 },
+        { from => 1 * 24 + 1,  to => 2 * 24 },
+        { from => 2 * 24 + 1,  to => 3 * 24 },
+        { from => 3 * 24 + 1,  to => 4 * 24 },
+        { from => 4 * 24 + 1,  to => 5 * 24 },
+        { from => 5 * 24 + 1,  to => 6 * 24 },
+        { from => 6 * 24 + 1,  to => 7 * 24 },
+        { from => 7 * 24 + 1,  to => undef },
+    ];
+
     say STDERR "Fetching (up to) $limit story IDs...";
     my $story_ids = $db->query(
         <<EOF,
@@ -54,9 +74,6 @@ EOF
 EOF
         $limit
     )->flat;
-
-    # CSV header
-    say '"Hours since publish_date"';
 
     my $min_publish_timestamp = undef;
     my $max_publish_timestamp = undef;
@@ -116,9 +133,37 @@ EOF
                     my $diff       = $dt - $publish_timestamp;
                     my $diff_hours = int( $diff / 60 / 60 );
 
-                    for ( my $x = 0 ; $x < $clicks ; ++$x )
+                    if ( $clicks > 0 )
                     {
-                        say "$diff_hours";
+                        my $bucket_found = 0;
+                        foreach my $bucket ( @{ $buckets } )
+                        {
+                            my $bucket_from = $bucket->{ from };
+                            my $bucket_to   = $bucket->{ to };
+
+                            unless ( defined $bucket->{ clicks } )
+                            {
+                                $bucket->{ clicks } = 0;
+                            }
+
+                            if ( ( !defined( $bucket_from ) ) or $bucket_from <= $diff_hours )
+                            {
+                                if ( ( !defined( $bucket_to ) ) or $bucket_to >= $diff_hours )
+                                {
+
+                                    if ( $bucket_found )
+                                    {
+                                        die "More than one bucket was found for hours $diff_hours";
+                                    }
+                                    else
+                                    {
+                                        $bucket_found = 1;
+                                    }
+
+                                    $bucket->{ clicks } += $clicks;
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -127,6 +172,16 @@ EOF
 
     say STDERR "Min. publish timestamp: $min_publish_timestamp";
     say STDERR "Max. publish timestamp: $max_publish_timestamp";
+
+    say '"Hours since \'publish_date\'","Clicks"';
+    foreach my $bucket ( @{ $buckets } )
+    {
+        print '"';
+        print( $bucket->{ from } // 'inf' );
+        print ' - ';
+        print( $bucket->{ to } // 'inf' );
+        print '",' . $bucket->{ clicks } . "\n";
+    }
 
     say STDERR "Done.";
 }
