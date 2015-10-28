@@ -69,7 +69,7 @@ EOF
         <<EOF,
         SELECT object_id AS stories_id
         FROM bitly_processing_results
-        ORDER BY object_id
+        ORDER BY RANDOM()
         LIMIT ?
 EOF
         $limit
