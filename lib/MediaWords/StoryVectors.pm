@@ -2,7 +2,7 @@ package MediaWords::StoryVectors;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
-# methods to generate the story_sentences and story_sentence_words and associated aggregated tables
+# methods to generate the story_sentences and associated aggregated tables
 
 use strict;
 use warnings;
@@ -25,8 +25,7 @@ use utf8;
 use Readonly;
 use Text::CSV_XS;
 
-# minimum length of words in story_sentence_words
-use constant MIN_STEM_LENGTH => 3;
+Readonly my $MIN_STEM_LENGTH => 3;
 
 Readonly my $sentence_study_table_prefix => 'sen_study_old_';
 Readonly my $sentence_study_table_suffix => '_2011_01_03_2011_01_10';
@@ -37,7 +36,7 @@ sub _valid_stem
     my ( $stem, $word, $stop_stems ) = @_;
 
     return ( $stem
-          && ( length( $stem ) >= MIN_STEM_LENGTH )
+          && ( length( $stem ) >= $MIN_STEM_LENGTH )
           && ( !$stop_stems->{ $stem } )
           && ( $word !~ /[^[:print:]]/ )
           && ( $word =~ /[^[:digit:][:punct:]]/ ) );
@@ -116,25 +115,40 @@ END
     die( "Error on pg_putcopyend for story_sentence_counts: $@" ) if ( $@ );
 }
 
+# get unique sentences from the list, maintaining the original order
+sub _get_unique_sentences
+{
+    my ( $sentences ) = @_;
+
+    my $unique_sentences       = [];
+    my $unique_sentence_lookup = {};
+    for my $sentence ( @{ $sentences } )
+    {
+        if ( !$unique_sentence_lookup->{ $sentence } )
+        {
+            $unique_sentence_lookup->{ $sentence } = 1;
+            push( @{ $unique_sentences }, $sentence );
+        }
+    }
+
+    return $unique_sentences;
+}
+
 # return the sentences from the set that are dups within the same media source and calendar week.
 # also adds the sentence to the story_sentences_count table and/or increments the count in that table
 # for the sentence.
 #
 # NOTE: you must wrap a 'lock story_sentence_counts in row exclusive mode' around all calls to this within the
 # same transaction to avoid deadlocks
-#
-# NOTE ALSO: There is a known concurrency issue if this function is called by multiple threads see #1599
-# However, we have determined that the issue is rare enough in practice that it is not of particular concern.
-# So we have decided to simply leave things in place as they are rather than risk the performance and code complexity issues
-# of ensuring atomic updates.
-#
 sub get_deduped_sentences
 {
     my ( $db, $story, $sentences ) = @_;
 
+    my $unique_sentences = _get_unique_sentences( $sentences );
+
     my $sentence_md5_lookup = {};
     my $i                   = 0;
-    for my $sentence ( @{ $sentences } )
+    for my $sentence ( @{ $unique_sentences } )
     {
         my $sentence_utf8 = encode_utf8( $sentence );
         unless ( defined $sentence_utf8 )
@@ -211,14 +225,14 @@ sub dedup_sentences
         return [];
     }
 
-    if ( !$db->dbh->{ AutoCommit } )
-    {
-        $db->query( "LOCK TABLE story_sentence_counts IN ROW EXCLUSIVE MODE" );
-    }
+    # commit to release any existing locks, then start a new transaction to get a fresh lock on ssc
+    $db->commit unless ( $db->dbh->{ AutoCommit } );
+    $db->begin if ( $db->dbh->{ AutoCommit } );
+    $db->query( "LOCK TABLE story_sentence_counts IN ROW EXCLUSIVE MODE" );
 
     my $deduped_sentences = get_deduped_sentences( $db, $story, $sentences );
 
-    $db->dbh->{ AutoCommit } || $db->commit;
+    $db->commit;
 
     if ( @{ $sentences } && !@{ $deduped_sentences } )
     {
@@ -362,12 +376,12 @@ sub clean_sentences
 
 }
 
-# update story vectors for the given story, updating story_sentences and story_sentence_words
+# update story vectors for the given story, updating story_sentences
 # if no_delete is true, do not try to delete existing entries in the above table before creating new ones
 # (useful for optimization if you are very sure no story vectors exist for this story).  If
 # $no_dedup_sentences is true, do not perform sentence deduplication (useful if you are reprocessing a
 # small set of stories)
-sub update_story_sentence_words_and_language
+sub update_story_sentences_and_language
 {
     my ( $db, $story, $no_delete, $no_dedup_sentences, $ignore_date_range ) = @_;
 
@@ -380,7 +394,6 @@ sub update_story_sentence_words_and_language
 
     unless ( $no_delete )
     {
-        $db->query( "DELETE FROM story_sentence_words WHERE stories_id = ?",        $stories_id );
         $db->query( "DELETE FROM story_sentences WHERE stories_id = ?",             $stories_id );
         $db->query( "DELETE FROM story_sentence_counts WHERE first_stories_id = ?", $stories_id );
     }

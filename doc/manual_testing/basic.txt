@@ -40,8 +40,8 @@ VERIFY
 
 * verify that the following scripts are list as RUNNING:
 
-gearman:add_default_feeds_00     RUNNING
-gearman:add_default_feeds_01     RUNNING
+gearman:rescrape_media_00     RUNNING
+gearman:rescrape_media_01     RUNNING
 gearman:extract_and_vector_00    RUNNING
 gearman:extract_and_vector_01    RUNNING
 mc:crawler                       RUNNING

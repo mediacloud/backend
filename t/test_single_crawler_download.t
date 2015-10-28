@@ -43,8 +43,8 @@ sub add_test_feed
     Readonly my $sw_data_end_date   => '2014-02-27';
 
     my $test_medium = $db->query(
-"insert into media (name, url, moderated, feeds_added, sw_data_start_date, sw_data_end_date) values (?, ?, ?, ?, ?, ?) returning *",
-        '_ Crawler Test', $url_to_crawl, 0, 0, $sw_data_start_date, $sw_data_end_date
+        "insert into media (name, url, moderated, sw_data_start_date, sw_data_end_date) values (?, ?, ?, ?, ?) returning *",
+        '_ Crawler Test', $url_to_crawl, 0, $sw_data_start_date, $sw_data_end_date
     )->hash;
 
     ok( MediaWords::StoryVectors::_medium_has_story_words_start_date( $test_medium ) );
@@ -125,17 +125,17 @@ sub _purge_disable_triggers_field
 }
 
 # test various results of the crawler
-sub test_stories
+sub test_stories($$$)
 {
-    my ( $db, $feed ) = @_;
+    my ( $db, $feed, $extractor_method ) = @_;
 
     my $stories = get_expanded_stories( $db, $feed );
 
-    is( @{ $stories }, 1, "story count" );
+    is( scalar @{ $stories }, 1, "story count" );
 
     my $test_stories =
       MediaWords::Test::Data::stories_arrayref_from_hashref(
-        MediaWords::Test::Data::fetch_test_data_from_individual_files( 'crawler_stories/gv' ) );
+        MediaWords::Test::Data::fetch_test_data_from_individual_files( "crawler_stories/gv/$extractor_method" ) );
 
     MediaWords::Test::Data::adjust_test_timezone( $test_stories, $test_stories->[ 0 ]->{ timezone } );
 
@@ -202,25 +202,16 @@ sub test_stories
 
 }
 
-sub get_crawler_data_directory
-{
-    my $crawler_data_location;
-
-    {
-        use FindBin;
-
-        my $bin = $FindBin::Bin;
-        say "Bin = '$bin' ";
-        $crawler_data_location = "$FindBin::Bin/data/crawler";
-    }
-
-    print "crawler data '$crawler_data_location'\n";
-
-    return $crawler_data_location;
-}
-
 sub main
 {
+    # Extractor method to use
+    #
+    # Please note that this constant doesn't mean that extractor will extract
+    # test stories using this particular method; it only means that the unit
+    # test itself will assume that stories got extracted using this extractor
+    # method and thus will load input / save output data from appropriate
+    # directories.
+    Readonly my $extractor_method => 'HeuristicExtractor';
 
     my ( $dump ) = @ARGV;
 
@@ -229,7 +220,7 @@ sub main
             use Encode;
             my ( $db ) = @_;
 
-            my $crawler_data_location = get_crawler_data_directory();
+            my $crawler_data_location = MediaWords::Test::Data::get_path_to_data_files( 'crawler' );
 
             my $test_http_server = MediaWords::Test::LocalServer->new( $crawler_data_location );
             $test_http_server->start();
@@ -273,7 +264,7 @@ sub main
             # Wait for a bit for the crawler to finish crawling
             sleep( 10 );
 
-            test_stories( $db, $feed );
+            test_stories( $db, $feed, $extractor_method );
 
             say STDERR "Killing server";
             $test_http_server->stop();

@@ -8,18 +8,19 @@
 <fieldset>
 
     [% search_url = c.uri_for( "/search" ) %]
-    <form method="get" action="[% search_url | html %]">
+    <form method="[% form_method | html %]" action="[% search_url | html %]">
         Query: <input type="text" name="q" size="96" value="[% q | html %]" /> <br />
         <input type="hidden" name="pq" value="[% q | html %]" />
+        <input type="hidden" name="form_method" value="[% form_method | html %]" />
         <input type="hidden" name="languages" size="32" value="[% languages | html %]" />
         <input type="submit" name="submit" value="Go" />
     </form>
     <p>
-        <a href="[% c.uri_for( '/search/wc' ) %]">Search words</a> | 
-        <a href="[% c.uri_for( '/search/readme' ) %]">Query instructions</a> | 
+        <a href="[% c.uri_for( '/search/wc' ) %]">Search words</a> |
+        <a href="[% c.uri_for( '/search/readme' ) %]">Query instructions</a> |
         <a href="[% c.uri_for( '/search/tags' ) | html %]">List available media tags</a> |
         <a href="[% c.uri_for( '/search/diff' ) | html %]">Compare queries</a>
-        
+
     </p>
 
 </fieldset>
@@ -28,34 +29,34 @@
 
     <br />
     <fieldset>
-        <p> 
+        <p>
             [% IF stories && ( stories.size < num_stories ) %]
-                Only showing a random sample of [% stories.size %] stories out of about [% num_stories %] (this story 
+                Only showing a random sample of [% stories.size %] stories out of about [% num_stories %] (this story
                     total is just a guess based on the number of sentences found).  Download the csv to see all stories
                     and get a true count of stories.
             [% ELSE %]
                 [% num_stories %] stories found.
             [% END %]
         </p>
-        
-        
+
+
         [% IF stories %]
             <p><a href="#tag_counts">Summary of tag counts for this query</a></p>
         [% END %]
-        
+
         [% IF pq %]
             <p><a href="[% c.uri_for( '/search', { 'q' => q, 'languages' => languages, 'csv' => 1 } ) %]">CSV diff to previous query:
         [% END %]
 
     </fieldset>
-    
+
     [% IF stories %]
 
-    
+
         <div class="boxtitle">
             Search Results
-            <a id="boxcommand" href="[% c.uri_for( '/search', { 'q' => q, 'languages' => languages, 'csv' => 1 } ) %]">CSV</a>
-            <a id="boxcommand" href="[% c.uri_for( '/search/wc', { 'q' => q, 'languages' => languages } ) %]">words</a>
+            <a class="boxcommand" href="[% c.uri_for( '/search', { 'q' => q, 'languages' => languages, 'csv' => 1 } ) %]">CSV</a>
+            <a class="boxcommand" href="[% c.uri_for( '/search/wc', { 'q' => q, 'languages' => languages } ) %]">words</a>
         </div>
         <table>
             <tr>
@@ -69,9 +70,9 @@
                 <th>Search Tags</th>
                 [% IF pattern %]<th>Matches Pattern</th>[% END %]
             </tr>
-        
+
             [% FOREACH story IN stories %]
-                
+
                 <tr [% IF even %]class="even"[% END %]>
                     <td>
                         [% IF c.acl_user_can_visit('/admin/stories/view') %]
@@ -85,7 +86,7 @@
                     <td>[% story.publish_date | html %]</td>
                     <td>[% story.media_name | html %]</td>
                     <td>[% story.media_id %]</td>
-                    <td>[% story.language %]</td>  
+                    <td>[% story.language %]</td>
                     <td>[% story.tag_names %]</td>
                     [% IF pattern %]
                         [% IF story.matches_pattern %]
@@ -98,7 +99,7 @@
 
                 [%  SET even = !even %]
             [% END %]
-        
+
         </table>
 
         <a name="tag_counts" />
@@ -109,9 +110,9 @@
                 <th>Tag Name</th>
                 <th>Tag ID</th>
             </tr>
-        
+
             [% FOREACH tag_count IN tag_counts %]
-                
+
                 <tr [% IF even %]class="even"[% END %]>
                     <td>[% tag_count.count %]</td>
                     <td><a title="[% tag_count.description | html %]" href="[% c.uri_for( '/search/media/' _ tag_count.tags_id )%]">[% tag_count.tag_name | html %]</a></td>
@@ -120,9 +121,9 @@
 
                 [%  SET even = !even %]
             [% END %]
-        
+
         </table>
-            
+
     [% END %]
 
 [% END %]

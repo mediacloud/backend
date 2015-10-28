@@ -22,18 +22,19 @@ BEGIN
 
 use Parallel::ForkManager;
 use Storable;
+use Readonly;
 
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 
 # number of processes to run in parallel
-use constant DEFAULT_NUM_PARALLEL => 10;
+Readonly my $DEFAULT_NUM_PARALLEL => 10;
 
 # timeout any given request after this many seconds
-use constant DEFAULT_TIMEOUT => 90;
+Readonly my $DEFAULT_TIMEOUT => 90;
 
 # number of seconds to wait before sending a new request to a given domain
-use constant DEFAULT_PER_DOMAIN_TIMEOUT => 1;
+Readonly my $DEFAULT_PER_DOMAIN_TIMEOUT => 1;
 
 sub get_request_domain
 {
@@ -96,17 +97,6 @@ sub get_scheduled_requests
     return [ sort { $a->{ time } <=> $b->{ time } } @{ $scheduled_requests } ];
 }
 
-# given the response and request, parse the content for a meta refresh url and return if present.
-# otherwise, return undef
-sub get_meta_refresh_url
-{
-    my ( $response, $request ) = @_;
-
-    return undef unless ( $response->is_success );
-
-    MediaWords::Util::URL::meta_refresh_url_from_html( $response->decoded_content, $request->{ url } );
-}
-
 sub main
 {
     my $requests;
@@ -132,12 +122,12 @@ sub main
 
     my $config = MediaWords::Util::Config::get_config;
 
-    my $num_parallel       = $config->{ mediawords }->{ web_store_num_parallel } || DEFAULT_NUM_PARALLEL;
+    my $num_parallel       = $config->{ mediawords }->{ web_store_num_parallel } || $DEFAULT_NUM_PARALLEL;
     my $timeout            = $config->{ mediawords }->{ web_store_timeout };
     my $per_domain_timeout = $config->{ mediawords }->{ web_store_per_domain_timeout };
 
-    $timeout            = DEFAULT_TIMEOUT            unless ( defined( $timeout ) );
-    $per_domain_timeout = DEFAULT_PER_DOMAIN_TIMEOUT unless ( defined( $per_domain_timeout ) );
+    $timeout            = $DEFAULT_TIMEOUT            unless ( defined( $timeout ) );
+    $per_domain_timeout = $DEFAULT_PER_DOMAIN_TIMEOUT unless ( defined( $per_domain_timeout ) );
 
     my $pm = new Parallel::ForkManager( $num_parallel );
 
@@ -166,10 +156,7 @@ sub main
 
         my $response = $ua->get( $request->{ url } );
 
-        for ( my $i = 0 ; ( $i < 10 ) && ( my $url = get_meta_refresh_url( $response, $request ) ) ; $i++ )
-        {
-            $response = $ua->get( $url );
-        }
+        $response = MediaWords::Util::Web::get_meta_refresh_response( $response, $request );
 
         print STDERR "got [$i/$total]: $request->{ url }\n";
 

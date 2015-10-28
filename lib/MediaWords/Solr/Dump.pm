@@ -23,8 +23,8 @@ use MediaWords::Solr;
 # how many sentences to fetch at a time from the postgres query
 Readonly my $FETCH_BLOCK_SIZE => 10_000;
 
-# max number of updated media stories to import in one delta import
-Readonly my $MAX_MEDIA_STORIES => 100_000;
+# max number of updated queued stories to import in one delta import
+Readonly my $MAX_QUEUED_STORIES => 100_000;
 
 # mark date before generating dump for storing in solr_imports after successful import
 my $_import_date;
@@ -46,35 +46,23 @@ sub _set_lookup
     $data_lookup->{ $name } = $lookup;
 }
 
-# look for media that have been updated since the last import
-# and add all of them to a queue.  add enough stories from that
+# add enough stories from the solr_import_stories
 # queue to the stories_solr_import table that there are up to
-# $MAX_MEDIA_STORIES in stories_solr_import for each solr_import
+# $MAX_QUEUED_STORIES in stories_solr_import for each solr_import
 sub _add_media_stories_to_import
 {
     my ( $db, $import_date, $num_delta_stories ) = @_;
 
-    $db->query( <<END, $import_date );
-insert into solr_import_stories ( stories_id )
-    select stories_id
-        from stories s
-            join media m on ( s.media_id = m.media_id )
-        where
-            m.db_row_last_updated > \$1 and
-            s.stories_id not in ( select stories_id from delta_import_stories ) and
-            s.stories_id not in ( select stories_id from solr_import_stories )
-END
-
-    my $max_media_stories = List::Util::max( 0, $MAX_MEDIA_STORIES - $num_delta_stories );
-    my $num_media_stories = $db->query( <<END, $max_media_stories )->rows;
+    my $max_queued_stories = List::Util::max( 0, $MAX_QUEUED_STORIES - $num_delta_stories );
+    my $num_queued_stories = $db->query( <<END, $max_queued_stories )->rows;
 insert into delta_import_stories ( stories_id ) select stories_id from solr_import_stories limit ?
 END
 
-    if ( $num_media_stories > 0 )
+    if ( $num_queued_stories > 0 )
     {
-        my ( $total_media_stories ) = $db->query( "select count(*) from solr_import_stories" )->flat;
+        my ( $total_queued_stories ) = $db->query( "select count(*) from solr_import_stories" )->flat;
 
-        print STDERR "added $num_media_stories / $total_media_stories media stories to the queue\n";
+        print STDERR "added $num_queued_stories / $total_queued_stories queued stories to the import\n";
     }
 
 }
@@ -98,11 +86,11 @@ declare csr cursor for
         ss.sentence,
         null title,
         ss.language
-    
+
     from story_sentences ss
-        
+
     where ( ss.stories_id % $num_proc = $proc - 1 )
-        $date_clause    
+        $date_clause
 END
 
 }
@@ -126,11 +114,11 @@ declare csr cursor for
         null sentence,
         s.title,
         s.language
-    
+
     from stories s
-        
+
     where ( s.stories_id % $num_proc = $proc - 1 )
-        $date_clause    
+        $date_clause
 END
 
 }
@@ -435,12 +423,15 @@ sub mark_import_date
 # store the date marked by mark_import_date in solr_imports
 sub save_import_date
 {
-    my ( $db, $delta ) = @_;
+    my ( $db, $delta, $stories_ids ) = @_;
 
     die( "import date has not been marked" ) unless ( $_import_date );
 
     my $full_import = $delta ? 'f' : 't';
-    $db->query( "insert into solr_imports( import_date, full_import ) values ( ?, ? )", $_import_date, $full_import );
+    $db->query( <<SQL, $_import_date, $full_import, scalar( @{ $stories_ids } ) );
+insert into solr_imports( import_date, full_import, num_stories ) values ( ?, ?, ? )
+SQL
+
 }
 
 # delete the given stories from solr
@@ -544,7 +535,7 @@ sub generate_and_import_data
     print STDERR "importing dump ...\n";
     import_csv_files( [ $dump_file ], $delta, $staging ) || die( "import failed." );
 
-    save_import_date( $db, $delta );
+    save_import_date( $db, $delta, $stories_ids );
     delete_stories_from_import_queue( $db, $delta );
 
     # if we're doing a full import, do a delta to catchup with the data since the start of the import

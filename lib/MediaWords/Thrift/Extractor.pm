@@ -1,6 +1,7 @@
 package MediaWords::Thrift::Extractor;
 
 use strict;
+use warnings;
 
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
@@ -13,6 +14,7 @@ use List::Util;
 use MediaWords::Languages::Language;
 use MediaWords::Util::Config;
 use MediaWords::Util::Web;
+use MediaWords::Util::Process;
 use List::MoreUtils qw ( uniq );
 
 BEGIN
@@ -82,16 +84,18 @@ sub extract_html
         my $e = $@;
         if ( $e )
         {
-            if ( ( time() - $start_time ) < 300 )
+            if ( ( time() - $start_time ) < 60 )
             {
                 sleep 1;
                 say STDERR "Retrying connecting to thrift server";
                 next;
             }
 
-            say STDERR "Giving up trying to connect to thrift server";
-            say STDERR Dumper( $e );
-            die $e;
+            my $error_message = "Giving up trying to connect to thrift server:\n";
+            $error_message .= Dumper( $e ) . "\n";
+            $error_message .= "Gearman worker is terminating so that the extractor job remains in the Gearman queue";
+
+            fatal_error( $error_message );
         }
 
         last;

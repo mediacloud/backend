@@ -6,11 +6,19 @@
 # usage: mediawords_import_controversy_seed_urls.pl --file < csv file >
 #    [ --controversy < controversy id or name > ] [ --source < source description > ]
 #
-# the csv must include 'url' and 'source' headers.  the csv must also include a 'controversy' header
-# unless a default controversy is specified on the command line. the csv may also include
-# an 'assume_match' column, which indicates whether the controversy mining process
-# should assume that the given url matches the controversy and should be
-# 1 or 0 (the default is 0).
+# the csv must include these columns:
+# * url
+#
+# the csv must include these columns unless a default is specified on the command line:
+# * controversy
+# * source (text description of the source of the urls)
+#
+# the csv may include these columns, which will be directlly imported into the resulting story for each url:
+# * content
+# * publish_date
+# * title
+# * guid
+# * assume_match - 1 or 0, should the controversy spider assume that the url matches the controversy?
 
 use strict;
 use warnings;
@@ -32,6 +40,8 @@ use MediaWords::Util::CSV;
 sub get_controversy
 {
     my ( $db, $csv_url, $default_controversy ) = @_;
+
+    return $default_controversy if ( $default_controversy );
 
     my $controversies_id = $csv_url->{ controversy };
 
@@ -88,7 +98,11 @@ END
         url              => $csv_url->{ url },
         controversies_id => $controversy->{ controversies_id },
         source           => $csv_url->{ source },
-        assume_match     => $csv_url->{ assume_match }
+        assume_match     => $csv_url->{ assume_match },
+        content          => $csv_url->{ content },
+        publish_date     => $csv_url->{ publish_date },
+        guid             => $csv_url->{ guid },
+        title            => $csv_url->{ title }
     };
 
     $db->create( 'controversy_seed_urls', $controversy_seed_url );

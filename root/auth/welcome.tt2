@@ -2,6 +2,12 @@
 
 [% INCLUDE include/auth/header.tt2 %]
 
+<h1>Welcome to Media Cloud</h1>
+
+<p>
+Your email address ( [% email | html %] ) has been validated and your account is now active!
+</p>
+
 <p>
 The Media Cloud team is committed to providing open access to our <a href="https://github.com/berkmancenter/mediacloud">code</a>, 
 <a href="http://mediacloud.org/category/blog/tool-blog/">tools</a>, and <a href="http://mediacloud.org/api">data</a> so that others 

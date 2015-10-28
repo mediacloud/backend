@@ -5,6 +5,7 @@ use MediaWords::CommonLibs;
 # various helper functions for downloads
 
 use strict;
+use warnings;
 
 use Carp;
 use Scalar::Defer;
@@ -13,6 +14,7 @@ use Readonly;
 use MediaWords::Crawler::Extractor;
 use MediaWords::Util::Config qw(get_config);
 use MediaWords::Util::HTML;
+use MediaWords::DB;
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
 use MediaWords::StoryVectors;
@@ -23,7 +25,7 @@ use MediaWords::GearmanFunction::AnnotateWithCoreNLP;
 use MediaWords::Util::ThriftExtractor;
 
 # Database inline content length limit
-use constant INLINE_CONTENT_LENGTH => 256;
+Readonly my $INLINE_CONTENT_LENGTH => 256;
 
 my $_block_level_element_tags = [
     qw ( h1 h2 h3 h4 h5 h6 p div dl dt dd ol ul li dir menu
@@ -141,9 +143,11 @@ my $_download_store_lookup = lazy
     # lazy load these modules because some of them are very expensive to load
     # and are tangentially loaded by indirect module dependency
     require MediaWords::KeyValueStore::AmazonS3;
+    require MediaWords::KeyValueStore::CachedAmazonS3;
     require MediaWords::KeyValueStore::DatabaseInline;
     require MediaWords::KeyValueStore::GridFS;
     require MediaWords::KeyValueStore::PostgreSQL;
+    require MediaWords::KeyValueStore::PostgreSQLFallback;
 
     my $download_store_lookup = {
 
@@ -154,6 +158,9 @@ my $_download_store_lookup = lazy
         # downloads.path is prefixed with "postgresql:";
         # download is stored in "raw_downloads" table
         postgresql => undef,
+
+        # Fallback database for "postgresql" downloads
+        postgresql_fallback => undef,
 
         # downloads.path is prefixed with "amazon_s3:";
         # download is stored in Amazon S3
@@ -207,12 +214,25 @@ my $_download_store_lookup = lazy
     # Initialize key value stores for downloads
     if ( get_config->{ amazon_s3 } )
     {
-        $download_store_lookup->{ amazon_s3 } = MediaWords::KeyValueStore::AmazonS3->new(
-            {
-                bucket_name    => get_config->{ amazon_s3 }->{ downloads }->{ bucket_name },
-                directory_name => get_config->{ amazon_s3 }->{ downloads }->{ directory_name }
-            }
-        );
+        if ( get_config->{ mediawords }->{ cache_s3_downloads } eq 'yes' )
+        {
+            $download_store_lookup->{ amazon_s3 } = MediaWords::KeyValueStore::CachedAmazonS3->new(
+                {
+                    bucket_name    => get_config->{ amazon_s3 }->{ downloads }->{ bucket_name },
+                    directory_name => get_config->{ amazon_s3 }->{ downloads }->{ directory_name },
+                    cache_root_dir => get_config->{ mediawords }->{ data_dir } . '/cache/s3_downloads',
+                }
+            );
+        }
+        else
+        {
+            $download_store_lookup->{ amazon_s3 } = MediaWords::KeyValueStore::AmazonS3->new(
+                {
+                    bucket_name    => get_config->{ amazon_s3 }->{ downloads }->{ bucket_name },
+                    directory_name => get_config->{ amazon_s3 }->{ downloads }->{ directory_name }
+                }
+            );
+        }
     }
 
     $download_store_lookup->{ databaseinline } = MediaWords::KeyValueStore::DatabaseInline->new(
@@ -230,8 +250,36 @@ my $_download_store_lookup = lazy
         }
     }
 
-    $download_store_lookup->{ postgresql } =
-      MediaWords::KeyValueStore::PostgreSQL->new( { table_name => 'raw_downloads' } );
+    # Main raw downloads database / table
+    my $raw_downloads_db_label = 'raw_downloads';    # as set up in mediawords.yml
+    unless ( grep { $_ eq $raw_downloads_db_label } MediaWords::DB::get_db_labels() )
+    {
+        #say STDERR "No such label '$raw_downloads_db_label', falling back to default database";
+        $raw_downloads_db_label = undef;
+    }
+
+    $download_store_lookup->{ postgresql } = MediaWords::KeyValueStore::PostgreSQL->new(
+        {
+            database_label => $raw_downloads_db_label,                         #
+            table => ( $raw_downloads_db_label ? undef : 'raw_downloads' ),    #
+        }
+    );
+
+    # Fallback raw downloads database / table
+    my $raw_downloads_fallback_db_label = 'raw_downloads_fallback';            # as set up in mediawords.yml
+    if ( grep { $_ eq $raw_downloads_fallback_db_label } MediaWords::DB::get_db_labels() )
+    {
+        $download_store_lookup->{ postgresql_fallback } = MediaWords::KeyValueStore::PostgreSQLFallback->new(
+            {
+                database_label => $raw_downloads_fallback_db_label,            #
+            }
+        );
+    }
+    else
+    {
+        #say STDERR "No such label '$raw_downloads_fallback_db_label', fallback table disabled";
+        $download_store_lookup->{ postgresql_fallback } = undef;
+    }
 
     return $download_store_lookup;
 };
@@ -243,7 +291,7 @@ sub _download_stores_for_writing($)
 
     my $stores = [];
 
-    if ( length( $$content_ref ) < INLINE_CONTENT_LENGTH )
+    if ( length( $$content_ref ) < $INLINE_CONTENT_LENGTH )
     {
         unless ( $_download_store_lookup->{ databaseinline } )
         {
@@ -274,8 +322,8 @@ sub _download_stores_for_writing($)
     return $stores;
 }
 
-# Returns store for fetching downloads from
-sub _download_store_for_reading($)
+# Returns stores to try fetching download from
+sub _download_stores_for_reading($)
 {
     my $download = shift;
 
@@ -301,7 +349,7 @@ sub _download_store_for_reading($)
             $download_store = 'postgresql';
         }
 
-        elsif ( $location eq 'amazon_s3' )
+        elsif ( ( $location eq 's3' ) || ( $location eq 'amazon_s3' ) )
         {
             $download_store = 'amazon_s3';
         }
@@ -347,7 +395,34 @@ sub _download_store_for_reading($)
         die "Download store '$download_store' is not initialized for download " . $download->{ downloads_id };
     }
 
-    return $_download_store_lookup->{ $download_store };
+    my @stores = ( $_download_store_lookup->{ $download_store } );
+
+    # Add PostgreSQL fallback storage if one is set up
+    if ( $download_store eq 'postgresql' )
+    {
+        if ( defined $_download_store_lookup->{ postgresql_fallback } )
+        {
+            push( @stores, $_download_store_lookup->{ postgresql_fallback } );
+        }
+    }
+
+    # Add Amazon S3 fallback storage if needed
+    if ( $download_store eq 'postgresql' )
+    {
+        if ( lc( get_config->{ mediawords }->{ fallback_postgresql_downloads_to_s3 } eq 'yes' ) )
+        {
+            if ( defined $_download_store_lookup->{ amazon_s3 } )
+            {
+                push( @stores, $_download_store_lookup->{ amazon_s3 } );
+            }
+            else
+            {
+                warn "'fallback_postgresql_downloads_to_s3' is enabled, but Amazon S3 download storage is not set up.";
+            }
+        }
+    }
+
+    return \@stores;
 }
 
 # fetch the content for the given download as a content_ref
@@ -360,22 +435,31 @@ sub fetch_content($$)
         croak "fetch_content called with invalid download";
     }
 
-    unless ( grep { $_ eq $download->{ state } } ( 'success', 'extractor_error', 'feed_error' ) )
+    unless ( download_successful( $download ) )
     {
-        croak "attempt to fetch content for unsuccessful download $download->{ downloads_id }  / $download->{ state }";
+        confess "attempt to fetch content for unsuccessful download $download->{ downloads_id }  / $download->{ state }";
     }
 
-    my $store = _download_store_for_reading( $download );
-    unless ( defined $store )
+    my $stores = _download_stores_for_reading( $download );
+    unless ( scalar( @{ $stores } ) )
     {
-        croak "No download path or the state is not 'success' for download ID " . $download->{ downloads_id };
+        croak "No stores for reading download " . $download->{ downloads_id };
     }
 
     # Fetch content
-    my $content_ref = $store->fetch_content( $db, $download->{ downloads_id }, $download->{ path } );
+    my $content_ref;
+    foreach my $store ( @{ $stores } )
+    {
+        if ( $store->content_exists( $db, $download->{ downloads_id }, $download->{ path } ) )
+        {
+            $content_ref = $store->fetch_content( $db, $download->{ downloads_id }, $download->{ path } );
+            last;
+        }
+    }
     unless ( $content_ref and ref( $content_ref ) eq 'SCALAR' )
     {
-        croak "Unable to fetch content for download " . $download->{ downloads_id };
+        croak "Unable to fetch content for download " . $download->{ downloads_id } . "; tried stores: " .
+          join( ', ', map { ref $_ } @{ $stores } );
     }
 
     # horrible hack to fix old content that is not stored in unicode
@@ -386,6 +470,18 @@ sub fetch_content($$)
     }
 
     return $content_ref;
+}
+
+# return content as lines in an array after running through the extractor preprocessor
+sub _preprocess_content_lines($)
+{
+    my ( $content_ref ) = @_;
+
+    my $lines = [ split( /[\n\r]+/, $$content_ref ) ];
+
+    $lines = MediaWords::Crawler::Extractor::preprocess( $lines );
+
+    return $lines;
 }
 
 # fetch the content as lines in an array after running through the extractor preprocessor
@@ -403,64 +499,25 @@ sub fetch_preprocessed_content_lines($$)
         return [];
     }
 
-    my $lines = [ split( /[\n\r]+/, $$content_ref ) ];
-
-    $lines = MediaWords::Crawler::Extractor::preprocess( $lines );
-
-    return $lines;
+    return _preprocess_content_lines( $content_ref );
 }
 
 # run MediaWords::Crawler::Extractor against the download content and return a hash in the form of:
 # { extracted_html => $html,    # a string with the extracted html
 #   extracted_text => $text,    # a string with the extracted html strippped to text
-#   download_lines => $lines,   # an array of the lines of original html
-#   scores => $scores }         # the scores returned by Mediawords::Crawler::Extractor::score_lines
+#   download_lines => $lines,   # (optional) an array of the lines of original html
+#   scores => $scores }         # (optional) the scores returned by Mediawords::Crawler::Extractor::score_lines
 sub extractor_results_for_download($$)
 {
     my ( $db, $download ) = @_;
 
-    my $config           = MediaWords::Util::Config::get_config;
-    my $extractor_method = $config->{ mediawords }->{ extractor_method };
+    my $content_ref = fetch_content( $db, $download );
 
-    my $extracted_html;
-    my $ret;
+    # FIXME if we're using Readability extractor, there's no point fetching
+    # story title and description as Readability doesn't use it
+    my $story = $db->find_by_id( 'stories', $download->{ stories_id } );
 
-    #say STDERR "DBI::Downloads::extractor_results_for_download extractor_method $extractor_method";
-
-    if ( $extractor_method eq 'PythonReadability' )
-    {
-        my $content_ref = fetch_content( $db, $download );
-
-        $ret            = {};
-        $extracted_html = MediaWords::Util::ThriftExtractor::get_extracted_html( $$content_ref );
-    }
-    elsif ( $extractor_method eq 'HeuristicExtractor' )
-    {
-        my $story = $db->query( "select * from stories where stories_id = ?", $download->{ stories_id } )->hash;
-
-        my $lines = fetch_preprocessed_content_lines( $db, $download );
-
-        # print "PREPROCESSED LINES:\n**\n" . join( "\n", @{ $lines } ) . "\n**\n";
-
-        $ret = extract_preprocessed_lines_for_story( $lines, $story->{ title }, $story->{ description } );
-
-        my $download_lines        = $ret->{ download_lines };
-        my $included_line_numbers = $ret->{ included_line_numbers };
-
-        $extracted_html = _get_extracted_html( $download_lines, $included_line_numbers );
-    }
-    else
-    {
-        die "invalid extractor method: $extractor_method";
-    }
-
-    $extracted_html = _new_lines_around_block_level_tags( $extracted_html );
-    my $extracted_text = html_strip( $extracted_html );
-
-    $ret->{ extracted_html } = $extracted_html;
-    $ret->{ extracted_text } = $extracted_text;
-
-    return $ret;
+    return extract_content_ref( $content_ref, $story->{ title }, $story->{ description } );
 }
 
 # if the given line looks like a tagline for another story and is missing an ending period, add a period
@@ -485,15 +542,62 @@ sub add_period_to_tagline($$$)
     }
 }
 
-sub _do_extraction_from_content_ref($$$)
+# Extract content referenced by $content_ref
+sub extract_content_ref($$$;$)
 {
-    my ( $content_ref, $title, $description ) = @_;
+    my ( $content_ref, $story_title, $story_description, $extractor_method ) = @_;
 
-    my $lines = [ split( /[\n\r]+/, $$content_ref ) ];
+    unless ( $extractor_method )
+    {
+        my $config = MediaWords::Util::Config::get_config;
+        $extractor_method = $config->{ mediawords }->{ extractor_method };
+    }
 
-    $lines = MediaWords::Crawler::Extractor::preprocess( $lines );
+    my $extracted_html;
+    my $ret = {};
 
-    return extract_preprocessed_lines_for_story( $lines, $title, $description );
+    # Don't run through expensive extractor if the content is short and has no html
+    if ( ( length( $$content_ref ) < 4096 ) and ( $$content_ref !~ /\<.*\>/ ) )
+    {
+        $ret = {
+            extracted_html => $$content_ref,
+            extracted_text => $$content_ref,
+        };
+    }
+    else
+    {
+        #say STDERR "DBI::Downloads::extractor_results_for_download extractor_method $extractor_method";
+
+        if ( $extractor_method eq 'PythonReadability' )
+        {
+            $extracted_html = MediaWords::Util::ThriftExtractor::get_extracted_html( $$content_ref );
+        }
+        elsif ( $extractor_method eq 'HeuristicExtractor' )
+        {
+            my $lines = _preprocess_content_lines( $content_ref );
+
+            # print "PREPROCESSED LINES:\n**\n" . join( "\n", @{ $lines } ) . "\n**\n";
+
+            $ret = extract_preprocessed_lines_for_story( $lines, $story_title, $story_description );
+
+            my $download_lines        = $ret->{ download_lines };
+            my $included_line_numbers = $ret->{ included_line_numbers };
+
+            $extracted_html = _get_extracted_html( $download_lines, $included_line_numbers );
+        }
+        else
+        {
+            die "invalid extractor method: $extractor_method";
+        }
+
+        $extracted_html = _new_lines_around_block_level_tags( $extracted_html );
+        my $extracted_text = html_strip( $extracted_html );
+
+        $ret->{ extracted_html } = $extracted_html;
+        $ret->{ extracted_text } = $extracted_text;
+    }
+
+    return $ret;
 }
 
 sub extract_preprocessed_lines_for_story($$$)
@@ -663,10 +767,10 @@ EOF
         $stories_id
     )->hash;
 
-    my $story = $db->find_by_id( 'stories', $stories_id );
-
     if ( !( $has_remaining_download ) )
     {
+        my $story = $db->find_by_id( 'stories', $stories_id );
+
         MediaWords::DBI::Stories::process_extracted_story( $story, $db, $no_dedup_sentences, $no_vector );
     }
     elsif ( !( $no_vector ) )
@@ -714,6 +818,18 @@ EOF
     $db->commit;
 
     return 1;
+}
+
+# Return true if the download was downloaded successfully.
+# This method is needed because there are cases it which the download was sucessfully downloaded \
+# but had a subsequent processing error. e.g. 'extractor_error' and 'feed_error'
+sub download_successful
+{
+    my ( $download ) = @_;
+
+    my $state = $download->{ state };
+
+    return ( $state eq 'success' ) || ( $state eq 'feed_error' ) || ( $state eq 'extractor_error' );
 }
 
 1;

@@ -3,7 +3,8 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 117;
+use Test::Deep;
+use Test::More tests => 123;
 
 use Readonly;
 use HTTP::HashServer;
@@ -383,6 +384,42 @@ EOF
     is( MediaWords::Util::URL::meta_refresh_url_from_html( $html, $base_url ),
         $expected_url, 'Basic XHTML sans the seconds part' );
 
+    # Basic XHTML with quoted url
+    $html = <<EOF;
+        <html>
+        <head>
+            <title>This is a test</title>
+            <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+            <meta http-equiv="refresh" content="url='http://example.com/'" />
+        </head>
+        <body>
+            <p>This is a test.</p>
+        </body>
+        </html>
+EOF
+    $base_url     = 'http://example.com/';
+    $expected_url = 'http://example.com/';
+    is( MediaWords::Util::URL::meta_refresh_url_from_html( $html, $base_url ),
+        $expected_url, 'Basic XHTML with quoted url' );
+
+    # Basic XHTML with reverse quoted url
+    $html = <<EOF;
+        <html>
+        <head>
+            <title>This is a test</title>
+            <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+            <meta http-equiv="refresh" content='url="http://example.com/"' />
+        </head>
+        <body>
+            <p>This is a test.</p>
+        </body>
+        </html>
+EOF
+    $base_url     = 'http://example.com/';
+    $expected_url = 'http://example.com/';
+    is( MediaWords::Util::URL::meta_refresh_url_from_html( $html, $base_url ),
+        $expected_url, 'Basic XHTML with reverse quoted url' );
+
     # Relative path (base URL with trailing slash)
     $html = <<EOF;
         <meta http-equiv="refresh" content="0; url=second/third/" />
@@ -686,7 +723,7 @@ sub test_url_and_data_after_redirects_cookies()
                     print "\r\n";
                     print "Redirecting to the cookie check page...";
                 }
-            }
+              }
         },
 
         '/check_cookie' => {
@@ -719,7 +756,7 @@ sub test_url_and_data_after_redirects_cookies()
                     print "\r\n";
                     print 'Cookie wasn\'t found, redirecting you to the "no cookies" page...';
                 }
-            }
+              }
         },
         '/no_cookies' => "No cookie support, go away, we don\'t like you."
     };
@@ -734,6 +771,50 @@ sub test_url_and_data_after_redirects_cookies()
 
     is( $url_after_redirects,  $starting_url, 'URL after HTTP redirects (cookie)' );
     is( $data_after_redirects, $TEST_CONTENT, 'Data after HTTP redirects (cookie)' );
+}
+
+sub test_http_urls_in_string()
+{
+    my $test_string;
+    my $expected_urls;
+
+    # Basic test
+    $test_string = <<EOF;
+        These are my favourite websites:
+        * http://www.mediacloud.org/
+        * http://cyber.law.harvard.edu/
+        * about:blank
+EOF
+    $expected_urls = [ 'http://www.mediacloud.org/', 'http://cyber.law.harvard.edu/', ];
+    cmp_bag( MediaWords::Util::URL::http_urls_in_string( $test_string ), $expected_urls,
+        'test_http_urls_in_string - basic' );
+
+    # Duplicate URLs
+    $test_string = <<EOF;
+        These are my favourite (duplicate) websites:
+        * http://www.mediacloud.org/
+        * http://www.mediacloud.org/
+        * http://cyber.law.harvard.edu/
+        * http://cyber.law.harvard.edu/
+        * http://www.mediacloud.org/
+        * http://www.mediacloud.org/
+EOF
+    $expected_urls = [ 'http://www.mediacloud.org/', 'http://cyber.law.harvard.edu/', ];
+    cmp_bag( MediaWords::Util::URL::http_urls_in_string( $test_string ),
+        $expected_urls, 'test_http_urls_in_string - duplicate URLs' );
+
+    # No http:// URLs
+    $test_string = <<EOF;
+        This test text doesn't have any http:// URLs, only a ftp:// one:
+        ftp://ftp.ubuntu.com/ubuntu/
+EOF
+    $expected_urls = [];
+    cmp_bag( MediaWords::Util::URL::http_urls_in_string( $test_string ),
+        $expected_urls, 'test_http_urls_in_string - no HTTP URLs' );
+
+    # Erroneous input
+    eval { MediaWords::Util::URL::http_urls_in_string( undef ); };
+    ok( $@, 'test_http_urls_in_string - erroneous input' );
 }
 
 sub test_all_url_variants($)
@@ -979,6 +1060,7 @@ sub main()
     test_url_and_data_after_redirects_http_loop();
     test_url_and_data_after_redirects_html_loop();
     test_url_and_data_after_redirects_cookies();
+    test_http_urls_in_string();
 
     MediaWords::Test::DB::test_on_test_database(
         sub {

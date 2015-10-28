@@ -21,8 +21,11 @@ use Scalar::Defer;
 use Readonly;
 use Data::Dumper;
 
+# PostgreSQL table name for storing raw CoreNLP annotations
+Readonly my $CORENLP_POSTGRESQL_KVS_TABLE_NAME => 'corenlp_annotations';
+
 # Store / fetch downloads using Bzip2 compression
-Readonly my $CORENLP_GRIDFS_USE_BZIP2 => 1;
+Readonly my $CORENLP_USE_BZIP2 => 1;
 
 # Requested text length limit (0 for no limit)
 Readonly my $CORENLP_REQUEST_TEXT_LENGTH_LIMIT => 50 * 1024;
@@ -108,33 +111,26 @@ my $_corenlp_annotator_level = lazy
     return $corenlp_annotator_level;
 };
 
-# (Lazy-initialized) MongoDB GridFS key-value store
+# (Lazy-initialized) PostgreSQL key-value store
+#
 # We use a static, package-wide variable here because:
-# a) MongoDB handler should support being used by multiple threads by now, and
+# a) PostgreSQL handler should support being used by multiple threads by now, and
 # b) each Gearman worker is a separate process so there shouldn't be any resource clashes.
-my $_gridfs_store = lazy
+my $_postgresql_store = lazy
 {
-    # this is a very expensive module to load, so lazy load it
-    require MediaWords::KeyValueStore::GridFS;
+    # this is (probably) an expensive module to load, so lazy load it
+    require MediaWords::KeyValueStore::PostgreSQL;
 
     unless ( annotator_is_enabled() )
     {
         fatal_error( "CoreNLP annotator is not enabled; why are you accessing this variable?" );
     }
 
-    my $config = MediaWords::Util::Config->get_config();
+    # PostgreSQL storage
+    my $postgresql_store = MediaWords::KeyValueStore::PostgreSQL->new( { table => $CORENLP_POSTGRESQL_KVS_TABLE_NAME } );
+    say STDERR "Will read / write CoreNLP annotator results to PostgreSQL table: $CORENLP_POSTGRESQL_KVS_TABLE_NAME";
 
-    # GridFS storage
-    my $gridfs_database_name = $config->{ mongodb_gridfs }->{ corenlp }->{ database_name };
-    unless ( $gridfs_database_name )
-    {
-        fatal_error( "CoreNLP annotator is enabled, but MongoDB GridFS database name is not set." );
-    }
-
-    my $gridfs_store = MediaWords::KeyValueStore::GridFS->new( { database_name => $gridfs_database_name } );
-    say STDERR "Will write CoreNLP annotator results to GridFS database: $gridfs_database_name";
-
-    return $gridfs_store;
+    return $postgresql_store;
 };
 
 # Make a request to the CoreNLP annotator, return hashref of parsed JSON
@@ -176,9 +172,9 @@ sub _annotate_text($)
     {
         fatal_error( "Unable to determine CoreNLP annotator URL to use." );
     }
-    unless ( $_gridfs_store )
+    unless ( $_postgresql_store )
     {
-        fatal_error( "GridFS handler is not initialized." );
+        fatal_error( "PostgreSQL handler is not initialized." );
     }
 
     unless ( defined $text )
@@ -370,9 +366,10 @@ sub _annotate_text($)
     return $results_hashref;
 }
 
-# Fetch the CoreNLP annotation hashref from MongoDB for the story
-# Return annotation hashref on success, undef if the annotation doesn't exist in MongoDB, die() on error
-sub _fetch_annotation_from_gridfs_for_story($$)
+# Fetch the CoreNLP annotation hashref from key-value store for the story
+# Return annotation hashref on success, undef if the annotation doesn't exist
+# in any of the key-value stores, die() on error
+sub _fetch_raw_annotation_for_story($$)
 {
     my ( $db, $stories_id ) = @_;
 
@@ -390,16 +387,16 @@ sub _fetch_annotation_from_gridfs_for_story($$)
     # Fetch annotation
     my $json_ref = undef;
 
-    my $param_object_path                   = undef;                        # no such thing, objects are indexed by filename
-    my $param_use_bunzip2_instead_of_gunzip = $CORENLP_GRIDFS_USE_BZIP2;    # ...with Bzip2
+    my $param_object_path                   = undef;                 # no such thing, objects are indexed by filename
+    my $param_use_bunzip2_instead_of_gunzip = $CORENLP_USE_BZIP2;    # ...with Bzip2
 
     eval {
         $json_ref =
-          $_gridfs_store->fetch_content( $db, $stories_id, $param_object_path, $param_use_bunzip2_instead_of_gunzip );
+          $_postgresql_store->fetch_content( $db, $stories_id, $param_object_path, $param_use_bunzip2_instead_of_gunzip );
     };
     if ( $@ or ( !defined $json_ref ) )
     {
-        die "GridFS died while fetching annotation for story $stories_id: $@\n";
+        die "Store died while fetching annotation for story $stories_id: $@\n";
     }
 
     my $json = $$json_ref;
@@ -486,10 +483,10 @@ sub story_is_annotated($$)
     }
 
     my $annotation_exists = undef;
-    eval { $annotation_exists = $_gridfs_store->content_exists( $db, $stories_id ); };
+    eval { $annotation_exists = $_postgresql_store->content_exists( $db, $stories_id ); };
     if ( $@ )
     {
-        die "GridFS died while testing whether or not an annotation exists for story $stories_id: $@";
+        die "Storage died while testing whether or not an annotation exists for story $stories_id: $@";
     }
 
     if ( $annotation_exists )
@@ -502,7 +499,7 @@ sub story_is_annotated($$)
     }
 }
 
-# Run the CoreNLP annotation for the story, store results in MongoDB
+# Run the CoreNLP annotation for the story, store results in key-value store
 # If story is already annotated, issue a warning and overwrite
 # Return 1 on success, 0 on failure, die() on error, exit() on fatal error
 sub store_annotation_for_story($$)
@@ -583,27 +580,29 @@ EOF
     say STDERR "Done annotating sentences and story text for story $stories_id.";
     say STDERR 'JSON length: ' . length( $json_annotation );
 
-    say STDERR "Storing annotation results to GridFS for story $stories_id...";
+    say STDERR "Storing annotation results for story $stories_id...";
 
-    # Write to GridFS, index by stories_id
+    # Write to PostgreSQL, index by stories_id
     eval {
         # objects should be compressed with Bzip2
-        my $param_use_bzip2_instead_of_gzip = $CORENLP_GRIDFS_USE_BZIP2;
+        my $param_use_bzip2_instead_of_gzip = $CORENLP_USE_BZIP2;
 
-        my $path = $_gridfs_store->store_content( $db, $stories_id, \$json_annotation, $param_use_bzip2_instead_of_gzip );
+        my $path =
+          $_postgresql_store->store_content( $db, $stories_id, \$json_annotation, $param_use_bzip2_instead_of_gzip );
     };
     if ( $@ )
     {
-        fatal_error( "Unable to store CoreNLP annotation result to GridFS: $@" );
+        fatal_error( "Unable to store CoreNLP annotation result: $@" );
         return 0;
     }
-    say STDERR "Done storing annotation results to GridFS for story $stories_id.";
+    say STDERR "Done storing annotation results for story $stories_id.";
 
     return 1;
 }
 
-# Fetch the CoreNLP annotation JSON from MongoDB for the story
-# Return string JSON on success, undef if the annotation doesn't exist in MongoDB, die() on error
+# Fetch the CoreNLP annotation JSON from key-value store for the story
+# Return string JSON on success, undef if the annotation doesn't exist in any
+# key-value stores, die() on error
 sub fetch_annotation_json_for_story($$)
 {
     my ( $db, $stories_id ) = @_;
@@ -620,7 +619,7 @@ sub fetch_annotation_json_for_story($$)
     }
 
     my $annotation;
-    eval { $annotation = _fetch_annotation_from_gridfs_for_story( $db, $stories_id ); };
+    eval { $annotation = _fetch_raw_annotation_for_story( $db, $stories_id ); };
     if ( $@ or ( !defined $annotation ) )
     {
         die "Unable to fetch annotation for story $stories_id: $@";
@@ -651,8 +650,9 @@ sub fetch_annotation_json_for_story($$)
     return $story_annotation_json;
 }
 
-# Fetch the CoreNLP annotation JSON from MongoDB for the story sentence
-# Return string JSON on success, undef if the annotation doesn't exist in MongoDB, die() on error
+# Fetch the CoreNLP annotation JSON from key-value store for the story sentence
+# Return string JSON on success, undef if the annotation doesn't exist in any
+# key-value stores, die() on error
 sub fetch_annotation_json_for_story_sentence($$)
 {
     my ( $db, $story_sentences_id ) = @_;
@@ -677,7 +677,7 @@ sub fetch_annotation_json_for_story_sentence($$)
     }
 
     my $annotation;
-    eval { $annotation = _fetch_annotation_from_gridfs_for_story( $db, $stories_id ); };
+    eval { $annotation = _fetch_raw_annotation_for_story( $db, $stories_id ); };
     if ( $@ or ( !defined $annotation ) )
     {
         die "Unable to fetch annotation for story $stories_id: $@";
@@ -708,8 +708,11 @@ sub fetch_annotation_json_for_story_sentence($$)
     return $story_sentence_annotation_json;
 }
 
-# Fetch the CoreNLP annotation JSON from MongoDB for the story and all its sentences
-# Annotation for the concatenation of all sentences will have a key of sentences_concatenation_index(), e.g.:
+# Fetch the CoreNLP annotation JSON from key-value store for the story and all
+# its sentences
+#
+# Annotation for the concatenation of all sentences will have a key of
+# sentences_concatenation_index(), e.g.:
 #
 # {
 #     '_' => { 'corenlp' => 'annotation of the concatenation of all story sentences' },
@@ -719,7 +722,8 @@ sub fetch_annotation_json_for_story_sentence($$)
 #     ...
 # }
 #
-# Return string JSON on success, undef if the annotation doesn't exist in MongoDB, die() on error
+# Return string JSON on success, undef if the annotation doesn't exist in any
+# key-value stores, die() on error
 sub fetch_annotation_json_for_story_and_all_sentences($$)
 {
     my ( $db, $stories_id ) = @_;
@@ -736,7 +740,7 @@ sub fetch_annotation_json_for_story_and_all_sentences($$)
     }
 
     my $annotation;
-    eval { $annotation = _fetch_annotation_from_gridfs_for_story( $db, $stories_id ); };
+    eval { $annotation = _fetch_raw_annotation_for_story( $db, $stories_id ); };
     if ( $@ or ( !defined $annotation ) )
     {
         die "Unable to fetch annotation for story $stories_id: $@";

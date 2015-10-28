@@ -16,7 +16,6 @@ use MediaWords::Util::URL;
 use MediaWords::Util::Config;
 use MediaWords::Util::JSON;
 use MediaWords::Util::DateTime;
-use MediaWords::KeyValueStore::GridFS;
 use URI;
 use URI::QueryParam;
 use JSON;
@@ -24,13 +23,20 @@ use Scalar::Util qw/looks_like_number/;
 use Scalar::Defer;
 use DateTime;
 use DateTime::Duration;
+use Readonly;
 
-use constant BITLY_API_ENDPOINT     => 'https://api-ssl.bitly.com/';
-use constant BITLY_GRIDFS_USE_BZIP2 => 0;                              # Gzip works better in Bit.ly's case
+# API endpoint
+Readonly my $BITLY_API_ENDPOINT => 'https://api-ssl.bitly.com/';
+
+# PostgreSQL table name for storing raw Bit.ly processing results
+Readonly my $BITLY_POSTGRESQL_KVS_TABLE_NAME => 'bitly_processing_results';
+
+# Whether to compress processing results using Bzip2 instead of Gzip
+Readonly my $BITLY_USE_BZIP2 => 0;    # Gzip works better in Bit.ly's case
 
 # Error message printed when Bit.ly rate limit is exceeded; used for naive
 # exception handling, see error_is_rate_limit_exceeded()
-use constant BITLY_ERROR_LIMIT_EXCEEDED => 'Bit.ly rate limit exceeded. Please wait for a bit and try again.';
+Readonly my $BITLY_ERROR_LIMIT_EXCEEDED => 'Bit.ly rate limit exceeded. Please wait for a bit and try again.';
 
 # (Lazy-initialized) Bit.ly access token
 my $_bitly_access_token = lazy
@@ -70,30 +76,26 @@ my $_bitly_timeout = lazy
     return $timeout;
 };
 
-# (Lazy-initialized) MongoDB GridFS key-value store
+# (Lazy-initialized) PostgreSQL key-value store
+#
 # We use a static, package-wide variable here because:
-# a) MongoDB handler should support being used by multiple threads by now, and
+# a) PostgreSQL handler should support being used by multiple threads by now, and
 # b) each Gearman worker is a separate process so there shouldn't be any resource clashes.
-my $_gridfs_store = lazy
+my $_postgresql_store = lazy
 {
+    # this is (probably) an expensive module to load, so lazy load it
+    require MediaWords::KeyValueStore::PostgreSQL;
+
     unless ( bitly_processing_is_enabled() )
     {
         fatal_error( "Bit.ly processing is not enabled; why are you accessing this variable?" );
     }
 
-    my $config = MediaWords::Util::Config->get_config();
+    # PostgreSQL storage
+    my $postgresql_store = MediaWords::KeyValueStore::PostgreSQL->new( { table => $BITLY_POSTGRESQL_KVS_TABLE_NAME } );
+    say STDERR "Will read / write Bit.ly stats to PostgreSQL table: $BITLY_POSTGRESQL_KVS_TABLE_NAME";
 
-    # GridFS storage
-    my $gridfs_database_name = $config->{ mongodb_gridfs }->{ bitly }->{ database_name };
-    unless ( $gridfs_database_name )
-    {
-        fatal_error( "Bit.ly processing is enabled, but MongoDB GridFS database name is not set." );
-    }
-
-    my $gridfs_store = MediaWords::KeyValueStore::GridFS->new( { database_name => $gridfs_database_name } );
-    say STDERR "Will write Bit.ly stats to GridFS database: $gridfs_database_name";
-
-    return $gridfs_store;
+    return $postgresql_store;
 };
 
 # From $start_timestamp and $end_timestamp parameters, return API parameters "unit_reference_ts" and "units"
@@ -216,7 +218,7 @@ sub request($$)
     }
     $params->{ access_token } = $_bitly_access_token;
 
-    my $uri = URI->new( BITLY_API_ENDPOINT );
+    my $uri = URI->new( $BITLY_API_ENDPOINT );
     $uri->path( $path );
     foreach my $params_key ( keys %{ $params } )
     {
@@ -253,7 +255,7 @@ sub request($$)
     {
         if ( $json->{ status_code } == 403 and $json->{ status_txt } eq 'RATE_LIMIT_EXCEEDED' )
         {
-            die BITLY_ERROR_LIMIT_EXCEEDED;
+            die $BITLY_ERROR_LIMIT_EXCEEDED;
 
         }
         elsif ( $json->{ status_code } == 500 and $json->{ status_txt } eq 'INVALID_ARG_UNIT_REFERENCE_TS' )
@@ -978,7 +980,7 @@ sub bitly_link_shares($;$$)
 
 {
     # Object to determine what kind of stats to fetch from Bit.ly (used in
-    # fetch_story_stats())
+    # fetch_stats_for_story())
     package MediaWords::Util::Bitly::StatsToFetch;
 
     sub new($;$$$$)
@@ -1044,10 +1046,10 @@ sub story_stats_are_fetched($$)
     }
 
     my $record_exists = undef;
-    eval { $record_exists = $_gridfs_store->content_exists( $db, $stories_id ); };
+    eval { $record_exists = $_postgresql_store->content_exists( $db, $stories_id ); };
     if ( $@ )
     {
-        die "GridFS died while testing whether or not a Bit.ly record exists for story $stories_id: $@";
+        die "Storage died while testing whether or not a Bit.ly record exists for story $stories_id: $@";
     }
 
     if ( $record_exists )
@@ -1065,6 +1067,35 @@ sub story_stats_are_fetched($$)
 # Params:
 # * $db - database object
 # * $stories_id - story ID
+# * $start_timestamp - starting date (offset) for fetching statistics
+# * $end_timestamp - ending date (limit) for fetching statistics
+# * $stats_to_fetch (optional) - object of type
+#   "MediaWords::Util::Bitly::StatsToFetch" which determines what kind of
+#   statistics to fetch for the story
+#
+# Returns: see fetch_stats_for_url()
+#
+# die()s on error
+sub fetch_stats_for_story($$$$;$)
+{
+    my ( $db, $stories_id, $start_timestamp, $end_timestamp, $stats_to_fetch ) = @_;
+
+    my $story = $db->find_by_id( 'stories', $stories_id );
+    unless ( $story )
+    {
+        die "Story ID $stories_id was not found.";
+    }
+
+    my $stories_url = $story->{ url };
+
+    return fetch_stats_for_url( $db, $stories_url, $start_timestamp, $end_timestamp, $stats_to_fetch );
+}
+
+# Fetch story URL statistics from Bit.ly API
+#
+# Params:
+# * $db - database object
+# * $stories_url - story URL
 # * $start_timestamp - starting date (offset) for fetching statistics
 # * $end_timestamp - ending date (limit) for fetching statistics
 # * $stats_to_fetch (optional) - object of type
@@ -1113,9 +1144,14 @@ sub story_stats_are_fetched($$)
 #    };
 #
 # die()s on error
-sub fetch_story_stats($$$$;$)
+sub fetch_stats_for_url($$$$;$)
 {
-    my ( $db, $stories_id, $start_timestamp, $end_timestamp, $stats_to_fetch ) = @_;
+    my ( $db, $stories_url, $start_timestamp, $end_timestamp, $stats_to_fetch ) = @_;
+
+    unless ( $stories_url )
+    {
+        die "Story URL is empty.";
+    }
 
     unless ( bitly_processing_is_enabled() )
     {
@@ -1143,18 +1179,6 @@ sub fetch_story_stats($$$$;$)
         }
     }
 
-    my $story = $db->find_by_id( 'stories', $stories_id );
-    unless ( $story )
-    {
-        die "Story ID $stories_id was not found.";
-    }
-
-    my $stories_url = $story->{ url };
-    unless ( $stories_url )
-    {
-        die "Story URL for story ID $stories_id is empty.";
-    }
-
     my $string_start_date = gmt_date_string_from_timestamp( $start_timestamp );
     my $string_end_date   = gmt_date_string_from_timestamp( $end_timestamp );
 
@@ -1162,7 +1186,7 @@ sub fetch_story_stats($$$$;$)
     eval { $link_lookup = bitly_link_lookup_hashref_all_variants( $db, $stories_url ); };
     if ( $@ or ( !$link_lookup ) )
     {
-        die "Unable to lookup story ID $stories_id with URL $stories_url: $@";
+        die "Unable to lookup story with URL $stories_url: $@";
     }
 
     say STDERR "Link lookup: " . Dumper( $link_lookup );
@@ -1273,8 +1297,8 @@ sub fetch_story_stats($$$$;$)
     return $link_stats;
 }
 
-# Write Bit.ly story statistics to GridFS; overwrite if a record already exists
-# in GridFS
+# Write Bit.ly story statistics to key-value store; overwrite if a record
+# already exists in the store
 #
 # Params:
 # * $db - database object
@@ -1316,25 +1340,25 @@ sub write_story_stats($$$)
 
     say STDERR 'JSON length: ' . length( $json_stats );
 
-    # Write to GridFS, index by stories_id
+    # Write to key-value store, index by stories_id
     eval {
-        my $param_use_bzip2_instead_of_gzip = BITLY_GRIDFS_USE_BZIP2 + 0;
+        my $param_use_bzip2_instead_of_gzip = $BITLY_USE_BZIP2;
 
-        my $path = $_gridfs_store->store_content( $db, $stories_id, \$json_stats, $param_use_bzip2_instead_of_gzip );
+        my $path = $_postgresql_store->store_content( $db, $stories_id, \$json_stats, $param_use_bzip2_instead_of_gzip );
     };
     if ( $@ )
     {
-        die "Unable to store Bit.ly result to GridFS: $@";
+        die "Unable to store Bit.ly result to store: $@";
     }
 }
 
-# Read Bit.ly story statistics from GridFS
+# Read Bit.ly story statistics from key-value store
 #
 # Params:
 # * $db - database object
 # * $stories_id - story ID
 #
-# Returns hashref with decoded JSON, undef if story is not annotated; die()s on error
+# Returns hashref with decoded JSON, undef if story is not processed; die()s on error
 sub read_story_stats($$)
 {
     my ( $db, $stories_id ) = @_;
@@ -1356,19 +1380,19 @@ sub read_story_stats($$)
         return undef;
     }
 
-    # Fetch annotation
+    # Fetch processing result
     my $json_ref = undef;
 
     my $param_object_path                   = undef;
-    my $param_use_bunzip2_instead_of_gunzip = BITLY_GRIDFS_USE_BZIP2 + 0;
+    my $param_use_bunzip2_instead_of_gunzip = $BITLY_USE_BZIP2;
 
     eval {
         $json_ref =
-          $_gridfs_store->fetch_content( $db, $stories_id, $param_object_path, $param_use_bunzip2_instead_of_gunzip );
+          $_postgresql_store->fetch_content( $db, $stories_id, $param_object_path, $param_use_bunzip2_instead_of_gunzip );
     };
     if ( $@ or ( !defined $json_ref ) )
     {
-        die "GridFS died while fetching Bit.ly stats for story $stories_id: $@\n";
+        die "Storage died while fetching Bit.ly stats for story $stories_id: $@\n";
     }
 
     my $json = $$json_ref;
@@ -1412,9 +1436,7 @@ sub error_is_rate_limit_exceeded($)
 {
     my $error_message = shift;
 
-    my $expected_message = BITLY_ERROR_LIMIT_EXCEEDED . '';
-
-    if ( $error_message =~ /$expected_message/ )
+    if ( $error_message =~ /$BITLY_ERROR_LIMIT_EXCEEDED/ )
     {
         return 1;
     }
@@ -1422,6 +1444,104 @@ sub error_is_rate_limit_exceeded($)
     {
         return 0;
     }
+}
+
+{
+    # Single story statistics
+    package MediaWords::Util::Bitly::StoryStats;
+
+    sub new($$;$$$)
+    {
+        my $class = shift;
+        my ( $stories_id, $click_count, $referrer_count ) = @_;
+
+        my $self = {};
+        bless $self, $class;
+
+        $self->{ stories_id }     = $stories_id;
+        $self->{ click_count }    = $click_count // 0;
+        $self->{ referrer_count } = $referrer_count // 0;
+
+        return $self;
+    }
+
+    1;
+}
+
+# Returns MediaWords::Util::Bitly::StoryStats object with story statistics
+# die()s on error
+sub aggregate_story_stats($$$)
+{
+    my ( $stories_id, $stories_original_url, $stats ) = @_;
+
+    my $click_count    = 0;
+    my $referrer_count = 0;
+
+    # Aggregate stats
+    if ( $stats->{ 'error' } )
+    {
+        if ( $stats->{ 'error' } eq 'NOT_FOUND' )
+        {
+            say STDERR "Story $stories_id was not found on Bit.ly, so click / referrer count is 0.";
+        }
+        else
+        {
+            die "Story $stories_id has encountered unknown error while collecting Bit.ly stats: " . $stats->{ 'error' };
+        }
+    }
+    else
+    {
+        my $stories_original_url_is_homepage = MediaWords::Util::URL::is_homepage_url( $stories_original_url );
+
+        unless ( $stats->{ 'data' } )
+        {
+            die "'data' is not set for story's $stories_id stats hashref.";
+        }
+
+        foreach my $bitly_id ( keys %{ $stats->{ 'data' } } )
+        {
+            my $bitly_data = $stats->{ 'data' }->{ $bitly_id };
+
+            # If URL gets redirected to the homepage (e.g.
+            # http://m.wired.com/threatlevel/2011/12/sopa-watered-down-amendment/ leads
+            # to http://www.wired.com/), don't use those redirects
+            my $url = $bitly_data->{ 'url' };
+            unless ( $stories_original_url_is_homepage )
+            {
+                if ( MediaWords::Util::URL::is_homepage_url( $url ) )
+                {
+                    say STDERR
+                      "URL $stories_original_url got redirected to $url which looks like a homepage, so I'm skipping that.";
+                    next;
+                }
+            }
+
+            # Click count (indiscriminate from date range)
+            unless ( $bitly_data->{ 'clicks' } )
+            {
+                say "Bit.ly stats hashref doesn't have 'clicks' key for Bit.ly ID $bitly_id, story $stories_id.";
+            }
+            foreach my $bitly_clicks ( @{ $bitly_data->{ 'clicks' } } )
+            {
+                foreach my $link_clicks ( @{ $bitly_clicks->{ 'link_clicks' } } )
+                {
+                    $click_count += $link_clicks->{ 'clicks' };
+                }
+            }
+
+            # Referrer count (indiscriminate from date range)
+            unless ( $bitly_data->{ 'referrers' } )
+            {
+                say "Bit.ly stats hashref doesn't have 'referrers' key for Bit.ly ID $bitly_id, story $stories_id.";
+            }
+            foreach my $bitly_referrers ( @{ $bitly_data->{ 'referrers' } } )
+            {
+                $referrer_count += scalar( @{ $bitly_referrers->{ 'referrers' } } );
+            }
+        }
+    }
+
+    return MediaWords::Util::Bitly::StoryStats->new( $stories_id, $click_count, $referrer_count );
 }
 
 1;

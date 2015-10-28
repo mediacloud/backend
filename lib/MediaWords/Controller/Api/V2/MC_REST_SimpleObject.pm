@@ -12,6 +12,7 @@ use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Moose;
 use namespace::autoclean;
 use List::Compare;
+use Readonly;
 use Carp;
 
 =head1 NAME
@@ -40,9 +41,7 @@ __PACKAGE__->config(    #
       }    #
 );         #
 
-use constant ROWS_PER_PAGE => 20;
-
-use MediaWords::Tagger;
+Readonly my $ROWS_PER_PAGE => 20;
 
 sub _purge_extra_fields
 {
@@ -326,7 +325,7 @@ sub list_GET : Local
     $all_fields //= 0;
 
     my $rows = $c->req->param( 'rows' );
-    $rows //= ROWS_PER_PAGE;
+    $rows //= $ROWS_PER_PAGE;
 
     # say STDERR "rows $rows";
 

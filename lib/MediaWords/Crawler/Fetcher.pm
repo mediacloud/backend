@@ -104,6 +104,8 @@ sub do_fetch
 
     $response = fix_alarabiya_response( $download, $ua, $response );
 
+    $response = MediaWords::Util::Web::get_meta_refresh_response( $response, $request );
+
     return $response;
 }
 

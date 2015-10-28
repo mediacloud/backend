@@ -39,7 +39,6 @@ $VAR1 = [
                                    ],
             'media' => [
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -55,7 +54,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -71,7 +69,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -87,7 +84,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -103,7 +99,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -119,7 +114,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -135,7 +129,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -151,7 +144,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -167,7 +159,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -183,7 +174,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -199,7 +189,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -215,7 +204,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -231,7 +219,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -247,7 +234,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -263,7 +249,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -279,7 +264,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -295,7 +279,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -311,7 +294,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -327,7 +309,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -343,7 +324,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -359,7 +339,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -375,7 +354,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -391,7 +369,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -407,7 +384,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -423,7 +399,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -439,7 +414,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -455,7 +429,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -471,7 +444,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -487,7 +459,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -503,7 +474,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -519,7 +489,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -535,7 +504,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -551,7 +519,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -567,7 +534,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -583,7 +549,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -599,7 +564,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -615,7 +579,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -631,7 +594,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -647,7 +609,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -663,7 +624,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -679,7 +639,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -695,7 +654,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -711,7 +669,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -727,7 +684,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -743,7 +699,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -759,7 +714,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -775,7 +729,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -791,7 +744,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -807,7 +759,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -823,7 +774,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -839,7 +789,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -855,7 +804,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -871,7 +819,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -887,7 +834,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -903,7 +849,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -919,7 +864,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -935,7 +879,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -951,7 +894,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -967,7 +909,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -983,7 +924,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -999,7 +939,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1015,7 +954,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1031,7 +969,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1047,7 +984,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1063,7 +999,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1079,7 +1014,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1095,7 +1029,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1111,7 +1044,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1127,7 +1059,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1143,7 +1074,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1159,7 +1089,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1175,7 +1104,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1191,7 +1119,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1207,7 +1134,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1223,7 +1149,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1239,7 +1164,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1255,7 +1179,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1271,7 +1194,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1287,7 +1209,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1303,7 +1224,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1319,7 +1239,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1335,7 +1254,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1351,7 +1269,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1367,7 +1284,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1383,7 +1299,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1399,7 +1314,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1415,7 +1329,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1431,7 +1344,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1447,7 +1359,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1463,7 +1374,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1479,7 +1389,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1495,7 +1404,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1511,7 +1419,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1527,7 +1434,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1543,7 +1449,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1559,7 +1464,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1575,7 +1479,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1591,7 +1494,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1607,7 +1509,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1623,7 +1524,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1639,7 +1539,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1655,7 +1554,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1671,7 +1569,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1687,7 +1584,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1703,7 +1599,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1719,7 +1614,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1735,7 +1629,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1751,7 +1644,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1767,7 +1659,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1783,7 +1674,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1799,7 +1689,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1815,7 +1704,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1831,7 +1719,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1847,7 +1734,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1863,7 +1749,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1879,7 +1764,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1895,7 +1779,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1911,7 +1794,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1927,7 +1809,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1943,7 +1824,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1959,7 +1839,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1975,7 +1854,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -1991,7 +1869,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2007,7 +1884,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2023,7 +1899,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2039,7 +1914,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2055,7 +1929,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2071,7 +1944,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2087,7 +1959,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2103,7 +1974,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2119,7 +1989,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2135,7 +2004,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2151,7 +2019,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2167,7 +2034,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2183,7 +2049,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2199,7 +2064,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2215,7 +2079,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2231,7 +2094,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2247,7 +2109,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2263,7 +2124,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2279,7 +2139,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2295,7 +2154,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2311,7 +2169,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2327,7 +2184,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2343,7 +2199,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2359,7 +2214,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2375,7 +2229,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2391,7 +2244,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2407,7 +2259,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2423,7 +2274,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2439,7 +2289,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2455,7 +2304,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2471,7 +2319,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2487,7 +2334,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2503,7 +2349,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2519,7 +2364,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2535,7 +2379,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2551,7 +2394,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2567,7 +2409,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2583,7 +2424,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2599,7 +2439,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2615,7 +2454,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2631,7 +2469,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2647,7 +2484,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2663,7 +2499,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2679,7 +2514,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2695,7 +2529,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2711,7 +2544,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2727,7 +2559,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2743,7 +2574,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2759,7 +2589,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2775,7 +2604,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2791,7 +2619,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2807,7 +2634,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2823,7 +2649,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -2839,7 +2664,6 @@ $VAR1 = [
                            'media_clusters_id' => 114
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3266,7 +3090,6 @@ $VAR1 = [
                                    ],
             'media' => [
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3282,7 +3105,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3298,7 +3120,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3314,7 +3135,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3330,7 +3150,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3346,7 +3165,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3362,7 +3180,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3378,7 +3195,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3394,7 +3210,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3410,7 +3225,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3426,7 +3240,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3442,7 +3255,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3458,7 +3270,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3474,7 +3285,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3490,7 +3300,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3506,7 +3315,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3522,7 +3330,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3538,7 +3345,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3554,7 +3360,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3570,7 +3375,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3586,7 +3390,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3602,7 +3405,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3618,7 +3420,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3634,7 +3435,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3650,7 +3450,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3666,7 +3465,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3682,7 +3480,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3698,7 +3495,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3714,7 +3510,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3730,7 +3525,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3746,7 +3540,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3762,7 +3555,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3778,7 +3570,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3794,7 +3585,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3810,7 +3600,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3826,7 +3615,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3842,7 +3630,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3858,7 +3645,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3874,7 +3660,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3890,7 +3675,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3906,7 +3690,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3922,7 +3705,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3938,7 +3720,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3954,7 +3735,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3970,7 +3750,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -3986,7 +3765,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4002,7 +3780,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4018,7 +3795,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4034,7 +3810,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4050,7 +3825,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4066,7 +3840,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4082,7 +3855,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4098,7 +3870,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4114,7 +3885,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4130,7 +3900,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4146,7 +3915,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4162,7 +3930,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4178,7 +3945,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4194,7 +3960,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4210,7 +3975,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4226,7 +3990,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4242,7 +4005,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4258,7 +4020,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4274,7 +4035,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4290,7 +4050,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4306,7 +4065,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4322,7 +4080,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4338,7 +4095,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4354,7 +4110,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4370,7 +4125,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4386,7 +4140,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4402,7 +4155,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4418,7 +4170,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4434,7 +4185,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4450,7 +4200,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4466,7 +4215,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4482,7 +4230,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4498,7 +4245,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4514,7 +4260,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4530,7 +4275,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4546,7 +4290,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4562,7 +4305,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4578,7 +4320,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4594,7 +4335,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4610,7 +4350,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4626,7 +4365,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4642,7 +4380,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4658,7 +4395,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4674,7 +4410,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4690,7 +4425,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4706,7 +4440,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4722,7 +4455,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4738,7 +4470,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4754,7 +4485,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4770,7 +4500,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4786,7 +4515,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4802,7 +4530,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4818,7 +4545,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4834,7 +4560,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4850,7 +4575,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4866,7 +4590,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4882,7 +4605,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4898,7 +4620,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4914,7 +4635,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4930,7 +4650,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4946,7 +4665,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4962,7 +4680,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4978,7 +4695,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -4994,7 +4710,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5010,7 +4725,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5026,7 +4740,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5042,7 +4755,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5058,7 +4770,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5074,7 +4785,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5090,7 +4800,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5106,7 +4815,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5122,7 +4830,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5138,7 +4845,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5154,7 +4860,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5170,7 +4875,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5186,7 +4890,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5202,7 +4905,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5218,7 +4920,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5234,7 +4935,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5250,7 +4950,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5266,7 +4965,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5282,7 +4980,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5298,7 +4995,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5314,7 +5010,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5330,7 +5025,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5346,7 +5040,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5362,7 +5055,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5378,7 +5070,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5394,7 +5085,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5410,7 +5100,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5426,7 +5115,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5442,7 +5130,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5458,7 +5145,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5474,7 +5160,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5490,7 +5175,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5506,7 +5190,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5522,7 +5205,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5538,7 +5220,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5554,7 +5235,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5570,7 +5250,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5586,7 +5265,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5602,7 +5280,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5618,7 +5295,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5634,7 +5310,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5650,7 +5325,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5666,7 +5340,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5682,7 +5355,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5698,7 +5370,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5714,7 +5385,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5730,7 +5400,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5746,7 +5415,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5762,7 +5430,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5778,7 +5445,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5794,7 +5460,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5810,7 +5475,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5826,7 +5490,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5842,7 +5505,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5858,7 +5520,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5874,7 +5535,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5890,7 +5550,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5906,7 +5565,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5922,7 +5580,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5938,7 +5595,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5954,7 +5610,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5970,7 +5625,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -5986,7 +5640,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6002,7 +5655,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6018,7 +5670,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6034,7 +5685,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6050,7 +5700,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6066,7 +5715,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6082,7 +5730,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6098,7 +5745,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6114,7 +5760,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6130,7 +5775,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6146,7 +5790,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6162,7 +5805,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6178,7 +5820,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6194,7 +5835,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6210,7 +5850,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6226,7 +5865,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6242,7 +5880,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6258,7 +5895,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6274,7 +5910,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6290,7 +5925,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6306,7 +5940,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6322,7 +5955,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6338,7 +5970,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6354,7 +5985,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6370,7 +6000,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6386,7 +6015,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6402,7 +6030,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6418,7 +6045,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6434,7 +6060,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6450,7 +6075,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6466,7 +6090,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6482,7 +6105,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6498,7 +6120,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6514,7 +6135,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6530,7 +6150,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6546,7 +6165,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6562,7 +6180,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6578,7 +6195,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6594,7 +6210,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6610,7 +6225,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6626,7 +6240,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6642,7 +6255,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6658,7 +6270,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6674,7 +6285,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6690,7 +6300,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6706,7 +6315,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6722,7 +6330,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6738,7 +6345,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6754,7 +6360,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6770,7 +6375,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6786,7 +6390,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6802,7 +6405,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6818,7 +6420,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6834,7 +6435,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6850,7 +6450,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6866,7 +6465,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6882,7 +6480,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6898,7 +6495,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6914,7 +6510,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6930,7 +6525,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6946,7 +6540,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6962,7 +6555,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6978,7 +6570,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -6994,7 +6585,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7010,7 +6600,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7026,7 +6615,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7042,7 +6630,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7058,7 +6645,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7074,7 +6660,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7090,7 +6675,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7106,7 +6690,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7122,7 +6705,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7138,7 +6720,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7154,7 +6735,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7170,7 +6750,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7186,7 +6765,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7202,7 +6780,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7218,7 +6795,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7234,7 +6810,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7250,7 +6825,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7266,7 +6840,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7282,7 +6855,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7298,7 +6870,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7314,7 +6885,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7330,7 +6900,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7346,7 +6915,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7362,7 +6930,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7378,7 +6945,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7394,7 +6960,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7410,7 +6975,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7426,7 +6990,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7442,7 +7005,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7458,7 +7020,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7474,7 +7035,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7490,7 +7050,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7506,7 +7065,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7522,7 +7080,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7538,7 +7095,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7554,7 +7110,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7570,7 +7125,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7586,7 +7140,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7602,7 +7155,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7618,7 +7170,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7634,7 +7185,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7650,7 +7200,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7666,7 +7215,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7682,7 +7230,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7698,7 +7245,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7714,7 +7260,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7730,7 +7275,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7746,7 +7290,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7762,7 +7305,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7778,7 +7320,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7794,7 +7335,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7810,7 +7350,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7826,7 +7365,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7842,7 +7380,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7858,7 +7395,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7874,7 +7410,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7890,7 +7425,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => 1,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7906,7 +7440,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7922,7 +7455,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7938,7 +7470,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7954,7 +7485,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7970,7 +7500,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -7986,7 +7515,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -8002,7 +7530,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -8018,7 +7545,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -8034,7 +7560,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -8050,7 +7575,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -8066,7 +7590,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -8082,7 +7605,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -8098,7 +7620,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -8114,7 +7635,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -8130,7 +7650,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -8146,7 +7665,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -8162,7 +7680,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -8178,7 +7695,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -8194,7 +7710,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -8210,7 +7725,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -8226,7 +7740,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',
@@ -8242,7 +7755,6 @@ $VAR1 = [
                            'media_clusters_id' => 115
                          },
                          {
-                           'feeds_added' => 1,
                            'full_text_rss' => undef,
                            'external_similarity' => '0',
                            'internal_similarity' => '0',

@@ -22,7 +22,7 @@
             <th>[% ref_tags.0.source_label | html %]</th>
             [% FOREACH ref_tag IN ref_tags %]
                 [% SET search_url = c.uri_for( '/admin/cm/search_stories/' , { q => "{~ controversy_dump_time_slice:${ cdts.controversy_dump_time_slices_id }-${ live } link_from_tag:${ ref_tag.source_tags_id }-${ ref_tag.ref_tags_id } }", cdts => cdts.controversy_dump_time_slices_id, l => live } ) %]
-                <td><a href="[% search_url | html %]">[% ref_tag.log_inlink_count | format( '%.02f' ) %]</a></td>
+                <td><a href="[% search_url | html %]">[% ref_tag.log_inlink_count | format( '%.02f' ) %] ( [% ref_tag.media_inlink_count | format( '%.02f' ) %] / [% ref_tag.inlink_count | format( '%.02f' ) %] )</a></td>
             [% END %]
         </tr>
     [% END %]
@@ -37,6 +37,10 @@
         <blockquote>
             link_weight( source, target ) = sum( medium ) { log( story_link_count( medium, source, target ) }
         </blockquote>
+    </p>
+    <p>
+        In parentheses after each link weight are the count of distinct cross-media links and the count of all
+        cross-media story links.
     </p>
 </fieldset>
 

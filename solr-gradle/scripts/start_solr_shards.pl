@@ -8,8 +8,9 @@ use v5.10;
 
 use FindBin;
 use Getopt::Long;
+use Readonly;
 
-use constant JVM_OPTS => '-XX:MaxGCPauseMillis=1000';
+Readonly my $JVM_OPTS => '-XX:MaxGCPauseMillis=1000';
 
 sub main
 {
@@ -52,14 +53,13 @@ sub main
         if ( -e "master" )
         {
             my $master_memory = $memory;
-            system( "java " .
-                  JVM_OPTS . " -server -Xmx${ master_memory }g $log_config -DzkRun -jar start.jar > $log_file 2>&1 &" );
+            system( "java $JVM_OPTS -server -Xmx${ master_memory }g $log_config -DzkRun -jar start.jar > $log_file 2>&1 &" );
         }
         else
         {
             my $port = 7980 + $shard_id;
-            system( "java " . JVM_OPTS .
-" -server -Xmx${ memory }g $log_config -Dhost=$host -Djetty.port=$port -DzkHost=$zk_host -jar start.jar > $log_file 2>&1 &"
+            system(
+"java $JVM_OPTS -server -Xmx${ memory }g $log_config -Dhost=$host -Djetty.port=$port -DzkHost=$zk_host -jar start.jar > $log_file 2>&1 &"
             );
         }
         print STDERR "started shard $shard_id logging to $log_file\n";

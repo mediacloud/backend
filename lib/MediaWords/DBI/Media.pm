@@ -8,11 +8,11 @@ use Modern::Perl "2013";
 use Encode;
 use Regexp::Common qw /URI/;
 use Text::Trim;
+use XML::FeedPP;
 
 use MediaWords::CommonLibs;
 use MediaWords::DBI::Media::Lookup;
-use MediaWords::GearmanFunction;
-use MediaWords::GearmanFunction::AddDefaultFeeds;
+use MediaWords::DBI::Media::Rescrape;
 use MediaWords::Util::HTML;
 use MediaWords::Util::URL;
 
@@ -70,39 +70,31 @@ END
     return $domain_map;
 }
 
-# for each medium in $media, enqueue an add_default_feeds job for any medium
-# that is lacking feeds
-sub _add_feeds_for_feedless_media
-{
-    my ( $db, $media ) = @_;
-
-    for my $medium ( @{ $media } )
-    {
-        my $feeds = $db->query( <<END, $medium->{ media_id } )->hashes;
-select * from feeds where media_id = ? and feed_status = 'active' and feed_type = 'syndicated'
-END
-
-        $db->query( "update media set feeds_added = 'f' where media_id = ?", $medium->{ media_id } );
-
-        enqueue_add_default_feeds( $medium ) unless ( @{ $feeds } );
-    }
-}
-
 # for each url in $urls, either find the medium associated with that
 # url or the medium assocaited with the title from the given url or,
 # if no medium is found, a newly created medium.  Return the list of
 # all found or created media along with a list of error messages for the process.
 sub find_or_create_media_from_urls
 {
-    my ( $dbis, $urls_string, $tags_string ) = @_;
+    my ( $dbis, $urls_string, $global_tags_string ) = @_;
+
+    say STDERR "find media from urls";
 
     my $url_media = _find_media_from_urls( $dbis, $urls_string );
 
+    say STDERR "add missing media";
+
     _add_missing_media_from_urls( $dbis, $url_media );
 
-    _add_media_tags_from_strings( $dbis, $url_media, $tags_string );
+    say STDERR "add tags and feeds";
 
-    _add_feeds_for_feedless_media( $dbis, [ map { $_->{ medium } } @{ $url_media } ] );
+    _add_media_tags_and_feeds_from_strings( $dbis, $url_media, $global_tags_string );
+
+    foreach my $url_medium ( @{ $url_media } )
+    {
+        my $medium = $url_medium->{ medium };
+        MediaWords::DBI::Media::Rescrape::add_feeds_for_feedless_media( $dbis, $medium );
+    }
 
     return [ grep { $_ } map { $_->{ message } } @{ $url_media } ];
 }
@@ -197,10 +189,14 @@ sub _add_missing_media_from_urls
 
         my $medium = _find_medium_by_response( $dbis, $response );
 
+        say STDERR "found medium 1: $medium->{ url }" if ( $medium );
+
         if ( !$medium )
         {
             if ( $medium = $dbis->query( "select * from media where name = ?", encode( 'UTF-8', $title ) )->hash )
             {
+                say STDERR "found medium 2: $medium->{ url }";
+
                 $url_media->[ $url_media_index ]->{ message } =
                   "using existing medium with duplicate title '$title' already in database for '$url'";
             }
@@ -209,13 +205,14 @@ sub _add_missing_media_from_urls
                 $medium = $dbis->create(
                     'media',
                     {
-                        name        => encode( 'UTF-8', $title ),
-                        url         => encode( 'UTF-8', $url ),
-                        moderated   => 'f',
-                        feeds_added => 'f'
+                        name      => encode( 'UTF-8', $title ),
+                        url       => encode( 'UTF-8', $url ),
+                        moderated => 'f',
                     }
                 );
-                enqueue_add_default_feeds( $medium );
+                MediaWords::DBI::Media::Rescrape::enqueue_rescrape_media( $medium );
+
+                say STDERR "added missing medium: $medium->{ url }";
             }
         }
 
@@ -233,9 +230,27 @@ sub _add_missing_media_from_urls
     }
 }
 
+# add a feed with the given url to the medium if the feed does not already exist and
+# if the feed validates
+sub _add_feed_url_to_medium
+{
+    my ( $db, $medium, $feed_url ) = @_;
+
+    my $feed_exists = $db->query( <<SQL, $medium->{ media_id }, $feed_url )->hash;
+select * from feeds where media_id = ? and lower( url ) = lower( ? )
+SQL
+
+    return if $feed_exists;
+
+    eval { XML::FeedPP->new( $feed_url ) };
+    return if ( $@ );
+
+    $db->create( 'feeds', { media_id => $medium->{ media_id }, name => 'csv imported feed', url => $feed_url } );
+}
+
 # given a list of media sources as returned by _find_media_from_urls, add the tags
-# in the tags_string of each medium to that medium
-sub _add_media_tags_from_strings
+# and feeds in the tags_string of each medium to that medium
+sub _add_media_tags_and_feeds_from_strings
 {
     my ( $dbis, $url_media, $global_tags_string ) = @_;
 
@@ -243,35 +258,44 @@ sub _add_media_tags_from_strings
     {
         if ( $global_tags_string )
         {
-            if ( $url_medium->{ tags_string } )
+            if ( $url_medium->{ feeds_and_tags } )
             {
-                $url_medium->{ tags_string } .= ";$global_tags_string";
+                $url_medium->{ feeds_and_tags } .= ";$global_tags_string";
             }
             else
             {
-                $url_medium->{ tags_string } = $global_tags_string;
+                $url_medium->{ feeds_and_tags } = $global_tags_string;
             }
         }
 
-        if ( defined( $url_medium->{ tags_string } ) )
+        if ( defined( $url_medium->{ feeds_and_tags } ) )
         {
-            for my $tag_string ( split( /;/, $url_medium->{ tags_string } ) )
+            for my $item ( split( /;/, $url_medium->{ feeds_and_tags } ) )
             {
-                my $tag = MediaWords::Util::Tags::lookup_or_create_tag( $dbis, lc( $tag_string ) );
-                return unless ( $tag );
+                if ( $item =~ /^https?\:/i )
+                {
+                    say STDERR "add feed: $item";
+                    _add_feed_url_to_medium( $dbis, $url_medium->{ medium }, $item );
+                }
+                else
+                {
+                    say STDERR "add tag: $item";
+                    my $tag = MediaWords::Util::Tags::lookup_or_create_tag( $dbis, lc( $item ) );
+                    next unless ( $tag );
 
-                my $media_id = $url_medium->{ medium }->{ media_id };
+                    my $media_id = $url_medium->{ medium }->{ media_id };
 
-                $dbis->find_or_create( 'media_tags_map', { tags_id => $tag->{ tags_id }, media_id => $media_id } );
+                    $dbis->find_or_create( 'media_tags_map', { tags_id => $tag->{ tags_id }, media_id => $media_id } );
+                }
             }
         }
     }
 }
 
 # given a newline separated list of media urls, return a list of hashes in the form of
-# { medium => $medium_hash, url => $url, tags_string => $tags_string, message => $error_message }
+# { medium => $medium_hash, url => $url, feeds_and_tags => $feeds_and_tags, message => $error_message }
 # the $medium_hash is the existing media source with the given url, or undef if no existing media source is found.
-# the tags_string is everything after a space on a line, to be used to add tags to the media source later.
+# the feeds_and_tags is everything after a space on a line, to be used to add feeds and tags to the media source later.
 sub _find_media_from_urls
 {
     my ( $dbis, $urls_string ) = @_;
@@ -286,15 +310,17 @@ sub _find_media_from_urls
 
         trim( $tagged_url );
 
-        my ( $url, $tags_string ) = ( $tagged_url =~ /^\r*\s*([^\s]*)(?:\s+(.*))?/ );
+        next unless $tagged_url;
+
+        my ( $url, $feeds_and_tags ) = ( $tagged_url =~ /^\r*\s*([^\s]*)(?:\s+(.*))?/ );
 
         if ( $url !~ m~^[a-z]+://~ )
         {
             $url = "http://$url";
         }
 
-        $medium->{ url }         = $url;
-        $medium->{ tags_string } = $tags_string;
+        $medium->{ url }            = $url;
+        $medium->{ feeds_and_tags } = $feeds_and_tags;
 
         if ( $url !~ /$RE{URI}/ )
         {
@@ -317,28 +343,6 @@ sub get_medium_domain
     return MediaWords::Util::URL::get_url_domain( $medium->{ url } );
 }
 
-# add default feeds for a single medium
-sub enqueue_add_default_feeds($)
-{
-    my ( $medium ) = @_;
-
-    return MediaWords::GearmanFunction::AddDefaultFeeds->enqueue_on_gearman( { media_id => $medium->{ media_id } } );
-}
-
-# (re-)enqueue AddDefaultFeeds jobs for all unmoderated media
-# ("AddDefaultFeeds" Gearman function is "unique", so Gearman will skip media
-# IDs that are already enqueued)
-sub enqueue_add_default_feeds_for_unmoderated_media($)
-{
-    my ( $db ) = @_;
-
-    my $media = $db->query( "select * from media where feeds_added = 'f'" )->hashes;
-
-    map { enqueue_add_default_feeds( $_ ) } @{ $media };
-
-    return 1;
-}
-
 # get all of the media_type: tags. append the tags from the controversies.media_type_tags_sets_id
 # if $controversies_id is specified.
 sub get_media_type_tags
@@ -347,7 +351,7 @@ sub get_media_type_tags
 
     my $media_types = $db->query( <<END )->hashes;
 select t.*
-    from 
+    from
         tags t join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
     where
         ts.name = 'media_type'
@@ -358,8 +362,8 @@ END
     {
         my $controversy_media_types = $db->query( <<END, $controversies_id )->hashes;
 select t.*
-    from 
-        tags t 
+    from
+        tags t
         join controversies c on ( t.tag_sets_id = c.media_type_tag_sets_id )
     where
         c.controversies_id = ? and
@@ -383,7 +387,7 @@ sub update_media_type
     # delete existing tags in the media_type_tags_id tag set that are not the new tag
     $db->query( <<END, $medium->{ media_id }, $media_type_tags_id );
 delete from media_tags_map mtm
-    using 
+    using
         tags t
     where
         mtm.media_id = \$1 and
@@ -398,7 +402,7 @@ END
     # only insert the tag if it does not already exist
     $db->query( <<END, $medium->{ media_id }, $media_type_tags_id );
 insert into media_tags_map ( media_id, tags_id )
-    select \$1, \$2 where not exists ( 
+    select \$1, \$2 where not exists (
         select 1 from media_tags_map where media_id = \$1 and tags_id = \$2
     )
 END

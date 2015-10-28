@@ -14,8 +14,9 @@ BEGIN
 use MediaWords::KeyValueStore::PostgreSQL;
 use MediaWords::Test::DB;
 use Data::Dumper;
+use Readonly;
 
-use constant MOCK_DOWNLOADS_ID => 12345;
+Readonly my $MOCK_DOWNLOADS_ID => 12345;
 
 BEGIN
 {
@@ -28,8 +29,8 @@ sub _create_mock_download($$)
 
     $db->query(
         <<EOF
-		INSERT INTO media (media_id, url, name, moderated, feeds_added)
-		VALUES (1, 'http://', 'Test Media', 't', 't')
+		INSERT INTO media (media_id, url, name, moderated)
+		VALUES (1, 'http://', 'Test Media', 't')
 EOF
     );
 
@@ -60,7 +61,7 @@ sub test_store_content($$)
 {
     my ( $db, $postgresql ) = @_;
 
-    my $test_downloads_id   = MOCK_DOWNLOADS_ID + 0;
+    my $test_downloads_id   = $MOCK_DOWNLOADS_ID;
     my $test_downloads_path = undef;
     my $test_content        = 'Media Cloud - pnoןɔ ɐıpǝɯ';    # UTF-8
     my $content_ref;
@@ -103,7 +104,7 @@ sub test_store_content_twice($$)
 {
     my ( $db, $postgresql ) = @_;
 
-    my $test_downloads_id   = MOCK_DOWNLOADS_ID + 0;
+    my $test_downloads_id   = $MOCK_DOWNLOADS_ID;
     my $test_downloads_path = undef;
     my $test_content        = 'Loren ipsum dolor sit amet.';
     my $content_ref;
@@ -160,9 +161,14 @@ sub main()
             binmode $builder->failure_output, ":utf8";
             binmode $builder->todo_output,    ":utf8";
 
-            my $postgresql = MediaWords::KeyValueStore::PostgreSQL->new( { table_name => 'raw_downloads' } );
+            my $postgresql = MediaWords::KeyValueStore::PostgreSQL->new(
+                {
+                    database_label => undef,              # default database
+                    table          => 'raw_downloads',    #
+                }
+            );
 
-            _create_mock_download( $db, MOCK_DOWNLOADS_ID );
+            _create_mock_download( $db, $MOCK_DOWNLOADS_ID );
 
             test_store_content( $db, $postgresql );
             test_store_content_twice( $db, $postgresql );

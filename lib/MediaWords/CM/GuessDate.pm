@@ -19,16 +19,17 @@ use MediaWords::CommonLibs;
 use MediaWords::DB;
 use MediaWords::Util::DateParse;
 use MediaWords::Util::SQL;
+use Readonly;
 
 # threshold of number of days a guess date can be before the source link
 # story date without dropping the guess
-use constant DATE_GUESS_THRESHOLD => 60;
+Readonly my $DATE_GUESS_THRESHOLD => 60;
 
 # Default hour to use when no time is present (minutes and seconds are going to both be 0)
 # (12:00:00 because it looks nice and more or less fits within the same day in both California and Moscow)
-use constant DEFAULT_HOUR => 12;
+Readonly my $DEFAULT_HOUR => 12;
 
-# only use the date from these guessing functions if the date is within DATE_GUESS_THRESHOLD days
+# only use the date from these guessing functions if the date is within $DATE_GUESS_THRESHOLD days
 # of the existing date for the story
 my $_date_guess_functions = [
     {
@@ -425,7 +426,7 @@ sub _results_from_matching_date_patterns($$)
         }
         my $d_day      = ( defined $result{ day } ? $result{ day } + 0     : 0 );
         my $d_am_pm    = ( $result{ am_pm }       ? lc( $result{ am_pm } ) : '' );
-        my $d_hour     = ( $result{ hour }        ? $result{ hour } + 0    : DEFAULT_HOUR );
+        my $d_hour     = ( $result{ hour }        ? $result{ hour } + 0    : $DEFAULT_HOUR );
         my $d_minute   = ( $result{ minute }      ? $result{ minute } + 0  : 0 );
         my $d_second   = ( $result{ second }      ? $result{ second } + 0  : 0 );
         my $d_timezone = ( $result{ timezone }    ? $result{ timezone }    : 'GMT' );
@@ -750,16 +751,6 @@ sub _guess_by_url_and_date_text
     }
 }
 
-# just return the existing publish_date of the story.
-# this is useful as a last resort so that we can keep
-# track of the '_guess_by_existing_story_date' method
-sub _guess_by_existing_story_date
-{
-    my ( $story, $html, $html_tree ) = @_;
-
-    return $story->{ publish_date };
-}
-
 # if the date is a number, assume it is an UNIX timestamp and return it; otherwise, parse
 # it and return the UNIX timestamp
 sub _make_unix_timestamp
@@ -899,7 +890,7 @@ sub guess_date_impl
     {
 
         # Inapplicable
-        $result->{ result } = MediaWords::CM::GuessDate::Result::INAPPLICABLE;
+        $result->{ result } = $MediaWords::CM::GuessDate::Result::INAPPLICABLE;
         return $result;
     }
 
@@ -913,10 +904,10 @@ sub guess_date_impl
 
         if ( my $timestamp = _make_unix_timestamp( $date_guess ) )
         {
-            my $threshold = DATE_GUESS_THRESHOLD * 86400;
+            my $threshold = $DATE_GUESS_THRESHOLD * 86400;
             next if ( $story_timestamp && $use_threshold && ( ( $timestamp - $story_timestamp ) > $threshold ) );
 
-            $result->{ result }       = MediaWords::CM::GuessDate::Result::FOUND;
+            $result->{ result }       = $MediaWords::CM::GuessDate::Result::FOUND;
             $result->{ guess_method } = $date_guess_function->{ name };
             $result->{ timestamp }    = $timestamp;
             $result->{ date }         = MediaWords::Util::SQL::get_sql_date_from_epoch( $timestamp );
@@ -929,7 +920,7 @@ sub guess_date_impl
     {
 
         # print STDERR "SOURCE LINK\n";
-        $result->{ result }       = MediaWords::CM::GuessDate::Result::FOUND;
+        $result->{ result }       = $MediaWords::CM::GuessDate::Result::FOUND;
         $result->{ guess_method } = 'source_link';
         $result->{ timestamp }    = $story_timestamp;
         $result->{ date }         = MediaWords::Util::SQL::get_sql_date_from_epoch( $story_timestamp );
@@ -937,7 +928,7 @@ sub guess_date_impl
     }
 
     # Not found
-    $result->{ result } = MediaWords::CM::GuessDate::Result::NOT_FOUND;
+    $result->{ result } = $MediaWords::CM::GuessDate::Result::NOT_FOUND;
     return $result;
 }
 
@@ -954,7 +945,7 @@ sub guess_date($$$;$)
     return $r if ( $r );
 
     $r = MediaWords::CM::GuessDate::Result->new();
-    $r->{ result } = MediaWords::CM::GuessDate::Result::INAPPLICABLE;
+    $r->{ result } = $MediaWords::CM::GuessDate::Result::INAPPLICABLE;
     return $r;
 }
 

@@ -17,9 +17,6 @@ use Carp;
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
 
-use constant ROWS_PER_PAGE => 20;
-use MediaWords::Tagger;
-
 BEGIN
 {
     extends 'MediaWords::Controller::Api::V2::StoriesBase'    # private
@@ -33,7 +30,7 @@ sub has_extra_data
 sub permissible_output_fields
 {
     return [
-        qw ( stories_id media_id media_name media_url processed_stories_id url guid publish_date collect_date story_tags )
+        qw ( stories_id title language media_id media_name media_url processed_stories_id url guid publish_date collect_date story_tags )
     ];
 }
 

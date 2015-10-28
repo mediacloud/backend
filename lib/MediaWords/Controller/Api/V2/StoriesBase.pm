@@ -19,6 +19,7 @@ use Carp;
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
 use MediaWords::Util::CoreNLP;
+use MediaWords::Util::HTML;
 
 =head1 NAME
 
@@ -32,15 +33,11 @@ Catalyst Controller.
 
 =cut
 
-=head2 index 
+=head2 index
 
 =cut
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
-
-use constant ROWS_PER_PAGE => 20;
-
-use MediaWords::Tagger;
 
 sub has_extra_data
 {
@@ -67,7 +64,7 @@ sub _add_raw_1st_download
     my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ stories_id } } @{ $stories } ] );
 
     my $downloads = $db->query( <<END )->hashes;
-select d.* 
+select d.*
     from downloads d
         join (
             select min( s.downloads_id ) over ( partition by s.stories_id ) downloads_id
@@ -154,6 +151,56 @@ sub _split_sentence_tags_list
     }
 }
 
+# give the story ids in $ids_table, query the db for a list of stories_ids each with an
+# ap_stories_id present if the story is syndicated from some ap story
+sub _get_ap_stories_ids
+{
+    my ( $db, $ids_table ) = @_;
+
+    $db->query( "analyze $ids_table" );
+
+    my $ap_stories_ids = $db->query( <<SQL )->hashes;
+with ap_sentences as
+(
+    select
+            ssc.first_stories_id stories_id,
+            ap.first_stories_id ap_stories_id
+        from story_sentence_counts ssc
+            join story_sentence_counts ap on ( ssc.sentence_md5 = ap.sentence_md5 )
+        where
+            ssc.first_stories_id in ( select id from $ids_table ) and
+            ssc.first_stories_id <> ap.first_stories_id and
+
+            -- the following exists is to make postgres avoid a bad query plan
+            exists (
+                select 1 from media m where m.name = 'Associated Press - Full Feed' and ap.media_id = m.media_id
+            ) and
+
+            -- we don't want to join story_sentences other than for the small
+            -- number of sentences that have some match
+            exists (
+                select 1
+                    from story_sentences ss
+                    where
+                        ss.stories_id = ssc.first_stories_id and
+                        ss.sentence_number = ssc.first_sentence_number and
+                        length( ss.sentence ) > 32
+            )
+),
+
+min_ap_sentences as
+(
+    select stories_id, ap_stories_id from ap_sentences group by stories_id, ap_stories_id having count(*) > 3
+)
+
+select ids.id stories_id, ap.ap_stories_id
+    from $ids_table ids
+        left join min_ap_sentences ap on ( ids.id = ap.stories_id )
+SQL
+
+    return $ap_stories_ids;
+}
+
 sub _add_nested_data
 {
     my ( $self, $db, $stories ) = @_;
@@ -166,17 +213,25 @@ sub _add_nested_data
     {
 
         my $story_text_data = $db->query( <<END )->hashes;
-    select s.stories_id,
-            case when BOOL_AND( m.full_text_rss ) then s.description
-                else string_agg( dt.download_text, E'.\n\n' )
+    select s.stories_id, s.full_text_rss,
+            case when BOOL_AND( s.full_text_rss ) then s.title || E'.\n\n' || s.description
+                else string_agg( dt.download_text, E'.\n\n'::text )
             end story_text
         from stories s
-            join media m on ( s.media_id = m.media_id )
             join downloads d on ( s.stories_id = d.stories_id )
             left join download_texts dt on ( d.downloads_id = dt.downloads_id )
         where s.stories_id in ( select id from $ids_table )
         group by s.stories_id
 END
+
+        for my $story_text_data ( @$story_text_data )
+        {
+            if ( $story_text_data->{ full_text_rss } )
+            {
+                $story_text_data->{ story_text } = html_strip( $story_text_data->{ story_text } );
+            }
+        }
+
         MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $story_text_data );
 
         my $extracted_data = $db->query( <<END )->hashes;
@@ -205,8 +260,15 @@ END
         _split_sentence_tags_list( $stories );
     }
 
+    if ( $self->{ show_ap_stories_id } )
+    {
+        my $ap_stories_ids = _get_ap_stories_ids( $db, $ids_table );
+
+        MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $ap_stories_ids );
+    }
+
     my $tag_data = $db->query( <<END )->hashes;
-select s.stories_id, t.tags_id, t.tag, ts.tag_sets_id, ts.name as tag_set 
+select s.stories_id, t.tags_id, t.tag, ts.tag_sets_id, ts.name as tag_set
     from stories_tags_map s
         join tags t on ( t.tags_id = s.tags_id )
         join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id )
@@ -241,8 +303,9 @@ sub _fetch_list
 {
     my ( $self, $c, $last_id, $table_name, $id_field, $rows ) = @_;
 
-    $self->{ show_sentences } = $c->req->params->{ sentences };
-    $self->{ show_text }      = $c->req->params->{ text };
+    $self->{ show_sentences }     = $c->req->params->{ sentences };
+    $self->{ show_text }          = $c->req->params->{ text };
+    $self->{ show_ap_stories_id } = $c->req->params->{ ap_stories_id };
 
     $rows //= 20;
     $rows = List::Util::min( $rows, 10_000 );
@@ -260,7 +323,7 @@ sub _fetch_list
     my $stories = $db->query( <<END )->hashes;
 with ps_ids as
 
-    ( select processed_stories_id, stories_id 
+    ( select processed_stories_id, stories_id
         from processed_stories
         where processed_stories_id in ( select id from $ids_table ) )
 

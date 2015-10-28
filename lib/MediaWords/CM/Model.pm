@@ -9,6 +9,7 @@ use warnings;
 use List::Util;
 use POSIX;
 use Statistics::Basic;
+use Readonly;
 
 use MediaWords::CM::Dump;
 use MediaWords::Util::Config;
@@ -16,24 +17,24 @@ use MediaWords::Util::SQL;
 use MediaWords::Util::Tags;
 
 # percentage of media sources in a given dump for which to generate a confidence interval
-use constant MODEL_PERCENT_TOP_MEDIA => 10;
+Readonly my $MODEL_PERCENT_TOP_MEDIA => 10;
 
 # percentage of guessed dates that are misdated
-use constant PERCENT_DATE_MISDATED => 22;
+Readonly my $PERCENT_DATE_MISDATED => 22;
 
 # percentages that a wrong date is wrong by the given number of days
-use constant PERCENT_DATE_WRONG_BY_1    => 0;
-use constant PERCENT_DATE_WRONG_BY_3    => 25;
-use constant PERCENT_DATE_WRONG_BY_7    => 0;
-use constant PERCENT_DATE_WRONG_BY_MORE => 75;
+Readonly my $PERCENT_DATE_WRONG_BY_1    => 0;
+Readonly my $PERCENT_DATE_WRONG_BY_3    => 25;
+Readonly my $PERCENT_DATE_WRONG_BY_7    => 0;
+Readonly my $PERCENT_DATE_WRONG_BY_MORE => 75;
 
 # percent of stories guessed to be undateable that are actually dateable
-use constant PERCENT_UNDATEABLE_DATE_DATEABLE => 30;
+Readonly my $PERCENT_UNDATEABLE_DATE_DATEABLE => 30;
 
 # percent of stories guessed to be dateable that are actually undateable
-use constant PERCENT_DATE_UNDATEABLE => 13;
+Readonly my $PERCENT_DATE_UNDATEABLE => 13;
 
-# get the top MODEL_PERCENT_TOP_MEDIA of media sources from the current dump by incoming links
+# get the top $MODEL_PERCENT_TOP_MEDIA of media sources from the current dump by incoming links
 sub get_top_media_link_counts
 {
     my ( $db, $cdts, $size_factor ) = @_;
@@ -42,7 +43,7 @@ sub get_top_media_link_counts
 
     return [] unless ( $num_media > 0 );
 
-    my $num_top_media = POSIX::ceil( $num_media * ( MODEL_PERCENT_TOP_MEDIA / 100 ) );
+    my $num_top_media = POSIX::ceil( $num_media * ( $MODEL_PERCENT_TOP_MEDIA / 100 ) );
     $num_top_media *= $size_factor if ( $size_factor );
 
     my $top_media = $db->query( <<END, $num_top_media + 1 )->hashes;
@@ -112,7 +113,7 @@ sub tweak_dateable_stories
 {
     my ( $db, $cdts ) = @_;
 
-    my $stories = sample_guessed_date_stories( $db, $cdts, PERCENT_DATE_UNDATEABLE );
+    my $stories = sample_guessed_date_stories( $db, $cdts, $PERCENT_DATE_UNDATEABLE );
 
     map { tweak_dateable_story( $db, $cdts, $_ ) } @{ $stories };
 }
@@ -141,7 +142,7 @@ sub tweak_undateable_stories
 {
     my ( $db, $cdts ) = @_;
 
-    my $stories = $db->query( <<END, PERCENT_UNDATEABLE_DATE_DATEABLE )->hashes;
+    my $stories = $db->query( <<END, $PERCENT_UNDATEABLE_DATE_DATEABLE )->hashes;
 select * from
 (
     select s.* 
@@ -181,20 +182,20 @@ sub get_tweaked_story_date
     my $wrong_by_dist = rand( 100 );
 
     my $new_date;
-    if ( $wrong_by_dist < PERCENT_DATE_WRONG_BY_1 )
+    if ( $wrong_by_dist < $PERCENT_DATE_WRONG_BY_1 )
     {
         return MediaWords::Util::SQL::increment_day( $old_date, $past );
     }
-    $wrong_by_dist -= PERCENT_DATE_WRONG_BY_1;
+    $wrong_by_dist -= $PERCENT_DATE_WRONG_BY_1;
 
-    if ( $wrong_by_dist < PERCENT_DATE_WRONG_BY_3 )
+    if ( $wrong_by_dist < $PERCENT_DATE_WRONG_BY_3 )
     {
         my $days = POSIX::ceil( rand( 2 ) ) + 1;
         return MediaWords::Util::SQL::increment_day( $old_date, $past * $days );
     }
-    $wrong_by_dist -= PERCENT_DATE_WRONG_BY_3;
+    $wrong_by_dist -= $PERCENT_DATE_WRONG_BY_3;
 
-    if ( $wrong_by_dist < PERCENT_DATE_WRONG_BY_7 )
+    if ( $wrong_by_dist < $PERCENT_DATE_WRONG_BY_7 )
     {
         my $days = POSIX::ceil( rand( 4 ) ) + 3;
         return MediaWords::Util::SQL::increment_day( $old_date, $past * $days );
@@ -226,7 +227,7 @@ sub tweak_misdated_stories
 {
     my ( $db, $cdts ) = @_;
 
-    my $stories = sample_guessed_date_stories( $db, $cdts, PERCENT_DATE_MISDATED );
+    my $stories = sample_guessed_date_stories( $db, $cdts, $PERCENT_DATE_MISDATED );
 
     map { tweak_story_date( $db, $cdts, $_ ) } @{ $stories };
 }
@@ -397,7 +398,7 @@ sub get_all_models_top_media ($$)
 
     my $config     = MediaWords::Util::Config::get_config;
     my $model_reps = $config->{ mediawords }->{ controversy_model_reps };
-    
+
     if ( $model_reps == 0 )
     {
         return undef;

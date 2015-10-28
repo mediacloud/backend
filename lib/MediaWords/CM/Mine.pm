@@ -15,12 +15,15 @@ use Encode;
 use Getopt::Long;
 use HTML::LinkExtractor;
 use List::Util;
+use Parallel::ForkManager;
+use Readonly;
 use URI;
 use URI::Split;
 use URI::Escape;
 
 use MediaWords::CM::GuessDate;
 use MediaWords::CM::GuessDate::Result;
+use MediaWords::DB;
 use MediaWords::DBI::Activities;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
@@ -33,13 +36,10 @@ use MediaWords::Util::Bitly;
 use MediaWords::GearmanFunction::Bitly::EnqueueControversyStories;
 
 # number of times to run through the recursive link weight process
-use constant LINK_WEIGHT_ITERATIONS => 3;
-
-# tag that will be associate with all controversy_stories at the end of the script
-use constant ALL_TAG => 'all';
+Readonly my $LINK_WEIGHT_ITERATIONS => 3;
 
 # max number of solely self linked stories to include
-use constant MAX_SELF_LINKED_STORIES => 100;
+Readonly my $MAX_SELF_LINKED_STORIES => 100;
 
 # ignore links that match this pattern
 my $_ignore_link_pattern =
@@ -47,7 +47,8 @@ my $_ignore_link_pattern =
   '(livejournal.com\/(tag|profile))|(sfbayview.com\/tag)|(absoluteastronomy.com)|' .
   '(\/share.*http)|(digg.com\/submit)|(facebook.com.*mediacontentsharebutton)|' .
   '(feeds.wordpress.com\/.*\/go)|(sharetodiaspora.github.io\/)|(iconosquare.com)|' .
-  '(unz.com)|(answers.com)|(downwithtyranny.com\/search)';
+  '(unz.com)|(answers.com)|(downwithtyranny.com\/search)|(scoop\.?it)|(sco\.lt)|' .
+  '(pronk.*\.wordpress\.com\/(tag|category))|(wn\.com)';
 
 # cache of media by media id
 my $_media_cache = {};
@@ -245,7 +246,7 @@ sub get_links_from_story_text
     {
         my $url = $1;
 
-        $url =~ s/[^a-z]+$//;
+        $url =~ s/\W+$//;
 
         push( @{ $links }, { url => $url } );
     }
@@ -270,10 +271,42 @@ sub get_links_from_story
 
     my @all_links = ( @{ $links }, @{ $text_links }, @{ $description_links }, @{ $boingboing_links } );
 
+    @all_links = grep { $_->{ url } !~ $_ignore_link_pattern } @all_links;
+
     my $link_lookup = {};
     map { $link_lookup->{ MediaWords::Util::URL::normalize_url_lossy( $_->{ url } ) } = $_ } @all_links;
 
     return [ values( %{ $link_lookup } ) ];
+}
+
+# return true if the publish date of the story is within 7 days of the controversy date range or if the
+# story is undateable
+sub story_within_controversy_date_range
+{
+    my ( $db, $controversy, $story ) = @_;
+
+    my $story_date = substr( $story->{ publish_date }, 0, 10 );
+
+    if ( !$controversy->{ start_date } )
+    {
+        my ( $start_date, $end_date ) = $db->query( <<SQL, $controversy->{ controversies_id } )->flat;
+select start_date, end_date from controversy_dates where controversies_id = ? and boundary
+SQL
+        $controversy->{ start_date } = $start_date;
+        $controversy->{ end_date }   = $end_date;
+    }
+
+    my $start_date = $controversy->{ start_date };
+    $start_date = MediaWords::Util::SQL::increment_day( $start_date, -7 );
+    $start_date = substr( $start_date, 0, 10 );
+
+    my $end_date = $controversy->{ end_date };
+    $end_date = MediaWords::Util::SQL::increment_day( $end_date, 7 );
+    $end_date = substr( $end_date, 0, 10 );
+
+    return 1 if ( ( $story_date ge $start_date ) && ( $story_date le $end_date ) );
+
+    return MediaWords::DBI::Stories::is_undateable( $db, $story );
 }
 
 # for each story, return a list of the links found in either the extracted html or the story description
@@ -281,36 +314,67 @@ sub generate_controversy_links
 {
     my ( $db, $controversy, $stories ) = @_;
 
+    my $max_processes = 16;
+
+    my $pm = new Parallel::ForkManager( $max_processes );
+
+    say STDERR "GENERATE CONTROVERSY LINKS: " . scalar( @{ $stories } );
+
+    # make sure db changes are visible to forked processes
+    $db->commit;
+
     for my $story ( @{ $stories } )
     {
-        my $links = get_links_from_story( $db, $story );
+        $pm->start and next;
 
-        for my $link ( @{ $links } )
+        $db = MediaWords::DB::reset_forked_db( $db );
+
+        $db->dbh->{ AutoCommit } = 0;
+
+        my $story_in_date_range = story_within_controversy_date_range( $db, $controversy, $story );
+
+        if ( !$story_in_date_range )
         {
-            next if ( $link->{ url } eq $story->{ url } );
+            say STDERR "OUT OF DATE RANGE: $story->{ publish_date }" unless ( $story_in_date_range );
+        }
+        else
+        {
+            say STDERR "IN DATE RANGE: $story->{ publish_date }" unless ( $story_in_date_range );
 
-            my $link_exists = $db->query(
-                "select * from controversy_links where stories_id = ? and url = ? and controversies_id = ?",
-                $story->{ stories_id },
-                encode( 'utf8', $link->{ url } ),
-                $controversy->{ controversies_id }
-            )->hash;
+            my $links = $story_in_date_range ? get_links_from_story( $db, $story ) : [];
 
-            if ( $link_exists )
+            my $link_lookup = {};
+
+            for my $link ( @{ $links } )
             {
-                print STDERR "    -> dup: $link->{ url }\n";
-            }
-            else
-            {
-                print STDERR "    -> new: $link->{ url }\n";
-                $db->create(
-                    "controversy_links",
-                    {
-                        stories_id       => $story->{ stories_id },
-                        url              => encode( 'utf8', $link->{ url } ),
-                        controversies_id => $controversy->{ controversies_id }
-                    }
-                );
+                next if ( ( $link->{ url } eq $story->{ url } ) || _skip_self_linked_domain( $db, $link ) );
+
+                my $link_exists = $link_lookup->{ $link->{ url } };
+                $link_lookup->{ $link->{ url } } = 1;
+
+                $link_exists ||= $db->query(
+                    "select * from controversy_links where stories_id = ? and url = ? and controversies_id = ?",
+                    $story->{ stories_id },
+                    encode( 'utf8', $link->{ url } ),
+                    $controversy->{ controversies_id }
+                )->hash;
+
+                if ( $link_exists )
+                {
+                    print STDERR "    -> dup: $link->{ url }\n";
+                }
+                else
+                {
+                    print STDERR "    -> new: $link->{ url }\n";
+                    $db->create(
+                        "controversy_links",
+                        {
+                            stories_id       => $story->{ stories_id },
+                            url              => encode( 'utf8', $link->{ url } ),
+                            controversies_id => $controversy->{ controversies_id }
+                        }
+                    );
+                }
             }
         }
 
@@ -319,7 +383,13 @@ sub generate_controversy_links
             $story->{ stories_id },
             $controversy->{ controversies_id }
         );
+
+        $db->commit;
+
+        $pm->finish;
     }
+
+    $pm->wait_all_children;
 }
 
 # lookup or create the spidered:spidered tag
@@ -476,10 +546,9 @@ END
     $medium_url = get_unique_medium_url( $db, $medium_url );
 
     $medium = {
-        name        => encode( 'utf8', $medium_name ),
-        url         => encode( 'utf8', $medium_url ),
-        moderated   => 't',
-        feeds_added => 't'
+        name      => encode( 'utf8', $medium_name ),
+        url       => encode( 'utf8', $medium_url ),
+        moderated => 't',
     };
 
     $medium = $db->create( 'media', $medium );
@@ -572,6 +641,9 @@ sub extract_download
 
     return if ( $download->{ url } =~ /livejournal.com\/(tag|profile)/i );
 
+    my $dt = $db->query( "select 1 from download_texts where downloads_id = ?", $download->{ downloads_id } )->hash;
+    return if ( $dt );
+
     eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, "controversy", 0, 1 ); };
 
     if ( my $error = $@ )
@@ -584,9 +656,11 @@ sub extract_download
         }
 
         warn "extract error processing download $download->{ downloads_id }: $error";
-        $db->query( <<SQL, $download->{ downloads_id }, $error );
-update downloads set state = 'error', error_message = \$2 where downloads_id = \$1
-SQL
+    }
+    else
+    {
+        my $story = $db->find_by_id( 'stories', $download->{ stories_id } );
+        add_missing_story_sentences( $db, $story );
     }
 }
 
@@ -614,6 +688,12 @@ END
         return ( $old_story_method, $old_story->{ publish_date } );
     }
 
+    # otherwise, if there's a publish_date in the link hash, use that
+    elsif ( $source_link->{ publish_date } )
+    {
+        return ( 'manual', $source_link->{ publish_date } );
+    }
+
     my $source_story;
     if ( $source_link && $source_link->{ stories_id } )
     {
@@ -622,11 +702,11 @@ END
     }
 
     my $date = MediaWords::CM::GuessDate::guess_date( $db, $story, $story_content, 1 );
-    if ( $date->{ result } eq MediaWords::CM::GuessDate::Result::FOUND )
+    if ( $date->{ result } eq $MediaWords::CM::GuessDate::Result::FOUND )
     {
         return ( $date->{ guess_method }, $date->{ date } );
     }
-    elsif ( $date->{ result } eq MediaWords::CM::GuessDate::Result::INAPPLICABLE )
+    elsif ( $date->{ result } eq $MediaWords::CM::GuessDate::Result::INAPPLICABLE )
     {
         return ( 'undateable', $source_story ? $source_story->{ publish_date } : MediaWords::Util::SQL::sql_now );
     }
@@ -683,19 +763,26 @@ sub generate_new_story_hash
 
     my $story = {
         url          => $old_story->{ url },
-        guid         => $old_story->{ url },
+        guid         => $link->{ guid } || $old_story->{ url },
         media_id     => $medium->{ media_id },
         collect_date => MediaWords::Util::SQL::sql_now,
         title        => encode( 'utf8', $old_story->{ title } ),
+        publish_date => $link->{ publish_date },
         description  => ''
     };
 
-    my ( $date_guess_method, $publish_date ) = get_new_story_date( $db, $story, $story_content, $old_story, $link );
-    print STDERR "date guess: $date_guess_method: $publish_date\n";
+    if ( $link->{ publish_date } )
+    {
+        return ( $story, 'manual' );
+    }
+    else
+    {
+        my ( $date_guess_method, $publish_date ) = get_new_story_date( $db, $story, $story_content, $old_story, $link );
+        print STDERR "date guess: $date_guess_method: $publish_date\n";
 
-    $story->{ publish_date } = $publish_date;
-
-    return ( $story, $date_guess_method );
+        $story->{ publish_date } = $publish_date;
+        return ( $story, $date_guess_method );
+    }
 }
 
 # wrap create story in eval
@@ -735,15 +822,24 @@ sub create_download_for_new_story
 # add a new story and download corresponding to the given link or existing story
 sub add_new_story
 {
-    my ( $db, $link, $old_story, $controversy, $allow_foreign_rss_links ) = @_;
+    my ( $db, $link, $old_story, $controversy, $allow_foreign_rss_links, $check_pattern, $skip_extraction ) = @_;
 
     die( "only one of $link or $old_story should be set" ) if ( $link && $old_story );
 
     my $story_content;
-    if ( $link )
+    if ( $link && $link->{ content } )
+    {
+        $story_content = $link->{ content };
+        $link->{ redirect_url } ||= $link->{ url };
+        $link->{ title }        ||= $link->{ url };
+        $old_story->{ url }     ||= $link->{ url };
+        $old_story->{ title }   ||= $link->{ title };
+    }
+    elsif ( $link )
     {
         $story_content = MediaWords::Util::Web::get_cached_link_download( $link );
         $link->{ redirect_url } ||= MediaWords::Util::Web::get_cached_link_download_redirect_url( $link );
+
         if ( ignore_redirect( $db, $link ) )
         {
             $old_story->{ title } = "dead link: $link->{ url }";
@@ -753,12 +849,11 @@ sub add_new_story
         else
         {
             $old_story->{ url } = $link->{ redirect_url } || $link->{ url };
-            $old_story->{ title } = get_story_title_from_content( $story_content, $old_story->{ url } );
+            $old_story->{ title } = $link->{ title } || get_story_title_from_content( $story_content, $old_story->{ url } );
         }
     }
     else
     {
-
         # make sure content exists in case content is missing from the existing story
         MediaWords::DBI::Stories::fix_story_downloads_if_needed( $db, $old_story );
         $story_content = ${ MediaWords::DBI::Stories::fetch_content( $db, $old_story ) };
@@ -766,20 +861,33 @@ sub add_new_story
 
     print STDERR "add_new_story: $old_story->{ url }\n";
 
+    # if neither the url nor the content match the pattern, it cannot be a match so return and don't add the story
+    if (
+        $check_pattern
+        && !potential_story_matches_controversy_pattern(
+            $controversy, $link->{ url }, $link->{ redirect_url }, $story_content
+        )
+      )
+    {
+        say STDERR "SKIP - NO POTENTIAL MATCH";
+        return;
+    }
+
     $old_story->{ url } = substr( $old_story->{ url }, 0, 1024 );
 
     my $medium = get_dup_medium( $db, $old_story->{ media_id }, $allow_foreign_rss_links )
       || get_spider_medium( $db, $old_story->{ url } );
     my $feed = get_spider_feed( $db, $medium );
 
+    my $spidered_tag = get_spidered_tag( $db );
+
     my ( $story, $date_guess_method ) = generate_new_story_hash( $db, $story_content, $old_story, $link, $medium );
 
     $story = safely_create_story( $db, $story );
 
-    my $spidered_tag = get_spidered_tag( $db );
     $db->create( 'stories_tags_map', { stories_id => $story->{ stories_id }, tags_id => $spidered_tag->{ tags_id } } );
 
-    MediaWords::DBI::Stories::assign_date_guess_method( $db, $story, $date_guess_method );
+    MediaWords::DBI::Stories::assign_date_guess_method( $db, $story, $date_guess_method, 1 );
 
     print STDERR "add story: $story->{ title } / $story->{ url } / $story->{ publish_date } / $story->{ stories_id }\n";
 
@@ -789,7 +897,7 @@ sub add_new_story
 
     MediaWords::DBI::Downloads::store_content_determinedly( $db, $download, $story_content );
 
-    extract_download( $db, $download );
+    extract_download( $db, $download ) unless ( $skip_extraction );
 
     return $story;
 }
@@ -848,32 +956,80 @@ END
     return $ss ? 1 : 0;
 }
 
+# translate postgres word break patterns ([[:<>:]]) into perl (\b)
+sub translate_pattern_to_perl
+{
+    my ( $s ) = @_;
+
+    $s =~ s/\[\[\:[\<\>]\:\]\]/\\b/g;
+
+    return $s;
+}
+
+my $_no_potential_match_urls = {};
+
+# test whether the url or content of a potential story matches the controversy pattern
+sub potential_story_matches_controversy_pattern
+{
+    my ( $controversy, $url, $redirect_url, $content ) = @_;
+
+    my $re = translate_pattern_to_perl( $controversy->{ pattern } );
+
+    my $match = ( ( $redirect_url =~ /$re/isx ) || ( $url =~ /$re/isx ) || ( $content =~ /$re/isx ) ) ? 1 : 0;
+
+    if ( !$match )
+    {
+        $_no_potential_match_urls->{ $url }          = 1;
+        $_no_potential_match_urls->{ $redirect_url } = 1;
+    }
+
+    return $match;
+}
+
+# return true if this url already failed a potential match, so we don't have to download it again
+sub url_failed_potential_match
+{
+    my ( $url ) = @_;
+
+    return $url && $_no_potential_match_urls->{ $url };
+}
+
+my $_story_sentences_added = {};
+
+# add missing story sentences, but only do so once per runtime so that we don't repeatedly try
+# to add sentences to stories with no sentences
+sub add_missing_story_sentences
+{
+    my ( $db, $story ) = @_;
+
+    return if ( $_story_sentences_added->{ $story->{ stories_id } } );
+
+    MediaWords::DBI::Stories::add_missing_story_sentences( $db, $story );
+
+    $_story_sentences_added->{ $story->{ stories_id } } = 1;
+}
+
 # return the type of match if the story title, url, description, or sentences match controversy search pattern.
 # return undef if no match is found.
 sub story_matches_controversy_pattern
 {
     my ( $db, $controversy, $story, $metadata_only ) = @_;
 
-    my $perl_re = $controversy->{ pattern };
+    my $perl_re = translate_pattern_to_perl( $controversy->{ pattern } );
 
-    # translate from postgres to perl regex
-    $perl_re =~ s/\[\[\:[\<\>]\:\]\]/\\b/g;
     for my $field ( qw/title description url redirect_url/ )
     {
         if ( $story->{ $field } && ( $story->{ $field } =~ /$perl_re/isx ) )
         {
-            MediaWords::DBI::Stories::add_missing_story_sentences( $db, $story );
             return $field;
         }
     }
 
     return 0 if ( $metadata_only );
 
-    # check for download_texts match first because some stories don't have
-    # story_sentences, and it is expensive to generate the missing story_sentences
-    return 0 unless ( story_download_text_matches_pattern( $db, $story, $controversy ) );
-
-    MediaWords::DBI::Stories::add_missing_story_sentences( $db, $story );
+    # # check for download_texts match first because some stories don't have
+    # # story_sentences, and it is expensive to generate the missing story_sentences
+    # return 0 unless ( story_download_text_matches_pattern( $db, $story, $controversy ) );
 
     return story_sentence_matches_pattern( $db, $story, $controversy ) ? 'sentence' : 0;
 }
@@ -916,8 +1072,8 @@ sub _story_domain_matches_medium
 }
 
 # given a set of possible story matches, find the story that is likely the best.
-# the best story is the one that sorts first according to the following criteria
-# based on the media source of each story, in descending order of importance:
+# the best story is the one that sorts first according to the following criteria,
+# in descending order of importance:
 # * media pointed to by some dup_media_id;
 # * media with a dup_media_id;
 # * media whose url domain matches that of the story;
@@ -925,8 +1081,6 @@ sub _story_domain_matches_medium
 sub get_preferred_story
 {
     my ( $db, $url, $redirect_url, $stories ) = @_;
-
-    return $stories->[ 0 ] if ( @{ $stories } == 1 );
 
     my $media_lookup = {};
     for my $story ( @{ $stories } )
@@ -958,10 +1112,21 @@ sub get_preferred_story
     return $sorted_media->[ 0 ]->{ story };
 }
 
-# look for a story matching the link stories_id, url,  in the db
-sub get_matching_story_from_db ($$)
+sub story_has_download_text
 {
-    my ( $db, $link ) = @_;
+    my ( $db, $story ) = @_;
+
+    my $dt = $db->query( <<SQL, $story->{ stories_id } )->hash;
+select 1 from download_texts dt join downloads d on ( dt.downloads_id = d.downloads_id ) where d.stories_id = ?
+SQL
+
+    return $dt ? 1 : 0;
+}
+
+# look for a story matching the link stories_id, url,  in the db
+sub get_matching_story_from_db ($$;$)
+{
+    my ( $db, $link, $extract_policy ) = @_;
 
     my $u = substr( $link->{ url }, 0, 1024 );
 
@@ -996,9 +1161,22 @@ END
 
     if ( $story )
     {
-        my $downloads = $db->query( "select * from downloads where stories_id = ? and extracted = 'f' order by downloads_id",
-            $story->{ stories_id } )->hashes;
-        map { extract_download( $db, $_ ) } @{ $downloads };
+        $extract_policy ||= 'extract';
+        if ( $extract_policy eq 'defer' )
+        {
+            return $story;
+        }
+        elsif ( $extract_policy eq 'extract' )
+        {
+            my $downloads =
+              $db->query( "select * from downloads where stories_id = ? and extracted = 'f' order by downloads_id",
+                $story->{ stories_id } )->hashes;
+            map { extract_download( $db, $_ ) } @{ $downloads };
+        }
+        else
+        {
+            die( "Unknown extract_policy: '$extract_policy'" );
+        }
     }
 
     return $story;
@@ -1015,7 +1193,7 @@ sub story_is_controversy_story
         $controversy->{ controversies_id }
     )->flat;
 
-    print STDERR "EXISTING CONTROVERSY STORY\n" if ( $is_old );
+    print STDERR "EXISTING CONTROVERSY STORY: $story->{ url }\n" if ( $is_old );
 
     return $is_old;
 }
@@ -1026,7 +1204,6 @@ sub add_redirect_url_to_link
     my ( $db, $link ) = @_;
 
     $link->{ redirect_url } = MediaWords::Util::Web::get_cached_link_download_redirect_url( $link );
-
     $db->query(
         "update controversy_links set redirect_url = ? where controversy_links_id = ?",
         encode( 'utf8', $link->{ redirect_url } ),
@@ -1095,7 +1272,7 @@ END
 }
 
 # return true if this story is already a controversy story or
-# if the story should be skipped or being a self linked story (see skup_self_linked_story())
+# if the story should be skipped for being a self linked story (see skup_self_linked_story())
 sub skip_controversy_story
 {
     my ( $db, $controversy, $story, $link ) = @_;
@@ -1110,7 +1287,7 @@ select 1 from stories_tags_map where stories_id = ? and tags_id = ?
 END
 
     my $ss = $db->find_by_id( 'stories', $link->{ stories_id } );
-    return 0 if ( $ss->{ media_id } != $story->{ media_id } );
+    return 0 if ( $ss->{ media_id } && ( $ss->{ media_id } != $story->{ media_id } ) );
 
     return 1 if ( _skip_self_linked_domain( $db, $link ) );
 
@@ -1127,7 +1304,6 @@ select count(*)
         stm.tags_id = ?
 END
 
-    my $MAX_SELF_LINKED_STORIES = MAX_SELF_LINKED_STORIES;
     return 0 if ( $num_stories <= $MAX_SELF_LINKED_STORIES );
 
     my ( $num_cross_linked_stories ) = $db->query( <<END, $cid, $story->{ media_id }, $spidered_tag->{ tags_id } )->flat;
@@ -1146,7 +1322,18 @@ select count( distinct rs.stories_id )
     limit ( $num_stories - $MAX_SELF_LINKED_STORIES )
 END
 
-    my $num_self_linked_stories = $num_stories - $num_cross_linked_stories;
+    my ( $num_unlinked_stories ) = $db->query( <<END, $cid, $story->{ media_id } )->flat;
+select count( distinct rs.stories_id )
+from cd.live_stories rs
+    left join controversy_links cl on ( cl.controversies_id = \$1 and rs.stories_id = cl.ref_stories_id )
+where
+    rs.controversies_id = \$1 and
+    rs.media_id = \$2 and
+    cl.ref_stories_id is null
+limit ( $num_stories - $MAX_SELF_LINKED_STORIES )
+END
+
+    my $num_self_linked_stories = $num_stories - $num_cross_linked_stories - $num_unlinked_stories;
 
     if ( $num_self_linked_stories > $MAX_SELF_LINKED_STORIES )
     {
@@ -1179,18 +1366,20 @@ sub add_to_controversy_stories_and_links_if_match
 
 }
 
-# return true if the domain of the linked url is different
-# than the domain of the linking story and the domain is in
-# $_skip_self_linked_domain
+# return true if the domain of the linked url is the same
+# as the domain of the linking story and either the domain is in
+# $_skip_self_linked_domain or the linked url is a /tag or /category page
 sub _skip_self_linked_domain
 {
     my ( $db, $link ) = @_;
 
     my $domain = MediaWords::Util::URL::get_url_domain( $link->{ url } );
 
-    return 0 unless ( $_skip_self_linked_domain->{ $domain } );
+    return 0 unless ( $_skip_self_linked_domain->{ $domain } || ( $link->{ url } =~ /\/(tag|category|author|search)/ ) );
 
-    # only skip if the media source of the linking story is different than the media
+    return 0 unless ( $link->{ stories_id } );
+
+    # only skip if the media source of the linking story is the same as the media
     # source of the linked story.  we can't know the media source of the linked story
     # without adding it first, though, which we want to skip because it's time
     # expensive to do so.  so we just compare the url domain as a proxy for
@@ -1208,16 +1397,16 @@ sub _skip_self_linked_domain
     return 0;
 }
 
-# download any unmatched link in new_links, add it as a story, extract it, add any links to the controversy_links list.
-# each hash within new_links can either be a controversy_links hash or simply a hash with a { url } field.  if
-# the link is a controversy_links hash, the controversy_link will be updated in the database to point ref_stories_id
-# to the new link story.  For each link, set the { story } field to the story found or created for the link.
-sub add_new_links
+# check whether each link has a matching story already in db.  if so, add
+# that story to the controversy if it matches, otherwise add the link to the
+# list of links to fetch.  return the list of links to fetch.
+sub add_links_with_matching_stories
 {
-    my ( $db, $controversy, $iteration, $new_links ) = @_;
+    my ( $db, $controversy, $new_links ) = @_;
 
     # find all the links that we can find existing stories for without having to fetch anything
-    my $fetch_links = [];
+    my $fetch_links     = [];
+    my $extract_stories = [];
     for my $link ( @{ $new_links } )
     {
         next if ( $link->{ ref_stories_id } );
@@ -1226,10 +1415,11 @@ sub add_new_links
 
         next if ( _skip_self_linked_domain( $db, $link ) );
 
-        if ( my $story = get_matching_story_from_db( $db, $link ) )
+        if ( my $story = get_matching_story_from_db( $db, $link, 'defer' ) )
         {
-            add_to_controversy_stories_and_links_if_match( $db, $controversy, $story, $link );
+            push( @{ $extract_stories }, $story );
             $link->{ story } = $story;
+            $story->{ link } = $link;
         }
         else
         {
@@ -1238,7 +1428,24 @@ sub add_new_links
         }
     }
 
+    extract_stories( $db, $extract_stories );
+
+    map { add_to_controversy_stories_if_match( $db, $controversy, $_, $_->{ link } ) } @{ $extract_stories };
+
+    mine_controversy_stories( $db, $controversy );
+
+    return $fetch_links;
+}
+
+# given the list of links, add any stories that might match the controversy (by matching against url
+# and raw html) and return that list of stories, none of which have been extracted
+sub get_stories_to_extract
+{
+    my ( $db, $controversy, $fetch_links ) = @_;
+
     MediaWords::Util::Web::cache_link_downloads( $fetch_links );
+
+    my $extract_stories = [];
 
     for my $link ( @{ $fetch_links } )
     {
@@ -1249,23 +1456,106 @@ sub add_new_links
         next if ( _skip_self_linked_domain( $db, $link ) );
 
         add_redirect_url_to_link( $db, $link );
-        my $story = get_matching_story_from_db( $db, $link )
-          || add_new_story( $db, $link, undef, $controversy );
+        my $story = get_matching_story_from_db( $db, $link, 'defer' );
 
-        $link->{ story } = $story;
+        say STDERR "FOUND MATCHING STORY" if ( $story );
 
-        add_to_controversy_stories_and_links_if_match( $db, $controversy, $story, $link );
+        $story ||= add_new_story( $db, $link, undef, $controversy, 0, 1, 1 );
+
+        if ( $story )
+        {
+            $link->{ story } = $story;
+            $story->{ link } = $link;
+            push( @{ $extract_stories }, $story );
+        }
+
+        $db->commit;
     }
 
-    $db->begin;
+    return $extract_stories;
+
+}
+
+# extract the stories in parallel by forking off extraction processes up $max_processes at a time
+sub extract_stories
+{
+    my ( $db, $stories ) = @_;
+
+    my $stories_lookup = {};
+    map { $stories_lookup->{ $_->{ stories_id } } = $_ } @{ $stories };
+    my $unique_stories = [ values( %{ $stories_lookup } ) ];
+
+    say STDERR "EXTRACT_STORIES: " . scalar( @{ $unique_stories } );
+
+    my $max_processes = 16;
+
+    my $pm = new Parallel::ForkManager( $max_processes );
+
+    for my $story ( @{ $unique_stories } )
+    {
+        $pm->start and next;
+
+        $db = MediaWords::DB::reset_forked_db( $db );
+
+        $db->dbh->{ AutoCommit } = 0;
+
+        if ( !story_has_download_text( $db, $story ) )
+        {
+            my $download = $db->query( <<SQL, $story->{ stories_id } )->hash;
+select * from downloads where stories_id = ? order by downloads_id asc limit 1
+SQL
+            extract_download( $db, $download );
+        }
+
+        $db->commit;
+
+        $pm->finish;
+    }
+
+    $pm->wait_all_children;
+}
+
+# download any unmatched link in new_links, add it as a story, extract it, add any links to the controversy_links list.
+# each hash within new_links can either be a controversy_links hash or simply a hash with a { url } field.  if
+# the link is a controversy_links hash, the controversy_link will be updated in the database to point ref_stories_id
+# to the new link story.  For each link, set the { story } field to the story found or created for the link.
+sub add_new_links
+{
+    my ( $db, $controversy, $iteration, $new_links ) = @_;
+
+    $db->dbh->{ AutoCommit } = 0;
+
+    my $trimmed_links = [];
+    for my $link ( @{ $new_links } )
+    {
+        my $skip_link = url_failed_potential_match( $link->{ url } )
+          || url_failed_potential_match( $link->{ redirect_url } );
+        if ( $skip_link )
+        {
+            say STDERR "ALREADY SKIPPED LINK: $link->{ url }";
+        }
+        else
+        {
+            push( @{ $trimmed_links }, $link );
+        }
+    }
+
+    my $fetch_links = add_links_with_matching_stories( $db, $controversy, $new_links );
+
+    my $extract_stories = get_stories_to_extract( $db, $controversy, $fetch_links );
+
+    extract_stories( $db, $extract_stories );
+
+    map { add_to_controversy_stories_if_match( $db, $controversy, $_, $_->{ link } ) } @{ $extract_stories };
+
+    mine_controversy_stories( $db, $controversy );
 
     # delete any links that were skipped for whatever reason
     for my $link ( @{ $new_links } )
     {
         if ( !$link->{ ref_stories_id } && $link->{ controversy_links_id } )
         {
-            # include ref_stories_id is null to make sure we don't delete a
-            # valid link
+            # ref_stories_id is null to make sure we don't delete a valid link
             $db->query( <<END, $link->{ controversy_links_id } );
 delete from controversy_links where controversy_links_id = ? and ref_stories_id is null
 END
@@ -1273,6 +1563,7 @@ END
     }
     $db->commit;
 
+    $db->dbh->{ AutoCommit } = 1;
 }
 
 # build a lookup table of aliases for a url based on url and redirect_url fields in the
@@ -1406,7 +1697,14 @@ select distinct cs.iteration, cl.* from controversy_links cl, controversy_storie
         cl.controversies_id = \$2
 END
 
-    add_new_links( $db, $controversy, $iteration, $new_links );
+    # do this in chunks so that we don't have recheck lots of links for matches when we
+    # restart the mining process in the middle
+    my $chunk_size = 2000;
+    for ( my $i = 0 ; $i < scalar( @{ $new_links } ) ; $i += $chunk_size )
+    {
+        my $end = List::Util::min( $i + $chunk_size - 1, $#{ $new_links } );
+        add_new_links( $db, $controversy, $iteration, [ @{ $new_links }[ $i .. $end ] ] );
+    }
 }
 
 # run the spider over any new links, for $num_iterations iterations
@@ -1414,7 +1712,7 @@ sub run_spider
 {
     my ( $db, $controversy ) = @_;
 
-    my $num_iterations = MediaWords::Util::Config->get_config->{ mediawords }->{ cm_spider_iterations };
+    my $num_iterations = $controversy->{ max_iterations };
 
     for my $i ( 1 .. $num_iterations )
     {
@@ -1427,11 +1725,12 @@ sub add_redirect_urls_to_controversy_stories
 {
     my ( $db, $controversy ) = @_;
 
-    my $stories = $db->query(
-        "select distinct s.* from stories s, controversy_stories cs " .
-          "  where s.stories_id = cs.stories_id and cs.redirect_url is null and cs.controversies_id = ?",
-        $controversy->{ controversies_id }
-    )->hashes;
+    my $stories = $db->query( <<END, $controversy->{ controversies_id } )->hashes;
+select distinct s.*
+    from cd.live_stories s
+        join controversy_stories cs on ( s.stories_id = cs.stories_id and s.controversies_id = cs.controversies_id )
+    where cs.redirect_url is null and cs.controversies_id = ?
+END
 
     add_redirect_links( $db, $stories );
     for my $story ( @{ $stories } )
@@ -1450,13 +1749,15 @@ sub mine_controversy_stories
 {
     my ( $db, $controversy ) = @_;
 
-    my $stories = $db->query(
-        "select distinct s.*, cs.link_mined, cs.redirect_url from stories s, controversy_stories cs " .
-          "  where s.stories_id = cs.stories_id and cs.link_mined = 'f' and cs.controversies_id = ? " .
-          "  order by s.publish_date",
-        $controversy->{ controversies_id }
-    )->hashes;
-
+    my $stories = $db->query( <<SQL, $controversy->{ controversies_id } )->hashes;
+select distinct s.*, cs.link_mined, cs.redirect_url
+    from cd.live_stories s
+        join controversy_stories cs on ( s.stories_id = cs.stories_id and s.controversies_id = cs.controversies_id )
+    where
+        cs.link_mined = false and
+        cs.controversies_id = ?
+    order by s.publish_date
+SQL
     generate_controversy_links( $db, $controversy, $stories );
 }
 
@@ -1505,7 +1806,7 @@ sub add_link_weights
 
     $story->{ link_weight } += ( 1 / $path_depth ) if ( !$path_depth );
 
-    return if ( !@{ $story->{ links } } );
+    return if ( !scalar( @{ $story->{ links } } ) );
 
     $link_path_lookup->{ $story->{ stories_id } } = 1;
 
@@ -1544,49 +1845,6 @@ sub get_stories_with_sources
     return $stories;
 }
 
-# for each cross media controversy link, add a text similarity score that is the cos sim
-# of the text of the source and ref stories.  assumes the $stories argument comes
-# with each story with a { source_stories } field that includes all of the source
-# stories for that ref story
-sub generate_link_text_similarities
-{
-    my ( $db, $controversy, $stories ) = @_;
-
-    for my $story ( @{ $stories } )
-    {
-        for my $source_story ( @{ $story->{ source_stories } } )
-        {
-            my $has_sim = $db->query(
-                "select 1 from controversy_links " .
-                  "  where stories_id = ? and ref_stories_id = ? and text_similarity > 0 and controversies_id = ?",
-                $source_story->{ stories_id },
-                $story->{ stories_id },
-                $controversy->{ controversies_id }
-            )->list;
-            next if ( $has_sim );
-
-            MediaWords::DBI::Stories::add_word_vectors( $db, [ $story, $source_story ], 1 );
-            MediaWords::DBI::Stories::add_cos_similarities( $db, [ $story, $source_story ] );
-
-            my $sim = $story->{ similarities }->[ 1 ];
-
-            print STDERR "link sim:\n\t$story->{ title } [ $story->{ stories_id } ]\n" .
-              "\t$source_story->{ title } [ $source_story->{ stories_id } ]\n\t$sim\n\n";
-
-            $db->query(
-                "update controversy_links set text_similarity = ? " .
-                  "  where stories_id = ? and ref_stories_id = ? and controversies_id = ?",
-                $sim,
-                $source_story->{ stories_id },
-                $story->{ stories_id },
-                $controversy->{ controversies_id }
-            );
-
-            map { $_->{ similarities } = undef } ( $story, $source_story );
-        }
-    }
-}
-
 # generate a link weight score for each cross media controversy_link
 # by adding a point for each incoming link, then adding the some of the
 # link weights of each link source divided by the ( iteration * 10 ) of the recursive
@@ -1597,9 +1855,9 @@ sub generate_link_weights
     my ( $db, $controversy, $stories ) = @_;
 
     map { $_->{ source_stories } ||= []; } @{ $stories };
-    map { $_->{ link_weight } = @{ $_->{ source_stories } } } @{ $stories };
+    map { $_->{ link_weight } = scalar( @{ $_->{ source_stories } } ) } @{ $stories };
 
-    for my $i ( 1 .. LINK_WEIGHT_ITERATIONS )
+    for my $i ( 1 .. $LINK_WEIGHT_ITERATIONS )
     {
         for my $story ( @{ $stories } )
         {
@@ -1665,6 +1923,8 @@ END
         add_to_controversy_stories( $db, $controversy, $keep_story, $merged_iteration, 1 );
     }
 
+    $db->begin;
+
     my $controversy_links = $db->query( <<END, $delete_story->{ stories_id }, $controversies_id )->hashes;
 select * from controversy_links where stories_id = ? and controversies_id = ?
 END
@@ -1691,6 +1951,8 @@ END
     $db->query( <<END, $delete_story->{ stories_id }, $keep_story->{ stories_id } );
 insert into controversy_merged_stories_map ( source_stories_id, target_stories_id ) values ( ?, ? )
 END
+
+    $db->commit;
 
 }
 
@@ -1733,6 +1995,110 @@ END
     map { merge_foreign_rss_story( $db, $controversy, $_ ) } @{ $foreign_stories };
 }
 
+# clone the given story, assigning the new media_id and copying over the download, extracted text, and so on
+sub clone_story
+{
+    my ( $db, $controversy, $old_story, $new_medium ) = @_;
+
+    my $story = {
+        url          => encode( 'utf8', $old_story->{ url } ),
+        media_id     => $new_medium->{ media_id },
+        guid         => encode( 'utf8', $old_story->{ guid } ),
+        publish_date => $old_story->{ publish_date },
+        collect_date => MediaWords::Util::SQL::sql_now,
+        description  => encode( 'utf8', $old_story->{ description } ),
+        title        => encode( 'utf8', $old_story->{ title } )
+    };
+
+    $story = safely_create_story( $db, $story );
+    add_to_controversy_stories( $db, $controversy, $story, 0, 1 );
+
+    $db->query( <<SQL, $story->{ stories_id }, $old_story->{ stories_id } );
+insert into stories_tags_map ( stories_id, tags_id )
+    select \$1, stm.tags_id from stories_tags_map stm where stm.stories_id = \$2
+SQL
+
+    my $feed = get_spider_feed( $db, $new_medium );
+    $db->create( 'feeds_stories_map', { feeds_id => $feed->{ feeds_id }, stories_id => $story->{ stories_id } } );
+
+    my $download = create_download_for_new_story( $db, $story, $feed );
+
+    my $content = get_first_download_content( $db, $old_story );
+
+    MediaWords::DBI::Downloads::store_content_determinedly( $db, $download, $content );
+
+    $db->query( <<SQL, $download->{ downloads_id }, $old_story->{ stories_id } );
+insert into download_texts ( downloads_id, download_text, download_text_length )
+    select \$1, dt.download_text, dt.download_text_length
+        from download_texts dt
+            join downloads d on ( dt.downloads_id = d.downloads_id )
+        where d.stories_id = \$2
+        order by d.downloads_id asc
+        limit 1
+SQL
+
+    $db->query( <<SQL, $story->{ stories_id }, $old_story->{ stories_id } );
+insert into story_sentences ( stories_id, sentence_number, sentence, media_id, publish_date, language )
+    select \$1, sentence_number, sentence, media_id, publish_date, language
+        from story_sentences
+        where stories_id = \$2
+SQL
+
+    return $story;
+}
+
+# given a story in archive_is, find the destination domain and merge into the associated medium
+sub merge_archive_is_story
+{
+    my ( $db, $controversy, $story ) = @_;
+
+    my $original_url = MediaWords::Util::Web::get_original_url_from_momento_archive_url( $story->{ url } );
+
+    if ( !$original_url )
+    {
+        say STDERR "could not get original URL for $story->{ url } SKIPPING";
+        return;
+    }
+
+    say STDERR "Archive: $story->{ url }, Original $original_url";
+    my $link_medium = get_spider_medium( $db, $original_url );
+
+    my $new_story = $db->query(
+        <<END, $link_medium->{ media_id }, $original_url, $story->{ guid }, $story->{ title }, $story->{ publish_date } )->hash;
+SELECT s.* FROM stories s
+    WHERE s.media_id = \$1 and
+        ( ( \$2 in ( s.url, s.guid ) ) or
+          ( \$3 in ( s.url, s.guid ) ) or
+          ( s.title = \$4 and date_trunc( 'day', s.publish_date ) = \$5 ) )
+END
+
+    $new_story ||= clone_story( $db, $controversy, $story, $link_medium );
+
+    merge_dup_story( $db, $controversy, $story, $new_story );
+}
+
+# merge all stories belonging to the 'archive.is' medium into the linked domain media
+sub merge_archive_is_stories
+{
+    my ( $db, $controversy ) = @_;
+
+    my $archive_is_stories = $db->query( <<END, $controversy->{ controversies_id } )->hashes;
+SELECT distinct s.*
+    FROM cd.live_stories s
+        join controversy_stories cs on ( s.stories_id = cs.stories_id and s.controversies_id = cs.controversies_id )
+        join media m on ( s.media_id = m.media_id )
+    WHERE
+        cs.controversies_id = ? and
+        m.name = 'is';
+
+END
+
+    print STDERR "merging " . scalar( @{ $archive_is_stories } ) . " archive.is stories\n"
+      if ( scalar( @{ $archive_is_stories } ) );
+
+    map { merge_archive_is_story( $db, $controversy, $_ ) } @{ $archive_is_stories };
+}
+
 # given a story in a dup_media_id medium, look for or create a story in the medium pointed to by dup_media_id
 sub merge_dup_media_story
 {
@@ -1746,14 +2112,16 @@ sub merge_dup_media_story
 
     return unless ( $dup_medium );
 
-    my $new_story =
-      $db->query( <<END, $dup_medium->{ media_id }, $story->{ url }, $story->{ title }, $story->{ publish_date } )->hash;
+    my $new_story = $db->query(
+        <<END, $dup_medium->{ media_id }, $story->{ url }, $story->{ guid }, $story->{ title }, $story->{ publish_date } )->hash;
 SELECT s.* FROM stories s
-    WHERE s.media_id = ? and
-        ( ( ? in ( s.url, s.guid ) ) or ( s.title = ? and date_trunc( 'day', s.publish_date ) = ? ) )
+    WHERE s.media_id = \$1 and
+        ( ( \$2 in ( s.url, s.guid ) ) or
+          ( \$3 in ( s.url, s.guid ) ) or
+          ( s.title = \$4 and date_trunc( 'day', s.publish_date ) = \$5 ) )
 END
 
-    $new_story ||= add_new_story( $db, undef, $story, $controversy, 1 );
+    $new_story ||= clone_story( $db, $controversy, $story, $dup_medium );
 
     merge_dup_story( $db, $controversy, $story, $new_story );
 }
@@ -1795,15 +2163,15 @@ sub merge_dup_media_stories
 
     my $dup_media_stories = $db->query( <<END, $controversy->{ controversies_id } )->hashes;
 SELECT distinct s.*
-    FROM stories s
-        join controversy_stories cs on ( s.stories_id = cs.stories_id )
+    FROM cd.live_stories s
+        join controversy_stories cs on ( s.stories_id = cs.stories_id and s.controversies_id = cs.controversies_id )
         join media m on ( s.media_id = m.media_id )
     WHERE
         m.dup_media_id is not null and
         cs.controversies_id = ?
 END
 
-    print STDERR "merging " . scalar( @{ $dup_media_stories } ) . " stories\n" if ( @{ $dup_media_stories } );
+    print STDERR "merging " . scalar( @{ $dup_media_stories } ) . " stories\n" if ( scalar( @{ $dup_media_stories } ) );
 
     map { merge_dup_media_story( $db, $controversy, $_ ) } @{ $dup_media_stories };
 }
@@ -1829,14 +2197,32 @@ END
 select * from controversy_seed_urls where controversies_id = ? and processed = 'f'
 END
 
-    add_new_links( $db, $controversy, 0, $seed_urls );
+    my $non_content_urls = [];
+    for my $csu ( @{ $seed_urls } )
+    {
+        if ( $csu->{ content } )
+        {
+            my $story = get_matching_story_from_db( $db, $csu )
+              || add_new_story( $db, $csu, undef, $controversy, 0, 1 );
+            add_to_controversy_stories_if_match( $db, $controversy, $story, $csu );
+        }
+        else
+        {
+            push( @{ $non_content_urls }, $csu );
+        }
+    }
 
+    add_new_links( $db, $controversy, 0, $non_content_urls );
+
+    $db->dbh->{ AutoCommit } = 0;
     for my $seed_url ( @{ $seed_urls } )
     {
         $db->query( <<END, $seed_url->{ story }->{ stories_id }, $seed_url->{ controversy_seed_urls_id } );
 update controversy_seed_urls set stories_id = ?, processed = 't' where controversy_seed_urls_id = ?
 END
     }
+    $db->commit;
+    $db->dbh->{ AutoCommit } = 1;
 
 }
 
@@ -1857,9 +2243,9 @@ END
     for my $story ( @{ $stories } )
     {
         my $source_link = $db->query( <<END, $controversy->{ controversies_id } )->hash;
-select cl.*, s.publish_date from controversy_links cl, stories s
-    where cl.ref_stories_id = s.stories_id
-    order by ( controversies_id = ? ) asc, s.publish_date asc
+select cl.*, s.publish_date from controversy_links cl, cd.live_stories s
+    where cl.ref_stories_id = s.stories_id and cl.controversies_id = s.controversies_id
+    order by ( cl.controversies_id = ? ) asc, s.publish_date asc
 END
 
         next unless ( $source_link );
@@ -1931,13 +2317,18 @@ sub add_medium_url_to_ignore_redirects
 # assume_match is true or the story matches the controversy pattern
 sub add_to_controversy_stories_if_match
 {
-    my ( $db, $controversy, $story, $assume_match ) = @_;
+    my ( $db, $controversy, $story, $link, $assume_match ) = @_;
 
-    return if ( story_is_controversy_story( $db, $controversy, $story ) );
+    set_controversy_link_ref_story( $db, $story, $link ) if ( $link->{ controversy_links_id } );
 
-    return unless ( $assume_match || story_matches_controversy_pattern( $db, $controversy, $story ) );
+    return if ( skip_controversy_story( $db, $controversy, $story, $link ) );
 
-    add_to_controversy_stories( $db, $controversy, $story, 0, 1 );
+    if ( $assume_match || $link->{ assume_match } || story_matches_controversy_pattern( $db, $controversy, $story ) )
+    {
+        print STDERR "CONTROVERSY MATCH: $link->{ url }\n";
+        $link->{ iteration } ||= 0;
+        add_to_controversy_stories( $db, $controversy, $story, $link->{ iteration } + 1, 0 );
+    }
 }
 
 # get the field pointing to the stories table from
@@ -2025,7 +2416,7 @@ sub unredirect_story
         my $new_story = get_matching_story_from_db( $db, $url )
           || add_new_story( $db, $url, undef, $controversy );
 
-        add_to_controversy_stories_if_match( $db, $controversy, $new_story, $url->{ assume_match } );
+        add_to_controversy_stories_if_match( $db, $controversy, $new_story, $url, $url->{ assume_match } );
 
         unredirect_story_url( $db, $new_story, $url, $cl_lookup,  'controversy_links' );
         unredirect_story_url( $db, $new_story, $url, $csu_lookup, 'controversy_seed_urls' );
@@ -2109,10 +2500,8 @@ sub get_controversy_stories_by_medium
 
     my $stories = $db->query( <<END, $controversy->{ controversies_id } )->hashes;
 select s.stories_id, s.media_id, s.title, s.url
-    from stories s
-        join controversy_stories cs on ( cs.stories_id = s.stories_id )
-    where cs.controversies_id = ?
-    group by s.stories_id
+    from cd.live_stories s
+    where s.controversies_id = ?
 END
 
     my $media_lookup = {};
@@ -2197,7 +2586,10 @@ sub mine_controversy ($$;$)
     say STDERR "importing seed urls ...";
     import_seed_urls( $db, $controversy );
 
-    # merge dup media and stories here to avoid redundant link processing for imported urls
+    say STDERR "mining controversy stories ...";
+    mine_controversy_stories( $db, $controversy );
+
+    # # merge dup media and stories here to avoid redundant link processing for imported urls
     say STDERR "merging media_dup stories ...";
     merge_dup_media_stories( $db, $controversy );
 
@@ -2225,6 +2617,9 @@ sub mine_controversy ($$;$)
         #     say STDERR "adding outgoing foreign rss links ...";
         #     add_outgoing_foreign_rss_links( $db, $controversy );
         # }
+
+        say STDERR "merging archive_is stories ...";
+        merge_archive_is_stories( $db, $controversy );
 
         # merge dup media and stories again to catch dups from spidering
         say STDERR "merging media_dup stories ...";

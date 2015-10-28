@@ -27,7 +27,7 @@ Catalyst Controller.
 
 =cut
 
-=head2 index 
+=head2 index
 
 =cut
 
@@ -42,10 +42,10 @@ sub _attach_activity_data
     return unless ( @{ $feeds } );
 
     my $feed_story_data = $db->query( <<END, $feeds->[ 0 ]->{ media_id } )->hashes;
-select count(*) num_stories, fsm.feeds_id 
-    from feeds_stories_map fsm 
-        join feeds f on ( f.feeds_id = fsm.feeds_id ) 
-    where f.media_id = ? 
+select count(*) num_stories, fsm.feeds_id
+    from feeds_stories_map fsm
+        join feeds f on ( f.feeds_id = fsm.feeds_id )
+    where f.media_id = ?
     group by fsm.feeds_id;
 END
 
@@ -58,17 +58,17 @@ END
         $feed->{ num_stories } = $fsd ? $fsd->{ num_stories } : 0;
 
         ( $feed->{ most_recent_download_state } ) = $db->query( <<END, $feed->{ feeds_id } )->flat;
-select state 
+select state
     from downloads d
-    where feeds_id = ? and state not in ( 'pending', 'fetching' ) 
+    where feeds_id = ? and state not in ( 'pending', 'fetching' )
     order by download_time desc limit 1;
 END
 
         ( $feed->{ most_recent_story_publish_date } ) = $db->query( <<END, $feed->{ feeds_id } )->flat;
-select publish_date 
+select publish_date
     from stories s
         join feeds_stories_map fsm on ( s.stories_id = fsm.stories_id )
-    where fsm.feeds_id = ? 
+    where fsm.feeds_id = ?
     order by fsm.stories_id desc limit 1;
 END
 
@@ -240,33 +240,6 @@ END
     }
 }
 
-sub add_web_page_feed : Local
-{
-    my ( $self, $c, $media_id ) = @_;
-
-    my $media_tags_id = $c->request->param( 'media_tags_id' ) || 0;
-
-    $media_id += 0;
-
-    my $medium = $c->dbis->find_by_id( 'media', $media_id );
-
-    my $feed = {
-        media_id  => $media_id,
-        name      => $medium->{ name },
-        url       => $medium->{ url },
-        feed_type => 'web_page'
-    };
-
-    $feed = $c->dbis->create( 'feeds', $feed );
-
-    $c->response->redirect(
-        $c->uri_for(
-            '/media/moderate/' . ( $medium->{ media_id } - 1 ),
-            { status_msg => '"Web page" feed added.', media_tags_id => $media_tags_id }
-        )
-    );
-}
-
 sub make_scrape_form
 {
     my ( $self, $c, $medium ) = @_;
@@ -312,14 +285,10 @@ sub scrape : Local
         my $ignore_patterns = $c->request->param( 'ignore_patterns' );
         my $recurse         = $c->request->param( 'recurse' );
 
-        my $existing_urls = [];
-
         my $links =
-          Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ $url ], $recurse, $c->dbis, $ignore_patterns,
-            $existing_urls );
+          Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ $url ], $recurse, $c->dbis, $ignore_patterns );
 
-        $c->stash->{ links }         = $links;
-        $c->stash->{ existing_urls } = $existing_urls;
+        $c->stash->{ links } = $links;
     }
 }
 

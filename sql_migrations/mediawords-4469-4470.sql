@@ -13,24 +13,23 @@
 --
 -- 1 of 2. Import the output of 'apgdiff':
 --
-create index query_story_searches_stories_map_story on query_story_searches_stories_map ( stories_id );
 create index controversy_merged_stories_map_story on controversy_merged_stories_map ( target_stories_id );
 create index controversy_links_ref_story on controversy_links ( ref_stories_id );
-create index controversy_seed_urls_story on controversy_seed_urls ( stories_id );        
+create index controversy_seed_urls_story on controversy_seed_urls ( stories_id );
 create index authors_stories_queue_story on authors_stories_queue( stories_id );
 create index story_subsets_processed_stories_map_processed_stories_id on story_subsets_processed_stories_map ( processed_stories_id );
-    
+
 --
 -- 2 of 2. Reset the database version.
 --
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
-    
+
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
     MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4470;
-    
+
 BEGIN
 
     -- Update / set database schema version
@@ -38,11 +37,9 @@ BEGIN
     INSERT INTO database_variables (name, value) VALUES ('database-schema-version', MEDIACLOUD_DATABASE_SCHEMA_VERSION::int);
 
     return true;
-    
+
 END;
 $$
 LANGUAGE 'plpgsql';
 
 SELECT set_database_schema_version();
-
-

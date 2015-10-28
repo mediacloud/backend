@@ -87,6 +87,18 @@ programs = crawler,crf_web_service
     default_nice=12
 %]
 
+
+[% INCLUDE program_config
+    program='reextraction_daemon'
+    command="bash ./script/run_with_carton.sh ./script/mediawords_reextraction_daemon.pl"
+    default_stopasgroup='true'
+    default_killasgroup='true'
+    default_autorestart='false'
+    default_autostart='false'
+    priority=5
+    default_nice=12
+%]
+
 ; Gearman (p5-Gearman-JobScheduler) functions
 [group:gearman]
 programs = gearmand
@@ -102,8 +114,8 @@ programs = gearmand
 %]
 
 [% INCLUDE program_config
-    program='add_default_feeds'
-    gearman_worker_module='AddDefaultFeeds.pm'
+    program='rescrape_media'
+    gearman_worker_module='RescrapeMedia.pm'
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'
@@ -163,7 +175,7 @@ programs = gearmand
 
 [% INCLUDE program_config
     program='bitly_fetch_story_stats'
-    gearman_worker_module='Bitly/FetchStoryStats.pm'
+    gearman_worker_module='Bitly/FetchStoryURLStats.pm'
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'
@@ -183,7 +195,7 @@ programs = gearmand
 
 [% INCLUDE program_config
     program='twitter_fetch_story_stats'
-    gearman_worker_module='Twitter/FetchStoryStats.pm'
+    gearman_worker_module='Twitter/FetchStoryURLStats.pm'
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'
@@ -193,7 +205,7 @@ programs = gearmand
 
 [% INCLUDE program_config
     program='facebook_fetch_story_stats'
-    gearman_worker_module='Facebook/FetchStoryStats.pm'
+    gearman_worker_module='Facebook/FetchStoryURLStats.pm'
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'

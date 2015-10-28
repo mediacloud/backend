@@ -1,18 +1,14 @@
 % Media Cloud API Version 2
 %
 
-#API URLs
-
-*Note:* by default the API only returns a subset of the available fields in returned objects. The returned fields are those that we consider to be the most relevant to users of the API. If the `all_fields` parameter is provided and is non-zero, then a more complete list of fields will be returned. For space reasons, we do not list the `all_fields` parameter on individual API descriptions.
-
-## Authentication
+# Authentication
 
 Every call below includes a `key` parameter which will authenticate the user to the API service.  The key parameter is excluded
 from the examples in the below sections for brevity.
 
-To get a key, register for a user through our beta program here:
+To get a key, register for a user:
 
-https://docs.google.com/forms/d/1sNtQU9LXwU0As1HUIbeXKSpT4OaP2CWZMnVdLe_paQ8/viewform?usp=send_form
+https://core.mediacloud.org/login/register
 
 Once you have an account go here to see your key:
 
@@ -21,6 +17,21 @@ https://core.mediacloud.org/admin/profile
 ### Example
 
 https://api.mediacloud.org/api/v2/media/single/1?key=KRN4T5JGJ2A
+
+
+## Request Limits
+
+Each user is limited to 1,000 API calls and 20,000 stories returned in any 7 day period.  Requests submitted beyond this
+limit will result in a status 403 error.  Users who need access to more requests should email info@mediacloud.org.
+
+#Python Client
+
+A [Python client]( https://github.com/c4fcm/MediaCloud-API-Client ) for our API is now available. Users who develop in Python will probably find it easier to use this client than to make web requests directly.
+The Python client is available [here]( https://github.com/c4fcm/MediaCloud-API-Client ).
+
+#API URLs
+
+*Note:* by default the API only returns a subset of the available fields in returned objects. The returned fields are those that we consider to be the most relevant to users of the API. If the `all_fields` parameter is provided and is non-zero, then a more complete list of fields will be returned. For space reasons, we do not list the `all_fields` parameter on individual API descriptions.
 
 ## Errors
 
@@ -34,6 +45,11 @@ The Media Cloud returns an appropriate HTTP status code for any error, along wit
 
 Each user is limited to 1,000 API calls and 20,000 stories returned in any 7 day period.  Requests submitted beyond this
 limit will result in a status 403 error.  Users who need access to more requests should email info@mediacloud.org.
+
+## Python Client
+
+We use a python client library to access the api for our own work (incluing the dashboard implementation at
+dashboard.mediameter.org).  That library is available on [github](https://github.com/c4fcm/MediaCloud-API-Client).
 
 ## Media
 
@@ -429,6 +445,8 @@ The following table describes the meaning and origin of fields returned by both 
 | `collect_date`      | The date the RSS feed was actually downloaded.
 | `url`               | The URL field in the RSS feed.
 | `guid`              | The GUID field in the RSS feed. Defaults to the URL if no GUID is specified in the RSS feed.
+| `language`          | The language of the story as detected by the chromium compact language detector library.
+| `title`             | The title of the story as found in the RSS feed.
 
 
 ### api/v2/stories_public/single
@@ -471,7 +489,7 @@ URL: https://api.mediacloud.org/api/v2/stories_public/single/27456565
 | Parameter                    | Default | Notes
 | ---------------------------- | ------- | ------------------------------------------------------------------------------
 | `last_processed_stories_id`  | 0       | Return stories in which the `processed_stories_id` is greater than this value.
-| `rows`                       | 20      | Number of stories to return.
+| `rows`                       | 20      | Number of stories to return, max 10,000.
 | `q`                          | null    | If specified, return only results that match the given Solr query.  Only one `q` parameter may be included.
 | `fq`                         | null    | If specified, file results by the given Solr query.  More than one `fq` parameter may be included.
 
@@ -479,7 +497,9 @@ URL: https://api.mediacloud.org/api/v2/stories_public/single/27456565
 The `last_processed_stories_id` parameter can be used to page through these results. The API will return stories with a
 `processed_stories_id` greater than this value.  To get a continuous stream of stories as they are processed by Media Cloud,
 the user must make a series of calls to api/v2/stories_public/list in which `last_processed_stories_id` for each
-call is set to the `processed_stories_id` of the last story in the previous call to the API.
+call is set to the `processed_stories_id` of the last story in the previous call to the API.  A single call can only
+return up to 10,000 results, but you can get the full list of results by paging through the full list using
+`last_processed_stories_id`.
 
 *Note:* `stories_id` and `processed_stories_id` are separate values. The order in which stories are processed is different than the `stories_id` order. The processing pipeline involves downloading, extracting, and vectoring stories. Requesting by the `processed_stories_id` field guarantees that the user will receive every story (matching the query criteria if present) in
 the order it is processed by the system.
@@ -1171,19 +1191,21 @@ URL: https://api.mediacloud.org/api/v2/controversy_dump_time_slices/list?controv
 
 # Extended Examples
 
+Note: The Python examples below are included for reference purposes. However, a [Python client]( https://github.com/c4fcm/MediaCloud-API-Client ) for our API is now available and most Python users will find it much easier to use the API client instead of making web requests directly.
+
 ## Output Format / JSON
 
 The format of the API responses is determined by the `Accept` header on the request. The default is `application/json`. Other supported formats include `text/html`, `text/x-json`, and `text/x-php-serialization`. It's recommended that you explicitly set the `Accept` header rather than relying on the default.
 
 Here's an example of setting the `Accept` header in Python:
 
-```python  
-import pkg_resources  
+```python
+import pkg_resources
 
 import requests
 assert pkg_resources.get_distribution("requests").version >= '1.2.3'
 
-r = requests.get( 'https://api.mediacloud.org/api/v2/media/list', params = params, headers = { 'Accept': 'application/json'}, headers = { 'Accept': 'application/json'} )  
+r = requests.get( 'https://api.mediacloud.org/api/v2/media/list', params = params, headers = { 'Accept': 'application/json'}, headers = { 'Accept': 'application/json'} )
 
 data = r.json()
 ```
@@ -1195,7 +1217,7 @@ media = []
 start = 0
 rows  = 100
 while True:
-      params = { 'start': start, 'rows': rows }
+      params = { 'start': start, 'rows': rows, 'key': MY_KEY }
       print "start:{} rows:{}".format( start, rows)
       r = requests.get( 'https://api.mediacloud.org/api/v2/media/list', params = params, headers = { 'Accept': 'application/json'} )
       data = r.json()
@@ -1284,7 +1306,7 @@ curl https://api.mediacloud.org/api/v2/dashboards/single/1
 	     NOT SHOWN FOR SPACE REASONS
 	   ]
    	   }
-   ]  
+   ]
 ]
 ```
 
@@ -1304,7 +1326,7 @@ import requests
 start = 0
 rows  = 100
 while True:
-      params = { 'last_processed_stories_id': start, 'rows': rows, 'q': 'media_sets_id:1' }
+      params = { 'last_processed_stories_id': start, 'rows': rows, 'q': 'media_sets_id:1', 'key': MY_KEY }
 
       print "Fetching {} stories starting from {}".format( rows, start)
       r = requests.get( 'https://api.mediacloud.org/api/v2/stories_public/list/', params = params, headers = { 'Accept': 'application/json'} )
@@ -1340,7 +1362,7 @@ start = 0
 rows  = 100
 while True:
       params = { 'last_processed_stories_id': start,
-      'rows': rows, 'q': 'media_set_id:1', 'fq': 'publish_date:[2010-10-01T00:00:00Z TO 2010-11-01T00:00:00Z]'  }
+      'rows': rows, 'q': 'media_set_id:1', 'fq': 'publish_date:[2010-10-01T00:00:00Z TO 2010-11-01T00:00:00Z]', 'key': MY_KEY  }
 
       print "Fetching {} stories starting from {}".format( rows, start)
       r = requests.get( 'https://api.mediacloud.org/api/v2/stories_public/list/', params = params, headers = { 'Accept': 'application/json'} )
@@ -1427,7 +1449,7 @@ curl https://api.mediacloud.org/api/v2/dashboards/single/1
 	   ]
 
 	  }
-   ]  
+   ]
 ]
 ```
 
@@ -1452,35 +1474,6 @@ Alternatively, we could use a single large query by setting `q` to `"sentence:tr
 curl 'https://api.mediacloud.org/api/v2/wc?q=sentence:trayvon+AND+media_sets_id:7125+AND+publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D&fq=media_sets_id:7135&fq=publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D'
 ```
 
-
-## Tag sentences of a story based on whether they have an odd or even number of characters
-
-For simplicity, we assume that the user is interested in the story with `stories_id = 100` and is using a tag set called `'ts'`.
-
-```python
-
-stories_id = 100
-r = requests.get( 'https://api.mediacloud.org/api/v2/story/single/' + stories_id, headers = { 'Accept': 'application/json'} )
-data = r.json()
-story = data[0]
-
-custom_tags = []
-tag_set_name = 'ts'
-for story_sentence in story['story_sentences']:
-    sentence_length = len( story_sentence['sentence'] )
-    story_sentences_id = story_sentence[ 'story_sentences_id' ]
-
-    if sentence_length %2 == 0:
-       tag_name = 'even'
-    else:
-       tag_name = 'odd'
-
-    custom_tags.append( '{},{}:{}'.format( story_sentences_id, tag_set_name, tag_name )
-
-
-r = requests.put( 'https://api.mediacloud.org/api/v2/sentences/put_tags/', { 'sentence_tag': custom_tags }, headers = { 'Accept': 'application/json'} )  
-
-```
 
 ## Get word counts for top words for sentences with the tag `'odd'` in `tag_set = 'ts'`
 
@@ -1519,7 +1512,7 @@ def find_tags_id( tag_name, tag_sets_id):
    last_tags_id = 0
    rows  = 100
    while True:
-      params = { 'last_tags_id': last_tags_id, 'rows': rows }
+      params = { 'last_tags_id': last_tags_id, 'rows': rows, 'key': MY_KEY }
       print "start:{} rows:{}".format( start, rows)
       r = requests.get( 'https://api.mediacloud.org/api/v2/tags/list/' + tag_sets_id , params = params, headers = { 'Accept': 'application/json'} )
       tags = r.json()
@@ -1566,7 +1559,7 @@ import requests
 start = 0
 rows  = 100
 while True:
-      params = { 'last_processed_stories_id': start, 'rows': rows, 'q': 'tags_id_stories:678910' }
+      params = { 'last_processed_stories_id': start, 'rows': rows, 'q': 'tags_id_stories:678910', 'key': MY_KEY }
 
       print "Fetching {} stories starting from {}".format( rows, start)
       r = requests.get( 'https://api.mediacloud.org/api/v2/stories_public/list/', params = params, headers = { 'Accept': 'application/json'} )

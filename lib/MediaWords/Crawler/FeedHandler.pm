@@ -179,21 +179,28 @@ sub _create_child_download_for_story
 {
     my ( $dbs, $story, $parent_download ) = @_;
 
-    $dbs->create(
-        'downloads',
-        {
-            feeds_id   => $parent_download->{ feeds_id },
-            stories_id => $story->{ stories_id },
-            parent     => $parent_download->{ downloads_id },
-            url        => $story->{ url },
-            host       => lc( ( URI::Split::uri_split( $story->{ url } ) )[ 1 ] ),
-            type       => 'content',
-            sequence   => 1,
-            state      => 'pending',
-            priority   => $parent_download->{ priority },
-            extracted  => 'f'
-        }
-    );
+    my $download = {
+        feeds_id   => $parent_download->{ feeds_id },
+        stories_id => $story->{ stories_id },
+        parent     => $parent_download->{ downloads_id },
+        url        => $story->{ url },
+        host       => lc( ( URI::Split::uri_split( $story->{ url } ) )[ 1 ] ),
+        type       => 'content',
+        sequence   => 1,
+        state      => 'pending',
+        priority   => $parent_download->{ priority },
+        extracted  => 'f'
+    };
+
+    my ( $content_delay ) = $dbs->query( "select content_delay from media where media_id = ?", $story->{ media_id } )->flat;
+    if ( $content_delay )
+    {
+        # delay download of content this many hours.  this is useful for sources that are likely to
+        # significantly change content in the hours after it is first published.
+        $download->{ download_time } = \"now() + interval '$content_delay hours'";
+    }
+
+    $dbs->create( 'downloads', $download );
 }
 
 sub _add_story_and_content_download
@@ -393,8 +400,11 @@ sub handle_feed_content
     {
         if ( $download->{ state } ne 'feed_error' )
         {
-            $dbs->query( "UPDATE feeds SET last_successful_download_time = NOW() WHERE feeds_id = ?",
-                $download->{ feeds_id } );
+            $dbs->query(
+"UPDATE feeds SET last_successful_download_time = greatest( last_successful_download_time, ? ) WHERE feeds_id = ?",
+                $download->{ download_time },
+                $download->{ feeds_id }
+            );
         }
 
         MediaWords::DBI::Downloads::store_content( $dbs, $download, $content_ref );

@@ -60,14 +60,16 @@ sub _get_full_text_from_rss
 }
 
 # get the combined story title, story description, and download text of the text
-sub _get_text_from_download_text
+sub combine_story_title_description_text($$$)
 {
-    my ( $story, $download_texts ) = @_;
+    my ( $story_title, $story_description, $download_texts ) = @_;
 
-    return join( "\n***\n\n",
-        html_strip( $story->{ title }       || '' ),
-        html_strip( $story->{ description } || '' ),
-        @{ $download_texts } );
+    return join(
+        "\n***\n\n",
+        html_strip( $story_title       || '' ),    #
+        html_strip( $story_description || '' ),    #
+        @{ $download_texts }                       #
+    );
 }
 
 # get the concatenation of the story title and description and all of the download_texts associated with the story
@@ -108,8 +110,7 @@ EOF
         push( @{ $download_texts }, "(downloads pending extraction)" );
     }
 
-    return _get_text_from_download_text( $story, $download_texts );
-
+    return combine_story_title_description_text( $story->{ title }, $story->{ description }, $download_texts );
 }
 
 # Like get_text but it doesn't include both the rss information and the extracted text.
@@ -184,50 +185,6 @@ sub get_content_for_first_download($$)
     my $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $first_download );
 
     return $content_ref;
-}
-
-# store any content returned by the tagging module in the downloads table
-sub _store_tags_content
-{
-    my ( $db, $story, $module, $tags ) = @_;
-
-    unless ( $tags->{ content } )
-    {
-        warn "Tags doesn't have 'content' for story " . $story->{ stories_id };
-        return;
-    }
-
-    my $download = $db->query(
-        <<"EOF",
-        SELECT *
-        FROM downloads
-        WHERE stories_id = ?
-              AND type = 'content'
-        ORDER BY downloads_id ASC
-        LIMIT 1
-EOF
-        $story->{ stories_id }
-    )->hash;
-
-    my $tags_download = $db->create(
-        'downloads',
-        {
-            feeds_id      => $download->{ feeds_id },
-            stories_id    => $story->{ stories_id },
-            parent        => $download->{ downloads_id },
-            url           => $download->{ url },
-            host          => $download->{ host },
-            download_time => 'NOW()',
-            type          => $module,
-            state         => 'pending',
-            priority      => 10,
-            sequence      => 1
-        }
-    );
-
-    #my $content = $tags->{content};
-
-    MediaWords::DBI::Downloads::store_content( $db, $tags_download, \$tags->{ content } );
 }
 
 sub get_existing_tags
@@ -450,84 +407,6 @@ sub get_initial_download_content($$)
     return $content;
 }
 
-# get word vectors for the top 1000 words for each story.
-# add a { vector } field to each story where the vector for each
-# query is the list of the counts of each word, with each word represented
-# by an index value shared across the union of all words for all stories.
-# if keep_words is true, also add a { words } field to each story
-# with the list of words for each story in { stem => s, term => s, stem_count => s } form.
-# if a { words } field is present, reuse that field rather than querying
-# the data from the database.
-# if $num_words is included, use $num_words max words per story.  default to 100.
-# if $stopword_length is included, use 'tiny', 'short', or 'long'.  default to 'short'.
-sub add_word_vectors
-{
-    my ( $db, $stories, $keep_words, $num_words, $stopword_length ) = @_;
-
-    $num_words ||= 100;
-
-    $stopword_length ||= 'short';
-
-    die( "unknown stopword_length '$stopword_length'" ) unless ( grep { $_ eq $stopword_length } qw(tiny short long) );
-
-    my $word_hash;
-
-    my $i               = 0;
-    my $next_word_index = 0;
-    for my $story ( @{ $stories } )
-    {
-        print STDERR "add_word_vectors: " . $i++ . "[ $story->{ stories_id } ]\n" unless ( $i % 100 );
-
-        my $sw_check;
-        if ( $stopword_length eq 'tiny' )
-        {
-            $sw_check = '';
-        }
-        else
-        {
-            $sw_check = "AND NOT is_stop_stem( '$stopword_length', ssw.stem, ssw.language )";
-        }
-
-        my $words = $story->{ words } || $db->query(
-            <<"EOF",
-            SELECT ssw.stem,
-                   MIN(ssw.term) AS term,
-                   SUM(stem_count) AS stem_count
-            FROM story_sentence_words AS ssw
-            WHERE ssw.stories_id = ?
-                  $sw_check
-            GROUP BY ssw.stem
-            ORDER BY SUM(stem_count) DESC
-            LIMIT ?
-EOF
-            $story->{ stories_id },
-            $num_words
-        )->hashes;
-
-        $story->{ vector } = [ 0 ];
-
-        for my $word ( @{ $words } )
-        {
-            if ( !defined( $word_hash->{ $word->{ stem } } ) )
-            {
-                $word_hash->{ $word->{ stem } } = $next_word_index++;
-            }
-
-            my $word_index = $word_hash->{ $word->{ stem } };
-
-            $story->{ vector }->[ $word_index ] = $word->{ stem_count };
-        }
-
-        if ( $keep_words )
-        {
-            print STDERR "keep words: " . scalar( @{ $words } ) . "\n";
-            $story->{ words } = $words;
-        }
-    }
-
-    return $stories;
-}
-
 # add a { similarities } field that holds the cosine similarity scores between each of the
 # stories to each other story.  Assumes that a { vector } has been added to each story
 # using add_word_vectors above.
@@ -731,7 +610,7 @@ sub process_extracted_story
 
     unless ( $no_vector )
     {
-        MediaWords::StoryVectors::update_story_sentence_words_and_language( $db, $story, 0, $no_dedup_sentences );
+        MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story, 0, $no_dedup_sentences );
     }
 
     $db->query(
@@ -988,6 +867,8 @@ END
     return $tag ? 1 : 0;
 }
 
+my $_date_guess_method_tag_lookup = {};
+
 # assign a tag to the story for the date guess method
 sub assign_date_guess_method
 {
@@ -1010,8 +891,15 @@ END
     }
 
     my $tag_set_name = ( $date_guess_method eq 'undateable' ) ? 'date_invalid' : 'date_guess_method';
+    my $tag_name = "$tag_set_name:$date_guess_method";
 
-    my $date_guess_method_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, "$tag_set_name:$date_guess_method" );
+    my $date_guess_method_tag = $_date_guess_method_tag_lookup->{ $tag_name };
+    if ( !$date_guess_method_tag )
+    {
+        $date_guess_method_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, "$tag_set_name:$date_guess_method" );
+        $_date_guess_method_tag_lookup->{ $tag_name } = $date_guess_method_tag;
+    }
+
     $db->query( <<END, $story->{ stories_id }, $date_guess_method_tag->{ tags_id } );
 insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )
 END
@@ -1081,7 +969,7 @@ sub add_missing_story_sentences
 
     print STDERR "ADD SENTENCES [$story->{ stories_id }]\n";
 
-    MediaWords::StoryVectors::update_story_sentence_words_and_language( $db, $story, 0, 0, 1 );
+    MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story, 0, 0, 1 );
 }
 
 # get list of all sentences in story from the extracted text and annotate each with a dup_stories_id
@@ -1267,10 +1155,13 @@ sub get_medium_dup_stories_by_title
     my ( $db, $stories ) = @_;
 
     my $title_part_counts = {};
-
     for my $story ( @{ $stories } )
     {
-        my $title_parts = $story->{ title_parts } = get_title_parts( $story->{ title } );
+        # don't try to dedup twitter stories by title, because the title of a tweet
+        # is just the tweet, and we want to capture retweets
+        next if ( $_->{ url } && ( $_->{ url } =~ /https?:\/\/(twitter\.com|t\.co)/i ) );
+
+        my $title_parts = get_title_parts( $story->{ title } );
 
         for ( my $i = 0 ; $i < @{ $title_parts } ; $i++ )
         {
@@ -1328,12 +1219,33 @@ sub get_medium_dup_stories_by_url
     my $url_lookup = {};
     for my $story ( @{ $stories } )
     {
+        if ( !$story->{ url } )
+        {
+            warn( "no url in story: " . Dumper( $story ) );
+            next;
+        }
+
         my $nu = MediaWords::Util::URL::normalize_url_lossy( $story->{ url } )->as_string;
         $story->{ normalized_url } = $nu;
         push( @{ $url_lookup->{ $nu } }, $story );
     }
 
     return [ grep { ( @{ $_ } > 1 ) && ( @{ $_ } < 6 ) } values( %{ $url_lookup } ) ];
+}
+
+# get duplicate stories within the given set that have duplicate guids
+sub get_medium_dup_stories_by_guid
+{
+    my ( $db, $stories ) = @_;
+
+    my $guid_lookup = {};
+    for my $story ( @{ $stories } )
+    {
+        die( "no guid in story: " . Dumper( $story ) ) unless ( $story->{ guid } );
+        push( @{ $guid_lookup->{ $story->{ guid } } }, $story );
+    }
+
+    return [ grep { @{ $_ } > 1 } values( %{ $guid_lookup } ) ];
 }
 
 # parse the content for tags that might indicate the story's title

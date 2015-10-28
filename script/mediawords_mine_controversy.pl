@@ -28,6 +28,8 @@ sub main
     binmode( STDOUT, 'utf8' );
     binmode( STDERR, 'utf8' );
 
+    $| = 1;
+
     unless ( MediaWords::GearmanFunction::gearman_is_enabled() )
     {
         die "Gearman is disabled.";

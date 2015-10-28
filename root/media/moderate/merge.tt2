@@ -1,0 +1,19 @@
+[% title = 'Merge Media Sources Confirmation' %]
+[% INCLUDE include/header.tt2 %]
+
+[% IF c.acl_user_can_visit('/admin/media/moderate/merge') %]
+
+	<fieldset>
+	<p>
+	Are you sure you want to merge the tags of [% medium_a.name %] into [% medium_b.name %] and delete [% medium_a.name %] entirely?
+
+	<form action="[% c.uri_for('/admin/media/moderate/merge/') _ medium_a.media_id _ '/' _ medium_b.media_id _ '/' _ 'yes' %]">
+    <input type="hidden" name="media_tags_id" value="[% media_tags_id %]" />
+	<input type="submit" value="Merge and Delete" />
+	</form>
+
+	</fieldset>
+
+[% END # [% IF c.acl_user_can_visit('/admin/media/moderate/merge') %]
+ 
+[% INCLUDE include/footer.tt2 %]

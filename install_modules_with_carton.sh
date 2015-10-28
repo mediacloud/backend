@@ -63,6 +63,13 @@ mkdir -p local/
 # ! Couldn't find module or a distribution JSON::PP (2.27202)
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ JSON::PP
 
+# Install GraphViz separately because it fails on Travis CI container builds
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm --verbose -L local/ GraphViz
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm --verbose -L local/ GraphViz2
+
+# Install Gearman::XS separately because it fails on Travis CI container builds
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm --verbose -L local/ Gearman::XS
+
 # Install the rest of the modules; run the command twice because the first
 # attempt might fail
 source ./script/set_java_home.sh

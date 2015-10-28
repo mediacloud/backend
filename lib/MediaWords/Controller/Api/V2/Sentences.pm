@@ -30,7 +30,7 @@ Catalyst Controller.
 
 =cut
 
-=head2 index 
+=head2 index
 
 =cut
 
@@ -46,8 +46,6 @@ __PACKAGE__->config(
     }
 );
 
-use MediaWords::Tagger;
-
 sub get_table_name
 {
     return "story_sentences";
@@ -58,28 +56,28 @@ sub list : Local : ActionClass('REST')
     #say STDERR "starting Sentences/list";
 }
 
-# fill ss_ids temporary table with story_sentence_ids from the given sentences
+# fill stories_ids temporary table with stories_ids from the given sentences
 # and return the temp table name
-sub _get_ss_ids_temporary_table
+sub _get_stories_ids_temporary_table
 {
     my ( $db, $sentences ) = @_;
 
-    $db->query( "create temporary table _ss_ids ( story_sentences_id bigint )" );
+    $db->query( "create temporary table _stories_ids ( stories_id bigint )" );
 
-    eval { $db->dbh->do( "copy _ss_ids from STDIN" ) };
-    die( " Error on copy for _ss_ids: $@" ) if ( $@ );
+    eval { $db->dbh->do( "copy _stories_ids from STDIN" ) };
+    die( " Error on copy for _stories_ids: $@" ) if ( $@ );
 
     for my $ss ( @{ $sentences } )
     {
-        eval { $db->dbh->pg_putcopydata( "$ss->{ story_sentences_id }\n" ); };
-        die( " Error on pg_putcopydata for _ss_ids: $@" ) if ( $@ );
+        eval { $db->dbh->pg_putcopydata( "$ss->{ stories_id }\n" ); };
+        die( " Error on pg_putcopydata for _stories_ids: $@" ) if ( $@ );
     }
 
     eval { $db->dbh->pg_putcopyend(); };
 
-    die( " Error on pg_putcopyend for _ss_ids: $@" ) if ( $@ );
+    die( " Error on pg_putcopyend for _stories_ids: $@" ) if ( $@ );
 
-    return '_ss_ids';
+    return '_stories_ids';
 }
 
 # attach the following fields to each sentence: sentence_number, media_id, publish_date, url, medium_name
@@ -89,26 +87,24 @@ sub _attach_data_to_sentences
 
     return unless ( @{ $sentences } );
 
-    my $temp_ss_ids = _get_ss_ids_temporary_table( $db, $sentences );
+    my $temp_stories_ids = _get_stories_ids_temporary_table( $db, $sentences );
 
-    my $story_sentences = $db->query( <<END )->hashes;
-select ss.story_sentences_id, ss.sentence_number, ss.media_id, ss.publish_date,
-        s.url, m.name medium_name
-    from story_sentences ss
-        join $temp_ss_ids q on ( ss.story_sentences_id = q.story_sentences_id )
-        join stories s on ( s.stories_id = ss.stories_id )
-        join media m on ( ss.media_id = m.media_id )
+    my $stories = $db->query( <<END )->hashes;
+select s.publish_date, s.stories_id, s.url, m.name medium_name, s.media_id, 0 as sentence_number
+    from stories s
+        join $temp_stories_ids q on ( s.stories_id = q.stories_id )
+        join media m on ( s.media_id = m.media_id )
 END
 
-    $db->query( "drop table $temp_ss_ids" );
+    $db->query( "drop table $temp_stories_ids" );
 
-    my $ss_lookup = {};
-    map { $ss_lookup->{ $_->{ story_sentences_id } } = $_ } @{ $story_sentences };
+    my $story_lookup = {};
+    map { $story_lookup->{ $_->{ stories_id } } = $_ } @{ $stories };
 
     for my $sentence ( @{ $sentences } )
     {
-        my $ss_data = $ss_lookup->{ $sentence->{ story_sentences_id } };
-        map { $sentence->{ $_ } = $ss_data->{ $_ } } qw/sentence_number media_id publish_date url medium_name/;
+        my $story = $story_lookup->{ $sentence->{ stories_id } };
+        map { $sentence->{ $_ } = $story->{ $_ } } qw/sentence_number media_id publish_date url medium_name/;
     }
 }
 

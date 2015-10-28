@@ -250,7 +250,7 @@ sub _pgcrypto_extension_sql($)
     else
     {
         # PostgreSQL 9.1+
-        $sql = 'CREATE EXTENSION IF NOT EXISTS pgcrypto';
+        $sql = 'CREATE EXTENSION IF NOT EXISTS pgcrypto;';
     }
 
     return $sql;
@@ -384,7 +384,7 @@ sub postgresql_response_line_is_expected($)
         | ^DROP\ VIEW
         | ^DROP\ TABLE
         | ^DROP\ FUNCTION
-        | ^drop\ cascades\ to\ view\ 
+        | ^drop\ cascades\ to\ view\
         | ^UPDATE\ \d+
         | ^DROP\ TRIGGER
         | ^Timing\ is\ on\.

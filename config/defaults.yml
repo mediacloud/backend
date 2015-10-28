@@ -33,6 +33,8 @@ mediawords:
     language: en_US_and_ru_RU
     owner: mediacloud@cyber.law.harvard.edu
     read_gridfs_downloads_from_s3: no
+    fallback_postgresql_downloads_to_s3: no
+    cache_s3_downloads: no
     recaptcha_private_key: 6LfEVt0SAAAAABmI-8IJmx4g93eNcSeyeCxvLMs2
     recaptcha_public_key: 6LfEVt0SAAAAAFwQI0pOZ1bTHgDTpQcMeQY6VLd_
     solr_url:
@@ -45,6 +47,8 @@ gearmand:
     enabled: yes
     listen: 127.0.0.1
     port: 4731
+    threads: 0
+    worker_wakeup: 0
 corenlp:
     enabled: no
     annotator_url: ''

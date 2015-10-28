@@ -1,16 +1,17 @@
-# 1. 
+# 1.
 # 2. This file lists *direct* Perl module dependencies of Media Cloud.
-# 3. 
+# 3.
 # 4. See:
-# 5. 
+# 5.
 # 6.     doc/carton.txt
-# 7. 
+# 7.
 # 8. for instructions on how to add a new Perl module dependency.
-# 9. 
+# 9.
 requires 'Algorithm::FeatureSelection';
 requires 'Archive::Zip';
 requires 'Array::Compare';
 requires 'Cache::FastMmap';
+requires 'Carp::Always';
 requires 'Carton::CLI';
 requires 'Catalyst', '5.90030';
 requires 'Catalyst::Action::RenderView';
@@ -30,7 +31,7 @@ requires 'Catalyst::Restarter';
 requires 'Catalyst::Runtime', '5.90030';
 requires 'Catalyst::View::TT';
 requires 'CGI';
-requires 'CHI';
+requires 'CHI', '>= 0.60';
 requires 'Class::CSV';
 requires 'Class::Std';
 requires 'Color::Mix';
@@ -43,6 +44,7 @@ requires 'Data::Sorting';
 requires 'Data::Structure::Util';
 requires 'DateTime::Format::Pg';
 requires 'DBD::Pg', '2.19.3';
+requires 'DBD::SQLite';
 requires 'DBIx::Class::Schema';
 requires 'DBIx::Simple';
 requires 'Devel::Cover', '1.17';
@@ -99,14 +101,17 @@ requires 'Memoize';
 requires 'Modern::Perl', '1.20121103';
 requires 'Module::Install';
 requires 'Module::Pluggable::Object';
-requires 'MongoDB', '0.704.1.0';
+requires 'MongoDB', '== 0.705.0.0';
+requires 'Moo', '2.000001';
 requires 'Moose', '== 2.1005';
 requires 'namespace::autoclean';
 requires 'Net::Amazon::S3';
 requires 'Net::Calais';
 requires 'Net::IP';
+requires 'Net::Twitter';
 requires 'Parallel::Fork::BossWorkerAsync';
 requires 'Parallel::ForkManager';
+requires 'Parse::BooleanLogic';
 requires 'PDL';
 requires 'Perl::Tidy', '20140328';
 requires 'RDF::Simple::Parser';
@@ -119,6 +124,8 @@ requires 'Set::Jaccard::SimilarityCoefficient';
 requires 'Set::Scalar';
 requires 'Smart::Comments';
 requires 'Statistics::Basic';
+requires 'Sub::Name', '0.14';
+requires 'Sub::Util', '1.42';
 requires 'Sys::RunAlone';
 requires 'Template';
 requires 'Term::Prompt';

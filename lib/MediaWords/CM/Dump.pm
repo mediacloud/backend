@@ -27,14 +27,14 @@ use MediaWords::Util::SQL;
 use MediaWords::DBI::Activities;
 
 # max and mind node sizes for gexf dump
-use constant MAX_NODE_SIZE => 17;
-use constant MIN_NODE_SIZE => 1;
+Readonly my $MAX_NODE_SIZE => 20;
+Readonly my $MIN_NODE_SIZE => 2;
 
 # max map width for gexf dump
-use constant MAX_MAP_WIDTH => 800;
+Readonly my $MAX_MAP_WIDTH => 800;
 
 # max number of media to include in gexf map
-use constant MAX_GEXF_MEDIA => 500;
+Readonly my $MAX_GEXF_MEDIA => 500;
 
 # attributes to include in gexf dump
 my $_media_static_gexf_attribute_types = {
@@ -696,9 +696,9 @@ sub attach_stories_to_media
 
 sub get_weighted_edges
 {
-    my ( $db, $media, $max_gexf_media ) = @_;
+    my ( $db, $media, $max_media ) = @_;
 
-    my $media_links = $db->query( <<END, $max_gexf_media )->hashes;
+    my $media_links = $db->query( <<END, $max_media )->hashes;
 with top_media as (
     select media_id from dump_medium_link_counts order by inlink_count desc limit ?
 )
@@ -790,7 +790,7 @@ sub add_weights_to_gexf_edges
     }
 }
 
-# scale the size of the map described in the gexf file to MAX_MAP_WIDTH and center on 0,0.
+# scale the size of the map described in the gexf file to $MAX_MAP_WIDTH and center on 0,0.
 # gephi can return really large maps that make the absolute node size relatively tiny.
 # we need to scale the map to get consistent, reasonable node sizes across all maps
 sub scale_gexf_nodes
@@ -818,7 +818,7 @@ sub scale_gexf_nodes
         my $map_width = $max - $min;
         $map_width ||= 1;
 
-        my $scale = MAX_MAP_WIDTH / $map_width;
+        my $scale = $MAX_MAP_WIDTH / $map_width;
         map { $_->{ 'viz:position' }->{ $c } *= $scale } @{ $nodes };
     }
 }
@@ -905,7 +905,7 @@ sub layout_gexf
     return $layout_gexf;
 }
 
-# scale the nodes such that the biggest node size is MAX_NODE_SIZE and the smallest is MIN_NODE_SIZE
+# scale the nodes such that the biggest node size is $MAX_NODE_SIZE and the smallest is $MIN_NODE_SIZE
 sub scale_node_sizes
 {
     my ( $nodes ) = @_;
@@ -919,9 +919,9 @@ sub scale_node_sizes
         $max_size = $s if ( $max_size < $s );
     }
 
-    my $scale = MAX_NODE_SIZE / $max_size;
+    my $scale = $MAX_NODE_SIZE / $max_size;
 
-    # my $scale = ( $max_size > ( MAX_NODE_SIZE / MIN_NODE_SIZE ) ) ? ( MAX_NODE_SIZE / $max_size ) : 1;
+    # my $scale = ( $max_size > ( $MAX_NODE_SIZE / $MIN_NODE_SIZE ) ) ? ( $MAX_NODE_SIZE / $max_size ) : 1;
 
     for my $node ( @{ $nodes } )
     {
@@ -929,7 +929,7 @@ sub scale_node_sizes
 
         $s = int( $scale * $s );
 
-        $s = MIN_NODE_SIZE if ( $s < MIN_NODE_SIZE );
+        $s = $MIN_NODE_SIZE if ( $s < $MIN_NODE_SIZE );
 
         $node->{ 'viz:size' }->{ value } = $s;
 
@@ -1060,7 +1060,7 @@ sub get_gexf_dump
     my ( $db, $cdts, $color_field, $max_media ) = @_;
 
     $color_field ||= 'media_type';
-    $max_media   ||= MAX_GEXF_MEDIA;
+    $max_media   ||= $MAX_GEXF_MEDIA;
 
     my $media = $db->query( <<END, $max_media )->hashes;
 select distinct *
@@ -1292,21 +1292,6 @@ sub create_controversy_dump_time_slice ($$$$$$)
     return $cdts;
 }
 
-# write cd.word_counts table for time slice
-sub write_word_counts
-{
-    my ( $db, $cdts ) = @_;
-
-    $db->query( <<END, $cdts->{ controversy_dump_time_slices_id } );
-insert into cd.word_counts
-    ( controversy_dump_time_slices_id, stem, term, stem_count )
-    select ?, ssw.stem, min( term ) term, sum( ssw.stem_count ) stem_count
-        from story_sentence_words ssw
-            join dump_period_stories ps on ( ssw.stories_id = ps.stories_id )
-        group by ssw.stem
-END
-}
-
 # generate data for the story_links, story_link_counts, media_links, media_link_counts tables
 # based on the data in the temporary dump_* tables
 sub generate_cdts_data ($$;$)
@@ -1320,7 +1305,6 @@ sub generate_cdts_data ($$;$)
     write_medium_link_counts_dump( $db, $cdts, $is_model );
     write_medium_links_dump( $db, $cdts, $is_model );
 
-    #write_word_counts( $db, $cdts ) unless ( $is_model );
 }
 
 # update *_count fields in cdts.  save to db unless $live is specified.
@@ -1770,15 +1754,6 @@ sub dump_controversy ($$)
 
     my $controversy = $db->find_by_id( 'controversies', $controversies_id )
       || die( "Unable to find controversy '$controversies_id'" );
-
-    # Check if controversy's stories have been processed through Bit.ly
-    if ( $controversy->{ process_with_bitly } )
-    {
-        unless ( MediaWords::Util::Bitly::num_controversy_stories_without_bitly_statistics( $db, $controversies_id ) == 0 )
-        {
-            die "Not all controversy's $controversies_id stories have been processed with Bit.ly yet.";
-        }
-    }
 
     $db->dbh->{ PrintWarn } = 0;    # avoid noisy, extraneous postgres notices from drops
 

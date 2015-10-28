@@ -14,6 +14,30 @@ database:
       user  : "mediaclouduser"
       pass  : "mediacloud"
 
+    # raw download storage
+    # (this section is optional; if absent, we're going to use production
+    # database's "raw_downloads" table)
+    #- label : "raw_downloads"
+    #  type  : "pg"
+    #  host  : "localhost"
+    #  port  : 5432
+    #  db    : "mediacloud"
+    #  user  : "mediaclouduser"
+    #  pass  : "mediacloud"
+    #  table : "raw_downloads"  # optional
+
+    # fallback raw download storage that will be used when download is not
+    # found on the main download storage
+    # (this section is optional)
+    #- label : "raw_downloads_fallback"
+    #  type  : "pg"
+    #  host  : "localhost"
+    #  port  : 5432
+    #  db    : "mediacloud"
+    #  user  : "mediaclouduser"
+    #  pass  : "mediacloud"
+    #  table : "raw_downloads_fallback"  # optional
+
     # unit tests
     - label : "test"
       type  : "pg"
@@ -45,12 +69,6 @@ database:
     ### Database for testing
     #test:
         #database_name : "mediacloud_downloads_gridfs_test"
-    ### (optional) Database for storing CoreNLP annotator results
-    #corenlp:
-        #database_name : "mediacloud_corenlp"
-    ### (optional) Database for storing Bit.ly API results
-    #bitly:
-        #database_name : "mediacloud_bitly"
 
 ### Amazon S3 connection settings
 #amazon_s3:
@@ -121,6 +139,18 @@ database:
     ### Supervisord. Default is 4731.
     #port: 4731
 
+    ### Number of threads (http://gearman.org/manual/job_server/#threading_model):
+    ### * 0  -- everything will happen within a single thread
+    ### * 1  -- there will be a thread for listening/management and a thread
+    ###         for I/O and processing
+    ### * 2  -- there will be a thread for each type of thread
+    ### * >2 -- more I/O threads will get created
+    #threads: 0
+
+    ### Number of workers to wakeup for each job received. The default (0) is
+    ### to wakeup all available workers.
+    #worker_wakeup: 0
+
 ### Supervisor (supervisord) configuration
 #supervisor:
 
@@ -148,7 +178,7 @@ database:
         # other configurable supervisor programs
         #crf_web_service
         #gearmand
-        #add_default_feeds
+        #rescrape_media
         #cm_mine_controversy
         #cm_dump_controversy
         #solr
@@ -254,6 +284,12 @@ database:
     ## Request timeout
     #timeout: 60
 
+#twitter:
+#    consumer_key: ""
+#    consumer_secret: ""
+#    access_token: ""
+#    access_token_secret: ""    
+
 #mail:
     # Email address to receive bug report emails; leave empty for no bug reports via email
     #bug_email : ""
@@ -321,6 +357,13 @@ mediawords:
     ### (useful if you're experiencing MongoDB downtime for some reason or are
     ### in the process of restoring downloads from S3 back to GridFS)
     #read_gridfs_downloads_from_s3 : "no"
+
+    ### Uncomment to fallback PostgreSQL downloads to Amazon S3 (if download
+    ### doesn't exist in PostgreSQL storage, S3 will be tried instead)
+    #fallback_postgresql_downloads_to_s3 : "no"
+
+    ### Enable local (CHI-based) Amazon S3 download caching?
+    #cache_s3_downloads : "no"
 
     #### Defaults to kmeans uncomment to use Cluto
     #clustering_engine: "cluto"

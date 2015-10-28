@@ -481,6 +481,8 @@ sub fix_common_url_mistakes($)
 {
     my $url = shift;
 
+    return undef unless ( defined( $url ) );
+
     # Fix broken URLs that look like this: http://http://www.al-monitor.com/pulse
     $url =~ s~(https?://)https?:?//~$1~i;
 
@@ -757,10 +759,7 @@ sub normalize_url_lossy($)
 {
     my $url = shift;
 
-    unless ( $url )
-    {
-        die "URL is undefined";
-    }
+    return undef unless ( $url );
 
     $url = fix_common_url_mistakes( $url );
 
@@ -819,45 +818,52 @@ sub get_url_domain($)
     return lc( $domain );
 }
 
+# given a <meta ...> tag, return the url from the content="url=XXX" attribute.  return undef
+# if no such url is found.
+sub _get_meta_refresh_url_from_tag
+{
+    my ( $tag, $base_url ) = @_;
+
+    return undef unless ( $tag =~ m~http-equiv\s*?=\s*?["']\s*?refresh\s*?["']~i );
+
+    my $url;
+
+    if ( $tag =~ m~content\s*?=\s*?"\d*?\s*?;?\s*?URL\s*?=\s*?'(.+?)'~i )
+    {
+        # content="url='http://foo.bar'"
+        $url = $1;
+    }
+    elsif ( $tag =~ m~content\s*?=\s*?'\d*?\s*?;?\s*?URL\s*?=\s*?"(.+?)"~i )
+    {
+        # content="url='http://foo.bar'"
+        $url = $1;
+    }
+    elsif ( $tag =~ m~content\s*?=\s*?["']\d*?\s*?;?\s*?URL\s*?=\s*?(.+?)["']~i )
+    {
+        $url = $1;
+    }
+
+    return undef unless ( $url );
+
+    return $url if ( is_http_url( $url ) );
+
+    return URI->new_abs( $url, $base_url )->as_string if ( $base_url );
+
+    return undef;
+}
+
 # From the provided HTML, determine the <meta http-equiv="refresh" /> URL (if any)
 sub meta_refresh_url_from_html($;$)
 {
     my ( $html, $base_url ) = @_;
 
-    my $url = undef;
-    while ( $html =~ m~(<\s*?meta.+?>)~gi )
+    while ( $html =~ m~(<\s*meta[^>]+>)~gi )
     {
-        my $meta_element = $1;
+        my $tag = $1;
 
-        if ( $meta_element =~ m~http-equiv\s*?=\s*?["']\s*?refresh\s*?["']~i )
-        {
-            if ( $meta_element =~ m~content\s*?=\s*?["']\d*?\s*?;?\s*?URL\s*?=\s*?(.+?)["']~i )
-            {
-                $url = $1;
-                if ( $url )
-                {
-                    unless ( is_http_url( $url ) )
-                    {
-                        # Maybe it's relative / absolute path?
-                        if ( $base_url )
-                        {
-                            my $uri = URI->new_abs( $url, $base_url );
-                            return $uri->as_string;
-                        }
-                        else
-                        {
-                           # say STDERR
-                           #   "HTML <meta http-equiv=\"refresh\"/> found, but the new URL ($url) doesn't seem to be valid.";
-                        }
-                    }
-                    else
-                    {
-                        # Looks like URL, so return it
-                        return $url;
-                    }
-                }
-            }
-        }
+        my $url = _get_meta_refresh_url_from_tag( $tag, $base_url );
+
+        return $url if ( $url );
     }
 
     return undef;
@@ -1167,6 +1173,23 @@ sub all_url_variants($$)
     }
 
     return @{ $all_urls };
+}
+
+# Extract http(s):// URLs from a string
+# Returns arrayref of unique URLs in a string, die()s on error
+sub http_urls_in_string($)
+{
+    my $string = shift;
+
+    unless ( defined( $string ) )
+    {
+        die "String is undefined.";
+    }
+
+    my @urls = $string =~ /($RE{URI}{HTTP}{-scheme => '(?:http|https)'})/ig;
+    @urls = uniq @urls;
+
+    return \@urls;
 }
 
 1;

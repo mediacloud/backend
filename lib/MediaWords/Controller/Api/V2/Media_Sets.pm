@@ -31,10 +31,6 @@ Catalyst Controller.
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 
-use constant ROWS_PER_PAGE => 20;
-
-use MediaWords::Tagger;
-
 sub get_table_name
 {
     return "media_sets";

@@ -15,18 +15,20 @@ use MediaWords::Util::Config;
 use MediaWords::Util::Compress;
 use MongoDB 0.704.1.0;
 use MongoDB::GridFS;
+use FileHandle;
 use Carp;
+use Readonly;
 
 # MongoDB's query timeout, in ms
 # (default timeout is 30 s, but MongoDB sometimes creates a new 2 GB data file for ~38 seconds,
 #  so we set it to 60 s)
-use constant MONGODB_QUERY_TIMEOUT => 60 * 1000;
+Readonly my $MONGODB_QUERY_TIMEOUT => 60 * 1000;
 
 # MongoDB's number of read / write retries
 # (in case waiting 60 seconds for the read / write to happen doesn't help, the instance should
 #  retry writing a couple of times)
-use constant MONGODB_READ_RETRIES  => 10;
-use constant MONGODB_WRITE_RETRIES => 10;
+Readonly my $MONGODB_READ_RETRIES  => 10;
+Readonly my $MONGODB_WRITE_RETRIES => 10;
 
 # MongoDB client, GridFS instance (lazy-initialized to prevent multiple forks using the same object)
 has '_mongodb_client'   => ( is => 'rw' );
@@ -51,7 +53,7 @@ sub BUILD($$)
     # Get arguments
     unless ( $args->{ database_name } )
     {
-        confess "Please provide 'database_name' argument.\n";
+        confess "Please provide 'database_name' argument.";
     }
     my $gridfs_database_name = $args->{ database_name };
 
@@ -64,7 +66,7 @@ sub BUILD($$)
 
     unless ( $gridfs_host and $gridfs_port )
     {
-        confess "GridFS: MongoDB connection settings in mediawords.yml are not configured properly.\n";
+        confess "GridFS: MongoDB connection settings in mediawords.yml are not configured properly.";
     }
 
     # Store configuration
@@ -97,7 +99,7 @@ sub _connect_to_mongodb_or_die($)
                 host          => sprintf( 'mongodb://%s:%d', $self->_conf_host, $self->_conf_port ),
                 username      => $self->_conf_username,
                 password      => $self->_conf_password,
-                query_timeout => MONGODB_QUERY_TIMEOUT
+                query_timeout => $MONGODB_QUERY_TIMEOUT
             )
         );
     }
@@ -107,25 +109,25 @@ sub _connect_to_mongodb_or_die($)
         $self->_mongodb_client(
             MongoDB::MongoClient->new(
                 host          => sprintf( 'mongodb://%s:%d', $self->_conf_host, $self->_conf_port ),
-                query_timeout => MONGODB_QUERY_TIMEOUT
+                query_timeout => $MONGODB_QUERY_TIMEOUT
             )
         );
     }
     unless ( $self->_mongodb_client )
     {
-        confess "GridFS: Unable to connect to MongoDB.\n";
+        confess "GridFS: Unable to connect to MongoDB.";
     }
 
     $self->_mongodb_database( $self->_mongodb_client->get_database( $self->_conf_database_name ) );
     unless ( $self->_mongodb_database )
     {
-        confess "GridFS: Unable to choose a MongoDB database.\n";
+        confess "GridFS: Unable to choose a MongoDB database.";
     }
 
     $self->_mongodb_gridfs( $self->_mongodb_database->get_gridfs );
     unless ( $self->_mongodb_gridfs )
     {
-        confess "GridFS: Unable to connect use the MongoDB database as GridFS.\n";
+        confess "GridFS: Unable to connect use the MongoDB database as GridFS.";
     }
 
     # Save PID
@@ -188,7 +190,7 @@ sub store_content($$$$;$)
     };
     if ( $@ or ( !defined $content_to_store ) )
     {
-        die "Unable to compress object ID $object_id: $@";
+        confess "Unable to compress object ID $object_id: $@";
     }
 
     my $filename = '' . $object_id;
@@ -196,7 +198,7 @@ sub store_content($$$$;$)
 
     # MongoDB sometimes times out when writing because it's busy creating a new data file,
     # so we'll try to write several times
-    for ( my $retry = 0 ; $retry < MONGODB_WRITE_RETRIES ; ++$retry )
+    for ( my $retry = 0 ; $retry < $MONGODB_WRITE_RETRIES ; ++$retry )
     {
         if ( $retry > 0 )
         {
@@ -215,7 +217,9 @@ sub store_content($$$$;$)
             # Write
             my $basic_fh;
             open( $basic_fh, '<', \$content_to_store );
-            $gridfs_id = $self->_mongodb_gridfs->put( $basic_fh, { "filename" => $filename } );
+            my $fh = FileHandle->new;
+            $fh->fdopen( $basic_fh, 'r' );
+            $gridfs_id = $self->_mongodb_gridfs->put( $fh, { "filename" => $filename } );
             unless ( $gridfs_id )
             {
                 confess "GridFS: MongoDBs OID is empty.";
@@ -236,7 +240,7 @@ sub store_content($$$$;$)
 
     unless ( $gridfs_id )
     {
-        confess "GridFS: Unable to store object ID $object_id to GridFS after " . MONGODB_WRITE_RETRIES . " retries.\n";
+        confess "GridFS: Unable to store object ID $object_id to GridFS after $MONGODB_WRITE_RETRIES retries.";
     }
 
     return $gridfs_id;
@@ -251,7 +255,7 @@ sub fetch_content($$$;$$)
 
     unless ( defined $object_id )
     {
-        confess "GridFS: Object ID is undefined.\n";
+        confess "GridFS: Object ID is undefined.";
     }
 
     my $filename = '' . $object_id;
@@ -262,7 +266,7 @@ sub fetch_content($$$;$$)
     # so we'll try to read several times
     my $attempt_to_read_succeeded = 0;
     my $file                      = undef;
-    for ( my $retry = 0 ; $retry < MONGODB_READ_RETRIES ; ++$retry )
+    for ( my $retry = 0 ; $retry < $MONGODB_READ_RETRIES ; ++$retry )
     {
         if ( $retry > 0 )
         {
@@ -300,12 +304,12 @@ sub fetch_content($$$;$$)
     {
         unless ( defined $file )
         {
-            confess "GridFS: Could not get file '$filename' (probably the file does not exist).\n";
+            confess "GridFS: Could not get file '$filename' (probably the file does not exist).";
         }
     }
     else
     {
-        confess "GridFS: Unable to read object ID $object_id from GridFS after " . MONGODB_READ_RETRIES . " retries.\n";
+        confess "GridFS: Unable to read object ID $object_id from GridFS after $MONGODB_READ_RETRIES retries.";
     }
     unless ( defined( $file ) )
     {
@@ -319,7 +323,7 @@ sub fetch_content($$$;$$)
         # MongoDB returns empty strings on some cases of corrupt data, but
         # an empty string can't be a valid Gzip/Bzip2 archive, so we're
         # checking if we're about to attempt to decompress an empty string
-        confess "GridFS: Compressed data is empty for filename $filename.\n";
+        confess "GridFS: Compressed data is empty for filename $filename.";
     }
 
     my $decoded_content;
@@ -335,7 +339,7 @@ sub fetch_content($$$;$$)
     };
     if ( $@ or ( !defined $decoded_content ) )
     {
-        die "Unable to uncompress object ID $object_id: $@";
+        confess "Unable to uncompress object ID $object_id: $@";
     }
 
     return \$decoded_content;

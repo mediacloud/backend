@@ -12,6 +12,7 @@ use MediaWords::Solr;
 use MediaWords::Solr::WordCounts;
 use MediaWords::Util::CSV;
 use MediaWords::ActionRole::Logged;
+use Readonly;
 
 =head1 NAME>
 
@@ -31,7 +32,7 @@ __PACKAGE__->config(
 );
 
 # number of stories to sample for the search
-use constant NUM_SAMPLED_STORIES => 100;
+Readonly my $NUM_SAMPLED_STORIES => 100;
 
 # get tag_sets_id for collection: tag set
 sub _get_collection_tag_sets_id
@@ -57,28 +58,28 @@ sub tags : Local
 
     my $tags = $db->query( <<END, $tag_sets_id )->hashes;
 with set_tags as (
-    
-    select t.* from tags t 
+
+    select t.* from tags t
         where tag_sets_id = ? and
             tags_id not in ( select tags_id from media_sets where include_in_dump = false )
-            
+
 )
-        
+
 select t.*, ms.media_set_names, mtm.media_count
     from set_tags t
-    
-        left join ( 
-            select count(*) media_count, mtm.tags_id 
+
+        left join (
+            select count(*) media_count, mtm.tags_id
                 from media_tags_map mtm
                 group by mtm.tags_id
         ) mtm on ( mtm.tags_id = t.tags_id )
-        
+
         left join (
             select ms.tags_id,
                 array_to_string( array_agg( d.name || ':' || ms.name ), '; ' ) media_set_names
             from media_sets ms
                 join dashboard_media_sets dms on ( dms.media_sets_id = ms.media_sets_id )
-                join dashboards d on ( d.dashboards_id = dms.dashboards_id ) 
+                join dashboards d on ( d.dashboards_id = dms.dashboards_id )
             where ms.tags_id is not null
             group by ms.tags_id
         ) ms on ( t.tags_id = ms.tags_id )
@@ -103,7 +104,7 @@ sub media : Local
     my $tag = $db->find_by_id( 'tags', $tags_id );
 
     my $media = $db->query( <<'END', $tags_id )->hashes;
-select m.* 
+select m.*
     from media m join media_tags_map mtm on ( m.media_id = mtm.media_id )
     where mtm.tags_id = ?
     order by mtm.media_id
@@ -137,11 +138,11 @@ select distinct itm.stories_id, t.description,
     from itm
         join tags t on ( itm.tags_id = t.tags_id )
         join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
-    where 
+    where
         ( t.show_on_media or t.show_on_stories or ts.show_on_media or ts.show_on_stories )
-    
+
 union
-    
+
 select distinct s.stories_id, t.description,
         t.tags_id, coalesce( ts.label, ts.name ) || ' - ' || coalesce( t.label, t.tag ) tag_name
     from stories s
@@ -149,7 +150,7 @@ select distinct s.stories_id, t.description,
         join tags t on ( mtm.tags_id = t.tags_id )
         join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
         join $ids_table i on ( s.stories_id = i.id )
-    where 
+    where
         ( t.show_on_media or t.show_on_stories or ts.show_on_media or ts.show_on_stories )
 
 END
@@ -324,13 +325,15 @@ sub index : Path : Args(0)
 {
     my ( $self, $c ) = @_;
 
-    my $q = $c->req->params->{ q } || '';
-    my $pattern = $c->req->params->{ pattern };
+    my $q           = $c->req->params->{ q } || '';
+    my $pattern     = $c->req->params->{ pattern };
+    my $form_method = $c->req->params->{ form_method } || 'get';
 
     if ( !$q )
     {
-        $c->stash->{ template } = 'search/search.tt2';
-        $c->stash->{ title }    = 'Search';
+        $c->stash->{ form_method } = $form_method;
+        $c->stash->{ template }    = 'search/search.tt2';
+        $c->stash->{ title }       = 'Search';
         return;
     }
 
@@ -346,7 +349,7 @@ sub index : Path : Args(0)
     else
     {
         $solr_params->{ sort } = 'random_1 asc';
-        $solr_params->{ rows } = NUM_SAMPLED_STORIES;
+        $solr_params->{ rows } = $NUM_SAMPLED_STORIES;
     }
 
     my $stories;
@@ -359,7 +362,7 @@ sub index : Path : Args(0)
     _match_stories_to_pattern( $db, $stories, $pattern ) if ( defined( $pattern ) );
 
     my $num_stories = @{ $stories };
-    if ( @{ $stories } >= ( NUM_SAMPLED_STORIES - 5 ) )
+    if ( @{ $stories } >= ( $NUM_SAMPLED_STORIES - 5 ) )
     {
         $num_stories = int( MediaWords::Solr::get_last_num_found() / MediaWords::Solr::get_last_sentences_per_story() );
     }
@@ -381,6 +384,7 @@ sub index : Path : Args(0)
     }
     else
     {
+        $c->stash->{ form_method } = $form_method;
         $c->stash->{ stories }     = $stories;
         $c->stash->{ num_stories } = $num_stories;
         $c->stash->{ tag_counts }  = $tag_counts;
@@ -450,10 +454,10 @@ sub tag_sets : Local
     my $tag_sets = $db->query( <<END )->hashes;
 select ts.*
     from tag_sets ts
-    where 
-        exists ( 
-            select 1 
-                from media_tags_map mtm 
+    where
+        exists (
+            select 1
+                from media_tags_map mtm
                     join tags t on ( mtm.tags_id = t.tags_id )
                 where t.tag_sets_id = ts.tag_sets_id
         )
