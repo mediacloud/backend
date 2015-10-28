@@ -78,6 +78,8 @@ env:
         - MEDIACLOUD_ENABLE_PYTHON_API_TESTS=1
         # Test PythonReadability extractor method in t/test_extractor.t
         - MC_TEST_EXTRACTOR_PYTHONREADABILITY=1
+        # Gradle version (http://gradle.org/gradle-download/)
+        - GRADLE_VERSION=gradle-2.8
 before_install:
     # Set up local Media Cloud environment for Python
     - mkdir -p $HOME/mc-python
@@ -97,6 +99,10 @@ before_install:
     # install Media Cloud testing variant of the Python  Client
     - travis_retry git clone https://github.com/dlarochelle/MediaCloud-API-Client.git
     - travis_retry easy_install MediaCloud-API-Client/
+    # Install Gradle
+    - "travis_retry wget -O $HOME/${GRADLE_VERSION}-bin.zip https://services.gradle.org/distributions/${GRADLE_VERSION}-bin.zip"
+    - "unzip $HOME/${GRADLE_VERSION}-bin.zip -d $HOME"
+    - "export PATH=$HOME/${GRADLE_VERSION}/bin:$PATH"
     # Install Solr via Gradle ("gradle runSolr" would do it by itself, but we're speeding things up here)
     - cd solr-gradle/; gradle build; cd ../
 install:
