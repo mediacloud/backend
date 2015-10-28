@@ -1,2 +1,1 @@
-pizza
-history
+../../base_collection/conf/spellings.txt

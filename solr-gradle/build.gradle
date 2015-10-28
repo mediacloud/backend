@@ -122,35 +122,38 @@ task prepareForSolrRun(dependsOn: ['copyWar', 'copyAdditionalSolrJars', 'copyAdd
     collections.each {File collection ->
         if (collection.isDirectory()) {
             String collectionName = collection.name
+
+            if ( collectionName != "base_collection" ) {
             
-            // Create data directory if it doesn't exist
-            File collectionDataDir = new File(solrDataDir + "/no-sharding/" + collectionName + "/")
-            if (! collectionDataDir.isDirectory()) {
-                println "Collection's '" + collectionName +
-                        "' data directory '" + collectionDataDir.getPath() +
-                        "' does not exist, creating..."
-                collectionDataDir.mkdirs()
+                // Create data directory if it doesn't exist
+                File collectionDataDir = new File(solrDataDir + "/no-sharding/" + collectionName + "/")
+                if (! collectionDataDir.isDirectory()) {
+                    println "Collection's '" + collectionName +
+                            "' data directory '" + collectionDataDir.getPath() +
+                            "' does not exist, creating..."
+                    collectionDataDir.mkdirs()
+                }
+
+                // Make sure that solrconfig.xml exists
+                File solrConfigFile = new File(solrHomeDir + "/collections/" + collectionName + "/conf/solrconfig.xml")
+                if (! solrConfigFile.exists()) {
+                    throw new GradleException("solrconfig.xml at '" + solrConfigFile.getPath() + "' does not exist.")
+                }
+
+                String dataDirJavaProperty = "mediacloud." + collectionName + ".data.dir"
+
+                // Make sure that solrconfig.xml contains correct "dataDir"
+                String solrConfigFileContents = solrConfigFile.getText("UTF-8")
+                String expectedDataDirXML = "<dataDir>\${" + dataDirJavaProperty + "}</dataDir>"
+                if (! solrConfigFileContents.contains( expectedDataDirXML )) {
+                    throw new GradleException("solrconfig.xml at '" + solrConfigFile.getPath() +
+                        "' does not contain an expected <dataDir> XML element which should look like this: " +
+                        expectedDataDirXML)
+                }
+
+                // Set Java property so that Solr can later read it
+                System.setProperty(dataDirJavaProperty, collectionDataDir.getPath())
             }
-
-            // Make sure that solrconfig.xml exists
-            File solrConfigFile = new File(solrHomeDir + "/collections/" + collectionName + "/conf/solrconfig.xml")
-            if (! solrConfigFile.exists()) {
-                throw new GradleException("solrconfig.xml at '" + solrConfigFile.getPath() + "' does not exist.")
-            }
-
-            String dataDirJavaProperty = "mediacloud." + collectionName + ".data.dir"
-
-            // Make sure that solrconfig.xml contains correct "dataDir"
-            String solrConfigFileContents = solrConfigFile.getText("UTF-8")
-            String expectedDataDirXML = "<dataDir>\${" + dataDirJavaProperty + "}</dataDir>"
-            if (! solrConfigFileContents.contains( expectedDataDirXML )) {
-                throw new GradleException("solrconfig.xml at '" + solrConfigFile.getPath() +
-                    "' does not contain an expected <dataDir> XML element which should look like this: " +
-                    expectedDataDirXML)
-            }
-
-            // Set Java property so that Solr can later read it
-            System.setProperty(dataDirJavaProperty, collectionDataDir.getPath())
         }
     }
 }
