@@ -64,28 +64,31 @@ EOF
         { from => 7 * 24 + 1,  to => undef },
     ];
 
-    say STDERR "Fetching (up to) $limit story IDs...";
-    my $story_ids = $db->query(
+    say STDERR "Fetching (up to) $limit stories...";
+    my $stories = $db->query(
         <<EOF,
-        SELECT object_id AS stories_id
-        FROM bitly_processing_results
-        ORDER BY RANDOM()
-        LIMIT ?
+        SELECT *
+        FROM stories
+        WHERE stories_id IN (
+            SELECT stories_id
+            FROM controversy_stories
+                INNER JOIN controversies
+                    ON controversy_stories.controversies_id = controversies.controversies_id
+            WHERE controversies.process_with_bitly = 't'
+            ORDER BY RANDOM()
+            LIMIT ?
+        )
+        ORDER BY stories_id
 EOF
         $limit
-    )->flat;
+    )->hashes;
 
     my $min_publish_timestamp = undef;
     my $max_publish_timestamp = undef;
 
-    foreach my $stories_id ( @{ $story_ids } )
+    foreach my $story ( @{ $stories } )
     {
-        my $story = $db->find_by_id( 'stories', $stories_id );
-        unless ( $story )
-        {
-            say STDERR "Unable to find story with ID $stories_id";
-            next;
-        }
+        my $stories_id = $story->{ stories_id };
 
         my $publish_date = $story->{ publish_date };
         unless ( $publish_date )
@@ -116,11 +119,67 @@ EOF
         $max_publish_timestamp = $publish_timestamp
           if !defined $max_publish_timestamp or $max_publish_timestamp < $publish_timestamp;
 
-        my $story_stats = MediaWords::Util::Bitly::read_story_stats( $db, $stories_id );
+        # Span across ~300 days
+        my $start_timestamp = $publish_timestamp - ( 60 * 60 * 24 * 150 );
+        my $end_timestamp   = $publish_timestamp + ( 60 * 60 * 24 * 150 );
+
+        # How many seconds to sleep between rate limiting errors
+        Readonly my $BITLY_RATE_LIMIT_SECONDS_TO_WAIT => 60 * 10;    # every 10 minutes
+
+        # How many times to try on rate limiting errors
+        Readonly my $BITLY_RATE_LIMIT_TRIES => 7;                    # try fetching 7 times in total (70 minutes)
+
+        # What stats to fetch for each story
+        Readonly my $BITLY_FETCH_CATEGORIES => 0;
+        Readonly my $BITLY_FETCH_CLICKS     => 1;
+        Readonly my $BITLY_FETCH_REFERRERS  => 0;
+        Readonly my $BITLY_FETCH_SHARES     => 0;
+        Readonly my $stats_to_fetch         => MediaWords::Util::Bitly::StatsToFetch->new(
+            $BITLY_FETCH_CATEGORIES,                                 # "/v3/link/category"
+            $BITLY_FETCH_CLICKS,                                     # "/v3/link/clicks"
+            $BITLY_FETCH_REFERRERS,                                  # "/v3/link/referrers"
+            $BITLY_FETCH_SHARES                                      # "/v3/link/shares"
+        );
+
+        my $story_stats = undef;
+        my $retry       = 0;
+        my $error_message;
+        do
+        {
+            say STDERR "Fetching story stats for story $stories_id" . ( $retry ? " (retry $retry)" : '' ) . "...";
+            eval {
+                $story_stats = MediaWords::Util::Bitly::fetch_stats_for_url( $db, $story->{ url },
+                    $start_timestamp, $end_timestamp, $stats_to_fetch );
+            };
+            $error_message = $@;
+
+            if ( $error_message )
+            {
+                if ( MediaWords::Util::Bitly::error_is_rate_limit_exceeded( $error_message ) )
+                {
+                    say STDERR "Rate limit exceeded while collecting story stats for story $stories_id";
+                    say STDERR "Sleeping for $BITLY_RATE_LIMIT_SECONDS_TO_WAIT before retrying";
+                    sleep( $BITLY_RATE_LIMIT_SECONDS_TO_WAIT + 0 );
+                }
+                else
+                {
+                    die "Error while collecting story stats for story $stories_id: $error_message";
+                }
+            }
+            ++$retry;
+        } until ( $retry > $BITLY_RATE_LIMIT_TRIES + 0 or ( !$error_message ) );
+
         unless ( $story_stats )
         {
-            die "Unable to fetch Bit.ly story stats for story $stories_id";
+            # No point die()ing and continuing with other jobs (didn't recover after rate limiting)
+            die "Stats for story ID $stories_id is undef (after $retry retries).";
         }
+        unless ( ref( $story_stats ) eq ref( {} ) )
+        {
+            # No point die()ing and continuing with other jobs (something wrong with fetch_stats_for_story())
+            die "Stats for story ID $stories_id is not a hashref.";
+        }
+        say STDERR "Done fetching story stats for story $stories_id.";
 
         foreach my $bitly_hash ( keys %{ $story_stats->{ data } } )
         {
