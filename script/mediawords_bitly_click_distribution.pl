@@ -237,7 +237,7 @@ EOF
     {
         print '"';
         print( $bucket->{ from } // 'inf' );
-        print ' - ';
+        print ' -- ';
         print( $bucket->{ to } // 'inf' );
         print '",' . $bucket->{ clicks } . "\n";
     }
