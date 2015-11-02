@@ -45,7 +45,7 @@ EOF
     my $publish_timestamp_lower_bound = DateTime->new( year => 2008, month => 01, day => 01 )->epoch;
 
     # Subtract the 150 days
-    my $publish_timestamp_upper_bound = DateTime->now()->epoch - ( 60 * 60 * 24 - 150 );
+    my $publish_timestamp_upper_bound = DateTime->now()->epoch - ( 60 * 60 * 24 * 150 );
 
     # Buckets for the histogram
     my $buckets = [
