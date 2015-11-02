@@ -43,7 +43,9 @@ EOF
     my $db = MediaWords::DB::connect_to_db;
 
     my $publish_timestamp_lower_bound = DateTime->new( year => 2008, month => 01, day => 01 )->epoch;
-    my $publish_timestamp_upper_bound = DateTime->now()->epoch;
+
+    # Subtract the 150 days
+    my $publish_timestamp_upper_bound = DateTime->now()->epoch - ( 60 * 60 * 24 - 150 );
 
     # Buckets for the histogram
     my $buckets = [
