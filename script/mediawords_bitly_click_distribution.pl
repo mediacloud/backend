@@ -21,6 +21,7 @@ use MediaWords::DB;
 use MediaWords::Util::Bitly;
 use MediaWords::Util::DateTime;
 use MediaWords::Util::SQL;
+use MediaWords::Util::URL;
 
 use Getopt::Long;
 use Readonly;
@@ -88,16 +89,28 @@ EOF
 
     foreach my $story ( @{ $stories } )
     {
-        my $stories_id = $story->{ stories_id };
+        my $stories_id           = $story->{ stories_id };
+        my $stories_url          = $story->{ url };
+        my $stories_publish_date = $story->{ publish_date };
 
-        my $publish_date = $story->{ publish_date };
-        unless ( $publish_date )
+        unless ( $stories_url )
+        {
+            say STDERR "URL is unset for story $stories_id";
+            next;
+        }
+        unless ( MediaWords::Util::URL::is_http_url( $stories_url ) )
+        {
+            say STDERR "URL '$stories_url' is not a http(s) URL for story $stories_id";
+            next;
+        }
+
+        unless ( $stories_publish_date )
         {
             say STDERR "Publish date is unset for story $stories_id";
             next;
         }
 
-        my $publish_timestamp = MediaWords::Util::SQL::get_epoch_from_sql_date( $publish_date );
+        my $publish_timestamp = MediaWords::Util::SQL::get_epoch_from_sql_date( $stories_publish_date );
         if ( $publish_timestamp <= $publish_timestamp_lower_bound )
         {
             say STDERR "Publish timestamp is lower than the lower bound for story $stories_id";
@@ -148,7 +161,7 @@ EOF
         {
             say STDERR "Fetching story stats for story $stories_id" . ( $retry ? " (retry $retry)" : '' ) . "...";
             eval {
-                $story_stats = MediaWords::Util::Bitly::fetch_stats_for_url( $db, $story->{ url },
+                $story_stats = MediaWords::Util::Bitly::fetch_stats_for_url( $db, $stories_url,
                     $start_timestamp, $end_timestamp, $stats_to_fetch );
             };
             $error_message = $@;
