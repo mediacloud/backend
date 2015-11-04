@@ -36,11 +36,16 @@ sub run($$)
 {
     my ( $self, $args ) = @_;
 
-    die unless ( exists $args->{ downloads_id } || exists $args->{ stories_id } );
+    unless ( $args->{ downloads_id } or $args->{ stories_id } )
+    {
+        die "Either 'downloads_id' or 'stories_id' should be set.";
+    }
+    if ( $args->{ downloads_id } and $args->{ stories_id } )
+    {
+        die "Can't use both downloads_id and stories_id";
+    }
 
-    die "can't use both downloads_id and stories_id " if ( exists $args->{ downloads_id }
-        and exists $args->{ stories_id } );
-
+    say STDERR "Determining extractor method to use...";
     my $extract_by_downloads_id = exists $args->{ downloads_id };
     my $extract_by_stories_id   = exists $args->{ stories_id };
 
@@ -48,31 +53,33 @@ sub run($$)
 
     my $original_extractor_method = $config->{ mediawords }->{ extractor_method };
 
-    my $alter_extractor_method;
+    my $alter_extractor_method = 0;
     my $new_extractor_method;
-    if ( exists $args->{ extractor_method } )
+    if ( $args->{ extractor_method } )
     {
         $alter_extractor_method = 1;
         $new_extractor_method   = $args->{ extractor_method };
-        die unless defined( $new_extractor_method );
     }
-    else
-    {
-        $alter_extractor_method = 0;
-    }
+    say STDERR "Done determining extractor method to use.";
 
+    say STDERR "Connecting to the database...";
     my $db = MediaWords::DB::connect_to_db();
     $db->dbh->{ AutoCommit } = 0;
+    say STDERR "Done connecting to the database.";
 
-    if ( exists $args->{ disable_story_triggers } && $args->{ disable_story_triggers } )
+    if ( exists $args->{ disable_story_triggers } and $args->{ disable_story_triggers } )
     {
+        say STDERR "Disabling story triggers...";
         $db->query( "SELECT disable_story_triggers(); " );
         MediaWords::DB::disable_story_triggers();
+        say STDERR "Done disabling story triggers.";
     }
     else
     {
+        say STDERR "Enabling story triggers...";
         $db->query( "SELECT enable_story_triggers(); " );
         MediaWords::DB::enable_story_triggers();
+        say STDERR "Done enabling story triggers.";
     }
 
     eval {
@@ -98,7 +105,9 @@ sub run($$)
                 die "Download with ID $downloads_id was not found.";
             }
 
+            say STDERR "Calling extract_and_vector()...";
             MediaWords::DBI::Downloads::extract_and_vector( $db, $download, $process_id );
+            say STDERR "Done calling extract_and_vector().";
         }
         elsif ( $extract_by_stories_id )
         {
@@ -114,31 +123,32 @@ sub run($$)
                 die "Download with ID $stories_id was not found.";
             }
 
+            say STDERR "Calling extract_and_process_story()...";
             MediaWords::DBI::Stories::extract_and_process_story( $story, $db, $process_id );
+            say STDERR "Done calling extract_and_process_story().";
         }
         else
         {
             die "shouldn't be reached";
         }
 
-        $config->{ mediawords }->{ extractor_method } = $original_extractor_method;
         ## Enable story triggers in case the connection is reused due to connection pooling.
+        say STDERR "Enabling story triggers again...";
         $db->query( "SELECT enable_story_triggers(); " );
-
-        #say STDERR "completed extraction job for " . Dumper( $args );
+        say STDERR "Done enabling story triggers again.";
     };
 
-    if ( $@ )
+    my $error_message = "$@";
+
+    if ( $alter_extractor_method )
     {
-        my $error_message = "$@";
+        $config->{ mediawords }->{ extractor_method } = $original_extractor_method;
+    }
 
-        if ( $alter_extractor_method )
-        {
-            $config->{ mediawords }->{ extractor_method } = $original_extractor_method;
-        }
-
+    if ( $error_message )
+    {
         # Probably the download was not found
-        die "Extractor died " . "Args: " . Dumper( $args ) . "Extractor Error: $error_message\n";
+        die "Extractor died: $error_message; job args: " . Dumper( $args );
     }
 
     return 1;
