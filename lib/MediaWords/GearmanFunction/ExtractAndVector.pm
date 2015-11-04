@@ -136,7 +136,7 @@ sub run($$)
     if ( $error_message )
     {
         # Probably the download was not found
-        die "Extractor died " . "Args: " . Dumper( $args ) . "Extractor Error: $error_message\n";
+        die "Extractor died: $error_message; job args: " . Dumper( $args );
     }
 
     return 1;
