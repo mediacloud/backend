@@ -5,6 +5,7 @@ use MediaWords::CommonLibs;
 # various helper functions for the download_texts table
 
 use strict;
+use warnings;
 
 use Encode;
 

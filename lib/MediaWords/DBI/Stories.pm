@@ -5,6 +5,7 @@ use MediaWords::CommonLibs;
 # various helper functions for stories
 
 use strict;
+use warnings;
 
 use Carp;
 use Encode;

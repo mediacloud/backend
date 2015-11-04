@@ -6,6 +6,7 @@ use MediaWords::CommonLibs;
 # various helper functions for downloads
 
 use strict;
+use warnings;
 
 use Carp;
 use Scalar::Defer;
