@@ -5,6 +5,7 @@ use MediaWords::CommonLibs;
 # various helper functions for stories
 
 use strict;
+use warnings;
 
 use Carp;
 use Encode;
@@ -574,7 +575,9 @@ sub extract_and_process_story
 {
     my ( $story, $db, $process_num ) = @_;
 
-    #say STDERR "Starting extract_and_process_story for " . $story->{ stories_id };
+    my $stories_id = $story->{ stories_id };
+
+    say STDERR "Starting extract_and_process_story() for story $stories_id";
 
     my $query = <<"EOF";
         SELECT *
@@ -584,60 +587,72 @@ sub extract_and_process_story
         ORDER BY downloads_id ASC
 EOF
 
-    my $downloads = $db->query( $query, $story->{ stories_id } )->hashes();
+    my $downloads = $db->query( $query, $stories_id )->hashes();
 
     foreach my $download ( @{ $downloads } )
     {
+        say STDERR "Calling extract_only() for story $stories_id, download " . $download->{ downloads_id } . "...";
         my $download_text = MediaWords::DBI::Downloads::extract_only( $db, $download );
-
-        #say STDERR "Got download_text";
+        say STDERR "Done calling extract_only() for story $stories_id, download " . $download->{ downloads_id } . ".";
     }
 
     my $no_dedup_sentences = 0;
     my $no_vector          = 0;
 
+    say STDERR "Calling process_extracted_story() for story $stories_id...";
     process_extracted_story( $story, $db, 0, 0 );
-
-    #say STDERR "Finished extract_and_process_story for " . $story->{ stories_id };
+    say STDERR "Done calling process_extracted_story() for story $stories_id.";
 
     # Extraction succeeded
     $db->commit;
+
+    say STDERR "Finished extract_and_process_story() for story $stories_id";
 }
 
 sub process_extracted_story
 {
     my ( $story, $db, $no_dedup_sentences, $no_vector ) = @_;
 
+    my $stories_id = $story->{ stories_id };
+
     unless ( $no_vector )
     {
+        say STDERR "Calling update_story_sentences_and_language() for story $stories_id...";
         MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story, 0, $no_dedup_sentences );
+        say STDERR "Done calling update_story_sentences_and_language() for story $stories_id.";
     }
 
+    say STDERR "Toggling story triggers for story $stories_id...";
     $db->query(
         "UPDATE stories SET disable_triggers  = ? WHERE stories_id = ?",
         MediaWords::DB::story_triggers_disabled(),
         $story->{ stories_id }
     );
+    say STDERR "Done toggling story triggers for story $stories_id.";
 
+    say STDERR "Updating extractor version tag for story $stories_id...";
     MediaWords::DBI::Stories::_update_extractor_version_tag( $db, $story );
-
-    my $stories_id = $story->{ stories_id };
+    say STDERR "Done updating extractor version tag for story $stories_id.";
 
     if (    MediaWords::Util::CoreNLP::annotator_is_enabled()
         and MediaWords::Util::CoreNLP::story_is_annotatable( $db, $stories_id ) )
     {
         # Story is annotatable with CoreNLP; enqueue for CoreNLP annotation
         # (which will run mark_as_processed() on its own)
+        say STDERR "Enqueuing story $stories_id for CoreNLP annotation...";
         MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman( { stories_id => $stories_id } );
-
+        say STDERR "Done enqueuing story $stories_id for CoreNLP annotation.";
     }
     else
     {
+        say STDERR "Marking story $stories_id as processed...";
+
         # Story is not annotatable with CoreNLP; add to "processed_stories" right away
         unless ( MediaWords::DBI::Stories::mark_as_processed( $db, $stories_id ) )
         {
             die "Unable to mark story ID $stories_id as processed";
         }
+        say STDERR "Done marking story $stories_id as processed.";
     }
 }
 

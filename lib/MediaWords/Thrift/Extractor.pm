@@ -72,6 +72,8 @@ sub extract_html
 {
     my ( $raw_html ) = @_;
 
+    say STDERR "Extracting with Readability via Thrift...";
+
     my $transport = _get_transport();
     my $client    = _get_client( $transport );
 
@@ -109,6 +111,8 @@ sub extract_html
     {
         utf8::decode( $html );
     }
+
+    say STDERR "Done extracting with Readability via Thrift.";
 
     return $ret;
 }
