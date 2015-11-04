@@ -52,23 +52,18 @@ sub run($$)
 
     my $original_extractor_method = $config->{ mediawords }->{ extractor_method };
 
-    my $alter_extractor_method;
+    my $alter_extractor_method = 0;
     my $new_extractor_method;
-    if ( exists $args->{ extractor_method } )
+    if ( $args->{ extractor_method } )
     {
         $alter_extractor_method = 1;
         $new_extractor_method   = $args->{ extractor_method };
-        die unless defined( $new_extractor_method );
-    }
-    else
-    {
-        $alter_extractor_method = 0;
     }
 
     my $db = MediaWords::DB::connect_to_db();
     $db->dbh->{ AutoCommit } = 0;
 
-    if ( exists $args->{ disable_story_triggers } && $args->{ disable_story_triggers } )
+    if ( exists $args->{ disable_story_triggers } and $args->{ disable_story_triggers } )
     {
         $db->query( "SELECT disable_story_triggers(); " );
         MediaWords::DB::disable_story_triggers();
