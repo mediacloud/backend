@@ -37,30 +37,27 @@ sub create_from_download
 
     my $extract = MediaWords::DBI::Downloads::extractor_results_for_download( $db, $download );
 
-    # say STDERR Dumper( $extract );
-
-    my $extracted_html;
-
-    ## NOTE due to a foreign key, deleting from download_texts will also delete the corresponding extracted_lines entries.
-    $db->query( "delete from download_texts where downloads_id = ?", $download->{ downloads_id } );
+    # Due to a foreign key, deleting from download_texts will also delete the
+    # corresponding extracted_lines entries
+    $db->query( "DELETE FROM download_texts WHERE downloads_id = ?", $download->{ downloads_id } );
 
     my $extracted_text = $extract->{ extracted_text };
 
-    # say STDERR "EXTRACT\n**\n$extracted_text\n**\n";
+    # say STDERR "EXTRACTED TEXT:\n**\n$extracted_text\n**\n";
 
-    #temporarily disabling to make crawler test happy.
-    #die unless Encode::is_utf8( $extracted_text );
-
-    my $download_text = $db->query( <<END, $extracted_text, $download->{ downloads_id } )->hash;
-insert into download_texts ( download_text, downloads_id, download_text_length )
-    values ( \$1, \$2, char_length( \$1 ) )
-    returning *
-END
+    my $download_text = $db->query(
+        <<EOF,
+            INSERT INTO download_texts ( download_text, downloads_id, download_text_length )
+                VALUES ( \$1, \$2, char_length( \$1 ) )
+                RETURNING *
+EOF
+        $extracted_text, $download->{ downloads_id }
+    )->hash;
 
     if ( exists $extract->{ included_line_numbers } )
     {
         my $included_line_numbers = $extract->{ included_line_numbers };
-        $db->dbh->do( "copy extracted_lines(download_texts_id, line_number) from STDIN" );
+        $db->dbh->do( "COPY extracted_lines(download_texts_id, line_number) FROM STDIN" );
         foreach my $included_line_number ( @{ $included_line_numbers } )
         {
             $db->dbh->pg_putcopydata( $download_text->{ download_texts_id } . "\t" . $included_line_number . "\n" );
@@ -69,11 +66,7 @@ END
         $db->dbh->pg_putcopyend();
     }
 
-    $db->query( "update downloads set extracted = 't' where downloads_id = ?", $download->{ downloads_id } );
-
-#die "Extractor text length mismatch for $download_text->{ download_texts_id } :    " . length($extracted_text) . " != " . length($download_text->{download_text }) unless length($extracted_text) eq length($download_text->{download_text });
-
-#    die "Extractor text mismatch for $download_text->{ download_texts_id } " unless $extracted_text eq $download_text->{download_text };
+    $db->query( "UPDATE downloads SET extracted = 't' WHERE downloads_id = ?", $download->{ downloads_id } );
 
     return $download_text;
 }
