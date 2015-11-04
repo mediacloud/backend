@@ -36,10 +36,14 @@ sub run($$)
 {
     my ( $self, $args ) = @_;
 
-    die unless ( exists $args->{ downloads_id } || exists $args->{ stories_id } );
-
-    die "can't use both downloads_id and stories_id " if ( exists $args->{ downloads_id }
-        and exists $args->{ stories_id } );
+    unless ( $args->{ downloads_id } or $args->{ stories_id } )
+    {
+        die "Either 'downloads_id' or 'stories_id' should be set.";
+    }
+    if ( $args->{ downloads_id } and $args->{ stories_id } )
+    {
+        die "Can't use both downloads_id and stories_id";
+    }
 
     my $extract_by_downloads_id = exists $args->{ downloads_id };
     my $extract_by_stories_id   = exists $args->{ stories_id };
