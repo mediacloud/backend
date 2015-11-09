@@ -96,15 +96,16 @@ EOF
     my $min_publish_timestamp = undef;
     my $max_publish_timestamp = undef;
 
-    my $story_count = 1;
+    my $story_count         = 0;
+    my $story_fetched_count = 0;
     foreach my $story ( @{ $stories } )
     {
         my $stories_id           = $story->{ stories_id };
         my $stories_url          = $story->{ url };
         my $stories_publish_date = $story->{ publish_date };
 
-        say STDERR "\nProcessing story $stories_id ($story_count / " . scalar( @{ $stories } ) . ")...";
         ++$story_count;
+        say STDERR "\nProcessing story $stories_id ($story_count / " . scalar( @{ $stories } ) . ")...";
 
         unless ( $stories_url )
         {
@@ -166,6 +167,8 @@ EOF
             $BITLY_FETCH_REFERRERS,                                  # "/v3/link/referrers"
             $BITLY_FETCH_SHARES                                      # "/v3/link/shares"
         );
+
+        ++$story_fetched_count;
 
         my $story_stats = undef;
         my $retry       = 0;
