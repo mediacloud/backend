@@ -225,36 +225,33 @@ EOF
                     my $diff       = $dt - $publish_timestamp;
                     my $diff_hours = int( $diff / 60 / 60 );
 
-                    if ( $clicks > 0 )
+                    my $bucket_found = 0;
+                    foreach my $bucket ( @{ $buckets } )
                     {
-                        my $bucket_found = 0;
-                        foreach my $bucket ( @{ $buckets } )
+                        my $bucket_from = $bucket->{ from };
+                        my $bucket_to   = $bucket->{ to };
+
+                        if ( ( !defined( $bucket_to ) ) or $bucket_to >= $diff_hours )
                         {
-                            my $bucket_from = $bucket->{ from };
-                            my $bucket_to   = $bucket->{ to };
-
-                            if ( ( !defined( $bucket_to ) ) or $bucket_to >= $diff_hours )
+                            $bucket->{ clicks_since_minus_inf } += $clicks;
+                            if ( defined $bucket_from and $bucket_from >= -23 )
                             {
-                                $bucket->{ clicks_since_minus_inf } += $clicks;
-                                if ( defined $bucket_from and $bucket_from >= -23 )
+                                $bucket->{ clicks_since_minus_23_hours } += $clicks;
+                            }
+
+                            if ( ( !defined( $bucket_from ) ) or $bucket_from <= $diff_hours )
+                            {
+
+                                if ( $bucket_found )
                                 {
-                                    $bucket->{ clicks_since_minus_23_hours } += $clicks;
+                                    die "More than one bucket was found for hours $diff_hours";
+                                }
+                                else
+                                {
+                                    $bucket_found = 1;
                                 }
 
-                                if ( ( !defined( $bucket_from ) ) or $bucket_from <= $diff_hours )
-                                {
-
-                                    if ( $bucket_found )
-                                    {
-                                        die "More than one bucket was found for hours $diff_hours";
-                                    }
-                                    else
-                                    {
-                                        $bucket_found = 1;
-                                    }
-
-                                    $bucket->{ clicks } += $clicks;
-                                }
+                                $bucket->{ clicks } += $clicks;
                             }
                         }
                     }
