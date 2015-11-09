@@ -53,19 +53,22 @@ EOF
     my $buckets         = [];
     for ( my $day_offset = $from_day_offset ; $day_offset <= $to_day_offset ; ++$day_offset )
     {
-        my $bucket;
+        my $bucket = { clicks => 0 };
         my $hour_offset = $day_offset * 24;
         if ( $day_offset == $from_day_offset )
         {
-            $bucket = { from => undef, to => $hour_offset };
+            $bucket->{ from } = undef;
+            $bucket->{ to }   = $hour_offset;
         }
         elsif ( $day_offset == $to_day_offset )
         {
-            $bucket = { from => $hour_offset + 1, to => undef };
+            $bucket->{ from } = $hour_offset + 1;
+            $bucket->{ to }   = undef;
         }
         else
         {
-            $bucket = { from => $hour_offset - 24 + 1, to => $hour_offset };
+            $bucket->{ from } = $hour_offset - 24 + 1;
+            $bucket->{ to }   = $hour_offset;
         }
 
         push( @{ $buckets }, $bucket );
