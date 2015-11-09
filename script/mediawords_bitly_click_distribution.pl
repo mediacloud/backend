@@ -66,7 +66,7 @@ EOF
         }
         elsif ( $day_offset == $to_day_offset )
         {
-            $bucket->{ from } = $hour_offset + 1;
+            $bucket->{ from } = $hour_offset - 24 + 1;
             $bucket->{ to }   = undef;
         }
         else
