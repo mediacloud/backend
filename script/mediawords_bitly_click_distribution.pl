@@ -93,11 +93,15 @@ EOF
     my $min_publish_timestamp = undef;
     my $max_publish_timestamp = undef;
 
+    my $story_count = 1;
     foreach my $story ( @{ $stories } )
     {
         my $stories_id           = $story->{ stories_id };
         my $stories_url          = $story->{ url };
         my $stories_publish_date = $story->{ publish_date };
+
+        say STDERR "\nProcessing story $stories_id ($story_count / " . scalar( @{ $stories } ) . ")...";
+        ++$story_count;
 
         unless ( $stories_url )
         {
