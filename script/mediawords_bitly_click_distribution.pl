@@ -48,8 +48,8 @@ EOF
     my $publish_timestamp_upper_bound = DateTime->now()->epoch - ( 60 * 60 * 24 * 150 );
 
     # Hour offset since "publish_date" buckets for generating the histogram
-    my $from_day_offset = -7;
-    my $to_day_offset   = 7;
+    my $from_day_offset = -31;
+    my $to_day_offset   = 31;
     my $buckets         = [];
     for ( my $day_offset = $from_day_offset ; $day_offset <= $to_day_offset ; ++$day_offset )
     {
