@@ -47,25 +47,29 @@ EOF
     # Subtract the 150 days
     my $publish_timestamp_upper_bound = DateTime->now()->epoch - ( 60 * 60 * 24 * 150 );
 
-    # Buckets for the histogram
-    my $buckets = [
-        { from => undef,       to => -7 * 24 },
-        { from => -7 * 24 + 1, to => -6 * 24 },
-        { from => -6 * 24 + 1, to => -5 * 24 },
-        { from => -5 * 24 + 1, to => -4 * 24 },
-        { from => -4 * 24 + 1, to => -3 * 24 },
-        { from => -3 * 24 + 1, to => -2 * 24 },
-        { from => -2 * 24 + 1, to => -1 * 24 },
-        { from => -1 * 24 + 1, to => 0 },
-        { from => 1,           to => 1 * 24 },
-        { from => 1 * 24 + 1,  to => 2 * 24 },
-        { from => 2 * 24 + 1,  to => 3 * 24 },
-        { from => 3 * 24 + 1,  to => 4 * 24 },
-        { from => 4 * 24 + 1,  to => 5 * 24 },
-        { from => 5 * 24 + 1,  to => 6 * 24 },
-        { from => 6 * 24 + 1,  to => 7 * 24 },
-        { from => 7 * 24 + 1,  to => undef },
-    ];
+    # Hour offset since "publish_date" buckets for generating the histogram
+    my $from_day_offset = -7;
+    my $to_day_offset   = 7;
+    my $buckets         = [];
+    for ( my $day_offset = $from_day_offset ; $day_offset <= $to_day_offset ; ++$day_offset )
+    {
+        my $bucket;
+        my $hour_offset = $day_offset * 24;
+        if ( $day_offset == $from_day_offset )
+        {
+            $bucket = { from => undef, to => $hour_offset };
+        }
+        elsif ( $day_offset == $to_day_offset )
+        {
+            $bucket = { from => $hour_offset + 1, to => undef };
+        }
+        else
+        {
+            $bucket = { from => $hour_offset - 24 + 1, to => $hour_offset };
+        }
+
+        push( @{ $buckets }, $bucket );
+    }
 
     say STDERR "Fetching (up to) $limit stories...";
     my $stories = $db->query(
