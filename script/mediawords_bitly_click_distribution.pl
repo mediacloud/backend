@@ -53,7 +53,11 @@ EOF
     my $buckets         = [];
     for ( my $day_offset = $from_day_offset ; $day_offset <= $to_day_offset ; ++$day_offset )
     {
-        my $bucket = { clicks => 0 };
+        my $bucket = {
+            clicks                      => 0,
+            clicks_since_minus_inf      => 0,
+            clicks_since_minus_23_hours => 0,
+        };
         my $hour_offset = $day_offset * 24;
         if ( $day_offset == $from_day_offset )
         {
@@ -229,14 +233,15 @@ EOF
                             my $bucket_from = $bucket->{ from };
                             my $bucket_to   = $bucket->{ to };
 
-                            unless ( defined $bucket->{ clicks } )
+                            if ( ( !defined( $bucket_to ) ) or $bucket_to >= $diff_hours )
                             {
-                                $bucket->{ clicks } = 0;
-                            }
+                                $bucket->{ clicks_since_minus_inf } += $clicks;
+                                if ( defined $bucket_from and $bucket_from >= -23 )
+                                {
+                                    $bucket->{ clicks_since_minus_23_hours } += $clicks;
+                                }
 
-                            if ( ( !defined( $bucket_from ) ) or $bucket_from <= $diff_hours )
-                            {
-                                if ( ( !defined( $bucket_to ) ) or $bucket_to >= $diff_hours )
+                                if ( ( !defined( $bucket_from ) ) or $bucket_from <= $diff_hours )
                                 {
 
                                     if ( $bucket_found )
@@ -261,14 +266,27 @@ EOF
     say STDERR "Min. publish timestamp: $min_publish_timestamp";
     say STDERR "Max. publish timestamp: $max_publish_timestamp";
 
-    say '"Hours since \'publish_date\'","Clicks"';
+    print '"Hours since \'publish_date\'",';
+    print '"Clicks",';
+    print '"Total clicks since -inf hours",';
+    print '"Total clicks since -23 hours"';
+
     foreach my $bucket ( @{ $buckets } )
     {
-        print '"';
-        print( $bucket->{ from } // '-inf' );
-        print ' -- ';
-        print( $bucket->{ to } // 'inf' );
-        print '",' . $bucket->{ clicks } . "\n";
+        # "Hours since 'publish_date'"
+        print '"' . ( $bucket->{ from } // '-inf' ) . ' -- ' . ( $bucket->{ to } // 'inf' ) . '",';
+
+        # "Clicks"
+        print $bucket->{ clicks } . ',';
+
+        # "Total clicks since -inf hours"
+        print $bucket->{ clicks_since_minus_inf } . ',';
+
+        # "Total clicks since -23 hours"
+        print $bucket->{ clicks_since_minus_23_hours } . ',';
+
+        print "\n";
+
     }
 
     say STDERR "Done.";
