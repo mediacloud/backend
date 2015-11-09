@@ -262,7 +262,7 @@ EOF
     foreach my $bucket ( @{ $buckets } )
     {
         print '"';
-        print( $bucket->{ from } // 'inf' );
+        print( $bucket->{ from } // '-inf' );
         print ' -- ';
         print( $bucket->{ to } // 'inf' );
         print '",' . $bucket->{ clicks } . "\n";
