@@ -36,10 +36,14 @@ sub run($$)
 {
     my ( $self, $args ) = @_;
 
-    die unless ( exists $args->{ downloads_id } || exists $args->{ stories_id } );
-
-    die "can't use both downloads_id and stories_id " if ( exists $args->{ downloads_id }
-        and exists $args->{ stories_id } );
+    unless ( $args->{ downloads_id } or $args->{ stories_id } )
+    {
+        die "Either 'downloads_id' or 'stories_id' should be set.";
+    }
+    if ( $args->{ downloads_id } and $args->{ stories_id } )
+    {
+        die "Can't use both downloads_id and stories_id";
+    }
 
     my $extract_by_downloads_id = exists $args->{ downloads_id };
     my $extract_by_stories_id   = exists $args->{ stories_id };
@@ -48,23 +52,18 @@ sub run($$)
 
     my $original_extractor_method = $config->{ mediawords }->{ extractor_method };
 
-    my $alter_extractor_method;
+    my $alter_extractor_method = 0;
     my $new_extractor_method;
-    if ( exists $args->{ extractor_method } )
+    if ( $args->{ extractor_method } )
     {
         $alter_extractor_method = 1;
         $new_extractor_method   = $args->{ extractor_method };
-        die unless defined( $new_extractor_method );
-    }
-    else
-    {
-        $alter_extractor_method = 0;
     }
 
     my $db = MediaWords::DB::connect_to_db();
     $db->dbh->{ AutoCommit } = 0;
 
-    if ( exists $args->{ disable_story_triggers } && $args->{ disable_story_triggers } )
+    if ( exists $args->{ disable_story_triggers } and $args->{ disable_story_triggers } )
     {
         $db->query( "SELECT disable_story_triggers(); " );
         MediaWords::DB::disable_story_triggers();
@@ -121,24 +120,23 @@ sub run($$)
             die "shouldn't be reached";
         }
 
-        $config->{ mediawords }->{ extractor_method } = $original_extractor_method;
         ## Enable story triggers in case the connection is reused due to connection pooling.
         $db->query( "SELECT enable_story_triggers(); " );
 
         #say STDERR "completed extraction job for " . Dumper( $args );
     };
 
-    if ( $@ )
+    my $error_message = "$@";
+
+    if ( $alter_extractor_method )
     {
-        my $error_message = "$@";
+        $config->{ mediawords }->{ extractor_method } = $original_extractor_method;
+    }
 
-        if ( $alter_extractor_method )
-        {
-            $config->{ mediawords }->{ extractor_method } = $original_extractor_method;
-        }
-
+    if ( $error_message )
+    {
         # Probably the download was not found
-        die "Extractor died " . "Args: " . Dumper( $args ) . "Extractor Error: $error_message\n";
+        die "Extractor died: $error_message; job args: " . Dumper( $args );
     }
 
     return 1;

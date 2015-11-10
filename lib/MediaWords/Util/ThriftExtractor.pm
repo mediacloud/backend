@@ -6,6 +6,7 @@ use MediaWords::CommonLibs;
 # various helper functions for downloads
 
 use strict;
+use warnings;
 
 use Carp;
 use Scalar::Defer;
@@ -23,7 +24,10 @@ sub get_extracted_html
 
     return '' unless ( $raw_html );
 
-    die unless Encode::is_utf8( $raw_html );
+    unless ( Encode::is_utf8( $raw_html ) )
+    {
+        die "HTML to be extracted is not UTF-8.";
+    }
 
     my $html_blocks = MediaWords::Thrift::Extractor::extract_html( $raw_html );
 
@@ -31,7 +35,10 @@ sub get_extracted_html
 
     utf8::upgrade( $ret );
 
-    die unless Encode::is_utf8( $ret );
+    unless ( Encode::is_utf8( $ret ) )
+    {
+        die "Extracted text is not UTF-8.";
+    }
 
     return $ret;
 }

@@ -15,6 +15,9 @@ use MediaWords::DB;
 
 sub main
 {
+    binmode( STDOUT, ":utf8" );
+    binmode( STDERR, ":utf8" );
+
     my $db = MediaWords::DB::connect_to_db;
 
     my $counts = $db->query( <<END )->hashes;
