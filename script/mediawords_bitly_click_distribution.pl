@@ -317,7 +317,7 @@ EOF
     print '"Hours since \'publish_date\'",';
     print '"Clicks",';
     print '"Total clicks since -inf hours",';
-    print '"Total clicks since -23 hours",' . "\n";
+    print '"Total clicks since -23 hours",';
     print '"% of stories with 90% of clicks (counting from -inf hours)",';
     print '"% of stories with 90% of clicks (counting from -23 hours)"' . "\n";
 
