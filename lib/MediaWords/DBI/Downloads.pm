@@ -511,21 +511,13 @@ sub extractor_results_for_download($$)
 {
     my ( $db, $download ) = @_;
 
-    my $downloads_id = $download->{ downloads_id };
-
-    say STDERR "Fetching raw data for download $downloads_id...";
     my $content_ref = fetch_content( $db, $download );
-    say STDERR "Done fetching raw data for download $downloads_id.";
 
     # FIXME if we're using Readability extractor, there's no point fetching
     # story title and description as Readability doesn't use it
     my $story = $db->find_by_id( 'stories', $download->{ stories_id } );
 
-    say STDERR "Extracting download $downloads_id...";
-    my $extracted_data = extract_content_ref( $content_ref, $story->{ title }, $story->{ description } );
-    say STDERR "Done extracting download $downloads_id.";
-
-    return $extracted_data;
+    return extract_content_ref( $content_ref, $story->{ title }, $story->{ description } );
 }
 
 # if the given line looks like a tagline for another story and is missing an ending period, add a period
@@ -567,7 +559,6 @@ sub extract_content_ref($$$;$)
     # Don't run through expensive extractor if the content is short and has no html
     if ( ( length( $$content_ref ) < 4096 ) and ( $$content_ref !~ /\<.*\>/ ) )
     {
-        say STDERR "Not extracting because content is too short and doesn't seem to have HTML tags";
         $ret = {
             extracted_html => $$content_ref,
             extracted_text => $$content_ref,
@@ -579,14 +570,10 @@ sub extract_content_ref($$$;$)
 
         if ( $extractor_method eq 'PythonReadability' )
         {
-            say STDERR "Extracting with Python Readability...";
             $extracted_html = MediaWords::Util::ThriftExtractor::get_extracted_html( $$content_ref );
-            say STDERR "Done extracting with Python Readability.";
         }
         elsif ( $extractor_method eq 'HeuristicExtractor' )
         {
-            say STDERR "Extracting with heuristic extractor...";
-
             my $lines = _preprocess_content_lines( $content_ref );
 
             # print "PREPROCESSED LINES:\n**\n" . join( "\n", @{ $lines } ) . "\n**\n";
@@ -597,21 +584,14 @@ sub extract_content_ref($$$;$)
             my $included_line_numbers = $ret->{ included_line_numbers };
 
             $extracted_html = _get_extracted_html( $download_lines, $included_line_numbers );
-
-            say STDERR "Done extracting with heuristic extractor.";
         }
         else
         {
             die "invalid extractor method: $extractor_method";
         }
 
-        say STDERR "Adding newlines around block level tags...";
         $extracted_html = _new_lines_around_block_level_tags( $extracted_html );
-        say STDERR "Done adding newlines around block level tags.";
-
-        say STDERR "Stripping HTML...";
         my $extracted_text = html_strip( $extracted_html );
-        say STDERR "Done stripping HTML.";
 
         $ret->{ extracted_html } = $extracted_html;
         $ret->{ extracted_text } = $extracted_text;
