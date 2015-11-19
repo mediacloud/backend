@@ -33,7 +33,7 @@ CREATE OR REPLACE VIEW daily_stats AS
             FROM downloads_with_error_in_past_day
          ) AS er,
          (
-            SELECT SUM( num_stories ) AS solr_stories
+             SELECT COALESCE( SUM( num_stories ), 0  ) AS solr_stories
             FROM solr_imports WHERE import_date > now() - interval '1 day'
          ) AS si;
 
