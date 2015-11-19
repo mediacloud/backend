@@ -382,7 +382,11 @@ sub _download_stores_for_reading($)
     # Overrides:
 
     # GridFS downloads have to be fetched from S3?
-    if ( $download_store eq 'gridfs' or $download_store eq 'tar' )
+    if ( lc( get_config->{ mediawords }->{ read_all_downloads_from_s3 } eq 'yes' ) )
+    {
+        $download_store = 'amazon_s3';
+    }
+    elsif ( $download_store eq 'gridfs' or $download_store eq 'tar' )
     {
         if ( lc( get_config->{ mediawords }->{ read_gridfs_downloads_from_s3 } eq 'yes' ) )
         {
