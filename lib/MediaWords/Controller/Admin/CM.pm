@@ -994,7 +994,7 @@ END
     $c->response->body( $csv );
 }
 
-# download a csv file with the facebook and twitter stats for the controversy stories
+# download a csv file with the facebook stats for the controversy stories
 sub dump_social : Local
 {
     my ( $self, $c, $cdts_id ) = @_;
@@ -1012,7 +1012,6 @@ sub dump_social : Local
     my $csv = MediaWords::Util::CSV::get_query_as_csv( $db, <<SQL );
 select
         s.stories_id, s.url, s.title, m.name medium_name, m.media_id, m.url medium_url,
-        ss.twitter_url_tweet_count, ss.twitter_api_collect_date,
         ss.facebook_share_count, ss.facebook_comment_count, ss.facebook_api_collect_date
     from dump_stories s
         join dump_media m on ( s.media_id = m.media_id )
