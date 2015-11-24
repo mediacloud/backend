@@ -4999,15 +4999,23 @@ DISTRIBUTIONS
       List::Member undef
     requirements:
       ExtUtils::MakeMaker 0
-  List-MoreUtils-0.33
-    pathname: A/AD/ADAMK/List-MoreUtils-0.33.tar.gz
+  List-MoreUtils-0.413
+    pathname: R/RE/REHSACK/List-MoreUtils-0.413.tar.gz
     provides:
-      List::MoreUtils 0.33
+      List::MoreUtils 0.413
+      List::MoreUtils::PP 0.413
+      List::MoreUtils::XS 0.413
     requirements:
-      ExtUtils::CBuilder 0.27
-      ExtUtils::MakeMaker 6.52
-      Test::More 0.82
-      perl 5.00503
+      Carp 0
+      Exporter::Tiny 0.038
+      ExtUtils::MakeMaker 0
+      File::Basename 0
+      File::Copy 0
+      File::Path 0
+      File::Spec 0
+      IPC::Cmd 0
+      XSLoader 0
+      base 0
   List-Pairwise-1.02
     pathname: T/TD/TDRUGEON/List-Pairwise-1.02.tar.gz
     provides:

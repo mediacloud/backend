@@ -89,7 +89,7 @@ requires 'Lingua::StopWords';
 requires 'Lingua::ZH::WordSegmenter';
 requires 'List::Compare';
 requires 'List::Member';
-requires 'List::MoreUtils';
+requires 'List::MoreUtils', '0.413';
 requires 'List::Pairwise';
 requires 'List::Uniq';
 requires 'Locale::Country::Multilingual';
