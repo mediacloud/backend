@@ -11,7 +11,6 @@ use Data::Dumper;
 
 use MediaWords::Languages::Language;
 use MediaWords::DBI::Stories;
-use MediaWords::Util::Countries;
 use MediaWords::Util::HTML;
 use MediaWords::Util::IdentifyLanguage;
 use MediaWords::Util::SQL;

@@ -23,15 +23,16 @@ mkdir -p local/
 #
 # Found ExtUtils::MakeMaker 6.90 which doesn't satisfy 6.92.
 # ! Installing the dependencies failed: Installed version (6.66) of ExtUtils::MakeMaker is not in range '6.92'
-# ! Bailing out the installation for Locale-Country-Multilingual-0.23.
-# ! Installing the dependencies failed: Installed version (6.66) of ExtUtils::MakeMaker is not in range '6.92'
 # ! Bailing out the installation for Encode-HanConvert-0.33.
-# ! Installing the dependencies failed: Module 'Encode::HanConvert' is not installed, Module 'Locale::Country::Multilingual' is not installed
+# ! Installing the dependencies failed: Module 'Encode::HanConvert' is not installed
 # ! Bailing out the installation for /mediacloud/.
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ ExtUtils::MakeMaker~6.92
 
 # Net::DNS somehow fails to install via Carton
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ Net::DNS
+
+# Install CGI module manually from CPAN because it's no longer bundled with Perl itself
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ CGI
 
 # Sometimes Carton fails with:
 #
@@ -62,6 +63,10 @@ mkdir -p local/
 # <...>
 # ! Couldn't find module or a distribution JSON::PP (2.27202)
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ JSON::PP
+
+# Install missing dependency to HTML::Entities::Interpolate
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm --verbose -L local/ Test::Stream
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm --verbose -L local/ HTML::Entities::Interpolate
 
 # Install GraphViz separately because it fails on Travis CI container builds
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm --verbose -L local/ GraphViz
