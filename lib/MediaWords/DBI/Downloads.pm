@@ -145,7 +145,6 @@ my $_download_store_lookup = lazy
     require MediaWords::KeyValueStore::AmazonS3;
     require MediaWords::KeyValueStore::CachedAmazonS3;
     require MediaWords::KeyValueStore::DatabaseInline;
-    require MediaWords::KeyValueStore::GridFS;
     require MediaWords::KeyValueStore::PostgreSQL;
     require MediaWords::KeyValueStore::PostgreSQLFallback;
 
@@ -165,10 +164,6 @@ my $_download_store_lookup = lazy
         # downloads.path is prefixed with "amazon_s3:";
         # download is stored in Amazon S3
         amazon_s3 => undef,    # might remain 'undef' if not configured
-
-        # downloads.path is prefixed with "gridfs:";
-        # download is stored in MongoDB GridFS
-        gridfs => undef,    # might remain 'undef' if not configured
     };
 
     # Early sanity check on configuration
@@ -203,13 +198,6 @@ my $_download_store_lookup = lazy
             die "'amazon_s3' storage location is enabled, but Amazon S3 is not configured.\n";
         }
     }
-    if ( exists( $enabled_download_storage_locations{ gridfs } ) )
-    {
-        unless ( get_config->{ mongodb_gridfs } )
-        {
-            die "'gridfs' storage location is enabled, but MongoDB GridFS is not configured.\n";
-        }
-    }
 
     # Initialize key value stores for downloads
     if ( get_config->{ amazon_s3 } )
@@ -240,15 +228,6 @@ my $_download_store_lookup = lazy
             # no arguments are needed
         }
     );
-
-    if ( get_config->{ mongodb_gridfs } )
-    {
-        if ( get_config->{ mongodb_gridfs }->{ downloads } )
-        {
-            $download_store_lookup->{ gridfs } = MediaWords::KeyValueStore::GridFS->new(
-                { database_name => get_config->{ mongodb_gridfs }->{ downloads }->{ database_name } } );
-        }
-    }
 
     # Main raw downloads database / table
     my $raw_downloads_db_label = 'raw_downloads';    # as set up in mediawords.yml
@@ -354,11 +333,6 @@ sub _download_stores_for_reading($)
             $download_store = 'amazon_s3';
         }
 
-        elsif ( $location eq 'gridfs' or $location eq 'tar' )
-        {
-            $download_store = 'gridfs';
-        }
-
         else
         {
             die "Download location '$location' is unknown for download $download->{ downloads_id }";
@@ -370,7 +344,7 @@ sub _download_stores_for_reading($)
         # Assume it's stored in a filesystem (the downloads.path contains a
         # full path to the download).
         #
-        # Those downloads have been migrated to GridFS.
+        # Those downloads have been migrated to GridFS (which is likely to be read from S3).
         $download_store = 'gridfs';
     }
 

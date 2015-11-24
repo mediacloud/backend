@@ -2658,8 +2658,8 @@ sub mine_controversy ($$;$)
 
         # For the sake of simplicity, just re-enqueue all controversy's stories for
         # Bit.ly processing. The ones that are already processed (have a respective
-        # record in the GridFS database) will be skipped, and the new ones will be
-        # enqueued further for fetching Bit.ly stats.
+        # record in the raw key-value database) will be skipped, and the new
+        # ones will be enqueued further for fetching Bit.ly stats.
         my $args = { controversies_id => $controversy->{ controversies_id } };
         MediaWords::GearmanFunction::Bitly::EnqueueControversyStories->enqueue_on_gearman( $args );
     }

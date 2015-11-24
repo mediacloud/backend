@@ -7,17 +7,10 @@ package MediaWords::KeyValueStore;
 
 #
 # You can use MediaWords::KeyValueStore subpackages
-# (MediaWords::KeyValueStore::GridFS, MediaWords::KeyValueStore::PostgreSQL, ...)
+# (MediaWords::KeyValueStore::AmazonS3, MediaWords::KeyValueStore::PostgreSQL, ...)
 # to store all kinds of key-value data.
 #
 # Initializing the store:
-#
-#     # Initialize GridFS store for storing key-value data to MongoDB GridFS
-#
-#     my $store = MediaWords::KeyValueStore::GridFS->new({
-#         # MongoDB database name for storing the data as GridFS files:
-#         database_name => 'pictures_of_my_cats'
-#     });
 #
 #     # Initialize PostgreSQL store for storing key-value data to PostgreSQL table
 #
@@ -44,14 +37,14 @@ package MediaWords::KeyValueStore;
 #
 #     # Some subpackages of MediaWords::KeyValueStore support additional
 #     # parameters for store_content() that define how the object is processed.
-#     # For example, MediaWords::KeyValueStore::GridFS::store_content() supports
+#     # For example, MediaWords::KeyValueStore::PostgreSQL::store_content() supports
 #     # the following parameters:
 #     # * $use_bzip2_instead_of_gzip -- use Bzip2 compression instead of Gzip
 #     # Make sure to read the declaration of the store_content() for the specific
 #     # subpackage subroutine before using it.
 #
 #     my $use_bzip2_instead_of_gzip = 1;
-#     $gridfs_store->store_content(
+#     $postgresql_store->store_content(
 #         $db,
 #         'Cuddles McCracken',
 #         \read_file('cuddles.jpg'),
@@ -67,16 +60,16 @@ package MediaWords::KeyValueStore;
 #
 #     # Some subpackages of MediaWords::KeyValueStore support additional
 #     # parameters for fetch_content() that define how the object is processed.
-#     # For example, MediaWords::KeyValueStore::GridFS::fetch_content() supports
+#     # For example, MediaWords::KeyValueStore::PostgreSQL::fetch_content() supports
 #     # the following parameters:
-#     # * $object_path -- object path (MongoDB OID); not used
+#     # * $object_path -- object path; not used
 #     # * $use_bzip2_instead_of_gzip -- use Bzip2 uncompression instead of Gzip
 #     # Make sure to read the declaration of the fetch_content() for the specific
 #     # subpackage subroutine before using it.
 #
 #     my $object_path = undef;    # default value
 #     my $use_bzip2_instead_of_gzip = 1;
-#     my $content_ref = $gridfs_store->fetch_content(
+#     my $content_ref = $postgresql_store->fetch_content(
 #         $db,
 #         'Mister Bigglesworth',
 #         $object_path,
@@ -108,7 +101,7 @@ package MediaWords::KeyValueStore;
 # * lib/MediaWords/DBI/Downloads.pm -- storing / fetching raw downloads from
 #   various kinds of storage methods
 # * lib/MediaWords/Util/CoreNLP.pm -- storing / fetching CoreNLP annotator
-#   results from / to MongoDB GridFS
+#   results
 #
 
 use strict;

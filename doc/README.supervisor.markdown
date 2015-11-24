@@ -37,7 +37,7 @@ The newly created configuration file will be automatically included by the main 
 
 Examples:
 
-* `supervisord.user.mongoDB.conf` - MongoDB service
+* `supervisord.user.munin.conf` - Munin service
 * `supervisord.user.show_ulimit_s.conf` - some other service
 
 
