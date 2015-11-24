@@ -23,10 +23,8 @@ mkdir -p local/
 #
 # Found ExtUtils::MakeMaker 6.90 which doesn't satisfy 6.92.
 # ! Installing the dependencies failed: Installed version (6.66) of ExtUtils::MakeMaker is not in range '6.92'
-# ! Bailing out the installation for Locale-Country-Multilingual-0.23.
-# ! Installing the dependencies failed: Installed version (6.66) of ExtUtils::MakeMaker is not in range '6.92'
 # ! Bailing out the installation for Encode-HanConvert-0.33.
-# ! Installing the dependencies failed: Module 'Encode::HanConvert' is not installed, Module 'Locale::Country::Multilingual' is not installed
+# ! Installing the dependencies failed: Module 'Encode::HanConvert' is not installed
 # ! Bailing out the installation for /mediacloud/.
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ ExtUtils::MakeMaker~6.92
 

@@ -216,8 +216,6 @@ List::MoreUtils
 
 List::Member
 
-Locale::Country::Multilingual
-
 LWP::Simple
 
 LWP::UserAgent

@@ -89,45 +89,4 @@ sub get_copyright_strings
     return \@copyright_strings;
 }
 
-sub get_locale_codes_api_object
-{
-    my $self = shift;
-    return $self->_get_locale_country_multilingual_object( 'tr' );
-}
-
-sub get_country_name_remapping
-{
-    my $self = shift;
-
-    return {
-        'abd virgin adaları'          => -1,                       # 'virgin islands, u.s.'
-        'amerika birleşik devletleri' => 'birleşik devletler',    # 'united states'
-        'amerika birleşik devletleri küçük dış adaları' => -1,           # 'united states minor outlying islands'
-        'antigua ve barbuda'                                   => 'antigua',    # 'antigua and barbuda'
-        'birleşik arap emirlikleri'                 => 'arap emirlikleri',  # 'united arab emirates'
-        'fransız güney bölgeleri'                 => -1,                  # 'french southern territories'
-        'güney georgia ve güney sandwich adaları' => -1,                  # 'south georgia and the south sandwich islands'
-        'güney kıbrıs rum kesimi'                 => 'kıbrıs',          # 'cyprus'
-        'heard adası ve mcdonald adaları'          => -1,                  # 'heard island and mcdonald islands'
-        'hint okyanusu i̇ngiliz bölgesi'           => -1,                  # 'british indian ocean territory'
-        'hong kong sar - çin'                       => 'hong kong',         # 'hong kong'
-        'i̇ngiliz virgin adaları'                  => -1,                  # 'virgin islands, british'
-        'kongo demokratik cumhuriyeti'               => 'kongo-kinşasa',    # 'congo, the democratic republic of the'
-        'kuzey mariana adaları'                     => -1,                  # 'northern mariana islands'
-        'makao s.a.r. çin'                          => 'makao',             # 'macao'
-        'mikronezya federal eyaletleri'              => 'mikronezya',        # 'micronesia, federated states of'
-        'orta afrika cumhuriyeti'                    => 'orta afrika',       # 'central african republic'
-        'papua yeni gine'                            => 'papua gine',        # 'papua new guinea'
-        'saint kitts ve nevis'                       => -1,                  # 'saint kitts and nevis'
-        'saint pierre ve miquelon'                   => -1,                  # 'saint pierre and miquelon'
-        'saint vincent ve grenadinler'               => -1,                  # 'saint vincent and the grenadines'
-        'sao tome ve principe'                       => -1,                  # 'sao tome and principe'
-        'svalbard ve jan mayen'                      => -1,                  # 'svalbard and jan mayen'
-        'trinidad ve tobago'                         => 'trinidad',          # 'trinidad and tobago'
-        'turks ve caicos adaları'                   => -1,                  # 'turks and caicos islands'
-        'wallis ve futuna'                           => 'futuna',            # 'wallis and futuna'
-    };
-
-}
-
 1;

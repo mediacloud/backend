@@ -4948,20 +4948,6 @@ DISTRIBUTIONS
     provides:
       List::Uniq 0.20
     requirements:
-  Locale-Country-Multilingual-0.25
-    pathname: O/OS/OSCHWALD/Locale-Country-Multilingual-0.25.tar.gz
-    provides:
-      Locale::Country::Multilingual 0.25
-    requirements:
-      Carp 0
-      Class::Data::Inheritable 0
-      ExtUtils::MakeMaker 0
-      File::Spec 0
-      Symbol 0
-      base 0
-      constant 0
-      strict 0
-      warnings 0
   Locale-Maketext-Lexicon-1.00
     pathname: D/DR/DRTECH/Locale-Maketext-Lexicon-1.00.tar.gz
     provides:

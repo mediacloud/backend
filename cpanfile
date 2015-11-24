@@ -94,7 +94,6 @@ requires 'List::Member';
 requires 'List::MoreUtils', '0.413';
 requires 'List::Pairwise';
 requires 'List::Uniq';
-requires 'Locale::Country::Multilingual';
 requires 'Log::Log4perl';
 requires 'LWP::Protocol::https';
 requires 'LWP::UserAgent::Determined';
