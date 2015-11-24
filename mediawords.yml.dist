@@ -56,20 +56,6 @@ database:
       user  : "mediaclouduser"
       pass  : "mediacloud"
 
-
-### MongoDB connection settings
-#mongodb_gridfs:
-    #host : "localhost"
-    #port : "27017"
-    #username : "mediaclouduser"    # optional
-    #password : "mediacloud"        # optional
-    ### Database for storing raw downloads
-    #downloads:
-        #database_name : "mediacloud_downloads_gridfs"
-    ### Database for testing
-    #test:
-        #database_name : "mediacloud_downloads_gridfs_test"
-
 ### Amazon S3 connection settings
 #amazon_s3:
 
@@ -211,10 +197,6 @@ database:
     ### Default is an empty string; you might want to set it to "ner".
     #annotator_level: ""
 
-    ###
-    ### Also see: "mongodb_gridfs/corenlp/database_name" configuration property above
-    ###
-
 ### CRF model runner web service
 #crf_web_service:
 
@@ -350,12 +332,8 @@ mediawords:
         #- postgresql
         ### store downloads in Amazon S3
         #- amazon_s3
-        ### store downloads in MongoDB GridFS database
-        #- gridfs
 
-    ### Uncomment to force reading GridFS downloads from Amazon S3
-    ### (useful if you're experiencing MongoDB downtime for some reason or are
-    ### in the process of restoring downloads from S3 back to GridFS)
+    ### Uncomment to force reading downloads that were stored in GridFS from Amazon S3
     #read_gridfs_downloads_from_s3 : "no"
 
     ### Uncomment to fallback PostgreSQL downloads to Amazon S3 (if download

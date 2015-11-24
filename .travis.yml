@@ -21,8 +21,6 @@ addons:
         sources:
             # We need an up-to-date version of Gearman
             - gearman-developers
-            # ...and a recent version of MongoDB too
-            - mongodb-upstart
         # Whitelist: https://github.com/travis-ci/apt-package-whitelist
         # Keep in sync with "install_mediacloud_system_package_dependencies.sh"
         packages:
@@ -47,7 +45,6 @@ addons:
             - libyaml-0-2
             - libyaml-dev
             - make
-            - mongodb-10gen
             - netcat
             - openjdk-7-jdk
             - openjdk-7-jre-headless
