@@ -33,6 +33,9 @@ mkdir -p local/
 # Net::DNS somehow fails to install via Carton
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ Net::DNS
 
+# Install CGI module manually from CPAN because it's no longer bundled with Perl itself
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ CGI
+
 # Sometimes Carton fails with:
 #
 # <...>
