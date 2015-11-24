@@ -43,6 +43,7 @@ requires 'Data::Page';
 requires 'Data::Serializer';
 requires 'Data::Sorting';
 requires 'Data::Structure::Util';
+requires 'Date::Calc';
 requires 'DateTime::Format::Pg';
 requires 'DBD::Pg', '2.19.3';
 requires 'DBD::SQLite';
