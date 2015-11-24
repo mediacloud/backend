@@ -9291,12 +9291,17 @@ DISTRIBUTIONS
       perl 5.008001
       strict 0
       warnings 0
-  aliased-0.31
-    pathname: O/OV/OVID/aliased-0.31.tar.gz
+  aliased-0.34
+    pathname: E/ET/ETHER/aliased-0.34.tar.gz
     provides:
-      aliased 0.31
+      aliased 0.34
     requirements:
-      Test::More 0
+      Carp 0
+      Exporter 0
+      Module::Build::Tiny 0.039
+      perl 5.006
+      strict 0
+      warnings 0
   boolean-0.38
     pathname: I/IN/INGY/boolean-0.38.tar.gz
     provides:
