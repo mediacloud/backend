@@ -20,6 +20,7 @@ requires 'Catalyst::Authentication::User::Hash';
 requires 'Catalyst::Controller::HTML::FormFu';
 requires 'Catalyst::Controller::REST';
 requires 'Catalyst::Plugin::Authorization::ACL';
+requires 'Catalyst::Plugin::Authorization::Roles';
 requires 'Catalyst::Plugin::ConfigLoader';
 requires 'Catalyst::Plugin::I18N';
 requires 'Catalyst::Plugin::Session::Store::FastMmap';
