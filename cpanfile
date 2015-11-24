@@ -10,6 +10,7 @@
 requires 'Algorithm::FeatureSelection';
 requires 'Archive::Zip';
 requires 'Array::Compare';
+requires 'Bit::Vector';
 requires 'Cache::FastMmap';
 requires 'Carton::CLI';
 requires 'Catalyst', '5.90030';
