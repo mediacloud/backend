@@ -11,7 +11,6 @@ requires 'Algorithm::FeatureSelection';
 requires 'Archive::Zip';
 requires 'Array::Compare';
 requires 'Cache::FastMmap';
-requires 'Carp::Always';
 requires 'Carton::CLI';
 requires 'Catalyst', '5.90030';
 requires 'Catalyst::Action::RenderView';
