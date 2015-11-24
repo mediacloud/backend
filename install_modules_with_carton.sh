@@ -63,6 +63,10 @@ mkdir -p local/
 # ! Couldn't find module or a distribution JSON::PP (2.27202)
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ JSON::PP
 
+# Install missing dependency to HTML::Entities::Interpolate
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm --verbose -L local/ Test::Stream
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm --verbose -L local/ HTML::Entities::Interpolate
+
 # Install GraphViz separately because it fails on Travis CI container builds
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm --verbose -L local/ GraphViz
 ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm --verbose -L local/ GraphViz2
