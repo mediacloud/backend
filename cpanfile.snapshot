@@ -6767,10 +6767,10 @@ DISTRIBUTIONS
       XSLoader 0
       strict 0
       warnings 0
-  PadWalker-1.98
-    pathname: R/RO/ROBIN/PadWalker-1.98.tar.gz
+  PadWalker-2.2
+    pathname: R/RO/ROBIN/PadWalker-2.2.tar.gz
     provides:
-      PadWalker 1.98
+      PadWalker 2.2
     requirements:
       ExtUtils::MakeMaker 0
       perl 5.008001
