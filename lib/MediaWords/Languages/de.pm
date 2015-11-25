@@ -100,40 +100,4 @@ sub get_copyright_strings
     return \@copyright_strings;
 }
 
-sub get_locale_codes_api_object
-{
-    my $self = shift;
-    return $self->_get_locale_country_multilingual_object( 'de' );
-}
-
-sub get_country_name_remapping
-{
-    my $self = shift;
-
-    return {
-        'antigua und barbuda'                            => 'antigua',     # 'antigua and barbuda'
-        'bosnien und herzegowina'                        => 'bosnien',     # 'bosnia and herzegovina'
-        'britisches territorium im indischen ozean'      => -1,            # 'britisches territorium im indischen ozean'
-        'französische süd- und antarktisgebiete'       => -1,            # 'french southern territories'
-        'heard- und mcdonald-inseln'                     => -1,            # 'heard island and mcdonald islands'
-        'libysch-arabische dschamahirija (libyen)'       => 'libyen',      # 'libyan arab jamahiriya'
-        'republik china (taiwan)'                        => 'taiwan',      # 'taiwan, province of china'
-        'saint-martin (franz. teil)'                     => -1,            # 'saint-martin (french part)'
-        'saint-pierre und miquelon'                      => -1,            # 'saint pierre and miquelon'
-        'st. kitts und nevis'                            => -1,            # 'saint kitts and nevis'
-        'st. vincent und die grenadinen'                 => -1,            # 'saint vincent and the grenadines'
-        'svalbard und jan mayen'                         => -1,            # 'svalbard and jan mayen'
-        'são tomé und príncipe'                       => -1,            # 'sao tome and principe'
-        'südgeorgien und die südlichen sandwichinseln' => -1,            # 'south georgia and the south sandwich islands'
-        'trinidad und tobago'                            => 'trinidad',    # 'trinidad and tobago'
-        'turks- und caicosinseln'                        => -1,            # 'turks and caicos islands'
-        'united states minor outlying islands'           => -1,            # 'united states minor outlying islands'
-        'vereinigte arabische emirate'                           => 'emirate arabische',         # 'united arab emirates'
-        'vereinigte staaten von amerika'                         => 'vereinigte staaten',        # 'united states of america'
-        'vereinigtes königreich großbritannien und nordirland' => 'vereinigtes königreich',   # 'united kingdom'
-        'wallis und futuna'                                      => 'futuna',                    # 'wallis and futuna'
-    };
-
-}
-
 1;

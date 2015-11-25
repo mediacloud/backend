@@ -109,43 +109,4 @@ sub get_copyright_strings
     return \@copyright_strings;
 }
 
-sub get_locale_codes_api_object
-{
-    my $self = shift;
-    return $self->_get_locale_country_multilingual_object( 'lt' );
-}
-
-sub get_country_name_remapping
-{
-    my $self = shift;
-
-    return {
-        'antigva ir barbuda'                               => 'antigva',            # 'antigua and barbuda'
-        'bosnija ir hercegovina'                           => 'bosnija',            # 'bosnia and herzegovina'
-        'centrinės afrikos respublika'                    => 'centrinė afrika',   # 'central african republic'
-        'didžiosios britanijos mergelių salos'           => -1,                   # 'virgin islands, british'
-        'dramblio kaulo krantas'                           => -1,                   # 'cote d\'ivoire'
-        'heardo ir mcdonaldo salų sritis'                 => -1,                   # 'heard island and mcdonald islands'
-        'indijos vandenyno britų sritis'                  => -1,                   # 'british indian ocean territory'
-        'jungtiniai arabų emyratai'                       => 'arabų emyratai',    # 'united arab emirates'
-        'jungtinių valstijų mažosios aplinkinės salos' => -1,                   # 'united states minor outlying islands'
-        'kinijos s.a.r.honkongas'                          => 'honkongas',          # 'hong kong'
-        'kongo demokratinė respublika'                    => 'kongas-kinšasa',    # 'congo, the democratic republic of the'
-        'marianos šiaurinės salos'                       => -1,                   # 'northern mariana islands'
-        'mergelių salos (jav)'                            => -1,                   # 'virgin islands, u.s.'
-        'papua naujoji gvinėja'                           => 'papua gvinėja',     # 'papua new guinea'
-        'prancūzijos pietų sritys'                       => -1,                   # 'french southern territories'
-        'rytų džordžija ir rytų sandwich salos' => -1,              # 'south georgia and the south sandwich islands'
-        'san tomė ir principė'                    => -1,              # 'sao tome and principe'
-        'sen pjeras ir mikelonas'                   => -1,              # 'saint pierre and miquelon'
-        'sent kitsas ir nevis'                      => -1,              # 'saint kitts and nevis'
-        'svalbardo ir jan majen salos'              => -1,              # 'svalbard and jan mayen'
-        'trinidadas ir tobagas'                     => 'trinidadas',    # 'trinidad and tobago'
-        'turkso ir caicoso salos'                   => -1,              # 'turks and caicos islands'
-        'wallisas ir futuna'                        => 'futuna',        # 'wallis and futuna'
-        'šventasis vincentas ir grenadinai'        => -1,              # 'saint vincent and the grenadines'
-    };
-
-}
-
 1;

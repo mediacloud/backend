@@ -96,38 +96,4 @@ sub get_copyright_strings
     return \@copyright_strings;
 }
 
-sub get_locale_codes_api_object
-{
-    my $self = shift;
-    return $self->_get_locale_country_multilingual_object( 'fi' );
-}
-
-sub get_country_name_remapping
-{
-    my $self = shift;
-
-    return {
-        'antigua ja barbuda'                          => 'antigua',          # 'antigua and barbuda'
-        'bosnia ja hertsegovina'                      => 'bosnia',           # 'bosnia and herzegovina'
-        'brittiläinen intian valtameren alue'        => -1,                 # 'british indian ocean territory'
-        'etelä-georgia ja eteläiset sandwichsaaret' => -1,                 # 'south georgia and the south sandwich islands'
-        'heard- ja mcdonaldinsaaret'                  => -1,                 # 'heard island and mcdonald islands'
-        'hongkong – kiinan erityishallintoalue'     => 'hongkong',         # 'hong kong'
-        'huippuvuoret ja jan mayen'                   => -1,                 # 'svalbard and jan mayen'
-        'keski-afrikan tasavalta'                     => 'keski-afrikan',    # 'central african republic'
-        'macao – kiinan erityishallintoalue'        => 'macao',            # 'macao',
-        'papua-uusi-guinea'                           => 'papua-guinea',     # 'papua new guinea'
-        'ranskan ulkopuoliset eteläiset alueet'      => -1,                 # 'french southern territories'
-        'saint kitts ja nevis'                        => -1,                 # 'saint kitts and nevis'
-        'saint vincent ja grenadiinit'                => -1,                 # 'saint vincent and the grenadines'
-        'saint-pierre ja miquelon'                    => -1,                 # 'saint pierre and miquelon'
-        'são tomé ja príncipe'                     => -1,                 # 'sao tome and principe'
-        'trinidad ja tobago'                          => 'trinidad',         # 'trinidad and tobago'
-        'turks- ja caicossaaret'                      => -1,                 # 'turks and caicos islands'
-        'wallis ja futuna'                            => 'futuna',           # 'wallis and futuna'
-        'yhdysvaltain pienet erillissaaret'           => -1,                 # 'united states minor outlying islands'
-    };
-
-}
-
 1;
