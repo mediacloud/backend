@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-# print a summary of user activity last week
+# print a summary of new users and user activity with configurable intervals
 
 use strict;
 use warnings;
@@ -23,8 +23,8 @@ sub main
     my ( $new_user_interval, $activity_interval );
 
     Getopt::Long::GetOptions(
-        "new=i"         => \$new_user_interval,
-        "activity=i"    => \$activity_interval
+        "new=i"      => \$new_user_interval,
+        "activity=i" => \$activity_interval
     ) || return;
 
     $new_user_interval ||= 1;
