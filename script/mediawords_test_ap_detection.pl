@@ -59,7 +59,9 @@ sub get_ap_detection_pattern
         return 0;
     }
 
-    return ( $$content_ref =~ /["'].{0,8}associated press.{0,8}["']/i ) ? 1 : 0;
+    my $search_text = substr( $$content_ref, 0, int( length( $$content_ref ) / 3 ) );
+
+    return ( $search_text =~ /["'].{0,8}associated press.{0,8}["']/i ) ? 1 : 0;
 }
 
 sub get_ap_detection_text_ap
