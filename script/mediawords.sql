@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4516;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4517;
 
 BEGIN
 
