@@ -36,34 +36,27 @@ sub create_from_download
 {
     my ( $db, $download ) = @_;
 
-    my $downloads_id = $download->{ downloads_id };
-
-    say STDERR "Calling extractor_results_for_download() for download $downloads_id...";
     my $extract = MediaWords::DBI::Downloads::extractor_results_for_download( $db, $download );
-    say STDERR "Done calling extractor_results_for_download() for download $downloads_id.";
 
     # Due to a foreign key, deleting from download_texts will also delete the
     # corresponding extracted_lines entries
-    $db->query( "DELETE FROM download_texts WHERE downloads_id = ?", $downloads_id );
+    $db->query( "DELETE FROM download_texts WHERE downloads_id = ?", $download->{ downloads_id } );
 
     my $extracted_text = $extract->{ extracted_text };
 
     # say STDERR "EXTRACTED TEXT:\n**\n$extracted_text\n**\n";
 
-    say STDERR "INSERTing extracted text for download $downloads_id...";
     my $download_text = $db->query(
         <<EOF,
             INSERT INTO download_texts ( download_text, downloads_id, download_text_length )
                 VALUES ( \$1, \$2, char_length( \$1 ) )
                 RETURNING *
 EOF
-        $extracted_text, $downloads_id
+        $extracted_text, $download->{ downloads_id }
     )->hash;
-    say STDERR "Done INSERTing extracted text for download $downloads_id.";
 
     if ( exists $extract->{ included_line_numbers } )
     {
-        say STDERR "COPYing extracted lines for download $downloads_id...";
         my $included_line_numbers = $extract->{ included_line_numbers };
         $db->dbh->do( "COPY extracted_lines(download_texts_id, line_number) FROM STDIN" );
         foreach my $included_line_number ( @{ $included_line_numbers } )
@@ -72,10 +65,9 @@ EOF
         }
 
         $db->dbh->pg_putcopyend();
-        say STDERR "Done COPYing extracted lines for download $downloads_id.";
     }
 
-    $db->query( "UPDATE downloads SET extracted = 't' WHERE downloads_id = ?", $downloads_id );
+    $db->query( "UPDATE downloads SET extracted = 't' WHERE downloads_id = ?", $download->{ downloads_id } );
 
     return $download_text;
 }

@@ -96,48 +96,4 @@ sub get_copyright_strings
     return \@copyright_strings;
 }
 
-sub get_locale_codes_api_object
-{
-    my $self = shift;
-    return $self->_get_locale_country_multilingual_object( 'es' );
-}
-
-sub get_country_name_remapping
-{
-    my $self = shift;
-
-    return {
-        'antigua y barbuda'                         => 'antigua',            # 'antigua and barbuda'
-        'bosnia y herzegovina'                      => 'bosnia',             # 'bosnia and herzegovina'
-        'ciudad del vaticano'                       => 'vaticano',           # 'holy see (vatican city state)'
-        'corea del norte'                           => 'norcorea',           # 'korea, democratic people\'s republic of'
-        'corea del sur'                             => 'surcorea',           # 'korea, republic of'
-        'costa de marfil'                           => 'cote d\'ivoire',     # 'cote d\'ivoire'
-        'emiratos árabes unidos'                   => 'emiratos árabes',   # 'united arab emirates'
-        'isla de man'                               => -1,                   # 'isle of man'
-        'isla de navidad'                           => -1,                   # 'christmas island'
-        'islas georgias del sur y sandwich del sur' => -1,                   # 'south georgia and the south sandwich islands'
-        'islas heard y mcdonald'                    => -1,                   # 'heard island and mcdonald islands'
-        'islas marianas del norte'                  => -1,                   # 'northern mariana islands'
-        'islas turcas y caicos'                     => -1,                   # 'turks and caicos islands'
-        'islas ultramarinas de estados unidos'      => -1,                   # 'united states minor outlying islands'
-        'islas vírgenes británicas'               => -1,                   # 'virgin islands, british'
-        'islas vírgenes estadounidenses'           => -1,                   # 'virgin islands, u.s.'
-        'papúa nueva guinea'                       => 'papua guinea',       # 'papua new guinea'
-        'república de china'                       => 'taiwán',            # 'taiwan, province of china'
-        'república del congo'                      => 'congo brazzaville',  # 'congo'
-        'república democrática del congo'         => 'congo democrático', # 'congo, the democratic republic of the'
-        'san cristóbal y nieves'                   => -1,                   # 'saint kitts and nevis'
-        'san pedro y miquelón'                     => -1,                   # 'saint pierre and miquelon'
-        'san vicente y las granadinas'              => -1,                   # 'saint vincent and the grenadines'
-        'santo tomé y príncipe'                   => -1,                   # 'sao tome and principe'
-        'svalbard y jan mayen'                      => -1,                   # 'svalbard and jan mayen'
-        'territorio británico del océano índico' => -1,                   # 'british indian ocean territory'
-        'territorios australes franceses'           => -1,                   # 'french southern territories'
-        'trinidad y tobago'                         => 'trinidad',           # 'trinidad and tobago'
-        'wallis y futuna'                           => 'futuna',             # 'wallis and futuna'
-    };
-
-}
-
 1;

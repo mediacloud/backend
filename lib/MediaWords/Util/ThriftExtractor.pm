@@ -22,8 +22,6 @@ sub get_extracted_html
 {
     my ( $raw_html ) = @_;
 
-    say STDERR "Input HTML length: " . length( $raw_html );
-
     return '' unless ( $raw_html );
 
     unless ( Encode::is_utf8( $raw_html ) )
@@ -41,8 +39,6 @@ sub get_extracted_html
     {
         die "Extracted text is not UTF-8.";
     }
-
-    say STDERR "Output extracted text length: " . length( $ret );
 
     return $ret;
 }

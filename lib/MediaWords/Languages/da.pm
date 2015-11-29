@@ -92,41 +92,4 @@ sub get_copyright_strings
     return \@copyright_strings;
 }
 
-sub get_locale_codes_api_object
-{
-    my $self = shift;
-    return $self->_get_locale_country_multilingual_object( 'da' );
-}
-
-sub get_country_name_remapping
-{
-    my $self = shift;
-
-    return {
-        'antigua og barbuda'                              => 'antigua',              # 'antigua and barbuda'
-        'de britiske jomfruøer'                          => -1,                     # 'virgin islands, british'
-        'de amerikanske jomfruøer'                       => -1,                     # 'virgin islands, u.s.'
-        'de mindre amerikanske oversøiske øer'          => -1,                     # 'united states minor outlying islands'
-        'de palæstinensiske områder'                    => 'palæstina',           # 'palestinian territory, occupied'
-        'den dominikanske republik'                       => 'dominikanske',         # 'dominican republic'
-        'det britiske territorium i det indiske ocean'    => -1,                     # 'british indian ocean territory'
-        'forenede arabiske emirater'                      => 'emirater arabiske',    # 'united arab emirates'
-        'franske besiddelser i det sydlige indiske ocean' => -1,                     # 'french indian ocean territory'
-        'heard- og mcdonald-øerne'                       => -1,                     # 'heard island and mcdonald islands'
-        'isle of man'                                     => -1,                     # 'isle of man'
-        'mikronesiens forenede stater'                    => 'mikronesien',          # 'micronesia, federated states of'
-        'papua ny guinea'                                 => 'papua guinea',         # 'papua new guinea'
-        'saint kitts og nevis'                            => -1,                     # 'saint kitts and nevis'
-        'saint pierre og miquelon'                        => -1,                     # 'saint pierre and miquelon'
-        'south georgia og de sydlige sandwichøer' => -1,                # 'south georgia and the south sandwich islands'
-        'st. vincent og grenadinerne'              => -1,                # 'saint vincent and the grenadines'
-        'svalbard og jan mayen'                    => -1,                # 'svalbard and jan mayen'
-        'são tomé og príncipe'                  => -1,                # 'sao tome and principe'
-        'trinidad og tobago'                       => 'trinidad',        # 'trinidad and tobago'
-        'turks- og caicosøerne'                   => -1,                # 'turks and caicos islands'
-        'wallis og futunaøerne'                   => 'futunaøerne',    # 'wallis and futuna'
-    };
-
-}
-
 1;

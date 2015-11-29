@@ -88,47 +88,4 @@ sub get_copyright_strings
     return \@copyright_strings;
 }
 
-sub get_locale_codes_api_object
-{
-    my $self = shift;
-    return $self->_get_locale_country_multilingual_object( 'it' );
-}
-
-sub get_country_name_remapping
-{
-    my $self = shift;
-
-    return {
-        'antigua e barbuda'                          => 'antigua',           # 'antigua and barbuda'
-        'città del vaticano'                        => 'vaticano',          # 'holy see (vatican city state)'
-        'corea del nord'                             => 'corea nord',        # 'korea, democratic people\'s republic of'
-        'corea del sud'                              => 'corea sud',         # 'korea, republic of'
-        'emirati arabi uniti'                        => 'emirati arabi',     # 'united arab emirates'
-        'georgia del sud e isole sandwich'           => -1,                  # 'south georgia and the south sandwich islands'
-        'isola di man'                               => -1,                  # 'isle of man'
-        'isola di natale'                            => -1,                  # 'christmas island'
-        'isole fær øer'                            => 'fær øer',         # 'faroe islands'
-        'isole heard e mcdonald'                     => -1,                  # 'heard island and mcdonald islands'
-        'isole marianne settentrionali'              => -1,                  # 'northern mariana islands'
-        'isole minori degli stati uniti'             => -1,                  # 'united states minor outlying islands'
-        'isole vergini americane'                    => -1,                  # 'virgin islands, u.s.'
-        'isole vergini britanniche'                  => -1,                  # 'virgin islands, british'
-        'papua nuova guinea'                         => 'papua guinea',      # 'papua new guinea'
-        'rep. dem. del congo'                        => 'congo-kinshasa',    # 'congo, the democratic republic of the'
-        'repubblica del congo'                       => 'congo',             # 'congo'
-        'saint kitts e nevis'                        => -1,                  # 'saint kitts and nevis'
-        'saint vincent e grenadine'                  => -1,                  # 'saint vincent and the grenadines'
-        'saint-pierre e miquelon'                    => -1,                  # 'saint pierre and miquelon'
-        'stati uniti d\'america'                     => 'stati uniti',       # 'united states'
-        'svalbard e jan mayen'                       => -1,                  # 'svalbard and jan mayen'
-        'são tomé e príncipe'                     => -1,                  # 'sao tome and principe'
-        'territori francesi meridionali'             => -1,                  # 'french southern territories'
-        'territorio britannico dell\'oceano indiano' => -1,                  # 'british indian ocean territory'
-        'trinidad e tobago'                          => 'trinidad',          # 'trinidad and tobago'
-        'turks e caicos'                             => -1,                  # 'turks and caicos islands'
-        'wallis e futuna'                            => 'futuna',            # 'wallis and futuna'
-    };
-
-}
-
 1;

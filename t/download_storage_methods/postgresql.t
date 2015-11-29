@@ -79,7 +79,7 @@ sub test_store_content($$)
     ok( $content_ref, "Fetching download did not die but no content was returned" );
     is( $$content_ref, $test_content, "Content doesn't match." );
 
-    # Check if GridFS thinks that the content exists
+    # Check if PostgreSQL thinks that the content exists
     ok(
         $postgresql->content_exists( $db, $test_downloads_id, $test_downloads_path ),
         "content_exists() reports that content doesn't exist (although it does)"
@@ -93,7 +93,7 @@ sub test_store_content($$)
     ok( ( !$content_ref ),
         "Fetching download that does not exist failed (as expected) but the content reference was returned" );
 
-    # Check if GridFS thinks that the content exists
+    # Check if PostgreSQL thinks that the content exists
     ok(
         ( !$postgresql->content_exists( $db, $test_downloads_id, $test_downloads_path ) ),
         "content_exists() reports that content exists (although it doesn't)"
@@ -125,7 +125,7 @@ sub test_store_content_twice($$)
     ok( $content_ref, "Fetching download did not die but no content was returned" );
     is( $$content_ref, $test_content, "Content doesn't match." );
 
-    # Check if GridFS thinks that the content exists
+    # Check if PostgreSQL thinks that the content exists
     ok(
         $postgresql->content_exists( $db, $test_downloads_id, $test_downloads_path ),
         "content_exists() reports that content doesn't exist (although it does)"
@@ -139,7 +139,7 @@ sub test_store_content_twice($$)
     ok( ( !$content_ref ),
         "Fetching download that does not exist failed (as expected) but the content reference was returned" );
 
-    # Check if GridFS thinks that the content exists
+    # Check if PostgreSQL thinks that the content exists
     ok(
         ( !$postgresql->content_exists( $db, $test_downloads_id, $test_downloads_path ) ),
         "content_exists() reports that content exists (although it doesn't)"

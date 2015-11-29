@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #
-# fetch facebook and twitter statistics for all stories in a controversy
+# fetch facebook statistics for all stories in a controversy
 #
 
 use strict;
@@ -20,10 +20,9 @@ use Getopt::Long;
 use MediaWords::DB;
 use MediaWords::CM;
 use MediaWords::GearmanFunction;
-use MediaWords::GearmanFunction::Twitter::FetchStoryURLStats;
 use MediaWords::GearmanFunction::Facebook::FetchStoryURLStats;
 
-# fetch stats from either twitter or facebook for a single story
+# fetch stats from facebook for a single story
 sub fetch_stats
 {
     my ( $story, $type, $overwrite, $direct_job ) = @_;
@@ -116,7 +115,6 @@ END
 
         for my $story ( @{ $stories } )
         {
-            fetch_stats( $story, 'Twitter',  $overwrite, $direct_job );
             fetch_stats( $story, 'Facebook', $overwrite, $direct_job );
         }
     }
