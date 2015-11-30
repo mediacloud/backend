@@ -28,6 +28,14 @@ use Getopt::Long;
 use Readonly;
 use DateTime;
 
+sub _hours_to_days($)
+{
+    my $hours = shift;
+
+    my $days = $hours / 24.0;
+    return 0 + sprintf( '%.0f', $days );
+}
+
 sub main
 {
     binmode( STDOUT, 'utf8' );
@@ -55,13 +63,13 @@ EOF
     for ( my $day_offset = $from_day_offset ; $day_offset <= $to_day_offset ; ++$day_offset )
     {
         my $bucket = {
-            clicks                                                 => 0,
-            clicks_since_minus_inf                                 => 0,
-            clicks_since_minus_23_hours                            => 0,
-            stories_with_90_percent_of_clicks_since_minus_inf      => 0,
-            stories_with_90_percent_of_clicks_since_minus_23_hours => 0,
-            stories_with_10_clicks_since_minus_inf                 => 0,
-            stories_with_10_clicks_since_minus_23_hours            => 0,
+            clicks                                               => 0,
+            clicks_since_minus_inf                               => 0,
+            clicks_since_minus_1_days                            => 0,
+            stories_with_90_percent_of_clicks_since_minus_inf    => 0,
+            stories_with_90_percent_of_clicks_since_minus_1_days => 0,
+            stories_with_10_clicks_since_minus_inf               => 0,
+            stories_with_10_clicks_since_minus_1_days            => 0,
         };
         my $hour_offset = $day_offset * 24;
         if ( $day_offset == $from_day_offset )
@@ -219,8 +227,8 @@ EOF
         }
         say STDERR "Done fetching story stats for story $stories_id.";
 
-        my $total_story_clicks_since_minus_inf      = 0;
-        my $total_story_clicks_since_minus_23_hours = 0;
+        my $total_story_clicks_since_minus_inf    = 0;
+        my $total_story_clicks_since_minus_1_days = 0;
         foreach my $bitly_hash ( keys %{ $story_stats->{ data } } )
         {
             foreach my $bitly_clicks ( @{ $story_stats->{ data }->{ $bitly_hash }->{ clicks } } )
@@ -235,7 +243,7 @@ EOF
                     $total_story_clicks_since_minus_inf += $clicks;
                     if ( $diff_hours >= -23 )
                     {
-                        $total_story_clicks_since_minus_23_hours += $clicks;
+                        $total_story_clicks_since_minus_1_days += $clicks;
                     }
 
                     my $bucket_found = 0;
@@ -250,8 +258,8 @@ EOF
                             $bucket->{ temp_story }->{ clicks_since_minus_inf } += $clicks;
                             if ( defined $bucket_from and $bucket_from >= -23 )
                             {
-                                $bucket->{ temp_story }->{ clicks_since_minus_23_hours } += $clicks;
-                                $bucket->{ clicks_since_minus_23_hours } += $clicks;
+                                $bucket->{ temp_story }->{ clicks_since_minus_1_days } += $clicks;
+                                $bucket->{ clicks_since_minus_1_days } += $clicks;
                             }
 
                             if ( ( !defined( $bucket_from ) ) or $bucket_from <= $diff_hours )
@@ -277,8 +285,8 @@ EOF
         # say STDERR "Total story clicks since -inf: $total_story_clicks_since_minus_inf";
         foreach my $bucket ( @{ $buckets } )
         {
-            $bucket->{ temp_story }->{ clicks_since_minus_inf }      //= 0;
-            $bucket->{ temp_story }->{ clicks_since_minus_23_hours } //= 0;
+            $bucket->{ temp_story }->{ clicks_since_minus_inf }    //= 0;
+            $bucket->{ temp_story }->{ clicks_since_minus_1_days } //= 0;
 
             # say STDERR "\tBucket from: " . $bucket->{ from } . '; to: ' . $bucket->{ to };
             # say STDERR "\t\tClicks since -inf: " . $bucket->{ temp_story }->{ clicks_since_minus_inf };
@@ -300,23 +308,21 @@ EOF
                 ++$bucket->{ stories_with_90_percent_of_clicks_since_minus_inf };
             }
 
-            if ( $total_story_clicks_since_minus_23_hours > 0 )
+            if ( $total_story_clicks_since_minus_1_days > 0 )
             {
-                if ( $bucket->{ temp_story }->{ clicks_since_minus_23_hours } / $total_story_clicks_since_minus_23_hours >=
-                    0.9 )
+                if ( $bucket->{ temp_story }->{ clicks_since_minus_1_days } / $total_story_clicks_since_minus_1_days >= 0.9 )
                 {
-                    ++$bucket->{ stories_with_90_percent_of_clicks_since_minus_23_hours };
+                    ++$bucket->{ stories_with_90_percent_of_clicks_since_minus_1_days };
                 }
-                if ( $bucket->{ temp_story }->{ clicks_since_minus_23_hours } / $total_story_clicks_since_minus_23_hours >=
-                    0.9 )
+                if ( $bucket->{ temp_story }->{ clicks_since_minus_1_days } / $total_story_clicks_since_minus_1_days >= 0.9 )
                 {
-                    ++$bucket->{ stories_with_10_clicks_since_minus_23_hours };
+                    ++$bucket->{ stories_with_10_clicks_since_minus_1_days };
                 }
             }
             else
             {
                 # If no-one clicked the link at all, we assume that the data has still been collected
-                ++$bucket->{ stories_with_90_percent_of_clicks_since_minus_23_hours };
+                ++$bucket->{ stories_with_90_percent_of_clicks_since_minus_1_days };
             }
 
             delete $bucket->{ temp_story };
@@ -326,41 +332,44 @@ EOF
     say STDERR "Min. publish timestamp: $min_publish_timestamp";
     say STDERR "Max. publish timestamp: $max_publish_timestamp";
 
-    print '"Hours since \'publish_date\'",';
+    print '"Days since \'publish_date\'",';
     print '"Clicks",';
-    print '"Total clicks since -inf hours",';
-    print '"Total clicks since -23 hours",';
-    print '"% of stories with 90% of clicks (counting from -inf hours)",';
-    print '"% of stories with 90% of clicks (counting from -23 hours)",';
-    print '"% of stories with 10+ clicks (counting from -inf hours)",';
-    print '"% of stories with 10+ clicks (counting from -23 hours)"' . "\n";
+    print '"Total clicks since -inf days",';
+    print '"Total clicks since -1 days",';
+    print '"% of stories with 90% of clicks (counting from -inf days)",';
+    print '"% of stories with 90% of clicks (counting from -1 days)",';
+    print '"% of stories with 10+ clicks (counting from -inf days)",';
+    print '"% of stories with 10+ clicks (counting from -1 days)"' . "\n";
 
     foreach my $bucket ( @{ $buckets } )
     {
-        # "Hours since 'publish_date'"
-        print '"' . ( $bucket->{ from } // '-inf' ) . ' — ' . ( $bucket->{ to } // 'inf' ) . '",';
+        # "Days since 'publish_date'"
+        printf(
+            '"%s days — %s days",',
+            ( defined $bucket->{ from } ? _hours_to_days( $bucket->{ from } ) : '-inf' ),
+            ( defined $bucket->{ to }   ? _hours_to_days( $bucket->{ to } )   : 'inf' )
+        );
 
         # "Clicks"
         print $bucket->{ clicks } . ',';
 
-        # "Total clicks since -inf hours"
+        # "Total clicks since -inf days"
         print $bucket->{ clicks_since_minus_inf } . ',';
 
-        # "Total clicks since -23 hours"
-        print $bucket->{ clicks_since_minus_23_hours } . ',';
+        # "Total clicks since -1 days"
+        print $bucket->{ clicks_since_minus_1_days } . ',';
 
         # "% of stories with 90% of clicks (counting from -inf)"
         print '' . ( $bucket->{ stories_with_90_percent_of_clicks_since_minus_inf } / $story_fetched_count * 100 ) . ',';
 
-        # "% of stories with 90% of clicks (counting from -23 hours)"
-        print '' .
-          ( $bucket->{ stories_with_90_percent_of_clicks_since_minus_23_hours } / $story_fetched_count * 100 ) . ',';
+        # "% of stories with 90% of clicks (counting from -1 days)"
+        print '' . ( $bucket->{ stories_with_90_percent_of_clicks_since_minus_1_days } / $story_fetched_count * 100 ) . ',';
 
         # "% of stories with 10+ clicks (counting from -inf)"
         print '' . ( $bucket->{ stories_with_10_clicks_since_minus_inf } / $story_fetched_count * 100 ) . ',';
 
-        # "% of stories with 10+ clicks (counting from -23 hours)"
-        print '' . ( $bucket->{ stories_with_10_clicks_since_minus_23_hours } / $story_fetched_count * 100 );
+        # "% of stories with 10+ clicks (counting from -1 days)"
+        print '' . ( $bucket->{ stories_with_10_clicks_since_minus_1_days } / $story_fetched_count * 100 );
 
         print "\n";
 
