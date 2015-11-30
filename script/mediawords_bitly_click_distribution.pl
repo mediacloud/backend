@@ -8,6 +8,7 @@
 
 use strict;
 use warnings;
+use utf8;
 
 BEGIN
 {
@@ -337,7 +338,7 @@ EOF
     foreach my $bucket ( @{ $buckets } )
     {
         # "Hours since 'publish_date'"
-        print '"' . ( $bucket->{ from } // '-inf' ) . ' -- ' . ( $bucket->{ to } // 'inf' ) . '",';
+        print '"' . ( $bucket->{ from } // '-inf' ) . ' — ' . ( $bucket->{ to } // 'inf' ) . '",';
 
         # "Clicks"
         print $bucket->{ clicks } . ',';
