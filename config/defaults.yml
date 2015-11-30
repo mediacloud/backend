@@ -32,7 +32,6 @@ mediawords:
     inline_java_jni: no
     language: en_US_and_ru_RU
     owner: mediacloud@cyber.law.harvard.edu
-    read_gridfs_downloads_from_s3: no
     fallback_postgresql_downloads_to_s3: no
     cache_s3_downloads: no
     recaptcha_private_key: 6LfEVt0SAAAAABmI-8IJmx4g93eNcSeyeCxvLMs2

@@ -333,9 +333,6 @@ mediawords:
         ### store downloads in Amazon S3
         #- amazon_s3
 
-    ### Uncomment to force reading downloads that were stored in GridFS from Amazon S3
-    #read_gridfs_downloads_from_s3 : "no"
-
     ### Uncomment to fallback PostgreSQL downloads to Amazon S3 (if download
     ### doesn't exist in PostgreSQL storage, S3 will be tried instead)
     #fallback_postgresql_downloads_to_s3 : "no"
