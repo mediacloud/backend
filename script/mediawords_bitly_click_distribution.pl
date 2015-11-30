@@ -258,8 +258,8 @@ EOF
                             $bucket->{ temp_story }->{ clicks_since_minus_inf } += $clicks;
                             if ( defined $bucket_from and $bucket_from >= -23 )
                             {
-                                $bucket->{ temp_story }->{ clicks_since_minus_1_days } += $clicks;
                                 $bucket->{ clicks_since_minus_1_days } += $clicks;
+                                $bucket->{ temp_story }->{ clicks_since_minus_1_days } += $clicks;
                             }
 
                             if ( ( !defined( $bucket_from ) ) or $bucket_from <= $diff_hours )
