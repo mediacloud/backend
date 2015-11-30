@@ -350,8 +350,8 @@ sub _download_stores_for_reading($)
         # Assume it's stored in a filesystem (the downloads.path contains a
         # full path to the download).
         #
-        # Those downloads have been migrated to GridFS (which is likely to be read from S3).
-        $download_store = 'gridfs';
+        # Those downloads have been migrated to PostgreSQL (which might get redirected to S3).
+        $download_store = 'postgresql';
     }
 
     unless ( defined $download_store )
