@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4516;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4517;
 
 BEGIN
 
@@ -2386,7 +2386,7 @@ CREATE VIEW daily_stats AS
             FROM downloads_with_error_in_past_day
          ) AS er,
          (
-            SELECT SUM( num_stories ) AS solr_stories
+            SELECT COALESCE( SUM( num_stories ), 0  ) AS solr_stories
             FROM solr_imports WHERE import_date > now() - interval '1 day'
          ) AS si;
 
