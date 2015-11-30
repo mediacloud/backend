@@ -361,7 +361,7 @@ sub _download_stores_for_reading($)
 
     # Overrides:
 
-    # All non-online downloads have to be fetched from S3?
+    # All non-inline downloads have to be fetched from S3?
     if ( $download_store ne 'databaseinline'
         and lc( get_config->{ mediawords }->{ read_all_downloads_from_s3 } || '' ) eq 'yes' )
     {
