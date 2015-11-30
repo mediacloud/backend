@@ -360,16 +360,16 @@ EOF
         print $bucket->{ clicks_since_minus_1_days } . ',';
 
         # "% of stories with 90% of clicks (counting from -inf)"
-        print '' . ( $bucket->{ stories_with_90_percent_of_clicks_since_minus_inf } / $story_fetched_count * 100 ) . ',';
+        print '' . ( $bucket->{ stories_with_90_percent_of_clicks_since_minus_inf } / $story_fetched_count ) . ',';
 
         # "% of stories with 90% of clicks (counting from -1 days)"
-        print '' . ( $bucket->{ stories_with_90_percent_of_clicks_since_minus_1_days } / $story_fetched_count * 100 ) . ',';
+        print '' . ( $bucket->{ stories_with_90_percent_of_clicks_since_minus_1_days } / $story_fetched_count ) . ',';
 
         # "% of stories with 10+ clicks (counting from -inf)"
-        print '' . ( $bucket->{ stories_with_10_clicks_since_minus_inf } / $story_fetched_count * 100 ) . ',';
+        print '' . ( $bucket->{ stories_with_10_clicks_since_minus_inf } / $story_fetched_count ) . ',';
 
         # "% of stories with 10+ clicks (counting from -1 days)"
-        print '' . ( $bucket->{ stories_with_10_clicks_since_minus_1_days } / $story_fetched_count * 100 );
+        print '' . ( $bucket->{ stories_with_10_clicks_since_minus_1_days } / $story_fetched_count );
 
         print "\n";
 
