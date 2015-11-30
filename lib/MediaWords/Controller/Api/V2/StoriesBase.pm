@@ -190,7 +190,7 @@ with ap_sentences as
 
 min_ap_sentences as
 (
-    select stories_id, ap_stories_id from ap_sentences group by stories_id, ap_stories_id having count(*) > 3
+    select stories_id, ap_stories_id from ap_sentences group by stories_id, ap_stories_id having count(*) > 1
 )
 
 select ids.id stories_id, ap.ap_stories_id

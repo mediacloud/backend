@@ -175,8 +175,6 @@ sub get_content_for_first_download($$)
 
     my $first_download = get_first_download( $db, $story );
 
-    say STDERR "got first_download " . Dumper( $first_download );
-
     if ( $first_download->{ state } ne 'success' )
     {
         say STDERR "First download's state is not 'success' for story " . $story->{ stories_id };

@@ -194,16 +194,6 @@ programs = gearmand
 %]
 
 [% INCLUDE program_config
-    program='twitter_fetch_story_stats'
-    gearman_worker_module='Twitter/FetchStoryURLStats.pm'
-    default_stopasgroup='false'
-    default_killasgroup='false'
-    default_autorestart='false'
-    default_autostart='true'
-    default_nice=10
-%]
-
-[% INCLUDE program_config
     program='facebook_fetch_story_stats'
     gearman_worker_module='Facebook/FetchStoryURLStats.pm'
     default_stopasgroup='false'

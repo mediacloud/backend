@@ -145,7 +145,6 @@ my $_download_store_lookup = lazy
     require MediaWords::KeyValueStore::AmazonS3;
     require MediaWords::KeyValueStore::CachedAmazonS3;
     require MediaWords::KeyValueStore::DatabaseInline;
-    require MediaWords::KeyValueStore::GridFS;
     require MediaWords::KeyValueStore::PostgreSQL;
     require MediaWords::KeyValueStore::PostgreSQLFallback;
 
@@ -165,10 +164,6 @@ my $_download_store_lookup = lazy
         # downloads.path is prefixed with "amazon_s3:";
         # download is stored in Amazon S3
         amazon_s3 => undef,    # might remain 'undef' if not configured
-
-        # downloads.path is prefixed with "gridfs:";
-        # download is stored in MongoDB GridFS
-        gridfs => undef,    # might remain 'undef' if not configured
     };
 
     # Early sanity check on configuration
@@ -203,13 +198,6 @@ my $_download_store_lookup = lazy
             die "'amazon_s3' storage location is enabled, but Amazon S3 is not configured.\n";
         }
     }
-    if ( exists( $enabled_download_storage_locations{ gridfs } ) )
-    {
-        unless ( get_config->{ mongodb_gridfs } )
-        {
-            die "'gridfs' storage location is enabled, but MongoDB GridFS is not configured.\n";
-        }
-    }
 
     # Initialize key value stores for downloads
     if ( get_config->{ amazon_s3 } )
@@ -240,15 +228,6 @@ my $_download_store_lookup = lazy
             # no arguments are needed
         }
     );
-
-    if ( get_config->{ mongodb_gridfs } )
-    {
-        if ( get_config->{ mongodb_gridfs }->{ downloads } )
-        {
-            $download_store_lookup->{ gridfs } = MediaWords::KeyValueStore::GridFS->new(
-                { database_name => get_config->{ mongodb_gridfs }->{ downloads }->{ database_name } } );
-        }
-    }
 
     # Main raw downloads database / table
     my $raw_downloads_db_label = 'raw_downloads';    # as set up in mediawords.yml
@@ -356,7 +335,8 @@ sub _download_stores_for_reading($)
 
         elsif ( $location eq 'gridfs' or $location eq 'tar' )
         {
-            $download_store = 'gridfs';
+            # Might get later overriden to "amazon_s3"
+            $download_store = 'postgresql';
         }
 
         else
@@ -370,8 +350,8 @@ sub _download_stores_for_reading($)
         # Assume it's stored in a filesystem (the downloads.path contains a
         # full path to the download).
         #
-        # Those downloads have been migrated to GridFS.
-        $download_store = 'gridfs';
+        # Those downloads have been migrated to PostgreSQL (which might get redirected to S3).
+        $download_store = 'postgresql';
     }
 
     unless ( defined $download_store )
@@ -381,13 +361,11 @@ sub _download_stores_for_reading($)
 
     # Overrides:
 
-    # GridFS downloads have to be fetched from S3?
-    if ( $download_store eq 'gridfs' or $download_store eq 'tar' )
+    # All non-inline downloads have to be fetched from S3?
+    if ( $download_store ne 'databaseinline'
+        and lc( get_config->{ mediawords }->{ read_all_downloads_from_s3 } ) eq 'yes' )
     {
-        if ( lc( get_config->{ mediawords }->{ read_gridfs_downloads_from_s3 } eq 'yes' ) )
-        {
-            $download_store = 'amazon_s3';
-        }
+        $download_store = 'amazon_s3';
     }
 
     unless ( defined $_download_store_lookup->{ $download_store } )
