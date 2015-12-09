@@ -41,12 +41,6 @@ Readonly my $BITLY_RATE_LIMIT_SECONDS_TO_WAIT => 60 * 10;    # every 10 minutes
 # How many times to try on rate limiting errors
 Readonly my $BITLY_RATE_LIMIT_TRIES => 7;                    # try fetching 7 times in total (70 minutes)
 
-# What stats to fetch for each story
-Readonly my $BITLY_FETCH_CLICKS => 1;
-Readonly my $stats_to_fetch     => MediaWords::Util::Bitly::StatsToFetch->new(
-    $BITLY_FETCH_CLICKS,                                     # "/v3/link/clicks"
-);
-
 # Having a global database object should be safe because
 # Gearman::JobScheduler's workers don't support fork()s anymore
 my $db = undef;
@@ -82,8 +76,7 @@ sub run($;$)
     {
         say STDERR "Fetching story stats for story $stories_id" . ( $retry ? " (retry $retry)" : '' ) . "...";
         eval {
-            $stats = MediaWords::Util::Bitly::fetch_stats_for_story( $db, $stories_id, $start_timestamp, $end_timestamp,
-                $stats_to_fetch );
+            $stats = MediaWords::Util::Bitly::fetch_stats_for_story( $db, $stories_id, $start_timestamp, $end_timestamp );
         };
         $error_message = $@;
 

@@ -21,12 +21,6 @@ use MediaWords::Solr;
 use MediaWords::Util::Bitly;
 use MediaWords::Util::JSON;
 
-# What stats to fetch for each story
-Readonly my $BITLY_FETCH_CLICKS => 1;
-Readonly my $stats_to_fetch     => MediaWords::Util::Bitly::StatsToFetch->new(
-    $BITLY_FETCH_CLICKS,    # "/v3/link/clicks"
-);
-
 =head1 NAME
 
 MediaWords::Controller::Stories - Catalyst Controller
@@ -186,8 +180,7 @@ sub fetch_bitly_clicks : Local
             }
 
             $bitly_clicks =
-              MediaWords::Util::Bitly::fetch_stats_for_story( $db, $stories_id, $start_timestamp, $end_timestamp,
-                $stats_to_fetch );
+              MediaWords::Util::Bitly::fetch_stats_for_story( $db, $stories_id, $start_timestamp, $end_timestamp );
 
             ( $agg_stories_id, $agg_stories_url ) = ( $stories_id, $story->{ url } );
 
@@ -196,8 +189,7 @@ sub fetch_bitly_clicks : Local
         {
 
             $bitly_clicks =
-              MediaWords::Util::Bitly::fetch_stats_for_url( $db, $stories_url, $start_timestamp, $end_timestamp,
-                $stats_to_fetch );
+              MediaWords::Util::Bitly::fetch_stats_for_url( $db, $stories_url, $start_timestamp, $end_timestamp );
 
             ( $agg_stories_id, $agg_stories_url ) = ( 0, $stories_url );
 

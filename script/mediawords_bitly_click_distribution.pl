@@ -173,12 +173,6 @@ EOF
         # How many times to try on rate limiting errors
         Readonly my $BITLY_RATE_LIMIT_TRIES => 7;                    # try fetching 7 times in total (70 minutes)
 
-        # What stats to fetch for each story
-        Readonly my $BITLY_FETCH_CLICKS => 1;
-        Readonly my $stats_to_fetch     => MediaWords::Util::Bitly::StatsToFetch->new(
-            $BITLY_FETCH_CLICKS,                                     # "/v3/link/clicks"
-        );
-
         ++$story_fetched_count;
 
         my $story_stats = undef;
@@ -188,8 +182,8 @@ EOF
         {
             say STDERR "Fetching story stats for story $stories_id" . ( $retry ? " (retry $retry)" : '' ) . "...";
             eval {
-                $story_stats = MediaWords::Util::Bitly::fetch_stats_for_url( $db, $stories_url,
-                    $start_timestamp, $end_timestamp, $stats_to_fetch );
+                $story_stats =
+                  MediaWords::Util::Bitly::fetch_stats_for_url( $db, $stories_url, $start_timestamp, $end_timestamp );
             };
             $error_message = $@;
 

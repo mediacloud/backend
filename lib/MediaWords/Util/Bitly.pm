@@ -746,28 +746,6 @@ sub bitly_link_clicks($;$$)
     return $result;
 }
 
-{
-    # Object to determine what kind of stats to fetch from Bit.ly (used in
-    # fetch_stats_for_story())
-    package MediaWords::Util::Bitly::StatsToFetch;
-
-    sub new($;$)
-    {
-        my $class = shift;
-        my ( $fetch_clicks ) = @_;
-
-        my $self = {};
-        bless $self, $class;
-
-        # Default values
-        $self->{ fetch_clicks } = $fetch_clicks // 1;
-
-        return $self;
-    }
-
-    1;
-}
-
 # Check if story has to be processed with Bit.ly (controversies.process_with_bitly == 't')
 # Return 1 if story has to be processed with Bit.ly, 0 otherwise, die() on error, exit() on fatal error
 sub story_is_enabled_for_processing($$)
@@ -834,16 +812,13 @@ sub story_stats_are_fetched($$)
 # * $stories_id - story ID
 # * $start_timestamp - starting date (offset) for fetching statistics
 # * $end_timestamp - ending date (limit) for fetching statistics
-# * $stats_to_fetch (optional) - object of type
-#   "MediaWords::Util::Bitly::StatsToFetch" which determines what kind of
-#   statistics to fetch for the story
 #
 # Returns: see fetch_stats_for_url()
 #
 # die()s on error
-sub fetch_stats_for_story($$$$;$)
+sub fetch_stats_for_story($$$$)
 {
-    my ( $db, $stories_id, $start_timestamp, $end_timestamp, $stats_to_fetch ) = @_;
+    my ( $db, $stories_id, $start_timestamp, $end_timestamp ) = @_;
 
     my $story = $db->find_by_id( 'stories', $stories_id );
     unless ( $story )
@@ -853,7 +828,7 @@ sub fetch_stats_for_story($$$$;$)
 
     my $stories_url = $story->{ url };
 
-    return fetch_stats_for_url( $db, $stories_url, $start_timestamp, $end_timestamp, $stats_to_fetch );
+    return fetch_stats_for_url( $db, $stories_url, $start_timestamp, $end_timestamp );
 }
 
 # Fetch story URL statistics from Bit.ly API
@@ -863,9 +838,6 @@ sub fetch_stats_for_story($$$$;$)
 # * $stories_url - story URL
 # * $start_timestamp - starting date (offset) for fetching statistics
 # * $end_timestamp - ending date (limit) for fetching statistics
-# * $stats_to_fetch (optional) - object of type
-#   "MediaWords::Util::Bitly::StatsToFetch" which determines what kind of
-#   statistics to fetch for the story
 #
 # Returns: hashref with statistics, e.g.:
 #    {
@@ -909,9 +881,9 @@ sub fetch_stats_for_story($$$$;$)
 #    };
 #
 # die()s on error
-sub fetch_stats_for_url($$$$;$)
+sub fetch_stats_for_url($$$$)
 {
-    my ( $db, $stories_url, $start_timestamp, $end_timestamp, $stats_to_fetch ) = @_;
+    my ( $db, $stories_url, $start_timestamp, $end_timestamp ) = @_;
 
     unless ( $stories_url )
     {
@@ -921,27 +893,6 @@ sub fetch_stats_for_url($$$$;$)
     unless ( bitly_processing_is_enabled() )
     {
         die "Bit.ly processing is not enabled.";
-    }
-
-    {
-        local $Data::Dumper::Indent = 0;
-
-        if ( defined $stats_to_fetch )
-        {
-
-            unless ( ref( $stats_to_fetch ) eq 'MediaWords::Util::Bitly::StatsToFetch' )
-            {
-                die "'stats_to_fetch' must be an instance of MediaWords::Util::Bitly::StatsToFetch";
-            }
-
-            say STDERR "Will fetch the following Bit.ly stats: " . Dumper( $stats_to_fetch );
-
-        }
-        else
-        {
-            $stats_to_fetch = MediaWords::Util::Bitly::StatsToFetch->new();
-            say STDERR "Will fetch default Bit.ly stats: " . Dumper( $stats_to_fetch );
-        }
     }
 
     my $string_start_date = gmt_date_string_from_timestamp( $start_timestamp );
@@ -1009,15 +960,12 @@ sub fetch_stats_for_url($$$$;$)
 
         say STDERR "Fetching stats for Bit.ly ID $bitly_id...";
 
-        if ( $stats_to_fetch->{ fetch_clicks } )
-        {
-            say STDERR "Fetching clicks for Bit.ly ID $bitly_id for date range $string_start_date - $string_end_date...";
-            $link_stats->{ 'data' }->{ $bitly_id }->{ 'clicks' } = [
+        say STDERR "Fetching clicks for Bit.ly ID $bitly_id for date range $string_start_date - $string_end_date...";
+        $link_stats->{ 'data' }->{ $bitly_id }->{ 'clicks' } = [
 
-                # array because one might want to make multiple requests with various dates
-                bitly_link_clicks( $bitly_id, $start_timestamp, $end_timestamp )
-            ];
-        }
+            # array because one might want to make multiple requests with various dates
+            bitly_link_clicks( $bitly_id, $start_timestamp, $end_timestamp )
+        ];
     }
 
     # No links?
