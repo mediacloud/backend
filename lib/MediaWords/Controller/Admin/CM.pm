@@ -744,8 +744,7 @@ sub _get_top_media_for_time_slice
                mlc.inlink_count,
                mlc.outlink_count,
                mlc.story_count,
-               mlc.bitly_click_count,
-               mlc.bitly_referrer_count
+               mlc.bitly_click_count
         FROM dump_media_with_types AS m,
              dump_medium_link_counts AS mlc
         WHERE m.media_id = mlc.media_id
@@ -768,8 +767,7 @@ sub _get_top_stories_for_time_slice
         SELECT s.*,
                slc.inlink_count,
                slc.outlink_count,
-               slc.bitly_click_count,
-               slc.bitly_referrer_count,
+               slc.bitly_click_count
                m.name as medium_name,
                m.media_type
         FROM dump_stories AS s,
@@ -1182,8 +1180,7 @@ sub _get_medium_and_stories_from_dump_tables
                m.media_type,
                slc.inlink_count,
                slc.outlink_count,
-               slc.bitly_click_count,
-               slc.bitly_referrer_count
+               slc.bitly_click_count
         FROM dump_stories AS s,
              dump_media_with_types AS m,
              dump_story_link_counts AS slc
@@ -1203,8 +1200,7 @@ END
                         sm.media_type,
                         sslc.inlink_count,
                         sslc.outlink_count,
-                        sslc.bitly_click_count,
-                        sslc.bitly_referrer_count
+                        sslc.bitly_click_count
         FROM dump_stories AS s,
              dump_story_link_counts AS sslc,
              dump_media_with_types AS sm,
@@ -1231,8 +1227,7 @@ END
                         rm.media_type,
                         rslc.inlink_count,
                         rslc.outlink_count,
-                        rslc.bitly_click_count,
-                        rslc.bitly_referrer_count
+                        rslc.bitly_click_count
         FROM dump_stories AS s,
              dump_story_link_counts AS sslc,
              dump_stories AS r,
@@ -1425,8 +1420,7 @@ sub _get_story_and_links_from_dump_tables
                         sm.media_type,
                         sslc.inlink_count,
                         sslc.outlink_count,
-                        sslc.bitly_click_count,
-                        sslc.bitly_referrer_count
+                        sslc.bitly_click_count
         FROM dump_stories AS s,
              dump_story_link_counts AS sslc,
              dump_media_with_types AS sm,
@@ -1453,8 +1447,7 @@ END
                         rm.media_type,
                         rslc.inlink_count,
                         rslc.outlink_count,
-                        rslc.bitly_click_count,
-                        rslc.bitly_referrer_count
+                        rslc.bitly_click_count
         FROM dump_stories AS s,
              dump_story_link_counts AS sslc,
              dump_stories AS r,
@@ -1750,8 +1743,7 @@ sub search_stories : Local
                m.media_type,
                slc.inlink_count,
                slc.outlink_count,
-               slc.bitly_click_count,
-               slc.bitly_referrer_count
+               slc.bitly_click_count
         FROM dump_stories AS s,
              dump_media_with_types AS m,
              dump_story_link_counts AS slc
@@ -1826,8 +1818,7 @@ sub _add_id_medium_to_search_results ($$$)
         SELECT DISTINCT m.*,
                         mlc.inlink_count,
                         mlc.outlink_count,
-                        mlc.bitly_click_count,
-                        mlc.bitly_referrer_count,
+                        mlc.bitly_click_count
                         mlc.story_count
         FROM dump_story_link_counts AS slc
             JOIN stories AS s ON ( slc.stories_id = s.stories_id )
@@ -1880,8 +1871,7 @@ sub search_media : Local
         SELECT DISTINCT m.*,
                         mlc.inlink_count,
                         mlc.outlink_count,
-                        mlc.bitly_click_count,
-                        mlc.bitly_referrer_count,
+                        mlc.bitly_click_count
                         mlc.story_count
         FROM dump_media_with_types AS m,
              dump_medium_link_counts AS mlc

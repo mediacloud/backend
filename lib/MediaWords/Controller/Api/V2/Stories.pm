@@ -22,15 +22,9 @@ use MediaWords::Util::Bitly;
 use MediaWords::Util::JSON;
 
 # What stats to fetch for each story
-Readonly my $BITLY_FETCH_CATEGORIES => 0;
-Readonly my $BITLY_FETCH_CLICKS     => 1;
-Readonly my $BITLY_FETCH_REFERRERS  => 0;
-Readonly my $BITLY_FETCH_SHARES     => 0;
-Readonly my $stats_to_fetch         => MediaWords::Util::Bitly::StatsToFetch->new(
-    $BITLY_FETCH_CATEGORIES,    # "/v3/link/category"
-    $BITLY_FETCH_CLICKS,        # "/v3/link/clicks"
-    $BITLY_FETCH_REFERRERS,     # "/v3/link/referrers"
-    $BITLY_FETCH_SHARES         # "/v3/link/shares"
+Readonly my $BITLY_FETCH_CLICKS => 1;
+Readonly my $stats_to_fetch     => MediaWords::Util::Bitly::StatsToFetch->new(
+    $BITLY_FETCH_CLICKS,    # "/v3/link/clicks"
 );
 
 =head1 NAME

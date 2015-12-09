@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4517;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4518;
 
 BEGIN
 
@@ -1987,8 +1987,7 @@ CREATE TABLE story_bitly_statistics (
     stories_id                  INT     NOT NULL UNIQUE REFERENCES stories ON DELETE CASCADE,
 
     -- Bit.ly stats
-    bitly_click_count           INT     NOT NULL,
-    bitly_referrer_count        INT     NOT NULL
+    bitly_click_count           INT     NOT NULL
 );
 CREATE UNIQUE INDEX story_bitly_statistics_stories_id
     ON story_bitly_statistics ( stories_id );
@@ -1996,23 +1995,21 @@ CREATE UNIQUE INDEX story_bitly_statistics_stories_id
 -- Helper to INSERT / UPDATE story's Bit.ly statistics
 CREATE FUNCTION upsert_story_bitly_statistics (
     param_stories_id INT,
-    param_bitly_click_count INT,
-    param_bitly_referrer_count INT
+    param_bitly_click_count INT
 ) RETURNS VOID AS
 $$
 BEGIN
     LOOP
         -- Try UPDATing
         UPDATE story_bitly_statistics
-            SET bitly_click_count = param_bitly_click_count,
-                bitly_referrer_count = param_bitly_referrer_count
+            SET bitly_click_count = param_bitly_click_count
             WHERE stories_id = param_stories_id;
         IF FOUND THEN RETURN; END IF;
 
         -- Nothing to UPDATE, try to INSERT a new record
         BEGIN
-            INSERT INTO story_bitly_statistics (stories_id, bitly_click_count, bitly_referrer_count)
-            VALUES (param_stories_id, param_bitly_click_count, param_bitly_referrer_count);
+            INSERT INTO story_bitly_statistics (stories_id, bitly_click_count)
+            VALUES (param_stories_id, param_bitly_click_count);
             RETURN;
         EXCEPTION WHEN UNIQUE_VIOLATION THEN
             -- If someone else INSERTs the same key concurrently,
@@ -2171,8 +2168,7 @@ create table cd.story_link_counts (
 
     -- Bit.ly stats
     -- (values can be NULL if Bit.ly is not enabled / configured for a controversy)
-    bitly_click_count                       int null,
-    bitly_referrer_count                    int null
+    bitly_click_count                       int null
 );
 
 -- TODO: add complex foreign key to check that stories_id exists for the controversy_dump stories snapshot
@@ -2189,8 +2185,7 @@ create table cd.medium_link_counts (
 
     -- Bit.ly (aggregated) stats
     -- (values can be NULL if Bit.ly is not enabled / configured for a controversy)
-    bitly_click_count               int null,
-    bitly_referrer_count            int null
+    bitly_click_count               int null
 );
 
 -- TODO: add complex foreign key to check that media_id exists for the controversy_dump media snapshot
