@@ -68,8 +68,6 @@ EOF
             clicks_since_minus_1_days                            => 0,
             stories_with_90_percent_of_clicks_since_minus_inf    => 0,
             stories_with_90_percent_of_clicks_since_minus_1_days => 0,
-            stories_with_10_clicks_since_minus_inf               => 0,
-            stories_with_10_clicks_since_minus_1_days            => 0,
         };
         my $hour_offset = $day_offset * 24;
         if ( $day_offset == $from_day_offset )
@@ -297,10 +295,6 @@ EOF
                 {
                     ++$bucket->{ stories_with_90_percent_of_clicks_since_minus_inf };
                 }
-                if ( $bucket->{ temp_story }->{ clicks_since_minus_inf } >= 10 )
-                {
-                    ++$bucket->{ stories_with_10_clicks_since_minus_inf };
-                }
             }
             else
             {
@@ -313,10 +307,6 @@ EOF
                 if ( $bucket->{ temp_story }->{ clicks_since_minus_1_days } / $total_story_clicks_since_minus_1_days >= 0.9 )
                 {
                     ++$bucket->{ stories_with_90_percent_of_clicks_since_minus_1_days };
-                }
-                if ( $bucket->{ temp_story }->{ clicks_since_minus_1_days } / $total_story_clicks_since_minus_1_days >= 0.9 )
-                {
-                    ++$bucket->{ stories_with_10_clicks_since_minus_1_days };
                 }
             }
             else
@@ -337,9 +327,7 @@ EOF
     print '"Total clicks since -inf days",';
     print '"Total clicks since -1 days",';
     print '"% of stories with 90% of clicks (counting from -inf days)",';
-    print '"% of stories with 90% of clicks (counting from -1 days)",';
-    print '"% of stories with 10+ clicks (counting from -inf days)",';
-    print '"% of stories with 10+ clicks (counting from -1 days)"' . "\n";
+    print '"% of stories with 90% of clicks (counting from -1 days)"' . "\n";
 
     foreach my $bucket ( @{ $buckets } )
     {
@@ -363,13 +351,7 @@ EOF
         print '' . ( $bucket->{ stories_with_90_percent_of_clicks_since_minus_inf } / $story_fetched_count ) . ',';
 
         # "% of stories with 90% of clicks (counting from -1 days)"
-        print '' . ( $bucket->{ stories_with_90_percent_of_clicks_since_minus_1_days } / $story_fetched_count ) . ',';
-
-        # "% of stories with 10+ clicks (counting from -inf)"
-        print '' . ( $bucket->{ stories_with_10_clicks_since_minus_inf } / $story_fetched_count ) . ',';
-
-        # "% of stories with 10+ clicks (counting from -1 days)"
-        print '' . ( $bucket->{ stories_with_10_clicks_since_minus_1_days } / $story_fetched_count );
+        print '' . ( $bucket->{ stories_with_90_percent_of_clicks_since_minus_1_days } / $story_fetched_count );
 
         print "\n";
 
