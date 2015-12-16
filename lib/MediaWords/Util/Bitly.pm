@@ -747,37 +747,6 @@ sub bitly_link_clicks($;$$)
     return $result;
 }
 
-# Check if story has to be processed with Bit.ly (controversies.process_with_bitly == 't')
-# Return 1 if story has to be processed with Bit.ly, 0 otherwise, die() on error, exit() on fatal error
-sub story_is_enabled_for_processing($$)
-{
-    my ( $db, $stories_id ) = @_;
-
-    unless ( bitly_processing_is_enabled() )
-    {
-        die "Bit.ly processing is not enabled.";
-    }
-
-    my $story = $db->query(
-        <<EOF,
-        SELECT 1 AS story_is_enabled_for_bitly_processing
-        FROM controversy_stories
-            INNER JOIN controversies ON controversy_stories.controversies_id = controversies.controversies_id
-        WHERE stories_id = ?
-          AND controversies.process_with_bitly = 't';
-EOF
-        $stories_id
-    )->hash;
-    if ( $story->{ story_is_enabled_for_bitly_processing } )
-    {
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
-}
-
 # Check if story is processed with Bit.ly (stats are fetched)
 # Return 1 if stats for story are fetched, 0 otherwise, die() on error, exit() on fatal error
 sub story_stats_are_fetched($$)
