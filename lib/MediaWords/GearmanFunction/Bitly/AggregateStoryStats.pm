@@ -71,7 +71,7 @@ sub run($;$)
     say STDERR "Story's $stories_id total click count: $total_click_count";
 
     # Store stats ("upsert" the record into "bitly_clicks" table)
-    foreach my $click_date ( $agg_stats->{ dates_and_clicks } )
+    foreach my $click_date ( keys %{ $agg_stats->{ dates_and_clicks } } )
     {
         my $click_count = $agg_stats->{ dates_and_clicks }->{ $click_date };
         $db->query(
