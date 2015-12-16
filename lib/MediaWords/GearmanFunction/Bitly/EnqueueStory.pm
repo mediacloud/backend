@@ -108,9 +108,15 @@ sub run($;$)
     $publish_datetime->set( hour => 0, minute => 0, second => 0 );
     $publish_timestamp = $publish_datetime->epoch;
 
-    # Span across ~300 days
-    my $start_timestamp = $publish_timestamp - ( 60 * 60 * 24 * 150 );
-    my $end_timestamp   = $publish_timestamp + ( 60 * 60 * 24 * 150 );
+    # Span -2 days to the past (to account for TZ conversion errors), 30 days to the future
+    my $start_timestamp = $publish_timestamp - ( 60 * 60 * 24 * 2 );
+    my $end_timestamp   = $publish_timestamp + ( 60 * 60 * 24 * 30 );
+    if ( $end_timestamp > _publish_timestamp_upper_bound() )
+    {
+        warn "End timestamp is in the future, so truncating to current timestamp; " .
+          "consider fetching Bit.ly stats after a longer delay since 'publish_date'";
+        $end_timestamp = DateTime->now()->epoch;
+    }
 
     say STDERR "Enqueueing story $stories_id for Bit.ly processing (start TS: $start_timestamp, end TS: $end_timestamp)...";
 
