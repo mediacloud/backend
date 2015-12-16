@@ -31,7 +31,7 @@ DROP FUNCTION upsert_story_bitly_statistics(INT, INT);
 
 ALTER TABLE story_bitly_statistics
     RENAME TO legacy_controversy_stories_bitly_statistics;
-ALTER TABLE controversy_stories_bitly_statistics
+ALTER TABLE legacy_controversy_stories_bitly_statistics
     RENAME COLUMN story_bitly_statistics_id TO controversy_stories_bitly_statistics_id;
 ALTER INDEX story_bitly_statistics_stories_id
     RENAME TO legacy_controversy_stories_bitly_statistics_stories_id;
