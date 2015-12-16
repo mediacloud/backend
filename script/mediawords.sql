@@ -1981,6 +1981,16 @@ create table story_statistics_twitter (
 create unique index story_statistics_twitter_story on story_statistics_twitter ( stories_id );
 
 
+-- Bit.ly stats for stories
+CREATE TABLE bitly_clicks (
+    bitly_clicks_id   SERIAL    NOT NULL,
+    stories_id        INT       NOT NULL REFERENCES stories(stories_id) ON DELETE CASCADE,
+    click_date        DATE      NOT NULL,
+    click_count       INT       NOT NULL
+);
+CREATE UNIQUE INDEX bitly_clicks_stories_id ON bitly_clicks (stories_id);
+
+
 -- Bit.ly stats for controversy stories
 CREATE TABLE controversy_stories_bitly_statistics (
     controversy_stories_bitly_statistics_id   SERIAL  PRIMARY KEY,

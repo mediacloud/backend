@@ -66,6 +66,16 @@ $$
 LANGUAGE plpgsql;
 
 
+-- Create table for storing Bit.ly click stats for stories
+CREATE TABLE bitly_clicks (
+    bitly_clicks_id   SERIAL    NOT NULL,
+    stories_id        INT       NOT NULL REFERENCES stories(stories_id) ON DELETE CASCADE,
+    click_date        DATE      NOT NULL,
+    click_count       INT       NOT NULL
+);
+CREATE UNIQUE INDEX bitly_clicks_stories_id ON bitly_clicks (stories_id);
+
+
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
 
