@@ -2073,16 +2073,53 @@ $$
 LANGUAGE plpgsql;
 
 
--- Bit.ly stats for controversy stories
-CREATE TABLE controversy_stories_bitly_statistics (
+-- Legacy Bit.ly stats for controversy stories, use "bitly_clicks" instead
+CREATE TABLE legacy_controversy_stories_bitly_statistics (
     controversy_stories_bitly_statistics_id   SERIAL  PRIMARY KEY,
     stories_id                                INT     NOT NULL UNIQUE REFERENCES stories ON DELETE CASCADE,
 
     -- Bit.ly stats
     bitly_click_count                         INT     NOT NULL
 );
-CREATE UNIQUE INDEX controversy_stories_bitly_statistics_stories_id
-    ON controversy_stories_bitly_statistics ( stories_id );
+CREATE UNIQUE INDEX legacy_controversy_stories_bitly_statistics_stories_id
+    ON legacy_controversy_stories_bitly_statistics ( stories_id );
+
+
+-- Legacy view simulating the "controversy_stories_bitly_statistics" table
+CREATE VIEW controversy_stories_bitly_statistics AS
+    SELECT stories_id,
+           bitly_click_count
+    FROM ((
+            -- First try the "bitly_clicks" table, maybe it already has the
+            -- stats for the controversy story
+            SELECT 1 AS priority,
+                   bitly_clicks.stories_id,
+                   SUM(click_count) AS bitly_click_count
+            FROM bitly_clicks
+                INNER JOIN controversy_stories
+                    ON bitly_clicks.stories_id = controversy_stories.stories_id
+            WHERE click_date >= (
+                SELECT MIN( start_date )::date
+                FROM controversies_with_dates
+                WHERE controversies_id = controversy_stories.controversies_id)
+              AND click_date <= (
+                SELECT MAX( end_date )::date
+                FROM controversies_with_dates
+                WHERE controversies_id = controversy_stories.controversies_id)
+            GROUP BY bitly_clicks.stories_id,
+                     controversies_id
+        ) UNION (
+            -- If "bitly_clicks" doesn't have click data for a specific story,
+            -- fallback to legacy table
+            SELECT 2 AS priority,
+                   stories_id,
+                   bitly_click_count
+            FROM legacy_controversy_stories_bitly_statistics
+        )
+    ) AS click_count
+    ORDER BY priority
+    LIMIT 1;
+
 
 -- Helper to return a number of stories for which we don't have Bit.ly statistics yet
 CREATE FUNCTION num_controversy_stories_without_bitly_statistics (param_controversies_id INT) RETURNS INT AS
@@ -2106,7 +2143,7 @@ BEGIN
     WHERE controversies_id = param_controversies_id
       AND stories_id NOT IN (
         SELECT stories_id
-        FROM controversy_stories_bitly_statistics
+        FROM legacy_controversy_stories_bitly_statistics
     )
     GROUP BY controversies_id;
     IF NOT FOUND THEN
