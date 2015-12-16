@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4518;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4519;
 
 BEGIN
 
@@ -3033,6 +3033,10 @@ ALTER TABLE corenlp_annotations
 CREATE TABLE bitly_processing_results (
     bitly_processing_results_id   SERIAL    PRIMARY KEY,
     object_id                     INTEGER   NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
+
+    -- (Last) data collection timestamp; NULL for Bit.ly click data that was collected for controversies
+    collect_date                  TIMESTAMP NULL DEFAULT NOW(),
+
     raw_data                      BYTEA     NOT NULL
 );
 CREATE UNIQUE INDEX bitly_processing_results_object_id ON bitly_processing_results (object_id);
