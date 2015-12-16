@@ -114,12 +114,13 @@ sub run($;$)
 
     say STDERR "Enqueueing story $stories_id for Bit.ly processing (start TS: $start_timestamp, end TS: $end_timestamp)...";
 
-    my $args = {
-        stories_id      => $stories_id,
-        start_timestamp => $start_timestamp,
-        end_timestamp   => $end_timestamp
-    };
-    MediaWords::GearmanFunction::Bitly::FetchStoryURLStats->enqueue_on_gearman( $args );
+    MediaWords::GearmanFunction::Bitly::FetchStoryURLStats->enqueue_on_gearman(
+        {
+            stories_id      => $stories_id,
+            start_timestamp => $start_timestamp,
+            end_timestamp   => $end_timestamp
+        }
+    );
 
     say STDERR "Done enqueueing story $stories_id for Bit.ly processing.";
 }
