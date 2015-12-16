@@ -1983,7 +1983,7 @@ create unique index story_statistics_twitter_story on story_statistics_twitter (
 
 -- Bit.ly stats for stories
 CREATE TABLE bitly_clicks (
-    bitly_clicks_id   SERIAL    NOT NULL,
+    bitly_clicks_id   BIGSERIAL NOT NULL,
     stories_id        INT       NOT NULL REFERENCES stories(stories_id) ON DELETE CASCADE,
     click_date        DATE      NOT NULL,
     click_count       INT       NOT NULL

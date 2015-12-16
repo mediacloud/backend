@@ -68,7 +68,7 @@ LANGUAGE plpgsql;
 
 -- Create table for storing Bit.ly click stats for stories
 CREATE TABLE bitly_clicks (
-    bitly_clicks_id   SERIAL    NOT NULL,
+    bitly_clicks_id   BIGSERIAL NOT NULL,
     stories_id        INT       NOT NULL REFERENCES stories(stories_id) ON DELETE CASCADE,
     click_date        DATE      NOT NULL,
     click_count       INT       NOT NULL
