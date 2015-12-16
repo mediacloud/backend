@@ -2053,7 +2053,8 @@ BEGIN
         -- Try UPDATing
         UPDATE bitly_clicks
             SET click_count = param_click_count
-            WHERE stories_id = param_stories_id;
+            WHERE stories_id = param_stories_id
+              AND click_date = param_click_date;
         IF FOUND THEN RETURN; END IF;
 
         -- Nothing to UPDATE, try to INSERT a new record
