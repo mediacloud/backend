@@ -2020,7 +2020,7 @@ BEGIN
         ';
 
         EXECUTE '
-            CREATE INDEX ' || target_table_name || '_stories_id_click_date
+            CREATE UNIQUE INDEX ' || target_table_name || '_stories_id_click_date
             ON ' || target_table_name || ' (stories_id, click_date);
         ';
 
