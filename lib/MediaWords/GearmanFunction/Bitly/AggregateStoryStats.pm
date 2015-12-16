@@ -70,10 +70,10 @@ sub run($;$)
 
     say STDERR "Story's $stories_id click count: $click_count";
 
-    # Store stats ("upsert" the record into "story_bitly_statistics" table)
+    # Store stats ("upsert" the record into "controversy_stories_bitly_statistics" table)
     $db->query(
         <<EOF,
-        SELECT upsert_story_bitly_statistics(?, ?)
+        SELECT upsert_controversy_stories_bitly_statistics(?, ?)
 EOF
         $stories_id, $click_count
     );

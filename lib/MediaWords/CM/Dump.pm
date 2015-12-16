@@ -414,7 +414,7 @@ create temporary table dump_story_link_counts $_temporary_tablespace as
     select distinct ps.stories_id,
             coalesce( ilc.inlink_count, 0 ) inlink_count,
             coalesce( olc.outlink_count, 0 ) outlink_count,
-            story_bitly_statistics.bitly_click_count as bitly_click_count
+            controversy_stories_bitly_statistics.bitly_click_count as bitly_click_count
         from dump_period_stories ps
             left join
                 ( select cl.ref_stories_id,
@@ -432,8 +432,8 @@ create temporary table dump_story_link_counts $_temporary_tablespace as
                   where cl.ref_stories_id = ps.stories_id
                   group by cl.stories_id
                 ) olc on ( ps.stories_id = olc.stories_id )
-            left join story_bitly_statistics
-                on ps.stories_id = story_bitly_statistics.stories_id
+            left join controversy_stories_bitly_statistics
+                on ps.stories_id = controversy_stories_bitly_statistics.stories_id
 END
 
     if ( !$is_model )
