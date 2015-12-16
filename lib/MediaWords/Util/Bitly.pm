@@ -15,6 +15,7 @@ use MediaWords::Util::Web;
 use MediaWords::Util::URL;
 use MediaWords::Util::Config;
 use MediaWords::Util::JSON;
+use MediaWords::Util::Log;
 use MediaWords::Util::DateTime;
 use MediaWords::Util::SQL;
 use URI;
@@ -956,8 +957,66 @@ sub fetch_stats_for_url($$$$)
     return $link_stats;
 }
 
-# Write Bit.ly story statistics to key-value store; overwrite if a record
-# already exists in the store
+# Merge two Bit.ly statistics hashrefs into one
+sub _merge_story_stats($$)
+{
+    my ( $old_stats, $new_stats ) = @_;
+
+    my $stats = {};
+
+    if ( $new_stats->{ 'error' } )
+    {
+        say STDERR
+          "Fetching new stats failed with an error (maybe Bit.ly link doesn't exist anymore), leaving old stats intact";
+        $stats = $old_stats;
+    }
+    else
+    {
+        if ( $old_stats->{ 'error' } )
+        {
+            say STDERR "Fetching old stats failed, overwriting with new stats";
+            $stats = $new_stats;
+        }
+        else
+        {
+            # Merge in old stats into new ones
+            foreach my $bitly_id ( keys %{ $old_stats->{ 'data' } } )
+            {
+                my $old_bitly_data = $old_stats->{ 'data' }->{ $bitly_id };
+                my $new_bitly_data = $new_stats->{ 'data' }->{ $bitly_id };
+
+                if ( $new_bitly_data )
+                {
+                    if ( dump_terse( $old_bitly_data ) eq dump_terse( $new_bitly_data ) )
+                    {
+                        say STDERR "Stats for Bit.ly hash $bitly_id are identical, skipping";
+                    }
+                    else
+                    {
+                        say STDERR
+"Both new and old stats have click data for Bit.ly hash $bitly_id, appending array from old stats to new stats";
+                        foreach my $bitly_clicks ( @{ $old_bitly_data->{ 'clicks' } } )
+                        {
+                            push( @{ $new_bitly_data->{ 'clicks' } }, $bitly_clicks );
+                        }
+                    }
+                }
+                else
+                {
+                    say STDERR "Bit.ly hash $bitly_id didn't exist in new stats, copying from old stats";
+                    $new_stats->{ 'data' }->{ $bitly_id } = $old_stats->{ 'data' }->{ $bitly_id };
+                }
+            }
+
+            $stats = $new_stats;
+        }
+    }
+
+    return $stats;
+}
+
+# Write Bit.ly story statistics to key-value store; append to the existing
+# stats if needed
 #
 # Params:
 # * $db - database object
@@ -983,10 +1042,13 @@ sub write_story_stats($$$)
         die "Stats is not a hashref.";
     }
 
-    # Check if something is already stored
+    # Fetch + merge existing stats if any
     if ( story_stats_are_fetched( $db, $stories_id ) )
     {
-        warn "Story's $stories_id stats are already fetched from Bit.ly, so I will overwrite it.";
+        say STDERR "Story's $stories_id stats are already fetched from Bit.ly, merging...";
+
+        my $existing_stats = read_story_stats( $db, $stories_id );
+        $stats = _merge_story_stats( $existing_stats, $stats );
     }
 
     # Convert results to a minimized JSON
