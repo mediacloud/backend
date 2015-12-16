@@ -68,7 +68,7 @@ sub run($;$)
     my $agg_stats = MediaWords::Util::Bitly::aggregate_story_stats( $stories_id, $story->{ url }, $stats );
 
     my $total_click_count = $agg_stats->total_click_count();
-    say STDERR "Story's $stories_id click count: $total_click_count";
+    say STDERR "Story's $stories_id total click count: $total_click_count";
 
     # Store stats ("upsert" the record into "bitly_clicks" table)
     foreach my $click_date ( $agg_stats->{ dates_and_clicks } )
