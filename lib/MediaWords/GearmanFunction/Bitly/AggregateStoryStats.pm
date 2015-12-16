@@ -66,17 +66,21 @@ sub run($;$)
     }
 
     my $agg_stats = MediaWords::Util::Bitly::aggregate_story_stats( $stories_id, $story->{ url }, $stats );
-    my $click_count = $agg_stats->{ click_count };
 
-    say STDERR "Story's $stories_id click count: $click_count";
+    my $total_click_count = $agg_stats->total_click_count();
+    say STDERR "Story's $stories_id click count: $total_click_count";
 
-    # Store stats ("upsert" the record into "controversy_stories_bitly_statistics" table)
-    $db->query(
-        <<EOF,
-        SELECT upsert_controversy_stories_bitly_statistics(?, ?)
+    # Store stats ("upsert" the record into "bitly_clicks" table)
+    foreach my $click_date ( $agg_stats->{ dates_and_clicks } )
+    {
+        my $click_count = $agg_stats->{ dates_and_clicks }->{ $click_date };
+        $db->query(
+            <<EOF,
+            SELECT upsert_bitly_clicks(?, ?::date, ?)
 EOF
-        $stories_id, $click_count
-    );
+            $stories_id, $click_date, $click_count
+        );
+    }
 
     say STDERR "Done aggregating story stats for story $stories_id.";
 }

@@ -2041,35 +2041,25 @@ CREATE TRIGGER bitly_clicks_partition_by_month_trigger
     FOR EACH ROW EXECUTE PROCEDURE bitly_clicks_partition_by_month_insert_trigger();
 
 
--- Bit.ly stats for controversy stories
-CREATE TABLE controversy_stories_bitly_statistics (
-    controversy_stories_bitly_statistics_id   SERIAL  PRIMARY KEY,
-    stories_id                                INT     NOT NULL UNIQUE REFERENCES stories ON DELETE CASCADE,
-
-    -- Bit.ly stats
-    bitly_click_count                         INT     NOT NULL
-);
-CREATE UNIQUE INDEX controversy_stories_bitly_statistics_stories_id
-    ON controversy_stories_bitly_statistics ( stories_id );
-
 -- Helper to INSERT / UPDATE story's Bit.ly statistics
-CREATE FUNCTION upsert_controversy_stories_bitly_statistics (
+CREATE FUNCTION upsert_bitly_clicks (
     param_stories_id INT,
-    param_bitly_click_count INT
+    param_click_date DATE,
+    param_click_count INT
 ) RETURNS VOID AS
 $$
 BEGIN
     LOOP
         -- Try UPDATing
-        UPDATE controversy_stories_bitly_statistics
-            SET bitly_click_count = param_bitly_click_count
+        UPDATE bitly_clicks
+            SET click_count = param_click_count
             WHERE stories_id = param_stories_id;
         IF FOUND THEN RETURN; END IF;
 
         -- Nothing to UPDATE, try to INSERT a new record
         BEGIN
-            INSERT INTO controversy_stories_bitly_statistics (stories_id, bitly_click_count)
-            VALUES (param_stories_id, param_bitly_click_count);
+            INSERT INTO bitly_clicks (stories_id, click_date, click_count)
+            VALUES (param_stories_id, param_click_date, param_click_count);
             RETURN;
         EXCEPTION WHEN UNIQUE_VIOLATION THEN
             -- If someone else INSERTs the same key concurrently,
@@ -2080,6 +2070,18 @@ BEGIN
 END;
 $$
 LANGUAGE plpgsql;
+
+
+-- Bit.ly stats for controversy stories
+CREATE TABLE controversy_stories_bitly_statistics (
+    controversy_stories_bitly_statistics_id   SERIAL  PRIMARY KEY,
+    stories_id                                INT     NOT NULL UNIQUE REFERENCES stories ON DELETE CASCADE,
+
+    -- Bit.ly stats
+    bitly_click_count                         INT     NOT NULL
+);
+CREATE UNIQUE INDEX controversy_stories_bitly_statistics_stories_id
+    ON controversy_stories_bitly_statistics ( stories_id );
 
 -- Helper to return a number of stories for which we don't have Bit.ly statistics yet
 CREATE FUNCTION num_controversy_stories_without_bitly_statistics (param_controversies_id INT) RETURNS INT AS

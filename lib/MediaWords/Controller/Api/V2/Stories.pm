@@ -205,7 +205,7 @@ sub fetch_bitly_clicks : Local
         # convenience and the reason that the count could be different
         # (e.g. because of homepage redirects being skipped)
         my $stats = MediaWords::Util::Bitly::aggregate_story_stats( $agg_stories_id, $agg_stories_url, $bitly_clicks );
-        $total_click_count = $stats->{ click_count };
+        $total_click_count = $stats->total_click_count();
     };
     unless ( $@ )
     {

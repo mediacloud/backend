@@ -26,7 +26,7 @@ UPDATE bitly_processing_results
     SET collect_date = NULL;
 
 
--- Rename table and function to be clear that we're dealing with controversies here
+-- Rename table to be clear that we're dealing with controversies here
 DROP FUNCTION upsert_story_bitly_statistics(INT, INT);
 
 ALTER TABLE story_bitly_statistics
@@ -35,35 +35,6 @@ ALTER TABLE controversy_stories_bitly_statistics
     RENAME COLUMN story_bitly_statistics_id TO controversy_stories_bitly_statistics_id;
 ALTER INDEX story_bitly_statistics_stories_id
     RENAME TO controversy_stories_bitly_statistics_stories_id;
-
--- Helper to INSERT / UPDATE story's Bit.ly statistics
-CREATE FUNCTION upsert_controversy_stories_bitly_statistics (
-    param_stories_id INT,
-    param_bitly_click_count INT
-) RETURNS VOID AS
-$$
-BEGIN
-    LOOP
-        -- Try UPDATing
-        UPDATE controversy_stories_bitly_statistics
-            SET bitly_click_count = param_bitly_click_count
-            WHERE stories_id = param_stories_id;
-        IF FOUND THEN RETURN; END IF;
-
-        -- Nothing to UPDATE, try to INSERT a new record
-        BEGIN
-            INSERT INTO controversy_stories_bitly_statistics (stories_id, bitly_click_count)
-            VALUES (param_stories_id, param_bitly_click_count);
-            RETURN;
-        EXCEPTION WHEN UNIQUE_VIOLATION THEN
-            -- If someone else INSERTs the same key concurrently,
-            -- we will get a unique-key failure. In that case, do
-            -- nothing and loop to try the UPDATE again.
-        END;
-    END LOOP;
-END;
-$$
-LANGUAGE plpgsql;
 
 
 -- Create table for storing Bit.ly click stats for stories
@@ -124,6 +95,37 @@ LANGUAGE plpgsql;
 CREATE TRIGGER bitly_clicks_partition_by_month_trigger
     BEFORE INSERT ON bitly_clicks
     FOR EACH ROW EXECUTE PROCEDURE bitly_clicks_partition_by_month_insert_trigger();
+
+
+-- Helper to INSERT / UPDATE story's Bit.ly statistics
+CREATE FUNCTION upsert_bitly_clicks (
+    param_stories_id INT,
+    param_click_date DATE,
+    param_click_count INT
+) RETURNS VOID AS
+$$
+BEGIN
+    LOOP
+        -- Try UPDATing
+        UPDATE bitly_clicks
+            SET click_count = param_click_count
+            WHERE stories_id = param_stories_id;
+        IF FOUND THEN RETURN; END IF;
+
+        -- Nothing to UPDATE, try to INSERT a new record
+        BEGIN
+            INSERT INTO bitly_clicks (stories_id, click_date, click_count)
+            VALUES (param_stories_id, param_click_date, param_click_count);
+            RETURN;
+        EXCEPTION WHEN UNIQUE_VIOLATION THEN
+            -- If someone else INSERTs the same key concurrently,
+            -- we will get a unique-key failure. In that case, do
+            -- nothing and loop to try the UPDATE again.
+        END;
+    END LOOP;
+END;
+$$
+LANGUAGE plpgsql;
 
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$

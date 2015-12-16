@@ -16,6 +16,7 @@ use MediaWords::Util::URL;
 use MediaWords::Util::Config;
 use MediaWords::Util::JSON;
 use MediaWords::Util::DateTime;
+use MediaWords::Util::SQL;
 use URI;
 use URI::QueryParam;
 use JSON;
@@ -1142,15 +1143,32 @@ sub error_is_rate_limit_exceeded($)
     sub new($$;$$)
     {
         my $class = shift;
-        my ( $stories_id, $click_count ) = @_;
+        my ( $stories_id, $dates_and_clicks ) = @_;
 
         my $self = {};
         bless $self, $class;
 
-        $self->{ stories_id } = $stories_id;
-        $self->{ click_count } = $click_count // 0;
+        if ( ref( $dates_and_clicks ) ne ref( {} ) )
+        {
+            die "dates_and_clicks must be a hashref (click_date => click_count)";
+        }
+
+        $self->{ stories_id }       = $stories_id;
+        $self->{ dates_and_clicks } = $dates_and_clicks;
 
         return $self;
+    }
+
+    sub total_click_count($)
+    {
+        my $self = shift;
+
+        my $total_click_count = 0;
+        foreach my $date ( keys %{ $self->{ dates_and_clicks } } )
+        {
+            $total_click_count += $self->{ dates_and_clicks }->{ $date };
+        }
+        return $total_click_count;
     }
 
     1;
@@ -1163,6 +1181,8 @@ sub aggregate_story_stats($$$)
     my ( $stories_id, $stories_original_url, $stats ) = @_;
 
     my $click_count = 0;
+
+    my $dates_and_clicks = {};
 
     # Aggregate stats
     if ( $stats->{ 'error' } )
@@ -1212,13 +1232,24 @@ sub aggregate_story_stats($$$)
             {
                 foreach my $link_clicks ( @{ $bitly_clicks->{ 'link_clicks' } } )
                 {
-                    $click_count += $link_clicks->{ 'clicks' };
+                    my $date   = MediaWords::Util::SQL::get_sql_date_from_epoch( $link_clicks->{ 'dt' } + 0 );
+                    my $clicks = $link_clicks->{ 'clicks' };
+
+                    if ( defined $dates_and_clicks->{ $date } )
+                    {
+                        # Another Bit.ly hash already had clicks for this particular date
+                        $dates_and_clicks->{ $date } += $clicks;
+                    }
+                    else
+                    {
+                        $dates_and_clicks->{ $date } = $clicks;
+                    }
                 }
             }
         }
     }
 
-    return MediaWords::Util::Bitly::StoryStats->new( $stories_id, $click_count );
+    return MediaWords::Util::Bitly::StoryStats->new( $stories_id, $dates_and_clicks );
 }
 
 1;
