@@ -98,7 +98,7 @@ CREATE TRIGGER bitly_clicks_partition_by_month_trigger
 
 
 -- Helper to INSERT / UPDATE story's Bit.ly statistics
-CREATE FUNCTION upsert_bitly_clicks (
+CREATE OR REPLACE FUNCTION upsert_bitly_clicks (
     param_stories_id INT,
     param_click_date DATE,
     param_click_count INT
