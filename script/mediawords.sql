@@ -1988,7 +1988,57 @@ CREATE TABLE bitly_clicks (
     click_date        DATE      NOT NULL,
     click_count       INT       NOT NULL
 );
-CREATE UNIQUE INDEX bitly_clicks_stories_id ON bitly_clicks (stories_id);
+
+-- Set up automatic Bit.ly click count partitioning
+CREATE OR REPLACE FUNCTION bitly_clicks_partition_by_month_insert_trigger()
+RETURNS TRIGGER AS $$
+DECLARE
+    target_table_name TEXT;
+
+    click_month_start TEXT; -- first day of month
+    click_month_end TEXT;   -- first day of next month
+BEGIN
+
+    SELECT 'bitly_clicks_' || to_char(NEW.click_date, 'YYYY_MM') INTO target_table_name;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.tables 
+        WHERE table_schema = current_schema()
+          AND table_name = target_table_name
+    ) THEN
+
+        SELECT date_trunc('month', NEW.click_date)::text INTO click_month_start;
+        SELECT (date_trunc('month', NEW.click_date) + interval '1 month')::text INTO click_month_end;
+
+        EXECUTE '
+            CREATE TABLE ' || target_table_name || ' (
+                CHECK (
+                    click_date >= DATE ''' || click_month_start || '''
+                AND click_date <  DATE ''' || click_month_end   || ''')
+            ) INHERITS (bitly_clicks);
+        ';
+
+        EXECUTE '
+            CREATE INDEX ' || target_table_name || '_stories_id_click_date
+            ON ' || target_table_name || ' (stories_id, click_date);
+        ';
+
+    END IF;
+
+    EXECUTE '
+        INSERT INTO ' || target_table_name || ' (stories_id, click_date, click_count)
+        VALUES ($1, $2, $3);
+    ' USING NEW.stories_id, NEW.click_date, NEW.click_count;
+
+    RETURN NULL;
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER bitly_clicks_partition_by_month_trigger
+    BEFORE INSERT ON bitly_clicks
+    FOR EACH ROW EXECUTE PROCEDURE bitly_clicks_partition_by_month_insert_trigger();
 
 
 -- Bit.ly stats for controversy stories
