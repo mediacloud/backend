@@ -13,6 +13,8 @@ use IO::Compress::Gzip qw(:level);
 use IO::Uncompress::Gunzip qw($GunzipError);
 use IO::Compress::Bzip2 qw();
 use IO::Uncompress::Bunzip2 qw($Bunzip2Error);
+use IO::Compress::Xz qw();
+use IO::Uncompress::UnXz qw($UnXzError);
 
 # Bzip2 data; die() on error
 sub bzip2($)
@@ -204,6 +206,101 @@ sub gunzip_and_decode($)
 
     my $gunzipped_data = gunzip( $data );
     my $decoded_data   = MediaWords::Util::Text::decode_from_utf8( $gunzipped_data );
+
+    return $decoded_data;
+}
+
+# Xz data; die() on error
+sub xz($)
+{
+    my $data = shift;
+    unless ( defined $data )
+    {
+        die "Data to xz is undefined.";
+    }
+
+    my $xzed_data;
+
+    unless ( IO::Compress::Xz::xz \$data => \$xzed_data, Preset => 9, Extreme => 1 )
+    {
+        die "Unable to Xz data: $IO::Compress::Xz::XzError\n";
+    }
+
+    unless ( defined $xzed_data )
+    {
+        die "Xzed data is undefined.";
+    }
+
+    return $xzed_data;
+}
+
+# Encode and Xz data; die() on error
+sub encode_and_xz($)
+{
+    my $data = shift;
+    unless ( defined $data )
+    {
+        die "Data to encode and xz is undefined.";
+    }
+
+    my $encoded_data = MediaWords::Util::Text::encode_to_utf8( $data );
+    my $xzed_data    = xz( $encoded_data );
+
+    return $xzed_data;
+}
+
+# UnXz data; die() on error
+sub unxz($)
+{
+    my $data = shift;
+    unless ( defined $data )
+    {
+        die "Data to unxz is undefined.";
+    }
+    if ( $data eq '' )
+    {
+        die 'Data is empty (no way an empty string is a valid Xz archive)';
+    }
+
+    # Using OO interface because it supports Transparent and Strict options
+    my $z = new IO::Uncompress::UnXz \$data
+      or die "Unable to UnXz data: $UnXzError\n";
+    my $unxzed_data;
+    if ( $z->eof() )
+    {
+        # Because when an uncompressed string is empty, <$z> returns undef
+        # instead of empty string
+        $unxzed_data = '';
+    }
+    else
+    {
+        local $/;
+        $unxzed_data = <$z>;
+    }
+
+    unless ( defined $unxzed_data )
+    {
+        die "UnXzed data is undefined.";
+    }
+
+    return $unxzed_data;
+}
+
+# UnXz and decode data; die() on error
+sub unxz_and_decode($)
+{
+    my $data = shift;
+    unless ( defined $data )
+    {
+        die "Data to unxz and decode is undefined.";
+    }
+    if ( $data eq '' )
+    {
+        die 'Data is empty (no way an empty string is a valid Xz archive)';
+    }
+
+    my $unxzed_data  = unxz( $data );
+    my $decoded_data = MediaWords::Util::Text::decode_from_utf8( $unxzed_data );
 
     return $decoded_data;
 }
