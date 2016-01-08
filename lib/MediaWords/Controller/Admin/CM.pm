@@ -1012,11 +1012,12 @@ sub dump_social : Local
     my $csv = MediaWords::Util::CSV::get_query_as_csv( $db, <<SQL );
 select
         s.stories_id, s.url, s.title, m.name medium_name, m.media_id, m.url medium_url,
-        ss.twitter_url_tweet_count, ss.twitter_api_collect_date,
+        sst.twitter_url_tweet_count, sst.twitter_api_collect_date,
         ss.facebook_share_count, ss.facebook_comment_count, ss.facebook_api_collect_date
     from dump_stories s
         join dump_media m on ( s.media_id = m.media_id )
         join story_statistics ss on ( s.stories_id = ss.stories_id )
+        join story_statistics_twitter sst on ( s.stories_id = sst.stories_id )
 SQL
 
     MediaWords::CM::Dump::discard_temp_tables( $db );
