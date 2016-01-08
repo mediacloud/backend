@@ -31,6 +31,10 @@ sub test_bogus_urls($)
         'http://www.nbcnews.com/#/',
         'http://foo.com/#/bar/',
 
+        # Twitter API works only when the #fragment starts with a slash (/)
+        # 'http://www.nbcnews.com/#health',
+        # 'http://www.nbcnews.com/#health/',
+
         # URLs with ~tilde
         'http://cyber.law.harvard.edu/~lvaliukas/test.html/',
         'http://cyber.law.harvard.edu/~lvaliukas/test.html/#/foo',
