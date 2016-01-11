@@ -332,20 +332,6 @@ DISTRIBUTIONS
       strict 0
       version 0.88
       warnings 0
-  CPAN-Meta-Check-0.012
-    pathname: L/LE/LEONT/CPAN-Meta-Check-0.012.tar.gz
-    provides:
-      CPAN::Meta::Check 0.012
-    requirements:
-      CPAN::Meta::Prereqs 2.132830
-      CPAN::Meta::Requirements 2.121
-      Exporter 0
-      ExtUtils::MakeMaker 0
-      Module::Metadata 1.000023
-      base 0
-      perl 5.006
-      strict 0
-      warnings 0
   CPAN-Meta-Requirements-2.133
     pathname: D/DA/DAGOLDEN/CPAN-Meta-Requirements-2.133.tar.gz
     provides:
@@ -4449,27 +4435,6 @@ DISTRIBUTIONS
       Inline 0.46
       Test 0
       Test::More 0
-  JSON-Any-1.39
-    pathname: E/ET/ETHER/JSON-Any-1.39.tar.gz
-    provides:
-      JSON::Any 1.39
-    requirements:
-      Carp 0
-      ExtUtils::MakeMaker 0
-      constant 0
-      perl 5.008
-      strict 0
-      warnings 0
-  JSON-HPack-0.0.3
-    pathname: G/GV/GVENKAT/JSON-HPack-0.0.3.tar.gz
-    provides:
-      JSON::HPack 0.000003
-    requirements:
-      ExtUtils::MakeMaker 0
-      JSON::Any 0
-      Test::Deep 0
-      Test::More 0
-      common::sense 0
   JSON-MaybeXS-1.003005
     pathname: E/ET/ETHER/JSON-MaybeXS-1.003005.tar.gz
     provides:
@@ -5124,20 +5089,6 @@ DISTRIBUTIONS
       YAML::Tiny 1.38
       autodie 0
       perl 5.006
-  Module-Metadata-1.000027
-    pathname: E/ET/ETHER/Module-Metadata-1.000027.tar.gz
-    provides:
-      Module::Metadata 1.000027
-    requirements:
-      Carp 0
-      ExtUtils::MakeMaker 0
-      Fcntl 0
-      File::Find 0
-      File::Spec 0
-      perl 5.006
-      strict 0
-      version 0.87
-      warnings 0
   Module-Pluggable-5.2
     pathname: S/SI/SIMONW/Module-Pluggable-5.2.tar.gz
     provides:
@@ -8172,28 +8123,6 @@ DISTRIBUTIONS
       Test::Builder::Tester 1.02
       Test::More 0
       perl 5.006
-  Test-Warnings-0.023
-    pathname: E/ET/ETHER/Test-Warnings-0.023.tar.gz
-    provides:
-      Test::Warnings 0.023
-    requirements:
-      Carp 0
-      Exporter 0
-      ExtUtils::MakeMaker 0
-      Test::Builder 0
-      parent 0
-      perl 5.006
-      strict 0
-      warnings 0
-  Test-Without-Module-0.18
-    pathname: C/CO/CORION/Test-Without-Module-0.18.tar.gz
-    provides:
-      Test::Without::Module 0.18
-    requirements:
-      ExtUtils::MakeMaker 0
-      File::Find 0
-      File::Spec 0
-      Test::More 0
   Test-utf8-1.01
     pathname: M/MA/MARKF/Test-utf8-1.01.tar.gz
     provides:
