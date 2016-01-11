@@ -40,7 +40,6 @@ requires 'Color::Mix';
 requires 'Config::Any';
 requires 'Crypt::SaltedHash';
 requires 'Data::Dumper';
-requires 'Data::MessagePack';
 requires 'Data::Page';
 requires 'Data::Serializer';
 requires 'Data::Sorting';
