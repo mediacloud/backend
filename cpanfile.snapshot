@@ -1245,24 +1245,6 @@ DISTRIBUTIONS
     requirements:
       ExtUtils::MakeMaker 0
       Test::Warn 0
-  Compress-Raw-Bzip2-2.069
-    pathname: P/PM/PMQS/Compress-Raw-Bzip2-2.069.tar.gz
-    provides:
-      Compress::Raw::Bzip2 2.069
-    requirements:
-      ExtUtils::MakeMaker 0
-  Compress-Raw-Lzma-2.069
-    pathname: P/PM/PMQS/Compress-Raw-Lzma-2.069.tar.gz
-    provides:
-      Compress::Raw::Lzma 2.069
-    requirements:
-      ExtUtils::MakeMaker 0
-  Compress-Raw-Zlib-2.069
-    pathname: P/PM/PMQS/Compress-Raw-Zlib-2.069.tar.gz
-    provides:
-      Compress::Raw::Zlib 2.069
-    requirements:
-      ExtUtils::MakeMaker 0
   Config-Any-0.26
     pathname: B/BR/BRICAS/Config-Any-0.26.tar.gz
     provides:
@@ -4235,61 +4217,6 @@ DISTRIBUTIONS
       strict 0
       vars 0
       warnings 0
-  IO-Compress-2.069
-    pathname: P/PM/PMQS/IO-Compress-2.069.tar.gz
-    provides:
-      Compress::Zlib 2.069
-      File::GlobMapper 1.000
-      IO::Compress undef
-      IO::Compress::Adapter::Bzip2 2.069
-      IO::Compress::Adapter::Deflate 2.069
-      IO::Compress::Adapter::Identity 2.069
-      IO::Compress::Base 2.069
-      IO::Compress::Base::Common 2.069
-      IO::Compress::Bzip2 2.069
-      IO::Compress::Deflate 2.069
-      IO::Compress::Gzip 2.069
-      IO::Compress::Gzip::Constants 2.069
-      IO::Compress::RawDeflate 2.069
-      IO::Compress::Zip 2.069
-      IO::Compress::Zip::Constants 2.069
-      IO::Compress::Zlib::Constants 2.069
-      IO::Compress::Zlib::Extra 2.069
-      IO::Uncompress::Adapter::Bunzip2 2.069
-      IO::Uncompress::Adapter::Identity 2.069
-      IO::Uncompress::Adapter::Inflate 2.069
-      IO::Uncompress::AnyInflate 2.069
-      IO::Uncompress::AnyUncompress 2.069
-      IO::Uncompress::Base 2.069
-      IO::Uncompress::Bunzip2 2.069
-      IO::Uncompress::Gunzip 2.069
-      IO::Uncompress::Inflate 2.069
-      IO::Uncompress::RawInflate 2.069
-      IO::Uncompress::Unzip 2.069
-      U64 2.069
-      Zlib::OldDeflate 2.069
-      Zlib::OldInflate 2.069
-    requirements:
-      Compress::Raw::Bzip2 2.069
-      Compress::Raw::Zlib 2.069
-      ExtUtils::MakeMaker 0
-      Scalar::Util 0
-  IO-Compress-Lzma-2.069
-    pathname: P/PM/PMQS/IO-Compress-Lzma-2.069.tar.gz
-    provides:
-      IO::Compress::Adapter::Lzma 2.069
-      IO::Compress::Adapter::Xz 2.069
-      IO::Compress::Lzma 2.069
-      IO::Compress::Xz 2.069
-      IO::Uncompress::Adapter::UnLzma 2.069
-      IO::Uncompress::Adapter::UnXz 2.069
-      IO::Uncompress::UnLzma 2.069
-      IO::Uncompress::UnXz 2.069
-    requirements:
-      Compress::Raw::Lzma 2.069
-      ExtUtils::MakeMaker 0
-      IO::Compress::Base 2.069
-      IO::Uncompress::Base 2.069
   IO-HTML-1.001
     pathname: C/CJ/CJM/IO-HTML-1.001.tar.gz
     provides:
