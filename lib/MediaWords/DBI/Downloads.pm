@@ -146,7 +146,6 @@ my $_download_store_lookup = lazy
     require MediaWords::KeyValueStore::CachedAmazonS3;
     require MediaWords::KeyValueStore::DatabaseInline;
     require MediaWords::KeyValueStore::PostgreSQL;
-    require MediaWords::KeyValueStore::PostgreSQLFallback;
 
     my $download_store_lookup = {
 
@@ -157,9 +156,6 @@ my $_download_store_lookup = lazy
         # downloads.path is prefixed with "postgresql:";
         # download is stored in "raw_downloads" table
         postgresql => undef,
-
-        # Fallback database for "postgresql" downloads
-        postgresql_fallback => undef,
 
         # downloads.path is prefixed with "amazon_s3:";
         # download is stored in Amazon S3
@@ -247,22 +243,6 @@ my $_download_store_lookup = lazy
             table => ( $raw_downloads_db_label ? undef : 'raw_downloads' ),    #
         }
     );
-
-    # Fallback raw downloads database / table
-    my $raw_downloads_fallback_db_label = 'raw_downloads_fallback';            # as set up in mediawords.yml
-    if ( grep { $_ eq $raw_downloads_fallback_db_label } MediaWords::DB::get_db_labels() )
-    {
-        $download_store_lookup->{ postgresql_fallback } = MediaWords::KeyValueStore::PostgreSQLFallback->new(
-            {
-                database_label => $raw_downloads_fallback_db_label,            #
-            }
-        );
-    }
-    else
-    {
-        #say STDERR "No such label '$raw_downloads_fallback_db_label', fallback table disabled";
-        $download_store_lookup->{ postgresql_fallback } = undef;
-    }
 
     return $download_store_lookup;
 };
@@ -378,15 +358,6 @@ sub _download_stores_for_reading($)
     }
 
     my @stores = ( $_download_store_lookup->{ $download_store } );
-
-    # Add PostgreSQL fallback storage if one is set up
-    if ( $download_store eq 'postgresql' )
-    {
-        if ( defined $_download_store_lookup->{ postgresql_fallback } )
-        {
-            push( @stores, $_download_store_lookup->{ postgresql_fallback } );
-        }
-    }
 
     # Add Amazon S3 fallback storage if needed
     if ( $download_store eq 'postgresql' )
