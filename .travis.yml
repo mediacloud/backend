@@ -55,6 +55,8 @@ addons:
             - python-software-properties
             - python-virtualenv
             - tidy
+            - xz-lzma
+            - xz-utils
 cache:
     directories:
         # Carton dependencies
