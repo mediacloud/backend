@@ -15,7 +15,10 @@ fi
 JAVA_HOME=$JAVA_HOME ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
     --local-lib-contained local/ \
     --verbose \
-    Compress::Raw::Lzma
+    Compress::Raw::Lzma || {
+    echo "cpanminus build logs:"
+    find ~/.cpanm/work/ -name build.log -exec cat '{}' ';' 
+}
 
 # Install dependency modules; run the command twice because the first
 # attempt might fail
