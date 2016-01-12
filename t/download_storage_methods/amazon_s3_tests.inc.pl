@@ -36,8 +36,10 @@ sub test_amazon_s3($)
 
             my $s3 = $s3_handler_class->new(
                 {
-                    bucket_name    => $config->{ amazon_s3 }->{ test }->{ bucket_name },
-                    directory_name => $config->{ amazon_s3 }->{ test }->{ directory_name },
+                    access_key_id     => $config->{ amazon_s3 }->{ test }->{ access_key_id },
+                    secret_access_key => $config->{ amazon_s3 }->{ test }->{ secret_access_key },
+                    bucket_name       => $config->{ amazon_s3 }->{ test }->{ bucket_name },
+                    directory_name    => $config->{ amazon_s3 }->{ test }->{ directory_name },
 
                     # Used only for CachedAmazonS3
                     cache_root_dir => $config->{ mediawords }->{ data_dir } . '/cache/test_s3_downloads',
