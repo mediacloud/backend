@@ -59,19 +59,26 @@ database:
 ### Amazon S3 connection settings
 #amazon_s3:
 
-    ### Authentication credentials
-    #access_key_id       : "AKIAIOSFODNN7EXAMPLE"
-    #secret_access_key   : "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
-
     ### Bucket for storing downloads
     #downloads:
-        #bucket_name    : "mediacloud"
-        #directory_name : "downloads"
+        #access_key_id      : "AKIAIOSFODNN7EXAMPLE"
+        #secret_access_key  : "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
+        #bucket_name        : "mediacloud-downloads"
+        #directory_name     : "downloads"
 
     ### Bucket for testing
     #test:
-        #bucket_name    : "mediacloud_test"
-        #directory_name : "downloads_test"
+        #access_key_id      : "AKIAIOSFODNN7EXAMPLE"
+        #secret_access_key  : "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
+        #bucket_name        : "mediacloud_test"
+        #directory_name     : "downloads_test"
+
+    ### Bucket for storing Bit.ly raw JSON responses
+    #bitly_processing_results:
+        #access_key_id      : "AKIAIOSFODNN7EXAMPLE"
+        #secret_access_key  : "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
+        #bucket_name        : "mediacloud-bitly-processing-results"
+        #directory_name     : "json_blobs"
 
 ### Gearman worker (p5-Gearman-JobScheduler) configuration
 ### (to enable Gearman, add at least one server)
