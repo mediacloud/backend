@@ -12,11 +12,6 @@ if pwd | grep ' ' ; then
     exit 1
 fi
 
-JAVA_HOME=$JAVA_HOME ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
-    --local-lib-contained local/ \
-    --verbose \
-    Compress::Raw::Lzma
-
 # Install dependency modules; run the command twice because the first
 # attempt might fail
 source ./script/set_java_home.sh
