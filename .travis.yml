@@ -39,6 +39,7 @@ addons:
             - libgearman-dev
             - libgraph4
             - libgraphviz-dev
+            - liblzma-dev
             - libxml2-dev
             - libxslt1-dbg
             - libxslt1-dev
