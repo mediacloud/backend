@@ -80,6 +80,7 @@ requires 'Inline::Java';
 requires 'Inline::Python';
 requires 'IO::Compress::Bzip2';
 requires 'IO::Compress::Gzip';
+requires 'IO::Compress::Lzma';
 requires 'IPC::Run3';
 requires 'IPC::System::Simple';
 requires 'JSON';
