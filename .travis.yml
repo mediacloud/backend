@@ -53,8 +53,8 @@ addons:
             - pandoc
             - postgresql-server-dev-all
             - python-dev
+            - python-pip
             - python-software-properties
-            - python-virtualenv
             - tidy
             - xz-lzma
             - xz-utils
@@ -81,6 +81,7 @@ env:
         - MC_TEST_EXTRACTOR_PYTHONREADABILITY=1
 before_install:
     # Set up local Media Cloud environment for Python
+    - pip install --upgrade virtualenv virtualenvwrapper
     - mkdir -p $HOME/mc-python
     - virtualenv $HOME/mc-python
     - source $HOME/mc-python/bin/activate
