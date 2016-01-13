@@ -14,14 +14,14 @@
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
-drop index stories_db_row_last_updated;
-drop INDEX downloads_file_status;
-drop INDEX downloads_relative_path;
-drop index downloads_type;
-drop index downloads_host_state_priority;
-drop index downloads_feed_state;
-drop index downloads_url;
-drop INDEX downloads_for_extractor_trainer;
+DROP INDEX IF EXISTS stories_db_row_last_updated;
+DROP INDEX IF EXISTS downloads_file_status;
+DROP INDEX IF EXISTS downloads_relative_path;
+DROP INDEX IF EXISTS downloads_type;
+DROP INDEX IF EXISTS downloads_host_state_priority;
+DROP INDEX IF EXISTS downloads_feed_state;
+DROP INDEX IF EXISTS downloads_url;
+DROP INDEX IF EXISTS downloads_for_extractor_trainer;
 
 --
 -- 2 of 2. Reset the database version.

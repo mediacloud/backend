@@ -206,9 +206,11 @@ my $_download_store_lookup = lazy
         {
             $download_store_lookup->{ amazon_s3 } = MediaWords::KeyValueStore::CachedAmazonS3->new(
                 {
-                    bucket_name    => get_config->{ amazon_s3 }->{ downloads }->{ bucket_name },
-                    directory_name => get_config->{ amazon_s3 }->{ downloads }->{ directory_name },
-                    cache_root_dir => get_config->{ mediawords }->{ data_dir } . '/cache/s3_downloads',
+                    access_key_id     => get_config->{ amazon_s3 }->{ downloads }->{ access_key_id },
+                    secret_access_key => get_config->{ amazon_s3 }->{ downloads }->{ secret_access_key },
+                    bucket_name       => get_config->{ amazon_s3 }->{ downloads }->{ bucket_name },
+                    directory_name    => get_config->{ amazon_s3 }->{ downloads }->{ directory_name },
+                    cache_root_dir    => get_config->{ mediawords }->{ data_dir } . '/cache/s3_downloads',
                 }
             );
         }
@@ -216,8 +218,10 @@ my $_download_store_lookup = lazy
         {
             $download_store_lookup->{ amazon_s3 } = MediaWords::KeyValueStore::AmazonS3->new(
                 {
-                    bucket_name    => get_config->{ amazon_s3 }->{ downloads }->{ bucket_name },
-                    directory_name => get_config->{ amazon_s3 }->{ downloads }->{ directory_name }
+                    access_key_id     => get_config->{ amazon_s3 }->{ downloads }->{ access_key_id },
+                    secret_access_key => get_config->{ amazon_s3 }->{ downloads }->{ secret_access_key },
+                    bucket_name       => get_config->{ amazon_s3 }->{ downloads }->{ bucket_name },
+                    directory_name    => get_config->{ amazon_s3 }->{ downloads }->{ directory_name }
                 }
             );
         }
@@ -333,6 +337,12 @@ sub _download_stores_for_reading($)
             $download_store = 'amazon_s3';
         }
 
+        elsif ( $location eq 'gridfs' or $location eq 'tar' )
+        {
+            # Might get later overriden to "amazon_s3"
+            $download_store = 'postgresql';
+        }
+
         else
         {
             die "Download location '$location' is unknown for download $download->{ downloads_id }";
@@ -344,8 +354,8 @@ sub _download_stores_for_reading($)
         # Assume it's stored in a filesystem (the downloads.path contains a
         # full path to the download).
         #
-        # Those downloads have been migrated to GridFS (which is likely to be read from S3).
-        $download_store = 'gridfs';
+        # Those downloads have been migrated to PostgreSQL (which might get redirected to S3).
+        $download_store = 'postgresql';
     }
 
     unless ( defined $download_store )
@@ -355,17 +365,11 @@ sub _download_stores_for_reading($)
 
     # Overrides:
 
-    # GridFS downloads have to be fetched from S3?
-    if ( lc( get_config->{ mediawords }->{ read_all_downloads_from_s3 } || '' ) eq 'yes' )
+    # All non-inline downloads have to be fetched from S3?
+    if ( $download_store ne 'databaseinline'
+        and lc( get_config->{ mediawords }->{ read_all_downloads_from_s3 } ) eq 'yes' )
     {
         $download_store = 'amazon_s3';
-    }
-    elsif ( $download_store eq 'gridfs' or $download_store eq 'tar' )
-    {
-        if ( lc( get_config->{ mediawords }->{ read_gridfs_downloads_from_s3 } eq 'yes' ) )
-        {
-            $download_store = 'amazon_s3';
-        }
     }
 
     unless ( defined $_download_store_lookup->{ $download_store } )

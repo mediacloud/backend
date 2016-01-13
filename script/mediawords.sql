@@ -1092,7 +1092,6 @@ create index stories_publish_date on stories (publish_date);
 create index stories_collect_date on stories (collect_date);
 create index stories_md on stories(media_id, date_trunc('day'::text, publish_date));
 create index stories_language on stories(language);
-create index stories_db_row_last_updated on stories( db_row_last_updated );
 create index stories_title_hash on stories( md5( title ) );
 create index stories_publish_day on stories( date_trunc( 'day', publish_date ) );
 
@@ -1161,9 +1160,6 @@ create table downloads (
 
 UPDATE downloads set old_download_time = download_time, old_state = state;
 
-CREATE UNIQUE INDEX downloads_file_status on downloads(file_status, downloads_id);
-CREATE UNIQUE INDEX downloads_relative_path on downloads( relative_file_path, downloads_id);
-
 
 alter table downloads add constraint downloads_parent_fkey
     foreign key (parent) references downloads on delete set null;
@@ -1202,11 +1198,7 @@ create index downloads_time on downloads (download_time);
 create index downloads_feed_download_time on downloads ( feeds_id, download_time );
 
 -- create index downloads_sequence on downloads (sequence);
-create index downloads_type on downloads (type);
-create index downloads_host_state_priority on downloads (host, state, priority);
-create index downloads_feed_state on downloads(feeds_id, state);
 create index downloads_story on downloads(stories_id);
-create index downloads_url on downloads(url);
 CREATE INDEX downloads_state_downloads_id_pending on downloads(state,downloads_id) where state='pending';
 create index downloads_extracted on downloads(extracted, state, type)
     where extracted = 'f' and state = 'success' and type = 'content';
@@ -1249,10 +1241,6 @@ BEGIN
 END;
 $$
 LANGUAGE 'plpgsql' IMMUTABLE;
-
-CREATE UNIQUE INDEX downloads_for_extractor_trainer
-    ON downloads ( downloads_id, feeds_id)
-    WHERE file_status <> 'missing' and type = 'content' and state = 'success';
 
 CREATE INDEX downloads_sites_pending on downloads ( site_from_host( host ) ) where state='pending';
 
