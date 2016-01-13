@@ -16,9 +16,6 @@ use MediaWords::KeyValueStore::PostgreSQL;
 use MediaWords::KeyValueStore::MultipleStores;
 use MediaWords::Test::DB;
 
-require 'amazon_s3_tests.inc.pl';
-require 'postgresql_tests.inc.pl';
-
 sub main()
 {
     MediaWords::Test::DB::test_on_test_database(
@@ -44,11 +41,15 @@ sub main()
     );
 }
 
-unless ( s3_tests_are_enabled() )
+my $config = MediaWords::Util::Config::get_config;
+unless ( defined( $config->{ amazon_s3 }->{ test } ) )
 {
     plan skip_all => 'Amazon S3\'s testing bucket is not configured';
 }
 else
 {
+    require 'amazon_s3_tests.inc.pl';
+    require 'postgresql_tests.inc.pl';
+
     main();
 }
