@@ -41,6 +41,9 @@ sub main()
     );
 }
 
+require 'amazon_s3_set_credentials_from_env.inc.pl';
+set_amazon_s3_test_credentials_from_env_if_needed();
+
 my $config = MediaWords::Util::Config::get_config;
 unless ( defined( $config->{ amazon_s3 }->{ test } ) )
 {
