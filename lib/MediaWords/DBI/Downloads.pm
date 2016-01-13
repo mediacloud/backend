@@ -198,29 +198,23 @@ my $_download_store_lookup = lazy
     # Initialize key value stores for downloads
     if ( get_config->{ amazon_s3 } )
     {
+        my $store_package_name = 'MediaWords::KeyValueStore::AmazonS3';
+        my $cache_root_dir     = undef;
         if ( get_config->{ mediawords }->{ cache_s3_downloads } eq 'yes' )
         {
-            $download_store_lookup->{ amazon_s3 } = MediaWords::KeyValueStore::CachedAmazonS3->new(
-                {
-                    access_key_id     => get_config->{ amazon_s3 }->{ downloads }->{ access_key_id },
-                    secret_access_key => get_config->{ amazon_s3 }->{ downloads }->{ secret_access_key },
-                    bucket_name       => get_config->{ amazon_s3 }->{ downloads }->{ bucket_name },
-                    directory_name    => get_config->{ amazon_s3 }->{ downloads }->{ directory_name },
-                    cache_root_dir    => get_config->{ mediawords }->{ data_dir } . '/cache/s3_downloads',
-                }
-            );
+            $store_package_name = 'MediaWords::KeyValueStore::CachedAmazonS3';
+            $cache_root_dir     = get_config->{ mediawords }->{ data_dir } . '/cache/s3_downloads';
         }
-        else
-        {
-            $download_store_lookup->{ amazon_s3 } = MediaWords::KeyValueStore::AmazonS3->new(
-                {
-                    access_key_id     => get_config->{ amazon_s3 }->{ downloads }->{ access_key_id },
-                    secret_access_key => get_config->{ amazon_s3 }->{ downloads }->{ secret_access_key },
-                    bucket_name       => get_config->{ amazon_s3 }->{ downloads }->{ bucket_name },
-                    directory_name    => get_config->{ amazon_s3 }->{ downloads }->{ directory_name }
-                }
-            );
-        }
+
+        $download_store_lookup->{ amazon_s3 } = $store_package_name->new(
+            {
+                access_key_id     => get_config->{ amazon_s3 }->{ downloads }->{ access_key_id },
+                secret_access_key => get_config->{ amazon_s3 }->{ downloads }->{ secret_access_key },
+                bucket_name       => get_config->{ amazon_s3 }->{ downloads }->{ bucket_name },
+                directory_name    => get_config->{ amazon_s3 }->{ downloads }->{ directory_name },
+                cache_root_dir    => $cache_root_dir,
+            }
+        );
     }
 
     $download_store_lookup->{ databaseinline } = MediaWords::KeyValueStore::DatabaseInline->new(
