@@ -11,7 +11,6 @@ with 'MediaWords::KeyValueStore';
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
-use MediaWords::Util::Config;
 use MediaWords::Util::Compress;
 use Net::Amazon::S3;
 use Net::Amazon::S3::Client;
@@ -62,13 +61,16 @@ sub BUILD($$)
 {
     my ( $self, $args ) = @_;
 
+    my $access_key_id     = $args->{ access_key_id };
+    my $secret_access_key = $args->{ secret_access_key };
+    my $bucket_name       = $args->{ bucket_name };
+    my $directory_name    = $args->{ directory_name } || '';    # Directory is optional
+
     # Get arguments
-    unless ( $args->{ bucket_name } )
+    unless ( $access_key_id and $secret_access_key and $bucket_name )
     {
-        confess "Please provide 'bucket_name' argument.";
+        confess "Access Key ID, Secret Access Key and bucket name should be provided.";
     }
-    my $bucket_name = $args->{ bucket_name };
-    my $directory_name = $args->{ directory_name } || '';
 
     # Validate constants
     if ( $AMAZON_S3_READ_ATTEMPTS < 1 )
@@ -78,23 +80,6 @@ sub BUILD($$)
     if ( $AMAZON_S3_WRITE_ATTEMPTS < 1 )
     {
         confess "AMAZON_S3_WRITE_ATTEMPTS must be >= 1";
-    }
-
-    # Get configuration
-    my $config = MediaWords::Util::Config::get_config;
-
-    unless ( defined( $config->{ amazon_s3 } ) )
-    {
-        confess "AmazonS3: Amazon S3 connection settings in mediawords.yml are not configured properly.";
-    }
-
-    my $access_key_id     = $config->{ amazon_s3 }->{ access_key_id };
-    my $secret_access_key = $config->{ amazon_s3 }->{ secret_access_key };
-
-    # Directory is optional
-    unless ( $access_key_id and $secret_access_key and $bucket_name )
-    {
-        confess "AmazonS3: Amazon S3 connection settings in mediawords.yml are not configured properly.";
     }
 
     # Add slash to the end of the directory name (if it doesn't exist yet)
