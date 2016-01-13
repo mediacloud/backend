@@ -20,6 +20,8 @@ SET search_path = public, pg_catalog;
 
 ALTER TABLE bitly_processing_results
     ADD COLUMN collect_date TIMESTAMP NULL DEFAULT NOW();
+-- Set to NULL for preexisting controversy data
+UPDATE bitly_processing_results SET collect_date = NULL;
 
 -- Set to NULL for all the current data because we don't know the exact collection date
 UPDATE bitly_processing_results
