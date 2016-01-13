@@ -14,12 +14,6 @@ use MediaWords::Util::Config;
 use Data::Dumper;
 use MediaWords::Test::DB;
 
-sub s3_tests_are_enabled()
-{
-    my $config = MediaWords::Util::Config::get_config;
-    return defined( $config->{ amazon_s3 }->{ test } );
-}
-
 sub s3_download_handler($)
 {
     my $s3_handler_class = shift;
@@ -42,7 +36,8 @@ sub test_amazon_s3($)
 {
     my $s3_handler_class = shift;
 
-    unless ( s3_tests_are_enabled() )
+    my $config = MediaWords::Util::Config::get_config;
+    unless ( defined( $config->{ amazon_s3 }->{ test } ) )
     {
         plan skip_all => 'Amazon S3\'s testing bucket is not configured';
     }
@@ -64,8 +59,6 @@ sub test_amazon_s3($)
             my $test_downloads_path = undef;
             my $test_content        = 'Loren ipsum dolor sit amet.';
             my $content_ref;
-
-            my $config = MediaWords::Util::Config::get_config;
 
             #
             # Store content
