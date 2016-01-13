@@ -29,7 +29,7 @@ Readonly my $AMAZON_S3_USE_SSL => 0;
 Readonly my $AMAZON_S3_TIMEOUT => 60;
 
 # Check if content exists before storing (good for debugging, slows down the stores)
-Readonly my $AMAZON_S3_CHECK_IF_EXISTS_BEFORE_STORING => 1;
+Readonly my $AMAZON_S3_CHECK_IF_EXISTS_BEFORE_STORING => 0;
 
 # Check if content exists before fetching (good for debugging, slows down the fetches)
 Readonly my $AMAZON_S3_CHECK_IF_EXISTS_BEFORE_FETCHING => 1;
