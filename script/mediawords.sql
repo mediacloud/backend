@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4517;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4518;
 
 BEGIN
 
@@ -3139,7 +3139,7 @@ CREATE UNIQUE INDEX feeds_from_yesterday_url ON feeds_from_yesterday(url, media_
 CREATE OR REPLACE FUNCTION update_feeds_from_yesterday() RETURNS VOID AS $$
 BEGIN
 
-    TRUNCATE TABLE feeds_from_yesterday;
+    DELETE FROM feeds_from_yesterday;
     INSERT INTO feeds_from_yesterday (feeds_id, media_id, name, url, feed_type, feed_status)
         SELECT feeds_id, media_id, name, url, feed_type, feed_status
         FROM feeds;
