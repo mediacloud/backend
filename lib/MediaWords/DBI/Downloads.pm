@@ -12,7 +12,7 @@ use Scalar::Defer;
 use Readonly;
 
 use MediaWords::Crawler::Extractor;
-use MediaWords::Util::Config qw(get_config);
+use MediaWords::Util::Config;
 use MediaWords::Util::HTML;
 use MediaWords::DB;
 use MediaWords::DBI::DownloadTexts;
@@ -162,8 +162,10 @@ my $_download_store_lookup = lazy
         amazon_s3 => undef,    # might remain 'undef' if not configured
     };
 
+    my $config = MediaWords::Util::Config::get_config;
+
     # Early sanity check on configuration
-    my $download_storage_locations = get_config->{ mediawords }->{ download_storage_locations };
+    my $download_storage_locations = $config->{ mediawords }->{ download_storage_locations };
     if ( scalar( @{ $download_storage_locations } ) == 0 )
     {
         die "No download storage methods are configured.\n";
@@ -189,29 +191,29 @@ my $_download_store_lookup = lazy
     # Test if all enabled storage locations are also configured
     if ( exists( $enabled_download_storage_locations{ amazon_s3 } ) )
     {
-        unless ( get_config->{ amazon_s3 } )
+        unless ( $config->{ amazon_s3 } )
         {
             die "'amazon_s3' storage location is enabled, but Amazon S3 is not configured.\n";
         }
     }
 
     # Initialize key value stores for downloads
-    if ( get_config->{ amazon_s3 } )
+    if ( $config->{ amazon_s3 } )
     {
         my $store_package_name = 'MediaWords::KeyValueStore::AmazonS3';
         my $cache_root_dir     = undef;
-        if ( get_config->{ mediawords }->{ cache_s3_downloads } eq 'yes' )
+        if ( $config->{ mediawords }->{ cache_s3_downloads } eq 'yes' )
         {
             $store_package_name = 'MediaWords::KeyValueStore::CachedAmazonS3';
-            $cache_root_dir     = get_config->{ mediawords }->{ data_dir } . '/cache/s3_downloads';
+            $cache_root_dir     = $config->{ mediawords }->{ data_dir } . '/cache/s3_downloads';
         }
 
         $download_store_lookup->{ amazon_s3 } = $store_package_name->new(
             {
-                access_key_id     => get_config->{ amazon_s3 }->{ downloads }->{ access_key_id },
-                secret_access_key => get_config->{ amazon_s3 }->{ downloads }->{ secret_access_key },
-                bucket_name       => get_config->{ amazon_s3 }->{ downloads }->{ bucket_name },
-                directory_name    => get_config->{ amazon_s3 }->{ downloads }->{ directory_name },
+                access_key_id     => $config->{ amazon_s3 }->{ downloads }->{ access_key_id },
+                secret_access_key => $config->{ amazon_s3 }->{ downloads }->{ secret_access_key },
+                bucket_name       => $config->{ amazon_s3 }->{ downloads }->{ bucket_name },
+                directory_name    => $config->{ amazon_s3 }->{ downloads }->{ directory_name },
                 cache_root_dir    => $cache_root_dir,
             }
         );
@@ -261,7 +263,8 @@ sub _download_stores_for_writing($)
     }
     else
     {
-        my $download_storage_locations = get_config->{ mediawords }->{ download_storage_locations };
+        my $config                     = MediaWords::Util::Config::get_config;
+        my $download_storage_locations = $config->{ mediawords }->{ download_storage_locations };
         foreach my $download_storage_location ( @{ $download_storage_locations } )
         {
             my $store = $_download_store_lookup->{ lc( $download_storage_location ) }
@@ -339,9 +342,11 @@ sub _download_stores_for_reading($)
 
     # Overrides:
 
+    my $config = MediaWords::Util::Config::get_config;
+
     # All non-inline downloads have to be fetched from S3?
     if ( $download_store ne 'databaseinline'
-        and lc( get_config->{ mediawords }->{ read_all_downloads_from_s3 } ) eq 'yes' )
+        and lc( $config->{ mediawords }->{ read_all_downloads_from_s3 } ) eq 'yes' )
     {
         $download_store = 'amazon_s3';
     }
@@ -356,7 +361,7 @@ sub _download_stores_for_reading($)
     # Add Amazon S3 fallback storage if needed
     if ( $download_store eq 'postgresql' )
     {
-        if ( lc( get_config->{ mediawords }->{ fallback_postgresql_downloads_to_s3 } eq 'yes' ) )
+        if ( lc( $config->{ mediawords }->{ fallback_postgresql_downloads_to_s3 } eq 'yes' ) )
         {
             if ( defined $_download_store_lookup->{ amazon_s3 } )
             {
@@ -410,7 +415,8 @@ sub fetch_content($$)
     }
 
     # horrible hack to fix old content that is not stored in unicode
-    my $ascii_hack_downloads_id = get_config->{ mediawords }->{ ascii_hack_downloads_id };
+    my $config                  = MediaWords::Util::Config::get_config;
+    my $ascii_hack_downloads_id = $config->{ mediawords }->{ ascii_hack_downloads_id };
     if ( $ascii_hack_downloads_id and ( $download->{ downloads_id } < $ascii_hack_downloads_id ) )
     {
         $$content_ref =~ s/[^[:ascii:]]/ /g;
