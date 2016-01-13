@@ -203,6 +203,9 @@ sub _queue_download_list_with_per_site_limit
 {
     my ( $self, $downloads, $site_limit ) = @_;
 
+    say STDERR "_queue_download_list_with_per_site_limit: " .
+      scalar( @{ $downloads } ) . " downloads (site limit $site_limit)";
+
     my $queued_downloads = [];
 
     for my $download ( @{ $downloads } )
@@ -271,7 +274,7 @@ END
 
     if ( @{ $missing_download_sites } )
     {
-        my $site_missing_download_queue_limit = int( $MAX_QUEUED_DOWNLOADS / scalar( @{ $missing_download_sites } ) );
+        my $site_missing_download_queue_limit = int( $MAX_QUEUED_DOWNLOADS / scalar( @{ $missing_download_sites } ) ) + 1;
 
         for my $missing_download_site ( @{ $missing_download_sites } )
         {
@@ -336,7 +339,7 @@ END
 
     if ( @{ $sites } )
     {
-        my $site_download_queue_limit = int( $MAX_QUEUED_DOWNLOADS / scalar( @{ $sites } ) );
+        my $site_download_queue_limit = int( $MAX_QUEUED_DOWNLOADS / scalar( @{ $sites } ) ) + 1;
 
         for my $site ( @{ $sites } )
         {
