@@ -70,9 +70,9 @@ before_cache:
     - rm -f $HOME/.cache/pip/log/debug.log
 env:
     global:
-        # Facebook Graph API credentials for testing
-        - secure: "BgP5lOHOeb/Bv92o3ItUxRzzV1/aRCSMlAqTEf1ox1pniYmRhHB1+8P21QOPbMH6bxm2uaBhnPOKCQ8b37SmFk/TNBuXZyec4d1deGB+0u4N4bPX4MN7Q9f9IV1PxEVjr3dIzKtdpuTM9giNK/R9HpjYIftZw6UT+nyWufJ7hZg="
-        - secure: "TrvXE5MJHDZb8a0KfnnElEqKZYXPpYSNGQO7ZtDAMC71B4CSthgr1beBxFkd9qSqFP304dLSIVWAs2Rhe9FahIwFIBcrLYlpoYCq8rTZo2txC+Xvg9qgP4uM59s83fYHeD7AfWFsIleYhV4gRsF8ZFxsPhf2IgVyH1mTGVaZyEU="
+        # Facebook Graph API credentials for testing (MC_FACEBOOK_APP_ID and MC_FACEBOOK_APP_SECRET)
+        - secure: "GnbCg+JCTGVRaEQV/A0VDTlCLajGCw8iXdWGUv6lp9mRcOV6KlNvpawY1d23xAIywHg7BEYoAo2dt+aR8NZnpMy/kXr/E+SduBph75jrWdhmGGr+pD447AqUv/mg3lTylRWjLkjxJve5QkM/azt3FKL63lFZa0DBnaxoXJ1A+BQ="
+        - secure: "Lmf9F/FVjvLYfY3KFb2qX6Kz3Z1Uf/G/KT+OtwMYFfRPy8XXIlmv1PCRT2nFx+3xCrOZVgabN2w+9kNueKE3/mK/4XSZUDhEccTQvrQEFR7Qf5WiSJ5g2qRAj7Us2R4rcHJ2KzjFzLigz3oxVG3XqRCg1aGa/iY6jf5yH07tBlY="
         # Do not ask for confirmation when running ./script/mediawords_create_db.pl
         - MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM=1
         # Enable Python API tests in ./script/run_test_suite_for_devel_cover.sh
