@@ -56,7 +56,6 @@ addons:
             - python-software-properties
             - python-virtualenv
             - tidy
-            - virtualenv
             - xz-lzma
             - xz-utils
 cache:
