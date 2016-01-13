@@ -14,12 +14,35 @@ use MediaWords::Util::Config;
 use Data::Dumper;
 use MediaWords::Test::DB;
 
-sub test_amazon_s3($)
+sub s3_tests_are_enabled()
+{
+    my $config = MediaWords::Util::Config::get_config;
+    return defined( $config->{ amazon_s3 }->{ test } );
+}
+
+sub s3_download_handler($)
 {
     my $s3_handler_class = shift;
 
     my $config = MediaWords::Util::Config::get_config;
-    unless ( $config->{ amazon_s3 }->{ test } )
+    return $s3_handler_class->new(
+        {
+            access_key_id     => $config->{ amazon_s3 }->{ test }->{ access_key_id },
+            secret_access_key => $config->{ amazon_s3 }->{ test }->{ secret_access_key },
+            bucket_name       => $config->{ amazon_s3 }->{ test }->{ bucket_name },
+            directory_name    => $config->{ amazon_s3 }->{ test }->{ directory_name },
+
+            # Used only for CachedAmazonS3
+            cache_root_dir => $config->{ mediawords }->{ data_dir } . '/cache/test_s3_downloads',
+        }
+    );
+}
+
+sub test_amazon_s3($)
+{
+    my $s3_handler_class = shift;
+
+    unless ( s3_tests_are_enabled() )
     {
         plan skip_all => 'Amazon S3\'s testing bucket is not configured';
     }
@@ -34,23 +57,15 @@ sub test_amazon_s3($)
 
             ok( $db, "PostgreSQL initialized " );
 
-            my $s3 = $s3_handler_class->new(
-                {
-                    access_key_id     => $config->{ amazon_s3 }->{ test }->{ access_key_id },
-                    secret_access_key => $config->{ amazon_s3 }->{ test }->{ secret_access_key },
-                    bucket_name       => $config->{ amazon_s3 }->{ test }->{ bucket_name },
-                    directory_name    => $config->{ amazon_s3 }->{ test }->{ directory_name },
-
-                    # Used only for CachedAmazonS3
-                    cache_root_dir => $config->{ mediawords }->{ data_dir } . '/cache/test_s3_downloads',
-                }
-            );
+            my $s3 = s3_download_handler( $s3_handler_class );
             ok( $s3, "Amazon S3 initialized" );
 
             my $test_downloads_id   = 999999999999999;
             my $test_downloads_path = undef;
             my $test_content        = 'Loren ipsum dolor sit amet.';
             my $content_ref;
+
+            my $config = MediaWords::Util::Config::get_config;
 
             #
             # Store content
