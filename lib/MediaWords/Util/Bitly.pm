@@ -78,26 +78,109 @@ my $_bitly_timeout = lazy
     return $timeout;
 };
 
-# (Lazy-initialized) PostgreSQL key-value store
+# (Lazy-initialized) Results store
 #
 # We use a static, package-wide variable here because:
 # a) PostgreSQL handler should support being used by multiple threads by now, and
 # b) each Gearman worker is a separate process so there shouldn't be any resource clashes.
-my $_postgresql_store = lazy
+my $_results_store = lazy
 {
     # this is (probably) an expensive module to load, so lazy load it
     require MediaWords::KeyValueStore::PostgreSQL;
+    require MediaWords::KeyValueStore::AmazonS3;
+    require MediaWords::KeyValueStore::CachedAmazonS3;
+    require MediaWords::KeyValueStore::MultipleStores;
+
+    my $config = MediaWords::Util::Config->get_config();
 
     unless ( bitly_processing_is_enabled() )
     {
         fatal_error( "Bit.ly processing is not enabled; why are you accessing this variable?" );
     }
 
-    # PostgreSQL storage
-    my $postgresql_store = MediaWords::KeyValueStore::PostgreSQL->new( { table => $BITLY_POSTGRESQL_KVS_TABLE_NAME } );
-    say STDERR "Will read / write Bit.ly stats to PostgreSQL table: $BITLY_POSTGRESQL_KVS_TABLE_NAME";
+    my $read_locations  = $config->{ bitly }->{ json_read_stores };
+    my $write_locations = $config->{ bitly }->{ json_write_stores };
 
-    return $postgresql_store;
+    unless ( defined $read_locations and defined $write_locations )
+    {
+        fatal_error( "Both 'read_locations' and 'write_locations' must be defined." );
+    }
+    unless ( ref( $read_locations ) eq ref( [] ) and ref( $write_locations ) eq ref( [] ) )
+    {
+        fatal_error( "Both 'read_locations' and 'write_locations' must be arrayrefs." );
+    }
+    unless ( scalar( @{ $read_locations } ) > 0 and scalar( @{ $write_locations } ) > 0 )
+    {
+        fatal_error( "Both 'read_locations' and 'write_locations' must contain at least one store." );
+    }
+
+    sub _store_from_location($)
+    {
+        my $location = shift;
+
+        if ( $location eq 'postgresql' )
+        {
+            return MediaWords::KeyValueStore::PostgreSQL->new( { table => $BITLY_POSTGRESQL_KVS_TABLE_NAME } );
+
+        }
+        elsif ( $location eq 'amazon_s3' )
+        {
+            my $config = MediaWords::Util::Config->get_config();
+
+            unless ( $config->{ amazon_s3 }->{ bitly_processing_results }->{ access_key_id } )
+            {
+                die "Bit.ly is configured to read / write to S3, but S3 credentials for Bit.ly are not configured.";
+            }
+
+            my $store_package_name = 'MediaWords::KeyValueStore::AmazonS3';
+            my $cache_root_dir     = undef;
+            if ( $config->{ amazon_s3 }->{ bitly_processing_results }->{ cache_root_dir } )
+            {
+                $store_package_name = 'MediaWords::KeyValueStore::CachedAmazonS3';
+                $cache_root_dir     = $config->{ mediawords }->{ data_dir } .
+                  '/cache/' . $config->{ amazon_s3 }->{ bitly_processing_results }->{ cache_root_dir };
+            }
+
+            return $store_package_name->new(
+                {
+                    access_key_id     => $config->{ amazon_s3 }->{ bitly_processing_results }->{ access_key_id },
+                    secret_access_key => $config->{ amazon_s3 }->{ bitly_processing_results }->{ secret_access_key },
+                    bucket_name       => $config->{ amazon_s3 }->{ bitly_processing_results }->{ bucket_name },
+                    directory_name    => $config->{ amazon_s3 }->{ bitly_processing_results }->{ directory_name },
+                    cache_root_dir    => $cache_root_dir,
+                }
+            );
+
+        }
+        else
+        {
+            die "Unknown store location: $location";
+        }
+    }
+
+    my @read_stores;
+    my @write_stores;
+    eval {
+        foreach my $location ( @{ $read_locations } )
+        {
+            push( @read_stores, _store_from_location( $location ) );
+        }
+        foreach my $location ( @{ $write_locations } )
+        {
+            push( @write_stores, _store_from_location( $location ) );
+        }
+    };
+    if ( $@ )
+    {
+        fatal_error( "Unable to initialize store for Bit.ly raw results reading / writing: $@" );
+    }
+
+    return MediaWords::KeyValueStore::MultipleStores->new(
+        {
+            stores_for_reading => \@read_stores,     #
+            stores_for_writing => \@write_stores,    #
+        }
+    );
 };
 
 # From $start_timestamp and $end_timestamp parameters, return API parameters "unit_reference_ts" and "units"
@@ -760,7 +843,7 @@ sub story_stats_are_fetched($$)
     }
 
     my $record_exists = undef;
-    eval { $record_exists = $_postgresql_store->content_exists( $db, $stories_id ); };
+    eval { $record_exists = ( force $_results_store)->content_exists( $db, $stories_id ); };
     if ( $@ )
     {
         die "Storage died while testing whether or not a Bit.ly record exists for story $stories_id: $@";
@@ -1065,7 +1148,8 @@ sub write_story_stats($$$)
     eval {
         my $param_use_bzip2_instead_of_gzip = $BITLY_USE_BZIP2;
 
-        my $path = $_postgresql_store->store_content( $db, $stories_id, \$json_stats, $param_use_bzip2_instead_of_gzip );
+        my $path =
+          ( force $_results_store)->store_content( $db, $stories_id, \$json_stats, $param_use_bzip2_instead_of_gzip );
     };
     if ( $@ )
     {
@@ -1108,8 +1192,8 @@ sub read_story_stats($$)
     my $param_use_bunzip2_instead_of_gunzip = $BITLY_USE_BZIP2;
 
     eval {
-        $json_ref =
-          $_postgresql_store->fetch_content( $db, $stories_id, $param_object_path, $param_use_bunzip2_instead_of_gunzip );
+        $json_ref = ( force $_results_store)
+          ->fetch_content( $db, $stories_id, $param_object_path, $param_use_bunzip2_instead_of_gunzip );
     };
     if ( $@ or ( !defined $json_ref ) )
     {
