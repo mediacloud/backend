@@ -16,12 +16,6 @@ use MediaWords::Util::Compress;
 use DBD::Pg qw(:pg_types);
 use Carp;
 
-# Database instance
-has '_db' => ( is => 'rw' );
-
-# Process PID (to prevent forks attempting to clone the DBD::Pg objects)
-has '_pid' => ( is => 'rw', default => 0 );
-
 # Configuration
 has '_conf_database_label' => ( is => 'rw' );
 has '_conf_table'          => ( is => 'rw' );
@@ -63,69 +57,15 @@ sub BUILD($$)
     $self->_conf_table( $table );
 }
 
-sub _connect_to_postgres_or_die($)
+sub _db($)
 {
-    my ( $self ) = @_;
+    my $self = shift;
 
-    return MediaWords::DB::connect_to_db( $self->_conf_database_label );
+    my $db = MediaWords::DB::connect_to_db( $self->_conf_database_label );
 
-    if ( $self->_pid == $$ and $self->_db )
-    {
-        # Already connected on the very same process
-        return;
-    }
+    say STDERR "PostgreSQL: Connected to PostgreSQL label '" . ( $self->_conf_database_label // 'undef' ) . "'.";
 
-    if ( $self->_db )
-    {
-        say STDERR "Disconnecting from database because PID has changed";
-        $self->_db->{ dbh }->{ InactiveDestroy } = 1;
-        $self->_db->{ dbh } = undef;
-    }
-
-    my $db;
-    eval { $db = MediaWords::DB::connect_to_db( $self->_conf_database_label ); };
-    if ( $@ )
-    {
-        die "Unable to connect to database label '" . ( $self->_conf_database_label // 'undef' ) . "': $@";
-    }
-
-    $db->dbh->{ AutoCommit } = 1;
-
-    # Test if table exists and we have access to it
-    my ( $table_exists ) = $db->query(
-        <<EOF,
-        SELECT EXISTS(
-            SELECT 1
-            FROM information_schema.tables
-            WHERE table_schema = CURRENT_SCHEMA()
-              AND table_catalog = CURRENT_DATABASE()
-              AND table_name = ?
-        )
-EOF
-        $self->_conf_table
-    )->flat;
-    unless ( $table_exists + 0 )
-    {
-        die "Table '" . $self->_conf_table . "' does not exist in database '" .
-          ( $self->_conf_database_label // 'undef' ) . "'";
-    }
-
-    # Get database name
-    my $current_schema_database = $db->query(
-        <<EOF
-        SELECT CURRENT_SCHEMA() AS schema,
-               CURRENT_DATABASE() AS database
-EOF
-    )->hash;
-
-    $self->_db( $db );
-
-    # Save PID
-    $self->_pid( $$ );
-
-    say STDERR "PostgreSQL: Connected to PostgreSQL label '" .
-      ( $self->_conf_database_label // 'undef' ) . "', database '" . $current_schema_database->{ schema } .
-      "." . $current_schema_database->{ database } . "', table '" . $self->_conf_table . "' for PID $$.";
+    return $db;
 }
 
 # Moose method
@@ -133,7 +73,7 @@ sub store_content($$$$;$)
 {
     my ( $self, $_not_used_db, $object_id, $content_ref, $use_bzip2_instead_of_gzip ) = @_;
 
-    my $db = $self->_connect_to_postgres_or_die();
+    my $db = $self->_db();
 
     my $table = $self->_conf_table;
 
@@ -201,7 +141,7 @@ sub fetch_content($$$;$$)
 {
     my ( $self, $_not_used_db, $object_id, $object_path, $use_bunzip2_instead_of_gunzip ) = @_;
 
-    my $db = $self->_connect_to_postgres_or_die();
+    my $db = $self->_db();
 
     unless ( defined $object_id )
     {
@@ -266,7 +206,7 @@ sub remove_content($$$;$)
 {
     my ( $self, $_not_used_db, $object_id, $object_path ) = @_;
 
-    my $db = $self->_connect_to_postgres_or_die();
+    my $db = $self->_db();
 
     my $table = $self->_conf_table;
 
@@ -288,7 +228,7 @@ sub content_exists($$$;$)
 {
     my ( $self, $_not_used_db, $object_id, $object_path ) = @_;
 
-    my $db = $self->_connect_to_postgres_or_die();
+    my $db = $self->_db();
 
     my $table = $self->_conf_table;
 

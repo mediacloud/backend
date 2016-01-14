@@ -162,7 +162,7 @@ sub prompt_for_dup_media
             if ( !$m->{ hide } )
             {
                 print( <<END );
-$i: $m->{ name } [ $m->{ media_id } $m->{ url } $m->{ foreign_rss_links }$m->{ spidered_label}$m->{ not_dup_label }]
+$i: $m->{ name } [ id-$m->{ media_id } links-$m->{ inlink_count } $m->{ url } $m->{ foreign_rss_links }$m->{ spidered_label}$m->{ not_dup_label }]
 END
             }
         }
@@ -246,6 +246,31 @@ sub dedup_media
     }
 }
 
+# return true if we should ignore this domain.  ignore the domain if
+# the domain is blank, the number media is less than 2, the domain matches
+# one of a few patterns, there are more than 5 not_dup media already in the domain,
+# or no media in the domain have more at least 10 cross media links
+sub ignore_domain
+{
+    my ( $domain, $domain_media ) = @_;
+
+    return 1 if ( !$domain );
+
+    return 1 if ( $domain =~ /(\.edu|\.us|\.blogspot\..*)$/ );
+
+    my $min_link_count = 0;
+    map { $min_link_count = 1 if ( $_->{ inlink_count } >= 10 ) } @{ $domain_media };
+    return 1 unless ( $min_link_count );
+
+    my $unprocessed_media = get_unprocessed_media( $domain_media );
+    return 1 if ( scalar( @{ $unprocessed_media } ) < 2 );
+
+    my $not_dup_media = [ grep { $_->{ is_not_dup } } @{ $domain_media } ];
+    return 1 if ( scalar( @{ $not_dup_media } ) >= 5 );
+
+    return 0;
+}
+
 sub main
 {
     binmode( STDOUT, 'utf8' );
@@ -259,11 +284,24 @@ sub main
     # only dedup media that are either not spidered or are associated with controversy stories
     # (this eliminates spidered media not actually associated with any controversy story)
     my $media = $db->query( <<END, $spidered_tag->{ tags_id } )->hashes;
+with media_link_counts as (
+    select r.media_id, count(*) inlink_count
+        from cd.live_stories s
+        join controversy_links cl
+            on ( s.stories_id = cl.stories_id and s.controversies_id = cl.controversies_id )
+        join cd.live_stories r
+            on ( r.stories_id = cl.ref_stories_id and s.controversies_id = cl.controversies_id )
+        where r.media_id <> s.media_id
+        group by r.media_id
+)
+
 select m.*,
-        coalesce( mtm.tags_id, 0 ) is_spidered
+        coalesce( mtm.tags_id, 0 ) is_spidered,
+        coalesce( mlc.inlink_count, 0 ) inlink_count
     from
         media m
         left join media_tags_map mtm on ( m.media_id = mtm.media_id and mtm.tags_id = ? )
+        left join media_link_counts mlc on ( m.media_id = mlc.media_id )
     where
         m.dup_media_id is null and
         ( ( mtm.tags_id is null ) or
@@ -277,8 +315,7 @@ END
     # find just the domains that have more than one unprocessed media source
     while ( my ( $domain, $domain_media ) = each( %{ $media_domain_lookup } ) )
     {
-        my $unprocessed_media = get_unprocessed_media( $domain_media );
-        delete( $media_domain_lookup->{ $domain } ) if ( !$domain || @{ $unprocessed_media } < 2 );
+        delete( $media_domain_lookup->{ $domain } ) if ( ignore_domain( $domain, $domain_media ) );
     }
 
     my $num_domains = scalar( values( %{ $media_domain_lookup } ) );

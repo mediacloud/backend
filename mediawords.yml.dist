@@ -80,6 +80,9 @@ database:
         #bucket_name        : "mediacloud-bitly-processing-results"
         #directory_name     : "json_blobs"
 
+        ### (optional) Local cache (relative to "$data_dir/cache/")
+        #cache_root_dir     : "bitly_processing_results/"
+
 ### Gearman worker (p5-Gearman-JobScheduler) configuration
 ### (to enable Gearman, add at least one server)
 #gearman:
@@ -256,6 +259,22 @@ database:
 
     ### API request timeout (in seconds)
     #timeout: 60
+
+    ### Locations to read raw JSON responses from
+    ### (default is just "postgresql")
+    #json_read_stores:
+        ### Try "bitly_processing_results" table first
+        #- postgresql
+        ### ...then fallback to Amazon S3
+        #- amazon_s3
+
+    ### Locations to write raw JSON responses to
+    ### (default is just "postgresql")
+    #json_read_stores:
+        ### Write to "bitly_processing_results" table first
+        #- postgresql
+        ### ...then to Amazon S3 too
+        #- amazon_s3
 
 ### Facebook API
 ### (see doc/README.facebook_api.markdown)
