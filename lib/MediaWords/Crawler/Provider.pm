@@ -221,6 +221,8 @@ sub _queue_download_list_with_per_site_limit
         $self->{ downloads }->_queue_download( $download );
     }
 
+    say STDERR "_queue_download_list_with_per_site_limit: queued " . scalar( @{ $queued_downloads } ) . " downloads";
+
     # my $downloads_id_list = join( ',', map { $_->{ downloads_id } } @{ $queued_downloads } );
     # $self->engine->dbs->query( "update downloads set state = 'queued' where downloads_id in ($downloads_id_list)" );
 
