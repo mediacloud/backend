@@ -42,6 +42,9 @@ script/vagrant/temp-vagrant-mediacloud
 # run_test_suite.sh log
 data/run_test_suite.log
 
+# Vagrant logs
+data/logs
+
 # solr logs and shards
 solr/mediacloud-shard-*/
 solr/logs
