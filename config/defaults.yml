@@ -58,6 +58,10 @@ bitly:
     enabled: no
     access_token: ''
     timeout: 60
+    json_read_stores:
+        - postgresql
+    json_write_stores:
+        - postgresql
 facebook:
     enabled: no
     app_id: ''
