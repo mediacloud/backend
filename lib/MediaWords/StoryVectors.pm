@@ -133,81 +133,71 @@ sub _get_unique_sentences
     return $unique_sentences;
 }
 
+# given the story and its un-deduped sentences, return the list of sentences that already
+# exist in the same media source for the same calendar week.  for the original versions
+# of any dup sentences discovered, set is_dup = true
+sub _get_dup_story_sentences
+{
+    my ( $db, $story, $sentences ) = @_;
+
+    my ( $indexdef ) = $db->query( "select indexdef from pg_indexes where indexname = 'story_sentences_dup'" )->flat;
+
+    die( "'story_sentences_dup' index does not exist" ) unless ( $indexdef );
+
+    die( "unable to find date in story_sentences_dup definition" ) unless ( $indexdef =~ /(\d\d\d\d-\d\d-\d\d)/ );
+
+    my $index_date = $1;
+
+    # we need to manually quote and include this date so that postgres will know to use the
+    # conditional story_sentences_dup index
+    my $q_publish_date = $db->dbh->quote( $story->{ publish_date } );
+
+    my $sentence_lookup_clause;
+
+    if ( $story->{ publish_date } gt $index_date )
+    {
+        my $q_sentence_md5s = [ map { $db->dbh->quote( Digest::MD5::md5_hex( encode( 'utf8', $_ ) ) ) } @{ $sentences } ];
+        my $sentence_md5_list = join( ',', @{ $q_sentence_md5s } );
+
+        $sentence_lookup_clause = "md5( sentence ) in ( $sentence_md5_list )";
+    }
+    else
+    {
+        my $q_sentences = [ map { $db->dbh->quote( encode( 'utf8', $_ ) ) } @{ $sentences } ];
+        my $sentence_list = join( ',', @{ $q_sentences } );
+
+        $sentence_lookup_clause = "sentence in ( $sentence_list )";
+    }
+
+    my $dup_story_sentences = $db->query( <<SQL, $story->{ media_id } )->hashes;
+update story_sentences
+    set is_dup = true
+    where
+        $sentence_lookup_clause and
+        media_id = ? and
+        week_start_date( publish_date::date ) between
+            week_start_date( ${ q_publish_date }::date ) and
+            week_start_date( ( ${ q_publish_date }::date + interval '6 days' )::date )
+    returning *
+SQL
+
+    return $dup_story_sentences;
+}
+
 # return the sentences from the set that are dups within the same media source and calendar week.
-# also adds the sentence to the story_sentences_count table and/or increments the count in that table
-# for the sentence.
-#
-# NOTE: you must wrap a 'lock story_sentence_counts in row exclusive mode' around all calls to this within the
-# same transaction to avoid deadlocks
+# also sets story_sentences.dup to true for sentences that are the dups for these sentences.
 sub get_deduped_sentences
 {
     my ( $db, $story, $sentences ) = @_;
 
     my $unique_sentences = _get_unique_sentences( $sentences );
 
-    my $sentence_md5_lookup = {};
-    my $i                   = 0;
-    for my $sentence ( @{ $unique_sentences } )
-    {
-        my $sentence_utf8 = encode_utf8( $sentence );
-        unless ( defined $sentence_utf8 )
-        {
-            die "Sentence '$sentence' for story " . $story->{ stories_id } . " is undefined after encoding it to UTF-8.";
-        }
+    my $dup_story_sentences = _get_dup_story_sentences( $db, $story, $unique_sentences );
 
-        my $sentence_utf8_md5 = Digest::MD5::md5_hex( $sentence_utf8 );
-        unless ( $sentence_utf8_md5 )
-        {
-            die "Sentence's '$sentence' MD5 hash is empty or undef.";
-        }
+    my $dup_lookup = {};
+    map { $dup_lookup->{ $_->{ sentence } } = 1 } @{ $dup_story_sentences };
 
-        my $sentence_data = {
-            md5      => $sentence_utf8_md5,
-            sentence => $sentence,
-            num      => $i++
-        };
-        $sentence_md5_lookup->{ $sentence_utf8_md5 } = $sentence_data;
-    }
-
-    my $sentence_md5_list = join( ',', map { "'$_'" } keys %{ $sentence_md5_lookup } );
-
-    my $sentence_dup_info = $db->query(
-        <<"END",
-        SELECT MIN( story_sentence_counts_id) AS story_sentence_counts_id,
-               sentence_md5
-        FROM story_sentence_counts
-        WHERE sentence_md5 IN ( $sentence_md5_list )
-          AND media_id = ?
-          AND publish_week = DATE_TRUNC( 'week', ?::date )
-        GROUP BY story_sentence_counts_id
-END
-        $story->{ media_id }, $story->{ publish_date }
-    )->hashes;
-
-    my $story_sentence_counts_ids = [];
-    for my $sdi ( @{ $sentence_dup_info } )
-    {
-        push( @{ $story_sentence_counts_ids }, $sdi->{ story_sentence_counts_id } );
-        delete( $sentence_md5_lookup->{ $sdi->{ sentence_md5 } } );
-    }
-
-    my $deduped_sentence_data = [ sort { $a->{ num } <=> $b->{ num } } values( %{ $sentence_md5_lookup } ) ];
-    my $deduped_md5s          = [ map  { $_->{ md5 } } @{ $deduped_sentence_data } ];
-    my $deduped_sentences     = [ map  { $_->{ sentence } } @{ $deduped_sentence_data } ];
-
-    if ( @{ $story_sentence_counts_ids } )
-    {
-        my $id_list = join( ',', @{ $story_sentence_counts_ids } );
-        $db->query(
-            <<"END"
-            UPDATE story_sentence_counts
-            SET sentence_count = sentence_count + 1
-            WHERE story_sentence_counts_id IN ( $id_list )
-END
-        );
-    }
-
-    insert_story_sentence_counts( $db, $story, $deduped_md5s );
+    my $deduped_sentences = [ grep { !$dup_lookup->{ $_ } } @{ $unique_sentences } ];
 
     return $deduped_sentences;
 }
@@ -224,14 +214,7 @@ sub dedup_sentences
         return [];
     }
 
-    # commit to release any existing locks, then start a new transaction to get a fresh lock on ssc
-    $db->commit unless ( $db->dbh->{ AutoCommit } );
-    $db->begin if ( $db->dbh->{ AutoCommit } );
-    $db->query( "LOCK TABLE story_sentence_counts IN ROW EXCLUSIVE MODE" );
-
     my $deduped_sentences = get_deduped_sentences( $db, $story, $sentences );
-
-    $db->commit;
 
     if ( @{ $sentences } && !@{ $deduped_sentences } )
     {
@@ -393,8 +376,7 @@ sub update_story_sentences_and_language
 
     unless ( $no_delete )
     {
-        $db->query( "DELETE FROM story_sentences WHERE stories_id = ?",             $stories_id );
-        $db->query( "DELETE FROM story_sentence_counts WHERE first_stories_id = ?", $stories_id );
+        $db->query( "DELETE FROM story_sentences WHERE stories_id = ?", $stories_id );
     }
 
     unless ( $ignore_date_range or _story_within_media_source_story_words_date_range( $db, $story ) )
