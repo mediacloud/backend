@@ -39,7 +39,7 @@
         <td>[% story.collect_date %]</td>
     </tr>
     <tr>
-        <th>Description:</th> 
+        <th>Description:</th>
         <td>[% story.description | html_strip %]</td>
     </tr>
 
@@ -126,10 +126,10 @@
                 [% FOREACH s IN all_sentences %]
                     <li>
                         [% s.sentence | html %]
-                        [% IF s.count.first_stories_id != s.stories_id %]
-                            [DUP: 
-                            <a href="[% c.uri_for( '/admin/stories/view/' _ s.dup_stories_id ) | html %]">[% s.count.first_stories_id %]</a>]
-                        [% ELSIF s.count && s.count.sentence_count > 1 %]
+                        [% IF s.ss.stories_id != s.stories_id %]
+                            [DUP:
+                            <a href="[% c.uri_for( '/admin/stories/view/' _ s.ss.stories_id ) | html %]">[% s.ss.stories_id %]</a>]
+                        [% ELSIF s.ss.is_dup > 1 %]
                             [FIRST_DUP]
                         [% END %]
                     </li>
