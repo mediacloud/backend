@@ -26,36 +26,41 @@ UPDATE bitly_processing_results
     SET collect_date = NULL;
 
 
--- Rename table to be clear that we're dealing with controversies here
-DROP FUNCTION upsert_story_bitly_statistics(INT, INT);
+--
+-- Bit.ly total story click counts
+--
 
-ALTER TABLE story_bitly_statistics
-    RENAME TO legacy_controversy_stories_bitly_statistics;
-ALTER TABLE legacy_controversy_stories_bitly_statistics
-    RENAME COLUMN story_bitly_statistics_id TO controversy_stories_bitly_statistics_id;
-ALTER INDEX story_bitly_statistics_stories_id
-    RENAME TO legacy_controversy_stories_bitly_statistics_stories_id;
-
-
--- Create table for storing Bit.ly click stats for stories
-CREATE TABLE bitly_clicks (
+-- "Master" table (no indexes, no foreign keys as they'll be ineffective)
+CREATE TABLE bitly_clicks_total (
     bitly_clicks_id   BIGSERIAL NOT NULL,
-    stories_id        INT       NOT NULL REFERENCES stories(stories_id) ON DELETE CASCADE,
-    click_date        DATE      NOT NULL,
+    stories_id        INT       NOT NULL,
+
+    -- Date when click data was collected (usually 3 days or 30 days since stories.publish_date)
+    -- (NULL for Bit.ly click data that was collected for controversies)
+    collect_date      DATE      NULL,
+
+    -- Total click count that was aggregated at "collect_date"
     click_count       INT       NOT NULL
 );
 
--- Set up automatic Bit.ly click count partitioning
-CREATE OR REPLACE FUNCTION bitly_clicks_partition_by_month_insert_trigger()
+-- Automatic Bit.ly total click count partitioning to stories_id chunks of 1m rows
+CREATE OR REPLACE FUNCTION bitly_clicks_total_partition_by_stories_id_insert_trigger()
 RETURNS TRIGGER AS $$
 DECLARE
-    target_table_name TEXT;
+    target_table_name TEXT;       -- partition table name (e.g. "bitly_clicks_total_000001")
+    target_table_owner TEXT;      -- partition table owner (e.g. "mediaclouduser")
 
-    click_month_start TEXT; -- first day of month
-    click_month_end TEXT;   -- first day of next month
+    chunk_size CONSTANT INT := 1000000;           -- 1m stories in a chunk
+    to_char_format CONSTANT TEXT := '000000';     -- Up to 1m of chunks, suffixed as "_000001", ..., "_999999"
+
+    stories_id_chunk_number INT;  -- millions part of stories_id (e.g. 30 for stories_id = 30,000,000)
+    stories_id_start INT;         -- stories_id chunk lower limit, inclusive (e.g. 30,000,000)
+    stories_id_end INT;           -- stories_id chunk upper limit, exclusive (e.g. 31,000,000)
 BEGIN
 
-    SELECT 'bitly_clicks_' || to_char(NEW.click_date, 'YYYY_MM') INTO target_table_name;
+    SELECT NEW.stories_id / chunk_size INTO stories_id_chunk_number;
+    SELECT 'bitly_clicks_total_' || trim(leading ' ' from to_char(stories_id_chunk_number, to_char_format))
+        INTO target_table_name;
 
     IF NOT EXISTS (
         SELECT 1
@@ -64,59 +69,76 @@ BEGIN
           AND table_name = target_table_name
     ) THEN
 
-        SELECT date_trunc('month', NEW.click_date)::text INTO click_month_start;
-        SELECT (date_trunc('month', NEW.click_date) + interval '1 month')::text INTO click_month_end;
+        SELECT (NEW.stories_id / chunk_size) * chunk_size INTO stories_id_start;
+        SELECT ((NEW.stories_id / chunk_size) + 1) * chunk_size INTO stories_id_end;
 
         EXECUTE '
             CREATE TABLE ' || target_table_name || ' (
                 CHECK (
-                    click_date >= DATE ''' || click_month_start || '''
-                AND click_date <  DATE ''' || click_month_end   || ''')
-            ) INHERITS (bitly_clicks);
+                    stories_id >= ''' || stories_id_start || '''
+                AND stories_id <  ''' || stories_id_end   || ''')
+            ) INHERITS (bitly_clicks_total);
         ';
 
         EXECUTE '
-            CREATE UNIQUE INDEX ' || target_table_name || '_stories_id_click_date
-            ON ' || target_table_name || ' (stories_id, click_date);
+            ALTER TABLE ' || target_table_name || '
+                ADD CONSTRAINT ' || target_table_name || '_stories_id_fkey
+                FOREIGN KEY (stories_id) REFERENCES stories (stories_id) MATCH FULL;
         ';
+
+        EXECUTE '
+            CREATE UNIQUE INDEX ' || target_table_name || '_stories_id
+            ON ' || target_table_name || ' (stories_id);
+        ';
+
+        -- Update owner
+        SELECT u.usename AS owner
+        FROM information_schema.tables AS t
+            JOIN pg_catalog.pg_class AS c ON t.table_name = c.relname
+            JOIN pg_catalog.pg_user AS u ON c.relowner = u.usesysid
+        WHERE t.table_name = 'bitly_clicks_total'
+          AND t.table_schema = 'public'
+        INTO target_table_owner;
+
+        EXECUTE 'ALTER TABLE ' || target_table_name || ' OWNER TO ' || target_table_owner || ';';
 
     END IF;
 
     EXECUTE '
-        INSERT INTO ' || target_table_name || ' (stories_id, click_date, click_count)
+        INSERT INTO ' || target_table_name || ' (stories_id, collect_date, click_count)
         VALUES ($1, $2, $3);
-    ' USING NEW.stories_id, NEW.click_date, NEW.click_count;
+    ' USING NEW.stories_id, NEW.collect_date, NEW.click_count;
 
     RETURN NULL;
 END;
 $$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER bitly_clicks_partition_by_month_trigger
-    BEFORE INSERT ON bitly_clicks
-    FOR EACH ROW EXECUTE PROCEDURE bitly_clicks_partition_by_month_insert_trigger();
+CREATE TRIGGER bitly_clicks_total_partition_by_stories_id_insert_trigger
+    BEFORE INSERT ON bitly_clicks_total
+    FOR EACH ROW EXECUTE PROCEDURE bitly_clicks_total_partition_by_stories_id_insert_trigger();
 
 
 -- Helper to INSERT / UPDATE story's Bit.ly statistics
-CREATE OR REPLACE FUNCTION upsert_bitly_clicks (
+CREATE OR REPLACE FUNCTION upsert_bitly_clicks_total (
     param_stories_id INT,
-    param_click_date DATE,
+    param_collect_date DATE,
     param_click_count INT
 ) RETURNS VOID AS
 $$
 BEGIN
     LOOP
         -- Try UPDATing
-        UPDATE bitly_clicks
-            SET click_count = param_click_count
-            WHERE stories_id = param_stories_id
-              AND click_date = param_click_date;
+        UPDATE bitly_clicks_total
+            SET click_count = param_click_count,
+                collect_date = param_collect_date
+            WHERE stories_id = param_stories_id;
         IF FOUND THEN RETURN; END IF;
 
         -- Nothing to UPDATE, try to INSERT a new record
         BEGIN
-            INSERT INTO bitly_clicks (stories_id, click_date, click_count)
-            VALUES (param_stories_id, param_click_date, param_click_count);
+            INSERT INTO bitly_clicks_total (stories_id, collect_date, click_count)
+            VALUES (param_stories_id, param_collect_date, param_click_count);
             RETURN;
         EXCEPTION WHEN UNIQUE_VIOLATION THEN
             -- If someone else INSERTs the same key concurrently,
@@ -129,40 +151,183 @@ $$
 LANGUAGE plpgsql;
 
 
--- Legacy view simulating the "controversy_stories_bitly_statistics" table
-CREATE VIEW controversy_stories_bitly_statistics AS
-    SELECT stories_id,
-           bitly_click_count
-    FROM ((
-            -- First try the "bitly_clicks" table, maybe it already has the
-            -- stats for the controversy story
-            SELECT 1 AS priority,
-                   bitly_clicks.stories_id,
-                   SUM(click_count) AS bitly_click_count
-            FROM bitly_clicks
-                INNER JOIN controversy_stories
-                    ON bitly_clicks.stories_id = controversy_stories.stories_id
-            WHERE click_date >= (
-                SELECT MIN( start_date )::date
-                FROM controversies_with_dates
-                WHERE controversies_id = controversy_stories.controversies_id)
-              AND click_date <= (
-                SELECT MAX( end_date )::date
-                FROM controversies_with_dates
-                WHERE controversies_id = controversy_stories.controversies_id)
-            GROUP BY bitly_clicks.stories_id,
-                     controversies_id
-        ) UNION (
-            -- If "bitly_clicks" doesn't have click data for a specific story,
-            -- fallback to legacy table
-            SELECT 2 AS priority,
-                   stories_id,
-                   bitly_click_count
-            FROM legacy_controversy_stories_bitly_statistics
-        )
-    ) AS click_count
-    ORDER BY priority
-    LIMIT 1;
+--
+-- Bit.ly daily story click counts
+--
+
+-- "Master" table (no indexes, no foreign keys as they'll be ineffective)
+CREATE TABLE bitly_clicks_daily (
+    bitly_clicks_id   BIGSERIAL NOT NULL,
+    stories_id        INT       NOT NULL,
+
+    -- Day
+    day               DATE      NOT NULL,
+
+    -- Click count for that day
+    click_count       INT       NOT NULL
+);
+
+-- Automatic Bit.ly daily click count partitioning to stories_id chunks of 1m rows
+CREATE OR REPLACE FUNCTION bitly_clicks_daily_partition_by_stories_id_insert_trigger()
+RETURNS TRIGGER AS $$
+DECLARE
+    target_table_name TEXT;       -- partition table name (e.g. "bitly_clicks_daily_000001")
+    target_table_owner TEXT;      -- partition table owner (e.g. "mediaclouduser")
+
+    chunk_size CONSTANT INT := 1000000;           -- 1m stories in a chunk
+    to_char_format CONSTANT TEXT := '000000';     -- Up to 1m of chunks, suffixed as "_000001", ..., "_999999"
+
+    stories_id_chunk_number INT;  -- millions part of stories_id (e.g. 30 for stories_id = 30,000,000)
+    stories_id_start INT;         -- stories_id chunk lower limit, inclusive (e.g. 30,000,000)
+    stories_id_end INT;           -- stories_id chunk upper limit, exclusive (e.g. 31,000,000)
+BEGIN
+
+    SELECT NEW.stories_id / chunk_size INTO stories_id_chunk_number;
+    SELECT 'bitly_clicks_daily_' || trim(leading ' ' from to_char(stories_id_chunk_number, to_char_format))
+        INTO target_table_name;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.tables 
+        WHERE table_schema = current_schema()
+          AND table_name = target_table_name
+    ) THEN
+
+        SELECT (NEW.stories_id / chunk_size) * chunk_size INTO stories_id_start;
+        SELECT ((NEW.stories_id / chunk_size) + 1) * chunk_size INTO stories_id_end;
+
+        EXECUTE '
+            CREATE TABLE ' || target_table_name || ' (
+                CHECK (
+                    stories_id >= ''' || stories_id_start || '''
+                AND stories_id <  ''' || stories_id_end   || ''')
+            ) INHERITS (bitly_clicks_daily);
+        ';
+
+        EXECUTE '
+            ALTER TABLE ' || target_table_name || '
+                ADD CONSTRAINT ' || target_table_name || '_stories_id_fkey
+                FOREIGN KEY (stories_id) REFERENCES stories (stories_id) MATCH FULL;
+        ';
+
+        EXECUTE '
+            CREATE UNIQUE INDEX ' || target_table_name || '_stories_id
+            ON ' || target_table_name || ' (stories_id);
+        ';
+
+        -- To ensure uniqueness
+        EXECUTE '
+            CREATE UNIQUE INDEX ' || target_table_name || '_stories_id_day
+            ON ' || target_table_name || ' (stories_id, day);
+        ';
+
+        -- Update owner
+        SELECT u.usename AS owner
+        FROM information_schema.tables AS t
+            JOIN pg_catalog.pg_class AS c ON t.table_name = c.relname
+            JOIN pg_catalog.pg_user AS u ON c.relowner = u.usesysid
+        WHERE t.table_name = 'bitly_clicks_daily'
+          AND t.table_schema = 'public'
+        INTO target_table_owner;
+
+        EXECUTE 'ALTER TABLE ' || target_table_name || ' OWNER TO ' || target_table_owner || ';';
+
+    END IF;
+
+    EXECUTE '
+        INSERT INTO ' || target_table_name || ' (stories_id, day, click_count)
+        VALUES ($1, $2, $3);
+    ' USING NEW.stories_id, NEW.day, NEW.click_count;
+
+    RETURN NULL;
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER bitly_clicks_daily_partition_by_stories_id_insert_trigger
+    BEFORE INSERT ON bitly_clicks_daily
+    FOR EACH ROW EXECUTE PROCEDURE bitly_clicks_daily_partition_by_stories_id_insert_trigger();
+
+
+-- Helper to INSERT / UPDATE story's Bit.ly statistics
+CREATE OR REPLACE FUNCTION upsert_bitly_clicks_daily (
+    param_stories_id INT,
+    param_day DATE,
+    param_click_count INT
+) RETURNS VOID AS
+$$
+BEGIN
+    LOOP
+        -- Try UPDATing
+        UPDATE bitly_clicks_daily
+            SET click_count = param_click_count
+            WHERE stories_id = param_stories_id
+              AND day = param_day;
+        IF FOUND THEN RETURN; END IF;
+
+        -- Nothing to UPDATE, try to INSERT a new record
+        BEGIN
+            INSERT INTO bitly_clicks_daily (stories_id, day, click_count)
+            VALUES (param_stories_id, param_day, param_click_count);
+            RETURN;
+        EXCEPTION WHEN UNIQUE_VIOLATION THEN
+            -- If someone else INSERTs the same key concurrently,
+            -- we will get a unique-key failure. In that case, do
+            -- nothing and loop to try the UPDATE again.
+        END;
+    END LOOP;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+-- Helper to return a number of stories for which we don't have Bit.ly statistics yet
+DROP FUNCTION num_controversy_stories_without_bitly_statistics(INT);
+CREATE FUNCTION num_controversy_stories_without_bitly_statistics (param_controversies_id INT) RETURNS INT AS
+$$
+DECLARE
+    controversy_exists BOOL;
+    num_stories_without_bitly_statistics INT;
+BEGIN
+
+    SELECT 1 INTO controversy_exists
+    FROM controversies
+    WHERE controversies_id = param_controversies_id
+      AND process_with_bitly = 't';
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Controversy % does not exist or is not set up for Bit.ly processing.', param_controversies_id;
+        RETURN FALSE;
+    END IF;
+
+    SELECT COUNT(stories_id) INTO num_stories_without_bitly_statistics
+    FROM controversy_stories
+    WHERE controversies_id = param_controversies_id
+      AND stories_id NOT IN (
+        SELECT stories_id
+        FROM bitly_clicks_total
+    )
+    GROUP BY controversies_id;
+    IF NOT FOUND THEN
+        num_stories_without_bitly_statistics := 0;
+    END IF;
+
+    RETURN num_stories_without_bitly_statistics;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+-- Migrate old data to the new partitioned table infrastructure and drop it afterwards
+-- (might take up ~6 minutes or so)
+DROP FUNCTION IF EXISTS upsert_story_bitly_statistics(INT, INT);
+DROP FUNCTION IF EXISTS upsert_story_bitly_statistics(INT, INT, INT);
+
+INSERT INTO bitly_clicks_total (stories_id, collect_date, click_count)
+    SELECT stories_id, NULL, bitly_click_count
+    FROM story_bitly_statistics;
+
+DROP TABLE story_bitly_statistics;
+
 
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
