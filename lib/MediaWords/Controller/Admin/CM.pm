@@ -21,7 +21,7 @@ use MediaWords::DBI::Stories;
 use MediaWords::Solr;
 use MediaWords::Solr::WordCounts;
 use MediaWords::Util::Bitly;
-use MediaWords::GearmanFunction::Bitly::EnqueueControversyStories;
+use MediaWords::GearmanFunction::Bitly::EnqueueAllControversyStories;
 
 Readonly my $ROWS_PER_PAGE => 25;
 
@@ -3126,7 +3126,7 @@ sub enqueue_stories_for_bitly : Local
     }
 
     my $args = { controversies_id => $controversies_id };
-    my $gearman_job_id = MediaWords::GearmanFunction::Bitly::EnqueueControversyStories->enqueue_on_gearman( $args );
+    my $gearman_job_id = MediaWords::GearmanFunction::Bitly::EnqueueAllControversyStories->enqueue_on_gearman( $args );
     unless ( $gearman_job_id )
     {
         die "Gearman job didn't return a job ID for controversy ID $controversies_id";

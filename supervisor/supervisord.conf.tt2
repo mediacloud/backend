@@ -164,8 +164,8 @@ programs = gearmand
 %]
 
 [% INCLUDE program_config
-    program='bitly_enqueue_controversy_stories'
-    gearman_worker_module='Bitly/EnqueueControversyStories.pm'
+    program='bitly_enqueue_all_controversy_stories'
+    gearman_worker_module='Bitly/EnqueueAllControversyStories.pm'
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'

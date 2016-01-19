@@ -1,11 +1,11 @@
-package MediaWords::GearmanFunction::Bitly::EnqueueControversyStories;
+package MediaWords::GearmanFunction::Bitly::EnqueueAllControversyStories;
 
 #
 # Enqueue all controversy's stories for processing via Bit.ly API
 #
 # Start this worker script by running:
 #
-# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/Bitly/EnqueueControversyStories.pm
+# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/Bitly/EnqueueAllControversyStories.pm
 #
 
 use strict;
