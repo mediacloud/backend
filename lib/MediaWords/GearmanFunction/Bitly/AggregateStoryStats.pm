@@ -70,17 +70,12 @@ sub run($;$)
     my $total_click_count = $agg_stats->total_click_count();
     say STDERR "Story's $stories_id total click count: $total_click_count";
 
-    # Store stats ("upsert" the record into "bitly_clicks" table)
-    foreach my $click_date ( keys %{ $agg_stats->{ dates_and_clicks } } )
-    {
-        my $click_count = $agg_stats->{ dates_and_clicks }->{ $click_date };
-        $db->query(
-            <<EOF,
-            SELECT upsert_bitly_clicks(?, ?::date, ?)
+    $db->query(
+        <<EOF,
+        SELECT upsert_bitly_clicks_total(?, NOW()::date, ?)
 EOF
-            $stories_id, $click_date, $click_count
-        );
-    }
+        $stories_id, $total_click_count
+    );
 
     say STDERR "Done aggregating story stats for story $stories_id.";
 }
