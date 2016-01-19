@@ -74,16 +74,21 @@ BEGIN
 
         EXECUTE '
             CREATE TABLE ' || target_table_name || ' (
-                CHECK (
-                    stories_id >= ''' || stories_id_start || '''
-                AND stories_id <  ''' || stories_id_end   || ''')
-            ) INHERITS (bitly_clicks_total);
-        ';
 
-        EXECUTE '
-            ALTER TABLE ' || target_table_name || '
-                ADD CONSTRAINT ' || target_table_name || '_stories_id_fkey
-                FOREIGN KEY (stories_id) REFERENCES stories (stories_id) MATCH FULL;
+                -- Primary key
+                CONSTRAINT ' || target_table_name || '_pkey
+                    PRIMARY KEY (bitly_clicks_id),
+
+                -- Partition by stories_id
+                CONSTRAINT ' || target_table_name || '_stories_id CHECK (
+                    stories_id >= ''' || stories_id_start || '''
+                AND stories_id <  ''' || stories_id_end   || '''),
+
+                -- Foreign key to stories.stories_id
+                CONSTRAINT ' || target_table_name || '_stories_id_fkey
+                    FOREIGN KEY (stories_id) REFERENCES stories (stories_id) MATCH FULL
+
+            ) INHERITS (bitly_clicks_total);
         ';
 
         EXECUTE '
@@ -198,16 +203,21 @@ BEGIN
 
         EXECUTE '
             CREATE TABLE ' || target_table_name || ' (
-                CHECK (
-                    stories_id >= ''' || stories_id_start || '''
-                AND stories_id <  ''' || stories_id_end   || ''')
-            ) INHERITS (bitly_clicks_daily);
-        ';
 
-        EXECUTE '
-            ALTER TABLE ' || target_table_name || '
-                ADD CONSTRAINT ' || target_table_name || '_stories_id_fkey
-                FOREIGN KEY (stories_id) REFERENCES stories (stories_id) MATCH FULL;
+                -- Primary key
+                CONSTRAINT ' || target_table_name || '_pkey
+                    PRIMARY KEY (bitly_clicks_id),
+
+                -- Partition by stories_id
+                CONSTRAINT ' || target_table_name || '_stories_id CHECK (
+                    stories_id >= ''' || stories_id_start || '''
+                AND stories_id <  ''' || stories_id_end   || '''),
+
+                -- Foreign key to stories.stories_id
+                CONSTRAINT ' || target_table_name || '_stories_id_fkey
+                    FOREIGN KEY (stories_id) REFERENCES stories (stories_id) MATCH FULL
+
+            ) INHERITS (bitly_clicks_daily);
         ';
 
         EXECUTE '
