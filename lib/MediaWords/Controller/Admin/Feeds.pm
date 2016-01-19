@@ -522,6 +522,29 @@ sub _feed_url_exists_in_medium
     return $db->query( 'select 1 from feeds where url = ? and media_id = ?', $url, $media_id )->hash;
 }
 
+# urls that exist in $a that do not exist in $b and print a message
+# listing those urls and the reason they were skipped.  accept either
+# a list of url strings or a list of hashes in the form { url => $url }.
+sub _get_skipped_urls_message
+{
+    my ( $a, $b, $message ) = @_;
+
+    $a = [ map { $_->{ url } } @{ $a } ] if ( @{ $a } && ref( $a->[ 0 ] ) );
+    $b = [ map { $_->{ url } } @{ $b } ] if ( @{ $b } && ref( $b->[ 0 ] ) );
+
+    my $b_lookup = {};
+    map { $b_lookup->{ $_ } = 1 } @{ $b };
+
+    my $skipped_urls = [ grep { !$b_lookup->{ $_ } } @{ $a } ];
+
+    if ( @{ $skipped_urls } )
+    {
+        return "The following urls were skipped because they $message:\n" . join( ', ', @{ $skipped_urls } ) . "\n\n";
+    }
+
+    return '';
+}
+
 sub batch_create_do : Local
 {
     my ( $self, $c, $media_id ) = @_;
@@ -537,11 +560,21 @@ sub batch_create_do : Local
         die( "Unable to find medium $media_id" );
     }
 
+    if ( !$c->req->params->{ urls } )
+    {
+        my $status_msg = 'No feed urls';
+        $c->response->redirect( $c->uri_for( "/admin/feeds/list/$media_id", { status_msg => $status_msg } ) );
+        return;
+    }
+
     my $urls = [ map { $_ =~ s/[\n\r\s]//g; $_ } split( "\n", $c->request->param( 'urls' ) ) ];
 
-    my $links = Feed::Scrape::MediaWords->get_valid_feeds_from_urls( $urls, $c->dbis );
+    my $valid_links = Feed::Scrape::MediaWords->get_valid_feeds_from_urls( $urls, $c->dbis );
 
-    for my $link ( @{ $links } )
+    my $status_msg = _get_skipped_urls_message( $urls, $valid_links, 'are not valid feeds' );
+
+    my $added_links = [];
+    for my $link ( @{ $valid_links } )
     {
         if ( !_feed_url_exists_in_medium( $c->dbis, $link->{ url }, $media_id ) )
         {
@@ -554,25 +587,13 @@ sub batch_create_do : Local
                 }
             );
             $self->add_default_scraped_tags( $c, $feed );
+            push( @{ $added_links }, $link );
         }
     }
 
-    my $status_msg;
-    if ( @{ $links } < @{ $urls } )
-    {
-        my $skipped_urls = [
-            grep {
-                my $a = $_;
-                !( grep { $a eq lc( $_->{ url } ) } @{ $links } )
-            } @{ $urls }
-        ];
-        $status_msg =
-          "The following urls were skipped because they already exist in this medium: " . join( ', ', @{ $skipped_urls } );
-    }
-    else
-    {
-        $status_msg = 'All feeds were created successfully.';
-    }
+    $status_msg .= _get_skipped_urls_message( $valid_links, $added_links, "already exist in this medium" );
+
+    $status_msg ||= 'All feeds were created successfully.';
 
     $c->response->redirect( $c->uri_for( "/admin/feeds/list/$media_id", { status_msg => $status_msg } ) );
 }

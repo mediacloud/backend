@@ -10,49 +10,25 @@
 --
 -- You might need to import some additional schema diff files to reach the desired version.
 --
-
 --
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
-SET search_path = public, pg_catalog;
-
-
-DROP FUNCTION upsert_story_bitly_statistics(param_stories_id INT, param_bitly_click_count INT, param_bitly_referrer_count INT);
-CREATE OR REPLACE FUNCTION upsert_story_bitly_statistics(param_stories_id INT, param_bitly_click_count INT) RETURNS VOID AS
-$$
+CREATE OR REPLACE FUNCTION update_feeds_from_yesterday() RETURNS VOID AS $$
 BEGIN
-    LOOP
-        -- Try UPDATing
-        UPDATE story_bitly_statistics
-            SET bitly_click_count = param_bitly_click_count
-            WHERE stories_id = param_stories_id;
-        IF FOUND THEN RETURN; END IF;
 
-        -- Nothing to UPDATE, try to INSERT a new record
-        BEGIN
-            INSERT INTO story_bitly_statistics (stories_id, bitly_click_count)
-            VALUES (param_stories_id, param_bitly_click_count);
-            RETURN;
-        EXCEPTION WHEN UNIQUE_VIOLATION THEN
-            -- If someone else INSERTs the same key concurrently,
-            -- we will get a unique-key failure. In that case, do
-            -- nothing and loop to try the UPDATE again.
-        END;
-    END LOOP;
+    DELETE FROM feeds_from_yesterday;
+    INSERT INTO feeds_from_yesterday (feeds_id, media_id, name, url, feed_type, feed_status)
+        SELECT feeds_id, media_id, name, url, feed_type, feed_status
+        FROM feeds;
+
 END;
 $$
-LANGUAGE plpgsql;
+LANGUAGE 'plpgsql';
 
-ALTER TABLE story_bitly_statistics
-	DROP COLUMN bitly_referrer_count;
-
-ALTER TABLE cd.story_link_counts
-    DROP COLUMN bitly_referrer_count;
-
-ALTER TABLE cd.medium_link_counts
-    DROP COLUMN bitly_referrer_count;
-
+--
+-- 2 of 2. Reset the database version.
+--
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
@@ -73,8 +49,4 @@ END;
 $$
 LANGUAGE 'plpgsql';
 
---
--- 2 of 2. Reset the database version.
---
 SELECT set_database_schema_version();
-

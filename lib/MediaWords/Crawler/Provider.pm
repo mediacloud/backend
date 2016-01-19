@@ -203,6 +203,9 @@ sub _queue_download_list_with_per_site_limit
 {
     my ( $self, $downloads, $site_limit ) = @_;
 
+    say STDERR "_queue_download_list_with_per_site_limit: " .
+      scalar( @{ $downloads } ) . " downloads (site limit $site_limit)";
+
     my $queued_downloads = [];
 
     for my $download ( @{ $downloads } )
@@ -217,6 +220,8 @@ sub _queue_download_list_with_per_site_limit
 
         $self->{ downloads }->_queue_download( $download );
     }
+
+    say STDERR "_queue_download_list_with_per_site_limit: queued " . scalar( @{ $queued_downloads } ) . " downloads";
 
     # my $downloads_id_list = join( ',', map { $_->{ downloads_id } } @{ $queued_downloads } );
     # $self->engine->dbs->query( "update downloads set state = 'queued' where downloads_id in ($downloads_id_list)" );
@@ -271,7 +276,7 @@ END
 
     if ( @{ $missing_download_sites } )
     {
-        my $site_missing_download_queue_limit = int( $MAX_QUEUED_DOWNLOADS / scalar( @{ $missing_download_sites } ) );
+        my $site_missing_download_queue_limit = int( $MAX_QUEUED_DOWNLOADS / scalar( @{ $missing_download_sites } ) ) + 1;
 
         for my $missing_download_site ( @{ $missing_download_sites } )
         {
@@ -336,7 +341,7 @@ END
 
     if ( @{ $sites } )
     {
-        my $site_download_queue_limit = int( $MAX_QUEUED_DOWNLOADS / scalar( @{ $sites } ) );
+        my $site_download_queue_limit = int( $MAX_QUEUED_DOWNLOADS / scalar( @{ $sites } ) ) + 1;
 
         for my $site ( @{ $sites } )
         {
