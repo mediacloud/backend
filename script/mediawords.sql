@@ -2170,7 +2170,11 @@ BEGIN
 
                 -- Foreign key to stories.stories_id
                 CONSTRAINT ' || target_table_name || '_stories_id_fkey
-                    FOREIGN KEY (stories_id) REFERENCES stories (stories_id) MATCH FULL
+                    FOREIGN KEY (stories_id) REFERENCES stories (stories_id) MATCH FULL,
+
+                -- Unique duplets
+                CONSTRAINT ' || target_table_name || '_stories_id_day_unique
+                    UNIQUE (stories_id, day)
 
             ) INHERITS (bitly_clicks_daily);
         ';
@@ -2178,12 +2182,6 @@ BEGIN
         EXECUTE '
             CREATE INDEX ' || target_table_name || '_stories_id
             ON ' || target_table_name || ' (stories_id);
-        ';
-
-        -- To ensure uniqueness
-        EXECUTE '
-            CREATE UNIQUE INDEX ' || target_table_name || '_stories_id_day
-            ON ' || target_table_name || ' (stories_id, day);
         ';
 
         -- Update owner
