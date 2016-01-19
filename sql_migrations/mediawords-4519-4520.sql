@@ -110,9 +110,9 @@ BEGIN
     END IF;
 
     EXECUTE '
-        INSERT INTO ' || target_table_name || ' (stories_id, collect_date, click_count)
-        VALUES ($1, $2, $3);
-    ' USING NEW.stories_id, NEW.collect_date, NEW.click_count;
+        INSERT INTO ' || target_table_name || '
+            SELECT $1.*;
+    ' USING NEW;
 
     RETURN NULL;
 END;
@@ -243,9 +243,9 @@ BEGIN
     END IF;
 
     EXECUTE '
-        INSERT INTO ' || target_table_name || ' (stories_id, day, click_count)
-        VALUES ($1, $2, $3);
-    ' USING NEW.stories_id, NEW.day, NEW.click_count;
+        INSERT INTO ' || target_table_name || '
+            SELECT $1.*;
+    ' USING NEW;
 
     RETURN NULL;
 END;
