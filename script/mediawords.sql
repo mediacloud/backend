@@ -2176,7 +2176,7 @@ BEGIN
         ';
 
         EXECUTE '
-            CREATE UNIQUE INDEX ' || target_table_name || '_stories_id
+            CREATE INDEX ' || target_table_name || '_stories_id
             ON ' || target_table_name || ' (stories_id);
         ';
 
