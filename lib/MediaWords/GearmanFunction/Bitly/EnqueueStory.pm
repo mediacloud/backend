@@ -33,7 +33,7 @@ use MediaWords::Util::Bitly;
 use MediaWords::Util::DateTime;
 use MediaWords::Util::SQL;
 use MediaWords::Util::URL;
-use MediaWords::GearmanFunction::Bitly::FetchStoryURLStats;
+use MediaWords::GearmanFunction::Bitly::FetchStoryStats;
 use Readonly;
 use DateTime;
 
@@ -120,7 +120,7 @@ sub run($;$)
 
     say STDERR "Enqueueing story $stories_id for Bit.ly processing (start TS: $start_timestamp, end TS: $end_timestamp)...";
 
-    MediaWords::GearmanFunction::Bitly::FetchStoryURLStats->enqueue_on_gearman(
+    MediaWords::GearmanFunction::Bitly::FetchStoryStats->enqueue_on_gearman(
         {
             stories_id      => $stories_id,
             start_timestamp => $start_timestamp,
