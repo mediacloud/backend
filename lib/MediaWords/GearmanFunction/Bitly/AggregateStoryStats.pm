@@ -72,7 +72,7 @@ sub run($;$)
 
     $db->query(
         <<EOF,
-        SELECT upsert_bitly_clicks_total(?, NOW()::date, ?)
+        SELECT upsert_bitly_clicks_total(?, ?)
 EOF
         $stories_id, $total_click_count
     );

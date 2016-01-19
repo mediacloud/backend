@@ -35,11 +35,6 @@ CREATE TABLE bitly_clicks_total (
     bitly_clicks_id   BIGSERIAL NOT NULL,
     stories_id        INT       NOT NULL,
 
-    -- Date when click data was collected (usually 3 days or 30 days since stories.publish_date)
-    -- (NULL for Bit.ly click data that was collected for controversies)
-    collect_date      DATE      NULL,
-
-    -- Total click count that was aggregated at "collect_date"
     click_count       INT       NOT NULL
 );
 
@@ -127,7 +122,6 @@ CREATE TRIGGER bitly_clicks_total_partition_by_stories_id_insert_trigger
 -- Helper to INSERT / UPDATE story's Bit.ly statistics
 CREATE OR REPLACE FUNCTION upsert_bitly_clicks_total (
     param_stories_id INT,
-    param_collect_date DATE,
     param_click_count INT
 ) RETURNS VOID AS
 $$
@@ -135,15 +129,14 @@ BEGIN
     LOOP
         -- Try UPDATing
         UPDATE bitly_clicks_total
-            SET click_count = param_click_count,
-                collect_date = param_collect_date
+            SET click_count = param_click_count
             WHERE stories_id = param_stories_id;
         IF FOUND THEN RETURN; END IF;
 
         -- Nothing to UPDATE, try to INSERT a new record
         BEGIN
-            INSERT INTO bitly_clicks_total (stories_id, collect_date, click_count)
-            VALUES (param_stories_id, param_collect_date, param_click_count);
+            INSERT INTO bitly_clicks_total (stories_id, click_count)
+            VALUES (param_stories_id, param_click_count);
             RETURN;
         EXCEPTION WHEN UNIQUE_VIOLATION THEN
             -- If someone else INSERTs the same key concurrently,
@@ -165,10 +158,7 @@ CREATE TABLE bitly_clicks_daily (
     bitly_clicks_id   BIGSERIAL NOT NULL,
     stories_id        INT       NOT NULL,
 
-    -- Day
     day               DATE      NOT NULL,
-
-    -- Click count for that day
     click_count       INT       NOT NULL
 );
 
@@ -330,8 +320,8 @@ LANGUAGE plpgsql;
 DROP FUNCTION IF EXISTS upsert_story_bitly_statistics(INT, INT);
 DROP FUNCTION IF EXISTS upsert_story_bitly_statistics(INT, INT, INT);
 
-INSERT INTO bitly_clicks_total (stories_id, collect_date, click_count)
-    SELECT stories_id, NULL, bitly_click_count
+INSERT INTO bitly_clicks_total (stories_id, click_count)
+    SELECT stories_id, bitly_click_count
     FROM story_bitly_statistics;
 
 DROP TABLE story_bitly_statistics;
