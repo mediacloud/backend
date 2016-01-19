@@ -60,7 +60,7 @@ sub create_new_index
     my $start_date = MediaWords::Util::SQL::get_sql_date_from_epoch( time() );
 
     $db->query( <<SQL );
-create index story_sentences_dup_new on story_sentences( md5( sentence ) )
+create index concurrently story_sentences_dup_new on story_sentences( md5( sentence ) )
     where week_start_date( publish_date::date ) > '$start_date'::date
 SQL
 }
@@ -70,15 +70,17 @@ sub switch_indexes
 {
     my ( $db ) = @_;
 
+    $db->begin;
+
     $db->query( "drop index story_sentences_dup" );
     $db->query( "alter index story_sentences_dup_new rename to story_sentences_dup" );
+
+    $db->commit;
 }
 
 sub main
 {
     my $db = MediaWords::DB::connect_to_db;
-
-    $db->begin;
 
     my $current_index = get_index_info( $db, 'story_sentences_dup' );
     my $new_index     = get_index_info( $db, 'story_sentences_dup_new' );
@@ -93,8 +95,6 @@ sub main
     {
         switch_indexes( $db );
     }
-
-    $db->commit;
 }
 
 main();
