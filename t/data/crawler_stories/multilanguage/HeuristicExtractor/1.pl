@@ -1,6 +1,6 @@
 #<<<
 $VAR1 = {
-          'collect_date' => '2015-07-06 22:59:03.588099',
+          'collect_date' => '2016-01-15 13:09:37.608735',
           'content' => '<!DOCTYPE html>
 <html>
 <head>
@@ -41,7 +41,7 @@ $VAR1 = {
 </body>
 </html>
 ',
-          'db_row_last_updated' => '2015-07-06 22:59:07.11207-04',
+          'db_row_last_updated' => '2016-01-15 13:09:40.947805-06',
           'description' => 'English: The quick brown fox jumps over the lazy dog.',
           'disable_triggers' => 0,
           'extracted_text' => 'English: The quick brown fox jumps over the lazy dog
@@ -58,15 +58,16 @@ English: The quick brown fox jumps over the lazy dog.
           'guid' => 'http://www.example.com/multilanguage/english.html',
           'language' => 'en',
           'media_id' => 1,
-          'publish_date' => '2009-06-11 06:57:00',
+          'publish_date' => '2009-06-11 05:57:00',
           'stories_id' => 1,
           'story_sentences' => [
                                  {
-                                   'db_row_last_updated' => '2015-07-06 22:59:07.11207-04',
+                                   'db_row_last_updated' => '2016-01-15 13:09:40.947805-06',
                                    'disable_triggers' => 0,
+                                   'is_dup' => undef,
                                    'language' => 'en',
                                    'media_id' => 1,
-                                   'publish_date' => '2009-06-11 06:57:00',
+                                   'publish_date' => '2009-06-11 05:57:00',
                                    'sentence' => 'The quick brown fox jumps over the lazy dog.',
                                    'sentence_number' => 0,
                                    'stories_id' => 1,
@@ -74,8 +75,8 @@ English: The quick brown fox jumps over the lazy dog.
                                  }
                                ],
           'tags' => [],
-          'timezone' => 'America/New_York',
+          'timezone' => 'America/Chicago',
           'title' => 'English: The quick brown fox jumps over the lazy dog',
-          'url' => 'http://amanda.law.harvard.edu:41053/multilanguage/english.html'
+          'url' => 'http://raven.local:64543/multilanguage/english.html'
         };
 #>>>
