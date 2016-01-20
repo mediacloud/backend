@@ -154,7 +154,7 @@ update story_sentences ss set is_dup = true
         from ssd
         where
             ssd.story_sentences_id = ss.story_sentences_id and
-            ss.media_id = $story->{ media_id }
+            ssd.media_id = $story->{ media_id }
     returning *
 SQL
 
