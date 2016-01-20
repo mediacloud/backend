@@ -82,38 +82,6 @@ sub limit_string_length
     }
 }
 
-# efficient copy insertion of story sentence counts
-sub insert_story_sentence_counts
-{
-    my ( $db, $story, $md5s ) = @_;
-
-    my $fields = [ qw/sentence_md5 media_id publish_week first_stories_id first_sentence_number sentence_count/ ];
-    my $field_list = join( ',', @{ $fields } );
-
-    my ( $publish_week ) = $db->query( "select date_trunc( 'week', ?::date )", $story->{ publish_date } )->flat;
-
-    my $copy = <<END;
-copy story_sentence_counts ( $field_list ) from STDIN with csv
-END
-    eval { $db->dbh->do( $copy ) };
-    die( "Error on copy for story_sentence_counts: $@" ) if ( $@ );
-
-    my $csv = Text::CSV_XS->new( { binary => 1 } );
-
-    my $i = 0;
-    for my $md5 ( @{ $md5s } )
-    {
-        $csv->combine( $md5, $story->{ media_id }, $publish_week, $story->{ stories_id }, $i++, 1 );
-        eval { $db->dbh->pg_putcopydata( $csv->string . "\n" ) };
-
-        die( "Error on pg_putcopydata for story_sentence_counts: $@" ) if ( $@ );
-    }
-
-    eval { $db->dbh->pg_putcopyend() };
-
-    die( "Error on pg_putcopyend for story_sentence_counts: $@" ) if ( $@ );
-}
-
 # get unique sentences from the list, maintaining the original order
 sub _get_unique_sentences
 {
@@ -152,7 +120,7 @@ sub _get_dup_story_sentences
     # conditional story_sentences_dup index
     my $q_publish_date = $db->dbh->quote( $story->{ publish_date } );
 
-    my $sentence_lookup_clause;
+    my ( $sentence_lookup_clause, $date_clause );
 
     if ( $story->{ publish_date } gt $index_date )
     {
@@ -160,6 +128,7 @@ sub _get_dup_story_sentences
         my $sentence_md5_list = join( ',', @{ $q_sentence_md5s } );
 
         $sentence_lookup_clause = "md5( sentence ) in ( $sentence_md5_list )";
+        $date_clause            = "week_start_date( publish_date::date ) = week_start_date( ${ q_publish_date }::date )";
     }
     else
     {
@@ -167,17 +136,25 @@ sub _get_dup_story_sentences
         my $sentence_list = join( ',', @{ $q_sentences } );
 
         $sentence_lookup_clause = "sentence in ( $sentence_list )";
+        $date_clause =
+"date_trunc( 'day', publish_date ) between ${ q_publish_date }::date and ${ q_publish_date }::date + interval '6 days'";
     }
 
-    my $dup_story_sentences = $db->query( <<SQL, $story->{ media_id } )->hashes;
-update story_sentences
-    set is_dup = true
-    where
-        $sentence_lookup_clause and
-        media_id = ? and
-        week_start_date( publish_date::date ) between
-            week_start_date( ${ q_publish_date }::date ) and
-            week_start_date( ( ${ q_publish_date }::date + interval '6 days' )::date )
+    # we have to use this odd 'with ssd ...' form of the query to force postgres not to generate a plan
+    # that tries to do a full scan of all the story_sentences_media_id entries for the media_id
+    my $dup_story_sentences = $db->query( <<SQL )->hashes;
+with ssd as (
+            select story_sentences_id, media_id
+            from story_sentences
+            where $sentence_lookup_clause and
+                $date_clause
+)
+
+update story_sentences ss set is_dup = true
+        from ssd
+        where
+            ssd.story_sentences_id = ss.story_sentences_id and
+            ss.media_id = $story->{ media_id }
     returning *
 SQL
 
