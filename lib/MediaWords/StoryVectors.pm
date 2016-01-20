@@ -114,7 +114,9 @@ sub _get_dup_story_sentences
 
     die( "unable to find date in story_sentences_dup definition" ) unless ( $indexdef =~ /(\d\d\d\d-\d\d-\d\d)/ );
 
-    my $index_date = $1;
+    # the date will get truncated to the monday of the current date, so only use consider the index date
+    # starting with the monday of or following the index date
+    my $index_date = MediaWords::Util::SQL::increment_to_monday( $1 );
 
     # we need to manually quote and include this date so that postgres will know to use the
     # conditional story_sentences_dup index
