@@ -136,8 +136,11 @@ sub _get_dup_story_sentences
         my $sentence_list = join( ',', @{ $q_sentences } );
 
         $sentence_lookup_clause = "sentence in ( $sentence_list )";
-        $date_clause =
-"date_trunc( 'day', publish_date ) between ${ q_publish_date }::date and ${ q_publish_date }::date + interval '6 days'";
+        $date_clause            = <<SQL;
+date_trunc( 'day', publish_date )
+    between ${ q_publish_date }::date and ${ q_publish_date }::date + interval '6 days' and
+    media_id = $story->{ media_id }
+SQL
     }
 
     # we have to use this odd 'with ssd ...' form of the query to force postgres not to generate a plan
