@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4518;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4519;
 
 BEGIN
 
@@ -1486,7 +1486,8 @@ create table story_sentences (
        publish_date                 timestamp       not null,
        db_row_last_updated          timestamp with time zone, -- time this row was last updated
        language                     varchar(3)      null,      -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
-       disable_triggers             boolean  null
+       disable_triggers             boolean         null,
+       is_dup                       boolean         null
 );
 
 create index story_sentences_story on story_sentences (stories_id, sentence_number);
@@ -1494,6 +1495,26 @@ create index story_sentences_publish_day on story_sentences( date_trunc( 'day', 
 create index story_sentences_language on story_sentences(language);
 create index story_sentences_media_id    on story_sentences( media_id );
 create index story_sentences_db_row_last_updated    on story_sentences( db_row_last_updated );
+
+-- we have to do this in a function to create the partial index on a constant value,
+-- which you cannot do with a simple 'create index ... where publish_date > now()'
+create or replace function create_initial_story_sentences_dup() RETURNS boolean as $$
+declare
+    one_month_ago date;
+begin
+    select now() - interval '1 month' into one_month_ago;
+
+    raise notice 'date: %', one_month_ago;
+
+    execute 'create index story_sentences_dup on story_sentences( md5( sentence ) ) ' ||
+        'where week_start_date( publish_date::date ) > ''' || one_month_ago || '''::date';
+
+    return true;
+END;
+$$ LANGUAGE plpgsql;
+
+select create_initial_story_sentences_dup();
+
 
 ALTER TABLE story_sentences
     ADD CONSTRAINT story_sentences_media_id_fkey

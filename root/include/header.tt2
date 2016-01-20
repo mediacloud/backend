@@ -41,7 +41,7 @@
     <link href="[% c.uri_for('/include/tipsy.css') %]" rel="stylesheet" type="text/css" />
     <link href="[% c.uri_for( '/include/word_cloud.css' ) %]" rel="stylesheet" type="text/css" />
 
-    <script src="[% c.uri_for('/include/libs/handsontable-0.13.0/dist/handsontable.full.js') %]"></script>  
+    <script src="[% c.uri_for('/include/libs/handsontable-0.13.0/dist/handsontable.full.js') %]"></script>
     <link rel="stylesheet" media="screen" href="[% c.uri_for('/include/libs/handsontable-0.13.0/dist/handsontable.full.css') %]">
 
     <script src="[% c.uri_for('/include/libs/handsontable-0.13.0/plugins/removeRow/handsontable.removeRow.js') %]"></script>
@@ -97,7 +97,7 @@
 
     [% END #[% IF c.user -%]
 
-    <h1>[% title | html %]</h1>
+    <h1>[% title | truncate( 512 ) | html %]</h1>
 
     [% IF breadcrumbs %]
         <div id="breadcrumbs">[% breadcrumbs %]</div>

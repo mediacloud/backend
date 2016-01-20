@@ -367,7 +367,8 @@ sub test_stories_non_public
                     'publish_date'        => '2014-06-02 01:00:59',
                     'stories_id'          => '67',
                     'db_row_last_updated' => '2014-06-02 13:43:15.182044-04',
-                    'story_sentences_id'  => '998'
+                    'story_sentences_id'  => '998',
+                    'is_dup'              => undef
                 },
                 {
                     'sentence' =>
@@ -379,7 +380,8 @@ sub test_stories_non_public
                     'publish_date'        => '2014-06-02 01:00:59',
                     'stories_id'          => '67',
                     'db_row_last_updated' => '2014-06-02 13:43:15.182044-04',
-                    'story_sentences_id'  => '999'
+                    'story_sentences_id'  => '999',
+                    'is_dup'              => undef
                 },
                 {
                     'sentence' =>
@@ -391,7 +393,8 @@ sub test_stories_non_public
                     'publish_date'        => '2014-06-02 01:00:59',
                     'stories_id'          => '67',
                     'db_row_last_updated' => '2014-06-02 13:43:15.182044-04',
-                    'story_sentences_id'  => '1000'
+                    'story_sentences_id'  => '1000',
+                    'is_dup'              => undef
                 },
                 {
                     'sentence' =>
@@ -403,7 +406,8 @@ sub test_stories_non_public
                     'publish_date'        => '2014-06-02 01:00:59',
                     'stories_id'          => '67',
                     'db_row_last_updated' => '2014-06-02 13:43:15.182044-04',
-                    'story_sentences_id'  => '1001'
+                    'story_sentences_id'  => '1001',
+                    'is_dup'              => undef
                 },
                 {
                     'sentence'            => 'Knock \'em down, beat \'em senseless, Do it till we reach consensus!',
@@ -414,7 +418,8 @@ sub test_stories_non_public
                     'publish_date'        => '2014-06-02 01:00:59',
                     'stories_id'          => '67',
                     'db_row_last_updated' => '2014-06-02 13:43:15.182044-04',
-                    'story_sentences_id'  => '1002'
+                    'story_sentences_id'  => '1002',
+                    'is_dup'              => undef
                 }
             ],
             'stories_id' => '67',
