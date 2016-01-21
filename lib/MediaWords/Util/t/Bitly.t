@@ -45,11 +45,34 @@ sub test_merge_story_stats()
 
         cmp_deeply( MediaWords::Util::Bitly::merge_story_stats( $old_stats, $new_stats ), $expected_stats );
     }
+
+    # Merge stats for different days
+    {
+        my $old_stats_clicks = {
+            link_clicks => [
+                { dt => 1, clicks => 1 },    #
+                { dt => 2, clicks => 2 },    #
+                { dt => 3, clicks => 3 },    #
+            ]
+        };
+        my $new_stats_clicks = {
+            link_clicks => [
+                { dt => 4, clicks => 4 },    #
+                { dt => 5, clicks => 5 },    #
+                { dt => 6, clicks => 6 },    #
+            ]
+        };
+        my $old_stats      = { data => { bitly_id => { clicks => [ $old_stats_clicks ] } } };
+        my $new_stats      = { data => { bitly_id => { clicks => [ $new_stats_clicks ] } } };
+        my $expected_stats = { data => { bitly_id => { clicks => [ $new_stats_clicks, $old_stats_clicks ] } } };
+
+        cmp_deeply( MediaWords::Util::Bitly::merge_story_stats( $old_stats, $new_stats ), $expected_stats );
+    }
 }
 
 sub main()
 {
-    plan tests => 3;
+    plan tests => 4;
 
     my $builder = Test::More->builder;
     binmode $builder->output,         ":utf8";
