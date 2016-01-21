@@ -100,13 +100,31 @@ sub test_aggregate_story_stats()
             ]
         };
 
-        my $stats = { data => { bitly_id => { clicks => [ $old_stats_clicks, $new_stats_clicks ] } } };
+        my $stats = {
+            data => {
+                bitly_id_1 => { clicks => [ $old_stats_clicks, $new_stats_clicks ] },
+                bitly_id_2 => { clicks => [ $old_stats_clicks, $new_stats_clicks ] },
+            }
+        };
 
         my $expected_dates_and_clicks = {
-            MediaWords::Util::SQL::get_sql_date_from_epoch( 1 ) => 1,         # from old stats
-            MediaWords::Util::SQL::get_sql_date_from_epoch( 2 ) => 1000,      # from new stats
-            MediaWords::Util::SQL::get_sql_date_from_epoch( 3 ) => 10000,     # from new stats
-            MediaWords::Util::SQL::get_sql_date_from_epoch( 4 ) => 100000,    # from new stats
+
+            # Old stats:
+            #     1 click from bitly_id_1 + 1 click from bitly_id_2
+            MediaWords::Util::SQL::get_sql_date_from_epoch( 1 ) => 1 * 2,
+
+            # New stats:
+            #     1000 clicks from bitly_id_1 + 1000 clicks from bitly_id_2
+            MediaWords::Util::SQL::get_sql_date_from_epoch( 2 ) => 1000 * 2,
+
+            # New stats:
+            #     10,000 clicks from bitly_id_1 + 10,000 clicks from bitly_id_2
+            MediaWords::Util::SQL::get_sql_date_from_epoch( 3 ) => 10000 * 2,
+
+            # New stats:
+            #     100,000 clicks from bitly_id_1 + 100,000 clicks from bitly_id_2
+            MediaWords::Util::SQL::get_sql_date_from_epoch( 4 ) => 100000 * 2,
+
         };
 
         my $aggregated_stats = MediaWords::Util::Bitly::aggregate_story_stats( $stories_id, undef, $stats );
