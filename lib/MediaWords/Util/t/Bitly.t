@@ -79,9 +79,44 @@ sub test_merge_story_stats()
     }
 }
 
+sub test_aggregate_story_stats()
+{
+    # Raw data has been fetched twice, had overlapping stats
+    {
+        my $stories_id = 123;
+
+        my $old_stats_clicks = {
+            link_clicks => [
+                { dt => 1, clicks => 1 },      #
+                { dt => 2, clicks => 10 },     #
+                { dt => 3, clicks => 100 },    #
+            ]
+        };
+        my $new_stats_clicks = {
+            link_clicks => [
+                { dt => 2, clicks => 1000 },      #
+                { dt => 3, clicks => 10000 },     #
+                { dt => 4, clicks => 100000 },    #
+            ]
+        };
+
+        my $stats = { data => { bitly_id => { clicks => [ $old_stats_clicks, $new_stats_clicks ] } } };
+
+        my $expected_dates_and_clicks = {
+            MediaWords::Util::SQL::get_sql_date_from_epoch( 1 ) => 1,         # from old stats
+            MediaWords::Util::SQL::get_sql_date_from_epoch( 2 ) => 1000,      # from new stats
+            MediaWords::Util::SQL::get_sql_date_from_epoch( 3 ) => 10000,     # from new stats
+            MediaWords::Util::SQL::get_sql_date_from_epoch( 4 ) => 100000,    # from new stats
+        };
+
+        my $aggregated_stats = MediaWords::Util::Bitly::aggregate_story_stats( $stories_id, undef, $stats );
+        cmp_deeply( $aggregated_stats->{ dates_and_clicks }, $expected_dates_and_clicks );
+    }
+}
+
 sub main()
 {
-    plan tests => 4;
+    plan tests => 5;
 
     my $builder = Test::More->builder;
     binmode $builder->output,         ":utf8";
@@ -89,6 +124,7 @@ sub main()
     binmode $builder->todo_output,    ":utf8";
 
     test_merge_story_stats();
+    test_aggregate_story_stats();
 }
 
 main();
