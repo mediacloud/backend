@@ -1045,53 +1045,48 @@ sub merge_story_stats($$)
 {
     my ( $old_stats, $new_stats ) = @_;
 
-    my $stats = {};
-
     if ( $old_stats->{ 'error' } )
     {
         say STDERR "Fetching old stats failed, overwriting with new stats";
-        $stats = $new_stats;
+        return $new_stats;
     }
-    else
+
+    if ( $new_stats->{ 'error' } )
     {
-        if ( $new_stats->{ 'error' } )
+        say STDERR "Fetching new stats failed, overwriting with old stats";
+        return $old_stats;
+    }
+
+    # Merge in old stats into new ones
+    my $stats = {};
+    foreach my $bitly_id ( keys %{ $old_stats->{ 'data' } } )
+    {
+        my $old_bitly_data = $old_stats->{ 'data' }->{ $bitly_id };
+        my $new_bitly_data = $new_stats->{ 'data' }->{ $bitly_id };
+
+        if ( $new_bitly_data )
         {
-            say STDERR "Fetching new stats failed, overwriting with old stats";
-            $stats = $old_stats;
+            if ( dump_terse( $old_bitly_data ) eq dump_terse( $new_bitly_data ) )
+            {
+                say STDERR "Stats for Bit.ly hash $bitly_id are identical, skipping";
+            }
+            else
+            {
+                say STDERR
+"Both new and old stats have click data for Bit.ly hash $bitly_id, appending array from old stats to new stats";
+                foreach my $bitly_clicks ( @{ $old_bitly_data->{ 'clicks' } } )
+                {
+                    push( @{ $new_bitly_data->{ 'clicks' } }, $bitly_clicks );
+                }
+            }
         }
         else
         {
-            # Merge in old stats into new ones
-            foreach my $bitly_id ( keys %{ $old_stats->{ 'data' } } )
-            {
-                my $old_bitly_data = $old_stats->{ 'data' }->{ $bitly_id };
-                my $new_bitly_data = $new_stats->{ 'data' }->{ $bitly_id };
-
-                if ( $new_bitly_data )
-                {
-                    if ( dump_terse( $old_bitly_data ) eq dump_terse( $new_bitly_data ) )
-                    {
-                        say STDERR "Stats for Bit.ly hash $bitly_id are identical, skipping";
-                    }
-                    else
-                    {
-                        say STDERR
-"Both new and old stats have click data for Bit.ly hash $bitly_id, appending array from old stats to new stats";
-                        foreach my $bitly_clicks ( @{ $old_bitly_data->{ 'clicks' } } )
-                        {
-                            push( @{ $new_bitly_data->{ 'clicks' } }, $bitly_clicks );
-                        }
-                    }
-                }
-                else
-                {
-                    say STDERR "Bit.ly hash $bitly_id didn't exist in new stats, copying from old stats";
-                    $new_stats->{ 'data' }->{ $bitly_id } = $old_stats->{ 'data' }->{ $bitly_id };
-                }
-            }
-
-            $stats = $new_stats;
+            say STDERR "Bit.ly hash $bitly_id didn't exist in new stats, copying from old stats";
+            $new_stats->{ 'data' }->{ $bitly_id } = $old_stats->{ 'data' }->{ $bitly_id };
         }
+
+        $stats = $new_stats;
     }
 
     return $stats;
