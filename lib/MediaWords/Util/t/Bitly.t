@@ -28,6 +28,15 @@ sub test_merge_story_stats()
         cmp_deeply( MediaWords::Util::Bitly::merge_story_stats( $old_stats, $new_stats ), $expected_stats );
     }
 
+    # Old stats had an error, new stats didn't
+    {
+        my $old_stats = { error => 'An error occurred while fetching old stats', };
+        my $new_stats = { data => { bitly_id => { foo => 'bar ' }, }, };
+        my $expected_stats = $new_stats;
+
+        cmp_deeply( MediaWords::Util::Bitly::merge_story_stats( $old_stats, $new_stats ), $expected_stats );
+    }
+
     # Both old and new stats had an error
     {
         my $old_stats = { error => 'An error occurred while fetching old stats', };
@@ -40,7 +49,7 @@ sub test_merge_story_stats()
 
 sub main()
 {
-    plan tests => 2;
+    plan tests => 3;
 
     my $builder = Test::More->builder;
     binmode $builder->output,         ":utf8";
