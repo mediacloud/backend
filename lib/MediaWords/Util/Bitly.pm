@@ -1063,7 +1063,6 @@ sub merge_story_stats($$)
     }
 
     # Merge in old stats into new ones
-    my $stats = {};
     foreach my $bitly_id ( keys %{ $old_stats->{ 'data' } } )
     {
         my $old_bitly_data = $old_stats->{ 'data' }->{ $bitly_id };
@@ -1090,11 +1089,9 @@ sub merge_story_stats($$)
             say STDERR "Bit.ly hash $bitly_id didn't exist in new stats, copying from old stats";
             $new_stats->{ 'data' }->{ $bitly_id } = $old_stats->{ 'data' }->{ $bitly_id };
         }
-
-        $stats = $new_stats;
     }
 
-    return $stats;
+    return $new_stats;
 }
 
 # Write Bit.ly story statistics to key-value store; append to the existing
