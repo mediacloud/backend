@@ -37,7 +37,7 @@ with ssc as (
         where story_sentence_counts_id between \$1 and \$2 and
             sentence_count > 1
 )
-update story_sentences ss set is_dup = true
+update story_sentences ss set is_dup = true, disable_triggers = true
     from ssc
     where ss.stories_id = ssc.first_stories_id and
         ss.sentence_number = ssc.first_sentence_number
