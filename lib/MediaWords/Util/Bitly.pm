@@ -1063,12 +1063,12 @@ sub merge_story_stats($$)
     }
 
     # Merge in old stats into new ones
-    foreach my $bitly_id ( keys %{ $old_stats->{ 'data' } } )
+    foreach my $bitly_id ( keys %{ $new_stats->{ 'data' } } )
     {
         my $old_bitly_data = $old_stats->{ 'data' }->{ $bitly_id };
         my $new_bitly_data = $new_stats->{ 'data' }->{ $bitly_id };
 
-        if ( $new_bitly_data )
+        if ( $old_bitly_data )
         {
             if ( dump_terse( $old_bitly_data ) eq dump_terse( $new_bitly_data ) )
             {
@@ -1078,20 +1078,20 @@ sub merge_story_stats($$)
             {
                 say STDERR
 "Both new and old stats have click data for Bit.ly hash $bitly_id, appending array from old stats to new stats";
-                foreach my $bitly_clicks ( @{ $old_bitly_data->{ 'clicks' } } )
+                foreach my $bitly_clicks ( @{ $new_bitly_data->{ 'clicks' } } )
                 {
-                    push( @{ $new_bitly_data->{ 'clicks' } }, $bitly_clicks );
+                    push( @{ $old_bitly_data->{ 'clicks' } }, $bitly_clicks );
                 }
             }
         }
         else
         {
-            say STDERR "Bit.ly hash $bitly_id didn't exist in new stats, copying from old stats";
-            $new_stats->{ 'data' }->{ $bitly_id } = $old_stats->{ 'data' }->{ $bitly_id };
+            say STDERR "Bit.ly hash $bitly_id didn't exist in old stats, copying from new stats";
+            $old_stats->{ 'data' }->{ $bitly_id } = $new_stats->{ 'data' }->{ $bitly_id };
         }
     }
 
-    return $new_stats;
+    return $old_stats;
 }
 
 # Write Bit.ly story statistics to key-value store; append to the existing

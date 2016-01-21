@@ -64,7 +64,7 @@ sub test_merge_story_stats()
         };
         my $old_stats      = { data => { bitly_id => { clicks => [ $old_stats_clicks ] } } };
         my $new_stats      = { data => { bitly_id => { clicks => [ $new_stats_clicks ] } } };
-        my $expected_stats = { data => { bitly_id => { clicks => [ $new_stats_clicks, $old_stats_clicks ] } } };
+        my $expected_stats = { data => { bitly_id => { clicks => [ $old_stats_clicks, $new_stats_clicks ] } } };
 
         cmp_deeply( MediaWords::Util::Bitly::merge_story_stats( $old_stats, $new_stats ), $expected_stats );
     }
