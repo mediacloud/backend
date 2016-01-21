@@ -27,11 +27,20 @@ sub test_merge_story_stats()
 
         cmp_deeply( MediaWords::Util::Bitly::merge_story_stats( $old_stats, $new_stats ), $expected_stats );
     }
+
+    # Both old and new stats had an error
+    {
+        my $old_stats = { error => 'An error occurred while fetching old stats', };
+        my $new_stats = { error => 'An error occurred while fetching new stats', };
+        my $expected_stats = $new_stats;
+
+        cmp_deeply( MediaWords::Util::Bitly::merge_story_stats( $old_stats, $new_stats ), $expected_stats );
+    }
 }
 
 sub main()
 {
-    plan tests => 1;
+    plan tests => 2;
 
     my $builder = Test::More->builder;
     binmode $builder->output,         ":utf8";

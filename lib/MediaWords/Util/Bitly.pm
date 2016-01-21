@@ -1049,9 +1049,17 @@ sub merge_story_stats($$)
 
     if ( $new_stats->{ 'error' } )
     {
-        say STDERR
-          "Fetching new stats failed with an error (maybe Bit.ly link doesn't exist anymore), leaving old stats intact";
-        $stats = $old_stats;
+        if ( $old_stats->{ 'error' } )
+        {
+            say STDERR "Fetching new stats failed with an error, old stats had an error too, overwriting with new stats";
+            $stats = $new_stats;
+        }
+        else
+        {
+            say STDERR
+              "Fetching new stats failed with an error (maybe Bit.ly link doesn't exist anymore), leaving old stats intact";
+            $stats = $old_stats;
+        }
     }
     else
     {
