@@ -21,6 +21,7 @@ use MediaWords::Util::SQL;
 use URI;
 use URI::QueryParam;
 use JSON;
+use List::MoreUtils qw( uniq );
 use Scalar::Util qw/looks_like_number/;
 use Scalar::Defer;
 use Storable;
@@ -1062,36 +1063,35 @@ sub merge_story_stats($$)
         return $old_stats;
     }
 
-    # Merge in old stats into new ones
-    foreach my $bitly_id ( keys %{ $new_stats->{ 'data' } } )
-    {
-        my $old_bitly_data = $old_stats->{ 'data' }->{ $bitly_id };
-        my $new_bitly_data = $new_stats->{ 'data' }->{ $bitly_id };
+    my @all_bitly_ids;
+    push( @all_bitly_ids, keys %{ $old_stats->{ 'data' } } );
+    push( @all_bitly_ids, keys %{ $new_stats->{ 'data' } } );
+    @all_bitly_ids = uniq( @all_bitly_ids );
 
-        if ( $old_bitly_data )
+    # Merge in old stats into new ones
+    my $stats = { data => {} };
+    foreach my $bitly_id ( @all_bitly_ids )
+    {
+        my $old_bitly_data = $old_stats->{ data }->{ $bitly_id };
+        my $new_bitly_data = $new_stats->{ data }->{ $bitly_id };
+
+        if ( ( !$old_bitly_data ) or dump_terse( $old_bitly_data ) eq dump_terse( $new_bitly_data ) )
         {
-            if ( dump_terse( $old_bitly_data ) eq dump_terse( $new_bitly_data ) )
-            {
-                say STDERR "Stats for Bit.ly hash $bitly_id are identical, skipping";
-            }
-            else
-            {
-                say STDERR
-"Both new and old stats have click data for Bit.ly hash $bitly_id, appending array from old stats to new stats";
-                foreach my $bitly_clicks ( @{ $new_bitly_data->{ 'clicks' } } )
-                {
-                    push( @{ $old_bitly_data->{ 'clicks' } }, $bitly_clicks );
-                }
-            }
+            say STDERR "Stats for Bit.ly hash $bitly_id are identical or old stats didn't exist, using new stats";
+            $stats->{ data }->{ bitly_id } = $new_bitly_data;
         }
         else
         {
-            say STDERR "Bit.ly hash $bitly_id didn't exist in old stats, copying from new stats";
-            $old_stats->{ 'data' }->{ $bitly_id } = $new_stats->{ 'data' }->{ $bitly_id };
+            $stats->{ data }->{ bitly_id } = $old_bitly_data;
+            say STDERR "Both new and old stats have click data for Bit.ly hash $bitly_id, merging stats";
+            foreach my $bitly_clicks ( @{ $new_bitly_data->{ 'clicks' } } )
+            {
+                push( @{ $stats->{ data }->{ bitly_id }->{ 'clicks' } }, $bitly_clicks );
+            }
         }
     }
 
-    return $old_stats;
+    return $stats;
 }
 
 # Write Bit.ly story statistics to key-value store; append to the existing
