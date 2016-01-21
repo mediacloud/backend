@@ -46,7 +46,7 @@ sub test_merge_story_stats()
         cmp_deeply( MediaWords::Util::Bitly::merge_story_stats( $old_stats, $new_stats ), $expected_stats );
     }
 
-    # Merge stats for different days
+    # Merge stats for different days, make sure timestamp gets copied too
     {
         my $old_stats_clicks = {
             link_clicks => [
@@ -62,9 +62,18 @@ sub test_merge_story_stats()
                 { dt => 6, clicks => 6 },    #
             ]
         };
-        my $old_stats      = { data => { bitly_id => { clicks => [ $old_stats_clicks ] } } };
-        my $new_stats      = { data => { bitly_id => { clicks => [ $new_stats_clicks ] } } };
-        my $expected_stats = { data => { bitly_id => { clicks => [ $old_stats_clicks, $new_stats_clicks ] } } };
+        my $old_stats = {
+            data => { bitly_id => { clicks => [ $old_stats_clicks ] } },    #
+            collection_timestamp => 1,                                      #
+        };
+        my $new_stats = {
+            data => { bitly_id => { clicks => [ $new_stats_clicks ] } },    #
+            collection_timestamp => 2,                                      #
+        };
+        my $expected_stats = {
+            data => { bitly_id => { clicks => [ $old_stats_clicks, $new_stats_clicks ] } },    #
+            collection_timestamp => 2,                                                         #
+        };
 
         cmp_deeply( MediaWords::Util::Bitly::merge_story_stats( $old_stats, $new_stats ), $expected_stats );
     }

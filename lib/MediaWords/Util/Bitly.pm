@@ -1083,6 +1083,9 @@ sub merge_story_stats($$)
             {
                 push( @{ $stats->{ data }->{ $bitly_id }->{ clicks } }, $bitly_clicks );
             }
+
+            # Update collection timestamp
+            $stats->{ collection_timestamp } = $new_stats->{ collection_timestamp };
         }
     }
 
