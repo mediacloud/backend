@@ -1073,15 +1073,15 @@ sub merge_story_stats($$)
         if ( ( !$old_bitly_data ) or dump_terse( $old_bitly_data ) eq dump_terse( $new_bitly_data ) )
         {
             say STDERR "Stats for Bit.ly hash $bitly_id are identical or old stats didn't exist, using new stats";
-            $stats->{ data }->{ bitly_id } = $new_bitly_data;
+            $stats->{ data }->{ $bitly_id } = $new_bitly_data;
         }
         else
         {
-            $stats->{ data }->{ bitly_id } = $old_bitly_data;
+            $stats->{ data }->{ $bitly_id } = $old_bitly_data;
             say STDERR "Both new and old stats have click data for Bit.ly hash $bitly_id, merging stats";
-            foreach my $bitly_clicks ( @{ $new_bitly_data->{ 'clicks' } } )
+            foreach my $bitly_clicks ( @{ $new_bitly_data->{ clicks } } )
             {
-                push( @{ $stats->{ data }->{ bitly_id }->{ 'clicks' } }, $bitly_clicks );
+                push( @{ $stats->{ data }->{ $bitly_id }->{ clicks } }, $bitly_clicks );
             }
         }
     }
