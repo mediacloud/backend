@@ -1041,7 +1041,7 @@ sub fetch_stats_for_url($$$$)
 }
 
 # Merge two Bit.ly statistics hashrefs into one
-sub _merge_story_stats($$)
+sub merge_story_stats($$)
 {
     my ( $old_stats, $new_stats ) = @_;
 
@@ -1131,7 +1131,7 @@ sub write_story_stats($$$)
         say STDERR "Story's $stories_id stats are already fetched from Bit.ly, merging...";
 
         my $existing_stats = read_story_stats( $db, $stories_id );
-        $stats = _merge_story_stats( $existing_stats, $stats );
+        $stats = merge_story_stats( $existing_stats, $stats );
     }
 
     # Convert results to a minimized JSON
