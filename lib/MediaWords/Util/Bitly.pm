@@ -24,7 +24,6 @@ use JSON;
 use List::MoreUtils qw( uniq );
 use Scalar::Util qw/looks_like_number/;
 use Scalar::Defer;
-use Storable;
 use DateTime;
 use DateTime::Duration;
 use Readonly;
@@ -1046,10 +1045,6 @@ sub fetch_stats_for_url($$$$)
 sub merge_story_stats($$)
 {
     my ( $old_stats, $new_stats ) = @_;
-
-    # Callers might not expect for those parameters to change
-    $old_stats = Storable::dclone( $old_stats );
-    $new_stats = Storable::dclone( $new_stats );
 
     if ( $old_stats->{ 'error' } )
     {
