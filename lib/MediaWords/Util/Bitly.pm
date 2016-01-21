@@ -1336,19 +1336,38 @@ sub aggregate_story_stats($$$)
             }
             foreach my $bitly_clicks ( @{ $bitly_data->{ 'clicks' } } )
             {
+                my $temp_dates_and_clicks = {};
+
                 foreach my $link_clicks ( @{ $bitly_clicks->{ 'link_clicks' } } )
                 {
                     my $date   = MediaWords::Util::SQL::get_sql_date_from_epoch( $link_clicks->{ 'dt' } + 0 );
                     my $clicks = $link_clicks->{ 'clicks' };
 
-                    if ( defined $dates_and_clicks->{ $date } )
+                    if ( defined $temp_dates_and_clicks->{ $date } )
                     {
                         # Another Bit.ly hash already had clicks for this particular date
-                        $dates_and_clicks->{ $date } += $clicks;
+                        $temp_dates_and_clicks->{ $date } += $clicks;
                     }
                     else
                     {
-                        $dates_and_clicks->{ $date } = $clicks;
+                        $temp_dates_and_clicks->{ $date } = $clicks;
+                    }
+                }
+
+                # "clicks" array might have multiple child dictionaries, this
+                # means that click data was fetched multiple times (e.g. at
+                # day 3 and day 30 after publish_date). Data is ordered in
+                # ascending order, i.e. newer data is at the end of the array.
+                # Days for which stats were fetched might not necessarily be
+                # identical (they might overlap or not). In that case, use the
+                # newest stats for individual days where available but don't
+                # overwrite stats for old days that aren't available in the
+                # newer stats.
+                foreach my $date ( keys %{ $temp_dates_and_clicks } )
+                {
+                    if ( defined $temp_dates_and_clicks->{ $date } )
+                    {
+                        $dates_and_clicks->{ $date } = $temp_dates_and_clicks->{ $date };
                     }
                 }
             }
