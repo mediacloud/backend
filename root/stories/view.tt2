@@ -126,10 +126,9 @@
                 [% FOREACH s IN all_sentences %]
                     <li>
                         [% s.sentence | html %]
-                        [% IF s.ss.stories_id != s.stories_id %]
-                            [DUP:
-                            <a href="[% c.uri_for( '/admin/stories/view/' _ s.ss.stories_id ) | html %]">[% s.ss.stories_id %]</a>]
-                        [% ELSIF s.ss.is_dup > 1 %]
+                        [% IF s.dup_ss %]
+                            [DUP]
+                        [% ELSIF s.ss.is_dup %]
                             [FIRST_DUP]
                         [% END %]
                     </li>

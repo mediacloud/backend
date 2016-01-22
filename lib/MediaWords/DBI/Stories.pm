@@ -1007,14 +1007,10 @@ sub get_all_sentences
     my $all_sentences = [];
     for my $sentence ( @{ $raw_sentences } )
     {
-        my $ss = $db->query( <<END, $sentence, $story->{ media_id }, $story->{ publish_date } )->hash;
-select *
-    from story_sentences
-    where sentence = ? and
-        media_id = ? and
-        publish_week = DATE_TRUNC( 'week', ?::date )
-    limit 1
+        my $ss = $db->query( <<END, $sentence, $story->{ stories_id } )->hash;
+select * from story_sentences where sentence = \$1 and stories_id = \$2
 END
+
         push( @{ $all_sentences }, { sentence => $sentence, ss => $ss, stories_id => $story->{ stories_id } } );
     }
 
