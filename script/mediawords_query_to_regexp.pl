@@ -20,6 +20,7 @@ sub convert_term_to_regex
     my ( $term ) = @_;
 
     $term =~ s/"//g;
+    $term =~ s/\*/\.\*/g;
     $term =~ s/ /\[\[\:space\:\]\]\+/g;
 
     if ( $term !~ /\w/ )
