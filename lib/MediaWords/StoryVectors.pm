@@ -156,7 +156,7 @@ with ssd as (
                 $date_clause
 )
 
-update story_sentences ss set is_dup = true
+update story_sentences ss set is_dup = true, disable_triggers = true
         from ssd
         where
             ssd.story_sentences_id = ss.story_sentences_id and
