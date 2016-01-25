@@ -145,6 +145,7 @@ sub get_sentence_info_for_lines
     my $sentences_missing      = 0;
     my $lang                   = MediaWords::Languages::en->new();
 
+    my $all_sentences = [];
     for my $line_number ( @{ $line_numbers } )
     {
         my $line_text = $preprocessed_lines->[ $line_number ];
@@ -161,41 +162,31 @@ sub get_sentence_info_for_lines
             die "Sentences for text '$line_text' is undefined.";
         }
 
-        foreach my $sentence ( @{ $sentences } )
+        push( @{ $all_sentences }, map { html_strip( $_ ) } @{ $sentences } );
+    }
+
+    my $dup_story_sentences = MediaWords::StoryVectors::get_dup_story_senteces( $dbs, $story, $all_sentences );
+
+    my $dup_sentences_lookup = {};
+    map { $dup_sentences_lookup->{ $_->{ sentence } } = 1 } @{ $dup_story_sentences };
+
+    for my $sentence ( @{ $all_sentences } )
+    {
+        $all_sentences++;
+
+        my $dss = $dup_sentences_lookup->{ $sentence };
+        if ( !$dss )
         {
-
-            $sentence = html_strip( $sentence );
-
-            #say "Sentence: '$sentence'";
-
-            my $dup_sentence = $dbs->query(
-                "select * from story_sentence_counts " .
-                  "  where sentence_md5 = md5( ? ) and media_id = ? and publish_week = date_trunc( 'week', ?::date )" .
-                  "  order by story_sentence_counts_id limit 1",
-                $sentence,
-                $story->{ media_id },
-                $story->{ publish_date }
-            )->hash;
-
-            $sentences_total++;
-
-            if ( $dup_sentence )
-            {
-                if ( $dup_sentence->{ sentence_count } <= 1 )
-                {
-                    $sentences_not_dedupped++;
-                }
-                else
-                {
-                    $sentences_dedupped++;
-                }
-            }
-            else
-            {
-                $sentences_missing++;
-            }
+            $sentences_missing++;
         }
-
+        elsif ( $dss->{ is_dup } )
+        {
+            $sentences_dedupped++;
+        }
+        else
+        {
+            $sentences_not_dedupped++;
+        }
     }
 
     my $ret = {

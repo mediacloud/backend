@@ -430,9 +430,6 @@ sub main
 
     if ( !$_download_data_load_file )
     {
-
-        my $db = MediaWords::DB->authenticate();
-
         my $dbs = MediaWords::DB::connect_to_db();
 
         if ( @download_ids )

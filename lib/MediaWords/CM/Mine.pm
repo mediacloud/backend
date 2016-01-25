@@ -943,13 +943,11 @@ sub story_sentence_matches_pattern
     my $ss = $db->query( <<END, $story->{ stories_id }, $controversy->{ controversies_id } )->hash;
 select 1
     from story_sentences ss
-        left join story_sentence_counts ssc
-            on ( ss.stories_id = ssc.first_stories_id and ss.sentence_number = ssc.first_sentence_number )
         join controversies c on ( c.controversies_id = \$2 )
     where
         ss.stories_id = \$1 and
         ss.sentence ~ ( '(?isx)' || c.pattern ) and
-        ( ( not( ss.is_dup = true ) ) or ( ssc.sentence_count < 2 ) )
+        ( not ss.is_dup )
     limit 1
 END
 

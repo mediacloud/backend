@@ -22,7 +22,7 @@ use HTML::Strip;
 sub main
 {
 
-    my $db = MediaWords::DB->authenticate();
+    my $db = MediaWords::DB->connect_to_db();
 
     my $file;
     my @download_ids;
