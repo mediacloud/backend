@@ -761,7 +761,7 @@ END
 }
 
 # break a story down into parts separated by [-:|]
-sub get_title_parts
+sub _get_title_parts
 {
     my ( $title ) = @_;
 
@@ -810,7 +810,7 @@ sub get_medium_dup_stories_by_title
         # is just the tweet, and we want to capture retweets
         next if ( $_->{ url } && ( $_->{ url } =~ /https?:\/\/(twitter\.com|t\.co)/i ) );
 
-        my $title_parts = get_title_parts( $story->{ title } );
+        my $title_parts = _get_title_parts( $story->{ title } );
 
         for ( my $i = 0 ; $i < @{ $title_parts } ; $i++ )
         {
