@@ -2036,14 +2036,13 @@ BEGIN
 
                 -- Foreign key to stories.stories_id
                 CONSTRAINT ' || target_table_name || '_stories_id_fkey
-                    FOREIGN KEY (stories_id) REFERENCES stories (stories_id) MATCH FULL
+                    FOREIGN KEY (stories_id) REFERENCES stories (stories_id) MATCH FULL,
+
+                -- Unique duplets
+                CONSTRAINT ' || target_table_name || '_stories_id_unique
+                    UNIQUE (stories_id)
 
             ) INHERITS (bitly_clicks_total);
-        ';
-
-        EXECUTE '
-            CREATE UNIQUE INDEX ' || target_table_name || '_stories_id
-            ON ' || target_table_name || ' (stories_id);
         ';
 
         -- Update owner
