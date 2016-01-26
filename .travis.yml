@@ -105,6 +105,7 @@ before_install:
     # current setup)
     - ./install_modules_with_carton.sh
     # Install Python dependencies
+    - travis_retry pip install --upgrade pip setuptools
     - travis_retry pip install --upgrade -r python_scripts/requirements.txt
     # install Media Cloud testing variant of the Python  Client
     - travis_retry git clone https://github.com/dlarochelle/MediaCloud-API-Client.git
