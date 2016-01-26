@@ -102,11 +102,12 @@ sub _get_unique_sentences
 }
 
 # given the story and its un-deduped sentences, return the list of sentences that already
-# exist in the same media source for the same calendar week.  for the original versions
-# of any dup sentences discovered, set is_dup = true
-sub _get_dup_story_sentences
+# exist in the same media source for the same calendar week.  fetch the sentences using the appropriate
+# query based on whether the sentences are indexed by story_sentences_dup.  if do_update is true,
+# set is_dup = true for the original versions of any dup sentences discovered.
+sub get_dup_story_sentences
 {
-    my ( $db, $story, $sentences ) = @_;
+    my ( $db, $story, $sentences, $do_update ) = @_;
 
     my ( $indexdef ) = $db->query( "select indexdef from pg_indexes where indexname = 'story_sentences_dup'" )->flat;
 
@@ -148,13 +149,20 @@ SQL
 
     # we have to use this odd 'with ssd ...' form of the query to force postgres not to generate a plan
     # that tries to do a full scan of all the story_sentences_media_id entries for the media_id
-    my $dup_story_sentences = $db->query( <<SQL )->hashes;
+    my $with_clause = <<SQL;
 with ssd as (
             select story_sentences_id, media_id
             from story_sentences
             where $sentence_lookup_clause and
                 $date_clause
 )
+SQL
+
+    my $query;
+    if ( $do_update )
+    {
+        $query = <<SQL;
+$with_clause
 
 update story_sentences ss set is_dup = true, disable_triggers = true
         from ssd
@@ -163,8 +171,22 @@ update story_sentences ss set is_dup = true, disable_triggers = true
             ssd.media_id = $story->{ media_id }
     returning *
 SQL
+    }
+    else
+    {
+        $query = <<SQL;
+$with_clause
 
-    return $dup_story_sentences;
+select *
+        from story_sentences ss, ssd
+        where
+            ssd.story_sentences_id = ss.story_sentences_id and
+            ssd.media_id = $story->{ media_id }
+    returning *
+SQL
+    }
+
+    return $db->query( $query )->hashes;
 }
 
 # return the sentences from the set that are dups within the same media source and calendar week.
@@ -175,7 +197,7 @@ sub get_deduped_sentences
 
     my $unique_sentences = _get_unique_sentences( $sentences );
 
-    my $dup_story_sentences = _get_dup_story_sentences( $db, $story, $unique_sentences );
+    my $dup_story_sentences = get_dup_story_sentences( $db, $story, $unique_sentences, 1 );
 
     my $dup_lookup = {};
     map { $dup_lookup->{ $_->{ sentence } } = 1 } @{ $dup_story_sentences };

@@ -177,13 +177,6 @@ sub print_shell_env_commands_for_psql
     }
 }
 
-sub authenticate
-{
-    my ( $self, $label ) = @_;
-
-    return __PACKAGE__->connect( connect_info( $label ) );
-}
-
 sub run_block_with_large_work_mem( &$ )
 {
 
