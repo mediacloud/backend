@@ -214,11 +214,6 @@ BEGIN
             ) INHERITS (bitly_clicks_daily);
         ';
 
-        EXECUTE '
-            CREATE INDEX ' || target_table_name || '_stories_id
-            ON ' || target_table_name || ' (stories_id);
-        ';
-
         -- Update owner
         SELECT u.usename AS owner
         FROM information_schema.tables AS t
