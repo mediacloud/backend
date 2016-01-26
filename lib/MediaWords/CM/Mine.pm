@@ -29,6 +29,7 @@ use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::Solr;
+use MediaWords::Util::HTML;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
@@ -590,39 +591,6 @@ END
     return $db->query( $feed_query, $medium->{ media_id }, $medium->{ url } )->hash;
 }
 
-# parse the content for tags that might indicate the story's title
-sub get_story_title_from_content
-{
-
-    my ( $content, $url ) = @_;
-
-    my $title;
-
-    if ( $content =~ m~<meta property=\"og:title\" content=\"([^\"]+)\"~si )
-    {
-        $title = $1;
-    }
-    elsif ( $content =~ m~<meta property=\"og:title\" content=\'([^\']+)\'~si )
-    {
-        $title = $1;
-    }
-    elsif ( $content =~ m~<title>([^<]+)</title>~si )
-    {
-        $title = $1;
-    }
-    else
-    {
-        $title = $url;
-    }
-
-    if ( length( $title ) > 1024 )
-    {
-        $title = substr( $title, 0, 1024 );
-    }
-
-    return $title;
-}
-
 # return true if the args are valid date arguments.  assume a date has to be between 2000 and 2040.
 sub valid_date_parts
 {
@@ -850,7 +818,8 @@ sub add_new_story
         else
         {
             $old_story->{ url } = $link->{ redirect_url } || $link->{ url };
-            $old_story->{ title } = $link->{ title } || get_story_title_from_content( $story_content, $old_story->{ url } );
+            $old_story->{ title } =
+              $link->{ title } || MediaWords::Util::HTML::html_title( $story_content, $old_story->{ url }, 1024 );
         }
     }
     else

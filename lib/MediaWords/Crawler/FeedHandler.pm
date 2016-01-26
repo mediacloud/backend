@@ -25,6 +25,7 @@ use MediaWords::GearmanFunction::ExtractAndVector;
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories;
 use MediaWords::Util::Config;
+use MediaWords::Util::HTML;
 use MediaWords::Util::SQL;
 
 # CONSTANTS
@@ -257,28 +258,13 @@ sub add_feed_stories_and_downloads
     return $num_new_stories;
 }
 
-# parse the content for tags that might indicate the story's title
-sub get_story_title_from_content
-{
-
-    # my ( $content, $url ) = @_;
-
-    if ( $_[ 0 ] =~ m~<meta property=\"og:title\" content=\"([^\"]+)\"~si ) { return $1; }
-
-    if ( $_[ 0 ] =~ m~<meta property=\"og:title\" content=\'([^\']+)\'~si ) { return $1; }
-
-    if ( $_[ 0 ] =~ m~<title>([^<]+)</title>~si ) { return $1; }
-
-    return '(no title)';
-}
-
 # handle feeds of type 'web_page' by just creating a story to associate
 # with the content
 sub handle_web_page_content
 {
     my ( $dbs, $download, $decoded_content, $feed ) = @_;
 
-    my $title = get_story_title_from_content( $decoded_content );
+    my $title = MediaWords::Util::HTML::html_title( $decoded_content, '(no title)' );
     my $guid = substr( time . ":" . $download->{ url }, 0, 1024 );
 
     my $story = $dbs->create(
