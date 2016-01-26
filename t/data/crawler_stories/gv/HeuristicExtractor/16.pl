@@ -1986,7 +1986,7 @@ var _wpcf7 = {\"loaderUrl\":\"http:\\/\\/globalvoicesonline.org\\/wp-content\\/p
                                ],
           'tags' => [],
           'timezone' => 'America/New_York',
-          'title' => 'Global Voices &middot; Citizen media stories from around the world',
+          'title' => "Global Voices \x{b7} Citizen media stories from around the world",
           'url' => 'http://amanda.law.harvard.edu:59855//gv/home.html'
         };
 #>>>
