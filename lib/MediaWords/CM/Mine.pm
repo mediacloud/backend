@@ -27,6 +27,7 @@ use MediaWords::DB;
 use MediaWords::DBI::Activities;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
+use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::Solr;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Tags;
@@ -306,7 +307,7 @@ SQL
 
     return 1 if ( ( $story_date ge $start_date ) && ( $story_date le $end_date ) );
 
-    return MediaWords::DBI::Stories::is_undateable( $db, $story );
+    return MediaWords::DBI::Stories::GuessDate::is_undateable( $db, $story );
 }
 
 # for each story, return a list of the links found in either the extracted html or the story description
@@ -887,7 +888,7 @@ sub add_new_story
 
     $db->create( 'stories_tags_map', { stories_id => $story->{ stories_id }, tags_id => $spidered_tag->{ tags_id } } );
 
-    MediaWords::DBI::Stories::assign_date_guess_method( $db, $story, $date_guess_method, 1 );
+    MediaWords::DBI::Stories::GuessDate::assign_date_guess_method( $db, $story, $date_guess_method, 1 );
 
     print STDERR "add story: $story->{ title } / $story->{ url } / $story->{ publish_date } / $story->{ stories_id }\n";
 
@@ -2253,7 +2254,7 @@ END
         $db->query( <<END, $source_link->{ publish_date }, $controversy->{ controversies_id } );
 update stories set publish_date = ? where stories_id = ?
 END
-        MediaWords::DBI::Stories::assign_date_guess_method( $db, $story, 'source_link' );
+        MediaWords::DBI::Stories::GuessDate::assign_date_guess_method( $db, $story, 'source_link' );
     }
 }
 

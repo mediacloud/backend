@@ -18,6 +18,7 @@ use MediaWords::CM::Mine;
 use MediaWords::DBI::Activities;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
+use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::Solr;
 use MediaWords::Solr::WordCounts;
 use MediaWords::Util::Bitly;
@@ -1391,8 +1392,8 @@ sub _add_story_date_info
 {
     my ( $db, $story ) = @_;
 
-    $story->{ date_is_reliable } = MediaWords::DBI::Stories::date_is_reliable( $db, $story );
-    $story->{ undateable } = MediaWords::DBI::Stories::is_undateable( $db, $story );
+    $story->{ date_is_reliable } = MediaWords::DBI::Stories::GuessDate::date_is_reliable( $db, $story );
+    $story->{ undateable } = MediaWords::DBI::Stories::GuessDate::is_undateable( $db, $story );
 }
 
 # get the story along with inlink_stories and outlink_stories and the associated
