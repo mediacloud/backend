@@ -29,6 +29,7 @@ use MediaWords::CommonLibs;
 
 use MediaWords::DB;
 use MediaWords::Util::Bitly;
+use MediaWords::Util::Bitly::API;
 use MediaWords::Util::Process;
 use MediaWords::Util::GearmanJobSchedulerConfiguration;
 use MediaWords::GearmanFunction::Bitly::AggregateStoryStats;
@@ -82,7 +83,7 @@ sub run($;$)
 
         if ( $error_message )
         {
-            if ( MediaWords::Util::Bitly::error_is_rate_limit_exceeded( $error_message ) )
+            if ( MediaWords::Util::Bitly::API::error_is_rate_limit_exceeded( $error_message ) )
             {
 
                 say STDERR "Rate limit exceeded while collecting story stats for story $stories_id";

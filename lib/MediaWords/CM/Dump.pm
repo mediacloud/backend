@@ -18,7 +18,6 @@ use Readonly;
 use MediaWords::CM::Model;
 use MediaWords::DBI::Media;
 use MediaWords::Solr;
-use MediaWords::Util::Bitly;
 use MediaWords::Util::CSV;
 use MediaWords::Util::Colors;
 use MediaWords::Util::Config;

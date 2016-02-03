@@ -19,6 +19,7 @@ use Readonly;
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
 use MediaWords::Util::Bitly;
+use MediaWords::Util::Bitly::API;
 use MediaWords::Util::JSON;
 
 =head1 NAME
@@ -189,7 +190,7 @@ sub fetch_bitly_clicks : Local
         {
 
             $bitly_clicks =
-              MediaWords::Util::Bitly::fetch_stats_for_url( $db, $stories_url, $start_timestamp, $end_timestamp );
+              MediaWords::Util::Bitly::API::fetch_stats_for_url( $db, $stories_url, $start_timestamp, $end_timestamp );
 
             ( $agg_stories_id, $agg_stories_url ) = ( 0, $stories_url );
 
@@ -217,7 +218,7 @@ sub fetch_bitly_clicks : Local
         my $error_message = $@;
         $response->{ error } = $error_message;
 
-        if ( MediaWords::Util::Bitly::error_is_rate_limit_exceeded( $error_message ) )
+        if ( MediaWords::Util::Bitly::API::error_is_rate_limit_exceeded( $error_message ) )
         {
             $http_status = HTTP_TOO_MANY_REQUESTS;
 
