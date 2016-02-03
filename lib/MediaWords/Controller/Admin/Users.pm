@@ -1,14 +1,18 @@
 package MediaWords::Controller::Admin::Users;
-use Modern::Perl "2013";
-use MediaWords::CommonLibs;
-use MediaWords::Util::Config;
-use MediaWords::DBI::Auth;
-use JSON;
-use POSIX qw(strftime);
 
 use strict;
 use warnings;
+
+use Modern::Perl "2013";
+use MediaWords::CommonLibs;
+
 use parent 'Catalyst::Controller';
+
+use MediaWords::DBI::Auth;
+use MediaWords::Util::Config;
+use MediaWords::Util::Text;
+use JSON;
+use POSIX qw(strftime);
 
 sub index : Path : Args(0)
 {
@@ -190,7 +194,7 @@ sub create : Local
 
         # Choose a random password that will be never used so as not to leave the 'password'
         # field in database empty
-        $user_password        = MediaWords::DBI::Auth::random_string( 64 );
+        $user_password        = MediaWords::Util::Text::random_string( 64 );
         $user_password_repeat = $user_password;
     }
     else
