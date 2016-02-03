@@ -17,8 +17,26 @@ BEGIN
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 use MediaWords::DB;
-use MediaWords::DBI::Stories;
+use MediaWords::DBI::Downloads;
 use MediaWords::Controller::Api::V2::StoriesBase;
+
+sub get_story_content
+{
+    my ( $db, $story ) = @_;
+
+    return '' unless ( $story && $story->{ download } && ( $story->{ download }->{ state } = 'success' ) );
+
+    my $content_ref;
+
+    eval { $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $story->{ download } ) };
+    if ( $@ || !$content_ref )
+    {
+        warn( "error fetching content: $@" );
+        return 0;
+    }
+
+    return $$content_ref;
+}
 
 # run ap detection on get hash of story ids, for which each story id key associated
 # with a true value indicates that the detection algorithm thinks that story id
@@ -46,22 +64,26 @@ sub get_ap_detection_dup_sentences
     return $ap_detection;
 }
 
+sub get_ap_detection_cached_method
+{
+    my ( $db, $story, $method ) = @_;
+
+    my $ap_story = $db->query( <<SQL, $story->{ stories_id }, $method )->hash;
+select * from scratch.ap_stories_detected
+    where stories_id = ? and
+        syndicated = ?
+SQL
+
+    return ( $ap_story && ( $ap_story->{ syndicated } ) );
+}
+
 sub get_ap_detection_pattern
 {
     my ( $db, $story ) = @_;
 
-    my $content_ref;
+    my $content = get_story_content( $db, $story );
 
-    eval { $content_ref = MediaWords::DBI::Stories::get_content_for_first_download( $db, $story ) };
-    if ( $@ || !$content_ref )
-    {
-        warn( "error fetching content: $@" );
-        return 0;
-    }
-
-    my $search_text = substr( $$content_ref, 0, int( length( $$content_ref ) / 3 ) );
-
-    return ( $search_text =~ /["'].{0,8}associated press.{0,8}["']/i ) ? 1 : 0;
+    return ( $content =~ /["'].{0,8}associated press.{0,8}["']/i ) ? 1 : 0;
 }
 
 sub get_ap_detection_text_ap
@@ -73,30 +95,104 @@ sub get_ap_detection_text_ap
     return ( $text =~ /\(ap\)/i ) ? 1 : 0;
 }
 
+# do the most aggressive version of looking for 'associated press' or '(ap)' in the whole html of the story.
+sub get_ap_detection_max_ap_text
+{
+    my ( $db, $story ) = @_;
+
+    my $content = get_story_content( $db, $story );
+
+    return ( $content =~ /associated press|\(ap\)/i ) ? 1 : 0;
+}
+
+sub get_ap_detection_pattern_20160203
+{
+    my ( $db, $story ) = @_;
+
+    my $content = get_story_content( $db, $story );
+
+    return ( $content =~ /["'\|].{0,8}associated press.{0,8}["'\|]|ap_online/i ) ? 1 : 0;
+
+    #return ( $content =~ /["'\|].{0,8}associated press.{0,8}["'\|]/i ) ? 1 : 0;
+    #return ( $content =~ /["'].{0,8}associated press.{0,8}["']/i ) ? 1 : 0;
+}
+
 # does the detection algorithm think this is an ap syndicated story
 sub get_ap_detection
 {
     my ( $db, $story, $method ) = @_;
 
-    my $ap_story_detected = $db->query( <<SQL, $story->{ stories_id }, $method )->hash;
-select * from scratch.ap_stories_detected where stories_id = ? and method = ?
-SQL
-
-    return $ap_story_detected->{ syndicated } if ( $ap_story_detected );
-
-    print STDERR "DETECT ...\n";
-
     #my $ap_detection = get_ap_detection_dup_sentences( $db, $story ) || get_ap_detection_pattern( $db, $story );
-    my $ap_detection =
-         get_ap_detection_text_ap( $db, $story )
-      || get_ap_detection_pattern( $db, $story )
-      || get_ap_detection_dup_sentences( $db, $story );
+    my $ap_detection = get_ap_detection_pattern_20160203( $db, $story );
 
-    $db->query( <<SQL, $story->{ stories_id }, $method, $ap_detection );
-insert into scratch.ap_stories_detected ( stories_id, method, syndicated )
-    values( ?, ?, ? )
+    return $ap_detection;
+}
+
+sub get_skip_stories_lookup
+{
+    my ( $db, $stories, $method ) = @_;
+
+    my $stories_id_list = join( ',', map { $_->{ stories_id } } @{ $stories } );
+
+    my $skip_stories = $db->query( <<SQL, $method )->hashes;
+select *
+    from scratch.ap_stories_detected
+    where stories_id in ( $stories_id_list ) and
+        method = ?
 SQL
 
+    my $skip_stories_lookup = {};
+    map { $skip_stories_lookup->{ $_->{ stories_id } } = 1; } @{ $skip_stories };
+
+    return $skip_stories_lookup;
+}
+
+sub insert_detected_stories
+{
+    my ( $db, $stories, $method ) = @_;
+
+    return if ( !@{ $stories } );
+
+    my $q_method = $db->dbh->quote( $method );
+
+    my $values = [];
+    for my $s ( @{ $stories } )
+    {
+        my $b_ap = $s->{ ap_detection } ? 'true' : 'false';
+
+        push( @{ $values }, "($s->{ stories_id },$q_method,$b_ap)" );
+    }
+
+    my $values_list = join( ',', @{ $values } );
+
+    $db->query( <<SQL );
+insert into scratch.ap_stories_detected ( stories_id, method, syndicated )
+values $values_list
+SQL
+
+}
+
+sub attach_downloads_to_stories
+{
+    my ( $db, $stories ) = @_;
+
+    my $stories_id_list = join( ',', map { $_->{ stories_id } } @{ $stories } );
+
+    my $downloads = $db->query( <<SQL )->hashes;
+select * from downloads
+    where stories_id in ( $stories_id_list )
+    order by downloads_id;
+SQL
+
+    my $downloads_lookup = {};
+    for my $download ( @{ $downloads } )
+    {
+        next if ( $downloads_lookup->{ $download->{ stories_id } } );
+
+        $downloads_lookup->{ $download->{ stories_id } } = $download;
+    }
+
+    map { $_->{ download } = $downloads_lookup->{ $_->{ stories_id } } } @{ $stories };
 }
 
 sub main
@@ -115,48 +211,33 @@ from
     join scratch.ap_stories_coded ap on ( s.stories_id = ap.stories_id )
 SQL
 
+    attach_downloads_to_stories( $db, $stories );
+
     #my $detected_ap_lookup = get_detected_ap_stories_lookup( $db, $stories );
 
-    my ( $num_correct, $num_false_positive, $num_false_negative, $num_unknown ) = ( 0, 0, 0, 0 );
-    my $i = 0;
+    my $skip_stories_lookup = get_skip_stories_lookup( $db, $stories, $method );
+
+    my $i            = 0;
+    my $insert_queue = [];
     for my $story ( @{ $stories } )
     {
-        print STDERR "$story->{ stories_id } [" . $i++ . "] ...\n";
-        if ( $story->{ syndication } eq 'unknown' )
-        {
-            $num_unknown++;
-            next;
-        }
+        next if ( $skip_stories_lookup->{ $story->{ stories_id } } );
+        next if ( $story->{ syndication } eq 'unknown' );
 
-        my $ap_coded = ( $story->{ syndication } eq 'ap' );
-        my $ap_detection = get_ap_detection( $db, $story, $method );
+        $story->{ ap_detection } = get_ap_detection( $db, $story, $method );
 
-        if ( ( $ap_detection && $ap_coded ) || ( !$ap_detection && !$ap_coded ) )
+        push( @{ $insert_queue }, $story );
+
+        $i++;
+        if ( !( $i % 100 ) )
         {
-            $num_correct++;
-        }
-        elsif ( $ap_coded )
-        {
-            $num_false_negative++;
-        }
-        elsif ( $ap_detection )
-        {
-            $num_false_positive++;
-        }
-        else
-        {
-            die( "impossible validation result" );
+            print STDERR "[$i] ...\n";
+            insert_detected_stories( $db, $insert_queue, $method );
+            $insert_queue = [];
         }
     }
 
-    my $num_total = scalar( @{ $stories } );
-
-    print <<END;
-total:      $num_total
-correct:    $num_correct
-false pos:  $num_false_positive
-false neg:  $num_false_negative
-END
+    insert_detected_stories( $db, $insert_queue, $method );
 }
 
 main();
