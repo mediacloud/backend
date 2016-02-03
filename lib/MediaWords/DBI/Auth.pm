@@ -10,9 +10,11 @@ use warnings;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
+use MediaWords::Util::Config;
+use MediaWords::Util::Mail;
+use MediaWords::Util::Text;
 use Digest::SHA qw/sha256_hex/;
 use Crypt::SaltedHash;
-use MediaWords::Util::Mail;
 use POSIX qw(strftime);
 use URI::Escape;
 use Net::IP;
@@ -48,13 +50,6 @@ sub password_hash_is_valid($$)
     {
         return 0;
     }
-}
-
-# Generate random alphanumeric string (password or token) of the specified length
-sub random_string($)
-{
-    my ( $num_bytes ) = @_;
-    return join '', map +( 0 .. 9, 'a' .. 'z', 'A' .. 'Z' )[ rand( 10 + 26 * 2 ) ], 1 .. $num_bytes;
 }
 
 # Hash a secure hash (password / password reset token) with Crypt::SaltedHash;
@@ -1028,7 +1023,7 @@ EOF
     }
 
     # Generate the password reset token
-    my $password_reset_token = random_string( 64 );
+    my $password_reset_token = MediaWords::Util::Text::random_string( 64 );
     if ( !length( $password_reset_token ) )
     {
         return 'Unable to generate a password reset token.';
