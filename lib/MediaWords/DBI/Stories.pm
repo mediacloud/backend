@@ -16,6 +16,7 @@ use MediaWords::Util::Web;
 use MediaWords::Util::Config;
 use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
+use MediaWords::Util::Bitly::Schedule;
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories::ExtractorVersion;
 use MediaWords::Languages::Language;
@@ -521,6 +522,12 @@ sub process_extracted_story
         {
             die "Unable to mark story ID $stories_id as processed";
         }
+    }
+
+    # Add to Bit.ly queue
+    if ( MediaWords::Util::Bitly::Schedule::story_processing_is_enabled() )
+    {
+        MediaWords::Util::Bitly::Schedule::add_to_processing_schedule( $db, $stories_id );
     }
 }
 

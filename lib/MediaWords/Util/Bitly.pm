@@ -140,14 +140,7 @@ sub bitly_processing_is_enabled()
     my $config = MediaWords::Util::Config->get_config();
     my $bitly_enabled = $config->{ bitly }->{ enabled } // '';
 
-    if ( $bitly_enabled eq 'yes' )
-    {
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
+    return ( $bitly_enabled eq 'yes' );
 }
 
 # Check if story is processed with Bit.ly (stats are fetched)
@@ -168,14 +161,7 @@ sub story_stats_are_fetched($$)
         die "Storage died while testing whether or not a Bit.ly record exists for story $stories_id: $@";
     }
 
-    if ( $record_exists )
-    {
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
+    return $record_exists;
 }
 
 # Fetch story URL statistics from Bit.ly API
@@ -200,6 +186,15 @@ sub fetch_stats_for_story($$$$)
     }
 
     my $stories_url = $story->{ url };
+
+    unless ( $stories_url )
+    {
+        die "URL is unset for story $stories_id";
+    }
+    unless ( MediaWords::Util::URL::is_http_url( $stories_url ) )
+    {
+        die "URL '$stories_url' is not a HTTP(S) URL for story $stories_id";
+    }
 
     return MediaWords::Util::Bitly::API::fetch_stats_for_url( $db, $stories_url, $start_timestamp, $end_timestamp );
 }

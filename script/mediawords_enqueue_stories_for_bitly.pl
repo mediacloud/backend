@@ -15,7 +15,9 @@ BEGIN
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 use MediaWords::DB;
-use MediaWords::GearmanFunction::Bitly::EnqueueStory;
+use MediaWords::Util::Bitly;
+use MediaWords::Util::Bitly::Schedule;
+use MediaWords::GearmanFunction::Bitly::FetchStoryStats;
 
 use Readonly;
 
@@ -24,16 +26,15 @@ sub main
     binmode( STDOUT, 'utf8' );
     binmode( STDERR, 'utf8' );
 
-    my $db = MediaWords::DB::connect_to_db;
-
     unless ( MediaWords::Util::Bitly::bitly_processing_is_enabled() )
     {
         die "Bit.ly processing is not enabled.";
     }
 
+    my $db      = MediaWords::DB::connect_to_db;
     my $stories = $db->query(
         <<EOF
-        SELECT stories_id
+        SELECT *
         FROM stories
         ORDER BY stories_id
 EOF
@@ -43,8 +44,18 @@ EOF
     {
         my $stories_id = $story->{ stories_id };
 
+        my $story_timestamp = MediaWords::Util::Bitly::Schedule::story_timestamp( $stories_id );
+        my $start_timestamp = MediaWords::Util::Bitly::Schedule::story_start_timestamp( $story_timestamp );
+        my $end_timestamp   = MediaWords::Util::Bitly::Schedule::story_end_timestamp( $story_timestamp );
+
         say STDERR "Enqueueing story $stories_id...";
-        MediaWords::GearmanFunction::Bitly::EnqueueStory->enqueue_on_gearman( { stories_id => $stories_id } );
+        MediaWords::GearmanFunction::Bitly::FetchStoryStats->enqueue_on_gearman(
+            {
+                stories_id      => $stories_id,
+                start_timestamp => $start_timestamp,
+                end_timestamp   => $end_timestamp
+            }
+        );
     }
 }
 

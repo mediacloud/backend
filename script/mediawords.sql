@@ -2228,6 +2228,21 @@ $$
 LANGUAGE plpgsql;
 
 
+--
+-- Bit.ly processing schedule
+--
+CREATE TABLE bitly_processing_schedule (
+    bitly_processing_schedule_id    BIGSERIAL NOT NULL,
+    stories_id                      INT       NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
+    fetch_at                        TIMESTAMP NOT NULL
+);
+
+CREATE INDEX bitly_processing_schedule_stories_id
+    ON bitly_processing_schedule (stories_id);
+CREATE INDEX bitly_processing_schedule_fetch_at
+    ON bitly_processing_schedule (fetch_at);
+
+
 -- Helper to return a number of stories for which we don't have Bit.ly statistics yet
 CREATE FUNCTION num_controversy_stories_without_bitly_statistics (param_controversies_id INT) RETURNS INT AS
 $$

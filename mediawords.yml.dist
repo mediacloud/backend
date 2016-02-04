@@ -264,6 +264,24 @@ database:
         ### ...then to Amazon S3 too
         #- amazon_s3
 
+    ### Bit.ly processing for all stories
+    #story_processing:
+
+        ### Enable Bit.ly processing for all stories (not just the controversy ones)
+        #enabled: "no"
+
+        ### Delay for which to postpone story processing since its "publish_date"
+        ###
+        ### For example, you might want to process the story against Bit.ly after:
+        ### * 295200 seconds (3 days), and
+        ### * 2952000 seconds (30 days)
+        ### from story's "publish_date".
+        #schedule:
+            ### 3 days from "stories.publish_date"
+            #- 295200
+            ### 30 days from "stories.publish_date"
+            #- 2952000
+
 ### Facebook API
 ### (see doc/README.facebook_api.markdown)
 #facebook:
