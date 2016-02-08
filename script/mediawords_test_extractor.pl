@@ -29,7 +29,6 @@ use Data::Dumper;
 use MediaWords::Util::HTML;
 use MediaWords::Util::ExtractorTest;
 use MediaWords::Util::HeuristicExtractor;
-use MediaWords::Util::CrfExtractor;
 
 use Data::Compare;
 use Storable;
@@ -431,9 +430,6 @@ sub main
 
     if ( !$_download_data_load_file )
     {
-
-        my $db = MediaWords::DB->authenticate();
-
         my $dbs = MediaWords::DB::connect_to_db();
 
         if ( @download_ids )
@@ -444,7 +440,8 @@ sub main
         {
             open( DOWNLOAD_ID_FILE, $file ) || die( "Could not open file: $file" );
             @download_ids = <DOWNLOAD_ID_FILE>;
-	    #say Dumper ( [ @download_ids ] );
+
+            #say Dumper ( [ @download_ids ] );
             $downloads = $dbs->query( "SELECT * from downloads where downloads_id in (??)", @download_ids )->hashes;
         }
         else

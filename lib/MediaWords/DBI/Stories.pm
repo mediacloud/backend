@@ -628,8 +628,8 @@ sub add_missing_story_sentences
     MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story, 0, 0, 1 );
 }
 
-# get list of all sentences in story from the extracted text and annotate each with a dup_stories_id
-# field if it is a duplicate sentence
+# parse sentences in story from the extracted text.  return in the form:
+# { sentence => $sentence, ss => $matching_story_sentence, stories_id => $stories_id }
 sub get_all_sentences
 {
     my ( $db, $story ) = @_;
@@ -664,15 +664,11 @@ sub get_all_sentences
     my $all_sentences = [];
     for my $sentence ( @{ $raw_sentences } )
     {
-        my $ssc = $db->query( <<END, $sentence, $story->{ media_id }, $story->{ publish_date } )->hash;
-select *
-    from story_sentence_counts
-    where sentence_md5 = MD5( ? ) and
-        media_id = ? and
-        publish_week = DATE_TRUNC( 'week', ?::date )
-    limit 1
+        my $ss = $db->query( <<END, $sentence, $story->{ stories_id } )->hash;
+select * from story_sentences where sentence = \$1 and stories_id = \$2
 END
-        push( @{ $all_sentences }, { sentence => $sentence, count => $ssc, stories_id => $story->{ stories_id } } );
+
+        push( @{ $all_sentences }, { sentence => $sentence, ss => $ss, stories_id => $story->{ stories_id } } );
     }
 
     return $all_sentences;

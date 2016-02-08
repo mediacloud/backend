@@ -13,7 +13,7 @@ function hostname_help {
     echo "    export HOSTNAME=mediacloud"
     echo "    sudo hostname mediacloud"
     echo "    echo 127.0.0.1 \`hostname\` | sudo tee -a /etc/hosts"
-    echo "and then try again."    
+    echo "and then try again."
 }
 
 # Returns true (0) if the test suite is being run under Devel::Cover
@@ -38,7 +38,7 @@ function running_under_devel_cover {
 
 system_hostname=`hostname`
 shell_hostname="$HOSTNAME"      # internal bash variable
-if [[ -z "$system_hostname" || "$system_hostname" == "(none)" 
+if [[ -z "$system_hostname" || "$system_hostname" == "(none)"
     || -z "$shell_hostname" || "$shell_hostname" == "(none)" ]]; then
 
     echo "Unable to determine hostname or hostname is empty."
@@ -54,7 +54,7 @@ fi
 # Run test suite
 cd `dirname $0`/../
 
-TEST_FILES=`find lib/ script/ t/ -name '*.t'` 
+TEST_FILES=`find lib script t -name '*.t'`
 
 # make sure compile is included first so that it runs first as slowest test.
 # include test_crawler.t because we can have one db or server test here and

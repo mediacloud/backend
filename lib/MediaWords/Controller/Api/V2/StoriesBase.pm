@@ -159,33 +159,21 @@ sub _get_ap_stories_ids
 
     $db->query( "analyze $ids_table" );
 
+    my $ap_media_id = $db->query( "select media_id from media where name = 'Associated Press - Full Feed'" )->flat;
+    return [] if ( $ap_media_id );
+
     my $ap_stories_ids = $db->query( <<SQL )->hashes;
 with ap_sentences as
 (
     select
-            ssc.first_stories_id stories_id,
-            ap.first_stories_id ap_stories_id
-        from story_sentence_counts ssc
-            join story_sentence_counts ap on ( ssc.sentence_md5 = ap.sentence_md5 )
+            ss.stories_id stories_id,
+            ap.stories_id ap_stories_id
+        from story_sentences ss
+            join story_sentences ap on ( md5( ss.sentence ) = md5( ap.sentence ) and ap.media_id = $ap_media_id )
         where
-            ssc.first_stories_id in ( select id from $ids_table ) and
-            ssc.first_stories_id <> ap.first_stories_id and
-
-            -- the following exists is to make postgres avoid a bad query plan
-            exists (
-                select 1 from media m where m.name = 'Associated Press - Full Feed' and ap.media_id = m.media_id
-            ) and
-
-            -- we don't want to join story_sentences other than for the small
-            -- number of sentences that have some match
-            exists (
-                select 1
-                    from story_sentences ss
-                    where
-                        ss.stories_id = ssc.first_stories_id and
-                        ss.sentence_number = ssc.first_sentence_number and
-                        length( ss.sentence ) > 32
-            )
+            ss.media_id <> $ap_media_id and
+            ss.stories_id in ( select id from $ids_table ) and
+            length( ss.sentence ) > 32
 ),
 
 min_ap_sentences as

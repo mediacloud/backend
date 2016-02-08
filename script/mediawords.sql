@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4520;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4522;
 
 BEGIN
 
@@ -142,45 +142,6 @@ BEGIN
         WHERE media_id = media_rec.media_id
           AND date_trunc( 'day', publish_date ) > date_trunc( 'day', media_rec.end_date );
 
-    END LOOP;
-END;
-$$
-LANGUAGE 'plpgsql'
- ;
-
-CREATE OR REPLACE FUNCTION purge_story_sentence_counts(default_start_day date, default_end_day date)
-  RETURNS VOID  AS
-$$
-DECLARE
-    media_rec record;
-    current_time timestamp;
-BEGIN
-    current_time := timeofday()::timestamp;
-
-    RAISE NOTICE 'time - %', current_time;
-    FOR media_rec IN (
-          SELECT media_id,
-                 COALESCE( sw_data_start_date, default_start_day ) AS start_date
-          FROM media
-          WHERE NOT (COALESCE ( sw_data_start_date, default_start_day ) IS NULL )
-          ORDER BY media_id
-      ) LOOP
-        current_time := timeofday()::timestamp;
-        RAISE NOTICE 'media_id is %, start_date - % time - %', media_rec.media_id, media_rec.start_date, current_time;
-        DELETE from story_sentence_counts where media_id = media_rec.media_id and publish_week < date_trunc( 'day', media_rec.start_date );
-    END LOOP;
-
-  RAISE NOTICE 'time - %', current_time;  -- Prints 30
-  FOR media_rec IN (
-          SELECT media_id,
-                 COALESCE( sw_data_end_date, default_end_day ) AS end_date
-          FROM media
-          WHERE NOT (COALESCE ( sw_data_end_date, default_end_day ) IS NULL )
-          ORDER BY media_id
-      ) LOOP
-        current_time := timeofday()::timestamp;
-        RAISE NOTICE 'media_id is %, end_date - % time - %', media_rec.media_id, media_rec.end_date, current_time;
-        DELETE from story_sentence_counts where media_id = media_rec.media_id and publish_week > date_trunc( 'day', media_rec.end_date );
     END LOOP;
 END;
 $$
@@ -1486,7 +1447,8 @@ create table story_sentences (
        publish_date                 timestamp       not null,
        db_row_last_updated          timestamp with time zone, -- time this row was last updated
        language                     varchar(3)      null,      -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
-       disable_triggers             boolean  null
+       disable_triggers             boolean         null,
+       is_dup                       boolean         null
 );
 
 create index story_sentences_story on story_sentences (stories_id, sentence_number);
@@ -1494,6 +1456,26 @@ create index story_sentences_publish_day on story_sentences( date_trunc( 'day', 
 create index story_sentences_language on story_sentences(language);
 create index story_sentences_media_id    on story_sentences( media_id );
 create index story_sentences_db_row_last_updated    on story_sentences( db_row_last_updated );
+
+-- we have to do this in a function to create the partial index on a constant value,
+-- which you cannot do with a simple 'create index ... where publish_date > now()'
+create or replace function create_initial_story_sentences_dup() RETURNS boolean as $$
+declare
+    one_month_ago date;
+begin
+    select now() - interval '1 month' into one_month_ago;
+
+    raise notice 'date: %', one_month_ago;
+
+    execute 'create index story_sentences_dup on story_sentences( md5( sentence ) ) ' ||
+        'where week_start_date( publish_date::date ) > ''' || one_month_ago || '''::date';
+
+    return true;
+END;
+$$ LANGUAGE plpgsql;
+
+select create_initial_story_sentences_dup();
+
 
 ALTER TABLE story_sentences
     ADD CONSTRAINT story_sentences_media_id_fkey
@@ -1672,24 +1654,6 @@ CREATE index story_sentences_tags_map_db_row_last_updated on story_sentences_tag
 create unique index story_sentences_tags_map_story on story_sentences_tags_map (story_sentences_id, tags_id);
 create index story_sentences_tags_map_tag on story_sentences_tags_map (tags_id);
 CREATE INDEX story_sentences_tags_map_story_id ON story_sentences_tags_map USING btree (story_sentences_id);
-
-create table story_sentence_counts (
-       story_sentence_counts_id     bigserial       primary key,
-       sentence_md5                 varchar(64)     not null,
-       media_id                     int             not null, -- references media,
-       publish_week                 timestamp       not null,
-       sentence_count               int             not null,
-       first_stories_id             int             not null,
-       first_sentence_number        int             not null
-);
-
--- We have chossen not to make the 'story_sentence_counts_md5' index unique purely for performance reasons.
--- Duplicate rows within this index are not desirable but are relatively rare in practice.
--- Thus we have decided to avoid the performance and code complexity implications of a unique index
--- See Issue 1599
-create index story_sentence_counts_md5 on story_sentence_counts( media_id, publish_week, sentence_md5 );
-
-create index story_sentence_counts_first_stories_id on story_sentence_counts( first_stories_id );
 
 create table solr_imports (
     solr_imports_id     serial primary key,

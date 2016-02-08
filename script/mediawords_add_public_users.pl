@@ -21,6 +21,7 @@ use MediaWords::CommonLibs;
 use MediaWords::DB;
 use MediaWords::DBI::Auth;
 use MediaWords::Util::CSV;
+use MediaWords::Util::Text;
 
 # return true if an auth_users row with the email already exists
 sub user_exists
@@ -55,7 +56,7 @@ sub create_user
     my $user_non_public_api_access        = 0;
     my $user_weekly_requests_limit        = $default_weekly_requests_limit;
     my $user_weekly_requested_items_limit = $default_weekly_requested_items_limit;
-    my $user_password                     = MediaWords::DBI::Auth::random_string( 64 );
+    my $user_password                     = MediaWords::Util::Text::random_string( 64 );
     my $user_password_repeat              = $user_password;
 
     say STDERR "adding user: " .
