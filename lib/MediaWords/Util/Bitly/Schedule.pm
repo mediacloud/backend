@@ -113,8 +113,6 @@ EOF
 
         my $stories_id = $story_to_process->{ stories_id };
 
-        say STDERR "Adding story $stories_id to Bit.ly Gearman queue...";
-
         my $story = $db->find_by_id( 'stories', $stories_id );
         unless ( $story )
         {
@@ -124,6 +122,9 @@ EOF
         my $story_timestamp = story_timestamp( $story );
         my $start_timestamp = story_start_timestamp( $story_timestamp );
         my $end_timestamp   = story_end_timestamp( $story_timestamp );
+
+        say STDERR
+"Adding story $stories_id to Bit.ly Gearman queue (start timestamp: $start_timestamp, end timestamp: $end_timestamp)...";
 
         MediaWords::GearmanFunction::Bitly::FetchStoryStats->enqueue_on_gearman(
             {
