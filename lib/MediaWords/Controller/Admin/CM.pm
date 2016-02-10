@@ -768,7 +768,7 @@ sub _get_top_stories_for_time_slice
         SELECT s.*,
                slc.inlink_count,
                slc.outlink_count,
-               slc.bitly_click_count
+               slc.bitly_click_count,
                m.name as medium_name,
                m.media_type
         FROM dump_stories AS s,
