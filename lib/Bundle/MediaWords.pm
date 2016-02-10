@@ -117,8 +117,6 @@ IPC::Run3
 
 Dir::Self
 
-PDL
-
 Perl::Tidy
 
 Switch

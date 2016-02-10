@@ -164,8 +164,8 @@ programs = gearmand
 %]
 
 [% INCLUDE program_config
-    program='bitly_enqueue_controversy_stories'
-    gearman_worker_module='Bitly/EnqueueControversyStories.pm'
+    program='bitly_enqueue_all_controversy_stories'
+    gearman_worker_module='Bitly/EnqueueAllControversyStories.pm'
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'
@@ -175,7 +175,7 @@ programs = gearmand
 
 [% INCLUDE program_config
     program='bitly_fetch_story_stats'
-    gearman_worker_module='Bitly/FetchStoryURLStats.pm'
+    gearman_worker_module='Bitly/FetchStoryStats.pm'
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'
@@ -195,7 +195,7 @@ programs = gearmand
 
 [% INCLUDE program_config
     program='facebook_fetch_story_stats'
-    gearman_worker_module='Facebook/FetchStoryURLStats.pm'
+    gearman_worker_module='Facebook/FetchStoryStats.pm'
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'

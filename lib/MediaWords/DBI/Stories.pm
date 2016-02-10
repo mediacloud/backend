@@ -16,40 +16,12 @@ use MediaWords::Util::Web;
 use MediaWords::Util::Config;
 use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
+use MediaWords::Util::Bitly::Schedule;
 use MediaWords::DBI::Downloads;
+use MediaWords::DBI::Stories::ExtractorVersion;
 use MediaWords::Languages::Language;
 use MediaWords::StoryVectors;
 use List::Compare;
-
-# cached ids of tags, which should change rarely
-my $_tags_id_cache = {};
-
-# get cached id of the tag.  create the tag if necessary.
-# we need this to make tag lookup very fast for add_default_tags
-sub _get_tags_id
-{
-    my ( $db, $tag_sets_id, $term ) = @_;
-
-    if ( $_tags_id_cache->{ $tag_sets_id }->{ $term } )
-    {
-        return $_tags_id_cache->{ $tag_sets_id }->{ $term };
-    }
-
-    my $tag = $db->find_or_create(
-        'tags',
-        {
-            tag         => $term,
-            tag_sets_id => $tag_sets_id
-        }
-    );
-
-    #Commit to make sure cache and database are consistent
-    $db->dbh->{ AutoCommit } || $db->commit;
-
-    $_tags_id_cache->{ $tag_sets_id }->{ $term } = $tag->{ tags_id };
-
-    return $tag->{ tags_id };
-}
 
 sub _get_full_text_from_rss
 {
@@ -406,71 +378,6 @@ sub get_initial_download_content($$)
     return $content;
 }
 
-# add a { similarities } field that holds the cosine similarity scores between each of the
-# stories to each other story.  Assumes that a { vector } has been added to each story
-# using add_word_vectors above.
-sub add_cos_similarities
-{
-    my ( $db, $stories ) = @_;
-
-    require MediaWords::Util::BigPDLVector;
-
-    unless ( scalar @{ $stories } )
-    {
-        die "'stories' is not an arrayref.";
-    }
-
-    unless ( $stories->[ 0 ]->{ vector } )
-    {
-        die "must call add_word_vectors before add_cos_similarities";
-    }
-
-    my $num_words = List::Util::max( map { scalar( @{ $_->{ vector } } ) } @{ $stories } );
-
-    if ( $num_words )
-    {
-        print STDERR "add_cos_similarities: create normalized pdl vectors ";
-        for my $story ( @{ $stories } )
-        {
-            print STDERR ".";
-            my $pdl_vector = MediaWords::Util::BigPDLVector::vector_new( $num_words );
-
-            for my $i ( 0 .. $num_words - 1 )
-            {
-                MediaWords::Util::BigPDLVector::vector_set( $pdl_vector, $i, $story->{ vector }->[ $i ] );
-            }
-            $story->{ pdl_norm_vector } = MediaWords::Util::BigPDLVector::vector_normalize( $pdl_vector );
-            $story->{ vector }          = undef;
-        }
-        print STDERR "\n";
-    }
-
-    print STDERR "add_cos_similarities: adding sims\n";
-    for my $i ( 0 .. $#{ $stories } )
-    {
-        print STDERR "sims: $i / $#{ $stories }: ";
-        $stories->[ $i ]->{ cos }->[ $i ] = 1;
-
-        for my $j ( $i + 1 .. $#{ $stories } )
-        {
-            print STDERR "." unless ( $j % 100 );
-            my $sim = 0;
-            if ( $num_words )
-            {
-                $sim = MediaWords::Util::BigPDLVector::vector_dot( $stories->[ $i ]->{ pdl_norm_vector },
-                    $stories->[ $j ]->{ pdl_norm_vector } );
-            }
-
-            $stories->[ $i ]->{ similarities }->[ $j ] = $sim;
-            $stories->[ $j ]->{ similarities }->[ $i ] = $sim;
-        }
-
-        print STDERR "\n";
-    }
-
-    map { $_->{ pdl_norm_vector } = undef } @{ $stories };
-}
-
 # Determines if similar story already exist in the database
 # Note that calling this function on stories already in the database makes no sense.
 sub is_new
@@ -547,28 +454,6 @@ sub reextract_download
     }
 }
 
-sub _get_current_extractor_version
-{
-    my $config           = MediaWords::Util::Config::get_config;
-    my $extractor_method = $config->{ mediawords }->{ extractor_method };
-
-    my $extractor_version;
-
-    if ( $extractor_method eq 'PythonReadability' )
-    {
-        $extractor_version = MediaWords::Util::ThriftExtractor::extractor_version();
-    }
-    else
-    {
-        my $old_extractor = MediaWords::Util::ExtractorFactory::createExtractor();
-        $extractor_version = $old_extractor->extractor_version();
-    }
-
-    die unless defined( $extractor_version ) && $extractor_version;
-
-    return $extractor_version;
-}
-
 sub extract_and_process_story
 {
     my ( $story, $db, $process_num ) = @_;
@@ -618,7 +503,7 @@ sub process_extracted_story
         $story->{ stories_id }
     );
 
-    MediaWords::DBI::Stories::_update_extractor_version_tag( $db, $story );
+    MediaWords::DBI::Stories::ExtractorVersion::update_extractor_version_tag( $db, $story );
 
     my $stories_id = $story->{ stories_id };
 
@@ -637,6 +522,12 @@ sub process_extracted_story
         {
             die "Unable to mark story ID $stories_id as processed";
         }
+    }
+
+    # Add to Bit.ly queue
+    if ( MediaWords::Util::Bitly::Schedule::story_processing_is_enabled() )
+    {
+        MediaWords::Util::Bitly::Schedule::add_to_processing_schedule( $db, $stories_id );
     }
 }
 
@@ -721,240 +612,6 @@ END
     {
         restore_download_content( $db, $download, $download->{ content } );
     }
-}
-
-# confirm that the date for the story is correct by changing the date_guess_method of the given
-# story to 'manual'
-sub confirm_date
-{
-    my ( $db, $story ) = @_;
-
-    $db->query( <<END, $story->{ stories_id } );
-delete from stories_tags_map stm
-    using tags t, tag_sets ts
-    where t.tag_sets_id = ts.tag_sets_id and
-        stm.tags_id = t.tags_id and
-        ts.name = 'date_guess_method' and
-        stm.stories_id = ?
-END
-
-    my $t = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'date_guess_method:manual' );
-    $db->query( <<END, $story->{ stories_id }, $t->{ tags_id } );
-insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )
-END
-}
-
-# if the date guess method is manual, remove and replace with an ;unconfirmed' method tag
-sub unconfirm_date
-{
-    my ( $db, $story ) = @_;
-
-    unless ( date_is_confirmed( $db, $story ) )
-    {
-        say STDERR "Date for story " . $story->{ stories_id } . " is not confirmed, so not unconfirming.";
-        return;
-    }
-
-    my $manual      = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'date_guess_method:manual' );
-    my $unconfirmed = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'date_guess_method:unconfirmed' );
-
-    $db->query( <<END, $story->{ stories_id }, $manual->{ tags_id } );
-delete from stories_tags_map where stories_id = ? and tags_id = ?
-END
-
-    $db->query( <<END, $story->{ stories_id }, $unconfirmed->{ tags_id } );
-insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )
-END
-
-}
-
-# return true if the date guess method is manual, which means that the date has been confirmed
-sub date_is_confirmed
-{
-    my ( $db, $story ) = @_;
-
-    my $r = $db->query( <<END, $story->{ stories_id } )->hash;
-select 1 from stories_tags_map stm, tags t, tag_sets ts
-    where stm.tags_id = t.tags_id and
-        ts.tag_sets_id = t.tag_sets_id and
-        t.tag = 'manual' and
-        ts.name = 'date_guess_method' and
-        stm.stories_id = ?
-END
-
-    return $r ? 1 : 0;
-}
-
-# return true if the date is reliable.  a date is reliable if either of the following are true:
-# * the story has one of the date_guess_method:* tags listed in reliable_methods below;
-# * no date_guess_method:* tag and no date_invalid:undateable tag is associated with the story
-# otherwise, the date is unreliable
-sub date_is_reliable
-{
-    my ( $db, $story ) = @_;
-
-    my $tags = $db->query( <<END, $story->{ stories_id } )->hashes;
-select t.tag, ts.name tag_set_name
-    from stories_tags_map stm
-        join tags t on ( stm.tags_id = t.tags_id and stm.stories_id = ? )
-        join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id and ts.name in ( 'date_guess_method', 'date_invalid' ) )
-END
-
-    my $tag_lookup = { date_guess_method => {}, date_invalid => {} };
-    for my $tag ( @{ $tags } )
-    {
-        $tag_lookup->{ $tag->{ tag_set_name } }->{ $tag->{ tag } } = 1;
-    }
-
-    my $reliable_methods =
-      [ qw(guess_by_og_article_published_time guess_by_url guess_by_url_and_date_text merged_story_rss manual) ];
-
-    if ( grep { $tag_lookup->{ date_guess_method }->{ $_ } } @{ $reliable_methods } )
-    {
-        return 1;
-    }
-
-    if ( !$tag_lookup->{ date_invalid }->{ undateable } && !%{ $tag_lookup->{ date_guess_method } } )
-    {
-        return 1;
-    }
-
-    return 0;
-}
-
-# set the undateable status of the story by adding or removing the 'date_guess_method:undateable' tage
-sub mark_undateable
-{
-    my ( $db, $story, $undateable ) = @_;
-
-    my $tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'date_invalid:undateable' );
-
-    $db->query( <<END, $story->{ stories_id } );
-delete from stories_tags_map stm
-    using tags t
-        join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
-    where
-        t.tags_id = stm.tags_id and
-        ts.name = 'date_invalid' and
-        stories_id = ?
-END
-
-    if ( $undateable )
-    {
-        $db->query( <<END, $story->{ stories_id }, $tag->{ tags_id } );
-insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )
-END
-    }
-}
-
-# return true if the story has been marked as undateable
-sub is_undateable
-{
-    my ( $db, $story ) = @_;
-
-    my $tag = $db->query( <<END, $story->{ stories_id } )->hash;
-select 1
-    from stories_tags_map stm
-        join tags t on ( stm.tags_id = t.tags_id )
-        join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
-    where
-        stm.stories_id = ? and
-        ts.name = 'date_invalid' and
-        t.tag = 'undateable'
-END
-
-    return $tag ? 1 : 0;
-}
-
-my $_date_guess_method_tag_lookup = {};
-
-# assign a tag to the story for the date guess method
-sub assign_date_guess_method
-{
-    my ( $db, $story, $date_guess_method, $no_delete ) = @_;
-
-    if ( !$no_delete )
-    {
-        for my $tag_set_name ( 'date_guess_method', 'date_invalid' )
-        {
-            $db->query( <<END, $tag_set_name, $story->{ stories_id } );
-delete from stories_tags_map stm
-    using tags t
-        join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id )
-    where
-        t.tags_id = stm.tags_id and
-        ts.name = ? and
-        stm.stories_id = ?
-END
-        }
-    }
-
-    my $tag_set_name = ( $date_guess_method eq 'undateable' ) ? 'date_invalid' : 'date_guess_method';
-    my $tag_name = "$tag_set_name:$date_guess_method";
-
-    my $date_guess_method_tag = $_date_guess_method_tag_lookup->{ $tag_name };
-    if ( !$date_guess_method_tag )
-    {
-        $date_guess_method_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, "$tag_set_name:$date_guess_method" );
-        $_date_guess_method_tag_lookup->{ $tag_name } = $date_guess_method_tag;
-    }
-
-    $db->query( <<END, $story->{ stories_id }, $date_guess_method_tag->{ tags_id } );
-insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )
-END
-
-}
-
-my $_extractor_version_tag_set;
-
-sub _get_extractor_version_tag_set
-{
-
-    my ( $db ) = @_;
-
-    if ( !defined( $_extractor_version_tag_set ) )
-    {
-        $_extractor_version_tag_set = MediaWords::Util::Tags::lookup_or_create_tag_set( $db, "extractor_version" );
-    }
-
-    return $_extractor_version_tag_set;
-}
-
-sub get_current_extractor_version_tags_id
-{
-    my ( $db ) = @_;
-
-    my $extractor_version = _get_current_extractor_version();
-    my $tag_set           = _get_extractor_version_tag_set( $db );
-
-    my $tags_id = _get_tags_id( $db, $tag_set->{ tag_sets_id }, $extractor_version );
-
-    return $tags_id;
-}
-
-# add extractor version tag
-sub _update_extractor_version_tag
-{
-    my ( $db, $story ) = @_;
-
-    my $tag_set = _get_extractor_version_tag_set( $db );
-
-    $db->query( <<END, $tag_set->{ tag_sets_id }, $story->{ stories_id } );
-delete from stories_tags_map stm
-    using tags t
-        join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id )
-    where
-        t.tags_id = stm.tags_id and
-        ts.tag_sets_id = ? and
-        stm.stories_id = ?
-END
-
-    my $tags_id = get_current_extractor_version_tags_id( $db );
-
-    $db->query( <<END, $story->{ stories_id }, $tags_id );
-insert into stories_tags_map ( stories_id, tags_id, db_row_last_updated ) values ( ?, ?, now() )
-END
-
 }
 
 # if no story_sentences exist for the story, add them
@@ -1107,7 +764,7 @@ END
 }
 
 # break a story down into parts separated by [-:|]
-sub get_title_parts
+sub _get_title_parts
 {
     my ( $title ) = @_;
 
@@ -1156,7 +813,7 @@ sub get_medium_dup_stories_by_title
         # is just the tweet, and we want to capture retweets
         next if ( $_->{ url } && ( $_->{ url } =~ /https?:\/\/(twitter\.com|t\.co)/i ) );
 
-        my $title_parts = get_title_parts( $story->{ title } );
+        my $title_parts = _get_title_parts( $story->{ title } );
 
         for ( my $i = 0 ; $i < @{ $title_parts } ; $i++ )
         {
@@ -1241,38 +898,6 @@ sub get_medium_dup_stories_by_guid
     }
 
     return [ grep { @{ $_ } > 1 } values( %{ $guid_lookup } ) ];
-}
-
-# parse the content for tags that might indicate the story's title
-sub get_story_title_from_content
-{
-    my ( $content, $url ) = @_;
-
-    my $title;
-
-    if ( $content =~ m~<meta property=\"og:title\" content=\"([^\"]+)\"~si )
-    {
-        $title = $1;
-    }
-    elsif ( $content =~ m~<meta property=\"og:title\" content=\'([^\']+)\'~si )
-    {
-        $title = $1;
-    }
-    elsif ( $content =~ m~<title>([^<]+)</title>~si )
-    {
-        $title = $1;
-    }
-    else
-    {
-        $title = $url;
-    }
-
-    if ( length( $title ) > 1024 )
-    {
-        $title = substr( $title, 0, 1024 );
-    }
-
-    return $title;
 }
 
 1;

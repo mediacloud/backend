@@ -23,6 +23,7 @@ use MediaWords::CommonLibs;
 use MediaWords::GearmanFunction;
 use MediaWords::GearmanFunction::ExtractAndVector;
 use MediaWords::DBI::Stories;
+use MediaWords::DBI::Stories::ExtractorVersion;
 
 sub main
 {
@@ -31,14 +32,12 @@ sub main
         die "Gearman is disabled.";
     }
 
-    my $tags_id = MediaWords::DBI::Stories::get_current_extractor_version_tags_id( MediaWords::DB::connect_to_db() );
+    my $tags_id =
+      MediaWords::DBI::Stories::ExtractorVersion::get_current_extractor_version_tags_id( MediaWords::DB::connect_to_db() );
 
-
-    
-
-    my $story_batch_size          = 1000;
-    my $gearman_queue_limit       = 200;
-    my $sleep_time                = 10;
+    my $story_batch_size    = 1000;
+    my $gearman_queue_limit = 200;
+    my $sleep_time          = 10;
 
     my $total_stories_enqueued     = 0;
     my $total_gearman_enqueue_time = 0;
@@ -52,15 +51,14 @@ sub main
 
     my $default_db_label = MediaWords::DB::connect_settings()->{ label };
 
-    
-
     my $last_processed_stories_id;
 
-    { 
-	my $db_tmp =  MediaWords::DB::connect_to_db( $default_db_label );
-	$last_processed_stories_id = $db_tmp->query( "SELECT max( processed_stories_id) from processed_stories")->hashes()->[0]->{ max};
+    {
+        my $db_tmp = MediaWords::DB::connect_to_db( $default_db_label );
+        $last_processed_stories_id =
+          $db_tmp->query( "SELECT max( processed_stories_id) from processed_stories" )->hashes()->[ 0 ]->{ max };
 
-	say STDERR "last_processed_stories_id: $last_processed_stories_id";
+        say STDERR "last_processed_stories_id: $last_processed_stories_id";
 
     }
 
@@ -69,7 +67,7 @@ sub main
         my $gearman_db = MediaWords::DB::connect_to_db( "gearman" );
         my $db         = MediaWords::DB::connect_to_db( $default_db_label );
 
-	say STDERR "Checking gearman queue";
+        say STDERR "Checking gearman queue";
 
         my $gearman_queued_jobs = $gearman_db->query(
             "SELECT count(*) from queue where function_name = 'MediaWords::GearmanFunction::ExtractAndVector' " )->flat()
@@ -86,7 +84,7 @@ sub main
             next;
         }
 
-	say STDERR "last_processed_stories_id  $last_processed_stories_id ";
+        say STDERR "last_processed_stories_id  $last_processed_stories_id ";
 
         my $query_start_time = Time::HiRes::time();
 

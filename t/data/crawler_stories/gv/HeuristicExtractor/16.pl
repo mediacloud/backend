@@ -2022,7 +2022,7 @@ var _wpcf7 = {\"loaderUrl\":\"http:\\/\\/globalvoicesonline.org\\/wp-content\\/p
                                ],
           'tags' => [],
           'timezone' => 'America/Chicago',
-          'title' => 'Global Voices &middot; Citizen media stories from around the world',
+          'title' => "Global Voices \x{b7} Citizen media stories from around the world",
           'url' => 'http://raven.local:63976//gv/home.html'
         };
 #>>>

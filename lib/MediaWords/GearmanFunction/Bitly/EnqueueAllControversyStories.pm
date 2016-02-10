@@ -1,11 +1,11 @@
-package MediaWords::GearmanFunction::Bitly::EnqueueControversyStories;
+package MediaWords::GearmanFunction::Bitly::EnqueueAllControversyStories;
 
 #
 # Enqueue all controversy's stories for processing via Bit.ly API
 #
 # Start this worker script by running:
 #
-# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/Bitly/EnqueueControversyStories.pm
+# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/Bitly/EnqueueAllControversyStories.pm
 #
 
 use strict;
@@ -31,7 +31,7 @@ use MediaWords::DB;
 use MediaWords::Util::GearmanJobSchedulerConfiguration;
 use MediaWords::Util::Bitly;
 use MediaWords::Util::DateTime;
-use MediaWords::GearmanFunction::Bitly::FetchStoryURLStats;
+use MediaWords::GearmanFunction::Bitly::FetchStoryStats;
 use Readonly;
 
 # Having a global database object should be safe because
@@ -52,17 +52,8 @@ sub run($;$)
     $db ||= MediaWords::DB::connect_to_db();
 
     my $controversies_id = $args->{ controversies_id } or die "'controversies_id' is not set.";
-    my $overwrite = $args->{ overwrite } // 0;
 
     say STDERR "Will enqueue all controversy's $controversies_id stories.";
-    if ( $overwrite )
-    {
-        say STDERR "Will overwrite stories that are already processed with Bit.ly";
-    }
-    else
-    {
-        say STDERR "Will *not* overwrite stories that are already processed with Bit.ly";
-    }
 
     say STDERR "Fetching controversy $controversies_id...";
     my $controversy = $db->find_by_id( 'controversies', $controversies_id );
@@ -161,21 +152,6 @@ EOF
 
             $offset_controversy_stories_id = $controversy_stories_id;
 
-            if ( MediaWords::Util::Bitly::story_stats_are_fetched( $db, $stories_id ) )
-            {
-                if ( $overwrite )
-                {
-                    say STDERR "Story $stories_id for controversy $controversies_id is already " .
-                      "processed with Bit.ly, will overwrite.";
-                }
-                else
-                {
-                    say STDERR "Story $stories_id for controversy $controversies_id is already " .
-                      "processed with Bit.ly, skipping.";
-                    next;
-                }
-            }
-
             say STDERR "Enqueueing story $stories_id for Bit.ly processing...";
 
             my $args = {
@@ -183,7 +159,7 @@ EOF
                 start_timestamp => $start_timestamp,
                 end_timestamp   => $end_timestamp
             };
-            MediaWords::GearmanFunction::Bitly::FetchStoryURLStats->enqueue_on_gearman( $args );
+            MediaWords::GearmanFunction::Bitly::FetchStoryStats->enqueue_on_gearman( $args );
 
             say STDERR "Done enqueueing story $stories_id for Bit.ly processing.";
         }

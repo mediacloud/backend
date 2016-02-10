@@ -178,22 +178,18 @@
             <th>
                 Bit.ly JSON:</th>
             <td>
-                [% IF bitly_story_is_enabled_for_processing %]
-                    [% IF bitly_story_stats_are_fetched %]
+                [% IF bitly_story_stats_are_fetched %]
 
-                        <iframe src="[% c.uri_for( '/admin/stories/bitly_json/' _ story.stories_id ) | html %]" style="width: 99%; height: 480px; background-color: white"></iframe>
+                    <iframe src="[% c.uri_for( '/admin/stories/bitly_json/' _ story.stories_id ) | html %]" style="width: 99%; height: 480px; background-color: white"></iframe>
 
-                        <p>
-                            <a href="[% c.uri_for( '/admin/stories/bitly_json/' _ story.stories_id ) | html %]" target="_blank">[open in new page]</a>
-                        </p>
+                    <p>
+                        <a href="[% c.uri_for( '/admin/stories/bitly_json/' _ story.stories_id ) | html %]" target="_blank">[open in new page]</a>
+                    </p>
 
-                        <p>[% jsonview_help %]</p>
+                    <p>[% jsonview_help %]</p>
 
-                    [% ELSE %]
-                        stats not fetched
-                    [% END %]
                 [% ELSE %]
-                    not enabled for Bit.ly processing (<code>controversies.process_with_bitly</code> is not set to <code>'t'</code>)
+                    stats not fetched
                 [% END %]
             </td>
         </tr>

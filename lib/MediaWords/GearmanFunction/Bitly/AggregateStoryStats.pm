@@ -1,7 +1,7 @@
 package MediaWords::GearmanFunction::Bitly::AggregateStoryStats;
 
 #
-# Use story's click / referrer counts stored in GridFS to fill up aggregated stats table
+# Use story's click counts to fill up aggregated stats table
 #
 # Start this worker script by running:
 #
@@ -65,19 +65,16 @@ sub run($;$)
         die "Stats for story $stories_id is not a hashref.";
     }
 
-    my $agg_stats      = MediaWords::Util::Bitly::aggregate_story_stats( $stories_id, $story->{ url }, $stats );
-    my $click_count    = $agg_stats->{ click_count };
-    my $referrer_count = $agg_stats->{ referrer_count };
+    my $agg_stats = MediaWords::Util::Bitly::aggregate_story_stats( $stories_id, $story->{ url }, $stats );
 
-    say STDERR "Story's $stories_id click count: $click_count";
-    say STDERR "Story's $stories_id referrer count: $referrer_count";
+    my $total_click_count = $agg_stats->total_click_count();
+    say STDERR "Story's $stories_id total click count: $total_click_count";
 
-    # Store stats ("upsert" the record into "story_bitly_statistics" table)
     $db->query(
         <<EOF,
-        SELECT upsert_story_bitly_statistics(?, ?, ?)
+        SELECT upsert_bitly_clicks_total(?, ?)
 EOF
-        $stories_id, $click_count, $referrer_count
+        $stories_id, $total_click_count
     );
 
     say STDERR "Done aggregating story stats for story $stories_id.";

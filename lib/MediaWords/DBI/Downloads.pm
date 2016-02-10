@@ -12,7 +12,7 @@ use Scalar::Defer;
 use Readonly;
 
 use MediaWords::Crawler::Extractor;
-use MediaWords::Util::Config qw(get_config);
+use MediaWords::Util::Config;
 use MediaWords::Util::HTML;
 use MediaWords::DB;
 use MediaWords::DBI::DownloadTexts;
@@ -137,101 +137,57 @@ sub _get_extracted_html
     return $extracted_html;
 }
 
-# lookup table for download store objects; initialized in BEGIN below
-my $_download_store_lookup = lazy
+# Inline download store
+# (downloads.path is prefixed with "content:", download is stored in downloads.path itself)
+my $_store_inline = lazy
 {
-    # lazy load these modules because some of them are very expensive to load
-    # and are tangentially loaded by indirect module dependency
+    require MediaWords::KeyValueStore::DatabaseInline;
+
+    return MediaWords::KeyValueStore::DatabaseInline->new();
+};
+
+# Amazon S3 download store
+# (downloads.path is prefixed with "amazon_s3:", download is stored in Amazon S3)
+my $_store_amazon_s3 = lazy
+{
     require MediaWords::KeyValueStore::AmazonS3;
     require MediaWords::KeyValueStore::CachedAmazonS3;
-    require MediaWords::KeyValueStore::DatabaseInline;
-    require MediaWords::KeyValueStore::PostgreSQL;
-    require MediaWords::KeyValueStore::PostgreSQLFallback;
 
-    my $download_store_lookup = {
+    my $config = MediaWords::Util::Config::get_config;
 
-        # downloads.path is prefixed with "content:";
-        # download is stored in downloads.path itself
-        databaseinline => undef,
-
-        # downloads.path is prefixed with "postgresql:";
-        # download is stored in "raw_downloads" table
-        postgresql => undef,
-
-        # Fallback database for "postgresql" downloads
-        postgresql_fallback => undef,
-
-        # downloads.path is prefixed with "amazon_s3:";
-        # download is stored in Amazon S3
-        amazon_s3 => undef,    # might remain 'undef' if not configured
-    };
-
-    # Early sanity check on configuration
-    my $download_storage_locations = get_config->{ mediawords }->{ download_storage_locations };
-    if ( scalar( @{ $download_storage_locations } ) == 0 )
+    unless ( $config->{ amazon_s3 } )
     {
-        die "No download storage methods are configured.\n";
+        say STDERR "Amazon S3 download store is not configured.";
+        return undef;
     }
 
-    foreach my $download_storage_location ( @{ $download_storage_locations } )
+    my $store_package_name = 'MediaWords::KeyValueStore::AmazonS3';
+    my $cache_root_dir     = undef;
+    if ( $config->{ mediawords }->{ cache_s3_downloads } eq 'yes' )
     {
-        my $location = lc( $download_storage_location );
-
-        if ( $location eq 'databaseinline' )
-        {
-            die "download_storage_location $location is not valid for storage";
-        }
-
-        unless ( exists $download_store_lookup->{ $download_storage_location } )
-        {
-            die "download_storage_location '$download_storage_location' is not valid.";
-        }
+        $store_package_name = 'MediaWords::KeyValueStore::CachedAmazonS3';
+        $cache_root_dir     = $config->{ mediawords }->{ data_dir } . '/cache/s3_downloads';
     }
 
-    my %enabled_download_storage_locations = map { $_ => 1 } @{ $download_storage_locations };
-
-    # Test if all enabled storage locations are also configured
-    if ( exists( $enabled_download_storage_locations{ amazon_s3 } ) )
-    {
-        unless ( get_config->{ amazon_s3 } )
+    return $store_package_name->new(
         {
-            die "'amazon_s3' storage location is enabled, but Amazon S3 is not configured.\n";
-        }
-    }
-
-    # Initialize key value stores for downloads
-    if ( get_config->{ amazon_s3 } )
-    {
-        if ( get_config->{ mediawords }->{ cache_s3_downloads } eq 'yes' )
-        {
-            $download_store_lookup->{ amazon_s3 } = MediaWords::KeyValueStore::CachedAmazonS3->new(
-                {
-                    access_key_id     => get_config->{ amazon_s3 }->{ downloads }->{ access_key_id },
-                    secret_access_key => get_config->{ amazon_s3 }->{ downloads }->{ secret_access_key },
-                    bucket_name       => get_config->{ amazon_s3 }->{ downloads }->{ bucket_name },
-                    directory_name    => get_config->{ amazon_s3 }->{ downloads }->{ directory_name },
-                    cache_root_dir    => get_config->{ mediawords }->{ data_dir } . '/cache/s3_downloads',
-                }
-            );
-        }
-        else
-        {
-            $download_store_lookup->{ amazon_s3 } = MediaWords::KeyValueStore::AmazonS3->new(
-                {
-                    access_key_id     => get_config->{ amazon_s3 }->{ downloads }->{ access_key_id },
-                    secret_access_key => get_config->{ amazon_s3 }->{ downloads }->{ secret_access_key },
-                    bucket_name       => get_config->{ amazon_s3 }->{ downloads }->{ bucket_name },
-                    directory_name    => get_config->{ amazon_s3 }->{ downloads }->{ directory_name }
-                }
-            );
-        }
-    }
-
-    $download_store_lookup->{ databaseinline } = MediaWords::KeyValueStore::DatabaseInline->new(
-        {
-            # no arguments are needed
+            access_key_id     => $config->{ amazon_s3 }->{ downloads }->{ access_key_id },
+            secret_access_key => $config->{ amazon_s3 }->{ downloads }->{ secret_access_key },
+            bucket_name       => $config->{ amazon_s3 }->{ downloads }->{ bucket_name },
+            directory_name    => $config->{ amazon_s3 }->{ downloads }->{ directory_name },
+            cache_root_dir    => $cache_root_dir,
         }
     );
+};
+
+# PostgreSQL download store
+# (downloads.path is prefixed with "postgresql:", download is stored in "raw_downloads" table)
+my $_store_postgresql = lazy
+{
+    require MediaWords::KeyValueStore::PostgreSQL;
+    require MediaWords::KeyValueStore::MultipleStores;
+
+    my $config = MediaWords::Util::Config::get_config;
 
     # Main raw downloads database / table
     my $raw_downloads_db_label = 'raw_downloads';    # as set up in mediawords.yml
@@ -241,72 +197,108 @@ my $_download_store_lookup = lazy
         $raw_downloads_db_label = undef;
     }
 
-    $download_store_lookup->{ postgresql } = MediaWords::KeyValueStore::PostgreSQL->new(
+    my $postgresql_store = MediaWords::KeyValueStore::PostgreSQL->new(
         {
             database_label => $raw_downloads_db_label,                         #
             table => ( $raw_downloads_db_label ? undef : 'raw_downloads' ),    #
         }
     );
 
-    # Fallback raw downloads database / table
-    my $raw_downloads_fallback_db_label = 'raw_downloads_fallback';            # as set up in mediawords.yml
-    if ( grep { $_ eq $raw_downloads_fallback_db_label } MediaWords::DB::get_db_labels() )
+    # Add Amazon S3 fallback storage if needed
+    if ( lc( $config->{ mediawords }->{ fallback_postgresql_downloads_to_s3 } eq 'yes' ) )
     {
-        $download_store_lookup->{ postgresql_fallback } = MediaWords::KeyValueStore::PostgreSQLFallback->new(
+        my $amazon_s3_store = force $_store_amazon_s3;
+        unless ( defined $amazon_s3_store )
+        {
+            croak "'fallback_postgresql_downloads_to_s3' is enabled, but Amazon S3 download storage is not set up.";
+        }
+
+        my $postgresql_then_s3_store = MediaWords::KeyValueStore::MultipleStores->new(
             {
-                database_label => $raw_downloads_fallback_db_label,            #
+                stores_for_reading => [ $postgresql_store, $amazon_s3_store ],
+                stores_for_writing => [ $postgresql_store ], # where to write is defined by "download_storage_locations"
             }
         );
+        return $postgresql_then_s3_store;
     }
     else
     {
-        #say STDERR "No such label '$raw_downloads_fallback_db_label', fallback table disabled";
-        $download_store_lookup->{ postgresql_fallback } = undef;
+        return $postgresql_store;
     }
-
-    return $download_store_lookup;
 };
 
-# Returns arrayref of stores for writing new downloads to
-sub _download_stores_for_writing($)
+# (Multi)store for writing downloads
+my $_store_for_writing_non_inline_downloads = lazy
+{
+    require MediaWords::KeyValueStore::MultipleStores;
+
+    my $config = MediaWords::Util::Config::get_config;
+
+    my @stores_for_writing;
+
+    # Early sanity check on configuration
+    my $download_storage_locations = $config->{ mediawords }->{ download_storage_locations };
+    if ( scalar( @{ $download_storage_locations } ) == 0 )
+    {
+        croak "No download stores are configured.";
+    }
+
+    foreach my $location ( @{ $download_storage_locations } )
+    {
+        $location = lc( $location );
+        my $store;
+
+        if ( $location eq 'databaseinline' )
+        {
+            croak "$location is not valid for storage";
+
+        }
+        elsif ( $location eq 'postgresql' )
+        {
+            $store = force $_store_postgresql;
+
+        }
+        elsif ( $location eq 's3' or $location eq 'amazon_s3' )
+        {
+            $store = force $_store_amazon_s3;
+
+        }
+        else
+        {
+            croak "Store location '$location' is not valid.";
+
+        }
+
+        unless ( defined $store )
+        {
+            croak "Store for location '$location' is not configured.";
+        }
+
+        push( @stores_for_writing, $store );
+    }
+
+    return MediaWords::KeyValueStore::MultipleStores->new( { stores_for_writing => \@stores_for_writing, } );
+};
+
+# Returns store for writing new downloads to
+sub _download_store_for_writing($)
 {
     my $content_ref = shift;
 
-    my $stores = [];
-
     if ( length( $$content_ref ) < $INLINE_CONTENT_LENGTH )
     {
-        unless ( $_download_store_lookup->{ databaseinline } )
-        {
-            die "DatabaseInline store is not initialized, although it is required by _download_stores_for_writing().\n";
-        }
-
-        # Inline
-        #say STDERR "Will store inline.";
-        push( @{ $stores }, $_download_store_lookup->{ databaseinline } );
+        # Inline store
+        return force $_store_inline;
     }
     else
     {
-        my $download_storage_locations = get_config->{ mediawords }->{ download_storage_locations };
-        foreach my $download_storage_location ( @{ $download_storage_locations } )
-        {
-            my $store = $_download_store_lookup->{ lc( $download_storage_location ) }
-              || die "config value mediawords.download_storage_location '$download_storage_location' is not valid.";
-
-            push( @{ $stores }, $store );
-        }
+        # All the rest of the stores
+        return force $_store_for_writing_non_inline_downloads;
     }
-
-    if ( scalar( @{ $stores } ) == 0 )
-    {
-        die "No download storage locations are configured.\n";
-    }
-
-    return $stores;
 }
 
-# Returns stores to try fetching download from
-sub _download_stores_for_reading($)
+# Returns store to try fetching download from
+sub _download_store_for_reading($)
 {
     my $download = shift;
 
@@ -315,7 +307,7 @@ sub _download_stores_for_reading($)
     my $path = $download->{ path };
     unless ( $path )
     {
-        die "Download path is not set for download $download->{ downloads_id }";
+        croak "Download path is not set for download $download->{ downloads_id }";
     }
 
     if ( $path =~ /^([\w]+):/ )
@@ -324,30 +316,29 @@ sub _download_stores_for_reading($)
 
         if ( $location eq 'content' )
         {
-            $download_store = 'databaseinline';
+            $download_store = force $_store_inline;
         }
 
         elsif ( $location eq 'postgresql' )
         {
-            $download_store = 'postgresql';
+            $download_store = force $_store_postgresql;
         }
 
-        elsif ( ( $location eq 's3' ) || ( $location eq 'amazon_s3' ) )
+        elsif ( $location eq 's3' or $location eq 'amazon_s3' )
         {
-            $download_store = 'amazon_s3';
+            $download_store = force $_store_amazon_s3;
         }
 
         elsif ( $location eq 'gridfs' or $location eq 'tar' )
         {
             # Might get later overriden to "amazon_s3"
-            $download_store = 'postgresql';
+            $download_store = force $_store_postgresql;
         }
 
         else
         {
-            die "Download location '$location' is unknown for download $download->{ downloads_id }";
+            croak "Download location '$location' is unknown for download $download->{ downloads_id }";
         }
-
     }
     else
     {
@@ -355,56 +346,29 @@ sub _download_stores_for_reading($)
         # full path to the download).
         #
         # Those downloads have been migrated to PostgreSQL (which might get redirected to S3).
-        $download_store = 'postgresql';
+        $download_store = force $_store_postgresql;
     }
 
     unless ( defined $download_store )
     {
-        die "Download store is undefined for download " . $download->{ downloads_id };
+        croak "Download store is undefined for download " . $download->{ downloads_id };
     }
 
-    # Overrides:
+    my $config = MediaWords::Util::Config::get_config;
 
     # All non-inline downloads have to be fetched from S3?
-    if ( $download_store ne 'databaseinline'
-        and lc( get_config->{ mediawords }->{ read_all_downloads_from_s3 } ) eq 'yes' )
+    if ( $download_store ne force $_store_inline
+        and lc( $config->{ mediawords }->{ read_all_downloads_from_s3 } ) eq 'yes' )
     {
-        $download_store = 'amazon_s3';
+        $download_store = force $_store_amazon_s3;
     }
 
-    unless ( defined $_download_store_lookup->{ $download_store } )
+    unless ( $download_store )
     {
-        die "Download store '$download_store' is not initialized for download " . $download->{ downloads_id };
+        croak "Download store is not configured for download " . $download->{ downloads_id };
     }
 
-    my @stores = ( $_download_store_lookup->{ $download_store } );
-
-    # Add PostgreSQL fallback storage if one is set up
-    if ( $download_store eq 'postgresql' )
-    {
-        if ( defined $_download_store_lookup->{ postgresql_fallback } )
-        {
-            push( @stores, $_download_store_lookup->{ postgresql_fallback } );
-        }
-    }
-
-    # Add Amazon S3 fallback storage if needed
-    if ( $download_store eq 'postgresql' )
-    {
-        if ( lc( get_config->{ mediawords }->{ fallback_postgresql_downloads_to_s3 } eq 'yes' ) )
-        {
-            if ( defined $_download_store_lookup->{ amazon_s3 } )
-            {
-                push( @stores, $_download_store_lookup->{ amazon_s3 } );
-            }
-            else
-            {
-                warn "'fallback_postgresql_downloads_to_s3' is enabled, but Amazon S3 download storage is not set up.";
-            }
-        }
-    }
-
-    return \@stores;
+    return $download_store;
 }
 
 # fetch the content for the given download as a content_ref
@@ -422,30 +386,22 @@ sub fetch_content($$)
         confess "attempt to fetch content for unsuccessful download $download->{ downloads_id }  / $download->{ state }";
     }
 
-    my $stores = _download_stores_for_reading( $download );
-    unless ( scalar( @{ $stores } ) )
+    my $store = _download_store_for_reading( $download );
+    unless ( $store )
     {
-        croak "No stores for reading download " . $download->{ downloads_id };
+        croak "No store for reading download " . $download->{ downloads_id };
     }
 
     # Fetch content
-    my $content_ref;
-    foreach my $store ( @{ $stores } )
-    {
-        if ( $store->content_exists( $db, $download->{ downloads_id }, $download->{ path } ) )
-        {
-            $content_ref = $store->fetch_content( $db, $download->{ downloads_id }, $download->{ path } );
-            last;
-        }
-    }
+    my $content_ref = $store->fetch_content( $db, $download->{ downloads_id }, $download->{ path } );
     unless ( $content_ref and ref( $content_ref ) eq 'SCALAR' )
     {
-        croak "Unable to fetch content for download " . $download->{ downloads_id } . "; tried stores: " .
-          join( ', ', map { ref $_ } @{ $stores } );
+        croak "Unable to fetch content for download " . $download->{ downloads_id } . "; tried store: " . ref( $store );
     }
 
     # horrible hack to fix old content that is not stored in unicode
-    my $ascii_hack_downloads_id = get_config->{ mediawords }->{ ascii_hack_downloads_id };
+    my $config                  = MediaWords::Util::Config::get_config;
+    my $ascii_hack_downloads_id = $config->{ mediawords }->{ ascii_hack_downloads_id };
     if ( $ascii_hack_downloads_id and ( $download->{ downloads_id } < $ascii_hack_downloads_id ) )
     {
         $$content_ref =~ s/[^[:ascii:]]/ /g;
@@ -607,21 +563,17 @@ sub store_content($$$)
     # Store content
     my $path = '';
     eval {
-        my $stores_for_writing = _download_stores_for_writing( $content_ref );
-        if ( scalar( @{ $stores_for_writing } ) == 0 )
+        my $store = _download_store_for_writing( $content_ref );
+        unless ( defined $store )
         {
-            die "No download stores configured to write to.\n";
-        }
-        foreach my $store ( @{ $stores_for_writing } )
-        {
-            $path = $store->store_content( $db, $download->{ downloads_id }, $content_ref );
+            croak "No download store to write to.";
         }
 
-        # Now $path points to the last store that was configured
+        $path = $store->store_content( $db, $download->{ downloads_id }, $content_ref );
     };
     if ( $@ )
     {
-        die "Error while trying to store download ID " . $download->{ downloads_id } . ':' . $@;
+        croak "Error while trying to store download ID " . $download->{ downloads_id } . ':' . $@;
         $new_state = 'error';
         $download->{ error_message } = $@;
     }

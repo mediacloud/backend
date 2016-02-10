@@ -193,5 +193,12 @@ sub is_valid_utf8($)
     return $valid;
 }
 
+# Generate random, not crypto-secure alphanumeric string of the specified length
+sub random_string($)
+{
+    my $length = shift;
+    return join '', map +( 0 .. 9, 'a' .. 'z', 'A' .. 'Z' )[ rand( 10 + 26 * 2 ) ], 1 .. $length;
+}
+
 1;
 
