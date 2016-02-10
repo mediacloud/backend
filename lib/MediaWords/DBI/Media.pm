@@ -121,26 +121,6 @@ sub _get_url_medium_index_from_url
     return undef;
 }
 
-# given an lwp response, grab the title of the media source as the <title> content or missing that the response url
-sub _get_medium_title_from_response
-{
-    my ( $response ) = @_;
-
-    my $content = $response->decoded_content;
-
-    my ( $title ) = ( $content =~ /<title>(.*?)<\/title>/is );
-    $title = html_strip( $title );
-    $title = trim( $title );
-    $title ||= trim( decode( 'utf8', $response->request->url ) );
-    $title =~ s/\s+/ /g;
-
-    $title =~ s/^\W*home\W*//i;
-
-    $title = substr( $title, 0, 128 );
-
-    return $title;
-}
-
 # find the media source by the response.  recurse back along the response to all of the chained redirects
 # to see if we can find the media source by any of those urls.
 sub _find_medium_by_response
@@ -185,7 +165,8 @@ sub _add_missing_media_from_urls
             next;
         }
 
-        my $title = _get_medium_title_from_response( $response ) || $url;
+        my $title =
+          MediaWords::Util::HTML::html_title( $response->decoded_content, decode( 'utf8', $response->request->url ), 128 );
 
         my $medium = _find_medium_by_response( $dbis, $response );
 

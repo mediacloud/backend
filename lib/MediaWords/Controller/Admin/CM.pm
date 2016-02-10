@@ -18,10 +18,11 @@ use MediaWords::CM::Mine;
 use MediaWords::DBI::Activities;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
+use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::Solr;
 use MediaWords::Solr::WordCounts;
 use MediaWords::Util::Bitly;
-use MediaWords::GearmanFunction::Bitly::EnqueueControversyStories;
+use MediaWords::GearmanFunction::Bitly::EnqueueAllControversyStories;
 
 Readonly my $ROWS_PER_PAGE => 25;
 
@@ -744,8 +745,7 @@ sub _get_top_media_for_time_slice
                mlc.inlink_count,
                mlc.outlink_count,
                mlc.story_count,
-               mlc.bitly_click_count,
-               mlc.bitly_referrer_count
+               mlc.bitly_click_count
         FROM dump_media_with_types AS m,
              dump_medium_link_counts AS mlc
         WHERE m.media_id = mlc.media_id
@@ -769,7 +769,6 @@ sub _get_top_stories_for_time_slice
                slc.inlink_count,
                slc.outlink_count,
                slc.bitly_click_count,
-               slc.bitly_referrer_count,
                m.name as medium_name,
                m.media_type
         FROM dump_stories AS s,
@@ -1184,8 +1183,7 @@ sub _get_medium_and_stories_from_dump_tables
                m.media_type,
                slc.inlink_count,
                slc.outlink_count,
-               slc.bitly_click_count,
-               slc.bitly_referrer_count
+               slc.bitly_click_count
         FROM dump_stories AS s,
              dump_media_with_types AS m,
              dump_story_link_counts AS slc
@@ -1205,8 +1203,7 @@ END
                         sm.media_type,
                         sslc.inlink_count,
                         sslc.outlink_count,
-                        sslc.bitly_click_count,
-                        sslc.bitly_referrer_count
+                        sslc.bitly_click_count
         FROM dump_stories AS s,
              dump_story_link_counts AS sslc,
              dump_media_with_types AS sm,
@@ -1233,8 +1230,7 @@ END
                         rm.media_type,
                         rslc.inlink_count,
                         rslc.outlink_count,
-                        rslc.bitly_click_count,
-                        rslc.bitly_referrer_count
+                        rslc.bitly_click_count
         FROM dump_stories AS s,
              dump_story_link_counts AS sslc,
              dump_stories AS r,
@@ -1396,8 +1392,8 @@ sub _add_story_date_info
 {
     my ( $db, $story ) = @_;
 
-    $story->{ date_is_reliable } = MediaWords::DBI::Stories::date_is_reliable( $db, $story );
-    $story->{ undateable } = MediaWords::DBI::Stories::is_undateable( $db, $story );
+    $story->{ date_is_reliable } = MediaWords::DBI::Stories::GuessDate::date_is_reliable( $db, $story );
+    $story->{ undateable } = MediaWords::DBI::Stories::GuessDate::is_undateable( $db, $story );
 }
 
 # get the story along with inlink_stories and outlink_stories and the associated
@@ -1427,8 +1423,7 @@ sub _get_story_and_links_from_dump_tables
                         sm.media_type,
                         sslc.inlink_count,
                         sslc.outlink_count,
-                        sslc.bitly_click_count,
-                        sslc.bitly_referrer_count
+                        sslc.bitly_click_count
         FROM dump_stories AS s,
              dump_story_link_counts AS sslc,
              dump_media_with_types AS sm,
@@ -1455,8 +1450,7 @@ END
                         rm.media_type,
                         rslc.inlink_count,
                         rslc.outlink_count,
-                        rslc.bitly_click_count,
-                        rslc.bitly_referrer_count
+                        rslc.bitly_click_count
         FROM dump_stories AS s,
              dump_story_link_counts AS sslc,
              dump_stories AS r,
@@ -1752,8 +1746,7 @@ sub search_stories : Local
                m.media_type,
                slc.inlink_count,
                slc.outlink_count,
-               slc.bitly_click_count,
-               slc.bitly_referrer_count
+               slc.bitly_click_count
         FROM dump_stories AS s,
              dump_media_with_types AS m,
              dump_story_link_counts AS slc
@@ -1828,8 +1821,7 @@ sub _add_id_medium_to_search_results ($$$)
         SELECT DISTINCT m.*,
                         mlc.inlink_count,
                         mlc.outlink_count,
-                        mlc.bitly_click_count,
-                        mlc.bitly_referrer_count,
+                        mlc.bitly_click_count
                         mlc.story_count
         FROM dump_story_link_counts AS slc
             JOIN stories AS s ON ( slc.stories_id = s.stories_id )
@@ -1882,8 +1874,7 @@ sub search_media : Local
         SELECT DISTINCT m.*,
                         mlc.inlink_count,
                         mlc.outlink_count,
-                        mlc.bitly_click_count,
-                        mlc.bitly_referrer_count,
+                        mlc.bitly_click_count
                         mlc.story_count
         FROM dump_media_with_types AS m,
              dump_medium_link_counts AS mlc
@@ -3136,7 +3127,7 @@ sub enqueue_stories_for_bitly : Local
     }
 
     my $args = { controversies_id => $controversies_id };
-    my $gearman_job_id = MediaWords::GearmanFunction::Bitly::EnqueueControversyStories->enqueue_on_gearman( $args );
+    my $gearman_job_id = MediaWords::GearmanFunction::Bitly::EnqueueAllControversyStories->enqueue_on_gearman( $args );
     unless ( $gearman_job_id )
     {
         die "Gearman job didn't return a job ID for controversy ID $controversies_id";

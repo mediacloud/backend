@@ -22,7 +22,6 @@
         <th><a href="[% self_url  | html %]">Inlinks</a></th>
         <th>Outlinks</th>
         <th><a href="[% self_url _ '&order=bitly_click_count' | html %]">Clicks</a></th>
-        <th>Referers</th>
     </tr>
 
 [% IF display_media %]
@@ -41,7 +40,6 @@
         <td>[% m.inlink_count | html %]</td>
         <td>[% m.outlink_count | html %]</td>
         <td>[% m.bitly_click_count | html %]</td>
-        <td>[% m.bitly_referrer_count | html %]</td>
     </tr>
 
     [% END %]
