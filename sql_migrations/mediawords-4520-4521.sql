@@ -44,6 +44,11 @@ END;
 $$
 LANGUAGE plpgsql;
 
+-- Copy the referrer counts to a legacy table
+INSERT INTO story_statistics_bitly_referrers (stories_id, bitly_referrer_count)
+    SELECT stories_id, bitly_referrer_count
+    FROM story_bitly_statistics;
+
 ALTER TABLE story_bitly_statistics
 	DROP COLUMN bitly_referrer_count;
 

@@ -1945,6 +1945,17 @@ create table story_statistics_twitter (
 create unique index story_statistics_twitter_story on story_statistics_twitter ( stories_id );
 
 
+-- stats for deprecated Bit.ly referrer counts
+create table story_statistics_bitly_referrers (
+    story_statistics_id         serial      primary key,
+    stories_id                  int         not null references stories on delete cascade,
+
+    bitly_referrer_count        int         null
+);
+
+create unique index story_statistics_bitly_referrers_story on story_statistics_bitly_referrers ( stories_id );
+
+
 --
 -- Bit.ly total story click counts
 --
