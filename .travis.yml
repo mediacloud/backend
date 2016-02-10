@@ -39,7 +39,6 @@ addons:
             - libgearman-dev
             - libgraph4
             - libgraphviz-dev
-            - liblzma-dev
             - libxml2-dev
             - libxslt1-dbg
             - libxslt1-dev
@@ -56,8 +55,6 @@ addons:
             - python-software-properties
             - python-virtualenv
             - tidy
-            - xz-lzma
-            - xz-utils
 cache:
     directories:
         # Carton dependencies
