@@ -749,7 +749,7 @@ select
         ap.url_status
     from
         stories s
-        join scratch.ap_stories_coded_eval ap on ( s.stories_id = ap.stories_id )
+        join scratch.ap_stories_coded ap on ( s.stories_id = ap.stories_id )
     order by md5( s.stories_id::text );
 SQL
 
@@ -767,7 +767,7 @@ sub main
 
     my $db = MediaWords::DB::connect_to_db;
 
-    my $stories = get_training_stories( $db );
+    my $stories = get_stories( $db );
 
     my ( $training_stories, $evaluation_stories ) = split_stories_for_training( $stories );
 
