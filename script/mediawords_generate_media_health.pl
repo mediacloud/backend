@@ -30,65 +30,76 @@ sub generate_media_health
 
     $db->query( 'set client_min_messages=WARNING; drop table if exists media_health' );
 
+    if ( my $large_work_mem = MediaWords::Util::Config::get_config->{ mediawords }->{ large_work_mem } )
+    {
+        $db->query( 'set work_mem = ?', $large_work_mem );
+    }
+
     $db->query( <<SQL );
-create table media_health as
+create temporary table media_stats_90 as
 
-with last_90_days as
-(
-    select day::date, m.media_id
-        from media m,
-            generate_series( now() - interval '91 days', now() - interval '2 day' , interval '1 day') day
+    with sparse_media_stats_90 as (
+        select m.media_id,
+                round( sum( num_stories ) / 90 ) num_stories,
+                round( sum( num_sentences ) / 90 ) num_sentences
+            from media m
+                left join media_stats ms on ( ms.media_id = m.media_id )
+            where ms.stat_date > now() - interval '90 days'
+            group by m.media_id
+    )
 
-),
+    select
+            m.media_id,
+            coalesce( d.num_stories, 0 ) num_stories,
+            coalesce( d.num_sentences, 0 ) num_sentences
+        from media m
+            left join sparse_media_stats_90 d on ( m.media_id = d.media_id )
+SQL
 
-media_stats_90 as
-(
-    select d.media_id,
-            round( avg( coalesce( num_stories, 0 ) ), 3 ) num_stories,
-            round( avg( coalesce( num_sentences, 0 ) ), 3 ) num_sentences
-        from last_90_days d
-            left join media_stats ms on ( ms.media_id = d.media_id and ms.stat_date = d.day )
-        group by d.media_id
-),
+    $db->query( <<SQL );
+create temporary table media_stats_week as
 
-last_week as
-(
-    select day::date, m.media_id
-        from media m,
-            generate_series( now() - interval '8 days', now() - interval '2 day' , interval '1 day') day
+with sparse_media_stats_week as (
+    select m.media_id,
+            round( sum( num_stories ) / 7 ) num_stories,
+            round( sum( num_sentences ) / 7 ) num_sentences
+        from media m
+            left join media_stats ms on ( ms.media_id = m.media_id )
+        where ms.stat_date > now() - interval '1 week'
+        group by m.media_id
+)
 
-),
+select
+        m.media_id,
+        coalesce( w.num_stories, 0 ) num_stories,
+        coalesce( w.num_sentences, 0 ) num_sentences
+    from media m
+        left join sparse_media_stats_week w on ( m.media_id = w.media_id )
+SQL
 
-media_stats_week as
-(
-    select d.media_id,
-            round( avg( coalesce( num_stories, 0 ) ), 3 ) num_stories,
-            round( avg( coalesce( num_sentences, 0 ) ), 3 ) num_sentences
-        from last_week d
-            left join media_stats ms on ( ms.media_id = d.media_id and ms.stat_date = d.day )
-        group by d.media_id
-),
+    $db->query( <<SQL );
+create temporary table media_stats_year as
 
-last_year as
-(
-    select day::date, m.media_id
-        from media m,
-            generate_series( now() - interval '1 year', now() - interval '2 day' , interval '1 day') day
+        with sparse_media_stats_year as (
+            select m.media_id,
+                    round( sum( num_stories ) / 365 ) num_stories,
+                    round( sum( num_sentences ) / 365 ) num_sentences
+                from media m
+                    left join media_stats ms on ( ms.media_id = m.media_id )
+                where ms.stat_date > now() - interval '365 days'
+                group by m.media_id
+        )
 
-),
+        select
+                m.media_id,
+                coalesce( d.num_stories, 0 ) num_stories,
+                coalesce( d.num_sentences, 0 ) num_sentences
+            from media m
+                left join sparse_media_stats_year d on ( m.media_id = d.media_id )
+SQL
 
-media_stats_year as
-(
-    select d.media_id,
-            round( avg( coalesce( num_stories, 0 ) ), 3 ) num_stories,
-            round( avg( coalesce( num_sentences, 0 ) ), 3 ) num_sentences
-        from last_year d
-            left join media_stats ms on ( ms.media_id = d.media_id and ms.stat_date = d.day )
-        group by d.media_id
-),
-
-media_stats_0 as
-(
+    $db->query( <<SQL );
+create temporary table media_stats_0 as
     select m.media_id,
             coalesce( ms.num_stories, 0 ) num_stories,
             coalesce( ms.num_sentences, 0 ) num_sentences
@@ -97,25 +108,28 @@ media_stats_0 as
                 ms.media_id = m.media_id  and
                 ms.stat_date = date_trunc( 'day', now() - interval '1 day' )
             )
-)
+SQL
 
-select m.media_id,
-        ms0.num_stories,
-        msy.num_stories num_stories_y,
-        msw.num_stories num_stories_w,
-        ms90.num_stories num_stories_90,
-        ms0.num_sentences,
-        msy.num_sentences num_sentences_y,
-        msw.num_sentences num_sentences_w,
-        ms90.num_sentences num_sentences_90,
-        'false'::boolean is_healthy,
-        'true'::boolean has_active_feed
+    $db->query( <<SQL );
+create table media_health as
 
-    from media m
-        join media_stats_0 ms0 on ( m.media_id = ms0.media_id )
-        join media_stats_90 ms90 on ( m.media_id = ms90.media_id )
-        join media_stats_year msy on ( m.media_id = msy.media_id )
-        join media_stats_week msw on ( m.media_id = msw.media_id )
+    select m.media_id,
+            ms0.num_stories,
+            msy.num_stories num_stories_y,
+            msw.num_stories num_stories_w,
+            ms90.num_stories num_stories_90,
+            ms0.num_sentences,
+            msy.num_sentences num_sentences_y,
+            msw.num_sentences num_sentences_w,
+            ms90.num_sentences num_sentences_90,
+            'false'::boolean is_healthy,
+            'true'::boolean has_active_feed
+
+        from media m
+            join media_stats_0 ms0 on ( m.media_id = ms0.media_id )
+            join media_stats_90 ms90 on ( m.media_id = ms90.media_id )
+            join media_stats_year msy on ( m.media_id = msy.media_id )
+            join media_stats_week msw on ( m.media_id = msw.media_id )
 SQL
 
     $db->query( "create index media_health_medium on media_health ( media_id )" );
@@ -178,14 +192,14 @@ sub print_health_report
 
     my $mhs = $db->query( <<SQL )->hash;
 select
-        round( sum( num_stories ), 0 ) num_stories,
-        round( sum( num_stories_y ), 0 ) num_stories_y,
-        round( sum( num_stories_w ), 0 ) num_stories_w,
-        round( sum( num_stories_90 ), 0 ) num_stories_90,
-        round( sum( num_sentences ), 0 ) num_sentences,
-        round( sum( num_sentences_y ), 0 ) num_sentences_y,
-        round( sum( num_sentences_w ), 0 ) num_sentences_w,
-        round( sum( num_sentences_90 ), 0 ) num_sentences_90
+        round( sum( num_stories::numeric ), 0 ) num_stories,
+        round( sum( num_stories_y::numeric ), 0 ) num_stories_y,
+        round( sum( num_stories_w::numeric ), 0 ) num_stories_w,
+        round( sum( num_stories_90::numeric ), 0 ) num_stories_90,
+        round( sum( num_sentences::numeric ), 0 ) num_sentences,
+        round( sum( num_sentences_y::numeric ), 0 ) num_sentences_y,
+        round( sum( num_sentences_w::numeric ), 0 ) num_sentences_w,
+        round( sum( num_sentences_90::numeric ), 0 ) num_sentences_90
     from media_health
 SQL
 
