@@ -181,19 +181,6 @@ DISTRIBUTIONS
       Test::NoWarnings 0
       Types::Standard 0
       perl v5.6.0
-  Astro-FITS-Header-3.07
-    pathname: T/TJ/TJENNESS/Astro-FITS-Header-3.07.tar.gz
-    provides:
-      Astro::FITS::Header 3.04
-      Astro::FITS::Header::AST 3.01
-      Astro::FITS::Header::CFITSIO 3.02
-      Astro::FITS::Header::GSD 3.01
-      Astro::FITS::Header::Item 3.02
-      Astro::FITS::Header::NDF 3.02
-      Astro::FITS::HeaderCollection 3.01
-    requirements:
-      Module::Build 0.3
-      Test::More 0
   B-Hooks-EndOfScope-0.15
     pathname: E/ET/ETHER/B-Hooks-EndOfScope-0.15.tar.gz
     provides:
@@ -1245,6 +1232,24 @@ DISTRIBUTIONS
     requirements:
       ExtUtils::MakeMaker 0
       Test::Warn 0
+  Compress-Raw-Bzip2-2.069
+    pathname: P/PM/PMQS/Compress-Raw-Bzip2-2.069.tar.gz
+    provides:
+      Compress::Raw::Bzip2 2.069
+    requirements:
+      ExtUtils::MakeMaker 0
+  Compress-Raw-Lzma-2.069
+    pathname: P/PM/PMQS/Compress-Raw-Lzma-2.069.tar.gz
+    provides:
+      Compress::Raw::Lzma 2.069
+    requirements:
+      ExtUtils::MakeMaker 0
+  Compress-Raw-Zlib-2.069
+    pathname: P/PM/PMQS/Compress-Raw-Zlib-2.069.tar.gz
+    provides:
+      Compress::Raw::Zlib 2.069
+    requirements:
+      ExtUtils::MakeMaker 0
   Config-Any-0.26
     pathname: B/BR/BRICAS/Config-Any-0.26.tar.gz
     provides:
@@ -1314,12 +1319,6 @@ DISTRIBUTIONS
       Test::Exception 0
       Test::More 0
       ok 0
-  Convert-UU-0.5201
-    pathname: A/AN/ANDK/Convert-UU-0.5201.tar.gz
-    provides:
-      Convert::UU 0.5201
-    requirements:
-      ExtUtils::MakeMaker 0
   Cookie-Baker-0.06
     pathname: K/KA/KAZEBURO/Cookie-Baker-0.06.tar.gz
     provides:
@@ -2450,18 +2449,6 @@ DISTRIBUTIONS
       Test::Requires 0
       parent 0
       perl 5.008001
-  Devel-CheckLib-1.05
-    pathname: M/MA/MATTN/Devel-CheckLib-1.05.tar.gz
-    provides:
-      Devel::CheckLib 1.05
-    requirements:
-      Exporter 0
-      ExtUtils::MakeMaker 0
-      File::Spec 0
-      File::Temp 0.16
-      IO::CaptureOutput 1.0801
-      Test::More 0.62
-      perl 5.00405
   Devel-CheckOS-1.76
     pathname: D/DC/DCANTRELL/Devel-CheckOS-1.76.tar.gz
     provides:
@@ -4217,6 +4204,61 @@ DISTRIBUTIONS
       strict 0
       vars 0
       warnings 0
+  IO-Compress-2.069
+    pathname: P/PM/PMQS/IO-Compress-2.069.tar.gz
+    provides:
+      Compress::Zlib 2.069
+      File::GlobMapper 1.000
+      IO::Compress undef
+      IO::Compress::Adapter::Bzip2 2.069
+      IO::Compress::Adapter::Deflate 2.069
+      IO::Compress::Adapter::Identity 2.069
+      IO::Compress::Base 2.069
+      IO::Compress::Base::Common 2.069
+      IO::Compress::Bzip2 2.069
+      IO::Compress::Deflate 2.069
+      IO::Compress::Gzip 2.069
+      IO::Compress::Gzip::Constants 2.069
+      IO::Compress::RawDeflate 2.069
+      IO::Compress::Zip 2.069
+      IO::Compress::Zip::Constants 2.069
+      IO::Compress::Zlib::Constants 2.069
+      IO::Compress::Zlib::Extra 2.069
+      IO::Uncompress::Adapter::Bunzip2 2.069
+      IO::Uncompress::Adapter::Identity 2.069
+      IO::Uncompress::Adapter::Inflate 2.069
+      IO::Uncompress::AnyInflate 2.069
+      IO::Uncompress::AnyUncompress 2.069
+      IO::Uncompress::Base 2.069
+      IO::Uncompress::Bunzip2 2.069
+      IO::Uncompress::Gunzip 2.069
+      IO::Uncompress::Inflate 2.069
+      IO::Uncompress::RawInflate 2.069
+      IO::Uncompress::Unzip 2.069
+      U64 2.069
+      Zlib::OldDeflate 2.069
+      Zlib::OldInflate 2.069
+    requirements:
+      Compress::Raw::Bzip2 2.069
+      Compress::Raw::Zlib 2.069
+      ExtUtils::MakeMaker 0
+      Scalar::Util 0
+  IO-Compress-Lzma-2.069
+    pathname: P/PM/PMQS/IO-Compress-Lzma-2.069.tar.gz
+    provides:
+      IO::Compress::Adapter::Lzma 2.069
+      IO::Compress::Adapter::Xz 2.069
+      IO::Compress::Lzma 2.069
+      IO::Compress::Xz 2.069
+      IO::Uncompress::Adapter::UnLzma 2.069
+      IO::Uncompress::Adapter::UnXz 2.069
+      IO::Uncompress::UnLzma 2.069
+      IO::Uncompress::UnXz 2.069
+    requirements:
+      Compress::Raw::Lzma 2.069
+      ExtUtils::MakeMaker 0
+      IO::Compress::Base 2.069
+      IO::Uncompress::Base 2.069
   IO-HTML-1.001
     pathname: C/CJ/CJM/IO-HTML-1.001.tar.gz
     provides:
@@ -6156,427 +6198,6 @@ DISTRIBUTIONS
       Storable 2.11
       Test::More 0.47
       perl 5.005
-  PDL-2.015
-    pathname: C/CH/CHM/PDL-2.015.tar.gz
-    provides:
-      C::StructObj undef
-      C::StructType undef
-      C::Type undef
-      C::Var undef
-      Inline::MakePdlppInstallable undef
-      Inline::Pdlpp 0.4
-      PDL undef
-      PDL::Bad undef
-      PDL::Basic undef
-      PDL::Bench undef
-      PDL::CallExt undef
-      PDL::Char undef
-      PDL::Complex 2.009
-      PDL::Compression undef
-      PDL::Constants 0.02
-      PDL::Core 2.015
-      PDL::Core::Dev undef
-      PDL::Dbg undef
-      PDL::Demos::BAD2_demo undef
-      PDL::Demos::BAD_demo undef
-      PDL::Demos::Cartography_demo undef
-      PDL::Demos::General undef
-      PDL::Demos::Gnuplot_demo undef
-      PDL::Demos::PGPLOT_OO_demo undef
-      PDL::Demos::PGPLOT_demo undef
-      PDL::Demos::Prima undef
-      PDL::Demos::Routines undef
-      PDL::Demos::Transform_demo undef
-      PDL::Demos::TriD1 undef
-      PDL::Demos::TriD2 undef
-      PDL::Demos::TriDGallery undef
-      PDL::Doc undef
-      PDL::Doc::Config undef
-      PDL::Doc::Perldl undef
-      PDL::Exporter undef
-      PDL::FFT undef
-      PDL::Filter::Gaussian undef
-      PDL::Filter::LinPred undef
-      PDL::Filter::LinSmooth undef
-      PDL::Filter::Linear undef
-      PDL::Filter::SavGol undef
-      PDL::Fit::Gaussian undef
-      PDL::Fit::LM undef
-      PDL::Fit::Linfit undef
-      PDL::Fit::Polynomial undef
-      PDL::Func undef
-      PDL::GIS::Proj undef
-      PDL::GSL::DIFF undef
-      PDL::GSL::INTEG undef
-      PDL::GSL::INTERP undef
-      PDL::GSL::MROOT undef
-      PDL::GSL::RNG undef
-      PDL::GSLSF::AIRY undef
-      PDL::GSLSF::BESSEL undef
-      PDL::GSLSF::CLAUSEN undef
-      PDL::GSLSF::COULOMB undef
-      PDL::GSLSF::COUPLING undef
-      PDL::GSLSF::DAWSON undef
-      PDL::GSLSF::DEBYE undef
-      PDL::GSLSF::DILOG undef
-      PDL::GSLSF::ELEMENTARY undef
-      PDL::GSLSF::ELLINT undef
-      PDL::GSLSF::ELLJAC undef
-      PDL::GSLSF::ERF undef
-      PDL::GSLSF::EXP undef
-      PDL::GSLSF::EXPINT undef
-      PDL::GSLSF::FERMI_DIRAC undef
-      PDL::GSLSF::GAMMA undef
-      PDL::GSLSF::GEGENBAUER undef
-      PDL::GSLSF::HYPERG undef
-      PDL::GSLSF::LAGUERRE undef
-      PDL::GSLSF::LEGENDRE undef
-      PDL::GSLSF::LOG undef
-      PDL::GSLSF::POLY undef
-      PDL::GSLSF::POW_INT undef
-      PDL::GSLSF::PSI undef
-      PDL::GSLSF::SYNCHROTRON undef
-      PDL::GSLSF::TRANSPORT undef
-      PDL::GSLSF::TRIG undef
-      PDL::GSLSF::ZETA undef
-      PDL::GraphEvolver undef
-      PDL::GraphEvolverOLD undef
-      PDL::Graphics2D undef
-      PDL::Graphics::IIS undef
-      PDL::Graphics::LUT undef
-      PDL::Graphics::Limits 0.01
-      PDL::Graphics::Limits::DSet 0.01
-      PDL::Graphics::OpenGL::OO 0.01_10
-      PDL::Graphics::OpenGL::Perl::OpenGL 0.01_10
-      PDL::Graphics::OpenGLQ undef
-      PDL::Graphics::PGPLOT undef
-      PDL::Graphics::PGPLOT::Window undef
-      PDL::Graphics::PGPLOTOptions undef
-      PDL::Graphics::State undef
-      PDL::Graphics::TriD undef
-      PDL::Graphics::TriD::ArcBall undef
-      PDL::Graphics::TriD::ArcBowl undef
-      PDL::Graphics::TriD::ArcCone undef
-      PDL::Graphics::TriD::Basic undef
-      PDL::Graphics::TriD::BoundingBox undef
-      PDL::Graphics::TriD::ButtonControl undef
-      PDL::Graphics::TriD::ContourPolygonize undef
-      PDL::Graphics::TriD::Contours undef
-      PDL::Graphics::TriD::Control3D undef
-      PDL::Graphics::TriD::CylindricalEquidistantAxes undef
-      PDL::Graphics::TriD::Description undef
-      PDL::Graphics::TriD::EuclidAxes undef
-      PDL::Graphics::TriD::EventHandler undef
-      PDL::Graphics::TriD::GL::Window undef
-      PDL::Graphics::TriD::GObject undef
-      PDL::Graphics::TriD::GObject_Lattice undef
-      PDL::Graphics::TriD::GPObject undef
-      PDL::Graphics::TriD::GoBoard undef
-      PDL::Graphics::TriD::Graph undef
-      PDL::Graphics::TriD::Image undef
-      PDL::Graphics::TriD::Labels undef
-      PDL::Graphics::TriD::Lattice undef
-      PDL::Graphics::TriD::LineStrip undef
-      PDL::Graphics::TriD::Lines undef
-      PDL::Graphics::TriD::LinesFOOOLD undef
-      PDL::Graphics::TriD::Logo undef
-      PDL::Graphics::TriD::Material undef
-      PDL::Graphics::TriD::MathGraph undef
-      PDL::Graphics::TriD::Mesh undef
-      PDL::Graphics::TriD::OOGL undef
-      PDL::Graphics::TriD::Object undef
-      PDL::Graphics::TriD::OneTransformation undef
-      PDL::Graphics::TriD::Points undef
-      PDL::Graphics::TriD::PolarStereoAxes undef
-      PDL::Graphics::TriD::Polygonize undef
-      PDL::Graphics::TriD::QuaterController undef
-      PDL::Graphics::TriD::Quaternion undef
-      PDL::Graphics::TriD::Rout undef
-      PDL::Graphics::TriD::SCLattice undef
-      PDL::Graphics::TriD::SLattice undef
-      PDL::Graphics::TriD::SLattice_S undef
-      PDL::Graphics::TriD::STrigrid undef
-      PDL::Graphics::TriD::STrigrid_S undef
-      PDL::Graphics::TriD::Scale undef
-      PDL::Graphics::TriD::ScaleController undef
-      PDL::Graphics::TriD::SimpleController undef
-      PDL::Graphics::TriD::SimpleScaler undef
-      PDL::Graphics::TriD::Spheres undef
-      PDL::Graphics::TriD::StupidPolygonize undef
-      PDL::Graphics::TriD::Surface undef
-      PDL::Graphics::TriD::Transformation undef
-      PDL::Graphics::TriD::Translation undef
-      PDL::Graphics::TriD::VRML undef
-      PDL::Graphics::TriD::VRML::Parameter undef
-      PDL::Graphics::TriD::VRML::URL undef
-      PDL::Graphics::TriD::VRMLObject undef
-      PDL::Graphics::TriD::ViewPort undef
-      PDL::Graphics::TriD::Window undef
-      PDL::Graphics::VRML undef
-      PDL::Graphics::VRML::Protos undef
-      PDL::Graphics::VRMLNode undef
-      PDL::Graphics::VRMLPdlNode undef
-      PDL::Graphics::VRMLProto undef
-      PDL::IO::Browser undef
-      PDL::IO::Dicom undef
-      PDL::IO::Dumper 1.003002
-      PDL::IO::FITS 0.92
-      PDL::IO::FastRaw 0.000003
-      PDL::IO::FlexRaw undef
-      PDL::IO::GD undef
-      PDL::IO::HDF undef
-      PDL::IO::HDF::SD undef
-      PDL::IO::IDL 0.5
-      PDL::IO::Misc undef
-      PDL::IO::Pic undef
-      PDL::IO::Pnm undef
-      PDL::IO::Storable undef
-      PDL::Image2D undef
-      PDL::ImageND undef
-      PDL::ImageRGB undef
-      PDL::Install::Files 2.009
-      PDL::Interpolate undef
-      PDL::Interpolate::Slatec undef
-      PDL::Lite undef
-      PDL::LiteF undef
-      PDL::Lvalue undef
-      PDL::Math undef
-      PDL::Matrix 0.5
-      PDL::MatrixOps undef
-      PDL::Minuit undef
-      PDL::MyInlineMod 0.60
-      PDL::NiceSlice 1.001
-      PDL::Ops undef
-      PDL::Opt::Simplex undef
-      PDL::Options 0.92
-      PDL::PP 2.3
-      PDL::PP::Access undef
-      PDL::PP::BackCodeThreadLoop undef
-      PDL::PP::BadAccess undef
-      PDL::PP::BadSwitch undef
-      PDL::PP::BadVarAccess undef
-      PDL::PP::Block undef
-      PDL::PP::Code undef
-      PDL::PP::ComplexThreadLoop undef
-      PDL::PP::GenericLoop undef
-      PDL::PP::GentypeAccess undef
-      PDL::PP::Ind undef
-      PDL::PP::Loop undef
-      PDL::PP::MacroAccess undef
-      PDL::PP::NaNSupport undef
-      PDL::PP::OtherAccess undef
-      PDL::PP::PDLStateBadAccess undef
-      PDL::PP::PPBadAccess undef
-      PDL::PP::PdlAccess undef
-      PDL::PP::PdlDimsObj undef
-      PDL::PP::PdlParObj undef
-      PDL::PP::PhysPointerAccess undef
-      PDL::PP::PointerAccess undef
-      PDL::PP::ReSizeAccess undef
-      PDL::PP::Rule 2.3
-      PDL::PP::Rule::Croak 2.3
-      PDL::PP::Rule::InsertName 2.3
-      PDL::PP::Rule::MakeComp 2.3
-      PDL::PP::Rule::Returns 2.3
-      PDL::PP::Rule::Returns::EmptyString 2.3
-      PDL::PP::Rule::Returns::NULL 2.3
-      PDL::PP::Rule::Returns::One 2.3
-      PDL::PP::Rule::Returns::Zero 2.3
-      PDL::PP::Rule::Substitute 2.3
-      PDL::PP::Rule::Substitute::Usual 2.3
-      PDL::PP::Signature undef
-      PDL::PP::SimpleThreadLoop undef
-      PDL::PP::SizeAccess undef
-      PDL::PP::ThreadLoop undef
-      PDL::PP::TypeConv undef
-      PDL::PP::Types undef
-      PDL::Perldl2::Plugin::CleanErrors undef
-      PDL::Perldl2::Plugin::NiceSlice undef
-      PDL::Perldl2::Plugin::PDLCommands undef
-      PDL::Perldl2::Plugin::PrintControl undef
-      PDL::Perldl2::Profile::Perldl2 0.008
-      PDL::Perldl2::Script undef
-      PDL::PodParser undef
-      PDL::Primitive undef
-      PDL::Reduce undef
-      PDL::Slatec undef
-      PDL::Slices undef
-      PDL::Transform undef
-      PDL::Transform::Cartography 0.6
-      PDL::Transform::Composition undef
-      PDL::Transform::Linear undef
-      PDL::Transform::Proj4 undef
-      PDL::Transform::Proj4::aea undef
-      PDL::Transform::Proj4::aeqd undef
-      PDL::Transform::Proj4::airy undef
-      PDL::Transform::Proj4::aitoff undef
-      PDL::Transform::Proj4::alsk undef
-      PDL::Transform::Proj4::apian undef
-      PDL::Transform::Proj4::august undef
-      PDL::Transform::Proj4::bacon undef
-      PDL::Transform::Proj4::bipc undef
-      PDL::Transform::Proj4::boggs undef
-      PDL::Transform::Proj4::bonne undef
-      PDL::Transform::Proj4::cass undef
-      PDL::Transform::Proj4::cc undef
-      PDL::Transform::Proj4::cea undef
-      PDL::Transform::Proj4::chamb undef
-      PDL::Transform::Proj4::collg undef
-      PDL::Transform::Proj4::crast undef
-      PDL::Transform::Proj4::denoy undef
-      PDL::Transform::Proj4::eck1 undef
-      PDL::Transform::Proj4::eck2 undef
-      PDL::Transform::Proj4::eck3 undef
-      PDL::Transform::Proj4::eck4 undef
-      PDL::Transform::Proj4::eck5 undef
-      PDL::Transform::Proj4::eck6 undef
-      PDL::Transform::Proj4::eqc undef
-      PDL::Transform::Proj4::eqdc undef
-      PDL::Transform::Proj4::etmerc undef
-      PDL::Transform::Proj4::euler undef
-      PDL::Transform::Proj4::fahey undef
-      PDL::Transform::Proj4::fouc undef
-      PDL::Transform::Proj4::fouc_s undef
-      PDL::Transform::Proj4::gall undef
-      PDL::Transform::Proj4::geocent undef
-      PDL::Transform::Proj4::geos undef
-      PDL::Transform::Proj4::gins8 undef
-      PDL::Transform::Proj4::gn_sinu undef
-      PDL::Transform::Proj4::gnom undef
-      PDL::Transform::Proj4::goode undef
-      PDL::Transform::Proj4::gs48 undef
-      PDL::Transform::Proj4::gs50 undef
-      PDL::Transform::Proj4::gstmerc undef
-      PDL::Transform::Proj4::hammer undef
-      PDL::Transform::Proj4::hatano undef
-      PDL::Transform::Proj4::healpix undef
-      PDL::Transform::Proj4::igh undef
-      PDL::Transform::Proj4::imw_p undef
-      PDL::Transform::Proj4::isea undef
-      PDL::Transform::Proj4::kav5 undef
-      PDL::Transform::Proj4::kav7 undef
-      PDL::Transform::Proj4::krovak undef
-      PDL::Transform::Proj4::labrd undef
-      PDL::Transform::Proj4::laea undef
-      PDL::Transform::Proj4::lagrng undef
-      PDL::Transform::Proj4::larr undef
-      PDL::Transform::Proj4::lask undef
-      PDL::Transform::Proj4::latlon undef
-      PDL::Transform::Proj4::latlong undef
-      PDL::Transform::Proj4::lcc undef
-      PDL::Transform::Proj4::lcca undef
-      PDL::Transform::Proj4::leac undef
-      PDL::Transform::Proj4::lee_os undef
-      PDL::Transform::Proj4::longlat undef
-      PDL::Transform::Proj4::lonlat undef
-      PDL::Transform::Proj4::loxim undef
-      PDL::Transform::Proj4::lsat undef
-      PDL::Transform::Proj4::mbt_fps undef
-      PDL::Transform::Proj4::mbt_s undef
-      PDL::Transform::Proj4::mbtfpp undef
-      PDL::Transform::Proj4::mbtfpq undef
-      PDL::Transform::Proj4::mbtfps undef
-      PDL::Transform::Proj4::merc undef
-      PDL::Transform::Proj4::mil_os undef
-      PDL::Transform::Proj4::mill undef
-      PDL::Transform::Proj4::moll undef
-      PDL::Transform::Proj4::murd1 undef
-      PDL::Transform::Proj4::murd2 undef
-      PDL::Transform::Proj4::murd3 undef
-      PDL::Transform::Proj4::natearth undef
-      PDL::Transform::Proj4::nell undef
-      PDL::Transform::Proj4::nell_h undef
-      PDL::Transform::Proj4::nicol undef
-      PDL::Transform::Proj4::nsper undef
-      PDL::Transform::Proj4::nzmg undef
-      PDL::Transform::Proj4::ob_tran undef
-      PDL::Transform::Proj4::ocea undef
-      PDL::Transform::Proj4::oea undef
-      PDL::Transform::Proj4::omerc undef
-      PDL::Transform::Proj4::ortel undef
-      PDL::Transform::Proj4::ortho undef
-      PDL::Transform::Proj4::pconic undef
-      PDL::Transform::Proj4::poly undef
-      PDL::Transform::Proj4::putp1 undef
-      PDL::Transform::Proj4::putp2 undef
-      PDL::Transform::Proj4::putp3 undef
-      PDL::Transform::Proj4::putp3p undef
-      PDL::Transform::Proj4::putp4p undef
-      PDL::Transform::Proj4::putp5 undef
-      PDL::Transform::Proj4::putp5p undef
-      PDL::Transform::Proj4::putp6 undef
-      PDL::Transform::Proj4::putp6p undef
-      PDL::Transform::Proj4::qua_aut undef
-      PDL::Transform::Proj4::rhealpix undef
-      PDL::Transform::Proj4::robin undef
-      PDL::Transform::Proj4::rouss undef
-      PDL::Transform::Proj4::rpoly undef
-      PDL::Transform::Proj4::sinu undef
-      PDL::Transform::Proj4::somerc undef
-      PDL::Transform::Proj4::stere undef
-      PDL::Transform::Proj4::sterea undef
-      PDL::Transform::Proj4::tcc undef
-      PDL::Transform::Proj4::tcea undef
-      PDL::Transform::Proj4::tissot undef
-      PDL::Transform::Proj4::tmerc undef
-      PDL::Transform::Proj4::tpeqd undef
-      PDL::Transform::Proj4::tpers undef
-      PDL::Transform::Proj4::ups undef
-      PDL::Transform::Proj4::urm5 undef
-      PDL::Transform::Proj4::urmfps undef
-      PDL::Transform::Proj4::utm undef
-      PDL::Transform::Proj4::vandg undef
-      PDL::Transform::Proj4::vandg2 undef
-      PDL::Transform::Proj4::vandg3 undef
-      PDL::Transform::Proj4::vandg4 undef
-      PDL::Transform::Proj4::vitk1 undef
-      PDL::Transform::Proj4::wag1 undef
-      PDL::Transform::Proj4::wag2 undef
-      PDL::Transform::Proj4::wag3 undef
-      PDL::Transform::Proj4::wag4 undef
-      PDL::Transform::Proj4::wag5 undef
-      PDL::Transform::Proj4::wag6 undef
-      PDL::Transform::Proj4::wag7 undef
-      PDL::Transform::Proj4::weren undef
-      PDL::Transform::Proj4::wink1 undef
-      PDL::Transform::Proj4::wink2 undef
-      PDL::Transform::Proj4::wintri undef
-      PDL::Type undef
-      PDL::Types undef
-      PDL::Ufunc undef
-      PDL::Version 2.015
-      SymTab undef
-      Win32::DDE::Netscape undef
-      XS undef
-    requirements:
-      Astro::FITS::Header 0
-      Carp 1.2
-      Config 0
-      Convert::UU 0
-      Data::Dumper 2.121
-      Devel::CheckLib 1.01
-      English 0
-      ExtUtils::MakeMaker 6.56
-      ExtUtils::Manifest 0
-      ExtUtils::ParseXS 3.01
-      Fcntl 0
-      File::Basename 0
-      File::Find 0
-      File::Map 0.57
-      File::Path 0
-      File::Spec 0.6
-      File::Temp 0
-      Filter::Simple 0.88
-      Filter::Util::Call 0
-      Inline 0.68
-      Inline::C 0.62
-      Module::Compile 0.23
-      Pod::Parser 0
-      Pod::Select 0
-      Scalar::Util 0
-      Storable 1.03
-      Text::Balanced 1.89
-      perl 5.010
   POSIX-strftime-Compiler-0.41
     pathname: K/KA/KAZEBURO/POSIX-strftime-Compiler-0.41.tar.gz
     provides:

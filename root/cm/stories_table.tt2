@@ -107,7 +107,6 @@ $(document).ready(function () {
         <th><a href="[% self_url | html %]">Inlinks</a></th>
         <th>Outlinks</th>
         <th><a href="[% self_url _ '&order=bitly_click_count' | html %]">Clicks</th>
-        <th>Referers</th>
     </tr>
 
 [% IF display_stories.size() < 1 %]
@@ -140,7 +139,6 @@ $(document).ready(function () {
         <td>[% s.inlink_count %]</td>
         <td>[% s.outlink_count %]</td>
         <td>[% s.bitly_click_count %]</td>
-        <td>[% s.bitly_referrer_count %]</td>
     </tr>
 
     [% END # FOREACH s -%]

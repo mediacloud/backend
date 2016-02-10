@@ -34,6 +34,7 @@ use URI::Split;
 use MediaWords::CM::GuessDate;
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories;
+use MediaWords::Util::HTML;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Tags;
 
@@ -61,7 +62,7 @@ sub generate_story
 
     my $db = $self->db;
 
-    my $title = MediaWords::DBI::Stories::get_story_title_from_content( $content, $url );
+    my $title = MediaWords::Util::HTML::html_title( $content, $url, 1024 );
 
     my $story = {
         url          => $url,

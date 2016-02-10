@@ -136,11 +136,11 @@ sub main()
     {
         # Facebook's API is not enabled, but maybe there are environment
         # variables set by the automated testing environment
-        if ( defined $ENV{ 'FACEBOOK_APP_ID' } and defined $ENV{ 'FACEBOOK_APP_SECRET' } )
+        if ( defined $ENV{ 'MC_FACEBOOK_APP_ID' } and defined $ENV{ 'MC_FACEBOOK_APP_SECRET' } )
         {
             $config->{ facebook }->{ enabled }    = 'yes';
-            $config->{ facebook }->{ app_id }     = $ENV{ 'FACEBOOK_APP_ID' };
-            $config->{ facebook }->{ app_secret } = $ENV{ 'FACEBOOK_APP_SECRET' };
+            $config->{ facebook }->{ app_id }     = $ENV{ 'MC_FACEBOOK_APP_ID' };
+            $config->{ facebook }->{ app_secret } = $ENV{ 'MC_FACEBOOK_APP_SECRET' };
 
             # FIXME Awful trick to modify config's cache
             $MediaWords::Util::Config::_config = $config;

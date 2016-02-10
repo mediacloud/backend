@@ -26,18 +26,6 @@ database:
     #  pass  : "mediacloud"
     #  table : "raw_downloads"  # optional
 
-    # fallback raw download storage that will be used when download is not
-    # found on the main download storage
-    # (this section is optional)
-    #- label : "raw_downloads_fallback"
-    #  type  : "pg"
-    #  host  : "localhost"
-    #  port  : 5432
-    #  db    : "mediacloud"
-    #  user  : "mediaclouduser"
-    #  pass  : "mediacloud"
-    #  table : "raw_downloads_fallback"  # optional
-
     # unit tests
     - label : "test"
       type  : "pg"
@@ -182,7 +170,7 @@ database:
         #solr
         #solr_facets_wrapper_server
         #annotate_with_corenlp
-        #bitly_enqueue_controversy_stories
+        #bitly_enqueue_all_controversy_stories
         #bitly_fetch_story_stats
         #bitly_aggregate_story_stats
 
@@ -277,6 +265,24 @@ database:
         #- postgresql
         ### ...then to Amazon S3 too
         #- amazon_s3
+
+    ### Bit.ly processing for all stories
+    #story_processing:
+
+        ### Enable Bit.ly processing for all stories (not just the controversy ones)
+        #enabled: "no"
+
+        ### Delay for which to postpone story processing since its "publish_date"
+        ###
+        ### For example, you might want to process the story against Bit.ly after:
+        ### * 295200 seconds (3 days), and
+        ### * 2952000 seconds (30 days)
+        ### from story's "publish_date".
+        #schedule:
+            ### 3 days from "stories.publish_date"
+            #- 295200
+            ### 30 days from "stories.publish_date"
+            #- 2952000
 
 ### Facebook API
 ### (see doc/README.facebook_api.markdown)

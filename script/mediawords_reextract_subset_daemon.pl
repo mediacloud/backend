@@ -23,6 +23,7 @@ use MediaWords::CommonLibs;
 use MediaWords::GearmanFunction;
 use MediaWords::GearmanFunction::ExtractAndVector;
 use MediaWords::DBI::Stories;
+use MediaWords::DBI::Stories::ExtractorVersion;
 
 sub main
 {
@@ -31,7 +32,8 @@ sub main
         die "Gearman is disabled.";
     }
 
-    my $tags_id = MediaWords::DBI::Stories::get_current_extractor_version_tags_id( MediaWords::DB::connect_to_db() );
+    my $tags_id =
+      MediaWords::DBI::Stories::ExtractorVersion::get_current_extractor_version_tags_id( MediaWords::DB::connect_to_db() );
 
     my $last_stories_id     = 0;
     my $story_batch_size    = 1000;
@@ -51,12 +53,12 @@ sub main
     my $default_db_label = MediaWords::DB::connect_settings()->{ label };
 
     {
-	my $db         = MediaWords::DB::connect_to_db( $default_db_label );
+        my $db = MediaWords::DB::connect_to_db( $default_db_label );
 
-	my $max_stories_id =  $db->query( "select max(stories_id) from scratch.reextract_stories2" )->flat()->[0];
+        my $max_stories_id = $db->query( "select max(stories_id) from scratch.reextract_stories2" )->flat()->[ 0 ];
 
-	$last_stories_id = $max_stories_id + 1;
-	say STDERR "last stories id $last_stories_id";
+        $last_stories_id = $max_stories_id + 1;
+        say STDERR "last stories id $last_stories_id";
     }
 
     while ( 1 )
