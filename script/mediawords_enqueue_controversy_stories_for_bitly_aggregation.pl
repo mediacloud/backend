@@ -2,10 +2,6 @@
 #
 # Enqueue stories that have their Bit.ly stats fetched but not yet aggregated
 #
-# If you append "--overwrite" parameter, script will first remove story entries
-# from "controversy_stories_bitly_statistics" table and then enqueue all controversy's
-# stories for re-aggregation.
-#
 
 use strict;
 use warnings;
@@ -32,14 +28,11 @@ sub main
     binmode( STDERR, 'utf8' );
 
     Readonly my $usage => <<EOF;
-Usage: $0 --controversy < controversy id or pattern > [--overwrite]
+Usage: $0 --controversy < controversy id or pattern >
 EOF
 
-    my ( $controversy_opt, $overwrite );
-    Getopt::Long::GetOptions(
-        'controversy=s' => \$controversy_opt,
-        'overwrite'     => \$overwrite
-    ) or die $usage;
+    my ( $controversy_opt );
+    Getopt::Long::GetOptions( 'controversy=s' => \$controversy_opt, ) or die $usage;
 
     die $usage unless ( $controversy_opt );
 
@@ -62,49 +55,25 @@ EOF
             next;
         }
 
-        if ( $overwrite )
+        if ( MediaWords::Util::Bitly::num_controversy_stories_without_bitly_statistics( $db, $controversies_id ) == 0 )
         {
-            say STDERR
-"Not testing whether any controversy's $controversies_id stories are processed already because I will overwrite them anyway.";
-        }
-        else
-        {
-            if ( MediaWords::Util::Bitly::num_controversy_stories_without_bitly_statistics( $db, $controversies_id ) == 0 )
-            {
-                say STDERR "All controversy's $controversies_id stories are processed against Bit.ly, skipping.";
-                next;
-            }
+            say STDERR "All controversy's $controversies_id stories are processed against Bit.ly, skipping.";
+            next;
         }
 
-        my $stories_to_enqueue;
-        if ( $overwrite )
-        {
-            $stories_to_enqueue = $db->query(
-                <<EOF,
+        my $stories_to_enqueue = $db->query(
+            <<EOF,
+            SELECT stories_id
+            FROM controversy_stories
+            WHERE controversies_id = ?
+              AND stories_id NOT IN (
                 SELECT stories_id
-                FROM controversy_stories
-                WHERE controversies_id = ?
-                ORDER BY stories_id
+                FROM bitly_clicks_total
+            )
+            ORDER BY stories_id
 EOF
-                $controversies_id
-            )->hashes;
-        }
-        else
-        {
-            $stories_to_enqueue = $db->query(
-                <<EOF,
-                SELECT stories_id
-                FROM controversy_stories
-                WHERE controversies_id = ?
-                  AND stories_id NOT IN (
-                    SELECT stories_id
-                    FROM controversy_stories_bitly_statistics
-                )
-                ORDER BY stories_id
-EOF
-                $controversies_id
-            )->hashes;
-        }
+            $controversies_id
+        )->hashes;
 
         foreach my $story ( @{ $stories_to_enqueue } )
         {
@@ -114,19 +83,6 @@ EOF
             {
                 say STDERR "Story $stories_id has not been fetched yet.";
                 next;
-            }
-
-            if ( $overwrite )
-            {
-                say STDERR
-                  "Removing old aggregation result from 'controversy_stories_bitly_statistics' for story $stories_id...";
-                $db->query(
-                    <<EOF,
-                    DELETE FROM controversy_stories_bitly_statistics
-                    WHERE stories_id = ?
-EOF
-                    $stories_id
-                );
             }
 
             say STDERR "Enqueueing story $stories_id...";
