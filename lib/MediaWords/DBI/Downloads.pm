@@ -480,6 +480,63 @@ sub add_period_to_tagline($$$)
     }
 }
 
+# forbes is putting all of its content into a javascript variable, causing our extractor to fall down.
+# this function replaces $$content_ref with the html assigned to the javascript variable.
+# return true iff the function is able to find and parse the javascript content
+sub parse_out_javascript_content
+{
+    my ( $content_ref ) = @_;
+
+    if ( $$content_ref =~ s/.*fbs_settings.content[^\}]*body\"\:\"([^"\\]*(\\.[^"\\]*)*)\".*/$1/ms )
+    {
+        $$content_ref =~ s/\\[rn]/ /g;
+        $$content_ref =~ s/\[caption [^\]]*\]//g;
+
+        return 1;
+    }
+
+    return 0;
+}
+
+# call configured extractor on the content_ref
+sub _call_extractor_on_html($$$;$)
+{
+    my ( $content_ref, $story_title, $story_description, $extractor_method ) = @_;
+
+    my $ret;
+    my $extracted_html;
+
+    if ( $extractor_method eq 'PythonReadability' )
+    {
+        $extracted_html = MediaWords::Util::ThriftExtractor::get_extracted_html( $$content_ref );
+    }
+    elsif ( $extractor_method eq 'HeuristicExtractor' )
+    {
+        my $lines = _preprocess_content_lines( $content_ref );
+
+        # print "PREPROCESSED LINES:\n**\n" . join( "\n", @{ $lines } ) . "\n**\n";
+
+        $ret = extract_preprocessed_lines_for_story( $lines, $story_title, $story_description );
+
+        my $download_lines        = $ret->{ download_lines };
+        my $included_line_numbers = $ret->{ included_line_numbers };
+
+        $extracted_html = _get_extracted_html( $download_lines, $included_line_numbers );
+    }
+    else
+    {
+        die "invalid extractor method: $extractor_method";
+    }
+
+    $extracted_html = _new_lines_around_block_level_tags( $extracted_html );
+    my $extracted_text = html_strip( $extracted_html );
+
+    $ret->{ extracted_html } = $extracted_html;
+    $ret->{ extracted_text } = $extracted_text;
+
+    return $ret;
+}
+
 # Extract content referenced by $content_ref
 sub extract_content_ref($$$;$)
 {
@@ -504,35 +561,14 @@ sub extract_content_ref($$$;$)
     }
     else
     {
-        #say STDERR "DBI::Downloads::extractor_results_for_download extractor_method $extractor_method";
+        $ret = _call_extractor_on_html( $content_ref, $story_title, $story_description, $extractor_method );
 
-        if ( $extractor_method eq 'PythonReadability' )
+        # if we didn't get much text, try looking for content stored in the javascript
+        if ( ( length( $ret->{ extracted_text } ) < 256 ) && parse_out_javascript_content( $content_ref ) )
         {
-            $extracted_html = MediaWords::Util::ThriftExtractor::get_extracted_html( $$content_ref );
-        }
-        elsif ( $extractor_method eq 'HeuristicExtractor' )
-        {
-            my $lines = _preprocess_content_lines( $content_ref );
-
-            # print "PREPROCESSED LINES:\n**\n" . join( "\n", @{ $lines } ) . "\n**\n";
-
-            $ret = extract_preprocessed_lines_for_story( $lines, $story_title, $story_description );
-
-            my $download_lines        = $ret->{ download_lines };
-            my $included_line_numbers = $ret->{ included_line_numbers };
-
-            $extracted_html = _get_extracted_html( $download_lines, $included_line_numbers );
-        }
-        else
-        {
-            die "invalid extractor method: $extractor_method";
+            $ret = _call_extractor_on_html( $content_ref, $story_title, $story_description, $extractor_method );
         }
 
-        $extracted_html = _new_lines_around_block_level_tags( $extracted_html );
-        my $extracted_text = html_strip( $extracted_html );
-
-        $ret->{ extracted_html } = $extracted_html;
-        $ret->{ extracted_text } = $extracted_text;
     }
 
     return $ret;
