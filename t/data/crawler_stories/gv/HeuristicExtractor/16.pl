@@ -762,26 +762,19 @@ Why should we remain poor when a coveted product is plenty and mined at the expe
 <div class='recent-comment odd'> 
 	 <h3 class=\"post-title\"><a href=\"http://globalvoicesonline.org/2012/10/14/greece-theater-critic-assaulted-by-neo-nazis-and-religious-groups-protesting-play/\" title=\"Comments on  Greece: Theater Critic Assaulted by Neo-nazis and Religious Groups Protesting Play\">Greece: Theater Critic Assaulted by Neo-nazis and Religious Groups Protesting Play</a></h3>
 	<ul class='post-comments'>
-		<li><img alt='' src='http://0.gravatar.com/avatar/e31af70c3f9d0e43ca2e418b2b3b0a83?s=35&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D35&amp;r=G' class='avatar avatar-35 photo' height='35' width='35' /><p class=\"comment-text\">if there was a play that insulted the prophet Mohammad I bet there would be...</p> 		</li>
-		<li><img alt='' src='http://0.gravatar.com/avatar/aef6b78664751c350d565044b09052df?s=35&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D35&amp;r=G' class='avatar avatar-35 photo' height='35' width='35' /><p class=\"comment-text\">Religion in a nutshell.</p> 		</li>
-	</ul>
-	<a class=\"more-link\" href=\"http://globalvoicesonline.org/2012/10/14/greece-theater-critic-assaulted-by-neo-nazis-and-religious-groups-protesting-play/#comments\" title=\"Comments on  Greece: Theater Critic Assaulted by Neo-nazis and Religious Groups Protesting Play\">
-		 More &raquo; </a>	</div> 
+		<li><img alt='' src='http://0.gravatar.com/avatar/e31af70c3f9d0e43ca2e418b2b3b0a83?s=35&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D35&amp;r=G' class='avatar avatar-35 photo' height='35' width='35' /><p class=\"comment-text\">if there was a play that insulted the prophet Mohammad I bet there would be...</p> 		</li>		<li><img alt='' src='http://0.gravatar.com/avatar/aef6b78664751c350d565044b09052df?s=35&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D35&amp;r=G' class='avatar avatar-35 photo' height='35' width='35' /><p class=\"comment-text\">Religion in a nutshell.</p> 		</li>	</ul>
+	<a class=\"more-link\" href=\"http://globalvoicesonline.org/2012/10/14/greece-theater-critic-assaulted-by-neo-nazis-and-religious-groups-protesting-play/#comments\" title=\"Comments on  Greece: Theater Critic Assaulted by Neo-nazis and Religious Groups Protesting Play\">		 More &raquo; </a>	</div> 
 <div class='recent-comment even'> 
 	 <h3 class=\"post-title\"><a href=\"http://globalvoicesonline.org/2012/10/11/pakistan-religious-extremists-attack-malala-yousufzai/\" title=\"Comments on  Pakistan: Religious Extremists Attack Malala Yousufzai\">Pakistan: Religious Extremists Attack Malala Yousufzai</a></h3>
 	<ul class='post-comments'>
 		<li><img alt='' src='http://0.gravatar.com/avatar/4b13c453143eb715af7ddff51ee5b3ac?s=35&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D35&amp;r=G' class='avatar avatar-35 photo' height='35' width='35' /><p class=\"comment-text\">I am sorry for this, also I am sorry for human and humanity :( 
-\x{647}\x{645}\x{631}\x{627}\x{647}...</p> 		</li>
-	</ul>
-	<a class=\"more-link\" href=\"http://globalvoicesonline.org/2012/10/11/pakistan-religious-extremists-attack-malala-yousufzai/#comments\" title=\"Comments on  Pakistan: Religious Extremists Attack Malala Yousufzai\">
-		 More &raquo; </a>	</div> 
+\x{647}\x{645}\x{631}\x{627}\x{647}...</p> 		</li>	</ul>
+	<a class=\"more-link\" href=\"http://globalvoicesonline.org/2012/10/11/pakistan-religious-extremists-attack-malala-yousufzai/#comments\" title=\"Comments on  Pakistan: Religious Extremists Attack Malala Yousufzai\">		 More &raquo; </a>	</div> 
 <div class='recent-comment odd'> 
 	 <h3 class=\"post-title\"><a href=\"http://globalvoicesonline.org/2012/10/14/saudi-arabia-women2drive-steps-up-tone-blames-government-policies/\" title=\"Comments on  Saudi Arabia: Women2Drive Steps Up Tone; Blames Government Policies\">Saudi Arabia: Women2Drive Steps Up Tone; Blames Government Policies</a></h3>
 	<ul class='post-comments'>
-		<li><img alt='' src='http://0.gravatar.com/avatar/2d280a4b922b801698366977557930c0?s=35&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D35&amp;r=G' class='avatar avatar-35 photo' height='35' width='35' /><p class=\"comment-text\">the inspiration for the women2drive and right2dignity campaigns seem to coming from the Arab spring...</p> 		</li>
-	</ul>
-	<a class=\"more-link\" href=\"http://globalvoicesonline.org/2012/10/14/saudi-arabia-women2drive-steps-up-tone-blames-government-policies/#comments\" title=\"Comments on  Saudi Arabia: Women2Drive Steps Up Tone; Blames Government Policies\">
-		 More &raquo; </a>	</div> 
+		<li><img alt='' src='http://0.gravatar.com/avatar/2d280a4b922b801698366977557930c0?s=35&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D35&amp;r=G' class='avatar avatar-35 photo' height='35' width='35' /><p class=\"comment-text\">the inspiration for the women2drive and right2dignity campaigns seem to coming from the Arab spring...</p> 		</li>	</ul>
+	<a class=\"more-link\" href=\"http://globalvoicesonline.org/2012/10/14/saudi-arabia-women2drive-steps-up-tone-blames-government-policies/#comments\" title=\"Comments on  Saudi Arabia: Women2Drive Steps Up Tone; Blames Government Policies\">		 More &raquo; </a>	</div> 
 </div><!--.widget-contents-->
 </div>	<br clear=\"left\" />
 
