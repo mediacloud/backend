@@ -260,7 +260,7 @@ database:
 
     ### Locations to write raw JSON responses to
     ### (default is just "postgresql")
-    #json_read_stores:
+    #json_write_stores:
         ### Write to "bitly_processing_results" table first
         #- postgresql
         ### ...then to Amazon S3 too
