@@ -1238,12 +1238,6 @@ DISTRIBUTIONS
       Compress::Raw::Bzip2 2.069
     requirements:
       ExtUtils::MakeMaker 0
-  Compress-Raw-Lzma-2.069
-    pathname: P/PM/PMQS/Compress-Raw-Lzma-2.069.tar.gz
-    provides:
-      Compress::Raw::Lzma 2.069
-    requirements:
-      ExtUtils::MakeMaker 0
   Compress-Raw-Zlib-2.069
     pathname: P/PM/PMQS/Compress-Raw-Zlib-2.069.tar.gz
     provides:
@@ -4243,22 +4237,6 @@ DISTRIBUTIONS
       Compress::Raw::Zlib 2.069
       ExtUtils::MakeMaker 0
       Scalar::Util 0
-  IO-Compress-Lzma-2.069
-    pathname: P/PM/PMQS/IO-Compress-Lzma-2.069.tar.gz
-    provides:
-      IO::Compress::Adapter::Lzma 2.069
-      IO::Compress::Adapter::Xz 2.069
-      IO::Compress::Lzma 2.069
-      IO::Compress::Xz 2.069
-      IO::Uncompress::Adapter::UnLzma 2.069
-      IO::Uncompress::Adapter::UnXz 2.069
-      IO::Uncompress::UnLzma 2.069
-      IO::Uncompress::UnXz 2.069
-    requirements:
-      Compress::Raw::Lzma 2.069
-      ExtUtils::MakeMaker 0
-      IO::Compress::Base 2.069
-      IO::Uncompress::Base 2.069
   IO-HTML-1.001
     pathname: C/CJ/CJM/IO-HTML-1.001.tar.gz
     provides:
