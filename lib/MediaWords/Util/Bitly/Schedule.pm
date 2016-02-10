@@ -170,11 +170,6 @@ sub story_timestamp($)
         $story_timestamp = MediaWords::Util::SQL::get_epoch_from_sql_date( $collect_date );
     }
 
-    # Round timestamp to the nearest day because that's what Bitly.pm does
-    my $story_datetime = gmt_datetime_from_timestamp( $story_timestamp );
-    $story_datetime->set( hour => 0, minute => 0, second => 0 );
-    $story_timestamp = $story_datetime->epoch;
-
     return $story_timestamp;
 }
 
