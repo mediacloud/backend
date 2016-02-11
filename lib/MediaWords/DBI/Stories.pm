@@ -488,6 +488,24 @@ EOF
     $db->commit;
 }
 
+# update disable_triggers for given story if needed
+sub _update_story_disable_triggers
+{
+    my ( $db, $story ) = @_;
+
+    my $config_disable_triggers = MediaWords::DB::story_triggers_disabled() ? 1 : 0;
+    my $story_disable_triggers = $story->{ disable_triggers } ? 1 : 0;
+
+    if ( $config_disable_triggers != $story_disable_triggers )
+    {
+        $db->query(
+            "UPDATE stories SET disable_triggers  = ? WHERE stories_id = ?",
+            MediaWords::DB::story_triggers_disabled(),
+            $story->{ stories_id }
+        );
+    }
+}
+
 sub process_extracted_story
 {
     my ( $story, $db, $no_dedup_sentences, $no_vector ) = @_;
@@ -497,11 +515,7 @@ sub process_extracted_story
         MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story, 0, $no_dedup_sentences );
     }
 
-    $db->query(
-        "UPDATE stories SET disable_triggers  = ? WHERE stories_id = ?",
-        MediaWords::DB::story_triggers_disabled(),
-        $story->{ stories_id }
-    );
+    _update_story_disable_triggers( $db, $story );
 
     MediaWords::DBI::Stories::ExtractorVersion::update_extractor_version_tag( $db, $story );
 
