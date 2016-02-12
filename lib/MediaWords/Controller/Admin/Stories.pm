@@ -14,6 +14,7 @@ use URI::QueryParam;
 use Carp;
 
 use MediaWords::DBI::Stories;
+use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::DBI::Activities;
 use MediaWords::Util::Bitly;
 use MediaWords::Util::CoreNLP;
@@ -185,22 +186,13 @@ END
     {
         $c->stash->{ bitly_is_enabled } = 1;
 
-        if ( MediaWords::Util::Bitly::story_is_enabled_for_processing( $c->dbis, $story->{ stories_id } ) )
+        if ( MediaWords::Util::Bitly::story_stats_are_fetched( $c->dbis, $story->{ stories_id } ) )
         {
-            $c->stash->{ bitly_story_is_enabled_for_processing } = 1;
-
-            if ( MediaWords::Util::Bitly::story_stats_are_fetched( $c->dbis, $story->{ stories_id } ) )
-            {
-                $c->stash->{ bitly_story_stats_are_fetched } = 1;
-            }
-            else
-            {
-                $c->stash->{ bitly_story_stats_are_fetched } = 0;
-            }
+            $c->stash->{ bitly_story_stats_are_fetched } = 1;
         }
         else
         {
-            $c->stash->{ bitly_story_is_enabled_for_processing } = 0;
+            $c->stash->{ bitly_story_stats_are_fetched } = 0;
         }
     }
     else
@@ -311,8 +303,8 @@ sub edit : Local
     $el_referer->value( $c->req->referer ) unless ( $el_referer->value );
 
     my $story = $c->dbis->find_by_id( 'stories', $stories_id );
-    $story->{ confirm_date } = MediaWords::DBI::Stories::date_is_confirmed( $c->dbis, $story );
-    $story->{ undateable } = MediaWords::DBI::Stories::is_undateable( $c->dbis, $story );
+    $story->{ confirm_date } = MediaWords::DBI::Stories::GuessDate::date_is_confirmed( $c->dbis, $story );
+    $story->{ undateable } = MediaWords::DBI::Stories::GuessDate::is_undateable( $c->dbis, $story );
 
     $form->default_values( $story );
     $form->process( $c->request );
@@ -343,14 +335,14 @@ sub edit : Local
 
         if ( $c->req->params->{ confirm_date } )
         {
-            MediaWords::DBI::Stories::confirm_date( $c->dbis, $story );
+            MediaWords::DBI::Stories::GuessDate::confirm_date( $c->dbis, $story );
         }
         else
         {
-            MediaWords::DBI::Stories::unconfirm_date( $c->dbis, $story );
+            MediaWords::DBI::Stories::GuessDate::unconfirm_date( $c->dbis, $story );
         }
 
-        MediaWords::DBI::Stories::mark_undateable( $c->dbis, $story, $c->req->params->{ undateable } );
+        MediaWords::DBI::Stories::GuessDate::mark_undateable( $c->dbis, $story, $c->req->params->{ undateable } );
 
         # Redirect back to the referer or a story
         my $status_msg = 'story has been updated.';

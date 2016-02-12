@@ -27,13 +27,15 @@ use MediaWords::DB;
 use MediaWords::DBI::Activities;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
+use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::Solr;
+use MediaWords::Util::HTML;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 use MediaWords::Util::Bitly;
-use MediaWords::GearmanFunction::Bitly::EnqueueControversyStories;
+use MediaWords::GearmanFunction::Bitly::EnqueueAllControversyStories;
 
 # number of times to run through the recursive link weight process
 Readonly my $LINK_WEIGHT_ITERATIONS => 3;
@@ -306,7 +308,7 @@ SQL
 
     return 1 if ( ( $story_date ge $start_date ) && ( $story_date le $end_date ) );
 
-    return MediaWords::DBI::Stories::is_undateable( $db, $story );
+    return MediaWords::DBI::Stories::GuessDate::is_undateable( $db, $story );
 }
 
 # for each story, return a list of the links found in either the extracted html or the story description
@@ -589,39 +591,6 @@ END
     return $db->query( $feed_query, $medium->{ media_id }, $medium->{ url } )->hash;
 }
 
-# parse the content for tags that might indicate the story's title
-sub get_story_title_from_content
-{
-
-    my ( $content, $url ) = @_;
-
-    my $title;
-
-    if ( $content =~ m~<meta property=\"og:title\" content=\"([^\"]+)\"~si )
-    {
-        $title = $1;
-    }
-    elsif ( $content =~ m~<meta property=\"og:title\" content=\'([^\']+)\'~si )
-    {
-        $title = $1;
-    }
-    elsif ( $content =~ m~<title>([^<]+)</title>~si )
-    {
-        $title = $1;
-    }
-    else
-    {
-        $title = $url;
-    }
-
-    if ( length( $title ) > 1024 )
-    {
-        $title = substr( $title, 0, 1024 );
-    }
-
-    return $title;
-}
-
 # return true if the args are valid date arguments.  assume a date has to be between 2000 and 2040.
 sub valid_date_parts
 {
@@ -849,7 +818,8 @@ sub add_new_story
         else
         {
             $old_story->{ url } = $link->{ redirect_url } || $link->{ url };
-            $old_story->{ title } = $link->{ title } || get_story_title_from_content( $story_content, $old_story->{ url } );
+            $old_story->{ title } =
+              $link->{ title } || MediaWords::Util::HTML::html_title( $story_content, $old_story->{ url }, 1024 );
         }
     }
     else
@@ -887,7 +857,7 @@ sub add_new_story
 
     $db->create( 'stories_tags_map', { stories_id => $story->{ stories_id }, tags_id => $spidered_tag->{ tags_id } } );
 
-    MediaWords::DBI::Stories::assign_date_guess_method( $db, $story, $date_guess_method, 1 );
+    MediaWords::DBI::Stories::GuessDate::assign_date_guess_method( $db, $story, $date_guess_method, 1 );
 
     print STDERR "add story: $story->{ title } / $story->{ url } / $story->{ publish_date } / $story->{ stories_id }\n";
 
@@ -2251,7 +2221,7 @@ END
         $db->query( <<END, $source_link->{ publish_date }, $controversy->{ controversies_id } );
 update stories set publish_date = ? where stories_id = ?
 END
-        MediaWords::DBI::Stories::assign_date_guess_method( $db, $story, 'source_link' );
+        MediaWords::DBI::Stories::GuessDate::assign_date_guess_method( $db, $story, 'source_link' );
     }
 }
 
@@ -2659,7 +2629,7 @@ sub mine_controversy ($$;$)
         # record in the raw key-value database) will be skipped, and the new
         # ones will be enqueued further for fetching Bit.ly stats.
         my $args = { controversies_id => $controversy->{ controversies_id } };
-        MediaWords::GearmanFunction::Bitly::EnqueueControversyStories->enqueue_on_gearman( $args );
+        MediaWords::GearmanFunction::Bitly::EnqueueAllControversyStories->enqueue_on_gearman( $args );
     }
 }
 

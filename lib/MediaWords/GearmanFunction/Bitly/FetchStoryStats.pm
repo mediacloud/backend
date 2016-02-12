@@ -1,11 +1,11 @@
-package MediaWords::GearmanFunction::Bitly::FetchStoryURLStats;
+package MediaWords::GearmanFunction::Bitly::FetchStoryStats;
 
 #
-# Fetch story's click / referrer count statistics via Bit.ly API
+# Fetch story's click counts via Bit.ly API
 #
 # Start this worker script by running:
 #
-# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/Bitly/FetchStoryURLStats.pm
+# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/Bitly/FetchStoryStats.pm
 #
 
 use strict;
@@ -29,6 +29,7 @@ use MediaWords::CommonLibs;
 
 use MediaWords::DB;
 use MediaWords::Util::Bitly;
+use MediaWords::Util::Bitly::API;
 use MediaWords::Util::Process;
 use MediaWords::Util::GearmanJobSchedulerConfiguration;
 use MediaWords::GearmanFunction::Bitly::AggregateStoryStats;
@@ -40,18 +41,6 @@ Readonly my $BITLY_RATE_LIMIT_SECONDS_TO_WAIT => 60 * 10;    # every 10 minutes
 
 # How many times to try on rate limiting errors
 Readonly my $BITLY_RATE_LIMIT_TRIES => 7;                    # try fetching 7 times in total (70 minutes)
-
-# What stats to fetch for each story
-Readonly my $BITLY_FETCH_CATEGORIES => 0;
-Readonly my $BITLY_FETCH_CLICKS     => 1;
-Readonly my $BITLY_FETCH_REFERRERS  => 0;
-Readonly my $BITLY_FETCH_SHARES     => 0;
-Readonly my $stats_to_fetch         => MediaWords::Util::Bitly::StatsToFetch->new(
-    $BITLY_FETCH_CATEGORIES,                                 # "/v3/link/category"
-    $BITLY_FETCH_CLICKS,                                     # "/v3/link/clicks"
-    $BITLY_FETCH_REFERRERS,                                  # "/v3/link/referrers"
-    $BITLY_FETCH_SHARES                                      # "/v3/link/shares"
-);
 
 # Having a global database object should be safe because
 # Gearman::JobScheduler's workers don't support fork()s anymore
@@ -88,14 +77,13 @@ sub run($;$)
     {
         say STDERR "Fetching story stats for story $stories_id" . ( $retry ? " (retry $retry)" : '' ) . "...";
         eval {
-            $stats = MediaWords::Util::Bitly::fetch_stats_for_story( $db, $stories_id, $start_timestamp, $end_timestamp,
-                $stats_to_fetch );
+            $stats = MediaWords::Util::Bitly::fetch_stats_for_story( $db, $stories_id, $start_timestamp, $end_timestamp );
         };
         $error_message = $@;
 
         if ( $error_message )
         {
-            if ( MediaWords::Util::Bitly::error_is_rate_limit_exceeded( $error_message ) )
+            if ( MediaWords::Util::Bitly::API::error_is_rate_limit_exceeded( $error_message ) )
             {
 
                 say STDERR "Rate limit exceeded while collecting story stats for story $stories_id";

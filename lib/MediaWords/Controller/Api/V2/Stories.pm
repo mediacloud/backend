@@ -19,19 +19,8 @@ use Readonly;
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
 use MediaWords::Util::Bitly;
+use MediaWords::Util::Bitly::API;
 use MediaWords::Util::JSON;
-
-# What stats to fetch for each story
-Readonly my $BITLY_FETCH_CATEGORIES => 0;
-Readonly my $BITLY_FETCH_CLICKS     => 1;
-Readonly my $BITLY_FETCH_REFERRERS  => 0;
-Readonly my $BITLY_FETCH_SHARES     => 0;
-Readonly my $stats_to_fetch         => MediaWords::Util::Bitly::StatsToFetch->new(
-    $BITLY_FETCH_CATEGORIES,    # "/v3/link/category"
-    $BITLY_FETCH_CLICKS,        # "/v3/link/clicks"
-    $BITLY_FETCH_REFERRERS,     # "/v3/link/referrers"
-    $BITLY_FETCH_SHARES         # "/v3/link/shares"
-);
 
 =head1 NAME
 
@@ -192,8 +181,7 @@ sub fetch_bitly_clicks : Local
             }
 
             $bitly_clicks =
-              MediaWords::Util::Bitly::fetch_stats_for_story( $db, $stories_id, $start_timestamp, $end_timestamp,
-                $stats_to_fetch );
+              MediaWords::Util::Bitly::fetch_stats_for_story( $db, $stories_id, $start_timestamp, $end_timestamp );
 
             ( $agg_stories_id, $agg_stories_url ) = ( $stories_id, $story->{ url } );
 
@@ -202,8 +190,7 @@ sub fetch_bitly_clicks : Local
         {
 
             $bitly_clicks =
-              MediaWords::Util::Bitly::fetch_stats_for_url( $db, $stories_url, $start_timestamp, $end_timestamp,
-                $stats_to_fetch );
+              MediaWords::Util::Bitly::API::fetch_stats_for_url( $db, $stories_url, $start_timestamp, $end_timestamp );
 
             ( $agg_stories_id, $agg_stories_url ) = ( 0, $stories_url );
 
@@ -219,7 +206,7 @@ sub fetch_bitly_clicks : Local
         # convenience and the reason that the count could be different
         # (e.g. because of homepage redirects being skipped)
         my $stats = MediaWords::Util::Bitly::aggregate_story_stats( $agg_stories_id, $agg_stories_url, $bitly_clicks );
-        $total_click_count = $stats->{ click_count };
+        $total_click_count = $stats->total_click_count();
     };
     unless ( $@ )
     {
@@ -231,7 +218,7 @@ sub fetch_bitly_clicks : Local
         my $error_message = $@;
         $response->{ error } = $error_message;
 
-        if ( MediaWords::Util::Bitly::error_is_rate_limit_exceeded( $error_message ) )
+        if ( MediaWords::Util::Bitly::API::error_is_rate_limit_exceeded( $error_message ) )
         {
             $http_status = HTTP_TOO_MANY_REQUESTS;
 

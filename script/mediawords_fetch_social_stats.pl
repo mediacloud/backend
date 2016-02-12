@@ -20,7 +20,7 @@ use Getopt::Long;
 use MediaWords::DB;
 use MediaWords::CM;
 use MediaWords::GearmanFunction;
-use MediaWords::GearmanFunction::Facebook::FetchStoryURLStats;
+use MediaWords::GearmanFunction::Facebook::FetchStoryStats;
 
 # fetch stats from facebook for a single story
 sub fetch_stats
@@ -41,7 +41,7 @@ sub fetch_stats
         if ( $direct_job )
         {
             say STDERR "Running local job for story $stories_id...";
-            eval( "MediaWords::GearmanFunction::${ type }::FetchStoryURLStats->run_locally( \$args );" );
+            eval( "MediaWords::GearmanFunction::${ type }::FetchStoryStats->run_locally( \$args );" );
             if ( $@ )
             {
                 say STDERR "Gearman worker died while fetching and storing $stories_id: $@";
@@ -50,7 +50,7 @@ sub fetch_stats
         else
         {
             say STDERR "Enqueueing Gearman job for story $stories_id...";
-            eval( "MediaWords::GearmanFunction::${ type }::FetchStoryURLStats->enqueue_on_gearman( \$args )" );
+            eval( "MediaWords::GearmanFunction::${ type }::FetchStoryStats->enqueue_on_gearman( \$args )" );
             if ( $@ )
             {
                 say STDERR "error queueing story $stories_id: $@";
