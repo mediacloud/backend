@@ -385,9 +385,11 @@ sub split_stories_for_training
 
     my $num_stories = scalar( @{ $stories } );
 
-    my $random_sort_stories = [ sort { md5( $a->{ stories_id } ) cmp md5( $b->{ stories_id } ) } @{ $stories } ];
+    # my $random_sort_stories = [ sort { md5( $a->{ stories_id } ) cmp md5( $b->{ stories_id } ) } @{ $stories } ];
+    #
+    # my $training_stories = $random_sort_stories;
 
-    my $training_stories = $random_sort_stories;
+    my $training_stories = [ @{ $stories } ];
     my $evaluation_stories = [ splice( @{ $training_stories }, $num_stories / 2 ) ];
 
     return ( $training_stories, $evaluation_stories );
@@ -402,11 +404,12 @@ select
         s.*,
         ( ap.syndication = 'ap' ) ap_coded,
         ap.syndication,
-        ap.url_status
+        ap.url_status,
+        ap.set
     from
         stories s
         join scratch.ap_stories_coded ap on ( s.stories_id = ap.stories_id )
-    order by md5( s.stories_id::text );
+    order by ( s.stories_id % 101 );
 SQL
 
     attach_downloads_to_stories( $db, $stories );
@@ -750,7 +753,7 @@ select
     from
         stories s
         join scratch.ap_stories_coded ap on ( s.stories_id = ap.stories_id )
-    order by md5( s.stories_id::text );
+    order by stories_id;
 SQL
 
     attach_downloads_to_stories( $db, $stories );
@@ -775,11 +778,14 @@ sub main
 
     # my $evaluation_stories = get_evaluation_stories( $db );
 
+    map { say STDERR "TRAIN SET: $_->{ stories_id } $_->{ set }" } @{ $training_stories };
+
     for my $s ( @{ $evaluation_stories } )
     {
         my ( $raw, $boolean ) = get_ai_result( $ai, $s );
         $s->{ ai_ap_raw }      = $raw;
         $s->{ ai_ap_detected } = $boolean;
+        say STDERR "EVAL SET: $s->{ set }";
     }
 
     print_results( $evaluation_stories );
