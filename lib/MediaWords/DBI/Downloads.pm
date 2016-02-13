@@ -566,7 +566,7 @@ sub extract_content_ref($$$;$)
         # if we didn't get much text, try looking for content stored in the javascript
         if ( ( length( $ret->{ extracted_text } ) < 256 ) && parse_out_javascript_content( $content_ref ) )
         {
-            $js_ret = _call_extractor_on_html( $content_ref, $story_title, $story_description, $extractor_method );
+            my $js_ret = _call_extractor_on_html( $content_ref, $story_title, $story_description, $extractor_method );
 
             $ret = $js_ret if ( length( $js_ret->{ extracted_text } ) > length( $ret->{ extracted_text } ) );
         }
