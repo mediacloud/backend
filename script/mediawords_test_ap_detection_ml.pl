@@ -17,6 +17,7 @@ use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 use MediaWords::DB;
 use MediaWords::DBI::Downloads;
+use MediaWords::DBI::Stories::AP;
 use MediaWords::Util::CSV;
 
 use AI::FANN qw(:all);
@@ -405,10 +406,12 @@ select
         ( ap.syndication = 'ap' ) ap_coded,
         ap.syndication,
         ap.url_status,
-        ap.set
+        ap.set,
+        d.syndicated ai_ap_detected
     from
         stories s
         join scratch.ap_stories_coded ap on ( s.stories_id = ap.stories_id )
+        left join scratch.ap_stories_detected d on ( s.stories_id = d.stories_id and method = 'module' )
     order by ( s.stories_id % 101 );
 SQL
 
@@ -419,9 +422,6 @@ SQL
     # my $pruned_stories = [];
     # map { push( @{ $pruned_stories }, $_ ) unless ( $skip_stories_lookup->{ $_->{ stories_id } } );
     # $stories = $pruned_stories;
-
-    map { add_features_to_story( $db, $_ ) } @{ $stories };
-    save_features_queue( $db );
 
     return $stories;
 }
@@ -676,12 +676,13 @@ sub print_story_results_with_features
 {
     my ( $story ) = @_;
 
-    my $features_dump = Dumper( $story->{ features } );
+    my $features_dump = $story->{ features } ? Dumper( $story->{ features } ) : '';
+
+    $story->{ ai_ap_raw } = $story->{ ai_ap_detected } unless ( defined( $story->{ ai_ap_raw } ) );
 
     print <<END;
 $story->{ stories_id } [$story->{ media_id }] coded: $story->{ ap_coded } detected: $story->{ ai_ap_detected } ($story->{ ai_ap_raw })
 $features_dump
-
 END
 
 }
@@ -768,31 +769,56 @@ sub main
 {
     my ( $method ) = @ARGV;
 
+    $| = 1;
+
     my $db = MediaWords::DB::connect_to_db;
 
     my $stories = get_stories( $db );
 
     my ( $training_stories, $evaluation_stories ) = split_stories_for_training( $stories );
 
-    my $ai = get_trained_ai( $training_stories );
-
-    # my $evaluation_stories = get_evaluation_stories( $db );
-
-    map { say STDERR "TRAIN SET: $_->{ stories_id } $_->{ set }" } @{ $training_stories };
-
-    for my $s ( @{ $evaluation_stories } )
+    if ( $method eq 'module' )
     {
-        my ( $raw, $boolean ) = get_ai_result( $ai, $s );
-        $s->{ ai_ap_raw }      = $raw;
-        $s->{ ai_ap_detected } = $boolean;
-        say STDERR "EVAL SET: $s->{ set }";
+        # splice( @{ $evaluation_stories }, 1000 );
+        my $save_story_results = [];
+        for my $story ( @{ $evaluation_stories } )
+        {
+            if ( !defined( $story->{ ai_ap_detected } ) )
+            {
+                print STDERR "detecting $story->{ stories_id } ...";
+                $story->{ ai_ap_detected } = MediaWords::DBI::Stories::AP::is_syndicated( $db, $story, 1 );
+                my $result = $story->{ ai_ap_detected } ? 'AP' : 'NOT';
+                say STDERR $result;
+
+                insert_detected_stories( $db, [ $story ], $method );
+                $story->{ features } = $story->{ ap_features };
+            }
+        }
+
+        print_results( $evaluation_stories );
     }
-
-    print_results( $evaluation_stories );
-
-    if ( $method )
+    else
     {
-        insert_detected_stories( $db, $evaluation_stories, $method );
+        map { add_features_to_story( $db, $_ ) } @{ $stories };
+        save_features_queue( $db );
+
+        my $ai = get_trained_ai( $training_stories );
+
+        # my $evaluation_stories = get_evaluation_stories( $db );
+
+        for my $s ( @{ $evaluation_stories } )
+        {
+            my ( $raw, $boolean ) = get_ai_result( $ai, $s );
+            $s->{ ai_ap_raw }      = $raw;
+            $s->{ ai_ap_detected } = $boolean;
+        }
+
+        print_results( $evaluation_stories );
+
+        if ( $method )
+        {
+            insert_detected_stories( $db, $evaluation_stories, $method );
+        }
     }
 }
 
