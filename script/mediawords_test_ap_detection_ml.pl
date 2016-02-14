@@ -398,9 +398,9 @@ sub split_stories_for_training
 
 sub get_stories
 {
-    my ( $db ) = @_;
+    my ( $db, $method ) = @_;
 
-    my $stories = $db->query( <<SQL )->hashes;
+    my $stories = $db->query( <<SQL, $method )->hashes;
 select
         s.*,
         ( ap.syndication = 'ap' ) ap_coded,
@@ -411,7 +411,7 @@ select
     from
         stories s
         join scratch.ap_stories_coded ap on ( s.stories_id = ap.stories_id )
-        left join scratch.ap_stories_detected d on ( s.stories_id = d.stories_id and method = 'module' )
+        left join scratch.ap_stories_detected d on ( s.stories_id = d.stories_id and method = ? )
     order by ( s.stories_id % 101 );
 SQL
 
@@ -773,13 +773,13 @@ sub main
 
     my $db = MediaWords::DB::connect_to_db;
 
-    my $stories = get_stories( $db );
+    my $stories = get_stories( $db, $method );
 
     my ( $training_stories, $evaluation_stories ) = split_stories_for_training( $stories );
 
-    if ( $method eq 'module' )
+    if ( $method =~ /^module/ )
     {
-        # splice( @{ $evaluation_stories }, 1000 );
+        splice( @{ $evaluation_stories }, 100 );
         my $save_story_results = [];
         for my $story ( @{ $evaluation_stories } )
         {
