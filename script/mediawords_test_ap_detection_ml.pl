@@ -20,9 +20,9 @@ use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories::AP;
 use MediaWords::Util::CSV;
 
-use AI::FANN qw(:all);
+# use AI::FANN qw(:all);
 use AI::DecisionTree;
-use Algorithm::DecisionTree;
+# use Algorithm::DecisionTree;
 use Digest::MD5 qw(md5);
 
 sub get_story_content
