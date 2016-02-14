@@ -22,6 +22,7 @@ use MediaWords::Util::CSV;
 
 # use AI::FANN qw(:all);
 use AI::DecisionTree;
+
 # use Algorithm::DecisionTree;
 use Digest::MD5 qw(md5);
 
@@ -473,8 +474,8 @@ sub get_trained_ai_nn
 
     my $ann = AI::FANN->new_standard( $input_neurons, int( $input_neurons * 2 ), 1 );
 
-    $ann->hidden_activation_function( FANN_SIGMOID_SYMMETRIC );
-    $ann->output_activation_function( FANN_SIGMOID_SYMMETRIC );
+    # $ann->hidden_activation_function( FANN_SIGMOID_SYMMETRIC );
+    # $ann->output_activation_function( FANN_SIGMOID_SYMMETRIC );
 
     my $train = AI::FANN::TrainData->new( @{ $vector } );
 
