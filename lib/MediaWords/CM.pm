@@ -27,12 +27,14 @@ sub require_controversies_by_opt
     my $controversies;
     if ( $controversy_opt =~ /^\d+$/ )
     {
-        $controversies = $db->query( "select * from controversies where controversies_id = ?", $controversy_opt )->hashes;
+        $controversies =
+          $db->query( "select * from controversies_with_dates where controversies_id = ?", $controversy_opt )->hashes;
         die( "No controversies found by id '$controversy_opt'" ) unless ( @{ $controversies } );
     }
     else
     {
-        $controversies = $db->query( "select * from controversies where name ~* ?", '^' . $controversy_opt . '$' )->hashes;
+        $controversies =
+          $db->query( "select * from controversies_with_dates where name ~* ?", '^' . $controversy_opt . '$' )->hashes;
         die( "No controversies found by pattern '$controversy_opt'" ) unless ( @{ $controversies } );
     }
 

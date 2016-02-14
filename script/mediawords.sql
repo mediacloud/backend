@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4522;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4523;
 
 BEGIN
 
@@ -1898,6 +1898,26 @@ create table cd_files (
 
 create index cd_files_cd on cd_files ( controversy_dumps_id );
 
+create table controversy_tweet_searches (
+    controversy_tweet_searches_id           serial primary key,
+    controversies_id                        int not null references controversies on delete cascade,
+    ch_monitor_id                           bigint not null,
+    start_date                              date not null,
+    end_date                                date not null,
+    tweet_count                             int not null
+);
+
+create unique index controversy_tweet_searches_controversy_date
+    on controversy_tweet_searches ( controversies_id, start_date, end_date );
+
+create table controversy_tweets (
+    controversy_tweets_id                   serial primary key,
+    controversy_tweet_searches_id           int not null references controversy_tweet_searches on delete cascade,
+    tweet_id                                bigint not null
+);
+
+create index controversy_tweets_search on controversy_tweets ( controversy_tweet_searches_id );
+
 -- schema to hold the various controversy dump snapshot tables
 create schema cd;
 
@@ -1930,7 +1950,6 @@ create table story_statistics (
 );
 
 create unique index story_statistics_story on story_statistics ( stories_id );
-
 
 -- stats for deprecated Twitter share counts
 create table story_statistics_twitter (
@@ -1989,7 +2008,7 @@ BEGIN
 
     IF NOT EXISTS (
         SELECT 1
-        FROM information_schema.tables 
+        FROM information_schema.tables
         WHERE table_schema = current_schema()
           AND table_name = target_table_name
     ) THEN
@@ -2112,7 +2131,7 @@ BEGIN
 
     IF NOT EXISTS (
         SELECT 1
-        FROM information_schema.tables 
+        FROM information_schema.tables
         WHERE table_schema = current_schema()
           AND table_name = target_table_name
     ) THEN
