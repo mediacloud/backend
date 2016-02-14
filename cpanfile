@@ -8,6 +8,7 @@
 # 8. for instructions on how to add a new Perl module dependency.
 # 9.
 requires 'Algorithm::FeatureSelection';
+requires 'AI::DecisionTree';
 requires 'aliased', '0.34';
 requires 'Archive::Zip';
 requires 'Array::Compare';
