@@ -65,7 +65,7 @@ sub _get_story_content
     if ( !$download )
     {
         $download = $db->query( <<SQL, $story->{ stories_id } )->hash;
-select * from downloads where stories_id = 1 order by downloads_id limit 1
+select * from downloads where stories_id = \$1 order by downloads_id limit 1
 SQL
     }
 
@@ -90,6 +90,8 @@ sub _get_ap_dup_sentence_lengths
     my ( $db, $story ) = @_;
 
     my ( $ap_media_id ) = $db->query( "select media_id from media where name = 'Associated Press - Full Feed'" )->flat;
+
+    return [] unless ( defined( $ap_media_id ) );
 
     my $sentences = $db->query( <<SQL )->hashes;
 with sentence_md5s as (
