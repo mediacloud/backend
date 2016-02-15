@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4523;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4524;
 
 BEGIN
 
@@ -2438,8 +2438,10 @@ create table cd.live_stories (
     collect_date                timestamp       not null,
     full_text_rss               boolean         not null default 'f',
     language                    varchar(3)      null,   -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
-    db_row_last_updated         timestamp with time zone null
+    db_row_last_updated         timestamp with time zone null,
+    ap_syndicated               boolean         null
 );
+
 create index live_story_controversy on cd.live_stories ( controversies_id );
 create unique index live_stories_story on cd.live_stories ( controversies_id, stories_id );
 
@@ -2458,10 +2460,10 @@ create function insert_live_story() returns trigger as $insert_live_story$
         insert into cd.live_stories
             ( controversies_id, controversy_stories_id, stories_id, media_id, url, guid, title, description,
                 publish_date, collect_date, full_text_rss, language,
-                db_row_last_updated )
+                db_row_last_updated, ap_syndicated )
             select NEW.controversies_id, NEW.controversy_stories_id, NEW.stories_id, s.media_id, s.url, s.guid,
                     s.title, s.description, s.publish_date, s.collect_date, s.full_text_rss, s.language,
-                    s.db_row_last_updated
+                    s.db_row_last_updated, s.ap_syndicated
                 from controversy_stories cs
                     join stories s on ( cs.stories_id = s.stories_id )
                 where
@@ -2492,7 +2494,8 @@ create function update_live_story() returns trigger as $update_live_story$
                 collect_date = NEW.collect_date,
                 full_text_rss = NEW.full_text_rss,
                 language = NEW.language,
-                db_row_last_updated = NEW.db_row_last_updated
+                db_row_last_updated = NEW.db_row_last_updated,
+                ap_syndicated = NEW.ap_syndicated
             where
                 stories_id = NEW.stories_id;
 
