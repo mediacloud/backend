@@ -365,21 +365,21 @@ sub clean_sentences
 }
 
 # detect whether the story is syndicated and update stories.ap_syndicated
-sub _update_ap_syndication
+sub _update_ap_syndicated
 {
     my ( $db, $story ) = @_;
 
     return unless ( $story->{ language } eq 'en' );
 
-    my $ap_syndication = MediaWords::DBI::Stories::AP::is_syndicated( $db, $story );
+    my $ap_syndicated = MediaWords::DBI::Stories::AP::is_syndicated( $db, $story );
 
-    return unless ( !defined( $story->{ ap_syndication } ) || ( $story->{ ap_syndication } != $ap_syndication ) );
+    return unless ( !defined( $story->{ ap_syndicated } ) || ( $story->{ ap_syndicated } != $ap_syndicated ) );
 
-    $db->query( <<SQL, $story->{ stories_id }, $ap_syndication );
-update stories set ap_syndication = \$2 where stories_id = \$1
+    $db->query( <<SQL, $story->{ stories_id }, $ap_syndicated );
+update stories set ap_syndicated = \$2 where stories_id = \$1
 SQL
 
-    $story->{ ap_syndication } = $ap_syndication;
+    $story->{ ap_syndicated } = $ap_syndicated;
 }
 
 # update story vectors for the given story, updating story_sentences
@@ -505,6 +505,8 @@ sub update_story_sentences_and_language
 
     _insert_story_sentences( $db, $story, $sentence_refs );
 
+    _update_ap_syndicated( $db, $story ) if ( $story_lang eq 'en' );
+
     $db->dbh->{ AutoCommit } || $db->commit;
 
     if (    MediaWords::Util::CoreNLP::annotator_is_enabled()
@@ -518,8 +520,6 @@ sub update_story_sentences_and_language
         MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman( { stories_id => $stories_id } );
 
     }
-
-    _update_ap_syndication( $db, $story );
 }
 
 ##NOTE: This method is only used by the test suite, consider removing it. - 04/07/2015
