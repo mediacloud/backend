@@ -505,7 +505,7 @@ sub update_story_sentences_and_language
 
     _insert_story_sentences( $db, $story, $sentence_refs );
 
-    _update_ap_syndicated( $db, $story ) if ( $story_lang eq 'en' );
+    _update_ap_syndicated( $db, $story ) if ( !$story_lang || ( $story_lang eq 'en' ) );
 
     $db->dbh->{ AutoCommit } || $db->commit;
 
