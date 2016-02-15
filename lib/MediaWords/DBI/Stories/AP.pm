@@ -69,11 +69,11 @@ select * from downloads where stories_id = \$1 order by downloads_id limit 1
 SQL
     }
 
-    return '' unless ( $story->{ download }->{ state } eq 'success' );
+    return '' unless ( $download->{ state } eq 'success' );
 
     my $content_ref;
 
-    eval { $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $story->{ download } ) };
+    eval { $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download ) };
     if ( $@ || !$content_ref )
     {
         warn( "error fetching content: $@" );
