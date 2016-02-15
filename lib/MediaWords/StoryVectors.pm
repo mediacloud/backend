@@ -367,13 +367,13 @@ sub clean_sentences
 # detect whether the story is syndicated and update stories.ap_syndicated
 sub _update_ap_syndicated
 {
-    my ( $db, $story ) = @_;
+    my ( $db, $story, $story_lang ) = @_;
 
-    return unless ( $story->{ language } eq 'en' );
+    return unless ( $story_lang eq 'en' );
 
     my $ap_syndicated = MediaWords::DBI::Stories::AP::is_syndicated( $db, $story );
 
-    return unless ( !defined( $story->{ ap_syndicated } ) || ( $story->{ ap_syndicated } != $ap_syndicated ) );
+    return unless ( defined( $story->{ ap_syndicated } ) && ( $story->{ ap_syndicated } != $ap_syndicated ) );
 
     $db->query( <<SQL, $story->{ stories_id }, $ap_syndicated );
 update stories set ap_syndicated = \$2 where stories_id = \$1
@@ -505,7 +505,7 @@ sub update_story_sentences_and_language
 
     _insert_story_sentences( $db, $story, $sentence_refs );
 
-    _update_ap_syndicated( $db, $story ) if ( !$story_lang || ( $story_lang eq 'en' ) );
+    _update_ap_syndicated( $db, $story, $story_lang );
 
     $db->dbh->{ AutoCommit } || $db->commit;
 
