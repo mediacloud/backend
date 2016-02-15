@@ -46,7 +46,8 @@ sub get_stories_from_queue
     my ( $db, $block_size ) = @_;
 
     my $stories = $db->query( <<SQL )->hashes;
-select * from stories s join scratch.ap_queue q on ( s.stories_id = q.stories_id ) limit $block_size
+select * from stories s join scratch.ap_queue q on ( s.stories_id = q.stories_id )
+    order by q.stories_id desc limit $block_size
 SQL
 
     attach_downloads_to_stories( $db, $stories );
@@ -58,7 +59,7 @@ sub main
 {
     my $db = MediaWords::DB::connect_to_db;
 
-    my $block_size = 10;
+    my $block_size = 100;
 
     my $stories_processed = 0;
     while ( my $stories = get_stories_from_queue( $db, $block_size ) )
