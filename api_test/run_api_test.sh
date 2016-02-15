@@ -29,7 +29,7 @@ UPGRADE_DB_SQL=`script/run_with_carton.sh script/mediawords_upgrade_db.pl --db_l
 
 if [ ${#UPGRADE_DB_SQL} -gt 0 ]; then
     script/run_with_carton.sh script/mediawords_upgrade_db.pl --db_label test --import
-    pg_dump -F custom mediacloud_test > data/db_dumps/cc_blogs_mc_db.dump
+    pg_dump --no-owner -F custom mediacloud_test > data/db_dumps/cc_blogs_mc_db.dump
     echo "updated data/db_dumps/cc_blogs_mc_db.dump to new schema"
 fi
 
@@ -71,7 +71,7 @@ TEST_RETURN_STATUS=0
 
 if [ -z ${MEDIACLOUD_ENABLE_PYTHON_API_TESTS+x} ]; then
     MEDIACLOUD_ENABLE_PYTHON_API_TESTS=0
-fi  
+fi
 
 if MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION=1 MEDIAWORDS_FORCE_USING_TEST_DATABASE=1 \
    ./script/run_with_carton.sh ./script/mediawords_import_solr_data.pl --delete; then
@@ -116,11 +116,11 @@ if MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION=1 MEDIAWORDS_FORCE_USING_TEST_DATABASE=1 
         else
             TEST_RETURN_STATUS=$?
             echo "Python API test failed with status: $TEST_RETURN_STATUS"
-        fi  
-      
+        fi
+
         cd ..
         pwd
-        curl 'http://0:3000/admin/stop_server' &   
+        curl 'http://0:3000/admin/stop_server' &
         sleep 1
         echo "past curl"
     fi
