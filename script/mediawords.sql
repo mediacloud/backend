@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4522;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4523;
 
 BEGIN
 
@@ -1043,7 +1043,8 @@ create table stories (
     full_text_rss               boolean         not null default 'f',
     db_row_last_updated                timestamp with time zone,
     language                    varchar(3)      null,   -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
-    disable_triggers            boolean  null
+    disable_triggers            boolean         null,
+    ap_syndicated               boolean         null
 );
 
 create index stories_media_id on stories (media_id);
@@ -1989,7 +1990,7 @@ BEGIN
 
     IF NOT EXISTS (
         SELECT 1
-        FROM information_schema.tables 
+        FROM information_schema.tables
         WHERE table_schema = current_schema()
           AND table_name = target_table_name
     ) THEN
@@ -2112,7 +2113,7 @@ BEGIN
 
     IF NOT EXISTS (
         SELECT 1
-        FROM information_schema.tables 
+        FROM information_schema.tables
         WHERE table_schema = current_schema()
           AND table_name = target_table_name
     ) THEN

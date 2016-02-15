@@ -56,7 +56,7 @@ sub _get_story_content
 {
     my ( $db, $story ) = @_;
 
-    if ( $story->{ content }  )
+    if ( $story->{ content } )
     {
         return $story->{ content };
     }
@@ -69,8 +69,7 @@ select * from downloads where stories_id = 1 order by downloads_id limit 1
 SQL
     }
 
-
-    return '' unless ( $story->{ download }->{ state } eq 'success'  );
+    return '' unless ( $story->{ download }->{ state } eq 'success' );
 
     my $content_ref;
 
@@ -97,11 +96,11 @@ with sentence_md5s as (
     select md5( ss.sentence ) md5_sentence
         from story_sentences ss
         where ss.stories_id = $story->{ stories_id } and
-        ss.media_id <> 209366
+        ss.media_id <> $ap_media_id
 )
 
 select * from story_sentences
-    where media_id = 209366 and
+    where media_id = $ap_media_id and
         md5( sentence ) in ( select md5_sentence from sentence_md5s );
 SQL
 
@@ -227,8 +226,13 @@ sub is_syndicated
         if ( $associated_press_mentions )
         {
             my $quoted_associated_press_first_quarter_mentions =
-                _get_content_pattern_matches( $db, $story, qr/["\'\|].{0,8}associated press.{0,8}["\'\|]/i );
-            _set_feature( $story, 'quoted_associated_press_first_quarter_mentions', $quoted_associated_press_first_quarter_mentions, $set_features );
+              _get_content_pattern_matches( $db, $story, qr/["\'\|].{0,8}associated press.{0,8}["\'\|]/i );
+            _set_feature(
+                $story,
+                'quoted_associated_press_first_quarter_mentions',
+                $quoted_associated_press_first_quarter_mentions,
+                $set_features
+            );
             if ( $quoted_associated_press_first_quarter_mentions ) { return 1 }
             else
             {
@@ -244,11 +248,11 @@ sub is_syndicated
                     {
                         my $ap_news_mentions = _get_content_pattern_matches( $db, $story, qr/ap news/i );
                         _set_feature( $story, 'ap_news_mentions', $ap_news_mentions, $set_features );
-                        if ( $ap_news_mentions ) { return 1 }
-                        else { return 0 };
+                        if   ( $ap_news_mentions ) { return 1 }
+                        else                       { return 0 }
                     }
                 }
-                else # $dup_sentences_32 == 2
+                else    # $dup_sentences_32 == 2
                 {
                     my $associated_press_near_title = _get_associated_press_near_title( $db, $story );
                     _set_feature( $story, 'associated_press_near_title', $associated_press_near_title, $set_features );
@@ -256,10 +260,15 @@ sub is_syndicated
                     else
                     {
                         my $associated_press_tag_mentions =
-                            _get_content_pattern_matches( $db, $story, qr/\<[^\<\>]*associated press[^\<\>]*\>/i );
-                        _set_feature( $story, 'associated_press_tag_mentions', $associated_press_tag_mentions, $set_features );
-                        if ( $associated_press_tag_mentions ) { return 0 }
-                        else { return 1 }
+                          _get_content_pattern_matches( $db, $story, qr/\<[^\<\>]*associated press[^\<\>]*\>/i );
+                        _set_feature(
+                            $story,
+                            'associated_press_tag_mentions',
+                            $associated_press_tag_mentions,
+                            $set_features
+                        );
+                        if   ( $associated_press_tag_mentions ) { return 0 }
+                        else                                    { return 1 }
                     }
                 }
             }
@@ -272,11 +281,11 @@ sub is_syndicated
             {
                 my $ap_mentions_uppercase_location = _get_text_pattern_matches( $db, $story, qr/[A-Z]+\s*\(AP\)/ );
                 _set_feature( $story, 'ap_mentions_uppercase_location', $ap_mentions_uppercase_location, $set_features );
-                if ( $ap_mentions_uppercase_location ) { return 1 }
-                else { return 0 }
+                if   ( $ap_mentions_uppercase_location ) { return 1 }
+                else                                     { return 0 }
             }
             elsif ( $dup_sentences_32 == 0 ) { return 0 }
-            else { return 1 } # $dup_sentences_32 == 2
+            else                             { return 1 }    # $dup_sentences_32 == 2
         }
     }
 

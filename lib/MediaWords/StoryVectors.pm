@@ -11,6 +11,7 @@ use Data::Dumper;
 
 use MediaWords::Languages::Language;
 use MediaWords::DBI::Stories;
+use MediaWords::DBI::Stories::AP;
 use MediaWords::Util::HTML;
 use MediaWords::Util::IdentifyLanguage;
 use MediaWords::Util::SQL;
@@ -363,6 +364,24 @@ sub clean_sentences
 
 }
 
+# detect whether the story is syndicated and update stories.ap_syndicated
+sub _update_ap_syndication
+{
+    my ( $db, $story ) = @_;
+
+    return unless ( $story->{ language } eq 'en' );
+
+    my $ap_syndication = MediaWords::DBI::Stories::AP::is_syndicated( $db, $story );
+
+    return unless ( !defined( $story->{ ap_syndication } ) || ( $story->{ ap_syndication } != $ap_syndication ) );
+
+    $db->query( <<SQL, $story->{ stories_id }, $ap_syndication );
+update stories set ap_syndication = \$2 where stories_id = \$1
+SQL
+
+    $story->{ ap_syndication } = $ap_syndication;
+}
+
 # update story vectors for the given story, updating story_sentences
 # if no_delete is true, do not try to delete existing entries in the above table before creating new ones
 # (useful for optimization if you are very sure no story vectors exist for this story).  If
@@ -499,6 +518,8 @@ sub update_story_sentences_and_language
         MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman( { stories_id => $stories_id } );
 
     }
+
+    _update_ap_syndication( $db, $story );
 }
 
 ##NOTE: This method is only used by the test suite, consider removing it. - 04/07/2015
