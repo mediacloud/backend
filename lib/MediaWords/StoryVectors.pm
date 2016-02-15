@@ -369,11 +369,9 @@ sub _update_ap_syndicated
 {
     my ( $db, $story, $story_lang ) = @_;
 
-    return unless ( $story_lang eq 'en' );
+    return unless ( $story_lang && $story_lang eq 'en' );
 
     my $ap_syndicated = MediaWords::DBI::Stories::AP::is_syndicated( $db, $story );
-
-    return unless ( defined( $story->{ ap_syndicated } ) && ( $story->{ ap_syndicated } != $ap_syndicated ) );
 
     $db->query( <<SQL, $story->{ stories_id }, $ap_syndicated );
 update stories set ap_syndicated = \$2 where stories_id = \$1
