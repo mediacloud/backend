@@ -24,4 +24,4 @@ fi
 echo "running mediawords_upgrade_db.pl --import"
 MEDIAWORDS_FORCE_USING_TEST_DATABASE=1 ./script/run_with_carton.sh ./script/mediawords_upgrade_db.pl --import
 echo "dumping"
-pg_dump --no-owner --format=plain $PGDATABASE > data/db_dumps/cc_blogs_mc_db.sql
+pg_dump --no-owner --no-acl --no-security-labels --format=plain $PGDATABASE > data/db_dumps/cc_blogs_mc_db.sql
