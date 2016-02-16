@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4526;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4527;
 
 BEGIN
 
@@ -2477,12 +2477,8 @@ $insert_live_story$ LANGUAGE plpgsql;
 create trigger controversy_stories_insert_live_story after insert on controversy_stories
     for each row execute procedure insert_live_story();
 
-create function update_live_story() returns trigger as $update_live_story$
+create or replace function update_live_story() returns trigger as $update_live_story$
     begin
-
-        IF NOT story_triggers_enabled() then
-	  RETURN NEW;
-        END IF;
 
         update cd.live_stories set
                 media_id = NEW.media_id,
