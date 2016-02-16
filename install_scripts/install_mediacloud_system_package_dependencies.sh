@@ -5,7 +5,7 @@ set -o errexit
 
 
 CLD_URL_DEBIAN="http://chromium-compact-language-detector.googlecode.com/files/compact-language-detector_0.1-1_amd64.deb"
-VAGRANT_URL_DEBIAN="https://dl.bintray.com/mitchellh/vagrant/vagrant_1.7.2_x86_64.deb"
+VAGRANT_URL_DEBIAN="https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.1_x86_64.deb"
 
 
 function echo_cld_instructions {
@@ -163,14 +163,30 @@ else
     if [ ! "${SKIP_CLD_TEST:+x}" ]; then     # Not installed manually?
         if [ ! -f /usr/lib/libcld.so ]; then        # Library is not installed yet?
 
+            echo "Installing CLD library..."
+
             # Try to download and install
-            CLDTEMPDIR=`mktemp -d -t cldXXXXX`
-            wget --quiet -O "$CLDTEMPDIR/cld.deb" "$CLD_URL_DEBIAN"
-            sudo dpkg -i "$CLDTEMPDIR/cld.deb"
-            rm -rf "$CLDTEMPDIR"
+            CLD_TEMP_DIR=`mktemp -d -t cldXXXXX`
+            CLD_TEMP_FILE="$CLDTEMPDIR/cld.deb"
+
+            wget --quiet -O "$CLD_TEMP_FILE" "$CLD_URL_DEBIAN" || {
+                echo "Unable to fetch CLD library from $CLD_TEMP_FILE; maybe the URL is outdated?"
+                echo
+                echo_cld_instructions
+                exit 1
+            }
+
+            sudo dpkg -i "$CLD_TEMP_FILE" || {
+                echo "Unable to install CLD library from $CLD_TEMP_FILE."
+                echo
+                echo_cld_instructions
+                exit 1
+            }
+
+            rm -rf "$CLD_TEMP_DIR"
 
             if [ ! -f /usr/lib/libcld.so ]; then    # Installed?
-                echo "I have tried to install CLD manually but failed."
+                echo "I have tried to install CLD library manually but failed."
                 echo
                 echo_cld_instructions
                 exit 1
@@ -182,11 +198,27 @@ else
     if [ ! "${SKIP_VAGRANT_TEST:+x}" ]; then
         if [ ! -x /usr/bin/vagrant ]; then
 
+            echo "Installing Vagrant..."
+
             # Try to download and install
-            VAGRANTTEMPDIR=`mktemp -d -t vagrantXXXXX`
-            wget --quiet -O "$VAGRANTTEMPDIR/vagrant.deb" "$VAGRANT_URL_DEBIAN"
-            sudo dpkg -i "$VAGRANTTEMPDIR/vagrant.deb"
-            rm -rf "$VAGRANTTEMPDIR"
+            VAGRANT_TEMP_DIR=`mktemp -d -t vagrantXXXXX`
+            VAGRANT_TEMP_FILE="$VAGRANT_TEMP_DIR/vagrant.deb"
+
+            wget --quiet -O "$VAGRANT_TEMP_FILE" "$VAGRANT_URL_DEBIAN" || {
+                echo "Unable to fetch Vagrant from $VAGRANT_URL_DEBIAN; maybe the URL is outdated?"
+                echo
+                echo_vagrant_instructions
+                exit 1
+            }
+
+            sudo dpkg -i "$VAGRANT_TEMP_FILE" || {
+                echo "Unable to install Vagrant from $VAGRANT_TEMP_FILE."
+                echo
+                echo_vagrant_instructions
+                exit 1
+            }
+
+            rm -rf "$VAGRANT_TEMP_DIR"
 
             if [ ! -x /usr/bin/vagrant ]; then    # Installed?
                 echo "I have tried to install Vagrant manually but failed."

@@ -68,12 +68,9 @@ sub run($;$)
         $stories_id = $download->{ stories_id } + 0;
     }
 
-    $db->begin_work;
-
     my $story = $db->find_by_id( 'stories', $stories_id );
     unless ( $story->{ stories_id } )
     {
-        $db->rollback;
         die "Story with ID $stories_id was not found.";
     }
 
@@ -81,7 +78,6 @@ sub run($;$)
     eval { MediaWords::Util::CoreNLP::store_annotation_for_story( $db, $stories_id ); };
     if ( $@ )
     {
-        $db->rollback;
         die "Unable to process story $stories_id with CoreNLP: $@\n";
     }
 
@@ -91,12 +87,8 @@ sub run($;$)
 
         # If the script wasn't able to log annotated story to PostgreSQL, this
         # is also a fatal error (meaning that the script can't continue running)
-        $db->rollback;
         die 'Unable to to log annotated story $stories_id to database: ' . $db->dbh->errstr;
     }
-
-    # Things went fine.
-    $db->commit;
 
     return 1;
 }
