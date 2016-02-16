@@ -5,7 +5,7 @@ set -o errexit
 
 
 CLD_URL_DEBIAN="http://chromium-compact-language-detector.googlecode.com/files/compact-language-detector_0.1-1_amd64.deb"
-VAGRANT_URL_DEBIAN="https://dl.bintray.com/mitchellh/vagrant/vagrant_1.7.2_x86_64.deb"
+VAGRANT_URL_DEBIAN="https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.1_x86_64.deb"
 
 
 function echo_cld_instructions {
