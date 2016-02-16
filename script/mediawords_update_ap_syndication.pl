@@ -46,8 +46,14 @@ sub get_stories_from_queue
     my ( $db, $block_size ) = @_;
 
     my $stories = $db->query( <<SQL )->hashes;
-select * from stories s join scratch.ap_queue q on ( s.stories_id = q.stories_id )
-    order by q.stories_id desc limit $block_size
+update scratch.ap_queue ap
+    set status = 'processing'
+    from stories s
+    where
+        ap.stories_id in
+            ( select stories_id from scratch.ap_queue where status is null order by stories_id desc limit $block_size ) and
+        ap.stories_id = s.stories_id
+    returning s.*
 SQL
 
     attach_downloads_to_stories( $db, $stories );
@@ -64,9 +70,10 @@ sub main
     my $stories_processed = 0;
     while ( my $stories = get_stories_from_queue( $db, $block_size ) )
     {
-        say STDERR "updating " . ( ++$stories_processed * $block_size );
+        say STDERR "updating block:" . ( ++$stories_processed * $block_size );
         for my $story ( @{ $stories } )
         {
+            say STDERR "$story->{ stories_id } ...";
             MediaWords::StoryVectors::_update_ap_syndicated( $db, $story, $story->{ language } );
         }
 
