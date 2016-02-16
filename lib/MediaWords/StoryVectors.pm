@@ -374,7 +374,7 @@ sub _update_ap_syndicated
     my $ap_syndicated = MediaWords::DBI::Stories::AP::is_syndicated( $db, $story );
 
     $db->query( <<SQL, $story->{ stories_id }, $ap_syndicated );
-update stories set ap_syndicated = \$2 where stories_id = \$1
+update stories set ap_syndicated = \$2, disable_triggers = true where stories_id = \$1
 SQL
 
     $story->{ ap_syndicated } = $ap_syndicated;
