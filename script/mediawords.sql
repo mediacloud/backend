@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4525;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4526;
 
 BEGIN
 
@@ -2495,11 +2495,7 @@ create function update_live_story() returns trigger as $update_live_story$
                 full_text_rss = NEW.full_text_rss,
                 language = NEW.language,
                 db_row_last_updated = NEW.db_row_last_updated,
-                ap_syndicated = (
-                    SELECT ap_syndicated
-                    FROM stories
-                    WHERE stories_id = NEW.stories_id
-                )
+                ap_syndicated = NEW.ap_syndicated
             where
                 stories_id = NEW.stories_id;
 
