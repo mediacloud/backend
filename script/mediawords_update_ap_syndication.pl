@@ -61,6 +61,27 @@ SQL
     return $stories;
 }
 
+sub update_stories
+{
+    my ( $db, $updates ) = @_;
+
+    my $values_list = join( ',', map { "($_->{ stories_id }::int, $_->{ ap_syndicated }::boolean)" } @{ $updates } );
+
+    $db->query( <<SQL );
+update stories s
+    set
+        ap_syndicated = v.ap_syndicated,
+        disable_triggers = true
+    from
+        (
+            values $values_list
+        ) as v ( stories_id, ap_syndicated)
+    where
+        v.stories_id = s.stories_id
+SQL
+
+}
+
 sub main
 {
     my $db = MediaWords::DB::connect_to_db;
@@ -71,11 +92,17 @@ sub main
     while ( my $stories = get_stories_from_queue( $db, $block_size ) )
     {
         say STDERR "updating block:" . ( ++$stories_processed * $block_size );
+
+        my $updates = [];
         for my $story ( @{ $stories } )
         {
             say STDERR "$story->{ stories_id } ...";
-            MediaWords::StoryVectors::_update_ap_syndicated( $db, $story, $story->{ language } );
+            my $ap_syndicated = MediaWords::DBI::Stories::AP::is_syndicated( $db, $story );
+
+            push( @{ $updates }, { stories_id => $story->{ stories_id }, ap_syndicated => $ap_syndicated } );
         }
+
+        update_stories( $db, $updates );
 
         my $ids_list = join( ',', map { $_->{ stories_id } } @{ $stories } );
         $db->query( "delete from scratch.ap_queue where stories_id in ( $ids_list )" );
