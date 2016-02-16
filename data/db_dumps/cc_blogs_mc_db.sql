@@ -210,7 +210,7 @@ CREATE FUNCTION enum_add(enum_name character varying, enum_elem character varyin
     AS $$
 BEGIN
     INSERT INTO pg_enum(enumtypid, enumlabel) VALUES(
-        (SELECT oid FROM pg_type WHERE typtype='e' AND typname=enum_name), 
+        (SELECT oid FROM pg_type WHERE typtype='e' AND typname=enum_name),
         enum_elem
     );
 END;
@@ -238,63 +238,63 @@ DECLARE
     ret INTEGER;
 BEGIN
     SELECT pg_type.oid
-    FROM pg_type 
+    FROM pg_type
     WHERE typtype = 'e' AND typname = enum_name
     INTO type_oid;
 
     IF NOT FOUND THEN
-        RAISE EXCEPTION 'Cannot find a enum: %', enum_name; 
+        RAISE EXCEPTION 'Cannot find a enum: %', enum_name;
     END IF;
-                             
+
     -- Check column DEFAULT value references.
     SELECT *
-    FROM 
+    FROM
         pg_attrdef
         JOIN pg_attribute ON attnum = adnum AND atttypid = type_oid
         JOIN pg_class ON pg_class.oid = attrelid
         JOIN pg_namespace ON pg_namespace.oid = relnamespace
-    WHERE   
+    WHERE
         adsrc = quote_literal(enum_elem) || '::' || quote_ident(enum_name)
     LIMIT 1
-    INTO rec; 
-    
+    INTO rec;
+
     IF FOUND THEN
-        RAISE EXCEPTION 
+        RAISE EXCEPTION
             'Cannot delete the ENUM element %.%: column %.%.% has DEFAULT value of ''%''',
             quote_ident(enum_name), quote_ident(enum_elem),
             quote_ident(rec.nspname), quote_ident(rec.relname),
             rec.attname, quote_ident(enum_elem);
     END IF;
-    
+
     -- Check data references.
-    FOR rec IN 
+    FOR rec IN
         SELECT *
-        FROM 
+        FROM
             pg_attribute
             JOIN pg_class ON pg_class.oid = attrelid
             JOIN pg_namespace ON pg_namespace.oid = relnamespace
-        WHERE 
+        WHERE
             atttypid = type_oid
             AND relkind = 'r'
     LOOP
-        sql := 
-            'SELECT 1 FROM ONLY ' 
+        sql :=
+            'SELECT 1 FROM ONLY '
             || quote_ident(rec.nspname) || '.'
             || quote_ident(rec.relname) || ' '
-            || ' WHERE ' 
+            || ' WHERE '
             || quote_ident(rec.attname) || ' = '
             || quote_literal(enum_elem)
             || ' LIMIT 1';
         EXECUTE sql INTO ret;
         IF ret IS NOT NULL THEN
-            RAISE EXCEPTION 
+            RAISE EXCEPTION
                 'Cannot delete the ENUM element %.%: column %.%.% contains references',
                 quote_ident(enum_name), quote_ident(enum_elem),
                 quote_ident(rec.nspname), quote_ident(rec.relname),
                 rec.attname;
         END IF;
-    END LOOP;    
-    
+    END LOOP;
+
     -- OK. We may delete.
     DELETE FROM pg_enum WHERE enumtypid = type_oid AND enumlabel = enum_elem;
 END;
@@ -449,7 +449,7 @@ BEGIN
 
     IF NOT EXISTS (
         SELECT 1
-        FROM information_schema.tables 
+        FROM information_schema.tables
         WHERE table_schema = current_schema()
           AND table_name = target_table_name
     ) THEN
@@ -528,7 +528,7 @@ BEGIN
 
     IF NOT EXISTS (
         SELECT 1
-        FROM information_schema.tables 
+        FROM information_schema.tables
         WHERE table_schema = current_schema()
           AND table_name = target_table_name
     ) THEN
@@ -644,7 +644,7 @@ begin
     IF NOT story_triggers_enabled() THEN
        RETURN NULL;
     END IF;
-    
+
     update media_stats set num_sentences = num_sentences - 1
     where media_id = OLD.media_id and stat_date = date_trunc( 'day', OLD.publish_date );
 
@@ -661,7 +661,7 @@ CREATE FUNCTION delete_story_media_stats() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 begin
-    
+
     IF NOT story_triggers_enabled() THEN
        RETURN NULL;
     END IF;
@@ -703,8 +703,8 @@ CREATE FUNCTION download_relative_file_path_trigger() RETURNS trigger
 
 	  -- The second part is needed because of the way comparisons with null are handled.
 	  path_change := ( OLD.path <> NEW.path )  AND (  ( OLD.path is not null) <> (NEW.path is not null) ) ;
-	  -- RAISE NOTICE 'test result % ', path_change; 
-	  
+	  -- RAISE NOTICE 'test result % ', path_change;
+
           IF path_change is null THEN
 	       -- RAISE NOTICE 'Path change % != %', OLD.path, NEW.path;
                NEW.relative_file_path = get_relative_file_path(NEW.path);
@@ -900,11 +900,11 @@ BEGIN
 
     IF path ~ regex_tar_format THEN
          relative_file_path =  regexp_replace(path, E'tar\\:\\d*\\:\\d*\\:(mediacloud-content-\\d*\.tar).*', E'\\1') ;
-    ELSIF  path like 'content:%' THEN 
+    ELSIF  path like 'content:%' THEN
          relative_file_path =  'inline';
     ELSEIF path like 'content/%' THEN
          relative_file_path =  regexp_replace(path, E'content\\/', E'\/') ;
-    ELSE  
+    ELSE
          relative_file_path = 'error';
     END IF;
 
@@ -925,7 +925,7 @@ CREATE FUNCTION insert_controversy_tag_set() RETURNS trigger
     begin
         insert into tag_sets ( name, label, description )
             select 'controversy_'||NEW.name, NEW.name||' controversy', 'Tag set for stories within the '||NEW.name||' controversy.';
-        
+
         select tag_sets_id into NEW.controversy_tag_sets_id from tag_sets where name = 'controversy_'||NEW.name;
 
         return NEW;
@@ -994,7 +994,7 @@ begin
     IF NOT story_triggers_enabled() THEN
        RETURN NULL;
     END IF;
-    
+
     insert into media_stats ( media_id, num_stories, num_sentences, stat_date )
         select NEW.media_id, 0, 0, date_trunc( 'day', NEW.publish_date )
             where not exists (
@@ -1089,7 +1089,7 @@ CREATE FUNCTION last_updated_trigger() RETURNS trigger
       path_change boolean;
       table_with_trigger_column  boolean default false;
    BEGIN
-      -- RAISE NOTICE 'BEGIN ';                                                                                                                            
+      -- RAISE NOTICE 'BEGIN ';
         IF TG_TABLE_NAME in ( 'processed_stories', 'stories', 'story_sentences') THEN
            table_with_trigger_column = true;
         ELSE
@@ -1127,7 +1127,7 @@ BEGIN
    LOOP
     temp := temp + 1;
     perform pg_sleep( 1 );
-    RAISE NOTICE 'time - %', temp; 
+    RAISE NOTICE 'time - %', temp;
    END LOOP;
 END;
 $$;
@@ -1170,7 +1170,7 @@ BEGIN
     ELSE
         RETURN FALSE;
     END IF;
-    
+
 END;
 $$;
 
@@ -1209,7 +1209,7 @@ BEGIN
 
    media_rec = media_set_sw_data_retention_dates( v_media_sets_id, default_start_day,  default_end_day ); -- INTO (media_rec);
 
-   start_date = media_rec.start_date; 
+   start_date = media_rec.start_date;
    end_date = media_rec.end_date;
 
     -- RAISE NOTICE 'start date - %', start_date;
@@ -1237,7 +1237,7 @@ BEGIN
 
     SELECT media_sets_id, min(coalesce (media.sw_data_start_date, default_start_day )) as sw_data_start_date, max( coalesce ( media.sw_data_end_date,  default_end_day )) as sw_data_end_date INTO media_rec from media_sets_media_map join media on (media_sets_media_map.media_id = media.media_id ) and media_sets_id = v_media_sets_id  group by media_sets_id;
 
-    start_date = media_rec.sw_data_start_date; 
+    start_date = media_rec.sw_data_start_date;
     end_date = media_rec.sw_data_end_date;
 
     --RAISE NOTICE 'start date - %', start_date;
@@ -1303,14 +1303,14 @@ BEGIN
     FOR media_rec in  SELECT media_id, coalesce( sw_data_start_date, default_start_day ) as start_date FROM media where not (coalesce ( sw_data_start_date, default_start_day ) is null ) ORDER BY media_id LOOP
         current_time := timeofday()::timestamp;
         RAISE NOTICE 'media_id is %, start_date - % time - %', media_rec.media_id, media_rec.start_date, current_time;
-        DELETE from story_sentence_counts where media_id = media_rec.media_id and publish_week < date_trunc( 'day', media_rec.start_date ); 
+        DELETE from story_sentence_counts where media_id = media_rec.media_id and publish_week < date_trunc( 'day', media_rec.start_date );
     END LOOP;
 
   RAISE NOTICE 'time - %', current_time;  -- Prints 30
   FOR media_rec in  SELECT media_id, coalesce( sw_data_end_date, default_end_day ) as end_date FROM media where not (coalesce ( sw_data_end_date, default_end_day ) is null ) ORDER BY media_id LOOP
         current_time := timeofday()::timestamp;
         RAISE NOTICE 'media_id is %, end_date - % time - %', media_rec.media_id, media_rec.end_date, current_time;
-        DELETE from story_sentence_counts where media_id = media_rec.media_id and publish_week > date_trunc( 'day', media_rec.end_date ); 
+        DELETE from story_sentence_counts where media_id = media_rec.media_id and publish_week > date_trunc( 'day', media_rec.end_date );
     END LOOP;
 END;
 $$;
@@ -1333,14 +1333,14 @@ BEGIN
     FOR media_rec in  SELECT media_id, coalesce( sw_data_start_date, default_start_day ) as start_date FROM media where not (coalesce ( sw_data_start_date, default_start_day ) is null ) ORDER BY media_id LOOP
         current_time := timeofday()::timestamp;
         RAISE NOTICE 'media_id is %, start_date - % time - %', media_rec.media_id, media_rec.start_date, current_time;
-        DELETE from story_sentences where media_id = media_rec.media_id and date_trunc( 'day', publish_date ) < date_trunc( 'day', media_rec.start_date ); 
+        DELETE from story_sentences where media_id = media_rec.media_id and date_trunc( 'day', publish_date ) < date_trunc( 'day', media_rec.start_date );
     END LOOP;
 
   RAISE NOTICE 'time - %', current_time;  -- Prints 30
   FOR media_rec in  SELECT media_id, coalesce( sw_data_end_date, default_end_day ) as end_date FROM media where not (coalesce ( sw_data_end_date, default_end_day ) is null ) ORDER BY media_id LOOP
         current_time := timeofday()::timestamp;
         RAISE NOTICE 'media_id is %, end_date - % time - %', media_rec.media_id, media_rec.end_date, current_time;
-        DELETE from story_sentences where media_id = media_rec.media_id and date_trunc( 'day', publish_date ) > date_trunc( 'day', media_rec.end_date ); 
+        DELETE from story_sentences where media_id = media_rec.media_id and date_trunc( 'day', publish_date ) > date_trunc( 'day', media_rec.end_date );
     END LOOP;
 END;
 $$;
@@ -1682,7 +1682,7 @@ BEGIN
         RETURN TRUE;
 
     END IF;
-    
+
 END;
 $$;
 
@@ -1775,7 +1775,7 @@ CREATE FUNCTION update_media_last_updated() RETURNS trigger
       	 update media set db_row_last_updated = now() where media_id = NEW.media_id;
       	 RETURN NEW;
       END IF;
-      
+
       IF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'DELETE') THEN
       	 update media set db_row_last_updated = now() where media_id = OLD.media_id;
       	 RETURN OLD;
@@ -1799,10 +1799,10 @@ begin
     IF NOT story_triggers_enabled() THEN
        RETURN NULL;
     END IF;
-    
+
     select date_trunc( 'day', NEW.publish_date ) into new_date;
     select date_trunc( 'day', OLD.publish_date ) into old_date;
-    
+
     IF ( new_date <> old_date ) THEN
         update media_stats set num_sentences = num_sentences - 1
             where media_id = NEW.media_id and stat_date = old_date;
@@ -1915,10 +1915,10 @@ begin
     IF NOT story_triggers_enabled() THEN
        RETURN NULL;
     END IF;
-    
+
     select date_trunc( 'day', NEW.publish_date ) into new_date;
     select date_trunc( 'day', OLD.publish_date ) into old_date;
-    
+
     IF ( new_date <> old_date ) THEN
         update media_stats set num_stories = num_stories - 1
             where media_id = NEW.media_id and stat_date = old_date;
@@ -1930,7 +1930,7 @@ begin
 
         update media_stats set num_stories = num_stories + 1
             where media_id = NEW.media_id and stat_date = new_date;
-            
+
         update story_sentences set publish_date = new_date where stories_id = OLD.stories_id;
     END IF;
 
@@ -2107,7 +2107,7 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
--- Name: controversy_links_cross_media; Type: TABLE; Schema: cd; Owner: -; Tablespace: 
+-- Name: controversy_links_cross_media; Type: TABLE; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE TABLE controversy_links_cross_media (
@@ -2121,7 +2121,7 @@ CREATE TABLE controversy_links_cross_media (
 
 
 --
--- Name: controversy_media_codes; Type: TABLE; Schema: cd; Owner: -; Tablespace: 
+-- Name: controversy_media_codes; Type: TABLE; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE TABLE controversy_media_codes (
@@ -2134,7 +2134,7 @@ CREATE TABLE controversy_media_codes (
 
 
 --
--- Name: controversy_stories; Type: TABLE; Schema: cd; Owner: -; Tablespace: 
+-- Name: controversy_stories; Type: TABLE; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE TABLE controversy_stories (
@@ -2151,7 +2151,7 @@ CREATE TABLE controversy_stories (
 
 
 --
--- Name: daily_date_counts; Type: TABLE; Schema: cd; Owner: -; Tablespace: 
+-- Name: daily_date_counts; Type: TABLE; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE TABLE daily_date_counts (
@@ -2163,7 +2163,7 @@ CREATE TABLE daily_date_counts (
 
 
 --
--- Name: live_stories; Type: TABLE; Schema: cd; Owner: -; Tablespace: 
+-- Name: live_stories; Type: TABLE; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE TABLE live_stories (
@@ -2185,7 +2185,7 @@ CREATE TABLE live_stories (
 
 
 --
--- Name: media; Type: TABLE; Schema: cd; Owner: -; Tablespace: 
+-- Name: media; Type: TABLE; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE TABLE media (
@@ -2208,7 +2208,7 @@ CREATE TABLE media (
 
 
 --
--- Name: media_tags_map; Type: TABLE; Schema: cd; Owner: -; Tablespace: 
+-- Name: media_tags_map; Type: TABLE; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE TABLE media_tags_map (
@@ -2220,7 +2220,7 @@ CREATE TABLE media_tags_map (
 
 
 --
--- Name: medium_link_counts; Type: TABLE; Schema: cd; Owner: -; Tablespace: 
+-- Name: medium_link_counts; Type: TABLE; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE TABLE medium_link_counts (
@@ -2234,7 +2234,7 @@ CREATE TABLE medium_link_counts (
 
 
 --
--- Name: medium_links; Type: TABLE; Schema: cd; Owner: -; Tablespace: 
+-- Name: medium_links; Type: TABLE; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE TABLE medium_links (
@@ -2246,7 +2246,7 @@ CREATE TABLE medium_links (
 
 
 --
--- Name: stories; Type: TABLE; Schema: cd; Owner: -; Tablespace: 
+-- Name: stories; Type: TABLE; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE TABLE stories (
@@ -2259,12 +2259,13 @@ CREATE TABLE stories (
     publish_date timestamp without time zone NOT NULL,
     collect_date timestamp without time zone NOT NULL,
     full_text_rss boolean DEFAULT false NOT NULL,
-    language character varying(3)
+    language character varying(3),
+    ap_syndicated boolean
 );
 
 
 --
--- Name: stories_tags_map; Type: TABLE; Schema: cd; Owner: -; Tablespace: 
+-- Name: stories_tags_map; Type: TABLE; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE TABLE stories_tags_map (
@@ -2276,7 +2277,7 @@ CREATE TABLE stories_tags_map (
 
 
 --
--- Name: story_link_counts; Type: TABLE; Schema: cd; Owner: -; Tablespace: 
+-- Name: story_link_counts; Type: TABLE; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE TABLE story_link_counts (
@@ -2289,7 +2290,7 @@ CREATE TABLE story_link_counts (
 
 
 --
--- Name: story_links; Type: TABLE; Schema: cd; Owner: -; Tablespace: 
+-- Name: story_links; Type: TABLE; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE TABLE story_links (
@@ -2300,7 +2301,7 @@ CREATE TABLE story_links (
 
 
 --
--- Name: tag_sets; Type: TABLE; Schema: cd; Owner: -; Tablespace: 
+-- Name: tag_sets; Type: TABLE; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE TABLE tag_sets (
@@ -2313,7 +2314,7 @@ CREATE TABLE tag_sets (
 
 
 --
--- Name: tags; Type: TABLE; Schema: cd; Owner: -; Tablespace: 
+-- Name: tags; Type: TABLE; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE TABLE tags (
@@ -2327,7 +2328,7 @@ CREATE TABLE tags (
 
 
 --
--- Name: weekly_date_counts; Type: TABLE; Schema: cd; Owner: -; Tablespace: 
+-- Name: weekly_date_counts; Type: TABLE; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE TABLE weekly_date_counts (
@@ -2339,7 +2340,7 @@ CREATE TABLE weekly_date_counts (
 
 
 --
--- Name: word_counts; Type: TABLE; Schema: cd; Owner: -; Tablespace: 
+-- Name: word_counts; Type: TABLE; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE TABLE word_counts (
@@ -2353,7 +2354,7 @@ CREATE TABLE word_counts (
 SET search_path = public, pg_catalog;
 
 --
--- Name: activities; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: activities; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE activities (
@@ -2388,7 +2389,7 @@ ALTER SEQUENCE activities_activities_id_seq OWNED BY activities.activities_id;
 
 
 --
--- Name: auth_registration_queue; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_registration_queue; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE auth_registration_queue (
@@ -2421,7 +2422,7 @@ ALTER SEQUENCE auth_registration_queue_auth_registration_queue_id_seq OWNED BY a
 
 
 --
--- Name: auth_roles; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_roles; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE auth_roles (
@@ -2452,7 +2453,7 @@ ALTER SEQUENCE auth_roles_auth_roles_id_seq OWNED BY auth_roles.auth_roles_id;
 
 
 --
--- Name: auth_user_ip_tokens; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_user_ip_tokens; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE auth_user_ip_tokens (
@@ -2484,7 +2485,7 @@ ALTER SEQUENCE auth_user_ip_tokens_auth_user_ip_tokens_id_seq OWNED BY auth_user
 
 
 --
--- Name: auth_user_limits; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_user_limits; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE auth_user_limits (
@@ -2515,7 +2516,7 @@ ALTER SEQUENCE auth_user_limits_auth_user_limits_id_seq OWNED BY auth_user_limit
 
 
 --
--- Name: auth_user_request_daily_counts; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_user_request_daily_counts; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE auth_user_request_daily_counts (
@@ -2547,7 +2548,7 @@ ALTER SEQUENCE auth_user_request_daily_count_auth_user_request_daily_count_seq O
 
 
 --
--- Name: auth_user_requests; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_user_requests; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE auth_user_requests (
@@ -2579,7 +2580,7 @@ ALTER SEQUENCE auth_user_requests_auth_user_requests_id_seq OWNED BY auth_user_r
 
 
 --
--- Name: auth_users; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_users; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE auth_users (
@@ -2620,7 +2621,7 @@ ALTER SEQUENCE auth_users_auth_users_id_seq OWNED BY auth_users.auth_users_id;
 
 
 --
--- Name: auth_users_roles_map; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_users_roles_map; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE auth_users_roles_map (
@@ -2650,7 +2651,7 @@ ALTER SEQUENCE auth_users_roles_map_auth_users_roles_map_id_seq OWNED BY auth_us
 
 
 --
--- Name: auth_users_tag_sets_permissions; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_users_tag_sets_permissions; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE auth_users_tag_sets_permissions (
@@ -2684,7 +2685,7 @@ ALTER SEQUENCE auth_users_tag_sets_permissio_auth_users_tag_sets_permissio_seq O
 
 
 --
--- Name: bitly_clicks_daily; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: bitly_clicks_daily; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE bitly_clicks_daily (
@@ -2715,7 +2716,7 @@ ALTER SEQUENCE bitly_clicks_daily_bitly_clicks_id_seq OWNED BY bitly_clicks_dail
 
 
 --
--- Name: bitly_clicks_total; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: bitly_clicks_total; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE bitly_clicks_total (
@@ -2745,7 +2746,7 @@ ALTER SEQUENCE bitly_clicks_total_bitly_clicks_id_seq OWNED BY bitly_clicks_tota
 
 
 --
--- Name: bitly_processing_results; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: bitly_processing_results; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE bitly_processing_results (
@@ -2777,7 +2778,7 @@ ALTER SEQUENCE bitly_processing_results_bitly_processing_results_id_seq OWNED BY
 
 
 --
--- Name: bitly_processing_schedule; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: bitly_processing_schedule; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE bitly_processing_schedule (
@@ -2807,7 +2808,7 @@ ALTER SEQUENCE bitly_processing_schedule_bitly_processing_schedule_id_seq OWNED 
 
 
 --
--- Name: cd_files; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: cd_files; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE cd_files (
@@ -2838,7 +2839,7 @@ ALTER SEQUENCE cd_files_cd_files_id_seq OWNED BY cd_files.cd_files_id;
 
 
 --
--- Name: cdts_files; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: cdts_files; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE cdts_files (
@@ -2869,7 +2870,7 @@ ALTER SEQUENCE cdts_files_cdts_files_id_seq OWNED BY cdts_files.cdts_files_id;
 
 
 --
--- Name: color_sets; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: color_sets; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE color_sets (
@@ -2900,7 +2901,7 @@ ALTER SEQUENCE color_sets_color_sets_id_seq OWNED BY color_sets.color_sets_id;
 
 
 --
--- Name: controversies; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: controversies; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE controversies (
@@ -2944,7 +2945,7 @@ ALTER SEQUENCE controversies_controversies_id_seq OWNED BY controversies.controv
 
 
 --
--- Name: controversy_dates; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: controversy_dates; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE controversy_dates (
@@ -2997,7 +2998,7 @@ ALTER SEQUENCE controversy_dates_controversy_dates_id_seq OWNED BY controversy_d
 
 
 --
--- Name: controversy_dump_tags; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: controversy_dump_tags; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE controversy_dump_tags (
@@ -3027,7 +3028,7 @@ ALTER SEQUENCE controversy_dump_tags_controversy_dump_tags_id_seq OWNED BY contr
 
 
 --
--- Name: controversy_dump_time_slices; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: controversy_dump_time_slices; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE controversy_dump_time_slices (
@@ -3069,7 +3070,7 @@ ALTER SEQUENCE controversy_dump_time_slices_controversy_dump_time_slices_i_seq O
 
 
 --
--- Name: controversy_dumps; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: controversy_dumps; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE controversy_dumps (
@@ -3102,7 +3103,7 @@ ALTER SEQUENCE controversy_dumps_controversy_dumps_id_seq OWNED BY controversy_d
 
 
 --
--- Name: controversy_ignore_redirects; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: controversy_ignore_redirects; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE controversy_ignore_redirects (
@@ -3131,7 +3132,7 @@ ALTER SEQUENCE controversy_ignore_redirects_controversy_ignore_redirects_i_seq O
 
 
 --
--- Name: controversy_links; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: controversy_links; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE controversy_links (
@@ -3165,7 +3166,7 @@ ALTER SEQUENCE controversy_links_controversy_links_id_seq OWNED BY controversy_l
 
 
 --
--- Name: controversy_stories; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: controversy_stories; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE controversy_stories (
@@ -3181,7 +3182,7 @@ CREATE TABLE controversy_stories (
 
 
 --
--- Name: media; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: media; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE media (
@@ -3208,7 +3209,7 @@ CREATE TABLE media (
 
 
 --
--- Name: stories; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: stories; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE stories (
@@ -3249,7 +3250,7 @@ CREATE VIEW controversy_links_cross_media AS
 
 
 --
--- Name: controversy_media_codes; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: controversy_media_codes; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE controversy_media_codes (
@@ -3261,7 +3262,7 @@ CREATE TABLE controversy_media_codes (
 
 
 --
--- Name: controversy_merged_stories_map; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: controversy_merged_stories_map; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE controversy_merged_stories_map (
@@ -3271,7 +3272,7 @@ CREATE TABLE controversy_merged_stories_map (
 
 
 --
--- Name: controversy_query_slices; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: controversy_query_slices; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE controversy_query_slices (
@@ -3303,7 +3304,7 @@ ALTER SEQUENCE controversy_query_slices_controversy_query_slices_id_seq OWNED BY
 
 
 --
--- Name: controversy_query_story_searches_imported_stories_map; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: controversy_query_story_searches_imported_stories_map; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE controversy_query_story_searches_imported_stories_map (
@@ -3313,7 +3314,7 @@ CREATE TABLE controversy_query_story_searches_imported_stories_map (
 
 
 --
--- Name: controversy_seed_urls; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: controversy_seed_urls; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE controversy_seed_urls (
@@ -3370,7 +3371,7 @@ ALTER SEQUENCE controversy_stories_controversy_stories_id_seq OWNED BY controver
 
 
 --
--- Name: corenlp_annotations; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: corenlp_annotations; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE corenlp_annotations (
@@ -3401,7 +3402,7 @@ ALTER SEQUENCE corenlp_annotations_corenlp_annotations_id_seq OWNED BY corenlp_a
 
 
 --
--- Name: downloads; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: downloads; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE downloads (
@@ -3513,7 +3514,7 @@ CREATE VIEW downloads_with_error_in_past_day AS
 
 
 --
--- Name: solr_imports; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: solr_imports; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE solr_imports (
@@ -3568,7 +3569,7 @@ CREATE VIEW daily_stats AS
 
 
 --
--- Name: dashboard_media_sets; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: dashboard_media_sets; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE dashboard_media_sets (
@@ -3599,7 +3600,7 @@ ALTER SEQUENCE dashboard_media_sets_dashboard_media_sets_id_seq OWNED BY dashboa
 
 
 --
--- Name: dashboard_topics; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: dashboard_topics; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE dashboard_topics (
@@ -3653,7 +3654,7 @@ CREATE VIEW dashboard_topics_tt2_locale_format AS
 
 
 --
--- Name: dashboards; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: dashboards; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE dashboards (
@@ -3685,7 +3686,7 @@ ALTER SEQUENCE dashboards_dashboards_id_seq OWNED BY dashboards.dashboards_id;
 
 
 --
--- Name: database_variables; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: database_variables; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE database_variables (
@@ -3715,7 +3716,7 @@ ALTER SEQUENCE database_variables_database_variables_id_seq OWNED BY database_va
 
 
 --
--- Name: download_texts; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: download_texts; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE download_texts (
@@ -3766,7 +3767,7 @@ ALTER SEQUENCE downloads_downloads_id_seq OWNED BY downloads.downloads_id;
 
 
 --
--- Name: feeds; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: feeds; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE feeds (
@@ -3869,7 +3870,7 @@ CREATE VIEW downloads_sites AS
 
 
 --
--- Name: extra_corenlp_stories; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: extra_corenlp_stories; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE extra_corenlp_stories (
@@ -3898,7 +3899,7 @@ ALTER SEQUENCE extra_corenlp_stories_extra_corenlp_stories_id_seq OWNED BY extra
 
 
 --
--- Name: extracted_lines; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: extracted_lines; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE extracted_lines (
@@ -3928,7 +3929,7 @@ ALTER SEQUENCE extracted_lines_extracted_lines_id_seq OWNED BY extracted_lines.e
 
 
 --
--- Name: extractor_results_cache; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: extractor_results_cache; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE extractor_results_cache (
@@ -3962,7 +3963,7 @@ ALTER SEQUENCE extractor_results_cache_extractor_results_cache_id_seq OWNED BY e
 
 
 --
--- Name: extractor_training_lines; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: extractor_training_lines; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE extractor_training_lines (
@@ -3995,7 +3996,7 @@ ALTER SEQUENCE extractor_training_lines_extractor_training_lines_id_seq OWNED BY
 
 
 --
--- Name: feedless_stories; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: feedless_stories; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE feedless_stories (
@@ -4005,7 +4006,7 @@ CREATE TABLE feedless_stories (
 
 
 --
--- Name: feeds_after_rescraping; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: feeds_after_rescraping; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE feeds_after_rescraping (
@@ -4056,7 +4057,7 @@ ALTER SEQUENCE feeds_feeds_id_seq OWNED BY feeds.feeds_id;
 
 
 --
--- Name: feeds_from_yesterday; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: feeds_from_yesterday; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE feeds_from_yesterday (
@@ -4070,7 +4071,7 @@ CREATE TABLE feeds_from_yesterday (
 
 
 --
--- Name: feeds_stories_map; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: feeds_stories_map; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE feeds_stories_map (
@@ -4100,7 +4101,7 @@ ALTER SEQUENCE feeds_stories_map_feeds_stories_map_id_seq OWNED BY feeds_stories
 
 
 --
--- Name: feeds_tags_map; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: feeds_tags_map; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE feeds_tags_map (
@@ -4130,7 +4131,7 @@ ALTER SEQUENCE feeds_tags_map_feeds_tags_map_id_seq OWNED BY feeds_tags_map.feed
 
 
 --
--- Name: gearman_job_queue; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: gearman_job_queue; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE gearman_job_queue (
@@ -4182,7 +4183,7 @@ CREATE VIEW media_extractor_training_downloads_count AS
 
 
 --
--- Name: media_tags_map; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: media_tags_map; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE media_tags_map (
@@ -4193,7 +4194,7 @@ CREATE TABLE media_tags_map (
 
 
 --
--- Name: tags; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: tags; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE tags (
@@ -4311,7 +4312,7 @@ ALTER SEQUENCE media_media_id_seq OWNED BY media.media_id;
 
 
 --
--- Name: media_rescraping; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: media_rescraping; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE media_rescraping (
@@ -4322,7 +4323,7 @@ CREATE TABLE media_rescraping (
 
 
 --
--- Name: media_rss_full_text_detection_data; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: media_rss_full_text_detection_data; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE media_rss_full_text_detection_data (
@@ -4338,7 +4339,7 @@ CREATE TABLE media_rss_full_text_detection_data (
 
 
 --
--- Name: media_sets; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: media_sets; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE media_sets (
@@ -4356,7 +4357,7 @@ CREATE TABLE media_sets (
 
 
 --
--- Name: media_sets_media_map; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: media_sets_media_map; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE media_sets_media_map (
@@ -4430,7 +4431,7 @@ CREATE VIEW media_sets_tt2_locale_format AS
 
 
 --
--- Name: media_stats; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: media_stats; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE media_stats (
@@ -4481,7 +4482,7 @@ ALTER SEQUENCE media_tags_map_media_tags_map_id_seq OWNED BY media_tags_map.medi
 
 
 --
--- Name: media_update_time_queue; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: media_update_time_queue; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE media_update_time_queue (
@@ -4491,7 +4492,7 @@ CREATE TABLE media_update_time_queue (
 
 
 --
--- Name: tag_sets; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: tag_sets; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE tag_sets (
@@ -4555,7 +4556,7 @@ CREATE VIEW media_with_media_types AS
 
 
 --
--- Name: processed_stories; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: processed_stories; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE processed_stories (
@@ -4585,7 +4586,7 @@ ALTER SEQUENCE processed_stories_processed_stories_id_seq OWNED BY processed_sto
 
 
 --
--- Name: queries; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: queries; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE queries (
@@ -4602,7 +4603,7 @@ CREATE TABLE queries (
 
 
 --
--- Name: queries_country_counts_json; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: queries_country_counts_json; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE queries_country_counts_json (
@@ -4651,7 +4652,7 @@ ALTER SEQUENCE queries_queries_id_seq OWNED BY queries.queries_id;
 
 
 --
--- Name: query_story_searches; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: query_story_searches; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE query_story_searches (
@@ -4682,7 +4683,7 @@ ALTER SEQUENCE query_story_searches_query_story_searches_id_seq OWNED BY query_s
 
 
 --
--- Name: query_story_searches_stories_map; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: query_story_searches_stories_map; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE query_story_searches_stories_map (
@@ -4692,7 +4693,7 @@ CREATE TABLE query_story_searches_stories_map (
 
 
 --
--- Name: raw_downloads; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: raw_downloads; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE raw_downloads (
@@ -4723,7 +4724,7 @@ ALTER SEQUENCE raw_downloads_raw_downloads_id_seq OWNED BY raw_downloads.raw_dow
 
 
 --
--- Name: solr_import_stories; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: solr_import_stories; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE solr_import_stories (
@@ -4751,7 +4752,7 @@ ALTER SEQUENCE solr_imports_solr_imports_id_seq OWNED BY solr_imports.solr_impor
 
 
 --
--- Name: stopword_stems_long; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: stopword_stems_long; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE stopword_stems_long (
@@ -4781,7 +4782,7 @@ ALTER SEQUENCE stopword_stems_long_stopword_stems_long_id_seq OWNED BY stopword_
 
 
 --
--- Name: stopword_stems_short; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: stopword_stems_short; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE stopword_stems_short (
@@ -4811,7 +4812,7 @@ ALTER SEQUENCE stopword_stems_short_stopword_stems_short_id_seq OWNED BY stopwor
 
 
 --
--- Name: stopword_stems_tiny; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: stopword_stems_tiny; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE stopword_stems_tiny (
@@ -4841,7 +4842,7 @@ ALTER SEQUENCE stopword_stems_tiny_stopword_stems_tiny_id_seq OWNED BY stopword_
 
 
 --
--- Name: stopwords_long; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: stopwords_long; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE stopwords_long (
@@ -4871,7 +4872,7 @@ ALTER SEQUENCE stopwords_long_stopwords_long_id_seq OWNED BY stopwords_long.stop
 
 
 --
--- Name: stopwords_short; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: stopwords_short; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE stopwords_short (
@@ -4901,7 +4902,7 @@ ALTER SEQUENCE stopwords_short_stopwords_short_id_seq OWNED BY stopwords_short.s
 
 
 --
--- Name: stopwords_tiny; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: stopwords_tiny; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE stopwords_tiny (
@@ -4950,7 +4951,7 @@ ALTER SEQUENCE stories_stories_id_seq OWNED BY stories.stories_id;
 
 
 --
--- Name: stories_tags_map; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: stories_tags_map; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE stories_tags_map (
@@ -5015,7 +5016,7 @@ CREATE VIEW story_extracted_texts AS
 
 
 --
--- Name: story_sentences; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: story_sentences; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE story_sentences (
@@ -5052,7 +5053,7 @@ ALTER SEQUENCE story_sentences_story_sentences_id_seq OWNED BY story_sentences.s
 
 
 --
--- Name: story_sentences_tags_map; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: story_sentences_tags_map; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE story_sentences_tags_map (
@@ -5083,7 +5084,7 @@ ALTER SEQUENCE story_sentences_tags_map_story_sentences_tags_map_id_seq OWNED BY
 
 
 --
--- Name: story_statistics; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: story_statistics; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE story_statistics (
@@ -5097,7 +5098,7 @@ CREATE TABLE story_statistics (
 
 
 --
--- Name: story_statistics_bitly_referrers; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: story_statistics_bitly_referrers; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE story_statistics_bitly_referrers (
@@ -5146,7 +5147,7 @@ ALTER SEQUENCE story_statistics_story_statistics_id_seq OWNED BY story_statistic
 
 
 --
--- Name: story_statistics_twitter; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: story_statistics_twitter; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE story_statistics_twitter (
@@ -5178,7 +5179,7 @@ ALTER SEQUENCE story_statistics_twitter_story_statistics_id_seq OWNED BY story_s
 
 
 --
--- Name: story_subsets; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: story_subsets; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE story_subsets (
@@ -5193,7 +5194,7 @@ CREATE TABLE story_subsets (
 
 
 --
--- Name: story_subsets_processed_stories_map; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: story_subsets_processed_stories_map; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE story_subsets_processed_stories_map (
@@ -5298,7 +5299,7 @@ CREATE VIEW tags_with_sets AS
 
 
 --
--- Name: url_discovery_counts; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: url_discovery_counts; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE url_discovery_counts (
@@ -6415,7 +6416,7 @@ COPY auth_user_requests (auth_user_requests_id, email, request_path, request_tim
 362	jdoe@cyber.law.harvard.edu	api/v2/tags/list	2014-09-17 17:13:49.765793	1
 363	jdoe@cyber.law.harvard.edu	api/v2/tags/single/17	2014-09-17 17:13:49.795221	1
 364	jdoe@cyber.law.harvard.edu	api/v2/stories/single/57	2014-09-17 17:13:49.864925	1
-365	jdoe@cyber.law.harvard.edu	api/v2/stories/list	2014-09-17 17:13:49.93195	1
+365	jdoe@cyber.law.harvard.ed	api/v2/stories/list	2014-09-17 17:13:49.93195	1
 366	jdoe@cyber.law.harvard.edu	api/v2/stories_public/single/57	2014-09-17 17:13:49.973796	1
 367	jdoe@cyber.law.harvard.edu	api/v2/stories/list	2014-09-17 17:13:50.040578	1
 368	jdoe@cyber.law.harvard.edu	api/v2/sentences/count	2014-09-17 17:13:50.07735	1
@@ -37569,7 +37570,7 @@ not_yet_processed	0
 
 
 --
--- Name: activities_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: activities_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY activities
@@ -37577,7 +37578,7 @@ ALTER TABLE ONLY activities
 
 
 --
--- Name: auth_registration_queue_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_registration_queue_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY auth_registration_queue
@@ -37585,7 +37586,7 @@ ALTER TABLE ONLY auth_registration_queue
 
 
 --
--- Name: auth_roles_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_roles_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY auth_roles
@@ -37593,7 +37594,7 @@ ALTER TABLE ONLY auth_roles
 
 
 --
--- Name: auth_roles_role_key; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_roles_role_key; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY auth_roles
@@ -37601,7 +37602,7 @@ ALTER TABLE ONLY auth_roles
 
 
 --
--- Name: auth_user_ip_tokens_api_token_key; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_user_ip_tokens_api_token_key; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY auth_user_ip_tokens
@@ -37609,7 +37610,7 @@ ALTER TABLE ONLY auth_user_ip_tokens
 
 
 --
--- Name: auth_user_ip_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_user_ip_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY auth_user_ip_tokens
@@ -37617,7 +37618,7 @@ ALTER TABLE ONLY auth_user_ip_tokens
 
 
 --
--- Name: auth_user_limits_auth_users_id_key; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_user_limits_auth_users_id_key; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY auth_user_limits
@@ -37625,7 +37626,7 @@ ALTER TABLE ONLY auth_user_limits
 
 
 --
--- Name: auth_user_request_daily_counts_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_user_request_daily_counts_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY auth_user_request_daily_counts
@@ -37633,7 +37634,7 @@ ALTER TABLE ONLY auth_user_request_daily_counts
 
 
 --
--- Name: auth_user_requests_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_user_requests_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY auth_user_requests
@@ -37641,7 +37642,7 @@ ALTER TABLE ONLY auth_user_requests
 
 
 --
--- Name: auth_users_api_token_key; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_users_api_token_key; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY auth_users
@@ -37649,7 +37650,7 @@ ALTER TABLE ONLY auth_users
 
 
 --
--- Name: auth_users_email_key; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_users_email_key; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY auth_users
@@ -37657,7 +37658,7 @@ ALTER TABLE ONLY auth_users
 
 
 --
--- Name: auth_users_password_reset_token_hash_key; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_users_password_reset_token_hash_key; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY auth_users
@@ -37665,7 +37666,7 @@ ALTER TABLE ONLY auth_users
 
 
 --
--- Name: auth_users_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_users_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY auth_users
@@ -37673,7 +37674,7 @@ ALTER TABLE ONLY auth_users
 
 
 --
--- Name: auth_users_roles_map_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_users_roles_map_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY auth_users_roles_map
@@ -37681,7 +37682,7 @@ ALTER TABLE ONLY auth_users_roles_map
 
 
 --
--- Name: auth_users_tag_sets_permissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_users_tag_sets_permissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY auth_users_tag_sets_permissions
@@ -37689,7 +37690,7 @@ ALTER TABLE ONLY auth_users_tag_sets_permissions
 
 
 --
--- Name: bitly_processing_results_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: bitly_processing_results_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY bitly_processing_results
@@ -37697,7 +37698,7 @@ ALTER TABLE ONLY bitly_processing_results
 
 
 --
--- Name: cd_files_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: cd_files_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY cd_files
@@ -37705,7 +37706,7 @@ ALTER TABLE ONLY cd_files
 
 
 --
--- Name: cdts_files_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: cdts_files_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY cdts_files
@@ -37713,7 +37714,7 @@ ALTER TABLE ONLY cdts_files
 
 
 --
--- Name: color_sets_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: color_sets_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY color_sets
@@ -37721,7 +37722,7 @@ ALTER TABLE ONLY color_sets
 
 
 --
--- Name: controversies_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: controversies_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY controversies
@@ -37729,7 +37730,7 @@ ALTER TABLE ONLY controversies
 
 
 --
--- Name: controversy_dates_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: controversy_dates_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY controversy_dates
@@ -37737,7 +37738,7 @@ ALTER TABLE ONLY controversy_dates
 
 
 --
--- Name: controversy_dump_tags_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: controversy_dump_tags_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY controversy_dump_tags
@@ -37745,7 +37746,7 @@ ALTER TABLE ONLY controversy_dump_tags
 
 
 --
--- Name: controversy_dump_time_slices_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: controversy_dump_time_slices_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY controversy_dump_time_slices
@@ -37753,7 +37754,7 @@ ALTER TABLE ONLY controversy_dump_time_slices
 
 
 --
--- Name: controversy_dumps_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: controversy_dumps_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY controversy_dumps
@@ -37761,7 +37762,7 @@ ALTER TABLE ONLY controversy_dumps
 
 
 --
--- Name: controversy_ignore_redirects_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: controversy_ignore_redirects_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY controversy_ignore_redirects
@@ -37769,7 +37770,7 @@ ALTER TABLE ONLY controversy_ignore_redirects
 
 
 --
--- Name: controversy_links_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: controversy_links_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY controversy_links
@@ -37777,7 +37778,7 @@ ALTER TABLE ONLY controversy_links
 
 
 --
--- Name: controversy_query_slices_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: controversy_query_slices_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY controversy_query_slices
@@ -37785,7 +37786,7 @@ ALTER TABLE ONLY controversy_query_slices
 
 
 --
--- Name: controversy_seed_urls_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: controversy_seed_urls_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY controversy_seed_urls
@@ -37793,7 +37794,7 @@ ALTER TABLE ONLY controversy_seed_urls
 
 
 --
--- Name: controversy_stories_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: controversy_stories_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY controversy_stories
@@ -37801,7 +37802,7 @@ ALTER TABLE ONLY controversy_stories
 
 
 --
--- Name: corenlp_annotations_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: corenlp_annotations_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY corenlp_annotations
@@ -37809,7 +37810,7 @@ ALTER TABLE ONLY corenlp_annotations
 
 
 --
--- Name: dashboard_media_sets_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: dashboard_media_sets_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY dashboard_media_sets
@@ -37817,7 +37818,7 @@ ALTER TABLE ONLY dashboard_media_sets
 
 
 --
--- Name: dashboard_topics_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: dashboard_topics_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY dashboard_topics
@@ -37825,7 +37826,7 @@ ALTER TABLE ONLY dashboard_topics
 
 
 --
--- Name: dashboards_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: dashboards_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY dashboards
@@ -37833,7 +37834,7 @@ ALTER TABLE ONLY dashboards
 
 
 --
--- Name: database_variables_name_key; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: database_variables_name_key; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY database_variables
@@ -37841,7 +37842,7 @@ ALTER TABLE ONLY database_variables
 
 
 --
--- Name: database_variables_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: database_variables_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY database_variables
@@ -37849,7 +37850,7 @@ ALTER TABLE ONLY database_variables
 
 
 --
--- Name: download_texts_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: download_texts_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY download_texts
@@ -37857,7 +37858,7 @@ ALTER TABLE ONLY download_texts
 
 
 --
--- Name: downloads_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: downloads_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY downloads
@@ -37865,7 +37866,7 @@ ALTER TABLE ONLY downloads
 
 
 --
--- Name: extra_corenlp_stories_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: extra_corenlp_stories_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY extra_corenlp_stories
@@ -37873,7 +37874,7 @@ ALTER TABLE ONLY extra_corenlp_stories
 
 
 --
--- Name: extracted_lines_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: extracted_lines_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY extracted_lines
@@ -37881,7 +37882,7 @@ ALTER TABLE ONLY extracted_lines
 
 
 --
--- Name: extractor_results_cache_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: extractor_results_cache_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY extractor_results_cache
@@ -37889,7 +37890,7 @@ ALTER TABLE ONLY extractor_results_cache
 
 
 --
--- Name: extractor_training_lines_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: extractor_training_lines_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY extractor_training_lines
@@ -37897,7 +37898,7 @@ ALTER TABLE ONLY extractor_training_lines
 
 
 --
--- Name: feeds_after_rescraping_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: feeds_after_rescraping_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY feeds_after_rescraping
@@ -37905,7 +37906,7 @@ ALTER TABLE ONLY feeds_after_rescraping
 
 
 --
--- Name: feeds_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: feeds_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY feeds
@@ -37913,7 +37914,7 @@ ALTER TABLE ONLY feeds
 
 
 --
--- Name: feeds_stories_map_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: feeds_stories_map_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY feeds_stories_map
@@ -37921,7 +37922,7 @@ ALTER TABLE ONLY feeds_stories_map
 
 
 --
--- Name: feeds_tags_map_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: feeds_tags_map_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY feeds_tags_map
@@ -37929,7 +37930,7 @@ ALTER TABLE ONLY feeds_tags_map
 
 
 --
--- Name: gearman_job_queue_job_handle_key; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: gearman_job_queue_job_handle_key; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY gearman_job_queue
@@ -37937,7 +37938,7 @@ ALTER TABLE ONLY gearman_job_queue
 
 
 --
--- Name: gearman_job_queue_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: gearman_job_queue_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY gearman_job_queue
@@ -37945,7 +37946,7 @@ ALTER TABLE ONLY gearman_job_queue
 
 
 --
--- Name: media_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: media_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY media
@@ -37953,7 +37954,7 @@ ALTER TABLE ONLY media
 
 
 --
--- Name: media_rescraping_media_id_key; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: media_rescraping_media_id_key; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY media_rescraping
@@ -37961,7 +37962,7 @@ ALTER TABLE ONLY media_rescraping
 
 
 --
--- Name: media_sets_media_map_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: media_sets_media_map_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY media_sets_media_map
@@ -37969,7 +37970,7 @@ ALTER TABLE ONLY media_sets_media_map
 
 
 --
--- Name: media_sets_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: media_sets_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY media_sets
@@ -37977,7 +37978,7 @@ ALTER TABLE ONLY media_sets
 
 
 --
--- Name: media_stats_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: media_stats_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY media_stats
@@ -37985,7 +37986,7 @@ ALTER TABLE ONLY media_stats
 
 
 --
--- Name: media_tags_map_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: media_tags_map_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY media_tags_map
@@ -37993,7 +37994,7 @@ ALTER TABLE ONLY media_tags_map
 
 
 --
--- Name: no_duplicate_entries; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: no_duplicate_entries; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY auth_users_roles_map
@@ -38001,7 +38002,7 @@ ALTER TABLE ONLY auth_users_roles_map
 
 
 --
--- Name: processed_stories_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: processed_stories_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY processed_stories
@@ -38009,7 +38010,7 @@ ALTER TABLE ONLY processed_stories
 
 
 --
--- Name: queries_country_counts_json_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: queries_country_counts_json_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY queries_country_counts_json
@@ -38017,7 +38018,7 @@ ALTER TABLE ONLY queries_country_counts_json
 
 
 --
--- Name: queries_country_counts_json_queries_id_key; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: queries_country_counts_json_queries_id_key; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY queries_country_counts_json
@@ -38025,7 +38026,7 @@ ALTER TABLE ONLY queries_country_counts_json
 
 
 --
--- Name: queries_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: queries_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY queries
@@ -38033,7 +38034,7 @@ ALTER TABLE ONLY queries
 
 
 --
--- Name: query_story_searches_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: query_story_searches_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY query_story_searches
@@ -38041,7 +38042,7 @@ ALTER TABLE ONLY query_story_searches
 
 
 --
--- Name: raw_downloads_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: raw_downloads_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY raw_downloads
@@ -38049,7 +38050,7 @@ ALTER TABLE ONLY raw_downloads
 
 
 --
--- Name: solr_imports_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: solr_imports_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY solr_imports
@@ -38057,7 +38058,7 @@ ALTER TABLE ONLY solr_imports
 
 
 --
--- Name: stopword_stems_long_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: stopword_stems_long_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY stopword_stems_long
@@ -38065,7 +38066,7 @@ ALTER TABLE ONLY stopword_stems_long
 
 
 --
--- Name: stopword_stems_short_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: stopword_stems_short_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY stopword_stems_short
@@ -38073,7 +38074,7 @@ ALTER TABLE ONLY stopword_stems_short
 
 
 --
--- Name: stopword_stems_tiny_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: stopword_stems_tiny_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY stopword_stems_tiny
@@ -38081,7 +38082,7 @@ ALTER TABLE ONLY stopword_stems_tiny
 
 
 --
--- Name: stopwords_long_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: stopwords_long_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY stopwords_long
@@ -38089,7 +38090,7 @@ ALTER TABLE ONLY stopwords_long
 
 
 --
--- Name: stopwords_short_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: stopwords_short_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY stopwords_short
@@ -38097,7 +38098,7 @@ ALTER TABLE ONLY stopwords_short
 
 
 --
--- Name: stopwords_tiny_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: stopwords_tiny_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY stopwords_tiny
@@ -38105,7 +38106,7 @@ ALTER TABLE ONLY stopwords_tiny
 
 
 --
--- Name: stories_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: stories_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY stories
@@ -38113,7 +38114,7 @@ ALTER TABLE ONLY stories
 
 
 --
--- Name: stories_tags_map_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: stories_tags_map_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY stories_tags_map
@@ -38121,7 +38122,7 @@ ALTER TABLE ONLY stories_tags_map
 
 
 --
--- Name: story_sentences_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: story_sentences_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY story_sentences
@@ -38129,7 +38130,7 @@ ALTER TABLE ONLY story_sentences
 
 
 --
--- Name: story_sentences_tags_map_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: story_sentences_tags_map_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY story_sentences_tags_map
@@ -38137,7 +38138,7 @@ ALTER TABLE ONLY story_sentences_tags_map
 
 
 --
--- Name: story_statistics_bitly_referrers_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: story_statistics_bitly_referrers_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY story_statistics_bitly_referrers
@@ -38145,7 +38146,7 @@ ALTER TABLE ONLY story_statistics_bitly_referrers
 
 
 --
--- Name: story_statistics_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: story_statistics_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY story_statistics
@@ -38153,7 +38154,7 @@ ALTER TABLE ONLY story_statistics
 
 
 --
--- Name: story_statistics_twitter_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: story_statistics_twitter_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY story_statistics_twitter
@@ -38161,7 +38162,7 @@ ALTER TABLE ONLY story_statistics_twitter
 
 
 --
--- Name: story_subsets_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: story_subsets_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY story_subsets
@@ -38169,7 +38170,7 @@ ALTER TABLE ONLY story_subsets
 
 
 --
--- Name: story_subsets_processed_stories_map_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: story_subsets_processed_stories_map_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY story_subsets_processed_stories_map
@@ -38177,7 +38178,7 @@ ALTER TABLE ONLY story_subsets_processed_stories_map
 
 
 --
--- Name: tag_sets_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: tag_sets_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY tag_sets
@@ -38185,7 +38186,7 @@ ALTER TABLE ONLY tag_sets
 
 
 --
--- Name: tags_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: tags_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY tags
@@ -38193,7 +38194,7 @@ ALTER TABLE ONLY tags
 
 
 --
--- Name: url_discovery_counts_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: url_discovery_counts_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY url_discovery_counts
@@ -38203,175 +38204,175 @@ ALTER TABLE ONLY url_discovery_counts
 SET search_path = cd, pg_catalog;
 
 --
--- Name: controversy_links_ref; Type: INDEX; Schema: cd; Owner: -; Tablespace: 
+-- Name: controversy_links_ref; Type: INDEX; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE INDEX controversy_links_ref ON controversy_links_cross_media USING btree (controversy_dumps_id, ref_stories_id);
 
 
 --
--- Name: controversy_links_story; Type: INDEX; Schema: cd; Owner: -; Tablespace: 
+-- Name: controversy_links_story; Type: INDEX; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE INDEX controversy_links_story ON controversy_links_cross_media USING btree (controversy_dumps_id, stories_id);
 
 
 --
--- Name: controversy_media_codes_medium; Type: INDEX; Schema: cd; Owner: -; Tablespace: 
+-- Name: controversy_media_codes_medium; Type: INDEX; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE INDEX controversy_media_codes_medium ON controversy_media_codes USING btree (controversy_dumps_id, media_id);
 
 
 --
--- Name: controversy_stories_id; Type: INDEX; Schema: cd; Owner: -; Tablespace: 
+-- Name: controversy_stories_id; Type: INDEX; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE INDEX controversy_stories_id ON controversy_stories USING btree (controversy_dumps_id, stories_id);
 
 
 --
--- Name: daily_date_counts_date; Type: INDEX; Schema: cd; Owner: -; Tablespace: 
+-- Name: daily_date_counts_date; Type: INDEX; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE INDEX daily_date_counts_date ON daily_date_counts USING btree (controversy_dumps_id, publish_date);
 
 
 --
--- Name: daily_date_counts_tag; Type: INDEX; Schema: cd; Owner: -; Tablespace: 
+-- Name: daily_date_counts_tag; Type: INDEX; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE INDEX daily_date_counts_tag ON daily_date_counts USING btree (controversy_dumps_id, tags_id);
 
 
 --
--- Name: live_stories_story; Type: INDEX; Schema: cd; Owner: -; Tablespace: 
+-- Name: live_stories_story; Type: INDEX; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX live_stories_story ON live_stories USING btree (controversies_id, stories_id);
 
 
 --
--- Name: live_story_controversy; Type: INDEX; Schema: cd; Owner: -; Tablespace: 
+-- Name: live_story_controversy; Type: INDEX; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE INDEX live_story_controversy ON live_stories USING btree (controversies_id);
 
 
 --
--- Name: media_id; Type: INDEX; Schema: cd; Owner: -; Tablespace: 
+-- Name: media_id; Type: INDEX; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE INDEX media_id ON media USING btree (controversy_dumps_id, media_id);
 
 
 --
--- Name: media_tags_map_medium; Type: INDEX; Schema: cd; Owner: -; Tablespace: 
+-- Name: media_tags_map_medium; Type: INDEX; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE INDEX media_tags_map_medium ON media_tags_map USING btree (controversy_dumps_id, media_id);
 
 
 --
--- Name: media_tags_map_tag; Type: INDEX; Schema: cd; Owner: -; Tablespace: 
+-- Name: media_tags_map_tag; Type: INDEX; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE INDEX media_tags_map_tag ON media_tags_map USING btree (controversy_dumps_id, tags_id);
 
 
 --
--- Name: medium_link_counts_medium; Type: INDEX; Schema: cd; Owner: -; Tablespace: 
+-- Name: medium_link_counts_medium; Type: INDEX; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE INDEX medium_link_counts_medium ON medium_link_counts USING btree (controversy_dump_time_slices_id, media_id);
 
 
 --
--- Name: medium_links_ref; Type: INDEX; Schema: cd; Owner: -; Tablespace: 
+-- Name: medium_links_ref; Type: INDEX; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE INDEX medium_links_ref ON medium_links USING btree (controversy_dump_time_slices_id, ref_media_id);
 
 
 --
--- Name: medium_links_source; Type: INDEX; Schema: cd; Owner: -; Tablespace: 
+-- Name: medium_links_source; Type: INDEX; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE INDEX medium_links_source ON medium_links USING btree (controversy_dump_time_slices_id, source_media_id);
 
 
 --
--- Name: stories_id; Type: INDEX; Schema: cd; Owner: -; Tablespace: 
+-- Name: stories_id; Type: INDEX; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE INDEX stories_id ON stories USING btree (controversy_dumps_id, stories_id);
 
 
 --
--- Name: stories_tags_map_story; Type: INDEX; Schema: cd; Owner: -; Tablespace: 
+-- Name: stories_tags_map_story; Type: INDEX; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE INDEX stories_tags_map_story ON stories_tags_map USING btree (controversy_dumps_id, stories_id);
 
 
 --
--- Name: stories_tags_map_tag; Type: INDEX; Schema: cd; Owner: -; Tablespace: 
+-- Name: stories_tags_map_tag; Type: INDEX; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE INDEX stories_tags_map_tag ON stories_tags_map USING btree (controversy_dumps_id, tags_id);
 
 
 --
--- Name: story_link_counts_story; Type: INDEX; Schema: cd; Owner: -; Tablespace: 
+-- Name: story_link_counts_story; Type: INDEX; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE INDEX story_link_counts_story ON story_link_counts USING btree (controversy_dump_time_slices_id, stories_id);
 
 
 --
--- Name: story_links_ref; Type: INDEX; Schema: cd; Owner: -; Tablespace: 
+-- Name: story_links_ref; Type: INDEX; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE INDEX story_links_ref ON story_links USING btree (controversy_dump_time_slices_id, ref_stories_id);
 
 
 --
--- Name: story_links_source; Type: INDEX; Schema: cd; Owner: -; Tablespace: 
+-- Name: story_links_source; Type: INDEX; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE INDEX story_links_source ON story_links USING btree (controversy_dump_time_slices_id, source_stories_id);
 
 
 --
--- Name: tag_sets_id; Type: INDEX; Schema: cd; Owner: -; Tablespace: 
+-- Name: tag_sets_id; Type: INDEX; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE INDEX tag_sets_id ON tag_sets USING btree (controversy_dumps_id, tag_sets_id);
 
 
 --
--- Name: tags_id; Type: INDEX; Schema: cd; Owner: -; Tablespace: 
+-- Name: tags_id; Type: INDEX; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE INDEX tags_id ON tags USING btree (controversy_dumps_id, tags_id);
 
 
 --
--- Name: weekly_date_counts_date; Type: INDEX; Schema: cd; Owner: -; Tablespace: 
+-- Name: weekly_date_counts_date; Type: INDEX; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE INDEX weekly_date_counts_date ON weekly_date_counts USING btree (controversy_dumps_id, publish_date);
 
 
 --
--- Name: weekly_date_counts_tag; Type: INDEX; Schema: cd; Owner: -; Tablespace: 
+-- Name: weekly_date_counts_tag; Type: INDEX; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE INDEX weekly_date_counts_tag ON weekly_date_counts USING btree (controversy_dumps_id, tags_id);
 
 
 --
--- Name: word_counts_cdts_stem; Type: INDEX; Schema: cd; Owner: -; Tablespace: 
+-- Name: word_counts_cdts_stem; Type: INDEX; Schema: cd; Owner: -; Tablespace:
 --
 
 CREATE INDEX word_counts_cdts_stem ON word_counts USING btree (controversy_dump_time_slices_id, stem);
@@ -38380,1113 +38381,1113 @@ CREATE INDEX word_counts_cdts_stem ON word_counts USING btree (controversy_dump_
 SET search_path = public, pg_catalog;
 
 --
--- Name: activities_creation_date; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: activities_creation_date; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX activities_creation_date ON activities USING btree (creation_date);
 
 
 --
--- Name: activities_name; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: activities_name; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX activities_name ON activities USING btree (name);
 
 
 --
--- Name: activities_object_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: activities_object_id; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX activities_object_id ON activities USING btree (object_id);
 
 
 --
--- Name: activities_user_identifier; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: activities_user_identifier; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX activities_user_identifier ON activities USING btree (user_identifier);
 
 
 --
--- Name: auth_user_ip_tokens_token; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_user_ip_tokens_token; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX auth_user_ip_tokens_token ON auth_user_ip_tokens USING btree (api_token, ip_address);
 
 
 --
--- Name: auth_user_limits_auth_users_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_user_limits_auth_users_id; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX auth_user_limits_auth_users_id ON auth_user_limits USING btree (auth_users_id);
 
 
 --
--- Name: auth_user_request_daily_counts_day; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_user_request_daily_counts_day; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX auth_user_request_daily_counts_day ON auth_user_request_daily_counts USING btree (day);
 
 
 --
--- Name: auth_user_request_daily_counts_email; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_user_request_daily_counts_email; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX auth_user_request_daily_counts_email ON auth_user_request_daily_counts USING btree (email);
 
 
 --
--- Name: auth_user_requests_email; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_user_requests_email; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX auth_user_requests_email ON auth_user_requests USING btree (email);
 
 
 --
--- Name: auth_user_requests_request_path; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_user_requests_request_path; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX auth_user_requests_request_path ON auth_user_requests USING btree (request_path);
 
 
 --
--- Name: auth_users_email; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_users_email; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX auth_users_email ON auth_users USING btree (email);
 
 
 --
--- Name: auth_users_roles_map_auth_users_id_auth_roles_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_users_roles_map_auth_users_id_auth_roles_id; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX auth_users_roles_map_auth_users_id_auth_roles_id ON auth_users_roles_map USING btree (auth_users_id, auth_roles_id);
 
 
 --
--- Name: auth_users_tag_sets_permissions_auth_user; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_users_tag_sets_permissions_auth_user; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX auth_users_tag_sets_permissions_auth_user ON auth_users_tag_sets_permissions USING btree (auth_users_id);
 
 
 --
--- Name: auth_users_tag_sets_permissions_auth_user_tag_set; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_users_tag_sets_permissions_auth_user_tag_set; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX auth_users_tag_sets_permissions_auth_user_tag_set ON auth_users_tag_sets_permissions USING btree (auth_users_id, tag_sets_id);
 
 
 --
--- Name: auth_users_tag_sets_permissions_tag_sets; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_users_tag_sets_permissions_tag_sets; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX auth_users_tag_sets_permissions_tag_sets ON auth_users_tag_sets_permissions USING btree (tag_sets_id);
 
 
 --
--- Name: auth_users_token; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: auth_users_token; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX auth_users_token ON auth_users USING btree (api_token);
 
 
 --
--- Name: bitly_processing_results_object_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: bitly_processing_results_object_id; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX bitly_processing_results_object_id ON bitly_processing_results USING btree (object_id);
 
 
 --
--- Name: bitly_processing_schedule_fetch_at; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: bitly_processing_schedule_fetch_at; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX bitly_processing_schedule_fetch_at ON bitly_processing_schedule USING btree (fetch_at);
 
 
 --
--- Name: bitly_processing_schedule_stories_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: bitly_processing_schedule_stories_id; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX bitly_processing_schedule_stories_id ON bitly_processing_schedule USING btree (stories_id);
 
 
 --
--- Name: cd_files_cd; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: cd_files_cd; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX cd_files_cd ON cd_files USING btree (controversy_dumps_id);
 
 
 --
--- Name: cdts_files_cdts; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: cdts_files_cdts; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX cdts_files_cdts ON cdts_files USING btree (controversy_dump_time_slices_id);
 
 
 --
--- Name: color_sets_set_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: color_sets_set_id; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX color_sets_set_id ON color_sets USING btree (color_set, id);
 
 
 --
--- Name: controversies_media_type_tag_set; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: controversies_media_type_tag_set; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX controversies_media_type_tag_set ON controversies USING btree (media_type_tag_sets_id);
 
 
 --
--- Name: controversies_name; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: controversies_name; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX controversies_name ON controversies USING btree (name);
 
 
 --
--- Name: controversies_tag_set; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: controversies_tag_set; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX controversies_tag_set ON controversies USING btree (controversy_tag_sets_id);
 
 
 --
--- Name: controversy_dump_time_slices_dump; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: controversy_dump_time_slices_dump; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX controversy_dump_time_slices_dump ON controversy_dump_time_slices USING btree (controversy_dumps_id);
 
 
 --
--- Name: controversy_dumps_controversy; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: controversy_dumps_controversy; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX controversy_dumps_controversy ON controversy_dumps USING btree (controversies_id);
 
 
 --
--- Name: controversy_ignore_redirects_url; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: controversy_ignore_redirects_url; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX controversy_ignore_redirects_url ON controversy_ignore_redirects USING btree (url);
 
 
 --
--- Name: controversy_links_controversy; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: controversy_links_controversy; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX controversy_links_controversy ON controversy_links USING btree (controversies_id);
 
 
 --
--- Name: controversy_links_ref_story; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: controversy_links_ref_story; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX controversy_links_ref_story ON controversy_links USING btree (ref_stories_id);
 
 
 --
--- Name: controversy_links_scr; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: controversy_links_scr; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX controversy_links_scr ON controversy_links USING btree (stories_id, controversies_id, ref_stories_id);
 
 
 --
--- Name: controversy_merged_stories_map_source; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: controversy_merged_stories_map_source; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX controversy_merged_stories_map_source ON controversy_merged_stories_map USING btree (source_stories_id);
 
 
 --
--- Name: controversy_merged_stories_map_story; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: controversy_merged_stories_map_story; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX controversy_merged_stories_map_story ON controversy_merged_stories_map USING btree (target_stories_id);
 
 
 --
--- Name: controversy_seed_urls_controversy; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: controversy_seed_urls_controversy; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX controversy_seed_urls_controversy ON controversy_seed_urls USING btree (controversies_id);
 
 
 --
--- Name: controversy_seed_urls_story; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: controversy_seed_urls_story; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX controversy_seed_urls_story ON controversy_seed_urls USING btree (stories_id);
 
 
 --
--- Name: controversy_seed_urls_url; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: controversy_seed_urls_url; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX controversy_seed_urls_url ON controversy_seed_urls USING btree (url);
 
 
 --
--- Name: controversy_stories_sc; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: controversy_stories_sc; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX controversy_stories_sc ON controversy_stories USING btree (stories_id, controversies_id);
 
 
 --
--- Name: corenlp_annotations_object_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: corenlp_annotations_object_id; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX corenlp_annotations_object_id ON corenlp_annotations USING btree (object_id);
 
 
 --
--- Name: cqssism_c; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: cqssism_c; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX cqssism_c ON controversy_query_story_searches_imported_stories_map USING btree (controversies_id);
 
 
 --
--- Name: cqssism_s; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: cqssism_s; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX cqssism_s ON controversy_query_story_searches_imported_stories_map USING btree (stories_id);
 
 
 --
--- Name: dashboard_media_sets_dashboard; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: dashboard_media_sets_dashboard; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX dashboard_media_sets_dashboard ON dashboard_media_sets USING btree (dashboards_id);
 
 
 --
--- Name: dashboard_media_sets_media_set_dashboard; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: dashboard_media_sets_media_set_dashboard; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX dashboard_media_sets_media_set_dashboard ON dashboard_media_sets USING btree (media_sets_id, dashboards_id);
 
 
 --
--- Name: dashboard_topics_dashboard; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: dashboard_topics_dashboard; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX dashboard_topics_dashboard ON dashboard_topics USING btree (dashboards_id);
 
 
 --
--- Name: dashboard_topics_vectors_added; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: dashboard_topics_vectors_added; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX dashboard_topics_vectors_added ON dashboard_topics USING btree (vectors_added);
 
 
 --
--- Name: dashboards_name; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: dashboards_name; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX dashboards_name ON dashboards USING btree (name);
 
 
 --
--- Name: dashboards_name_trgm; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: dashboards_name_trgm; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX dashboards_name_trgm ON dashboards USING gin (name gin_trgm_ops);
 
 
 --
--- Name: download_texts_downloads_id_index; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: download_texts_downloads_id_index; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX download_texts_downloads_id_index ON download_texts USING btree (downloads_id);
 
 
 --
--- Name: downloads_extracted; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: downloads_extracted; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX downloads_extracted ON downloads USING btree (extracted, state, type) WHERE (((extracted = false) AND (state = 'success'::download_state)) AND (type = 'content'::download_type));
 
 
 --
--- Name: downloads_extracted_stories; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: downloads_extracted_stories; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX downloads_extracted_stories ON downloads USING btree (stories_id) WHERE ((type = 'content'::download_type) AND (state = 'success'::download_state));
 
 
 --
--- Name: downloads_feed_download_time; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: downloads_feed_download_time; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX downloads_feed_download_time ON downloads USING btree (feeds_id, download_time);
 
 
 --
--- Name: downloads_in_old_format; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: downloads_in_old_format; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX downloads_in_old_format ON downloads USING btree (downloads_id) WHERE ((state = 'success'::download_state) AND (path ~~ 'content/%'::text));
 
 
 --
--- Name: downloads_parent; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: downloads_parent; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX downloads_parent ON downloads USING btree (parent);
 
 
 --
--- Name: downloads_sites_downloads_id_pending; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: downloads_sites_downloads_id_pending; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX downloads_sites_downloads_id_pending ON downloads USING btree (site_from_host(host), downloads_id) WHERE (state = 'pending'::download_state);
 
 
 --
--- Name: downloads_sites_pending; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: downloads_sites_pending; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX downloads_sites_pending ON downloads USING btree (site_from_host(host)) WHERE (state = 'pending'::download_state);
 
 
 --
--- Name: downloads_state_downloads_id_pending; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: downloads_state_downloads_id_pending; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX downloads_state_downloads_id_pending ON downloads USING btree (state, downloads_id) WHERE (state = 'pending'::download_state);
 
 
 --
--- Name: downloads_state_fetching; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: downloads_state_fetching; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX downloads_state_fetching ON downloads USING btree (state, downloads_id) WHERE (state = 'fetching'::download_state);
 
 
 --
--- Name: downloads_state_queued_or_fetching; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: downloads_state_queued_or_fetching; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX downloads_state_queued_or_fetching ON downloads USING btree (state) WHERE ((state = 'queued'::download_state) OR (state = 'fetching'::download_state));
 
 
 --
--- Name: downloads_stories_to_be_extracted; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: downloads_stories_to_be_extracted; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX downloads_stories_to_be_extracted ON downloads USING btree (stories_id) WHERE (((extracted = false) AND (state = 'success'::download_state)) AND (type = 'content'::download_type));
 
 
 --
--- Name: downloads_story; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: downloads_story; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX downloads_story ON downloads USING btree (stories_id);
 
 
 --
--- Name: downloads_time; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: downloads_time; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX downloads_time ON downloads USING btree (download_time);
 
 
 --
--- Name: extra_corenlp_stories_stories_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: extra_corenlp_stories_stories_id; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX extra_corenlp_stories_stories_id ON extra_corenlp_stories USING btree (stories_id);
 
 
 --
--- Name: extracted_lines_download_text; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: extracted_lines_download_text; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX extracted_lines_download_text ON extracted_lines USING btree (download_texts_id);
 
 
 --
--- Name: extractor_results_cache_downloads_id_index; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: extractor_results_cache_downloads_id_index; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX extractor_results_cache_downloads_id_index ON extractor_results_cache USING btree (downloads_id);
 
 
 --
--- Name: extractor_training_lines_download; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: extractor_training_lines_download; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX extractor_training_lines_download ON extractor_training_lines USING btree (downloads_id);
 
 
 --
--- Name: extractor_training_lines_line; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: extractor_training_lines_line; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX extractor_training_lines_line ON extractor_training_lines USING btree (line_number, downloads_id);
 
 
 --
--- Name: feedless_stories_story; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: feedless_stories_story; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX feedless_stories_story ON feedless_stories USING btree (stories_id);
 
 
 --
--- Name: feeds_after_rescraping_media_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: feeds_after_rescraping_media_id; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX feeds_after_rescraping_media_id ON feeds_after_rescraping USING btree (media_id);
 
 
 --
--- Name: feeds_after_rescraping_name; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: feeds_after_rescraping_name; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX feeds_after_rescraping_name ON feeds_after_rescraping USING btree (name);
 
 
 --
--- Name: feeds_after_rescraping_url; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: feeds_after_rescraping_url; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX feeds_after_rescraping_url ON feeds_after_rescraping USING btree (url, media_id);
 
 
 --
--- Name: feeds_from_yesterday_feeds_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: feeds_from_yesterday_feeds_id; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX feeds_from_yesterday_feeds_id ON feeds_from_yesterday USING btree (feeds_id);
 
 
 --
--- Name: feeds_from_yesterday_media_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: feeds_from_yesterday_media_id; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX feeds_from_yesterday_media_id ON feeds_from_yesterday USING btree (media_id);
 
 
 --
--- Name: feeds_from_yesterday_name; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: feeds_from_yesterday_name; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX feeds_from_yesterday_name ON feeds_from_yesterday USING btree (name);
 
 
 --
--- Name: feeds_from_yesterday_url; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: feeds_from_yesterday_url; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX feeds_from_yesterday_url ON feeds_from_yesterday USING btree (url, media_id);
 
 
 --
--- Name: feeds_last_attempted_download_time; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: feeds_last_attempted_download_time; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX feeds_last_attempted_download_time ON feeds USING btree (last_attempted_download_time);
 
 
 --
--- Name: feeds_last_successful_download_time; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: feeds_last_successful_download_time; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX feeds_last_successful_download_time ON feeds USING btree (last_successful_download_time);
 
 
 --
--- Name: feeds_media; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: feeds_media; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX feeds_media ON feeds USING btree (media_id);
 
 
 --
--- Name: feeds_name; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: feeds_name; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX feeds_name ON feeds USING btree (name);
 
 
 --
--- Name: feeds_reparse; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: feeds_reparse; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX feeds_reparse ON feeds USING btree (reparse);
 
 
 --
--- Name: feeds_stories_map_feed; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: feeds_stories_map_feed; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX feeds_stories_map_feed ON feeds_stories_map USING btree (feeds_id, stories_id);
 
 
 --
--- Name: feeds_stories_map_story; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: feeds_stories_map_story; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX feeds_stories_map_story ON feeds_stories_map USING btree (stories_id);
 
 
 --
--- Name: feeds_tags_map_feed; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: feeds_tags_map_feed; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX feeds_tags_map_feed ON feeds_tags_map USING btree (feeds_id, tags_id);
 
 
 --
--- Name: feeds_tags_map_tag; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: feeds_tags_map_tag; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX feeds_tags_map_tag ON feeds_tags_map USING btree (tags_id);
 
 
 --
--- Name: feeds_url; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: feeds_url; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX feeds_url ON feeds USING btree (url, media_id);
 
 
 --
--- Name: file_status_downloads_time_new_format; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: file_status_downloads_time_new_format; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX file_status_downloads_time_new_format ON downloads USING btree (file_status, download_time) WHERE (relative_file_path ~~ 'mediacloud-%'::text);
 
 
 --
--- Name: gearman_job_queue_function_name; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: gearman_job_queue_function_name; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX gearman_job_queue_function_name ON gearman_job_queue USING btree (function_name);
 
 
 --
--- Name: gearman_job_queue_job_handle; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: gearman_job_queue_job_handle; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX gearman_job_queue_job_handle ON gearman_job_queue USING btree (job_handle);
 
 
 --
--- Name: gearman_job_queue_status; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: gearman_job_queue_status; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX gearman_job_queue_status ON gearman_job_queue USING btree (status);
 
 
 --
--- Name: gearman_job_queue_unique_job_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: gearman_job_queue_unique_job_id; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX gearman_job_queue_unique_job_id ON gearman_job_queue USING btree (unique_job_id);
 
 
 --
--- Name: media_db_row_last_updated; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: media_db_row_last_updated; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX media_db_row_last_updated ON media USING btree (db_row_last_updated);
 
 
 --
--- Name: media_moderated; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: media_moderated; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX media_moderated ON media USING btree (moderated);
 
 
 --
--- Name: media_name; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: media_name; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX media_name ON media USING btree (name);
 
 
 --
--- Name: media_name_trgm; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: media_name_trgm; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX media_name_trgm ON media USING gin (name gin_trgm_ops);
 
 
 --
--- Name: media_rescraping_last_rescrape_time; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: media_rescraping_last_rescrape_time; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX media_rescraping_last_rescrape_time ON media_rescraping USING btree (last_rescrape_time);
 
 
 --
--- Name: media_rescraping_media_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: media_rescraping_media_id; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX media_rescraping_media_id ON media_rescraping USING btree (media_id);
 
 
 --
--- Name: media_rss_full_text_detection_data_media; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: media_rss_full_text_detection_data_media; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX media_rss_full_text_detection_data_media ON media_rss_full_text_detection_data USING btree (media_id);
 
 
 --
--- Name: media_sets_description_trgm; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: media_sets_description_trgm; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX media_sets_description_trgm ON media_sets USING gin (description gin_trgm_ops);
 
 
 --
--- Name: media_sets_media_map_media; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: media_sets_media_map_media; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX media_sets_media_map_media ON media_sets_media_map USING btree (media_id);
 
 
 --
--- Name: media_sets_media_map_set; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: media_sets_media_map_set; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX media_sets_media_map_set ON media_sets_media_map USING btree (media_sets_id);
 
 
 --
--- Name: media_sets_medium; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: media_sets_medium; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX media_sets_medium ON media_sets USING btree (media_id);
 
 
 --
--- Name: media_sets_name_trgm; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: media_sets_name_trgm; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX media_sets_name_trgm ON media_sets USING gin (name gin_trgm_ops);
 
 
 --
--- Name: media_sets_tag; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: media_sets_tag; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX media_sets_tag ON media_sets USING btree (tags_id);
 
 
 --
--- Name: media_sets_vectors_added; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: media_sets_vectors_added; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX media_sets_vectors_added ON media_sets USING btree (vectors_added);
 
 
 --
--- Name: media_stats_medium; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: media_stats_medium; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX media_stats_medium ON media_stats USING btree (media_id);
 
 
 --
--- Name: media_tags_map_media; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: media_tags_map_media; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX media_tags_map_media ON media_tags_map USING btree (media_id, tags_id);
 
 
 --
--- Name: media_tags_map_tag; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: media_tags_map_tag; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX media_tags_map_tag ON media_tags_map USING btree (tags_id);
 
 
 --
--- Name: media_update_time_queue_updated; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: media_update_time_queue_updated; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX media_update_time_queue_updated ON media_update_time_queue USING btree (db_row_last_updated);
 
 
 --
--- Name: media_url; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: media_url; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX media_url ON media USING btree (url);
 
 
 --
--- Name: media_url_trgm; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: media_url_trgm; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX media_url_trgm ON media USING gin (url gin_trgm_ops);
 
 
 --
--- Name: processed_stories_story; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: processed_stories_story; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX processed_stories_story ON processed_stories USING btree (stories_id);
 
 
 --
--- Name: queries_creation_date; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: queries_creation_date; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX queries_creation_date ON queries USING btree (creation_date);
 
 
 --
--- Name: queries_hash_version; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: queries_hash_version; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX queries_hash_version ON queries USING btree (md5_signature, query_version);
 
 
 --
--- Name: queries_md5_signature; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: queries_md5_signature; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX queries_md5_signature ON queries USING btree (md5_signature);
 
 
 --
--- Name: query_story_searches_query_pattern; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: query_story_searches_query_pattern; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX query_story_searches_query_pattern ON query_story_searches USING btree (queries_id, pattern);
 
 
 --
--- Name: query_story_searches_stories_map_story; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: query_story_searches_stories_map_story; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX query_story_searches_stories_map_story ON query_story_searches_stories_map USING btree (stories_id);
 
 
 --
--- Name: query_story_searches_stories_map_u; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: query_story_searches_stories_map_u; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX query_story_searches_stories_map_u ON query_story_searches_stories_map USING btree (query_story_searches_id, stories_id);
 
 
 --
--- Name: raw_downloads_object_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: raw_downloads_object_id; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX raw_downloads_object_id ON raw_downloads USING btree (object_id);
 
 
 --
--- Name: relative_file_paths_new_format_to_verify; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: relative_file_paths_new_format_to_verify; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX relative_file_paths_new_format_to_verify ON downloads USING btree (relative_file_path) WHERE ((((((file_status = 'tbd'::download_file_status) AND (relative_file_path <> 'tbd'::text)) AND (relative_file_path <> 'error'::text)) AND (relative_file_path <> 'na'::text)) AND (relative_file_path <> 'inline'::text)) AND (relative_file_path ~~ 'mediacloud-%'::text));
 
 
 --
--- Name: relative_file_paths_to_verify; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: relative_file_paths_to_verify; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX relative_file_paths_to_verify ON downloads USING btree (relative_file_path) WHERE (((((file_status = 'tbd'::download_file_status) AND (relative_file_path <> 'tbd'::text)) AND (relative_file_path <> 'error'::text)) AND (relative_file_path <> 'na'::text)) AND (relative_file_path <> 'inline'::text));
 
 
 --
--- Name: solr_import_stories_story; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: solr_import_stories_story; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX solr_import_stories_story ON solr_import_stories USING btree (stories_id);
 
 
 --
--- Name: solr_imports_date; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: solr_imports_date; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX solr_imports_date ON solr_imports USING btree (import_date);
 
 
 --
--- Name: stopword_stems_long_stopword_stem; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: stopword_stems_long_stopword_stem; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX stopword_stems_long_stopword_stem ON stopword_stems_long USING btree (stopword_stem, language);
 
 
 --
--- Name: stopword_stems_short_stopword_stem; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: stopword_stems_short_stopword_stem; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX stopword_stems_short_stopword_stem ON stopword_stems_short USING btree (stopword_stem, language);
 
 
 --
--- Name: stopword_stems_tiny_stopword_stem; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: stopword_stems_tiny_stopword_stem; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX stopword_stems_tiny_stopword_stem ON stopword_stems_tiny USING btree (stopword_stem, language);
 
 
 --
--- Name: stopwords_long_stopword; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: stopwords_long_stopword; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX stopwords_long_stopword ON stopwords_long USING btree (stopword, language);
 
 
 --
--- Name: stopwords_short_stopword; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: stopwords_short_stopword; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX stopwords_short_stopword ON stopwords_short USING btree (stopword, language);
 
 
 --
--- Name: stopwords_tiny_stopword; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: stopwords_tiny_stopword; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX stopwords_tiny_stopword ON stopwords_tiny USING btree (stopword, language);
 
 
 --
--- Name: stories_collect_date; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: stories_collect_date; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX stories_collect_date ON stories USING btree (collect_date);
 
 
 --
--- Name: stories_guid; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: stories_guid; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX stories_guid ON stories USING btree (guid, media_id);
 
 
 --
--- Name: stories_language; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: stories_language; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX stories_language ON stories USING btree (language);
 
 
 --
--- Name: stories_md; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: stories_md; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX stories_md ON stories USING btree (media_id, date_trunc('day'::text, publish_date));
 
 
 --
--- Name: stories_media_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: stories_media_id; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX stories_media_id ON stories USING btree (media_id);
 
 
 --
--- Name: stories_publish_date; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: stories_publish_date; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX stories_publish_date ON stories USING btree (publish_date);
 
 
 --
--- Name: stories_publish_day; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: stories_publish_day; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX stories_publish_day ON stories USING btree (date_trunc('day'::text, publish_date));
 
 
 --
--- Name: stories_tags_map_db_row_last_updated; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: stories_tags_map_db_row_last_updated; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX stories_tags_map_db_row_last_updated ON stories_tags_map USING btree (db_row_last_updated);
 
 
 --
--- Name: stories_tags_map_story; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: stories_tags_map_story; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX stories_tags_map_story ON stories_tags_map USING btree (stories_id, tags_id);
 
 
 --
--- Name: stories_tags_map_story_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: stories_tags_map_story_id; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX stories_tags_map_story_id ON stories_tags_map USING btree (stories_id);
 
 
 --
--- Name: stories_tags_map_tag; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: stories_tags_map_tag; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX stories_tags_map_tag ON stories_tags_map USING btree (tags_id);
 
 
 --
--- Name: stories_title_hash; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: stories_title_hash; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX stories_title_hash ON stories USING btree (md5(title));
 
 
 --
--- Name: stories_url; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: stories_url; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX stories_url ON stories USING btree (url);
 
 
 --
--- Name: story_sentences_db_row_last_updated; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: story_sentences_db_row_last_updated; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX story_sentences_db_row_last_updated ON story_sentences USING btree (db_row_last_updated);
 
 
 --
--- Name: story_sentences_dup; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: story_sentences_dup; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX story_sentences_dup ON story_sentences USING btree (md5(sentence)) WHERE (week_start_date((publish_date)::date) > '2016-01-16'::date);
 
 
 --
--- Name: story_sentences_language; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: story_sentences_language; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX story_sentences_language ON story_sentences USING btree (language);
 
 
 --
--- Name: story_sentences_media_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: story_sentences_media_id; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX story_sentences_media_id ON story_sentences USING btree (media_id);
 
 
 --
--- Name: story_sentences_publish_day; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: story_sentences_publish_day; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX story_sentences_publish_day ON story_sentences USING btree (date_trunc('day'::text, publish_date), media_id);
 
 
 --
--- Name: story_sentences_story; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: story_sentences_story; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX story_sentences_story ON story_sentences USING btree (stories_id, sentence_number);
 
 
 --
--- Name: story_sentences_tags_map_db_row_last_updated; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: story_sentences_tags_map_db_row_last_updated; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX story_sentences_tags_map_db_row_last_updated ON story_sentences_tags_map USING btree (db_row_last_updated);
 
 
 --
--- Name: story_sentences_tags_map_story; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: story_sentences_tags_map_story; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX story_sentences_tags_map_story ON story_sentences_tags_map USING btree (story_sentences_id, tags_id);
 
 
 --
--- Name: story_sentences_tags_map_story_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: story_sentences_tags_map_story_id; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX story_sentences_tags_map_story_id ON story_sentences_tags_map USING btree (story_sentences_id);
 
 
 --
--- Name: story_sentences_tags_map_tag; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: story_sentences_tags_map_tag; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX story_sentences_tags_map_tag ON story_sentences_tags_map USING btree (tags_id);
 
 
 --
--- Name: story_statistics_bitly_referrers_story; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: story_statistics_bitly_referrers_story; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX story_statistics_bitly_referrers_story ON story_statistics_bitly_referrers USING btree (stories_id);
 
 
 --
--- Name: story_statistics_story; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: story_statistics_story; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX story_statistics_story ON story_statistics USING btree (stories_id);
 
 
 --
--- Name: story_statistics_twitter_story; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: story_statistics_twitter_story; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX story_statistics_twitter_story ON story_statistics_twitter USING btree (stories_id);
 
 
 --
--- Name: story_subsets_processed_stories_map_processed_stories_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: story_subsets_processed_stories_map_processed_stories_id; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX story_subsets_processed_stories_map_processed_stories_id ON story_subsets_processed_stories_map USING btree (processed_stories_id);
 
 
 --
--- Name: tag_sets_name; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: tag_sets_name; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX tag_sets_name ON tag_sets USING btree (name);
 
 
 --
--- Name: tags_tag; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: tags_tag; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE UNIQUE INDEX tags_tag ON tags USING btree (tag, tag_sets_id);
 
 
 --
--- Name: tags_tag_1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: tags_tag_1; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX tags_tag_1 ON tags USING btree (split_part((tag)::text, ' '::text, 1));
 
 
 --
--- Name: tags_tag_2; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: tags_tag_2; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX tags_tag_2 ON tags USING btree (split_part((tag)::text, ' '::text, 2));
 
 
 --
--- Name: tags_tag_3; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: tags_tag_3; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX tags_tag_3 ON tags USING btree (split_part((tag)::text, ' '::text, 3));
 
 
 --
--- Name: tags_tag_sets_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: tags_tag_sets_id; Type: INDEX; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE INDEX tags_tag_sets_id ON tags USING btree (tag_sets_id);
@@ -40505,4 +40506,3 @@ ALTER TABLE ONLY tags
 --
 -- PostgreSQL database dump complete
 --
-

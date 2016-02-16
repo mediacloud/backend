@@ -21,7 +21,7 @@ else
        echo "Creating database $PGDATABASE"
        createdb $PGDATABASE
        echo "Loading test dump"
-       psql -d $PGDATABASE -f data/db_dumps/cc_blogs_mc_db.sql
+       psql --quiet -d $PGDATABASE -f data/db_dumps/cc_blogs_mc_db.sql
     fi
 fi
 
