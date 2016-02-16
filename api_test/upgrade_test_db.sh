@@ -17,11 +17,11 @@ else
     dropdb $PGDATABASE
     echo "Creating database $PGDATABASE"
     createdb $PGDATABASE
-    echo "running pg_restore"
-    pg_restore  -d $PGDATABASE data/db_dumps/cc_blogs_mc_db.dump
+    echo "Loading test dump"
+    psql -d $PGDATABASE -f data/db_dumps/cc_blogs_mc_db.sql
 fi
 
 echo "running mediawords_upgrade_db.pl --import"
 MEDIAWORDS_FORCE_USING_TEST_DATABASE=1 ./script/run_with_carton.sh ./script/mediawords_upgrade_db.pl --import
 echo "dumping"
-pg_dump --format=custom $PGDATABASE >  data/db_dumps/cc_blogs_mc_db.dump
+pg_dump --no-owner --no-acl --no-security-labels --format=plain $PGDATABASE > data/db_dumps/cc_blogs_mc_db.sql

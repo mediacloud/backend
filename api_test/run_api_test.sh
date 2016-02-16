@@ -20,8 +20,8 @@ else
        dropdb $PGDATABASE
        echo "Creating database $PGDATABASE"
        createdb $PGDATABASE
-       echo "running pg_restore"
-       pg_restore  -d $PGDATABASE data/db_dumps/cc_blogs_mc_db.dump
+       echo "Loading test dump"
+       psql -d $PGDATABASE -f data/db_dumps/cc_blogs_mc_db.sql
     fi
 fi
 
@@ -29,8 +29,8 @@ UPGRADE_DB_SQL=`script/run_with_carton.sh script/mediawords_upgrade_db.pl --db_l
 
 if [ ${#UPGRADE_DB_SQL} -gt 0 ]; then
     script/run_with_carton.sh script/mediawords_upgrade_db.pl --db_label test --import
-    pg_dump --no-owner -F custom mediacloud_test > data/db_dumps/cc_blogs_mc_db.dump
-    echo "updated data/db_dumps/cc_blogs_mc_db.dump to new schema"
+    pg_dump --no-owner --no-acl --no-security-labels --format=plain mediacloud_test > data/db_dumps/cc_blogs_mc_db.sql
+    echo "updated data/db_dumps/cc_blogs_mc_db.sql to new schema"
 fi
 
 echo "testing for runnning solr"
