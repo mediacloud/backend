@@ -26,6 +26,8 @@ use Getopt::Long;
 
 use MediaWords::Solr::Dump;
 
+use Data::Dumper;
+
 sub main
 {
     my ( $delta, $file, $delete_all, $staging );

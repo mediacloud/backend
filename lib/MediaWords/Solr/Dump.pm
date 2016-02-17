@@ -506,6 +506,17 @@ END
     }
 }
 
+sub maybe_production_solr
+{
+    my ( $db ) = @_;
+
+    my $num_sentences = MediaWords::Solr::get_num_found( $db, { q => '*:*', rows => 0 } );
+
+    die( "Unable to query solr for number of sentences" ) unless ( defined( $num_sentences ) );
+
+    return ( $num_sentences > 100_000_000 );
+}
+
 # generate and import dump.  optionally generate delta dump since beginning of last
 # full or delta dump.  optionally delete all solr data after generating dump and before
 # importing
@@ -516,6 +527,8 @@ sub generate_and_import_data
     die( "cannot import with delta and delete both true" ) if ( $delta && $delete );
 
     my $db = MediaWords::DB::connect_to_db;
+
+    die( "refusing to delete maybe production solr" ) if ( $delete && maybe_production_solr( $db ) );
 
     my $dump_file = _get_dump_file();
 
