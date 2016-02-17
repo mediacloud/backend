@@ -167,7 +167,7 @@ else
 
             # Try to download and install
             CLD_TEMP_DIR=`mktemp -d -t cldXXXXX`
-            CLD_TEMP_FILE="$CLDTEMPDIR/cld.deb"
+            CLD_TEMP_FILE="$CLD_TEMP_DIR/cld.deb"
 
             wget --quiet -O "$CLD_TEMP_FILE" "$CLD_URL_DEBIAN" || {
                 echo "Unable to fetch CLD library from $CLD_TEMP_FILE; maybe the URL is outdated?"
