@@ -35,8 +35,10 @@ sub _set_lookup
 {
     my ( $db, $data_lookup, $name, $query ) = @_;
 
+    my $sth = $db->query( $query );
+
     my $lookup = {};
-    while ( my $row = $db->query( $query )->array )
+    while ( my $row = $sth->array )
     {
         $lookup->{ $row->[ 1 ] } = $row->[ 0 ];
     }
