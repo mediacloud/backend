@@ -45,6 +45,10 @@ sub get_stories_from_queue
 {
     my ( $db, $block_size ) = @_;
 
+    $db->begin;
+
+    $db->query( "lock table scratch.ap_queue" );
+
     my $stories = $db->query( <<SQL )->hashes;
 update scratch.ap_queue ap
     set status = 'processing'
@@ -55,6 +59,8 @@ update scratch.ap_queue ap
         ap.stories_id = s.stories_id
     returning s.*
 SQL
+
+    $db->commit;
 
     attach_downloads_to_stories( $db, $stories );
 
