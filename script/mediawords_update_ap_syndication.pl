@@ -7,6 +7,8 @@
 use strict;
 use warnings;
 
+use forks;
+
 BEGIN
 {
     use FindBin;
@@ -43,24 +45,19 @@ SQL
 
 sub get_stories_from_queue
 {
-    my ( $db, $block_size ) = @_;
-
-    $db->begin;
-
-    $db->query( "lock table scratch.ap_queue" );
+    my ( $db, $num_proc, $proc, $block_size ) = @_;
 
     my $stories = $db->query( <<SQL )->hashes;
-update scratch.ap_queue ap
-    set status = 'processing'
+select s.*
     from stories s
     where
-        ap.stories_id in
-            ( select stories_id from scratch.ap_queue where status is null order by stories_id desc limit $block_size ) and
-        ap.stories_id = s.stories_id
-    returning s.*
+        s.stories_id in (
+            select stories_id
+                from scratch.ap_queue
+                where ( stories_id % $num_proc ) = $proc - 1
+                order by stories_id desc limit $block_size
+        )
 SQL
-
-    $db->commit;
 
     attach_downloads_to_stories( $db, $stories );
 
@@ -79,14 +76,16 @@ SQL
 
 }
 
-sub main
+sub update_ap_syndication
 {
+    my ( $num_proc, $proc ) = @_;
+
     my $db = MediaWords::DB::connect_to_db;
 
     my $block_size = 100;
 
     my $stories_processed = 0;
-    while ( my $stories = get_stories_from_queue( $db, $block_size ) )
+    while ( my $stories = get_stories_from_queue( $db, $num_proc, $proc, $block_size ) )
     {
         say STDERR "updating block:" . ( ++$stories_processed * $block_size );
 
@@ -104,6 +103,22 @@ sub main
         my $ids_list = join( ',', map { $_->{ stories_id } } @{ $stories } );
         $db->query( "delete from scratch.ap_queue where stories_id in ( $ids_list )" );
     }
+}
+
+sub main
+{
+    my ( $num_proc ) = @ARGV;
+
+    $num_proc //= 1;
+
+    my $threads = [];
+
+    for my $proc ( 1 .. $num_proc )
+    {
+        push( @{ $threads }, threads->create( \&update_ap_syndication, $num_proc, $proc ) );
+    }
+
+    map { $_->join() } @{ $threads };
 }
 
 main();
