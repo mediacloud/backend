@@ -3224,7 +3224,8 @@ CREATE TABLE stories (
     full_text_rss boolean DEFAULT false NOT NULL,
     db_row_last_updated timestamp with time zone,
     language character varying(3),
-    disable_triggers boolean
+    disable_triggers boolean,
+    ap_syndicated boolean
 );
 
 
