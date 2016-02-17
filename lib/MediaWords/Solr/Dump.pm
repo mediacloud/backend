@@ -35,10 +35,8 @@ sub _set_lookup
 {
     my ( $db, $data_lookup, $name, $query ) = @_;
 
-    my $rows = $db->query( $query )->arrays;
-
     my $lookup = {};
-    for my $row ( @{ $rows } )
+    while ( my $row = $db->query( $query )->array )
     {
         $lookup->{ $row->[ 1 ] } = $row->[ 0 ];
     }
@@ -283,13 +281,16 @@ sub _print_csv_to_file_single_job
 }
 
 # print a csv dump of the postgres data to $file_spec.
-# run num_proc jobs in parallel to generate the dump
-# if delta is true, only dump the data changed since the last dump
+# run num_proc jobs in parallel to generate the dump.
+# assume that the script is running on num_machines different machines.
+# if delta is true, only dump the data changed since the last dump.
 sub print_csv_to_file
 {
-    my ( $db, $file_spec, $num_proc, $delta ) = @_;
+    my ( $db, $file_spec, $num_proc, $delta, $min_proc, $max_proc ) = @_;
 
     $num_proc //= 1;
+    $min_proc //= 1;
+    $max_proc //= $num_proc;
 
     my $files;
 
@@ -301,7 +302,7 @@ sub print_csv_to_file
     {
         my $threads = [];
 
-        for my $proc ( 1 .. $num_proc )
+        for my $proc ( $min_proc .. $max_proc )
         {
             my $file = "$file_spec-$proc";
             push( @{ $files }, $file );
