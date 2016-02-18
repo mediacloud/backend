@@ -7,8 +7,8 @@
 # 7.
 # 8. for instructions on how to add a new Perl module dependency.
 # 9.
-requires 'Algorithm::FeatureSelection';
 requires 'AI::DecisionTree';
+requires 'Algorithm::FeatureSelection';
 requires 'aliased', '0.34';
 requires 'Archive::Zip';
 requires 'Array::Compare';
@@ -100,6 +100,7 @@ requires 'Log::Log4perl';
 requires 'LWP::Protocol::https';
 requires 'LWP::UserAgent::Determined';
 requires 'Math::Random';
+requires 'Math::Random::Secure';
 requires 'Memoize';
 requires 'Modern::Perl', '1.20121103';
 requires 'Module::Install';

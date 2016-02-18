@@ -142,6 +142,17 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 6.36
       List::Util 0
       Test::More 0
+  Any-Moose-0.26
+    pathname: E/ET/ETHER/Any-Moose-0.26.tar.gz
+    provides:
+      Any::Moose 0.26
+    requirements:
+      Carp 0
+      ExtUtils::MakeMaker 0
+      Moose 0
+      perl 5.006_002
+      strict 0
+      warnings 0
   Apache-LogFormat-Compiler-0.30
     pathname: K/KA/KAZEBURO/Apache-LogFormat-Compiler-0.30.tar.gz
     provides:
@@ -1350,6 +1361,38 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       Pod::Text 2.08
       Pod::Usage 1.33
+  Crypt-Random-Source-0.11
+    pathname: E/ET/ETHER/Crypt-Random-Source-0.11.tar.gz
+    provides:
+      Crypt::Random::Source 0.11
+      Crypt::Random::Source::Base 0.11
+      Crypt::Random::Source::Base::File 0.11
+      Crypt::Random::Source::Base::Handle 0.11
+      Crypt::Random::Source::Base::Proc 0.11
+      Crypt::Random::Source::Base::RandomDevice 0.11
+      Crypt::Random::Source::Factory 0.11
+      Crypt::Random::Source::Strong 0.11
+      Crypt::Random::Source::Strong::devrandom 0.11
+      Crypt::Random::Source::Weak 0.11
+      Crypt::Random::Source::Weak::devurandom 0.11
+      Crypt::Random::Source::Weak::rand 0.11
+    requirements:
+      Capture::Tiny 0.08
+      Carp 0
+      File::Spec 0
+      IO::File 1.14
+      IO::Handle 0
+      Module::Build::Tiny 0.034
+      Module::Find 0
+      Module::Runtime 0
+      Moo 0
+      Sub::Exporter 0
+      Types::Standard 0
+      bytes 0
+      namespace::clean 0.11
+      perl 5.008
+      strict 0
+      warnings 0
   Crypt-SaltedHash-0.09
     pathname: G/GS/GSHANK/Crypt-SaltedHash-0.09.tar.gz
     provides:
@@ -5364,6 +5407,28 @@ DISTRIBUTIONS
       Math::Random 0.71
     requirements:
       ExtUtils::MakeMaker 0
+  Math-Random-ISAAC-1.004
+    pathname: J/JA/JAWNSY/Math-Random-ISAAC-1.004.tar.gz
+    provides:
+      Math::Random::ISAAC 1.004
+      Math::Random::ISAAC::PP 1.004
+    requirements:
+      ExtUtils::MakeMaker 6.31
+      Test::More 0.62
+      Test::NoWarnings 0.084
+  Math-Random-Secure-0.06
+    pathname: M/MK/MKANAT/Math-Random-Secure-0.06.tar.gz
+    provides:
+      Math::Random::Secure 0.06
+      Math::Random::Secure::RNG 0.06
+    requirements:
+      Any::Moose 0
+      Crypt::Random::Source 0.07
+      ExtUtils::MakeMaker 6.12
+      List::MoreUtils 0
+      Math::Random::ISAAC v1.0.1
+      Test::More 0
+      Test::Warn 0
   Math-SparseMatrix-0.03
     pathname: T/TP/TPEDERSE/Math-SparseMatrix-0.03.tar.gz
     provides:
