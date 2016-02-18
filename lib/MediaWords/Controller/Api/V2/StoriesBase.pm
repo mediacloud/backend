@@ -122,7 +122,7 @@ sub add_extra_data
     my $raw_1st_download = $c->req->params->{ raw_1st_download };
     my $corenlp          = $c->req->params->{ corenlp };
 
-    return $stories unless ( @{ $stories } && ( $raw_1st_download || $corenlp ) );
+    return $stories unless ( scalar @{ $stories } && ( $raw_1st_download || $corenlp ) );
 
     my $db = $c->dbis;
 
@@ -193,7 +193,7 @@ sub _add_nested_data
 {
     my ( $self, $db, $stories ) = @_;
 
-    return unless ( @{ $stories } );
+    return unless ( scalar @{ $stories } );
 
     my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ stories_id } } @{ $stories } ] );
 
@@ -313,7 +313,7 @@ sub _fetch_list
 
     my $ps_ids = $self->_get_object_ids( $c, $last_id, $rows );
 
-    return [] unless ( @{ $ps_ids } );
+    return [] unless ( scalar @{ $ps_ids } );
 
     my $db = $c->dbis;
 
