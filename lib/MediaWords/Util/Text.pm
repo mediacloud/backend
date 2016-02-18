@@ -11,6 +11,7 @@ use MediaWords::CommonLibs;
 use MediaWords::Languages::Language;
 use List::Util qw(min);
 use Memoize;
+use Math::Random::Secure;
 use Tie::Cache;
 use Encode;
 use utf8;
@@ -197,7 +198,7 @@ sub is_valid_utf8($)
 sub random_string($)
 {
     my $length = shift;
-    return join '', map +( 0 .. 9, 'a' .. 'z', 'A' .. 'Z' )[ rand( 10 + 26 * 2 ) ], 1 .. $length;
+    return join '', map +( 0 .. 9, 'a' .. 'z', 'A' .. 'Z' )[ Math::Random::Secure::rand( 10 + 26 * 2 ) ], 1 .. $length;
 }
 
 1;
