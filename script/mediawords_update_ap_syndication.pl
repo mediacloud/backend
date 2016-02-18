@@ -71,7 +71,7 @@ sub update_stories
     my $values_list = join( ',', map { "($_->{ stories_id }::int, $_->{ ap_syndicated }::boolean)" } @{ $updates } );
 
     $db->query( <<SQL );
-insert into scratch.ap_syndication (stories_id, ap_syndicated) values $values_list;
+insert into stories_ap_syndicated (stories_id, ap_syndicated) values $values_list;
 SQL
 
 }
