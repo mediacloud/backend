@@ -72,7 +72,7 @@ sub _declare_sentences_cursor
 {
     my ( $db, $delta, $num_proc, $proc ) = @_;
 
-    my $date_clause = $delta ? 'and stories_id in ( select stories_id from delta_import_stories )' : '';
+    my $date_clause = $delta ? 'and ss.stories_id in ( select stories_id from delta_import_stories )' : '';
 
     $db->dbh->do( <<END );
 declare csr cursor for
@@ -87,9 +87,12 @@ declare csr cursor for
         ss.sentence_number,
         ss.sentence,
         null title,
-        ss.language
+        ss.language,
+        bitly_clicks_total.click_count as bitly_click_count
 
     from story_sentences ss
+        left join bitly_clicks_total
+            on ss.stories_id = bitly_clicks_total.stories_id
 
     where ( ss.stories_id % $num_proc = $proc - 1 )
         $date_clause
@@ -102,7 +105,7 @@ sub _declare_titles_cursor
 {
     my ( $db, $delta, $num_proc, $proc ) = @_;
 
-    my $date_clause = $delta ? 'and stories_id in ( select stories_id from delta_import_stories )' : '';
+    my $date_clause = $delta ? 'and s.stories_id in ( select stories_id from delta_import_stories )' : '';
 
     $db->dbh->do( <<END );
 declare csr cursor for
@@ -117,9 +120,12 @@ declare csr cursor for
         0,
         null sentence,
         s.title,
-        s.language
+        s.language,
+        bitly_clicks_total.click_count as bitly_click_count
 
     from stories s
+        left join bitly_clicks_total
+            on s.stories_id = bitly_clicks_total.stories_id
 
     where ( s.stories_id % $num_proc = $proc - 1 )
         $date_clause
@@ -135,7 +141,7 @@ sub _print_csv_to_file_from_csr
 
     my $fields = [
         qw/stories_id media_id story_sentences_id solr_id publish_date publish_day sentence_number sentence title language
-          processed_stories_id media_sets_id tags_id_media tags_id_stories tags_id_story_sentences/
+          bitly_click_count processed_stories_id media_sets_id tags_id_media tags_id_stories tags_id_story_sentences/
     ];
 
     my $csv = Text::CSV_XS->new( { binary => 1 } );
