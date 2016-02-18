@@ -20,6 +20,10 @@ use MediaWords::DB;
 
 use MediaWords::Solr;
 
+Readonly my @CSV_FIELDS =
+  qw/stories_id media_id story_sentences_id solr_id publish_date publish_day sentence_number sentence title language
+  processed_stories_id media_sets_id tags_id_media tags_id_stories tags_id_story_sentences/;
+
 # how many sentences to fetch at a time from the postgres query
 Readonly my $FETCH_BLOCK_SIZE => 10_000;
 
@@ -129,10 +133,7 @@ sub _print_csv_to_file_from_csr
 {
     my ( $db, $fh, $data_lookup, $print_header ) = @_;
 
-    my $fields = [
-        qw/stories_id media_id story_sentences_id solr_id publish_date publish_day sentence_number sentence title language
-          processed_stories_id media_sets_id tags_id_media tags_id_stories tags_id_story_sentences/
-    ];
+    my $fields = \@CSV_FIELDS;
 
     my $csv = Text::CSV_XS->new( { binary => 1 } );
 
@@ -359,10 +360,28 @@ sub _solr_request
     }
     else
     {
-        warn( "request failed: " . $res->as_string );
+        warn( "request failed for $abs_url: " . $res->as_string );
         return 0;
     }
 
+}
+
+# open the file and return true if the first line looks like a header line, 0 otherwise
+sub _csv_file_has_header
+{
+    my ( $file ) = @_;
+
+    open( FILE, $file ) || die( "Unable to open file '$file': $!" );
+
+    my $first_line = <FILE>;
+
+    close( FILE );
+
+    return 0 unless ( $first_line );
+
+    chomp( $first_line );
+
+    return ( $first_line =~ /^[a-z_,]+$/ ) ? 1 : 0;
 }
 
 # import a single csv dump file into solr
@@ -376,8 +395,15 @@ sub _import_csv_single_file
 
     my $overwrite = $delta ? 'overwrite=true' : 'overwrite=false';
 
+    my ( $fieldnames, $header ) = ( '', '' );
+    if ( !_csv_file_has_header( $file ) )
+    {
+        $fieldnames = 'fieldnames=' . join( ',', @CSV_FIELDS );
+        $header = 'header=false';
+    }
+
     my $url =
-"update/csv?commit=false&stream.file=$abs_file&stream.contentType=text/plain;charset=utf-8&f.media_sets_id.split=true&f.media_sets_id.separator=;&f.tags_id_media.split=true&f.tags_id_media.separator=;&f.tags_id_stories.split=true&f.tags_id_stories.separator=;&f.tags_id_story_sentences.split=true&f.tags_id_story_sentences.separator=;&$overwrite&skip=field_type,id,solr_import_date";
+"update/csv?commit=false&$fieldnames&$header&stream.file=$abs_file&stream.contentType=text/plain;charset=utf-8&f.media_sets_id.split=true&f.media_sets_id.separator=;&f.tags_id_media.split=true&f.tags_id_media.separator=;&f.tags_id_stories.split=true&f.tags_id_stories.separator=;&f.tags_id_story_sentences.split=true&f.tags_id_story_sentences.separator=;&$overwrite&skip=field_type,id,solr_import_date";
 
     return _solr_request( $url, $staging );
 }
