@@ -82,7 +82,7 @@ sub update_ap_syndication
 
     my $db = MediaWords::DB::connect_to_db;
 
-    my $block_size = 100;
+    my $block_size = 1000;
 
     my $stories_processed = 0;
     while ( my $stories = get_stories_from_queue( $db, $num_proc, $proc, $block_size ) )
