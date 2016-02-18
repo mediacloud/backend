@@ -70,7 +70,9 @@ END
 # setup 'csr' cursor in postgres as the query to import the story_sentences
 sub _declare_sentences_cursor
 {
-    my ( $db, $date_clause, $num_proc, $proc ) = @_;
+    my ( $db, $delta, $num_proc, $proc ) = @_;
+
+    my $date_clause = $delta ? 'and stories_id in ( select stories_id from delta_import_stories )' : '';
 
     $db->dbh->do( <<END );
 declare csr cursor for
@@ -98,7 +100,9 @@ END
 # setup 'csr' cursor in postgres as the query to import the story titles
 sub _declare_titles_cursor
 {
-    my ( $db, $date_clause, $num_proc, $proc ) = @_;
+    my ( $db, $delta, $num_proc, $proc ) = @_;
+
+    my $date_clause = $delta ? 'and stories_id in ( select stories_id from delta_import_stories )' : '';
 
     $db->dbh->do( <<END );
 declare csr cursor for
@@ -185,11 +189,9 @@ sub _print_csv_to_file_from_csr
 
 # get the date clause that restricts the import of all subsequent queries to just the
 # delta stories
-sub _get_delta_import_date_clause
+sub _create_delta_import_stories
 {
-    my ( $db, $delta ) = @_;
-
-    return '' unless ( $delta );
+    my $db = shift;
 
     my ( $import_date ) = $db->query( "select import_date from solr_imports order by import_date desc limit 1" )->flat;
 
@@ -207,8 +209,6 @@ END
     print STDERR "found $num_delta_stories stories for import ...\n";
 
     _add_media_stories_to_import( $db, $import_date, $num_delta_stories );
-
-    return "and stories_id in ( select stories_id from delta_import_stories )";
 }
 
 # get the $data_lookup hash that has lookup tables for values to include
@@ -221,9 +221,11 @@ END
 # server side.
 sub _get_data_lookup
 {
-    my ( $db, $num_proc, $proc, $date_clause ) = @_;
+    my ( $db, $num_proc, $proc, $delta ) = @_;
 
     my $data_lookup = {};
+
+    my $date_clause = $delta ? 'and stories_id in ( select stories_id from delta_import_stories )' : '';
 
     _set_lookup( $db, $data_lookup, 'ps', <<END );
 select processed_stories_id, stories_id from processed_stories where stories_id % $num_proc = $proc - 1 $date_clause
@@ -263,18 +265,21 @@ sub _print_csv_to_file_single_job
 
     my $fh = FileHandle->new( ">$file" ) || die( "Unable to open file '$file': $@" );
 
-    my $date_clause = _get_delta_import_date_clause( $db, $delta );
+    if ( $delta )
+    {
+        _create_delta_import_stories( $db );
+    }
 
-    my $data_lookup = _get_data_lookup( $db, $num_proc, $proc, $date_clause );
+    my $data_lookup = _get_data_lookup( $db, $num_proc, $proc, $delta );
 
     $db->begin;
 
     print STDERR "exporting sentences ...\n";
-    _declare_sentences_cursor( $db, $date_clause, $num_proc, $proc );
+    _declare_sentences_cursor( $db, $delta, $num_proc, $proc );
     my $sentence_stories_ids = _print_csv_to_file_from_csr( $db, $fh, $data_lookup, 1 );
 
     print STDERR "exporting titles ...\n";
-    _declare_titles_cursor( $db, $date_clause, $num_proc, $proc );
+    _declare_titles_cursor( $db, $delta, $num_proc, $proc );
     my $title_stories_ids = _print_csv_to_file_from_csr( $db, $fh, $data_lookup, 0 );
 
     $db->commit;
