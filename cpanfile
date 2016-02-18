@@ -100,6 +100,7 @@ requires 'Log::Log4perl';
 requires 'LWP::Protocol::https';
 requires 'LWP::UserAgent::Determined';
 requires 'Math::Random';
+requires 'Math::Random::Secure';
 requires 'Memoize';
 requires 'Modern::Perl', '1.20121103';
 requires 'Module::Install';
