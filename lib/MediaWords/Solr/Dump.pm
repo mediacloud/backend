@@ -15,6 +15,7 @@ use List::MoreUtils;
 use List::Util;
 use Readonly;
 use Text::CSV_XS;
+use URI;
 
 use MediaWords::DB;
 
@@ -338,9 +339,9 @@ sub print_csv_to_file
 # send a request to MediaWords::Solr::get_solr_url.  return 1
 # on success and 0 on error.  if $staging is true, use the staging
 # collection; otherwise use the live collection.
-sub _solr_request
+sub _solr_request($$$)
 {
-    my ( $url, $staging ) = @_;
+    my ( $path, $params, $staging ) = @_;
 
     # print STDERR "requesting url: $url ...\n";
 
@@ -357,7 +358,9 @@ sub _solr_request
     my $collection =
       $staging ? MediaWords::Solr::get_staging_collection( $db ) : MediaWords::Solr::get_live_collection( $db );
 
-    my $abs_url = "${ solr_url }/${ collection }/${ url }";
+    my $abs_uri = URI->new( "$solr_url/$collection/$path" );
+    $abs_uri->query_form( $params );
+    my $abs_url = $abs_uri->as_string;
 
     my $ua = LWP::UserAgent->new;
     $ua->timeout( 86400 * 7 );
@@ -385,12 +388,24 @@ sub _import_csv_single_file
 
     print STDERR "importing $abs_file ...\n";
 
-    my $overwrite = $delta ? 'overwrite=true' : 'overwrite=false';
+    my $url_params = {
+        'commit'                              => 'false',
+        'stream.file'                         => $abs_file,
+        'stream.contentType'                  => 'text/plain',
+        'charset'                             => 'utf-8',
+        'f.media_sets_id.split'               => 'true',
+        'f.media_sets_id.separator'           => ';',
+        'f.tags_id_media.split'               => 'true',
+        'f.tags_id_media.separator'           => ';',
+        'f.tags_id_stories.split'             => 'true',
+        'f.tags_id_stories.separator'         => ';',
+        'f.tags_id_story_sentences.split'     => 'true',
+        'f.tags_id_story_sentences.separator' => ';',
+        'overwrite'                           => ( $delta ? 'true' : 'false' ),
+        'skip'                                => 'field_type,id,solr_import_date',
+    };
 
-    my $url =
-"update/csv?commit=false&stream.file=$abs_file&stream.contentType=text/plain;charset=utf-8&f.media_sets_id.split=true&f.media_sets_id.separator=;&f.tags_id_media.split=true&f.tags_id_media.separator=;&f.tags_id_stories.split=true&f.tags_id_stories.separator=;&f.tags_id_story_sentences.split=true&f.tags_id_story_sentences.separator=;&$overwrite&skip=field_type,id,solr_import_date";
-
-    return _solr_request( $url, $staging );
+    return _solr_request( 'update/csv', $url_params, $staging );
 }
 
 # import csv dump files into solr.  if there are multiple files,
@@ -423,7 +438,7 @@ sub import_csv_files
         return 0;
     }
 
-    return _solr_request( "update?stream.body=<commit/>", $staging );
+    return _solr_request( 'update', { 'stream.body' => '<commit/>' }, $staging );
 }
 
 # store in memory the current date according to postgres
@@ -465,8 +480,9 @@ sub delete_stories
         my $chunk_ids = [ ( @{ $stories_ids } )[ $i .. $ceil ] ];
 
         my $chunk_ids_list = join( ' ', @{ $chunk_ids } );
-        my $r =
-          _solr_request( "update?stream.body=<delete><query>+stories_id:(${ chunk_ids_list })</query></delete>", $staging );
+
+        my $url_params = { 'stream.body' => "<delete><query>+stories_id:(${ chunk_ids_list })</query></delete>", };
+        my $r = _solr_request( 'update', $url_params, $staging );
 
         return 0 unless $r;
     }
@@ -481,7 +497,8 @@ sub delete_all_sentences
 
     print STDERR "deleting all sentences ...\n";
 
-    return _solr_request( "update?stream.body=<delete><query>*:*</query></delete>", $staging );
+    my $url_params = { 'stream.body' => '<delete><query>*:*</query></delete>', };
+    return _solr_request( 'update', $url_params, $staging );
 }
 
 # get a temp file name to for a delta dump
