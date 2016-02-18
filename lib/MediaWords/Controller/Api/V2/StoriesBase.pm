@@ -265,6 +265,19 @@ select s.stories_id, t.tags_id, t.tag, ts.tag_sets_id, ts.name as tag_set
 END
     MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $tag_data, 'story_tags' );
 
+    # Bit.ly total click counts
+    my $bitly_click_data = $db->query(
+        <<"EOF",
+        -- Return NULL for where click count is not yet present
+        SELECT $ids_table.id AS stories_id,
+               bitly_clicks_total.click_count AS bitly_click_count
+        FROM $ids_table
+            LEFT JOIN bitly_clicks_total
+                ON $ids_table.id = bitly_clicks_total.stories_id
+EOF
+    )->hashes;
+    MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $bitly_click_data );
+
     return $stories;
 }
 
