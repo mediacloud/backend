@@ -26,6 +26,15 @@ DROP INDEX solr_import_stories_story;
 CREATE UNIQUE INDEX solr_import_extra_stories_story
     ON solr_import_extra_stories ( stories_id );
 
+INSERT INTO solr_import_extra_stories (stories_id)
+    SELECT DISTINCT bitly_clicks_total.stories_id
+    FROM bitly_clicks_total
+    WHERE NOT EXISTS (
+        SELECT 1
+        FROM solr_import_extra_stories
+        WHERE solr_import_extra_stories.stories_id = bitly_clicks_total.stories_id
+    );
+
 
 --
 -- 2 of 2. Reset the database version.
