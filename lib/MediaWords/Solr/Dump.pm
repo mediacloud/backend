@@ -422,7 +422,7 @@ sub import_csv_files
     my ( $files, $delta, $staging ) = @_;
 
     my $r;
-    if ( @{ $files } == 1 )
+    if ( scalar @{ $files } == 1 )
     {
         $r = _import_csv_single_file( $files->[ 0 ], $delta, $staging );
     }
@@ -474,13 +474,13 @@ sub delete_stories
 {
     my ( $stories_ids, $staging ) = @_;
 
-    return 1 unless ( $stories_ids && @{ $stories_ids } );
+    return 1 unless ( $stories_ids && scalar @{ $stories_ids } );
 
     print STDERR "deleting " . scalar( @{ $stories_ids } ) . " stories ...\n";
 
     # send requests in chunks so the requests are not too big
     my $chunk_size = 100;
-    for ( my $i = 0 ; $i < @{ $stories_ids } ; $i += $chunk_size )
+    for ( my $i = 0 ; $i < scalar @{ $stories_ids } ; $i += $chunk_size )
     {
         my $ceil = List::Util::min( scalar( @{ $stories_ids } ), $i + $chunk_size ) - 1;
         my $chunk_ids = [ ( @{ $stories_ids } )[ $i .. $ceil ] ];
