@@ -47,21 +47,27 @@ sub _set_lookup
     $data_lookup->{ $name } = $lookup;
 }
 
-# add enough stories from the solr_import_stories
+# add enough stories from the solr_import_extra_stories
 # queue to the stories_solr_import table that there are up to
 # $MAX_QUEUED_STORIES in stories_solr_import for each solr_import
-sub _add_media_stories_to_import
+sub _add_extra_stories_to_import
 {
     my ( $db, $import_date, $num_delta_stories ) = @_;
 
     my $max_queued_stories = List::Util::max( 0, $MAX_QUEUED_STORIES - $num_delta_stories );
-    my $num_queued_stories = $db->query( <<END, $max_queued_stories )->rows;
-insert into delta_import_stories ( stories_id ) select stories_id from solr_import_stories limit ?
-END
+    my $num_queued_stories = $db->query(
+        <<SQL,
+        INSERT INTO delta_import_stories (stories_id)
+            SELECT stories_id
+            FROM solr_import_extra_stories
+            LIMIT ?
+SQL
+        $max_queued_stories
+    )->rows;
 
     if ( $num_queued_stories > 0 )
     {
-        my ( $total_queued_stories ) = $db->query( "select count(*) from solr_import_stories" )->flat;
+        my ( $total_queued_stories ) = $db->query( 'SELECT COUNT(*) FROM solr_import_extra_stories' )->flat;
 
         print STDERR "added $num_queued_stories / $total_queued_stories queued stories to the import\n";
     }
@@ -215,7 +221,7 @@ END
     my ( $num_delta_stories ) = $db->query( "select count(*) from delta_import_stories" )->flat;
     print STDERR "found $num_delta_stories stories for import ...\n";
 
-    _add_media_stories_to_import( $db, $import_date, $num_delta_stories );
+    _add_extra_stories_to_import( $db, $import_date, $num_delta_stories );
 }
 
 # get the $data_lookup hash that has lookup tables for values to include
@@ -523,14 +529,20 @@ sub delete_stories_from_import_queue
 
     if ( $delta )
     {
-        $db->query( <<END );
-delete from solr_import_stories where stories_id in ( select stories_id from delta_import_stories )
-END
+        $db->query(
+            <<SQL
+            DELETE FROM solr_import_extra_stories
+            WHERE stories_id IN (
+                SELECT stories_id
+                FROM delta_import_stories
+            )
+SQL
+        );
     }
     else
     {
         # if we just completed a full import, drop the whole current stories queue
-        $db->query( "truncate table solr_import_stories" );
+        $db->query( 'TRUNCATE TABLE solr_import_extra_stories' );
     }
 }
 
