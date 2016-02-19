@@ -371,6 +371,8 @@ sub _csv_file_has_header
 {
     my ( $file ) = @_;
 
+    return 0 if ( -p $file );
+
     open( FILE, $file ) || die( "Unable to open file '$file': $!" );
 
     my $first_line = <FILE>;
