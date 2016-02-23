@@ -363,7 +363,7 @@ sub _solr_request
 
     if ( $content )
     {
-        $timeout = $CSV_CHUNK_LINES / 500;
+        $timeout = 120;
 
         $req = HTTP::Request->new( POST => $abs_url );
         $req->header( 'Content-type',   'text/plain; charset=utf-8' );
@@ -391,13 +391,13 @@ sub _solr_request
     {
         die( $@ ) unless ( $@ =~ /^alarm at/ );
 
-        say STDERR "timed out request for '$abs_url'";
+        say STDERR "timed out request";
         return "timed out request for $abs_url";
     }
 
     if ( !$res->is_success )
     {
-        say STDERR "request failed for $abs_url";
+        say STDERR "request failed:\n" . $res->content;
         return "request failed for $abs_url: " . $res->as_string;
     }
 
