@@ -582,11 +582,15 @@ sub _import_csv_single_file
 
     my $pm = Parallel::ForkManager->new( $jobs );
 
+    my $file_size = ( state( $file ) )[ 7 ] || 1;
+
     while ( my $data = get_encoded_csv_data_chunk( $file ) )
     {
         last unless ( $data->{ csv } );
 
-        print STDERR "importing $file position $data->{ pos } ...\n";
+        my $progress = int( $data->{ pos } * 100 / $file_size );
+
+        print STDERR "importing $file position $data->{ pos } [ ${progress}% ] ...\n";
 
         $pm->start and next;
 
