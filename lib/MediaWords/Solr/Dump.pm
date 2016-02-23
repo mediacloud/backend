@@ -582,7 +582,7 @@ sub _import_csv_single_file
 
     my $pm = Parallel::ForkManager->new( $jobs );
 
-    my $file_size = ( state( $file ) )[ 7 ] || 1;
+    my $file_size = ( stat( $file ) )[ 7 ] || 1;
 
     while ( my $data = get_encoded_csv_data_chunk( $file ) )
     {
