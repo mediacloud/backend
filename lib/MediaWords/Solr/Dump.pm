@@ -382,8 +382,6 @@ sub _solr_request
 
         alarm $timeout;
 
-        sleep( 300 ) if ( $req->as_string =~ /,2395315487,/ );
-
         $res = $ua->request( $req );
 
         alarm 0;
@@ -584,13 +582,23 @@ sub _import_csv_single_file
 
     my $file_size = ( stat( $file ) )[ 7 ] || 1;
 
+    my $last_time = time;
+    my $last_pos  = 0;
     while ( my $data = get_encoded_csv_data_chunk( $file ) )
     {
         last unless ( $data->{ csv } );
 
         my $progress = int( $data->{ pos } * 100 / $file_size );
 
-        print STDERR "importing $file position $data->{ pos } [ ${progress}% ] ...\n";
+        my $elapsed_time = ( time + 1 ) - $last_time;
+        $last_time = time;
+
+        my $chunk_size = ( $data->{ pos } - $last_pos ) + 1;
+        $last_pos = $data->{ pos };
+
+        my $remaining_time = int( ( $file_size / $chunk_size ) * $elapsed_time ) * ( ( 100 - $progress ) / 100 );
+
+        print STDERR "importing $file position $data->{ pos } [ ${progress}%, $remaining_time secs left ] ...\n";
 
         $pm->start and next;
 
