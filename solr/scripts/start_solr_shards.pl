@@ -10,7 +10,8 @@ use FindBin;
 use Getopt::Long;
 use Readonly;
 
-Readonly my $JVM_OPTS => '-XX:MaxGCPauseMillis=1000';
+Readonly my $JVM_OPTS =>
+'-XX:+UseG1GC -XX:+PerfDisableSharedMem -XX:+ParallelRefProcEnabled -XX:G1HeapRegionSize=12m -XX:MaxGCPauseMillis=250 -XX:InitiatingHeapOccupancyPercent=75 -XX:+UseLargePages -XX:+AggressiveOpts';
 
 sub main
 {
