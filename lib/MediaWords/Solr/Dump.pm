@@ -465,11 +465,9 @@ sub _get_all_file_errors
 
     my $cache = _get_file_errors_cache( $file );
 
-    my @keys = $cache->get_keys;
+    my $errors = $cache->dump_as_hash;
 
-    return [] if ( !@keys );
-
-    return $cache->get_multi_arrayref( \@keys );
+    return [ values( %{ $errors } ) ];
 }
 
 # add an error for the given file in the form { message => $error_message, pos => $pos }
@@ -522,7 +520,14 @@ sub get_encoded_csv_data_chunk
         $i++ if ( ( $i < ( $CSV_CHUNK_LINES - 1 ) || ( $line =~ /^\d+,\d+,\d+,\d+\!/ ) ) );
     }
 
-    _set_file_pos( $file, $fh->tell ) unless ( defined( $single_pos ) );
+    if ( !$single_pos )
+    {
+        _set_file_pos( $file, $fh->tell );
+
+        # this error gets removed once the chunk has been successfully processed so that
+        # chunks in progress will get restarted if the process is killed
+        _add_file_error( $file, { pos => $pos, message => 'in progress' } );
+    }
 
     $fh->close || die( "Unable to close file '$file': $!" );
 
@@ -574,9 +579,11 @@ sub _reprocess_file_errors
 {
     my ( $pm, $file, $import_url, $staging ) = @_;
 
+    say STDERR "get all errors";
+
     my $errors = _get_all_file_errors( $file );
 
-    say STDERR "reprocessing all errors for $file ..." if ( @{ $errors } );
+    say STDERR "reprocessing all errors for $file ...";
 
     for my $error ( @{ $errors } )
     {
@@ -625,8 +632,11 @@ sub _import_csv_single_file
 
         my $remaining_time = int( $elapsed_time * ( 100 / ( $partial_progress || 1 ) ) ) - $elapsed_time;
 
+        print STDERR "importing $file position $data->{ pos } [ ${progress}%, $remaining_time secs left ] ...\n";
+
         $pm->start and next;
 
+        _remove_file_error( $file, { pos => $data->{ pos } } );
         if ( my $error = _solr_request( $import_url, $staging, $data->{ csv } ) )
         {
             _add_file_error( $file, { pos => $data->{ pos }, message => $error } );
