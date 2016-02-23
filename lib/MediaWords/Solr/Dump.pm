@@ -619,7 +619,7 @@ sub _import_csv_single_file
 
     my $pm = Parallel::ForkManager->new( $jobs );
 
-    _reprocess_file_errors( $pm, $file, $import_url, $staging );
+    #_reprocess_file_errors( $pm, $file, $import_url, $staging );
 
     my $file_size = ( stat( $file ) )[ 7 ] || 1;
 
