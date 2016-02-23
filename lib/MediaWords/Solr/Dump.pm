@@ -511,7 +511,7 @@ sub get_encoded_csv_data_chunk
     while ( ( $i < $CSV_CHUNK_LINES ) && ( my $line = <$fh> ) )
     {
         # skip header line
-        next if ( !$i &&  $line =~ /^[a-z_,]+$/ ) );
+        next if ( !$i && ( $line =~ /^[a-z_,]+$/ ) );
 
         next if ( !$i && $line !~ /^\d+\,/ );
 
@@ -589,9 +589,9 @@ sub _reprocess_file_errors
 
     for my $error ( @{ $errors } )
     {
-        _remove_file_error( $file, { pos => $data->{ pos } } );
-
         my $data = get_encoded_csv_data_chunk( $file, $error->{ pos } );
+
+        _remove_file_error( $file, { pos => $data->{ pos } } );
 
         next unless ( $data->{ csv } );
 
