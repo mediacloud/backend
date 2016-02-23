@@ -363,7 +363,7 @@ sub _solr_request
 
     if ( $content )
     {
-        $timeout = $CSV_CHUNK_LINES / 1000;
+        $timeout = $CSV_CHUNK_LINES / 500;
 
         $req = HTTP::Request->new( POST => $abs_url );
         $req->header( 'Content-type',   'text/plain; charset=utf-8' );
