@@ -7,22 +7,30 @@ use forks;
 use strict;
 use warnings;
 
+use CHI;
 use Data::Dumper;
+use Digest::MD5;
 use Encode;
 use FileHandle;
+use HTTP::Request;
 use LWP::UserAgent;
 use List::MoreUtils;
 use List::Util;
+use Parallel::ForkManager;
 use Readonly;
-use Text::CSV_XS;
+use URI::Escape;
 
 use MediaWords::DB;
 
 use MediaWords::Solr;
 
-Readonly my @CSV_FIELDS =
+# order and names of fields exported to and imported from csv
+Readonly my @CSV_FIELDS =>
   qw/stories_id media_id story_sentences_id solr_id publish_date publish_day sentence_number sentence title language
   processed_stories_id media_sets_id tags_id_media tags_id_stories tags_id_story_sentences/;
+
+# numbner of lines in each chunk of csv to import
+Readonly my $CSV_CHUNK_LINES => 10_000;
 
 # how many sentences to fetch at a time from the postgres query
 Readonly my $FETCH_BLOCK_SIZE => 10_000;
@@ -307,7 +315,11 @@ sub print_csv_to_file
 
         for my $proc ( $min_proc .. $max_proc )
         {
-            my $file = "$file_spec-$proc";
+            # every generated file should have a unique id so that the
+            # file positioncaches don't get reused between imports
+            my $file_id = Digest::MD5::md5_hex( "$$-" . time() );
+            my $file    = "$file_spec-$file_id-$proc";
+
             push( @{ $files }, $file );
 
             push( @{ $threads },
@@ -330,17 +342,11 @@ sub print_csv_to_file
 # collection; otherwise use the live collection.
 sub _solr_request
 {
-    my ( $url, $staging ) = @_;
+    my ( $url, $staging, $content ) = @_;
 
     # print STDERR "requesting url: $url ...\n";
 
     my $solr_url = MediaWords::Util::Config::get_config->{ mediawords }->{ solr_url }->[ 0 ];
-
-    if ( $solr_url !~ /^https?\:\/\/localhost/ )
-    {
-        warn( "import failed for solr url '$solr_url'. Can only import to localhost solr url" );
-        return 0;
-    }
 
     my $db = MediaWords::DB::connect_to_db;
 
@@ -350,64 +356,275 @@ sub _solr_request
     my $abs_url = "${ solr_url }/${ collection }/${ url }";
 
     my $ua = LWP::UserAgent->new;
-    $ua->timeout( 86400 * 7 );
-    my $res = $ua->get( $abs_url );
 
-    if ( $res->is_success )
+    # should be able to process about this fast.  otherwise, time out and throw error so that we can continue processing
+    my $timeout;
+    my $req;
+
+    if ( $content )
     {
-        # print STDERR $res->content;
-        return 1;
+        $timeout = $CSV_CHUNK_LINES / 1000;
+
+        $req = HTTP::Request->new( POST => $abs_url );
+        $req->header( 'Content-type',   'text/plain; charset=utf-8' );
+        $req->header( 'Content-length', length( $content ) );
+        $req->content( $content );
     }
     else
     {
-        warn( "request failed for $abs_url: " . $res->as_string );
-        return 0;
+        $timeout = 500;
+        $req = HTTP::Request->new( GET => $abs_url );
     }
 
+    my $res;
+    eval {
+        local $SIG{ ALRM } = sub { die "alarm" };
+
+        alarm $timeout;
+
+        sleep( 300 ) if ( $req->as_string =~ /,2395315487,/ );
+
+        $res = $ua->request( $req );
+
+        alarm 0;
+    };
+
+    if ( $@ )
+    {
+        die( $@ ) unless ( $@ =~ /^alarm at/ );
+
+        say STDERR "time out";
+
+        return "timed out request for $abs_url";
+    }
+
+    if ( !$res->is_success )
+    {
+        say STDERR "res error";
+        return "request failed for $abs_url: " . $res->as_string;
+    }
+
+    return 0;
 }
 
-# open the file and return true if the first line looks like a header line, 0 otherwise
-sub _csv_file_has_header
+# return cache of the pos to read next from each file
+sub _get_file_pos_cache
+{
+    my $mediacloud_data_dir = MediaWords::Util::Config::get_config->{ mediawords }->{ data_dir };
+
+    return CHI->new(
+        driver           => 'File',
+        expires_in       => '1 year',
+        expires_variance => '0.1',
+        root_dir         => "${ mediacloud_data_dir }/cache/solr_import_file_pos",
+        depth            => 4
+    );
+}
+
+# get the file position to read next from the given file
+sub _get_file_pos
 {
     my ( $file ) = @_;
 
-    return 0 if ( -p $file );
+    my $abs_file = File::Spec->rel2abs( $file );
 
-    open( FILE, $file ) || die( "Unable to open file '$file': $!" );
+    my $cache = _get_file_pos_cache();
 
-    my $first_line = <FILE>;
-
-    close( FILE );
-
-    return 0 unless ( $first_line );
-
-    chomp( $first_line );
-
-    return ( $first_line =~ /^[a-z_,]+$/ ) ? 1 : 0;
+    return $cache->get( $abs_file ) || 0;
 }
 
-# import a single csv dump file into solr
-sub _import_csv_single_file
+sub _set_file_pos
 {
-    my ( $file, $delta, $staging ) = @_;
+    my ( $file, $pos ) = @_;
 
     my $abs_file = File::Spec->rel2abs( $file );
 
-    print STDERR "importing $abs_file ...\n";
+    my $cache = _get_file_pos_cache();
 
-    my $overwrite = $delta ? 'overwrite=true' : 'overwrite=false';
+    return $cache->set( $abs_file, $pos );
+}
 
-    my ( $fieldnames, $header ) = ( '', '' );
-    if ( !_csv_file_has_header( $file ) )
+sub _get_file_errors_cache
+{
+    my ( $file ) = @_;
+
+    my $abs_file = File::Spec->rel2abs( $file );
+
+    my $mediacloud_data_dir = MediaWords::Util::Config::get_config->{ mediawords }->{ data_dir };
+
+    return CHI->new(
+        driver           => 'File',
+        expires_in       => '1 year',
+        expires_variance => '0.1',
+        root_dir         => "${ mediacloud_data_dir }/cache/solr_import_file_errors/" . Digest::MD5::md5_hex( $abs_file ),
+        depth            => 4
+    );
+}
+
+# get a list of all errors for the file in the form { message => $error_message, pos => $pos }
+sub _get_all_file_errors
+{
+    my ( $file ) = @_;
+
+    my $cache = _get_file_errors_cache( $file );
+
+    my @keys = $cache->get_keys;
+
+    return [] if ( !@keys );
+
+    return $cache->get_multi_arrayref( \@keys );
+}
+
+# add an error for the given file in the form { message => $error_message, pos => $pos }
+sub _add_file_error
+{
+    my ( $file, $error ) = @_;
+
+    my $cache = _get_file_errors_cache( $file );
+
+    $cache->set( $error->{ pos }, $error );
+}
+
+# remove an error from the file
+sub _remove_file_error
+{
+    my ( $file, $error ) = @_;
+
+    my $cache = _get_file_errors_cache( $file );
+
+    $cache->remove( $error->{ pos } );
+}
+
+# get chunk of $CSV_CHUNK_LINES csv lines from the csv file starting at _get_file_post. use _set_file_pos
+# to advance the position pointer tot the next position in the file.  return undef if there is no more data
+# to get from the file
+sub get_encoded_csv_data_chunk
+{
+    my ( $file, $single_pos ) = @_;
+
+    my $fh = FileHandle->new;
+    $fh->open( $file ) || die( "unable to open file '$file': $!" );
+
+    flock( $fh, 2 ) || die( "Unable to lock file '$file': $!" );
+
+    my $pos = defined( $single_pos ) ? $single_pos : _get_file_pos( $file );
+
+    $fh->seek( $pos, 0 ) || die( "unable to seek to pos '$pos' in file '$file': $!" );
+
+    my $csv_data;
+
+    my $i = 0;
+    while ( ( $i < $CSV_CHUNK_LINES ) && ( my $line = <$fh> ) )
     {
-        $fieldnames = 'fieldnames=' . join( ',', @CSV_FIELDS );
-        $header = 'header=false';
+        # skip header line
+        next if ( !$i && ( $line =~ /^[a-z_,]+$/ ) );
+
+        $csv_data .= $line;
+
+        # try to avoid stopping a chunk in a multi-line record.  imperfect but worth performance vs. csv parsing
+        $i++ if ( ( $i < ( $CSV_CHUNK_LINES - 1 ) || ( $line =~ /^\d+,\d+,\d+,\d+\!/ ) ) );
     }
 
-    my $url =
-"update/csv?commit=false&$fieldnames&$header&stream.file=$abs_file&stream.contentType=text/plain;charset=utf-8&f.media_sets_id.split=true&f.media_sets_id.separator=;&f.tags_id_media.split=true&f.tags_id_media.separator=;&f.tags_id_stories.split=true&f.tags_id_stories.separator=;&f.tags_id_story_sentences.split=true&f.tags_id_story_sentences.separator=;&$overwrite&skip=field_type,id,solr_import_date";
+    _set_file_pos( $file, $fh->tell ) unless ( defined( $single_pos ) );
 
-    return _solr_request( $url, $staging );
+    $fh->close || die( "Unable to close file '$file': $!" );
+
+    return { csv => $csv_data, pos => $pos };
+}
+
+# get the solr url to which to send csv data
+sub _get_import_url
+{
+    my ( $delta ) = @_;
+
+    my $overwrite = $delta ? 'true' : 'false';
+
+    my $fieldnames = join( ',', @CSV_FIELDS );
+
+    my $url_fields = {
+        'commit'                              => 'false',
+        'header'                              => 'false',
+        'fieldnames'                          => $fieldnames,
+        'overwrite'                           => $overwrite,
+        'f.media_sets_id.split'               => 'true',
+        'f.media_sets_id.separator'           => ';',
+        'f.tags_id_media.split'               => 'true',
+        'f.tags_id_media.separator'           => ';',
+        'f.tags_id_stories.split'             => 'true',
+        'f.tags_id_stories.separator'         => ';',
+        'f.tags_id_story_sentences.split'     => 'true',
+        'f.tags_id_story_sentences.separator' => ';',
+        'skip'                                => 'field_type,id,solr_import_date'
+    };
+
+    my $url_args_string = join( '&', map { "$_=" . uri_escape( $url_fields->{ $_ } ) } keys( %{ $url_fields } ) );
+
+    return "update/csv?$url_args_string";
+}
+
+# print to STDERR a list of remaining errors on the given file
+sub _print_file_errors
+{
+    my ( $file ) = @_;
+
+    my $errors = _get_all_file_errors( $file );
+
+    say STDERR "errors for file '$file':\n" . Dumper( $errors ) if ( @{ $errors } );
+
+}
+
+# import a single csv dump file into solr using blocks
+sub _import_csv_single_file
+{
+    my ( $file, $delta, $staging, $jobs ) = @_;
+
+    my $import_url = _get_import_url( $delta );
+
+    my $pm = Parallel::ForkManager->new( $jobs );
+
+    while ( my $data = get_encoded_csv_data_chunk( $file ) )
+    {
+        last unless ( $data->{ csv } );
+
+        print STDERR "importing $file position $data->{ pos } ...\n";
+
+        $pm->start and next;
+
+        if ( my $error = _solr_request( $import_url, $staging, $data->{ csv } ) )
+        {
+            _add_file_error( $file, { pos => $data->{ pos }, message => $error } );
+        }
+
+        $pm->finish;
+    }
+
+    $pm->wait_all_children;
+
+    my $errors = _get_all_file_errors( $file );
+
+    say STDERR "reprocessing all errors for $file ..." if ( @{ $errors } );
+
+    for my $error ( @{ $errors } )
+    {
+        my $data = get_encoded_csv_data_chunk( $file, $error->{ pos } );
+
+        print STDERR "reprocessing $file position $data->{ pos } ...\n";
+
+        $pm->start and next;
+
+        if ( !_solr_request( $import_url, $staging, $data->{ csv } ) )
+        {
+            _remove_file_error( $file, { pos => $data->{ pos } } );
+        }
+
+        $pm->finish;
+    }
+
+    $pm->wait_all_children;
+
+    _print_file_errors( $file );
+
+    return 1;
 }
 
 # import csv dump files into solr.  if there are multiple files,
@@ -415,32 +632,21 @@ sub _import_csv_single_file
 # staging collection.
 sub import_csv_files
 {
-    my ( $files, $delta, $staging ) = @_;
+    my ( $files, $delta, $staging, $jobs ) = @_;
 
-    my $r;
-    if ( @{ $files } == 1 )
-    {
-        $r = _import_csv_single_file( $files->[ 0 ], $delta, $staging );
-    }
-    else
-    {
-        my $threads = [];
-        for my $file ( @{ $files } )
-        {
-            push( @{ $threads }, threads->create( \&_import_csv_single_file, $file, $delta, $staging ) );
-        }
+    $jobs ||= 1;
 
-        $r = 1;
-        map { $r = $r && $_->join } @{ $threads };
+    for my $file ( @{ $files } )
+    {
+        _import_csv_single_file( $file, $delta, $staging, $jobs );
     }
 
-    if ( !$r )
+    for my $file ( @{ $files } )
     {
-        print STDERR "IMPORT FAILED.\n";
-        return 0;
+        _print_file_errors( $file );
     }
 
-    return _solr_request( "update?stream.body=<commit/>", $staging );
+    return 1;
 }
 
 # store in memory the current date according to postgres
@@ -485,7 +691,11 @@ sub delete_stories
         my $r =
           _solr_request( "update?stream.body=<delete><query>+stories_id:(${ chunk_ids_list })</query></delete>", $staging );
 
-        return 0 unless $r;
+        if ( $r )
+        {
+            warn( $r );
+            return 0;
+        }
     }
 
     return 1;
@@ -498,7 +708,15 @@ sub delete_all_sentences
 
     print STDERR "deleting all sentences ...\n";
 
-    return _solr_request( "update?stream.body=<delete><query>*:*</query></delete>", $staging );
+    my $r = _solr_request( "update?stream.body=<delete><query>*:*</query></delete>", $staging );
+
+    if ( $r )
+    {
+        warn( $r );
+        return 0;
+    }
+
+    return 1;
 }
 
 # get a temp file name to for a delta dump
@@ -550,7 +768,7 @@ sub maybe_production_solr
 # importing
 sub generate_and_import_data
 {
-    my ( $delta, $delete, $staging ) = @_;
+    my ( $delta, $delete, $staging, $jobs ) = @_;
 
     die( "cannot import with delta and delete both true" ) if ( $delta && $delete );
 
@@ -577,7 +795,7 @@ sub generate_and_import_data
     }
 
     print STDERR "importing dump ...\n";
-    import_csv_files( [ $dump_file ], $delta, $staging ) || die( "import failed." );
+    import_csv_files( [ $dump_file ], $delta, $staging, $jobs ) || die( "import failed." );
 
     save_import_date( $db, $delta, $stories_ids );
     delete_stories_from_import_queue( $db, $delta );
