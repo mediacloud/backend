@@ -391,14 +391,13 @@ sub _solr_request
     {
         die( $@ ) unless ( $@ =~ /^alarm at/ );
 
-        say STDERR "time out";
-
+        say STDERR "timed out request for '$abs_url'";
         return "timed out request for $abs_url";
     }
 
     if ( !$res->is_success )
     {
-        say STDERR "res error";
+        say STDERR "request failed for $abs_url";
         return "request failed for $abs_url: " . $res->as_string;
     }
 
@@ -571,46 +570,9 @@ sub _print_file_errors
 
 }
 
-# import a single csv dump file into solr using blocks
-sub _import_csv_single_file
+sub _reprocess_file_errors
 {
-    my ( $file, $delta, $staging, $jobs ) = @_;
-
-    my $import_url = _get_import_url( $delta );
-
-    my $pm = Parallel::ForkManager->new( $jobs );
-
-    my $file_size = ( stat( $file ) )[ 7 ] || 1;
-
-    my $last_time = time;
-    my $last_pos  = 0;
-    while ( my $data = get_encoded_csv_data_chunk( $file ) )
-    {
-        last unless ( $data->{ csv } );
-
-        my $progress = int( $data->{ pos } * 100 / $file_size );
-
-        my $elapsed_time = ( time + 1 ) - $last_time;
-        $last_time = time;
-
-        my $chunk_size = ( $data->{ pos } - $last_pos ) + 1;
-        $last_pos = $data->{ pos };
-
-        my $remaining_time = int( ( $file_size / $chunk_size ) * $elapsed_time ) * ( ( 100 - $progress ) / 100 );
-
-        print STDERR "importing $file position $data->{ pos } [ ${progress}%, $remaining_time secs left ] ...\n";
-
-        $pm->start and next;
-
-        if ( my $error = _solr_request( $import_url, $staging, $data->{ csv } ) )
-        {
-            _add_file_error( $file, { pos => $data->{ pos }, message => $error } );
-        }
-
-        $pm->finish;
-    }
-
-    $pm->wait_all_children;
+    my ( $pm, $file, $import_url, $staging ) = @_;
 
     my $errors = _get_all_file_errors( $file );
 
@@ -633,6 +595,49 @@ sub _import_csv_single_file
     }
 
     $pm->wait_all_children;
+}
+
+# import a single csv dump file into solr using blocks
+sub _import_csv_single_file
+{
+    my ( $file, $delta, $staging, $jobs ) = @_;
+
+    my $import_url = _get_import_url( $delta );
+
+    my $pm = Parallel::ForkManager->new( $jobs );
+
+    _reprocess_file_errors( $pm, $file, $import_url, $staging );
+
+    my $file_size = ( stat( $file ) )[ 7 ] || 1;
+
+    my $start_time = time;
+    my $start_pos;
+    while ( my $data = get_encoded_csv_data_chunk( $file ) )
+    {
+        last unless ( $data->{ csv } );
+
+        $start_pos //= $data->{ pos };
+
+        my $progress = int( $data->{ pos } * 100 / $file_size );
+        my $partial_progress = int( ( $data->{ pos } - $start_pos ) * 100 / ( $file_size - $start_pos ) );
+
+        my $elapsed_time = ( time + 1 ) - $start_time;
+
+        my $remaining_time = int( $elapsed_time * ( 100 / ( $partial_progress || 1 ) ) ) - $elapsed_time;
+
+        $pm->start and next;
+
+        if ( my $error = _solr_request( $import_url, $staging, $data->{ csv } ) )
+        {
+            _add_file_error( $file, { pos => $data->{ pos }, message => $error } );
+        }
+
+        $pm->finish;
+    }
+
+    $pm->wait_all_children;
+
+    _reprocess_file_errors( $pm, $file, $import_url, $staging );
 
     _print_file_errors( $file );
 
