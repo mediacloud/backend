@@ -346,7 +346,7 @@ sub _solr_request
 
     # print STDERR "requesting url: $url ...\n";
 
-    my $solr_url = MediaWords::Util::Config::get_config->{ mediawords }->{ solr_url }->[ 0 ];
+    my $solr_url = MediaWords::Solr::get_solr_url;
 
     my $db = MediaWords::DB::connect_to_db;
 
