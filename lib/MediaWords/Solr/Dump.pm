@@ -18,6 +18,7 @@ use List::MoreUtils;
 use List::Util;
 use Parallel::ForkManager;
 use Readonly;
+use Text::CSV_XS;
 use URI::Escape;
 
 use MediaWords::DB;
@@ -508,20 +509,19 @@ sub get_encoded_csv_data_chunk
 
     my $csv_data;
     my $i = 0;
-    while ( ( $i < $CSV_CHUNK_LINES ) && ( my $line = <$fh> ) )
+
+    my $csv = Text::CSV_XS->new( { binary => 1 } );
+
+    while ( ( $i < $CSV_CHUNK_LINES ) && ( my $row = $csv->getline( $fh ) ) )
     {
         # skip header line
-        next if ( !$i && ( $line =~ /^[a-z_,]+$/ ) );
+        next if ( !$i && ( $row->[ 0 ] !~ /^\d+$/ ) );
 
-        next if ( !$i && $line !~ /^\d+\,/ );
+        $csv->combine( @{ $row } );
 
-        $csv_data .= $line;
+        $csv_data .= $csv->string . "\n";
 
-        # try to avoid stopping a chunk in a multi-line record.  imperfect but worth performance vs. csv parsing
-        if ( $line =~ /^\d+\,\d+\,/ )
-        {
-            $i++;
-        }
+        $i++;
     }
 
     if ( !$single_pos )
@@ -535,7 +535,7 @@ sub get_encoded_csv_data_chunk
 
     $fh->close || die( "Unable to close file '$file': $!" );
 
-    return { csv => $csv_data, pos => $pos };
+    return { csv => encode( 'utf8', $csv_data ), pos => $pos };
 }
 
 # get the solr url to which to send csv data
