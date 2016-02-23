@@ -507,17 +507,21 @@ sub get_encoded_csv_data_chunk
     $fh->seek( $pos, 0 ) || die( "unable to seek to pos '$pos' in file '$file': $!" );
 
     my $csv_data;
-
     my $i = 0;
     while ( ( $i < $CSV_CHUNK_LINES ) && ( my $line = <$fh> ) )
     {
         # skip header line
-        next if ( !$i && ( $line =~ /^[a-z_,]+$/ ) );
+        next if ( !$i &&  $line =~ /^[a-z_,]+$/ ) );
+
+        next if ( !$i && $line !~ /^\d+\,/ );
 
         $csv_data .= $line;
 
         # try to avoid stopping a chunk in a multi-line record.  imperfect but worth performance vs. csv parsing
-        $i++ if ( ( $i < ( $CSV_CHUNK_LINES - 1 ) || ( $line =~ /^\d+,\d+,\d+,\d+\!/ ) ) );
+        if ( $line =~ /^\d+\,\d+\,/ )
+        {
+            $i++;
+        }
     }
 
     if ( !$single_pos )
@@ -579,23 +583,25 @@ sub _reprocess_file_errors
 {
     my ( $pm, $file, $import_url, $staging ) = @_;
 
-    say STDERR "get all errors";
-
     my $errors = _get_all_file_errors( $file );
 
     say STDERR "reprocessing all errors for $file ...";
 
     for my $error ( @{ $errors } )
     {
+        _remove_file_error( $file, { pos => $data->{ pos } } );
+
         my $data = get_encoded_csv_data_chunk( $file, $error->{ pos } );
+
+        next unless ( $data->{ csv } );
 
         print STDERR "reprocessing $file position $data->{ pos } ...\n";
 
         $pm->start and next;
 
-        if ( !_solr_request( $import_url, $staging, $data->{ csv } ) )
+        if ( my $error = _solr_request( $import_url, $staging, $data->{ csv } ) )
         {
-            _remove_file_error( $file, { pos => $data->{ pos } } );
+            _add_file_error( $file, { pos => $data->{ pos }, message => $error } );
         }
 
         $pm->finish;
