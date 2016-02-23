@@ -626,13 +626,13 @@ sub _import_csv_single_file
         $start_pos //= $data->{ pos };
 
         my $progress = int( $data->{ pos } * 100 / $file_size );
-        my $partial_progress = int( ( $data->{ pos } - $start_pos ) * 100 / ( $file_size - $start_pos ) );
+        my $partial_progress = ( ( $data->{ pos } + 1 ) - $start_pos ) / ( ( $file_size - $start_pos ) + 1 );
 
         my $elapsed_time = ( time + 1 ) - $start_time;
 
-        my $remaining_time = int( $elapsed_time * ( 100 / ( $partial_progress || 1 ) ) ) - $elapsed_time;
+        my $remaining_time = int( $elapsed_time * ( 1 / $partial_progress ) ) - $elapsed_time;
 
-        print STDERR "importing $file position $data->{ pos } [ ${progress}%, $remaining_time secs left ] ...\n";
+        say STDERR "importing $file position $data->{ pos } [ ${progress}%, $remaining_time secs left ] ...";
 
         $pm->start and next;
 
