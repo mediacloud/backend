@@ -824,7 +824,7 @@ sub mark_import_date
 {
     my ( $db ) = @_;
 
-    $_import_date = $db->query( "select now()" )->flat;
+    ( $_import_date ) = $db->query( "select now()" )->flat;
 }
 
 # store the date marked by mark_import_date in solr_imports
@@ -950,6 +950,8 @@ sub generate_and_import_data
 
     mark_import_date( $db );
 
+    $db = undef;
+
     print STDERR "generating dump ...\n";
     my $stories_ids = print_csv_to_file( $db, $dump_file, 1, $delta ) || die( "dump failed." );
 
@@ -966,6 +968,8 @@ sub generate_and_import_data
 
     print STDERR "importing dump ...\n";
     import_csv_files( [ $dump_file ], $delta, $staging, $jobs ) || die( "import failed." );
+
+    $db = MediaWords::DB::connect_to_db;
 
     save_import_date( $db, $delta, $stories_ids );
     delete_stories_from_import_queue( $db, $delta );
