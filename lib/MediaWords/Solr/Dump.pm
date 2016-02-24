@@ -299,6 +299,7 @@ sub _print_csv_to_file_single_job
 # run num_proc jobs in parallel to generate the dump.
 # assume that the script is running on num_machines different machines.
 # if delta is true, only dump the data changed since the last dump.
+# return { files => $list_of_dump_files, stories_ids => $ids_dumps }
 sub print_csv_to_file
 {
     my ( $db, $file_spec, $num_proc, $delta, $min_proc, $max_proc ) = @_;
@@ -311,7 +312,9 @@ sub print_csv_to_file
 
     if ( $num_proc == 1 )
     {
-        return _print_csv_to_file_single_job( $db, $file_spec, 1, 1, $delta );
+        my $stories_ids = _print_csv_to_file_single_job( $db, $file_spec, 1, 1, $delta );
+
+        return { files => [ $file_spec ], stories_ids => $stories_ids };
     }
     else
     {
@@ -334,10 +337,10 @@ sub print_csv_to_file
         for my $thread ( @{ $threads } )
         {
             my $stories_ids = $thread->join();
-            push( @{ $all_stories_ids }, $stories_ids );
+            push( @{ $all_stories_ids }, @{ $stories_ids } );
         }
 
-        return $all_stories_ids;
+        return { files => $files, stories_ids => $all_stories_ids };
     }
 }
 
@@ -387,7 +390,7 @@ sub _sentence_exists_in_solr
 # collection; otherwise use the live collection.
 sub _solr_request
 {
-    my ( $url, $staging, $content ) = @_;
+    my ( $url, $staging, $content, $content_type ) = @_;
 
     # print STDERR "requesting url: $url ...\n";
 
@@ -410,8 +413,10 @@ sub _solr_request
     {
         $timeout = 120;
 
+        $content_type ||= 'text/plain; charset=utf-8';
+
         $req = HTTP::Request->new( POST => $abs_url );
-        $req->header( 'Content-type',   'text/plain; charset=utf-8' );
+        $req->header( 'Content-type',   $content_type );
         $req->header( 'Content-length', length( $content ) );
         $req->content( $content );
     }
@@ -850,29 +855,15 @@ sub delete_stories
 
     print STDERR "deleting " . scalar( @{ $stories_ids } ) . " stories ...\n";
 
-    my $pm = Parallel::ForkManager->new( $jobs );
+    my $stories_ids_list = join( ' ', @{ $stories_ids } );
 
-    # send requests in chunks so the requests are not too big
-    my $chunk_size = 100;
-    for ( my $i = 0 ; $i < @{ $stories_ids } ; $i += $chunk_size )
+    my $delete_query = "<delete><query>stories_id:($stories_ids_list)</query></delete>";
+
+    if ( my $r = _solr_request( "update", $staging, $delete_query, 'application/xml' ) )
     {
-        print STDERR ".";
-        $pm->start and next;
-
-        my $ceil = List::Util::min( scalar( @{ $stories_ids } ), $i + $chunk_size ) - 1;
-        my $chunk_ids = [ ( @{ $stories_ids } )[ $i .. $ceil ] ];
-
-        my $chunk_ids_list = join( ' ', @{ $chunk_ids } );
-        my $r =
-          _solr_request( "update?stream.body=<delete><query>+stories_id:(${ chunk_ids_list })</query></delete>", $staging );
-
-        warn $r if ( $r );
-        $pm->finish;
+        warn( $r );
+        return 0;
     }
-
-    $pm->wait_all_children;
-
-    print STDERR "\n";
 
     return 1;
 }
@@ -913,12 +904,16 @@ sub _get_dump_file
 # delete stories that have just been imported from the media import queue
 sub delete_stories_from_import_queue
 {
-    my ( $db, $delta ) = @_;
+    my ( $db, $delta, $stories_ids ) = @_;
 
     if ( $delta )
     {
+        return unless ( @{ $stories_ids } );
+
+        my $stories_ids_list = join( ',', @{ $stories_ids } );
+
         $db->query( <<END );
-delete from solr_import_stories where stories_id in ( select stories_id from delta_import_stories )
+delete from solr_import_stories where stories_id in ( $stories_ids_list )
 END
     }
     else
@@ -937,6 +932,16 @@ sub maybe_production_solr
     die( "Unable to query solr for number of sentences" ) unless ( defined( $num_sentences ) );
 
     return ( $num_sentences > 100_000_000 );
+}
+
+# if there is only one job, return [ $dump_file ], otherwise return [ "${ dump_file }-1", "${ dump_file }-2", ... ]
+sub _get_parallel_dump_files
+{
+    my ( $dump_file, $jobs ) = @_;
+
+    return [ $dump_file ] if ( $jobs == 1 );
+
+    return [ map { $dump_file . "-$_" } ( 1 .. $jobs ) ];
 }
 
 # generate and import dump.  optionally generate delta dump since beginning of last
@@ -959,7 +964,10 @@ sub generate_and_import_data
     mark_import_date( $db );
 
     print STDERR "generating dump ...\n";
-    my $stories_ids = print_csv_to_file( $db, $dump_file, 1, $delta ) || die( "dump failed." );
+    my $dump = print_csv_to_file( $db, $dump_file, $jobs, $delta ) || die( "dump failed." );
+
+    my $stories_ids = $dump->{ stories_ids };
+    my $dump_files  = $dump->{ files };
 
     if ( $delta )
     {
@@ -973,10 +981,13 @@ sub generate_and_import_data
     }
 
     print STDERR "importing dump ...\n";
-    import_csv_files( [ $dump_file ], $delta, $staging, $jobs ) || die( "import failed." );
+    import_csv_files( $dump_files, $delta, $staging, $jobs ) || die( "import failed." );
+
+    # have to reconnect becaue import_csv_files may have forked, ruining existing db handles
+    $db = MediaWords::DB::connect_to_db;
 
     save_import_date( $db, $delta, $stories_ids );
-    delete_stories_from_import_queue( $db, $delta );
+    delete_stories_from_import_queue( $db, $delta, $stories_ids );
 
     # if we're doing a full import, do a delta to catchup with the data since the start of the import
     if ( !$delta )
