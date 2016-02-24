@@ -844,16 +844,21 @@ SQL
 # delete the given stories from solr
 sub delete_stories
 {
-    my ( $stories_ids, $staging ) = @_;
+    my ( $stories_ids, $staging, $jobs ) = @_;
 
     return 1 unless ( $stories_ids && @{ $stories_ids } );
 
     print STDERR "deleting " . scalar( @{ $stories_ids } ) . " stories ...\n";
 
+    my $pm = Parallel::ForkManager->new( $jobs );
+
     # send requests in chunks so the requests are not too big
-    my $chunk_size = 100;
+    my $chunk_size = 1000;
     for ( my $i = 0 ; $i < @{ $stories_ids } ; $i += $chunk_size )
     {
+        say STDERR "deleting chunk ...";
+        $pm->start and next;
+
         my $ceil = List::Util::min( scalar( @{ $stories_ids } ), $i + $chunk_size ) - 1;
         my $chunk_ids = [ ( @{ $stories_ids } )[ $i .. $ceil ] ];
 
@@ -861,12 +866,11 @@ sub delete_stories
         my $r =
           _solr_request( "update?stream.body=<delete><query>+stories_id:(${ chunk_ids_list })</query></delete>", $staging );
 
-        if ( $r )
-        {
-            warn( $r );
-            return 0;
-        }
+        warn $r if ( $r );
+        $pm->finish;
     }
+
+    $pm->wait_all_children;
 
     return 1;
 }
@@ -940,6 +944,8 @@ sub generate_and_import_data
 {
     my ( $delta, $delete, $staging, $jobs ) = @_;
 
+    $jobs ||= 1;
+
     die( "cannot import with delta and delete both true" ) if ( $delta && $delete );
 
     my $db = MediaWords::DB::connect_to_db;
@@ -949,8 +955,6 @@ sub generate_and_import_data
     my $dump_file = _get_dump_file();
 
     mark_import_date( $db );
-
-    $db = undef;
 
     print STDERR "generating dump ...\n";
     my $stories_ids = print_csv_to_file( $db, $dump_file, 1, $delta ) || die( "dump failed." );
@@ -968,8 +972,6 @@ sub generate_and_import_data
 
     print STDERR "importing dump ...\n";
     import_csv_files( [ $dump_file ], $delta, $staging, $jobs ) || die( "import failed." );
-
-    $db = MediaWords::DB::connect_to_db;
 
     save_import_date( $db, $delta, $stories_ids );
     delete_stories_from_import_queue( $db, $delta );
