@@ -560,6 +560,8 @@ sub get_encoded_csv_data_chunk
         # skip header line
         next if ( !$i && ( $line =~ /^[a-z_,]+$/ ) );
 
+        next if ( !$i && $line !~ /^\d+\,/ );
+
         if ( !defined( $first_story_sentences_id ) )
         {
             $line =~ /^\d+\,\d+\,(\d+)\,/;
@@ -573,17 +575,14 @@ sub get_encoded_csv_data_chunk
 
     # get the final line using the csv parser so that we deal with multi lines correctly.  don't do this for all
     # lines because it is much slower than just copying the text.
-    if ( $i == $CSV_CHUNK_LINES )
+    my $csv = Text::CSV_XS->new( { binary => 1 } );
+    if ( my $row = $csv->getline( $fh ) )
     {
-        my $csv = Text::CSV_XS->new( { binary => 1 } );
-        if ( my $row = $csv->getline( $fh ) )
-        {
-            $csv->combine( @{ $row } );
+        $csv->combine( @{ $row } );
 
-            $csv_data .= $csv->string . "\n";
+        $csv_data .= $csv->string . "\n";
 
-            $last_story_sentences_id = $row->[ 2 ];
-        }
+        $last_story_sentences_id = $row->[ 2 ];
     }
 
     # set last_story_sentences_id to an invalid id in case we didn't get a last csv line,
