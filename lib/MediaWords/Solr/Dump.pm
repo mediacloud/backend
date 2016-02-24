@@ -853,10 +853,10 @@ sub delete_stories
     my $pm = Parallel::ForkManager->new( $jobs );
 
     # send requests in chunks so the requests are not too big
-    my $chunk_size = 1000;
+    my $chunk_size = 100;
     for ( my $i = 0 ; $i < @{ $stories_ids } ; $i += $chunk_size )
     {
-        say STDERR "deleting chunk ...";
+        print STDERR ".";
         $pm->start and next;
 
         my $ceil = List::Util::min( scalar( @{ $stories_ids } ), $i + $chunk_size ) - 1;
@@ -871,6 +871,8 @@ sub delete_stories
     }
 
     $pm->wait_all_children;
+
+    print STDERR "\n";
 
     return 1;
 }
