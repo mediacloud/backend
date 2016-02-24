@@ -13,6 +13,7 @@ use Digest::MD5;
 use Encode;
 use FileHandle;
 use HTTP::Request;
+use JSON;
 use LWP::UserAgent;
 use List::MoreUtils;
 use List::Util;
@@ -24,6 +25,8 @@ use URI::Escape;
 use MediaWords::DB;
 
 use MediaWords::Solr;
+
+my $_solr_select_url;
 
 # order and names of fields exported to and imported from csv
 Readonly my @CSV_FIELDS =>
@@ -338,6 +341,47 @@ sub print_csv_to_file
     }
 }
 
+# get the solr select url; cache after the first call
+sub _get_solr_select_url
+{
+    return $_solr_select_url if ( $_solr_select_url );
+
+    my $db = MediaWords::DB::connect_to_db;
+
+    $_solr_select_url = MediaWords::Solr::get_solr_select_url( $db );
+
+    return $_solr_select_url;
+}
+
+# query solr for the given story_sentences_id and return true the story_sentences_id already exists in solr
+sub _sentence_exists_in_solr
+{
+    my ( $story_sentences_id ) = @_;
+
+    my $solr_select_url = _get_solr_select_url();
+
+    my $ua = MediaWords::Util::Web::UserAgent;
+
+    my $res = $ua->post( $solr_select_url, { q => "story_sentences_id:$story_sentences_id", rows => 0, wt => 'json' } );
+
+    if ( !$res->is_success )
+    {
+        warn( "unable to query solr for story_sentences_id $story_sentences_id: " . $res->content );
+        return 0;
+    }
+
+    my $json = $res->content;
+
+    my $data;
+    eval { $data = decode_json( $json ) };
+
+    die( "Error parsing solr json: $@\n$json" ) if ( $@ );
+
+    die( "Error received from solr: '$json'" ) if ( $data->{ error } );
+
+    return $data->{ response }->{ numFound } ? 1 : 0;
+}
+
 # send a request to MediaWords::Solr::get_solr_url.  return 1
 # on success and 0 on error.  if $staging is true, use the staging
 # collection; otherwise use the live collection.
@@ -512,10 +556,15 @@ sub get_encoded_csv_data_chunk
 
     my $csv = Text::CSV_XS->new( { binary => 1 } );
 
+    my ( $first_story_sentences_id, $last_story_sentences_id );
+
     while ( ( $i < $CSV_CHUNK_LINES ) && ( my $row = $csv->getline( $fh ) ) )
     {
         # skip header line
         next if ( !$i && ( $row->[ 0 ] !~ /^\d+$/ ) );
+
+        $first_story_sentences_id //= $row->[ 2 ];
+        $last_story_sentences_id = $row->[ 2 ];
 
         $csv->combine( @{ $row } );
 
@@ -535,7 +584,12 @@ sub get_encoded_csv_data_chunk
 
     $fh->close || die( "Unable to close file '$file': $!" );
 
-    return { csv => encode( 'utf8', $csv_data ), pos => $pos };
+    return {
+        csv                      => encode( 'utf8', $csv_data ),
+        pos                      => $pos,
+        first_story_sentences_id => $first_story_sentences_id,
+        last_story_sentences_id  => $last_story_sentences_id
+    };
 }
 
 # get the solr url to which to send csv data
@@ -579,9 +633,12 @@ sub _print_file_errors
 
 }
 
+# find all error chunks saved for this file in the _file_errors_cache, and reprocess every error chunk
 sub _reprocess_file_errors
 {
-    my ( $pm, $file, $import_url, $staging ) = @_;
+    my ( $pm, $file, $staging ) = @_;
+
+    my $import_url = _get_import_url( 1 );
 
     my $errors = _get_all_file_errors( $file );
 
@@ -610,21 +667,46 @@ sub _reprocess_file_errors
     $pm->wait_all_children;
 }
 
+# return the delta setting for the given chunk, which if true indicates that we cannot assume that
+# all of the story_sentence_ids in the given chunk are not already in solr.
+#
+# we base this decision on lookups of the first ssid and the last ssid in the chunk:
+# * if the last chunk_delta was 0, return 0 (run import with overwrite = false for rest of file)
+# * if first ssid is not in solr, delta = 0 (run import with overwrite = false)
+# * if the first ssid is in solr but the last is not, delta = 1 (run import with overwrite = true)
+# * if the first ssid is in solr and the last ssid is in solr, delta = -1 (do not run import)
+sub _get_chunk_delta
+{
+    my ( $chunk, $last_chunk_delta ) = @_;
+
+    return 0 if ( defined( $last_chunk_delta ) && ( $last_chunk_delta == 0 ) );
+
+    if ( !_sentence_exists_in_solr( $chunk->{ first_story_sentences_id } ) )
+    {
+        return 0;
+    }
+
+    if ( !_sentence_exists_in_solr( $chunk->{ last_story_sentences_id } ) )
+    {
+        return 1;
+    }
+
+    return -1;
+}
+
 # import a single csv dump file into solr using blocks
 sub _import_csv_single_file
 {
     my ( $file, $delta, $staging, $jobs ) = @_;
 
-    my $import_url = _get_import_url( $delta );
-
     my $pm = Parallel::ForkManager->new( $jobs );
-
-    #_reprocess_file_errors( $pm, $file, $import_url, $staging );
 
     my $file_size = ( stat( $file ) )[ 7 ] || 1;
 
     my $start_time = time;
     my $start_pos;
+    my $last_chunk_delta;
+
     while ( my $data = get_encoded_csv_data_chunk( $file ) )
     {
         last unless ( $data->{ csv } );
@@ -638,22 +720,34 @@ sub _import_csv_single_file
 
         my $remaining_time = int( $elapsed_time * ( 1 / $partial_progress ) ) - $elapsed_time;
 
-        say STDERR "importing $file position $data->{ pos } [ ${progress}%, $remaining_time secs left ] ...";
+        my $chunk_delta = _get_chunk_delta( $data, $last_chunk_delta );
+        $last_chunk_delta = $chunk_delta;
+
+        say STDERR
+          "importing $file position $data->{ pos } [ delta $chunk_delta, ${progress}%, $remaining_time secs left ] ...";
+
+        if ( $chunk_delta < 0 )
+        {
+            _remove_file_error( $file, { pos => $data->{ pos } } );
+            next;
+        }
 
         $pm->start and next;
 
+        my $import_url = _get_import_url( $chunk_delta );
+
+        my $error = _solr_request( $import_url, $staging, $data->{ csv } );
+
         _remove_file_error( $file, { pos => $data->{ pos } } );
-        if ( my $error = _solr_request( $import_url, $staging, $data->{ csv } ) )
-        {
-            _add_file_error( $file, { pos => $data->{ pos }, message => $error } );
-        }
+
+        _add_file_error( $file, { pos => $data->{ pos }, message => $error } ) if ( $error );
 
         $pm->finish;
     }
 
     $pm->wait_all_children;
 
-    _reprocess_file_errors( $pm, $file, $import_url, $staging );
+    _reprocess_file_errors( $pm, $file, $staging );
 
     _print_file_errors( $file );
 
@@ -741,7 +835,7 @@ sub delete_all_sentences
 
     print STDERR "deleting all sentences ...\n";
 
-    my $r = _solr_request( "update?stream.body=<delete><query>*:*</query></delete>", $staging );
+    my $r = _solr_request( "update?commit=true&stream.body=<delete><query>*:*</query></delete>", $staging );
 
     if ( $r )
     {
