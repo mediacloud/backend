@@ -554,24 +554,41 @@ sub get_encoded_csv_data_chunk
     my $csv_data;
     my $i = 0;
 
-    my $csv = Text::CSV_XS->new( { binary => 1 } );
-
     my ( $first_story_sentences_id, $last_story_sentences_id );
-
-    while ( ( $i < $CSV_CHUNK_LINES ) && ( my $row = $csv->getline( $fh ) ) )
+    while ( ( $i < $CSV_CHUNK_LINES ) && ( my $line = <$fh> ) )
     {
         # skip header line
-        next if ( !$i && ( $row->[ 0 ] !~ /^\d+$/ ) );
+        next if ( !$i && ( $line =~ /^[a-z_,]+$/ ) );
 
-        $first_story_sentences_id //= $row->[ 2 ];
-        $last_story_sentences_id = $row->[ 2 ];
+        if ( !defined( $first_story_sentences_id ) )
+        {
+            $line =~ /^\d+\,\d+\,(\d+)\,/;
+            $first_story_sentences_id = $1 || 0;
+        }
 
-        $csv->combine( @{ $row } );
-
-        $csv_data .= $csv->string . "\n";
+        $csv_data .= $line;
 
         $i++;
     }
+
+    # get the final line using the csv parser so that we deal with multi lines correctly.  don't do this for all
+    # lines because it is much slower than just copying the text.
+    if ( $i == $CSV_CHUNK_LINES )
+    {
+        my $csv = Text::CSV_XS->new( { binary => 1 } );
+        if ( my $row = $csv->getline( $fh ) )
+        {
+            $csv->combine( @{ $row } );
+
+            $csv_data .= $csv->string . "\n";
+
+            $last_story_sentences_id = $row->[ 2 ];
+        }
+    }
+
+    # set last_story_sentences_id to an invalid id in case we didn't get a last csv line,
+    # which will just cause get_chunk_delta to assume that it cannot be found
+    $last_story_sentences_id //= 0;
 
     if ( !$single_pos )
     {
@@ -706,6 +723,9 @@ sub _import_csv_single_file
     my $start_time = time;
     my $start_pos;
     my $last_chunk_delta;
+
+    # commit before we start the loop so that the solr lookups in get_chunk_delta will see previous updates
+    _solr_request( "update?commit=true" );
 
     while ( my $data = get_encoded_csv_data_chunk( $file ) )
     {
