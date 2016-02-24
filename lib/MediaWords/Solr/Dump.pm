@@ -40,7 +40,7 @@ Readonly my $CSV_CHUNK_LINES => 10_000;
 Readonly my $FETCH_BLOCK_SIZE => 10_000;
 
 # max number of updated queued stories to import in one delta import
-Readonly my $MAX_QUEUED_STORIES => 100_000;
+Readonly my $MAX_QUEUED_STORIES => 250_000;
 
 # mark date before generating dump for storing in solr_imports after successful import
 my $_import_date;
