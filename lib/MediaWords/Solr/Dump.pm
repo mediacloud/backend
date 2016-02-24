@@ -738,13 +738,17 @@ sub _import_csv_single_file
 {
     my ( $file, $delta, $staging, $jobs ) = @_;
 
+    my $pm = Parallel::ForkManager->new( $jobs );
+
     if ( _last_sentence_in_solr( $file ) )
     {
         say STDERR "skipping $file, last sentence already in solr";
+
+        _reprocess_file_errors( $pm, $file, $staging );
+        _print_file_errors( $file );
+
         return;
     }
-
-    my $pm = Parallel::ForkManager->new( $jobs );
 
     my $file_size = ( stat( $file ) )[ 7 ] || 1;
 
