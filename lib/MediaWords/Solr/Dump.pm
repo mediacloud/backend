@@ -964,7 +964,7 @@ sub generate_and_import_data
     mark_import_date( $db );
 
     print STDERR "generating dump ...\n";
-    my $dump = print_csv_to_file( $db, $dump_file, $jobs, $delta ) || die( "dump failed." );
+    my $dump = print_csv_to_file( $db, $dump_file, 1, $delta ) || die( "dump failed." );
 
     my $stories_ids = $dump->{ stories_ids };
     my $dump_files  = $dump->{ files };
