@@ -711,10 +711,38 @@ sub _get_chunk_delta
     return -1;
 }
 
+# return true if the last sentence in the file is already present in solr, so we can skip this file
+sub _last_sentence_in_solr
+{
+    my ( $file ) = @_;
+
+    my $bfh = File::ReadBackwards->new( $file ) || die( "Unable to open file '$file': $!" );
+
+    my $last_story_sentences_id;
+    while ( my $line = $bfh->readline )
+    {
+        if ( $line =~ /^\d+\,\d+\,(\d+)\,/ )
+        {
+            $last_story_sentences_id = $1;
+            last;
+        }
+    }
+
+    return 0 unless ( $last_story_sentences_id );
+
+    return _sentence_exists_in_solr( $last_story_sentences_id );
+}
+
 # import a single csv dump file into solr using blocks
 sub _import_csv_single_file
 {
     my ( $file, $delta, $staging, $jobs ) = @_;
+
+    if ( _last_sentence_in_solr( $file ) )
+    {
+        say STDERR "skipping $file, last sentence already in solr";
+        return;
+    }
 
     my $pm = Parallel::ForkManager->new( $jobs );
 
@@ -781,6 +809,7 @@ sub import_csv_files
     $jobs ||= 1;
 
     # commit before we start the loop so that the solr lookups in get_chunk_delta will see previous updates
+    say STDERR "committing ...";
     _solr_request( "update?commit=true" );
 
     for my $file ( @{ $files } )

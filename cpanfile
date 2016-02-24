@@ -63,6 +63,7 @@ requires 'ExtUtils::MakeMaker';
 requires 'FCGI';
 requires 'FCGI::ProcManager';
 requires 'Feed::Find';
+requires 'File::ReadBackwards';
 requires 'forks', '0.34';
 requires 'Gearman::JobScheduler', '0.16';
 requires 'Graph';
