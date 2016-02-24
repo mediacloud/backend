@@ -995,7 +995,9 @@ sub generate_and_import_data
         generate_and_import_data( 1, 0, $staging );
     }
 
-    unlink( $dump_file );
+    _solr_request( 'update?commit=true', $staging );
+
+    map { unlink( $_ ) } @{ $dump_files };
 }
 
 1;
