@@ -724,9 +724,6 @@ sub _import_csv_single_file
     my $start_pos;
     my $last_chunk_delta;
 
-    # commit before we start the loop so that the solr lookups in get_chunk_delta will see previous updates
-    _solr_request( "update?commit=true" );
-
     while ( my $data = get_encoded_csv_data_chunk( $file ) )
     {
         last unless ( $data->{ csv } );
@@ -782,6 +779,9 @@ sub import_csv_files
     my ( $files, $delta, $staging, $jobs ) = @_;
 
     $jobs ||= 1;
+
+    # commit before we start the loop so that the solr lookups in get_chunk_delta will see previous updates
+    _solr_request( "update?commit=true" );
 
     for my $file ( @{ $files } )
     {
