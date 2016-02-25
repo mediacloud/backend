@@ -11,6 +11,7 @@ use CHI;
 use Data::Dumper;
 use Digest::MD5;
 use Encode;
+use File::Basename;
 use FileHandle;
 use HTTP::Request;
 use JSON;
@@ -771,8 +772,10 @@ sub _import_csv_single_file
         my $chunk_delta = _get_chunk_delta( $data, $last_chunk_delta );
         $last_chunk_delta = $chunk_delta;
 
+        my $base_file = basename( $file );
+
         say STDERR
-          "importing $file position $data->{ pos } [ delta $chunk_delta, ${progress}%, $remaining_time secs left ] ...";
+          "importing $base_file position $data->{ pos } [ delta $chunk_delta, ${progress}%, $remaining_time secs left ] ...";
 
         if ( $chunk_delta < 0 )
         {
