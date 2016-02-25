@@ -71,8 +71,25 @@ sub _add_media_stories_to_import
     my ( $db, $import_date, $num_delta_stories ) = @_;
 
     my $max_queued_stories = List::Util::max( 0, $MAX_QUEUED_STORIES - $num_delta_stories );
-    my $num_queued_stories = $db->query( <<END, $max_queued_stories )->rows;
-insert into delta_import_stories ( stories_id ) select stories_id from solr_import_stories limit ?
+    $db->query( <<SQL, $max_queued_stories );
+create temporary table delta_import_queue as
+    select stories_id, true ss_exists from solr_import_stories limit ?
+SQL
+
+    $db->query( <<SQL );
+update delta_import_queue d set ss_exists = false
+    where not exists ( select 1 from story_sentences ss where ss.stories_id = d.stories_id )
+SQL
+
+    # delete sentence-less stories here because they will get washed out of the list of imported stories later
+    # when the script queries story_sentences and they will never get deleted
+    $db->query( <<SQL );
+delete from solr_import_stories
+    where stories_id in ( select stories_id from delta_import_queue where not ss_exists )
+SQL
+
+    my $num_queued_stories = $db->query( <<END )->rows;
+insert into delta_import_stories ( stories_id ) select stories_id from delta_import_queue where ss_exists
 END
 
     if ( $num_queued_stories > 0 )
