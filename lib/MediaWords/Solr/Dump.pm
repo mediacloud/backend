@@ -104,7 +104,7 @@ END
 # setup 'csr' cursor in postgres as the query to import the story_sentences
 sub _declare_sentences_cursor
 {
-    my ( $db, $date_clause, $num_proc, $proc ) = @_;
+    my ( $db, $delta_clause, $num_proc, $proc ) = @_;
 
     $db->dbh->do( <<END );
 declare csr cursor for
@@ -124,7 +124,7 @@ declare csr cursor for
     from story_sentences ss
 
     where ( ss.stories_id % $num_proc = $proc - 1 )
-        $date_clause
+        $delta_clause
 END
 
 }
@@ -132,7 +132,7 @@ END
 # setup 'csr' cursor in postgres as the query to import the story titles
 sub _declare_titles_cursor
 {
-    my ( $db, $date_clause, $num_proc, $proc ) = @_;
+    my ( $db, $delta_clause, $num_proc, $proc ) = @_;
 
     $db->dbh->do( <<END );
 declare csr cursor for
@@ -152,7 +152,7 @@ declare csr cursor for
     from stories s
 
     where ( s.stories_id % $num_proc = $proc - 1 )
-        $date_clause
+        $delta_clause
 END
 
 }
@@ -214,9 +214,9 @@ sub _print_csv_to_file_from_csr
     return [ keys %{ $imported_stories_ids } ];
 }
 
-# get the date clause that restricts the import of all subsequent queries to just the
-# delta stories
-sub _get_delta_import_date_clause
+# if $delta is false, return ''; otherwise return 'and stories_id in ( select stories_id from delta_import_stories )'
+# and setup delta_import_stories to have the list of stories to import
+sub _get_delta_import_clause
 {
     my ( $db, $delta ) = @_;
 
@@ -252,12 +252,12 @@ END
 # server side.
 sub _get_data_lookup
 {
-    my ( $db, $num_proc, $proc, $date_clause ) = @_;
+    my ( $db, $num_proc, $proc, $delta_clause ) = @_;
 
     my $data_lookup = {};
 
     _set_lookup( $db, $data_lookup, 'ps', <<END );
-select processed_stories_id, stories_id from processed_stories where stories_id % $num_proc = $proc - 1 $date_clause
+select processed_stories_id, stories_id from processed_stories where stories_id % $num_proc = $proc - 1 $delta_clause
 END
 
     _set_lookup( $db, $data_lookup, 'media_sets', <<END );
@@ -269,12 +269,24 @@ END
     _set_lookup( $db, $data_lookup, 'stories_tags', <<END );
 select string_agg( tags_id::text, ';' ) tag_list, stories_id
     from stories_tags_map
-    where stories_id % $num_proc = $proc - 1 $date_clause
+    where stories_id % $num_proc = $proc - 1 $delta_clause
     group by stories_id
 END
+
+    my $ss_delta_clause = '';
+    if ( $delta_clause )
+    {
+        $ss_delta_clause = <<SQL;
+and story_sentences_id in (
+    select story_sentences_id from story_sentences where stories_id % $num_proc = $proc - 1 $delta_clause
+)
+SQL
+    }
+
     _set_lookup( $db, $data_lookup, 'ss_tags', <<END );
 select string_agg( tags_id::text, ';' ) tag_list, story_sentences_id
     from story_sentences_tags_map
+    where true $ss_delta_clause
     group by story_sentences_id
 END
 
@@ -294,18 +306,18 @@ sub _print_csv_to_file_single_job
 
     my $fh = FileHandle->new( ">$file" ) || die( "Unable to open file '$file': $@" );
 
-    my $date_clause = _get_delta_import_date_clause( $db, $delta );
+    my $delta_clause = _get_delta_import_clause( $db, $delta );
 
-    my $data_lookup = _get_data_lookup( $db, $num_proc, $proc, $date_clause );
+    my $data_lookup = _get_data_lookup( $db, $num_proc, $proc, $delta_clause );
 
     $db->begin;
 
     print STDERR "exporting sentences ...\n";
-    _declare_sentences_cursor( $db, $date_clause, $num_proc, $proc );
+    _declare_sentences_cursor( $db, $delta_clause, $num_proc, $proc );
     my $sentence_stories_ids = _print_csv_to_file_from_csr( $db, $fh, $data_lookup, 1 );
 
     print STDERR "exporting titles ...\n";
-    _declare_titles_cursor( $db, $date_clause, $num_proc, $proc );
+    _declare_titles_cursor( $db, $delta_clause, $num_proc, $proc );
     my $title_stories_ids = _print_csv_to_file_from_csr( $db, $fh, $data_lookup, 0 );
 
     $db->commit;
