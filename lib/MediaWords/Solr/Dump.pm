@@ -436,12 +436,11 @@ sub _solr_request
     my $ua = LWP::UserAgent->new;
 
     # should be able to process about this fast.  otherwise, time out and throw error so that we can continue processing
-    my $timeout;
     my $req;
 
     if ( $content )
     {
-        $timeout = 120;
+        $timeout ||= 120;
 
         $content_type ||= 'text/plain; charset=utf-8';
 
@@ -878,6 +877,70 @@ SQL
 
 }
 
+# given a list of stories_ids, return a stories_id:... solr query that
+# replaces individual ids with ranges where possible
+sub _get_stories_id_solr_query
+{
+    my ( $ids ) = @_;
+
+    die( "empty stories_ids" ) unless ( @{ $ids } );
+
+    $ids = [ sort { $a <=> $b } @{ $ids } ];
+
+    my $singletons = [ -2 ];
+    my $ranges = [ [ -2 ] ];
+    for my $id ( @{ $ids } )
+    {
+        say STDERR "$ranges->[ -1 ]->[ -1 ] $singletons->[ -1 ] $id";
+        if ( $id == ( $ranges->[ -1 ]->[ -1 ] + 1 ) )
+        {
+            push( @{ $ranges->[ -1 ] }, $id );
+        }
+        elsif ( $id == ( $singletons->[ -1 ] + 1 ) )
+        {
+            push( @{ $ranges }, [ pop( @{ $singletons } ), $id ] );
+        }
+        else
+        {
+            push( @{ $singletons }, $id );
+        }
+    }
+
+    shift( @{ $singletons } );
+    shift( @{ $ranges } );
+
+    my $long_ranges = [];
+    for my $range ( @{ $ranges } )
+    {
+        if ( scalar( @{ $range } ) > 2 )
+        {
+            push( @{ $long_ranges }, $range );
+        }
+        else
+        {
+            push( @{ $singletons }, @{ $range } );
+        }
+    }
+
+    my $queries = [];
+
+    push( @{ $queries }, map { "stories_id:[$_->[ 0 ] TO $_->[ -1 ]]" } @{ $long_ranges } );
+    push( @{ $queries }, 'stories_id:(' . join( ' ', @{ $singletons } ) . ')' ) if ( @{ $singletons } );
+
+    my $query = join( ' OR ', @{ $queries } );
+
+    # temp debugging log
+    open( FILE, ">/tmp/solr_import_delete_query.txt" );
+
+    print FILE "stories_ids: " . join( ", ", @{ $ids } );
+
+    print FILE "query: $query";
+
+    close( FILE );
+
+    return $query;
+}
+
 # delete the given stories from solr
 sub delete_stories
 {
@@ -887,9 +950,9 @@ sub delete_stories
 
     print STDERR "deleting " . scalar( @{ $stories_ids } ) . " stories ...\n";
 
-    my $stories_ids_list = join( ' ', @{ $stories_ids } );
+    my $stories_id_query = _get_stories_id_solr_query( $stories_ids );
 
-    my $delete_query = "<delete><query>stories_id:($stories_ids_list)</query></delete>";
+    my $delete_query = "<delete><query>$stories_id_query</query></delete>";
 
     if ( my $r = _solr_request( "update", $staging, $delete_query, 'application/xml', 1200 ) )
     {
