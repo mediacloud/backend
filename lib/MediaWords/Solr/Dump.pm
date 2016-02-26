@@ -474,6 +474,7 @@ sub _solr_request
 
         alarm $timeout;
 
+        $req->timeout( $timeout );
         $res = $ua->request( $req );
 
         alarm 0;
