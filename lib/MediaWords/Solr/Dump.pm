@@ -107,9 +107,12 @@ END
 
     if ( $num_queued_stories > 0 )
     {
-        my ( $total_queued_stories ) = $db->query( "select count(*) from solr_import_stories" )->flat;
+        $db->query( "analyze solr_import_stories" );
+        my ( $total_queued_stories ) = $db->query( <<SQL )->flat;
+select reltuples::bigint from pg_class where relname='solr_import_stories'
+SQL
 
-        print STDERR "added $num_queued_stories / $total_queued_stories queued stories to the import\n";
+        print STDERR "added $num_queued_stories out of about $total_queued_stories queued stories to the import\n";
     }
 
 }
@@ -434,7 +437,7 @@ sub _sentence_exists_in_solr
 # collection; otherwise use the live collection.
 sub _solr_request
 {
-    my ( $url, $staging, $content, $content_type, $timeout ) = @_;
+    my ( $url, $staging, $content, $content_type ) = @_;
 
     # print STDERR "requesting url: $url ...\n";
 
@@ -452,10 +455,10 @@ sub _solr_request
     # should be able to process about this fast.  otherwise, time out and throw error so that we can continue processing
     my $req;
 
+    my $timeout = 600;
+
     if ( $content )
     {
-        $timeout ||= 120;
-
         $content_type ||= 'text/plain; charset=utf-8';
 
         $req = HTTP::Request->new( POST => $abs_url );
@@ -465,7 +468,6 @@ sub _solr_request
     }
     else
     {
-        $timeout = 500;
         $req = HTTP::Request->new( GET => $abs_url );
     }
 
@@ -475,6 +477,7 @@ sub _solr_request
 
         alarm $timeout;
 
+        $ua->timeout( $timeout );
         $res = $ua->request( $req );
 
         alarm 0;
@@ -961,7 +964,7 @@ sub delete_stories
 
     my $delete_query = "<delete><query>$stories_id_query</query></delete>";
 
-    if ( my $r = _solr_request( "update", $staging, $delete_query, 'application/xml', 1200 ) )
+    if ( my $r = _solr_request( "update", $staging, $delete_query, 'application/xml' ) )
     {
         warn( $r );
         return 0;
@@ -1047,13 +1050,13 @@ sub _get_parallel_dump_files
 }
 
 # count number of stories in solr_import_stories
-sub _count_queued_stories
+sub _stories_queue_is_empty
 {
     my ( $db ) = @_;
 
-    my ( $num_stories ) = $db->query( "select count(*) from solr_import_stories" )->flat;
+    my $exist = $db->query( "select 1 from solr_import_stories" )->hash;
 
-    return $num_stories;
+    return $exist ? 0 : 1;
 }
 
 # generate and import dump.  optionally generate delta dump since beginning of last
@@ -1114,9 +1117,9 @@ sub generate_and_import_data
 
     map { unlink( $_ ) } @{ $dump_files };
 
-    if ( ( my $num_queued_stories = _count_queued_stories( $db ) ) > 0 )
+    if ( !_stories_queue_is_empty( $db ) )
     {
-        say STDERR "rerunning import to empty queue: $num_queued_stories stories";
+        say STDERR "rerunning import to empty queue";
         generate_and_import_data( @_ );
     }
 }

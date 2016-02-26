@@ -807,6 +807,13 @@ sub add_new_story
     elsif ( $link )
     {
         $story_content = MediaWords::Util::Web::get_cached_link_download( $link );
+
+        if ( !$story_content )
+        {
+            say STDERR "SKIP - NO CONTENT";
+            return;
+        }
+
         $link->{ redirect_url } ||= MediaWords::Util::Web::get_cached_link_download_redirect_url( $link );
 
         if ( ignore_redirect( $db, $link ) )
