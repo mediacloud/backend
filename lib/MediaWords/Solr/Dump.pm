@@ -452,7 +452,7 @@ sub _solr_request
     # should be able to process about this fast.  otherwise, time out and throw error so that we can continue processing
     my $req;
 
-    $timeout = 600;
+    my $timeout = 600;
 
     if ( $content )
     {
