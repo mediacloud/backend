@@ -19,6 +19,8 @@ use MediaWords::Util::Config;
 use MediaWords::Util::Web;
 use List::MoreUtils qw ( uniq );
 
+use Time::HiRes;
+
 # numFound from last query() call, accessible get get_last_num_found
 my $_last_num_found;
 
@@ -32,7 +34,9 @@ sub get_solr_url
 {
     my $urls = MediaWords::Util::Config::get_config->{ mediawords }->{ solr_url };
 
-    my $url = ref( $urls ) ? $urls->[ int( rand( scalar( @{ $urls } ) ) ) ] : $urls;
+    my $i = int( Time::HiRes::time * 10000 ) % scalar( @{ $urls } );
+
+    my $url = ref( $urls ) ? $urls->[ $i ] : $urls;
 
     $url =~ s~/+$~~;
 
