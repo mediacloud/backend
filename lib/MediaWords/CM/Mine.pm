@@ -917,7 +917,7 @@ select 1
     where
         ss.stories_id = \$1 and
         ss.sentence ~ ( '(?isx)' || c.pattern ) and
-        ( not ss.is_dup )
+        ( ( is_dup is null ) or not ss.is_dup )
     limit 1
 END
 
