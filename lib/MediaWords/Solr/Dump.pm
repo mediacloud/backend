@@ -64,16 +64,21 @@ sub _set_lookup
 }
 
 # add enough stories from the solr_import_stories
-# queue to the stories_solr_import table that there are up to
+# queue to the solr_import_stories table that there are up to
 # $MAX_QUEUED_STORIES in stories_solr_import for each solr_import
-sub _add_media_stories_to_import
+sub _add_queued_stories_to_import
 {
-    my ( $db, $import_date, $num_delta_stories ) = @_;
+    my ( $db, $import_date, $num_delta_stories, $num_proc, $proc ) = @_;
 
-    my $max_queued_stories = List::Util::max( 0, $MAX_QUEUED_STORIES - $num_delta_stories );
+    my $max_processed_stories = int( $MAX_QUEUED_STORIES / $num_proc );
+
+    my $max_queued_stories = List::Util::max( 0, $max_processed_stories - $num_delta_stories );
     $db->query( <<SQL, $max_queued_stories );
 create temporary table delta_import_queue as
-    select stories_id, true ss_exists from solr_import_stories limit ?
+    select stories_id, true ss_exists
+        from solr_import_stories
+        where ( stories_id % $num_proc ) = ( $proc - 1 )
+        limit ?
 SQL
 
     $db->query( <<SQL );
@@ -218,7 +223,7 @@ sub _print_csv_to_file_from_csr
 # and setup delta_import_stories to have the list of stories to import
 sub _get_delta_import_clause
 {
-    my ( $db, $delta ) = @_;
+    my ( $db, $delta, $num_proc, $proc ) = @_;
 
     return '' unless ( $delta );
 
@@ -232,12 +237,13 @@ sub _get_delta_import_clause
 create temporary table delta_import_stories as
 select distinct stories_id
 from story_sentences ss
-where ss.db_row_last_updated > \$1
+where ss.db_row_last_updated > \$1 and ( stories_id % $num_proc ) = ( $proc - 1 )
+
 END
     my ( $num_delta_stories ) = $db->query( "select count(*) from delta_import_stories" )->flat;
     print STDERR "found $num_delta_stories stories for import ...\n";
 
-    _add_media_stories_to_import( $db, $import_date, $num_delta_stories );
+    _add_queued_stories_to_import( $db, $import_date, $num_delta_stories, $num_proc, $proc );
 
     return "and stories_id in ( select stories_id from delta_import_stories )";
 }
@@ -306,7 +312,7 @@ sub _print_csv_to_file_single_job
 
     my $fh = FileHandle->new( ">$file" ) || die( "Unable to open file '$file': $@" );
 
-    my $delta_clause = _get_delta_import_clause( $db, $delta );
+    my $delta_clause = _get_delta_import_clause( $db, $delta, $num_proc, $proc );
 
     my $data_lookup = _get_data_lookup( $db, $num_proc, $proc, $delta_clause );
 
@@ -783,9 +789,11 @@ sub _import_csv_single_file
     my $start_time = time;
     my $start_pos;
     my $last_chunk_delta;
+    my $chunk_num = 0;
 
     while ( my $data = get_encoded_csv_data_chunk( $file ) )
     {
+        $chunk_num++;
         last unless ( $data->{ csv } );
 
         $start_pos //= $data->{ pos };
@@ -796,6 +804,7 @@ sub _import_csv_single_file
         my $elapsed_time = ( time + 1 ) - $start_time;
 
         my $remaining_time = int( $elapsed_time * ( 1 / $partial_progress ) ) - $elapsed_time;
+        $remaining_time = '??' if ( $chunk_num < $jobs );
 
         my $chunk_delta = _get_chunk_delta( $data, $last_chunk_delta );
         $last_chunk_delta = $chunk_delta;
@@ -803,7 +812,7 @@ sub _import_csv_single_file
         my $base_file = basename( $file );
 
         say STDERR
-          "importing $base_file position $data->{ pos } [ delta $chunk_delta, ${progress}%, $remaining_time secs left ] ...";
+"importing $base_file position $data->{ pos } [ chunk $chunk_num, delta $chunk_delta, ${progress}%, $remaining_time secs left ] ...";
 
         if ( $chunk_delta < 0 )
         {
@@ -891,7 +900,6 @@ sub _get_stories_id_solr_query
     my $ranges = [ [ -2 ] ];
     for my $id ( @{ $ids } )
     {
-        say STDERR "$ranges->[ -1 ]->[ -1 ] $singletons->[ -1 ] $id";
         if ( $id == ( $ranges->[ -1 ]->[ -1 ] + 1 ) )
         {
             push( @{ $ranges->[ -1 ] }, $id );
@@ -928,15 +936,6 @@ sub _get_stories_id_solr_query
     push( @{ $queries }, 'stories_id:(' . join( ' ', @{ $singletons } ) . ')' ) if ( @{ $singletons } );
 
     my $query = join( ' OR ', @{ $queries } );
-
-    # temp debugging log
-    open( FILE, ">/tmp/solr_import_delete_query.txt" );
-
-    print FILE "stories_ids: " . join( ", ", @{ $ids } );
-
-    print FILE "query: $query";
-
-    close( FILE );
 
     return $query;
 }
@@ -1039,9 +1038,20 @@ sub _get_parallel_dump_files
     return [ map { $dump_file . "-$_" } ( 1 .. $jobs ) ];
 }
 
+# count number of stories in solr_import_stories
+sub _count_queued_stories
+{
+    my ( $db ) = @_;
+
+    my ( $num_stories ) = $db->query( "select count(*) from solr_import_stories" )->flat;
+
+    return $num_stories;
+}
+
 # generate and import dump.  optionally generate delta dump since beginning of last
 # full or delta dump.  optionally delete all solr data after generating dump and before
-# importing
+# importing.  keep rerunning the function until there are not more jobs left in the
+# solr_import_stories queue
 sub generate_and_import_data
 {
     my ( $delta, $delete, $staging, $jobs ) = @_;
@@ -1075,6 +1085,8 @@ sub generate_and_import_data
         delete_all_sentences( $staging ) || die( "delete all sentences failed." );
     }
 
+    _solr_request( 'update?commit=true', $staging );
+
     print STDERR "importing dump ...\n";
     import_csv_files( $dump_files, $delta, $staging, $jobs ) || die( "import failed." );
 
@@ -1093,6 +1105,12 @@ sub generate_and_import_data
     _solr_request( 'update?commit=true', $staging );
 
     map { unlink( $_ ) } @{ $dump_files };
+
+    if ( ( my $num_queued_stories = _count_queued_stories( $db ) ) > 0 )
+    {
+        say STDERR "rerunning import to empty queue: $num_queued_stories stories";
+        generate_and_import_data( @_ );
+    }
 }
 
 1;
