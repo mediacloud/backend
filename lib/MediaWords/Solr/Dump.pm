@@ -24,6 +24,7 @@ use Text::CSV_XS;
 use URI::Escape;
 
 use MediaWords::DB;
+use MediaWords::Util::Config;
 
 use MediaWords::Solr;
 
@@ -40,11 +41,18 @@ Readonly my $CSV_CHUNK_LINES => 10_000;
 # how many sentences to fetch at a time from the postgres query
 Readonly my $FETCH_BLOCK_SIZE => 10_000;
 
-# max number of updated queued stories to import in one delta import
-Readonly my $MAX_QUEUED_STORIES => 250_000;
-
 # mark date before generating dump for storing in solr_imports after successful import
 my $_import_date;
+
+# get get config setting for max stories to import at once
+sub _get_max_queued_stories
+{
+    my $config = MediaWords::Util::Config::get_config;
+
+    my $max_queued_stories = $config->{ mediawords }->{ solr_import }->{ max_queued_stories } || 100_000;
+
+    return $max_queued_stories;
+}
 
 # run a postgres query and generate a table that lookups on the first column by the second column.
 # assign that lookup to $data_lookup->{ $name }.
@@ -65,12 +73,12 @@ sub _set_lookup
 
 # add enough stories from the solr_import_stories
 # queue to the solr_import_stories table that there are up to
-# $MAX_QUEUED_STORIES in stories_solr_import for each solr_import
+# _get_maxed_queued_stories in stories_solr_import for each solr_import
 sub _add_queued_stories_to_import
 {
     my ( $db, $import_date, $num_delta_stories, $num_proc, $proc ) = @_;
 
-    my $max_processed_stories = int( $MAX_QUEUED_STORIES / $num_proc );
+    my $max_processed_stories = int( _get_max_queued_stories() / $num_proc );
 
     my $max_queued_stories = List::Util::max( 0, $max_processed_stories - $num_delta_stories );
     $db->query( <<SQL, $max_queued_stories );
