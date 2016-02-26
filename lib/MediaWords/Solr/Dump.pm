@@ -434,7 +434,7 @@ sub _sentence_exists_in_solr
 # collection; otherwise use the live collection.
 sub _solr_request
 {
-    my ( $url, $staging, $content, $content_type, $timeout ) = @_;
+    my ( $url, $staging, $content, $content_type ) = @_;
 
     # print STDERR "requesting url: $url ...\n";
 
@@ -452,10 +452,10 @@ sub _solr_request
     # should be able to process about this fast.  otherwise, time out and throw error so that we can continue processing
     my $req;
 
+    $timeout = 600;
+
     if ( $content )
     {
-        $timeout ||= 120;
-
         $content_type ||= 'text/plain; charset=utf-8';
 
         $req = HTTP::Request->new( POST => $abs_url );
@@ -465,7 +465,6 @@ sub _solr_request
     }
     else
     {
-        $timeout = 500;
         $req = HTTP::Request->new( GET => $abs_url );
     }
 
@@ -961,7 +960,7 @@ sub delete_stories
 
     my $delete_query = "<delete><query>$stories_id_query</query></delete>";
 
-    if ( my $r = _solr_request( "update", $staging, $delete_query, 'application/xml', 1200 ) )
+    if ( my $r = _solr_request( "update", $staging, $delete_query, 'application/xml' ) )
     {
         warn( $r );
         return 0;
