@@ -420,7 +420,7 @@ sub _sentence_exists_in_solr
 # collection; otherwise use the live collection.
 sub _solr_request
 {
-    my ( $url, $staging, $content, $content_type ) = @_;
+    my ( $url, $staging, $content, $content_type, $timeout ) = @_;
 
     # print STDERR "requesting url: $url ...\n";
 
@@ -891,7 +891,7 @@ sub delete_stories
 
     my $delete_query = "<delete><query>stories_id:($stories_ids_list)</query></delete>";
 
-    if ( my $r = _solr_request( "update", $staging, $delete_query, 'application/xml' ) )
+    if ( my $r = _solr_request( "update", $staging, $delete_query, 'application/xml', 1200 ) )
     {
         warn( $r );
         return 0;
