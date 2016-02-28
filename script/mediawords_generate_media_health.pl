@@ -161,7 +161,7 @@ update media_health set is_healthy = 'f'
           )
         )
         or
-        ( num_stories_90 = 0 )
+        ( num_sentences_90 = 0 )
 
 SQL
 
