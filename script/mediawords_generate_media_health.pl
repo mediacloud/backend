@@ -171,7 +171,7 @@ update media_health mh set has_active_feed = 't'
     where
         num_stories_90 > 1 or
         (
-            num_stories_90 > 0 and
+            num_sentences_90 > 0 and
             exists (
                 select 1
                     from feeds f
