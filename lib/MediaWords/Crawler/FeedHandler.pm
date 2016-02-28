@@ -61,6 +61,23 @@ sub _no_ref
     return ref( $v ) ? undef : $v;
 }
 
+# some guids are not in fact unique.  return the guid if it looks valid or undef if the guid looks like
+# it is not unique
+sub _sanitize_guid
+{
+    my ( $guid ) = @_;
+
+    return undef unless ( defined( $guid ) );
+
+    # ignore it if it is a url without a number or a path
+    if ( ( $guid !~ /\d/ ) && ( $guid =~ m~https?://[^/]+/?$~ ) )
+    {
+        return undef;
+    }
+
+    return $guid;
+}
+
 sub _get_stories_from_feed_contents_impl
 {
     my ( $decoded_content, $media_id, $download_time ) = @_;
@@ -78,9 +95,10 @@ sub _get_stories_from_feed_contents_impl
   ITEM:
     for my $item ( @{ $items } )
     {
+        my $guid = _sanitize_guid( _no_ref( $item->guid ) );
 
-        my $url = _no_ref( $item->link() ) || _no_ref( $item->get( 'nnd:canonicalUrl' ) ) || _no_ref( $item->guid() );
-        my $guid = _no_ref( $item->guid() ) || $url;
+        my $url = _no_ref( $item->link() ) || _no_ref( $item->get( 'nnd:canonicalUrl' ) ) || $guid;
+        $guid ||= $url;
 
         next ITEM unless ( $url );
 
