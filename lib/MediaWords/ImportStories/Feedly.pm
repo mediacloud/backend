@@ -47,6 +47,8 @@ sub _get_stories_from_json_data
     my $stories = [];
     for my $item ( @{ $json_data->{ items } } )
     {
+        next unless ( defined( $item->{ title } ) );
+
         next unless ( $item->{ originId } );
 
         my $publish_date = MediaWords::Util::SQL::get_sql_date_from_epoch( $item->{ published } / 1000 );
@@ -59,6 +61,9 @@ sub _get_stories_from_json_data
         my $url =
           ( $item->{ alternate } && $item->{ alternate }->[ 0 ]->{ href } ) ? $item->{ alternate }->[ 0 ]->{ href } : $guid;
 
+        # each of summary.content and content.content may or may not be set
+        my $content = ( $item->{ summary }->{ content } || '' ) . "\n" . ( $item->{ content }->{ content } || '' );
+
         my $story = {
             url          => $url,
             guid         => $guid,
@@ -66,7 +71,7 @@ sub _get_stories_from_json_data
             collect_date => MediaWords::Util::SQL::sql_now(),
             publish_date => $publish_date,
             title        => encode( 'utf8', $item->{ title } ),
-            description  => encode( 'utf8', $item->{ summary }->{ content } )
+            description  => encode( 'utf8', $content )
         };
 
         push( @{ $stories }, $story );
@@ -74,7 +79,8 @@ sub _get_stories_from_json_data
 
     say STDERR "latest_publish_date: $latest_publish_date";
 
-    $self->end_of_feed( 1 ) if ( $latest_publish_date lt $self->start_date );
+    # feedly does not always strictly order results by date
+    # $self->end_of_feed( 1 ) if ( $latest_publish_date lt $self->start_date );
 
     return $stories;
 }
@@ -120,6 +126,7 @@ sub _get_stories_from_feedly
     }
     else
     {
+        say STDERR "end of feedly stream";
         $self->continuation_id( '' );
         $self->end_of_feed( 1 );
     }

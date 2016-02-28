@@ -81,28 +81,13 @@ sub _add_queued_stories_to_import
     my $max_processed_stories = int( _get_max_queued_stories() / $num_proc );
 
     my $max_queued_stories = List::Util::max( 0, $max_processed_stories - $num_delta_stories );
-    $db->query( <<SQL, $max_queued_stories );
-create temporary table delta_import_queue as
-    select stories_id, true ss_exists
+
+    my $num_queued_stories = $db->query( <<END, $max_queued_stories )->rows;
+insert into delta_import_stories ( stories_id )
+    select stories_id
         from solr_import_stories
         where ( stories_id % $num_proc ) = ( $proc - 1 )
         limit ?
-SQL
-
-    $db->query( <<SQL );
-update delta_import_queue d set ss_exists = false
-    where not exists ( select 1 from story_sentences ss where ss.stories_id = d.stories_id )
-SQL
-
-    # delete sentence-less stories here because they will get washed out of the list of imported stories later
-    # when the script queries story_sentences and they will never get deleted
-    $db->query( <<SQL );
-delete from solr_import_stories
-    where stories_id in ( select stories_id from delta_import_queue where not ss_exists )
-SQL
-
-    my $num_queued_stories = $db->query( <<END )->rows;
-insert into delta_import_stories ( stories_id ) select stories_id from delta_import_queue where ss_exists
 END
 
     if ( $num_queued_stories > 0 )
@@ -325,6 +310,8 @@ sub _print_csv_to_file_single_job
 
     my $delta_clause = _get_delta_import_clause( $db, $delta, $num_proc, $proc );
 
+    my $stories_ids = $delta ? $db->query( "select * from delta_import_stories" )->flat : [];
+
     my $data_lookup = _get_data_lookup( $db, $num_proc, $proc, $delta_clause );
 
     $db->begin;
@@ -339,7 +326,7 @@ sub _print_csv_to_file_single_job
 
     $db->commit;
 
-    return [ List::MoreUtils::uniq( @{ $sentence_stories_ids }, @{ $title_stories_ids } ) ];
+    return $stories_ids;
 }
 
 # print a csv dump of the postgres data to $file_spec.
@@ -1054,7 +1041,7 @@ sub _stories_queue_is_empty
 {
     my ( $db ) = @_;
 
-    my $exist = $db->query( "select 1 from solr_import_stories" )->hash;
+    my $exist = $db->query( "select 1 from solr_import_stories limit 1" )->hash;
 
     return $exist ? 0 : 1;
 }
