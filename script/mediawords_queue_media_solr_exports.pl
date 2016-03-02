@@ -51,18 +51,7 @@ SQL
     # we do the big query above to a temporary table first because it can be a long running query and we don't
     # want to lock solr_import_extra_stories for long
     $db->begin;
-    $db->query(
-        <<SQL
-        INSERT INTO solr_import_extra_stories
-            SELECT media_import_stories.stories_id
-            FROM media_import_stories
-            WHERE NOT EXISTS (
-                SELECT 1
-                FROM solr_import_extra_stories
-                WHERE solr_import_extra_stories.stories_id = media_import_stories.stories_id
-            )
-SQL
-    );
+    $db->query( 'INSERT INTO solr_import_extra_stories SELECT stories_id FROM media_import_stories' );
     $db->query( "DELETE FROM database_variables WHERE name = ?", $dv_name );
     $db->create( 'database_variables', { name => $dv_name, value => $import_date } );
     $db->commit;

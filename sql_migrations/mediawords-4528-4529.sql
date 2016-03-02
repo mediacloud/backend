@@ -21,10 +21,8 @@ SET search_path = public, pg_catalog;
 ALTER TABLE solr_import_stories
     RENAME TO solr_import_extra_stories;
 
--- Make index unique
-DROP INDEX solr_import_stories_story;
-CREATE UNIQUE INDEX solr_import_extra_stories_story
-    ON solr_import_extra_stories ( stories_id );
+ALTER INDEX solr_import_stories_story
+    RENAME TO solr_import_extra_stories_story;
 
 INSERT INTO solr_import_extra_stories (stories_id)
     SELECT DISTINCT bitly_clicks_total.stories_id

@@ -1675,8 +1675,7 @@ create table solr_imports (
 create table solr_import_extra_stories (
     stories_id          int not null references stories on delete cascade
 );
-create unique index solr_import_extra_stories_story
-    on solr_import_extra_stories ( stories_id );
+create index solr_import_extra_stories_story on solr_import_extra_stories ( stories_id );
 
 
 create index solr_imports_date on solr_imports ( import_date );
