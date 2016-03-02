@@ -169,15 +169,22 @@ sub create : Local
 }
 
 # return 1 if the feed is not syndicated or does not parse as a feed
-sub validate_syndicated_feed
+sub invalid_syndicated_feed
 {
     my ( $self, $c, $feed ) = @_;
 
-    return 1 unless ( $feed->{ feed_type } eq 'syndicated' );
+    return 0 unless ( $feed->{ feed_type } eq 'syndicated' );
 
-    eval { XML::FeedPP->new( $feed->{ url } ) };
+    my $ua       = MediaWords::Util::Web::UserAgent;
+    my $response = $ua->get( $feed->{ url } );
 
-    return ( $@ ) ? 0 : 1;
+    return "url fetch failed: " . $response->as_string if ( !$response->is_success );
+
+    eval { XML::FeedPP->new( $response->decoded_content ) };
+
+    return "parse failed: $@" if ( $@ );
+
+    return 0;
 }
 
 sub create_do : Local
@@ -212,9 +219,9 @@ END
         return $self->create( $c, $media_id );
     }
 
-    if ( !$self->validate_syndicated_feed( $c, $feed ) )
+    if ( my $feed_error = $self->invalid_syndicated_feed( $c, $feed ) )
     {
-        $c->stash->{ error_msg } = 'Syndicated feed is not a valid rss/atom/rdf feed';
+        $c->stash->{ error_msg } = "Syndicated feed is not a valid rss/atom/rdf feed: $feed_error";
         return $self->create( $c, $media_id );
     }
 

@@ -50,7 +50,7 @@ my $_ignore_link_pattern =
   '(\/share.*http)|(digg.com\/submit)|(facebook.com.*mediacontentsharebutton)|' .
   '(feeds.wordpress.com\/.*\/go)|(sharetodiaspora.github.io\/)|(iconosquare.com)|' .
   '(unz.com)|(answers.com)|(downwithtyranny.com\/search)|(scoop\.?it)|(sco\.lt)|' .
-  '(pronk.*\.wordpress\.com\/(tag|category))|(wn\.com)';
+  '(pronk.*\.wordpress\.com\/(tag|category))|(wn\.com)|(pinterest\.com\/pin\/create)';
 
 # cache of media by media id
 my $_media_cache = {};
