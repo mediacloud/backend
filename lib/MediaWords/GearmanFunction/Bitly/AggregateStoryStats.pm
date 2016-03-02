@@ -81,14 +81,9 @@ EOF
     $db->query(
         <<EOF,
         INSERT INTO solr_import_extra_stories (stories_id)
-            SELECT ?
-            WHERE NOT EXISTS (
-                SELECT 1
-                FROM solr_import_extra_stories
-                WHERE stories_id = ?
-            )
+        VALUES (?)
 EOF
-        $stories_id, $stories_id
+        $stories_id
     );
 
     say STDERR "Done aggregating story stats for story $stories_id.";

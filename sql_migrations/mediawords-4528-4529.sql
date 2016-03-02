@@ -25,13 +25,8 @@ ALTER INDEX solr_import_stories_story
     RENAME TO solr_import_extra_stories_story;
 
 INSERT INTO solr_import_extra_stories (stories_id)
-    SELECT DISTINCT bitly_clicks_total.stories_id
-    FROM bitly_clicks_total
-    WHERE NOT EXISTS (
-        SELECT 1
-        FROM solr_import_extra_stories
-        WHERE solr_import_extra_stories.stories_id = bitly_clicks_total.stories_id
-    );
+    SELECT stories_id
+    FROM bitly_clicks_total;
 
 
 --
