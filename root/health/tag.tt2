@@ -1,6 +1,8 @@
 [% title = 'Media Health: ' _ tag.tag | html %]
 [% INCLUDE include/header.tt2 %]
 
+[% USE date %]
+
 <table>
     <tr>
         <th>ID</th>
@@ -32,18 +34,24 @@
         <th>Media Source</th>
         <th>URL</th>
         <th>Healthy?</th>
-        <th>Active Feeds?</th>
+        <th>Active?</th>
         <th>Stories</th>
-        <th>90 day avg</th>
+        <th>Week</th>
+        <th>90</th>
         <th>Sentences</th>
-        <th>90 day avg</th>
+        <th>Week</th>
+        <th>90</th>
+        <th>Start</th>
+        <th>End</th>
+        <th>Gaps</th>
     </tr>
 
     [% FOREACH medium IN tag.media -%]
 
         <tr [% IF even %]class="even"[% END %] [% IF !medium.is_healthy %]style="background:#C77373"[% END %]>
             <td><a href="[% c.uri_for( '/admin/health/medium/' _ medium.media_id ) %]">[% medium.name | html %]</a></td>
-            <td><a href="[% medium.url | html %]">[% medium.url.substr( 0, 32 ) | html %]</a></td>
+            <td><a href="[% medium.url | html %]">[% medium.url.substr( 0, 32 ) | html %]</a>
+                [<a href='https://dashboard.mediameter.org/#query/[" "]/[{"sources":[[% medium.media_id | url %]]}]/["2010-01-01"]/["[% date.format(date.now, '%F') %]"]/[{"uid":1,"color":"e14c11"}]'>db</a>]</td>
             <td>[% IF medium.is_healthy %]yes[% ELSE %]no[% END %]</td>
             <td>
                 <a href="[% c.uri_for( '/admin/feeds/list/' _ medium.media_id ) %]">
@@ -51,9 +59,15 @@
                 </a>
             </td>
             <td align="right">[% medium.num_stories %]</td>
-            <td align="right">[% medium.num_stories_90 | format( '%d' ) %]</td>
+            <td align="right">[% medium.num_stories_w  %]</td>
+            <td align="right">[% medium.num_stories_90 %]</td>
             <td align="right">[% medium.num_sentences %]</td>
-            <td align="right">[% medium.num_sentences_90 | format( '%d' ) %]</td>
+            <td align="right">[% medium.num_sentences_w  %]</td>
+            <td align="right">[% medium.num_sentences_90 %]</td>
+            <td align="right">[% date.format( medium.start_date, '%F' ) %]</td>
+            <td align="right">[% date.format( medium.end_date, '%F' ) %]</td>
+            <td align="right">[% medium.coverage_gaps %]</td>
+
         </tr>
 
         [%  SET even = !even %]

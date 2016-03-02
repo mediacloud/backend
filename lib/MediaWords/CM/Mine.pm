@@ -50,7 +50,7 @@ my $_ignore_link_pattern =
   '(\/share.*http)|(digg.com\/submit)|(facebook.com.*mediacontentsharebutton)|' .
   '(feeds.wordpress.com\/.*\/go)|(sharetodiaspora.github.io\/)|(iconosquare.com)|' .
   '(unz.com)|(answers.com)|(downwithtyranny.com\/search)|(scoop\.?it)|(sco\.lt)|' .
-  '(pronk.*\.wordpress\.com\/(tag|category))|(wn\.com)';
+  '(pronk.*\.wordpress\.com\/(tag|category))|(wn\.com)|(pinterest\.com\/pin\/create)';
 
 # cache of media by media id
 my $_media_cache = {};
@@ -807,6 +807,13 @@ sub add_new_story
     elsif ( $link )
     {
         $story_content = MediaWords::Util::Web::get_cached_link_download( $link );
+
+        if ( !$story_content )
+        {
+            say STDERR "SKIP - NO CONTENT";
+            return;
+        }
+
         $link->{ redirect_url } ||= MediaWords::Util::Web::get_cached_link_download_redirect_url( $link );
 
         if ( ignore_redirect( $db, $link ) )
@@ -917,7 +924,7 @@ select 1
     where
         ss.stories_id = \$1 and
         ss.sentence ~ ( '(?isx)' || c.pattern ) and
-        ( not ss.is_dup )
+        ( ( is_dup is null ) or not ss.is_dup )
     limit 1
 END
 
