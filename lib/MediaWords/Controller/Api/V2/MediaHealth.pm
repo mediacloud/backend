@@ -71,7 +71,7 @@ select mh.* from media_health mh join $ids_table ids on ( mh.media_id = ids.id )
 SQL
 
     my $gaps = $db->query( <<SQL )->hashes;
-select * from media_coverage_gaps mcg join $ids_table ids on ( mcg.media_id = ids.id ) order by mcg.stat_week
+select mcg.* from media_coverage_gaps mcg join $ids_table ids on ( mcg.media_id = ids.id ) order by mcg.stat_week
 SQL
 
     my $gaps_lookup = {};
