@@ -297,7 +297,9 @@ sub _get_object_ids
     my $fq = $c->req->params->{ fq } || [];
     $fq = [ $fq ] unless ( ref( $fq ) );
 
-    return MediaWords::Solr::search_for_processed_stories_ids( $c->dbis, $q, $fq, $last_id, $rows );
+    my $sort = $c->req->param( 'sort' );
+
+    return MediaWords::Solr::search_for_processed_stories_ids( $c->dbis, $q, $fq, $last_id, $rows, $sort );
 }
 
 sub _fetch_list($$$$$$)
@@ -321,18 +323,32 @@ sub _fetch_list($$$$$$)
 
     my $ids_table = $db->get_temporary_ids_table( $ps_ids );
 
-    my $stories = $db->query( <<END )->hashes;
-with ps_ids as
+    my $stories = $db->query(
+        <<"SQL",
+        WITH ps_ids AS (
 
-    ( select processed_stories_id, stories_id
-        from processed_stories
-        where processed_stories_id in ( select id from $ids_table ) )
+            SELECT ${ids_table}_pkey order_pkey,
+                   id AS processed_stories_id,
+                   processed_stories.stories_id
+            FROM $ids_table
+                INNER JOIN processed_stories
+                    ON $ids_table.id = processed_stories.processed_stories_id
+        )
 
-select s.*, p.processed_stories_id, m.name media_name, m.url media_url
-    from stories s join ps_ids p on ( s.stories_id = p.stories_id )
-    join media m on ( s.media_id = m.media_id )
-    order by processed_stories_id asc limit $rows
-END
+        SELECT stories.*,
+               ps_ids.processed_stories_id,
+               media.name AS media_name,
+               media.url AS media_url
+        FROM ps_ids
+            JOIN stories
+                ON ps_ids.stories_id = stories.stories_id
+            JOIN media
+                ON stories.media_id = media.media_id
+        ORDER BY ps_ids.order_pkey
+        LIMIT ?
+SQL
+        $rows
+    )->hashes;
 
     $db->commit;
 
