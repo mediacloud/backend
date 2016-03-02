@@ -81,16 +81,17 @@ Response:
     "name": "New York Times",
     "media_id": 1,
     "media_source_tags": [
-     {
-       "tag_sets_id": 5,
-       "show_on_stories": null,
-       "tags_id": 8875027,
-       "show_on_media": 1,
-       "description": "Top U.S. mainstream media according Google Ad Planner's measure of unique monthly users.",
-       "tag_set": "collection",
-       "tag": "ap_english_us_top25_20100110",
-       "label": "U.S. Mainstream Media"
-     },
+         {
+           "tag_sets_id": 5,
+           "show_on_stories": null,
+           "tags_id": 8875027,
+           "show_on_media": 1,
+           "description": "Top U.S. mainstream media according Google Ad Planner's measure of unique monthly users.",
+           "tag_set": "collection",
+           "tag": "ap_english_us_top25_20100110",
+           "label": "U.S. Mainstream Media"
+         }
+    ],
     "media_sets": [
       {
         "media_sets_id": 1,
@@ -101,6 +102,99 @@ Response:
   }
 ]
 ```
+
+## Media Health
+
+BETA - The media health feature is in beta.  The fields returned and the definitions of those fields may
+change in the future.
+
+The Media Health api call provides information about the health of a media source, meaning to what degree we are
+capturing all of the stories published by that media source.  Media Cloud collects its data via
+automatically detected rss feeds on the open web.  This means first that the system generally has data for a given
+media source from the time we first enter that source into our database.  Second, Media Cloud data for a given media
+source is only as good as the set of feeds we have for that source.  Our feed scraper is not perfect and so sometimes
+misses feeds it should be collecting.   Third, feeds change over time.  We periodically rescrape every media source
+for new feeds, but this takes time and is not perfect.
+
+The only way we have of judging the health is judging the relative number of stories over time.  This media call
+provides a set of metrics that compare the current number of stories being collected by the media source with
+the number of stories collected over the past 90 days, and also compares coverage over time with the expected
+volume.  More details are in the field descriptions below
+
+### api/v2/mediahealth
+
+| URL                              | Function
+| -------------------------------- | -------------------------------------------------------------
+| `api/v2/mediahealth`             | Return media health data for the given media sources
+
+#### Query Parameters
+
+| Parameter                         | Default | Notes
+| --------------------------------- | ------- | -----------------------------------------------------------------
+| `media_id`                        | none    | Return health data for the given media sources. May be specified multiple times.
+
+### Output description
+
+| Field               | Description
+| ------------------- | ----------------------------------------------------------------------
+| `media_id`          | The id of the media source
+| `is_healthy`        | Is the media source currently returning at least 25% of the 90 day averages of stories and sentences
+| `has_active_feed`   | Does the media source have at least one active syndicated feed (which may not be returning any stories)
+| `num_stories`       | Number of stories collected yesterday
+| `num_stories_w`     | Average number of stories collected in the last 7 days
+| `num_stories_90`    | Average number of stories collected in the last 90 days
+| `num_stories_y`     | Average number of stories collected in the last year
+| `num_sentences`     | Number of sentences collected yesterday
+| `num_sentences_w`   | Average number of sentences collected in the last 7 days
+| `num_sentences_90`  | Average number of sentences collected in the 90 days
+| `num_sentences_y`   | Average number of sentences collected in the last year
+| `expected_stories`  | Average number of stories collected for each of the 20 days with the highest number of stories
+| `expected_sentences`| Average number of sentences collected or each of the 20 days with the highest number of sentences
+| `start_date`        | First week on which at least 25% of expected_stories and expected_sentences were collected
+| `end_date`          | Last week on which at least 25% of expected_stories and expected_sentences were collected
+| `coverage_gaps`     | Number of weeks between start_date and end_date for which fewer than 25% of expected_stories or expected_sentences were collected
+| `coverage_gaps_list`| List of weeks between start_date and end_date for which fewer than 25% of expected_stories or expected_sentences were collected
+
+#### Example
+
+Fetch media health information for
+URL: https://api.mediacloud.org/api/v2/media/single/1
+
+Response:
+
+```json
+[
+    {
+        "media_id": "4438",
+        "is_healthy": 1,
+        "has_active_feed": 1,
+        "num_stories": 42,
+        "num_stories_w": "28.57",
+        "num_stories_90": "30.54",
+        "num_stories_y": "33.00",
+        "num_sentences": 1200,
+        "num_sentences_w": "873.86",
+        "num_sentences_90": "877.16",
+        "num_sentences_y": "926.83",
+        "start_date": "2011-01-03 00:00:00-05",
+        "end_date": "2016-02-22 00:00:00-05",
+        "expected_stories": "49.97",
+        "expected_sentences": "1166.22",
+        "coverage_gaps": 1,
+        "coverage_gaps_list": [
+            {
+                "media_id": "4438",
+                "stat_week": "2013-12-23 00:00:00-05",
+                "num_stories": "12.43",
+                "num_sentences": "350.29",
+                "expected_stories": "49.97",
+                "expected_sentences": "1166.22",
+            }
+        ],
+    }
+]
+```
+
 
 
 ### api/v2/media/list/
