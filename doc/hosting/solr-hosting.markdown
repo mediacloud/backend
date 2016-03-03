@@ -87,9 +87,14 @@ mcquery2 runs the leader shard.  mcquery2 is also the machine that runs the hour
 could run the import on any of the shards.
 
 We currently use the following command to start the shards under the mediacloud account on each of the machines,
-replacing the --host option with the name of the local host:
+replacing the --host option with the name of the local host.  From /data/mediacloud:
 
-`/data/mediacloud/solr/scripts/start_solr_shards.pl --memory 20 --host mcquery2 --zk_host mcquery2:9983`
+`script/run_with_carton.sh solr/scripts/start_solr_shards.pl --memory 20 --host mcquery2 --zk_host mcquery2:9983`
+
+We keep our zookeeper configuration master in mcquery2:/data/mediacloud/solr/mediacloud-shard-1.  To change a config
+file for the cluster, change that file under that directory and then run reload.  From /data/mediacloud:
+
+`script/run_with_carton.sh solr/scripts/reload_solr_shards.pl --num_shards 24 --zk_host localhost --host mcquery1 --host mcquery4`
 
 ### Server Configuration
 
