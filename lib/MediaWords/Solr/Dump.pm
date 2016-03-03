@@ -450,9 +450,9 @@ sub _sentence_exists_in_solr
     return $data->{ response }->{ numFound } ? 1 : 0;
 }
 
-# send a request to MediaWords::Solr::get_solr_url.  return 1
-# on success and 0 on error.  if $staging is true, use the staging
-# collection; otherwise use the live collection.
+# Send a request to MediaWords::Solr::get_solr_url.
+# Return content on success, die() on error.
+# If $staging is true, use the staging collection; otherwise use the live collection.
 sub _solr_request($$$;$$)
 {
     my ( $path, $params, $staging, $content, $content_type ) = @_;
@@ -507,19 +507,25 @@ sub _solr_request($$$;$$)
 
     if ( $@ )
     {
-        die( $@ ) unless ( $@ =~ /^alarm at/ );
+        my $error_message = $@;
 
-        say STDERR "timed out request";
-        return "timed out request for $abs_url";
+        if ( $error_message =~ /^alarm at/ )
+        {
+            die "Request to $abs_url timed out after $timeout seconds";
+        }
+        else
+        {
+            die "Request to $abs_url failed: $error_message";
+        }
     }
 
-    if ( !$res->is_success )
+    my $response = $res->decoded_content;
+    unless ( $res->is_success )
     {
-        say STDERR "request failed:\n" . $res->content;
-        return "request failed for $abs_url: " . $res->as_string;
+        die "Request to $abs_url returned HTTP error: $response";
     }
 
-    return 0;
+    return $response;
 }
 
 # return cache of the pos to read next from each file
@@ -735,8 +741,10 @@ sub _reprocess_file_errors
 
         $pm->start and next;
 
-        if ( my $error = _solr_request( $import_url, $import_params, $staging, $data->{ csv } ) )
+        eval { _solr_request( $import_url, $import_params, $staging, $data->{ csv } ); };
+        if ( $@ )
         {
+            my $error = $@;
             _add_file_error( $file, { pos => $data->{ pos }, message => $error } );
         }
 
@@ -852,11 +860,14 @@ sub _import_csv_single_file
 
         my ( $import_url, $import_params ) = _get_import_url_params( $chunk_delta );
 
-        my $error = _solr_request( $import_url, $import_params, $staging, $data->{ csv } );
+        eval { _solr_request( $import_url, $import_params, $staging, $data->{ csv } ); };
+        my $error = $@;
 
         _remove_file_error( $file, { pos => $data->{ pos } } );
-
-        _add_file_error( $file, { pos => $data->{ pos }, message => $error } ) if ( $error );
+        if ( $error )
+        {
+            _add_file_error( $file, { pos => $data->{ pos }, message => $error } );
+        }
 
         $pm->finish;
     }
@@ -981,9 +992,11 @@ sub delete_stories
 
     my $delete_query = "<delete><query>$stories_id_query</query></delete>";
 
-    if ( my $r = _solr_request( 'update', undef, $staging, $delete_query, 'application/xml' ) )
+    eval { _solr_request( 'update', undef, $staging, $delete_query, 'application/xml' ); };
+    if ( $@ )
     {
-        warn( $r );
+        my $error = $@;
+        warn "Error while deleting stories: $error";
         return 0;
     }
 
@@ -998,11 +1011,11 @@ sub delete_all_sentences
     print STDERR "deleting all sentences ...\n";
 
     my $url_params = { 'commit' => 'true', 'stream.body' => '<delete><query>*:*</query></delete>', };
-    my $r = _solr_request( 'update', $url_params, $staging );
-
-    if ( $r )
+    eval { _solr_request( 'update', $url_params, $staging ); };
+    if ( $@ )
     {
-        warn( $r );
+        my $error = $@;
+        warn "Error while deleting all sentences: $error";
         return 0;
     }
 
