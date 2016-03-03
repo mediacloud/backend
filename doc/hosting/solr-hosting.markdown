@@ -83,8 +83,19 @@ We run a cluster of 24 shards, with each active server running 8 shards.  Most o
 the individual shards rather than from threading on an individual shard, so we need lots of shards to take advantage
 of all of our cores.
 
+We are currently running our cluster in mcquery[124].  mcquery3 corrupted some data during the last full import, and we need to do a diagnosis to figure out if there's something goofy before using
+the machine again.
+
 mcquery2 runs the leader shard.  mcquery2 is also the machine that runs the hourly import script, even though we
 could run the import on any of the shards.
+
+The mediacloud installation on each of these machines is under /data/mediacloud.  Solr is in /data/mediacloud/solr.
+Each server has a full mediacloud install, with the configuration pointing to localhost:6001 as the postgres
+port.  There should be an ssh process tunneling 6001 to postgres on the production db (currently mcdb1).
+
+The only thing the mediacloud install is used for on these machines (other than the solr installation) is the import
+process.  mcquery2 runs the hourly import script.  The other cluster machines only need to run an import when doing
+a full import (just to speed up the process).
 
 We currently use the following command to start the shards under the mediacloud account on each of the machines,
 replacing the --host option with the name of the local host.  From /data/mediacloud:
@@ -96,6 +107,19 @@ file for the cluster, change that file under that directory and then run reload.
 
 `script/run_with_carton.sh solr/scripts/reload_solr_shards.pl --num_shards 24 --zk_host localhost --host mcquery1 --host mcquery4`
 
+### Import
+
+The mediacloud account on mcquery2 has the following entry, which runs an hourly incremental import of data into
+solr from the main postgres server:
+
+```
+35 * * * * time /data/mediacloud/script/run_with_carton.sh /data/mediacloud/script/mediawords_import_solr_data.pl --delta --jobs 8
+```
+
+The full import is run by running mediawords_generate_solr_dump.pl on
+each of mcquery[124] to generate a set of csvs and then mediawords_import_solr_data.pl on each machine to import those
+csvs.  TBD: details of full import.
+
 ### Server Configuration
 
 Notes on the configuration of our solr cluster and host machines to avoid OS pitfalls and maximize performance:
@@ -106,7 +130,7 @@ Add the following lines to sysctl.conf and run sysctl -p to load them.  Solr req
 connections among the solr servers, which hits up against the limits of linux's iptables connection tracking.  This
 change greatly increased the number of connections tracked and reduces how long each connection is tracked.
 
-`
+```
 net.netfilter.nf_conntrack_max = 1048576
 net.netfilter.nf_conntrack_generic_timeout = 600
 net.netfilter.nf_conntrack_tcp_timeout_close = 10
@@ -122,7 +146,7 @@ net.netfilter.nf_conntrack_tcp_timeout_unacknowledged = 300
 net.netfilter.nf_conntrack_timestamp = 0
 net.netfilter.nf_conntrack_udp_timeout = 30
 net.netfilter.nf_conntrack_udp_timeout_stream = 120
-`
+```
 
 #### TCP
 
