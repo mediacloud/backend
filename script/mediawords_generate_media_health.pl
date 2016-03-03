@@ -316,7 +316,7 @@ create table media_health as
             join media_stats_year msy on ( m.media_id = msy.media_id )
             join media_stats_week msw on ( m.media_id = msw.media_id )
             join media_expected_volume mev on ( m.media_id = mev.media_id )
-            left join media_coverage_gaps mcg on ( m.media_id = mcg.media_id )
+            left join media_coverage_gap_counts mcg on ( m.media_id = mcg.media_id )
 SQL
 
     $db->query( "create index media_health_medium on media_health ( media_id )" );
