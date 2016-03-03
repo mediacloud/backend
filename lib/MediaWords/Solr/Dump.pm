@@ -22,7 +22,6 @@ use Parallel::ForkManager;
 use Readonly;
 use Text::CSV_XS;
 use URI;
-use URI::Escape;
 
 use MediaWords::DB;
 use MediaWords::Util::Config;
@@ -100,7 +99,7 @@ SQL
             <<SQL
             SELECT reltuples::bigint
             FROM pg_class
-            WHERE relname = 'solr_import_stories'
+            WHERE relname = 'solr_import_extra_stories'
 SQL
         )->flat;
 
@@ -674,20 +673,16 @@ sub get_encoded_csv_data_chunk
     };
 }
 
-# get the solr url to which to send csv data
-sub _get_import_url
+# get the solr url and parameters to send csv data to
+sub _get_import_url_params
 {
     my ( $delta ) = @_;
 
-    my $overwrite = $delta ? 'true' : 'false';
-
-    my $fieldnames = join( ',', @CSV_FIELDS );
-
-    my $url_fields = {
+    my $url_params = {
         'commit'                              => 'false',
         'header'                              => 'false',
-        'fieldnames'                          => $fieldnames,
-        'overwrite'                           => $overwrite,
+        'fieldnames'                          => join( ',', @CSV_FIELDS ),
+        'overwrite'                           => ( $delta ? 'true' : 'false' ),
         'f.media_sets_id.split'               => 'true',
         'f.media_sets_id.separator'           => ';',
         'f.tags_id_media.split'               => 'true',
@@ -699,9 +694,7 @@ sub _get_import_url
         'skip'                                => 'field_type,id,solr_import_date'
     };
 
-    my $url_args_string = join( '&', map { "$_=" . uri_escape( $url_fields->{ $_ } ) } keys( %{ $url_fields } ) );
-
-    return "update/csv?$url_args_string";
+    return ( 'update/csv', $url_params );
 }
 
 # print to STDERR a list of remaining errors on the given file
@@ -720,7 +713,8 @@ sub _reprocess_file_errors
 {
     my ( $pm, $file, $staging ) = @_;
 
-    my $import_url = _get_import_url( 1 );
+    my $delta = 1;
+    my ( $import_url, $import_params ) = _get_import_url_params( $delta );
 
     my $errors = _get_all_file_errors( $file );
 
@@ -738,7 +732,7 @@ sub _reprocess_file_errors
 
         $pm->start and next;
 
-        if ( my $error = _solr_request( $import_url, undef, $staging, $data->{ csv } ) )
+        if ( my $error = _solr_request( $import_url, $import_params, $staging, $data->{ csv } ) )
         {
             _add_file_error( $file, { pos => $data->{ pos }, message => $error } );
         }
@@ -853,9 +847,9 @@ sub _import_csv_single_file
 
         $pm->start and next;
 
-        my $import_url = _get_import_url( $chunk_delta );
+        my ( $import_url, $import_params ) = _get_import_url_params( $chunk_delta );
 
-        my $error = _solr_request( $import_url, undef, $staging, $data->{ csv } );
+        my $error = _solr_request( $import_url, $import_params, $staging, $data->{ csv } );
 
         _remove_file_error( $file, { pos => $data->{ pos } } );
 
@@ -984,7 +978,7 @@ sub delete_stories
 
     my $delete_query = "<delete><query>$stories_id_query</query></delete>";
 
-    if ( my $r = _solr_request( "update", undef, $staging, $delete_query, 'application/xml' ) )
+    if ( my $r = _solr_request( 'update', undef, $staging, $delete_query, 'application/xml' ) )
     {
         warn( $r );
         return 0;
@@ -1073,12 +1067,12 @@ sub _get_parallel_dump_files
     return [ map { $dump_file . "-$_" } ( 1 .. $jobs ) ];
 }
 
-# count number of stories in solr_import_stories
+# count number of stories in solr_import_extra_stories
 sub _stories_queue_is_empty
 {
     my ( $db ) = @_;
 
-    my $exist = $db->query( "select 1 from solr_import_stories limit 1" )->hash;
+    my $exist = $db->query( "select 1 from solr_import_extra_stories limit 1" )->hash;
 
     return $exist ? 0 : 1;
 }
@@ -1086,7 +1080,7 @@ sub _stories_queue_is_empty
 # generate and import dump.  optionally generate delta dump since beginning of last
 # full or delta dump.  optionally delete all solr data after generating dump and before
 # importing.  keep rerunning the function until there are not more jobs left in the
-# solr_import_stories queue
+# solr_import_extra_stories queue
 sub generate_and_import_data
 {
     my ( $delta, $delete, $staging, $jobs ) = @_;
@@ -1120,7 +1114,7 @@ sub generate_and_import_data
         delete_all_sentences( $staging ) || die( "delete all sentences failed." );
     }
 
-    _solr_request( 'update?commit=true', undef, $staging );
+    _solr_request( 'update', { 'commit' => 'true' }, $staging );
 
     print STDERR "importing dump ...\n";
     import_csv_files( $dump_files, $delta, $staging, $jobs ) || die( "import failed." );
@@ -1137,7 +1131,7 @@ sub generate_and_import_data
         generate_and_import_data( 1, 0, $staging );
     }
 
-    _solr_request( 'update?commit=true', undef, $staging );
+    _solr_request( 'update', { 'commit' => 'true' }, $staging );
 
     map { unlink( $_ ) } @{ $dump_files };
 
