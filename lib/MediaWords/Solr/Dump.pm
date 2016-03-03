@@ -408,37 +408,22 @@ sub print_csv_to_file
     }
 }
 
-# get the solr select url; cache after the first call
-sub _get_solr_select_url
-{
-    return $_solr_select_url if ( $_solr_select_url );
-
-    my $db = MediaWords::DB::connect_to_db;
-
-    $_solr_select_url = MediaWords::Solr::get_solr_select_url( $db );
-
-    return $_solr_select_url;
-}
-
 # query solr for the given story_sentences_id and return true the story_sentences_id already exists in solr
-sub _sentence_exists_in_solr
+sub _sentence_exists_in_solr($$)
 {
-    my ( $story_sentences_id ) = @_;
+    my ( $story_sentences_id, $staging ) = @_;
 
-    my $solr_select_url = _get_solr_select_url();
-
-    my $ua = MediaWords::Util::Web::UserAgent;
-    $ua->max_size( undef );
-
-    my $res = $ua->post( $solr_select_url, { q => "story_sentences_id:$story_sentences_id", rows => 0, wt => 'json' } );
-
-    if ( !$res->is_success )
+    my $json;
+    eval {
+        my $params = { q => "story_sentences_id:$story_sentences_id", rows => 0, wt => 'json' };
+        $json = _solr_request( 'select', $params, $staging );
+    };
+    if ( $@ )
     {
-        warn( "unable to query solr for story_sentences_id $story_sentences_id: " . $res->content );
+        my $error_message = $@;
+        warn "Unable to query Solr for story_sentences_id $story_sentences_id: $error_message";
         return 0;
     }
-
-    my $json = $res->content;
 
     my $data;
     eval { $data = decode_json( $json ) };
@@ -762,18 +747,18 @@ sub _reprocess_file_errors
 # * if first ssid is not in solr, delta = 0 (run import with overwrite = false)
 # * if the first ssid is in solr but the last is not, delta = 1 (run import with overwrite = true)
 # * if the first ssid is in solr and the last ssid is in solr, delta = -1 (do not run import)
-sub _get_chunk_delta
+sub _get_chunk_delta($$$)
 {
-    my ( $chunk, $last_chunk_delta ) = @_;
+    my ( $chunk, $last_chunk_delta, $staging ) = @_;
 
     return 0 if ( defined( $last_chunk_delta ) && ( $last_chunk_delta == 0 ) );
 
-    if ( !_sentence_exists_in_solr( $chunk->{ first_story_sentences_id } ) )
+    unless ( _sentence_exists_in_solr( $chunk->{ first_story_sentences_id }, $staging ) )
     {
         return 0;
     }
 
-    if ( !_sentence_exists_in_solr( $chunk->{ last_story_sentences_id } ) )
+    unless ( _sentence_exists_in_solr( $chunk->{ last_story_sentences_id }, $staging ) )
     {
         return 1;
     }
@@ -782,9 +767,9 @@ sub _get_chunk_delta
 }
 
 # return true if the last sentence in the file is already present in solr, so we can skip this file
-sub _last_sentence_in_solr
+sub _last_sentence_in_solr($$)
 {
-    my ( $file ) = @_;
+    my ( $file, $staging ) = @_;
 
     my $bfh = File::ReadBackwards->new( $file ) || die( "Unable to open file '$file': $!" );
 
@@ -800,7 +785,7 @@ sub _last_sentence_in_solr
 
     return 0 unless ( $last_story_sentences_id );
 
-    return _sentence_exists_in_solr( $last_story_sentences_id );
+    return _sentence_exists_in_solr( $last_story_sentences_id, $staging );
 }
 
 # import a single csv dump file into solr using blocks
@@ -810,7 +795,7 @@ sub _import_csv_single_file
 
     my $pm = Parallel::ForkManager->new( $jobs );
 
-    if ( _last_sentence_in_solr( $file ) )
+    if ( _last_sentence_in_solr( $file, $staging ) )
     {
         say STDERR "skipping $file, last sentence already in solr";
 
@@ -842,7 +827,7 @@ sub _import_csv_single_file
         my $remaining_time = int( $elapsed_time * ( 1 / $partial_progress ) ) - $elapsed_time;
         $remaining_time = '??' if ( $chunk_num < $jobs );
 
-        my $chunk_delta = _get_chunk_delta( $data, $last_chunk_delta );
+        my $chunk_delta = _get_chunk_delta( $data, $last_chunk_delta, $staging );
         $last_chunk_delta = $chunk_delta;
 
         my $base_file = basename( $file );
