@@ -79,19 +79,6 @@ sub swap_live_collection
       $db->commit;
 }
 
-# get a solr select url from config.  if there is more than one url
-# in the config, randomly choose one from the list.
-sub get_solr_select_url
-{
-    my ( $db ) = @_;
-
-    my $url = get_solr_url();
-
-    my $collection = get_live_collection( $db );
-
-    return "$url/$collection/select";
-}
-
 # get the numFound from the last solr query run
 sub get_last_num_found
 {
@@ -162,7 +149,7 @@ sub query_encoded_json($$;$)
     $params->{ q }  = MediaWords::Solr::PseudoQueries::transform_query( $params->{ q } );
     $params->{ fq } = MediaWords::Solr::PseudoQueries::transform_query( $params->{ fq } );
 
-    my $url = get_solr_select_url( $db );
+    my $url = sprintf( '%s/%s/select', get_solr_url(), get_live_collection( $db ) );
 
     my $ua = MediaWords::Util::Web::UserAgent;
 
