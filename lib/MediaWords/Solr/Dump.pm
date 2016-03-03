@@ -22,6 +22,7 @@ use Parallel::ForkManager;
 use Readonly;
 use Text::CSV_XS;
 use URI;
+require bytes;    # do not override length() and such
 
 use MediaWords::DB;
 use MediaWords::Util::Config;
@@ -481,8 +482,8 @@ sub _solr_request($$$;$$)
         $content_type ||= 'text/plain; charset=utf-8';
 
         $req = HTTP::Request->new( POST => $abs_url );
-        $req->header( 'Content-type',   $content_type );
-        $req->header( 'Content-length', length( $content ) );
+        $req->header( 'Content-Type',   $content_type );
+        $req->header( 'Content-Length', bytes::length( $content ) );
         $req->content( $content );
     }
     else
