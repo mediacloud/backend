@@ -15,7 +15,6 @@ use File::Basename;
 use FileHandle;
 use HTTP::Request;
 use JSON;
-use LWP::UserAgent;
 use List::MoreUtils;
 use List::Util;
 use Parallel::ForkManager;
@@ -26,6 +25,7 @@ require bytes;    # do not override length() and such
 
 use MediaWords::DB;
 use MediaWords::Util::Config;
+use MediaWords::Util::Web;
 
 use MediaWords::Solr;
 
@@ -428,6 +428,7 @@ sub _sentence_exists_in_solr
     my $solr_select_url = _get_solr_select_url();
 
     my $ua = MediaWords::Util::Web::UserAgent;
+    $ua->max_size( undef );
 
     my $res = $ua->post( $solr_select_url, { q => "story_sentences_id:$story_sentences_id", rows => 0, wt => 'json' } );
 
@@ -470,7 +471,8 @@ sub _solr_request($$$;$$)
     $abs_uri->query_form( $params );
     my $abs_url = $abs_uri->as_string;
 
-    my $ua = LWP::UserAgent->new;
+    my $ua = MediaWords::Util::Web::UserAgent;
+    $ua->max_size( undef );
 
     # should be able to process about this fast.  otherwise, time out and throw error so that we can continue processing
     my $req;
