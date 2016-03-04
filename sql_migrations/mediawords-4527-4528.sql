@@ -16,8 +16,8 @@
 
 --
 
-alter table stories drop column ap_syndicated;
-alter table cd.live_stories drop column ap_syndicated;
+alter table stories drop column if exists ap_syndicated;
+alter table cd.live_stories drop column if exists ap_syndicated;
 
 create or replace function insert_live_story() returns trigger as $insert_live_story$
     begin

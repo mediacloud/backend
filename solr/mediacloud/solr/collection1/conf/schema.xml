@@ -125,6 +125,9 @@
    <!-- language field from the story_sentences table - 2 letter code -->
    <field name="language" type="string" indexed="true" stored="false"/>
 
+   <!-- Bit.ly total click count (null if not known yet) -->
+   <field name="bitly_click_count" type="int" indexed="true" stored="true" required="false" multiValued="false" />
+
    <field name="media_sets_id" type="int" indexed="true" stored="false" multiValued="true" />
    <field name="tags_id_stories" type="int" indexed="true" stored="false" multiValued="true" />
    <field name="tags_id_media" type="int" indexed="true" stored="false" multiValued="true" />

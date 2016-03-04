@@ -122,7 +122,7 @@ sub add_extra_data
     my $raw_1st_download = $c->req->params->{ raw_1st_download };
     my $corenlp          = $c->req->params->{ corenlp };
 
-    return $stories unless ( @{ $stories } && ( $raw_1st_download || $corenlp ) );
+    return $stories unless ( scalar @{ $stories } && ( $raw_1st_download || $corenlp ) );
 
     my $db = $c->dbis;
 
@@ -193,7 +193,7 @@ sub _add_nested_data
 {
     my ( $self, $db, $stories ) = @_;
 
-    return unless ( @{ $stories } );
+    return unless ( scalar @{ $stories } );
 
     my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ stories_id } } @{ $stories } ] );
 
@@ -265,6 +265,19 @@ select s.stories_id, t.tags_id, t.tag, ts.tag_sets_id, ts.name as tag_set
 END
     MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $tag_data, 'story_tags' );
 
+    # Bit.ly total click counts
+    my $bitly_click_data = $db->query(
+        <<"EOF",
+        -- Return NULL for where click count is not yet present
+        SELECT $ids_table.id AS stories_id,
+               bitly_clicks_total.click_count AS bitly_click_count
+        FROM $ids_table
+            LEFT JOIN bitly_clicks_total
+                ON $ids_table.id = bitly_clicks_total.stories_id
+EOF
+    )->hashes;
+    MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $bitly_click_data );
+
     return $stories;
 }
 
@@ -284,10 +297,12 @@ sub _get_object_ids
     my $fq = $c->req->params->{ fq } || [];
     $fq = [ $fq ] unless ( ref( $fq ) );
 
-    return MediaWords::Solr::search_for_processed_stories_ids( $c->dbis, $q, $fq, $last_id, $rows );
+    my $sort = $c->req->param( 'sort' );
+
+    return MediaWords::Solr::search_for_processed_stories_ids( $c->dbis, $q, $fq, $last_id, $rows, $sort );
 }
 
-sub _fetch_list
+sub _fetch_list($$$$$$)
 {
     my ( $self, $c, $last_id, $table_name, $id_field, $rows ) = @_;
 
@@ -300,7 +315,7 @@ sub _fetch_list
 
     my $ps_ids = $self->_get_object_ids( $c, $last_id, $rows );
 
-    return [] unless ( @{ $ps_ids } );
+    return [] unless ( scalar @{ $ps_ids } );
 
     my $db = $c->dbis;
 
@@ -308,18 +323,32 @@ sub _fetch_list
 
     my $ids_table = $db->get_temporary_ids_table( $ps_ids );
 
-    my $stories = $db->query( <<END )->hashes;
-with ps_ids as
+    my $stories = $db->query(
+        <<"SQL",
+        WITH ps_ids AS (
 
-    ( select processed_stories_id, stories_id
-        from processed_stories
-        where processed_stories_id in ( select id from $ids_table ) )
+            SELECT ${ids_table}_pkey order_pkey,
+                   id AS processed_stories_id,
+                   processed_stories.stories_id
+            FROM $ids_table
+                INNER JOIN processed_stories
+                    ON $ids_table.id = processed_stories.processed_stories_id
+        )
 
-select s.*, p.processed_stories_id, m.name media_name, m.url media_url
-    from stories s join ps_ids p on ( s.stories_id = p.stories_id )
-    join media m on ( s.media_id = m.media_id )
-    order by processed_stories_id asc limit $rows
-END
+        SELECT stories.*,
+               ps_ids.processed_stories_id,
+               media.name AS media_name,
+               media.url AS media_url
+        FROM ps_ids
+            JOIN stories
+                ON ps_ids.stories_id = stories.stories_id
+            JOIN media
+                ON stories.media_id = media.media_id
+        ORDER BY ps_ids.order_pkey
+        LIMIT ?
+SQL
+        $rows
+    )->hashes;
 
     $db->commit;
 
