@@ -1,7 +1,7 @@
 Controversies
 =============
 
-This document provides a high level overview of how the controversy mapping 
+This document provides a high level overview of how the controversy mapping
 system works and points to the pieces of code that performance specific
 functions.
 
@@ -14,12 +14,17 @@ between the controversy mapping system and the rest of the system are that:
 * as the cm parses links to discover new stories, it stores those links in the
   database so that we can use them for link analysis.
 
-How to run a controversy
-------------------------
+How to run a controversy for development
+----------------------------------------
 
-0. First make sure that you have a solr instance running in supervisord.  Then run
-the following import data into solr from postgres and erify existence of data in solr 
-by searching for a common word on the /search page.
+0. If you are running on a development machines, first make sure that you have a solr instance running in supervisord.
+Then run the following import data into solr from postgres and verify existence of data in solr  by searching for a
+common word on the /search page.
+
+**DO NOT RUN THIS IN PRODUCTION!**
+
+The process for running a controversy in production is the same, but without the solr import (the production
+solr database will already have data).
 
 <pre>
 script/run_with_carton.sh script/mediawords_import_solr_data.pl --delete_all
@@ -27,7 +32,7 @@ script/run_with_carton.sh script/mediawords_import_solr_data.pl --delete_all
 
 1. Go to http://localhost:3000/admin/cm (replace localhost:3000 with your mc web app).
 
-2. Click on 'create controversy' link on the left of the page.
+2. Click on 'create controversy' link on the right of the page.
 
 3. Fill out the controversy form with a solr query and a pattern that will return a
 good number of stories within your database.
@@ -35,7 +40,7 @@ good number of stories within your database.
 4. Check 'preview' and click submit to see a preview of the stories returned by the given
 solr query and pattern.
 
-5. Click the back button. 
+5. Click the back button.
 
 6. If there were not enough stories (a few hundred for a viable controversy), go back to step 3.
 
@@ -49,7 +54,7 @@ script/run_with_carton.sh script/mediawords_mine_controversy.pl --controversy <c
 </pre>
 
 9. Wait for the controversy spider to complete.  This can take anywhere from an hour or so to several days.  
-If you want it to complete faster, edit mediawords->cm\_spider\_iterations in mediawords.yml to some small 
+If you want it to complete faster, edit mediawords->cm\_spider\_iterations in mediawords.yml to some small
 number (1 or 2), which will make the spider only spider out that many levels from the seed set.
 
 10. Once the the mine has finished, run the following command and follow the instructions within the script
@@ -68,7 +73,7 @@ in the media now marked as dups.
 script/run_with_carton.sh script/mediawords_dump_controversy.pl --controversy <controversies_id> --direct_job
 </pre>
 
-13. That's it.  You should have a functioning controversy.  Go to the controversy page in step 1 and 
+13. That's it.  You should have a functioning controversy.  Go to the controversy page in step 1 and
 click on the newly create controversy.
 
 Basic flow of CM
@@ -99,7 +104,7 @@ Tables used by CM
 * `controversy_stories` -- stories that are currently part of each controversy
 * `controversy_links` -- all links from all stories within each controversy
 * `controversy_links_cross_media` -- (view) only links between controversy
-   stories from different media sources 
+   stories from different media sources
 * `controversy_dates` -- list of dates for custom time slices; each controversy
    must include at least one pair of dates that define the outer range of date
    coverage
@@ -114,21 +119,21 @@ Detailed explanation of CM process
    set as a combination of text, collection tag, and date clauses, for example
    `( sentence:trayvon AND tags_id_media:123456 AND
    publish_date:[2012-03-01T00:00:00Z TO 2012-05-01T00:00:00Z] )`.
-    
+
 2. Validate that this query has at most 10% false positives by searching on
    `core/search` and manually validating the first ~25 (randomly sampled)
    stories returned on `core/search` page.  Repeat 1. and 2. until a good solr
    query is found.
-    
+
 3. Write a regex pattern that corresponds as closely as possible to the text
    part of the solr seed query.  Any story added to the controversy will have
    to match this pattern, including the stories returned by the solr seed
    query.
-    
+
 4. Create a row in the controversies table with the above solr seed query and
    controversy regex using the `core/admin/cm/create` page.
     * This basic controversy metadata goes into the `controversies` table.
-    
+
 5. Add any additional seed set urls from other sources (e.g. manual research by
    RAs, twitter links, google search results).
     * These seed set urls are generated manually and imported from CSVs into
@@ -174,7 +179,7 @@ Detailed explanation of CM process
    least once, so you will have review only media sources not previously
    reviewed.
     * media deduping is implemented in `mediawords_dedup_controversy_media.pl`
-    
+
 8. Run `mediawords_mine_controversy.pl` again if any media sources have been
    marked as duplicates in (7) to merge stories from duplicate media.
 
@@ -183,14 +188,14 @@ Detailed explanation of CM process
    network maps, and to generate reliability scores for the influential media
    list in each time slices.
     * dumping is implemented by `MediaWords::CM::Dump::dump_controversy`
-    
+
 10. Review the dump data, performing any more manual edits (editing story and
     media names, checking dates, analyzing influential media lists for each
     time slice, and so on).
 
 11. Redo the mine, dedup media, mine, dump steps any time new stories are added
     to the controversy (for instance after adding more seed urls).
-    
+
 12. Rerun the dump any time the controversy data has been changed and
     researchers need a new set of consistent results, new maps, or new
     reliability scores.
