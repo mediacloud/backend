@@ -15,16 +15,17 @@ use File::Basename;
 use FileHandle;
 use HTTP::Request;
 use JSON;
-use LWP::UserAgent;
 use List::MoreUtils;
 use List::Util;
 use Parallel::ForkManager;
 use Readonly;
 use Text::CSV_XS;
-use URI::Escape;
+use URI;
+require bytes;    # do not override length() and such
 
 use MediaWords::DB;
 use MediaWords::Util::Config;
+use MediaWords::Util::Web;
 
 use MediaWords::Solr;
 
@@ -33,7 +34,7 @@ my $_solr_select_url;
 # order and names of fields exported to and imported from csv
 Readonly my @CSV_FIELDS =>
   qw/stories_id media_id story_sentences_id solr_id publish_date publish_day sentence_number sentence title language
-  processed_stories_id media_sets_id tags_id_media tags_id_stories tags_id_story_sentences/;
+  bitly_click_count processed_stories_id media_sets_id tags_id_media tags_id_stories tags_id_story_sentences/;
 
 # numbner of lines in each chunk of csv to import
 Readonly my $CSV_CHUNK_LINES => 10_000;
@@ -71,10 +72,10 @@ sub _set_lookup
     $data_lookup->{ $name } = $lookup;
 }
 
-# add enough stories from the solr_import_stories
-# queue to the solr_import_stories table that there are up to
-# _get_maxed_queued_stories in stories_solr_import for each solr_import
-sub _add_queued_stories_to_import
+# add enough stories from the solr_import_extra_stories
+# queue to the delta_import_stories table that there are up to
+# _get_maxed_queued_stories in delta_import_stories for each solr_import
+sub _add_extra_stories_to_import
 {
     my ( $db, $import_date, $num_delta_stories, $num_proc, $proc ) = @_;
 
@@ -82,22 +83,28 @@ sub _add_queued_stories_to_import
 
     my $max_queued_stories = List::Util::max( 0, $max_processed_stories - $num_delta_stories );
 
-    my $num_queued_stories = $db->query( <<END, $max_queued_stories )->rows;
-insert into delta_import_stories ( stories_id )
-    select stories_id
-        from solr_import_stories
-        where ( stories_id % $num_proc ) = ( $proc - 1 )
-        limit ?
-END
+    my $num_queued_stories = $db->query(
+        <<"SQL",
+        INSERT INTO delta_import_stories (stories_id)
+            SELECT stories_id
+            FROM solr_import_extra_stories
+            WHERE ( stories_id % $num_proc ) = ( $proc - 1 )
+            LIMIT ?
+SQL
+        $max_queued_stories
+    )->rows;
 
     if ( $num_queued_stories > 0 )
     {
-        $db->query( "analyze solr_import_stories" );
-        my ( $total_queued_stories ) = $db->query( <<SQL )->flat;
-select reltuples::bigint from pg_class where relname='solr_import_stories'
+        my ( $total_queued_stories ) = $db->query(
+            <<SQL
+            SELECT reltuples::bigint
+            FROM pg_class
+            WHERE relname = 'solr_import_extra_stories'
 SQL
+        )->flat;
 
-        print STDERR "added $num_queued_stories out of about $total_queued_stories queued stories to the import\n";
+        say STDERR "added $num_queued_stories out of about $total_queued_stories queued stories to the import";
     }
 
 }
@@ -105,7 +112,9 @@ SQL
 # setup 'csr' cursor in postgres as the query to import the story_sentences
 sub _declare_sentences_cursor
 {
-    my ( $db, $delta_clause, $num_proc, $proc ) = @_;
+    my ( $db, $delta, $num_proc, $proc ) = @_;
+
+    my $date_clause = $delta ? 'and ss.stories_id in ( select stories_id from delta_import_stories )' : '';
 
     $db->dbh->do( <<END );
 declare csr cursor for
@@ -120,12 +129,15 @@ declare csr cursor for
         ss.sentence_number,
         ss.sentence,
         null title,
-        ss.language
+        ss.language,
+        bitly_clicks_total.click_count as bitly_click_count
 
     from story_sentences ss
+        left join bitly_clicks_total
+            on ss.stories_id = bitly_clicks_total.stories_id
 
     where ( ss.stories_id % $num_proc = $proc - 1 )
-        $delta_clause
+        $date_clause
 END
 
 }
@@ -133,7 +145,9 @@ END
 # setup 'csr' cursor in postgres as the query to import the story titles
 sub _declare_titles_cursor
 {
-    my ( $db, $delta_clause, $num_proc, $proc ) = @_;
+    my ( $db, $delta, $num_proc, $proc ) = @_;
+
+    my $date_clause = $delta ? 'and s.stories_id in ( select stories_id from delta_import_stories )' : '';
 
     $db->dbh->do( <<END );
 declare csr cursor for
@@ -148,12 +162,15 @@ declare csr cursor for
         0,
         null sentence,
         s.title,
-        s.language
+        s.language,
+        bitly_clicks_total.click_count as bitly_click_count
 
     from stories s
+        left join bitly_clicks_total
+            on s.stories_id = bitly_clicks_total.stories_id
 
     where ( s.stories_id % $num_proc = $proc - 1 )
-        $delta_clause
+        $date_clause
 END
 
 }
@@ -215,13 +232,11 @@ sub _print_csv_to_file_from_csr
     return [ keys %{ $imported_stories_ids } ];
 }
 
-# if $delta is false, return ''; otherwise return 'and stories_id in ( select stories_id from delta_import_stories )'
-# and setup delta_import_stories to have the list of stories to import
-sub _get_delta_import_clause
+# get the date clause that restricts the import of all subsequent queries to just the
+# delta stories
+sub _create_delta_import_stories
 {
-    my ( $db, $delta, $num_proc, $proc ) = @_;
-
-    return '' unless ( $delta );
+    my ( $db, $num_proc, $proc ) = @_;
 
     my ( $import_date ) = $db->query( "select import_date from solr_imports order by import_date desc limit 1" )->flat;
 
@@ -239,9 +254,7 @@ END
     my ( $num_delta_stories ) = $db->query( "select count(*) from delta_import_stories" )->flat;
     print STDERR "found $num_delta_stories stories for import ...\n";
 
-    _add_queued_stories_to_import( $db, $import_date, $num_delta_stories, $num_proc, $proc );
-
-    return "and stories_id in ( select stories_id from delta_import_stories )";
+    _add_extra_stories_to_import( $db, $import_date, $num_delta_stories, $num_proc, $proc );
 }
 
 # get the $data_lookup hash that has lookup tables for values to include
@@ -254,42 +267,56 @@ END
 # server side.
 sub _get_data_lookup
 {
-    my ( $db, $num_proc, $proc, $delta_clause ) = @_;
+    my ( $db, $num_proc, $proc, $delta ) = @_;
 
     my $data_lookup = {};
 
+    my $date_clause = $delta ? 'and stories_id in ( select stories_id from delta_import_stories )' : '';
+
     _set_lookup( $db, $data_lookup, 'ps', <<END );
-select processed_stories_id, stories_id from processed_stories where stories_id % $num_proc = $proc - 1 $delta_clause
+        select processed_stories_id, stories_id
+        from processed_stories
+        where stories_id % $num_proc = $proc - 1
+        $date_clause
 END
 
     _set_lookup( $db, $data_lookup, 'media_sets', <<END );
-select string_agg( media_sets_id::text, ';' ) media_sets_id, media_id from media_sets_media_map group by media_id
+        select string_agg( media_sets_id::text, ';' ) media_sets_id, media_id
+        from media_sets_media_map
+        group by media_id
 END
     _set_lookup( $db, $data_lookup, 'media_tags', <<END );
-select string_agg( tags_id::text, ';' ) tag_list, media_id from media_tags_map group by media_id
+        select string_agg( tags_id::text, ';' ) tag_list, media_id
+        from media_tags_map
+        group by media_id
 END
     _set_lookup( $db, $data_lookup, 'stories_tags', <<END );
-select string_agg( tags_id::text, ';' ) tag_list, stories_id
-    from stories_tags_map
-    where stories_id % $num_proc = $proc - 1 $delta_clause
-    group by stories_id
+        select string_agg( tags_id::text, ';' ) tag_list, stories_id
+        from stories_tags_map
+        where stories_id % $num_proc = $proc - 1
+        $date_clause
+        group by stories_id
 END
 
     my $ss_delta_clause = '';
-    if ( $delta_clause )
+    if ( $date_clause )
     {
         $ss_delta_clause = <<SQL;
-and story_sentences_id in (
-    select story_sentences_id from story_sentences where stories_id % $num_proc = $proc - 1 $delta_clause
-)
+            and story_sentences_id in (
+                select story_sentences_id
+                from story_sentences
+                where stories_id % $num_proc = $proc - 1
+                $date_clause
+            )
 SQL
     }
 
     _set_lookup( $db, $data_lookup, 'ss_tags', <<END );
-select string_agg( tags_id::text, ';' ) tag_list, story_sentences_id
-    from story_sentences_tags_map
-    where true $ss_delta_clause
-    group by story_sentences_id
+        select string_agg( tags_id::text, ';' ) tag_list, story_sentences_id
+        from story_sentences_tags_map
+        where true
+        $ss_delta_clause
+        group by story_sentences_id
 END
 
     return $data_lookup;
@@ -308,20 +335,23 @@ sub _print_csv_to_file_single_job
 
     my $fh = FileHandle->new( ">$file" ) || die( "Unable to open file '$file': $@" );
 
-    my $delta_clause = _get_delta_import_clause( $db, $delta, $num_proc, $proc );
+    if ( $delta )
+    {
+        _create_delta_import_stories( $db, $num_proc, $proc );
+    }
 
     my $stories_ids = $delta ? $db->query( "select * from delta_import_stories" )->flat : [];
 
-    my $data_lookup = _get_data_lookup( $db, $num_proc, $proc, $delta_clause );
+    my $data_lookup = _get_data_lookup( $db, $num_proc, $proc, $delta );
 
     $db->begin;
 
     print STDERR "exporting sentences ...\n";
-    _declare_sentences_cursor( $db, $delta_clause, $num_proc, $proc );
+    _declare_sentences_cursor( $db, $delta, $num_proc, $proc );
     my $sentence_stories_ids = _print_csv_to_file_from_csr( $db, $fh, $data_lookup, 1 );
 
     print STDERR "exporting titles ...\n";
-    _declare_titles_cursor( $db, $delta_clause, $num_proc, $proc );
+    _declare_titles_cursor( $db, $delta, $num_proc, $proc );
     my $title_stories_ids = _print_csv_to_file_from_csr( $db, $fh, $data_lookup, 0 );
 
     $db->commit;
@@ -378,36 +408,22 @@ sub print_csv_to_file
     }
 }
 
-# get the solr select url; cache after the first call
-sub _get_solr_select_url
-{
-    return $_solr_select_url if ( $_solr_select_url );
-
-    my $db = MediaWords::DB::connect_to_db;
-
-    $_solr_select_url = MediaWords::Solr::get_solr_select_url( $db );
-
-    return $_solr_select_url;
-}
-
 # query solr for the given story_sentences_id and return true the story_sentences_id already exists in solr
-sub _sentence_exists_in_solr
+sub _sentence_exists_in_solr($$)
 {
-    my ( $story_sentences_id ) = @_;
+    my ( $story_sentences_id, $staging ) = @_;
 
-    my $solr_select_url = _get_solr_select_url();
-
-    my $ua = MediaWords::Util::Web::UserAgent;
-
-    my $res = $ua->post( $solr_select_url, { q => "story_sentences_id:$story_sentences_id", rows => 0, wt => 'json' } );
-
-    if ( !$res->is_success )
+    my $json;
+    eval {
+        my $params = { q => "story_sentences_id:$story_sentences_id", rows => 0, wt => 'json' };
+        $json = _solr_request( 'select', $params, $staging );
+    };
+    if ( $@ )
     {
-        warn( "unable to query solr for story_sentences_id $story_sentences_id: " . $res->content );
+        my $error_message = $@;
+        warn "Unable to query Solr for story_sentences_id $story_sentences_id: $error_message";
         return 0;
     }
-
-    my $json = $res->content;
 
     my $data;
     eval { $data = decode_json( $json ) };
@@ -419,25 +435,29 @@ sub _sentence_exists_in_solr
     return $data->{ response }->{ numFound } ? 1 : 0;
 }
 
-# send a request to MediaWords::Solr::get_solr_url.  return 1
-# on success and 0 on error.  if $staging is true, use the staging
-# collection; otherwise use the live collection.
-sub _solr_request
+# Send a request to MediaWords::Solr::get_solr_url.
+# Return content on success, die() on error.
+# If $staging is true, use the staging collection; otherwise use the live collection.
+sub _solr_request($$$;$$)
 {
-    my ( $url, $staging, $content, $content_type ) = @_;
+    my ( $path, $params, $staging, $content, $content_type ) = @_;
 
     # print STDERR "requesting url: $url ...\n";
 
     my $solr_url = MediaWords::Solr::get_solr_url;
+    $params //= {};
 
     my $db = MediaWords::DB::connect_to_db;
 
     my $collection =
       $staging ? MediaWords::Solr::get_staging_collection( $db ) : MediaWords::Solr::get_live_collection( $db );
 
-    my $abs_url = "${ solr_url }/${ collection }/${ url }";
+    my $abs_uri = URI->new( "$solr_url/$collection/$path" );
+    $abs_uri->query_form( $params );
+    my $abs_url = $abs_uri->as_string;
 
-    my $ua = LWP::UserAgent->new;
+    my $ua = MediaWords::Util::Web::UserAgent;
+    $ua->max_size( undef );
 
     # should be able to process about this fast.  otherwise, time out and throw error so that we can continue processing
     my $req;
@@ -449,8 +469,8 @@ sub _solr_request
         $content_type ||= 'text/plain; charset=utf-8';
 
         $req = HTTP::Request->new( POST => $abs_url );
-        $req->header( 'Content-type',   $content_type );
-        $req->header( 'Content-length', length( $content ) );
+        $req->header( 'Content-Type',   $content_type );
+        $req->header( 'Content-Length', bytes::length( $content ) );
         $req->content( $content );
     }
     else
@@ -472,19 +492,25 @@ sub _solr_request
 
     if ( $@ )
     {
-        die( $@ ) unless ( $@ =~ /^alarm at/ );
+        my $error_message = $@;
 
-        say STDERR "timed out request";
-        return "timed out request for $abs_url";
+        if ( $error_message =~ /^alarm at/ )
+        {
+            die "Request to $abs_url timed out after $timeout seconds";
+        }
+        else
+        {
+            die "Request to $abs_url failed: $error_message";
+        }
     }
 
-    if ( !$res->is_success )
+    my $response = $res->decoded_content;
+    unless ( $res->is_success )
     {
-        say STDERR "request failed:\n" . $res->content;
-        return "request failed for $abs_url: " . $res->as_string;
+        die "Request to $abs_url returned HTTP error: $response";
     }
 
-    return 0;
+    return $response;
 }
 
 # return cache of the pos to read next from each file
@@ -641,20 +667,16 @@ sub get_encoded_csv_data_chunk
     };
 }
 
-# get the solr url to which to send csv data
-sub _get_import_url
+# get the solr url and parameters to send csv data to
+sub _get_import_url_params
 {
     my ( $delta ) = @_;
 
-    my $overwrite = $delta ? 'true' : 'false';
-
-    my $fieldnames = join( ',', @CSV_FIELDS );
-
-    my $url_fields = {
+    my $url_params = {
         'commit'                              => 'false',
         'header'                              => 'false',
-        'fieldnames'                          => $fieldnames,
-        'overwrite'                           => $overwrite,
+        'fieldnames'                          => join( ',', @CSV_FIELDS ),
+        'overwrite'                           => ( $delta ? 'true' : 'false' ),
         'f.media_sets_id.split'               => 'true',
         'f.media_sets_id.separator'           => ';',
         'f.tags_id_media.split'               => 'true',
@@ -666,9 +688,7 @@ sub _get_import_url
         'skip'                                => 'field_type,id,solr_import_date'
     };
 
-    my $url_args_string = join( '&', map { "$_=" . uri_escape( $url_fields->{ $_ } ) } keys( %{ $url_fields } ) );
-
-    return "update/csv?$url_args_string";
+    return ( 'update/csv', $url_params );
 }
 
 # print to STDERR a list of remaining errors on the given file
@@ -687,7 +707,8 @@ sub _reprocess_file_errors
 {
     my ( $pm, $file, $staging ) = @_;
 
-    my $import_url = _get_import_url( 1 );
+    my $delta = 1;
+    my ( $import_url, $import_params ) = _get_import_url_params( $delta );
 
     my $errors = _get_all_file_errors( $file );
 
@@ -705,8 +726,10 @@ sub _reprocess_file_errors
 
         $pm->start and next;
 
-        if ( my $error = _solr_request( $import_url, $staging, $data->{ csv } ) )
+        eval { _solr_request( $import_url, $import_params, $staging, $data->{ csv } ); };
+        if ( $@ )
         {
+            my $error = $@;
             _add_file_error( $file, { pos => $data->{ pos }, message => $error } );
         }
 
@@ -724,18 +747,18 @@ sub _reprocess_file_errors
 # * if first ssid is not in solr, delta = 0 (run import with overwrite = false)
 # * if the first ssid is in solr but the last is not, delta = 1 (run import with overwrite = true)
 # * if the first ssid is in solr and the last ssid is in solr, delta = -1 (do not run import)
-sub _get_chunk_delta
+sub _get_chunk_delta($$$)
 {
-    my ( $chunk, $last_chunk_delta ) = @_;
+    my ( $chunk, $last_chunk_delta, $staging ) = @_;
 
     return 0 if ( defined( $last_chunk_delta ) && ( $last_chunk_delta == 0 ) );
 
-    if ( !_sentence_exists_in_solr( $chunk->{ first_story_sentences_id } ) )
+    unless ( _sentence_exists_in_solr( $chunk->{ first_story_sentences_id }, $staging ) )
     {
         return 0;
     }
 
-    if ( !_sentence_exists_in_solr( $chunk->{ last_story_sentences_id } ) )
+    unless ( _sentence_exists_in_solr( $chunk->{ last_story_sentences_id }, $staging ) )
     {
         return 1;
     }
@@ -744,9 +767,9 @@ sub _get_chunk_delta
 }
 
 # return true if the last sentence in the file is already present in solr, so we can skip this file
-sub _last_sentence_in_solr
+sub _last_sentence_in_solr($$)
 {
-    my ( $file ) = @_;
+    my ( $file, $staging ) = @_;
 
     my $bfh = File::ReadBackwards->new( $file ) || die( "Unable to open file '$file': $!" );
 
@@ -762,7 +785,7 @@ sub _last_sentence_in_solr
 
     return 0 unless ( $last_story_sentences_id );
 
-    return _sentence_exists_in_solr( $last_story_sentences_id );
+    return _sentence_exists_in_solr( $last_story_sentences_id, $staging );
 }
 
 # import a single csv dump file into solr using blocks
@@ -772,7 +795,7 @@ sub _import_csv_single_file
 
     my $pm = Parallel::ForkManager->new( $jobs );
 
-    if ( _last_sentence_in_solr( $file ) )
+    if ( _last_sentence_in_solr( $file, $staging ) )
     {
         say STDERR "skipping $file, last sentence already in solr";
 
@@ -804,7 +827,7 @@ sub _import_csv_single_file
         my $remaining_time = int( $elapsed_time * ( 1 / $partial_progress ) ) - $elapsed_time;
         $remaining_time = '??' if ( $chunk_num < $jobs );
 
-        my $chunk_delta = _get_chunk_delta( $data, $last_chunk_delta );
+        my $chunk_delta = _get_chunk_delta( $data, $last_chunk_delta, $staging );
         $last_chunk_delta = $chunk_delta;
 
         my $base_file = basename( $file );
@@ -820,13 +843,16 @@ sub _import_csv_single_file
 
         $pm->start and next;
 
-        my $import_url = _get_import_url( $chunk_delta );
+        my ( $import_url, $import_params ) = _get_import_url_params( $chunk_delta );
 
-        my $error = _solr_request( $import_url, $staging, $data->{ csv } );
+        eval { _solr_request( $import_url, $import_params, $staging, $data->{ csv } ); };
+        my $error = $@;
 
         _remove_file_error( $file, { pos => $data->{ pos } } );
-
-        _add_file_error( $file, { pos => $data->{ pos }, message => $error } ) if ( $error );
+        if ( $error )
+        {
+            _add_file_error( $file, { pos => $data->{ pos }, message => $error } );
+        }
 
         $pm->finish;
     }
@@ -943,7 +969,7 @@ sub delete_stories
 {
     my ( $stories_ids, $staging, $jobs ) = @_;
 
-    return 1 unless ( $stories_ids && @{ $stories_ids } );
+    return 1 unless ( $stories_ids && scalar @{ $stories_ids } );
 
     print STDERR "deleting " . scalar( @{ $stories_ids } ) . " stories ...\n";
 
@@ -951,9 +977,11 @@ sub delete_stories
 
     my $delete_query = "<delete><query>$stories_id_query</query></delete>";
 
-    if ( my $r = _solr_request( "update", $staging, $delete_query, 'application/xml' ) )
+    eval { _solr_request( 'update', undef, $staging, $delete_query, 'application/xml' ); };
+    if ( $@ )
     {
-        warn( $r );
+        my $error = $@;
+        warn "Error while deleting stories: $error";
         return 0;
     }
 
@@ -967,11 +995,12 @@ sub delete_all_sentences
 
     print STDERR "deleting all sentences ...\n";
 
-    my $r = _solr_request( "update?commit=true&stream.body=<delete><query>*:*</query></delete>", $staging );
-
-    if ( $r )
+    my $url_params = { 'commit' => 'true', 'stream.body' => '<delete><query>*:*</query></delete>', };
+    eval { _solr_request( 'update', $url_params, $staging ); };
+    if ( $@ )
     {
-        warn( $r );
+        my $error = $@;
+        warn "Error while deleting all sentences: $error";
         return 0;
     }
 
@@ -1004,14 +1033,17 @@ sub delete_stories_from_import_queue
 
         my $stories_ids_list = join( ',', @{ $stories_ids } );
 
-        $db->query( <<END );
-delete from solr_import_stories where stories_id in ( $stories_ids_list )
-END
+        $db->query(
+            <<SQL
+            DELETE FROM solr_import_extra_stories
+            WHERE stories_id IN ($stories_ids_list)
+SQL
+        );
     }
     else
     {
         # if we just completed a full import, drop the whole current stories queue
-        $db->query( "truncate table solr_import_stories" );
+        $db->query( 'TRUNCATE TABLE solr_import_extra_stories' );
     }
 }
 
@@ -1036,12 +1068,12 @@ sub _get_parallel_dump_files
     return [ map { $dump_file . "-$_" } ( 1 .. $jobs ) ];
 }
 
-# count number of stories in solr_import_stories
+# count number of stories in solr_import_extra_stories
 sub _stories_queue_is_empty
 {
     my ( $db ) = @_;
 
-    my $exist = $db->query( "select 1 from solr_import_stories limit 1" )->hash;
+    my $exist = $db->query( "select 1 from solr_import_extra_stories limit 1" )->hash;
 
     return $exist ? 0 : 1;
 }
@@ -1049,7 +1081,7 @@ sub _stories_queue_is_empty
 # generate and import dump.  optionally generate delta dump since beginning of last
 # full or delta dump.  optionally delete all solr data after generating dump and before
 # importing.  keep rerunning the function until there are not more jobs left in the
-# solr_import_stories queue
+# solr_import_extra_stories queue
 sub generate_and_import_data
 {
     my ( $delta, $delete, $staging, $jobs ) = @_;
@@ -1083,7 +1115,7 @@ sub generate_and_import_data
         delete_all_sentences( $staging ) || die( "delete all sentences failed." );
     }
 
-    _solr_request( 'update?commit=true', $staging );
+    _solr_request( 'update', { 'commit' => 'true' }, $staging );
 
     print STDERR "importing dump ...\n";
     import_csv_files( $dump_files, $delta, $staging, $jobs ) || die( "import failed." );
@@ -1100,7 +1132,7 @@ sub generate_and_import_data
         generate_and_import_data( 1, 0, $staging );
     }
 
-    _solr_request( 'update?commit=true', $staging );
+    _solr_request( 'update', { 'commit' => 'true' }, $staging );
 
     map { unlink( $_ ) } @{ $dump_files };
 
