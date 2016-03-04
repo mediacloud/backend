@@ -611,20 +611,27 @@ sub query_csv_dump
 
 # get the name of a temporary table that contains all of the ids in $ids as an 'id bigint' field.
 # the database connection must be within a transaction.  the temporary table is setup to be dropped
-# at the end of the current transaction.
+# at the end of the current transaction. row insertion order is maintained.
 sub get_temporary_ids_table ($)
 {
     my ( $db, $ids ) = @_;
 
     my $table = "_tmp_ids_" . int( rand( 100000 ) );
-    while ( $db->query( "select 1 from pg_class where relname = ?", $table )->hash )
+    while ( $db->query( "SELECT 1 FROM pg_class WHERE relname = ?", $table )->hash )
     {
         $table = "_tmp_ids_" . int( rand( 100000 ) );
     }
 
-    $db->query( "create temporary table $table ( id bigint )" );
+    $db->query(
+        <<"SQL"
+        CREATE TEMPORARY TABLE $table (
+            ${table}_pkey   SERIAL  PRIMARY KEY,
+            id              BIGINT
+        )
+SQL
+    );
 
-    eval { $db->dbh->do( "copy $table from STDIN" ) };
+    eval { $db->dbh->do( "COPY $table (id) FROM STDIN" ) };
     die( " Error on copy: $@" ) if ( $@ );
 
     for my $id ( @{ $ids } )
@@ -636,7 +643,7 @@ sub get_temporary_ids_table ($)
     eval { $db->dbh->pg_putcopyend(); };
     Carp::confess( " Error on pg_putcopyend: $@" ) if ( $@ );
 
-    $db->query( "analyze $table" );
+    $db->query( "ANALYZE $table" );
 
     return $table;
 

@@ -261,7 +261,7 @@ sub get_extra_where_clause
     return '';
 }
 
-sub _fetch_list
+sub _fetch_list($$$$$$)
 {
     my ( $self, $c, $last_id, $table_name, $id_field, $rows ) = @_;
 

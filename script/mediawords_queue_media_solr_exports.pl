@@ -21,32 +21,38 @@ sub main
 
     my $dv_name = 'last_media_solr_import';
 
-    my ( $import_date ) = $db->query( "select now()" )->flat;
+    my ( $import_date ) = $db->query( "SELECT NOW()" )->flat;
 
-    my ( $last_import_date ) = $db->query( "select value from database_variables where name = ?", $dv_name )->flat;
+    my ( $last_import_date ) = $db->query( 'SELECT value FROM database_variables WHERE name = ?', $dv_name )->flat;
 
     if ( !$last_import_date )
     {
-        say STDERR "no value found for $dv_name.  setting to now";
+        say STDERR "no value found for $dv_name. setting to now";
         $db->create( 'database_variables', { name => $dv_name, value => $import_date } );
         return;
     }
 
-    $db->query( <<SQL, $last_import_date );
-create temporary table media_import_stories as
-    select stories_id
-        from stories s
-            join media m on ( s.media_id = m.media_id )
-        where
-            m.db_row_last_updated > \$1 and
-            s.stories_id not in ( select stories_id from solr_import_stories )
+    $db->query(
+        <<SQL,
+        CREATE TEMPORARY TABLE media_import_stories AS
+            SELECT stories_id
+            FROM stories s
+                JOIN media m
+                    ON s.media_id = m.media_id
+            WHERE m.db_row_last_updated > \$1 AND
+                  s.stories_id NOT IN (
+                    SELECT stories_id
+                    FROM solr_import_extra_stories
+                  )
 SQL
+        $last_import_date
+    );
 
     # we do the big query above to a temporary table first because it can be a long running query and we don't
-    # want to lock solr_import_stories for long
+    # want to lock solr_import_extra_stories for long
     $db->begin;
-    $db->query( "insert into solr_import_stories select stories_id from media_import_stories" );
-    $db->query( "delete from database_variables where name = ?", $dv_name );
+    $db->query( 'INSERT INTO solr_import_extra_stories SELECT stories_id FROM media_import_stories' );
+    $db->query( "DELETE FROM database_variables WHERE name = ?", $dv_name );
     $db->create( 'database_variables', { name => $dv_name, value => $import_date } );
     $db->commit;
 

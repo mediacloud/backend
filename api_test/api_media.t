@@ -348,6 +348,7 @@ sub test_stories_non_public
             'language'             => 'en',
             'full_text_rss'        => 0,
             'story_tags'           => [],
+            'bitly_click_count'    => undef,
 
             #     'description'          => '<p>
 
