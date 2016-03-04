@@ -1068,12 +1068,12 @@ sub _get_parallel_dump_files
     return [ map { $dump_file . "-$_" } ( 1 .. $jobs ) ];
 }
 
-# count number of stories in solr_import_extra_stories
-sub _stories_queue_is_empty
+# return true if there are more than 100k rows in solr_import_extra_stories
+sub _stories_queue_is_small
 {
     my ( $db ) = @_;
 
-    my $exist = $db->query( "select 1 from solr_import_extra_stories limit 1" )->hash;
+    my $exist = $db->query( "select 1 from solr_import_extra_stories offset 100000 limit 1" )->hash;
 
     return $exist ? 0 : 1;
 }
@@ -1136,7 +1136,7 @@ sub generate_and_import_data
 
     map { unlink( $_ ) } @{ $dump_files };
 
-    if ( !_stories_queue_is_empty( $db ) )
+    if ( !_stories_queue_is_small( $db ) )
     {
         say STDERR "rerunning import to empty queue";
         generate_and_import_data( @_ );
