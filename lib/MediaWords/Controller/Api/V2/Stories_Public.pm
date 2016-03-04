@@ -30,7 +30,20 @@ sub has_extra_data
 sub permissible_output_fields
 {
     return [
-        qw ( stories_id title language media_id media_name media_url processed_stories_id url guid publish_date collect_date story_tags )
+        qw/
+          stories_id
+          title
+          language
+          media_id
+          media_name
+          media_url
+          processed_stories_id
+          url
+          guid
+          publish_date
+          collect_date
+          story_tags
+          /
     ];
 }
 
