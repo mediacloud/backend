@@ -80,7 +80,7 @@ The hook should now complain with a rather longish error message:
 
     and then try committing again.
 
-    Additionaly, create a database schema diff SQL file if you haven't done so already. You have to
+    Additionally, create a database schema diff SQL file if you haven't done so already. You have to
     generate a SQL schema diff between the current database schema and the schema that is being
     committed, and place it to `sql_migrations/mediawords-OLD_SCHEMA_VERSION-NEW_SCHEMA_VERSION.sql`.
 
@@ -88,11 +88,14 @@ The hook should now complain with a rather longish error message:
 
         ./script/pre_commit_hooks/postgres-diff.sh > sql_migrations/mediawords-OLD_SCHEMA_VERSION-NEW_SCHEMA_VERSION.sql
 
-    One of the pre-commit hooks failed. You have to make 
+    One of the pre-commit hooks failed. You have to make
     some additional fixes before your changes can be committed.
-    If you're using Git (git-svn) and you are absolutely sure 
-    that your commit is fine as-is, repeat the commit with the 
+    If you're using Git (git-svn) and you are absolutely sure
+    that your commit is fine as-is, repeat the commit with the
     --no-verify option.
+
+Alternatively, run `script/generate_empty_sql_migration.sh` to generate an empty migration file in sql_migrations/ and
+then manually edit the file to add the sql commands to update the database structure.
 
 3.1. If you're using Git, the pre-commit hook is being run automatically by Git so you don't have to run it manually.
 
@@ -180,7 +183,7 @@ The hook should run just fine and an editor asking for a commit message should a
 
 If you happen to be a user who just have checked out the latest Media Cloud code and want to upgrade the database to the latest version, run:
 
-    ./script/run_with_carton.sh ./script/mediawords_upgrade_db.pl 
+    ./script/run_with_carton.sh ./script/mediawords_upgrade_db.pl
 
 The script will:
 
