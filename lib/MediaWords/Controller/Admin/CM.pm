@@ -1821,7 +1821,7 @@ sub _add_id_medium_to_search_results ($$$)
         SELECT DISTINCT m.*,
                         mlc.inlink_count,
                         mlc.outlink_count,
-                        mlc.bitly_click_count
+                        mlc.bitly_click_count,
                         mlc.story_count
         FROM dump_story_link_counts AS slc
             JOIN stories AS s ON ( slc.stories_id = s.stories_id )
@@ -1874,7 +1874,7 @@ sub search_media : Local
         SELECT DISTINCT m.*,
                         mlc.inlink_count,
                         mlc.outlink_count,
-                        mlc.bitly_click_count
+                        mlc.bitly_click_count,
                         mlc.story_count
         FROM dump_media_with_types AS m,
              dump_medium_link_counts AS mlc
