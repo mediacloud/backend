@@ -129,12 +129,9 @@ declare csr cursor for
         ss.sentence_number,
         ss.sentence,
         null title,
-        ss.language,
-        bitly_clicks_total.click_count as bitly_click_count
+        ss.language
 
     from story_sentences ss
-        left join bitly_clicks_total
-            on ss.stories_id = bitly_clicks_total.stories_id
 
     where ( ss.stories_id % $num_proc = $proc - 1 )
         $delta_clause
