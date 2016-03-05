@@ -243,6 +243,7 @@ sub test_stories_public
 
     my $expected_response = [
         {
+            'bitly_click_count'    => undef,
             'collect_date'         => '2014-06-02 17:33:04',
             'story_tags'           => [],
             'media_name'           => 'Boing Boing',
