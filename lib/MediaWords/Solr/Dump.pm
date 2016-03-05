@@ -114,7 +114,7 @@ sub _declare_sentences_cursor
 {
     my ( $db, $delta, $num_proc, $proc ) = @_;
 
-    my $date_clause = $delta ? 'and ss.stories_id in ( select stories_id from delta_import_stories )' : '';
+    my $delta_clause = $delta ? 'and ss.stories_id in ( select stories_id from delta_import_stories )' : '';
 
     $db->dbh->do( <<END );
 declare csr cursor for
@@ -137,7 +137,7 @@ declare csr cursor for
             on ss.stories_id = bitly_clicks_total.stories_id
 
     where ( ss.stories_id % $num_proc = $proc - 1 )
-        $date_clause
+        $delta_clause
 END
 
 }
@@ -147,7 +147,7 @@ sub _declare_titles_cursor
 {
     my ( $db, $delta, $num_proc, $proc ) = @_;
 
-    my $date_clause = $delta ? 'and s.stories_id in ( select stories_id from delta_import_stories )' : '';
+    my $delta_clause = $delta ? 'and s.stories_id in ( select stories_id from delta_import_stories )' : '';
 
     $db->dbh->do( <<END );
 declare csr cursor for
@@ -162,15 +162,12 @@ declare csr cursor for
         0,
         null sentence,
         s.title,
-        s.language,
-        bitly_clicks_total.click_count as bitly_click_count
+        s.language
 
     from stories s
-        left join bitly_clicks_total
-            on s.stories_id = bitly_clicks_total.stories_id
 
     where ( s.stories_id % $num_proc = $proc - 1 )
-        $date_clause
+        $delta_clause
 END
 
 }
@@ -212,13 +209,14 @@ sub _print_csv_to_file_from_csr
             my $processed_stories_id = $data_lookup->{ ps }->{ $stories_id };
             next unless ( $processed_stories_id );
 
+            my $click_count       = $data_lookup->{ bitly_clicks }->{ $stories_id }    || '';
             my $media_sets_list   = $data_lookup->{ media_sets }->{ $media_id }        || '';
             my $media_tags_list   = $data_lookup->{ media_tags }->{ $media_id }        || '';
             my $stories_tags_list = $data_lookup->{ stories_tags }->{ $stories_id }    || '';
             my $ss_tags_list      = $data_lookup->{ ss_tags }->{ $story_sentences_id } || '';
 
-            $csv->combine( @{ $row }, $processed_stories_id, $media_sets_list, $media_tags_list, $stories_tags_list,
-                $ss_tags_list );
+            $csv->combine( @{ $row }, $click_count, $processed_stories_id, $media_sets_list,
+                $media_tags_list, $stories_tags_list, $ss_tags_list );
             $fh->print( encode( 'utf8', $csv->string . "\n" ) );
 
             $imported_stories_ids->{ $stories_id } = 1;
@@ -271,52 +269,58 @@ sub _get_data_lookup
 
     my $data_lookup = {};
 
-    my $date_clause = $delta ? 'and stories_id in ( select stories_id from delta_import_stories )' : '';
+    my $delta_clause = $delta ? 'and stories_id in ( select stories_id from delta_import_stories )' : '';
 
     _set_lookup( $db, $data_lookup, 'ps', <<END );
-        select processed_stories_id, stories_id
-        from processed_stories
-        where stories_id % $num_proc = $proc - 1
-        $date_clause
+select processed_stories_id, stories_id
+    from processed_stories
+    where stories_id % $num_proc = $proc - 1
+        $delta_clause
 END
 
     _set_lookup( $db, $data_lookup, 'media_sets', <<END );
-        select string_agg( media_sets_id::text, ';' ) media_sets_id, media_id
-        from media_sets_media_map
-        group by media_id
+select string_agg( media_sets_id::text, ';' ) media_sets_id, media_id
+    from media_sets_media_map
+    group by media_id
 END
     _set_lookup( $db, $data_lookup, 'media_tags', <<END );
-        select string_agg( tags_id::text, ';' ) tag_list, media_id
-        from media_tags_map
-        group by media_id
+select string_agg( tags_id::text, ';' ) tag_list, media_id
+    from media_tags_map
+    group by media_id
 END
     _set_lookup( $db, $data_lookup, 'stories_tags', <<END );
-        select string_agg( tags_id::text, ';' ) tag_list, stories_id
-        from stories_tags_map
-        where stories_id % $num_proc = $proc - 1
-        $date_clause
-        group by stories_id
+select string_agg( tags_id::text, ';' ) tag_list, stories_id
+    from stories_tags_map
+    where stories_id % $num_proc = $proc - 1
+        $delta_clause
+    group by stories_id
+END
+
+    _set_lookup( $db, $data_lookup, 'bitly_clicks', <<END );
+select click_count, stories_id
+    from bitly_clicks_total
+    where stories_id % $num_proc = $proc - 1
+        $delta_clause
 END
 
     my $ss_delta_clause = '';
-    if ( $date_clause )
+    if ( $delta_clause )
     {
         $ss_delta_clause = <<SQL;
             and story_sentences_id in (
                 select story_sentences_id
                 from story_sentences
                 where stories_id % $num_proc = $proc - 1
-                $date_clause
+                $delta_clause
             )
 SQL
     }
 
     _set_lookup( $db, $data_lookup, 'ss_tags', <<END );
-        select string_agg( tags_id::text, ';' ) tag_list, story_sentences_id
-        from story_sentences_tags_map
-        where true
-        $ss_delta_clause
-        group by story_sentences_id
+select string_agg( tags_id::text, ';' ) tag_list, story_sentences_id
+    from story_sentences_tags_map
+    where true $ss_delta_clause
+    group by story_sentences_id
 END
 
     return $data_lookup;
