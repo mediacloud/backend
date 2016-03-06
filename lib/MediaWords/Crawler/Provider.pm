@@ -2,7 +2,45 @@ package MediaWords::Crawler::Provider;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
-# provide one request at a time a crawler process
+=head1 NAME
+
+Mediawords::Crawler::Provider - provision downloads for the crawler engine's in memory downloads queue
+
+=head1 SYNOPSIS
+
+    # this is a simplified version of the code used by $engine->crawl() to interact with the crawler provider
+
+    my $crawler = MediaWords::Crawler::Engine->new();
+
+    my $provider = MediaWords::Crawler::Provider->new( $crawler );
+
+    my $queued_downloads;
+    while ( 1 )
+    {
+        if ( !@{ $queued_downloads } )
+        {
+            $queued_downloads = $provider->provide_downloads();
+        }
+
+        my $download = shift( @{ $queued_downloads } );
+        # hand out a download
+    }
+
+=head1 DESCRIPTION
+
+The provider is responsible for provisioning downloads for the engine's in memory downloads queue.  The basic job
+of the provider is just to query the downloads table for any downloads with `state = 'pending'`.  As detailed in the
+handler section below, most 'pending' downloads are added by the handler when the url for a new story is discovered
+in a just download feed.
+
+But the provider is also responsible for periodically adding feed downloads to the queue.  The provider uses a back off
+algorithm that starts by downloading a feed five minutes after a new story was last found and then doubles the delay
+each time the feed is download and no new story is found, until the feed is downloaded only once a week.
+
+The provider is also responsible for throttling downloads by site, so only a limited number of downloads for each site
+are provided to the the engine each time the engine asks for a chunk of new downloads.
+
+=cut
 
 use strict;
 use warnings;
@@ -42,6 +80,14 @@ Readonly my $MISSING_DOWNLOADS_CHUNK_COUNT => 1000;
 Readonly my $DEFAULT_PENDING_CHECK_INTERVAL => 60 * 10;
 
 Readonly my $DOWNLOAD_TIMED_OUT_ERROR_MESSAGE => 'Download timed out by Fetcher::_timeout_stale_downloads';
+
+=head1 METHODS
+
+=head2 new
+
+Create a new provider.  Must pass a MediaWords::Crawler::Engine object.
+
+=cut
 
 sub new
 {
@@ -114,8 +160,7 @@ sub _timeout_stale_downloads
 
 }
 
-# get all stale feeds and add each to the download queue
-# this subroutine expects to be executed in a transaction
+# get all stale feeds and add each to the download queue this subroutine expects to be executed in a transaction
 sub _add_stale_feeds
 {
     my ( $self ) = @_;
@@ -198,7 +243,7 @@ sub _queue_download_list
     return;
 }
 
-#TODO combine _queue_download_list & _queue_download_list_per_site_limit
+# TODO combine _queue_download_list & _queue_download_list_per_site_limit
 sub _queue_download_list_with_per_site_limit
 {
     my ( $self, $downloads, $site_limit ) = @_;
@@ -350,8 +395,18 @@ END
     }
 }
 
-# return the next pending request from the downloads table
-# that meets the throttling requirement
+=head2 provide_downloads
+
+Hand out a list of pending downloads, throttling the downloads by site (download host, generally), so that a download is
+only handed our for each site each $self->engine->throttle seconds.
+
+Every $STALE_FEED_INTERVAL, add downloads for all feeds that are due to be downloaded again according to
+the back off algorithm.
+
+Every $self->engine->pending_check_interval seconds, query the database for pending downloads (`state = 'pending'`).
+
+=cut
+
 sub provide_downloads
 {
     my ( $self ) = @_;
@@ -407,7 +462,12 @@ sub provide_downloads
     return \@downloads;
 }
 
-# calling engine
+=head2 engine
+
+getset engine - the crawler engine calling the provider
+
+=cut
+
 sub engine
 {
     if ( $_[ 1 ] )
