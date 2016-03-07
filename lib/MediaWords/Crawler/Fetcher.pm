@@ -119,6 +119,39 @@ sub _add_http_auth
     }
 }
 
+=head2 fetch_download( $download )
+
+Call do_fetch on the given $download
+
+=cut
+
+sub fetch_download
+{
+    my ( $self, $download ) = @_;
+
+    my $dbs = $self->engine->dbs;
+
+    return do_fetch( $download, $dbs );
+}
+
+=head2 engine
+
+getset engine - parent crawler engine object
+
+=cut
+
+sub engine
+{
+    if ( $_[ 1 ] )
+    {
+        $_[ 0 ]->{ engine } = $_[ 1 ];
+    }
+
+    return $_[ 0 ]->{ engine };
+}
+
+=head1 FUNCTIONS
+
 =head2 do_fetch( $download, $db )
 
 With relying on the object state, request the $download and return the HTTP::Response.  This method may be called
@@ -173,37 +206,6 @@ sub do_fetch
     $response = MediaWords::Util::Web::get_meta_refresh_response( $response, $request );
 
     return $response;
-}
-
-=head2 fetch_download( $download )
-
-Call do_fetch on the given $download
-
-=cut
-
-sub fetch_download
-{
-    my ( $self, $download ) = @_;
-
-    my $dbs = $self->engine->dbs;
-
-    return do_fetch( $download, $dbs );
-}
-
-=head2 engine
-
-getset engine - parent crawler engine object
-
-=cut
-
-sub engine
-{
-    if ( $_[ 1 ] )
-    {
-        $_[ 0 ]->{ engine } = $_[ 1 ];
-    }
-
-    return $_[ 0 ]->{ engine };
 }
 
 1;

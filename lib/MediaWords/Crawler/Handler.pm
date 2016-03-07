@@ -4,13 +4,11 @@ use MediaWords::CommonLibs;
 
 =head1 NAME
 
-Mediawords::Crawler::Handler - controls and coordinates the work of the crawler provider, fetchers, and handlers
+Mediawords::Crawler::Handler - process the http response from the fetcher - parse feeds, add new stories, add content
 
 =head1 SYNOPSIS
 
     # this is a simplified version of the code used in the crawler to invoke the handler
-
-    my $crawler = MediaWords::Crawler::Engine->new();
 
     my $crawler = MediaWords::Crawler::Engine->new();
 
@@ -54,8 +52,6 @@ with another status, the 'state' of the download is set to 'error'.
 
 use strict;
 use warnings;
-
-# MODULES
 
 use Data::Dumper;
 use Date::Parse;
@@ -160,7 +156,7 @@ sub _set_use_pager
     }
 }
 
-# if _use_pager( $medium ) returns true, call MediaWords::Crawler::Pager->get_next_page_url on the download
+# if _use_pager( $medium ) returns true, call MediaWords::Crawler::Pager::get_next_page_url on the download
 sub _call_pager
 {
     my ( $self, $dbs, $download ) = @_;
@@ -187,7 +183,7 @@ END
 
     my $validate_url = sub { !$dbs->query( "select 1 from downloads where url = ?", $_[ 0 ] ) };
 
-    my $next_page_url = MediaWords::Crawler::Pager->get_next_page_url( $validate_url, $download->{ url }, $content );
+    my $next_page_url = MediaWords::Crawler::Pager::get_next_page_url( $validate_url, $download->{ url }, $content );
 
     if ( $next_page_url )
     {
@@ -249,11 +245,16 @@ sub _process_content
     say STDERR "fetcher " . $self->engine->fetcher_number . " finished _process_content for  " . $download->{ downloads_id };
 }
 
-# Deal with any errors returned by the fetcher response.  If the error status looks like something that the site
-# could recover from (503, 500 timeout), queue another time out using back off timing.  If we don't recognize the
-# status as something we can recover from or if we have exceeded the max retries, set the 'state' of the download
-# to 'error' and set the 'error_messsage' to describe the error.
-sub _handle_error
+=head2 handle_error( $download, $response )
+
+Deal with any errors returned by the fetcher response.  If the error status looks like something that the site
+could recover from (503, 500 timeout), queue another time out using back off timing.  If we don't recognize the
+status as something we can recover from or if we have exceeded the max retries, set the 'state' of the download
+to 'error' and set the 'error_messsage' to describe the error.
+
+=cut
+
+sub handle_error
 {
     my ( $self, $download, $response ) = @_;
 
@@ -296,7 +297,17 @@ END
     return 1;
 }
 
-# after the downloads has been fetched, handle the resulting content (store the content, parse a feed, etc).
+=head2 handle_response( $response )
+
+If the response is an error, call handle_error to handle the error and return. Otherwise, store the $response content in
+the MediaWords::DBI::Downloads content store, associated with the download. If the download is a feed, parse the feed
+for new stories, add those stories to the db, and queue a download for each. If the download is a content download,
+queue extraction of the story.
+
+More details in the DESCRIPTION above and in MediaWords::Crawler::FeedHandler, which handles the feed downloads.
+
+=cut
+
 sub handle_response
 {
     my ( $self, $download, $response ) = @_;
@@ -308,7 +319,7 @@ sub handle_response
 
     my $dbs = $self->engine->dbs;
 
-    return if ( $self->_handle_error( $download, $response ) );
+    return if ( $self->handle_error( $download, $response ) );
 
     $self->_restrict_content_type( $response );
 
@@ -356,7 +367,12 @@ END
     }
 }
 
-# calling engine
+=head2 engine
+
+getset engine - calling crawler engine
+
+=cut
+
 sub engine
 {
     if ( $_[ 1 ] )

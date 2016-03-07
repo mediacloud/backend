@@ -20,7 +20,7 @@ python Thrift  web service (also started by supervisor and configured in mediawo
 
 The extractor worker actually does a variety of processing tasks related to extraction.  Most of the below is done by
 by MediaWords::StoryVectors::update_story_sentences_and_language, which is called immediately after extraction.
-altogether, the extractor:
+Altogether, the extractor:
 
 * pulls the content for the stories downloads from the content store;
 * substitutes the title and description (from the rss feed) for the content if no content was found;
@@ -30,8 +30,24 @@ altogether, the extractor:
 * detects the language of the story using the [chromium compact language
   detection library](https://github.com/mikemccand/chromium-compact-language-detector);
 * parses the extracted text into individual sentences;
-* removed duplicates sentences for the same media source for the same calendar week;
+* removes duplicates sentences for the same media source for the same calendar week;
 * detects the language of each sentence;
 * stores each sentence in story_sentences;
 * runs an ap syndication detection algorithm on the story;
 * queues a corenlp annotation for the story if the story is an media source that is marked for annotation;
+
+Relevant Code
+-------------
+
+The code that does all of the above is unfortunately spread out in many places throughout the code base.
+
+Here are some of the places to look for specific bits of code:
+
+* MediaWords::DBI::Downloads::extractor_results_for_download - does some preprocessing on the content and then calls
+the extraction method specified in mediawords.yml -> mediawords.extractor_method (always the python readability
+extractor in production).
+* MediaWords::Util::ThriftExtractor::get_extracted_html - calls the thrift python readability extractor web service
+to return extracted html from the raw html
+* python_scripts/extractor_python_readability_server.py - implementation of thrift python readability web service
+* MediaWords::StoryVectors::update_story_sentences_and_language - does all of the above stuff after the extraction
+proper (parses sentences, assigns languages, queues further work, etc)

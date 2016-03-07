@@ -17,25 +17,45 @@ source.  Multiple feeds may belong to a media source (some media sources have hu
 items published in rss feeds.  Each story belongs to a single media source but may belong to multiple feeds within
 the same media source.
 
+Crawler
+-------
+
 The crawler is responsible downloading all feeds and stories.  The crawler consists of the provider, the engine, and
 a specified number of fetcher/handler processes.  The engine hands urls to the fetchers to download.  The handlers
 store the downloaded content.  If the content is a feed, parse the feed to find new stories and add those to the
 download queue.  More details about the crawler are [here](crawler.markdown).
+
+Extractor
+--------- 
 
 The extractors are responsible for parsing the substantive text from the raw html of each story and storing it in the
 download_texts table.  The extractor also parses the download_text into sentences and stores those sentences in the
 story_sentences table.  A gearman extractor job is queued by the crawler handler for each story it downloads.  More
 information in the extractor [here](extractor.markdown).
 
+CoreNLP Annotator
+-----------------
+
 The corenlp annotators are responsible for generating annotations using the stanford corenlp library for stories
 belonging to some media sources.  The extractor queues a corenlp annotation job for each extracted story in a media
 source marked for annotation. The actual corenlp generation is performed by a separate machine running a web ∏service on
 top of the stanford corenlp libraries.  More information on the corenlp annotation process [here](corenlp.markdown).
 
-Once all a story is crawled, extracted, and annotated, it is marked to be imported by creating a processed_stories_id
-for the story.  The solr importer checks for any stories present in processed_stories that are new or have been updated
+Processed Stories ID
+--------------------
+Once all a story is crawled, extracted, and annotated, it is marked as ready for consumption by creating a
+processed_stories_id for the story.  This processed_stories_id is used to provide API clients with a stream of stories
+that are ready for consumption.  It is also used to indicate that the story is ready for import into Solr.
+
+Solr Importer
+-------------
+
+The solr importer checks for any stories present in processed_stories that are new or have been updated
 in some way since the last update (in production, we run a solr import hourly).  Solr imports stories with each
 story_sentence as a separate document.  More information on our solr setup [here](solr.markdown).
+
+Bitly Fetcher
+-------------
 
 A bitly fetcher runs for each story 3 days after it is first created and then again 30 days later for each story that
 had each at least one bitly click on the first fetch.  The 3 day fetch is queued for the story when the story is

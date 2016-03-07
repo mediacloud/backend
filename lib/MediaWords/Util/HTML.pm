@@ -24,6 +24,36 @@ use Memoize;
 use Tie::Cache;
 use Text::Trim;
 
+my @_block_level_element_tags =
+  qw/h1 h2 h3 h4 h5 h6 p div dl dt dd ol ul li dir menu address blockquote center div hr ins noscript pre/;
+my $_tag_list                 = join '|', ( map { quotemeta $_ } ( @_block_level_element_tags ) );
+my $_block_level_start_tag_re = qr{< (:? $_tag_list ) (:? > | \s )}ix;
+my $_block_level_end_tag_re   = qr{</ (:? $_tag_list ) >}ix;
+
+sub contains_block_level_tags
+{
+    my ( $string ) = @_;
+
+    return 1 if ( $string =~ $_block_level_start_tag_re );
+
+    return 1 if ( $string =~ $_block_level_end_tag_re );
+
+    return 0;
+}
+
+sub new_lines_around_block_level_tags
+{
+    my ( $string ) = @_;
+
+    return $string if ( !contains_block_level_tags( $string ) );
+
+    $string =~ s/($_block_level_start_tag_re)/\n\n$1/gsxi;
+
+    $string =~ s/($_block_level_end_tag_re)/$1\n\n/gsxi;
+
+    return $string;
+}
+
 # Cache output of html_strip() because it is likely that it is going to be called multiple times from extractor
 my %_html_strip_cache;
 tie %_html_strip_cache, 'Tie::Cache', {
@@ -33,11 +63,13 @@ tie %_html_strip_cache, 'Tie::Cache', {
 
 memoize 'html_strip', SCALAR_CACHE => [ HASH => \%_html_strip_cache ];
 
-# provide a procedural interface to HTML::Strip
+# provide a procedural interface to HTML::Strip.
 # use HTML::StripPP instead of HTML::Strip b/c HTML::Strip mucks up the encoding
 sub html_strip($)
 {
     my ( $html ) = @_;
+
+    $html = new_lines_around_block_level_tags( $html );
 
     return defined( $html ) ? HTML::StripPP::strip( $html ) : '';
 }

@@ -2,7 +2,34 @@ package MediaWords::DBI::Downloads;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
-# various helper functions for downloads
+=head1 NAME
+
+Mediawords::DBI::Downloads - various helper functions for downloads, including storing and fetching content
+
+=head1 SYNOPSIS
+
+    my $download = $db->find_by_id( 'downloads', $downloads_id );
+
+    my $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download );
+
+    $$content_ref =~ s/foo/bar/g;
+
+    Mediawords::DBI::Downloads::story_content( $db, $download, $content_ref );
+
+=head1 DESCRIPTION
+
+This module includes various helper function for dealing with downloads.
+
+Most importantly, this module has the store_content and fetch_content functions, which store and fetch content for a
+download from the pluggable content store.  The storage module is configured in mediawords.yml by the
+mediawords.download_storage_locations setting.  The three choices are databaseinline, which stores the content in the
+downloads table; postgres, which stores the content in a separate postgres table and optionally database; and amazon_s3,
+which stores the content in amazon_s3.  The default is postgres, and the production system uses amazon_s3.
+
+This module also includes extractor_results_for_download(), which is the function used to send a download through
+the extraction system.
+
+=cut
 
 use strict;
 use warnings;
@@ -26,71 +53,6 @@ use MediaWords::Util::ThriftExtractor;
 
 # Database inline content length limit
 Readonly my $INLINE_CONTENT_LENGTH => 256;
-
-my $_block_level_element_tags = [
-    qw ( h1 h2 h3 h4 h5 h6 p div dl dt dd ol ul li dir menu
-      address blockquote center div hr ins noscript pre )
-];
-
-my $tag_list = join '|', ( map { quotemeta $_ } ( @{ $_block_level_element_tags } ) );
-
-my $_block_level_start_tag_re = qr{
-                   < (:? $tag_list ) (:? > | \s )
-           }ix
-  ;
-
-my $_block_level_end_tag_re = qr{
-                   </ (:? $tag_list ) >
-           }ix
-  ;
-
-sub _contains_block_level_tags
-{
-    my ( $string ) = @_;
-
-    if ( $string =~ $_block_level_start_tag_re )
-    {
-        return 1;
-    }
-
-    if ( $string =~ $_block_level_end_tag_re )
-    {
-        return 1;
-    }
-
-    return 0;
-}
-
-sub _new_lines_around_block_level_tags
-{
-    my ( $string ) = @_;
-
-    #say STDERR "_new_lines_around_block_level_tags '$string'";
-
-    return $string if ( !_contains_block_level_tags( $string ) );
-
-    $string =~ s{
-       ( $_block_level_start_tag_re
-      )
-      }
-      {\n\n$1}gsxi;
-
-    $string =~ s{
-       (
-$_block_level_end_tag_re
-     )
-     }
-     {$1\n\n}gsxi;
-
-    #say STDERR "_new_lines_around_block_level_tags '$string'";
-
-    #exit;
-
-    #$string = 'sddd';
-
-    return $string;
-
-}
 
 sub _get_extracted_html
 {
@@ -116,11 +78,9 @@ sub _get_extracted_html
 
             $line_text = $lines->[ $i ];
 
-            #_new_lines_around_block_level_tags( $lines->[ $i ] );
-
             $extracted_html .= ' ' . $line_text;
         }
-        elsif ( _contains_block_level_tags( $lines->[ $i ] ) )
+        elsif ( MediaWords::Util::HTML::contains_block_level_tags( $lines->[ $i ] ) )
         {
             ## '\n\n\ is used as a sentence splitter so no need to add it more than once between text lines
             if ( $previous_concated_line_was_story )
@@ -459,7 +419,6 @@ sub extractor_results_for_download($$)
 }
 
 # if the given line looks like a tagline for another story and is missing an ending period, add a period
-#
 sub add_period_to_tagline($$$)
 {
     my ( $lines, $scores, $i ) = @_;
@@ -528,7 +487,6 @@ sub _call_extractor_on_html($$$;$)
         die "invalid extractor method: $extractor_method";
     }
 
-    $extracted_html = _new_lines_around_block_level_tags( $extracted_html );
     my $extracted_text = html_strip( $extracted_html );
 
     $ret->{ extracted_html } = $extracted_html;

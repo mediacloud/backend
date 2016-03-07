@@ -72,7 +72,7 @@ END
 }
 
 # if the length of the string is greater than the given length, cut to that length
-sub limit_string_length
+sub _limit_string_length
 {
 
     # my ( $s, $l ) = @_;
@@ -547,8 +547,8 @@ sub _get_stem_word_counts_for_sentence($$;$)
         my $word_length_limit = $lang->get_word_length_limit();
         if ( $word_length_limit > 0 )
         {
-            limit_string_length( $word, $word_length_limit );
-            limit_string_length( $stem, $word_length_limit );
+            _limit_string_length( $word, $word_length_limit );
+            _limit_string_length( $stem, $word_length_limit );
         }
 
         if ( _valid_stem( $stem, $word, $stop_stems ) )

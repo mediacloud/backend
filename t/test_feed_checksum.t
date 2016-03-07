@@ -82,39 +82,39 @@ sub test_feed_checksums
     my $stories_b = [ map { { url => $_ } } @{ $urls_b } ];
 
     # first check should fail since feed checksum should be empty
-    is( MediaWords::Crawler::FeedHandler::stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_a ),
+    is( MediaWords::Crawler::FeedHandler::_stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_a ),
         0, "empty checksum" );
 
     # next check with same stories should be a match
-    is( MediaWords::Crawler::FeedHandler::stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_a ),
+    is( MediaWords::Crawler::FeedHandler::_stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_a ),
         1, "match 1" );
 
     # and another match
-    is( MediaWords::Crawler::FeedHandler::stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_a ),
+    is( MediaWords::Crawler::FeedHandler::_stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_a ),
         1, "match 2" );
 
     # and now try with different set of stories
-    is( MediaWords::Crawler::FeedHandler::stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_b ),
+    is( MediaWords::Crawler::FeedHandler::_stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_b ),
         0, "fail 1" );
 
     # and now with the same b stories
-    is( MediaWords::Crawler::FeedHandler::stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_b ),
+    is( MediaWords::Crawler::FeedHandler::_stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_b ),
         1, "match 3" );
 
     # and now add one story
     push( @{ $stories_b }, { url => 'http://foo.bar.com' } );
-    is( MediaWords::Crawler::FeedHandler::stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_b ),
+    is( MediaWords::Crawler::FeedHandler::_stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_b ),
         0, "fail 2" );
-    is( MediaWords::Crawler::FeedHandler::stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_b ),
+    is( MediaWords::Crawler::FeedHandler::_stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_b ),
         1, "match 4" );
 
     # and now with no stories
-    is( MediaWords::Crawler::FeedHandler::stories_checksum_matches_feed( $db, $feed->{ feeds_id }, [] ), 0, "fail 3" );
+    is( MediaWords::Crawler::FeedHandler::_stories_checksum_matches_feed( $db, $feed->{ feeds_id }, [] ), 0, "fail 3" );
 
     # and now with b again
-    is( MediaWords::Crawler::FeedHandler::stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_a ),
+    is( MediaWords::Crawler::FeedHandler::_stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_a ),
         0, "fail 4" );
-    is( MediaWords::Crawler::FeedHandler::stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_a ),
+    is( MediaWords::Crawler::FeedHandler::_stories_checksum_matches_feed( $db, $feed->{ feeds_id }, $stories_a ),
         1, "match 5" );
 }
 

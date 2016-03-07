@@ -31,7 +31,7 @@ Catalyst Controller.
 
 =cut
 
-=head2 index 
+=head2 index
 
 =cut
 
@@ -107,9 +107,6 @@ sub extract_PUT : Local
 
     my $extracted_html = MediaWords::DBI::Downloads::_get_extracted_html( $download_lines, $included_line_numbers );
 
-    #$extracted_html = _new_lines_around_block_level_tags( $extracted_html );
-    #my $extracted_text = html_strip( $extracted_html );
-
     $ret->{ extracted_html } = $extracted_html;
 
     #$ret->{ extracted_text } = $extracted_text;
@@ -146,7 +143,6 @@ sub sentences_from_html_PUT : Local
 
     die "'$story_html' is not a scalar " . ref( $story_html ) if ref( $story_html );
 
-    $story_html = MediaWords::DBI::Downloads::_new_lines_around_block_level_tags( $story_html );
     my $story_text = html_strip( $story_html );
 
     # Identify the language of the full story
