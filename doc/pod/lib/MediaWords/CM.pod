@@ -1,0 +1,34 @@
+=head1 NAME
+
+MediaWords::CM
+
+
+=head1 DESCRIPTION
+
+General controversy mapper utilities
+
+
+=head1 REQUIRES
+
+L<Data::Dumper> 
+
+L<Getopt::Long> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 require_controversies_by_opt
+
+ require_controversies_by_opt();
+
+get a list controversies that match the controversy option, which can either be an id
+or a pattern that matches controversy names. Die if no controversies are found.
+
+
+
+=cut
+

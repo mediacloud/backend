@@ -1,0 +1,27 @@
+=head1 NAME
+
+MediaWords::CommonLibs
+
+
+=head1 REQUIRES
+
+L<Readonly> 
+
+L<Data::Dumper> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+L<feature> 
+
+
+=head1 METHODS
+
+=head2 import
+
+ import();
+
+
+=cut
+

@@ -1,0 +1,56 @@
+=head1 NAME
+
+MediaWords::Thrift::SolrFacets
+
+
+=head1 DESCRIPTION
+
+functions for searching the solr server
+
+
+=head1 REQUIRES
+
+L<thrift_solr::Types> 
+
+L<thrift_solr::SolrService> 
+
+L<Thrift::BufferedTransport> 
+
+L<Thrift::Socket> 
+
+L<Thrift::BinaryProtocol> 
+
+L<Thrift> 
+
+L<lib> 
+
+L<lib> 
+
+L<MediaWords::Util::Config> 
+
+L<List::MoreUtils> 
+
+L<MediaWords::Util::Web> 
+
+L<MediaWords::Util::Config> 
+
+L<MediaWords::Languages::Language> 
+
+L<List::Util> 
+
+L<JSON> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 get_media_counts
+
+ get_media_counts();
+
+
+=cut
+

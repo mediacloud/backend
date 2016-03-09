@@ -1,0 +1,88 @@
+=head1 NAME
+
+MediaWords::Controller::Search
+
+
+=head1 DESCRIPTION
+
+number of stories to sample for the search
+
+
+=head1 REQUIRES
+
+L<Readonly> 
+
+L<MediaWords::ActionRole::Logged> 
+
+L<MediaWords::Util::CSV> 
+
+L<MediaWords::Solr::WordCounts> 
+
+L<MediaWords::Solr> 
+
+L<MediaWords::CM::Mine> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 IMPLEMENTS
+
+L<Catalyst::Controller> 
+
+
+=head1 METHODS
+
+=head2 diff
+
+ $self->diff();
+
+search for stories matching two solr queries and return a csv with the resulting diff
+
+
+=head2 index
+
+ $self->index();
+
+search for stories using solr and return either a sampled list of stories in html or the full list in csv
+
+
+=head2 media
+
+ $self->media();
+
+list all media sources associated with the given tag
+
+
+=head2 readme
+
+ $self->readme();
+
+print out search instructions
+
+
+=head2 tag_sets
+
+ $self->tag_sets();
+
+list tag sets
+
+
+=head2 tags
+
+ $self->tags();
+
+list all collection tags, with media set names attached
+
+
+=head2 wc
+
+ $self->wc();
+
+print word cloud of search results
+
+
+
+=cut
+

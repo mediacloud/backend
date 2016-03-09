@@ -1,0 +1,115 @@
+=head1 NAME
+
+MediaWords::Languages::Language
+
+
+=head1 DESCRIPTION
+
+
+Generic language plug-in for Media Words, also a factory of configured + enabled languages.
+
+Has to be overloaded by a specific language plugin (think of this as an abstract class).
+
+See doc/README.languages for instructions.
+
+
+
+=head1 REQUIRES
+
+L<open> 
+
+L<Cwd> 
+
+L<File::Basename> 
+
+L<Scalar::Defer> 
+
+L<Lingua::Sentence> 
+
+L<Lingua::StopWords> 
+
+L<Lingua::Stem::Snowball> 
+
+L<Moose::Role> 
+
+L<utf8> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 default_language
+
+ default_language();
+
+(static) Returns default language module instance (English)
+
+
+=head2 default_language_code
+
+ default_language_code();
+
+(static) Returns default language code ('en' for English)
+
+
+=head2 enabled_languages
+
+ enabled_languages();
+
+(static) Get an array of enabled languages
+
+
+=head2 get_long_stop_word_stems
+
+ get_long_stop_word_stems();
+
+=head2 get_long_stop_words
+
+ get_long_stop_words();
+
+=head2 get_noise_strings_regex
+
+ get_noise_strings_regex();
+
+=head2 get_short_stop_word_stems
+
+ get_short_stop_word_stems();
+
+=head2 get_short_stop_words
+
+ get_short_stop_words();
+
+=head2 get_tiny_stop_word_stems
+
+ get_tiny_stop_word_stems();
+
+Get stop word stems
+
+
+=head2 get_tiny_stop_words
+
+ get_tiny_stop_words();
+
+Cached stop words
+
+
+=head2 language_for_code($)
+
+ language_for_code($)();
+
+(static) Returns language module instance for the language code, 0 on error
+
+
+=head2 language_is_enabled($)
+
+ language_is_enabled($)();
+
+(static) Returns 1 if language is enabled, 0 if not
+
+
+
+=cut
+

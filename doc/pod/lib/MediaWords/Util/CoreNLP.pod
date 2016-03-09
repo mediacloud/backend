@@ -1,0 +1,129 @@
+=head1 NAME
+
+MediaWords::Util::CoreNLP
+
+
+=head1 DESCRIPTION
+
+PostgreSQL table name for storing raw CoreNLP annotations
+
+
+=head1 REQUIRES
+
+L<Data::Dumper> 
+
+L<Readonly> 
+
+L<Scalar::Defer> 
+
+L<Carp> 
+
+L<URI> 
+
+L<Encode> 
+
+L<HTTP::Status> 
+
+L<HTTP::Request> 
+
+L<MediaWords::Util::JSON> 
+
+L<MediaWords::Util::Text> 
+
+L<MediaWords::Util::Web> 
+
+L<MediaWords::Util::Config> 
+
+L<MediaWords::Util::Process> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+L<utf8> 
+
+
+=head1 METHODS
+
+=head2 annotator_is_enabled()
+
+ annotator_is_enabled()();
+
+Returns true if CoreNLP annotator is enabled
+
+
+=head2 fetch_annotation_json_for_story($$)
+
+ fetch_annotation_json_for_story($$)();
+
+Fetch the CoreNLP annotation JSON from key-value store for the story
+Return string JSON on success, undef if the annotation doesn't exist in any
+key-value stores, die() on error
+
+
+=head2 fetch_annotation_json_for_story_and_all_sentences($$)
+
+ fetch_annotation_json_for_story_and_all_sentences($$)();
+
+Fetch the CoreNLP annotation JSON from key-value store for the story and all
+its sentences
+
+Annotation for the concatenation of all sentences will have a key of
+sentences_concatenation_index(), e.g.:
+
+{
+    '_' => { 'corenlp' => 'annotation of the concatenation of all story sentences' },
+    1 => { 'corenlp' => 'annotation of the sentence with story_sentences_id => 1' },
+    2 => { 'corenlp' => 'annotation of the sentence with story_sentences_id => 2' },
+    3 => { 'corenlp' => 'annotation of the sentence with story_sentences_id => 3' },
+    ...
+}
+
+Return string JSON on success, undef if the annotation doesn't exist in any
+key-value stores, die() on error
+
+
+=head2 fetch_annotation_json_for_story_sentence($$)
+
+ fetch_annotation_json_for_story_sentence($$)();
+
+Fetch the CoreNLP annotation JSON from key-value store for the story sentence
+Return string JSON on success, undef if the annotation doesn't exist in any
+key-value stores, die() on error
+
+
+=head2 sentences_concatenation_index()
+
+ sentences_concatenation_index()();
+
+String to use for indexing annotation JSON of the concatenation of all sentences
+
+
+=head2 store_annotation_for_story($$)
+
+ store_annotation_for_story($$)();
+
+Run the CoreNLP annotation for the story, store results in key-value store
+If story is already annotated, issue a warning and overwrite
+Return 1 on success, 0 on failure, die() on error, exit() on fatal error
+
+
+=head2 story_is_annotatable($$)
+
+ story_is_annotatable($$)();
+
+Check if story can be annotated with CoreNLP
+Return 1 if story can be annotated, 0 otherwise, die() on error, exit() on fatal error
+
+
+=head2 story_is_annotated($$)
+
+ story_is_annotated($$)();
+
+Check if story is annotated with CoreNLP
+Return 1 if story is annotated, 0 otherwise, die() on error, exit() on fatal error
+
+
+
+=cut
+

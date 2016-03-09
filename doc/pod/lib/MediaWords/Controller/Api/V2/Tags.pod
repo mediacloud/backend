@@ -1,0 +1,47 @@
+=head1 NAME
+
+MediaWords::Controller::Api::V2::Tags
+
+
+=head1 REQUIRES
+
+L<namespace::autoclean> 
+
+L<Moose> 
+
+L<MediaWords::Controller::Api::V2::MC_REST_SimpleObject> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 get_name_search_clause
+
+ get_name_search_clause();
+
+=head2 get_table_name
+
+ get_table_name();
+
+=head2 list_optional_query_filter_field
+
+ list_optional_query_filter_field();
+
+=head2 single_GET
+
+ single_GET();
+
+=head2 update
+
+ update();
+
+=head2 update_PUT
+
+ update_PUT();
+
+
+=cut
+

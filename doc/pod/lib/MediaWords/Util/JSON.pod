@@ -1,0 +1,46 @@
+=head1 NAME
+
+MediaWords::Util::JSON
+
+
+=head1 DESCRIPTION
+
+
+Utilities for encoding / decoding JSON
+
+
+
+=head1 REQUIRES
+
+L<Data::Dumper> 
+
+L<JSON> don't import encode_json() and decode_json() into current namespace
+
+L<Encode> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+L<utf8> 
+
+
+=head1 METHODS
+
+=head2 decode_json($;$)
+
+ decode_json($;$)();
+
+Decode JSON to hashref, die() on error
+
+
+=head2 encode_json($;$$)
+
+ encode_json($;$$)();
+
+Encode hashref to JSON, die() on error
+
+
+
+=cut
+

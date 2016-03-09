@@ -1,0 +1,149 @@
+=head1 NAME
+
+MediaWords::Util::URL
+
+
+=head1 DESCRIPTION
+
+Regular expressions for invalid "variants" of the resolved URL
+
+
+=head1 REQUIRES
+
+L<List::MoreUtils> 
+
+L<URI::Escape> 
+
+L<MediaWords::Util::Web> 
+
+L<Regexp::Common> 
+
+L<URI::QueryParam> 
+
+L<URI> 
+
+L<Readonly> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 all_url_variants($$)
+
+ all_url_variants($$)();
+
+Given the URL, return all URL variants that we can think of:
+1) Normal URL (the one passed as a parameter)
+2) URL after redirects (i.e., fetch the URL, see if it gets redirected somewhere)
+3) Canonical URL (after removing #fragments, session IDs, tracking parameters, etc.)
+4) Canonical URL after redirects (do the redirect check first, then strip the tracking parameters from the URL)
+5) URL from <link rel="canonical" /> (if any)
+6) Any alternative URLs from controversy_merged_stories or controversy_links
+
+
+=head2 fix_common_url_mistakes($)
+
+ fix_common_url_mistakes($)();
+
+Fixes common URL mistakes (mistypes, etc.)
+
+
+=head2 get_controversy_url_variants
+
+ get_controversy_url_variants();
+
+get any alternative urls for the given url from controversy_merged_stories or controversy_links
+
+
+=head2 get_url_domain($)
+
+ get_url_domain($)();
+
+get the domain of the given URL (sans "www." and ".edu"; see t/URL.t for output examples)
+
+
+=head2 http_urls_in_string($)
+
+ http_urls_in_string($)();
+
+Extract http(s):// URLs from a string
+Returns arrayref of unique URLs in a string, die()s on error
+
+
+=head2 is_homepage_url($)
+
+ is_homepage_url($)();
+
+Returns true if URL is homepage (e.g. http://www.wired.com/) and not a child
+page (e.g. http://m.wired.com/threatlevel/2011/12/sopa-watered-down-amendment/)
+
+
+=head2 is_http_url($)
+
+ is_http_url($)();
+
+Returns true if URL is in the "http" ("https") scheme
+
+
+=head2 is_shortened_url($)
+
+ is_shortened_url($)();
+
+Returns true if URL is a shortened URL (e.g. with Bit.ly)
+
+
+=head2 link_canonical_url_from_html($;$)
+
+ link_canonical_url_from_html($;$)();
+
+From the provided HTML, determine the <link rel="canonical" /> URL (if any)
+
+
+=head2 meta_refresh_url_from_html($;$)
+
+ meta_refresh_url_from_html($;$)();
+
+From the provided HTML, determine the <meta http-equiv="refresh" /> URL (if any)
+
+
+=head2 normalize_url($)
+
+ normalize_url($)();
+
+Normalize URL:
+
+* Fix common mistypes, e.g. "http://http://..."
+* Run URL through URI->canonical, i.e. standardize URL's scheme and hostname
+  case, remove default port, uppercase all escape sequences, unescape octets
+  that can be represented as plain characters, remove whitespace
+  before / after the URL string)
+* Remove #fragment
+* Remove various ad tracking query parameters, e.g. "utm_source",
+  "utm_medium", "PHPSESSID", etc.
+
+Return normalized URL on success; die() on error
+
+
+=head2 normalize_url_lossy($)
+
+ normalize_url_lossy($)();
+
+do some simple transformations on a URL to make it match other equivalent
+URLs as well as possible; normalization is "lossy" (makes the whole URL
+lowercase, removes subdomain parts "m.", "data.", "news.", ... in some cases)
+
+
+=head2 url_and_data_after_redirects($;$$)
+
+ url_and_data_after_redirects($;$$)();
+
+Fetch the URL, evaluate HTTP / HTML redirects; return URL and data after all
+those redirects; die() on error
+
+
+
+=cut
+

@@ -1,0 +1,29 @@
+=head1 NAME
+
+MediaWords::Util::Extractor
+
+
+=head1 REQUIRES
+
+L<Moose::Role> 
+
+L<Data::Dumper> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 extract_preprocessed_lines_for_story
+
+ extract_preprocessed_lines_for_story();
+
+=head2 getExtractedLines
+
+ getExtractedLines();
+
+
+=cut
+

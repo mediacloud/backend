@@ -1,0 +1,66 @@
+=head1 NAME
+
+MediaWords::Controller::Admin::Media::Moderate
+
+
+=head1 DESCRIPTION
+
+list all media tags and their stats
+
+
+=head1 REQUIRES
+
+L<MediaWords::DBI::Feeds> 
+
+L<MediaWords::DBI::Media::Rescrape> 
+
+L<MediaWords::DBI::Media> 
+
+L<URI> 
+
+L<Data::Dumper> 
+
+L<List::Util> 
+
+L<Encode> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 IMPLEMENTS
+
+L<Catalyst::Controller> 
+
+
+=head1 METHODS
+
+=head2 index
+
+ $self->index();
+
+=head2 media
+
+ $self->media();
+
+go to the next media source in the moderation queue
+
+
+=head2 merge
+
+ $self->merge();
+
+merge one media source the tags of medium_a into medium_b and delete medium_b
+
+
+=head2 tags
+
+ $self->tags();
+
+list all media tags and their stats
+
+
+
+=cut
+

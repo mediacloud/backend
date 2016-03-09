@@ -1,0 +1,51 @@
+=head1 NAME
+
+MediaWords::Controller::Admin::Dashboards
+
+
+=head1 DESCRIPTION
+
+various pages for administering dashboards
+
+
+=head1 REQUIRES
+
+L<MediaWords::Languages::Language> 
+
+L<parent> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 create
+
+ create();
+
+create a new dashboard
+
+
+=head2 create_topic
+
+ create_topic();
+
+=head2 list
+
+ list();
+
+list all dashboards
+
+
+=head2 list_topics
+
+ list_topics();
+
+list all topics for the dashboard
+
+
+
+=cut
+

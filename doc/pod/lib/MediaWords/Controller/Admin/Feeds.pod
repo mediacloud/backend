@@ -1,0 +1,117 @@
+=head1 NAME
+
+MediaWords::Controller::Admin::Feeds
+
+
+=head1 DESCRIPTION
+
+attach data indicating activity within feed to each feed:
+num_stories,
+most_recent_story_publish_date,
+most_recent_download_state
+
+
+=head1 REQUIRES
+
+L<XML::FeedPP> 
+
+L<LWP::Simple> 
+
+L<HTML::Entities> 
+
+L<Data::Dumper> 
+
+L<MediaWords::Util::Web> 
+
+L<MediaWords::Util::Tags> 
+
+L<Feed::Scrape::MediaWords> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 IMPLEMENTS
+
+L<Catalyst::Controller> 
+
+
+=head1 METHODS
+
+=head2 add_default_scraped_tags
+
+ $self->add_default_scraped_tags();
+
+add default tags to scraped feed
+
+
+=head2 batch_create
+
+ $self->batch_create();
+
+accept a list of feed urls and create feeds from them
+
+
+=head2 batch_create_do
+
+ $self->batch_create_do();
+
+=head2 create
+
+ $self->create();
+
+=head2 create_do
+
+ $self->create_do();
+
+=head2 delete
+
+ $self->delete();
+
+=head2 edit
+
+ $self->edit();
+
+=head2 edit_do
+
+ $self->edit_do();
+
+=head2 edit_tags
+
+ $self->edit_tags();
+
+=head2 edit_tags_do
+
+ $self->edit_tags_do();
+
+=head2 invalid_syndicated_feed
+
+ $self->invalid_syndicated_feed();
+
+return 1 if the feed is not syndicated or does not parse as a feed
+
+
+=head2 list
+
+ $self->list();
+
+=head2 make_edit_form
+
+ $self->make_edit_form();
+
+=head2 make_scrape_form
+
+ $self->make_scrape_form();
+
+=head2 scrape
+
+ $self->scrape();
+
+=head2 scrape_import
+
+ $self->scrape_import();
+
+
+=cut
+

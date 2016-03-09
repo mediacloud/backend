@@ -1,0 +1,96 @@
+=head1 NAME
+
+MediaWords::Pg::Schema
+
+
+=head1 DESCRIPTION
+
+import functions into server schema
+
+
+=head1 REQUIRES
+
+L<FindBin> 
+
+L<File::Slurp> 
+
+L<Carp> 
+
+L<IPC::Run3> 
+
+L<MediaWords::Util::SchemaVersion> 
+
+L<MediaWords::Languages::Language> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 get_is_stop_stem_function_tables_and_definition
+
+ get_is_stop_stem_function_tables_and_definition();
+
+get is_stop_stem() stopword + stopword stem tables and a pl/pgsql function definition
+
+
+=head2 get_sql_function_definitions
+
+ get_sql_function_definitions();
+
+get the sql function definitions
+
+
+=head2 load_sql_file
+
+ load_sql_file();
+
+loads and runs a given SQL file
+useful for rebuilding the database schema after a call to reset_schema
+
+
+=head2 parse_line
+
+ parse_line();
+
+=head2 postgresql_response_line_is_expected($)
+
+ postgresql_response_line_is_expected($)();
+
+Given the PostgreSQL response line (notice) returned while importing schema,
+return 1 if the response line is something that is likely to be in the
+initial schema and 0 otherwise
+
+
+=head2 recreate_db
+
+ recreate_db();
+
+=head2 reset_all_schemas($)
+
+ reset_all_schemas($)();
+
+recreates all schemas
+
+
+=head2 reset_schema($;$)
+
+ reset_schema($;$)();
+
+removes all relations belonging to a given schema
+default schema is 'public'
+
+
+=head2 upgrade_db($;$)
+
+ upgrade_db($;$)();
+
+Upgrade database schema to the latest version
+die()s on error
+
+
+
+=cut
+

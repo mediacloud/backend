@@ -1,0 +1,77 @@
+=head1 NAME
+
+MediaWords::DBI::Media - various helper functions relating to media
+
+
+=head1 DESCRIPTION
+
+parse the domain from the url of each story.  return the list of domains
+
+
+=head1 REQUIRES
+
+L<MediaWords::Util::URL> 
+
+L<MediaWords::Util::HTML> 
+
+L<MediaWords::DBI::Media::Rescrape> 
+
+L<MediaWords::DBI::Media::Lookup> 
+
+L<MediaWords::CommonLibs> 
+
+L<XML::FeedPP> 
+
+L<Text::Trim> 
+
+L<Regexp::Common> 
+
+L<Encode> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 find_or_create_media_from_urls
+
+ find_or_create_media_from_urls();
+
+For each url in $urls, either find the medium associated with that url or the medium assocaited with the title from
+the given url or, if no medium is found, a newly created medium.  Return the list of all found or created media along
+with a list of error messages for the process.
+
+
+=head2 get_media_type_tags
+
+ get_media_type_tags();
+
+Get all of the media_type: tags. append the tags from the controversies.media_type_tags_sets_id if $controversies_id
+is specified.
+
+
+=head2 get_medium_domain
+
+ get_medium_domain();
+
+Return MediaWords::Util::URL::get_url_domain on the $medium->{ url }
+
+
+=head2 get_medium_domain_counts
+
+ get_medium_domain_counts();
+
+Return a hash map of domains and counts for the urls of the latest 1000 stories in the given media source.
+
+
+=head2 update_media_type
+
+ update_media_type();
+
+Update the media type tag for the given medium by deleting any existing tags in the same tag set as the new tag and
+inserting the new media_tags_map row if it does not already exist.
+
+
+
+=cut
+

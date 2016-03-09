@@ -1,0 +1,104 @@
+=head1 NAME
+
+MediaWords::StoryVectors
+
+
+=head1 DESCRIPTION
+
+methods to generate the story_sentences and associated aggregated tables
+
+
+=head1 REQUIRES
+
+L<Text::CSV_XS> 
+
+L<Readonly> 
+
+L<utf8> 
+
+L<Encode> 
+
+L<Digest::MD5> 
+
+L<Date::Parse> 
+
+L<Date::Format> 
+
+L<MediaWords::Util::CoreNLP> 
+
+L<MediaWords::Util::SQL> 
+
+L<MediaWords::Util::IdentifyLanguage> 
+
+L<MediaWords::Util::HTML> 
+
+L<MediaWords::DBI::Stories::AP> 
+
+L<MediaWords::DBI::Stories> 
+
+L<MediaWords::Languages::Language> 
+
+L<Data::Dumper> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 clean_sentences
+
+ clean_sentences();
+
+apply manual filters to clean out sentences that we think are junk. edits the $sentences array in place with splice
+
+
+=head2 dedup_sentences
+
+ dedup_sentences();
+
+given a story and a list of sentences, return all of the stories that are not duplicates as defined by
+count_duplicate_sentences()
+
+
+=head2 get_deduped_sentences
+
+ get_deduped_sentences();
+
+return the sentences from the set that are dups within the same media source and calendar week.
+also sets story_sentences.dup to true for sentences that are the dups for these sentences.
+
+
+=head2 get_default_story_words_end_date
+
+ get_default_story_words_end_date();
+
+=head2 get_default_story_words_start_date
+
+ get_default_story_words_start_date();
+
+=head2 get_dup_story_sentences
+
+ get_dup_story_sentences();
+
+given the story and its un-deduped sentences, return the list of sentences that already
+exist in the same media source for the same calendar week.  fetch the sentences using the appropriate
+query based on whether the sentences are indexed by story_sentences_dup.  if do_update is true,
+set is_dup = true for the original versions of any dup sentences discovered.
+
+
+=head2 update_story_sentences_and_language
+
+ update_story_sentences_and_language();
+
+update story vectors for the given story, updating story_sentences
+if no_delete is true, do not try to delete existing entries in the above table before creating new ones
+(useful for optimization if you are very sure no story vectors exist for this story).  If
+$no_dedup_sentences is true, do not perform sentence deduplication (useful if you are reprocessing a
+small set of stories)
+
+
+
+=cut
+

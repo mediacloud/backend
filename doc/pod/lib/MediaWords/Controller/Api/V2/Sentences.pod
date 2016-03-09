@@ -1,0 +1,84 @@
+=head1 NAME
+
+MediaWords::Controller::Api::V2::Sentences
+
+
+=head1 DESCRIPTION
+
+say STDERR "starting Sentences/list";
+
+
+=head1 REQUIRES
+
+L<MediaWords::Solr::SentenceFieldCounts> 
+
+L<MediaWords::Solr> 
+
+L<List::Compare> 
+
+L<namespace::autoclean> 
+
+L<Moose> 
+
+L<List::Util> 
+
+L<JSON> 
+
+L<Date::Calc> 
+
+L<Carp> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 IMPLEMENTS
+
+L<Catalyst::Controller> 
+
+
+=head1 METHODS
+
+=head2 count
+
+ $self->count();
+
+=head2 count_GET
+
+ $self->count_GET();
+
+=head2 field_count
+
+ $self->field_count();
+
+=head2 field_count_GET
+
+ $self->field_count_GET();
+
+=head2 get_table_name
+
+ $self->get_table_name();
+
+=head2 list
+
+ $self->list();
+
+=head2 list_GET
+
+ $self->list_GET();
+
+=head2 put_tags
+
+ $self->put_tags();
+
+TODO merge with stories put_tags
+
+
+=head2 put_tags_PUT
+
+ $self->put_tags_PUT();
+
+
+=cut
+

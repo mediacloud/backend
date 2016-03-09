@@ -1,0 +1,62 @@
+=head1 NAME
+
+MediaWords::KeyValueStore::DatabaseInline
+
+
+=head1 DESCRIPTION
+
+class for storing / loading very short downloads directly in the
+"downloads.path" column
+
+
+=head1 REQUIRES
+
+L<Carp> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+L<Moose> 
+
+
+=head1 METHODS
+
+=head2 BUILD($$)
+
+ BUILD($$)();
+
+Constructor
+
+
+=head2 content_exists($$$$)
+
+ content_exists($$$$)();
+
+Moose method
+
+
+=head2 fetch_content($$$$)
+
+ fetch_content($$$$)();
+
+Moose method
+
+
+=head2 remove_content($$$$)
+
+ remove_content($$$$)();
+
+Moose method
+
+
+=head2 store_content($$$$)
+
+ store_content($$$$)();
+
+Moose method
+
+
+
+=cut
+

@@ -1,0 +1,66 @@
+=head1 NAME
+
+MediaWords::Util::Config
+
+
+=head1 DESCRIPTION
+
+Parse and return data from mediawords.yml config file.
+
+
+=head1 REQUIRES
+
+L<File::Spec> 
+
+L<Cwd> 
+
+L<File::Spec> 
+
+L<File::Basename> 
+
+L<Hash::Merge> 
+
+L<Exporter> 
+
+L<Dir::Self> 
+
+L<Config::Any> 
+
+L<Carp> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 get_config
+
+ get_config();
+
+=head2 get_mc_root_dir
+
+ get_mc_root_dir();
+
+=head2 set_config
+
+ set_config();
+
+set the cached config object
+
+
+=head2 set_config_file
+
+ set_config_file();
+
+set the cached config object given a file path
+
+
+=head2 verify_settings
+
+ verify_settings();
+
+
+=cut
+

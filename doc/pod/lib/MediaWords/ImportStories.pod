@@ -1,0 +1,86 @@
+=head1 NAME
+
+MediaWords::ImportStories
+
+
+=head1 DESCRIPTION
+
+Import stories into the database, handling date bounding and story deduping.  This is only
+a template class.  You must use of the sub class such as MediaWords::ImportStories::ScrapeHTML
+or MediaWords::ImportStories::Feedly to import stories from a given source.
+
+The scrape interface is oo and includes the following parameters to new() in addition to specific
+options supported by the sub class.
+* db - db handle
+* media_id - media source to which to add stories
+* max_pages (optional) - max num of pages to scrape by recursively finding urls matching page_url_pattern
+* start_date (optional) - start date of stories to scrape and dedup
+* end_date (optional) - end date of stories to scrape and dedup
+* debug (optional) - print debug messages urls crawled and stories created
+* dry_run (optional) - do everything but actually insert stories into db
+
+After the sub class identifies all story candidates, ImportStories looks for any
+duplicates among the story candidates and the existing stories in the media sources and only adds as stories
+the candidates with out existing duplicate stories.  The duplication check looks for matching normalized urls
+as well as matching title parts (see MediaWords::DBI::Stories::get_medium_dup_stories_by_<title|url>.
+
+Each sub class needs to implement $self->get_new_stories(), which should return a set of story candidates
+for deduplication and date restriction by this super class.
+
+
+=head1 REQUIRES
+
+L<MediaWords::Util::Tags> 
+
+L<MediaWords::Util::SQL> 
+
+L<MediaWords::Util::HTML> 
+
+L<MediaWords::DBI::Stories> 
+
+L<MediaWords::DBI::Downloads> 
+
+L<MediaWords::CM::GuessDate> 
+
+L<URI::Split> 
+
+L<Parallel::ForkManager> 
+
+L<List::MoreUtils> 
+
+L<Encode> 
+
+L<Data::Dumper> 
+
+L<Carp> 
+
+L<Moose::Role> 
+
+
+=head1 METHODS
+
+=head2 generate_story
+
+ generate_story();
+
+given the content, generate a story hash
+
+
+=head2 scrape_stories
+
+ scrape_stories();
+
+call ImportStories::SUB->get_new_stories and add any stories within the
+specified date range to the given media source if there are not already duplicates in the media source
+
+
+=head2 story_is_in_date_range
+
+ story_is_in_date_range();
+
+return true if the publish date is before $self->end_date and after $self->start_date
+
+
+
+=cut
+

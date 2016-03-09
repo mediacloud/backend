@@ -1,0 +1,31 @@
+=head1 NAME
+
+MediaWords::Controller::Admin::Tags
+
+
+=head1 DESCRIPTION
+
+create a new media_set of set_type collection
+
+
+=head1 REQUIRES
+
+L<parent> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 edit
+
+ edit();
+
+create a new media_set of set_type collection
+
+
+
+=cut
+

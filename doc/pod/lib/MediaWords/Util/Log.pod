@@ -1,0 +1,33 @@
+=head1 NAME
+
+MediaWords::Util::Log
+
+
+=head1 DESCRIPTION
+
+
+Logging helpers
+
+
+
+=head1 REQUIRES
+
+L<Data::Dumper> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 dump_terse($)
+
+ dump_terse($)();
+
+Prints out an object in a single line
+
+
+
+=cut
+

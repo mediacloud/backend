@@ -1,0 +1,57 @@
+=head1 NAME
+
+MediaWords::Util::Process
+
+
+=head1 DESCRIPTION
+
+Sometimes when an error happens, we can't use die() because it would get
+caught in eval{}.
+
+We don't always want that: for example, if crawler dies because of
+misconfiguration in mediawords.yml, crawler's errors would get logged into
+"downloads" table as if the error happened because of a valid reason.
+
+In those cases, we go straight to exit(1) using this helper subroutine.
+
+
+=head1 REQUIRES
+
+L<Carp> 
+
+L<Data::Dumper> 
+
+L<Moose> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 dump_child_pids
+
+ dump_child_pids();
+
+=head2 fatal_error($)
+
+ fatal_error($)();
+
+Sometimes when an error happens, we can't use die() because it would get
+caught in eval{}.
+
+We don't always want that: for example, if crawler dies because of
+misconfiguration in mediawords.yml, crawler's errors would get logged into
+"downloads" table as if the error happened because of a valid reason.
+
+In those cases, we go straight to exit(1) using this helper subroutine.
+
+
+=head2 mc_fork
+
+ mc_fork();
+
+
+=cut
+

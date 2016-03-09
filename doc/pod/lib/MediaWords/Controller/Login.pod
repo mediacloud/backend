@@ -1,0 +1,58 @@
+=head1 NAME
+
+MediaWords::Controller::Login
+
+
+=head1 DESCRIPTION
+
+Login form
+
+
+=head1 REQUIRES
+
+L<MediaWords::DBI::Auth> 
+
+L<MediaWords::Util::Config> 
+
+L<namespace::autoclean> 
+
+L<Moose> 
+
+
+=head1 METHODS
+
+=head2 activate
+
+ activate();
+
+"Activate a new account"
+
+
+=head2 forgot
+
+ forgot();
+
+"Forgot password" form
+
+
+=head2 index
+
+ index();
+
+Login form
+
+
+=head2 register
+
+ register();
+
+=head2 reset
+
+ reset();
+
+"Reset password" form
+
+
+
+=cut
+

@@ -1,0 +1,42 @@
+=head1 NAME
+
+MediaWords::Util::DateTime
+
+
+=head1 DESCRIPTION
+
+
+Date- and time-related helpers
+
+
+
+=head1 REQUIRES
+
+L<DateTime> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 gmt_date_string_from_timestamp($)
+
+ gmt_date_string_from_timestamp($)();
+
+Using UNIX timestamp as a parameter, return a string date (in ISO8601 format,
+e.g. "2014-09-03T15:44:23") using GMT timezone
+
+
+=head2 gmt_datetime_from_timestamp($)
+
+ gmt_datetime_from_timestamp($)();
+
+Using UNIX timestamp as a parameter, return a DateTime object using GMT
+timezone
+
+
+
+=cut
+

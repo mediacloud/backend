@@ -1,0 +1,68 @@
+=head1 NAME
+
+MediaWords::CM::GuessDate
+
+
+=head1 DESCRIPTION
+
+guess the date of a spidered story using a combination of the story url, html, and
+a first guess date
+
+
+=head1 REQUIRES
+
+L<Readonly> 
+
+L<MediaWords::Util::SQL> 
+
+L<MediaWords::Util::DateParse> 
+
+L<MediaWords::DB> 
+
+L<MediaWords::CommonLibs> 
+
+L<List::MoreUtils> 
+
+L<List::Util> 
+
+L<Regexp::Common> 
+
+L<LWP::Simple> 
+
+L<HTML::TreeBuilder::LibXML> 
+
+L<DateTime> 
+
+L<MediaWords::CM::GuessDate::Result> 
+
+
+=head1 METHODS
+
+=head2 guess_date($$$;$)
+
+ guess_date($$$;$)();
+
+guess the date for the story by cycling through the $_date_guess_functions one at a time.
+returns MediaWords::CM::GuessDate::Result object
+
+
+=head2 guess_date_impl
+
+ guess_date_impl();
+
+guess the date for the story by cycling through the $_date_guess_functions one at a time.
+returns MediaWords::CM::GuessDate::Result object
+
+
+=head2 timestamp_from_html($)
+
+ timestamp_from_html($)();
+
+Matches a (likely) publication date(+time) in the HTML passed as a parameter; returns timestamp on success,
+undef if no date(+time) was found
+FIXME use return values of Regexp::Common::time to form a standardized date
+
+
+
+=cut
+

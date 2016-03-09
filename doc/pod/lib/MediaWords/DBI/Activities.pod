@@ -1,0 +1,73 @@
+=head1 NAME
+
+lib/MediaWords/DBI/Activities.pm - lib/MediaWords/DBI/Activities.pm
+
+
+=head1 DESCRIPTION
+
+Save story edit
+
+
+=head1 REQUIRES
+
+L<Array::Compare> 
+
+L<JSON> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 activities_which_can_reference_column_with_subquery($)
+
+ activities_which_can_reference_column_with_subquery($)();
+
+=head2 activities_which_directly_reference_column($)
+
+ activities_which_directly_reference_column($)();
+
+=head2 activity($)
+
+ activity($)();
+
+=head2 all_activities()
+
+ all_activities()();
+
+=head2 decode_activity_description($$)
+
+ decode_activity_description($$)();
+
+=head2 encode_activity_description($$)
+
+ encode_activity_description($$)();
+
+=head2 log_activities($$$$$$)
+
+ log_activities($$$$$$)();
+
+=head2 log_activity($$$$$$)
+
+ log_activity($$$$$$)();
+
+=head2 log_system_activity($$$$)
+
+ log_system_activity($$$$)();
+
+=head2 main()
+
+ main()();
+
+!/usr/bin/env perl
+
+
+=head2 sql_activities_which_reference_column($$)
+
+ sql_activities_which_reference_column($$)();
+
+
+=cut
+

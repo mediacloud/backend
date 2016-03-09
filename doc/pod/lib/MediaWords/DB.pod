@@ -1,0 +1,85 @@
+=head1 NAME
+
+MediaWords::DB
+
+
+=head1 DESCRIPTION
+
+takes a hashref to a hash of settings and returns an array
+ with DBI connect info
+
+
+=head1 REQUIRES
+
+L<MediaWords::Util::Config> 
+
+L<DBIx::Simple::MediaWords> 
+
+L<List::Util> 
+
+L<Carp> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 connect_info
+
+ connect_info();
+
+returns connection info from the configuration file
+if no connection label is supplied and no connections have been made,
+the first connection in the config is used otherwise the last used settings
+are returned
+
+
+=head2 connect_settings
+
+ connect_settings();
+
+=head2 connect_to_db(;$$)
+
+ connect_to_db(;$$)();
+
+=head2 disable_story_triggers
+
+ disable_story_triggers();
+
+=head2 enable_story_triggers
+
+ enable_story_triggers();
+
+=head2 exec_psql_for_db
+
+ exec_psql_for_db();
+
+=head2 get_db_labels
+
+ get_db_labels();
+
+=head2 print_shell_env_commands_for_psql
+
+ print_shell_env_commands_for_psql();
+
+=head2 reset_forked_db
+
+ reset_forked_db();
+
+return a new db for a forked process, taking care to deactivate the existing
+handle to avoid having the child process kill the parent db on exit
+
+
+=head2 run_block_with_large_work_mem(
+
+ run_block_with_large_work_mem(();
+
+=head2 story_triggers_disabled
+
+ story_triggers_disabled();
+
+
+=cut
+

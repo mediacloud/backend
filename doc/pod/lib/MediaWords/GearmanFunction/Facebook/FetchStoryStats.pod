@@ -1,0 +1,70 @@
+=head1 NAME
+
+MediaWords::GearmanFunction::Facebook::FetchStoryStats
+
+
+=head1 DESCRIPTION
+
+
+Fetch story's share count statistics via Facebook's Graph API
+
+Start this worker script by running:
+
+./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/Facebook/FetchStoryStats.pm
+
+
+
+=head1 REQUIRES
+
+L<Data::Dumper> 
+
+L<Readonly> 
+
+L<MediaWords::Util::GearmanJobSchedulerConfiguration> 
+
+L<MediaWords::Util::Process> 
+
+L<MediaWords::Util::Facebook> 
+
+L<MediaWords::Util::Config> 
+
+L<MediaWords::DB> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+L<lib> 
+
+L<FindBin> 
+
+L<Moose> 
+
+
+=head1 METHODS
+
+=head2 configuration()
+
+ configuration()();
+
+(Gearman::JobScheduler::AbstractFunction implementation) Return default configuration
+
+
+=head2 run($;$)
+
+ run($;$)();
+
+Run job
+
+
+=head2 unify_logs()
+
+ unify_logs()();
+
+write a single log because there are a lot of Bit.ly processing jobs so it's
+impractical to log each job into a separate file
+
+
+
+=cut
+

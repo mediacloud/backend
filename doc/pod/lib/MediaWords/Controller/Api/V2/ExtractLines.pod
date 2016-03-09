@@ -1,0 +1,85 @@
+=head1 NAME
+
+MediaWords::Controller::Api::V2::ExtractLines
+
+
+=head1 DESCRIPTION
+
+Default authentication action roles
+
+
+=head1 REQUIRES
+
+L<MediaWords::Util::HTML> 
+
+L<MediaWords::Util::IdentifyLanguage> 
+
+L<MediaWords::DBI::Downloads> 
+
+L<Carp> 
+
+L<List::Compare> 
+
+L<namespace::autoclean> 
+
+L<Moose> 
+
+L<List::Util> 
+
+L<utf8> 
+
+L<Encode> 
+
+L<JSON> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 IMPLEMENTS
+
+L<Catalyst::Controller::REST> 
+
+
+=head1 METHODS
+
+=head2 extract
+
+ $self->extract();
+
+=head2 extract_PUT
+
+ $self->extract_PUT();
+
+=head2 extractor_training_lines
+
+ $self->extractor_training_lines();
+
+=head2 extractor_training_lines_GET
+
+ $self->extractor_training_lines_GET();
+
+=head2 sentences_from_html
+
+ $self->sentences_from_html();
+
+=head2 sentences_from_html_PUT
+
+ $self->sentences_from_html_PUT();
+
+=head2 story_lines
+
+ $self->story_lines();
+
+=head2 story_lines_GET
+
+ $self->story_lines_GET();
+
+=head2 story_lines_PUT
+
+ $self->story_lines_PUT();
+
+
+=cut
+

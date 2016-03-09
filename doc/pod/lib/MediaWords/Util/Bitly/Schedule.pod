@@ -1,0 +1,64 @@
+=head1 NAME
+
+MediaWords::Util::Bitly::Schedule
+
+
+=head1 DESCRIPTION
+
+
+Bit.ly processing schedule helper
+
+
+
+=head1 REQUIRES
+
+L<Carp> 
+
+L<DateTime> 
+
+L<Readonly> 
+
+L<MediaWords::Util::SQL> 
+
+L<MediaWords::Util::Config> 
+
+L<MediaWords::Util::DateTime> 
+
+L<MediaWords::Util::Bitly> 
+
+L<MediaWords::GearmanFunction::Bitly::FetchStoryStats> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 add_to_processing_schedule($$)
+
+ add_to_processing_schedule($$)();
+
+=head2 process_due_schedule($)
+
+ process_due_schedule($)();
+
+=head2 story_end_timestamp($)
+
+ story_end_timestamp($)();
+
+=head2 story_processing_is_enabled()
+
+ story_processing_is_enabled()();
+
+=head2 story_start_timestamp($)
+
+ story_start_timestamp($)();
+
+=head2 story_timestamp($)
+
+ story_timestamp($)();
+
+
+=cut
+

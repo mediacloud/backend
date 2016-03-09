@@ -1,0 +1,138 @@
+=head1 NAME
+
+MediaWords::Controller::Admin::Media
+
+
+=head1 DESCRIPTION
+
+use YAML::Syck;
+
+
+=head1 REQUIRES
+
+L<if> 
+
+L<if> 
+
+L<URI> 
+
+L<Readonly> 
+
+L<JSON> 
+
+L<MediaWords::DBI::Stories> 
+
+L<MediaWords::DBI::Media> 
+
+L<MediaWords::DBI::Feeds> 
+
+L<MediaWords::Util::HTML> 
+
+L<MediaWords::Util::Web> 
+
+L<MediaWords::Util::Tags> 
+
+L<Data::Dumper> 
+
+L<List::MoreUtils> 
+
+L<URI::Split> 
+
+L<Text::Trim> 
+
+L<Regexp::Common> 
+
+L<Encode> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 IMPLEMENTS
+
+L<Catalyst::Controller> 
+
+
+=head1 METHODS
+
+=head2 create_batch
+
+ $self->create_batch();
+
+=head2 create_do
+
+ $self->create_do();
+
+create a set of media sources from a list of urls; add any included tags to new or existing media sources
+
+
+=head2 delete
+
+ $self->delete();
+
+after confirmation, mark the media source for deletion
+
+
+=head2 do_eval_rss_full_text
+
+ $self->do_eval_rss_full_text();
+
+=head2 do_find_likely_full_text_rss
+
+ $self->do_find_likely_full_text_rss();
+
+display search form, and results of a query was submitted.
+
+
+=head2 edit
+
+ $self->edit();
+
+=head2 edit_do
+
+ $self->edit_do();
+
+display edit form or save edit update
+
+
+=head2 edit_tags
+
+ $self->edit_tags();
+
+=head2 edit_tags_do
+
+ $self->edit_tags_do();
+
+=head2 eval_rss_full_text
+
+ $self->eval_rss_full_text();
+
+=head2 find_likely_full_text_rss
+
+ $self->find_likely_full_text_rss();
+
+display search form, and results of a query was submitted.
+
+
+=head2 list
+
+ $self->list();
+
+alias for search
+
+
+=head2 media_tags_search_json
+
+ $self->media_tags_search_json();
+
+=head2 search
+
+ $self->search();
+
+display search form, and results of a query was submitted.
+
+
+
+=cut
+

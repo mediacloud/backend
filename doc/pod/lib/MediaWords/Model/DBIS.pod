@@ -1,0 +1,43 @@
+=head1 NAME
+
+MediaWords::Model::DBIS
+
+
+=head1 DESCRIPTION
+
+custom DBIx::Simple::MediaWords based model for mediawords
+
+
+=head1 REQUIRES
+
+L<MediaWords::DB> 
+
+L<DBIx::Simple::MediaWords> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 IMPLEMENTS
+
+L<Catalyst::Model> 
+
+
+=head1 METHODS
+
+=head2 new
+
+ $self->new();
+
+=head2 dbis
+
+ $self->dbis();
+
+hand out a database connection.  reuse the last connection unless the request has changed
+since the last call.
+
+
+
+=cut
+

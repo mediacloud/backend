@@ -1,0 +1,44 @@
+=head1 NAME
+
+MediaWords::Controller::Admin::Extractor_Stats
+
+
+=head1 DESCRIPTION
+
+MODULES
+
+
+=head1 REQUIRES
+
+L<MediaWords::Crawler::Extractor> 
+
+L<HTML::Entities> 
+
+L<DateTime> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 IMPLEMENTS
+
+L<Catalyst::Controller> 
+
+
+=head1 METHODS
+
+=head2 index
+
+ $self->index();
+
+METHODS
+
+
+=head2 list
+
+ $self->list();
+
+
+=cut
+

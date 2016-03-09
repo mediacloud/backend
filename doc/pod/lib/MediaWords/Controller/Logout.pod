@@ -1,0 +1,28 @@
+=head1 NAME
+
+MediaWords::Controller::Logout
+
+
+=head1 DESCRIPTION
+
+Clear the user's state
+
+
+=head1 REQUIRES
+
+L<URI::Escape> 
+
+L<namespace::autoclean> 
+
+L<Moose> 
+
+
+=head1 METHODS
+
+=head2 index
+
+ index();
+
+
+=cut
+

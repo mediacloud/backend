@@ -1,0 +1,120 @@
+=head1 NAME
+
+MediaWords::Controller::Admin::Stories
+
+
+=head1 DESCRIPTION
+
+list of stories with the given feed id
+
+
+=head1 REQUIRES
+
+L<MediaWords::Util::JSON> 
+
+L<MediaWords::Util::CoreNLP> 
+
+L<MediaWords::Util::Bitly> 
+
+L<MediaWords::DBI::Activities> 
+
+L<MediaWords::DBI::Stories::GuessDate> 
+
+L<MediaWords::DBI::Stories> 
+
+L<Carp> 
+
+L<URI::QueryParam> 
+
+L<URI::Escape> 
+
+L<URI> 
+
+L<Readonly> 
+
+L<List::Util> 
+
+L<JSON> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 IMPLEMENTS
+
+L<Catalyst::Controller> 
+
+
+=head1 METHODS
+
+=head2 add_tag
+
+ $self->add_tag();
+
+sets up add tag
+
+
+=head2 add_tag_do
+
+ $self->add_tag_do();
+
+executes add tag
+
+
+=head2 bitly_json
+
+ $self->bitly_json();
+
+view Bit.ly JSON
+
+
+=head2 corenlp_json
+
+ $self->corenlp_json();
+
+view CoreNLP JSON
+
+
+=head2 delete_tag
+
+ $self->delete_tag();
+
+delete tag
+
+
+=head2 edit
+
+ $self->edit();
+
+edit a single story
+
+
+=head2 list
+
+ $self->list();
+
+list of stories with the given feed id
+
+
+=head2 stories_query_json
+
+ $self->stories_query_json();
+
+=head2 tag
+
+ $self->tag();
+
+list of stories with the given tag id
+
+
+=head2 view
+
+ $self->view();
+
+detail page for single story
+
+
+
+=cut
+

@@ -1,0 +1,81 @@
+=head1 NAME
+
+MediaWords::Util::CSV
+
+
+=head1 DESCRIPTION
+
+various functions for outputting csv
+
+
+=head1 REQUIRES
+
+L<Text::CSV> 
+
+L<Text::CSV_XS> 
+
+L<JSON> 
+
+L<Encode> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 get_csv_as_hashes
+
+ get_csv_as_hashes();
+
+given a file name, open the file, parse it as a csv, and return a list of hashes.
+assumes that the csv includes a header line.  If normalize_column_names is true,
+lowercase and underline column names ( 'Media type' -> 'media_type' )
+
+
+=head2 get_csv_string_as_matrix
+
+ get_csv_string_as_matrix();
+
+given a csv string without headers, return a list of lists of values
+
+
+=head2 get_hashes_as_encoded_csv
+
+ get_hashes_as_encoded_csv();
+
+return an encoded csv file representing a list of hashes.
+if $fields is specified, use it as a list of field names and
+dump the fields in the specified order.  otherwise, just
+get the field names from the hash in the first row (with
+semi-random order)
+
+
+=head2 get_query_as_csv
+
+ get_query_as_csv();
+
+Given a database handle and a query string and some parameters, execute the query with the parameters
+and return the results as a csv with the fields in the query order
+
+
+=head2 send_hashes_as_csv_page
+
+ send_hashes_as_csv_page();
+
+send a list of hashes as a csv page through catalyst
+
+
+=head2 stream_json_to_csv
+
+ stream_json_to_csv();
+
+accepts a file handle from which to read.  assumes that each line is a json
+object.  prints out a csv line for each json object, assuming that the
+keys for all json objects are the same as for the first.
+
+
+
+=cut
+

@@ -1,0 +1,73 @@
+=head1 NAME
+
+MediaWords::Controller::Api::V2::Stories
+
+
+=head1 DESCRIPTION
+
+say STDERR Dumper( $story_tags );
+
+
+=head1 REQUIRES
+
+L<MediaWords::Util::JSON> 
+
+L<MediaWords::Util::Bitly::API> 
+
+L<MediaWords::Util::Bitly> 
+
+L<MediaWords::Solr> 
+
+L<MediaWords::DBI::Stories> 
+
+L<Readonly> 
+
+L<HTTP::Status> 
+
+L<Carp> 
+
+L<List::Compare> 
+
+L<namespace::autoclean> 
+
+L<Moose> 
+
+L<List::Util> 
+
+L<JSON> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 IMPLEMENTS
+
+L<Catalyst::Controller> 
+
+
+=head1 METHODS
+
+=head2 corenlp
+
+ $self->corenlp();
+
+=head2 fetch_bitly_clicks
+
+ $self->fetch_bitly_clicks();
+
+=head2 put_tags
+
+ $self->put_tags();
+
+=head2 put_tags_PUT
+
+ $self->put_tags_PUT();
+
+=head2 single_GET
+
+ $self->single_GET();
+
+
+=cut
+

@@ -1,0 +1,142 @@
+=head1 NAME
+
+MediaWords::DBI::Media::Rescrape
+
+
+=head1 DESCRIPTION
+
+
+Media (re)scraping utilities
+
+
+
+=head1 REQUIRES
+
+L<Digest::SHA> 
+
+L<URI::Split> 
+
+L<URI> 
+
+L<Feed::Scrape::MediaWords> 
+
+L<MediaWords::GearmanFunction::RescrapeMedia> 
+
+L<MediaWords::DBI::Feeds> 
+
+L<MediaWords::DBI::Media> 
+
+L<MediaWords::Util::Log> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 add_feed_by_media_name_url_type($$)
+
+ add_feed_by_media_name_url_type($$)();
+
+=head2 add_feeds_for_feedless_media
+
+ add_feeds_for_feedless_media();
+
+for each medium in $media, enqueue an RescrapeMedia job for any medium
+that is lacking feeds
+
+
+=head2 delete_rescraped_feed_by_media_name_url_type($$)
+
+ delete_rescraped_feed_by_media_name_url_type($$)();
+
+=head2 enqueue_rescrape_media($)
+
+ enqueue_rescrape_media($)();
+
+add default feeds for a single medium
+
+
+=head2 enqueue_rescrape_media_for_unmoderated_media($)
+
+ enqueue_rescrape_media_for_unmoderated_media($)();
+
+(re-)enqueue RescrapeMedia jobs for all unmoderated media
+("RescrapeMedia" Gearman function is "unique", so Gearman will skip media
+IDs that are already enqueued)
+
+
+=head2 existing_and_rescraped_feeds($$)
+
+ existing_and_rescraped_feeds($$)();
+
+Returns an arrayref of hashrefs with unique feeds from both "feeds"
+(existing feeds table) and "feeds_after_rescraping" (rescraped feeds table)
+
+Apart from the default "media_id", "name", "url" and "feed_type" keys, feed
+hashrefs carry the following extra keys:
+
+* "hash" -- SHA256 hash uniquely identifying the feed; based on its media_id,
+  name, URL, and feed_type
+* "diff" -- state of the feed, one of the following values:
+    * "unchanged" -- feed that hasn't changed after rescraping
+    * "added" -- new feed found while rescraping
+    * "removed" -- feed is gone after rescraping
+    * "stale" -- feed is stale (didn't come up with any new stories in quite
+      some time)
+* "last_new_story_time" (only for existing feeds) -- timestamp of when last
+  story was fetched from the feed
+* "is_stale" (only for existing feeds) -- whether or not the feed is "stale"
+  (doesn't provide any new stories for some time; dead)
+
+
+=head2 get_feed_by_media_name_url_type($$)
+
+ get_feed_by_media_name_url_type($$)();
+
+=head2 get_potential_merge_media($$)
+
+ get_potential_merge_media($$)();
+
+return any media that might be a candidate for merging with the given media source
+
+
+=head2 make_media_moderated($$)
+
+ make_media_moderated($$)();
+
+=head2 make_media_unmoderated($$)
+
+ make_media_unmoderated($$)();
+
+=head2 merge_media_tags($$$)
+
+ merge_media_tags($$$)();
+
+merge the tags of medium_a into medium_b
+
+
+=head2 rescrape_media($$)
+
+ rescrape_media($$)();
+
+Search and add new feeds for unmoderated media (media sources that have not
+had default feeds added to them).
+
+Look for feeds that are most likely to be real feeds.  If we find more than
+one but no more than $MAX_DEFAULT_FEEDS of those feeds, use the first such one
+and do not moderate the source.  Else, do a more expansive search and mark
+for moderation.
+
+
+=head2 update_last_rescraped_time($$)
+
+ update_last_rescraped_time($$)();
+
+update last_rescraped_time for media
+
+
+
+=cut
+

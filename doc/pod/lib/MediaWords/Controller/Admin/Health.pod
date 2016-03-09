@@ -1,0 +1,66 @@
+=head1 NAME
+
+MediaWords::Controller::Admin::Health
+
+
+=head1 DESCRIPTION
+
+get the tags.* fields with the following health data attached:
+num_media, num_sentences(_y/90/w), num_healthy, num_active_feeds
+
+param should be either { tags_id => $id } or { tag_sets_id => $id }
+
+
+=head1 REQUIRES
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 IMPLEMENTS
+
+L<Catalyst::Controller> 
+
+
+=head1 METHODS
+
+=head2 index
+
+ $self->index();
+
+=head2 list
+
+ $self->list();
+
+list the overall health of each tag in a tag_set
+
+
+=head2 medium
+
+ $self->medium();
+
+display daily health stats for the given media source
+
+
+=head2 stories
+
+ $self->stories();
+
+=head2 tag
+
+ $self->tag();
+
+list the media sources in the given tag, with health info for each
+
+
+=head2 tag_sets
+
+ $self->tag_sets();
+
+list tag sets
+
+
+
+=cut
+

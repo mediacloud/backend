@@ -1,0 +1,29 @@
+=head1 NAME
+
+MediaWords::KeyValueStore
+
+
+=head1 DESCRIPTION
+
+
+Abstract class for storing / loading objects (raw downloads, CoreNLP
+annotator results, ...) to / from various storage locations
+
+
+
+=head1 REQUIRES
+
+L<MediaWords::Util::Config> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+L<Moose::Role> 
+
+
+=head1 METHODS
+
+
+=cut
+

@@ -1,0 +1,514 @@
+=head1 NAME
+
+MediaWords::CM::Dump
+
+
+=head1 DESCRIPTION
+
+code to analyze a controversy and dump the controversy to snapshot tables and a gexf file
+
+
+=head1 REQUIRES
+
+L<MediaWords::DBI::Activities> 
+
+L<MediaWords::Util::SQL> 
+
+L<MediaWords::Util::Paths> 
+
+L<MediaWords::Util::Config> 
+
+L<MediaWords::Util::Colors> 
+
+L<MediaWords::Util::CSV> 
+
+L<MediaWords::Solr> 
+
+L<MediaWords::DBI::Media> 
+
+L<MediaWords::CM::Model> 
+
+L<Readonly> 
+
+L<XML::Simple> 
+
+L<GraphViz2> 
+
+L<Getopt::Long> 
+
+L<FileHandle> 
+
+L<File::Temp> 
+
+L<Encode> 
+
+L<Date::Format> 
+
+L<Data::Dumper> 
+
+
+=head1 METHODS
+
+=head2 add_codes_to_dump_media
+
+ add_codes_to_dump_media();
+
+=head2 add_extra_fields_to_dump_media
+
+ add_extra_fields_to_dump_media();
+
+add tags, codes, partisanship and other extra data to all dump media for the purpose
+of making a gexf or csv dump.  return the list of extra fields added.
+
+
+=head2 add_media_type_views
+
+ add_media_type_views();
+
+=head2 add_partisan_code_to_dump_media
+
+ add_partisan_code_to_dump_media();
+
+=head2 add_tags_to_dump_media
+
+ add_tags_to_dump_media();
+
+=head2 add_weights_to_gexf_edges
+
+ add_weights_to_gexf_edges();
+
+gephi removes the weights from the media links.  add them back in.
+
+
+=head2 analyze_snapshot_tables
+
+ analyze_snapshot_tables();
+
+analyze all of the snapshot tables because otherwise immediate queries to the
+new dump ids offer trigger seq scans
+
+
+=head2 attach_stories_to_media
+
+ attach_stories_to_media();
+
+=head2 copy_temporary_tables
+
+ copy_temporary_tables();
+
+create temporary table copies of temporary tables so that we can copy
+the data back into the main temporary tables after tweaking the main temporary tables
+
+
+=head2 create_cd_file
+
+ create_cd_file();
+
+=head2 create_cd_snapshot
+
+ create_cd_snapshot();
+
+create a snapshot of a table for a controversy_dump
+
+
+=head2 create_cdts_file
+
+ create_cdts_file();
+
+=head2 create_cdts_snapshot
+
+ create_cdts_snapshot();
+
+create a snapshot of a table for a controversy_dump_time_slice
+
+
+=head2 create_controversy_dump
+
+ create_controversy_dump();
+
+create the controversy_dump row for the current dump
+
+
+=head2 create_controversy_dump_time_slice
+
+ create_controversy_dump_time_slice();
+
+=head2 create_snapshot
+
+ create_snapshot();
+
+create a snapshot for the given table from the temporary dump_* table,
+making sure to specify all the fields in the copy so that we don't have to
+assume column position is the same in the original and snapshot tables.
+use the $key from $obj as an additional field in the snapshot table.
+
+
+=head2 create_temporary_dump_views
+
+ create_temporary_dump_views();
+
+create temporary view of all the dump_* tables that call into the cd.* tables.
+this is useful for writing queries on the cd.* tables without lots of ugly
+joins and clauses to cd and cdts.  It also provides the same set of dump_*
+tables as provided by write_story_link_counts_dump_tables, so that the same
+set of queries can run against either.
+
+
+=head2 discard_temp_tables
+
+ discard_temp_tables();
+
+run $db->query( "discard temp" ) to clean up temp tables and views
+
+
+=head2 dump_controversy
+
+ dump_controversy();
+
+create a controversy_dump for the given controversy
+
+
+=head2 generate_cdts
+
+ generate_cdts();
+
+generate the dump time slices for the given period, dates, and tag
+
+
+=head2 generate_cdts_data
+
+ generate_cdts_data();
+
+generate data for the story_links, story_link_counts, media_links, media_link_counts tables
+based on the data in the temporary dump_* tables
+
+
+=head2 generate_custom_period_dump
+
+ generate_custom_period_dump();
+
+generate dumps for the periods in controversy_dates
+
+
+=head2 generate_period_dump
+
+ generate_period_dump();
+
+generate dump for the given period (overall, monthly, weekly, or custom) and the given tag
+
+
+=head2 generate_snapshots_from_temporary_dump_tables
+
+ generate_snapshots_from_temporary_dump_tables();
+
+generate snapshots for all of the get_snapshot_tables from the temporary dump tables
+
+
+=head2 get_color
+
+ get_color();
+
+get a consistent color from MediaWords::Util::Colors.  convert to a color hash as needed by gexf.  translate
+the set to a controversy specific color set value for get_consistent_color.
+
+
+=head2 get_color_hash_from_hex
+
+ get_color_hash_from_hex();
+
+given an rgb hex string, return a hash in the form { r => 12, g => 0, b => 255 }, which is
+what we need for the viz:color element of the gexf dump
+
+
+=head2 get_default_dates
+
+ get_default_dates();
+
+get default start and end dates from the query associated with the query_stories_search associated with the controversy
+
+
+=head2 get_gexf_dump
+
+ get_gexf_dump();
+
+write gexf dump of nodes
+
+
+=head2 get_media_csv
+
+ get_media_csv();
+
+=head2 get_medium_links_csv
+
+ get_medium_links_csv();
+
+=head2 get_period_stories_date_where_clause
+
+ get_period_stories_date_where_clause();
+
+get the where clause that will restrict the dump_period_stories creation
+to only stories within the cdts time frame
+
+
+=head2 get_periods
+
+ get_periods();
+
+validate and set the periods for the dump based on the period parameter
+
+
+=head2 get_snapshot_tables
+
+ get_snapshot_tables();
+
+get the list of all snapshot tables
+
+
+=head2 get_stories_csv
+
+ get_stories_csv();
+
+=head2 get_story_links_csv
+
+ get_story_links_csv();
+
+=head2 get_weighted_edges
+
+ get_weighted_edges();
+
+=head2 layout_gexf
+
+ layout_gexf();
+
+call java program to lay out graph.  the java program accepts a gexf file as input and
+outputs a gexf file with the lay out included
+
+
+=head2 layout_gexf_with_graphviz
+
+ layout_gexf_with_graphviz();
+
+add layout to gexf by calling graphviz
+
+
+=head2 layout_gexf_with_graphviz_1
+
+ layout_gexf_with_graphviz_1();
+
+add layout to gexf by calling graphviz
+
+
+=head2 post_process_gexf
+
+ post_process_gexf();
+
+post process gexf file.  gephi mucks up the gexf file by making it too big and
+removing the weights from the gexf export.  I can't figure out how to get the gephi toolkit
+to fix these things, so I just fix them in perl
+
+
+=head2 prune_links_to_min_size
+
+ prune_links_to_min_size();
+
+remove all edges to any node with a size greater than the min size
+
+
+=head2 prune_links_to_top_nodes
+
+ prune_links_to_top_nodes();
+
+remove edges going into the top $num nodes.  return the pruned edges.
+
+
+=head2 restore_temporary_tables
+
+ restore_temporary_tables();
+
+restore original, copied data back into dump tables
+
+
+=head2 restrict_period_stories_to_query_slice
+
+ restrict_period_stories_to_query_slice();
+
+remove stories from dump_period_stories that don't math solr query in the associated query slice, if any
+
+
+=head2 scale_gexf_nodes
+
+ scale_gexf_nodes();
+
+scale the size of the map described in the gexf file to $MAX_MAP_WIDTH and center on 0,0.
+gephi can return really large maps that make the absolute node size relatively tiny.
+we need to scale the map to get consistent, reasonable node sizes across all maps
+
+
+=head2 scale_node_sizes
+
+ scale_node_sizes();
+
+scale the nodes such that the biggest node size is $MAX_NODE_SIZE and the smallest is $MIN_NODE_SIZE
+
+
+=head2 set_temporary_table_tablespace
+
+ set_temporary_table_tablespace();
+
+if the temporary_table_tablespace config is present, set $_temporary_tablespace
+to a tablespace clause for the tablespace, otherwise set it to ''
+
+
+=head2 setup_temporary_dump_tables
+
+ setup_temporary_dump_tables();
+
+setup dump_* tables by either creating views for the relevant cd.*
+tables for a dump snapshot or by copying live data for live requests.
+
+
+=head2 stories_exist_for_period
+
+ stories_exist_for_period();
+
+return true if there are any stories in the current controversy_stories_dump_ table
+
+
+=head2 truncate_to_monday
+
+ truncate_to_monday();
+
+decrease the given date to the latest monday equal to or before the date
+
+
+=head2 truncate_to_start_of_month
+
+ truncate_to_start_of_month();
+
+decrease the given date to the first day of the current month
+
+
+=head2 update_cdts
+
+ update_cdts();
+
+convenience function to update a field in the cdts table
+
+
+=head2 update_cdts_counts
+
+ update_cdts_counts();
+
+update *_count fields in cdts.  save to db unless $live is specified.
+
+
+=head2 write_cleanup_dumps
+
+ write_cleanup_dumps();
+
+write various dumps useful for cleaning up the dataset.  some of these take quite
+a while to run, so we only want to generate them if needed
+
+
+=head2 write_date_counts_csv
+
+ write_date_counts_csv();
+
+=head2 write_date_counts_dump
+
+ write_date_counts_dump();
+
+=head2 write_dup_stories_dump
+
+ write_dup_stories_dump();
+
+generate list of all stories with duplicate titles, sorted by title
+
+
+=head2 write_live_dump_tables
+
+ write_live_dump_tables();
+
+create all of the temporary dump* tables other than medium_links and story_links
+
+
+=head2 write_media_csv
+
+ write_media_csv();
+
+=head2 write_media_domains_dump
+
+ write_media_domains_dump();
+
+dump counts of distinct url domains for the last 1000 stories for each media source in the controversy
+
+
+=head2 write_medium_link_counts_dump
+
+ write_medium_link_counts_dump();
+
+=head2 write_medium_links_csv
+
+ write_medium_links_csv();
+
+=head2 write_medium_links_dump
+
+ write_medium_links_dump();
+
+=head2 write_period_stories
+
+ write_period_stories();
+
+write dump_period_stories table that holds list of all stories that should be included in the
+current period.  For an overall dump, every story should be in the current period.
+For other dumps, a story should be in the current dump if either its date is within
+the period dates or if a story that links to it has a date within the period dates.
+For this purpose, stories tagged with the 'date_invalid:undateable' tag
+are considered to have an invalid tag, so their dates cannot be used to pass
+either of the above tests.
+
+The resulting dump_period_stories should be used by all other dump queries to determine
+story membership within a give period.
+
+
+=head2 write_post_dated_links_dump
+
+ write_post_dated_links_dump();
+
+dump csv of all links from one story to another in the given story's future
+
+
+=head2 write_post_dated_stories_dump
+
+ write_post_dated_stories_dump();
+
+dump csv of all stories linking to another in the given story's future
+
+
+=head2 write_stories_csv
+
+ write_stories_csv();
+
+=head2 write_story_link_counts_dump
+
+ write_story_link_counts_dump();
+
+=head2 write_story_links_csv
+
+ write_story_links_csv();
+
+=head2 write_story_links_dump
+
+ write_story_links_dump();
+
+=head2 write_temporary_dump_tables
+
+ write_temporary_dump_tables();
+
+generate temporary dump_* tables for the specified controversy_dump for each of the snapshot_tables.
+these are the tables that apply to the whole controversy_dump.
+
+
+
+=cut
+

@@ -1,0 +1,113 @@
+=head1 NAME
+
+MediaWords::Controller::Admin::Users
+
+
+=head1 DESCRIPTION
+
+list users
+
+
+=head1 REQUIRES
+
+L<POSIX> 
+
+L<JSON> 
+
+L<MediaWords::Util::Text> 
+
+L<MediaWords::Util::Config> 
+
+L<MediaWords::DBI::Auth> 
+
+L<parent> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 available_tag_sets_json
+
+ available_tag_sets_json();
+
+=head2 create
+
+ create();
+
+create a new user
+
+
+=head2 delete
+
+ delete();
+
+confirm if the user has to be deleted
+
+
+=head2 delete_do
+
+ delete_do();
+
+delete user
+
+
+=head2 edit
+
+ edit();
+
+show the user edit form
+
+
+=head2 edit_tag_set_permissions
+
+ edit_tag_set_permissions();
+
+show the user edit form
+
+
+=head2 index
+
+ index();
+
+=head2 list
+
+ list();
+
+list users
+
+
+=head2 regenerate_api_token
+
+ regenerate_api_token();
+
+regenerate API token
+
+
+=head2 tag_set_permissions_json
+
+ tag_set_permissions_json();
+
+=head2 update_tag_set_permissions_json
+
+ update_tag_set_permissions_json();
+
+=head2 usage
+
+ usage();
+
+view usage report page
+
+
+=head2 usage_json
+
+ usage_json();
+
+send back usage JSON
+
+
+
+=cut
+

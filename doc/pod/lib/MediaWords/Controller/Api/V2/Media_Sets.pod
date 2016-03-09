@@ -1,0 +1,51 @@
+=head1 NAME
+
+MediaWords::Controller::Api::V2::Media_Sets
+
+
+=head1 DESCRIPTION
+
+say STDERR "adding nested data ";
+
+
+=head1 REQUIRES
+
+L<Carp> 
+
+L<List::Compare> 
+
+L<namespace::autoclean> 
+
+L<Moose> 
+
+L<List::Util> 
+
+L<JSON> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 IMPLEMENTS
+
+L<Catalyst::Controller> 
+
+
+=head1 METHODS
+
+=head2 default_output_fields
+
+ $self->default_output_fields();
+
+=head2 get_table_name
+
+ $self->get_table_name();
+
+=head2 has_nested_data
+
+ $self->has_nested_data();
+
+
+=cut
+

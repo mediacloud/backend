@@ -1,0 +1,62 @@
+=head1 NAME
+
+MediaWords::Thrift::Extractor
+
+
+=head1 DESCRIPTION
+
+functions for searching the solr server
+
+
+=head1 REQUIRES
+
+L<thrift_solr::Types> 
+
+L<thrift_solr::ExtractorService> 
+
+L<Thrift::BufferedTransport> 
+
+L<Thrift::Socket> 
+
+L<Thrift::BinaryProtocol> 
+
+L<Thrift> 
+
+L<lib> 
+
+L<lib> 
+
+L<MediaWords::Util::Config> 
+
+L<List::MoreUtils> 
+
+L<MediaWords::Util::Process> 
+
+L<MediaWords::Util::Web> 
+
+L<MediaWords::Util::Config> 
+
+L<MediaWords::Languages::Language> 
+
+L<List::Util> 
+
+L<JSON> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 extract_html
+
+ extract_html();
+
+=head2 get_media_counts
+
+ get_media_counts();
+
+
+=cut
+

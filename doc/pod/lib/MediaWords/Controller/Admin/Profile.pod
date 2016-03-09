@@ -1,0 +1,39 @@
+=head1 NAME
+
+MediaWords::Controller::Admin::Profile
+
+
+=head1 DESCRIPTION
+
+Fetch readonly information about the user
+
+
+=head1 REQUIRES
+
+L<List::MoreUtils> 
+
+L<MediaWords::DBI::Auth> 
+
+L<MediaWords::Util::Config> 
+
+L<namespace::autoclean> 
+
+L<Moose> 
+
+
+=head1 METHODS
+
+=head2 index
+
+ index();
+
+=head2 regenerate_api_token
+
+ regenerate_api_token();
+
+regenerate API token
+
+
+
+=cut
+

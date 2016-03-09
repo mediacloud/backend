@@ -1,0 +1,431 @@
+=head1 NAME
+
+MediaWords::Controller::Admin::CM
+
+
+=head1 DESCRIPTION
+
+use Catalyst qw( ConfigLoader Static::Simple Unicode );
+
+
+=head1 REQUIRES
+
+L<utf8> 
+
+L<MediaWords::GearmanFunction::Bitly::EnqueueAllControversyStories> 
+
+L<MediaWords::Util::Bitly> 
+
+L<MediaWords::Solr::WordCounts> 
+
+L<MediaWords::Solr> 
+
+L<MediaWords::DBI::Stories::GuessDate> 
+
+L<MediaWords::DBI::Stories> 
+
+L<MediaWords::DBI::Media> 
+
+L<MediaWords::DBI::Activities> 
+
+L<MediaWords::CM::Mine> 
+
+L<MediaWords::CM::Dump> 
+
+L<MediaWords::CM> 
+
+L<Readonly> 
+
+L<Gearman::JobScheduler> 
+
+L<Data::Dumper> 
+
+L<List::Compare> 
+
+L<JSON> 
+
+L<Digest::MD5> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 IMPLEMENTS
+
+L<Catalyst::Controller::HTML::FormFu> 
+
+
+=head1 METHODS
+
+=head2 activities
+
+ $self->activities();
+
+List all activities
+
+
+=head2 add_date
+
+ $self->add_date();
+
+add custom time slice range to controversy_dates
+
+
+=head2 add_media_type
+
+ $self->add_media_type();
+
+add a new media type tag
+
+
+=head2 add_media_types
+
+ $self->add_media_types();
+
+page for adding media types to 'not type'd media
+
+
+=head2 add_periods_to_controversy_dump
+
+ $self->add_periods_to_controversy_dump();
+
+add a periods field to the controversy dump
+
+
+=head2 add_query_slice
+
+ $self->add_query_slice();
+
+add a new query slice
+
+
+=head2 create
+
+ $self->create();
+
+create a new controversy
+
+
+=head2 delete_all_dates
+
+ $self->delete_all_dates();
+
+delete all controversy_dates in the controversy
+
+
+=head2 delete_date
+
+ $self->delete_date();
+
+delet a single controversy_dates row
+
+
+=head2 delete_media_type
+
+ $self->delete_media_type();
+
+delete a single media type
+
+
+=head2 delete_query_slice
+
+ $self->delete_query_slice();
+
+delete a single media type
+
+
+=head2 delete_stories
+
+ $self->delete_stories();
+
+delete list of story ids from controversy
+
+
+=head2 dump_daily_counts
+
+ $self->dump_daily_counts();
+
+download the daily_counts_csv for the given dump
+
+
+=head2 dump_media
+
+ $self->dump_media();
+
+download the media_csv for the given time slice
+
+
+=head2 dump_medium_links
+
+ $self->dump_medium_links();
+
+download the medium_links_csv for the given time slice
+
+
+=head2 dump_social
+
+ $self->dump_social();
+
+download a csv file with the facebook and twitter stats for the controversy stories
+
+
+=head2 dump_stories
+
+ $self->dump_stories();
+
+download the stories_csv for the given time slice
+
+
+=head2 dump_story_links
+
+ $self->dump_story_links();
+
+download the story_links_csv for the given time slice
+
+
+=head2 dump_weekly_counts
+
+ $self->dump_weekly_counts();
+
+download the weekly_counts_csv for the given dump
+
+
+=head2 edit
+
+ $self->edit();
+
+edit an existing controversy
+
+
+=head2 edit_dates
+
+ $self->edit_dates();
+
+edit list of controversy_dates for the controversy
+
+
+=head2 edit_media_type
+
+ $self->edit_media_type();
+
+edit single controversy media type tag
+
+
+=head2 edit_media_types
+
+ $self->edit_media_types();
+
+edit list of controversy specific media types
+
+
+=head2 edit_query_slices
+
+ $self->edit_query_slices();
+
+edit list of controversy specific media types
+
+
+=head2 enqueue_stories_for_bitly
+
+ $self->enqueue_stories_for_bitly();
+
+enqueue a Gearman job which will, in turn, enqueue all controversy's stories
+for Bit.ly processing
+
+
+=head2 get_latest_full_dump_with_time_slices
+
+ $self->get_latest_full_dump_with_time_slices();
+
+get the latest full dump (dump with all periods) and add time slices to it
+under the controversy_dump_time_slices field
+
+
+=head2 gexf
+
+ $self->gexf();
+
+download the gexf file for the time slice.  if the 'l' param is 1, use live data instead of
+dumped data for the time slice.  if using a dump, use an existing media.gexf file if it exists.
+
+
+=head2 increment_day
+
+ $self->increment_day();
+
+=head2 index
+
+ $self->index();
+
+use Catalyst qw( ConfigLoader Static::Simple Unicode );
+
+
+=head2 influential_media_words
+
+ $self->influential_media_words();
+
+display the 20 most popular words for the 10 most influential media in the given time slice
+or for the 10 most influential media overall
+
+
+=head2 list
+
+ $self->list();
+
+list all controversies
+
+
+=head2 medium
+
+ $self->medium();
+
+view medium:
+* live if l=1 is specified, otherwise as a snapshot
+* within the context of a time slice if a time slice is specific
+  via cdts=<id>, otherwise within a whole controversy if 'c=<id>'
+
+
+=head2 merge_media
+
+ $self->merge_media();
+
+merge source_media_id into target_media_id
+
+
+=head2 merge_stories
+
+ $self->merge_stories();
+
+merge stories_id into to_stories_id
+
+
+=head2 merge_stories_list
+
+ $self->merge_stories_list();
+
+merge list of stories, in keep_id,delete_id format
+
+
+=head2 mot
+
+ $self->mot();
+
+generate the d3 chart of the weekly counts for any medium in the top
+ten media in any week
+
+
+=head2 nv
+
+ $self->nv();
+
+display network viz
+
+
+=head2 nv_config
+
+ $self->nv_config();
+
+get json config file for network visualization.
+nv implemented in root/nv from the gephi sigma export template
+
+
+=head2 partisan
+
+ $self->partisan();
+
+generate report on partisan behavior within set
+
+
+=head2 remove_stories
+
+ $self->remove_stories();
+
+remove all stories in the stories_ids cgi param from the controversy
+
+
+=head2 search_media
+
+ $self->search_media();
+
+do a basic media search based on the story sentences, title, url, media name, and media url
+
+
+=head2 search_stories
+
+ $self->search_stories();
+
+do a basic story search based on the story sentences, title, url, media name, and media url
+
+
+=head2 story
+
+ $self->story();
+
+view story as it existed in a dump time slice
+
+
+=head2 story_stats
+
+ $self->story_stats();
+
+various stats about an enumerated list of stories
+
+
+=head2 unredirect_medium
+
+ $self->unredirect_medium();
+
+action to confirm splitting up media source based on its stories' original, unredirected urls
+
+
+=head2 unredirect_param_stories
+
+ $self->unredirect_param_stories();
+
+parse story ids and associated urls from param names, along
+with the associated assume_match and manual_redirect options for
+each url.  call MediaWords::Util::URL::unredirect_story on
+each story and its urls and associated options.
+
+
+=head2 view
+
+ $self->view();
+
+view the details of a single controversy
+
+
+=head2 view_dump
+
+ $self->view_dump();
+
+view a controversy dump, with a list of its time slices
+
+
+=head2 view_dump_media_over_time_json
+
+ $self->view_dump_media_over_time_json();
+
+generate a json of the weekly counts for any medium in the top
+ten media in any week
+
+
+=head2 view_time_slice
+
+ $self->view_time_slice();
+
+view timelices, with links to csv and gexf files
+
+
+=head2 word_cloud
+
+ $self->word_cloud();
+
+display a word cloud of the words in the stories given in the stories_ids cgi param
+optionaly tfidf'd to all stories in the given controversy
+
+
+
+=cut
+

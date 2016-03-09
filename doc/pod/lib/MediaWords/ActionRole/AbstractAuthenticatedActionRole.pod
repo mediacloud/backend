@@ -1,0 +1,32 @@
+=head1 NAME
+
+MediaWords::ActionRole::AbstractAuthenticatedActionRole
+
+
+=head1 DESCRIPTION
+
+
+Action role that logs requests
+
+
+
+=head1 REQUIRES
+
+L<MediaWords::DBI::Auth> 
+
+L<Data::Dumper> 
+
+L<namespace::autoclean> 
+
+L<Moose::Role> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+
+=cut
+

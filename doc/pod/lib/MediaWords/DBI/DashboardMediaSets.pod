@@ -1,0 +1,35 @@
+=head1 NAME
+
+MediaWords::DBI::DashboardMediaSets
+
+
+=head1 DESCRIPTION
+
+get a consistent color for a media set by either reading it from the
+color field of the dashboard media set or, if null, assigning a
+set of unique colors to each collection type dashboard media set in a dashboard
+
+
+=head1 REQUIRES
+
+L<MediaWords::Util::Colors> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 get_color
+
+ get_color();
+
+get a consistent color for a media set by either reading it from the
+color field of the dashboard media set or, if null, assigning a
+set of unique colors to each collection type dashboard media set in a dashboard
+
+
+
+=cut
+

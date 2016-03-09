@@ -1,0 +1,75 @@
+=head1 NAME
+
+MediaWords::Util::Text
+
+
+=head1 DESCRIPTION
+
+various functions for manipulating text
+
+
+=head1 REQUIRES
+
+L<utf8> 
+
+L<Encode> 
+
+L<Tie::Cache> 
+
+L<Math::Random::Secure> 
+
+L<Memoize> 
+
+L<List::Util> 
+
+L<MediaWords::Languages::Language> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 decode_from_utf8($)
+
+ decode_from_utf8($)();
+
+Decode data from UTF-8; die() on error
+
+
+=head2 encode_to_utf8($)
+
+ encode_to_utf8($)();
+
+Encode data into UTF-8; die() on error
+
+
+=head2 get_similarity_score($$;$)
+
+ get_similarity_score($$;$)();
+
+Get similarity score between two UTF-8 strings
+Parameters:
+* First UTF-8 encoded string
+* Second UTF-8 encoded string
+* (optional) Language code, e.g. "en"
+
+
+=head2 is_valid_utf8($)
+
+ is_valid_utf8($)();
+
+Check whether the string is valid UTF-8
+
+
+=head2 random_string($)
+
+ random_string($)();
+
+Generate random, not crypto-secure alphanumeric string of the specified length
+
+
+
+=cut
+

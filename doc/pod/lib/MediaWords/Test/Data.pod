@@ -1,0 +1,98 @@
+=head1 NAME
+
+MediaWords::Test::Data
+
+
+=head1 DESCRIPTION
+
+store and fetch testing data
+
+
+=head1 REQUIRES
+
+L<MediaWords::Util::SQL> 
+
+L<Data::Dumper> 
+
+L<File::Basename> 
+
+L<lib> 
+
+L<lib> 
+
+L<FindBin> 
+
+
+=head1 METHODS
+
+=head2 adjust_test_timezone
+
+ adjust_test_timezone();
+
+adjust the publish_date of each story to be in the local time zone
+
+
+=head2 fetch_test_data($;$)
+
+ fetch_test_data($;$)();
+
+fetch the given data from disk
+
+
+=head2 fetch_test_data_from_individual_files($)
+
+ fetch_test_data_from_individual_files($)();
+
+Fetch the given data from disk under the given basename; join the data from
+individual files into a hashref (indexed by each test data file's filename).
+The subroutine returns hashref instead of arrayref because:
+1. Indices (e.g. stories_id) should be unique, and the caller should be aware
+   of that.
+2. Data is returned as a set, i.e. the keys (indices) are unordered; the
+caller should expect that too.
+
+
+=head2 get_path_to_data_files(;$)
+
+ get_path_to_data_files(;$)();
+
+get path to where data file(s) should be stored
+
+
+=head2 store_test_data($$;$)
+
+ store_test_data($$;$)();
+
+write the given data to disk under the given basename
+
+
+=head2 store_test_data_to_individual_files($$)
+
+ store_test_data_to_individual_files($$)();
+
+Write the given data to disk under the given basename; split the data
+(hashref) into individual files (indexed by hashref's key).
+The subroutine expects hashref instead of arrayref because:
+1. Indices (e.g. stories_id) should be unique, and the caller should be aware
+   of that.
+2. Data will be later returned as a set, i.e. the keys (indices) will be
+   unordered; the caller should expect that too.
+
+
+=head2 stories_arrayref_from_hashref($)
+
+ stories_arrayref_from_hashref($)();
+
+Creates an arrayref of stories from a hashref of stories (array of stories in any order)
+
+
+=head2 stories_hashref_from_arrayref($)
+
+ stories_hashref_from_arrayref($)();
+
+Creates a hashref of stories from an arrayref of stories (indexed by stories_id)
+
+
+
+=cut
+

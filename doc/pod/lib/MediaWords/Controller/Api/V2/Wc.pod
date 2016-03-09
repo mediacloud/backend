@@ -1,0 +1,44 @@
+=head1 NAME
+
+MediaWords::Controller::Api::V2::Wc
+
+
+=head1 REQUIRES
+
+L<MediaWords::Solr> 
+
+L<Carp> 
+
+L<List::Compare> 
+
+L<namespace::autoclean> 
+
+L<Moose> 
+
+L<List::Util> 
+
+L<JSON> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 IMPLEMENTS
+
+L<Catalyst::Controller> 
+
+
+=head1 METHODS
+
+=head2 list
+
+ $self->list();
+
+=head2 list_GET
+
+ $self->list_GET();
+
+
+=cut
+

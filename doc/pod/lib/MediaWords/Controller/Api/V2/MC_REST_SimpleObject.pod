@@ -1,0 +1,117 @@
+=head1 NAME
+
+lib/MediaWords/Controller/Api/V2/MC_REST_SimpleObject.pm - lib/MediaWords/Controller/Api/V2/MC_REST_SimpleObject.pm
+
+
+=head1 DESCRIPTION
+
+Default authentication action roles
+
+
+=head1 REQUIRES
+
+L<Carp> 
+
+L<Readonly> 
+
+L<List::Compare> 
+
+L<namespace::autoclean> 
+
+L<Moose> 
+
+L<List::Util> 
+
+L<JSON> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 IMPLEMENTS
+
+L<Catalyst::Controller::REST> 
+
+
+=head1 METHODS
+
+=head2 add_extra_data
+
+ $self->add_extra_data();
+
+=head2 default_output_fields
+
+ $self->default_output_fields();
+
+=head2 die_unless_user_can_edit_tag_set_descriptors
+
+ $self->die_unless_user_can_edit_tag_set_descriptors();
+
+=head2 die_unless_user_can_edit_tag_set_tag_descriptors
+
+ $self->die_unless_user_can_edit_tag_set_tag_descriptors();
+
+=head2 get_extra_where_clause
+
+ $self->get_extra_where_clause();
+
+=head2 get_name_search_clause
+
+ $self->get_name_search_clause();
+
+=head2 get_table_name
+
+ $self->get_table_name();
+
+=head2 has_extra_data
+
+ $self->has_extra_data();
+
+=head2 has_nested_data
+
+ $self->has_nested_data();
+
+=head2 list
+
+ $self->list();
+
+=head2 list_GET
+
+ $self->list_GET();
+
+=head2 list_api_requires_filter_field
+
+ $self->list_api_requires_filter_field();
+
+=head2 list_name_search_field
+
+ $self->list_name_search_field();
+
+=head2 list_optional_query_filter_field
+
+ $self->list_optional_query_filter_field();
+
+=head2 list_query_filter_field
+
+ $self->list_query_filter_field();
+
+=head2 order_by_clause
+
+ $self->order_by_clause();
+
+=head2 permissible_output_fields
+
+ $self->permissible_output_fields();
+
+=head2 single
+
+ $self->single();
+
+=head2 single_GET
+
+ $self->single_GET();
+
+
+=cut
+

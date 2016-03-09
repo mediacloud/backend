@@ -1,0 +1,44 @@
+=head1 NAME
+
+MediaWords::Controller::Api::V2::Downloads
+
+
+=head1 REQUIRES
+
+L<Carp> 
+
+L<List::Compare> 
+
+L<namespace::autoclean> 
+
+L<Moose> 
+
+L<List::Util> 
+
+L<JSON> 
+
+L<MediaWords::DBI::Downloads> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 IMPLEMENTS
+
+L<Catalyst::Controller> 
+
+
+=head1 METHODS
+
+=head2 get_table_name
+
+ $self->get_table_name();
+
+=head2 has_nested_data
+
+ $self->has_nested_data();
+
+
+=cut
+

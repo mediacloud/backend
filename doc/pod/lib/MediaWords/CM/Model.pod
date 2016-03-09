@@ -1,0 +1,166 @@
+=head1 NAME
+
+MediaWords::CM::Model
+
+
+=head1 DESCRIPTION
+
+code to generate models of controversy_dump_time_slices based on validation
+data about date, link extraction, and duplication error rates
+
+
+=head1 REQUIRES
+
+L<MediaWords::Util::Tags> 
+
+L<MediaWords::Util::SQL> 
+
+L<MediaWords::Util::Config> 
+
+L<MediaWords::CM::Dump> 
+
+L<Readonly> 
+
+L<Statistics::Basic> 
+
+L<POSIX> 
+
+L<List::Util> 
+
+
+=head1 METHODS
+
+=head2 get_all_models_top_media
+
+ get_all_models_top_media();
+
+run $config->{ mediawords }->{ controversy_model_reps } models and return a list of ordered lists
+of top_media, one list of top media for each model run
+
+
+=head2 get_medium_count_ranks
+
+ get_medium_count_ranks();
+
+given an ordered list of medium_counts, return a hash with the media_id of each
+as the key and the order in the list as the value
+
+
+=head2 get_model_correlation_p_value
+
+ get_model_correlation_p_value();
+
+given the size of two vectors and the r, return the p value for the correlation
+
+
+=head2 get_top_media_link_counts
+
+ get_top_media_link_counts();
+
+get the top $MODEL_PERCENT_TOP_MEDIA of media sources from the current dump by incoming links
+
+
+=head2 get_tweaked_story_date
+
+ get_tweaked_story_date();
+
+get the new story date according to our validation data of how dates
+are typically wrong
+
+
+=head2 model_confidence_data
+
+ model_confidence_data();
+
+generate a single model of the dump for the current time slice, tweaking
+various aspects of the data according to our validation numbers (for example
+changing X% of dates because we know that in general X% of our dates are wrong).
+Return an ordered list of the top media sources by incoming links.
+
+
+=head2 model_rank_within_error_interval
+
+ model_rank_within_error_interval();
+
+return true if the two ranks are within an arbitrary error interval of each other.  Assume a max
+rank of $max_rank for the $model_rank.
+
+
+=head2 print_model_matches
+
+ print_model_matches();
+
+return text output describing how the models matched (or didn't) with the clean data
+
+
+=head2 sample_guessed_date_stories
+
+ sample_guessed_date_stories();
+
+get random sample of stories with guessed dates according to $percent_sample
+
+
+=head2 tweak_dateable_stories
+
+ tweak_dateable_stories();
+
+change dated stories to be undateable based on our data on how many
+dated stories are undateable
+
+
+=head2 tweak_dateable_story
+
+ tweak_dateable_story();
+
+change a dateable story to an undateable one
+
+
+=head2 tweak_misdated_stories
+
+ tweak_misdated_stories();
+
+chagne the dates of stories according to our data of how often guess dates
+are wrong
+
+
+=head2 tweak_story_date
+
+ tweak_story_date();
+
+change the story date according to our validation data of how dates are
+typically wrong
+
+
+=head2 tweak_story_dates
+
+ tweak_story_dates();
+
+change the dates in the current dump to model the accuracy data form our validation tests
+
+
+=head2 tweak_undateable_stories
+
+ tweak_undateable_stories();
+
+change undateable stories to dateable ones according to our data
+on how many undateable stories are really dateable
+
+
+=head2 tweak_undateable_story
+
+ tweak_undateable_story();
+
+change an undateable story to a dateable one by deleting the date_guess_method:undateable tag
+
+
+=head2 update_model_correlation
+
+ update_model_correlation();
+
+generate and store the mean and sd of the correlations between the ranks
+of the top media of the clean data and of each of the models
+
+
+
+=cut
+

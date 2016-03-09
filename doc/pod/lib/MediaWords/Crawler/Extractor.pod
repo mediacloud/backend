@@ -1,0 +1,68 @@
+=head1 NAME
+
+MediaWords::Crawler::Extractor
+
+
+=head1 DESCRIPTION
+
+extract substantive new story text from html pages
+
+
+=head1 REQUIRES
+
+L<Carp> 
+
+L<HTML::CruftText> 
+
+L<Array::Compare> 
+
+L<List::MoreUtils> 
+
+L<Time::HiRes> 
+
+L<Text::Trim> 
+
+L<Text::Similarity::Overlaps> 
+
+L<MediaWords::Crawler::AnalyzeLines> 
+
+L<MediaWords::Crawler::HeuristicLineScoring> 
+
+L<MediaWords::Util::HTML> 
+
+L<HTML::Entities> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 heuristically_scored_lines($$$)
+
+ heuristically_scored_lines($$$)();
+
+=head2 preprocess
+
+ preprocess();
+
+METHODS
+
+
+=head2 print_time
+
+ print_time();
+
+=head2 score_lines($$$)
+
+ score_lines($$$)();
+
+given a reference to an html story (news, blog, etc), return just the substantive text.
+uses text to html density along with a variety of other metrics to pick substantive
+content vs. ads, navigation, and other affluvia
+
+
+
+=cut
+

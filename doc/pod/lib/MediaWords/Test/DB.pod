@@ -1,0 +1,96 @@
+=head1 NAME
+
+MediaWords::Test::DB
+
+
+=head1 DESCRIPTION
+
+database utility functions for testing.  includes functionality to run tests on a temporary db
+
+
+=head1 REQUIRES
+
+L<MediaWords::Util::Config> 
+
+L<MediaWords::Pg::Schema> 
+
+L<MediaWords::DB> 
+
+L<DBIx::Simple::MediaWords> 
+
+L<File::Path> 
+
+
+=head1 METHODS
+
+=head2 create_download_for_feed
+
+ create_download_for_feed();
+
+=head2 create_test_feed
+
+ create_test_feed();
+
+create test feed with a simple label belonging to $medium
+
+
+=head2 create_test_medium
+
+ create_test_medium();
+
+create test medium with a simple label
+
+
+=head2 create_test_story
+
+ create_test_story();
+
+create test story with a simple label belonging to $feed
+
+
+=head2 create_test_story_stack
+
+ create_test_story_stack();
+
+create structure of media, feeds, and stories from hash.
+given a hash in this form:
+my $data = {
+    A => {
+        B => [ 1, 2 ],
+        C => [ 4 ]
+    },
+};
+returns the list of media sources created, with a feeds field on each medium and
+a stories field on each field, all referenced by the given labels, in this form:
+{ A => {
+    $medium_a_hash,
+    feeds => {
+        B => {
+            $feed_b_hash,
+            stories => {
+                1 => { $story_1_hash },
+                2 => { $story_2_hash },
+            }
+        }
+    },
+  B => { $feed_b_hash },
+  1 => { $story_1_hash },
+  2 => { $story_2_hash }
+}
+
+so, for example, story 2 can be accessed in the return value as either
+  $data->{ A }->{ feeds }->{ B }->{ stories }->{ 2 }
+or simply as
+  $data->{ 2 }
+
+
+=head2 test_on_test_database
+
+ test_on_test_database();
+
+run the given function on a temporary, clean database
+
+
+
+=cut
+

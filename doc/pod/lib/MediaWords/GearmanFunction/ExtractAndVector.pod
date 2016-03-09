@@ -1,0 +1,70 @@
+=head1 NAME
+
+MediaWords::GearmanFunction::ExtractAndVector
+
+
+=head1 DESCRIPTION
+
+
+Extract and vector a download
+
+Start this worker script by running:
+
+./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/ExtractAndVector.pm
+
+
+
+=head1 REQUIRES
+
+L<MediaWords::Util::GearmanJobSchedulerConfiguration> 
+
+L<MediaWords::DBI::Downloads> 
+
+L<MediaWords::DB> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+L<lib> 
+
+L<FindBin> 
+
+L<Moose> 
+
+
+=head1 METHODS
+
+=head2 configuration()
+
+ configuration()();
+
+(Gearman::JobScheduler::AbstractFunction implementation) Return default configuration
+
+
+=head2 extract_for_crawler
+
+ extract_for_crawler();
+
+run extraction for the crawler. run in process of mediawords.extract_in_process is configured.
+keep retrying on enqueue error.
+
+
+=head2 run($$)
+
+ run($$)();
+
+extract , vector, and process the download or story; die() and / or return false on error
+
+
+=head2 unify_logs()
+
+ unify_logs()();
+
+write a single log because there are a lot of extraction jobs so it's
+impractical to log each job into a separate file
+
+
+
+=cut
+

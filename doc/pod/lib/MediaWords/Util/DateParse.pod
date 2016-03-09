@@ -1,0 +1,36 @@
+=head1 NAME
+
+MediaWords::Util::DateParse
+
+
+=head1 DESCRIPTION
+
+replacement of Date::Parse that fixes a bug that turns 2061 into 1961
+
+
+=head1 REQUIRES
+
+L<Date::Parse> 
+
+L<Exporter> 
+
+L<Time::Zone> 
+
+L<Carp> 
+
+L<Time::Local> 
+
+
+=head1 METHODS
+
+=head2 gen_parser
+
+ gen_parser();
+
+=head2 str2time
+
+ str2time();
+
+
+=cut
+

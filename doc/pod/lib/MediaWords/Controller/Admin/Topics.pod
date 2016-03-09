@@ -1,0 +1,46 @@
+=head1 NAME
+
+MediaWords::Controller::Admin::Topics
+
+
+=head1 DESCRIPTION
+
+list the possible word cloud topics
+
+
+=head1 REQUIRES
+
+L<DBIx::Simple> 
+
+L<URI::Escape> 
+
+L<parent> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 create_do
+
+ create_do();
+
+create a new topic
+
+
+=head2 index
+
+ index();
+
+=head2 list
+
+ list();
+
+list the possible word cloud topics
+
+
+
+=cut
+

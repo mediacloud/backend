@@ -1,0 +1,35 @@
+=head1 NAME
+
+MediaWords::Util::Paths
+
+
+=head1 DESCRIPTION
+
+According to a question on SO, this is a the safest way to get the directory of the current script.
+See http://stackoverflow.com/questions/84932/how-do-i-get-the-full-path-to-a-perl-script-that-is-executing
+
+
+=head1 REQUIRES
+
+L<File::Basename> 
+
+L<File::Spec> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 mc_root_path
+
+ mc_root_path();
+
+=head2 mc_script_path
+
+ mc_script_path();
+
+
+=cut
+

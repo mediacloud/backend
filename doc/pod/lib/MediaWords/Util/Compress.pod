@@ -1,0 +1,88 @@
+=head1 NAME
+
+MediaWords::Util::Compress
+
+
+=head1 DESCRIPTION
+
+Data compression / decompression helper package
+
+
+=head1 REQUIRES
+
+L<IO::Uncompress::Bunzip2> 
+
+L<IO::Compress::Bzip2> 
+
+L<IO::Uncompress::Gunzip> 
+
+L<IO::Compress::Gzip> 
+
+L<MediaWords::Util::Text> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 bunzip2($)
+
+ bunzip2($)();
+
+Bunzip2 data; die() on error
+
+
+=head2 bunzip2_and_decode($)
+
+ bunzip2_and_decode($)();
+
+Bunzip2 and decode data; die() on error
+
+
+=head2 bzip2($)
+
+ bzip2($)();
+
+Bzip2 data; die() on error
+
+
+=head2 encode_and_bzip2($)
+
+ encode_and_bzip2($)();
+
+Encode and Bzip2 data; die() on error
+
+
+=head2 encode_and_gzip($)
+
+ encode_and_gzip($)();
+
+Encode and Gzip data; die() on error
+
+
+=head2 gunzip($)
+
+ gunzip($)();
+
+Gunzip data; die() on error
+
+
+=head2 gunzip_and_decode($)
+
+ gunzip_and_decode($)();
+
+Gunzip and decode data; die() on error
+
+
+=head2 gzip($)
+
+ gzip($)();
+
+Gzip data; die() on error
+
+
+
+=cut
+

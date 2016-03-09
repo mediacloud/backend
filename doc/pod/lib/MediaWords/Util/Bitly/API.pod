@@ -1,0 +1,285 @@
+=head1 NAME
+
+MediaWords::Util::Bitly::API
+
+
+=head1 DESCRIPTION
+
+
+Bit.ly API helper
+
+
+
+=head1 REQUIRES
+
+L<Readonly> 
+
+L<DateTime::Duration> 
+
+L<DateTime> 
+
+L<Scalar::Defer> 
+
+L<Scalar::Util> 
+
+L<JSON> 
+
+L<URI::QueryParam> 
+
+L<URI> 
+
+L<MediaWords::Util::DateTime> 
+
+L<MediaWords::Util::JSON> 
+
+L<MediaWords::Util::Config> 
+
+L<MediaWords::Util::URL> 
+
+L<MediaWords::Util::Web> 
+
+L<MediaWords::Util::Process> 
+
+L<MediaWords::Util::Bitly> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 bitly_info($)
+
+ bitly_info($)();
+
+Query for a Bitlink information based on a Bit.ly IDs
+(http://dev.bitly.com/links.html#v3_info)
+
+Not to be confused with /v3/link/info (http://dev.bitly.com/data_apis.html#v3_link_info)!
+
+Params: Bit.ly IDs (arrayref) to query, e.g. ["1RmnUT"]
+
+Returns: hashref with link info results, e.g.:
+    {
+        "info": [
+            {
+                "hash": "1RmnUT",
+                "title": null,
+                "created_at": 1212926400,
+                "created_by": "bitly",
+                "global_hash": "1RmnUT",
+                "user_hash": "1RmnUT"
+            },
+            // ...
+        ]
+    };
+
+die()s on error
+
+
+=head2 bitly_info_hashref($)
+
+ bitly_info_hashref($)();
+
+Query for a Bitlink information based on a Bit.ly IDs
+(http://dev.bitly.com/links.html#v3_info)
+
+Not to be confused with /v3/link/info (http://dev.bitly.com/data_apis.html#v3_link_info)!
+
+Params: Bit.ly IDs (arrayref) to query, e.g. ["1RmnUT"]
+
+Returns: hashref with "Bit.ly ID => link info" pairs, e.g.:
+    {
+        "1RmnUT": {
+            "hash": "1RmnUT",
+            "title": null,
+            "created_at": 1212926400,
+            "created_by": "bitly",
+            "global_hash": "1RmnUT",
+            "user_hash": "1RmnUT"
+        },
+        "RmnUT" : undef,
+        # ...
+    };
+
+die()s on error
+
+
+=head2 bitly_link_clicks($;$$)
+
+ bitly_link_clicks($;$$)();
+
+Query for number of link clicks based on Bit.ly URL
+(http://dev.bitly.com/link_metrics.html#v3_link_clicks)
+
+Params:
+* Bit.ly ID (e.g. "QEH44r")
+* (optional) starting timestamp for which to query statistics
+* (optional) ending timestamp for which to query statistics
+
+Returns: hashref with click statistics, e.g.:
+    {
+        "link_clicks": [
+            {
+                "clicks": 1,
+                "dt": 1360299600
+            },
+            {
+                "clicks": 2,
+                "dt": 1360213200
+            },
+            {
+                "clicks": 2,
+                "dt": 1360126800
+            },
+            {
+                "clicks": 3,
+                "dt": 1360040400
+            },
+            {
+                "clicks": 10,
+                "dt": 1359954000
+            }
+        ],
+        "tz_offset": -5,
+        "unit": "day",
+        "unit_reference_ts": 1360351157,
+        "units": 5
+    };
+
+die()s on error
+
+
+=head2 bitly_link_lookup($)
+
+ bitly_link_lookup($)();
+
+Query for a Bitlinks based on a long URL
+(http://dev.bitly.com/links.html#v3_link_lookup)
+
+Params: URLs (arrayref) to query
+
+Returns: hashref with link lookup results, e.g.:
+    {
+        "link_lookup": [
+            {
+                "aggregate_link": "http://bit.ly/2V6CFi",
+                "link": "http://bit.ly/zhheQ9",
+                "url": "http://www.google.com/"
+            },
+            # ...
+        ]
+    };
+
+die()s on error
+
+
+=head2 bitly_link_lookup_hashref($)
+
+ bitly_link_lookup_hashref($)();
+
+Query for a Bitlinks based on a long URL
+(http://dev.bitly.com/links.html#v3_link_lookup)
+
+Params: URLs (arrayref) to query
+
+Returns: hashref with "URL => Bit.ly ID" pairs, e.g.:
+    {
+        'http://www.foxnews.com/us/2013/07/04/crowds-across-america-protest-nsa-in-restore-fourth-movement/' => '14VhXAj',
+        'http://feeds.foxnews.com/~r/foxnews/national/~3/bmilmNKlhLw/' => undef,
+        'http://www.foxnews.com/us/2013/07/04/crowds-across-america-protest-nsa-in-restore-fourth-movement/?utm_source=
+             feedburner&utm_medium=feed&utm_campaign=Feed%3A+foxnews%2Fnational+(Internal+-+US+Latest+-+Text)' => undef
+    };
+
+die()s on error
+
+
+=head2 bitly_link_lookup_hashref_all_variants($$)
+
+ bitly_link_lookup_hashref_all_variants($$)();
+
+Query for a Bitlinks based on a long URL
+(http://dev.bitly.com/links.html#v3_link_lookup); try multiple variants
+(normal, canonical, before redirects, after redirects)
+
+Params: URL to query
+
+Returns: hashref with "URL => Bit.ly ID" pairs, e.g.:
+    {
+        'http://www.foxnews.com/us/2013/07/04/crowds-across-america-protest-nsa-in-restore-fourth-movement/' => '14VhXAj',
+        'http://feeds.foxnews.com/~r/foxnews/national/~3/bmilmNKlhLw/' => undef,
+        'http://www.foxnews.com/us/2013/07/04/crowds-across-america-protest-nsa-in-restore-fourth-movement/?utm_source=
+             feedburner&utm_medium=feed&utm_campaign=Feed%3A+foxnews%2Fnational+(Internal+-+US+Latest+-+Text)' => undef
+    };
+
+die()s on error
+
+
+=head2 error_is_rate_limit_exceeded($)
+
+ error_is_rate_limit_exceeded($)();
+
+Given the error message ($@ after unsuccessful eval{}), determine whether the
+error is because of the exceeded Bit.ly rate limit
+
+
+=head2 fetch_stats_for_url($$$$)
+
+ fetch_stats_for_url($$$$)();
+
+Fetch URL statistics from Bit.ly API
+
+Params:
+* $db - database object
+* $url - URL
+* $start_timestamp - starting date (offset) for fetching statistics
+* $end_timestamp - ending date (limit) for fetching statistics
+
+Returns: hashref with statistics, e.g.:
+   {
+       'collection_timestamp' => 1409135396,
+       'data' => {
+           '1boI7Cn' => {
+               'clicks' => [
+                   {
+                       'link_clicks' => [
+                           {
+                               'clicks' => 0,
+                               'dt' => 1408492800
+                           },
+                           {
+                               'clicks' => 0,
+                               'dt' => 1408406400
+                           },
+                           ...
+                           {
+                               'clicks' => 0,
+                               'dt' => 1406937600
+                           }
+                       ],
+                       'unit' => 'day',
+                       'unit_reference_ts' => 1408492800,
+                       'tz_offset' => 0,
+                       'units' => 19
+                   }
+               ],
+               'referrers' => [
+                   {
+                       'unit' => 'day',
+                       'unit_reference_ts' => 1408492800,
+                       'referrers' => [],
+                       'tz_offset' => 0,
+                       'units' => 19
+                   }
+               ]
+           }
+       }
+   };
+
+die()s on error
+
+
+
+=cut
+

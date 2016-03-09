@@ -1,0 +1,32 @@
+=head1 NAME
+
+MediaWords::ActionRole::PublicApiKeyAuthenticated
+
+
+=head1 DESCRIPTION
+
+
+Action role that requires its actions to authenticate via API key
+
+
+
+=head1 REQUIRES
+
+L<HTTP::Status> 
+
+L<MediaWords::Util::Config> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+L<namespace::autoclean> 
+
+L<Moose::Role> 
+
+
+=head1 METHODS
+
+
+=cut
+

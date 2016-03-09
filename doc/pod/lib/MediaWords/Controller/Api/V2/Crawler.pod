@@ -1,0 +1,55 @@
+=head1 NAME
+
+MediaWords::Controller::Api::V2::Crawler
+
+
+=head1 DESCRIPTION
+
+Default authentication action roles
+
+
+=head1 REQUIRES
+
+L<MediaWords::Crawler::FeedHandler> 
+
+L<MediaWords::DBI::Downloads> 
+
+L<Carp> 
+
+L<List::Compare> 
+
+L<namespace::autoclean> 
+
+L<Moose> 
+
+L<List::Util> 
+
+L<utf8> 
+
+L<Encode> 
+
+L<JSON> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 IMPLEMENTS
+
+L<Catalyst::Controller::REST> 
+
+
+=head1 METHODS
+
+=head2 add_feed_download
+
+ $self->add_feed_download();
+
+=head2 add_feed_download_PUT
+
+ $self->add_feed_download_PUT();
+
+
+=cut
+

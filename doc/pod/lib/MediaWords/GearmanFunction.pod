@@ -1,0 +1,66 @@
+=head1 NAME
+
+MediaWords::GearmanFunction
+
+
+=head1 DESCRIPTION
+
+
+Superclass of all Media Cloud Gearman functions
+
+Provides:
+
+* default Media Cloud configuration for all Media Cloud Gearman jobs
+
+* helper subroutine gearman_is_enabled() to check whether or not Gearman is
+  configured in mediawords.yml and should be used
+
+* wrappers around enqueue_on_gearman() and run() subroutines that keep track
+  and permanently log the Gearman job status in the database (because
+  Gearman is unable to do that itself :-()
+
+
+
+=head1 REQUIRES
+
+L<MediaWords::Util::GearmanJobSchedulerConfiguration> 
+
+L<Gearman::JobScheduler> 
+
+L<MediaWords::Util::Config> 
+
+L<MediaWords::DB> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+L<Moose::Role> 
+
+
+=head1 METHODS
+
+=head2 configuration()
+
+ configuration()();
+
+(Gearman::JobScheduler::AbstractFunction implementation) Return default configuration
+
+
+=head2 gearman_is_enabled()
+
+ gearman_is_enabled()();
+
+(Media Cloud-only helper) Return 1 if Gearman is configured and enabled
+
+
+=head2 run($;$)
+
+ run($;$)();
+
+(Gearman::JobScheduler::AbstractFunction implementation) Run job
+
+
+
+=cut
+

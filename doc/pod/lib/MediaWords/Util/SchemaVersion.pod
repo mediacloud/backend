@@ -1,0 +1,22 @@
+=head1 NAME
+
+MediaWords::Util::SchemaVersion
+
+
+=head1 DESCRIPTION
+
+Utility function to determine a database schema version from a bunch of SQL commands
+
+
+=head1 REQUIRES
+
+
+=head1 METHODS
+
+=head2 schema_version_from_lines
+
+ schema_version_from_lines();
+
+
+=cut
+

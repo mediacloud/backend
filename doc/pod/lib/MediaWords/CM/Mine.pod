@@ -1,0 +1,763 @@
+=head1 NAME
+
+MediaWords::CM::Mine
+
+
+=head1 DESCRIPTION
+
+Mine through stories found for the given controversy and find all the links in each story.
+Find each link, try to find whether it matches any given story.  If it doesn't, create a
+new story.  Add that story's links to the queue if it matches the pattern for the
+controversy.  Write the resulting stories and links to controversy_stories and controversy_links.
+
+
+=head1 REQUIRES
+
+L<MediaWords::GearmanFunction::Bitly::EnqueueAllControversyStories> 
+
+L<MediaWords::Util::Bitly> 
+
+L<MediaWords::Util::Web> 
+
+L<MediaWords::Util::URL> 
+
+L<MediaWords::Util::Tags> 
+
+L<MediaWords::Util::SQL> 
+
+L<MediaWords::Util::HTML> 
+
+L<MediaWords::Solr> 
+
+L<MediaWords::DBI::Stories::GuessDate> 
+
+L<MediaWords::DBI::Stories> 
+
+L<MediaWords::DBI::Media> 
+
+L<MediaWords::DBI::Activities> 
+
+L<MediaWords::DB> 
+
+L<MediaWords::CM::GuessDate::Result> 
+
+L<MediaWords::CM::GuessDate> 
+
+L<URI::Escape> 
+
+L<URI::Split> 
+
+L<URI> 
+
+L<Readonly> 
+
+L<Parallel::ForkManager> 
+
+L<List::Util> 
+
+L<HTML::LinkExtractor> 
+
+L<Getopt::Long> 
+
+L<Encode> 
+
+L<DateTime> 
+
+L<Data::Dumper> 
+
+L<Carp> 
+
+
+=head1 METHODS
+
+=head2 add_link_weights
+
+ add_link_weights();
+
+increase the link_weight of each story to which this story links and recurse along links from those stories.
+the link_weight gets increment by ( 1 / path_depth ) so that stories further down along the link path
+get a smaller increment than more direct links.
+
+
+=head2 add_links_with_matching_stories
+
+ add_links_with_matching_stories();
+
+check whether each link has a matching story already in db.  if so, add
+that story to the controversy if it matches, otherwise add the link to the
+list of links to fetch.  return the list of links to fetch.
+
+
+=head2 add_medium_to_url_lookup
+
+ add_medium_to_url_lookup();
+
+add medium to media_url_lookup
+
+
+=head2 add_medium_url_to_ignore_redirects
+
+ add_medium_url_to_ignore_redirects();
+
+add the medium url to the controversy_ignore_redirects table
+
+
+=head2 add_missing_story_sentences
+
+ add_missing_story_sentences();
+
+add missing story sentences, but only do so once per runtime so that we don't repeatedly try
+to add sentences to stories with no sentences
+
+
+=head2 add_new_links
+
+ add_new_links();
+
+download any unmatched link in new_links, add it as a story, extract it, add any links to the controversy_links list.
+each hash within new_links can either be a controversy_links hash or simply a hash with a { url } field.  if
+the link is a controversy_links hash, the controversy_link will be updated in the database to point ref_stories_id
+to the new link story.  For each link, set the { story } field to the story found or created for the link.
+
+
+=head2 add_new_story
+
+ add_new_story();
+
+add a new story and download corresponding to the given link or existing story
+
+
+=head2 add_outgoing_foreign_rss_links
+
+ add_outgoing_foreign_rss_links();
+
+for each stories in aggregator stories that has the same url as a controversy story, add
+that story as a controversy story with a link to the matching controversy story
+
+
+=head2 add_redirect_links
+
+ add_redirect_links();
+
+fetch each link and add a { redirect_url } field if the
+{ url } field redirects to another url
+
+
+=head2 add_redirect_url_to_link
+
+ add_redirect_url_to_link();
+
+get the redirect url for the link, add it to the hash, and save it in the db
+
+
+=head2 add_redirect_urls_to_controversy_stories
+
+ add_redirect_urls_to_controversy_stories();
+
+make sure every controversy story has a redirect url, even if it is just the original url
+
+
+=head2 add_source_link_dates
+
+ add_source_link_dates();
+
+look for any stories in the controversy tagged with a date method of 'current_time' and
+assign each the earliest source link date if any source links exist
+
+
+=head2 add_to_controversy_stories
+
+ add_to_controversy_stories();
+
+add to controversy_stories table
+
+
+=head2 add_to_controversy_stories_and_links
+
+ add_to_controversy_stories_and_links();
+
+add story to controversy_stories table and mine for controversy_links
+
+
+=head2 add_to_controversy_stories_and_links_if_match
+
+ add_to_controversy_stories_and_links_if_match();
+
+if the story matches the controversy pattern, add it to controversy_stories and controversy_links
+
+
+=head2 add_to_controversy_stories_if_match
+
+ add_to_controversy_stories_if_match();
+
+add to controversy stories if the story is not already in the controversy and it
+assume_match is true or the story matches the controversy pattern
+
+
+=head2 cache_broken_story_downloads
+
+ cache_broken_story_downloads();
+
+make a pass through all broken stories caching any broken downloads
+using MediaWords::Util::Web::cache_link_downloads.  these will get
+fetched with Web::get_cached_link_download and then stored via
+MediaWords::DBI::Stories::fix_story_downloads_if_needed
+later in the process, but we have to cache the downloads now so that we can do the
+downloads in one big parallel job rather than one at a time.
+
+
+=head2 clone_story
+
+ clone_story();
+
+clone the given story, assigning the new media_id and copying over the download, extracted text, and so on
+
+
+=head2 create_download_for_new_story
+
+ create_download_for_new_story();
+
+create and return download object in database for the new story
+
+
+=head2 extract_download
+
+ extract_download();
+
+extract the story for the given download
+
+
+=head2 extract_stories
+
+ extract_stories();
+
+extract the stories in parallel by forking off extraction processes up $max_processes at a time
+
+
+=head2 find_and_merge_dup_stories
+
+ find_and_merge_dup_stories();
+
+look for duplicate stories within each media source and merge any duplicates into the
+story with the shortest title
+
+
+=head2 generate_controversy_links
+
+ generate_controversy_links();
+
+for each story, return a list of the links found in either the extracted html or the story description
+
+
+=head2 generate_link_weights
+
+ generate_link_weights();
+
+generate a link weight score for each cross media controversy_link
+by adding a point for each incoming link, then adding the some of the
+link weights of each link source divided by the ( iteration * 10 ) of the recursive
+weighting (so the first reweighting run will add 1/10 the weight of the sources,
+the second 1/20 of the weight of the sources, and so on)
+
+
+=head2 generate_medium_url_and_name_from_url
+
+ generate_medium_url_and_name_from_url();
+
+derive the url and a media source name from the given story's url
+
+
+=head2 generate_new_story_hash
+
+ generate_new_story_hash();
+
+generate a new story hash from the story content, an existing story, a link, and a medium.
+includes guessing the publish date.  return the story and the date guess method
+
+
+=head2 get_boingboing_links
+
+ get_boingboing_links();
+
+get links at end of boingboing link
+
+
+=head2 get_cached_medium_by_id
+
+ get_cached_medium_by_id();
+
+=head2 get_controversy_stories_by_medium
+
+ get_controversy_stories_by_medium();
+
+return hash of { $media_id => $stories } for the controversy
+
+
+=head2 get_dup_medium
+
+ get_dup_medium();
+
+recursively search for the medium pointed to by dup_media_id
+by the media_id medium.  return the first medium that does not have a dup_media_id.
+
+
+=head2 get_extracted_html
+
+ get_extracted_html();
+
+get the extracted html for the story.  fix the story downloads by redownloading
+as necessary
+
+
+=head2 get_first_download_content
+
+ get_first_download_content();
+
+get the html for the first download of the story.  fix the story download by redownloading
+as necessary
+
+
+=head2 get_links_from_html
+
+ get_links_from_html();
+
+return a list of all links that appear in the html
+
+
+=head2 get_links_from_story
+
+ get_links_from_story();
+
+find any links in the extracted html or the description of the story.
+
+
+=head2 get_links_from_story_text
+
+ get_links_from_story_text();
+
+get all urls that appear in the text or description of the story using a simple kludgy regex
+
+
+=head2 get_matching_story_from_db
+
+ get_matching_story_from_db();
+
+look for a story matching the link stories_id, url,  in the db
+
+
+=head2 get_merged_iteration
+
+ get_merged_iteration();
+
+get the smaller iteration of the two stories
+
+
+=head2 get_new_story_date
+
+ get_new_story_date();
+
+get a date for a new story by trying each of the following, in this order:
+* assigning a date from the merged old story,
+* guessing the date using MediaWords::CM::GuessDate,
+* assigning the date of the source link, or
+* assigning the current date
+
+
+=head2 get_preferred_story
+
+ get_preferred_story();
+
+given a set of possible story matches, find the story that is likely the best.
+the best story is the one that sorts first according to the following criteria,
+in descending order of importance:
+* media pointed to by some dup_media_id;
+* media with a dup_media_id;
+* media whose url domain matches that of the story;
+* media with a lower media_id
+
+
+=head2 get_redirect_url_lookup
+
+ get_redirect_url_lookup();
+
+get lookup hash with the normalized url as the key for the
+the controversy_links or controversy_seed_urls associated with the
+given story and controversy
+
+
+=head2 get_spider_feed
+
+ get_spider_feed();
+
+get the first feed found for the given medium
+
+
+=head2 get_spider_medium
+
+ get_spider_medium();
+
+return a spider specific media_id for each story.  create a new spider specific medium
+based on the domain of the story url
+
+
+=head2 get_spidered_tag
+
+ get_spidered_tag();
+
+lookup or create the spidered:spidered tag
+
+
+=head2 get_stories_to_extract
+
+ get_stories_to_extract();
+
+given the list of links, add any stories that might match the controversy (by matching against url
+and raw html) and return that list of stories, none of which have been extracted
+
+
+=head2 get_stories_with_sources
+
+ get_stories_with_sources();
+
+get stories with a { source_stories } field that is a list
+of links to stories linking to that story
+
+
+=head2 get_story_field_from_url_table
+
+ get_story_field_from_url_table();
+
+get the field pointing to the stories table from
+one of the below controversy url tables
+
+
+=head2 get_story_original_urls
+
+ get_story_original_urls();
+
+a list of all original urls that were redirected to the url for the given story
+along with the controversy in which that url was found, returned as a list
+of hashes with the fields { url, controversies_id, controversy_name }
+
+
+=head2 get_unique_medium_name
+
+ get_unique_medium_name();
+
+make sure that the medium_name is unique so that we can insert it without causing an unique key error
+
+
+=head2 get_unique_medium_url
+
+ get_unique_medium_url();
+
+make sure that the url is unique so that we can insert it without causing an unique key error
+
+
+=head2 get_url_alias_lookup
+
+ get_url_alias_lookup();
+
+build a lookup table of aliases for a url based on url and redirect_url fields in the
+controversy_links
+
+
+=head2 get_youtube_embed_links
+
+ get_youtube_embed_links();
+
+parse the full first download of the given story for youtube embeds
+
+
+=head2 ignore_redirect
+
+ ignore_redirect();
+
+return true if we should ignore redirects to the target media source, usually
+to avoid redirects to domainresellers for previously valid and important but now dead
+links
+
+
+=head2 import_seed_urls
+
+ import_seed_urls();
+
+import all controversy_seed_urls that have not already been processed
+
+
+=head2 import_solr_seed_query
+
+ import_solr_seed_query();
+
+import stories intro controversy_seed_urls from solr by running
+controversy->{ solr_seed_query } against solr.  if the solr query has
+already been imported, do nothing.
+
+
+=head2 lookup_medium_by_url
+
+ lookup_medium_by_url();
+
+lookup medium by a sanitized url.  For media with dup_media_id set, return the
+dup_media_id medium rather than the medium itself.
+
+
+=head2 medium_domain_matches_url
+
+ medium_domain_matches_url();
+
+return true if the domain of the source story medium url is found in the target story url
+
+
+=head2 merge_archive_is_stories
+
+ merge_archive_is_stories();
+
+merge all stories belonging to the 'archive.is' medium into the linked domain media
+
+
+=head2 merge_archive_is_story
+
+ merge_archive_is_story();
+
+given a story in archive_is, find the destination domain and merge into the associated medium
+
+
+=head2 merge_dup_media_stories
+
+ merge_dup_media_stories();
+
+merge all stories belonging to dup_media_id media to the dup_media_id in the current controversy
+
+
+=head2 merge_dup_media_story
+
+ merge_dup_media_story();
+
+given a story in a dup_media_id medium, look for or create a story in the medium pointed to by dup_media_id
+
+
+=head2 merge_dup_medium_all_controversies
+
+ merge_dup_medium_all_controversies();
+
+mark delete_medium as a dup of keep_medium and merge
+all stories from all controversies in delete_medium into
+keep_medium
+
+
+=head2 merge_dup_stories
+
+ merge_dup_stories();
+
+given a list of stories, keep the story with the shortest title and
+merge the other stories into that story
+
+
+=head2 merge_dup_story
+
+ merge_dup_story();
+
+merge delete_story into keep_story by making sure all links that are in delete_story are also in keep_story
+and making sure that keep_story is in controversy_stories.  once done, delete delete_story from controversy_stories (but not
+from stories)
+
+
+=head2 merge_foreign_rss_stories
+
+ merge_foreign_rss_stories();
+
+find all controversy stories with a foreign_rss_links medium and merge each story
+into a different medium unless the story's url domain matches that of the existing
+medium.
+
+
+=head2 merge_foreign_rss_story
+
+ merge_foreign_rss_story();
+
+if the given story's url domain does not match the url domain of the story,
+merge the story into another medium
+
+
+=head2 mine_controversy
+
+ mine_controversy();
+
+mine the given controversy for links and to recursively discover new stories on the web.
+options:
+  import_only - only run import_seed_urls and import_solr_seed and exit
+  cache_broken_downloads - speed up fixing broken downloads, but add time if there are no broken downloads
+  skip_outgoing_foreign_rss_links - skip slow process of adding links from foreign_rss_links media
+
+
+=head2 mine_controversy_stories
+
+ mine_controversy_stories();
+
+mine for links any stories in controversy_stories for this controversy that have not already been mined
+
+
+=head2 pick_first_matched_story
+
+ pick_first_matched_story();
+
+get the story in pick_list that appears first in ref_list
+
+
+=head2 potential_story_matches_controversy_pattern
+
+ potential_story_matches_controversy_pattern();
+
+test whether the url or content of a potential story matches the controversy pattern
+
+
+=head2 remove_story_from_controversy($$$)
+
+ remove_story_from_controversy($$$)();
+
+remove the given story from the given controversy
+
+
+=head2 run_spider
+
+ run_spider();
+
+run the spider over any new links, for $num_iterations iterations
+
+
+=head2 safely_create_story
+
+ safely_create_story();
+
+wrap create story in eval
+
+
+=head2 set_controversy_link_ref_story
+
+ set_controversy_link_ref_story();
+
+=head2 set_controversy_ref_story
+
+ set_controversy_ref_story();
+
+if the ref_stories_id for the controversy_link story and controversy does not
+exist, set ref_stories_id the controversy_link to the ref_story.  If it already
+exists, delete the link
+
+
+=head2 skip_controversy_story
+
+ skip_controversy_story();
+
+return true if this story is already a controversy story or
+if the story should be skipped for being a self linked story (see skup_self_linked_story())
+
+
+=head2 spider_new_links
+
+ spider_new_links();
+
+find any links for the controversy of this iteration or less that have not already been spidered
+and call add_new_links on them.
+
+
+=head2 story_download_text_matches_pattern
+
+ story_download_text_matches_pattern();
+
+return true if any of the download_texts for the story matches the controversy search pattern
+
+
+=head2 story_has_download_text
+
+ story_has_download_text();
+
+=head2 story_is_controversy_story
+
+ story_is_controversy_story();
+
+return true if the story is already in controversy_stories
+
+
+=head2 story_matches_controversy_pattern
+
+ story_matches_controversy_pattern();
+
+return the type of match if the story title, url, description, or sentences match controversy search pattern.
+return undef if no match is found.
+
+
+=head2 story_media_has_full_text_rss
+
+ story_media_has_full_text_rss();
+
+return true if the media the story belongs to has full_text_rss set to true
+
+
+=head2 story_sentence_matches_pattern
+
+ story_sentence_matches_pattern();
+
+return true if any of the story_sentences with no duplicates for the story matches the controversy search pattern
+
+
+=head2 story_within_controversy_date_range
+
+ story_within_controversy_date_range();
+
+return true if the publish date of the story is within 7 days of the controversy date range or if the
+story is undateable
+
+
+=head2 translate_pattern_to_perl
+
+ translate_pattern_to_perl();
+
+translate postgres word break patterns ([[:<>:]]) into perl (\b)
+
+
+=head2 unredirect_story
+
+ unredirect_story();
+
+reprocess the urls that redirected into the given story.
+$urls should be a list of hashes with the following fields:
+url, assume_match, manual_redirect
+if assume_match is true, assume that the story created from the
+url matches the controversy.  If manual_redirect is set, manually
+set the redirect_url to the value (for manually inputting redirects
+for dead links).
+
+
+=head2 unredirect_story_url
+
+ unredirect_story_url();
+
+set the given controversy_links or controversy_seed_urls to point to the given story
+
+
+=head2 update_controversy_tags
+
+ update_controversy_tags();
+
+reset the "controversy_< name >:all" tag to point to all stories in controversy_stories
+
+
+=head2 url_failed_potential_match
+
+ url_failed_potential_match();
+
+return true if this url already failed a potential match, so we don't have to download it again
+
+
+=head2 valid_date_parts
+
+ valid_date_parts();
+
+return true if the args are valid date arguments.  assume a date has to be between 2000 and 2040.
+
+
+
+=cut
+

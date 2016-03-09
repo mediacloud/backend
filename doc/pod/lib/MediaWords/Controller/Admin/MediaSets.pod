@@ -1,0 +1,61 @@
+=head1 NAME
+
+MediaWords::Controller::Admin::MediaSets
+
+
+=head1 DESCRIPTION
+
+list all media_sets with a set_type of collection
+
+we just the collection type b/c the medium type type sets are created
+automagically from the collection type
+
+
+=head1 REQUIRES
+
+L<parent> 
+
+L<MediaWords::DBI::MediaSets> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 create
+
+ create();
+
+create a new media_set of set_type collection
+
+
+=head2 create_collection_media_set
+
+ create_collection_media_set();
+
+create a collection media_set with attendant medium media_sets as well as the
+media_set_media_map entries for the media_sets and for its medium media set children
+
+
+=head2 create_medium_media_set
+
+ create_medium_media_set();
+
+create a medium media_set for the given medium if it does not already exist
+
+
+=head2 list
+
+ list();
+
+list all media_sets with a set_type of collection
+
+we just the collection type b/c the medium type type sets are created
+automagically from the collection type
+
+
+
+=cut
+

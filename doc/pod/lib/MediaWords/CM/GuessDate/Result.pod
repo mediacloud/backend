@@ -1,0 +1,24 @@
+=head1 NAME
+
+MediaWords::CM::GuessDate::Result
+
+
+=head1 DESCRIPTION
+
+Date was found (page was dated)
+
+
+=head1 REQUIRES
+
+L<Readonly> 
+
+
+=head1 METHODS
+
+=head2 new
+
+ $self->new();
+
+
+=cut
+

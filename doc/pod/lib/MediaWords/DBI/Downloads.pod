@@ -1,0 +1,96 @@
+=head1 NAME
+
+MediaWords::DBI::Downloads
+
+
+=head1 DESCRIPTION
+
+Database inline content length limit
+
+
+=head1 REQUIRES
+
+L<MediaWords::Util::ThriftExtractor> 
+
+L<MediaWords::GearmanFunction::AnnotateWithCoreNLP> 
+
+L<MediaWords::Util::HeuristicExtractor> 
+
+L<MediaWords::Util::ExtractorFactory> 
+
+L<MediaWords::Util::Paths> 
+
+L<MediaWords::StoryVectors> 
+
+L<MediaWords::DBI::Stories> 
+
+L<MediaWords::DBI::DownloadTexts> 
+
+L<MediaWords::DB> 
+
+L<MediaWords::Util::HTML> 
+
+L<MediaWords::Util::Config> 
+
+L<MediaWords::Crawler::Extractor> 
+
+L<Readonly> 
+
+L<Scalar::Defer> 
+
+L<Carp> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 download_successful
+
+ download_successful();
+
+=head2 extract($$)
+
+ extract($$)();
+
+=head2 extract_and_create_download_text(
+
+ extract_and_create_download_text(();
+
+=head2 extract_preprocessed_lines_for_story($$$)
+
+ extract_preprocessed_lines_for_story($$$)();
+
+=head2 fetch_content($$)
+
+ fetch_content($$)();
+
+=head2 fetch_preprocessed_content_lines($$)
+
+ fetch_preprocessed_content_lines($$)();
+
+=head2 get_media_id($$)
+
+ get_media_id($$)();
+
+=head2 get_medium($$)
+
+ get_medium($$)();
+
+=head2 process_download_for_extractor($$$;$$$)
+
+ process_download_for_extractor($$$;$$$)();
+
+=head2 process_download_for_extractor_and_record_error
+
+ process_download_for_extractor_and_record_error();
+
+=head2 store_content($$$)
+
+ store_content($$$)();
+
+
+=cut
+

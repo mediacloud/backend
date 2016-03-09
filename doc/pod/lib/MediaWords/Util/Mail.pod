@@ -1,0 +1,37 @@
+=head1 NAME
+
+MediaWords::Util::Mail
+
+
+=head1 DESCRIPTION
+
+
+Email sending helper
+
+
+
+=head1 REQUIRES
+
+L<Email::Sender::Simple> 
+
+L<Email::MIME> 
+
+L<MediaWords::Util::Config> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 send($$$;$)
+
+ send($$$;$)();
+
+Send email to someone; returns 1 on success, 0 on failure
+
+
+
+=cut
+

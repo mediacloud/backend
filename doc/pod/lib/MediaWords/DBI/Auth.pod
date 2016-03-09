@@ -1,0 +1,236 @@
+=head1 NAME
+
+MediaWords::DBI::Auth
+
+
+=head1 DESCRIPTION
+
+
+Authentication helpers
+
+
+
+=head1 REQUIRES
+
+L<Readonly> 
+
+L<Data::Dumper> 
+
+L<Net::IP> 
+
+L<URI::Escape> 
+
+L<POSIX> 
+
+L<Crypt::SaltedHash> 
+
+L<Digest::SHA> 
+
+L<MediaWords::Util::Text> 
+
+L<MediaWords::Util::Mail> 
+
+L<MediaWords::Util::Config> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 activate_user_via_token_or_return_error_message($$$)
+
+ activate_user_via_token_or_return_error_message($$$)();
+
+Change password with a password token sent by email; returns error message on failure, empty string on success
+
+
+=head2 add_user_or_return_error_message($$$$$$$$$;$$)
+
+ add_user_or_return_error_message($$$$$$$$$;$$)();
+
+Add new user; $role_ids is a arrayref to an array of role IDs; returns error message on error, empty string on success
+
+
+=head2 all_user_roles($)
+
+ all_user_roles($)();
+
+Fetch a list of available user roles
+
+
+=head2 all_users($)
+
+ all_users($)();
+
+Fetch and return a list of users and their roles; returns an arrayref
+
+
+=head2 change_password_via_profile_or_return_error_message($$$$$)
+
+ change_password_via_profile_or_return_error_message($$$$$)();
+
+Change password by entering old password; returns error message on failure, empty string on success
+
+
+=head2 change_password_via_token_or_return_error_message($$$$$)
+
+ change_password_via_token_or_return_error_message($$$$$)();
+
+Change password with a password token sent by email; returns error message on failure, empty string on success
+
+
+=head2 default_weekly_requested_items_limit($)
+
+ default_weekly_requested_items_limit($)();
+
+Get default weekly requested items limit
+
+
+=head2 default_weekly_requests_limit($)
+
+ default_weekly_requests_limit($)();
+
+Get default weekly request limit
+
+
+=head2 delete_user_or_return_error_message($$)
+
+ delete_user_or_return_error_message($$)();
+
+Delete user; returns error message on error, empty string on success
+
+
+=head2 generate_secure_hash($)
+
+ generate_secure_hash($)();
+
+Hash a secure hash (password / password reset token) with Crypt::SaltedHash;
+return hash on success, empty string on error
+
+
+=head2 get_request_ip_address($)
+
+ get_request_ip_address($)();
+
+get the ip address of the given catalyst request, using the x-forwarded-for header
+if present and ip address is localhost
+
+
+=head2 password_hash_is_valid($$)
+
+ password_hash_is_valid($$)();
+
+Validate a password / password token with Crypt::SaltedHash; return 1 on success, 0 on error
+
+
+=head2 post_successful_login($$)
+
+ post_successful_login($$)();
+
+Post-successful login database tasks
+
+
+=head2 post_unsuccessful_login($$)
+
+ post_unsuccessful_login($$)();
+
+Post-unsuccessful login database tasks
+
+
+=head2 regenerate_api_token_or_return_error_message($$)
+
+ regenerate_api_token_or_return_error_message($$)();
+
+Regenerate API token
+
+
+=head2 role_id_for_role($$)
+
+ role_id_for_role($$)();
+
+Fetch a user role's ID for a role; returns 0 if no such role was found
+
+
+=head2 roles_exempt_from_user_limits()
+
+ roles_exempt_from_user_limits()();
+
+User roles that are not limited by the weekly requests / requested items limits
+
+
+=head2 send_password_reset_token_or_return_error_message($$$;$)
+
+ send_password_reset_token_or_return_error_message($$$;$)();
+
+Prepare for password reset by emailing the password reset token; returns error
+message on failure, empty string on success
+
+
+=head2 update_user_or_return_error_message($$$$$$;$$$$$)
+
+ update_user_or_return_error_message($$$$$$;$$$$$)();
+
+Update an existing user; returns error message on error, empty string on success
+($password and $password_repeat are optional; if not provided, the password will not be changed)
+
+
+=head2 user_auth($$)
+
+ user_auth($$)();
+
+Fetch a hash of basic user information, password hash and an array of assigned roles.
+Fetches both active and deactivated users; checking whether or not the user is active is left to the controller.
+Returns 0 on error.
+This subroutine is used by Catalyst::Authentication::Store::MediaWords for authenticating users
+
+
+=head2 user_for_api_token($$)
+
+ user_for_api_token($$)();
+
+Fetch a hash of basic user information and an array of assigned roles based on the API token.
+Only active users are fetched.
+Returns 0 on error
+
+
+=head2 user_for_api_token_catalyst($)
+
+ user_for_api_token_catalyst($)();
+
+Same as above, just with the Catalyst's $c object
+
+
+=head2 user_info($$)
+
+ user_info($$)();
+
+Fetch a hash of basic user information (email, full name, notes); returns 0 on error
+
+
+=head2 user_is_trying_to_login_too_soon($$)
+
+ user_is_trying_to_login_too_soon($$)();
+
+Check if user is trying to log in too soon after last unsuccessful attempt to do that
+Returns 1 if too soon, 0 otherwise
+
+
+=head2 validate_password_requirements_or_return_error_message($$$)
+
+ validate_password_requirements_or_return_error_message($$$)();
+
+Check if password fits the requirements; returns empty string on valid password, error message on invalid password
+
+
+=head2 validate_password_reset_token($$$)
+
+ validate_password_reset_token($$$)();
+
+Validate password reset token; returns 1 if token exists and is valid, 0 otherwise
+
+
+
+=cut
+

@@ -1,0 +1,28 @@
+=head1 NAME
+
+MediaWords::ApiClient
+
+
+=head1 DESCRIPTION
+
+Wrapper library to allow using the Python API Client from Perl.
+
+
+=head1 REQUIRES
+
+L<Inline> 
+
+L<Inline> 
+
+L<Data::Dumper> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+
+=cut
+

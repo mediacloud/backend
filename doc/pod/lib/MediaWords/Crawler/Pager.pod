@@ -1,0 +1,33 @@
+=head1 NAME
+
+MediaWords::Crawler::Pager
+
+
+=head1 DESCRIPTION
+
+given a full url, get the base directory
+so http://foo.bar/foobar/foo/bar?foo=bar returns http://foo.bar/foobar/foo
+
+
+=head1 REQUIRES
+
+L<URI::URL> 
+
+L<URI::Split> 
+
+L<HTML::Entities> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 get_next_page_url
+
+ get_next_page_url();
+
+
+=cut
+

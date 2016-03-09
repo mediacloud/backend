@@ -1,0 +1,61 @@
+=head1 NAME
+
+MediaWords::Util::HTML
+
+
+=head1 DESCRIPTION
+
+various functions for manipulating html
+
+
+=head1 REQUIRES
+
+L<Text::Trim> 
+
+L<Tie::Cache> 
+
+L<Memoize> 
+
+L<List::Util> 
+
+L<Encode> 
+
+L<Devel::Peek> 
+
+L<HTML::Entities> 
+
+L<HTML::StripPP> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 contains_block_level_tags
+
+ contains_block_level_tags();
+
+=head2 html_strip($)
+
+ html_strip($)();
+
+provide a procedural interface to HTML::Strip.
+use HTML::StripPP instead of HTML::Strip b/c HTML::Strip mucks up the encoding
+
+
+=head2 html_title($$;$)
+
+ html_title($$;$)();
+
+parse the content for tags that might indicate the story's title
+
+
+=head2 new_lines_around_block_level_tags
+
+ new_lines_around_block_level_tags();
+
+
+=cut
+

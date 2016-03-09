@@ -1,0 +1,162 @@
+=head1 NAME
+
+MediaWords::DBI::Stories
+
+
+=head1 DESCRIPTION
+
+Take note of the old tags
+
+
+=head1 REQUIRES
+
+L<List::Compare> 
+
+L<MediaWords::StoryVectors> 
+
+L<MediaWords::Languages::Language> 
+
+L<MediaWords::DBI::Stories::ExtractorVersion> 
+
+L<MediaWords::DBI::Downloads> 
+
+L<MediaWords::Util::Bitly::Schedule> 
+
+L<MediaWords::Util::URL> 
+
+L<MediaWords::Util::Tags> 
+
+L<MediaWords::Util::Config> 
+
+L<MediaWords::Util::Web> 
+
+L<MediaWords::Util::HTML> 
+
+L<HTML::Entities> 
+
+L<Encode> 
+
+L<Carp> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 add_missing_story_sentences
+
+ add_missing_story_sentences();
+
+=head2 attach_story_data_to_stories
+
+ attach_story_data_to_stories();
+
+=head2 attach_story_meta_data_to_stories
+
+ attach_story_meta_data_to_stories();
+
+=head2 combine_story_title_description_text($$$)
+
+ combine_story_title_description_text($$$)();
+
+=head2 download_is_broken($$)
+
+ download_is_broken($$)();
+
+=head2 extract_and_process_story
+
+ extract_and_process_story();
+
+=head2 fetch_content($$)
+
+ fetch_content($$)();
+
+=head2 fix_story_downloads_if_needed
+
+ fix_story_downloads_if_needed();
+
+=head2 get_all_sentences
+
+ get_all_sentences();
+
+=head2 get_broken_download_content
+
+ get_broken_download_content();
+
+=head2 get_content_for_first_download($$)
+
+ get_content_for_first_download($$)();
+
+=head2 get_db_module_tags
+
+ get_db_module_tags();
+
+=head2 get_existing_tags
+
+ get_existing_tags();
+
+=head2 get_existing_tags_as_string
+
+ get_existing_tags_as_string();
+
+=head2 get_extracted_html_from_db
+
+ get_extracted_html_from_db();
+
+=head2 get_extracted_text
+
+ get_extracted_text();
+
+=head2 get_first_download
+
+ get_first_download();
+
+=head2 get_medium_dup_stories_by_guid
+
+ get_medium_dup_stories_by_guid();
+
+=head2 get_medium_dup_stories_by_title
+
+ get_medium_dup_stories_by_title();
+
+=head2 get_medium_dup_stories_by_url
+
+ get_medium_dup_stories_by_url();
+
+=head2 get_text
+
+ get_text();
+
+=head2 get_text_for_word_counts
+
+ get_text_for_word_counts();
+
+=head2 is_fully_extracted
+
+ is_fully_extracted();
+
+=head2 is_new
+
+ is_new();
+
+=head2 mark_as_processed($$)
+
+ mark_as_processed($$)();
+
+=head2 process_extracted_story
+
+ process_extracted_story();
+
+=head2 restore_download_content
+
+ restore_download_content();
+
+=head2 update_rss_full_text_field
+
+ update_rss_full_text_field();
+
+
+=cut
+

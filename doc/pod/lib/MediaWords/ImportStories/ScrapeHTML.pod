@@ -1,0 +1,53 @@
+=head1 NAME
+
+MediaWords::ImportStories::ScrapeHTML
+
+
+=head1 DESCRIPTION
+
+scrape stories using MediaWords::ScrapeStories by scraping html
+
+in addition to ImportStories options, new accepts the following options:
+
+* start_url - the url to start scraping from
+* page_url_patern - regex for pages to add to the scraping queue
+* story_url_pattern - regex for pages to add as stories
+
+This scraper recursively downloads pages matching page_url_pattern.  For each such page, it finds all urls matching
+story_url_pattern and adds each as a story candidate.
+
+
+=head1 REQUIRES
+
+L<MediaWords::Util::Web> 
+
+L<MediaWords::Util::URL> 
+
+L<MediaWords::Util::Config> 
+
+L<List::MoreUtils> 
+
+L<HTML::LinkExtractor> 
+
+L<Data::Dumper> 
+
+L<CHI> 
+
+L<Moose> 
+
+
+=head1 METHODS
+
+=head2 get_new_stories
+
+ get_new_stories();
+
+start with start_url; for each url, download that url, add any urls that match story_url_pattern to the
+story url list, add any urls that match page_url_pattern to the queue to repeat this process. once we have
+all of the story urls, download each story url and return the list of stories.  only return stories
+between start_date and end_date
+
+
+
+=cut
+

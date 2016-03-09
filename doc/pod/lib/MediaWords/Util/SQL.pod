@@ -1,0 +1,74 @@
+=head1 NAME
+
+MediaWords::Util::SQL
+
+
+=head1 DESCRIPTION
+
+misc utility functions for sql
+
+
+=head1 REQUIRES
+
+L<Time::Local> 
+
+L<DateTime::Format::Pg> 
+
+L<DateTime> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 get_days_clause
+
+ get_days_clause();
+
+in many cases, querying a date field with an in() clause with individual dates
+is much faster than using date >= $start_date and < $end_date
+
+
+=head2 get_epoch_from_sql_date
+
+ get_epoch_from_sql_date();
+
+given a date in the sql format 'YYYY-MM-DD', return the epoch time
+
+
+=head2 get_ids_in_list
+
+ get_ids_in_list();
+
+given a ref to a list of ids, return a list suitable
+for including in a query as an in list, eg:
+1,2,3,4
+
+
+=head2 get_sql_date_from_epoch
+
+ get_sql_date_from_epoch();
+
+=head2 increment_day
+
+ increment_day();
+
+given a date in the sql format 'YYYY-MM-DD', increment it by $days days
+
+
+=head2 increment_to_monday
+
+ increment_to_monday();
+
+given a date in sql format 'YYYY-MM-DD', increment it to the current or next monday
+
+
+=head2 sql_now
+
+ sql_now();
+
+
+=cut
+

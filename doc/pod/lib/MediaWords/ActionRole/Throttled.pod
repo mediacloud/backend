@@ -1,0 +1,32 @@
+=head1 NAME
+
+MediaWords::ActionRole::Throttled
+
+
+=head1 DESCRIPTION
+
+
+Action role that limits (API) requests
+
+
+
+=head1 REQUIRES
+
+L<HTTP::Status> 
+
+L<List::MoreUtils> 
+
+L<namespace::autoclean> 
+
+L<Moose::Role> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+
+=cut
+

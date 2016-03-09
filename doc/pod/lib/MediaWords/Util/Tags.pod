@@ -1,0 +1,91 @@
+=head1 NAME
+
+MediaWords::Util::Tags
+
+
+=head1 DESCRIPTION
+
+TODO replace YAML::Syck with another module
+
+
+=head1 REQUIRES
+
+L<YAML::Syck> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 assign_tag_names
+
+ assign_tag_names();
+
+given a list of hashes with { tags_id } fields, use lookup_tag_name to add a { tag_name } field
+
+
+=head2 get_tags_lookup
+
+ get_tags_lookup();
+
+return a hash with keys of each tag id associated with the object
+
+
+=head2 lookup_or_create_tag
+
+ lookup_or_create_tag();
+
+lookup the tag given the tag_set:tag format.  create it if it does not already exist
+
+
+=head2 lookup_or_create_tag_set
+
+ lookup_or_create_tag_set();
+
+lookup the tag_set given.  create it if it does not already exist
+
+
+=head2 lookup_tag
+
+ lookup_tag();
+
+lookup the tag given the tag_set:tag format
+
+
+=head2 lookup_tag_name
+
+ lookup_tag_name();
+
+given a tag id, lookup the tag name in the tag_set:tag format
+
+
+=head2 make_edit_tags_form
+
+ make_edit_tags_form();
+
+make edit tags form in real time by running yml template through template toolkit
+
+
+=head2 save_tags
+
+ save_tags();
+
+save tag info for the given object (medium or feed) from edit_tags form.  return list of
+tag ids, including ids of any new tags created.  if no object is given, just create
+any new tags indicated,  if $append is true, append tags to existing ones
+
+
+=head2 save_tags_by_name
+
+ save_tags_by_name();
+
+save tag info for the given object (medium or feed) from a space separated list of tag names.
+oid is the object id (eg the media_id), and table is the name of the table for which to save
+the tag associations (eg media).
+
+
+
+=cut
+

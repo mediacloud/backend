@@ -1,0 +1,48 @@
+=head1 NAME
+
+MediaWords::Util::Colors
+
+
+=head1 DESCRIPTION
+
+util functions that help dealing with colors, including color pallette generation
+
+
+=head1 REQUIRES
+
+L<Color::Mix> 
+
+L<Color::Mix> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 get_colors
+
+ get_colors();
+
+return a pallete of $num_colors distinct colors.  if format is 'rgb()', return in rgb() format, otherwise return in hex format.
+
+
+=head2 get_consistent_color
+
+ get_consistent_color();
+
+return the same color for the same set / id combination every time this function
+is called
+
+
+=head2 get_rgbp_format
+
+ get_rgbp_format();
+
+accept hex format [ FFFFFF ] and return rgb() format [ rgb(255,255,255) ]
+
+
+
+=cut
+

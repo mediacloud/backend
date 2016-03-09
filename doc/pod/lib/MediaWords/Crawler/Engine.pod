@@ -1,0 +1,112 @@
+=head1 NAME
+
+MediaWords::Crawler::Engine
+
+
+=head1 DESCRIPTION
+
+continually loop through the provide, fetch, respond cycle for one crawler process
+
+
+=head1 REQUIRES
+
+L<MediaWords::Util::Process> 
+
+L<MediaWords::Crawler::Provider> 
+
+L<MediaWords::Crawler::Handler> 
+
+L<MediaWords::Crawler::Fetcher> 
+
+L<Time::HiRes> 
+
+L<Data::Dumper> 
+
+L<IO::Socket> 
+
+L<IO::Select> 
+
+L<Fcntl> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 new
+
+ $self->new();
+
+=head2 children_exit_on_kill
+
+ $self->children_exit_on_kill();
+
+=head2 crawl
+
+ $self->crawl();
+
+=head2 crawl_single_download
+
+ $self->crawl_single_download();
+
+=head2 create_fetcher_engine_for_testing
+
+ $self->create_fetcher_engine_for_testing();
+
+=head2 dbs
+
+ $self->dbs();
+
+=head2 fetch_and_handle_single_download
+
+ $self->fetch_and_handle_single_download();
+
+=head2 fetcher_number
+
+ $self->fetcher_number();
+
+=head2 fetchers
+
+ $self->fetchers();
+
+=head2 pending_check_interval
+
+ $self->pending_check_interval();
+
+=head2 processes
+
+ $self->processes();
+
+=head2 reconnect_db
+
+ $self->reconnect_db();
+
+=head2 sleep_interval
+
+ $self->sleep_interval();
+
+=head2 socket
+
+ $self->socket();
+
+=head2 spawn_fetchers
+
+ $self->spawn_fetchers();
+
+=head2 test_mode
+
+ $self->test_mode();
+
+=head2 throttle
+
+ $self->throttle();
+
+=head2 timeout
+
+ $self->timeout();
+
+
+=cut
+

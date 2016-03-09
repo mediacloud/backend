@@ -4788,6 +4788,12 @@ DISTRIBUTIONS
       Mozilla::CA 0
       Net::SSLeay 1.46
       Scalar::Util 0
+  IO-String-1.08
+    pathname: G/GA/GAAS/IO-String-1.08.tar.gz
+    provides:
+      IO::String 1.08
+    requirements:
+      ExtUtils::MakeMaker 0
   IO-stringy-2.110
     pathname: D/DS/DSKOLL/IO-stringy-2.110.tar.gz
     provides:
@@ -7368,6 +7374,49 @@ DISTRIBUTIONS
       Test::More 0.89
       Test::TCP 0
       URI 0
+  Pod-Abstract-0.20
+    pathname: B/BL/BLILBURNE/Pod-Abstract-0.20.tar.gz
+    provides:
+      Pod::Abstract 0.20
+      Pod::Abstract::BuildNode 0.20
+      Pod::Abstract::Filter 0.20
+      Pod::Abstract::Filter::add_podcmds 0.20
+      Pod::Abstract::Filter::clear_podcmds 0.20
+      Pod::Abstract::Filter::cut 0.20
+      Pod::Abstract::Filter::find 0.20
+      Pod::Abstract::Filter::number_sections 0.20
+      Pod::Abstract::Filter::overlay 0.20
+      Pod::Abstract::Filter::sort 0.20
+      Pod::Abstract::Filter::summary 0.20
+      Pod::Abstract::Filter::uncut 0.20
+      Pod::Abstract::Filter::unoverlay 0.20
+      Pod::Abstract::Node 0.20
+      Pod::Abstract::Parser 0.20
+      Pod::Abstract::Path 0.20
+      Pod::Abstract::Serial 0.20
+      Pod::Abstract::Tree 0.20
+    requirements:
+      ExtUtils::MakeMaker 0
+      File::Temp 0
+      IO::String 0
+      Pod::Parser 0
+      Scalar::Util 0
+      Task::Weaken 0
+      Test::More 0
+  Pod-Autopod-1.204
+    pathname: A/AH/AHERNIT/Pod-Autopod-1.204.tar.gz
+    provides:
+      Example::ClassA 1.01
+      Example::ClassB undef
+      Example::ClassC undef
+      Example::Minimum undef
+      Example::Titles undef
+      Pod::Autopod 1.204
+    requirements:
+      ExtUtils::MakeMaker 0
+      FileHandle 0
+      Pod::Abstract 0
+      Pod::Abstract::BuildNode 0
   Pod-Coverage-0.23
     pathname: R/RC/RCLAMP/Pod-Coverage-0.23.tar.gz
     provides:

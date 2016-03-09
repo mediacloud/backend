@@ -1,0 +1,38 @@
+=head1 NAME
+
+MediaWords::Util::ThriftExtractor
+
+
+=head1 DESCRIPTION
+
+various helper functions for downloads
+
+
+=head1 REQUIRES
+
+L<MediaWords::Thrift::Extractor> 
+
+L<Readonly> 
+
+L<Scalar::Defer> 
+
+L<Carp> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 extractor_version
+
+ extractor_version();
+
+=head2 get_extracted_html
+
+ get_extracted_html();
+
+
+=cut
+

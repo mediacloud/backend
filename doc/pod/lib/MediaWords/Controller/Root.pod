@@ -1,0 +1,46 @@
+=head1 NAME
+
+MediaWords::Controller::Root
+
+
+=head1 DESCRIPTION
+
+
+Sets the actions in this controller to be registered with no prefix
+so they function identically to actions created in MyApp.pm
+
+
+
+=head1 REQUIRES
+
+L<MediaWords::Util::Config> 
+
+L<Data::Dumper> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 IMPLEMENTS
+
+L<Catalyst::Controller> 
+
+
+=head1 METHODS
+
+=head2 begin
+
+ $self->begin();
+
+=head2 default
+
+ $self->default();
+
+=head2 end
+
+ $self->end();
+
+
+=cut
+

@@ -1,0 +1,75 @@
+=head1 NAME
+
+MediaWords::DBI::Stories::AP
+
+
+=head1 DESCRIPTION
+
+routines for determining whether a given story is syndicated from the Associated Press.
+the algorithm used in this module was developed using a decision tree algorithm:
+
+          'ap_mentions_sentences',
+            '1' => '1', X
+            '0' => [ X
+                   'associated_press_mentions',
+                     '1' => [ X
+                            'quoted_associated_press_first_quarter_mentions',
+                              '1' => '1', X
+                              '0' => [ X
+                                     'dup_sentences_32',
+                                       '1' => '1', X
+                                       '0' => [ X
+                                              'associated_press_near_title',
+                                                '1' => '1', X
+                                                '0' => [ X
+                                                       'ap_news_mentions',
+                                                         '1' => '1', X
+                                                         '0' => [ X
+                                                                'ap_mentions',
+                                                                  '1' => '1', X
+                                                                  '0' => '0' X
+                                       '2' => [ X
+                                                'associated_press_near_title', X
+                                                  '1' => '1', X
+                                                  '0' => [ X
+                                                         'associated_press_tag_mentions', X
+                                                           '1' => '0', X
+                                                           '0' => '1' X
+                     '0' => [
+                            'dup_sentences_32',
+                              '1' => [
+                                       'ap_mentions',
+                                         '1' => [
+                                                'ap_mentions_uppercase_location',
+                                                  '1' => '1',
+                                                  '0' => '0'
+                                         '0' => '0'
+                              '0' => '0',
+                              '2' => '1'
+
+
+=head1 REQUIRES
+
+L<Digest::MD5> 
+
+L<MediaWords::Util::CSV> 
+
+L<MediaWords::DBI::Downloads> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 is_syndicated
+
+ is_syndicated();
+
+return 1 if the stories is syndicated by the ap, 0 otherwise.  uses the decision tree at the top of the module.
+
+
+
+=cut
+

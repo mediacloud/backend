@@ -1,0 +1,39 @@
+=head1 NAME
+
+MediaWords::Controller::Admin::Gearman
+
+
+=head1 DESCRIPTION
+
+view Gearman job log
+
+
+=head1 REQUIRES
+
+L<Readonly> 
+
+L<File::Slurp> 
+
+L<parent> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 index
+
+ index();
+
+=head2 view_log
+
+ view_log();
+
+view Gearman job log
+
+
+
+=cut
+

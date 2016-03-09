@@ -1,0 +1,23 @@
+=head1 NAME
+
+MediaWords::MyFCgiManager
+
+
+=head1 REQUIRES
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+L<FCGI::ProcManager> 
+
+L<namespace::autoclean> 
+
+L<Moose> 
+
+
+=head1 METHODS
+
+
+=cut
+

@@ -1,0 +1,95 @@
+=head1 NAME
+
+MediaWords::Util::ExtractorTest
+
+
+=head1 DESCRIPTION
+
+print (keys %{$score}) . "\n";
+
+
+=head1 REQUIRES
+
+L<MediaWords::Languages::en> 
+
+L<List::Compare::Functional> 
+
+L<MediaWords::Crawler::AnalyzeLines> 
+
+L<MediaWords::Util::HTML> 
+
+L<HTML::Strip> 
+
+L<List::Util> 
+
+L<List::MoreUtils> 
+
+L<HTML::TagCloud> 
+
+L<Data::Dumper> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 compare_extraction_with_training_data
+
+ compare_extraction_with_training_data();
+
+=head2 get_cached_extractor_line_scores
+
+ get_cached_extractor_line_scores();
+
+=head2 get_character_count_for_story($$$)
+
+ get_character_count_for_story($$$)();
+
+returns the sum of the string length for each line the training table says should be in the story.
+
+
+=head2 get_character_level_extractor_results
+
+ get_character_level_extractor_results();
+
+=head2 get_extracted_lines_for_story
+
+ get_extracted_lines_for_story();
+
+=head2 get_extractor_scores_for_lines
+
+ get_extractor_scores_for_lines();
+
+=head2 get_line_analysis_info
+
+ get_line_analysis_info();
+
+=head2 get_line_level_extractor_results
+
+ get_line_level_extractor_results();
+
+=head2 get_lines_that_should_be_in_story
+
+ get_lines_that_should_be_in_story();
+
+=head2 get_preprocessed_content_lines_for_download($$)
+
+ get_preprocessed_content_lines_for_download($$)();
+
+=head2 get_sentence_info_for_lines
+
+ get_sentence_info_for_lines();
+
+=head2 html_stripped_text_length
+
+ html_stripped_text_length();
+
+=head2 store_extractor_line_scores
+
+ store_extractor_line_scores();
+
+
+=cut
+

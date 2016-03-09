@@ -1,0 +1,82 @@
+=head1 NAME
+
+MediaWords::DBI::StoriesTagsMapMediaSubtables
+
+
+=head1 DESCRIPTION
+
+various helper functions for downloads
+
+
+=head1 REQUIRES
+
+L<Carp> 
+
+L<MediaWords::Util::Config> 
+
+L<MediaWords::DB> 
+
+L<MediaWords::Crawler::Extractor> 
+
+L<List::MoreUtils> 
+
+L<Readonly> 
+
+L<HTTP::Request> 
+
+L<File::Path> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 create_indexes_for_sub_table
+
+ create_indexes_for_sub_table();
+
+=head2 create_sub_table_for_media_id
+
+ create_sub_table_for_media_id();
+
+=head2 execute_query
+
+ execute_query();
+
+=head2 get_media_ids
+
+ get_media_ids();
+
+=head2 get_media_ids_with_subtables
+
+ get_media_ids_with_subtables();
+
+=head2 get_or_create_sub_table_name_for_media_id
+
+ get_or_create_sub_table_name_for_media_id();
+
+=head2 get_tag_tag_schema
+
+ get_tag_tag_schema();
+
+=head2 isNonnegativeInteger
+
+ isNonnegativeInteger();
+
+=head2 list_contains
+
+ list_contains();
+
+=head2 recreate_schema
+
+ recreate_schema();
+
+=head2 sub_table_exists
+
+ sub_table_exists();
+
+
+=cut
+

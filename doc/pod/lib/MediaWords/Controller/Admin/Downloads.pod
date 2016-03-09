@@ -1,0 +1,143 @@
+=head1 NAME
+
+MediaWords::Controller::Admin::Downloads
+
+
+=head1 DESCRIPTION
+
+MODULES
+
+
+=head1 REQUIRES
+
+L<MediaWords::DBI::Downloads> 
+
+L<MediaWords::Crawler::Handler> 
+
+L<MediaWords::Crawler::Provider> 
+
+L<MediaWords::Crawler::Engine> 
+
+L<MediaWords::Crawler::Extractor> 
+
+L<Readonly> 
+
+L<HTML::Entities> 
+
+L<Encode> 
+
+L<DateTime> 
+
+L<Data::Dumper> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 IMPLEMENTS
+
+L<Catalyst::Controller> 
+
+
+=head1 METHODS
+
+=head2 changeMextractSetting
+
+ $self->changeMextractSetting();
+
+=head2 disable_autoexclude
+
+ $self->disable_autoexclude();
+
+=head2 disable_translation
+
+ $self->disable_translation();
+
+=head2 enable_autoexclude
+
+ $self->enable_autoexclude();
+
+=head2 enable_translation
+
+ $self->enable_translation();
+
+=head2 get_high_priority_download
+
+ $self->get_high_priority_download();
+
+=head2 get_random_download
+
+ $self->get_random_download();
+
+get random download to extract
+
+
+=head2 get_random_download_for_dashboard
+
+ $self->get_random_download_for_dashboard();
+
+get random download to extract
+
+
+=head2 keepMextractFlashSettings
+
+ $self->keepMextractFlashSettings();
+
+=head2 list
+
+ $self->list();
+
+METHODS
+
+
+=head2 mextract
+
+ $self->mextract();
+
+display form to manually extract text from one randomly chosen story
+
+
+=head2 mextract_do
+
+ $self->mextract_do();
+
+store the results of the manual extraction and forward to another extraction form
+
+
+=head2 mextract_random
+
+ $self->mextract_random();
+
+display form to manually extract text from one randomly chosen story
+
+
+=head2 redownload
+
+ $self->redownload();
+
+=head2 useDeveloperUI
+
+ $self->useDeveloperUI();
+
+store the results of the manual extraction and forward to another extraction form
+
+
+=head2 useTrainerUI
+
+ $self->useTrainerUI();
+
+store the results of the manual extraction and forward to another extraction form
+
+
+=head2 view
+
+ $self->view();
+
+=head2 view_extracted
+
+ $self->view_extracted();
+
+
+=cut
+

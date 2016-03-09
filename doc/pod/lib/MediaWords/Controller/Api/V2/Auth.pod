@@ -1,0 +1,43 @@
+=head1 NAME
+
+MediaWords::Controller::Api::V2::Auth
+
+
+=head1 DESCRIPTION
+
+api controller for handling auth token generation
+
+
+=head1 REQUIRES
+
+L<namespace::autoclean> 
+
+L<Moose> 
+
+L<MediaWords::DBI::Auth> 
+
+L<MediaWords::Controller::Api::V2::MC_Controller_REST> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 IMPLEMENTS
+
+L<Catalyst::Controller> 
+
+
+=head1 METHODS
+
+=head2 single
+
+ $self->single();
+
+=head2 single_GET
+
+ $self->single_GET();
+
+
+=cut
+

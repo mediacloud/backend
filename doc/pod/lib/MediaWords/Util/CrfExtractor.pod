@@ -1,0 +1,62 @@
+=head1 NAME
+
+MediaWords::Util::CrfExtractor
+
+
+=head1 DESCRIPTION
+
+use List::MoreUtils qw( :all);
+
+
+=head1 REQUIRES
+
+L<Moose> 
+
+L<MediaWords::Util::Config> 
+
+L<Mallet::CrfWrapper> 
+
+L<File::Basename> 
+
+L<File::Spec> 
+
+L<Text::Trim> 
+
+L<IPC::Open2> 
+
+L<List::Compare::Functional> 
+
+L<List::Util> 
+
+L<Data::Dumper> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 extractor_version
+
+ extractor_version();
+
+=head2 getExtractedLines
+
+ getExtractedLines();
+
+=head2 getScoresAndLines
+
+ getScoresAndLines();
+
+=head2 get_path_to_extractor_model()
+
+ get_path_to_extractor_model()();
+
+FIXME: make path to the extractor model configurable because that way Java
+wouldn't have to use hardcoded path to the extractor model
+
+
+
+=cut
+

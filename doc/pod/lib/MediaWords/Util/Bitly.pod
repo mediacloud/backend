@@ -1,0 +1,130 @@
+=head1 NAME
+
+MediaWords::Util::Bitly
+
+
+=head1 DESCRIPTION
+
+
+Bit.ly helper
+
+
+
+=head1 REQUIRES
+
+L<Readonly> 
+
+L<Scalar::Defer> 
+
+L<List::MoreUtils> 
+
+L<JSON> 
+
+L<MediaWords::Util::SQL> 
+
+L<MediaWords::Util::Log> 
+
+L<MediaWords::Util::JSON> 
+
+L<MediaWords::Util::Config> 
+
+L<MediaWords::Util::URL> 
+
+L<MediaWords::Util::Process> 
+
+L<MediaWords::Util::Bitly::StoryStats> 
+
+L<MediaWords::Util::Bitly::API> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 aggregate_story_stats($$$)
+
+ aggregate_story_stats($$$)();
+
+Returns MediaWords::Util::Bitly::StoryStats object with story statistics
+die()s on error
+
+
+=head2 bitly_processing_is_enabled()
+
+ bitly_processing_is_enabled()();
+
+Returns true if Bit.ly processing is enabled
+
+
+=head2 fetch_stats_for_story($$$$)
+
+ fetch_stats_for_story($$$$)();
+
+Fetch story URL statistics from Bit.ly API
+
+Params:
+* $db - database object
+* $stories_id - story ID
+* $start_timestamp - starting date (offset) for fetching statistics
+* $end_timestamp - ending date (limit) for fetching statistics
+
+Returns: see fetch_stats_for_url()
+
+die()s on error
+
+
+=head2 merge_story_stats($$)
+
+ merge_story_stats($$)();
+
+Merge two Bit.ly statistics hashrefs into one
+
+
+=head2 num_controversy_stories_without_bitly_statistics($$)
+
+ num_controversy_stories_without_bitly_statistics($$)();
+
+Return the number of controversy's stories that don't yet have aggregated Bit.ly statistics
+
+
+=head2 read_story_stats($$)
+
+ read_story_stats($$)();
+
+Read Bit.ly story statistics from key-value store
+
+Params:
+* $db - database object
+* $stories_id - story ID
+
+Returns hashref with decoded JSON, undef if story is not processed; die()s on error
+
+
+=head2 story_stats_are_fetched($$)
+
+ story_stats_are_fetched($$)();
+
+Check if story is processed with Bit.ly (stats are fetched)
+Return 1 if stats for story are fetched, 0 otherwise, die() on error, exit() on fatal error
+
+
+=head2 write_story_stats($$$)
+
+ write_story_stats($$$)();
+
+Write Bit.ly story statistics to key-value store; append to the existing
+stats if needed
+
+Params:
+* $db - database object
+* $stories_id - story ID
+* $stats - hashref with Bit.ly statistics
+
+die()s on error
+
+
+
+=cut
+

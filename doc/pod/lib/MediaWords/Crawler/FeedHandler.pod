@@ -1,0 +1,66 @@
+=head1 NAME
+
+MediaWords::Crawler::FeedHandler
+
+
+=head1 DESCRIPTION
+
+CONSTANTS
+
+
+=head1 REQUIRES
+
+L<MediaWords::Util::SQL> 
+
+L<MediaWords::Util::HTML> 
+
+L<MediaWords::Util::Config> 
+
+L<MediaWords::DBI::Stories> 
+
+L<MediaWords::DBI::Downloads> 
+
+L<MediaWords::GearmanFunction::ExtractAndVector> 
+
+L<MediaWords::Crawler::Pager> 
+
+L<Feed::Scrape::MediaWords> 
+
+L<Try::Tiny> 
+
+L<List::Util> 
+
+L<URI::Split> 
+
+L<Readonly> 
+
+L<FindBin> 
+
+L<Encode> 
+
+L<DateTime> 
+
+L<Date::Parse> 
+
+L<Data::Dumper> 
+
+L<Carp> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 handle_feed_content
+
+ handle_feed_content();
+
+=head2 import_external_feed
+
+ import_external_feed();
+
+
+=cut
+

@@ -1,0 +1,74 @@
+=head1 NAME
+
+MediaWords::Crawler::Handler
+
+
+=head1 DESCRIPTION
+
+this is a simplified version of the code used in the crawler to invoke the handler
+
+
+=head1 REQUIRES
+
+L<MediaWords::Util::SQL> 
+
+L<MediaWords::Util::Config> 
+
+L<MediaWords::GearmanFunction::ExtractAndVector> 
+
+L<MediaWords::DBI::Stories> 
+
+L<MediaWords::DBI::Downloads> 
+
+L<MediaWords::Crawler::Pager> 
+
+L<MediaWords::Crawler::FeedHandler> 
+
+L<Feed::Scrape::MediaWords> 
+
+L<List::Util> 
+
+L<Carp> 
+
+L<if> 
+
+L<if> 
+
+L<URI::Split> 
+
+L<Readonly> 
+
+L<FindBin> 
+
+L<Encode> 
+
+L<Date::Parse> 
+
+L<Data::Dumper> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 new
+
+ $self->new();
+
+=head2 engine
+
+ $self->engine();
+
+=head2 handle_error
+
+ $self->handle_error();
+
+=head2 handle_response
+
+ $self->handle_response();
+
+
+=cut
+

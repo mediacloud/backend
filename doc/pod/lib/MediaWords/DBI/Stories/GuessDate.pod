@@ -1,0 +1,78 @@
+=head1 NAME
+
+MediaWords::DBI::Stories::GuessDate
+
+
+=head1 DESCRIPTION
+
+confirm that the date for the story is correct by changing the date_guess_method of the given
+story to 'manual'
+
+
+=head1 REQUIRES
+
+L<MediaWords::Util::Tags> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 assign_date_guess_method
+
+ assign_date_guess_method();
+
+assign a tag to the story for the date guess method
+
+
+=head2 confirm_date
+
+ confirm_date();
+
+confirm that the date for the story is correct by changing the date_guess_method of the given
+story to 'manual'
+
+
+=head2 date_is_confirmed
+
+ date_is_confirmed();
+
+return true if the date guess method is manual, which means that the date has been confirmed
+
+
+=head2 date_is_reliable
+
+ date_is_reliable();
+
+return true if the date is reliable.  a date is reliable if either of the following are true:
+* the story has one of the date_guess_method:* tags listed in reliable_methods below;
+* no date_guess_method:* tag and no date_invalid:undateable tag is associated with the story
+otherwise, the date is unreliable
+
+
+=head2 is_undateable
+
+ is_undateable();
+
+return true if the story has been marked as undateable
+
+
+=head2 mark_undateable
+
+ mark_undateable();
+
+set the undateable status of the story by adding or removing the 'date_guess_method:undateable' tage
+
+
+=head2 unconfirm_date
+
+ unconfirm_date();
+
+if the date guess method is manual, remove and replace with an ;unconfirmed' method tag
+
+
+
+=cut
+

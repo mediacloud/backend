@@ -1,0 +1,28 @@
+=head1 NAME
+
+MediaWords::Util::XML
+
+
+=head1 DESCRIPTION
+
+various functions for manipulating XML
+
+
+=head1 REQUIRES
+
+L<XML::LibXML> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 xml_tree_from_hash
+
+ xml_tree_from_hash();
+
+
+=cut
+

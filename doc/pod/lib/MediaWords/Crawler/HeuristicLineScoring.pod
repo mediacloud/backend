@@ -1,0 +1,42 @@
+=head1 NAME
+
+MediaWords::Crawler::HeuristicLineScoring
+
+
+=head1 DESCRIPTION
+
+extract substantive new story text from html pages
+
+
+=head1 REQUIRES
+
+L<Carp> 
+
+L<Array::Compare> 
+
+L<Readonly> 
+
+L<List::MoreUtils> 
+
+L<Time::HiRes> 
+
+L<Text::Trim> 
+
+L<Text::Similarity::Overlaps> 
+
+L<MediaWords::Util::HTML> 
+
+L<HTML::Entities> 
+
+L<MediaWords::Crawler::Extractor> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+
+=cut
+

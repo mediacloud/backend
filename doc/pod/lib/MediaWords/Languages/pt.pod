@@ -1,0 +1,68 @@
+=head1 NAME
+
+MediaWords::Languages::pt
+
+
+=head1 DESCRIPTION
+
+
+Portuguese
+
+
+
+=head1 REQUIRES
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+L<utf8> 
+
+L<Moose> 
+
+
+=head1 METHODS
+
+=head2 fetch_and_return_long_stop_words
+
+ fetch_and_return_long_stop_words();
+
+=head2 fetch_and_return_short_stop_words
+
+ fetch_and_return_short_stop_words();
+
+=head2 fetch_and_return_tiny_stop_words
+
+ fetch_and_return_tiny_stop_words();
+
+=head2 get_copyright_strings
+
+ get_copyright_strings();
+
+=head2 get_language_code
+
+ get_language_code();
+
+=head2 get_noise_strings
+
+ get_noise_strings();
+
+=head2 get_sentences
+
+ get_sentences();
+
+=head2 get_word_length_limit
+
+ get_word_length_limit();
+
+=head2 stem
+
+ stem();
+
+=head2 tokenize
+
+ tokenize();
+
+
+=cut
+

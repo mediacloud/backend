@@ -1,0 +1,83 @@
+=head1 NAME
+
+MediaWords::Util::IdentifyLanguage
+
+
+=head1 DESCRIPTION
+
+
+Utility module to identify a language for a particular text.
+
+How to use:
+ 1) Download compact-language-detector_0.1-1_amd64.deb from:
+        http://code.google.com/p/chromium-compact-language-detector/downloads/list
+ 2) dpkg -i compact-language-detector_0.1-1_amd64.deb
+ 3) ./script/run_carton.sh install Lingua::Identify::CLD
+
+
+
+=head1 REQUIRES
+
+L<Readonly> 
+
+L<URI> 
+
+L<Domain::PublicSuffix> 
+
+L<Lingua::Identify::CLD> 
+
+L<utf8> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 identification_would_be_reliable($)
+
+ identification_would_be_reliable($)();
+
+Returns 1 if the language identification for the text passed as a parameter is likely to be reliable; 0 otherwise
+Parameters:
+ * Text that should be identified (required)
+Returns: 1 if language identification is likely to be reliable; 0 otherwise
+
+
+=head2 language_code_for_text($;$$)
+
+ language_code_for_text($;$$)();
+
+Returns an ISO 690 language code for the plain text passed as a parameter
+Parameters:
+ * Text that should be identified (required)
+ * Top-level domain that can help with the identification (optional)
+ * True if the content is (X)HTML, false otherwise (optional)
+Returns: ISO 690 language code (e.g. 'en') on successful identification, empty string ('') on failure
+
+
+=head2 language_is_supported($)
+
+ language_is_supported($)();
+
+Returns 1 if the language code if supported by the identifier, 0 otherwise
+Parameters:
+ * ISO 639-1 language code
+Returns: 1 if the language can be identified, 0 if it can not
+
+
+=head2 tld_from_url($)
+
+ tld_from_url($)();
+
+Returns TLD (top-level domain) of the URL passed as a parameter
+(http://stackoverflow.com/q/8031620/200603)
+Parameters:
+ * URL
+Returns: TLD of the URL or empty string in case of an error
+
+
+
+=cut
+

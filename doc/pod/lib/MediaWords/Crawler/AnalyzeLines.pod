@@ -1,0 +1,66 @@
+=head1 NAME
+
+MediaWords::Crawler::AnalyzeLines
+
+
+=head1 DESCRIPTION
+
+extract substantive new story text from html pages
+
+
+=head1 REQUIRES
+
+L<Readonly> 
+
+L<Set::Jaccard::SimilarityCoefficient> 
+
+L<HTML::Entities> 
+
+L<Carp> 
+
+L<MediaWords::Util::IdentifyLanguage> 
+
+L<MediaWords::Languages::Language> 
+
+L<MediaWords::Crawler::Extractor> 
+
+L<MediaWords::Util::Text> 
+
+L<MediaWords::Util::HTML> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+L<Text::Trim> 
+
+L<List::Util> 
+
+L<List::MoreUtils> 
+
+
+=head1 METHODS
+
+=head2 add_additional_features($$)
+
+ add_additional_features($$)();
+
+=head2 get_feature_string_from_line_info($$;$)
+
+ get_feature_string_from_line_info($$;$)();
+
+=head2 get_feature_strings_for_download
+
+ get_feature_strings_for_download();
+
+=head2 get_info_for_lines($$$)
+
+ get_info_for_lines($$$)();
+
+=head2 words_on_line($)
+
+ words_on_line($)();
+
+
+=cut
+

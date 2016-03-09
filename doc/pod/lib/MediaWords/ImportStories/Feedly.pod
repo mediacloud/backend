@@ -1,0 +1,48 @@
+=head1 NAME
+
+MediaWords::ImportStories::Feedly
+
+
+=head1 DESCRIPTION
+
+import stories from a feedly feed
+
+in addition to ImportStories options, new accepts the following options:
+
+* feed_url - the url of a feed archived by feedly
+
+This module grabs historical stories from the feedly api
+
+
+=head1 REQUIRES
+
+L<MediaWords::Util::Web> 
+
+L<MediaWords::Util::SQL> 
+
+L<MediaWords::Util::JSON> 
+
+L<URI::Escape> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+L<LWP::Simple> 
+
+L<Encode> 
+
+L<Data::Dumper> 
+
+L<Moose> 
+
+
+=head1 METHODS
+
+=head2 get_new_stories
+
+ get_new_stories();
+
+
+=cut
+

@@ -1,0 +1,55 @@
+=head1 NAME
+
+MediaWords::Controller::Api::V2::MC_Controller_REST
+
+
+=head1 DESCRIPTION
+
+	   'text/html'          => 'YAML::HTML',
+
+
+=head1 REQUIRES
+
+L<HTTP::Status> 
+
+L<Carp> 
+
+L<List::Compare> 
+
+L<namespace::autoclean> 
+
+L<Moose> 
+
+L<List::Util> 
+
+L<JSON> 
+
+L<MediaWords::DBI::Auth> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 IMPLEMENTS
+
+L<Catalyst::Controller::REST> 
+
+
+=head1 METHODS
+
+=head2 end
+
+ $self->end();
+
+Catch Catalyst exceptions (controller actions that have died); report them in
+JSON back to the client
+
+
+=head2 serialize
+
+ $self->serialize();
+
+
+=cut
+

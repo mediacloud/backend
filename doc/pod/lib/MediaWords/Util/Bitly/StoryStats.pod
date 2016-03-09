@@ -1,0 +1,23 @@
+=head1 NAME
+
+lib/MediaWords/Util/Bitly/StoryStats.pm - lib/MediaWords/Util/Bitly/StoryStats.pm
+
+
+=head1 DESCRIPTION
+
+Single story statistics
+
+
+=head1 METHODS
+
+=head2 new($$;$$)
+
+ new($$;$$)();
+
+=head2 total_click_count($)
+
+ total_click_count($)();
+
+
+=cut
+

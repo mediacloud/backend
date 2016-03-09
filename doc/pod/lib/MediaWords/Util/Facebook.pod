@@ -1,0 +1,58 @@
+=head1 NAME
+
+MediaWords::Util::Facebook
+
+
+=head1 DESCRIPTION
+
+
+Facebook API helper
+
+
+
+=head1 REQUIRES
+
+L<List::MoreUtils> 
+
+L<Data::Dumper> 
+
+L<URI::QueryParam> 
+
+L<Readonly> 
+
+L<MediaWords::Util::Web> 
+
+L<MediaWords::Util::URL> 
+
+L<MediaWords::Util::Process> 
+
+L<MediaWords::Util::JSON> 
+
+L<MediaWords::Util::Config> 
+
+
+=head1 METHODS
+
+=head2 api_request($$)
+
+ api_request($$)();
+
+Make Facebook API request
+Returns resulting JSON on success, die()s on error
+
+
+=head2 get_and_store_share_comment_counts
+
+ get_and_store_share_comment_counts();
+
+=head2 get_url_share_comment_counts
+
+ get_url_share_comment_counts();
+
+use https://graph.facebook.com/?id= to get number of shares for the given url
+https://graph.facebook.com/?id=http://www.google.com/
+
+
+
+=cut
+

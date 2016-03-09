@@ -1,0 +1,42 @@
+=head1 NAME
+
+MediaWords::View::TT
+
+
+=head1 DESCRIPTION
+
+$Data::Dumper::Purity = 1;
+$Data::Dumper::Useperl = 1;
+
+
+=head1 REQUIRES
+
+L<MediaWords::Util::Config> 
+
+L<Text::Trim> 
+
+L<Data::Dumper> 
+
+L<MediaWords::Util::Translate> 
+
+L<MediaWords::Util::HTML> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 IMPLEMENTS
+
+L<Catalyst::View::TT> 
+
+
+=head1 METHODS
+
+=head2 new
+
+ $self->new();
+
+
+=cut
+

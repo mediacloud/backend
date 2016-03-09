@@ -1,0 +1,33 @@
+=head1 NAME
+
+MediaWords::Controller::Api::V2::Controversy_Dump_Time_Slices
+
+
+=head1 REQUIRES
+
+L<namespace::autoclean> 
+
+L<Moose> 
+
+L<MediaWords::CommonLibs> 
+
+L<Modern::Perl> 
+
+
+=head1 METHODS
+
+=head2 get_table_name
+
+ get_table_name();
+
+=head2 list_optional_query_filter_field
+
+ list_optional_query_filter_field();
+
+=head2 order_by_clause
+
+ order_by_clause();
+
+
+=cut
+

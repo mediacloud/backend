@@ -117,6 +117,7 @@ requires 'Parallel::Fork::BossWorkerAsync';
 requires 'Parallel::ForkManager';
 requires 'Parse::BooleanLogic';
 requires 'Perl::Tidy', '20140328';
+requires 'Pod::Autopod';
 requires 'RDF::Simple::Parser';
 requires 'Readonly';
 requires 'Readonly::XS';

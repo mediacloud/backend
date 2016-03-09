@@ -1,0 +1,46 @@
+=head1 NAME
+
+MediaWords::Test::LocalServer
+
+
+=head1 DESCRIPTION
+
+parent
+
+
+=head1 REQUIRES
+
+L<File::Temp> 
+
+L<Data::Dumper> 
+
+L<HTTP::Status> 
+
+L<HTTP::Daemon> 
+
+
+=head1 METHODS
+
+=head2 DESTROY
+
+ DESTROY();
+
+=head2 new($$)
+
+ new($$)();
+
+=head2 start($)
+
+ start($)();
+
+=head2 stop($)
+
+ stop($)();
+
+=head2 url($)
+
+ url($)();
+
+
+=cut
+
