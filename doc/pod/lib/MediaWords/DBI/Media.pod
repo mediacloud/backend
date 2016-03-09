@@ -44,7 +44,7 @@ with a list of error messages for the process.
 
 =head2 get_media_type_tags
 
- get_media_type_tags();
+ my $media_types = get_media_type_tags($db, $controversies_id);
 
 Get all of the media_type: tags. append the tags from the controversies.media_type_tags_sets_id if $controversies_id
 is specified.

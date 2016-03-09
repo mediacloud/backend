@@ -326,8 +326,8 @@ sub get_medium_domain
 
 # Get all of the media_type: tags. append the tags from the controversies.media_type_tags_sets_id if $controversies_id
 # is specified.
-sub get_media_type_tags
-{    # $media_types ( $db, $controversies_id )
+sub get_media_type_tags    # $media_types ( $db, $controversies_id )
+{
     my ( $db, $controversies_id ) = @_;
 
     my $media_types = $db->query( <<END )->hashes;
@@ -360,8 +360,8 @@ END
 
 # Update the media type tag for the given medium by deleting any existing tags in the same tag set as the new tag and
 # inserting the new media_tags_map row if it does not already exist.
-sub update_media_type
-{    # void ( $db, $medium, $media_type_tags_id )
+sub update_media_type    # void ( $db, $medium, $media_type_tags_id )
+{
     my ( $db, $medium, $media_type_tags_id ) = @_;
 
     # delete existing tags in the media_type_tags_id tag set that are not the new tag
