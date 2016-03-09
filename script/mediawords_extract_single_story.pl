@@ -28,7 +28,7 @@ sub get_extractor_results_for_story
     for my $download ( @{ $downloads } )
     {
         say STDERR "extracting \n" . Dumper( $download );
-        my $res = MediaWords::DBI::Downloads::extractor_results_for_download( $db, $download );
+        my $res = MediaWords::DBI::Downloads::extract( $db, $download );
 
         say STDERR "extractor result\n" . Dumper( $res );
 

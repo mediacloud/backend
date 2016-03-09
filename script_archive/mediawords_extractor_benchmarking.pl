@@ -64,7 +64,7 @@ sub test_extract
     for my $download ( @downloads )
     {
         say STDERR "Processing download $download->{downloads_id}...";
-        my $extract_results = MediaWords::DBI::Downloads::extractor_results_for_download( $db, $download );
+        my $extract_results = MediaWords::DBI::Downloads::extract( $db, $download );
 
         say "Got extract_results: " . Dumper( $extract_results );
     }

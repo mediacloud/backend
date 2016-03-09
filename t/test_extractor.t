@@ -49,7 +49,7 @@ sub extract_and_compare($$$$)
 
     my $content = MediaWords::Util::Text::decode_from_utf8( read_file( $path ) );
 
-    my $results = MediaWords::DBI::Downloads::extract_content_ref(
+    my $results = MediaWords::DBI::Downloads::_extract_content_ref(
         \$content,
         $story->{ title },
         $story->{ description },
@@ -66,6 +66,9 @@ sub extract_and_compare($$$$)
 
     my $expected_text = $story->{ extracted_text };
     my $actual_text   = $combined_text;
+
+    $expected_text =~ s/\n//g;
+    $actual_text =~ s/\n//g;
 
     eq_or_diff( $actual_text, $expected_text, "Extracted text comparison for $title" );
 }

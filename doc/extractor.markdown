@@ -43,7 +43,7 @@ The code that does all of the above is unfortunately spread out in many places t
 
 Here are some of the places to look for specific bits of code:
 
-* MediaWords::DBI::Downloads::extractor_results_for_download - does some preprocessing on the content and then calls
+* MediaWords::DBI::Downloads::extract - does some preprocessing on the content and then calls
 the extraction method specified in mediawords.yml -> mediawords.extractor_method (always the python readability
 extractor in production).
 * MediaWords::Util::ThriftExtractor::get_extracted_html - calls the thrift python readability extractor web service

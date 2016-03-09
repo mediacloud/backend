@@ -97,7 +97,7 @@ sub run($$)
                 die "Download with ID $downloads_id was not found.";
             }
 
-            MediaWords::DBI::Downloads::extract_and_vector( $db, $download, $process_id );
+            MediaWords::DBI::Downloads::process_download_for_extractor_and_record_error( $db, $download, $process_id );
         }
         elsif ( $extract_by_stories_id )
         {

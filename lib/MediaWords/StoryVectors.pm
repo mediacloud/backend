@@ -323,7 +323,7 @@ sub _story_within_media_source_story_words_date_range
 {
     my ( $db, $story ) = @_;
 
-    my $medium = MediaWords::DBI::Stories::get_media_source_for_story( $db, $story );
+    my $medium = $db->query( "select * from media where media_id = ?", $story->{ media_id } )->hash;
 
     my $publish_date = $story->{ publish_date };
 
@@ -367,9 +367,9 @@ sub clean_sentences
 # detect whether the story is syndicated and update stories.ap_syndicated
 sub _update_ap_syndicated
 {
-    my ( $db, $story, $story_lang ) = @_;
+    my ( $db, $story ) = @_;
 
-    return unless ( $story_lang && $story_lang eq 'en' );
+    return unless ( $story->{ language } && $story->{ language } eq 'en' );
 
     my $ap_syndicated = MediaWords::DBI::Stories::AP::is_syndicated( $db, $story );
 
@@ -382,6 +382,43 @@ SQL
     $story->{ ap_syndicated } = $ap_syndicated;
 }
 
+# given a list of text sentences, return a list of story_sentences refs for insertion into db.
+sub _get_story_sentence_refs
+{
+    my ( $sentences, $story ) = @_;
+
+    my $sentence_refs = [];
+    for ( my $sentence_num = 0 ; $sentence_num < @{ $sentences } ; $sentence_num++ )
+    {
+        my $sentence = $sentences->[ $sentence_num ];
+
+        # Identify the language of each of the sentences
+        my $sentence_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $sentence, '' );
+        if ( $sentence_lang ne $story->{ language } )
+        {
+
+            # Mark the language as unknown if the results for the sentence are not reliable
+            if ( !MediaWords::Util::IdentifyLanguage::identification_would_be_reliable( $sentence ) )
+            {
+                $sentence_lang = '';
+            }
+        }
+
+        my $sentence_ref = {};
+        $sentence_ref->{ sentence }         = $sentence;
+        $sentence_ref->{ language }         = $sentence_lang;
+        $sentence_ref->{ sentence_number }  = $sentence_num;
+        $sentence_ref->{ stories_id }       = $story->{ stories_id };
+        $sentence_ref->{ media_id }         = $story->{ media_id };
+        $sentence_ref->{ publish_date }     = $story->{ publish_date };
+        $sentence_ref->{ disable_triggers } = MediaWords::DB::story_triggers_disabled();
+
+        push( @{ $sentence_refs }, $sentence_ref );
+    }
+
+    return $sentence_refs;
+}
+
 # update story vectors for the given story, updating story_sentences
 # if no_delete is true, do not try to delete existing entries in the above table before creating new ones
 # (useful for optimization if you are very sure no story vectors exist for this story).  If
@@ -391,17 +428,9 @@ sub update_story_sentences_and_language
 {
     my ( $db, $story, $no_delete, $no_dedup_sentences, $ignore_date_range ) = @_;
 
-    die unless ref $story;
-    die unless $story->{ stories_id };
-
-    my $sentence_word_counts;
-
     my $stories_id = $story->{ stories_id };
 
-    unless ( $no_delete )
-    {
-        $db->query( "DELETE FROM story_sentences WHERE stories_id = ?", $stories_id );
-    }
+    $db->query( "DELETE FROM story_sentences WHERE stories_id = ?", $stories_id ) unless ( $no_delete );
 
     unless ( $ignore_date_range or _story_within_media_source_story_words_date_range( $db, $story ) )
     {
@@ -411,38 +440,8 @@ sub update_story_sentences_and_language
         return;
     }
 
-    # Get story text
     my $story_text = $story->{ story_text } || MediaWords::DBI::Stories::get_text_for_word_counts( $db, $story ) || '';
-    my $story_description = $story->{ description } || '';
 
-    if ( ( length( $story_text ) == 0 ) || ( length( $story_text ) < length( $story_description ) ) )
-    {
-        $story_text = html_strip( $story->{ title } );
-        if ( $story->{ description } )
-        {
-            $story_text .= '.' unless ( $story_text =~ /\.\s*$/ );
-            $story_text .= html_strip( $story->{ description } );
-        }
-    }
-
-    ## TODO - The code below to retrieve the story_tld is buggy -- the assignment to the shadow $story_tld has no effect
-    ## TO avoid confusion I'm commenting it out.
-    ## Since we're going to reextract all comment with the new extractor, I'm going to deferr any decsion about fixing the bug until that
-    ## point to avoid creating data artifacts do to language detection changes.
-
-    # # Determine TLD
-    # my $story_tld = '';
-    # if ( defined( $story->{ url } ) )
-    # {
-    #     my $story_url = $story->{ url };
-    #     my $story_tld = MediaWords::Util::IdentifyLanguage::tld_from_url( $story_url );
-    # }
-    # else
-    # {
-    #     say STDERR "Story's URL for story ID " . $stories_id . " is not defined.";
-    # }
-
-    # Identify the language of the full story
     my $story_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $story_text, '' );
 
     my $sentences = _get_sentences_from_story_text( $story_text, $story_lang );
@@ -450,12 +449,11 @@ sub update_story_sentences_and_language
     if ( !$story->{ language } || ( $story_lang ne $story->{ language } ) )
     {
         $db->query( "UPDATE stories SET language = ? WHERE stories_id = ?", $story_lang, $stories_id );
+        $story->{ langauge } = $story_lang;
     }
 
-    unless ( defined $sentences )
-    {
-        die "Sentences for story $stories_id are undefined.";
-    }
+    die "Sentences for story $stories_id are undefined." unless ( defined $sentences );
+
     unless ( scalar @{ $sentences } )
     {
         warn "Story $stories_id doesn't have any sentences.";
@@ -473,39 +471,11 @@ sub update_story_sentences_and_language
         $sentences = dedup_sentences( $db, $story, $sentences );
     }
 
-    my $sentence_refs = [];
-    for ( my $sentence_num = 0 ; $sentence_num < @{ $sentences } ; $sentence_num++ )
-    {
-        my $sentence = $sentences->[ $sentence_num ];
-
-        # Identify the language of each of the sentences
-        my $sentence_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $sentence, '' );
-        if ( $sentence_lang ne $story_lang )
-        {
-
-            # Mark the language as unknown if the results for the sentence are not reliable
-            if ( !MediaWords::Util::IdentifyLanguage::identification_would_be_reliable( $sentence ) )
-            {
-                $sentence_lang = '';
-            }
-        }
-
-        # Insert the sentence into the database
-        my $sentence_ref = {};
-        $sentence_ref->{ sentence }         = $sentence;
-        $sentence_ref->{ language }         = $sentence_lang;
-        $sentence_ref->{ sentence_number }  = $sentence_num;
-        $sentence_ref->{ stories_id }       = $stories_id;
-        $sentence_ref->{ media_id }         = $story->{ media_id };
-        $sentence_ref->{ publish_date }     = $story->{ publish_date };
-        $sentence_ref->{ disable_triggers } = MediaWords::DB::story_triggers_disabled();
-
-        push( @{ $sentence_refs }, $sentence_ref );
-    }
+    my $sentence_refs = _get_story_sentence_refs( $sentences, $story );
 
     _insert_story_sentences( $db, $story, $sentence_refs );
 
-    _update_ap_syndicated( $db, $story, $story_lang );
+    _update_ap_syndicated( $db, $story );
 
     $db->dbh->{ AutoCommit } || $db->commit;
 

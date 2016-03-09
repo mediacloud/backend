@@ -3,7 +3,6 @@ package MediaWords::Controller::Api::V2::ExtractLines;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
-use MediaWords::DBI::StorySubsets;
 use strict;
 use warnings;
 use base 'Catalyst::Controller::REST';
@@ -96,7 +95,7 @@ sub extract_PUT : Local
 
     die unless defined( $preprocessed_lines );
 
-    ## TODO merge with DBI::Downloads::extractor_results_for_download
+    ## TODO merge with DBI::Downloads::extract
 
     my $extractor = MediaWords::Util::ExtractorFactory::createExtractor( $extractor_method );
 

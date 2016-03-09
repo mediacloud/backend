@@ -144,7 +144,7 @@ sub store_downloads
         {
             say $i;
             $preprocessed_lines = MediaWords::DBI::Downloads::fetch_preprocessed_content_lines( $dbs, $download );
-            $extract_results = MediaWords::DBI::Downloads::extractor_results_for_download( $dbs, $download );
+            $extract_results = MediaWords::DBI::Downloads::extract( $dbs, $download );
 
             store_preprocessed_result( $download, $preprocessed_lines, $extract_results, $content_ref );
         }

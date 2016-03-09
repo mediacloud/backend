@@ -110,7 +110,7 @@ sub get_extractor_results_for_story
     for my $download ( @{ $downloads } )
     {
         my $res;
-        eval { $res = MediaWords::DBI::Downloads::extractor_results_for_download( $db, $download ) };
+        eval { $res = MediaWords::DBI::Downloads::extract( $db, $download ) };
         if ( $res )
         {
             $res->{ text } = join( "\n", map { $res->{ download_lines }->[ $_ ] } @{ $res->{ included_line_numbers } } );

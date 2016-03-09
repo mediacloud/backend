@@ -872,7 +872,7 @@ sub add_new_story
 
     my $download = create_download_for_new_story( $db, $story, $feed );
 
-    MediaWords::DBI::Downloads::store_content_determinedly( $db, $download, $story_content );
+    MediaWords::DBI::Downloads::store_content( $db, $download, \$story_content );
 
     extract_download( $db, $download ) unless ( $skip_extraction );
 
@@ -2000,7 +2000,7 @@ SQL
 
     my $content = get_first_download_content( $db, $old_story );
 
-    MediaWords::DBI::Downloads::store_content_determinedly( $db, $download, $content );
+    MediaWords::DBI::Downloads::store_content( $db, $download, \$content );
 
     $db->query( <<SQL, $download->{ downloads_id }, $old_story->{ stories_id } );
 insert into download_texts ( downloads_id, download_text, download_text_length )

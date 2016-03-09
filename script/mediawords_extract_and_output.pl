@@ -87,7 +87,7 @@ sub store_downloads
         say "Processing download $download->{downloads_id}";
 
         my $preprocessed_lines = MediaWords::DBI::Downloads::fetch_preprocessed_content_lines( $dbs, $download );
-        my $extract_results = MediaWords::DBI::Downloads::extractor_results_for_download( $dbs, $download );
+        my $extract_results = MediaWords::DBI::Downloads::extract( $dbs, $download );
 
         say STDERR "Got extract_results:\n " . Dumper( $extract_results );
 

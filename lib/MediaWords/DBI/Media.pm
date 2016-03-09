@@ -1,9 +1,14 @@
 package MediaWords::DBI::Media;
+use Modern::Perl "2013";
+
+=head1 NAME
+
+MediaWords::DBI::Media - various helper functions relating to media.
+
+=cut
 
 use strict;
 use warnings;
-
-use Modern::Perl "2013";
 
 use Encode;
 use Regexp::Common qw /URI/;
@@ -15,6 +20,10 @@ use MediaWords::DBI::Media::Lookup;
 use MediaWords::DBI::Media::Rescrape;
 use MediaWords::Util::HTML;
 use MediaWords::Util::URL;
+
+=head1 FUNCTIONS
+
+=cut
 
 # parse the domain from the url of each story.  return the list of domains
 sub _get_domains_from_story_urls
@@ -51,7 +60,12 @@ sub _get_domains_from_story_urls
     return $domains;
 }
 
-# return a hash map of domains and counts for the urls of the latest 1000 stories in the given media source
+=head2 get_medium_domain_counts( $db, $medium )
+
+Return a hash map of domains and counts for the urls of the latest 1000 stories in the given media source.
+
+=cut
+
 sub get_medium_domain_counts
 {
     my ( $db, $medium ) = @_;
@@ -70,10 +84,14 @@ END
     return $domain_map;
 }
 
-# for each url in $urls, either find the medium associated with that
-# url or the medium assocaited with the title from the given url or,
-# if no medium is found, a newly created medium.  Return the list of
-# all found or created media along with a list of error messages for the process.
+=head2 find_or_create_media_from_urls( $db, $urls_string, $global_tags_string )
+
+For each url in $urls, either find the medium associated with that url or the medium assocaited with the title from the
+given url or, if no medium is found, a newly created medium.  Return the list of all found or created media along with a
+list of error messages for the process.
+
+=cut
+
 sub find_or_create_media_from_urls
 {
     my ( $dbis, $urls_string, $global_tags_string ) = @_;
@@ -316,7 +334,12 @@ sub _find_media_from_urls
     return $url_media;
 }
 
-# get the domain from the medium url
+=head2 get_medium_domain( $medium )
+
+Return MediaWords::Util::URL::get_url_domain on the $medium->{ url }
+
+=cut
+
 sub get_medium_domain
 {
     my ( $medium ) = @_;
@@ -324,8 +347,13 @@ sub get_medium_domain
     return MediaWords::Util::URL::get_url_domain( $medium->{ url } );
 }
 
-# get all of the media_type: tags. append the tags from the controversies.media_type_tags_sets_id
-# if $controversies_id is specified.
+=head2 get_media_type_tags( $db, $controversies_id )
+
+Get all of the media_type: tags. append the tags from the controversies.media_type_tags_sets_id if $controversies_id is
+specified.
+
+=cut
+
 sub get_media_type_tags
 {
     my ( $db, $controversies_id ) = @_;
@@ -358,9 +386,13 @@ END
     return $media_types;
 }
 
-# update the media type tag for the given medium by deleting any existing tags
-# in the same tag set as the new tag and inserting the new media_tags_map row
-# if it does not already exist.
+=head2 update_media_type( $db, $medium, $media_type_tags_id )
+
+Update the media type tag for the given medium by deleting any existing tags in the same tag set as the new tag and
+inserting the new media_tags_map row if it does not already exist.
+
+=cut
+
 sub update_media_type
 {
     my ( $db, $medium, $media_type_tags_id ) = @_;

@@ -26,7 +26,7 @@ store the downloaded content.  If the content is a feed, parse the feed to find 
 download queue.  More details about the crawler are [here](crawler.markdown).
 
 Extractor
---------- 
+---------
 
 The extractors are responsible for parsing the substantive text from the raw html of each story and storing it in the
 download_texts table.  The extractor also parses the download_text into sentences and stores those sentences in the
@@ -60,8 +60,10 @@ Bitly Fetcher
 A bitly fetcher runs for each story 3 days after it is first created and then again 30 days later for each story that
 had each at least one bitly click on the first fetch.  The 3 day fetch is queued for the story when the story is
 extracted.  The bitly fetcher calls the bitly api to find the number of bitly clicks for each story.  More information
-on the bitly fetching [here](bity.markdown).
+on the bitly fetching [here](bitly.markdown).
 
+Geotagging Client
+=----------------
 The geotagging client adds a set of tags to each story that indicate that the story is about that location.  The
 geotagger operates entirely through the api.  It periodically calls the api to download all new stories in media sources
 that we want to geotag, including the corenlp annotation for each; generates the geotagging information based on the
