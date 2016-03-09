@@ -5,7 +5,7 @@ MediaWords::DBI::Media - various helper functions relating to media
 
 =head1 DESCRIPTION
 
-parse the domain from the url of each story.  return the list of domains
+various helper functions relating to media
 
 
 =head1 REQUIRES
@@ -66,7 +66,7 @@ Return a hash map of domains and counts for the urls of the latest 1000 stories 
 
 =head2 update_media_type
 
- update_media_type();
+ update_media_type($db, $medium, $media_type_tags_id);
 
 Update the media type tag for the given medium by deleting any existing tags in the same tag set as the new tag and
 inserting the new media_tags_map row if it does not already exist.

@@ -1,6 +1,8 @@
 package MediaWords::DBI::Media;    # various helper functions relating to media
 use Modern::Perl "2013";
 
+# various helper functions relating to media
+
 use strict;
 use warnings;
 
