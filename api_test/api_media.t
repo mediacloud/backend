@@ -51,6 +51,23 @@ Readonly my $TEST_API_KEY => 'f66a50230d54afaf18822808aed649f1d6ca72b08fb06d5efb
 
 $ENV{ MEDIAWORDS_FORCE_USING_TEST_DATABASE } = 1;
 
+sub _append_test_api_key_to_base_url($)
+{
+    my $base_url = shift;
+
+    my $url;
+    if ( index( $base_url, '?' ) != -1 )
+    {
+        $url = "$base_url&key=$TEST_API_KEY";
+    }
+    else
+    {
+        $url = "$base_url?key=$TEST_API_KEY";
+    }
+
+    return $url;
+}
+
 sub test_media
 {
     my ( $db ) = @_;
@@ -61,18 +78,9 @@ sub test_media
 
     foreach my $base_url ( @{ $urls } )
     {
+        my $url = _append_test_api_key_to_base_url( $base_url );
 
-        my $url;
-        if ( index( $base_url, "?" ) != -1 )
-        {
-            $url = "$base_url&key=$TEST_API_KEY";
-        }
-        else
-        {
-            $url = "$base_url?key=$TEST_API_KEY";
-        }
-
-        my $response = request( "$url" );
+        my $response = request( $url );
 
         #say STDERR Dumper( $response );
         #say STDERR Dumper( $response->base );
@@ -171,10 +179,9 @@ sub test_tags
 
     foreach my $base_url ( @{ $urls } )
     {
+        my $url = _append_test_api_key_to_base_url( $base_url );
 
-        my $url = ( index( $base_url, "?" ) != -1 ) ? "$base_url&key=$TEST_API_KEY" : "$base_url?key=$TEST_API_KEY";
-
-        my $response = request( "$url" );
+        my $response = request( $url );
 
         ok( $response->is_success, 'Request should succeed' );
 
@@ -207,21 +214,13 @@ sub test_stories_public
 
     my $base_url = '/api/v2/stories_public/list/';
 
-    my $url;
-    if ( index( $base_url, "?" ) != -1 )
-    {
-        $url = "$base_url&key=$TEST_API_KEY";
-    }
-    else
-    {
-        $url = "$base_url?key=$TEST_API_KEY";
-    }
+    my $url = _append_test_api_key_to_base_url( $base_url );
 
     $url .= "&q=sentence:obama&rows=2&sentences=1&text=1";
 
     say STDERR $url;
 
-    my $response = request( "$url" );
+    my $response = request( $url );
 
     ok( $response->is_success, 'Request should succeed' );
 
@@ -262,21 +261,13 @@ sub test_stories_non_public
 
     my $base_url = '/api/v2/stories/list/';
 
-    my $url;
-    if ( index( $base_url, "?" ) != -1 )
-    {
-        $url = "$base_url&key=$TEST_API_KEY";
-    }
-    else
-    {
-        $url = "$base_url?key=$TEST_API_KEY";
-    }
+    my $url = _append_test_api_key_to_base_url( $base_url );
 
     $url .= "&q=sentence:obama&rows=2&sentences=1&text=1";
 
     say STDERR $url;
 
-    my $response = request( "$url" );
+    my $response = request( $url );
 
     ok( $response->is_success, 'Request should succeed' );
 
