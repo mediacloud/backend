@@ -53,7 +53,6 @@ $ENV{ MEDIAWORDS_FORCE_USING_TEST_DATABASE } = 1;
 
 sub test_media
 {
-    use Encode;
     my ( $db ) = @_;
 
     my $urls = [ '/api/v2/media/single/1', '/api/v2/media/list/?rows=1' ];
@@ -165,7 +164,6 @@ sub test_media
 
 sub test_tags
 {
-    use Encode;
     my ( $db ) = @_;
 
     my $urls =
@@ -205,7 +203,6 @@ sub test_tags
 
 sub test_stories_public
 {
-    use Encode;
     my ( $db ) = @_;
 
     my $base_url = '/api/v2/stories_public/list/';
@@ -261,7 +258,6 @@ sub test_stories_public
 
 sub test_stories_non_public
 {
-    use Encode;
     my ( $db ) = @_;
 
     my $base_url = '/api/v2/stories/list/';
