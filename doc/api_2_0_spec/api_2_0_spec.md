@@ -121,11 +121,11 @@ provides a set of metrics that compare the current number of stories being colle
 the number of stories collected over the past 90 days, and also compares coverage over time with the expected
 volume.  More details are in the field descriptions below
 
-### api/v2/mediahealth
+### api/v2/mediahealth/list
 
 | URL                              | Function
 | -------------------------------- | -------------------------------------------------------------
-| `api/v2/mediahealth`             | Return media health data for the given media sources
+| `api/v2/mediahealth/list`        | Return media health data for the given media sources
 
 #### Query Parameters
 
@@ -157,8 +157,9 @@ volume.  More details are in the field descriptions below
 
 #### Example
 
-Fetch media health information for
-URL: https://api.mediacloud.org/api/v2/media/single/1
+Fetch media health information for media source 4438:
+
+https://api.mediacloud.org/api/v2/mediahealth/list?media_id=4438
 
 Response:
 
