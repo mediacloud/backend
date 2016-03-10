@@ -47,14 +47,14 @@ use JSON;
 use Data::Sorting qw( :basics :arrays :extras );
 use Readonly;
 
+Readonly my $TEST_API_KEY => 'f66a50230d54afaf18822808aed649f1d6ca72b08fb06d5efb6247afe9fbae52';
+
 $ENV{ MEDIAWORDS_FORCE_USING_TEST_DATABASE } = 1;
 
 sub test_media
 {
     use Encode;
     my ( $db ) = @_;
-
-    my $key = 'f66a50230d54afaf18822808aed649f1d6ca72b08fb06d5efb6247afe9fbae52';
 
     my $urls = [ '/api/v2/media/single/1', '/api/v2/media/list/?rows=1' ];
 
@@ -66,11 +66,11 @@ sub test_media
         my $url;
         if ( index( $base_url, "?" ) != -1 )
         {
-            $url = "$base_url&key=$key";
+            $url = "$base_url&key=$TEST_API_KEY";
         }
         else
         {
-            $url = "$base_url?key=$key";
+            $url = "$base_url?key=$TEST_API_KEY";
         }
 
         my $response = request( "$url" );
@@ -134,7 +134,7 @@ sub test_media
         {
             my $media_id = $medium->{ media_id };
 
-            $response = request( "/api/v2/feeds/list?key=$key&media_id=$media_id" );
+            $response = request( "/api/v2/feeds/list?key=$TEST_API_KEY&media_id=$media_id" );
             ok( $response->is_success, 'Request should succeed' );
 
             if ( !$response->is_success )
@@ -168,15 +168,13 @@ sub test_tags
     use Encode;
     my ( $db ) = @_;
 
-    my $key = 'f66a50230d54afaf18822808aed649f1d6ca72b08fb06d5efb6247afe9fbae52';
-
     my $urls =
       [ '/api/v2/tags/single/4', '/api/v2/tags/list/?last_tags_id=3&rows=1', '/api/v2/tags/list?search=independent', ];
 
     foreach my $base_url ( @{ $urls } )
     {
 
-        my $url = ( index( $base_url, "?" ) != -1 ) ? "$base_url&key=$key" : "$base_url?key=$key";
+        my $url = ( index( $base_url, "?" ) != -1 ) ? "$base_url&key=$TEST_API_KEY" : "$base_url?key=$TEST_API_KEY";
 
         my $response = request( "$url" );
 
@@ -210,18 +208,16 @@ sub test_stories_public
     use Encode;
     my ( $db ) = @_;
 
-    my $key = 'f66a50230d54afaf18822808aed649f1d6ca72b08fb06d5efb6247afe9fbae52';
-
     my $base_url = '/api/v2/stories_public/list/';
 
     my $url;
     if ( index( $base_url, "?" ) != -1 )
     {
-        $url = "$base_url&key=$key";
+        $url = "$base_url&key=$TEST_API_KEY";
     }
     else
     {
-        $url = "$base_url?key=$key";
+        $url = "$base_url?key=$TEST_API_KEY";
     }
 
     $url .= "&q=sentence:obama&rows=2&sentences=1&text=1";
@@ -268,18 +264,16 @@ sub test_stories_non_public
     use Encode;
     my ( $db ) = @_;
 
-    my $key = 'f66a50230d54afaf18822808aed649f1d6ca72b08fb06d5efb6247afe9fbae52';
-
     my $base_url = '/api/v2/stories/list/';
 
     my $url;
     if ( index( $base_url, "?" ) != -1 )
     {
-        $url = "$base_url&key=$key";
+        $url = "$base_url&key=$TEST_API_KEY";
     }
     else
     {
-        $url = "$base_url?key=$key";
+        $url = "$base_url?key=$TEST_API_KEY";
     }
 
     $url .= "&q=sentence:obama&rows=2&sentences=1&text=1";
