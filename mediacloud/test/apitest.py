@@ -87,6 +87,16 @@ class PublishDateQueryTest(ApiBaseTest):
         self.assertTrue( self._mc.sentenceCount( date_query_exclusive_exclusive )[ 'count' ] > 0 )
         self.assertTrue( self._mc.sentenceCount( date_query_exclusive_inclusive )[ 'count' ] > 0 )
 
+class ApiMediaHealthTest(ApiBaseTest):
+
+    def testMediaHealth(self):
+        mediaHealth = self._mc.mediaHealth(2)
+        self.assertEqual(mediaHealth['media_id'],'2')
+        self.assertEqual(mediaHealth['is_healthy'],1)
+        self.assertEqual(mediaHealth['coverage_gaps'],str(len(mediaHealth['coverage_gaps_list'])))
+        self.assertTrue('start_date' in mediaHealth)
+        self.assertTrue('end_date' in mediaHealth)
+
 class ApiMediaTest(ApiBaseTest):
 
     def testMedia(self):

@@ -67,6 +67,13 @@ class MediaCloud(object):
         '''
         return self._queryForJson(self.V2_API_URL+'media/single/'+str(media_id))[0]
 
+    def mediaHealth(self, media_id):
+        '''
+        Details about one media source
+        '''
+        return self._queryForJson(self.V2_API_URL+'mediahealth/list', 
+            { 'media_id':media_id } )[0]
+
     def mediaList(self, last_media_id=0, rows=20, name_like=None, 
                 controversy_dump_time_slices_id=None, controversy_mode=None, tags_id=None, q=None):
         '''
