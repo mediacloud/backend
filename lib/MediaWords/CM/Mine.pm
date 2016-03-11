@@ -1,9 +1,18 @@
 package MediaWords::CM::Mine;
 
-# Mine through stories found for the given controversy and find all the links in each story.
-# Find each link, try to find whether it matches any given story.  If it doesn't, create a
-# new story.  Add that story's links to the queue if it matches the pattern for the
-# controversy.  Write the resulting stories and links to controversy_stories and controversy_links.
+=head1 NAME
+
+MediaWords::CM::Mine - controversy spider implementation
+
+=head1 SYNOPSIS
+
+    MediaWords::CM::Mine::mine_controversy( $db, $options );
+
+=head1 DESCRIPTION
+
+The controversy mining process is described in doc/controversy_mining.markdown.
+
+=cut
 
 use strict;
 use warnings;
