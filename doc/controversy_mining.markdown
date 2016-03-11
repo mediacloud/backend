@@ -102,3 +102,81 @@ Date Assignment
 
 Problem: We need publish dates for our analysis, but it is hard and error prone to guess dates from content discovered
 on the open web.
+
+For stories that we collect from RSS feeds, we assign the publish date from the feed item to the story, or the
+collection date / time if there is no publish date in the RSS feed.  These dates are often not accurate to the hour but
+are almost always accurate to the day.
+
+For spidered stories, we have no RSS date, so we have guess the date using just the html of the story.  There is no
+single format for including structured data about dates in html.  There are several different xml tags that various
+different publishers use, many of which may indicate the date of either the whole story or of some element related
+to the story (a comment, another story, the whole media source, etc).
+
+We have a date guessing method that assigns a date based on a series of about 15 different date parsing methods,
+including xml element methods like the '<meta article:published_time>' tag or other methods like a date in the url
+(http://foosource.com/2016/03/05/foo.html).  The final date parsing method is simply to look for any text that looks
+like a date anywhere in the text of the html.  If date parsing fails altogether, the story is assigned the date
+of the first story discovered that linked to the story.
+
+When a date is guessed, we associate a 'date_guess_method' tag with the story.  For an idea of how commonly various
+methods are used by the module, here are the date guess method counts for the net neutrality controversy:
+
+| tag                                  | count |
+|--------------------------------------|-------|
+| guess_by_span_published_updated_date |     3 |
+| guess_by_meta_item_publish_date      |     4 |
+| manual                               |    33 |
+| guess_by_meta_pubdate                |    44 |
+| guess_by_abbr_published_updated_date |    53 |
+| guess_by_datetime_pubdate            |    61 |
+| guess_by_storydate                   |    84 |
+| guess_by_datatime                    |   106 |
+| guess_by_meta_date                   |   195 |
+| guess_by_meta_publish_date           |   217 |
+| guess_by_sailthru_date               |   231 |
+| guess_by_dc_date_issued              |   382 |
+| guess_by_class_date                  |   451 |
+| guess_by_twitter_datatime            |   465 |
+| guess_by_og_article_published_time   |  1479 |
+| source_link                          |  1709 |
+| guess_by_url_and_date_text           |  2098 |
+| merged_story_rss                     |  2110 |
+| guess_by_date_text                   |  2608 |
+
+For some stories, there is no single date that can be assigned to the page.  For instance, there is no single publish
+date for a wikipedia page or the home page of an activist site.  Before guessing the date of a story, the date guessing
+tries to guess whether the story is undateable by looking at the url.  For instance, urls with no path are assumed
+undateable, as are urls with no numbers in the path.
+
+When we validated this method, we found that dates guessed by some method other than guess_by_url_and_date_text (which
+are almost always correct) are accurate to the day in 87% of cases.  The above numbers are from a controversy with  
+30,334 total stories, 3,254 of which were marked as undeateable and 8,125 of which were guessed using an 87% accurate
+method.
+
+We also allow the user to either edit the date or mark the date as correct, in which case we add a date_confirmed
+tag to the story.
+
+Date Accuracy Modeling
+----------------------
+
+Problem: Even though the absolute number of misdated stories is relatively small, that small number of misdated stories
+can badly distort findings for specific time slices that have a small number of stories relative to the larger
+controversy.
+
+We worked hard to make the date guessing as accurate as possible, resulting for example in only about 1,000 misdated
+stories in the net neutrality debate.  But we found repeatedly in early controversies that even that small number
+of misdated stories could badly distort results in weeks with small numbers just from the large number of stories
+that potentially might by misdated linking in to the small week.
+
+To mitigate this problem, we have time slice reliability modeling.  When we run a dump for a controversy, we use the
+data generated from the date guessing validation to randomly perturb individual dates of the controversy and then
+rerun the analysis of the most inlinked media sources for each time slice.  We then run a correlation between the
+set of media source rankings for each modeling run and the unperturbed rankings and store the mean and the stddev of
+the correlations (r2) between the perturbed rankings and the unperturbed ranking.  We mostly arbitrarily assign human
+readable labels to each time slice according to the following rubric:
+
+```
+reliable: mean - stddev > 0.85
+somewhat: mean - stddev > 0.75
+not: mean - stddev <= 0.75
+```
