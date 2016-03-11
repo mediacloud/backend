@@ -7,8 +7,10 @@ from mediacloud.test.apitest import *
 from mediacloud.test.storagetest import *
 
 test_classes = [
+    ApiMediaHealthTest,
     ApiMediaTest, ApiMediaSetTest, ApiFeedsTest, ApiDashboardsTest, ApiTagsTest, ApiTagSetsTest, 
-    ApiStoriesTest, AdminApiStoriesTest, ApiWordCountTest, ApiSentencesTest, AdminApiSentencesTest,
+    ApiStoriesTest, AdminApiStoriesTest, 
+    ApiWordCountTest, ApiSentencesTest, AdminApiSentencesTest,
     MongoStorageTest,
     ApiControversyTest, ApiControversyDumpTest, ApiControversyDumpTimeSliceTest,
     AuthTokenTest,
