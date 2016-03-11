@@ -38,7 +38,7 @@ CoreNLP Annotator
 
 The corenlp annotators are responsible for generating annotations using the stanford corenlp library for stories
 belonging to some media sources.  The extractor queues a corenlp annotation job for each extracted story in a media
-source marked for annotation. The actual corenlp generation is performed by a separate machine running a web ∏service on
+source marked for annotation. The actual corenlp generation is performed by a separate machine running a web service on
 top of the stanford corenlp libraries.  More information on the corenlp annotation process [here](corenlp.markdown).
 
 Processed Stories ID

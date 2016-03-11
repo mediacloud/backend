@@ -2,7 +2,7 @@ package MediaWords::Solr::SentenceFieldCounts;
 
 use Moose;
 
-# return counts of how many sentnces match any of the following fields:
+# return counts of how many sentences match any of the following fields:
 # media_id, language,
 
 use strict;

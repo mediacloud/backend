@@ -18,7 +18,7 @@ MediaWords::Solr::Dump - import story_sentences from postgres into solr
 =head1 DESCRIPTION
 
 We import any updated story_sentences into solr from the postgres server by periodically script on the solr server.
-This module implements the functionality of that script, as well as afunctionality to just dump import csvs from
+This module implements the functionality of that script, as well as functionality to just dump import csvs from
 postgres and to import already existing csvs into solr.
 
 The module knows which sentences to import by keep track of db_row_last_updated fields on the stories, media, and
