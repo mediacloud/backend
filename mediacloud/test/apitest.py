@@ -307,6 +307,8 @@ class AdminApiStoriesTest(AdminApiBaseTest):
     def testStoryList(self):
         results = self._mc.storyList(ApiBaseTest.QUERY, ApiBaseTest.FILTER_QUERY)
         self.assertNotEqual(len(results),0)
+        for story in results:
+            self.assertTrue('bitly_click_count' in story)
 
     def testStoryCoreNlpList(self):
         results = self._mc.storyCoreNlpList([261784668,261784669])
@@ -359,6 +361,7 @@ class ApiStoriesTest(ApiBaseTest):
         self.assertFalse('story_sentences' in story)
         self.assertFalse('story_text' in story)
         self.assertFalse('is_fully_extracted' in story)
+        self.assertTrue('bitly_click_count' in story)
 
     def testStoryPublic(self):
         story = self._mc.story(27456565)
@@ -366,10 +369,13 @@ class ApiStoriesTest(ApiBaseTest):
         self.assertTrue('story_sentences' not in story)
         self.assertTrue('language' in story)
         self.assertTrue('title' in story)
+        self.assertTrue('bitly_click_count' in story)
 
     def testStoryPublicList(self):
         results = self._mc.storyList(self.QUERY, self.FILTER_QUERY)
         self.assertNotEqual(len(results),0)
+        for story in results:
+            self.assertTrue('bitly_click_count' in story)
 
 class AdminApiSentencesTest(AdminApiBaseTest):
 
