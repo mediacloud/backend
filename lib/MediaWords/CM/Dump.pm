@@ -1,6 +1,40 @@
 package MediaWords::CM::Dump;
 
-# code to analyze a controversy and dump the controversy to snapshot tables and a gexf file
+=head1 NAME
+
+MediaWords::CM::Dump - Dump and analyze controversy data
+
+=head1 SYNOPSIS
+
+    # generate a new controversy dump -- this is run via mediawords_dump_controversy.pl once or each dump
+    dump_controversy( $db, $controversies_id );
+
+    # the rest of these examples are run each time we want to query controversy data
+
+    # setup and query dump tables
+    my $live = 1;
+    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $live );
+
+    # query data
+    my $story_links = $db->query( "select * from dump_story_links" )->hashes;
+    my $story_link_counts = $db->query( "select * from story_link_counts" )->hashes;
+    my $dump_stories = $db->query( "select * from dump_stories" )->hashes;
+
+    # get csv dump
+    my $media_csv = MediaWords::CM::Dump::get_dump_media_csv( $db, $cdts );
+
+    MediaWords::CM::Dump::discard_temp_tables( $db );
+
+=head1 DESCRIPTION
+
+Analyze a controversy and dump the controversy to snapshot tables and a gexf file.
+
+For detailed explanation of the dump process, see doc/controversy_dumps.markdown.
+
+=cut
+
+# This module was converted from a script, and the functions were never refactored to prefix private methods with '_'.
+# Consider any method with a perldoc head to be private.
 
 use strict;
 use warnings;
@@ -55,6 +89,10 @@ my $_temporary_tablespace;
 
 # temporary hack to get around dump_period_stories lock
 my $_drop_dump_period_stories = 1;
+
+=head1 FUNCTIONS
+
+=cut
 
 # get the list of all snapshot tables
 sub get_snapshot_tables
@@ -127,8 +165,31 @@ END
     add_media_type_views( $db );
 }
 
-# setup dump_* tables by either creating views for the relevant cd.*
-# tables for a dump snapshot or by copying live data for live requests.
+=head2 setup_temporary_dump_tables( $db, $controversy_dump_time_slice, $controversy, $live )
+
+Setup dump_* tables by either creating views for the relevant cd.* tables for a dump snapshot or by copying live data
+if $live is true.
+
+The following dump_tables are created that contain a copy of all relevant rows present in the controversy at the time
+the dump was created: dump_controversy_stories, dump_stories, dump_media, dump_controversy_links_cross_media,
+dump_stories_tags_map, dump_stories_tags_map, dump_tag_sets, dump_media_with_types.  The data in each of these tables
+consists of data related to all of the stories in the entire controversy, not restricted to a specific time slice.  So
+dump_media includes all media including any story in the controversy, regardless of date.  Each of these tables consists
+of the fields present in the dumped table.
+
+The following dump_tables are created that contain data relevant only to the specific time slice: dump_medium_links,
+dump_story_links, dump_medium_link_counts, dump_story_link_counts.  These tables include the following fields:
+
+dump_medium_links: source_media_id, ref_media_id
+
+dump_medium_link_counts: media_id, inlink_count, outlink_count, story_count, bitly_click_count
+
+dump_story_links: source_stories_id, ref_stories_id
+
+dump_story_link_counts: stories_id, inlink_count, outlink_count, citly_click_count
+
+=cut
+
 sub setup_temporary_dump_tables
 {
     my ( $db, $cdts, $controversy, $live ) = @_;
@@ -146,7 +207,14 @@ sub setup_temporary_dump_tables
     }
 }
 
-# run $db->query( "discard temp" ) to clean up temp tables and views
+=head2 discard_temp_tables( $db )
+
+Runs $db->query( "discard temp" ) to clean up temporary tables and views.  This should be run after calling
+setup_temporary_dump_tables().  Calling setup_temporary_dump_tables() within a transaction and committing the
+transaction will have the same effect.
+
+=cut
+
 sub discard_temp_tables
 {
     my ( $db ) = @_;
@@ -290,6 +358,12 @@ sub update_cdts
     $db->update_by_id( 'controversy_dump_time_slices', $cdts->{ controversy_dump_time_slices_id }, { $field => $val } );
 }
 
+=head2 get_story_links_csv( $db, $cdts )
+
+Get an encoded csv dump of the story links for the given time slice.
+
+=cut
+
 sub get_story_links_csv
 {
     my ( $db, $cdts ) = @_;
@@ -341,6 +415,12 @@ END
         write_story_links_csv( $db, $cdts );
     }
 }
+
+=head2 get_stories_csv( $db, $cdts )
+
+Get an encoded csv dump of the stories inr the given time slice.
+
+=cut
 
 sub get_stories_csv
 {
@@ -545,6 +625,12 @@ sub add_extra_fields_to_dump_media
     return $all_fields;
 }
 
+=head2 get_media_csv( $db, $cdts )
+
+Get an encoded csv dump of the media in the given time slice.
+
+=cut
+
 sub get_media_csv
 {
     my ( $db, $cdts ) = @_;
@@ -602,6 +688,12 @@ END
         write_media_csv( $db, $cdts );
     }
 }
+
+=head2 get_medium_links_csv( $db, $cdts )
+
+Get an encoded csv dump of the medium_links in the given time slice.
+
+=cut
 
 sub get_medium_links_csv
 {
@@ -1051,7 +1143,18 @@ sub layout_gexf_with_graphviz_1
     scale_gexf_nodes( $gexf );
 }
 
-# write gexf dump of nodes
+=head2 get_gexf_dump( $db, $cdts, $color_field, $max_media )
+
+Get a gexf dump of the graph described by the linked media sources within the given controversy time slice.
+
+Layout the graph using the gaphviz neato algorithm.
+
+Color the nodes by the given field: $medium->{ $color_field } (default 'media_type').
+
+Include only the $max_media media sources with the most inlinks in the time slice (default 500).
+
+=cut
+
 sub get_gexf_dump
 {
     my ( $db, $cdts, $color_field, $max_media ) = @_;
@@ -1304,7 +1407,15 @@ sub generate_cdts_data ($$;$)
 
 }
 
-# update *_count fields in cdts.  save to db unless $live is specified.
+=head2 update_cdts_counts( $db, $cdts, $live )
+
+Update story_count, story_link_count, medium_count, and medium_link_count fields in the controversy_dump_time_slice
+hash.  This must be called after setup_temporary_dump_tables() to get access to these fields in the cdts hash.
+
+Save to db unless $live is specified.
+
+=cut
+
 sub update_cdts_counts ($$;$)
 {
     my ( $db, $cdts, $live ) = @_;
@@ -1742,7 +1853,12 @@ sub get_periods ($)
     return ( $period eq 'all' ) ? $all_periods : [ $period ];
 }
 
-# create a controversy_dump for the given controversy
+=head2 dump_controversy( $db, $controversies_id )
+
+Create a controversy_dump for the given controversy.
+
+=cut
+
 sub dump_controversy ($$)
 {
     my ( $db, $controversies_id ) = @_;

@@ -14,12 +14,14 @@ between the controversy mapping system and the rest of the system are that:
 * as the cm parses links to discover new stories, it stores those links in the
   database so that we can use them for link analysis.
 
-The code that runs the controversies spider is [MediaWords::CM::Spider](../lib/MediaWords/CM/Spider.pm).
+The code that runs the controversies spider is [MediaWords::CM::Spider](../lib/MediaWords/CM/Spider.pm).  More
+information about the controversy mining process is [here](controversy_mining.markdown).
 
 The code that snapshots controversies and performs analysis (aggregates link counts, generates link counts,
-models reliability for date guesses) is in [MediaWords::CM::Mine](../lib/MediaWords/CM/Mine.pm).
+models reliability for date guesses) is in [MediaWords::CM::Mine](../lib/MediaWords/CM/Mine.pm).  More information about
+the controversy dumping process is [here](controversy_dumps.markdown).
 
-The controversy web ui is implemented in the 
+The controversy web ui is implemented in the
 [MediaWords::Controller::Admin::CM](../lib/MediaWords/Controller/Admin/CM.pm) catalyst controller.
 
 How to run a controversy for development

@@ -87,6 +87,10 @@ sources with the same media url domain.  The human makes a judgment about whethe
 url domain are duplicates or not.  These media duplicate lists are then used for all future controversy spider runs
 (including reruns on existing controversies, in which case stories from duplicate media sources are merged).
 
+For implementation of media source assignment, see lookup_medium_by_url() in
+[MediaWords::CM::Mine](../lib/MediaWords/CM/Mine.pm).  For implementation of media source deduplication, see
+[mediawords_dedup_controversy_media.pl](../script/mediawords_dedup_controversy_media.pl).
+
 External Seed Sets
 ------------------
 
@@ -156,6 +160,8 @@ method.
 We also allow the user to either edit the date or mark the date as correct, in which case we add a date_confirmed
 tag to the story.
 
+For implementation of date guessing, see [MediaWords::CM::GuessDate](../lib/MediaWords/CM/GuessDate.pm).
+
 Date Accuracy Modeling
 ----------------------
 
@@ -180,3 +186,5 @@ reliable: mean - stddev > 0.85
 somewhat: mean - stddev > 0.75
 not: mean - stddev <= 0.75
 ```
+
+For implementation of date accuracy modeling, see [MediaWords::CM::Dump::Mine](../lib/MediaWords/CM/Dump/Mine.pm).

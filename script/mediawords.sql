@@ -1881,9 +1881,8 @@ create table controversy_dump_time_slices (
     medium_count                    int not null,
     medium_link_count               int not null,
 
-    -- is this just a shell cdts with no data actually dumped into it
-    -- we use shell cdtss to display query slices on live data with having to make a real dump
-    -- first
+    -- is this just a shell cdts with no data actual dumped into it?
+    -- we use shell cdtss to display query slices on live data with having to make a real dump first
     is_shell                        boolean not null default false,
     tags_id                         int references tags -- keep on cascade to avoid accidental deletion
 );
