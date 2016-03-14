@@ -42,6 +42,7 @@ sub permissible_output_fields
           collect_date
           story_tags
           bitly_click_count
+          ap_syndicated
           /
     ];
 }

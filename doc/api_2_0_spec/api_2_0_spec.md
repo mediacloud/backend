@@ -543,6 +543,7 @@ The following table describes the meaning and origin of fields returned by both 
 | `language`          | The language of the story as detected by the chromium compact language detector library.
 | `title`             | The title of the story as found in the RSS feed.
 | `bitly_click_count` | The total Bit.ly click count within 30 days from the story's `publish_date` or `collect_date`, or `null` if the click count hasn't been collected yet.
+| `ap_syndicated`     | Whether our detection algorithm thinks that this is an English language syndicated AP story
 
 
 ### api/v2/stories_public/single
