@@ -12,9 +12,9 @@ BEGIN
 
     use Catalyst::Test ( 'MediaWords' );
     use MediaWords;
-
-    $ENV{ MEDIAWORDS_FORCE_USING_TEST_DATABASE } = 1;
 }
+
+$ENV{ MEDIAWORDS_FORCE_USING_TEST_DATABASE } = 1;
 
 use Test::Differences;
 use Test::Deep;
