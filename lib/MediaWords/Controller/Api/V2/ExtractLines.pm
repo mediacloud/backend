@@ -3,7 +3,6 @@ package MediaWords::Controller::Api::V2::ExtractLines;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
-use MediaWords::DBI::StorySubsets;
 use strict;
 use warnings;
 use base 'Catalyst::Controller::REST';
@@ -31,7 +30,7 @@ Catalyst Controller.
 
 =cut
 
-=head2 index 
+=head2 index
 
 =cut
 
@@ -96,7 +95,7 @@ sub extract_PUT : Local
 
     die unless defined( $preprocessed_lines );
 
-    ## TODO merge with DBI::Downloads::extractor_results_for_download
+    ## TODO merge with DBI::Downloads::extract
 
     my $extractor = MediaWords::Util::ExtractorFactory::createExtractor( $extractor_method );
 
@@ -106,9 +105,6 @@ sub extract_PUT : Local
     my $included_line_numbers = $ret->{ included_line_numbers };
 
     my $extracted_html = MediaWords::DBI::Downloads::_get_extracted_html( $download_lines, $included_line_numbers );
-
-    #$extracted_html = _new_lines_around_block_level_tags( $extracted_html );
-    #my $extracted_text = html_strip( $extracted_html );
 
     $ret->{ extracted_html } = $extracted_html;
 
@@ -146,7 +142,6 @@ sub sentences_from_html_PUT : Local
 
     die "'$story_html' is not a scalar " . ref( $story_html ) if ref( $story_html );
 
-    $story_html = MediaWords::DBI::Downloads::_new_lines_around_block_level_tags( $story_html );
     my $story_text = html_strip( $story_html );
 
     # Identify the language of the full story

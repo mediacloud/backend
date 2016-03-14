@@ -2,7 +2,6 @@ package MediaWords::Controller::Api::V2::Media_Sets;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
-use MediaWords::DBI::StorySubsets;
 use strict;
 use warnings;
 use base 'Catalyst::Controller';

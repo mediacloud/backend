@@ -2,16 +2,56 @@ package MediaWords::Crawler::Handler;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
-# process the fetched response for the crawler:
-# * store the download in the database,
-# * store the response content in the fs,
-# * parse the response content to generate more downloads (eg. story urls from a feed download)
-# * parse the response content to add story text to the database
+=head1 NAME
+
+Mediawords::Crawler::Handler - process the http response from the fetcher - parse feeds, add new stories, add content
+
+=head1 SYNOPSIS
+
+    # this is a simplified version of the code used in the crawler to invoke the handler
+
+    my $crawler = MediaWords::Crawler::Engine->new();
+
+    my $fetcher = MediaWords::Crawler::Fetcher->new( $crawler );
+
+    # get pending $download from somewhere
+
+    my $response = $fetcher->fetch_download( $download );
+
+    my $handler = MediaWords::Crawler->Handler->new( $engine );
+
+    $handler->handler_response( $response );
+
+=head1 DESCRIPTION
+
+The handler is responsible for accepting the http response from the fetcher, performing whatever logic is required
+by the system for the given download type, and storing successful response content in content store.
+
+For all downloads, the handle stores the content of successful downloads in the content store system (either a local
+posgres table or, on the production media cloud system, in amazon s3).
+
+If the download has a type of 'feed', the handler parses the feed and looks for the urls of any new stories.  A story
+is considered new if the url or guid is not already in the database for the given media source and if the story
+title is unique for the media source for the calendar week.  If the story is new, a story is added to the stories
+table and a download with a type of 'pending' is added to the downloads table.
+
+For 'feed' downloads, after parsing the feed but before checking for new stories, we generate a checksum of the sorted
+urls of the feed.  We check that checksum against the last_checksum value of the feed, and if the value is the same, we
+store '(redundant feed)' as the content of the feed and do not check for new stories.  This check prevents frequent
+storage of redundant feed content and also avoids the considerable processing time required to check individual
+urls for new stories.
+
+If the download has a type of 'content', the handler merely stores the content for the given story and then queues
+an extraction job for the download.
+
+If the response is an error and the status is a '503' or a '500 read timeout', the handler queues the download for
+another attempt (up to a max of 5 retries) with a backoff timing starting at one hour.  If the response is an error
+with another status, the 'state' of the download is set to 'error'.
+
+=cut
 
 use strict;
 use warnings;
-
-# MODULES
 
 use Data::Dumper;
 use Date::Parse;
@@ -42,7 +82,13 @@ Readonly my $MAX_PAGES => 10;
 # max number of times to try a page after a 5xx error
 Readonly my $MAX_5XX_RETRIES => 10;
 
-# METHODS
+=head1 METHODS
+
+=head2 new( $engine )
+
+Create new handler object
+
+=cut
 
 sub new
 {
@@ -54,51 +100,6 @@ sub new
     $self->engine( $engine );
 
     return $self;
-}
-
-sub _get_found_blogs_id
-{
-    my ( $self, $download ) = @_;
-
-    my $blog_validation_downloads = $self->engine->dbs->query(
-        'select * from blog_validation_downloads where downloads_id = ?',
-        $download->{ downloads_id },
-    );
-
-    confess "no blog_validation_download for $download->{downloads_id} " unless $blog_validation_downloads;
-
-    my $hash = $blog_validation_downloads->hash;
-
-    #     say STDERR Dumper($blog_validation_downloads);
-    #     say STDERR Dumper($download);
-    #     say STDERR Dumper($hash);
-
-    confess "no blog_validation_download hash for $download->{downloads_id} " . Dumper( $hash ) unless $hash;
-
-    confess unless $hash->{ downloads_type } eq $download->{ type };
-
-    return $hash->{ found_blogs_id };
-}
-
-# parse the feed and add the resulting stories and content downloads to the database
-sub _store_last_rss_entry_time
-{
-    my ( $self, $download, $response ) = @_;
-
-    my $items = $self->_get_feed_items( $download, \$response->content );
-
-    return if scalar( @{ $items } ) == 0;
-
-    my $entry_date = maxstr( map { $_->issued } @{ $items } );
-
-    #say STDERR Dumper ( [ map { $_->issued . '' } @{$items} ] );
-    #say STDERR "Max entry_date $entry_date";
-
-    my $found_blogs_id = $self->_get_found_blogs_id( $download );
-
-    $self->engine->dbs->query( "UPDATE found_blogs set last_entry = ? where found_blogs_id = ? ",
-        $entry_date, $found_blogs_id );
-
 }
 
 # chop out the content if we don't allow the content type
@@ -115,7 +116,7 @@ sub _restrict_content_type
 }
 
 # return 1 if medium->{ use_pager } is null or true and 0 otherwise
-sub use_pager
+sub _use_pager
 {
     my ( $medium ) = @_;
 
@@ -124,11 +125,14 @@ sub use_pager
     return 0;
 }
 
-# if use_pager is already set, do nothing.  Otherwise, if next_page_url is true,
-# set use_pager to true.  Otherwise, if there are less than 100 unpaged_stories,
-# increment unpaged_stories.  If there are at least 100 unpaged_stories, set
+# we keep track of a use_pager field in media to determine whether we should try paging stories within a given media
+# souce.  We assume that we don't need to keep trying paging stories if we have tried but failed to find  next pages in
+# 100 stories in that media source in a row.
+#
+# If use_pager is already set, do nothing.  Otherwise, if next_page_url is true, set use_pager to true.  Otherwise, if
+# there are less than 100 unpaged_stories, increment unpaged_stories.  If there are at least 100 unpaged_stories, set
 # use_pager to false.
-sub set_use_pager
+sub _set_use_pager
 {
     my ( $dbs, $medium, $next_page_url ) = @_;
 
@@ -152,7 +156,7 @@ sub set_use_pager
     }
 }
 
-# call get_page_urls from the pager module for the download's feed
+# if _use_pager( $medium ) returns true, call MediaWords::Crawler::Pager::get_next_page_url on the download
 sub _call_pager
 {
     my ( $self, $dbs, $download ) = @_;
@@ -162,7 +166,7 @@ sub _call_pager
 select * from media m where media_id in ( select media_id from feeds where feeds_id = ? );
 END
 
-    return unless ( use_pager( $medium ) );
+    return unless ( _use_pager( $medium ) );
 
     if ( $download->{ sequence } > $MAX_PAGES )
     {
@@ -179,7 +183,7 @@ END
 
     my $validate_url = sub { !$dbs->query( "select 1 from downloads where url = ?", $_[ 0 ] ) };
 
-    my $next_page_url = MediaWords::Crawler::Pager->get_next_page_url( $validate_url, $download->{ url }, $content );
+    my $next_page_url = MediaWords::Crawler::Pager::get_next_page_url( $validate_url, $download->{ url }, $content );
 
     if ( $next_page_url )
     {
@@ -202,10 +206,11 @@ END
         );
     }
 
-    set_use_pager( $dbs, $medium, $next_page_url );
+    _set_use_pager( $dbs, $medium, $next_page_url );
     return $ret;
 }
 
+# queue a gearman extraction job for the story
 sub _queue_story_extraction($$)
 {
     my ( $self, $download ) = @_;
@@ -219,8 +224,7 @@ sub _queue_story_extraction($$)
         $fetcher_number );
 }
 
-# call the content module to parse the text from the html and add pending downloads
-# for any additional content
+# call the pager module on the download and queue the story for extraction if this are no other pages for the story
 sub _process_content
 {
     my ( $self, $dbs, $download, $response ) = @_;
@@ -241,7 +245,15 @@ sub _process_content
     say STDERR "fetcher " . $self->engine->fetcher_number . " finished _process_content for  " . $download->{ downloads_id };
 }
 
-# deal with various errors returned by the response
+=head2 handle_error( $download, $response )
+
+Deal with any errors returned by the fetcher response.  If the error status looks like something that the site
+could recover from (503, 500 timeout), queue another time out using back off timing.  If we don't recognize the
+status as something we can recover from or if we have exceeded the max retries, set the 'state' of the download
+to 'error' and set the 'error_messsage' to describe the error.
+
+=cut
+
 sub handle_error
 {
     my ( $self, $download, $response ) = @_;
@@ -263,10 +275,10 @@ sub handle_error
         my $interval = "$error_num hours";
 
         $dbs->query( <<END, $interval, $enc_error_message, $download->{ downloads_id }, );
-update downloads set 
-        state = 'pending', 
-        download_time = now() + \$1::interval , 
-        error_message = \$2 
+update downloads set
+        state = 'pending',
+        download_time = now() + \$1::interval ,
+        error_message = \$2
     where downloads_id = \$3
 END
     }
@@ -285,7 +297,17 @@ END
     return 1;
 }
 
-# after the downloads has been fetched, handle the resulting content (store the content, parse a feed, etc).
+=head2 handle_response( $response )
+
+If the response is an error, call handle_error to handle the error and return. Otherwise, store the $response content in
+the MediaWords::DBI::Downloads content store, associated with the download. If the download is a feed, parse the feed
+for new stories, add those stories to the db, and queue a download for each. If the download is a content download,
+queue extraction of the story.
+
+More details in the DESCRIPTION above and in MediaWords::Crawler::FeedHandler, which handles the feed downloads.
+
+=cut
+
 sub handle_response
 {
     my ( $self, $download, $response ) = @_;
@@ -345,7 +367,12 @@ END
     }
 }
 
-# calling engine
+=head2 engine
+
+getset engine - calling crawler engine
+
+=cut
+
 sub engine
 {
     if ( $_[ 1 ] )

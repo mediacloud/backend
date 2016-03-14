@@ -2,8 +2,6 @@ package MediaWords::Controller::Api::V2::Stories_Public;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
-use MediaWords::DBI::StorySubsets;
-
 use strict;
 use warnings;
 use base 'Catalyst::Controller';
@@ -44,6 +42,7 @@ sub permissible_output_fields
           collect_date
           story_tags
           bitly_click_count
+          ap_syndicated
           /
     ];
 }

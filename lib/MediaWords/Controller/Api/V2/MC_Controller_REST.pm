@@ -2,7 +2,6 @@ package MediaWords::Controller::Api::V2::MC_Controller_REST;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
-use MediaWords::DBI::StorySubsets;
 use MediaWords::DBI::Auth;
 
 use strict;

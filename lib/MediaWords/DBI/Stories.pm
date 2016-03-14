@@ -2,7 +2,18 @@ package MediaWords::DBI::Stories;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
-# various helper functions for stories
+=head1 NAME
+
+Mediawords::DBI::Stories - various helper functions for stories
+
+=head1 SYNOPSIS
+
+
+=head1 DESCRIPTION
+
+This module includes various helper function for dealing with stories.
+
+=cut
 
 use strict;
 use warnings;
@@ -23,6 +34,10 @@ use MediaWords::Languages::Language;
 use MediaWords::StoryVectors;
 use List::Compare;
 
+=head1 FUNCTIONS
+
+=cut
+
 sub _get_full_text_from_rss
 {
     my ( $db, $story ) = @_;
@@ -32,7 +47,12 @@ sub _get_full_text_from_rss
     return $ret;
 }
 
-# get the combined story title, story description, and download text of the text
+=head2 combine_story_title_description_text( $story_title, $story_description, $download_texts )
+
+Get the combined story title, story description, and download text of the story in a consistent way.
+
+=cut
+
 sub combine_story_title_description_text($$$)
 {
     my ( $story_title, $story_description, $download_texts ) = @_;
@@ -45,12 +65,20 @@ sub combine_story_title_description_text($$$)
     );
 }
 
-# get the concatenation of the story title and description and all of the download_texts associated with the story
+=head2 get_text
+
+Get the concatenation of the story title and description and all of the download_texts associated with the story
+in a consistent way.
+
+If full_text_rss is true for the medium, just return the concatenation of the story title and description.
+
+=cut
+
 sub get_text
 {
     my ( $db, $story ) = @_;
 
-    if ( _has_full_text_rss( $db, $story ) )
+    if ( $story->{ full_text_rss } )
     {
         return _get_full_text_from_rss( $db, $story );
     }
@@ -86,35 +114,57 @@ EOF
     return combine_story_title_description_text( $story->{ title }, $story->{ description }, $download_texts );
 }
 
-# Like get_text but it doesn't include both the rss information and the extracted text.
-# Including both could cause some sentences to appear twice and throw off our word counts.
+=head2 get_text_for_word_counts( $db, $story )
+
+Like get_text but it doesn't include both title + description and the extracted text.  This is what is used to fetch
+text to generate story_sentences, which eventually get imported into solr.
+
+If the text of the story ends up being shorter than the description, return the title + description instead of the
+story text (some times the extractor falls down and we end up with better data just using the title + description .
+
+=cut
+
 sub get_text_for_word_counts
 {
     my ( $db, $story ) = @_;
 
-    if ( _has_full_text_rss( $db, $story ) )
+    my $story_text = $story->{ full_text_rss } ? _get_full_text_from_rss( $db, $story ) : get_extracted_text( $db, $story );
+
+    my $story_description = $story->{ description } || '';
+
+    if ( ( length( $story_text ) == 0 ) || ( length( $story_text ) < length( $story_description ) ) )
     {
-        return _get_full_text_from_rss( $db, $story );
+        $story_text = html_strip( $story->{ title } );
+        if ( $story->{ description } )
+        {
+            $story_text .= '.' unless ( $story_text =~ /\.\s*$/ );
+            $story_text .= html_strip( $story->{ description } );
+        }
     }
 
-    return get_extracted_text( $db, $story );
+    return $story_text;
 }
+
+=head2 get_first_download( $db, $download )
+
+Get the first download linking to this story.
+
+=cut
 
 sub get_first_download
 {
     my ( $db, $story ) = @_;
 
-    return $db->query(
-        <<"EOF",
-        SELECT *
-        FROM downloads
-        WHERE stories_id = ?
-        ORDER BY sequence ASC
-        LIMIT 1
-EOF
-        $story->{ stories_id }
-    )->hash();
+    return $db->query( <<SQL, $story->{ stories_id } )->hash;
+SELECT * FROM downloads WHERE stories_id = ? ORDER BY sequence ASC LIMIT 1
+SQL
 }
+
+=head2 is_fully_extracted( $db, $story )
+
+Return true if all downloads linking to this story have been extracted.
+
+=cut
 
 sub is_fully_extracted
 {
@@ -129,17 +179,14 @@ EOF
         $story->{ stories_id }
     )->flat();
 
-    say STDERR "is_fully_extracted query returns $bool [$story->{ stories_id }]";
-
-    if ( defined( $bool ) && $bool )
-    {
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
+    return ( defined( $bool ) && $bool ) ? 1 : 0;
 }
+
+=head2 get_content_for_first_download( $db, $story )
+
+Call fetch_content on the result of get_first_download().  Return undef if the download's state is not null.
+
+=cut
 
 sub get_content_for_first_download($$)
 {
@@ -158,11 +205,17 @@ sub get_content_for_first_download($$)
     return $content_ref;
 }
 
+=head2 get_existing_tags( $db, $story, $tag_set_name )
+
+Get tags belonging to the tag set with the given name and associated with this story.
+
+=cut
+
 sub get_existing_tags
 {
-    my ( $db, $story, $module ) = @_;
+    my ( $db, $story, $tag_set_name ) = @_;
 
-    my $tag_set = $db->find_or_create( 'tag_sets', { name => $module } );
+    my $tag_set = $db->find_or_create( 'tag_sets', { name => $tag_set_name } );
 
     my $ret = $db->query(
         <<"EOF",
@@ -179,6 +232,12 @@ EOF
 
     return $ret;
 }
+
+=head2 get_existing_tags_as_string( $db, $stories_id )
+
+Get list of tags associated with the story in 'tag_set_name:tag' format.
+
+=cut
 
 sub get_existing_tags_as_string
 {
@@ -215,41 +274,23 @@ EOF
     return $tags;
 }
 
-sub get_media_source_for_story
-{
-    my ( $db, $story ) = @_;
+=head2 update_rss_full_text_field( $db, $story )
 
-    my $medium = $db->query(
-        <<"EOF",
-        SELECT *
-        FROM media
-        WHERE media_id = ?
-EOF
-        $story->{ media_id }
-    )->hash;
+Set stories.full_text_rss to the value of the medium's full_text_rss field.  If the new value is different than
+$story->{ full_text_rss }, update the value in the db.
 
-    return $medium;
-}
+=cut
 
 sub update_rss_full_text_field
 {
     my ( $db, $story ) = @_;
 
-    my $medium = get_media_source_for_story( $db, $story );
+    my $medium = $db->query( "select * from media where media_id = ?", $story->{ media_id } )->hash;
 
-    my $full_text_in_rss = 0;
-
-    if ( $medium->{ full_text_rss } )
-    {
-        $full_text_in_rss = 1;
-    }
+    my $full_text_in_rss = ( $medium->{ full_text_rss } ) ? 1 : 0;
 
     #This is a temporary hack to work around a bug in XML::FeedPP
-    # Item description() will sometimes return a hash instead of text. In Handler.pm we replaced the hash ref with ''
-    if ( defined( $story->{ description } ) && ( length( $story->{ description } ) == 0 ) )
-    {
-        $full_text_in_rss = 0;
-    }
+    $full_text_in_rss = 0 if ( defined( $story->{ description } ) && ( length( $story->{ description } ) == 0 ) );
 
     if ( defined( $story->{ full_text_rss } ) && ( $story->{ full_text_rss } != $full_text_in_rss ) )
     {
@@ -267,14 +308,12 @@ EOF
     return $story;
 }
 
-sub _has_full_text_rss
-{
-    my ( $db, $story ) = @_;
+=head2 fetch_content( $db, $story )
 
-    return $story->{ full_text_rss };
-}
+Fetch the content of the first download of the story.
 
-# query the download and call fetch_content
+=cut
+
 sub fetch_content($$)
 {
     my ( $db, $story ) = @_;
@@ -284,6 +323,7 @@ sub fetch_content($$)
         SELECT *
         FROM downloads
         WHERE stories_id = ?
+        order by downloads_id
 EOF
         $story->{ stories_id }
     )->hash;
@@ -291,7 +331,12 @@ EOF
     return $download ? MediaWords::DBI::Downloads::fetch_content( $db, $download ) : \'';
 }
 
-# get the tags for the given module associated with the given story from the db
+=head2 get_db_module_tags( $db, $story, $module )
+
+Get the tags for the given module associated with the given story from the db
+
+=cut
+
 sub get_db_module_tags
 {
     my ( $db, $story, $module ) = @_;
@@ -316,6 +361,12 @@ EOF
     )->hashes;
 }
 
+=head2 get_extracted_text( $db, $story )
+
+Return the concatenated download_texts associated with the story.
+
+=cut
+
 sub get_extracted_text
 {
     my ( $db, $story ) = @_;
@@ -335,7 +386,12 @@ EOF
     return join( ".\n\n", map { $_->{ download_text } } @{ $download_texts } );
 }
 
-## TODO rename this function
+=head2 get_extracted_html_from_db( $db, $story )
+
+Get extracted html for the story by using existing text extraction results.
+
+=cut
+
 sub get_extracted_html_from_db
 {
     my ( $db, $story ) = @_;
@@ -349,74 +405,28 @@ END
     return join( "\n", map { MediaWords::DBI::DownloadTexts::get_extracted_html_from_db( $db, $_ ) } @{ $download_texts } );
 }
 
-sub get_first_download_for_story
-{
-    my ( $db, $story ) = @_;
+=head2 is_new( $db, $story )
 
-    my $download = $db->query(
-        <<"EOF",
-        SELECT *
-        FROM downloads
-        WHERE stories_id = ?
-        ORDER BY downloads_id ASC
-        LIMIT 1
-EOF
-        $story->{ stories_id }
-    )->hash;
+Return true if this story should be considered new for the given media source.  This is used by FeedHandler to determine
+whether to add a new story for a feed item url.
 
-    return $download;
-}
+A story is new if no story with the same url or guid exists in the same media source and if no story exists with the
+same title in the same media source in the same calendar day.
 
-sub get_initial_download_content($$)
-{
-    my ( $db, $story ) = @_;
+=cut
 
-    my $download = get_first_download_for_story( $db, $story );
-
-    my $content = MediaWords::DBI::Downloads::fetch_content( $db, $download );
-
-    return $content;
-}
-
-# Determines if similar story already exist in the database
-# Note that calling this function on stories already in the database makes no sense.
 sub is_new
 {
     my ( $dbs, $story ) = @_;
 
     my $db_story = $dbs->query( <<"END", $story->{ guid }, $story->{ media_id } )->hash;
-SELECT *
-    FROM stories
-    WHERE
-        guid = ?
-        AND media_id = ?
+SELECT * FROM stories WHERE guid = ? AND media_id = ?
 END
 
-    return 0 if ( $db_story );
+    return 0 if ( $db_story || ( $story->{ title } eq '(no title)' ) );
 
-    return 0 if ( $story->{ title } eq '(no title)' );
-
-    # TODO -- DRL not sure if assuming UTF-8 is a good idea but will experiment with this code from the gsoc_dsheets branch
-    my $title;
-
-    # This unicode decode may not be necessary! XML::Feed appears to at least /sometimes/ return
-    # character strings instead of byte strings. Decoding a character string is an error. This code now
-    # only fails if a non-ASCII byte-string is returned from XML::Feed.
-
-    # very misleadingly named function checks for unicode character string
-    # in perl's internal representation -- not a byte-string that contains UTF-8
-    # data
-
-    if ( Encode::is_utf8( $story->{ title } ) )
-    {
-        $title = $story->{ title };
-    }
-    else
-    {
-        # TODO: A utf-8 byte string is only highly likely... we should actually examine the HTTP
-        #   header or the XML pragma so this doesn't explode when given another encoding.
-        $title = decode( 'utf-8', $story->{ title } );
-    }
+    # unicode hack to deal with unicode brokenness in XML::Feed
+    my $title = Encode::is_utf8( $story->{ title } ) ? $story->{ title } : decode( 'utf-8', $story->{ title } );
 
     # we do the goofy " + interval '1 second'" to force postgres to use the stories_title_hash index
     $db_story = $dbs->query( <<END, $title, $story->{ media_id }, $story->{ publish_date } )->hash;
@@ -436,7 +446,7 @@ END
 }
 
 # re-extract the story for the given download
-sub reextract_download
+sub _reextract_download
 {
     my ( $db, $download ) = @_;
 
@@ -454,37 +464,27 @@ sub reextract_download
     }
 }
 
+=head2 extract_and_process_story( $story, $db, $process_num )
+
+Extract all of the downloads for the given story and then call process_extracted_story();
+
+=cut
+
 sub extract_and_process_story
 {
     my ( $story, $db, $process_num ) = @_;
 
-    #say STDERR "Starting extract_and_process_story for " . $story->{ stories_id };
-
-    my $query = <<"EOF";
-        SELECT *
-        FROM downloads
-        WHERE stories_id = ?
-              AND type = 'content'
-        ORDER BY downloads_id ASC
-EOF
-
-    my $downloads = $db->query( $query, $story->{ stories_id } )->hashes();
+    my $downloads = $db->query( <<SQL, $story->{ stories_id } )->hashes;
+SELECT * FROM downloads WHERE stories_id = ? AND type = 'content' ORDER BY downloads_id ASC
+SQL
 
     foreach my $download ( @{ $downloads } )
     {
-        my $download_text = MediaWords::DBI::Downloads::extract_only( $db, $download );
-
-        #say STDERR "Got download_text";
+        MediaWords::DBI::Downloads::extract_and_create_download_text( $db, $download );
     }
-
-    my $no_dedup_sentences = 0;
-    my $no_vector          = 0;
 
     process_extracted_story( $story, $db, 0, 0 );
 
-    #say STDERR "Finished extract_and_process_story for " . $story->{ stories_id };
-
-    # Extraction succeeded
     $db->commit;
 }
 
@@ -505,6 +505,13 @@ sub _update_story_disable_triggers
         );
     }
 }
+
+=head2 process_extracted_story( $story, $db, $no_dedup_sentences, $no_vector )
+
+Do post extraction story processing work: call MediaWords::StoryVectors::update_story_sentences_and_language() and queue
+corenlp annotation and bitly fetching tasks.
+
+=cut
 
 sub process_extracted_story
 {
@@ -545,15 +552,26 @@ sub process_extracted_story
     }
 }
 
+=head2 restore_download_content( $db, $download, $story_content )
+
+Replace the the download with the given content and reextract the download.
+
+=cut
+
 sub restore_download_content
 {
     my ( $db, $download, $story_content ) = @_;
 
     MediaWords::DBI::Downloads::store_content( $db, $download, \$story_content );
-    reextract_download( $db, $download );
+    _reextract_download( $db, $download );
 }
 
-# check to see whether the given download is broken
+=head2 download_is_broken( $db, $download )
+
+Check to see whether the given download is broken
+
+=cut
+
 sub download_is_broken($$)
 {
     my ( $db, $download ) = @_;
@@ -566,8 +584,12 @@ sub download_is_broken($$)
     return 1;
 }
 
-# for each download, refetch the content and add a { content } field with the
-# fetched content
+=head2 get_broken_download_content
+
+For each download, refetch the content and add a { content } field with the fetched content.
+
+=cut
+
 sub get_broken_download_content
 {
     my ( $db, $downloads ) = @_;
@@ -587,7 +609,13 @@ sub get_broken_download_content
     }
 }
 
-# if this story is one of the ones for which we lost the download, refetch the content_ref
+=head2 fix_story_downloads_if_needed( $db, $story )
+
+If this story is one of the ones for which we lost the download content, refetch, restore, and reextract
+the content.
+
+=cut
+
 sub fix_story_downloads_if_needed
 {
     my ( $db, $story ) = @_;
@@ -628,7 +656,12 @@ END
     }
 }
 
-# if no story_sentences exist for the story, add them
+=head2 add_missing_story_sentences( $db, $story )
+
+If no story_sentences exist for the story, add them.
+
+=cut
+
 sub add_missing_story_sentences
 {
     my ( $db, $story ) = @_;
@@ -642,8 +675,17 @@ sub add_missing_story_sentences
     MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story, 0, 0, 1 );
 }
 
-# parse sentences in story from the extracted text.  return in the form:
-# { sentence => $sentence, ss => $matching_story_sentence, stories_id => $stories_id }
+=head2 get_all_sentences( $db, $story )
+
+Parse sentences in story from the extracted text.  return in the form:
+
+    { sentence => $sentence, ss => $matching_story_sentence, stories_id => $stories_id }
+
+The list of returned sentences includes sentences that are deduped before storing story_sentences for each story. This
+function is useful for comparing against the stored story_sentences.
+
+=cut
+
 sub get_all_sentences
 {
     my ( $db, $story ) = @_;
@@ -688,13 +730,12 @@ END
     return $all_sentences;
 }
 
-# Mark the story as processed by INSERTing an entry into "processed_stories"
-#
-# Parameters:
-# * $db -- database object
-# * $stories_id -- "stories_id" to insert into "processed_stories"
-#
-# Return true on success, false on failure
+=head2 mark_as_processed( $db, $stories_id )
+
+Mark the story as processed by inserting an entry into 'processed_stories'.  Return true on success, false on failure.
+
+=cut
+
 sub mark_as_processed($$)
 {
     my ( $db, $stories_id ) = @_;
@@ -714,12 +755,17 @@ sub mark_as_processed($$)
     }
 }
 
-# given two lists of hashes, $stories and $story_data, each with
-# a stories_id field in each row, assign each key:value pair in
-# story_data to the corresponding row in $stories.  if $list_field
-# is specified, push each the value associate with key in each matching
-# stories_id row in story_data field into a list with the name $list_field
-# in stories
+=head2 attach_story_data_to_stories( $stories, $story_data, $list_field )
+
+Given two lists of hashes, $stories and $story_data, each with
+a stories_id field in each row, assign each key:value pair in
+story_data to the corresponding row in $stories.  If $list_field
+is specified, push each the value associate with key in each matching
+stories_id row in story_data field into a list with the name $list_field
+in stories.
+
+=cut
+
 sub attach_story_data_to_stories
 {
     my ( $stories, $story_data, $list_field ) = @_;
@@ -754,8 +800,13 @@ sub attach_story_data_to_stories
     }
 }
 
-# call attach_story_data_to_stories_ids with a basic query that includes the fields:
-# stories_id, title, publish_date, url, guid, media_id, language, media_name
+=head2 attach_story_meta_data_to_stories( $db, $stories )
+
+Call attach_story_data_to_stories_ids with a basic query that includes the fields:
+stories_id, title, publish_date, url, guid, media_id, language, media_name.
+
+=cut
+
 sub attach_story_meta_data_to_stories
 {
     my ( $db, $stories ) = @_;
@@ -809,13 +860,16 @@ sub _get_title_parts
     return $title_parts;
 }
 
-# get duplicate stories within the set of stories by breaking the title
-# of each story into parts by [-:|] and looking for any such part
-# that is the sole title part for any story and is at least 4 words long and
-# is not the title of a story with a path-less url.  Any story that includes that title
-# part becames a duplicate.  return a list of duplciate story lists. do not return
-# any list of duplicates with greater than 25 duplicates for fear that the title deduping is
-# interacting with some title form in a goofy way
+=head2 get_medium_dup_stories_by_title( $db, $stories )
+
+Get duplicate stories within the set of stories by breaking the title of each story into parts by [-:|] and looking for
+any such part that is the sole title part for any story and is at least 4 words long and is not the title of a story
+with a path-less url.  Any story that includes that title part becames a duplicate.  return a list of duplciate story
+lists. do not return any list of duplicates with greater than 25 duplicates for fear that the title deduping is
+interacting with some title form in a goofy way.
+
+=cut
+
 sub get_medium_dup_stories_by_title
 {
     my ( $db, $stories ) = @_;
@@ -874,10 +928,14 @@ sub get_medium_dup_stories_by_title
     return $duplicate_stories;
 }
 
-# get duplicate stories within the given set that are duplicates because the normalized url
-# for two given stories is the same.  return a list of story duplicate lists.  do not return
-# any list of duplicates with greater than 5 duplicates for fear that the url normalization is
-# interacting with some url form in a goofy way
+=head2 get_medium_dup_stories_by_url( $db, $stories )
+
+Get duplicate stories within the given set that are duplicates because the normalized url for two given stories is the
+same.  Return a list of story duplicate lists.  Do not return any list of duplicates with greater than 5 duplicates for
+fear that the url normalization is interacting with some url form in a goofy way
+
+=cut
+
 sub get_medium_dup_stories_by_url
 {
     my ( $db, $stories ) = @_;
@@ -899,7 +957,12 @@ sub get_medium_dup_stories_by_url
     return [ grep { ( @{ $_ } > 1 ) && ( @{ $_ } < 6 ) } values( %{ $url_lookup } ) ];
 }
 
-# get duplicate stories within the given set that have duplicate guids
+=head2 get_medium_dup_stories_by_guid( $db, $stories )
+
+Get duplicate stories within the given set that have duplicate guids
+
+=cut
+
 sub get_medium_dup_stories_by_guid
 {
     my ( $db, $stories ) = @_;

@@ -4,6 +4,14 @@ use MediaWords::CommonLibs;
 
 # extract substantive new story text from html pages
 
+# this code is the implementation of our old custom extractor, which we refer to as the 'Heuristic Extractor' in
+# various places.  we still allow the user to choose to use this extractor by setting mediawords.extract_method
+# to HeuristicExtractor in mediawords.yml.  but the production always uses the PythonReadability server.
+
+# we keep this around mostly so that we can allow instances of Media Cloud to do extraction without having to run
+# the thrift python readability extractor, but we should replace this with a version of the python readability
+# extractor that just calls the readability extractor inline (which is simple but slower than using the web service).
+
 use strict;
 
 use HTML::Entities;
@@ -46,7 +54,6 @@ sub print_time
 
     $_last_time = $t;
 }
-
 
 # given a reference to an html story (news, blog, etc), return just the substantive text.
 # uses text to html density along with a variety of other metrics to pick substantive

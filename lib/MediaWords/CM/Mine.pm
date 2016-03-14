@@ -1,9 +1,18 @@
 package MediaWords::CM::Mine;
 
-# Mine through stories found for the given controversy and find all the links in each story.
-# Find each link, try to find whether it matches any given story.  If it doesn't, create a
-# new story.  Add that story's links to the queue if it matches the pattern for the
-# controversy.  Write the resulting stories and links to controversy_stories and controversy_links.
+=head1 NAME
+
+MediaWords::CM::Mine - controversy spider implementation
+
+=head1 SYNOPSIS
+
+    MediaWords::CM::Mine::mine_controversy( $db, $options );
+
+=head1 DESCRIPTION
+
+The controversy mining process is described in doc/controversy_mining.markdown.
+
+=cut
 
 use strict;
 use warnings;
@@ -872,7 +881,7 @@ sub add_new_story
 
     my $download = create_download_for_new_story( $db, $story, $feed );
 
-    MediaWords::DBI::Downloads::store_content_determinedly( $db, $download, $story_content );
+    MediaWords::DBI::Downloads::store_content( $db, $download, \$story_content );
 
     extract_download( $db, $download ) unless ( $skip_extraction );
 
@@ -1354,11 +1363,9 @@ sub _skip_self_linked_domain
 
     return 0 unless ( $link->{ stories_id } );
 
-    # only skip if the media source of the linking story is the same as the media
-    # source of the linked story.  we can't know the media source of the linked story
-    # without adding it first, though, which we want to skip because it's time
-    # expensive to do so.  so we just compare the url domain as a proxy for
-    # media source instead.
+    # only skip if the media source of the linking story is the same as the media source of the linked story.  we can't
+    # know the media source of the linked story without adding it first, though, which we want to skip because it's time
+    # expensive to do so.  so we just compare the url domain as a proxy for media source instead.
     my $source_story = $db->find_by_id( 'stories', $link->{ stories_id } );
 
     my $source_domain = MediaWords::Util::URL::get_url_domain( $source_story->{ url } );
@@ -1372,9 +1379,8 @@ sub _skip_self_linked_domain
     return 0;
 }
 
-# check whether each link has a matching story already in db.  if so, add
-# that story to the controversy if it matches, otherwise add the link to the
-# list of links to fetch.  return the list of links to fetch.
+# check whether each link has a matching story already in db.  if so, add that story to the controversy if it matches,
+# otherwise add the link to the list of links to fetch.  return the list of links to fetch.
 sub add_links_with_matching_stories
 {
     my ( $db, $controversy, $new_links ) = @_;
@@ -1541,8 +1547,7 @@ END
     $db->dbh->{ AutoCommit } = 1;
 }
 
-# build a lookup table of aliases for a url based on url and redirect_url fields in the
-# controversy_links
+# build a lookup table of aliases for a url based on url and redirect_url fields in the controversy_links
 sub get_url_alias_lookup
 {
     my ( $db ) = @_;
@@ -1733,6 +1738,7 @@ select distinct s.*, cs.link_mined, cs.redirect_url
         cs.controversies_id = ?
     order by s.publish_date
 SQL
+
     generate_controversy_links( $db, $controversy, $stories );
 }
 
@@ -1868,9 +1874,9 @@ END
     return List::Util::min( @{ $i } );
 }
 
-# merge delete_story into keep_story by making sure all links that are in delete_story are also in keep_story
-# and making sure that keep_story is in controversy_stories.  once done, delete delete_story from controversy_stories (but not
-# from stories)
+# merge delete_story into keep_story by making sure all links that are in delete_story are also in keep_story and making
+# sure that keep_story is in controversy_stories.  once done, delete delete_story from controversy_stories (but not from
+# stories)
 sub merge_dup_story
 {
     my ( $db, $controversy, $delete_story, $keep_story ) = @_;
@@ -2000,7 +2006,7 @@ SQL
 
     my $content = get_first_download_content( $db, $old_story );
 
-    MediaWords::DBI::Downloads::store_content_determinedly( $db, $download, $content );
+    MediaWords::DBI::Downloads::store_content( $db, $download, \$content );
 
     $db->query( <<SQL, $download->{ downloads_id }, $old_story->{ stories_id } );
 insert into download_texts ( downloads_id, download_text, download_text_length )

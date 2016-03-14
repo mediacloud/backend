@@ -2,8 +2,6 @@ package MediaWords::Controller::Api::V2::StoriesBase;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
-use MediaWords::DBI::StorySubsets;
-
 use strict;
 use warnings;
 use base 'Catalyst::Controller';
@@ -338,12 +336,15 @@ sub _fetch_list($$$$$$)
         SELECT stories.*,
                ps_ids.processed_stories_id,
                media.name AS media_name,
-               media.url AS media_url
+               media.url AS media_url,
+               coalesce( ap.ap_syndicated, false ) as ap_syndicated
         FROM ps_ids
             JOIN stories
                 ON ps_ids.stories_id = stories.stories_id
             JOIN media
                 ON stories.media_id = media.media_id
+            LEFT JOIN stories_ap_syndicated ap
+                ON stories.stories_id = ap.stories_id
         ORDER BY ps_ids.order_pkey
         LIMIT ?
 SQL

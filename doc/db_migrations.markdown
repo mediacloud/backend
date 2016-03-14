@@ -111,7 +111,7 @@ The very same message as above should appear.
 
 4. Increase the database schema version and run the pre-commit hook again:
 --------------------------------------------------------------------------
-  
+
 The first part of this message tells the developer that he / she has changed the database schema (added a new table) but haven't changed the database schema number located at the top of the file. Let's do that -- open `script/mediawords.sql` and at the almost-top of the file (line 68 at the time of writing) increase the database schema version by one:
 
 Was:

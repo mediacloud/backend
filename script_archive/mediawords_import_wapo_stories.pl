@@ -45,10 +45,10 @@ sub import_story
     my ( $db, $url, $title, $date, $medium, $feed ) = @_;
 
     my $existing_story = $db->query( <<'END', $medium->{ media_id }, $title, $url )->hash;
-select * 
-    from stories 
-    where 
-        media_id = $1 and 
+select *
+    from stories
+    where
+        media_id = $1 and
         ( ( lower( title ) = lower( $2 ) ) or
           ( url = $3 ) or
           ( guid = $3 ) )
@@ -98,7 +98,7 @@ END
 
     if ( $content )
     {
-        MediaWords::DBI::Downloads::store_content_determinedly( $db, $download, \$content );
+        MediaWords::DBI::Downloads::store_content( $db, $download, \$content );
         extract_download( $db, $download );
     }
     else

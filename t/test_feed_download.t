@@ -211,7 +211,7 @@ sub main
 
             my $download = MediaWords::Test::DB::create_download_for_feed( $feed, $db );
 
-            my $crawler = MediaWords::Crawler::Engine::_create_fetcher_engine_for_testing( 1 );
+            my $crawler = MediaWords::Crawler::Engine::create_fetcher_engine_for_testing( 1 );
 
             say STDERR "starting fetch_and_handle_single_download";
 
@@ -238,4 +238,3 @@ sub main
 }
 
 main();
-

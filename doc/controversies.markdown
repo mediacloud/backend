@@ -14,6 +14,16 @@ between the controversy mapping system and the rest of the system are that:
 * as the cm parses links to discover new stories, it stores those links in the
   database so that we can use them for link analysis.
 
+The code that runs the controversies spider is [MediaWords::CM::Spider](../lib/MediaWords/CM/Spider.pm).  More
+information about the controversy mining process is [here](controversy_mining.markdown).
+
+The code that snapshots controversies and performs analysis (aggregates link counts, generates link counts,
+models reliability for date guesses) is in [MediaWords::CM::Mine](../lib/MediaWords/CM/Mine.pm).  More information about
+the controversy dumping process is [here](controversy_dumps.markdown).
+
+The controversy web ui is implemented in the
+[MediaWords::Controller::Admin::CM](../lib/MediaWords/Controller/Admin/CM.pm) catalyst controller.
+
 How to run a controversy for development
 ----------------------------------------
 
@@ -110,6 +120,13 @@ Tables used by CM
    coverage
 * `controversy_seed_urls` -- list of urls to add to a controversy in addition
    to those discovered by the `solr_seed_query`
+* `controversy_dumps` -- snapshots of controversies to maintain consistent results
+   for researchers
+* `controversy_dump_time_slices` -- dump results partitioned by date ranges
+* `cd.live_stories` -- mirror of stories only for stories in controversy_stories,
+   with the addition of a controversies_id field'; for quicker access to stories
+   in controversies than is possible using the giant stories table
+* `cd.*` -- tables used for snapshotting
 
 
 Detailed explanation of CM process

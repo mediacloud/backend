@@ -2,7 +2,20 @@ package MediaWords::Crawler::Pager;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
-# module for finding the next page link in a page of html content
+=head1 NAME
+
+Mediawords::Crawler::Pager - given an html page, return any urls that lead to the next page of content
+
+=head1 SYNOPSIS
+
+    my $url = get_next_page_url( { return 1 }, 'http://www.nytimes.com/2016/02/01/trump.html', $content );
+
+=head1 DESCRIPTION
+
+This module parses an html page and returns the first link that looks like a 'next page' link for a multi-page
+story.  It tries to ignore links that lead to a next comment, a next category, or some other next thing.
+
+=cut
 
 use strict;
 
@@ -10,7 +23,9 @@ use HTML::Entities;
 use URI::Split;
 use URI::URL;
 
-# INTERNAL FUNCTIONS
+=head1 FUNCTIONS
+
+=cut
 
 # given a full url, get the base directory
 # so http://foo.bar/foobar/foo/bar?foo=bar returns http://foo.bar/foobar/foo
@@ -31,7 +46,7 @@ sub _get_url_base
 my $regex_match_count = 0;
 my $regex_tried_count = 0;
 
-# use a variety of texts to guess whether a given link is a link to a next page
+# use a variety of tests to guess whether a given link is a link to a next page
 sub _link_is_next_page
 {
     my ( $raw_url, $full_url, $text, $base_url ) = @_;
@@ -88,20 +103,22 @@ sub _link_is_next_page
         return 0;
     }
 
-    #print "link is next page: true (" . join('|', @_) . ")\n";
     return 1;
 }
 
-# METHODS
+=head2 get_next_page_url( $validate_sub, $base_url, $content )
 
-# look for a 'next page' link in the give html content and return the associated link if found
+Look for a 'next page' link in the give html content and return the associated link if found. Use $base_url as the base
+for any relative urls found.  Call $validate_sub->( $full_url ) on each full url found and only return the url
+if the call returns true.
+
+=cut
+
 sub get_next_page_url
 {
-    my ( $class, $validate_sub, $base_url ) = @_;
+    my ( $validate_sub, $base_url ) = @_;
 
     my $content_ref = \$_[ 3 ];
-
-    say STDERR "Starting get_next_page_url";
 
     # blogs and forums almost never have paging but often have 'next' story / thread links
     if ( $base_url =~ /blog|forum|discuss|wordpress|livejournal/ )
@@ -114,8 +131,6 @@ sub get_next_page_url
     my $url;
 
     my $content_length = bytes::length( $$content_ref );
-
-    say STDERR "Starting get_next_page_url content_length: $content_length";
 
     while ( $$content_ref =~ /<a\s/isog )
     {
@@ -144,8 +159,6 @@ sub get_next_page_url
         if ( _link_is_next_page( $raw_url, $full_url, $text, $base_url ) && !$validate_sub->( $full_url ) )
         {
             $url = $full_url;
-
-            #print "found next page: $url [$text]\n";
         }
     }
 

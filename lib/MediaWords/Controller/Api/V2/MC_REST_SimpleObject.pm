@@ -3,7 +3,6 @@ package MediaWords::Controller::Api::V2::MC_REST_SimpleObject;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
-use MediaWords::DBI::StorySubsets;
 use strict;
 use warnings;
 use base 'Catalyst::Controller::REST';

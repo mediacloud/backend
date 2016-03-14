@@ -267,7 +267,7 @@ sub _add_story_download
 
         $download = $db->create( 'downloads', $download );
 
-        MediaWords::DBI::Downloads::store_content_determinedly( $db, $download, $content );
+        MediaWords::DBI::Downloads::store_content( $db, $download, \$content );
 
         eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, "ss" ); };
 

@@ -121,11 +121,11 @@ provides a set of metrics that compare the current number of stories being colle
 the number of stories collected over the past 90 days, and also compares coverage over time with the expected
 volume.  More details are in the field descriptions below
 
-### api/v2/mediahealth
+### api/v2/mediahealth/list
 
 | URL                              | Function
 | -------------------------------- | -------------------------------------------------------------
-| `api/v2/mediahealth`             | Return media health data for the given media sources
+| `api/v2/mediahealth/list`        | Return media health data for the given media sources
 
 #### Query Parameters
 
@@ -157,8 +157,9 @@ volume.  More details are in the field descriptions below
 
 #### Example
 
-Fetch media health information for
-URL: https://api.mediacloud.org/api/v2/media/single/1
+Fetch media health information for media source 4438:
+
+https://api.mediacloud.org/api/v2/mediahealth/list?media_id=4438
 
 Response:
 
@@ -542,6 +543,7 @@ The following table describes the meaning and origin of fields returned by both 
 | `language`          | The language of the story as detected by the chromium compact language detector library.
 | `title`             | The title of the story as found in the RSS feed.
 | `bitly_click_count` | The total Bit.ly click count within 30 days from the story's `publish_date` or `collect_date`, or `null` if the click count hasn't been collected yet.
+| `ap_syndicated`     | Whether our detection algorithm thinks that this is an English language syndicated AP story
 
 
 ### api/v2/stories_public/single

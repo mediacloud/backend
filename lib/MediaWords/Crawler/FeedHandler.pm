@@ -2,10 +2,26 @@ package MediaWords::Crawler::FeedHandler;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
+=head1 NAME
+
+Mediawords::Crawler::FeedHandler - implementation details of the feed handling called from MediaWords::Crawler::Handler
+
+=head1 DESCRIPTION
+
+The feed handler parses the feed and looks for the urls of any new stories.  A story is considered new if the url or
+guid is not already in the database for the given media source and if the story title is unique for the media source for
+the calendar week.  If the story is new, a story is added to the stories table and a download with a type of 'pending'
+is added to the downloads table.
+
+After parsing the feed but before checking for new stories, we generate a checksum of the sorted urls of the feed.  We
+check that checksum against the last_checksum value of the feed, and if the value is the same, we store '(redundant
+feed)' as the content of the feed and do not check for new stories.  This check prevents frequent storage of redundant
+feed content and also avoids the considerable processing time required to check individual urls for new stories.
+
+=cut
+
 use strict;
 use warnings;
-
-# MODULES
 
 use Carp;
 use Data::Dumper;
@@ -33,8 +49,11 @@ use MediaWords::Util::SQL;
 Readonly my $EXTERNAL_FEED_URL  => 'http://external/feed/url';
 Readonly my $EXTERNAL_FEED_NAME => 'EXTERNAL FEED';
 
-# METHODS
+=head1 METHODS
 
+=cut
+
+# try/catch wrapper for _get_stories_from_feed_content_impl
 sub _get_stories_from_feed_contents
 {
     my ( $dbs, $download, $decoded_content ) = @_;
@@ -78,6 +97,7 @@ sub _sanitize_guid
     return $guid;
 }
 
+# parse the feed.  return a (non-db-backed) story hash for each story found in the feed.
 sub _get_stories_from_feed_contents_impl
 {
     my ( $decoded_content, $media_id, $download_time ) = @_;
@@ -87,8 +107,6 @@ sub _get_stories_from_feed_contents_impl
     die( "Unable to parse feed" ) unless $feed;
 
     my $items = [ $feed->get_item ];
-
-    my $num_new_stories = 0;
 
     my $ret = [];
 
@@ -127,9 +145,6 @@ sub _get_stories_from_feed_contents_impl
             $publish_date = $download_time;
         }
 
-        # if ( !$story )
-        $num_new_stories++;
-
         my $story = {
             url          => $url,
             guid         => $guid,
@@ -145,12 +160,10 @@ sub _get_stories_from_feed_contents_impl
     return $ret;
 }
 
+# if the story is new, add story to the database with the feed of the download as story feed
 sub _add_story_using_parent_download
 {
     my ( $dbs, $story, $parent_download ) = @_;
-
-    #say STDERR "starting _add_story_using_parent_download ";
-    #say STDERR Dumper( $story );
 
     $dbs->begin;
     $dbs->query( "lock table stories in row exclusive mode" );
@@ -194,6 +207,7 @@ sub _add_story_using_parent_download
     return $story;
 }
 
+# create a pending download for the story's url
 sub _create_child_download_for_story
 {
     my ( $dbs, $story, $parent_download ) = @_;
@@ -222,6 +236,7 @@ sub _create_child_download_for_story
     $dbs->create( 'downloads', $download );
 }
 
+# if the story is new, add it to the database and also add a pending download for the story content
 sub _add_story_and_content_download
 {
     my ( $dbs, $story, $parent_download ) = @_;
@@ -234,10 +249,9 @@ sub _add_story_and_content_download
     }
 }
 
-# check whether the checksum of the concatenated urls of the stories in the feed matches
-# the last such checksum for this feed.  If the checksums don't match, store the current
-# checksum in the feed
-sub stories_checksum_matches_feed
+# check whether the checksum of the concatenated urls of the stories in the feed matches the last such checksum for this
+# feed.  If the checksums don't match, store the current checksum in the feed
+sub _stories_checksum_matches_feed
 {
     my ( $db, $feeds_id, $stories ) = @_;
 
@@ -256,13 +270,16 @@ END
     return 0;
 }
 
-sub add_feed_stories_and_downloads
+# parse the feed content; create a story hash for each parsed story; check for a new url since the last
+# feed download; if there is a new url, check whether each story is new, and if so add it to the database and
+# ad a pending download for it.  return the number of new stories added.
+sub _add_feed_stories_and_downloads
 {
     my ( $dbs, $download, $decoded_content ) = @_;
 
     my $stories = _get_stories_from_feed_contents( $dbs, $download, $decoded_content );
 
-    return 0 if ( stories_checksum_matches_feed( $dbs, $download->{ feeds_id }, $stories ) );
+    return 0 if ( _stories_checksum_matches_feed( $dbs, $download->{ feeds_id }, $stories ) );
 
     my $new_stories = [ grep { MediaWords::DBI::Stories::is_new( $dbs, $_ ) } @{ $stories } ];
 
@@ -276,9 +293,9 @@ sub add_feed_stories_and_downloads
     return $num_new_stories;
 }
 
-# handle feeds of type 'web_page' by just creating a story to associate
-# with the content
-sub handle_web_page_content
+# handle feeds of type 'web_page' by just creating a story to associate with the content.  web page feeds are feeds
+# that consist of a web page that we download once a week and add as a story.
+sub _handle_web_page_content
 {
     my ( $dbs, $download, $decoded_content, $feed ) = @_;
 
@@ -313,7 +330,17 @@ sub handle_web_page_content
     return \$decoded_content;
 }
 
-# import stories from external feed into the given media source
+=head2 import_external_feed( $db, $media_id, $feed_content )
+
+Given the content of some feed, import all new stories from that content as if we had downloaded the content.
+Associate any stories in the feed with a feed (created if needed) named $EXTERNAL_FEED_NAME in the given media source.
+import stories from external feed into the given media source.
+
+This is useful for scripts that need to import archived feed content from a non-http source or that need to create
+a custom feed to import a list of stories from some archived source.
+
+=cut
+
 sub import_external_feed
 {
     my ( $db, $media_id, $feed_content ) = @_;
@@ -346,15 +373,15 @@ sub import_external_feed
 
     MediaWords::DBI::Downloads::store_content( $db, $download, \$feed_content );
 
-    handle_syndicated_content( $db, $download, $feed_content );
+    _handle_syndicated_content( $db, $download, $feed_content );
 }
 
 # handle feeds of type 'syndicated', which are rss / atom / rdf feeds
-sub handle_syndicated_content
+sub _handle_syndicated_content
 {
     my ( $dbs, $download, $decoded_content ) = @_;
 
-    my $num_new_stories = add_feed_stories_and_downloads( $dbs, $download, $decoded_content );
+    my $num_new_stories = _add_feed_stories_and_downloads( $dbs, $download, $decoded_content );
 
     if ( $num_new_stories > 0 )
     {
@@ -364,6 +391,15 @@ sub handle_syndicated_content
 
     return ( $num_new_stories > 0 ) ? \$decoded_content : \"(redundant feed)";
 }
+
+=head2 handle_feed_content( $db, $download, $decoded_content )
+
+For web page feeds, just store the downloaded content as a story and queue the story for extraction.  For syndicated
+feeds, create new stories for any new story urls in the feed content.  More details in the DESCRIPTION above.
+
+Also store the content of the feed for the download and set the feed.last_successful_download_time to now.
+
+=cut
 
 sub handle_feed_content
 {
@@ -378,12 +414,12 @@ sub handle_feed_content
     {
         if ( $feed_type eq 'syndicated' )
         {
-            $content_ref = handle_syndicated_content( $dbs, $download, $decoded_content );
+            $content_ref = _handle_syndicated_content( $dbs, $download, $decoded_content );
 
         }
         elsif ( $feed_type eq 'web_page' )
         {
-            $content_ref = handle_web_page_content( $dbs, $download, $decoded_content, $feed );
+            $content_ref = _handle_web_page_content( $dbs, $download, $decoded_content, $feed );
 
         }
         else

@@ -301,7 +301,7 @@ sub mextract : Local
         $story_lines_lookup->{ $line->{ line_number } } = $line->{ required } ? 'required' : 'optional';
     }
 
-    my $extract = MediaWords::DBI::Downloads::extractor_results_for_download( $c->dbis, $download );
+    my $extract = MediaWords::DBI::Downloads::extract( $c->dbis, $download );
 
     my $lines  = $extract->{ download_lines };
     my $scores = $extract->{ scores };

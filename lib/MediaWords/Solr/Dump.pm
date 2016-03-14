@@ -1,8 +1,79 @@
 package MediaWords::Solr::Dump;
 
-use forks;
+=head1 NAME
 
-# code to dump postgres data for import into solr
+MediaWords::Solr::Dump - import story_sentences from postgres into solr
+
+=head1 SYNOPSIS
+
+    # generate dumped csv files and then import those csvs into solr
+    MediaWords::Solr::Dump::generate_and_import_data( $delta, $delete_all, $staging, $jobs );
+
+    # dump solr data from postgres into csvs
+    MediaWords::Solr::Dump::print_csv_to_file( $db, $file_spec, $jobs, $delta, $min_proc, $max_proc );
+
+    # import already dumped csv files
+    MediaWords::Solr::Dump::import_csv_files( $files, $delta, $staging, $jobs );
+
+=head1 DESCRIPTION
+
+We import any updated story_sentences into solr from the postgres server by periodically script on the solr server.
+This module implements the functionality of that script, as well as functionality to just dump import csvs from
+postgres and to import already existing csvs into solr.
+
+The module knows which sentences to import by keep track of db_row_last_updated fields on the stories, media, and
+story_sentences table.  The module queries story_sentences for all distinct stories for which the db_row_last_updated
+value is greater than the latest value in solr_imports.  Triggers in the postgres database update the
+story_sentences.db_row_last_updated value on story_sentences whenever a related story, medium, story tag, story sentence
+tag, or story sentence tag is updated.
+
+In addition to the incremental imports by db_row_last_updated, we import any stories in solr_import_extra_stories,
+in chunks up to 100k until the solr_import_extra_stories queue has been cleared.  In addition to using the queue to
+manually trigger updates for specific stories, we use it to queue updates for entire media sources whose tags have been
+changed and to queue updates for stories whose bitly data have been updated.
+
+The module is carefully implemented to optimize the speed of querying from postgres in a few ways:
+
+=over
+
+=item *
+
+The module is designed to be able to stream data from postgres using server side cursors, so that the script can write
+the csv lines for rows as they are read by postgres, rather than waiting for postgres to fetch its whole result
+set into memory and return the whole set at once.
+
+=item *
+
+In order to allow postgres to stream the results, we do all joins on the client side rather than on the postgres side.
+If you look at the implementation code, you'll see lots of references to data_lookups for various related tables
+(processed stories, stories tags, media tags, bitly clicks, etc).
+
+=item *
+
+When streaming large files like this, postgres is much faster running several streaming queries are once rather than
+just one.  This is why all of the csv dumping code is parallelized.  We run parallel queries by modding the stories_id
+to speed up the dump process.
+
+=item *
+
+For the import of the csvs, we use the /solr/update/csv solr web service end point.  But we feed the csv to the solr
+service through http rather than providing a local file so that we can track and resume the import process.
+
+=item *
+
+We track which parts of which csv files have already been imported so that we can resume an import process that failed
+or had an error in some part.  This is because production import of our entire database can take a few days, so it is
+important to be recover from an error without having to restart the whole process.
+
+The import functions in this module accept a $staging parameter.  If this parameter is set to true, the data is imported
+into the staging database rather than that production database.  MediaWords::Solr::swap_live_collection is used to
+swap the production and staging databases.
+
+=back
+
+=cut
+
+use forks;
 
 use strict;
 use warnings;
@@ -21,6 +92,7 @@ use Parallel::ForkManager;
 use Readonly;
 use Text::CSV_XS;
 use URI;
+
 require bytes;    # do not override length() and such
 
 use MediaWords::DB;
@@ -44,6 +116,10 @@ Readonly my $FETCH_BLOCK_SIZE => 10_000;
 
 # mark date before generating dump for storing in solr_imports after successful import
 my $_import_date;
+
+=head2 FUNCTIONS
+
+=cut
 
 # get get config setting for max stories to import at once
 sub _get_max_queued_stories
@@ -72,8 +148,7 @@ sub _set_lookup
     $data_lookup->{ $name } = $lookup;
 }
 
-# add enough stories from the solr_import_extra_stories
-# queue to the delta_import_stories table that there are up to
+# add enough stories from the solr_import_extra_stories queue to the delta_import_stories table that there are up to
 # _get_maxed_queued_stories in delta_import_stories for each solr_import
 sub _add_extra_stories_to_import
 {
@@ -109,13 +184,16 @@ SQL
 
 }
 
-# setup 'csr' cursor in postgres as the query to import the story_sentences
+# setup 'csr' cursor in postgres as the query to import the story_sentences.  we use a server side cursor so that
+# we can stream data to the csv as postgres fetches it from disk.
 sub _declare_sentences_cursor
 {
     my ( $db, $delta, $num_proc, $proc ) = @_;
 
     my $delta_clause = $delta ? 'and ss.stories_id in ( select stories_id from delta_import_stories )' : '';
 
+    # DO NOT ADD JOINS TO THIS QUERY! INSTEAD ADD ANY JOINED TABLES TO _get_data_lookup AND THEN ADD TO THE CSV
+    # IN _print_csv_to_file_from_csr. see pod description above for more info.
     $db->dbh->do( <<END );
 declare csr cursor for
 
@@ -139,13 +217,16 @@ END
 
 }
 
-# setup 'csr' cursor in postgres as the query to import the story titles
+# setup 'csr' cursor in postgres as the query to import the story titles.  we use a server side cursor so that
+# we can stream data to the csv as postgres fetches it from disk.
 sub _declare_titles_cursor
 {
     my ( $db, $delta, $num_proc, $proc ) = @_;
 
     my $delta_clause = $delta ? 'and s.stories_id in ( select stories_id from delta_import_stories )' : '';
 
+    # DO NOT ADD JOINS TO THIS QUERY! INSTEAD ADD ANY JOINED TABLES TO _get_data_lookup AND THEN ADD TO THE CSV
+    # IN _print_csv_to_file_from_csr. see pod description above for more info.
     $db->dbh->do( <<END );
 declare csr cursor for
 
@@ -169,8 +250,7 @@ END
 
 }
 
-# incrementally read the results from the 'csr' postgres cursor and print out the resulting
-# sorl dump csv to the file
+# incrementally read the results from the 'csr' postgres cursor and print out the resulting sorl dump csv to the file
 sub _print_csv_to_file_from_csr
 {
     my ( $db, $fh, $data_lookup, $print_header ) = @_;
@@ -227,8 +307,10 @@ sub _print_csv_to_file_from_csr
     return [ keys %{ $imported_stories_ids } ];
 }
 
-# get the date clause that restricts the import of all subsequent queries to just the
-# delta stories
+# get the delta clause that restricts the import of all subsequent queries to just the delta stories.  uses
+# a temporary table called delta_import_stories to list which stories should be imported.  we do this instead
+# of trying to query the date direclty because we need to restrict by this list in stand alone queries to various
+# manually joined tables, like stories_tags_map.
 sub _create_delta_import_stories
 {
     my ( $db, $num_proc, $proc ) = @_;
@@ -252,14 +334,11 @@ END
     _add_extra_stories_to_import( $db, $import_date, $num_delta_stories, $num_proc, $proc );
 }
 
-# get the $data_lookup hash that has lookup tables for values to include
-# for each of the processed_stories, media_sets, media_tags, stories_tags,
-# and ss_tags fields for export to solr.
+# Get the $data_lookup hash that has lookup tables for values to include for each of the processed_stories, media_sets,
+# media_tags, stories_tags, and ss_tags fields for export to solr.
 #
-# This is basically just a manual
-# client side join that we do in perl because we can get postgres to stream
-# results much more quickly if we don't ask it to do this giant join on the
-# server side.
+# This is basically just a manual client side join that we do in perl because we can get postgres to stream results much
+# more quickly if we don't ask it to do this giant join on the server side.
 sub _get_data_lookup
 {
     my ( $db, $num_proc, $proc, $delta ) = @_;
@@ -323,10 +402,8 @@ END
     return $data_lookup;
 }
 
-# print a csv dump of the postgres data to $file.
-# run as job proc out of num_proc jobs, where each job is printg
-# a separate set of data.
-# if delta is true, only dump the data changed since the last dump
+# Print a csv dump of the postgres data to $file. Run as job proc out of num_proc jobs, where each job is printg a
+# separate set of data. If delta is true, only dump the data changed since the last dump
 sub _print_csv_to_file_single_job
 {
     my ( $db, $file, $num_proc, $proc, $delta ) = @_;
@@ -360,11 +437,34 @@ sub _print_csv_to_file_single_job
     return $stories_ids;
 }
 
-# print a csv dump of the postgres data to $file_spec.
-# run num_proc jobs in parallel to generate the dump.
-# assume that the script is running on num_machines different machines.
-# if delta is true, only dump the data changed since the last dump.
-# return { files => $list_of_dump_files, stories_ids => $ids_dumps }
+=head2 print_csv_to_file( $db, $file_spec, $num_proc, $delta, $min_proc, $max_proc )
+
+Print a csv dump of the postgres data for solr import. If delta is true, only dump the data changed since the last
+dump.Run $num_proc jobs in parallel to generate the dump.
+
+Returns a list of the dumped files and a list of all stories_ids dumped in this form:
+
+    { files => $list_of_dump_files, stories_ids => $ids_dumps }
+
+Assumes that $num_proc total jobs are being used to dump the data.  Fork off jobs to dump jobs $min_proc to $max_proc.
+For example, to start 24 dump processes in three different machines, you would make the following calls:
+
+    # on machine a
+    print_csv_to_file( $db, $file_spec, 24, $delta, 1, 8 );
+
+    # on machine b
+    print_csv_to_file( $db, $file_spec, 24, $delta, 9, 16 );
+
+    # on machine c
+    print_csv_to_file( $db, $file_spec, 24, $delta, 17, 24 );
+
+$num_proc, $min_proc, and $max_proc all default to 1.  $delta defaults to false.
+
+Dump files are named ${ file_spec }-${ run_sig }-${ proc }.  For example, for a dump with $file_spec = 'solr.csv'
+running as process 17, the file would be named 'solr.csv-csvBfxq-17'.
+
+=cut
+
 sub print_csv_to_file
 {
     my ( $db, $file_spec, $num_proc, $delta, $min_proc, $max_proc ) = @_;
@@ -409,7 +509,7 @@ sub print_csv_to_file
     }
 }
 
-# query solr for the given story_sentences_id and return true the story_sentences_id already exists in solr
+# query solr for the given story_sentences_id and return true if the story_sentences_id already exists in solr
 sub _sentence_exists_in_solr($$)
 {
     my ( $story_sentences_id, $staging ) = @_;
@@ -436,9 +536,8 @@ sub _sentence_exists_in_solr($$)
     return $data->{ response }->{ numFound } ? 1 : 0;
 }
 
-# Send a request to MediaWords::Solr::get_solr_url.
-# Return content on success, die() on error.
-# If $staging is true, use the staging collection; otherwise use the live collection.
+# Send a request to MediaWords::Solr::get_solr_url. Return content on success, die() on error. If $staging is true, use
+# the staging collection; otherwise use the live collection.
 sub _solr_request($$$;$$)
 {
     my ( $path, $params, $staging, $content, $content_type ) = @_;
@@ -603,7 +702,7 @@ sub _remove_file_error
 # get chunk of $CSV_CHUNK_LINES csv lines from the csv file starting at _get_file_post. use _set_file_pos
 # to advance the position pointer tot the next position in the file.  return undef if there is no more data
 # to get from the file
-sub get_encoded_csv_data_chunk
+sub _get_encoded_csv_data_chunk
 {
     my ( $file, $single_pos ) = @_;
 
@@ -717,7 +816,7 @@ sub _reprocess_file_errors
 
     for my $error ( @{ $errors } )
     {
-        my $data = get_encoded_csv_data_chunk( $file, $error->{ pos } );
+        my $data = _get_encoded_csv_data_chunk( $file, $error->{ pos } );
 
         _remove_file_error( $file, { pos => $data->{ pos } } );
 
@@ -744,7 +843,7 @@ sub _reprocess_file_errors
 # all of the story_sentence_ids in the given chunk are not already in solr.
 #
 # we base this decision on lookups of the first ssid and the last ssid in the chunk:
-# * if the last chunk_delta was 0, return 0 (run import with overwrite = false for rest of file)
+# * if the last chunk_delta was 0, delta = 0 (run import with overwrite = false for rest of file)
 # * if first ssid is not in solr, delta = 0 (run import with overwrite = false)
 # * if the first ssid is in solr but the last is not, delta = 1 (run import with overwrite = true)
 # * if the first ssid is in solr and the last ssid is in solr, delta = -1 (do not run import)
@@ -792,7 +891,7 @@ sub _last_sentence_in_solr($$)
 # import a single csv dump file into solr using blocks
 sub _import_csv_single_file
 {
-    my ( $file, $delta, $staging, $jobs ) = @_;
+    my ( $file, $staging, $jobs ) = @_;
 
     my $pm = Parallel::ForkManager->new( $jobs );
 
@@ -813,7 +912,7 @@ sub _import_csv_single_file
     my $last_chunk_delta;
     my $chunk_num = 0;
 
-    while ( my $data = get_encoded_csv_data_chunk( $file ) )
+    while ( my $data = _get_encoded_csv_data_chunk( $file ) )
     {
         $chunk_num++;
         last unless ( $data->{ csv } );
@@ -867,18 +966,38 @@ sub _import_csv_single_file
     return 1;
 }
 
-# import csv dump files into solr.  if there are multiple files,
-# import up to 4 at a time.  If $staging is true, import into the
-# staging collection.
+=head2 import_csv_files( $files, $staging, $jobs )
+
+Import existing csv files into solr.  Run $jobs processes in parallel to import each file (so $jobs processes to import
+file 1, then $jobs processes to import file 2, etc).
+
+Streams the csv data into the solr update/csv web service in chunks.
+
+Keeps track of the import of each csv file between runs of the script by storing the last position of each chunk
+processed by each file, by name.  If a given chunk causes an error during the import, records the error state
+of that chunk and continues to the next chunk.  Retries processing all chunks that generated an error, and reports
+which chunks continued to fail after reprocessing.
+
+For each chunk, if the first sentence and the last sentence is already in solr, skip importing the chunk.  If the
+first sentence but not the last sentence is in solr, assume that the sentences for that chunk may already be in
+solr and import with the solr param overwrite=true.  If the first sentence is not solr, assume that we can run the
+import with the solr param overwrite=false.
+
+For the above logic to work, you must either be importing from scratch (delete entire solr database, generate full csv
+dump, import csvs) or you must have deleted all sentences present in the import and committed that delete before running
+this function (generate_and_import_data() below takes care to do this correctly).
+
+=cut
+
 sub import_csv_files
 {
-    my ( $files, $delta, $staging, $jobs ) = @_;
+    my ( $files, $staging, $jobs ) = @_;
 
     $jobs ||= 1;
 
     for my $file ( @{ $files } )
     {
-        _import_csv_single_file( $file, $delta, $staging, $jobs );
+        _import_csv_single_file( $file, $staging, $jobs );
     }
 
     for my $file ( @{ $files } )
@@ -890,7 +1009,7 @@ sub import_csv_files
 }
 
 # store in memory the current date according to postgres
-sub mark_import_date
+sub _mark_import_date
 {
     my ( $db ) = @_;
 
@@ -898,7 +1017,7 @@ sub mark_import_date
 }
 
 # store the date marked by mark_import_date in solr_imports
-sub save_import_date
+sub _save_import_date
 {
     my ( $db, $delta, $stories_ids ) = @_;
 
@@ -911,8 +1030,8 @@ SQL
 
 }
 
-# given a list of stories_ids, return a stories_id:... solr query that
-# replaces individual ids with ranges where possible
+# given a list of stories_ids, return a stories_id:... solr query that replaces individual ids with ranges where
+# possible.  Avoids >1MB queries that consists of lists of >100k stories_ids.
 sub _get_stories_id_solr_query
 {
     my ( $ids ) = @_;
@@ -1024,7 +1143,7 @@ sub _get_dump_file
 }
 
 # delete stories that have just been imported from the media import queue
-sub delete_stories_from_import_queue
+sub _delete_stories_from_import_queue
 {
     my ( $db, $delta, $stories_ids ) = @_;
 
@@ -1048,7 +1167,9 @@ SQL
     }
 }
 
-sub maybe_production_solr
+# guess whether this might be a production solr instance by just looking at the size.  this is useful so that we can
+# cowardly refuse to delete all content from something that may be a production instance.
+sub _maybe_production_solr
 {
     my ( $db ) = @_;
 
@@ -1059,17 +1180,7 @@ sub maybe_production_solr
     return ( $num_sentences > 100_000_000 );
 }
 
-# if there is only one job, return [ $dump_file ], otherwise return [ "${ dump_file }-1", "${ dump_file }-2", ... ]
-sub _get_parallel_dump_files
-{
-    my ( $dump_file, $jobs ) = @_;
-
-    return [ $dump_file ] if ( $jobs == 1 );
-
-    return [ map { $dump_file . "-$_" } ( 1 .. $jobs ) ];
-}
-
-# return true if there are more than 100k rows in solr_import_extra_stories
+# return true if there are less than 100k rows in solr_import_extra_stories
 sub _stories_queue_is_small
 {
     my ( $db ) = @_;
@@ -1079,10 +1190,17 @@ sub _stories_queue_is_small
     return $exist ? 0 : 1;
 }
 
-# generate and import dump.  optionally generate delta dump since beginning of last
-# full or delta dump.  optionally delete all solr data after generating dump and before
-# importing.  keep rerunning the function until there are not more jobs left in the
-# solr_import_extra_stories queue
+=head2 generate_and_import_data( $delta, $delete, $staging, $jobs )
+
+Generate and import dump.  If $delta is true, generate delta dump since beginning of last full or delta dump.  If $delta
+is true, delete all solr data after generating dump and before importing.
+
+Keep rerunning the function until there are less than 100k jobs left in the solr_import_extra_stories queue.
+
+Run $jobs parallel jobs for the csv dump and for the solr import.
+
+=cut
+
 sub generate_and_import_data
 {
     my ( $delta, $delete, $staging, $jobs ) = @_;
@@ -1093,11 +1211,11 @@ sub generate_and_import_data
 
     my $db = MediaWords::DB::connect_to_db;
 
-    die( "refusing to delete maybe production solr" ) if ( $delete && maybe_production_solr( $db ) );
+    die( "refusing to delete maybe production solr" ) if ( $delete && _maybe_production_solr( $db ) );
 
     my $dump_file = _get_dump_file();
 
-    mark_import_date( $db );
+    _mark_import_date( $db );
 
     print STDERR "generating dump ...\n";
     my $dump = print_csv_to_file( $db, $dump_file, $jobs, $delta ) || die( "dump failed." );
@@ -1124,8 +1242,8 @@ sub generate_and_import_data
     # have to reconnect becaue import_csv_files may have forked, ruining existing db handles
     $db = MediaWords::DB::connect_to_db;
 
-    save_import_date( $db, $delta, $stories_ids );
-    delete_stories_from_import_queue( $db, $delta, $stories_ids );
+    _save_import_date( $db, $delta, $stories_ids );
+    _delete_stories_from_import_queue( $db, $delta, $stories_ids );
 
     # if we're doing a full import, do a delta to catchup with the data since the start of the import
     if ( !$delta )

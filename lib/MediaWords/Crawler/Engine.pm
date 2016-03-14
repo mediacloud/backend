@@ -2,16 +2,32 @@ package MediaWords::Crawler::Engine;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
-# core engine of crawler:
-# * fork specified number of crawlers
-# * get Requests from Provider
-# * provide Request to each waiting crawlers
-#
-# * with each crawler
-#   * get Request from engine
-#   * fetch Request with Fetcher
-#   * handle Request with Handler#
-#   * repeat
+=head1 NAME
+
+Mediawords::Crawler::Engine - controls and coordinates the work of the crawler provider, fetchers, and handlers
+
+=head1 SYNOPSIS
+
+    my $crawler = MediaWords::Crawler::Engine->new();
+
+    $crawler->processes( 30 );
+    $crawler->throttle( 1 );
+    $crawler->sleep_interval( 10 );
+
+    $crawler->crawl();
+
+=head1 DESCRIPTION
+
+The crawler engine coordinates the work of the provider and the fetcher/handler processes.  It first forks the specified
+number of fetcher/handler processes and opens a socket connection to each of those processes. It then listens for
+requests from each of those processes.  Each fetcher/handler process works in a loop of requesting  a url from the
+engine process, dealing with that url, and then fetching another url from the engine.
+
+The engine keeps in memory a queue of urls to download, handing out each queued url to a fetcher/handler
+process when requested.  When the in memory queue of urls runs out, the engine calls the provider library to generate
+a list of downloads to keep in the memory queue.
+
+=cut
 
 use strict;
 use warnings;
@@ -26,6 +42,14 @@ use MediaWords::Crawler::Fetcher;
 use MediaWords::Crawler::Handler;
 use MediaWords::Crawler::Provider;
 use MediaWords::Util::Process;
+
+=head1 METHODS
+
+=head2 new
+
+Create new crawler engine object.
+
+=cut
 
 sub new
 {
@@ -82,6 +106,12 @@ sub _fetch_and_handle_download
     return;
 }
 
+=head2 fetch_and_handle_single_download
+
+Fetch and handle only a single download.  Useful mostly for testing.
+
+=cut
+
 sub fetch_and_handle_single_download
 {
 
@@ -97,8 +127,7 @@ sub fetch_and_handle_single_download
     return;
 }
 
-# continually loop through the provide, fetch, respond cycle
-# for one crawler process
+# continually loop through the provide, fetch, respond cycle for one crawler process
 sub _run_fetcher
 {
     my ( $self ) = @_;
@@ -180,7 +209,30 @@ sub _exit()
     exit();
 }
 
-# fork off the fetching processes
+=head2 spawn_fetchers
+
+Fork off $self->process number of fetching processes.  For each forked fetching process, create socket between the
+parent and child process.  In each child process, take care to reconnect to db and then enter an infinite
+fetch/handle loop that:
+
+=over
+
+=item *
+
+requests a new download id from the engine parent process via the parent/child socket;
+
+=item *
+
+calls $fetcher->fetch_download to get an http response for a download;
+
+=item *
+
+calls $handler->handle_repsonse( $download, $response ) on the fetcher response for the download
+
+=back
+
+=cut
+
 sub spawn_fetchers
 {
     my ( $self ) = @_;
@@ -252,7 +304,14 @@ sub spawn_fetchers
     }
 }
 
-sub _create_fetcher_engine_for_testing
+=head2 create_fetcher_engine_for_testing
+
+create a simple engine that consists of only a single fetcher process that can be manually passed a download to
+test the fetcher / handle process.
+
+=cut
+
+sub create_fetcher_engine_for_testing
 {
     my ( $fetcher_number ) = @_;
 
@@ -270,7 +329,28 @@ sub _create_fetcher_engine_for_testing
     return $crawler;
 }
 
-# fork off fetching processes and then provide them with requests
+=head2 crawl
+
+Start crawling by cralling $self->spawn_fetchers and then entering a loop that:
+
+=over
+
+=item *
+if the in memory queue of pending downloads is empty, calls $provider->provide_downloads to refill it;
+
+=item *
+
+listens for a request from a fetcher on the child/parent sockets;
+
+=item *
+
+sends the downloads_id of a pending download to the the requesting fetcher and removes that download from the
+in memory queue
+
+=back
+
+=cut
+
 sub crawl
 {
     my ( $self ) = @_;
@@ -364,7 +444,12 @@ sub crawl
     kill( 9, map { $_->{ pid } } @{ $self->{ fetchers } } );
 }
 
-#TODO merge with the crawl method
+=head2 crawl_single_download
+
+Enter the crawl loop but crawl only a single download.  Used for testing in place of crawl().
+
+=cut
+
 sub crawl_single_download
 {
     my ( $self, $downloads_id ) = @_;
@@ -447,7 +532,12 @@ sub crawl_single_download
     sleep( 5 );
 }
 
-# fork this many processes
+=head2 processes
+
+getset processes - the number fetcher processes to spawn.
+
+=cut
+
 sub processes
 {
     if ( defined( $_[ 1 ] ) )
@@ -458,7 +548,12 @@ sub processes
     return $_[ 0 ]->{ processes };
 }
 
-# sleep for up to this many seconds each time the provider fails to provide a request
+=head2 sleep_interval
+
+getset sleep_interval - sleep for up to this many seconds each time the provider provides 0 downloads
+
+=cut
+
 sub sleep_interval
 {
     if ( defined( $_[ 1 ] ) )
@@ -469,7 +564,12 @@ sub sleep_interval
     return $_[ 0 ]->{ sleep_interval };
 }
 
-# throttle each host to one request every this many seconds
+=head2 throttle
+
+getset throttle - throttle each host to one request every this many secondsm default 10 seconds
+
+=cut
+
 sub throttle
 {
     if ( defined( $_[ 1 ] ) )
@@ -480,7 +580,12 @@ sub throttle
     return $_[ 0 ]->{ throttle };
 }
 
-# time for crawler to run before exiting
+=head2 timeout
+
+getset timeout - time for crawler to run before exiting
+
+=cut
+
 sub timeout
 {
     if ( defined( $_[ 1 ] ) )
@@ -491,7 +596,12 @@ sub timeout
     return $_[ 0 ]->{ timeout };
 }
 
-# interval to check downloads for pending downloads to add to queue
+=head2 pending_check_interval
+
+getset pending_check_interval - interval to check downloads for pending downloads to add to queuem default 600 seconds
+
+=cut
+
 sub pending_check_interval
 {
     if ( defined( $_[ 1 ] ) )
@@ -502,7 +612,12 @@ sub pending_check_interval
     return $_[ 0 ]->{ pending_check_interval };
 }
 
-# index of spawned process for spawned process
+=head2 fetcher_number
+
+getset fetcher_number - the index of each spawned fetcher process
+
+=cut
+
 sub fetcher_number
 {
     if ( defined( $_[ 1 ] ) )
@@ -513,7 +628,12 @@ sub fetcher_number
     return $_[ 0 ]->{ fetcher_number };
 }
 
-# list of child fetcher processes for root spawning processes
+=head2 fetchers
+
+getset fetchers - the list of child fetcher processes for root spawning processes
+
+=cut
+
 sub fetchers
 {
     if ( defined( $_[ 1 ] ) )
@@ -524,7 +644,12 @@ sub fetchers
     return $_[ 0 ]->{ fetchers };
 }
 
-# socket to talk to parent process for spawned process
+=head2 socket
+
+getset socket - socket to talk to parent process for spawned process
+
+=cut
+
 sub socket
 {
     if ( defined( $_[ 1 ] ) )
@@ -535,6 +660,12 @@ sub socket
     return $_[ 0 ]->{ socket };
 }
 
+=head2 children_exit_on_kill
+
+getset children_exit_on_kill - whether to kill children process when parent receives a kill signal
+
+=cut
+
 sub children_exit_on_kill
 {
     if ( defined( $_[ 1 ] ) )
@@ -544,6 +675,19 @@ sub children_exit_on_kill
 
     return $_[ 0 ]->{ children_exit_on_kill };
 }
+
+=head2 test_mode
+
+getset test_mode - whether the crawler should exit the first time the downloads queue has been emptied rather than
+calling $provider->provide_downloads for more downloads.
+
+if test_mode is set to true, the following other setters are called:
+
+    $self->processes( 1 );
+    $self->throttle( 1 );
+    $self->sleep_interval( 1 );
+
+=cut
 
 sub test_mode
 {
@@ -564,7 +708,12 @@ sub test_mode
     return $self->{ test_mode };
 }
 
-# engine MediaWords::DBI Simple handle
+=head2 dbs
+
+getset dbs - the engine MediaWords::DBI Simple handle
+
+=cut
+
 sub dbs
 {
     my ( $self, $dbs ) = @_;
@@ -592,6 +741,12 @@ sub _close_db_connection
 
     return;
 }
+
+=head2 reconnect_db
+
+Close the existing $self->dbs and create a new connection.
+
+=cut
 
 sub reconnect_db
 {
