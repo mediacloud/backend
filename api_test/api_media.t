@@ -3,7 +3,7 @@ use warnings;
 use utf8;
 
 #use Test::More;
-use Test::More tests => 25;
+use Test::More tests => 23;
 
 # use MediaWords::Test::DB;
 # use MediaWords::Test::Data;
@@ -13,17 +13,14 @@ use Test::More tests => 25;
 
 BEGIN
 {
-    $ENV{ MEDIAWORDS_FORCE_USING_TEST_DATABASE } = 1;
-    use_ok 'Catalyst::Test', 'MediaWords';
-}
-
-BEGIN
-{
     use FindBin;
     use lib "$FindBin::Bin/../lib";
     use lib $FindBin::Bin;
+
+    use Catalyst::Test ( 'MediaWords' );
+    use MediaWords;
+
     $ENV{ MEDIAWORDS_FORCE_USING_TEST_DATABASE } = 1;
-    use_ok 'Catalyst::Test', 'MediaWords';
 }
 
 use Test::Differences;
