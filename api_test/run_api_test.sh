@@ -41,7 +41,7 @@ if ps aux | grep java | grep -- '-Dsolr' | grep start.jar > /dev/null; then
 fi
 
 echo "Starting Solr..."
-./script/run_with_carton.sh ./solr/scripts/run_singleton_solr_server.pl > /dev/null &
+./script/run_with_carton.sh ./solr/scripts/run_singleton_solr_server.pl &
 solr_pid=$!
 
 SOLR_IS_UP=0
