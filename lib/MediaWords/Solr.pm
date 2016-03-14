@@ -166,7 +166,7 @@ sub query_encoded_json($$;$)
 
     say STDERR "Posting to Solr; URL: $url, params: " . Dumper( $params );
 
-    my $res = $ua->post( $url, $params );
+    my $res = $ua->post( $url, $params, 'Content-Type' => 'application/x-www-form-urlencoded; charset=utf-8' );
 
     if ( $ENV{ MC_SOLR_TRACE } )
     {
