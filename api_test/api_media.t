@@ -2,14 +2,7 @@ use strict;
 use warnings;
 use utf8;
 
-#use Test::More;
 use Test::More tests => 23;
-
-# use MediaWords::Test::DB;
-# use MediaWords::Test::Data;
-# use MediaWords::Test::LocalServer;
-
-#use Test::More skip_all => "disabling until auth changes are pushed";
 
 BEGIN
 {
@@ -72,22 +65,15 @@ sub test_media
 
     my $urls = [ '/api/v2/media/single/1', '/api/v2/media/list/?rows=1' ];
 
-    #my $urls = [ '/api/v2/media/list/?rows=1' ];
-
     foreach my $base_url ( @{ $urls } )
     {
         my $url = _append_test_api_key_to_base_url( $base_url );
 
         my $response = request( $url );
 
-        #say STDERR Dumper( $response );
-        #say STDERR Dumper( $response->base );
-
         ok( $response->is_success, 'Request should succeed' );
 
         my $actual_response = decode_json( $response->decoded_content() );
-
-        #say STDERR Dumper( $actual_response );
 
         my $expected_response = [
             {
@@ -131,8 +117,6 @@ sub test_media
             }
         ];
 
-        #say STDERR Dumper( $actual_response );
-
         cmp_deeply( $actual_response, $expected_response, "response format mismatch for $url" );
 
         foreach my $medium ( @{ $expected_response } )
@@ -159,8 +143,6 @@ sub test_media
             ];
 
             my $feed_actual_response = decode_json( $response->decoded_content() );
-
-            #say STDERR Dumper( $feed_actual_response );
 
             cmp_deeply( $feed_actual_response, $expected_feed, 'response format mismatch for feed' );
         }
@@ -229,8 +211,6 @@ sub test_stories_public
 
     my $actual_response = decode_json( $response->decoded_content() );
 
-    #say STDERR Dumper( $actual_response );
-
     my $expected_response = [
         {
             'bitly_click_count'    => undef,
@@ -275,8 +255,6 @@ sub test_stories_non_public
     }
 
     my $actual_response = decode_json( $response->decoded_content() );
-
-    #say STDERR Dumper( $actual_response );
 
     my $expected_response = [
         {
@@ -329,15 +307,9 @@ sub test_stories_non_public
             'full_text_rss'        => 0,
             'story_tags'           => [],
             'bitly_click_count'    => undef,
-
-            #     'description'          => '<p>
-
-            # <b>One year ago today</b>
-
-# <a href="http://boingboing.net/2013/06/01/turkish-spring-taksim-gezi-pa.html">Turkish Spring: Taksim Gezi Park protests in Istanbul:</a> Taksim Gezi Park in Istanbul is alive with protest at this moment.</p>',
-            'media_id'        => 2,
-            'media_name'      => 'Boing Boing',
-            'story_sentences' => [
+            'media_id'             => 2,
+            'media_name'           => 'Boing Boing',
+            'story_sentences'      => [
                 {
                     'sentence' =>
 'This Day in Blogging History: Turkish Spring in Gezi; Obama supports torture-evidence suppression law; Quaker football cheer',
@@ -408,9 +380,6 @@ sub test_stories_non_public
 'This Day in Blogging History: Turkish Spring in Gezi; Obama supports torture-evidence suppression law; Quaker football&#160;cheer'
         }
     ];
-
-    # say STDERR "Expected response: " . Dumper( $expected_response );
-    # say STDERR "Actual response: " . Dumper( $actual_response );
 
     # Remove volatile values
     for my $response ( $expected_response, $actual_response )
