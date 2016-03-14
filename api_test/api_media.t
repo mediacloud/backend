@@ -34,40 +34,41 @@ use DBIx::Simple::MediaWords;
 use MediaWords::StoryVectors;
 use LWP::UserAgent;
 use JSON;
+use URI;
+use URI::QueryParam;
 
 use Data::Sorting qw( :basics :arrays :extras );
 use Readonly;
 
 Readonly my $TEST_API_KEY => 'f66a50230d54afaf18822808aed649f1d6ca72b08fb06d5efb6247afe9fbae52';
 
-$ENV{ MEDIAWORDS_FORCE_USING_TEST_DATABASE } = 1;
-
-sub _append_test_api_key_to_base_url($)
+sub _api_request_url($;$)
 {
-    my $base_url = shift;
+    my ( $path, $params ) = @_;
 
-    my $url;
-    if ( index( $base_url, '?' ) != -1 )
+    my $uri = URI->new( $path );
+    $uri->query_param( 'key' => $TEST_API_KEY );
+
+    if ( $params )
     {
-        $url = "$base_url&key=$TEST_API_KEY";
-    }
-    else
-    {
-        $url = "$base_url?key=$TEST_API_KEY";
+        foreach my $key ( keys %{ $params } )
+        {
+            $uri->query_param( $key => $params->{ $key } );
+        }
     }
 
-    return $url;
+    return $uri->as_string;
 }
 
 sub test_media
 {
     my ( $db ) = @_;
 
-    my $urls = [ '/api/v2/media/single/1', '/api/v2/media/list/?rows=1' ];
+    my $urls = [ { path => '/api/v2/media/single/1' }, { path => '/api/v2/media/list/', params => { 'rows' => 1 } }, ];
 
     foreach my $base_url ( @{ $urls } )
     {
-        my $url = _append_test_api_key_to_base_url( $base_url );
+        my $url = _api_request_url( $base_url->{ path }, $base_url->{ params } );
 
         my $response = request( $url );
 
@@ -123,7 +124,7 @@ sub test_media
         {
             my $media_id = $medium->{ media_id };
 
-            $response = request( "/api/v2/feeds/list?key=$TEST_API_KEY&media_id=$media_id" );
+            $response = request( _api_request_url( '/api/v2/feeds/list', { media_id => $media_id } ) );
             ok( $response->is_success, 'Request should succeed' );
 
             if ( !$response->is_success )
@@ -154,12 +155,15 @@ sub test_tags
 {
     my ( $db ) = @_;
 
-    my $urls =
-      [ '/api/v2/tags/single/4', '/api/v2/tags/list/?last_tags_id=3&rows=1', '/api/v2/tags/list?search=independent', ];
+    my $urls = [
+        { path => '/api/v2/tags/single/4' },
+        { path => '/api/v2/tags/list', params => { 'last_tags_id' => 3, 'rows' => 1 } },
+        { path => '/api/v2/tags/list', params => { 'search' => 'independent' } },
+    ];
 
     foreach my $base_url ( @{ $urls } )
     {
-        my $url = _append_test_api_key_to_base_url( $base_url );
+        my $url = _api_request_url( $base_url->{ path }, $base_url->{ params } );
 
         my $response = request( $url );
 
@@ -192,11 +196,15 @@ sub test_stories_public
 {
     my ( $db ) = @_;
 
-    my $base_url = '/api/v2/stories_public/list/';
-
-    my $url = _append_test_api_key_to_base_url( $base_url );
-
-    $url .= "&q=sentence:obama&rows=2&sentences=1&text=1";
+    my $url = _api_request_url(
+        '/api/v2/stories_public/list',
+        {
+            q         => 'sentence:obama',
+            rows      => 2,
+            sentences => 1,
+            text      => 1,
+        }
+    );
 
     say STDERR $url;
 
@@ -237,11 +245,15 @@ sub test_stories_non_public
 {
     my ( $db ) = @_;
 
-    my $base_url = '/api/v2/stories/list/';
-
-    my $url = _append_test_api_key_to_base_url( $base_url );
-
-    $url .= "&q=sentence:obama&rows=2&sentences=1&text=1";
+    my $url = _api_request_url(
+        '/api/v2/stories/list',
+        {
+            q         => 'sentence:obama',
+            rows      => 2,
+            sentences => 1,
+            text      => 1,
+        }
+    );
 
     say STDERR $url;
 
@@ -407,9 +419,14 @@ sub test_stories_utf8()
 {
     Readonly my $utf8_string => 'Vázquez';    # test story about Tabaré Vázquez; should return single story
 
-    my $url = _append_test_api_key_to_base_url( '/api/v2/stories/list/' );
-
-    $url .= '&q=sentence:' . $utf8_string . '&sentences=1&text=1';
+    my $url = _api_request_url(
+        '/api/v2/stories/list/',
+        {
+            q         => "sentence:$utf8_string",
+            sentences => 1,
+            text      => 1,
+        }
+    );
 
     say STDERR $url;
 
