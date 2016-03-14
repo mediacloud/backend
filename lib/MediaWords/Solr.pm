@@ -164,6 +164,8 @@ sub query_encoded_json($$;$)
 
     my $t0 = [ gettimeofday ];
 
+    say STDERR "Posting to Solr; URL: $url, params: " . Dumper( $params );
+
     my $res = $ua->post( $url, $params );
 
     if ( $ENV{ MC_SOLR_TRACE } )
