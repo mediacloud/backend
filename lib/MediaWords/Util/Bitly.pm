@@ -377,7 +377,7 @@ sub num_controversy_stories_without_bitly_statistics($$)
 select count(*)
     from controversy_stories cs
         left join bitly_clicks_total b on ( cs.stories_id = b.stories_id )
-    where cs.controversies_id = 672 and
+    where cs.controversies_id = ? and
         b.click_count is null;
 SQL
 
