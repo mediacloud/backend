@@ -373,7 +373,7 @@ sub num_controversy_stories_without_bitly_statistics($$)
 {
     my ( $db, $controversies_id ) = @_;
 
-    my ( $num_controversy_stories_without_bitly_statistics ) = $db->query( <<SQL, $controersies_id )->flat;
+    my ( $num_controversy_stories_without_bitly_statistics ) = $db->query( <<SQL, $controversies_id )->flat;
 select count(*)
     from controversy_stories cs
         left join bitly_clicks_total b on ( cs.stories_id = b.stories_id )
