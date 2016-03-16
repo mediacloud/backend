@@ -1,8 +1,7 @@
 use strict;
 use warnings;
-use utf8;
 
-use Test::More tests => 23;
+use Test::More tests => 33;
 
 BEGIN
 {
@@ -414,47 +413,66 @@ sub test_stories_non_public
     cmp_deeply( $actual_response, $expected_response );
 }
 
-# Test querying for and returning UTF-8 stories/sentences
+# Test querying for and returning UTF-8 stories / sentences
 sub test_stories_utf8()
 {
-    Readonly my $utf8_string => 'Vázquez';    # test story about Tabaré Vázquez; should return single story
+    # Test story about Tabaré Vázquez; should return single story.
+    # For whatever reason, treatment of "á" differs between environments
+    # (Travis encodes it as ISO 8859-1's 0xe1, the rest of the systems as UTF-8),
+    # so we test both behaviors.
+    my $strictly_utf8_string = "V\x{00e1}zquez";
 
-    my $url = _api_request_url(
-        '/api/v2/stories/list/',
-        {
-            q         => "sentence:$utf8_string",
-            sentences => 1,
-            text      => 1,
-        }
+    Readonly my @utf8_strings => (
+
+        # String that could be interpreted as both ISO 8859-1 and UTF-8 (with or without UTF-8 flag)
+        'Vázquez',
+
+        # String always interpreted as ISO 8859-1 (without UTF-8 flag)
+        "V\x{e1}zquez",
+
+        # String always interpreted as UTF-8 (with UTF-8 flag)
+        $strictly_utf8_string,
     );
 
-    say STDERR $url;
-
-    my $response = request( $url );
-
-    ok( $response->is_success, 'Request failed; response: ' . $response->decoded_content );
-
-    my $actual_response = decode_json( $response->decoded_content );
-
-    is( scalar( @{ $actual_response } ), 1, 'Response for query "$utf8_string" should contain a single story' );
-
-    my $story = $actual_response->[ 0 ];
-
-    like( $story->{ title },      qr/\Q$utf8_string\E/, "Title should contain UTF-8 substring '$utf8_string'" );
-    like( $story->{ story_text }, qr/\Q$utf8_string\E/, "Story text should contain UTF-8 substring '$utf8_string'" );
-
-    my $at_least_one_of_sentences_contains_utf8_string = 0;
-    foreach my $sentence ( @{ $story->{ story_sentences } } )
+    foreach my $utf8_string ( @utf8_strings )
     {
-        if ( $sentence->{ sentence } =~ /\Q$utf8_string\E/ )
-        {
-            $at_least_one_of_sentences_contains_utf8_string = 1;
-            last;
-        }
-    }
 
-    ok( $at_least_one_of_sentences_contains_utf8_string,
-        "At least one of the sentences should contain UTF-8 substring '$utf8_string'" );
+        my $url = _api_request_url(
+            '/api/v2/stories/list/',
+            {
+                q         => "sentence:$utf8_string",
+                sentences => 1,
+                text      => 1,
+            }
+        );
+
+        say STDERR $url;
+
+        my $response = request( $url );
+
+        ok( $response->is_success, 'Request failed; response: ' . $response->decoded_content );
+
+        my $actual_response = decode_json( $response->decoded_content );
+
+        is( scalar( @{ $actual_response } ), 1, "Response for query '$utf8_string' should contain a single story" );
+
+        my $story = $actual_response->[ 0 ];
+
+        like( $story->{ title },      qr/\Q$strictly_utf8_string\E/, "Title doesn't match for query '$utf8_string'" );
+        like( $story->{ story_text }, qr/\Q$strictly_utf8_string\E/, "Story doesn't match for query '$utf8_string'" );
+
+        my $at_least_one_of_sentences_contains_utf8_string = 0;
+        foreach my $sentence ( @{ $story->{ story_sentences } } )
+        {
+            if ( $sentence->{ sentence } =~ /\Q$strictly_utf8_string\E/ )
+            {
+                $at_least_one_of_sentences_contains_utf8_string = 1;
+                last;
+            }
+        }
+
+        ok( $at_least_one_of_sentences_contains_utf8_string, "None of the sentences match for query '$utf8_string'" );
+    }
 }
 
 test_stories_public();
