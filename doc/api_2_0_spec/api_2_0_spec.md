@@ -48,7 +48,7 @@ limit will result in a status 403 error.  Users who need access to more requests
 
 ## Python Client
 
-We use a python client library to access the api for our own work (incluing the dashboard implementation at
+We use a python client library to access the api for our own work (including the dashboard implementation at
 dashboard.mediameter.org).  That library is available on [github](https://github.com/c4fcm/MediaCloud-API-Client).
 
 ## Media
@@ -92,13 +92,6 @@ Response:
            "label": "U.S. Mainstream Media"
          }
     ],
-    "media_sets": [
-      {
-        "media_sets_id": 1,
-        "name": "Top 25 Mainstream Media",
-        "description": "Top 25 mainstream media sources by monthly unique users from the U.S. according to the Google AdPlanner service."
-      },
-    ]
   }
 ]
 ```
@@ -233,166 +226,6 @@ URL: https://api.mediacloud.org/api/v2/media/list?last_media_id=1&rows=2
 
 Output format is the same as for api/v2/media/single above.
 
-## Media Sets
-
-A media set is a collection of media sources, such as U.S. Top 25 Mainstream Media or Global Voices Cited Blogs.  Each
-media source can belong to zero or more media sets.  Each media set belongs to zero or more dashboards.
-
-### api/v2/media_set/single
-
-| URL                                       | Function
-| ----------------------------------------- | ----------------------------------------------------------------------
-| `api/v2/media_set/single/<media_sets_id>` | Return the media set in which `media_sets_id` equals `<media_sets_id>`
-
-#### Query Parameters
-
-None.
-
-#### Example
-
-https://api.mediacloud.org/api/v2/media_sets/single/1
-
-```json
-[
-  {
-    "media_sets_id": 1,
-    "name": "Top 25 Mainstream Media",
-    "description": "Top 25 mainstream media sources by monthly unique users from the U.S. according to the Google AdPlanner service.",
-    "media": [
-      {
-        "media_id": 1,
-        "url": "http:\/\/nytimes.com",
-        "name": "New York Times"
-      },
-      {
-        "media_id": 2,
-        "url": "http:\/\/washingtonpost.com",
-        "name": "Washington Post"
-      },
-      {
-        "media_id": 4,
-        "url": "http:\/\/www.usatoday.com",
-        "name": "USA Today"
-      },
-      {
-        "media_id": 6,
-        "url": "http:\/\/www.latimes.com\/",
-        "name": "Los Angeles Times"
-      },
-      {
-        "media_id": 7,
-        "url": "http:\/\/www.nypost.com\/",
-        "name": "The New York Post"
-      },
-      {
-        "media_id": 8,
-        "url": "http:\/\/www.nydailynews.com\/",
-        "name": "The Daily News New York"
-      },
-      {
-        "media_id": 14,
-        "url": "http:\/\/www.sfgate.com\/",
-        "name": "San Francisco Chronicle"
-      },
-      {
-        "media_id": 314,
-        "url": "http:\/\/www.huffingtonpost.com\/",
-        "name": "The Huffington Post"
-      },
-      {
-        "media_id": 1089,
-        "url": "http:\/\/www.reuters.com\/",
-        "name": "Reuters"
-      },
-      {
-        "media_id": 1092,
-        "url": "http:\/\/www.foxnews.com\/",
-        "name": "FOX News"
-      },
-      {
-        "media_id": 1094,
-        "url": "http:\/\/www.bbc.co.uk\/?ok",
-        "name": "BBC"
-      },
-      {
-        "media_id": 1095,
-        "url": "http:\/\/www.cnn.com\/",
-        "name": "CNN"
-      },
-      {
-        "media_id": 1098,
-        "url": "http:\/\/www.newsweek.com\/",
-        "name": "Newsweek "
-      },
-      {
-        "media_id": 1104,
-        "url": "http:\/\/www.forbes.com\/",
-        "name": "Forbes"
-      },
-      {
-        "media_id": 1149,
-        "url": "http:\/\/www.msnbc.msn.com\/",
-        "name": "MSNBC"
-      },
-      {
-        "media_id": 1747,
-        "url": "http:\/\/www.dailymail.co.uk\/home\/index.html",
-        "name": "Daily Mail"
-      },
-      {
-        "media_id": 1750,
-        "url": "http:\/\/www.telegraph.co.uk\/",
-        "name": "Daily Telegraph"
-      },
-      {
-        "media_id": 1751,
-        "url": "http:\/\/www.guardian.co.uk\/",
-        "name": "Guardian"
-      },
-      {
-        "media_id": 1752,
-        "url": "http:\/\/www.cbsnews.com\/",
-        "name": "CBS News"
-      },
-      {
-        "media_id": 4415,
-        "url": "http:\/\/cnet.com",
-        "name": "CNET"
-      },
-      {
-        "media_id": 4418,
-        "url": "http:\/\/examiner.com",
-        "name": "Examiner.com"
-      },
-      {
-        "media_id": 4419,
-        "url": "http:\/\/time.com",
-        "name": "TIME.com"
-      }
-    ],
-  }
-]
-```
-
-### api/v2/media_sets/list
-
-| URL                      | Function
-| ------------------------ | --------------------------
-| `api/v2/media_sets/list` | Return multiple media sets
-
-#### Query Parameters
-
-| Parameter            | Default | Notes
-| -------------------- | ------- | -----------------------------------------------------------------
-| `last_media_sets_id` | 0       | Return media sets with `media_sets_id` is greater than this value
-| `rows`               | 20      | Number of media sets to return. Cannot be larger than 100
-
-#### Example
-
-URL: https://api.mediacloud.org/api/v2/media_sets/list?rows=1&last_media_sets_id=1
-
-Output is the same as the api/v2/media_set/single example above.
-
 ## Feeds
 
 A feed is either a syndicated feed, such as an RSS feed, or a single web page.  Each feed is downloaded between once
@@ -447,76 +280,6 @@ URL: https://api.mediacloud.org/api/v2/feeds/single/1
 URL: https://api.mediacloud.org/api/v2/feeds/list?media_id=1
 
 Output format is the same as for api/v2/feeds/single above.
-
-## Dashboards
-
-A dashboard is a collection of media sets, for example US/English or Russian.  Dashboards are useful for finding the core
-media sets related to some topic, usually a country.  Each media set can belong to zero or more dashboards.
-
-### api/v2/dashboard/single
-
-| URL                                       | Function
-| ----------------------------------------- | ----------------------------------------------------------------------
-| `api/v2/dashboard/single/<dashboards_id>` | Return the dashboard for which `dashboards_id` equals `<dashboards_id>`
-
-#### Query Parameters
-
-| Parameter     | Default | Notes
-| ------------- | ------- | -------------------------------------------------------------------------------------
-| `nested_data` | 1       | If 0, return only the `name` and `dashboards_id`.<br />If 1, return nested information about the dashboard's `media_sets` and their `media`.
-
-#### Example
-
-https://api.mediacloud.org/api/v2/dashboards/single/2
-
-```json
-[
-   {
-      "name":"dashboard 2",
-      "dashboards_id": "2",
-      "media_sets":
-      [
-      {
-         "name":"set name",
-         "media_sets_id": "2",
-         "media":[
-            {
-               "name":"source 1 name",
-               "media_id":"source 1 media id",
-               "url":"http://source1.com"
-            },
-            {
-               "name":"source 2 name",
-               "media_id":"source 2 media id",
-               "url":"http://source2.com"
-            },
-
-         ]
-      }
-   ]
-}
-]
-```
-
-### api/v2/dashboards/list
-
-| URL                      | Function
-| ------------------------ | --------------------------
-| `api/v2/dashboards/list` | Return multiple dashboards
-
-#### Query Parameters
-
-| Parameter            | Default | Notes
-| -------------------- | ------- | -------------------------------------------------------------------------------------
-| `last_dashboards_id` | 0       | Return dashboards in which `dashboards_id` greater than this value
-| `rows`               | 20      | Number of dashboards to return. Cannot be larger than 100
-| `nested_data`        | 1       | If 0, return only the `name` and `dashboards_id`.<br />If 1, return nested information about the dashboard's `media_sets` and their `media`.
-
-#### Example
-
-URL: https://api.mediacloud.org/api/v2/dashboards/list?rows=1&last_dashboards_id=1
-
-Output is the same as the api/v2/dashboard/single example above.
 
 ## Stories
 
@@ -617,7 +380,6 @@ The `q` and `fq` parameters are passed directly through to Solr.  Documentation 
 | publish_date                 | the publish date of a story
 | tags_id_story                | the ID of a tag associated with a story
 | tags_id_media                | the ID of a tag associated with a media source
-| media_sets_id                | the ID of a media set
 | processed_stories_id         | the processed_stories_id as returned by stories_public/list
 
 Be aware that ':' is usually replaced with '%3A' in programmatically generated URLs.
@@ -893,6 +655,7 @@ URL:  https://api.mediacloud.org/api/v2/wc/list?q=obama+AND+media_id:1
     "stem":"democrat",
     "term":"democrats"
   }
+]
 ```
 
 Get word frequency counts for all sentences containing the word `'obama'` in The New York Times, with
@@ -1342,79 +1105,21 @@ with open( '/tmp/media.csv', 'wb') as csvfile:
 
 ```
 
-## Grab all processed stories from US Top 25 MSM as a stream
+## Grab all processed stories from US Mainstream Media as a stream
 
 This is broken down into multiple steps for convenience and because that's probably how a real user would do it.
 
-### Find the media set
+The you almost always want to search by a specific media source or media set.  The easiest way to find a relevant media
+set is to use our [Sources Tool](https://sources.mediameter.org).  The url for a the US Mainstream Media  media set in
+the sources tool looks like this:
 
-We assume that the user is new to Media Cloud. They're interested in what sources we have available. They run cURL to get a quick list of the available dashboards.
+https://sources.mediameter.org/#media-tag/8875027/details
 
-```
-curl https://api.mediacloud.org/api/v2/dashboards/list&nested_data=0
-```
-
-```json
-[
- {"dashboards_id":1,"name":"US / English"}
- {"dashboards_id":2,"name":"Russia"}
- {"dashboards_id":3,"name":"test"}
- {"dashboards_id":5,"name":"Russia Full Morningside 2010"}
- {"dashboards_id":4,"name":"Russia Sampled Morningside 2010"}
- {"dashboards_id":6,"name":"US Miscellaneous"}
- {"dashboards_id":7,"name":"Nigeria"}
- {"dashboards_id":101,"name":"techblogs"}
- {"dashboards_id":116,"name":"US 2012 Election"}
- {"dashboards_id":247,"name":"Russian Public Sphere"}
- {"dashboards_id":463,"name":"lithanian"}
- {"dashboards_id":481,"name":"Korean"}
- {"dashboards_id":493,"name":"California"}
- {"dashboards_id":773,"name":"Egypt"}
-]
-```
-
-The user sees the "US / English" dashboard with `dashboards_id = 1` and asks for more detailed information.
-
-```
-curl https://api.mediacloud.org/api/v2/dashboards/single/1
-```
-
-```json
-[
-   {
-      "name":"US / English",
-      "dashboards_id": "1",
-      "media_sets":
-      [
-         {
-      	 "media_sets_id":1,
-	 "name":"Top 25 Mainstream Media",
-	 "description":"Top 25 mainstream media sources by monthly unique users from the U.S. according to the Google AdPlanner service.",
-	 media:
-	   [
-	     NOT SHOWN FOR SPACE REASONS
-	   ]
-	 },
-   	 {
-	 "media_sets_id":26,
-	 "name":"Popular Blogs",
-	 "description":"1000 most popular feeds in bloglines.",
-	  media:
-	   [
-	     NOT SHOWN FOR SPACE REASONS
-	   ]
-   	   }
-   ]
-]
-```
-
-*Note:* the full list of media are not shown for space reasons.
-
-After looking at this output, the user decides that she is interested in the "Top 25 Mainstream Media" set with `media_sets_id=1`.
+The number in that url is the tags_id of the media set.
 
 ### Grab stories by querying stories_public/list
 
-We can obtain all stories by repeatedly querying api/v2/stories_public/list using the `q` parameter to restrict to `media_sets_id = 1` and changing the `last_processed_stories_id` parameter.
+We can obtain all stories by repeatedly querying api/v2/stories_public/list using the `q` parameter to restrict to `tags_id_media=8875027` and changing the `last_processed_stories_id` parameter.
 
 This is shown in the Python code below where `process_stories` is a user provided function to process this data.
 
@@ -1424,7 +1129,7 @@ import requests
 start = 0
 rows  = 100
 while True:
-      params = { 'last_processed_stories_id': start, 'rows': rows, 'q': 'media_sets_id:1', 'key': MY_KEY }
+      params = { 'last_processed_stories_id': start, 'rows': rows, 'q': 'tags_id_media:8875027', 'key': MY_KEY }
 
       print "Fetching {} stories starting from {}".format( rows, start)
       r = requests.get( 'https://api.mediacloud.org/api/v2/stories_public/list/', params = params, headers = { 'Accept': 'application/json'} )
@@ -1445,7 +1150,7 @@ while True:
 
 Currently, the best way to do this is to create a CSV file with all media sources as shown in the earlier example.
 
-Once you have this CSV file, manually search for The New York Times. You should find an entry for The New York Times at the top of the file with `media_id = 1`.
+Once you have this CSV file, manually search for The New York Times. You should find an entry for The New York Times at the top of the file with `media_id=1`.
 
 ### Grab stories by querying stories_public/list
 
@@ -1474,102 +1179,26 @@ while True:
       process_stories( stories )
 ```
 
-## Get word counts for top words for sentences matching 'trayvon' in U.S. Political Blogs during April 2012
-
-This is broken down into multiple steps for convenience and because that's probably how a real user would do it.
-
+## Get word counts for top words for sentences matching 'trayvon' in US Mainstream Media during April 2012
 
 ### Find the media set
 
-We assume that the user is new to Media Cloud. They're interested in what sources we have available. They run cURL to get a quick list of the available dashboards.
+As above, find the tags_id of the US Mainstream Media set (8875027).
+
+### Make a request for the word counts based on `tags_id_media`, sentence text and date range
+
+One way to appropriately restrict the data is by setting the `q` parameter to restrict by sentence content and then the `fq` parameter twice to restrict by `tags_id_media` and `publish_date`.
+
+Below `q` is set to `"sentence:trayvon"` and `fq` is set to `"tags_iud_media:8875027" and "publish_date:[2012-04-01T00:00:00.000Z TO 2013-05-01T00:00:00.000Z]"`. (Note that ":", "[", and "]" are URL encoded.)
 
 ```
-curl https://api.mediacloud.org/api/v2/dashboards/list&nested_data=0
+curl 'https://api.mediacloud.org/api/v2/wc?q=sentence:trayvon&fq=tags_iud_media:8875027&fq=publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D'
 ```
 
-```json
-[
- {"dashboards_id":1,"name":"US / English"}
- {"dashboards_id":2,"name":"Russia"}
- {"dashboards_id":3,"name":"test"}
- {"dashboards_id":5,"name":"Russia Full Morningside 2010"}
- {"dashboards_id":4,"name":"Russia Sampled Morningside 2010"}
- {"dashboards_id":6,"name":"US Miscellaneous"}
- {"dashboards_id":7,"name":"Nigeria"}
- {"dashboards_id":101,"name":"techblogs"}
- {"dashboards_id":116,"name":"US 2012 Election"}
- {"dashboards_id":247,"name":"Russian Public Sphere"}
- {"dashboards_id":463,"name":"lithanian"}
- {"dashboards_id":481,"name":"Korean"}
- {"dashboards_id":493,"name":"California"}
- {"dashboards_id":773,"name":"Egypt"}
-]
-```
-
-The user sees the "US / English" dashboard with `dashboards_id = 1` and asks for more detailed information.
+Alternatively, we could use a single large query by setting `q` to `"sentence:trayvon AND tags_id_media:8875027 AND publish_date:[2012-04-01T00:00:00.000Z TO 2013-05-01T00:00:00.000Z]"`:
 
 ```
-curl https://api.mediacloud.org/api/v2/dashboards/single/1
-```
-
-```json
-[
-   {
-      "name":"dashboard 2",
-      "dashboards_id": "2",
-      "media_sets":
-      [
-         {
-      	 "media_sets_id":1,
-	 "name":"Top 25 Mainstream Media",
-	 "description":"Top 25 mainstream media sources by monthly unique users from the U.S. according to the Google AdPlanner service.",
-	 media:
-	   [
-	     NOT SHOWN FOR SPACE REASONS
-	   ]
-	 },
-   	 {
-	 "media_sets_id":26,
-	 "name":"Popular Blogs",
-	 "description":"1000 most popular feeds in bloglines.",
-	  "media":
-	   [
-	     NOT SHOWN FOR SPACE REASONS
-	   ]
-   	 },
-	 {
-	     "media_sets_id": 7125,
-             "name": "Political Blogs",
-	     "description": "1000 most influential U.S. political blogs according to Technorati, pruned of mainstream media sources.",
-	     "media":
-	   [
-	     NOT SHOWN FOR SPACE REASONS
-	   ]
-
-	  }
-   ]
-]
-```
-
-*Note:* the full list of media are not shown for space reasons.
-
-After looking at this output, the user decides that she is interested in the "Political Blogs" set with `media_sets_id = 7125`.
-
-
-### Make a request for the word counts based on `media_sets_id`, sentence text and date range
-
-One way to appropriately restrict the data is by setting the `q` parameter to restrict by sentence content and then the `fq` parameter twice to restrict by `media_sets_id` and `publish_date`.
-
-Below `q` is set to `"sentence:trayvon"` and `fq` is set to `"media_sets_id:7125" and "publish_date:[2012-04-01T00:00:00.000Z TO 2013-05-01T00:00:00.000Z]"`. (Note that ":", "[", and "]" are URL encoded.)
-
-```
-curl 'https://api.mediacloud.org/api/v2/wc?q=sentence:trayvon&fq=media_sets_id:7125&fq=publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D'
-```
-
-Alternatively, we could use a single large query by setting `q` to `"sentence:trayvon AND media_sets_id:7125 AND publish_date:[2012-04-01T00:00:00.000Z TO 2013-05-01T00:00:00.000Z]"`:
-
-```
-curl 'https://api.mediacloud.org/api/v2/wc?q=sentence:trayvon+AND+media_sets_id:7125+AND+publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D&fq=media_sets_id:7135&fq=publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D'
+curl 'https://api.mediacloud.org/api/v2/wc?q=sentence:trayvon+AND+tags_id_media:8875027+AND+publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D&fq=tags_id_media:8875027&fq=publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D'
 ```
 
 
