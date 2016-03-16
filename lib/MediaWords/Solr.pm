@@ -16,6 +16,7 @@ use MediaWords::DBI::Stories;
 use MediaWords::Languages::Language;
 use MediaWords::Solr::PseudoQueries;
 use MediaWords::Util::Config;
+use MediaWords::Util::Text;
 use MediaWords::Util::Web;
 use List::MoreUtils qw ( uniq );
 use HTTP::Request::Common qw( POST );
@@ -159,6 +160,9 @@ sub query_encoded_json($$;$)
     $params->{ q }  = MediaWords::Solr::PseudoQueries::transform_query( $params->{ q } );
     $params->{ fq } = MediaWords::Solr::PseudoQueries::transform_query( $params->{ fq } );
 
+    # Ensure that only UTF-8 strings get passed to Solr
+    my $encoded_params = MediaWords::Util::Text::recursively_encode_to_utf8( $params );
+
     my $url = sprintf( '%s/%s/select', get_solr_url(), get_live_collection( $db ) );
 
     my $ua = MediaWords::Util::Web::UserAgent;
@@ -168,15 +172,15 @@ sub query_encoded_json($$;$)
 
     if ( $ENV{ MC_SOLR_TRACE } )
     {
-        say STDERR "executing Solr query on $url ...";
-        say STDERR Dumper( $params );
+        say STDERR "Executing Solr query on $url ...";
+        say STDERR 'Encoded parameters: ' . Dumper( $encoded_params );
     }
 
     my $t0 = [ gettimeofday ];
 
-    say STDERR "Posting to Solr; URL: $url, params: " . Dumper( $params );
+    say STDERR "Posting to Solr; URL: $url, encoded params: " . Dumper( $encoded_params );
 
-    my $request = POST( $url, $params );
+    my $request = POST( $url, $encoded_params );
     $request->content_type( 'application/x-www-form-urlencoded; charset=utf-8' );
     say STDERR "POST request: " . $request->as_string;
 
