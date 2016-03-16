@@ -267,7 +267,7 @@ sub test_normalize_url_lossy()
         'http://delfi.lt/foo', 'normalize_url_lossy() - m.delfi.lt' );
     is(
         MediaWords::Util::URL::normalize_url_lossy( 'http://blog.yesmeck.com/jquery-jsonview/' ),
-        'http://yesmeck.com/jquery-jsonview',
+        'http://yesmeck.com/jquery-jsonview/',
         'normalize_url_lossy() - blog.yesmeck.com'
     );
     is(
