@@ -25,3 +25,19 @@ health (disk space, free memory, load, etc) as well as some specific media cloud
 on solr servers, etc).  Nagios warning thresholds are monitored in the /etc/local/nagios/etc directory of each
 monitored server.  Media labs necsys runs the nagios server, which includes a web interface to disable monitoring
 of specific hosts / servers as needed.
+
+The most common nagios report is a notice that we need to update packages on the ubuntu installation, which looks like
+this:
+
+```
+APT WARNING: 1 packages available for upgrade (0 critical updates).
+```
+
+To update all packages on all mit servers, I run:
+
+```
+for i in mcquery1 mcquery2 mcquery3 mcquery4 mcdb1 mcnlp civicprod civicdev; do ssh -t -c "sudo apt-get upgrade" $i; done
+```
+
+This requires many password entries and confirmations of packages, but I prefer the occasional hassle to the security
+and reliability costs of automating the updates more.
