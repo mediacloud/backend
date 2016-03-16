@@ -138,6 +138,15 @@ sub query_encoded_json($$;$)
 {
     my ( $db, $params, $c ) = @_;
 
+    unless ( $params )
+    {
+        die 'params must be set.';
+    }
+    unless ( ref $params eq ref {} )
+    {
+        die 'params must be a hashref.';
+    }
+
     $params->{ wt } = 'json';
     $params->{ rows } //= 1000;
     $params->{ df }   //= 'sentence';
