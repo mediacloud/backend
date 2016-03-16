@@ -6,7 +6,7 @@ We use three modes of monitoring the system to make sure everything is humming n
 Cron Jobs
 ---------
 
-We have a numer of cron jobs that email us either regular reports or reports of something looks fishy.  Our production
+We have a number of cron jobs that email us either regular reports or reports of something looks fishy.  Our production
 cron jobs are documented [here](cron-jobs.markdown).
 
 Munin
