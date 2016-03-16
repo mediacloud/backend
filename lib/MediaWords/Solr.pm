@@ -177,7 +177,7 @@ sub query_encoded_json($$;$)
     say STDERR "Posting to Solr; URL: $url, params: " . Dumper( $params );
 
     my $request = POST( $url, $params );
-    $request->header( 'Content-Type' => 'application/x-www-form-urlencoded; charset=utf-8' );
+    $request->content_type( 'application/x-www-form-urlencoded; charset=utf-8' );
     say STDERR "POST request: " . $request->as_string;
 
     my $res = $ua->request( $request );
