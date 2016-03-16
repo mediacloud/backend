@@ -36,7 +36,7 @@ APT WARNING: 1 packages available for upgrade (0 critical updates).
 To update all packages on all mit servers, I run:
 
 ```
-for i in mcquery1 mcquery2 mcquery3 mcquery4 mcdb1 mcnlp civicprod civicdev; do ssh -t "sudo apt-get upgrade" $i; done
+for i in mcquery1 mcquery2 mcquery3 mcquery4 mcdb1 mcnlp civicprod civicdev; do ssh -t $i sudo apt-get upgrade; done
 ```
 
 This requires many password entries and confirmations of packages, but I prefer the occasional hassle to the security
