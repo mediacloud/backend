@@ -151,7 +151,7 @@ sub save_tags_by_name
 
     my $oid_field = "${table}_id";
 
-    my $tag_names = [ split( /[\s,;]+/, $tag_names_list ) ];
+    my $tag_names = [ split( /\s*,\s*/, $tag_names_list ) ];
 
     my $tags = [];
     map { push( @{ $tags }, lookup_or_create_tag( $db, $_ ) ) } @{ $tag_names };
