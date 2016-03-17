@@ -4623,23 +4623,24 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       Time::Local 0
       perl 5.006002
-  HTTP-Message-6.06
-    pathname: G/GA/GAAS/HTTP-Message-6.06.tar.gz
+  HTTP-Message-6.11
+    pathname: E/ET/ETHER/HTTP-Message-6.11.tar.gz
     provides:
-      HTTP::Config 6.00
-      HTTP::Headers 6.05
-      HTTP::Headers::Auth 6.00
-      HTTP::Headers::ETag 6.00
-      HTTP::Headers::Util 6.03
-      HTTP::Message 6.06
-      HTTP::Request 6.00
-      HTTP::Request::Common 6.04
-      HTTP::Response 6.04
-      HTTP::Status 6.03
+      HTTP::Config 6.11
+      HTTP::Headers 6.11
+      HTTP::Headers::Auth 6.11
+      HTTP::Headers::ETag 6.11
+      HTTP::Headers::Util 6.11
+      HTTP::Message 6.11
+      HTTP::Request 6.11
+      HTTP::Request::Common 6.11
+      HTTP::Response 6.11
+      HTTP::Status 6.11
     requirements:
       Compress::Raw::Zlib 0
       Encode 2.21
       Encode::Locale 1
+      Exporter 5.57
       ExtUtils::MakeMaker 0
       HTTP::Date 6
       IO::Compress::Bzip2 2.021
@@ -6503,19 +6504,20 @@ DISTRIBUTIONS
       Carp 0
       ExtUtils::MakeMaker 0
       Storable 0
-  Net-HTTP-6.06
-    pathname: G/GA/GAAS/Net-HTTP-6.06.tar.gz
+  Net-HTTP-6.09
+    pathname: E/ET/ETHER/Net-HTTP-6.09.tar.gz
     provides:
-      Net::HTTP 6.06
-      Net::HTTP::Methods 6.06
-      Net::HTTP::NB 6.04
-      Net::HTTPS 6.04
+      Net::HTTP 6.09
+      Net::HTTP::Methods 6.09
+      Net::HTTP::NB 6.09
+      Net::HTTPS 6.09
     requirements:
       Compress::Raw::Zlib 0
       ExtUtils::MakeMaker 0
-      IO::Compress::Gzip 0
       IO::Select 0
       IO::Socket::INET 0
+      IO::Uncompress::Gunzip 0
+      URI 0
       perl 5.006002
   Net-IP-1.26
     pathname: M/MA/MANU/Net-IP-1.26.tar.gz
@@ -9386,18 +9388,18 @@ DISTRIBUTIONS
       Test::More 0
       XSLoader 0
       perl 5.008001
-  libwww-perl-6.05
-    pathname: G/GA/GAAS/libwww-perl-6.05.tar.gz
+  libwww-perl-6.15
+    pathname: E/ET/ETHER/libwww-perl-6.15.tar.gz
     provides:
-      LWP 6.05
+      LWP 6.15
       LWP::Authen::Basic undef
       LWP::Authen::Digest undef
-      LWP::Authen::Ntlm 6.00
-      LWP::ConnCache 6.02
+      LWP::Authen::Ntlm 6.15
+      LWP::ConnCache 6.15
       LWP::Debug undef
       LWP::DebugFile undef
       LWP::MemberMixin undef
-      LWP::Protocol 6.00
+      LWP::Protocol 6.15
       LWP::Protocol::GHTTP undef
       LWP::Protocol::MyFTP undef
       LWP::Protocol::cpan undef
@@ -9412,15 +9414,17 @@ DISTRIBUTIONS
       LWP::Protocol::mailto undef
       LWP::Protocol::nntp undef
       LWP::Protocol::nogo undef
-      LWP::RobotUA 6.03
-      LWP::Simple 6.00
-      LWP::UserAgent 6.05
+      LWP::RobotUA 6.15
+      LWP::Simple 6.15
+      LWP::UserAgent 6.15
     requirements:
       Digest::MD5 0
       Encode 2.12
       Encode::Locale 0
       ExtUtils::MakeMaker 0
+      File::Copy 0
       File::Listing 6
+      Getopt::Long 0
       HTML::Entities 0
       HTML::HeadParser 0
       HTTP::Cookies 6
@@ -9436,7 +9440,7 @@ DISTRIBUTIONS
       LWP::MediaTypes 6
       MIME::Base64 2.1
       Net::FTP 2.58
-      Net::HTTP 6.04
+      Net::HTTP 6.07
       URI 1.10
       URI::Escape 0
       WWW::RobotRules 6
