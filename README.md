@@ -104,7 +104,7 @@ Then run `python tests.py`. Notice you get a `mediacloud-api.log` that tells you
 Version History
 ---------------
 
-* __v2.25.0__: add mediaHealth endpoint, support `ap_stories_id` flag in storiesList, fix `controversy_dump_time_slices` endpoint
+* __v2.25.0__: add mediaHealth endpoint, support `ap_stories_id` flag in storiesList, fix `controversy_dump_time_slices` endpoint, remove mediaSet and Dashboard endpoints
 * __v2.24.1__: fixes tab/spaces bug
 * __v2.24.0__: adds new params to the `mediaList` query (searching by controversy, solr query, tags_id, etc)
 * __v2.23.0__: adds solr date generation helpers
