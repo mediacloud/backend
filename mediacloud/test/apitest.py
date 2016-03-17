@@ -1,6 +1,9 @@
 import unittest, ConfigParser, json, datetime, logging
 import mediacloud.api
 
+TEST_USER_EMAIL = "mc-api-test@media.mit.edu"
+TEST_TAG_SET_ID = 1727
+
 class ApiBaseTest(unittest.TestCase):
 
     QUERY = '( mars OR robot )'
@@ -420,18 +423,18 @@ class AdminApiSentencesTest(AdminApiBaseTest):
     def testSentenceList(self):
         results = self._mc.sentenceList(ApiBaseTest.QUERY, ApiBaseTest.FILTER_QUERY)
         self.assertEqual(int(results['responseHeader']['status']),0)
-        self.assertEqual(int(results['response']['numFound']),6739)
+        self.assertEqual(int(results['response']['numFound']),6713)
         self.assertEqual(len(results['response']['docs']), 1000)
 
     def testSentenceListPaging(self):
         # test limiting rows returned
         results = self._mc.sentenceList(ApiBaseTest.QUERY, ApiBaseTest.FILTER_QUERY,0,100)
-        self.assertEqual(int(results['response']['numFound']), 6739)
+        self.assertEqual(int(results['response']['numFound']), 6713)
         self.assertEqual(len(results['response']['docs']), 100)
         # test starting offset
         results = self._mc.sentenceList(ApiBaseTest.QUERY, ApiBaseTest.FILTER_QUERY,6700)
-        self.assertEqual(int(results['response']['numFound']), 6739)
-        self.assertEqual(len(results['response']['docs']), 39)
+        self.assertEqual(int(results['response']['numFound']), 6713)
+        self.assertEqual(len(results['response']['docs']), 13)
 
 class ApiSentencesTest(ApiBaseTest):
 
@@ -483,9 +486,9 @@ class ApiSentencesTest(ApiBaseTest):
         self.assertTrue('stats' in results)
         self.assertTrue('counts' in results)
         # filter by tag set
-        sentence_results = self._mc.sentenceFieldCount('obama','+media_id:1',tag_sets_id=1011)
+        sentence_results = self._mc.sentenceFieldCount('*',tag_sets_id=TEST_TAG_SET_ID)
         self.assertTrue(len(sentence_results)>0)
-        [self.assertEqual(tag['tag_sets_id'],1011) for tag in sentence_results]
+        [self.assertEqual(tag['tag_sets_id'],TEST_TAG_SET_ID) for tag in sentence_results]
 
 class ApiWordCountTest(ApiBaseTest):
 
@@ -527,7 +530,7 @@ class ApiWordCountTest(ApiBaseTest):
 class AdminApiTaggingUpdateTest(AdminApiBaseTest):
 
     def testTagUpdate(self):
-        example_tag_id = 8878305
+        example_tag_id = 9172167
         # grab the tag info
         tag = self._mc.tag(example_tag_id)
         # change the name, label and description
@@ -544,19 +547,19 @@ class AdminApiTaggingUpdateTest(AdminApiBaseTest):
         self.assertEqual(modified_tag['description'],'This is an exampel tag used in api client test scripts')
 
     def testTagSetUpdate(self):
-        example_tag_sets_id = 1011
+        example_tag_sets_id = TEST_TAG_SET_ID
         # grab the tag info
         tag_set = self._mc.tagSet(example_tag_sets_id)
         # change the name, label and description
-        result = self._mc.updateTagSet(example_tag_sets_id, 'rahulb@media.mit.edu', 'modified label', 'modified description')
+        result = self._mc.updateTagSet(example_tag_sets_id, TEST_USER_EMAIL, 'modified label', 'modified description')
         modified_tag = self._mc.tagSet(example_tag_sets_id)
-        self.assertEqual(modified_tag['name'],'rahulb@media.mit.edu')
+        self.assertEqual(modified_tag['name'],TEST_USER_EMAIL)
         self.assertEqual(modified_tag['label'],'modified label')
         self.assertEqual(modified_tag['description'],'modified description')
         # set it back
-        result = self._mc.updateTagSet(example_tag_sets_id, 'rahulb@media.mit.edu', 'rahulbot', 'The tag set of Rahul!')
+        result = self._mc.updateTagSet(example_tag_sets_id, TEST_USER_EMAIL, 'rahulbot', 'The tag set of Rahul!')
         modified_tag = self._mc.tagSet(example_tag_sets_id)
-        self.assertEqual(modified_tag['name'],'rahulb@media.mit.edu')
+        self.assertEqual(modified_tag['name'], TEST_USER_EMAIL)
         self.assertEqual(modified_tag['label'],'rahulbot')
         self.assertEqual(modified_tag['description'],'The tag set of Rahul!')
 
@@ -564,7 +567,7 @@ class AdminApiTaggingContentTest(AdminApiBaseTest):
 
     def testTagStories(self):
         test_story_id = 1
-        tag_set_name = "rahulb@media.mit.edu"
+        tag_set_name = TEST_USER_EMAIL
         # tag a story with two things
         desired_tags = [ mediacloud.api.StoryTag(test_story_id, tag_set_name, 'test_tag1'),
                  mediacloud.api.StoryTag(test_story_id, tag_set_name, 'test_tag2') ] 
@@ -575,7 +578,7 @@ class AdminApiTaggingContentTest(AdminApiBaseTest):
         tags_on_story = [t for t in story['story_tags'] if t['tag_set']==tag_set_name]
         self.assertEqual(len(tags_on_story),len(desired_tags))
         # now remove one
-        desired_tags = [ mediacloud.api.StoryTag(1,'rahulb@media.mit.edu','test_tag1') ]
+        desired_tags = [ mediacloud.api.StoryTag(1,TEST_USER_EMAIL,'test_tag1') ]
         response = self._mc.tagStories(desired_tags, clear_others=True)
         self.assertEqual(len(response),len(desired_tags))
         # and check it
@@ -585,9 +588,9 @@ class AdminApiTaggingContentTest(AdminApiBaseTest):
 
     def testTagSentences(self):
         test_story_id = 150891343
-        test_tag_id1 = '8878341' # rahulb@media.mit.edu:test_tag1
-        test_tag_id2 = '8878342' # rahulb@media.mit.edu:test_tag2
-        tag_set_name = "rahulb@media.mit.edu"
+        test_tag_id1 = '9172167' # mc-api-test@media.mit.edu:test_tag1
+        test_tag_id2 = '9172168' # mc-api-test@media.mit.edu:test_tag2
+        tag_set_name = TEST_USER_EMAIL
         # grab some sentence_ids to test with
         orig_story = self._mc.story(test_story_id,sentences=True)
         self.assertTrue( 'story_sentences' in orig_story )
