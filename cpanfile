@@ -117,6 +117,7 @@ requires 'Net::Calais';
 requires 'Net::HTTP', '6.09';
 requires 'Net::IP';
 requires 'Net::Twitter';
+requires 'PadWalker', '2.2';
 requires 'Parallel::Fork::BossWorkerAsync';
 requires 'Parallel::ForkManager';
 requires 'Parse::BooleanLogic';
