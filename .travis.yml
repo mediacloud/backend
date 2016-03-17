@@ -88,6 +88,8 @@ env:
         # Test PythonReadability extractor method in t/test_extractor.t
         - MC_TEST_EXTRACTOR_PYTHONREADABILITY=1
 before_install:
+    # Print out all environment variables
+    - env
     # Set up local Media Cloud environment for Python
     - mkdir -p $HOME/mc-python
     - virtualenv $HOME/mc-python
