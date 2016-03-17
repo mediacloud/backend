@@ -277,18 +277,6 @@ class ApiFeedsTest(ApiBaseTest):
         longer_list = self._mc.feedList(1,0,200)
         self.assertEqual(len(longer_list),141)
 
-class ApiDashboardsTest(ApiBaseTest):
-
-    def testDashboard(self):
-        dashboard = self._mc.dashboard(2)
-        self.assertEqual(dashboard['dashboards_id'],2)
-        self.assertEqual(dashboard['name'],'Russia')
-        self.assertTrue(len(dashboard['media_sets'])>0)
-
-    def testDashboardList(self):
-        first_list = self._mc.dashboardList()
-        self.assertTrue(len(first_list)>0)
-
 class AdminApiStoriesTest(AdminApiBaseTest):
 
     def testStoryWithSentences(self):

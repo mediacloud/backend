@@ -118,20 +118,6 @@ class MediaCloud(object):
         return self._queryForJson(self.V2_API_URL+'feeds/list', 
             { 'media_id':media_id, 'last_feeds_id':last_feeds_id, 'rows':rows} )
 
-    def dashboard(self, dashboards_id, nested_data=True):
-        '''
-        Details about one dashboard (a collection of media sets)
-        '''
-        return self._queryForJson(self.V2_API_URL+'dashboards/single/'+str(dashboards_id),
-            {'nested_data': 1 if nested_data else 0})[0]
-
-    def dashboardList(self, last_dashboards_id=0, rows=20, nested_data=True):
-        '''
-        Page through all the dashboards
-        '''
-        return self._queryForJson(self.V2_API_URL+'dashboards/list', 
-                {'last_dashboards_id':last_dashboards_id, 'rows':rows, 'nested_data': 1 if nested_data else 0})
-
     def storyPublic(self, stories_id):
         '''
         Maintained for backwards compatability
