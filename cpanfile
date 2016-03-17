@@ -82,6 +82,7 @@ requires 'Inline::Java';
 requires 'Inline::Python';
 requires 'IO::Compress::Bzip2';
 requires 'IO::Compress::Gzip';
+requires 'IPC::Cmd', '>= 0.94';
 requires 'IPC::Run3';
 requires 'IPC::System::Simple';
 requires 'JSON';
