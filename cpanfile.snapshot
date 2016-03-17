@@ -1,50 +1,5 @@
 # carton snapshot format: version 1.0
 DISTRIBUTIONS
-  AI-Categorizer-0.09
-    pathname: K/KW/KWILLIAMS/AI-Categorizer-0.09.tar.gz
-    provides:
-      AI::Categorizer 0.09
-      AI::Categorizer::Category undef
-      AI::Categorizer::Collection undef
-      AI::Categorizer::Collection::DBI undef
-      AI::Categorizer::Collection::Files undef
-      AI::Categorizer::Collection::InMemory undef
-      AI::Categorizer::Collection::SingleFile undef
-      AI::Categorizer::Document undef
-      AI::Categorizer::Document::SMART undef
-      AI::Categorizer::Document::Text undef
-      AI::Categorizer::Document::XML undef
-      AI::Categorizer::Document::XML::Handler undef
-      AI::Categorizer::Experiment undef
-      AI::Categorizer::FeatureSelector undef
-      AI::Categorizer::FeatureSelector::CategorySelector undef
-      AI::Categorizer::FeatureSelector::ChiSquare undef
-      AI::Categorizer::FeatureSelector::DocFrequency undef
-      AI::Categorizer::FeatureVector undef
-      AI::Categorizer::Hypothesis undef
-      AI::Categorizer::KnowledgeSet undef
-      AI::Categorizer::Learner undef
-      AI::Categorizer::Learner::Boolean undef
-      AI::Categorizer::Learner::DecisionTree 0.01
-      AI::Categorizer::Learner::Guesser undef
-      AI::Categorizer::Learner::KNN undef
-      AI::Categorizer::Learner::KNN::Queue undef
-      AI::Categorizer::Learner::NaiveBayes undef
-      AI::Categorizer::Learner::Rocchio 0.01
-      AI::Categorizer::Learner::SVM 0.01
-      AI::Categorizer::Learner::Weka undef
-      AI::Categorizer::ObjectSet undef
-      AI::Categorizer::Storable undef
-      AI::Categorizer::Util undef
-    requirements:
-      Class::Container 0.09
-      File::Spec 0
-      Lingua::Stem 0.5
-      Module::Build 0.2
-      Params::Validate 0.18
-      Statistics::Contingency 0.06
-      Storable 0
-      perl v5.6.0
   AI-DecisionTree-0.11
     pathname: K/KW/KWILLIAMS/AI-DecisionTree-0.11.tar.gz
     provides:
@@ -60,22 +15,6 @@ DISTRIBUTIONS
       strict 0
       vars 0
       warnings 0
-  AI-FANN-0.10
-    pathname: S/SA/SALVA/AI-FANN-0.10.tar.gz
-    provides:
-      AI::FANN 0.10
-    requirements:
-      ExtUtils::MakeMaker 0
-  AI-NeuralNet-Hopfield-0.1
-    pathname: L/LE/LEPREVOST/AI-NeuralNet-Hopfield-0.1.tar.gz
-    provides:
-      AI::NeuralNet::Hopfield 0.1
-    requirements:
-      ExtUtils::MakeMaker 0
-      Math::SparseMatrix 0.03
-      Moose 2.0604
-      Test::More 0
-      perl 5.006
   Acme-Damn-0.05
     pathname: I/IB/IBB/Acme-Damn-0.05.tar.gz
     provides:
@@ -92,22 +31,6 @@ DISTRIBUTIONS
       Carp 0.01
       ExtUtils::MakeMaker 0
       Test::More 0.47
-  Algorithm-DecisionTree-3.30
-    pathname: A/AV/AVIKAK/Algorithm-DecisionTree-3.30.tar.gz
-    provides:
-      Algorithm::BoostedDecisionTree 3.30
-      Algorithm::DecisionTree 3.30
-      Algorithm::DecisionTreeWithBagging 3.30
-      Algorithm::RandomizedTreesForBigData 3.30
-      DTIntrospection 3.30
-      DTNode 3.30
-      EvalTrainingData 3.30
-      TrainingDataGeneratorNumeric 3.30
-      TrainingDataGeneratorSymbolic 3.30
-    requirements:
-      ExtUtils::MakeMaker 0
-      List::Util 1.33
-      Math::Random 0
   Algorithm-Dependency-1.110
     pathname: A/AD/ADAMK/Algorithm-Dependency-1.110.tar.gz
     provides:
@@ -233,19 +156,6 @@ DISTRIBUTIONS
       Moose 0
       Test::NoWarnings 0
       perl v5.6.0
-  Astro-FITS-Header-3.07
-    pathname: T/TJ/TJENNESS/Astro-FITS-Header-3.07.tar.gz
-    provides:
-      Astro::FITS::Header 3.04
-      Astro::FITS::Header::AST 3.01
-      Astro::FITS::Header::CFITSIO 3.02
-      Astro::FITS::Header::GSD 3.01
-      Astro::FITS::Header::Item 3.02
-      Astro::FITS::Header::NDF 3.02
-      Astro::FITS::HeaderCollection 3.01
-    requirements:
-      Module::Build 0.3
-      Test::More 0
   B-Hooks-EndOfScope-0.13
     pathname: E/ET/ETHER/B-Hooks-EndOfScope-0.13.tar.gz
     provides:
@@ -259,17 +169,6 @@ DISTRIBUTIONS
       Module::Runtime 0.012
       Sub::Exporter::Progressive 0.001006
       Variable::Magic 0.48
-  B-Hooks-OP-Check-0.19
-    pathname: Z/ZE/ZEFRAM/B-Hooks-OP-Check-0.19.tar.gz
-    provides:
-      B::Hooks::OP::Check 0.19
-      B::Hooks::OP::Check::Install::Files undef
-    requirements:
-      ExtUtils::Depends 0.302
-      ExtUtils::MakeMaker 6.42
-      Test::More 0
-      parent 0
-      perl 5.008001
   Bit-Vector-7.3
     pathname: S/ST/STBEY/Bit-Vector-7.3.tar.gz
     provides:
@@ -395,20 +294,9 @@ DISTRIBUTIONS
       Exporter 0
       ExtUtils::MakeMaker 6.17
       Fcntl 0
-      File::Basename 0
-      File::Find 0
-      File::Spec 0
-      File::Spec::Functions 0
-      File::Temp 0.18
-      IO::Dir 0
-      JSON::PP 0
       Scalar::Util 0
-      Test::More 0.99
-      lib 0
       perl 5.008001
       strict 0
-      utf8 0
-      vars 0
       warnings 0
   Cache-Cache-1.06
     pathname: J/JS/JSWARTZ/Cache-Cache-1.06.tar.gz
@@ -470,13 +358,6 @@ DISTRIBUTIONS
       Scalar::Util 0
       strict 0
       warnings 0
-  Carp-Always-0.13
-    pathname: F/FE/FERREIRA/Carp-Always-0.13.tar.gz
-    provides:
-      Carp::Always 0.13
-    requirements:
-      Carp 0
-      ExtUtils::MakeMaker 0
   Carp-Assert-0.20
     pathname: M/MS/MSCHWERN/Carp-Assert-0.20.tar.gz
     provides:
@@ -1064,13 +945,6 @@ DISTRIBUTIONS
       Class::Accessor 0.18
       ExtUtils::MakeMaker 0
       Text::CSV_XS 0.23
-  Class-Container-0.12
-    pathname: K/KW/KWILLIAMS/Class-Container-0.12.tar.gz
-    provides:
-      Class::Container 0.12
-    requirements:
-      Carp 0
-      Params::Validate 0.23
   Class-Data-Inheritable-0.08
     pathname: T/TM/TMTM/Class-Data-Inheritable-0.08.tar.gz
     provides:
@@ -1347,12 +1221,6 @@ DISTRIBUTIONS
       Test::Exception 0
       Test::More 0
       ok 0
-  Convert-UU-0.5201
-    pathname: A/AN/ANDK/Convert-UU-0.5201.tar.gz
-    provides:
-      Convert::UU 0.5201
-    requirements:
-      ExtUtils::MakeMaker 0
   Cpanel-JSON-XS-2.3404
     pathname: R/RU/RURBAN/Cpanel-JSON-XS-2.3404.tar.gz
     provides:
@@ -1734,6 +1602,7 @@ DISTRIBUTIONS
       Data::Page 2.02
     requirements:
       Class::Accessor::Chained::Fast 0
+      Module::Build 0.35
       Test::Exception 0
       Test::More 0
   Data-Section-Simple-0.07
@@ -1815,13 +1684,6 @@ DISTRIBUTIONS
       Test::More 0
       Test::Pod 0
       Test::Simple 0
-  Data-Types-0.09
-    pathname: D/DW/DWHEELER/Data-Types-0.09.tar.gz
-    provides:
-      Data::Types 0.09
-    requirements:
-      Module::Build 0.2701
-      Test::More 0.17
   Data-UUID-1.219
     pathname: R/RJ/RJBS/Data-UUID-1.219.tar.gz
     provides:
@@ -2964,14 +2826,6 @@ DISTRIBUTIONS
       strict 0
       vars 0
       warnings 0
-  DateTime-Tiny-1.04
-    pathname: A/AD/ADAMK/DateTime-Tiny-1.04.tar.gz
-    provides:
-      DateTime::Tiny 1.04
-    requirements:
-      ExtUtils::MakeMaker 0
-      Test::More 0.47
-      perl 5.004
   DateTimeX-Easy-0.089
     pathname: R/RO/ROKR/DateTimeX-Easy-0.089.tar.gz
     provides:
@@ -2994,19 +2848,6 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       PadWalker 0.08
       Test::More 0
-  Devel-CheckBin-0.02
-    pathname: T/TO/TOKUHIROM/Devel-CheckBin-0.02.tar.gz
-    provides:
-      Devel::CheckBin 0.02
-    requirements:
-      CPAN::Meta 0
-      CPAN::Meta::Prereqs 0
-      Exporter 0
-      ExtUtils::CBuilder 0
-      ExtUtils::MakeMaker 6.52
-      Module::Build 0.38
-      parent 0
-      perl 5.008001
   Devel-CheckCompiler-0.05
     pathname: S/SY/SYOHEX/Devel-CheckCompiler-0.05.tar.gz
     provides:
@@ -3023,18 +2864,6 @@ DISTRIBUTIONS
       Test::Requires 0
       parent 0
       perl 5.008001
-  Devel-CheckLib-1.01
-    pathname: M/MA/MATTN/Devel-CheckLib-1.01.tar.gz
-    provides:
-      Devel::CheckLib 1.01
-    requirements:
-      Exporter 0
-      ExtUtils::MakeMaker 0
-      File::Spec 0
-      File::Temp 0.16
-      IO::CaptureOutput 1.0801
-      Test::More 0.62
-      perl 5.00405
   Devel-CheckOS-1.73
     pathname: D/DC/DCANTRELL/Devel-CheckOS-1.73.tar.gz
     provides:
@@ -3479,7 +3308,6 @@ DISTRIBUTIONS
     requirements:
       ExtUtils::MakeMaker 0
       Mail::Address 0
-      Net::DNS 0
       Scalar::Util 0
       Test::More 0
       perl 5.006
@@ -3603,16 +3431,6 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 6.30
       strict 0
       warnings 0
-  ExtUtils-Depends-0.306
-    pathname: X/XA/XAOC/ExtUtils-Depends-0.306.tar.gz
-    provides:
-      ExtUtils::Depends 0.306
-    requirements:
-      Data::Dumper 0
-      ExtUtils::MakeMaker 0
-      File::Spec 0
-      IO::File 0
-      perl 5.006
   ExtUtils-Helpers-0.022
     pathname: L/LE/LEONT/ExtUtils-Helpers-0.022.tar.gz
     provides:
@@ -3841,21 +3659,6 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       HTTP::Date 6
       perl 5.006002
-  File-Map-0.61
-    pathname: L/LE/LEONT/File-Map-0.61.tar.gz
-    provides:
-      File::Map 0.61
-    requirements:
-      Carp 0
-      ExtUtils::CBuilder 0
-      Module::Build 0.3601
-      PerlIO::Layers 0
-      Sub::Exporter::Progressive 0.001005
-      XSLoader 0
-      perl 5.008
-      strict 0
-      subs 0
-      warnings 0
   File-ReadBackwards-1.05
     pathname: U/UR/URI/File-ReadBackwards-1.05.tar.gz
     provides:
@@ -3915,12 +3718,6 @@ DISTRIBUTIONS
       FileHandle 0
       strict 0
       warnings 0
-  File-Touch-0.08
-    pathname: N/NW/NWETTERS/File-Touch-0.08.tar.gz
-    provides:
-      File::Touch 0.08
-    requirements:
-      ExtUtils::MakeMaker 0
   File-Which-1.09
     pathname: A/AD/ADAMK/File-Which-1.09.tar.gz
     provides:
@@ -4805,6 +4602,18 @@ DISTRIBUTIONS
       IO::WrapTie::Slave 2.110
     requirements:
       ExtUtils::MakeMaker 0
+  IPC-Cmd-0.94
+    pathname: B/BI/BINGOS/IPC-Cmd-0.94.tar.gz
+    provides:
+      IPC::Cmd 0.94
+    requirements:
+      ExtUtils::MakeMaker 0
+      File::Spec 0
+      File::Temp 0
+      Locale::Maketext::Simple 0
+      Module::Load::Conditional 0
+      Params::Check 0.20
+      Test::More 0
   IPC-Run-0.92
     pathname: T/TO/TODDR/IPC-Run-0.92.tar.gz
     provides:
@@ -4841,12 +4650,6 @@ DISTRIBUTIONS
       re 0
       strict 0
       warnings 0
-  Import-Into-1.002001
-    pathname: H/HA/HAARG/Import-Into-1.002001.tar.gz
-    provides:
-      Import::Into 1.002001
-    requirements:
-      ExtUtils::MakeMaker 0
   Inline-0.80
     pathname: I/IN/INGY/Inline-0.80.tar.gz
     provides:
@@ -4859,18 +4662,6 @@ DISTRIBUTIONS
       Digest::MD5 0
       ExtUtils::MakeMaker 0
       File::Spec 0.8
-      perl 5.008001
-  Inline-C-0.75
-    pathname: I/IN/INGY/Inline-C-0.75.tar.gz
-    provides:
-      Inline::C 0.75
-    requirements:
-      ExtUtils::MakeMaker 7.00
-      File::ShareDir::Install 0.06
-      File::Spec 0.8
-      Inline 0.79
-      Parse::RecDescent 1.967009
-      Pegex 0.58
       perl 5.008001
   Inline-Java-0.53
     pathname: P/PA/PATL/Inline-Java-0.53.tar.gz
@@ -4953,26 +4744,6 @@ DISTRIBUTIONS
     requirements:
       ExtUtils::MakeMaker 0
       Test::More 0
-  JavaScript-HashRef-Decode-0.133120
-    pathname: M/MF/MFONTANI/JavaScript-HashRef-Decode-0.133120.tar.gz
-    provides:
-      JavaScript::HashRef::Decode 0.133120
-      JavaScript::HashRef::Decode::ARRAYREF 0.133120
-      JavaScript::HashRef::Decode::FALSE 0.133120
-      JavaScript::HashRef::Decode::HASHREF 0.133120
-      JavaScript::HashRef::Decode::KEY 0.133120
-      JavaScript::HashRef::Decode::NUMBER 0.133120
-      JavaScript::HashRef::Decode::STRING 0.133120
-      JavaScript::HashRef::Decode::TRUE 0.133120
-      JavaScript::HashRef::Decode::TUPLE 0.133120
-      JavaScript::HashRef::Decode::UNDEFINED 0.133120
-    requirements:
-      Exporter 0
-      ExtUtils::MakeMaker 6.30
-      Parse::RecDescent 0
-      Test::More 0
-      strict 0
-      warnings 0
   LWP-MediaTypes-6.02
     pathname: G/GA/GAAS/LWP-MediaTypes-6.02.tar.gz
     provides:
@@ -4999,16 +4770,6 @@ DISTRIBUTIONS
     requirements:
       ExtUtils::MakeMaker 0
       LWP 0
-  Lexical-SealRequireHints-0.007
-    pathname: Z/ZE/ZEFRAM/Lexical-SealRequireHints-0.007.tar.gz
-    provides:
-      Lexical::SealRequireHints 0.007
-    requirements:
-      Module::Build 0
-      Test::More 0
-      perl 5.006
-      strict 0
-      warnings 0
   Lingua-EN-PluralToSingular-0.14
     pathname: B/BK/BKB/Lingua-EN-PluralToSingular-0.14.tar.gz
     provides:
@@ -5200,17 +4961,6 @@ DISTRIBUTIONS
     provides:
       List::Uniq 0.20
     requirements:
-  Locale-Country-Multilingual-0.23
-    pathname: G/GR/GRAF/Locale-Country-Multilingual-0.23.tar.gz
-    provides:
-      Locale::Country::Multilingual 0.23
-    requirements:
-      Carp 0
-      Class::Data::Inheritable 0
-      ExtUtils::MakeMaker 7.04
-      File::Spec 0
-      Symbol 0
-      Test::More 0
   Locale-Maketext-Lexicon-1.00
     pathname: D/DR/DRTECH/Locale-Maketext-Lexicon-1.00.tar.gz
     provides:
@@ -5430,19 +5180,6 @@ DISTRIBUTIONS
       Math::Random::ISAAC v1.0.1
       Test::More 0
       Test::Warn 0
-  Math-SparseMatrix-0.03
-    pathname: T/TP/TPEDERSE/Math-SparseMatrix-0.03.tar.gz
-    provides:
-      Math::SparseMatrix 0.03
-    requirements:
-      ExtUtils::MakeMaker 0
-      Math::SparseVector 0.01
-  Math-SparseVector-0.03
-    pathname: J/JM/JMAHESH/Math-SparseVector-0.03.tar.gz
-    provides:
-      Math::SparseVector 0.03
-    requirements:
-      ExtUtils::MakeMaker 0
   Modern-Perl-1.20140107
     pathname: C/CH/CHROMATIC/Modern-Perl-1.20140107.tar.gz
     provides:
@@ -5563,18 +5300,6 @@ DISTRIBUTIONS
       CPAN::Meta 2.12091
       CPAN::Meta::Prereqs 2.12091
       ExtUtils::MakeMaker 6.30
-  Module-Compile-0.23
-    pathname: I/IN/INGY/Module-Compile-0.23.tar.gz
-    provides:
-      Module::Compile 0.23
-      Module::Compile::Opt undef
-      Module::Install::Admin::PMC 0.61
-      Module::Install::PMC 1.01
-      Module::Optimize undef
-    requirements:
-      Digest::SHA1 2.13
-      ExtUtils::MakeMaker 6.42
-      perl 5.008003
   Module-Find-0.12
     pathname: C/CR/CRENZ/Module-Find-0.12.tar.gz
     provides:
@@ -5708,72 +5433,6 @@ DISTRIBUTIONS
       Module::Build 0.40
       Test::More 0
       perl v5.5.3
-  MongoDB-v0.705.0.0
-    pathname: M/MO/MONGODB/MongoDB-v0.705.0.0.tar.gz
-    provides:
-      MongoDB v0.705.0.0
-      MongoDB::BSON v0.705.0.0
-      MongoDB::BSON::Binary v0.705.0.0
-      MongoDB::BSON::Regexp v0.705.0.0
-      MongoDB::BulkWrite v0.705.0.0
-      MongoDB::BulkWriteView v0.705.0.0
-      MongoDB::Code v0.705.0.0
-      MongoDB::Collection v0.705.0.0
-      MongoDB::CommandResult v0.705.0.0
-      MongoDB::Connection v0.705.0.0
-      MongoDB::ConnectionError v0.705.0.0
-      MongoDB::Cursor v0.705.0.0
-      MongoDB::DBRef v0.705.0.0
-      MongoDB::Database v0.705.0.0
-      MongoDB::DatabaseError v0.705.0.0
-      MongoDB::DocumentSizeError v0.705.0.0
-      MongoDB::Error v0.705.0.0
-      MongoDB::GridFS v0.705.0.0
-      MongoDB::GridFS::File v0.705.0.0
-      MongoDB::MongoClient v0.705.0.0
-      MongoDB::OID v0.705.0.0
-      MongoDB::Timestamp v0.705.0.0
-      MongoDB::WriteConcernError v0.705.0.0
-      MongoDB::WriteError v0.705.0.0
-      MongoDB::WriteResult v0.705.0.0
-    requirements:
-      Carp 0
-      Class::MOP::Class 0
-      Data::Dump 0
-      Data::Dumper 0
-      Data::Types 0
-      DateTime 0.78
-      DateTime::Tiny 0
-      Devel::Peek 0
-      Digest::MD5 0
-      Encode 0
-      ExtUtils::MakeMaker 6.59
-      File::Copy 0
-      File::Path 0
-      File::Slurp 0
-      File::Spec 0
-      File::Temp 0.17
-      FileHandle 0
-      IO::File 0
-      JSON 2
-      Moose 2
-      Moose::Util::TypeConstraints 2
-      Safe::Isa 0
-      Scalar::Util 0
-      Syntax::Keyword::Junction 0
-      Test::Deep 0.111
-      Test::Fatal 0
-      Test::More 0.96
-      Test::Warn 0
-      Throwable 0
-      Tie::IxHash 0
-      Time::HiRes 0
-      Try::Tiny 0
-      bigint 0
-      boolean 0
-      namespace::clean 0
-      perl 5.008004
-      version 0
   Moo-2.000001
     pathname: H/HA/HAARG/Moo-2.000001.tar.gz
     provides:
@@ -6410,92 +6069,6 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       LWP 5.09
       XML::Writer 0
-  Net-DNS-0.83
-    pathname: N/NL/NLNETLABS/Net-DNS-0.83.tar.gz
-    provides:
-      Net::DNS 0.83
-      Net::DNS::Domain 1276
-      Net::DNS::DomainName 1272
-      Net::DNS::DomainName1035 1272
-      Net::DNS::DomainName2535 1272
-      Net::DNS::Header 1241
-      Net::DNS::Mailbox 1155
-      Net::DNS::Mailbox1035 1155
-      Net::DNS::Mailbox2535 1155
-      Net::DNS::Nameserver 1276
-      Net::DNS::Packet 1282
-      Net::DNS::Parameters 1325
-      Net::DNS::Question 1286
-      Net::DNS::RR 1319
-      Net::DNS::RR::A 1272
-      Net::DNS::RR::AAAA 1272
-      Net::DNS::RR::AFSDB 1326
-      Net::DNS::RR::APL 1326
-      Net::DNS::RR::APL::Item 1326
-      Net::DNS::RR::CAA 1326
-      Net::DNS::RR::CERT 1188
-      Net::DNS::RR::CNAME 1326
-      Net::DNS::RR::CSYNC 1328
-      Net::DNS::RR::DHCID 1188
-      Net::DNS::RR::DNAME 1326
-      Net::DNS::RR::EUI48 1188
-      Net::DNS::RR::EUI64 1188
-      Net::DNS::RR::GPOS 1326
-      Net::DNS::RR::HINFO 1326
-      Net::DNS::RR::HIP 1188
-      Net::DNS::RR::IPSECKEY 1188
-      Net::DNS::RR::ISDN 1188
-      Net::DNS::RR::KX 1326
-      Net::DNS::RR::L32 1188
-      Net::DNS::RR::L64 1188
-      Net::DNS::RR::LOC 1326
-      Net::DNS::RR::LP 1326
-      Net::DNS::RR::MB 1326
-      Net::DNS::RR::MG 1326
-      Net::DNS::RR::MINFO 1326
-      Net::DNS::RR::MR 1326
-      Net::DNS::RR::MX 1317
-      Net::DNS::RR::NAPTR 1326
-      Net::DNS::RR::NID 1188
-      Net::DNS::RR::NS 1326
-      Net::DNS::RR::NULL 1188
-      Net::DNS::RR::OPENPGPKEY 1253
-      Net::DNS::RR::OPT 1319
-      Net::DNS::RR::PTR 1326
-      Net::DNS::RR::PX 1326
-      Net::DNS::RR::RP 1326
-      Net::DNS::RR::RT 1326
-      Net::DNS::RR::SOA 1321
-      Net::DNS::RR::SPF 1188
-      Net::DNS::RR::SRV 1326
-      Net::DNS::RR::SSHFP 1326
-      Net::DNS::RR::TKEY 1326
-      Net::DNS::RR::TLSA 1188
-      Net::DNS::RR::TSIG 1328
-      Net::DNS::RR::TXT 1235
-      Net::DNS::RR::X25 1188
-      Net::DNS::Resolver 1276
-      Net::DNS::Resolver::Base 1288
-      Net::DNS::Resolver::MSWin32 1282
-      Net::DNS::Resolver::Recurse 1282
-      Net::DNS::Resolver::UNIX 1282
-      Net::DNS::Resolver::android 1282
-      Net::DNS::Resolver::cygwin 1282
-      Net::DNS::Resolver::os2 1282
-      Net::DNS::Text 1276
-      Net::DNS::Update 1288
-      Net::DNS::ZoneFile 1325
-      Net::DNS::ZoneFile::Generator 1325
-      Net::DNS::ZoneFile::Text 1325
-    requirements:
-      Digest::HMAC 1.01
-      Digest::MD5 2.13
-      Digest::SHA 5.23
-      ExtUtils::MakeMaker 0
-      IO::Socket 1.24
-      MIME::Base64 2.11
-      Test::More 0.52
-      perl 5.00404
   Net-Domain-TLD-1.72
     pathname: A/AL/ALEXP/Net-Domain-TLD-1.72.tar.gz
     provides:
@@ -6699,215 +6272,6 @@ DISTRIBUTIONS
       Storable 2.11
       Test::More 0.47
       perl 5.005
-  PDL-2.007
-    pathname: C/CH/CHM/PDL-2.007.tar.gz
-    provides:
-      C::StructObj undef
-      C::StructType undef
-      C::Type undef
-      C::Var undef
-      Inline::MakePdlppInstallable undef
-      Inline::Pdlpp 0.2
-      PDL undef
-      PDL::Basic undef
-      PDL::Bench undef
-      PDL::CallExt undef
-      PDL::Char undef
-      PDL::Constants 0.02
-      PDL::Core 1.56
-      PDL::Core::Dev undef
-      PDL::Dbg undef
-      PDL::Demos::BAD2_demo undef
-      PDL::Demos::BAD_demo undef
-      PDL::Demos::Cartography_demo undef
-      PDL::Demos::General undef
-      PDL::Demos::Gnuplot_demo undef
-      PDL::Demos::PGPLOT_OO_demo undef
-      PDL::Demos::PGPLOT_demo undef
-      PDL::Demos::Prima undef
-      PDL::Demos::Routines undef
-      PDL::Demos::Transform_demo undef
-      PDL::Demos::TriD1 undef
-      PDL::Demos::TriD2 undef
-      PDL::Demos::TriDGallery undef
-      PDL::Doc undef
-      PDL::Doc::Config undef
-      PDL::Doc::Perldl undef
-      PDL::Exporter undef
-      PDL::Filter::Gaussian undef
-      PDL::Filter::LinPred undef
-      PDL::Filter::LinSmooth undef
-      PDL::Filter::Linear undef
-      PDL::Filter::SavGol undef
-      PDL::Fit::LM undef
-      PDL::Fit::Linfit undef
-      PDL::Fit::Polynomial undef
-      PDL::Func undef
-      PDL::GraphEvolver undef
-      PDL::GraphEvolverOLD undef
-      PDL::Graphics2D undef
-      PDL::Graphics::LUT undef
-      PDL::Graphics::Limits 0.01
-      PDL::Graphics::Limits::DSet 0.01
-      PDL::Graphics::OpenGL::OO 0.01_10
-      PDL::Graphics::OpenGL::Perl::OpenGL 0.01_10
-      PDL::Graphics::PGPLOT undef
-      PDL::Graphics::PGPLOT::Window undef
-      PDL::Graphics::PGPLOTOptions undef
-      PDL::Graphics::State undef
-      PDL::Graphics::TriD undef
-      PDL::Graphics::TriD::ArcBall undef
-      PDL::Graphics::TriD::ArcBowl undef
-      PDL::Graphics::TriD::ArcCone undef
-      PDL::Graphics::TriD::Basic undef
-      PDL::Graphics::TriD::BoundingBox undef
-      PDL::Graphics::TriD::ButtonControl undef
-      PDL::Graphics::TriD::ContourPolygonize undef
-      PDL::Graphics::TriD::Contours undef
-      PDL::Graphics::TriD::Control3D undef
-      PDL::Graphics::TriD::CylindricalEquidistantAxes undef
-      PDL::Graphics::TriD::Description undef
-      PDL::Graphics::TriD::EuclidAxes undef
-      PDL::Graphics::TriD::EventHandler undef
-      PDL::Graphics::TriD::GL::Window undef
-      PDL::Graphics::TriD::GObject undef
-      PDL::Graphics::TriD::GObject_Lattice undef
-      PDL::Graphics::TriD::GPObject undef
-      PDL::Graphics::TriD::GoBoard undef
-      PDL::Graphics::TriD::Graph undef
-      PDL::Graphics::TriD::Image undef
-      PDL::Graphics::TriD::Labels undef
-      PDL::Graphics::TriD::Lattice undef
-      PDL::Graphics::TriD::LineStrip undef
-      PDL::Graphics::TriD::Lines undef
-      PDL::Graphics::TriD::LinesFOOOLD undef
-      PDL::Graphics::TriD::Logo undef
-      PDL::Graphics::TriD::Material undef
-      PDL::Graphics::TriD::MathGraph undef
-      PDL::Graphics::TriD::Mesh undef
-      PDL::Graphics::TriD::OOGL undef
-      PDL::Graphics::TriD::Object undef
-      PDL::Graphics::TriD::OneTransformation undef
-      PDL::Graphics::TriD::Points undef
-      PDL::Graphics::TriD::PolarStereoAxes undef
-      PDL::Graphics::TriD::Polygonize undef
-      PDL::Graphics::TriD::QuaterController undef
-      PDL::Graphics::TriD::Quaternion undef
-      PDL::Graphics::TriD::SCLattice undef
-      PDL::Graphics::TriD::SLattice undef
-      PDL::Graphics::TriD::SLattice_S undef
-      PDL::Graphics::TriD::STrigrid undef
-      PDL::Graphics::TriD::STrigrid_S undef
-      PDL::Graphics::TriD::Scale undef
-      PDL::Graphics::TriD::ScaleController undef
-      PDL::Graphics::TriD::SimpleController undef
-      PDL::Graphics::TriD::SimpleScaler undef
-      PDL::Graphics::TriD::Spheres undef
-      PDL::Graphics::TriD::StupidPolygonize undef
-      PDL::Graphics::TriD::Surface undef
-      PDL::Graphics::TriD::Transformation undef
-      PDL::Graphics::TriD::Translation undef
-      PDL::Graphics::TriD::VRML undef
-      PDL::Graphics::TriD::VRML::Parameter undef
-      PDL::Graphics::TriD::VRML::URL undef
-      PDL::Graphics::TriD::VRMLObject undef
-      PDL::Graphics::TriD::ViewPort undef
-      PDL::Graphics::TriD::Window undef
-      PDL::Graphics::VRML undef
-      PDL::Graphics::VRML::Protos undef
-      PDL::Graphics::VRMLNode undef
-      PDL::Graphics::VRMLPdlNode undef
-      PDL::Graphics::VRMLProto undef
-      PDL::IO::Dicom undef
-      PDL::IO::Dumper 1.003002
-      PDL::IO::FITS 0.92
-      PDL::IO::FastRaw 0.000003
-      PDL::IO::FlexRaw undef
-      PDL::IO::HDF 2.0
-      PDL::IO::IDL 0.5
-      PDL::IO::Pic undef
-      PDL::Interpolate undef
-      PDL::Interpolate::Slatec undef
-      PDL::Lvalue undef
-      PDL::Matrix 0.5
-      PDL::MyInlineMod 0.60
-      PDL::NiceSlice 1.000_003
-      PDL::Opt::Simplex undef
-      PDL::Options 0.92
-      PDL::PP 2.2
-      PDL::PP::Access undef
-      PDL::PP::BackCodeThreadLoop undef
-      PDL::PP::BadAccess undef
-      PDL::PP::BadSwitch undef
-      PDL::PP::BadVarAccess undef
-      PDL::PP::Block undef
-      PDL::PP::Code undef
-      PDL::PP::ComplexThreadLoop undef
-      PDL::PP::GenericLoop undef
-      PDL::PP::GentypeAccess undef
-      PDL::PP::Ind undef
-      PDL::PP::Loop undef
-      PDL::PP::MacroAccess undef
-      PDL::PP::NaNSupport undef
-      PDL::PP::OtherAccess undef
-      PDL::PP::PDLStateBadAccess undef
-      PDL::PP::PPBadAccess undef
-      PDL::PP::PdlAccess undef
-      PDL::PP::PdlDimsObj undef
-      PDL::PP::PdlParObj undef
-      PDL::PP::PhysPointerAccess undef
-      PDL::PP::PointerAccess undef
-      PDL::PP::ReSizeAccess undef
-      PDL::PP::Rule 2.2
-      PDL::PP::Rule::Croak 2.2
-      PDL::PP::Rule::InsertName 2.2
-      PDL::PP::Rule::MakeComp 2.2
-      PDL::PP::Rule::Returns 2.2
-      PDL::PP::Rule::Returns::EmptyString 2.2
-      PDL::PP::Rule::Returns::NULL 2.2
-      PDL::PP::Rule::Returns::One 2.2
-      PDL::PP::Rule::Returns::Zero 2.2
-      PDL::PP::Rule::Substitute 2.2
-      PDL::PP::Rule::Substitute::Usual 2.2
-      PDL::PP::Signature undef
-      PDL::PP::SimpleThreadLoop undef
-      PDL::PP::SizeAccess undef
-      PDL::PP::ThreadLoop undef
-      PDL::PP::TypeConv undef
-      PDL::PP::Types undef
-      PDL::Perldl2::Plugin::CleanErrors undef
-      PDL::Perldl2::Plugin::NiceSlice undef
-      PDL::Perldl2::Plugin::PDLCommands undef
-      PDL::Perldl2::Plugin::PrintControl undef
-      PDL::Perldl2::Profile::Perldl2 0.008
-      PDL::Perldl2::Script undef
-      PDL::PodParser undef
-      PDL::Reduce undef
-      PDL::Transform::Cartography 0.6
-      PDL::Type undef
-      PDL::Types undef
-      PDL::Version 2.007
-      SymTab undef
-      Win32::DDE::Netscape undef
-      XS undef
-    requirements:
-      Astro::FITS::Header 0
-      Convert::UU 0
-      Data::Dumper 2.121
-      Devel::CheckLib 1.01
-      ExtUtils::MakeMaker 6.56
-      File::Map 0.57
-      File::Spec 0.6
-      File::Temp 0
-      Filter::Simple 0.88
-      Filter::Util::Call 0
-      Inline 0.43
-      Module::Compile 0.23
-      Pod::Parser 0
-      Pod::Select 0
-      Storable 1.03
-      Test::Warn 0
-      Text::Balanced 1.89
   POSIX-strftime-Compiler-0.31
     pathname: K/KA/KAZEBURO/POSIX-strftime-Compiler-0.31.tar.gz
     provides:
@@ -7021,13 +6385,24 @@ DISTRIBUTIONS
     requirements:
       Attribute::Handlers 0.79
       Carp 0
+      Devel::Peek 0
       Exporter 0
       ExtUtils::CBuilder 0
+      File::Spec 0
+      File::Temp 0
       Module::Build 0.3601
       Module::Implementation 0
       Scalar::Util 1.10
+      Test::Fatal 0
+      Test::More 0.88
+      Test::Requires 0
+      Tie::Array 0
+      Tie::Hash 0
       XSLoader 0
       attributes 0
+      base 0
+      lib 0
+      overload 0
       perl 5.008001
       strict 0
       vars 0
@@ -7052,15 +6427,8 @@ DISTRIBUTIONS
       Exporter 0
       ExtUtils::MakeMaker 6.30
       File::Spec 0.80
-      File::Spec::Functions 0
       JSON::PP 2.27200
-      List::Util 0
-      Test::More 0.47
-      lib 0
       strict 0
-      vars 0
-      version 0
-      warnings 0
   Parse-RecDescent-1.967009
     pathname: J/JT/JTBRAUN/Parse-RecDescent-1.967009.tar.gz
     provides:
@@ -7107,9 +6475,12 @@ DISTRIBUTIONS
       Module::Build 0.3601
       Perl::OSType 0
       Scalar::Util 0
+      Test 0
+      Test::More 0
       overload 0
       parent 0
       strict 0
+      warnings 0
   Path-Tiny-0.052
     pathname: D/DA/DAGOLDEN/Path-Tiny-0.052.tar.gz
     provides:
@@ -7152,31 +6523,6 @@ DISTRIBUTIONS
       File::Basename 0
       Scalar::Util 0
       Test 0
-  Pegex-0.60
-    pathname: I/IN/INGY/Pegex-0.60.tar.gz
-    provides:
-      Pegex 0.60
-      Pegex::Base undef
-      Pegex::Bootstrap undef
-      Pegex::Compiler undef
-      Pegex::Constant undef
-      Pegex::Grammar undef
-      Pegex::Grammar::Atoms undef
-      Pegex::Input undef
-      Pegex::Module undef
-      Pegex::Optimizer undef
-      Pegex::Parser undef
-      Pegex::Parser::Indent undef
-      Pegex::Pegex::AST undef
-      Pegex::Pegex::Grammar undef
-      Pegex::Receiver undef
-      Pegex::Regex undef
-      Pegex::Tree undef
-      Pegex::Tree::Wrap undef
-    requirements:
-      ExtUtils::MakeMaker 0
-      File::ShareDir::Install 0.06
-      perl 5.008001
   Perl-Tidy-20140328
     pathname: S/SH/SHANCOCK/Perl-Tidy-20140328.tar.gz
     provides:
@@ -7200,21 +6546,6 @@ DISTRIBUTIONS
       Perl::Tidy::VerticalAligner::Line 20140328
     requirements:
       ExtUtils::MakeMaker 0
-  PerlIO-Layers-0.011
-    pathname: L/LE/LEONT/PerlIO-Layers-0.011.tar.gz
-    provides:
-      PerlIO::Layers 0.011
-    requirements:
-      Carp 0
-      Exporter 5.57
-      ExtUtils::CBuilder 0
-      List::Util 0
-      Module::Build 0.3601
-      PerlIO 0
-      XSLoader 0
-      perl 5.008_001
-      strict 0
-      warnings 0
   Plack-1.0030
     pathname: M/MI/MIYAGAWA/Plack-1.0030.tar.gz
     provides:
@@ -7623,6 +6954,7 @@ DISTRIBUTIONS
       Smart::Comments 1.000005
     requirements:
       Data::Dumper 0
+      ExtUtils::MakeMaker 0
       Filter::Simple 0
       List::Util 0
       Test::More 0
@@ -7686,15 +7018,6 @@ DISTRIBUTIONS
       Number::Format 1.42
       Scalar::Util 0
       perl 5.006
-  Statistics-Contingency-0.09
-    pathname: K/KW/KWILLIAMS/Statistics-Contingency-0.09.tar.gz
-    provides:
-      Statistics::Contingency 0.09
-    requirements:
-      ExtUtils::MakeMaker 6.30
-      Module::Build 0.3601
-      Params::Validate 0
-      strict 0
   Stream-Buffered-0.02
     pathname: D/DO/DOY/Stream-Buffered-0.02.tar.gz
     provides:
@@ -7795,20 +7118,6 @@ DISTRIBUTIONS
       constant 0
       strict 0
       warnings 0
-  Syntax-Keyword-Junction-0.003007
-    pathname: F/FR/FREW/Syntax-Keyword-Junction-0.003007.tar.gz
-    provides:
-      Syntax::Feature::Junction 0.003007
-      Syntax::Keyword::Junction 0.003007
-      Syntax::Keyword::Junction::All 0.003007
-      Syntax::Keyword::Junction::Any 0.003007
-      Syntax::Keyword::Junction::Base 0.003007
-      Syntax::Keyword::Junction::None 0.003007
-      Syntax::Keyword::Junction::One 0.003007
-    requirements:
-      ExtUtils::MakeMaker 6.30
-      Sub::Exporter::Progressive 0.001006
-      syntax 0
   Sys-RunAlone-0.12
     pathname: E/EL/ELIZABETH/Sys-RunAlone-0.12.tar.gz
     provides:
@@ -8075,6 +7384,7 @@ DISTRIBUTIONS
     provides:
       Test::Exception 0.32
     requirements:
+      Module::Build 0.38
       Sub::Uplevel 0.18
       Test::Builder 0.7
       Test::Builder::Tester 1.07
@@ -8414,12 +7724,19 @@ DISTRIBUTIONS
       Test::Builder::Tester 1.02
       Test::More 0
       perl 5.006
-  Test-Without-Module-0.17
-    pathname: C/CO/CORION/Test-Without-Module-0.17.tar.gz
+  Test-Warnings-0.026
+    pathname: E/ET/ETHER/Test-Warnings-0.026.tar.gz
     provides:
-      Test::Without::Module 0.17
+      Test::Warnings 0.026
     requirements:
+      Carp 0
+      Exporter 0
       ExtUtils::MakeMaker 0
+      Test::Builder 0
+      parent 0
+      perl 5.006
+      strict 0
+      warnings 0
   Test-utf8-1.01
     pathname: M/MA/MARKF/Test-utf8-1.01.tar.gz
     provides:
@@ -8480,6 +7797,7 @@ DISTRIBUTIONS
     provides:
       Text::Glob 0.09
     requirements:
+      Module::Build 0.36
       Test::More 0
   Text-Similarity-0.10
     pathname: T/TP/TPEDERSE/Text-Similarity-0.10.tar.gz
@@ -8571,13 +7889,6 @@ DISTRIBUTIONS
       Tie::Function 0.02
     requirements:
       ExtUtils::MakeMaker 0
-  Tie-IxHash-1.23
-    pathname: C/CH/CHORNY/Tie-IxHash-1.23.tar.gz
-    provides:
-      Tie::IxHash 1.23
-    requirements:
-      Test::More 0
-      perl 5.005
   Tie-ToObject-0.03
     pathname: N/NU/NUFFIN/Tie-ToObject-0.03.tar.gz
     provides:
@@ -8852,15 +8163,6 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       MIME::Base64 2
       Test 0
-      Test::More 0
-      perl 5.008001
-  URI-Escape-JavaScript-0.04
-    pathname: T/TA/TANIGUCHI/URI-Escape-JavaScript-0.04.tar.gz
-    provides:
-      URI::Escape::JavaScript 0.04
-    requirements:
-      Encode 2.12
-      ExtUtils::MakeMaker 6.42
       Test::More 0
       perl 5.008001
   URI-Find-20111103
@@ -9284,22 +8586,9 @@ DISTRIBUTIONS
       Exporter 0
       ExtUtils::MakeMaker 0
       Fcntl 0
-      File::Basename 0
-      File::Find 0
-      File::Spec 0.80
-      File::Spec::Functions 0
-      File::Temp 0.18
-      Getopt::Long 0
-      IO::Dir 0
-      JSON::PP 0
-      List::Util 0
       Scalar::Util 0
-      Test::More 0.99
-      lib 0
       perl 5.008001
       strict 0
-      utf8 0
-      vars 0
       warnings 0
   aliased-0.34
     pathname: E/ET/ETHER/aliased-0.34.tar.gz
@@ -9337,17 +8626,6 @@ DISTRIBUTIONS
       overload 0
       strict 0
       warnings 0
-  bareword-filehandles-0.003
-    pathname: I/IL/ILMARI/bareword-filehandles-0.003.tar.gz
-    provides:
-      bareword::filehandles 0.003
-    requirements:
-      B::Hooks::OP::Check 0
-      ExtUtils::Depends 0
-      ExtUtils::MakeMaker 6.31
-      Lexical::SealRequireHints 0
-      Test::More 0.88
-      XSLoader 0
   boolean-0.38
     pathname: I/IN/INGY/boolean-0.38.tar.gz
     provides:
@@ -9377,17 +8655,6 @@ DISTRIBUTIONS
       Test::More 0
       Time::HiRes 0
       if 0
-  indirect-0.31
-    pathname: V/VP/VPIT/indirect-0.31.tar.gz
-    provides:
-      indirect 0.31
-    requirements:
-      Carp 0
-      Config 0
-      ExtUtils::MakeMaker 0
-      Test::More 0
-      XSLoader 0
-      perl 5.008001
   libwww-perl-6.15
     pathname: E/ET/ETHER/libwww-perl-6.15.tar.gz
     provides:
@@ -9445,20 +8712,6 @@ DISTRIBUTIONS
       URI::Escape 0
       WWW::RobotRules 6
       perl 5.008001
-  multidimensional-0.011
-    pathname: I/IL/ILMARI/multidimensional-0.011.tar.gz
-    provides:
-      multidimensional 0.011
-    requirements:
-      B::Hooks::OP::Check 0.19
-      CPAN::Meta 2.112580
-      ExtUtils::Depends 0
-      ExtUtils::MakeMaker 6.30
-      Lexical::SealRequireHints 0.005
-      Test::More 0.88
-      XSLoader 0
-      strict 0
-      warnings 0
   namespace-autoclean-0.19
     pathname: E/ET/ETHER/namespace-autoclean-0.19.tar.gz
     provides:
@@ -9482,24 +8735,3 @@ DISTRIBUTIONS
       ExtUtils::CBuilder 0.27
       Package::Stash 0.23
       Test::More 0.88
-  strictures-1.005004
-    pathname: H/HA/HAARG/strictures-1.005004.tar.gz
-    provides:
-      strictures 1.005004
-    requirements:
-      bareword::filehandles 0
-      indirect 0
-      multidimensional 0
-  syntax-0.004
-    pathname: P/PH/PHAYLON/syntax-0.004.tar.gz
-    provides:
-      syntax 0.004
-    requirements:
-      Carp 0
-      Data::OptList 0.104
-      ExtUtils::MakeMaker 6.30
-      FindBin 0
-      Test::More 0.94
-      namespace::clean 0
-      strict 0
-      warnings 0
