@@ -17,6 +17,18 @@ number of stories in the extractor queue, etc) as well as some basic system info
 includes a web interface that provides historical data about the various metrics. We keep the mediacloud munin
 installation in a [separate github repo](https://github.com/berkmancenter/mediacloud-munin).
 
+There is an http auth protected web UI for munin.  Ask a media cloud geek for the info.
+
+Munin's plugins have hardcoded soft ("warning") and hard ("critical") limits for how we expect the services that are
+being monitored to perform. For example, the mc_services plugin expects 15+ forks of the Readability's Python daemon to
+be running at any given moment:
+
+https://github.com/berkmancenter/mediacloud-munin/blob/master/etc/munin/plugins/mc_services#L58-L67
+
+If the number of those forks falls below 15, Munin will send out a "WARNING" email alert, and if the count falls below
+1 (= Readability service is not running at all), we'll get a "CRITICAL" email alert. You'll be getting those emails
+too.
+
 Nagios
 ------
 
@@ -24,7 +36,7 @@ In addition to the munin monitoring, we monitor each of our mit servers using na
 health (disk space, free memory, load, etc) as well as some specific media cloud metrics (presence of java processes
 on solr servers, etc).  Nagios warning thresholds are monitored in the /etc/local/nagios/etc directory of each
 monitored server.  Media labs necsys runs the nagios server, which includes a web interface to disable monitoring
-of specific hosts / servers as needed.
+of specific hosts / servers as needed (ask a mc geek for the url and auth info).
 
 The most common nagios report is a notice that we need to update packages on the ubuntu installation, which looks like
 this:
