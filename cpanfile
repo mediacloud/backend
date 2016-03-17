@@ -114,6 +114,7 @@ requires 'Net::Amazon::S3';
 requires 'Net::Calais';
 requires 'Net::IP';
 requires 'Net::Twitter';
+requires 'PadWalker', '2.2';
 requires 'Parallel::Fork::BossWorkerAsync';
 requires 'Parallel::ForkManager';
 requires 'Parse::BooleanLogic';
