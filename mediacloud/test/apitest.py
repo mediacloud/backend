@@ -3,6 +3,7 @@ import mediacloud.api
 
 TEST_USER_EMAIL = "mc-api-test@media.mit.edu"
 TEST_TAG_SET_ID = 1727
+GEO_TAG_SET_ID = 1011
 
 class ApiBaseTest(unittest.TestCase):
 
@@ -457,9 +458,9 @@ class ApiSentencesTest(ApiBaseTest):
         self.assertTrue('stats' in results)
         self.assertTrue('counts' in results)
         # filter by tag set
-        sentence_results = self._mc.sentenceFieldCount('*',tag_sets_id=TEST_TAG_SET_ID)
+        sentence_results = self._mc.sentenceFieldCount('obama','+media_id:1',tag_sets_id=GEO_TAG_SET_ID)
         self.assertTrue(len(sentence_results)>0)
-        [self.assertEqual(tag['tag_sets_id'],TEST_TAG_SET_ID) for tag in sentence_results]
+        [self.assertEqual(tag['tag_sets_id'],GEO_TAG_SET_ID) for tag in sentence_results]
 
 class ApiWordCountTest(ApiBaseTest):
 
@@ -537,7 +538,7 @@ class AdminApiTaggingUpdateTest(AdminApiBaseTest):
 class AdminApiTaggingContentTest(AdminApiBaseTest):
 
     def testTagStories(self):
-        test_story_id = 1
+        test_story_id = 2
         tag_set_name = TEST_USER_EMAIL
         # tag a story with two things
         desired_tags = [ mediacloud.api.StoryTag(test_story_id, tag_set_name, 'test_tag1'),
@@ -549,7 +550,7 @@ class AdminApiTaggingContentTest(AdminApiBaseTest):
         tags_on_story = [t for t in story['story_tags'] if t['tag_set']==tag_set_name]
         self.assertEqual(len(tags_on_story),len(desired_tags))
         # now remove one
-        desired_tags = [ mediacloud.api.StoryTag(1,TEST_USER_EMAIL,'test_tag1') ]
+        desired_tags = [ mediacloud.api.StoryTag(test_story_id,TEST_USER_EMAIL,'test_tag1') ]
         response = self._mc.tagStories(desired_tags, clear_others=True)
         self.assertEqual(len(response),len(desired_tags))
         # and check it
@@ -558,8 +559,8 @@ class AdminApiTaggingContentTest(AdminApiBaseTest):
         self.assertEqual(len(tags_on_story),len(desired_tags))
 
     def testTagSentences(self):
-        test_story_id = 150891343
-        test_tag_id1 = '9172167' # mc-api-test@media.mit.edu:test_tag1
+        test_story_id = 435914244
+        test_tag_id1 = '9172171' # mc-api-test@media.mit.edu:test_tag1
         test_tag_id2 = '9172168' # mc-api-test@media.mit.edu:test_tag2
         tag_set_name = TEST_USER_EMAIL
         # grab some sentence_ids to test with
