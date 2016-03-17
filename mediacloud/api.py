@@ -92,19 +92,6 @@ class MediaCloud(object):
             params['q'] = q
         return self._queryForJson(self.V2_API_URL+'media/list', params)
 
-    def mediaSet(self, media_sets_id):
-        '''
-        Details about one media set (a collection of media sources)
-        '''
-        return self._queryForJson(self.V2_API_URL+'media_sets/single/'+str(media_sets_id))[0]
-
-    def mediaSetList(self, last_media_sets_id=0, rows=20):
-        '''
-        Page through all media sets
-        '''
-        return self._queryForJson(self.V2_API_URL+'media_sets/list',
-                {'last_media_sets_id':last_media_sets_id, 'rows':rows})
-
     def feed(self, feeds_id):
         '''
         Details about one feed

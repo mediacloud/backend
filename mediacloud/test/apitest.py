@@ -243,23 +243,6 @@ class ApiTagSetsTest(ApiBaseTest):
         longer_list = self._mc.tagSetList(0,50)
         self.assertEqual(len(longer_list),50)
 
-class ApiMediaSetTest(ApiBaseTest):
-
-    def testMediaSet(self):
-        media_set = self._mc.mediaSet(1)
-        self.assertEqual(media_set['media_sets_id'],1)
-        self.assertEqual(media_set['name'],'Top 25 Mainstream Media')
-        self.assertTrue(len(media_set['media'])>0)
-
-    def testMediaSetList(self):
-        first_list = self._mc.mediaSetList()
-        self.assertEqual(len(first_list),20)
-        second_list = self._mc.mediaSetList(int(first_list[19]['media_sets_id'])-1)
-        self.assertEqual(len(second_list),20)
-        self.assertEqual(first_list[19]['media_sets_id'], second_list[0]['media_sets_id'])
-        longer_list = self._mc.mediaSetList(0,200)
-        self.assertEqual(len(longer_list),200)
-
 class ApiFeedsTest(ApiBaseTest):
 
     def testFeed(self):
