@@ -70,8 +70,8 @@ env:
         # Facebook Graph API credentials for testing:
         # * MC_FACEBOOK_APP_ID
         # * MC_FACEBOOK_APP_SECRET
-        - secure: "GnbCg+JCTGVRaEQV/A0VDTlCLajGCw8iXdWGUv6lp9mRcOV6KlNvpawY1d23xAIywHg7BEYoAo2dt+aR8NZnpMy/kXr/E+SduBph75jrWdhmGGr+pD447AqUv/mg3lTylRWjLkjxJve5QkM/azt3FKL63lFZa0DBnaxoXJ1A+BQ="
-        - secure: "Lmf9F/FVjvLYfY3KFb2qX6Kz3Z1Uf/G/KT+OtwMYFfRPy8XXIlmv1PCRT2nFx+3xCrOZVgabN2w+9kNueKE3/mK/4XSZUDhEccTQvrQEFR7Qf5WiSJ5g2qRAj7Us2R4rcHJ2KzjFzLigz3oxVG3XqRCg1aGa/iY6jf5yH07tBlY="
+        - secure: "TklAqxPSqywPk5khp54R7iYW9jGfuWYiVC7xY3wiO8GQHRpW3b0a6zR3yEbeBMvKMt5b1IaCCJwuyasP/W0xPopqozqJFr/6045/tfTqRQ7/Bo6noJ1a640yLjjDzlGenHqkTCbhp5y4kaT2BS1IoTi423FOXQB1OVTpVD55jAw="
+        - secure: "A9bwQIK5W8VyQlpdnoA6LhKTcllytTS/8ueyzi9Y7F6xFdD2sFnfTy6UgpFIzgtVezYJYqy7Wcr1RiC3ybOmsE4FSYRTptrEdu4Pf/nI/LRxDE+sF2kPDGrXRD8iTL5+K2h5DMbBG2NsoflC+qRgn1W9f/Ey1gMsmCyOJJCnufw="
         # Amazon S3 test bucket credentials:
         # * MC_AMAZON_S3_TEST_ACCESS_KEY_ID
         # * MC_AMAZON_S3_TEST_SECRET_ACCESS_KEY
