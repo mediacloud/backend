@@ -15,10 +15,10 @@ DISTRIBUTIONS
       strict 0
       vars 0
       warnings 0
-  Acme-Damn-0.05
-    pathname: I/IB/IBB/Acme-Damn-0.05.tar.gz
+  Acme-Damn-0.06
+    pathname: I/IB/IBB/Acme-Damn-0.06.tar.gz
     provides:
-      Acme::Damn 0.05
+      Acme::Damn 0.06
     requirements:
       ExtUtils::MakeMaker 0
       Test::Exception 0

@@ -7,6 +7,7 @@
 # 7.
 # 8. for instructions on how to add a new Perl module dependency.
 # 9.
+requires 'Acme::Damn', '0.06';
 requires 'AI::DecisionTree';
 requires 'Algorithm::FeatureSelection';
 requires 'aliased', '0.34';
