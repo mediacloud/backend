@@ -178,8 +178,6 @@ sub query_encoded_json($$;$)
 
     my $t0 = [ gettimeofday ];
 
-    say STDERR "Posting to Solr; URL: $url, encoded params: " . Dumper( $encoded_params );
-
     my $request = POST( $url, $encoded_params );
     $request->content_type( 'application/x-www-form-urlencoded; charset=utf-8' );
     say STDERR "POST request: " . $request->as_string;
