@@ -146,11 +146,16 @@ QUOTE
             "sentence_split"
         );
     }
+}
+
+sub test_tokenize()
+{
+    my $lang = MediaWords::Languages::ru->new();
 
     #
     # Word tokenizer
     #
-    $test_string = <<'QUOTE';
+    my $test_string = <<'QUOTE';
 Род Моргенстейн (англ. Rod Morgenstein, род. 19.04.1953, Нью-Йорк) —
 американский барабанщик, педагог. Он известен по работе с хеви-метал группой
 конца 80-х Winger и джаз-фьюжн группой Dixie Dregs.
@@ -177,6 +182,7 @@ sub main()
     binmode $builder->todo_output,    ":utf8";
 
     test_get_sentences();
+    test_tokenize();
 }
 
 main();
