@@ -7,6 +7,7 @@
 # 7.
 # 8. for instructions on how to add a new Perl module dependency.
 # 9.
+requires 'Acme::Damn', '0.06';
 requires 'AI::DecisionTree';
 requires 'Algorithm::FeatureSelection';
 requires 'aliased', '0.34';
@@ -114,6 +115,7 @@ requires 'Net::Amazon::S3';
 requires 'Net::Calais';
 requires 'Net::IP';
 requires 'Net::Twitter';
+requires 'PadWalker', '2.2';
 requires 'Parallel::Fork::BossWorkerAsync';
 requires 'Parallel::ForkManager';
 requires 'Parse::BooleanLogic';
