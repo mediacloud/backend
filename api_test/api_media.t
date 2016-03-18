@@ -1,7 +1,8 @@
 use strict;
 use warnings;
+use utf8;
 
-use Test::More tests => 33;
+use Test::More tests => 26;
 
 BEGIN
 {
@@ -416,27 +417,18 @@ sub test_stories_non_public
 # Test querying for and returning UTF-8 stories / sentences
 sub test_stories_utf8()
 {
-    # Test story about Tabaré Vázquez; should return single story.
-    # For whatever reason, treatment of "á" differs between environments
-    # (Travis encodes it as ISO 8859-1's 0xe1, the rest of the systems as UTF-8),
-    # so we test both behaviors.
-    my $strictly_utf8_string = "V\x{00e1}zquez";
-
     Readonly my @utf8_strings => (
 
-        # String that could be interpreted as both ISO 8859-1 and UTF-8 (with or without UTF-8 flag)
+        # Test story about Tabaré Vázquez; should return single story.
+        # ("á" might be treated as ISO 8859-1 by one of the dependency modules)
         'Vázquez',
 
-        # String always interpreted as ISO 8859-1 (without UTF-8 flag)
-        "V\x{e1}zquez",
-
-        # String always interpreted as UTF-8 (with UTF-8 flag)
-        $strictly_utf8_string,
+        # Story about Bishkek
+        'Бишкек',
     );
 
     foreach my $utf8_string ( @utf8_strings )
     {
-
         my $url = _api_request_url(
             '/api/v2/stories/list/',
             {
@@ -458,13 +450,12 @@ sub test_stories_utf8()
 
         my $story = $actual_response->[ 0 ];
 
-        like( $story->{ title },      qr/\Q$strictly_utf8_string\E/, "Title doesn't match for query '$utf8_string'" );
-        like( $story->{ story_text }, qr/\Q$strictly_utf8_string\E/, "Story doesn't match for query '$utf8_string'" );
+        like( $story->{ story_text }, qr/\Q$utf8_string\E/, "Story doesn't match for query '$utf8_string'" );
 
         my $at_least_one_of_sentences_contains_utf8_string = 0;
         foreach my $sentence ( @{ $story->{ story_sentences } } )
         {
-            if ( $sentence->{ sentence } =~ /\Q$strictly_utf8_string\E/ )
+            if ( $sentence->{ sentence } =~ qr/\Q$utf8_string\E/ )
             {
                 $at_least_one_of_sentences_contains_utf8_string = 1;
                 last;
