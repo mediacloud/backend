@@ -180,7 +180,6 @@ sub query_encoded_json($$;$)
 
     my $request = POST( $url, $encoded_params );
     $request->content_type( 'application/x-www-form-urlencoded; charset=utf-8' );
-    say STDERR "POST request: " . $request->as_string;
 
     my $res = $ua->request( $request );
 
