@@ -374,6 +374,20 @@ sub get_noise_strings_regex
     return $self->cached_noise_strings_regex;
 }
 
+around 'stem' => sub {
+    my $orig = shift;
+    my $self = shift;
+
+    my @words = @_;
+
+    # Normalize apostrophe so that "it’s" and "it's" get treated identically
+    # (it's being done in _tokenize_with_spaces() too but let's not assume that
+    # all tokens that are to be stemmed go through sentence tokenization first)
+    s/’/'/g for @words;
+
+    return $self->$orig( @words );
+};
+
 # Lingua::Stem::Snowball helper
 sub _stem_with_lingua_stem_snowball
 {
@@ -526,9 +540,14 @@ sub _tokenize_with_spaces
     my ( $self, $sentence ) = @_;
 
     my $tokens = [];
-    while ( $sentence =~ m~(\w[\w']*)~g )
+    while ( $sentence =~ m~(\w[\w'’\-]*)~g )
     {
-        push( @{ $tokens }, lc( $1 ) );
+        my $token = $1;
+
+        # Normalize apostrophe so that "it’s" and "it's" get treated identically
+        $token =~ s/’/'/g;
+
+        push( @{ $tokens }, lc( $token ) );
     }
 
     return $tokens;

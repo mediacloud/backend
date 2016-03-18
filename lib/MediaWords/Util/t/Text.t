@@ -8,7 +8,8 @@ use warnings;
 use utf8;
 use Test::NoWarnings;
 use Readonly;
-use Test::More tests => 30;
+use Test::More tests => 31;
+use Test::Deep;
 
 # Run the comparison multiple times so that the performance difference is more obvious
 Readonly my $TEST_ITERATIONS => 100;
@@ -301,6 +302,42 @@ sub test_encode_decode_utf8()
     }
 }
 
+sub test_recursively_encode_to_utf8()
+{
+    my $ascii_string       = 'Vazquez';
+    my $not_encoded_string = "V\x{00}\x{e1}zquez";
+    my $encoded_string     = MediaWords::Util::Text::encode_to_utf8( $not_encoded_string );
+    my $not_a_string       = 42;
+
+    my $input = [
+        {
+            $ascii_string       => $ascii_string,
+            $not_encoded_string => $not_encoded_string,
+            $not_a_string       => $not_a_string
+        },
+        [ $ascii_string, $not_encoded_string, $not_a_string, ],
+        $ascii_string,
+        $not_encoded_string,
+        $not_a_string,
+    ];
+
+    my $expected_output = [
+        {
+            $ascii_string   => $ascii_string,
+            $encoded_string => $encoded_string,
+            $not_a_string   => $not_a_string
+        },
+        [ $ascii_string, $encoded_string, $not_a_string, ],
+        $ascii_string,
+        $encoded_string,
+        $not_a_string,
+    ];
+
+    my $actual_output = MediaWords::Util::Text::recursively_encode_to_utf8( $input );
+
+    cmp_deeply( $actual_output, $expected_output, 'Structure got encoded successfully' );
+}
+
 sub test_is_valid_utf8()
 {
     ok( MediaWords::Util::Text::is_valid_utf8( 'pnoןɔ ɐıpǝɯ' ), 'Valid UTF-8' );
@@ -331,6 +368,7 @@ sub main()
 
     test_get_similarity_score();
     test_encode_decode_utf8();
+    test_recursively_encode_to_utf8();
     test_is_valid_utf8();
     test_random_string();
 }

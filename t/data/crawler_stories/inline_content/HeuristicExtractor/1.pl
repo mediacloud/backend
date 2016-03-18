@@ -1,9 +1,9 @@
 #<<<
 $VAR1 = {
-          'collect_date' => '2016-03-08 22:44:06.780326',
+          'collect_date' => '2016-03-18 21:39:23.96007',
           'content' => '<p>This is the first item.</p>
 ',
-          'db_row_last_updated' => '2016-03-08 22:44:10.737818-06',
+          'db_row_last_updated' => '2016-03-18 21:39:27.85968+02',
           'description' => 'RSS description of the first inline item.',
           'disable_triggers' => undef,
           'extracted_text' => 'First inline item
@@ -18,25 +18,25 @@ RSS description of the first inline item.
           'guid' => 'http://www.example.com/inline_content/item_1.html',
           'language' => 'en',
           'media_id' => 1,
-          'publish_date' => '2009-06-11 04:57:00',
+          'publish_date' => '2009-06-11 13:57:00',
           'stories_id' => 1,
           'story_sentences' => [
                                  {
-                                   'db_row_last_updated' => '2016-03-08 22:44:10.737818-06',
+                                   'db_row_last_updated' => '2016-03-18 21:39:27.85968+02',
                                    'disable_triggers' => 0,
                                    'is_dup' => undef,
                                    'language' => 'en',
                                    'media_id' => 1,
-                                   'publish_date' => '2009-06-11 04:57:00',
+                                   'publish_date' => '2009-06-11 13:57:00',
                                    'sentence' => 'First inline item.RSS description of the first inline item.',
                                    'sentence_number' => 0,
                                    'stories_id' => 1,
-                                   'story_sentences_id' => '2'
+                                   'story_sentences_id' => 2
                                  }
                                ],
           'tags' => [],
-          'timezone' => 'America/Denver',
+          'timezone' => 'Europe/Vilnius',
           'title' => 'First inline item',
-          'url' => 'http://raven.local:58903/inline_content/item_1.html'
+          'url' => 'http://tundra.local:65016/inline_content/item_1.html'
         };
 #>>>
