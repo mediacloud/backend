@@ -12,7 +12,7 @@ BEGIN
 use Readonly;
 
 use Test::NoWarnings;
-use Test::More tests => 11 + 1;
+use Test::More tests => 17;
 use utf8;
 
 use MediaWords::Languages::en;
@@ -229,6 +229,41 @@ QUOTE
     }
 }
 
+sub test_tokenize()
+{
+    my ( $input_string, $expected_words );
+
+    my $lang = MediaWords::Languages::en->new();
+
+    # Normal apostrophe (')
+    $input_string = "It's always sunny in Philadelphia.";
+    $expected_words = [ "it's", "always", "sunny", "in", "philadelphia" ];
+    is_deeply( $lang->tokenize( $input_string ), $expected_words, 'Tokenization with normal apostrophe' );
+
+    # Right single quotation mark (’)
+    $input_string = "It’s always sunny in Philadelphia.";
+    $expected_words = [ "it’s", "always", "sunny", "in", "philadelphia" ];
+    is_deeply( $lang->tokenize( $input_string ), $expected_words, 'Tokenization with fancy apostrophe' );
+
+    # Hyphen without split
+    $input_string = "near-total secrecy";
+    $expected_words = [ "near-total", "secrecy" ];
+    is_deeply( $lang->tokenize( $input_string ), $expected_words, 'Tokenization with hyphen (no split)' );
+
+    # Hyphen with split (where it's being used as a dash)
+    $input_string = "A Pythagorean triple - named for the ancient Greek Pythagoras";
+    $expected_words = [ 'a', 'pythagorean', 'triple', 'named', 'for', 'the', 'ancient', 'greek', 'pythagoras' ];
+    is_deeply( $lang->tokenize( $input_string ), $expected_words, 'Tokenization with hyphen (split)' );
+
+    # Quotes
+    $input_string   = 'it was in the Guinness Book of World Records as the "most difficult mathematical problem"';
+    $expected_words = [
+        'it',      'was', 'in',  'the',  'guinness',  'book',         'of', 'world',
+        'records', 'as',  'the', 'most', 'difficult', 'mathematical', 'problem'
+    ];
+    is_deeply( $lang->tokenize( $input_string ), $expected_words, 'Quote removal while tokenizing' );
+}
+
 sub main()
 {
     # Test::More UTF-8 output
@@ -238,6 +273,7 @@ sub main()
     binmode $builder->todo_output,    ":utf8";
 
     test_get_sentences();
+    test_tokenize();
 }
 
 main();
