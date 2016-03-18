@@ -526,7 +526,7 @@ sub _tokenize_with_spaces
     my ( $self, $sentence ) = @_;
 
     my $tokens = [];
-    while ( $sentence =~ m~(\w[\w']*)~g )
+    while ( $sentence =~ m~(\w[\w'’]*)~g )
     {
         push( @{ $tokens }, lc( $1 ) );
     }
