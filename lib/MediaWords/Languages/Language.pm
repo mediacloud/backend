@@ -528,7 +528,12 @@ sub _tokenize_with_spaces
     my $tokens = [];
     while ( $sentence =~ m~(\w[\w'’\-]*)~g )
     {
-        push( @{ $tokens }, lc( $1 ) );
+        my $token = $1;
+
+        # Normalize apostrophe so that "it’s" and "it's" get treated identically
+        $token =~ s/’/'/g;
+
+        push( @{ $tokens }, lc( $token ) );
     }
 
     return $tokens;

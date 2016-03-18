@@ -240,9 +240,9 @@ sub test_tokenize()
     $expected_words = [ "it's", "always", "sunny", "in", "philadelphia" ];
     is_deeply( $lang->tokenize( $input_string ), $expected_words, 'Tokenization with normal apostrophe' );
 
-    # Right single quotation mark (’)
+    # Right single quotation mark (’), normalized to apostrophe (')
     $input_string = "It’s always sunny in Philadelphia.";
-    $expected_words = [ "it’s", "always", "sunny", "in", "philadelphia" ];
+    $expected_words = [ "it's", "always", "sunny", "in", "philadelphia" ];
     is_deeply( $lang->tokenize( $input_string ), $expected_words, 'Tokenization with fancy apostrophe' );
 
     # Hyphen without split
