@@ -2,7 +2,10 @@ use strict;
 use warnings;
 use utf8;
 
+BEGIN { $ENV{ DIFF_OUTPUT_UNICODE } = 1 }
+
 use Test::More tests => 26;
+use Test::Differences;
 
 BEGIN
 {
@@ -101,20 +104,8 @@ sub test_media
                         'label'           => undef
                     }
                 ],
-                'name'       => 'Wikinews, the free news source',
-                'url'        => 'http://en.wikinews.org/wiki/Main_Page',
-                'media_sets' => [
-                    {
-                        'media_sets_id' => 1,
-                        'name'          => 'CC_sources',
-                        'description'   => 'Creative Commons Sources'
-                    },
-                    {
-                        'media_sets_id' => 6,
-                        'name'          => 'news',
-                        'description'   => 'news'
-                    }
-                ]
+                'name' => 'Wikinews, the free news source',
+                'url'  => 'http://en.wikinews.org/wiki/Main_Page',
             }
         ];
 
@@ -235,6 +226,7 @@ sub test_stories_public
             'language'             => 'en',
             'title' =>
 'This Day in Blogging History: Turkish Spring in Gezi; Obama supports torture-evidence suppression law; Quaker football&#160;cheer',
+            'ap_syndicated' => 0
         }
     ];
 
@@ -270,41 +262,41 @@ sub test_stories_non_public
 
     my $expected_response = [
         {
-            'story_text' => " 
+            'story_text' => "
 
- This Day in Blogging History: Turkish Spring in Gezi; Obama supports torture-evidence suppression law; Quaker football\x{a0}cheer 
+ This Day in Blogging History: Turkish Spring in Gezi; Obama supports torture-evidence suppression law; Quaker football cheer
 
 
 
-     
 
- \x{2014} FEATURED \x{2014}
 
-  
+ — FEATURED —
 
- \x{2014} COMICS \x{2014}
 
- 
 
- \x{2014} RECENTLY \x{2014}
+ — COMICS —
 
-            
 
- \x{2014} FOLLOW US \x{2014}   
 
-  Find us on  Twitter ,  Google+ ,  IRC , and  Facebook . Subscribe to our  RSS feed  or  daily email . 
+ — RECENTLY —
 
-             
 
- \x{2014} POLICIES  \x{2014}             
 
-  Please read our  Terms of Service ,  Privacy Policy , and  Community Guidelines . Except where indicated, Boing Boing is licensed under a Creative\x{a0}Commons License permitting  non-commercial sharing with attribution  
+ — FOLLOW US —
 
-  Turkish Spring: Taksim Gezi Park protests in Istanbul:  Taksim Gezi Park in Istanbul is alive with protest at this moment. The action began on May 28, when environmentalists protested plans to remove the park and replace it with a mall, and were met with a brutal police crackdown. 
+  Find us on  Twitter ,  Google+ ,  IRC , and  Facebook . Subscribe to our  RSS feed  or  daily email .
+
+
+
+ — POLICIES  —
+
+  Please read our  Terms of Service ,  Privacy Policy , and  Community Guidelines . Except where indicated, Boing Boing is licensed under a Creative Commons License permitting  non-commercial sharing with attribution
+
+  Turkish Spring: Taksim Gezi Park protests in Istanbul:  Taksim Gezi Park in Istanbul is alive with protest at this moment. The action began on May 28, when environmentalists protested plans to remove the park and replace it with a mall, and were met with a brutal police crackdown.
 
   Obama Supports New Law to Suppress Detainee Torture Photos:  The White House is actively supporting a new bill jointly sponsored by Sens. Lindsey Graham and Joe Lieberman -- called The Detainee Photographic Records Protection Act of 2009 -- that literally has no purpose other than to allow the government to suppress any \"photograph taken between September 11, 2001 and January 22, 2009 relating to the treatment of individuals engaged, captured, or detained after September 11, 2001, by the Armed Forces of the United States in operations outside of the United States.\"
 
- Knock 'em down, beat 'em senseless, Do it till we reach consensus! 
+ Knock 'em down, beat 'em senseless, Do it till we reach consensus!
 
 ",
             'is_fully_extracted'   => 1,
@@ -319,9 +311,16 @@ sub test_stories_non_public
             'full_text_rss'        => 0,
             'story_tags'           => [],
             'bitly_click_count'    => undef,
-            'media_id'             => 2,
-            'media_name'           => 'Boing Boing',
-            'story_sentences'      => [
+            'ap_syndicated'        => 0,
+
+            #     'description'          => '<p>
+
+            # <b>One year ago today</b>
+
+# <a href="http://boingboing.net/2013/06/01/turkish-spring-taksim-gezi-pa.html">Turkish Spring: Taksim Gezi Park protests in Istanbul:</a> Taksim Gezi Park in Istanbul is alive with protest at this moment.</p>',
+            'media_id'        => 2,
+            'media_name'      => 'Boing Boing',
+            'story_sentences' => [
                 {
                     'sentence' =>
 'This Day in Blogging History: Turkish Spring in Gezi; Obama supports torture-evidence suppression law; Quaker football cheer',
@@ -408,10 +407,13 @@ sub test_stories_non_public
                 delete $sentence->{ 'disable_triggers' };
             }
 
+            # don't worry about small differennces in white space
+            $row->{ story_text } = !s/\s+/ /g;
         }
     }
 
     cmp_deeply( $actual_response, $expected_response );
+
 }
 
 # Test querying for and returning UTF-8 stories / sentences

@@ -26,7 +26,7 @@ Catalyst Controller.
 
 =cut
 
-=head2 index 
+=head2 index
 
 =cut
 
@@ -52,26 +52,13 @@ sub _add_nested_data
         # say STDERR "adding media_source tags ";
         $media_source->{ media_source_tags } = $db->query( <<END, $media_source->{ media_id } )->hashes;
 select t.tags_id, t.tag, t.label, t.description, ts.tag_sets_id, ts.name as tag_set,
-        ( t.show_on_media or ts.show_on_media ) show_on_media, 
+        ( t.show_on_media or ts.show_on_media ) show_on_media,
         ( t.show_on_stories or ts.show_on_stories ) show_on_stories
     from media_tags_map mtm
         join tags t on ( mtm.tags_id = t.tags_id )
         join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id )
     where mtm.media_id = ?
     order by t.tags_id
-END
-    }
-
-    foreach my $media_source ( @{ $media } )
-    {
-        # say STDERR "adding media_sets ";
-        $media_source->{ media_sets } = $db->query( <<END, $media_source->{ media_id } )->hashes;
-select ms.media_sets_id, ms.name, ms.description
-    from media_sets_media_map msmm
-        join media_sets ms on ( msmm.media_sets_id = ms.media_sets_id ) 
-    where msmm.media_id = ? and
-        ms.set_type = 'collection'
-    ORDER by ms.media_sets_id
 END
     }
 
@@ -124,7 +111,7 @@ sub _create_controversy_media_table
       || die( "Unable to find controversy_dump_time_slice with id '$cdts_id'" );
 
     my $controversy = $db->query( <<END, $cdts->{ controversy_dumps_id } )->hash;
-select * from controversies where controversies_id in ( 
+select * from controversies where controversies_id in (
     select controversies_id from controversy_dumps where controversy_dumps_id = ? )
 END
 

@@ -5,7 +5,20 @@ use strict;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
-# functions for searching the solr server
+=head1 NAME MediaWords::Solr - functions for querying solr
+
+=head1 SYNOPSIS
+
+    my $results = MediaWords::Solr::query( $db, { q => 'obama' } );
+
+    my $sentences = $results->{ response }->{ docs };
+    map { print "found sentence: $_->{ sentence }\n" } @{ $sentencs };
+
+=head1 DESCRIPTION
+
+Functions for querying the solr server.  More information about solr integration at docs/solr.markdown.
+
+=cut
 
 use JSON;
 use List::Util;
@@ -29,9 +42,15 @@ my $_last_num_found;
 # mean number of sentences per story from the last search_stories() call
 my $_last_sentences_per_story;
 
-# get a solr url from the config, returning either the single
-# url if there is one or a random member of the list if there is
-# a list
+=head1 FUNCTIONS
+
+=head2 get_solr_url
+
+Get a solr url from the config, returning either the single url if there is one or a random member of the list if there
+is a list.
+
+=cut
+
 sub get_solr_url
 {
     my $urls = MediaWords::Util::Config::get_config->{ mediawords }->{ solr_url };
@@ -45,7 +64,19 @@ sub get_solr_url
     return $url;
 }
 
-# get the name of the currently live collection, as stored in database_variables in postgres
+=head2 get_live_collection( $db )
+
+Get the name of the currently live collection, as stored in database_variables in postgres.
+
+We configure solr to  run 2 collections (collection1 and collection2) so that we can use one for staging a full import
+while the other stays live.  If you need to create a solr url using get_solr_url(), you should always use this function
+to create the collection name to query the production server (or get_staging_collection() to query the staging server).
+
+The flag for which collection is live is stored in postgres rather than in mediawords.yml so that the staging server
+can be changed without needing to reboot all running clients that might query solr.
+
+=cut
+
 sub get_live_collection
 {
     my ( $db ) = @_;
@@ -55,7 +86,12 @@ sub get_live_collection
     return $collection || 'collection1';
 }
 
-# get the name of the collection that is not get_live_collection()
+=head2 get_staging_collection( $db )
+
+Get the name of the staging collection.  See get_live_collection() above.
+
+=cut
+
 sub get_staging_collection
 {
     my ( $db ) = @_;
@@ -65,7 +101,12 @@ sub get_staging_collection
     return $live_collection eq 'collection1' ? 'collection2' : 'collection1';
 }
 
-# swap which collection is live and which is staging
+=head2 swap_live_collection( $db )
+
+Swap which collection is live and which is staging.  See get_live_collection() above.
+
+=cut
+
 sub swap_live_collection
 {
     my ( $db ) = @_;
@@ -81,18 +122,32 @@ sub swap_live_collection
       $db->commit;
 }
 
-# get the numFound from the last solr query run
+=head2 get_last_num_found
+
+Get the number of sentences found from the last solr query run in this process.  This function does not perform a solr
+query but instead just references a stored variable.
+
+=cut
+
 sub get_last_num_found
 {
     return $_last_num_found;
 }
 
-# get the ratio of sentence per story for the last search_stories call
+=head2 get_last_sentences_per_story
+
+Get the ratio of sentences per story for the last search_stories call.  This function can be useful for generating very
+vague guesses of the number of stories matching query without having to do the slow solr query to get the exact count.
+This function does not perform a solr query but instead just references a stored variable.
+
+=cut
+
 sub get_last_sentences_per_story
 {
     return $_last_sentences_per_story;
 }
 
+# set _last_num_found for get_last_num_found
 sub _set_last_num_found
 {
     my ( $res ) = @_;
@@ -116,8 +171,8 @@ sub _set_last_num_found
 
 }
 
-# convert any and, or, or not operations in the argument to uppercase.  if the argument
-# is a ref, call self on all elements of the list.
+# convert any and, or, or not operations in the argument to uppercase.  if the argument is a ref, call self on all
+# elements of the list.
 sub _uppercase_boolean_operators
 {
     return unless ( $_[ 0 ] );
@@ -132,9 +187,25 @@ sub _uppercase_boolean_operators
     }
 }
 
-# execute a query on the solr server using the given params.
-# return the raw encoded json from solr.  return a maximum of
-# 1 million sentences.
+=head2 query_encoded_json( $db, $params, $c )
+
+Execute a query on the solr server using the given params.  Return a maximum of 1 million sentences.
+
+The $params argument is a hash of the cgi args to solr, detailed here:
+https://wiki.apache.org/solr/CommonQueryParameters.
+
+The $c argument is optional and is used to pass the solr response back up to catalyst in the case of an error.
+
+The query ($params->{ q }) is transformed into two ways -- lower case boolean operators are uppercased to make
+solr recognize them as boolean queries and psuedo queries (see the api docs at mediacloud.org/api and PseudoQueries.pm)
+are translated into solr clauses.
+
+Return the raw encoded json from solr in the format described here:
+
+https://wiki.apache.org/solr/SolJSON
+
+=cut
+
 sub query_encoded_json($$;$)
 {
     my ( $db, $params, $c ) = @_;
@@ -249,8 +320,12 @@ sub query_encoded_json($$;$)
     return $res->content;
 }
 
-# execute a query on the solr server using the given params.
-# return a hash generated from the json results
+=head2 query( $db, $params, $c )
+
+Same as query_encoded_json but returns a perl hash of the decoded json.
+
+=cut
+
 sub query($$;$)
 {
     my ( $db, $params, $c ) = @_;
@@ -422,7 +497,12 @@ sub _get_stories_ids_from_stories_only_params
     return $r;
 }
 
-# return all of the story ids that match the solr query
+=head2 search_for_stories_ids( $db, $params )
+
+Return a list of all of the stories_ids that match the solr query.  Using solr side grouping on the stories_id field.
+
+=cut
+
 sub search_for_stories_ids ($$)
 {
     my ( $db, $params ) = @_;
@@ -459,8 +539,36 @@ sub search_for_stories_ids ($$)
     return $stories_ids;
 }
 
-# return the first $num_stories processed_stories_id that match the given query,
-# sorted by processed_stories_id and with processed_stories_id greater than $last_ps_id.
+=head2 search_for_stories( $db, $params )
+
+Call search_for_stories_ids() above and then query postgres for the stories returned by solr.  Include stories.* and
+media_name as the returned fields.
+
+=cut
+
+sub search_for_stories ($$)
+{
+    my ( $db, $params ) = @_;
+
+    my $stories_ids = search_for_stories_ids( $db, $params );
+
+    my $stories = [ map { { stories_id => $_ } } @{ $stories_ids } ];
+
+    MediaWords::DBI::Stories::attach_story_meta_data_to_stories( $db, $stories );
+
+    $stories = [ grep { $_->{ url } } @{ $stories } ];
+
+    return $stories;
+}
+
+=head2 search_for_processed_stories_ids( $db, $q, $fq, $last_ps_id, $num_stories, $sort )
+
+Return the first $num_stories processed_stories_id that match the given query, sorted by processed_stories_id and with
+processed_stories_id greater than $last_ps_id.   Returns at most $num_stories stories.  If $sort is specified as
+'bitly_click_count', tell solr to sort by 'bitly_click_count desc'.
+
+=cut
+
 sub search_for_processed_stories_ids($$$$$;$)
 {
     my ( $db, $q, $fq, $last_ps_id, $num_stories, $sort ) = @_;
@@ -496,73 +604,12 @@ sub search_for_processed_stories_ids($$$$$;$)
     return $ps_ids;
 }
 
-# return stories.* for all stories matching the give solr query
-sub search_for_stories ($$)
-{
-    my ( $db, $params ) = @_;
+=head2 get_num_found( $db, $params )
 
-    my $stories_ids = search_for_stories_ids( $db, $params );
+Execute the query and return only the number of documents found.
 
-    my $stories = [ map { { stories_id => $_ } } @{ $stories_ids } ];
+=cut
 
-    MediaWords::DBI::Stories::attach_story_meta_data_to_stories( $db, $stories );
-
-    $stories = [ grep { $_->{ url } } @{ $stories } ];
-
-    return $stories;
-}
-
-# return all of the stories that match the solr query.  attach a list of matching sentences in story order
-# to each story as well as the stories.* fields from postgres.
-
-# limit to first $num_sampled stories $num_sampled is specified.  return first rows returned by solr
-# if $random is not true (and only an estimate of the total number of matching stories ).  fetch all results
-# from solr and return a random sample of those rows if $random is true (and an exact count of the number of
-# matching stories
-#
-# returns the (optionally sampled) stories and the total number of matching stories.
-sub search_for_stories_with_sentences ($$$$)
-{
-    my ( $db, $params, $num_sampled, $random ) = @_;
-
-    $params = { %{ $params } };
-
-    $params->{ fl } = 'stories_id,sentence,story_sentences_id';
-
-    $params->{ rows } = ( $num_sampled ) ? ( $num_sampled * 2 ) : 1000000;
-
-    $params->{ sort } = 'random_1 asc' if ( $random );
-
-    my $response = query( $db, $params );
-
-    my $stories_lookup = {};
-    for my $doc ( @{ $response->{ response }->{ docs } } )
-    {
-        $stories_lookup->{ $doc->{ stories_id } } ||= [];
-        push( @{ $stories_lookup->{ $doc->{ stories_id } } }, $doc );
-    }
-
-    my $stories = [];
-    while ( my ( $stories_id, $sentences ) = each( %{ $stories_lookup } ) )
-    {
-        my $ordered_sentences = [ sort { $a->{ story_sentences_id } <=> $b->{ story_sentences_id } } @{ $sentences } ];
-        push( @{ $stories }, { stories_id => $stories_id, sentences => $ordered_sentences } );
-    }
-
-    my $num_stories = @{ $stories };
-    if ( $num_sampled && ( $num_stories > $num_sampled ) )
-    {
-        map { $_->{ _s } = Digest::MD5::md5_hex( $_->{ stories_id } ) } @{ $stories };
-        $stories = [ ( sort { $a->{ _s } cmp $b->{ _s } } @{ $stories } )[ 0 .. ( $num_sampled - 1 ) ] ];
-        $num_stories = int( $response->{ response }->{ numFound } / 2 );
-    }
-
-    MediaWords::DBI::Stories::attach_story_meta_data_to_stories( $db, $stories );
-
-    return ( $stories, $num_stories );
-}
-
-# execute the query and return only the number of documents found
 sub get_num_found ($$)
 {
     my ( $db, $params ) = @_;
@@ -575,7 +622,15 @@ sub get_num_found ($$)
     return $res->{ response }->{ numFound };
 }
 
-# return all of the media ids that match the solr query
+=head2 search_for_media_ids( $db, $params )
+
+Return all of the media ids that match the solr query by sampling solr results.
+
+Performs the query on solr and returns up to 200,000 randomly sorted sentences, then culls the list of media_ids from
+the list of sampled sentences.
+
+=cut
+
 sub search_for_media_ids ($$)
 {
     my ( $db, $params ) = @_;
@@ -596,7 +651,12 @@ sub search_for_media_ids ($$)
     return $media_ids;
 }
 
-# return media.* for all media matching the give solr query
+=head2 search_for_media
+
+Query postgres for media.* for all media matching the ids returned by search_for_media_ids().
+
+=cut
+
 sub search_for_media ($$)
 {
     my ( $db, $params ) = @_;

@@ -5,18 +5,31 @@ use strict;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
-# transform pseudo query clauses in solr queries
-#
-# pseudo queries allow us to effectively perform joins with postgres
-# queries directly through the api with queries that look like:
-#
-# sentence:obama and {~ controversy_dump_time_slice:1234 }
-#
-# which would be processed and replaced before sending to solr with
-# something that looks like:
-#
-# sentence:obama and stories_id:( ... )
-#
+=head1 NAME
+
+MediaWords::Solr::PseudoQueries - transform pseudo query clauses in solr queries
+
+=head1 DESCRIPTION
+
+Transform pseudo query clauses in solr queries.
+
+Pseudo queries allow us to effectively perform joins with postgres queries directly through the api with queries that
+look like:
+
+sentence:obama and {~ controversy_dump_time_slice:1234 }
+
+which would be processed and replaced before sending to solr with something that looks like:
+
+sentence:obama and stories_id:( ... )
+
+This module is integrated directly into MediaWords::Solr::query, so it shouldn't need to be called directly by the user
+to query solr.
+
+Documentation of the specific pseudo queries is in the api spec at doc/api_2_0_spec/api_2_0_spec.md and rendered at
+
+https://github.com/berkmancenter/mediacloud/blob/master/doc/api_2_0_spec/api_2_0_spec.md#apiv2stories_publiclist
+
+=cut
 
 use List::Compare;
 use Readonly;
@@ -32,6 +45,9 @@ use MediaWords::DB;
 # returned by previous calls, so for example the controversy_link_community
 # call has access to the controversy_dump_time_slice return value to determine
 # which controversy time slice to mine for link community.
+#
+# if you add a new psuedo query field, update the pseudo query documentation in
+# in the api documentation referenced in the DESCRIPTION above.
 Readonly my $FIELD_FUNCTIONS => [
     [ 'controversy',                 \&_transform_controversy_field,                 1 ],
     [ 'controversy_dump_time_slice', \&_transform_controversy_dump_time_slice_field, 1 ],
@@ -61,9 +77,9 @@ sub _transform_link_to_story_field
     _require_cdts( $return_data, 'link_to_story' );
 
     my $stories_ids = $db->query( <<END, $to_stories_id )->flat;
-select source_stories_id 
+select source_stories_id
     from dump_story_links
-    where 
+    where
         ref_stories_id = ?
 END
 
@@ -79,8 +95,8 @@ sub _transform_link_from_story_field
     _require_cdts( $return_data, 'link_from_story' );
 
     my $stories_ids = $db->query( <<END, $from_stories_id )->flat;
-select ref_stories_id 
-    from dump_story_links 
+select ref_stories_id
+    from dump_story_links
     where source_stories_id = ?
 END
 
@@ -96,12 +112,12 @@ sub _transform_link_to_medium_field
     _require_cdts( $return_data, 'link_from_medium' );
 
     my $stories_ids = $db->query( <<END, $to_media_id )->flat;
-select distinct sl.source_stories_id 
-    from 
+select distinct sl.source_stories_id
+    from
         dump_story_links sl
         join dump_stories s
             on ( sl.ref_stories_id = s.stories_id )
-    where 
+    where
         s.media_id = \$1
 END
 
@@ -117,12 +133,12 @@ sub _transform_link_from_medium_field
     _require_cdts( $return_data, 'link_from_medium' );
 
     my $stories_ids = $db->query( <<END, $from_media_id )->flat;
-select distinct sl.ref_stories_id 
-    from 
+select distinct sl.ref_stories_id
+    from
         dump_story_links sl
         join dump_stories s
             on ( sl.source_stories_id = s.stories_id )
-    where 
+    where
         s.media_id = \$1
 END
 
@@ -152,10 +168,10 @@ sub _transform_controversy_dump_time_slice_field
       || die( "Unable to find controversy_dump_time_slice with id '$cdts_id'" );
     my $controversy = $db->query( <<END, $cdts->{ controversy_dumps_id } )->hash;
 select distinct c.*
-    from 
+    from
         controversies c
         join controversy_dumps cd on ( c.controversies_id = cd.controversies_id )
-    where 
+    where
         cd.controversy_dumps_id = ?
 END
 
@@ -208,7 +224,7 @@ with tagged_stories as (
     union
     select s.stories_id, mtm.tags_id from dump_stories s join media_tags_map mtm on ( s.media_id = mtm.media_id )
 )
-    
+
 select sl.ref_stories_id
     from
         dump_story_links sl
@@ -294,7 +310,13 @@ sub _transform_clause
     }
 }
 
-# transform the pseudo clauses in a query to stories_id:(...) clauses
+=head2 transform_query( $q )
+
+Given a solr query, transform the pseudo clauses in a query to stories_id:(...) clauses and return the transformed
+solr query.
+
+=cut
+
 sub transform_query
 {
     my ( $q ) = @_;
