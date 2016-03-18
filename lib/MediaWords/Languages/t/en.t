@@ -12,7 +12,7 @@ BEGIN
 use Readonly;
 
 use Test::NoWarnings;
-use Test::More tests => 17;
+use Test::More tests => 19;
 use utf8;
 
 use MediaWords::Languages::en;
@@ -264,6 +264,15 @@ sub test_tokenize()
     is_deeply( $lang->tokenize( $input_string ), $expected_words, 'Quote removal while tokenizing' );
 }
 
+sub test_stem()
+{
+    my $lang = MediaWords::Languages::en->new();
+
+    # Apostrophes
+    is_deeply( $lang->stem( qw/Katz's Delicatessen/ ), [ qw/ katz delicatessen / ], 'Stemming with normal apostrophe' );
+    is_deeply( $lang->stem( qw/it’s toasted/ ), [ qw/ it toast / ], 'Stemming with right single quotation mark' );
+}
+
 sub main()
 {
     # Test::More UTF-8 output
@@ -274,6 +283,7 @@ sub main()
 
     test_get_sentences();
     test_tokenize();
+    test_stem();
 }
 
 main();
