@@ -28,7 +28,12 @@ sub main
     my $db = MediaWords::DB::connect_to_db;
 
     my @urls = $db->query( <<SQL )->flat;
-select url from stories where collect_date >  date_trunc( 'day', now() - '$num_days days'::interval ) order by collect_date desc
+select url
+    from stories
+        where
+            collect_date > date_trunc( 'day', now() - '$num_days days'::interval )  and
+            collect_date < date_trunc( 'day', now() )
+        order by collect_date desc
 SQL
 
     my $feed = XML::FeedPP::RSS->new();
