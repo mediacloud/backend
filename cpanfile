@@ -7,6 +7,7 @@
 # 7.
 # 8. for instructions on how to add a new Perl module dependency.
 # 9.
+requires 'Acme::Damn', '0.06';
 requires 'AI::DecisionTree';
 requires 'Algorithm::FeatureSelection';
 requires 'aliased', '0.34';
@@ -77,6 +78,7 @@ requires 'HTML::LinkExtractor';
 requires 'HTML::Strip';
 requires 'HTML::TagCloud';
 requires 'HTML::TreeBuilder::LibXML';
+requires 'HTTP::Message', '6.11';
 requires 'Inline';
 requires 'Inline::Java';
 requires 'Inline::Python';
@@ -100,6 +102,7 @@ requires 'List::Pairwise';
 requires 'List::Uniq';
 requires 'Log::Log4perl';
 requires 'LWP::Protocol::https';
+requires 'LWP::UserAgent', '6.15';
 requires 'LWP::UserAgent::Determined';
 requires 'Math::Random';
 requires 'Math::Random::Secure';
@@ -112,8 +115,10 @@ requires 'Moose';
 requires 'namespace::autoclean';
 requires 'Net::Amazon::S3';
 requires 'Net::Calais';
+requires 'Net::HTTP', '6.09';
 requires 'Net::IP';
 requires 'Net::Twitter';
+requires 'PadWalker', '2.2';
 requires 'Parallel::Fork::BossWorkerAsync';
 requires 'Parallel::ForkManager';
 requires 'Parse::BooleanLogic';

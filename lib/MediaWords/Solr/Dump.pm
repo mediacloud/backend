@@ -760,7 +760,7 @@ sub _get_encoded_csv_data_chunk
     $fh->close || die( "Unable to close file '$file': $!" );
 
     return {
-        csv                      => encode( 'utf8', $csv_data ),
+        csv                      => $csv_data,
         pos                      => $pos,
         first_story_sentences_id => $first_story_sentences_id,
         last_story_sentences_id  => $last_story_sentences_id

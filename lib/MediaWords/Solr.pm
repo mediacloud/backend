@@ -29,8 +29,10 @@ use MediaWords::DBI::Stories;
 use MediaWords::Languages::Language;
 use MediaWords::Solr::PseudoQueries;
 use MediaWords::Util::Config;
+use MediaWords::Util::Text;
 use MediaWords::Util::Web;
 use List::MoreUtils qw ( uniq );
+use HTTP::Request::Common qw( POST );
 
 use Time::HiRes;
 
@@ -208,6 +210,15 @@ sub query_encoded_json($$;$)
 {
     my ( $db, $params, $c ) = @_;
 
+    unless ( $params )
+    {
+        die 'params must be set.';
+    }
+    unless ( ref $params eq ref {} )
+    {
+        die 'params must be a hashref.';
+    }
+
     $params->{ wt } = 'json';
     $params->{ rows } //= 1000;
     $params->{ df }   //= 'sentence';
@@ -220,6 +231,9 @@ sub query_encoded_json($$;$)
     $params->{ q }  = MediaWords::Solr::PseudoQueries::transform_query( $params->{ q } );
     $params->{ fq } = MediaWords::Solr::PseudoQueries::transform_query( $params->{ fq } );
 
+    # Ensure that only UTF-8 strings get passed to Solr
+    my $encoded_params = MediaWords::Util::Text::recursively_encode_to_utf8( $params );
+
     my $url = sprintf( '%s/%s/select', get_solr_url(), get_live_collection( $db ) );
 
     my $ua = MediaWords::Util::Web::UserAgent;
@@ -229,13 +243,16 @@ sub query_encoded_json($$;$)
 
     if ( $ENV{ MC_SOLR_TRACE } )
     {
-        say STDERR "executing Solr query on $url ...";
-        say STDERR Dumper( $params );
+        say STDERR "Executing Solr query on $url ...";
+        say STDERR 'Encoded parameters: ' . Dumper( $encoded_params );
     }
 
     my $t0 = [ gettimeofday ];
 
-    my $res = $ua->post( $url, $params );
+    my $request = POST( $url, $encoded_params );
+    $request->content_type( 'application/x-www-form-urlencoded; charset=utf-8' );
+
+    my $res = $ua->request( $request );
 
     if ( $ENV{ MC_SOLR_TRACE } )
     {
