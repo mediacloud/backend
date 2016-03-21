@@ -21,7 +21,7 @@ use warnings;
 use Moose::Role;
 with 'Gearman::JobScheduler::AbstractFunction';
 
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 use MediaWords::DB;
 use MediaWords::Util::Config;

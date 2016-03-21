@@ -1,5 +1,5 @@
 package MediaWords::Crawler::Provider;
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 =head1 NAME

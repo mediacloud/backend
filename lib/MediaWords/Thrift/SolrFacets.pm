@@ -2,7 +2,7 @@ package MediaWords::Thrift::SolrFacets;
 
 use strict;
 
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 # functions for searching the solr server

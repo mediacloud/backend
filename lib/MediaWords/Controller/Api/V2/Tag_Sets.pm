@@ -1,5 +1,5 @@
 package MediaWords::Controller::Api::V2::Tag_Sets;
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use strict;

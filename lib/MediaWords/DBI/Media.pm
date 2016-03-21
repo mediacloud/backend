@@ -1,5 +1,5 @@
 package MediaWords::DBI::Media;
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 
 =head1 NAME
 

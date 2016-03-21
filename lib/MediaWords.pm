@@ -1,12 +1,12 @@
 package MediaWords;
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use strict;
 use warnings;
 
 use Catalyst::Runtime '5.80';
-use v5.8;
+use v5.22;
 
 #use Catalyst::Runtime;
 
