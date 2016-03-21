@@ -107,7 +107,7 @@ requires 'LWP::UserAgent::Determined';
 requires 'Math::Random';
 requires 'Math::Random::Secure';
 requires 'Memoize';
-requires 'Modern::Perl', '1.20121103';
+requires 'Modern::Perl', '1.20150127';
 requires 'Module::Install';
 requires 'Module::Pluggable::Object';
 requires 'Moo', '2.000001';
