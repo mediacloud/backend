@@ -1,5 +1,5 @@
 package MediaWords::Util::SQL;
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 # misc utility functions for sql

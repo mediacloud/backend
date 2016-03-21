@@ -8,7 +8,7 @@ use warnings;
 use Moose;
 extends 'MediaWords::KeyValueStore::AmazonS3';
 
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::Util::Config;

@@ -1,5 +1,5 @@
 package MediaWords;
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use strict;

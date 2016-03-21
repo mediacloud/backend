@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 use Data::Dumper;
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 
 # basic sanity test of crawler functionality
 

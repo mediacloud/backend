@@ -2,7 +2,7 @@ package MediaWords::MyFCgiManager;
 use Moose;
 use namespace::autoclean;
 use FCGI::ProcManager;
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 has '_fcgi_procmanager' => (

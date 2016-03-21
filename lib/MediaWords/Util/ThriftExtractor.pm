@@ -1,6 +1,6 @@
 package MediaWords::Util::ThriftExtractor;
 
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 # various helper functions for downloads

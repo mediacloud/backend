@@ -109,7 +109,7 @@ use warnings;
 
 use Moose::Role;
 
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::Util::Config;

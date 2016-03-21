@@ -14,7 +14,7 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 
 use Time::HiRes qw (time );
 use Parallel::ForkManager;

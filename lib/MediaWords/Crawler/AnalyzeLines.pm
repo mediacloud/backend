@@ -7,7 +7,7 @@ use List::MoreUtils qw( uniq distinct :all );
 use List::Util qw( sum  );
 use Text::Trim;
 
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 use MediaWords::Util::HTML;
 use MediaWords::Util::Text;

@@ -37,7 +37,7 @@ BEGIN
 # ./script/run_with_carton.sh ./script/mediawords_psql_wrapper.pl -l
 
 use MediaWords::DB;
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::DBI::DownloadTexts;

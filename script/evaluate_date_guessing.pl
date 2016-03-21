@@ -27,7 +27,7 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::CM::GuessDate;
