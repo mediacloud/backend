@@ -27,7 +27,7 @@ $CPANM CPAN~2.10
 # (if the install of Carton 1.0.9 fails because of CPAN::Meta failure,
 # purge Perl with ./install_scripts/purge_mc_perl_brew.sh and
 # ./install_scripts/purge_carton_install.sh)
-$CPANM Carton~1.0.9
+$CPANM Carton~1.0.22
 
 $CPANM List::MoreUtils
 
