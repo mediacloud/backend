@@ -12,12 +12,25 @@ if pwd | grep ' ' ; then
     exit 1
 fi
 
+# Net::SSLeay is unable to find system's <openssl/err.h> on OS X
+if [ `uname` == 'Darwin' ]; then
+    OPENSSL_PREFIX="/usr/local/opt/openssl"
+else
+    OPENSSL_PREFIX="/usr"
+fi
+
+# Set JAVA_HOME
+source ./script/set_java_home.sh
+
+
 # Install dependency modules; run the command twice because the first
 # attempt might fail
 ATTEMPT=1
 CARTON_INSTALL_SUCCEEDED=0
 until [ $ATTEMPT -ge 3 ]; do
-    JAVA_HOME=$JAVA_HOME ./script/run_carton.sh install && {
+    OPENSSL_PREFIX=$OPENSSL_PREFIX \
+    JAVA_HOME=$JAVA_HOME \
+    ./script/run_carton.sh install && {
         echo "Successfully installed Carton modules"
         CARTON_INSTALL_SUCCEEDED=1
         break
