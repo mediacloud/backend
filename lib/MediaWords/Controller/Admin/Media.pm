@@ -503,8 +503,6 @@ sub edit_tags : Local
 
     my $action = $c->uri_for( '/admin/media/edit_tags_do/' . $media_id );
 
-    my $form = MediaWords::Util::Tags->make_edit_tags_form( $c, $action, $media_id, 'media' );
-
     my $tags = $db->query( <<END, $medium->{ media_id } )->flat;
 select ts.name || ':' || t.tag
     from tags t
@@ -513,7 +511,7 @@ select ts.name || ':' || t.tag
     where mtm.media_id = ?
 END
 
-    $c->stash->{ tags }     = join( ' ', @{ $tags } );
+    $c->stash->{ tags }     = join( ', ', @{ $tags } );
     $c->stash->{ medium }   = $medium;
     $c->stash->{ template } = 'media/edit_tags.tt2';
 }

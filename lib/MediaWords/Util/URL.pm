@@ -769,12 +769,14 @@ sub normalize_url_lossy($)
     if ( $url !~ /r2\.ly/ )
     {
         $url =~
-s/^(https?:\/\/)(m|beta|media|data|image|www?|cdn|topic|article|news|archive|blog|video|search|preview|shop|sports?|act|donate|press|web|photos?|\d+?).?\./$1/i;
+s/^(https?:\/\/)(m|beta|media|data|image|www?|cdn|topic|article|news|archive|blog|video|search|preview|shop|sports?|act|donate|press|web|photos?|\d+?).?\.(.*\.)/$1$3/i;
     }
 
+    # get rid of anchor text
     $url =~ s/\#.*//;
 
-    $url =~ s/\/+$//;
+    # get rid of multiple slashes in a row
+    $url =~ s/(\/\/.*\/)\/+/$1/;
 
     return scalar( URI->new( $url )->canonical );
 }

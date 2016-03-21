@@ -324,7 +324,7 @@ sub scrape_import : Local
 
     for my $link ( @links )
     {
-        if ( !( $link =~ /(.*):(http:\/\/.*)/ ) )
+        if ( !( $link =~ /(.*):(https?:\/\/.*)/ ) )
         {
             $c->log->error( "Unable to parse scrape import link: $link" );
         }
