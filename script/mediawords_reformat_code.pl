@@ -15,7 +15,7 @@ use strict;
 use warnings;
 
 use Data::Dumper;
-use Perl::Tidy 20090616;
+use Perl::Tidy 20160302;
 use MediaWords::Util::Paths;
 
 # Perl::Tidy doesn't test syntax in all cases, so this subroutine does it in a

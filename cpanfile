@@ -122,7 +122,7 @@ requires 'PadWalker', '2.2';
 requires 'Parallel::Fork::BossWorkerAsync';
 requires 'Parallel::ForkManager';
 requires 'Parse::BooleanLogic';
-requires 'Perl::Tidy', '20140328';
+requires 'Perl::Tidy', '20160302';
 requires 'RDF::Simple::Parser';
 requires 'Readonly';
 requires 'Readonly::XS';
