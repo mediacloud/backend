@@ -21,7 +21,7 @@ else
 
 fi
 
-$CPANM CPAN~2.00
+$CPANM CPAN~2.10
 
 # 1.0.9 or newer
 # (if the install of Carton 1.0.9 fails because of CPAN::Meta failure,
