@@ -11,7 +11,7 @@ use HTML::Entities;
 use List::Util;
 use URI::URL;
 use URI::Escape;
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 use MediaWords::Util::URL;
 use Domain::PublicSuffix;

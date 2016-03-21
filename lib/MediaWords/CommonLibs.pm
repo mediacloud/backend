@@ -3,9 +3,9 @@ package MediaWords::CommonLibs;
 use strict;
 use warnings;
 
-use feature qw/ :5.16 /;
+use feature qw/ :5.22 /;
 
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 require Exporter;
@@ -24,7 +24,7 @@ sub import
 
     strict->import();
     warnings->import();
-    feature->import( qw( :5.16 ) );
+    feature->import( qw( :5.22 ) );
 
     if ( scalar @isa )
     {

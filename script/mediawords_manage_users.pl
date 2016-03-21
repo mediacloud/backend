@@ -85,7 +85,7 @@ BEGIN
 }
 
 use MediaWords::DB;
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Getopt::Long qw(:config pass_through);

@@ -21,18 +21,18 @@ else
 
 fi
 
-$CPANM CPAN~2.00
+$CPANM CPAN~2.10
 
 # 1.0.9 or newer
 # (if the install of Carton 1.0.9 fails because of CPAN::Meta failure,
 # purge Perl with ./install_scripts/purge_mc_perl_brew.sh and
 # ./install_scripts/purge_carton_install.sh)
-$CPANM Carton~1.0.9
+$CPANM Carton~1.0.22
 
 $CPANM List::MoreUtils
 
 # Install profiler and tools
-$CPANM Sub::Name~0.09   # contains the required fixes for Devel::NYTProf to install correctly
+$CPANM Sub::Name~0.15   # contains the required fixes for Devel::NYTProf to install correctly
 $CPANM Devel::NYTProf
 $CPANM Devel::Cover
 $CPANM lib::core::only

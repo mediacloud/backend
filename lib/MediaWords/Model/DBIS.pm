@@ -1,5 +1,5 @@
 package MediaWords::Model::DBIS;
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 # custom DBIx::Simple::MediaWords based model for mediawords

@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::Util::Process;

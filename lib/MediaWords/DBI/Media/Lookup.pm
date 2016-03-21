@@ -1,6 +1,6 @@
 package MediaWords::DBI::Media::Lookup;
 
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 
 use strict;
 use warnings;

@@ -1,6 +1,6 @@
 package MediaWords::Util::Web;
 
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 # various functions to make downloading web pages easier and faster, including parallel

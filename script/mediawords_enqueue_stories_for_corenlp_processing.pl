@@ -29,7 +29,7 @@ BEGIN
 }
 
 use MediaWords::DB;
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 use MediaWords::Util::Config;
 use MediaWords::Util::CoreNLP;

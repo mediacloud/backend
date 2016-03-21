@@ -25,10 +25,10 @@ echo "Running 'perlbrew init'..."
 perlbrew init
 
 echo "Running 'perlbrew install'..."
-nice perlbrew install -j 8 perl-5.16.3 -Duseithreads -Dusemultiplicity -Duse64bitint -Duse64bitall -Duseposix -Dusethreads -Duselargefiles -Dccflags=-DDEBIAN
+nice perlbrew install -j 8 perl-5.22.1 -Duseithreads -Dusemultiplicity -Duse64bitint -Duse64bitall -Duseposix -Dusethreads -Duselargefiles -Dccflags=-DDEBIAN
 
 echo "Switching to installed Perl..."
-perlbrew switch perl-5.16.3
+perlbrew switch perl-5.22.1
 
 echo "Installing cpanm..."
 perlbrew install-cpanm
@@ -37,7 +37,7 @@ echo "Creating 'mediacloud' library..."
 perlbrew lib create mediacloud
 
 echo "Switching to 'mediacloud' library..."
-perlbrew switch perl-5.16.3@mediacloud
+perlbrew switch perl-5.22.1@mediacloud
 
 echo "Done installing Perl with Perlbrew."
 

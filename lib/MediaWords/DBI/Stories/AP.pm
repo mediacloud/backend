@@ -45,7 +45,7 @@ package MediaWords::DBI::Stories::AP;
 use strict;
 use warnings;
 
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 use MediaWords::DBI::Downloads;
 use MediaWords::Util::CSV;

@@ -1,5 +1,5 @@
 package MediaWords::Crawler::HeuristicLineScoring;
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::Crawler::Extractor;

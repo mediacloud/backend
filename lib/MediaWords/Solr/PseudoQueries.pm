@@ -2,7 +2,7 @@ package MediaWords::Solr::PseudoQueries;
 
 use strict;
 
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 =head1 NAME
