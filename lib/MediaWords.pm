@@ -6,7 +6,7 @@ use strict;
 use warnings;
 
 use Catalyst::Runtime '5.80';
-use v5.8;
+use v5.22;
 
 #use Catalyst::Runtime;
 
