@@ -32,7 +32,7 @@ $CPANM Carton~1.0.22
 $CPANM List::MoreUtils
 
 # Install profiler and tools
-$CPANM Sub::Name~0.09   # contains the required fixes for Devel::NYTProf to install correctly
+$CPANM Sub::Name~0.15   # contains the required fixes for Devel::NYTProf to install correctly
 $CPANM Devel::NYTProf
 $CPANM Devel::Cover
 $CPANM lib::core::only
