@@ -25,7 +25,7 @@ use Lingua::Identify::CLD;
 my $cld = Lingua::Identify::CLD->new();
 
 # Language name -> ISO 690 code mappings
-my Readonly %language_names_to_codes = (
+Readonly my %language_names_to_codes => (
     "english"                              => "en",
     "danish"                               => "da",
     "dutch"                                => "nl",
@@ -188,7 +188,10 @@ my Readonly %language_names_to_codes = (
 );
 
 # Vice-versa
-my Readonly %language_codes_to_names = reverse %language_names_to_codes;
+Readonly my %language_codes_to_names => reverse %language_names_to_codes;
+
+# Min. text length for reliable language identification
+Readonly my $RELIABLE_IDENTIFICATION_MIN_TEXT_LENGTH => 10;
 
 # Returns an ISO 690 language code for the plain text passed as a parameter
 # Parameters:
@@ -200,42 +203,21 @@ sub language_code_for_text($;$$)
 {
     my ( $text, $tld, $is_html ) = @_;
 
-    if ( $is_html )
-    {
-        $is_html = 1;
-    }
-    else
-    {
-        $is_html = 0;
-    }
+    # Lingua::Identify::CLD doesn't like undef TLDs
+    $tld ||= '';
 
-    my $language_name;
+    my $language_name =
+      lc( $cld->identify( $text, tld => $tld, isPlainText => ( !$is_html ), allowExtendedLanguages => 0 ) );
 
-    if ( defined $tld and $tld )
+    if ( $language_name eq 'unknown' or $language_name eq 'tg_unknown_language' or ( !$language_name ) )
     {
-        $tld = lc( $tld );
-        $language_name = $cld->identify( $text, tld => $tld, isPlainText => ( !$is_html ), allowExtendedLanguages => 0 );
-    }
-    else
-    {
-        $language_name = $cld->identify( $text, isPlainText => ( !$is_html ), allowExtendedLanguages => 0 );
-    }
-
-    $language_name = lc( $language_name );
-
-    my $language_id = '';
-    if ( $language_name eq 'unknown' || $language_name eq 'tg_unknown_language' || ( !$language_name ) )
-    {
-
-        # Oh well.
         return '';
-
     }
 
     unless ( exists( $language_names_to_codes{ $language_name } ) )
     {
         say STDERR "Language '$language_name' was identified but is not mapped, please add this language " .
-          "to %language_names_to_codes hashmap.\n";
+          "to %language_names_to_codes hashmap.";
         return '';
     }
 
@@ -250,14 +232,13 @@ sub identification_would_be_reliable($)
 {
     my $text = shift;
 
-    # No text at all?
-    if ( !$text )
+    unless ( $text )
     {
         return 0;
     }
 
     # Too short?
-    if ( length( $text ) < 10 )
+    if ( length( $text ) < $RELIABLE_IDENTIFICATION_MIN_TEXT_LENGTH )
     {
         return 0;
     }
@@ -283,14 +264,7 @@ sub language_is_supported($)
 {
     my $language_id = shift;
 
-    if ( exists $language_codes_to_names{ $language_id } )
-    {
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
+    return ( exists $language_codes_to_names{ $language_id } );
 }
 
 1;
