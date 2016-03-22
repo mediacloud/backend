@@ -251,7 +251,7 @@ sub identification_would_be_reliable($)
     # Not enough letters as opposed to non-letters?
     my $letter_count     = 0;
     my $underscore_count = 0;    # Count underscores (_) because \w matches those too
-    $letter_count++ while ( $text =~ m/\w/g );      # 'use utf8' ensures that UTF-8 characters are matched correctly
+    $letter_count++     while ( $text =~ m/\w/gu );
     $underscore_count++ while ( $text =~ m/_/g );
     if ( ( $letter_count - $underscore_count ) < 10 )
     {
