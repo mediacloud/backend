@@ -1,5 +1,9 @@
 package MediaWords::Util::IdentifyLanguage;
 
+use strict;
+use warnings;
+use utf8;
+
 #
 # Utility module to identify a language for a particular text.
 #
@@ -10,29 +14,17 @@ package MediaWords::Util::IdentifyLanguage;
 #  3) ./script/run_carton.sh install Lingua::Identify::CLD
 #
 
-use strict;
-use warnings;
-
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use utf8;
-
-use Lingua::Identify::CLD;
-
-# URL -> TLD
-use Domain::PublicSuffix;
 use URI;
-
 use Readonly;
+use Lingua::Identify::CLD;
 
 {
 
     # CLD instance
     my $cld = Lingua::Identify::CLD->new();
-
-    # Domain::PublicSuffix instance
-    my $dps = Domain::PublicSuffix->new();
 
     # Language name -> ISO 690 code mappings
     my Readonly %language_names_to_codes = (
