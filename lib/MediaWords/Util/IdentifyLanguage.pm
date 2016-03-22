@@ -203,6 +203,11 @@ sub language_code_for_text($;$$)
 {
     my ( $text, $tld, $is_html ) = @_;
 
+    unless ( $text )
+    {
+        return '';
+    }
+
     # Lingua::Identify::CLD doesn't like undef TLDs
     $tld ||= '';
 
@@ -263,6 +268,11 @@ sub identification_would_be_reliable($)
 sub language_is_supported($)
 {
     my $language_id = shift;
+
+    unless ( $language_id )
+    {
+        return 0;
+    }
 
     return ( exists $language_codes_to_names{ $language_id } );
 }

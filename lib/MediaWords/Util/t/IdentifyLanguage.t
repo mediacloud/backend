@@ -4,7 +4,7 @@ use warnings;
 use utf8;
 
 use Test::NoWarnings;
-use Test::More tests => 14;
+use Test::More tests => 17;
 
 use Readonly;
 
@@ -27,7 +27,8 @@ sub test_language_code_for_text()
     is( MediaWords::Util::IdentifyLanguage::language_code_for_text( $russian_text ),
         'ru', 'Russian text identified as Russian' );
 
-    is( MediaWords::Util::IdentifyLanguage::language_code_for_text( '' ), '', 'Empty text' );
+    is( MediaWords::Util::IdentifyLanguage::language_code_for_text( '' ),    '', 'Empty text' );
+    is( MediaWords::Util::IdentifyLanguage::language_code_for_text( undef ), '', 'Undefined text' );
 
     is( MediaWords::Util::IdentifyLanguage::language_code_for_text( $russian_text, 'ru' ),
         'ru', 'Russian text with TLD identified as Russian' );
@@ -48,6 +49,9 @@ sub test_language_is_supported()
 {
     ok( MediaWords::Util::IdentifyLanguage::language_is_supported( 'en' ),  'Supported language' );
     ok( !MediaWords::Util::IdentifyLanguage::language_is_supported( 'xx' ), 'Unsupported language' );
+
+    ok( !MediaWords::Util::IdentifyLanguage::language_is_supported( '' ),    'Empty language' );
+    ok( !MediaWords::Util::IdentifyLanguage::language_is_supported( undef ), 'Undef language' );
 }
 
 sub main()
