@@ -62,6 +62,7 @@ sub _set_lwp_useragent_properties($)
     $ua->max_redirect( $MAX_REDIRECT );
     $ua->env_proxy;
     $ua->cookie_jar( {} );    # temporary cookie jar for an object
+    $ua->default_header( 'Accept-Charset' => 'utf-8' );
 
     return $ua;
 }

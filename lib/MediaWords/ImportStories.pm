@@ -1,26 +1,24 @@
 package MediaWords::ImportStories;
 
-# Import stories into the database, handling date bounding and story deduping.  This is only
-# a template class.  You must use of the sub class such as MediaWords::ImportStories::ScrapeHTML
-# or MediaWords::ImportStories::Feedly to import stories from a given source.
-#
-# The scrape interface is oo and includes the following parameters to new() in addition to specific
-# options supported by the sub class.
-# * db - db handle
-# * media_id - media source to which to add stories
-# * max_pages (optional) - max num of pages to scrape by recursively finding urls matching page_url_pattern
-# * start_date (optional) - start date of stories to scrape and dedup
-# * end_date (optional) - end date of stories to scrape and dedup
-# * debug (optional) - print debug messages urls crawled and stories created
-# * dry_run (optional) - do everything but actually insert stories into db
-#
-# After the sub class identifies all story candidates, ImportStories looks for any
-# duplicates among the story candidates and the existing stories in the media sources and only adds as stories
-# the candidates with out existing duplicate stories.  The duplication check looks for matching normalized urls
-# as well as matching title parts (see MediaWords::DBI::Stories::get_medium_dup_stories_by_<title|url>.
-#
-# Each sub class needs to implement $self->get_new_stories(), which should return a set of story candidates
-# for deduplication and date restriction by this super class.
+=head1 NAME
+
+Mediawords::ImportStories - template class for importing stories into db
+
+=head1 DESCRIPTION
+
+Import stories into the database, handling date bounding and story deduping.  This is only
+a template class.  You must use of the sub class such as MediaWords::ImportStories::ScrapeHTML
+or MediaWords::ImportStories::Feedly to import stories from a given source.
+
+After the sub class identifies all story candidates, ImportStories looks for any
+duplicates among the story candidates and the existing stories in the media sources and only adds as stories
+the candidates with out existing duplicate stories.  The duplication check looks for matching normalized urls
+as well as matching title parts (see MediaWords::DBI::Stories::get_medium_dup_stories_by_<title|url>.
+
+Each sub class needs to implement $self->get_new_stories(), which should return a set of story candidates
+for deduplication and date restriction by this super class.
+
+=cut
 
 use Moose::Role;
 
@@ -37,6 +35,42 @@ use MediaWords::DBI::Stories;
 use MediaWords::Util::HTML;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Tags;
+
+=head1 ATTRIBUTES
+
+=over
+
+item *
+
+db - db handle
+
+item *
+
+media_id - media source to which to add stories
+
+item *
+
+max_pages (optional) - max num of pages to scrape by recursively finding urls matching page_url_pattern
+
+item *
+
+start_date (optional) - start date of stories to scrape and dedup
+
+item *
+
+end_date (optional) - end date of stories to scrape and dedup
+
+item *
+
+debug (optional) - print debug messages urls crawled and stories created
+
+item *
+
+dry_run (optional) - do everything but actually insert stories into db
+
+=back
+
+=cut
 
 has 'db'       => ( is => 'rw', isa => 'Ref', required => 1 );
 has 'media_id' => ( is => 'rw', isa => 'Int', required => 1 );
@@ -55,7 +89,15 @@ has 'scrape_feed' => ( is => 'rw', isa => 'Ref', required => 0 );
 # been inserted into the db
 requires 'get_new_stories';
 
-# given the content, generate a story hash
+=head1 METHODS
+
+=cut
+
+=head2 generate_story( $self, $contnet, $url )
+
+Given the content, generate a story hash
+
+=cut
 sub generate_story
 {
     my ( $self, $content, $url ) = @_;
@@ -69,7 +111,7 @@ sub generate_story
         guid         => $url,
         media_id     => $self->media_id,
         collect_date => MediaWords::Util::SQL::sql_now,
-        title        => encode( 'utf8', $title ),
+        title        => $title,
         description  => '',
         content      => $content
     };
@@ -89,7 +131,11 @@ sub generate_story
     return $story;
 }
 
-# return true if the publish date is before $self->end_date and after $self->start_date
+=head2 story_is_in_date_range( $self, $publish_date )
+
+Return true if the publish date is before $self->end_date and after $self->start_date
+
+=cut
 sub story_is_in_date_range
 {
     my ( $self, $publish_date ) = @_;
@@ -130,6 +176,12 @@ sub _get_existing_stories
         $date_clause = "and date_trunc( 'day', publish_date ) >= ${ q_start_date }::date";
     }
 
+    if ( my $end_date = $self->{ end_date } )
+    {
+        my $q_end_date = $self->db->dbh->quote( MediaWords::Util::SQL::increment_day( $end_date, 7 ) );
+        $date_clause = "and date_trunc( 'day', publish_date ) <= ${ q_end_date }::date";
+    }
+
     my $stories = $self->db->query( <<SQL, $self->{ media_id } )->hashes;
 select
         stories_id, media_id, publish_date, url, guid, title
@@ -154,7 +206,7 @@ sub _dedup_new_stories
     my $all_stories = [ @{ $new_stories }, @{ $existing_stories } ];
 
     my $url_dup_stories = MediaWords::DBI::Stories::get_medium_dup_stories_by_url( $self->db, $all_stories );
-    my $title_dup_stories = MediaWords::DBI::Stories::get_medium_dup_stories_by_title( $self->db, $all_stories );
+    my $title_dup_stories = MediaWords::DBI::Stories::get_medium_dup_stories_by_title( $self->db, $all_stories, 1 );
 
     my $all_dup_stories = [ @{ $url_dup_stories }, @{ $title_dup_stories } ];
 
@@ -343,6 +395,8 @@ sub _add_new_stories
         push( @{ $added_stories }, $story );
         $self->db->commit;
     }
+
+    return $added_stories;
 }
 
 # print stories
@@ -374,13 +428,43 @@ sub _print_story_diffs
 
 }
 
-# call ImportStories::SUB->get_new_stories and add any stories within the
-# specified date range to the given media source if there are not already duplicates in the media source
+# narrow date range to the dates of the new stories
+sub _narrow_dates_to_new_stories
+{
+    my ( $self, $new_stories ) = @_;
+
+    $new_stories = [ sort { $a->{ publish_date } cmp $b->{ publish_date } } @{ $new_stories } ];
+
+    my $earliest_story = $new_stories->[ 0 ];
+    my $latest_story = pop( @{ $new_stories } );
+
+
+    if ( !$self->start_date || ( $earliest_story->{ publish_date } gt $self->start_date ) )
+    {
+        $self->start_date( $earliest_story->{ publish_date } );
+    }
+
+    if ( !$self->end_date || ( $latest_story->{ publish_date } lt $self->end_date ) )
+    {
+        $self->end_date( $latest_story->{ publish_date } );
+    }
+}
+
+=head2 scrape_stories( $self )
+
+Call ImportStories::SUB->get_new_stories and add any stories within the
+specified date range to the given media source if there are not already duplicates in the media source
+
+=cut
 sub scrape_stories
 {
     my ( $self ) = @_;
 
     my $new_stories = $self->get_new_stories();
+
+    return [] unless ( @{ $new_stories } );
+
+    $self->_narrow_dates_to_new_stories( $new_stories );
 
     my $dated_stories = $self->_get_stories_in_date_range( $new_stories );
 
@@ -388,9 +472,14 @@ sub scrape_stories
 
     $self->_print_story_diffs( $deduped_new_stories, $dup_new_stories ) if ( $self->debug );
 
-    my $added_stories = $self->_add_new_stories( $deduped_new_stories ) unless ( $self->dry_run );
-
-    return $added_stories;
+    if ( $self->dry_run )
+    {
+        return $deduped_new_stories;
+    }
+    else
+    {
+        return $self->_add_new_stories( $deduped_new_stories );
+    }
 }
 
 1;

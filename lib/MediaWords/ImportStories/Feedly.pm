@@ -1,12 +1,26 @@
 package MediaWords::ImportStories::Feedly;
 
-# import stories from a feedly feed
-#
-# in addition to ImportStories options, new accepts the following options:
-#
-# * feed_url - the url of a feed archived by feedly
-#
-# This module grabs historical stories from the feedly api
+=head1 NAME
+
+MediaWords::ImportStories::Feedly - import stories form feedly api
+
+=head2 DESCRIPTION
+
+Import stories from a feedly feed.
+
+In addition to ImportStories options, new accepts the following options:
+
+=over
+
+=item *
+
+feed_url - the url of a feed archived by feedly
+
+=back
+
+This module grabs historical stories from the feedly api.
+
+=cut
 
 use strict;
 use warnings;
@@ -32,6 +46,10 @@ has 'feed_url' => ( is => 'rw', isa => 'Str', required => 1 );
 
 has 'continuation_id' => ( is => 'rw', isa => 'Str',  required => 0 );
 has 'end_of_feed'     => ( is => 'rw', isa => 'Bool', required => 0 );
+
+=head1 METHODS
+
+=cut
 
 # accept a hash generated from the feedly json response and return the list of story candidates.
 # return only stories within the date range, and set end_of_feed if the latest story returned
@@ -70,8 +88,8 @@ sub _get_stories_from_json_data
             media_id     => $self->media_id,
             collect_date => MediaWords::Util::SQL::sql_now(),
             publish_date => $publish_date,
-            title        => encode( 'utf8', $item->{ title } ),
-            description  => encode( 'utf8', $content )
+            title        => $item->{ title },
+            description  => $content
         };
 
         push( @{ $stories }, $story );
@@ -114,7 +132,8 @@ sub _get_stories_from_feedly
 
     die( "error calling feedly api with url '$url': " . $res->as_string ) unless ( $res->is_success );
 
-    my $json = $res->decoded_content;
+    # for some reason, $res->decoded_content does not decode
+    my $json = decode( 'utf8', $res->content );
 
     my $json_data = MediaWords::Util::JSON::decode_json( $json );
 
@@ -136,6 +155,11 @@ sub _get_stories_from_feedly
     return $stories;
 }
 
+=head2 get_new_stories( $self )
+
+Get stories from feedly.
+
+=cut
 sub get_new_stories
 {
     my ( $self ) = @_;

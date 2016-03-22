@@ -860,25 +860,30 @@ sub _get_title_parts
     return $title_parts;
 }
 
-=head2 get_medium_dup_stories_by_title( $db, $stories )
+=head2 get_medium_dup_stories_by_title( $db, $stories, $assume_no_home_pages )
 
 Get duplicate stories within the set of stories by breaking the title of each story into parts by [-:|] and looking for
 any such part that is the sole title part for any story and is at least 4 words long and is not the title of a story
 with a path-less url.  Any story that includes that title part becames a duplicate.  return a list of duplciate story
-lists. do not return any list of duplicates with greater than 25 duplicates for fear that the title deduping is
+lists. Do not return any list of duplicates with greater than 25 duplicates for fear that the title deduping is
 interacting with some title form in a goofy way.
+
+By default, assume that any solr title part that is less than 5 words long or that is associated with a story whose
+url has no path is a home page and therefore should not be considered as a possible duplicate title part.  If
+$assume_no_home_pages is true, treat every solr url part greater than two words as a potential duplicate title part.
+
+Don't recognize twitter stories as dups, because the tweet title is the tweet text, and we want to capture retweets.
+
 
 =cut
 
 sub get_medium_dup_stories_by_title
 {
-    my ( $db, $stories ) = @_;
+    my ( $db, $stories, $assume_no_home_pages ) = @_;
 
     my $title_part_counts = {};
     for my $story ( @{ $stories } )
     {
-        # don't try to dedup twitter stories by title, because the title of a tweet
-        # is just the tweet, and we want to capture retweets
         next if ( $_->{ url } && ( $_->{ url } =~ /https?:\/\/(twitter\.com|t\.co)/i ) );
 
         my $title_parts = _get_title_parts( $story->{ title } );
@@ -889,17 +894,21 @@ sub get_medium_dup_stories_by_title
 
             if ( $i == 0 )
             {
-                # solo title parts that are only a few words might just be the media source name
                 my $num_words = scalar( split( / /, $title_part ) );
-                next if ( $num_words < 5 );
+                my $uri_path = URI->new( $story->{ url } )->path;
 
-                # likewise, a solo title of a story with a url with no path is probably
-                # the media source name
-                next if ( URI->new( $story->{ url } )->path =~ /^\/?$/ );
+                next if ( ( $num_words < 3 ) && $assume_no_home_pages );
+
+                # solo title parts that are only a few words might just be the media source name
+                next if ( ( $num_words < 5 ) && !$assume_no_home_pages );
+
+                # likewise, a solo title of a story with a url with no path is probably the media source name
+                next if ( ( $uri_path =~ /^\/?$/ ) && !$assume_no_home_pages );
 
                 $title_part_counts->{ $title_parts->[ 0 ] }->{ solo } = 1;
             }
 
+            # this function needs to work whether or not the story has already been inserted into the db
             my $id = $story->{ stories_id } || $story->{ guid };
 
             $title_part_counts->{ $title_part }->{ count }++;
