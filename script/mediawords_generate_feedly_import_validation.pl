@@ -17,7 +17,6 @@ BEGIN
 use Modern::Perl "2013";
 use Mediawords::CommonLibs;
 
-
 use Data::Dumper;
 use Encode;
 
@@ -32,7 +31,7 @@ sub main
     my $db = MediaWords::DB::connect_to_db;
 
     my $feeds = $db->query( <<SQL, $num_feeds )->hashes;
-select * from feeds where feed_status = 'active' and feeds_id = 70853 order by random() limit ( ? * 10 )
+select * from feeds where feed_status = 'active' order by random() limit ( ? * 10 )
 SQL
 
     my $dates = [];
@@ -40,32 +39,34 @@ SQL
     my $validate_stories = [];
 
     my $scraped_feeds = 0;
-    for my $feed( @{ $feeds } )
+    for my $feed ( @{ $feeds } )
     {
-#         my ( $earliest_date ) = $db->query( <<SQL, $feed-> { feeds_id } )->flat;
-# select min( publish_date )
-#     from stories s
-#         on feeds_stories_map fsm on ( s.stories_id = fsm.stories_id )
-#     where fsm.feeds_id = ?
-# SQL
-
         my $import = MediaWords::ImportStories::Feedly->new(
-            db => $db,
+            db       => $db,
             media_id => $feed->{ media_id },
-            dry_run => 1,
+            dry_run  => 1,
             feed_url => $feed->{ url }
         );
 
         my $new_stories;
+        my $import_stories;
 
-        eval { $new_stories = $import->get_new_stories(); };
+        eval {
+            $new_stories    = $import->get_new_stories();
+            $import_stories = $import->scrape_stories( $new_stories );
+        };
         warn( $@ ) if ( $@ );
 
-        next unless( $new_stories && @{ $new_stories } );
+        next unless ( $new_stories && @{ $new_stories } );
 
-        map { $_->{ _r} = rand() } @{ $new_stories };
+        my $import_stories_lookup = {};
+        map { $import_stories_lookup->{ $_->{ guid } } = 1 } @{ $import_stories };
 
-        # splice( @{ $new_stories }, 10 );
+        map { $_->{ import } = $import_stories_lookup->{ $_->{ guid } } || 0 } @{ $new_stories };
+
+        map { $_->{ _r } = rand() } @{ $new_stories };
+
+        splice( @{ $new_stories }, 10 );
 
         map {
             $_->{ feeds_id } = $feed->{ feeds_id };
@@ -75,8 +76,10 @@ SQL
 
         push( @{ $validate_stories }, @{ $new_stories } );
 
-        last if ( $scraped_feeds++ >= $num_feeds );
-    };
+        say Dumper( $validate_stories );
+
+        last if ( ++$scraped_feeds >= $num_feeds );
+    }
 
     # binmode( STDOUT, 'utf8' );
     #

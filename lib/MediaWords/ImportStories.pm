@@ -98,6 +98,7 @@ requires 'get_new_stories';
 Given the content, generate a story hash
 
 =cut
+
 sub generate_story
 {
     my ( $self, $content, $url ) = @_;
@@ -136,6 +137,7 @@ sub generate_story
 Return true if the publish date is before $self->end_date and after $self->start_date
 
 =cut
+
 sub story_is_in_date_range
 {
     my ( $self, $publish_date ) = @_;
@@ -436,8 +438,7 @@ sub _narrow_dates_to_new_stories
     $new_stories = [ sort { $a->{ publish_date } cmp $b->{ publish_date } } @{ $new_stories } ];
 
     my $earliest_story = $new_stories->[ 0 ];
-    my $latest_story = pop( @{ $new_stories } );
-
+    my $latest_story   = pop( @{ $new_stories } );
 
     if ( !$self->start_date || ( $earliest_story->{ publish_date } gt $self->start_date ) )
     {
@@ -450,17 +451,21 @@ sub _narrow_dates_to_new_stories
     }
 }
 
-=head2 scrape_stories( $self )
+=head2 scrape_stories( $self, $new_stories )
 
-Call ImportStories::SUB->get_new_stories and add any stories within the
-specified date range to the given media source if there are not already duplicates in the media source
+Call ImportStories::SUB->get_new_stories and add any stories within the specified date range to the given media source
+if there are not already duplicates in the media source.
+
+If $new_stories is not passed, call $self->get_new_stories() to get the list of new stories from the import module. If
+$new_stories is specified, use that list instead of calling $self->get_new_stories().
 
 =cut
+
 sub scrape_stories
 {
-    my ( $self ) = @_;
+    my ( $self, $new_stories ) = @_;
 
-    my $new_stories = $self->get_new_stories();
+    $new_stories ||= $self->get_new_stories();
 
     return [] unless ( @{ $new_stories } );
 
