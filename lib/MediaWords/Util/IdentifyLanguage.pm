@@ -249,11 +249,16 @@ sub identification_would_be_reliable($)
     }
 
     # Not enough letters as opposed to non-letters?
-    my $letter_count     = 0;
-    my $underscore_count = 0;    # Count underscores (_) because \w matches those too
-    $letter_count++     while ( $text =~ m/\w/gu );
-    $underscore_count++ while ( $text =~ m/_/g );
-    if ( ( $letter_count - $underscore_count ) < 10 )
+    my $word_character_count = 0;
+    my $digit_count          = 0;
+    my $underscore_count     = 0;    # Count underscores (_) because \w matches those too
+
+    $word_character_count++ while ( $text =~ m/\w/gu );
+    $digit_count++          while ( $text =~ m/\d/g );
+    $underscore_count++     while ( $text =~ m/_/g );
+
+    my $letter_count = $word_character_count - $digit_count - $underscore_count;
+    if ( $letter_count < $RELIABLE_IDENTIFICATION_MIN_TEXT_LENGTH )
     {
         return 0;
     }

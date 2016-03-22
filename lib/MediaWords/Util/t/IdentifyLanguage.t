@@ -4,7 +4,7 @@ use warnings;
 use utf8;
 
 use Test::NoWarnings;
-use Test::More tests => 17;
+use Test::More tests => 19;
 
 use Readonly;
 
@@ -29,6 +29,10 @@ sub test_language_code_for_text()
 
     is( MediaWords::Util::IdentifyLanguage::language_code_for_text( '' ),    '', 'Empty text' );
     is( MediaWords::Util::IdentifyLanguage::language_code_for_text( undef ), '', 'Undefined text' );
+
+    ok( !MediaWords::Util::IdentifyLanguage::identification_would_be_reliable( '0000000000000000000000' ), 'Digits' );
+    ok( !MediaWords::Util::IdentifyLanguage::identification_would_be_reliable( '000000000000000aaaaaaa' ),
+        'More digits than letters' );
 
     is( MediaWords::Util::IdentifyLanguage::language_code_for_text( $russian_text, 'ru' ),
         'ru', 'Russian text with TLD identified as Russian' );
