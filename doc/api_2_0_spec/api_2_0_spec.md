@@ -599,7 +599,7 @@ can make the api sample more sentences.  The system takes about one second to pr
 1000 sentences.
 
 By default, the system stems and stopwords the list in English.  If you specify the 'l' parameter,
-the system will stem and stopword the words by each of the listed langauges serially.  To do no stemming
+the system will stem and stopword the words by each of the listed languages serially.  To do no stemming
 or stopwording, specify 'none'.  The following language are supported (by 2 letter language code):
 'da' (Danish), 'de' (German), 'en' (English), 'es' (Spanish), 'fi' (Finnish), 'fr' (French),
 'hu' (Hungarian), 'it' (Italian), 'lt' (Lithuanian), 'nl' (Dutch), 'no' (Norwegian), 'pt' (Portuguese),
