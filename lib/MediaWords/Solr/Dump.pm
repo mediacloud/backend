@@ -989,7 +989,7 @@ this function (generate_and_import_data() below takes care to do this correctly)
 
 =cut
 
-sub import_csv_files
+sub import_csv_files($$$)
 {
     my ( $files, $staging, $jobs ) = @_;
 
@@ -1237,7 +1237,7 @@ sub generate_and_import_data
     _solr_request( 'update', { 'commit' => 'true' }, $staging );
 
     print STDERR "importing dump ...\n";
-    import_csv_files( $dump_files, $delta, $staging, $jobs ) || die( "import failed." );
+    import_csv_files( $dump_files, $staging, $jobs ) || die( "import failed." );
 
     # have to reconnect becaue import_csv_files may have forked, ruining existing db handles
     $db = MediaWords::DB::connect_to_db;
