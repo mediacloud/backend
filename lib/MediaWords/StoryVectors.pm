@@ -449,7 +449,7 @@ sub update_story_sentences_and_language
     if ( !$story->{ language } || ( $story_lang ne $story->{ language } ) )
     {
         $db->query( "UPDATE stories SET language = ? WHERE stories_id = ?", $story_lang, $stories_id );
-        $story->{ langauge } = $story_lang;
+        $story->{ language } = $story_lang;
     }
 
     die "Sentences for story $stories_id are undefined." unless ( defined $sentences );
