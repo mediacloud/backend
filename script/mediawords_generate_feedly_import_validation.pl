@@ -41,6 +41,8 @@ SQL
     my $scraped_feeds = 0;
     for my $feed ( @{ $feeds } )
     {
+        say STDERR "feed: $i / $num_feeds";
+
         my $import = MediaWords::ImportStories::Feedly->new(
             db       => $db,
             media_id => $feed->{ media_id },
