@@ -77,8 +77,8 @@ sub add_to_processing_schedule($$)
         my $story_timestamp      = story_timestamp( $story );
         my $processing_timestamp = $story_timestamp + $delay;
 
-        say STDERR
-          "Adding story $stories_id to Bit.ly processing schedule (story timestamp: $story_timestamp, delay: $delay)...";
+        say STDERR "Adding story $stories_id to Bit.ly processing schedule " .
+          "(story timestamp: $story_timestamp, delay: $delay, processing timestamp: $processing_timestamp)...";
 
         $db->query(
             <<EOF,
