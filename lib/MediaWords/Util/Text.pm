@@ -179,7 +179,7 @@ sub recursively_encode_to_utf8
     if ( ref $input eq ref '' )
     {
         $output = $input;
-        if ( $output =~ /[^[:ascii:]]/ )
+        if ( $output && ( $output =~ /[^[:ascii:]]/ ) )
         {    # don't encode numbers
             unless ( Encode::is_utf8( $output ) )
             {
@@ -252,4 +252,3 @@ sub random_string($)
 }
 
 1;
-

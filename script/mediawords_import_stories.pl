@@ -46,8 +46,18 @@ sub main
         my $medium = $p->{ db }->find_by_id( 'media', $p->{ media_id } );
         die( "Unable to find media id '$p->{ media_id }'" ) unless $medium;
 
-        eval( 'MediaWords::ImportStories::' . $module . '->new( $p )->scrape_stories()' );
-        die( $@ ) if ( $@ );
+        if ( $module eq 'Feedly' )
+        {
+            MediaWords::ImportStories::Feedly->new( $p )->scrape_stories();
+        }
+        elsif ( $module eq 'ScrapeHTML' )
+        {
+            MediaWords::ImportStories::ScrapeStories->new( $p )->scrape_stories();
+        }
+        else
+        {
+            die( "Unknown module '$module'" );
+        }
     }
     else
     {
