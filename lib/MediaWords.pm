@@ -27,7 +27,6 @@ use Catalyst qw/
   ConfigLoader
   ConfigDefaults
   Static::Simple
-  Unicode
   StackTrace
   I18N
   Authentication

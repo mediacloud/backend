@@ -3,8 +3,13 @@ package MediaWords::Util::Web;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-# various functions to make downloading web pages easier and faster, including parallel
-# and cached fetching.
+=head1 NAME MediaWords::Util::Web - web related functions
+
+=head1 DESCRIPTION
+
+Various functions to make downloading web pages easier and faster, including parallel and cached fetching.
+
+=cut
 
 use strict;
 
@@ -47,6 +52,10 @@ my $_link_downloads_list;
 # precached link downloads
 my $_link_downloads_cache;
 
+=head1 FUNCTIONS
+
+=cut
+
 # set default Media Cloud properties for LWP::UserAgent objects
 sub _set_lwp_useragent_properties($)
 {
@@ -62,18 +71,36 @@ sub _set_lwp_useragent_properties($)
     $ua->max_redirect( $MAX_REDIRECT );
     $ua->env_proxy;
     $ua->cookie_jar( {} );    # temporary cookie jar for an object
+    $ua->default_header( 'Accept-Charset' => 'utf-8' );
 
     return $ua;
 }
 
-# return a user agent with media cloud default settings
+=head2 UserAgent( )
+
+Return a LWP::UserAgent with media cloud default settings for agent, timeout, max size, etc.
+
+=cut
+
 sub UserAgent
 {
     my $ua = LWP::UserAgent->new();
     return _set_lwp_useragent_properties( $ua );
 }
 
-# return a "determined" (retrying) user agent with media cloud default settings
+=head2 UserAgentDetermined( )
+
+Return a LWP::UserAgent::Determined object with media cloud default settings for agent, timeout, max size, etc.
+
+Uses custom callback to only retry after one of the following responses, which indicate transient problem:
+HTTP_REQUEST_TIMEOUT,
+HTTP_INTERNAL_SERVER_ERROR,
+HTTP_BAD_GATEWAY,
+HTTP_SERVICE_UNAVAILABLE,
+HTTP_GATEWAY_TIMEOUT
+
+=cut
+
 sub UserAgentDetermined
 {
     my $ua = LWP::UserAgent::Determined->new();
@@ -124,11 +151,18 @@ sub UserAgentDetermined
     return _set_lwp_useragent_properties( $ua );
 }
 
+=head2 get_original_url_from_momento_archive_url( $url )
+
+Given a url, fetch the url and return the first returned in the 'link' http header.
+
+=cut
+
 sub get_original_url_from_momento_archive_url
 {
     my ( $archive_site_url ) = @_;
-    my $ua                   = MediaWords::Util::Web::UserAgent();
-    my $response             = $ua->get( $archive_site_url );
+
+    my $ua       = MediaWords::Util::Web::UserAgent();
+    my $response = $ua->get( $archive_site_url );
 
     my $link_header = $response->headers()->{ link };
 
@@ -139,8 +173,13 @@ sub get_original_url_from_momento_archive_url
     return $original_url;
 }
 
-# simple get for a url using the UserAgent above. return the decoded content
-# if the response is successful and undef if not.
+=head2 get_decoded_content( $url )
+
+Simple get for a url using the UserAgent above. Return the decoded content if the response is successful and undef if
+not.
+
+=cut
+
 sub get_decoded_content
 {
     my ( $url ) = @_;
@@ -152,10 +191,13 @@ sub get_decoded_content
     return $res->is_success ? $res->decoded_content : undef;
 }
 
-# get urls in parallel by using an external, forking script.
-# we use this approach because LWP is not thread safe and
-# LWP::Parallel::User is not fully parallel and no longer
-# works with modern LWP in any case.
+=head2 ParallelGet( $urls )
+
+Get urls in parallel by using an external, forking script.  Returns a list of HTTP::Response objects resulting
+from the fetches.
+
+=cut
+
 sub ParallelGet
 {
     my ( $urls ) = @_;
@@ -211,7 +253,12 @@ sub ParallelGet
     return $responses;
 }
 
-# walk back from the given response to get the original request that generated the response.
+=head2 get_original_request( $class, $request )
+
+Walk back from the given response to get the original request that generated the response.
+
+=cut
+
 sub get_original_request
 {
     my ( $class, $response ) = @_;
@@ -225,9 +272,20 @@ sub get_original_request
     return $original_response->request;
 }
 
-# cache link downloads $LINK_CACHE_SIZE at a time so that we can do them in parallel.
-# this doesn't actually do any caching -- it just sets the list of
-# links so that they can be done $LINK_CACHE_SIZE at a time by get_cached_link_download.
+=head2 cache_link_downloads( $links )
+
+Cache link downloads $LINK_CACHE_SIZE at a time so that we can do them in parallel. This call doesn't actually do any
+caching -- it just sets the list of links so that they can be done $LINK_CACHE_SIZE at a time by
+get_cached_link_download().
+
+Each link shuold be a hash with either or both 'url' and 'redirect_url' entries.  If both redirect_url and url
+are specified in a given link, redirect_url is fetched.
+
+Has a side effect of adding a _link_num and _fetch_url items to each member of $links.
+
+
+=cut
+
 sub cache_link_downloads
 {
     my ( $links ) = @_;
@@ -242,7 +300,21 @@ sub cache_link_downloads
     }
 }
 
-# if the url has been precached, return it, otherwise download the current links and the next $LINK_CACHE_SIZE links
+=head2 get_cached_link_download( $link )
+
+Used with cache_link_downloads to download a long list of urls in parallel batches of $LINK_CACHE_SIZE.
+
+Before calling this function, you must call cache_link_downloads on a list that includes the specified link.  Then you
+must call get_cached_link_download on each member of the $links list passed to cache_link_downloads.
+
+If the given link has already been cached, this function will return the result for that link.  If the given link
+has not been cached, this function will use ParallellGet to cache the result for the requested link and the next
+$LINK_CACHE_SIZE links in the $links list passed to cache_link_downloads.
+
+Returns the decoded content of the http response for the given link.
+
+=cut
+
 sub get_cached_link_download
 {
     my ( $link ) = @_;
@@ -306,8 +378,12 @@ sub get_cached_link_download
     return ( ref( $response ) ? $response->decoded_content : ( $response || '' ) );
 }
 
-# get the redirected url from the cached download for the url.
-# if no redirected url is found, just return the given url.
+=head2 get_cached_link_download_redirect_url( $link )
+
+Get the redirected url from the cached download for the url. If no redirected url is found, just return the given url.
+
+=cut
+
 sub get_cached_link_download_redirect_url
 {
     my ( $link ) = @_;
@@ -329,8 +405,12 @@ sub get_cached_link_download_redirect_url
     return $url;
 }
 
-# Return true if the response's error was generated by LWP itself and not by
-# the server
+=head2 response_error_is_client_side( $response )
+
+Return true if the response's error was generated by LWP itself and not by the server.
+
+=cut
+
 sub response_error_is_client_side($)
 {
     my $response = shift;
@@ -356,8 +436,14 @@ sub response_error_is_client_side($)
     }
 }
 
-# given the response and request, parse the content for a meta refresh url and return if present.
-# otherwise, return undef
+=head2 get_meta_refresh_url( $response, $request )
+
+
+Given the response and request, parse the content for a meta refresh url and return if present. Otherwise,
+return undef.
+
+=cut
+
 sub get_meta_refresh_url
 {
     my ( $response, $request ) = @_;
@@ -367,8 +453,13 @@ sub get_meta_refresh_url
     MediaWords::Util::URL::meta_refresh_url_from_html( $response->decoded_content, $request->{ url } );
 }
 
-# if the response has a meta refresh tag, fetch the meta refresh content and
-# insert the response into the redirect response chain as a normal redirect
+=head2 get_meta_refresh_response( $response, $request )
+
+If the response has a meta refresh tag, fetch the meta refresh content and insert the response into the redirect
+response chain as a normal redirect.
+
+=cut
+
 sub get_meta_refresh_response
 {
     my ( $response, $request ) = @_;
