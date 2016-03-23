@@ -76,8 +76,6 @@ SQL
 
         push( @{ $validate_stories }, @{ $new_stories } );
 
-        say Dumper( $validate_stories );
-
         last if ( ++$scraped_feeds >= $num_feeds );
     }
 

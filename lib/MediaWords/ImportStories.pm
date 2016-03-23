@@ -144,9 +144,11 @@ sub story_is_in_date_range
 
     my $publish_day = substr( $publish_date, 0, 10 );
 
-    return 0 if ( $self->end_date && ( $publish_day gt $self->end_date ) );
+    my $start_date = substr( $self->start_date, 0, 10 );
+    return 0 if ( $start_date && ( $publish_day lt $start_date ) );
 
-    return 0 if ( $self->start_date && ( $publish_day lt $self->start_date ) );
+    my $end_date = substr( $self->end_date, 0, 10 );
+    return 0 if ( $end_date && ( $publish_day gt $end_date ) );
 
     return 1;
 }
@@ -155,10 +157,19 @@ sub _get_stories_in_date_range
 {
     my ( $self, $stories ) = @_;
 
+    say STDERR "date range: " . $self->start_date . " - " . $self->end_date;
+
     my $dated_stories = [];
     for my $story ( @{ $stories } )
     {
-        push( @{ $dated_stories }, $story ) if ( $self->story_is_in_date_range( $story->{ publish_date } ) );
+        if ( $self->story_is_in_date_range( $story->{ publish_date } ) )
+        {
+            push( @{ $dated_stories }, $story );
+        }
+        else
+        {
+            say STDERR "story failed date restriction: " . $story->{ publish_date };
+        }
     }
 
     say STDERR "kept " . scalar( @{ $dated_stories } ) . " / " . scalar( @{ $stories } ) . " after date restriction";
