@@ -14,6 +14,7 @@ use DBIx::Simple::MediaWords;
 use MediaWords::Util::Config;
 use URI;
 use Bundle::MediaWords;
+use MediaWords::DBI::Auth::Roles;
 
 # Set flags and add plugins for the application
 #
@@ -173,56 +174,81 @@ sub setup_acl()
 
     foreach my $path ( @acl_admin_readonly )
     {
-        __PACKAGE__->allow_access_if_any( $path, [ qw/admin-readonly query-create media-edit stories-edit cm/ ] );
+        __PACKAGE__->allow_access_if_any(
+            $path,
+            [
+                $MediaWords::DBI::Auth::Roles::ADMIN_READONLY,    #
+                $MediaWords::DBI::Auth::Roles::QUERY_CREATE,      #
+                $MediaWords::DBI::Auth::Roles::MEDIA_EDIT,        #
+                $MediaWords::DBI::Auth::Roles::STORIES_EDIT,      #
+                $MediaWords::DBI::Auth::Roles::CM,                #
+            ]
+        );
     }
 
     foreach my $path ( @acl_query_create )
     {
-        __PACKAGE__->allow_access_if_any( $path, [ qw/query-create/ ] );
+        __PACKAGE__->allow_access_if_any( $path, [ $MediaWords::DBI::Auth::Roles::QUERY_CREATE ] );
     }
 
     foreach my $path ( @acl_media_edit )
     {
-        __PACKAGE__->allow_access_if_any( $path, [ qw/media-edit cm/ ] );
+        __PACKAGE__->allow_access_if_any(
+            $path,
+            [
+                $MediaWords::DBI::Auth::Roles::MEDIA_EDIT,    #
+                $MediaWords::DBI::Auth::Roles::CM,            #
+            ]
+        );
     }
 
     foreach my $path ( @acl_stories_edit )
     {
-        __PACKAGE__->allow_access_if_any( $path, [ qw/stories-edit cm/ ] );
+        __PACKAGE__->allow_access_if_any(
+            $path,
+            [
+                $MediaWords::DBI::Auth::Roles::STORIES_EDIT,    #
+                $MediaWords::DBI::Auth::Roles::CM,              #
+            ]
+        );
     }
 
     for my $path ( @acl_cm )
     {
-        __PACKAGE__->allow_access_if_any( $path, [ qw/cm cm-readonly/ ] );
+        __PACKAGE__->allow_access_if_any(
+            $path,
+            [
+                $MediaWords::DBI::Auth::Roles::CM,              #
+                $MediaWords::DBI::Auth::Roles::CM_READONLY,     #
+            ]
+        );
     }
 
     for my $path ( @acl_search )
     {
-        __PACKAGE__->allow_access_if_any( $path, [ qw/search/ ] );
+        __PACKAGE__->allow_access_if_any( $path, [ $MediaWords::DBI::Auth::Roles::SEARCH ] );
     }
 
     # ---
 
     # All roles can access their profile
     __PACKAGE__->allow_access_if_any(
-        "/admin/profile",
+        '/admin/profile',
         [
-            qw/
-              admin
-              admin-readonly
-              query-create
-              media-edit
-              stories-edit
-              cm
-              stories-api
-              search
-              /
+            $MediaWords::DBI::Auth::Roles::ADMIN,             #
+            $MediaWords::DBI::Auth::Roles::ADMIN_READONLY,    #
+            $MediaWords::DBI::Auth::Roles::QUERY_CREATE,      #
+            $MediaWords::DBI::Auth::Roles::MEDIA_EDIT,        #
+            $MediaWords::DBI::Auth::Roles::STORIES_EDIT,      #
+            $MediaWords::DBI::Auth::Roles::CM,                #
+            $MediaWords::DBI::Auth::Roles::STORIES_API,       #
+            $MediaWords::DBI::Auth::Roles::SEARCH,            #
         ]
     );
 
     # Blanket rule for the rest of the administration controllers
-    __PACKAGE__->deny_access_unless_any( "/admin",  [ qw/admin/ ] );
-    __PACKAGE__->deny_access_unless_any( "/search", [ qw/admin/ ] );
+    __PACKAGE__->deny_access_unless_any( "/admin",  [ $MediaWords::DBI::Auth::Roles::ADMIN ] );
+    __PACKAGE__->deny_access_unless_any( "/search", [ $MediaWords::DBI::Auth::Roles::ADMIN ] );
 
     # Public interface
     __PACKAGE__->allow_access( "/login" );

@@ -2829,7 +2829,7 @@ CREATE TABLE auth_users_roles_map (
 CREATE INDEX auth_users_roles_map_auth_users_id_auth_roles_id
     ON auth_users_roles_map (auth_users_id, auth_roles_id);
 
--- Roles
+-- Authentication roles (keep in sync with MediaWords::DBI::Auth::Roles)
 INSERT INTO auth_roles (role, description) VALUES
     ('admin', 'Do everything, including editing users.'),
     ('admin-readonly', 'Read access to admin interface.'),
