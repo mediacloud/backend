@@ -41,8 +41,6 @@ sub _login
 
     return 0 unless ( MediaWords::DBI::Auth::password_hash_is_valid( $user->{ password_hash }, $password ) );
 
-    # return 0 unless ( grep { $_ =~ /^admin|admin-readonly|stories-api|public-api$/ } @{ $user->{ roles } } );
-
     return $user;
 
 }
