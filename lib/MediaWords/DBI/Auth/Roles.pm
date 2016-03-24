@@ -1,7 +1,7 @@
 package MediaWords::DBI::Auth;
 
 #
-# Authentication roles
+# Authentication roles (keep in sync with "auth_roles" table)
 #
 
 use strict;
