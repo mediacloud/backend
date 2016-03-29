@@ -1,4 +1,4 @@
-package MediaWords::DBI::Auth;
+package MediaWords::DBI::Auth::Roles;
 
 #
 # Authentication roles (keep in sync with "auth_roles" table)
