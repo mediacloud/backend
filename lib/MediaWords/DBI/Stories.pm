@@ -840,6 +840,9 @@ sub _get_title_parts
     $title =~ s/^\s+//;
     $title =~ s/\s+$//;
 
+    $title = html_strip( $title ) if ( $title =~ /\</ );
+    $title = decode_entities( $title );
+
     my $title_parts;
     if ( $title =~ m~http://[^ ]*^~ )
     {
@@ -895,9 +898,7 @@ sub get_medium_dup_stories_by_title
             if ( $i == 0 )
             {
                 my $num_words = scalar( split( / /, $title_part ) );
-                my $uri_path = URI->new( $story->{ url } )->path;
-
-                next if ( ( $num_words < 3 ) && $assume_no_home_pages );
+                my $uri_path = MediaWords::Util::URL::get_url_path_fast( $story->{ url } );
 
                 # solo title parts that are only a few words might just be the media source name
                 next if ( ( $num_words < 5 ) && !$assume_no_home_pages );
@@ -929,7 +930,8 @@ sub get_medium_dup_stories_by_title
             else
             {
                 my $dup_title = ( values( %{ $t->{ stories } } ) )[ 0 ]->{ title };
-                warn( "cowardly refusing to mark $num_stories stories as dups [$dup_title]" );
+
+                # warn( "cowardly refusing to mark $num_stories stories as dups [$dup_title]" );
             }
         }
     }
@@ -958,7 +960,7 @@ sub get_medium_dup_stories_by_url
             next;
         }
 
-        my $nu = MediaWords::Util::URL::normalize_url_lossy( $story->{ url } )->as_string;
+        my $nu = MediaWords::Util::URL::normalize_url_lossy( $story->{ url } );
         $story->{ normalized_url } = $nu;
         push( @{ $url_lookup->{ $nu } }, $story );
     }
