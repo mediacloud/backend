@@ -88,6 +88,7 @@ requires 'IPC::Cmd', '>= 0.94';
 requires 'IPC::Run3';
 requires 'IPC::System::Simple';
 requires 'JSON';
+requires 'JSON::XS';
 requires 'Lingua::Identify::CLD', '0.08';
 requires 'Lingua::Sentence';
 requires 'Lingua::Stem';
