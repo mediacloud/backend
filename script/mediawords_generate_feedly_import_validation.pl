@@ -38,10 +38,12 @@ SQL
 
     my $validate_stories = [];
 
-    my $scraped_feeds = 0;
+    my $feed_data = [];
+
+    my $scraped_feeds = [];
     for my $feed ( @{ $feeds } )
     {
-        say STDERR "feed: $i / $num_feeds";
+        say STDERR "feed: " . scalar( @{ $scraped_feeds } ) . " / $num_feeds";
 
         my $import = MediaWords::ImportStories::Feedly->new(
             db       => $db,
@@ -50,14 +52,12 @@ SQL
             feed_url => $feed->{ url }
         );
 
-        my $new_stories;
         my $import_stories;
 
-        eval {
-            $new_stories    = $import->get_new_stories();
-            $import_stories = $import->scrape_stories( $new_stories );
-        };
+        eval { $import_stories = $import->scrape_stories(); };
         warn( $@ ) if ( $@ );
+
+        my $new_stories = $import->module_stories();
 
         next unless ( $new_stories && @{ $new_stories } );
 
@@ -72,22 +72,29 @@ SQL
 
         map {
             $_->{ feeds_id } = $feed->{ feeds_id };
+            $_->{ dup_stories_id } ||= 0;
             delete( $_->{ _r } );
             delete( $_->{ description } )
         } @{ $new_stories };
 
         push( @{ $validate_stories }, @{ $new_stories } );
 
-        last if ( ++$scraped_feeds >= $num_feeds );
+        $feed->{ feedly_start_date }     = $import->start_date;
+        $feed->{ feedly_end_date }       = $import->end_date;
+        $feed->{ feedly_stories }        = scalar( @{ $new_stories } );
+        $feed->{ feedly_import_stories } = scalar( @{ $import_stories } );
+
+        push( @{ $scraped_feeds }, $feed );
+
+        last if ( scalar( @{ $scraped_feeds } ) >= $num_feeds );
     }
 
     # binmode( STDOUT, 'utf8' );
     #
     # map { say $_->{ title }; } @{ $validate_stories };
 
-    my $csv = MediaWords::Util::CSV::get_hashes_as_encoded_csv( $validate_stories );
-
-    print $csv;
+    print( MediaWords::Util::CSV::get_hashes_as_encoded_csv( $validate_stories ) );
+    print( MediaWords::Util::CSV::get_hashes_as_encoded_csv( $scraped_feeds ) );
 }
 
 main();
