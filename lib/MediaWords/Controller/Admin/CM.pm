@@ -386,7 +386,10 @@ sub _get_bitly_status
 {
     my ( $db, $controversy ) = @_;
 
-    my $bitly_processing_is_enabled = MediaWords::Util::Bitly::bitly_processing_is_enabled();
+    # my $bitly_processing_is_enabled = MediaWords::Util::Bitly::bitly_processing_is_enabled();
+
+    # hmr - temporarily disable bitly stats because partitioning has made them too slow
+    my $bitly_processing_is_enabled = 0;
 
     if ( !( $bitly_processing_is_enabled and $controversy->{ process_with_bitly } ) )
     {
