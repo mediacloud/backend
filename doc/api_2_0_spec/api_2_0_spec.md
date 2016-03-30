@@ -429,11 +429,37 @@ URL: https://api.mediacloud.org/api/v2/stories_public/list?last_processed_storie
 
 Return a stream of all stories from The New York Times mentioning `'obama'` greater than the given `last_processed_stories_id`.
 
+### api/v2/stories_public/count
+
+#### Query Parameters
+
+| Parameter          | Default          | Notes
+| ------------------ | ---------------- | ----------------------------------------------------------------
+| `q`                | n/a              | `q` ("query") parameter which is passed directly to Solr
+| `fq`               | `null`           | `fq` ("filter query") parameter which is passed directly to Solr
+
+The q and fq parameters are passed directly through to Solr (see description of q and fq parameters in api/v2/stories_public/list section above).
+
+The call returns the number of stories returned by Solr for the specified query.
+
+#### Example
+
+Count stories containing the word 'obama' in The New York Times.
+
+URL: https://api.mediacloud.org/api/v2/stories_public/count?q=sentence:obama&fq=media_id:1
+
+```json
+{
+  "count" => 960
+}
+```
+
 ## Sentences
 
 The text of every story processed by Media Cloud is parsed into individual sentences.  Duplicate sentences within
 the same media source in the same week are dropped (the large majority of those duplicate sentences are
 navigational snippets wrongly included in the extracted text by the extractor algorithm).
+
 
 ### api/v2/sentences/count
 
