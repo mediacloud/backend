@@ -356,6 +356,26 @@ SQL
     return $stories;
 }
 
+sub count : Local : ActionClass('REST')
+{
+
+}
+
+sub count_GET : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $q  = $c->req->params->{ 'q' };
+    my $fq = $c->req->params->{ 'fq' };
+
+    my $response;
+    my $list = MediaWords::Solr::query( $c->dbis,
+        { q => $q, fq => $fq, group => "true", "group.field" => "stories_id", "group.ngroups" => "true" }, $c );
+    $response = { count => $list->{ grouped }->{ stories_id }->{ ngroups } };
+
+    $self->status_ok( $c, entity => $response );
+}
+
 =head1 AUTHOR
 
 David Larochelle

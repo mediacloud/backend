@@ -68,6 +68,19 @@ gearmand_is_up_to_date() {
     return 0    # "true" in Bash
 }
 
+tcp_conn_reuse_is_enabled() {
+    if [ `uname` == 'Darwin' ]; then
+        # Mac OS X
+        return 0    # "true" in Bash
+    else
+        if [ `sysctl -n net.ipv4.tcp_tw_reuse` == '1' ]; then
+            return 0    # "true" in Bash
+        else
+            return 1    # "false" in Bash
+        fi
+    fi
+}
+
 print_gearman_installation_instructions() {
     log "Please install Gearman by running:"
     log ""
@@ -100,6 +113,12 @@ fi
 if ! gearmand_is_up_to_date; then
     log "'gearmand' was found in your PATH, but is too old."
     print_gearman_installation_instructions
+    exit 1
+fi
+
+if ! tcp_conn_reuse_is_enabled; then
+    log "net.ipv4.tcp_tw_reuse is not set to 1."
+    log "Please rerun ./install_scripts/set_kernel_parameters.sh"
     exit 1
 fi
 

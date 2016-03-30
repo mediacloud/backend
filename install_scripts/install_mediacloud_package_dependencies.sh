@@ -11,6 +11,7 @@ echo
 
 ./install_postgresql_server_packages.sh
 ./install_mediacloud_system_package_dependencies.sh
+./set_kernel_parameters.sh
 
 echo
 echo "sucessfully installed media cloud dependencies"

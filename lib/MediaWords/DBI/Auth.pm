@@ -13,6 +13,7 @@ use MediaWords::CommonLibs;
 use MediaWords::Util::Config;
 use MediaWords::Util::Mail;
 use MediaWords::Util::Text;
+use MediaWords::DBI::Auth::Roles;
 use Digest::SHA qw/sha256_hex/;
 use Crypt::SaltedHash;
 use POSIX qw(strftime);
@@ -1145,8 +1146,10 @@ EOF
 # User roles that are not limited by the weekly requests / requested items limits
 sub roles_exempt_from_user_limits()
 {
-    my @exceptions = qw/admin admin-readonly/;
-    return \@exceptions;
+    return [
+        $MediaWords::DBI::Auth::Roles::ADMIN,             #
+        $MediaWords::DBI::Auth::Roles::ADMIN_READONLY,    #
+    ];
 }
 
 1;
