@@ -14,8 +14,8 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
-use Modern::Perl "2013";
-use Mediawords::CommonLibs;
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
 
 use Data::Dumper;
 use Encode;
@@ -41,7 +41,7 @@ SQL
     my $scraped_feeds = 0;
     for my $feed ( @{ $feeds } )
     {
-        say STDERR "feed: $i / $num_feeds";
+        say STDERR "feed: " . ( $scraped_feeds + 1 ) . " / $num_feeds";
 
         my $import = MediaWords::ImportStories::Feedly->new(
             db       => $db,
