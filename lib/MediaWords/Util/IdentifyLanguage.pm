@@ -210,14 +210,7 @@ use Readonly;
     {
         my ( $text, $tld, $is_html ) = @_;
 
-        if ( $is_html )
-        {
-            $is_html = 1;
-        }
-        else
-        {
-            $is_html = 0;
-        }
+        $is_html = $is_html ? 1 : 0;
 
         my $language_name;
 
