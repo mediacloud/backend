@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4529;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4530;
 
 BEGIN
 
@@ -1772,7 +1772,8 @@ create table controversy_stories (
 );
 
 create unique index controversy_stories_sc on controversy_stories ( stories_id, controversies_id );
-
+create index controversy_stories_controversy on controversy_stories( controversies_id );
+    
 -- no foreign key constraints on controversies_id and stories_id because
 --   we have the combined foreign key constraint pointing to controversy_stories
 --   below
