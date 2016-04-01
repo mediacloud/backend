@@ -19,11 +19,11 @@ use Data::Dumper;
 use List::MoreUtils qw/any/;
 
 # Facebook Graph API version to use
-Readonly my $FACEBOOK_GRAPH_API_VERSION => 'v2.3';
+Readonly my $FACEBOOK_GRAPH_API_VERSION => 'v2.5';
 
 # Number of retries to do on temporary Facebook Graph API errors (such as rate
 # limiting issues or API downtime)
-Readonly my $FACEBOOK_GRAPH_API_RETRY_COUNT => 6;
+Readonly my $FACEBOOK_GRAPH_API_RETRY_COUNT => 12;
 
 # Time to wait (in seconds) between retries on temporary Facebook Graph API
 # errors
@@ -57,6 +57,16 @@ Readonly my @FACEBOOK_GRAPH_API_TEMPORARY_ERROR_CODES => (
     # request volume.
     341
 
+);
+
+# Seconds to wait for before retrying on temporary errors
+Readonly my @FACEBOOK_RETRY_INTERVALS => (
+    1,          #
+    3,          #
+    15,         #
+    60,         #
+    5 * 60,     #
+    10 * 60,    #
 );
 
 # URL patterns for which we're sure we won't get correct results (so we won't even try)
@@ -120,7 +130,7 @@ sub api_request($$)
 
         # UserAgentDetermined will retry on server-side errors; client-side errors
         # will be handled by this module
-        $ua->timing( '1,3,15,60,300,600' );
+        $ua->timing( join( ',', @FACEBOOK_RETRY_INTERVALS ) );
 
         my $response;
         eval { $response = $ua->get( $api_uri->as_string ); };
@@ -228,7 +238,15 @@ sub get_url_share_comment_counts
     eval { $data = api_request( '', [ { key => 'id', value => $url } ] ); };
     if ( $@ )
     {
-        fatal_error( 'Error while fetching Facebook stats for URL $url: ' . $@ );
+        my $error_message = $@;
+
+        if ( $error_message =~ /GraphMethodException/i and $error_message =~ /Unsupported get request/i )
+        {
+            # Non-fatal error
+            die "Unable to fetch stats for URL that we don't have access to; URL: $url; error message: $error_message";
+        }
+
+        fatal_error( "Error while fetching Facebook stats for URL $url: $error_message" );
     }
 
     unless ( defined $data->{ id } )
