@@ -659,7 +659,7 @@ sub normalize_url($)
         @parameters_to_remove,
         qw/ fb_action_ids fb_action_types fb_source fb_ref
           action_object_map action_type_map action_ref_map
-          fsrc /
+          fsrc _fb_noscript /
     );
 
     # metrika.yandex.ru parameters

@@ -81,6 +81,17 @@ sub test_urls_which_wont_work($)
     }
 }
 
+sub test_graphmethodexception_unsupported_get_request($)
+{
+    my ( $db ) = @_;
+
+    # URL was throwing "(100 GraphMethodException) Unsupported get request."
+    my $url = 'https://www.facebook.com/nikkibrooks01/posts/919871464721610?_fb_noscript=1';
+
+    eval { MediaWords::Util::Facebook::get_url_share_comment_counts( $db, $url ); };
+    ok( $@, "Stats shouldn't have been fetched for URL '$url'" );
+}
+
 sub test_share_comment_counts($)
 {
     my ( $db ) = @_;
@@ -152,7 +163,7 @@ sub main()
         }
     }
 
-    plan tests => 26;
+    plan tests => 27;
 
     my $builder = Test::More->builder;
     binmode $builder->output,         ":utf8";
@@ -165,6 +176,7 @@ sub main()
 
             test_bogus_urls( $db );
             test_urls_which_wont_work( $db );
+            test_graphmethodexception_unsupported_get_request( $db );
             test_share_comment_counts( $db );
             test_store_result( $db );
         }

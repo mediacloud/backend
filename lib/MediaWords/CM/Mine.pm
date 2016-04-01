@@ -1290,6 +1290,10 @@ END
 
     return 0 if ( $num_stories <= $MAX_SELF_LINKED_STORIES );
 
+    # these queries can be very slow, so we only try them every once in a while randomly, if they hit true
+    # once the result gets cached
+    return 0 if ( rand( 25 ) > 1 );
+
     my ( $num_cross_linked_stories ) = $db->query( <<END, $cid, $story->{ media_id }, $spidered_tag->{ tags_id } )->flat;
 select count( distinct rs.stories_id )
     from cd.live_stories rs
