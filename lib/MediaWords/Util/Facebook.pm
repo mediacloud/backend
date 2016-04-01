@@ -23,7 +23,7 @@ Readonly my $FACEBOOK_GRAPH_API_VERSION => 'v2.5';
 
 # Number of retries to do on temporary Facebook Graph API errors (such as rate
 # limiting issues or API downtime)
-Readonly my $FACEBOOK_GRAPH_API_RETRY_COUNT => 6;
+Readonly my $FACEBOOK_GRAPH_API_RETRY_COUNT => 12;
 
 # Time to wait (in seconds) between retries on temporary Facebook Graph API
 # errors
