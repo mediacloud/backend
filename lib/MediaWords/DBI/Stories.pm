@@ -21,6 +21,7 @@ use warnings;
 use Carp;
 use Encode;
 use File::Temp;
+use FileHandle;
 use HTML::Entities;
 use List::Compare;
 
@@ -996,7 +997,7 @@ sub _get_story_word_matrix_cursor($$$)
 
     my $cursor = 'story_text';
 
-    my $ids_table = $db->get_temporary_ids_tags( $stories_ids );
+    my $ids_table = $db->get_temporary_ids_table( $stories_ids );
     $db->query( <<SQL, $sentence_separator );
 declare story_text cursor for
     select stories_id, string_agg( sentence, \$1 ) $cursor
@@ -1009,15 +1010,16 @@ SQL
 }
 
 # give a file in the form returned by get_story_word_matrix_file() but missing trailing 0s in some lines, pad all lines
-# that have fewer than $num_items with enough additional 0's to make all lines have $num_items items.
+# that have fewer than the size of $word_list with enough additional 0's to make all lines have $num_items items.
 sub _pad_story_word_matrix_file($$)
 {
-    my ( $unpadded_file, $num_items ) = @_;
+    my ( $unpadded_file, $word_list ) = @_;
+
+    my $num_items = @{ $word_list } + 1;
 
     my $unpadded_fh = FileHandle->new( $unpadded_file ) || die( "Unable to open file '$unpadded_file': $!" );
 
-    my $padded_file = File::Temp::tempfile();
-    my $padded_fh = FileHandle->new( "> $padded_file" ) || die( "Unabel to open file '$padded_file': $!" );
+    my ( $padded_fh, $padded_file ) = File::Temp::tempfile;
 
     while ( my $line = <$unpadded_fh> )
     {
@@ -1078,29 +1080,30 @@ sub get_story_word_matrix_file($$;$)
 {
     my ( $db, $stories_ids, $max_words ) = @_;
 
-
-    my $word_index_lookup = {};
+    my $word_index_lookup   = {};
     my $word_index_sequence = 0;
 
     $db->begin;
-    my $sentence_separator = ' ^ ';
+    my $sentence_separator = 'SPLITSPLIT';
     my $story_text_cursor = _get_story_word_matrix_cursor( $db, $stories_ids, $sentence_separator );
 
     my $first_pass_file = File::Temp::tempfile();
-    my $fh = FileHandle->new( "> $first_pass_file" );
+    my $fh              = FileHandle->new( "> $first_pass_file" );
 
     while ( my $stories = $db->query( "fetch 100 from $story_text_cursor" )->hashes )
     {
+        last unless ( @{ $stories } );
+
         for my $story ( @{ $stories } )
         {
             my $wc = MediaWords::Solr::WordCounts->new( language => $story->{ language } );
 
             my $stem_counts = $wc->count_stems( [ split( $sentence_separator, $story->{ story_text } ) ] );
 
-            my $count_pairs = [ map { [ $_, $stem_counts->{ $_ }->{ count } ] } keys( %{ $stem_counts } ) ];
+            my $count_pairs = [ map { [ $_, $stem_counts->{ $_ }->[ 0 ] ] } keys( %{ $stem_counts } ) ];
             if ( $max_words )
             {
-                $count_pairs = [ sort { $b->[ 1 ] <=> $a->[ 1 ] } ];
+                $count_pairs = [ sort { $b->[ 1 ] <=> $a->[ 1 ] } @{ $count_pairs } ];
                 splice( @{ $count_pairs }, 0, $max_words );
             }
 
@@ -1108,6 +1111,7 @@ sub get_story_word_matrix_file($$;$)
             for my $stem_count ( @{ $count_pairs } )
             {
                 my ( $stem, $count ) = @{ $stem_count };
+
                 $word_index_lookup->{ $stem } //= $word_index_sequence++;
                 my $index = $word_index_lookup->{ $stem };
 
@@ -1115,9 +1119,9 @@ sub get_story_word_matrix_file($$;$)
             }
 
             my $line = $story->{ stories_id };
-            map { $line .= ',' . ( $stem_vector->{ $_ } || 0 ) } ( 0 .. $word_index_sequence-1 );
+            map { $line .= ',' . ( $stem_vector->{ $_ } || 0 ) } ( 0 .. $word_index_sequence - 1 );
 
-            $fh->print( "$line\n" };
+            $fh->print( "$line\n" );
         }
     }
 
@@ -1125,11 +1129,14 @@ sub get_story_word_matrix_file($$;$)
 
     $db->commit;
 
-    my $padded_file = _pad_story_word_matrix_file( $first_pass_file );
+    my $word_list = [];
+    map { $word_list->[ $word_index_lookup->{ $_ } ] = $_ } keys( %{ $word_index_lookup } );
+
+    my $padded_file = _pad_story_word_matrix_file( $first_pass_file, $word_list );
 
     unlink( $first_pass_file );
 
-    return $padded_file;
+    return ( $padded_file, $word_list );
 }
 
 1;
