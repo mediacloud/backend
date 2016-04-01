@@ -20,19 +20,21 @@ use warnings;
 
 use Carp;
 use Encode;
+use File::Temp;
 use HTML::Entities;
+use List::Compare;
 
-use MediaWords::Util::HTML;
-use MediaWords::Util::Web;
-use MediaWords::Util::Config;
-use MediaWords::Util::Tags;
-use MediaWords::Util::URL;
-use MediaWords::Util::Bitly::Schedule;
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories::ExtractorVersion;
 use MediaWords::Languages::Language;
+use MediaWords::Solr::WordCounts;
 use MediaWords::StoryVectors;
-use List::Compare;
+use MediaWords::Util::Bitly::Schedule;
+use MediaWords::Util::Config;
+use MediaWords::Util::HTML;
+use MediaWords::Util::Tags;
+use MediaWords::Util::URL;
+use MediaWords::Util::Web;
 
 =head1 FUNCTIONS
 
@@ -984,6 +986,150 @@ sub get_medium_dup_stories_by_guid
     }
 
     return [ grep { @{ $_ } > 1 } values( %{ $guid_lookup } ) ];
+}
+
+# get a postgres cursor that will return the concatenated story_sentences for each of the given stories_ids.  use
+# $sentence_separator to join the sentences for each story.
+sub _get_story_word_matrix_cursor($$$)
+{
+    my ( $db, $stories_ids, $sentence_separator ) = @_;
+
+    my $cursor = 'story_text';
+
+    my $ids_table = $db->get_temporary_ids_tags( $stories_ids );
+    $db->query( <<SQL, $sentence_separator );
+declare story_text cursor for
+    select stories_id, string_agg( sentence, \$1 ) $cursor
+        from story_sentences
+        where stories_id in ( select id from $ids_table )
+        group by stories_id
+SQL
+
+    return $cursor;
+}
+
+# give a file in the form returned by get_story_word_matrix_file() but missing trailing 0s in some lines, pad all lines
+# that have fewer than $num_items with enough additional 0's to make all lines have $num_items items.
+sub _pad_story_word_matrix_file($$)
+{
+    my ( $unpadded_file, $num_items ) = @_;
+
+    my $unpadded_fh = FileHandle->new( $unpadded_file ) || die( "Unable to open file '$unpadded_file': $!" );
+
+    my $padded_file = File::Temp::tempfile();
+    my $padded_fh = FileHandle->new( "> $padded_file" ) || die( "Unabel to open file '$padded_file': $!" );
+
+    while ( my $line = <$unpadded_fh> )
+    {
+        chomp( $line );
+        my $items = [ split( ',', $line ) ];
+
+        if ( scalar( @{ $items } ) < $num_items )
+        {
+            $line .= ",0" x ( $num_items - scalar( @{ $items } ) );
+        }
+
+        $padded_fh->print( "$line\n" );
+    }
+
+    $padded_fh->close();
+    $unpadded_fh->close();
+
+    return $padded_file;
+}
+
+=head2 get_story_word_matrix_file( $db, $stories_ids, $max_words )
+
+Given a list of stories_ids, generate a matrix consisting of the vector of word stem counts for each stories_id on each
+line.  Return a list with the name of the file containing the matrix and a list of the word stems represented by each
+position in the vectors.
+
+The contents of the file will look like:
+
+<stories_id_1>,<word_stem_1_count>,<word_stem_2_count>,...
+<stories_id_2>,<word_stem_1_count>,<word_stem_2_count>,...
+
+This file would be accompanied by a list of words in the form [ word_stem_1, word_stem_2 ].
+
+For example, for stories_ids 1 and 2, both of which contain 4 mentions of 'foo' and 10 of 'bars', the file and list
+looke like:
+
+1,4,10
+2,4,10
+
+[ 'foo', 'bar' ]
+
+The word count at each position in each line will refer to the same word across all stories.  Every line will have the
+same number of items, meaning that every word in any story will be counted for each story.
+
+The story_sentences for each story will be used for word counting. If $max_words is specified, only the most common
+$max_words will be used for each story.
+
+The function is conscious of memory usage: it fetches stories in small batches from the database and writes results
+as they are generated to the file rather than storing everythin in memory.  A second pass is made over the file to pad
+out every line with 0 counts so that every line refers to every word.
+
+The function counts stems rather than words.  It uses MediaWords::Util::IdentifyLanguage to identify the stemming
+language for each story.
+
+=cut
+
+sub get_story_word_matrix_file($$;$)
+{
+    my ( $db, $stories_ids, $max_words ) = @_;
+
+
+    my $word_index_lookup = {};
+    my $word_index_sequence = 0;
+
+    $db->begin;
+    my $sentence_separator = ' ^ ';
+    my $story_text_cursor = _get_story_word_matrix_cursor( $db, $stories_ids, $sentence_separator );
+
+    my $first_pass_file = File::Temp::tempfile();
+    my $fh = FileHandle->new( "> $first_pass_file" );
+
+    while ( my $stories = $db->query( "fetch 100 from $story_text_cursor" )->hashes )
+    {
+        for my $story ( @{ $stories } )
+        {
+            my $wc = MediaWords::Solr::WordCounts->new( language => $story->{ language } );
+
+            my $stem_counts = $wc->count_stems( [ split( $sentence_separator, $story->{ story_text } ) ] );
+
+            my $count_pairs = [ map { [ $_, $stem_counts->{ $_ }->{ count } ] } keys( %{ $stem_counts } ) ];
+            if ( $max_words )
+            {
+                $count_pairs = [ sort { $b->[ 1 ] <=> $a->[ 1 ] } ];
+                splice( @{ $count_pairs }, 0, $max_words );
+            }
+
+            my $stem_vector = {};
+            for my $stem_count ( @{ $count_pairs } )
+            {
+                my ( $stem, $count ) = @{ $stem_count };
+                $word_index_lookup->{ $stem } //= $word_index_sequence++;
+                my $index = $word_index_lookup->{ $stem };
+
+                $stem_vector->{ $index } = $count;
+            }
+
+            my $line = $story->{ stories_id };
+            map { $line .= ',' . ( $stem_vector->{ $_ } || 0 ) } ( 0 .. $word_index_sequence-1 );
+
+            $fh->print( "$line\n" };
+        }
+    }
+
+    $fh->close();
+
+    $db->commit;
+
+    my $padded_file = _pad_story_word_matrix_file( $first_pass_file );
+
+    unlink( $first_pass_file );
+
+    return $padded_file;
 }
 
 1;
