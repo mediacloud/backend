@@ -59,6 +59,16 @@ Readonly my @FACEBOOK_GRAPH_API_TEMPORARY_ERROR_CODES => (
 
 );
 
+# Seconds to wait for before retrying on temporary errors
+Readonly my @FACEBOOK_RETRY_INTERVALS => (
+    1,          #
+    3,          #
+    15,         #
+    60,         #
+    5 * 60,     #
+    10 * 60,    #
+);
+
 # URL patterns for which we're sure we won't get correct results (so we won't even try)
 Readonly my @URL_PATTERNS_WHICH_WONT_WORK => (
 
@@ -120,7 +130,7 @@ sub api_request($$)
 
         # UserAgentDetermined will retry on server-side errors; client-side errors
         # will be handled by this module
-        $ua->timing( '1,3,15,60,300,600' );
+        $ua->timing( join( ',', @FACEBOOK_RETRY_INTERVALS ) );
 
         my $response;
         eval { $response = $ua->get( $api_uri->as_string ); };
