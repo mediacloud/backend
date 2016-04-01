@@ -23,7 +23,7 @@ Readonly my $FACEBOOK_GRAPH_API_VERSION => 'v2.5';
 
 # Number of retries to do on temporary Facebook Graph API errors (such as rate
 # limiting issues or API downtime)
-Readonly my $FACEBOOK_GRAPH_API_RETRY_COUNT => 12;
+Readonly my $FACEBOOK_GRAPH_API_RETRY_COUNT => 24;
 
 # Time to wait (in seconds) between retries on temporary Facebook Graph API
 # errors
@@ -312,7 +312,7 @@ sub get_and_store_share_comment_counts
     $db->query(
         <<END,
         WITH try_update AS (
-            UPDATE story_statistics 
+            UPDATE story_statistics
             SET facebook_share_count = \$2,
                 facebook_comment_count = \$3,
                 facebook_api_collect_date = NOW(),
