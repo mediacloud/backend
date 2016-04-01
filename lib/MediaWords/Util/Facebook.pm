@@ -238,7 +238,15 @@ sub get_url_share_comment_counts
     eval { $data = api_request( '', [ { key => 'id', value => $url } ] ); };
     if ( $@ )
     {
-        fatal_error( 'Error while fetching Facebook stats for URL $url: ' . $@ );
+        my $error_message = $@;
+
+        if ( $error_message =~ /GraphMethodException/i and $error_message =~ /Unsupported get request/i )
+        {
+            # Non-fatal error
+            die "Unable to fetch stats for URL that we don't have access to; URL: $url; error message: $error_message";
+        }
+
+        fatal_error( "Error while fetching Facebook stats for URL $url: $error_message" );
     }
 
     unless ( defined $data->{ id } )
