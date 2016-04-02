@@ -376,6 +376,17 @@ sub count_GET : Local
     $self->status_ok( $c, entity => $response );
 }
 
+sub count : Local : ActionClass('REST')
+{
+
+}
+
+sub count_GET : Local
+{
+    my ( $self, $c ) = @_;
+
+}
+
 =head1 AUTHOR
 
 David Larochelle

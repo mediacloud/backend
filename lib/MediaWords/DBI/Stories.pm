@@ -1000,10 +1000,10 @@ sub _get_story_word_matrix_cursor($$$)
     my $ids_table = $db->get_temporary_ids_table( $stories_ids );
     $db->query( <<SQL, $sentence_separator );
 declare story_text cursor for
-    select stories_id, string_agg( sentence, \$1 ) $cursor
+    select stories_id, language, string_agg( sentence, \$1 ) $cursor
         from story_sentences
         where stories_id in ( select id from $ids_table )
-        group by stories_id
+        group by stories_id, language
 SQL
 
     return $cursor;
@@ -1040,7 +1040,23 @@ sub _pad_story_word_matrix_file($$)
     return $padded_file;
 }
 
-=head2 get_story_word_matrix_file( $db, $stories_ids, $max_words )
+# remove stopwords from the $stem_count list, using the $language and stop word $length
+sub _remove_stopwords_from_stem_vector($$$)
+{
+    my ( $stem_counts, $language_code, $length ) = @_;
+
+    return unless ( $language_code && $length );
+
+    my $language = MediaWords::Languages::Language::language_for_code( $language_code ) || return;
+
+    my $stop_words = $language->get_stop_word_stems( $length );
+
+    # map { say STDERR "ignore $_" if ( $stop_words->{ $_ } ) } keys( %{ $stem_counts } );
+
+    map { delete( $stem_counts->{ $_ } ) if ( $stop_words->{ $_ } ) } keys( %{ $stem_counts } );
+}
+
+=head2 get_story_word_matrix_file( $db, $stories_ids, $max_words, $stopword_length )
 
 Given a list of stories_ids, generate a matrix consisting of the vector of word stem counts for each stories_id on each
 line.  Return a list with the name of the file containing the matrix and a list of the word stems represented by each
@@ -1051,7 +1067,9 @@ The contents of the file will look like:
 <stories_id_1>,<word_stem_1_count>,<word_stem_2_count>,...
 <stories_id_2>,<word_stem_1_count>,<word_stem_2_count>,...
 
-This file would be accompanied by a list of words in the form [ word_stem_1, word_stem_2 ].
+The stem list is a list of lists.  The overall list includes the stems in the order that they are specified in each
+line of the csv.  Each individual list includes the stem counted and the most common full word used with that stem
+in the set.
 
 For example, for stories_ids 1 and 2, both of which contain 4 mentions of 'foo' and 10 of 'bars', the file and list
 looke like:
@@ -1059,7 +1077,7 @@ looke like:
 1,4,10
 2,4,10
 
-[ 'foo', 'bar' ]
+[ [ 'foo', 'foo' ], [ 'bar', 'bars' ] ]
 
 The word count at each position in each line will refer to the same word across all stories.  Every line will have the
 same number of items, meaning that every word in any story will be counted for each story.
@@ -1071,14 +1089,17 @@ The function is conscious of memory usage: it fetches stories in small batches f
 as they are generated to the file rather than storing everythin in memory.  A second pass is made over the file to pad
 out every line with 0 counts so that every line refers to every word.
 
-The function counts stems rather than words.  It uses MediaWords::Util::IdentifyLanguage to identify the stemming
-language for each story.
+If $stopword_length is specified, a stopword list of size 'tiny', 'short', or 'long' is used for each story language.
+
+The function uses MediaWords::Util::IdentifyLanguage to identify the stemming and stopwording language for each story.
+If the language of a given story is not supported, stemming and stopwording become null operations.  For the list of
+languages supported, see @MediaWords::Langauges::Language::_supported_languages.
 
 =cut
 
-sub get_story_word_matrix_file($$;$)
+sub get_story_word_matrix_file($$;$$)
 {
-    my ( $db, $stories_ids, $max_words ) = @_;
+    my ( $db, $stories_ids, $max_words, $stopword_length ) = @_;
 
     my $word_index_lookup   = {};
     my $word_index_sequence = 0;
@@ -1087,8 +1108,7 @@ sub get_story_word_matrix_file($$;$)
     my $sentence_separator = 'SPLITSPLIT';
     my $story_text_cursor = _get_story_word_matrix_cursor( $db, $stories_ids, $sentence_separator );
 
-    my $first_pass_file = File::Temp::tempfile();
-    my $fh              = FileHandle->new( "> $first_pass_file" );
+    my ( $fh, $first_pass_file ) = File::Temp::tempfile();
 
     while ( my $stories = $db->query( "fetch 100 from $story_text_cursor" )->hashes )
     {
@@ -1099,6 +1119,8 @@ sub get_story_word_matrix_file($$;$)
             my $wc = MediaWords::Solr::WordCounts->new( language => $story->{ language } );
 
             my $stem_counts = $wc->count_stems( [ split( $sentence_separator, $story->{ story_text } ) ] );
+
+            _remove_stopwords_from_stem_vector( $stem_counts, $story->{ language }, $stopword_length );
 
             my $count_pairs = [ map { [ $_, $stem_counts->{ $_ }->[ 0 ] ] } keys( %{ $stem_counts } ) ];
             if ( $max_words )
@@ -1129,6 +1151,7 @@ sub get_story_word_matrix_file($$;$)
 
     $db->commit;
 
+    # RESTART - return [ [ $stem, $term ], ... ] version of word_list
     my $word_list = [];
     map { $word_list->[ $word_index_lookup->{ $_ } ] = $_ } keys( %{ $word_index_lookup } );
 

@@ -438,7 +438,8 @@ Return a stream of all stories from The New York Times mentioning `'obama'` grea
 | `q`                | n/a              | `q` ("query") parameter which is passed directly to Solr
 | `fq`               | `null`           | `fq` ("filter query") parameter which is passed directly to Solr
 
-The q and fq parameters are passed directly through to Solr (see description of q and fq parameters in api/v2/stories_public/list section above).
+The q and fq parameters are passed directly through to Solr (see description of q and fq parameters in
+api/v2/stories_public/list section above).
 
 The call returns the number of stories returned by Solr for the specified query.
 
@@ -453,6 +454,58 @@ URL: https://api.mediacloud.org/api/v2/stories_public/count?q=sentence:obama&fq=
   "count" => 960
 }
 ```
+
+### api/v2/stories_public/word_matrix
+
+#### Query Parameters
+
+| Parameter          | Default          | Notes
+| ------------------ | ---------------- | ----------------------------------------------------------------
+| `q`                | n/a              | `q` ("query") parameter which is passed directly to Solr
+| `fq`               | `null`           | `fq` ("filter query") parameter which is passed directly to Solr
+
+The q and fq parameters are passed directly through to Solr (see description of q and fq parameters in
+api/v2/stories_public/list section above).
+
+#### Output Description
+
+| Field                        | Description
+| ---------------------------- | -----------------------------------------------------------------------------
+| matrix_csv                   | a csv with each line including the stories_id and the word counts for a story
+| stem_list                    | the list of word stems counted, in the order used in each line
+
+
+The call returns a matrix of word counts for the stories returned by the given query.  The matrix_csv field
+includes a csv in the following format:
+
+```
+<stories_id_1>,<word_stem_1_count>,<word_stem_2_count>,...
+<stories_id_2>,<word_stem_1_count>,<word_stem_2_count>,...
+```
+
+For example, for stories_ids 1 and 2, both of which contain 4 mentions of 'foo' and 10 of 'bars', the file
+look like:
+
+```
+1,4,10
+2,4,10
+```
+
+The stem list is a list of lists.  The overall list includes the stems in the order that they are specified in each
+line of the csv.  Each individual list includes the stem counted and the most common full word used with that stem
+in the set.  So in the above example, the stem list would look like:
+
+```json
+[
+    [ 'foo', 'foo' ],
+    [ 'bar', 'bars' ]
+]
+```
+
+
+#### Example
+
+RUN EXAMPLE
 
 ## Sentences
 

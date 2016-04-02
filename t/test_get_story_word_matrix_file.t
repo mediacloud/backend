@@ -30,11 +30,13 @@ my $_possible_words = [
 ];
 
 # get random words
-sub add_story_sentences
+sub add_story_sentences_and_language
 {
     my ( $db, $story, $num ) = @_;
 
     my $language = MediaWords::Languages::Language::language_for_code( 'en' );
+    $db->query( "update stories set language = 'en' where stories_id = ?", $story->{ stories_id } );
+    $story->{ language } = 'en';
 
     my $stem_counts = {};
     for my $sentence_num ( 0 .. 9 )
@@ -104,14 +106,17 @@ sub test_story($$)
 {
     my ( $story, $stem_list ) = @_;
 
+    my $got_stems      = $story->{ got_stem_count };
+    my $expected_stems = $story->{ expected_stem_count };
+
     for my $stem ( @{ $stem_list } )
     {
-        is(
-            $story->{ got_stem_count }->{ $stem },
-            $story->{ expected_stem_count }->{ $stem } || 0,
-            "count for $stem for story $story->{ stories_id }"
-        );
+        is( $got_stems->{ $stem }, $expected_stems->{ $stem } || 0, "count for $stem for story $story->{ stories_id }" );
     }
+
+    map { delete( $got_stems->{ $_ } ) if ( !$got_stems->{ $_ } || $expected_stems->{ $_ } ) } @{ $stem_list };
+
+    ok( !scalar( keys( %{ $got_stems } ) ), "unexpected stem counts: " . Dumper( $got_stems ) );
 }
 
 sub run_tests
@@ -124,11 +129,11 @@ sub run_tests
 
     my $stories = [ values( %{ $media->{ A }->{ feeds }->{ B }->{ stories } } ) ];
 
-    map { add_story_sentences( $db, $_ ) } @{ $stories };
+    map { add_story_sentences_and_language( $db, $_ ) } @{ $stories };
 
     my $stories_ids = [ map { $_->{ stories_id } } @{ $stories } ];
 
-    my ( $matrix_file, $stem_list ) = MediaWords::DBI::Stories::get_story_word_matrix_file( $db, $stories_ids );
+    my ( $matrix_file, $stem_list ) = MediaWords::DBI::Stories::get_story_word_matrix_file( $db, $stories_ids, 0 );
 
     assign_stem_vectors_from_matrix_file( $stories, $matrix_file, $stem_list );
 
