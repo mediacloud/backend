@@ -77,8 +77,8 @@ sub add_to_processing_schedule($$)
         my $story_timestamp      = story_timestamp( $story );
         my $processing_timestamp = $story_timestamp + $delay;
 
-        say STDERR "Adding story $stories_id to Bit.ly processing schedule " .
-          "(story timestamp: $story_timestamp, delay: $delay, processing timestamp: $processing_timestamp)...";
+        # say STDERR "Adding story $stories_id to Bit.ly processing schedule " .
+        #   "(story timestamp: $story_timestamp, delay: $delay, processing timestamp: $processing_timestamp)...";
 
         $db->query(
             <<EOF,
@@ -123,8 +123,8 @@ EOF
         my $start_timestamp = story_start_timestamp( $story_timestamp );
         my $end_timestamp   = story_end_timestamp( $story_timestamp );
 
-        say STDERR
-"Adding story $stories_id to Bit.ly Gearman queue (start timestamp: $start_timestamp, end timestamp: $end_timestamp)...";
+  #         say STDERR
+  # "Adding story $stories_id to Bit.ly Gearman queue (start timestamp: $start_timestamp, end timestamp: $end_timestamp)...";
 
         MediaWords::GearmanFunction::Bitly::FetchStoryStats->enqueue_on_gearman(
             {
