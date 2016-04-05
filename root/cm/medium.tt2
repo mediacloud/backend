@@ -6,44 +6,15 @@
 You are viewing the live medium, as it currently exists in the database, for the [% cdts_date_range %] time slice.
 [% ELSE %]
 
-This page is displaying a frozen snapshot of the [% medium.name | html %] medium, as it existed in the [% cdts_date_range | html %] [% cdts.period | html %] time slice from the [% datetime.format( cd.dump_date ) %] dump of the [% controversy.name %] controversy.  Because this data is a frozen snapshot, edits to this medium will not appear on this page.  Links and link counts are only for links that occur during [% cdts_date_range %].  
+This page is displaying a frozen snapshot of the [% medium.name | html %] medium, as it existed in the [%
+cdts_date_range | html %] [% cdts.period | html %] time slice from the [% datetime.format( cd.dump_date ) %] dump of the [%
+controversy.name %] controversy.  Because this data is a frozen snapshot, edits to this medium will not appear on this
+page, and changes made since the snapshot will not be visible.
 
-<p>
-[% IF live_medium_diffs %]
-<b>
-This medium differs in the following ways from the live version: [% live_medium_diffs %].
-</b>
-[% ELSE %]
-This medium is the same as the live version.
-[% END %]
-
-The details of stories (but not links) below may be different. 
-
-[% IF live_medium %]
-    [% live_medium_url = 
-        c.uri_for( '/admin/cm/medium/' _ medium.media_id, { cdts => cdts.controversy_dump_time_slices_id, l => 1 } ) %]
-To view the live version of this medium, go <a href="[%  live_medium_url  | html %]">here</a>.
-[% END %]
-
-</p>
-
-[% IF latest_controversy_dump %]
-<p>
-This is not the latest dump of this controversy, created [% datetime.format( latest_controversy_dump.dump_date ) | html %].  To view the latest dump, go <a href="[% c.uri_for( '/admin/cm/view_dump/' _ latest_controversy_dump.controversy_dumps_id ) | html %]">here</a>.
-</p>
-[% END %]
 
 [% END %]
 
 </div>
-
-[% MACRO live_medium_diff( field )
-       IF !live;
-            IF medium.$field != live_medium.$field;
-                '(live: ' _ live_medium.$field _ ' )';
-            END;
-       END;
-%]
 
 [% edit_url = c.uri_for( '/admin/media/edit_do/' _ medium.media_id, { controversies_id => controversy.controversies_id } ) %]
 [% merge_url = c.uri_for( '/admin/cm/merge_media/' _ medium.media_id, { cdts => cdts.cdts_id } ) %]
@@ -58,19 +29,18 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
 <table class="even_rows_grey">
 
     <tr><td>Media_id</td><td>[% medium.media_id %]</td></tr>
-    <tr><td>Name</td><td>[% medium.name | html %] [% live_medium_diff( 'name' ) | html %]</td></tr>
+    <tr><td>Name</td><td>[% medium.name | html %]</td></tr>
     <tr>
         <td>Url</td>
         <td>
-            <a href="[% medium.url | html %]" target="blank">[% medium.url | html %]</a> 
-            [% live_medium_diff( 'url' ) | html %]
+            <a href="[% medium.url | html %]" target="blank">[% medium.url | html %]</a>
         </td>
     </tr>
     <tr><td>Media Type</td><td>[% medium.media_type | html %]</td></tr>
-    <tr><td># Stories</td><td>[% medium.story_count %] [% live_medium_diff( 'story_count' ) | html %]</td></tr>
-    <tr><td># Incoming Story Links</td><td>[% medium.inlink_count %] [% live_medium_diff( 'inlink_count' ) | html %]</td></tr>
-    <tr><td># Outgoing Story Links</td><td>[% medium.outlink_count %] [% live_medium_diff( 'outlink_count' ) | html %]</td></tr>
-    
+    <tr><td># Stories</td><td>[% medium.story_count %]</td></tr>
+    <tr><td># Incoming Story Links</td><td>[% medium.inlink_count %]</td></tr>
+    <tr><td># Outgoing Story Links</td><td>[% medium.outlink_count %]</td></tr>
+
 </table>
 
 [% INCLUDE cm/stories_table.tt2
@@ -80,21 +50,20 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
     display_stories_id = "medium_stories"
     display_stories_remove_button = 1
     display_stories_solr_query = "media_id:${medium.media_id}" %]
-    
-[% INCLUDE cm/stories_table.tt2 
+
+[% INCLUDE cm/stories_table.tt2
     display_stories = medium.inlink_stories
     display_stories_short_title = controversy.name _ " Stories Linking to " _ medium.name
-    display_stories_full_title = controversy.name _ " Stories Linking to Medium '" _ medium.name _ "'" 
-    display_stories_id = 'inlink_stories' 
+    display_stories_full_title = controversy.name _ " Stories Linking to Medium '" _ medium.name _ "'"
+    display_stories_id = 'inlink_stories'
     display_stories_solr_query = "{~ controversy_dump_time_slice:${cdts.controversy_dump_time_slices_id} link_to_medium:${medium.media_id} }" %]
 
-[% INCLUDE cm/stories_table.tt2 
+[% INCLUDE cm/stories_table.tt2
     display_stories = medium.outlink_stories
     display_stories_short_title = controversy.name _ " Stories Linked from " _ medium.name
-    display_stories_full_title = controversy.name _ " Stories Linked from Medium '" _ medium.name _ "'" 
+    display_stories_full_title = controversy.name _ " Stories Linked from Medium '" _ medium.name _ "'"
     display_stories_id = 'outlink_stories'
     display_stories_solr_query = "{~ controversy_dump_time_slice:${cdts.controversy_dump_time_slices_id} link_from_medium:${medium.media_id} }" %]
 
 
 [% INCLUDE include/footer.tt2 %]
-

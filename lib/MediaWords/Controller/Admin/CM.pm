@@ -785,7 +785,8 @@ END
         20
     )->hashes;
 
-    map { _add_story_date_info( $db, $_ ) } @{ $top_stories };
+    MediaWords::DBI::Stories::GuessDate::add_date_is_reliable_to_stories( $db, $top_stories );
+    MediaWords::DBI::Stories::GuessDate::add_undateable_to_stories( $db, $top_stories );
 
     return $top_stories;
 }
@@ -1165,7 +1166,12 @@ sub _get_medium_from_dump_tables
 {
     my ( $db, $media_id ) = @_;
 
-    return $db->query( "select * from dump_media_with_types where media_id = ?", $media_id )->hash;
+    return $db->query( <<SQL, $media_id )->hash;
+select *
+    from dump_media_with_types m
+        join dump_medium_link_counts mlc on ( m.media_id = mlc.media_id )
+    where mlc.media_id = ?
+SQL
 }
 
 # get the medium with the medium_stories, inlink_stories, and outlink_stories and associated
@@ -1197,7 +1203,9 @@ sub _get_medium_and_stories_from_dump_tables
 END
         $media_id
     )->hashes;
-    map { _add_story_date_info( $db, $_ ) } @{ $medium->{ stories } };
+
+    MediaWords::DBI::Stories::GuessDate::add_date_is_reliable_to_stories( $db, $medium->{ stories } );
+    MediaWords::DBI::Stories::GuessDate::add_undateable_to_stories( $db, $medium->{ stories } );
 
     $medium->{ inlink_stories } = $db->query(
         <<END,
@@ -1224,7 +1232,8 @@ END
         $media_id
     )->hashes;
 
-    map { _add_story_date_info( $db, $_ ) } @{ $medium->{ inlink_stories } };
+    MediaWords::DBI::Stories::GuessDate::add_date_is_reliable_to_stories( $db, $medium->{ inlink_stories } );
+    MediaWords::DBI::Stories::GuessDate::add_undateable_to_stories( $db, $medium->{ inlink_stories } );
 
     $medium->{ outlink_stories } = $db->query(
         <<END,
@@ -1251,11 +1260,8 @@ END
         $media_id
     )->hashes;
 
-    map { _add_story_date_info( $db, $_ ) } @{ $medium->{ outlink_stories } };
-
-    $medium->{ story_count }   = scalar( @{ $medium->{ stories } } );
-    $medium->{ inlink_count }  = scalar( @{ $medium->{ inlink_stories } } );
-    $medium->{ outlink_count } = scalar( @{ $medium->{ outlink_stories } } );
+    MediaWords::DBI::Stories::GuessDate::add_date_is_reliable_to_stories( $db, $medium->{ outlink_stories } );
+    MediaWords::DBI::Stories::GuessDate::add_undateable_to_stories( $db, $medium->{ outlink_stories } );
 
     return $medium;
 }
@@ -1361,42 +1367,25 @@ sub medium : Local
     my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $c->req->param( 'cdts' ) );
 
     my $live = $c->req->param( 'l' );
-    my $live_medium = _get_live_medium_and_stories( $db, $controversy, $cdts, $media_id );
 
-    my ( $medium, $live_medium_diffs, $latest_controversy_dump );
+    my $medium;
     if ( $live )
     {
-        $medium = $live_medium;
+        $medium = _get_live_medium_and_stories( $db, $controversy, $cdts, $media_id );
     }
     else
     {
         $medium = _get_cdts_medium_and_stories( $db, $cdts, $media_id );
-        $live_medium_diffs = _get_live_medium_diffs( $medium, $live_medium );
-        $latest_controversy_dump = _get_latest_controversy_dump( $db, $cdts );
     }
 
     $db->commit;
 
-    $c->stash->{ cdts }                    = $cdts;
-    $c->stash->{ controversy_dump }        = $cd;
-    $c->stash->{ controversy }             = $controversy;
-    $c->stash->{ medium }                  = $medium;
-    $c->stash->{ latest_controversy_dump } = $latest_controversy_dump;
-    $c->stash->{ live_medium_diffs }       = $live_medium_diffs;
-    $c->stash->{ live }                    = $live;
-    $c->stash->{ live_medium }             = $live_medium;
-    $c->stash->{ template }                = 'cm/medium.tt2';
-}
-
-# add the following fields to the story:
-# * date_is_reliable
-# * undateable
-sub _add_story_date_info
-{
-    my ( $db, $story ) = @_;
-
-    $story->{ date_is_reliable } = MediaWords::DBI::Stories::GuessDate::date_is_reliable( $db, $story );
-    $story->{ undateable } = MediaWords::DBI::Stories::GuessDate::is_undateable( $db, $story );
+    $c->stash->{ cdts }             = $cdts;
+    $c->stash->{ controversy_dump } = $cd;
+    $c->stash->{ controversy }      = $controversy;
+    $c->stash->{ medium }           = $medium;
+    $c->stash->{ live }             = $live;
+    $c->stash->{ template }         = 'cm/medium.tt2';
 }
 
 # get the story along with inlink_stories and outlink_stories and the associated
@@ -1417,7 +1406,8 @@ sub _get_story_and_links_from_dump_tables
 
     $story->{ medium } = $db->query( "select * from dump_media_with_types where media_id = ?", $story->{ media_id } )->hash;
 
-    _add_story_date_info( $db, $story );
+    MediaWords::DBI::Stories::GuessDate::add_date_is_reliable_to_stories( $db, [ $story ] );
+    MediaWords::DBI::Stories::GuessDate::add_undateable_to_stories( $db,       [ $story ] );
 
     $story->{ inlink_stories } = $db->query(
         <<END,
@@ -1444,7 +1434,8 @@ END
         $stories_id
     )->hashes;
 
-    map { _add_story_date_info( $db, $_ ) } @{ $story->{ inlink_stories } };
+    MediaWords::DBI::Stories::GuessDate::add_date_is_reliable_to_stories( $db, $story->{ inlink_stories } );
+    MediaWords::DBI::Stories::GuessDate::add_undateable_to_stories( $db, $story->{ inlink_stories } );
 
     $story->{ outlink_stories } = $db->query(
         <<END,
@@ -1471,10 +1462,11 @@ END
         $stories_id
     )->hashes;
 
-    map { _add_story_date_info( $db, $_ ) } @{ $story->{ outlink_stories } };
-
     $story->{ inlink_count }  = scalar( @{ $story->{ inlink_stories } } );
     $story->{ outlink_count } = scalar( @{ $story->{ outlink_stories } } );
+
+    MediaWords::DBI::Stories::GuessDate::add_date_is_reliable_to_stories( $db, $story->{ outlink_stories } );
+    MediaWords::DBI::Stories::GuessDate::add_undateable_to_stories( $db, $story->{ outlink_stories } );
 
     return $story;
 }
@@ -1548,18 +1540,15 @@ sub story : Local
     my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $c->req->param( 'cdts' ) );
 
     my $live = $c->req->param( 'l' );
-    my $live_story = _get_live_story_and_links( $db, $controversy, $cdts, $stories_id );
 
-    my ( $story, $live_story_diffs, $latest_controversy_dump );
+    my $story;
     if ( $live )
     {
-        $story = $live_story;
+        $story = _get_live_story_and_links( $db, $controversy, $cdts, $stories_id );
     }
     else
     {
         $story = _get_cdts_story_and_links( $db, $cdts, $stories_id );
-        $live_story_diffs = _get_live_story_diffs( $story, $live_story );
-        $latest_controversy_dump = _get_latest_controversy_dump( $db, $cdts );
     }
 
     $story->{ extracted_text } = MediaWords::DBI::Stories::get_extracted_text( $db, $story );
@@ -1569,16 +1558,13 @@ sub story : Local
 
     my $confirm_remove = $c->req->params->{ confirm_remove };
 
-    $c->stash->{ cdts }                    = $cdts;
-    $c->stash->{ controversy_dump }        = $cd;
-    $c->stash->{ controversy }             = $controversy;
-    $c->stash->{ story }                   = $story;
-    $c->stash->{ latest_controversy_dump } = $latest_controversy_dump;
-    $c->stash->{ live_story_diffs }        = $live_story_diffs;
-    $c->stash->{ live }                    = $live;
-    $c->stash->{ live_story }              = $live_story;
-    $c->stash->{ confirm_remove }          = $confirm_remove;
-    $c->stash->{ template }                = 'cm/story.tt2';
+    $c->stash->{ cdts }             = $cdts;
+    $c->stash->{ controversy_dump } = $cd;
+    $c->stash->{ controversy }      = $controversy;
+    $c->stash->{ story }            = $story;
+    $c->stash->{ live }             = $live;
+    $c->stash->{ confirm_remove }   = $confirm_remove;
+    $c->stash->{ template }         = 'cm/story.tt2';
 }
 
 # get the text for a sql query that returns all of the story ids that
@@ -1761,7 +1747,8 @@ sub search_stories : Local
 END
     )->hashes;
 
-    map { _add_story_date_info( $db, $_ ) } @{ $stories };
+    MediaWords::DBI::Stories::GuessDate::add_date_is_reliable_to_stories( $db, $stories );
+    MediaWords::DBI::Stories::GuessDate::add_undateable_to_stories( $db, $stories );
 
     MediaWords::CM::Dump::discard_temp_tables( $db );
 
