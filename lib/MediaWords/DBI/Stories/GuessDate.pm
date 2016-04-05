@@ -70,41 +70,70 @@ END
     return $r ? 1 : 0;
 }
 
-# return true if the date is reliable.  a date is reliable if either of the following are true:
-# * the story has one of the date_guess_method:* tags listed in reliable_methods below;
-# * no date_guess_method:* tag and no date_invalid:undateable tag is associated with the story
+# for each story in $stories set { date_is_reliable }.
+#
+# a date is reliable if either of the following are true:
+# * the story has one of the date_guess_method tags listed in reliable_methods below;
+# * no date_guess_method tag and no date_invalid:undateable tag is associated with the story
+#
 # otherwise, the date is unreliable
-sub date_is_reliable
+sub add_date_is_reliable_to_stories
 {
-    my ( $db, $story ) = @_;
+    my ( $db, $stories ) = @_;
 
-    my $tags = $db->query( <<END, $story->{ stories_id } )->hashes;
-select t.tag, ts.name tag_set_name
-    from stories_tags_map stm
-        join tags t on ( stm.tags_id = t.tags_id and stm.stories_id = ? )
-        join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id and ts.name in ( 'date_guess_method', 'date_invalid' ) )
-END
-
-    my $tag_lookup = { date_guess_method => {}, date_invalid => {} };
-    for my $tag ( @{ $tags } )
-    {
-        $tag_lookup->{ $tag->{ tag_set_name } }->{ $tag->{ tag } } = 1;
-    }
+    my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ stories_id } } @{ $stories } ] );
 
     my $reliable_methods =
-      [ qw(guess_by_og_article_published_time guess_by_url guess_by_url_and_date_text merged_story_rss manual) ];
+      [ qw/guess_by_og_article_published_time guess_by_url guess_by_url_and_date_text merged_story_rss manual/ ];
+    my $quoted_reliable_methods_list = join( ',', map { $db->dbh->quote( $_ ) } @{ $reliable_methods } );
 
-    if ( grep { $tag_lookup->{ date_guess_method }->{ $_ } } @{ $reliable_methods } )
-    {
-        return 1;
-    }
+    my $reliable_stories_ids = $db->query( <<SQL )->flat;
+with date_tags as (
+    select t.*, ts.name tag_set_name
+        from tags t
+            join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
+            where ts.name in ( 'date_guess_method', 'date_invalid' )
+),
 
-    if ( !$tag_lookup->{ date_invalid }->{ undateable } && !%{ $tag_lookup->{ date_guess_method } } )
-    {
-        return 1;
-    }
+story_date_tags as (
+    select stories_id, t.tag, t.tag_set_name
+        from stories_tags_map stm
+            left join date_tags t on ( t.tags_id = stm.tags_id )
+        where stm.stories_id in ( select id from $ids_table )
+)
 
-    return 0;
+select id stories_id
+    from $ids_table ids
+    where
+        exists (
+            select 1
+                from story_date_tags d
+                where
+                    d.stories_id = ids.id and
+                    d.tag in ( $quoted_reliable_methods_list )
+        ) or
+        (
+            exists (
+                select 1
+                    from story_date_tags d
+                    where
+                        d.stories_id = ids.id and
+                        d.tag = 'undateable'
+            ) and
+            not exists (
+                select 1
+                    from story_date_tags d
+                    where
+                        d.stories_id = ids.id and
+                        d.tag_set_name = 'date_guess_method'
+            )
+        )
+SQL
+
+    my $reliable_stories_lookup = {};
+    map { $reliable_stories_lookup->{ $_ } = 1 } @{ $reliable_stories_ids };
+
+    map { $_->{ date_is_reliable } = ( $reliable_stories_lookup->{ $_->{ stories_id } } || 0 ) } @{ $stories };
 }
 
 # set the undateable status of the story by adding or removing the 'date_guess_method:undateable' tage
@@ -132,7 +161,6 @@ END
     }
 }
 
-# return true if the story has been marked as undateable
 sub is_undateable
 {
     my ( $db, $story ) = @_;
@@ -149,6 +177,39 @@ select 1
 END
 
     return $tag ? 1 : 0;
+}
+
+# add { undateable } field to a list of stories
+sub add_undateable_to_stories($$)
+{
+    my ( $db, $stories ) = @_;
+
+    my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ stories_id } } @{ $stories } ] );
+
+    my $undateable_stories_ids = $db->query( <<SQL );
+select stories_id
+    from stories_tags_map stm
+        join tags t on ( stm.tags_id = t.tags_id )
+        join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
+    where
+        stm.stories_id in ( select id from $ids_table ) and
+        ts.name = 'date_invalid' and
+        t.tag = 'undateable'
+SQL
+}
+
+# return true if the story has been marked as undateable
+sub is_undatable($$)
+{
+    my ( $db, $story ) = @_;
+
+    # do goofy story copy voodoo so that we can reuse add_undateable_to_stories(), which is efficient for many stories
+
+    my $story_copy = { stories_ids => $story->{ stories_id } };
+
+    add_undatable_to_stories( $db, [ $story_copy ] );
+
+    return $story_copy->{ undateable };
 }
 
 my $_date_guess_method_tag_lookup = {};
