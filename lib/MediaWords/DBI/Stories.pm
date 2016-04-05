@@ -1059,35 +1059,30 @@ sub _remove_stopwords_from_stem_vector($$$)
 =head2 get_story_word_matrix_file( $db, $stories_ids, $max_words, $stopword_length )
 
 Given a list of stories_ids, generate a matrix consisting of the vector of word stem counts for each stories_id on each
-line.  Return a list with the name of the file containing the matrix and a list of the word stems represented by each
-position in the vectors.
+line.  Return a hash of story word counts and a list of word stems.
 
-The contents of the file will look like:
+The list of story word counts is in the following format:
+{
+    { <stories_id> =>
+        { <word_id_1> => <count>,
+          <word_id_2 => <count>
+        }
+    },
+    ...
+]
 
-<stories_id_1>,<word_stem_1_count>,<word_stem_2_count>,...
-<stories_id_2>,<word_stem_1_count>,<word_stem_2_count>,...
+The id of each word is the indes of the given word in the word list.  The word list is a list of lists, with each
+member list consisting of the stem followed by the most commonly used term.
 
-The stem list is a list of lists.  The overall list includes the stems in the order that they are specified in each
-line of the csv.  Each individual list includes the stem counted and the most common full word used with that stem
-in the set.
+For example, for stories_ids 1 and 2, both of which contain 4 mentions of 'foo' and 10 of 'bars', the word count
+has and and word list look like:
 
-For example, for stories_ids 1 and 2, both of which contain 4 mentions of 'foo' and 10 of 'bars', the file and list
-looke like:
-
-1,4,10
-2,4,10
+[ { 1 => { 0 => 4, 1 => 10 } }, { 2 => { 0 => 4, 1 => 10 } } ]
 
 [ [ 'foo', 'foo' ], [ 'bar', 'bars' ] ]
 
-The word count at each position in each line will refer to the same word across all stories.  Every line will have the
-same number of items, meaning that every word in any story will be counted for each story.
-
 The story_sentences for each story will be used for word counting. If $max_words is specified, only the most common
 $max_words will be used for each story.
-
-The function is conscious of memory usage: it fetches stories in small batches from the database and writes results
-as they are generated to the file rather than storing everythin in memory.  A second pass is made over the file to pad
-out every line with 0 counts so that every line refers to every word.
 
 If $stopword_length is specified, a stopword list of size 'tiny', 'short', or 'long' is used for each story language.
 
@@ -1097,19 +1092,19 @@ languages supported, see @MediaWords::Langauges::Language::_supported_languages.
 
 =cut
 
-sub get_story_word_matrix_file($$;$$)
+sub get_story_word_matrix($$;$$)
 {
     my ( $db, $stories_ids, $max_words, $stopword_length ) = @_;
 
     my $word_index_lookup   = {};
     my $word_index_sequence = 0;
+    my $word_term_counts    = {};
 
     $db->begin;
     my $sentence_separator = 'SPLITSPLIT';
     my $story_text_cursor = _get_story_word_matrix_cursor( $db, $stories_ids, $sentence_separator );
 
-    my ( $fh, $first_pass_file ) = File::Temp::tempfile();
-
+    my $word_matrix = {};
     while ( my $stories = $db->query( "fetch 100 from $story_text_cursor" )->hashes )
     {
         last unless ( @{ $stories } );
@@ -1122,44 +1117,47 @@ sub get_story_word_matrix_file($$;$$)
 
             _remove_stopwords_from_stem_vector( $stem_counts, $story->{ language }, $stopword_length );
 
-            my $count_pairs = [ map { [ $_, $stem_counts->{ $_ }->[ 0 ] ] } keys( %{ $stem_counts } ) ];
+            my $stem_count_list = [ map { [ $_, @{ $stem_counts->{ $_ } } ] } keys( %{ $stem_counts } ) ];
+
             if ( $max_words )
             {
-                $count_pairs = [ sort { $b->[ 1 ] <=> $a->[ 1 ] } @{ $count_pairs } ];
-                splice( @{ $count_pairs }, 0, $max_words );
+                $stem_count_list = [ sort { $b->[ 1 ] <=> $a->[ 1 ] } @{ $stem_count_list } ];
+                splice( @{ $stem_count_list }, 0, $max_words );
             }
 
             my $stem_vector = {};
-            for my $stem_count ( @{ $count_pairs } )
+            for my $stem_count ( @{ $stem_count_list } )
             {
-                my ( $stem, $count ) = @{ $stem_count };
+                my ( $stem, $count, $terms ) = @{ $stem_count };
 
                 $word_index_lookup->{ $stem } //= $word_index_sequence++;
                 my $index = $word_index_lookup->{ $stem };
 
                 $stem_vector->{ $index } = $count;
+
+                map { $word_term_counts->{ $stem }->{ $_ } += $terms->{ $_ } } keys( %{ $terms } );
             }
 
-            my $line = $story->{ stories_id };
-            map { $line .= ',' . ( $stem_vector->{ $_ } || 0 ) } ( 0 .. $word_index_sequence - 1 );
-
-            $fh->print( "$line\n" );
+            $word_matrix->{ $story->{ stories_id } } = $stem_vector;
         }
     }
 
-    $fh->close();
-
     $db->commit;
 
-    # RESTART - return [ [ $stem, $term ], ... ] version of word_list
     my $word_list = [];
-    map { $word_list->[ $word_index_lookup->{ $_ } ] = $_ } keys( %{ $word_index_lookup } );
+    for my $stem ( keys( %{ $word_index_lookup } ) )
+    {
+        my $term_pairs = [];
+        while ( my ( $term, $count ) = each( %{ $word_term_counts->{ $stem } } ) )
+        {
+            push( @{ $term_pairs }, [ $term, $count ] );
+        }
 
-    my $padded_file = _pad_story_word_matrix_file( $first_pass_file, $word_list );
+        $term_pairs = [ sort { $b->[ 1 ] <=> $a->[ 1 ] } @{ $term_pairs } ];
+        $word_list->[ $word_index_lookup->{ $stem } ] = [ $stem, $term_pairs->[ 0 ]->[ 0 ] ];
+    }
 
-    unlink( $first_pass_file );
-
-    return ( $padded_file, $word_list );
+    return ( $word_matrix, $word_list );
 }
 
 1;

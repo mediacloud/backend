@@ -26,8 +26,9 @@ limit will result in a status 403 error.  Users who need access to more requests
 
 #Python Client
 
-A [Python client]( https://github.com/c4fcm/MediaCloud-API-Client ) for our API is now available. Users who develop in Python will probably find it easier to use this client than to make web requests directly.
-The Python client is available [here]( https://github.com/c4fcm/MediaCloud-API-Client ).
+A [Python client]( https://github.com/c4fcm/MediaCloud-API-Client ) for our API is now available. Users who develop in
+Python will probably find it easier to use this client than to make web requests directly. The Python client is
+available [here]( https://github.com/c4fcm/MediaCloud-API-Client ).
 
 #API URLs
 
@@ -451,7 +452,7 @@ URL: https://api.mediacloud.org/api/v2/stories_public/count?q=sentence:obama&fq=
 
 ```json
 {
-  "count" => 960
+  "count": 960
 }
 ```
 
@@ -463,49 +464,62 @@ URL: https://api.mediacloud.org/api/v2/stories_public/count?q=sentence:obama&fq=
 | ------------------ | ---------------- | ----------------------------------------------------------------
 | `q`                | n/a              | `q` ("query") parameter which is passed directly to Solr
 | `fq`               | `null`           | `fq` ("filter query") parameter which is passed directly to Solr
+| `rows`             | 1000             | number of stories to return from solr, max 100,000
+| `max_words`        | n/a              | max number of non-zero count word stems to return for each story
+| `stopword_length`  | n/a              | if set to 'tiny', 'short', or 'long', eliminate stop word list of that length
 
 The q and fq parameters are passed directly through to Solr (see description of q and fq parameters in
 api/v2/stories_public/list section above).
+
+If stopword_length is specified, eliminate the 'tiny', 'short', or 'long' list of stopwords from the results, if the
+system has stopwords for the language of each story.  Media Cloud currently supports these languages: Danish, German,
+English, Spanish, Finnish, French, Hungarian, Italian, Lithuanian, Dutch, Norwegian, Portuguese, Romanian, Russian,
+Swedish, Turkish.
 
 #### Output Description
 
 | Field                        | Description
 | ---------------------------- | -----------------------------------------------------------------------------
-| matrix_csv                   | a csv with each line including the stories_id and the word counts for a story
-| stem_list                    | the list of word stems counted, in the order used in each line
+| word_matrix                  | a dictionary of stories_ids, each pointing to a dictionary of word counts
+| word_list                    | the list of word stems counted, in the order of the index used for the word counts
 
 
-The call returns a matrix of word counts for the stories returned by the given query.  The matrix_csv field
-includes a csv in the following format:
+The word_matrix is a dictionary with the stories_id as the key and the word count dictionary of as
+the value.  For each word count dictionary, the key is the word index of the word in the word_list and the
+value is the count of the word in that story.
 
-```
-<stories_id_1>,<word_stem_1_count>,<word_stem_2_count>,...
-<stories_id_2>,<word_stem_1_count>,<word_stem_2_count>,...
-```
 
-For example, for stories_ids 1 and 2, both of which contain 4 mentions of 'foo' and 10 of 'bars', the file
-look like:
+The word list is a list of lists.  The overall list includes the stems in the order that is referenced by the
+word index in the word_matrix word count dictionary for each story.  Each individual list member includes the stem
+counted and the most common full word used with that stem in the set.  
 
-```
-1,4,10
-2,4,10
-```
+For the following two stories:
 
-The stem list is a list of lists.  The overall list includes the stems in the order that they are specified in each
-line of the csv.  Each individual list includes the stem counted and the most common full word used with that stem
-in the set.  So in the above example, the stem list would look like:
+story id 1: 'foo bar bars'
+story id 2: 'foo bars foos foo'
+
+the returned data would look like:
 
 ```json
-[
-    [ 'foo', 'foo' ],
-    [ 'bar', 'bars' ]
-]
+{
+	"word_matrix":
+    {
+		"1": {
+			"0": 1,
+			"1": 2
+		},
+		"2": {
+			"0": 3,
+			"1": 1
+		}
+	},
+	"word_list":
+    [
+		["foo", "foo"],
+		["bar", "bars"]
+	]
+}
 ```
-
-
-#### Example
-
-RUN EXAMPLE
 
 ## Sentences
 
@@ -550,7 +564,7 @@ URL: https://api.mediacloud.org/api/v2/sentences/count?q=sentence:obama&fq=media
 
 ```json
 {
-  "count" => 96620
+  "count": 96620
 }
 ```
 
