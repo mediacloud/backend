@@ -26,8 +26,9 @@ limit will result in a status 403 error.  Users who need access to more requests
 
 #Python Client
 
-A [Python client]( https://github.com/c4fcm/MediaCloud-API-Client ) for our API is now available. Users who develop in Python will probably find it easier to use this client than to make web requests directly.
-The Python client is available [here]( https://github.com/c4fcm/MediaCloud-API-Client ).
+A [Python client]( https://github.com/c4fcm/MediaCloud-API-Client ) for our API is now available. Users who develop in
+Python will probably find it easier to use this client than to make web requests directly. The Python client is
+available [here]( https://github.com/c4fcm/MediaCloud-API-Client ).
 
 #API URLs
 
@@ -438,7 +439,8 @@ Return a stream of all stories from The New York Times mentioning `'obama'` grea
 | `q`                | n/a              | `q` ("query") parameter which is passed directly to Solr
 | `fq`               | `null`           | `fq` ("filter query") parameter which is passed directly to Solr
 
-The q and fq parameters are passed directly through to Solr (see description of q and fq parameters in api/v2/stories_public/list section above).
+The q and fq parameters are passed directly through to Solr (see description of q and fq parameters in
+api/v2/stories_public/list section above).
 
 The call returns the number of stories returned by Solr for the specified query.
 
@@ -450,7 +452,72 @@ URL: https://api.mediacloud.org/api/v2/stories_public/count?q=sentence:obama&fq=
 
 ```json
 {
-  "count" => 960
+  "count": 960
+}
+```
+
+### api/v2/stories_public/word_matrix
+
+#### Query Parameters
+
+| Parameter          | Default          | Notes
+| ------------------ | ---------------- | ----------------------------------------------------------------
+| `q`                | n/a              | `q` ("query") parameter which is passed directly to Solr
+| `fq`               | `null`           | `fq` ("filter query") parameter which is passed directly to Solr
+| `rows`             | 1000             | number of stories to return from solr, max 100,000
+| `max_words`        | n/a              | max number of non-zero count word stems to return for each story
+| `stopword_length`  | n/a              | if set to 'tiny', 'short', or 'long', eliminate stop word list of that length
+
+The q and fq parameters are passed directly through to Solr (see description of q and fq parameters in
+api/v2/stories_public/list section above).
+
+If stopword_length is specified, eliminate the 'tiny', 'short', or 'long' list of stopwords from the results, if the
+system has stopwords for the language of each story.  Media Cloud currently supports these languages: Danish, German,
+English, Spanish, Finnish, French, Hungarian, Italian, Lithuanian, Dutch, Norwegian, Portuguese, Romanian, Russian,
+Swedish, Turkish.
+
+#### Output Description
+
+| Field                        | Description
+| ---------------------------- | -----------------------------------------------------------------------------
+| word_matrix                  | a dictionary of stories_ids, each pointing to a dictionary of word counts
+| word_list                    | the list of word stems counted, in the order of the index used for the word counts
+
+
+The word_matrix is a dictionary with the stories_id as the key and the word count dictionary of as
+the value.  For each word count dictionary, the key is the word index of the word in the word_list and the
+value is the count of the word in that story.
+
+
+The word list is a list of lists.  The overall list includes the stems in the order that is referenced by the
+word index in the word_matrix word count dictionary for each story.  Each individual list member includes the stem
+counted and the most common full word used with that stem in the set.  
+
+For the following two stories:
+
+story id 1: 'foo bar bars'
+story id 2: 'foo bars foos foo'
+
+the returned data would look like:
+
+```json
+{
+	"word_matrix":
+    {
+		"1": {
+			"0": 1,
+			"1": 2
+		},
+		"2": {
+			"0": 3,
+			"1": 1
+		}
+	},
+	"word_list":
+    [
+		["foo", "foo"],
+		["bar", "bars"]
+	]
 }
 ```
 
@@ -497,7 +564,7 @@ URL: https://api.mediacloud.org/api/v2/sentences/count?q=sentence:obama&fq=media
 
 ```json
 {
-  "count" => 96620
+  "count": 96620
 }
 ```
 

@@ -131,7 +131,7 @@ sub blank_dup_lines
 
 # parse the text and return a count of stems and terms in the sentence in the
 # following format:
-# { $stem => { count => $stem_count, terms => { $term => $term_count } } }
+# { $stem => [ $stem_count, { $term => $term_count, ... } ] }
 #
 # this function is where virtually all of the time in the script is spent, and
 # had been carefully tuned, so do not change anything without testing performance

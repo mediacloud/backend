@@ -352,6 +352,18 @@ sub get_long_stop_word_stems
     return $self->cached_long_stop_word_stems;
 }
 
+# return stop word stems of $length 'tiny', 'short', or 'long'.  die if the $length is unsupported
+sub get_stop_word_stems($)
+{
+    my ( $self, $length ) = @_;
+
+    return $self->get_tiny_stop_word_stems  if ( $length eq 'tiny' );
+    return $self->get_short_stop_word_stems if ( $length eq 'short' );
+    return $self->get_long_stop_word_stems  if ( $length eq 'long' );
+
+    die( "Unknown stop word length '$length'" );
+}
+
 sub get_noise_strings_regex
 {
     my $self = shift;
