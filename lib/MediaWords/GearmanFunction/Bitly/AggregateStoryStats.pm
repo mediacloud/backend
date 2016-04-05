@@ -77,7 +77,7 @@ EOF
         $stories_id, $total_click_count
     );
 
-    say STDERR "Adding story $stories_id to Solr (re)import queue...";
+    # say STDERR "Adding story $stories_id to Solr (re)import queue...";
     $db->query(
         <<EOF,
         INSERT INTO solr_import_extra_stories (stories_id)
