@@ -8,18 +8,18 @@
 This document describes API calls for administrative users. These calls are intended for users running their own install of Media Cloud.
 Users of the mediacloud.org API should refer instead to the Media Cloud API 2.0 Spec.
 
-Please refer to the Media Cloud Api spec for general information on how requests should be constructed. 
+Please refer to the Media Cloud Api spec for general information on how requests should be constructed.
 Because the functionality of the admin api is largely a superset of the regular API, we do not include duplicative information in that document.
 
 ## Stories
 
-A story represents a single published piece of content.  Each unique URL downloaded from any syndicated feed within 
-a single media source is represented by a single story.  For example, a single New York Times newspaper story is a 
-Media Cloud story, as is a single Instapundit blog post.  Only one story may exist for a given title for each 24 hours 
+A story represents a single published piece of content.  Each unique URL downloaded from any syndicated feed within
+a single media source is represented by a single story.  For example, a single New York Times newspaper story is a
+Media Cloud story, as is a single Instapundit blog post.  Only one story may exist for a given title for each 24 hours
 within a single media source.
 
-The `story_text` of a story is either the content of the description field in the syndicated field or the extracted 
-text of the content downloaded from the story's URL at the `collect_date`, depending on whether our full text RSS 
+The `story_text` of a story is either the content of the description field in the syndicated field or the extracted
+text of the content downloaded from the story's URL at the `collect_date`, depending on whether our full text RSS
 detection system has determined that the full text of each story can be found in the RSS of a given media source.
 
 ### Output description
@@ -42,12 +42,12 @@ The following table describes the meaning and origin of fields returned by the a
 | `api/v2/stories/single/<stories_id>` | Return the story for which `stories_id` equals `<stories_id>`
 
 ### api/v2/stories/list
-  
+
 | URL                             | Function
 | ------------------------------- | ---------------------------------
 | `api/v2/stories/list` | Return multiple processed stories
 
-#### Query Parameters 
+#### Query Parameters
 
 | Parameter                    | Default | Notes
 | ---------------------------- | ------- | ------------------------------------------------------------------------------
@@ -61,16 +61,16 @@ The following table describes the meaning and origin of fields returned by the a
 | `fq`                         | null    | If specified, filter results by the given Solr query.  More than one `fq` parameter may be included.
 
 
-The `last_processed_stories_id` parameter can be used to page through these results. The API will return stories with a 
-`processed_stories_id` greater than this value.  To get a continuous stream of stories as they are processed by Media Cloud, 
-the user must make a series of calls to api/v2/stories/list in which `last_processed_stories_id` for each 
+The `last_processed_stories_id` parameter can be used to page through these results. The API will return stories with a
+`processed_stories_id` greater than this value.  To get a continuous stream of stories as they are processed by Media Cloud,
+the user must make a series of calls to api/v2/stories/list in which `last_processed_stories_id` for each
 call is set to the `processed_stories_id` of the last story in the previous call to the API.
 
 *Note:* `stories_id` and `processed_stories_id` are separate values. The order in which stories are processed is different than the `stories_id` order. The processing pipeline involves downloading, extracting, and vectoring stories. Requesting by the `processed_stories_id` field guarantees that the user will receive every story (matching the query criteria if present) in
 the order it is processed by the system.
 
 The `q` and `fq` parameters specify queries to be sent to a Solr server that indexes all Media Cloud stories.  The Solr
-server provides full text search indexing of each sentence collected by Media Cloud.  All content is stored as individual 
+server provides full text search indexing of each sentence collected by Media Cloud.  All content is stored as individual
 sentences.  The api/v2/stories/list call searches for sentences matching the `q` and / or `fq` parameters if specified and
 the stories that include at least one sentence returned by the specified query. **Refer to the stories_public/list access point in the
 Media Cloud API 2.0 Spec for a more detailed description of the `q` and `fq` parameters.
@@ -79,18 +79,93 @@ Media Cloud API 2.0 Spec for a more detailed description of the `q` and `fq` par
 
 The output of these calls is in exactly the same format as for the api/v2/stories/single call.
 
-URL: http://www.mediacloud.org/api/v2/stories/list?last_processed_stories_id=8625915
+URL: https://api.mediacloud.org/api/v2/stories/list?last_processed_stories_id=8625915
 
 Return a stream of all stories processed by Media Cloud, greater than the `last_processed_stories_id`.
 
-URL: http://www.mediacloud.org/api/v2/stories/list?last_processed_stories_id=2523432&q=sentence:obama+AND+media_id:1
+URL: https://api.mediacloud.org/api/v2/stories/list?last_processed_stories_id=2523432&q=sentence:obama+AND+media_id:1
 
 Return a stream of all stories from The New York Times mentioning `'obama'` greater than the given `last_processed_stories_id`.
+
+### api/v2/stories/cluster_stories
+
+| URL                                  | Function
+| ------------------------------------ | ------------------------------------------------------
+| `api/v2/stories/cluster_stories`     | return a set of stories matching a query, clustered by title content
+
+#### Query Parameters
+
+| Parameter                    | Default | Notes
+| ---------------------------- | ------- |---------------------------------------------------------------------
+| `q`                          | n/a     | solr query on title
+| `fq`                         | n/a     | solr filter query on title
+| `rows`                       | 1000    | max number of stories to return, max 100,000
+
+This call will query stories from solr and return them in a set of clusters.  The query and the clustering work
+only on titles, so only stories with a title matching the query will be returned, and the clustering will be
+based only on the titles.
+
+Stories are sorted by bitly_click_count before being returned, so the top stories by bitly_click_count will be
+returned.
+
+#### Example
+
+The following call returns the top 1000 stories by bitly clicks mentioning "climate change" in the Top U.S.
+Online News media set, clustered by title language.
+
+URL: https://api.mediacloud.org/api/v2/stories/cluster_stories?rows=10&q="climate change" AND tags_id_media:9139487
+
+```json
+[
+    {
+        "label": "Fight Climate Change",
+        "score": 44.6188783569737,
+        "stories":
+        [
+            {
+                "stories_id": "429909072",
+                "url": "http://feeds.latimes.com/~r/latimes/entertainment/news/tv/~3/MHNHmy9K5a4/la-et-mn-oscars-leonardo-dicaprio-revenant-climate-change-20160229-story.html",
+                "language": "en",
+                "media_id": 6,
+                "media_url": "http://www.latimes.com/",
+                "media_name": "LA Times",
+                "title": "Leonardo DiCaprio ties his work in 'The Revenant' to a greater cause -- fighting climate change",
+                "bitly_clicks": 1003,
+                "publish_date": "2016-02-29 01:35:00"
+            },
+            {
+                "media_id": 1096,
+                "language": "en",
+                "url": "http://www.npr.org/sections/thetwo-way/2016/03/10/469948109/u-s-canada-announce-shared-goals-for-fighting-climate-change?utm_medium=RSS&utm_campaign=news",
+                "stories_id": "433656504",
+                "media_url": "http://www.npr.org/",
+                "publish_date": "2016-03-10 14:33:00",
+                "bitly_clicks": 778,
+                "title": "U.S., Canada Announce Shared Goals For Fighting Climate Change",
+                "media_name": "NPR : National Public Radio"
+            },        
+            ...
+        ]
+    },
+    {
+        "label": "Climate Change Makes",
+        "score": 43.2730871897035,
+        "stories": [ ... ]
+    },
+    {
+        "label": "Taking a call for Climate Change",
+        "score": 42.5460916217626,
+        "stories": [ ... ]
+    },
+    ...
+]
+```
+
 
 ## Sentences
 
 The `story_text` of every story processed by Media Cloud is parsed into individual sentences.  Duplicate sentences within
-the same media source in the same week are dropped (the large majority of those duplicate sentences are 
+the same media source in the same week are dropped (the large majority of those duplicate sentences are
 navigational snippets wrongly included in the extracted text by the extractor algorithm).
 
 ### api/v2/sentences/list
@@ -114,7 +189,7 @@ one of the listed above and determines the order of the sentences returned.
 
 Fetch 10 sentences containing the word 'obama' from The New York Times
 
-URL:  http://www.mediacloud.org/api/v2/sentences/list?q=sentence:obama&rows=10&fq=media_id:1
+URL:  https://api.mediacloud.org/api/v2/sentences/list?q=sentence:obama&rows=10&fq=media_id:1
 
 ```json
 {
@@ -234,7 +309,7 @@ URL:  http://www.mediacloud.org/api/v2/sentences/list?q=sentence:obama&rows=10&f
 
 The provides access to the downloads table.
 
-**Note:** Downloads are an internal implementation detail. Most users will be better served by interacting with the API at the story level and should not use this access point. 
+**Note:** Downloads are an internal implementation detail. Most users will be better served by interacting with the API at the story level and should not use this access point.
 
 The fields of the returned objects include all fields in the downloads table within Postgresql plus 'raw_content' which contains the raw html is the download was successful. (If the download was not successful 'raw_content' is omitted.
 
@@ -283,12 +358,12 @@ include this parameter multiple times.  A single call can include multiple stori
 are encouraged to batch writes for multiple stories into a single call to avoid the web server overhead of many small
 web service calls.
 
-The `story_tag` parameter consists of the `stories_id` and the tag information, separated by a comma.  The tag part of 
+The `story_tag` parameter consists of the `stories_id` and the tag information, separated by a comma.  The tag part of
 the parameter value can be in one of two formats -- either the `tags_id` of the tag or the tag set name and tag
 in `<tag set>:<tag>` format, for example `gv_country:japan`.
-    
-If the tag is specified in the latter format and the given tag set does not exist, a new tag set with that 
-name will be created by the current user.  If the tag does not exist, a new tag will be created 
+
+If the tag is specified in the latter format and the given tag set does not exist, a new tag set with that
+name will be created by the current user.  If the tag does not exist, a new tag will be created
 within the given tag set.
 
 A user may only write put tags (or create new tags) within a tag set for which they have permission.
@@ -301,7 +376,7 @@ Add tag ID 5678 to story ID 1234.
 curl -X PUT -d story_tag=1234,5678 http://api.mediacloud.org/api/v2/stories/put_tags
 ```
 
-Add the `gv_country:japan` and the `gv_country:brazil` tags to story 1234 and the `gv_country:japan` tag to 
+Add the `gv_country:japan` and the `gv_country:brazil` tags to story 1234 and the `gv_country:japan` tag to
 story 5678.
 
 ```
@@ -314,20 +389,20 @@ curl -X PUT -d story_tag=1234,gv_country:japan -d story_tag=1234,gv_country:braz
 | ------------------------------------ | -----------------------------------------------------------
 | `api/v2/sentences/put_tags`          | Add tags to a story sentence. Must be a PUT request.
 
-#### Query Parameters 
+#### Query Parameters
 
 | Parameter            | Notes
 | -------------------- | --------------------------------------------------------------------------
 | `sentence_tag`       | The `story_sentences_id` and associated tag in `story_sentences_id,tag` format.  Can be specified more than once.
 
 The format of the sentences write back call is the same as for the stories write back call above, but with the `story_sentences_id`
-substituted for the `stories_id`.  As with the stories write back call, users are strongly encouraged to 
+substituted for the `stories_id`.  As with the stories write back call, users are strongly encouraged to
 included multiple sentences (including sentences for multiple stories) in a single call to avoid
 web service overhead.
 
 #### Example
 
-Add the `gv_country:japan` and the `gv_country:brazil` tags to story sentence 12345678 and the `gv_country:japan` tag to 
+Add the `gv_country:japan` and the `gv_country:brazil` tags to story sentence 12345678 and the `gv_country:japan` tag to
 story sentence 56781234.
 
 ```
@@ -340,7 +415,7 @@ curl -X PUT -d sentence_tag=12345678,gv_country:japan -d sentence_tag=12345678,g
 | ------------------------------------ | -----------------------------------------------------------
 | `api/v2/tags/update/<tags_id`        | Alter the tag in which `tags_id` equals `<tags_id>`
 
-#### Query Parameters 
+#### Query Parameters
 
 | Parameter            | Notes
 | -------------------- | --------------------------------------------------------------------------
@@ -360,7 +435,7 @@ curl -X PUT -d 'tag=test_tagXX' -d 'label=YY' -d 'description=Bfoo' http://api.m
 | ------------------------------------  | -----------------------------------------------------------
 | `api/v2/tag_sets/update/<tag_sets_id` | Alter the tag set in which `tag_sets_id` equals `<tag_sets_id>`
 
-#### Query Parameters 
+#### Query Parameters
 
 | Parameter            | Notes
 | -------------------- | --------------------------------------------------------------------------
@@ -391,14 +466,13 @@ These permissions are described below:
 
 #### Granting Permissions
 
-Tag set permissions must be explicitly granted to users in the administrative backend UI. 
+Tag set permissions must be explicitly granted to users in the administrative backend UI.
 To grant user permissions go to  https://core.mediacloud.org/admin/users/list and click the Edit Tag Set Permissions link for that user.
 
 Do to the importance of tags and the potential for confusion and accidential misuse, permissions must be explicitly granted on a per user basis by administrators. With the exception of user name tag sets (see below), the default is for users to have no tag set permissions that have not been explicitly granted.
 
 #### Exceptions - user name tag sets
 
-If the name of the tag_set matches the user's email address, they will be granted all 4 of the permissions above for that tag set.  For example, a user with the email address jdoe@mediacloud.org would be able to 
+If the name of the tag_set matches the user's email address, they will be granted all 4 of the permissions above for that tag set.  For example, a user with the email address jdoe@mediacloud.org would be able to
 
 Note that this exception is based purely on a string comparison of the tag set name with the user's email. Thus if a user creates a tag set that matched their email address, they will be able to alter this tag set and its tags. However, if the user changes the name of the tag_set, through a call to api/v2/tag_sets/update, so that it no longer matches their email address, they will no longer have permissions for this tag set unless they have been explicitly given access in the administrative backend.
-
