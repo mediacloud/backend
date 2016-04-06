@@ -32,7 +32,7 @@ Catalyst Controller.
 
 =cut
 
-=head2 index 
+=head2 index
 
 =cut
 
@@ -44,6 +44,7 @@ __PACKAGE__->config(
         list_GET           => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
         put_tags_PUT       => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
         fetch_bitly_clicks => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        cluster_stories    => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
@@ -118,7 +119,7 @@ sub corenlp : Local
     for my $stories_id ( keys( %{ $json_list } ) )
     {
         my $json_item = <<"END";
-{ 
+{
   "stories_id": $stories_id,
   "corenlp": $json_list->{ $stories_id }
 }
@@ -238,6 +239,32 @@ sub fetch_bitly_clicks : Local
     $c->response->content_type( 'application/json; charset=UTF-8' );
     $c->response->content_length( bytes::length( $json ) );
     $c->response->body( $json );
+}
+
+sub cluster_stories : Local : ActionClass('REST')
+{
+
+}
+
+sub cluster_stories_GET : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my $q    = $c->req->params->{ q };
+    my $fq   = $c->req->params->{ fq };
+    my $rows = $c->req->params->{ rows } || 1000;
+
+    die( "must specify either 'q' or 'fq' param" ) unless ( $q || $fq );
+
+    $rows = List::Util::min( $rows, 100_000 );
+
+    my $solr_params = { q => $q, fq => $fq, rows => $rows, sort => 'bitly_click_count desc' };
+
+    my $clusters = MediaWords::Solr::query_clustered_stories( $db, $solr_params, $c );
+
+    $self->status_ok( $c, entity => $clusters );
 }
 
 =head1 AUTHOR
