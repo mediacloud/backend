@@ -686,11 +686,18 @@ sub query_clustered_stories($$;$)
 {
     my ( $db, $params, $c ) = @_;
 
-    $params->{ 'clustering.engine' } = 'lingo';
-
     # restrict to titles only
     $params->{ q } = $params->{ q } ? "( $params->{ q } ) and story_sentences_id:0" : "story_sentences_id:0";
     $params->{ df } = 'title';
+
+    $params->{ rows } ||= 1000;
+
+    # lingo clustering configuration - generated using carrot2-workbench; generally these are asking the engine
+    # to give us fewer, bigger clusters
+    $params->{ 'clustering.engine' }                                = 'lingo';
+    $params->{ 'DocumentAssigner.minClusterSize' }                  = List::Util::min( int( log( $params->{ rows } ) ), 10 );
+    $params->{ 'LingoClusteringAlgorithm.clusterMergingThreshold' } = 0.5;
+    $params->{ 'LingoClusteringAlgorithm.desiredClusterCountBase' } = 10;
 
     my $response = query( $db, $params, $c );
 
