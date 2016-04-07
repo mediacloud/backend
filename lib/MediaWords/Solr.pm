@@ -694,7 +694,7 @@ sub query_clustered_stories($$;$)
 
     # lingo clustering configuration - generated using carrot2-workbench; generally these are asking the engine
     # to give us fewer, bigger clusters
-    my $min_cluster_size = int( log( $params->{ row } ) / log( 2 ) ) + 1;
+    my $min_cluster_size = int( log( $params->{ rows } ) / log( 2 ) ) + 1;
 
     $params->{ 'clustering.engine' }                                = 'lingo';
     $params->{ 'DocumentAssigner.minClusterSize' }                  = $min_cluster_size;
