@@ -260,7 +260,7 @@ sub cluster_stories_GET : Local
 
     $rows = List::Util::min( $rows, 100_000 );
 
-    my $solr_params = { q => $q, fq => $fq, rows => $rows, sort => 'bitly_click_count desc' };
+    my $solr_params = { q => $q, fq => $fq, rows => $rows };
 
     my $clusters = MediaWords::Solr::query_clustered_stories( $db, $solr_params, $c );
 

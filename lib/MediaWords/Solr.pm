@@ -692,6 +692,8 @@ sub query_clustered_stories($$;$)
 
     $params->{ rows } ||= 1000;
 
+    $params->{ sort } ||= 'bitly_click_count desc';
+
     # lingo clustering configuration - generated using carrot2-workbench; generally these are asking the engine
     # to give us fewer, bigger clusters
     my $min_cluster_size = int( log( $params->{ rows } ) / log( 2 ) ) + 1;
