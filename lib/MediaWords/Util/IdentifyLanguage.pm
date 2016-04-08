@@ -203,44 +203,7 @@ sub language_code_for_text($;$$)
 {
     my ( $text, $tld, $is_html ) = @_;
 
-    unless ( $text )
-    {
-        my ( $text, $tld, $is_html ) = @_;
-
-        $is_html = $is_html ? 1 : 0;
-
-        my $language_name;
-
-        if ( defined $tld and $tld )
-        {
-            $tld = lc( $tld );
-            $language_name = $cld->identify( $text, tld => $tld, isPlainText => ( !$is_html ), allowExtendedLanguages => 0 );
-        }
-        else
-        {
-            $language_name = $cld->identify( $text, isPlainText => ( !$is_html ), allowExtendedLanguages => 0 );
-        }
-
-        $language_name = lc( $language_name );
-
-        my $language_id = '';
-        if ( $language_name eq 'unknown' || $language_name eq 'tg_unknown_language' || ( !$language_name ) )
-        {
-
-            # Oh well.
-            return '';
-
-        }
-
-        unless ( exists( $language_names_to_codes{ $language_name } ) )
-        {
-            say STDERR "Language '$language_name' was identified but is not mapped, please add this language " .
-              "to %language_names_to_codes hashmap.\n";
-            return '';
-        }
-
-        return $language_names_to_codes{ $language_name };
-    }
+    return '' unless ( $text );
 
     # Lingua::Identify::CLD doesn't like undef TLDs
     $tld ||= '';
