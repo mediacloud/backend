@@ -393,6 +393,34 @@ sub index : Path : Args(0)
     }
 }
 
+# print clustered query results
+sub clusters : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $q = $c->req->params->{ q };
+
+    if ( !$q )
+    {
+        $c->stash->{ template } = 'search/clusters.tt2';
+        return;
+    }
+
+    if ( $q =~ /story_sentences_id|sentence_number/ )
+    {
+        die( "searches by sentence not allowed" );
+    }
+
+    my $clusters = MediaWords::Solr::query_clustered_stories( $c->dbis, { q => $q }, $c );
+
+    _stash_wc_query_params( $c );
+
+    return if ( _return_recognized_query_error( $c, $@ ) );
+
+    $c->stash->{ clusters } = $clusters;
+    $c->stash->{ template } = 'search/clusters.tt2';
+}
+
 # print word cloud of search results
 sub wc : Local
 {

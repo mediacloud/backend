@@ -234,7 +234,9 @@ sub query_encoded_json($$;$)
     # Ensure that only UTF-8 strings get passed to Solr
     my $encoded_params = MediaWords::Util::Text::recursively_encode_to_utf8( $params );
 
-    my $url = sprintf( '%s/%s/select', get_solr_url(), get_live_collection( $db ) );
+    my $url_action = $params->{ 'clustering.engine' } ? 'clustering' : 'select';
+
+    my $url = sprintf( '%s/%s/%s', get_solr_url(), get_live_collection( $db ), $url_action );
 
     my $ua = MediaWords::Util::Web::UserAgent;
 
@@ -651,7 +653,7 @@ sub search_for_media_ids ($$)
     return $media_ids;
 }
 
-=head2 search_for_media
+=head2 search_for_media( $db, $params )
 
 Query postgres for media.* for all media matching the ids returned by search_for_media_ids().
 
@@ -672,6 +674,84 @@ sub search_for_media ($$)
     $db->commit;
 
     return $media;
+}
+
+=head2 query_clustered_stories ( $db, $params )
+
+Run a solr query and return a list of stories arranger into clusters by solr
+
+=cut
+
+sub query_clustered_stories($$;$)
+{
+    my ( $db, $params, $c ) = @_;
+
+    # restrict to titles only
+    $params->{ q } = $params->{ q } ? "( $params->{ q } ) and story_sentences_id:0" : "story_sentences_id:0";
+    $params->{ df } = 'title';
+
+    $params->{ rows } ||= 1000;
+
+    $params->{ sort } ||= 'bitly_click_count desc';
+
+    # lingo clustering configuration - generated using carrot2-workbench; generally these are asking the engine
+    # to give us fewer, bigger clusters
+    my $min_cluster_size = int( log( $params->{ rows } ) / log( 2 ) ) + 1;
+
+    $params->{ 'clustering.engine' }                                = 'lingo';
+    $params->{ 'DocumentAssigner.minClusterSize' }                  = $min_cluster_size;
+    $params->{ 'LingoClusteringAlgorithm.clusterMergingThreshold' } = 0.5;
+    $params->{ 'LingoClusteringAlgorithm.desiredClusterCountBase' } = 10;
+
+    my $response = query( $db, $params, $c );
+
+    for my $cluster ( @{ $response->{ clusters } } )
+    {
+        $cluster->{ stories_ids } = [ map { $_ =~ s/\!.*//; $_ } @{ $cluster->{ docs } } ];
+    }
+
+    my $all_stories_ids = [];
+    map { push( @{ $all_stories_ids }, @{ $_->{ stories_ids } } ) } @{ $response->{ clusters } };
+
+    my $ids_table   = $db->get_temporary_ids_table( $all_stories_ids );
+    my $all_stories = $db->query( <<SQL )->hashes;
+select s.stories_id, s.publish_date, s.title, s.url,
+        m.media_id, m.name media_name, m.url media_url, language,
+        coalesce( b.click_count, 0 ) bitly_clicks
+    from stories s
+        join media m on ( s.media_id = m.media_id )
+        left join bitly_clicks_total b on ( s.stories_id = b.stories_id )
+    where s.stories_id in ( select id from $ids_table )
+SQL
+
+    my $stories_lookup = {};
+    map { $stories_lookup->{ $_->{ stories_id } } = $_ } @{ $all_stories };
+
+    my $clusters = [];
+    for my $cluster ( @{ $response->{ clusters } } )
+    {
+        my $cluster_stories = [];
+        for my $stories_id ( @{ $cluster->{ stories_ids } } )
+        {
+            my $story = $stories_lookup->{ $stories_id } || die( "can't find story for stories_id '$stories_id'" );
+            push( @{ $cluster_stories }, $story );
+        }
+
+        $cluster_stories = [ sort { $b->{ bitly_clicks } <=> $a->{ bitly_clicks } } @{ $cluster_stories } ];
+
+        push(
+            @{ $clusters },
+            {
+                label   => join( ' / ', @{ $cluster->{ labels } } ),
+                score   => $cluster->{ score },
+                stories => $cluster_stories
+            }
+        );
+    }
+
+    $clusters = [ sort { $b->{ score } <=> $a->{ score } } @{ $clusters } ];
+
+    return $clusters;
 }
 
 1;

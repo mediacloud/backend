@@ -21,7 +21,7 @@ MediaWords::CM::Dump - Dump and analyze controversy data
     my $dump_stories = $db->query( "select * from dump_stories" )->hashes;
 
     # get csv dump
-    my $media_csv = MediaWords::CM::Dump::get_dump_media_csv( $db, $cdts );
+    my $media_csv = MediaWords::CM::Dump::get_media_csv( $db, $cdts );
 
     MediaWords::CM::Dump::discard_temp_tables( $db );
 

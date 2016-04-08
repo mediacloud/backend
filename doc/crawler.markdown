@@ -18,5 +18,5 @@ the following fields (among many others) that help control the flow of the crawl
 | state | fetching, pending, success, error | state of the downloads in the crawling process
 | type  | content, feed                     | is the download a feed (feed) or story (content)?
 
-Follow the above links to the individual modules for detailed documentatino about the provider, engine, fetcher, and
+Follow the above links to the individual modules for detailed documentation about the provider, engine, fetcher, and
 handler modules.

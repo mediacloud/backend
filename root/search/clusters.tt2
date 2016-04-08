@@ -1,0 +1,58 @@
+[% title = 'Search: Clusters' %]
+[% IF q %]
+    [% title = title _ ' for ' _ q %]
+[% END %]
+
+[% INCLUDE include/header.tt2 %]
+
+<fieldset>
+
+    [% search_url = c.uri_for( "/search/clusters" ) %]
+    <form method="get" action="[% search_url | html %]">
+        Query: <input type="text" name="q" size="96" value="[% q | html %]" />
+        Languages: <input type="text" name="languages" size="32" value="[% languages | html %]" /><br />
+        <input type="submit" name="submit" value="Go" />
+    </form>
+    <p>
+        <a href="[% c.uri_for( '/search' ) %]">Search stories</a> |
+        <a href="[% c.uri_for( '/search/readme' ) %]">Query instructions</a> |
+        <a href="[% c.uri_for( '/search/tags' ) | html %]">List available media tags</a>
+    </p>
+
+</fieldset>
+
+[% IF q %]
+    <br />
+    <div class="boxtitle">
+        Clusters (first 5 stories shown)
+    </div>
+    <table>
+        <tr>
+            <th>cluster</th>
+            <th>size</th>
+            <th>stories_id</th>
+            <th>bitly_clicks</a>
+            <th>medium</th>
+            <th>title</th>
+        </tr>
+
+
+    [% FOREACH cluster IN clusters %]
+            [% FOREACH story IN cluster.stories.slice( 0, 4 ) %]
+                <tr>
+                    <td><b>[% cluster.label | html %]</b></td>
+                    <td>[% cluster.stories.size %]</td>
+                    <td>[% story.stories_id %]</td>
+                    <td>[% story.bitly_clicks %]</td>
+                    <td>[% story.media_name | truncate( 32 ) | html %]</td>
+                    <td><a href="[% story.url %] | html">[% story.title | truncate( 128 ) | html %]</a></td>
+                </tr>
+            [% END %]
+            <tr><td colspan="6">&nbsp;</td></tr>
+    [% END %]
+
+    </table>
+
+[% END %]
+
+[% INCLUDE include/footer.tt2 %]

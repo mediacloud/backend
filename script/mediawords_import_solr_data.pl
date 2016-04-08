@@ -49,7 +49,7 @@ sub main
             print STDERR "deleting all stories ...\n";
             MediaWords::Solr::Dump::delete_all_sentences( $staging ) || die( "delete all sentences failed." );
         }
-        MediaWords::Solr::Dump::import_csv_files( [ @ARGV ], $delta, $staging, $jobs );
+        MediaWords::Solr::Dump::import_csv_files( [ @ARGV ], $staging, $jobs );
     }
     else
     {

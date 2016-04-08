@@ -43,8 +43,9 @@ create table database_variables (
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
 
-    -- Database schema version number. Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4529;
+    -- Database schema version number (same as a SVN revision number)
+    -- Increase it by 1 if you make major database schema changes.
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4530;
 
 BEGIN
 
@@ -1771,6 +1772,7 @@ create table controversy_stories (
 );
 
 create unique index controversy_stories_sc on controversy_stories ( stories_id, controversies_id );
+create index controversy_stories_controversy on controversy_stories( controversies_id );
 
 -- no foreign key constraints on controversies_id and stories_id because
 --   we have the combined foreign key constraint pointing to controversy_stories
@@ -2828,7 +2830,7 @@ CREATE TABLE auth_users_roles_map (
 CREATE INDEX auth_users_roles_map_auth_users_id_auth_roles_id
     ON auth_users_roles_map (auth_users_id, auth_roles_id);
 
--- Roles
+-- Authentication roles (keep in sync with MediaWords::DBI::Auth::Roles)
 INSERT INTO auth_roles (role, description) VALUES
     ('admin', 'Do everything, including editing users.'),
     ('admin-readonly', 'Read access to admin interface.'),

@@ -989,7 +989,7 @@ this function (generate_and_import_data() below takes care to do this correctly)
 
 =cut
 
-sub import_csv_files
+sub import_csv_files($$$)
 {
     my ( $files, $staging, $jobs ) = @_;
 
@@ -1195,7 +1195,8 @@ sub _stories_queue_is_small
 Generate and import dump.  If $delta is true, generate delta dump since beginning of last full or delta dump.  If $delta
 is true, delete all solr data after generating dump and before importing.
 
-Keep rerunning the function until there are less than 100k jobs left in the solr_import_extra_stories queue.
+Keep rerunning the function until there are less than 100k jobs left in the solr_import_extra_stories queue, or until
+loop has run 100 times (the process has some memory leaks, so it should be restarted periodically).
 
 Run $jobs parallel jobs for the csv dump and for the solr import.
 
@@ -1213,52 +1214,54 @@ sub generate_and_import_data
 
     die( "refusing to delete maybe production solr" ) if ( $delete && _maybe_production_solr( $db ) );
 
-    my $dump_file = _get_dump_file();
+    my $i = 0;
 
-    _mark_import_date( $db );
-
-    print STDERR "generating dump ...\n";
-    my $dump = print_csv_to_file( $db, $dump_file, $jobs, $delta ) || die( "dump failed." );
-
-    my $stories_ids = $dump->{ stories_ids };
-    my $dump_files  = $dump->{ files };
-
-    if ( $delta )
+    while ()
     {
-        print STDERR "deleting updated stories ...\n";
-        delete_stories( $stories_ids, $staging ) || die( "delete stories failed." );
-    }
-    elsif ( $delete )
-    {
-        print STDERR "deleting all stories ...\n";
-        delete_all_sentences( $staging ) || die( "delete all sentences failed." );
-    }
 
-    _solr_request( 'update', { 'commit' => 'true' }, $staging );
+        my $dump_file = _get_dump_file();
 
-    print STDERR "importing dump ...\n";
-    import_csv_files( $dump_files, $staging, $jobs ) || die( "import failed." );
+        _mark_import_date( $db );
 
-    # have to reconnect becaue import_csv_files may have forked, ruining existing db handles
-    $db = MediaWords::DB::connect_to_db;
+        print STDERR "generating dump ...\n";
+        my $dump = print_csv_to_file( $db, $dump_file, $jobs, $delta ) || die( "dump failed." );
 
-    _save_import_date( $db, $delta, $stories_ids );
-    _delete_stories_from_import_queue( $db, $delta, $stories_ids );
+        my $stories_ids = $dump->{ stories_ids };
+        my $dump_files  = $dump->{ files };
 
-    # if we're doing a full import, do a delta to catchup with the data since the start of the import
-    if ( !$delta )
-    {
-        generate_and_import_data( 1, 0, $staging );
-    }
+        if ( $delta )
+        {
+            print STDERR "deleting updated stories ...\n";
+            delete_stories( $stories_ids, $staging ) || die( "delete stories failed." );
+        }
+        elsif ( $delete )
+        {
+            print STDERR "deleting all stories ...\n";
+            delete_all_sentences( $staging ) || die( "delete all sentences failed." );
+        }
 
-    _solr_request( 'update', { 'commit' => 'true' }, $staging );
+        _solr_request( 'update', { 'commit' => 'true' }, $staging );
 
-    map { unlink( $_ ) } @{ $dump_files };
+        print STDERR "importing dump ...\n";
+        import_csv_files( $dump_files, $staging, $jobs ) || die( "import failed." );
 
-    if ( !_stories_queue_is_small( $db ) )
-    {
-        say STDERR "rerunning import to empty queue";
-        generate_and_import_data( @_ );
+        # have to reconnect becaue import_csv_files may have forked, ruining existing db handles
+        $db = MediaWords::DB::connect_to_db;
+
+        _save_import_date( $db, $delta, $stories_ids );
+        _delete_stories_from_import_queue( $db, $delta, $stories_ids );
+
+        # if we're doing a full import, do a delta to catchup with the data since the start of the import
+        if ( !$delta )
+        {
+            generate_and_import_data( 1, 0, $staging );
+        }
+
+        _solr_request( 'update', { 'commit' => 'true' }, $staging );
+
+        map { unlink( $_ ) } @{ $dump_files };
+
+        last if ( _stories_queue_is_small( $db ) || ( ++$i > 100 ) );
     }
 }
 
