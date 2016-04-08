@@ -15,7 +15,7 @@ BEGIN
 }
 
 use Modern::Perl "2013";
-use Mediawords::CommonLibs;
+use MediaWords::CommonLibs;
 
 use Data::Dumper;
 use Encode;
