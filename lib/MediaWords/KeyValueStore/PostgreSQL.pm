@@ -63,7 +63,7 @@ sub _db($)
 
     my $db = MediaWords::DB::connect_to_db( $self->_conf_database_label );
 
-    say STDERR "PostgreSQL: Connected to PostgreSQL label '" . ( $self->_conf_database_label // 'undef' ) . "'.";
+    # say STDERR "PostgreSQL: Connected to PostgreSQL label '" . ( $self->_conf_database_label // 'undef' ) . "'.";
 
     return $db;
 }

@@ -1226,7 +1226,7 @@ CREATE VIEW downloads_sites as select site_from_host( host ) as site, * from dow
 --
 CREATE TABLE raw_downloads (
     raw_downloads_id    SERIAL      PRIMARY KEY,
-    object_id           INTEGER     NOT NULL REFERENCES downloads ON DELETE CASCADE,
+    object_id           INTEGER     NOT NULL,
     raw_data            BYTEA       NOT NULL
 );
 CREATE UNIQUE INDEX raw_downloads_object_id ON raw_downloads (object_id);
@@ -1773,7 +1773,7 @@ create table controversy_stories (
 
 create unique index controversy_stories_sc on controversy_stories ( stories_id, controversies_id );
 create index controversy_stories_controversy on controversy_stories( controversies_id );
-    
+
 -- no foreign key constraints on controversies_id and stories_id because
 --   we have the combined foreign key constraint pointing to controversy_stories
 --   below

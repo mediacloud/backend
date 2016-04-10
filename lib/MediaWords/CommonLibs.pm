@@ -14,6 +14,18 @@ our @ISA = qw(Exporter);
 use Data::Dumper;
 use Readonly;
 
+use Log::Log4perl qw(:easy);
+Log::Log4perl->init(
+    {
+        'log4perl.rootLogger'                               => 'INFO, STDERR',
+        'log4perl.appender.STDERR'                          => 'Log::Log4perl::Appender::Screen',
+        'log4perl.appender.STDERR.name'                     => 'stderr',
+        'log4perl.appender.STDERR.stderr'                   => '1',
+        'log4perl.appender.STDERR.layout'                   => 'Log::Log4perl::Layout::PatternLayout',
+        'log4perl.appender.STDERR.layout.ConversionPattern' => 'FOO %d %c: %m'
+    }
+);
+
 our @EXPORT = ( @Readonly::EXPORT, @Data::Dumper::EXPORT );
 
 sub import

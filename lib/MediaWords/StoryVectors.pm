@@ -142,8 +142,8 @@ sub get_dup_story_sentences
         $sentence_lookup_clause = "sentence in ( $sentence_list )";
         $date_clause            = <<SQL;
 date_trunc( 'day', publish_date ) in (
-    select week_start_date( $q_publish_date ) + s * '1 day'::interval from generate_series( 1, 6) s ) and
-media_id = $story->{ media_id }
+    select week_start_date( '2014-02-03' ) + s * '1 day'::interval from generate_series( 1, 6) s ) and
+    media_id = $story->{ media_id }
 SQL
     }
 

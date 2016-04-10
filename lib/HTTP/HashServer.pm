@@ -30,6 +30,8 @@ use warnings;
 
 use English;
 
+use Log::Log4perl qw(:easy);
+
 use Data::Dumper;
 use Encode;
 use HTML::Entities;
@@ -91,14 +93,16 @@ sub new
 
 # start the server running in the background.
 # setup up signal handler to kill the forked server if this process gets killed.
-sub start
+sub start(;$)
 {
-    my ( $self ) = @_;
+    my ( $self, $sleep ) = @_;
 
     $self->{ pid } = $self->background();
 
+    $sleep //= 1;
+
     # sometimes the server takes a brief time to startup
-    sleep( 1 );
+    sleep( $sleep );
 
     $SIG{ INT } = $SIG{ TERM } = sub { kill( 15, $self->{ pid } ); die( "caught ctl-c and killed HTTP::HashServer" ) };
 }
@@ -107,7 +111,7 @@ sub stop
 {
     my ( $self ) = @_;
 
-    # say STDERR "Stopping server with PID " . $self->{ pid } . " from PID $$";
+    DEBUG( sub { "Stopping server with PID " . $self->{ pid } . " from PID $$" } );
 
     kill( 'KILL', $self->{ pid } );
 }
@@ -167,7 +171,7 @@ sub request_failed_authentication
 
     if ( !( $client_auth =~ /Basic (.*)$/ ) )
     {
-        say STDERR "unable to parse Authorization header: $client_auth";
+        WARN( sub { "unable to parse Authorization header: $client_auth" } );
         print $fail_authentication_page;
         return 1;
     }

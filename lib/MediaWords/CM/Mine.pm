@@ -325,14 +325,14 @@ sub generate_controversy_links
 {
     my ( $db, $controversy, $stories ) = @_;
 
-    my $max_processes = 16;
+    my $max_processes = 1;
 
     my $pm = new Parallel::ForkManager( $max_processes );
 
     say STDERR "GENERATE CONTROVERSY LINKS: " . scalar( @{ $stories } );
 
     # make sure db changes are visible to forked processes
-    $db->commit;
+    $db->commit unless ( $db->dbh->{ AutoCommit } );
 
     for my $story ( @{ $stories } )
     {
@@ -340,7 +340,7 @@ sub generate_controversy_links
 
         $db = MediaWords::DB::reset_forked_db( $db );
 
-        $db->dbh->{ AutoCommit } = 0;
+        $db->begin;
 
         my $story_in_date_range = story_within_controversy_date_range( $db, $controversy, $story );
 
@@ -350,8 +350,6 @@ sub generate_controversy_links
         }
         else
         {
-            say STDERR "IN DATE RANGE: $story->{ publish_date }" unless ( $story_in_date_range );
-
             my $links = $story_in_date_range ? get_links_from_story( $db, $story ) : [];
 
             my $link_lookup = {};
@@ -377,6 +375,8 @@ sub generate_controversy_links
                 else
                 {
                     print STDERR "    -> new: $link->{ url }\n";
+
+                    # RESTART queue controversy_links for copy insertion`
                     $db->create(
                         "controversy_links",
                         {
@@ -389,13 +389,13 @@ sub generate_controversy_links
             }
         }
 
-        $db->query(
-            "update controversy_stories set link_mined = true where stories_id = ? and controversies_id = ?",
-            $story->{ stories_id },
-            $controversy->{ controversies_id }
-        );
+        $db->query( <<SQL );
+update controversy_stories
+    set link_mined = true
+    where stories_id = $story->{ stories_id } and controversies_id = $controversy->{ controversies_id }
+SQL
 
-        $db->commit;
+        $db->commit unless ( $db->dbh->{ AutoCommit } );
 
         $pm->finish;
     }
@@ -1454,7 +1454,7 @@ sub get_stories_to_extract
             push( @{ $extract_stories }, $story );
         }
 
-        $db->commit;
+        $db->commit unless ( $db->{ dbh }->{ AutoCommit } );
     }
 
     return $extract_stories;
@@ -1472,24 +1472,44 @@ sub extract_stories
 
     say STDERR "EXTRACT_STORIES: " . scalar( @{ $unique_stories } );
 
-    my $max_processes = 16;
+    my $max_processes = 1;
+
+    # divide stories up into blocks, because it is much faster to let each process handle a block
+    # in sequence rather than forking off thousands of processes 50 at a time.
+    my $story_blocks  = [];
+    my $stories_stack = [ @{ $stories } ];
+
+    while ( @{ $stories_stack } )
+    {
+        for my $i ( 0 .. $max_processes - 1 )
+        {
+            push( @{ $story_blocks->[ $i ] }, shift( @{ $stories_stack } ) );
+        }
+    }
+
+    $db->commit unless ( $db->dbh->{ AutoCommit } );
 
     my $pm = new Parallel::ForkManager( $max_processes );
 
-    for my $story ( @{ $unique_stories } )
+    for my $story_block ( @{ $story_blocks } )
     {
         $pm->start and next;
 
         $db = MediaWords::DB::reset_forked_db( $db );
 
-        $db->dbh->{ AutoCommit } = 0;
+        $db->begin;
 
-        if ( !story_has_download_text( $db, $story ) )
+        for my $story ( @{ $story_block } )
         {
-            my $download = $db->query( <<SQL, $story->{ stories_id } )->hash;
+            say STDERR "EXTRACT STORY: " . $story->{ url };
+            if ( !story_has_download_text( $db, $story ) )
+            {
+                my $download = $db->query( <<SQL, $story->{ stories_id } )->hash;
 select * from downloads where stories_id = ? order by downloads_id asc limit 1
 SQL
-            extract_download( $db, $download );
+
+                extract_download( $db, $download );
+            }
         }
 
         $db->commit;
@@ -1508,7 +1528,7 @@ sub add_new_links
 {
     my ( $db, $controversy, $iteration, $new_links ) = @_;
 
-    $db->dbh->{ AutoCommit } = 0;
+    $db->begin;
 
     my $trimmed_links = [];
     for my $link ( @{ $new_links } )
@@ -1547,8 +1567,6 @@ END
         }
     }
     $db->commit;
-
-    $db->dbh->{ AutoCommit } = 1;
 }
 
 # build a lookup table of aliases for a url based on url and redirect_url fields in the controversy_links
@@ -2199,16 +2217,18 @@ END
 
     add_new_links( $db, $controversy, 0, $non_content_urls );
 
-    $db->dbh->{ AutoCommit } = 0;
+    $db->begin;
     for my $seed_url ( @{ $seed_urls } )
     {
-        $db->query( <<END, $seed_url->{ story }->{ stories_id }, $seed_url->{ controversy_seed_urls_id } );
-update controversy_seed_urls set stories_id = ?, processed = 't' where controversy_seed_urls_id = ?
+        my $story = $seed_url->{ story };
+        my $set_story = $story ? "stories_id = $story->{ stories_id }, " : '';
+        say STDERR
+"update controversy_seed_urls set $set_story processed = 't' where controversy_seed_urls_id = $seed_url->{ controversy_seed_urls_id }";
+        $db->query( <<END );
+update controversy_seed_urls set $set_story processed = 't' where controversy_seed_urls_id = $seed_url->{ controversy_seed_urls_id }
 END
     }
     $db->commit;
-    $db->dbh->{ AutoCommit } = 1;
-
 }
 
 # look for any stories in the controversy tagged with a date method of 'current_time' and
@@ -2303,6 +2323,8 @@ sub add_medium_url_to_ignore_redirects
 sub add_to_controversy_stories_if_match
 {
     my ( $db, $controversy, $story, $link, $assume_match ) = @_;
+
+    say STDERR "add story if match: $story->{ url }";
 
     set_controversy_link_ref_story( $db, $story, $link ) if ( $link->{ controversy_links_id } );
 
