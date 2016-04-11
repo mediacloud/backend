@@ -1200,6 +1200,7 @@ sub _get_medium_and_stories_from_dump_tables
           AND s.media_id = m.media_id
           AND s.media_id = ?
         ORDER BY slc.inlink_count DESC
+        limit 50
 END
         $media_id
     )->hashes;
@@ -1207,8 +1208,12 @@ END
     MediaWords::DBI::Stories::GuessDate::add_date_is_reliable_to_stories( $db, $medium->{ stories } );
     MediaWords::DBI::Stories::GuessDate::add_undateable_to_stories( $db, $medium->{ stories } );
 
+    $db->query( <<SQL, $medium->{ media_id } );
+create temporary table cm_medium_stories_ids as select stories_id from dump_stories where media_id = ?
+SQL
+
     $medium->{ inlink_stories } = $db->query(
-        <<END,
+        <<END
         SELECT DISTINCT s.*,
                         sm.name AS medium_name,
                         sm.media_type,
@@ -1218,46 +1223,38 @@ END
         FROM dump_stories AS s,
              dump_story_link_counts AS sslc,
              dump_media_with_types AS sm,
-             dump_stories AS r,
-             dump_story_link_counts AS rslc,
              dump_controversy_links_cross_media AS cl
         WHERE s.stories_id = sslc.stories_id
-          AND r.stories_id = rslc.stories_id
           AND s.media_id = sm.media_id
           AND s.stories_id = cl.stories_id
-          AND r.stories_id = cl.ref_stories_id
-          AND r.media_id = ?
+          AND cl.ref_stories_id in ( select stories_id from cm_medium_stories_ids )
         ORDER BY sslc.inlink_count DESC
+        limit 50
 END
-        $media_id
     )->hashes;
 
     MediaWords::DBI::Stories::GuessDate::add_date_is_reliable_to_stories( $db, $medium->{ inlink_stories } );
     MediaWords::DBI::Stories::GuessDate::add_undateable_to_stories( $db, $medium->{ inlink_stories } );
 
     $medium->{ outlink_stories } = $db->query(
-        <<END,
+        <<END
         SELECT DISTINCT r.*,
                         rm.name AS medium_name,
                         rm.media_type,
                         rslc.inlink_count,
                         rslc.outlink_count,
                         rslc.bitly_click_count
-        FROM dump_stories AS s,
-             dump_story_link_counts AS sslc,
-             dump_stories AS r,
+        FROM dump_stories AS r,
              dump_story_link_counts AS rslc,
              dump_media_with_types AS rm,
              dump_controversy_links_cross_media AS cl
-        WHERE s.stories_id = sslc.stories_id
-          AND r.stories_id = rslc.stories_id
+        WHERE r.stories_id = rslc.stories_id
           AND r.media_id = rm.media_id
-          AND s.stories_id = cl.stories_id
           AND r.stories_id = cl.ref_stories_id
-          AND s.media_id = ?
+          AND cl.stories_id in ( select stories_id from cm_medium_stories_ids )
         ORDER BY rslc.inlink_count DESC
+        limit 50
 END
-        $media_id
     )->hashes;
 
     MediaWords::DBI::Stories::GuessDate::add_date_is_reliable_to_stories( $db, $medium->{ outlink_stories } );
@@ -1420,16 +1417,13 @@ sub _get_story_and_links_from_dump_tables
         FROM dump_stories AS s,
              dump_story_link_counts AS sslc,
              dump_media_with_types AS sm,
-             dump_stories AS r,
-             dump_story_link_counts AS rslc,
              dump_controversy_links_cross_media AS cl
         WHERE s.stories_id = sslc.stories_id
-          AND r.stories_id = rslc.stories_id
           AND s.media_id = sm.media_id
           AND s.stories_id = cl.stories_id
-          AND r.stories_id = cl.ref_stories_id
           AND cl.ref_stories_id = ?
         ORDER BY sslc.inlink_count DESC
+        limit 50
 END
         $stories_id
     )->hashes;
@@ -1445,19 +1439,16 @@ END
                         rslc.inlink_count,
                         rslc.outlink_count,
                         rslc.bitly_click_count
-        FROM dump_stories AS s,
-             dump_story_link_counts AS sslc,
-             dump_stories AS r,
+        FROM dump_stories AS r,
              dump_story_link_counts AS rslc,
              dump_media_with_types AS rm,
              dump_controversy_links_cross_media AS cl
-        WHERE s.stories_id = sslc.stories_id
-          AND r.stories_id = rslc.stories_id
+        WHERE r.stories_id = rslc.stories_id
           AND r.media_id = rm.media_id
-          AND s.stories_id = cl.stories_id
           AND r.stories_id = cl.ref_stories_id
           AND cl.stories_id = ?
         ORDER BY rslc.inlink_count DESC
+        limit 50
 END
         $stories_id
     )->hashes;
