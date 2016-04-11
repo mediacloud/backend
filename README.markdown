@@ -24,21 +24,21 @@ The Media Cloud code here does three things:
   the ads, navigation, comments, etc) and associates a set of tags
   with each story based on that extracted text.
 
-For very brief installation instructions, see [INSTALL](INSTALL).
+For very brief installation instructions, see [INSTALL.markdown](INSTALL.markdown).
 
 Please send us a note at [info@mediacloud.org](info@mediacloud.org) if you are
 using any of this code or if you have any questions.  We are very interested in
 knowing who's using the code and for what.
 
 For a brief roadmap of the code contained in this release, see
-[README.code.markdown](doc/README.code.markdown).
+[repo-map.markdown](doc/repo-map.markdown).
 
 
 Build Status
 ------------
 
 [![Build Status](https://travis-ci.org/berkmancenter/mediacloud.svg?branch=master)](https://travis-ci.org/berkmancenter/mediacloud) 
-[![Coverage Status](https://coveralls.io/repos/berkmancenter/mediacloud/badge.png?branch=master)](https://coveralls.io/r/berkmancenter/mediacloud)
+[![Coverage Status](https://coveralls.io/repos/github/berkmancenter/mediacloud/badge.svg?branch=master)](https://coveralls.io/github/berkmancenter/mediacloud)
 
 
 History of the Project
