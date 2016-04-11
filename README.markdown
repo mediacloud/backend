@@ -24,7 +24,7 @@ The Media Cloud code here does three things:
   the ads, navigation, comments, etc) and associates a set of tags
   with each story based on that extracted text.
 
-For very brief installation instructions, see [INSTALL](INSTALL).
+For very brief installation instructions, see [INSTALL.markdown](INSTALL.markdown).
 
 Please send us a note at [info@mediacloud.org](info@mediacloud.org) if you are
 using any of this code or if you have any questions.  We are very interested in
