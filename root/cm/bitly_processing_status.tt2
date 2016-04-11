@@ -1,0 +1,19 @@
+[% INCLUDE cm/header.tt2 title = "CM: Bit.ly Processing Status" %]
+
+<div class="boxtitle">
+    Bit.ly Processing Status
+
+    <a class="boxcommand" href="[% c.uri_for( '/admin/cm/enqueue_stories_for_bitly/' _ controversy.controversies_id ) %]">enqueue stories for bit.ly</a>
+</div>
+<table class="even_rows_grey">
+    <tr>
+        <td>Total stories</td>
+        <td>[% bitly_total_stories %]</td>
+    </tr>
+    <tr>
+        <td>Unprocessed stories</td>
+        <td>[% bitly_unprocessed_stories %]</td>
+    </tr>
+</table>
+
+[% INCLUDE include/footer.tt2 %]

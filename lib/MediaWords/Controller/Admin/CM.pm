@@ -381,36 +381,6 @@ sub _get_latest_activities
     return $activities;
 }
 
-# return hash with bitly_processed_is_enabled, bitly_total_stories, bitly_unprocessed_stories fields.
-sub _get_bitly_status
-{
-    my ( $db, $controversy ) = @_;
-
-    my $bitly_processing_is_enabled = MediaWords::Util::Bitly::bitly_processing_is_enabled();
-
-    if ( !( $bitly_processing_is_enabled and $controversy->{ process_with_bitly } ) )
-    {
-        return { bitly_processed_is_enabled => 0, bitly_total_stories => 0, bitly_unprocessed_stories => 0 };
-    }
-
-    my $controversies_id = $controversy->{ controversies_id };
-
-    my ( $total_stories ) = $db->query( <<SQL, $controversies_id )->flat;
-SELECT COUNT(stories_id) AS total_stories
-FROM controversy_stories
-WHERE controversies_id = ?
-SQL
-
-    my $unprocessed_stories =
-      MediaWords::Util::Bitly::num_controversy_stories_without_bitly_statistics( $db, $controversies_id );
-
-    return {
-        bitly_processing_is_enabled => 1,
-        bitly_total_stories         => $total_stories,
-        bitly_unprocessed_stories   => $unprocessed_stories
-    };
-}
-
 # get the controversy with the given id, attach the controversy_query_slice associated with
 # the query_slices_id, if any
 sub _get_controversy_with_query_slice
@@ -445,7 +415,7 @@ sub view : Local
 
     my $latest_activities = _get_latest_activities( $db, $controversies_id );
 
-    my $bitly_status = _get_bitly_status( $db, $controversy );
+    my $bitly_processing_is_enabled = MediaWords::Util::Bitly::bitly_processing_is_enabled();
 
     my $mining_status = _get_mining_status( $db, $controversy );
 
@@ -457,9 +427,7 @@ SQL
     $c->stash->{ controversy_dumps }           = $controversy_dumps;
     $c->stash->{ latest_full_dump }            = $latest_full_dump;
     $c->stash->{ latest_activities }           = $latest_activities;
-    $c->stash->{ bitly_processing_is_enabled } = $bitly_status->{ bitly_processing_is_enabled };
-    $c->stash->{ bitly_total_stories }         = $bitly_status->{ bitly_total_stories };
-    $c->stash->{ bitly_unprocessed_stories }   = $bitly_status->{ bitly_unprocessed_stories };
+    $c->stash->{ bitly_processing_is_enabled } = $bitly_processing_is_enabled;
     $c->stash->{ mining_status }               = $mining_status;
     $c->stash->{ query_slices_id }             = $query_slices_id;
     $c->stash->{ query_slices }                = $query_slices;
@@ -3087,6 +3055,43 @@ sub story_stats : Local
     $c->stash->{ num_stories }      = $num_stories;
     $c->stash->{ live }             = $live;
     $c->stash->{ template }         = 'cm/story_stats.tt2';
+}
+
+sub bitly_processing_status : Local
+{
+    my ( $self, $c, $controversies_id ) = @_;
+
+    unless ( MediaWords::Util::Bitly::bitly_processing_is_enabled() )
+    {
+        die "Bit.ly processing is not enabled.";
+    }
+
+    my $db = $c->dbis;
+
+    my $controversy = $db->find_by_id( 'controversies', $controversies_id );
+    unless ( $controversy )
+    {
+        die "Controversy $controversies_id was not found";
+    }
+
+    unless ( $controversy->{ process_with_bitly } )
+    {
+        die "Controversy $controversies_id is not set up for Bit.ly processing; please set controversies.process_with_bitly";
+    }
+
+    my ( $total_stories ) = $db->query( <<SQL, $controversies_id )->flat;
+SELECT COUNT(stories_id) AS total_stories
+FROM controversy_stories
+WHERE controversies_id = ?
+SQL
+
+    my $unprocessed_stories =
+      MediaWords::Util::Bitly::num_controversy_stories_without_bitly_statistics( $db, $controversies_id );
+
+    $c->stash->{ controversy }               = $controversy;
+    $c->stash->{ bitly_total_stories }       = $total_stories;
+    $c->stash->{ bitly_unprocessed_stories } = $unprocessed_stories;
+    $c->stash->{ template }                  = 'cm/bitly_processing_status.tt2';
 }
 
 # enqueue a Gearman job which will, in turn, enqueue all controversy's stories
