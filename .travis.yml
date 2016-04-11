@@ -79,6 +79,8 @@ env:
         # Test PythonReadability extractor method in t/test_extractor.t
         - MC_TEST_EXTRACTOR_PYTHONREADABILITY=1
 before_install:
+    # Upgrade Pip
+    - pip install --upgrade pip
     # Create + switch to the Media Cloud's Perlbrew library
     - perlbrew lib create mediacloud
     - perlbrew switch @mediacloud
