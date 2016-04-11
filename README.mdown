@@ -38,7 +38,7 @@ Build Status
 ------------
 
 [![Build Status](https://travis-ci.org/berkmancenter/mediacloud.svg?branch=master)](https://travis-ci.org/berkmancenter/mediacloud) 
-[![Coverage Status](https://coveralls.io/repos/berkmancenter/mediacloud/badge.png?branch=master)](https://coveralls.io/r/berkmancenter/mediacloud)
+[![Coverage Status](https://coveralls.io/repos/github/berkmancenter/mediacloud/badge.svg?branch=master)](https://coveralls.io/github/berkmancenter/mediacloud)
 
 
 History of the Project
