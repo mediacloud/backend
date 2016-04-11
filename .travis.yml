@@ -79,6 +79,10 @@ env:
         # Test PythonReadability extractor method in t/test_extractor.t
         - MC_TEST_EXTRACTOR_PYTHONREADABILITY=1
 before_install:
+    # Set up local Media Cloud environment for Python
+    - mkdir -p $HOME/mc-python
+    - virtualenv $HOME/mc-python
+    - source $HOME/mc-python/bin/activate
     # Install Python dependencies
     - travis_retry pip install --upgrade pip setuptools
     - travis_retry pip install --upgrade -r python_scripts/requirements.txt
