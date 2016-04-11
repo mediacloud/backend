@@ -43,6 +43,7 @@ addons:
             - pandoc
             - postgresql-server-dev-all
             - python-dev
+            - python-pip
             - python-software-properties
             - python-virtualenv
             - tidy
