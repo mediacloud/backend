@@ -79,6 +79,13 @@ env:
         # Test PythonReadability extractor method in t/test_extractor.t
         - MC_TEST_EXTRACTOR_PYTHONREADABILITY=1
 before_install:
+    # Install Python dependencies
+    - travis_retry pip install --upgrade pip setuptools
+    - travis_retry pip install --upgrade -r python_scripts/requirements.txt
+    # install Media Cloud testing variant of the Python  Client
+    - travis_retry git clone https://github.com/dlarochelle/MediaCloud-API-Client.git
+    - cd MediaCloud-API-Client/; git checkout 51a045a; cd ../
+    - travis_retry pip install --editable MediaCloud-API-Client/
     # Create + switch to the Media Cloud's Perlbrew library
     - perlbrew lib create mediacloud
     - perlbrew switch @mediacloud
@@ -88,13 +95,6 @@ before_install:
     # "local/" already in which case we just check if Carton is happy with the
     # current setup)
     - ./install_modules_with_carton.sh
-    # Install Python dependencies
-    - travis_retry pip install --upgrade pip setuptools
-    - travis_retry pip install --upgrade -r python_scripts/requirements.txt
-    # install Media Cloud testing variant of the Python  Client
-    - travis_retry git clone https://github.com/dlarochelle/MediaCloud-API-Client.git
-    - cd MediaCloud-API-Client/; git checkout 51a045a; cd ../
-    - travis_retry pip install --editable MediaCloud-API-Client/
 install:
     # Use default configuration
     - cp mediawords.yml.dist mediawords.yml
