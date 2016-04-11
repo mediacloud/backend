@@ -3,7 +3,7 @@
 <div class="boxtitle">
     Bit.ly Processing Status
 
-    <a class="boxcommand" href="[% c.uri_for( '/admin/cm/enqueue_stories_for_bitly/' _ controversy.controversies_id ) %]">enqueue stories for bit.ly</a>
+    <a class="boxcommand" href="[% c.uri_for( '/admin/cm/bitly/add_to_queue/' _ controversy.controversies_id ) %]">enqueue stories for bit.ly processing</a>
 </div>
 <table class="even_rows_grey">
     <tr>

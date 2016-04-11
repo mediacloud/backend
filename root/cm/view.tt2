@@ -115,8 +115,8 @@
         [% IF bitly_processing_is_enabled AND controversy.process_with_bitly %]
             <div class="boxtitle">
                 Bit.ly Processing
-                <a class="boxcommand" href="[% c.uri_for( '/admin/cm/enqueue_stories_for_bitly/' _ controversy.controversies_id ) %]">add to queue</a>
-                <a class="boxcommand" href="[% c.uri_for( '/admin/cm/bitly_processing_status/' _ controversy.controversies_id ) | html %]">status</a>
+                <a class="boxcommand" href="[% c.uri_for( '/admin/cm/bitly/add_to_queue/' _ controversy.controversies_id ) %]">add to queue</a>
+                <a class="boxcommand" href="[% c.uri_for( '/admin/cm/bitly/status/' _ controversy.controversies_id ) | html %]">status</a>
             </a>
         [% END %]
         
