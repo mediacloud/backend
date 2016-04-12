@@ -98,10 +98,6 @@ sub html_title($$;$)
     {
         $title = $1;
     }
-    else
-    {
-        $title = $fallback;
-    }
 
     if ( $title )
     {
@@ -112,15 +108,11 @@ sub html_title($$;$)
 
         # Moved from _get_medium_title_from_response()
         $title =~ s/^\W*home\W*//i;
-
-        if ( defined $trim_to_length )
-        {
-            if ( length( $title ) > $trim_to_length )
-            {
-                $title = substr( $title, 0, $trim_to_length );
-            }
-        }
     }
+
+    $title = $fallback unless ( $title );
+
+    $title = substr( $title, 0, $trim_to_length ) if ( $trim_to_length && ( length( $title ) > $trim_to_length ) );
 
     return $title;
 }
