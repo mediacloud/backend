@@ -83,24 +83,6 @@
 
         </table>
 
-        [% IF bitly_processing_is_enabled AND controversy.process_with_bitly %]
-            <div class="boxtitle">
-                Bit.ly processing
-
-                <a class="boxcommand" href="[% c.uri_for( '/admin/cm/enqueue_stories_for_bitly/' _ controversy.controversies_id ) %]">enqueue stories for bit.ly</a>
-            </div>
-            <table class="even_rows_grey">
-                <tr>
-                    <td>Total stories</td>
-                    <td>[% bitly_total_stories %]</td>
-                </tr>
-                <tr>
-                    <td>Unprocessed stories</td>
-                    <td>[% bitly_unprocessed_stories %]</td>
-                </tr>
-            </table>
-        [% END %]
-
     </div>
 
     <div id="narrowcolumn">
@@ -128,6 +110,14 @@
                 [% END %]
                 <tr><td colspan=2>[% ms.queued_urls %] urls queued</td></tr>
             </table>
+        [% END %]
+
+        [% IF bitly_processing_is_enabled AND controversy.process_with_bitly %]
+            <div class="boxtitle">
+                Bit.ly Processing
+                <a class="boxcommand" href="[% c.uri_for( '/admin/cm/bitly/add_to_queue/' _ controversy.controversies_id ) %]">add to queue</a>
+                <a class="boxcommand" href="[% c.uri_for( '/admin/cm/bitly/status/' _ controversy.controversies_id ) | html %]">status</a>
+            </a>
         [% END %]
         
         [% INCLUDE cm/include/latest_activities.tt2
