@@ -50,10 +50,6 @@ cache:
     directories:
         # Carton dependencies
         - local/
-        # Pip cache
-        - $HOME/.cache/pip
-        # Python modules from "requirements.txt"
-        - $HOME/mc-python/lib
 before_cache:
     - rm -f $HOME/.cache/pip/log/debug.log
 env:
