@@ -57,8 +57,15 @@ sub new
 
     # send a die request in case there is an existing server sitting around.
     # we have to do this because the signal handling below does not work
-    # when run from prove for some reason.
-    LWP::Simple::get( "http://localhost:${ port }/die" );
+    # when run from prove for some reason.  also this hangs indefinitely sometimes
+    # so we have to set a timeout
+    eval {
+        local $SIG{ ALRM } = sub { die( "alarm" ) };
+        alarm 1;
+        LWP::Simple::get( "http://localhost:${ port }/die" );
+        alarm 0;
+    };
+    die( $@ ) if ( $@ && ( $@ ne "alarm\n" ) );
 
     my $self = $class->SUPER::new( $port );
 
