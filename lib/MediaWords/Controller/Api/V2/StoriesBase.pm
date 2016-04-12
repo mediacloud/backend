@@ -319,7 +319,7 @@ sub _fetch_list($$$$$$)
 
     $db->begin;
 
-    my $ids_table = $db->get_temporary_ids_table( $ps_ids );
+    my $ids_table = $db->get_temporary_ids_table( $ps_ids, 1 );
 
     my $stories = $db->query(
         <<"SQL",
@@ -387,25 +387,22 @@ sub word_matrix_GET : Local
 
     my $db = $c->dbis;
 
-    my $q = $c->req->params->{ q };
-    my $fq = $c->req->params->{ fq };
+    my $q    = $c->req->params->{ q };
+    my $fq   = $c->req->params->{ fq };
     my $rows = $c->req->params->{ rows } || 1000;
 
     die( "must specify either 'q' or 'fq' param" ) unless ( $q || $fq );
 
     $rows = List::Util::min( $rows, 100_000 );
 
-    my $stories_ids = MediaWords::Solr::search_for_stories_ids( $db,
-        { q => $q, fq => $fq, rows => $rows, sort => 'random_1 asc' } );
+    my $stories_ids =
+      MediaWords::Solr::search_for_stories_ids( $db, { q => $q, fq => $fq, rows => $rows, sort => 'random_1 asc' } );
 
     my ( $word_matrix, $word_list ) = MediaWords::DBI::Stories::get_story_word_matrix( $db, $stories_ids );
 
     $self->status_ok( $c, entity => [ word_matrix => $word_matrix, word_list => $word_list ] );
 
 }
-
-
-
 
 =head1 AUTHOR
 
