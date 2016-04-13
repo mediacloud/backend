@@ -11,6 +11,8 @@
 # This is executed by MediaWords::Util::Web to avoid forking the existing, big process which may muck up database
 # handles and have other side effects
 
+package script::mediawords_web_store;
+
 use strict;
 use warnings;
 
@@ -19,6 +21,9 @@ BEGIN
     use FindBin;
     use lib "$FindBin::Bin/../lib";
 }
+
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
 
 use Parallel::ForkManager;
 use Storable;
@@ -152,13 +157,13 @@ sub main
         alarm( $timeout );
         $pm->start and next;
 
-        print STDERR "fetch [$i/$total] : $request->{ url }\n";
+        INFO( sub { "fetch [$i/$total] : $request->{ url }" } );
 
         my $response = $ua->get( $request->{ url } );
 
         $response = MediaWords::Util::Web::get_meta_refresh_response( $response, $request );
 
-        print STDERR "got [$i/$total]: $request->{ url }\n";
+        INFO( sub { "got [$i/$total]: $request->{ url }" } );
 
         Storable::store( $response, $request->{ file } );
 
