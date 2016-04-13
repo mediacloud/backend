@@ -26,7 +26,7 @@ mediawords:
     controversy_model_reps: 25
     default_home_page: admin/media/list
     disable_json_top_500_words_cache: no
-    extractor_method: HeuristicExtractor
+    extractor_method: PythonReadability
     inline_java_jni: no
     language: en_US_and_ru_RU
     owner: mediacloud@cyber.law.harvard.edu
