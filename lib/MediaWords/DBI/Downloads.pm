@@ -47,7 +47,6 @@ use MediaWords::DBI::Stories;
 use MediaWords::StoryVectors;
 use MediaWords::Util::Paths;
 use MediaWords::Util::ExtractorFactory;
-use MediaWords::Util::HeuristicExtractor;
 use MediaWords::GearmanFunction::AnnotateWithCoreNLP;
 use MediaWords::Util::ThriftExtractor;
 
@@ -399,19 +398,6 @@ EOF
     return $download;
 }
 
-# return content as lines in an array after running through the extractor preprocessor.  this is only used by the
-# heuristic extractor.
-sub _preprocess_content_lines($)
-{
-    my ( $content_ref ) = @_;
-
-    my $lines = [ split( /[\n\r]+/, $$content_ref ) ];
-
-    $lines = MediaWords::Crawler::Extractor::preprocess( $lines );
-
-    return $lines;
-}
-
 =head2 fetch_preprocessed_content_lines( $db, $download )
 
 Fetch the content as lines in an array after running through the extractor preprocessor. This is only used by the
@@ -444,7 +430,7 @@ Run the extractor against the download content and return a hash in the form of:
       scores => $scores }         # (optional) the scores returned by Mediawords::Crawler::Extractor::score_lines
 
 The extractor used is configured in mediawords.yml by mediawords.extractor_method, which should be one of
-'HeuristicExtractor' or 'PythonReadability'.
+'PythonReadability'.
 
 =cut
 
@@ -555,16 +541,7 @@ sub _call_extractor_on_html($;$)
     }
     elsif ( $extractor_method eq 'HeuristicExtractor' )
     {
-        my $lines = _preprocess_content_lines( $content_ref );
-
-        # print "PREPROCESSED LINES:\n**\n" . join( "\n", @{ $lines } ) . "\n**\n";
-
-        $ret = extract_preprocessed_lines_for_story( $lines, '', '' );
-
-        my $download_lines        = $ret->{ download_lines };
-        my $included_line_numbers = $ret->{ included_line_numbers };
-
-        $extracted_html = _get_extracted_html( $download_lines, $included_line_numbers );
+        die( "Heuristc Extractor has been removed." );
     }
     else
     {
