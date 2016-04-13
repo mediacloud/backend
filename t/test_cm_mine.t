@@ -1,3 +1,7 @@
+#!/usr/bin/env perl
+
+package t::test_cm_mine;
+
 use strict;
 use warnings;
 
@@ -10,8 +14,8 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
-use Log::Log4perl qw(:easy);
-Log::Log4perl::init( "$FindBin::Bin/../log4perl.conf" );
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
 
 use English '-no_match_vars';
 
@@ -29,7 +33,7 @@ use MediaWords::Util::SQL;
 Readonly my $BASE_PORT => 8890;
 
 Readonly my $NUM_SITES          => 10;
-Readonly my $NUM_PAGES_PER_SITE => 10;
+Readonly my $NUM_PAGES_PER_SITE => 20;
 Readonly my $NUM_LINKS_PER_PAGE => 5;
 
 Readonly my $CONTROVERSY_PATTERN => 'FOOBARBAZ';
@@ -40,7 +44,7 @@ sub get_html_link
 
     my $lorem = Text::Lorem::More->new();
 
-    if ( int( rand( 3 ) ) )
+    if ( 0 && int( rand( 3 ) ) )
     {
         return "<a href='$page->{ url }'>" . $lorem->words( 2 ) . "</a>";
     }
@@ -79,13 +83,13 @@ sub generate_content_for_page
     my $lorem = Text::Lorem::More->new();
 
     my $num_links      = scalar( @{ $page->{ links } } );
-    my $num_paragraphs = int( rand( 10 ) ) + $num_links;
+    my $num_paragraphs = int( rand( 10 ) + 3 ) + $num_links;
 
     my $paragraphs = [];
 
     for my $i ( 0 .. $num_paragraphs - 1 )
     {
-        my $text = $lorem->sentences( int( rand( 10 ) ) + 1 );
+        my $text = $lorem->sentences( 5 );
         if ( $i < $num_links )
         {
             my $html_link = get_html_link( $page->{ links }->[ $i ] );
@@ -97,7 +101,7 @@ sub generate_content_for_page
 
     if ( rand( 2 ) < 1 )
     {
-        push( @{ $paragraphs }, $lorem->words( 5 ) . " " . $CONTROVERSY_PATTERN );
+        push( @{ $paragraphs }, $lorem->words( 10 ) . " $CONTROVERSY_PATTERN" );
         $page->{ matches_controversy } = 1;
     }
 
@@ -173,13 +177,16 @@ sub get_test_sites()
         push( @{ $sites }, $site );
     }
 
-    for my $page ( @{ $pages } )
+    my $all_pages = [];
+    map { push( @{ $all_pages }, @{ $_->{ pages } } ) } @{ $sites };
+    for my $page ( @{ $all_pages } )
     {
         my $num_links = int( rand( $NUM_LINKS_PER_PAGE ) );
         for my $link_id ( 0 .. $num_links - 1 )
         {
-            my $linked_page_id = int( rand( scalar( @{ $pages } ) ) );
-            push( @{ $page->{ links } }, $pages->[ $linked_page_id ] );
+            my $linked_page_id = int( rand( scalar( @{ $all_pages } ) ) );
+            my $linked_page    = $all_pages->[ $linked_page_id ];
+            push( @{ $page->{ links } }, $linked_page ) unless ( $page->{ url } eq $linked_page->{ url } );
         }
     }
 
@@ -264,6 +271,8 @@ sub seed_unlinked_urls
     my $all_pages = [];
     map { push( @{ $all_pages }, @{ $_->{ pages } } ) } @{ $sites };
 
+    # do not seed urls that are linked directly from a page that is a controversy match.
+    # this forces the test to succesfully discover those pages through spidering.
     my $non_seeded_url_lookup = {};
     for my $page ( @{ $all_pages } )
     {
@@ -349,15 +358,11 @@ SQL
     my $all_pages = [];
     map { push( @{ $all_pages }, @{ $_->{ pages } } ) } @{ $sites };
 
-    say STDERR "ALL PAGES: " . scalar( @{ $all_pages } );
+    DEBUG( sub { "ALL PAGES: " . scalar( @{ $all_pages } ) } );
 
     my $controversy_pages = [ grep { $_->{ matches_controversy } } @{ $all_pages } ];
 
-    is(
-        scalar( @{ $controversy_stories } ),
-        scalar( @{ $controversy_pages } ),
-        "number of controversy stories equals number of controversy matching pages"
-    );
+    DEBUG( sub { "CONTROVERSY PAGES: " . scalar( @{ $controversy_pages } ) } );
 
     my $controversy_pages_lookup = {};
     map { $controversy_pages_lookup->{ $_->{ url } } = $_ } @{ $controversy_stories };
@@ -366,8 +371,49 @@ SQL
     {
         ok( $controversy_pages_lookup->{ $controversy_story->{ url } },
             "controversy story found for controversy page '$controversy_story->{ url }'" );
+
+        delete( $controversy_pages_lookup->{ $controversy_story->{ url } } );
     }
 
+    is( scalar( keys( %{ $controversy_pages_lookup } ) ),
+        0, "missing controversy story for controversy pages: " . Dumper( values( %{ $controversy_pages_lookup } ) ) );
+
+}
+
+sub test_controversy_links
+{
+    my ( $db, $controversy, $sites ) = @_;
+
+    my $cid = $controversy->{ controversies_id };
+
+    my $cl = $db->query( "select * from controversy_links" )->hashes;
+
+    # say STDERR "controversy links: " . Dumper( $cl );
+
+    my $all_pages = [];
+    map { push( @{ $all_pages }, @{ $_->{ pages } } ) } @{ $sites };
+
+    for my $page ( @{ $all_pages } )
+    {
+        next if ( !$page->{ matches_controversy } );
+
+        for my $link ( @{ $page->{ links } } )
+        {
+            next unless ( $link->{ matches_controversy } );
+
+            my $controversy_links = $db->query( <<SQL, $page->{ url }, $link->{ url }, $cid )->hashes;
+select *
+    from controversy_links cl
+        join stories s on ( cl.stories_id = s.stories_id )
+    where
+        s.url = \$1 and
+        cl.url = \$2 and
+        cl.controversies_id = \$3
+SQL
+
+            is( scalar( @{ $controversy_links } ), 1, "number of controversy_links for $page->{ url } -> $link->{ url }" );
+        }
+    }
 }
 
 sub test_spider_results
@@ -375,16 +421,45 @@ sub test_spider_results
     my ( $db, $controversy, $sites ) = @_;
 
     test_controversy_stories( $db, $controversy, $sites );
+
+    test_controversy_links( $db, $controversy, $sites );
+}
+
+sub get_site_structure
+{
+    my ( $sites ) = @_;
+
+    my $meta_sites = [];
+    for my $site ( @{ $sites } )
+    {
+        my $meta_site = { url => $site->{ url } };
+        for my $page ( @{ $site->{ pages } } )
+        {
+            my $meta_page = { url => $page->{ url }, matches_controversy => $page->{ matches_controversy } };
+            map { push( @{ $meta_page->{ links } }, $_->{ url } ) } @{ $page->{ links } };
+
+            $meta_page->{ content } = $page->{ content }
+              if ( $page->{ matches_controversy } && $page->{ matches_controversy } );
+
+            push( @{ $meta_site->{ pages } }, $meta_page );
+        }
+
+        push( @{ $meta_sites }, $meta_site );
+    }
+
+    return $meta_sites;
 }
 
 sub test_spider
 {
     my ( $db ) = @_;
 
-    # we want repeatable tests
-    srand( 1 );
+    # we pseudo-randomly generate test data, but we want repeatable tests
+    srand( 3 );
 
     my $sites = get_test_sites();
+
+    # DEBUG( sub { "SITE STRUCTURE" . Dumper( get_site_structure( $sites ) ) } );
 
     add_site_media( $db, $sites );
 
