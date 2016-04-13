@@ -28,9 +28,10 @@ package HTTP::HashServer;
 use strict;
 use warnings;
 
-use English;
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
 
-use Log::Log4perl qw(:easy);
+use English;
 
 use Data::Dumper;
 use Encode;
@@ -133,13 +134,10 @@ sub handler
 
     if ( $@ )
     {
+        WARN( "handler error: $@" );
         if ( substr( $@, 0, length( $DIE_REQUEST_MESSAGE ) ) eq $DIE_REQUEST_MESSAGE )
         {
-            die( $@ );
-        }
-        else
-        {
-            warn( $@ );
+            LOGDIE( "handler error: $@" );
         }
     }
 }
