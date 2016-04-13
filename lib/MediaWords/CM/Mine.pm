@@ -1369,14 +1369,18 @@ sub add_links_with_matching_stories
 {
     my ( $db, $controversy, $new_links ) = @_;
 
-    # find all the links that we can find existing stories for without having to fetch anything
     my $fetch_links     = [];
     my $extract_stories = [];
+    my $total_links     = scalar( @{ $new_links } );
+    my $i               = 0;
+
+    # find all the links that we can find existing stories for without having to fetch anything
     for my $link ( @{ $new_links } )
     {
-        next if ( $link->{ ref_stories_id } );
+        $i++;
+        INFO( sub { "spidering $link->{ url } [$i/$total_links] ..." } );
 
-        INFO( sub { "spidering $link->{ url } ..." } );
+        next if ( $link->{ ref_stories_id } );
 
         next if ( _skip_self_linked_domain( $db, $link ) );
 
@@ -1473,9 +1477,11 @@ sub extract_stories
 {
     my ( $db, $stories ) = @_;
 
+    INFO( sub { "POSSIBLE EXTRACT STORIES: " . scalar( @{ $stories } ) } );
+
     $stories = filter_and_attach_downloads_to_extract_stories( $db, $stories );
 
-    INFO( sub { "EXTRACT_STORIES: " . scalar( @{ $stories } ) } );
+    INFO( sub { "EXTRACT STORIES: " . scalar( @{ $stories } ) } );
 
     for my $story ( @{ $stories } )
     {
@@ -2478,7 +2484,7 @@ sub import_solr_seed_query
     return if ( $controversy->{ solr_seed_query_run } );
 
     INFO( sub { "executing solr query: $controversy->{ solr_seed_query }" } );
-    my $stories = MediaWords::Solr::search_for_stories( $db, { q => $controversy->{ solr_seed_query }, rows => 100000 } );
+    my $stories = MediaWords::Solr::search_for_stories( $db, { q => $controversy->{ solr_seed_query }, rows => 250000 } );
 
     INFO( sub { "adding " . scalar( @{ $stories } ) . " stories to controversy_seed_urls" } );
 
