@@ -73,4 +73,12 @@ sub WARN  { $_init_log || init_log; Log::Log4perl::get_logger->warn( @_ ) }
 sub ERROR { $_init_log || init_log; Log::Log4perl::get_logger->error( @_ ) }
 sub FATAL { $_init_log || init_log; Log::Log4perl::get_logger->fatal( @_ ) }
 
+sub LOGWARN { $_init_log || init_log; Log::Log4perl::get_logger->logwarn( @_ ) }
+sub LOGDIE  { $_init_log || init_log; Log::Log4perl::get_logger->logdie( @_ ) }
+
+sub LOGCARP    { $_init_log || init_log; Log::Log4perl::get_logger->logcarp( @_ ) }
+sub LOGCLUCK   { $_init_log || init_log; Log::Log4perl::get_logger->logcluck( @_ ) }
+sub LOGCROAK   { $_init_log || init_log; Log::Log4perl::get_logger->loccroak( @_ ) }
+sub LOGCONFESS { $_init_log || init_log; Log::Log4perl::get_logger->logconfess( @_ ) }
+
 1;

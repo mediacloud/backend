@@ -22,7 +22,9 @@ log4perl.appender.STDERR.layout.ConversionPattern = %d %c: %m%n
 log4perl.oneMessagePerAppender = 1
 ```
 
-The following logging calls are defined in and exported from MediaWords::CommonLibs: FATAL ERROR WARN INFO DEBUG TRACE.
+The following log4perl calls are defined in and exported from MediaWords::CommonLibs:
+
+FATAL ERROR WARN INFO DEBUG TRACE LOGDIE LOGWARN LOGCARP LOGCLUCK LOGCONFESS LOGCROAK
 
 To log, just invoked the function for the appropriate logging level, for example:
 
