@@ -49,12 +49,7 @@ sub extract_and_compare($$$$)
 
     my $content = MediaWords::Util::Text::decode_from_utf8( read_file( $path ) );
 
-    my $results = MediaWords::DBI::Downloads::_extract_content_ref(
-        \$content,
-        $story->{ title },
-        $story->{ description },
-        $extractor_method
-    );
+    my $results = MediaWords::DBI::Downloads::_extract_content_ref( \$content, $extractor_method );
 
     # crawler test squeezes in story title and description into the expected output
     my @download_texts = ( $results->{ extracted_text } );

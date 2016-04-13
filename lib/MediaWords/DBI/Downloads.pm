@@ -34,6 +34,7 @@ use strict;
 use warnings;
 
 use Carp;
+use CHI;
 use Scalar::Defer;
 use Readonly;
 
@@ -52,6 +53,9 @@ use MediaWords::Util::ThriftExtractor;
 
 # Database inline content length limit
 Readonly my $INLINE_CONTENT_LENGTH => 256;
+
+# cache for extractor results
+my $_extractor_results_cache;
 
 =head1 FUNCTIONS
 
@@ -77,7 +81,7 @@ my $_store_amazon_s3 = lazy
 
     unless ( $config->{ amazon_s3 } )
     {
-        say STDERR "Amazon S3 download store is not configured.";
+        INFO( sub { "Amazon S3 download store is not configured." } );
         return undef;
     }
 
@@ -113,7 +117,6 @@ my $_store_postgresql = lazy
     my $raw_downloads_db_label = 'raw_downloads';    # as set up in mediawords.yml
     unless ( grep { $_ eq $raw_downloads_db_label } MediaWords::DB::get_db_labels() )
     {
-        #say STDERR "No such label '$raw_downloads_db_label', falling back to default database";
         $raw_downloads_db_label = undef;
     }
 
@@ -343,8 +346,6 @@ sub store_content($$$)
 {
     my ( $db, $download, $content_ref ) = @_;
 
-    #say STDERR "starting store_content for download $download->{ downloads_id } ";
-
     my $new_state = 'success';
     if ( $download->{ state } eq 'feed_error' )
     {
@@ -451,13 +452,29 @@ sub extract($$)
 {
     my ( $db, $download ) = @_;
 
+    my $data_dir = MediaWords::Util::Config::get_config->{ mediawords }->{ data_dir };
+
+    $_extractor_results_cache ||= CHI->new(
+        driver           => 'File',
+        expires_in       => '1 month',
+        max_size         => 10 * 1024 * 1024 * 1024,
+        expires_variance => '0.1',
+        root_dir         => "${ data_dir }/cache/extractor_results",
+        depth            => 4
+    );
+
+    if ( my $results = $_extractor_results_cache->get( $download->{ downloads_id } ) )
+    {
+        return $results;
+    }
+
     my $content_ref = fetch_content( $db, $download );
 
-    # FIXME if we're using Readability extractor, there's no point fetching
-    # story title and description as Readability doesn't use it
-    my $story = $db->find_by_id( 'stories', $download->{ stories_id } );
+    my $results = _extract_content_ref( $content_ref );
 
-    return _extract_content_ref( $content_ref, $story->{ title }, $story->{ description } );
+    $_extractor_results_cache->set( $download->{ downloads_id }, $results );
+
+    return $results;
 }
 
 # forbes is putting all of its content into a javascript variable, causing our extractor to fall down.
@@ -525,9 +542,9 @@ sub _get_extracted_html
 }
 
 # call configured extractor on the content_ref
-sub _call_extractor_on_html($$$;$)
+sub _call_extractor_on_html($;$)
 {
-    my ( $content_ref, $story_title, $story_description, $extractor_method ) = @_;
+    my ( $content_ref, $extractor_method ) = @_;
 
     my $ret;
     my $extracted_html;
@@ -542,7 +559,7 @@ sub _call_extractor_on_html($$$;$)
 
         # print "PREPROCESSED LINES:\n**\n" . join( "\n", @{ $lines } ) . "\n**\n";
 
-        $ret = extract_preprocessed_lines_for_story( $lines, $story_title, $story_description );
+        $ret = extract_preprocessed_lines_for_story( $lines, '', '' );
 
         my $download_lines        = $ret->{ download_lines };
         my $included_line_numbers = $ret->{ included_line_numbers };
@@ -563,9 +580,9 @@ sub _call_extractor_on_html($$$;$)
 }
 
 # extract content referenced by $content_ref
-sub _extract_content_ref($$$;$)
+sub _extract_content_ref($;$)
 {
-    my ( $content_ref, $story_title, $story_description, $extractor_method ) = @_;
+    my ( $content_ref, $extractor_method ) = @_;
 
     unless ( $extractor_method )
     {
@@ -586,12 +603,12 @@ sub _extract_content_ref($$$;$)
     }
     else
     {
-        $ret = _call_extractor_on_html( $content_ref, $story_title, $story_description, $extractor_method );
+        $ret = _call_extractor_on_html( $content_ref, $extractor_method );
 
         # if we didn't get much text, try looking for content stored in the javascript
         if ( ( length( $ret->{ extracted_text } ) < 256 ) && _parse_out_javascript_content( $content_ref ) )
         {
-            my $js_ret = _call_extractor_on_html( $content_ref, $story_title, $story_description, $extractor_method );
+            my $js_ret = _call_extractor_on_html( $content_ref, $extractor_method );
 
             $ret = $js_ret if ( length( $js_ret->{ extracted_text } ) > length( $ret->{ extracted_text } ) );
         }
@@ -648,7 +665,7 @@ sub process_download_for_extractor($$$;$$$)
 
     my $stories_id = $download->{ stories_id };
 
-    say STDERR "[$process_num] extract: $download->{ downloads_id } $stories_id $download->{ url }";
+    INFO( sub { "[$process_num] extract: $download->{ downloads_id } $stories_id $download->{ url }" } );
     my $download_text = MediaWords::DBI::Downloads::extract_and_create_download_text( $db, $download );
 
     my $has_remaining_download = $db->query( <<SQL, $stories_id )->hash;
@@ -663,7 +680,7 @@ SQL
     }
     elsif ( !( $no_vector ) )
     {
-        say STDERR "[$process_num] pending more downloads ...";
+        DEBUG( sub { "[$process_num] pending more downloads ..." } );
     }
 }
 
@@ -686,7 +703,7 @@ sub process_download_for_extractor_and_record_error
     {
         my $downloads_id = $download->{ downloads_id };
 
-        say STDERR "extractor error processing download $downloads_id: $@";
+        DEBUG( sub { "extractor error processing download $downloads_id: $@" } );
 
         $db->rollback;
 
