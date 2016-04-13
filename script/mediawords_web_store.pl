@@ -134,6 +134,8 @@ sub main
     $timeout            = $DEFAULT_TIMEOUT            unless ( defined( $timeout ) );
     $per_domain_timeout = $DEFAULT_PER_DOMAIN_TIMEOUT unless ( defined( $per_domain_timeout ) );
 
+    DEBUG( sub { "per_domain_timeout: $per_domain_timeout" } );
+
     my $pm = new Parallel::ForkManager( $num_parallel );
 
     my $ua = MediaWords::Util::Web::UserAgent();
@@ -141,35 +143,50 @@ sub main
     $requests = get_scheduled_requests( $requests, $per_domain_timeout );
     my $start_time = time;
 
+    my $request_stack = [ sort { $b->{ time } <=> $a->{ time } } @{ $requests } ];
+
     my $i     = 0;
     my $total = scalar( @{ $requests } );
 
-    for my $request ( @{ $requests } )
+    my $request_blocks = [];
+    while ( @{ $request_stack } )
     {
-        my $time_increment = time - $start_time;
-        $i++;
+        my $block_i = scalar( @{ $request_stack } ) % $num_parallel;
+        push( @{ $request_blocks->[ $block_i ] }, pop( @{ $request_stack } ) );
+    }
 
-        if ( $time_increment < $request->{ time } )
-        {
-            sleep( $request->{ time } - $time_increment );
-        }
-
-        alarm( $timeout );
+    for my $request_block ( @{ $request_blocks } )
+    {
         $pm->start and next;
 
-        INFO( sub { "fetch [$i/$total] : $request->{ url }" } );
+        for my $request ( @{ $request_block } )
+        {
+            my $time_increment = time - $start_time;
 
-        my $response = $ua->get( $request->{ url } );
+            if ( $time_increment < $request->{ time } )
+            {
+                my $sleep_time = $request->{ time } - $time_increment;
+                sleep( $sleep_time );
+            }
 
-        $response = MediaWords::Util::Web::get_meta_refresh_response( $response, $request );
+            alarm( $timeout );
 
-        INFO( sub { "got [$i/$total]: $request->{ url }" } );
+            my $request_num = ( $num_parallel ) * $i++;
 
-        Storable::store( $response, $request->{ file } );
+            INFO( sub { "fetch [$request_num/$total] : $request->{ url }" } );
+
+            my $response = $ua->get( $request->{ url } );
+
+            $response = MediaWords::Util::Web::get_meta_refresh_response( $response, $request );
+
+            INFO( sub { "got [$i/$total]: $request->{ url }" } );
+
+            Storable::store( $response, $request->{ file } );
+
+            alarm( 0 );
+        }
 
         $pm->finish;
-
-        alarm( 0 );
     }
 
     $pm->wait_all_children;
