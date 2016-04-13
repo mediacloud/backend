@@ -9,6 +9,9 @@ jons_stuff
 local
 cache/translate
 
+# all caches
+data/cache/
+
 # Python bytecode files
 *.py[cod]
 
