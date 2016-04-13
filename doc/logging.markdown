@@ -11,7 +11,7 @@ The mc log4perl configuration file is in log4perl.conf, and the default just log
 to STDERR:
 
 ```
-log4perl.rootLogger = DEBUG, STDERR
+log4perl.rootLogger = WARN, STDERR
 
 log4perl.appender.STDERR = Log::Log4perl::Appender::Screen
 log4perl.appender.STDERR.name = stderr
@@ -24,7 +24,9 @@ log4perl.oneMessagePerAppender = 1
 
 The following log4perl calls are defined in and exported from MediaWords::CommonLibs:
 
+```
 FATAL ERROR WARN INFO DEBUG TRACE LOGDIE LOGWARN LOGCARP LOGCLUCK LOGCONFESS LOGCROAK
+```
 
 To log, just invoked the function for the appropriate logging level, for example:
 
@@ -42,7 +44,7 @@ If called from MediaWords::CM::Mine, this will get printed by the default STDERR
 2016/04/13 13:59:35 MediaWords.CM.Mine: SKIP - NO CONTENT
 ```
 
-To see more info from specific categories, add lines like the following tot he log4perl.conf file:
+To see more info from specific categories, add lines like the following to the log4perl.conf file:
 
 ```
 log4perl.logger.MediaWords.CM.Mine = DEBUG, STDERR
@@ -55,12 +57,12 @@ passing subs as arguments, so for calls that use anything other than a constant 
 INFO( sub { "merging " . scalar( @{ $archive_is_stories } ) . " archive.is stories" } )
 ```
 
-To set the category of a script or test to something other than 'main', use a 'package' statement in the script,
-for example the following package statement at the top of script/mediawords_web_store.pl causes all log statements
-in the script to be logged under the category 'script.mediawords_web_store'.
+To set the category of a script or test to something other than `main`, use a `package` statement in the script.
+For example the following package statement at the top of script/mediawords_web_store.pl causes all log statements
+in the script to be logged under the category `script.mediawords_web_store`.
 
 ```
 package script::mediawords_web_store;
 ```
 
-For convention, please use a `script::*` package for scripts and a `t::*` package for tests.
+For convention, use a `script::*` package for scripts and a `t::*` package for tests.
