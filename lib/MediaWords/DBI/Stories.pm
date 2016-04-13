@@ -199,7 +199,7 @@ sub get_content_for_first_download($$)
 
     if ( $first_download->{ state } ne 'success' )
     {
-        say STDERR "First download's state is not 'success' for story " . $story->{ stories_id };
+        DEBUG( sub { "First download's state is not 'success' for story " . $story->{ stories_id } } );
         return;
     }
 
@@ -673,7 +673,7 @@ sub add_missing_story_sentences
 
     return if ( $ss );
 
-    print STDERR "ADD SENTENCES [$story->{ stories_id }]\n";
+    INFO( sub { "ADD SENTENCES [$story->{ stories_id }]" } );
 
     MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story, 0, 0, 1 );
 }
@@ -1050,8 +1050,6 @@ sub _remove_stopwords_from_stem_vector($$$)
     my $language = MediaWords::Languages::Language::language_for_code( $language_code ) || return;
 
     my $stop_words = $language->get_stop_word_stems( $length );
-
-    # map { say STDERR "ignore $_" if ( $stop_words->{ $_ } ) } keys( %{ $stem_counts } );
 
     map { delete( $stem_counts->{ $_ } ) if ( $stop_words->{ $_ } ) } keys( %{ $stem_counts } );
 }
