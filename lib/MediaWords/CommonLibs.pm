@@ -14,7 +14,7 @@ our @ISA = qw(Exporter);
 use Data::Dumper;
 use Readonly;
 
-our @LOGGER = qw(FATAL ERROR WARN INFO DEBUG TRACE);
+our @LOGGER = qw(FATAL ERROR WARN INFO DEBUG TRACE LOGDIE LOGWARN LOGCARP LOGCLUCK LOGCONFESS LOGCROAK);
 
 our @EXPORT = ( @Readonly::EXPORT, @Data::Dumper::EXPORT, @LOGGER );
 
