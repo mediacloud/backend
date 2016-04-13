@@ -2446,6 +2446,28 @@ sub find_and_merge_dup_stories
     }
 }
 
+# insert a list of controversy seed urls, using efficient copy
+sub insert_controversy_seed_urls
+{
+    my ( $db, $controversy_seed_urls ) = @_;
+
+    INFO( sub { "inserting " . scalar( @{ $controversy_seed_urls } ) . " controversy seed urls ..." } );
+
+    $db->dbh->do( <<SQL );
+COPY controversy_seed_urls ( stories_id, url, controversies_id, assume_match ) FROM STDIN WITH CSV
+SQL
+
+    my $csv = Text::CSV_XS->new( { binary => 1 } );
+
+    for my $csu ( @{ $controversy_seed_urls } )
+    {
+        $csv->combine( map { $csu->{ $_ } } ( qw/stories_id url controversies_id assume_match/ ) );
+        $db->dbh->pg_putcopydata( $csv->string . "\n" );
+    }
+
+    $db->dbh->pg_putcopyend();
+}
+
 # import stories intro controversy_seed_urls from solr by running
 # controversy->{ solr_seed_query } against solr.  if the solr query has
 # already been imported, do nothing.
@@ -2462,17 +2484,21 @@ sub import_solr_seed_query
 
     $db->begin;
 
+    my $controversy_seed_urls = [];
     for my $story ( @{ $stories } )
     {
-        my $csu = {
-            controversies_id => $controversy->{ controversies_id },
-            url              => $story->{ url },
-            stories_id       => $story->{ stories_id },
-            assume_match     => 'f'
-        };
-
-        $db->create( 'controversy_seed_urls', $csu );
+        push(
+            @{ $controversy_seed_urls },
+            {
+                controversies_id => $controversy->{ controversies_id },
+                url              => $story->{ url },
+                stories_id       => $story->{ stories_id },
+                assume_match     => 'f'
+            }
+        );
     }
+
+    insert_controversy_seed_urls( $db, $controversy_seed_urls );
 
     $db->query( "update controversies set solr_seed_query_run = 't' where controversies_id = ?",
         $controversy->{ controversies_id } );
