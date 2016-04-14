@@ -112,7 +112,7 @@ function run_createdb {
 EOF
 )
 
-    run_createdb_result=`run_psql "$db_credentials_host" "$createdb_sql" "$db_name"`
+    run_createdb_result=`run_psql "$db_credentials_host" "$createdb_sql" postgres`
 
     echo "$run_createdb_result"
 }
