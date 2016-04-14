@@ -533,8 +533,8 @@ END
     $medium_url = get_unique_medium_url( $db, $medium_url );
 
     $medium = {
-        name      => encode( 'utf8', $medium_name ),
-        url       => encode( 'utf8', $medium_url ),
+        name      => $medium_name,
+        url       => $medium_url,
         moderated => 't',
     };
 
@@ -719,7 +719,7 @@ sub generate_new_story_hash
         guid         => $link->{ guid } || $old_story->{ url },
         media_id     => $medium->{ media_id },
         collect_date => MediaWords::Util::SQL::sql_now,
-        title        => encode( 'utf8', $old_story->{ title } ),
+        title        => $old_story->{ title },
         publish_date => $link->{ publish_date },
         description  => ''
     };
@@ -1170,7 +1170,7 @@ sub add_redirect_url_to_link
     $link->{ redirect_url } = MediaWords::Util::Web::get_cached_link_download_redirect_url( $link );
     $db->query(
         "update controversy_links set redirect_url = ? where controversy_links_id = ?",
-        encode( 'utf8', $link->{ redirect_url } ),
+        $link->{ redirect_url },
         $link->{ controversy_links_id }
     );
 }
@@ -1378,7 +1378,7 @@ sub add_links_with_matching_stories
     for my $link ( @{ $new_links } )
     {
         $i++;
-        INFO( sub { "spidering $link->{ url } [$i/$total_links] ..." } );
+        INFO( sub { "spidering [$i/$total_links] $link->{ url } ..." } );
 
         next if ( $link->{ ref_stories_id } );
 
@@ -1643,7 +1643,7 @@ END
                 "controversy_links",
                 {
                     stories_id       => $source_story->{ stories_id },
-                    url              => encode( 'utf8', $target_story->{ url } ),
+                    url              => $target_story->{ url },
                     controversies_id => $controversy->{ controversies_id },
                     ref_stories_id   => $target_story->{ stories_id },
                     link_spidered    => 1,
@@ -1917,13 +1917,13 @@ sub clone_story
     my ( $db, $controversy, $old_story, $new_medium ) = @_;
 
     my $story = {
-        url          => encode( 'utf8', $old_story->{ url } ),
+        url          => $old_story->{ url },
         media_id     => $new_medium->{ media_id },
-        guid         => encode( 'utf8', $old_story->{ guid } ),
+        guid         => $old_story->{ guid },
         publish_date => $old_story->{ publish_date },
         collect_date => MediaWords::Util::SQL::sql_now,
-        description  => encode( 'utf8', $old_story->{ description } ),
-        title        => encode( 'utf8', $old_story->{ title } )
+        description  => $old_story->{ description },
+        title        => $old_story->{ title }
     };
 
     $story = safely_create_story( $db, $story );
