@@ -78,7 +78,7 @@ EOF
     NUM_STORIES=`run_psql "$db_credentials_host" "select count(*) from ( select 1 from stories limit $MAX_STORIES) q" "$db_name"`;
 
     if [ $NUM_STORIES -eq $MAX_STORIES ]; then
-        echo "refusing to drop database with >= $MAX_STORIES users" 1>&2;
+        echo "refusing to drop database with >= $MAX_STORIES stories" 1>&2;
         set -e;
         exit 1;
     fi
