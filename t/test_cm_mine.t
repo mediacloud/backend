@@ -22,6 +22,7 @@ use English '-no_match_vars';
 use Data::Dumper;
 use Digest::MD5 qw(md5_hex);
 use HTTP::HashServer;
+use HTTP::Request;
 use Readonly;
 use Test::More;
 use Text::Lorem::More;
@@ -29,6 +30,7 @@ use Text::Lorem::More;
 use MediaWords::CM::Mine;
 use MediaWords::Test::DB;
 use MediaWords::Util::SQL;
+use MediaWords::Util::Web;
 
 Readonly my $BASE_PORT => 8890;
 
@@ -141,7 +143,8 @@ sub get_test_sites()
     my $sites = [];
     my $pages = [];
 
-    my $base_port = $BASE_PORT + int( rand( 200 ) );
+    # my $base_port = $BASE_PORT + int( rand( 200 ) );
+    my $base_port = $BASE_PORT;
 
     for my $site_id ( 0 .. $NUM_SITES - 1 )
     {
@@ -150,7 +153,7 @@ sub get_test_sites()
         my $site = {
             port  => $port,
             id    => $site_id,
-            url   => "http://localhost:$port/",
+            url   => "http://127.0.0.1:$port/",
             title => "site $site_id"
         };
 
@@ -246,7 +249,17 @@ sub test_page
 {
     my ( $label, $url, $expected_content ) = @_;
 
-    my $got_content = LWP::Simple::get( $url );
+    DEBUG( "test page: $label $url" );
+
+    my $ua       = MediaWords::Util::Web::UserAgent;
+    my $request  = HTTP::Request->new( GET => $url );
+    my $response = $ua->request( $request );
+
+    ok( $response->is_success, "request success: $label $url" );
+
+    my $got_content = $response->decoded_content;
+
+    DEBUG( "got content" );
 
     is( $got_content, $expected_content, "simple page test: $label" );
 }
