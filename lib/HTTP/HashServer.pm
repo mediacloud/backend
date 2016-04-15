@@ -105,6 +105,8 @@ sub start(;$)
 {
     my ( $self, $sleep ) = @_;
 
+    DEBUG( sub { "Starting server on port $self->{ port }" } );
+
     $self->{ pid } = $self->background();
 
     $sleep //= 1;
@@ -199,6 +201,8 @@ sub handle_request
 {
     my ( $self, $cgi ) = @_;
 
+    TRACE( sub { "received request: " . $cgi->path_info } );
+
     my $path = $cgi->path_info();
 
     if ( $path eq '/die' )
@@ -223,12 +227,16 @@ sub handle_request
         return;
     }
 
+    TRACE( "found page" );
+
     $page = { content => $page } unless ( ref( $page ) );
 
     return 0 if ( request_failed_authentication( $self, $page ) );
 
     if ( my $redirect = $page->{ redirect } )
     {
+        TRACE( "redirect: $page->{ redirect }" );
+
         my $enc_redirect = HTML::Entities::encode_entities( $redirect );
 
         my $http_status_code = $page->{ http_status_code } // $DEFAULT_REDIRECT_STATUS_CODE;
@@ -243,6 +251,8 @@ sub handle_request
     }
     elsif ( my $callback = $page->{ callback } )
     {
+        TRACE( "callback: $page->{ callback }" );
+
         if ( ref $callback ne 'CODE' )
         {
             die "'callback' parameter exists but is not a subroutine reference.";
@@ -251,6 +261,7 @@ sub handle_request
     }
     else
     {
+        TRACE( "content" );
         my $header  = $page->{ header }  || 'Content-Type: text/html; charset=UTF-8';
         my $content = $page->{ content } || "<body><html>Filler content for $path</html><body>";
 
@@ -269,6 +280,8 @@ sub handle_request
         print "\r\n";
         print "$content";
     }
+
+    TRACE( "exit" );
 }
 
 1;
