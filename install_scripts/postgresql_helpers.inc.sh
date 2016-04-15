@@ -40,23 +40,24 @@ function _host_is_localhost {
 function run_psql {
     local db_host="$1"
     local sql_command="$2"
+    local db_name="$3"
 
-    PSQL_OPTIONS=""
+    PSQL_OPTIONS="-q -t"
     if ! _host_is_localhost "$db_host"; then
         PSQL_OPTIONS="$PSQL_OPTIONS --host=$db_host"
     fi
 
     if [ `uname` == 'Darwin' ]; then
         # Mac OS X
-        local run_psql_result=`/usr/local/bin/psql $PSQL_OPTIONS --command="$sql_command" 2>&1 || echo `
+        local run_psql_result=`/usr/local/bin/psql $PSQL_OPTIONS "$db_name" --command="$sql_command" 2>&1 || echo `
     else
         # assume Ubuntu
         if [ -z ${TRAVIS+x} ]; then
             # not Travis
-            local run_psql_result=`sudo su -l postgres -c "psql $PSQL_OPTIONS --command=\" $sql_command \" 2>&1 " || echo `
+            local run_psql_result=`sudo su -l postgres -c "psql $PSQL_OPTIONS "$db_name" --command=\" $sql_command \" 2>&1 " || echo `
         else
             # Travis
-            local run_psql_result=`psql -U postgres $PSQL_OPTIONS --command="$sql_command " 2>&1 || echo `
+            local run_psql_result=`psql -U postgres $PSQL_OPTIONS "$db_name" --command="$sql_command " 2>&1 || echo `
         fi
     fi
     echo "$run_psql_result"
@@ -71,8 +72,18 @@ function run_dropdb {
         DROP DATABASE $db_name
 EOF
 )
+    MAX_STORIES=1000000
 
-    run_dropdb_result=`run_psql "$db_credentials_host" "$dropdb_sql"`
+
+    NUM_STORIES=`run_psql "$db_credentials_host" "select count(*) from ( select 1 from stories limit $MAX_STORIES) q" "$db_name"`;
+
+    if [ $NUM_STORIES -eq $MAX_STORIES ]; then
+        echo "refusing to drop database with >= $MAX_STORIES stories" 1>&2;
+        set -e;
+        exit 1;
+    fi
+
+    run_dropdb_result=`run_psql "$db_credentials_host" "$dropdb_sql" "$db_name"`
 
     echo "$run_dropdb_result"
 }
@@ -101,7 +112,7 @@ function run_createdb {
 EOF
 )
 
-    run_createdb_result=`run_psql "$db_credentials_host" "$createdb_sql"`
+    run_createdb_result=`run_psql "$db_credentials_host" "$createdb_sql" postgres`
 
     echo "$run_createdb_result"
 }

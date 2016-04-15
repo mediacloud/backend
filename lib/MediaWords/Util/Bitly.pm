@@ -377,8 +377,15 @@ sub num_controversy_stories_without_bitly_statistics($$)
 select count(*)
     from controversy_stories cs
         left join bitly_clicks_total b on ( cs.stories_id = b.stories_id )
-    where cs.controversies_id = ? and
-        b.click_count is null;
+    where cs.controversies_id = ?
+
+      -- Don't touch "click_count" column so that the match could be made using
+      -- the index only.
+      --
+      -- "click_count" is NOT NULL so if story doesn't have a click count
+      -- collected yet, the row will be nonexistent (thus testing just the
+      -- "stories_id" works too).
+      and b.stories_id is null
 SQL
 
     unless ( defined $num_controversy_stories_without_bitly_statistics )

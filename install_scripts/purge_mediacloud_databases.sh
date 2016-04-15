@@ -7,7 +7,7 @@ set -o  errexit
 PWD="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source "$PWD/postgresql_helpers.inc.sh"
 
-# 
+#
 QUERY_CONFIG="$PWD/../script/run_with_carton.sh $PWD/../script/mediawords_query_config.pl"
 
 
@@ -60,7 +60,7 @@ for db_selector in "${DB_CREDENTIALS_SELECTORS[@]}"; do
     # Drop user if there are no more databases owned by it
     #
     echo "    Dropping user '$db_credentials_user' on host '$db_credentials_host'..."
-    dropuser_exec=`run_psql "$db_credentials_host" "DROP USER IF EXISTS $db_credentials_user ; "`
+    dropuser_exec=`run_psql "$db_credentials_host" "DROP USER IF EXISTS $db_credentials_user ; " postgres`
     if [[ "$dropuser_exec" == *"ERROR"* ]]; then
         if [[ "$dropuser_exec" == *"some objects depend on it"* ]]; then
             echo "        User '$db_credentials_user' wasn't dropped yet because some objects still depend on it."
@@ -74,4 +74,3 @@ for db_selector in "${DB_CREDENTIALS_SELECTORS[@]}"; do
     echo "Done dropping database with label '$db_credentials_label'."
 
 done
-
