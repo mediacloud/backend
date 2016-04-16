@@ -3,6 +3,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::Languages::Language;
+use MediaWords::Util::Config;
 use MediaWords::Util::SchemaVersion;
 
 # import functions into server schema
@@ -460,7 +461,7 @@ sub recreate_db
     my $db = MediaWords::DB::connect_to_db( $label, $do_not_check_schema_version );
 
     DEBUG( 'reset schema ...' );
-    my $data_dir =  MediaWords::Util::Config::get_config->{ mediawords }->{ data_dir };
+    my $data_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ data_dir };
     if ( $data_dir )
     {
         my $cache_dir = "$data_dir/cache";
@@ -498,7 +499,7 @@ sub upgrade_db($;$)
 
     my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
 
-    DEBUG( sub { "script_dir: $script_dir"  } );
+    DEBUG( sub { "script_dir: $script_dir" } );
     my $db;
     {
 
