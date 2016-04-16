@@ -145,6 +145,7 @@ requires 'Text::CSV';
 requires 'Text::Lorem::More';
 requires 'Text::Similarity::Overlaps';
 requires 'Text::Trim';
+requires 'Text::WordDiff';
 requires 'Tie::Cache';
 requires 'WebService::Google::Language';
 requires 'XML::FeedPP';
