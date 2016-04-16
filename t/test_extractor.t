@@ -17,12 +17,11 @@ BEGIN
 }
 
 use Test::More;
-use Test::Differences;
-use Test::Deep;
 use Test::NoWarnings;
 
 use MediaWords::DBI::Stories;
 use MediaWords::Test::Data;
+use MediaWords::Test::Text;
 use MediaWords::Util::Text;
 
 use Data::Dumper;
@@ -49,7 +48,7 @@ sub extract_and_compare($$$$)
 
     my $content = MediaWords::Util::Text::decode_from_utf8( read_file( $path ) );
 
-    my $results = MediaWords::DBI::Downloads::_extract_content_ref( \$content, $extractor_method );
+    my $results = MediaWords::DBI::Downloads::extract_content_ref( \$content, $extractor_method );
 
     # crawler test squeezes in story title and description into the expected output
     my @download_texts = ( $results->{ extracted_text } );
@@ -62,10 +61,7 @@ sub extract_and_compare($$$$)
     my $expected_text = $story->{ extracted_text };
     my $actual_text   = $combined_text;
 
-    $expected_text =~ s/\n//g;
-    $actual_text =~ s/\n//g;
-
-    eq_or_diff( $actual_text, $expected_text, "Extracted text comparison for $title" );
+    MediaWords::Test::Text::eq_or_word_diff( $actual_text, $expected_text, "Extracted text comparison for $title" );
 }
 
 sub main
@@ -79,7 +75,7 @@ sub main
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
-    my @extractor_methods_to_test = ( 'HeuristicExtractor' );
+    my @extractor_methods_to_test = ( 'InlinePythonReadability' );
     my $tests_planned             = 3;
     if ( defined $ENV{ MC_TEST_EXTRACTOR_PYTHONREADABILITY } )
     {

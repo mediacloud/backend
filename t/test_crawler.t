@@ -374,7 +374,7 @@ sub main
     # test itself will assume that stories got extracted using this extractor
     # method and thus will load input / save output data from appropriate
     # directories.
-    Readonly my $extractor_method => 'HeuristicExtractor';
+    Readonly my $extractor_method => 'InlinePythonReadability';
 
     # Errors might want to print out UTF-8 characters
     binmode( STDERR, ':utf8' );
@@ -405,4 +405,3 @@ sub main
 }
 
 main();
-

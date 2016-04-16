@@ -46,7 +46,6 @@ use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
 use MediaWords::StoryVectors;
 use MediaWords::Util::Paths;
-use MediaWords::Util::ExtractorFactory;
 use MediaWords::GearmanFunction::AnnotateWithCoreNLP;
 use MediaWords::Util::ThriftExtractor;
 
@@ -398,28 +397,6 @@ EOF
     return $download;
 }
 
-=head2 fetch_preprocessed_content_lines( $db, $download )
-
-Fetch the content as lines in an array after running through the extractor preprocessor. This is only used by the
-heuristic extractor.
-
-=cut
-
-sub fetch_preprocessed_content_lines($$)
-{
-    my ( $db, $download ) = @_;
-
-    my $content_ref = fetch_content( $db, $download );
-
-    unless ( $content_ref )
-    {
-        warn( "unable to find content: " . $download->{ downloads_id } );
-        return [];
-    }
-
-    return _preprocess_content_lines( $content_ref );
-}
-
 =head2 extract( $db, $download )
 
 Run the extractor against the download content and return a hash in the form of:
@@ -456,7 +433,7 @@ sub extract($$)
 
     my $content_ref = fetch_content( $db, $download );
 
-    my $results = _extract_content_ref( $content_ref );
+    my $results = extract_content_ref( $content_ref );
 
     $_extractor_results_cache->set( $download->{ downloads_id }, $results );
 
@@ -481,48 +458,38 @@ sub _parse_out_javascript_content
     return 0;
 }
 
-# given the list of all lines from an html file and a list of the line numbers of lines to be included
-# in the extracted text, return a single string consisting of the extracted html.  take care to add new lines
-# around block level tags so that we setup the html string to maintain the default double newline sentence boundaries.
-# this function is only used for extraction via the heuristic extractor.
-sub _get_extracted_html
+my $_python_readability_imported;
+
+sub _import_python_readability
 {
-    my ( $lines, $included_lines ) = @_;
+    return if ( $_python_readability_imported );
 
-    my $is_line_included = { map { $_ => 1 } @{ $included_lines } };
+    use Inline::Python;
 
-    my $config = MediaWords::Util::Config::get_config;
+    use Inline Python => <<'PYTHON';
+from readability.readability import Document
 
-    my $extracted_html = '';
+def extract_with_python_readability( raw_content ):
+    doc = Document( raw_content )
 
-    # This variable is used to make sure we don't add unnecessary double newlines
-    my $previous_concated_line_was_story = 0;
+    return [ u'' + doc.short_title(),
+             u'' + doc.summary() ]
 
-    for ( my $i = 0 ; $i < @{ $lines } ; $i++ )
-    {
-        if ( $is_line_included->{ $i } )
-        {
-            my $line_text;
+PYTHON
 
-            $previous_concated_line_was_story = 1;
+    $_python_readability_imported = 1;
+}
 
-            $line_text = $lines->[ $i ];
+# use inline python to get extracted html
+sub _get_inline_extracted_html
+{
+    my ( $content ) = @_;
 
-            $extracted_html .= ' ' . $line_text;
-        }
-        elsif ( MediaWords::Util::HTML::contains_block_level_tags( $lines->[ $i ] ) )
-        {
-            ## '\n\n\ is used as a sentence splitter so no need to add it more than once between text lines
-            if ( $previous_concated_line_was_story )
-            {
+    _import_python_readability();
 
-                # Add double newline bc/ it will be recognized by the sentence splitter as a sentence boundary.
-                $extracted_html .= "\n\n";
+    my $extracted_html = join( ' ', extract_with_python_readability( $content ) );
 
-                $previous_concated_line_was_story = 0;
-            }
-        }
-    }
+    TRACE( sub { "inline extractor: " . length( $content ) . " -> " . length( $extracted_html ) } );
 
     return $extracted_html;
 }
@@ -538,6 +505,10 @@ sub _call_extractor_on_html($;$)
     if ( $extractor_method eq 'PythonReadability' )
     {
         $extracted_html = MediaWords::Util::ThriftExtractor::get_extracted_html( $$content_ref );
+    }
+    if ( $extractor_method eq 'InlinePythonReadability' )
+    {
+        $extracted_html = _get_inline_extracted_html( $$content_ref );
     }
     elsif ( $extractor_method eq 'HeuristicExtractor' )
     {
@@ -556,8 +527,16 @@ sub _call_extractor_on_html($;$)
     return $ret;
 }
 
-# extract content referenced by $content_ref
-sub _extract_content_ref($;$)
+=head2 extract_content_ref( $content_ref, $extractor_method )
+
+Accept a content_ref pointing to an HTML string.  Run the extractor on the HTMl and return the extracted text.
+
+If $extractor_method is specified, use the given extractor method, otherwise use the extractor method specified
+in mediawords.yml.
+
+=cut
+
+sub extract_content_ref($;$)
 {
     my ( $content_ref, $extractor_method ) = @_;
 
@@ -593,21 +572,6 @@ sub _extract_content_ref($;$)
     }
 
     return $ret;
-}
-
-=head2 extract_preprocessed_lines_for_story( $lines, $story_title, $story_description )
-
-Preprocess content lines and send through heuristic extractor.
-
-=cut
-
-sub extract_preprocessed_lines_for_story($$$)
-{
-    my ( $lines, $story_title, $story_description ) = @_;
-
-    my $old_extractor = MediaWords::Util::ExtractorFactory::createExtractor();
-
-    return $old_extractor->extract_preprocessed_lines_for_story( $lines, $story_title, $story_description );
 }
 
 =head2 extract_and_create_download_text( $db, $download )

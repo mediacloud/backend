@@ -14,6 +14,8 @@ our @ISA = qw(Exporter);
 use Data::Dumper;
 use Readonly;
 
+use MediaWords::Util::Config;
+
 our @LOGGER = qw(FATAL ERROR WARN INFO DEBUG TRACE LOGDIE LOGWARN LOGCARP LOGCLUCK LOGCONFESS LOGCROAK);
 
 our @EXPORT = ( @Readonly::EXPORT, @Data::Dumper::EXPORT, @LOGGER );
@@ -56,7 +58,7 @@ sub init_log
 {
     return if ( $_init_log );
 
-    Log::Log4perl::init( "$FindBin::Bin/../log4perl.conf" );
+    Log::Log4perl::init( MediaWords::Util::Config::get_mc_root_dir() . "/log4perl.conf" );
 
     # makes default category be the calling package rather than mediawords.logger
     Log::Log4perl::wrapper_register( __PACKAGE__ );
