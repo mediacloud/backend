@@ -123,6 +123,7 @@ SQL
     say STDERR "total feeds tried: $total_num_feeds";
     say STDERR "num feeds with feedly stories: " . scalar( @{ $scraped_feeds } );
     say STDERR "num new stories: $total_new_stories";
+    say STDERR "earliest story: $overall_start_date";
 }
 
 main();
