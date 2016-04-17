@@ -121,7 +121,7 @@ SQL
     print( MediaWords::Util::CSV::get_hashes_as_encoded_csv( $scraped_feeds ) );
 
     say STDERR "total feeds tried: $total_num_feeds";
-    say STDERR "num feeds feedly stories: " . scalar( @{ $num_feeds } );
+    say STDERR "num feeds with feedly stories: " . scalar( @{ $scraped_feeds } );
     say STDERR "num new stories: $total_new_stories";
 }
 
