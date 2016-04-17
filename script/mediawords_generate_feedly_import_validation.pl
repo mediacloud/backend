@@ -24,6 +24,18 @@ use MediaWords::DB;
 use MediaWords::ImportStories::Feedly;
 use MediaWords::Util::CSV;
 
+sub get_date_range
+{
+    my ( $new_stories ) = @_;
+
+    $new_stories = [ sort { $a->{ publish_date } cmp $b->{ publish_date } } @{ $new_stories } ];
+
+    my $earliest_story = $new_stories->[ 0 ];
+    my $latest_story   = pop( @{ $new_stories } );
+
+    return ( $earliest_story->{ publish_date }, $latest_story->{ publish_date } );
+}
+
 sub main
 {
     my ( $num_feeds ) = @ARGV;
@@ -40,9 +52,15 @@ SQL
 
     my $feed_data = [];
 
+    my $total_num_feeds    = 0;
+    my $total_new_stories  = 0;
+    my $overall_start_date = '2030-01-01';
+
     my $scraped_feeds = [];
     for my $feed ( @{ $feeds } )
     {
+        $total_num_feeds++;
+
         say STDERR "feed: " . scalar( @{ $scraped_feeds } ) . " / $num_feeds";
 
         my $import = MediaWords::ImportStories::Feedly->new(
@@ -59,6 +77,8 @@ SQL
 
         my $new_stories = $import->module_stories();
 
+        $total_new_stories += scalar( @{ $new_stories } );
+
         next unless ( $new_stories && @{ $new_stories } );
 
         my $import_stories_lookup = {};
@@ -67,6 +87,10 @@ SQL
         map { $_->{ import } = $import_stories_lookup->{ $_->{ guid } } || 0 } @{ $new_stories };
 
         map { $_->{ _r } = rand() } @{ $new_stories };
+
+        my ( $start_date, $end_date ) = get_date_range( $new_stories );
+
+        my $overall_start_date = ( $start_date lt $overall_start_date ) ? $start_date : $overall_start_date;
 
         splice( @{ $new_stories }, 10 );
 
@@ -95,6 +119,10 @@ SQL
 
     print( MediaWords::Util::CSV::get_hashes_as_encoded_csv( $validate_stories ) );
     print( MediaWords::Util::CSV::get_hashes_as_encoded_csv( $scraped_feeds ) );
+
+    say STDERR "total feeds tried: $total_num_feeds";
+    say STDERR "num feeds feedly stories: " . scalar( @{ $num_feeds } );
+    say STDERR "num new stories: $total_new_stories";
 }
 
 main();
