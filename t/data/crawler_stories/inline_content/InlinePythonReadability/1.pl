@@ -1,9 +1,9 @@
 #<<<
 $VAR1 = {
-          'collect_date' => '2016-04-18 20:34:07.461185',
+          'collect_date' => '2016-04-18 22:01:40.557988',
           'content' => '<p>This is the first item.</p>
 ',
-          'db_row_last_updated' => '2016-04-18 20:34:11.657989+03',
+          'db_row_last_updated' => '2016-04-18 22:01:44.539946+03',
           'description' => 'RSS description of the first inline item.',
           'disable_triggers' => undef,
           'extracted_text' => 'First inline item
@@ -12,9 +12,7 @@ $VAR1 = {
 RSS description of the first inline item.
 ***
 
-
-
- 
+  
 
  This is the first item. 
 
@@ -29,7 +27,7 @@ RSS description of the first inline item.
           'stories_id' => 1,
           'story_sentences' => [
                                  {
-                                   'db_row_last_updated' => '2016-04-18 20:34:11.657989+03',
+                                   'db_row_last_updated' => '2016-04-18 22:01:44.539946+03',
                                    'disable_triggers' => 0,
                                    'is_dup' => undef,
                                    'language' => 'en',
@@ -44,6 +42,6 @@ RSS description of the first inline item.
           'tags' => [],
           'timezone' => 'Europe/Vilnius',
           'title' => 'First inline item',
-          'url' => 'http://tundra.local:53095/inline_content/item_1.html'
+          'url' => 'http://tundra.local:56371/inline_content/item_1.html'
         };
 #>>>
