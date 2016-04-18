@@ -25,6 +25,12 @@ sub eq_or_word_diff($$$)
 {
     my ( $actual_text, $expected_text, $message ) = @_;
 
+    if ( ( !defined $actual_text ) and ( !defined $expected_text ) )
+    {
+        ok( 1, $message );
+        return;
+    }
+
     # word_diff always returns output, even if the strings are equal, so only do the diff if the strings are different
     if ( $actual_text eq $expected_text )
     {
