@@ -18,7 +18,7 @@ fi
 
 ./install_scripts/install_mediacloud_package_dependencies.sh
 ./install_mc_perlbrew_and_modules.sh
-sudo pip install -r python_scripts/requirements.txt
+sudo pip install --upgrade -r python_scripts/requirements.txt
 
 echo "install complete"
 echo "running compile test"
