@@ -512,11 +512,11 @@ sub _call_extractor_on_html($;$)
     }
     elsif ( $extractor_method eq 'HeuristicExtractor' )
     {
-        die( "Heuristc Extractor has been removed." );
+        die "Heuristic Extractor has been removed.";
     }
     else
     {
-        die "invalid extractor method: $extractor_method";
+        die "Invalid extractor method: $extractor_method";
     }
 
     my $extracted_text = html_strip( $extracted_html );
