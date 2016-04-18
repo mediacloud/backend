@@ -21,8 +21,8 @@ from readability.readability import Document
 def extract_with_python_readability( raw_content ):
     doc = Document( raw_content )
     
-    return [ u'' + doc.short_title(),
-             u'' + doc.summary() ]
+    return [ u'' + doc.short_title().strip(),
+             u'' + doc.summary().strip() ]
 
 class ExtractorHandler:
     def extract_html( self, raw_html ):
