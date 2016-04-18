@@ -2,7 +2,7 @@ Feedly Import Validation
 ========================
 
 This document describes how we validated the performance of the [Feedly import
-module](../../lib/modules/MediaWords/ImportStories/Feedly.pm).   The purpose of the feedly import module is to use
+module](../../lib/MediaWords/ImportStories/Feedly.pm).   The purpose of the feedly import module is to use
 the feedly api to backfill stories into existing feeds.  Without feedly, we can only collect feed contents from the
 time we added a given feed to the system.  By using the feedly api, we can stories going back as far into the past
 as feedly has data for some feed (presumably from the first time some feedly user first subscribed to the given feed).
