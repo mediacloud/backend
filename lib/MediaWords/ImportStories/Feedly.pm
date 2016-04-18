@@ -42,7 +42,7 @@ use MediaWords::Util::Web;
 # number of stories to return in each feedly request
 Readonly my $FEEDLY_COUNT => 10_000;
 
-has 'feed_url' => ( is => 'rw', isa => 'Str', required => 1 );
+has 'feed_url' => ( is => 'rw', required => 1 );
 
 =head1 METHODS
 
