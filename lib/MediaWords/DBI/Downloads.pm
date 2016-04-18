@@ -467,15 +467,23 @@ sub _import_python_readability
     use Inline::Python;
 
     use Inline Python => <<'PYTHON';
-from readability.readability import Document
 
-def extract_with_python_readability( raw_content ):
-    doc = Document( raw_content )
+def import_python_readability(mc_root):
+    """Imports Readability extractor helper from python_scripts/extractor_python_readability_server.py."""
+    import os, sys
+    sys.path.append(os.path.join(mc_root, "python_scripts"))
 
-    return [ u'' + doc.short_title().strip(),
-             u'' + doc.summary().strip() ]
+    # Import globally
+    global extract_with_python_readability
+    from extractor_python_readability_server import extract_with_python_readability
+
+def extract_with_python_readability(html):
+    """Extracts HTML using Readability helper from python_scripts/extractor_python_readability_server.py."""
+    return extractor_python_readability_server.extract_with_python_readability(html)
 
 PYTHON
+
+    import_python_readability( MediaWords::Util::Config::get_mc_root_dir() );
 
     $_python_readability_imported = 1;
 }
