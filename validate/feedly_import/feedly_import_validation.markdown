@@ -45,8 +45,9 @@ day of the feedly story, and all stories returned as duplicates of the feedly st
 Results
 -------
 
-The feed scraping process detected 549,748 new stories for inclusion in the media cloud database (mean = 1099,
-median = 2).
+The feed scraping process detected 549,748 new stories for import into the media cloud database (mean = 1099, median =
+2).  On a separate test run, feedly returned stories for 100 / 127 feeds.  Media Cloud currently has about 105,000
+active feeds, so importing feedly stories for all of our sources would add about 91 million new stories.
 
 The all feed pool included 321 new stories and 4500 duplicate stories.
 

@@ -52,9 +52,9 @@ SQL
 
     my $feed_data = [];
 
-    my $total_num_feeds    = 0;
-    my $total_new_stories  = 0;
-    my $overall_start_date = '2030-01-01';
+    my $total_num_feeds        = 0;
+    my $total_imported_stories = 0;
+    my $overall_start_date     = '2030-01-01';
 
     my $scraped_feeds = [];
     for my $feed ( @{ $feeds } )
@@ -75,9 +75,9 @@ SQL
         eval { $import_stories = $import->scrape_stories(); };
         warn( $@ ) if ( $@ );
 
-        my $new_stories = $import->module_stories();
+        $total_imported_stories += scalar( @{ $import_stories } );
 
-        $total_new_stories += scalar( @{ $new_stories } );
+        my $new_stories = $import->module_stories();
 
         next unless ( $new_stories && @{ $new_stories } );
 
@@ -122,7 +122,7 @@ SQL
 
     say STDERR "total feeds tried: $total_num_feeds";
     say STDERR "num feeds with feedly stories: " . scalar( @{ $scraped_feeds } );
-    say STDERR "num new stories: $total_new_stories";
+    say STDERR "num imported stories: $total_imported_stories";
     say STDERR "earliest story: $overall_start_date";
 }
 
