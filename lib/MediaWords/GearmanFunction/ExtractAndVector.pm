@@ -83,8 +83,6 @@ sub run($$)
             $config->{ mediawords }->{ extractor_method } = $new_extractor_method;
         }
 
-        DEBUG( "Using extractor method: " . $config->{ mediawords }->{ extractor_method } );
-
         if ( $extract_by_downloads_id )
         {
             my $downloads_id = $args->{ downloads_id };
