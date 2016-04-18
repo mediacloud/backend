@@ -506,7 +506,7 @@ sub _call_extractor_on_html($;$)
     {
         $extracted_html = MediaWords::Util::ThriftExtractor::get_extracted_html( $$content_ref );
     }
-    if ( $extractor_method eq 'InlinePythonReadability' )
+    elsif ( $extractor_method eq 'InlinePythonReadability' )
     {
         $extracted_html = _get_inline_extracted_html( $$content_ref );
     }
