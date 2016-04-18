@@ -497,13 +497,7 @@ sub _get_inline_extracted_html
 
     my $extracted_html = join( ' ', extract_with_python_readability( $content ) );
 
-    TRACE(
-        sub {
-            "inline extractor: " .
-              length( $content ) . ' ' . bytes::length( $content ) . " -> " .
-              length( $extracted_html ) . ' ' . bytes::length( $extracted_html );
-        }
-    );
+    TRACE( sub { "inline extractor: " . length( $content ) . " -> " . length( $extracted_html ) } );
 
     return $extracted_html;
 }
