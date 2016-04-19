@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4530;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4531;
 
 BEGIN
 
@@ -1271,19 +1271,6 @@ CREATE index stories_tags_map_db_row_last_updated on stories_tags_map ( db_row_l
 create unique index stories_tags_map_story on stories_tags_map (stories_id, tags_id);
 create index stories_tags_map_tag on stories_tags_map (tags_id);
 CREATE INDEX stories_tags_map_story_id ON stories_tags_map USING btree (stories_id);
-
-create table extractor_training_lines
-(
-    extractor_training_lines_id     serial      primary key,
-    line_number                     int         not null,
-    required                        boolean     not null,
-    downloads_id                    int         not null references downloads on delete cascade,
-    "time" timestamp without time zone,
-    submitter character varying(256)
-);
-
-create unique index extractor_training_lines_line on extractor_training_lines(line_number, downloads_id);
-create index extractor_training_lines_download on extractor_training_lines(downloads_id);
 
 CREATE TABLE download_texts (
     download_texts_id integer NOT NULL,

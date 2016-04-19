@@ -107,8 +107,6 @@ sub setup_acl()
     # media-edit role; can do everything admin-readonly can + add / edit media / feeds
     my @acl_media_edit = qw|
       /admin/downloads/redownload
-      /admin/extractor_stats/index
-      /admin/extractor_stats/list
       /admin/feeds/batch_create
       /admin/feeds/batch_create_do
       /admin/feeds/create

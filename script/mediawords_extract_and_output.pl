@@ -133,10 +133,6 @@ sub main
     else
     {
         die "must specify file or downloads id";
-
-        $downloads = $dbs->query(
-"SELECT * from downloads where downloads_id in (select distinct downloads_id from extractor_training_lines order by downloads_id)"
-        )->hashes;
     }
 
     say STDERR Dumper( $downloads );
