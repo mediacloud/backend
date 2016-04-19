@@ -142,7 +142,6 @@ requires 'Test::NoWarnings';
 requires 'Test::Strict';
 requires 'Text::CSV';
 requires 'Text::Lorem::More';
-requires 'Text::Similarity::Overlaps';
 requires 'Text::Trim';
 requires 'Tie::Cache';
 requires 'WebService::Google::Language';

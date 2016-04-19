@@ -8242,14 +8242,6 @@ DISTRIBUTIONS
       Parse::RecDescent 0
       Test::More 0
       Test::Most 0
-  Text-Similarity-0.10
-    pathname: T/TP/TPEDERSE/Text-Similarity-0.10.tar.gz
-    provides:
-      Text::OverlapFinder 0.03
-      Text::Similarity 0.10
-      Text::Similarity::Overlaps 0.05
-    requirements:
-      ExtUtils::MakeMaker 0
   Text-SimpleTable-2.03
     pathname: M/MR/MRAMBERG/Text-SimpleTable-2.03.tar.gz
     provides:
