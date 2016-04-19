@@ -98,7 +98,6 @@ Lingua::StopWords
 
 Lingua::Sentence
 
-List::Compare::Functional
 List::Pairwise
 
 URI::Split

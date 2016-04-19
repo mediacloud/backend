@@ -67,8 +67,3 @@ facebook:
     app_id: ''
     app_secret: ''
     timeout: 60
-crf_web_service:
-    enabled: no
-    server_url: http://127.0.0.1:8441/crf
-    listen: 127.0.0.1:8441
-    number_of_threads: 32
