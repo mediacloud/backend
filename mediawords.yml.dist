@@ -341,9 +341,6 @@ mediawords:
     ### Enable local (CHI-based) Amazon S3 download caching?
     #cache_s3_downloads : "no"
 
-    #Uncomment to put the site into overload. This disables functionality so that the site can handle more traffic.
-    #site_overload_mode: "yes"
-
     #Uncomment to disable the use of a precalculated version of the top_500_words.
     #disable_json_top_500_words_cache: "yes"
 
