@@ -15,11 +15,29 @@ BEGIN
 use Readonly;
 
 use Test::NoWarnings;
-use Test::More tests => 11;
+use Test::More tests => 16;
 use utf8;
 
 use MediaWords::Languages::ru;
 use Data::Dumper;
+
+sub test_stopwords()
+{
+    my $lang = MediaWords::Languages::ru->new();
+
+    ok( $lang->get_tiny_stop_words(), 'lang_en_get_stop_words' );
+
+    # Stop words
+    my $stop_words_ru = $lang->get_tiny_stop_words();
+    ok( scalar( keys( %{ $stop_words_ru } ) ) >= 140, "stop words (ru) count is correct" );
+
+    is( $stop_words_ru->{ 'и' }, 1, "Russian test #1" );
+    is( $stop_words_ru->{ 'я' }, 1, "Russian test #2" );
+
+    # Stop word stems
+    my $stop_word_stems_ru = $lang->get_tiny_stop_word_stems();
+    ok( scalar( keys( %{ $stop_word_stems_ru } ) ) >= 108, "stop word stem (ru) count is correct" );
+}
 
 sub test_get_sentences()
 {
@@ -244,6 +262,7 @@ sub main()
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
+    test_stopwords();
     test_get_sentences();
     test_tokenize();
     test_stem();
