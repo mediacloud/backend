@@ -87,7 +87,6 @@ use XML::LibXML;
 #     <controversy_model_reps>25</controversy_model_reps>
 #     <data_dir>/Users/pypt/Dropbox/etc-MediaCloud/trunk/script/../lib/MediaWords/Util/../../../data</data_dir>
 #     <default_home_page>admin/media/list</default_home_page>
-#     <disable_json_top_500_words_cache>no</disable_json_top_500_words_cache>
 #     <download_storage_locations>postgresql</download_storage_locations>
 #     <language>en_US_and_ru_RU</language>
 #     <owner>mediawords@cyber.law.harvard.edu</owner>
