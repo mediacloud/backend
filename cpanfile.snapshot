@@ -7399,12 +7399,6 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       Test::More 0
       Time::Local 0
-  Set-Jaccard-SimilarityCoefficient-0.5.1
-    pathname: M/ML/MLFISHER/Set-Jaccard-SimilarityCoefficient-0.5.1.tar.gz
-    provides:
-      Set::Jaccard::SimilarityCoefficient 0.005001
-    requirements:
-      ExtUtils::MakeMaker 6.30
   Set-Object-1.34
     pathname: R/RU/RURBAN/Set-Object-1.34.tar.gz
     provides:

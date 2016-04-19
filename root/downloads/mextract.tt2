@@ -196,7 +196,6 @@
         [% FOREACH line IN lines -%]
             [%- SET score = scores.$line_number -%]
             [%- SET explanation = score.explanation -%]
-	    [%- SET line_info = line_infos.$line_number -%] 
 
             [%- IF ( explanation != "require body\n") AND (explanation != "require non-blank\n") AND (explanation != "require non-html\n" AND ! line_info.auto_excluded )  || c.flash.no_autoexclude -%]
                 [%- IF autoexcluded_lines > 0 %]
