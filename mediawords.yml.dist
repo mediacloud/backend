@@ -341,9 +341,6 @@ mediawords:
     ### Enable local (CHI-based) Amazon S3 download caching?
     #cache_s3_downloads : "no"
 
-    ### default to just NYTTopics
-    #default_tag_module: "NYTTopics Calais"
-
     #Uncomment to put the site into overload. This disables functionality so that the site can handle more traffic.
     #site_overload_mode: "yes"
 
