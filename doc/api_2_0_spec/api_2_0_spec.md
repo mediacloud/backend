@@ -691,9 +691,11 @@ by the given query.  By default, the request will sample 1000 sentences and retu
 can make the api sample more sentences.  The system takes about one second to process each multiple of
 1000 sentences.
 
-By default, the system stems and stopwords the list in English.  If you specify the 'l' parameter,
-the system will stem and stopword the words by each of the listed languages serially.  To do no stemming
-or stopwording, specify 'none'.  The following language are supported (by 2 letter language code):
+By default, the system stems and stopwords the list in English plus each of the supported languages it detects for
+either the entire block block of text or for any of the individual sentences.  If you specify the 'languages'
+parameter, the system will stem and stopword the words by each of the listed languages.
+
+The following language are supported (by 2 letter language code):
 'da' (Danish), 'de' (German), 'en' (English), 'es' (Spanish), 'fi' (Finnish), 'fr' (French),
 'hu' (Hungarian), 'it' (Italian), 'lt' (Lithuanian), 'nl' (Dutch), 'no' (Norwegian), 'pt' (Portuguese),
 'ro' (Romanian), 'ru' (Russian), 'sv' (Swedish), 'tr' (Turkish).

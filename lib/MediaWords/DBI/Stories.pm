@@ -1110,12 +1110,18 @@ sub get_story_word_matrix($$;$$)
         for my $story ( @{ $stories } )
         {
             my $wc = MediaWords::Solr::WordCounts->new( language => $story->{ language } );
+            $wc->include_stopwords( 1 );
+            $wc->languages( [ $story->{ language } ] );
 
             my $stem_counts = $wc->count_stems( [ split( $sentence_separator, $story->{ story_text } ) ] );
 
             _remove_stopwords_from_stem_vector( $stem_counts, $story->{ language }, $stopword_length );
 
-            my $stem_count_list = [ map { [ $_, @{ $stem_counts->{ $_ } } ] } keys( %{ $stem_counts } ) ];
+            my $stem_count_list = [];
+            while ( my ( $stem, $data ) = each( %{ $stem_counts } ) )
+            {
+                push( @{ $stem_count_list }, [ $stem, $data->{ count }, $data->{ terms } ] );
+            }
 
             if ( $max_words )
             {
