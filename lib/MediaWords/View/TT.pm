@@ -5,7 +5,6 @@ use MediaWords::CommonLibs;
 use strict;
 use base 'Catalyst::View::TT';
 use MediaWords::Util::HTML;
-use MediaWords::Util::Translate;
 use Data::Dumper;
 use Text::Trim;
 use MediaWords::Util::Config;
@@ -60,15 +59,6 @@ sub new
     );
 
     $self->{ template }->context->define_filter(
-        translate => sub {
-            my $nr = shift;
-            $nr = MediaWords::Util::Translate::translate( $nr );
-
-            #$nr = html_strip($nr);
-        }
-    );
-
-    $self->{ template }->context->define_filter(
         ga_account_code => sub {
             my $nr = shift;
 
@@ -91,29 +81,6 @@ sub new
             $nr = $ga_domain;
 
             return $nr;
-        }
-    );
-
-    $self->{ template }->context->define_filter(
-        translate_if_necessary => sub {
-            my $nr = shift;
-
-            return $nr;
-
-            return $nr if !defined( $nr ) || !defined( trim( $nr ) );
-
-            my $tr = MediaWords::Util::Translate::translate( $nr );
-            if ( $tr eq $nr )
-            {
-                return $nr;
-            }
-            else
-            {
-                $nr = html_strip( "$nr ($tr)" );
-                return $nr;
-            }
-
-            #$nr = html_strip($nr);
         }
     );
 

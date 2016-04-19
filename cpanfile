@@ -143,7 +143,6 @@ requires 'Text::CSV';
 requires 'Text::Lorem::More';
 requires 'Text::Trim';
 requires 'Tie::Cache';
-requires 'WebService::Google::Language';
 requires 'XML::FeedPP';
 requires 'XML::LibXML';
 requires 'XML::Simple';

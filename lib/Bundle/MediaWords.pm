@@ -153,8 +153,6 @@ Bundle::Test
 
 HTML::FormFu
 
-WebService::Google::Language
-
 Tie::Cache::LRU
 
 Storable
