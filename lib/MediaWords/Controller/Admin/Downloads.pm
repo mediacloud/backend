@@ -139,38 +139,6 @@ sub view_extracted : Local
     $c->response->body( $download_text->{ download_text } );
 }
 
-sub get_high_priority_download
-{
-    my ( $self, $c ) = @_;
-
-    return $self->_get_download_from_less_trained_media_source( $c );
-}
-
-#get a download from one of the ten media sources with the fewest downloads already trained
-sub _get_download_from_less_trained_media_source
-{
-    my ( $self, $c ) = @_;
-
-    my $query_get_download_from_media_sources_with_fewest_downloads =
-"select * from downloads, (SELECT stories_id, media_id from stories where stories.media_id in (select media_id from media_adjusted_extractor_training_downloads_count order by count limit 10) limit 150) as stories_to_train where downloads.stories_id=stories_to_train.stories_id and state='success' and type='content' limit 100";
-
-    my $downloads = $c->dbis->query( $query_get_download_from_media_sources_with_fewest_downloads )->hashes;
-
-    #evil hack until I can figure out why the above media aren't working
-    if ( scalar( @{ $downloads } ) == 0 )
-    {
-        $downloads = $c->dbis->query(
-"SELECT downloads.* from downloads, stories where type='content' and state='success' and stories.stories_id=downloads.stories_id and stories.media_id in (select media_id from (select * from media_adjusted_extractor_training_downloads_count order by count limit 20) as media_20 order by count desc limit 15) limit 100"
-        )->hashes;
-    }
-
-    #Randomly pick one of the high priority downloads.
-    #We use random so that the trainer can skip downloads.
-    my $download = $downloads->[ int( rand( scalar( @{ $downloads } - 1 ) ) ) ];
-
-    return $download;
-}
-
 sub redownload : Local
 {
     my ( $self, $c, $download_id ) = @_;

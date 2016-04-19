@@ -32,7 +32,6 @@ my $_test_sentences    = 0;
 my $_download_data_load_file;
 my $_download_data_store_file;
 my $_dont_store_preprocessed_lines;
-my $_dump_training_data_csv;
 
 # do a test run of the text extractor
 sub main
