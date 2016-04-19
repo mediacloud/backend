@@ -88,25 +88,4 @@ sub tokenize
     return $self->_tokenize_with_spaces( $sentence );
 }
 
-sub get_noise_strings
-{
-    my $self          = shift;
-    my @noise_strings = (
-        'naujienų', 'BNS',       'skelbti',      'cituoti',        'atgaminti',   'kopijuoti',
-        'dauginti',  'platinti',  'informavimo',  'raštiško',     'raštišką', 'sutikimo',
-        'sutikimą', 'sutikimas', 'neleidžiama', 'draudžiama',    'taisyklės',  'teisės',
-        'saugomos',  'griežtai', 'DELFI',        'žiniasklaidos', 'nurodyti',    'šaltinį',
-        'šaltinis'
-    );
-    return \@noise_strings;
-}
-
-sub get_copyright_strings
-{
-    my $self = shift;
-    my @copyright_strings =
-      ( 'copyright', 'copying', '&copy;', 'all rights reserved', 'teisės saugomos', 'visos teisės saugomos', );
-    return \@copyright_strings;
-}
-
 1;

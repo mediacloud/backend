@@ -172,28 +172,4 @@ sub tokenize
     return $tokens;
 }
 
-sub get_noise_strings
-{
-    my $self          = shift;
-    my @noise_strings = (
-
-        # FIXME add language-dependent noise strings (see en.pm for example)
-    );
-    return \@noise_strings;
-}
-
-sub get_copyright_strings
-{
-    my $self              = shift;
-    my @copyright_strings = (
-
-        # FIXME add language-dependent copyright strings (see en.pm for example)
-        'copyright',
-        'copying',
-        '&copy;',
-        'all rights reserved',
-    );
-    return \@copyright_strings;
-}
-
 1;

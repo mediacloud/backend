@@ -67,26 +67,4 @@ sub tokenize
     return $self->_tokenize_with_spaces( $sentence );
 }
 
-sub get_noise_strings
-{
-    my $self          = shift;
-    my @noise_strings = (
-        'comment',      'advertise',        'advertisement',       'advertising',
-        'classified',   'subscribe',        'subscription',        'please',
-        'address',      'published',        'obituary',            'current',
-        'high',         'low',              'click',               'filter',
-        'select',       'copyright',        'reserved',            'abusive',
-        'defamatory',   'post',             'trackback',           'url',
-        'terms of use', 'data provided by', 'data is provided by', 'privacy policy',
-    );
-    return \@noise_strings;
-}
-
-sub get_copyright_strings
-{
-    my $self = shift;
-    my @copyright_strings = ( 'copyright', 'copying', '&copy;', 'all rights reserved', );
-    return \@copyright_strings;
-}
-
 1;

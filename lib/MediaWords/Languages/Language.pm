@@ -119,13 +119,6 @@ requires 'get_sentences';
 #
 requires 'tokenize';
 
-# Returns an arrayref of "noise words" for the heuristic line analyzer.
-requires 'get_noise_strings';
-
-# Returns an arrayref of strings which denote that a particular HTML line is
-# likely to be the "copyright" string.
-requires 'get_copyright_strings';
-
 #
 # END OF THE SUBCLASS INTERFACE
 #
@@ -362,28 +355,6 @@ sub get_stop_word_stems($)
     return $self->get_long_stop_word_stems  if ( $length eq 'long' );
 
     die( "Unknown stop word length '$length'" );
-}
-
-sub get_noise_strings_regex
-{
-    my $self = shift;
-
-    if ( $self->cached_noise_strings_regex == 0 )
-    {
-        my $noise_strings = $self->get_noise_strings();
-
-        my @noise_strings_escaped;
-        for my $noise_string ( @{ $noise_strings } )
-        {
-            push( @noise_strings_escaped, "\b\Q$noise_string\E\b" );
-        }
-        my $noise_strings_regex = '(' . join( '|', @noise_strings_escaped ) . ')';
-        $noise_strings_regex = qr/$noise_strings_regex/is;
-
-        $self->cached_noise_strings_regex( $noise_strings_regex );
-    }
-
-    return $self->cached_noise_strings_regex;
 }
 
 around 'stem' => sub {
