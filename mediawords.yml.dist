@@ -290,6 +290,8 @@ database:
 #      domainname: "<DOMAIN>"
 
 mediawords:
+    ### Extractor method to use
+    ### Defaults to InlinePythonReadability
     #extractor_method: PythonReadability
     ### defaults to http://$hostname:$port/.
     #base_url: "http://your.mediacloud.server/and/path"
