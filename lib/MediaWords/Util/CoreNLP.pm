@@ -306,7 +306,7 @@ sub _annotate_text($)
             }
             elsif ( $http_status_code == HTTP_INTERNAL_SERVER_ERROR )
             {
-                # CRF processing error -- die() so that the error gets caught and logged into a database
+                # CoreNLP processing error -- die() so that the error gets caught and logged into a database
                 die 'CoreNLP annotator service was unable to process the download: ' . $results_string;
 
             }
