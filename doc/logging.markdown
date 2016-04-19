@@ -66,3 +66,17 @@ package script::mediawords_web_store;
 ```
 
 For convention, use a `script::*` package for scripts and a `t::*` package for tests.
+
+Use the following guidelines when deciding which logging level to use:
+
+TRACE - detailed trace as low as line by line level, very noisy and generally useful only if a specific bit of code is giving trouble
+
+DEBUG - traces basic operation of the code, pretty noisy but generally useful for following the basic flow of the code
+
+INFO - stuff I would want to know even if not actively following that part of the code
+
+WARN - something is off, equivalent of a perl warn(), but not worth directly notifying us
+
+ERROR - something is off, and we should be notified of it
+
+FATAL / LOGDIE - fatal error, program should die and we should be notified
