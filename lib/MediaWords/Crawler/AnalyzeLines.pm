@@ -11,7 +11,6 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 use MediaWords::Util::HTML;
 use MediaWords::Util::Text;
-use MediaWords::Crawler::Extractor;
 use MediaWords::Languages::Language;
 use MediaWords::Util::IdentifyLanguage;
 use Carp;

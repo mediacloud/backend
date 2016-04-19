@@ -38,7 +38,6 @@ use CHI;
 use Scalar::Defer;
 use Readonly;
 
-use MediaWords::Crawler::Extractor;
 use MediaWords::Util::Config;
 use MediaWords::Util::HTML;
 use MediaWords::DB;
@@ -402,9 +401,7 @@ EOF
 Run the extractor against the download content and return a hash in the form of:
 
     { extracted_html => $html,    # a string with the extracted html
-      extracted_text => $text,    # a string with the extracted html strippped to text
-      download_lines => $lines,   # (optional) an array of the lines of original html
-      scores => $scores }         # (optional) the scores returned by Mediawords::Crawler::Extractor::score_lines
+      extracted_text => $text }   # a string with the extracted html strippped to text
 
 The extractor used is configured in mediawords.yml by mediawords.extractor_method, which should be one of
 'PythonReadability'.

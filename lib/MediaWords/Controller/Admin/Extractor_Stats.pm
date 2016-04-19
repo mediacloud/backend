@@ -11,8 +11,6 @@ use DateTime;
 
 use HTML::Entities;
 
-use MediaWords::Crawler::Extractor;
-
 # METHODS
 
 sub index : Path : Args(0)

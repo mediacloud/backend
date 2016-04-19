@@ -1,7 +1,5 @@
 #!/usr/bin/env perl
 
-# test MediaWords::Crawler::Extractor against manually extracted downloads
-
 use strict;
 use warnings;
 
@@ -11,7 +9,6 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
-use MediaWords::Crawler::Extractor;
 use Getopt::Long;
 use HTML::Strip;
 use DBIx::Simple::MediaWords;
@@ -29,7 +26,6 @@ use Text::Trim;
 
 use Data::Dumper;
 use MediaWords::Util::HTML;
-use MediaWords::Util::ExtractorTest;
 use Data::Compare;
 use Storable;
 use 5.14.2;

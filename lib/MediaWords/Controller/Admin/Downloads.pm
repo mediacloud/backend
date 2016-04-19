@@ -13,7 +13,6 @@ use Encode;
 use HTML::Entities;
 use Readonly;
 
-use MediaWords::Crawler::Extractor;
 use MediaWords::Crawler::Engine;
 use MediaWords::Crawler::Provider;
 use MediaWords::Crawler::Handler;
