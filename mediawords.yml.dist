@@ -341,9 +341,6 @@ mediawords:
     ### Enable local (CHI-based) Amazon S3 download caching?
     #cache_s3_downloads : "no"
 
-    ### needed for yahoo tagging
-    #yahoo_key: "YAHOOKEY"
-
     ### default to just NYTTopics
     #default_tag_module: "NYTTopics Calais"
 
