@@ -27,7 +27,6 @@ mediawords:
     default_home_page: admin/media/list
     disable_json_top_500_words_cache: no
     extractor_method: InlinePythonReadability
-    inline_java_jni: no
     language: en_US_and_ru_RU
     owner: mediacloud@cyber.law.harvard.edu
     download_storage_locations:
