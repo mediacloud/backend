@@ -341,10 +341,6 @@ mediawords:
     ### Enable local (CHI-based) Amazon S3 download caching?
     #cache_s3_downloads : "no"
 
-    #### Defaults to kmeans uncomment to use Cluto
-    #clustering_engine: "cluto"
-    #cluto_binary: "/usr/local/cluto/bin/vcluster"
-
     ### needed for calais tagging
     #calais_key: "CALAISKEY"
 
