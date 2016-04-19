@@ -341,9 +341,6 @@ mediawords:
     ### Enable local (CHI-based) Amazon S3 download caching?
     #cache_s3_downloads : "no"
 
-    ### needed for calais tagging
-    #calais_key: "CALAISKEY"
-
     ### needed for yahoo tagging
     #yahoo_key: "YAHOOKEY"
 
