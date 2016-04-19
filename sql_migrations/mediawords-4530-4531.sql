@@ -19,6 +19,7 @@ SET search_path = public, pg_catalog;
 
 
 DROP TABLE extractor_training_lines;
+DROP TABLE extracted_lines;
 
 DROP VIEW IF EXISTS media_extractor_training_downloads_count;
 DROP VIEW IF EXISTS yahoo_top_political_2008_media;

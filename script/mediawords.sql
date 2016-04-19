@@ -1298,15 +1298,6 @@ ALTER TABLE ONLY download_texts
 ALTER TABLE download_texts add CONSTRAINT download_text_length_is_correct CHECK (length(download_text)=download_text_length);
 
 
-create table extracted_lines
-(
-    extracted_lines_id          serial          primary key,
-    line_number                 int             not null,
-    download_texts_id           int             not null references download_texts on delete cascade
-);
-
-create index extracted_lines_download_text on extracted_lines(download_texts_id);
-
 CREATE TYPE url_discovery_status_type as ENUM ('already_processed', 'not_yet_processed');
 CREATE TABLE url_discovery_counts (
        url_discovery_status url_discovery_status_type PRIMARY KEY,
