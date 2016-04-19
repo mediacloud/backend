@@ -35,8 +35,6 @@ use MediaWords::Languages::en;
 
 my $_re_generate_cache = 0;
 
-Readonly my $output_dir => 'download_content_test_data';
-
 sub store_preprocessed_result
 {
     my ( $download, $preprocessed_lines, $extract_results, $content_ref, $story ) = @_;

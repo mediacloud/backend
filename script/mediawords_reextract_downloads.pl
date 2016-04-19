@@ -32,8 +32,6 @@ use MIME::Base64;
 
 my $_re_generate_cache = 0;
 
-Readonly my $output_dir => 'download_content_test_data';
-
 sub reextract_downloads
 {
 
