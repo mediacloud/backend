@@ -366,7 +366,7 @@ mediawords:
     #recaptcha_private_key: "6LfEVt0SAAAAABmI-8IJmx4g93eNcSeyeCxvLMs2"
 
     #uncomment to make the public homepage the default start page
-    #default_home_page: "dashboard/view"
+    #default_home_page: "admin/media/list"
     # downloads id under which to strip all non-ascii characters
     #ascii_hack_downloads_id: 123456789
 
