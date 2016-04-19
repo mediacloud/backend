@@ -61,7 +61,7 @@ sub extract_and_compare($$$$)
     my $expected_text = $story->{ extracted_text };
     my $actual_text   = $combined_text;
 
-    MediaWords::Test::Text::eq_or_word_diff( $actual_text, $expected_text, "Extracted text comparison for $title" );
+    MediaWords::Test::Text::eq_or_sentence_diff( $actual_text, $expected_text, "Extracted text comparison for $title" );
 }
 
 sub main

@@ -21,14 +21,15 @@ use MediaWords::Languages::en;
 
 =head1 FUNCTIONS
 
-=head2 eq_or_word_diff( $got, $expected, $message )
+=head2 eq_or_sentence_diff( $got, $expected, $message )
 
-Fails test if $got and $expected are not equal strings.  In the case, prints a word by word diff that in most cases
-is much more useful than the line by line diff of Test::Text::eq_or_diff.
+Fails test if $got and $expected are not equal strings.  In the case, prints a
+sentence by sentence diff that in most cases is much more useful than the line
+by line diff of Test::Text::eq_or_diff.
 
 =cut
 
-sub eq_or_word_diff($$$)
+sub eq_or_sentence_diff($$$)
 {
     my ( $actual_text, $expected_text, $message ) = @_;
 
@@ -38,7 +39,6 @@ sub eq_or_word_diff($$$)
         return;
     }
 
-    # word_diff always returns output, even if the strings are equal, so only do the diff if the strings are different
     if ( $actual_text eq $expected_text )
     {
         ok( 1, $message );

@@ -260,7 +260,7 @@ sub _test_stories($$$$$)
                 {
                     my $fake_var;    #silence warnings
                      #eq_or_diff( $story->{ $field }, encode_utf8($test_story->{ $field }), "story $field match" , {context => 0});
-                    MediaWords::Test::Text::eq_or_word_diff(
+                    MediaWords::Test::Text::eq_or_sentence_diff(
                         $story->{ $field },
                         $test_story->{ $field },
                         "$test_name - story $field match"
@@ -268,7 +268,7 @@ sub _test_stories($$$$$)
                 }
             }
 
-            MediaWords::Test::Text::eq_or_word_diff(
+            MediaWords::Test::Text::eq_or_sentence_diff(
                 $story->{ content },
                 $test_story->{ content },
                 "$test_name - story content matches"
