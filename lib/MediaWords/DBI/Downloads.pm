@@ -467,15 +467,23 @@ sub _import_python_readability
     use Inline::Python;
 
     use Inline Python => <<'PYTHON';
-from readability.readability import Document
 
-def extract_with_python_readability( raw_content ):
-    doc = Document( raw_content )
+def import_python_readability(mc_root):
+    """Imports Readability extractor helper from python_scripts/extractor_python_readability_server.py."""
+    import os, sys
+    sys.path.append(os.path.join(mc_root, "python_scripts"))
 
-    return [ u'' + doc.short_title(),
-             u'' + doc.summary() ]
+    # Import globally
+    global extract_with_python_readability
+    from extractor_python_readability_server import extract_with_python_readability
+
+def extract_with_python_readability(html):
+    """Extracts HTML using Readability helper from python_scripts/extractor_python_readability_server.py."""
+    return extractor_python_readability_server.extract_with_python_readability(html)
 
 PYTHON
+
+    import_python_readability( MediaWords::Util::Config::get_mc_root_dir() );
 
     $_python_readability_imported = 1;
 }
@@ -506,17 +514,17 @@ sub _call_extractor_on_html($;$)
     {
         $extracted_html = MediaWords::Util::ThriftExtractor::get_extracted_html( $$content_ref );
     }
-    if ( $extractor_method eq 'InlinePythonReadability' )
+    elsif ( $extractor_method eq 'InlinePythonReadability' )
     {
         $extracted_html = _get_inline_extracted_html( $$content_ref );
     }
     elsif ( $extractor_method eq 'HeuristicExtractor' )
     {
-        die( "Heuristc Extractor has been removed." );
+        die "Heuristic Extractor has been removed.";
     }
     else
     {
-        die "invalid extractor method: $extractor_method";
+        die "Invalid extractor method: $extractor_method";
     }
 
     my $extracted_text = html_strip( $extracted_html );

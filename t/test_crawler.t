@@ -39,6 +39,7 @@ use MediaWords::DBI::Stories;
 use MediaWords::Test::DB;
 use MediaWords::Test::Data;
 use MediaWords::Test::LocalServer;
+use MediaWords::Test::Text;
 use MediaWords::Util::Config;
 use DBIx::Simple::MediaWords;
 use MediaWords::StoryVectors;
@@ -259,11 +260,19 @@ sub _test_stories($$$$$)
                 {
                     my $fake_var;    #silence warnings
                      #eq_or_diff( $story->{ $field }, encode_utf8($test_story->{ $field }), "story $field match" , {context => 0});
-                    is( $story->{ $field }, $test_story->{ $field }, "$test_name - story $field match" );
+                    MediaWords::Test::Text::eq_or_sentence_diff(
+                        $story->{ $field },
+                        $test_story->{ $field },
+                        "$test_name - story $field match"
+                    );
                 }
             }
 
-            eq_or_diff( $story->{ content }, $test_story->{ content }, "$test_name - story content matches" );
+            MediaWords::Test::Text::eq_or_sentence_diff(
+                $story->{ content },
+                $test_story->{ content },
+                "$test_name - story content matches"
+            );
 
             is( scalar( @{ $story->{ tags } } ), scalar( @{ $test_story->{ tags } } ), "$test_name - story tags count" );
 

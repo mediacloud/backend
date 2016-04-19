@@ -3396,15 +3396,6 @@ DISTRIBUTIONS
       Scalar::Util 0
       Test::More 0
       perl 5.006
-  Encode-DoubleEncodedUTF8-0.05
-    pathname: M/MI/MIYAGAWA/Encode-DoubleEncodedUTF8-0.05.tar.gz
-    provides:
-      Encode::DoubleEncodedUTF8 0.05
-    requirements:
-      Encode 0.12
-      ExtUtils::MakeMaker 6.42
-      Filter::Util::Call 0
-      Test::More 0
   Encode-HanConvert-0.35
     pathname: A/AU/AUDREYT/Encode-HanConvert-0.35.tar.gz
     provides:
@@ -8280,21 +8271,6 @@ DISTRIBUTIONS
     requirements:
       Test::More 0
       perl 5
-  Text-WordDiff-0.08
-    pathname: D/DW/DWHEELER/Text-WordDiff-0.08.tar.gz
-    provides:
-      Text::WordDiff 0.08
-      Text::WordDiff::ANSIColor 0.08
-      Text::WordDiff::Base undef
-      Text::WordDiff::HTML 0.08
-      Text::WordDiff::HTMLTwoLines 0.08
-    requirements:
-      Algorithm::Diff 1.19
-      File::Spec 0
-      HTML::Entities 0
-      Module::Build 0.2701
-      Term::ANSIColor 0
-      Test::More 0.17
   Text-Xslate-3.3.3
     pathname: S/SY/SYOHEX/Text-Xslate-3.3.3.tar.gz
     provides:
