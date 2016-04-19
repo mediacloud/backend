@@ -3947,19 +3947,6 @@ DISTRIBUTIONS
     requirements:
       Test::More 0
       version 0
-  HTML-CruftText-0.02
-    pathname: D/DR/DRLARO/HTML-CruftText-0.02.tar.gz
-    provides:
-      HTML::CruftText 0.02
-    requirements:
-      ExtUtils::MakeMaker 0
-      List::MoreUtils 0.33
-      Readonly 1.03
-      Test::More 0
-      Test::NoWarnings 1.04
-      Test::Pod 1.45
-      Test::Pod::Coverage 1.08
-      Time::HiRes 1.51
   HTML-Entities-Interpolate-1.05
     pathname: R/RS/RSAVAGE/HTML-Entities-Interpolate-1.05.tgz
     provides:

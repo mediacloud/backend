@@ -18,7 +18,6 @@ use Readonly;
 
 use Test::NoWarnings;
 use Test::More;
-use HTML::CruftText 0.02;
 use Test::Deep;
 
 use MediaWords::DB;

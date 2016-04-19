@@ -70,7 +70,6 @@ requires 'Gearman::JobScheduler', '0.16';
 requires 'Graph';
 requires 'GraphViz';
 requires 'GraphViz2';
-requires 'HTML::CruftText', '0.02';
 requires 'HTML::Entities';
 requires 'HTML::FormFu';
 requires 'HTML::FormFu::Element::reCAPTCHA';
