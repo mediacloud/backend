@@ -12,7 +12,7 @@ BEGIN
 use Readonly;
 
 use Test::NoWarnings;
-use Test::More tests => 19;
+use Test::More tests => 22;
 use utf8;
 
 use MediaWords::Languages::en;
@@ -267,6 +267,28 @@ sub test_tokenize()
 sub test_stem()
 {
     my $lang = MediaWords::Languages::en->new();
+
+    # from http://en.wikipedia.org/wiki/Stemming
+    my $stemmer_test_en_text = <<'__END_TEST_CASE__';
+    In linguistic morphology, stemming is the process for reducing inflected (or sometimes derived) words to their stem,
+    base or root form – generally a written word form. The stem need not be identical to the morphological root of the
+    word; it is usually sufficient that related words map to the same stem, even if this stem is not in itself a valid
+    root. The algorithm has been a long-standing problem in computer science; the first paper on the subject was published
+    in 1968. The process of stemming, often called conflation, is useful in search engines for query expansion or indexing
+    and other natural language processing problems.
+__END_TEST_CASE__
+
+    my @split_words = @{ $lang->tokenize( $stemmer_test_en_text ) };
+
+    my $lingua_stem = Lingua::Stem::Snowball->new( lang => 'en', encoding => 'UTF-8' );
+
+    my $lingua_stem_result = [ $lingua_stem->stem( \@split_words ) ];
+    my $stem_result        = $lang->stem( @split_words );
+
+    is_deeply( $stem_result, $lingua_stem_result, "Stemmer compare test" );
+
+    isnt( $lingua_stem_result, $stemmer_test_en_text, "Stemmed text is changed" );
+    ok( length( $lingua_stem_result ) > 0, "Stemmed text is nonempty" );
 
     # Apostrophes
     is_deeply( $lang->stem( qw/Katz's Delicatessen/ ), [ qw/ katz delicatessen / ], 'Stemming with normal apostrophe' );
