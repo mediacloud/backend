@@ -1,4 +1,8 @@
 package MediaWords::Util::Config;
+
+use strict;
+use warnings;
+
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
@@ -11,8 +15,6 @@ use MediaWords::CommonLibs;
 # in the catalyst case, the core MediaWords script calls the set_config
 # function to set the returned config object to the already generated
 # config object for the app.
-
-use strict;
 
 use Carp;
 use Config::Any;
