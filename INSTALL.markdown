@@ -73,7 +73,7 @@ After you have successfully run the above commands, skip to the POST INSTALL sec
 4. *Optional:* Update the database section in `mediawords.yml`. Most users can skip this step and use the defaults. However, if you have changed the password of the PostgreSQL's `mediaclouduser` or if you have a custom database setup, you must update `mediawords.yml`. NOTE: The label field for the test database must be `test` and the test database must be listed after the main database.
 
 5. *Optional:* Edit the other sections of `mediawords.yml` to suit your local configuration.  
-Note that if you uncomment a suboption, you also need to uncomment the parent option.  For example, if you uncomment `default_tag_module`, you should also uncomment `mediawords`.
+Note that if you uncomment a suboption, you also need to uncomment the parent option.  For example, if you uncomment `extractor_method`, you should also uncomment `mediawords`.
 
 6. Run the `install_mc_perlbrew_and_modules.sh` script. This scripts installs Perlbrew, carton and the required modules. Simply `cd` to the base directory of Media Cloud and run the following. Note that the script will take a long time to complete:
 
