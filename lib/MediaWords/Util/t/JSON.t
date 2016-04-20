@@ -4,7 +4,7 @@ use utf8;
 
 use Test::NoWarnings;
 use Readonly;
-use Test::More tests => 6;
+use Test::More tests => 11;
 use Test::Deep;
 use Data::Dumper;
 use Encode;
@@ -45,6 +45,19 @@ sub test_encode_decode_json()
     is( $encoded_json, $expected_json, 'encode_json() without UTF-8 flag' );
     $decoded_json = MediaWords::Util::JSON::decode_json( $encoded_json, $utf8 );
     cmp_deeply( $decoded_json, $object, 'decode_json() without UTF-8 flag' );
+
+    # Encoding errors
+    eval { MediaWords::Util::JSON::encode_json( undef ); };
+    ok( $@, 'Trying to encode undefined JSON' );
+    eval { MediaWords::Util::JSON::encode_json( "strings can't be encoded" ); };
+    ok( $@, 'Trying to encode a string' );
+    eval { MediaWords::Util::JSON::encode_json( { 'foo' => JSON->new } ); };
+    ok( $@, 'Trying to encode an object' );
+
+    eval { MediaWords::Util::JSON::decode_json( undef ); };
+    ok( $@, 'Trying to decode undefined JSON' );
+    eval { MediaWords::Util::JSON::decode_json( 'not JSON' ); };
+    ok( $@, 'Trying to decode invalid JSON' );
 }
 
 sub main()
