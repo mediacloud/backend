@@ -48,6 +48,18 @@ use MediaWords::Util::Paths;
 use MediaWords::GearmanFunction::AnnotateWithCoreNLP;
 use MediaWords::Util::ThriftExtractor;
 
+BEGIN
+{
+    # FCGI might be running from an unwritable path so we need to set a custom
+    # path for Inline::Python to keep its "_Inline/".
+    #
+    # File::Temp doesn't quite work here because it's beneficial to reuse the
+    # same directory in order to not recompile Python scripts.
+    Readonly my $path_to_python_inline => '/var/tmp/_Inline';
+    mkdir( $path_to_python_inline, 0777 );
+    use Inline ( Python => Config => DIRECTORY => $path_to_python_inline );
+}
+
 # PostgreSQL table name for storing raw downloads
 Readonly my $RAW_DOWNLOADS_POSTGRESQL_KVS_TABLE_NAME => 'raw_downloads';
 
@@ -453,8 +465,6 @@ my $_python_readability_imported;
 sub _import_python_readability
 {
     return if ( $_python_readability_imported );
-
-    use Inline::Python;
 
     use Inline Python => <<'PYTHON';
 
