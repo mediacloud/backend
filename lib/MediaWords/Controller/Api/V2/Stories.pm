@@ -13,6 +13,7 @@ use List::Compare;
 use Carp;
 use HTTP::Status qw(:constants);
 use Readonly;
+use Encode;
 
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
@@ -99,33 +100,42 @@ sub corenlp : Local
     my $db = $c->dbis;
 
     my $stories_ids = $c->req->params->{ stories_id };
+    unless ( $stories_ids )
+    {
+        die "One or more 'stories_id' is required.";
+    }
 
     $stories_ids = [ $stories_ids ] unless ( ref( $stories_ids ) );
 
-    my $story_annotations;
+    my $json_list = {};
     for my $stories_id ( @{ $stories_ids } )
     {
-        next if ( $story_annotations->{ $stories_id } );
+        next if ( $json_list->{ $stories_id } );
 
-        my $json = MediaWords::Util::CoreNLP::fetch_annotation_json_for_story_and_all_sentences( $db, $stories_id );
-        my $annotation = $json ? MediaWords::Util::JSON::decode_json( $json ) : 'story is not annotated';
+        my $json;
+        eval { $json = MediaWords::Util::CoreNLP::fetch_annotation_json_for_story_and_all_sentences( $db, $stories_id ) };
+        $json ||= '"story is not annotated"';
 
-        $story_annotations->{ $stories_id } = $annotation;
+        $json_list->{ $stories_id } = $json;
+
     }
 
-    my $response = [];
-    for my $stories_id ( keys( %{ $story_annotations } ) )
+    my $json_items = [];
+    for my $stories_id ( keys( %{ $json_list } ) )
     {
-        my $json_item = {
-            'stories_id' => $stories_id + 0,
-            'corenlp'    => $story_annotations->{ $stories_id },
-        };
-        push( @{ $response }, $json_item );
+        my $json_item = <<"END";
+{
+  "stories_id": $stories_id,
+  "corenlp": $json_list->{ $stories_id }
+}
+END
+        push( @{ $json_items }, $json_item );
     }
 
-    Readonly my $json_pretty => 1;
-    Readonly my $json_utf8   => 1;
-    my $json = MediaWords::Util::JSON::encode_json( $response, $json_pretty, $json_utf8 );
+    my $json = "[\n" . join( ",\n", @{ $json_items } ) . "\n]\n";
+
+    # Response might contain multibyte characters
+    $json = encode( 'utf-8', $json );
 
     $c->response->content_type( 'application/json; charset=UTF-8' );
     $c->response->content_length( bytes::length( $json ) );
