@@ -241,7 +241,9 @@ sub fetch_bitly_clicks : Local
         }
     }
 
-    my $json = MediaWords::Util::JSON::encode_json( $response );
+    Readonly my $json_pretty => 1;
+    Readonly my $json_utf8   => 1;
+    my $json = MediaWords::Util::JSON::encode_json( $response, $json_pretty, $json_utf8 );
 
     $c->response->status( $http_status );
     $c->response->content_type( 'application/json; charset=UTF-8' );
