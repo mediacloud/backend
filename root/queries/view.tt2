@@ -153,52 +153,6 @@ to get a chart of the frequency of those terms within the query.
 
 </fieldset>
 
-<p><b>Clustering Runs</b></p>
-
-<fieldset>
-
-    [% IF c.acl_user_can_visit('/admin/clusters/create') %]
-        <p><a href="[% c.uri_for( '/admin/clusters/create/' _ query.queries_id ) %]">generate new cluster run</a></p>
-    [% END -%]
-
-    [% IF cluster_runs %]
-
-        <table>
-
-            <tr>
-                <th>engine</th>
-                <th>number of clusters</th>
-                <th>state</th>
-                [% IF c.acl_user_can_visit('/admin/clusters/view') %]
-                    <th>view cluster run</th>
-                [% END -%]
-            </tr>
-
-            [% FOREACH cluster_run IN cluster_runs %]
-
-            <tr>
-
-                <td>[% cluster_run.clustering_engine %]</td>
-                <td>[% cluster_run.num_clusters %]</td>
-                <td>[% cluster_run.state | html %]</td>
-                [% IF c.acl_user_can_visit('/admin/clusters/view') %]
-                    <td><a href="[% c.uri_for( '/admin/clusters/view/' _ cluster_run.media_cluster_runs_id ) %]">view</a></td>
-                [% END -%]
-
-            </tr>
-
-            [% END #FOREACH cluster_run IN cluster_runs %]
-
-        </table>
-
-    [% END #IF cluster_runs %]
-
-    <p>
-        The clustering tool allows you to cluster the media sources within this query according to the content within the query.  For example, you can generate a set of clusters for the Top 25 Mainstream Media according to all content within a date range (if the query includes just a date range and the MSM media set) or according to all content within sentences mentioning one of a set of topics within a date range (if the query includes a set of topics as well).  The number of clusters has to be set manually.  For each clustering run, you will also have the ability to create a map laying out the media sources from the 'view' page for the given clustering run.
-    </p>
-
-</fieldset>
-
 <p />
 
 [% INCLUDE include/footer.tt2 %]

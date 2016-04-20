@@ -14,18 +14,6 @@ database:
       user  : "mediaclouduser"
       pass  : "mediacloud"
 
-    # raw download storage
-    # (this section is optional; if absent, we're going to use production
-    # database's "raw_downloads" table)
-    #- label : "raw_downloads"
-    #  type  : "pg"
-    #  host  : "localhost"
-    #  port  : 5432
-    #  db    : "mediacloud"
-    #  user  : "mediaclouduser"
-    #  pass  : "mediacloud"
-    #  table : "raw_downloads"  # optional
-
     # unit tests
     - label : "test"
       type  : "pg"
@@ -162,7 +150,6 @@ database:
             #autorestart: 'true'
 
         # other configurable supervisor programs
-        #crf_web_service
         #gearmand
         #rescrape_media
         #cm_mine_controversy
@@ -196,46 +183,6 @@ database:
     ### parameter to limit the scope of annotations returned from the service.
     ### Default is an empty string; you might want to set it to "ner".
     #annotator_level: ""
-
-### CRF model runner web service
-#crf_web_service:
-
-    ### To enable the CRF model runner via the web service (both the Java
-    ### server and extractor client), set the below to "yes".
-    ###
-    ### If the service is enabled, Supervisord will start a CRF model runner
-    ### web service which will then be used by the extractor.
-    ###
-    ### If the service is disabled, Supervisord will *not* start a CRF model
-    ### runner web service, and extractor will use Inline::Java to run the CRF
-    ### model instead.
-    #enabled: "no"
-
-    ### URL of the CRF model runner web service the extractor should use to do
-    ### the CRF processing.
-    ###
-    ### If you are running the CRF model runner web service on the very same
-    ### machine as the extractor, leave this parameter intact. The parameter is
-    ### only useful if you are running the CRF model runner web service on a
-    ### different machine than the extractor.
-    #server_url: "http://127.0.0.1:8441/crf"
-
-    ### Host(:port) the CRF model runner web service should to listen to for
-    ### processing requests from the extractor.
-    ###
-    ### You can set the above parameter to an empty string so that CRF model
-    ### runner web service will accept connections from anywhere. However, it
-    ### is highly advised use secure channels (e.g. a SSH tunnel) to make CRF
-    ### model runner accessible to "outside" instead.
-    ###
-    ### Default port is 8441.
-    #listen: "127.0.0.1:8441"
-
-    ### Number of threads the CRF model runner web service should spawn.
-    ###
-    ### More threads will serve more model runner requests per seconds, but
-    ### will take up more memory.
-    #number_of_threads: 32
 
 ### Bit.ly API
 #bitly:
@@ -331,6 +278,8 @@ database:
 #      domainname: "<DOMAIN>"
 
 mediawords:
+    ### Extractor method to use
+    ### Defaults to InlinePythonReadability
     #extractor_method: PythonReadability
     ### defaults to http://$hostname:$port/.
     #base_url: "http://your.mediacloud.server/and/path"
@@ -380,25 +329,6 @@ mediawords:
     ### Enable local (CHI-based) Amazon S3 download caching?
     #cache_s3_downloads : "no"
 
-    #### Defaults to kmeans uncomment to use Cluto
-    #clustering_engine: "cluto"
-    #cluto_binary: "/usr/local/cluto/bin/vcluster"
-
-    ### needed for calais tagging
-    #calais_key: "CALAISKEY"
-
-    ### needed for yahoo tagging
-    #yahoo_key: "YAHOOKEY"
-
-    ### default to just NYTTopics
-    #default_tag_module: "NYTTopics Calais"
-
-    #Uncomment to put the site into overload. This disables functionality so that the site can handle more traffic.
-    #site_overload_mode: "yes"
-
-    #Uncomment to disable the use of a precalculated version of the top_500_words.
-    #disable_json_top_500_words_cache: "yes"
-
     # Uncomment to cause feeds to be downloaded and stories but not processed for stories.
     # Generally the only reason you would want to do this is to run a backup crawler
     #do_not_process_feeds: 'yes'
@@ -424,7 +354,8 @@ mediawords:
     #recaptcha_private_key: "6LfEVt0SAAAAABmI-8IJmx4g93eNcSeyeCxvLMs2"
 
     #uncomment to make the public homepage the default start page
-    #default_home_page: "dashboard/view"
+    #default_home_page: "admin/media/list"
+
     # downloads id under which to strip all non-ascii characters
     #ascii_hack_downloads_id: 123456789
 

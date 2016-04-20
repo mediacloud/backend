@@ -12,11 +12,36 @@ BEGIN
 use Readonly;
 
 use Test::NoWarnings;
-use Test::More tests => 19;
+use Test::More tests => 32;
 use utf8;
 
 use MediaWords::Languages::en;
 use Data::Dumper;
+
+sub test_stopwords()
+{
+    my $lang = MediaWords::Languages::en->new();
+
+    ok( $lang->get_tiny_stop_words(), 'lang_en_get_stop_words' );
+
+    # Stop words
+    my $stop_words_en = $lang->get_tiny_stop_words();
+    ok( scalar( keys( %{ $stop_words_en } ) ) >= 174, "stop words (en) count is correct" );
+
+    is( $stop_words_en->{ 'the' }, 1, "English test #1" );
+    is( $stop_words_en->{ 'a' },   1, "English test #2" );
+    is( $stop_words_en->{ 'is' },  1, "English test #3" );
+
+    # Stop word stems
+    my $stop_word_stems_en = $lang->get_tiny_stop_word_stems();
+    ok( scalar( keys( %{ $stop_word_stems_en } ) ) >= 154, "stop word stem (en) count is correct" );
+
+    is( $stop_word_stems_en->{ 'a' }, 1, "Stemmed stop words" );
+
+    ok( $lang->get_tiny_stop_word_stems(),  "get_tiny_stop_word_stems()" );
+    ok( $lang->get_short_stop_word_stems(), 'get_short_stop_word_stems()' );
+    ok( $lang->get_long_stop_word_stems(),  'get_long_stop_word_stems()' );
+}
 
 sub test_get_sentences()
 {
@@ -268,6 +293,28 @@ sub test_stem()
 {
     my $lang = MediaWords::Languages::en->new();
 
+    # from http://en.wikipedia.org/wiki/Stemming
+    my $stemmer_test_en_text = <<'__END_TEST_CASE__';
+    In linguistic morphology, stemming is the process for reducing inflected (or sometimes derived) words to their stem,
+    base or root form – generally a written word form. The stem need not be identical to the morphological root of the
+    word; it is usually sufficient that related words map to the same stem, even if this stem is not in itself a valid
+    root. The algorithm has been a long-standing problem in computer science; the first paper on the subject was published
+    in 1968. The process of stemming, often called conflation, is useful in search engines for query expansion or indexing
+    and other natural language processing problems.
+__END_TEST_CASE__
+
+    my @split_words = @{ $lang->tokenize( $stemmer_test_en_text ) };
+
+    my $lingua_stem = Lingua::Stem::Snowball->new( lang => 'en', encoding => 'UTF-8' );
+
+    my $lingua_stem_result = [ $lingua_stem->stem( \@split_words ) ];
+    my $stem_result        = $lang->stem( @split_words );
+
+    is_deeply( $stem_result, $lingua_stem_result, "Stemmer compare test" );
+
+    isnt( $lingua_stem_result, $stemmer_test_en_text, "Stemmed text is changed" );
+    ok( length( $lingua_stem_result ) > 0, "Stemmed text is nonempty" );
+
     # Apostrophes
     is_deeply( $lang->stem( qw/Katz's Delicatessen/ ), [ qw/ katz delicatessen / ], 'Stemming with normal apostrophe' );
     is_deeply( $lang->stem( qw/it’s toasted/ ), [ qw/ it toast / ], 'Stemming with right single quotation mark' );
@@ -281,6 +328,7 @@ sub main()
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
+    test_stopwords();
     test_get_sentences();
     test_tokenize();
     test_stem();

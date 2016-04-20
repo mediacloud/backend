@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-# test MediaWords::Crawler::Extractor against manually extracted downloads
+# dump download to file
 
 use strict;
 
@@ -10,7 +10,6 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
-use MediaWords::Crawler::Extractor;
 use Getopt::Long;
 use HTML::Strip;
 use DBIx::Simple::MediaWords;
@@ -22,7 +21,6 @@ use MediaWords::DBI::Downloads;
 use MediaWords::DBI::DownloadTexts;
 use Readonly;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
-use List::Compare::Functional qw (get_unique get_complement get_union_ref );
 use Data::Dumper;
 
 use Digest::SHA qw(sha1 sha1_hex sha1_base64);

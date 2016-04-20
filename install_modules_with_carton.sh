@@ -44,12 +44,4 @@ if [ $CARTON_INSTALL_SUCCEEDED -ne 1 ]; then
     exit 1
 fi
 
-# Install Mallet-CrfWrapper (don't run unit tests because the web service test
-# ends up as a Perl zombie process during the Vagrant test run)
-JAVA_HOME=$JAVA_HOME ./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm \
-    --local-lib-contained local/ \
-    --verbose \
-    --notest \
-    https://github.com/dlarochelle/Mallet-CrfWrapper/tarball/0.02
-
 echo "Successfully installed Perl and modules for Media Cloud"

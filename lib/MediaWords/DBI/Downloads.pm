@@ -38,7 +38,6 @@ use CHI;
 use Scalar::Defer;
 use Readonly;
 
-use MediaWords::Crawler::Extractor;
 use MediaWords::Util::Config;
 use MediaWords::Util::HTML;
 use MediaWords::DB;
@@ -48,6 +47,20 @@ use MediaWords::StoryVectors;
 use MediaWords::Util::Paths;
 use MediaWords::GearmanFunction::AnnotateWithCoreNLP;
 use MediaWords::Util::ThriftExtractor;
+
+# FCGI might be running from an unwritable path so we need to set a custom
+# path for Inline::Python to keep its "_Inline/".
+#
+# File::Temp doesn't quite work here because it's beneficial to reuse the
+# same directory in order to not recompile Python scripts.
+BEGIN
+{
+    mkdir( '/var/tmp/_Inline', 0777 );
+}
+use Inline ( Python => Config => DIRECTORY => '/var/tmp/_Inline' );
+
+# PostgreSQL table name for storing raw downloads
+Readonly my $RAW_DOWNLOADS_POSTGRESQL_KVS_TABLE_NAME => 'raw_downloads';
 
 # Database inline content length limit
 Readonly my $INLINE_CONTENT_LENGTH => 256;
@@ -111,19 +124,9 @@ my $_store_postgresql = lazy
 
     my $config = MediaWords::Util::Config::get_config;
 
-    # Main raw downloads database / table
-    my $raw_downloads_db_label = 'raw_downloads';    # as set up in mediawords.yml
-    unless ( grep { $_ eq $raw_downloads_db_label } MediaWords::DB::get_db_labels() )
-    {
-        $raw_downloads_db_label = undef;
-    }
-
-    my $postgresql_store = MediaWords::KeyValueStore::PostgreSQL->new(
-        {
-            database_label => $raw_downloads_db_label,                         #
-            table => ( $raw_downloads_db_label ? undef : 'raw_downloads' ),    #
-        }
-    );
+    # Raw downloads table
+    my $postgresql_store =
+      MediaWords::KeyValueStore::PostgreSQL->new( { table => $RAW_DOWNLOADS_POSTGRESQL_KVS_TABLE_NAME } );
 
     # Add Amazon S3 fallback storage if needed
     if ( lc( $config->{ mediawords }->{ fallback_postgresql_downloads_to_s3 } eq 'yes' ) )
@@ -402,9 +405,7 @@ EOF
 Run the extractor against the download content and return a hash in the form of:
 
     { extracted_html => $html,    # a string with the extracted html
-      extracted_text => $text,    # a string with the extracted html strippped to text
-      download_lines => $lines,   # (optional) an array of the lines of original html
-      scores => $scores }         # (optional) the scores returned by Mediawords::Crawler::Extractor::score_lines
+      extracted_text => $text }   # a string with the extracted html strippped to text
 
 The extractor used is configured in mediawords.yml by mediawords.extractor_method, which should be one of
 'PythonReadability'.
@@ -463,8 +464,6 @@ my $_python_readability_imported;
 sub _import_python_readability
 {
     return if ( $_python_readability_imported );
-
-    use Inline::Python;
 
     use Inline Python => <<'PYTHON';
 

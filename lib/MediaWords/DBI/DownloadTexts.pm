@@ -39,24 +39,6 @@ sub get_extracted_html_from_db
     return $extract->{ extracted_html };
 }
 
-# insert extracted lines into extracted_lines table
-sub _insert_extracted_lines
-{
-    my ( $db, $extract, $download_text ) = @_;
-
-    if ( exists $extract->{ included_line_numbers } )
-    {
-        $db->dbh->do( "COPY extracted_lines(download_texts_id, line_number) FROM STDIN" );
-
-        foreach my $included_line_number ( @{ $extract->{ included_line_numbers } } )
-        {
-            $db->dbh->pg_putcopydata( $download_text->{ download_texts_id } . "\t" . $included_line_number . "\n" );
-        }
-
-        $db->dbh->pg_putcopyend();
-    }
-}
-
 =head2 create( $db, $download, $extract )
 
 Create a download_text hash and insert it into the database.  Delete any existing download_text row for the download.
@@ -75,8 +57,6 @@ INSERT INTO download_texts ( download_text, downloads_id, download_text_length )
     VALUES ( \$1, \$2, char_length( \$1 ) )
     RETURNING *
 SQL
-
-    _insert_extracted_lines( $db, $extract, $download_text );
 
     $db->query( "UPDATE downloads SET extracted = 't' WHERE downloads_id = ?", $download->{ downloads_id } );
 

@@ -19,12 +19,7 @@ MediaWords::Test::DB::test_on_test_database(
     sub {
         my ( $db ) = @_;
 
-        my $postgresql = MediaWords::KeyValueStore::PostgreSQL->new(
-            {
-                database_label => undef,              # default database
-                table          => 'raw_downloads',    #
-            }
-        );
+        my $postgresql = MediaWords::KeyValueStore::PostgreSQL->new( { table => 'raw_downloads' } );
 
         test_postgresql( $db, $postgresql );
     }

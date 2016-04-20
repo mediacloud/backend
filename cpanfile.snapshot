@@ -3947,19 +3947,6 @@ DISTRIBUTIONS
     requirements:
       Test::More 0
       version 0
-  HTML-CruftText-0.02
-    pathname: D/DR/DRLARO/HTML-CruftText-0.02.tar.gz
-    provides:
-      HTML::CruftText 0.02
-    requirements:
-      ExtUtils::MakeMaker 0
-      List::MoreUtils 0.33
-      Readonly 1.03
-      Test::More 0
-      Test::NoWarnings 1.04
-      Test::Pod 1.45
-      Test::Pod::Coverage 1.08
-      Time::HiRes 1.51
   HTML-Entities-Interpolate-1.05
     pathname: R/RS/RSAVAGE/HTML-Entities-Interpolate-1.05.tgz
     provides:
@@ -7399,12 +7386,6 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       Test::More 0
       Time::Local 0
-  Set-Jaccard-SimilarityCoefficient-0.5.1
-    pathname: M/ML/MLFISHER/Set-Jaccard-SimilarityCoefficient-0.5.1.tar.gz
-    provides:
-      Set::Jaccard::SimilarityCoefficient 0.005001
-    requirements:
-      ExtUtils::MakeMaker 6.30
   Set-Object-1.34
     pathname: R/RU/RURBAN/Set-Object-1.34.tar.gz
     provides:
@@ -8248,14 +8229,6 @@ DISTRIBUTIONS
       Parse::RecDescent 0
       Test::More 0
       Test::Most 0
-  Text-Similarity-0.10
-    pathname: T/TP/TPEDERSE/Text-Similarity-0.10.tar.gz
-    provides:
-      Text::OverlapFinder 0.03
-      Text::Similarity 0.10
-      Text::Similarity::Overlaps 0.05
-    requirements:
-      ExtUtils::MakeMaker 0
   Text-SimpleTable-2.03
     pathname: M/MR/MRAMBERG/Text-SimpleTable-2.03.tar.gz
     provides:
@@ -8855,19 +8828,6 @@ DISTRIBUTIONS
       Want 0.25
     requirements:
       ExtUtils::MakeMaker 0
-  WebService-Google-Language-0.14
-    pathname: H/HM/HMA/WebService-Google-Language-0.14.tar.gz
-    provides:
-      WebService::Google::Language 0.14
-      WebService::Google::Language::Result 0.14
-    requirements:
-      ExtUtils::MakeMaker 6.17
-      HTTP::Response 0
-      JSON 2.0
-      LWP::UserAgent 0
-      Test::More 0.62
-      URI 0
-      perl 5.006
   XML-Bare-0.53
     pathname: C/CO/CODECHILD/XML-Bare-0.53.tar.gz
     provides:
