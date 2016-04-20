@@ -83,4 +83,6 @@ sub LOGCLUCK   { $_init_log || init_log; Log::Log4perl::get_logger->logcluck( @_
 sub LOGCROAK   { $_init_log || init_log; Log::Log4perl::get_logger->loccroak( @_ ) }
 sub LOGCONFESS { $_init_log || init_log; Log::Log4perl::get_logger->logconfess( @_ ) }
 
+$SIG{ INT } = sub { DEBUG( "^c exiting  ..." ); exit( 1 ) };
+
 1;
