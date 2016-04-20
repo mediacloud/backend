@@ -34,10 +34,10 @@ use strict;
 use warnings;
 
 use Carp;
+use CHI;
 use Scalar::Defer;
 use Readonly;
 
-use MediaWords::Crawler::Extractor;
 use MediaWords::Util::Config;
 use MediaWords::Util::HTML;
 use MediaWords::DB;
@@ -45,13 +45,17 @@ use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
 use MediaWords::StoryVectors;
 use MediaWords::Util::Paths;
-use MediaWords::Util::ExtractorFactory;
-use MediaWords::Util::HeuristicExtractor;
 use MediaWords::GearmanFunction::AnnotateWithCoreNLP;
 use MediaWords::Util::ThriftExtractor;
 
+# PostgreSQL table name for storing raw downloads
+Readonly my $RAW_DOWNLOADS_POSTGRESQL_KVS_TABLE_NAME => 'raw_downloads';
+
 # Database inline content length limit
 Readonly my $INLINE_CONTENT_LENGTH => 256;
+
+# cache for extractor results
+my $_extractor_results_cache;
 
 =head1 FUNCTIONS
 
@@ -77,7 +81,7 @@ my $_store_amazon_s3 = lazy
 
     unless ( $config->{ amazon_s3 } )
     {
-        say STDERR "Amazon S3 download store is not configured.";
+        INFO( sub { "Amazon S3 download store is not configured." } );
         return undef;
     }
 
@@ -109,20 +113,9 @@ my $_store_postgresql = lazy
 
     my $config = MediaWords::Util::Config::get_config;
 
-    # Main raw downloads database / table
-    my $raw_downloads_db_label = 'raw_downloads';    # as set up in mediawords.yml
-    unless ( grep { $_ eq $raw_downloads_db_label } MediaWords::DB::get_db_labels() )
-    {
-        #say STDERR "No such label '$raw_downloads_db_label', falling back to default database";
-        $raw_downloads_db_label = undef;
-    }
-
-    my $postgresql_store = MediaWords::KeyValueStore::PostgreSQL->new(
-        {
-            database_label => $raw_downloads_db_label,                         #
-            table => ( $raw_downloads_db_label ? undef : 'raw_downloads' ),    #
-        }
-    );
+    # Raw downloads table
+    my $postgresql_store =
+      MediaWords::KeyValueStore::PostgreSQL->new( { table => $RAW_DOWNLOADS_POSTGRESQL_KVS_TABLE_NAME } );
 
     # Add Amazon S3 fallback storage if needed
     if ( lc( $config->{ mediawords }->{ fallback_postgresql_downloads_to_s3 } eq 'yes' ) )
@@ -343,8 +336,6 @@ sub store_content($$$)
 {
     my ( $db, $download, $content_ref ) = @_;
 
-    #say STDERR "starting store_content for download $download->{ downloads_id } ";
-
     my $new_state = 'success';
     if ( $download->{ state } eq 'feed_error' )
     {
@@ -398,52 +389,15 @@ EOF
     return $download;
 }
 
-# return content as lines in an array after running through the extractor preprocessor.  this is only used by the
-# heuristic extractor.
-sub _preprocess_content_lines($)
-{
-    my ( $content_ref ) = @_;
-
-    my $lines = [ split( /[\n\r]+/, $$content_ref ) ];
-
-    $lines = MediaWords::Crawler::Extractor::preprocess( $lines );
-
-    return $lines;
-}
-
-=head2 fetch_preprocessed_content_lines( $db, $download )
-
-Fetch the content as lines in an array after running through the extractor preprocessor. This is only used by the
-heuristic extractor.
-
-=cut
-
-sub fetch_preprocessed_content_lines($$)
-{
-    my ( $db, $download ) = @_;
-
-    my $content_ref = fetch_content( $db, $download );
-
-    unless ( $content_ref )
-    {
-        warn( "unable to find content: " . $download->{ downloads_id } );
-        return [];
-    }
-
-    return _preprocess_content_lines( $content_ref );
-}
-
 =head2 extract( $db, $download )
 
 Run the extractor against the download content and return a hash in the form of:
 
     { extracted_html => $html,    # a string with the extracted html
-      extracted_text => $text,    # a string with the extracted html strippped to text
-      download_lines => $lines,   # (optional) an array of the lines of original html
-      scores => $scores }         # (optional) the scores returned by Mediawords::Crawler::Extractor::score_lines
+      extracted_text => $text }   # a string with the extracted html strippped to text
 
 The extractor used is configured in mediawords.yml by mediawords.extractor_method, which should be one of
-'HeuristicExtractor' or 'PythonReadability'.
+'PythonReadability'.
 
 =cut
 
@@ -451,13 +405,29 @@ sub extract($$)
 {
     my ( $db, $download ) = @_;
 
+    my $data_dir = MediaWords::Util::Config::get_config->{ mediawords }->{ data_dir };
+
+    $_extractor_results_cache ||= CHI->new(
+        driver           => 'File',
+        expires_in       => '1 month',
+        max_size         => 10 * 1024 * 1024 * 1024,
+        expires_variance => '0.1',
+        root_dir         => "${ data_dir }/cache/extractor_results",
+        depth            => 4
+    );
+
+    if ( my $results = $_extractor_results_cache->get( $download->{ downloads_id } ) )
+    {
+        return $results;
+    }
+
     my $content_ref = fetch_content( $db, $download );
 
-    # FIXME if we're using Readability extractor, there's no point fetching
-    # story title and description as Readability doesn't use it
-    my $story = $db->find_by_id( 'stories', $download->{ stories_id } );
+    my $results = extract_content_ref( $content_ref );
 
-    return _extract_content_ref( $content_ref, $story->{ title }, $story->{ description } );
+    $_extractor_results_cache->set( $download->{ downloads_id }, $results );
+
+    return $results;
 }
 
 # forbes is putting all of its content into a javascript variable, causing our extractor to fall down.
@@ -478,56 +448,54 @@ sub _parse_out_javascript_content
     return 0;
 }
 
-# given the list of all lines from an html file and a list of the line numbers of lines to be included
-# in the extracted text, return a single string consisting of the extracted html.  take care to add new lines
-# around block level tags so that we setup the html string to maintain the default double newline sentence boundaries.
-# this function is only used for extraction via the heuristic extractor.
-sub _get_extracted_html
+my $_python_readability_imported;
+
+sub _import_python_readability
 {
-    my ( $lines, $included_lines ) = @_;
+    return if ( $_python_readability_imported );
 
-    my $is_line_included = { map { $_ => 1 } @{ $included_lines } };
+    use Inline::Python;
 
-    my $config = MediaWords::Util::Config::get_config;
+    use Inline Python => <<'PYTHON';
 
-    my $extracted_html = '';
+def import_python_readability(mc_root):
+    """Imports Readability extractor helper from python_scripts/extractor_python_readability_server.py."""
+    import os, sys
+    sys.path.append(os.path.join(mc_root, "python_scripts"))
 
-    # This variable is used to make sure we don't add unnecessary double newlines
-    my $previous_concated_line_was_story = 0;
+    # Import globally
+    global extract_with_python_readability
+    from extractor_python_readability_server import extract_with_python_readability
 
-    for ( my $i = 0 ; $i < @{ $lines } ; $i++ )
-    {
-        if ( $is_line_included->{ $i } )
-        {
-            my $line_text;
+def extract_with_python_readability(html):
+    """Extracts HTML using Readability helper from python_scripts/extractor_python_readability_server.py."""
+    return extractor_python_readability_server.extract_with_python_readability(html)
 
-            $previous_concated_line_was_story = 1;
+PYTHON
 
-            $line_text = $lines->[ $i ];
+    import_python_readability( MediaWords::Util::Config::get_mc_root_dir() );
 
-            $extracted_html .= ' ' . $line_text;
-        }
-        elsif ( MediaWords::Util::HTML::contains_block_level_tags( $lines->[ $i ] ) )
-        {
-            ## '\n\n\ is used as a sentence splitter so no need to add it more than once between text lines
-            if ( $previous_concated_line_was_story )
-            {
+    $_python_readability_imported = 1;
+}
 
-                # Add double newline bc/ it will be recognized by the sentence splitter as a sentence boundary.
-                $extracted_html .= "\n\n";
+# use inline python to get extracted html
+sub _get_inline_extracted_html
+{
+    my ( $content ) = @_;
 
-                $previous_concated_line_was_story = 0;
-            }
-        }
-    }
+    _import_python_readability();
+
+    my $extracted_html = join( ' ', extract_with_python_readability( $content ) );
+
+    TRACE( sub { "inline extractor: " . length( $content ) . " -> " . length( $extracted_html ) } );
 
     return $extracted_html;
 }
 
 # call configured extractor on the content_ref
-sub _call_extractor_on_html($$$;$)
+sub _call_extractor_on_html($;$)
 {
-    my ( $content_ref, $story_title, $story_description, $extractor_method ) = @_;
+    my ( $content_ref, $extractor_method ) = @_;
 
     my $ret;
     my $extracted_html;
@@ -536,22 +504,17 @@ sub _call_extractor_on_html($$$;$)
     {
         $extracted_html = MediaWords::Util::ThriftExtractor::get_extracted_html( $$content_ref );
     }
+    elsif ( $extractor_method eq 'InlinePythonReadability' )
+    {
+        $extracted_html = _get_inline_extracted_html( $$content_ref );
+    }
     elsif ( $extractor_method eq 'HeuristicExtractor' )
     {
-        my $lines = _preprocess_content_lines( $content_ref );
-
-        # print "PREPROCESSED LINES:\n**\n" . join( "\n", @{ $lines } ) . "\n**\n";
-
-        $ret = extract_preprocessed_lines_for_story( $lines, $story_title, $story_description );
-
-        my $download_lines        = $ret->{ download_lines };
-        my $included_line_numbers = $ret->{ included_line_numbers };
-
-        $extracted_html = _get_extracted_html( $download_lines, $included_line_numbers );
+        die "Heuristic Extractor has been removed.";
     }
     else
     {
-        die "invalid extractor method: $extractor_method";
+        die "Invalid extractor method: $extractor_method";
     }
 
     my $extracted_text = html_strip( $extracted_html );
@@ -562,10 +525,18 @@ sub _call_extractor_on_html($$$;$)
     return $ret;
 }
 
-# extract content referenced by $content_ref
-sub _extract_content_ref($$$;$)
+=head2 extract_content_ref( $content_ref, $extractor_method )
+
+Accept a content_ref pointing to an HTML string.  Run the extractor on the HTMl and return the extracted text.
+
+If $extractor_method is specified, use the given extractor method, otherwise use the extractor method specified
+in mediawords.yml.
+
+=cut
+
+sub extract_content_ref($;$)
 {
-    my ( $content_ref, $story_title, $story_description, $extractor_method ) = @_;
+    my ( $content_ref, $extractor_method ) = @_;
 
     unless ( $extractor_method )
     {
@@ -586,12 +557,12 @@ sub _extract_content_ref($$$;$)
     }
     else
     {
-        $ret = _call_extractor_on_html( $content_ref, $story_title, $story_description, $extractor_method );
+        $ret = _call_extractor_on_html( $content_ref, $extractor_method );
 
         # if we didn't get much text, try looking for content stored in the javascript
         if ( ( length( $ret->{ extracted_text } ) < 256 ) && _parse_out_javascript_content( $content_ref ) )
         {
-            my $js_ret = _call_extractor_on_html( $content_ref, $story_title, $story_description, $extractor_method );
+            my $js_ret = _call_extractor_on_html( $content_ref, $extractor_method );
 
             $ret = $js_ret if ( length( $js_ret->{ extracted_text } ) > length( $ret->{ extracted_text } ) );
         }
@@ -599,21 +570,6 @@ sub _extract_content_ref($$$;$)
     }
 
     return $ret;
-}
-
-=head2 extract_preprocessed_lines_for_story( $lines, $story_title, $story_description )
-
-Preprocess content lines and send through heuristic extractor.
-
-=cut
-
-sub extract_preprocessed_lines_for_story($$$)
-{
-    my ( $lines, $story_title, $story_description ) = @_;
-
-    my $old_extractor = MediaWords::Util::ExtractorFactory::createExtractor();
-
-    return $old_extractor->extract_preprocessed_lines_for_story( $lines, $story_title, $story_description );
 }
 
 =head2 extract_and_create_download_text( $db, $download )
@@ -648,7 +604,7 @@ sub process_download_for_extractor($$$;$$$)
 
     my $stories_id = $download->{ stories_id };
 
-    say STDERR "[$process_num] extract: $download->{ downloads_id } $stories_id $download->{ url }";
+    INFO( sub { "[$process_num] extract: $download->{ downloads_id } $stories_id $download->{ url }" } );
     my $download_text = MediaWords::DBI::Downloads::extract_and_create_download_text( $db, $download );
 
     my $has_remaining_download = $db->query( <<SQL, $stories_id )->hash;
@@ -663,7 +619,7 @@ SQL
     }
     elsif ( !( $no_vector ) )
     {
-        say STDERR "[$process_num] pending more downloads ...";
+        DEBUG( sub { "[$process_num] pending more downloads ..." } );
     }
 }
 
@@ -686,7 +642,7 @@ sub process_download_for_extractor_and_record_error
     {
         my $downloads_id = $download->{ downloads_id };
 
-        say STDERR "extractor error processing download $downloads_id: $@";
+        DEBUG( sub { "extractor error processing download $downloads_id: $@" } );
 
         $db->rollback;
 

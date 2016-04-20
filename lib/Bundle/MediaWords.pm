@@ -66,8 +66,6 @@ Graph::Layout::Aesthetic
 
 GraphViz
 
-Text::Similarity::Overlaps
-
 Tie::Cache::LRU
 
 CHI
@@ -98,7 +96,6 @@ Lingua::StopWords
 
 Lingua::Sentence
 
-List::Compare::Functional
 List::Pairwise
 
 URI::Split
@@ -155,8 +152,6 @@ Data::Serializer
 Bundle::Test
 
 HTML::FormFu
-
-WebService::Google::Language
 
 Tie::Cache::LRU
 

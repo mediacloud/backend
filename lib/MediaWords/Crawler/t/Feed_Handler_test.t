@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# test MediaWords::Crawler::Extractor against manually extracted downloads
+# test MediaWords::Crawler::FeedHandler against manually extracted downloads
 
 use strict;
 
@@ -18,7 +18,6 @@ use Readonly;
 
 use Test::NoWarnings;
 use Test::More;
-use HTML::CruftText 0.02;
 use Test::Deep;
 
 use MediaWords::DB;

@@ -35,7 +35,7 @@ sub story_processing_is_enabled()
 {
     unless ( MediaWords::Util::Bitly::bitly_processing_is_enabled() )
     {
-        warn "Bit.ly story processing is not enabled because Bit.ly processing itself is not enabled.";
+        DEBUG( "Bit.ly story processing is not enabled because Bit.ly processing itself is not enabled." );
         return 0;
     }
 
@@ -76,9 +76,6 @@ sub add_to_processing_schedule($$)
 
         my $story_timestamp      = story_timestamp( $story );
         my $processing_timestamp = $story_timestamp + $delay;
-
-        # say STDERR "Adding story $stories_id to Bit.ly processing schedule " .
-        #   "(story timestamp: $story_timestamp, delay: $delay, processing timestamp: $processing_timestamp)...";
 
         $db->query(
             <<EOF,
@@ -123,9 +120,6 @@ EOF
         my $start_timestamp = story_start_timestamp( $story_timestamp );
         my $end_timestamp   = story_end_timestamp( $story_timestamp );
 
-  #         say STDERR
-  # "Adding story $stories_id to Bit.ly Gearman queue (start timestamp: $start_timestamp, end timestamp: $end_timestamp)...";
-
         MediaWords::GearmanFunction::Bitly::FetchStoryStats->enqueue_on_gearman(
             {
                 stories_id      => $stories_id,
@@ -160,7 +154,7 @@ sub story_timestamp($)
     my $story_timestamp = MediaWords::Util::SQL::get_epoch_from_sql_date( $publish_date );
     if ( $story_timestamp <= _story_timestamp_lower_bound() or $story_timestamp >= _story_timestamp_upper_bound() )
     {
-        warn "Publish timestamp is lower than the lower bound for story $stories_id, using collect_date instead\n";
+        DEBUG( sub { "Publish timestamp is lower than lower bound for story $stories_id, using collect_date" } );
 
         my $collect_date = $story->{ collect_date };
         unless ( $collect_date )
@@ -190,8 +184,12 @@ sub story_end_timestamp($)
     my $end_timestamp = $story_timestamp + ( 60 * 60 * 24 * 30 );
     if ( $end_timestamp > _story_timestamp_upper_bound() )
     {
-        warn "End timestamp is in the future, so truncating to current timestamp; " .
-          "consider fetching Bit.ly stats after a longer delay";
+        DEBUG(
+            sub {
+                "End timestamp is in the future, so truncating to current timestamp; " .
+                  "consider fetching Bit.ly stats after a longer delay";
+            }
+        );
         $end_timestamp = DateTime->now()->epoch;
     }
 

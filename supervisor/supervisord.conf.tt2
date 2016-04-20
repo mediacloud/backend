@@ -62,7 +62,7 @@ supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
 serverurl = unix://%(here)s/supervisord.sock                ; use a unix:// URL for a unix socket
 
 [group:mc]
-programs = crawler,crf_web_service
+programs = crawler
 
 [%- crawler_numprocs = supervisor.programs.crawler.numprocs || 1 %]
 [% INCLUDE program_config
@@ -74,17 +74,6 @@ programs = crawler,crf_web_service
     default_autostart='true'
     skip_numprocs=1
     default_nice=5
-%]
-
-[% INCLUDE program_config
-    program='crf_web_service'
-    command='bash ./script/crfwebservice_wrapper.sh'
-    default_stopasgroup='false'
-    default_killasgroup='false'
-    default_autorestart='true'
-    default_autostart='false'
-    priority=5
-    default_nice=12
 %]
 
 

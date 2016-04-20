@@ -3,6 +3,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::Languages::Language;
+use MediaWords::Util::Config;
 use MediaWords::Util::SchemaVersion;
 
 # import functions into server schema
@@ -65,7 +66,7 @@ END
             my $lang = MediaWords::Languages::Language::language_for_code( $language_code );
             if ( !$lang )
             {
-                die "Language '$language_code' is not enabled.";
+                LOGDIE "Language '$language_code' is not enabled.";
             }
 
             # collect stopwords
@@ -222,7 +223,7 @@ sub _path_to_pgcrypto_sql_file_84_90()
     my $pgcrypto_sql_file = "$pg_config_share_dir/contrib/pgcrypto.sql";
     unless ( -e $pgcrypto_sql_file )
     {
-        die "'pgcrypto' file does not exist at path: $pgcrypto_sql_file";
+        LOGDIE "'pgcrypto' file does not exist at path: $pgcrypto_sql_file";
     }
 
     return $pgcrypto_sql_file;
@@ -239,7 +240,7 @@ sub _pgcrypto_extension_sql($)
     {
         # PostgreSQL 8.x and 9.0
         my $pgcrypto_sql_file = _path_to_pgcrypto_sql_file_84_90;
-        open PGCRYPTO_SQL, "< $pgcrypto_sql_file" or die "Can't open $pgcrypto_sql_file : $!\n";
+        open PGCRYPTO_SQL, "< $pgcrypto_sql_file" or LOGDIE "Can't open $pgcrypto_sql_file : $!\n";
         while ( <PGCRYPTO_SQL> )
         {
             $sql .= $_;
@@ -260,7 +261,7 @@ sub _add_pgcrypto_extension($)
 {
     my ( $db ) = @_;
 
-    # say STDERR 'Adding "pgcrypto" extension...';
+    DEBUG( 'Adding "pgcrypto" extension...' );
 
     # Add "pgcrypto" extension
     my $sql = _pgcrypto_extension_sql( $db );
@@ -268,7 +269,7 @@ sub _add_pgcrypto_extension($)
 
     unless ( _pgcrypto_is_installed( $db ) )
     {
-        die "'pgcrypto' extension has not been installed.";
+        LOGDIE "'pgcrypto' extension has not been installed.";
     }
 }
 
@@ -301,7 +302,7 @@ sub _postgresql_version($)
 
     if ( $postgres_version !~ /^PostgreSQL \d.+?$/ )
     {
-        die "Unable to parse PostgreSQL version: $postgres_version";
+        LOGDIE "Unable to parse PostgreSQL version: $postgres_version";
     }
 
     return $postgres_version;
@@ -437,8 +438,6 @@ sub load_sql_file
     my $port        = $db_settings->{ port };
     my $password    = $db_settings->{ pass } . "\n";
 
-    # say "$host $database $username $password ";
-
     # TODO: potentially brittle, $? should be checked after run3
     # common shell script interface gives indirection to database with no
     # modification of this code.
@@ -461,26 +460,32 @@ sub recreate_db
     my $do_not_check_schema_version = 1;
     my $db = MediaWords::DB::connect_to_db( $label, $do_not_check_schema_version );
 
-    # say STDERR "reset schema ...";
+    DEBUG( 'reset schema ...' );
+    my $data_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ data_dir };
+    if ( $data_dir )
+    {
+        my $cache_dir = "$data_dir/cache";
+        File::Path::remove_tree( $cache_dir, { keep_root => 1 } );
+    }
 
     reset_all_schemas( $db );
 
-    # say STDERR "add functions ...";
+    DEBUG( "add functions ..." );
     $db->query( get_sql_function_definitions() );
 
     my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
 
-    # say STDERR "script_dir: $script_dir";
+    DEBUG( "script_dir: $script_dir" );
 
-    # say STDERR "add enum functions ...";
+    DEBUG( "add enum functions ..." );
     my $load_dklab_postgresql_enum_result = load_sql_file( $label, "$script_dir/dklab_postgresql_enum_2009-02-26.sql" );
 
-    die "Error adding dklab_postgresql_enum procecures" if ( $load_dklab_postgresql_enum_result );
+    LOGDIE "Error adding dklab_postgresql_enum procecures" if ( $load_dklab_postgresql_enum_result );
 
-    # say STDERR "Adding 'pgcrypto' extension...";
+    DEBUG( "Adding 'pgcrypto' extension..." );
     _add_pgcrypto_extension( $db );
 
-    # say STDERR "add mediacloud schema ...";
+    DEBUG( "add mediacloud schema ..." );
     my $load_sql_file_result = load_sql_file( $label, "$script_dir/mediawords.sql" );
 
     return $load_sql_file_result;
@@ -494,7 +499,7 @@ sub upgrade_db($;$)
 
     my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
 
-    # say STDERR "script_dir: $script_dir";
+    DEBUG( sub { "script_dir: $script_dir" } );
     my $db;
     {
 
@@ -513,31 +518,31 @@ EOF
     my $current_schema_version = $schema_versions[ 0 ] + 0;
     unless ( $current_schema_version )
     {
-        die "Invalid current schema version.";
+        LOGDIE "Invalid current schema version.";
     }
 
-    say STDERR "Current schema version: $current_schema_version";
+    INFO( sub { "Current schema version: $current_schema_version" } );
 
     # Target schema version
-    open SQLFILE, "$script_dir/mediawords.sql" or die $!;
+    open SQLFILE, "$script_dir/mediawords.sql" or LOGDIE $!;
     my @sql = <SQLFILE>;
     close SQLFILE;
     my $target_schema_version = MediaWords::Util::SchemaVersion::schema_version_from_lines( @sql );
     unless ( $target_schema_version )
     {
-        die "Invalid target schema version.";
+        LOGDIE( "Invalid target schema version." );
     }
 
-    say STDERR "Target schema version: $target_schema_version";
+    INFO( sub { "Target schema version: $target_schema_version" } );
 
     if ( $current_schema_version == $target_schema_version )
     {
-        say STDERR "Schema is up-to-date, nothing to upgrade.";
+        INFO( sub { "Schema is up-to-date, nothing to upgrade." } );
         return;
     }
     if ( $current_schema_version > $target_schema_version )
     {
-        die "Current schema version is newer than the target schema version, please update the source code.";
+        LOGIDE( "Current schema version is newer than the target schema version, please update the source code." );
     }
 
     # Check if the SQL diff files that are needed for upgrade are present before doing anything else
@@ -547,7 +552,7 @@ EOF
         my $diff_filename = './sql_migrations/mediawords-' . $version . '-' . ( $version + 1 ) . '.sql';
         unless ( -e $diff_filename )
         {
-            die "SQL diff file '$diff_filename' does not exist.";
+            LOGDIE "SQL diff file '$diff_filename' does not exist.";
         }
 
         push( @sql_diff_files, $diff_filename );
@@ -586,11 +591,11 @@ EOF
         my $sql_diff = read_file( $diff_filename );
         unless ( defined $sql_diff )
         {
-            die "Unable to read SQL diff file: $sql_diff";
+            LOGDIE "Unable to read SQL diff file: $sql_diff";
         }
         unless ( $sql_diff )
         {
-            die "SQL diff file is empty: $sql_diff";
+            LOGDIE "SQL diff file is empty: $sql_diff";
         }
 
         $upgrade_sql .= $sql_diff;
@@ -604,7 +609,7 @@ EOF
     # Wrap into a transaction
     if ( $upgrade_sql =~ /BEGIN;/i or $upgrade_sql =~ /COMMIT;/i )
     {
-        die "Upgrade script already BEGINs and COMMITs a transaction. Please upgrade the database manually.";
+        LOGDIE "Upgrade script already BEGINs and COMMITs a transaction. Please upgrade the database manually.";
     }
     $upgrade_sql = "BEGIN;\n\n\n" . $upgrade_sql;
     $upgrade_sql .= "COMMIT;\n\n";

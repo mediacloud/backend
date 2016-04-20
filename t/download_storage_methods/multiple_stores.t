@@ -22,12 +22,7 @@ sub main()
         sub {
             my ( $db ) = @_;
 
-            my $postgresql = MediaWords::KeyValueStore::PostgreSQL->new(
-                {
-                    database_label => undef,              # default database
-                    table          => 'raw_downloads',    #
-                }
-            );
+            my $postgresql      = MediaWords::KeyValueStore::PostgreSQL->new( { table => 'raw_downloads' } );
             my $s3              = s3_download_handler( 'MediaWords::KeyValueStore::AmazonS3' );
             my $multiple_stores = MediaWords::KeyValueStore::MultipleStores->new(
                 {

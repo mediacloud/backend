@@ -12,6 +12,7 @@ use URI;
 use URI::Escape;
 use URI::QueryParam;
 use Carp;
+use Encode;
 
 use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::GuessDate;
@@ -236,7 +237,7 @@ sub corenlp_json : Local
     my $corenlp_json = MediaWords::Util::CoreNLP::fetch_annotation_json_for_story_and_all_sentences( $c->dbis, $stories_id );
 
     $c->response->content_type( 'application/json; charset=UTF-8' );
-    return $c->res->body( $corenlp_json );
+    return $c->res->body( encode( 'utf-8', $corenlp_json ) );
 }
 
 # view Bit.ly JSON

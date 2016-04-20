@@ -10,7 +10,6 @@ use File::Path;
 use HTTP::Request;
 use Readonly;
 use List::MoreUtils qw(any);
-use MediaWords::Crawler::Extractor;
 use MediaWords::DB;
 use MediaWords::Util::Config;
 use Carp;

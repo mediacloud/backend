@@ -54,7 +54,12 @@ fi
 # Run test suite
 cd `dirname $0`/../
 
-TEST_FILES=`find lib script t -name '*.t'`
+# ignore these tests
+# t/test_single_crawler_download.t - redundant with t/test_crawler.t
+IGNORE_TESTS_PATTERN='t/test_single_crawler_download.t'
+
+TEST_FILES=`find lib script t -name '*.t' | grep -v "$IGNORE_TESTS_PATTERN"`
+
 
 # make sure compile is included first so that it runs first as slowest test.
 # include test_crawler.t because we can have one db or server test here and
