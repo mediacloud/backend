@@ -14,18 +14,6 @@ database:
       user  : "mediaclouduser"
       pass  : "mediacloud"
 
-    # raw download storage
-    # (this section is optional; if absent, we're going to use production
-    # database's "raw_downloads" table)
-    #- label : "raw_downloads"
-    #  type  : "pg"
-    #  host  : "localhost"
-    #  port  : 5432
-    #  db    : "mediacloud"
-    #  user  : "mediaclouduser"
-    #  pass  : "mediacloud"
-    #  table : "raw_downloads"  # optional
-
     # unit tests
     - label : "test"
       type  : "pg"
