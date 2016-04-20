@@ -99,6 +99,10 @@ sub corenlp : Local
     my $db = $c->dbis;
 
     my $stories_ids = $c->req->params->{ stories_id };
+    unless ( $stories_ids )
+    {
+        die "One or more 'stories_id' is required.";
+    }
 
     $stories_ids = [ $stories_ids ] unless ( ref( $stories_ids ) );
 
