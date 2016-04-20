@@ -48,6 +48,9 @@ use MediaWords::Util::Paths;
 use MediaWords::GearmanFunction::AnnotateWithCoreNLP;
 use MediaWords::Util::ThriftExtractor;
 
+# PostgreSQL table name for storing raw downloads
+Readonly my $RAW_DOWNLOADS_POSTGRESQL_KVS_TABLE_NAME => 'raw_downloads';
+
 # Database inline content length limit
 Readonly my $INLINE_CONTENT_LENGTH => 256;
 
@@ -110,19 +113,9 @@ my $_store_postgresql = lazy
 
     my $config = MediaWords::Util::Config::get_config;
 
-    # Main raw downloads database / table
-    my $raw_downloads_db_label = 'raw_downloads';    # as set up in mediawords.yml
-    unless ( grep { $_ eq $raw_downloads_db_label } MediaWords::DB::get_db_labels() )
-    {
-        $raw_downloads_db_label = undef;
-    }
-
-    my $postgresql_store = MediaWords::KeyValueStore::PostgreSQL->new(
-        {
-            database_label => $raw_downloads_db_label,                         #
-            table => ( $raw_downloads_db_label ? undef : 'raw_downloads' ),    #
-        }
-    );
+    # Raw downloads table
+    my $postgresql_store =
+      MediaWords::KeyValueStore::PostgreSQL->new( { table => $RAW_DOWNLOADS_POSTGRESQL_KVS_TABLE_NAME } );
 
     # Add Amazon S3 fallback storage if needed
     if ( lc( $config->{ mediawords }->{ fallback_postgresql_downloads_to_s3 } eq 'yes' ) )

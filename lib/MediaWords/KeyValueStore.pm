@@ -21,13 +21,6 @@ package MediaWords::KeyValueStore;
 #         table => 'pictures_of_my_cats'
 #     });
 #
-#     # Initialize PostgreSQL store for storing key-value data in external PostgreSQL database
-#
-#     my $store = MediaWords::KeyValueStore::PostgreSQL->new({
-#         database_label => 'raw_downloads',
-#         table => 'pictures_of_my_dogs'
-#     });
-#
 # Storing data:
 #
 #     # In this case, "Vincent Van Furrball" is the key.
