@@ -53,7 +53,10 @@ use MediaWords::Util::ThriftExtractor;
 #
 # File::Temp doesn't quite work here because it's beneficial to reuse the
 # same directory in order to not recompile Python scripts.
-mkdir( '/var/tmp/_Inline', 0777 );
+BEGIN
+{
+    mkdir( '/var/tmp/_Inline', 0777 );
+}
 use Inline ( Python => Config => DIRECTORY => '/var/tmp/_Inline' );
 
 # PostgreSQL table name for storing raw downloads
