@@ -23,7 +23,6 @@ use DateTime;
 use Encode;
 use Getopt::Long;
 use HTML::LinkExtractor;
-use HTML::Strip;
 use List::Util;
 use Parallel::ForkManager;
 use Readonly;
@@ -930,9 +929,6 @@ sub translate_pattern_to_perl
 # cache that indicates whether we should recheck a given url
 my $_no_potential_match_urls = {};
 
-# persistent HTLM::Strip object to avoid recreation time
-my $_xs_html_stripper;
-
 # test whether the url or content of a potential story matches the controversy pattern
 sub potential_story_matches_controversy_pattern
 {
@@ -944,16 +940,7 @@ sub potential_story_matches_controversy_pattern
 
     return 1 if $match;
 
-    if ( !$_xs_html_stripper )
-    {
-        # specify striptags to not include title
-        $_xs_html_stripper = HTML::Strip->new(
-            auto_reset => 1,
-            striptags  => [ qw(script style applet ) ]
-        );
-    }
-
-    my $text_content = $_xs_html_stripper->parse( $content );
+    my $text_content = html_strip( $content, 1 );
 
     $match = ( $text_content =~ /$re/isx );
 
