@@ -13,6 +13,7 @@ use List::Compare;
 use Carp;
 use HTTP::Status qw(:constants);
 use Readonly;
+use Encode;
 
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
@@ -132,6 +133,9 @@ END
     }
 
     my $json = "[\n" . join( ",\n", @{ $json_items } ) . "\n]\n";
+
+    # Response might contain multibyte characters
+    $json = encode( 'utf-8', $json );
 
     $c->response->content_type( 'application/json; charset=UTF-8' );
     $c->response->content_length( bytes::length( $json ) );
