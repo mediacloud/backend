@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4531;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4532;
 
 BEGIN
 
@@ -1226,7 +1226,7 @@ CREATE VIEW downloads_sites as select site_from_host( host ) as site, * from dow
 --
 CREATE TABLE raw_downloads (
     raw_downloads_id    SERIAL      PRIMARY KEY,
-    object_id           INTEGER     NOT NULL,
+    object_id           INTEGER     NOT NULL REFERENCES downloads (downloads_id) ON DELETE CASCADE,
     raw_data            BYTEA       NOT NULL
 );
 CREATE UNIQUE INDEX raw_downloads_object_id ON raw_downloads (object_id);
