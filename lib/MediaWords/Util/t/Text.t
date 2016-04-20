@@ -7,9 +7,6 @@ use Readonly;
 use Test::More tests => 22;
 use Test::Deep;
 
-# Run the comparison multiple times so that the performance difference is more obvious
-Readonly my $TEST_ITERATIONS => 100;
-
 BEGIN
 {
     use FindBin;
