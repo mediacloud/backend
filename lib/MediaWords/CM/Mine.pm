@@ -1846,7 +1846,7 @@ END
         add_to_controversy_stories( $db, $controversy, $keep_story, $merged_iteration, 1 );
     }
 
-    $db->begin;
+    $db->begin if $db->dbh->{ AutoCommit };
 
     my $controversy_links = $db->query( <<END, $delete_story->{ stories_id }, $controversies_id )->hashes;
 select * from controversy_links where stories_id = ? and controversies_id = ?
