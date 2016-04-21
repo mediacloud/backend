@@ -17,67 +17,27 @@ use DBD::Pg qw(:pg_types);
 use Carp;
 
 # Configuration
-has '_conf_database_label' => ( is => 'rw' );
-has '_conf_table'          => ( is => 'rw' );
+has '_conf_table' => ( is => 'rw' );
 
 # Constructor
 sub BUILD($$)
 {
     my ( $self, $args ) = @_;
 
-    unless ( $args->{ database_label } or $args->{ table } )
+    unless ( $args->{ table } )
     {
-        die "Set database label and / or table to use; I'm nervous to use the main database and table as defaults.";
+        die "Database table to store objects in is unset.";
     }
 
-    my $database_label = $args->{ database_label };
-    $self->_conf_database_label( $database_label );
-
-    if ( defined $database_label )
-    {
-        unless ( grep { $_ eq $database_label } MediaWords::DB::get_db_labels() )
-        {
-            die "No such database label '$database_label'";
-        }
-    }
-
-    # Table name either from constructor arguments or from database label's "table" key
-    my $table = $args->{ table };
-    unless ( $table )
-    {
-        my $connect_settings = MediaWords::DB::connect_settings( $database_label );
-        $table = $connect_settings->{ table };
-    }
-
-    unless ( $table )
-    {
-        die "Table is unset (it wasn't in the database settings neither it was passed as a parameter).";
-    }
-
-    $self->_conf_table( $table );
-}
-
-sub _db($)
-{
-    my $self = shift;
-
-    my $db = MediaWords::DB::connect_to_db( $self->_conf_database_label );
-
-    say STDERR "PostgreSQL: Connected to PostgreSQL label '" . ( $self->_conf_database_label // 'undef' ) . "'.";
-
-    return $db;
+    $self->_conf_table( $args->{ table } );
 }
 
 # Moose method
 sub store_content($$$$;$)
 {
-    my ( $self, $_not_used_db, $object_id, $content_ref, $use_bzip2_instead_of_gzip ) = @_;
-
-    my $db = $self->_db();
+    my ( $self, $db, $object_id, $content_ref, $use_bzip2_instead_of_gzip ) = @_;
 
     my $table = $self->_conf_table;
-
-    # my $db    = $self->_db;
 
     # Encode + compress
     my $content_to_store;
@@ -139,9 +99,7 @@ EOF
 # Moose method
 sub fetch_content($$$;$$)
 {
-    my ( $self, $_not_used_db, $object_id, $object_path, $use_bunzip2_instead_of_gunzip ) = @_;
-
-    my $db = $self->_db();
+    my ( $self, $db, $object_id, $object_path, $use_bunzip2_instead_of_gunzip ) = @_;
 
     unless ( defined $object_id )
     {
@@ -149,8 +107,6 @@ sub fetch_content($$$;$$)
     }
 
     my $table = $self->_conf_table;
-
-    # my $db    = $self->_db;
 
     my $compressed_content = $db->query(
         <<"EOF",
@@ -204,13 +160,9 @@ EOF
 # Moose method
 sub remove_content($$$;$)
 {
-    my ( $self, $_not_used_db, $object_id, $object_path ) = @_;
-
-    my $db = $self->_db();
+    my ( $self, $db, $object_id, $object_path ) = @_;
 
     my $table = $self->_conf_table;
-
-    # my $db    = $self->_db;
 
     $db->query(
         <<"EOF",
@@ -226,13 +178,9 @@ EOF
 # Moose method
 sub content_exists($$$;$)
 {
-    my ( $self, $_not_used_db, $object_id, $object_path ) = @_;
-
-    my $db = $self->_db();
+    my ( $self, $db, $object_id, $object_path ) = @_;
 
     my $table = $self->_conf_table;
-
-    #my $db    = $self->_db;
 
     my $object_exists = $db->query(
         <<"EOF",

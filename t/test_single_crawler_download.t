@@ -1,7 +1,7 @@
+#!/usr/bin/env perl
+
 use strict;
 use warnings;
-use Data::Dumper;
-use Modern::Perl "2015";
 
 # basic sanity test of crawler functionality
 
@@ -11,6 +11,9 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
     use lib $FindBin::Bin;
 }
+
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
 
 use Test::More tests => 16;
 use Test::Differences;
@@ -211,7 +214,7 @@ sub main
     # test itself will assume that stories got extracted using this extractor
     # method and thus will load input / save output data from appropriate
     # directories.
-    Readonly my $extractor_method => 'HeuristicExtractor';
+    Readonly my $extractor_method => 'InlinePythonReadability';
 
     my ( $dump ) = @ARGV;
 
@@ -242,7 +245,7 @@ sub main
 
             $crawler->crawl_single_download( $feed_download->{ downloads_id } );
 
-            print STDERR "download id: $feed_download->{ downloads_id }\n";
+            DEBUG( sub { "download id: $feed_download->{ downloads_id }" } );
             my $content_downloads =
               $db->query( "SELECT * from downloads where  type = 'content' and state <> 'success' and downloads_id > ? ",
                 $feed_download->{ downloads_id } )->hashes;
@@ -266,7 +269,7 @@ sub main
 
             test_stories( $db, $feed, $extractor_method );
 
-            say STDERR "Killing server";
+            DEBUG( "Killing server" );
             $test_http_server->stop();
 
             Test::NoWarnings::had_no_warnings();
@@ -275,4 +278,3 @@ sub main
 }
 
 main();
-

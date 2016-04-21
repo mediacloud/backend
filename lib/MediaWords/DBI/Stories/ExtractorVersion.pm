@@ -9,7 +9,6 @@ use MediaWords::CommonLibs;
 use MediaWords::Util::Config;
 use MediaWords::Util::Tags;
 use MediaWords::Util::ThriftExtractor;
-use MediaWords::Util::ExtractorFactory;
 
 # cached ids of tags, which should change rarely
 my $_tags_id_cache = {};
@@ -52,13 +51,16 @@ sub _get_current_extractor_version
     {
         $extractor_version = MediaWords::Util::ThriftExtractor::extractor_version();
     }
+    elsif ( $extractor_method eq 'InlinePythonReadability' )
+    {
+        $extractor_version = '1';
+    }
     else
     {
-        my $old_extractor = MediaWords::Util::ExtractorFactory::createExtractor();
-        $extractor_version = $old_extractor->extractor_version();
+        die( "Unknown extractor method: $extractor_method" );
     }
 
-    die unless defined( $extractor_version ) && $extractor_version;
+    die( "undefined extractor version" ) unless defined( $extractor_version ) && $extractor_version;
 
     return $extractor_version;
 }

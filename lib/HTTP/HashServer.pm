@@ -28,6 +28,9 @@ package HTTP::HashServer;
 use strict;
 use warnings;
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use English;
 
 use Data::Dumper;
@@ -57,8 +60,15 @@ sub new
 
     # send a die request in case there is an existing server sitting around.
     # we have to do this because the signal handling below does not work
-    # when run from prove for some reason.
-    LWP::Simple::get( "http://localhost:${ port }/die" );
+    # when run from prove for some reason.  also this hangs indefinitely sometimes
+    # so we have to set a timeout
+    eval {
+        local $SIG{ ALRM } = sub { die( "alarm" ) };
+        alarm 1;
+        LWP::Simple::get( "http://localhost:${ port }/die" );
+        alarm 0;
+    };
+    die( $@ ) if ( $@ && ( $@ ne "alarm\n" ) );
 
     my $self = $class->SUPER::new( $port );
 
@@ -91,14 +101,18 @@ sub new
 
 # start the server running in the background.
 # setup up signal handler to kill the forked server if this process gets killed.
-sub start
+sub start(;$)
 {
-    my ( $self ) = @_;
+    my ( $self, $sleep ) = @_;
+
+    DEBUG( sub { "Starting server on port $self->{ port }" } );
 
     $self->{ pid } = $self->background();
 
+    $sleep //= 1;
+
     # sometimes the server takes a brief time to startup
-    sleep( 1 );
+    sleep( $sleep );
 
     $SIG{ INT } = $SIG{ TERM } = sub { kill( 15, $self->{ pid } ); die( "caught ctl-c and killed HTTP::HashServer" ) };
 }
@@ -107,7 +121,7 @@ sub stop
 {
     my ( $self ) = @_;
 
-    # say STDERR "Stopping server with PID " . $self->{ pid } . " from PID $$";
+    DEBUG( sub { "Stopping server with PID " . $self->{ pid } . " from PID $$" } );
 
     kill( 'KILL', $self->{ pid } );
 }
@@ -122,13 +136,10 @@ sub handler
 
     if ( $@ )
     {
+        WARN( "handler error: $@" );
         if ( substr( $@, 0, length( $DIE_REQUEST_MESSAGE ) ) eq $DIE_REQUEST_MESSAGE )
         {
-            die( $@ );
-        }
-        else
-        {
-            warn( $@ );
+            LOGDIE( "handler error: $@" );
         }
     }
 }
@@ -167,7 +178,7 @@ sub request_failed_authentication
 
     if ( !( $client_auth =~ /Basic (.*)$/ ) )
     {
-        say STDERR "unable to parse Authorization header: $client_auth";
+        WARN( sub { "unable to parse Authorization header: $client_auth" } );
         print $fail_authentication_page;
         return 1;
     }
@@ -189,6 +200,8 @@ sub request_failed_authentication
 sub handle_request
 {
     my ( $self, $cgi ) = @_;
+
+    TRACE( sub { "received request: " . $cgi->path_info } );
 
     my $path = $cgi->path_info();
 
@@ -214,12 +227,16 @@ sub handle_request
         return;
     }
 
+    TRACE( "found page" );
+
     $page = { content => $page } unless ( ref( $page ) );
 
     return 0 if ( request_failed_authentication( $self, $page ) );
 
     if ( my $redirect = $page->{ redirect } )
     {
+        TRACE( "redirect: $page->{ redirect }" );
+
         my $enc_redirect = HTML::Entities::encode_entities( $redirect );
 
         my $http_status_code = $page->{ http_status_code } // $DEFAULT_REDIRECT_STATUS_CODE;
@@ -234,6 +251,8 @@ sub handle_request
     }
     elsif ( my $callback = $page->{ callback } )
     {
+        TRACE( "callback: $page->{ callback }" );
+
         if ( ref $callback ne 'CODE' )
         {
             die "'callback' parameter exists but is not a subroutine reference.";
@@ -242,6 +261,7 @@ sub handle_request
     }
     else
     {
+        TRACE( "content" );
         my $header  = $page->{ header }  || 'Content-Type: text/html; charset=UTF-8';
         my $content = $page->{ content } || "<body><html>Filler content for $path</html><body>";
 
@@ -260,6 +280,8 @@ sub handle_request
         print "\r\n";
         print "$content";
     }
+
+    TRACE( "exit" );
 }
 
 1;

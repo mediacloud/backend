@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4530;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4532;
 
 BEGIN
 
@@ -1226,7 +1226,7 @@ CREATE VIEW downloads_sites as select site_from_host( host ) as site, * from dow
 --
 CREATE TABLE raw_downloads (
     raw_downloads_id    SERIAL      PRIMARY KEY,
-    object_id           INTEGER     NOT NULL REFERENCES downloads ON DELETE CASCADE,
+    object_id           INTEGER     NOT NULL REFERENCES downloads (downloads_id) ON DELETE CASCADE,
     raw_data            BYTEA       NOT NULL
 );
 CREATE UNIQUE INDEX raw_downloads_object_id ON raw_downloads (object_id);
@@ -1272,19 +1272,6 @@ create unique index stories_tags_map_story on stories_tags_map (stories_id, tags
 create index stories_tags_map_tag on stories_tags_map (tags_id);
 CREATE INDEX stories_tags_map_story_id ON stories_tags_map USING btree (stories_id);
 
-create table extractor_training_lines
-(
-    extractor_training_lines_id     serial      primary key,
-    line_number                     int         not null,
-    required                        boolean     not null,
-    downloads_id                    int         not null references downloads on delete cascade,
-    "time" timestamp without time zone,
-    submitter character varying(256)
-);
-
-create unique index extractor_training_lines_line on extractor_training_lines(line_number, downloads_id);
-create index extractor_training_lines_download on extractor_training_lines(downloads_id);
-
 CREATE TABLE download_texts (
     download_texts_id integer NOT NULL,
     downloads_id integer NOT NULL,
@@ -1311,15 +1298,6 @@ ALTER TABLE ONLY download_texts
 ALTER TABLE download_texts add CONSTRAINT download_text_length_is_correct CHECK (length(download_text)=download_text_length);
 
 
-create table extracted_lines
-(
-    extracted_lines_id          serial          primary key,
-    line_number                 int             not null,
-    download_texts_id           int             not null references download_texts on delete cascade
-);
-
-create index extracted_lines_download_text on extracted_lines(download_texts_id);
-
 CREATE TYPE url_discovery_status_type as ENUM ('already_processed', 'not_yet_processed');
 CREATE TABLE url_discovery_counts (
        url_discovery_status url_discovery_status_type PRIMARY KEY,
@@ -1328,99 +1306,6 @@ CREATE TABLE url_discovery_counts (
 INSERT  into url_discovery_counts VALUES ('already_processed');
 INSERT  into url_discovery_counts VALUES ('not_yet_processed');
 
--- VIEWS
-
-CREATE VIEW media_extractor_training_downloads_count AS
-    SELECT media.media_id,
-           COALESCE(foo.extractor_training_downloads_for_media_id, (0)::bigint) AS extractor_training_download_count
-    FROM media
-        LEFT JOIN (
-            SELECT stories.media_id,
-                   COUNT(stories.media_id) AS extractor_training_downloads_for_media_id
-            FROM extractor_training_lines,
-                 downloads,
-                 stories
-            WHERE extractor_training_lines.downloads_id = downloads.downloads_id
-              AND downloads.stories_id = stories.stories_id
-            GROUP BY stories.media_id
-            ORDER BY stories.media_id
-        ) AS foo ON media.media_id = foo.media_id;
-
-CREATE VIEW yahoo_top_political_2008_media AS
-    SELECT DISTINCT media_tags_map.media_id
-    FROM media_tags_map,
-         (
-            SELECT tags.tags_id
-            FROM tags,
-                 (
-                    SELECT DISTINCT media_tags_map.tags_id
-                    FROM media_tags_map
-                    ORDER BY media_tags_map.tags_id
-                 ) AS media_tags
-            WHERE tags.tags_id = media_tags.tags_id
-              AND (tags.tag)::text ~~ 'yahoo_top_political_2008'::text
-         ) AS interesting_media_tags
-    WHERE media_tags_map.tags_id = interesting_media_tags.tags_id
-    ORDER BY media_tags_map.media_id;
-
-CREATE VIEW technorati_top_political_2008_media AS
-    SELECT DISTINCT media_tags_map.media_id
-    FROM media_tags_map,
-         (
-            SELECT tags.tags_id
-            FROM tags,
-                 (
-                    SELECT DISTINCT media_tags_map.tags_id
-                    FROM media_tags_map
-                    ORDER BY media_tags_map.tags_id
-                 ) AS media_tags
-            WHERE tags.tags_id = media_tags.tags_id
-              AND (tags.tag)::text ~~ 'technorati_top_political_2008'::text
-         ) AS interesting_media_tags
-    WHERE media_tags_map.tags_id = interesting_media_tags.tags_id
-    ORDER BY media_tags_map.media_id;
-
-CREATE VIEW media_extractor_training_downloads_count_adjustments AS
-    SELECT yahoo.media_id,
-           yahoo.yahoo_count_adjustment,
-           tech.technorati_count_adjustment
-    FROM (
-            SELECT media_extractor_training_downloads_count.media_id,
-                   COALESCE(foo.yahoo_count_adjustment, 0) AS yahoo_count_adjustment
-            FROM (media_extractor_training_downloads_count
-                LEFT JOIN (
-                    SELECT yahoo_top_political_2008_media.media_id,
-                           1 AS yahoo_count_adjustment
-                    FROM yahoo_top_political_2008_media
-                ) AS foo ON foo.media_id = media_extractor_training_downloads_count.media_id
-        )) AS yahoo,
-        (
-            SELECT media_extractor_training_downloads_count.media_id,
-                   COALESCE(foo.count_adjustment, 0) AS technorati_count_adjustment
-            FROM (media_extractor_training_downloads_count
-                LEFT JOIN (
-                    SELECT technorati_top_political_2008_media.media_id,
-                           1 AS count_adjustment
-                    FROM technorati_top_political_2008_media
-                ) AS foo ON foo.media_id = media_extractor_training_downloads_count.media_id
-        )) AS tech
-    WHERE tech.media_id = yahoo.media_id;
-
-CREATE VIEW media_adjusted_extractor_training_downloads_count AS
-    SELECT media_extractor_training_downloads_count.media_id,
-           (
-               (media_extractor_training_downloads_count.extractor_training_download_count -
-               (2 * media_extractor_training_downloads_count_adjustments.yahoo_count_adjustment)) -
-               (2 * media_extractor_training_downloads_count_adjustments.technorati_count_adjustment)
-           ) AS count
-    FROM media_extractor_training_downloads_count
-        JOIN media_extractor_training_downloads_count_adjustments
-            ON media_extractor_training_downloads_count.media_id = media_extractor_training_downloads_count_adjustments.media_id
-    ORDER BY (
-        (media_extractor_training_downloads_count.extractor_training_download_count -
-        (2 * media_extractor_training_downloads_count_adjustments.yahoo_count_adjustment)) -
-        (2 * media_extractor_training_downloads_count_adjustments.technorati_count_adjustment)
-    );
 
 CREATE TABLE extractor_results_cache (
     extractor_results_cache_id integer NOT NULL,

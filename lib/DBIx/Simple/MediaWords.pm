@@ -612,41 +612,42 @@ sub query_csv_dump
 # get the name of a temporary table that contains all of the ids in $ids as an 'id bigint' field.
 # the database connection must be within a transaction.  the temporary table is setup to be dropped
 # at the end of the current transaction. row insertion order is maintained.
-sub get_temporary_ids_table ($)
+# if $ordered is true, include an ${ids_table}_id serial primary key field in the table.
+sub get_temporary_ids_table ($;$)
 {
-    my ( $db, $ids ) = @_;
+    my ( $db, $ids, $ordered ) = @_;
 
-    my $table = "_tmp_ids_" . int( rand( 100000 ) );
-    while ( $db->query( "SELECT 1 FROM pg_class WHERE relname = ?", $table )->hash )
+    my $i = 0;
+    while ( 1 )
     {
-        $table = "_tmp_ids_" . int( rand( 100000 ) );
+        die( "infinite loop break" ) if ( $i++ > 1000 );
+
+        my $table = "_tmp_ids_" . int( rand( 100000 ) );
+
+        my $pk = $ordered ? " ${table}_pkey   SERIAL  PRIMARY KEY," : "";
+
+        eval { $db->query( "create temporary table $table ( $pk id bigint )" ); };
+        if ( $@ )
+        {
+            ( $@ =~ /relation .* already exists/ ) ? next : die( $@ );
+        }
+
+        eval { $db->dbh->do( "COPY $table (id) FROM STDIN" ) };
+        die( " Error on copy: $@" ) if ( $@ );
+
+        for my $id ( @{ $ids } )
+        {
+            eval { $db->dbh->pg_putcopydata( "$id\n" ); };
+            die( " Error on pg_putcopydata: $@" ) if ( $@ );
+        }
+
+        eval { $db->dbh->pg_putcopyend(); };
+        Carp::confess( " Error on pg_putcopyend: $@" ) if ( $@ );
+
+        $db->query( "ANALYZE $table" );
+
+        return $table;
     }
-
-    $db->query(
-        <<"SQL"
-        CREATE TEMPORARY TABLE $table (
-            ${table}_pkey   SERIAL  PRIMARY KEY,
-            id              BIGINT
-        )
-SQL
-    );
-
-    eval { $db->dbh->do( "COPY $table (id) FROM STDIN" ) };
-    die( " Error on copy: $@" ) if ( $@ );
-
-    for my $id ( @{ $ids } )
-    {
-        eval { $db->dbh->pg_putcopydata( "$id\n" ); };
-        die( " Error on pg_putcopydata: $@" ) if ( $@ );
-    }
-
-    eval { $db->dbh->pg_putcopyend(); };
-    Carp::confess( " Error on pg_putcopyend: $@" ) if ( $@ );
-
-    $db->query( "ANALYZE $table" );
-
-    return $table;
-
 }
 
 sub begin_work

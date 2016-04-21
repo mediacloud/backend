@@ -1,7 +1,3 @@
-#
-# Test MediaWords::Util::Text::get_similarity_score() by comparing it to Text::Similarity::Overlaps
-#
-
 use strict;
 use warnings;
 use utf8;

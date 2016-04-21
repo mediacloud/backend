@@ -206,13 +206,13 @@ sub merge_story_stats($$)
 
     if ( $old_stats->{ 'error' } )
     {
-        say STDERR "Fetching old stats failed, overwriting with new stats";
+        DEBUG( sub { "Fetching old stats failed, overwriting with new stats" } );
         return $new_stats;
     }
 
     if ( $new_stats->{ 'error' } )
     {
-        say STDERR "Fetching new stats failed, overwriting with old stats";
+        DEBUG( sub { "Fetching new stats failed, overwriting with old stats" } );
         return $old_stats;
     }
 
@@ -230,13 +230,13 @@ sub merge_story_stats($$)
 
         if ( ( !$old_bitly_data ) or dump_terse( $old_bitly_data ) eq dump_terse( $new_bitly_data ) )
         {
-            say STDERR "Stats for Bit.ly hash $bitly_id are identical or old stats didn't exist, using new stats";
+            DEBUG( sub { "Stats for Bit.ly hash $bitly_id are identical or old stats didn't exist, using new stats" } );
             $stats->{ data }->{ $bitly_id } = $new_bitly_data;
         }
         else
         {
             $stats->{ data }->{ $bitly_id } = $old_bitly_data;
-            say STDERR "Both new and old stats have click data for Bit.ly hash $bitly_id, merging stats";
+            DEBUG( sub { "Both new and old stats have click data for Bit.ly hash $bitly_id, merging stats" } );
             foreach my $bitly_clicks ( @{ $new_bitly_data->{ clicks } } )
             {
                 push( @{ $stats->{ data }->{ $bitly_id }->{ clicks } }, $bitly_clicks );
@@ -280,7 +280,7 @@ sub write_story_stats($$$)
     # Fetch + merge existing stats if any
     if ( story_stats_are_fetched( $db, $stories_id ) )
     {
-        say STDERR "Story's $stories_id stats are already fetched from Bit.ly, merging...";
+        DEBUG( sub { "Story's $stories_id stats are already fetched from Bit.ly, merging..." } );
 
         my $existing_stats = read_story_stats( $db, $stories_id );
         $stats = merge_story_stats( $existing_stats, $stats );
@@ -294,7 +294,7 @@ sub write_story_stats($$$)
         die "Unable to encode hashref to JSON: $@\nHashref: " . Dumper( $stats );
     }
 
-    say STDERR 'JSON length: ' . length( $json_stats );
+    DEBUG( sub { 'JSON length: ' . length( $json_stats ) } );
 
     # Write to key-value store, index by stories_id
     eval {
@@ -377,8 +377,15 @@ sub num_controversy_stories_without_bitly_statistics($$)
 select count(*)
     from controversy_stories cs
         left join bitly_clicks_total b on ( cs.stories_id = b.stories_id )
-    where cs.controversies_id = ? and
-        b.click_count is null;
+    where cs.controversies_id = ?
+
+      -- Don't touch "click_count" column so that the match could be made using
+      -- the index only.
+      --
+      -- "click_count" is NOT NULL so if story doesn't have a click count
+      -- collected yet, the row will be nonexistent (thus testing just the
+      -- "stories_id" works too).
+      and b.stories_id is null
 SQL
 
     unless ( defined $num_controversy_stories_without_bitly_statistics )
@@ -404,7 +411,7 @@ sub aggregate_story_stats($$$)
     {
         if ( $stats->{ 'error' } eq 'NOT_FOUND' )
         {
-            say STDERR "Story $stories_id was not found on Bit.ly, so click count is 0.";
+            DEBUG( sub { "Story $stories_id was not found on Bit.ly, so click count is 0." } );
         }
         else
         {
@@ -432,8 +439,7 @@ sub aggregate_story_stats($$$)
             {
                 if ( MediaWords::Util::URL::is_homepage_url( $url ) )
                 {
-                    say STDERR
-                      "URL $stories_original_url got redirected to $url which looks like a homepage, so I'm skipping that.";
+                    DEBUG( sub { "URL $stories_original_url redirected to $url; looks like homepage; skipping." } );
                     next;
                 }
             }
@@ -441,7 +447,7 @@ sub aggregate_story_stats($$$)
             # Click count (indiscriminate from date range)
             unless ( $bitly_data->{ 'clicks' } )
             {
-                say "Bit.ly stats hashref doesn't have 'clicks' key for Bit.ly ID $bitly_id, story $stories_id.";
+                DEBUG( sub { "Bit.ly stats doesn't have 'clicks' key for Bit.ly ID $bitly_id, story $stories_id." } );
             }
 
             my $hash_dates_and_clicks = {};

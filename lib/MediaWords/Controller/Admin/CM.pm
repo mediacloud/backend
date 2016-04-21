@@ -22,7 +22,6 @@ use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::Solr;
 use MediaWords::Solr::WordCounts;
 use MediaWords::Util::Bitly;
-use MediaWords::GearmanFunction::Bitly::EnqueueAllControversyStories;
 
 Readonly my $ROWS_PER_PAGE => 25;
 
@@ -381,39 +380,6 @@ sub _get_latest_activities
     return $activities;
 }
 
-# return hash with bitly_processed_is_enabled, bitly_total_stories, bitly_unprocessed_stories fields.
-sub _get_bitly_status
-{
-    my ( $db, $controversy ) = @_;
-
-    # my $bitly_processing_is_enabled = MediaWords::Util::Bitly::bitly_processing_is_enabled();
-
-    # hmr - temporarily disable bitly stats because partitioning has made them too slow
-    my $bitly_processing_is_enabled = 0;
-
-    if ( !( $bitly_processing_is_enabled and $controversy->{ process_with_bitly } ) )
-    {
-        return { bitly_processed_is_enabled => 0, bitly_total_stories => 0, bitly_unprocessed_stories => 0 };
-    }
-
-    my $controversies_id = $controversy->{ controversies_id };
-
-    my ( $total_stories ) = $db->query( <<SQL, $controversies_id )->flat;
-SELECT COUNT(stories_id) AS total_stories
-FROM controversy_stories
-WHERE controversies_id = ?
-SQL
-
-    my $unprocessed_stories =
-      MediaWords::Util::Bitly::num_controversy_stories_without_bitly_statistics( $db, $controversies_id );
-
-    return {
-        bitly_processing_is_enabled => 1,
-        bitly_total_stories         => $total_stories,
-        bitly_unprocessed_stories   => $unprocessed_stories
-    };
-}
-
 # get the controversy with the given id, attach the controversy_query_slice associated with
 # the query_slices_id, if any
 sub _get_controversy_with_query_slice
@@ -448,7 +414,7 @@ sub view : Local
 
     my $latest_activities = _get_latest_activities( $db, $controversies_id );
 
-    my $bitly_status = _get_bitly_status( $db, $controversy );
+    my $bitly_processing_is_enabled = MediaWords::Util::Bitly::bitly_processing_is_enabled();
 
     my $mining_status = _get_mining_status( $db, $controversy );
 
@@ -460,9 +426,7 @@ SQL
     $c->stash->{ controversy_dumps }           = $controversy_dumps;
     $c->stash->{ latest_full_dump }            = $latest_full_dump;
     $c->stash->{ latest_activities }           = $latest_activities;
-    $c->stash->{ bitly_processing_is_enabled } = $bitly_status->{ bitly_processing_is_enabled };
-    $c->stash->{ bitly_total_stories }         = $bitly_status->{ bitly_total_stories };
-    $c->stash->{ bitly_unprocessed_stories }   = $bitly_status->{ bitly_unprocessed_stories };
+    $c->stash->{ bitly_processing_is_enabled } = $bitly_processing_is_enabled;
     $c->stash->{ mining_status }               = $mining_status;
     $c->stash->{ query_slices_id }             = $query_slices_id;
     $c->stash->{ query_slices }                = $query_slices;
@@ -1200,6 +1164,7 @@ sub _get_medium_and_stories_from_dump_tables
           AND s.media_id = m.media_id
           AND s.media_id = ?
         ORDER BY slc.inlink_count DESC
+        limit 50
 END
         $media_id
     )->hashes;
@@ -1207,8 +1172,12 @@ END
     MediaWords::DBI::Stories::GuessDate::add_date_is_reliable_to_stories( $db, $medium->{ stories } );
     MediaWords::DBI::Stories::GuessDate::add_undateable_to_stories( $db, $medium->{ stories } );
 
+    $db->query( <<SQL, $medium->{ media_id } );
+create temporary table cm_medium_stories_ids as select stories_id from dump_stories where media_id = ?
+SQL
+
     $medium->{ inlink_stories } = $db->query(
-        <<END,
+        <<END
         SELECT DISTINCT s.*,
                         sm.name AS medium_name,
                         sm.media_type,
@@ -1218,46 +1187,38 @@ END
         FROM dump_stories AS s,
              dump_story_link_counts AS sslc,
              dump_media_with_types AS sm,
-             dump_stories AS r,
-             dump_story_link_counts AS rslc,
              dump_controversy_links_cross_media AS cl
         WHERE s.stories_id = sslc.stories_id
-          AND r.stories_id = rslc.stories_id
           AND s.media_id = sm.media_id
           AND s.stories_id = cl.stories_id
-          AND r.stories_id = cl.ref_stories_id
-          AND r.media_id = ?
+          AND cl.ref_stories_id in ( select stories_id from cm_medium_stories_ids )
         ORDER BY sslc.inlink_count DESC
+        limit 50
 END
-        $media_id
     )->hashes;
 
     MediaWords::DBI::Stories::GuessDate::add_date_is_reliable_to_stories( $db, $medium->{ inlink_stories } );
     MediaWords::DBI::Stories::GuessDate::add_undateable_to_stories( $db, $medium->{ inlink_stories } );
 
     $medium->{ outlink_stories } = $db->query(
-        <<END,
+        <<END
         SELECT DISTINCT r.*,
                         rm.name AS medium_name,
                         rm.media_type,
                         rslc.inlink_count,
                         rslc.outlink_count,
                         rslc.bitly_click_count
-        FROM dump_stories AS s,
-             dump_story_link_counts AS sslc,
-             dump_stories AS r,
+        FROM dump_stories AS r,
              dump_story_link_counts AS rslc,
              dump_media_with_types AS rm,
              dump_controversy_links_cross_media AS cl
-        WHERE s.stories_id = sslc.stories_id
-          AND r.stories_id = rslc.stories_id
+        WHERE r.stories_id = rslc.stories_id
           AND r.media_id = rm.media_id
-          AND s.stories_id = cl.stories_id
           AND r.stories_id = cl.ref_stories_id
-          AND s.media_id = ?
+          AND cl.stories_id in ( select stories_id from cm_medium_stories_ids )
         ORDER BY rslc.inlink_count DESC
+        limit 50
 END
-        $media_id
     )->hashes;
 
     MediaWords::DBI::Stories::GuessDate::add_date_is_reliable_to_stories( $db, $medium->{ outlink_stories } );
@@ -1420,16 +1381,13 @@ sub _get_story_and_links_from_dump_tables
         FROM dump_stories AS s,
              dump_story_link_counts AS sslc,
              dump_media_with_types AS sm,
-             dump_stories AS r,
-             dump_story_link_counts AS rslc,
              dump_controversy_links_cross_media AS cl
         WHERE s.stories_id = sslc.stories_id
-          AND r.stories_id = rslc.stories_id
           AND s.media_id = sm.media_id
           AND s.stories_id = cl.stories_id
-          AND r.stories_id = cl.ref_stories_id
           AND cl.ref_stories_id = ?
         ORDER BY sslc.inlink_count DESC
+        limit 50
 END
         $stories_id
     )->hashes;
@@ -1445,19 +1403,16 @@ END
                         rslc.inlink_count,
                         rslc.outlink_count,
                         rslc.bitly_click_count
-        FROM dump_stories AS s,
-             dump_story_link_counts AS sslc,
-             dump_stories AS r,
+        FROM dump_stories AS r,
              dump_story_link_counts AS rslc,
              dump_media_with_types AS rm,
              dump_controversy_links_cross_media AS cl
-        WHERE s.stories_id = sslc.stories_id
-          AND r.stories_id = rslc.stories_id
+        WHERE r.stories_id = rslc.stories_id
           AND r.media_id = rm.media_id
-          AND s.stories_id = cl.stories_id
           AND r.stories_id = cl.ref_stories_id
           AND cl.stories_id = ?
         ORDER BY rslc.inlink_count DESC
+        limit 50
 END
         $stories_id
     )->hashes;
@@ -3090,42 +3045,6 @@ sub story_stats : Local
     $c->stash->{ num_stories }      = $num_stories;
     $c->stash->{ live }             = $live;
     $c->stash->{ template }         = 'cm/story_stats.tt2';
-}
-
-# enqueue a Gearman job which will, in turn, enqueue all controversy's stories
-# for Bit.ly processing
-sub enqueue_stories_for_bitly : Local
-{
-    my ( $self, $c, $controversies_id ) = @_;
-
-    unless ( MediaWords::Util::Bitly::bitly_processing_is_enabled() )
-    {
-        die "Bit.ly processing is not enabled.";
-    }
-
-    my $db = $c->dbis;
-
-    my $controversy = $db->find_by_id( 'controversies', $controversies_id );
-    unless ( $controversy )
-    {
-        die "Controversy $controversies_id was not found";
-    }
-
-    unless ( $controversy->{ process_with_bitly } )
-    {
-        die "Controversy $controversies_id is not set up for Bit.ly processing; please set controversies.process_with_bitly";
-    }
-
-    my $args = { controversies_id => $controversies_id };
-    my $gearman_job_id = MediaWords::GearmanFunction::Bitly::EnqueueAllControversyStories->enqueue_on_gearman( $args );
-    unless ( $gearman_job_id )
-    {
-        die "Gearman job didn't return a job ID for controversy ID $controversies_id";
-    }
-
-    my $url = $c->uri_for( "/admin/cm/view/$controversies_id",
-        { status_msg => "Controversy's stories will soon be enqueued for Bit.ly processing." } );
-    $c->res->redirect( $url );
 }
 
 # create a controersy_query_slice and associated shell controversy_dump_time_slices

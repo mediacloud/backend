@@ -1,3 +1,4 @@
+log4perl.conf
 data.old
 matrix
 mediawords.yml
@@ -7,6 +8,9 @@ jons_stuff
 .carton
 local
 cache/translate
+
+# all caches
+data/cache/
 
 # Python bytecode files
 *.py[cod]

@@ -1,7 +1,5 @@
 #!/usr/bin/env perl
 
-# test MediaWords::Crawler::Extractor against manually extracted downloads
-
 use strict;
 use warnings;
 
@@ -11,7 +9,6 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
-use MediaWords::Crawler::Extractor;
 use Getopt::Long;
 use HTML::Strip;
 use DBIx::Simple::MediaWords;
@@ -22,11 +19,9 @@ use MediaWords::CommonLibs;
 use MediaWords::DBI::Downloads;
 use Readonly;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
-use List::Compare::Functional qw (get_unique get_complement get_union_ref );
 
 use Data::Dumper;
 use MediaWords::Util::HTML;
-use MediaWords::Util::ExtractorTest;
 use Data::Compare;
 use Storable;
 use 5.14.2;
@@ -37,7 +32,6 @@ my $_test_sentences    = 0;
 my $_download_data_load_file;
 my $_download_data_store_file;
 my $_dont_store_preprocessed_lines;
-my $_dump_training_data_csv;
 
 # do a test run of the text extractor
 sub main

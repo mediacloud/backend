@@ -8,6 +8,8 @@
 # Usage: ./script/run_with_carton.sh ./script/mediawords_upgrade_db.pl > schema-diff.sql
 #    or: ./script/run_with_carton.sh ./script/mediawords_upgrade_db.pl --import
 
+package script::mediawords_upgrade_db;
+
 use strict;
 use warnings;
 
@@ -46,13 +48,13 @@ sub main
 
     GetOptions( 'import' => \$import, 'db_label=s' => \$db_label ) or die "$usage\n";
 
-    say STDERR ( $import ? 'Upgrading...' : 'Printing SQL statements for upgrade to STDOUT...' );
+    DEBUG( sub { $import ? 'Upgrading...' : 'Printing SQL statements for upgrade to STDOUT...' } );
     eval { MediaWords::Pg::Schema::upgrade_db( $db_label, ( !$import ) ); };
     if ( $@ )
     {
         die "Error while upgrading: $@";
     }
-    say STDERR "Done.";
+    DEBUG( "Done." );
 }
 
 main();

@@ -141,9 +141,8 @@ sub get_dup_story_sentences
 
         $sentence_lookup_clause = "sentence in ( $sentence_list )";
         $date_clause            = <<SQL;
-date_trunc( 'day', publish_date )
-    between week_start_date( ${ q_publish_date }::date ) and
-        week_start_date( ${ q_publish_date }::date ) + interval '6 days' and
+date_trunc( 'day', publish_date ) in (
+    select week_start_date( $q_publish_date ) + s * '1 day'::interval from generate_series( 1, 6 ) s ) and
     media_id = $story->{ media_id }
 SQL
     }
@@ -216,7 +215,7 @@ sub dedup_sentences
 
     unless ( $sentences and @{ $sentences } )
     {
-        warn "Sentences for story " . $story->{ stories_id } . " is undef or empty.";
+        DEBUG( sub { "Sentences for story " . $story->{ stories_id } . " is undef or empty." } );
         return [];
     }
 
@@ -226,7 +225,7 @@ sub dedup_sentences
     {
         # FIXME - should do something here to find out if this is just a duplicate story and
         # try to merge the given story with the existing one
-        print STDERR "all sentences deduped for stories_id $story->{ stories_id }\n";
+        DEBUG( sub { "all sentences deduped for stories_id $story->{ stories_id }" } );
     }
 
     return $deduped_sentences;
@@ -434,9 +433,13 @@ sub update_story_sentences_and_language
 
     unless ( $ignore_date_range or _story_within_media_source_story_words_date_range( $db, $story ) )
     {
-        say STDERR "Won't split story " .
-          $stories_id . " " . "into sentences / words and determine their language because " .
-          "story is *not* within media source's story words date range and 'ignore_date_range' is not set.";
+        DEBUG(
+            sub {
+                "Won't split story " .
+                  $stories_id . " " . "into sentences / words and determine their language because " .
+                  "story is *not* within media source's story words date range and 'ignore_date_range' is not set.";
+            }
+        );
         return;
     }
 
@@ -456,7 +459,7 @@ sub update_story_sentences_and_language
 
     unless ( scalar @{ $sentences } )
     {
-        warn "Story $stories_id doesn't have any sentences.";
+        DEBUG( sub { "Story $stories_id doesn't have any sentences." } );
         return;
     }
 
@@ -464,7 +467,7 @@ sub update_story_sentences_and_language
 
     if ( $no_dedup_sentences )
     {
-        say STDERR "Won't de-duplicate sentences for story $stories_id because 'no_dedup_sentences' is set.";
+        DEBUG( sub { "Won't de-duplicate sentences for story $stories_id because 'no_dedup_sentences' is set." } );
     }
     else
     {
