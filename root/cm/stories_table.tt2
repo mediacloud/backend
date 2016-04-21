@@ -1,7 +1,7 @@
 [% IF !included_remove_stories_confirm_dialog %]
     <div id="removeStoriesConfirmDialog" style="display:none">
-        Are you sure you want to remove all of the listed stories from the [% controversy.name | html %] controversy?  
-        After removal, the stories will still appear in existing dumps but will not be in live views 
+        Are you sure you want to remove all of the listed stories from the [% controversy.name | html %] controversy?
+        After removal, the stories will still appear in existing dumps but will not be in live views
         or new dumps of the controversy.
     </div>
     [% SET included_remove_stories_confirm_dialog = 1 %]
@@ -16,8 +16,8 @@ $(document).ready(function () {
     e.preventDefault();
 
     $("#removeStoriesConfirmDialog").dialog('option', 'buttons', {
-      "Confirm": function () { 
-          form = document.getElementById( '[% display_stories_id %]_stories_ids_form' ); 
+      "Confirm": function () {
+          form = document.getElementById( '[% display_stories_id %]_stories_ids_form' );
           form.action = "[% c.uri_for( '/admin/cm/remove_stories' ) | url %]";
           form.submit();
       },
@@ -26,16 +26,16 @@ $(document).ready(function () {
 
     $("#removeStoriesConfirmDialog").dialog("open");
   });
-  
+
   $(".story_stats_[% display_stories_id %]").click(function (e) {
       e.preventDefault();
       var hrefAttribute = $(this).attr("href");
-      form = document.getElementById( '[% display_stories_id %]_stories_ids_form' ); 
+      form = document.getElementById( '[% display_stories_id %]_stories_ids_form' );
       form.action = "[% c.uri_for( '/admin/cm/story_stats' ) | url %]";
       form.submit();
   });
-  
-  
+
+
 });
 
 
@@ -60,29 +60,29 @@ $(document).ready(function () {
     [% IF cdts_date_range %]
         in [% cdts_date_range %] Time Slice
     [% END %]
-    
+
     ([% display_stories.size %] stories)
 
     [% IF display_stories_remove_button %]
-        <a href="#" class="boxcommand remove_story_[% display_stories_id %]">remove all</a>        
+        <a href="#" class="boxcommand remove_story_[% display_stories_id %]">remove all</a>
     [% END %]
 
-    [% SET wc_url = c.uri_for( '/admin/cm/word_cloud', { 
+    [% SET wc_url = c.uri_for( '/admin/cm/word_cloud', {
         cdts = cdts.controversy_dump_time_slices_id,
         l = live,
         sort_by_count = 1,
         q = display_stories_solr_query } ) %]
-    [% SET stats_url = c.uri_for( '/admin/cm/story_stats', { 
+    [% SET stats_url = c.uri_for( '/admin/cm/story_stats', {
         cdts = cdts.controversy_dump_time_slices_id,
         l = live,
         title = title,
         q = display_stories_solr_query } ) %]
-        
+
     [% USE date = date(format => '%Y-%m-%d', locale => 'en_GB') %]
     [% SET dashboard_q = "{~ controversy_dump_time_slice:${ cdts.controversy_dump_time_slices_id }-${ live } }" %]
     [% SET dashboard_q = display_stories_solr_query ? "$dashboard_q and ( " _ display_stories_solr_query.replace( '"', '\"' )  _ " ) " : dashboard_q %]
-    [% SET dashboard_url = 'https://dashboard.mediameter.org/#query/["' _ dashboard_q _ '"]/[{}]/["' _ controversy.start_date _ '"]/["' _ controversy.end_date _ '"]' %]
-    
+    [% SET dashboard_url = 'https://dashboard.mediameter.org/#query/["' _ dashboard_q _ '"]/[{}]/["' _ controversy.start_date _ '"]/["' _ controversy.end_date _ '"]/[{"uid":5,"color":"5f165f"}]' %]
+
 
     <a class="boxcommand" href="[% wc_url | html %]">word cloud</a>
     <a class="boxcommand" target="new" href="[% dashboard_url | html %]">dashboard query</a>
@@ -91,7 +91,7 @@ $(document).ready(function () {
     </div>
 [% END %]
 
-[% SET self_url = c.uri_for( '/admin/cm/search_stories', { 
+[% SET self_url = c.uri_for( '/admin/cm/search_stories', {
     cdts = cdts.controversy_dump_time_slices_id,
     l = live,
     title = title,
@@ -116,10 +116,10 @@ $(document).ready(function () {
 [% FOREACH s IN display_stories -%]
 
     [% story_url = c.uri_for( '/admin/cm/story/' _ s.stories_id,
-                              { cdts => cdts.controversy_dump_time_slices_id, 
+                              { cdts => cdts.controversy_dump_time_slices_id,
                                 l => live } ) %]
     [% medium_url = c.uri_for( '/admin/cm/medium/' _ s.media_id,
-                              { cdts => cdts.controversy_dump_time_slices_id, 
+                              { cdts => cdts.controversy_dump_time_slices_id,
                                 l => live } ) %]
     [% edit_url = c.uri_for( "/admin/stories/edit/$s.stories_id" ) %]
 
@@ -134,7 +134,7 @@ $(document).ready(function () {
             <td id="unreliable_story_date">
                 <a href="[% edit_url | html %]">[% story_date | html %]</a>
             </td>
-        [% END %]        
+        [% END %]
         <td><a href="[% medium_url | html %]">[% s.medium_name | truncate( 32 ) | html %]</a></td>
         <td>[% s.inlink_count %]</td>
         <td>[% s.outlink_count %]</td>
@@ -144,4 +144,3 @@ $(document).ready(function () {
     [% END # FOREACH s -%]
 
 </table>
-

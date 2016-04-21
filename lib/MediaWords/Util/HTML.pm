@@ -65,9 +65,9 @@ memoize 'html_strip', SCALAR_CACHE => [ HASH => \%_html_strip_cache ];
 # Strip the html tags, html comments, any any text within TITLE, SCRIPT, APPLET, OBJECT, and STYLE tags
 # Code by powerman from: http://www.perlmonks.org/?node_id=161281
 # Don't use HTML::Strip because it "mucks up the encoding"
-sub html_strip($)
+sub html_strip($;$)
 {
-    my ( $html ) = @_;
+    my ( $html, $include_title ) = @_;
 
     $html = new_lines_around_block_level_tags( $html );
 
@@ -79,7 +79,10 @@ sub html_strip($)
     # Remove soft hyphen (&shy; or 0xAD) character from text
     # (some news websites hyphenate their stories using this character so that the browser can lay it out more nicely)
     my $soft_hyphen = chr( 0xAD );
+
     $html =~ s/$soft_hyphen//gs;
+
+    my $title_match = $include_title ? '' : 'TITLE |';
 
     # ALGORITHM:
     #   find < ,
@@ -97,7 +100,7 @@ sub html_strip($)
       (!--) |       #   comment (1) or
       (\?) |        #   another comment (2) or
       (?i:          #   open group (B) for /i
-        ( TITLE  |  #     one of start tags
+        ( $title_match #  one of start tags
           SCRIPT |  #     for which
           APPLET |  #     must be skipped
           OBJECT |  #     all content

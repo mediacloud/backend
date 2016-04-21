@@ -110,6 +110,8 @@ sub main
 
     die( "usage: $0 <q>" ) unless ( $q );
 
+    $q =~ s/\n/ /g;
+
     my $parser = Parse::BooleanLogic->new();
 
     my $tree = $parser->as_array( $q );

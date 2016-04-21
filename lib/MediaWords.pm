@@ -64,8 +64,6 @@ __PACKAGE__->config( abort_chain_on_error_fix => 1 );
 # Start the application
 __PACKAGE__->setup;
 
-$SIG{ INT } = sub { DEBUG( "^c exiting  ..." ); exit( 1 ) };
-
 # Access rules; created on the "disallow everything but explicitly allow this" basis
 # (https://metacpan.org/module/Catalyst::Plugin::Authorization::ACL)
 sub setup_acl()

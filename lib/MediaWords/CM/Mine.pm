@@ -23,7 +23,6 @@ use DateTime;
 use Encode;
 use Getopt::Long;
 use HTML::LinkExtractor;
-use HTML::Strip;
 use List::Util;
 use Parallel::ForkManager;
 use Readonly;
@@ -828,7 +827,10 @@ sub add_new_story
     if (
         $check_pattern
         && !potential_story_matches_controversy_pattern(
-            $controversy, $link->{ url }, $link->{ redirect_url }, $story_content
+            $db, $controversy,
+            $link->{ url },
+            $link->{ redirect_url },
+            $story_content
         )
       )
     {
@@ -930,13 +932,10 @@ sub translate_pattern_to_perl
 # cache that indicates whether we should recheck a given url
 my $_no_potential_match_urls = {};
 
-# persistent HTLM::Strip object to avoid recreation time
-my $_xs_html_stripper;
-
 # test whether the url or content of a potential story matches the controversy pattern
 sub potential_story_matches_controversy_pattern
 {
-    my ( $controversy, $url, $redirect_url, $content ) = @_;
+    my ( $db, $controversy, $url, $redirect_url, $content ) = @_;
 
     my $re = translate_pattern_to_perl( $controversy->{ pattern } );
 
@@ -944,18 +943,13 @@ sub potential_story_matches_controversy_pattern
 
     return 1 if $match;
 
-    if ( !$_xs_html_stripper )
-    {
-        # specify striptags to not include title
-        $_xs_html_stripper = HTML::Strip->new(
-            auto_reset => 1,
-            striptags  => [ qw(script style applet ) ]
-        );
-    }
+    my $text_content = html_strip( $content, 1 );
 
-    my $text_content = $_xs_html_stripper->parse( $content );
-
-    $match = ( $text_content =~ /$re/isx );
+    # shockingly, this is much faster than native perl regexes for the kind of complex, boolean-converted
+    # regexes we often use for controversies
+    $match = $db->query( <<SQL, $controversy->{ controversies_id }, $text_content )->hash;
+select 1 from controversies where controversies_id = ? and ? ~ ( '(?isx)' || pattern )
+SQL
 
     if ( !$match )
     {
@@ -1764,30 +1758,22 @@ sub update_controversy_tags
     my $all_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, "$tagset_name:all" )
       || die( "Can't find or create all_tag" );
 
-    $db->query( <<END, $all_tag->{ tags_id }, $controversy->{ controversies_id } );
+    $db->query( <<SQL, $all_tag->{ tags_id }, $controversy->{ controversies_id } );
 delete from stories_tags_map stm
     where stm.tags_id = ? and
         not exists ( select 1 from controversy_stories cs
                          where cs.controversies_id = ? and cs.stories_id = stm.stories_id )
-END
+SQL
 
-    $db->query(
-        "insert into stories_tags_map ( stories_id, tags_id ) " .
-          "  select distinct stories_id, $all_tag->{ tags_id } from controversy_stories " .
-          "    where controversies_id = ? and " .
-          "      stories_id not in ( select stories_id from stories_tags_map where tags_id = ? )",
-        $controversy->{ controversies_id },
-        $all_tag->{ tags_id }
-    );
-
-    my $q_tagset_name = $db->dbh->quote( $tagset_name );
-    $db->query(
-        "delete from stories_tags_map stm using tags t, tag_sets ts " .
-          "  where stm.tags_id = t.tags_id and t.tag_sets_id = ts.tag_sets_id and " .
-          "    ts.name = $q_tagset_name and not exists " .
-          "      ( select 1 from controversy_stories cs where cs.controversies_id = ? and cs.stories_id = stm.stories_id )",
-        $controversy->{ controversies_id }
-    );
+    $db->query( <<SQL, $controversy->{ controversies_id }, $all_tag->{ tags_id } );
+insert into stories_tags_map ( stories_id, tags_id )
+    select distinct cs.stories_id, \$2
+        from controversy_stories cs
+            left join stories_tags_map stm on ( stm.stories_id = cs.stories_id and stm.tags_id = \$2 )
+        where
+            controversies_id = \$1 and
+            stm.tags_id is null
+SQL
 }
 
 # increase the link_weight of each story to which this story links and recurse along links from those stories.
@@ -1859,7 +1845,7 @@ END
         add_to_controversy_stories( $db, $controversy, $keep_story, $merged_iteration, 1 );
     }
 
-    $db->begin;
+    $db->begin if $db->dbh->{ AutoCommit };
 
     my $controversy_links = $db->query( <<END, $delete_story->{ stories_id }, $controversies_id )->hashes;
 select * from controversy_links where stories_id = ? and controversies_id = ?
@@ -2180,15 +2166,19 @@ END
 
     for my $story ( @{ $stories } )
     {
-        my $source_link = $db->query( <<END, $controversy->{ controversies_id } )->hash;
-select cl.*, s.publish_date from controversy_links cl, cd.live_stories s
-    where cl.ref_stories_id = s.stories_id and cl.controversies_id = s.controversies_id
-    order by ( cl.controversies_id = ? ) asc, s.publish_date asc
+        my $source_link = $db->query( <<END, $controversy->{ controversies_id }, $story->{ stories_id } )->hash;
+select cl.*, s.publish_date
+        from controversy_links cl
+            join stories s on ( cl.stories_id = s.stories_id )
+    where
+        cl.controversies_id = ? and
+        cl.ref_stories_id = ?
+    order by cl.controversy_links_id asc
 END
 
         next unless ( $source_link );
 
-        $db->query( <<END, $source_link->{ publish_date }, $controversy->{ controversies_id } );
+        $db->query( <<END, $source_link->{ publish_date }, $story->{ stories_id } );
 update stories set publish_date = ? where stories_id = ?
 END
         MediaWords::DBI::Stories::GuessDate::assign_date_guess_method( $db, $story, 'source_link' );
