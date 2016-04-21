@@ -186,7 +186,7 @@ sub add_undateable_to_stories($$)
 
     my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ stories_id } } @{ $stories } ] );
 
-    my $undateable_stories_ids = $db->query( <<SQL );
+    my $undateable_stories_ids = $db->query( <<SQL )->flat;
 select stories_id
     from stories_tags_map stm
         join tags t on ( stm.tags_id = t.tags_id )
@@ -196,6 +196,11 @@ select stories_id
         ts.name = 'date_invalid' and
         t.tag = 'undateable'
 SQL
+
+    my $undateable_stories_id_lookup = {};
+    map { $undateable_stories_id_lookup->{ $_ } = 1 } @{ $undateable_stories_ids };
+
+    map { $_->{ undateable } = $undateable_stories_id_lookup->{ $_->{ stories_id } } || 0 } @{ $stories };
 }
 
 # return true if the story has been marked as undateable
