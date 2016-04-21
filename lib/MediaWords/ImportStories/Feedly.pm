@@ -42,7 +42,7 @@ use MediaWords::Util::Web;
 # number of stories to return in each feedly request
 Readonly my $FEEDLY_COUNT => 10_000;
 
-has 'feed_url' => ( is => 'rw', required => 1 );
+has 'feed_url' => ( is => 'rw' );
 
 =head1 METHODS
 
@@ -158,8 +158,22 @@ sub get_new_stories($)
 
     my $all_stories = [];
 
-    my $feed_urls = $self->{ feed_url };
-    $feed_urls = [ $feed_urls ] unless ref( $feed_urls );
+    my $feed_urls;
+    if ( $self->feed_url )
+    {
+        $feed_urls = ref( $self->feed_url ) ? $self->feed_url : [ $self->feed_url ];
+    }
+    else
+    {
+        $feed_urls = $self->db->query( <<SQL, $self->media_id )->flat;
+select url
+    from feeds
+    where
+        media_id = ? and
+        feed_status = 'active' and
+        feed_type = 'syndicated'
+SQL
+    }
 
     for my $feed_url ( @{ $feed_urls } )
     {
