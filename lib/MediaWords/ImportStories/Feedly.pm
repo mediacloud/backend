@@ -42,27 +42,23 @@ use MediaWords::Util::Web;
 # number of stories to return in each feedly request
 Readonly my $FEEDLY_COUNT => 10_000;
 
-has 'feed_url' => ( is => 'rw', isa => 'Str', required => 1 );
-
-has 'continuation_id' => ( is => 'rw', isa => 'Str',  required => 0 );
-has 'end_of_feed'     => ( is => 'rw', isa => 'Bool', required => 0 );
+has 'feed_url' => ( is => 'rw' );
 
 =head1 METHODS
 
 =cut
 
 # accept a hash generated from the feedly json response and return the list of story candidates.
-# return only stories within the date range, and set end_of_feed if the latest story returned
-# from feedly is older than start_date. stories are returned by feedly by latest collect_date,
-# but fetching 1000 stories are a time should make it safe to compare the latest publish_date
-# story to the $self->start_date
-sub _get_stories_from_json_data
+# return only stories within the date range.  push any stories found onto the array ref $stories.
+# create a new array ref for $stories if $stories is undef.
+sub _push_stories_from_json_data($$$)
 {
-    my ( $self, $json_data ) = @_;
+    my ( $self, $stories, $json_data ) = @_;
 
     my $latest_publish_date = 0;
 
-    my $stories = [];
+    $stories ||= [];
+
     for my $item ( @{ $json_data->{ items } } )
     {
         next unless ( defined( $item->{ title } ) );
@@ -97,77 +93,92 @@ sub _get_stories_from_json_data
 
     say STDERR "latest_publish_date: $latest_publish_date";
 
-    # feedly does not always strictly order results by date
-    # $self->end_of_feed( 1 ) if ( $latest_publish_date lt $self->start_date );
-
     return $stories;
 }
 
-# get one chunk of stories from the feedly api and save the continuation_id for the next call to the api.
-# return undef if the end of the feed was reached in the previous call.  the end of feed is reached if either
-# there are no more stories available from feedly in the previous call or if the oldest story returned in the previous
-# call was older than $self->start_date.
-sub _get_stories_from_feedly
+# get one chunk of stories from the feedly api.  if a continuation id is included in the chunk, recursively  call again
+# with the continuation id.  accumulate stories from all recursive calls in $all_stories and return $all_stories.
+sub _get_stories_from_feedly($$;$$)
 {
-    my ( $self ) = @_;
+    my ( $self, $feed_url, $continuation_id, $all_stories ) = @_;
 
-    say STDERR "get_stories_from_feedly " . ( $self->continuation_id || 'START' );
-
-    return undef if ( $self->end_of_feed );
+    say STDERR "get_stories_from_feedly " . ( $continuation_id || 'START' );
 
     my $ua = MediaWords::Util::Web::UserAgentDetermined;
     $ua->max_size( undef );
     $ua->timing( '1,15,60,300,300' );
 
-    my $esc_feed_url = uri_escape( $self->feed_url );
-    my $url          = "http://cloud.feedly.com/v3/streams/contents?streamId=feed/$esc_feed_url&count=$FEEDLY_COUNT";
+    my $esc_feed_url = uri_escape( $feed_url );
+    my $api_url      = "http://cloud.feedly.com/v3/streams/contents?streamId=feed/$esc_feed_url&count=$FEEDLY_COUNT";
 
-    if ( $self->continuation_id )
+    if ( $continuation_id )
     {
-        my $esc_continuation_id = uri_escape( $self->continuation_id );
-        $url = "$url&continuation=$esc_continuation_id";
+        $api_url .= "&continuation=" . uri_escape( $continuation_id );
     }
 
-    my $res = $ua->get( $url );
+    my $res = $ua->get( $api_url );
 
-    die( "error calling feedly api with url '$url': " . $res->as_string ) unless ( $res->is_success );
+    die( "error calling feedly api with url '$api_url': " . $res->as_string ) unless ( $res->is_success );
 
     # for some reason, $res->decoded_content does not decode
     my $json = decode( 'utf8', $res->content );
 
     my $json_data = MediaWords::Util::JSON::decode_json( $json );
 
-    die( "No feedly feed found for feed_url '" . $self->feed_url . "'" ) unless ( $json_data->{ title } );
+    if ( !$json_data->{ title } )
+    {
+        say STDERR "No feedly feed found for feed_url '" . $feed_url . "'";
+        return [];
+    }
+
+    $all_stories = $self->_push_stories_from_json_data( $all_stories, $json_data );
+
+    say STDERR "_get_new_stories_from_feedly chunk: " . scalar( @{ $all_stories } ) . " total stories found";
 
     if ( my $continuation_id = $json_data->{ continuation } )
     {
-        $self->continuation_id( $continuation_id );
+        return $self->_get_stories_from_feedly( $feed_url, $continuation_id, $all_stories );
     }
     else
     {
-        say STDERR "end of feedly stream";
-        $self->continuation_id( '' );
-        $self->end_of_feed( 1 );
+        return $all_stories;
     }
-
-    my $stories = $self->_get_stories_from_json_data( $json_data );
-
-    return $stories;
 }
 
 =head2 get_new_stories( $self )
 
-Get stories from feedly.
+Get stories from feedly for the feedly_url specified at object creation.  If feedly_url is a list of urls, return
+the list of stories for the whole list.
 
 =cut
-sub get_new_stories
+
+sub get_new_stories($)
 {
     my ( $self ) = @_;
 
     my $all_stories = [];
-    while ( my $stories = $self->_get_stories_from_feedly )
+
+    my $feed_urls;
+    if ( $self->feed_url )
     {
-        say STDERR "get_new_stories: " . scalar( @{ $stories } ) . " stories found";
+        $feed_urls = ref( $self->feed_url ) ? $self->feed_url : [ $self->feed_url ];
+    }
+    else
+    {
+        $feed_urls = $self->db->query( <<SQL, $self->media_id )->flat;
+select url
+    from feeds
+    where
+        media_id = ? and
+        feed_status = 'active' and
+        feed_type = 'syndicated'
+SQL
+    }
+
+    for my $feed_url ( @{ $feed_urls } )
+    {
+        say STDERR "get feedly stories for feed '$feed_url'";
+        my $stories = $self->_get_stories_from_feedly( $feed_url );
         push( @{ $all_stories }, @{ $stories } );
     }
 

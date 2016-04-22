@@ -54,7 +54,7 @@ sub decode_json($;$)
     eval { $hashref = JSON::XS->new->utf8( $utf8 )->decode( $json ); };
     if ( $@ or ( !$hashref ) )
     {
-        die "Unable to decode JSON to object: $@\nJSON: $json";
+        die "Unable to decode JSON to object: $@";
     }
 
     return $hashref;
