@@ -192,7 +192,7 @@ sub _add_missing_media_from_urls
 
         if ( !$medium )
         {
-            if ( $medium = $dbis->query( "select * from media where name = ?", encode( 'UTF-8', $title ) )->hash )
+            if ( $medium = $dbis->query( "select * from media where name = ?", $title )->hash )
             {
                 say STDERR "found medium 2: $medium->{ url }";
 
@@ -201,14 +201,8 @@ sub _add_missing_media_from_urls
             }
             else
             {
-                $medium = $dbis->create(
-                    'media',
-                    {
-                        name      => encode( 'UTF-8', $title ),
-                        url       => encode( 'UTF-8', $url ),
-                        moderated => 'f',
-                    }
-                );
+                $medium = $dbis->create( 'media', { name => $title, url => $url, moderated => 'f' } );
+
                 MediaWords::DBI::Media::Rescrape::enqueue_rescrape_media( $medium );
 
                 say STDERR "added missing medium: $medium->{ url }";
