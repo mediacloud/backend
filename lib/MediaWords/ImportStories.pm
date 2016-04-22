@@ -402,16 +402,15 @@ sub _add_story_download
     }
 }
 
-my $_scraped_tag;
-
-sub _add_scraped_tag_to_story
+# add row to scraped_stories table
+sub _add_scraped_stories_flag
 {
     my ( $self, $story ) = @_;
 
-    $_scraped_tag ||= MediaWords::Util::Tags::lookup_or_create_tag( $self->db, 'scraped:scraped' );
-
-    $self->db->query( <<SQL, $_scraped_tag->{ tags_id }, $story->{ stories_id } );
-insert into stories_tags_map ( tags_id, stories_id ) values ( ?, ? )
+    $self->db->query( <<SQL, $story->{ stories_id }, ref( $self ) );
+insert into scraped_stories ( stories_id, import_module )
+    select \$1, \$2 where not exists (
+        select 1 from scraped_stories where stories_id = \$1 and import_module = \$2 )
 SQL
 
 }
@@ -445,7 +444,7 @@ sub _add_new_stories
             next;
         }
 
-        $self->_add_scraped_tag_to_story( $story );
+        $self->_add_scraped_stories_flag( $story );
 
         $self->_add_story_to_scrape_feed( $story );
 
