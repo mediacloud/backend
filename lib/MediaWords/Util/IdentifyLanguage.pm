@@ -203,10 +203,7 @@ sub language_code_for_text($;$$)
 {
     my ( $text, $tld, $is_html ) = @_;
 
-    unless ( $text )
-    {
-        return '';
-    }
+    return '' unless ( $text );
 
     # Lingua::Identify::CLD doesn't like undef TLDs
     $tld ||= '';
