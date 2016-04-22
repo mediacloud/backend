@@ -15,11 +15,13 @@
 --
 
 -- list of stories that have been imported from feedly
-create table feedly_stories (
-    stories_id              int not null references stories on delete cascade
+create table scraped_stories (
+    scraped_stories_id      serial primary key,
+    stories_id              int not null references stories on delete cascade,
+    import_module           text not null
 );
 
-create index feedly_stories_story on feedly_stories ( stories_id );
+create index scraped_stories_story on scraped_stories ( stories_id );
 
 --
 -- 2 of 2. Reset the database version.
