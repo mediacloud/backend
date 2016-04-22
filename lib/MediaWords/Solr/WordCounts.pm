@@ -241,17 +241,17 @@ sub prune_stopword_stems
     }
 }
 
-# if the use does not specify the languages, guess the languages to be the language of the whole body
-# of text plus all distinct languages for individual sentences.  if not language is detected for the text
-# of any sentence, default to 'en'.
+# guess the languages to be the language of the whole body of text plus all distinct languages for individual sentences.
+# if no language is detected for the text of any sentence, default to 'en'.  append this default languages to the
+# specified list of languages.
 sub set_default_languages($$)
 {
     my ( $self, $sentences ) = @_;
 
-    return if ( $self->languages && @{ $self->languages } );
-
     # our cld language detection mis-identifies english as other languages enough that we should always include 'en'
     my $language_lookup = { 'en' => 1 };
+
+    map { $language_lookup->{ $_ } = 1 } @{ $self->languages } if ( $self->languages );
 
     my $story_text = join( "\n", grep { $_ } @{ $sentences } );
     my $story_language = MediaWords::Util::IdentifyLanguage::language_code_for_text( $story_text );
