@@ -305,7 +305,7 @@ sub _get_scrape_feed
 
     my $medium = $db->find_by_id( 'media', $self->media_id );
 
-    my $feed_name = 'Scrape Feed';
+    my $feed_name = ref( $self );
 
     my $feed = $db->query( <<SQL, $medium->{ media_id }, $medium->{ url }, encode( 'utf8', $feed_name ) )->hash;
 select * from feeds where media_id = ? and url = ? order by ( name = ? )

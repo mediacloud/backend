@@ -42,7 +42,9 @@ use MediaWords::Util::Web;
 # number of stories to return in each feedly request
 Readonly my $FEEDLY_COUNT => 10_000;
 
-has 'feed_url' => ( is => 'rw' );
+has 'feed_url'          => ( is => 'rw' );
+has 'feeds_id'          => ( is => 'rw' );
+has 'scraped_feeds_ids' => ( is => 'rw' );
 
 =head1 METHODS
 
@@ -106,7 +108,7 @@ sub _get_stories_from_feedly($$;$$)
 
     my $ua = MediaWords::Util::Web::UserAgentDetermined;
     $ua->max_size( undef );
-    $ua->timing( '1,15,60,300,300' );
+    $ua->timing( '1,15,60,300,300,600,900' );
 
     my $esc_feed_url = uri_escape( $feed_url );
     my $api_url      = "http://cloud.feedly.com/v3/streams/contents?streamId=feed/$esc_feed_url&count=$FEEDLY_COUNT";
@@ -159,21 +161,38 @@ sub get_new_stories($)
     my $all_stories = [];
 
     my $feed_urls;
+    my $feeds;
     if ( $self->feed_url )
     {
         $feed_urls = ref( $self->feed_url ) ? $self->feed_url : [ $self->feed_url ];
+        DEBUG( sub { "get_new_stories: feed_url " . join( ",", @{ $feed_urls } ) } );
+    }
+    elsif ( my $feeds_id = $self->feeds_id )
+    {
+        DEBUG( sub { "get_new_stories feeds_id: $feeds_id" } );
+        $feeds = $self->db->query( <<SQL, $feeds_id )->hashes;
+select * from feedly_unscraped_feeds where feeds_id = ?
+SQL
+    }
+    elsif ( my $media_id = $self->media_id )
+    {
+        DEBUG( sub { "get_new_stories media_id: $media_id" } );
+        $feeds = $self->db->query( <<SQL, $media_id )->hashes;
+select * from feedly_unscraped_feeds where media_id = ?
+SQL
     }
     else
     {
-        $feed_urls = $self->db->query( <<SQL, $self->media_id )->flat;
-select url
-    from feeds
-    where
-        media_id = ? and
-        feed_status = 'active' and
-        feed_type = 'syndicated'
-SQL
+        LOGDIE( "must specify either feed_url, media_id, or feeds_id" );
     }
+
+    if ( $feeds )
+    {
+        $self->scraped_feeds_ids( [ map { $_->{ feeds_id } } @{ $feeds } ] );
+        $feed_urls = [ map { $_->{ url } } @{ $feeds } ];
+    }
+
+    DEBUG( "no unscraped feeds found" ) unless ( @{ $feed_urls } );
 
     for my $feed_url ( @{ $feed_urls } )
     {

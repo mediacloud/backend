@@ -16,16 +16,21 @@ use Getopt::Long;
 use MediaWords::ImportStories::ScrapeHTML;
 use MediaWords::ImportStories::Feedly;
 
+my $_import_module_lookup = {
+    feedly => 'MediaWords::ImportStories::Feedly',
+    scrapehtml => 'MediaWords::ImportStories::ScrapeHTML'
+};
+
 sub get_media_from_options
 {
-    my ( $db, $media_id, $tags_id_media ) = @_;
+    my ( $db, $media_id, $tags_id_media, $import_module ) = @_;
 
     die( "must specify --media_id or --tags_id_media" ) unless ( $media_id || $tags_id_media );
 
     $media_id      ||= 0;
     $tags_id_media ||= 0;
 
-    my $media = $db->query( <<SQL, $tags_id_media )->hashes;
+    my $media = $db->query( <<SQL, $tags_id_media, $import_module )->hashes;
 select m.*
     from media m
         join media_tags_map mtm on ( m.media_id = mtm.media_id )
@@ -33,9 +38,11 @@ select m.*
         mtm.tags_id = ?
 SQL
 
-    my $medium = $db->find_by_id( 'media', $media_id );
-
-    push( @{ $media }, $medium );
+    if ( $media_id )
+    {
+        my $medium = $db->find_by_id( 'media', $media_id );
+        push( @{ $media }, $medium );
+    }
 
     die( "no media found for media_id $media_id / tags_id_media $tags_id_media" ) unless ( @{ $media } );
 
@@ -58,28 +65,20 @@ sub main
         die( "usage: $0 ---media_id <id> --import_module <import module>" );
     }
 
+    my $import_module = $_import_module_lookup->{ lc( $p-{ import_module } ) } ||
+        die( "Unknown import_module: '$p->{ import_module }'" );
+
+    delete( $p->{ import_module } );
+
     $p->{ db } = MediaWords::DB::connect_to_db;
 
-    my $media = get_media_from_options( $p->{ db }, $p->{ media_id }, $p->{ tags_id_media } );
-
-    my $import_module = $p->{ import_module };
-    delete( $p->{ import_module } );
+    my $media = get_media_from_options( $p->{ db }, $p->{ media_id }, $p->{ tags_id_media }, $import_module );
 
     for my $medium ( @{ $media } )
     {
         $p->{ media_id } = $medium->{ media_id };
-        if ( $import_module eq 'feedly' )
-        {
-            MediaWords::ImportStories::Feedly->new( $p )->scrape_stories();
-        }
-        elsif ( $import_module eq 'scrapehtml' )
-        {
-            MediaWords::ImportStories::ScrapeStories->new( $p )->scrape_stories();
-        }
-        else
-        {
-            die( "Unknown module '$p->{ import_module }'" );
-        }
+        eval( '${ import_module }->new( $p )->scrape_stories()' );
+        die( $@ ) if ( $@ );
     }
 }
 
