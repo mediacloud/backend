@@ -439,7 +439,16 @@ sub _add_new_stories
         eval { $story = $self->db->create( 'stories', $story ) };
         if ( $@ )
         {
-            carp( $@ . " - " . Dumper( $story ) );
+            # it's quicker to just rely on postgres to catch constrained dups than to check for them first
+            if ( $@ =~ /unique constraint "([^"]*)"/ )
+            {
+                DEBUG( "skipping postgres dup: $1" );
+            }
+            else
+            {
+                carp( $@ . " - " . Dumper( $story ) );
+            }
+
             $self->db->rollback;
             next;
         }
