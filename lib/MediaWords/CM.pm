@@ -39,4 +39,60 @@ sub require_controversies_by_opt
     return $controversies;
 }
 
+sub get_latest_overall_time_slice
+{
+    my ( $db, $controversies_id ) = @_;
+
+    my $cdts = $db->query( <<SQL, $controversies_id )->hash;
+select *
+   from controversy_dump_time_slices cdts
+       join controversy_dumps cd on ( cd.controversy_dumps_id = cdts.controversy_dumps_id )
+   where
+       cd.controversies_id = \$1 and
+       cdts.period = 'overall'
+   order by cd.dump_date desc
+SQL
+
+    return $cdts;
+}
+
+# if timeslice not specified, use overall timeslice for whatever snapshot we're using
+# if snapshot not specified, use latest one
+# see  _get_controversy_objects
+sub get_time_slice_for_controversy
+{
+    my ( $db, $controversies_id, $timeslice, $snapshot ) = @_;
+    my $cdts        = undef;
+    my $whereclause = '';
+    if ( $timeslice )
+    {
+        if ( $snapshot )
+        {
+            return $cdts;
+        }
+        else
+        {
+            $whereclause = "cdts.controversy_dump_time_slices_id = $timeslice";
+        }
+    }
+    elsif ( $snapshot )
+    {
+        $whereclause = "cd.controversy_dumps_id = $snapshot order by cd.dump_date desc limit 1";
+    }
+    else
+    {
+        $whereclause = "cdts.period = \'overall\' order by cd.dump_date desc limit 1";
+    }
+
+    $cdts = $db->query( <<SQL )->hash;
+select *
+  from controversy_dump_time_slices cdts
+    join controversy_dumps cd on (cd.controversy_dumps_id = cdts.controversy_dumps_id)
+    where
+      cd.controversies_id = $controversies_id and
+      $whereclause
+SQL
+    return $cdts;
+}
+
 1;
