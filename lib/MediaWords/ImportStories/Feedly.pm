@@ -132,6 +132,20 @@ sub _get_feedly_json_data_deteremined($$)
     }
 }
 
+sub _get_cache
+{
+    my $mediacloud_data_dir = MediaWords::Util::Config::get_config->{ mediawords }->{ data_dir };
+
+    return CHI->new(
+        driver           => 'File',
+        expires_in       => '3 days',
+        expires_variance => '0.1',
+        root_dir         => "${ mediacloud_data_dir }/cache/feedly_feed_stories",
+        depth            => 4,
+        max_size         => 1024 * 1024 * 1024
+    );
+}
+
 # get one chunk of stories from the feedly api.  if a continuation id is included in the chunk, recursively  call again
 # with the continuation id.  accumulate stories from all recursive calls in $all_stories and return $all_stories.
 sub _get_stories_from_feedly($$;$$)
@@ -139,6 +153,16 @@ sub _get_stories_from_feedly($$;$$)
     my ( $self, $feed_url, $continuation_id, $all_stories ) = @_;
 
     DEBUG( sub { "get_stories_from_feedly " . ( $continuation_id || 'START' ) } );
+
+    if ( !$continuation_id )
+    {
+        my $cached_stories = $self->_get_cache->get( $feed_url );
+        if ( $cached_stories )
+        {
+            DEBUG( sub { "cached: " . scalar( @{ $cached_stories } ) . " stories " } );
+            return $cached_stories;
+        }
+    }
 
     my $esc_feed_url = uri_escape( $feed_url );
     my $api_url      = "http://cloud.feedly.com/v3/streams/contents?streamId=feed/$esc_feed_url&count=$FEEDLY_COUNT";
@@ -160,12 +184,13 @@ sub _get_stories_from_feedly($$;$$)
 
     DEBUG( sub { "_get_new_stories_from_feedly chunk: " . scalar( @{ $all_stories } ) . " total stories found" } );
 
-    if ( my $continuation_id = $json_data->{ continuation } )
+    if ( my $new_continuation_id = $json_data->{ continuation } )
     {
-        return $self->_get_stories_from_feedly( $feed_url, $continuation_id, $all_stories );
+        return $self->_get_stories_from_feedly( $feed_url, $new_continuation_id, $all_stories );
     }
     else
     {
+        $self->_get_cache->set( $feed_url, $all_stories );
         return $all_stories;
     }
 }
