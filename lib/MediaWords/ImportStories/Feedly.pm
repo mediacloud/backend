@@ -93,9 +93,43 @@ sub _push_stories_from_json_data($$$)
         push( @{ $stories }, $story );
     }
 
-    say STDERR "latest_publish_date: $latest_publish_date";
+    DEBUG( sub { "latest_publish_date: $latest_publish_date" } );
 
     return $stories;
+}
+
+# try to get the json data from feedly.  retry on a backoff timing if there are problems with feedly decoding,
+# because sometimes we get partial data from feedly.
+sub _get_feedly_json_data_deteremined($$)
+{
+    my ( $self, $url ) = @_;
+
+    my $backoffs = [ 5, 10, 30, 60, 300, 300, 600, 900 ];
+
+    for my $backoff ( @{ $backoffs } )
+    {
+        my $json_data;
+        eval {
+            my $ua = MediaWords::Util::Web::UserAgent;
+            $ua->max_size( undef );
+            $ua->timeout( 60 );
+
+            my $res = $ua->get( $url );
+
+            die( "error calling feedly api with url '$url': " . $res->as_string ) unless ( $res->is_success );
+
+            # for some reason, $res->decoded_content does not decode
+            my $json = decode( 'utf8', $res->content );
+
+            $json_data = MediaWords::Util::JSON::decode_json( $json );
+        };
+
+        return $json_data if ( $json_data );
+
+        DEBUG( sub { "get_feedly_json_data: retrying after $backoff seconds for error: $@" } );
+
+        sleep( $backoff );
+    }
 }
 
 # get one chunk of stories from the feedly api.  if a continuation id is included in the chunk, recursively  call again
@@ -104,11 +138,7 @@ sub _get_stories_from_feedly($$;$$)
 {
     my ( $self, $feed_url, $continuation_id, $all_stories ) = @_;
 
-    say STDERR "get_stories_from_feedly " . ( $continuation_id || 'START' );
-
-    my $ua = MediaWords::Util::Web::UserAgentDetermined;
-    $ua->max_size( undef );
-    $ua->timing( '1,15,60,300,300,600,900' );
+    DEBUG( sub { "get_stories_from_feedly " . ( $continuation_id || 'START' ) } );
 
     my $esc_feed_url = uri_escape( $feed_url );
     my $api_url      = "http://cloud.feedly.com/v3/streams/contents?streamId=feed/$esc_feed_url&count=$FEEDLY_COUNT";
@@ -118,24 +148,17 @@ sub _get_stories_from_feedly($$;$$)
         $api_url .= "&continuation=" . uri_escape( $continuation_id );
     }
 
-    my $res = $ua->get( $api_url );
-
-    die( "error calling feedly api with url '$api_url': " . $res->as_string ) unless ( $res->is_success );
-
-    # for some reason, $res->decoded_content does not decode
-    my $json = decode( 'utf8', $res->content );
-
-    my $json_data = MediaWords::Util::JSON::decode_json( $json );
+    my $json_data = $self->_get_feedly_json_data_deteremined( $api_url );
 
     if ( !$json_data->{ title } )
     {
-        say STDERR "No feedly feed found for feed_url '" . $feed_url . "'";
+        DEBUG( sub { "No feedly feed found for feed_url '$feed_url'" } );
         return [];
     }
 
     $all_stories = $self->_push_stories_from_json_data( $all_stories, $json_data );
 
-    say STDERR "_get_new_stories_from_feedly chunk: " . scalar( @{ $all_stories } ) . " total stories found";
+    DEBUG( sub { "_get_new_stories_from_feedly chunk: " . scalar( @{ $all_stories } ) . " total stories found" } );
 
     if ( my $continuation_id = $json_data->{ continuation } )
     {
@@ -196,7 +219,7 @@ SQL
 
     for my $feed_url ( @{ $feed_urls } )
     {
-        say STDERR "get feedly stories for feed '$feed_url'";
+        DEBUG( sub { "get feedly stories for feed '$feed_url'" } );
         my $stories = $self->_get_stories_from_feedly( $feed_url );
         push( @{ $all_stories }, @{ $stories } );
     }
