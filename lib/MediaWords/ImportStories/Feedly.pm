@@ -73,16 +73,18 @@ sub _push_stories_from_json_data($$$)
 
         next unless ( $self->story_is_in_date_range( $publish_date ) );
 
-        my $guid = "feedly:$item->{ originId }";
+        my $origin_id = $item->{ originId };
         my $url =
-          ( $item->{ alternate } && $item->{ alternate }->[ 0 ]->{ href } ) ? $item->{ alternate }->[ 0 ]->{ href } : $guid;
+          ( $item->{ alternate } && $item->{ alternate }->[ 0 ]->{ href } )
+          ? $item->{ alternate }->[ 0 ]->{ href }
+          : $origin_id;
 
         # each of summary.content and content.content may or may not be set
         my $content = ( $item->{ summary }->{ content } || '' ) . "\n" . ( $item->{ content }->{ content } || '' );
 
         my $story = {
             url          => $url,
-            guid         => $guid,
+            guid         => $url,
             media_id     => $self->media_id,
             collect_date => MediaWords::Util::SQL::sql_now(),
             publish_date => $publish_date,
