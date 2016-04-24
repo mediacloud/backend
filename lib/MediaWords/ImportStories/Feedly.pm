@@ -217,9 +217,11 @@ SQL
 
     DEBUG( "no unscraped feeds found" ) unless ( @{ $feed_urls } );
 
+    my $i         = 0;
+    my $num_feeds = scalar( @{ $feed_urls } );
     for my $feed_url ( @{ $feed_urls } )
     {
-        DEBUG( sub { "get feedly stories for feed '$feed_url'" } );
+        DEBUG( sub { "get feedly stories for feed '$feed_url' [" . ++$i . "/$num_feeds]" } );
         my $stories = $self->_get_stories_from_feedly( $feed_url );
         push( @{ $all_stories }, @{ $stories } );
     }
