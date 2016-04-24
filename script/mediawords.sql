@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4533;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4534;
 
 BEGIN
 
@@ -2414,6 +2414,27 @@ create table scraped_stories (
 );
 
 create index scraped_stories_story on scraped_stories ( stories_id );
+
+-- dates on which feeds have been scraped with MediaWords::ImportStories and the module used for scraping
+create table scraped_feeds (
+    feed_scrapes_id         serial primary key,
+    feeds_id                int not null references feeds on delete cascade,
+    scrape_date             timestamp not null default now(),
+    import_module           text not null
+);
+
+create index scraped_feeds_feed on scraped_feeds ( feeds_id );
+
+create view feedly_unscraped_feeds as
+    select f.*
+        from feeds f
+            left join scraped_feeds sf on
+                ( f.feeds_id = sf.feeds_id and sf.import_module = 'MediaWords::ImportStories::Feedly' )
+        where
+            f.feed_type = 'syndicated' and
+            f.feed_status = 'active' and
+            sf.feeds_id is null;
+
 
 create table story_subsets (
     story_subsets_id        bigserial          primary key,
