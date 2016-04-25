@@ -30,6 +30,7 @@ use Parallel::ForkManager;
 use URI::Split;
 
 use MediaWords::CM::GuessDate;
+use MediaWords::CommonLibs;
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories;
 use MediaWords::Util::HTML;
@@ -168,7 +169,7 @@ sub _get_stories_in_date_range
 {
     my ( $self, $stories ) = @_;
 
-    say STDERR "date range: " . $self->start_date . " - " . $self->end_date;
+    DEBUG "date range: " . $self->start_date . " - " . $self->end_date;
 
     my $dated_stories = [];
     for my $story ( @{ $stories } )
@@ -179,11 +180,11 @@ sub _get_stories_in_date_range
         }
         else
         {
-            say STDERR "story failed date restriction: " . $story->{ publish_date };
+            DEBUG "story failed date restriction: " . $story->{ publish_date };
         }
     }
 
-    say STDERR "kept " . scalar( @{ $dated_stories } ) . " / " . scalar( @{ $stories } ) . " after date restriction";
+    DEBUG "kept " . scalar( @{ $dated_stories } ) . " / " . scalar( @{ $stories } ) . " after date restriction";
 
     return $dated_stories;
 }
@@ -229,7 +230,7 @@ sub _prune_dup_stories($$)
     my $pruned_stories = [];
     map { push( @{ $pruned_stories }, $_ ) unless ( $remove_stories_lookup->{ $_->{ guid } } ) } @{ $stories };
 
-    say STDERR "pruned to " . scalar( @{ $pruned_stories } ) . " / " . scalar( @{ $stories } . " stories" );
+    DEBUG( sub { "pruned to " . scalar( @{ $pruned_stories } ) . " / " . scalar( @{ $stories } . " stories" ) } );
 
     return $pruned_stories;
 }
@@ -289,7 +290,7 @@ sub _dedup_new_stories
     my $nondup_stories = [ values( %{ $new_stories_lookup } ) ];
     my $dup_stories    = [ values( %{ $dup_new_stories_lookup } ) ];
 
-    say STDERR "_dedup_new_stories: " . scalar( @{ $nondup_stories } ) . " new / " . scalar( @{ $dup_stories } ) . " dup";
+    DEBUG "_dedup_new_stories: " . scalar( @{ $nondup_stories } ) . " new / " . scalar( @{ $dup_stories } ) . " dup";
 
     return ( $nondup_stories, $dup_stories );
 }
@@ -336,7 +337,7 @@ sub _get_story_content
 {
     my ( $self, $url ) = @_;
 
-    say STDERR "fetching story url $url";
+    DEBUG "fetching story url $url";
 
     my $ua = MediaWords::Util::Web::UserAgentDetermined;
 
@@ -420,7 +421,7 @@ sub _add_new_stories
 {
     my ( $self, $stories ) = @_;
 
-    say STDERR "adding new stories to db ..." if ( $self->debug );
+    DEBUG "adding new stories to db ..." if ( $self->debug );
 
     my $total_stories = scalar( @{ $stories } );
     my $i             = 1;
@@ -429,7 +430,7 @@ sub _add_new_stories
     for my $story ( @{ $stories } )
     {
         $self->db->begin;
-        say STDERR "story: " . $i++ . " / $total_stories";
+        DEBUG "story: " . $i++ . " / $total_stories";
 
         my $content = $story->{ content };
 
@@ -439,7 +440,16 @@ sub _add_new_stories
         eval { $story = $self->db->create( 'stories', $story ) };
         if ( $@ )
         {
-            carp( $@ . " - " . Dumper( $story ) );
+            # it's quicker to just rely on postgres to catch constrained dups than to check for them first
+            if ( $@ =~ /unique constraint "([^"]*)"/ )
+            {
+                DEBUG( "skipping postgres dup: $1" );
+            }
+            else
+            {
+                carp( $@ . " - " . Dumper( $story ) );
+            }
+
             $self->db->rollback;
             next;
         }
@@ -464,7 +474,7 @@ sub _print_stories
 
     for my $s ( sort { $a->{ publish_date } cmp $b->{ publish_date } } @{ $stories } )
     {
-        print STDERR <<END;
+        DEBUG <<END;
 $s->{ publish_date } - $s->{ title } [$s->{ url }]
 END
     }
@@ -478,10 +488,10 @@ sub _print_story_diffs
 
     return unless ( $self->debug );
 
-    say STDERR "dup stories:";
+    DEBUG "dup stories:";
     $self->_print_stories( $dup_stories );
 
-    say STDERR "deduped stories:";
+    DEBUG "deduped stories:";
     $self->_print_stories( $deduped_stories );
 
 }
@@ -528,7 +538,7 @@ sub _eliminate_logogram_languages()
 
     if ( scalar( @{ $stories } ) > scalar( @{ $keep_stories } ) )
     {
-        say STDERR "pruned from " .
+        DEBUG "pruned from " .
           scalar( @{ $stories } ) . " to " .
           scalar( @{ $keep_stories } ) . " stories for logogram language";
     }

@@ -17,7 +17,7 @@ use MediaWords::ImportStories::ScrapeHTML;
 use MediaWords::ImportStories::Feedly;
 
 my $_import_module_lookup = {
-    feedly => 'MediaWords::ImportStories::Feedly',
+    feedly     => 'MediaWords::ImportStories::Feedly',
     scrapehtml => 'MediaWords::ImportStories::ScrapeHTML'
 };
 
@@ -65,8 +65,8 @@ sub main
         die( "usage: $0 ---media_id <id> --import_module <import module>" );
     }
 
-    my $import_module = $_import_module_lookup->{ lc( $p-{ import_module } ) } ||
-        die( "Unknown import_module: '$p->{ import_module }'" );
+    my $import_module = $_import_module_lookup->{ lc( $p->{ import_module } ) }
+      || die( "Unknown import_module: '$p->{ import_module }'" );
 
     delete( $p->{ import_module } );
 
