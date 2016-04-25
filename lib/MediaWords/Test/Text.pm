@@ -35,12 +35,6 @@ sub eq_or_sentence_diff($$$;$)
         return;
     }
 
-    if ( $actual_text eq $expected_text )
-    {
-        ok( 1, $message );
-        return;
-    }
-
     unless ( $verbatim )
     {
         $actual_text =~ s/\R/\n/g;
@@ -51,6 +45,12 @@ sub eq_or_sentence_diff($$$;$)
 
         $actual_text =~ s/^\s+|\s+$//g;
         $expected_text =~ s/^\s+|\s+$//g;
+    }
+
+    if ( $actual_text eq $expected_text )
+    {
+        ok( 1, $message );
+        return;
     }
 
     say STDERR 'Actual text:   <pre>' . $actual_text . '</pre>';
