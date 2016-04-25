@@ -67,15 +67,6 @@ Readonly my $STALE_DOWNLOAD_INTERVAL => 60 * 5;
 # how many downloads to store in memory queue
 Readonly my $MAX_QUEUED_DOWNLOADS => 10_000_000;
 
-# how many queued downloads mean the queue is more or less idle
-# and thus can be filled with missing downloads
-Readonly my $QUEUED_DOWNLOADS_IDLE_COUNT => 1000;
-
-# how many missing downloads to enqueue each and every time the queue is idle
-# (has to fit in memory because this is how much downloads are passed to
-# _queue_download_list_with_per_site_limit())
-Readonly my $MISSING_DOWNLOADS_CHUNK_COUNT => 1000;
-
 # how often to check the database for new pending downloads (seconds)
 Readonly my $DEFAULT_PENDING_CHECK_INTERVAL => 60 * 10;
 
@@ -247,6 +238,10 @@ sub _queue_download_list
 sub _queue_download_list_with_per_site_limit
 {
     my ( $self, $downloads, $site_limit ) = @_;
+
+    # temp fix to improve throughput for single media sources with large queues:
+    # hard coding site limit to about the max we can handle per $DEFAULT_PENDING_CHECK_INTERVAL
+    $site_limit = 25 * $DEFAULT_PENDING_CHECK_INTERVAL;
 
     DEBUG( sub { "queue " . scalar( @{ $downloads } ) . " downloads (site limit $site_limit)" } );
 
