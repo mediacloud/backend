@@ -50,6 +50,9 @@ sub eq_or_sentence_diff($$$;$)
         $expected_text =~ s/^\s+|\s+$//g;
     }
 
+    say STDERR 'Actual text: ' . $actual_text;
+    say STDERR 'Expected text: ' . $expected_text;
+
     my $worddiff_style = 'ANSIColor';
     my $expected_mark  = 'GREEN';
     my $got_mark       = 'RED';
