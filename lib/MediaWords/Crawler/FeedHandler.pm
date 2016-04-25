@@ -433,7 +433,7 @@ sub handle_feed_content
     {
         $download->{ state } = 'feed_error';
         my $error_message = "Error processing feed: $_";
-        say STDERR $error_message;
+        ERROR $error_message;
         $download->{ error_message } = $error_message;
     }
     finally

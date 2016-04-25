@@ -170,7 +170,7 @@ END
 
     if ( $download->{ sequence } > $MAX_PAGES )
     {
-        print STDERR "reached max pages ($MAX_PAGES) for url '$download->{ url }'\n";
+        DEBUG "reached max pages ($MAX_PAGES) for url '$download->{ url }'";
         return;
     }
 
@@ -187,7 +187,7 @@ END
 
     if ( $next_page_url )
     {
-        print STDERR "next page: $next_page_url\nprev page: $download->{ url }\n";
+        DEBUG "next page: $next_page_url\nprev page: $download->{ url }";
 
         $ret = $dbs->create(
             'downloads',
@@ -218,7 +218,7 @@ sub _queue_story_extraction($$)
     my $db             = $self->engine->dbs;
     my $fetcher_number = $self->engine->fetcher_number;
 
-    say STDERR "fetcher $fetcher_number starting extraction for download " . $download->{ downloads_id };
+    DEBUG "fetcher $fetcher_number starting extraction for download " . $download->{ downloads_id };
 
     MediaWords::GearmanFunction::ExtractAndVector->extract_for_crawler( $db, { stories_id => $download->{ stories_id } },
         $fetcher_number );
@@ -229,7 +229,7 @@ sub _process_content
 {
     my ( $self, $dbs, $download, $response ) = @_;
 
-    say STDERR "fetcher " . $self->engine->fetcher_number . " starting _process_content for  " . $download->{ downloads_id };
+    DEBUG "fetcher " . $self->engine->fetcher_number . " starting _process_content for  " . $download->{ downloads_id };
 
     my $next_page = $self->_call_pager( $dbs, $download, $response->decoded_content );
 
@@ -239,10 +239,10 @@ sub _process_content
     }
     else
     {
-        say STDERR "fetcher skipping extraction download " . $download->{ downloads_id } . " until all pages are available";
+        DEBUG "fetcher skipping extraction download " . $download->{ downloads_id } . " until all pages are available";
     }
 
-    say STDERR "fetcher " . $self->engine->fetcher_number . " finished _process_content for  " . $download->{ downloads_id };
+    DEBUG "fetcher " . $self->engine->fetcher_number . " finished _process_content for  " . $download->{ downloads_id };
 }
 
 =head2 handle_error( $download, $response )
@@ -314,7 +314,7 @@ sub handle_response
 
     if ( defined( $self->engine->fetcher_number ) )
     {
-        say STDERR "fetcher " . $self->engine->fetcher_number . " starting handle response: " . $download->{ url };
+        DEBUG "fetcher " . $self->engine->fetcher_number . " starting handle response: " . $download->{ url };
     }
 
     my $dbs = $self->engine->dbs;
@@ -336,7 +336,7 @@ END
             && ( $config->{ mediawords }->{ do_not_process_feeds } eq 'yes' ) )
         {
             MediaWords::DBI::Downloads::store_content( $dbs, $download, \$response->decoded_content );
-            say STDERR "DO NOT PROCESS FEEDS";
+            WARN "DO NOT PROCESS FEEDS";
             $self->engine->dbs->update_by_id(
                 'downloads',
                 $download->{ downloads_id },
@@ -363,7 +363,7 @@ END
 
     if ( defined( $self->engine->fetcher_number ) )
     {
-        say STDERR "fetcher " . $self->engine->fetcher_number . " completed handle response: " . $download->{ url };
+        DEBUG "fetcher " . $self->engine->fetcher_number . " completed handle response: " . $download->{ url };
     }
 }
 
