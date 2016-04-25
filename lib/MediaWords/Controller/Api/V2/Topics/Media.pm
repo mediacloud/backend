@@ -20,13 +20,13 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
 __PACKAGE__->config( action => { list_GET => { Does => [ qw( ) ] }, } );
 
-sub apibase: Chained('/') : PathPart('api/v2/topics') : CaptureArgs(1)
+sub apibase : Chained('/') : PathPart('api/v2/topics') : CaptureArgs(1)
 {
-  my ($self, $c, $topic_id) = @_;
-  $c->stash->{topic_id} = $topic_id;
+    my ( $self, $c, $topic_id ) = @_;
+    $c->stash->{ topic_id } = $topic_id;
 }
 
-sub media: Chained('apibase') : PathPart('media') : CaptureArgs(0)
+sub media : Chained('apibase') : PathPart('media') : CaptureArgs(0)
 {
 
 }
@@ -42,7 +42,7 @@ sub list : Chained('media') : Args(0) : ActionClass('REST')
 # has the controversy metric data
 sub _create_controversy_media_table
 {
-    my ( $self, $c, $cdts_id) = @_;
+    my ( $self, $c, $cdts_id ) = @_;
 
     # my $cdts_mode = $c->req->params->{ controversy_mode } || '';
 
@@ -77,16 +77,25 @@ END
 
 sub list_GET : Local
 {
-  my ( $self, $c ) = @_;
-  my $db = $c->dbis;
-  my $cdts = MediaWords::CM::get_time_slice_for_controversy($c->dbis, $c->stash->{ topic_id }, $c->req->params->{ timeslice }, $c->req->params->{ snapshot });
-  if ($cdts) {
-    $self->_create_controversy_media_table( $c, $cdts->{ controversy_dump_time_slices_id });
-    my $media = $db->query( <<SQL )->hashes;
-select * from  media
+    my ( $self, $c ) = @_;
+    my $db   = $c->dbis;
+    my $cdts = MediaWords::CM::get_time_slice_for_controversy(
+        $c->dbis,
+        $c->stash->{ topic_id },
+        $c->req->params->{ timeslice },
+        $c->req->params->{ snapshot }
+    );
+    my $entity = {};
+    if ( $cdts )
+    {
+        $self->_create_controversy_media_table( $c, $cdts->{ controversy_dump_time_slices_id } );
+        $entity->{ media } = $db->query( <<SQL )->hashes;
+select * from media m
+    where not exists (select 1 from feeds f where f.media_id = m.media_id and feed_status = 'active')
+    order by media_id
 SQL
-    $self->status_ok( $c, entity => $media );
-  }
+        $self->status_ok( $c, entity => $entity );
+    }
 
 }
 
