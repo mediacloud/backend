@@ -20,11 +20,14 @@ Fails test if $got and $expected are not equal strings.  In the case, prints a
 sentence by sentence diff that in most cases is much more useful than the line
 by line diff of Test::Text::eq_or_diff.
 
+If $verbatim is true, strings are compared verbatim. By default, whitespace is
+normalized before comparing texts.
+
 =cut
 
-sub eq_or_sentence_diff($$$)
+sub eq_or_sentence_diff($$$;$)
 {
-    my ( $actual_text, $expected_text, $message ) = @_;
+    my ( $actual_text, $expected_text, $message, $verbatim ) = @_;
 
     if ( ( !defined $actual_text ) and ( !defined $expected_text ) )
     {
@@ -36,6 +39,15 @@ sub eq_or_sentence_diff($$$)
     {
         ok( 1, $message );
         return;
+    }
+
+    unless ( $verbatim )
+    {
+        $actual_text =~ s/\s+/ /g;
+        $expected_text =~ s/\s+/ /g;
+
+        $actual_text =~ s/^\s+|\s+$//g;
+        $expected_text =~ s/^\s+|\s+$//g;
     }
 
     my $diff = Text::WordDiff::word_diff( \$actual_text, \$expected_text );
