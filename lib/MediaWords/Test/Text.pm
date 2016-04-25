@@ -50,9 +50,20 @@ sub eq_or_sentence_diff($$$;$)
         $expected_text =~ s/^\s+|\s+$//g;
     }
 
-    my $diff = Text::WordDiff::word_diff( \$actual_text, \$expected_text );
+    my $worddiff_style = 'ANSIColor';
+    my $expected_mark  = 'GREEN';
+    my $got_mark       = 'RED';
+    if ( ( $ENV{ DEBIAN_FRONTEND } // '' ) eq 'noninteractive' )
+    {
+        # No color in CI server logs
+        $worddiff_style = 'HTML';
+        $expected_mark  = '<ins>';
+        $got_mark       = '<del>';
+    }
 
-    ok( 0, "$message:\n(got: RED expected: GREEN)\n $diff" );
+    my $diff = Text::WordDiff::word_diff( \$actual_text, \$expected_text, { STYLE => $worddiff_style } );
+
+    ok( 0, "$message:\n(got: $got_mark; expected: $expected_mark)\n $diff" );
 
 }
 
