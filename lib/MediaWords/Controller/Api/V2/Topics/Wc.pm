@@ -38,7 +38,7 @@ sub list : Chained('wc') : Args(0) : ActionClass('REST')
 sub list_GET
 {
     my ( $self, $c ) = @_;
-
+    my $sort_by_tfidf = $c->req->params->{ sort_by_tfidf };
     if ( $c->req->params->{ sample_size } && ( $c->req->params->{ sample_size } > 100_000 ) )
     {
         $c->req->params->{ sample_size } = 100_000;
@@ -55,6 +55,32 @@ sub list_GET
         my $wc     = MediaWords::Solr::WordCounts->new( { db => $c->dbis, q => $query } );
         my $entity = {};
         my $words  = $wc->get_words;
+        if ( $sort_by_tfidf )
+        {
+            for my $word ( @{ $words } )
+            {
+                my $solr_df_query = "{~ controversy:$cdts->{ controversies_id } }";
+
+                my $df = MediaWords::Solr::get_num_found(
+                    $c->dbis,
+                    {
+                        q  => "+sentence:" . $word->{ term },
+                        fq => $solr_df_query
+                    }
+                );
+
+                if ( $df )
+                {
+                    $word->{ tfidf }       = $word->{ count } / sqrt( $df );
+                    $word->{ total_count } = $df;
+                }
+                else
+                {
+                    $word->{ tfidf } = 0;
+                }
+            }
+            $words = [ sort { $b->{ tfidf } <=> $a->{ tfidf } } @{ $words } ];
+        }
         map { $words->[ $_ ]->{ rank } = $_ + 1 } ( 0 .. $#{ $words } );
         $entity->{ timeslice } = $cdts;
         $entity->{ words }     = $words;
