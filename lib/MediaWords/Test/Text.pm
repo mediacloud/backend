@@ -43,6 +43,9 @@ sub eq_or_sentence_diff($$$;$)
 
     unless ( $verbatim )
     {
+        $actual_text =~ s/\r\n/\n/g;
+        $expected_text =~ s/\r\n/\n/g;
+
         $actual_text =~ s/\s+/ /g;
         $expected_text =~ s/\s+/ /g;
 
