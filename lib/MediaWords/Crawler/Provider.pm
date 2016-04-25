@@ -355,7 +355,7 @@ sub provide_downloads
             next MEDIA_ID;
         }
 
-        foreach ( 1 .. 3 )
+        foreach ( 1 .. 5 )
         {
             if ( my $download = $self->{ downloads }->_pop_download( $media_id->{ media_id } ) )
             {
