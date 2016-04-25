@@ -9,15 +9,8 @@ MediaWords::Test::Text - helper functions for testing text
 use strict;
 use warnings;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
-    use lib $FindBin::Bin;
-}
-
 use Test::More;
-use MediaWords::Languages::en;
+use Text::WordDiff;
 
 =head1 FUNCTIONS
 
@@ -45,14 +38,10 @@ sub eq_or_sentence_diff($$$)
         return;
     }
 
-    # Assume that unit tests will use either English or other language with
-    # Latin alphabet (for which ::en is close enough)
-    my $en = MediaWords::Languages::en->new();
+    my $diff = Text::WordDiff::word_diff( \$actual_text, \$expected_text );
 
-    my $actual_sentences   = $en->get_sentences( $actual_text );
-    my $expected_sentences = $en->get_sentences( $expected_text );
+    ok( 0, "$message:\n(got: RED expected: GREEN)\n $diff" );
 
-    is_deeply( $actual_sentences, $expected_sentences, $message );
 }
 
 1;
