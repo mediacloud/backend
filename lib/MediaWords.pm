@@ -77,7 +77,6 @@ sub setup_acl()
       /admin/downloads/view
       /admin/downloads/view_extracted
       /admin/feeds/list
-      /admin/gearman/view_log
       /admin/media/do_eval_rss_full_text
       /admin/media/do_find_likely_full_text_rss
       /admin/media/eval_rss_full_text
@@ -150,7 +149,6 @@ sub setup_acl()
     # cm role; can access all cm pages + admin-readonly + media-edit + stories-edi
     my @acl_cm = qw|
       /admin/cm/
-      /admin/gearman/view_log
       |;
 
     my @acl_search = qw|

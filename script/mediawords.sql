@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4534;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4535;
 
 BEGIN
 
@@ -2963,85 +2963,6 @@ CREATE INDEX activities_name ON activities (name);
 CREATE INDEX activities_creation_date ON activities (creation_date);
 CREATE INDEX activities_user_identifier ON activities (user_identifier);
 CREATE INDEX activities_object_id ON activities (object_id);
-
-
---
--- Gearman job queue (jobs enqueued with enqueue_on_gearman())
---
-
-CREATE TYPE gearman_job_queue_status AS ENUM (
-    'enqueued',     -- Job is enqueued and waiting to be run
-    'running',      -- Job is currently running
-    'finished',     -- Job has finished successfully
-    'failed'        -- Job has failed
-);
-
-CREATE TABLE gearman_job_queue (
-    gearman_job_queue_id    SERIAL                      PRIMARY KEY,
-
-    -- Last status update time
-    last_modified           TIMESTAMP                   NOT NULL DEFAULT LOCALTIMESTAMP,
-
-    -- Gearman function name (e.g. "MediaWords::Job::CM::DumpControversy")
-    function_name           VARCHAR(255)                NOT NULL,
-
-    -- Gearman job handle (e.g. "H:tundra.local:8")
-    --
-    -- This table expects all job handles to be unique, and Gearman would not
-    -- generate unique job handles if it is configured to store the job queue
-    -- in memory (as it does by default), so you *must* configure a persistent
-    -- queue storage.
-    --
-    -- For an instruction on how to store the Gearman job queue on PostgreSQL,
-    -- see doc/README.gearman.markdown.
-    job_handle              VARCHAR(255)                UNIQUE NOT NULL,
-
-    -- Unique Gearman job identifier that describes the job that is being run.
-    --
-    -- In the Gearman::JobScheduler's case, this is a SHA256 of the serialized
-    -- Gearman function name and its parameters, e.g.
-    --
-    --     sha256_hex("MediaWords::Job::CM::DumpControversy({controversies_id => 1})")
-    --     =
-    --     "b9758abbd3811b0aaa53d0e97e188fcac54f58a876bb409b7395621411401ee8"
-    --
-    -- Although "job_handle" above also serves as an unique identifier of the
-    -- specific job, and Gearman uses both at the same time to identify a job,
-    -- it provides no way to fetch the "unique job ID" (e.g. this SHA256 string)
-    -- by having a Gearman job handle (e.g. "H:tundra.local:8") and vice versa,
-    -- so we have to store it somewhere ourselves.
-    --
-    -- The "unique job ID" is needed to check if the job with specific
-    -- parameters (e.g. a "dump controversy" job for the controversy ID) is
-    -- enqueued / running / failed.
-    --
-    -- The unique job ID's length is limited to Gearman internal
-    -- GEARMAN_MAX_UNIQUE_SIZE which is set to 64 at the time of writing.
-    unique_job_id           VARCHAR(64)                 NOT NULL,
-
-    -- Job status
-    status                  gearman_job_queue_status    NOT NULL,
-
-    -- Error message (if any)
-    error_message           TEXT                        NULL
-);
-
-CREATE INDEX gearman_job_queue_function_name ON gearman_job_queue (function_name);
-CREATE UNIQUE INDEX gearman_job_queue_job_handle ON gearman_job_queue (job_handle);
-CREATE INDEX gearman_job_queue_unique_job_id ON gearman_job_queue (unique_job_id);
-CREATE INDEX gearman_job_queue_status ON gearman_job_queue (status);
-
--- Update "last_modified" on UPDATEs
-CREATE FUNCTION gearman_job_queue_sync_lastmod() RETURNS trigger AS $$
-BEGIN
-    NEW.last_modified := NOW();
-    RETURN NEW;
-END;
-$$ LANGUAGE PLPGSQL;
-
-CREATE TRIGGER gearman_job_queue_sync_lastmod
-    BEFORE UPDATE ON gearman_job_queue
-    FOR EACH ROW EXECUTE PROCEDURE gearman_job_queue_sync_lastmod();
 
 
 -- Extra stories to be annotated with CoreNLP that don't have "media.annotate_with_corenlp = 't'"

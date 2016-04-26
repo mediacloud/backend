@@ -12,9 +12,7 @@ use strict;
 use warnings;
 
 use Moose;
-
-# Don't log each and every extraction job into the database
-with 'Gearman::JobScheduler::AbstractFunction';
+with 'MediaWords::AbstractJob';
 
 BEGIN
 {
@@ -28,7 +26,6 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::DB;
-use MediaWords::Util::GearmanJobSchedulerConfiguration;
 
 use MediaWords::Util::CoreNLP;
 use MediaWords::DBI::Stories;
@@ -98,12 +95,6 @@ sub run($;$)
 sub unify_logs()
 {
     return 1;
-}
-
-# (Gearman::JobScheduler::AbstractFunction implementation) Return default configuration
-sub configuration()
-{
-    return MediaWords::Util::GearmanJobSchedulerConfiguration->instance;
 }
 
 no Moose;    # gets rid of scaffolding
