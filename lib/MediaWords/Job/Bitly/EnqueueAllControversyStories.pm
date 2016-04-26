@@ -156,7 +156,7 @@ EOF
                 start_timestamp => $start_timestamp,
                 end_timestamp   => $end_timestamp
             };
-            MediaWords::Job::Bitly::FetchStoryStats->enqueue_on_gearman( $args );
+            MediaWords::Job::Bitly::FetchStoryStats->add_to_queue( $args );
 
             say STDERR "Done enqueueing story $stories_id for Bit.ly processing.";
         }

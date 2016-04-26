@@ -19,15 +19,15 @@ To start a single instance of *all* workers in a subdirectory, run:
 
 To enqueue a job for the worker, run:
 
-    MediaWords::Job::RescrapeMedia->enqueue_on_gearman();
+    MediaWords::Job::RescrapeMedia->add_to_queue();
 
 To pass arguments to the worker, add them as a hashref parameter:
 
-    MediaWords::Job::RescrapeMedia->enqueue_on_gearman({ one => 'two', three => 'four' });
+    MediaWords::Job::RescrapeMedia->add_to_queue({ one => 'two', three => 'four' });
 
-`enqueue_on_gearman()` returns a job ID if the job was enqueued successfully:
+`add_to_queue()` returns a job ID if the job was enqueued successfully:
 
-    my $job_id = MediaWords::Job::RescrapeMedia->enqueue_on_gearman();
+    my $job_id = MediaWords::Job::RescrapeMedia->add_to_queue();
 
 You can use the job ID to *cancel an enqueued job which isn't running yet*:
 

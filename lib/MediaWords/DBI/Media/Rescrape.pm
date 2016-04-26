@@ -26,7 +26,7 @@ sub enqueue_rescrape_media($)
 {
     my ( $medium ) = @_;
 
-    return MediaWords::Job::RescrapeMedia->enqueue_on_gearman( { media_id => $medium->{ media_id } } );
+    return MediaWords::Job::RescrapeMedia->add_to_queue( { media_id => $medium->{ media_id } } );
 }
 
 # for each medium in $media, enqueue an RescrapeMedia job for any medium

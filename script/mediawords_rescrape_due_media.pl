@@ -88,7 +88,7 @@ EOF
     say STDERR "Media count to be rescraped: " . scalar( @{ $due_media } );
     foreach my $media ( @{ $due_media } )
     {
-        MediaWords::Job::RescrapeMedia->enqueue_on_gearman( { media_id => $media->{ media_id } } );
+        MediaWords::Job::RescrapeMedia->add_to_queue( { media_id => $media->{ media_id } } );
     }
 }
 

@@ -159,7 +159,7 @@ sub extract_for_crawler
     {
         while ( 1 )
         {
-            eval { MediaWords::Job::ExtractAndVector->enqueue_on_gearman( $args ); };
+            eval { MediaWords::Job::ExtractAndVector->add_to_queue( $args ); };
 
             if ( $@ )
             {

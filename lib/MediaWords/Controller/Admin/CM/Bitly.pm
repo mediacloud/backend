@@ -80,7 +80,7 @@ sub add_to_queue : Local
     }
 
     my $args = { controversies_id => $controversies_id };
-    my $job_id = MediaWords::Job::Bitly::EnqueueAllControversyStories->enqueue_on_gearman( $args );
+    my $job_id = MediaWords::Job::Bitly::EnqueueAllControversyStories->add_to_queue( $args );
     unless ( $job_id )
     {
         die "Job didn't return a job ID for controversy ID $controversies_id";

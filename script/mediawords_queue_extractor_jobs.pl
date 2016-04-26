@@ -30,7 +30,7 @@ sub main
     my $i = 0;
     for my $downloads_id ( @{ $downloads_ids } )
     {
-        MediaWords::Job::ExtractAndVector->enqueue_on_gearman( { downloads_id => $downloads_id } );
+        MediaWords::Job::ExtractAndVector->add_to_queue( { downloads_id => $downloads_id } );
         $db->query( "delete from scratch.reextract_downloads where downloads_id = ?", $downloads_id );
         if ( !( ++$i % 100 ) )
         {

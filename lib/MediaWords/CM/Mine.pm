@@ -2609,7 +2609,7 @@ sub mine_controversy ($$;$)
         # record in the raw key-value database) will be skipped, and the new
         # ones will be enqueued further for fetching Bit.ly stats.
         my $args = { controversies_id => $controversy->{ controversies_id } };
-        MediaWords::Job::Bitly::EnqueueAllControversyStories->enqueue_on_gearman( $args );
+        MediaWords::Job::Bitly::EnqueueAllControversyStories->add_to_queue( $args );
     }
 }
 

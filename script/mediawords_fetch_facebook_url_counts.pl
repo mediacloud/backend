@@ -88,7 +88,7 @@ END
                 else
                 {
                     say STDERR "Enqueueing job for story $stories_id...";
-                    MediaWords::Job::Facebook::FetchStoryStats->enqueue_on_gearman( $args );
+                    MediaWords::Job::Facebook::FetchStoryStats->add_to_queue( $args );
                 }
             }
         }

@@ -46,7 +46,7 @@ EOF
     {
 
         say STDERR 'Enqueueing download ID ' . $download->{ downloads_id } . '...';
-        MediaWords::Job::ExtractAndVector->enqueue_on_gearman( { downloads_id => $download->{ downloads_id } } );
+        MediaWords::Job::ExtractAndVector->add_to_queue( { downloads_id => $download->{ downloads_id } } );
 
         # throttle to 100 connections a second to prevent running the
         # system out of connections stuck in TIME_WAIT

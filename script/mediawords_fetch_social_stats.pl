@@ -49,7 +49,7 @@ sub fetch_stats
         else
         {
             say STDERR "Enqueueing job for story $stories_id...";
-            eval( "MediaWords::Job::${ type }::FetchStoryStats->enqueue_on_gearman( \$args )" );
+            eval( "MediaWords::Job::${ type }::FetchStoryStats->add_to_queue( \$args )" );
             if ( $@ )
             {
                 say STDERR "error queueing story $stories_id: $@";

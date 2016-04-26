@@ -107,7 +107,7 @@ END_SQL
         {
             unless ( $pm->start )
             {
-                MediaWords::Job::ExtractAndVector->enqueue_on_gearman(
+                MediaWords::Job::ExtractAndVector->add_to_queue(
                     { stories_id => $stories_id, disable_story_triggers => 1 } );
                 $pm->finish;
             }

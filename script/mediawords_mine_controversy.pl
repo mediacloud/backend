@@ -71,7 +71,7 @@ sub main
                 skip_outgoing_foreign_rss_links => $skip_outgoing_foreign_rss_links
             };
 
-            my $job_id = MediaWords::Job::CM::MineControversy->enqueue_on_gearman( $args );
+            my $job_id = MediaWords::Job::CM::MineControversy->add_to_queue( $args );
             say STDERR "Enqueued job with ID: $job_id";
         }
 

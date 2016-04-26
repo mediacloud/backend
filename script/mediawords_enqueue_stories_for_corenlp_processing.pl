@@ -278,7 +278,7 @@ EOF
                 ++$stories_found;
 
                 # Duplicate story IDs will be merged into a single job
-                MediaWords::Job::AnnotateWithCoreNLP->enqueue_on_gearman( { stories_id => $stories_id } );
+                MediaWords::Job::AnnotateWithCoreNLP->add_to_queue( { stories_id => $stories_id } );
 
                 say STDERR "Done enqueuing story " . $stories_id if ( _verbose() );
 

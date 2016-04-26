@@ -120,7 +120,7 @@ EOF
         my $start_timestamp = story_start_timestamp( $story_timestamp );
         my $end_timestamp   = story_end_timestamp( $story_timestamp );
 
-        MediaWords::Job::Bitly::FetchStoryStats->enqueue_on_gearman(
+        MediaWords::Job::Bitly::FetchStoryStats->add_to_queue(
             {
                 stories_id      => $stories_id,
                 start_timestamp => $start_timestamp,

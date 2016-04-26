@@ -123,7 +123,7 @@ sub run($;$)
     say STDERR "Done storing story stats for story $stories_id.";
 
     # Enqueue aggregating Bit.ly stats
-    MediaWords::Job::Bitly::AggregateStoryStats->enqueue_on_gearman( { stories_id => $stories_id } );
+    MediaWords::Job::Bitly::AggregateStoryStats->add_to_queue( { stories_id => $stories_id } );
 }
 
 # write a single log because there are a lot of Bit.ly processing jobs so it's

@@ -86,7 +86,7 @@ EOF
             }
 
             say STDERR "Enqueueing story $stories_id...";
-            MediaWords::Job::Bitly::AggregateStoryStats->enqueue_on_gearman( { stories_id => $stories_id } );
+            MediaWords::Job::Bitly::AggregateStoryStats->add_to_queue( { stories_id => $stories_id } );
         }
     }
 }

@@ -536,7 +536,7 @@ sub process_extracted_story
     {
         # Story is annotatable with CoreNLP; enqueue for CoreNLP annotation
         # (which will run mark_as_processed() on its own)
-        MediaWords::Job::AnnotateWithCoreNLP->enqueue_on_gearman( { stories_id => $stories_id } );
+        MediaWords::Job::AnnotateWithCoreNLP->add_to_queue( { stories_id => $stories_id } );
 
     }
     else

@@ -54,7 +54,7 @@ sub main
         }
 
         my $args = { controversies_id => $controversies_id };
-        my $job_id = MediaWords::Job::CM::DumpControversy->enqueue_on_gearman( $args );
+        my $job_id = MediaWords::Job::CM::DumpControversy->add_to_queue( $args );
         say STDERR "Enqueued controversy ID $controversies_id ('$controversy->{ name }') with job ID: $job_id";
     }
 
