@@ -53,9 +53,6 @@ sub eq_or_sentence_diff($$$;$)
         return;
     }
 
-    say STDERR 'Actual text:   <pre>' . $actual_text . '</pre>';
-    say STDERR 'Expected text: <pre>' . $expected_text . '</pre>';
-
     my $worddiff_style = 'ANSIColor';
     my $expected_mark  = 'GREEN';
     my $got_mark       = 'RED';
