@@ -75,10 +75,6 @@ database:
         ### Default is a single server at "127.0.0.1:4731".
         #- "127.0.0.1:4731"
 
-    ### Worker log directory (default is "data/gearman_worker_logs/"; if not
-    ### set, will fallback to Sys::Path->logdir . '/gjs/')
-    #worker_log_dir: "data/gearman_worker_logs/"
-
     ### Email notifications
     #notifications:
 

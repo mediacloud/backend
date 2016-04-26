@@ -37,13 +37,6 @@ use MediaWords::Util::Config;
         return $self->job_broker;
     };
 
-    # Where should the worker put the logs
-    override 'worker_log_dir' => sub {
-        my $self = shift;
-
-        return $self->mc_config->{ gearman }->{ worker_log_dir } // $self->SUPER::worker_log_dir();
-    };
-
     # Default email address to send the email from
     override 'notifications_from_address' => sub {
         my $self = shift;

@@ -17,7 +17,6 @@ gearman:
         emails: []
         from_address: gjs@mediacloud.org
         subject_prefix: '[GJS]'
-    worker_log_dir: data/gearman_worker_logs/
 mail:
     bug_email: ''
     from_address: noreply@mediacloud.org

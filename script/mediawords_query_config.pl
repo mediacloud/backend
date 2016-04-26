@@ -76,7 +76,6 @@ use XML::LibXML;
 #       <subject_prefix>[GJS]</subject_prefix>
 #     </notifications>
 #     <servers>127.0.0.1:4730</servers>
-#     <worker_log_dir>data/gearman_worker_logs/</worker_log_dir>
 #   </gearman>
 #   <mail>
 #     <bug_email></bug_email>
