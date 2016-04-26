@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4534;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4535;
 
 BEGIN
 
@@ -148,17 +148,29 @@ $$
 LANGUAGE 'plpgsql'
  ;
 
+ -- Returns true if the date is greater than the latest import date in solr_imports
+ CREATE OR REPLACE FUNCTION before_last_solr_import(db_row_last_updated timestamp with time zone) RETURNS boolean AS $$
+ BEGIN
+    RETURN ( ( db_row_last_updated is null ) OR
+             ( db_row_last_updated < ( select max( import_date ) from solr_imports ) ) );
+END;
+$$
+LANGUAGE 'plpgsql'
+ ;
+
 CREATE OR REPLACE FUNCTION update_media_last_updated () RETURNS trigger AS
 $$
    DECLARE
    BEGIN
 
       IF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'INSERT') THEN
-      	 update media set db_row_last_updated = now() where media_id = NEW.media_id;
+      	 update media set db_row_last_updated = now()
+             where media_id = NEW.media_id and before_last_solr_import( db_row_last_updated );
       END IF;
 
       IF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'DELETE') THEN
-      	 update media set db_row_last_updated = now() where media_id = OLD.media_id;
+      	 update media set db_row_last_updated = now()
+              where media_id = OLD.media_id and before_last_solr_import( db_row_last_updated );
       END IF;
 
       RETURN NEW;
@@ -240,7 +252,8 @@ $$
            RETURN NULL;
         END IF;
 
-	UPDATE story_sentences set db_row_last_updated = now() where stories_id = NEW.stories_id;
+	UPDATE story_sentences set db_row_last_updated = now()
+        where stories_id = NEW.stories_id and before_last_solr_import( db_row_last_updated );
 	RETURN NULL;
    END;
 $$
@@ -284,12 +297,14 @@ $$
 	IF table_with_trigger_column THEN
             UPDATE stories
                SET db_row_last_updated = now()
-               WHERE stories_id = reference_stories_id;
+               WHERE stories_id = reference_stories_id
+                and before_last_solr_import( db_row_last_updated );
             RETURN NULL;
         ELSE
             UPDATE stories
                SET db_row_last_updated = now()
-               WHERE stories_id = reference_stories_id and (disable_triggers is NOT true);
+               WHERE stories_id = reference_stories_id and (disable_triggers is NOT true)
+                and before_last_solr_import( db_row_last_updated );
             RETURN NULL;
         END IF;
    END;
@@ -338,12 +353,14 @@ $$
 	IF table_with_trigger_column THEN
             UPDATE story_sentences
               SET db_row_last_updated = now()
-              WHERE story_sentences_id = reference_story_sentences_id;
+              WHERE story_sentences_id = reference_story_sentences_id
+                and before_last_solr_import( db_row_last_updated );
             RETURN NULL;
         ELSE
             UPDATE story_sentences
               SET db_row_last_updated = now()
-              WHERE story_sentences_id = reference_story_sentences_id and (disable_triggers is NOT true);
+              WHERE story_sentences_id = reference_story_sentences_id and (disable_triggers is NOT true)
+                and before_last_solr_import( db_row_last_updated );
             RETURN NULL;
         END IF;
    END;
@@ -366,9 +383,8 @@ $$
             RAISE EXCEPTION 'Unconfigured operation: %', TG_OP;
         END IF;
 
-        UPDATE stories
-        SET db_row_last_updated = now()
-        WHERE media_id = reference_media_id;
+        UPDATE stories SET db_row_last_updated = now()
+            WHERE media_id = reference_media_id and before_last_solr_import( db_row_last_updated );
 
         RETURN NULL;
     END;
