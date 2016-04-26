@@ -44,7 +44,7 @@ annotate_with_corenlp:annotate_with_corenlp_00
 <...>
 bitly_aggregate_story_stats:bitly_aggregate_story_stats_00
 <...>
-bitly_enqueue_all_controversy_stories
+bitly_process_all_controversy_stories
 bitly_fetch_story_stats:bitly_fetch_story_stats_00
 <...>
 cm_dump_controversy

@@ -22,14 +22,14 @@ use URI::Split;
 use Digest::SHA qw(sha256_hex);
 
 # add default feeds for a single medium
-sub enqueue_rescrape_media($)
+sub add_to_rescrape_media_queue($)
 {
     my ( $medium ) = @_;
 
     return MediaWords::Job::RescrapeMedia->add_to_queue( { media_id => $medium->{ media_id } } );
 }
 
-# for each medium in $media, enqueue an RescrapeMedia job for any medium
+# for each medium in $media, add an RescrapeMedia job for any medium
 # that is lacking feeds
 sub add_feeds_for_feedless_media
 {
@@ -47,15 +47,15 @@ END
 
     unless ( $media_has_active_syndicated_feeds )
     {
-        say STDERR "Enqueuing media " . $medium->{ media_id } . " for rescraping";
-        enqueue_rescrape_media( $medium );
+        say STDERR "Adding media " . $medium->{ media_id } . " to rescraping queue";
+        add_to_rescrape_media_queue( $medium );
     }
 }
 
-# (re-)enqueue RescrapeMedia jobs for all unmoderated media
+# (re-)add RescrapeMedia jobs for all unmoderated media
 # ("RescrapeMedia" job is "unique", so job broker will skip media
-# IDs that are already enqueued)
-sub enqueue_rescrape_media_for_unmoderated_media($)
+# IDs that are already added)
+sub add_to_rescrape_media_queue_for_unmoderated_media($)
 {
     my ( $db ) = @_;
 
@@ -67,7 +67,7 @@ sub enqueue_rescrape_media_for_unmoderated_media($)
 EOF
     )->hashes;
 
-    map { enqueue_rescrape_media( $_ ) } @{ $media };
+    map { add_to_rescrape_media_queue( $_ ) } @{ $media };
 
     return 1;
 }

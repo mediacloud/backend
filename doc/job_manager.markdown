@@ -1,7 +1,7 @@
 # Job manager
 
 Media Cloud uses [MediaCloud::JobManager](https://github.com/berkmancenter/p5-MediaCloud-JobManager) for
-scheduling, enqueueing and running various background processes.
+managing job queues.
 
 
 ## Starting a worker
@@ -17,7 +17,7 @@ To start a single instance of *all* workers in a subdirectory, run:
 
 ## Running a job
 
-To enqueue a job for the worker, run:
+To add a job to the worker queue, run:
 
     MediaWords::Job::RescrapeMedia->add_to_queue();
 
@@ -25,11 +25,11 @@ To pass arguments to the worker, add them as a hashref parameter:
 
     MediaWords::Job::RescrapeMedia->add_to_queue({ one => 'two', three => 'four' });
 
-`add_to_queue()` returns a job ID if the job was enqueued successfully:
+`add_to_queue()` returns a job ID if the job was added to queue successfully:
 
     my $job_id = MediaWords::Job::RescrapeMedia->add_to_queue();
 
-You can use the job ID to *cancel an enqueued job which isn't running yet*:
+You can use the job ID to *cancel job which isn't running yet*:
 
     MediaCloud::JobManager::Admin::cancel_job(
         MediaWords::Job::RescrapeMedia->configuration(),
@@ -105,7 +105,7 @@ For example:
     $ gearadmin -h 127.0.0.1 -p 4731 --status
     wc  2   0   0
 
-(Function "wc", 2 jobs enqueued, 0 currently running, 0 workers registered)
+(Function "wc", 2 jobs in the queue, 0 currently running, 0 workers registered)
 
 Run `gearadmin --help` for more options.
 

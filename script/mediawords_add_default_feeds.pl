@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 #
-# Enqueue MediaWords::Job::RescrapeMedia job
+# Add MediaWords::Job::RescrapeMedia job
 #
 
 use strict;
@@ -24,7 +24,7 @@ sub main
 
     while ( 1 )
     {
-        MediaWords::DBI::Media::enqueue_add_default_feeds_for_unmoderated_media( $db );
+        MediaWords::DBI::Media::add_to_rescrape_media_queue_for_unmoderated_media( $db );
         sleep( 60 );
     }
 }

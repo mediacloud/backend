@@ -48,7 +48,7 @@ sub fetch_stats
         }
         else
         {
-            say STDERR "Enqueueing job for story $stories_id...";
+            say STDERR "Adding job for story $stories_id...";
             eval( "MediaWords::Job::${ type }::FetchStoryStats->add_to_queue( \$args )" );
             if ( $@ )
             {

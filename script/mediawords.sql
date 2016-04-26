@@ -1586,7 +1586,7 @@ create table controversies (
 );
 
 COMMENT ON COLUMN controversies.process_with_bitly
-    IS 'Enable processing controversy''s stories with Bit.ly; enqueue all new controversy stories for Bit.ly processing';
+    IS 'Enable processing controversy''s stories with Bit.ly; add all new controversy stories to Bit.ly processing queue';
 
 create unique index controversies_name on controversies( name );
 create unique index controversies_tag_set on controversies( controversy_tag_sets_id );

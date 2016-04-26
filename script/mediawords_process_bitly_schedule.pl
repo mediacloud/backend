@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #
-# Enqueue stories for Bit.ly processing
+# Add stories to Bit.ly processing queue
 #
 
 use strict;

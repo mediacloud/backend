@@ -122,7 +122,7 @@ sub run($;$)
     }
     say STDERR "Done storing story stats for story $stories_id.";
 
-    # Enqueue aggregating Bit.ly stats
+    # Add job for Bit.ly stats aggregation
     MediaWords::Job::Bitly::AggregateStoryStats->add_to_queue( { stories_id => $stories_id } );
 }
 

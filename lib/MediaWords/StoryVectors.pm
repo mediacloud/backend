@@ -485,9 +485,9 @@ sub update_story_sentences_and_language
     if (    MediaWords::Util::CoreNLP::annotator_is_enabled()
         and MediaWords::Util::CoreNLP::story_is_annotatable( $db, $stories_id ) )
     {
-        # (Re)enqueue for CoreNLP annotation
+        # Re-add to CoreNLP job queue
         #
-        # We enqueue an identical job in MediaWords::DBI::Downloads::process_download_for_extractor() too,
+        # We add an identical job in MediaWords::DBI::Downloads::process_download_for_extractor() too,
         # but duplicate the add_to_queue() call here just to make sure that story gets reannotated
         # on each sentence change. Both of these jobs are to be merged into a single job by the job broker.
         MediaWords::Job::AnnotateWithCoreNLP->add_to_queue( { stories_id => $stories_id } );

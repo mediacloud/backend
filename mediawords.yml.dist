@@ -138,7 +138,7 @@ database:
         #solr
         #solr_facets_wrapper_server
         #annotate_with_corenlp
-        #bitly_enqueue_all_controversy_stories
+        #bitly_process_all_controversy_stories
         #bitly_fetch_story_stats
         #bitly_aggregate_story_stats
 

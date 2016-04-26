@@ -145,7 +145,7 @@ sub unify_logs()
 }
 
 # run extraction for the crawler. run in process of mediawords.extract_in_process is configured.
-# keep retrying on enqueue error.
+# keep retrying on error.
 sub extract_for_crawler
 {
     my ( $self, $db, $args, $fetcher_number ) = @_;

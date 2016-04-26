@@ -203,7 +203,7 @@ sub _add_missing_media_from_urls
             {
                 $medium = $dbis->create( 'media', { name => $title, url => $url, moderated => 'f' } );
 
-                MediaWords::DBI::Media::Rescrape::enqueue_rescrape_media( $medium );
+                MediaWords::DBI::Media::Rescrape::add_to_rescrape_media_queue( $medium );
 
                 say STDERR "added missing medium: $medium->{ url }";
             }

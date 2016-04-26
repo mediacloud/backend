@@ -46,7 +46,7 @@ use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 use MediaWords::Util::Bitly;
-use MediaWords::Job::Bitly::EnqueueAllControversyStories;
+use MediaWords::Job::Bitly::ProcessAllControversyStories;
 
 # max number of solely self linked stories to include
 Readonly my $MAX_SELF_LINKED_STORIES => 100;
@@ -2602,14 +2602,14 @@ sub mine_controversy ($$;$)
             die "Bit.ly processing is not enabled.";
         }
 
-        INFO( "enqueueing all (new) stories for Bit.ly processing ..." );
+        INFO( "Adding all (new) stories for Bit.ly processing queue..." );
 
-        # For the sake of simplicity, just re-enqueue all controversy's stories for
+        # For the sake of simplicity, just re-add all controversy's stories for
         # Bit.ly processing. The ones that are already processed (have a respective
         # record in the raw key-value database) will be skipped, and the new
-        # ones will be enqueued further for fetching Bit.ly stats.
+        # ones will be added to further jobs in the chain for fetching Bit.ly stats.
         my $args = { controversies_id => $controversy->{ controversies_id } };
-        MediaWords::Job::Bitly::EnqueueAllControversyStories->add_to_queue( $args );
+        MediaWords::Job::Bitly::ProcessAllControversyStories->add_to_queue( $args );
     }
 }
 

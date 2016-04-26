@@ -1,18 +1,18 @@
 #!/usr/bin/env perl
 #
-# Enqueue (extracted) stories for CoreNLP processing (either all of them of
+# Add extracted stories to CoreNLP processing queue (either all of them of
 # only a part of the stories based on a certain criteria).
 #
 # Usage:
 #
-#     mediawords_enqueue_stories_for_corenlp_processing.pl \
+#     mediawords_add_stories_to_corenlp_queue.pl \
 #         [--resume_stories_id_log=stories_id.log] \    # file to keep the last processed "stories_id" in
 #         [--overwrite] \                               # overwrite existing annotations (default is not to do that)
-#         [--media_id=1] \      # enqueue only stories with a specific "media_id"; may be comma-separated list
-#         [--feeds_id=1] \      # enqueue only stories with a specific "feeds_id"; may be comma-separated list
-#         [--stories_id=1] \    # enqueue only stories with a specific "stories_id"; may be a comma-separated list
-#         [--media_tags_id=1] \ # enqueue only stories with a specific "media_tags_id"; may be a comma-separated list
-#         [--stories_tags_id=1] \ # enqueue only stories with a specific "stories_tags_id"; may be a comma-separated list
+#         [--media_id=1] \      # add only stories with a specific "media_id"; may be comma-separated list
+#         [--feeds_id=1] \      # add only stories with a specific "feeds_id"; may be comma-separated list
+#         [--stories_id=1] \    # add only stories with a specific "stories_id"; may be a comma-separated list
+#         [--media_tags_id=1] \ # add only stories with a specific "media_tags_id"; may be a comma-separated list
+#         [--stories_tags_id=1] \ # add only stories with a specific "stories_tags_id"; may be a comma-separated list
 #
 # (then, to resume from where the script stopped, run the very same command again)
 #
@@ -37,7 +37,7 @@ use Getopt::Long;
 use MediaWords::Job::AnnotateWithCoreNLP;
 use Scalar::Util qw/looks_like_number/;
 
-# Returns a story's ID to continue enqueueing from
+# Returns a story's ID to continue from
 sub _resume_stories_id_from_log($)
 {
     my $resume_stories_id_log = shift;
@@ -98,13 +98,13 @@ sub _write_stories_id_resume_log($$)
 
 {
 
-    # Semi-global variables so both finish_up() and enqueue_stories_to_corenlp() can use them
+    # Semi-global variables so both finish_up() and add_stories_to_corenlp_queue() can use them
     my $global_resume_stories_id_log = undef;
     my $global_resume_stories_id     = 0;
     my $row                          = 0;
     my $rows_analyzed_since_resuming = 0;
     my $stories_found                = 0;
-    my $stories_enqueued             = 0;
+    my $stories_added                = 0;
 
     # Cleanup tasks after finishing normally or after receiving SIGINT
     sub finish($)
@@ -120,7 +120,7 @@ sub _write_stories_id_resume_log($$)
             say STDERR "Rows analyzed since resuming: $rows_analyzed_since_resuming";
         }
         say STDERR "Stories found: $stories_found (including duplicates)";
-        say STDERR "Stories enqueued: $stories_enqueued";
+        say STDERR "Stories added: $stories_added";
         if ( $global_resume_stories_id_log and ( !$successfully ) )
         {
             say STDERR "Will resume at story ID: $global_resume_stories_id";
@@ -139,8 +139,8 @@ sub _write_stories_id_resume_log($$)
         exit( 1 );
     }
 
-    # Enqueue stories for CoreNLP annotation
-    sub enqueue_stories_to_corenlp($$$$)
+    # Add stories for CoreNLP annotation processing queue
+    sub add_stories_to_corenlp_queue($$$$)
     {
         my ( $resume_stories_id_log, $resume_stories_id, $limit_by, $overwrite ) = @_;
 
@@ -173,7 +173,7 @@ sub _write_stories_id_resume_log($$)
 
         $rows_analyzed_since_resuming = 0;
         $stories_found                = 0;
-        $stories_enqueued             = 0;
+        $stories_added                = 0;
 
         $row = $resume_stories_id;
 
@@ -273,16 +273,16 @@ EOF
                     }
                 }
 
-                say STDERR "Will attempt to enqueue story " . $stories_id if ( _verbose() );
+                say STDERR "Will attempt to add story " . $stories_id if ( _verbose() );
 
                 ++$stories_found;
 
                 # Duplicate story IDs will be merged into a single job
                 MediaWords::Job::AnnotateWithCoreNLP->add_to_queue( { stories_id => $stories_id } );
 
-                say STDERR "Done enqueuing story " . $stories_id if ( _verbose() );
+                say STDERR "Done adding story " . $stories_id if ( _verbose() );
 
-                ++$stories_enqueued;
+                ++$stories_added;
             }
         }
 
@@ -377,7 +377,7 @@ EOF
     {
         if ( $limit_by->{ $limit_by_key } )
         {
-            say STDERR "Will enqueue only stories with $limit_by_key IN (" .
+            say STDERR "Will add only stories with $limit_by_key IN (" .
               join( ', ', @{ $limit_by->{ $limit_by_key } } ) . ').';
         }
         else
@@ -386,7 +386,7 @@ EOF
         }
     }
 
-    enqueue_stories_to_corenlp( $resume_stories_id_log, $resume_stories_id, $limit_by, $overwrite );
+    add_stories_to_corenlp_queue( $resume_stories_id_log, $resume_stories_id, $limit_by, $overwrite );
 
     say STDERR "finished --  " . localtime();
 }

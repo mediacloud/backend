@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 #
-# Enqueue MediaWords::Job::CM::DumpControversy job
+# Add MediaWords::Job::CM::DumpControversy job
 #
 
 use strict;
@@ -55,7 +55,7 @@ sub main
 
         my $args = { controversies_id => $controversies_id };
         my $job_id = MediaWords::Job::CM::DumpControversy->add_to_queue( $args );
-        say STDERR "Enqueued controversy ID $controversies_id ('$controversy->{ name }') with job ID: $job_id";
+        say STDERR "Added controversy ID $controversies_id ('$controversy->{ name }') with job ID: $job_id";
     }
 
 }

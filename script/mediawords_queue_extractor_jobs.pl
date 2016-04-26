@@ -1,8 +1,7 @@
 #!/usr/bin/env perl
 
 #
-# Enqueue MediaWords::Job::ExtractAndVector jobs for all downloads
-# in the scratch.reextract_downloads table
+# Add MediaWords::Job::ExtractAndVector job for every download in the scratch.reextract_downloads table
 #
 
 use strict;

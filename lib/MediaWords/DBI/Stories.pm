@@ -534,7 +534,7 @@ sub process_extracted_story
     if (    MediaWords::Util::CoreNLP::annotator_is_enabled()
         and MediaWords::Util::CoreNLP::story_is_annotatable( $db, $stories_id ) )
     {
-        # Story is annotatable with CoreNLP; enqueue for CoreNLP annotation
+        # Story is annotatable with CoreNLP; add to CoreNLP processing queue
         # (which will run mark_as_processed() on its own)
         MediaWords::Job::AnnotateWithCoreNLP->add_to_queue( { stories_id => $stories_id } );
 
