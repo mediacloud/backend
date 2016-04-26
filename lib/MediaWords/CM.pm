@@ -105,40 +105,4 @@ sub get_time_slice_for_controversy
     return $cdts;
 }
 
-sub get_time_slice_for_controversy_2
-{
-    my ( $db, $controversies_id, $timeslice, $snapshot ) = @_;
-    my $cdts        = undef;
-    my $whereclause = '';
-    if ( $timeslice )
-    {
-        if ( $snapshot )
-        {
-            return $cdts;
-        }
-        else
-        {
-            $whereclause = "cdts.controversy_dump_time_slices_id = $timeslice";
-        }
-    }
-    elsif ( $snapshot )
-    {
-        $whereclause = "cd.controversy_dumps_id = $snapshot order by cd.dump_date desc limit 1";
-    }
-    else
-    {
-        $whereclause = "cdts.period = \'overall\' order by cd.dump_date desc limit 1";
-    }
-
-    $cdts = $db->query( <<SQL )->hash;
-select *
-  from controversy_dump_time_slices cdts
-    join controversy_dumps cd on (cd.controversy_dumps_id = cdts.controversy_dumps_id)
-    where
-      cd.controversies_id = $controversies_id and
-      $whereclause
-SQL
-    return $cdts;
-}
-
 1;

@@ -48,10 +48,12 @@ sub list_GET
     $entity->{ timeslice } = $cdts;
     if ( $cdts )
     {
-        $entity->{ stories } = $db->query( <<SQL, $cdts->{ controversy_dump_time_slices_id } )->hashes;
+        $entity->{ stories } =
+          $db->query( <<SQL, $cdts->{ controversy_dump_time_slices_id }, $cdts->{ controversy_dumps_id } )->hashes;
 select * from cd.story_link_counts slc
   join cd.stories s on slc.stories_id = s.stories_id
   where slc.controversy_dump_time_slices_id = \$1
+  and s.controversy_dumps_id = \$2
 SQL
         $self->status_ok( $c, entity => $entity );
     }
