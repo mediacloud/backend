@@ -15,24 +15,26 @@ use MediaWords::Util::Config;
 
     use Moose;
     use MediaCloud::JobManager::Configuration;
+    use MediaCloud::JobManager::Broker::Gearman;
     extends 'MediaCloud::JobManager::Configuration';
 
-    # Media Cloud configuration
-    has 'mc_config' => ( is => 'rw' );
+    # Job broker
+    has 'job_broker' => ( is => 'rw' );
 
     sub BUILD
     {
         my $self = shift;
 
-        # Read configuration
-        $self->mc_config( MediaWords::Util::Config::get_config() );
+        my $config = MediaWords::Util::Config::get_config();
+
+        $self->job_broker( MediaCloud::JobManager::Broker::Gearman->new( servers => $config->{ gearman }->{ servers }, ) );
     }
 
-    # Default Gearman servers to connect to
-    override 'gearman_servers' => sub {
+    # Job broker
+    override 'broker' => sub {
         my $self = shift;
 
-        return $self->mc_config->{ gearman }->{ servers };
+        return $self->job_broker;
     };
 
     # Where should the worker put the logs
