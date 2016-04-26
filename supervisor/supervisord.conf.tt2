@@ -88,8 +88,8 @@ programs = crawler
     default_nice=12
 %]
 
-; Gearman (p5-Gearman-JobScheduler) functions
-[group:gearman]
+; Job brokers
+[group:job_broker]
 programs = gearmand
 
 [% INCLUDE program_config
