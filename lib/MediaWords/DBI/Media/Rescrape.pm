@@ -14,7 +14,7 @@ use MediaWords::Util::Log;
 
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Feeds;
-use MediaWords::GearmanFunction::RescrapeMedia;
+use MediaWords::Job::RescrapeMedia;
 use Feed::Scrape::MediaWords;
 
 use URI;
@@ -26,7 +26,7 @@ sub enqueue_rescrape_media($)
 {
     my ( $medium ) = @_;
 
-    return MediaWords::GearmanFunction::RescrapeMedia->enqueue_on_gearman( { media_id => $medium->{ media_id } } );
+    return MediaWords::Job::RescrapeMedia->enqueue_on_gearman( { media_id => $medium->{ media_id } } );
 }
 
 # for each medium in $media, enqueue an RescrapeMedia job for any medium

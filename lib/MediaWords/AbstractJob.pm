@@ -1,4 +1,4 @@
-package MediaWords::GearmanFunction;
+package MediaWords::AbstractJob;
 
 #
 # Superclass of all Media Cloud Gearman functions

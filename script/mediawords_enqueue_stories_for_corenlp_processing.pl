@@ -34,7 +34,7 @@ use MediaWords::CommonLibs;
 use MediaWords::Util::Config;
 use MediaWords::Util::CoreNLP;
 use Getopt::Long;
-use MediaWords::GearmanFunction::AnnotateWithCoreNLP;
+use MediaWords::Job::AnnotateWithCoreNLP;
 use Scalar::Util qw/looks_like_number/;
 
 # Returns a story's ID to continue enqueueing from
@@ -278,7 +278,7 @@ EOF
                 ++$stories_found;
 
                 # Duplicate story IDs will be merged into a single Gearman job
-                MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman( { stories_id => $stories_id } );
+                MediaWords::Job::AnnotateWithCoreNLP->enqueue_on_gearman( { stories_id => $stories_id } );
 
                 say STDERR "Done enqueuing story " . $stories_id if ( _verbose() );
 

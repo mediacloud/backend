@@ -2982,7 +2982,7 @@ CREATE TABLE gearman_job_queue (
     -- Last status update time
     last_modified           TIMESTAMP                   NOT NULL DEFAULT LOCALTIMESTAMP,
 
-    -- Gearman function name (e.g. "MediaWords::GearmanFunction::CM::DumpControversy")
+    -- Gearman function name (e.g. "MediaWords::Job::CM::DumpControversy")
     function_name           VARCHAR(255)                NOT NULL,
 
     -- Gearman job handle (e.g. "H:tundra.local:8")
@@ -3001,7 +3001,7 @@ CREATE TABLE gearman_job_queue (
     -- In the Gearman::JobScheduler's case, this is a SHA256 of the serialized
     -- Gearman function name and its parameters, e.g.
     --
-    --     sha256_hex("MediaWords::GearmanFunction::CM::DumpControversy({controversies_id => 1})")
+    --     sha256_hex("MediaWords::Job::CM::DumpControversy({controversies_id => 1})")
     --     =
     --     "b9758abbd3811b0aaa53d0e97e188fcac54f58a876bb409b7395621411401ee8"
     --

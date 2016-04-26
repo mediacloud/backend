@@ -46,7 +46,7 @@ use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 use MediaWords::Util::Bitly;
-use MediaWords::GearmanFunction::Bitly::EnqueueAllControversyStories;
+use MediaWords::Job::Bitly::EnqueueAllControversyStories;
 
 # max number of solely self linked stories to include
 Readonly my $MAX_SELF_LINKED_STORIES => 100;
@@ -2609,7 +2609,7 @@ sub mine_controversy ($$;$)
         # record in the raw key-value database) will be skipped, and the new
         # ones will be enqueued further for fetching Bit.ly stats.
         my $args = { controversies_id => $controversy->{ controversies_id } };
-        MediaWords::GearmanFunction::Bitly::EnqueueAllControversyStories->enqueue_on_gearman( $args );
+        MediaWords::Job::Bitly::EnqueueAllControversyStories->enqueue_on_gearman( $args );
     }
 }
 

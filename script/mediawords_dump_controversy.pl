@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 #
-# Enqueue MediaWords::GearmanFunction::CM::DumpControversy job
+# Enqueue MediaWords::Job::CM::DumpControversy job
 #
 
 use strict;
@@ -19,18 +19,12 @@ use MediaWords::CommonLibs;
 use MediaWords::CM::Dump;
 use MediaWords::DB;
 use MediaWords::CM;
-use MediaWords::GearmanFunction;
-use MediaWords::GearmanFunction::CM::DumpControversy;
+use MediaWords::Job::CM::DumpControversy;
 use Gearman::JobScheduler;
 
 sub main
 {
     my ( $controversy_opt, $direct_job );
-
-    unless ( MediaWords::GearmanFunction::gearman_is_enabled() )
-    {
-        die "Gearman is disabled.";
-    }
 
     binmode( STDOUT, 'utf8' );
     binmode( STDERR, 'utf8' );
@@ -61,7 +55,7 @@ sub main
         }
 
         my $args = { controversies_id => $controversies_id };
-        my $gearman_job_id = MediaWords::GearmanFunction::CM::DumpControversy->enqueue_on_gearman( $args );
+        my $gearman_job_id = MediaWords::Job::CM::DumpControversy->enqueue_on_gearman( $args );
         say STDERR
           "Enqueued controversy ID $controversies_id ('$controversy->{ name }') on Gearman with job ID: $gearman_job_id";
 
@@ -70,8 +64,7 @@ sub main
         #     sleep(1);
         # before calling log_path_for_gearman_job()
         my $log_path =
-          Gearman::JobScheduler::log_path_for_gearman_job( MediaWords::GearmanFunction::CM::DumpControversy->name(),
-            $gearman_job_id );
+          Gearman::JobScheduler::log_path_for_gearman_job( MediaWords::Job::CM::DumpControversy->name(), $gearman_job_id );
         if ( $log_path )
         {
             say STDERR "The job is writing its log to: $log_path";

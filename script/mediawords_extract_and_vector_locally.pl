@@ -25,7 +25,7 @@ use MediaWords::CommonLibs;
 use MediaWords::Util::Process;
 
 use MediaWords::DB;
-use MediaWords::GearmanFunction::ExtractAndVector;
+use MediaWords::Job::ExtractAndVector;
 use Readonly;
 
 # number of downloads to fetch at a time
@@ -72,7 +72,7 @@ EOF
             eval {
 
                 # Run the Gearman function locally
-                $return_value = MediaWords::GearmanFunction::ExtractAndVector->run_locally( $download );
+                $return_value = MediaWords::Job::ExtractAndVector->run_locally( $download );
 
             };
             if ( $@ or ( !$return_value ) )

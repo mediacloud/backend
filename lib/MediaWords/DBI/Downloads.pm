@@ -45,7 +45,7 @@ use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
 use MediaWords::StoryVectors;
 use MediaWords::Util::Paths;
-use MediaWords::GearmanFunction::AnnotateWithCoreNLP;
+use MediaWords::Job::AnnotateWithCoreNLP;
 use MediaWords::Util::ThriftExtractor;
 
 # FCGI might be running from an unwritable path so we need to set a custom

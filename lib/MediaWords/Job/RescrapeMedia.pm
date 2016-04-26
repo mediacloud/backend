@@ -1,4 +1,4 @@
-package MediaWords::GearmanFunction::RescrapeMedia;
+package MediaWords::Job::RescrapeMedia;
 
 #
 # Search and add new feeds for unmoderated media (media sources that have not
@@ -6,7 +6,7 @@ package MediaWords::GearmanFunction::RescrapeMedia;
 #
 # Start this worker script by running:
 #
-# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/RescrapeMedia.pm
+# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/Job/RescrapeMedia.pm
 #
 # FIXME some output of the job is still logged to STDOUT and not to the log:
 #
@@ -22,7 +22,7 @@ use strict;
 use warnings;
 
 use Moose;
-with 'MediaWords::GearmanFunction';
+with 'MediaWords::AbstractJob';
 
 BEGIN
 {

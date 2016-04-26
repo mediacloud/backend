@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 #
-# Enqueue MediaWords::GearmanFunction::RescrapeMedia job
+# Enqueue MediaWords::Job::RescrapeMedia job
 #
 
 use strict;
@@ -15,16 +15,11 @@ BEGIN
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
-use MediaWords::GearmanFunction;
+use MediaWords::AbstractJob;
 use MediaWords::DBI::Media;
 
 sub main
 {
-    unless ( MediaWords::GearmanFunction::gearman_is_enabled() )
-    {
-        die "Gearman is disabled.";
-    }
-
     my $db = MediaWords::DB::connect_to_db;
 
     while ( 1 )

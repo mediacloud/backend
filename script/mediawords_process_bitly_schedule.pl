@@ -16,7 +16,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 use MediaWords::DB;
 use MediaWords::Util::Bitly::Schedule;
-use MediaWords::GearmanFunction::Bitly::FetchStoryStats;
+use MediaWords::Job::Bitly::FetchStoryStats;
 
 use Readonly;
 

@@ -17,7 +17,7 @@ use MediaWords::CommonLibs;
 use MediaWords::DB;
 use MediaWords::Util::Bitly;
 use MediaWords::CM;
-use MediaWords::GearmanFunction::Bitly::AggregateStoryStats;
+use MediaWords::Job::Bitly::AggregateStoryStats;
 
 use Getopt::Long;
 use Readonly;
@@ -86,7 +86,7 @@ EOF
             }
 
             say STDERR "Enqueueing story $stories_id...";
-            MediaWords::GearmanFunction::Bitly::AggregateStoryStats->enqueue_on_gearman( { stories_id => $stories_id } );
+            MediaWords::Job::Bitly::AggregateStoryStats->enqueue_on_gearman( { stories_id => $stories_id } );
         }
     }
 }

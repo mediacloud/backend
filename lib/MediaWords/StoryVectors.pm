@@ -490,7 +490,7 @@ sub update_story_sentences_and_language
         # We enqueue an identical job in MediaWords::DBI::Downloads::process_download_for_extractor() too,
         # but duplicate the enqueue_on_gearman() call here just to make sure that story gets reannotated
         # on each sentence change. Both of these jobs are to be merged into a single job by Gearman.
-        MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman( { stories_id => $stories_id } );
+        MediaWords::Job::AnnotateWithCoreNLP->enqueue_on_gearman( { stories_id => $stories_id } );
 
     }
 }

@@ -1,11 +1,11 @@
-package MediaWords::GearmanFunction::AnnotateWithCoreNLP;
+package MediaWords::Job::AnnotateWithCoreNLP;
 
 #
 # Process story with CoreNLP annotator HTTP service
 #
 # Start this worker script by running:
 #
-# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/AnnotateWithCoreNLP.pm
+# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/Job/AnnotateWithCoreNLP.pm
 #
 
 use strict;

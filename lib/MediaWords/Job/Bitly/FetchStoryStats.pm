@@ -1,11 +1,11 @@
-package MediaWords::GearmanFunction::Bitly::FetchStoryStats;
+package MediaWords::Job::Bitly::FetchStoryStats;
 
 #
 # Fetch story's click counts via Bit.ly API
 #
 # Start this worker script by running:
 #
-# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/Bitly/FetchStoryStats.pm
+# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/Job/Bitly/FetchStoryStats.pm
 #
 
 use strict;
@@ -32,7 +32,7 @@ use MediaWords::Util::Bitly;
 use MediaWords::Util::Bitly::API;
 use MediaWords::Util::Process;
 use MediaWords::Util::GearmanJobSchedulerConfiguration;
-use MediaWords::GearmanFunction::Bitly::AggregateStoryStats;
+use MediaWords::Job::Bitly::AggregateStoryStats;
 use Readonly;
 use Data::Dumper;
 
@@ -126,7 +126,7 @@ sub run($;$)
     say STDERR "Done storing story stats for story $stories_id.";
 
     # Enqueue aggregating Bit.ly stats
-    MediaWords::GearmanFunction::Bitly::AggregateStoryStats->enqueue_on_gearman( { stories_id => $stories_id } );
+    MediaWords::Job::Bitly::AggregateStoryStats->enqueue_on_gearman( { stories_id => $stories_id } );
 }
 
 # write a single log because there are a lot of Bit.ly processing jobs so it's

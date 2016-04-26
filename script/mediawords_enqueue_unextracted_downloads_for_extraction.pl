@@ -21,7 +21,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::DB;
-use MediaWords::GearmanFunction::ExtractAndVector;
+use MediaWords::Job::ExtractAndVector;
 
 sub main
 {
@@ -46,7 +46,7 @@ EOF
     {
 
         say STDERR 'Enqueueing download ID ' . $download->{ downloads_id } . '...';
-        MediaWords::GearmanFunction::ExtractAndVector->enqueue_on_gearman( { downloads_id => $download->{ downloads_id } } );
+        MediaWords::Job::ExtractAndVector->enqueue_on_gearman( { downloads_id => $download->{ downloads_id } } );
 
         # throttle to 100 connections a second to prevent running the
         # system out of connections stuck in TIME_WAIT

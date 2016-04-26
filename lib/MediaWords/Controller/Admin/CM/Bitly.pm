@@ -8,7 +8,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::Util::Bitly;
-use MediaWords::GearmanFunction::Bitly::EnqueueAllControversyStories;
+use MediaWords::Job::Bitly::EnqueueAllControversyStories;
 
 use base 'Catalyst::Controller::HTML::FormFu';
 
@@ -80,7 +80,7 @@ sub add_to_queue : Local
     }
 
     my $args = { controversies_id => $controversies_id };
-    my $gearman_job_id = MediaWords::GearmanFunction::Bitly::EnqueueAllControversyStories->enqueue_on_gearman( $args );
+    my $gearman_job_id = MediaWords::Job::Bitly::EnqueueAllControversyStories->enqueue_on_gearman( $args );
     unless ( $gearman_job_id )
     {
         die "Gearman job didn't return a job ID for controversy ID $controversies_id";

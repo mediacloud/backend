@@ -16,19 +16,13 @@ BEGIN
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
-use MediaWords::GearmanFunction;
-use MediaWords::GearmanFunction::RescrapeMedia;
+use MediaWords::Job::RescrapeMedia;
 
 use Readonly;
 use Getopt::Long;
 
 sub main
 {
-    unless ( MediaWords::GearmanFunction::gearman_is_enabled() )
-    {
-        die "Gearman is disabled.";
-    }
-
     Readonly my $usage => <<EOF;
 Usage: $0 [ --tag tag_name ]
 EOF
@@ -94,7 +88,7 @@ EOF
     say STDERR "Media count to be rescraped: " . scalar( @{ $due_media } );
     foreach my $media ( @{ $due_media } )
     {
-        MediaWords::GearmanFunction::RescrapeMedia->enqueue_on_gearman( { media_id => $media->{ media_id } } );
+        MediaWords::Job::RescrapeMedia->enqueue_on_gearman( { media_id => $media->{ media_id } } );
     }
 }
 

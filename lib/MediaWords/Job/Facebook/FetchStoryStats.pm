@@ -1,11 +1,11 @@
-package MediaWords::GearmanFunction::Bitly::AggregateStoryStats;
+package MediaWords::Job::Facebook::FetchStoryStats;
 
 #
-# Use story's click counts to fill up aggregated stats table
+# Fetch story's share count statistics via Facebook's Graph API
 #
 # Start this worker script by running:
 #
-# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/Bitly/AggregateStoryStats.pm
+# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/Job/Facebook/FetchStoryStats.pm
 #
 
 use strict;
@@ -13,7 +13,7 @@ use warnings;
 
 use Moose;
 
-# Don't log each and every extraction job into the database
+# Don't log each and every job into the database
 with 'Gearman::JobScheduler::AbstractFunction';
 
 BEGIN
@@ -28,8 +28,10 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::DB;
+use MediaWords::Util::Config;
+use MediaWords::Util::Facebook;
+use MediaWords::Util::Process;
 use MediaWords::Util::GearmanJobSchedulerConfiguration;
-use MediaWords::Util::Bitly;
 use Readonly;
 use Data::Dumper;
 
@@ -42,51 +44,44 @@ sub run($;$)
 {
     my ( $self, $args ) = @_;
 
+    my $config = MediaWords::Util::Config::get_config();
+    unless ( $config->{ facebook }->{ enabled } eq 'yes' )
+    {
+        fatal_error( 'Facebook API processing is not enabled.' );
+    }
+
     # Postpone connecting to the database so that compile test doesn't do that
     $db ||= MediaWords::DB::connect_to_db();
 
     my $stories_id = $args->{ stories_id } or die "'stories_id' is not set.";
 
-    say STDERR "Aggregating story stats for story $stories_id...";
-
     my $story = $db->find_by_id( 'stories', $stories_id );
     unless ( $story )
     {
-        die "Unable to find story $stories_id.";
+        die "Story ID $stories_id was not found.";
     }
 
-    my $stats = MediaWords::Util::Bitly::read_story_stats( $db, $stories_id );
-    unless ( defined $stats )
+    say STDERR "Fetching story stats for story $stories_id...";
+    eval {
+
+        my $stories_url = $story->{ url };
+        unless ( $stories_url )
+        {
+            die "Story URL for story ID $stories_id is empty.";
+        }
+        say STDERR "Story URL: $stories_url";
+
+        my ( $share_count, $comment_count ) = MediaWords::Util::Facebook::get_and_store_share_comment_counts( $db, $story );
+        say STDERR "share count: $share_count, comment count: $comment_count";
+    };
+    if ( $@ )
     {
-        die "Stats for story $stories_id is undefined; perhaps story is not (yet) processed with Bit.ly?";
+        die "Facebook helper died while fetching and storing statistics: $@";
     }
-    unless ( ref( $stats ) eq ref( {} ) )
+    else
     {
-        die "Stats for story $stories_id is not a hashref.";
+        say STDERR "Done fetching story stats for story $stories_id.";
     }
-
-    my $agg_stats = MediaWords::Util::Bitly::aggregate_story_stats( $stories_id, $story->{ url }, $stats );
-
-    my $total_click_count = $agg_stats->total_click_count();
-    say STDERR "Story's $stories_id total click count: $total_click_count";
-
-    $db->query(
-        <<EOF,
-        SELECT upsert_bitly_clicks_total(?, ?)
-EOF
-        $stories_id, $total_click_count
-    );
-
-    # say STDERR "Adding story $stories_id to Solr (re)import queue...";
-    $db->query(
-        <<EOF,
-        INSERT INTO solr_import_extra_stories (stories_id)
-        VALUES (?)
-EOF
-        $stories_id
-    );
-
-    say STDERR "Done aggregating story stats for story $stories_id.";
 }
 
 # write a single log because there are a lot of Bit.ly processing jobs so it's

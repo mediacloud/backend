@@ -1,11 +1,11 @@
-package MediaWords::GearmanFunction::Bitly::EnqueueAllControversyStories;
+package MediaWords::Job::Bitly::EnqueueAllControversyStories;
 
 #
 # Enqueue all controversy's stories for processing via Bit.ly API
 #
 # Start this worker script by running:
 #
-# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/Bitly/EnqueueAllControversyStories.pm
+# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/Job/Bitly/EnqueueAllControversyStories.pm
 #
 
 use strict;
@@ -31,7 +31,7 @@ use MediaWords::DB;
 use MediaWords::Util::GearmanJobSchedulerConfiguration;
 use MediaWords::Util::Bitly;
 use MediaWords::Util::DateTime;
-use MediaWords::GearmanFunction::Bitly::FetchStoryStats;
+use MediaWords::Job::Bitly::FetchStoryStats;
 use Readonly;
 
 # Having a global database object should be safe because
@@ -159,7 +159,7 @@ EOF
                 start_timestamp => $start_timestamp,
                 end_timestamp   => $end_timestamp
             };
-            MediaWords::GearmanFunction::Bitly::FetchStoryStats->enqueue_on_gearman( $args );
+            MediaWords::Job::Bitly::FetchStoryStats->enqueue_on_gearman( $args );
 
             say STDERR "Done enqueueing story $stories_id for Bit.ly processing.";
         }

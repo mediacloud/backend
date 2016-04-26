@@ -1,11 +1,11 @@
-package MediaWords::GearmanFunction::ExtractAndVector;
+package MediaWords::Job::ExtractAndVector;
 
 #
 # Extract and vector a download
 #
 # Start this worker script by running:
 #
-# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/ExtractAndVector.pm
+# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/Job/ExtractAndVector.pm
 #
 
 use strict;
@@ -162,13 +162,13 @@ sub extract_for_crawler
     if ( MediaWords::Util::Config::get_config->{ mediawords }->{ extract_in_process } )
     {
         DEBUG "extracting in process...";
-        MediaWords::GearmanFunction::ExtractAndVector->run( $args );
+        MediaWords::Job::ExtractAndVector->run( $args );
     }
     else
     {
         while ( 1 )
         {
-            eval { MediaWords::GearmanFunction::ExtractAndVector->enqueue_on_gearman( $args ); };
+            eval { MediaWords::Job::ExtractAndVector->enqueue_on_gearman( $args ); };
 
             if ( $@ )
             {

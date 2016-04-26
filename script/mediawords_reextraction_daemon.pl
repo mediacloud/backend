@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 #
-# Enqueue MediaWords::GearmanFunction::ExtractAndVector jobs for all downloads
+# Enqueue MediaWords::Job::ExtractAndVector jobs for all downloads
 # in the scratch.reextract_downloads table
 #
 
@@ -20,18 +20,12 @@ use Time::HiRes qw (time );
 use Parallel::ForkManager;
 
 use MediaWords::CommonLibs;
-use MediaWords::GearmanFunction;
-use MediaWords::GearmanFunction::ExtractAndVector;
+use MediaWords::Job::ExtractAndVector;
 use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::ExtractorVersion;
 
 sub main
 {
-    unless ( MediaWords::GearmanFunction::gearman_is_enabled() )
-    {
-        die "Gearman is disabled.";
-    }
-
     my $tags_id =
       MediaWords::DBI::Stories::ExtractorVersion::get_current_extractor_version_tags_id( MediaWords::DB::connect_to_db() );
 
@@ -69,9 +63,9 @@ sub main
 
         say STDERR "Checking gearman queue";
 
-        my $gearman_queued_jobs = $gearman_db->query(
-            "SELECT count(*) from queue where function_name = 'MediaWords::GearmanFunction::ExtractAndVector' " )->flat()
-          ->[ 0 ];
+        my $gearman_queued_jobs =
+          $gearman_db->query( "SELECT count(*) from queue where function_name = 'MediaWords::Job::ExtractAndVector' " )
+          ->flat()->[ 0 ];
 
         say STDERR "Gearman queued jobs $gearman_queued_jobs";
 
@@ -136,7 +130,7 @@ END_SQL
         {
             unless ( $pm->start )
             {
-                MediaWords::GearmanFunction::ExtractAndVector->enqueue_on_gearman(
+                MediaWords::Job::ExtractAndVector->enqueue_on_gearman(
                     { stories_id => $stories_id, disable_story_triggers => 1 } );
                 $pm->finish;
             }

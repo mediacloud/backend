@@ -6,4 +6,4 @@ use Test::NoWarnings;
 
 $Test::Strict::TEST_WARNINGS = 1;
 
-all_perl_files_ok( 'lib/MediaWords/GearmanFunction' );
+all_perl_files_ok( 'lib/MediaWords/Job' );
