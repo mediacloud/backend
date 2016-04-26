@@ -64,12 +64,12 @@ sub main
           $gearman_db->query( "SELECT count(*) from queue where function_name = 'MediaWords::Job::ExtractAndVector' " )
           ->flat()->[ 0 ];
 
-        say STDERR "Gearman queued jobs $gearman_queued_jobs";
+        say STDERR "Enqueued jobs: $gearman_queued_jobs";
 
         if ( $gearman_queued_jobs > $gearman_queue_limit )
         {
             say STDERR
-"Gearman queue contains more then $gearman_queue_limit jobs ( $gearman_queued_jobs) sleeping $sleep_time seconds";
+              "Queue contains more then $gearman_queue_limit jobs ($gearman_queued_jobs) sleeping $sleep_time seconds";
             sleep $sleep_time;
             $total_sleep_time += $sleep_time;
             next;

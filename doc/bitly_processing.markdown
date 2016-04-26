@@ -13,9 +13,9 @@ Fetching the click count 3 days after story publication allows us to get some li
 
 2. `add_to_processing_schedule()` adds two rows for each story to `bitly_processing_schedule` table in order to (re)fetch the total story's click count after 3 and 30 days since its publication or collection date.
 
-3. `mediawords_process_bitly_schedule.pl` is being run periodically and adds due stories from `bitly_processing_schedule` table to `::Job::Bitly::FetchStoryStats` Gearman queue for the click count to be (re)fetched.
+3. `mediawords_process_bitly_schedule.pl` is being run periodically and adds due stories from `bitly_processing_schedule` table to `::Job::Bitly::FetchStoryStats` job queue for the click count to be (re)fetched.
 
-4. `::Job::Bitly::FetchStoryStats` worker fetches a list of days and clicks from Bit.ly API, stores the raw JSON response on Amazon S3, and adds `::Job::Bitly::AggregateStoryStats` Gearman job which will in turn process the raw data just fetched (add daily click counts into a single total click count).
+4. `::Job::Bitly::FetchStoryStats` worker fetches a list of days and clicks from Bit.ly API, stores the raw JSON response on Amazon S3, and adds `::Job::Bitly::AggregateStoryStats` job which will in turn process the raw data just fetched (add daily click counts into a single total click count).
 
 5. `::Job::Bitly::AggregateStoryStats` fetches the raw JSON response from S3 (or from the local cache), adds daily click counts together to get the total story's click count, stores the total count in `bitly_clicks_total` table, and lastly adds the story to the Solr processing queue so that the story gets reimported into Solr with the total click count now being present.
 

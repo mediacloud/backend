@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 #
 # Run a loop extracting the text of any downloads that have not been extracted
-# yet locally (not on Gearman)
+# yet locally (not on job broker)
 #
 # Usage: mediawords_extract_and_vector_locally.pl [<num of processes>] [<number of total jobs>] [<number of this job>]
 #
@@ -71,14 +71,14 @@ EOF
 
             eval {
 
-                # Run the Gearman function locally
+                # Run the job locally
                 $return_value = MediaWords::Job::ExtractAndVector->run_locally( $download );
 
             };
             if ( $@ or ( !$return_value ) )
             {
 
-                # Probably the download was not found (Gearman function will
+                # Probably the download was not found (job will
                 # take care of writing an error message to the database, so we
                 # only output an error here)
                 say STDERR "Extractor died while processing download " . $download->{ downloads_id } . ": $@\n";

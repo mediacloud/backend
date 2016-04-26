@@ -55,7 +55,7 @@ SQL
     $c->stash->{ template }                  = 'cm/bitly/status.tt2';
 }
 
-# enqueue a Gearman job which will, in turn, enqueue all controversy's stories
+# enqueue a job which will, in turn, enqueue all controversy's stories
 # for Bit.ly processing
 sub add_to_queue : Local
 {
@@ -80,10 +80,10 @@ sub add_to_queue : Local
     }
 
     my $args = { controversies_id => $controversies_id };
-    my $gearman_job_id = MediaWords::Job::Bitly::EnqueueAllControversyStories->enqueue_on_gearman( $args );
-    unless ( $gearman_job_id )
+    my $job_id = MediaWords::Job::Bitly::EnqueueAllControversyStories->enqueue_on_gearman( $args );
+    unless ( $job_id )
     {
-        die "Gearman job didn't return a job ID for controversy ID $controversies_id";
+        die "Job didn't return a job ID for controversy ID $controversies_id";
     }
 
     my $url = $c->uri_for( "/admin/cm/view/$controversies_id",

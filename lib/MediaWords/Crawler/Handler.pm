@@ -210,7 +210,7 @@ END
     return $ret;
 }
 
-# queue a gearman extraction job for the story
+# queue an extraction job for the story
 sub _queue_story_extraction($$)
 {
     my ( $self, $download ) = @_;

@@ -53,7 +53,7 @@ END
 }
 
 # (re-)enqueue RescrapeMedia jobs for all unmoderated media
-# ("RescrapeMedia" Gearman function is "unique", so Gearman will skip media
+# ("RescrapeMedia" job is "unique", so job broker will skip media
 # IDs that are already enqueued)
 sub enqueue_rescrape_media_for_unmoderated_media($)
 {

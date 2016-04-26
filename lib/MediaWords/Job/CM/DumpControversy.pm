@@ -29,7 +29,7 @@ use MediaWords::CM::Dump;
 use MediaWords::DB;
 
 # Having a global database object should be safe because
-# Gearman::JobScheduler's workers don't support fork()s anymore
+# job workers don't fork()
 my $db = undef;
 
 # Run job

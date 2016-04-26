@@ -43,12 +43,12 @@ sub fetch_stats
             eval( "MediaWords::Job::${ type }::FetchStoryStats->run_locally( \$args );" );
             if ( $@ )
             {
-                say STDERR "Gearman worker died while fetching and storing $stories_id: $@";
+                say STDERR "Worker died while fetching and storing $stories_id: $@";
             }
         }
         else
         {
-            say STDERR "Enqueueing Gearman job for story $stories_id...";
+            say STDERR "Enqueueing job for story $stories_id...";
             eval( "MediaWords::Job::${ type }::FetchStoryStats->enqueue_on_gearman( \$args )" );
             if ( $@ )
             {

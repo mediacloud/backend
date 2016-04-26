@@ -84,19 +84,19 @@ use MediaWords::Util::Config;
     use MediaWords::DB;
     use Gearman::JobScheduler;
 
-    # (Gearman::JobScheduler::AbstractFunction implementation) Run job
+    # Run job
     sub run($;$)
     {
         my ( $self, $args ) = @_;
 
-        die "This is a placeholder implementation of the run() subroutine for the Gearman function.";
+        die "This is a placeholder implementation of the run() subroutine for a job.";
     }
 
-    # (Gearman::JobScheduler::AbstractFunction implementation) Return default configuration
+    # Return default configuration
     sub configuration()
     {
         # It would be great to place configuration() in some sort of a superclass
-        # for all the Media Cloud Gearman functions, but Moose::Role doesn't
+        # for all the Media Cloud jobs, but Moose::Role doesn't
         # support that :(
         return MediaWords::AbstractJob::Configuration->instance;
     }

@@ -82,12 +82,12 @@ END
                     eval { MediaWords::Job::Facebook::FetchStoryStats->run_locally( $args ); };
                     if ( $@ )
                     {
-                        say STDERR "Gearman worker died while fetching and storing statistics: $@";
+                        say STDERR "Worker died while fetching and storing statistics: $@";
                     }
                 }
                 else
                 {
-                    say STDERR "Enqueueing Gearman job for story $stories_id...";
+                    say STDERR "Enqueueing job for story $stories_id...";
                     MediaWords::Job::Facebook::FetchStoryStats->enqueue_on_gearman( $args );
                 }
             }

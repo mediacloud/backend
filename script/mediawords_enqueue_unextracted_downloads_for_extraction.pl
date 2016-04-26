@@ -1,11 +1,11 @@
 #!/usr/bin/env perl
 #
-# Enqueue unextracted downloads on Gearman.
+# Add unextracted downloads to job queue.
 #
 # It is safe to run this as many times as you want because the extraction job
-# on Gearman is unique so download extractions won't be duplicated.
+# is "unique" so download extractions won't be duplicated.
 #
-# Usage: mediawords_enqueue_unextracted_downloads_on_gearman.pl
+# Usage: mediawords_enqueue_unextracted_downloads_for_extraction.pl
 #
 
 use strict;

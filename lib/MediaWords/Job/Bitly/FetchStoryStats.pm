@@ -40,7 +40,7 @@ Readonly my $BITLY_RATE_LIMIT_SECONDS_TO_WAIT => 60 * 10;    # every 10 minutes
 Readonly my $BITLY_RATE_LIMIT_TRIES => 7;                    # try fetching 7 times in total (70 minutes)
 
 # Having a global database object should be safe because
-# Gearman::JobScheduler's workers don't support fork()s anymore
+# job workers don't fork()
 my $db = undef;
 
 # Run job

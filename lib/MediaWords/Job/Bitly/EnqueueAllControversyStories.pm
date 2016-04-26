@@ -32,7 +32,7 @@ use MediaWords::Job::Bitly::FetchStoryStats;
 use Readonly;
 
 # Having a global database object should be safe because
-# Gearman::JobScheduler's workers don't support fork()s anymore
+# job workers don't fork()
 my $db = undef;
 
 # Run job

@@ -1,11 +1,55 @@
-# Media Cloud + Gearman interoperability
+# Job manager
 
-Media Cloud uses [Gearman](http://gearman.org/) and
-[Gearman::JobScheduler](https://github.com/pypt/p5-Gearman-JobScheduler) for
+Media Cloud uses [Gearman::JobScheduler](https://github.com/pypt/p5-Gearman-JobScheduler) for
 scheduling, enqueueing and running various background processes.
 
 
-## Starting Gearman
+## Starting a worker
+
+To start a single instance of a worker, run:
+
+    ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/Job/RescrapeMedia.pm
+
+To start a single instance of *all* workers in a subdirectory, run:
+
+    ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/Job/
+
+
+## Running a job
+
+To enqueue a job for the worker, run:
+
+    MediaWords::Job::RescrapeMedia->enqueue_on_gearman();
+
+To pass arguments to the worker, add them as a hashref parameter:
+
+    MediaWords::Job::RescrapeMedia->enqueue_on_gearman({ one => 'two', three => 'four' });
+
+`enqueue_on_gearman()` returns a job ID if the job was enqueued successfully:
+
+    my $job_id = MediaWords::Job::RescrapeMedia->enqueue_on_gearman();
+
+You can use the job ID to *cancel an enqueued job which isn't running yet*:
+
+    Gearman::JobScheduler::cancel_gearman_job(
+        MediaWords::Job::RescrapeMedia->name(),
+        $gearman_job_id
+    );
+
+Or to *get the job status of enqueued / running job*:
+
+    print Dumper( Gearman::JobScheduler::job_status(
+        MediaWords::Job::RescrapeMedia->name(),
+        $gearman_job_id
+    ));
+
+
+## Job brokers
+
+
+### Gearman
+
+#### Running
 
 While you can use your system's Gearman deployment directly, it is recommended
 that you use another instance configured by Media Cloud and managed by
@@ -20,7 +64,7 @@ Gearman is automatically started by Supervisor. See
 processes.
 
 
-## Testing Gearman
+#### Testing
 
 To try things out, start a test Gearman worker which will count the lines of
 the input:
@@ -55,7 +99,7 @@ and make sure it is being stored in the queue:
     (1 row)
 
 
-## Monitoring Gearman
+#### Monitoring
 
 To monitor Gearman, you can use either the `gearadmin` tool or the
 "Gearman-Monitor" PHP script.
@@ -73,7 +117,7 @@ For example:
 Run `gearadmin --help` for more options.
 
 
-### "Gearman-Monitor"
+##### "Gearman-Monitor"
 
 [Gearman-Monitor](https://github.com/yugene/Gearman-Monitor) is a tool to watch
 Gearman servers. 
@@ -87,58 +131,3 @@ A full example of a Gearman job is located in:
 
 * `script/mediawords_add_default_feeds.pl` (client)
 * `lib/MediaWords/Job/RescrapeMedia.pm` (worker)
-
-
-### Starting a Gearman worker
-
-To start a single instance of the Gearman worker, run:
-
-    ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/Job/RescrapeMedia.pm
-
-To start a single instance of *all* Gearman workers in a subdirectory, run:
-
-    ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/Job/
-
-To start 4 instances of the Gearman worker, run:
-
-    ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/Job/RescrapeMedia.pm 4
-
-To start 4 instances of *all* Gearman workers in a subdirectory, run:
-
-    ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/Job/RescrapeMedia.pm 4
-
-
-### Running a job
-
-To enqueue a job for the worker, run:
-
-    MediaWords::Job::RescrapeMedia->enqueue_on_gearman();
-
-To pass arguments to the worker, add them as a hashref parameter:
-
-    MediaWords::Job::RescrapeMedia->enqueue_on_gearman({ one => 'two', three => 'four' });
-
-`enqueue_on_gearman()` returns a Gearman job ID if the job was enqueued successfully:
-
-    my $gearman_job_id = MediaWords::Job::RescrapeMedia->enqueue_on_gearman();
-
-You can use the job ID to *get the path to the log of the running job*:
-
-    my $log_path = Gearman::JobScheduler::log_path_for_gearman_job(
-        MediaWords::Job::RescrapeMedia->name(),
-        $gearman_job_id
-    );
-
-Or to *cancel an enqueued job which isn't running yet*:
-
-    Gearman::JobScheduler::cancel_gearman_job(
-        MediaWords::Job::RescrapeMedia->name(),
-        $gearman_job_id
-    );
-
-Or to *get the job status of enqueued / running Gearman job*:
-
-    print Dumper( Gearman::JobScheduler::job_status(
-        MediaWords::Job::RescrapeMedia->name(),
-        $gearman_job_id
-    ));

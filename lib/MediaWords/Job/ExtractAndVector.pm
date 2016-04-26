@@ -73,7 +73,7 @@ sub run($$)
 
     eval {
 
-        my $process_id = 'gearman:' . $$;
+        my $process_id = 'job:' . $$;
 
         if ( $alter_extractor_method )
         {

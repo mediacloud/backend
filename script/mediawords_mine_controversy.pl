@@ -18,7 +18,6 @@ use Getopt::Long;
 use MediaWords::CommonLibs;
 use MediaWords::CM;
 use MediaWords::Job::CM::MineControversy;
-use Gearman::JobScheduler;
 
 sub main
 {
@@ -72,23 +71,8 @@ sub main
                 skip_outgoing_foreign_rss_links => $skip_outgoing_foreign_rss_links
             };
 
-            my $gearman_job_id = MediaWords::Job::CM::MineControversy->enqueue_on_gearman( $args );
-            say STDERR "Enqueued Gearman job with ID: $gearman_job_id";
-
-            # The following call might fail if the job takes some time to start,
-            # so consider adding:
-            #     sleep(1);
-            # before calling log_path_for_gearman_job()
-            my $log_path = Gearman::JobScheduler::log_path_for_gearman_job( MediaWords::Job::CM::MineControversy->name(),
-                $gearman_job_id );
-            if ( $log_path )
-            {
-                say STDERR "The job is writing its log to: $log_path";
-            }
-            else
-            {
-                say STDERR "The job probably hasn't started yet, so I don't know where does the log reside";
-            }
+            my $job_id = MediaWords::Job::CM::MineControversy->enqueue_on_gearman( $args );
+            say STDERR "Enqueued job with ID: $job_id";
         }
 
         say STDERR "Done processing controversy $controversies_id.";
