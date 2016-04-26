@@ -1,6 +1,6 @@
 # Job manager
 
-Media Cloud uses [Gearman::JobScheduler](https://github.com/pypt/p5-Gearman-JobScheduler) for
+Media Cloud uses [MediaCloud::JobManager](https://github.com/berkmancenter/p5-MediaCloud-JobManager) for
 scheduling, enqueueing and running various background processes.
 
 
@@ -31,17 +31,10 @@ To pass arguments to the worker, add them as a hashref parameter:
 
 You can use the job ID to *cancel an enqueued job which isn't running yet*:
 
-    Gearman::JobScheduler::cancel_gearman_job(
-        MediaWords::Job::RescrapeMedia->name(),
+    MediaCloud::JobManager::Admin::cancel_job(
+        MediaWords::Job::RescrapeMedia->configuration(),
         $gearman_job_id
     );
-
-Or to *get the job status of enqueued / running job*:
-
-    print Dumper( Gearman::JobScheduler::job_status(
-        MediaWords::Job::RescrapeMedia->name(),
-        $gearman_job_id
-    ));
 
 
 ## Job brokers
@@ -125,7 +118,7 @@ Gearman servers.
 Screenshots: http://imgur.com/a/RjJWc
 
 
-## Running jobs on Gearman with `Gearman::JobScheduler`
+## Running jobs on Gearman with `MediaCloud::JobManager`
 
 A full example of a Gearman job is located in:
 

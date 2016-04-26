@@ -10,12 +10,12 @@ use MediaWords::Util::Config;
     package MediaWords::AbstractJob::Configuration;
 
     #
-    # Implements Gearman::JobScheduler::Configuration with values from Media Cloud's configuration
+    # Implements MediaCloud::JobManager::Configuration with values from Media Cloud's configuration
     #
 
     use Moose;
-    use Gearman::JobScheduler::Configuration;
-    extends 'Gearman::JobScheduler::Configuration';
+    use MediaCloud::JobManager::Configuration;
+    extends 'MediaCloud::JobManager::Configuration';
 
     # Media Cloud configuration
     has 'mc_config' => ( is => 'rw' );
@@ -79,10 +79,9 @@ use MediaWords::Util::Config;
     #
 
     use Moose::Role;
-    with 'Gearman::JobScheduler::AbstractFunction';
+    with 'MediaCloud::JobManager::Job';
 
     use MediaWords::DB;
-    use Gearman::JobScheduler;
 
     # Run job
     sub run($;$)
