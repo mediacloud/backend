@@ -13,8 +13,8 @@
 [%- BLOCK program_config %]
 
 [program:[% program %]]
-    [%- IF gearman_worker_module %]
-        [%- command = './script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/' _ gearman_worker_module %]
+    [%- IF worker_module %]
+        [%- command = './script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/' _ worker_module %]
     [%- END %]    
     [%- nice = supervisor.programs.$program.nice || default_nice %]
     [%- IF nice %]
@@ -104,7 +104,7 @@ programs = gearmand
 
 [% INCLUDE program_config
     program='rescrape_media'
-    gearman_worker_module='RescrapeMedia.pm'
+    worker_module='RescrapeMedia.pm'
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'
@@ -114,7 +114,7 @@ programs = gearmand
 
 [% INCLUDE program_config
     program='extract_and_vector'
-    gearman_worker_module='ExtractAndVector.pm'
+    worker_module='ExtractAndVector.pm'
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'
@@ -124,7 +124,7 @@ programs = gearmand
 
 [% INCLUDE program_config
     program='cm_mine_controversy'
-    gearman_worker_module='CM/MineControversy.pm'
+    worker_module='CM/MineControversy.pm'
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'
@@ -134,7 +134,7 @@ programs = gearmand
 
 [% INCLUDE program_config
     program='cm_dump_controversy'
-    gearman_worker_module='CM/DumpControversy.pm'
+    worker_module='CM/DumpControversy.pm'
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'
@@ -144,7 +144,7 @@ programs = gearmand
 
 [% INCLUDE program_config
     program='annotate_with_corenlp'
-    gearman_worker_module='AnnotateWithCoreNLP.pm'
+    worker_module='AnnotateWithCoreNLP.pm'
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'
@@ -154,7 +154,7 @@ programs = gearmand
 
 [% INCLUDE program_config
     program='bitly_enqueue_all_controversy_stories'
-    gearman_worker_module='Bitly/EnqueueAllControversyStories.pm'
+    worker_module='Bitly/EnqueueAllControversyStories.pm'
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'
@@ -164,7 +164,7 @@ programs = gearmand
 
 [% INCLUDE program_config
     program='bitly_fetch_story_stats'
-    gearman_worker_module='Bitly/FetchStoryStats.pm'
+    worker_module='Bitly/FetchStoryStats.pm'
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'
@@ -174,7 +174,7 @@ programs = gearmand
 
 [% INCLUDE program_config
     program='bitly_aggregate_story_stats'
-    gearman_worker_module='Bitly/AggregateStoryStats.pm'
+    worker_module='Bitly/AggregateStoryStats.pm'
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'
@@ -184,7 +184,7 @@ programs = gearmand
 
 [% INCLUDE program_config
     program='facebook_fetch_story_stats'
-    gearman_worker_module='Facebook/FetchStoryStats.pm'
+    worker_module='Facebook/FetchStoryStats.pm'
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'
