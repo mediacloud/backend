@@ -143,6 +143,7 @@ requires 'Test::Strict';
 requires 'Text::CSV';
 requires 'Text::Lorem::More';
 requires 'Text::Trim';
+requires 'Text::WordDiff';
 requires 'Tie::Cache';
 requires 'XML::FeedPP';
 requires 'XML::LibXML';
