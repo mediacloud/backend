@@ -71,10 +71,6 @@ use XML::LibXML;
 #     <user>mediaclouduser</user>
 #   </database>
 #   <gearman>
-#     <notifications>
-#       <from_address>gjs@mediacloud.org</from_address>
-#       <subject_prefix>[GJS]</subject_prefix>
-#     </notifications>
 #     <servers>127.0.0.1:4730</servers>
 #   </gearman>
 #   <mail>

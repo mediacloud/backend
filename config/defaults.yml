@@ -13,10 +13,6 @@ Plugin::Authentication:
 gearman:
     servers:
         - "127.0.0.1:4731"
-    notifications:
-        emails: []
-        from_address: gjs@mediacloud.org
-        subject_prefix: '[GJS]'
 mail:
     bug_email: ''
     from_address: noreply@mediacloud.org

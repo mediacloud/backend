@@ -75,21 +75,6 @@ database:
         ### Default is a single server at "127.0.0.1:4731".
         #- "127.0.0.1:4731"
 
-    ### Email notifications
-    #notifications:
-
-        ### Email addresses to send notifications to (optional; default is [])
-        #emails:
-        #    - "jdoe@cyber.law.harvard.edu"
-
-        ### "From:" address (default is "noreply@mediacloud.org"; if not set,
-        ### will fallback to "gjs_donotreply@example.com")
-        #from_address: "gjs@mediacloud.org"
-
-        ### Email subject prefix (default is "[GJS]"; if not set, will fallback
-        ### to an empty string)
-        #subject_prefix: "[GJS]"
-
 
 ### Gearman server (gearmand) configuration
 #gearmand:

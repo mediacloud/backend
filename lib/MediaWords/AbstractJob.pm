@@ -37,29 +37,6 @@ use MediaWords::Util::Config;
         return $self->job_broker;
     };
 
-    # Default email address to send the email from
-    override 'notifications_from_address' => sub {
-        my $self = shift;
-
-        return $self->mc_config->{ gearman }->{ notifications }->{ from_address }
-          // $self->SUPER::notifications_from_address();
-    };
-
-    # Notification email subject prefix
-    override 'notifications_subject_prefix' => sub {
-        my $self = shift;
-
-        return $self->mc_config->{ gearman }->{ notifications }->{ subject_prefix }
-          // $self->SUPER::notifications_subject_prefix();
-    };
-
-    # Emails that should receive notifications about failed jobs
-    override 'notifications_emails' => sub {
-        my $self = shift;
-
-        return $self->mc_config->{ gearman }->{ notifications }->{ emails } // $self->SUPER::notifications_emails();
-    };
-
     no Moose;    # gets rid of scaffolding
 
     1;
