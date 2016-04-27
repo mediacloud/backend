@@ -61,50 +61,57 @@ database:
         ### (optional) Local cache (relative to "$data_dir/cache/")
         #cache_root_dir     : "bitly_processing_results/"
 
-### Gearman worker (p5-Gearman-JobScheduler) configuration
-### (to enable Gearman, add at least one server)
-#gearman:
+### Job manager (MediaCloud::JobManager) configuration
+#job_manager:
 
-    ### Gearman servers (required)
-    #servers:
-        ### By default "gearmand" works on port 4730; "gearmand" run as a
-        ### Supervisord daemon (see below) runs on 4731.
-        ### It is recommended to use Media Cloud-provided Gearman instance
-        ### instead of relying on system's because of a persistent
-        ### (PostgreSQL-backed) job queue and Supervisord logging facilities.
-        ### Default is a single server at "127.0.0.1:4731".
-        #- "127.0.0.1:4731"
+    ### When uncommented, will use Gearman as job broker
+    #gearman:
 
+        ### Gearman client configuration
+        ### (both workers and clients will use this key)
+        #client:
 
-### Gearman server (gearmand) configuration
-#gearmand:
+            ### Gearman servers (required)
+            #servers:
+                ### By default "gearmand" works on port 4730; "gearmand" run as a
+                ### Supervisord daemon (see below) runs on 4731.
+                ### It is recommended to use Media Cloud-provided Gearman instance
+                ### instead of relying on system's because of a persistent
+                ### (PostgreSQL-backed) job queue and Supervisord logging facilities.
+                ### Default is a single server at "127.0.0.1:4731".
+                #- "127.0.0.1:4731"
 
-    ### To disable your very own "gearmand" instance managed by Supervisord,
-    ### set the below to "no". Default is "yes".
-    #enabled: "yes"
+        ### Gearman server configuration
+        ### (gearmand_wrapper.sh will use this for starting up an instance of
+        ### gearmand)
+        #server:
 
-    ### Host to listen to. You can set the above parameter to an empty string
-    ### so that Gearman will accept connections from anywhere; however, it is
-    ### highly advised use secure channels (e.g. a SSH tunnel) to make Gearman
-    ### accessible to "outside" instead. Default is "127.0.0.1".
-    #listen: "127.0.0.1"
+            ### To disable your very own "gearmand" instance managed by Supervisord,
+            ### set the below to "no". Default is "yes".
+            #enabled: "yes"
 
-    ### Port to use in gearmand. Default port for vendor-provided Gearman
-    ### deployments is 4730, but Media Cloud runs its own Gearman instance via
-    ### Supervisord. Default is 4731.
-    #port: 4731
+            ### Host to listen to. You can set the above parameter to an empty string
+            ### so that Gearman will accept connections from anywhere; however, it is
+            ### highly advised use secure channels (e.g. a SSH tunnel) to make Gearman
+            ### accessible to "outside" instead. Default is "127.0.0.1".
+            #listen: "127.0.0.1"
 
-    ### Number of threads (http://gearman.org/manual/job_server/#threading_model):
-    ### * 0  -- everything will happen within a single thread
-    ### * 1  -- there will be a thread for listening/management and a thread
-    ###         for I/O and processing
-    ### * 2  -- there will be a thread for each type of thread
-    ### * >2 -- more I/O threads will get created
-    #threads: 0
+            ### Port to use in gearmand. Default port for vendor-provided Gearman
+            ### deployments is 4730, but Media Cloud runs its own Gearman instance via
+            ### Supervisord. Default is 4731.
+            #port: 4731
 
-    ### Number of workers to wakeup for each job received. The default (0) is
-    ### to wakeup all available workers.
-    #worker_wakeup: 0
+            ### Number of threads (http://gearman.org/manual/job_server/#threading_model):
+            ### * 0  -- everything will happen within a single thread
+            ### * 1  -- there will be a thread for listening/management and a thread
+            ###         for I/O and processing
+            ### * 2  -- there will be a thread for each type of thread
+            ### * >2 -- more I/O threads will get created
+            #threads: 0
+
+            ### Number of workers to wakeup for each job received. The default (0) is
+            ### to wakeup all available workers.
+            #worker_wakeup: 0
 
 ### Supervisor (supervisord) configuration
 #supervisor:

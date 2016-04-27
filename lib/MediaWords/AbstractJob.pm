@@ -25,14 +25,37 @@ use MediaWords::Util::Config;
     {
         my $self = shift;
 
-        my $config = MediaWords::Util::Config::get_config();
+        my $config     = MediaWords::Util::Config::get_config();
+        my $job_broker = undef;
 
-        $self->job_broker( MediaCloud::JobManager::Broker::Gearman->new( servers => $config->{ gearman }->{ servers }, ) );
+        if ( $config->{ job_manager }->{ gearman } )
+        {
+            my $servers = $config->{ job_manager }->{ gearman }->{ client }->{ servers };
+            unless ( ref $servers eq ref [] )
+            {
+                die "Gearman client servers is not an array.";
+            }
+            unless ( scalar( @{ $servers } ) > 0 )
+            {
+                die "No Gearman client servers are configured.";
+            }
+
+            $job_broker = MediaCloud::JobManager::Broker::Gearman->new( servers => $servers );
+        }
+
+        unless ( $job_broker )
+        {
+            die "No supported job broker is configured.";
+        }
+
+        $self->job_broker( $job_broker );
     }
 
     # Job broker
     override 'broker' => sub {
         my $self = shift;
+
+        say STDERR "Broker is being called";
 
         return $self->job_broker;
     };

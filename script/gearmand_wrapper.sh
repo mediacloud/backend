@@ -18,7 +18,7 @@ log() {
 }
 
 gearmand_is_enabled() {
-    local gearmand_is_enabled=`$QUERY_CONFIG "//gearmand/enabled"`
+    local gearmand_is_enabled=`$QUERY_CONFIG "//job_manager/gearman/server/enabled"`
     if [ "$gearmand_is_enabled" == "yes" ]; then
         return 0    # "true" in Bash
     else
@@ -135,10 +135,10 @@ export PGUSER=`$QUERY_CONFIG "//database[label='gearman']/user"`
 export PGPASSWORD=`$QUERY_CONFIG "//database[label='gearman']/pass"`
 export PGDATABASE=`$QUERY_CONFIG "//database[label='gearman']/db"`
 
-GEARMAN_LISTEN=`$QUERY_CONFIG "//gearmand/listen"`
-GEARMAN_PORT=`$QUERY_CONFIG "//gearmand/port"`
-GEARMAN_THREADS=`$QUERY_CONFIG "//gearmand/threads"`
-GEARMAN_WORKER_WAKEUP=`$QUERY_CONFIG "//gearmand/worker_wakeup"`
+GEARMAN_LISTEN=`$QUERY_CONFIG "////job_manager/gearman/server/listen"`
+GEARMAN_PORT=`$QUERY_CONFIG "//job_manager/gearman/server/port"`
+GEARMAN_THREADS=`$QUERY_CONFIG "//job_manager/gearman/server/threads"`
+GEARMAN_WORKER_WAKEUP=`$QUERY_CONFIG "//job_manager/gearman/server/worker_wakeup"`
 
 GEARMAND_PARAMS=""
 if [[ ! -z "$GEARMAN_LISTEN" ]]; then

@@ -10,9 +10,17 @@ Plugin::Authentication:
             password_type: salted_hash
         store:
             class: MediaWords
-gearman:
-    servers:
-        - "127.0.0.1:4731"
+job_manager:
+    gearman:
+        client:
+            servers:
+                - "127.0.0.1:4731"
+        server:
+            enabled: yes
+            listen: 127.0.0.1
+            port: 4731
+            threads: 0
+            worker_wakeup: 0
 mail:
     bug_email: ''
     from_address: noreply@mediacloud.org
@@ -36,12 +44,6 @@ mediawords:
     cm_spider_iterations: 15
 supervisor:
     childlogdir: data/supervisor_logs/
-gearmand:
-    enabled: yes
-    listen: 127.0.0.1
-    port: 4731
-    threads: 0
-    worker_wakeup: 0
 corenlp:
     enabled: no
     annotator_url: ''
