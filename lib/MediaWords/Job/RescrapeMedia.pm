@@ -6,7 +6,7 @@ package MediaWords::Job::RescrapeMedia;
 #
 # Start this worker script by running:
 #
-# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/Job/RescrapeMedia.pm
+# ./script/run_with_carton.sh local/bin/mjm_worker.pl lib/MediaWords/Job/RescrapeMedia.pm
 #
 # FIXME some output of the job is still logged to STDOUT and not to the log:
 #
@@ -28,7 +28,7 @@ BEGIN
 {
     use FindBin;
 
-    # "lib/" relative to "local/bin/gjs_worker.pl":
+    # "lib/" relative to "local/bin/mjm_worker.pl":
     use lib "$FindBin::Bin/../../lib";
 }
 

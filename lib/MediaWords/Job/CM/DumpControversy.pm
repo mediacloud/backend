@@ -5,7 +5,7 @@ package MediaWords::Job::CM::DumpControversy;
 #
 # Start this worker script by running:
 #
-# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/Job/CM/DumpControversy.pm
+# ./script/run_with_carton.sh local/bin/mjm_worker.pl lib/MediaWords/Job/CM/DumpControversy.pm
 #
 
 use strict;
@@ -18,7 +18,7 @@ BEGIN
 {
     use FindBin;
 
-    # "lib/" relative to "local/bin/gjs_worker.pl":
+    # "lib/" relative to "local/bin/mjm_worker.pl":
     use lib "$FindBin::Bin/../../lib";
 }
 

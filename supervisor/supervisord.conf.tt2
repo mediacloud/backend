@@ -14,7 +14,7 @@
 
 [program:[% program %]]
     [%- IF worker_module %]
-        [%- command = './script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/Job/' _ worker_module %]
+        [%- command = './script/run_with_carton.sh local/bin/mjm_worker.pl lib/MediaWords/Job/' _ worker_module %]
     [%- END %]    
     [%- nice = supervisor.programs.$program.nice || default_nice %]
     [%- IF nice %]
