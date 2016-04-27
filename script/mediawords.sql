@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4538;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4539;
 
 BEGIN
 
@@ -173,7 +173,11 @@ $$
               where media_id = OLD.media_id;
       END IF;
 
-      RETURN NEW;
+      IF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'INSERT') THEN
+        RETURN NEW;
+      ELSE
+        RETURN OLD;
+      END IF;
    END;
 $$
 LANGUAGE 'plpgsql';
