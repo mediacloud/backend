@@ -70,27 +70,10 @@ use XML::LibXML;
 #     <type>pg</type>
 #     <user>mediaclouduser</user>
 #   </database>
-#   <gearman>
-#     <servers>127.0.0.1:4730</servers>
-#   </gearman>
-#   <mail>
-#     <bug_email></bug_email>
-#     <from_address>noreply@mediacloud.org</from_address>
-#   </mail>
+#   <!-- ... -->
 #   <mediawords>
 #     <always_show_stack_traces>no</always_show_stack_traces>
-#     <controversy_model_reps>25</controversy_model_reps>
-#     <data_dir>/Users/pypt/Dropbox/etc-MediaCloud/trunk/script/../lib/MediaWords/Util/../../../data</data_dir>
-#     <default_home_page>admin/media/list</default_home_page>
-#     <download_storage_locations>postgresql</download_storage_locations>
-#     <language>en_US_and_ru_RU</language>
-#     <owner>mediawords@cyber.law.harvard.edu</owner>
-#     <recaptcha_private_key>...</recaptcha_private_key>
-#     <recaptcha_public_key>...</recaptcha_public_key>
-#     <script_dir>/Users/pypt/Dropbox/etc-MediaCloud/trunk/script/../lib/MediaWords/Util/../../../script</script_dir>
-#     <solr_url>http://localhost:8983/solr</solr_url>
-#     <solr_wc_url>http://localhost:8080/wc</solr_wc_url>
-#     <user_agent>mediawords bot (http://cyber.law.harvard.edu)</user_agent>
+#     <!-- ... -->
 #   </mediawords>
 #   <name>MediaWords</name>
 #   <session>
