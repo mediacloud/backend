@@ -18,9 +18,6 @@ use MediaWords::Util::Config;
     use MediaCloud::JobManager::Broker::Gearman;
     extends 'MediaCloud::JobManager::Configuration';
 
-    # Job broker
-    has 'job_broker' => ( is => 'rw' );
-
     sub BUILD
     {
         my $self = shift;
@@ -48,17 +45,8 @@ use MediaWords::Util::Config;
             die "No supported job broker is configured.";
         }
 
-        $self->job_broker( $job_broker );
+        $self->broker( $job_broker );
     }
-
-    # Job broker
-    override 'broker' => sub {
-        my $self = shift;
-
-        say STDERR "Broker is being called";
-
-        return $self->job_broker;
-    };
 
     no Moose;    # gets rid of scaffolding
 
