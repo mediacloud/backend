@@ -184,6 +184,21 @@ remove database connection credentials with label "raw_downloads".
 EOF
         );
     }
+
+    # die() if using old Gearman configuration
+    if ( $config->{ gearman } or $config->{ gearmand } )
+    {
+        MediaWords::CommonLibs::LOGDIE(
+            <<EOF
+
+You are using old format for gearman / gearmand configuration in mediawords.yml.
+
+Please add "job_manager" root key to mediawords.yml and configure Gearman job
+broker under that root key.
+
+EOF
+        );
+    }
 }
 
 sub _set_dynamic_defaults
