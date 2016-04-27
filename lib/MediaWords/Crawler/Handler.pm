@@ -70,7 +70,7 @@ use MediaWords::Crawler::FeedHandler;
 use MediaWords::Crawler::Pager;
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories;
-use MediaWords::GearmanFunction::ExtractAndVector;
+use MediaWords::Job::ExtractAndVector;
 use MediaWords::Util::Config;
 use MediaWords::Util::SQL;
 
@@ -210,7 +210,7 @@ END
     return $ret;
 }
 
-# queue a gearman extraction job for the story
+# queue an extraction job for the story
 sub _queue_story_extraction($$)
 {
     my ( $self, $download ) = @_;
@@ -220,7 +220,7 @@ sub _queue_story_extraction($$)
 
     DEBUG "fetcher $fetcher_number starting extraction for download " . $download->{ downloads_id };
 
-    MediaWords::GearmanFunction::ExtractAndVector->extract_for_crawler( $db, { stories_id => $download->{ stories_id } },
+    MediaWords::Job::ExtractAndVector->extract_for_crawler( $db, { stories_id => $download->{ stories_id } },
         $fetcher_number );
 }
 

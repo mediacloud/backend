@@ -1,26 +1,24 @@
-package MediaWords::GearmanFunction::Bitly::FetchStoryStats;
+package MediaWords::Job::Bitly::FetchStoryStats;
 
 #
 # Fetch story's click counts via Bit.ly API
 #
 # Start this worker script by running:
 #
-# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/Bitly/FetchStoryStats.pm
+# ./script/run_with_carton.sh local/bin/mjm_worker.pl lib/MediaWords/Job/Bitly/FetchStoryStats.pm
 #
 
 use strict;
 use warnings;
 
 use Moose;
-
-# Don't log each and every extraction job into the database
-with 'Gearman::JobScheduler::AbstractFunction';
+with 'MediaWords::AbstractJob';
 
 BEGIN
 {
     use FindBin;
 
-    # "lib/" relative to "local/bin/gjs_worker.pl":
+    # "lib/" relative to "local/bin/mjm_worker.pl":
     use lib "$FindBin::Bin/../../lib";
 }
 
@@ -31,8 +29,7 @@ use MediaWords::DB;
 use MediaWords::Util::Bitly;
 use MediaWords::Util::Bitly::API;
 use MediaWords::Util::Process;
-use MediaWords::Util::GearmanJobSchedulerConfiguration;
-use MediaWords::GearmanFunction::Bitly::AggregateStoryStats;
+use MediaWords::Job::Bitly::AggregateStoryStats;
 use Readonly;
 use Data::Dumper;
 
@@ -43,7 +40,7 @@ Readonly my $BITLY_RATE_LIMIT_SECONDS_TO_WAIT => 60 * 10;    # every 10 minutes
 Readonly my $BITLY_RATE_LIMIT_TRIES => 7;                    # try fetching 7 times in total (70 minutes)
 
 # Having a global database object should be safe because
-# Gearman::JobScheduler's workers don't support fork()s anymore
+# job workers don't fork()
 my $db = undef;
 
 # Run job
@@ -125,8 +122,8 @@ sub run($;$)
     }
     say STDERR "Done storing story stats for story $stories_id.";
 
-    # Enqueue aggregating Bit.ly stats
-    MediaWords::GearmanFunction::Bitly::AggregateStoryStats->enqueue_on_gearman( { stories_id => $stories_id } );
+    # Add job for Bit.ly stats aggregation
+    MediaWords::Job::Bitly::AggregateStoryStats->add_to_queue( { stories_id => $stories_id } );
 }
 
 # write a single log because there are a lot of Bit.ly processing jobs so it's
@@ -134,12 +131,6 @@ sub run($;$)
 sub unify_logs()
 {
     return 1;
-}
-
-# (Gearman::JobScheduler::AbstractFunction implementation) Return default configuration
-sub configuration()
-{
-    return MediaWords::Util::GearmanJobSchedulerConfiguration->instance;
 }
 
 no Moose;    # gets rid of scaffolding

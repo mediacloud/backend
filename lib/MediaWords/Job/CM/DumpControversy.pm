@@ -1,24 +1,24 @@
-package MediaWords::GearmanFunction::CM::DumpControversy;
+package MediaWords::Job::CM::DumpControversy;
 
 #
 # Dump various controversy queries to csv and build a gexf file
 #
 # Start this worker script by running:
 #
-# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/CM/DumpControversy.pm
+# ./script/run_with_carton.sh local/bin/mjm_worker.pl lib/MediaWords/Job/CM/DumpControversy.pm
 #
 
 use strict;
 use warnings;
 
 use Moose;
-with 'MediaWords::GearmanFunction';
+with 'MediaWords::AbstractJob';
 
 BEGIN
 {
     use FindBin;
 
-    # "lib/" relative to "local/bin/gjs_worker.pl":
+    # "lib/" relative to "local/bin/mjm_worker.pl":
     use lib "$FindBin::Bin/../../lib";
 }
 
@@ -29,7 +29,7 @@ use MediaWords::CM::Dump;
 use MediaWords::DB;
 
 # Having a global database object should be safe because
-# Gearman::JobScheduler's workers don't support fork()s anymore
+# job workers don't fork()
 my $db = undef;
 
 # Run job

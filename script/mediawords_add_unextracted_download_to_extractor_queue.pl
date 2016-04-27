@@ -1,11 +1,11 @@
 #!/usr/bin/env perl
 #
-# Enqueue unextracted downloads on Gearman.
+# Add unextracted downloads to job queue.
 #
 # It is safe to run this as many times as you want because the extraction job
-# on Gearman is unique so download extractions won't be duplicated.
+# is "unique" so download extractions won't be duplicated.
 #
-# Usage: mediawords_enqueue_unextracted_downloads_on_gearman.pl
+# Usage: mediawords_add_unextracted_download_to_extractor_queue.pl
 #
 
 use strict;
@@ -21,7 +21,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::DB;
-use MediaWords::GearmanFunction::ExtractAndVector;
+use MediaWords::Job::ExtractAndVector;
 
 sub main
 {
@@ -45,8 +45,8 @@ EOF
     for my $download ( @{ $downloads } )
     {
 
-        say STDERR 'Enqueueing download ID ' . $download->{ downloads_id } . '...';
-        MediaWords::GearmanFunction::ExtractAndVector->enqueue_on_gearman( { downloads_id => $download->{ downloads_id } } );
+        say STDERR 'Adding download ID ' . $download->{ downloads_id } . '...';
+        MediaWords::Job::ExtractAndVector->add_to_queue( { downloads_id => $download->{ downloads_id } } );
 
         # throttle to 100 connections a second to prevent running the
         # system out of connections stuck in TIME_WAIT

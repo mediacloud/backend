@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #
-# Enqueue stories that have their Bit.ly stats fetched but not yet aggregated
+# (Re-)aggregate Bit.ly stats for stories that have their Bit.ly stats fetched but not yet aggregated
 #
 
 use strict;
@@ -17,7 +17,7 @@ use MediaWords::CommonLibs;
 use MediaWords::DB;
 use MediaWords::Util::Bitly;
 use MediaWords::CM;
-use MediaWords::GearmanFunction::Bitly::AggregateStoryStats;
+use MediaWords::Job::Bitly::AggregateStoryStats;
 
 use Getopt::Long;
 use Readonly;
@@ -61,7 +61,7 @@ EOF
             next;
         }
 
-        my $stories_to_enqueue = $db->query(
+        my $stories_to_add = $db->query(
             <<EOF,
             SELECT stories_id
             FROM controversy_stories
@@ -75,7 +75,7 @@ EOF
             $controversies_id
         )->hashes;
 
-        foreach my $story ( @{ $stories_to_enqueue } )
+        foreach my $story ( @{ $stories_to_add } )
         {
             my $stories_id = $story->{ stories_id };
 
@@ -85,8 +85,8 @@ EOF
                 next;
             }
 
-            say STDERR "Enqueueing story $stories_id...";
-            MediaWords::GearmanFunction::Bitly::AggregateStoryStats->enqueue_on_gearman( { stories_id => $stories_id } );
+            say STDERR "Addin story $stories_id...";
+            MediaWords::Job::Bitly::AggregateStoryStats->add_to_queue( { stories_id => $stories_id } );
         }
     }
 }
