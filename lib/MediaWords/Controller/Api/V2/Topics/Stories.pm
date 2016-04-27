@@ -59,7 +59,7 @@ SQL
     }
     else
     {
-        $self->status_bad_request( $c, message => "could not retrieve word counts" );
+        $self->status_bad_request( $c, message => "unable to find snapshot and timeslice" );
     }
 }
 
