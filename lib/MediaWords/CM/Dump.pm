@@ -75,7 +75,8 @@ my $_media_static_gexf_attribute_types = {
     inlink_count => 'integer',
     story_count  => 'integer',
     view_medium  => 'string',
-    media_type   => 'string'
+    media_type   => 'string',
+    bitly_clicks => 'integer'
 };
 
 # all tables that the dump process snapshots for each controversy_dump

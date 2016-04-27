@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4535;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4538;
 
 BEGIN
 
@@ -148,17 +148,29 @@ $$
 LANGUAGE 'plpgsql'
  ;
 
+ -- Returns true if the date is greater than the latest import date in solr_imports
+ CREATE OR REPLACE FUNCTION before_last_solr_import(db_row_last_updated timestamp with time zone) RETURNS boolean AS $$
+ BEGIN
+    RETURN ( ( db_row_last_updated is null ) OR
+             ( db_row_last_updated < ( select max( import_date ) from solr_imports ) ) );
+END;
+$$
+LANGUAGE 'plpgsql'
+ ;
+
 CREATE OR REPLACE FUNCTION update_media_last_updated () RETURNS trigger AS
 $$
    DECLARE
    BEGIN
 
       IF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'INSERT') THEN
-      	 update media set db_row_last_updated = now() where media_id = NEW.media_id;
+      	 update media set db_row_last_updated = now()
+             where media_id = NEW.media_id;
       END IF;
 
       IF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'DELETE') THEN
-      	 update media set db_row_last_updated = now() where media_id = OLD.media_id;
+      	 update media set db_row_last_updated = now()
+              where media_id = OLD.media_id;
       END IF;
 
       RETURN NEW;
@@ -240,7 +252,8 @@ $$
            RETURN NULL;
         END IF;
 
-	UPDATE story_sentences set db_row_last_updated = now() where stories_id = NEW.stories_id;
+	UPDATE story_sentences set db_row_last_updated = now()
+        where stories_id = NEW.stories_id and before_last_solr_import( db_row_last_updated );
 	RETURN NULL;
    END;
 $$
@@ -284,12 +297,14 @@ $$
 	IF table_with_trigger_column THEN
             UPDATE stories
                SET db_row_last_updated = now()
-               WHERE stories_id = reference_stories_id;
+               WHERE stories_id = reference_stories_id
+                and before_last_solr_import( db_row_last_updated );
             RETURN NULL;
         ELSE
             UPDATE stories
                SET db_row_last_updated = now()
-               WHERE stories_id = reference_stories_id and (disable_triggers is NOT true);
+               WHERE stories_id = reference_stories_id and (disable_triggers is NOT true)
+                and before_last_solr_import( db_row_last_updated );
             RETURN NULL;
         END IF;
    END;
@@ -338,40 +353,17 @@ $$
 	IF table_with_trigger_column THEN
             UPDATE story_sentences
               SET db_row_last_updated = now()
-              WHERE story_sentences_id = reference_story_sentences_id;
+              WHERE story_sentences_id = reference_story_sentences_id
+                and before_last_solr_import( db_row_last_updated );
             RETURN NULL;
         ELSE
             UPDATE story_sentences
               SET db_row_last_updated = now()
-              WHERE story_sentences_id = reference_story_sentences_id and (disable_triggers is NOT true);
+              WHERE story_sentences_id = reference_story_sentences_id and (disable_triggers is NOT true)
+                and before_last_solr_import( db_row_last_updated );
             RETURN NULL;
         END IF;
    END;
-$$
-LANGUAGE 'plpgsql';
-
-CREATE OR REPLACE FUNCTION update_stories_updated_time_by_media_id_trigger () RETURNS trigger AS
-$$
-    DECLARE
-        path_change boolean;
-        reference_media_id integer default null;
-    BEGIN
-
-        IF TG_OP = 'INSERT' THEN
-            -- The "old" record doesn't exist
-            reference_media_id = EWEW.media_id;
-        ELSIF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'DELETE') THEN
-            reference_media_id = OLD.media_id;
-        ELSE
-            RAISE EXCEPTION 'Unconfigured operation: %', TG_OP;
-        END IF;
-
-        UPDATE stories
-        SET db_row_last_updated = now()
-        WHERE media_id = reference_media_id;
-
-        RETURN NULL;
-    END;
 $$
 LANGUAGE 'plpgsql';
 
@@ -412,6 +404,7 @@ create unique index media_name on media(name);
 create unique index media_url on media(url);
 create index media_moderated on media(moderated);
 create index media_db_row_last_updated on media( db_row_last_updated );
+create index media_annotate on media ( annotate_with_corenlp, media_id );
 
 CREATE INDEX media_name_trgm on media USING gin (name gin_trgm_ops);
 CREATE INDEX media_url_trgm on media USING gin (url gin_trgm_ops);
@@ -2337,6 +2330,7 @@ create table cd.live_stories (
 
 create index live_story_controversy on cd.live_stories ( controversies_id );
 create unique index live_stories_story on cd.live_stories ( controversies_id, stories_id );
+create index live_stories_story_solo on cd.live_stories ( stories_id );
 
 create table cd.word_counts (
     controversy_dump_time_slices_id int             not null references controversy_dump_time_slices on delete cascade,
@@ -2975,76 +2969,37 @@ CREATE INDEX extra_corenlp_stories_stories_id ON extra_corenlp_stories (stories_
 --
 -- Returns true if the story can + should be annotated with CoreNLP
 --
-CREATE OR REPLACE FUNCTION story_is_annotatable_with_corenlp(corenlp_stories_id INT) RETURNS boolean AS $$
+CREATE OR REPLACE FUNCTION story_is_annotatable_with_corenlp(corenlp_stories_id INT)
+RETURNS boolean AS $$
+DECLARE
+    story record;
 BEGIN
 
-    -- FIXME this function is not really optimized for performance
+    SELECT stories_id, media_id, language INTO story from stories where stories_id = corenlp_stories_id;
 
-    -- Check "media.annotate_with_corenlp" and "extra_corenlp_stories"
-    IF NOT EXISTS (
+    IF NOT ( story.language = 'en' or story.language is null ) THEN
 
-        SELECT 1
-        FROM stories
-            INNER JOIN media ON stories.media_id = media.media_id
-        WHERE stories.stories_id = corenlp_stories_id
-          AND media.annotate_with_corenlp = 't'
-
-    ) AND NOT EXISTS (
-
-        SELECT 1
-        FROM extra_corenlp_stories
-        WHERE extra_corenlp_stories.stories_id = corenlp_stories_id
-
-    ) THEN
-        RAISE NOTICE 'Story % is not annotatable with CoreNLP because it is not enabled for annotation.', corenlp_stories_id;
         RETURN FALSE;
 
-    -- Check if the story is extracted
-    ELSEIF EXISTS (
-
-        SELECT 1
-        FROM downloads
-        WHERE stories_id = corenlp_stories_id
-          AND type = 'content'
-          AND extracted = 'f'
-
-    ) THEN
-        RAISE NOTICE 'Story % is not annotatable with CoreNLP because it is not extracted.', corenlp_stories_id;
-        RETURN FALSE;
-
-    -- Annotate English language stories only because they're the only ones
-    -- supported by CoreNLP at the time.
     ELSEIF NOT EXISTS (
 
-        SELECT 1
-        FROM stories
-        WHERE stories_id = corenlp_stories_id
+            SELECT 1 FROM media WHERE media.annotate_with_corenlp = 't' and media_id = story.media_id
 
-        -- Stories with language field set to NULL are the ones fetched before
-        -- introduction of the multilanguage support, so they are assumed to be
-        -- English.
-          AND ( stories.language = 'en' OR stories.language IS NULL )
+        ) AND NOT EXISTS (
 
-    ) THEN
-        RAISE NOTICE 'Story % is not annotatable with CoreNLP because it is not in English.', corenlp_stories_id;
+            SELECT 1 FROM extra_corenlp_stories  WHERE extra_corenlp_stories.stories_id = corenlp_stories_id
+
+        ) THEN
+
         RETURN FALSE;
 
-    -- Check if story has sentences
-    ELSEIF NOT EXISTS (
+    ELSEIF NOT EXISTS ( SELECT 1 FROM story_sentences WHERE stories_id = corenlp_stories_id ) THEN
 
-        SELECT 1
-        FROM story_sentences
-        WHERE stories_id = corenlp_stories_id
-
-    ) THEN
-        RAISE NOTICE 'Story % is not annotatable with CoreNLP because it has no sentences.', corenlp_stories_id;
         RETURN FALSE;
-
-    -- Things are fine
-    ELSE
-        RETURN TRUE;
 
     END IF;
+
+    RETURN TRUE;
 
 END;
 $$

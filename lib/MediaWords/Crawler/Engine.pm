@@ -140,9 +140,12 @@ sub _run_fetcher
 
     $self->socket->blocking( 0 );
 
+    my $start_idle_time = [ Time::HiRes::gettimeofday ];
+
     while ( 1 )
     {
         my $download;
+
         eval {
 
             $download = 0;
@@ -164,14 +167,20 @@ sub _run_fetcher
             {
                 $download = $self->dbs->find_by_id( 'downloads', $downloads_id );
 
+                my $idle_time = Time::HiRes::tv_interval( $start_idle_time, [ Time::HiRes::gettimeofday ] );
+                DEBUG( sub { "fetch " . $self->fetcher_number . " idle time $idle_time" } );
+
                 $self->_fetch_and_handle_download( $download, $fetcher, $handler );
+
+                $start_idle_time = [ Time::HiRes::gettimeofday ];
             }
             elsif ( $downloads_id && ( $downloads_id eq 'exit' ) )
             {
             }
             else
             {
-                sleep( 3 );
+                TRACE( sub { "fetch " . $self->fetcher_number . " _run_fetcher sleeping ..." } );
+                sleep( 1 );
             }
         };
 
@@ -379,7 +388,7 @@ sub crawl
 
                 if ( !defined( $fetcher_number ) )
                 {
-                    DEBUG "skipping fetcher in which we couldn't read the fetcher number";
+                    DEBUG "skipping fetcher for which we couldn't read the fetcher number";
                     $socket_select->remove( $s );
                     next;
                 }
