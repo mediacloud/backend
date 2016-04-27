@@ -105,7 +105,7 @@ requires 'LWP::UserAgent', '6.15';
 requires 'LWP::UserAgent::Determined';
 requires 'Math::Random';
 requires 'Math::Random::Secure';
-requires 'MediaCloud::JobManager', '0.17';
+requires 'MediaCloud::JobManager', '0.18';
 requires 'Memoize';
 requires 'Modern::Perl', '1.20150127';
 requires 'Module::Install';

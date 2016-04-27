@@ -5167,12 +5167,12 @@ DISTRIBUTIONS
       Math::Random::ISAAC v1.0.1
       Test::More 0
       Test::Warn 0
-  MediaCloud-JobManager-0.17
-    pathname: L/LV/LVALIUKAS/MediaCloud-JobManager-0.17.tar.gz
+  MediaCloud-JobManager-0.18
+    pathname: L/LV/LVALIUKAS/MediaCloud-JobManager-0.18.tar.gz
     provides:
       Addition undef
       AdditionAlwaysFails undef
-      MediaCloud::JobManager 0.17
+      MediaCloud::JobManager 0.18
       MediaCloud::JobManager::Admin undef
       MediaCloud::JobManager::Broker undef
       MediaCloud::JobManager::Broker::Gearman undef
