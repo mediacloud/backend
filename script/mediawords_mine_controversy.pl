@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 #
-# Enqueue MediaWords::GearmanFunction::CM::MineControversy job
+# Add MediaWords::Job::CM::MineControversy job
 #
 
 use strict;
@@ -17,9 +17,7 @@ use Getopt::Long;
 
 use MediaWords::CommonLibs;
 use MediaWords::CM;
-use MediaWords::GearmanFunction;
-use MediaWords::GearmanFunction::CM::MineControversy;
-use Gearman::JobScheduler;
+use MediaWords::Job::CM::MineControversy;
 
 sub main
 {
@@ -29,11 +27,6 @@ sub main
     binmode( STDERR, 'utf8' );
 
     $| = 1;
-
-    unless ( MediaWords::GearmanFunction::gearman_is_enabled() )
-    {
-        die "Gearman is disabled.";
-    }
 
     Getopt::Long::GetOptions(
         "controversy=s"                    => \$controversy_opt,
@@ -78,24 +71,8 @@ sub main
                 skip_outgoing_foreign_rss_links => $skip_outgoing_foreign_rss_links
             };
 
-            my $gearman_job_id = MediaWords::GearmanFunction::CM::MineControversy->enqueue_on_gearman( $args );
-            say STDERR "Enqueued Gearman job with ID: $gearman_job_id";
-
-            # The following call might fail if the job takes some time to start,
-            # so consider adding:
-            #     sleep(1);
-            # before calling log_path_for_gearman_job()
-            my $log_path =
-              Gearman::JobScheduler::log_path_for_gearman_job( MediaWords::GearmanFunction::CM::MineControversy->name(),
-                $gearman_job_id );
-            if ( $log_path )
-            {
-                say STDERR "The job is writing its log to: $log_path";
-            }
-            else
-            {
-                say STDERR "The job probably hasn't started yet, so I don't know where does the log reside";
-            }
+            my $job_id = MediaWords::Job::CM::MineControversy->add_to_queue( $args );
+            say STDERR "Added job with ID: $job_id";
         }
 
         say STDERR "Done processing controversy $controversies_id.";

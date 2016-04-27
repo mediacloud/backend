@@ -74,7 +74,7 @@ elements:
     name: process_with_bitly
     id: process_with_bitly
     label: Process with Bit.ly
-    comment: Enqueue all new controversy stories for Bit.ly processing
+    comment: Add all new controversy stories to Bit.ly processing queue
     value: 1
 
   - type: Checkbox

@@ -1,9 +1,5 @@
 #!/usr/bin/env perl
 
-#
-# Enqueue MediaWords::GearmanFunction::CM::DumpControversy job
-#
-
 use strict;
 use warnings;
 

@@ -1,8 +1,8 @@
-package MediaWords::GearmanFunction::ImportFeedlyStories;
+package MediaWords::Job::ImportFeedlyStories;
 
 =head1 NAME
 
-MediaWords::GearmanFunction::ImportFeedlyStories - import stories from the feedly api
+MediaWords::Job::ImportFeedlyStories - import stories from the feedly api
 
 =head1 DESCRIPTION
 
@@ -14,13 +14,13 @@ use strict;
 use warnings;
 
 use Moose;
-with 'MediaWords::GearmanFunction';
+with 'MediaWords::AbstractJob';
 
 BEGIN
 {
     use FindBin;
 
-    # "lib/" relative to "local/bin/gjs_worker.pl":
+    # "lib/" relative to "local/bin/mjm_worker.pl":
     use lib "$FindBin::Bin/../../lib";
 }
 

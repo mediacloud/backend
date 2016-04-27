@@ -37,7 +37,7 @@ use Try::Tiny;
 
 use Feed::Scrape::MediaWords;
 use MediaWords::Crawler::Pager;
-use MediaWords::GearmanFunction::ExtractAndVector;
+use MediaWords::Job::ExtractAndVector;
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories;
 use MediaWords::Util::Config;
@@ -451,7 +451,7 @@ sub handle_feed_content
 
         if ( $feed_type eq 'web_page' )
         {
-            MediaWords::GearmanFunction::ExtractAndVector->extract_for_crawler( $dbs,
+            MediaWords::Job::ExtractAndVector->extract_for_crawler( $dbs,
                 { downloads_id => $download->{ downloads_id } }, 0 );
         }
     };

@@ -1,4 +1,4 @@
-package MediaWords::GearmanFunction::CM::MineControversy;
+package MediaWords::Job::CM::MineControversy;
 
 #
 # Run through stories found for the given controversy and find all the links in
@@ -18,20 +18,20 @@ package MediaWords::GearmanFunction::CM::MineControversy;
 #
 # Start this worker script by running:
 #
-# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/CM/MineControversy.pm
+# ./script/run_with_carton.sh local/bin/mjm_worker.pl lib/MediaWords/Job/CM/MineControversy.pm
 #
 
 use strict;
 use warnings;
 
 use Moose;
-with 'MediaWords::GearmanFunction';
+with 'MediaWords::AbstractJob';
 
 BEGIN
 {
     use FindBin;
 
-    # "lib/" relative to "local/bin/gjs_worker.pl":
+    # "lib/" relative to "local/bin/mjm_worker.pl":
     use lib "$FindBin::Bin/../../lib";
 }
 
@@ -42,7 +42,7 @@ use MediaWords::CM::Mine;
 use MediaWords::DB;
 
 # Having a global database object should be safe because
-# Gearman::JobScheduler's workers don't support fork()s anymore
+# job workers don't fork()
 my $db = undef;
 
 # Run job

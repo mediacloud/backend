@@ -115,7 +115,7 @@ my $_corenlp_annotator_level = lazy
 #
 # We use a static, package-wide variable here because:
 # a) PostgreSQL handler should support being used by multiple threads by now, and
-# b) each Gearman worker is a separate process so there shouldn't be any resource clashes.
+# b) each job worker is a separate process so there shouldn't be any resource clashes.
 my $_postgresql_store = lazy
 {
     # this is (probably) an expensive module to load, so lazy load it

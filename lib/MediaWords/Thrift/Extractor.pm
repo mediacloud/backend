@@ -93,7 +93,7 @@ sub extract_html
 
             my $error_message = "Giving up trying to connect to thrift server:\n";
             $error_message .= Dumper( $e ) . "\n";
-            $error_message .= "Gearman worker is terminating so that the extractor job remains in the Gearman queue";
+            $error_message .= "Worker is terminating in order for the extractor job to remain in the queue";
 
             fatal_error( $error_message );
         }

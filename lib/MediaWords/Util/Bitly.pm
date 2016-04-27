@@ -33,7 +33,7 @@ Readonly my $BITLY_USE_BZIP2 => 0;    # Gzip works better in Bit.ly's case
 #
 # We use a static, package-wide variable here because:
 # a) PostgreSQL handler should support being used by multiple threads by now, and
-# b) each Gearman worker is a separate process so there shouldn't be any resource clashes.
+# b) each job worker is a separate process so there shouldn't be any resource clashes.
 my $_results_store = lazy
 {
     # this is (probably) an expensive module to load, so lazy load it
