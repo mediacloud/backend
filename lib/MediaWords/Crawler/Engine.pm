@@ -140,10 +140,11 @@ sub _run_fetcher
 
     $self->socket->blocking( 0 );
 
+    my $start_idle_time = [ Time::HiRes::gettimeofday ];
+
     while ( 1 )
     {
         my $download;
-        my $start_idle_time = [ Time::HiRes::gettimeofday ];
 
         eval {
 
@@ -168,9 +169,10 @@ sub _run_fetcher
 
                 my $idle_time = Time::HiRes::tv_interval( $start_idle_time, [ Time::HiRes::gettimeofday ] );
                 DEBUG( sub { "fetch " . $self->fetcher_number . " idle time $idle_time" } );
-                $start_idle_time = [ Time::HiRes::gettimeofday ];
 
                 $self->_fetch_and_handle_download( $download, $fetcher, $handler );
+
+                $start_idle_time = [ Time::HiRes::gettimeofday ];
             }
             elsif ( $downloads_id && ( $downloads_id eq 'exit' ) )
             {
