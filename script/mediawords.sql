@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4536;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4537;
 
 BEGIN
 
@@ -165,12 +165,12 @@ $$
 
       IF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'INSERT') THEN
       	 update media set db_row_last_updated = now()
-             where media_id = NEW.media_id and before_last_solr_import( db_row_last_updated );
+             where media_id = NEW.media_id;
       END IF;
 
       IF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'DELETE') THEN
       	 update media set db_row_last_updated = now()
-              where media_id = OLD.media_id and before_last_solr_import( db_row_last_updated );
+              where media_id = OLD.media_id;
       END IF;
 
       RETURN NEW;
@@ -364,30 +364,6 @@ $$
             RETURN NULL;
         END IF;
    END;
-$$
-LANGUAGE 'plpgsql';
-
-CREATE OR REPLACE FUNCTION update_stories_updated_time_by_media_id_trigger () RETURNS trigger AS
-$$
-    DECLARE
-        path_change boolean;
-        reference_media_id integer default null;
-    BEGIN
-
-        IF TG_OP = 'INSERT' THEN
-            -- The "old" record doesn't exist
-            reference_media_id = EWEW.media_id;
-        ELSIF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'DELETE') THEN
-            reference_media_id = OLD.media_id;
-        ELSE
-            RAISE EXCEPTION 'Unconfigured operation: %', TG_OP;
-        END IF;
-
-        UPDATE stories SET db_row_last_updated = now()
-            WHERE media_id = reference_media_id and before_last_solr_import( db_row_last_updated );
-
-        RETURN NULL;
-    END;
 $$
 LANGUAGE 'plpgsql';
 
@@ -2354,7 +2330,7 @@ create table cd.live_stories (
 
 create index live_story_controversy on cd.live_stories ( controversies_id );
 create unique index live_stories_story on cd.live_stories ( controversies_id, stories_id );
-create index live_stories_story_hash on cd.live_stories ( stories_id );
+create index live_stories_story_solo on cd.live_stories ( stories_id );
 
 create table cd.word_counts (
     controversy_dump_time_slices_id int             not null references controversy_dump_time_slices on delete cascade,
