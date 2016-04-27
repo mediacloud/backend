@@ -34,7 +34,7 @@ $$
 $$
 LANGUAGE 'plpgsql';
 
-drop function update_stories_updated_time_by_media_id_trigger ();
+drop function if exists update_stories_updated_time_by_media_id_trigger ();
 
 --
 -- 2 of 2. Reset the database version.
