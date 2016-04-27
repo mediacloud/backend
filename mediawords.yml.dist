@@ -157,7 +157,7 @@ database:
     ### Annotator timeout (in seconds)
     ### If you annotate huge chunks of text or the CoreNLP annotator is busy in
     ### general, you might want to increase this value even more because
-    ### otherwise the Gearman worker will exit() often.
+    ### otherwise the job worker will exit() often.
     #annotator_timeout: 600
 
     ### CoreNLP annotator "level"; you might want to use this configuration
@@ -378,5 +378,5 @@ mediawords:
     # max number of iterations by the the spider in MediaWords::CM::Mine
     # mc_spider_iterations: 15
 
-    # if set to 1, do all extractions in process rather than queueing to gearman
+    # if set to 1, do all extractions in process rather than queueing to job manager
     # extract_in_process: 0

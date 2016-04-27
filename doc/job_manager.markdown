@@ -33,7 +33,7 @@ You can use the job ID to *cancel job which isn't running yet*:
 
     MediaCloud::JobManager::Admin::cancel_job(
         MediaWords::Job::RescrapeMedia->configuration(),
-        $gearman_job_id
+        $job_id
     );
 
 
