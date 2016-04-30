@@ -86,7 +86,6 @@ sub _push_stories_from_json_data($$$)
             url          => $url,
             guid         => $url,
             media_id     => $self->media_id,
-            collect_date => MediaWords::Util::SQL::sql_now(),
             publish_date => $publish_date,
             title        => $item->{ title },
             description  => $content
