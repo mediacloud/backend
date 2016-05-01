@@ -91,8 +91,7 @@ sub list_GET : Local
         $self->_create_controversy_media_table( $c, $cdts->{ controversy_dump_time_slices_id } );
         $entity->{ media } = $db->query( <<SQL )->hashes;
 select * from media m
-    where not exists (select 1 from feeds f where f.media_id = m.media_id and feed_status = 'active')
-    order by media_id
+    order by inlink_count desc
 SQL
         $self->status_ok( $c, entity => $entity );
     }

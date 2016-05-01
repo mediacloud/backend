@@ -54,6 +54,7 @@ select * from cd.story_link_counts slc
   join cd.stories s on slc.stories_id = s.stories_id
   where slc.controversy_dump_time_slices_id = \$1
   and s.controversy_dumps_id = \$2
+  order by slc.inlink_count desc, s.stories_id
 SQL
         $self->status_ok( $c, entity => $entity );
     }
