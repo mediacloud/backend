@@ -56,18 +56,19 @@ SQL
     return $cdts;
 }
 
-sub _get_latest_time_slice_from_snapshot
+sub _get_overall_time_slice_from_snapshot
 {
-    my ( $db, $controversies_id, $snapshot ) = @_;
-    my $cdts = $db->query( <<SQL, $controversies_id, $snapshot )->hash;
+    my ( $db, $snapshot ) = @_;
+
+    my $cdts = $db->query( <<SQL, $snapshot )->hash;
 select *
   from controversy_dump_time_slices cdts
-  join controversy_dumps cd on (cd.controversy_dumps_id = cdts.controversy_dumps_id)
   where
-    cd.controversies_id = \$1 and
-    cd.controversy_dumps_id = \$2
-  order by cd.dump_date desc limit 1
+    cdts.controversy_dumps_id = \$1 and
+    cdts.period = 'overall'
 SQL
+
+    LOGDIE( "no overall time slice for snapshot $snapshot" );
 }
 
 sub _get_latest_overall_time_slice_from_controversy
@@ -96,7 +97,7 @@ sub get_time_slice_for_controversy
 
     return $cdts if ( $cdts );
 
-    $cdts = _get_latest_time_slice_from_snapshot( $db, $controversies_id, $snapshot );
+    $cdts = _get_overall_time_slice_from_snapshot( $db, $snapshot );
 
     return $cdts if ( $cdts );
 

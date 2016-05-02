@@ -69,7 +69,7 @@ END
     $db->query( <<END );
 create temporary table media as
     select m.name, m.url, mlc.*
-        from media m join dump_medium_link_counts mlc on ( m.media_id = mlc.media_id )
+        from dump_media m join dump_medium_link_counts mlc on ( m.media_id = mlc.media_id )
 END
 
     $db->commit;
@@ -89,10 +89,9 @@ sub list_GET : Local
     if ( $cdts )
     {
         $self->_create_controversy_media_table( $c, $cdts->{ controversy_dump_time_slices_id } );
-        $entity->{ media } = $db->query( <<SQL )->hashes;
-select * from media m
-    order by inlink_count desc
-SQL
+
+        $entity->{ media } = $db->query( "select * from media order by inlink_count desc, media_id" )->hashes;
+
         $self->status_ok( $c, entity => $entity );
     }
 
