@@ -62,3 +62,7 @@ facebook:
     app_id: ''
     app_secret: ''
     timeout: 60
+ec2:
+    instance_monitor_email: ''
+    aws_access_key_id: ''
+    aws_secret_access_key: ''
