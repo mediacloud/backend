@@ -235,24 +235,7 @@ sub test_media_list
 
     my $controversy_stories = _get_story_link_counts( $data );
 
-    my $inlink_counts = {};
-    for my $m ( keys %{ $data } )
-    {
-        for my $f ( values $data->{ $m } )
-        {
-            foreach my $num ( @{ $f } )
-            {
-                if ( exists $inlink_counts->{ $m } && $num % 6 )
-                {
-                    $inlink_counts->{ $m } += $controversy_stories->{ "story $num" };
-                }
-                else
-                {
-                    $inlink_counts->{ $m } = $controversy_stories->{ "story $num" };
-                }
-            }
-        }
-    }
+    my $inlink_counts = { F => 4, D => 2, A => 0 };
 
     foreach my $mediasource ( @{ $actual_response->{ media } } )
     {

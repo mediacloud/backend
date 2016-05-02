@@ -67,8 +67,10 @@ select *
     cdts.controversy_dumps_id = \$1 and
     cdts.period = 'overall'
 SQL
-
-    LOGDIE( "no overall time slice for snapshot $snapshot" );
+    unless ( $cdts )
+    {
+        LOGDIE( "no overall time slice for snapshot $snapshot" );
+    }
 }
 
 sub _get_latest_overall_time_slice_from_controversy
@@ -97,7 +99,7 @@ sub get_time_slice_for_controversy
 
     return $cdts if ( $cdts );
 
-    $cdts = _get_overall_time_slice_from_snapshot( $db, $snapshot );
+    $cdts = $snapshot && _get_overall_time_slice_from_snapshot( $db, $snapshot );
 
     return $cdts if ( $cdts );
 
