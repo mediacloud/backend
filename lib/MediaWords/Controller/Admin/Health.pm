@@ -77,7 +77,7 @@ sub _assign_health_data_to_tag
     my ( $db, $tag ) = @_;
 
     my $media = $db->query( <<SQL, $tag->{ tags_id } )->hashes;
-select m.*, mh.*
+select m.*, mh.*, m.media_id
     from media m
         join media_tags_map mtm on ( mtm.media_id = m.media_id )
         left join media_health mh on ( mh.media_id = m.media_id )
