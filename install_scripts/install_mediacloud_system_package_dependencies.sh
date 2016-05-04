@@ -118,18 +118,11 @@ else
     sudo apt-get -y install curl
 
     # Apt's versions of Supervisor, Vagrant, RabbitMQ are too old
-    OBSOLETE_APT_PACKAGES=(supervisor vagrant esl-erlang rabbitmq-server)
+    OBSOLETE_APT_PACKAGES=(supervisor vagrant rabbitmq-server)
     for obsolete_package in "${OBSOLETE_APT_PACKAGES[@]}"; do
         dpkg-query -l "$obsolete_package" | grep "^ii" >/dev/null 2>&1 && {
-            echo "Installed package '$obsolete_package' from APT is too old."
-            echo "Please remove it manually by running:"
-            echo
-            echo "    sudo apt-get remove -y $obsolete_package"
-            echo
-            echo "and then rerun this script. I will then install an up-to-date"
-            echo "version of '$obsolete_package'."
-
-            exit 1
+            echo "Installed package '$obsolete_package' from APT is too old, removing..."
+            sudo apt-get -y remove $obsolete_package
         }
     done
 
@@ -146,7 +139,6 @@ else
 
     # Ubuntu (all versions) APT's version of RabbitMQ is too old
     # (we need 3.5.0+ to support priorities)
-    sudo apt-get -y remove rabbitmq-server
     curl -s "$RABBITMQ_PACKAGECLOUD_SCRIPT" | sudo bash
 
     # Install Gearman from PPA repository
