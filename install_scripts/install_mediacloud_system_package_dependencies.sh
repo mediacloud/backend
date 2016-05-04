@@ -130,7 +130,7 @@ else
     if verlt "$DISTRIB_RELEASE" "14.04"; then
 
          # Ubuntu 12.04 APT's version of Erlang is too old
-        sudo apt-get -y remove esl-erlang* erlang*
+        sudo apt-get -y remove erlang*
         curl "$ERLANG_APT_GPG_KEY_URL" | sudo apt-key add -
         echo "deb $ERLANG_APT_REPOSITORY_URL precise contrib" | \
             sudo tee -a /etc/apt/sources.list.d/erlang-solutions.list
