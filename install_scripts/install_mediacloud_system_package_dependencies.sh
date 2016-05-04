@@ -75,7 +75,7 @@ EOF
         graphviz --with-bindings \
         coreutils curl homebrew/dupes/tidy libyaml gawk cpanminus \
         gearman --with-postgresql \
-        netcat
+        netcat openssl
 
     # have to change dir or it think you are trying to install from the supervisor/ dir
     ( cd /tmp; easy_install supervisor )
