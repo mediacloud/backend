@@ -14,6 +14,9 @@ cd "$PWD/../"
 # (https://www.rabbitmq.com/install-debian.html#kernel-resource-limits)
 MIN_OPEN_FILES_LIMIT=65536
 
+# Default web interface port
+RABBITMQ_WEB_INTERFACE_PORT=15673
+
 
 log() {
     # to STDERR
@@ -140,6 +143,11 @@ export RABBITMQ_NODE_IP_ADDRESS=`$QUERY_CONFIG "//job_manager/rabbitmq/server/li
 export RABBITMQ_NODE_PORT=`$QUERY_CONFIG "//job_manager/rabbitmq/server/port"`
 export RABBITMQ_NODENAME=`$QUERY_CONFIG "//job_manager/rabbitmq/server/node_name"`
 
+# Not exported, will be (re)created later
+RABBITMQ_USERNAME=`$QUERY_CONFIG "//job_manager/rabbitmq/server/username"`
+RABBITMQ_PASSWORD=`$QUERY_CONFIG "//job_manager/rabbitmq/server/password"`
+RABBITMQ_VHOST=`$QUERY_CONFIG "//job_manager/rabbitmq/server/vhost"`
+
 export RABBITMQ_BASE="$PWD/data/rabbitmq"
 if [ ! -d "$RABBITMQ_BASE" ]; then
     log "RabbitMQ base directory '$RABBITMQ_BASE' does not exist."
@@ -164,5 +172,59 @@ if [ ! -d "$RABBITMQ_LOG_BASE" ]; then
     exit 1    
 fi
 
+# On Ctrl+C, shutdown RabbitMQ
+function kill_rabbitmq {
+    jobs -p | xargs kill
+}
+trap kill_rabbitmq SIGINT
+
 echo "Starting rabbitmq-server..."
-exec rabbitmq-server
+rabbitmq-server &
+RABBITMQ_PID=$!
+
+echo "Waiting for RabbitMQ to start..."
+RABBITMQ_IS_UP=0
+RABBITMQ_START_RETRIES=90
+
+echo "Waiting $RABBITMQ_START_RETRIES seconds for Solr to start..."
+for i in `seq 1 $RABBITMQ_START_RETRIES`; do
+    echo "Trying to connect (#$i)..."
+    if nc -z -w 10 127.0.0.1 $RABBITMQ_NODE_PORT; then
+        RABBITMQ_IS_UP=1
+        break
+    else
+        # Still down
+        sleep 1
+    fi
+done
+
+if [ $RABBITMQ_IS_UP = 1 ]; then
+    echo "RabbitMQ is up."
+else
+    echo "RabbitMQ is down after $RABBITMQ_START_RETRIES seconds, giving up."
+    kill -9 $RABBITMQ_PID
+    exit 1
+fi
+
+echo "Reconfiguring instance..."
+
+# Enable web management (if not yet enabled)
+rabbitmq-plugins -n "$RABBITMQ_NODENAME" enable rabbitmq_management
+
+# Create user and vhost
+rabbitmqadmin --node="$RABBITMQ_NODENAME" --port="$RABBITMQ_WEB_INTERFACE_PORT" \
+    --username="$RABBITMQ_USERNAME" --password="$RABBITMQ_PASSWORD" \
+    declare vhost name="$RABBITMQ_VHOST"
+
+rabbitmqadmin --node="$RABBITMQ_NODENAME" --port="$RABBITMQ_WEB_INTERFACE_PORT" \
+    --username="$RABBITMQ_USERNAME" --password="$RABBITMQ_PASSWORD" \
+    declare user name="$RABBITMQ_USERNAME" password="$RABBITMQ_PASSWORD" tags="administrator"
+
+rabbitmqadmin --node="$RABBITMQ_NODENAME" --port="$RABBITMQ_WEB_INTERFACE_PORT" \
+    --username="$RABBITMQ_USERNAME" --password="$RABBITMQ_PASSWORD" \
+    declare permission vhost="$RABBITMQ_VHOST" user="$RABBITMQ_USERNAME" configure=".*" write=".*" read=".*"
+
+
+# Wait forever
+echo "RabbitMQ is ready"
+cat
