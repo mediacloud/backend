@@ -130,18 +130,18 @@ else
         }
     done
 
+
+
     # Install Gearman from PPA repository
     sudo apt-get -y install python-software-properties
 
-
-
     if verlt "$DISTRIB_RELEASE" "14.04"; then
-         # 12.04 Apt's version of Gearman is too old
+
+         # Ubuntu 12.04 APT's version of Gearman is too old
         sudo apt-get -y remove gearman gearman-job-server gearman-tools \
             libgearman-dbg libgearman-dev libgearman-doc libgearman6
-
-       sudo add-apt-repository -y ppa:gearman-developers/ppa
-       sudo apt-get -y update
+        sudo add-apt-repository -y ppa:gearman-developers/ppa
+        sudo apt-get -y update
     fi
 
     sudo apt-get -y install gearman-job-server gearman-tools libgearman-dev

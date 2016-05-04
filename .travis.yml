@@ -11,7 +11,7 @@ addons:
     apt:
         # Whitelist: https://github.com/travis-ci/apt-source-whitelist
         sources:
-            # We need an up-to-date version of Gearman
+            # Up-to-date version of Gearman on Ubuntu 12.04
             - gearman-developers
         # Whitelist: https://github.com/travis-ci/apt-package-whitelist
         # Keep in sync with "install_mediacloud_system_package_dependencies.sh"
