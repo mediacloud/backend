@@ -182,6 +182,7 @@ database:
 
         # other configurable supervisor programs
         #gearmand
+        #rabbitmq
         #rescrape_media
         #cm_mine_controversy
         #cm_dump_controversy
