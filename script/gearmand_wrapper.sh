@@ -101,7 +101,7 @@ print_gearman_installation_instructions() {
 echo "Testing environment..."
 if ! gearmand_is_enabled; then
     log "'gearmand' is not enabled."
-    log "Please enable it in 'mediawords.yml' by setting /gearmand/enabled to 'yes'."
+    log "Please enable it in 'mediawords.yml' by setting /job_manager/gearman/server/enabled to 'yes'."
     exit 0
 fi
 
