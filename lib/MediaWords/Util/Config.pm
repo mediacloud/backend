@@ -200,10 +200,10 @@ EOF
         );
     }
 
-    # die() if zero or two+ job managers are configured (note the "xor")
+    # Warn if zero or two+ job managers are configured (note the "xor")
     unless ( $config->{ job_manager }->{ rabbitmq } xor $config->{ job_manager }->{ gearman } )
     {
-        MediaWords::CommonLibs::LOGDIE(
+        MediaWords::CommonLibs::WARN(
             <<EOF
 
 Please configure either "gearman" or "rabbitmq" job manager under "job_manager"
