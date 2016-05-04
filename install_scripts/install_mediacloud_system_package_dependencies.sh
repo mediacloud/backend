@@ -111,6 +111,8 @@ EOF
 else
 
     # assume Ubuntu
+    source /etc/lsb-release
+    sudo apt-get -y install curl
 
     # Apt's versions of Supervisor, Vagrant are too old
     OBSOLETE_APT_PACKAGES=(supervisor vagrant)
@@ -133,7 +135,6 @@ else
 
 
 
-    source /etc/lsb-release
     if verlt "$DISTRIB_RELEASE" "14.04"; then
          # 12.04 Apt's version of Gearman is too old
         sudo apt-get -y remove gearman gearman-job-server gearman-tools \
