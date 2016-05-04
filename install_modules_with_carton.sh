@@ -12,15 +12,15 @@ if pwd | grep ' ' ; then
     exit 1
 fi
 
+# Set JAVA_HOME
+source ./script/set_java_home.sh
+
 # Net::SSLeay is unable to find system's <openssl/err.h> on OS X
 if [ `uname` == 'Darwin' ]; then
     OPENSSL_PREFIX="/usr/local/opt/openssl"
 else
     OPENSSL_PREFIX="/usr"
 fi
-
-# Set JAVA_HOME
-source ./script/set_java_home.sh
 
 
 # Install dependency modules; run the command twice because the first
