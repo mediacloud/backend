@@ -40,6 +40,7 @@ addons:
             - netcat
             - openjdk-7-jdk
             - openjdk-7-jre-headless
+            - openssl
             - pandoc
             - postgresql-server-dev-all
             - python-dev
