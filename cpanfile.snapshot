@@ -5139,6 +5139,23 @@ DISTRIBUTIONS
       Net::Domain 1.05
       Net::SMTP 1.03
       Test::More 0
+  Math-Int64-0.54
+    pathname: S/SA/SALVA/Math-Int64-0.54.tar.gz
+    provides:
+      Math::Int64 0.54
+      Math::Int64::die_on_overflow 0.54
+      Math::Int64::native_if_available 0.54
+      Math::UInt64 0.54
+    requirements:
+      Exporter 0
+      ExtUtils::MakeMaker 0
+      XSLoader 0
+      constant 0
+      overload 0
+      perl 5.006
+      strict 0
+      warnings 0
+      warnings::register 0
   Math-Random-0.72
     pathname: G/GR/GROMMEL/Math-Random-0.72.tar.gz
     provides:
@@ -5167,15 +5184,16 @@ DISTRIBUTIONS
       Math::Random::ISAAC v1.0.1
       Test::More 0
       Test::Warn 0
-  MediaCloud-JobManager-0.18
-    pathname: L/LV/LVALIUKAS/MediaCloud-JobManager-0.18.tar.gz
+  MediaCloud-JobManager-0.19
+    pathname: L/LV/LVALIUKAS/MediaCloud-JobManager-0.19.tar.gz
     provides:
       Addition undef
       AdditionAlwaysFails undef
-      MediaCloud::JobManager 0.18
+      MediaCloud::JobManager 0.19
       MediaCloud::JobManager::Admin undef
       MediaCloud::JobManager::Broker undef
       MediaCloud::JobManager::Broker::Gearman undef
+      MediaCloud::JobManager::Broker::RabbitMQ undef
       MediaCloud::JobManager::Configuration undef
       MediaCloud::JobManager::Job undef
       MediaCloud::JobManager::Worker undef
@@ -5184,7 +5202,6 @@ DISTRIBUTIONS
       App::githook_perltidy v0.10.2
       Capture::Tiny 0
       Carp 0
-      Data::Compare 0
       Data::Dumper 0
       Data::UUID 0
       DateTime 0
@@ -5195,12 +5212,14 @@ DISTRIBUTIONS
       Gearman::XS 0
       IO::File 0
       IO::Socket::INET 0
-      JSON 0
+      JSON 2.90
+      JSON::XS 3.02
       Log::Log4perl 0
       Modern::Perl 0
       Moose 2.1005
       Moose::Role 2.1005
       MooseX::Singleton 0
+      Net::AMQP::RabbitMQ 1.600000
       Net::Telnet 0
       Proc::Background 0
       Readonly 0
@@ -5208,7 +5227,9 @@ DISTRIBUTIONS
       Test::More 0
       Test::NoWarnings 0
       Test::Strict 0
+      Tie::Cache 0
       Time::HiRes 0
+      UUID::Tiny 1.04
   Modern-Perl-1.20150127
     pathname: C/CH/CHROMATIC/Modern-Perl-1.20150127.tar.gz
     provides:
@@ -6271,6 +6292,15 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       Test 0
       perl 5.006
+  Net-AMQP-RabbitMQ-2.000000
+    pathname: M/MA/MARKELLIS/Net-AMQP-RabbitMQ-2.000000.tar.gz
+    provides:
+      Net::AMQP::RabbitMQ 2.000000
+    requirements:
+      ExtUtils::MakeMaker 0
+      Math::Int64 0.34
+      Scalar::Util 0
+      XSLoader 0
   Net-Amazon-S3-0.80
     pathname: R/RC/RCONOVER/Net-Amazon-S3-0.80.tar.gz
     provides:
@@ -8495,6 +8525,19 @@ DISTRIBUTIONS
     requirements:
       ExtUtils::MakeMaker 6.30
       URI 0
+  UUID-Tiny-1.04
+    pathname: C/CA/CAUGUSTIN/UUID-Tiny-1.04.tar.gz
+    provides:
+      UUID::Tiny 1.04
+    requirements:
+      Carp 0
+      Digest::MD5 0
+      ExtUtils::MakeMaker 0
+      IO::File 0
+      MIME::Base64 0
+      POSIX 0
+      Test::More 0
+      Time::HiRes 0
   VM-EC2-1.25
     pathname: L/LD/LDS/VM-EC2-1.25.tar.gz
     provides:
