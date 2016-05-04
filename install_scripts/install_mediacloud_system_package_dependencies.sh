@@ -6,6 +6,9 @@ set -o errexit
 
 CLD_URL_DEBIAN="http://chromium-compact-language-detector.googlecode.com/files/compact-language-detector_0.1-1_amd64.deb"
 VAGRANT_URL_DEBIAN="https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.1_x86_64.deb"
+ERLANG_APT_GPG_KEY_URL="http://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc"
+ERLANG_APT_REPOSITORY_URL="http://packages.erlang-solutions.com/ubuntu"
+RABBITMQ_PACKAGECLOUD_SCRIPT="https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.deb.sh"
 
 
 function echo_cld_instructions {
@@ -84,7 +87,7 @@ EOF
         graphviz --with-bindings \
         coreutils curl homebrew/dupes/tidy libyaml gawk cpanminus \
         gearman --with-postgresql \
-        netcat openssl
+        netcat openssl rabbitmq
 
     # have to change dir or it think you are trying to install from the supervisor/ dir
     ( cd /tmp; easy_install supervisor )
@@ -114,8 +117,8 @@ else
     source /etc/lsb-release
     sudo apt-get -y install curl
 
-    # Apt's versions of Supervisor, Vagrant are too old
-    OBSOLETE_APT_PACKAGES=(supervisor vagrant)
+    # Apt's versions of Supervisor, Vagrant, RabbitMQ are too old
+    OBSOLETE_APT_PACKAGES=(supervisor vagrant esl-erlang rabbitmq-server)
     for obsolete_package in "${OBSOLETE_APT_PACKAGES[@]}"; do
         dpkg-query -l "$obsolete_package" | grep "^ii" >/dev/null 2>&1 && {
             echo "Installed package '$obsolete_package' from APT is too old."
@@ -130,7 +133,21 @@ else
         }
     done
 
+    # Ubuntu 12.04 APT's version of Erlang is too old (needed by RabbitMQ)
+    if verlt "$DISTRIB_RELEASE" "14.04"; then
 
+         # Ubuntu 12.04 APT's version of Erlang is too old
+        sudo apt-get -y remove esl-erlang* erlang*
+        curl "$ERLANG_APT_GPG_KEY_URL" | sudo apt-key add -
+        echo "deb $ERLANG_APT_REPOSITORY_URL precise contrib" | \
+            sudo tee -a /etc/apt/sources.list.d/erlang-solutions.list
+        sudo apt-get -y update
+    fi
+
+    # Ubuntu (all versions) APT's version of RabbitMQ is too old
+    # (we need 3.5.0+ to support priorities)
+    sudo apt-get -y remove rabbitmq-server
+    curl -s "$RABBITMQ_PACKAGECLOUD_SCRIPT" | sudo bash
 
     # Install Gearman from PPA repository
     sudo apt-get -y install python-software-properties
@@ -157,7 +174,11 @@ else
         python-lxml-dbg python-lxml-doc python-libxml2 libxml2-dev \
         libxslt1-dev libxslt1-dbg libxslt1.1 build-essential make gcc g++ \
         cpanminus perl-doc liblocale-maketext-lexicon-perl openjdk-7-jdk \
-        pandoc netcat
+        pandoc netcat rabbitmq-server
+
+    # Disable system-wide RabbitMQ server (we will start and use our very own instance)
+    sudo update-rc.d rabbitmq-server disable
+    sudo service rabbitmq-server stop
     
     # have to change dir or it think you are trying to install from the supervisor/ dir
     ( cd /tmp; sudo easy_install supervisor ) 

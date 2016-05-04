@@ -13,6 +13,8 @@ addons:
         sources:
             # Up-to-date version of Gearman on Ubuntu 12.04
             - gearman-developers
+            # Up-to-date version of RabbitMQ on Ubuntu 12.04
+            - rabbitmq-precise
         # Whitelist: https://github.com/travis-ci/apt-package-whitelist
         # Keep in sync with "install_mediacloud_system_package_dependencies.sh"
         packages:
@@ -46,6 +48,7 @@ addons:
             - python-dev
             - python-software-properties
             - python-virtualenv
+            - rabbitmq-server
             - tidy
 cache:
     directories:
