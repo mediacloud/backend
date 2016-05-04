@@ -1,55 +1,12 @@
 language: perl
-# Use container-based infrastucture on Travis which doesn't support running
-# things as root; see http://docs.travis-ci.com/user/migrating-from-legacy/
-sudo: false
+# Installing up-to-date Erlang requires root
+sudo: true
 perl:
     - "5.22"
 addons:
     postgresql: "9.3"
     hosts:
         - mediacloud.local
-    apt:
-        # Whitelist: https://github.com/travis-ci/apt-source-whitelist
-        sources:
-            # Up-to-date version of Gearman on Ubuntu 12.04
-            - gearman-developers
-            # Up-to-date version of RabbitMQ on Ubuntu 12.04
-            - rabbitmq-precise
-        # Whitelist: https://github.com/travis-ci/apt-package-whitelist
-        # Keep in sync with "install_mediacloud_system_package_dependencies.sh"
-        packages:
-            - build-essential
-            - cpanminus
-            - curl
-            - g++
-            - gawk
-            - gcc
-            - graphviz
-            - graphviz-dev
-            - libdb-dev
-            - libexpat1
-            - libexpat1-dev
-            - libgearman-dev
-            - libgraph4
-            - libgraphviz-dev
-            - libxml2-dev
-            - libxslt1-dbg
-            - libxslt1-dev
-            - libxslt1.1
-            - libyaml-0-2
-            - libyaml-dev
-            - make
-            - netcat
-            - openjdk-7-jdk
-            - openjdk-7-jre-headless
-            - openssl
-            - pandoc
-            - postgresql-server-dev-all
-            - python-dev
-            - python-software-properties
-            - python-virtualenv
-            - rabbitmq-server
-            - tidy
 cache:
     directories:
         # Carton dependencies
@@ -79,6 +36,8 @@ env:
         # Test PythonReadability extractor method in t/test_extractor.t
         - MC_TEST_EXTRACTOR_PYTHONREADABILITY=1
 before_install:
+    # Install APT packages
+    - ./install_scripts/install_mediacloud_package_dependencies.sh
     # Set up local Media Cloud environment for Python
     - mkdir -p $HOME/mc-python
     - virtualenv $HOME/mc-python
