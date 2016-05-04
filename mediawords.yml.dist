@@ -64,6 +64,49 @@ database:
 ### Job manager (MediaCloud::JobManager) configuration
 #job_manager:
 
+    ### When uncommented, will use RabbitMQ as job broker
+    #rabbitmq:
+
+        ### RabbitMQ client configuration
+        ### (both workers and clients will use this key)
+        #client:
+
+            ### Connection credentials
+            #hostname: "localhost"
+            #port: 5673     # not the default 5672
+            #username: "mediacloud"
+            #password: "mediacloud"
+            #vhost: "/mediacloud"
+            #timeout: 60
+
+        ### RabbitMQ server configuration
+        ### (rabbitmq_wrapper.sh will use this for starting up an instance of
+        ### RabbitMQ)
+        #server:
+
+            ### To disable your very own RabbitMQ instance managed by Supervisord,
+            ### set the below to "no". Default is "yes".
+            #enabled: "yes"
+
+            ### Host to listen to. You can set the above parameter to an empty string
+            ### so that RabbitMQ will accept connections from anywhere; however, it is
+            ### highly advised use to secure channels (e.g. a SSH tunnel) to make RabbitMQ
+            ### accessible from "outside" instead. Default is "127.0.0.1".
+            #listen: "127.0.0.1"
+
+            ### Port to use for RabbitMQ. Default port for vendor-provided RabbitMQ
+            ### deployments is 5672, but Media Cloud runs its own Gearman instance via
+            ### Supervisord. Default is 5673.
+            #port: 5673     # not the default 5672
+
+            ### Node name
+            #node_name: "mediacloud@localhost"
+
+            ### User credentials and vhost to create upon start (instead of "guest")
+            #username: "mediacloud"
+            #password: "mediacloud"
+            #vhost: "/mediacloud"
+
     ### When uncommented, will use Gearman as job broker
     #gearman:
 
