@@ -199,6 +199,19 @@ broker under that root key.
 EOF
         );
     }
+
+    # die() if zero or two+ job managers are configured (note the "xor")
+    unless ( $config->{ job_manager }->{ rabbitmq } xor $config->{ job_manager }->{ gearman } )
+    {
+        MediaWords::CommonLibs::LOGDIE(
+            <<EOF
+
+Please configure either "gearman" or "rabbitmq" job manager under "job_manager"
+root key in mediawords.yml.
+
+EOF
+        );
+    }
 }
 
 sub _set_dynamic_defaults
