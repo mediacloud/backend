@@ -42,6 +42,15 @@ SKIP_VAGRANT_TEST=1 $0
 EOF
 }
 
+# Version comparison functions
+function verlte() {
+    [  "$1" = "`echo -e "$1\n$2" | sort -V | head -n1`" ]
+}
+
+function verlt() {
+    [ "$1" = "$2" ] && return 1 || verlte "$1" "$2"
+}
+
 
 echo "installing media cloud system dependencies"
 echo
@@ -122,14 +131,7 @@ else
     # Install Gearman from PPA repository
     sudo apt-get -y install python-software-properties
 
-    # Version comparison functions
-    function verlte() {
-        [  "$1" = "`echo -e "$1\n$2" | sort -V | head -n1`" ]
-    }
 
-    function verlt() {
-        [ "$1" = "$2" ] && return 1 || verlte "$1" "$2"
-    }
 
     source /etc/lsb-release
     if verlt "$DISTRIB_RELEASE" "14.04"; then
