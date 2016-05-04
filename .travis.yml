@@ -37,7 +37,7 @@ env:
         - MC_TEST_EXTRACTOR_PYTHONREADABILITY=1
 before_install:
     # Install APT packages
-    - ./install_scripts/install_mediacloud_package_dependencies.sh
+    - ./install_scripts/install_mediacloud_system_package_dependencies.sh
     # Set up local Media Cloud environment for Python
     - mkdir -p $HOME/mc-python
     - virtualenv $HOME/mc-python
