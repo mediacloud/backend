@@ -47,25 +47,15 @@ sub list_GET
     my $entity = {};
     $entity->{ timeslice } = $cdts;
 
-    my $order_by_clause = "slc.inlink_count desc, s.stories_id";
-    if ( $c->req->params->{ sort } )
-    {
-        if ( $c->req->params->{ sort } eq 'social' )
-        {
-            $order_by_clause = "slc.bitly_click_count desc, s.stories_id";
-        }
-    }
-
     if ( $cdts )
     {
         $entity->{ stories } =
-          $db->query(
-            <<SQL, $cdts->{ controversy_dump_time_slices_id }, $cdts->{ controversy_dumps_id }, $order_by_clause )->hashes;
+          $db->query( <<SQL, $cdts->{ controversy_dump_time_slices_id }, $cdts->{ controversy_dumps_id } )->hashes;
 select * from cd.story_link_counts slc
   join cd.stories s on slc.stories_id = s.stories_id
   where slc.controversy_dump_time_slices_id = \$1
   and s.controversy_dumps_id = \$2
-  order by \$3
+  order by slc.inlink_count desc, s.stories_id
 SQL
         $self->status_ok( $c, entity => $entity );
     }
