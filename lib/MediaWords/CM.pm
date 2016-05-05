@@ -65,7 +65,8 @@ select *
   from controversy_dump_time_slices cdts
   where
     cdts.controversy_dumps_id = \$1 and
-    cdts.period = 'overall'
+    cdts.period = 'overall' and
+    cdts.controversy_query_slices_id is null
 SQL
     unless ( $cdts )
     {
@@ -82,7 +83,8 @@ select *
   join controversy_dumps cd on (cd.controversy_dumps_id = cdts.controversy_dumps_id)
   where
     cd.controversies_id = \$1 and
-    cdts.period = 'overall'
+    cdts.period = 'overall' and
+    cdts.controversy_query_slices_id is null
   order by cd.dump_date desc limit 1
 SQL
 }
