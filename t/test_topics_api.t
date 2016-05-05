@@ -138,8 +138,6 @@ sub create_test_data
 
     srand( 3 );
 
-    my $test_db = shift;
-
     # populate controversies table
     my $controversy = $test_db->create(
         'controversies',
