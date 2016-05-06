@@ -32,6 +32,8 @@ use MediaWords::Test::DB;
 
 use MediaWords::Util::Web;
 
+use MediaWords::Controller::Api::V2::Topics::Stories;
+
 use Readonly;
 
 use Test::More;
@@ -41,6 +43,9 @@ Readonly my $TEST_API_KEY => 'f66a50230d54afaf18822808aed649f1d6ca72b08fb06d5efb
 Readonly my $TEST_HTTP_SERVER_PORT => '3000';
 
 Readonly my $TEST_HTTP_SERVER_URL => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
+
+# This should match the DEFAULT_STORY_LIMIT in Stories.pm
+Readonly my $DEFAULT_STORY_LIMIT => 10;
 
 sub add_controversy_link
 {
@@ -254,7 +259,7 @@ sub test_story_count
 
     my $actual_response = JSON::decode_json( $response->decoded_content() );
 
-    Test::More::ok( $actual_response->{ timeslice }->{ story_count } + 0 == scalar @{ $actual_response->{ stories } } );
+    Test::More::ok( scalar @{ $actual_response->{ stories } } == $DEFAULT_STORY_LIMIT );
 
 }
 
@@ -291,7 +296,7 @@ sub test_story_inclusion
     # Make sure that the order is inlink count descending
     my $data = shift;
 
-    my $base_url = { path => '/api/v2/topics/1/stories/list' };
+    my $base_url = { path => '/api/v2/topics/1/stories/list?limit=20' };
 
     my $controversy_stories = _get_story_link_counts( $data );
 
