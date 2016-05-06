@@ -65,16 +65,7 @@ Readonly my $STALE_FEED_CHECK_INTERVAL => 60 * 30;
 Readonly my $STALE_DOWNLOAD_INTERVAL => 60 * 5;
 
 # how many downloads to store in memory queue
-Readonly my $MAX_QUEUED_DOWNLOADS => 50_000;
-
-# how many queued downloads mean the queue is more or less idle
-# and thus can be filled with missing downloads
-Readonly my $QUEUED_DOWNLOADS_IDLE_COUNT => 1000;
-
-# how many missing downloads to enqueue each and every time the queue is idle
-# (has to fit in memory because this is how much downloads are passed to
-# _queue_download_list_with_per_site_limit())
-Readonly my $MISSING_DOWNLOADS_CHUNK_COUNT => 1000;
+Readonly my $MAX_QUEUED_DOWNLOADS => 10_000_000;
 
 # how often to check the database for new pending downloads (seconds)
 Readonly my $DEFAULT_PENDING_CHECK_INTERVAL => 60 * 10;
@@ -122,7 +113,7 @@ sub _setup
 
     unless ( $self->{ setup_was_run } )
     {
-        print STDERR "Provider _setup\n";
+        TRACE( "_setup" );
         $self->{ setup_was_run } = 1;
 
         $self->engine->dbs->query( "UPDATE downloads set state = 'pending' where state = 'fetching'" );
@@ -155,7 +146,7 @@ sub _timeout_stale_downloads
 
         $dbs->update_by_id( "downloads", $download->{ downloads_id }, $download );
 
-        print STDERR "timed out stale download " . $download->{ downloads_id } . " for url " . $download->{ url } . "\n";
+        DEBUG( sub { "timed out stale download " . $download->{ downloads_id } . "  " . $download->{ url } } );
     }
 
 }
@@ -170,7 +161,7 @@ sub _add_stale_feeds
         return;
     }
 
-    print STDERR "start _add_stale_feeds\n";
+    DEBUG "_add_stale_feeds";
 
     $self->{ last_stale_feed_check } = time();
 
@@ -226,7 +217,7 @@ END
 
     $dbs->query( "drop table feeds_to_queue" );
 
-    print STDERR "end _add_stale_feeds\n";
+    DEBUG "end _add_stale_feeds";
 
 }
 
@@ -248,8 +239,11 @@ sub _queue_download_list_with_per_site_limit
 {
     my ( $self, $downloads, $site_limit ) = @_;
 
-    say STDERR "_queue_download_list_with_per_site_limit: " .
-      scalar( @{ $downloads } ) . " downloads (site limit $site_limit)";
+    # temp fix to improve throughput for single media sources with large queues:
+    # hard coding site limit to about the max we can handle per $DEFAULT_PENDING_CHECK_INTERVAL
+    $site_limit = 25 * $DEFAULT_PENDING_CHECK_INTERVAL;
+
+    DEBUG( sub { "queue " . scalar( @{ $downloads } ) . " downloads (site limit $site_limit)" } );
 
     my $queued_downloads = [];
 
@@ -266,69 +260,9 @@ sub _queue_download_list_with_per_site_limit
         $self->{ downloads }->_queue_download( $download );
     }
 
-    say STDERR "_queue_download_list_with_per_site_limit: queued " . scalar( @{ $queued_downloads } ) . " downloads";
-
-    # my $downloads_id_list = join( ',', map { $_->{ downloads_id } } @{ $queued_downloads } );
-    # $self->engine->dbs->query( "update downloads set state = 'queued' where downloads_id in ($downloads_id_list)" );
+    DEBUG( sub { "queued " . scalar( @{ $queued_downloads } ) . " downloads" } );
 
     return;
-}
-
-# add missing downloads
-sub _add_missing_downloads($$)
-{
-    my ( $self, $count ) = @_;
-
-    unless ( $count )
-    {
-        say STDERR "Missing downloads chunk count is 0";
-        return;
-    }
-
-    say STDERR "adding missing downloads";
-
-    my $db = $self->engine->dbs;
-
-    # Enqueue some of the missing downloads to the redownloaded
-    my $missing_downloads = $db->query(
-        <<END,
-        SELECT d.*,
-               f.media_id AS _media_id,
-               COALESCE( site_from_host( d.host ), 'non-media' ) AS site
-        FROM downloads AS d
-            LEFT JOIN feeds AS f ON f.feeds_id = d.feeds_id
-
-        -- enqueue only "content" downloads, skip the "feed" downloads
-        -- (because we do not expect we will get the same feed as it was
-        -- in 2009)
-        WHERE d.type = 'content'
-
-          -- and the download is missing from the filesystem
-          AND d.file_status = 'missing'
-
-          -- the download was successful the first time it was fetched
-          -- (do not attempt to redownload errorneous downloads)
-          AND d.state = 'success'
-        LIMIT ?
-END
-        $count
-    )->hashes;
-
-    my $missing_download_sites = [ List::MoreUtils::uniq( map { $_->{ site } } @{ $missing_downloads } ) ];
-
-    my $site_missing_downloads = {};
-    map { push( @{ $site_missing_downloads->{ $_->{ site } } }, $_ ) } @{ $missing_downloads };
-
-    if ( @{ $missing_download_sites } )
-    {
-        my $site_missing_download_queue_limit = int( $MAX_QUEUED_DOWNLOADS / scalar( @{ $missing_download_sites } ) ) + 1;
-
-        for my $missing_download_site ( @{ $missing_download_sites } )
-        {
-            $self->_queue_download_list_with_per_site_limit( $site_missing_downloads->{ $missing_download_site },
-                $site_missing_download_queue_limit );
-        }
-    }
 }
 
 # add all pending downloads to the $_downloads list
@@ -344,40 +278,24 @@ sub _add_pending_downloads
 
     if ( $self->{ downloads }->_get_downloads_size > $MAX_QUEUED_DOWNLOADS )
     {
-        print STDERR "skipping add pending downloads due to queue size\n";
+        DEBUG "skipping add pending downloads due to queue size";
         return;
     }
 
     my $db = $self->engine->dbs;
 
-    my $downloads = $db->query(
-        <<END,
--- postgres was using a nested loop to fetch the feed data, which is
--- very slow when the download queue nears 100k rows; using a cte forces
--- postgres just to do a seq scan of the feeds table, which should only take a
--- few seconds in the worst case
-WITH feeds_media as (
-    select feeds_id, media_id
-        from feeds
-)
-
-SELECT d.*,
-       f.media_id AS _media_id,
-       COALESCE( site_from_host( d.host ), 'non-media' ) AS site
-FROM downloads AS d
-    LEFT JOIN feeds_media AS f ON f.feeds_id = d.feeds_id
-WHERE
-    state = 'pending' and
-    -- downloads can be embargoed for later by setting download_time to a future time
-    ( ( download_time is null ) or ( download_time < now() ) )
-
--- order by download_time / error_message is null first so that we get all downloads that have not been attempted first,
--- then by downloads_id so downloads don't get stuck in download_time < now embargo limbo forever
-ORDER BY download_time is null desc, error_message is null desc, downloads_id asc
-LIMIT ?
+    my $downloads = $db->query( <<END, $MAX_QUEUED_DOWNLOADS )->hashes;
+select
+        d.*,
+        f.media_id _media_id,
+        coalesce( d.host , 'non-media' ) site
+    from downloads d
+        join feeds f on ( d.feeds_id = f.feeds_id )
+    where
+        d.state = 'pending' and
+        ( d.download_time < now() or d.download_time is null )
+    limit ?
 END
-        $MAX_QUEUED_DOWNLOADS
-    )->hashes;
 
     my $sites = [ List::MoreUtils::uniq( map { $_->{ site } } @{ $downloads } ) ];
 
@@ -422,12 +340,6 @@ sub provide_downloads
 
     $self->_add_pending_downloads();
 
-    # Add some missing downloads if the functions above didn't fill up the queue
-    # if ( $self->{ downloads }->_get_downloads_size < $QUEUED_DOWNLOADS_IDLE_COUNT )
-    # {
-    #     $self->_add_missing_downloads( $MISSING_DOWNLOADS_CHUNK_COUNT );
-    # }
-
     my @downloads;
   MEDIA_ID:
     for my $media_id ( @{ $self->{ downloads }->_get_download_media_ids } )
@@ -437,13 +349,13 @@ sub provide_downloads
         if ( ( $self->engine->throttle > 1 ) && ( $media_id->{ time } > ( time() - $self->engine->throttle ) ) )
         {
 
-            print STDERR "provide downloads: skipping media id $media_id->{media_id} because of throttling\n";
+            DEBUG "provide downloads: skipping media id $media_id->{media_id} because of throttling";
 
             #skip;
             next MEDIA_ID;
         }
 
-        foreach ( 1 .. 3 )
+        foreach ( 1 .. 5 )
         {
             if ( my $download = $self->{ downloads }->_pop_download( $media_id->{ media_id } ) )
             {
@@ -452,7 +364,7 @@ sub provide_downloads
         }
     }
 
-    print STDERR "provide downloads: " . scalar( @downloads ) . " downloads\n";
+    DEBUG( sub { "provide downloads: " . scalar( @downloads ) . " downloads" } );
 
     if ( !@downloads )
     {

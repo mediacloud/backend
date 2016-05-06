@@ -9,7 +9,6 @@ use Digest::MD5;
 use JSON;
 use List::Compare;
 use Data::Dumper;
-use Gearman::JobScheduler;
 use Readonly;
 
 use MediaWords::CM;

@@ -1,26 +1,24 @@
-package MediaWords::GearmanFunction::ExtractAndVector;
+package MediaWords::Job::ExtractAndVector;
 
 #
 # Extract and vector a download
 #
 # Start this worker script by running:
 #
-# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/ExtractAndVector.pm
+# ./script/run_with_carton.sh local/bin/mjm_worker.pl lib/MediaWords/Job/ExtractAndVector.pm
 #
 
 use strict;
 use warnings;
 
 use Moose;
-
-# Don't log each and every extraction job into the database
-with 'Gearman::JobScheduler::AbstractFunction';
+with 'MediaWords::AbstractJob';
 
 BEGIN
 {
     use FindBin;
 
-    # "lib/" relative to "local/bin/gjs_worker.pl":
+    # "lib/" relative to "local/bin/mjm_worker.pl":
     use lib "$FindBin::Bin/../../lib";
 }
 
@@ -29,20 +27,19 @@ use MediaWords::CommonLibs;
 
 use MediaWords::DB;
 use MediaWords::DBI::Downloads;
-use MediaWords::Util::GearmanJobSchedulerConfiguration;
 
-# extract , vector, and process the download or story; die() and / or return false on error
+# extract , vector, and process the download or story; LOGDIE() and / or return false on error
 sub run($$)
 {
     my ( $self, $args ) = @_;
 
     unless ( $args->{ downloads_id } or $args->{ stories_id } )
     {
-        die "Either 'downloads_id' or 'stories_id' should be set.";
+        LOGDIE "Either 'downloads_id' or 'stories_id' should be set.";
     }
     if ( $args->{ downloads_id } and $args->{ stories_id } )
     {
-        die "Can't use both downloads_id and stories_id";
+        LOGDIE "Can't use both downloads_id and stories_id";
     }
 
     my $extract_by_downloads_id = exists $args->{ downloads_id };
@@ -76,7 +73,7 @@ sub run($$)
 
     eval {
 
-        my $process_id = 'gearman:' . $$;
+        my $process_id = 'job:' . $$;
 
         if ( $alter_extractor_method )
         {
@@ -88,13 +85,13 @@ sub run($$)
             my $downloads_id = $args->{ downloads_id };
             unless ( defined $downloads_id )
             {
-                die "'downloads_id' is undefined.";
+                LOGDIE "'downloads_id' is undefined.";
             }
 
             my $download = $db->find_by_id( 'downloads', $downloads_id );
             unless ( $download->{ downloads_id } )
             {
-                die "Download with ID $downloads_id was not found.";
+                LOGDIE "Download with ID $downloads_id was not found.";
             }
 
             MediaWords::DBI::Downloads::process_download_for_extractor_and_record_error( $db, $download, $process_id );
@@ -104,26 +101,24 @@ sub run($$)
             my $stories_id = $args->{ stories_id };
             unless ( defined $stories_id )
             {
-                die "'stories_id' is undefined.";
+                LOGDIE "'stories_id' is undefined.";
             }
 
             my $story = $db->find_by_id( 'stories', $stories_id );
             unless ( $story->{ stories_id } )
             {
-                die "Download with ID $stories_id was not found.";
+                LOGDIE "Download with ID $stories_id was not found.";
             }
 
             MediaWords::DBI::Stories::extract_and_process_story( $story, $db, $process_id );
         }
         else
         {
-            die "shouldn't be reached";
+            LOGDIE "shouldn't be reached";
         }
 
         ## Enable story triggers in case the connection is reused due to connection pooling.
         $db->query( "SELECT enable_story_triggers(); " );
-
-        #say STDERR "completed extraction job for " . Dumper( $args );
     };
 
     my $error_message = "$@";
@@ -136,7 +131,7 @@ sub run($$)
     if ( $error_message )
     {
         # Probably the download was not found
-        die "Extractor died: $error_message; job args: " . Dumper( $args );
+        LOGDIE "Extractor LOGDIEd: $error_message; job args: " . Dumper( $args );
     }
 
     return 1;
@@ -149,28 +144,22 @@ sub unify_logs()
     return 1;
 }
 
-# (Gearman::JobScheduler::AbstractFunction implementation) Return default configuration
-sub configuration()
-{
-    return MediaWords::Util::GearmanJobSchedulerConfiguration->instance;
-}
-
 # run extraction for the crawler. run in process of mediawords.extract_in_process is configured.
-# keep retrying on enqueue error.
+# keep retrying on error.
 sub extract_for_crawler
 {
     my ( $self, $db, $args, $fetcher_number ) = @_;
 
     if ( MediaWords::Util::Config::get_config->{ mediawords }->{ extract_in_process } )
     {
-        say STDERR "extracting in process...";
-        MediaWords::GearmanFunction::ExtractAndVector->run( $args );
+        DEBUG "extracting in process...";
+        MediaWords::Job::ExtractAndVector->run( $args );
     }
     else
     {
         while ( 1 )
         {
-            eval { MediaWords::GearmanFunction::ExtractAndVector->enqueue_on_gearman( $args ); };
+            eval { MediaWords::Job::ExtractAndVector->add_to_queue( $args ); };
 
             if ( $@ )
             {
@@ -182,7 +171,7 @@ sub extract_for_crawler
                 last;
             }
         }
-        say STDERR "queued extraction";
+        DEBUG "queued extraction";
     }
 }
 

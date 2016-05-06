@@ -30,7 +30,7 @@ sub get_media_from_options
     $media_id      ||= 0;
     $tags_id_media ||= 0;
 
-    my $media = $db->query( <<SQL, $tags_id_media, $import_module )->hashes;
+    my $media = $db->query( <<SQL, $tags_id_media )->hashes;
 select m.*
     from media m
         join media_tags_map mtm on ( m.media_id = mtm.media_id )

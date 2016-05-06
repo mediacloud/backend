@@ -50,7 +50,7 @@ elements:
   - type: Checkbox
     name: annotate_with_corenlp
     label: Annotate with CoreNLP
-    comment: "annotate new media's stories with CoreNLP (note: old stories will have to be enqueued for annotation separately)"
+    comment: "annotate new media stories with CoreNLP (note: old stories will have to be added to processing queue manually)"
 
   - type: Text
     name: reason

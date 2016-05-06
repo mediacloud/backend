@@ -74,20 +74,18 @@ sub _fetch_and_handle_download
 
     my ( $self, $download, $fetcher, $handler ) = @_;
 
+    my $url = $download->{ url };
+
     if ( !$download )
     {
-        die( "fetcher " . $self->fetcher_number . ": Unable to find download_id: $download->{downloads_id}" );
+        LOGDIE( "fetch " . $self->fetcher_number . ": Unable to find download_id: $download->{downloads_id}" );
     }
 
-    say STDERR "fetcher " .
-      $self->fetcher_number . " get downloads_id: '$download->{downloads_id}' " . $download->{ url } . " starting";
+    DEBUG( sub { "fetch " . $self->fetcher_number . ": $download->{downloads_id} $url ..." } );
 
     my $start_fetch_time = [ Time::HiRes::gettimeofday ];
     my $response         = $fetcher->fetch_download( $download );
     my $end_fetch_time   = [ Time::HiRes::gettimeofday ];
-
-    say STDERR "fetcher " .
-      $self->fetcher_number . " get downloads_id: '$download->{downloads_id}' " . $download->{ url } . " fetched";
 
     $DB::single = 1;
     eval { $handler->handle_response( $download, $response ); };
@@ -97,11 +95,10 @@ sub _fetch_and_handle_download
 
     if ( $@ )
     {
-        die( "Error in handle_response() for downloads_id '$download->{downloads_id}' '" . $download->{ url } . "' : $@" );
+        LOGDIE( "Error in handle_response() for downloads_id $download->{downloads_id} $url : $@" );
     }
 
-    print STDERR "fetcher " . $self->fetcher_number . " get downloads_id: '$download->{downloads_id}' " .
-      $download->{ url } . " processing complete [ $fetch_time / $handle_time ]\n";
+    DEBUG( sub { "fetch " . $self->fetcher_number . ": $download->{downloads_id} $url done [$fetch_time/$handle_time]" } );
 
     return;
 }
@@ -132,7 +129,7 @@ sub _run_fetcher
 {
     my ( $self ) = @_;
 
-    print STDERR "fetcher " . $self->fetcher_number . " crawl loop\n";
+    DEBUG( sub { "fetch " . $self->fetcher_number . " crawl loop" } );
 
     $self->reconnect_db();
 
@@ -143,9 +140,12 @@ sub _run_fetcher
 
     $self->socket->blocking( 0 );
 
+    my $start_idle_time = [ Time::HiRes::gettimeofday ];
+
     while ( 1 )
     {
         my $download;
+
         eval {
 
             $download = 0;
@@ -165,31 +165,28 @@ sub _run_fetcher
 
             if ( $downloads_id && ( $downloads_id ne 'none' ) && ( $downloads_id ne 'exit' ) )
             {
-
-                # print STDERR "fetcher " . $self->fetcher_number . " get downloads_id: '$downloads_id'\n";
                 $download = $self->dbs->find_by_id( 'downloads', $downloads_id );
+
+                my $idle_time = Time::HiRes::tv_interval( $start_idle_time, [ Time::HiRes::gettimeofday ] );
+                DEBUG( sub { "fetch " . $self->fetcher_number . " idle time $idle_time" } );
 
                 $self->_fetch_and_handle_download( $download, $fetcher, $handler );
 
+                $start_idle_time = [ Time::HiRes::gettimeofday ];
             }
             elsif ( $downloads_id && ( $downloads_id eq 'exit' ) )
             {
-                #say STDERR "exiting as a fetcher";
-
-                #exit 0;
             }
             else
             {
-
-                # $downloads_id = ( !defined( $downloads_id ) ) ? 'undef' : $downloads_id;
-                # print STDERR "fetcher undefined downloads_id\n";
-                sleep( 3 );
+                TRACE( sub { "fetch " . $self->fetcher_number . " _run_fetcher sleeping ..." } );
+                sleep( 1 );
             }
         };
 
         if ( $@ )
         {
-            print STDERR "ERROR: fetcher " . $self->fetcher_number . ":\n****\n$@\n****\n";
+            WARN( sub { "ERROR: fetcher " . $self->fetcher_number . ":\n****\n$@\n****" } );
             if ( $download && ( !grep { $_ eq $download->{ state } } ( 'fetching', 'queued' ) ) )
             {
                 $download->{ state }         = 'error';
@@ -243,9 +240,9 @@ sub spawn_fetchers
     {
         my ( $parent_socket, $child_socket ) = IO::Socket->socketpair( AF_UNIX, SOCK_STREAM, PF_UNSPEC );
 
-        die "Could not create socket for fetcher $i" unless $parent_socket && $child_socket;
+        LOGDIE "Could not create socket for fetcher $i" unless $parent_socket && $child_socket;
 
-        print STDERR "spawn fetcher $i ...\n";
+        DEBUG "spawn fetcher $i ...";
 
         $self->_close_db_connection();
 
@@ -253,20 +250,22 @@ sub spawn_fetchers
 
         if ( $pid )
         {
-            say STDERR "in parent after spawning fetcher $i";
+            TRACE "in parent after spawning fetcher $i";
+
             $child_socket->close();
             $self->fetchers->[ $i ] = { pid => $pid, socket => $parent_socket };
-            say STDERR "in parent after spawning fetcher $i db reconnect starting";
+
+            TRACE "in parent after spawning fetcher $i db reconnect starting";
             eval { $self->reconnect_db; };
             if ( $@ )
             {
-                die "Error in reconnect_db in paranet after spawning fetcher $i";
+                LOGDIE "Error in reconnect_db in paranet after spawning fetcher $i";
             }
-            say STDERR "in parent after spawning fetcher $i db reconnect done";
+            TRACE "in parent after spawning fetcher $i db reconnect done";
         }
         else
         {
-            say STDERR "in child $i ";
+            TRACE "in child $i";
             $parent_socket->close();
             $in_parent = 0;
             $self->fetcher_number( $i );
@@ -275,20 +274,20 @@ sub spawn_fetchers
 
             if ( $self->children_exit_on_kill() )
             {
-                say STDERR "child $i adding sig{ TERM } handler";
+                TRACE "child $i adding sig{ TERM } handler";
                 $SIG{ TERM } = \&_exit;
             }
             else
             {
-                say STDERR "child $i not adding sig{ TERM } handler";
+                TRACE "child $i not adding sig{ TERM } handler";
             }
 
-            say STDERR "in child $i calling run_fetcher";
+            TRACE "in child $i calling run_fetcher";
             eval { $self->_run_fetcher(); };
 
             if ( $@ )
             {
-                die "Error in _run_fetcher for fetcher $i: $@";
+                LOGDIE "Error in _run_fetcher for fetcher $i: $@";
             }
         }
     }
@@ -297,9 +296,9 @@ sub spawn_fetchers
     {
         ## Give children a catch to initialize to avoid race conditions
 
-        say STDERR "Sleeping in parent";
+        TRACE "Sleeping in parent";
         sleep( 1 );
-        say STDERR "continuing in parent";
+        TRACE "continuing in parent";
 
     }
 }
@@ -370,7 +369,7 @@ sub crawl
 
     my $queued_downloads = [];
 
-    say STDERR "starting Crawler::Engine::crawl";
+    DEBUG "starting Crawler::Engine::crawl";
 
     MediaWords::DB::run_block_with_large_work_mem
     {
@@ -379,68 +378,57 @@ sub crawl
         {
             if ( $self->timeout && ( ( time - $start_time ) > $self->timeout ) )
             {
-                print STDERR "crawler timed out\n";
+                TRACE "crawler timed out";
                 last MAINLOOP;
             }
 
-            #print "wait for fetcher requests ...\n";
             for my $s ( $socket_select->can_read() )
             {
                 my $fetcher_number = $s->getline();
 
                 if ( !defined( $fetcher_number ) )
                 {
-                    print STDERR "skipping fetcher in which we couldn't read the fetcher number\n";
+                    DEBUG "skipping fetcher for which we couldn't read the fetcher number";
                     $socket_select->remove( $s );
                     next;
                 }
 
                 chomp( $fetcher_number );
 
-                #print "get fetcher $fetcher_number ping\n";
-
                 if ( scalar( @{ $queued_downloads } ) == 0 )
                 {
-                    print STDERR "refill queued downloads ...\n";
+                    DEBUG "refill queued downloads ...";
                     $queued_downloads = $provider->provide_downloads();
 
                     if ( !@{ $queued_downloads } && $self->test_mode )
                     {
-                        print STDERR "exiting after 30 second wait because crawler is in test mode and queue is empty\n";
+                        INFO "exiting after 30 second wait because crawler is in test mode and queue is empty";
                         sleep 30;
-                        print STDERR "exiting now.\n";
+                        INFO "exiting now.\n";
                         last MAINLOOP;
                     }
                 }
 
                 if ( my $queued_download = shift( @{ $queued_downloads } ) )
                 {
-
-                    # print STDERR "sending fetcher $fetcher_number download:" . $queued_download->{downloads_id} . "\n";
                     $s->printflush( $queued_download->{ downloads_id } . "\n" );
                 }
                 else
                 {
-
-                    #print STDERR "sending fetcher $fetcher_number none\n";
                     $s->printflush( "none\n" );
                     last;
                 }
-
-                # print "fetcher $fetcher_number request assigned\n";
             }
-
         }
-
     }
 
     $self->dbs;
 
     kill( 15, map { $_->{ pid } } @{ $self->{ fetchers } } );
-    print STDERR "waiting 5 seconds for children to exit ...\n";
+    INFO "waiting 5 seconds for children to exit ...";
     sleep( 5 );
 
-    print STDERR "using kill 9 to make sure children stop ";
+    INFO "using kill 9 to make sure children stop";
     kill( 9, map { $_->{ pid } } @{ $self->{ fetchers } } );
 }
 
@@ -468,8 +456,6 @@ sub crawl_single_download
     my $download = $self->dbs->find_by_id( 'downloads', $downloads_id );
     my $queued_downloads = [ $download ];
 
-    #print "wait for fetcher requests ...\n";
-
     $self->dbs->begin;
 
   OUTER_LOOP:
@@ -481,25 +467,19 @@ sub crawl_single_download
 
             if ( !defined( $fetcher_number ) )
             {
-                print STDERR "skipping fetcher in which we couldn't read the fetcher number\n";
+                DEBUG "skipping fetcher in which we couldn't read the fetcher number";
                 $socket_select->remove( $s );
                 next;
             }
 
             chomp( $fetcher_number );
 
-            #print "get fetcher $fetcher_number ping\n";
-
             if ( my $queued_download = shift( @{ $queued_downloads } ) )
             {
-
-                # print STDERR "sending fetcher $fetcher_number download:" . $queued_download->{downloads_id} . "\n";
                 $s->printflush( $queued_download->{ downloads_id } . "\n" );
             }
             else
             {
-
-                #print STDERR "sending fetcher $fetcher_number none\n";
                 $s->printflush( "exit\n" );
 
                 my @fetchers = @{ $self->{ fetchers } };
@@ -509,17 +489,11 @@ sub crawl_single_download
                 my $fetcher_pid = $fetcher->{ pid };
 
                 sleep( 3 );
-                say STDERR "waiting for fetcher $fetcher_number ( pid  $fetcher_pid ) ";
+                DEBUG "waiting for fetcher $fetcher_number ( pid  $fetcher_pid ) ";
 
-                #waitpid ( $fetcher_pid, 0 );
-
-                say STDERR "exiting loop after wait";
+                DEBUG "exiting loop after wait";
                 last OUTER_LOOP;
             }
-
-            # print "fetcher $fetcher_number request assigned\n";
-
-            #last OUTER_LOOP;
         }
 
     }
@@ -527,8 +501,7 @@ sub crawl_single_download
 
     sleep( 5 );
 
-    #kill( 15, map { $_->{ pid } } @{ $self->{ fetchers } } );
-    print "waiting 5 seconds for children to exit ...\n";
+    INFO "waiting 5 seconds for children to exit ...";
     sleep( 5 );
 }
 
@@ -720,10 +693,10 @@ sub dbs
 
     if ( $dbs )
     {
-        die( "use $self->reconnect_db to connect to db" );
+        LOGDIE( "use $self->reconnect_db to connect to db" );
     }
 
-    defined( $self->{ dbs } ) || die "no database";
+    defined( $self->{ dbs } ) || LOGDIE "no database";
 
     return $self->{ dbs };
 }

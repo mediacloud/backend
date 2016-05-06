@@ -12,7 +12,7 @@ fi
 source ./script/set_perl_brew_environment.sh
 cpanm Carton
 
-# Gearman::XS, the dependency of Gearman::JobScheduler, depends on
+# Gearman::XS, the dependency of MediaCloud::JobManager, depends on
 # Module::Install, but the author of the module (probably) forgot to add it so
 # the list of dependencies (https://rt.cpan.org/Ticket/Display.html?id=89690),
 # so installing it separately

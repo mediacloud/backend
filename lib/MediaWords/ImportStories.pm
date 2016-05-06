@@ -307,14 +307,17 @@ sub _get_scrape_feed
     my $medium = $db->find_by_id( 'media', $self->media_id );
 
     my $feed_name = ref( $self );
+    my $feed_url  = "$feed_name:$medium->{ url }";
 
-    my $feed = $db->query( <<SQL, $medium->{ media_id }, $medium->{ url }, encode( 'utf8', $feed_name ) )->hash;
+    my $feed = $db->query( <<SQL, $medium->{ media_id }, $feed_url, $feed_name )->hash;
 select * from feeds where media_id = ? and url = ? order by ( name = ? )
 SQL
 
-    $feed ||= $db->query( <<SQL, $medium->{ media_id }, $medium->{ url }, encode( 'utf8', $feed_name ) )->hash;
+    $feed ||= $db->query( <<SQL, $medium->{ media_id }, $feed_url, $feed_name )->hash;
 insert into feeds ( media_id, url, name, feed_status ) values ( ?, ?, ?, 'inactive' ) returning *
 SQL
+
+    DEBUG( sub { "scrape feed: $feed->{ name } [$feed->{ feeds_id }]" } );
 
     $self->scrape_feed( $feed );
 

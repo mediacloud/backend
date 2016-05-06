@@ -10,7 +10,7 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use MediaWords::GearmanFunction::Bitly::FetchStoryStats;
+use MediaWords::Job::Bitly::FetchStoryStats;
 use MediaWords::Util::Bitly;
 use MediaWords::Util::DateTime;
 use MediaWords::Util::Config;
@@ -120,7 +120,7 @@ EOF
         my $start_timestamp = story_start_timestamp( $story_timestamp );
         my $end_timestamp   = story_end_timestamp( $story_timestamp );
 
-        MediaWords::GearmanFunction::Bitly::FetchStoryStats->enqueue_on_gearman(
+        MediaWords::Job::Bitly::FetchStoryStats->add_to_queue(
             {
                 stories_id      => $stories_id,
                 start_timestamp => $start_timestamp,

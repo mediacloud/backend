@@ -1,26 +1,24 @@
-package MediaWords::GearmanFunction::Bitly::EnqueueAllControversyStories;
+package MediaWords::Job::Bitly::ProcessAllControversyStories;
 
 #
-# Enqueue all controversy's stories for processing via Bit.ly API
+# Add all controversy stories to Bit.ly processing queue
 #
 # Start this worker script by running:
 #
-# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/Bitly/EnqueueAllControversyStories.pm
+# ./script/run_with_carton.sh local/bin/mjm_worker.pl lib/MediaWords/Job/Bitly/ProcessAllControversyStories.pm
 #
 
 use strict;
 use warnings;
 
 use Moose;
-
-# Don't log each and every extraction job into the database
-with 'Gearman::JobScheduler::AbstractFunction';
+with 'MediaWords::AbstractJob';
 
 BEGIN
 {
     use FindBin;
 
-    # "lib/" relative to "local/bin/gjs_worker.pl":
+    # "lib/" relative to "local/bin/mjm_worker.pl":
     use lib "$FindBin::Bin/../../lib";
 }
 
@@ -28,14 +26,13 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::DB;
-use MediaWords::Util::GearmanJobSchedulerConfiguration;
 use MediaWords::Util::Bitly;
 use MediaWords::Util::DateTime;
-use MediaWords::GearmanFunction::Bitly::FetchStoryStats;
+use MediaWords::Job::Bitly::FetchStoryStats;
 use Readonly;
 
 # Having a global database object should be safe because
-# Gearman::JobScheduler's workers don't support fork()s anymore
+# job workers don't fork()
 my $db = undef;
 
 # Run job
@@ -53,7 +50,7 @@ sub run($;$)
 
     my $controversies_id = $args->{ controversies_id } or die "'controversies_id' is not set.";
 
-    say STDERR "Will enqueue all controversy's $controversies_id stories.";
+    say STDERR "Will add all controversy's $controversies_id stories.";
 
     say STDERR "Fetching controversy $controversies_id...";
     my $controversy = $db->find_by_id( 'controversies', $controversies_id );
@@ -115,7 +112,7 @@ EOF
 
     say STDERR "Done fetching controversy's $controversies_id start and end timestamps.";
 
-    say STDERR "Enqueueing controversy's $controversies_id stories for Bit.ly processing...";
+    say STDERR "Adding controversy's $controversies_id stories to Bit.ly processing queue...";
 
     Readonly my $CHUNK_SIZE => 100;
 
@@ -152,22 +149,22 @@ EOF
 
             $offset_controversy_stories_id = $controversy_stories_id;
 
-            say STDERR "Enqueueing story $stories_id for Bit.ly processing...";
+            say STDERR "Adding story $stories_id to Bit.ly processing queue...";
 
             my $args = {
                 stories_id      => $stories_id,
                 start_timestamp => $start_timestamp,
                 end_timestamp   => $end_timestamp
             };
-            MediaWords::GearmanFunction::Bitly::FetchStoryStats->enqueue_on_gearman( $args );
+            MediaWords::Job::Bitly::FetchStoryStats->add_to_queue( $args );
 
-            say STDERR "Done enqueueing story $stories_id for Bit.ly processing.";
+            say STDERR "Added story $stories_id to Bit.ly processing queue.";
         }
 
         say STDERR "Will fetch another chunk of stories for controversy $controversies_id.";
     }
 
-    say STDERR "Done enqueueing controversy's $controversies_id stories for Bit.ly processing.";
+    say STDERR "Added controversy's $controversies_id stories to Bit.ly processing queue.";
 }
 
 # write a single log because there are a lot of Bit.ly processing jobs so it's
@@ -175,12 +172,6 @@ EOF
 sub unify_logs()
 {
     return 1;
-}
-
-# (Gearman::JobScheduler::AbstractFunction implementation) Return default configuration
-sub configuration()
-{
-    return MediaWords::Util::GearmanJobSchedulerConfiguration->instance;
 }
 
 no Moose;    # gets rid of scaffolding

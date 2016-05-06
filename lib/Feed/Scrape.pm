@@ -90,7 +90,7 @@ sub _validate_and_name_feed_urls
     {
         if ( !$response->is_success )
         {
-            say STDERR "Failed to get URL: " . $response->request->url . " with error: " . $response->status_line;
+            DEBUG "Failed to get URL: " . $response->request->url . " with error: " . $response->status_line;
             next;
         }
 
@@ -98,7 +98,7 @@ sub _validate_and_name_feed_urls
 
         my $url = MediaWords::Util::Web->get_original_request( $response )->url->as_string;
 
-        say STDERR "Parsing $url";
+        DEBUG "Parsing $url";
 
         if ( my $feed = $class->parse_feed( $content ) )
         {
@@ -159,7 +159,7 @@ sub _fix_atom_content_element_encoding
 
     if ( $@ )
     {
-        say STDERR "Error parsing feed string";
+        DEBUG "Error parsing feed string";
         return $xml_string;
     }
 
@@ -201,9 +201,6 @@ sub _fix_atom_content_element_encoding
             {
                 if ( all { $_->data =~ /\s+/ } @non_cdata_children )
                 {
-
-                    #say STDERR "Skipping CDATA and white space only description ";
-                    #exit;
                     next;
                 }
             }
@@ -211,18 +208,12 @@ sub _fix_atom_content_element_encoding
 
         $fixed_content_element = 1;
 
-        # say STDERR "fixing content_node: " . $content_node->toString;
-        # say Dumper ( [ $child_nodes->get_nodelist() ] );
-        # say Dumper ( [ map { $_->toString } $child_nodes->get_nodelist() ] );
-
         my $child_nodes_string = join '', ( map { $_->toString() } ( $child_nodes->get_nodelist() ) );
 
         $content_node->removeChildNodes();
 
         my $cdata_node = XML::LibXML::CDATASection->new( $child_nodes_string );
         $content_node->appendChild( $cdata_node );
-
-        #say STDERR "fixed content_node: " . $content_node->toString;
     }
 
     #just return the original string if we didn't need to fix anything...
@@ -274,10 +265,7 @@ sub parse_feed
 
     if ( $@ )
     {
-        say STDERR "Parsed Feed failed";
-
-        #say dump( $feed );
-
+        DEBUG "parse feed failed";
         return undef;
     }
     else
@@ -317,8 +305,6 @@ sub get_feed_urls_from_html_links
 
     my $url_hash = {};
 
-    #say STDERR "Scrape HTML: $html";
-
     my $urls = [];
 
     # get all <link>s (no matter whether they're RSS links or not)
@@ -333,7 +319,7 @@ sub get_feed_urls_from_html_links
             {
                 my $url = $class->_resolve_relative_url( $base_url, $1 );
 
-                say STDERR "Match link: $url";
+                DEBUG "Match link: $url";
                 push( @{ $urls }, $url );
             }
         }
@@ -417,18 +403,14 @@ sub get_feed_urls_from_html($$$)
 {
     my ( $class, $base_url, $html ) = @_;
 
-    # say STDERR "get_feed_urls_from_html";
-
     # If <base href="..." /> is present, use that instead of the base URL passed as a parameter
     if ( $html =~ m|<\s*?base\s+?href\s*?=\s*?["'](http://.+?)["']|i )
     {
-        say STDERR "Changing base URL from $base_url to $1";
+        DEBUG "Changing base URL from $base_url to $1";
         $base_url = $1;
     }
 
     my $url_hash = {};
-
-    #say STDERR "Scrape html: $html";
 
     my $urls = [];
 
@@ -467,9 +449,6 @@ sub get_feed_urls_from_html($$$)
         s|^(http://feeds\d*?\.feedburner\.com/.+?)\?format=html$|$1|;
     }
 
-    # say STDERR "Dumping link_urls";
-    # say STDERR Dumper ( $link_urls );
-
     push( @{ $urls }, @{ $link_urls } );
 
     # look for quoted urls
@@ -484,7 +463,7 @@ sub get_feed_urls_from_html($$$)
 
         if ( $class->_is_valid_feed_url( $quoted_url ) )
         {
-            say STDERR "Matched quoted URL: $quoted_url";
+            DEBUG "Matched quoted URL: $quoted_url";
             push( @{ $urls }, $quoted_url );
         }
     }
@@ -496,7 +475,7 @@ sub get_feed_urls_from_html($$$)
 
         if ( $class->_is_valid_feed_url( $unquoted_url ) )
         {
-            say STDERR "Matched unquoted URL: $unquoted_url";
+            DEBUG "Matched unquoted URL: $unquoted_url";
             push( @{ $urls }, $unquoted_url );
         }
     }
@@ -511,7 +490,7 @@ sub get_feed_urls_from_html($$$)
 
             if ( $class->_is_valid_feed_url( $quoted_url ) )
             {
-                say STDERR "Matched unlinked URL: $quoted_url";
+                DEBUG "Matched unlinked URL: $quoted_url";
                 push( @{ $urls }, $quoted_url );
             }
         }
@@ -532,11 +511,6 @@ sub _recurse_get_valid_feeds_from_index_url($$$$$$)
 {
     my ( $class, $urls, $db, $ignore_patterns, $recurse_urls_to_skip, $recurse_levels_left ) = @_;
 
-    # say STDERR "URLs: " . Dumper($urls);
-    # say STDERR "Ignore patterns: " . Dumper($ignore_patterns);
-    # say STDERR "Recurse URLs to skip: " . Dumper($recurse_urls_to_skip);
-    # say STDERR "Recurse levels left: " . Dumper($recurse_levels_left);
-
     carp '$urls must be a reference ' unless ref( $urls );
 
     $#{ $urls } = List::Util::min( $#{ $urls }, $MAX_INDEX_URLS - 1 );
@@ -548,8 +522,6 @@ sub _recurse_get_valid_feeds_from_index_url($$$$$$)
     for my $response ( @{ $responses } )
     {
         my $feed_urls = $class->get_feed_urls_from_html( $response->request->url, $response->decoded_content );
-
-        # say STDERR "Got the following urls from " .  $response->request->url . ":" . Dumper( $feed_urls );
 
         map { $scraped_url_lookup->{ $_ }++ } @{ $feed_urls };
     }
@@ -596,9 +568,6 @@ sub _recurse_get_valid_feeds_from_index_url($$$$$$)
 sub get_valid_feeds_from_index_url($$$$$)
 {
     my ( $class, $urls, $recurse, $db, $ignore_patterns ) = @_;
-
-    # say STDERR 'get_valid_feeds_from_index_url';
-    # say Dumper( $urls );
 
     my $recurse_levels_left;
     if ( $recurse )
@@ -670,12 +639,9 @@ sub _main_feed_via_common_prefixed_feeds($)
         }
     }
 
-    # say STDERR "Feed links: " . Dumper($feed_links);
-
     # Find common prefix
     my $feed_names = [ map { $_->{ name } } @{ $feed_links } ];
 
-    # say STDERR "Feed names: " . Dumper($feed_names);
     @_ = @{ $feed_names };
     my $prefix = shift;
     for ( @_ )
@@ -683,13 +649,10 @@ sub _main_feed_via_common_prefixed_feeds($)
         chop $prefix while ( !/^\Q$prefix\E/ );
     }
 
-    # say STDERR "Common prefix: $prefix";
-
     # Prefix is of reasonable length?
     if ( length( $prefix ) < 4 )
     {
 
-        # say STDERR "Prefix too short";
         return undef;
     }
 
@@ -706,8 +669,6 @@ sub _main_feed_via_common_prefixed_feeds($)
     }
     if ( $match_count != 1 )
     {
-
-        # say STDERR "Not exactly one match ($match_count)";
         return undef;
     }
 
@@ -867,7 +828,7 @@ sub _immediate_redirection_url_for_medium($$)
     my $new_url = $response->request->uri->as_string || '';
     if ( $new_url and $medium->{ url } ne $new_url )
     {
-        say STDERR "New medium URL via HTTP redirect: $medium->{url} => $new_url";
+        DEBUG "New medium URL via HTTP redirect: $medium->{url} => $new_url";
         return $new_url;
     }
 
@@ -875,7 +836,7 @@ sub _immediate_redirection_url_for_medium($$)
     $new_url = MediaWords::Util::URL::meta_refresh_url_from_html( $html );
     if ( $new_url and $medium->{ url } ne $new_url )
     {
-        say STDERR "New medium URL via HTML <meta/> refresh: $medium->{url} => $new_url";
+        DEBUG "New medium URL via HTML <meta/> refresh: $medium->{url} => $new_url";
         return $new_url;
     }
 
@@ -943,4 +904,3 @@ sub get_feed_links_and_need_to_moderate($$)
 }
 
 1;
-
