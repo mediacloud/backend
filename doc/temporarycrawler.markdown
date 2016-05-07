@@ -1,6 +1,6 @@
 # Temporary crawler
 
-Following are instructions for setting up and running a temporary crawler on an AWS machine.  We use a temporary crawler
+Following are instructions for setting up and running a temporary crawler (backup crawler) on an AWS machine.  We use a temporary crawler
 for times in which we know that we will or might have to take down the main crawler for more than a few hours.  Some of
 our biggest RSS feeds start scrolling stories off after a few hours, so we risk losing stories during extended crawler
 down time.  In those cases, we run a temporary version of the crawler that collects only feeds and the urls found on
