@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4539;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4540;
 
 BEGIN
 
@@ -542,7 +542,11 @@ create table feeds (
 
     -- Last time the feed provided a new story
     -- (null -- feed has never provided any stories)
-    last_new_story_time             timestamp with time zone
+    last_new_story_time             timestamp with time zone,
+
+    -- if set to true, do not add stories associated with this feed to the story processing queue
+    skip_bitly_processing           boolean
+
 );
 
 UPDATE feeds SET last_new_story_time = greatest( last_attempted_download_time, last_new_story_time );
