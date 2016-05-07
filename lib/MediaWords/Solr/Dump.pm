@@ -92,6 +92,7 @@ use Parallel::ForkManager;
 use Readonly;
 use Text::CSV_XS;
 use URI;
+use File::ReadBackwards;
 
 require bytes;    # do not override length() and such
 

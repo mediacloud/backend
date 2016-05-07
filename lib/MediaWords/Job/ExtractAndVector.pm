@@ -1,26 +1,24 @@
-package MediaWords::GearmanFunction::ExtractAndVector;
+package MediaWords::Job::ExtractAndVector;
 
 #
 # Extract and vector a download
 #
 # Start this worker script by running:
 #
-# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/ExtractAndVector.pm
+# ./script/run_with_carton.sh local/bin/mjm_worker.pl lib/MediaWords/Job/ExtractAndVector.pm
 #
 
 use strict;
 use warnings;
 
 use Moose;
-
-# Don't log each and every extraction job into the database
-with 'Gearman::JobScheduler::AbstractFunction';
+with 'MediaWords::AbstractJob';
 
 BEGIN
 {
     use FindBin;
 
-    # "lib/" relative to "local/bin/gjs_worker.pl":
+    # "lib/" relative to "local/bin/mjm_worker.pl":
     use lib "$FindBin::Bin/../../lib";
 }
 
@@ -29,7 +27,6 @@ use MediaWords::CommonLibs;
 
 use MediaWords::DB;
 use MediaWords::DBI::Downloads;
-use MediaWords::Util::GearmanJobSchedulerConfiguration;
 
 # extract , vector, and process the download or story; LOGDIE() and / or return false on error
 sub run($$)
@@ -76,7 +73,7 @@ sub run($$)
 
     eval {
 
-        my $process_id = 'gearman:' . $$;
+        my $process_id = 'job:' . $$;
 
         if ( $alter_extractor_method )
         {
@@ -147,14 +144,8 @@ sub unify_logs()
     return 1;
 }
 
-# (Gearman::JobScheduler::AbstractFunction implementation) Return default configuration
-sub configuration()
-{
-    return MediaWords::Util::GearmanJobSchedulerConfiguration->instance;
-}
-
 # run extraction for the crawler. run in process of mediawords.extract_in_process is configured.
-# keep retrying on enqueue error.
+# keep retrying on error.
 sub extract_for_crawler
 {
     my ( $self, $db, $args, $fetcher_number ) = @_;
@@ -162,13 +153,13 @@ sub extract_for_crawler
     if ( MediaWords::Util::Config::get_config->{ mediawords }->{ extract_in_process } )
     {
         DEBUG "extracting in process...";
-        MediaWords::GearmanFunction::ExtractAndVector->run( $args );
+        MediaWords::Job::ExtractAndVector->run( $args );
     }
     else
     {
         while ( 1 )
         {
-            eval { MediaWords::GearmanFunction::ExtractAndVector->enqueue_on_gearman( $args ); };
+            eval { MediaWords::Job::ExtractAndVector->add_to_queue( $args ); };
 
             if ( $@ )
             {

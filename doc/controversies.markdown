@@ -159,7 +159,7 @@ Detailed explanation of CM process
 
 6. Run `mediawords_mine_controversy.pl` to start the controversy mining
    process. You can use the `--direct_job` option to run the mining code
-   directly in process rather than sending a job off to the gearman
+   directly in process rather than sending a job off to the
    `CM/MineControversy` job.  The controversy mining sets off the following
    process:
 

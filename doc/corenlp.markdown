@@ -7,7 +7,7 @@ any metadata directly from these results because they are pretty messy.  But we 
 API so that other folks can write clients that consume the raw entity data from CoreNLP and generate a usable set
 of tags.  This is the process we use to generate our geotags.
 
-CoreNLP annotation is performed by a pool of gearman workers on the core machine.  After each story is extracted,
+CoreNLP annotation is performed by a pool of job workers on the core machine.  After each story is extracted,
 the post-processing includes a step that checks whether the story is part of a media for which the
 'annotate_with_corenlp' field is true.  If that check is false, the story is immediately added to the processed_stories
 list, indicating that core processing is done on the story.  

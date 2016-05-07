@@ -1,26 +1,24 @@
-package MediaWords::GearmanFunction::AnnotateWithCoreNLP;
+package MediaWords::Job::AnnotateWithCoreNLP;
 
 #
 # Process story with CoreNLP annotator HTTP service
 #
 # Start this worker script by running:
 #
-# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/AnnotateWithCoreNLP.pm
+# ./script/run_with_carton.sh local/bin/mjm_worker.pl lib/MediaWords/Job/AnnotateWithCoreNLP.pm
 #
 
 use strict;
 use warnings;
 
 use Moose;
-
-# Don't log each and every extraction job into the database
-with 'Gearman::JobScheduler::AbstractFunction';
+with 'MediaWords::AbstractJob';
 
 BEGIN
 {
     use FindBin;
 
-    # "lib/" relative to "local/bin/gjs_worker.pl":
+    # "lib/" relative to "local/bin/mjm_worker.pl":
     use lib "$FindBin::Bin/../../lib";
 }
 
@@ -28,14 +26,13 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::DB;
-use MediaWords::Util::GearmanJobSchedulerConfiguration;
 
 use MediaWords::Util::CoreNLP;
 use MediaWords::DBI::Stories;
 use Readonly;
 
 # Having a global database object should be safe because
-# Gearman::JobScheduler's workers don't support fork()s anymore
+# job workers don't fork()
 my $db = undef;
 
 # Run CoreNLP job
@@ -98,12 +95,6 @@ sub run($;$)
 sub unify_logs()
 {
     return 1;
-}
-
-# (Gearman::JobScheduler::AbstractFunction implementation) Return default configuration
-sub configuration()
-{
-    return MediaWords::Util::GearmanJobSchedulerConfiguration->instance;
 }
 
 no Moose;    # gets rid of scaffolding

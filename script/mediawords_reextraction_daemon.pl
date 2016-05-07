@@ -1,8 +1,7 @@
 #!/usr/bin/env perl
 
 #
-# Enqueue MediaWords::GearmanFunction::ExtractAndVector jobs for all downloads
-# in the scratch.reextract_downloads table
+# Add MediaWords::Job::ExtractAndVector job for every download in the scratch.reextract_downloads table
 #
 
 use strict;
@@ -20,18 +19,12 @@ use Time::HiRes qw (time );
 use Parallel::ForkManager;
 
 use MediaWords::CommonLibs;
-use MediaWords::GearmanFunction;
-use MediaWords::GearmanFunction::ExtractAndVector;
+use MediaWords::Job::ExtractAndVector;
 use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::ExtractorVersion;
 
 sub main
 {
-    unless ( MediaWords::GearmanFunction::gearman_is_enabled() )
-    {
-        die "Gearman is disabled.";
-    }
-
     my $tags_id =
       MediaWords::DBI::Stories::ExtractorVersion::get_current_extractor_version_tags_id( MediaWords::DB::connect_to_db() );
 
@@ -39,9 +32,9 @@ sub main
     my $gearman_queue_limit = 200;
     my $sleep_time          = 10;
 
-    my $total_stories_enqueued     = 0;
-    my $total_gearman_enqueue_time = 0;
-    my $total_story_query_time     = 0;
+    my $total_stories_added             = 0;
+    my $total_gearman_add_to_queue_time = 0;
+    my $total_story_query_time          = 0;
 
     MediaWords::DB::disable_story_triggers();
 
@@ -69,9 +62,9 @@ sub main
 
         say STDERR "Checking gearman queue";
 
-        my $gearman_queued_jobs = $gearman_db->query(
-            "SELECT count(*) from queue where function_name = 'MediaWords::GearmanFunction::ExtractAndVector' " )->flat()
-          ->[ 0 ];
+        my $gearman_queued_jobs =
+          $gearman_db->query( "SELECT count(*) from queue where function_name = 'MediaWords::Job::ExtractAndVector' " )
+          ->flat()->[ 0 ];
 
         say STDERR "Gearman queued jobs $gearman_queued_jobs";
 
@@ -128,7 +121,7 @@ END_SQL
 
         #say Dumper( $stories_ids );
 
-        my $gearman_enqueue_start_time = Time::HiRes::time();
+        my $gearman_add_to_queue_start_time = Time::HiRes::time();
 
         my $pm = new Parallel::ForkManager( 20 );
 
@@ -136,7 +129,7 @@ END_SQL
         {
             unless ( $pm->start )
             {
-                MediaWords::GearmanFunction::ExtractAndVector->enqueue_on_gearman(
+                MediaWords::Job::ExtractAndVector->add_to_queue(
                     { stories_id => $stories_id, disable_story_triggers => 1 } );
                 $pm->finish;
             }
@@ -145,44 +138,45 @@ END_SQL
 
         $pm->wait_all_children;
 
-        my $gearman_enqueue_end_time = Time::HiRes::time();
+        my $gearman_add_to_queue_end_time = Time::HiRes::time();
 
-        my $enqueued_stories = scalar( @$stories_ids );
-        $total_stories_enqueued += $enqueued_stories;
+        my $stories_in_queue = scalar( @$stories_ids );
+        $total_stories_added += $stories_in_queue;
 
         my $story_query_time = $query_end_time - $query_start_time;
         $total_story_query_time += $story_query_time;
 
         say STDERR "last_processed_stories_id  $last_processed_stories_id ";
-        say STDERR "total_stories_enqueued $total_stories_enqueued";
+        say STDERR "total_stories_added $total_stories_added";
         say STDERR "story_query_time $story_query_time";
 
-        my $gearman_enqueue_time = $gearman_enqueue_end_time - $gearman_enqueue_start_time;
-        $total_gearman_enqueue_time += $gearman_enqueue_time;
+        my $gearman_add_to_queue_time = $gearman_add_to_queue_end_time - $gearman_add_to_queue_start_time;
+        $total_gearman_add_to_queue_time += $gearman_add_to_queue_time;
 
         my $total_time = Time::HiRes::time() - $start_time;
 
-        my $total_other_time = $total_time - ( $total_gearman_enqueue_time + $total_story_query_time + $total_sleep_time );
+        my $total_other_time =
+          $total_time - ( $total_gearman_add_to_queue_time + $total_story_query_time + $total_sleep_time );
 
-        say STDERR "gearman_enqueue_ time $gearman_enqueue_time for $enqueued_stories stories -- per story " .
-          $gearman_enqueue_time / $enqueued_stories;
+        say STDERR "gearman_add_to_queue_time $gearman_add_to_queue_time for $stories_in_queue stories -- per story " .
+          $gearman_add_to_queue_time / $stories_in_queue;
 
-        say STDERR "total time $total_time for $total_stories_enqueued stories -- per story " .
-          $total_time / $total_stories_enqueued;
-
-        say STDERR
-          "total gearman_enqueue_time $total_gearman_enqueue_time for $total_stories_enqueued stories -- per story " .
-          $total_gearman_enqueue_time / $total_stories_enqueued;
-
-        say STDERR "total story_query_time $total_story_query_time for $total_stories_enqueued stories -- per story " .
-          $total_story_query_time / $total_stories_enqueued;
+        say STDERR "total time $total_time for $total_stories_added stories -- per story " .
+          $total_time / $total_stories_added;
 
         say STDERR
-          "total sleep time for long gearman queues $total_sleep_time for $total_stories_enqueued stories -- per story " .
-          $total_sleep_time / $total_stories_enqueued;
+          "total gearman_add_to_queue_time $total_gearman_add_to_queue_time for $total_stories_added stories -- per story "
+          . $total_gearman_add_to_queue_time / $total_stories_added;
 
-        say STDERR "total time (other) $total_other_time for $total_stories_enqueued stories -- per story " .
-          $total_other_time / $total_stories_enqueued;
+        say STDERR "total story_query_time $total_story_query_time for $total_stories_added stories -- per story " .
+          $total_story_query_time / $total_stories_added;
+
+        say STDERR
+          "total sleep time for long gearman queues $total_sleep_time for $total_stories_added stories -- per story " .
+          $total_sleep_time / $total_stories_added;
+
+        say STDERR "total time (other) $total_other_time for $total_stories_added stories -- per story " .
+          $total_other_time / $total_stories_added;
 
     }
 
