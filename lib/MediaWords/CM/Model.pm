@@ -377,6 +377,7 @@ sub print_model_matches
             }
             else
             {
+                my $model_rank_display = defined( $model_rank ) ? $model_rank : 'NA';
                 print "-";
                 print "[ $clean_media_id: $clean_rank / $model_rank ]";
                 $match = 0;
