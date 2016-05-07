@@ -418,25 +418,25 @@ sub extract($$)
 
     my $data_dir = MediaWords::Util::Config::get_config->{ mediawords }->{ data_dir };
 
-    $_extractor_results_cache ||= CHI->new(
-        driver           => 'File',
-        expires_in       => '1 month',
-        max_size         => 10 * 1024 * 1024 * 1024,
-        expires_variance => '0.1',
-        root_dir         => "${ data_dir }/cache/extractor_results",
-        depth            => 4
-    );
-
-    if ( my $results = $_extractor_results_cache->get( $download->{ downloads_id } ) )
-    {
-        return $results;
-    }
+    # $_extractor_results_cache ||= CHI->new(
+    #     driver           => 'File',
+    #     expires_in       => '1 month',
+    #     max_size         => 10 * 1024 * 1024 * 1024,
+    #     expires_variance => '0.1',
+    #     root_dir         => "${ data_dir }/cache/extractor_results",
+    #     depth            => 4
+    # );
+    #
+    # if ( my $results = $_extractor_results_cache->get( $download->{ downloads_id } ) )
+    # {
+    #     return $results;
+    # }
 
     my $content_ref = fetch_content( $db, $download );
 
     my $results = extract_content_ref( $content_ref );
 
-    $_extractor_results_cache->set( $download->{ downloads_id }, $results );
+    # $_extractor_results_cache->set( $download->{ downloads_id }, $results );
 
     return $results;
 }
