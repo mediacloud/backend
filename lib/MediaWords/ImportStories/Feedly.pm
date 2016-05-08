@@ -86,7 +86,6 @@ sub _push_stories_from_json_data($$$)
             url          => $url,
             guid         => $url,
             media_id     => $self->media_id,
-            collect_date => MediaWords::Util::SQL::sql_now(),
             publish_date => $publish_date,
             title        => $item->{ title },
             description  => $content
@@ -144,7 +143,7 @@ sub _get_cache
         expires_variance => '0.1',
         root_dir         => "${ mediacloud_data_dir }/cache/feedly_feed_stories",
         depth            => 4,
-        max_size         => 1024 * 1024 * 1024
+        max_size         => 10 * 1024 * 1024 * 1024
     );
 }
 

@@ -163,6 +163,8 @@ create temporary view dump_$t as select * from cd.$t
 END
     }
 
+    $db->query( "create temporary view dump_period_stories as select stories_id from dump_story_link_counts" );
+
     add_media_type_views( $db );
 }
 

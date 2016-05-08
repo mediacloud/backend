@@ -1,12 +1,12 @@
 --
 -- This is a Media Cloud PostgreSQL schema difference file (a "diff") between schema
--- versions 4536 and 4537.
+-- versions 4538 and 4539.
 --
 -- If you are running Media Cloud with a database that was set up with a schema version
--- 4536, and you would like to upgrade both the Media Cloud and the
--- database to be at version 4537, import this SQL file:
+-- 4538, and you would like to upgrade both the Media Cloud and the
+-- database to be at version 4539, import this SQL file:
 --
---     psql mediacloud < mediawords-4536-4537.sql
+--     psql mediacloud < mediawords-4538-4539.sql
 --
 -- You might need to import some additional schema diff files to reach the desired version.
 --
@@ -29,12 +29,15 @@ $$
               where media_id = OLD.media_id;
       END IF;
 
-      RETURN NEW;
+      IF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'INSERT') THEN
+        RETURN NEW;
+      ELSE
+        RETURN OLD;
+      END IF;
    END;
 $$
 LANGUAGE 'plpgsql';
 
-drop function if exists update_stories_updated_time_by_media_id_trigger ();
 
 --
 -- 2 of 2. Reset the database version.
@@ -45,7 +48,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4537;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4539;
 
 BEGIN
 

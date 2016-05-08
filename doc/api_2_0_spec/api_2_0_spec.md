@@ -666,11 +666,11 @@ URL:  https://api.mediacloud.org/api/v2/sentences/field_count?q=obama+AND+media_
 
 ### api/v2/wc/list
 
-Returns word frequency counts of the most common words in a randomly sampled set of all sentences
-returned by querying Solr using the `q` and `fq` parameters, with stopwords removed by default.  Words are
-stemmed before being counted.  For each word, the call returns the stem and the full term most used
-with the given stem (for example, in the below example, 'democrat' is the stem that appeared
-58 times and 'democrats' is the word that was most commonly stemmed into 'democract').
+Returns word frequency counts of the most common words in a randomly sampled set of all sentences returned by querying
+Solr using the `q` and `fq` parameters, with stopwords removed by default.  Words are stemmed before being counted.  For
+each word, the call returns the stem and the full term most used with the given stem in the specified solr query (for
+example, in the below example, 'democrat' is the stem that appeared 58 times and 'democrats' is the word that was most
+commonly stemmed into 'democract').
 
 #### Query Parameters
 

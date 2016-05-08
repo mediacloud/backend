@@ -81,24 +81,24 @@ sub sample_guessed_date_stories
     my ( $db, $cdts, $percent_sample ) = @_;
 
     my $stories = $db->query( <<END, $percent_sample )->hashes;
-select * from  
+select * from
 (
     select s.*
-        from dump_stories s, dump_tags t, dump_tag_sets ts, dump_stories_tags_map stm 
-        where s.stories_id = stm.stories_id and 
-            t.tags_id = stm.tags_id and 
-            t.tag_sets_id = ts.tag_sets_id and 
-            ts.name = 'date_guess_method' and 
+        from dump_stories s, dump_tags t, dump_tag_sets ts, dump_stories_tags_map stm
+        where s.stories_id = stm.stories_id and
+            t.tags_id = stm.tags_id and
+            t.tag_sets_id = ts.tag_sets_id and
+            ts.name = 'date_guess_method' and
             t.tag not in ( 'manual', 'merged_story_rss', 'guess_by_url_and_date_text', 'guess_by_url' )
 
     except
 
     select s.*
-        from dump_stories s, dump_tags t, dump_tag_sets ts, dump_stories_tags_map stm 
-        where s.stories_id = stm.stories_id and 
-            t.tags_id = stm.tags_id and 
-            t.tag_sets_id = ts.tag_sets_id and 
-            ts.name = 'date_invalid' and 
+        from dump_stories s, dump_tags t, dump_tag_sets ts, dump_stories_tags_map stm
+        where s.stories_id = stm.stories_id and
+            t.tags_id = stm.tags_id and
+            t.tag_sets_id = ts.tag_sets_id and
+            ts.name = 'date_invalid' and
             t.tag = 'undateable'
 ) q
     where ( random() *  100 ) < ?
@@ -129,7 +129,7 @@ sub tweak_undateable_story
 delete from dump_stories_tags_map stm
     using dump_tags t, dump_tag_sets ts
     where stm.stories_id = ? and
-        stm.tags_id = t.tags_id and 
+        stm.tags_id = t.tags_id and
         t.tag_sets_id = ts.tag_sets_id and
         ts.name = 'date_invalid' and
         t.tag = 'undateable'
@@ -145,22 +145,22 @@ sub tweak_undateable_stories
     my $stories = $db->query( <<END, $PERCENT_UNDATEABLE_DATE_DATEABLE )->hashes;
 select * from
 (
-    select s.* 
-        from dump_stories s, dump_tags t, dump_tag_sets ts, dump_stories_tags_map stm 
-        where s.stories_id = stm.stories_id and 
-            t.tags_id = stm.tags_id and 
-            t.tag_sets_id = ts.tag_sets_id and 
-            ts.name = 'date_invalid' and 
-            t.tag = 'undateable'
-            
-    except
-    
     select s.*
-        from dump_stories s, dump_tags t, dump_tag_sets ts, dump_stories_tags_map stm 
-        where s.stories_id = stm.stories_id and 
-            t.tags_id = stm.tags_id and 
-            t.tag_sets_id = ts.tag_sets_id and 
-            ts.name = 'date_guess_method' and 
+        from dump_stories s, dump_tags t, dump_tag_sets ts, dump_stories_tags_map stm
+        where s.stories_id = stm.stories_id and
+            t.tags_id = stm.tags_id and
+            t.tag_sets_id = ts.tag_sets_id and
+            ts.name = 'date_invalid' and
+            t.tag = 'undateable'
+
+    except
+
+    select s.*
+        from dump_stories s, dump_tags t, dump_tag_sets ts, dump_stories_tags_map stm
+        where s.stories_id = stm.stories_id and
+            t.tags_id = stm.tags_id and
+            t.tag_sets_id = ts.tag_sets_id and
+            ts.name = 'date_guess_method' and
             t.tag = 'manual'
 ) q
     where ( random() *  100 ) < ?
@@ -237,13 +237,9 @@ sub tweak_story_dates
 {
     my ( $db, $cdts ) = @_;
 
-    $db->begin;
-
     tweak_misdated_stories( $db, $cdts );
     tweak_undateable_stories( $db, $cdts );
     tweak_dateable_stories( $db, $cdts );
-
-    $db->commit;
 }
 
 # generate a single model of the dump for the current time slice, tweaking
@@ -254,11 +250,17 @@ sub model_confidence_data
 {
     my ( $db, $cdts ) = @_;
 
+    die( "model confidence data cannot be called within an ongoing transaction" ) unless ( $db->dbh->{ AutoCommit } );
+
+    $db->begin;
+
     tweak_story_dates( $db, $cdts );
 
     MediaWords::CM::Dump::generate_cdts_data( $db, $cdts, 1 );
 
     my $top_media_link_counts = get_top_media_link_counts( $db, $cdts, 2 );
+
+    $db->rollback;
 
     return $top_media_link_counts;
 }
@@ -375,6 +377,7 @@ sub print_model_matches
             }
             else
             {
+                my $model_rank_display = defined( $model_rank ) ? $model_rank : 'NA';
                 print "-";
                 print "[ $clean_media_id: $clean_rank / $model_rank ]";
                 $match = 0;
@@ -388,6 +391,29 @@ sub print_model_matches
     # update_cdts( $db, $cdts, 'confidence', $num_model_matches );
     #
     # return $num_model_matches;
+}
+
+# create the index if it does not already exist
+sub create_index_if_not_exists
+{
+    my ( $db, $name, $index ) = @_;
+
+    my $exists = $db->query( 'select 1 from pg_class where relname = ?', $name )->hash;
+
+    return if ( $exists );
+
+    $db->query( "create index $name on $index" );
+}
+
+# create dump indexes if they do not already exist
+sub create_dump_indexes
+{
+    my ( $db ) = @_;
+
+    # these make the data tweaking process and other operations much faster
+    create_index_if_not_exists( $db, "dump_stories_story",          "dump_stories ( stories_id )" );
+    create_index_if_not_exists( $db, "dump_tags_tag",               "dump_tags ( tags_id )" );
+    create_index_if_not_exists( $db, "dump_stories_tags_map_story", "dump_stories_tags_map ( stories_id )" );
 }
 
 # run $config->{ mediawords }->{ controversy_model_reps } models and return a list of ordered lists
@@ -404,20 +430,18 @@ sub get_all_models_top_media ($$)
         return undef;
     }
 
-    print "copying temporary tables ...\n";
-    MediaWords::CM::Dump::copy_temporary_tables( $db );
+    # print "copying temporary tables ...\n";
+    # MediaWords::CM::Dump::copy_temporary_tables( $db );
+
+    create_dump_indexes( $db );
 
     print "running models: ";
     my $all_models_top_media = [];
     for my $i ( 1 .. $model_reps )
     {
-        # these make the data tweaking process and other operations much faster
-        $db->query( "create index dump_stories_story on dump_stories ( stories_id )" );
-        $db->query( "create index dump_tags_tag on dump_tags ( tags_id )" );
-        $db->query( "create index dump_stories_tags_map_story on dump_stories_tags_map ( stories_id )" );
-
         my $model_top_media = model_confidence_data( $db, $cdts );
-        MediaWords::CM::Dump::restore_temporary_tables( $db );
+
+        # MediaWords::CM::Dump::restore_temporary_tables( $db );
 
         return unless ( @{ $model_top_media } );
 
