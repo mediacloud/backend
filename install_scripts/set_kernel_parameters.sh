@@ -45,7 +45,7 @@ if [ `uname` == 'Darwin' ]; then
     :
 else
 
-    LIMITS_FILE=/etc/limits.d/50-mediacloud.conf
+    LIMITS_FILE=/etc/security/limits.d/50-mediacloud.conf
 
     if [ -f "$LIMITS_FILE" ]; then
         echo "Limits file $LIMITS_FILE already exists, please either remove it or add parameters manually."
