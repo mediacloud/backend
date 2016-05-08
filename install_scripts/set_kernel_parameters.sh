@@ -3,13 +3,12 @@
 set -u
 set -o errexit
 
-echo "Setting required kernel parameters via sysctl..."
-
 if [ `uname` == 'Darwin' ]; then
     # Mac OS X -- nothing to do
     :
 else
 
+    echo "Setting required kernel parameters via sysctl..."
 	SYSCTL_FILE=/etc/sysctl.d/50-mediacloud.conf
 
     if [ -f "$SYSCTL_FILE" ]; then
@@ -17,7 +16,6 @@ else
         exit 1
     fi
 
-    # Overwrite
     sudo tee "$SYSCTL_FILE" <<EOF
 #
 # Media Cloud kernel parameters
@@ -32,19 +30,12 @@ EOF
     # Reread kernel parameters from /etc
     sudo service procps start
 
-fi
+    echo "Done setting required kernel parameters via sysctl."
 
-echo "Done setting required kernel parameters via sysctl."
+    # ---
 
-# ---
-
-MEDIACLOUD_USER=`id -un`
-echo "Setting required kernel parameters via limits.conf for user '$MEDIACLOUD_USER'..."
-
-if [ `uname` == 'Darwin' ]; then
-    # Mac OS X -- nothing to do (not likely to be running production environment on OS X)
-    :
-else
+    MEDIACLOUD_USER=`id -un`
+    echo "Setting required kernel parameters via limits.conf for user '$MEDIACLOUD_USER'..."
 
     LIMITS_FILE=/etc/security/limits.d/50-mediacloud.conf
 
@@ -53,7 +44,6 @@ else
         exit 1
     fi
 
-    # Overwrite
     sudo tee "$LIMITS_FILE" <<EOF
 #
 # Media Cloud limits
@@ -67,7 +57,7 @@ $MEDIACLOUD_USER      soft    nofile        65536
 $MEDIACLOUD_USER      hard    nofile        65536
 EOF
 
+    echo "Done setting required kernel parameters via limits.conf."
+    echo "Please relogin to the user '$MEDIACLOUD_USER' for the limits to be applied."
+
 fi
-
-echo "Done setting required kernel parameters via limits.conf."
-
