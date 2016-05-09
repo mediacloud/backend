@@ -692,8 +692,7 @@ can make the api sample more sentences.  The system takes about one second to pr
 1000 sentences.
 
 By default, the system stems and stopwords the list in English plus each of the supported languages it detects for
-either the entire block block of text or for at least 5% of the individual sentences within the query.  
-If you specify the 'languages' parameter, the system will stem and stopword the words by each of the
+either the entire block block of text or for at least 5% of the individual sentences within the query.  If you specify the 'languages' parameter, the system will stem and stopword the words by each of the
 listed languages plus english.
 
 Stemming for multiple languages is done by stemming each returned term in each language sequentially, ordered
