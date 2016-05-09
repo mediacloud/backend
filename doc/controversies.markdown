@@ -2,8 +2,8 @@ Controversies
 =============
 
 This document provides a high level overview of how the controversy mapping
-system works and points to the pieces of code that performance specific
-functions.
+system works and points to the pieces of code that perform specific
+functions. This document will identify the major differences of the controversy mapping system with the MediaCloud system, identify how to run a controversy for
 
 The controversy mapping system is used to generate and analyze spidered sets
 of stories on some time and text pattern defined topic. The key differences
@@ -27,7 +27,7 @@ The controversy web ui is implemented in the
 How to run a controversy for development
 ----------------------------------------
 
-0. If you are running on a development machines, first make sure that you have a solr instance running in supervisord.
+0. If you are running on a development machine, first make sure that you have a solr instance running in supervisord.
 Then run the following import data into solr from postgres and verify existence of data in solr  by searching for a
 common word on the /search page.
 
@@ -68,7 +68,7 @@ If you want it to complete faster, edit mediawords->cm\_spider\_iterations in me
 number (1 or 2), which will make the spider only spider out that many levels from the seed set.
 
 10. Once the the mine has finished, run the following command and follow the instructions within the script
-to dedup the media discovered during the spidering process:
+to dedupe the media discovered during the spidering process:
 
 <pre>
 script/run_with_carton.sh script/mediawords_dedup_controversy_media.pl
@@ -101,7 +101,7 @@ Basic flow of CM
 5. Repeat 3. and 4. until no new controversy links are found or the max number
    of iterations is reached.
 
-6. Dedup stories by duplicate media source, duplication title, or duplicate
+6. Dedupe stories by duplicate media source, duplication title, or duplicate
    url.
 
 7. Add the `<controversy name>:all` tag to each story in the controversy.
@@ -166,7 +166,7 @@ Detailed explanation of CM process
     1. If `controversies.solr_seed_query_run` is `false`, the miner executes
        the `solr_seed_query` on solr and adds all of the returned stories that
        also match the controversy regex to the controversy.
-        * These stories go into `contoversy_stories`.
+        * These stories go into `controversy_stories`.
     2. The miner downloads all additional seed set urls from (5) that do not
        already exist in the database and adds a story and `controversy_story`
        for each.
@@ -181,14 +181,14 @@ Detailed explanation of CM process
     6. The miner repeats (6.3) - (6.5) for all stories newly added to the
        controversy, until no new stories are found or a maximum number of
        iterations is reached.
-    7. The miner dedups stories based on duplicate media sources (found by
+    7. The miner dedupes stories based on duplicate media sources (found by
        walking through the `media.dup_media_id` values), duplicate titles, and
        duplicate urls.
         * Story title and url deduping is implemented in
           `MediaWords::DBI::Stories`, `get_medium_dup_stories_by_url` and
           `get_medium_dup_stories_by_title`.
 
-7. Manually dedup all media associated with a controversy (as each new story is
+7. Manually dedupe all media associated with a controversy (as each new story is
    added, a media source has to found or created for it based on the url host
    name, and often those media sources end up being duplicates, e.g.
    `articles.orlandosun.com` and `www.orlandosun.com`).  The below script
@@ -215,4 +215,18 @@ Detailed explanation of CM process
 
 12. Rerun the dump any time the controversy data has been changed and
     researchers need a new set of consistent results, new maps, or new
-    reliability scores.
+    reliability scores.  
+
+Mining vs. Dumping
+------------------
+
+A dump is always required to capture new or updated data for a controversy in a static dump.  If a user is browsing
+a controversy through a dump, even a simple media source name change will not be visible until a new dump
+is created.  This dump requirement holds as well for more complex analytical data like link counts.
+
+A mining job is only required if new data requires a spider to run, or if deduping of stories or media sources is
+required.  Most often, a controversy will need to mined again if any of the following happen:
+
+* the solr query is changed in a way that will add stories to the controversy;
+* new urls are added to controversy_seed_urls for the controversy; or
+* a media source in the controversy is newly marked as a dup of a media source outside of the cm web app
