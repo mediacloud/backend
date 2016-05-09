@@ -26,6 +26,8 @@ use MediaWords::CM::Dump;
 
 use MediaWords::CommonLibs;
 
+use MediaWords::DBI::Auth;
+
 use MediaWords::Pg::Schema;
 
 use MediaWords::Test::DB;
@@ -38,7 +40,7 @@ use Readonly;
 
 use Test::More;
 
-Readonly my $TEST_API_KEY => 'f66a50230d54afaf18822808aed649f1d6ca72b08fb06d5efb6247afe9fbae52';
+my $TEST_API_KEY => '';
 
 Readonly my $TEST_HTTP_SERVER_PORT => '3000';
 
@@ -99,40 +101,6 @@ sub create_stories
 
 }
 
-sub create_test_database
-{
-    my $base_db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
-
-    my $test_db_name = 'topics_api_test';
-
-    # print "creating database $test_db_name ...\n";
-    $base_db->query( "create database $test_db_name" );
-
-    $base_db->disconnect();
-
-    my $test_connect_info = [ MediaWords::DB::connect_info ];
-    $test_connect_info->[ 0 ] =~ s/dbname=[a-z0-9_]*/dbname=$test_db_name/i;
-
-    # print "connecting to test database: $test_connect_info->[0] ...\n";
-    my $test_db = DBIx::Simple::MediaWords->connect( @{ $test_connect_info } );
-
-    if ( !open( FILE, "$FindBin::Bin/script/mediawords.sql" ) )
-    {
-        die( "Unable to open schema file: $!" );
-    }
-
-    my $schema_sql = join( "\n", ( <FILE> ) );
-
-    close( FILE );
-
-    $test_db->query( $schema_sql );
-    $test_db->query( MediaWords::Pg::Schema::get_sql_function_definitions() );
-
-    # make sure the stories table exists as a sanity check for the schema
-    $test_db->query( "select * from stories" );
-
-    return ( $test_db, $test_db_name, $test_connect_info );
-}
 
 sub create_test_data
 {
@@ -348,7 +316,7 @@ sub main
             my $controversy_media = create_stories( $db, $stories );
 
             create_test_data( $db, $controversy_media );
-
+            $TEST_API_KEY = MediaWords::Test::DB::create_test_user( $db );
             test_story_count();
             test_story_inclusion( $stories );
             test_media_list( $stories );
