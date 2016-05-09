@@ -195,14 +195,17 @@ sub get_deduped_sentences
 {
     my ( $db, $story, $sentences ) = @_;
 
-    my $unique_sentences = _get_unique_sentences( $sentences );
+    $sentences = _get_unique_sentences( $sentences );
 
-    my $dup_story_sentences = get_dup_story_sentences( $db, $story, $unique_sentences, 1 );
+    # drop sentences that are all ascii and 5 characters or less (keep non-ascii because those are sometimes logograms)
+    $sentences = [ grep { $_ !~ /^[[:ascii:]]{0,5}$/ } @{ $sentences } ];
+
+    my $dup_story_sentences = get_dup_story_sentences( $db, $story, $sentences, 1 );
 
     my $dup_lookup = {};
     map { $dup_lookup->{ $_->{ sentence } } = 1 } @{ $dup_story_sentences };
 
-    my $deduped_sentences = [ grep { !$dup_lookup->{ $_ } } @{ $unique_sentences } ];
+    my $deduped_sentences = [ grep { !$dup_lookup->{ $_ } } @{ $sentences } ];
 
     return $deduped_sentences;
 }

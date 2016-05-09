@@ -99,7 +99,7 @@ activity around the controversy topic.
 
 For these cases, we provide the option of adding an externally generated list of urls to seed a controversy.  Those
 urls might come from manual google searches, twitter searches, or researcher curation.  When the controversy has a list
-of external seed urls, those urls are simply added the spider url queue before running the spider.
+of external seed urls, those urls are simply added to the spider url queue before running the spider.
 
 Date Assignment
 ---------------

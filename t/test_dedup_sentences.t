@@ -72,7 +72,7 @@ sub test_dedup_sentences
     };
     $story_a = $db->create( 'stories', $story_a );
 
-    $story_a->{ sentences } = [ 'foo', 'bar', 'baz' ];
+    $story_a->{ sentences } = [ 'foo baz', 'bar baz', 'baz baz' ];
 
     my $story_b = {
         media_id      => $medium->{ media_id },
@@ -86,7 +86,7 @@ sub test_dedup_sentences
     };
     $story_b = $db->create( 'stories', $story_b );
 
-    $story_b->{ sentences } = [ 'bar foo', 'bar', 'foo', 'foo bar', 'foo bar' ];
+    $story_b->{ sentences } = [ 'bar foo baz', 'bar baz', 'foo baz', 'foo bar baz', 'foo bar baz' ];
 
     my $story_c = {
         media_id      => $medium->{ media_id },
@@ -100,7 +100,7 @@ sub test_dedup_sentences
     };
     $story_c = $db->create( 'stories', $story_c );
 
-    $story_c->{ sentences } = [ 'foo', 'bar', 'foo bar' ];
+    $story_c->{ sentences } = [ 'foo baz', 'bar baz', 'foo bar baz' ];
 
     $story_a->{ ds } = MediaWords::StoryVectors::dedup_sentences( $db, $story_a, $story_a->{ sentences } );
     _insert_story_sentences( $db, $story_a, $story_a->{ ds } );
@@ -112,7 +112,7 @@ sub test_dedup_sentences
     _insert_story_sentences( $db, $story_c, $story_c->{ ds } );
 
     cmp_deeply( $story_a->{ ds }, $story_a->{ sentences }, 'story a' );
-    cmp_deeply( $story_b->{ ds }, [ 'bar foo', 'foo bar' ], 'story b' );
+    cmp_deeply( $story_b->{ ds }, [ 'bar foo baz', 'foo bar baz' ], 'story b' );
     cmp_deeply( $story_c->{ ds }, $story_c->{ sentences }, 'story c' );
 }
 
