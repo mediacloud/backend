@@ -26,8 +26,6 @@ use MediaWords::CM::Dump;
 
 use MediaWords::CommonLibs;
 
-use MediaWords::DBI::Auth;
-
 use MediaWords::Pg::Schema;
 
 use MediaWords::Test::DB;
@@ -40,7 +38,7 @@ use Readonly;
 
 use Test::More;
 
-my $TEST_API_KEY => '';
+my $TEST_API_KEY;
 
 Readonly my $TEST_HTTP_SERVER_PORT => '3000';
 
@@ -100,7 +98,6 @@ sub create_stories
     my $media = MediaWords::Test::DB::create_test_story_stack( $db, $stories );
 
 }
-
 
 sub create_test_data
 {
@@ -272,24 +269,24 @@ sub test_story_inclusion
 
     my $actual_response = JSON::decode_json( $response->decoded_content() );
 
-    my %actual_stories;
-    my @actual_stories_order;
+    my $actual_stories_inlink_counts = {};
+    my $actual_stories_order         = ();
 
     foreach my $story ( @{ $actual_response->{ stories } } )
     {
-        $actual_stories{ $story->{ 'title' } } = $story->{ 'inlink_count' };
+        $actual_stories_inlink_counts->{ $story->{ 'title' } } = $story->{ 'inlink_count' };
         my @story_info = ( $story->{ 'inlink_count' }, $story->{ 'stories_id' } );
-        push @actual_stories_order, \@story_info;
+        push @{ $actual_stories_order }, \@story_info;
     }
 
-    is_deeply( \%actual_stories, $controversy_stories, 'expected stories' );
+    is_deeply( $actual_stories_inlink_counts, $controversy_stories, 'expected stories' );
 
-    foreach my $story ( 1 .. $#actual_stories_order )
+    foreach my $story ( 1 .. scalar @{ $actual_stories_order } - 1 )
     {
-        ok( $actual_stories_order[ $story ][ 0 ] <= $actual_stories_order[ $story - 1 ][ 0 ] );
-        if ( $actual_stories_order[ $story ][ 0 ] == $actual_stories_order[ $story - 1 ][ 0 ] )
+        ok( $actual_stories_order->[ $story ]->[ 0 ] <= $actual_stories_order->[ $story - 1 ]->[ 0 ] );
+        if ( $actual_stories_order->[ $story ]->[ 0 ] == $actual_stories_order->[ $story - 1 ]->[ 0 ] )
         {
-            ok( $actual_stories_order[ $story ][ 1 ] > $actual_stories_order[ $story - 1 ][ 1 ] );
+            ok( $actual_stories_order->[ $story ]->[ 1 ] > $actual_stories_order->[ $story - 1 ]->[ 1 ] );
         }
     }
 }
