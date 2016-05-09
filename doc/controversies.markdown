@@ -2,8 +2,8 @@ Controversies
 =============
 
 This document provides a high level overview of how the controversy mapping
-system works and points to the pieces of code that performance specific
-functions.
+system works and points to the pieces of code that perform specific
+functions. This document will identify the major differences of the controversy mapping system with the MediaCloud system, identify how to run a controversy for 
 
 The controversy mapping system is used to generate and analyze spidered sets
 of stories on some time and text pattern defined topic. The key differences
@@ -27,7 +27,7 @@ The controversy web ui is implemented in the
 How to run a controversy for development
 ----------------------------------------
 
-0. If you are running on a development machines, first make sure that you have a solr instance running in supervisord.
+0. If you are running on a development machine, first make sure that you have a solr instance running in supervisord.
 Then run the following import data into solr from postgres and verify existence of data in solr  by searching for a
 common word on the /search page.
 
@@ -68,7 +68,7 @@ If you want it to complete faster, edit mediawords->cm\_spider\_iterations in me
 number (1 or 2), which will make the spider only spider out that many levels from the seed set.
 
 10. Once the the mine has finished, run the following command and follow the instructions within the script
-to dedup the media discovered during the spidering process:
+to dedupe the media discovered during the spidering process:
 
 <pre>
 script/run_with_carton.sh script/mediawords_dedup_controversy_media.pl
@@ -101,7 +101,7 @@ Basic flow of CM
 5. Repeat 3. and 4. until no new controversy links are found or the max number
    of iterations is reached.
 
-6. Dedup stories by duplicate media source, duplication title, or duplicate
+6. Dedupe stories by duplicate media source, duplication title, or duplicate
    url.
 
 7. Add the `<controversy name>:all` tag to each story in the controversy.
@@ -166,7 +166,7 @@ Detailed explanation of CM process
     1. If `controversies.solr_seed_query_run` is `false`, the miner executes
        the `solr_seed_query` on solr and adds all of the returned stories that
        also match the controversy regex to the controversy.
-        * These stories go into `contoversy_stories`.
+        * These stories go into `controversy_stories`.
     2. The miner downloads all additional seed set urls from (5) that do not
        already exist in the database and adds a story and `controversy_story`
        for each.
@@ -181,14 +181,14 @@ Detailed explanation of CM process
     6. The miner repeats (6.3) - (6.5) for all stories newly added to the
        controversy, until no new stories are found or a maximum number of
        iterations is reached.
-    7. The miner dedups stories based on duplicate media sources (found by
+    7. The miner dedupes stories based on duplicate media sources (found by
        walking through the `media.dup_media_id` values), duplicate titles, and
        duplicate urls.
         * Story title and url deduping is implemented in
           `MediaWords::DBI::Stories`, `get_medium_dup_stories_by_url` and
           `get_medium_dup_stories_by_title`.
 
-7. Manually dedup all media associated with a controversy (as each new story is
+7. Manually dedupe all media associated with a controversy (as each new story is
    added, a media source has to found or created for it based on the url host
    name, and often those media sources end up being duplicates, e.g.
    `articles.orlandosun.com` and `www.orlandosun.com`).  The below script
@@ -198,7 +198,7 @@ Detailed explanation of CM process
     * media deduping is implemented in `mediawords_dedup_controversy_media.pl`
 
 8. Run `mediawords_mine_controversy.pl` again if any media sources have been
-   marked as duplicates in (7) to merge stories from duplicate media.
+   marked as duplicates in (7) to merge stories from duplicate media. 
 
 9. Run a dump of the controversy to create a static snapshot of the data that
    can act as a stable data set for research, to generate the time slice
@@ -208,10 +208,10 @@ Detailed explanation of CM process
 
 10. Review the dump data, performing any more manual edits (editing story and
     media names, checking dates, analyzing influential media lists for each
-    time slice, and so on).
+    time slice, and so on). 
 
 11. Redo the mine, dedup media, mine, dump steps any time new stories are added
-    to the controversy (for instance after adding more seed urls).
+    to the controversy (for instance after adding more seed urls).  ((?? Is this necessary because media names have been modified?))
 
 12. Rerun the dump any time the controversy data has been changed and
     researchers need a new set of consistent results, new maps, or new

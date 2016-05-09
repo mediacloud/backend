@@ -2,7 +2,7 @@ Controversy Dumps
 =================
 
 Controversy analysis is based around the idea of a dump.  Dumps store static, snapshotted data about all database
-entities related to a controversy.  Dumping a controversy also generates analytical data like link counts specific to
+entities related to a controversy.  Dumping a controversy also generates analytical data, like link counts, that are specific to
 both all stories within the controversy and to specific date ranges within the controversy.  The dumping framework also
 allows access to 'live' virtual dumps that use the same database structure but do the date range specific analytical
 work on the live controversy data.
