@@ -692,8 +692,14 @@ can make the api sample more sentences.  The system takes about one second to pr
 1000 sentences.
 
 By default, the system stems and stopwords the list in English plus each of the supported languages it detects for
-either the entire block block of text or for any of the individual sentences.  If you specify the 'languages'
-parameter, the system will stem and stopword the words by each of the listed languages.
+either the entire block block of text or for at least 5% of the individual sentences within the query.  
+If you specify the 'languages' parameter, the system will stem and stopword the words by each of the
+listed languages plus english.
+
+Stemming for multiple languages is done by stemming each returned term in each language sequentially, ordered
+by the language code for each language.  This sequential stemming is likely to introduce some artifacts into the
+results.  If you want results in only a single language, include a 'language:<code>' (or instance 'language:en')
+clause in your query to ensure only sentences of that language are returned.
 
 The following language are supported (by 2 letter language code):
 'da' (Danish), 'de' (German), 'en' (English), 'es' (Spanish), 'fi' (Finnish), 'fr' (French),
