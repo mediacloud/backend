@@ -698,7 +698,7 @@ listed languages plus english.
 
 Stemming for multiple languages is done by stemming each returned term in each language sequentially, ordered
 by the language code for each language.  This sequential stemming is likely to introduce some artifacts into the
-results.  If you want results in only a single language, include a 'language:<code>' (or instance 'language:en')
+results.  If you want results in only a single language, include a `language:<code>` (for instance `language:en`)
 clause in your query to ensure only sentences of that language are returned.
 
 The following language are supported (by 2 letter language code):
