@@ -1,6 +1,6 @@
 Extractor
 =========
-
+ 
 The extractors are responsible for parsing the substantive text from the raw html of each story and storing it in the
 download_texts table.  The extractor also parses the download_text into sentences and stores those sentences in the
 story_sentences table.  An extractor job is queued by the crawler handler for each story it downloads.

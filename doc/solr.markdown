@@ -36,3 +36,4 @@ For more information about the solr import process, see [MediaWords::Solr::Dump]
 
 Reads from the solr database are performed through the [MediaWords::Solr](lib/MediaWords/Solr.pm) module for perl code
 in the codebase and through the api (which itself uses Solr.pm) by external clients.
+ 

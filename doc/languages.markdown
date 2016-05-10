@@ -1,6 +1,8 @@
 Media Cloud language support
 ============================
 
+MediaCloud language support builds upon the Lingua:: Perl packages, in particular , Lingua::StopWords for defining a list of words that should not be included in most textual analyses, and [Lingua::Stem](http://search.cpan.org/dist/Lingua-Stem/lib/Lingua/Stem.pod) for allowing words with similar meanings to be grouped together based on a common word stem.
+
 Requirements for adding a new language
 --------------------------------------
 
