@@ -23,3 +23,4 @@ The purpose of the processed stories list is to stream stories to API users as t
 stories marked for CoreNLP annotation will only see the story once it has been annotated by the CoreNLP worker.
 
 More information about the CoreNLP web service [here](hosting/corenlp-hosting.markdown).
+ 

@@ -47,9 +47,9 @@ e.g.:
 To setup a virtual host from scratch using vagrant and run the tests on the fresh virtual host, run
 `run_install_test_suite_on_vagrant.sh`.  See [vagrant.markdown](vagrant.markdown) for detailed instructions about
 how to setup and run vagrant with Media Cloud.  We run this script nightly on our production system to make sure that
-the mast branch of Media Cloud is passing its test suite from a fresh install.
+the master branch of Media Cloud is passing its test suite from a fresh install.
 
-### Tavis
+### Travis
 
-In addition to the nightly vagrant tests, we have an account on TavisCI that runs the full test suite, including api
-tests, on every commit+push.  Project developers are emailed whenever a TavisCI commit test run fails.
+In addition to the nightly vagrant tests, we have an account on TravisCI that runs the full test suite, including api
+tests, on every commit+push.  Project developers are emailed whenever a TravisCI commit test run fails.
