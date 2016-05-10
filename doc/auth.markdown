@@ -1,13 +1,7 @@
 Authentication / authorization
 ==============================
 
-Media Cloud contains a basic authentication and authorization system that you
-can use.
-
-At the time of writing, there is no way to explicitly disable the authentication
-and authorization. Even if you are the only user of your deployment, you still
-have to create a user for yourself and assign an "admin" role to it.
-
+Media Cloud contains a basic authentication and authorization system that must be used. At the time of writing, there is no way to explicitly disable the authentication and authorization. Even if you are the only user of your deployment, you still have to create a user for yourself and assign an "admin" role to it.
 
 Quick start
 -----------
