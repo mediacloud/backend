@@ -19,8 +19,7 @@ use Getopt::Long;
 
 use MediaWords::DB;
 use MediaWords::CM;
-use MediaWords::GearmanFunction;
-use MediaWords::GearmanFunction::Facebook::FetchStoryStats;
+use MediaWords::Job::Facebook::FetchStoryStats;
 
 sub main
 {
@@ -39,14 +38,6 @@ EOF
         "overwrite!"    => \$overwrite,
     ) or die $usage;
     die $usage unless ( $controversy_opt );
-
-    unless ( $direct_job )
-    {
-        unless ( MediaWords::GearmanFunction::gearman_is_enabled() )
-        {
-            die "Gearman is disabled.";
-        }
-    }
 
     my $db = MediaWords::DB::connect_to_db;
     my $controversies = MediaWords::CM::require_controversies_by_opt( $db, $controversy_opt );
@@ -88,16 +79,16 @@ END
                 if ( $direct_job )
                 {
                     say STDERR "Running local job for story $stories_id...";
-                    eval { MediaWords::GearmanFunction::Facebook::FetchStoryStats->run_locally( $args ); };
+                    eval { MediaWords::Job::Facebook::FetchStoryStats->run_locally( $args ); };
                     if ( $@ )
                     {
-                        say STDERR "Gearman worker died while fetching and storing statistics: $@";
+                        say STDERR "Worker died while fetching and storing statistics: $@";
                     }
                 }
                 else
                 {
-                    say STDERR "Enqueueing Gearman job for story $stories_id...";
-                    MediaWords::GearmanFunction::Facebook::FetchStoryStats->enqueue_on_gearman( $args );
+                    say STDERR "Adding job for story $stories_id...";
+                    MediaWords::Job::Facebook::FetchStoryStats->add_to_queue( $args );
                 }
             }
         }

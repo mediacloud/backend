@@ -23,8 +23,9 @@ else
 # Media Cloud kernel parameters
 #
 
-# Gearman::JobScheduler doesn't reuse existing TCP connections so under high
-# load gearmand might run out of TCP connections.
+# MediaCloud::JobManager's Gearman job broker implementation doesn't reuse
+# existing TCP connections so under high load gearmand might run out of TCP
+# connections.
 net.ipv4.tcp_tw_reuse=1
 EOF
 

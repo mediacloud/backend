@@ -10,14 +10,17 @@ Plugin::Authentication:
             password_type: salted_hash
         store:
             class: MediaWords
-gearman:
-    servers:
-        - "127.0.0.1:4731"
-    notifications:
-        emails: []
-        from_address: gjs@mediacloud.org
-        subject_prefix: '[GJS]'
-    worker_log_dir: data/gearman_worker_logs/
+job_manager:
+    gearman:
+        client:
+            servers:
+                - "127.0.0.1:4731"
+        server:
+            enabled: yes
+            listen: 127.0.0.1
+            port: 4731
+            threads: 0
+            worker_wakeup: 0
 mail:
     bug_email: ''
     from_address: noreply@mediacloud.org
@@ -41,12 +44,6 @@ mediawords:
     cm_spider_iterations: 15
 supervisor:
     childlogdir: data/supervisor_logs/
-gearmand:
-    enabled: yes
-    listen: 127.0.0.1
-    port: 4731
-    threads: 0
-    worker_wakeup: 0
 corenlp:
     enabled: no
     annotator_url: ''
@@ -65,3 +62,7 @@ facebook:
     app_id: ''
     app_secret: ''
     timeout: 60
+ec2:
+    instance_monitor_email: ''
+    aws_access_key_id: ''
+    aws_secret_access_key: ''

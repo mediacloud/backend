@@ -57,7 +57,7 @@ sub get_unscraped_medium
     my ( $db ) = @_;
 
     my $medium = $db->query( <<SQL )->hash;
-select m.* from media m join feedly_unscraped_feeds fuf on ( fuf.media_id = m.media_id ) limit 1;
+select m.* from media m join feedly_unscraped_feeds fuf on ( fuf.media_id = m.media_id );
 SQL
 }
 

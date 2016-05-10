@@ -9,15 +9,8 @@ MediaWords::Test::Text - helper functions for testing text
 use strict;
 use warnings;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
-    use lib $FindBin::Bin;
-}
-
 use Test::More;
-use MediaWords::Languages::en;
+use Text::WordDiff;
 
 =head1 FUNCTIONS
 
@@ -27,16 +20,31 @@ Fails test if $got and $expected are not equal strings.  In the case, prints a
 sentence by sentence diff that in most cases is much more useful than the line
 by line diff of Test::Text::eq_or_diff.
 
+If $verbatim is true, strings are compared verbatim. By default, whitespace is
+normalized before comparing texts.
+
 =cut
 
-sub eq_or_sentence_diff($$$)
+sub eq_or_sentence_diff($$$;$)
 {
-    my ( $actual_text, $expected_text, $message ) = @_;
+    my ( $actual_text, $expected_text, $message, $verbatim ) = @_;
 
     if ( ( !defined $actual_text ) and ( !defined $expected_text ) )
     {
         ok( 1, $message );
         return;
+    }
+
+    unless ( $verbatim )
+    {
+        $actual_text =~ s/\R/\n/g;
+        $expected_text =~ s/\R/\n/g;
+
+        $actual_text =~ s/\s+/ /g;
+        $expected_text =~ s/\s+/ /g;
+
+        $actual_text =~ s/^\s+|\s+$//g;
+        $expected_text =~ s/^\s+|\s+$//g;
     }
 
     if ( $actual_text eq $expected_text )
@@ -45,14 +53,21 @@ sub eq_or_sentence_diff($$$)
         return;
     }
 
-    # Assume that unit tests will use either English or other language with
-    # Latin alphabet (for which ::en is close enough)
-    my $en = MediaWords::Languages::en->new();
+    my $worddiff_style = 'ANSIColor';
+    my $expected_mark  = 'GREEN';
+    my $got_mark       = 'RED';
+    if ( ( $ENV{ DEBIAN_FRONTEND } // '' ) eq 'noninteractive' )
+    {
+        # No color in CI server logs
+        $worddiff_style = 'HTML';
+        $expected_mark  = '<ins>';
+        $got_mark       = '<del>';
+    }
 
-    my $actual_sentences   = $en->get_sentences( $actual_text );
-    my $expected_sentences = $en->get_sentences( $expected_text );
+    my $diff = Text::WordDiff::word_diff( \$actual_text, \$expected_text, { STYLE => $worddiff_style } );
 
-    is_deeply( $actual_sentences, $expected_sentences, $message );
+    ok( 0, "$message:\n(got: $got_mark; expected: $expected_mark)\n $diff" );
+
 }
 
 1;

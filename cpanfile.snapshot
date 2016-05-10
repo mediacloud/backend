@@ -65,15 +65,6 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 6.36
       List::Util 0
       Test::More 0
-  Algorithm-KMeans-2.05
-    pathname: A/AV/AVIKAK/Algorithm-KMeans-2.05.tar.gz
-    provides:
-      Algorithm::KMeans 2.05
-    requirements:
-      ExtUtils::MakeMaker 0
-      Graphics::GnuplotIF 1.6
-      Math::GSL 0.32
-      Math::Random 0.71
   Any-Moose-0.26
     pathname: E/ET/ETHER/Any-Moose-0.26.tar.gz
     provides:
@@ -81,7 +72,7 @@ DISTRIBUTIONS
     requirements:
       Carp 0
       ExtUtils::MakeMaker 0
-      Moose 0
+      Mouse 0.40
       perl 5.006_002
       strict 0
       warnings 0
@@ -170,6 +161,31 @@ DISTRIBUTIONS
       ExtUtils::Install 1.46
       ExtUtils::MakeMaker 6.31
       Module::Build 0.36
+  App-githook-perltidy-0.11.2
+    pathname: M/ML/MLAWREN/App-githook-perltidy-0.11.2.tar.gz
+    provides:
+      App::githook::perltidy undef
+      App::githook_perltidy 0.011002
+      App::githook_perltidy::Util 0.011002
+      App::githook_perltidy::install 0.011002
+      App::githook_perltidy::post_commit 0.011002
+      App::githook_perltidy::pre_commit 0.011002
+    requirements:
+      Carp 0
+      Exporter::Tidy 0
+      ExtUtils::MakeMaker 6.59
+      File::Basename 0
+      File::Slurp 0
+      FindBin 0
+      OptArgs 0
+      Path::Tiny 0
+      Perl::Tidy 0
+      Pod::Tidy 0
+      Sys::Cmd 0
+      Test::Fatal 0
+      Test::More 0
+      Time::Piece 0
+      perl 5.006
   AppConfig-1.66
     pathname: A/AB/ABW/AppConfig-1.66.tar.gz
     provides:
@@ -237,6 +253,15 @@ DISTRIBUTIONS
       Module::Runtime 0.012
       Sub::Exporter::Progressive 0.001006
       Variable::Magic 0.48
+  B-Lint-1.20
+    pathname: R/RJ/RJBS/B-Lint-1.20.tar.gz
+    provides:
+      B::Lint 1.20
+      B::Lint::Debug 1.20
+    requirements:
+      ExtUtils::MakeMaker 0
+      Module::Pluggable 0
+      if 0
   Bit-Vector-7.4
     pathname: S/ST/STBEY/Bit-Vector-7.4.tar.gz
     provides:
@@ -3414,6 +3439,19 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       Test 0
       perl 5.008
+  Encode-Newlines-0.05
+    pathname: N/NE/NEILB/Encode-Newlines-0.05.tar.gz
+    provides:
+      Encode::Newlines 0.05
+    requirements:
+      Carp 0
+      Encode::Encoding 0
+      ExtUtils::MakeMaker 0
+      constant 0
+      parent 0
+      perl 5.007003
+      strict 0
+      warnings 0
   Error-0.17022
     pathname: S/SH/SHLOMIF/Error-0.17022.tar.gz
     provides:
@@ -3464,6 +3502,12 @@ DISTRIBUTIONS
       perl 5.006
       strict 0
       warnings 0
+  Exporter-Tidy-0.08
+    pathname: J/JU/JUERD/Exporter-Tidy-0.08.tar.gz
+    provides:
+      Exporter::Tidy 0.08
+    requirements:
+      ExtUtils::MakeMaker 0
   Exporter-Tiny-0.042
     pathname: T/TO/TOBYINK/Exporter-Tiny-0.042.tar.gz
     provides:
@@ -3713,6 +3757,21 @@ DISTRIBUTIONS
       Getopt::Std 0
       Test::More 0.80
       Test::Script 1.05
+  File-chdir-0.1010
+    pathname: D/DA/DAGOLDEN/File-chdir-0.1010.tar.gz
+    provides:
+      File::chdir 0.1010
+      File::chdir::ARRAY 0.1010
+      File::chdir::SCALAR 0.1010
+    requirements:
+      Carp 0
+      Cwd 3.16
+      Exporter 0
+      ExtUtils::MakeMaker 6.17
+      File::Spec::Functions 3.27
+      perl 5.006
+      strict 0
+      vars 0
   File-pushd-1.005
     pathname: D/DA/DAGOLDEN/File-pushd-1.005.tar.gz
     provides:
@@ -3739,46 +3798,6 @@ DISTRIBUTIONS
       Filesys::Notify::Simple 0.12
     requirements:
       ExtUtils::MakeMaker 6.30
-  Gearman-JobScheduler-0.16
-    pathname: L/LV/LVALIUKAS/Gearman-JobScheduler-0.16.tar.gz
-    provides:
-      Gearman::JobScheduler 0.16
-      Gearman::JobScheduler::AbstractFunction 0.16
-      Gearman::JobScheduler::Admin 0.16
-      Gearman::JobScheduler::Configuration 0.16
-      Gearman::JobScheduler::ErrorLogTrapper 0.16
-      Gearman::JobScheduler::Worker 0.16
-    requirements:
-      Capture::Tiny 0
-      Carp 0
-      Data::Compare 0
-      Data::Dumper 0
-      Data::UUID 0
-      DateTime 0
-      Email::MIME 0
-      Email::Sender::Simple 0
-      File::Path 0
-      File::ReadBackwards 0
-      File::Slurp 0
-      File::Temp 0
-      Gearman::XS 0
-      IO::File 0
-      IO::Socket::INET 0
-      JSON 0
-      Log::Log4perl 0
-      Modern::Perl 0
-      Moose 2.1005
-      Moose::Role 2.1005
-      MooseX::Singleton 0
-      Net::Telnet 0
-      Proc::Background 0
-      Readonly 0
-      Sys::Hostname 0
-      Test::More 0
-      Test::NoWarnings 0
-      Test::Strict 0
-      Time::HiRes 0
-      perl v5.12.0
   Gearman-XS-0.15
     pathname: K/KR/KROW/Gearman-XS-0.15.tar.gz
     provides:
@@ -3940,13 +3959,19 @@ DISTRIBUTIONS
       strict 0
       utf8 0
       warnings 0
-  Graphics-GnuplotIF-1.8
-    pathname: M/ME/MEHNER/Graphics-GnuplotIF-1.8.tar.gz
+  HTML-CruftText-0.02
+    pathname: D/DR/DRLARO/HTML-CruftText-0.02.tar.gz
     provides:
-      Graphics::GnuplotIF 1.8
+      HTML::CruftText 0.02
     requirements:
+      ExtUtils::MakeMaker 0
+      List::MoreUtils 0.33
+      Readonly 1.03
       Test::More 0
-      version 0
+      Test::NoWarnings 1.04
+      Test::Pod 1.45
+      Test::Pod::Coverage 1.08
+      Time::HiRes 1.51
   HTML-Entities-Interpolate-1.05
     pathname: R/RS/RSAVAGE/HTML-Entities-Interpolate-1.05.tgz
     provides:
@@ -4491,6 +4516,17 @@ DISTRIBUTIONS
       Hash::MultiValue 0.15
     requirements:
       ExtUtils::MakeMaker 6.30
+  IO-Capture-0.05
+    pathname: R/RE/REYNOLDS/IO-Capture-0.05.tar.gz
+    provides:
+      IO::Capture 0.05
+      IO::Capture::Stderr undef
+      IO::Capture::Stdout undef
+      IO::Capture::Tie_STDx undef
+    requirements:
+      Carp 0
+      ExtUtils::MakeMaker 0
+      Test::More 0
   IO-CaptureOutput-1.1103
     pathname: D/DA/DAGOLDEN/IO-CaptureOutput-1.1103.tar.gz
     provides:
@@ -4542,6 +4578,12 @@ DISTRIBUTIONS
       Mozilla::CA 0
       Net::SSLeay 1.46
       Scalar::Util 0
+  IO-String-1.08
+    pathname: G/GA/GAAS/IO-String-1.08.tar.gz
+    provides:
+      IO::String 1.08
+    requirements:
+      ExtUtils::MakeMaker 0
   IO-stringy-2.110
     pathname: D/DS/DSKOLL/IO-stringy-2.110.tar.gz
     provides:
@@ -5097,285 +5139,6 @@ DISTRIBUTIONS
       Net::Domain 1.05
       Net::SMTP 1.03
       Test::More 0
-  Math-GSL-0.36
-    pathname: L/LE/LETO/Math-GSL-0.36.tar.gz
-    provides:
-      Math::GSL 0.36
-      Math::GSL::BLAS undef
-      Math::GSL::BLASc undef
-      Math::GSL::BSpline undef
-      Math::GSL::BSpline::gsl_bspline_deriv_workspace undef
-      Math::GSL::BSpline::gsl_bspline_workspace undef
-      Math::GSL::BSplinec undef
-      Math::GSL::CBLAS undef
-      Math::GSL::CBLASc undef
-      Math::GSL::CDF undef
-      Math::GSL::CDFc undef
-      Math::GSL::Chebyshev undef
-      Math::GSL::Chebyshev::gsl_cheb_series_struct undef
-      Math::GSL::Chebyshev::gsl_function_fdf_struct undef
-      Math::GSL::Chebyshev::gsl_function_struct undef
-      Math::GSL::Chebyshev::gsl_function_vec_struct undef
-      Math::GSL::Chebyshevc undef
-      Math::GSL::Combination undef
-      Math::GSL::Combination::gsl_combination_struct undef
-      Math::GSL::Combinationc undef
-      Math::GSL::Complex undef
-      Math::GSL::Complex::gsl_complex undef
-      Math::GSL::Complex::gsl_complex_float undef
-      Math::GSL::Complex::gsl_complex_long_double undef
-      Math::GSL::Complexc undef
-      Math::GSL::Const undef
-      Math::GSL::Const::gsl_function_fdf_struct undef
-      Math::GSL::Const::gsl_function_struct undef
-      Math::GSL::Const::gsl_function_vec_struct undef
-      Math::GSL::Constc undef
-      Math::GSL::DHT undef
-      Math::GSL::DHT::gsl_dht_struct undef
-      Math::GSL::DHTc undef
-      Math::GSL::Deriv undef
-      Math::GSL::Deriv::gsl_function_fdf_struct undef
-      Math::GSL::Deriv::gsl_function_struct undef
-      Math::GSL::Deriv::gsl_function_vec_struct undef
-      Math::GSL::Derivc undef
-      Math::GSL::Diff undef
-      Math::GSL::Diffc undef
-      Math::GSL::Eigen undef
-      Math::GSL::Eigen::gsl_complex undef
-      Math::GSL::Eigen::gsl_complex_float undef
-      Math::GSL::Eigen::gsl_complex_long_double undef
-      Math::GSL::Eigen::gsl_eigen_francis_workspace undef
-      Math::GSL::Eigen::gsl_eigen_gen_workspace undef
-      Math::GSL::Eigen::gsl_eigen_genherm_workspace undef
-      Math::GSL::Eigen::gsl_eigen_genhermv_workspace undef
-      Math::GSL::Eigen::gsl_eigen_gensymm_workspace undef
-      Math::GSL::Eigen::gsl_eigen_gensymmv_workspace undef
-      Math::GSL::Eigen::gsl_eigen_genv_workspace undef
-      Math::GSL::Eigen::gsl_eigen_herm_workspace undef
-      Math::GSL::Eigen::gsl_eigen_hermv_workspace undef
-      Math::GSL::Eigen::gsl_eigen_nonsymm_workspace undef
-      Math::GSL::Eigen::gsl_eigen_nonsymmv_workspace undef
-      Math::GSL::Eigen::gsl_eigen_symm_workspace undef
-      Math::GSL::Eigen::gsl_eigen_symmv_workspace undef
-      Math::GSL::Eigenc undef
-      Math::GSL::Errno undef
-      Math::GSL::Errnoc undef
-      Math::GSL::FFT undef
-      Math::GSL::FFT::gsl_complex undef
-      Math::GSL::FFT::gsl_complex_float undef
-      Math::GSL::FFT::gsl_complex_long_double undef
-      Math::GSL::FFT::gsl_fft_complex_wavetable undef
-      Math::GSL::FFT::gsl_fft_complex_workspace undef
-      Math::GSL::FFT::gsl_fft_halfcomplex_wavetable undef
-      Math::GSL::FFT::gsl_fft_real_wavetable undef
-      Math::GSL::FFT::gsl_fft_real_workspace undef
-      Math::GSL::FFT::gsl_function_fdf_struct undef
-      Math::GSL::FFT::gsl_function_struct undef
-      Math::GSL::FFT::gsl_function_vec_struct undef
-      Math::GSL::FFTc undef
-      Math::GSL::Fit undef
-      Math::GSL::Fitc undef
-      Math::GSL::Heapsort undef
-      Math::GSL::Heapsort::gsl_permutation_struct undef
-      Math::GSL::Heapsortc undef
-      Math::GSL::Histogram undef
-      Math::GSL::Histogram2D undef
-      Math::GSL::Histogram2D::gsl_histogram2d undef
-      Math::GSL::Histogram2D::gsl_histogram2d_pdf undef
-      Math::GSL::Histogram2Dc undef
-      Math::GSL::Histogram::gsl_histogram undef
-      Math::GSL::Histogram::gsl_histogram_pdf undef
-      Math::GSL::Histogramc undef
-      Math::GSL::IEEEUtils undef
-      Math::GSL::IEEEUtils::gsl_ieee_double_rep undef
-      Math::GSL::IEEEUtils::gsl_ieee_float_rep undef
-      Math::GSL::IEEEUtilsc undef
-      Math::GSL::Integration undef
-      Math::GSL::Integration::gsl_function_fdf_struct undef
-      Math::GSL::Integration::gsl_function_struct undef
-      Math::GSL::Integration::gsl_function_vec_struct undef
-      Math::GSL::Integration::gsl_integration_cquad_ival undef
-      Math::GSL::Integration::gsl_integration_cquad_workspace undef
-      Math::GSL::Integration::gsl_integration_glfixed_table undef
-      Math::GSL::Integration::gsl_integration_qawo_table undef
-      Math::GSL::Integration::gsl_integration_qaws_table undef
-      Math::GSL::Integration::gsl_integration_workspace undef
-      Math::GSL::Integrationc undef
-      Math::GSL::Interp undef
-      Math::GSL::Interp::gsl_interp undef
-      Math::GSL::Interp::gsl_interp_accel undef
-      Math::GSL::Interpc undef
-      Math::GSL::Linalg undef
-      Math::GSL::Linalg::gsl_complex undef
-      Math::GSL::Linalg::gsl_complex_float undef
-      Math::GSL::Linalg::gsl_complex_long_double undef
-      Math::GSL::Linalg::gsl_permutation_struct undef
-      Math::GSL::Linalgc undef
-      Math::GSL::Machine undef
-      Math::GSL::Machinec undef
-      Math::GSL::Matrix undef
-      Math::GSL::Matrix::gsl_complex undef
-      Math::GSL::Matrix::gsl_complex_float undef
-      Math::GSL::Matrix::gsl_complex_long_double undef
-      Math::GSL::Matrix::gsl_matrix undef
-      Math::GSL::Matrix::gsl_matrix_char undef
-      Math::GSL::Matrix::gsl_matrix_complex undef
-      Math::GSL::Matrix::gsl_matrix_int undef
-      Math::GSL::Matrix::gsl_vector undef
-      Math::GSL::MatrixComplex undef
-      Math::GSL::MatrixComplex::gsl_complex undef
-      Math::GSL::MatrixComplex::gsl_complex_float undef
-      Math::GSL::MatrixComplex::gsl_complex_long_double undef
-      Math::GSL::MatrixComplex::gsl_matrix_complex undef
-      Math::GSL::MatrixComplex::gsl_vector undef
-      Math::GSL::MatrixComplexc undef
-      Math::GSL::Matrixc undef
-      Math::GSL::Min undef
-      Math::GSL::Min::gsl_function_fdf_struct undef
-      Math::GSL::Min::gsl_function_struct undef
-      Math::GSL::Min::gsl_function_vec_struct undef
-      Math::GSL::Min::gsl_min_fminimizer undef
-      Math::GSL::Min::gsl_min_fminimizer_type undef
-      Math::GSL::Minc undef
-      Math::GSL::Monte undef
-      Math::GSL::Monte::gsl_monte_function_struct undef
-      Math::GSL::Monte::gsl_monte_miser_params undef
-      Math::GSL::Monte::gsl_monte_miser_state undef
-      Math::GSL::Monte::gsl_monte_plain_state undef
-      Math::GSL::Monte::gsl_monte_vegas_params undef
-      Math::GSL::Monte::gsl_monte_vegas_state undef
-      Math::GSL::Montec undef
-      Math::GSL::Multifit undef
-      Math::GSL::Multifit::gsl_multifit_fdfsolver undef
-      Math::GSL::Multifit::gsl_multifit_fdfsolver_type undef
-      Math::GSL::Multifit::gsl_multifit_fsolver undef
-      Math::GSL::Multifit::gsl_multifit_fsolver_type undef
-      Math::GSL::Multifit::gsl_multifit_function_fdf_struct undef
-      Math::GSL::Multifit::gsl_multifit_function_struct undef
-      Math::GSL::Multifit::gsl_multifit_linear_workspace undef
-      Math::GSL::Multifit::gsl_multifit_robust_stats undef
-      Math::GSL::Multifit::gsl_multifit_robust_type undef
-      Math::GSL::Multifit::gsl_multifit_robust_workspace undef
-      Math::GSL::Multifitc undef
-      Math::GSL::Multimin undef
-      Math::GSL::Multimin::gsl_multimin_fdfminimizer undef
-      Math::GSL::Multimin::gsl_multimin_fdfminimizer_type undef
-      Math::GSL::Multimin::gsl_multimin_fminimizer undef
-      Math::GSL::Multimin::gsl_multimin_fminimizer_type undef
-      Math::GSL::Multimin::gsl_multimin_function_fdf_struct undef
-      Math::GSL::Multimin::gsl_multimin_function_struct undef
-      Math::GSL::Multiminc undef
-      Math::GSL::Multiroots undef
-      Math::GSL::Multiroots::gsl_multiroot_fdfsolver undef
-      Math::GSL::Multiroots::gsl_multiroot_fdfsolver_type undef
-      Math::GSL::Multiroots::gsl_multiroot_fsolver undef
-      Math::GSL::Multiroots::gsl_multiroot_fsolver_type undef
-      Math::GSL::Multiroots::gsl_multiroot_function_fdf_struct undef
-      Math::GSL::Multiroots::gsl_multiroot_function_struct undef
-      Math::GSL::Multirootsc undef
-      Math::GSL::NTuple undef
-      Math::GSL::NTuple::gsl_histogram undef
-      Math::GSL::NTuple::gsl_histogram_pdf undef
-      Math::GSL::NTuple::gsl_ntuple undef
-      Math::GSL::NTuple::gsl_ntuple_select_fn undef
-      Math::GSL::NTuple::gsl_ntuple_value_fn undef
-      Math::GSL::NTuplec undef
-      Math::GSL::ODEIV undef
-      Math::GSL::ODEIV::gsl_odeiv_control undef
-      Math::GSL::ODEIV::gsl_odeiv_control_type undef
-      Math::GSL::ODEIV::gsl_odeiv_evolve undef
-      Math::GSL::ODEIV::gsl_odeiv_step undef
-      Math::GSL::ODEIV::gsl_odeiv_step_type undef
-      Math::GSL::ODEIV::gsl_odeiv_system undef
-      Math::GSL::ODEIVc undef
-      Math::GSL::Permutation undef
-      Math::GSL::Permutation::gsl_permutation_struct undef
-      Math::GSL::Permutationc undef
-      Math::GSL::Poly undef
-      Math::GSL::Poly::gsl_complex undef
-      Math::GSL::Poly::gsl_complex_float undef
-      Math::GSL::Poly::gsl_complex_long_double undef
-      Math::GSL::Poly::gsl_poly_complex_workspace undef
-      Math::GSL::Polyc undef
-      Math::GSL::PowInt undef
-      Math::GSL::PowIntc undef
-      Math::GSL::QRNG undef
-      Math::GSL::QRNG::Halton undef
-      Math::GSL::QRNG::Niederreiter2 undef
-      Math::GSL::QRNG::ReverseHalton undef
-      Math::GSL::QRNG::Sobol undef
-      Math::GSL::QRNG::gsl_qrng undef
-      Math::GSL::QRNG::gsl_qrng_type undef
-      Math::GSL::QRNGc undef
-      Math::GSL::RNG undef
-      Math::GSL::RNG::gsl_rng undef
-      Math::GSL::RNG::gsl_rng_type undef
-      Math::GSL::RNGc undef
-      Math::GSL::Randist undef
-      Math::GSL::Randist::gsl_ran_discrete_t undef
-      Math::GSL::Randistc undef
-      Math::GSL::Roots undef
-      Math::GSL::Roots::gsl_root_fdfsolver undef
-      Math::GSL::Roots::gsl_root_fdfsolver_type undef
-      Math::GSL::Roots::gsl_root_fsolver undef
-      Math::GSL::Roots::gsl_root_fsolver_type undef
-      Math::GSL::Rootsc undef
-      Math::GSL::SF undef
-      Math::GSL::SF::gsl_sf_mathieu_workspace undef
-      Math::GSL::SF::gsl_sf_result_e10_struct undef
-      Math::GSL::SF::gsl_sf_result_struct undef
-      Math::GSL::SFc undef
-      Math::GSL::Siman undef
-      Math::GSL::Siman::gsl_siman_params_t undef
-      Math::GSL::Simanc undef
-      Math::GSL::Sort undef
-      Math::GSL::Sort::gsl_permutation_struct undef
-      Math::GSL::Sortc undef
-      Math::GSL::Spline undef
-      Math::GSL::Spline::gsl_spline undef
-      Math::GSL::Splinec undef
-      Math::GSL::Statistics undef
-      Math::GSL::Statisticsc undef
-      Math::GSL::Sum undef
-      Math::GSL::Sum::gsl_sum_levin_u_workspace undef
-      Math::GSL::Sum::gsl_sum_levin_utrunc_workspace undef
-      Math::GSL::Sumc undef
-      Math::GSL::Sys undef
-      Math::GSL::Sysc undef
-      Math::GSL::Test undef
-      Math::GSL::Vector undef
-      Math::GSL::Vector::gsl_vector undef
-      Math::GSL::Vector::gsl_vector_char undef
-      Math::GSL::Vector::gsl_vector_complex undef
-      Math::GSL::Vector::gsl_vector_int undef
-      Math::GSL::VectorComplex undef
-      Math::GSL::VectorComplex::gsl_complex undef
-      Math::GSL::VectorComplex::gsl_complex_float undef
-      Math::GSL::VectorComplex::gsl_complex_long_double undef
-      Math::GSL::VectorComplex::gsl_vector undef
-      Math::GSL::VectorComplex::gsl_vector_complex undef
-      Math::GSL::VectorComplexc undef
-      Math::GSL::Vectorc undef
-      Math::GSL::Version undef
-      Math::GSL::Versionc undef
-      Math::GSL::Wavelet undef
-      Math::GSL::Wavelet2D undef
-      Math::GSL::Wavelet2Dc undef
-      Math::GSL::Wavelet::gsl_wavelet undef
-      Math::GSL::Wavelet::gsl_wavelet_type undef
-      Math::GSL::Wavelet::gsl_wavelet_workspace undef
-      Math::GSL::Waveletc undef
-    requirements:
-      Module::Build 0.38
-      PkgConfig 0.07720
-      Scalar::Util 0
-      Test::Class 0.12
-      Test::Exception 0.21
-      Test::Most 0.31
-      Test::Taint 1.06
-      parent 0
-      perl v5.8.0
-      version 0.77
   Math-Random-0.72
     pathname: G/GR/GROMMEL/Math-Random-0.72.tar.gz
     provides:
@@ -5404,6 +5167,48 @@ DISTRIBUTIONS
       Math::Random::ISAAC v1.0.1
       Test::More 0
       Test::Warn 0
+  MediaCloud-JobManager-0.18
+    pathname: L/LV/LVALIUKAS/MediaCloud-JobManager-0.18.tar.gz
+    provides:
+      Addition undef
+      AdditionAlwaysFails undef
+      MediaCloud::JobManager 0.18
+      MediaCloud::JobManager::Admin undef
+      MediaCloud::JobManager::Broker undef
+      MediaCloud::JobManager::Broker::Gearman undef
+      MediaCloud::JobManager::Configuration undef
+      MediaCloud::JobManager::Job undef
+      MediaCloud::JobManager::Worker undef
+      NinetyNineBottlesOfBeer undef
+    requirements:
+      App::githook_perltidy v0.10.2
+      Capture::Tiny 0
+      Carp 0
+      Data::Compare 0
+      Data::Dumper 0
+      Data::UUID 0
+      DateTime 0
+      ExtUtils::MakeMaker 0
+      File::Path 0
+      File::Slurp 0
+      File::Temp 0
+      Gearman::XS 0
+      IO::File 0
+      IO::Socket::INET 0
+      JSON 0
+      Log::Log4perl 0
+      Modern::Perl 0
+      Moose 2.1005
+      Moose::Role 2.1005
+      MooseX::Singleton 0
+      Net::Telnet 0
+      Proc::Background 0
+      Readonly 0
+      Sys::Hostname 0
+      Test::More 0
+      Test::NoWarnings 0
+      Test::Strict 0
+      Time::HiRes 0
   Modern-Perl-1.20150127
     pathname: C/CH/CHROMATIC/Modern-Perl-1.20150127.tar.gz
     provides:
@@ -6741,6 +6546,28 @@ DISTRIBUTIONS
       Storable 2.11
       Test::More 0.47
       perl 5.005
+  OptArgs-0.1.20
+    pathname: M/ML/MLAWREN/OptArgs-0.1.20.tar.gz
+    provides:
+      App::optargs 0.001020
+      Getopt::Args 0.001020
+      OptArgs 0.001020
+    requirements:
+      Carp 0
+      Encode 2.24
+      Exporter::Tidy 0
+      ExtUtils::MakeMaker 6.59
+      File::Spec 0
+      Getopt::Long 2.37
+      I18N::Langinfo 0
+      IO::Capture::Stdout 0
+      List::Util 0
+      POSIX 0
+      Test::Fatal 0
+      Test::More 0
+      Test::Output 0
+      Text::Abbrev 0
+      perl 5.006
   POSIX-strftime-Compiler-0.31
     pathname: K/KA/KAZEBURO/POSIX-strftime-Compiler-0.31.tar.gz
     provides:
@@ -6996,14 +6823,6 @@ DISTRIBUTIONS
       Perl::Tidy::VerticalAligner::Line 20160302
     requirements:
       ExtUtils::MakeMaker 0
-  PkgConfig-0.11026
-    pathname: P/PL/PLICEASE/PkgConfig-0.11026.tar.gz
-    provides:
-      PkgConfig 0.11026
-    requirements:
-      ExtUtils::MakeMaker 6.56
-      Test::More 0.94
-      perl 5.006000
   Plack-1.0030
     pathname: M/MI/MIYAGAWA/Plack-1.0030.tar.gz
     provides:
@@ -7175,6 +6994,30 @@ DISTRIBUTIONS
       Pod::Find 0.21
       Pod::Parser 1.13
       Test::More 0
+  Pod-Tidy-0.10
+    pathname: J/JH/JHOBLITT/Pod-Tidy-0.10.tar.gz
+    provides:
+      Pod::Tidy 0.10
+      Pod::Wrap::Pretty 0.03
+    requirements:
+      Encode 0
+      Encode::Newlines 0.03
+      File::Copy 0
+      IO::String 0
+      Pod::Find 0
+      Pod::Simple 0
+      Pod::Wrap 0
+      Test::Cmd 1.05
+      Text::Glob 0.06
+      Text::Wrap 0
+  Pod-Wrap-0.01
+    pathname: N/NU/NUFFIN/Pod-Wrap-0.01.tar.gz
+    provides:
+      Pod::Wrap 0.01
+    requirements:
+      Pod::Parser 0
+      Text::Wrap 0
+      perl v5.6.0
   Probe-Perl-0.03
     pathname: K/KW/KWILLIAMS/Probe-Perl-0.03.tar.gz
     provides:
@@ -7190,6 +7033,12 @@ DISTRIBUTIONS
       Proc::Background 1.10
       Proc::Background::Unix 1.10
       Proc::Background::Win32 1.10
+    requirements:
+      ExtUtils::MakeMaker 0
+  Proc-FastSpawn-1.2
+    pathname: M/ML/MLEHMANN/Proc-FastSpawn-1.2.tar.gz
+    provides:
+      Proc::FastSpawn 1.2
     requirements:
       ExtUtils::MakeMaker 0
   RDF-Simple-0.415
@@ -7341,13 +7190,13 @@ DISTRIBUTIONS
       Class::InsideOut 0
       Exporter::Lite 0
       ExtUtils::MakeMaker 6.42
-  Scalar-List-Utils-1.44
-    pathname: P/PE/PEVANS/Scalar-List-Utils-1.44.tar.gz
+  Scalar-List-Utils-1.45
+    pathname: P/PE/PEVANS/Scalar-List-Utils-1.45.tar.gz
     provides:
-      List::Util 1.44
-      List::Util::XS 1.44
-      Scalar::Util 1.44
-      Sub::Util 1.44
+      List::Util 1.45
+      List::Util::XS 1.45
+      Scalar::Util 1.45
+      Sub::Util 1.45
     requirements:
       ExtUtils::MakeMaker 0
       Test::More 0
@@ -7386,6 +7235,12 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       Test::More 0
       Time::Local 0
+  Set-Jaccard-SimilarityCoefficient-0.5.1
+    pathname: M/ML/MLFISHER/Set-Jaccard-SimilarityCoefficient-0.5.1.tar.gz
+    provides:
+      Set::Jaccard::SimilarityCoefficient 0.005001
+    requirements:
+      ExtUtils::MakeMaker 6.30
   Set-Object-1.34
     pathname: R/RU/RURBAN/Set-Object-1.34.tar.gz
     provides:
@@ -7582,6 +7437,20 @@ DISTRIBUTIONS
       constant 0
       strict 0
       warnings 0
+  Sys-Cmd-v0.85.2
+    pathname: M/ML/MLAWREN/Sys-Cmd-v0.85.2.tar.gz
+    provides:
+      Sys::Cmd v0.85.2
+      Sys::Cmd::Template v0.85.2
+    requirements:
+      Carp 0
+      Exporter::Tidy 0
+      File::Which 0
+      File::chdir 0
+      IO::Handle 0
+      Log::Any 0
+      Module::Build 0.4004
+      Proc::FastSpawn 0
   Sys-RunAlone-0.12
     pathname: E/EL/ELIZABETH/Sys-RunAlone-0.12.tar.gz
     provides:
@@ -7754,29 +7623,6 @@ DISTRIBUTIONS
       Test::Builder 0
       strict 0
       warnings 0
-  Test-Class-0.50
-    pathname: E/ET/ETHER/Test-Class-0.50.tar.gz
-    provides:
-      Test::Class 0.50
-      Test::Class::Load 0.50
-      Test::Class::MethodInfo 0.50
-    requirements:
-      Attribute::Handlers 0.77
-      Carp 0
-      ExtUtils::MakeMaker 0
-      File::Find 0
-      File::Spec 0
-      MRO::Compat 0.11
-      Module::Runtime 0
-      Storable 2.04
-      Test::Builder 0.78
-      Test::Builder::Tester 1.02
-      Test::Simple 0.78
-      Try::Tiny 0
-      constant 0
-      perl 5.008001
-      strict 0
-      warnings 0
   Test-ClassAPI-1.06
     pathname: A/AD/ADAMK/Test-ClassAPI-1.06.tar.gz
     provides:
@@ -7788,6 +7634,22 @@ DISTRIBUTIONS
       File::Spec 0.83
       Params::Util 1.00
       Test::More 0.47
+  Test-Cmd-1.09
+    pathname: N/NE/NEILB/Test-Cmd-1.09.tar.gz
+    provides:
+      Test::Cmd 1.09
+      Test::Cmd::Common 1.09
+    requirements:
+      Cwd 0
+      Exporter 0
+      ExtUtils::MakeMaker 0
+      File::Basename 0
+      File::Copy 0
+      File::Find 0
+      File::Spec 0
+      perl 5.006
+      strict 0
+      warnings 0
   Test-Deep-0.112
     pathname: R/RJ/RJBS/Test-Deep-0.112.tar.gz
     provides:
@@ -7981,6 +7843,18 @@ DISTRIBUTIONS
       Test::More 0.47
       Test::Tester 0.107
       perl 5.006
+  Test-Output-1.03
+    pathname: B/BD/BDFOY/Test-Output-1.03.tar.gz
+    provides:
+      Test::Output 1.03
+    requirements:
+      Capture::Tiny 0.17
+      ExtUtils::MakeMaker 0
+      File::Temp 0.17
+      Sub::Exporter 0
+      Test::More 0
+      Test::Tester 0.107
+      perl 5.006
   Test-Pod-1.48
     pathname: D/DW/DWHEELER/Test-Pod-1.48.tar.gz
     provides:
@@ -8069,19 +7943,6 @@ DISTRIBUTIONS
       Test::SharedFork 0.19
       Time::HiRes 0
       perl 5.008001
-  Test-Taint-1.06
-    pathname: P/PE/PETDANCE/Test-Taint-1.06.tar.gz
-    provides:
-      Test::Taint 1.06
-    requirements:
-      ExtUtils::MakeMaker 0
-      Scalar::Util 0
-      Test::Builder 0
-      Test::More 0
-      Tie::Array 0
-      Tie::Hash 0
-      Tie::Scalar 0
-      overload 0
   Test-Version-1.002004
     pathname: X/XE/XENO/Test-Version-1.002004.tar.gz
     provides:
@@ -8229,6 +8090,14 @@ DISTRIBUTIONS
       Parse::RecDescent 0
       Test::More 0
       Test::Most 0
+  Text-Similarity-0.10
+    pathname: T/TP/TPEDERSE/Text-Similarity-0.10.tar.gz
+    provides:
+      Text::OverlapFinder 0.03
+      Text::Similarity 0.10
+      Text::Similarity::Overlaps 0.05
+    requirements:
+      ExtUtils::MakeMaker 0
   Text-SimpleTable-2.03
     pathname: M/MR/MRAMBERG/Text-SimpleTable-2.03.tar.gz
     provides:
@@ -8244,6 +8113,21 @@ DISTRIBUTIONS
     requirements:
       Test::More 0
       perl 5
+  Text-WordDiff-0.08
+    pathname: D/DW/DWHEELER/Text-WordDiff-0.08.tar.gz
+    provides:
+      Text::WordDiff 0.08
+      Text::WordDiff::ANSIColor 0.08
+      Text::WordDiff::Base undef
+      Text::WordDiff::HTML 0.08
+      Text::WordDiff::HTMLTwoLines 0.08
+    requirements:
+      Algorithm::Diff 1.19
+      File::Spec 0
+      HTML::Entities 0
+      Module::Build 0.2701
+      Term::ANSIColor 0
+      Test::More 0.17
   Text-Xslate-3.3.3
     pathname: S/SY/SYOHEX/Text-Xslate-3.3.3.tar.gz
     provides:
@@ -8828,6 +8712,19 @@ DISTRIBUTIONS
       Want 0.25
     requirements:
       ExtUtils::MakeMaker 0
+  WebService-Google-Language-0.14
+    pathname: H/HM/HMA/WebService-Google-Language-0.14.tar.gz
+    provides:
+      WebService::Google::Language 0.14
+      WebService::Google::Language::Result 0.14
+    requirements:
+      ExtUtils::MakeMaker 6.17
+      HTTP::Response 0
+      JSON 2.0
+      LWP::UserAgent 0
+      Test::More 0.62
+      URI 0
+      perl 5.006
   XML-Bare-0.53
     pathname: C/CO/CODECHILD/XML-Bare-0.53.tar.gz
     provides:

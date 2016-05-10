@@ -40,12 +40,23 @@ VERIFY
 
 * verify that the following scripts are list as RUNNING:
 
-gearman:rescrape_media_00     RUNNING
-gearman:rescrape_media_01     RUNNING
-gearman:extract_and_vector_00    RUNNING
-gearman:extract_and_vector_01    RUNNING
-mc:crawler                       RUNNING
-mc:process_story_subsets         RUNNING
+annotate_with_corenlp:annotate_with_corenlp_00
+<...>
+bitly_aggregate_story_stats:bitly_aggregate_story_stats_00
+<...>
+bitly_process_all_controversy_stories
+bitly_fetch_story_stats:bitly_fetch_story_stats_00
+<...>
+cm_dump_controversy
+cm_mine_controversy
+extract_and_vector:extract_and_vector_00
+<...>
+facebook_fetch_story_stats
+job_broker:gearmand
+mc:crawler
+rescrape_media:rescrape_media_00
+<...>
+thrift:extractor_python_readability_server
 
 TEST
 

@@ -7,8 +7,8 @@ The overall process is documented in [story_processing_flow.pdf](diagrams/story_
 
 The story processing flow consists of five components: the crawler, the extractor, the corenlp annotator, the solr
 import, the bitly fetcher, and the geotagger.  The crawler, extractor, corenlp annotator, and bitly fetchers all run via
-supervisor  on the core media cloud server.  The extractor, corenlp annotator, and bitly fetchers all run as gearman
-jobs. The geotagger runs from a separate codebase on a separate server.  The solr import process runs from the same code
+supervisor  on the core media cloud server.  The extractor, corenlp annotator, and bitly fetchers all run as jobs.
+The geotagger runs from a separate codebase on a separate server.  The solr import process runs from the same code
 base but from a separate machine in the production media cloud setup.
 
 Media Cloud organizes its content collection around media sources, feeds, and stories.  Media sources are publications
@@ -30,7 +30,7 @@ Extractor
 
 The extractors are responsible for parsing the substantive text from the raw html of each story and storing it in the
 download_texts table.  The extractor also parses the download_text into sentences and stores those sentences in the
-story_sentences table.  A gearman extractor job is queued by the crawler handler for each story it downloads.  More
+story_sentences table.  An extractor job is queued by the crawler handler for each story it downloads.  More
 information in the extractor [here](extractor.markdown).
 
 CoreNLP Annotator

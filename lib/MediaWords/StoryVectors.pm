@@ -110,6 +110,8 @@ sub get_dup_story_sentences
 {
     my ( $db, $story, $sentences, $do_update ) = @_;
 
+    return [] unless ( @{ $sentences } );
+
     my ( $indexdef ) = $db->query( "select indexdef from pg_indexes where indexname = 'story_sentences_dup'" )->flat;
 
     die( "'story_sentences_dup' index does not exist" ) unless ( $indexdef );
@@ -195,14 +197,17 @@ sub get_deduped_sentences
 {
     my ( $db, $story, $sentences ) = @_;
 
-    my $unique_sentences = _get_unique_sentences( $sentences );
+    $sentences = _get_unique_sentences( $sentences );
 
-    my $dup_story_sentences = get_dup_story_sentences( $db, $story, $unique_sentences, 1 );
+    # drop sentences that are all ascii and 5 characters or less (keep non-ascii because those are sometimes logograms)
+    $sentences = [ grep { $_ !~ /^[[:ascii:]]{0,5}$/ } @{ $sentences } ];
+
+    my $dup_story_sentences = get_dup_story_sentences( $db, $story, $sentences, 1 );
 
     my $dup_lookup = {};
     map { $dup_lookup->{ $_->{ sentence } } = 1 } @{ $dup_story_sentences };
 
-    my $deduped_sentences = [ grep { !$dup_lookup->{ $_ } } @{ $unique_sentences } ];
+    my $deduped_sentences = [ grep { !$dup_lookup->{ $_ } } @{ $sentences } ];
 
     return $deduped_sentences;
 }
@@ -485,12 +490,12 @@ sub update_story_sentences_and_language
     if (    MediaWords::Util::CoreNLP::annotator_is_enabled()
         and MediaWords::Util::CoreNLP::story_is_annotatable( $db, $stories_id ) )
     {
-        # (Re)enqueue for CoreNLP annotation
+        # Re-add to CoreNLP job queue
         #
-        # We enqueue an identical job in MediaWords::DBI::Downloads::process_download_for_extractor() too,
-        # but duplicate the enqueue_on_gearman() call here just to make sure that story gets reannotated
-        # on each sentence change. Both of these jobs are to be merged into a single job by Gearman.
-        MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman( { stories_id => $stories_id } );
+        # We add an identical job in MediaWords::DBI::Downloads::process_download_for_extractor() too,
+        # but duplicate the add_to_queue() call here just to make sure that story gets reannotated
+        # on each sentence change. Both of these jobs are to be merged into a single job by the job broker.
+        MediaWords::Job::AnnotateWithCoreNLP->add_to_queue( { stories_id => $stories_id } );
 
     }
 }

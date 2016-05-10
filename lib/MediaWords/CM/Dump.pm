@@ -75,7 +75,8 @@ my $_media_static_gexf_attribute_types = {
     inlink_count => 'integer',
     story_count  => 'integer',
     view_medium  => 'string',
-    media_type   => 'string'
+    media_type   => 'string',
+    bitly_clicks => 'integer'
 };
 
 # all tables that the dump process snapshots for each controversy_dump
@@ -161,6 +162,8 @@ create temporary view dump_$t as select * from cd.$t
     where controversy_dump_time_slices_id = $cdts->{ controversy_dump_time_slices_id }
 END
     }
+
+    $db->query( "create temporary view dump_period_stories as select stories_id from dump_story_link_counts" );
 
     add_media_type_views( $db );
 }

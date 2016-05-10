@@ -5,6 +5,7 @@ set -e
 
 PWD="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+TRANSLATE_FUNCTION_NAMES="$PWD/../script/run_with_carton.sh $PWD/../script/gearman_translate_function_names.pl"
 QUERY_CONFIG="$PWD/../script/run_with_carton.sh $PWD/../script/mediawords_query_config.pl"
 
 # 'cd' to Media Cloud's root (assuming that this script is stored in './script/')
@@ -18,7 +19,7 @@ log() {
 }
 
 gearmand_is_enabled() {
-    local gearmand_is_enabled=`$QUERY_CONFIG "//gearmand/enabled"`
+    local gearmand_is_enabled=`$QUERY_CONFIG "//job_manager/gearman/server/enabled"`
     if [ "$gearmand_is_enabled" == "yes" ]; then
         return 0    # "true" in Bash
     else
@@ -135,10 +136,10 @@ export PGUSER=`$QUERY_CONFIG "//database[label='gearman']/user"`
 export PGPASSWORD=`$QUERY_CONFIG "//database[label='gearman']/pass"`
 export PGDATABASE=`$QUERY_CONFIG "//database[label='gearman']/db"`
 
-GEARMAN_LISTEN=`$QUERY_CONFIG "//gearmand/listen"`
-GEARMAN_PORT=`$QUERY_CONFIG "//gearmand/port"`
-GEARMAN_THREADS=`$QUERY_CONFIG "//gearmand/threads"`
-GEARMAN_WORKER_WAKEUP=`$QUERY_CONFIG "//gearmand/worker_wakeup"`
+GEARMAN_LISTEN=`$QUERY_CONFIG "////job_manager/gearman/server/listen"`
+GEARMAN_PORT=`$QUERY_CONFIG "//job_manager/gearman/server/port"`
+GEARMAN_THREADS=`$QUERY_CONFIG "//job_manager/gearman/server/threads"`
+GEARMAN_WORKER_WAKEUP=`$QUERY_CONFIG "//job_manager/gearman/server/worker_wakeup"`
 
 GEARMAND_PARAMS=""
 if [[ ! -z "$GEARMAN_LISTEN" ]]; then
@@ -152,6 +153,9 @@ GEARMAND_PARAMS="$GEARMAND_PARAMS --log-file stderr"
 GEARMAND_PARAMS="$GEARMAND_PARAMS --threads $GEARMAN_THREADS"
 # GEARMAND_PARAMS="$GEARMAND_PARAMS --keepalive"
 GEARMAND_PARAMS="$GEARMAND_PARAMS --worker-wakeup $GEARMAN_WORKER_WAKEUP"
+
+echo "Translating queued jobs to their new names..."
+`$TRANSLATE_FUNCTION_NAMES`
 
 echo "Executing: gearmand $GEARMAND_PARAMS"
 exec gearmand $GEARMAND_PARAMS
