@@ -103,6 +103,7 @@ requires 'Log::Log4perl';
 requires 'LWP::Protocol::https';
 requires 'LWP::UserAgent', '6.15';
 requires 'LWP::UserAgent::Determined';
+requires 'Math::Prime::Util';
 requires 'Math::Random';
 requires 'Math::Random::Secure';
 requires 'MediaCloud::JobManager', '0.18';
