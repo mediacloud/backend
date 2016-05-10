@@ -23,12 +23,17 @@ use Encode;
 use JSON;
 use Lingua::Stem::Snowball;
 use List::Util;
+use Readonly;
 use URI::Escape;
 
 use MediaWords::Languages::Language;
 use MediaWords::Solr;
 use MediaWords::Util::Config;
 use MediaWords::Util::IdentifyLanguage;
+
+# minimum ratio of sentences in a given language to total sentences for a given query to include
+# stopwords and stemming for that language
+Readonly my $MIN_LANGUAGE_LEVEL => 0.05;
 
 # mediawords.wc_cache_version from config
 my $_wc_cache_version;
@@ -188,9 +193,8 @@ sub count_stems
     # don't want to use caching with the stemming because we are finding the unique
     # words ourselves.
     my @unique_words = keys( %{ $words } );
-    my $stems        = [ @unique_words ];
 
-    map { $stems = $_->stem( @{ $stems } ) } @{ $self->language_objects };
+    my $stems = $self->stem_in_all_languages( \@unique_words );
 
     my $stem_counts = {};
     for ( my $i = 0 ; $i < @{ $stems } ; $i++ )
@@ -220,6 +224,64 @@ sub is_valid_utf8
     return $valid;
 }
 
+# given a list of terms, apply stemming in all languages sequentially, with consistent results
+sub stem_in_all_languages
+{
+    my ( $self, $stems ) = @_;
+
+    my $stems_all_languages = [ @{ $stems } ];
+
+    # sort the languages by code so that the merged stemming will always be consistent
+    my $ordered_languages = [ sort { $a->get_language_code cmp $b->get_language_code } @{ $self->language_objects } ];
+
+    map { $stems_all_languages = $_->stem( @{ $stems_all_languages } ) } @{ $ordered_languages };
+
+    return $stems_all_languages;
+}
+
+# got the stopwords from all language, stem the stopwords in all languages, then generate a single stop_stems
+# lookup hash.  we have to restem all words from all languages to make sure the stemming process of the counted
+# words is the same as the stemming process for the stopwords
+sub get_stop_stems_in_all_languages
+{
+    my ( $self ) = @_;
+
+    my $all_stopwords = [];
+    for my $language ( @{ $self->language_objects } )
+    {
+        my $stopwords = $language->get_long_stop_words;
+        TRACE( sub { "get stop words " . $language->get_language_code . " " . scalar( keys( %{ $stopwords } ) ) } );
+        push( @{ $all_stopwords }, keys( %{ $stopwords } ) );
+    }
+
+    my $all_stopstems = $self->stem_in_all_languages( $all_stopwords );
+
+    my $stopstems = {};
+    map { $stopstems->{ $_ } = 1 } @{ $all_stopstems };
+
+    TRACE( sub { "stop stems size: " . scalar( keys( %{ $stopstems } ) ) } );
+
+    return $stopstems;
+}
+
+# return true if the stemmed version of any of the terms associated with the $stem in $stem_counts is in $stop_stems.
+# stem each of the terms using the $language object.
+sub stem_term_is_in_stop_stems
+{
+    my ( $stem, $stem_counts, $stop_stems, $language ) = @_;
+
+    my $terms = [ keys( %{ $stem_counts->{ $stem }->{ terms } } ) ];
+
+    my $stems = $language->stem( $terms );
+
+    for my $stem ( @{ $stems } )
+    {
+        return 1 if ( $stop_stems->{ $stem } );
+    }
+
+    return 0;
+}
+
 # remove stopwords from the $stem_counts
 sub prune_stopword_stems
 {
@@ -227,22 +289,19 @@ sub prune_stopword_stems
 
     return if ( $self->include_stopwords );
 
-    my $all_stop_stems;
-    for my $language ( @{ $self->language_objects } )
-    {
-        my $stop_stems = $language->get_long_stop_word_stems();
-        $all_stop_stems = $all_stop_stems ? { %{ $all_stop_stems }, %{ $stop_stems } } : $stop_stems;
-    }
+    my $stop_stems = $self->get_stop_stems_in_all_languages();
 
     for my $stem ( keys( %{ $stem_counts } ) )
     {
-        delete( $stem_counts->{ $stem } ) if ( length( $stem ) < 3 );
-        delete( $stem_counts->{ $stem } ) if ( $all_stop_stems->{ $stem } );
+        if ( ( length( $stem ) < 3 ) || $stop_stems->{ $stem } )
+        {
+            delete( $stem_counts->{ $stem } );
+        }
     }
 }
 
 # guess the languages to be the language of the whole body of text plus all distinct languages for individual sentences.
-# if no language is detected for the text of any sentence, default to 'en'.  append this default languages to the
+# if no language is detected for the text of any sentence, default to 'en'.  append these default languages to the
 # specified list of languages.
 sub set_default_languages($$)
 {
@@ -258,10 +317,17 @@ sub set_default_languages($$)
 
     $language_lookup->{ $story_language } = 1;
 
+    my $sentence_language_counts = {};
     for my $sentence ( @{ $sentences } )
     {
         my $sentence_language = MediaWords::Util::IdentifyLanguage::language_code_for_text( $sentence );
-        $language_lookup->{ $sentence_language } = 1 if ( $sentence_language );
+        $sentence_language_counts->{ $sentence_language }++ if ( $sentence_language );
+    }
+
+    my $total_sentence_count = scalar( @{ $sentences } );
+    while ( my ( $language, $language_count ) = each( %{ $sentence_language_counts } ) )
+    {
+        $language_lookup->{ $language } = 1 if ( ( $language_count / $total_sentence_count ) > $MIN_LANGUAGE_LEVEL );
     }
 
     my $languages = [ keys( %{ $language_lookup } ) ];
@@ -279,7 +345,7 @@ sub set_language_objects
 
     return if ( $self->language_objects );
 
-    DEBUG( sub { "set_language_objects: " . join( ', ', @{ $self->languages } ) } );
+    DEBUG( sub { "set_language_objects all: " . join( ', ', @{ $self->languages } ) } );
 
     my $language_objects = [];
     for my $language_code ( @{ $self->languages } )
@@ -297,7 +363,7 @@ sub set_language_objects
 
     DEBUG(
         sub {
-            "set_language_objects: " . join( ', ', map { $_->get_language_code } @{ $language_objects } );
+            "set_language_objects supported: " . join( ', ', map { $_->get_language_code } @{ $language_objects } );
         }
     );
 

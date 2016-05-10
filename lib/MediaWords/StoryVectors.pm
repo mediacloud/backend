@@ -110,6 +110,8 @@ sub get_dup_story_sentences
 {
     my ( $db, $story, $sentences, $do_update ) = @_;
 
+    return [] unless ( @{ $sentences } );
+
     my ( $indexdef ) = $db->query( "select indexdef from pg_indexes where indexname = 'story_sentences_dup'" )->flat;
 
     die( "'story_sentences_dup' index does not exist" ) unless ( $indexdef );
