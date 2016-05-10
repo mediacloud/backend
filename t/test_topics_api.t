@@ -47,6 +47,9 @@ Readonly my $TEST_HTTP_SERVER_URL => 'http://localhost:' . $TEST_HTTP_SERVER_POR
 # This should match the DEFAULT_STORY_LIMIT in Stories.pm
 Readonly my $DEFAULT_STORY_LIMIT => 10;
 
+# A constant used to generate consistent orderings in test sorts
+Readonly my $TEST_MODULO => 6;
+
 sub add_controversy_link
 {
     my ( $db, $controversy, $story, $ref_story ) = @_;
@@ -62,6 +65,12 @@ sub add_controversy_link
         }
     );
 
+}
+
+sub add_bitly_count
+{
+    my ( $db, $id, $story, $click_count ) = @_;
+    $db->query( "insert into bitly_clicks_total values ( \$1,\$2,\$3 )", $id, $story->{ stories_id }, $click_count );
 }
 
 sub add_controversy_story
@@ -130,7 +139,7 @@ sub create_test_data
     );
 
     # populate controversies_stories table
-    # only include stories with id not multiples of 3
+    # only include stories with id not multiples of $TEST_MODULO
     my $all_stories         = {};
     my $controversy_stories = [];
 
@@ -140,12 +149,17 @@ sub create_test_data
         {
             while ( my ( $num, $story ) = each( %{ $f->{ stories } } ) )
             {
-                if ( $num % 6 )
+                if ( $num % $TEST_MODULO )
                 {
                     my $cs = add_controversy_story( $test_db, $controversy, $story );
                     push @{ $controversy_stories }, $story->{ stories_id };
                 }
                 $all_stories->{ int( $num ) } = $story->{ stories_id };
+
+                # modding by a different number than stories included in controversies
+                # so that we will have bitly counts of 0
+
+                add_bitly_count( $test_db, $num, $story, $num % ( $TEST_MODULO - 1 ) );
             }
         }
     }
@@ -254,16 +268,61 @@ sub _get_story_link_counts
 
 }
 
-sub test_story_inclusion
+sub _get_expected_bitly_link_counts
+{
+    my $return_counts = {};
+
+    foreach my $m ( 1 .. 15 )
+    {
+
+        if ( $m % $TEST_MODULO )
+        {
+
+            $return_counts->{ "story " . $m } = $m % ( $TEST_MODULO - 1 );
+        }
+
+    }
+    return $return_counts;
+
+}
+
+sub test_default_sort
 {
 
-    # Make sure that only expected stories are in stories list response
-    # Make sure that the order is inlink count descending
     my $data = shift;
 
     my $base_url = { path => '/api/v2/topics/1/stories/list?limit=20' };
 
-    my $controversy_stories = _get_story_link_counts( $data );
+    my $sort_key = "inlink_count";
+
+    my $expected_counts = _get_story_link_counts( $data );
+
+    _test_sort( $data, $expected_counts, $base_url, $sort_key );
+
+}
+
+sub test_social_sort
+{
+
+    my $data = shift;
+
+    my $base_url = { path => '/api/v2/topics/1/stories/list?sort=social&limit=20' };
+
+    my $sort_key = "bitly_click_count";
+
+    my $expected_counts = _get_expected_bitly_link_counts();
+
+    _test_sort( $data, $expected_counts, $base_url, $sort_key );
+
+}
+
+sub _test_sort
+{
+
+    # Make sure that only expected stories are in stories list response
+    # in the appropriate order
+
+    my ( $data, $expected_counts, $base_url, $sort_key ) = @_;
 
     my $response = _get_test_response( $base_url );
 
@@ -274,12 +333,12 @@ sub test_story_inclusion
 
     foreach my $story ( @{ $actual_response->{ stories } } )
     {
-        $actual_stories_inlink_counts->{ $story->{ 'title' } } = $story->{ 'inlink_count' };
-        my @story_info = ( $story->{ 'inlink_count' }, $story->{ 'stories_id' } );
+        $actual_stories_inlink_counts->{ $story->{ 'title' } } = $story->{ $sort_key };
+        my @story_info = ( $story->{ $sort_key }, $story->{ 'stories_id' } );
         push @{ $actual_stories_order }, \@story_info;
     }
 
-    is_deeply( $actual_stories_inlink_counts, $controversy_stories, 'expected stories' );
+    is_deeply( $actual_stories_inlink_counts, $expected_counts, 'expected stories' );
 
     foreach my $story ( 1 .. scalar @{ $actual_stories_order } - 1 )
     {
@@ -315,7 +374,8 @@ sub main
             create_test_data( $db, $controversy_media );
             $TEST_API_KEY = MediaWords::Test::DB::create_test_user( $db );
             test_story_count();
-            test_story_inclusion( $stories );
+            test_default_sort( $stories );
+            test_social_sort( $stories );
             test_media_list( $stories );
             done_testing();
         }
