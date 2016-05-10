@@ -16,9 +16,7 @@ use MediaWords::CM::Dump;
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
-# __PACKAGE__->config( action => { list_GET => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] }, } );
-
-__PACKAGE__->config( action => { list_GET => { Does => [ qw( ) ] }, } );
+__PACKAGE__->config( action => { list_GET => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] }, } );
 
 sub apibase : Chained('/') : PathPart('api/v2/topics') : CaptureArgs(1)
 {
@@ -90,15 +88,7 @@ sub list_GET : Local
     {
         $self->_create_controversy_media_table( $c, $cdts->{ controversy_dump_time_slices_id } );
 
-        my $order_by_clause = "inlink_count desc, media_id";
-        if ( $c->req->params->{ sort } )
-        {
-            if ( $c->req->params->{ sort } eq 'social' )
-            {
-                $order_by_clause = "bitly_click_count desc, media_id";
-            }
-        }
-        $entity->{ media } = $db->query( "select * from media order by \$1", $order_by_clause )->hashes;
+        $entity->{ media } = $db->query( "select * from media order by inlink_count desc, media_id" )->hashes;
 
         $self->status_ok( $c, entity => $entity );
     }

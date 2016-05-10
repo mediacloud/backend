@@ -32,15 +32,23 @@ use MediaWords::Test::DB;
 
 use MediaWords::Util::Web;
 
+use MediaWords::Controller::Api::V2::Topics::Stories;
+
 use Readonly;
 
 use Test::More;
 
-Readonly my $TEST_API_KEY => 'f66a50230d54afaf18822808aed649f1d6ca72b08fb06d5efb6247afe9fbae52';
+my $TEST_API_KEY;
 
 Readonly my $TEST_HTTP_SERVER_PORT => '3000';
 
 Readonly my $TEST_HTTP_SERVER_URL => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
+
+# This should match the DEFAULT_STORY_LIMIT in Stories.pm
+Readonly my $DEFAULT_STORY_LIMIT => 10;
+
+# A constant used to generate consistent orderings in test sorts
+Readonly my $TEST_MODULO => 6;
 
 sub add_controversy_link
 {
@@ -57,6 +65,12 @@ sub add_controversy_link
         }
     );
 
+}
+
+sub add_bitly_count
+{
+    my ( $db, $id, $story, $click_count ) = @_;
+    $db->query( "insert into bitly_clicks_total values ( \$1,\$2,\$3 )", $id, $story->{ stories_id }, $click_count );
 }
 
 sub add_controversy_story
@@ -94,41 +108,6 @@ sub create_stories
 
 }
 
-sub create_test_database
-{
-    my $base_db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
-
-    my $test_db_name = 'topics_api_test';
-
-    # print "creating database $test_db_name ...\n";
-    $base_db->query( "create database $test_db_name" );
-
-    $base_db->disconnect();
-
-    my $test_connect_info = [ MediaWords::DB::connect_info ];
-    $test_connect_info->[ 0 ] =~ s/dbname=[a-z0-9_]*/dbname=$test_db_name/i;
-
-    # print "connecting to test database: $test_connect_info->[0] ...\n";
-    my $test_db = DBIx::Simple::MediaWords->connect( @{ $test_connect_info } );
-
-    if ( !open( FILE, "$FindBin::Bin/script/mediawords.sql" ) )
-    {
-        die( "Unable to open schema file: $!" );
-    }
-
-    my $schema_sql = join( "\n", ( <FILE> ) );
-
-    close( FILE );
-
-    $test_db->query( $schema_sql );
-    $test_db->query( MediaWords::Pg::Schema::get_sql_function_definitions() );
-
-    # make sure the stories table exists as a sanity check for the schema
-    $test_db->query( "select * from stories" );
-
-    return ( $test_db, $test_db_name, $test_connect_info );
-}
-
 sub create_test_data
 {
 
@@ -160,7 +139,7 @@ sub create_test_data
     );
 
     # populate controversies_stories table
-    # only include stories with id not multiples of 3
+    # only include stories with id not multiples of $TEST_MODULO
     my $all_stories         = {};
     my $controversy_stories = [];
 
@@ -170,12 +149,17 @@ sub create_test_data
         {
             while ( my ( $num, $story ) = each( %{ $f->{ stories } } ) )
             {
-                if ( $num % 6 )
+                if ( $num % $TEST_MODULO )
                 {
                     my $cs = add_controversy_story( $test_db, $controversy, $story );
                     push @{ $controversy_stories }, $story->{ stories_id };
                 }
                 $all_stories->{ int( $num ) } = $story->{ stories_id };
+
+                # modding by a different number than stories included in controversies
+                # so that we will have bitly counts of 0
+
+                add_bitly_count( $test_db, $num, $story, $num % ( $TEST_MODULO - 1 ) );
             }
         }
     }
@@ -254,7 +238,7 @@ sub test_story_count
 
     my $actual_response = JSON::decode_json( $response->decoded_content() );
 
-    Test::More::ok( $actual_response->{ timeslice }->{ story_count } + 0 == scalar @{ $actual_response->{ stories } } );
+    Test::More::ok( scalar @{ $actual_response->{ stories } } == $DEFAULT_STORY_LIMIT );
 
 }
 
@@ -284,39 +268,84 @@ sub _get_story_link_counts
 
 }
 
-sub test_story_inclusion
+sub _get_expected_bitly_link_counts
+{
+    my $return_counts = {};
+
+    foreach my $m ( 1 .. 15 )
+    {
+
+        if ( $m % $TEST_MODULO )
+        {
+
+            $return_counts->{ "story " . $m } = $m % ( $TEST_MODULO - 1 );
+        }
+
+    }
+    return $return_counts;
+
+}
+
+sub test_default_sort
+{
+
+    my $data = shift;
+
+    my $base_url = { path => '/api/v2/topics/1/stories/list?limit=20' };
+
+    my $sort_key = "inlink_count";
+
+    my $expected_counts = _get_story_link_counts( $data );
+
+    _test_sort( $data, $expected_counts, $base_url, $sort_key );
+
+}
+
+sub test_social_sort
+{
+
+    my $data = shift;
+
+    my $base_url = { path => '/api/v2/topics/1/stories/list?sort=social&limit=20' };
+
+    my $sort_key = "bitly_click_count";
+
+    my $expected_counts = _get_expected_bitly_link_counts();
+
+    _test_sort( $data, $expected_counts, $base_url, $sort_key );
+
+}
+
+sub _test_sort
 {
 
     # Make sure that only expected stories are in stories list response
-    # Make sure that the order is inlink count descending
-    my $data = shift;
+    # in the appropriate order
 
-    my $base_url = { path => '/api/v2/topics/1/stories/list' };
-
-    my $controversy_stories = _get_story_link_counts( $data );
+    my ( $data, $expected_counts, $base_url, $sort_key ) = @_;
 
     my $response = _get_test_response( $base_url );
 
     my $actual_response = JSON::decode_json( $response->decoded_content() );
 
-    my %actual_stories;
-    my @actual_stories_order;
+    my $actual_stories_inlink_counts = {};
+    my $actual_stories_order         = ();
 
     foreach my $story ( @{ $actual_response->{ stories } } )
     {
-        $actual_stories{ $story->{ 'title' } } = $story->{ 'inlink_count' };
-        my @story_info = ( $story->{ 'inlink_count' }, $story->{ 'stories_id' } );
-        push @actual_stories_order, \@story_info;
+        $actual_stories_inlink_counts->{ $story->{ 'title' } } = $story->{ $sort_key };
+        my @story_info = ( $story->{ $sort_key }, $story->{ 'stories_id' } );
+        push @{ $actual_stories_order }, \@story_info;
     }
 
-    is_deeply( \%actual_stories, $controversy_stories, 'expected stories' );
+    is_deeply( $actual_stories_inlink_counts, $expected_counts, 'expected stories' );
 
-    foreach my $story ( 1 .. $#actual_stories_order )
+    foreach my $story ( 1 .. scalar @{ $actual_stories_order } - 1 )
     {
-        ok( $actual_stories_order[ $story ][ 0 ] <= $actual_stories_order[ $story - 1 ][ 0 ] );
-        if ( $actual_stories_order[ $story ][ 0 ] == $actual_stories_order[ $story - 1 ][ 0 ] )
+        ok( $actual_stories_order->[ $story ]->[ 0 ] <= $actual_stories_order->[ $story - 1 ]->[ 0 ] );
+        if ( $actual_stories_order->[ $story ]->[ 0 ] == $actual_stories_order->[ $story - 1 ]->[ 0 ] )
         {
-            ok( $actual_stories_order[ $story ][ 1 ] > $actual_stories_order[ $story - 1 ][ 1 ] );
+            ok( $actual_stories_order->[ $story ]->[ 1 ] > $actual_stories_order->[ $story - 1 ]->[ 1 ] );
         }
     }
 }
@@ -343,9 +372,10 @@ sub main
             my $controversy_media = create_stories( $db, $stories );
 
             create_test_data( $db, $controversy_media );
-
+            $TEST_API_KEY = MediaWords::Test::DB::create_test_user( $db );
             test_story_count();
-            test_story_inclusion( $stories );
+            test_default_sort( $stories );
+            test_social_sort( $stories );
             test_media_list( $stories );
             done_testing();
         }
