@@ -70,15 +70,17 @@ back to the main crawler.
 
    where `API-KEY` is an API key for mediacloud.org.
 
-7. Start supervisor by running:
+7. Uncomment either `rabbitmq` or `gearman` section in `mediawords.yml` under `job_servers`.
+
+8. Start supervisor by running:
 
         ./supervisor/supervisord.sh
 
-8. Optional: Stop the extractor workers by running:
+9. Optional: Stop the extractor workers by running:
 
         ./supervisor/supervisorctl.sh stop extract_and_vector
 
-9. Let the crawler on this machine run as long as desired.
+10. Let the crawler on this machine run as long as desired.
 
 ## Exporting
 
