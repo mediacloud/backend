@@ -71,8 +71,6 @@ Readonly my @URL_IGNORE_PATTERNS => (
 # necessary to actually download the feeds to get any sort of accuracy in finding the feeds,
 # albeit at the cost of downloading them.
 #
-# Note that Feed::Scrape uses the non-threaded, pseudo parallel fetching of just submitting a
-# bunch of requests serially and then collecting the results from each request as each server responds.
 
 # INTERNAL METHODS
 

@@ -130,7 +130,7 @@ Run `gearadmin --help` for more options.
 Gearman servers. 
 
 Screenshots: http://imgur.com/a/RjJWc
-
+ 
 
 ## Running jobs on Gearman with `MediaCloud::JobManager`
 

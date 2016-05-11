@@ -27,22 +27,53 @@ sub main
     $dbh->query( "DROP TABLE if exists media_rss_full_text_detection_data_new" ) or die $dbh->error;
 
     my $table_creation_query = <<"SQL";
-     create table media_rss_full_text_detection_data_new as  
-        select * from 
-          (select media_id, max(similarity) as max_similarity, 
-            avg(similarity) as avg_similarity, min(similarity) as min_similarity,
-            avg(length(extracted_text)) as avg_extracted_length, avg(length(html_strip(title || description))) 
-            as avg_rss_length, avg(length(html_strip(description))) as avg_rss_discription, count(*) 
-             from (select *, similarity(extracted_text, html_strip(title || description) ) from
-                 stories, 
-                   (select stories_id, array_to_string(array_agg(download_text), ' ') as extracted_text
-                      from 
-                         (select * from downloads natural join stories natural join download_texts 
-                             where publish_date > now() - interval ' 1 week'  order by downloads_id)
-                             as downloads group by stories_id) as story_extracted_texts
-                         where stories.stories_id = story_extracted_texts.stories_id and
-                            publish_date > now() - interval '1 week' ) as media_extraction_text_similarity 
-         group by media_id order by media_id ) as foo  ;
+ create table media_rss_full_text_detection_data_new as
+     with active_media as (
+         select media_id from media_health where num_stories_90 > 10 and is_healthy and has_active_feed
+     ),
+
+     story_texts as (
+         select
+                d.stories_id,
+                min( dt.download_text ) as story_text
+            from downloads d
+                join download_texts dt on ( d.downloads_id = dt.downloads_id )
+            where
+                d.feeds_id in (
+                    select feeds_id from feeds where media_id in ( select media_id from active_media )
+                ) and
+                date_trunc( 'day'::text, ss.publish_date ) between now() - '1 day'::interval and now()
+            group by ss.stories_id
+     ),
+
+     story_similarities as (
+         select
+                s.stories_id,
+                s.media_id,
+                s.publish_date,
+                similarity( st.story_text, s.description ) text_similarity,
+                length( story_text ) text_length,
+                length( description ) description_length
+            from stories s
+                join active_media am on ( s.media_id = am.media_id )
+                join story_texts st on ( s.stories_id = st.stories_id )
+            where
+                date_trunc( 'day'::text, s.publish_date ) between now() - '1 day'::interval and now()
+    )
+
+    select
+            media_id,
+            max( text_similarity ) as max_similarity,
+            min( text_similarity ) as min_similarity,
+            avg( text_similarity ) as avg_similarity,
+            avg( text_length ) as avg_text_length,
+            avg( description_length ) as avg_description_length,
+            count(*) as num_stories,
+            min( publish_date ) as publish_date
+        from
+            story_similarities ss
+        group by ss.media_id
+        order by ss.media_id
 SQL
 
     $dbh->query( $table_creation_query );

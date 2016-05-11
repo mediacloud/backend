@@ -4,7 +4,7 @@ Media Cloud's Supervisor daemons
 Media Cloud comes with a [Supervisor](http://supervisord.org/) configuration file which makes it
 easier to start, stop, restart, monitor and log various background (daemon) processes that are needed for Media Cloud
 to work.
-
+ 
 Configuring `supervisord`
 -------------------------
 

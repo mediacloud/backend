@@ -45,6 +45,24 @@ sub story_processing_is_enabled()
     return ( $enabled eq 'yes' );
 }
 
+# return true if feeds.skip_bitly_processing is set for any the story's feeds
+sub skip_processing_for_story_feed
+{
+    my ( $db, $stories_id ) = @_;
+
+    my $skip = $db->query( <<SQL, $stories_id )->hash;
+select 1
+    from feeds_stories_map fsm
+        join feeds f on ( f.feeds_id = fsm.feeds_id )
+    where
+        fsm.stories_id = \$1 and
+        f.skip_bitly_processing = true
+    limit 1
+SQL
+
+    return $skip ? 1 : 0;
+}
+
 sub add_to_processing_schedule($$)
 {
     my ( $db, $stories_id ) = @_;
@@ -53,6 +71,8 @@ sub add_to_processing_schedule($$)
     {
         die "Bit.ly story processing is not enabled.";
     }
+
+    return if ( skip_processing_for_story_feed( $db, $stories_id ) );
 
     my $story = $db->find_by_id( 'stories', $stories_id );
     unless ( $story )

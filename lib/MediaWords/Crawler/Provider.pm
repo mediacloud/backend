@@ -45,15 +45,15 @@ are provided to the the engine each time the engine asks for a chunk of new down
 use strict;
 use warnings;
 
+use Data::Dumper;
+use List::MoreUtils;
+use Math::Random;
+use Readonly;
 use URI::Split;
 
-use Data::Dumper;
-
-use List::MoreUtils;
 use MediaWords::DB;
 use MediaWords::Crawler::Downloads_Queue;
-use Readonly;
-use Math::Random;
+use MediaWords::Util::Config;
 
 # how often to download each feed (seconds)
 Readonly my $STALE_FEED_INTERVAL => 60 * 60 * 24 * 7;
@@ -161,6 +161,14 @@ sub _add_stale_feeds
         return;
     }
 
+    my $stale_feed_interval = $STALE_FEED_INTERVAL;
+
+    # if we're in feed archiving mode, download every feed once a day
+    if ( ( MediaWords::Util::Config::get_config->{ mediawords }->{ do_not_process_feeds } || '' ) eq 'yes' )
+    {
+        $stale_feed_interval = 86400;
+    }
+
     DEBUG "_add_stale_feeds";
 
     $self->{ last_stale_feed_check } = time();
@@ -171,7 +179,7 @@ sub _add_stale_feeds
 " ( now() > last_attempted_download_time + ( last_attempted_download_time - last_new_story_time ) + interval '5 minutes' ) ";
 
     my $constraint = "((last_attempted_download_time IS NULL " . "OR (last_attempted_download_time < (NOW() - interval ' " .
-      $STALE_FEED_INTERVAL . " seconds')) OR $last_new_story_time_clause ) " . "AND url ~ 'https?://')";
+      $stale_feed_interval . " seconds')) OR $last_new_story_time_clause ) " . "AND url ~ 'https?://')";
 
     # If the table doesn't exist, PostgreSQL sends a NOTICE which breaks the "no warnings" unit test
     $dbs->query( 'SET client_min_messages=WARNING' );
@@ -284,6 +292,14 @@ sub _add_pending_downloads
 
     my $db = $self->engine->dbs;
 
+    my $archive_clause = '';
+
+    # if we're in feed archiving mode, don't download stories
+    if ( ( MediaWords::Util::Config::get_config->{ mediawords }->{ do_not_process_feeds } || '' ) eq 'yes' )
+    {
+        $archive_clause = "and d.type='feed'";
+    }
+
     my $downloads = $db->query( <<END, $MAX_QUEUED_DOWNLOADS )->hashes;
 select
         d.*,
@@ -294,6 +310,7 @@ select
     where
         d.state = 'pending' and
         ( d.download_time < now() or d.download_time is null )
+        $archive_clause
     limit ?
 END
 
