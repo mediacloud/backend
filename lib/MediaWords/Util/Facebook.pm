@@ -21,24 +21,17 @@ use List::MoreUtils qw/any/;
 # Facebook Graph API version to use
 Readonly my $FACEBOOK_GRAPH_API_VERSION => 'v2.5';
 
-# Number of retries to do on temporary Facebook Graph API errors (such as rate
-# limiting issues or API downtime)
-Readonly my $FACEBOOK_GRAPH_API_RETRY_COUNT => 24;
+# Number of retries to do on temporary Facebook Graph API errors (such as rate limiting issues or API downtime)
+Readonly my $FACEBOOK_GRAPH_API_RETRY_COUNT => 5;
 
-# Time to wait (in seconds) between retries on temporary Facebook Graph API
-# errors
-Readonly my $FACEBOOK_GRAPH_API_RETRY_WAIT => 10 * 60;
+# Time to wait (in seconds) between retries on temporary Facebook Graph API errors
+Readonly my $FACEBOOK_GRAPH_API_RETRY_WAIT => 5 * 60;
 
 # Facebook Graph API's error codes of temporary errors on which we should retry
 # after waiting for a while
 #
 # (https://developers.facebook.com/docs/graph-api/using-graph-api/v2.2#errors)
 Readonly my @FACEBOOK_GRAPH_API_TEMPORARY_ERROR_CODES => (
-
-    # API Unknown -- Possibly a temporary issue due to downtime - retry the
-    # operation after waiting, if it occurs again, check you are requesting an
-    # existing API.
-    1,
 
     # API Service -- Temporary issue due to downtime - retry the operation
     # after waiting.
@@ -60,14 +53,7 @@ Readonly my @FACEBOOK_GRAPH_API_TEMPORARY_ERROR_CODES => (
 );
 
 # Seconds to wait for before retrying on temporary errors
-Readonly my @FACEBOOK_RETRY_INTERVALS => (
-    1,          #
-    3,          #
-    15,         #
-    60,         #
-    5 * 60,     #
-    10 * 60,    #
-);
+Readonly my @FACEBOOK_RETRY_INTERVALS => ( 1, 3, 15 );
 
 # URL patterns for which we're sure we won't get correct results (so we won't even try)
 Readonly my @URL_PATTERNS_WHICH_WONT_WORK => (
@@ -78,6 +64,13 @@ Readonly my @URL_PATTERNS_WHICH_WONT_WORK => (
     # Google Trends
     qr#^https?://.*?\.google\..{2,7}/trends/explore.*?#i,
 );
+
+Readonly my $MAX_CONSECUTIVE_ERROR_1 => 5;
+
+# error code can indicate with that facebook just doesn't like the given url or that our app_secret has
+# expired.  keep count of how many times we hit error 1 in a row, and die if we hit it more than
+# $MAX_CONSECUTIVE_ERROR_1 times.
+my $_error_1_count;
 
 # Make Facebook API request
 # Returns resulting JSON on success, die()s on error
@@ -173,7 +166,17 @@ sub api_request($$)
             my $error_type    = $data->{ error }->{ type };
             my $error_code    = $data->{ error }->{ code } + 0;
 
-            if ( any { $_ == $error_code } @FACEBOOK_GRAPH_API_TEMPORARY_ERROR_CODES )
+            # for some reason, facebook consistently returns error code 1 for some urls, so just return
+            # nothing for that url
+            if ( $error_code == 1 )
+            {
+                if ( ++$_error_1_count > $MAX_CONSECUTIVE_ERROR_1 )
+                {
+                    die( "more than $MAX_CONSECUTIVE_ERROR_1 consecutive errors with code 1" );
+                }
+                return { zero => 1 };
+            }
+            elsif ( any { $_ == $error_code } @FACEBOOK_GRAPH_API_TEMPORARY_ERROR_CODES )
             {
                 # Error is temporary - sleep() and then retry
                 say STDERR "Facebook API returned a temporary error: " . "($error_code $error_type) $error_message";
@@ -191,6 +194,8 @@ sub api_request($$)
             }
         }
     }
+
+    $_error_1_count = 0;
 
     unless ( $decoded_content )
     {
@@ -248,6 +253,8 @@ sub get_url_share_comment_counts
 
         fatal_error( "Error while fetching Facebook stats for URL $url: $error_message" );
     }
+
+    return ( 0, 0 ) if ( $data->{ zero } );
 
     unless ( defined $data->{ id } )
     {

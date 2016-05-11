@@ -139,7 +139,7 @@ sub UserAgentDetermined
                     $message .= 'error is on the client side, ';
                 }
 
-                DEBUG( "$message " . ( $will_retry && $duration ) ? "retry in ${ duration }s" : "give up" );
+                DEBUG( "$message " . ( ( $will_retry && $duration ) ? "retry in ${ duration }s" : "give up" ) );
                 TRACE( "full response: " . $response->as_string );
             }
         }
