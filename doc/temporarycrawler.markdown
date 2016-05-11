@@ -58,7 +58,7 @@ back to the main crawler.
 
 3. Install Media Cloud on the machine (if it didn't get installed by Vagrant already).
 
-5. Install the Media Cloud API Python client from [https://github.com/c4fcm/MediaCloud-API-Client](https://github.com/c4fcm/MediaCloud-API-Client)
+4. Install the Media Cloud API Python client from [https://github.com/c4fcm/MediaCloud-API-Client](https://github.com/c4fcm/MediaCloud-API-Client)
 
 5. `cd` to the Media Cloud installation directory.
 
