@@ -116,10 +116,7 @@ sub UserAgentDetermined
             my $request = $lwp_args->[ 0 ];
             my $url     = $request->uri;
 
-            # my $message = "Trying $url..., ";
-            # $message .=
-            #   "will " . ( defined $duration ? "retry after $duration seconds" : "give up" ) . " if request fails...";
-            # say STDERR $message;
+            TRACE( sub { "user_agent_determined trying $url ..." } );
         }
     );
     $ua->after_determined_callback(
@@ -141,9 +138,9 @@ sub UserAgentDetermined
                 {
                     $message .= 'error is on the client side, ';
                 }
-                $message .= "will " .
-                  ( $will_retry ? ( defined $duration ? "retry after $duration seconds" : "give up" ) : "not retry" );
-                say STDERR $message;
+
+                DEBUG( "$message " . ( ( $will_retry && $duration ) ? "retry in ${ duration }s" : "give up" ) );
+                TRACE( "full response: " . $response->as_string );
             }
         }
     );
@@ -217,8 +214,6 @@ sub ParallelGet
 
     my $mc_script_path = MediaWords::Util::Paths::mc_script_path();
     my $cmd            = "'$mc_script_path'/../script/mediawords_web_store.pl";
-
-    #say STDERR "opening cmd:'$cmd' ";
 
     if ( !open( CMD, '|-', $cmd ) )
     {
