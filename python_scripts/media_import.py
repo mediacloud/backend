@@ -146,6 +146,7 @@ def add_feeds_from_media_to_database( conn, mc, media ):
         assert len( feeds_for_media ) < 1000
         
         for feed in feeds_for_media:
+            cast_fields_to_bool( feed, [ 'skip_bitly_processing' ])
             insert_into_table( cursor, 'feeds', feed )
             
         num_media_processed += 1
