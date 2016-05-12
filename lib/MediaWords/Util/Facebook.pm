@@ -22,10 +22,10 @@ use List::MoreUtils qw/any/;
 Readonly my $FACEBOOK_GRAPH_API_VERSION => 'v2.5';
 
 # Number of retries to do on temporary Facebook Graph API errors (such as rate limiting issues or API downtime)
-Readonly my $FACEBOOK_GRAPH_API_RETRY_COUNT => 5;
+Readonly my $FACEBOOK_GRAPH_API_RETRY_COUNT => 22;
 
 # Time to wait (in seconds) between retries on temporary Facebook Graph API errors
-Readonly my $FACEBOOK_GRAPH_API_RETRY_WAIT => 5 * 60;
+Readonly my $FACEBOOK_GRAPH_API_RETRY_WAIT => 10 * 60;
 
 # Facebook Graph API's error codes of temporary errors on which we should retry
 # after waiting for a while
