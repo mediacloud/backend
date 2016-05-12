@@ -320,6 +320,26 @@ sub diff : Local
     $c->response->body( $encoded_csv );
 }
 
+# given a list of story hashes, attach a bitly_clicks field to each story, with an 'NA' for any story with no
+# click data
+sub _attach_bitly_clicks_to_stories($$)
+{
+    my ( $db, $stories ) = @_;
+
+    my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ stories_id } } @{ $stories } ] );
+
+    my $bitly_clicks = $db->query( <<SQL )->hashes;
+select ids.id stories_id, coalesce( click_count::text, 'NA' ) bitly_clicks
+    from $ids_table ids
+        left join bitly_clicks_total b on ( ids.id = b.stories_id )
+SQL
+
+    TRACE( sub { "bitly_clicks: " . Dumper( $bitly_clicks ) } );
+
+    MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $bitly_clicks );
+
+}
+
 # search for stories using solr and return either a sampled list of stories in html or the full list in csv
 sub index : Path : Args(0)
 {
@@ -372,6 +392,9 @@ sub index : Path : Args(0)
     if ( $csv )
     {
         map { delete( $_->{ sentences } ) } @{ $stories };
+
+        _attach_bitly_clicks_to_stories( $db, $stories );
+
         my $encoded_csv = MediaWords::Util::CSV::get_hashes_as_encoded_csv( $stories );
 
         $c->response->header( "Content-Disposition" => "attachment;filename=stories.csv" );
