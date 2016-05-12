@@ -7,6 +7,8 @@ package MediaWords::Util::Facebook;
 use strict;
 use warnings;
 
+use MediaWords::CommonLibs;
+
 use MediaWords::Util::Config;
 use MediaWords::Util::JSON;
 use MediaWords::Util::Process;
@@ -53,7 +55,7 @@ Readonly my @FACEBOOK_GRAPH_API_TEMPORARY_ERROR_CODES => (
 );
 
 # Seconds to wait for before retrying on temporary errors
-Readonly my @FACEBOOK_RETRY_INTERVALS => ( 1, 3, 15 );
+Readonly my @FACEBOOK_RETRY_INTERVALS => ( 1, 5, 30 );
 
 # URL patterns for which we're sure we won't get correct results (so we won't even try)
 Readonly my @URL_PATTERNS_WHICH_WONT_WORK => (
@@ -65,27 +67,27 @@ Readonly my @URL_PATTERNS_WHICH_WONT_WORK => (
     qr#^https?://.*?\.google\..{2,7}/trends/explore.*?#i,
 );
 
-Readonly my $MAX_CONSECUTIVE_ERROR_1 => 5;
+Readonly my $MAX_CONSECUTIVE_ERRORS => 3;
 
 # error code can indicate with that facebook just doesn't like the given url or that our app_secret has
-# expired.  keep count of how many times we hit error 1 in a row, and die if we hit it more than
+# expired.  keep count of how many times we hit error 1 in a row, and LOGDIE if we hit it more than
 # $MAX_CONSECUTIVE_ERROR_1 times.
-my $_error_1_count;
+my $_num_consecutive_errors = 0;
 
 # Make Facebook API request
-# Returns resulting JSON on success, die()s on error
+# Returns resulting JSON on success, LOGDIE()s on error
 sub api_request($$)
 {
     my ( $node, $params ) = @_;
 
     unless ( defined $node )
     {
-        die "Node is undefined (node might be an empty string).";
+        LOGDIE "Node is undefined (node might be an empty string).";
     }
 
     unless ( ref( $params ) eq ref( [] ) )
     {
-        die "Params is not an arrayref.";
+        LOGDIE "Params is not an arrayref.";
     }
 
     my $api_uri = URI->new( "https://graph.facebook.com/$FACEBOOK_GRAPH_API_VERSION/$node" );
@@ -94,13 +96,13 @@ sub api_request($$)
 
         unless ( ref( $param ) eq ref( {} ) )
         {
-            die "Param should be an hashref.";
+            LOGDIE "Param should be an hashref.";
         }
 
         my ( $key, $value ) = ( $param->{ key }, $param->{ value } );
         unless ( defined $key and defined $value )
         {
-            die "Both 'key' and 'value' must be defined.";
+            LOGDIE "Both 'key' and 'value' must be defined.";
         }
 
         $api_uri->query_param_append( $key, $value );
@@ -113,10 +115,7 @@ sub api_request($$)
     my ( $decoded_content, $data );
     for ( my $retry = 1 ; $retry <= $FACEBOOK_GRAPH_API_RETRY_COUNT ; ++$retry )
     {
-        if ( $retry > 1 )
-        {
-            say STDERR 'Retrying #' . $retry . '...';
-        }
+        DEBUG( sub { 'Retrying #' . $retry . '...' } ) if ( $retry > 1 );
 
         my $ua = MediaWords::Util::Web::UserAgentDetermined();
         $ua->timeout( $config->{ facebook }->{ timeout } );
@@ -129,7 +128,7 @@ sub api_request($$)
         eval { $response = $ua->get( $api_uri->as_string ); };
         if ( $@ )
         {
-            die 'LWP::UserAgent::Determined died while fetching response: ' . $@;
+            LOGDIE 'LWP::UserAgent::Determined LOGDIEd while fetching response: ' . $@;
         }
 
         $decoded_content = $response->decoded_content;
@@ -147,63 +146,49 @@ sub api_request($$)
             unless ( $decoded_content )
             {
                 # Error response is empty
-                die 'Decoded content is empty';
+                LOGDIE 'Decoded content is empty';
             }
 
             unless ( $data )
             {
                 # Error response is not in JSON
-                die "Unable to decode JSON from response; JSON content: $decoded_content";
+                LOGDIE "Unable to decode JSON from response; JSON content: $decoded_content";
             }
 
             unless ( defined $data->{ error } )
             {
                 # 'error' key is not present in returned JSON
-                die 'No "error" key in returned error: ' . Dumper( $data );
+                LOGDIE 'No "error" key in returned error: ' . Dumper( $data );
             }
 
             my $error_message = $data->{ error }->{ message };
             my $error_type    = $data->{ error }->{ type };
             my $error_code    = $data->{ error }->{ code } + 0;
 
-            # for some reason, facebook consistently returns error code 1 for some urls, so just return
-            # nothing for that url
-            if ( $error_code == 1 )
-            {
-                if ( ++$_error_1_count > $MAX_CONSECUTIVE_ERROR_1 )
-                {
-                    die( "more than $MAX_CONSECUTIVE_ERROR_1 consecutive errors with code 1" );
-                }
-                return { zero => 1 };
-            }
-            elsif ( any { $_ == $error_code } @FACEBOOK_GRAPH_API_TEMPORARY_ERROR_CODES )
-            {
-                # Error is temporary - sleep() and then retry
-                say STDERR "Facebook API returned a temporary error: " . "($error_code $error_type) $error_message";
-                say STDERR "Will retry after $FACEBOOK_GRAPH_API_RETRY_WAIT seconds";
-                sleep( $FACEBOOK_GRAPH_API_RETRY_WAIT );
+            DEBUG( sub { "api error: ($error_code $error_type) $error_message" } );
 
-                # Continue the retry loop
-                next;
-            }
-            else
+            # for some reason, facebook consistently returns errors for some urls, so just return a 0 count for a
+            # given url until we have run into $MAX_CONSECUTIVE_ERRORS in a row
+            if ( ++$_num_consecutive_errors > $MAX_CONSECUTIVE_ERRORS )
             {
-                # Error response is JSON -- most of Facebook's errors mean
-                # that we can't continue further
-                die "Facebook API returned an error: ($error_code $error_type) $error_message";
+                LOGDIE( "more than $MAX_CONSECUTIVE_ERRORS consecutive errors: ($error_type $error_message)" );
             }
+
+            DEBUG( sub { "return 0 count" } );
+
+            return { zero => 1 };
         }
     }
 
-    $_error_1_count = 0;
+    $_num_consecutive_errors = 0;
 
     unless ( $decoded_content )
     {
-        die "Response was successful, but we didn't get any data (probably ran out of retries)";
+        LOGDIE "Response was successful, but we didn't get any data (probably ran out of retries)";
     }
     unless ( $data )
     {
-        die "Response was successful, but we weren't able to decode JSON";
+        LOGDIE "Response was successful, but we weren't able to decode JSON";
     }
 
     return $data;
@@ -219,14 +204,14 @@ sub get_url_share_comment_counts
 
     unless ( MediaWords::Util::URL::is_http_url( $url ) )
     {
-        die "Invalid URL: $url";
+        LOGDIE "Invalid URL: $url";
     }
 
     foreach my $url_pattern_which_wont_work ( @URL_PATTERNS_WHICH_WONT_WORK )
     {
         if ( $url =~ $url_pattern_which_wont_work )
         {
-            die "URL $url matches one of the patterns for URLs that won't work against Facebook API.";
+            LOGDIE "URL $url matches one of the patterns for URLs that won't work against Facebook API.";
         }
     }
 
@@ -234,7 +219,7 @@ sub get_url_share_comment_counts
     my $uri = URI->new( $url )->canonical;
     unless ( $uri )
     {
-        die "Unable to create URI object for URL: $url";
+        LOGDIE "Unable to create URI object for URL: $url";
     }
     $url = $uri->as_string;
 
@@ -248,7 +233,7 @@ sub get_url_share_comment_counts
         if ( $error_message =~ /GraphMethodException/i and $error_message =~ /Unsupported get request/i )
         {
             # Non-fatal error
-            die "Unable to fetch stats for URL that we don't have access to; URL: $url; error message: $error_message";
+            LOGDIE "Unable to fetch stats for URL that we don't have access to; URL: $url; error message: $error_message";
         }
 
         fatal_error( "Error while fetching Facebook stats for URL $url: $error_message" );
@@ -266,13 +251,13 @@ sub get_url_share_comment_counts
     my $returned_uri = URI->new( $returned_url )->canonical;
     unless ( $returned_uri->eq( $uri ) )
     {
-        die "Returned URL ($returned_url) is not the same as requested URL ($url)";
+        LOGDIE "Returned URL ($returned_url) is not the same as requested URL ($url)";
     }
 
     my $share_count   = $data->{ share }->{ share_count }   // 0;
     my $comment_count = $data->{ share }->{ comment_count } // 0;
 
-    say STDERR "* Share count: $share_count, comment count: $comment_count";
+    DEBUG( sub { "* Share count: $share_count, comment count: $comment_count" } );
 
     return ( $share_count, $comment_count );
 }
@@ -295,12 +280,12 @@ sub get_and_store_share_comment_counts
 
     my ( $share_count, $comment_count );
     eval {
-        # die() on URLs for which stats will be incorrect
+        # LOGDIE() on URLs for which stats will be incorrect
         foreach my $url_pattern_which_wont_work ( @URL_PATTERNS_WHICH_WONT_WORK )
         {
             if ( $story_url =~ $url_pattern_which_wont_work )
             {
-                die "URL $story_url matches one of the patterns for URLs that won't work against Facebook API.";
+                LOGDIE "URL $story_url matches one of the patterns for URLs that won't work against Facebook API.";
             }
         }
 
@@ -308,10 +293,7 @@ sub get_and_store_share_comment_counts
     };
     my $error = $@ ? $@ : undef;
 
-    if ( $error )
-    {
-        say STDERR "Error while fetching Facebook share / comment counts for story $story->{ stories_id }: $error";
-    }
+    ERROR( sub { "Error while fetching Facebook counts for story $story->{ stories_id }: $error" } ) if ( $error );
 
     $share_count   ||= 0;
     $comment_count ||= 0;
