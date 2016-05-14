@@ -41,22 +41,6 @@ rabbitmq_is_installed() {
     fi
 }
 
-gearmand_version() {
-    local gearmand_version=`gearmand --version | perl -e '
-        while (<>) {
-            chomp;
-            $version_string .= $_;
-        }
-        @parts = split(/ /, $version_string);
-        print $parts[1]'`
-        
-    if [ -z "$gearmand_version" ]; then
-        log "Unable to determine gearmand version"
-        exit 1
-    fi
-    echo "$gearmand_version"
-}
-
 rabbitmq_is_up_to_date() {
     local rabbitmq_version=$(dpkg -s rabbitmq-server | grep Version | awk '{ print $2 }')
     echo "$rabbitmq_version" | perl -e '
