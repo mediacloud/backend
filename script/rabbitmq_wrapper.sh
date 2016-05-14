@@ -42,17 +42,9 @@ rabbitmq_is_installed() {
 }
 
 rabbitmq_is_up_to_date() {
-    local rabbitmq_version=$(dpkg -s rabbitmq-server | grep Version | awk '{ print $2 }')
-    echo "$rabbitmq_version" | perl -e '
-        use version 0.77;
-        $current_version = version->parse(<>);
-        $required_version = version->parse("3.6.0");
-        unless ($current_version >= $required_version) {
-            die "Current RabbitMQ version $current_version is older than required version $required_version\n";
-        } else {
-            print "Current RabbitMQ version $current_version is up-to-date.\n";
-        }' || {
-
+    local actual_version=$(dpkg -s rabbitmq-server | grep Version | awk '{ print $2 }')
+    local required_version="3.6.0"
+    dpkg --compare-versions "$actual_version" gt "$required_version" || {
         return 1    # "false" in Bash
     }
     return 0    # "true" in Bash
