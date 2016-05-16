@@ -2,10 +2,10 @@ Controversy Dumps
 =================
 
 Controversy analysis is based around the idea of a dump.  Dumps store static, snapshotted data about all database
-entities related to a controversy.  Dumping a controversy also generates analytical data, like link counts, that are specific to
-both all stories within the controversy and to specific date ranges within the controversy.  The dumping framework also
-allows access to 'live' virtual dumps that use the same database structure but do the date range specific analytical
-work on the live controversy data.
+entities related to a controversy.  Dumping a controversy also generates analytical data, like link counts, that are
+specific to both all stories within the controversy and to specific date ranges within the controversy.  The dumping
+framework also allows access to 'live' virtual dumps that use the same database structure but do the date range specific
+analytical work on the live controversy data.
 
 The notion of dumps evolved from the earliest version of controversy, in which we did not have a web interface, but
 instead just dumped a set of csv files each time we wanted to start analysis of a controversy.  The main purpose of the
@@ -30,11 +30,13 @@ A story is considered to be within some date range if it has a publication date 
 linked to by a story within that date range.
 
 The basic mechanism of the dumps is to store copies of all data relevant to a controversy in cd.* postgres tables ('cd'
-is a postgres schema, which acts as a separate namespace for tables). The set of tables snapshotted at the time of each
-dump is stored in $MediaWords::CM::Dump::_snapshot_tables and at the time of writing this doc includes:
-controversy_stories, controversy_links_cross_media, controversy_media_codes, stories, media, stories_tags_map,
-media_tags_map, tags, tag_sets.  During each dump, all of the fields are copied from each of those tables along with a
-controversy_dumps_id field pointing to the dump for which the table was snapshotted.
+is a postgres schema, which acts as a separate namespace for tables). These tables are kept in a separate schema just
+to make clear their function within the database and to allow naming the same as the base tables (eg. `cd.stories`).
+
+The set of tables snapshotted at the time of each dump is stored in $MediaWords::CM::Dump::_snapshot_tables and at the
+time of writing this doc includes: controversy_stories, controversy_links_cross_media, controversy_media_codes, stories,
+media, stories_tags_map, media_tags_map, tags, tag_sets.  During each dump, all of the fields are copied from each of
+those tables along with a controversy_dumps_id field pointing to the dump for which the table was snapshotted.
 
 For example, the cd.tags table definition is:
 

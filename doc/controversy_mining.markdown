@@ -13,7 +13,7 @@ A controversy is defined as:
 
 * a solr seed query, which specifies a date range, some media sets, and a text query
 * a regex pattern for determining relevance
-* a date range
+* a date range which bounds the time slices and restricts which stories are mined for links
 
 The basic operation of the spider is:
 
@@ -36,6 +36,24 @@ defined by the starting seed set within 15 iterations.
 
 Lots of problems arise when we try to get robust research data from the above approach, though.  Below are descriptions
 of those problems and the solutions we have implemented for them.
+
+Lack of Content or Links
+------------------------
+
+The first and most serious problem that can happen with a controversy is simply that there either is not enough
+relevant content in our archive to create a robust set, or that the content in the seed set does not have enough
+links to discover other relevant content and create an interesting link network.
+
+If the content and links simply do not exist, there obviously is no solution.  As a rule of thumb, we hope to
+find at least 1,000 stories and ideally at least 1 cross media link for every 3 stories to be able to say something
+meaningful about the topic.
+
+Approaches we have used in the past to add more content to a sparse controversy include:
+
+* editing the parameters of the query (keywords, dates, and / or sources) to find more seed stories;
+* adding and backfilling with feedly a new media set with relevant sources;
+* manually creating a list of relevant seed urls through google searches, manual curation, or other such methods;
+* mining twitter for a list of links using crimson hexagon;
 
 Story Matching
 --------------
@@ -65,6 +83,8 @@ the form of 'Trayvon Martin case to go to grand jury' vs. 'Orlando Sentinel: Tra
 For the full details of our title matching, see
 [MediaWords::DBI::Stories::get_medium_dup_stories_by_title](../lib/MediaWords/DBI/Stories.pm).
 
+We use the same story matching algorithm for deduplicating Feeldy imported stories, for which we performed careful
+validation, described (here)[../validation/feedly_import/README.markdown].
 
 Media Source Assignment
 -----------------------
@@ -187,4 +207,5 @@ somewhat: mean - stddev > 0.75
 not: mean - stddev <= 0.75
 ```
 
-For implementation of date accuracy modeling, see [MediaWords::CM::Dump::Mine](../lib/MediaWords/CM/Dump/Mine.pm).
+The date accuracy modeling is performed every time a dump is generated. For implementation of date accuracy modeling,
+see [MediaWords::CM::Dump::Mine](../lib/MediaWords/CM/Dump/Mine.pm).
