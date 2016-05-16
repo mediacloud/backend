@@ -14,6 +14,7 @@ use Carp;
 use MediaWords::Solr;
 use MediaWords::CM::Dump;
 use MediaWords::CM;
+use MediaWords::Controller::Api::V2::Sentences;
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
@@ -51,10 +52,32 @@ sub count_GET
         );
         my $solr_df_query = "{~ controversy:$cdts->{ controversies_id } }";
         my $composed_fq = $fq ? $solr_df_query . " AND $fq" : $solr_df_query;
-        $c->req->params->{ 'fq ' } = $composed_fq;
-        my $response = MediaWords::Solr::query( $c->dbis, { q => $q, fq => $composed_fq }, $c );
+        $c->req->params->{ 'fq' } = $composed_fq;
+        my $split = $c->req->params->{ 'split' };
+        my $response;
+        if ( $split )
+        {
+            $response->{ split }->{ counts } = [];
+            $response = MediaWords::Controller::Api::V2::Sentences::_get_count_with_split( $self, $c );
+            foreach my $key ( sort keys %{ $response->{ split } } )
+            {
+                if ( $key =~ /^\d\d\d\d/ )
+                {
+                    my $data = { date => $key, count => $response->{ split }->{ $key } };
+                    push @{ $response->{ split }->{ counts } }, $data;
+                    delete $response->{ split }->{ $key };
+                }
+            }
+        }
+        else
+        {
+            my $list = MediaWords::Solr::query( $c->dbis, { q => $q, fq => $composed_fq }, $c );
+            $response = { count => $list->{ response }->{ numFound } };
+        }
 
-        #my $response = { count => $list->{ response }->{ numFound } };
+        # my $response = MediaWords::Solr::query( $c->dbis, { q => $q, fq => $composed_fq }, $c );
+        #
+        # $response = { count => $response->{ response }->{ numFound } };
         $self->status_ok( $c, entity => $response );
 
     }
