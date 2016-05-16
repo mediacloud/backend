@@ -143,7 +143,8 @@ sub _get_cache
         expires_variance => '0.1',
         root_dir         => "${ mediacloud_data_dir }/cache/feedly_feed_stories",
         depth            => 4,
-        max_size         => 10 * 1024 * 1024 * 1024
+        max_size         => 10 * 1024 * 1024 * 1024,
+        discard_timeout  => 120
     );
 }
 

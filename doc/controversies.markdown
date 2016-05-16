@@ -1,9 +1,12 @@
 Controversies
 =============
 
-This document provides a high level overview of how the controversy mapping
-system works and points to the pieces of code that perform specific
-functions. This document will identify the major differences of the controversy mapping system with the MediaCloud system, identify how to run a controversy for
+This document provides a high level overview of how the controversy mapping system works and points to the pieces of
+code that perform specific functions.
+
+It will be useful to read and understand [story_processing_flow.markdown](story_processing_flow.markdown) before reading
+this doc.  It is also useful to read [controversy_mining.markdown](controversy_mining.markdown) in conjunction with
+this document.
 
 The controversy mapping system is used to generate and analyze spidered sets
 of stories on some time and text pattern defined topic. The key differences
@@ -156,8 +159,12 @@ Detailed explanation of CM process
     * These seed set urls are generated manually and imported from CSVs into
       `controversy_seed_urls` using
       `mediawords_import_controversy_seed_urls.pl`.
+    * The controversy_seed_urls table as an `assume_match` field that, if true,
+      makes the spider add every url from this regardless of whether it matches
+      the controversy pattern; otherwise only urls that match the pattern are
+      added tot he controversy.
 
-6. Run `mediawords_mine_controversy.pl` to start the controversy mining
+6. Run `mediawords_mine_controversy.pl --controversy <id>` to start the controversy mining
    process. You can use the `--direct_job` option to run the mining code
    directly in process rather than sending a job off to the
    `CM/MineControversy` job.  The controversy mining sets off the following
