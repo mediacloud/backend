@@ -1,0 +1,372 @@
+---
+swagger: '2.0'
+info:
+  title: Topic Mapper Api
+  description: API for controversies
+  version: "0.0.0"
+# the domain of the service
+host: api.mediacloud.org
+# array of all schemes that your API supports
+schemes:
+  - http
+# will be prefixed to all paths
+basePath: /api/v2
+produces:
+  - application/json
+paths:
+
+  /topics/{id}/stories/list:
+    get:
+      summary:
+       Get stories associated with a topic
+      parameters:
+        - name: id
+          in: path
+          description: identifier for the topic, also known as controversies_id
+          required: true
+          type: number
+          format: int
+        - name: limit
+          description: a limit to the number of stories to return
+          in: query
+          required: false
+          type: number
+          format: int
+          default: 10
+        - name: sort
+          description: sort order
+          in: query
+          required: false
+          type: string
+          default: 'inlink'
+          enum: ['inlink','social']
+      tags:
+        - June 1, 2016
+        - topic summary page
+      responses:
+        200:
+          description: Stories associated with a topic
+          schema:
+            type: object
+            properties:
+              timeslice:
+                $ref: '#/definitions/Timeslice'
+              stories:
+                type: array
+                items:
+                  $ref: '#/definitions/Story'
+        403:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
+  /topics/{id}/media/list:
+    get:
+      summary:
+       Get a list of media sources in the controversy
+
+      parameters:
+        - name: id
+          in: path
+          description: controversies_id
+          required: true
+          type: number
+          format: int
+        - name: limit
+          description: number of stories to return
+          in: query
+          required: false
+          type: number
+          format: int
+          default: 10
+        - name: sort
+          description: sort order
+          in: query
+          required: false
+          type: string
+          default: 'inlink'
+          enum: ['inlink','social']
+      tags:
+        - June 1, 2016
+        - topic summary page
+      responses:
+        200:
+          description: Media associated with a topic
+          schema:
+            type: object
+            properties:
+              stories:
+                type: array
+                items:
+                  $ref: '#/definitions/Media'
+        403:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
+
+  /topics/{id}/wc/list:
+    get:
+      summary:
+        Get a list of word counts in the topic
+
+      parameters:
+        - name: id
+          in: path
+          description: controversies_id
+          required: true
+          type: number
+          format: int
+        - name: limit
+          description: number of stories to return
+          in: query
+          required: false
+          type: number
+          format: int
+          default: 10
+        - name: sort
+          description: sort order
+          in: query
+          required: false
+          type: string
+          default: 'inlink'
+          enum: ['inlink','social']
+      tags:
+        - June 1, 2016
+        - topic summary page
+      responses:
+        200:
+          description: Word count associated with a topic
+          schema:
+            type: object
+            properties:
+              timeslice:
+                $ref: '#/definitions/Timeslice'
+              words:
+                type: array
+                items:
+                  $ref: '#/definitions/WordCount'
+
+  /topics/{id}/sentences/count:
+    get:
+      summary:
+        Count sentences matching a specified query within a topic.
+      description: |
+        The call returns the number of sentences returned by Solr for the specified query.
+
+        If split is specified, split the counts into regular date ranges for dates between split\_start\_date and split\_end\_date.
+        The number of days in each date range depends on the total number of days between split\_start\_date and split\_end\_date:
+
+        | Total Days | Days in each range
+        | ---------- | ------------------
+        | < 90       | 1 day
+        | < 180      | 3 days
+        | >= 180     | 7 days
+
+        Note that the total count returned by a split query is for all sentences found by the solr query, which query might or might not
+        include a date restriction.
+      parameters:
+        - name: id
+          in: path
+          description: controversies_id
+          required: true
+          type: number
+          format: int
+        - name: q
+          in: query
+          description: q ("query") parameter which is passed directly to Solr
+          required: true
+          type: string
+        - name: fq
+          in: query
+          description: fq ("filter query") parameter which is passed directly to Solr
+          required: false
+          type: string
+        - name: split
+          in: query
+          description: if set to 1 or true, split the counts into date ranges
+          type: boolean
+          default: false
+          required: false
+        - name: split_start_date
+          in: query
+          description: date on which to start date splits, in YYYY-MM-DD format. Required if split is true.
+          type: string
+          required: false
+        - name: split_end_date
+          in: query
+          description: date on which to end date splits, in YYYY-MM-DD format. Required if split is true.
+          type: string
+          required: false
+      tags:
+        - June 1, 2016
+        - topic summary page
+      responses:
+        200:
+          description: Count of sentences in topic containing query
+          schema:
+            type: object
+            required: ["count"]
+            properties:
+              count:
+                type: number
+                format: int
+              split:
+                type: object
+                properties:
+                  start:
+                    format: string
+                  end:
+                    format: string
+                  gap:
+                    format: string
+                  counts:
+                    type: array
+                    items:
+                      $ref: '#/definitions/Split'
+
+
+        403:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
+definitions:
+  Story:
+    type: object
+    properties:
+      collect_date:
+        type: string
+      guid:
+        type: string
+      url:
+        type: string
+      controversy_dump_time_slices_id:
+        type: integer
+      language:
+        type: string
+      media_id:
+        type: integer
+      title:
+        type: string
+      outlink_count:
+        type: integer
+      stories_id:
+        type: integer
+      publish_date:
+        type: string
+      full_text_rss:
+        type: integer
+      controversy_dumps_id:
+        type: integer
+      bitly_click_count:
+        type: integer
+      inlink_count:
+        type: integer
+
+  WordCount:
+    type: object
+    properties:
+      rank:
+        type: integer
+      term:
+        type: string
+      stem:
+        type: string
+      count:
+        type: integer
+
+  Media:
+    type: object
+    properties:
+      inlink_count:
+        type: integer
+      controversy_dump_time_slices_id:
+        type: integer
+      media_id:
+        type: integer
+      story_count:
+        type: integer
+      url:
+        type: string
+      outlink_count:
+        type: integer
+      bitly_click_count:
+        type: integer
+      name:
+        type: string
+  Split:
+    type: object
+    properties:
+      date:
+        type: string
+      count:
+        type: integer
+  Timeslice:
+    type: object
+    properties:
+      dump_date:
+        type: string
+      story_count:
+        type: integer
+      tags_id:
+        type: string
+      controversy_dump_time_slices_id:
+        type: string
+      story_link_count:
+        type: integer
+      controversy_dumps_id:
+        type: string
+      controversy_query_slices_id:
+        type: integer
+      end_date:
+        type: string
+      medium_count:
+        type: integer
+      model_r2_mean:
+        type: string
+      include_undateable_stories:
+        type: integer
+      controversies_id:
+        type: integer
+      start_date:
+        type: string
+      note:
+        type: string
+      period:
+        type: string
+      model_r2_stddev:
+        type: string
+      model_num_media:
+        type: number
+      medium_link_count:
+        type: number
+      is_shell:
+        type: integer
+      link_weight_type:
+        type: string
+
+  Error:
+    type: object
+    properties:
+      error:
+        type: string
+
+securityDefinitions:
+  api_key:
+    type: apiKey
+    name: key
+    description: |
+      Every call below includes a key parameter which will authenticate the use to the API service.
+        To get a key, register for a user:
+
+        https://core.mediacloud.org/login/register
+
+        Once you have an account go here to see your key:
+
+        https://core.mediacloud.org/admin/profile
+
+    in: query
+
+security:
+  - api_key: []
