@@ -1,6 +1,6 @@
 package MediaWords::CM;
 
-# General controversy mapper utilities
+# General topic mapper utilities
 
 use strict;
 use warnings;
@@ -11,44 +11,44 @@ use MediaWords::CommonLibs;
 use Getopt::Long;
 use Data::Dumper;
 
-# get a list controversies that match the controversy option, which can either be an id
-# or a pattern that matches controversy names. Die if no controversies are found.
-sub require_controversies_by_opt
+# get a list topics that match the topic option, which can either be an id
+# or a pattern that matches topic names. Die if no topics are found.
+sub require_topics_by_opt
 {
-    my ( $db, $controversy_opt ) = @_;
+    my ( $db, $topic_opt ) = @_;
 
-    if ( !defined( $controversy_opt ) )
+    if ( !defined( $topic_opt ) )
     {
-        Getopt::Long::GetOptions( "controversy=s" => \$controversy_opt ) || return;
+        Getopt::Long::GetOptions( "topic=s" => \$topic_opt ) || return;
     }
 
-    die( "Usage: $0 --controversy < id or pattern >" ) unless ( $controversy_opt );
+    die( "Usage: $0 --topic < id or pattern >" ) unless ( $topic_opt );
 
-    my $controversies;
-    if ( $controversy_opt =~ /^\d+$/ )
+    my $topics;
+    if ( $topic_opt =~ /^\d+$/ )
     {
-        $controversies = $db->query( "select * from controversies where controversies_id = ?", $controversy_opt )->hashes;
-        die( "No controversies found by id '$controversy_opt'" ) unless ( @{ $controversies } );
+        $topics = $db->query( "select * from topics where topics_id = ?", $topic_opt )->hashes;
+        die( "No topics found by id '$topic_opt'" ) unless ( @{ $topics } );
     }
     else
     {
-        $controversies = $db->query( "select * from controversies where name ~* ?", '^' . $controversy_opt . '$' )->hashes;
-        die( "No controversies found by pattern '$controversy_opt'" ) unless ( @{ $controversies } );
+        $topics = $db->query( "select * from topics where name ~* ?", '^' . $topic_opt . '$' )->hashes;
+        die( "No topics found by pattern '$topic_opt'" ) unless ( @{ $topics } );
     }
 
-    return $controversies;
+    return $topics;
 }
 
 sub get_latest_overall_time_slice
 {
-    my ( $db, $controversies_id ) = @_;
+    my ( $db, $topics_id ) = @_;
 
-    my $cdts = $db->query( <<SQL, $controversies_id )->hash;
+    my $cdts = $db->query( <<SQL, $topics_id )->hash;
 select *
-   from controversy_dump_time_slices cdts
-       join controversy_dumps cd on ( cd.controversy_dumps_id = cdts.controversy_dumps_id )
+   from topic_dump_time_slices cdts
+       join topic_dumps cd on ( cd.topic_dumps_id = cdts.topic_dumps_id )
    where
-       cd.controversies_id = \$1 and
+       cd.topics_id = \$1 and
        cdts.period = 'overall'
    order by cd.dump_date desc
 SQL
@@ -62,11 +62,11 @@ sub _get_overall_time_slice_from_snapshot
 
     my $cdts = $db->query( <<SQL, $snapshot )->hash;
 select *
-  from controversy_dump_time_slices cdts
+  from topic_dump_time_slices cdts
   where
-    cdts.controversy_dumps_id = \$1 and
+    cdts.topic_dumps_id = \$1 and
     cdts.period = 'overall' and
-    cdts.controversy_query_slices_id is null
+    cdts.topic_query_slices_id is null
 SQL
     unless ( $cdts )
     {
@@ -74,17 +74,17 @@ SQL
     }
 }
 
-sub _get_latest_overall_time_slice_from_controversy
+sub _get_latest_overall_time_slice_from_topic
 {
-    my ( $db, $controversies_id ) = @_;
-    my $cdts = $db->query( <<SQL, $controversies_id )->hash;
+    my ( $db, $topics_id ) = @_;
+    my $cdts = $db->query( <<SQL, $topics_id )->hash;
 select *
-  from controversy_dump_time_slices cdts
-  join controversy_dumps cd on (cd.controversy_dumps_id = cdts.controversy_dumps_id)
+  from topic_dump_time_slices cdts
+  join topic_dumps cd on (cd.topic_dumps_id = cdts.topic_dumps_id)
   where
-    cd.controversies_id = \$1 and
+    cd.topics_id = \$1 and
     cdts.period = 'overall' and
-    cdts.controversy_query_slices_id is null
+    cdts.topic_query_slices_id is null
   order by cd.dump_date desc limit 1
 SQL
 }
@@ -93,11 +93,11 @@ SQL
 # * timeslice if timeslice specified
 # * latest timeslice of snapshot is specified
 # * latest overall timeslice
-sub get_time_slice_for_controversy
+sub get_time_slice_for_topic
 {
-    my ( $db, $controversies_id, $timeslice, $snapshot ) = @_;
+    my ( $db, $topics_id, $timeslice, $snapshot ) = @_;
 
-    my $cdts = $db->find_by_id( 'controversy_dump_time_slices', $timeslice );
+    my $cdts = $db->find_by_id( 'topic_dump_time_slices', $timeslice );
 
     return $cdts if ( $cdts );
 
@@ -105,7 +105,7 @@ sub get_time_slice_for_controversy
 
     return $cdts if ( $cdts );
 
-    return _get_latest_overall_time_slice_from_controversy( $db, $controversies_id );
+    return _get_latest_overall_time_slice_from_topic( $db, $topics_id );
 
     return $cdts;
 }

@@ -2,18 +2,18 @@ package MediaWords::CM::Dump;
 
 =head1 NAME
 
-MediaWords::CM::Dump - Dump and analyze controversy data
+MediaWords::CM::Dump - Dump and analyze topic data
 
 =head1 SYNOPSIS
 
-    # generate a new controversy dump -- this is run via mediawords_dump_controversy.pl once or each dump
-    dump_controversy( $db, $controversies_id );
+    # generate a new topic dump -- this is run via mediawords_dump_topic.pl once or each dump
+    dump_topic( $db, $topics_id );
 
-    # the rest of these examples are run each time we want to query controversy data
+    # the rest of these examples are run each time we want to query topic data
 
     # setup and query dump tables
     my $live = 1;
-    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $live );
+    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $topic, $live );
 
     # query data
     my $story_links = $db->query( "select * from dump_story_links" )->hashes;
@@ -27,9 +27,9 @@ MediaWords::CM::Dump - Dump and analyze controversy data
 
 =head1 DESCRIPTION
 
-Analyze a controversy and dump the controversy to snapshot tables and a gexf file.
+Analyze a topic and dump the topic to snapshot tables and a gexf file.
 
-For detailed explanation of the dump process, see doc/controversy_dumps.markdown.
+For detailed explanation of the dump process, see doc/topic_dumps.markdown.
 
 =cut
 
@@ -79,9 +79,9 @@ my $_media_static_gexf_attribute_types = {
     bitly_clicks => 'integer'
 };
 
-# all tables that the dump process snapshots for each controversy_dump
+# all tables that the dump process snapshots for each topic_dump
 my $_snapshot_tables = [
-    qw/controversy_stories controversy_links_cross_media controversy_media_codes
+    qw/topic_stories topic_links_cross_media topic_media_codes
       stories media stories_tags_map media_tags_map tags tag_sets/
 ];
 
@@ -115,20 +115,20 @@ sub set_temporary_table_tablespace
 # create all of the temporary dump* tables other than medium_links and story_links
 sub write_live_dump_tables
 {
-    my ( $db, $controversy, $cdts ) = @_;
+    my ( $db, $topic, $cdts ) = @_;
 
-    my $controversies_id;
-    if ( $controversy )
+    my $topics_id;
+    if ( $topic )
     {
-        $controversies_id = $controversy->{ controversies_id };
+        $topics_id = $topic->{ topics_id };
     }
     else
     {
-        my $cd = $db->find_by_id( 'controversy_dumps', $cdts->{ controversy_dumps_id } );
-        $controversies_id = $cd->{ controversies_id };
+        my $cd = $db->find_by_id( 'topic_dumps', $cdts->{ topic_dumps_id } );
+        $topics_id = $cd->{ topics_id };
     }
 
-    write_temporary_dump_tables( $db, $controversies_id );
+    write_temporary_dump_tables( $db, $topics_id );
     write_period_stories( $db, $cdts );
     write_story_link_counts_dump( $db, $cdts, 1 );
     write_story_links_dump( $db, $cdts, 1 );
@@ -151,7 +151,7 @@ sub create_temporary_dump_views
     {
         $db->query( <<END );
 create temporary view dump_$t as select * from cd.$t
-    where controversy_dumps_id = $cdts->{ controversy_dumps_id }
+    where topic_dumps_id = $cdts->{ topic_dumps_id }
 END
     }
 
@@ -159,7 +159,7 @@ END
     {
         $db->query( <<END )
 create temporary view dump_$t as select * from cd.$t
-    where controversy_dump_time_slices_id = $cdts->{ controversy_dump_time_slices_id }
+    where topic_dump_time_slices_id = $cdts->{ topic_dump_time_slices_id }
 END
     }
 
@@ -168,16 +168,16 @@ END
     add_media_type_views( $db );
 }
 
-=head2 setup_temporary_dump_tables( $db, $controversy_dump_time_slice, $controversy, $live )
+=head2 setup_temporary_dump_tables( $db, $topic_dump_time_slice, $topic, $live )
 
 Setup dump_* tables by either creating views for the relevant cd.* tables for a dump snapshot or by copying live data
 if $live is true.
 
-The following dump_tables are created that contain a copy of all relevant rows present in the controversy at the time
-the dump was created: dump_controversy_stories, dump_stories, dump_media, dump_controversy_links_cross_media,
+The following dump_tables are created that contain a copy of all relevant rows present in the topic at the time
+the dump was created: dump_topic_stories, dump_stories, dump_media, dump_topic_links_cross_media,
 dump_stories_tags_map, dump_stories_tags_map, dump_tag_sets, dump_media_with_types.  The data in each of these tables
-consists of data related to all of the stories in the entire controversy, not restricted to a specific time slice.  So
-dump_media includes all media including any story in the controversy, regardless of date.  Each of these tables consists
+consists of data related to all of the stories in the entire topic, not restricted to a specific time slice.  So
+dump_media includes all media including any story in the topic, regardless of date.  Each of these tables consists
 of the fields present in the dumped table.
 
 The following dump_tables are created that contain data relevant only to the specific time slice: dump_medium_links,
@@ -195,14 +195,14 @@ dump_story_link_counts: stories_id, inlink_count, outlink_count, citly_click_cou
 
 sub setup_temporary_dump_tables
 {
-    my ( $db, $cdts, $controversy, $live ) = @_;
+    my ( $db, $cdts, $topic, $live ) = @_;
 
     # postgres prints lots of 'NOTICE's when deleting temp tables
     $db->dbh->{ PrintWarn } = 0;
 
     if ( $live )
     {
-        MediaWords::CM::Dump::write_live_dump_tables( $db, $controversy, $cdts );
+        MediaWords::CM::Dump::write_live_dump_tables( $db, $topic, $cdts );
     }
     else
     {
@@ -230,9 +230,9 @@ sub restrict_period_stories_to_query_slice
 {
     my ( $db, $cdts ) = @_;
 
-    return unless ( $cdts->{ controversy_query_slices_id } );
+    return unless ( $cdts->{ topic_query_slices_id } );
 
-    my $qs = $db->find_by_id( 'controversy_query_slices', $cdts->{ controversy_query_slices_id } );
+    my $qs = $db->find_by_id( 'topic_query_slices', $cdts->{ topic_query_slices_id } );
 
     my $dump_period_stories_ids = $db->query( "select stories_id from dump_period_stories" )->flat;
 
@@ -312,7 +312,7 @@ END
 create temporary table dump_period_stories $_temporary_tablespace as
     select distinct s.stories_id
         from dump_stories s
-            left join dump_controversy_links_cross_media cl on ( cl.ref_stories_id = s.stories_id )
+            left join dump_topic_links_cross_media cl on ( cl.ref_stories_id = s.stories_id )
             left join dump_stories ss on ( cl.stories_id = ss.stories_id )
         where
             $date_where_clause
@@ -321,7 +321,7 @@ END
         $db->query( "drop view dump_undateable_stories" );
     }
 
-    if ( $cdts->{ controversy_query_slices_id } )
+    if ( $cdts->{ topic_query_slices_id } )
     {
         restrict_period_stories_to_query_slice( $db, $cdts );
     }
@@ -332,9 +332,9 @@ sub create_cdts_file
     my ( $db, $cdts, $file_name, $file_content ) = @_;
 
     my $cdts_file = {
-        controversy_dump_time_slices_id => $cdts->{ controversy_dump_time_slices_id },
-        file_name                       => $file_name,
-        file_content                    => $file_content
+        topic_dump_time_slices_id => $cdts->{ topic_dump_time_slices_id },
+        file_name                 => $file_name,
+        file_content              => $file_content
     };
 
     return $db->create( 'cdts_files', $cdts_file );
@@ -345,9 +345,9 @@ sub create_cd_file
     my ( $db, $cd, $file_name, $file_content ) = @_;
 
     my $cd_file = {
-        controversy_dumps_id => $cd->{ controversy_dumps_id },
-        file_name            => $file_name,
-        file_content         => $file_content
+        topic_dumps_id => $cd->{ topic_dumps_id },
+        file_name      => $file_name,
+        file_content   => $file_content
     };
 
     return $db->create( 'cd_files', $cd_file );
@@ -358,7 +358,7 @@ sub update_cdts
 {
     my ( $db, $cdts, $field, $val ) = @_;
 
-    $db->update_by_id( 'controversy_dump_time_slices', $cdts->{ controversy_dump_time_slices_id }, { $field => $val } );
+    $db->update_by_id( 'topic_dump_time_slices', $cdts->{ topic_dump_time_slices_id }, { $field => $val } );
 }
 
 =head2 get_story_links_csv( $db, $cdts )
@@ -404,7 +404,7 @@ sub write_story_links_dump
     $db->query( <<END );
 create temporary table dump_story_links $_temporary_tablespace as
     select distinct cl.stories_id source_stories_id, cl.ref_stories_id
-	    from dump_controversy_links_cross_media cl, dump_period_stories sps, dump_period_stories rps
+	    from dump_topic_links_cross_media cl, dump_period_stories sps, dump_period_stories rps
     	where cl.stories_id = sps.stories_id and
     	    cl.ref_stories_id = rps.stories_id
 END
@@ -429,12 +429,12 @@ sub get_stories_csv
 {
     my ( $db, $cdts ) = @_;
 
-    my $controversy = $db->query( <<END, $cdts->{ controversy_dumps_id } );
-select * from controversies c, controversy_dumps cd
-    where c.controversies_id = cd.controversies_id and cd.controversy_dumps_id = ?
+    my $topic = $db->query( <<END, $cdts->{ topic_dumps_id } );
+select * from topics c, topic_dumps cd
+    where c.topics_id = cd.topics_id and cd.topic_dumps_id = ?
 END
 
-    my $tagset_name = "Controversy $cdts->{ controversy_dump }->{ controversy }->{ name }";
+    my $tagset_name = "Controversy $cdts->{ topic_dump }->{ topic }->{ name }";
 
     my $tags = $db->query( <<END, $tagset_name )->hashes;
 select * from dump_tags t, dump_tag_sets ts
@@ -501,7 +501,7 @@ create temporary table dump_story_link_counts $_temporary_tablespace as
             left join
                 ( select cl.ref_stories_id,
                          count( distinct cl.stories_id ) inlink_count
-                  from dump_controversy_links_cross_media cl,
+                  from dump_topic_links_cross_media cl,
                        dump_period_stories ps
                   where cl.stories_id = ps.stories_id
                   group by cl.ref_stories_id
@@ -509,7 +509,7 @@ create temporary table dump_story_link_counts $_temporary_tablespace as
             left join
                 ( select cl.stories_id,
                          count( distinct cl.ref_stories_id ) outlink_count
-                  from dump_controversy_links_cross_media cl,
+                  from dump_topic_links_cross_media cl,
                        dump_period_stories ps
                   where cl.ref_stories_id = ps.stories_id
                   group by cl.stories_id
@@ -587,7 +587,7 @@ sub add_codes_to_dump_media
     my ( $db, $cdts, $media ) = @_;
 
     my $code_types = $db->query( <<END )->flat;
-select distinct code_type from dump_controversy_media_codes
+select distinct code_type from dump_topic_media_codes
 END
 
     my $code_fields = [];
@@ -598,7 +598,7 @@ END
         push( @{ $code_fields }, $label );
 
         my $media_codes = $db->query( <<END, $code_type )->hashes;
-select * from dump_controversy_media_codes where code_type = ?
+select * from dump_topic_media_codes where code_type = ?
 END
         my $media_codes_map = {};
         map { $media_codes_map->{ $_->{ media_id } } = $_->{ code } } @{ $media_codes };
@@ -839,7 +839,7 @@ sub get_color_hash_from_hex
 }
 
 # get a consistent color from MediaWords::Util::Colors.  convert to a color hash as needed by gexf.  translate
-# the set to a controversy specific color set value for get_consistent_color.
+# the set to a topic specific color set value for get_consistent_color.
 sub get_color
 {
     my ( $db, $cdts, $set, $id ) = @_;
@@ -851,7 +851,7 @@ sub get_color
     }
     else
     {
-        $color_set = "controversy_${set}_$cdts->{ controversy_dump }->{ controversies_id }";
+        $color_set = "topic_${set}_$cdts->{ topic_dump }->{ topics_id }";
     }
 
     $id ||= 'none';
@@ -944,7 +944,7 @@ sub layout_gexf
 
     print STDERR "generating gephi layout ...\n";
 
-    my $tmp_dir = File::Temp::tempdir( "dump_layout_$cdts->{ controversy_dump_time_slices_id }_XXXX" );
+    my $tmp_dir = File::Temp::tempdir( "dump_layout_$cdts->{ topic_dump_time_slices_id }_XXXX" );
 
     my $nolayout_path = "$tmp_dir/nolayout.gexf";
     my $layout_path   = "$tmp_dir/layout.gexf";
@@ -1148,7 +1148,7 @@ sub layout_gexf_with_graphviz_1
 
 =head2 get_gexf_dump( $db, $cdts, $color_field, $max_media )
 
-Get a gexf dump of the graph described by the linked media sources within the given controversy time slice.
+Get a gexf dump of the graph described by the linked media sources within the given topic time slice.
 
 Layout the graph using the gaphviz neato algorithm.
 
@@ -1188,10 +1188,10 @@ END
 
     push( @{ $meta->{ creator } }, 'Berkman Center' );
 
-    my $controversy = $cdts->{ controversy_dump }->{ controversy }
-      || $db->find_by_id( 'controversies', $cdts->{ controversy_dump }->{ controversies_id } );
+    my $topic = $cdts->{ topic_dump }->{ topic }
+      || $db->find_by_id( 'topics', $cdts->{ topic_dump }->{ topics_id } );
 
-    push( @{ $meta->{ description } }, "Media discussions of $controversy->{ name }" );
+    push( @{ $meta->{ description } }, "Media discussions of $topic->{ name }" );
 
     my $graph = {
         'mode'            => "static",
@@ -1227,7 +1227,7 @@ END
         };
 
         $medium->{ view_medium } =
-          "[_mc_base_url_]/admin/cm/medium/$medium->{ media_id }?cdts=$cdts->{ controversy_dump_time_slices_id }";
+          "[_mc_base_url_]/admin/cm/medium/$medium->{ media_id }?cdts=$cdts->{ topic_dump_time_slices_id }";
 
         my $j = 0;
         while ( my ( $name, $type ) = each( %{ $_media_static_gexf_attribute_types } ) )
@@ -1261,10 +1261,10 @@ END
     return $layout_gexf;
 }
 
-# return true if there are any stories in the current controversy_stories_dump_ table
+# return true if there are any stories in the current topic_stories_dump_ table
 sub stories_exist_for_period
 {
-    my ( $db, $controversy ) = @_;
+    my ( $db, $topic ) = @_;
 
     return $db->query( "select 1 from dump_period_stories" )->hash;
 }
@@ -1272,15 +1272,15 @@ sub stories_exist_for_period
 # dump csv of all links from one story to another in the given story's future
 sub write_post_dated_links_dump
 {
-    my ( $db, $controversy ) = @_;
+    my ( $db, $topic ) = @_;
 
-    write_dump_as_csv( $db, $controversy, 'controversy_post_dated_links_dump', <<END );
+    write_dump_as_csv( $db, $topic, 'topic_post_dated_links_dump', <<END );
 select count(*) post_dated_links, sb.stories_id, min( sb.url ) url, min( sb.publish_date ) publish_date
-    from stories sa, stories sb, controversy_links_cross_media cl
+    from stories sa, stories sb, topic_links_cross_media cl
     where sa.stories_id = cl.stories_id and sb.stories_id = cl.ref_stories_id and
         sa.publish_date < sb.publish_date - interval '1 day' and
         not ( sa.url like '%google.search%' ) and
-        cl.controversies_id = $controversy->{ controversies_id }
+        cl.topics_id = $topic->{ topics_id }
     group by sb.stories_id order by count(*) desc;
 END
 
@@ -1289,33 +1289,33 @@ END
 # dump csv of all stories linking to another in the given story's future
 sub write_post_dated_stories_dump
 {
-    my ( $db, $controversy ) = @_;
+    my ( $db, $topic ) = @_;
 
-    write_dump_as_csv( $db, $controversy, 'controversy_post_dated_stories_dump', <<END );
+    write_dump_as_csv( $db, $topic, 'topic_post_dated_stories_dump', <<END );
 select distinct sa.stories_id, sa.url, sa.publish_date,
         count(sa.stories_id) OVER (PARTITION BY sb.stories_id) post_dated_stories, sb.stories_id ref_stories_id,
         sb.url ref_url, sb.publish_date ref_publish_date
-    from stories sa, stories sb, controversy_links_cross_media cl
+    from stories sa, stories sb, topic_links_cross_media cl
     where sa.stories_id = cl.stories_id and sb.stories_id = cl.ref_stories_id and
         sa.publish_date < sb.publish_date - interval '1 day' and
         not ( sa.url like '%sopa.google.search%' ) and
-        cl.controversies_id = $controversy->{ controversies_id }
+        cl.topics_id = $topic->{ topics_id }
     order by post_dated_stories desc, sb.stories_id, sa.publish_date;
 END
 
 }
 
-# dump counts of distinct url domains for the last 1000 stories for each media source in the controversy
+# dump counts of distinct url domains for the last 1000 stories for each media source in the topic
 sub write_media_domains_dump
 {
-    my ( $db, $controversy ) = @_;
+    my ( $db, $topic ) = @_;
 
     my $res = $db->query( <<END );
 select m.* from media m
     where m.media_id in
-        ( select s.media_id from stories s, controversy_stories cs
+        ( select s.media_id from stories s, topic_stories cs
               where s.stories_id = cs.stories_id and
-                  cs.controversies_id = $controversy->{ controversies_id } )
+                  cs.topics_id = $topic->{ topics_id } )
     order by m.media_id
 END
 
@@ -1347,24 +1347,24 @@ END
     my $fields = [ shift( @{ $media_fields } ), ( 'num_domains', 'domain_counts' ), @{ $media_fields } ];
     my $csv_string = MediaWords::Util::CSV::get_hashes_as_encoded_csv( $media, $fields );
 
-    write_dump_file( $controversy, 'controversy_media_domains', 'csv', $csv_string );
+    write_dump_file( $topic, 'topic_media_domains', 'csv', $csv_string );
 }
 
 # generate list of all stories with duplicate titles, sorted by title
 sub write_dup_stories_dump
 {
-    my ( $db, $controversy ) = @_;
+    my ( $db, $topic ) = @_;
 
-    write_dump_as_csv( $db, $controversy, 'controversy_dup_stories_dump', <<END );
+    write_dump_as_csv( $db, $topic, 'topic_dup_stories_dump', <<END );
 select sa.title, sa.stories_id stories_id_a, sa.publish_date publish_date_a, sa.url story_url_a,
         sa.media_id media_id_a, ma.url media_url_a, ma.name media_name_a,
         sb.stories_id stories_id_b, sb.publish_date publish_date_b, sb.url story_url_b,
         sb.media_id media_id_b, mb.url media_url_b, mb.name media_name_b
-    from controversy_stories csa, stories sa, media ma,
-        controversy_stories csb, stories sb, media mb
-    where csa.controversies_id = $controversy->{ controversies_id } and
+    from topic_stories csa, stories sa, media ma,
+        topic_stories csb, stories sb, media mb
+    where csa.topics_id = $topic->{ topics_id } and
         csa.stories_id = sa.stories_id and sa.media_id = ma.media_id and
-        csb.controversies_id = csa.controversies_id and
+        csb.topics_id = csa.topics_id and
         csb.stories_id = sb.stories_id and sb.media_id = mb.media_id and
         sa.stories_id > sb.stories_id and sa.title = sb.title and
         length( sa.title ) > 16
@@ -1372,25 +1372,25 @@ select sa.title, sa.stories_id stories_id_a, sa.publish_date publish_date_a, sa.
 END
 }
 
-sub create_controversy_dump_time_slice ($$$$$$)
+sub create_topic_dump_time_slice ($$$$$$)
 {
     my ( $db, $cd, $start_date, $end_date, $period, $query_slice ) = @_;
 
     my $cdts = {
-        controversy_dumps_id        => $cd->{ controversy_dumps_id },
-        start_date                  => $start_date,
-        end_date                    => $end_date,
-        period                      => $period,
-        story_count                 => 0,
-        story_link_count            => 0,
-        medium_count                => 0,
-        medium_link_count           => 0,
-        controversy_query_slices_id => $query_slice ? $query_slice->{ controversy_query_slices_id } : undef
+        topic_dumps_id        => $cd->{ topic_dumps_id },
+        start_date            => $start_date,
+        end_date              => $end_date,
+        period                => $period,
+        story_count           => 0,
+        story_link_count      => 0,
+        medium_count          => 0,
+        medium_link_count     => 0,
+        topic_query_slices_id => $query_slice ? $query_slice->{ topic_query_slices_id } : undef
     };
 
-    $cdts = $db->create( 'controversy_dump_time_slices', $cdts );
+    $cdts = $db->create( 'topic_dump_time_slices', $cdts );
 
-    $cdts->{ controversy_dump } = $cd;
+    $cdts->{ topic_dump } = $cd;
 
     return $cdts;
 }
@@ -1412,7 +1412,7 @@ sub generate_cdts_data ($$;$)
 
 =head2 update_cdts_counts( $db, $cdts, $live )
 
-Update story_count, story_link_count, medium_count, and medium_link_count fields in the controversy_dump_time_slice
+Update story_count, story_link_count, medium_count, and medium_link_count fields in the topic_dump_time_slice
 hash.  This must be called after setup_temporary_dump_tables() to get access to these fields in the cdts hash.
 
 Save to db unless $live is specified.
@@ -1444,7 +1444,7 @@ sub generate_cdts ($$$$$$)
 {
     my ( $db, $cd, $start_date, $end_date, $period, $query_slice ) = @_;
 
-    my $cdts = create_controversy_dump_time_slice( $db, $cd, $start_date, $end_date, $period, $query_slice );
+    my $cdts = create_topic_dump_time_slice( $db, $cd, $start_date, $end_date, $period, $query_slice );
 
     my $dump_label = "${ period }: ${ start_date } - ${ end_date } ";
     $dump_label .= "[ $query_slice->{ name } ]" if ( $query_slice );
@@ -1491,19 +1491,19 @@ sub truncate_to_start_of_month ($)
     return MediaWords::Util::SQL::increment_day( $date, -1 * $days_offset );
 }
 
-# generate dumps for the periods in controversy_dates
+# generate dumps for the periods in topic_dates
 sub generate_custom_period_dump ($$$ )
 {
     my ( $db, $cd, $query_slice ) = @_;
 
-    my $controversy_dates = $db->query( <<END, $cd->{ controversies_id } )->hashes;
-select * from controversy_dates where controversies_id = ? order by start_date, end_date
+    my $topic_dates = $db->query( <<END, $cd->{ topics_id } )->hashes;
+select * from topic_dates where topics_id = ? order by start_date, end_date
 END
 
-    for my $controversy_date ( @{ $controversy_dates } )
+    for my $topic_date ( @{ $topic_dates } )
     {
-        my $start_date = $controversy_date->{ start_date };
-        my $end_date   = $controversy_date->{ end_date };
+        my $start_date = $topic_date->{ start_date };
+        my $end_date   = $topic_date->{ end_date };
         generate_cdts( $db, $cd, $start_date, $end_date, 'custom', $query_slice );
     }
 }
@@ -1559,13 +1559,13 @@ sub generate_period_dump ($$$$)
     }
 }
 
-# get default start and end dates from the query associated with the query_stories_search associated with the controversy
+# get default start and end dates from the query associated with the query_stories_search associated with the topic
 sub get_default_dates
 {
-    my ( $db, $controversy ) = @_;
+    my ( $db, $topic ) = @_;
 
-    my ( $start_date, $end_date ) = $db->query( <<END, $controversy->{ controversies_id } )->flat;
-select min( cd.start_date ), max( cd.end_date ) from controversy_dates cd where cd.controversies_id = ?
+    my ( $start_date, $end_date ) = $db->query( <<END, $topic->{ topics_id } )->flat;
+select min( cd.start_date ), max( cd.end_date ) from topic_dates cd where cd.topics_id = ?
 END
 
     die( "Unable to find default dates" ) unless ( $start_date && $end_date );
@@ -1578,14 +1578,14 @@ END
 # a while to run, so we only want to generate them if needed
 sub write_cleanup_dumps
 {
-    my ( $db, $controversy ) = @_;
+    my ( $db, $topic ) = @_;
 
     set_dump_label( 'cleanup' );
 
-    write_post_dated_links_dump( $db, $controversy );
-    write_post_dated_stories_dump( $db, $controversy );
-    write_media_domains_dump( $db, $controversy );
-    write_dup_stories_dump( $db, $controversy );
+    write_post_dated_links_dump( $db, $topic );
+    write_post_dated_stories_dump( $db, $topic );
+    write_media_domains_dump( $db, $topic );
+    write_dup_stories_dump( $db, $topic );
 }
 
 # create temporary table copies of temporary tables so that we can copy
@@ -1651,49 +1651,49 @@ END
 
 }
 
-# create a snapshot of a table for a controversy_dump_time_slice
+# create a snapshot of a table for a topic_dump_time_slice
 sub create_cdts_snapshot
 {
     my ( $db, $cdts, $table ) = @_;
 
-    create_snapshot( $db, $cdts, 'controversy_dump_time_slices_id', $table );
+    create_snapshot( $db, $cdts, 'topic_dump_time_slices_id', $table );
 }
 
-# create a snapshot of a table for a controversy_dump
+# create a snapshot of a table for a topic_dump
 sub create_cd_snapshot
 {
     my ( $db, $cd, $table ) = @_;
 
-    create_snapshot( $db, $cd, 'controversy_dumps_id', $table );
+    create_snapshot( $db, $cd, 'topic_dumps_id', $table );
 }
 
-# generate temporary dump_* tables for the specified controversy_dump for each of the snapshot_tables.
-# these are the tables that apply to the whole controversy_dump.
+# generate temporary dump_* tables for the specified topic_dump for each of the snapshot_tables.
+# these are the tables that apply to the whole topic_dump.
 sub write_temporary_dump_tables
 {
-    my ( $db, $controversies_id ) = @_;
+    my ( $db, $topics_id ) = @_;
 
     set_temporary_table_tablespace();
 
-    $db->query( <<END, $controversies_id );
-create temporary table dump_controversy_stories $_temporary_tablespace as
+    $db->query( <<END, $topics_id );
+create temporary table dump_topic_stories $_temporary_tablespace as
     select cs.*
-        from controversy_stories cs
-        where cs.controversies_id = ?
+        from topic_stories cs
+        where cs.topics_id = ?
 END
 
-    $db->query( <<END, $controversies_id );
-create temporary table dump_controversy_media_codes $_temporary_tablespace as
+    $db->query( <<END, $topics_id );
+create temporary table dump_topic_media_codes $_temporary_tablespace as
     select cmc.*
-        from controversy_media_codes cmc
-        where cmc.controversies_id = ?
+        from topic_media_codes cmc
+        where cmc.topics_id = ?
 END
 
-    $db->query( <<END, $controversies_id );
+    $db->query( <<END, $topics_id );
 create temporary table dump_stories $_temporary_tablespace as
     select s.stories_id, s.media_id, s.url, s.guid, s.title, s.publish_date, s.collect_date, s.full_text_rss, s.language
         from cd.live_stories s
-            join dump_controversy_stories dcs on ( s.stories_id = dcs.stories_id and s.controversies_id = ? )
+            join dump_topic_stories dcs on ( s.stories_id = dcs.stories_id and s.topics_id = ? )
 END
 
     $db->query( <<END );
@@ -1702,16 +1702,16 @@ create temporary table dump_media $_temporary_tablespace as
         where m.media_id in ( select media_id from dump_stories )
 END
 
-    $db->query( <<END, $controversies_id );
-create temporary table dump_controversy_links_cross_media $_temporary_tablespace as
-    select s.stories_id, r.stories_id ref_stories_id, cl.url, cs.controversies_id, cl.controversy_links_id
-        from controversy_links cl
-            join dump_controversy_stories cs on ( cs.stories_id = cl.ref_stories_id )
+    $db->query( <<END, $topics_id );
+create temporary table dump_topic_links_cross_media $_temporary_tablespace as
+    select s.stories_id, r.stories_id ref_stories_id, cl.url, cs.topics_id, cl.topic_links_id
+        from topic_links cl
+            join dump_topic_stories cs on ( cs.stories_id = cl.ref_stories_id )
             join dump_stories s on ( cl.stories_id = s.stories_id )
             join dump_media sm on ( s.media_id = sm.media_id )
             join dump_stories r on ( cl.ref_stories_id = r.stories_id )
             join dump_media rm on ( r.media_id= rm.media_id )
-        where cl.controversies_id = ? and r.media_id <> s.media_id
+        where cl.topics_id = ? and r.media_id <> s.media_id
 END
 
     $db->query( <<END );
@@ -1761,8 +1761,8 @@ sub add_media_type_views
 
     $db->query( <<END );
 create or replace view dump_media_with_types as
-    with controversies_id as (
-        select controversies_id from dump_controversy_stories limit 1
+    with topics_id as (
+        select topics_id from dump_topic_stories limit 1
     )
 
     select
@@ -1785,8 +1785,8 @@ create or replace view dump_media_with_types as
             left join (
                 dump_tags ct
                 join dump_media_tags_map cmtm on ( cmtm.tags_id = ct.tags_id )
-                join controversies c on ( c.media_type_tag_sets_id = ct.tag_sets_id )
-                join controversies_id cid on ( c.controversies_id = cid.controversies_id )
+                join topics c on ( c.media_type_tag_sets_id = ct.tag_sets_id )
+                join topics_id cid on ( c.topics_id = cid.topics_id )
             ) on ( m.media_id = cmtm.media_id )
 END
 
@@ -1808,19 +1808,19 @@ sub generate_snapshots_from_temporary_dump_tables
     map { create_cd_snapshot( $db, $cd, $_ ) } @{ $_snapshot_tables };
 }
 
-# create the controversy_dump row for the current dump
-sub create_controversy_dump ($$$$)
+# create the topic_dump row for the current dump
+sub create_topic_dump ($$$$)
 {
-    my ( $db, $controversy, $start_date, $end_date ) = @_;
+    my ( $db, $topic, $start_date, $end_date ) = @_;
 
-    my $cd = $db->query( <<END, $controversy->{ controversies_id }, $start_date, $end_date )->hash;
-insert into controversy_dumps
-    ( controversies_id, start_date, end_date, dump_date )
+    my $cd = $db->query( <<END, $topic->{ topics_id }, $start_date, $end_date )->hash;
+insert into topic_dumps
+    ( topics_id, start_date, end_date, dump_date )
     values ( ?, ?, ?, now() )
     returning *
 END
 
-    $cd->{ controversy } = $controversy;
+    $cd->{ topic } = $topic;
 
     return $cd;
 }
@@ -1856,40 +1856,39 @@ sub get_periods ($)
     return ( $period eq 'all' ) ? $all_periods : [ $period ];
 }
 
-=head2 dump_controversy( $db, $controversies_id )
+=head2 dump_topic( $db, $topics_id )
 
-Create a controversy_dump for the given controversy.
+Create a topic_dump for the given topic.
 
 =cut
 
-sub dump_controversy ($$)
+sub dump_topic ($$)
 {
-    my ( $db, $controversies_id ) = @_;
+    my ( $db, $topics_id ) = @_;
 
     my $periods = [ qw(custom overall weekly monthly) ];
 
-    my $controversy = $db->find_by_id( 'controversies', $controversies_id )
-      || die( "Unable to find controversy '$controversies_id'" );
+    my $topic = $db->find_by_id( 'topics', $topics_id )
+      || die( "Unable to find topic '$topics_id'" );
 
     $db->dbh->{ PrintWarn } = 0;    # avoid noisy, extraneous postgres notices from drops
 
     # Log activity that's about to start
     my $changes = {};
-    unless (
-        MediaWords::DBI::Activities::log_system_activity( $db, 'cm_dump_controversy', $controversies_id + 0, $changes ) )
+    unless ( MediaWords::DBI::Activities::log_system_activity( $db, 'cm_dump_topic', $topics_id + 0, $changes ) )
     {
-        die "Unable to log the 'cm_dump_controversy' activity.";
+        die "Unable to log the 'cm_dump_topic' activity.";
     }
 
-    my ( $start_date, $end_date ) = get_default_dates( $db, $controversy );
+    my ( $start_date, $end_date ) = get_default_dates( $db, $topic );
 
-    my $query_slices = $db->query( <<SQL, $controversy->{ controversies_id } )->hashes;
-select * from controversy_query_slices where controversies_id = ?
+    my $query_slices = $db->query( <<SQL, $topic->{ topics_id } )->hashes;
+select * from topic_query_slices where topics_id = ?
 SQL
 
-    my $cd = create_controversy_dump( $db, $controversy, $start_date, $end_date );
+    my $cd = create_topic_dump( $db, $topic, $start_date, $end_date );
 
-    write_temporary_dump_tables( $db, $controversy->{ controversies_id } );
+    write_temporary_dump_tables( $db, $topic->{ topics_id } );
 
     generate_snapshots_from_temporary_dump_tables( $db, $cd );
 
@@ -1906,7 +1905,7 @@ SQL
 
     analyze_snapshot_tables( $db );
 
-    # write_cleanup_dumps( $db, $controversy ) if ( $cleanup_data );
+    # write_cleanup_dumps( $db, $topic ) if ( $cleanup_data );
 }
 
 1;

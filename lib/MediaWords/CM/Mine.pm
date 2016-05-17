@@ -2,15 +2,15 @@ package MediaWords::CM::Mine;
 
 =head1 NAME
 
-MediaWords::CM::Mine - controversy spider implementation
+MediaWords::CM::Mine - topic spider implementation
 
 =head1 SYNOPSIS
 
-    MediaWords::CM::Mine::mine_controversy( $db, $options );
+    MediaWords::CM::Mine::mine_topic( $db, $options );
 
 =head1 DESCRIPTION
 
-The controversy mining process is described in doc/controversy_mining.markdown.
+The topic mining process is described in doc/topic_mining.markdown.
 
 =cut
 
@@ -288,11 +288,11 @@ sub get_links_from_story
     return [ values( %{ $link_lookup } ) ];
 }
 
-# return true if the publish date of the story is within 7 days of the controversy date range or if the
+# return true if the publish date of the story is within 7 days of the topic date range or if the
 # story is undateable
-sub story_within_controversy_date_range
+sub story_within_topic_date_range
 {
-    my ( $db, $controversy, $story ) = @_;
+    my ( $db, $topic, $story ) = @_;
 
     my $story_date = substr( $story->{ publish_date }, 0, 10 );
 
