@@ -32,7 +32,7 @@ sub stories : Chained('apibase') : PathPart('stories') : CaptureArgs(0)
 
 }
 
-sub list : Chained('stories') : Args(0) : ActionClass('REST')
+sub list : Chained('stories') : Args(0) : ActionClass('MC_REST')
 {
 
 }

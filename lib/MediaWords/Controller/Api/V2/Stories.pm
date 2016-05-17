@@ -61,7 +61,7 @@ sub single_GET : Local
     $self->SUPER::single_GET( @_ );
 }
 
-sub put_tags : Local : ActionClass('REST')
+sub put_tags : Local : ActionClass('MC_REST')
 {
 }
 
@@ -251,7 +251,7 @@ sub fetch_bitly_clicks : Local
     $c->response->body( $json );
 }
 
-sub cluster_stories : Local : ActionClass('REST')
+sub cluster_stories : Local : ActionClass('MC_REST')
 {
 
 }

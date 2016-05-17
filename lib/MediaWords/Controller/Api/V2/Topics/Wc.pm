@@ -30,7 +30,7 @@ sub wc : Chained('apibase') : PathPart('wc') : CaptureArgs(0)
 
 }
 
-sub list : Chained('wc') : Args(0) : ActionClass('REST')
+sub list : Chained('wc') : Args(0) : ActionClass('MC_REST')
 {
 
 }
