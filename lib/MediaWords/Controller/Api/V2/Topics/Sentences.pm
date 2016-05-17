@@ -1,4 +1,4 @@
-package MediaWords::Controller::Api::V2::Topics::Sentence;
+package MediaWords::Controller::Api::V2::Topics::Sentences;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 use Data::Dumper;
@@ -26,12 +26,12 @@ sub apibase : Chained('/') : PathPart('api/v2/topics') : CaptureArgs(1)
     $c->stash->{ topic_id } = $topic_id;
 }
 
-sub sentence : Chained('apibase') : PathPart('sentence') : CaptureArgs(0)
+sub sentences : Chained('apibase') : PathPart('sentences') : CaptureArgs(0)
 {
 
 }
 
-sub count : Chained('sentence') : Args(0) : ActionClass('REST')
+sub count : Chained('sentences') : Args(0) : ActionClass('REST')
 {
 
 }
