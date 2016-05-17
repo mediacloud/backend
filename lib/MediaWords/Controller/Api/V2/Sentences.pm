@@ -250,11 +250,6 @@ sub count_GET : Local
     $self->status_ok( $c, entity => $response );
 }
 
-# sub count_POST : Local
-# {
-#     return $_[ 0 ]->count_GET( $_[ 1 ] );
-# }
-
 ##TODO merge with stories put_tags
 sub put_tags : Local : ActionClass('MC_REST')
 {
