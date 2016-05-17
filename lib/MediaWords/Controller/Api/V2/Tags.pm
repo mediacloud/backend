@@ -98,7 +98,7 @@ END
     return $self->SUPER::_fetch_list( $c, $last_id, $table_name, $id_field, $rows );
 }
 
-sub update : Local : ActionClass('REST')
+sub update : Local : ActionClass('MC_REST')
 {
 }
 

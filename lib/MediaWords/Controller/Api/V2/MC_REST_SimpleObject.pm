@@ -26,7 +26,7 @@ Catalyst Controller.
 
 =cut
 
-=head2 index 
+=head2 index
 
 =cut
 
@@ -147,7 +147,7 @@ sub _process_result_list
     return $items;
 }
 
-sub single : Local : ActionClass('REST')    # action roles are to be set for each derivative sub-actions
+sub single : Local : ActionClass('MC_REST')    # action roles are to be set for each derivative sub-actions
 {
 }
 
@@ -272,12 +272,12 @@ sub _fetch_list($$$$$$)
     my $order_by_clause     = $self->order_by_clause || "$id_field asc";
 
     my $query = <<END;
-select * 
-    from $table_name 
-    where 
-        $id_field > ? $name_clause 
-        $extra_where_clause 
-        $filter_field_clause 
+select *
+    from $table_name
+    where
+        $id_field > ? $name_clause
+        $extra_where_clause
+        $filter_field_clause
     order by $order_by_clause limit ?
 END
 
@@ -299,7 +299,7 @@ sub _get_list_last_id_param_name
     return $last_id_param_name;
 }
 
-sub list : Local : ActionClass('REST')    # action roles are to be set for each derivative sub-actions
+sub list : Local : ActionClass('MC_REST')    # action roles are to be set for each derivative sub-actions
 {
 }
 
@@ -575,11 +575,11 @@ END
         $c->dbis->query( $disable_triggers_query, MediaWords::DB::story_triggers_disabled(), $id );
 
         my $query = <<END;
-INSERT INTO $tags_map_table ( $table_id_name, tags_id) 
+INSERT INTO $tags_map_table ( $table_id_name, tags_id)
     select \$1, \$2
         where not exists (
-            select 1 
-                from $tags_map_table 
+            select 1
+                from $tags_map_table
                 where $table_id_name = \$1 and
                     tags_id = \$2
         )
