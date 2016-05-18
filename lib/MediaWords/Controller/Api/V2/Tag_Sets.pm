@@ -24,7 +24,7 @@ sub get_table_name
     return "tag_sets";
 }
 
-sub update : Local : ActionClass('REST')
+sub update : Local : ActionClass('MC_REST')
 {
 }
 

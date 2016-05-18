@@ -32,7 +32,8 @@ interfaces:
 1. Web interface that is available on http://127.0.0.1:5000/admin/users/list,
 2. CLI Perl script located at `./script/mediawords_manage_users.pl`.
 
-The user management web interface is self explaining.
+The user management web interface (click on the `Users` link at the top of every page on the web app)
+is mostly self explaining.
 
 For the information on how to use the user management CLI Perl script, please
 open script with a text editor and read the documentation on the top of the
@@ -45,3 +46,19 @@ or
 
     # user manager action's help
     ./script/run_with_carton.sh ./script/mediawords_manage_users.pl --action=...
+
+Authorization code
+-------------------
+
+To edit which web pages require which roles, edit (lib/MediaWords.pm)[../lib/MediaWords.pm].
+
+Supporting tables
+-----------------
+
+The auth code uses the following underlying tables, which define the users and their roles and also track user
+api requests:
+
+* auth_users - list of users
+* auth_roles - list of auth roles
+* auth_user_requests - tracks api requests
+* auth_users_tag_set_permissions - tracks which users are allowed to edit which tag sets

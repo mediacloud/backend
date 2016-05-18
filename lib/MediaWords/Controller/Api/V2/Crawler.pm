@@ -41,7 +41,7 @@ __PACKAGE__->config(    #
       }    #
 );         #
 
-sub add_feed_download : Local : ActionClass('REST')
+sub add_feed_download : Local : ActionClass('MC_REST')
 {
 }
 
