@@ -39,29 +39,29 @@ sub _random_corenlp_story_ids($$)
                    MAX(stories_id) - MIN(stories_id) AS id_span
             FROM stories
         )
-        SELECT stories_id
+        SELECT random_stories_id
         FROM (
-            SELECT p.min_id + TRUNC(RANDOM() * p.id_span)::integer AS stories_id
+            SELECT p.min_id + TRUNC(RANDOM() * p.id_span)::integer AS random_stories_id
             
             -- story count + buffer
-            FROM params p, GENERATE_SERIES(1, FLOOR($1 * 2.0)) AS g
+            FROM params p, GENERATE_SERIES(1, FLOOR($1 * 2.0)::integer) AS g
 
             -- trim duplicates
             GROUP BY 1
             ) r
-        JOIN stories USING (stories_id)
-            WHERE stories.language = 'en' OR stories.language IS NULL
-              AND EXISTS (
+        INNER JOIN stories ON stories.stories_id = random_stories_id
+            AND ( stories.language = 'en' OR stories.language IS NULL )
+            AND EXISTS (
                 SELECT 1
                 FROM media
                 WHERE media.annotate_with_corenlp = 't'
-                  AND media_id = stories_id
-              )
-              AND EXISTS (
+                  AND media.media_id = stories.media_id
+            )
+            AND EXISTS (
                 SELECT 1
                 FROM story_sentences
-                WHERE story_sentences.stories_id = stories_id
-              )
+                WHERE story_sentences.stories_id = stories.stories_id
+            )
 
         -- trim surplus
         LIMIT $1
@@ -81,7 +81,7 @@ sub _benchmark_corenlp_annotation($)
     MediaWords::Job::AnnotateWithCoreNLP->run_remotely( { stories_id => $stories_id } );
     my $end = Time::HiRes::gettimeofday();
 
-    return { elapsed => $end - $start };
+    return { stories_id => $stories_id, elapsed => $end - $start };
 }
 
 sub main
@@ -134,14 +134,16 @@ sub main
             LOGDIE( "Error while annotating story: " . $ref->{ ERROR } );
         }
 
+        my $stories_id = $ref->{ stories_id };
+        my $elapsed    = $ref->{ elapsed };
+
         ++$stories_annotated;
-        my $elapsed = $ref->{ elapsed };
         $total_elapsed += $elapsed;
 
         INFO(
             sprintf(
-                "Story %d / %d annotated in: %.2f s, total elapsed time: %.2f s",
-                $stories_annotated, $story_count, $elapsed, $total_elapsed
+                "Story %d / %d (stories_id = %d) annotated in: %.2f s, total elapsed time: %.2f s",
+                $stories_annotated, $story_count, $stories_id, $elapsed, $total_elapsed
             )
         );
     }
