@@ -44,7 +44,7 @@ sub _random_corenlp_story_ids($$)
             SELECT p.min_id + TRUNC(RANDOM() * p.id_span)::integer AS random_stories_id
             
             -- story count + buffer
-            FROM params p, GENERATE_SERIES(1, FLOOR($1 * 2.0)::integer) AS g
+            FROM params p, GENERATE_SERIES(1, FLOOR($1 * 6.0)::integer) AS g
 
             -- trim duplicates
             GROUP BY 1
@@ -125,6 +125,8 @@ sub main
     INFO( "Waiting for story jobs to complete..." );
     my $total_elapsed = 0;
 
+    my $start = Time::HiRes::gettimeofday();
+
     my $stories_annotated = 0;
     while ( $bw->pending() )
     {
@@ -140,10 +142,12 @@ sub main
         ++$stories_annotated;
         $total_elapsed += $elapsed;
 
+        my $end = Time::HiRes::gettimeofday();
+
         INFO(
             sprintf(
-                "Story %d / %d (stories_id = %d) annotated in: %.2f s, total elapsed time: %.2f s",
-                $stories_annotated, $story_count, $stories_id, $elapsed, $total_elapsed
+                "Story %d / %d (stories_id = %d) annotated in: %.2f s, total annotation time: %.2f s, total time: %.2f",
+                $stories_annotated, $story_count, $stories_id, $elapsed, $total_elapsed, ( $end - $start )
             )
         );
     }
@@ -154,12 +158,15 @@ sub main
         LOGDIE( "Not all stories have been annotated (annotated: $stories_annotated; total: $story_count" );
     }
 
+    my $end = Time::HiRes::gettimeofday();
+
     INFO( "All stories have been annotated." );
 
     INFO(
         sprintf(
-            "Workers: %d; stories: %d; total time: %.2f; time per story: %.2f",
-            $worker_count, $story_count, $total_elapsed, $total_elapsed / $story_count
+            "Workers: %d; stories: %d; total annotation time: %.2f (per story: %.2f); total time: %.2f (per story: %.2f)",
+            $worker_count, $story_count, $total_elapsed,
+            $total_elapsed / $story_count, ( $end - $start ), ( $end - $start ) / $story_count
         )
     );
 }
