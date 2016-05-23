@@ -176,7 +176,10 @@ fi
 
 # On Ctrl+C, shutdown RabbitMQ
 function kill_rabbitmq {
-    jobs -p | xargs kill
+    echo "Killing RabbitMQ at group PID $RABBITMQ_PID..."
+    pkill -P $RABBITMQ_PID
+    echo "Killing other background processess..."
+    jobs -p | xargs pkill -P
 }
 trap kill_rabbitmq SIGINT
 
@@ -201,10 +204,10 @@ for i in `seq 1 $RABBITMQ_START_RETRIES`; do
 done
 
 if [ $RABBITMQ_IS_UP = 1 ]; then
-    echo "RabbitMQ is up."
+    echo "RabbitMQ is up at PID $RABBITMQ_PID."
 else
     echo "RabbitMQ is down after $RABBITMQ_START_RETRIES seconds, giving up."
-    kill -9 $RABBITMQ_PID
+    pkill -9 -P $RABBITMQ_PID
     exit 1
 fi
 
