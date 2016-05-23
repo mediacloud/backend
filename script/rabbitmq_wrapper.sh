@@ -178,8 +178,6 @@ fi
 function kill_rabbitmq {
     echo "Killing RabbitMQ at group PID $RABBITMQ_PID..."
     pkill -P $RABBITMQ_PID
-    echo "Killing other background processess..."
-    jobs -p | xargs pkill -P
 }
 trap kill_rabbitmq SIGINT
 
