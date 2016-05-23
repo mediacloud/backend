@@ -111,6 +111,26 @@ else
     fi
 fi
 
+echo "Looking for binaries..."
+if [ `uname` == 'Darwin' ]; then
+    PATH_TO_RABBITMQ_SERVER="/usr/local/sbin/rabbitmq-server"
+    PATH_TO_RABBITMQCTL="/usr/local/sbin/rabbitmqctl"
+else
+    # Ubuntu has a wrapper script under /usr/sbin that insists we run RabbitMQ
+    # as root, but we don't want that
+    PATH_TO_RABBITMQ_SERVER="/usr/lib/rabbitmq/bin/rabbitmq-server"
+    PATH_TO_RABBITMQCTL="/usr/lib/rabbitmq/bin/rabbitmqctl"
+fi
+if [ ! -x "$PATH_TO_RABBITMQ_SERVER" ]; then 
+    log "Unable to find (execute) rabbitmq-server under $PATH_TO_RABBITMQ_SERVER."
+    exit 1
+fi
+if [ ! -x "$PATH_TO_RABBITMQCTL" ]; then
+    log "Unable to find (execute) rabbitmqctl under $PATH_TO_RABBITMQCTL."
+    exit 1
+fi
+
+
 echo "Reading configuration..."
 
 # (scope of the following exports is local)
@@ -161,7 +181,7 @@ function kill_rabbitmq {
 trap kill_rabbitmq SIGINT
 
 echo "Starting rabbitmq-server..."
-rabbitmq-server &
+$PATH_TO_RABBITMQ_SERVER &
 RABBITMQ_PID=$!
 
 echo "Waiting for RabbitMQ to start..."
@@ -191,18 +211,18 @@ fi
 echo "Reconfiguring instance..."
 
 # Create vhost and user
-CURRENT_VHOSTS=`rabbitmqctl -n "$RABBITMQ_NODENAME" list_vhosts | tail -n +2 | awk '{ print $1 }'`
+CURRENT_VHOSTS=`$PATH_TO_RABBITMQCTL -n "$RABBITMQ_NODENAME" list_vhosts | tail -n +2 | awk '{ print $1 }'`
 if ! echo "$CURRENT_VHOSTS" | grep -Fxq "$RABBITMQ_VHOST"; then
-    rabbitmqctl -n "$RABBITMQ_NODENAME" add_vhost "$RABBITMQ_VHOST"
+    $PATH_TO_RABBITMQCTL -n "$RABBITMQ_NODENAME" add_vhost "$RABBITMQ_VHOST"
 fi
 
-CURRENT_USERS=`rabbitmqctl -n "$RABBITMQ_NODENAME" list_users | tail -n +2 | awk '{ print $1 }'`
+CURRENT_USERS=`$PATH_TO_RABBITMQCTL -n "$RABBITMQ_NODENAME" list_users | tail -n +2 | awk '{ print $1 }'`
 if ! echo "$CURRENT_USERS" | grep -Fxq "$RABBITMQ_USERNAME"; then
-    rabbitmqctl -n "$RABBITMQ_NODENAME" add_user "$RABBITMQ_USERNAME" "$RABBITMQ_PASSWORD"
+    $PATH_TO_RABBITMQCTL -n "$RABBITMQ_NODENAME" add_user "$RABBITMQ_USERNAME" "$RABBITMQ_PASSWORD"
 fi
 
-rabbitmqctl -n "$RABBITMQ_NODENAME" set_user_tags "$RABBITMQ_USERNAME" "administrator"
-rabbitmqctl -n "$RABBITMQ_NODENAME" set_permissions -p "$RABBITMQ_VHOST" "$RABBITMQ_USERNAME" ".*" ".*" ".*"
+$PATH_TO_RABBITMQCTL -n "$RABBITMQ_NODENAME" set_user_tags "$RABBITMQ_USERNAME" "administrator"
+$PATH_TO_RABBITMQCTL -n "$RABBITMQ_NODENAME" set_permissions -p "$RABBITMQ_VHOST" "$RABBITMQ_USERNAME" ".*" ".*" ".*"
 
 # Wait forever
 echo "RabbitMQ is ready"
