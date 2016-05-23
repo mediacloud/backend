@@ -148,6 +148,12 @@ if [ ! -d "$RABBITMQ_LOG_BASE" ]; then
     exit 1    
 fi
 
+export RABBITMQ_ENABLED_PLUGINS_FILE="${RABBITMQ_BASE}/enabled_plugins"
+if [ ! -f "${RABBITMQ_ENABLED_PLUGINS_FILE}" ]; then
+    log "RabbitMQ enabled plugins file '$RABBITMQ_ENABLED_PLUGINS_FILE' does not exist."
+    exit 1
+fi
+
 # On Ctrl+C, shutdown RabbitMQ
 function kill_rabbitmq {
     jobs -p | xargs kill
@@ -183,9 +189,6 @@ else
 fi
 
 echo "Reconfiguring instance..."
-
-# Enable web management (if not yet enabled)
-rabbitmq-plugins -n "$RABBITMQ_NODENAME" enable rabbitmq_management
 
 # Create user and vhost
 rabbitmqadmin --node="$RABBITMQ_NODENAME" --port="$RABBITMQ_WEB_INTERFACE_PORT" \
