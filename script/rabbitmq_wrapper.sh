@@ -190,19 +190,19 @@ fi
 
 echo "Reconfiguring instance..."
 
-# Create user and vhost
-rabbitmqadmin --node="$RABBITMQ_NODENAME" --port="$RABBITMQ_WEB_INTERFACE_PORT" \
-    --username="$RABBITMQ_USERNAME" --password="$RABBITMQ_PASSWORD" \
-    declare vhost name="$RABBITMQ_VHOST"
+# Create vhost and user
+CURRENT_VHOSTS=`rabbitmqctl -n "$RABBITMQ_NODENAME" list_vhosts | tail -n +2 | awk '{ print $1 }'`
+if ! echo "$CURRENT_VHOSTS" | grep -Fxq "$RABBITMQ_VHOST"; then
+    rabbitmqctl -n "$RABBITMQ_NODENAME" add_vhost "$RABBITMQ_VHOST"
+fi
 
-rabbitmqadmin --node="$RABBITMQ_NODENAME" --port="$RABBITMQ_WEB_INTERFACE_PORT" \
-    --username="$RABBITMQ_USERNAME" --password="$RABBITMQ_PASSWORD" \
-    declare user name="$RABBITMQ_USERNAME" password="$RABBITMQ_PASSWORD" tags="administrator"
+CURRENT_USERS=`rabbitmqctl -n "$RABBITMQ_NODENAME" list_users | tail -n +2 | awk '{ print $1 }'`
+if ! echo "$CURRENT_USERS" | grep -Fxq "$RABBITMQ_USERNAME"; then
+    rabbitmqctl -n "$RABBITMQ_NODENAME" add_user "$RABBITMQ_USERNAME" "$RABBITMQ_PASSWORD"
+fi
 
-rabbitmqadmin --node="$RABBITMQ_NODENAME" --port="$RABBITMQ_WEB_INTERFACE_PORT" \
-    --username="$RABBITMQ_USERNAME" --password="$RABBITMQ_PASSWORD" \
-    declare permission vhost="$RABBITMQ_VHOST" user="$RABBITMQ_USERNAME" configure=".*" write=".*" read=".*"
-
+rabbitmqctl -n "$RABBITMQ_NODENAME" set_user_tags "$RABBITMQ_USERNAME" "administrator"
+rabbitmqctl -n "$RABBITMQ_NODENAME" set_permissions -p "$RABBITMQ_VHOST" "$RABBITMQ_USERNAME" ".*" ".*" ".*"
 
 # Wait forever
 echo "RabbitMQ is ready"
