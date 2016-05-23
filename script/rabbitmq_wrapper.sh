@@ -188,7 +188,7 @@ echo "Waiting for RabbitMQ to start..."
 RABBITMQ_IS_UP=0
 RABBITMQ_START_RETRIES=90
 
-echo "Waiting $RABBITMQ_START_RETRIES seconds for Solr to start..."
+echo "Waiting $RABBITMQ_START_RETRIES seconds for RabbitMQ to start..."
 for i in `seq 1 $RABBITMQ_START_RETRIES`; do
     echo "Trying to connect (#$i)..."
     if nc -z -w 10 127.0.0.1 $RABBITMQ_NODE_PORT; then
