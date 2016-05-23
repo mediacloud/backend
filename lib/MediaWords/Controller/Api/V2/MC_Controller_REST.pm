@@ -27,7 +27,7 @@ Light wrapper class over Catalyst::Controller::REST
 
 =cut
 
-=head2 index 
+=head2 index
 
 =cut
 

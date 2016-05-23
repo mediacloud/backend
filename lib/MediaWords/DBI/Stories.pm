@@ -780,6 +780,9 @@ sub attach_story_data_to_stories
         return;
     }
 
+    TRACE( sub { "stories size: " . scalar( @{ $stories } ) } );
+    TRACE( sub { "story_data size: " . scalar( @{ $story_data } ) } );
+
     my $story_data_lookup = {};
     for my $sd ( @{ $story_data } )
     {
@@ -799,6 +802,7 @@ sub attach_story_data_to_stories
         if ( my $sd = $story_data_lookup->{ $story->{ stories_id } } )
         {
             map { $story->{ $_ } = $sd->{ $_ } } keys( %{ $sd } );
+            TRACE( sub { "story matched: " . Dumper( $story ) } );
         }
     }
 }

@@ -163,7 +163,7 @@ sub main()
         }
     }
 
-    plan tests => 27;
+    plan tests => 24;
 
     my $builder = Test::More->builder;
     binmode $builder->output,         ":utf8";
@@ -175,8 +175,9 @@ sub main()
             my ( $db ) = @_;
 
             test_bogus_urls( $db );
-            test_urls_which_wont_work( $db );
-            test_graphmethodexception_unsupported_get_request( $db );
+
+            #test_urls_which_wont_work( $db );
+            #test_graphmethodexception_unsupported_get_request( $db );
             test_share_comment_counts( $db );
             test_store_result( $db );
         }

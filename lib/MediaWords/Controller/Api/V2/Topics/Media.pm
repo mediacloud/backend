@@ -29,7 +29,7 @@ sub media : Chained('apibase') : PathPart('media') : CaptureArgs(0)
 
 }
 
-sub list : Chained('media') : Args(0) : ActionClass('REST')
+sub list : Chained('media') : Args(0) : ActionClass('MC_REST')
 {
 
 }

@@ -14,21 +14,23 @@ Here is the process for deploying new code to the production server on mcdb1:
 
 4. Shut down the supervisor daemons: `supervisor/supervisorctl.sh shutdown`.
 
-5. Pull the latest release: `git pull`
+5. Review files that will change during the pull: 'git fetch; git diff --stat remotes/origin/release'
 
-6. Check for and manually review postgres updates: `script/run_with_carton.sh script/mediawords_upgrade_db.pl`
+6. Pull the latest release: `git pull`
 
-7. Run postgres updates (see below): `script/run_with_carton.sh script/mediawords_upgrade_db.pl --import`
+7. Check for and manually review postgres updates: `script/run_with_carton.sh script/mediawords_upgrade_db.pl`
 
-8. Start supervisor daemons: `supervisor/supervisord.sh`
+8. Run postgres updates (see below): `script/run_with_carton.sh script/mediawords_upgrade_db.pl --import`
 
-9. Logout of mediacloud user.
+9. Start supervisor daemons: `supervisor/supervisord.sh`
 
-10. As regular user, restart apache: `sudo apache2ctl restart`
+10. Logout of mediacloud user.
 
-11. Check http://core.mediacloud.org to make sure apache is running happily.
+11. As regular user, restart apache: `sudo apache2ctl restart`
 
-12. As mediacloud, run '/space/mediacloud/mediacloud/supervisor/supervisorctl.sh status' to make sure the supervisor
+12. Check http://core.mediacloud.org to make sure apache is running happily.
+
+13. As mediacloud, run '/space/mediacloud/mediacloud/supervisor/supervisorctl.sh status' to make sure the supervisor
 daemons are running happily.
 
 Postgres Updates

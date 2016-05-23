@@ -311,6 +311,7 @@ select
         d.state = 'pending' and
         ( d.download_time < now() or d.download_time is null )
         $archive_clause
+    order by priority asc
     limit ?
 END
 

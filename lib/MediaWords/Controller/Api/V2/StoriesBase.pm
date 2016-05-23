@@ -356,7 +356,7 @@ SQL
     return $stories;
 }
 
-sub count : Local : ActionClass('REST')
+sub count : Local : ActionClass('MC_REST')
 {
 
 }
@@ -376,7 +376,7 @@ sub count_GET : Local
     $self->status_ok( $c, entity => $response );
 }
 
-sub word_matrix : Local : ActionClass('REST')
+sub word_matrix : Local : ActionClass('MC_REST')
 {
 
 }

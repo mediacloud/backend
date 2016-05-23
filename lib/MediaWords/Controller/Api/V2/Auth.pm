@@ -24,7 +24,7 @@ __PACKAGE__->config(    #
       }    #
 );         #
 
-sub single : Local : ActionClass('REST')
+sub single : Local : ActionClass('MC_REST')
 {
 }
 

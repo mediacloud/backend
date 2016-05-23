@@ -7,15 +7,25 @@ The overall process is documented in [story_processing_flow.pdf](diagrams/story_
 
 The story processing flow consists of five components: the crawler, the extractor, the corenlp annotator, the solr
 import, the bitly fetcher, and the geotagger.  The crawler, extractor, corenlp annotator, and bitly fetchers all run via
-[supervisor](supervisor.markdown)  on the core media cloud server.  The extractor, corenlp annotator, and bitly fetchers all run as jobs.
-The geotagger runs from a separate codebase on a separate server.  The solr import process runs from the same code
-base but from a separate machine in the production media cloud setup.
+[supervisor](supervisor.markdown)  on the core media cloud server.  The extractor, corenlp annotator, and bitly fetchers
+all run as jobs. The geotagger runs from a separate codebase on a separate server.  The solr import process runs from
+the same code base but from a separate machine in the production media cloud setup.
 
 Media Cloud organizes its content collection around media sources, feeds, and stories.  Media sources are publications
 like the New York Times.  Feeds are syndicated feeds like atom, rss, or rdf feeds.  Every feed belongs to a single media
 source.  Multiple feeds may belong to a media source (some media sources have hundreds).  Stories are the individual
 items published in rss feeds.  Each story belongs to a single media source but may belong to multiple feeds within
 the same media source.
+
+Order of Operations
+------------------
+
+The order of the operations described below is:
+
+crawl -> extract -> optional annotation -> solr import
+
+As described below, bitly fetching happens 3 and 30 days after story publication, and each bitly fetch triggers another
+solr import.
 
 Crawler
 -------
@@ -45,7 +55,12 @@ Processed Stories ID
 --------------------
 Once all a story is crawled, extracted, and annotated, it is marked as ready for consumption by creating a
 processed_stories_id for the story.  This processed_stories_id is used to provide API clients with a stream of stories
-that are ready for consumption.  It is also used to indicate that the story is ready for import into Solr.
+that are ready for consumption.  It is also used to indicate that the story is ready for import into Solr.  
+
+The processed_stories_id is stories in the processed_stories table.  A given stories_id can be associated with more
+one processed_stories_id.  Each time a story is reprocessed (re-extracted or re-annotated), a new processed_stories_id
+is created for that story.  The processed_stories_id is created by the extractor worker for stories that are not marked
+for annotation and by the annotation worker otherwise.
 
 Solr Importer
 -------------
