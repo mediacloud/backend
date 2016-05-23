@@ -105,8 +105,8 @@ programs = gearmand,rabbitmq
 [% INCLUDE program_config
     program='rabbitmq'
     command='bash ./script/rabbitmq_wrapper.sh'
-    default_stopasgroup='false'
-    default_killasgroup='false'
+    default_stopasgroup='true'
+    default_killasgroup='true'
     default_autorestart='true'
     default_autostart='true'
     priority=10
