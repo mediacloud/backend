@@ -87,7 +87,7 @@ EOF
         graphviz --with-bindings \
         coreutils curl homebrew/dupes/tidy libyaml gawk cpanminus \
         gearman --with-postgresql \
-        netcat openssl rabbitmq
+        netcat openssl rabbitmq libyaml
 
     # have to change dir or it think you are trying to install from the supervisor/ dir
     ( cd /tmp; easy_install supervisor )
@@ -166,7 +166,7 @@ else
         python-lxml-dbg python-lxml-doc python-libxml2 libxml2-dev \
         libxslt1-dev libxslt1-dbg libxslt1.1 build-essential make gcc g++ \
         cpanminus perl-doc liblocale-maketext-lexicon-perl openjdk-7-jdk \
-        pandoc netcat rabbitmq-server
+        pandoc netcat rabbitmq-server libyaml-dev
 
     # Disable system-wide RabbitMQ server (we will start and use our very own instance)
     sudo update-rc.d rabbitmq-server disable
