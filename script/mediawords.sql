@@ -392,9 +392,6 @@ create table media (
     use_pager           boolean         null,
     unpaged_stories     int             not null default 0,
 
-    -- Annotate stories from this media source with CoreNLP?
-    annotate_with_corenlp   BOOLEAN     NOT NULL DEFAULT(false),
-
     -- Delay content downloads for this media source this many hours
     content_delay       int             null,
 
@@ -408,7 +405,6 @@ create unique index media_name on media(name);
 create unique index media_url on media(url);
 create index media_moderated on media(moderated);
 create index media_db_row_last_updated on media( db_row_last_updated );
-create index media_annotate on media ( annotate_with_corenlp, media_id );
 
 CREATE INDEX media_name_trgm on media USING gin (name gin_trgm_ops);
 CREATE INDEX media_url_trgm on media USING gin (url gin_trgm_ops);
@@ -2979,19 +2975,9 @@ BEGIN
     SELECT stories_id, media_id, language INTO story from stories where stories_id = corenlp_stories_id;
 
     IF NOT ( story.language = 'en' or story.language is null ) THEN
-
-        RETURN FALSE;
-
-    ELSEIF NOT EXISTS (
-
-            SELECT 1 FROM media WHERE media.annotate_with_corenlp = 't' and media_id = story.media_id
-
-        ) THEN
-
         RETURN FALSE;
 
     ELSEIF NOT EXISTS ( SELECT 1 FROM story_sentences WHERE stories_id = corenlp_stories_id ) THEN
-
         RETURN FALSE;
 
     END IF;

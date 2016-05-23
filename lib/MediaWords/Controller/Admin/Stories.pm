@@ -226,7 +226,7 @@ sub corenlp_json : Local
 
     unless ( MediaWords::Util::CoreNLP::story_is_annotatable( $c->dbis, $stories_id ) )
     {
-        confess "Story $stories_id is not annotatable (media.annotate_with_corenlp is not 't').";
+        confess "Story $stories_id is not annotatable (either it's not in English or has no sentences).";
     }
 
     unless ( MediaWords::Util::CoreNLP::story_is_annotated( $c->dbis, $stories_id ) )

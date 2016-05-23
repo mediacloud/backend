@@ -53,12 +53,6 @@ sub _random_corenlp_story_ids($$)
             AND ( stories.language = 'en' OR stories.language IS NULL )
             AND EXISTS (
                 SELECT 1
-                FROM media
-                WHERE media.annotate_with_corenlp = 't'
-                  AND media.media_id = stories.media_id
-            )
-            AND EXISTS (
-                SELECT 1
                 FROM story_sentences
                 WHERE story_sentences.stories_id = stories.stories_id
             )
