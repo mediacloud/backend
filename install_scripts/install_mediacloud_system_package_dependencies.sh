@@ -89,9 +89,6 @@ EOF
         gearman --with-postgresql \
         netcat openssl rabbitmq libyaml
 
-    # have to change dir or it think you are trying to install from the supervisor/ dir
-    ( cd /tmp; easy_install supervisor )
-
     sudo cpanm \
         XML::Parser XML::SAX::Expat XML::LibXML XML::LibXML::Simple \
         Test::WWW::Mechanize OpenGL DBD::Pg Perl::Tidy HTML::Parser YAML \
@@ -172,9 +169,6 @@ else
     sudo update-rc.d rabbitmq-server disable
     sudo service rabbitmq-server stop
     
-    # have to change dir or it think you are trying to install from the supervisor/ dir
-    ( cd /tmp; sudo easy_install supervisor ) 
-
     # Install CLD separately
     if [ ! "${SKIP_CLD_TEST:+x}" ]; then     # Not installed manually?
         if [ ! -f /usr/lib/libcld.so ]; then        # Library is not installed yet?
@@ -249,3 +243,8 @@ else
     fi
 
 fi
+
+# Install (upgrade) Supervisor
+# (change dir, otherwise the installer might think we're trying to install
+# from the supervisor/ directory)
+( cd /tmp; pip install --upgrade supervisor )
