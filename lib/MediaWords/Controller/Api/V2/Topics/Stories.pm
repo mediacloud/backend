@@ -51,7 +51,7 @@ sub list_GET
     my $limit = $c->req->params->{ limit } //= $DEFAULT_STORY_LIMIT;
 
     my $sort_orders = {
-        'social' => 'slc.bitly_click_count desc, s.stories_id',
+        'social' => 'slc.bitly_click_count desc nulls last, s.stories_id',
         'inlink' => 'slc.inlink_count desc, s.stories_id'
     };
 
