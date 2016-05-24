@@ -247,4 +247,8 @@ fi
 # Install (upgrade) Supervisor
 # (change dir, otherwise the installer might think we're trying to install
 # from the supervisor/ directory)
-( cd /tmp; pip install --upgrade supervisor )
+if [ `uname` == 'Darwin' ]; then
+    ( cd /tmp; pip install --upgrade supervisor )
+else
+    ( cd /tmp; sudo pip install --upgrade supervisor )
+fi
