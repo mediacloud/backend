@@ -16,7 +16,7 @@ use MediaWords::CM::Dump;
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
-__PACKAGE__->config( action => { list_GET => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] }, } );
+__PACKAGE__->config( action => { media_GET => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] }, } );
 
 sub apibase : Chained('/') : PathPart('api/v2/topics') : CaptureArgs(1)
 {
@@ -24,12 +24,7 @@ sub apibase : Chained('/') : PathPart('api/v2/topics') : CaptureArgs(1)
     $c->stash->{ topic_id } = $topic_id;
 }
 
-sub media : Chained('apibase') : PathPart('media') : CaptureArgs(0)
-{
-
-}
-
-sub list : Chained('media') : Args(0) : ActionClass('MC_REST')
+sub media : Chained('apibase') : PathPart('media') : Args(1) : ActionClass('MC_REST')
 {
 
 }
@@ -73,9 +68,9 @@ END
     $db->commit;
 }
 
-sub list_GET : Local
+sub media_GET : Local
 {
-    my ( $self, $c ) = @_;
+    my ( $self, $c, $item ) = @_;
     my $db   = $c->dbis;
     my $cdts = MediaWords::CM::get_time_slice_for_controversy(
         $c->dbis,
@@ -83,16 +78,30 @@ sub list_GET : Local
         $c->req->params->{ timeslice },
         $c->req->params->{ snapshot }
     );
+
     my $entity = {};
     if ( $cdts )
     {
         $self->_create_controversy_media_table( $c, $cdts->{ controversy_dump_time_slices_id } );
 
-        $entity->{ media } = $db->query( "select * from media order by inlink_count desc, media_id" )->hashes;
+        if ( $item eq 'list' )
+        {
+            $entity->{ media } = $db->query( "select * from media order by inlink_count desc, media_id" )->hashes;
+        }
+        else
+        {
+            $entity->{ media } = $db->query( "select * from media where media_id = \$1", $item )->hash;
+            $entity->{ frames } = [];
 
+            # Currently returning a list of tags used in media
+            $entity->{ tags } = $db->query( <<END, $c->stash->{ topic_id }, $item )->hashes;
+select distinct on (t.tags_id) t.tags_id, t.tag, t.tag_sets_id, t.label, t.description
+    from cd.media_tags_map mmp join cd.tags t on t.tags_id = mmp.tags_id where
+      mmp.controversy_dumps_id = \$1 and mmp.media_id=\$2
+END
+        }
         $self->status_ok( $c, entity => $entity );
     }
-
 }
 
 1;

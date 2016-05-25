@@ -192,39 +192,6 @@ sub _get_test_response
 
 }
 
-sub test_media_list
-{
-    my $data = shift;
-
-    my $base_url = { path => '/api/v2/topics/1/media/list' };
-
-    my $response = _get_test_response( $base_url );
-
-    Test::More::ok( $response->is_success, 'Request should succeed' );
-
-    my $actual_response = JSON::decode_json( $response->decoded_content() );
-
-    ok( scalar @{ $actual_response->{ media } } == 3,
-        "returned unexpected number of media scalar $actual_response->{ media }" );
-
-    # Check descending link count
-    foreach my $m ( 1 .. $#{ $actual_response->{ media } } )
-    {
-        ok( $actual_response->{ media }[ $m ]->{ inlink_count } <= $actual_response->{ media }[ $m - 1 ]->{ inlink_count } );
-    }
-
-    # Check that we have right number of inlink counts for each media source
-
-    my $controversy_stories = _get_story_link_counts( $data );
-
-    my $inlink_counts = { F => 4, D => 2, A => 0 };
-
-    foreach my $mediasource ( @{ $actual_response->{ media } } )
-    {
-        ok( $mediasource->{ inlink_count } == $inlink_counts->{ $mediasource->{ name } } );
-    }
-}
-
 sub test_story_count
 {
 
@@ -376,7 +343,6 @@ sub main
             test_story_count();
             test_default_sort( $stories );
             test_social_sort( $stories );
-            test_media_list( $stories );
             done_testing();
         }
     );
