@@ -39,6 +39,7 @@ sub list_GET
 {
     my ( $self, $c ) = @_;
     my $sort_by_tfidf = $c->req->params->{ sort_by_tfidf };
+
     if ( $c->req->params->{ sample_size } && ( $c->req->params->{ sample_size } > 100_000 ) )
     {
         $c->req->params->{ sample_size } = 100_000;
@@ -49,12 +50,41 @@ sub list_GET
         $c->req->params->{ timeslice },
         $c->req->params->{ snapshot }
     );
+
     if ( $cdts )
     {
-        my $query  = "{~ controversy_dump_time_slice:$cdts->{ controversy_dump_time_slices_id } }";
-        my $wc     = MediaWords::Solr::WordCounts->new( { db => $c->dbis, q => $query } );
+        my $query = "{~ controversy_dump_time_slice:$cdts->{ controversy_dump_time_slices_id } }";
+        my $wc = MediaWords::Solr::WordCounts->new( { db => $c->dbis, q => $query } );
+
+        if ( $c->req->params->{ limit } )
+        {
+            $wc->num_words( $c->req->params->{ limit } );
+        }
+        my $words = undef;
+        my $stats = undef;
+        if ( $c->req->params->{ include_stopwords } )
+        {
+            $wc->include_stopwords( 1 );
+        }
+
+        if ( $c->req->params->{ languages } )
+        {
+            $c->req->params->{ languages } = [ split( /[\s,]/, $c->req->params->{ languages } ) ];
+            $wc->languages( $c->req->params->{ languages } );
+        }
+        if ( $c->req->params->{ include_stats } )
+        {
+            $wc->include_stats( 1 );
+            my $w = $wc->get_words;
+            $words = $w->{ words };
+            $stats = $w->{ stats };
+        }
+        else
+        {
+            $words = $wc->get_words;
+        }
+
         my $entity = {};
-        my $words  = $wc->get_words;
         if ( $sort_by_tfidf )
         {
             for my $word ( @{ $words } )
@@ -84,6 +114,10 @@ sub list_GET
         map { $words->[ $_ ]->{ rank } = $_ + 1 } ( 0 .. $#{ $words } );
         $entity->{ timeslice } = $cdts;
         $entity->{ words }     = $words;
+        if ( $stats )
+        {
+            $entity->{ stats } = $stats;
+        }
         $self->status_ok( $c, entity => $entity );
     }
     else
