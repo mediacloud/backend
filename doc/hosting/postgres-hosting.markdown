@@ -3,30 +3,36 @@ Postgres Notes
 
 Following are helpful notes for dealing with our local postgres setup.
 
-PPS
----
+Server
+------
 
-I am constantly calling a local script I created as '/bin/pps' (for 'postgres ps') that is defined as:
+Our postgres server runs on mcdb1.  The  data is stored in /space/postresql.  The /space drive runs on an enclosure of
+20 SSD drives (+ 2 warm spares in the enclosure) in RAID-10 via a PERC 810 card.
 
-```
-#!/bin/sh
-echo "select pid, usename, state, query_start, substr(  regexp_replace(query, E'[\\n\\r ]+', ' ', 'g' ), 0, 140 ) q from pg_stat_activity where state not like 'idle%' order by query_start desc" | psql med
-iacloud
-```
+Backups
+-------
 
-This gives output that looks like this:
+The postgres databse is backed up weekly by running pg_dump on a harvard machine (faith.law.harvard.edu) over an ssh
+tunneled connection to mcdb1.
+
+Running Queries
+---------------
+
+To see a list of currently running queries on the server, run '/bin/pps' (for 'postgres ps'):
 
 ```
 hroberts@mcdb1:~$ pps
-  pid  |  usename   | state  |          query_start          |                                                                      q
--------+------------+--------+-------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------
- 12612 | mediacloud | active | 2016-03-15 11:00:41.371201-04 | select * from stories where stories_id = $1
- 39814 | mediacloud | active | 2016-03-15 11:00:41.368527-04 | select pid, usename, state, query_start, substr( regexp_replace(query, E'[\n\r ]+', ' ', 'g' ), 0, 140 ) q from pg_stat_activity where stat
- 39330 | mediacloud | active | 2016-03-15 11:00:41.364449-04 |  WITH reextract_stories as (select ps.* from processed_stories ps left join stories_tags_map stm on ( ps.stories_id=stm.stories_id and stm.
- 13517 | mediacloud | active | 2016-03-15 10:59:04.106124-04 | create temporary table dump_story_link_counts as select distinct ps.stories_id, coalesce( ilc.inlink_count, 0 ) inlink_count, coalesce( olc
+  pid  |  usename   | state  |          query_start          |
+-------+------------+--------+-------------------------------+----------------------------------------------------------
+ 35378 | mediacloud | active | 2016-05-25 12:53:40.369566-04 | select pid, usename, state, query_start, regexp_replace(q
+ 11059 | mediacloud | active | 2016-05-25 12:53:40.141334-04 | select stories_id from stories where url in ($1)
+  7380 | mediacloud | active | 2016-05-25 12:53:39.948636-04 | INSERT INTO queue (priority, unique_key, function_name, d
+ 11042 | mediacloud | active | 2016-05-25 12:53:39.947215-04 | select stories_id from stories where url in ($1)
+ 11757 | mediacloud | active | 2016-05-25 12:53:39.906391-04 |  SELECT upsert_bitly_clicks_total($1, $2)
+  9689 | postgres   | active | 2016-05-25 09:56:49.546405-04 | autovacuum: VACUUM public.story_sentences (to prevent wra
  ```
 
- I also have a '/bin/ppsl' (for 'pps long') that does not cut off each query at 140 characters:
+`pps -l`  does not cut off each query at the wide of the terminal:
 
  ```
  #!/bin/sh

@@ -1,9 +1,77 @@
 ---
 swagger: '2.0'
 info:
-  title: Topic Mapper Api
-  description: API for controversies
-  version: "0.0.0"
+  title: Media Cloud /topics Api
+  description: |
+   ##### Purpose of this document
+   This document specifies an extension to the [Media Cloud API]() to support exploration of individual
+    topics captured within the Media Cloud system (*Topics* may also be called *controversies* in other documentation).
+    This is a DRAFT document, and is not yet intended to be used as a final reference.  Changes should be expected, especially in endpoints tagged as unimplemented.
+    
+   The /topics API is being created to support the [Topic Mapper tool]().  Prioritization and assignment of milestones in the Topic Mapper tool was done at an [April meeting within the CFCM]().
+    
+    This document was not created as a standalone project reference. We assume a common understanding of what is meant by terms such as
+    topic, media source, frame, and frameset [(provided here.)]() 
+    The document is instead intended to be most useful as a resource for programmers
+    consuming the web service. 
+
+    ##### Why create a new API?
+    Some of the functionality within this API could be obtained with varying degrees of difficulty using the existing API. But not all. 
+    
+     More fundamentally, a major difference between the topics API and the existing Media Cloud API is that queries in the topics API are always applied on a snapshot of the system, not on live data.  This is primarily for efficiency, but also to ensure that results are reproducible for academic research.
+    
+    ##### API design approach
+
+   The overall API design process has been informed by the desire
+    to remain familiar to users of the existing API as well as to reflect best
+    practices in API architecture. 
+    
+    Here is a partial list of motivations
+    behind many of the choices in this specification:
+    
+      1. As much as possible, make new endpoints that are similar in functionality to existing API calls use similar parameters and result formats.
+      2. If the results required by the Topic Mapper are different than the results given in the existing Media Cloud API, create a new endpoint.
+      3. Avoid reimplementing something which is easy to do within the existing API.
+      4. At the same time, creating a faster or easier way wthin the topics API is desirable.
+      5. Use RESTful URIS. Be parsimonious in what is passed as a query parameter, and make these consistent across endpoints.
+        
+        
+    #### Document organization
+    
+    The remainder of this document will describe the input parameters and outputs of
+    individual API endpoints. 
+    
+    Each endpoint specification below will identify: 
+    1. What user need does the endpoint satisfies?  What can we do with this endpoint?
+    2. What are the parameters we have to provide as input?
+    3. What should we expect in return?
+    4. What motivates the design decisions here? (especially when design motivations have come in conflict)
+    
+    
+    Endpoints in this document have been tagged to refer to individual pages within
+    the [Topics Mapper documentation](). As these endpoints are still in development,
+    tags in this document are also used to identify the milestone date and current state of each endpoint.
+
+    ###### A note on common endpoint parameters
+    
+    Several parameters are used across most or all endpoints.
+    
+    | parameter | notes |
+    |-----------|-------|
+    | key       | see Security section below |
+    | q         | a query parameter passed directly into solr. can be expensive, avoided unless necessary |
+    | fq        | filter query parameter passed directly into solr. less expensive than q |
+    | timeslice | a partioning of a certain length of time within a snapshot |
+    | snapshot  | a static capture of Media Cloud state. |
+    
+    Timeslice and snapshot are both optional. However, the following logic applies: 
+    1. If neither snapshot or timeslice is specified, use the latest snapshot.
+    2. If timeslice is specified, look up the snapshot.
+    3. If snapshot is specified, use the overall timeslice.
+    4. If both snapshot and timeslice is specified, return an error. 
+    |
+  version: "DRAFT 1"
+    
 # the domain of the service
 host: api.mediacloud.org
 # array of all schemes that your API supports
@@ -13,12 +81,16 @@ schemes:
 basePath: /api/v2
 produces:
   - application/json
-paths:
 
+paths:
   /topics/{id}/stories/list:
     get:
       summary:
-       Get stories associated with a topic
+        What stories are included within a specific topic?
+      description: |
+        The returned list of stories should be limited in number and sortable
+        by the number of inlinks or the number of bitly click counts.
+        The consumer of this endpoint also needs to be able to page through results.
       parameters:
         - name: id
           in: path
@@ -40,9 +112,28 @@ paths:
           type: string
           default: 'inlink'
           enum: ['inlink','social']
+        - name: timeslice
+          description: a timeslice within the topic to search. return an error if snapshot specified as well. 
+          in: query
+          required: false
+          type: number
+          format: int
+        - name: snapshot
+          description: a snapshot within the topic to search. return an error if timeslice specified as well. 
+          in: query
+          required: false
+          type: number
+          format: int
+        - name: offset
+          description: offset used for paging results
+          in: query
+          required: false
+          type: number
+          format: int
       tags:
         - June 1, 2016
         - topic summary page
+        - deployed
       responses:
         200:
           description: Stories associated with a topic
@@ -63,7 +154,10 @@ paths:
   /topics/{id}/media/list:
     get:
       summary:
-       Get a list of media sources in the controversy
+        What media sources are included in a specific topic?
+      description: |
+        The returned list of media sources should be limited in number and sortable by the number of inlinks or the number of bitly click counts. The consumer of this endpoint also needs to be able to page through results.
+        
 
       parameters:
         - name: id
@@ -86,16 +180,35 @@ paths:
           type: string
           default: 'inlink'
           enum: ['inlink','social']
+        - name: timeslice
+          description: a timeslice within the topic to search. return an error if snapshot specified as well. 
+          in: query
+          required: false
+          type: number
+          format: int
+        - name: snapshot
+          description: a snapshot within the topic to search. return an error if timeslice specified as well. 
+          in: query
+          required: false
+          type: number
+          format: int
+        - name: offset
+          description: offset used for paging results
+          in: query
+          required: false
+          type: number
+          format: int
       tags:
         - June 1, 2016
         - topic summary page
+        - deployed
       responses:
         200:
           description: Media associated with a topic
           schema:
             type: object
             properties:
-              stories:
+              media:
                 type: array
                 items:
                   $ref: '#/definitions/Media'
@@ -104,12 +217,15 @@ paths:
           schema:
             $ref: '#/definitions/Error'
 
-
   /topics/{id}/wc/list:
     get:
       summary:
-        Get a list of word counts in the topic
-
+        What are all the words within a specific topic and how often are they used?
+      description: |
+        The returned list of words should be limited in number and sorted by word 
+        count or alternatively TFIDF score within the controversy. The results should
+        also optionally include overall statistics. 
+        
       parameters:
         - name: id
           in: path
@@ -118,7 +234,7 @@ paths:
           type: number
           format: int
         - name: limit
-          description: number of stories to return
+          description: number of words to return
           in: query
           required: false
           type: number
@@ -129,17 +245,40 @@ paths:
           in: query
           required: false
           type: string
-          default: 'inlink'
-          enum: ['inlink','social']
+          default: 'count'
+          enum: ['count','tfidf']
+        - name: stats
+          description: add statistics for word count
+          in: query
+          required: false
+          type: integer
+          default: 0
+        - name: timeslice
+          description: a timeslice within the topic to search. return an error if snapshot specified as well. 
+          in: query
+          required: false
+          type: number
+          format: int
+        - name: snapshot
+          description: a snapshot within the topic to search. return an error if timeslice specified as well. 
+          in: query
+          required: false
+          type: number
+          format: int
       tags:
         - June 1, 2016
         - topic summary page
+        - story influence page
+        - deployed
       responses:
         200:
           description: Word count associated with a topic
           schema:
             type: object
+            required: ['words','timeslice']
             properties:
+              stats:
+                $ref: '#/definitions/Stats'
               timeslice:
                 $ref: '#/definitions/Timeslice'
               words:
@@ -150,8 +289,11 @@ paths:
   /topics/{id}/sentences/count:
     get:
       summary:
-        Count sentences matching a specified query within a topic.
+        Given my query, how many sentences match within a topic? 
+     
       description: |
+
+
         The call returns the number of sentences returned by Solr for the specified query.
 
         If split is specified, split the counts into regular date ranges for dates between split\_start\_date and split\_end\_date.
@@ -198,9 +340,22 @@ paths:
           description: date on which to end date splits, in YYYY-MM-DD format. Required if split is true.
           type: string
           required: false
+        - name: timeslice
+          description: a timeslice within the topic to search. return an error if snapshot specified as well. 
+          in: query
+          required: false
+          type: number
+          format: int
+        - name: snapshot
+          description: a snapshot within the topic to search. return an error if timeslice specified as well. 
+          in: query
+          required: false
+          type: number
+          format: int
       tags:
         - June 1, 2016
         - topic summary page
+        - deployed
       responses:
         200:
           description: Count of sentences in topic containing query
@@ -231,7 +386,993 @@ paths:
           schema:
             $ref: '#/definitions/Error'
 
+  /topics/{id}/stories/count:
+    get:
+      summary:
+        Given my query, how many stories match within a topic? 
+     
+      description: |
+  
+  
+        The call returns the number of stories returned by Solr for the specified query.
+  
+        If split is specified, split the counts into regular date ranges for dates between split\_start\_date and split\_end\_date.
+        The number of days in each date range depends on the total number of days between split\_start\_date and split\_end\_date:
+  
+        | Total Days | Days in each range
+        | ---------- | ------------------
+        | < 90       | 1 day
+        | < 180      | 3 days
+        | >= 180     | 7 days
+  
+        Note that the total count returned by a split query is for all sentences found by the solr query, which query might or might not
+        include a date restriction.
+      parameters:
+        - name: id
+          in: path
+          description: controversies_id
+          required: true
+          type: number
+          format: int
+        - name: q
+          in: query
+          description: q ("query") parameter which is passed directly to Solr
+          required: true
+          type: string
+        - name: fq
+          in: query
+          description: fq ("filter query") parameter which is passed directly to Solr
+          required: false
+          type: string
+        - name: split
+          in: query
+          description: if set to 1 or true, split the counts into date ranges
+          type: boolean
+          default: false
+          required: false
+        - name: split_start_date
+          in: query
+          description: date on which to start date splits, in YYYY-MM-DD format. Required if split is true.
+          type: string
+          required: false
+        - name: split_end_date
+          in: query
+          description: date on which to end date splits, in YYYY-MM-DD format. Required if split is true.
+          type: string
+          required: false
+        - name: timeslice
+          description: a timeslice within the topic to search. return an error if snapshot specified as well. 
+          in: query
+          required: false
+          type: number
+          format: int
+        - name: snapshot
+          description: a snapshot within the topic to search. return an error if timeslice specified as well. 
+          in: query
+          required: false
+          type: number
+          format: int
+      tags:
+        - June 1, 2016
+        - topic summary page
+        - unimplemented
+      responses:
+        200:
+          description: Count of stories in topic containing query
+          schema:
+            type: object
+            required: ["count"]
+            properties:
+              count:
+                type: number
+                format: int
+              split:
+                type: object
+                properties:
+                  start:
+                    format: string
+                  end:
+                    format: string
+                  gap:
+                    format: string
+                  counts:
+                    type: array
+                    items:
+                      $ref: '#/definitions/Split'
+  
+  
+        403:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
+  /topics/{id}/story/{story_id}:
+    get:
+      summary: Tell me more about a given story. How important is the story within a controversy?
+      description: |
+        Get all information about the story (similar to stories/list), as well as information about what frames the story is used in. Admins will want to obtain full text info. 
+        
+         Design discussion: Two other designs were considered.
+         1. Use stories/list. Rejected since the required output is different.
+         2. Break this into separate endpoints. 
+            - story/{story_id}/fulltext
+            - story/{story_id}/frames
+            - story/{story_id} itself would replicate stories/list with a specific story specified in q.
+            
+      parameters:
+        - name: id
+          in: path
+          description: the controversy id
+          required: true
+          type: number
+          format: int
+        - name: story_id
+          in: path
+          description: the story id
+          required: true
+          type: number
+          format: int
+        - name: full_text
+          in: query
+          description: If the user is an admin, providing this parameter will return full text.
+          required: false
+          type: boolean
+        - name: timeslice
+          description: a timeslice within the topic to search. return an error if snapshot specified as well. 
+          in: query
+          required: false
+          type: number
+          format: int
+        - name: snapshot
+          description: a snapshot within the topic to search. return an error if timeslice specified as well. 
+          in: query
+          required: false
+          type: number
+          format: int
+      tags:
+        - Aug 1, 2016
+        - story influence page
+        - in progress
+      responses:
+        200:
+          description: Story summary statistics
+          schema:
+            type: object
+            required: ['summary','frames']
+            properties:
+              summary:
+                $ref: '#/definitions/Story'
+              full_text:
+                type: string
+              frames:
+                type: array
+                items:
+                  $ref: '#/definitions/Frame_Summary'
+        403:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error' 
+    put:
+        summary: Update story details . (Currently allows only publish date.)
+        description: |
+          Allows the user to update publish date for a given story
+          Current design would modify the controversy dump table directly.
+          Might want to think more about this, since the idea is that snapshots
+          are immutable.
+        parameters:
+          - name: id
+            in: path
+            description: the controversy id
+            required: true
+            type: number
+            format: int
+          - name: story_id
+            in: path
+            description: the story id
+            required: true
+            type: number
+            format: int
+          - name: publish_date
+            in: query
+            description: the new date of publication
+            required: true
+            type: string
+          - name: timeslice
+            description: a timeslice within the topic to search. return an error if snapshot specified as well. 
+            in: query
+            required: false
+            type: number
+            format: int
+          - name: snapshot
+            description: a snapshot within the topic to search. return an error if timeslice specified as well. 
+            in: query
+            required: false
+            type: number
+            format: int
+        tags:
+          - Aug 1, 2016
+          - story influence page
+          - unimplemented
+        responses:
+          200:
+            description: OK
+          403:
+            description: Unexpected error
+            schema:
+              $ref: '#/definitions/Error' 
+  /topics/{id}/story/{story_id}/inlinks:
+    get:
+      summary: Which other stories within the topic link to a given story?
+      description: |
+        The returned list of stories is sortable by publication date and bitly click counts. Allow limits and paging.
+      parameters:
+        - name: id
+          in: path
+          description: the controversy id
+          required: true
+          type: number
+          format: int
+        - name: story_id
+          in: path
+          description: the story id
+          required: true
+          type: number
+          format: int
+        - name: fq
+          in: query
+          description: fq ("filter query") parameter which is passed directly to Solr
+          required: false
+          type: string
+        - name: sort
+          description: sort order
+          in: query
+          required: false
+          type: string
+          default: 'publication_date'
+          enum: ['publication_date','social']
+        - name: limit
+          description: number of words to return
+          in: query
+          required: false
+          type: number
+          format: int
+          default: 10
+        - name: offset
+          description: offset used for paging results
+          in: query
+          required: false
+          type: number
+          format: int
+        - name: timeslice
+          description: a timeslice within the topic to search. return an error if snapshot specified as well. 
+          in: query
+          required: false
+          type: number
+          format: int
+        - name: snapshot
+          description: a snapshot within the topic to search. return an error if timeslice specified as well. 
+          in: query
+          required: false
+          type: number
+          format: int
+      tags:
+        - Aug 1, 2016
+        - story influence page
+        - unimplemented
+      responses:
+        200:
+          description: a list of story summaries
+          schema:
+            type: object
+            properties:
+              count:
+                type: integer
+              summary:
+                type: array
+                items:
+                  $ref: '#/definitions/Lightweight_Story_Summary'
+        403:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'   
+            
+  /topics/{id}/story/{story_id}/outlinks:
+    get:
+      summary: Which stories does this story link to within the topic?
+      description: |
+        The returned list of stories is sortable by publication date and bitly click counts. Allow limits and paging.
+      parameters:
+        - name: id
+          in: path
+          description: the controversy id
+          required: true
+          type: number
+          format: int
+        - name: story_id
+          in: path
+          description: the story id
+          required: true
+          type: number
+          format: int
+        - name: fq
+          in: query
+          description: fq ("filter query") parameter which is passed directly to Solr
+          required: false
+          type: string
+        - name: sort
+          description: sort order
+          in: query
+          required: false
+          type: string
+          default: 'publication_date'
+          enum: ['publication_date','social']
+        - name: limit
+          description: number of words to return
+          in: query
+          required: false
+          type: number
+          format: int
+          default: 10
+        - name: offset
+          description: offset used for paging results
+          in: query
+          required: false
+          type: number
+          format: int
+        - name: timeslice
+          description: a timeslice within the topic to search. return an error if snapshot specified as well. 
+          in: query
+          required: false
+          type: number
+          format: int
+        - name: snapshot
+          description: a snapshot within the topic to search. return an error if timeslice specified as well. 
+          in: query
+          required: false
+          type: number
+          format: int
+      tags:
+        - Aug 1, 2016
+        - story influence page
+        - unimplemented
+      responses:
+        200:
+          description: a list of story summaries
+          schema:
+            type: object
+            properties:
+              count:
+                type: integer
+              summary:
+                type: array
+                items:
+                  $ref: '#/definitions/Lightweight_Story_Summary'
+        403:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'   
+
+  /topics/{id}/media/{media_id}:
+    get:
+      summary: How influential is a given media source within the topic?
+      description: Behaves like media/list with a single media id specified.
+        Also provides an array of counts of either inlinks or outlinks as a distribution of tags on stories within the media source in the controversy. Provides an array of frame identifiers with count of stories that match the frames within the given media source.
+      parameters:
+        - name: id
+          in: path
+          description: the controversy id
+          required: true
+          type: number
+          format: int
+        - name: media_id
+          in: path
+          description: the media id
+          required: true
+          type: number
+          format: int
+        - name: count_tags
+          in: query
+          description: count across inlinks or outlinks in distribution of tags
+          required: false
+          type: string
+          enum: ['inlinks','outlinks']
+        - name: count_frames
+          in: query
+          description: count across frame identifiers
+          required: false
+          type: boolean
+        - name: timeslice
+          description: a timeslice within the topic to search. return an error if snapshot specified as well. 
+          in: query
+          required: false
+          type: number
+          format: int
+        - name: snapshot
+          description: a snapshot within the topic to search. return an error if timeslice specified as well. 
+          in: query
+          required: false
+          type: number
+          format: int
+      tags:
+        - Aug 1, 2016
+        - media influence page
+        - unimplemented
+      responses:
+        200:
+          description: foo
+          schema:
+            type: object
+            properties:
+              media:
+                $ref: '#/definitions/Media'
+              frames:
+                type: array
+                items:
+                  $ref: '#/definitions/Frame_Summary'
+              tags:
+                type: array
+                items:
+                  $ref: '#/definitions/Tag_Summary'
+        403:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  
+  /topics/{id}/media/{media_id}/stories/list:
+      get:
+        summary:
+          What stories are included within media source within a specific topic?
+        description: |
+          The returned list of stories should be limited in number and sortable
+          by the number of inlinks or the number of bitly click counts.
+          The consumer of this endpoint also needs to be able to page through results.
+        parameters:
+          - name: id
+            in: path
+            description: identifier for the topic, also known as controversies_id
+            required: true
+            type: number
+            format: int
+          - name: media_id
+            in: path
+            description: the media id
+            required: true
+            type: number
+            format: int
+          - name: limit
+            description: a limit to the number of stories to return
+            in: query
+            required: false
+            type: number
+            format: int
+            default: 10
+          - name: sort
+            description: sort order
+            in: query
+            required: false
+            type: string
+            default: 'inlink'
+            enum: ['inlink','social']
+          - name: timeslice
+            description: a timeslice within the topic to search. return an error if snapshot specified as well. 
+            in: query
+            required: false
+            type: number
+            format: int
+          - name: snapshot
+            description: a snapshot within the topic to search. return an error if timeslice specified as well. 
+            in: query
+            required: false
+            type: number
+            format: int
+          - name: offset
+            description: offset used for paging results
+            in: query
+            required: false
+            type: number
+            format: int
+        tags:
+          - Aug 1, 2016
+          - media influence page
+          - unimplemented
+        responses:
+          200:
+            description: Stories associated with a topic
+            schema:
+              type: object
+              properties:
+                timeslice:
+                  $ref: '#/definitions/Timeslice'
+                stories:
+                  type: array
+                  items:
+                    $ref: '#/definitions/Story'
+          403:
+            description: Unexpected error
+            schema:
+              $ref: '#/definitions/Error'            
+
+  /topics/{id}/media/{media_id}/inlinks:
+    get:
+      summary: Which stories within the topic link to a given media source (from outside the media source) ?
+      description: |
+        The returned list of stories is sortable by publication date and bitly click counts. Allow limits and paging.
+      parameters:
+        - name: id
+          in: path
+          description: the controversy id
+          required: true
+          type: number
+          format: int
+        - name: media_id
+          in: path
+          description: the media_id
+          required: true
+          type: number
+          format: int
+        - name: fq
+          in: query
+          description: fq ("filter query") parameter which is passed directly to Solr
+          required: false
+          type: string
+        - name: sort
+          description: sort order
+          in: query
+          required: false
+          type: string
+          default: 'publication_date'
+          enum: ['publication_date','social']
+        - name: limit
+          description: number of words to return
+          in: query
+          required: false
+          type: number
+          format: int
+          default: 10
+        - name: offset
+          description: offset used for paging results
+          in: query
+          required: false
+          type: number
+          format: int
+        - name: timeslice
+          description: a timeslice within the topic to search. return an error if snapshot specified as well. 
+          in: query
+          required: false
+          type: number
+          format: int
+        - name: snapshot
+          description: a snapshot within the topic to search. return an error if timeslice specified as well. 
+          in: query
+          required: false
+          type: number
+          format: int
+      tags:
+        - Aug 1, 2016
+        - media influence page
+        - unimplemented
+      responses:
+        200:
+          description: a list of story summaries
+          schema:
+            type: object
+            properties:
+              count:
+                type: integer
+              summary:
+                type: array
+                items:
+                  $ref: '#/definitions/Lightweight_Story_Summary'
+        403:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'       
+
+  /topics/{id}/media/{media_id}/outlinks:
+    get:
+      summary: What stories does a given media source link to (outside the media source)?
+      description: |
+        The returned list of stories is sortable by publication date and bitly click counts. Allow limits and paging.
+      parameters:
+        - name: id
+          in: path
+          description: the controversy id
+          required: true
+          type: number
+          format: int
+        - name: media_id
+          in: path
+          description: the media_id
+          required: true
+          type: number
+          format: int
+        - name: fq
+          in: query
+          description: fq ("filter query") parameter which is passed directly to Solr
+          required: false
+          type: string
+        - name: sort
+          description: sort order
+          in: query
+          required: false
+          type: string
+          default: 'publication_date'
+          enum: ['publication_date','social']
+        - name: limit
+          description: number of words to return
+          in: query
+          required: false
+          type: number
+          format: int
+          default: 10
+        - name: offset
+          description: offset used for paging results
+          in: query
+          required: false
+          type: number
+          format: int
+        - name: timeslice
+          description: a timeslice within the topic to search. return an error if snapshot specified as well. 
+          in: query
+          required: false
+          type: number
+          format: int
+        - name: snapshot
+          description: a snapshot within the topic to search. return an error if timeslice specified as well. 
+          in: query
+          required: false
+          type: number
+          format: int
+      tags:
+        - Aug 1, 2016
+        - media influence page
+        - unimplemented
+      responses:
+        200:
+          description: a list of story summaries
+          schema:
+            type: object
+            properties:
+              count:
+                type: integer
+              summary:
+                type: array
+                items:
+                  $ref: '#/definitions/Lightweight_Story_Summary'
+        403:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error' 
+            
+  /topics/framesets/list:
+    get:
+      summary: What framesets are globally available?
+      description: Used to discover what framesets are available for use.
+        This is the current view of framesets used for dynamic exploration.
+        (Unusual in that it does not take any parameters. Still not entirely clear of the needs on this)
+      tags:
+        - Aug 1, 2016
+        - frame support
+        - unimplemented
+      responses:
+        200:
+          description: a list of framesets
+          schema:
+            type: object
+            properties:
+              framesets:
+                type: array
+                items:
+                  $ref: '#/definitions/Frameset'
+        403:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /topics/framesets:
+    post:
+      summary: Make a new frameset.
+      description:  Create a new frameset. Do not assign to any topics
+      parameters:
+        - name: name
+          description: name of new frameset
+          in: query
+          required: false
+          type: string
+      tags:
+        - Aug 1, 2016
+        - frame support
+        - unimplemented
+      responses:
+        200:
+          description: return id of created frameset
+          schema:
+            type: integer
+        403:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      summary: Delete frameset.
+      description: Delete a frameset. Will delete all associated frames. Does not modify framesets in previous snapshots
+      parameters:
+        - name: id
+          in: query
+          description: the frameset id
+          required: true
+          type: number
+          format: int
+      tags:
+        - Aug 1, 2016
+        - frame support
+        - unimplemented
+      responses:
+        200:
+          description: OK
+        403:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+            
+  /topics/{id}/framesets/list:
+    get:
+      summary: What framesets are found within the topic?
+      description: Used to discover what framesets are used within a topic.
+        Can take a timeslice or snapshot parameter.
+      parameters:
+        - name: id
+          in: path
+          description: the controversy id
+          required: true
+          type: number
+          format: int
+        - name: timeslice
+          description: a timeslice within the topic to search. return an error if snapshot specified as well. 
+          in: query
+          required: false
+          type: number
+          format: int
+        - name: snapshot
+          description: a snapshot within the topic to search. return an error if timeslice specified as well. 
+          in: query
+          required: false
+          type: number
+          format: int
+      tags:
+        - Aug 1, 2016
+        - frame support
+        - unimplemented
+      responses:
+        200:
+          description: a list of framesets
+          schema:
+            type: object
+            properties:
+              framesets:
+                type: array
+                items:
+                  $ref: '#/definitions/Frameset'
+        403:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+            
+  /topics/{id}/framesets:
+    post:
+      summary: Add a frameset to a topic
+      description: |
+          Associate a current frameset to the topic. Note current design decision - this does not apply to previous snapshots.
+      parameters:
+        - name: id
+          in: path
+          description: the controversy id
+          required: true
+          type: number
+          format: int
+        - name: frameset_id
+          in: query
+          description: frameset id
+          required: true
+          type: number
+          format: int
+      tags:
+        - Aug 1, 2016
+        - frame support
+        - unimplemented
+      responses:
+        200:
+          description: OK
+        403:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      summary: Delete a frameset from a topic
+      description: Disssociate a current frameset from the topic. Note current design decision - this does not apply to previous snapshots.
+      parameters:
+        - name: id
+          in: path
+          description: the controversy id
+          required: true
+          type: number
+          format: int
+        - name: frameset_id
+          in: query
+          description: frameset id
+          required: true
+          type: number
+          format: int
+      tags:
+        - Aug 1, 2016
+        - frame support
+        - unimplemented
+      responses:
+        200:
+          description: OK
+        403:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+            
+  /topics/{id}/framesets/{frameset_id}/list:
+    get:
+      summary:
+        What frames are included in a specific frameset used in the topic?
+      description: |
+        The returned list of frames should be limited in number. The number of stories in each frame within the controversy are also returned, and the list is sorted by this value.
+        The consumer of this endpoint also needs to be able to page through results.
+      parameters:
+        - name: id
+          in: path
+          description: controversies_id
+          required: true
+          type: number
+          format: int
+        - name: frameset_id
+          in: path
+          description: controversies_id
+          required: true
+          type: number
+          format: int
+        - name: limit
+          description: number of stories to return
+          in: query
+          required: false
+          type: number
+          format: int
+          default: 10
+        - name: timeslice
+          description: a timeslice within the topic to search. return an error if snapshot specified as well. 
+          in: query
+          required: false
+          type: number
+          format: int
+        - name: snapshot
+          description: a snapshot within the topic to search. return an error if timeslice specified as well. 
+          in: query
+          required: false
+          type: number
+          format: int
+        - name: offset
+          description: offset used for paging results
+          in: query
+          required: false
+          type: number
+          format: int
+      tags:
+        - August 1, 2016
+        - frame support
+        - unimplemented
+      responses:
+        200:
+          description: Frames associated with a topic
+          schema:
+            type: object
+            properties:
+              frames:
+                type: array
+                items:
+                  $ref: '#/definitions/Frame_Summary'
+        403:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+            
+  /topics/framesets/{frameset_id}/list:
+    get:
+      summary: What frames are currently used in a given frameset?
+      description: |
+        Used to discover what frames are available for use.
+        This is the current view of frames used for dynamic exploration.
+      parameters:
+        - name: frameset_id
+          in: path
+          description: the frameset id
+          required: true
+          type: number
+          format: int
+      tags:
+        - Aug 1, 2016
+        - frame support
+        - unimplemented
+      responses:
+        200:
+          description: a list of frames
+          schema:
+            type: object
+            properties:
+              framesets:
+                type: array
+                items:
+                  $ref: '#/definitions/Frame_Summary'
+        403:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /topics/framesets/{frameset_id}:
+      post:
+        summary: Make a new frame.
+        description:  Create a new frame. Do not assign to any topics
+        parameters:
+          - name: frameset_id
+            in: path
+            description: the frame id
+            required: true
+            type: number
+            format: int
+        tags:
+          - Aug 1, 2016
+          - frame support
+          - unimplemented
+        responses:
+          200:
+            description: return id of created frame
+            schema:
+              type: integer
+          403:
+            description: Unexpected error
+            schema:
+              $ref: '#/definitions/Error'
+      delete:
+        summary: Delete frame.
+        description: Delete a frames. Will delete all associated frames. Does not modify frames in previous snapshots
+        parameters:
+          - name: frameset_id
+            in: path
+            description: the frame id
+            required: true
+            type: number
+            format: int
+        tags:
+          - Aug 1, 2016
+          - frame support
+          - unimplemented
+        responses:
+          200:
+            description: OK
+          403:
+            description: Unexpected error
+            schema:
+              $ref: '#/definitions/Error'
+        
 definitions:
+  Frame_Summary:
+    type: object
+    properties:
+      frame_set_id:
+        type: integer
+      frame_id:
+        type: integer
+      count:
+        type: integer
+  Tag_Summary:
+    type: object
+    properties:
+      tag_id:
+        type: integer
+      tag_name:
+        type: string
+      count:
+        type: integer
   Story:
     type: object
     properties:
@@ -264,6 +1405,20 @@ definitions:
       inlink_count:
         type: integer
 
+  Stats:
+    type: object
+    properties:
+      num_words_returned:
+        type: integer
+      num_sentences_returned:
+        type: integer
+      num_sentences_found:
+        type: integer
+      num_words_param:
+        type: integer
+      sample_size_param:
+        type: integer
+
   WordCount:
     type: object
     properties:
@@ -275,7 +1430,19 @@ definitions:
         type: string
       count:
         type: integer
-
+        
+  Lightweight_Story_Summary:
+    type: object
+    properties:
+      story_id:
+        type: integer
+  
+  Frameset:
+    type: object
+    properties:
+      frameset_id:
+        type: integer
+        
   Media:
     type: object
     properties:
@@ -370,3 +1537,4 @@ securityDefinitions:
 
 security:
   - api_key: []
+
