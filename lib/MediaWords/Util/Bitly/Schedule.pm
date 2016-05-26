@@ -117,46 +117,76 @@ sub process_due_schedule($)
         die "Bit.ly story processing is not enabled.";
     }
 
-    my $stories_to_process = $db->query(
-        <<EOF
-            SELECT DISTINCT stories_id
-            FROM bitly_processing_schedule
-            WHERE fetch_at <= NOW()
-            ORDER BY stories_id
-EOF
-    )->hashes;
-    foreach my $story_to_process ( @{ $stories_to_process } )
+    Readonly my $CHUNK_SIZE => 1000;
+
+    DEBUG "Adding due stories to Bit.ly fetch queue...";
+    my $stories_to_process;
+    do
     {
+        DEBUG "Fetching chunk of up to $CHUNK_SIZE stories to add to Bit.ly fetch queue...";
 
-        my $stories_id = $story_to_process->{ stories_id };
+        $db->begin_work;
 
-        my $story = $db->find_by_id( 'stories', $stories_id );
-        unless ( $story )
+        $stories_to_process = $db->query(
+            <<EOF,
+                SELECT DISTINCT stories_id
+                FROM bitly_processing_schedule
+                WHERE fetch_at <= NOW()
+                ORDER BY stories_id
+                LIMIT ?
+EOF
+            $CHUNK_SIZE
+        )->hashes;
+
+        if ( scalar( @{ $stories_to_process } ) > 0 )
         {
-            die "Story ID $stories_id was not found.";
+            DEBUG "Processing " . scalar( @{ $stories_to_process } ) . " stories...";
+
+            foreach my $story_to_process ( @{ $stories_to_process } )
+            {
+                my $stories_id = $story_to_process->{ stories_id };
+
+                my $story = $db->find_by_id( 'stories', $stories_id );
+                unless ( $story )
+                {
+                    die "Story ID $stories_id was not found.";
+                }
+
+                my $story_timestamp = story_timestamp( $story );
+                my $start_timestamp = story_start_timestamp( $story_timestamp );
+                my $end_timestamp   = story_end_timestamp( $story_timestamp );
+
+                DEBUG "Adding story $stories_id to Bit.ly fetch queue...";
+                MediaWords::Job::Bitly::FetchStoryStats->add_to_queue(
+                    {
+                        stories_id      => $stories_id,
+                        start_timestamp => $start_timestamp,
+                        end_timestamp   => $end_timestamp
+                    }
+                );
+
+                $db->query(
+                    <<EOF,
+                    DELETE FROM bitly_processing_schedule
+                    WHERE stories_id = ?
+                      AND fetch_at <= NOW()
+EOF
+                    $stories_id
+                );
+            }
+
+            DEBUG "Done processing " . scalar( @{ $stories_to_process } ) . " stories.";
+        }
+        else
+        {
+            DEBUG "No more stories left to process.";
         }
 
-        my $story_timestamp = story_timestamp( $story );
-        my $start_timestamp = story_start_timestamp( $story_timestamp );
-        my $end_timestamp   = story_end_timestamp( $story_timestamp );
+        $db->commit;
 
-        MediaWords::Job::Bitly::FetchStoryStats->add_to_queue(
-            {
-                stories_id      => $stories_id,
-                start_timestamp => $start_timestamp,
-                end_timestamp   => $end_timestamp
-            }
-        );
+    } until ( scalar( @{ $stories_to_process } ) == 0 );
 
-        $db->query(
-            <<EOF,
-            DELETE FROM bitly_processing_schedule
-            WHERE stories_id = ?
-              AND fetch_at <= NOW()
-EOF
-            $stories_id
-        );
-    }
+    DEBUG "Done adding due stories to Bit.ly fetch queue.";
 }
 
 sub story_timestamp($)
