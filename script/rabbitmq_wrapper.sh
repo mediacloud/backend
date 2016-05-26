@@ -190,16 +190,15 @@ RABBITMQ_PID=$!
 
 echo "Waiting for RabbitMQ to start..."
 RABBITMQ_IS_UP=0
-RABBITMQ_START_RETRIES=600
-
-echo "Waiting $RABBITMQ_START_RETRIES seconds for RabbitMQ to start..."
-for i in `seq 1 $RABBITMQ_START_RETRIES`; do
-    echo "Trying to connect (#$i)..."
+CONNECT_RETRY=1
+while true; do
+    echo "Trying to connect (#$CONNECT_RETRY)..."
     if nc -z -w 10 127.0.0.1 $RABBITMQ_NODE_PORT; then
         RABBITMQ_IS_UP=1
         break
     else
         # Still down
+        CONNECT_RETRY=$((CONNECT_RETRY+1))
         sleep 1
     fi
 done
