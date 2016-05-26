@@ -33,3 +33,6 @@ sub main
 }
 
 main();
+
+# Required by Sys::RunAlone
+__END__
