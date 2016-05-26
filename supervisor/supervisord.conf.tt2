@@ -37,6 +37,9 @@ process_name = %(program_name)s_%(process_num)02d
     [%- IF stopwaitsecs %]
 stopwaitsecs=[% stopwaitsecs %]
     [%- END %]
+    [%- IF stopsignal %]
+stopsignal=[% stopsignal %]
+    [%- END %]
 [%- END %]
 
 [inet_http_server]
