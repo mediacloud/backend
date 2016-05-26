@@ -172,9 +172,4 @@ END
     return 1;
 }
 
-sub _prepare_media_for_controversy
-{
-
-}
-
 1;
