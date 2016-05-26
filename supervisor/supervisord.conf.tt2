@@ -112,6 +112,8 @@ programs = gearmand,rabbitmq
     default_killasgroup='true'
     default_autorestart='true'
     default_autostart='true'
+    stopsignal='INT'
+    stopwaitsecs=30
     priority=10
 %]
 
