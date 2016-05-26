@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4540;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4541;
 
 BEGIN
 
@@ -392,9 +392,6 @@ create table media (
     use_pager           boolean         null,
     unpaged_stories     int             not null default 0,
 
-    -- Annotate stories from this media source with CoreNLP?
-    annotate_with_corenlp   BOOLEAN     NOT NULL DEFAULT(false),
-
     -- Delay content downloads for this media source this many hours
     content_delay       int             null,
 
@@ -408,7 +405,6 @@ create unique index media_name on media(name);
 create unique index media_url on media(url);
 create index media_moderated on media(moderated);
 create index media_db_row_last_updated on media( db_row_last_updated );
-create index media_annotate on media ( annotate_with_corenlp, media_id );
 
 CREATE INDEX media_name_trgm on media USING gin (name gin_trgm_ops);
 CREATE INDEX media_url_trgm on media USING gin (url gin_trgm_ops);
@@ -2967,13 +2963,6 @@ CREATE INDEX activities_user_identifier ON activities (user_identifier);
 CREATE INDEX activities_object_id ON activities (object_id);
 
 
--- Extra stories to be annotated with CoreNLP that don't have "media.annotate_with_corenlp = 't'"
-CREATE TABLE extra_corenlp_stories (
-    extra_corenlp_stories_id  SERIAL  PRIMARY KEY,
-    stories_id                INTEGER NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE
-);
-CREATE INDEX extra_corenlp_stories_stories_id ON extra_corenlp_stories (stories_id);
-
 --
 -- Returns true if the story can + should be annotated with CoreNLP
 --
@@ -2986,23 +2975,9 @@ BEGIN
     SELECT stories_id, media_id, language INTO story from stories where stories_id = corenlp_stories_id;
 
     IF NOT ( story.language = 'en' or story.language is null ) THEN
-
-        RETURN FALSE;
-
-    ELSEIF NOT EXISTS (
-
-            SELECT 1 FROM media WHERE media.annotate_with_corenlp = 't' and media_id = story.media_id
-
-        ) AND NOT EXISTS (
-
-            SELECT 1 FROM extra_corenlp_stories  WHERE extra_corenlp_stories.stories_id = corenlp_stories_id
-
-        ) THEN
-
         RETURN FALSE;
 
     ELSEIF NOT EXISTS ( SELECT 1 FROM story_sentences WHERE stories_id = corenlp_stories_id ) THEN
-
         RETURN FALSE;
 
     END IF;
