@@ -175,32 +175,6 @@ sub call_test_api
     my $response = request( $url );
 }
 
-sub _get_story_link_counts
-{
-    my $data = shift;
-
-    # umber of prime factors outside the media source
-    my $counts = {
-        1  => 0,
-        2  => 0,
-        3  => 0,
-        4  => 0,
-        5  => 0,
-        7  => 0,
-        8  => 1,
-        9  => 1,
-        10 => 2,
-        11 => 0,
-        13 => 0,
-        14 => 2,
-        15 => 0
-    };
-
-    my %return_counts = map { "story " . $_ => $counts->{ $_ } } keys %{ $counts };
-    return \%return_counts;
-
-}
-
 sub _api_request_url($;$)
 {
     my ( $path, $params ) = @_;

@@ -18,6 +18,23 @@ use MediaWords;
 use MediaWords::Test::DB;
 use MediaWords::Test::API;
 
+sub test_status_ok
+{
+    my @paths = qw(
+      /api/v2/topics/1/media/list
+      /api/v2/topics/1/media/1
+      /api/v2/topics/1/media/1/stories/list
+      /api/v2/topics/1/media/1/inlinks
+      /api/v2/topics/1/media/1/outlinks
+    );
+    foreach my $url ( @paths )
+    {
+        my $base_url = { path => $url };
+        my $response = MediaWords::Test::API::call_test_api( $base_url );
+        Test::More::ok( $response->is_success, 'Request should succeed' );
+    }
+}
+
 sub test_media_list
 {
     my $data = shift;
@@ -91,6 +108,7 @@ sub main
 
             MediaWords::Test::API::create_test_data( $db, $controversy_media );
 
+            test_status_ok();
             test_media_list( $stories );
             test_media_single( $stories );
 
