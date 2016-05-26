@@ -18,6 +18,8 @@ use MediaWords::DB;
 use MediaWords::Util::Bitly::Schedule;
 use MediaWords::Job::Bitly::FetchStoryStats;
 
+use Sys::RunAlone;
+
 use Readonly;
 
 sub main
