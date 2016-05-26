@@ -176,6 +176,9 @@ fi
 
 # On Ctrl+C, shutdown RabbitMQ
 function kill_rabbitmq {
+    echo "Trying to shutdown RabbitMQ gracefully..."
+    $PATH_TO_RABBITMQCTL -n "$RABBITMQ_NODENAME" stop
+
     echo "Killing RabbitMQ at group PID $RABBITMQ_PID..."
     pkill -P $RABBITMQ_PID
 }
@@ -187,7 +190,7 @@ RABBITMQ_PID=$!
 
 echo "Waiting for RabbitMQ to start..."
 RABBITMQ_IS_UP=0
-RABBITMQ_START_RETRIES=90
+RABBITMQ_START_RETRIES=600
 
 echo "Waiting $RABBITMQ_START_RETRIES seconds for RabbitMQ to start..."
 for i in `seq 1 $RABBITMQ_START_RETRIES`; do
