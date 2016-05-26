@@ -1235,12 +1235,6 @@ END
             push( @{ $node->{ attvalues }->{ attvalue } }, { for => $j++, value => $medium->{ $name } } );
         }
 
-        # for my $story ( @{ $medium->{ stories } } )
-        # {
-        #     my $story_date = substr( $story->{ publish_date }, 0, 10 );
-        #     push( @{ $node->{ spells }->{ spell } }, { start => $story_date, end => $story_date } );
-        # }
-
         $node->{ 'viz:color' } = [ get_color( $db, $cdts, $color_field, $medium->{ $color_field } ) ];
         $node->{ 'viz:size' } = { value => $medium->{ inlink_count } + 1 };
 
@@ -1251,12 +1245,6 @@ END
 
     layout_gexf_with_graphviz( $gexf );
     my $layout_gexf = XML::Simple::XMLout( $gexf, XMLDecl => 1, RootName => 'gexf' );
-
-    # my $nolayout_gexf = XML::Simple::XMLout( $gexf, XMLDecl => 1, RootName => 'gexf' );
-    #
-    # my $layout_gexf = layout_gexf( $db, $cdts, $nolayout_gexf );
-
-    #create_cdts_file( $db, $cdts, 'media.gexf', encode( 'utf8', $layout_gexf ) );
 
     return $layout_gexf;
 }
