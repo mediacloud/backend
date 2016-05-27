@@ -16,6 +16,7 @@ use MediaWords::Util::Config;
     use Moose;
     use MediaCloud::JobManager::Configuration;
     use MediaCloud::JobManager::Broker::Gearman;
+    use MediaCloud::JobManager::Broker::RabbitMQ;
     extends 'MediaCloud::JobManager::Configuration';
 
     sub BUILD
@@ -25,7 +26,20 @@ use MediaWords::Util::Config;
         my $config     = MediaWords::Util::Config::get_config();
         my $job_broker = undef;
 
-        if ( $config->{ job_manager }->{ gearman } )
+        if ( $config->{ job_manager }->{ rabbitmq } )
+        {
+            my $rabbitmq_config = $config->{ job_manager }->{ rabbitmq }->{ client };
+
+            $job_broker = MediaCloud::JobManager::Broker::RabbitMQ->new(
+                hostname => $rabbitmq_config->{ hostname },
+                port     => $rabbitmq_config->{ port },
+                username => $rabbitmq_config->{ username },
+                password => $rabbitmq_config->{ password },
+                vhost    => $rabbitmq_config->{ vhost },
+                timeout  => $rabbitmq_config->{ timeout },
+            );
+        }
+        elsif ( $config->{ job_manager }->{ gearman } )
         {
             my $servers = $config->{ job_manager }->{ gearman }->{ client }->{ servers };
             unless ( ref $servers eq ref [] )

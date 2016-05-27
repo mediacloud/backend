@@ -40,6 +40,20 @@ You can use the job ID to *cancel job which isn't running yet*:
 ## Job brokers
 
 
+### RabbitMQ
+
+Media Cloud supports using [RabbitMQ](https://www.rabbitmq.com/) as a job broker. Clients and workers will interact using [Celery](http://www.celeryproject.org/) protocol.
+
+#### Running
+
+Run `./script/rabbitmq_wrapper.sh` which will start a separate RabbitMQ server instance on port 5673 and a web interface on port [15673](http://localhost:15673/).
+
+
+#### Monitoring
+
+Use RabbitMQ's web interface at <http://localhost:15673/> (default username: `mediacloud`; default password: `mediacloud`).
+
+
 ### Gearman
 
 #### Running
