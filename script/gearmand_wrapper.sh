@@ -5,7 +5,6 @@ set -e
 
 PWD="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-TRANSLATE_FUNCTION_NAMES="$PWD/../script/run_with_carton.sh $PWD/../script/gearman_translate_function_names.pl"
 QUERY_CONFIG="$PWD/../script/run_with_carton.sh $PWD/../script/mediawords_query_config.pl"
 
 # 'cd' to Media Cloud's root (assuming that this script is stored in './script/')
@@ -101,7 +100,7 @@ print_gearman_installation_instructions() {
 echo "Testing environment..."
 if ! gearmand_is_enabled; then
     log "'gearmand' is not enabled."
-    log "Please enable it in 'mediawords.yml' by setting /gearmand/enabled to 'yes'."
+    log "Please enable it in 'mediawords.yml' by setting /job_manager/gearman/server/enabled to 'yes'."
     exit 0
 fi
 
@@ -153,9 +152,6 @@ GEARMAND_PARAMS="$GEARMAND_PARAMS --log-file stderr"
 GEARMAND_PARAMS="$GEARMAND_PARAMS --threads $GEARMAN_THREADS"
 # GEARMAND_PARAMS="$GEARMAND_PARAMS --keepalive"
 GEARMAND_PARAMS="$GEARMAND_PARAMS --worker-wakeup $GEARMAN_WORKER_WAKEUP"
-
-echo "Translating queued jobs to their new names..."
-`$TRANSLATE_FUNCTION_NAMES`
 
 echo "Executing: gearmand $GEARMAND_PARAMS"
 exec gearmand $GEARMAND_PARAMS

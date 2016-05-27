@@ -143,9 +143,10 @@ def add_feeds_from_media_to_database( conn, mc, media ):
     
     for medium in media:
         feeds_for_media = mc.feedList( media_id=medium['media_id'], rows=1000)
-        assert len( feeds_for_media ) < 1000
+        assert len( feeds_for_media ) < 10000
         
         for feed in feeds_for_media:
+            cast_fields_to_bool( feed, [ 'skip_bitly_processing' ])
             insert_into_table( cursor, 'feeds', feed )
             
         num_media_processed += 1
