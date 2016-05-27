@@ -37,7 +37,7 @@ sub list : Chained('stories') : Args(0) : ActionClass('MC_REST')
 
 }
 
-sub list_GET
+sub list_GET : Local
 {
     my ( $self, $c ) = @_;
     my $db   = $c->dbis;
@@ -76,6 +76,18 @@ SQL
     {
         $self->status_bad_request( $c, message => "unable to find snapshot and timeslice" );
     }
+}
+
+sub count : Chained('stories') : Args(0) : ActionClass('MC_REST')
+{
+
+}
+
+sub count_GET : Local
+{
+    my ( $self, $c ) = @_;
+    my $entity = {};
+    $self->status_ok( $c, entity => $entity );
 }
 
 1;
