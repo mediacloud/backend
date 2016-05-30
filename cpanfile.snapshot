@@ -272,6 +272,20 @@ DISTRIBUTIONS
       Carp::Clan 5.3
       ExtUtils::MakeMaker 0
       Storable 2.21
+  Bytes-Random-Secure-0.29
+    pathname: D/DA/DAVIDO/Bytes-Random-Secure-0.29.tar.gz
+    provides:
+      Bytes::Random::Secure 0.29
+    requirements:
+      Carp 0
+      Crypt::Random::Seed 0
+      ExtUtils::MakeMaker 6.56
+      MIME::Base64 0
+      MIME::QuotedPrint 3.03
+      Math::Random::ISAAC 0
+      Scalar::Util 1.21
+      Test::More 0.98
+      perl 5.006000
   CGI-4.28
     pathname: L/LE/LEEJO/CGI-4.28.tar.gz
     provides:
@@ -1316,6 +1330,20 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       Pod::Text 2.08
       Pod::Usage 1.33
+  Crypt-Random-Seed-0.03
+    pathname: D/DA/DANAJ/Crypt-Random-Seed-0.03.tar.gz
+    provides:
+      Crypt::Random::Seed 0.03
+    requirements:
+      Carp 0
+      Crypt::Random::TESHA2 0
+      Exporter 5.562
+      ExtUtils::MakeMaker 0
+      Fcntl 0
+      Test::More 0.45
+      base 0
+      constant 0
+      perl 5.006002
   Crypt-Random-Source-0.11
     pathname: E/ET/ETHER/Crypt-Random-Source-0.11.tar.gz
     provides:
@@ -1348,6 +1376,20 @@ DISTRIBUTIONS
       perl 5.008
       strict 0
       warnings 0
+  Crypt-Random-TESHA2-0.01
+    pathname: D/DA/DANAJ/Crypt-Random-TESHA2-0.01.tar.gz
+    provides:
+      Crypt::Random::TESHA2 0.01
+      Crypt::Random::TESHA2::Config 0.01
+    requirements:
+      Carp 0
+      Digest::SHA 5.22
+      Exporter 5.562
+      ExtUtils::MakeMaker 0
+      Test::More 0.45
+      Time::HiRes 1.9711
+      base 0
+      perl 5.006002
   Crypt-SaltedHash-0.09
     pathname: G/GS/GSHANK/Crypt-SaltedHash-0.09.tar.gz
     provides:
@@ -5156,6 +5198,40 @@ DISTRIBUTIONS
       strict 0
       warnings 0
       warnings::register 0
+  Math-Prime-Util-0.58
+    pathname: D/DA/DANAJ/Math-Prime-Util-0.58.tar.gz
+    provides:
+      Math::Prime::Util 0.58
+      Math::Prime::Util::MemFree 0.58
+      Math::Prime::Util::PP 0.58
+      Math::Prime::Util::PrimeArray 0.58
+      Math::Prime::Util::PrimeIterator 0.58
+      ntheory 0.58
+    requirements:
+      Bytes::Random::Secure 0.23
+      Carp 0
+      Config 0
+      Exporter 5.57
+      ExtUtils::MakeMaker 0
+      Math::BigFloat 1.59
+      Math::BigInt 1.88
+      Math::Prime::Util::GMP 0.36
+      Tie::Array 0
+      XSLoader 0.01
+      base 0
+      constant 0
+      perl 5.006002
+  Math-Prime-Util-GMP-0.36
+    pathname: D/DA/DANAJ/Math-Prime-Util-GMP-0.36.tar.gz
+    provides:
+      Math::Prime::Util::GMP 0.36
+    requirements:
+      Carp 0
+      Exporter 5.57
+      ExtUtils::MakeMaker 0
+      XSLoader 0.01
+      base 0
+      perl 5.006002
   Math-Random-0.72
     pathname: G/GR/GROMMEL/Math-Random-0.72.tar.gz
     provides:
