@@ -97,6 +97,14 @@ use MediaWords::Util::Config;
         return MediaWords::AbstractJob::Configuration->instance;
     }
 
+    # Whether or not RabbitMQ should create lazy queues for the jobs
+    sub lazy_queue()
+    {
+        # When some services are stopped on production, the queues might fill
+        # up pretty quickly
+        return 1;
+    }
+
     no Moose;    # gets rid of scaffolding
 
     # Return package name instead of 1 or otherwise worker.pl won't know the name of the package it's loading
