@@ -159,7 +159,7 @@ else
     sudo apt-get -y install gearman-job-server gearman-tools libgearman-dev
 
     # Install and hold specific version of Erlang
-    sudo apt-get -y esl-erlang="$ERLANG_APT_VERSION" erlang-mode="$ERLANG_APT_VERSION"
+    sudo apt-get -y install esl-erlang="$ERLANG_APT_VERSION" erlang-mode="$ERLANG_APT_VERSION"
     sudo apt-mark hold erlang-mode esl-erlang
 
     # Install the rest of the packages
