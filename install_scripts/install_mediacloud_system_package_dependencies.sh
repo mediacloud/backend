@@ -10,6 +10,12 @@ ERLANG_APT_GPG_KEY_URL="http://packages.erlang-solutions.com/ubuntu/erlang_solut
 ERLANG_APT_REPOSITORY_URL="http://packages.erlang-solutions.com/ubuntu"
 RABBITMQ_PACKAGECLOUD_SCRIPT="https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.deb.sh"
 
+# Newest Erlang version (18.3 at the time of writing) has memory handling issues, see:
+#
+# https://groups.google.com/forum/#!topic/rabbitmq-users/7K0Ac5tWUIY
+#
+ERLANG_APT_VERSION="1:17.5.3"
+
 
 function echo_cld_instructions {
     cat <<EOF
@@ -151,6 +157,10 @@ else
     fi
 
     sudo apt-get -y install gearman-job-server gearman-tools libgearman-dev
+
+    # Install and hold specific version of Erlang
+    sudo apt-get -y esl-erlang="$ERLANG_APT_VERSION" erlang-mode="$ERLANG_APT_VERSION"
+    sudo apt-mark hold erlang-mode esl-erlang
 
     # Install the rest of the packages
     sudo apt-get --assume-yes install \
