@@ -73,7 +73,7 @@ swap the production and staging databases.
 
 =cut
 
-use forks;
+#use forks;
 
 use strict;
 use warnings;
@@ -484,6 +484,7 @@ sub print_csv_to_file
     }
     else
     {
+        require forks;
         my $threads = [];
 
         for my $proc ( $min_proc .. $max_proc )

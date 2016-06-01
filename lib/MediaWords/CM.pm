@@ -56,13 +56,31 @@ SQL
     return $cdts;
 }
 
+sub _get_time_slice
+{
+    my ( $db, $timeslice ) = @_;
+
+    my $cdts = $db->query( <<SQL, $timeslice )->hash;
+select *, cd.controversies_id
+from controversy_dump_time_slices cdts
+join controversy_dumps cd on (cd.controversy_dumps_id = cdts.controversy_dumps_id)
+where
+  cdts.controversy_dump_time_slices_id = \$1
+SQL
+    unless ( $cdts )
+    {
+        LOGDIE( "no time slice for timeslice $timeslice" );
+    }
+}
+
 sub _get_overall_time_slice_from_snapshot
 {
     my ( $db, $snapshot ) = @_;
 
     my $cdts = $db->query( <<SQL, $snapshot )->hash;
-select *
+select *, cd.controversies_id
   from controversy_dump_time_slices cdts
+  join controversy_dumps cd on (cd.controversy_dumps_id = cdts.controversy_dumps_id)
   where
     cdts.controversy_dumps_id = \$1 and
     cdts.period = 'overall' and
@@ -78,7 +96,7 @@ sub _get_latest_overall_time_slice_from_controversy
 {
     my ( $db, $controversies_id ) = @_;
     my $cdts = $db->query( <<SQL, $controversies_id )->hash;
-select *
+select *, cd.controversies_id
   from controversy_dump_time_slices cdts
   join controversy_dumps cd on (cd.controversy_dumps_id = cdts.controversy_dumps_id)
   where
@@ -97,7 +115,7 @@ sub get_time_slice_for_controversy
 {
     my ( $db, $controversies_id, $timeslice, $snapshot ) = @_;
 
-    my $cdts = $db->find_by_id( 'controversy_dump_time_slices', $timeslice );
+    my $cdts = $timeslice && _get_time_slice( $db, $timeslice );
 
     return $cdts if ( $cdts );
 
