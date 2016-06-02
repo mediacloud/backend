@@ -105,6 +105,16 @@ use MediaWords::Util::Config;
         return 1;
     }
 
+    # Whether or not publish job state and return value upon completion to a
+    # separate RabbitMQ queue
+    sub publish_results()
+    {
+        # Don't create response queues and post messages with job results to
+        # them because they use up resources and we don't really check those
+        # results for the many jobs that we run
+        return 0;
+    }
+
     no Moose;    # gets rid of scaffolding
 
     # Return package name instead of 1 or otherwise worker.pl won't know the name of the package it's loading

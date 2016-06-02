@@ -17,6 +17,13 @@ MIN_OPEN_FILES_LIMIT=65536
 # Default web interface port
 RABBITMQ_WEB_INTERFACE_PORT=15673
 
+# Newest Erlang version (18.3 at the time of writing) has memory handling issues, see:
+#
+# https://groups.google.com/forum/#!topic/rabbitmq-users/7K0Ac5tWUIY
+#
+ERLANG_APT_VERSION="1:17.5.3"
+
+
 
 log() {
     # to STDERR
@@ -41,6 +48,18 @@ rabbitmq_is_installed() {
     fi
 }
 
+erlang_is_of_the_required_version() {
+    local actual_version=$(dpkg -s esl-erlang | grep Version | awk '{ print $2 }')
+
+    # 18.3 leaks memory and crashes
+    local required_version="$ERLANG_APT_VERSION"
+
+    dpkg --compare-versions "$actual_version" eq "$required_version" || {
+        return 1    # "false" in Bash
+    }
+    return 0    # "true" in Bash
+}
+
 rabbitmq_is_up_to_date() {
     local actual_version=$(dpkg -s rabbitmq-server | grep Version | awk '{ print $2 }')
     local required_version="3.6.0"
@@ -59,20 +78,7 @@ max_fd_limit_is_big_enough() {
 }
 
 print_rabbitmq_installation_instructions() {
-    log "Please install RabbitMQ by running:"
-    log ""
-    log "    # Erlang (outdated on Ubuntu 12.04)"
-    log "    sudo apt-get -y remove esl-erlang* erlang*"
-    log "    curl http://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc | sudo apt-key add -"
-    log "    echo \"deb http://packages.erlang-solutions.com/ubuntu precise contrib\" | sudo tee -a /etc/apt/sources.list.d/erlang-solutions.list"
-    log ""
-    log "    # RabbitMQ (outdated on all Ubuntu versions)"
-    log "    sudo apt-get -y remove rabbitmq-server"
-    log "    curl -s https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.deb.sh | sudo bash"
-    log ""    
-    log "    sudo apt-get -y update"
-    log "    sudo apt-get -y install rabbitmq-server"
-    log ""
+    log "Please install RabbitMQ by running 'install_mediacloud_system_package_dependencies.sh'"
 }
 
 #
@@ -97,6 +103,11 @@ if [ `uname` == 'Darwin' ]; then
     :
 else
     # Ubuntu
+
+    if ! erlang_is_of_the_required_version; then
+        log "'esl-erlang' package is not of the required version which is $ERLANG_APT_VERSION."
+        exit 1
+    fi
 
     if ! rabbitmq_is_up_to_date; then
         log "'rabbitmq-server' was found in your PATH, but is too old."
