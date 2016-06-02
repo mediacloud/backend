@@ -107,6 +107,11 @@ sub generate_content_for_page
         $page->{ matches_controversy } = 1;
     }
 
+    my $dead_link_text = $lorem->sentences( 5 );
+    $dead_link_text .= " <a href='$page->{ url }/dead'>dead link</a>";
+
+    push( @{ $paragraphs }, $dead_link_text );
+
     my $body = join( "\n\n", map { "<p>\n$_\n</p>" } @{ $paragraphs } );
 
     return <<HTML;
@@ -391,6 +396,8 @@ SQL
     is( scalar( keys( %{ $controversy_pages_lookup } ) ),
         0, "missing controversy story for controversy pages: " . Dumper( values( %{ $controversy_pages_lookup } ) ) );
 
+    my ( $dead_link_count ) = $db->query( "select count(*) from controversy_dead_links" )->flat;
+    is( $dead_link_count, scalar( @{ $controversy_pages } ), "dead link count" );
 }
 
 sub test_controversy_links
