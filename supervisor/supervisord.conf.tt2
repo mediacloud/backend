@@ -80,6 +80,17 @@ programs = crawler
 %]
 
 
+[% INCLUDE program_config
+    program='reextract_stories_without_readability_tag'
+    command="bash ./script/run_with_carton.sh ./script/reextract_stories_without_readability_tag.pl"
+    default_stopasgroup='true'
+    default_killasgroup='true'
+    default_autorestart='false'
+    default_autostart='true'
+    priority=5
+    default_nice=12
+%]
+
 ; Job brokers
 [group:job_broker]
 programs = gearmand,rabbitmq
