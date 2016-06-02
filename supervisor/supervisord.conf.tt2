@@ -80,17 +80,6 @@ programs = crawler
 %]
 
 
-[% INCLUDE program_config
-    program='reextraction_daemon'
-    command="bash ./script/run_with_carton.sh ./script/mediawords_reextraction_daemon.pl"
-    default_stopasgroup='true'
-    default_killasgroup='true'
-    default_autorestart='false'
-    default_autostart='false'
-    priority=5
-    default_nice=12
-%]
-
 ; Job brokers
 [group:job_broker]
 programs = gearmand,rabbitmq
