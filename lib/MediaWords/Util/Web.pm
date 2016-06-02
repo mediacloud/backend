@@ -285,7 +285,8 @@ sub cache_link_downloads
 {
     my ( $links ) = @_;
 
-    $_link_downloads_list = $links;
+    $_link_downloads_cache = {};
+    $_link_downloads_list  = $links;
 
     my $i = 0;
     for my $link ( @{ $links } )
@@ -362,7 +363,7 @@ sub get_cached_link_download
             {
                 my $msg = "error retrieving content for $original_url: " . $response->status_line;
                 warn( $msg );
-                $_link_downloads_cache->{ $response_link_num } = $msg;
+                $_link_downloads_cache->{ $response_link_num } = '';
             }
         }
     }

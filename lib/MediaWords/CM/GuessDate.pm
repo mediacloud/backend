@@ -888,8 +888,6 @@ sub guess_date_impl
 
     if ( _guessing_is_inapplicable( $db, $story, $html ) )
     {
-
-        # Inapplicable
         $result->{ result } = $MediaWords::CM::GuessDate::Result::INAPPLICABLE;
         return $result;
     }
