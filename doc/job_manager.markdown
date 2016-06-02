@@ -53,6 +53,10 @@ Run `./script/rabbitmq_wrapper.sh` which will start a separate RabbitMQ server i
 
 Use RabbitMQ's web interface at <http://localhost:15673/> (default username: `mediacloud`; default password: `mediacloud`).
 
+To connect to RabbitMQ web interface at _mcdb1_, create a SSH tunnel as such:
+
+    ssh mcdb1 -L 15673:localhost:15673 -N
+
 
 ### Gearman
 
