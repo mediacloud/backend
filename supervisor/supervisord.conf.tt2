@@ -81,12 +81,12 @@ programs = crawler
 
 
 [% INCLUDE program_config
-    program='reextraction_daemon'
-    command="bash ./script/run_with_carton.sh ./script/mediawords_reextraction_daemon.pl"
+    program='reextract_stories_without_readability_tag'
+    command="bash ./script/run_with_carton.sh ./script/reextract_stories_without_readability_tag.pl"
     default_stopasgroup='true'
     default_killasgroup='true'
     default_autorestart='false'
-    default_autostart='false'
+    default_autostart='true'
     priority=5
     default_nice=12
 %]
