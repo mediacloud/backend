@@ -598,7 +598,12 @@ sub extract_download($$$)
     my $dt = $db->query( "select 1 from download_texts where downloads_id = ?", $download->{ downloads_id } )->hash;
     return if ( $dt );
 
-    eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, "controversy", 0, 1 ); };
+    eval {
+        Readonly my $no_dedup_sentences => 0;
+        Readonly my $no_vector          => 1;
+        MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, "controversy", $no_dedup_sentences,
+            $no_vector );
+    };
 
     if ( my $error = $@ )
     {

@@ -460,7 +460,12 @@ sub _reextract_download
         return;
     }
 
-    eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, "restore", 1, 1 ); };
+    eval {
+        Readonly my $no_dedup_sentences => 1;
+        Readonly my $no_vector          => 1;
+        MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, "restore", $no_dedup_sentences,
+            $no_vector );
+    };
     if ( $@ )
     {
         warn "extract error processing download $download->{ downloads_id }: $@";

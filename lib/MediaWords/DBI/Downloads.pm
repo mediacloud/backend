@@ -642,8 +642,8 @@ sub process_download_for_extractor_and_record_error
 {
     my ( $db, $download, $process_num ) = @_;
 
-    my $no_dedup_sentences = 0;
-    my $no_vector          = 0;
+    Readonly my $no_dedup_sentences => 0;
+    Readonly my $no_vector          => 0;
 
     eval { process_download_for_extractor( $db, $download, $process_num, $no_dedup_sentences, $no_vector ); };
 
