@@ -491,7 +491,9 @@ SQL
         MediaWords::DBI::Downloads::extract_and_create_download_text( $db, $download );
     }
 
-    process_extracted_story( $story, $db, 0, 0 );
+    Readonly my $no_dedup_sentences => 0;
+    Readonly my $no_vector          => 0;
+    process_extracted_story( $story, $db, $no_dedup_sentences, $no_vector );
 
     $db->commit;
 }
