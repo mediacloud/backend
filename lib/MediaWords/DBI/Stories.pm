@@ -684,7 +684,7 @@ sub add_missing_story_sentences
 
     INFO( sub { "ADD SENTENCES [$story->{ stories_id }]" } );
 
-    MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story, 0, 0, 1 );
+    MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story );
 }
 
 =head2 get_all_sentences( $db, $story )

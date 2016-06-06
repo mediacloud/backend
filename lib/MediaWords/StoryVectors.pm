@@ -236,106 +236,6 @@ sub dedup_sentences
     return $deduped_sentences;
 }
 
-sub get_default_story_words_start_date
-{
-    my $default_story_words_start_date =
-      MediaWords::Util::Config::get_config->{ mediawords }->{ default_story_words_start_date };
-
-    return $default_story_words_start_date;
-}
-
-sub get_default_story_words_end_date
-{
-    my $default_story_words_end_date =
-      MediaWords::Util::Config::get_config->{ mediawords }->{ default_story_words_end_date };
-
-    return $default_story_words_end_date;
-}
-
-sub _medium_has_story_words_start_date
-{
-    my ( $medium ) = @_;
-
-    my $default_story_words_start_date = get_default_story_words_start_date();
-
-    return defined( $default_story_words_start_date ) || $medium->{ sw_data_start_date };
-}
-
-sub _get_story_words_start_date_for_medium
-{
-    my ( $medium ) = @_;
-
-    if ( defined( $medium->{ sw_data_start_date } ) && $medium->{ sw_data_start_date } )
-    {
-        return $medium->{ sw_data_start_date };
-    }
-
-    my $default_story_words_start_date = get_default_story_words_start_date();
-
-    return $default_story_words_start_date;
-}
-
-sub _medium_has_story_words_end_date
-{
-    my ( $medium ) = @_;
-
-    my $default_story_words_end_date = get_default_story_words_end_date();
-
-    return defined( $default_story_words_end_date ) || $medium->{ sw_data_end_date };
-}
-
-sub _get_story_words_end_date_for_medium
-{
-
-    my ( $medium ) = @_;
-
-    if ( defined( $medium->{ sw_data_end_date } ) && $medium->{ sw_data_end_date } )
-    {
-        return $medium->{ sw_data_end_date };
-    }
-    else
-    {
-        my $default_story_words_end_date = get_default_story_words_end_date();
-
-        return $default_story_words_end_date;
-    }
-
-}
-
-sub _date_within_media_source_story_words_range
-{
-    my ( $medium, $publish_date ) = @_;
-
-    if ( _medium_has_story_words_start_date( $medium ) )
-    {
-        my $medium_sw_start_date = _get_story_words_start_date_for_medium( $medium );
-
-        return 0 if $medium_sw_start_date gt $publish_date;
-    }
-
-    if ( _medium_has_story_words_end_date( $medium ) )
-    {
-        my $medium_sw_end_date = _get_story_words_end_date_for_medium( $medium );
-
-        return 0 if $medium_sw_end_date lt $publish_date;
-    }
-
-    return 1;
-}
-
-sub _story_within_media_source_story_words_date_range
-{
-    my ( $db, $story ) = @_;
-
-    my $medium = $db->query( "select * from media where media_id = ?", $story->{ media_id } )->hash;
-
-    my $publish_date = $story->{ publish_date };
-
-    return _date_within_media_source_story_words_range( $medium, $publish_date );
-
-    return 1;
-}
-
 sub _get_sentences_from_story_text
 {
     my ( $story_text, $story_lang ) = @_;
@@ -428,25 +328,13 @@ sub _get_story_sentence_refs
 # (useful for optimization if you are very sure no story vectors exist for this story).  If
 # $no_dedup_sentences is true, do not perform sentence deduplication (useful if you are reprocessing a
 # small set of stories)
-sub update_story_sentences_and_language
+sub update_story_sentences_and_language($$;$$)
 {
-    my ( $db, $story, $no_delete, $no_dedup_sentences, $ignore_date_range ) = @_;
+    my ( $db, $story, $no_delete, $no_dedup_sentences ) = @_;
 
     my $stories_id = $story->{ stories_id };
 
     $db->query( "DELETE FROM story_sentences WHERE stories_id = ?", $stories_id ) unless ( $no_delete );
-
-    unless ( $ignore_date_range or _story_within_media_source_story_words_date_range( $db, $story ) )
-    {
-        DEBUG(
-            sub {
-                "Won't split story " .
-                  $stories_id . " " . "into sentences / words and determine their language because " .
-                  "story is *not* within media source's story words date range and 'ignore_date_range' is not set.";
-            }
-        );
-        return;
-    }
 
     my $story_text = $story->{ story_text } || MediaWords::DBI::Stories::get_text_for_word_counts( $db, $story ) || '';
 
