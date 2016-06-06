@@ -28,7 +28,14 @@ use MediaWords::CommonLibs;
 use MediaWords::DB;
 use MediaWords::DBI::Downloads;
 
-# extract , vector, and process the download or story; LOGDIE() and / or return false on error
+# Extract, vector, and process the download or story; LOGDIE() and / or return
+# false on error.
+#
+# Arguments:
+# * stories_id OR downloads_id -- story ID or download ID to extract
+# * (optional) extractor_method -- extractor method to use (e.g. "PythonReadability")
+# * (optional) disable_story_triggers -- disable triggers on "stories" table
+#              (probably skips updating db_row_last_updated?)
 sub run($$)
 {
     my ( $self, $args ) = @_;
