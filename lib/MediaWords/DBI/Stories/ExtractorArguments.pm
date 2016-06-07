@@ -24,7 +24,7 @@ sub new($;$)
     {
         unless ( ref $args eq ref {} )
         {
-            die "'args' is not a hashref.";
+            LOGCONFESS "'args' is not a hashref.";
         }
     }
 
