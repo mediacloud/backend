@@ -28,11 +28,12 @@ sub new($;$)
         }
     }
 
-    $self->{ _no_dedup_sentences }    = $args ? $args->{ no_dedup_sentences }    : 0;
-    $self->{ _no_vector }             = $args ? $args->{ no_vector }             : 0;
-    $self->{ _no_delete }             = $args ? $args->{ no_delete }             : 0;
-    $self->{ _skip_bitly_processing } = $args ? $args->{ skip_bitly_processing } : 0;
-    $self->{ _extractor_method }      = $args ? $args->{ extractor_method }      : undef;
+    $self->{ _no_dedup_sentences }      = $args ? $args->{ no_dedup_sentences }      : 0;
+    $self->{ _no_vector }               = $args ? $args->{ no_vector }               : 0;
+    $self->{ _no_delete }               = $args ? $args->{ no_delete }               : 0;
+    $self->{ _skip_bitly_processing }   = $args ? $args->{ skip_bitly_processing }   : 0;
+    $self->{ _skip_corenlp_annotation } = $args ? $args->{ skip_corenlp_annotation } : 0;
+    $self->{ _extractor_method }        = $args ? $args->{ extractor_method }        : undef;
 
     return $self;
 }
@@ -59,6 +60,12 @@ sub skip_bitly_processing($)
 {
     my $self = shift;
     return $self->{ skip_bitly_processing };
+}
+
+sub skip_corenlp_annotation($)
+{
+    my $self = shift;
+    return $self->{ skip_corenlp_annotation };
 }
 
 # Falls back to default extractor method in configuration

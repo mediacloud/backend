@@ -540,22 +540,23 @@ sub process_extracted_story($$$)
 
     my $stories_id = $story->{ stories_id };
 
-    if (    MediaWords::Util::CoreNLP::annotator_is_enabled()
-        and MediaWords::Util::CoreNLP::story_is_annotatable( $db, $stories_id ) )
+    unless ( $extractor_args->skip_corenlp_annotation() )
     {
-        if ( $extractor_args->no_vector() )
+        if (    MediaWords::Util::CoreNLP::annotator_is_enabled()
+            and MediaWords::Util::CoreNLP::story_is_annotatable( $db, $stories_id ) )
         {
-            # Story is annotatable with CoreNLP; add to CoreNLP processing queue
-            # (which will run mark_as_processed() on its own)
-            MediaWords::Job::AnnotateWithCoreNLP->add_to_queue( { stories_id => $stories_id } );
-
+            if ( $extractor_args->no_vector() )
+            {
+                # Story is annotatable with CoreNLP; add to CoreNLP processing queue
+                # (which will run mark_as_processed() on its own)
+                MediaWords::Job::AnnotateWithCoreNLP->add_to_queue( { stories_id => $stories_id } );
+            }
+            else
+            {
+                # Story was just added to CoreNLP queue by update_story_sentences_and_language(),
+                # no need to duplicate the job -- noop
+            }
         }
-        else
-        {
-            # Story was just added to CoreNLP queue by update_story_sentences_and_language(),
-            # no need to duplicate the job -- noop
-        }
-
     }
     else
     {
