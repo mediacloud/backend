@@ -47,6 +47,10 @@
 
 
     <div id="narrowcolumn">
+        <div class="boxtitle">Live</div>
+            <fieldset>
+                <a href="[% c.uri_for( "/admin/cm/view_time_slice/" _ cdts.controversy_dump_time_slices_id _ "?l=1" ) %]">View Live Data for this Time Slice</a>
+            </fieldset>
         <div class="boxtitle">Stats</div>
         <table class="even_rows_grey">
             <tr>
