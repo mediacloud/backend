@@ -599,8 +599,10 @@ sub extract_download($$$)
     return if ( $dt );
 
     my $extractor_args = MediaWords::DBI::Stories::ExtractorArguments->new(
-        no_dedup_sentences => 0,
-        no_vector          => 1,
+        {
+            no_dedup_sentences => 0,
+            no_vector          => 1,
+        }
     );
 
     eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, $extractor_args ); };
