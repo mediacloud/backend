@@ -117,7 +117,7 @@ sub run($$)
                 LOGDIE "Download with ID $stories_id was not found.";
             }
 
-            MediaWords::DBI::Stories::extract_and_process_story( $story, $db, $process_id );
+            MediaWords::DBI::Stories::extract_and_process_story( $db, $story, $process_id );
         }
         else
         {

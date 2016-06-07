@@ -476,15 +476,15 @@ sub _reextract_download
     }
 }
 
-=head2 extract_and_process_story( $story, $db, $process_num )
+=head2 extract_and_process_story( $db, $story, $process_num )
 
 Extract all of the downloads for the given story and then call process_extracted_story();
 
 =cut
 
-sub extract_and_process_story
+sub extract_and_process_story($$$)
 {
-    my ( $story, $db, $process_num ) = @_;
+    my ( $db, $story, $process_num ) = @_;
 
     my $downloads = $db->query( <<SQL, $story->{ stories_id } )->hashes;
 SELECT * FROM downloads WHERE stories_id = ? AND type = 'content' ORDER BY downloads_id ASC
@@ -501,7 +501,7 @@ SQL
             no_vector          => 0
         }
     );
-    process_extracted_story( $story, $db, $extractor_args );
+    process_extracted_story( $db, $story, $extractor_args );
 
     $db->commit;
 }
@@ -524,7 +524,7 @@ sub _update_story_disable_triggers
     }
 }
 
-=head2 process_extracted_story( $story, $db, $extractor_args )
+=head2 process_extracted_story( $db, $story, $extractor_args )
 
 Do post extraction story processing work: call MediaWords::StoryVectors::update_story_sentences_and_language() and queue
 corenlp annotation and bitly fetching tasks.
@@ -533,7 +533,7 @@ corenlp annotation and bitly fetching tasks.
 
 sub process_extracted_story($$$)
 {
-    my ( $story, $db, $extractor_args ) = @_;
+    my ( $db, $story, $extractor_args ) = @_;
 
     unless ( $extractor_args->{ no_vector } )
     {

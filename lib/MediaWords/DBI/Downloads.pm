@@ -627,7 +627,7 @@ SQL
     {
         my $story = $db->find_by_id( 'stories', $stories_id );
 
-        MediaWords::DBI::Stories::process_extracted_story( $story, $db, $extractor_args );
+        MediaWords::DBI::Stories::process_extracted_story( $db, $story, $extractor_args );
     }
     elsif ( !( $extractor_args->{ no_vector } ) )
     {
