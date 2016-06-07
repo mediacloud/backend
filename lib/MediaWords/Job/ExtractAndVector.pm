@@ -37,6 +37,8 @@ use MediaWords::DBI::Stories::ExtractorArguments;
 # * (optional) extractor_method -- extractor method to use (e.g. "PythonReadability")
 # * (optional) disable_story_triggers -- disable triggers on "stories" table
 #              (probably skips updating db_row_last_updated?)
+# * (optional) skip_bitly_processing -- don't add extracted story to the Bit.ly
+#              processing queue
 sub run($$)
 {
     my ( $self, $args ) = @_;
@@ -64,6 +66,8 @@ sub run($$)
         {
             # If unset, will fallback to default extractor method set in configuration
             extractor_method => $args->{ extractor_method },
+
+            skip_bitly_processing => $args->{ skip_bitly_processing },
         }
     );
 

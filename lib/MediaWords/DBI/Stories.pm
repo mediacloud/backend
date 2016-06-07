@@ -567,9 +567,12 @@ sub process_extracted_story($$$)
     }
 
     # Add to Bit.ly queue
-    if ( MediaWords::Util::Bitly::Schedule::story_processing_is_enabled() )
+    unless ( $extractor_args->skip_bitly_processing() )
     {
-        MediaWords::Util::Bitly::Schedule::add_to_processing_schedule( $db, $stories_id );
+        if ( MediaWords::Util::Bitly::Schedule::story_processing_is_enabled() )
+        {
+            MediaWords::Util::Bitly::Schedule::add_to_processing_schedule( $db, $stories_id );
+        }
     }
 }
 
