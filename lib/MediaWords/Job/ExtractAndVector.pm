@@ -40,17 +40,10 @@ sub run($$)
 {
     my ( $self, $args ) = @_;
 
-    unless ( $args->{ downloads_id } or $args->{ stories_id } )
+    unless ( $args->{ downloads_id } xor $args->{ stories_id } )    # "xor", not "or"
     {
-        LOGDIE "Either 'downloads_id' or 'stories_id' should be set.";
+        LOGDIE "Either 'downloads_id' or 'stories_id' should be set (but not both).";
     }
-    if ( $args->{ downloads_id } and $args->{ stories_id } )
-    {
-        LOGDIE "Can't use both downloads_id and stories_id";
-    }
-
-    my $extract_by_downloads_id = exists $args->{ downloads_id };
-    my $extract_by_stories_id   = exists $args->{ stories_id };
 
     my $config = MediaWords::Util::Config::get_config();
 
@@ -85,7 +78,7 @@ sub run($$)
             $config->{ mediawords }->{ extractor_method } = $new_extractor_method;
         }
 
-        if ( $extract_by_downloads_id )
+        if ( $args->{ downloads_id } )
         {
             my $downloads_id = $args->{ downloads_id };
             unless ( defined $downloads_id )
@@ -101,7 +94,7 @@ sub run($$)
 
             MediaWords::DBI::Downloads::process_download_for_extractor_and_record_error( $db, $download );
         }
-        elsif ( $extract_by_stories_id )
+        elsif ( $args->{ stories_id } )
         {
             my $stories_id = $args->{ stories_id };
             unless ( defined $stories_id )
@@ -117,12 +110,8 @@ sub run($$)
 
             MediaWords::DBI::Stories::extract_and_process_story( $db, $story );
         }
-        else
-        {
-            LOGDIE "shouldn't be reached";
-        }
 
-        ## Enable story triggers in case the connection is reused due to connection pooling.
+        # Enable story triggers in case the connection is reused due to connection pooling
         $db->query( "SELECT enable_story_triggers(); " );
     };
 
@@ -136,7 +125,7 @@ sub run($$)
     if ( $error_message )
     {
         # Probably the download was not found
-        LOGDIE "Extractor LOGDIEd: $error_message; job args: " . Dumper( $args );
+        LOGDIE "Extractor died: $error_message; job args: " . Dumper( $args );
     }
 
     return 1;
