@@ -27,6 +27,7 @@ use List::Compare;
 
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories::ExtractorVersion;
+use MediaWords::DBI::Stories::ExtractorArguments;
 use MediaWords::Languages::Language;
 use MediaWords::Solr::WordCounts;
 use MediaWords::StoryVectors;
@@ -461,10 +462,13 @@ sub _reextract_download
     }
 
     eval {
-        Readonly my $no_dedup_sentences => 1;
-        Readonly my $no_vector          => 1;
-        MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, "restore", $no_dedup_sentences,
-            $no_vector );
+        my $extractor_args = MediaWords::DBI::Stories::ExtractorArguments->new(
+            {
+                no_dedup_sentences => 1,
+                no_vector          => 1,
+            }
+        );
+        MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, "restore", $extractor_args );
     };
     if ( $@ )
     {
@@ -491,9 +495,13 @@ SQL
         MediaWords::DBI::Downloads::extract_and_create_download_text( $db, $download );
     }
 
-    Readonly my $no_dedup_sentences => 0;
-    Readonly my $no_vector          => 0;
-    process_extracted_story( $story, $db, $no_dedup_sentences, $no_vector );
+    my $extractor_args = MediaWords::DBI::Stories::ExtractorArguments->new(
+        {
+            no_dedup_sentences => 0,
+            no_vector          => 0
+        }
+    );
+    process_extracted_story( $story, $db, $extractor_args );
 
     $db->commit;
 }
@@ -516,20 +524,20 @@ sub _update_story_disable_triggers
     }
 }
 
-=head2 process_extracted_story( $story, $db, $no_dedup_sentences, $no_vector )
+=head2 process_extracted_story( $story, $db, $extractor_args )
 
 Do post extraction story processing work: call MediaWords::StoryVectors::update_story_sentences_and_language() and queue
 corenlp annotation and bitly fetching tasks.
 
 =cut
 
-sub process_extracted_story
+sub process_extracted_story($$$)
 {
-    my ( $story, $db, $no_dedup_sentences, $no_vector ) = @_;
+    my ( $story, $db, $extractor_args ) = @_;
 
-    unless ( $no_vector )
+    unless ( $extractor_args->{ no_vector } )
     {
-        MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story, 0, $no_dedup_sentences );
+        MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story, $extractor_args );
     }
 
     _update_story_disable_triggers( $db, $story );
@@ -541,7 +549,7 @@ sub process_extracted_story
     if (    MediaWords::Util::CoreNLP::annotator_is_enabled()
         and MediaWords::Util::CoreNLP::story_is_annotatable( $db, $stories_id ) )
     {
-        if ( $no_vector )
+        if ( $extractor_args->{ no_vector } )
         {
             # Story is annotatable with CoreNLP; add to CoreNLP processing queue
             # (which will run mark_as_processed() on its own)

@@ -43,6 +43,7 @@ use MediaWords::Util::HTML;
 use MediaWords::DB;
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
+use MediaWords::DBI::Stories::ExtractorArguments;
 use MediaWords::StoryVectors;
 use MediaWords::Util::Paths;
 use MediaWords::Job::AnnotateWithCoreNLP;
@@ -598,16 +599,18 @@ sub extract_and_create_download_text( $$ )
     return $download_text;
 }
 
-=head2 process_download_for_extractor( $db, $download, $process_num, $no_dedup_sentences, $no_vector )
+=head2 process_download_for_extractor( $db, $download, $process_num, $extractor_args )
 
 Extract the download create the resulting download_text entry.  If there are no remaining downloads to be extracted
 for the story, call MediaWords::DBI::Stories::process_extracted_story() on the parent story.
 
 =cut
 
-sub process_download_for_extractor($$$;$$$)
+sub process_download_for_extractor($$$;$)
 {
-    my ( $db, $download, $process_num, $no_dedup_sentences, $no_vector ) = @_;
+    my ( $db, $download, $process_num, $extractor_args ) = @_;
+
+    $extractor_args //= MediaWords::DBI::Stories::ExtractorArguments->new();
 
     $process_num //= 1;
 
@@ -624,9 +627,9 @@ SQL
     {
         my $story = $db->find_by_id( 'stories', $stories_id );
 
-        MediaWords::DBI::Stories::process_extracted_story( $story, $db, $no_dedup_sentences, $no_vector );
+        MediaWords::DBI::Stories::process_extracted_story( $story, $db, $extractor_args );
     }
-    elsif ( !( $no_vector ) )
+    elsif ( !( $extractor_args->{ no_vector } ) )
     {
         DEBUG( sub { "[$process_num] pending more downloads ..." } );
     }
@@ -642,10 +645,14 @@ sub process_download_for_extractor_and_record_error
 {
     my ( $db, $download, $process_num ) = @_;
 
-    Readonly my $no_dedup_sentences => 0;
-    Readonly my $no_vector          => 0;
+    my $extractor_args = MediaWords::DBI::Stories::ExtractorArguments->new(
+        {
+            no_dedup_sentences => 0,
+            no_vector          => 0,
+        }
+    );
 
-    eval { process_download_for_extractor( $db, $download, $process_num, $no_dedup_sentences, $no_vector ); };
+    eval { process_download_for_extractor( $db, $download, $process_num, $extractor_args ); };
 
     if ( $@ )
     {
