@@ -26,11 +26,29 @@ sub new($;$)
         }
     }
 
-    $self->{ no_dedup_sentences } = $args ? $args->{ no_dedup_sentences } : 0;
-    $self->{ no_vector }          = $args ? $args->{ no_vector }          : 0;
-    $self->{ no_delete }          = $args ? $args->{ no_delete }          : 0;
+    $self->{ _no_dedup_sentences } = $args ? $args->{ no_dedup_sentences } : 0;
+    $self->{ _no_vector }          = $args ? $args->{ no_vector }          : 0;
+    $self->{ _no_delete }          = $args ? $args->{ no_delete }          : 0;
 
     return $self;
+}
+
+sub no_dedup_sentences($)
+{
+    my $self = shift;
+    return $self->{ _no_dedup_sentences };
+}
+
+sub no_vector($)
+{
+    my $self = shift;
+    return $self->{ _no_vector };
+}
+
+sub no_delete($)
+{
+    my $self = shift;
+    return $self->{ _no_delete };
 }
 
 1;

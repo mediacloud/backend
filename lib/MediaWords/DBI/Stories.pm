@@ -529,7 +529,7 @@ sub process_extracted_story($$$)
 {
     my ( $db, $story, $extractor_args ) = @_;
 
-    unless ( $extractor_args->{ no_vector } )
+    unless ( $extractor_args->no_vector() )
     {
         MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story, $extractor_args );
     }
@@ -543,7 +543,7 @@ sub process_extracted_story($$$)
     if (    MediaWords::Util::CoreNLP::annotator_is_enabled()
         and MediaWords::Util::CoreNLP::story_is_annotatable( $db, $stories_id ) )
     {
-        if ( $extractor_args->{ no_vector } )
+        if ( $extractor_args->no_vector() )
         {
             # Story is annotatable with CoreNLP; add to CoreNLP processing queue
             # (which will run mark_as_processed() on its own)

@@ -324,9 +324,9 @@ sub _get_story_sentence_refs
 }
 
 # update story vectors for the given story, updating story_sentences
-# if no_delete is true, do not try to delete existing entries in the above table before creating new ones
+# if no_delete() is true, do not try to delete existing entries in the above table before creating new ones
 # (useful for optimization if you are very sure no story vectors exist for this story).  If
-# $extractor_args->{ no_dedup_sentences } is true, do not perform sentence deduplication (useful if you are
+# $extractor_args->no_dedup_sentences() is true, do not perform sentence deduplication (useful if you are
 # reprocessing a small set of stories)
 sub update_story_sentences_and_language($$;$)
 {
@@ -336,7 +336,7 @@ sub update_story_sentences_and_language($$;$)
 
     my $stories_id = $story->{ stories_id };
 
-    unless ( $extractor_args->{ no_delete } )
+    unless ( $extractor_args->no_delete() )
     {
         $db->query( 'DELETE FROM story_sentences WHERE stories_id = ?', $stories_id );
     }
@@ -363,7 +363,7 @@ sub update_story_sentences_and_language($$;$)
 
     clean_sentences( $sentences );
 
-    if ( $extractor_args->{ no_dedup_sentences } )
+    if ( $extractor_args->no_dedup_sentences() )
     {
         DEBUG( sub { "Won't de-duplicate sentences for story $stories_id because 'no_dedup_sentences' is set." } );
     }

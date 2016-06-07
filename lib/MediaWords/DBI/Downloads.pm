@@ -611,7 +611,7 @@ SQL
 
         MediaWords::DBI::Stories::process_extracted_story( $db, $story, $extractor_args );
     }
-    elsif ( !( $extractor_args->{ no_vector } ) )
+    elsif ( !( $extractor_args->no_vector() ) )
     {
         DEBUG( sub { "pending more downloads ..." } );
     }
