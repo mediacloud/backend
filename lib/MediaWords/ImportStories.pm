@@ -384,7 +384,7 @@ sub _add_story_download
 
         MediaWords::DBI::Downloads::store_content( $db, $download, \$content );
 
-        eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, "ss" ); };
+        eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download ); };
 
         warn "extract error processing download $download->{ downloads_id }: $@" if ( $@ );
     }

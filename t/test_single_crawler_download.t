@@ -15,7 +15,7 @@ BEGIN
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use Test::More tests => 16;
+use Test::More tests => 12;
 use Test::Differences;
 use Test::Deep;
 
@@ -42,19 +42,11 @@ sub add_test_feed
 {
     my ( $db, $url_to_crawl ) = @_;
 
-    Readonly my $sw_data_start_date => '2008-02-03';
-    Readonly my $sw_data_end_date   => '2014-02-27';
-
     my $test_medium = $db->query(
-        "insert into media (name, url, moderated, sw_data_start_date, sw_data_end_date) values (?, ?, ?, ?, ?) returning *",
-        '_ Crawler Test', $url_to_crawl, 0, $sw_data_start_date, $sw_data_end_date
+        "insert into media (name, url, moderated) values (?, ?, ?) returning *",
+        '_ Crawler Test',
+        $url_to_crawl, 0
     )->hash;
-
-    ok( MediaWords::StoryVectors::_medium_has_story_words_start_date( $test_medium ) );
-    ok( MediaWords::StoryVectors::_medium_has_story_words_end_date( $test_medium ) );
-
-    is( MediaWords::StoryVectors::_get_story_words_start_date_for_medium( $test_medium ), $sw_data_start_date );
-    is( MediaWords::StoryVectors::_get_story_words_end_date_for_medium( $test_medium ),   $sw_data_end_date );
 
     my $feed = $db->query(
         "insert into feeds (media_id, name, url) values (?, ?, ?) returning *",
