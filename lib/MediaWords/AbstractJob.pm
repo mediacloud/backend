@@ -17,6 +17,7 @@ use MediaWords::Util::Config;
     use MediaCloud::JobManager::Configuration;
     use MediaCloud::JobManager::Broker::Gearman;
     use MediaCloud::JobManager::Broker::RabbitMQ;
+    use MediaWords::CommonLibs;
     extends 'MediaCloud::JobManager::Configuration';
 
     sub BUILD
@@ -44,11 +45,11 @@ use MediaWords::Util::Config;
             my $servers = $config->{ job_manager }->{ gearman }->{ client }->{ servers };
             unless ( ref $servers eq ref [] )
             {
-                die "Gearman client servers is not an array.";
+                LOGCONFESS "Gearman client servers is not an array.";
             }
             unless ( scalar( @{ $servers } ) > 0 )
             {
-                die "No Gearman client servers are configured.";
+                LOGCONFESS "No Gearman client servers are configured.";
             }
 
             $job_broker = MediaCloud::JobManager::Broker::Gearman->new( servers => $servers );
@@ -56,7 +57,7 @@ use MediaWords::Util::Config;
 
         unless ( $job_broker )
         {
-            die "No supported job broker is configured.";
+            LOGCONFESS "No supported job broker is configured.";
         }
 
         $self->broker( $job_broker );
@@ -77,6 +78,7 @@ use MediaWords::Util::Config;
 
     use Moose::Role;
     with 'MediaCloud::JobManager::Job';
+    use MediaWords::CommonLibs;
 
     use MediaWords::DB;
 
@@ -85,7 +87,7 @@ use MediaWords::Util::Config;
     {
         my ( $self, $args ) = @_;
 
-        die "This is a placeholder implementation of the run() subroutine for a job.";
+        LOGCONFESS "This is a placeholder implementation of the run() subroutine for a job.";
     }
 
     # Return default configuration
