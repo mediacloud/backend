@@ -46,18 +46,6 @@ sub run($$)
         LOGDIE "Either 'downloads_id' or 'stories_id' should be set (but not both).";
     }
 
-    my $config = MediaWords::Util::Config::get_config();
-
-    my $original_extractor_method = $config->{ mediawords }->{ extractor_method };
-
-    my $alter_extractor_method = 0;
-    my $new_extractor_method;
-    if ( $args->{ extractor_method } )
-    {
-        $alter_extractor_method = 1;
-        $new_extractor_method   = $args->{ extractor_method };
-    }
-
     my $db = MediaWords::DB::connect_to_db();
     $db->dbh->{ AutoCommit } = 0;
 
@@ -72,14 +60,14 @@ sub run($$)
         MediaWords::DB::enable_story_triggers();
     }
 
-    my $extractor_args = MediaWords::DBI::Stories::ExtractorArguments->new();
+    my $extractor_args = MediaWords::DBI::Stories::ExtractorArguments->new(
+        {
+            # If unset, will fallback to default extractor method set in configuration
+            extractor_method => $args->{ extractor_method },
+        }
+    );
 
     eval {
-
-        if ( $alter_extractor_method )
-        {
-            $config->{ mediawords }->{ extractor_method } = $new_extractor_method;
-        }
 
         if ( $args->{ downloads_id } )
         {
@@ -119,11 +107,6 @@ sub run($$)
     };
 
     my $error_message = "$@";
-
-    if ( $alter_extractor_method )
-    {
-        $config->{ mediawords }->{ extractor_method } = $original_extractor_method;
-    }
 
     if ( $error_message )
     {

@@ -11,6 +11,8 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use MediaWords::Util::Config;
+
 sub new($;$)
 {
     my ( $class, $args ) = @_;
@@ -29,6 +31,7 @@ sub new($;$)
     $self->{ _no_dedup_sentences } = $args ? $args->{ no_dedup_sentences } : 0;
     $self->{ _no_vector }          = $args ? $args->{ no_vector }          : 0;
     $self->{ _no_delete }          = $args ? $args->{ no_delete }          : 0;
+    $self->{ _extractor_method }   = $args ? $args->{ extractor_method }   : undef;
 
     return $self;
 }
@@ -49,6 +52,22 @@ sub no_delete($)
 {
     my $self = shift;
     return $self->{ _no_delete };
+}
+
+# Falls back to default extractor method in configuration
+sub extractor_method($)
+{
+    my $self = shift;
+
+    if ( $self->{ _extractor_method } )
+    {
+        return $self->{ _extractor_method };
+    }
+    else
+    {
+        my $config = MediaWords::Util::Config::get_config;
+        return $config->{ mediawords }->{ extractor_method };
+    }
 }
 
 1;

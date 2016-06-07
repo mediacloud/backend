@@ -492,7 +492,7 @@ SQL
 
     foreach my $download ( @{ $downloads } )
     {
-        MediaWords::DBI::Downloads::extract_and_create_download_text( $db, $download );
+        MediaWords::DBI::Downloads::extract_and_create_download_text( $db, $download, $extractor_args );
     }
 
     process_extracted_story( $db, $story, $extractor_args );
@@ -536,7 +536,7 @@ sub process_extracted_story($$$)
 
     _update_story_disable_triggers( $db, $story );
 
-    MediaWords::DBI::Stories::ExtractorVersion::update_extractor_version_tag( $db, $story );
+    MediaWords::DBI::Stories::ExtractorVersion::update_extractor_version_tag( $db, $story, $extractor_args );
 
     my $stories_id = $story->{ stories_id };
 
