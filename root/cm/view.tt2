@@ -1,5 +1,5 @@
 [% PROCESS cm/header.tt2 title="Home"%]
-   
+
 <div id="wholecolumn" class="clearfix">
 
     [% IF !controversy.solr_seed_query_run %]
@@ -41,18 +41,6 @@
             </tr>
         </table>
 
-        [% IF latest_full_dump %]
-            [% INCLUDE cm/time_slices_table.tt2
-                controversy_dump_time_slices = latest_full_dump.controversy_dump_time_slices 
-                live_periods = 1 %]
-        [% ELSE %]
-            <div class="boxtitle">Live Time Slices</div>
-            <fieldset>
-                <p>To browse live data, first generate at least one dump.</p>
-            </fieldset> 
-        [% END %]
-
-
         <div class="boxtitle">Dumps</div>
         <table class="even_rows_grey">
 
@@ -73,9 +61,9 @@
                     <td>[% date.format( cd.start_date ) %]</td>
 
                     <td>[% date.format( cd.end_date ) %]</td>
-                    
+
                     <td>[% cd.periods | html %]</td>
-                    
+
                     <td>[% cd.note | html %]</td>
                 </tr>
 
@@ -119,16 +107,15 @@
                 <a class="boxcommand" href="[% c.uri_for( '/admin/cm/bitly/status/' _ controversy.controversies_id ) | html %]">status</a>
             </a>
         [% END %]
-        
+
         [% INCLUDE cm/include/latest_activities.tt2
                    activities=latest_activities
                    controversy=controversy %]
-        
-        
+
+
 
     </div>
 
 </div>
 
 [% INCLUDE include/footer.tt2 %]
-
