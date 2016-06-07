@@ -5,6 +5,12 @@ package MediaWords::DBI::Stories::ExtractorArguments;
 # extracted
 #
 
+use strict;
+use warnings;
+
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 sub new($;$)
 {
     my ( $class, $args ) = @_;
