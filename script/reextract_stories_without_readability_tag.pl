@@ -58,8 +58,13 @@ EOF
                 my $stories_id = $story_to_reextract->{ stories_id };
 
                 DEBUG "Adding story $stories_id to reextractor queue...";
-                MediaWords::Job::ExtractAndVector->add_to_queue( { stories_id => $stories_id },
-                    $MediaCloud::JobManager::Job::MJM_JOB_PRIORITY_LOW );
+                my $args = {
+                    stories_id              => $stories_id,
+                    skip_bitly_processing   => 1,
+                    skip_corenlp_annotation => 1,
+                };
+                my $priority = $MediaCloud::JobManager::Job::MJM_JOB_PRIORITY_LOW;
+                MediaWords::Job::ExtractAndVector->add_to_queue( $args, $priority );
 
                 $db->query(
                     <<EOF,

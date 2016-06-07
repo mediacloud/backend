@@ -310,9 +310,10 @@ database:
 #      domainname: "<DOMAIN>"
 
 mediawords:
-    ### Extractor method to use
-    ### Defaults to InlinePythonReadability
+    ### Extractor method to use (defaults to "InlinePythonReadability")
+    ### Might be overridden by MediaWords::Job::ExtractAndVector "extractor_method" argument
     #extractor_method: PythonReadability
+
     ### defaults to http://$hostname:$port/.
     #base_url: "http://your.mediacloud.server/and/path"
 
@@ -431,3 +432,8 @@ mediawords:
 
     # if set to 1, do all extractions in process rather than queueing to job manager
     # extract_in_process: 0
+
+    # Don't extract / annotate with CoreNLP / process with Bit.ly stories older
+    # than this stories_id (temporary hack to skip through a lot of reextracted
+    # stories in job broker's queue)
+    #skip_stories_older_than_stories_id: 90640349

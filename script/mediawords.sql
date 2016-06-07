@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4543;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4544;
 
 BEGIN
 
@@ -97,56 +97,6 @@ $$
 LANGUAGE 'plpgsql' IMMUTABLE
   COST 10;
 
-
-CREATE OR REPLACE FUNCTION purge_story_sentences(default_start_day date, default_end_day date)
-  RETURNS VOID  AS
-$$
-DECLARE
-    media_rec record;
-    current_time timestamp;
-BEGIN
-    current_time := timeofday()::timestamp;
-
-    RAISE NOTICE 'time - %', current_time;
-
-    FOR media_rec IN (
-          SELECT media_id,
-                 COALESCE( sw_data_start_date, default_start_day ) AS start_date
-          FROM media
-          WHERE NOT (COALESCE( sw_data_start_date, default_start_day ) IS NULL )
-          ORDER BY media_id
-      ) LOOP
-        current_time := timeofday()::timestamp;
-
-        RAISE NOTICE 'media_id is %, start_date - % time - %', media_rec.media_id, media_rec.start_date, current_time;
-
-        DELETE FROM story_sentences
-        WHERE media_id = media_rec.media_id
-          AND date_trunc( 'day', publish_date ) < date_trunc( 'day', media_rec.start_date );
-
-    END LOOP;
-
-  RAISE NOTICE 'time - %', current_time;  -- Prints 30
-  FOR media_rec IN (
-          SELECT media_id,
-                 COALESCE( sw_data_end_date, default_end_day ) AS end_date
-          FROM media
-          WHERE NOT (COALESCE( sw_data_end_date, default_end_day ) IS NULL )
-          ORDER BY media_id
-      ) LOOP
-        current_time := timeofday()::timestamp;
-
-        RAISE NOTICE 'media_id is %, end_date - % time - %', media_rec.media_id, media_rec.end_date, current_time;
-
-        DELETE from story_sentences
-        WHERE media_id = media_rec.media_id
-          AND date_trunc( 'day', publish_date ) > date_trunc( 'day', media_rec.end_date );
-
-    END LOOP;
-END;
-$$
-LANGUAGE 'plpgsql'
- ;
 
  -- Returns true if the date is greater than the latest import date in solr_imports
  CREATE OR REPLACE FUNCTION before_last_solr_import(db_row_last_updated timestamp with time zone) RETURNS boolean AS $$
@@ -379,8 +329,6 @@ create table media (
     moderation_notes    text            null,
     full_text_rss       boolean,
     extract_author      boolean         default(false),
-    sw_data_start_date  date            default(null),
-    sw_data_end_date    date            default(null),
 
     -- It indicates that the media source includes a substantial number of
     -- links in its feeds that are not its own. These media sources cause
@@ -873,53 +821,6 @@ CREATE TRIGGER msmm_last_updated BEFORE INSERT OR UPDATE OR DELETE
     ON media_sets_media_map FOR EACH ROW EXECUTE PROCEDURE update_media_last_updated() ;
 
 
-CREATE OR REPLACE FUNCTION media_set_sw_data_retention_dates(
-    v_media_sets_id int,
-    default_start_day date,
-    default_end_day date,
-
-    OUT start_date date,
-    OUT end_date date
-) AS
-$$
-DECLARE
-    media_rec record;
-    current_time timestamp;
-BEGIN
-    current_time := timeofday()::timestamp;
-
-    --RAISE NOTICE 'time - % ', current_time;
-
-    SELECT media_sets_id,
-           MIN(coalesce (media.sw_data_start_date, default_start_day)) AS sw_data_start_date,
-           max(coalesce (media.sw_data_end_date,  default_end_day)) AS sw_data_end_date
-    INTO media_rec
-    FROM media_sets_media_map
-        JOIN media
-          ON media_sets_media_map.media_id = media.media_id
-         AND media_sets_id = v_media_sets_id
-    GROUP BY media_sets_id;
-
-    start_date = media_rec.sw_data_start_date;
-    end_date = media_rec.sw_data_end_date;
-
-    --RAISE NOTICE 'start date - %', start_date;
-    --RAISE NOTICE 'end date - %', end_date;
-
-    return;
-END;
-$$
-LANGUAGE 'plpgsql' STABLE
- ;
-
-CREATE VIEW media_sets_explict_sw_data_dates AS
-    SELECT media_sets_id,
-           MIN(media.sw_data_start_date) AS sw_data_start_date,
-           MAX(media.sw_data_end_date) AS sw_data_end_date
-    FROM media_sets_media_map
-        JOIN media ON media_sets_media_map.media_id = media.media_id
-    GROUP BY media_sets_id;
-
 CREATE VIEW media_with_collections AS
     SELECT t.tag,
            m.media_id,
@@ -938,38 +839,6 @@ CREATE VIEW media_with_collections AS
       AND mtm.media_id = m.media_id
     ORDER BY m.media_id;
 
-
-CREATE OR REPLACE FUNCTION media_set_retains_sw_data_for_date(
-    v_media_sets_id int,
-    test_date date,
-    default_start_day date,
-    default_end_day date
-)
-  RETURNS BOOLEAN AS
-$$
-DECLARE
-    media_rec record;
-    current_time timestamp;
-    start_date   date;
-    end_date     date;
-BEGIN
-    current_time := timeofday()::timestamp;
-
-    -- RAISE NOTICE 'time - %', current_time;
-
-   media_rec = media_set_sw_data_retention_dates( v_media_sets_id, default_start_day,  default_end_day ); -- INTO (media_rec);
-
-   start_date = media_rec.start_date;
-   end_date = media_rec.end_date;
-
-    -- RAISE NOTICE 'start date - %', start_date;
-    -- RAISE NOTICE 'end date - %', end_date;
-
-    return  ( ( start_date is null )  OR ( start_date <= test_date ) ) AND ( (end_date is null ) OR ( end_date >= test_date ) );
-END;
-$$
-LANGUAGE 'plpgsql' STABLE
- ;
 
 -- dashboard_media_sets associates certain 'collection' type media_sets with a given dashboard.
 -- Those assocaited media_sets will appear on the dashboard page, and the media associated with
@@ -2195,8 +2064,6 @@ create table cd.media (
     moderation_notes        text            null,
     full_text_rss           boolean,
     extract_author          boolean         default(false),
-    sw_data_start_date      date            default(null),
-    sw_data_end_date        date            default(null),
     foreign_rss_links       boolean         not null default( false ),
     dup_media_id            int             null,
     is_not_dup              boolean         null,

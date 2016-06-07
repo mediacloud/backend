@@ -451,8 +451,7 @@ sub handle_feed_content
 
         if ( $feed_type eq 'web_page' )
         {
-            MediaWords::Job::ExtractAndVector->extract_for_crawler( $dbs,
-                { downloads_id => $download->{ downloads_id } }, 0 );
+            MediaWords::Job::ExtractAndVector->extract_for_crawler( $dbs, { downloads_id => $download->{ downloads_id } } );
         }
     };
 
