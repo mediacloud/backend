@@ -28,6 +28,7 @@ use MediaWords::CommonLibs;
 use MediaWords::DB;
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories::ExtractorArguments;
+use MediaWords::Util::Config;
 
 # Extract, vector, and process the download or story; LOGDIE() and / or return
 # false on error.
@@ -44,6 +45,27 @@ use MediaWords::DBI::Stories::ExtractorArguments;
 sub run($$)
 {
     my ( $self, $args ) = @_;
+
+    if ( $args->{ stories_id } )
+    {
+        # Skip through old reextraction queue
+        # (new chunk of stories to be re-added to the extractor queue will have
+        # "skip_bitly_processing" bit set to true so let those through)
+        my $config                             = MediaWords::Util::Config::get_config;
+        my $skip_stories_older_than_stories_id = $config->{ mediawords }->{ skip_stories_older_than_stories_id };
+        if ( $skip_stories_older_than_stories_id and $args->{ stories_id } <= $skip_stories_older_than_stories_id )
+        {
+            # Story might be readded with "skip_bitly_processing" and
+            # "skip_corenlp_annotation" being set, in that case we want to process
+            # it because it won't add Bit.ly and CoreNLP jobs
+            unless ( $args->{ skip_bitly_processing } and $args->{ skip_corenlp_annotation } )
+            {
+                WARN "Story $args->{ stories_id } is from old reextraction queue (older than " .
+                  $skip_stories_older_than_stories_id . "), skipping...";
+                return;
+            }
+        }
+    }
 
     unless ( $args->{ downloads_id } xor $args->{ stories_id } )    # "xor", not "or"
     {
