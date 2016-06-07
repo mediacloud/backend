@@ -126,9 +126,9 @@ sub unify_logs()
 
 # run extraction for the crawler. run in process of mediawords.extract_in_process is configured.
 # keep retrying on error.
-sub extract_for_crawler
+sub extract_for_crawler($$$)
 {
-    my ( $self, $db, $args, $fetcher_number ) = @_;
+    my ( $self, $db, $args ) = @_;
 
     if ( MediaWords::Util::Config::get_config->{ mediawords }->{ extract_in_process } )
     {
