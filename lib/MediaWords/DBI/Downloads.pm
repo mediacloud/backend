@@ -599,24 +599,22 @@ sub extract_and_create_download_text( $$ )
     return $download_text;
 }
 
-=head2 process_download_for_extractor( $db, $download, $process_num, $extractor_args )
+=head2 process_download_for_extractor( $db, $download, $extractor_args )
 
 Extract the download create the resulting download_text entry.  If there are no remaining downloads to be extracted
 for the story, call MediaWords::DBI::Stories::process_extracted_story() on the parent story.
 
 =cut
 
-sub process_download_for_extractor($$$;$)
+sub process_download_for_extractor($$;$)
 {
-    my ( $db, $download, $process_num, $extractor_args ) = @_;
+    my ( $db, $download, $extractor_args ) = @_;
 
     $extractor_args //= MediaWords::DBI::Stories::ExtractorArguments->new();
 
-    $process_num //= 1;
-
     my $stories_id = $download->{ stories_id };
 
-    INFO( sub { "[$process_num] extract: $download->{ downloads_id } $stories_id $download->{ url }" } );
+    INFO( sub { "extract: $download->{ downloads_id } $stories_id $download->{ url }" } );
     my $download_text = MediaWords::DBI::Downloads::extract_and_create_download_text( $db, $download );
 
     my $has_remaining_download = $db->query( <<SQL, $stories_id )->hash;
@@ -631,19 +629,19 @@ SQL
     }
     elsif ( !( $extractor_args->{ no_vector } ) )
     {
-        DEBUG( sub { "[$process_num] pending more downloads ..." } );
+        DEBUG( sub { "pending more downloads ..." } );
     }
 }
 
-=head2 process_download_for_extractor_and_record_error( $db, $download, $process_num )
+=head2 process_download_for_extractor_and_record_error( $db, $download )
 
 Call process_download_for_extractor.  Catch any error in an eval{} and store the error message in the "downloads" table.
 
 =cut
 
-sub process_download_for_extractor_and_record_error
+sub process_download_for_extractor_and_record_error($$)
 {
-    my ( $db, $download, $process_num ) = @_;
+    my ( $db, $download ) = @_;
 
     my $extractor_args = MediaWords::DBI::Stories::ExtractorArguments->new(
         {
@@ -652,7 +650,7 @@ sub process_download_for_extractor_and_record_error
         }
     );
 
-    eval { process_download_for_extractor( $db, $download, $process_num, $extractor_args ); };
+    eval { process_download_for_extractor( $db, $download, $extractor_args ); };
 
     if ( $@ )
     {

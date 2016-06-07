@@ -603,7 +603,7 @@ sub extract_download($$$)
         no_vector          => 1,
     );
 
-    eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, "controversy", $extractor_args ); };
+    eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, $extractor_args ); };
 
     if ( my $error = $@ )
     {

@@ -468,7 +468,7 @@ sub _reextract_download
                 no_vector          => 1,
             }
         );
-        MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, "restore", $extractor_args );
+        MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, $extractor_args );
     };
     if ( $@ )
     {
@@ -476,15 +476,15 @@ sub _reextract_download
     }
 }
 
-=head2 extract_and_process_story( $db, $story, $process_num )
+=head2 extract_and_process_story( $db, $story )
 
 Extract all of the downloads for the given story and then call process_extracted_story();
 
 =cut
 
-sub extract_and_process_story($$$)
+sub extract_and_process_story($$)
 {
-    my ( $db, $story, $process_num ) = @_;
+    my ( $db, $story ) = @_;
 
     my $downloads = $db->query( <<SQL, $story->{ stories_id } )->hashes;
 SELECT * FROM downloads WHERE stories_id = ? AND type = 'content' ORDER BY downloads_id ASC

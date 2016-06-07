@@ -80,8 +80,6 @@ sub run($$)
 
     eval {
 
-        my $process_id = 'job:' . $$;
-
         if ( $alter_extractor_method )
         {
             $config->{ mediawords }->{ extractor_method } = $new_extractor_method;
@@ -101,7 +99,7 @@ sub run($$)
                 LOGDIE "Download with ID $downloads_id was not found.";
             }
 
-            MediaWords::DBI::Downloads::process_download_for_extractor_and_record_error( $db, $download, $process_id );
+            MediaWords::DBI::Downloads::process_download_for_extractor_and_record_error( $db, $download );
         }
         elsif ( $extract_by_stories_id )
         {
@@ -117,7 +115,7 @@ sub run($$)
                 LOGDIE "Download with ID $stories_id was not found.";
             }
 
-            MediaWords::DBI::Stories::extract_and_process_story( $db, $story, $process_id );
+            MediaWords::DBI::Stories::extract_and_process_story( $db, $story );
         }
         else
         {

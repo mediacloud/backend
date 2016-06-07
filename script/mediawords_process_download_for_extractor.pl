@@ -30,7 +30,7 @@ sub main
     die( "download is not in success/content state" )
       unless ( $download->{ type } = 'content' && $download->{ state } = 'success' );
 
-    MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, "script" );
+    MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download );
 
     my $download_texts = $db->query( "select * from download_texts where downloads_id = ?", $downloads_id )->hashes;
 

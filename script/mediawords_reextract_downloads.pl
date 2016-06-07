@@ -54,7 +54,7 @@ sub reextract_downloads
 
         say "Processing download $download->{downloads_id}";
 
-        MediaWords::DBI::Downloads::process_download_for_extractor( $dbs, $download, 'reextract' );
+        MediaWords::DBI::Downloads::process_download_for_extractor( $dbs, $download );
     }
 }
 
