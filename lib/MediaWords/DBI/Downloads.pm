@@ -633,22 +633,15 @@ SQL
     }
 }
 
-=head2 process_download_for_extractor_and_record_error( $db, $download )
+=head2 process_download_for_extractor_and_record_error( $db, $download, $extractor_args )
 
 Call process_download_for_extractor.  Catch any error in an eval{} and store the error message in the "downloads" table.
 
 =cut
 
-sub process_download_for_extractor_and_record_error($$)
+sub process_download_for_extractor_and_record_error($$$)
 {
-    my ( $db, $download ) = @_;
-
-    my $extractor_args = MediaWords::DBI::Stories::ExtractorArguments->new(
-        {
-            no_dedup_sentences => 0,
-            no_vector          => 0,
-        }
-    );
+    my ( $db, $download, $extractor_args ) = @_;
 
     eval { process_download_for_extractor( $db, $download, $extractor_args ); };
 

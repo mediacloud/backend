@@ -476,15 +476,15 @@ sub _reextract_download
     }
 }
 
-=head2 extract_and_process_story( $db, $story )
+=head2 extract_and_process_story( $db, $story, $extractor_args )
 
 Extract all of the downloads for the given story and then call process_extracted_story();
 
 =cut
 
-sub extract_and_process_story($$)
+sub extract_and_process_story($$$)
 {
-    my ( $db, $story ) = @_;
+    my ( $db, $story, $extractor_args ) = @_;
 
     my $downloads = $db->query( <<SQL, $story->{ stories_id } )->hashes;
 SELECT * FROM downloads WHERE stories_id = ? AND type = 'content' ORDER BY downloads_id ASC
@@ -495,12 +495,6 @@ SQL
         MediaWords::DBI::Downloads::extract_and_create_download_text( $db, $download );
     }
 
-    my $extractor_args = MediaWords::DBI::Stories::ExtractorArguments->new(
-        {
-            no_dedup_sentences => 0,
-            no_vector          => 0
-        }
-    );
     process_extracted_story( $db, $story, $extractor_args );
 
     $db->commit;

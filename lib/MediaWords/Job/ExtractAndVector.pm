@@ -27,6 +27,7 @@ use MediaWords::CommonLibs;
 
 use MediaWords::DB;
 use MediaWords::DBI::Downloads;
+use MediaWords::DBI::Stories::ExtractorArguments;
 
 # Extract, vector, and process the download or story; LOGDIE() and / or return
 # false on error.
@@ -71,6 +72,8 @@ sub run($$)
         MediaWords::DB::enable_story_triggers();
     }
 
+    my $extractor_args = MediaWords::DBI::Stories::ExtractorArguments->new();
+
     eval {
 
         if ( $alter_extractor_method )
@@ -92,7 +95,7 @@ sub run($$)
                 LOGDIE "Download with ID $downloads_id was not found.";
             }
 
-            MediaWords::DBI::Downloads::process_download_for_extractor_and_record_error( $db, $download );
+            MediaWords::DBI::Downloads::process_download_for_extractor_and_record_error( $db, $download, $extractor_args );
         }
         elsif ( $args->{ stories_id } )
         {
@@ -108,7 +111,7 @@ sub run($$)
                 LOGDIE "Download with ID $stories_id was not found.";
             }
 
-            MediaWords::DBI::Stories::extract_and_process_story( $db, $story );
+            MediaWords::DBI::Stories::extract_and_process_story( $db, $story, $extractor_args );
         }
 
         # Enable story triggers in case the connection is reused due to connection pooling
