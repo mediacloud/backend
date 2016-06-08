@@ -436,4 +436,4 @@ mediawords:
     # Don't extract / annotate with CoreNLP / process with Bit.ly stories older
     # than this stories_id (temporary hack to skip through a lot of reextracted
     # stories in job broker's queue)
-    #skip_stories_older_than_stories_id: 90640349
+    #skip_stories_older_than_stories_id: 99515188
