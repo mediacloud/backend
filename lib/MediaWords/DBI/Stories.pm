@@ -544,6 +544,7 @@ sub process_extracted_story($$$)
     if ( $extractor_args->skip_corenlp_annotation() )
     {
         # Story is not to be annotated with CoreNLP; add to "processed_stories" right away
+        DEBUG "Will mark story $stories_id as processed because it's set to be skipped for CoreNLP annotation";
         $mark_story_as_processed = 1;
     }
     else
@@ -555,19 +556,24 @@ sub process_extracted_story($$$)
             {
                 # Story is annotatable with CoreNLP; add to CoreNLP processing queue
                 # (which will run mark_as_processed() on its own)
+                DEBUG "Adding story $stories_id to CoreNLP annotation queue...";
                 MediaWords::Job::AnnotateWithCoreNLP->add_to_queue( { stories_id => $stories_id } );
+
+                DEBUG "Won't mark story $stories_id as processed because CoreNLP worker will do that";
                 $mark_story_as_processed = 0;
             }
             else
             {
                 # Story was just added to CoreNLP queue by update_story_sentences_and_language(),
                 # no need to duplicate the job -- noop
+                DEBUG "Won't mark story $stories_id as processed because CoreNLP worker will do that";
                 $mark_story_as_processed = 0;
             }
         }
         else
         {
             # Story is not annotatable with CoreNLP; add to "processed_stories" right away
+            DEBUG "Will mark story $stories_id as processed because it's not annotatable with CoreNLP";
             $mark_story_as_processed = 1;
         }
     }
@@ -585,8 +591,13 @@ sub process_extracted_story($$$)
     {
         if ( MediaWords::Util::Bitly::Schedule::story_processing_is_enabled() )
         {
+            DEBUG "Adding story $stories_id to Bit.ly processing queue...";
             MediaWords::Util::Bitly::Schedule::add_to_processing_schedule( $db, $stories_id );
         }
+    }
+    else
+    {
+        DEBUG "Won't process story $stories_id with Bit.ly because it's set to be skipped";
     }
 }
 

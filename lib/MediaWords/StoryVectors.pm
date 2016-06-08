@@ -386,9 +386,17 @@ sub update_story_sentences_and_language($$;$)
             and MediaWords::Util::CoreNLP::story_is_annotatable( $db, $stories_id ) )
         {
             # Add to CoreNLP job queue
+            DEBUG "Adding story $stories_id to CoreNLP annotation queue...";
             MediaWords::Job::AnnotateWithCoreNLP->add_to_queue( { stories_id => $stories_id } );
-
         }
+        else
+        {
+            DEBUG "Won't add $stories_id to CoreNLP annotation queue because it's not annotatable with CoreNLP";
+        }
+    }
+    else
+    {
+        DEBUG "Won't add $stories_id to CoreNLP annotation queue because it's set be skipped";
     }
 }
 
