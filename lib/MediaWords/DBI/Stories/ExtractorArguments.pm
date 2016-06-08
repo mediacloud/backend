@@ -59,13 +59,13 @@ sub no_delete($)
 sub skip_bitly_processing($)
 {
     my $self = shift;
-    return $self->{ skip_bitly_processing };
+    return $self->{ _skip_bitly_processing };
 }
 
 sub skip_corenlp_annotation($)
 {
     my $self = shift;
-    return $self->{ skip_corenlp_annotation };
+    return $self->{ _skip_corenlp_annotation };
 }
 
 # Falls back to default extractor method in configuration
