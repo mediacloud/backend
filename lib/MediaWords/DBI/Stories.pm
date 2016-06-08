@@ -540,7 +540,13 @@ sub process_extracted_story($$$)
 
     my $stories_id = $story->{ stories_id };
 
-    unless ( $extractor_args->skip_corenlp_annotation() )
+    my $mark_story_as_processed = 0;
+    if ( $extractor_args->skip_corenlp_annotation() )
+    {
+        # Story is not to be annotated with CoreNLP; add to "processed_stories" right away
+        $mark_story_as_processed = 1;
+    }
+    else
     {
         if (    MediaWords::Util::CoreNLP::annotator_is_enabled()
             and MediaWords::Util::CoreNLP::story_is_annotatable( $db, $stories_id ) )
@@ -550,17 +556,24 @@ sub process_extracted_story($$$)
                 # Story is annotatable with CoreNLP; add to CoreNLP processing queue
                 # (which will run mark_as_processed() on its own)
                 MediaWords::Job::AnnotateWithCoreNLP->add_to_queue( { stories_id => $stories_id } );
+                $mark_story_as_processed = 0;
             }
             else
             {
                 # Story was just added to CoreNLP queue by update_story_sentences_and_language(),
                 # no need to duplicate the job -- noop
+                $mark_story_as_processed = 0;
             }
         }
+        else
+        {
+            # Story is not annotatable with CoreNLP; add to "processed_stories" right away
+            $mark_story_as_processed = 1;
+        }
     }
-    else
+
+    if ( $mark_story_as_processed )
     {
-        # Story is not annotatable with CoreNLP; add to "processed_stories" right away
         unless ( MediaWords::DBI::Stories::mark_as_processed( $db, $stories_id ) )
         {
             die "Unable to mark story ID $stories_id as processed";
