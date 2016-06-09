@@ -34,7 +34,7 @@ if [ `uname` == 'Darwin' ]; then
         --local-lib-contained local/ \
         --verbose \
         --notest \
-        Net::AMQP::RabbitMQ~2.000000
+        Net::AMQP::RabbitMQ~2.100001
 fi
 
 # Install dependency modules; run the command twice because the first
