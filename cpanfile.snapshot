@@ -3840,20 +3840,6 @@ DISTRIBUTIONS
       Filesys::Notify::Simple 0.12
     requirements:
       ExtUtils::MakeMaker 6.30
-  Gearman-XS-0.15
-    pathname: K/KR/KROW/Gearman-XS-0.15.tar.gz
-    provides:
-      Gearman::XS 0.15
-      Gearman::XS::Client 0.15
-      Gearman::XS::Job 0.15
-      Gearman::XS::Task 0.15
-      Gearman::XS::Worker 0.15
-    requirements:
-      ExtUtils::CBuilder 0.27
-      ExtUtils::MakeMaker 6.59
-      Storable 0
-      Test::More 0
-      perl 5.006
   Getopt-Long-Descriptive-0.097
     pathname: R/RJ/RJBS/Getopt-Long-Descriptive-0.097.tar.gz
     provides:
@@ -5260,15 +5246,14 @@ DISTRIBUTIONS
       Math::Random::ISAAC v1.0.1
       Test::More 0
       Test::Warn 0
-  MediaCloud-JobManager-0.23
-    pathname: L/LV/LVALIUKAS/MediaCloud-JobManager-0.23.tar.gz
+  MediaCloud-JobManager-0.24
+    pathname: L/LV/LVALIUKAS/MediaCloud-JobManager-0.24.tar.gz
     provides:
       Addition undef
       AdditionAlwaysFails undef
-      MediaCloud::JobManager 0.23
+      MediaCloud::JobManager 0.24
       MediaCloud::JobManager::Admin undef
       MediaCloud::JobManager::Broker undef
-      MediaCloud::JobManager::Broker::Gearman undef
       MediaCloud::JobManager::Broker::RabbitMQ undef
       MediaCloud::JobManager::Configuration undef
       MediaCloud::JobManager::Job undef
@@ -5276,16 +5261,12 @@ DISTRIBUTIONS
       NinetyNineBottlesOfBeer undef
     requirements:
       App::githook_perltidy v0.10.2
-      Capture::Tiny 0
       Carp 0
       Data::Dumper 0
-      Data::UUID 0
       DateTime 0
       ExtUtils::MakeMaker 0
-      File::Path 0
       File::Slurp 0
       File::Temp 0
-      Gearman::XS 0
       IO::File 0
       IO::Socket::INET 0
       JSON 2.90
@@ -5295,11 +5276,10 @@ DISTRIBUTIONS
       Moose 2.1005
       Moose::Role 2.1005
       MooseX::Singleton 0
-      Net::AMQP::RabbitMQ 1.600000
+      Net::AMQP::RabbitMQ 2.100001
       Net::Telnet 0
       Proc::Background 0
       Readonly 0
-      Sys::Hostname 0
       Test::More 0
       Test::NoWarnings 0
       Test::Strict 0
@@ -6368,10 +6348,10 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       Test 0
       perl 5.006
-  Net-AMQP-RabbitMQ-2.000000
-    pathname: M/MA/MARKELLIS/Net-AMQP-RabbitMQ-2.000000.tar.gz
+  Net-AMQP-RabbitMQ-2.100001
+    pathname: M/MA/MARKELLIS/Net-AMQP-RabbitMQ-2.100001.tar.gz
     provides:
-      Net::AMQP::RabbitMQ 2.000000
+      Net::AMQP::RabbitMQ 2.100001
     requirements:
       ExtUtils::MakeMaker 0
       Math::Int64 0.34
