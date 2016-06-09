@@ -52,7 +52,7 @@ cm_mine_controversy
 extract_and_vector:extract_and_vector_00
 <...>
 facebook_fetch_story_stats
-job_broker:gearmand
+job_broker:rabbitmq
 mc:crawler
 rescrape_media:rescrape_media_00
 <...>
