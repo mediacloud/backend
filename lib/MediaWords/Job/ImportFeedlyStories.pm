@@ -79,12 +79,6 @@ SQL
     say STDERR "feedly import results: $num_module_stories feedly stories, $num_import_stories stories imported";
 }
 
-# write a single log instead of many separate logs
-sub unify_logs()
-{
-    return 1;
-}
-
 no Moose;    # gets rid of scaffolding
 
 # Return package name instead of 1 or otherwise worker.pl won't know the name of the package it's loading
