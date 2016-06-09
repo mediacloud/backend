@@ -95,7 +95,7 @@ database:
             #listen: "127.0.0.1"
 
             ### Port to use for RabbitMQ. Default port for vendor-provided RabbitMQ
-            ### deployments is 5672, but Media Cloud runs its own Gearman instance via
+            ### deployments is 5672, but Media Cloud runs its own RabbitMQ instance via
             ### Supervisord. Default is 5673.
             #port: 5673     # not the default 5672
 
