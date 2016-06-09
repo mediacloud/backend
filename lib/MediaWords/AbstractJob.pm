@@ -15,7 +15,6 @@ use MediaWords::Util::Config;
 
     use Moose;
     use MediaCloud::JobManager::Configuration;
-    use MediaCloud::JobManager::Broker::Gearman;
     use MediaCloud::JobManager::Broker::RabbitMQ;
     use MediaWords::CommonLibs;
     extends 'MediaCloud::JobManager::Configuration';
@@ -39,20 +38,6 @@ use MediaWords::Util::Config;
                 vhost    => $rabbitmq_config->{ vhost },
                 timeout  => $rabbitmq_config->{ timeout },
             );
-        }
-        elsif ( $config->{ job_manager }->{ gearman } )
-        {
-            my $servers = $config->{ job_manager }->{ gearman }->{ client }->{ servers };
-            unless ( ref $servers eq ref [] )
-            {
-                LOGCONFESS "Gearman client servers is not an array.";
-            }
-            unless ( scalar( @{ $servers } ) > 0 )
-            {
-                LOGCONFESS "No Gearman client servers are configured.";
-            }
-
-            $job_broker = MediaCloud::JobManager::Broker::Gearman->new( servers => $servers );
         }
 
         unless ( $job_broker )

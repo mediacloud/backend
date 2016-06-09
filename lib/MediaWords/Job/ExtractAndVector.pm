@@ -124,13 +124,6 @@ sub run($$)
     return 1;
 }
 
-# write a single log because there are a lot of extraction jobs so it's
-# impractical to log each job into a separate file
-sub unify_logs()
-{
-    return 1;
-}
-
 # run extraction for the crawler. run in process of mediawords.extract_in_process is configured.
 # keep retrying on error.
 sub extract_for_crawler($$$)

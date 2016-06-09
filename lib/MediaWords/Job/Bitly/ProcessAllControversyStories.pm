@@ -167,13 +167,6 @@ EOF
     say STDERR "Added controversy's $controversies_id stories to Bit.ly processing queue.";
 }
 
-# write a single log because there are a lot of Bit.ly processing jobs so it's
-# impractical to log each job into a separate file
-sub unify_logs()
-{
-    return 1;
-}
-
 no Moose;    # gets rid of scaffolding
 
 # Return package name instead of 1 or otherwise worker.pl won't know the name of the package it's loading

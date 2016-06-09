@@ -92,7 +92,6 @@ EOF
     brew install \
         graphviz --with-bindings \
         coreutils curl homebrew/dupes/tidy libyaml gawk cpanminus \
-        gearman --with-postgresql \
         netcat openssl rabbitmq libyaml
 
     sudo cpanm \
@@ -143,20 +142,6 @@ else
     # Ubuntu (all versions) APT's version of RabbitMQ is too old
     # (we need 3.5.0+ to support priorities)
     curl -s "$RABBITMQ_PACKAGECLOUD_SCRIPT" | sudo bash
-
-    # Install Gearman from PPA repository
-    sudo apt-get -y install python-software-properties
-
-    if verlt "$DISTRIB_RELEASE" "14.04"; then
-
-         # Ubuntu 12.04 APT's version of Gearman is too old
-        sudo apt-get -y remove gearman gearman-job-server gearman-tools \
-            libgearman-dbg libgearman-dev libgearman-doc libgearman6
-        sudo add-apt-repository -y ppa:gearman-developers/ppa
-        sudo apt-get -y update
-    fi
-
-    sudo apt-get -y install gearman-job-server gearman-tools libgearman-dev
 
     # Install and hold specific version of Erlang
     sudo apt-get -y install esl-erlang="$ERLANG_APT_VERSION" erlang-mode="$ERLANG_APT_VERSION"

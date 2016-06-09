@@ -66,7 +66,7 @@ Following are instructions for setting up and running a temporary crawler (backu
 
     where `API-KEY` is an API key for mediacloud.org.
 
-7. Uncomment either `rabbitmq` or `gearman` section in `mediawords.yml` under `job_servers`.
+7. Uncomment `rabbitmq` section in `mediawords.yml` under `job_servers`.
 
 8. Start supervisor by running:
 
