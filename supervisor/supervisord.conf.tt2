@@ -93,17 +93,7 @@ programs = crawler
 
 ; Job brokers
 [group:job_broker]
-programs = gearmand,rabbitmq
-
-[% INCLUDE program_config
-    program='gearmand'
-    command='bash ./script/gearmand_wrapper.sh'
-    default_stopasgroup='false'
-    default_killasgroup='false'
-    default_autorestart='true'
-    default_autostart='true'
-    priority=10
-%]
+programs = rabbitmq
 
 [% INCLUDE program_config
     program='rabbitmq'

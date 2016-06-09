@@ -16,9 +16,6 @@ declare -a DB_CREDENTIALS_SELECTORS=(
     # test database
     "//database[label='test']"
 
-    # "gearmand" queue database
-    "//database[label='gearman']"
-
 )
 
 
