@@ -37,6 +37,9 @@ process_name = %(program_name)s_%(process_num)02d
     [%- IF stopwaitsecs %]
 stopwaitsecs=[% stopwaitsecs %]
     [%- END %]
+    [%- IF stopsignal %]
+stopsignal=[% stopsignal %]
+    [%- END %]
 [%- END %]
 
 [inet_http_server]
@@ -78,27 +81,29 @@ programs = crawler
 
 
 [% INCLUDE program_config
-    program='reextraction_daemon'
-    command="bash ./script/run_with_carton.sh ./script/mediawords_reextraction_daemon.pl"
+    program='reextract_stories_without_readability_tag'
+    command="bash ./script/run_with_carton.sh ./script/reextract_stories_without_readability_tag.pl"
     default_stopasgroup='true'
     default_killasgroup='true'
     default_autorestart='false'
-    default_autostart='false'
+    default_autostart='true'
     priority=5
     default_nice=12
 %]
 
 ; Job brokers
 [group:job_broker]
-programs = gearmand
+programs = rabbitmq
 
 [% INCLUDE program_config
-    program='gearmand'
-    command='bash ./script/gearmand_wrapper.sh'
-    default_stopasgroup='false'
-    default_killasgroup='false'
+    program='rabbitmq'
+    command='bash ./script/rabbitmq_wrapper.sh'
+    default_stopasgroup='true'
+    default_killasgroup='true'
     default_autorestart='true'
     default_autostart='true'
+    stopsignal='INT'
+    stopwaitsecs=30
     priority=10
 %]
 

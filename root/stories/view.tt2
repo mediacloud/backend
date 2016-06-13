@@ -162,7 +162,7 @@
                         not annotated
                     [% END %]
                 [% ELSE %]
-                    not annotatable (<code>media.annotate_with_corenlp</code> is not set to <code>'t'</code>)
+                    not annotatable (either it's not in English or has no sentences)
                 [% END %]
             </td>
         </tr>

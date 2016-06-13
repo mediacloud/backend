@@ -50,7 +50,12 @@ sub count_GET
             $c->req->params->{ timeslice },
             $c->req->params->{ snapshot }
         );
-        my $solr_df_query = "{~ controversy:$cdts->{ controversies_id } }";
+        if ( $cdts->{ controversies_id } + 0 != $c->stash->{ topic_id } + 0 )
+        {
+            $self->status_bad_request( $c, message => "timeslice or snapshot parameter was not associated with topic" );
+            return;
+        }
+        my $solr_df_query = "{~ controversy_dump_time_slice:$cdts->{ controversy_dump_time_slices_id } }";
         my $composed_fq = $fq ? $solr_df_query . " AND $fq" : $solr_df_query;
         $c->req->params->{ 'fq' } = $composed_fq;
         my $split = $c->req->params->{ 'split' };

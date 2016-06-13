@@ -220,8 +220,7 @@ sub _queue_story_extraction($$)
 
     DEBUG "fetcher $fetcher_number starting extraction for download " . $download->{ downloads_id };
 
-    MediaWords::Job::ExtractAndVector->extract_for_crawler( $db, { stories_id => $download->{ stories_id } },
-        $fetcher_number );
+    MediaWords::Job::ExtractAndVector->extract_for_crawler( $db, { stories_id => $download->{ stories_id } } );
 }
 
 # call the pager module on the download and queue the story for extraction if this are no other pages for the story

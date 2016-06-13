@@ -159,6 +159,8 @@ sub main
     {
         $pm->start and next;
 
+        my $block_size = scalar( @{ $request_block } );
+
         for my $request ( @{ $request_block } )
         {
             my $time_increment = time - $start_time;
@@ -171,15 +173,14 @@ sub main
 
             alarm( $timeout );
 
-            my $request_num = ( $num_parallel ) * $i++;
-
-            INFO( sub { "fetch [$request_num/$total] : $request->{ url }" } );
+            $i++;
+            INFO( sub { "fetch [$i/$block_size/$total] : $request->{ url }" } );
 
             my $response = $ua->get( $request->{ url } );
 
             $response = MediaWords::Util::Web::get_meta_refresh_response( $response, $request );
 
-            INFO( sub { "got [$i/$total]: $request->{ url }" } );
+            INFO( sub { "got [$i/$block_size/$total]: $request->{ url }" } );
 
             Storable::store( $response, $request->{ file } );
 

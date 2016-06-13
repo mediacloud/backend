@@ -23,15 +23,6 @@ database:
       user  : "mediaclouduser"
       pass  : "mediacloud"
 
-    # persistent "gearmand" queue
-    - label : "gearman"
-      type  : "pg"
-      host  : "localhost"
-      port  : 5432
-      db    : "mediacloud_gearman"
-      user  : "mediaclouduser"
-      pass  : "mediacloud"
-
 ### Amazon S3 connection settings
 #amazon_s3:
 
@@ -64,54 +55,48 @@ database:
 ### Job manager (MediaCloud::JobManager) configuration
 #job_manager:
 
-    ### When uncommented, will use Gearman as job broker
-    #gearman:
+    ### When uncommented, will use RabbitMQ as job broker
+    #rabbitmq:
 
-        ### Gearman client configuration
+        ### RabbitMQ client configuration
         ### (both workers and clients will use this key)
         #client:
 
-            ### Gearman servers (required)
-            #servers:
-                ### By default "gearmand" works on port 4730; "gearmand" run as a
-                ### Supervisord daemon (see below) runs on 4731.
-                ### It is recommended to use Media Cloud-provided Gearman instance
-                ### instead of relying on system's because of a persistent
-                ### (PostgreSQL-backed) job queue and Supervisord logging facilities.
-                ### Default is a single server at "127.0.0.1:4731".
-                #- "127.0.0.1:4731"
+            ### Connection credentials
+            #hostname: "localhost"
+            #port: 5673     # not the default 5672
+            #username: "mediacloud"
+            #password: "mediacloud"
+            #vhost: "/mediacloud"
+            #timeout: 60
 
-        ### Gearman server configuration
-        ### (gearmand_wrapper.sh will use this for starting up an instance of
-        ### gearmand)
+        ### RabbitMQ server configuration
+        ### (rabbitmq_wrapper.sh will use this for starting up an instance of
+        ### RabbitMQ)
         #server:
 
-            ### To disable your very own "gearmand" instance managed by Supervisord,
+            ### To disable your very own RabbitMQ instance managed by Supervisord,
             ### set the below to "no". Default is "yes".
             #enabled: "yes"
 
             ### Host to listen to. You can set the above parameter to an empty string
-            ### so that Gearman will accept connections from anywhere; however, it is
-            ### highly advised use secure channels (e.g. a SSH tunnel) to make Gearman
-            ### accessible to "outside" instead. Default is "127.0.0.1".
+            ### so that RabbitMQ will accept connections from anywhere; however, it is
+            ### highly advised use to secure channels (e.g. a SSH tunnel) to make RabbitMQ
+            ### accessible from "outside" instead. Default is "127.0.0.1".
             #listen: "127.0.0.1"
 
-            ### Port to use in gearmand. Default port for vendor-provided Gearman
-            ### deployments is 4730, but Media Cloud runs its own Gearman instance via
-            ### Supervisord. Default is 4731.
-            #port: 4731
+            ### Port to use for RabbitMQ. Default port for vendor-provided RabbitMQ
+            ### deployments is 5672, but Media Cloud runs its own RabbitMQ instance via
+            ### Supervisord. Default is 5673.
+            #port: 5673     # not the default 5672
 
-            ### Number of threads (http://gearman.org/manual/job_server/#threading_model):
-            ### * 0  -- everything will happen within a single thread
-            ### * 1  -- there will be a thread for listening/management and a thread
-            ###         for I/O and processing
-            ### * 2  -- there will be a thread for each type of thread
-            ### * >2 -- more I/O threads will get created
-            #threads: 0
+            ### Node name
+            #node_name: "mediacloud@localhost"
 
-            ### Number of workers to wakeup for each job received. The default (0) is
-            ### to wakeup all available workers.
-            #worker_wakeup: 0
+            ### User credentials and vhost to create upon start (instead of "guest")
+            #username: "mediacloud"
+            #password: "mediacloud"
+            #vhost: "/mediacloud"
 
 ### Supervisor (supervisord) configuration
 #supervisor:
@@ -138,7 +123,7 @@ database:
             #autorestart: 'true'
 
         # other configurable supervisor programs
-        #gearmand
+        #rabbitmq
         #rescrape_media
         #cm_mine_controversy
         #cm_dump_controversy
@@ -266,9 +251,10 @@ database:
 #      domainname: "<DOMAIN>"
 
 mediawords:
-    ### Extractor method to use
-    ### Defaults to InlinePythonReadability
+    ### Extractor method to use (defaults to "InlinePythonReadability")
+    ### Might be overridden by MediaWords::Job::ExtractAndVector "extractor_method" argument
     #extractor_method: PythonReadability
+
     ### defaults to http://$hostname:$port/.
     #base_url: "http://your.mediacloud.server/and/path"
 
@@ -387,3 +373,8 @@ mediawords:
 
     # if set to 1, do all extractions in process rather than queueing to job manager
     # extract_in_process: 0
+
+    # Don't extract / annotate with CoreNLP / process with Bit.ly stories older
+    # than this stories_id (temporary hack to skip through a lot of reextracted
+    # stories in job broker's queue)
+    #skip_stories_older_than_stories_id: 99515188

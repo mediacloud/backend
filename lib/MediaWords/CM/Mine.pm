@@ -598,7 +598,14 @@ sub extract_download($$$)
     my $dt = $db->query( "select 1 from download_texts where downloads_id = ?", $download->{ downloads_id } )->hash;
     return if ( $dt );
 
-    eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, "controversy", 0, 1 ); };
+    my $extractor_args = MediaWords::DBI::Stories::ExtractorArguments->new(
+        {
+            no_dedup_sentences => 0,
+            no_vector          => 1,
+        }
+    );
+
+    eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, $extractor_args ); };
 
     if ( my $error = $@ )
     {
@@ -773,6 +780,20 @@ sub create_download_for_new_story
     return $download;
 }
 
+# save the link in a list of dead links
+sub log_dead_link
+{
+    my ( $db, $link ) = @_;
+
+    my $dead_link = {
+        controversies_id => $link->{ controversies_id },
+        stories_id       => $link->{ stories_id },
+        url              => $link->{ url }
+    };
+
+    $db->create( 'controversy_dead_links', $dead_link );
+}
+
 # add a new story and download corresponding to the given link or existing story
 sub add_new_story
 {
@@ -795,6 +816,7 @@ sub add_new_story
 
         if ( !$story_content )
         {
+            log_dead_link( $db, $link );
             DEBUG( "SKIP - NO CONTENT" );
             return;
         }
@@ -1182,6 +1204,7 @@ sub add_redirect_url_to_link
     my ( $db, $link ) = @_;
 
     $link->{ redirect_url } = MediaWords::Util::Web::get_cached_link_download_redirect_url( $link );
+
     $db->query(
         "update controversy_links set redirect_url = ? where controversy_links_id = ?",
         $link->{ redirect_url },

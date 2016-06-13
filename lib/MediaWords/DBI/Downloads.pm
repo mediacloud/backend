@@ -43,6 +43,7 @@ use MediaWords::Util::HTML;
 use MediaWords::DB;
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
+use MediaWords::DBI::Stories::ExtractorArguments;
 use MediaWords::StoryVectors;
 use MediaWords::Util::Paths;
 use MediaWords::Job::AnnotateWithCoreNLP;
@@ -400,43 +401,29 @@ EOF
     return $download;
 }
 
-=head2 extract( $db, $download )
+=head2 extract( $db, $download, $extractor_args )
 
 Run the extractor against the download content and return a hash in the form of:
 
     { extracted_html => $html,    # a string with the extracted html
       extracted_text => $text }   # a string with the extracted html strippped to text
 
-The extractor used is configured in mediawords.yml by mediawords.extractor_method, which should be one of
-'PythonReadability'.
+The extractor used is configured in mediawords.yml by mediawords.extractor_method.
+
+Extractor method can be overridden by setting $extractor_args->extractor_method().
 
 =cut
 
-sub extract($$)
+sub extract($$;$)
 {
-    my ( $db, $download ) = @_;
+    my ( $db, $download, $extractor_args ) = @_;
 
-    my $data_dir = MediaWords::Util::Config::get_config->{ mediawords }->{ data_dir };
-
-    # $_extractor_results_cache ||= CHI->new(
-    #     driver           => 'File',
-    #     expires_in       => '1 month',
-    #     max_size         => 10 * 1024 * 1024 * 1024,
-    #     expires_variance => '0.1',
-    #     root_dir         => "${ data_dir }/cache/extractor_results",
-    #     depth            => 4
-    # );
-    #
-    # if ( my $results = $_extractor_results_cache->get( $download->{ downloads_id } ) )
-    # {
-    #     return $results;
-    # }
+    $extractor_args //= MediaWords::DBI::Stories::ExtractorArguments->new();
 
     my $content_ref = fetch_content( $db, $download );
 
-    my $results = extract_content_ref( $content_ref );
-
-    # $_extractor_results_cache->set( $download->{ downloads_id }, $results );
+    my $extractor_method = $extractor_args->extractor_method();
+    my $results = extract_content_ref( $content_ref, $extractor_method );
 
     return $results;
 }
@@ -543,15 +530,9 @@ in mediawords.yml.
 
 =cut
 
-sub extract_content_ref($;$)
+sub extract_content_ref($$)
 {
     my ( $content_ref, $extractor_method ) = @_;
-
-    unless ( $extractor_method )
-    {
-        my $config = MediaWords::Util::Config::get_config;
-        $extractor_method = $config->{ mediawords }->{ extractor_method };
-    }
 
     my $extracted_html;
     my $ret = {};
@@ -587,34 +568,34 @@ Extract the download and create a download_text from the extracted download.
 
 =cut
 
-sub extract_and_create_download_text( $$ )
+sub extract_and_create_download_text($$$)
 {
-    my ( $db, $download ) = @_;
+    my ( $db, $download, $extractor_args ) = @_;
 
-    my $extract = extract( $db, $download );
+    my $extract = extract( $db, $download, $extractor_args );
 
     my $download_text = MediaWords::DBI::DownloadTexts::create( $db, $download, $extract );
 
     return $download_text;
 }
 
-=head2 process_download_for_extractor( $db, $download, $process_num, $no_dedup_sentences, $no_vector )
+=head2 process_download_for_extractor( $db, $download, $extractor_args )
 
 Extract the download create the resulting download_text entry.  If there are no remaining downloads to be extracted
 for the story, call MediaWords::DBI::Stories::process_extracted_story() on the parent story.
 
 =cut
 
-sub process_download_for_extractor($$$;$$$)
+sub process_download_for_extractor($$;$)
 {
-    my ( $db, $download, $process_num, $no_dedup_sentences, $no_vector ) = @_;
+    my ( $db, $download, $extractor_args ) = @_;
 
-    $process_num //= 1;
+    $extractor_args //= MediaWords::DBI::Stories::ExtractorArguments->new();
 
     my $stories_id = $download->{ stories_id };
 
-    INFO( sub { "[$process_num] extract: $download->{ downloads_id } $stories_id $download->{ url }" } );
-    my $download_text = MediaWords::DBI::Downloads::extract_and_create_download_text( $db, $download );
+    INFO( sub { "extract: $download->{ downloads_id } $stories_id $download->{ url }" } );
+    my $download_text = MediaWords::DBI::Downloads::extract_and_create_download_text( $db, $download, $extractor_args );
 
     my $has_remaining_download = $db->query( <<SQL, $stories_id )->hash;
 SELECT downloads_id FROM downloads WHERE stories_id = ? AND extracted = 'f' AND type = 'content'
@@ -624,28 +605,25 @@ SQL
     {
         my $story = $db->find_by_id( 'stories', $stories_id );
 
-        MediaWords::DBI::Stories::process_extracted_story( $story, $db, $no_dedup_sentences, $no_vector );
+        MediaWords::DBI::Stories::process_extracted_story( $db, $story, $extractor_args );
     }
-    elsif ( !( $no_vector ) )
+    elsif ( !( $extractor_args->no_vector() ) )
     {
-        DEBUG( sub { "[$process_num] pending more downloads ..." } );
+        DEBUG( sub { "pending more downloads ..." } );
     }
 }
 
-=head2 process_download_for_extractor_and_record_error( $db, $download, $process_num )
+=head2 process_download_for_extractor_and_record_error( $db, $download, $extractor_args )
 
 Call process_download_for_extractor.  Catch any error in an eval{} and store the error message in the "downloads" table.
 
 =cut
 
-sub process_download_for_extractor_and_record_error
+sub process_download_for_extractor_and_record_error($$$)
 {
-    my ( $db, $download, $process_num ) = @_;
+    my ( $db, $download, $extractor_args ) = @_;
 
-    my $no_dedup_sentences = 0;
-    my $no_vector          = 0;
-
-    eval { process_download_for_extractor( $db, $download, $process_num, $no_dedup_sentences, $no_vector ); };
+    eval { process_download_for_extractor( $db, $download, $extractor_args ); };
 
     if ( $@ )
     {

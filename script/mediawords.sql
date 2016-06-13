@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4540;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4545;
 
 BEGIN
 
@@ -97,56 +97,6 @@ $$
 LANGUAGE 'plpgsql' IMMUTABLE
   COST 10;
 
-
-CREATE OR REPLACE FUNCTION purge_story_sentences(default_start_day date, default_end_day date)
-  RETURNS VOID  AS
-$$
-DECLARE
-    media_rec record;
-    current_time timestamp;
-BEGIN
-    current_time := timeofday()::timestamp;
-
-    RAISE NOTICE 'time - %', current_time;
-
-    FOR media_rec IN (
-          SELECT media_id,
-                 COALESCE( sw_data_start_date, default_start_day ) AS start_date
-          FROM media
-          WHERE NOT (COALESCE( sw_data_start_date, default_start_day ) IS NULL )
-          ORDER BY media_id
-      ) LOOP
-        current_time := timeofday()::timestamp;
-
-        RAISE NOTICE 'media_id is %, start_date - % time - %', media_rec.media_id, media_rec.start_date, current_time;
-
-        DELETE FROM story_sentences
-        WHERE media_id = media_rec.media_id
-          AND date_trunc( 'day', publish_date ) < date_trunc( 'day', media_rec.start_date );
-
-    END LOOP;
-
-  RAISE NOTICE 'time - %', current_time;  -- Prints 30
-  FOR media_rec IN (
-          SELECT media_id,
-                 COALESCE( sw_data_end_date, default_end_day ) AS end_date
-          FROM media
-          WHERE NOT (COALESCE( sw_data_end_date, default_end_day ) IS NULL )
-          ORDER BY media_id
-      ) LOOP
-        current_time := timeofday()::timestamp;
-
-        RAISE NOTICE 'media_id is %, end_date - % time - %', media_rec.media_id, media_rec.end_date, current_time;
-
-        DELETE from story_sentences
-        WHERE media_id = media_rec.media_id
-          AND date_trunc( 'day', publish_date ) > date_trunc( 'day', media_rec.end_date );
-
-    END LOOP;
-END;
-$$
-LANGUAGE 'plpgsql'
- ;
 
  -- Returns true if the date is greater than the latest import date in solr_imports
  CREATE OR REPLACE FUNCTION before_last_solr_import(db_row_last_updated timestamp with time zone) RETURNS boolean AS $$
@@ -379,8 +329,6 @@ create table media (
     moderation_notes    text            null,
     full_text_rss       boolean,
     extract_author      boolean         default(false),
-    sw_data_start_date  date            default(null),
-    sw_data_end_date    date            default(null),
 
     -- It indicates that the media source includes a substantial number of
     -- links in its feeds that are not its own. These media sources cause
@@ -391,9 +339,6 @@ create table media (
     is_not_dup          boolean         null,
     use_pager           boolean         null,
     unpaged_stories     int             not null default 0,
-
-    -- Annotate stories from this media source with CoreNLP?
-    annotate_with_corenlp   BOOLEAN     NOT NULL DEFAULT(false),
 
     -- Delay content downloads for this media source this many hours
     content_delay       int             null,
@@ -408,7 +353,6 @@ create unique index media_name on media(name);
 create unique index media_url on media(url);
 create index media_moderated on media(moderated);
 create index media_db_row_last_updated on media( db_row_last_updated );
-create index media_annotate on media ( annotate_with_corenlp, media_id );
 
 CREATE INDEX media_name_trgm on media USING gin (name gin_trgm_ops);
 CREATE INDEX media_url_trgm on media USING gin (url gin_trgm_ops);
@@ -877,53 +821,6 @@ CREATE TRIGGER msmm_last_updated BEFORE INSERT OR UPDATE OR DELETE
     ON media_sets_media_map FOR EACH ROW EXECUTE PROCEDURE update_media_last_updated() ;
 
 
-CREATE OR REPLACE FUNCTION media_set_sw_data_retention_dates(
-    v_media_sets_id int,
-    default_start_day date,
-    default_end_day date,
-
-    OUT start_date date,
-    OUT end_date date
-) AS
-$$
-DECLARE
-    media_rec record;
-    current_time timestamp;
-BEGIN
-    current_time := timeofday()::timestamp;
-
-    --RAISE NOTICE 'time - % ', current_time;
-
-    SELECT media_sets_id,
-           MIN(coalesce (media.sw_data_start_date, default_start_day)) AS sw_data_start_date,
-           max(coalesce (media.sw_data_end_date,  default_end_day)) AS sw_data_end_date
-    INTO media_rec
-    FROM media_sets_media_map
-        JOIN media
-          ON media_sets_media_map.media_id = media.media_id
-         AND media_sets_id = v_media_sets_id
-    GROUP BY media_sets_id;
-
-    start_date = media_rec.sw_data_start_date;
-    end_date = media_rec.sw_data_end_date;
-
-    --RAISE NOTICE 'start date - %', start_date;
-    --RAISE NOTICE 'end date - %', end_date;
-
-    return;
-END;
-$$
-LANGUAGE 'plpgsql' STABLE
- ;
-
-CREATE VIEW media_sets_explict_sw_data_dates AS
-    SELECT media_sets_id,
-           MIN(media.sw_data_start_date) AS sw_data_start_date,
-           MAX(media.sw_data_end_date) AS sw_data_end_date
-    FROM media_sets_media_map
-        JOIN media ON media_sets_media_map.media_id = media.media_id
-    GROUP BY media_sets_id;
-
 CREATE VIEW media_with_collections AS
     SELECT t.tag,
            m.media_id,
@@ -942,38 +839,6 @@ CREATE VIEW media_with_collections AS
       AND mtm.media_id = m.media_id
     ORDER BY m.media_id;
 
-
-CREATE OR REPLACE FUNCTION media_set_retains_sw_data_for_date(
-    v_media_sets_id int,
-    test_date date,
-    default_start_day date,
-    default_end_day date
-)
-  RETURNS BOOLEAN AS
-$$
-DECLARE
-    media_rec record;
-    current_time timestamp;
-    start_date   date;
-    end_date     date;
-BEGIN
-    current_time := timeofday()::timestamp;
-
-    -- RAISE NOTICE 'time - %', current_time;
-
-   media_rec = media_set_sw_data_retention_dates( v_media_sets_id, default_start_day,  default_end_day ); -- INTO (media_rec);
-
-   start_date = media_rec.start_date;
-   end_date = media_rec.end_date;
-
-    -- RAISE NOTICE 'start date - %', start_date;
-    -- RAISE NOTICE 'end date - %', end_date;
-
-    return  ( ( start_date is null )  OR ( start_date <= test_date ) ) AND ( (end_date is null ) OR ( end_date >= test_date ) );
-END;
-$$
-LANGUAGE 'plpgsql' STABLE
- ;
 
 -- dashboard_media_sets associates certain 'collection' type media_sets with a given dashboard.
 -- Those assocaited media_sets will appear on the dashboard page, and the media associated with
@@ -1660,6 +1525,14 @@ create table controversy_stories (
 create unique index controversy_stories_sc on controversy_stories ( stories_id, controversies_id );
 create index controversy_stories_controversy on controversy_stories( controversies_id );
 
+-- controversy links for which the http request failed
+create table controversy_dead_links (
+    controversy_dead_links_id   serial primary key,
+    controversies_id            int not null,
+    stories_id                  int not null,
+    url                         text not null
+);
+
 -- no foreign key constraints on controversies_id and stories_id because
 --   we have the combined foreign key constraint pointing to controversy_stories
 --   below
@@ -2191,8 +2064,6 @@ create table cd.media (
     moderation_notes        text            null,
     full_text_rss           boolean,
     extract_author          boolean         default(false),
-    sw_data_start_date      date            default(null),
-    sw_data_end_date        date            default(null),
     foreign_rss_links       boolean         not null default( false ),
     dup_media_id            int             null,
     is_not_dup              boolean         null,
@@ -2967,13 +2838,6 @@ CREATE INDEX activities_user_identifier ON activities (user_identifier);
 CREATE INDEX activities_object_id ON activities (object_id);
 
 
--- Extra stories to be annotated with CoreNLP that don't have "media.annotate_with_corenlp = 't'"
-CREATE TABLE extra_corenlp_stories (
-    extra_corenlp_stories_id  SERIAL  PRIMARY KEY,
-    stories_id                INTEGER NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE
-);
-CREATE INDEX extra_corenlp_stories_stories_id ON extra_corenlp_stories (stories_id);
-
 --
 -- Returns true if the story can + should be annotated with CoreNLP
 --
@@ -2986,23 +2850,9 @@ BEGIN
     SELECT stories_id, media_id, language INTO story from stories where stories_id = corenlp_stories_id;
 
     IF NOT ( story.language = 'en' or story.language is null ) THEN
-
-        RETURN FALSE;
-
-    ELSEIF NOT EXISTS (
-
-            SELECT 1 FROM media WHERE media.annotate_with_corenlp = 't' and media_id = story.media_id
-
-        ) AND NOT EXISTS (
-
-            SELECT 1 FROM extra_corenlp_stories  WHERE extra_corenlp_stories.stories_id = corenlp_stories_id
-
-        ) THEN
-
         RETURN FALSE;
 
     ELSEIF NOT EXISTS ( SELECT 1 FROM story_sentences WHERE stories_id = corenlp_stories_id ) THEN
-
         RETURN FALSE;
 
     END IF;
@@ -3354,3 +3204,28 @@ BEGIN
 END;
 $$
 LANGUAGE 'plpgsql';
+
+
+--
+-- Stories without Readability tag
+--
+CREATE TABLE IF NOT EXISTS stories_without_readability_tag (
+    stories_id BIGINT NOT NULL REFERENCES stories (stories_id)
+);
+CREATE INDEX stories_without_readability_tag_stories_id
+    ON stories_without_readability_tag (stories_id);
+
+-- Fill in the table manually with:
+--
+-- INSERT INTO scratch.stories_without_readability_tag (stories_id)
+--     SELECT stories.stories_id
+--     FROM stories
+--         LEFT JOIN stories_tags_map
+--             ON stories.stories_id = stories_tags_map.stories_id
+
+--             -- "extractor_version:readability-lxml-0.3.0.5"
+--             AND stories_tags_map.tags_id = 8929188
+
+--     -- No Readability tag
+--     WHERE stories_tags_map.tags_id IS NULL
+--     ;

@@ -185,16 +185,14 @@ EOF
         );
     }
 
-    # die() if using old Gearman configuration
-    if ( $config->{ gearman } or $config->{ gearmand } )
+    # Warn if no job brokers are configured
+    unless ( $config->{ job_manager }->{ rabbitmq } )
     {
-        MediaWords::CommonLibs::LOGDIE(
+        MediaWords::CommonLibs::WARN(
             <<EOF
 
-You are using old format for gearman / gearmand configuration in mediawords.yml.
-
-Please add "job_manager" root key to mediawords.yml and configure Gearman job
-broker under that root key.
+Please configure "rabbitmq" job manager under "job_manager" root key in
+mediawords.yml.
 
 EOF
         );

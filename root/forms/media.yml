@@ -47,11 +47,6 @@ elements:
     value: 1
     default_empty_value: true
 
-  - type: Checkbox
-    name: annotate_with_corenlp
-    label: Annotate with CoreNLP
-    comment: "annotate new media stories with CoreNLP (note: old stories will have to be added to processing queue manually)"
-
   - type: Text
     name: reason
     label: Reason

@@ -15,7 +15,8 @@ use MediaWords::Util::Config;
 
     use Moose;
     use MediaCloud::JobManager::Configuration;
-    use MediaCloud::JobManager::Broker::Gearman;
+    use MediaCloud::JobManager::Broker::RabbitMQ;
+    use MediaWords::CommonLibs;
     extends 'MediaCloud::JobManager::Configuration';
 
     sub BUILD
@@ -25,24 +26,23 @@ use MediaWords::Util::Config;
         my $config     = MediaWords::Util::Config::get_config();
         my $job_broker = undef;
 
-        if ( $config->{ job_manager }->{ gearman } )
+        if ( $config->{ job_manager }->{ rabbitmq } )
         {
-            my $servers = $config->{ job_manager }->{ gearman }->{ client }->{ servers };
-            unless ( ref $servers eq ref [] )
-            {
-                die "Gearman client servers is not an array.";
-            }
-            unless ( scalar( @{ $servers } ) > 0 )
-            {
-                die "No Gearman client servers are configured.";
-            }
+            my $rabbitmq_config = $config->{ job_manager }->{ rabbitmq }->{ client };
 
-            $job_broker = MediaCloud::JobManager::Broker::Gearman->new( servers => $servers );
+            $job_broker = MediaCloud::JobManager::Broker::RabbitMQ->new(
+                hostname => $rabbitmq_config->{ hostname },
+                port     => $rabbitmq_config->{ port },
+                username => $rabbitmq_config->{ username },
+                password => $rabbitmq_config->{ password },
+                vhost    => $rabbitmq_config->{ vhost },
+                timeout  => $rabbitmq_config->{ timeout },
+            );
         }
 
         unless ( $job_broker )
         {
-            die "No supported job broker is configured.";
+            LOGCONFESS "No supported job broker is configured.";
         }
 
         $self->broker( $job_broker );
@@ -63,6 +63,7 @@ use MediaWords::Util::Config;
 
     use Moose::Role;
     with 'MediaCloud::JobManager::Job';
+    use MediaWords::CommonLibs;
 
     use MediaWords::DB;
 
@@ -71,7 +72,7 @@ use MediaWords::Util::Config;
     {
         my ( $self, $args ) = @_;
 
-        die "This is a placeholder implementation of the run() subroutine for a job.";
+        LOGCONFESS "This is a placeholder implementation of the run() subroutine for a job.";
     }
 
     # Return default configuration
@@ -81,6 +82,24 @@ use MediaWords::Util::Config;
         # for all the Media Cloud jobs, but Moose::Role doesn't
         # support that :(
         return MediaWords::AbstractJob::Configuration->instance;
+    }
+
+    # Whether or not RabbitMQ should create lazy queues for the jobs
+    sub lazy_queue()
+    {
+        # When some services are stopped on production, the queues might fill
+        # up pretty quickly
+        return 1;
+    }
+
+    # Whether or not publish job state and return value upon completion to a
+    # separate RabbitMQ queue
+    sub publish_results()
+    {
+        # Don't create response queues and post messages with job results to
+        # them because they use up resources and we don't really check those
+        # results for the many jobs that we run
+        return 0;
     }
 
     no Moose;    # gets rid of scaffolding

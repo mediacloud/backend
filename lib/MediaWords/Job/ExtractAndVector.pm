@@ -27,34 +27,27 @@ use MediaWords::CommonLibs;
 
 use MediaWords::DB;
 use MediaWords::DBI::Downloads;
+use MediaWords::DBI::Stories::ExtractorArguments;
 
-# extract , vector, and process the download or story; LOGDIE() and / or return false on error
+# Extract, vector, and process the download or story; LOGDIE() and / or return
+# false on error.
+#
+# Arguments:
+# * stories_id OR downloads_id -- story ID or download ID to extract
+# * (optional) extractor_method -- extractor method to use (e.g. "PythonReadability")
+# * (optional) disable_story_triggers -- disable triggers on "stories" table
+#              (probably skips updating db_row_last_updated?)
+# * (optional) skip_bitly_processing -- don't add extracted story to the Bit.ly
+#              processing queue
+# * (optional) skip_corenlp_annotation -- don't add extracted story to the
+#              CoreNLP annotation queue
 sub run($$)
 {
     my ( $self, $args ) = @_;
 
-    unless ( $args->{ downloads_id } or $args->{ stories_id } )
+    unless ( $args->{ downloads_id } xor $args->{ stories_id } )    # "xor", not "or"
     {
-        LOGDIE "Either 'downloads_id' or 'stories_id' should be set.";
-    }
-    if ( $args->{ downloads_id } and $args->{ stories_id } )
-    {
-        LOGDIE "Can't use both downloads_id and stories_id";
-    }
-
-    my $extract_by_downloads_id = exists $args->{ downloads_id };
-    my $extract_by_stories_id   = exists $args->{ stories_id };
-
-    my $config = MediaWords::Util::Config::get_config();
-
-    my $original_extractor_method = $config->{ mediawords }->{ extractor_method };
-
-    my $alter_extractor_method = 0;
-    my $new_extractor_method;
-    if ( $args->{ extractor_method } )
-    {
-        $alter_extractor_method = 1;
-        $new_extractor_method   = $args->{ extractor_method };
+        LOGDIE "Either 'downloads_id' or 'stories_id' should be set (but not both).";
     }
 
     my $db = MediaWords::DB::connect_to_db();
@@ -71,16 +64,19 @@ sub run($$)
         MediaWords::DB::enable_story_triggers();
     }
 
+    my $extractor_args = MediaWords::DBI::Stories::ExtractorArguments->new(
+        {
+            # If unset, will fallback to default extractor method set in configuration
+            extractor_method => $args->{ extractor_method },
+
+            skip_bitly_processing   => $args->{ skip_bitly_processing },
+            skip_corenlp_annotation => $args->{ skip_corenlp_annotation },
+        }
+    );
+
     eval {
 
-        my $process_id = 'job:' . $$;
-
-        if ( $alter_extractor_method )
-        {
-            $config->{ mediawords }->{ extractor_method } = $new_extractor_method;
-        }
-
-        if ( $extract_by_downloads_id )
+        if ( $args->{ downloads_id } )
         {
             my $downloads_id = $args->{ downloads_id };
             unless ( defined $downloads_id )
@@ -94,9 +90,9 @@ sub run($$)
                 LOGDIE "Download with ID $downloads_id was not found.";
             }
 
-            MediaWords::DBI::Downloads::process_download_for_extractor_and_record_error( $db, $download, $process_id );
+            MediaWords::DBI::Downloads::process_download_for_extractor_and_record_error( $db, $download, $extractor_args );
         }
-        elsif ( $extract_by_stories_id )
+        elsif ( $args->{ stories_id } )
         {
             my $stories_id = $args->{ stories_id };
             unless ( defined $stories_id )
@@ -110,45 +106,29 @@ sub run($$)
                 LOGDIE "Download with ID $stories_id was not found.";
             }
 
-            MediaWords::DBI::Stories::extract_and_process_story( $story, $db, $process_id );
-        }
-        else
-        {
-            LOGDIE "shouldn't be reached";
+            MediaWords::DBI::Stories::extract_and_process_story( $db, $story, $extractor_args );
         }
 
-        ## Enable story triggers in case the connection is reused due to connection pooling.
+        # Enable story triggers in case the connection is reused due to connection pooling
         $db->query( "SELECT enable_story_triggers(); " );
     };
 
     my $error_message = "$@";
 
-    if ( $alter_extractor_method )
-    {
-        $config->{ mediawords }->{ extractor_method } = $original_extractor_method;
-    }
-
     if ( $error_message )
     {
         # Probably the download was not found
-        LOGDIE "Extractor LOGDIEd: $error_message; job args: " . Dumper( $args );
+        LOGDIE "Extractor died: $error_message; job args: " . Dumper( $args );
     }
 
-    return 1;
-}
-
-# write a single log because there are a lot of extraction jobs so it's
-# impractical to log each job into a separate file
-sub unify_logs()
-{
     return 1;
 }
 
 # run extraction for the crawler. run in process of mediawords.extract_in_process is configured.
 # keep retrying on error.
-sub extract_for_crawler
+sub extract_for_crawler($$$)
 {
-    my ( $self, $db, $args, $fetcher_number ) = @_;
+    my ( $self, $db, $args ) = @_;
 
     if ( MediaWords::Util::Config::get_config->{ mediawords }->{ extract_in_process } )
     {
