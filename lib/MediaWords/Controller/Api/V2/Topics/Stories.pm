@@ -40,42 +40,38 @@ sub list : Chained('stories') : Args(0) : ActionClass('MC_REST')
 sub list_GET
 {
     my ( $self, $c ) = @_;
+
     my $db   = $c->dbis;
-    my $cdts = MediaWords::CM::get_time_slice_for_controversy(
+    my $cdts = MediaWords::CM::require_time_slice_for_controversy(
         $c->dbis,
         $c->stash->{ topic_id },
         $c->req->params->{ timeslice },
         $c->req->params->{ snapshot }
     );
-    my $entity = {};
-    my $limit = $c->req->params->{ limit } //= $DEFAULT_STORY_LIMIT;
 
-    my $sort_orders = {
-        'social' => 'slc.bitly_click_count desc nulls last, s.stories_id',
-        'inlink' => 'slc.inlink_count desc, s.stories_id'
-    };
+    my $sort_param = $c->req->params->{ sort } || 'inlink';
 
-    my $sortclause = $sort_orders->{ $c->req->params->{ sort } || 'inlink' };
+    # md5 hashing is to make tie breaks random but consistent
+    my $sort_clause =
+      ( $sort_param eq 'social' )
+      ? 'slc.bitly_click_count desc nulls last, md5( s.stories_id::text )'
+      : 'slc.inlink_count desc, md5( s.stories_id::text )';
 
-    $entity->{ timeslice } = $cdts;
+    my $cdts_id = $cdts->{ controversy_dump_time_slices_id };
+    my $cd_id   = $cdts->{ controversy_dumps_id };
 
-    if ( $cdts )
-    {
-
-        $entity->{ stories } =
-          $db->query( <<SQL, $cdts->{ controversy_dump_time_slices_id }, $cdts->{ controversy_dumps_id }, $limit )->hashes;
-select * from cd.story_link_counts slc
-  join cd.stories s on slc.stories_id = s.stories_id
-  where slc.controversy_dump_time_slices_id = \$1
-  and s.controversy_dumps_id = \$2
-  order by $sortclause limit \$3
+    my ( $stories, $continuation_id ) = $self->do_continuation_query( $c, <<SQL, [ $cdts_id, $cd_id ] );
+select *
+    from cd.story_link_counts slc
+        join cd.stories s on slc.stories_id = s.stories_id
+    where slc.controversy_dump_time_slices_id = \$1
+        and s.controversy_dumps_id = \$2
+    order by $sort_clause
 SQL
-        $self->status_ok( $c, entity => $entity );
-    }
-    else
-    {
-        $self->status_bad_request( $c, message => "unable to find snapshot and timeslice" );
-    }
+
+    my $entity = { timeslice => $cdts, stories => $stories, continuation_id => $continuation_id };
+    $self->status_ok( $c, entity => $entity );
+
 }
 
 1;

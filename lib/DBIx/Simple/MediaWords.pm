@@ -596,7 +596,7 @@ sub _get_new_continuation_id ($$$$$)
     my $continuation_id;
     while ( !$continuation_id || $cache->get( $continuation_id ) )
     {
-        $continuation_id = Math::Random::Secure::irand( 2**64 );
+        $continuation_id = Math::Random::Secure::irand( 2**48 );
     }
 
     $cache->set( $continuation_id, $continuation );
@@ -606,7 +606,7 @@ sub _get_new_continuation_id ($$$$$)
 
 # Query with continuation_id that allows paging through results.  Execute the query, cache the query text and args
 # with a new continuation_id, and return that continuation_id.
-sub query_and_create_continuation_id ($$$)
+sub query_and_create_continuation_id ($$$$)
 {
     my ( $self, $query, $params, $rows_per_page ) = @_;
 
@@ -652,6 +652,17 @@ sub query_continuation ($$)
     my $new_continuation_id = $self->_get_new_continuation_id( $query, $params, $rows_per_page, $offset );
 
     return ( $rows, $new_continuation_id );
+}
+
+# if a continuation_id is passed, query the continuation, otherwise execute the given query.  in either case, return
+# a new continuation_id
+sub query_or_continuation ($$$$$)
+{
+    my ( $self, $query, $params, $rows_per_page, $continuation_id ) = @_;
+
+    return $self->query_continuation( $continuation_id ) if ( $continuation_id );
+
+    return $self->query_and_create_continuation_id( $query, $params, $rows_per_page, $continuation_id );
 }
 
 # executes the supplied subroutine inside a transaction
