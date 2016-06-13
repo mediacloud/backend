@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4547;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4548;
 
 BEGIN
 
@@ -75,23 +75,6 @@ DECLARE
 BEGIN
     date_trunc_result := date_trunc('week', day::timestamp);
     RETURN date_trunc_result;
-END;
-$$
-LANGUAGE 'plpgsql' IMMUTABLE
-  COST 10;
-
-CREATE OR REPLACE FUNCTION loop_forever()
-    RETURNS VOID AS
-$$
-DECLARE
-    temp integer;
-BEGIN
-   temp := 1;
-   LOOP
-    temp := temp + 1;
-    perform pg_sleep( 1 );
-    RAISE NOTICE 'time - %', temp;
-   END LOOP;
 END;
 $$
 LANGUAGE 'plpgsql' IMMUTABLE
@@ -1033,39 +1016,6 @@ ALTER TABLE ONLY download_texts
 ALTER TABLE download_texts add CONSTRAINT download_text_length_is_correct CHECK (length(download_text)=download_text_length);
 
 
-CREATE TYPE url_discovery_status_type as ENUM ('already_processed', 'not_yet_processed');
-CREATE TABLE url_discovery_counts (
-       url_discovery_status url_discovery_status_type PRIMARY KEY,
-       num_urls INT DEFAULT  0);
-
-INSERT  into url_discovery_counts VALUES ('already_processed');
-INSERT  into url_discovery_counts VALUES ('not_yet_processed');
-
-
-CREATE TABLE extractor_results_cache (
-    extractor_results_cache_id integer NOT NULL,
-    is_story boolean NOT NULL,
-    explanation text,
-    discounted_html_density double precision,
-    html_density double precision,
-    downloads_id integer,
-    line_number integer
-);
-CREATE SEQUENCE extractor_results_cache_extractor_results_cache_id_seq
-    INCREMENT BY 1
-    NO MAXVALUE
-    NO MINVALUE
-    CACHE 1;
-ALTER SEQUENCE extractor_results_cache_extractor_results_cache_id_seq OWNED BY extractor_results_cache.extractor_results_cache_id;
-
-ALTER TABLE extractor_results_cache
-    ALTER COLUMN extractor_results_cache_id
-        SET DEFAULT nextval('extractor_results_cache_extractor_results_cache_id_seq'::regclass);
-
-ALTER TABLE ONLY extractor_results_cache
-    ADD CONSTRAINT extractor_results_cache_pkey PRIMARY KEY (extractor_results_cache_id);
-CREATE INDEX extractor_results_cache_downloads_id_index ON extractor_results_cache USING btree (downloads_id);
-
 create table story_sentences (
        story_sentences_id           bigserial       primary key,
        stories_id                   int             not null, -- references stories on delete cascade,
@@ -1300,12 +1250,6 @@ create index solr_import_extra_stories_story on solr_import_extra_stories ( stor
 
 create index solr_imports_date on solr_imports ( import_date );
 
-create view story_extracted_texts as select stories_id, array_to_string(array_agg(download_text), ' ') as extracted_text
-       from (select * from downloads natural join download_texts order by downloads_id) as downloads group by stories_id;
-
-
-
-CREATE VIEW media_feed_counts as (SELECT media_id, count(*) as feed_count FROM feeds GROUP by media_id);
 
 create table controversies (
     controversies_id        serial primary key,
@@ -2218,46 +2162,6 @@ CREATE VIEW daily_stats AS
 
 
 
-CREATE TABLE feedless_stories (
-        stories_id integer,
-        media_id integer
-);
-CREATE INDEX feedless_stories_story ON feedless_stories USING btree (stories_id);
-
-
-CREATE OR REPLACE FUNCTION add_query_version (new_query_version_enum_string character varying) RETURNS void
-AS
-$body$
-DECLARE
-    range_of_old_enum TEXT;
-    new_type_sql TEXT;
-BEGIN
-
-LOCK TABLE queries;
-
-SELECT '''' || array_to_string(ENUM_RANGE(null::query_version_enum), ''',''') || '''' INTO range_of_old_enum;
-
-DROP TYPE IF EXISTS new_query_version_enum;
-
-new_type_sql :=  'CREATE TYPE new_query_version_enum AS ENUM( ' || range_of_old_enum || ', ' || '''' || new_query_version_enum_string || '''' || ')' ;
---RAISE NOTICE 'Sql: %t', new_type_sql;
-
-EXECUTE new_type_sql;
-
-ALTER TABLE queries ADD COLUMN new_query_version new_query_version_enum DEFAULT enum_last (null::new_query_version_enum ) NOT NULL;
-UPDATE queries set new_query_version = query_version::text::new_query_version_enum;
-ALTER TYPE query_version_enum  RENAME to old_query_version_enum;
-ALTER TABLE queries rename column query_version to old_query_version;
-ALTER TABLE queries rename column new_query_version to query_version;
-ALTER TYPE new_query_version_enum RENAME to query_version_enum;
-ALTER TABLE queries DROP COLUMN old_query_version;
-DROP TYPE old_query_version_enum ;
-
-
-END;
-$body$
-    LANGUAGE 'plpgsql';
-
 CREATE OR REPLACE FUNCTION get_relative_file_path(path text)
     RETURNS text AS
 $$
@@ -2340,36 +2244,6 @@ CREATE INDEX relative_file_paths_to_verify
       AND relative_file_path <> 'error'::text
       AND relative_file_path <> 'na'::text
       AND relative_file_path <> 'inline'::text;
-
-CREATE OR REPLACE FUNCTION show_stat_activity()
- RETURNS SETOF  pg_stat_activity  AS
-$$
-DECLARE
-BEGIN
-    RETURN QUERY select * from pg_stat_activity;
-    RETURN;
-END;
-$$
-LANGUAGE 'plpgsql'
-;
-
-CREATE FUNCTION cat(text, text) RETURNS text
-    LANGUAGE plpgsql
-    AS $_$
-  DECLARE
-    t text;
-  BEGIN
-return coalesce($1) || ' | ' || coalesce($2);
-  END;
-$_$;
-
-CREATE OR REPLACE FUNCTION cancel_pg_process(cancel_pid integer) RETURNS boolean
-    LANGUAGE plpgsql SECURITY DEFINER
-    AS $$
-BEGIN
-return pg_cancel_backend(cancel_pid);
-END;
-$$;
 
 
 --

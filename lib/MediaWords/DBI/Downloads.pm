@@ -66,9 +66,6 @@ Readonly my $RAW_DOWNLOADS_POSTGRESQL_KVS_TABLE_NAME => 'raw_downloads';
 # Database inline content length limit
 Readonly my $INLINE_CONTENT_LENGTH => 256;
 
-# cache for extractor results
-my $_extractor_results_cache;
-
 =head1 FUNCTIONS
 
 =cut
