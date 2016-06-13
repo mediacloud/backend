@@ -350,10 +350,6 @@ sub reset_all_schemas($)
 
     reset_schema( $db, 'public' );
 
-    # removes schema used by dklab enum procedures
-    # schema will be re-added in dklab sqlfile
-    reset_schema( $db, 'enum' );
-
     # schema to hold all of the controversy dump snapshot tables
     reset_schema( $db, 'cd' );
 }
@@ -373,7 +369,6 @@ sub postgresql_response_line_is_expected($)
         | ^\SET
         | ^COMMENT
         | ^INSERT
-        | ^\ enum_add.*
         | ^----------.*
         | ^\s+
         | ^\(\d+\ rows?\)
@@ -474,11 +469,6 @@ sub recreate_db
     my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
 
     DEBUG( "script_dir: $script_dir" );
-
-    DEBUG( "add enum functions ..." );
-    my $load_dklab_postgresql_enum_result = load_sql_file( $label, "$script_dir/dklab_postgresql_enum_2009-02-26.sql" );
-
-    LOGDIE "Error adding dklab_postgresql_enum procecures" if ( $load_dklab_postgresql_enum_result );
 
     DEBUG( "Adding 'pgcrypto' extension..." );
     _add_pgcrypto_extension( $db );

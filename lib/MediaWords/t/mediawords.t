@@ -14,7 +14,7 @@ use Data::Dumper;
 use MediaWords::Pg::Schema;
 
 use Test::NoWarnings;
-use Test::More tests => 13 + 1;
+use Test::More tests => 13;
 
 BEGIN
 {
@@ -38,10 +38,6 @@ MediaWords::Test::DB::test_on_test_database(
 
         my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir };
         $db->query( MediaWords::Pg::Schema::get_sql_function_definitions() );
-        say STDERR "add enum functions ...";
-        my $load_dklab_postgresql_enum_result =
-          MediaWords::Pg::Schema::load_sql_file( 'test', "$script_dir/dklab_postgresql_enum_2009-02-26.sql" );
-        ok( $load_dklab_postgresql_enum_result == 0, "load enum sql file result" );
 
         my $load_sql_file_result = MediaWords::Pg::Schema::load_sql_file( 'test', "$script_dir/mediawords.sql" );
         ok( $load_sql_file_result == 0, "load sql file result" );
