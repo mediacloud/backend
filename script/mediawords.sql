@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4548;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4549;
 
 BEGIN
 
@@ -814,16 +814,6 @@ CREATE TYPE download_type AS ENUM (
     'archival_only'
 );
 
-CREATE TYPE download_file_status AS ENUM (
-    'tbd',
-    'missing',
-    'na',
-    'present',
-    'inline',
-    'redownloaded',
-    'error_redownloading'
-);
-
 create table downloads (
     downloads_id        serial          primary key,
     feeds_id            int             null references feeds,
@@ -838,14 +828,8 @@ create table downloads (
     error_message       text            null,
     priority            int             not null,
     sequence            int             not null,
-    extracted           boolean         not null default 'f',
-    old_download_time   timestamp without time zone,
-    old_state           download_state,
-    file_status         download_file_status not null default 'tbd',
-    relative_file_path  text            not null default 'tbd'
+    extracted           boolean         not null default 'f'
 );
-
-UPDATE downloads set old_download_time = download_time, old_state = state;
 
 
 alter table downloads add constraint downloads_parent_fkey
@@ -902,19 +886,6 @@ CREATE INDEX downloads_in_old_format
     ON downloads USING btree (downloads_id)
     WHERE state = 'success'::download_state
       AND path ~~ 'content/%'::text;
-
-CREATE INDEX file_status_downloads_time_new_format
-    ON downloads USING btree (file_status, download_time)
-    WHERE relative_file_path ~~ 'mediacloud-%'::text;
-
-CREATE INDEX relative_file_paths_new_format_to_verify
-    ON downloads USING btree (relative_file_path)
-    WHERE file_status = 'tbd'::download_file_status
-      AND relative_file_path <> 'tbd'::text
-      AND relative_file_path <> 'error'::text
-      AND relative_file_path <> 'na'::text
-      AND relative_file_path <> 'inline'::text
-      AND relative_file_path ~~ 'mediacloud-%'::text;
 
 create view downloads_media as select d.*, f.media_id as _media_id from downloads d, feeds f where d.feeds_id = f.feeds_id;
 
@@ -2159,91 +2130,6 @@ CREATE VIEW daily_stats AS
             SELECT COALESCE( SUM( num_stories ), 0  ) AS solr_stories
             FROM solr_imports WHERE import_date > now() - interval '1 day'
          ) AS si;
-
-
-
-CREATE OR REPLACE FUNCTION get_relative_file_path(path text)
-    RETURNS text AS
-$$
-DECLARE
-    regex_tar_format text;
-    relative_file_path text;
-BEGIN
-    IF path is null THEN
-       RETURN 'na';
-    END IF;
-
-    regex_tar_format :=  E'tar\\:\\d*\\:\\d*\\:(mediacloud-content-\\d*\.tar).*';
-
-    IF path ~ regex_tar_format THEN
-         relative_file_path =  regexp_replace(path, E'tar\\:\\d*\\:\\d*\\:(mediacloud-content-\\d*\.tar).*', E'\\1') ;
-    ELSIF  path like 'content:%' THEN
-         relative_file_path =  'inline';
-    ELSEIF path like 'content/%' THEN
-         relative_file_path =  regexp_replace(path, E'content\\/', E'\/') ;
-    ELSE
-         relative_file_path = 'error';
-    END IF;
-
---  RAISE NOTICE 'relative file path for %, is %', path, relative_file_path;
-
-    RETURN relative_file_path;
-END;
-$$
-LANGUAGE 'plpgsql' IMMUTABLE
-  COST 10;
-
-UPDATE downloads set relative_file_path = get_relative_file_path(path) where relative_file_path = 'tbd';
-
-CREATE OR REPLACE FUNCTION download_relative_file_path_trigger() RETURNS trigger AS
-$$
-   DECLARE
-      path_change boolean;
-   BEGIN
-      -- RAISE NOTICE 'BEGIN ';
-      IF TG_OP = 'UPDATE' then
-          -- RAISE NOTICE 'UPDATE ';
-
-	  -- The second part is needed because of the way comparisons with null are handled.
-	  path_change := ( OLD.path <> NEW.path )  AND (  ( OLD.path is not null) <> (NEW.path is not null) ) ;
-	  -- RAISE NOTICE 'test result % ', path_change;
-
-          IF path_change is null THEN
-	       -- RAISE NOTICE 'Path change % != %', OLD.path, NEW.path;
-               NEW.relative_file_path = get_relative_file_path(NEW.path);
-
-               IF NEW.relative_file_path = 'inline' THEN
-		  NEW.file_status = 'inline';
-	       END IF;
-	  ELSE
-               -- RAISE NOTICE 'NO path change % = %', OLD.path, NEW.path;
-          END IF;
-      ELSIF TG_OP = 'INSERT' then
-	  NEW.relative_file_path = get_relative_file_path(NEW.path);
-
-          IF NEW.relative_file_path = 'inline' THEN
-	     NEW.file_status = 'inline';
-	  END IF;
-      END IF;
-
-      RETURN NEW;
-   END;
-$$
-LANGUAGE 'plpgsql';
-
-DROP TRIGGER IF EXISTS download_relative_file_path_trigger on downloads CASCADE;
-
-CREATE TRIGGER download_relative_file_path_trigger
-    BEFORE INSERT OR UPDATE ON downloads
-    FOR EACH ROW EXECUTE PROCEDURE  download_relative_file_path_trigger() ;
-
-CREATE INDEX relative_file_paths_to_verify
-    ON downloads USING btree (relative_file_path)
-    WHERE file_status = 'tbd'::download_file_status
-      AND relative_file_path <> 'tbd'::text
-      AND relative_file_path <> 'error'::text
-      AND relative_file_path <> 'na'::text
-      AND relative_file_path <> 'inline'::text;
 
 
 --

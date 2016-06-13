@@ -286,9 +286,7 @@ END
         $dbs->query( <<END, $enc_error_message, $download->{ downloads_id } );
 UPDATE downloads
 SET state = 'error',
-    error_message = ?,
-    -- reset the file status in case it's one of the "missing" downloads:
-    file_status = DEFAULT
+    error_message = ?
 WHERE downloads_id = ?
 END
     }

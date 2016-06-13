@@ -379,9 +379,7 @@ sub store_content($$$)
         UPDATE downloads
         SET state = ?,
             path = ?,
-            error_message = ?,
-            file_status = DEFAULT       -- Reset the file_status in case
-                                        -- this download is being redownloaded
+            error_message = ?
         WHERE downloads_id = ?
 EOF
         $new_state,
