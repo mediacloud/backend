@@ -21,4 +21,4 @@ List of story ids, one per line, to remove from this controversy.
 
 </fieldset>
 
-[% INCLUDE dashboard/footer.tt2 %]
+[% INCLUDE include/footer.tt2 %]

@@ -13,7 +13,6 @@
 <title>Media Cloud</title>
 [% INCLUDE 'common/third_party_libs.tt2' %]
 
-<script type="text/javascript" src="[% c.uri_for('/include/media_cloud_rough.js') %]"></script>
 <script type="text/javascript" src="[% c.uri_for('/include/news_look_up.js') %]"></script>
 <script type="text/javascript" src="[% c.uri_for('/include/latest_report_look_up.js') %]"></script>
 

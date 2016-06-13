@@ -11,7 +11,7 @@ Basic Spider Flow
 
 A controversy is defined as:
 
-* a solr seed query, which specifies a date range, some media sets, and a text query
+* a solr seed query, which specifies a date range, some media collections, and a text query
 * a regex pattern for determining relevance
 * a date range which bounds the time slices and restricts which stories are mined for links
 
@@ -51,7 +51,7 @@ meaningful about the topic.
 Approaches we have used in the past to add more content to a sparse controversy include:
 
 * editing the parameters of the query (keywords, dates, and / or sources) to find more seed stories;
-* adding and backfilling with feedly a new media set with relevant sources;
+* adding and backfilling with feedly a new media collection with relevant sources;
 * manually creating a list of relevant seed urls through google searches, manual curation, or other such methods;
 * mining twitter for a list of links using crimson hexagon;
 

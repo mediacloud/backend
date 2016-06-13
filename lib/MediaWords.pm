@@ -71,8 +71,6 @@ sub setup_acl()
 
     # Admin read-only interface
     my @acl_admin_readonly = qw|
-      /admin/dashboards/list
-      /admin/dashboards/list_topics
       /admin/downloads/list
       /admin/downloads/view
       /admin/downloads/view_extracted
@@ -84,7 +82,6 @@ sub setup_acl()
       /admin/media/list
       /admin/media/media_tags_search_json
       /admin/media/search
-      /admin/mediasets/list
       /admin/stories/list
       /admin/stories/stories_query_json
       /admin/stories/tag
@@ -92,15 +89,6 @@ sub setup_acl()
       /admin/topics/index
       /admin/topics/list
       /admin/users/list
-      |;
-
-    # query-create role; can do everything admin-readonly can + create queries, dashboards,
-    # dashboard topics, media sets
-    my @acl_query_create = qw|
-      /admin/dashboards/create
-      /admin/dashboards/create_topic
-      /admin/mediasets/create
-      /admin/topics/create_do
       |;
 
     # media-edit role; can do everything admin-readonly can + add / edit media / feeds
@@ -126,7 +114,6 @@ sub setup_acl()
       /admin/media/edit_tags_do
       /admin/media/moderate
       /admin/media/moderate/merge
-      /admin/mediasets/create
       /admin/health
       /admin/health/list
       /admin/health/tag
@@ -165,7 +152,6 @@ sub setup_acl()
             $path,
             [
                 $MediaWords::DBI::Auth::Roles::ADMIN_READONLY,    #
-                $MediaWords::DBI::Auth::Roles::QUERY_CREATE,      #
                 $MediaWords::DBI::Auth::Roles::MEDIA_EDIT,        #
                 $MediaWords::DBI::Auth::Roles::STORIES_EDIT,      #
                 $MediaWords::DBI::Auth::Roles::CM,                #
@@ -173,18 +159,13 @@ sub setup_acl()
         );
     }
 
-    foreach my $path ( @acl_query_create )
-    {
-        __PACKAGE__->allow_access_if_any( $path, [ $MediaWords::DBI::Auth::Roles::QUERY_CREATE ] );
-    }
-
     foreach my $path ( @acl_media_edit )
     {
         __PACKAGE__->allow_access_if_any(
             $path,
             [
-                $MediaWords::DBI::Auth::Roles::MEDIA_EDIT,    #
-                $MediaWords::DBI::Auth::Roles::CM,            #
+                $MediaWords::DBI::Auth::Roles::MEDIA_EDIT,        #
+                $MediaWords::DBI::Auth::Roles::CM,                #
             ]
         );
     }
@@ -194,8 +175,8 @@ sub setup_acl()
         __PACKAGE__->allow_access_if_any(
             $path,
             [
-                $MediaWords::DBI::Auth::Roles::STORIES_EDIT,    #
-                $MediaWords::DBI::Auth::Roles::CM,              #
+                $MediaWords::DBI::Auth::Roles::STORIES_EDIT,      #
+                $MediaWords::DBI::Auth::Roles::CM,                #
             ]
         );
     }
@@ -205,8 +186,8 @@ sub setup_acl()
         __PACKAGE__->allow_access_if_any(
             $path,
             [
-                $MediaWords::DBI::Auth::Roles::CM,              #
-                $MediaWords::DBI::Auth::Roles::CM_READONLY,     #
+                $MediaWords::DBI::Auth::Roles::CM,                #
+                $MediaWords::DBI::Auth::Roles::CM_READONLY,       #
             ]
         );
     }
@@ -224,7 +205,6 @@ sub setup_acl()
         [
             $MediaWords::DBI::Auth::Roles::ADMIN,             #
             $MediaWords::DBI::Auth::Roles::ADMIN_READONLY,    #
-            $MediaWords::DBI::Auth::Roles::QUERY_CREATE,      #
             $MediaWords::DBI::Auth::Roles::MEDIA_EDIT,        #
             $MediaWords::DBI::Auth::Roles::STORIES_EDIT,      #
             $MediaWords::DBI::Auth::Roles::CM,                #

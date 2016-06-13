@@ -1209,13 +1209,13 @@ with open( '/tmp/media.csv', 'wb') as csvfile:
 
 This is broken down into multiple steps for convenience and because that's probably how a real user would do it.
 
-The you almost always want to search by a specific media source or media set.  The easiest way to find a relevant media
-set is to use our [Sources Tool](https://sources.mediameter.org).  The url for a the US Mainstream Media  media set in
+The you almost always want to search by a specific media source or media collection.  The easiest way to find a relevant media
+collection is to use our [Sources Tool](https://sources.mediameter.org).  The url for a the US Mainstream Media media collection in
 the sources tool looks like this:
 
 https://sources.mediameter.org/#media-tag/8875027/details
 
-The number in that url is the tags_id of the media set.
+The number in that url is the tags_id of the media collection.
 
 ### Grab stories by querying stories_public/list
 
@@ -1265,7 +1265,7 @@ start = 0
 rows  = 100
 while True:
       params = { 'last_processed_stories_id': start,
-      'rows': rows, 'q': 'media_set_id:1', 'fq': 'publish_date:[2010-10-01T00:00:00Z TO 2010-11-01T00:00:00Z]', 'key': MY_KEY  }
+      'rows': rows, 'q': 'media_id:1', 'fq': 'publish_date:[2010-10-01T00:00:00Z TO 2010-11-01T00:00:00Z]', 'key': MY_KEY  }
 
       print "Fetching {} stories starting from {}".format( rows, start)
       r = requests.get( 'https://api.mediacloud.org/api/v2/stories_public/list/', params = params, headers = { 'Accept': 'application/json'} )
@@ -1281,9 +1281,9 @@ while True:
 
 ## Get word counts for top words for sentences matching 'trayvon' in US Mainstream Media during April 2012
 
-### Find the media set
+### Find the media collection
 
-As above, find the tags_id of the US Mainstream Media set (8875027).
+As above, find the tags_id of the US Mainstream Media collection (8875027).
 
 ### Make a request for the word counts based on `tags_id_media`, sentence text and date range
 

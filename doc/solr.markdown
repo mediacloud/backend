@@ -23,8 +23,7 @@ medium tag, or story sentence tag is updated.
 The list of fields imported by solr is configured in
 [solr/collection1/solr/conf/schema.xml](../solr/collection1/solr/conf/schema.xml).  As of this doc, we index the
 following fields: story_sentences_id, media_id, stories_id, sentence_number, processed_stories_id, sentence, title,
-publish_date, publish_day, language, bitly_cick_count, media_sets_id, tags_id_stories, tags_id_media,
-tags_id_story_sentences.  
+publish_date, publish_day, language, bitly_cick_count, tags_id_stories, tags_id_media, tags_id_story_sentences.
 
 Of the above, only the following are stored fields (meaning they are returned by solr queries): story_sentences_id,
 stories_id, processed_stories_id, sentence, title, bitly_click_count.  Storing fields in addition to indexing them

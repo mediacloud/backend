@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4546;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4547;
 
 BEGIN
 
@@ -719,42 +719,6 @@ create view media_with_media_types as
         ) on ( m.media_id = mtm.media_id );
 
 
--- A dashboard defines which collections, dates, and topics appear together within a given dashboard screen.
--- For example, a dashboard might include three media_sets for russian collections, a set of dates for which
--- to generate a dashboard for those collections, and a set of topics to use for specific dates for all media
--- sets within the collection
-create table dashboards (
-    dashboards_id               serial          primary key,
-    name                        varchar(1024)   not null,
-    start_date                  timestamp       not null,
-    end_date                    timestamp       not null,
-
-    -- A "public" dashboard is the one that is shown in the web UI
-    -- (e.g. the "create controversy" page)
-    public                      boolean         not null default true
-);
-
-create unique index dashboards_name on dashboards ( name );
-CREATE INDEX dashboards_name_trgm on dashboards USING gin (name gin_trgm_ops);
-
-CREATE TYPE query_version_enum AS ENUM ('1.0');
-
-create table queries (
-    queries_id              serial              primary key,
-    start_date              date                not null,
-    end_date                date                not null,
-    generate_page           boolean             not null default false,
-    creation_date           timestamp           not null default now(),
-    description             text                null,
-    dashboards_id           int                 null references dashboards,
-    md5_signature           varchar(32)         not null,
-    query_version           query_version_enum  NOT NULL DEFAULT enum_last (null::query_version_enum )
-);
-
-create index queries_creation_date on queries (creation_date);
-create unique index queries_hash_version on queries (md5_signature, query_version);
-create index queries_md5_signature on queries  (md5_signature);
-
 create table media_rss_full_text_detection_data (
     media_id            int references media on delete cascade,
     max_similarity      real,
@@ -767,58 +731,6 @@ create table media_rss_full_text_detection_data (
 );
 
 create index media_rss_full_text_detection_data_media on media_rss_full_text_detection_data (media_id);
-
--- Sets of media sources that should appear in the dashboard
--- The contents of the row depend on the set_type, which can be one of:
---  medium -- a single medium (media_id)
---  collection -- all media associated with the given tag (tags_id)
---  cluster -- all media within the given clusters (clusters_id)
--- see the check constraint for the definition of which set_type has which rows set
-create table media_sets (
-    media_sets_id               serial      primary key,
-    name                        text        not null,
-    description                 text        null,
-    set_type                    text        not null,
-    media_id                    int         references media on delete cascade,
-    tags_id                     int         references tags on delete cascade,
-    creation_date               timestamp   default now(),
-    vectors_added               boolean     default false,
-    include_in_dump             boolean     default true
-);
-
-CREATE INDEX media_sets_name_trgm on media_sets USING gin (name gin_trgm_ops);
-CREATE INDEX media_sets_description_trgm on media_sets USING gin (description gin_trgm_ops);
-
-CREATE VIEW media_sets_tt2_locale_format AS
-    SELECT '[% c.loc("' || COALESCE( name, '') || '") %]' || E'\n' ||  '[% c.loc("' || COALESCE (description, '') || '") %] ' AS tt2_value
-    FROM media_sets
-    WHERE set_type = 'collection'
-    ORDER BY media_sets_id;
-
-alter table media_sets add constraint dashboard_media_sets_type
-check ( ( ( set_type = 'medium' ) and ( media_id is not null ) )
-        or
-        ( ( set_type = 'collection' ) and ( tags_id is not null ) )
-        or
-        ( ( set_type = 'cluster' ) ) );
-
-create unique index media_sets_medium on media_sets ( media_id );
-create index media_sets_tag on media_sets ( tags_id );
-create index media_sets_vectors_added on media_sets ( vectors_added );
-
-create table media_sets_media_map (
-    media_sets_media_map_id     serial  primary key,
-    media_sets_id               int     not null references media_sets on delete cascade,
-    media_id                    int     not null references media on delete cascade
-);
-
-
-create index media_sets_media_map_set on media_sets_media_map ( media_sets_id );
-create index media_sets_media_map_media on media_sets_media_map ( media_id );
-
-DROP TRIGGER IF EXISTS msmm_last_updated on media_sets_media_map CASCADE;
-CREATE TRIGGER msmm_last_updated BEFORE INSERT OR UPDATE OR DELETE
-    ON media_sets_media_map FOR EACH ROW EXECUTE PROCEDURE update_media_last_updated() ;
 
 
 CREATE VIEW media_with_collections AS
@@ -839,49 +751,6 @@ CREATE VIEW media_with_collections AS
       AND mtm.media_id = m.media_id
     ORDER BY m.media_id;
 
-
--- dashboard_media_sets associates certain 'collection' type media_sets with a given dashboard.
--- Those assocaited media_sets will appear on the dashboard page, and the media associated with
--- the collections will be available from autocomplete box.
--- This table is also used to determine for which dates to create [daily|weekly|top_500_weekly]_words
--- entries for which media_sets / topics
-create table dashboard_media_sets (
-    dashboard_media_sets_id     serial          primary key,
-    dashboards_id               int             not null references dashboards on delete cascade,
-    media_sets_id               int             not null references media_sets on delete cascade,
-    color                       text            null
-);
-
-CREATE UNIQUE INDEX dashboard_media_sets_media_set_dashboard on dashboard_media_sets(media_sets_id, dashboards_id);
-create index dashboard_media_sets_dashboard on dashboard_media_sets( dashboards_id );
-
--- A topic is a query used to generate dashboard results for a subset of matching stories.
--- For instance, a topic with a query of 'health' would generate dashboard results for only stories that
--- include the word 'health'.  a given topic is confined to a given dashbaord and optionally to date range
--- within the date range of the dashboard.
-create table dashboard_topics (
-    dashboard_topics_id         serial          primary key,
-    name                        varchar(256)    not null,
-    query                       varchar(1024)   not null,
-    language                    varchar(3)      null,   -- 2- or 3-character ISO 690 language code
-    dashboards_id               int             not null references dashboards on delete cascade,
-    start_date                  timestamp       not null,
-    end_date                    timestamp       not null,
-    vectors_added               boolean         default false
-);
-
-create index dashboard_topics_dashboard on dashboard_topics ( dashboards_id );
-create index dashboard_topics_vectors_added on dashboard_topics ( vectors_added );
-
-CREATE VIEW dashboard_topics_tt2_locale_format AS
-    SELECT DISTINCT ON (tt2_value) '[% c.loc("' || name || '") %]' || ' - ' || '[% c.loc("' || lower(name) || '") %]' AS tt2_value
-    FROM (
-        SELECT *
-        FROM dashboard_topics
-        ORDER BY name,
-                 dashboard_topics_id
-    ) AS dashboard_topic_names
-    ORDER BY tt2_value;
 
 create table color_sets (
     color_sets_id               serial          primary key,
@@ -2309,24 +2178,6 @@ create view feedly_unscraped_feeds as
             sf.feeds_id is null;
 
 
-create table story_subsets (
-    story_subsets_id        bigserial          primary key,
-    start_date              timestamp with time zone,
-    end_date                timestamp with time zone,
-    media_id                int references media null,
-    media_sets_id           int references media_sets null,
-    ready                   boolean default 'false',
-    last_processed_stories_id bigint references processed_stories(processed_stories_id)
-);
-
-CREATE TABLE story_subsets_processed_stories_map (
-   story_subsets_processed_stories_map_id bigserial primary key,
-   story_subsets_id bigint NOT NULL references story_subsets on delete cascade,
-   processed_stories_id bigint NOT NULL references processed_stories on delete cascade
-);
-
-create index story_subsets_processed_stories_map_processed_stories_id on story_subsets_processed_stories_map ( processed_stories_id );
-
 create table controversy_query_story_searches_imported_stories_map (
     controversies_id            int not null references controversies on delete cascade,
     stories_id                  int not null references stories on delete cascade
@@ -2372,12 +2223,6 @@ CREATE TABLE feedless_stories (
         media_id integer
 );
 CREATE INDEX feedless_stories_story ON feedless_stories USING btree (stories_id);
-
-CREATE TABLE queries_country_counts_json (
-   queries_country_counts_json_id serial primary key,
-   queries_id integer references queries on delete cascade not null unique,
-   country_counts_json text not null
-);
 
 
 CREATE OR REPLACE FUNCTION add_query_version (new_query_version_enum_string character varying) RETURNS void
@@ -2622,7 +2467,6 @@ CREATE INDEX auth_users_roles_map_auth_users_id_auth_roles_id
 INSERT INTO auth_roles (role, description) VALUES
     ('admin', 'Do everything, including editing users.'),
     ('admin-readonly', 'Read access to admin interface.'),
-    ('query-create', 'Create query; includes ability to create clusters, maps, etc. under clusters.'),
     ('media-edit', 'Add / edit media; includes feeds.'),
     ('stories-edit', 'Add / edit stories.'),
     ('cm', 'Controversy mapper; includes media and story editing'),
