@@ -14,9 +14,11 @@ use MediaWords::Util::Config;
 use MediaWords::Util::SchemaVersion;
 use MediaWords::DB;
 
+use CHI;
 use Carp;
 use Data::Page;
 use JSON;
+use Math::Random::Secure;
 
 use Encode;
 
@@ -74,7 +76,7 @@ sub connect($$$$$;$)
         # at this particular point too, but schema_is_up_to_date() warns the user about schema being
         # too old on every run, and that's supposedly a good thing.
 
-        die "Database schema is not up-to-date.\n" unless $ret->schema_is_up_to_date();
+        die "Database schema is not up-to-date." unless $ret->schema_is_up_to_date();
     }
 
     # If schema is not up-to-date, connect() dies and we don't get to set PID here
@@ -559,6 +561,97 @@ sub query_paged_hashes
 
     return ( $list, $pager );
 
+}
+
+# get CHI cache object for query continuations
+sub _get_continuation_cache
+{
+    my ( $self ) = @_;
+
+    my $mediacloud_data_dir = MediaWords::Util::Config::get_config->{ mediawords }->{ data_dir };
+
+    return CHI->new(
+        driver           => 'File',
+        expires_in       => '1 day',
+        expires_variance => '0.1',
+        root_dir         => "${ mediacloud_data_dir }/cache/continuations",
+        depth            => 4
+    );
+}
+
+# return a new continuation_id that is associated with the given continuation hash
+sub _get_new_continuation_id ($$$$$)
+{
+    my ( $self, $query, $params, $rows_per_page, $offset ) = @_;
+
+    my $continuation = {
+        query         => $query,
+        params        => $params,
+        rows_per_page => $rows_per_page,
+        offset        => $offset
+    };
+
+    my $cache = $self->_get_continuation_cache();
+
+    my $continuation_id;
+    while ( !$continuation_id || $cache->get( $continuation_id ) )
+    {
+        $continuation_id = Math::Random::Secure::irand( 2**64 );
+    }
+
+    $cache->set( $continuation_id, $continuation );
+
+    return $continuation_id;
+}
+
+# Query with continuation_id that allows paging through results.  Execute the query, cache the query text and args
+# with a new continuation_id, and return that continuation_id.
+sub query_and_create_continuation_id ($$$)
+{
+    my ( $self, $query, $params, $rows_per_page ) = @_;
+
+    die( "$rows_per_page must be a number greater than 0" ) unless ( $rows_per_page > 0 );
+
+    my $continuation_id = $self->_get_new_continuation_id( $query, $params, $rows_per_page, $rows_per_page );
+
+    my $rows = $self->query( "select * from ( $query ) q limit $rows_per_page", @{ $params } )->hashes;
+
+    return ( $rows, $continuation_id );
+}
+
+# lookup the continuation data for a given continuation_id; return undef if no such continuation_id exists
+sub _get_continuation ($$)
+{
+    my ( $self, $continuation_id ) = @_;
+
+    return $self->_get_continuation_cache->get( $continuation_id );
+}
+
+# Given a continuation_id that has been returned by this function or by query_and_create_continuation_id, teturn the
+# next page of results for the query saved with the given continuation_id, create a new continuation_id, and
+# return the new continuation_id.  If no rows are returned by the query, return an empty result list and an
+#undef continuation_id.
+sub query_continuation ($$)
+{
+    my ( $self, $continuation_id ) = @_;
+
+    my $continuation = $self->_get_continuation( $continuation_id );
+
+    die( "Unknown continuation id: $continuation_id" ) unless ( $continuation );
+
+    my $query         = $continuation->{ query };
+    my $params        = $continuation->{ params };
+    my $rows_per_page = $continuation->{ rows_per_page };
+    my $offset        = $continuation->{ offset };
+
+    my $rows = $self->query( "select * from ( $query ) q limit $rows_per_page offset $offset", @{ $params } )->hashes;
+
+    return ( [], undef ) unless ( @{ $rows } );
+
+    $offset += $rows_per_page;
+    my $new_continuation_id = $self->_get_new_continuation_id( $query, $params, $rows_per_page, $offset );
+
+    return ( $rows, $new_continuation_id );
 }
 
 # executes the supplied subroutine inside a transaction
