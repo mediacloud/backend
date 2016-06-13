@@ -1,4 +1,0 @@
-
-[% INCLUDE 'public_ui/text_page_head.tt2' %]
-[% INCLUDE 'public_ui/about_text.tt2' %]
-[% INCLUDE 'public_ui/text_page_foot.tt2' %]
