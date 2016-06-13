@@ -86,8 +86,6 @@ sub setup_acl()
       /admin/stories/stories_query_json
       /admin/stories/tag
       /admin/stories/view
-      /admin/topics/index
-      /admin/topics/list
       /admin/users/list
       |;
 
