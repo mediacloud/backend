@@ -76,23 +76,38 @@ END
 sub list_GET : Local
 {
     my ( $self, $c ) = @_;
+
     my $db   = $c->dbis;
-    my $cdts = MediaWords::CM::get_time_slice_for_controversy(
+    my $cdts = MediaWords::CM::require_time_slice_for_controversy(
         $c->dbis,
         $c->stash->{ topic_id },
         $c->req->params->{ timeslice },
         $c->req->params->{ snapshot }
     );
-    my $entity = {};
-    if ( $cdts )
-    {
-        $self->_create_controversy_media_table( $c, $cdts->{ controversy_dump_time_slices_id } );
 
-        $entity->{ media } = $db->query( "select * from media order by inlink_count desc, media_id" )->hashes;
+    my $sort_param = $c->req->params->{ sort } || 'inlink';
 
-        $self->status_ok( $c, entity => $entity );
-    }
+    # md5 hashing is to make tie breaks random but consistent
+    my $sort_clause =
+      ( $sort_param eq 'social' )
+      ? 'mlc.bitly_click_count desc nulls last, md5( m.media_id::text )'
+      : 'mlc.inlink_count desc, md5( m.media_id::text )';
 
+    my $cdts_id = $cdts->{ controversy_dump_time_slices_id };
+    my $cd_id   = $cdts->{ controversy_dumps_id };
+
+    my ( $media, $continuation_id ) = $self->do_continuation_query( $c, <<SQL, [ $cdts_id, $cd_id ] );
+select *
+    from cd.medium_link_counts mlc
+        join cd.media m on mlc.media_id = m.media_id
+    where mlc.controversy_dump_time_slices_id = \$1 and
+        m.controversy_dumps_id = \$2
+    order by $sort_clause
+SQL
+
+    my $entity = { media => $media, timeslice => $cdts, continuation_id => $continuation_id };
+
+    $self->status_ok( $c, entity => $entity );
 }
 
 1;

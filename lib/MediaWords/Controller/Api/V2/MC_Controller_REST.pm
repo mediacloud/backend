@@ -105,6 +105,16 @@ sub end : Private
     }
 }
 
+sub do_continuation_query ($$$$)
+{
+    my ( $self, $c, $query, $params ) = @_;
+
+    my $limit = $c->req->params->{ limit } || 10;
+    my $continuation_id = $c->req->params->{ continuation_id };
+
+    return $c->dbis->query_or_continuation( $query, $params, $limit, $continuation_id );
+}
+
 =head1 AUTHOR
 
 David Larochelle

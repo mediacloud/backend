@@ -128,4 +128,16 @@ sub get_time_slice_for_controversy
     return $cdts;
 }
 
+# call a get_time_slice_for_contoversy; die if no time slice can be found.
+sub require_time_slice_for_controversy
+{
+    my ( $db, $controversies_id, $timeslice, $snapshot ) = @_;
+
+    my $cdts = get_time_slice_for_controversy( $db, $controversies_id, $timeslice, $snapshot );
+
+    die( "Unable to find timeslice for controversy, timeslice, or snapshot" ) unless ( $cdts );
+
+    return $cdts;
+}
+
 1;
