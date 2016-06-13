@@ -356,8 +356,6 @@ sub reset_all_schemas($)
 
     # schema to hold all of the controversy dump snapshot tables
     reset_schema( $db, 'cd' );
-
-    reset_schema( $db, 'stories_tags_map_media_sub_tables' );
 }
 
 # Given the PostgreSQL response line (notice) returned while importing schema,

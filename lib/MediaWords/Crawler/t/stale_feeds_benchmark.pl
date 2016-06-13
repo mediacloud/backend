@@ -26,9 +26,6 @@ sub prepare
     $dbs->reset_schema();
 
     #$dbs->commit();
-    $dbs->query( "DROP SCHEMA IF EXISTS stories_tags_map_media_sub_tables CASCADE" );
-
-    #$dbs->commit();
 
     my $script_dir = MediaWords::Util::Config::get_config()->{ mediawords }->{ script_dir };
     $dbs->load_sql_file( "$script_dir/mediawords.sql" );
