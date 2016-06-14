@@ -1,7 +1,48 @@
+<!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
+
+- [API URLs](#api-urls)
+	- [Authentication](#authentication)
+	- [Stories](#stories)
+		- [Output description](#output-description)
+		- [api/v2/stories/single](#apiv2storiessingle)
+		- [api/v2/stories/list](#apiv2storieslist)
+			- [Query Parameters](#query-parameters)
+			- [Example](#example)
+		- [api/v2/stories/cluster_stories](#apiv2storiesclusterstories)
+			- [Query Parameters](#query-parameters)
+			- [Example](#example)
+	- [Sentences](#sentences)
+		- [api/v2/sentences/list](#apiv2sentenceslist)
+			- [Query Parameters](#query-parameters)
+			- [Example](#example)
+	- [Downloads](#downloads)
+		- [api/v2/downloads/single/](#apiv2downloadssingle)
+			- [Query Parameters](#query-parameters)
+		- [api/v2/downloads/list/](#apiv2downloadslist)
+			- [Query Parameters](#query-parameters)
+	- [Write Back API](#write-back-api)
+		- [api/v2/stories/put_tags (PUT)](#apiv2storiesputtags-put)
+			- [Query Parameters](#query-parameters)
+			- [Example](#example)
+		- [api/v2/sentences/put_tags (PUT)](#apiv2sentencesputtags-put)
+			- [Query Parameters](#query-parameters)
+			- [Example](#example)
+		- [api/v2/tags/update (PUT)](#apiv2tagsupdate-put)
+			- [Query Parameters](#query-parameters)
+			- [Example](#example)
+		- [api/v2/tag_sets/update (PUT)](#apiv2tagsetsupdate-put)
+			- [Query Parameters](#query-parameters)
+			- [Example](#example)
+		- [Tag Set Permissions](#tag-set-permissions)
+			- [Granting Permissions](#granting-permissions)
+			- [Exceptions - user name tag sets](#exceptions-user-name-tag-sets)
+
+<!-- /TOC -->
+
 % Media Cloud API Version 2
 %
 
-#API URLs
+# API URLs
 
 ## Authentication
 
