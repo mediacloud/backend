@@ -211,16 +211,7 @@ programs = solr
 %]
 
 [group:thrift]
-programs=solr_facets_wrapper_server,extractor_python_readability_server
-
-[% INCLUDE program_config
-    program='solr_facets_wrapper_server'
-    command='python python_scripts/solr_facets_wrapper_server.py'
-    default_stopasgroup='false'
-    default_killasgroup='false'
-    default_autorestart='false'
-    default_autostart='false'
-%]
+programs=extractor_python_readability_server
 
 [% INCLUDE program_config
     program='extractor_python_readability_server'

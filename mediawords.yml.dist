@@ -128,7 +128,6 @@ database:
         #cm_mine_controversy
         #cm_dump_controversy
         #solr
-        #solr_facets_wrapper_server
         #annotate_with_corenlp
         #bitly_process_all_controversy_stories
         #bitly_fetch_story_stats
