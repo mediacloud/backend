@@ -13,7 +13,6 @@ use v5.22;
 use DBIx::Simple::MediaWords;
 use MediaWords::Util::Config;
 use URI;
-use Bundle::MediaWords;
 use MediaWords::DBI::Auth::Roles;
 
 # Set flags and add plugins for the application
