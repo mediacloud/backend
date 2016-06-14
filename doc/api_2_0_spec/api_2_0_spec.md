@@ -236,7 +236,7 @@ volume.  More details are in the field descriptions below
 | --------------------------------- | ------- | -----------------------------------------------------------------
 | `media_id`                        | none    | Return health data for the given media sources. May be specified multiple times.
 
-### Output description
+#### Output description
 
 | Field               | Description
 | ------------------- | ----------------------------------------------------------------------
@@ -825,7 +825,7 @@ Following fields are included in the stats response:
 | num_words_param              | The num_words param passed into the call, or the default value
 | sample_size_param            | The sample size passed into the call, or the default value
 
-### Example
+#### Example
 
 Get word frequency counts for all sentences containing the word `'obama'` in The New York Times
 
