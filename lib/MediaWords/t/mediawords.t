@@ -37,8 +37,6 @@ MediaWords::Test::DB::test_on_test_database(
         MediaWords::Pg::Schema::reset_all_schemas( $db );
 
         my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir };
-        $db->query( MediaWords::Pg::Schema::get_sql_function_definitions() );
-
         my $load_sql_file_result = MediaWords::Pg::Schema::load_sql_file( 'test', "$script_dir/mediawords.sql" );
         ok( $load_sql_file_result == 0, "load sql file result" );
 
