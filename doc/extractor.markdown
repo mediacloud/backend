@@ -9,7 +9,7 @@ A strong principle of media cloud is to use only generic algorithms for data pro
 scraping.  For text extraction, we use [python-readability](https://github.com/timbertson/python-readability).  We
 performed an extensive evaluation of various freely available extraction libraries, along with our own home brew
 extractor we had been using for years, and found that python-readability performed best for our data across all
-different media sets, languages, and crawled vs. spidered stories.  Our python-readability based extractor has an F1
+different media collections, languages, and crawled vs. spidered stories.  Our python-readability based extractor has an F1
 of about 0.91 across all of these test cases.
 
 The extractor jobs run as job workers, which are started by supervisor.  The number of extractor jobs run at once

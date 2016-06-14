@@ -34,7 +34,6 @@ use Test::NoWarnings;
 
 use MediaWords::Crawler::Engine;
 use MediaWords::DBI::DownloadTexts;
-use MediaWords::DBI::MediaSets;
 use MediaWords::DBI::Stories;
 use MediaWords::Test::DB;
 use MediaWords::Test::Data;
@@ -80,8 +79,6 @@ EOF
             feed_type => 'web_page'
         }
     );
-
-    MediaWords::DBI::MediaSets::create_for_medium( $db, $test_medium );
 
     ok( $syndicated_feed->{ feeds_id }, "$test_name - test syndicated feed created" );
     ok( $web_page_feed->{ feeds_id },   "$test_name - test web page feed created" );

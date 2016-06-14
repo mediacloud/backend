@@ -36,7 +36,6 @@ use Data::Dumper;
 
 use MediaWords::Crawler::Engine;
 use MediaWords::DBI::DownloadTexts;
-use MediaWords::DBI::MediaSets;
 use MediaWords::DBI::Stories;
 use MediaWords::Test::DB;
 use MediaWords::Test::Data;
@@ -105,20 +104,8 @@ sub test_media
                         'label'           => undef
                     }
                 ],
-                'name'       => 'Wikinews, the free news source',
-                'url'        => 'http://en.wikinews.org/wiki/Main_Page',
-                'media_sets' => [
-                    {
-                        'media_sets_id' => 1,
-                        'name'          => 'CC_sources',
-                        'description'   => 'Creative Commons Sources'
-                    },
-                    {
-                        'media_sets_id' => 6,
-                        'name'          => 'news',
-                        'description'   => 'news'
-                    }
-                ]
+                'name' => 'Wikinews, the free news source',
+                'url'  => 'http://en.wikinews.org/wiki/Main_Page',
             }
         ];
 

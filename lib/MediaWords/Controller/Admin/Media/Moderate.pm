@@ -206,11 +206,11 @@ EOF
         }
     }
 
-    # limit by media set or media tag
-    my $media_set_clauses = '1 = 1';    # default
+    # limit by media tag
+    my $media_tags_clauses = '1 = 1';    # default
     if ( $media_tags_id )
     {
-        $media_set_clauses = "media_id IN ( SELECT media_id FROM media_tags_map WHERE tags_id = $media_tags_id )";
+        $media_tags_clauses = "media_id IN ( SELECT media_id FROM media_tags_map WHERE tags_id = $media_tags_id )";
     }
 
     # Skip some media if asked to do so
@@ -230,7 +230,7 @@ EOF
                 FROM feeds_after_rescraping
                 WHERE feeds_after_rescraping.media_id = media.media_id
               )
-              AND $media_set_clauses
+              AND $media_tags_clauses
               AND $skip_until_media_id_clauses
             ORDER BY media_id
 EOF

@@ -39,8 +39,6 @@ def update_db_sequences( conn ):
     
     cursor.execute( "select setval(pg_get_serial_sequence('tags', 'tags_id'), (select max(tags_id)+1 from tags))" )
     cursor.execute( "select setval(pg_get_serial_sequence('media', 'media_id'), (select max(media_id)+1 from media))" )
-    cursor.execute( "select setval(pg_get_serial_sequence('media_sets', 'media_id'), (select max(media_id)+1 from media))" )
-    cursor.execute( "select setval(pg_get_serial_sequence('media_sets_media_map', 'media_id'), (select max(media_id)+1 from media))" )
     cursor.execute( "select setval(pg_get_serial_sequence('media_tags_map', 'media_tags_map_id'), (select max(media_tags_map_id)+1 from media_tags_map))" )
     cursor.execute( "select setval(pg_get_serial_sequence('feeds', 'feeds_id'), (select max(feeds_id)+1 from feeds))" )
     

@@ -52,22 +52,6 @@ sub _get_client
     return $client;
 }
 
-sub get_media_counts
-{
-    my ( $q, $facet_field, $fq, $mincount ) = @_;
-
-    my $transport = _get_transport();
-    my $client    = _get_client( $transport );
-
-    $transport->open();
-
-    my $ret = $client->media_counts( $q, $facet_field, $fq, $mincount );
-
-    $transport->close();
-
-    return $ret;
-}
-
 sub extract_html
 {
     my ( $raw_html ) = @_;

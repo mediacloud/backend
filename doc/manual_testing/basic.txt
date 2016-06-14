@@ -184,49 +184,6 @@ VERIFY
 
 TEST
 
-* Click Dashboards
-* Click Create New Dashboard
-
-* Fill out the fields as follows:
-
-name: mydash
-Start Date : 2000-01-01
-End Date: 2020-01-01
-
-* Click on Create
-
-VERIFY
-
-* 'mydash' appears in list of dashboards
-
-TEST
-
-* Click mediasets on mydash row
-* Click Create New Media Set
-* Fill out as follows
-
-Name: Newspapers
-Description: Newspapers
-Collection Tag: collection:newspapers
-
-* Click Go
-
-* Repeat twice with the following info:
-
-Name: blogs
-Description: blogs
-Collection Tag: collection:blogs
-
-Name: conservative_blogs
-Description: conservative_blogs
-Collection Tag: collection:conservative_blogs
-
-VERIFY
-
-* all three media sets appear in the list with the associated tags
-
-TEST
-
 * click on 'Search Media'
 * click on the 'feeds' link for boingboing
 * click on the first feed in the boingboing list
@@ -246,15 +203,3 @@ TEST
 * run the following command and wait until it exits (should be a couple of minutes at most):
 
 ./script/run_with_carton.sh ./script/mediawords_update_aggregate_vectors.pl 
-
-VERIFY
-
-* Click ‘Dashboards’
-* Click the ‘view’ link for the 'mydash' dashboard
-* Verify that a word cloud appears
-* Select the current week and click submit
-* Select each media set and click submit for each
-* Verify that a word cloud appears for each media set
-* Click a word in the word cloud and verify that sentences appear
-* In the Media Sources box in the Query section start typing “New York Times” and verify that autocomplete works
-
