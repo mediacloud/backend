@@ -1,3 +1,112 @@
+<!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
+
+- [Authentication](#authentication)
+	- [Example](#example)
+	- [Request Limits](#request-limits)
+- [Python Client](#python-client)
+- [API URLs](#api-urls)
+	- [Errors](#errors)
+	- [Request Limits](#request-limits)
+	- [Python Client](#python-client)
+	- [Media](#media)
+		- [api/v2/media/single/](#apiv2mediasingle)
+			- [Query Parameters](#query-parameters)
+			- [Example](#example)
+	- [Media Health](#media-health)
+		- [api/v2/mediahealth/list](#apiv2mediahealthlist)
+			- [Query Parameters](#query-parameters)
+		- [Output description](#output-description)
+			- [Example](#example)
+		- [api/v2/media/list/](#apiv2medialist)
+			- [Query Parameters](#query-parameters)
+			- [Example](#example)
+	- [Feeds](#feeds)
+		- [api/v2/feeds/single](#apiv2feedssingle)
+			- [Query Parameters](#query-parameters)
+			- [Example](#example)
+		- [api/v2/feeds/list](#apiv2feedslist)
+			- [Query Parameters](#query-parameters)
+			- [Example](#example)
+	- [Stories](#stories)
+		- [Output description](#output-description)
+		- [api/v2/stories_public/single](#apiv2storiespublicsingle)
+			- [Example](#example)
+		- [api/v2/stories_public/list](#apiv2storiespubliclist)
+			- [Query Parameters](#query-parameters)
+			- [Example](#example)
+		- [api/v2/stories_public/count](#apiv2storiespubliccount)
+			- [Query Parameters](#query-parameters)
+			- [Example](#example)
+		- [api/v2/stories_public/word_matrix](#apiv2storiespublicwordmatrix)
+			- [Query Parameters](#query-parameters)
+			- [Output Description](#output-description)
+	- [Sentences](#sentences)
+		- [api/v2/sentences/count](#apiv2sentencescount)
+			- [Query Parameters](#query-parameters)
+			- [Example](#example)
+		- [api/v2/sentences/field\_count](#apiv2sentencesfieldcount)
+			- [Query Parameters](#query-parameters)
+			- [Example](#example)
+	- [Word Counting](#word-counting)
+		- [api/v2/wc/list](#apiv2wclist)
+			- [Query Parameters](#query-parameters)
+		- [Example](#example)
+	- [Tags and Tag Sets](#tags-and-tag-sets)
+		- [api/v2/tags/single/](#apiv2tagssingle)
+			- [Query Parameters](#query-parameters)
+			- [Output description](#output-description)
+			- [Example](#example)
+		- [api/v2/tags/list/](#apiv2tagslist)
+			- [Query Parameters](#query-parameters)
+			- [Example](#example)
+		- [api/v2/tag_sets/single/](#apiv2tagsetssingle)
+			- [Query Parameters](#query-parameters)
+			- [Output description](#output-description)
+			- [Example](#example)
+		- [api/v2/tag_sets/list/](#apiv2tagsetslist)
+			- [Query Parameters](#query-parameters)
+			- [Example](#example)
+	- [Controversies](#controversies)
+		- [api/v2/controversies/single/](#apiv2controversiessingle)
+			- [Query Parameters](#query-parameters)
+			- [Example](#example)
+		- [api/v2/controversies/list/](#apiv2controversieslist)
+			- [Query Parameters](#query-parameters)
+			- [Example](#example)
+		- [api/v2/controversy_dumps/single/](#apiv2controversydumpssingle)
+			- [Query Parameters](#query-parameters)
+			- [Example](#example)
+		- [api/v2/controversy_dumps/list/](#apiv2controversydumpslist)
+			- [Query Parameters](#query-parameters)
+			- [Example](#example)
+		- [api/v2/controversy_dump_time_slices/single/](#apiv2controversydumptimeslicessingle)
+			- [Query Parameters](#query-parameters)
+			- [Example](#example)
+		- [api/v2/controversy_dump_time_slices/list/](#apiv2controversydumptimesliceslist)
+			- [Query Parameters](#query-parameters)
+			- [Example](#example)
+- [Extended Examples](#extended-examples)
+	- [Output Format / JSON](#output-format-json)
+	- [Create a CSV file with all media sources.](#create-a-csv-file-with-all-media-sources)
+	- [Grab all processed stories from US Mainstream Media as a stream](#grab-all-processed-stories-from-us-mainstream-media-as-a-stream)
+		- [Grab stories by querying stories_public/list](#grab-stories-by-querying-storiespubliclist)
+	- [Grab all stories in The New York Times during October 2012](#grab-all-stories-in-the-new-york-times-during-october-2012)
+		- [Find the `media_id` of The New York Times](#find-the-mediaid-of-the-new-york-times)
+		- [Grab stories by querying stories_public/list](#grab-stories-by-querying-storiespubliclist)
+	- [Get word counts for top words for sentences matching 'trayvon' in US Mainstream Media during April 2012](#get-word-counts-for-top-words-for-sentences-matching-trayvon-in-us-mainstream-media-during-april-2012)
+		- [Find the media set](#find-the-media-set)
+		- [Make a request for the word counts based on `tags_id_media`, sentence text and date range](#make-a-request-for-the-word-counts-based-on-tagsidmedia-sentence-text-and-date-range)
+	- [Get word counts for top words for sentences with the tag `'odd'` in `tag_set = 'ts'`](#get-word-counts-for-top-words-for-sentences-with-the-tag-odd-in-tagset-ts)
+		- [Find the `tag_sets_id` for `'ts'`](#find-the-tagsetsid-for-ts)
+		- [Find the `tags_id` for `'odd'` given the `tag_sets_id`](#find-the-tagsid-for-odd-given-the-tagsetsid)
+		- [Request a word count using the `tags_id`](#request-a-word-count-using-the-tagsid)
+	- [Grab stories from 10 January 2014 with the tag `'foo:bar'`](#grab-stories-from-10-january-2014-with-the-tag-foobar)
+		- [Find the `tag_sets_id` for `'foo'`](#find-the-tagsetsid-for-foo)
+		- [Find the `tags_id` for `'bar'` given the `tag_sets_id`](#find-the-tagsid-for-bar-given-the-tagsetsid)
+		- [Grab stories by querying stories_public/list](#grab-stories-by-querying-storiespubliclist)
+
+<!-- /TOC -->
+
 % Media Cloud API Version 2
 %
 
@@ -14,7 +123,7 @@ Once you have an account go here to see your key:
 
 https://core.mediacloud.org/admin/profile
 
-### Example
+## Example
 
 https://api.mediacloud.org/api/v2/media/single/1?key=KRN4T5JGJ2A
 
@@ -1137,7 +1246,7 @@ Response:
 | `api/v2/controversy_dump_time_slices/list`  | Return controversy dump time slices
 
 #### Query Parameters
-# controversy_dumps_id tags_id period start_date end_date
+
 | Parameter              | Default | Notes
 | ---------------------- | ------- | -----------------------------------------------------------------
 | `controversy_dumps_id` | null    | Return time slices within the dump
