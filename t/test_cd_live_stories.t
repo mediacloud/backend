@@ -89,14 +89,6 @@ sub test_live_stories
     };
     $medium = $db->create( 'media', $medium );
 
-    my $query = {
-        start_date    => '2001-01-01',
-        end_date      => '2001-01-01',
-        generate_page => 'f',
-        md5_signature => 'foo'
-    };
-    $query = $db->create( 'queries', $query );
-
     my $controversy_a = {
         name                => 'controversy a',
         pattern             => '',
