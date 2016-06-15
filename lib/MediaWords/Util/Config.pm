@@ -1,5 +1,9 @@
 package MediaWords::Util::Config;
-use Modern::Perl "2013";
+
+use strict;
+use warnings;
+
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 # Parse and return data from mediawords.yml config file.
@@ -11,8 +15,6 @@ use MediaWords::CommonLibs;
 # in the catalyst case, the core MediaWords script calls the set_config
 # function to set the returned config object to the already generated
 # config object for the app.
-
-use strict;
 
 use Carp;
 use Config::Any;
@@ -165,6 +167,36 @@ sub verify_settings
     my ( $config ) = @_;
 
     defined( $config->{ database } ) or croak "No database connections configured";
+
+    # Warn if there's a foreign database set for storing raw downloads
+    if ( grep { $_->{ label } eq 'raw_downloads' } @{ $config->{ database } } )
+    {
+        # For whatever reason WARN() doesn't get imported from ::CommonLibs
+        MediaWords::CommonLibs::WARN(
+            <<EOF
+
+You have a foreign database set for storing raw downloads as
+/database/label[raw_downloads].
+
+Storing raw downloads in a foreign database is no longer supported so please
+remove database connection credentials with label "raw_downloads".
+
+EOF
+        );
+    }
+
+    # Warn if no job brokers are configured
+    unless ( $config->{ job_manager }->{ rabbitmq } )
+    {
+        MediaWords::CommonLibs::WARN(
+            <<EOF
+
+Please configure "rabbitmq" job manager under "job_manager" root key in
+mediawords.yml.
+
+EOF
+        );
+    }
 }
 
 sub _set_dynamic_defaults

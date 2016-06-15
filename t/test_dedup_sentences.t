@@ -25,6 +25,30 @@ BEGIN
     use_ok( 'MediaWords::DB' );
 }
 
+sub _insert_story_sentences
+{
+    my ( $db, $story, $sentences ) = @_;
+
+    my $sentence_refs = [];
+    for ( my $sentence_num = 0 ; $sentence_num < @{ $sentences } ; $sentence_num++ )
+    {
+        my $sentence = $sentences->[ $sentence_num ];
+
+        my $sentence_ref = {};
+        $sentence_ref->{ sentence }         = $sentence;
+        $sentence_ref->{ language }         = 'en';
+        $sentence_ref->{ sentence_number }  = $sentence_num;
+        $sentence_ref->{ stories_id }       = $story->{ stories_id };
+        $sentence_ref->{ media_id }         = $story->{ media_id };
+        $sentence_ref->{ publish_date }     = $story->{ publish_date };
+        $sentence_ref->{ disable_triggers } = MediaWords::DB::story_triggers_disabled();
+
+        push( @{ $sentence_refs }, $sentence_ref );
+    }
+
+    MediaWords::StoryVectors::_insert_story_sentences( $db, $story, $sentence_refs );
+}
+
 sub test_dedup_sentences
 {
     my ( $db ) = @_;
@@ -48,7 +72,7 @@ sub test_dedup_sentences
     };
     $story_a = $db->create( 'stories', $story_a );
 
-    $story_a->{ sentences } = [ 'foo', 'bar', 'baz' ];
+    $story_a->{ sentences } = [ 'foo baz', 'bar baz', 'baz baz' ];
 
     my $story_b = {
         media_id      => $medium->{ media_id },
@@ -62,7 +86,7 @@ sub test_dedup_sentences
     };
     $story_b = $db->create( 'stories', $story_b );
 
-    $story_b->{ sentences } = [ 'bar foo', 'bar', 'foo', 'foo bar', 'foo bar' ];
+    $story_b->{ sentences } = [ 'bar foo baz', 'bar baz', 'foo baz', 'foo bar baz', 'foo bar baz' ];
 
     my $story_c = {
         media_id      => $medium->{ media_id },
@@ -70,20 +94,25 @@ sub test_dedup_sentences
         guid          => 'guid://story/c',
         title         => 'story c',
         description   => 'description c',
-        publish_date  => MediaWords::Util::SQL::get_sql_date_from_epoch( time() - ( 30 * 86400 ) ),
+        publish_date  => MediaWords::Util::SQL::get_sql_date_from_epoch( time() - ( 90 * 86400 ) ),
         collect_date  => MediaWords::Util::SQL::get_sql_date_from_epoch( time() ),
         full_text_rss => 'f'
     };
     $story_c = $db->create( 'stories', $story_c );
 
-    $story_c->{ sentences } = [ 'foo', 'bar', 'foo bar' ];
+    $story_c->{ sentences } = [ 'foo baz', 'bar baz', 'foo bar baz' ];
 
     $story_a->{ ds } = MediaWords::StoryVectors::dedup_sentences( $db, $story_a, $story_a->{ sentences } );
+    _insert_story_sentences( $db, $story_a, $story_a->{ ds } );
+
     $story_b->{ ds } = MediaWords::StoryVectors::dedup_sentences( $db, $story_b, $story_b->{ sentences } );
+    _insert_story_sentences( $db, $story_b, $story_b->{ ds } );
+
     $story_c->{ ds } = MediaWords::StoryVectors::dedup_sentences( $db, $story_c, $story_c->{ sentences } );
+    _insert_story_sentences( $db, $story_c, $story_c->{ ds } );
 
     cmp_deeply( $story_a->{ ds }, $story_a->{ sentences }, 'story a' );
-    cmp_deeply( $story_b->{ ds }, [ 'bar foo', 'foo bar' ], 'story b' );
+    cmp_deeply( $story_b->{ ds }, [ 'bar foo baz', 'foo bar baz' ], 'story b' );
     cmp_deeply( $story_c->{ ds }, $story_c->{ sentences }, 'story c' );
 }
 

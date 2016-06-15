@@ -15,8 +15,6 @@ BEGIN
     $dir = $FindBin::Bin;
 }
 
-use MediaWords::Crawler::Extractor;
-
 use Storable;
 
 sub main

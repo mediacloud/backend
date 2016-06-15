@@ -11,7 +11,7 @@ BEGIN
 }
 
 use Data::Dumper;
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 
 use MediaWords::Crawler::FeedHandler;
 use MediaWords::DB;
@@ -44,7 +44,6 @@ END
         eval {
             my $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download );
             print STDERR Dumper( $download );
-            print STDERR substr( $$content_ref, 0, 1024 );
 
             if ( length( $$content_ref ) > 32 )
             {

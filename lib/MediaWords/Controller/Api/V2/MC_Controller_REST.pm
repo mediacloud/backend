@@ -1,8 +1,7 @@
 package MediaWords::Controller::Api::V2::MC_Controller_REST;
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use MediaWords::DBI::StorySubsets;
 use MediaWords::DBI::Auth;
 
 use strict;
@@ -28,7 +27,7 @@ Light wrapper class over Catalyst::Controller::REST
 
 =cut
 
-=head2 index 
+=head2 index
 
 =cut
 
@@ -104,6 +103,16 @@ sub end : Private
         $c->forward( 'serialize' );
 
     }
+}
+
+sub do_continuation_query ($$$$)
+{
+    my ( $self, $c, $query, $params ) = @_;
+
+    my $limit = $c->req->params->{ limit } || 10;
+    my $continuation_id = $c->req->params->{ continuation_id };
+
+    return $c->dbis->query_or_continuation( $query, $params, $limit, $continuation_id );
 }
 
 =head1 AUTHOR

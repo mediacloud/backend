@@ -9,6 +9,8 @@ use HTTP::Status;
 use Data::Dumper;
 use File::Temp;
 
+use MediaWords::CommonLibs;
+
 sub _replace_relative_urls_in_file
 {
     my ( $base_url, $requested_file_path ) = @_;
@@ -56,12 +58,12 @@ sub start($)
 
     $self->{ daemon } = HTTP::Daemon->new( ReuseAddr => 1 ) or die "Unable to start HTTP::Daemon: $!";
 
-    say STDERR "Daemon <URL: " . $self->{ daemon }->url . ">";
+    DEBUG "Daemon <URL: " . $self->{ daemon }->url . ">";
 
     my $pid = fork();
     if ( $pid != 0 )
     {
-        say STDERR "Forked child process $pid, returning";
+        DEBUG "Forked child process $pid, returning";
         $self->{ child_pid } = $pid;
 
         # parent
@@ -79,7 +81,7 @@ sub start($)
             # "//gv/test.rss") could be interpreted as "http://gv/test.rss" by
             # the URI module
             my $path = $uri->as_string;
-            say STDERR "URI path is '$path'";
+            DEBUG "URI path is '$path'";
 
             if ( $r->method eq 'GET' && $path && $path !~ /\.\./ )
             {
@@ -87,13 +89,13 @@ sub start($)
                 #change double slash to single slash
                 $path =~ s/^\/\//\//;
 
-                say STDERR "Normalized path is '$path'";
+                DEBUG "Normalized path is '$path'";
                 if ( $path eq '/kill_server' )
                 {
                     $c->send_response( "shutting down" );
                     $c->close;
                     undef( $c );
-                    say STDERR "Shutting down server";
+                    DEBUG "Shutting down server";
                     exit;
                 }
 
@@ -109,18 +111,18 @@ sub start($)
                     die "File at path $path does not exist.";
                 }
 
-                say STDERR "Sending file $path...";
+                DEBUG "Sending file $path...";
                 $c->send_file_response( $path ) or die "Unable to send file $path: ''$!' $@' '$?'";
-                say STDERR "Sent file $path";
+                DEBUG "Sent file $path";
             }
             else
             {
-                say STDERR "Won't serve path: " . $r->uri->path;
-                say STDERR "Request: " . Dumper( $r );
+                DEBUG "Won't serve path: " . $r->uri->path;
+                DEBUG "Request: " . Dumper( $r );
                 $c->send_error( RC_FORBIDDEN );
             }
         }
-        say STDERR "closing connection";
+        DEBUG "closing connection";
         $c->close;
         undef( $c );
     }
@@ -141,7 +143,7 @@ sub stop($)
         die "HTTP server must be started, but the child PID is empty.";
     }
 
-    # say STDERR "Killing " . $self->{ child_pid };
+    # DEBUG "Killing " . $self->{ child_pid };
     kill 9, $self->{ child_pid };
 
     delete $self->{ child_pid };

@@ -1,6 +1,6 @@
 package MediaWords::Controller::Search;
 
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use strict;
@@ -45,7 +45,7 @@ sub _get_collection_tag_sets_id
     return $tag_set->{ tag_sets_id };
 }
 
-# list all collection tags, with media set names attached
+# list all collection tags
 sub tags : Local
 {
     my ( $self, $c, $tag_sets_id ) = @_;
@@ -58,14 +58,11 @@ sub tags : Local
 
     my $tags = $db->query( <<END, $tag_sets_id )->hashes;
 with set_tags as (
-
     select t.* from tags t
-        where tag_sets_id = ? and
-            tags_id not in ( select tags_id from media_sets where include_in_dump = false )
-
+        where tag_sets_id = ?
 )
 
-select t.*, ms.media_set_names, mtm.media_count
+select t.*, mtm.media_count
     from set_tags t
 
         left join (
@@ -73,16 +70,6 @@ select t.*, ms.media_set_names, mtm.media_count
                 from media_tags_map mtm
                 group by mtm.tags_id
         ) mtm on ( mtm.tags_id = t.tags_id )
-
-        left join (
-            select ms.tags_id,
-                array_to_string( array_agg( d.name || ':' || ms.name ), '; ' ) media_set_names
-            from media_sets ms
-                join dashboard_media_sets dms on ( dms.media_sets_id = ms.media_sets_id )
-                join dashboards d on ( d.dashboards_id = dms.dashboards_id )
-            where ms.tags_id is not null
-            group by ms.tags_id
-        ) ms on ( t.tags_id = ms.tags_id )
 
     order by t.show_on_media is null, t.show_on_media desc, t.label, t.tag
 END
@@ -320,6 +307,26 @@ sub diff : Local
     $c->response->body( $encoded_csv );
 }
 
+# given a list of story hashes, attach a bitly_clicks field to each story, with an 'NA' for any story with no
+# click data
+sub _attach_bitly_clicks_to_stories($$)
+{
+    my ( $db, $stories ) = @_;
+
+    my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ stories_id } } @{ $stories } ] );
+
+    my $bitly_clicks = $db->query( <<SQL )->hashes;
+select ids.id stories_id, coalesce( click_count::text, 'NA' ) bitly_clicks
+    from $ids_table ids
+        left join bitly_clicks_total b on ( ids.id = b.stories_id )
+SQL
+
+    TRACE( sub { "bitly_clicks: " . Dumper( $bitly_clicks ) } );
+
+    MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $bitly_clicks );
+
+}
+
 # search for stories using solr and return either a sampled list of stories in html or the full list in csv
 sub index : Path : Args(0)
 {
@@ -372,6 +379,9 @@ sub index : Path : Args(0)
     if ( $csv )
     {
         map { delete( $_->{ sentences } ) } @{ $stories };
+
+        _attach_bitly_clicks_to_stories( $db, $stories );
+
         my $encoded_csv = MediaWords::Util::CSV::get_hashes_as_encoded_csv( $stories );
 
         $c->response->header( "Content-Disposition" => "attachment;filename=stories.csv" );
@@ -391,6 +401,34 @@ sub index : Path : Args(0)
         $c->stash->{ pattern }     = $pattern;
         $c->stash->{ template }    = 'search/search.tt2';
     }
+}
+
+# print clustered query results
+sub clusters : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $q = $c->req->params->{ q };
+
+    if ( !$q )
+    {
+        $c->stash->{ template } = 'search/clusters.tt2';
+        return;
+    }
+
+    if ( $q =~ /story_sentences_id|sentence_number/ )
+    {
+        die( "searches by sentence not allowed" );
+    }
+
+    my $clusters = MediaWords::Solr::query_clustered_stories( $c->dbis, { q => $q }, $c );
+
+    _stash_wc_query_params( $c );
+
+    return if ( _return_recognized_query_error( $c, $@ ) );
+
+    $c->stash->{ clusters } = $clusters;
+    $c->stash->{ template } = 'search/clusters.tt2';
 }
 
 # print word cloud of search results

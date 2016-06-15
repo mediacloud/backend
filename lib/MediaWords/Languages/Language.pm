@@ -11,7 +11,7 @@ package MediaWords::Languages::Language;
 use strict;
 use warnings;
 
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 use utf8;
 
@@ -19,7 +19,6 @@ use Moose::Role;
 use Lingua::Stem::Snowball;
 use Lingua::StopWords;
 use Lingua::Sentence;
-use Locale::Country::Multilingual { use_io_layer => 1 };
 use Scalar::Defer;
 
 use File::Basename ();
@@ -120,20 +119,6 @@ requires 'get_sentences';
 #
 requires 'tokenize';
 
-# Returns an arrayref of "noise words" for the heuristic line analyzer.
-requires 'get_noise_strings';
-
-# Returns an arrayref of strings which denote that a particular HTML line is
-# likely to be the "copyright" string.
-requires 'get_copyright_strings';
-
-# Returns an object complying with Locale::Codes::API "protocol" (e.g. an instance of
-# Locale::Country::Multilingual) for fetching a list of country codes and countries.
-requires 'get_locale_codes_api_object';
-
-# Gets country name remapping for MediaWords::Util::Countries
-requires 'get_country_name_remapping';
-
 #
 # END OF THE SUBCLASS INTERFACE
 #
@@ -150,9 +135,6 @@ has 'sentence_tokenizer' => ( is => 'rw', default => 0 );
 
 # Lingua::Sentence language
 has 'sentence_tokenizer_language' => ( is => 'rw', default => 0 );
-
-# Instance of Locale::Country::Multilingual (if needed), lazy-initialized in _get_locale_country_multilingual_object()
-has 'locale_country_multilingual_object' => ( is => 'rw', default => 0 );
 
 # Cached stopwords
 has 'cached_tiny_stop_words'  => ( is => 'rw', default => 0 );
@@ -363,41 +345,31 @@ sub get_long_stop_word_stems
     return $self->cached_long_stop_word_stems;
 }
 
-sub get_noise_strings_regex
+# return stop word stems of $length 'tiny', 'short', or 'long'.  die if the $length is unsupported
+sub get_stop_word_stems($)
 {
+    my ( $self, $length ) = @_;
+
+    return $self->get_tiny_stop_word_stems  if ( $length eq 'tiny' );
+    return $self->get_short_stop_word_stems if ( $length eq 'short' );
+    return $self->get_long_stop_word_stems  if ( $length eq 'long' );
+
+    die( "Unknown stop word length '$length'" );
+}
+
+around 'stem' => sub {
+    my $orig = shift;
     my $self = shift;
 
-    if ( $self->cached_noise_strings_regex == 0 )
-    {
-        my $noise_strings = $self->get_noise_strings();
+    my @words = @_;
 
-        my @noise_strings_escaped;
-        for my $noise_string ( @{ $noise_strings } )
-        {
-            push( @noise_strings_escaped, "\b\Q$noise_string\E\b" );
-        }
-        my $noise_strings_regex = '(' . join( '|', @noise_strings_escaped ) . ')';
-        $noise_strings_regex = qr/$noise_strings_regex/is;
+    # Normalize apostrophe so that "it’s" and "it's" get treated identically
+    # (it's being done in _tokenize_with_spaces() too but let's not assume that
+    # all tokens that are to be stemmed go through sentence tokenization first)
+    s/’/'/g for @words;
 
-        $self->cached_noise_strings_regex( $noise_strings_regex );
-    }
-
-    return $self->cached_noise_strings_regex;
-}
-
-# Returns an instance of Locale::Country::Multilingual for the language code
-sub _get_locale_country_multilingual_object
-{
-    my ( $self, $language ) = @_;
-
-    if ( $self->locale_country_multilingual_object == 0 )
-    {
-        $self->locale_country_multilingual_object( Locale::Country::Multilingual->new() );
-        $self->locale_country_multilingual_object->set_lang( $language );
-    }
-
-    return $self->locale_country_multilingual_object;
-}
+    return $self->$orig( @words );
+};
 
 # Lingua::Stem::Snowball helper
 sub _stem_with_lingua_stem_snowball
@@ -551,9 +523,14 @@ sub _tokenize_with_spaces
     my ( $self, $sentence ) = @_;
 
     my $tokens = [];
-    while ( $sentence =~ m~(\w[\w']*)~g )
+    while ( $sentence =~ m~(\w[\w'’\-]*)~g )
     {
-        push( @{ $tokens }, lc( $1 ) );
+        my $token = $1;
+
+        # Normalize apostrophe so that "it’s" and "it's" get treated identically
+        $token =~ s/’/'/g;
+
+        push( @{ $tokens }, lc( $token ) );
     }
 
     return $tokens;

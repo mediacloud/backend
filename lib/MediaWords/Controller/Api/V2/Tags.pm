@@ -1,6 +1,6 @@
 package MediaWords::Controller::Api::V2::Tags;
 
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use strict;
@@ -75,7 +75,7 @@ END
     $self->status_ok( $c, entity => $items );
 }
 
-sub _fetch_list
+sub _fetch_list($$$$$$)
 {
     my ( $self, $c, $last_id, $table_name, $id_field, $rows ) = @_;
 
@@ -95,10 +95,10 @@ create temporary view tags as
     where $public_clause
 END
 
-    return MediaWords::Controller::Api::V2::MC_REST_SimpleObject::_fetch_list( @_ );
+    return $self->SUPER::_fetch_list( $c, $last_id, $table_name, $id_field, $rows );
 }
 
-sub update : Local : ActionClass('REST')
+sub update : Local : ActionClass('MC_REST')
 {
 }
 

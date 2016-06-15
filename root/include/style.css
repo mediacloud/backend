@@ -354,13 +354,3 @@ table.cm_latest_activities td {
     word-wrap: break-word;  /* IE */
     word-break: break-all;
 }
-
-/* Gearman job log in /gearman/view_log */
-pre.gearman_job_log {
-    height: auto;
-    overflow: auto;
-    background-color: #eeeeee;
-    word-break: normal !important;
-    word-wrap: normal !important;
-    white-space: pre !important;
-}

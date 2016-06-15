@@ -14,8 +14,8 @@
         <input type="submit" name="submit" value="Go" />
     </form>
     <p>
-        <a href="[% c.uri_for( '/search' ) %]">Search stories</a> | 
-        <a href="[% c.uri_for( '/search/readme' ) %]">Query instructions</a> | 
+        <a href="[% c.uri_for( '/search' ) %]">Search stories</a> |
+        <a href="[% c.uri_for( '/search/readme' ) %]">Query instructions</a> |
         <a href="[% c.uri_for( '/search/tags' ) | html %]">List available media tags</a>
     </p>
 
@@ -26,6 +26,7 @@
     <div class="boxtitle">
         Words
         <a class="boxcommand" href="[% c.uri_for( '/search/wc', { 'q' => q, 'languages' => languages, 'csv' => 1 } ) %]">CSV</a>
+        <a class="boxcommand" href="[% c.uri_for( '/search/clusters', { 'q' => q, 'languages' => languages, 'csv' => 1 } ) %]">clusters</a>
         <a class="boxcommand" href="[% c.uri_for( '/search', { 'q' => q, 'languages' => languages } ) %]">stories</a>
     </div>
     <table>
@@ -34,7 +35,7 @@
             <th>stem</th>
             <th>count</th>
         </tr>
-    
+
         [% FOREACH word IN words %]
             [% wq = '+(' _ q _') AND +' _ word.term %]
             <tr>
@@ -43,8 +44,8 @@
                 <td>[% word.count %]</td>
             </tr>
         [% END %]
-    
+
     </table>
 [% END %]
-            
+
 [% INCLUDE include/footer.tt2 %]

@@ -1,5 +1,5 @@
 package MediaWords::Controller::Root;
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use strict;
@@ -86,7 +86,7 @@ sub end : ActionClass('RenderView')
         {
             $c->error( 0 );
 
-            $c->stash->{ template } = 'public_ui/error_page.tt2';
+            $c->stash->{ template } = 'common/error_page.tt2';
 
             $c->response->status( 500 ) if ( $c->response->status < 400 );
         }

@@ -13,6 +13,8 @@ sub get_valid_feeds_from_urls
 {
     my ( $class, $urls, $db, $ignore_patterns_string ) = @_;
 
+    $ignore_patterns_string = '' unless ( defined( $ignore_patterns_string ) );
+
     my $ignore_patterns = [ split( ' ', $ignore_patterns_string ) ];
 
     my $pruned_urls = [];

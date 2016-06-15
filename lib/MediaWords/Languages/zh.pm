@@ -50,7 +50,7 @@ use strict;
 use warnings;
 use utf8;
 
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Encode;
@@ -170,46 +170,6 @@ sub tokenize
     @$tokens = grep( /\S/, @$tokens );
 
     return $tokens;
-}
-
-sub get_noise_strings
-{
-    my $self          = shift;
-    my @noise_strings = (
-
-        # FIXME add language-dependent noise strings (see en.pm for example)
-    );
-    return \@noise_strings;
-}
-
-sub get_copyright_strings
-{
-    my $self              = shift;
-    my @copyright_strings = (
-
-        # FIXME add language-dependent copyright strings (see en.pm for example)
-        'copyright',
-        'copying',
-        '&copy;',
-        'all rights reserved',
-    );
-    return \@copyright_strings;
-}
-
-sub get_locale_codes_api_object
-{
-    my $self = shift;
-    return $self->_get_locale_country_multilingual_object( 'zh' );
-}
-
-sub get_country_name_remapping
-{
-    my $self = shift;
-
-    # Current Chinese word tokenizer (as of Dec 14, 2012) does not manage to figure out that, say,
-    # '博茨瓦纳' ('Botswana') is a single word.
-
-    return {};
 }
 
 1;

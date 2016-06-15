@@ -1,13 +1,13 @@
 #!/bin/bash
 
 set -u
-set -o  errexit
+set -o errexit
 
 cd `dirname $0`/../
 
 echo "setting up test database"
-./script/run_with_carton.sh ./script/mediawords_psql_wrapper.pl  --dump-env-commands --db-label test > /tmp/test_db_$$
-source  /tmp/test_db_$$
+./script/run_with_carton.sh ./script/mediawords_psql_wrapper.pl --dump-env-commands --db-label test > /tmp/test_db_$$
+source /tmp/test_db_$$
 
 if [[ "$PGDATABASE" != "mediacloud_test" ]]; then
     echo "aborting test database name ($PGDATABASE) must be mediacloud_test"
@@ -20,8 +20,8 @@ else
        dropdb $PGDATABASE
        echo "Creating database $PGDATABASE"
        createdb $PGDATABASE
-       echo "running pg_restore"
-       pg_restore  -d $PGDATABASE data/db_dumps/cc_blogs_mc_db.dump
+       echo "Loading test dump"
+       psql --quiet -d $PGDATABASE -f data/db_dumps/cc_blogs_mc_db.sql
     fi
 fi
 
@@ -29,8 +29,8 @@ UPGRADE_DB_SQL=`script/run_with_carton.sh script/mediawords_upgrade_db.pl --db_l
 
 if [ ${#UPGRADE_DB_SQL} -gt 0 ]; then
     script/run_with_carton.sh script/mediawords_upgrade_db.pl --db_label test --import
-    pg_dump -F custom mediacloud_test > data/db_dumps/cc_blogs_mc_db.dump
-    echo "updated data/db_dumps/cc_blogs_mc_db.dump to new schema"
+    pg_dump --no-owner --no-acl --no-security-labels --format=plain mediacloud_test > data/db_dumps/cc_blogs_mc_db.sql
+    echo "updated data/db_dumps/cc_blogs_mc_db.sql to new schema"
 fi
 
 echo "testing for runnning solr"
@@ -41,7 +41,7 @@ if ps aux | grep java | grep runSolr > /dev/null; then
 fi
 
 echo "Starting Solr..."
-./script/run_with_carton.sh ./solr-gradle/scripts/run_singleton_solr_server.pl > /dev/null&
+./script/run_with_carton.sh ./solr-gradle/scripts/run_singleton_solr_server.pl > /dev/null &
 solr_pid=$!
 
 SOLR_IS_UP=0
@@ -71,15 +71,15 @@ TEST_RETURN_STATUS=0
 
 if [ -z ${MEDIACLOUD_ENABLE_PYTHON_API_TESTS+x} ]; then
     MEDIACLOUD_ENABLE_PYTHON_API_TESTS=0
-fi  
+fi
 
 if MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION=1 MEDIAWORDS_FORCE_USING_TEST_DATABASE=1 \
-   ./script/run_with_carton.sh ./script/mediawords_import_solr_data.pl --delete; then
+    ./script/run_with_carton.sh ./script/mediawords_import_solr_data.pl --delete; then
 
     echo "Importing Solr data succeeded."
 
     if MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION=1 MEDIAWORDS_FORCE_USING_TEST_DATABASE=1 \
-       ./script/run_carton.sh exec prove -Ilib/ api_test/api_media.t; then
+        ./script/run_carton.sh exec prove -Ilib/ api_test/api_media.t; then
 
         echo "API test succeeded."
 
@@ -91,7 +91,11 @@ if MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION=1 MEDIAWORDS_FORCE_USING_TEST_DATABASE=1 
     if [ $MEDIACLOUD_ENABLE_PYTHON_API_TESTS = 1 ]; then
         echo "starting mediacloud server"
 
-        CARTON_EXTRA_PERL5OPT='-MDevel::Cover=+ignore,local/,+ignore,^foreign_modules/,+ignore,\.t$' MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION=1 MEDIACLOUD_ENABLE_SHUTDOWN_URL=1 MEDIAWORDS_FORCE_USING_TEST_DATABASE=1 ./script/run_wrappered_carton.sh exec `pwd`/script/mediawords_server.pl &
+        CARTON_EXTRA_PERL5OPT='-MDevel::Cover=+ignore,local/,+ignore,^foreign_modules/,+ignore,\.t$' \
+            MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION=1 \
+            MEDIACLOUD_ENABLE_SHUTDOWN_URL=1 \
+            MEDIAWORDS_FORCE_USING_TEST_DATABASE=1 \
+            ./script/run_wrappered_carton.sh exec `pwd`/script/mediawords_server.pl &
         mc_server_pid=$!
 
         echo "Media Cloud server PID $mc_server_pid"
@@ -112,15 +116,15 @@ if MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION=1 MEDIAWORDS_FORCE_USING_TEST_DATABASE=1 
 
         cd MediaCloud-API-Client
         if python test.py; then
-           echo "Python API test succeeded"
+            echo "Python API test succeeded"
         else
             TEST_RETURN_STATUS=$?
             echo "Python API test failed with status: $TEST_RETURN_STATUS"
-        fi  
-      
+        fi
+
         cd ..
         pwd
-        curl 'http://0:3000/admin/stop_server' &   
+        curl 'http://0:3000/admin/stop_server' &
         sleep 1
         echo "past curl"
     fi

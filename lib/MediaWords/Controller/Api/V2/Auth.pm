@@ -5,14 +5,13 @@ package MediaWords::Controller::Api::V2::Auth;
 use strict;
 use warnings;
 
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use base 'Catalyst::Controller';
 
 use MediaWords::Controller::Api::V2::MC_Controller_REST;
 use MediaWords::DBI::Auth;
-use MediaWords::DBI::StorySubsets;
 
 use Moose;
 use namespace::autoclean;
@@ -25,7 +24,7 @@ __PACKAGE__->config(    #
       }    #
 );         #
 
-sub single : Local : ActionClass('REST')
+sub single : Local : ActionClass('MC_REST')
 {
 }
 
@@ -41,8 +40,6 @@ sub _login
     return 0 unless ( $user && $user->{ active } );
 
     return 0 unless ( MediaWords::DBI::Auth::password_hash_is_valid( $user->{ password_hash }, $password ) );
-
-    # return 0 unless ( grep { $_ =~ /^admin|admin-readonly|stories-api|public-api$/ } @{ $user->{ roles } } );
 
     return $user;
 

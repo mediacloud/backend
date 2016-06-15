@@ -1,5 +1,5 @@
 [% PROCESS cm/header.tt2 title="Home"%]
-   
+
 <div id="wholecolumn" class="clearfix">
 
     [% IF !controversy.solr_seed_query_run %]
@@ -41,18 +41,6 @@
             </tr>
         </table>
 
-        [% IF latest_full_dump %]
-            [% INCLUDE cm/time_slices_table.tt2
-                controversy_dump_time_slices = latest_full_dump.controversy_dump_time_slices 
-                live_periods = 1 %]
-        [% ELSE %]
-            <div class="boxtitle">Live Time Slices</div>
-            <fieldset>
-                <p>To browse live data, first generate at least one dump.</p>
-            </fieldset> 
-        [% END %]
-
-
         <div class="boxtitle">Dumps</div>
         <table class="even_rows_grey">
 
@@ -73,33 +61,15 @@
                     <td>[% date.format( cd.start_date ) %]</td>
 
                     <td>[% date.format( cd.end_date ) %]</td>
-                    
+
                     <td>[% cd.periods | html %]</td>
-                    
+
                     <td>[% cd.note | html %]</td>
                 </tr>
 
             [% END # FOREACH stories -%]
 
         </table>
-
-        [% IF bitly_processing_is_enabled AND controversy.process_with_bitly %]
-            <div class="boxtitle">
-                Bit.ly processing
-
-                <a class="boxcommand" href="[% c.uri_for( '/admin/cm/enqueue_stories_for_bitly/' _ controversy.controversies_id ) %]">enqueue stories for bit.ly</a>
-            </div>
-            <table class="even_rows_grey">
-                <tr>
-                    <td>Total stories</td>
-                    <td>[% bitly_total_stories %]</td>
-                </tr>
-                <tr>
-                    <td>Unprocessed stories</td>
-                    <td>[% bitly_unprocessed_stories %]</td>
-                </tr>
-            </table>
-        [% END %]
 
     </div>
 
@@ -129,16 +99,23 @@
                 <tr><td colspan=2>[% ms.queued_urls %] urls queued</td></tr>
             </table>
         [% END %]
-        
+
+        [% IF bitly_processing_is_enabled AND controversy.process_with_bitly %]
+            <div class="boxtitle">
+                Bit.ly Processing
+                <a class="boxcommand" href="[% c.uri_for( '/admin/cm/bitly/add_to_queue/' _ controversy.controversies_id ) %]">add to queue</a>
+                <a class="boxcommand" href="[% c.uri_for( '/admin/cm/bitly/status/' _ controversy.controversies_id ) | html %]">status</a>
+            </a>
+        [% END %]
+
         [% INCLUDE cm/include/latest_activities.tt2
                    activities=latest_activities
                    controversy=controversy %]
-        
-        
+
+
 
     </div>
 
 </div>
 
 [% INCLUDE include/footer.tt2 %]
-

@@ -20,6 +20,7 @@ sub convert_term_to_regex
     my ( $term ) = @_;
 
     $term =~ s/"//g;
+    $term =~ s/\*/\.\*/g;
     $term =~ s/ /\[\[\:space\:\]\]\+/g;
 
     if ( $term !~ /\w/ )
@@ -108,6 +109,8 @@ sub main
     my ( $q ) = @ARGV;
 
     die( "usage: $0 <q>" ) unless ( $q );
+
+    $q =~ s/\n/ /g;
 
     my $parser = Parse::BooleanLogic->new();
 

@@ -1,5 +1,5 @@
 package MediaWords::StoryVectors;
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 # methods to generate the story_sentences and associated aggregated tables
@@ -11,7 +11,7 @@ use Data::Dumper;
 
 use MediaWords::Languages::Language;
 use MediaWords::DBI::Stories;
-use MediaWords::Util::Countries;
+use MediaWords::DBI::Stories::AP;
 use MediaWords::Util::HTML;
 use MediaWords::Util::IdentifyLanguage;
 use MediaWords::Util::SQL;
@@ -72,7 +72,7 @@ END
 }
 
 # if the length of the string is greater than the given length, cut to that length
-sub limit_string_length
+sub _limit_string_length
 {
 
     # my ( $s, $l ) = @_;
@@ -81,38 +81,6 @@ sub limit_string_length
     {
         substr( $_[ 0 ], $_[ 1 ] ) = '';
     }
-}
-
-# efficient copy insertion of story sentence counts
-sub insert_story_sentence_counts
-{
-    my ( $db, $story, $md5s ) = @_;
-
-    my $fields = [ qw/sentence_md5 media_id publish_week first_stories_id first_sentence_number sentence_count/ ];
-    my $field_list = join( ',', @{ $fields } );
-
-    my ( $publish_week ) = $db->query( "select date_trunc( 'week', ?::date )", $story->{ publish_date } )->flat;
-
-    my $copy = <<END;
-copy story_sentence_counts ( $field_list ) from STDIN with csv
-END
-    eval { $db->dbh->do( $copy ) };
-    die( "Error on copy for story_sentence_counts: $@" ) if ( $@ );
-
-    my $csv = Text::CSV_XS->new( { binary => 1 } );
-
-    my $i = 0;
-    for my $md5 ( @{ $md5s } )
-    {
-        $csv->combine( $md5, $story->{ media_id }, $publish_week, $story->{ stories_id }, $i++, 1 );
-        eval { $db->dbh->pg_putcopydata( $csv->string . "\n" ) };
-
-        die( "Error on pg_putcopydata for story_sentence_counts: $@" ) if ( $@ );
-    }
-
-    eval { $db->dbh->pg_putcopyend() };
-
-    die( "Error on pg_putcopyend for story_sentence_counts: $@" ) if ( $@ );
 }
 
 # get unique sentences from the list, maintaining the original order
@@ -134,81 +102,112 @@ sub _get_unique_sentences
     return $unique_sentences;
 }
 
+# given the story and its un-deduped sentences, return the list of sentences that already
+# exist in the same media source for the same calendar week.  fetch the sentences using the appropriate
+# query based on whether the sentences are indexed by story_sentences_dup.  if do_update is true,
+# set is_dup = true for the original versions of any dup sentences discovered.
+sub get_dup_story_sentences
+{
+    my ( $db, $story, $sentences, $do_update ) = @_;
+
+    return [] unless ( @{ $sentences } );
+
+    my ( $indexdef ) = $db->query( "select indexdef from pg_indexes where indexname = 'story_sentences_dup'" )->flat;
+
+    die( "'story_sentences_dup' index does not exist" ) unless ( $indexdef );
+
+    die( "unable to find date in story_sentences_dup definition" ) unless ( $indexdef =~ /(\d\d\d\d-\d\d-\d\d)/ );
+
+    # the date will get truncated to the monday of the current date, so only use consider the index date
+    # starting with the monday of or following the index date
+    my $index_date = MediaWords::Util::SQL::increment_to_monday( $1 );
+
+    # we need to manually quote and include this date so that postgres will know to use the
+    # conditional story_sentences_dup index
+    my $q_publish_date = $db->dbh->quote( $story->{ publish_date } );
+
+    my ( $sentence_lookup_clause, $date_clause );
+
+    if ( $story->{ publish_date } gt $index_date )
+    {
+        my $q_sentence_md5s = [ map { $db->dbh->quote( Digest::MD5::md5_hex( encode( 'utf8', $_ ) ) ) } @{ $sentences } ];
+        my $sentence_md5_list = join( ',', @{ $q_sentence_md5s } );
+
+        $sentence_lookup_clause = "md5( sentence ) in ( $sentence_md5_list )";
+        $date_clause            = "week_start_date( publish_date::date ) = week_start_date( ${ q_publish_date }::date )";
+    }
+    else
+    {
+        my $q_sentences = [ map { $db->dbh->quote( encode( 'utf8', $_ ) ) } @{ $sentences } ];
+        my $sentence_list = join( ',', @{ $q_sentences } );
+
+        $sentence_lookup_clause = "sentence in ( $sentence_list )";
+        $date_clause            = <<SQL;
+date_trunc( 'day', publish_date ) in (
+    select week_start_date( $q_publish_date ) + s * '1 day'::interval from generate_series( 1, 6 ) s ) and
+    media_id = $story->{ media_id }
+SQL
+    }
+
+    # we have to use this odd 'with ssd ...' form of the query to force postgres not to generate a plan
+    # that tries to do a full scan of all the story_sentences_media_id entries for the media_id
+    my $with_clause = <<SQL;
+with ssd as (
+            select story_sentences_id, media_id
+            from story_sentences
+            where $sentence_lookup_clause and
+                $date_clause
+)
+SQL
+
+    my $query;
+    if ( $do_update )
+    {
+        $query = <<SQL;
+$with_clause
+
+update story_sentences ss set is_dup = true, disable_triggers = true
+        from ssd
+        where
+            ssd.story_sentences_id = ss.story_sentences_id and
+            ssd.media_id = $story->{ media_id }
+    returning *
+SQL
+    }
+    else
+    {
+        $query = <<SQL;
+$with_clause
+
+select *
+        from story_sentences ss, ssd
+        where
+            ssd.story_sentences_id = ss.story_sentences_id and
+            ssd.media_id = $story->{ media_id }
+    returning *
+SQL
+    }
+
+    return $db->query( $query )->hashes;
+}
+
 # return the sentences from the set that are dups within the same media source and calendar week.
-# also adds the sentence to the story_sentences_count table and/or increments the count in that table
-# for the sentence.
-#
-# NOTE: you must wrap a 'lock story_sentence_counts in row exclusive mode' around all calls to this within the
-# same transaction to avoid deadlocks
+# also sets story_sentences.dup to true for sentences that are the dups for these sentences.
 sub get_deduped_sentences
 {
     my ( $db, $story, $sentences ) = @_;
 
-    my $unique_sentences = _get_unique_sentences( $sentences );
+    $sentences = _get_unique_sentences( $sentences );
 
-    my $sentence_md5_lookup = {};
-    my $i                   = 0;
-    for my $sentence ( @{ $unique_sentences } )
-    {
-        my $sentence_utf8 = encode_utf8( $sentence );
-        unless ( defined $sentence_utf8 )
-        {
-            die "Sentence '$sentence' for story " . $story->{ stories_id } . " is undefined after encoding it to UTF-8.";
-        }
+    # drop sentences that are all ascii and 5 characters or less (keep non-ascii because those are sometimes logograms)
+    $sentences = [ grep { $_ !~ /^[[:ascii:]]{0,5}$/ } @{ $sentences } ];
 
-        my $sentence_utf8_md5 = Digest::MD5::md5_hex( $sentence_utf8 );
-        unless ( $sentence_utf8_md5 )
-        {
-            die "Sentence's '$sentence' MD5 hash is empty or undef.";
-        }
+    my $dup_story_sentences = get_dup_story_sentences( $db, $story, $sentences, 1 );
 
-        my $sentence_data = {
-            md5      => $sentence_utf8_md5,
-            sentence => $sentence,
-            num      => $i++
-        };
-        $sentence_md5_lookup->{ $sentence_utf8_md5 } = $sentence_data;
-    }
+    my $dup_lookup = {};
+    map { $dup_lookup->{ $_->{ sentence } } = 1 } @{ $dup_story_sentences };
 
-    my $sentence_md5_list = join( ',', map { "'$_'" } keys %{ $sentence_md5_lookup } );
-
-    my $sentence_dup_info = $db->query(
-        <<"END",
-        SELECT MIN( story_sentence_counts_id) AS story_sentence_counts_id,
-               sentence_md5
-        FROM story_sentence_counts
-        WHERE sentence_md5 IN ( $sentence_md5_list )
-          AND media_id = ?
-          AND publish_week = DATE_TRUNC( 'week', ?::date )
-        GROUP BY story_sentence_counts_id
-END
-        $story->{ media_id }, $story->{ publish_date }
-    )->hashes;
-
-    my $story_sentence_counts_ids = [];
-    for my $sdi ( @{ $sentence_dup_info } )
-    {
-        push( @{ $story_sentence_counts_ids }, $sdi->{ story_sentence_counts_id } );
-        delete( $sentence_md5_lookup->{ $sdi->{ sentence_md5 } } );
-    }
-
-    my $deduped_sentence_data = [ sort { $a->{ num } <=> $b->{ num } } values( %{ $sentence_md5_lookup } ) ];
-    my $deduped_md5s          = [ map  { $_->{ md5 } } @{ $deduped_sentence_data } ];
-    my $deduped_sentences     = [ map  { $_->{ sentence } } @{ $deduped_sentence_data } ];
-
-    if ( @{ $story_sentence_counts_ids } )
-    {
-        my $id_list = join( ',', @{ $story_sentence_counts_ids } );
-        $db->query(
-            <<"END"
-            UPDATE story_sentence_counts
-            SET sentence_count = sentence_count + 1
-            WHERE story_sentence_counts_id IN ( $id_list )
-END
-        );
-    }
-
-    insert_story_sentence_counts( $db, $story, $deduped_md5s );
+    my $deduped_sentences = [ grep { !$dup_lookup->{ $_ } } @{ $sentences } ];
 
     return $deduped_sentences;
 }
@@ -221,127 +220,20 @@ sub dedup_sentences
 
     unless ( $sentences and @{ $sentences } )
     {
-        warn "Sentences for story " . $story->{ stories_id } . " is undef or empty.";
+        DEBUG( sub { "Sentences for story " . $story->{ stories_id } . " is undef or empty." } );
         return [];
     }
 
-    # commit to release any existing locks, then start a new transaction to get a fresh lock on ssc
-    $db->commit unless ( $db->dbh->{ AutoCommit } );
-    $db->begin if ( $db->dbh->{ AutoCommit } );
-    $db->query( "LOCK TABLE story_sentence_counts IN ROW EXCLUSIVE MODE" );
-
     my $deduped_sentences = get_deduped_sentences( $db, $story, $sentences );
-
-    $db->commit;
 
     if ( @{ $sentences } && !@{ $deduped_sentences } )
     {
         # FIXME - should do something here to find out if this is just a duplicate story and
         # try to merge the given story with the existing one
-        print STDERR "all sentences deduped for stories_id $story->{ stories_id }\n";
+        DEBUG( sub { "all sentences deduped for stories_id $story->{ stories_id }" } );
     }
 
     return $deduped_sentences;
-}
-
-sub get_default_story_words_start_date
-{
-    my $default_story_words_start_date =
-      MediaWords::Util::Config::get_config->{ mediawords }->{ default_story_words_start_date };
-
-    return $default_story_words_start_date;
-}
-
-sub get_default_story_words_end_date
-{
-    my $default_story_words_end_date =
-      MediaWords::Util::Config::get_config->{ mediawords }->{ default_story_words_end_date };
-
-    return $default_story_words_end_date;
-}
-
-sub _medium_has_story_words_start_date
-{
-    my ( $medium ) = @_;
-
-    my $default_story_words_start_date = get_default_story_words_start_date();
-
-    return defined( $default_story_words_start_date ) || $medium->{ sw_data_start_date };
-}
-
-sub _get_story_words_start_date_for_medium
-{
-    my ( $medium ) = @_;
-
-    if ( defined( $medium->{ sw_data_start_date } ) && $medium->{ sw_data_start_date } )
-    {
-        return $medium->{ sw_data_start_date };
-    }
-
-    my $default_story_words_start_date = get_default_story_words_start_date();
-
-    return $default_story_words_start_date;
-}
-
-sub _medium_has_story_words_end_date
-{
-    my ( $medium ) = @_;
-
-    my $default_story_words_end_date = get_default_story_words_end_date();
-
-    return defined( $default_story_words_end_date ) || $medium->{ sw_data_end_date };
-}
-
-sub _get_story_words_end_date_for_medium
-{
-
-    my ( $medium ) = @_;
-
-    if ( defined( $medium->{ sw_data_end_date } ) && $medium->{ sw_data_end_date } )
-    {
-        return $medium->{ sw_data_end_date };
-    }
-    else
-    {
-        my $default_story_words_end_date = get_default_story_words_end_date();
-
-        return $default_story_words_end_date;
-    }
-
-}
-
-sub _date_within_media_source_story_words_range
-{
-    my ( $medium, $publish_date ) = @_;
-
-    if ( _medium_has_story_words_start_date( $medium ) )
-    {
-        my $medium_sw_start_date = _get_story_words_start_date_for_medium( $medium );
-
-        return 0 if $medium_sw_start_date gt $publish_date;
-    }
-
-    if ( _medium_has_story_words_end_date( $medium ) )
-    {
-        my $medium_sw_end_date = _get_story_words_end_date_for_medium( $medium );
-
-        return 0 if $medium_sw_end_date lt $publish_date;
-    }
-
-    return 1;
-}
-
-sub _story_within_media_source_story_words_date_range
-{
-    my ( $db, $story ) = @_;
-
-    my $medium = MediaWords::DBI::Stories::get_media_source_for_story( $db, $story );
-
-    my $publish_date = $story->{ publish_date };
-
-    return _date_within_media_source_story_words_range( $medium, $publish_date );
-
-    return 1;
 }
 
 sub _get_sentences_from_story_text
@@ -376,97 +268,28 @@ sub clean_sentences
 
 }
 
-# update story vectors for the given story, updating story_sentences
-# if no_delete is true, do not try to delete existing entries in the above table before creating new ones
-# (useful for optimization if you are very sure no story vectors exist for this story).  If
-# $no_dedup_sentences is true, do not perform sentence deduplication (useful if you are reprocessing a
-# small set of stories)
-sub update_story_sentences_and_language
+# detect whether the story is syndicated and update stories.ap_syndicated
+sub _update_ap_syndicated
 {
-    my ( $db, $story, $no_delete, $no_dedup_sentences, $ignore_date_range ) = @_;
+    my ( $db, $story ) = @_;
 
-    die unless ref $story;
-    die unless $story->{ stories_id };
+    return unless ( $story->{ language } && $story->{ language } eq 'en' );
 
-    my $sentence_word_counts;
+    my $ap_syndicated = MediaWords::DBI::Stories::AP::is_syndicated( $db, $story );
 
-    my $stories_id = $story->{ stories_id };
+    $db->query( "delete from stories_ap_syndicated where stories_id = \$1", $story->{ stories_id } );
 
-    unless ( $no_delete )
-    {
-        $db->query( "DELETE FROM story_sentences WHERE stories_id = ?",             $stories_id );
-        $db->query( "DELETE FROM story_sentence_counts WHERE first_stories_id = ?", $stories_id );
-    }
+    $db->query( <<SQL, $story->{ stories_id }, $ap_syndicated );
+insert into stories_ap_syndicated ( stories_id, ap_syndicated ) values ( \$1, \$2 )
+SQL
 
-    unless ( $ignore_date_range or _story_within_media_source_story_words_date_range( $db, $story ) )
-    {
-        say STDERR "Won't split story " .
-          $stories_id . " " . "into sentences / words and determine their language because " .
-          "story is *not* within media source's story words date range and 'ignore_date_range' is not set.";
-        return;
-    }
+    $story->{ ap_syndicated } = $ap_syndicated;
+}
 
-    # Get story text
-    my $story_text = $story->{ story_text } || MediaWords::DBI::Stories::get_text_for_word_counts( $db, $story ) || '';
-    my $story_description = $story->{ description } || '';
-
-    if ( ( length( $story_text ) == 0 ) || ( length( $story_text ) < length( $story_description ) ) )
-    {
-        $story_text = html_strip( $story->{ title } );
-        if ( $story->{ description } )
-        {
-            $story_text .= '.' unless ( $story_text =~ /\.\s*$/ );
-            $story_text .= html_strip( $story->{ description } );
-        }
-    }
-
-    ## TODO - The code below to retrieve the story_tld is buggy -- the assignment to the shadow $story_tld has no effect
-    ## TO avoid confusion I'm commenting it out.
-    ## Since we're going to reextract all comment with the new extractor, I'm going to deferr any decsion about fixing the bug until that
-    ## point to avoid creating data artifacts do to language detection changes.
-
-    # # Determine TLD
-    # my $story_tld = '';
-    # if ( defined( $story->{ url } ) )
-    # {
-    #     my $story_url = $story->{ url };
-    #     my $story_tld = MediaWords::Util::IdentifyLanguage::tld_from_url( $story_url );
-    # }
-    # else
-    # {
-    #     say STDERR "Story's URL for story ID " . $stories_id . " is not defined.";
-    # }
-
-    # Identify the language of the full story
-    my $story_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $story_text, '' );
-
-    my $sentences = _get_sentences_from_story_text( $story_text, $story_lang );
-
-    if ( !$story->{ language } || ( $story_lang ne $story->{ language } ) )
-    {
-        $db->query( "UPDATE stories SET language = ? WHERE stories_id = ?", $story_lang, $stories_id );
-    }
-
-    unless ( defined $sentences )
-    {
-        die "Sentences for story $stories_id are undefined.";
-    }
-    unless ( scalar @{ $sentences } )
-    {
-        warn "Story $stories_id doesn't have any sentences.";
-        return;
-    }
-
-    clean_sentences( $sentences );
-
-    if ( $no_dedup_sentences )
-    {
-        say STDERR "Won't de-duplicate sentences for story $stories_id because 'no_dedup_sentences' is set.";
-    }
-    else
-    {
-        $sentences = dedup_sentences( $db, $story, $sentences );
-    }
+# given a list of text sentences, return a list of story_sentences refs for insertion into db.
+sub _get_story_sentence_refs
+{
+    my ( $sentences, $story ) = @_;
 
     my $sentence_refs = [];
     for ( my $sentence_num = 0 ; $sentence_num < @{ $sentences } ; $sentence_num++ )
@@ -475,7 +298,7 @@ sub update_story_sentences_and_language
 
         # Identify the language of each of the sentences
         my $sentence_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $sentence, '' );
-        if ( $sentence_lang ne $story_lang )
+        if ( $sentence_lang ne $story->{ language } )
         {
 
             # Mark the language as unknown if the results for the sentence are not reliable
@@ -485,12 +308,11 @@ sub update_story_sentences_and_language
             }
         }
 
-        # Insert the sentence into the database
         my $sentence_ref = {};
         $sentence_ref->{ sentence }         = $sentence;
         $sentence_ref->{ language }         = $sentence_lang;
         $sentence_ref->{ sentence_number }  = $sentence_num;
-        $sentence_ref->{ stories_id }       = $stories_id;
+        $sentence_ref->{ stories_id }       = $story->{ stories_id };
         $sentence_ref->{ media_id }         = $story->{ media_id };
         $sentence_ref->{ publish_date }     = $story->{ publish_date };
         $sentence_ref->{ disable_triggers } = MediaWords::DB::story_triggers_disabled();
@@ -498,20 +320,83 @@ sub update_story_sentences_and_language
         push( @{ $sentence_refs }, $sentence_ref );
     }
 
+    return $sentence_refs;
+}
+
+# update story vectors for the given story, updating story_sentences
+# if no_delete() is true, do not try to delete existing entries in the above table before creating new ones
+# (useful for optimization if you are very sure no story vectors exist for this story).  If
+# $extractor_args->no_dedup_sentences() is true, do not perform sentence deduplication (useful if you are
+# reprocessing a small set of stories)
+sub update_story_sentences_and_language($$;$)
+{
+    my ( $db, $story, $extractor_args ) = @_;
+
+    $extractor_args //= MediaWords::DBI::Stories::ExtractorArguments->new();
+
+    my $stories_id = $story->{ stories_id };
+
+    unless ( $extractor_args->no_delete() )
+    {
+        $db->query( 'DELETE FROM story_sentences WHERE stories_id = ?', $stories_id );
+    }
+
+    my $story_text = $story->{ story_text } || MediaWords::DBI::Stories::get_text_for_word_counts( $db, $story ) || '';
+
+    my $story_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $story_text, '' );
+
+    my $sentences = _get_sentences_from_story_text( $story_text, $story_lang );
+
+    if ( !$story->{ language } || ( $story_lang ne $story->{ language } ) )
+    {
+        $db->query( "UPDATE stories SET language = ? WHERE stories_id = ?", $story_lang, $stories_id );
+        $story->{ language } = $story_lang;
+    }
+
+    die "Sentences for story $stories_id are undefined." unless ( defined $sentences );
+
+    unless ( scalar @{ $sentences } )
+    {
+        DEBUG( sub { "Story $stories_id doesn't have any sentences." } );
+        return;
+    }
+
+    clean_sentences( $sentences );
+
+    if ( $extractor_args->no_dedup_sentences() )
+    {
+        DEBUG( sub { "Won't de-duplicate sentences for story $stories_id because 'no_dedup_sentences' is set." } );
+    }
+    else
+    {
+        $sentences = dedup_sentences( $db, $story, $sentences );
+    }
+
+    my $sentence_refs = _get_story_sentence_refs( $sentences, $story );
+
     _insert_story_sentences( $db, $story, $sentence_refs );
+
+    _update_ap_syndicated( $db, $story );
 
     $db->dbh->{ AutoCommit } || $db->commit;
 
-    if (    MediaWords::Util::CoreNLP::annotator_is_enabled()
-        and MediaWords::Util::CoreNLP::story_is_annotatable( $db, $stories_id ) )
+    unless ( $extractor_args->skip_corenlp_annotation() )
     {
-        # (Re)enqueue for CoreNLP annotation
-        #
-        # We enqueue an identical job in MediaWords::DBI::Downloads::process_download_for_extractor() too,
-        # but duplicate the enqueue_on_gearman() call here just to make sure that story gets reannotated
-        # on each sentence change. Both of these jobs are to be merged into a single job by Gearman.
-        MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman( { stories_id => $stories_id } );
-
+        if (    MediaWords::Util::CoreNLP::annotator_is_enabled()
+            and MediaWords::Util::CoreNLP::story_is_annotatable( $db, $stories_id ) )
+        {
+            # Add to CoreNLP job queue
+            DEBUG "Adding story $stories_id to CoreNLP annotation queue...";
+            MediaWords::Job::AnnotateWithCoreNLP->add_to_queue( { stories_id => $stories_id } );
+        }
+        else
+        {
+            DEBUG "Won't add $stories_id to CoreNLP annotation queue because it's not annotatable with CoreNLP";
+        }
+    }
+    else
+    {
+        DEBUG "Won't add $stories_id to CoreNLP annotation queue because it's set be skipped";
     }
 }
 
@@ -540,8 +425,8 @@ sub _get_stem_word_counts_for_sentence($$;$)
         my $word_length_limit = $lang->get_word_length_limit();
         if ( $word_length_limit > 0 )
         {
-            limit_string_length( $word, $word_length_limit );
-            limit_string_length( $stem, $word_length_limit );
+            _limit_string_length( $word, $word_length_limit );
+            _limit_string_length( $stem, $word_length_limit );
         }
 
         if ( _valid_stem( $stem, $word, $stop_stems ) )

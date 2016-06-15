@@ -25,6 +25,12 @@ sub get_path_to_data_files(;$)
 
     my $path = "$FindBin::Bin/../t/data/$subdirectory/";
 
+    # try to create just the base directory
+    unless ( -d $path )
+    {
+        mkdir( $path );
+    }
+
     unless ( -d $path )
     {
         die "Test data file path '$path' is not a directory (or doesn't exist at all).";

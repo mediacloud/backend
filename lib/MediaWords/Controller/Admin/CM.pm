@@ -1,5 +1,5 @@
 package MediaWords::Controller::Admin::CM;
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use strict;
@@ -9,7 +9,6 @@ use Digest::MD5;
 use JSON;
 use List::Compare;
 use Data::Dumper;
-use Gearman::JobScheduler;
 use Readonly;
 
 use MediaWords::CM;
@@ -18,10 +17,10 @@ use MediaWords::CM::Mine;
 use MediaWords::DBI::Activities;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
+use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::Solr;
 use MediaWords::Solr::WordCounts;
 use MediaWords::Util::Bitly;
-use MediaWords::GearmanFunction::Bitly::EnqueueControversyStories;
 
 Readonly my $ROWS_PER_PAGE => 25;
 
@@ -380,36 +379,6 @@ sub _get_latest_activities
     return $activities;
 }
 
-# return hash with bitly_processed_is_enabled, bitly_total_stories, bitly_unprocessed_stories fields.
-sub _get_bitly_status
-{
-    my ( $db, $controversy ) = @_;
-
-    my $bitly_processing_is_enabled = MediaWords::Util::Bitly::bitly_processing_is_enabled();
-
-    if ( !( $bitly_processing_is_enabled and $controversy->{ process_with_bitly } ) )
-    {
-        return { bitly_processed_is_enabled => 0, bitly_total_stories => 0, bitly_unprocessed_stories => 0 };
-    }
-
-    my $controversies_id = $controversy->{ controversies_id };
-
-    my ( $total_stories ) = $db->query( <<SQL, $controversies_id )->flat;
-SELECT COUNT(stories_id) AS total_stories
-FROM controversy_stories
-WHERE controversies_id = ?
-SQL
-
-    my $unprocessed_stories =
-      MediaWords::Util::Bitly::num_controversy_stories_without_bitly_statistics( $db, $controversies_id );
-
-    return {
-        bitly_processing_is_enabled => 1,
-        bitly_total_stories         => $total_stories,
-        bitly_unprocessed_stories   => $unprocessed_stories
-    };
-}
-
 # get the controversy with the given id, attach the controversy_query_slice associated with
 # the query_slices_id, if any
 sub _get_controversy_with_query_slice
@@ -444,7 +413,7 @@ sub view : Local
 
     my $latest_activities = _get_latest_activities( $db, $controversies_id );
 
-    my $bitly_status = _get_bitly_status( $db, $controversy );
+    my $bitly_processing_is_enabled = MediaWords::Util::Bitly::bitly_processing_is_enabled();
 
     my $mining_status = _get_mining_status( $db, $controversy );
 
@@ -456,9 +425,7 @@ SQL
     $c->stash->{ controversy_dumps }           = $controversy_dumps;
     $c->stash->{ latest_full_dump }            = $latest_full_dump;
     $c->stash->{ latest_activities }           = $latest_activities;
-    $c->stash->{ bitly_processing_is_enabled } = $bitly_status->{ bitly_processing_is_enabled };
-    $c->stash->{ bitly_total_stories }         = $bitly_status->{ bitly_total_stories };
-    $c->stash->{ bitly_unprocessed_stories }   = $bitly_status->{ bitly_unprocessed_stories };
+    $c->stash->{ bitly_processing_is_enabled } = $bitly_processing_is_enabled;
     $c->stash->{ mining_status }               = $mining_status;
     $c->stash->{ query_slices_id }             = $query_slices_id;
     $c->stash->{ query_slices }                = $query_slices;
@@ -744,8 +711,7 @@ sub _get_top_media_for_time_slice
                mlc.inlink_count,
                mlc.outlink_count,
                mlc.story_count,
-               mlc.bitly_click_count,
-               mlc.bitly_referrer_count
+               mlc.bitly_click_count
         FROM dump_media_with_types AS m,
              dump_medium_link_counts AS mlc
         WHERE m.media_id = mlc.media_id
@@ -769,7 +735,6 @@ sub _get_top_stories_for_time_slice
                slc.inlink_count,
                slc.outlink_count,
                slc.bitly_click_count,
-               slc.bitly_referrer_count,
                m.name as medium_name,
                m.media_type
         FROM dump_stories AS s,
@@ -783,7 +748,8 @@ END
         20
     )->hashes;
 
-    map { _add_story_date_info( $db, $_ ) } @{ $top_stories };
+    MediaWords::DBI::Stories::GuessDate::add_date_is_reliable_to_stories( $db, $top_stories );
+    MediaWords::DBI::Stories::GuessDate::add_undateable_to_stories( $db, $top_stories );
 
     return $top_stories;
 }
@@ -1012,11 +978,12 @@ sub dump_social : Local
     my $csv = MediaWords::Util::CSV::get_query_as_csv( $db, <<SQL );
 select
         s.stories_id, s.url, s.title, m.name medium_name, m.media_id, m.url medium_url,
-        ss.twitter_url_tweet_count, ss.twitter_api_collect_date,
+        sst.twitter_url_tweet_count, sst.twitter_api_collect_date,
         ss.facebook_share_count, ss.facebook_comment_count, ss.facebook_api_collect_date
     from dump_stories s
         join dump_media m on ( s.media_id = m.media_id )
         join story_statistics ss on ( s.stories_id = ss.stories_id )
+        left join story_statistics_twitter sst on ( s.stories_id = sst.stories_id )
 SQL
 
     MediaWords::CM::Dump::discard_temp_tables( $db );
@@ -1162,7 +1129,12 @@ sub _get_medium_from_dump_tables
 {
     my ( $db, $media_id ) = @_;
 
-    return $db->query( "select * from dump_media_with_types where media_id = ?", $media_id )->hash;
+    return $db->query( <<SQL, $media_id )->hash;
+select *
+    from dump_media_with_types m
+        join dump_medium_link_counts mlc on ( m.media_id = mlc.media_id )
+    where mlc.media_id = ?
+SQL
 }
 
 # get the medium with the medium_stories, inlink_stories, and outlink_stories and associated
@@ -1183,8 +1155,7 @@ sub _get_medium_and_stories_from_dump_tables
                m.media_type,
                slc.inlink_count,
                slc.outlink_count,
-               slc.bitly_click_count,
-               slc.bitly_referrer_count
+               slc.bitly_click_count
         FROM dump_stories AS s,
              dump_media_with_types AS m,
              dump_story_link_counts AS slc
@@ -1192,70 +1163,65 @@ sub _get_medium_and_stories_from_dump_tables
           AND s.media_id = m.media_id
           AND s.media_id = ?
         ORDER BY slc.inlink_count DESC
+        limit 50
 END
         $media_id
     )->hashes;
-    map { _add_story_date_info( $db, $_ ) } @{ $medium->{ stories } };
+
+    MediaWords::DBI::Stories::GuessDate::add_date_is_reliable_to_stories( $db, $medium->{ stories } );
+    MediaWords::DBI::Stories::GuessDate::add_undateable_to_stories( $db, $medium->{ stories } );
+
+    $db->query( <<SQL, $medium->{ media_id } );
+create temporary table cm_medium_stories_ids as select stories_id from dump_stories where media_id = ?
+SQL
 
     $medium->{ inlink_stories } = $db->query(
-        <<END,
+        <<END
         SELECT DISTINCT s.*,
                         sm.name AS medium_name,
                         sm.media_type,
                         sslc.inlink_count,
                         sslc.outlink_count,
-                        sslc.bitly_click_count,
-                        sslc.bitly_referrer_count
+                        sslc.bitly_click_count
         FROM dump_stories AS s,
              dump_story_link_counts AS sslc,
              dump_media_with_types AS sm,
-             dump_stories AS r,
-             dump_story_link_counts AS rslc,
              dump_controversy_links_cross_media AS cl
         WHERE s.stories_id = sslc.stories_id
-          AND r.stories_id = rslc.stories_id
           AND s.media_id = sm.media_id
           AND s.stories_id = cl.stories_id
-          AND r.stories_id = cl.ref_stories_id
-          AND r.media_id = ?
+          AND cl.ref_stories_id in ( select stories_id from cm_medium_stories_ids )
         ORDER BY sslc.inlink_count DESC
+        limit 50
 END
-        $media_id
     )->hashes;
 
-    map { _add_story_date_info( $db, $_ ) } @{ $medium->{ inlink_stories } };
+    MediaWords::DBI::Stories::GuessDate::add_date_is_reliable_to_stories( $db, $medium->{ inlink_stories } );
+    MediaWords::DBI::Stories::GuessDate::add_undateable_to_stories( $db, $medium->{ inlink_stories } );
 
     $medium->{ outlink_stories } = $db->query(
-        <<END,
+        <<END
         SELECT DISTINCT r.*,
                         rm.name AS medium_name,
                         rm.media_type,
                         rslc.inlink_count,
                         rslc.outlink_count,
-                        rslc.bitly_click_count,
-                        rslc.bitly_referrer_count
-        FROM dump_stories AS s,
-             dump_story_link_counts AS sslc,
-             dump_stories AS r,
+                        rslc.bitly_click_count
+        FROM dump_stories AS r,
              dump_story_link_counts AS rslc,
              dump_media_with_types AS rm,
              dump_controversy_links_cross_media AS cl
-        WHERE s.stories_id = sslc.stories_id
-          AND r.stories_id = rslc.stories_id
+        WHERE r.stories_id = rslc.stories_id
           AND r.media_id = rm.media_id
-          AND s.stories_id = cl.stories_id
           AND r.stories_id = cl.ref_stories_id
-          AND s.media_id = ?
+          AND cl.stories_id in ( select stories_id from cm_medium_stories_ids )
         ORDER BY rslc.inlink_count DESC
+        limit 50
 END
-        $media_id
     )->hashes;
 
-    map { _add_story_date_info( $db, $_ ) } @{ $medium->{ outlink_stories } };
-
-    $medium->{ story_count }   = scalar( @{ $medium->{ stories } } );
-    $medium->{ inlink_count }  = scalar( @{ $medium->{ inlink_stories } } );
-    $medium->{ outlink_count } = scalar( @{ $medium->{ outlink_stories } } );
+    MediaWords::DBI::Stories::GuessDate::add_date_is_reliable_to_stories( $db, $medium->{ outlink_stories } );
+    MediaWords::DBI::Stories::GuessDate::add_undateable_to_stories( $db, $medium->{ outlink_stories } );
 
     return $medium;
 }
@@ -1361,42 +1327,25 @@ sub medium : Local
     my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $c->req->param( 'cdts' ) );
 
     my $live = $c->req->param( 'l' );
-    my $live_medium = _get_live_medium_and_stories( $db, $controversy, $cdts, $media_id );
 
-    my ( $medium, $live_medium_diffs, $latest_controversy_dump );
+    my $medium;
     if ( $live )
     {
-        $medium = $live_medium;
+        $medium = _get_live_medium_and_stories( $db, $controversy, $cdts, $media_id );
     }
     else
     {
         $medium = _get_cdts_medium_and_stories( $db, $cdts, $media_id );
-        $live_medium_diffs = _get_live_medium_diffs( $medium, $live_medium );
-        $latest_controversy_dump = _get_latest_controversy_dump( $db, $cdts );
     }
 
     $db->commit;
 
-    $c->stash->{ cdts }                    = $cdts;
-    $c->stash->{ controversy_dump }        = $cd;
-    $c->stash->{ controversy }             = $controversy;
-    $c->stash->{ medium }                  = $medium;
-    $c->stash->{ latest_controversy_dump } = $latest_controversy_dump;
-    $c->stash->{ live_medium_diffs }       = $live_medium_diffs;
-    $c->stash->{ live }                    = $live;
-    $c->stash->{ live_medium }             = $live_medium;
-    $c->stash->{ template }                = 'cm/medium.tt2';
-}
-
-# add the following fields to the story:
-# * date_is_reliable
-# * undateable
-sub _add_story_date_info
-{
-    my ( $db, $story ) = @_;
-
-    $story->{ date_is_reliable } = MediaWords::DBI::Stories::date_is_reliable( $db, $story );
-    $story->{ undateable } = MediaWords::DBI::Stories::is_undateable( $db, $story );
+    $c->stash->{ cdts }             = $cdts;
+    $c->stash->{ controversy_dump } = $cd;
+    $c->stash->{ controversy }      = $controversy;
+    $c->stash->{ medium }           = $medium;
+    $c->stash->{ live }             = $live;
+    $c->stash->{ template }         = 'cm/medium.tt2';
 }
 
 # get the story along with inlink_stories and outlink_stories and the associated
@@ -1417,7 +1366,8 @@ sub _get_story_and_links_from_dump_tables
 
     $story->{ medium } = $db->query( "select * from dump_media_with_types where media_id = ?", $story->{ media_id } )->hash;
 
-    _add_story_date_info( $db, $story );
+    MediaWords::DBI::Stories::GuessDate::add_date_is_reliable_to_stories( $db, [ $story ] );
+    MediaWords::DBI::Stories::GuessDate::add_undateable_to_stories( $db,       [ $story ] );
 
     $story->{ inlink_stories } = $db->query(
         <<END,
@@ -1426,26 +1376,23 @@ sub _get_story_and_links_from_dump_tables
                         sm.media_type,
                         sslc.inlink_count,
                         sslc.outlink_count,
-                        sslc.bitly_click_count,
-                        sslc.bitly_referrer_count
+                        sslc.bitly_click_count
         FROM dump_stories AS s,
              dump_story_link_counts AS sslc,
              dump_media_with_types AS sm,
-             dump_stories AS r,
-             dump_story_link_counts AS rslc,
              dump_controversy_links_cross_media AS cl
         WHERE s.stories_id = sslc.stories_id
-          AND r.stories_id = rslc.stories_id
           AND s.media_id = sm.media_id
           AND s.stories_id = cl.stories_id
-          AND r.stories_id = cl.ref_stories_id
           AND cl.ref_stories_id = ?
         ORDER BY sslc.inlink_count DESC
+        limit 50
 END
         $stories_id
     )->hashes;
 
-    map { _add_story_date_info( $db, $_ ) } @{ $story->{ inlink_stories } };
+    MediaWords::DBI::Stories::GuessDate::add_date_is_reliable_to_stories( $db, $story->{ inlink_stories } );
+    MediaWords::DBI::Stories::GuessDate::add_undateable_to_stories( $db, $story->{ inlink_stories } );
 
     $story->{ outlink_stories } = $db->query(
         <<END,
@@ -1454,29 +1401,26 @@ END
                         rm.media_type,
                         rslc.inlink_count,
                         rslc.outlink_count,
-                        rslc.bitly_click_count,
-                        rslc.bitly_referrer_count
-        FROM dump_stories AS s,
-             dump_story_link_counts AS sslc,
-             dump_stories AS r,
+                        rslc.bitly_click_count
+        FROM dump_stories AS r,
              dump_story_link_counts AS rslc,
              dump_media_with_types AS rm,
              dump_controversy_links_cross_media AS cl
-        WHERE s.stories_id = sslc.stories_id
-          AND r.stories_id = rslc.stories_id
+        WHERE r.stories_id = rslc.stories_id
           AND r.media_id = rm.media_id
-          AND s.stories_id = cl.stories_id
           AND r.stories_id = cl.ref_stories_id
           AND cl.stories_id = ?
         ORDER BY rslc.inlink_count DESC
+        limit 50
 END
         $stories_id
     )->hashes;
 
-    map { _add_story_date_info( $db, $_ ) } @{ $story->{ outlink_stories } };
-
     $story->{ inlink_count }  = scalar( @{ $story->{ inlink_stories } } );
     $story->{ outlink_count } = scalar( @{ $story->{ outlink_stories } } );
+
+    MediaWords::DBI::Stories::GuessDate::add_date_is_reliable_to_stories( $db, $story->{ outlink_stories } );
+    MediaWords::DBI::Stories::GuessDate::add_undateable_to_stories( $db, $story->{ outlink_stories } );
 
     return $story;
 }
@@ -1550,18 +1494,15 @@ sub story : Local
     my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $c->req->param( 'cdts' ) );
 
     my $live = $c->req->param( 'l' );
-    my $live_story = _get_live_story_and_links( $db, $controversy, $cdts, $stories_id );
 
-    my ( $story, $live_story_diffs, $latest_controversy_dump );
+    my $story;
     if ( $live )
     {
-        $story = $live_story;
+        $story = _get_live_story_and_links( $db, $controversy, $cdts, $stories_id );
     }
     else
     {
         $story = _get_cdts_story_and_links( $db, $cdts, $stories_id );
-        $live_story_diffs = _get_live_story_diffs( $story, $live_story );
-        $latest_controversy_dump = _get_latest_controversy_dump( $db, $cdts );
     }
 
     $story->{ extracted_text } = MediaWords::DBI::Stories::get_extracted_text( $db, $story );
@@ -1571,16 +1512,13 @@ sub story : Local
 
     my $confirm_remove = $c->req->params->{ confirm_remove };
 
-    $c->stash->{ cdts }                    = $cdts;
-    $c->stash->{ controversy_dump }        = $cd;
-    $c->stash->{ controversy }             = $controversy;
-    $c->stash->{ story }                   = $story;
-    $c->stash->{ latest_controversy_dump } = $latest_controversy_dump;
-    $c->stash->{ live_story_diffs }        = $live_story_diffs;
-    $c->stash->{ live }                    = $live;
-    $c->stash->{ live_story }              = $live_story;
-    $c->stash->{ confirm_remove }          = $confirm_remove;
-    $c->stash->{ template }                = 'cm/story.tt2';
+    $c->stash->{ cdts }             = $cdts;
+    $c->stash->{ controversy_dump } = $cd;
+    $c->stash->{ controversy }      = $controversy;
+    $c->stash->{ story }            = $story;
+    $c->stash->{ live }             = $live;
+    $c->stash->{ confirm_remove }   = $confirm_remove;
+    $c->stash->{ template }         = 'cm/story.tt2';
 }
 
 # get the text for a sql query that returns all of the story ids that
@@ -1751,8 +1689,7 @@ sub search_stories : Local
                m.media_type,
                slc.inlink_count,
                slc.outlink_count,
-               slc.bitly_click_count,
-               slc.bitly_referrer_count
+               slc.bitly_click_count
         FROM dump_stories AS s,
              dump_media_with_types AS m,
              dump_story_link_counts AS slc
@@ -1764,7 +1701,8 @@ sub search_stories : Local
 END
     )->hashes;
 
-    map { _add_story_date_info( $db, $_ ) } @{ $stories };
+    MediaWords::DBI::Stories::GuessDate::add_date_is_reliable_to_stories( $db, $stories );
+    MediaWords::DBI::Stories::GuessDate::add_undateable_to_stories( $db, $stories );
 
     MediaWords::CM::Dump::discard_temp_tables( $db );
 
@@ -1828,7 +1766,6 @@ sub _add_id_medium_to_search_results ($$$)
                         mlc.inlink_count,
                         mlc.outlink_count,
                         mlc.bitly_click_count,
-                        mlc.bitly_referrer_count,
                         mlc.story_count
         FROM dump_story_link_counts AS slc
             JOIN stories AS s ON ( slc.stories_id = s.stories_id )
@@ -1882,7 +1819,6 @@ sub search_media : Local
                         mlc.inlink_count,
                         mlc.outlink_count,
                         mlc.bitly_click_count,
-                        mlc.bitly_referrer_count,
                         mlc.story_count
         FROM dump_media_with_types AS m,
              dump_medium_link_counts AS mlc
@@ -3019,7 +2955,7 @@ END
     $c->stash->{ template }    = 'cm/edit_media_types.tt2';
 }
 
-# get a simple count of stories that belong to each partisan media set
+# get a simple count of stories that belong to each partisan media collection
 sub _get_partisan_counts
 {
 
@@ -3108,42 +3044,6 @@ sub story_stats : Local
     $c->stash->{ num_stories }      = $num_stories;
     $c->stash->{ live }             = $live;
     $c->stash->{ template }         = 'cm/story_stats.tt2';
-}
-
-# enqueue a Gearman job which will, in turn, enqueue all controversy's stories
-# for Bit.ly processing
-sub enqueue_stories_for_bitly : Local
-{
-    my ( $self, $c, $controversies_id ) = @_;
-
-    unless ( MediaWords::Util::Bitly::bitly_processing_is_enabled() )
-    {
-        die "Bit.ly processing is not enabled.";
-    }
-
-    my $db = $c->dbis;
-
-    my $controversy = $db->find_by_id( 'controversies', $controversies_id );
-    unless ( $controversy )
-    {
-        die "Controversy $controversies_id was not found";
-    }
-
-    unless ( $controversy->{ process_with_bitly } )
-    {
-        die "Controversy $controversies_id is not set up for Bit.ly processing; please set controversies.process_with_bitly";
-    }
-
-    my $args = { controversies_id => $controversies_id };
-    my $gearman_job_id = MediaWords::GearmanFunction::Bitly::EnqueueControversyStories->enqueue_on_gearman( $args );
-    unless ( $gearman_job_id )
-    {
-        die "Gearman job didn't return a job ID for controversy ID $controversies_id";
-    }
-
-    my $url = $c->uri_for( "/admin/cm/view/$controversies_id",
-        { status_msg => "Controversy's stories will soon be enqueued for Bit.ly processing." } );
-    $c->res->redirect( $url );
 }
 
 # create a controersy_query_slice and associated shell controversy_dump_time_slices

@@ -1,8 +1,7 @@
 package MediaWords::Controller::Api::V2::Sentences;
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use MediaWords::DBI::StorySubsets;
 use strict;
 use warnings;
 use base 'Catalyst::Controller';
@@ -51,7 +50,7 @@ sub get_table_name
     return "story_sentences";
 }
 
-sub list : Local : ActionClass('REST')
+sub list : Local : ActionClass('MC_REST')
 {
     #say STDERR "starting Sentences/list";
 }
@@ -174,7 +173,7 @@ sub list_GET : Local
     $self->status_ok( $c, entity => $list );
 }
 
-sub count : Local : ActionClass('REST')
+sub count : Local : ActionClass('MC_REST')
 {
 }
 
@@ -252,7 +251,7 @@ sub count_GET : Local
 }
 
 ##TODO merge with stories put_tags
-sub put_tags : Local : ActionClass('REST')
+sub put_tags : Local : ActionClass('MC_REST')
 {
 }
 
@@ -283,7 +282,7 @@ sub put_tags_PUT : Local
     return;
 }
 
-sub field_count : Local : ActionClass('REST')
+sub field_count : Local : ActionClass('MC_REST')
 {
 }
 

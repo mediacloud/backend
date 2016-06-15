@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 use Data::Dumper;
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 
 #
 # Basic sanity test of crawler functionality
@@ -26,7 +26,7 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
-use Test::More tests => 245;
+use Test::More tests => 233;
 use Test::Differences;
 use Test::Deep;
 
@@ -34,11 +34,11 @@ use Test::NoWarnings;
 
 use MediaWords::Crawler::Engine;
 use MediaWords::DBI::DownloadTexts;
-use MediaWords::DBI::MediaSets;
 use MediaWords::DBI::Stories;
 use MediaWords::Test::DB;
 use MediaWords::Test::Data;
 use MediaWords::Test::LocalServer;
+use MediaWords::Test::Text;
 use MediaWords::Util::Config;
 use DBIx::Simple::MediaWords;
 use MediaWords::StoryVectors;
@@ -49,28 +49,18 @@ use Data::Sorting qw( :basics :arrays :extras );
 use Readonly;
 
 # add a test media source and feed to the database
-sub _add_test_feed($$$$$$)
+sub _add_test_feed($$$$)
 {
-    my ( $db, $url_to_crawl, $test_name, $test_prefix, $sw_data_start_date, $sw_data_end_date ) = @_;
+    my ( $db, $url_to_crawl, $test_name, $test_prefix ) = @_;
 
     my $test_medium = $db->query(
         <<EOF,
-        INSERT INTO media (name, url, moderated, sw_data_start_date, sw_data_end_date)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO media (name, url, moderated)
+        VALUES (?, ?, ?)
         RETURNING *
 EOF
-        '_ Crawler Test', $url_to_crawl, 0, $sw_data_start_date, $sw_data_end_date
+        '_ Crawler Test', $url_to_crawl, 0
     )->hash;
-
-    ok( MediaWords::StoryVectors::_medium_has_story_words_start_date( $test_medium ),
-        "$test_name - _medium_has_story_words_start_date()" );
-    ok( MediaWords::StoryVectors::_medium_has_story_words_end_date( $test_medium ),
-        "$test_name - _medium_has_story_words_end_date()" );
-
-    is( MediaWords::StoryVectors::_get_story_words_start_date_for_medium( $test_medium ),
-        $sw_data_start_date, "$test_name - _get_story_words_start_date_for_medium()" );
-    is( MediaWords::StoryVectors::_get_story_words_end_date_for_medium( $test_medium ),
-        $sw_data_end_date, "$test_name - _get_story_words_end_date_for_medium()" );
 
     my $syndicated_feed = $db->create(
         'feeds',
@@ -89,8 +79,6 @@ EOF
             feed_type => 'web_page'
         }
     );
-
-    MediaWords::DBI::MediaSets::create_for_medium( $db, $test_medium );
 
     ok( $syndicated_feed->{ feeds_id }, "$test_name - test syndicated feed created" );
     ok( $web_page_feed->{ feeds_id },   "$test_name - test web page feed created" );
@@ -259,11 +247,19 @@ sub _test_stories($$$$$)
                 {
                     my $fake_var;    #silence warnings
                      #eq_or_diff( $story->{ $field }, encode_utf8($test_story->{ $field }), "story $field match" , {context => 0});
-                    is( $story->{ $field }, $test_story->{ $field }, "$test_name - story $field match" );
+                    MediaWords::Test::Text::eq_or_sentence_diff(
+                        $story->{ $field },
+                        $test_story->{ $field },
+                        "$test_name - story $field match"
+                    );
                 }
             }
 
-            eq_or_diff( $story->{ content }, $test_story->{ content }, "$test_name - story content matches" );
+            MediaWords::Test::Text::eq_or_sentence_diff(
+                $story->{ content },
+                $test_story->{ content },
+                "$test_name - story content matches"
+            );
 
             is( scalar( @{ $story->{ tags } } ), scalar( @{ $test_story->{ tags } } ), "$test_name - story tags count" );
 
@@ -334,9 +330,9 @@ sub _dump_stories($$$$)
     _sanity_test_stories( $stories, $test_name, $test_prefix );
 }
 
-sub _test_crawler($$$$$$)
+sub _test_crawler($$$$)
 {
-    my ( $test_name, $test_prefix, $stories_count, $sw_data_start_date, $sw_data_end_date, $extractor_method ) = @_;
+    my ( $test_name, $test_prefix, $stories_count, $extractor_method ) = @_;
 
     MediaWords::Test::DB::test_on_test_database(
         sub {
@@ -348,7 +344,7 @@ sub _test_crawler($$$$$$)
             $test_http_server->start();
             my $url_to_crawl = $test_http_server->url();
 
-            _add_test_feed( $db, $url_to_crawl, $test_name, $test_prefix, $sw_data_start_date, $sw_data_end_date );
+            _add_test_feed( $db, $url_to_crawl, $test_name, $test_prefix );
 
             _run_crawler();
 
@@ -374,7 +370,7 @@ sub main
     # test itself will assume that stories got extracted using this extractor
     # method and thus will load input / save output data from appropriate
     # directories.
-    Readonly my $extractor_method => 'HeuristicExtractor';
+    Readonly my $extractor_method => 'InlinePythonReadability';
 
     # Errors might want to print out UTF-8 characters
     binmode( STDERR, ':utf8' );
@@ -386,18 +382,16 @@ sub main
     binmode $builder->todo_output,    ":utf8";
 
     # Test short inline "content:..." downloads
-    _test_crawler( 'Short "inline" downloads', 'inline_content', 4, '2008-02-03', '2020-02-27', $extractor_method );
+    _test_crawler( 'Short "inline" downloads', 'inline_content', 4, $extractor_method );
 
     # Test Global Voices downloads
-    _test_crawler( 'Global Voices', 'gv', 16, '2008-02-03', '2020-02-27', $extractor_method );
+    _test_crawler( 'Global Voices', 'gv', 16, $extractor_method );
 
     # Test multilanguage downloads
     _test_crawler(
         'Multilanguage downloads',
         'multilanguage',
         6 - 1,    # there are 6 tests, but one of them is an empty page
-        '2008-02-03',
-        '2020-02-27',
         $extractor_method
     );
 
@@ -405,4 +399,3 @@ sub main
 }
 
 main();
-

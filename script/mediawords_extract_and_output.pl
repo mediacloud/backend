@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-# test MediaWords::Crawler::Extractor against manually extracted downloads
+# extract and output download / file
 
 use strict;
 
@@ -10,19 +10,17 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
-use MediaWords::Crawler::Extractor;
 use Getopt::Long;
 use HTML::Strip;
 use DBIx::Simple::MediaWords;
 use MediaWords::DB;
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::DownloadTexts;
 use Readonly;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
-use List::Compare::Functional qw (get_unique get_complement get_union_ref );
 use XML::LibXML;
 use Data::Dumper;
 
@@ -36,8 +34,6 @@ use MediaWords::Languages::en;
 #use XML::LibXML::Enhanced;
 
 my $_re_generate_cache = 0;
-
-Readonly my $output_dir => 'download_content_test_data';
 
 sub store_preprocessed_result
 {
@@ -87,7 +83,7 @@ sub store_downloads
         say "Processing download $download->{downloads_id}";
 
         my $preprocessed_lines = MediaWords::DBI::Downloads::fetch_preprocessed_content_lines( $dbs, $download );
-        my $extract_results = MediaWords::DBI::Downloads::extractor_results_for_download( $dbs, $download );
+        my $extract_results = MediaWords::DBI::Downloads::extract( $dbs, $download );
 
         say STDERR "Got extract_results:\n " . Dumper( $extract_results );
 
@@ -137,10 +133,6 @@ sub main
     else
     {
         die "must specify file or downloads id";
-
-        $downloads = $dbs->query(
-"SELECT * from downloads where downloads_id in (select distinct downloads_id from extractor_training_lines order by downloads_id)"
-        )->hashes;
     }
 
     say STDERR Dumper( $downloads );

@@ -11,6 +11,9 @@ BEGIN
 
 use MediaWords::KeyValueStore::CachedAmazonS3;
 
+require 'amazon_s3_set_credentials_from_env.inc.pl';
+set_amazon_s3_test_credentials_from_env_if_needed();
+
 require 'amazon_s3_tests.inc.pl';
 
 my $s3_handler_class = 'MediaWords::KeyValueStore::CachedAmazonS3';

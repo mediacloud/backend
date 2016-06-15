@@ -39,7 +39,7 @@
         <td>[% story.collect_date %]</td>
     </tr>
     <tr>
-        <th>Description:</th> 
+        <th>Description:</th>
         <td>[% story.description | html_strip %]</td>
     </tr>
 
@@ -63,15 +63,10 @@
         <th>Downloads:</th>
         <td>
             [% FOREACH d IN downloads -%]
-                [% IF (d.file_status == 'missing') %]
-                    ( missing )
-                [% ELSIF (d.state == 'success') -%]
+                [% IF (d.state == 'success') -%]
                     [% d.downloads_id %]:
                     [% IF c.acl_user_can_visit('/admin/downloads/view') %]
                         <a href="[% c.uri_for('/admin/downloads/view/')  _  d.downloads_id %]">view download</a> |
-                    [% END -%]
-                    [% IF c.acl_user_can_visit('/admin/downloads/mextract') %]
-                        <a href="[% c.uri_for('/admin/downloads/mextract/')  _  d.downloads_id _ '?developer_ui=1' %]">review download extraction</a>
                     [% END -%]
                 [% ELSE -%]
                     ([% d.state %])
@@ -126,10 +121,9 @@
                 [% FOREACH s IN all_sentences %]
                     <li>
                         [% s.sentence | html %]
-                        [% IF s.count.first_stories_id != s.stories_id %]
-                            [DUP: 
-                            <a href="[% c.uri_for( '/admin/stories/view/' _ s.dup_stories_id ) | html %]">[% s.count.first_stories_id %]</a>]
-                        [% ELSIF s.count && s.count.sentence_count > 1 %]
+                        [% IF s.dup_ss %]
+                            [DUP]
+                        [% ELSIF s.ss.is_dup %]
                             [FIRST_DUP]
                         [% END %]
                     </li>
@@ -166,7 +160,7 @@
                         not annotated
                     [% END %]
                 [% ELSE %]
-                    not annotatable (<code>media.annotate_with_corenlp</code> is not set to <code>'t'</code>)
+                    not annotatable (either it's not in English or has no sentences)
                 [% END %]
             </td>
         </tr>
@@ -179,22 +173,18 @@
             <th>
                 Bit.ly JSON:</th>
             <td>
-                [% IF bitly_story_is_enabled_for_processing %]
-                    [% IF bitly_story_stats_are_fetched %]
+                [% IF bitly_story_stats_are_fetched %]
 
-                        <iframe src="[% c.uri_for( '/admin/stories/bitly_json/' _ story.stories_id ) | html %]" style="width: 99%; height: 480px; background-color: white"></iframe>
+                    <iframe src="[% c.uri_for( '/admin/stories/bitly_json/' _ story.stories_id ) | html %]" style="width: 99%; height: 480px; background-color: white"></iframe>
 
-                        <p>
-                            <a href="[% c.uri_for( '/admin/stories/bitly_json/' _ story.stories_id ) | html %]" target="_blank">[open in new page]</a>
-                        </p>
+                    <p>
+                        <a href="[% c.uri_for( '/admin/stories/bitly_json/' _ story.stories_id ) | html %]" target="_blank">[open in new page]</a>
+                    </p>
 
-                        <p>[% jsonview_help %]</p>
+                    <p>[% jsonview_help %]</p>
 
-                    [% ELSE %]
-                        stats not fetched
-                    [% END %]
                 [% ELSE %]
-                    not enabled for Bit.ly processing (<code>controversies.process_with_bitly</code> is not set to <code>'t'</code>)
+                    stats not fetched
                 [% END %]
             </td>
         </tr>

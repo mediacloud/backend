@@ -1,8 +1,6 @@
 package MediaWords::Controller::Api::V2::StoriesBase;
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
-
-use MediaWords::DBI::StorySubsets;
 
 use strict;
 use warnings;
@@ -122,7 +120,7 @@ sub add_extra_data
     my $raw_1st_download = $c->req->params->{ raw_1st_download };
     my $corenlp          = $c->req->params->{ corenlp };
 
-    return $stories unless ( @{ $stories } && ( $raw_1st_download || $corenlp ) );
+    return $stories unless ( scalar @{ $stories } && ( $raw_1st_download || $corenlp ) );
 
     my $db = $c->dbis;
 
@@ -159,38 +157,26 @@ sub _get_ap_stories_ids
 
     $db->query( "analyze $ids_table" );
 
+    my $ap_media_id = $db->query( "select media_id from media where name = 'Associated Press - Full Feed'" )->flat;
+    return [] if ( $ap_media_id );
+
     my $ap_stories_ids = $db->query( <<SQL )->hashes;
 with ap_sentences as
 (
     select
-            ssc.first_stories_id stories_id,
-            ap.first_stories_id ap_stories_id
-        from story_sentence_counts ssc
-            join story_sentence_counts ap on ( ssc.sentence_md5 = ap.sentence_md5 )
+            ss.stories_id stories_id,
+            ap.stories_id ap_stories_id
+        from story_sentences ss
+            join story_sentences ap on ( md5( ss.sentence ) = md5( ap.sentence ) and ap.media_id = $ap_media_id )
         where
-            ssc.first_stories_id in ( select id from $ids_table ) and
-            ssc.first_stories_id <> ap.first_stories_id and
-
-            -- the following exists is to make postgres avoid a bad query plan
-            exists (
-                select 1 from media m where m.name = 'Associated Press - Full Feed' and ap.media_id = m.media_id
-            ) and
-
-            -- we don't want to join story_sentences other than for the small
-            -- number of sentences that have some match
-            exists (
-                select 1
-                    from story_sentences ss
-                    where
-                        ss.stories_id = ssc.first_stories_id and
-                        ss.sentence_number = ssc.first_sentence_number and
-                        length( ss.sentence ) > 32
-            )
+            ss.media_id <> $ap_media_id and
+            ss.stories_id in ( select id from $ids_table ) and
+            length( ss.sentence ) > 32
 ),
 
 min_ap_sentences as
 (
-    select stories_id, ap_stories_id from ap_sentences group by stories_id, ap_stories_id having count(*) > 3
+    select stories_id, ap_stories_id from ap_sentences group by stories_id, ap_stories_id having count(*) > 1
 )
 
 select ids.id stories_id, ap.ap_stories_id
@@ -205,7 +191,7 @@ sub _add_nested_data
 {
     my ( $self, $db, $stories ) = @_;
 
-    return unless ( @{ $stories } );
+    return unless ( scalar @{ $stories } );
 
     my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ stories_id } } @{ $stories } ] );
 
@@ -277,6 +263,19 @@ select s.stories_id, t.tags_id, t.tag, ts.tag_sets_id, ts.name as tag_set
 END
     MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $tag_data, 'story_tags' );
 
+    # Bit.ly total click counts
+    my $bitly_click_data = $db->query(
+        <<"EOF",
+        -- Return NULL for where click count is not yet present
+        SELECT $ids_table.id AS stories_id,
+               bitly_clicks_total.click_count AS bitly_click_count
+        FROM $ids_table
+            LEFT JOIN bitly_clicks_total
+                ON $ids_table.id = bitly_clicks_total.stories_id
+EOF
+    )->hashes;
+    MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $bitly_click_data );
+
     return $stories;
 }
 
@@ -296,10 +295,12 @@ sub _get_object_ids
     my $fq = $c->req->params->{ fq } || [];
     $fq = [ $fq ] unless ( ref( $fq ) );
 
-    return MediaWords::Solr::search_for_processed_stories_ids( $c->dbis, $q, $fq, $last_id, $rows );
+    my $sort = $c->req->param( 'sort' );
+
+    return MediaWords::Solr::search_for_processed_stories_ids( $c->dbis, $q, $fq, $last_id, $rows, $sort );
 }
 
-sub _fetch_list
+sub _fetch_list($$$$$$)
 {
     my ( $self, $c, $last_id, $table_name, $id_field, $rows ) = @_;
 
@@ -312,30 +313,95 @@ sub _fetch_list
 
     my $ps_ids = $self->_get_object_ids( $c, $last_id, $rows );
 
-    return [] unless ( @{ $ps_ids } );
+    return [] unless ( scalar @{ $ps_ids } );
 
     my $db = $c->dbis;
 
     $db->begin;
 
-    my $ids_table = $db->get_temporary_ids_table( $ps_ids );
+    my $ids_table = $db->get_temporary_ids_table( $ps_ids, 1 );
 
-    my $stories = $db->query( <<END )->hashes;
-with ps_ids as
+    my $stories = $db->query(
+        <<"SQL",
+        WITH ps_ids AS (
 
-    ( select processed_stories_id, stories_id
-        from processed_stories
-        where processed_stories_id in ( select id from $ids_table ) )
+            SELECT ${ids_table}_pkey order_pkey,
+                   id AS processed_stories_id,
+                   processed_stories.stories_id
+            FROM $ids_table
+                INNER JOIN processed_stories
+                    ON $ids_table.id = processed_stories.processed_stories_id
+        )
 
-select s.*, p.processed_stories_id, m.name media_name, m.url media_url
-    from stories s join ps_ids p on ( s.stories_id = p.stories_id )
-    join media m on ( s.media_id = m.media_id )
-    order by processed_stories_id asc limit $rows
-END
+        SELECT stories.*,
+               ps_ids.processed_stories_id,
+               media.name AS media_name,
+               media.url AS media_url,
+               coalesce( ap.ap_syndicated, false ) as ap_syndicated
+        FROM ps_ids
+            JOIN stories
+                ON ps_ids.stories_id = stories.stories_id
+            JOIN media
+                ON stories.media_id = media.media_id
+            LEFT JOIN stories_ap_syndicated ap
+                ON stories.stories_id = ap.stories_id
+        ORDER BY ps_ids.order_pkey
+        LIMIT ?
+SQL
+        $rows
+    )->hashes;
 
     $db->commit;
 
     return $stories;
+}
+
+sub count : Local : ActionClass('MC_REST')
+{
+
+}
+
+sub count_GET : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $q  = $c->req->params->{ 'q' };
+    my $fq = $c->req->params->{ 'fq' };
+
+    my $response;
+    my $list = MediaWords::Solr::query( $c->dbis,
+        { q => $q, fq => $fq, group => "true", "group.field" => "stories_id", "group.ngroups" => "true" }, $c );
+    $response = { count => $list->{ grouped }->{ stories_id }->{ ngroups } };
+
+    $self->status_ok( $c, entity => $response );
+}
+
+sub word_matrix : Local : ActionClass('MC_REST')
+{
+
+}
+
+sub word_matrix_GET : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my $q    = $c->req->params->{ q };
+    my $fq   = $c->req->params->{ fq };
+    my $rows = $c->req->params->{ rows } || 1000;
+
+    die( "must specify either 'q' or 'fq' param" ) unless ( $q || $fq );
+
+    $rows = List::Util::min( $rows, 100_000 );
+
+    my $stories_ids =
+      MediaWords::Solr::search_for_stories_ids( $db, { q => $q, fq => $fq, rows => $rows, sort => 'random_1 asc' } );
+
+    my ( $word_matrix, $word_list ) = MediaWords::DBI::Stories::get_story_word_matrix( $db, $stories_ids );
+
+    $self->status_ok( $c, entity => [ word_matrix => $word_matrix, word_list => $word_list ] );
+
 }
 
 =head1 AUTHOR

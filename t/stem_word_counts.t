@@ -1,7 +1,5 @@
 #!/usr/bin/perl
 
-# test MediaWords::Crawler::Extractor against manually extracted downloads
-
 use strict;
 
 BEGIN
@@ -9,7 +7,7 @@ BEGIN
     use FindBin;
     use lib "$FindBin::Bin/../lib";
 }
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Readonly;

@@ -8,7 +8,7 @@ use warnings;
 use Moose;
 extends 'MediaWords::KeyValueStore::AmazonS3';
 
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::Util::Config;
@@ -75,7 +75,7 @@ sub _initialize_chi_or_die($)
     # Save PID
     $self->_pid( $$ );
 
-    say STDERR "CachedAmazonS3: Initialized cached Amazon S3 storage for PID $$.";
+    # say STDERR "CachedAmazonS3: Initialized cached Amazon S3 storage for PID $$.";
 }
 
 sub _try_storing_object_in_cache($$$)

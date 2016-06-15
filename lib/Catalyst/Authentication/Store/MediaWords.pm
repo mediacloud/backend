@@ -9,7 +9,7 @@ use namespace::autoclean;
 
 with 'MooseX::Emulate::Class::Accessor::Fast';
 
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 use MediaWords::DB;
 use MediaWords::DBI::Auth;

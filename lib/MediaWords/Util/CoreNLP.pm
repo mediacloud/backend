@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::Util::Process;
@@ -115,7 +115,7 @@ my $_corenlp_annotator_level = lazy
 #
 # We use a static, package-wide variable here because:
 # a) PostgreSQL handler should support being used by multiple threads by now, and
-# b) each Gearman worker is a separate process so there shouldn't be any resource clashes.
+# b) each job worker is a separate process so there shouldn't be any resource clashes.
 my $_postgresql_store = lazy
 {
     # this is (probably) an expensive module to load, so lazy load it
@@ -306,7 +306,7 @@ sub _annotate_text($)
             }
             elsif ( $http_status_code == HTTP_INTERNAL_SERVER_ERROR )
             {
-                # CRF processing error -- die() so that the error gets caught and logged into a database
+                # CoreNLP processing error -- die() so that the error gets caught and logged into a database
                 die 'CoreNLP annotator service was unable to process the download: ' . $results_string;
 
             }

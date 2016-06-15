@@ -2,20 +2,38 @@ package MediaWords::Solr::WordCounts;
 
 use Moose;
 
-# handle direct word counting from solr server results.
+=head1 NAME
+
+MediaWords::Solr::WordCounts - handle word counting from solr
+
+=head1 DESCRIPTION
+
+Uses sampling to generate quick word counts from solr queries.
+
+=cut
 
 use strict;
 use warnings;
+
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
 
 use Data::Dumper;
 use Encode;
 use JSON;
 use Lingua::Stem::Snowball;
 use List::Util;
+use Readonly;
 use URI::Escape;
 
+use MediaWords::Languages::Language;
 use MediaWords::Solr;
 use MediaWords::Util::Config;
+use MediaWords::Util::IdentifyLanguage;
+
+# minimum ratio of sentences in a given language to total sentences for a given query to include
+# stopwords and stemming for that language
+Readonly my $MIN_LANGUAGE_LEVEL => 0.05;
 
 # mediawords.wc_cache_version from config
 my $_wc_cache_version;
@@ -26,7 +44,8 @@ has 'q'                 => ( is => 'rw', isa => 'Str' );
 has 'fq'                => ( is => 'rw', isa => 'ArrayRef' );
 has 'num_words'         => ( is => 'rw', isa => 'Int', default => 500 );
 has 'sample_size'       => ( is => 'rw', isa => 'Int', default => 1000 );
-has 'languages'         => ( is => 'rw', isa => 'ArrayRef', default => sub { [ 'en' ] } );
+has 'languages'         => ( is => 'rw', isa => 'ArrayRef' );
+has 'language_objects'  => ( is => 'rw', isa => 'ArrayRef' );
 has 'include_stopwords' => ( is => 'rw', isa => 'Bool' );
 has 'no_remote'         => ( is => 'rw', isa => 'Bool' );
 has 'include_stats'     => ( is => 'rw', isa => 'Bool' );
@@ -131,7 +150,7 @@ sub blank_dup_lines
 
 # parse the text and return a count of stems and terms in the sentence in the
 # following format:
-# { $stem => { count => $stem_count, terms => { $term => $term_count } } }
+# { $stem => { count =>  $stem_count, terms => { $term => $term_count, ... } } }
 #
 # this function is where virtually all of the time in the script is spent, and
 # had been carefully tuned, so do not change anything without testing performance
@@ -139,6 +158,8 @@ sub blank_dup_lines
 sub count_stems
 {
     my ( $self, $lines ) = @_;
+
+    $self->set_language_objects();
 
     $self->blank_dup_lines( $lines );
 
@@ -172,22 +193,17 @@ sub count_stems
     # don't want to use caching with the stemming because we are finding the unique
     # words ourselves.
     my @unique_words = keys( %{ $words } );
-    my $stems        = [ @unique_words ];
 
-    for my $lang ( @{ $self->languages } )
-    {
-        my $language = MediaWords::Languages::Language::language_for_code( $lang );
-        next unless ( $language );
-
-        $stems = $language->stem( @{ $stems } );
-    }
+    my $stems = $self->stem_in_all_languages( \@unique_words );
 
     my $stem_counts = {};
     for ( my $i = 0 ; $i < @{ $stems } ; $i++ )
     {
-        $stem_counts->{ $stems->[ $i ] }->[ 0 ] += $words->{ $unique_words[ $i ] };
-        $stem_counts->{ $stems->[ $i ] }->[ 1 ]->{ $unique_words[ $i ] } += $words->{ $unique_words[ $i ] };
+        $stem_counts->{ $stems->[ $i ] }->{ count } += $words->{ $unique_words[ $i ] };
+        $stem_counts->{ $stems->[ $i ] }->{ terms }->{ $unique_words[ $i ] } += $words->{ $unique_words[ $i ] };
     }
+
+    $self->prune_stopword_stems( $stem_counts );
 
     return $stem_counts;
 }
@@ -208,55 +224,150 @@ sub is_valid_utf8
     return $valid;
 }
 
-# get the count_stem results from one run of count_stems against a block of lines
-sub merge_block_words
+# given a list of terms, apply stemming in all languages sequentially, with consistent results
+sub stem_in_all_languages
 {
-    my ( $self, $block_words, $words ) = @_;
+    my ( $self, $stems ) = @_;
 
-    for my $stem ( keys( %{ $block_words } ) )
+    my $stems_all_languages = [ @{ $stems } ];
+
+    # sort the languages by code so that the merged stemming will always be consistent
+    my $ordered_languages = [ sort { $a->get_language_code cmp $b->get_language_code } @{ $self->language_objects } ];
+
+    map { $stems_all_languages = $_->stem( @{ $stems_all_languages } ) } @{ $ordered_languages };
+
+    return $stems_all_languages;
+}
+
+# got the stopwords from all language, stem the stopwords in all languages, then generate a single stop_stems
+# lookup hash.  we have to restem all words from all languages to make sure the stemming process of the counted
+# words is the same as the stemming process for the stopwords
+sub get_stop_stems_in_all_languages
+{
+    my ( $self ) = @_;
+
+    my $all_stopwords = [];
+    for my $language ( @{ $self->language_objects } )
     {
-        next unless ( $stem );
+        my $stopwords = $language->get_long_stop_words;
+        TRACE( sub { "get stop words " . $language->get_language_code . " " . scalar( keys( %{ $stopwords } ) ) } );
+        push( @{ $all_stopwords }, keys( %{ $stopwords } ) );
+    }
 
-        $words->{ $stem }->{ count } += $block_words->{ $stem }->[ 0 ]++;
+    my $all_stopstems = $self->stem_in_all_languages( $all_stopwords );
 
-        my $term_stem_counts = $words->{ $stem }->{ terms } ||= {};
-        for my $term ( keys( %{ $block_words->{ $stem }->[ 1 ] } ) )
+    my $stopstems = {};
+    map { $stopstems->{ $_ } = 1 } @{ $all_stopstems };
+
+    TRACE( sub { "stop stems size: " . scalar( keys( %{ $stopstems } ) ) } );
+
+    return $stopstems;
+}
+
+# return true if the stemmed version of any of the terms associated with the $stem in $stem_counts is in $stop_stems.
+# stem each of the terms using the $language object.
+sub stem_term_is_in_stop_stems
+{
+    my ( $stem, $stem_counts, $stop_stems, $language ) = @_;
+
+    my $terms = [ keys( %{ $stem_counts->{ $stem }->{ terms } } ) ];
+
+    my $stems = $language->stem( $terms );
+
+    for my $stem ( @{ $stems } )
+    {
+        return 1 if ( $stop_stems->{ $stem } );
+    }
+
+    return 0;
+}
+
+# remove stopwords from the $stem_counts
+sub prune_stopword_stems
+{
+    my ( $self, $stem_counts ) = @_;
+
+    return if ( $self->include_stopwords );
+
+    my $stop_stems = $self->get_stop_stems_in_all_languages();
+
+    for my $stem ( keys( %{ $stem_counts } ) )
+    {
+        if ( ( length( $stem ) < 3 ) || $stop_stems->{ $stem } )
         {
-            $term_stem_counts->{ $term } += $block_words->{ $stem }->[ 1 ]->{ $term };
+            delete( $stem_counts->{ $stem } );
         }
     }
 }
 
-# stopword counts by list of languages
-sub get_stopworded_counts
+# guess the languages to be the language of the whole body of text plus all distinct languages for individual sentences.
+# if no language is detected for the text of any sentence, default to 'en'.  append these default languages to the
+# specified list of languages.
+sub set_default_languages($$)
 {
-    my ( $self, $words ) = @_;
+    my ( $self, $sentences ) = @_;
 
-    return $words if ( $self->include_stopwords );
+    # our cld language detection mis-identifies english as other languages enough that we should always include 'en'
+    my $language_lookup = { 'en' => 1 };
 
-    for my $lang ( @{ $self->languages } )
+    map { $language_lookup->{ $_ } = 1 } @{ $self->languages } if ( $self->languages );
+
+    my $story_text = join( "\n", grep { $_ } @{ $sentences } );
+    my $story_language = MediaWords::Util::IdentifyLanguage::language_code_for_text( $story_text );
+
+    $language_lookup->{ $story_language } = 1;
+
+    my $sentence_language_counts = {};
+    for my $sentence ( @{ $sentences } )
     {
-        my $language = MediaWords::Languages::Language::language_for_code( $lang );
-
-        next unless ( $language );
-
-        my $stopstems = $language->get_long_stop_word_stems();
-
-        my $stopworded_words = [];
-        for my $word ( @{ $words } )
-        {
-            next if ( length( $word->{ stem } ) < 3 );
-
-            # we have restem the word because solr uses a different stemming implementation
-            my $stem = $language->stem( $word->{ term } )->[ 0 ];
-
-            push( @{ $stopworded_words }, $word ) unless ( $stopstems->{ $stem } );
-        }
-
-        $words = $stopworded_words;
+        my $sentence_language = MediaWords::Util::IdentifyLanguage::language_code_for_text( $sentence );
+        $sentence_language_counts->{ $sentence_language }++ if ( $sentence_language );
     }
 
-    return $words;
+    my $total_sentence_count = scalar( @{ $sentences } );
+    while ( my ( $language, $language_count ) = each( %{ $sentence_language_counts } ) )
+    {
+        $language_lookup->{ $language } = 1 if ( ( $language_count / $total_sentence_count ) > $MIN_LANGUAGE_LEVEL );
+    }
+
+    my $languages = [ keys( %{ $language_lookup } ) ];
+
+    DEBUG( sub { "default_languages: " . join( ', ', @{ $languages } ) } );
+
+    $self->languages( $languages );
+}
+
+# set langauge_objects to point to a list of MediaWords::Languages::Language objects for each language in
+# $self->languages
+sub set_language_objects
+{
+    my ( $self ) = @_;
+
+    return if ( $self->language_objects );
+
+    DEBUG( sub { "set_language_objects all: " . join( ', ', @{ $self->languages } ) } );
+
+    my $language_objects = [];
+    for my $language_code ( @{ $self->languages } )
+    {
+        my $language_object = MediaWords::Languages::Language::language_for_code( $language_code );
+
+        push( @{ $language_objects }, $language_object ) if ( $language_object );
+    }
+
+    if ( !@{ $language_objects } )
+    {
+        WARN( "set_langage_objects: falling back to english" );
+        push( @{ $language_objects }, MediaWords::Languages::Language::language_for_code( 'en' ) );
+    }
+
+    DEBUG(
+        sub {
+            "set_language_objects supported: " . join( ', ', map { $_->get_language_code } @{ $language_objects } );
+        }
+    );
+
+    $self->language_objects( $language_objects );
 }
 
 # connect to solr server directly and count the words resulting from the query
@@ -264,11 +375,7 @@ sub get_words_from_solr_server
 {
     my ( $self ) = @_;
 
-    $self->languages( [ 'en' ] ) unless ( $self->languages && @{ $self->languages } );
-
     return [] unless ( $self->q() || ( $self->fq && @{ $self->fq } ) );
-
-    my $start_generation_time = time();
 
     my $solr_params = {
         q    => $self->q(),
@@ -278,36 +385,25 @@ sub get_words_from_solr_server
         sort => 'random_1 asc'
     };
 
-    # print STDERR "executing solr query ...\n";
-    # print STDERR Dumper( $solr_params );
+    DEBUG( "executing solr query ..." );
+    DEBUG( sub { Dumper( $solr_params ) } );
     my $data = MediaWords::Solr::query( $self->db, $solr_params );
 
     my $sentences_found = $data->{ response }->{ numFound };
     my @sentences = map { $_->{ sentence } } @{ $data->{ response }->{ docs } };
 
-    # print STDERR "counting sentences...\n";
-    my $block_words = $self->count_stems( \@sentences );
+    $self->set_default_languages( \@sentences );
 
-    my $words = {};
-    $self->merge_block_words( $block_words, $words );
+    DEBUG( "counting sentences..." );
+    my $words = $self->count_stems( \@sentences );
 
-    my $merge_end_time = time;
-
-    # print STDERR "generating word list ...\n";
     my @word_list;
     while ( my ( $stem, $count ) = each( %{ $words } ) )
     {
         push( @word_list, [ $stem, $count->{ count } ] );
     }
 
-    # print STDERR "sorting ...\n";
     @word_list = sort { $b->[ 1 ] <=> $a->[ 1 ] } @word_list;
-
-    # print STDERR "cutting list ...\n";
-    my $m = ( 1 + @{ $self->languages } );
-    my $num_pre_sw_words = ( 1000 * $m ) + ( $self->num_words * $m );
-
-    #splice( @word_list, $num_pre_sw_words );
 
     my $counts = [];
     for my $w ( @word_list )
@@ -325,14 +421,12 @@ sub get_words_from_solr_server
 
         if ( !$self->is_valid_utf8( $w->[ 0 ] ) || !$self->is_valid_utf8( $max_term ) )
         {
-            print STDERR "invalid utf8: $w->[ 0 ] / $max_term\n";
+            WARN( "invalid utf8: $w->[ 0 ] / $max_term" );
             next;
         }
 
         push( @{ $counts }, { stem => $w->[ 0 ], count => $w->[ 1 ], term => $max_term } );
     }
-
-    $counts = $self->get_stopworded_counts( $counts, $self->languages );
 
     splice( @{ $counts }, $self->num_words );
 

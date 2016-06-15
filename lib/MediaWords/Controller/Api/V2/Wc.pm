@@ -1,8 +1,7 @@
 package MediaWords::Controller::Api::V2::Wc;
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use MediaWords::DBI::StorySubsets;
 use strict;
 use warnings;
 use base 'Catalyst::Controller';
@@ -34,7 +33,7 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
 __PACKAGE__->config( action => { list_GET => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] }, } );
 
-sub list : Local : ActionClass('REST')
+sub list : Local : ActionClass('MC_REST')
 {
 }
 

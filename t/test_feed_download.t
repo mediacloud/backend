@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 use Data::Dumper;
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 
 #
 # Basic sanity test of crawler functionality
@@ -26,14 +26,13 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
-use Test::More tests => 97;
+use Test::More tests => 93;
 use Test::Differences;
 use Test::Deep;
 require Test::NoWarnings;
 
 use MediaWords::Crawler::Engine;
 use MediaWords::DBI::DownloadTexts;
-use MediaWords::DBI::MediaSets;
 use MediaWords::DBI::Stories;
 use MediaWords::Test::DB;
 use MediaWords::Test::Data;
@@ -50,19 +49,11 @@ sub add_test_feed
 {
     my ( $db, $url_to_crawl ) = @_;
 
-    Readonly my $sw_data_start_date => '2008-02-03';
-    Readonly my $sw_data_end_date   => '2014-02-27';
-
     my $test_medium = $db->query(
-        "insert into media (name, url, moderated, sw_data_start_date, sw_data_end_date) values (?, ?, ?, ?, ?) returning *",
-        '_ Crawler Test', $url_to_crawl, 0, $sw_data_start_date, $sw_data_end_date
+        "insert into media (name, url, moderated) values (?, ?, ?) returning *",
+        '_ Crawler Test',
+        $url_to_crawl, 0
     )->hash;
-
-    ok( MediaWords::StoryVectors::_medium_has_story_words_start_date( $test_medium ) );
-    ok( MediaWords::StoryVectors::_medium_has_story_words_end_date( $test_medium ) );
-
-    is( MediaWords::StoryVectors::_get_story_words_start_date_for_medium( $test_medium ), $sw_data_start_date );
-    is( MediaWords::StoryVectors::_get_story_words_end_date_for_medium( $test_medium ),   $sw_data_end_date );
 
     my $feed = $db->query(
         "insert into feeds (media_id, name, url) values (?, ?, ?) returning *",
@@ -70,8 +61,6 @@ sub add_test_feed
         '_ Crawler Test',
         "$url_to_crawl" . "gv/test.rss"
     )->hash;
-
-    MediaWords::DBI::MediaSets::create_for_medium( $db, $test_medium );
 
     ok( $feed->{ feeds_id }, "test feed created" );
 
@@ -211,7 +200,7 @@ sub main
 
             my $download = MediaWords::Test::DB::create_download_for_feed( $feed, $db );
 
-            my $crawler = MediaWords::Crawler::Engine::_create_fetcher_engine_for_testing( 1 );
+            my $crawler = MediaWords::Crawler::Engine::create_fetcher_engine_for_testing( 1 );
 
             say STDERR "starting fetch_and_handle_single_download";
 
@@ -238,4 +227,3 @@ sub main
 }
 
 main();
-

@@ -3,6 +3,7 @@ use Moose;
 use namespace::autoclean;
 use MediaWords::Util::Config;
 use MediaWords::DBI::Auth;
+use MediaWords::DBI::Auth::Roles;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -346,8 +347,11 @@ sub register : Local
 
     my $user_email = $form->param_value( 'email' );
 
-    my $search_role = $db->query( "select * from auth_roles where role = 'search'" )->hash
-      || die( "Unable to find 'search' role" );
+    my $search_role = $db->query( 'SELECT * FROM auth_roles WHERE role = ?', $MediaWords::DBI::Auth::Roles::SEARCH )->hash;
+    unless ( $search_role )
+    {
+        die 'Unable to find "' . $MediaWords::DBI::Auth::Roles::SEARCH . '" role';
+    }
 
     my $user_full_name                    = $form->param_value( 'full_name' );
     my $user_notes                        = $form->param_value( 'notes' );

@@ -1,54 +1,46 @@
 package MediaWords::DBI::Stories;
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-# various helper functions for stories
+=head1 NAME
+
+Mediawords::DBI::Stories - various helper functions for stories
+
+=head1 SYNOPSIS
+
+
+=head1 DESCRIPTION
+
+This module includes various helper function for dealing with stories.
+
+=cut
 
 use strict;
+use warnings;
 
 use Carp;
 use Encode;
+use File::Temp;
+use FileHandle;
 use HTML::Entities;
-
-use MediaWords::Util::HTML;
-use MediaWords::Util::Web;
-use MediaWords::Util::Config;
-use MediaWords::Util::Tags;
-use MediaWords::Util::URL;
-use MediaWords::DBI::Downloads;
-use MediaWords::Languages::Language;
-use MediaWords::StoryVectors;
 use List::Compare;
 
-# cached ids of tags, which should change rarely
-my $_tags_id_cache = {};
+use MediaWords::DBI::Downloads;
+use MediaWords::DBI::Stories::ExtractorVersion;
+use MediaWords::DBI::Stories::ExtractorArguments;
+use MediaWords::Languages::Language;
+use MediaWords::Solr::WordCounts;
+use MediaWords::StoryVectors;
+use MediaWords::Util::Bitly::Schedule;
+use MediaWords::Util::Config;
+use MediaWords::Util::HTML;
+use MediaWords::Util::Tags;
+use MediaWords::Util::URL;
+use MediaWords::Util::Web;
 
-# get cached id of the tag.  create the tag if necessary.
-# we need this to make tag lookup very fast for add_default_tags
-sub _get_tags_id
-{
-    my ( $db, $tag_sets_id, $term ) = @_;
+=head1 FUNCTIONS
 
-    if ( $_tags_id_cache->{ $tag_sets_id }->{ $term } )
-    {
-        return $_tags_id_cache->{ $tag_sets_id }->{ $term };
-    }
-
-    my $tag = $db->find_or_create(
-        'tags',
-        {
-            tag         => $term,
-            tag_sets_id => $tag_sets_id
-        }
-    );
-
-    #Commit to make sure cache and database are consistent
-    $db->dbh->{ AutoCommit } || $db->commit;
-
-    $_tags_id_cache->{ $tag_sets_id }->{ $term } = $tag->{ tags_id };
-
-    return $tag->{ tags_id };
-}
+=cut
 
 sub _get_full_text_from_rss
 {
@@ -59,7 +51,12 @@ sub _get_full_text_from_rss
     return $ret;
 }
 
-# get the combined story title, story description, and download text of the text
+=head2 combine_story_title_description_text( $story_title, $story_description, $download_texts )
+
+Get the combined story title, story description, and download text of the story in a consistent way.
+
+=cut
+
 sub combine_story_title_description_text($$$)
 {
     my ( $story_title, $story_description, $download_texts ) = @_;
@@ -72,12 +69,20 @@ sub combine_story_title_description_text($$$)
     );
 }
 
-# get the concatenation of the story title and description and all of the download_texts associated with the story
+=head2 get_text
+
+Get the concatenation of the story title and description and all of the download_texts associated with the story
+in a consistent way.
+
+If full_text_rss is true for the medium, just return the concatenation of the story title and description.
+
+=cut
+
 sub get_text
 {
     my ( $db, $story ) = @_;
 
-    if ( _has_full_text_rss( $db, $story ) )
+    if ( $story->{ full_text_rss } )
     {
         return _get_full_text_from_rss( $db, $story );
     }
@@ -113,35 +118,57 @@ EOF
     return combine_story_title_description_text( $story->{ title }, $story->{ description }, $download_texts );
 }
 
-# Like get_text but it doesn't include both the rss information and the extracted text.
-# Including both could cause some sentences to appear twice and throw off our word counts.
+=head2 get_text_for_word_counts( $db, $story )
+
+Like get_text but it doesn't include both title + description and the extracted text.  This is what is used to fetch
+text to generate story_sentences, which eventually get imported into solr.
+
+If the text of the story ends up being shorter than the description, return the title + description instead of the
+story text (some times the extractor falls down and we end up with better data just using the title + description .
+
+=cut
+
 sub get_text_for_word_counts
 {
     my ( $db, $story ) = @_;
 
-    if ( _has_full_text_rss( $db, $story ) )
+    my $story_text = $story->{ full_text_rss } ? _get_full_text_from_rss( $db, $story ) : get_extracted_text( $db, $story );
+
+    my $story_description = $story->{ description } || '';
+
+    if ( ( length( $story_text ) == 0 ) || ( length( $story_text ) < length( $story_description ) ) )
     {
-        return _get_full_text_from_rss( $db, $story );
+        $story_text = html_strip( $story->{ title } );
+        if ( $story->{ description } )
+        {
+            $story_text .= '.' unless ( $story_text =~ /\.\s*$/ );
+            $story_text .= html_strip( $story->{ description } );
+        }
     }
 
-    return get_extracted_text( $db, $story );
+    return $story_text;
 }
+
+=head2 get_first_download( $db, $download )
+
+Get the first download linking to this story.
+
+=cut
 
 sub get_first_download
 {
     my ( $db, $story ) = @_;
 
-    return $db->query(
-        <<"EOF",
-        SELECT *
-        FROM downloads
-        WHERE stories_id = ?
-        ORDER BY sequence ASC
-        LIMIT 1
-EOF
-        $story->{ stories_id }
-    )->hash();
+    return $db->query( <<SQL, $story->{ stories_id } )->hash;
+SELECT * FROM downloads WHERE stories_id = ? ORDER BY sequence ASC LIMIT 1
+SQL
 }
+
+=head2 is_fully_extracted( $db, $story )
+
+Return true if all downloads linking to this story have been extracted.
+
+=cut
 
 sub is_fully_extracted
 {
@@ -156,17 +183,14 @@ EOF
         $story->{ stories_id }
     )->flat();
 
-    say STDERR "is_fully_extracted query returns $bool [$story->{ stories_id }]";
-
-    if ( defined( $bool ) && $bool )
-    {
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
+    return ( defined( $bool ) && $bool ) ? 1 : 0;
 }
+
+=head2 get_content_for_first_download( $db, $story )
+
+Call fetch_content on the result of get_first_download().  Return undef if the download's state is not null.
+
+=cut
 
 sub get_content_for_first_download($$)
 {
@@ -174,11 +198,9 @@ sub get_content_for_first_download($$)
 
     my $first_download = get_first_download( $db, $story );
 
-    say STDERR "got first_download " . Dumper( $first_download );
-
     if ( $first_download->{ state } ne 'success' )
     {
-        say STDERR "First download's state is not 'success' for story " . $story->{ stories_id };
+        DEBUG( sub { "First download's state is not 'success' for story " . $story->{ stories_id } } );
         return;
     }
 
@@ -187,11 +209,17 @@ sub get_content_for_first_download($$)
     return $content_ref;
 }
 
+=head2 get_existing_tags( $db, $story, $tag_set_name )
+
+Get tags belonging to the tag set with the given name and associated with this story.
+
+=cut
+
 sub get_existing_tags
 {
-    my ( $db, $story, $module ) = @_;
+    my ( $db, $story, $tag_set_name ) = @_;
 
-    my $tag_set = $db->find_or_create( 'tag_sets', { name => $module } );
+    my $tag_set = $db->find_or_create( 'tag_sets', { name => $tag_set_name } );
 
     my $ret = $db->query(
         <<"EOF",
@@ -208,6 +236,12 @@ EOF
 
     return $ret;
 }
+
+=head2 get_existing_tags_as_string( $db, $stories_id )
+
+Get list of tags associated with the story in 'tag_set_name:tag' format.
+
+=cut
 
 sub get_existing_tags_as_string
 {
@@ -244,41 +278,23 @@ EOF
     return $tags;
 }
 
-sub get_media_source_for_story
-{
-    my ( $db, $story ) = @_;
+=head2 update_rss_full_text_field( $db, $story )
 
-    my $medium = $db->query(
-        <<"EOF",
-        SELECT *
-        FROM media
-        WHERE media_id = ?
-EOF
-        $story->{ media_id }
-    )->hash;
+Set stories.full_text_rss to the value of the medium's full_text_rss field.  If the new value is different than
+$story->{ full_text_rss }, update the value in the db.
 
-    return $medium;
-}
+=cut
 
 sub update_rss_full_text_field
 {
     my ( $db, $story ) = @_;
 
-    my $medium = get_media_source_for_story( $db, $story );
+    my $medium = $db->query( "select * from media where media_id = ?", $story->{ media_id } )->hash;
 
-    my $full_text_in_rss = 0;
-
-    if ( $medium->{ full_text_rss } )
-    {
-        $full_text_in_rss = 1;
-    }
+    my $full_text_in_rss = ( $medium->{ full_text_rss } ) ? 1 : 0;
 
     #This is a temporary hack to work around a bug in XML::FeedPP
-    # Item description() will sometimes return a hash instead of text. In Handler.pm we replaced the hash ref with ''
-    if ( defined( $story->{ description } ) && ( length( $story->{ description } ) == 0 ) )
-    {
-        $full_text_in_rss = 0;
-    }
+    $full_text_in_rss = 0 if ( defined( $story->{ description } ) && ( length( $story->{ description } ) == 0 ) );
 
     if ( defined( $story->{ full_text_rss } ) && ( $story->{ full_text_rss } != $full_text_in_rss ) )
     {
@@ -296,14 +312,12 @@ EOF
     return $story;
 }
 
-sub _has_full_text_rss
-{
-    my ( $db, $story ) = @_;
+=head2 fetch_content( $db, $story )
 
-    return $story->{ full_text_rss };
-}
+Fetch the content of the first download of the story.
 
-# query the download and call fetch_content
+=cut
+
 sub fetch_content($$)
 {
     my ( $db, $story ) = @_;
@@ -313,6 +327,7 @@ sub fetch_content($$)
         SELECT *
         FROM downloads
         WHERE stories_id = ?
+        order by downloads_id
 EOF
         $story->{ stories_id }
     )->hash;
@@ -320,7 +335,12 @@ EOF
     return $download ? MediaWords::DBI::Downloads::fetch_content( $db, $download ) : \'';
 }
 
-# get the tags for the given module associated with the given story from the db
+=head2 get_db_module_tags( $db, $story, $module )
+
+Get the tags for the given module associated with the given story from the db
+
+=cut
+
 sub get_db_module_tags
 {
     my ( $db, $story, $module ) = @_;
@@ -345,6 +365,12 @@ EOF
     )->hashes;
 }
 
+=head2 get_extracted_text( $db, $story )
+
+Return the concatenated download_texts associated with the story.
+
+=cut
+
 sub get_extracted_text
 {
     my ( $db, $story ) = @_;
@@ -364,7 +390,12 @@ EOF
     return join( ".\n\n", map { $_->{ download_text } } @{ $download_texts } );
 }
 
-## TODO rename this function
+=head2 get_extracted_html_from_db( $db, $story )
+
+Get extracted html for the story by using existing text extraction results.
+
+=cut
+
 sub get_extracted_html_from_db
 {
     my ( $db, $story ) = @_;
@@ -378,139 +409,28 @@ END
     return join( "\n", map { MediaWords::DBI::DownloadTexts::get_extracted_html_from_db( $db, $_ ) } @{ $download_texts } );
 }
 
-sub get_first_download_for_story
-{
-    my ( $db, $story ) = @_;
+=head2 is_new( $db, $story )
 
-    my $download = $db->query(
-        <<"EOF",
-        SELECT *
-        FROM downloads
-        WHERE stories_id = ?
-        ORDER BY downloads_id ASC
-        LIMIT 1
-EOF
-        $story->{ stories_id }
-    )->hash;
+Return true if this story should be considered new for the given media source.  This is used by FeedHandler to determine
+whether to add a new story for a feed item url.
 
-    return $download;
-}
+A story is new if no story with the same url or guid exists in the same media source and if no story exists with the
+same title in the same media source in the same calendar day.
 
-sub get_initial_download_content($$)
-{
-    my ( $db, $story ) = @_;
+=cut
 
-    my $download = get_first_download_for_story( $db, $story );
-
-    my $content = MediaWords::DBI::Downloads::fetch_content( $db, $download );
-
-    return $content;
-}
-
-# add a { similarities } field that holds the cosine similarity scores between each of the
-# stories to each other story.  Assumes that a { vector } has been added to each story
-# using add_word_vectors above.
-sub add_cos_similarities
-{
-    my ( $db, $stories ) = @_;
-
-    require MediaWords::Util::BigPDLVector;
-
-    unless ( scalar @{ $stories } )
-    {
-        die "'stories' is not an arrayref.";
-    }
-
-    unless ( $stories->[ 0 ]->{ vector } )
-    {
-        die "must call add_word_vectors before add_cos_similarities";
-    }
-
-    my $num_words = List::Util::max( map { scalar( @{ $_->{ vector } } ) } @{ $stories } );
-
-    if ( $num_words )
-    {
-        print STDERR "add_cos_similarities: create normalized pdl vectors ";
-        for my $story ( @{ $stories } )
-        {
-            print STDERR ".";
-            my $pdl_vector = MediaWords::Util::BigPDLVector::vector_new( $num_words );
-
-            for my $i ( 0 .. $num_words - 1 )
-            {
-                MediaWords::Util::BigPDLVector::vector_set( $pdl_vector, $i, $story->{ vector }->[ $i ] );
-            }
-            $story->{ pdl_norm_vector } = MediaWords::Util::BigPDLVector::vector_normalize( $pdl_vector );
-            $story->{ vector }          = undef;
-        }
-        print STDERR "\n";
-    }
-
-    print STDERR "add_cos_similarities: adding sims\n";
-    for my $i ( 0 .. $#{ $stories } )
-    {
-        print STDERR "sims: $i / $#{ $stories }: ";
-        $stories->[ $i ]->{ cos }->[ $i ] = 1;
-
-        for my $j ( $i + 1 .. $#{ $stories } )
-        {
-            print STDERR "." unless ( $j % 100 );
-            my $sim = 0;
-            if ( $num_words )
-            {
-                $sim = MediaWords::Util::BigPDLVector::vector_dot( $stories->[ $i ]->{ pdl_norm_vector },
-                    $stories->[ $j ]->{ pdl_norm_vector } );
-            }
-
-            $stories->[ $i ]->{ similarities }->[ $j ] = $sim;
-            $stories->[ $j ]->{ similarities }->[ $i ] = $sim;
-        }
-
-        print STDERR "\n";
-    }
-
-    map { $_->{ pdl_norm_vector } = undef } @{ $stories };
-}
-
-# Determines if similar story already exist in the database
-# Note that calling this function on stories already in the database makes no sense.
 sub is_new
 {
     my ( $dbs, $story ) = @_;
 
     my $db_story = $dbs->query( <<"END", $story->{ guid }, $story->{ media_id } )->hash;
-SELECT *
-    FROM stories
-    WHERE
-        guid = ?
-        AND media_id = ?
+SELECT * FROM stories WHERE guid = ? AND media_id = ?
 END
 
-    return 0 if ( $db_story );
+    return 0 if ( $db_story || ( $story->{ title } eq '(no title)' ) );
 
-    return 0 if ( $story->{ title } eq '(no title)' );
-
-    # TODO -- DRL not sure if assuming UTF-8 is a good idea but will experiment with this code from the gsoc_dsheets branch
-    my $title;
-
-    # This unicode decode may not be necessary! XML::Feed appears to at least /sometimes/ return
-    # character strings instead of byte strings. Decoding a character string is an error. This code now
-    # only fails if a non-ASCII byte-string is returned from XML::Feed.
-
-    # very misleadingly named function checks for unicode character string
-    # in perl's internal representation -- not a byte-string that contains UTF-8
-    # data
-
-    if ( Encode::is_utf8( $story->{ title } ) )
-    {
-        $title = $story->{ title };
-    }
-    else
-    {
-        # TODO: A utf-8 byte string is only highly likely... we should actually examine the HTTP
-        #   header or the XML pragma so this doesn't explode when given another encoding.
-        $title = decode( 'utf-8', $story->{ title } );
-    }
+    # unicode hack to deal with unicode brokenness in XML::Feed
+    my $title = Encode::is_utf8( $story->{ title } ) ? $story->{ title } : decode( 'utf-8', $story->{ title } );
 
     # we do the goofy " + interval '1 second'" to force postgres to use the stories_title_hash index
     $db_story = $dbs->query( <<END, $title, $story->{ media_id }, $story->{ publish_date } )->hash;
@@ -530,7 +450,7 @@ END
 }
 
 # re-extract the story for the given download
-sub reextract_download
+sub _reextract_download
 {
     my ( $db, $download ) = @_;
 
@@ -541,115 +461,166 @@ sub reextract_download
         return;
     }
 
-    eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, "restore", 1, 1 ); };
+    eval {
+        my $extractor_args = MediaWords::DBI::Stories::ExtractorArguments->new(
+            {
+                no_dedup_sentences => 1,
+                no_vector          => 1,
+            }
+        );
+        MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, $extractor_args );
+    };
     if ( $@ )
     {
         warn "extract error processing download $download->{ downloads_id }: $@";
     }
 }
 
-sub _get_current_extractor_version
+=head2 extract_and_process_story( $db, $story, $extractor_args )
+
+Extract all of the downloads for the given story and then call process_extracted_story();
+
+=cut
+
+sub extract_and_process_story($$$)
 {
-    my $config           = MediaWords::Util::Config::get_config;
-    my $extractor_method = $config->{ mediawords }->{ extractor_method };
+    my ( $db, $story, $extractor_args ) = @_;
 
-    my $extractor_version;
-
-    if ( $extractor_method eq 'PythonReadability' )
-    {
-        $extractor_version = MediaWords::Util::ThriftExtractor::extractor_version();
-    }
-    else
-    {
-        my $old_extractor = MediaWords::Util::ExtractorFactory::createExtractor();
-        $extractor_version = $old_extractor->extractor_version();
-    }
-
-    die unless defined( $extractor_version ) && $extractor_version;
-
-    return $extractor_version;
-}
-
-sub extract_and_process_story
-{
-    my ( $story, $db, $process_num ) = @_;
-
-    #say STDERR "Starting extract_and_process_story for " . $story->{ stories_id };
-
-    my $query = <<"EOF";
-        SELECT *
-        FROM downloads
-        WHERE stories_id = ?
-              AND type = 'content'
-        ORDER BY downloads_id ASC
-EOF
-
-    my $downloads = $db->query( $query, $story->{ stories_id } )->hashes();
+    my $downloads = $db->query( <<SQL, $story->{ stories_id } )->hashes;
+SELECT * FROM downloads WHERE stories_id = ? AND type = 'content' ORDER BY downloads_id ASC
+SQL
 
     foreach my $download ( @{ $downloads } )
     {
-        my $download_text = MediaWords::DBI::Downloads::extract_only( $db, $download );
-
-        #say STDERR "Got download_text";
+        MediaWords::DBI::Downloads::extract_and_create_download_text( $db, $download, $extractor_args );
     }
 
-    my $no_dedup_sentences = 0;
-    my $no_vector          = 0;
+    process_extracted_story( $db, $story, $extractor_args );
 
-    process_extracted_story( $story, $db, 0, 0 );
-
-    #say STDERR "Finished extract_and_process_story for " . $story->{ stories_id };
-
-    # Extraction succeeded
     $db->commit;
 }
 
-sub process_extracted_story
+# update disable_triggers for given story if needed
+sub _update_story_disable_triggers
 {
-    my ( $story, $db, $no_dedup_sentences, $no_vector ) = @_;
+    my ( $db, $story ) = @_;
 
-    unless ( $no_vector )
+    my $config_disable_triggers = MediaWords::DB::story_triggers_disabled() ? 1 : 0;
+    my $story_disable_triggers = $story->{ disable_triggers } ? 1 : 0;
+
+    if ( $config_disable_triggers != $story_disable_triggers )
     {
-        MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story, 0, $no_dedup_sentences );
+        $db->query(
+            "UPDATE stories SET disable_triggers  = ? WHERE stories_id = ?",
+            MediaWords::DB::story_triggers_disabled(),
+            $story->{ stories_id }
+        );
+    }
+}
+
+=head2 process_extracted_story( $db, $story, $extractor_args )
+
+Do post extraction story processing work: call MediaWords::StoryVectors::update_story_sentences_and_language() and queue
+corenlp annotation and bitly fetching tasks.
+
+=cut
+
+sub process_extracted_story($$$)
+{
+    my ( $db, $story, $extractor_args ) = @_;
+
+    unless ( $extractor_args->no_vector() )
+    {
+        MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story, $extractor_args );
     }
 
-    $db->query(
-        "UPDATE stories SET disable_triggers  = ? WHERE stories_id = ?",
-        MediaWords::DB::story_triggers_disabled(),
-        $story->{ stories_id }
-    );
+    _update_story_disable_triggers( $db, $story );
 
-    MediaWords::DBI::Stories::_update_extractor_version_tag( $db, $story );
+    MediaWords::DBI::Stories::ExtractorVersion::update_extractor_version_tag( $db, $story, $extractor_args );
 
     my $stories_id = $story->{ stories_id };
 
-    if (    MediaWords::Util::CoreNLP::annotator_is_enabled()
-        and MediaWords::Util::CoreNLP::story_is_annotatable( $db, $stories_id ) )
+    my $mark_story_as_processed = 0;
+    if ( $extractor_args->skip_corenlp_annotation() )
     {
-        # Story is annotatable with CoreNLP; enqueue for CoreNLP annotation
-        # (which will run mark_as_processed() on its own)
-        MediaWords::GearmanFunction::AnnotateWithCoreNLP->enqueue_on_gearman( { stories_id => $stories_id } );
-
+        # Story is not to be annotated with CoreNLP; add to "processed_stories" right away
+        DEBUG "Will mark story $stories_id as processed because it's set to be skipped for CoreNLP annotation";
+        $mark_story_as_processed = 1;
     }
     else
     {
-        # Story is not annotatable with CoreNLP; add to "processed_stories" right away
+        if (    MediaWords::Util::CoreNLP::annotator_is_enabled()
+            and MediaWords::Util::CoreNLP::story_is_annotatable( $db, $stories_id ) )
+        {
+            if ( $extractor_args->no_vector() )
+            {
+                # Story is annotatable with CoreNLP; add to CoreNLP processing queue
+                # (which will run mark_as_processed() on its own)
+                DEBUG "Adding story $stories_id to CoreNLP annotation queue...";
+                MediaWords::Job::AnnotateWithCoreNLP->add_to_queue( { stories_id => $stories_id } );
+
+                DEBUG "Won't mark story $stories_id as processed because CoreNLP worker will do that";
+                $mark_story_as_processed = 0;
+            }
+            else
+            {
+                # Story was just added to CoreNLP queue by update_story_sentences_and_language(),
+                # no need to duplicate the job -- noop
+                DEBUG "Won't mark story $stories_id as processed because CoreNLP worker will do that";
+                $mark_story_as_processed = 0;
+            }
+        }
+        else
+        {
+            # Story is not annotatable with CoreNLP; add to "processed_stories" right away
+            DEBUG "Will mark story $stories_id as processed because it's not annotatable with CoreNLP";
+            $mark_story_as_processed = 1;
+        }
+    }
+
+    if ( $mark_story_as_processed )
+    {
         unless ( MediaWords::DBI::Stories::mark_as_processed( $db, $stories_id ) )
         {
             die "Unable to mark story ID $stories_id as processed";
         }
     }
+
+    # Add to Bit.ly queue
+    unless ( $extractor_args->skip_bitly_processing() )
+    {
+        if ( MediaWords::Util::Bitly::Schedule::story_processing_is_enabled() )
+        {
+            DEBUG "Adding story $stories_id to Bit.ly processing queue...";
+            MediaWords::Util::Bitly::Schedule::add_to_processing_schedule( $db, $stories_id );
+        }
+    }
+    else
+    {
+        DEBUG "Won't process story $stories_id with Bit.ly because it's set to be skipped";
+    }
 }
+
+=head2 restore_download_content( $db, $download, $story_content )
+
+Replace the the download with the given content and reextract the download.
+
+=cut
 
 sub restore_download_content
 {
     my ( $db, $download, $story_content ) = @_;
 
     MediaWords::DBI::Downloads::store_content( $db, $download, \$story_content );
-    reextract_download( $db, $download );
+    _reextract_download( $db, $download );
 }
 
-# check to see whether the given download is broken
+=head2 download_is_broken( $db, $download )
+
+Check to see whether the given download is broken
+
+=cut
+
 sub download_is_broken($$)
 {
     my ( $db, $download ) = @_;
@@ -662,8 +633,12 @@ sub download_is_broken($$)
     return 1;
 }
 
-# for each download, refetch the content and add a { content } field with the
-# fetched content
+=head2 get_broken_download_content
+
+For each download, refetch the content and add a { content } field with the fetched content.
+
+=cut
+
 sub get_broken_download_content
 {
     my ( $db, $downloads ) = @_;
@@ -683,7 +658,13 @@ sub get_broken_download_content
     }
 }
 
-# if this story is one of the ones for which we lost the download, refetch the content_ref
+=head2 fix_story_downloads_if_needed( $db, $story )
+
+If this story is one of the ones for which we lost the download content, refetch, restore, and reextract
+the content.
+
+=cut
+
 sub fix_story_downloads_if_needed
 {
     my ( $db, $story ) = @_;
@@ -724,241 +705,12 @@ END
     }
 }
 
-# confirm that the date for the story is correct by changing the date_guess_method of the given
-# story to 'manual'
-sub confirm_date
-{
-    my ( $db, $story ) = @_;
+=head2 add_missing_story_sentences( $db, $story )
 
-    $db->query( <<END, $story->{ stories_id } );
-delete from stories_tags_map stm
-    using tags t, tag_sets ts
-    where t.tag_sets_id = ts.tag_sets_id and
-        stm.tags_id = t.tags_id and
-        ts.name = 'date_guess_method' and
-        stm.stories_id = ?
-END
+If no story_sentences exist for the story, add them.
 
-    my $t = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'date_guess_method:manual' );
-    $db->query( <<END, $story->{ stories_id }, $t->{ tags_id } );
-insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )
-END
-}
+=cut
 
-# if the date guess method is manual, remove and replace with an ;unconfirmed' method tag
-sub unconfirm_date
-{
-    my ( $db, $story ) = @_;
-
-    unless ( date_is_confirmed( $db, $story ) )
-    {
-        say STDERR "Date for story " . $story->{ stories_id } . " is not confirmed, so not unconfirming.";
-        return;
-    }
-
-    my $manual      = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'date_guess_method:manual' );
-    my $unconfirmed = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'date_guess_method:unconfirmed' );
-
-    $db->query( <<END, $story->{ stories_id }, $manual->{ tags_id } );
-delete from stories_tags_map where stories_id = ? and tags_id = ?
-END
-
-    $db->query( <<END, $story->{ stories_id }, $unconfirmed->{ tags_id } );
-insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )
-END
-
-}
-
-# return true if the date guess method is manual, which means that the date has been confirmed
-sub date_is_confirmed
-{
-    my ( $db, $story ) = @_;
-
-    my $r = $db->query( <<END, $story->{ stories_id } )->hash;
-select 1 from stories_tags_map stm, tags t, tag_sets ts
-    where stm.tags_id = t.tags_id and
-        ts.tag_sets_id = t.tag_sets_id and
-        t.tag = 'manual' and
-        ts.name = 'date_guess_method' and
-        stm.stories_id = ?
-END
-
-    return $r ? 1 : 0;
-}
-
-# return true if the date is reliable.  a date is reliable if either of the following are true:
-# * the story has one of the date_guess_method:* tags listed in reliable_methods below;
-# * no date_guess_method:* tag and no date_invalid:undateable tag is associated with the story
-# otherwise, the date is unreliable
-sub date_is_reliable
-{
-    my ( $db, $story ) = @_;
-
-    my $tags = $db->query( <<END, $story->{ stories_id } )->hashes;
-select t.tag, ts.name tag_set_name
-    from stories_tags_map stm
-        join tags t on ( stm.tags_id = t.tags_id and stm.stories_id = ? )
-        join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id and ts.name in ( 'date_guess_method', 'date_invalid' ) )
-END
-
-    my $tag_lookup = { date_guess_method => {}, date_invalid => {} };
-    for my $tag ( @{ $tags } )
-    {
-        $tag_lookup->{ $tag->{ tag_set_name } }->{ $tag->{ tag } } = 1;
-    }
-
-    my $reliable_methods =
-      [ qw(guess_by_og_article_published_time guess_by_url guess_by_url_and_date_text merged_story_rss manual) ];
-
-    if ( grep { $tag_lookup->{ date_guess_method }->{ $_ } } @{ $reliable_methods } )
-    {
-        return 1;
-    }
-
-    if ( !$tag_lookup->{ date_invalid }->{ undateable } && !%{ $tag_lookup->{ date_guess_method } } )
-    {
-        return 1;
-    }
-
-    return 0;
-}
-
-# set the undateable status of the story by adding or removing the 'date_guess_method:undateable' tage
-sub mark_undateable
-{
-    my ( $db, $story, $undateable ) = @_;
-
-    my $tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'date_invalid:undateable' );
-
-    $db->query( <<END, $story->{ stories_id } );
-delete from stories_tags_map stm
-    using tags t
-        join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
-    where
-        t.tags_id = stm.tags_id and
-        ts.name = 'date_invalid' and
-        stories_id = ?
-END
-
-    if ( $undateable )
-    {
-        $db->query( <<END, $story->{ stories_id }, $tag->{ tags_id } );
-insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )
-END
-    }
-}
-
-# return true if the story has been marked as undateable
-sub is_undateable
-{
-    my ( $db, $story ) = @_;
-
-    my $tag = $db->query( <<END, $story->{ stories_id } )->hash;
-select 1
-    from stories_tags_map stm
-        join tags t on ( stm.tags_id = t.tags_id )
-        join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
-    where
-        stm.stories_id = ? and
-        ts.name = 'date_invalid' and
-        t.tag = 'undateable'
-END
-
-    return $tag ? 1 : 0;
-}
-
-my $_date_guess_method_tag_lookup = {};
-
-# assign a tag to the story for the date guess method
-sub assign_date_guess_method
-{
-    my ( $db, $story, $date_guess_method, $no_delete ) = @_;
-
-    if ( !$no_delete )
-    {
-        for my $tag_set_name ( 'date_guess_method', 'date_invalid' )
-        {
-            $db->query( <<END, $tag_set_name, $story->{ stories_id } );
-delete from stories_tags_map stm
-    using tags t
-        join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id )
-    where
-        t.tags_id = stm.tags_id and
-        ts.name = ? and
-        stm.stories_id = ?
-END
-        }
-    }
-
-    my $tag_set_name = ( $date_guess_method eq 'undateable' ) ? 'date_invalid' : 'date_guess_method';
-    my $tag_name = "$tag_set_name:$date_guess_method";
-
-    my $date_guess_method_tag = $_date_guess_method_tag_lookup->{ $tag_name };
-    if ( !$date_guess_method_tag )
-    {
-        $date_guess_method_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, "$tag_set_name:$date_guess_method" );
-        $_date_guess_method_tag_lookup->{ $tag_name } = $date_guess_method_tag;
-    }
-
-    $db->query( <<END, $story->{ stories_id }, $date_guess_method_tag->{ tags_id } );
-insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )
-END
-
-}
-
-my $_extractor_version_tag_set;
-
-sub _get_extractor_version_tag_set
-{
-
-    my ( $db ) = @_;
-
-    if ( !defined( $_extractor_version_tag_set ) )
-    {
-        $_extractor_version_tag_set = MediaWords::Util::Tags::lookup_or_create_tag_set( $db, "extractor_version" );
-    }
-
-    return $_extractor_version_tag_set;
-}
-
-sub get_current_extractor_version_tags_id
-{
-    my ( $db ) = @_;
-
-    my $extractor_version = _get_current_extractor_version();
-    my $tag_set           = _get_extractor_version_tag_set( $db );
-
-    my $tags_id = _get_tags_id( $db, $tag_set->{ tag_sets_id }, $extractor_version );
-
-    return $tags_id;
-}
-
-# add extractor version tag
-sub _update_extractor_version_tag
-{
-    my ( $db, $story ) = @_;
-
-    my $tag_set = _get_extractor_version_tag_set( $db );
-
-    $db->query( <<END, $tag_set->{ tag_sets_id }, $story->{ stories_id } );
-delete from stories_tags_map stm
-    using tags t
-        join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id )
-    where
-        t.tags_id = stm.tags_id and
-        ts.tag_sets_id = ? and
-        stm.stories_id = ?
-END
-
-    my $tags_id = get_current_extractor_version_tags_id( $db );
-
-    $db->query( <<END, $story->{ stories_id }, $tags_id );
-insert into stories_tags_map ( stories_id, tags_id, db_row_last_updated ) values ( ?, ?, now() )
-END
-
-}
-
-# if no story_sentences exist for the story, add them
 sub add_missing_story_sentences
 {
     my ( $db, $story ) = @_;
@@ -967,13 +719,22 @@ sub add_missing_story_sentences
 
     return if ( $ss );
 
-    print STDERR "ADD SENTENCES [$story->{ stories_id }]\n";
+    INFO( sub { "ADD SENTENCES [$story->{ stories_id }]" } );
 
-    MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story, 0, 0, 1 );
+    MediaWords::StoryVectors::update_story_sentences_and_language( $db, $story );
 }
 
-# get list of all sentences in story from the extracted text and annotate each with a dup_stories_id
-# field if it is a duplicate sentence
+=head2 get_all_sentences( $db, $story )
+
+Parse sentences in story from the extracted text.  return in the form:
+
+    { sentence => $sentence, ss => $matching_story_sentence, stories_id => $stories_id }
+
+The list of returned sentences includes sentences that are deduped before storing story_sentences for each story. This
+function is useful for comparing against the stored story_sentences.
+
+=cut
+
 sub get_all_sentences
 {
     my ( $db, $story ) = @_;
@@ -1008,27 +769,22 @@ sub get_all_sentences
     my $all_sentences = [];
     for my $sentence ( @{ $raw_sentences } )
     {
-        my $ssc = $db->query( <<END, $sentence, $story->{ media_id }, $story->{ publish_date } )->hash;
-select *
-    from story_sentence_counts
-    where sentence_md5 = MD5( ? ) and
-        media_id = ? and
-        publish_week = DATE_TRUNC( 'week', ?::date )
-    limit 1
+        my $ss = $db->query( <<END, $sentence, $story->{ stories_id } )->hash;
+select * from story_sentences where sentence = \$1 and stories_id = \$2
 END
-        push( @{ $all_sentences }, { sentence => $sentence, count => $ssc, stories_id => $story->{ stories_id } } );
+
+        push( @{ $all_sentences }, { sentence => $sentence, ss => $ss, stories_id => $story->{ stories_id } } );
     }
 
     return $all_sentences;
 }
 
-# Mark the story as processed by INSERTing an entry into "processed_stories"
-#
-# Parameters:
-# * $db -- database object
-# * $stories_id -- "stories_id" to insert into "processed_stories"
-#
-# Return true on success, false on failure
+=head2 mark_as_processed( $db, $stories_id )
+
+Mark the story as processed by inserting an entry into 'processed_stories'.  Return true on success, false on failure.
+
+=cut
+
 sub mark_as_processed($$)
 {
     my ( $db, $stories_id ) = @_;
@@ -1048,12 +804,17 @@ sub mark_as_processed($$)
     }
 }
 
-# given two lists of hashes, $stories and $story_data, each with
-# a stories_id field in each row, assign each key:value pair in
-# story_data to the corresponding row in $stories.  if $list_field
-# is specified, push each the value associate with key in each matching
-# stories_id row in story_data field into a list with the name $list_field
-# in stories
+=head2 attach_story_data_to_stories( $stories, $story_data, $list_field )
+
+Given two lists of hashes, $stories and $story_data, each with
+a stories_id field in each row, assign each key:value pair in
+story_data to the corresponding row in $stories.  If $list_field
+is specified, push each the value associate with key in each matching
+stories_id row in story_data field into a list with the name $list_field
+in stories.
+
+=cut
+
 sub attach_story_data_to_stories
 {
     my ( $stories, $story_data, $list_field ) = @_;
@@ -1064,6 +825,9 @@ sub attach_story_data_to_stories
     {
         return;
     }
+
+    TRACE( sub { "stories size: " . scalar( @{ $stories } ) } );
+    TRACE( sub { "story_data size: " . scalar( @{ $story_data } ) } );
 
     my $story_data_lookup = {};
     for my $sd ( @{ $story_data } )
@@ -1084,12 +848,18 @@ sub attach_story_data_to_stories
         if ( my $sd = $story_data_lookup->{ $story->{ stories_id } } )
         {
             map { $story->{ $_ } = $sd->{ $_ } } keys( %{ $sd } );
+            TRACE( sub { "story matched: " . Dumper( $story ) } );
         }
     }
 }
 
-# call attach_story_data_to_stories_ids with a basic query that includes the fields:
-# stories_id, title, publish_date, url, guid, media_id, language, media_name
+=head2 attach_story_meta_data_to_stories( $db, $stories )
+
+Call attach_story_data_to_stories_ids with a basic query that includes the fields:
+stories_id, title, publish_date, url, guid, media_id, language, media_name.
+
+=cut
+
 sub attach_story_meta_data_to_stories
 {
     my ( $db, $stories ) = @_;
@@ -1112,7 +882,7 @@ END
 }
 
 # break a story down into parts separated by [-:|]
-sub get_title_parts
+sub _get_title_parts
 {
     my ( $title ) = @_;
 
@@ -1122,6 +892,9 @@ sub get_title_parts
     $title =~ s/\s+/ /g;
     $title =~ s/^\s+//;
     $title =~ s/\s+$//;
+
+    $title = html_strip( $title ) if ( $title =~ /\</ );
+    $title = decode_entities( $title );
 
     my $title_parts;
     if ( $title =~ m~http://[^ ]*^~ )
@@ -1143,25 +916,33 @@ sub get_title_parts
     return $title_parts;
 }
 
-# get duplicate stories within the set of stories by breaking the title
-# of each story into parts by [-:|] and looking for any such part
-# that is the sole title part for any story and is at least 4 words long and
-# is not the title of a story with a path-less url.  Any story that includes that title
-# part becames a duplicate.  return a list of duplciate story lists. do not return
-# any list of duplicates with greater than 25 duplicates for fear that the title deduping is
-# interacting with some title form in a goofy way
+=head2 get_medium_dup_stories_by_title( $db, $stories, $assume_no_home_pages )
+
+Get duplicate stories within the set of stories by breaking the title of each story into parts by [-:|] and looking for
+any such part that is the sole title part for any story and is at least 4 words long and is not the title of a story
+with a path-less url.  Any story that includes that title part becames a duplicate.  return a list of duplciate story
+lists. Do not return any list of duplicates with greater than 25 duplicates for fear that the title deduping is
+interacting with some title form in a goofy way.
+
+By default, assume that any solr title part that is less than 5 words long or that is associated with a story whose
+url has no path is a home page and therefore should not be considered as a possible duplicate title part.  If
+$assume_no_home_pages is true, treat every solr url part greater than two words as a potential duplicate title part.
+
+Don't recognize twitter stories as dups, because the tweet title is the tweet text, and we want to capture retweets.
+
+
+=cut
+
 sub get_medium_dup_stories_by_title
 {
-    my ( $db, $stories ) = @_;
+    my ( $db, $stories, $assume_no_home_pages ) = @_;
 
     my $title_part_counts = {};
     for my $story ( @{ $stories } )
     {
-        # don't try to dedup twitter stories by title, because the title of a tweet
-        # is just the tweet, and we want to capture retweets
         next if ( $_->{ url } && ( $_->{ url } =~ /https?:\/\/(twitter\.com|t\.co)/i ) );
 
-        my $title_parts = get_title_parts( $story->{ title } );
+        my $title_parts = _get_title_parts( $story->{ title } );
 
         for ( my $i = 0 ; $i < @{ $title_parts } ; $i++ )
         {
@@ -1169,17 +950,19 @@ sub get_medium_dup_stories_by_title
 
             if ( $i == 0 )
             {
-                # solo title parts that are only a few words might just be the media source name
                 my $num_words = scalar( split( / /, $title_part ) );
-                next if ( $num_words < 5 );
+                my $uri_path = MediaWords::Util::URL::get_url_path_fast( $story->{ url } );
 
-                # likewise, a solo title of a story with a url with no path is probably
-                # the media source name
-                next if ( URI->new( $story->{ url } )->path =~ /^\/?$/ );
+                # solo title parts that are only a few words might just be the media source name
+                next if ( ( $num_words < 5 ) && !$assume_no_home_pages );
+
+                # likewise, a solo title of a story with a url with no path is probably the media source name
+                next if ( ( $uri_path =~ /^\/?$/ ) && !$assume_no_home_pages );
 
                 $title_part_counts->{ $title_parts->[ 0 ] }->{ solo } = 1;
             }
 
+            # this function needs to work whether or not the story has already been inserted into the db
             my $id = $story->{ stories_id } || $story->{ guid };
 
             $title_part_counts->{ $title_part }->{ count }++;
@@ -1200,7 +983,8 @@ sub get_medium_dup_stories_by_title
             else
             {
                 my $dup_title = ( values( %{ $t->{ stories } } ) )[ 0 ]->{ title };
-                warn( "cowardly refusing to mark $num_stories stories as dups [$dup_title]" );
+
+                # warn( "cowardly refusing to mark $num_stories stories as dups [$dup_title]" );
             }
         }
     }
@@ -1208,10 +992,14 @@ sub get_medium_dup_stories_by_title
     return $duplicate_stories;
 }
 
-# get duplicate stories within the given set that are duplicates because the normalized url
-# for two given stories is the same.  return a list of story duplicate lists.  do not return
-# any list of duplicates with greater than 5 duplicates for fear that the url normalization is
-# interacting with some url form in a goofy way
+=head2 get_medium_dup_stories_by_url( $db, $stories )
+
+Get duplicate stories within the given set that are duplicates because the normalized url for two given stories is the
+same.  Return a list of story duplicate lists.  Do not return any list of duplicates with greater than 5 duplicates for
+fear that the url normalization is interacting with some url form in a goofy way
+
+=cut
+
 sub get_medium_dup_stories_by_url
 {
     my ( $db, $stories ) = @_;
@@ -1225,7 +1013,7 @@ sub get_medium_dup_stories_by_url
             next;
         }
 
-        my $nu = MediaWords::Util::URL::normalize_url_lossy( $story->{ url } )->as_string;
+        my $nu = MediaWords::Util::URL::normalize_url_lossy( $story->{ url } );
         $story->{ normalized_url } = $nu;
         push( @{ $url_lookup->{ $nu } }, $story );
     }
@@ -1233,7 +1021,12 @@ sub get_medium_dup_stories_by_url
     return [ grep { ( @{ $_ } > 1 ) && ( @{ $_ } < 6 ) } values( %{ $url_lookup } ) ];
 }
 
-# get duplicate stories within the given set that have duplicate guids
+=head2 get_medium_dup_stories_by_guid( $db, $stories )
+
+Get duplicate stories within the given set that have duplicate guids
+
+=cut
+
 sub get_medium_dup_stories_by_guid
 {
     my ( $db, $stories ) = @_;
@@ -1248,36 +1041,179 @@ sub get_medium_dup_stories_by_guid
     return [ grep { @{ $_ } > 1 } values( %{ $guid_lookup } ) ];
 }
 
-# parse the content for tags that might indicate the story's title
-sub get_story_title_from_content
+# get a postgres cursor that will return the concatenated story_sentences for each of the given stories_ids.  use
+# $sentence_separator to join the sentences for each story.
+sub _get_story_word_matrix_cursor($$$)
 {
-    my ( $content, $url ) = @_;
+    my ( $db, $stories_ids, $sentence_separator ) = @_;
 
-    my $title;
+    my $cursor = 'story_text';
 
-    if ( $content =~ m~<meta property=\"og:title\" content=\"([^\"]+)\"~si )
+    my $ids_table = $db->get_temporary_ids_table( $stories_ids );
+    $db->query( <<SQL, $sentence_separator );
+declare story_text cursor for
+    select stories_id, language, string_agg( sentence, \$1 ) $cursor
+        from story_sentences
+        where stories_id in ( select id from $ids_table )
+        group by stories_id, language
+SQL
+
+    return $cursor;
+}
+
+# give a file in the form returned by get_story_word_matrix_file() but missing trailing 0s in some lines, pad all lines
+# that have fewer than the size of $word_list with enough additional 0's to make all lines have $num_items items.
+sub _pad_story_word_matrix_file($$)
+{
+    my ( $unpadded_file, $word_list ) = @_;
+
+    my $num_items = @{ $word_list } + 1;
+
+    my $unpadded_fh = FileHandle->new( $unpadded_file ) || die( "Unable to open file '$unpadded_file': $!" );
+
+    my ( $padded_fh, $padded_file ) = File::Temp::tempfile;
+
+    while ( my $line = <$unpadded_fh> )
     {
-        $title = $1;
-    }
-    elsif ( $content =~ m~<meta property=\"og:title\" content=\'([^\']+)\'~si )
-    {
-        $title = $1;
-    }
-    elsif ( $content =~ m~<title>([^<]+)</title>~si )
-    {
-        $title = $1;
-    }
-    else
-    {
-        $title = $url;
+        chomp( $line );
+        my $items = [ split( ',', $line ) ];
+
+        if ( scalar( @{ $items } ) < $num_items )
+        {
+            $line .= ",0" x ( $num_items - scalar( @{ $items } ) );
+        }
+
+        $padded_fh->print( "$line\n" );
     }
 
-    if ( length( $title ) > 1024 )
+    $padded_fh->close();
+    $unpadded_fh->close();
+
+    return $padded_file;
+}
+
+# remove stopwords from the $stem_count list, using the $language and stop word $length
+sub _remove_stopwords_from_stem_vector($$$)
+{
+    my ( $stem_counts, $language_code, $length ) = @_;
+
+    return unless ( $language_code && $length );
+
+    my $language = MediaWords::Languages::Language::language_for_code( $language_code ) || return;
+
+    my $stop_words = $language->get_stop_word_stems( $length );
+
+    map { delete( $stem_counts->{ $_ } ) if ( $stop_words->{ $_ } ) } keys( %{ $stem_counts } );
+}
+
+=head2 get_story_word_matrix_file( $db, $stories_ids, $max_words, $stopword_length )
+
+Given a list of stories_ids, generate a matrix consisting of the vector of word stem counts for each stories_id on each
+line.  Return a hash of story word counts and a list of word stems.
+
+The list of story word counts is in the following format:
+{
+    { <stories_id> =>
+        { <word_id_1> => <count>,
+          <word_id_2 => <count>
+        }
+    },
+    ...
+]
+
+The id of each word is the indes of the given word in the word list.  The word list is a list of lists, with each
+member list consisting of the stem followed by the most commonly used term.
+
+For example, for stories_ids 1 and 2, both of which contain 4 mentions of 'foo' and 10 of 'bars', the word count
+has and and word list look like:
+
+[ { 1 => { 0 => 4, 1 => 10 } }, { 2 => { 0 => 4, 1 => 10 } } ]
+
+[ [ 'foo', 'foo' ], [ 'bar', 'bars' ] ]
+
+The story_sentences for each story will be used for word counting. If $max_words is specified, only the most common
+$max_words will be used for each story.
+
+If $stopword_length is specified, a stopword list of size 'tiny', 'short', or 'long' is used for each story language.
+
+The function uses MediaWords::Util::IdentifyLanguage to identify the stemming and stopwording language for each story.
+If the language of a given story is not supported, stemming and stopwording become null operations.  For the list of
+languages supported, see @MediaWords::Langauges::Language::_supported_languages.
+
+=cut
+
+sub get_story_word_matrix($$;$$)
+{
+    my ( $db, $stories_ids, $max_words, $stopword_length ) = @_;
+
+    my $word_index_lookup   = {};
+    my $word_index_sequence = 0;
+    my $word_term_counts    = {};
+
+    $db->begin;
+    my $sentence_separator = 'SPLITSPLIT';
+    my $story_text_cursor = _get_story_word_matrix_cursor( $db, $stories_ids, $sentence_separator );
+
+    my $word_matrix = {};
+    while ( my $stories = $db->query( "fetch 100 from $story_text_cursor" )->hashes )
     {
-        $title = substr( $title, 0, 1024 );
+        last unless ( @{ $stories } );
+
+        for my $story ( @{ $stories } )
+        {
+            my $wc = MediaWords::Solr::WordCounts->new( language => $story->{ language } );
+            $wc->include_stopwords( 1 );
+            $wc->languages( [ $story->{ language } ] );
+
+            my $stem_counts = $wc->count_stems( [ split( $sentence_separator, $story->{ story_text } ) ] );
+
+            _remove_stopwords_from_stem_vector( $stem_counts, $story->{ language }, $stopword_length );
+
+            my $stem_count_list = [];
+            while ( my ( $stem, $data ) = each( %{ $stem_counts } ) )
+            {
+                push( @{ $stem_count_list }, [ $stem, $data->{ count }, $data->{ terms } ] );
+            }
+
+            if ( $max_words )
+            {
+                $stem_count_list = [ sort { $b->[ 1 ] <=> $a->[ 1 ] } @{ $stem_count_list } ];
+                splice( @{ $stem_count_list }, 0, $max_words );
+            }
+
+            my $stem_vector = {};
+            for my $stem_count ( @{ $stem_count_list } )
+            {
+                my ( $stem, $count, $terms ) = @{ $stem_count };
+
+                $word_index_lookup->{ $stem } //= $word_index_sequence++;
+                my $index = $word_index_lookup->{ $stem };
+
+                $stem_vector->{ $index } = $count;
+
+                map { $word_term_counts->{ $stem }->{ $_ } += $terms->{ $_ } } keys( %{ $terms } );
+            }
+
+            $word_matrix->{ $story->{ stories_id } } = $stem_vector;
+        }
     }
 
-    return $title;
+    $db->commit;
+
+    my $word_list = [];
+    for my $stem ( keys( %{ $word_index_lookup } ) )
+    {
+        my $term_pairs = [];
+        while ( my ( $term, $count ) = each( %{ $word_term_counts->{ $stem } } ) )
+        {
+            push( @{ $term_pairs }, [ $term, $count ] );
+        }
+
+        $term_pairs = [ sort { $b->[ 1 ] <=> $a->[ 1 ] } @{ $term_pairs } ];
+        $word_list->[ $word_index_lookup->{ $stem } ] = [ $stem, $term_pairs->[ 0 ]->[ 0 ] ];
+    }
+
+    return ( $word_matrix, $word_list );
 }
 
 1;

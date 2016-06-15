@@ -24,14 +24,14 @@ $(document).ready(function () {
 
     $("#confirmDialog").dialog("open");
   });
-  
+
 });
 </script>
 
 <div id="confirmDialog">
     <p>
-        Are you sure you want to remove the story from the [% controversy.name | html %] controversy?  
-        After removal, the story will still appear in existing dumps, but it will not be in live views 
+        Are you sure you want to remove the story from the [% controversy.name | html %] controversy?
+        After removal, the story will still appear in existing dumps, but it will not be in live views
         or new dumps of the controversy.
     </p>
     <p>
@@ -45,63 +45,25 @@ $(document).ready(function () {
 
 <div id="warning_box">
 
+<p>
 [% IF live %]
 You are viewing the live story, as it currently exists in the database.
 [% ELSE %]
 
-This page is displaying a frozen snapshot of the [% story.title | html %] story, as it existed in the [% cdts_date_range | html %] [% cdts.period | html %] time slice from the [% datetime.format( controversy_dump.dump_date ) %] dump of the [% controversy.name %] controversy.  Because this data is a frozen snapshot, edits to this story will not appear on this page.  Links and link counts are only for links that occur during [% cdts_date_range %].  
-
-<p>
-[% IF live_story_diffs %]
-<b>
-This story differs in the following ways from the live version: [% live_story_diffs %].
-</b>
-[% ELSE %]
-This story is the same as the live version.
-[% END %]
-
-The details of stories (but not links) below may be different. 
-
-[% IF live_story %]
-    [% live_story_url = 
-        c.uri_for( '/admin/cm/story/' _ story.stories_id, 
-                   { c => controversy.controversies_id, 
-                     cdts => cdts.controversy_dump_time_slices_id,
-                     l => 1 } ) %]
-To view the live version of this story, go <a href="[%  live_story_url  | html %]">here</a>.
+This page is displaying a frozen snapshot of the [% story.title | html %] story, as it existed in the [% cdts_date_range |
+html %] [% cdts.period | html %] time slice from the [% datetime.format( controversy_dump.dump_date ) %] dump of the [%
+controversy.name %] controversy.  Because this data is a frozen snapshot, edits to this story will not appear on this
+page, and changes made since the snapshot will not be visible.
 [% END %]
 </p>
-
-[% IF latest_controversy_dump %]
-<p>
-This is not the latest dump of this controversy, created [% datetime.format( latest_controversy_dump.dump_date ) | html %].  To view the latest dump, go <a href="[% c.uri_for( '/admin/cm/view_dump/' _ latest_controversy_dump.controversy_dumps_id ) | html %]">here</a>.
-</p>
-[% END %]
-
-[% END %]
 
 </div>
-
-[% MACRO live_story_diff( field )
-       IF !live && live_story;
-            IF story.$field != live_story.$field;
-                '(live: ' _ live_story.$field _ ' )';
-            END;
-       END;
-%]
-[% MACRO live_story_date_diff( field )
-       IF !live && live_story;
-            IF story.publish_date != live_story.publish_date;
-                '(live: ' _ datetime.format( live_story.publish_date ) _ ' )';
-            END;
-       END;
-%]
 
 [% medium_url = c.uri_for( "/admin/cm/medium/$story.media_id", { cdts => cdts.cdts_id, l => live } ) %]
 [% remove_story_url = c.uri_for( "/admin/cm/remove_stories", { stories_ids => story.stories_id, cdts => cdts.cdts_id, l => live } ) %]
 [% merge_story_url = c.uri_for( "/admin/cm/merge_stories/$story.stories_id", { cdts => cdts.cdts_id } ) %]
 [% edit_story_url = c.uri_for( "/admin/stories/edit/$story.stories_id" ) %]
-                                   
+
 <div class="boxtitle">
     Basic Data for [% story.title | truncate( 96 ) | html %] [% IF cdts %] in [% cdts_date_range %] Time Slice[% END %]
     <a class="boxcommand remove_story" href="[% remove_story_url | html %]">remove</a>
@@ -115,7 +77,7 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
     <tr>
         <td>Title</td>
         <td>
-            [% story.title | truncate( 128 )| html %] [% live_story_diff( 'title' ) | html %]
+            [% story.title | truncate( 128 )| html %]
         </td>
     </tr>
     <tr>
@@ -127,15 +89,14 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
             [% IF story.undateable %]
                 undateable story
             [% ELSE %]
-                [% datetime.format( story.publish_date ) %] 
+                [% datetime.format( story.publish_date ) %]
             [% END %]
-            
+
             [% IF story.date_is_reliable %]
                 (reliable)
             [% ELSE %]
                 (unreliable - <a href="[% c.uri_for( '/admin/stories/edit/' _ story.stories_id ) | html %]">check now</a>)
             [% END %]
-            [% live_story_date_diff() | html %]
         </td>
     </tr>
     <tr>
@@ -145,10 +106,10 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
         <td>Media Type</td><td>[% story.medium.media_type | html %]</td>
     </tr>
     <tr>
-        <td># Incoming Story Links</td><td>[% story.inlink_count %] [% live_story_diff( 'inlink_count' ) | html %]</td>
+        <td># Incoming Story Links</td><td>[% story.inlink_count %] </td>
     </tr>
     <tr>
-        <td># Outgoing Story Links</td><td>[% story.outlink_count %] [% live_story_diff( 'outlink_count' ) | html %]</td>
+        <td># Outgoing Story Links</td><td>[% story.outlink_count %]</td>
     </tr>
     <tr>
         <td>Controversy Field Matched</td>
@@ -157,7 +118,7 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
 
 </table>
 
-[% INCLUDE cm/stories_table.tt2 
+[% INCLUDE cm/stories_table.tt2
     display_stories = story.inlink_stories
     display_stories_short_title = controversy.name _ " Stories Linking to this Story"
     display_stories_full_title = controversy.name _ " Stories Linking to Story " _ story.title
@@ -188,4 +149,3 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
 
 
 [% INCLUDE include/footer.tt2 %]
-

@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 use Data::Dumper;
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 
 # basic sanity test of crawler functionality
 
@@ -22,7 +22,6 @@ require Test::NoWarnings;
 
 use MediaWords::Crawler::Engine;
 use MediaWords::DBI::DownloadTexts;
-use MediaWords::DBI::MediaSets;
 use MediaWords::DBI::Stories;
 use MediaWords::Test::DB;
 use MediaWords::Test::Data;

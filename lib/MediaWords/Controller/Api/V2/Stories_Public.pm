@@ -1,8 +1,6 @@
 package MediaWords::Controller::Api::V2::Stories_Public;
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
-
-use MediaWords::DBI::StorySubsets;
 
 use strict;
 use warnings;
@@ -22,6 +20,14 @@ BEGIN
     extends 'MediaWords::Controller::Api::V2::StoriesBase'    # private
 }
 
+__PACKAGE__->config(                                          #
+    action => {                                               #
+        single_GET => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
+        list_GET   => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
+        count_GET  => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },    #
+      }    #
+);         #
+
 sub has_extra_data
 {
     return 0;
@@ -30,7 +36,22 @@ sub has_extra_data
 sub permissible_output_fields
 {
     return [
-        qw ( stories_id title language media_id media_name media_url processed_stories_id url guid publish_date collect_date story_tags )
+        qw/
+          stories_id
+          title
+          language
+          media_id
+          media_name
+          media_url
+          processed_stories_id
+          url
+          guid
+          publish_date
+          collect_date
+          story_tags
+          bitly_click_count
+          ap_syndicated
+          /
     ];
 }
 

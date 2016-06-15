@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #
-# fetch facebook and twitter statistics for all stories in a controversy
+# fetch facebook statistics for all stories in a controversy
 #
 
 use strict;
@@ -12,18 +12,16 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Getopt::Long;
 
 use MediaWords::DB;
 use MediaWords::CM;
-use MediaWords::GearmanFunction;
-use MediaWords::GearmanFunction::Twitter::FetchStoryURLStats;
-use MediaWords::GearmanFunction::Facebook::FetchStoryURLStats;
+use MediaWords::Job::Facebook::FetchStoryStats;
 
-# fetch stats from either twitter or facebook for a single story
+# fetch stats from facebook for a single story
 sub fetch_stats
 {
     my ( $story, $type, $overwrite, $direct_job ) = @_;
@@ -42,16 +40,16 @@ sub fetch_stats
         if ( $direct_job )
         {
             say STDERR "Running local job for story $stories_id...";
-            eval( "MediaWords::GearmanFunction::${ type }::FetchStoryURLStats->run_locally( \$args );" );
+            eval( "MediaWords::Job::${ type }::FetchStoryStats->run_locally( \$args );" );
             if ( $@ )
             {
-                say STDERR "Gearman worker died while fetching and storing $stories_id: $@";
+                say STDERR "Worker died while fetching and storing $stories_id: $@";
             }
         }
         else
         {
-            say STDERR "Enqueueing Gearman job for story $stories_id...";
-            eval( "MediaWords::GearmanFunction::${ type }::FetchStoryURLStats->enqueue_on_gearman( \$args )" );
+            say STDERR "Adding job for story $stories_id...";
+            eval( "MediaWords::Job::${ type }::FetchStoryStats->add_to_queue( \$args )" );
             if ( $@ )
             {
                 say STDERR "error queueing story $stories_id: $@";
@@ -78,14 +76,6 @@ EOF
         "overwrite!"    => \$overwrite,
     ) or die $usage;
     die $usage unless ( $controversy_opt );
-
-    unless ( $direct_job )
-    {
-        unless ( MediaWords::GearmanFunction::gearman_is_enabled() )
-        {
-            die "Gearman is disabled.";
-        }
-    }
 
     my $db = MediaWords::DB::connect_to_db;
     my $controversies = MediaWords::CM::require_controversies_by_opt( $db, $controversy_opt );
@@ -116,7 +106,6 @@ END
 
         for my $story ( @{ $stories } )
         {
-            fetch_stats( $story, 'Twitter',  $overwrite, $direct_job );
             fetch_stats( $story, 'Facebook', $overwrite, $direct_job );
         }
     }

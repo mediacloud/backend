@@ -8,11 +8,11 @@ use strict;
 use warnings;
 use utf8;
 
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Encode;
-use JSON qw//;    # don't import encode_json() and decode_json() into current namespace
+use JSON::XS qw//;    # don't import encode_json() and decode_json() into current namespace
 use Data::Dumper;
 
 # Encode hashref to JSON, die() on error
@@ -29,7 +29,7 @@ sub encode_json($;$$)
     }
 
     my $json;
-    eval { $json = JSON->new->utf8( $utf8 )->pretty( $pretty )->encode( $object ); };
+    eval { $json = JSON::XS->new->utf8( $utf8 )->pretty( $pretty )->encode( $object ); };
     if ( $@ or ( !$json ) )
     {
         die "Unable to encode object to JSON: $@\nObject: " . Dumper( $object );
@@ -51,10 +51,10 @@ sub decode_json($;$)
     }
 
     my $hashref;
-    eval { $hashref = JSON->new->utf8( $utf8 )->decode( $json ); };
+    eval { $hashref = JSON::XS->new->utf8( $utf8 )->decode( $json ); };
     if ( $@ or ( !$hashref ) )
     {
-        die "Unable to decode JSON to object: $@\nJSON: $json";
+        die "Unable to decode JSON to object: $@";
     }
 
     return $hashref;

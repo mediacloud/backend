@@ -32,7 +32,7 @@ for db_selector in "${DB_CREDENTIALS_SELECTORS[@]}"; do
 
 EOF
 )
-    createuser_exec=`run_psql "$db_credentials_host" "$createuser_sql"`
+    createuser_exec=`run_psql "$db_credentials_host" "$createuser_sql" postgres`
     if [[ "$createuser_exec" == *"ERROR"* ]]; then
         if [[ "$createuser_exec" == *"already exists"* ]]; then
             echo "        User '$db_credentials_user' already exists, skipping creation."
@@ -63,4 +63,3 @@ EOF
     echo "Done initializing database with label '$db_credentials_label'."
 
 done
-

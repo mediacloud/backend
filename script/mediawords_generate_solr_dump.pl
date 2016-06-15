@@ -21,20 +21,23 @@ use MediaWords::Solr::Dump;
 
 sub main
 {
-    my ( $jobs, $file_spec, $delta ) = @_;
+    my ( $jobs, $file_spec, $max_proc, $min_proc, $delta ) = @_;
 
     Getopt::Long::GetOptions(
         "jobs=i"      => \$jobs,
+        "max_proc=i"  => \$max_proc,
+        "min_proc=i"  => \$min_proc,
         "file_spec=s" => \$file_spec,
         "delta!"      => \$delta
     ) || return;
 
-    die( "usage: $0 --file_spec <spec for file dump names> [ --jobs <num of parallel jobs> --delta ]" )
-      unless ( $file_spec );
+    die(
+"usage: $0 --file_spec <spec for file dump names> [ --jobs <num of parallel jobs> --max_proc <num> --min_proc <num> --delta ]"
+    ) unless ( $file_spec );
 
     my $db = MediaWords::DB::connect_to_db;
 
-    MediaWords::Solr::Dump::print_csv_to_file( $db, $file_spec, $jobs, $delta );
+    MediaWords::Solr::Dump::print_csv_to_file( $db, $file_spec, $jobs, $delta, $min_proc, $max_proc );
 
 }
 

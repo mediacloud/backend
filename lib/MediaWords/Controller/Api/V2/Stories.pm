@@ -1,8 +1,6 @@
 package MediaWords::Controller::Api::V2::Stories;
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
-
-use MediaWords::DBI::StorySubsets;
 
 use strict;
 use warnings;
@@ -15,23 +13,13 @@ use List::Compare;
 use Carp;
 use HTTP::Status qw(:constants);
 use Readonly;
+use Encode;
 
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
 use MediaWords::Util::Bitly;
+use MediaWords::Util::Bitly::API;
 use MediaWords::Util::JSON;
-
-# What stats to fetch for each story
-Readonly my $BITLY_FETCH_CATEGORIES => 0;
-Readonly my $BITLY_FETCH_CLICKS     => 1;
-Readonly my $BITLY_FETCH_REFERRERS  => 0;
-Readonly my $BITLY_FETCH_SHARES     => 0;
-Readonly my $stats_to_fetch         => MediaWords::Util::Bitly::StatsToFetch->new(
-    $BITLY_FETCH_CATEGORIES,    # "/v3/link/category"
-    $BITLY_FETCH_CLICKS,        # "/v3/link/clicks"
-    $BITLY_FETCH_REFERRERS,     # "/v3/link/referrers"
-    $BITLY_FETCH_SHARES         # "/v3/link/shares"
-);
 
 =head1 NAME
 
@@ -45,7 +33,7 @@ Catalyst Controller.
 
 =cut
 
-=head2 index 
+=head2 index
 
 =cut
 
@@ -57,6 +45,7 @@ __PACKAGE__->config(
         list_GET           => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
         put_tags_PUT       => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
         fetch_bitly_clicks => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        cluster_stories    => { Does => [ qw( ~NonPublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
@@ -72,7 +61,7 @@ sub single_GET : Local
     $self->SUPER::single_GET( @_ );
 }
 
-sub put_tags : Local : ActionClass('REST')
+sub put_tags : Local : ActionClass('MC_REST')
 {
 }
 
@@ -111,6 +100,10 @@ sub corenlp : Local
     my $db = $c->dbis;
 
     my $stories_ids = $c->req->params->{ stories_id };
+    unless ( $stories_ids )
+    {
+        die "One or more 'stories_id' is required.";
+    }
 
     $stories_ids = [ $stories_ids ] unless ( ref( $stories_ids ) );
 
@@ -131,7 +124,7 @@ sub corenlp : Local
     for my $stories_id ( keys( %{ $json_list } ) )
     {
         my $json_item = <<"END";
-{ 
+{
   "stories_id": $stories_id,
   "corenlp": $json_list->{ $stories_id }
 }
@@ -140,6 +133,9 @@ END
     }
 
     my $json = "[\n" . join( ",\n", @{ $json_items } ) . "\n]\n";
+
+    # Response might contain multibyte characters
+    $json = encode( 'utf-8', $json );
 
     $c->response->content_type( 'application/json; charset=UTF-8' );
     $c->response->content_length( bytes::length( $json ) );
@@ -192,8 +188,7 @@ sub fetch_bitly_clicks : Local
             }
 
             $bitly_clicks =
-              MediaWords::Util::Bitly::fetch_stats_for_story( $db, $stories_id, $start_timestamp, $end_timestamp,
-                $stats_to_fetch );
+              MediaWords::Util::Bitly::fetch_stats_for_story( $db, $stories_id, $start_timestamp, $end_timestamp );
 
             ( $agg_stories_id, $agg_stories_url ) = ( $stories_id, $story->{ url } );
 
@@ -202,8 +197,7 @@ sub fetch_bitly_clicks : Local
         {
 
             $bitly_clicks =
-              MediaWords::Util::Bitly::fetch_stats_for_url( $db, $stories_url, $start_timestamp, $end_timestamp,
-                $stats_to_fetch );
+              MediaWords::Util::Bitly::API::fetch_stats_for_url( $db, $stories_url, $start_timestamp, $end_timestamp );
 
             ( $agg_stories_id, $agg_stories_url ) = ( 0, $stories_url );
 
@@ -219,7 +213,7 @@ sub fetch_bitly_clicks : Local
         # convenience and the reason that the count could be different
         # (e.g. because of homepage redirects being skipped)
         my $stats = MediaWords::Util::Bitly::aggregate_story_stats( $agg_stories_id, $agg_stories_url, $bitly_clicks );
-        $total_click_count = $stats->{ click_count };
+        $total_click_count = $stats->total_click_count();
     };
     unless ( $@ )
     {
@@ -231,7 +225,7 @@ sub fetch_bitly_clicks : Local
         my $error_message = $@;
         $response->{ error } = $error_message;
 
-        if ( MediaWords::Util::Bitly::error_is_rate_limit_exceeded( $error_message ) )
+        if ( MediaWords::Util::Bitly::API::error_is_rate_limit_exceeded( $error_message ) )
         {
             $http_status = HTTP_TOO_MANY_REQUESTS;
 
@@ -247,12 +241,40 @@ sub fetch_bitly_clicks : Local
         }
     }
 
-    my $json = MediaWords::Util::JSON::encode_json( $response );
+    Readonly my $json_pretty => 1;
+    Readonly my $json_utf8   => 1;
+    my $json = MediaWords::Util::JSON::encode_json( $response, $json_pretty, $json_utf8 );
 
     $c->response->status( $http_status );
     $c->response->content_type( 'application/json; charset=UTF-8' );
     $c->response->content_length( bytes::length( $json ) );
     $c->response->body( $json );
+}
+
+sub cluster_stories : Local : ActionClass('MC_REST')
+{
+
+}
+
+sub cluster_stories_GET : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my $q    = $c->req->params->{ q };
+    my $fq   = $c->req->params->{ fq };
+    my $rows = $c->req->params->{ rows } || 1000;
+
+    die( "must specify either 'q' or 'fq' param" ) unless ( $q || $fq );
+
+    $rows = List::Util::min( $rows, 100_000 );
+
+    my $solr_params = { q => $q, fq => $fq, rows => $rows };
+
+    my $clusters = MediaWords::Solr::query_clustered_stories( $db, $solr_params, $c );
+
+    $self->status_ok( $c, entity => $clusters );
 }
 
 =head1 AUTHOR

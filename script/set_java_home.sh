@@ -33,6 +33,7 @@ else
 
     # Ubuntu
     declare -a POSSIBLE_JDK_PATHS=(
+        /usr/lib/jvm/java-8-oracle/         # Oracle Java 8
         /usr/lib/jvm/java-7-openjdk-amd64/  # newer Ubuntu
         /usr/lib/jvm/java-6-sun             # older Ubuntu
     )

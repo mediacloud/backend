@@ -1,26 +1,24 @@
 package MediaWords::ImportStories;
 
-# Import stories into the database, handling date bounding and story deduping.  This is only
-# a template class.  You must use of the sub class such as MediaWords::ImportStories::ScrapeHTML
-# or MediaWords::ImportStories::Feedly to import stories from a given source.
-#
-# The scrape interface is oo and includes the following parameters to new() in addition to specific
-# options supported by the sub class.
-# * db - db handle
-# * media_id - media source to which to add stories
-# * max_pages (optional) - max num of pages to scrape by recursively finding urls matching page_url_pattern
-# * start_date (optional) - start date of stories to scrape and dedup
-# * end_date (optional) - end date of stories to scrape and dedup
-# * debug (optional) - print debug messages urls crawled and stories created
-# * dry_run (optional) - do everything but actually insert stories into db
-#
-# After the sub class identifies all story candidates, ImportStories looks for any
-# duplicates among the story candidates and the existing stories in the media sources and only adds as stories
-# the candidates with out existing duplicate stories.  The duplication check looks for matching normalized urls
-# as well as matching title parts (see MediaWords::DBI::Stories::get_medium_dup_stories_by_<title|url>.
-#
-# Each sub class needs to implement $self->get_new_stories(), which should return a set of story candidates
-# for deduplication and date restriction by this super class.
+=head1 NAME
+
+Mediawords::ImportStories - template class for importing stories into db
+
+=head1 DESCRIPTION
+
+Import stories into the database, handling date bounding and story deduping.  This is only
+a template class.  You must use of the sub class such as MediaWords::ImportStories::ScrapeHTML
+or MediaWords::ImportStories::Feedly to import stories from a given source.
+
+After the sub class identifies all story candidates, ImportStories looks for any
+duplicates among the story candidates and the existing stories in the media sources and only adds as stories
+the candidates with out existing duplicate stories.  The duplication check looks for matching normalized urls
+as well as matching title parts (see MediaWords::DBI::Stories::get_medium_dup_stories_by_<title|url>.
+
+Each sub class needs to implement $self->get_new_stories(), which should return a set of story candidates
+for deduplication and date restriction by this super class.
+
+=cut
 
 use Moose::Role;
 
@@ -32,10 +30,56 @@ use Parallel::ForkManager;
 use URI::Split;
 
 use MediaWords::CM::GuessDate;
+use MediaWords::CommonLibs;
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories;
+use MediaWords::Util::HTML;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Tags;
+
+=head1 ATTRIBUTES
+
+=over
+
+item *
+
+db - db handle
+
+item *
+
+media_id - media source to which to add stories
+
+item *
+
+max_pages (optional) - max num of pages to scrape by recursively finding urls matching page_url_pattern
+
+item *
+
+start_date (optional) - start date of stories to scrape and dedup
+
+item *
+
+end_date (optional) - end date of stories to scrape and dedup
+
+item *
+
+debug (optional) - print debug messages urls crawled and stories created
+
+item *
+
+dry_run (optional) - do everything but actually insert stories into db
+
+item *
+
+module_stories - full list of stories returned by call to $self->get_new_stories() during scrape_stories()
+
+item *
+
+existing_stories - full list of stories in media_id, genreated during scrape_stories()
+
+=back
+
+=cut
 
 has 'db'       => ( is => 'rw', isa => 'Ref', required => 1 );
 has 'media_id' => ( is => 'rw', isa => 'Int', required => 1 );
@@ -50,25 +94,37 @@ has 'end_date'   => ( is => 'rw', isa => 'Str', required => 0, default => '3000-
 
 has 'scrape_feed' => ( is => 'rw', isa => 'Ref', required => 0 );
 
+has 'module_stories'   => ( is => 'rw', isa => 'Ref', required => 0 );
+has 'existing_stories' => ( is => 'rw', isa => 'Ref', required => 0 );
+
 # sub class must implement $self->get_new_stories(), which returns story objects that have not yet
 # been inserted into the db
 requires 'get_new_stories';
 
-# given the content, generate a story hash
+=head1 METHODS
+
+=cut
+
+=head2 generate_story( $self, $contnet, $url )
+
+Given the content, generate a story hash
+
+=cut
+
 sub generate_story
 {
     my ( $self, $content, $url ) = @_;
 
     my $db = $self->db;
 
-    my $title = MediaWords::DBI::Stories::get_story_title_from_content( $content, $url );
+    my $title = MediaWords::Util::HTML::html_title( $content, $url, 1024 );
 
     my $story = {
         url          => $url,
         guid         => $url,
         media_id     => $self->media_id,
         collect_date => MediaWords::Util::SQL::sql_now,
-        title        => encode( 'utf8', $title ),
+        title        => $title,
         description  => '',
         content      => $content
     };
@@ -88,16 +144,23 @@ sub generate_story
     return $story;
 }
 
-# return true if the publish date is before $self->end_date and after $self->start_date
+=head2 story_is_in_date_range( $self, $publish_date )
+
+Return true if the publish date is before $self->end_date and after $self->start_date
+
+=cut
+
 sub story_is_in_date_range
 {
     my ( $self, $publish_date ) = @_;
 
     my $publish_day = substr( $publish_date, 0, 10 );
 
-    return 0 if ( $self->end_date && ( $publish_day gt $self->end_date ) );
+    my $start_date = substr( $self->start_date, 0, 10 ) || '2010-01-01';
+    return 0 if ( $start_date && ( $publish_day lt $start_date ) );
 
-    return 0 if ( $self->start_date && ( $publish_day lt $self->start_date ) );
+    my $end_date = substr( $self->end_date, 0, 10 );
+    return 0 if ( $end_date && ( $publish_day gt $end_date ) );
 
     return 1;
 }
@@ -106,15 +169,37 @@ sub _get_stories_in_date_range
 {
     my ( $self, $stories ) = @_;
 
+    DEBUG "date range: " . $self->start_date . " - " . $self->end_date;
+
     my $dated_stories = [];
     for my $story ( @{ $stories } )
     {
-        push( @{ $dated_stories }, $story ) if ( $self->story_is_in_date_range( $story->{ publish_date } ) );
+        if ( $self->story_is_in_date_range( $story->{ publish_date } ) )
+        {
+            push( @{ $dated_stories }, $story );
+        }
+        else
+        {
+            DEBUG "story failed date restriction: " . $story->{ publish_date };
+        }
     }
 
-    say STDERR "kept " . scalar( @{ $dated_stories } ) . " / " . scalar( @{ $stories } ) . " after date restriction";
+    DEBUG "kept " . scalar( @{ $dated_stories } ) . " / " . scalar( @{ $stories } ) . " after date restriction";
 
     return $dated_stories;
+}
+
+# declare a cursor for the get_existing_stories query so that postgres can process the query while the underlying
+# module processes $self->get_new_stories()
+sub _declare_existing_stories_cursor
+{
+    my ( $self ) = @_;
+
+    $self->db->query( <<SQL, $self->{ media_id } );
+declare EXISTING_STORIES cursor for
+    select stories_id, media_id, publish_date, url, guid, title from stories where media_id = ?
+SQL
+
 }
 
 # get all stories belonging to the media source
@@ -122,40 +207,64 @@ sub _get_existing_stories
 {
     my ( $self ) = @_;
 
-    my $date_clause = '';
-    if ( my $start_date = $self->{ start_date } )
-    {
-        my $q_start_date = $self->db->dbh->quote( MediaWords::Util::SQL::increment_day( $start_date, -7 ) );
-        $date_clause = "and date_trunc( 'day', publish_date ) >= ${ q_start_date }::date";
-    }
-
-    my $stories = $self->db->query( <<SQL, $self->{ media_id } )->hashes;
-select
-        stories_id, media_id, publish_date, url, guid, title
-    from
-        stories
-    where
-        media_id = ? $date_clause
-SQL
-
-    say STDERR "found " . scalar( @{ $stories } ) . " existing stories" if ( $self->debug );
+    my $stories = $self->db->query( "fetch all from EXISTING_STORIES" )->hashes;
 
     return $stories;
+}
+
+# give a list of dup stories returned by  MediaWords::DBI::Stories::get_medium_dup_stories_by_*, prune the
+# original list only to include one each of the sets of dup stories
+sub _prune_dup_stories($$)
+{
+    my ( $self, $stories, $dup_sets ) = @_;
+
+    my $remove_stories_lookup = {};
+
+    for my $dup_set ( @{ $dup_sets } )
+    {
+        # mark all stories in the dup set other than the first for removal
+        shift( @{ $dup_set } );
+        map { $remove_stories_lookup->{ $_->{ guid } } = 1 } @{ $dup_set };
+    }
+
+    my $pruned_stories = [];
+    map { push( @{ $pruned_stories }, $_ ) unless ( $remove_stories_lookup->{ $_->{ guid } } ) } @{ $stories };
+
+    DEBUG( sub { "pruned to " . scalar( @{ $pruned_stories } ) . " / " . scalar( @{ $stories } . " stories" ) } );
+
+    return $pruned_stories;
+}
+
+# dedup the stories from the import module first
+sub _dedup_imported_stories($$)
+{
+    my ( $self, $stories ) = @_;
+
+    my $url_dup_stories = MediaWords::DBI::Stories::get_medium_dup_stories_by_url( $self->db, $stories );
+
+    my $deduped_stories = $self->_prune_dup_stories( $stories, $url_dup_stories );
+
+    my $title_dup_stories = MediaWords::DBI::Stories::get_medium_dup_stories_by_title( $self->db, $deduped_stories, 1 );
+
+    return $self->_prune_dup_stories( $deduped_stories, $title_dup_stories );
 }
 
 # return a list of just the new stories that don't have a duplicate in the existing stories
 sub _dedup_new_stories
 {
-    my ( $self, $new_stories ) = @_;
+    my ( $self ) = @_;
 
-    my $existing_stories = $self->_get_existing_stories();
+    my $new_stories      = $self->module_stories;
+    my $existing_stories = $self->existing_stories;
+
+    $new_stories = $self->_dedup_imported_stories( $new_stories );
 
     my $all_stories = [ @{ $new_stories }, @{ $existing_stories } ];
 
-    my $url_dup_stories = MediaWords::DBI::Stories::get_medium_dup_stories_by_url( $self->db, $all_stories );
-    my $title_dup_stories = MediaWords::DBI::Stories::get_medium_dup_stories_by_title( $self->db, $all_stories );
+    my $all_dup_stories = MediaWords::DBI::Stories::get_medium_dup_stories_by_url( $self->db, $all_stories );
+    my $title_dup_stories = MediaWords::DBI::Stories::get_medium_dup_stories_by_title( $self->db, $all_stories, 1 );
 
-    my $all_dup_stories = [ @{ $url_dup_stories }, @{ $title_dup_stories } ];
+    push( @{ $all_dup_stories }, @{ $title_dup_stories } );
 
     my $new_stories_lookup = {};
     map { $new_stories_lookup->{ $_->{ url } } = $_ } @{ $new_stories };
@@ -163,12 +272,16 @@ sub _dedup_new_stories
     my $dup_new_stories_lookup = {};
     for my $dup_stories ( @{ $all_dup_stories } )
     {
+        my $stories_id = 0;
+        map { $stories_id ||= $_->{ stories_id } } @{ $dup_stories };
+
         for my $ds ( @{ $dup_stories } )
         {
             if ( $new_stories_lookup->{ $ds->{ url } } )
             {
                 delete( $new_stories_lookup->{ $ds->{ url } } );
                 $dup_new_stories_lookup->{ $ds->{ url } } = $ds;
+                $ds->{ dup_stories_id } = $stories_id;
             }
         }
 
@@ -177,7 +290,7 @@ sub _dedup_new_stories
     my $nondup_stories = [ values( %{ $new_stories_lookup } ) ];
     my $dup_stories    = [ values( %{ $dup_new_stories_lookup } ) ];
 
-    say STDERR "_dedup_new_stories: " . scalar( @{ $nondup_stories } ) . " new / " . scalar( @{ $dup_stories } ) . " dup";
+    DEBUG "_dedup_new_stories: " . scalar( @{ $nondup_stories } ) . " new / " . scalar( @{ $dup_stories } ) . " dup";
 
     return ( $nondup_stories, $dup_stories );
 }
@@ -193,15 +306,18 @@ sub _get_scrape_feed
 
     my $medium = $db->find_by_id( 'media', $self->media_id );
 
-    my $feed_name = 'Scrape Feed';
+    my $feed_name = ref( $self );
+    my $feed_url  = "$feed_name:$medium->{ url }";
 
-    my $feed = $db->query( <<SQL, $medium->{ media_id }, $medium->{ url }, encode( 'utf8', $feed_name ) )->hash;
+    my $feed = $db->query( <<SQL, $medium->{ media_id }, $feed_url, $feed_name )->hash;
 select * from feeds where media_id = ? and url = ? order by ( name = ? )
 SQL
 
-    $feed ||= $db->query( <<SQL, $medium->{ media_id }, $medium->{ url }, encode( 'utf8', $feed_name ) )->hash;
+    $feed ||= $db->query( <<SQL, $medium->{ media_id }, $feed_url, $feed_name )->hash;
 insert into feeds ( media_id, url, name, feed_status ) values ( ?, ?, ?, 'inactive' ) returning *
 SQL
+
+    DEBUG( sub { "scrape feed: $feed->{ name } [$feed->{ feeds_id }]" } );
 
     $self->scrape_feed( $feed );
 
@@ -224,7 +340,7 @@ sub _get_story_content
 {
     my ( $self, $url ) = @_;
 
-    say STDERR "fetching story url $url";
+    DEBUG "fetching story url $url";
 
     my $ua = MediaWords::Util::Web::UserAgentDetermined;
 
@@ -266,9 +382,9 @@ sub _add_story_download
 
         $download = $db->create( 'downloads', $download );
 
-        MediaWords::DBI::Downloads::store_content_determinedly( $db, $download, $content );
+        MediaWords::DBI::Downloads::store_content( $db, $download, \$content );
 
-        eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, "ss" ); };
+        eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download ); };
 
         warn "extract error processing download $download->{ downloads_id }: $@" if ( $@ );
     }
@@ -290,16 +406,15 @@ sub _add_story_download
     }
 }
 
-my $_scraped_tag;
-
-sub _add_scraped_tag_to_story
+# add row to scraped_stories table
+sub _add_scraped_stories_flag
 {
     my ( $self, $story ) = @_;
 
-    $_scraped_tag ||= MediaWords::Util::Tags::lookup_or_create_tag( $self->db, 'scraped:scraped' );
-
-    $self->db->query( <<SQL, $_scraped_tag->{ tags_id }, $story->{ stories_id } );
-insert into stories_tags_map ( tags_id, stories_id ) values ( ?, ? )
+    $self->db->query( <<SQL, $story->{ stories_id }, ref( $self ) );
+insert into scraped_stories ( stories_id, import_module )
+    select \$1, \$2 where not exists (
+        select 1 from scraped_stories where stories_id = \$1 and import_module = \$2 )
 SQL
 
 }
@@ -309,7 +424,7 @@ sub _add_new_stories
 {
     my ( $self, $stories ) = @_;
 
-    say STDERR "adding new stories to db ..." if ( $self->debug );
+    DEBUG "adding new stories to db ..." if ( $self->debug );
 
     my $total_stories = scalar( @{ $stories } );
     my $i             = 1;
@@ -318,7 +433,7 @@ sub _add_new_stories
     for my $story ( @{ $stories } )
     {
         $self->db->begin;
-        say STDERR "story: " . $i++ . " / $total_stories";
+        DEBUG "story: " . $i++ . " / $total_stories";
 
         my $content = $story->{ content };
 
@@ -328,12 +443,21 @@ sub _add_new_stories
         eval { $story = $self->db->create( 'stories', $story ) };
         if ( $@ )
         {
-            carp( $@ . " - " . Dumper( $story ) );
+            # it's quicker to just rely on postgres to catch constrained dups than to check for them first
+            if ( $@ =~ /unique constraint "([^"]*)"/ )
+            {
+                DEBUG( "skipping postgres dup: $1" );
+            }
+            else
+            {
+                carp( $@ . " - " . Dumper( $story ) );
+            }
+
             $self->db->rollback;
             next;
         }
 
-        $self->_add_scraped_tag_to_story( $story );
+        $self->_add_scraped_stories_flag( $story );
 
         $self->_add_story_to_scrape_feed( $story );
 
@@ -342,6 +466,8 @@ sub _add_new_stories
         push( @{ $added_stories }, $story );
         $self->db->commit;
     }
+
+    return $added_stories;
 }
 
 # print stories
@@ -351,7 +477,7 @@ sub _print_stories
 
     for my $s ( sort { $a->{ publish_date } cmp $b->{ publish_date } } @{ $stories } )
     {
-        print STDERR <<END;
+        DEBUG <<END;
 $s->{ publish_date } - $s->{ title } [$s->{ url }]
 END
     }
@@ -365,31 +491,120 @@ sub _print_story_diffs
 
     return unless ( $self->debug );
 
-    say STDERR "dup stories:";
+    DEBUG "dup stories:";
     $self->_print_stories( $dup_stories );
 
-    say STDERR "deduped stories:";
+    DEBUG "deduped stories:";
     $self->_print_stories( $deduped_stories );
 
 }
 
-# call ImportStories::SUB->get_new_stories and add any stories within the
-# specified date range to the given media source if there are not already duplicates in the media source
+# narrow date range to the dates of the new stories
+sub _narrow_dates_to_new_stories
+{
+    my ( $self, $new_stories ) = @_;
+
+    $new_stories = [ sort { $a->{ publish_date } cmp $b->{ publish_date } } @{ $new_stories } ];
+
+    my $earliest_story = $new_stories->[ 0 ];
+    my $latest_story   = pop( @{ $new_stories } );
+
+    if ( !$self->start_date || ( $earliest_story->{ publish_date } gt $self->start_date ) )
+    {
+        $self->start_date( $earliest_story->{ publish_date } );
+    }
+
+    if ( !$self->end_date || ( $latest_story->{ publish_date } lt $self->end_date ) )
+    {
+        $self->end_date( $latest_story->{ publish_date } );
+    }
+}
+
+# eliminate any stories with titles that are logogram language (chinese, japanese, etc) because story deduplication
+# does not work well
+sub _eliminate_logogram_languages()
+{
+    my ( $self ) = @_;
+
+    my $logogram_lookup = { ja => 1, ko => 1, zh => 1, dz => 1, bo => 1 };
+
+    my $keep_stories = [];
+    my $stories      = $self->module_stories;
+
+    for my $story ( @{ $stories } )
+    {
+        my $language = MediaWords::Util::IdentifyLanguage::language_code_for_text( $story->{ title } );
+        push( @{ $keep_stories }, $story ) if ( !$logogram_lookup->{ $language } );
+    }
+
+    $self->module_stories( $keep_stories );
+
+    if ( scalar( @{ $stories } ) > scalar( @{ $keep_stories } ) )
+    {
+        DEBUG "pruned from " .
+          scalar( @{ $stories } ) . " to " .
+          scalar( @{ $keep_stories } ) . " stories for logogram language";
+    }
+}
+
+# get module stories and existing stories and set ->module_stories and ->existing_stories
+sub _get_module_and_existing_stories
+{
+    my ( $self ) = @_;
+
+    # transaction is needed for the duraction of the cursor
+    $self->db->begin;
+
+    eval {
+        $self->_declare_existing_stories_cursor();
+
+        $self->module_stories( $self->get_new_stories );
+
+        $self->_eliminate_logogram_languages();
+
+        return unless ( scalar( @{ $self->module_stories } ) );
+
+        $self->existing_stories( $self->_get_existing_stories() );
+    };
+
+    $self->db->commit;
+
+    die( $@ ) if ( $@ );
+}
+
+=head2 scrape_stories( $self, $new_stories )
+
+Call ImportStories::SUB->get_new_stories and add any stories within the specified date range to the given media source
+if there are not already duplicates in the media source.
+
+If $new_stories is not passed, call $self->get_new_stories() to get the list of new stories from the import module. If
+$new_stories is specified, use that list instead of calling $self->get_new_stories().
+=cut
+
 sub scrape_stories
 {
     my ( $self ) = @_;
 
-    my $new_stories = $self->get_new_stories();
+    $self->_get_module_and_existing_stories();
+
+    my $new_stories = $self->module_stories;
+
+    return [] unless ( scalar( @{ $new_stories } ) );
 
     my $dated_stories = $self->_get_stories_in_date_range( $new_stories );
 
-    my ( $deduped_new_stories, $dup_new_stories ) = $self->_dedup_new_stories( $new_stories );
+    my ( $deduped_new_stories, $dup_new_stories ) = $self->_dedup_new_stories();
 
     $self->_print_story_diffs( $deduped_new_stories, $dup_new_stories ) if ( $self->debug );
 
-    my $added_stories = $self->_add_new_stories( $deduped_new_stories ) unless ( $self->dry_run );
-
-    return $added_stories;
+    if ( $self->dry_run )
+    {
+        return $deduped_new_stories;
+    }
+    else
+    {
+        return $self->_add_new_stories( $deduped_new_stories );
+    }
 }
 
 1;

@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-   [% INCLUDE 'public_ui/third_party_libs.tt2' %]
+   [% INCLUDE 'common/third_party_libs.tt2' %]
 
     <script type="text/javascript" src="/script/protovis-r3.2.js"></script>
     <script type="text/javascript" src="/script/jquery.tipsy.js"></script>
@@ -41,7 +41,7 @@
     <link href="[% c.uri_for('/include/tipsy.css') %]" rel="stylesheet" type="text/css" />
     <link href="[% c.uri_for( '/include/word_cloud.css' ) %]" rel="stylesheet" type="text/css" />
 
-    <script src="[% c.uri_for('/include/libs/handsontable-0.13.0/dist/handsontable.full.js') %]"></script>  
+    <script src="[% c.uri_for('/include/libs/handsontable-0.13.0/dist/handsontable.full.js') %]"></script>
     <link rel="stylesheet" media="screen" href="[% c.uri_for('/include/libs/handsontable-0.13.0/dist/handsontable.full.css') %]">
 
     <script src="[% c.uri_for('/include/libs/handsontable-0.13.0/plugins/removeRow/handsontable.removeRow.js') %]"></script>
@@ -97,7 +97,7 @@
 
     [% END #[% IF c.user -%]
 
-    <h1>[% title | html %]</h1>
+    <h1>[% title | truncate( 512 ) | html %]</h1>
 
     [% IF breadcrumbs %]
         <div id="breadcrumbs">[% breadcrumbs %]</div>

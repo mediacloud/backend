@@ -1,8 +1,9 @@
 package MediaWords::Pg::Schema;
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::Languages::Language;
+use MediaWords::Util::Config;
 use MediaWords::Util::SchemaVersion;
 
 # import functions into server schema
@@ -15,205 +16,6 @@ use Carp qw/ confess /;
 use File::Slurp;
 use FindBin;
 
-# get is_stop_stem() stopword + stopword stem tables and a pl/pgsql function definition
-sub get_is_stop_stem_function_tables_and_definition
-{
-    my $sql = '';
-
-    my @stoplist_sizes = ( 'tiny', 'short', 'long' );
-
-    for my $stoplist_size ( @stoplist_sizes )
-    {
-
-        # create tables
-        $sql .= <<END
-
-            -- PostgreSQL sends notices about implicit keys that are being created,
-            -- and the test suite takes them for warnings.
-            SET client_min_messages=WARNING;
-
-            -- "Full" stopwords
-            DROP TABLE IF EXISTS stopwords_${stoplist_size};
-            CREATE TABLE stopwords_${stoplist_size} (
-                stopwords_${stoplist_size}_id SERIAL PRIMARY KEY,
-                stopword VARCHAR(256) NOT NULL,
-                language VARCHAR(3) NOT NULL /* 2- or 3-character ISO 690 language code */
-            ) WITH (OIDS=FALSE);
-            CREATE UNIQUE INDEX stopwords_${stoplist_size}_stopword
-                ON stopwords_${stoplist_size}(stopword, language);
-
-            -- Stopword stems
-            DROP TABLE IF EXISTS stopword_stems_${stoplist_size};
-            CREATE TABLE stopword_stems_${stoplist_size} (
-                stopword_stems_${stoplist_size}_id SERIAL PRIMARY KEY,
-                stopword_stem VARCHAR(256) NOT NULL,
-                language VARCHAR(3) NOT NULL /* 2- or 3-character ISO 690 language code */
-            ) WITH (OIDS=FALSE);
-            CREATE UNIQUE INDEX stopword_stems_${stoplist_size}_stopword_stem
-                ON stopword_stems_${stoplist_size}(stopword_stem, language);
-
-            -- Reset the message level back to "notice".
-            SET client_min_messages=NOTICE;
-
-END
-          ;
-
-        # For every language
-        my @enabled_languages = MediaWords::Languages::Language::enabled_languages();
-        foreach my $language_code ( @enabled_languages )
-        {
-            my $lang = MediaWords::Languages::Language::language_for_code( $language_code );
-            if ( !$lang )
-            {
-                die "Language '$language_code' is not enabled.";
-            }
-
-            # collect stopwords
-            my $stopwords_hashref;
-            if ( $stoplist_size eq 'tiny' )
-            {
-                $stopwords_hashref = $lang->get_tiny_stop_words();
-            }
-            elsif ( $stoplist_size eq 'short' )
-            {
-                $stopwords_hashref = $lang->get_short_stop_words();
-            }
-            elsif ( $stoplist_size eq 'long' )
-            {
-                $stopwords_hashref = $lang->get_long_stop_words();
-            }
-            my @stopwords;
-            while ( my ( $stopword, $value ) = each %{ $stopwords_hashref } )
-            {
-                if ( $value == 1 )
-                {
-                    $stopword =~ s/'/''/;
-                    push( @stopwords, "('$stopword', '$language_code')" );
-                }
-            }
-
-            # collect stopword stems
-            my $stopword_stems_hashref;
-            if ( $stoplist_size eq 'tiny' )
-            {
-                $stopword_stems_hashref = $lang->get_tiny_stop_word_stems();
-            }
-            elsif ( $stoplist_size eq 'short' )
-            {
-                $stopword_stems_hashref = $lang->get_short_stop_word_stems();
-            }
-            elsif ( $stoplist_size eq 'long' )
-            {
-                $stopword_stems_hashref = $lang->get_long_stop_word_stems();
-            }
-            my @stopword_stems;
-            while ( my ( $stopword_stem, $value ) = each %{ $stopword_stems_hashref } )
-            {
-                if ( $value == 1 )
-                {
-                    $stopword_stem =~ s/'/''/;
-                    push( @stopword_stems, "('$stopword_stem', '$language_code')" );
-                }
-            }
-
-            # insert stopwords and stopword stems
-            my $joined_stopwords      = join( ', ', @stopwords );
-            my $joined_stopword_stems = join( ', ', @stopword_stems );
-            $sql .= <<"EOF";
-                INSERT INTO stopwords_${ stoplist_size } (stopword, language)
-                VALUES $joined_stopwords;
-
-                INSERT INTO stopword_stems_${ stoplist_size } (stopword_stem, language)
-                VALUES $joined_stopword_stems;
-EOF
-        }
-
-    }
-
-    # create a function
-    $sql .= <<END
-
-        CREATE OR REPLACE FUNCTION is_stop_stem(p_size TEXT, p_stem TEXT, p_language TEXT)
-            RETURNS BOOLEAN AS \$\$
-        DECLARE
-            result BOOLEAN;
-        BEGIN
-
-            -- Tiny
-            IF p_size = 'tiny' THEN
-                IF p_language IS NULL THEN
-                    SELECT 't' INTO result FROM stopword_stems_tiny
-                        WHERE stopword_stem = p_stem;
-                    IF NOT FOUND THEN
-                        result := 'f';
-                    END IF;
-                ELSE
-                    SELECT 't' INTO result FROM stopword_stems_tiny
-                        WHERE stopword_stem = p_stem AND language = p_language;
-                    IF NOT FOUND THEN
-                        result := 'f';
-                    END IF;
-                END IF;
-
-            -- Short
-            ELSIF p_size = 'short' THEN
-                IF p_language IS NULL THEN
-                    SELECT 't' INTO result FROM stopword_stems_short
-                        WHERE stopword_stem = p_stem;
-                    IF NOT FOUND THEN
-                        result := 'f';
-                    END IF;
-                ELSE
-                    SELECT 't' INTO result FROM stopword_stems_short
-                        WHERE stopword_stem = p_stem AND language = p_language;
-                    IF NOT FOUND THEN
-                        result := 'f';
-                    END IF;
-                END IF;
-
-            -- Long
-            ELSIF p_size = 'long' THEN
-                IF p_language IS NULL THEN
-                    SELECT 't' INTO result FROM stopword_stems_long
-                        WHERE stopword_stem = p_stem;
-                    IF NOT FOUND THEN
-                        result := 'f';
-                    END IF;
-                ELSE
-                    SELECT 't' INTO result FROM stopword_stems_long
-                        WHERE stopword_stem = p_stem AND language = p_language;
-                    IF NOT FOUND THEN
-                        result := 'f';
-                    END IF;
-                END IF;
-
-            -- unknown size
-            ELSE
-                RAISE EXCEPTION 'Unknown stopword stem size: "%" (expected "tiny", "short" or "long")', p_size;
-                result := 'f';
-            END IF;
-
-            RETURN result;
-        END;
-        \$\$ LANGUAGE plpgsql;
-
-END
-      ;
-
-    return $sql;
-}
-
-# get the sql function definitions
-sub get_sql_function_definitions
-{
-    my $sql = '';
-
-    # append is_stop_stem()
-    $sql .= get_is_stop_stem_function_tables_and_definition();
-
-    return $sql;
-}
-
 # Path to where the "pgcrypto.sql" is located (on 8.4 and 9.0)
 sub _path_to_pgcrypto_sql_file_84_90()
 {
@@ -222,7 +24,7 @@ sub _path_to_pgcrypto_sql_file_84_90()
     my $pgcrypto_sql_file = "$pg_config_share_dir/contrib/pgcrypto.sql";
     unless ( -e $pgcrypto_sql_file )
     {
-        die "'pgcrypto' file does not exist at path: $pgcrypto_sql_file";
+        LOGDIE "'pgcrypto' file does not exist at path: $pgcrypto_sql_file";
     }
 
     return $pgcrypto_sql_file;
@@ -239,7 +41,7 @@ sub _pgcrypto_extension_sql($)
     {
         # PostgreSQL 8.x and 9.0
         my $pgcrypto_sql_file = _path_to_pgcrypto_sql_file_84_90;
-        open PGCRYPTO_SQL, "< $pgcrypto_sql_file" or die "Can't open $pgcrypto_sql_file : $!\n";
+        open PGCRYPTO_SQL, "< $pgcrypto_sql_file" or LOGDIE "Can't open $pgcrypto_sql_file : $!\n";
         while ( <PGCRYPTO_SQL> )
         {
             $sql .= $_;
@@ -260,7 +62,7 @@ sub _add_pgcrypto_extension($)
 {
     my ( $db ) = @_;
 
-    # say STDERR 'Adding "pgcrypto" extension...';
+    DEBUG( 'Adding "pgcrypto" extension...' );
 
     # Add "pgcrypto" extension
     my $sql = _pgcrypto_extension_sql( $db );
@@ -268,7 +70,7 @@ sub _add_pgcrypto_extension($)
 
     unless ( _pgcrypto_is_installed( $db ) )
     {
-        die "'pgcrypto' extension has not been installed.";
+        LOGDIE "'pgcrypto' extension has not been installed.";
     }
 }
 
@@ -301,7 +103,7 @@ sub _postgresql_version($)
 
     if ( $postgres_version !~ /^PostgreSQL \d.+?$/ )
     {
-        die "Unable to parse PostgreSQL version: $postgres_version";
+        LOGDIE "Unable to parse PostgreSQL version: $postgres_version";
     }
 
     return $postgres_version;
@@ -349,14 +151,8 @@ sub reset_all_schemas($)
 
     reset_schema( $db, 'public' );
 
-    # removes schema used by dklab enum procedures
-    # schema will be re-added in dklab sqlfile
-    reset_schema( $db, 'enum' );
-
     # schema to hold all of the controversy dump snapshot tables
     reset_schema( $db, 'cd' );
-
-    reset_schema( $db, 'stories_tags_map_media_sub_tables' );
 }
 
 # Given the PostgreSQL response line (notice) returned while importing schema,
@@ -374,7 +170,6 @@ sub postgresql_response_line_is_expected($)
         | ^\SET
         | ^COMMENT
         | ^INSERT
-        | ^\ enum_add.*
         | ^----------.*
         | ^\s+
         | ^\(\d+\ rows?\)
@@ -437,8 +232,6 @@ sub load_sql_file
     my $port        = $db_settings->{ port };
     my $password    = $db_settings->{ pass } . "\n";
 
-    # say "$host $database $username $password ";
-
     # TODO: potentially brittle, $? should be checked after run3
     # common shell script interface gives indirection to database with no
     # modification of this code.
@@ -461,26 +254,24 @@ sub recreate_db
     my $do_not_check_schema_version = 1;
     my $db = MediaWords::DB::connect_to_db( $label, $do_not_check_schema_version );
 
-    # say STDERR "reset schema ...";
+    DEBUG( 'reset schema ...' );
+    my $data_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ data_dir };
+    if ( $data_dir )
+    {
+        my $cache_dir = "$data_dir/cache";
+        File::Path::remove_tree( $cache_dir, { keep_root => 1 } );
+    }
 
     reset_all_schemas( $db );
 
-    # say STDERR "add functions ...";
-    $db->query( get_sql_function_definitions() );
-
     my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
 
-    # say STDERR "script_dir: $script_dir";
+    DEBUG( "script_dir: $script_dir" );
 
-    # say STDERR "add enum functions ...";
-    my $load_dklab_postgresql_enum_result = load_sql_file( $label, "$script_dir/dklab_postgresql_enum_2009-02-26.sql" );
-
-    die "Error adding dklab_postgresql_enum procecures" if ( $load_dklab_postgresql_enum_result );
-
-    # say STDERR "Adding 'pgcrypto' extension...";
+    DEBUG( "Adding 'pgcrypto' extension..." );
     _add_pgcrypto_extension( $db );
 
-    # say STDERR "add mediacloud schema ...";
+    DEBUG( "add mediacloud schema ..." );
     my $load_sql_file_result = load_sql_file( $label, "$script_dir/mediawords.sql" );
 
     return $load_sql_file_result;
@@ -494,7 +285,7 @@ sub upgrade_db($;$)
 
     my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
 
-    # say STDERR "script_dir: $script_dir";
+    DEBUG( sub { "script_dir: $script_dir" } );
     my $db;
     {
 
@@ -513,31 +304,31 @@ EOF
     my $current_schema_version = $schema_versions[ 0 ] + 0;
     unless ( $current_schema_version )
     {
-        die "Invalid current schema version.";
+        LOGDIE "Invalid current schema version.";
     }
 
-    say STDERR "Current schema version: $current_schema_version";
+    INFO( sub { "Current schema version: $current_schema_version" } );
 
     # Target schema version
-    open SQLFILE, "$script_dir/mediawords.sql" or die $!;
+    open SQLFILE, "$script_dir/mediawords.sql" or LOGDIE $!;
     my @sql = <SQLFILE>;
     close SQLFILE;
     my $target_schema_version = MediaWords::Util::SchemaVersion::schema_version_from_lines( @sql );
     unless ( $target_schema_version )
     {
-        die "Invalid target schema version.";
+        LOGDIE( "Invalid target schema version." );
     }
 
-    say STDERR "Target schema version: $target_schema_version";
+    INFO( sub { "Target schema version: $target_schema_version" } );
 
     if ( $current_schema_version == $target_schema_version )
     {
-        say STDERR "Schema is up-to-date, nothing to upgrade.";
+        INFO( sub { "Schema is up-to-date, nothing to upgrade." } );
         return;
     }
     if ( $current_schema_version > $target_schema_version )
     {
-        die "Current schema version is newer than the target schema version, please update the source code.";
+        LOGIDE( "Current schema version is newer than the target schema version, please update the source code." );
     }
 
     # Check if the SQL diff files that are needed for upgrade are present before doing anything else
@@ -547,7 +338,7 @@ EOF
         my $diff_filename = './sql_migrations/mediawords-' . $version . '-' . ( $version + 1 ) . '.sql';
         unless ( -e $diff_filename )
         {
-            die "SQL diff file '$diff_filename' does not exist.";
+            LOGDIE "SQL diff file '$diff_filename' does not exist.";
         }
 
         push( @sql_diff_files, $diff_filename );
@@ -586,25 +377,21 @@ EOF
         my $sql_diff = read_file( $diff_filename );
         unless ( defined $sql_diff )
         {
-            die "Unable to read SQL diff file: $sql_diff";
+            LOGDIE "Unable to read SQL diff file: $sql_diff";
         }
         unless ( $sql_diff )
         {
-            die "SQL diff file is empty: $sql_diff";
+            LOGDIE "SQL diff file is empty: $sql_diff";
         }
 
         $upgrade_sql .= $sql_diff;
         $upgrade_sql .= "\n-- --------------------------------\n\n\n";
     }
 
-    # Append functions
-    $upgrade_sql .= get_sql_function_definitions();
-    $upgrade_sql .= "\n-- --------------------------------\n\n\n";
-
     # Wrap into a transaction
     if ( $upgrade_sql =~ /BEGIN;/i or $upgrade_sql =~ /COMMIT;/i )
     {
-        die "Upgrade script already BEGINs and COMMITs a transaction. Please upgrade the database manually.";
+        LOGDIE "Upgrade script already BEGINs and COMMITs a transaction. Please upgrade the database manually.";
     }
     $upgrade_sql = "BEGIN;\n\n\n" . $upgrade_sql;
     $upgrade_sql .= "COMMIT;\n\n";

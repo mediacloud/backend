@@ -7,16 +7,18 @@ use strict;
 use Carp;
 use IPC::Run3;
 
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::Util::Config;
 use MediaWords::Util::SchemaVersion;
 use MediaWords::DB;
 
+use CHI;
 use Carp;
 use Data::Page;
 use JSON;
+use Math::Random::Secure;
 
 use Encode;
 
@@ -74,7 +76,7 @@ sub connect($$$$$;$)
         # at this particular point too, but schema_is_up_to_date() warns the user about schema being
         # too old on every run, and that's supposedly a good thing.
 
-        die "Database schema is not up-to-date.\n" unless $ret->schema_is_up_to_date();
+        die "Database schema is not up-to-date." unless $ret->schema_is_up_to_date();
     }
 
     # If schema is not up-to-date, connect() dies and we don't get to set PID here
@@ -561,6 +563,108 @@ sub query_paged_hashes
 
 }
 
+# get CHI cache object for query continuations
+sub _get_continuation_cache
+{
+    my ( $self ) = @_;
+
+    my $mediacloud_data_dir = MediaWords::Util::Config::get_config->{ mediawords }->{ data_dir };
+
+    return CHI->new(
+        driver           => 'File',
+        expires_in       => '1 day',
+        expires_variance => '0.1',
+        root_dir         => "${ mediacloud_data_dir }/cache/continuations",
+        depth            => 4
+    );
+}
+
+# return a new continuation_id that is associated with the given continuation hash
+sub _get_new_continuation_id ($$$$$)
+{
+    my ( $self, $query, $params, $rows_per_page, $offset ) = @_;
+
+    my $continuation = {
+        query         => $query,
+        params        => $params,
+        rows_per_page => $rows_per_page,
+        offset        => $offset
+    };
+
+    my $cache = $self->_get_continuation_cache();
+
+    my $continuation_id;
+    while ( !$continuation_id || $cache->get( $continuation_id ) )
+    {
+        $continuation_id = Math::Random::Secure::irand( 2**48 );
+    }
+
+    $cache->set( $continuation_id, $continuation );
+
+    return $continuation_id;
+}
+
+# Query with continuation_id that allows paging through results.  Execute the query, cache the query text and args
+# with a new continuation_id, and return that continuation_id.
+sub query_and_create_continuation_id ($$$$)
+{
+    my ( $self, $query, $params, $rows_per_page ) = @_;
+
+    die( "$rows_per_page must be a number greater than 0" ) unless ( $rows_per_page > 0 );
+
+    my $continuation_id = $self->_get_new_continuation_id( $query, $params, $rows_per_page, $rows_per_page );
+
+    my $rows = $self->query( "select * from ( $query ) q limit $rows_per_page", @{ $params } )->hashes;
+
+    return ( $rows, $continuation_id );
+}
+
+# lookup the continuation data for a given continuation_id; return undef if no such continuation_id exists
+sub _get_continuation ($$)
+{
+    my ( $self, $continuation_id ) = @_;
+
+    return $self->_get_continuation_cache->get( $continuation_id );
+}
+
+# Given a continuation_id that has been returned by this function or by query_and_create_continuation_id, teturn the
+# next page of results for the query saved with the given continuation_id, create a new continuation_id, and
+# return the new continuation_id.  If no rows are returned by the query, return an empty result list and an
+#undef continuation_id.
+sub query_continuation ($$)
+{
+    my ( $self, $continuation_id ) = @_;
+
+    my $continuation = $self->_get_continuation( $continuation_id );
+
+    die( "Unknown continuation id: $continuation_id" ) unless ( $continuation );
+
+    my $query         = $continuation->{ query };
+    my $params        = $continuation->{ params };
+    my $rows_per_page = $continuation->{ rows_per_page };
+    my $offset        = $continuation->{ offset };
+
+    my $rows = $self->query( "select * from ( $query ) q limit $rows_per_page offset $offset", @{ $params } )->hashes;
+
+    return ( [], undef ) unless ( @{ $rows } );
+
+    $offset += $rows_per_page;
+    my $new_continuation_id = $self->_get_new_continuation_id( $query, $params, $rows_per_page, $offset );
+
+    return ( $rows, $new_continuation_id );
+}
+
+# if a continuation_id is passed, query the continuation, otherwise execute the given query.  in either case, return
+# a new continuation_id
+sub query_or_continuation ($$$$$)
+{
+    my ( $self, $query, $params, $rows_per_page, $continuation_id ) = @_;
+
+    return $self->query_continuation( $continuation_id ) if ( $continuation_id );
+
+    return $self->query_and_create_continuation_id( $query, $params, $rows_per_page, $continuation_id );
+}
+
 # executes the supplied subroutine inside a transaction
 sub transaction
 {
@@ -611,35 +715,43 @@ sub query_csv_dump
 
 # get the name of a temporary table that contains all of the ids in $ids as an 'id bigint' field.
 # the database connection must be within a transaction.  the temporary table is setup to be dropped
-# at the end of the current transaction.
-sub get_temporary_ids_table ($)
+# at the end of the current transaction. row insertion order is maintained.
+# if $ordered is true, include an ${ids_table}_id serial primary key field in the table.
+sub get_temporary_ids_table ($;$)
 {
-    my ( $db, $ids ) = @_;
+    my ( $db, $ids, $ordered ) = @_;
 
-    my $table = "_tmp_ids_" . int( rand( 100000 ) );
-    while ( $db->query( "select 1 from pg_class where relname = ?", $table )->hash )
+    my $i = 0;
+    while ( 1 )
     {
-        $table = "_tmp_ids_" . int( rand( 100000 ) );
+        die( "infinite loop break" ) if ( $i++ > 1000 );
+
+        my $table = "_tmp_ids_" . int( rand( 100000 ) );
+
+        my $pk = $ordered ? " ${table}_pkey   SERIAL  PRIMARY KEY," : "";
+
+        eval { $db->query( "create temporary table $table ( $pk id bigint )" ); };
+        if ( $@ )
+        {
+            ( $@ =~ /relation .* already exists/ ) ? next : die( $@ );
+        }
+
+        eval { $db->dbh->do( "COPY $table (id) FROM STDIN" ) };
+        die( " Error on copy: $@" ) if ( $@ );
+
+        for my $id ( @{ $ids } )
+        {
+            eval { $db->dbh->pg_putcopydata( "$id\n" ); };
+            die( " Error on pg_putcopydata: $@" ) if ( $@ );
+        }
+
+        eval { $db->dbh->pg_putcopyend(); };
+        Carp::confess( " Error on pg_putcopyend: $@" ) if ( $@ );
+
+        $db->query( "ANALYZE $table" );
+
+        return $table;
     }
-
-    $db->query( "create temporary table $table ( id bigint )" );
-
-    eval { $db->dbh->do( "copy $table from STDIN" ) };
-    die( " Error on copy: $@" ) if ( $@ );
-
-    for my $id ( @{ $ids } )
-    {
-        eval { $db->dbh->pg_putcopydata( "$id\n" ); };
-        die( " Error on pg_putcopydata: $@" ) if ( $@ );
-    }
-
-    eval { $db->dbh->pg_putcopyend(); };
-    Carp::confess( " Error on pg_putcopyend: $@" ) if ( $@ );
-
-    $db->query( "analyze $table" );
-
-    return $table;
-
 }
 
 sub begin_work

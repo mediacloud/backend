@@ -11,15 +11,40 @@ BEGIN
 use Test::More;
 
 use MediaWords::Util::Config;
+use MediaWords::Util::Text;
 use Data::Dumper;
 use MediaWords::Test::DB;
+
+sub s3_download_handler($)
+{
+    my $s3_handler_class = shift;
+
+    my $config = MediaWords::Util::Config::get_config;
+
+    # We want to be able to run S3 tests in parallel
+    my $test_suffix    = '-' . MediaWords::Util::Text::random_string( 64 );
+    my $directory_name = $config->{ amazon_s3 }->{ test }->{ directory_name } . $test_suffix;
+    my $cache_root_dir = $config->{ mediawords }->{ data_dir } . '/cache/test_s3_downloads' . $test_suffix;
+
+    return $s3_handler_class->new(
+        {
+            access_key_id     => $config->{ amazon_s3 }->{ test }->{ access_key_id },
+            secret_access_key => $config->{ amazon_s3 }->{ test }->{ secret_access_key },
+            bucket_name       => $config->{ amazon_s3 }->{ test }->{ bucket_name },
+            directory_name    => $directory_name,
+
+            # Used only for CachedAmazonS3
+            cache_root_dir => $cache_root_dir,
+        }
+    );
+}
 
 sub test_amazon_s3($)
 {
     my $s3_handler_class = shift;
 
     my $config = MediaWords::Util::Config::get_config;
-    unless ( $config->{ amazon_s3 }->{ test } )
+    unless ( defined( $config->{ amazon_s3 }->{ test } ) )
     {
         plan skip_all => 'Amazon S3\'s testing bucket is not configured';
     }
@@ -34,15 +59,7 @@ sub test_amazon_s3($)
 
             ok( $db, "PostgreSQL initialized " );
 
-            my $s3 = $s3_handler_class->new(
-                {
-                    bucket_name    => $config->{ amazon_s3 }->{ test }->{ bucket_name },
-                    directory_name => $config->{ amazon_s3 }->{ test }->{ directory_name },
-
-                    # Used only for CachedAmazonS3
-                    cache_root_dir => $config->{ mediawords }->{ data_dir } . '/cache/test_s3_downloads',
-                }
-            );
+            my $s3 = s3_download_handler( $s3_handler_class );
             ok( $s3, "Amazon S3 initialized" );
 
             my $test_downloads_id   = 999999999999999;
@@ -55,15 +72,10 @@ sub test_amazon_s3($)
             #
 
             my $s3_path;
-            my $expected_path;
             eval { $s3_path = $s3->store_content( $db, $test_downloads_id, \$test_content ); };
             ok( ( !$@ ), "Storing content failed: $@" );
             ok( $s3_path, 'Object ID was returned' );
-            $expected_path =
-              's3:' . $config->{ amazon_s3 }->{ test }->{ directory_name } .
-              ( substr( $config->{ amazon_s3 }->{ test }->{ directory_name }, -1, 1 ) ne '/' ? '/' : '' ) .
-              $test_downloads_id;
-            is( $s3_path, $expected_path, 'Object ID matches' );
+            like( $s3_path, qr#^s3:.+?/\Q$test_downloads_id\E$#, 'Object ID matches' );
 
             #
             # Fetch content, compare
@@ -104,11 +116,7 @@ sub test_amazon_s3($)
             };
             ok( ( !$@ ), "Storing content twice failed: $@" );
             ok( $s3_path, 'Object ID was returned' );
-            $expected_path =
-              's3:' . $config->{ amazon_s3 }->{ test }->{ directory_name } .
-              ( substr( $config->{ amazon_s3 }->{ test }->{ directory_name }, -1, 1 ) ne '/' ? '/' : '' ) .
-              $test_downloads_id;
-            is( $s3_path, $expected_path, 'Object ID matches' );
+            like( $s3_path, qr#^s3:.+?/\Q$test_downloads_id\E$#, 'Object ID matches' );
 
             # Fetch content again, compare
             eval { $content_ref = $s3->fetch_content( $db, $test_downloads_id, $test_downloads_path ); };

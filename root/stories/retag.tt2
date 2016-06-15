@@ -18,9 +18,6 @@
         [% IF c.acl_user_can_visit('/admin/downloads/view') %]
             | <a href="[% c.uri_for('/admin/downloads/view/') _ download.downloads_id %]">view download</a>
         [% END -%]
-        [% IF c.acl_user_can_visit('/admin/downloads/mextract') %]
-            | <a href="[% c.uri_for('/admin/downloads/mextract/') _ download.downloads_id %]">review extraction</a><br />
-        [% END -%]
     [% END -%]
 </p>
 

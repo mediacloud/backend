@@ -1,19 +1,19 @@
 package MediaWords;
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use strict;
 use warnings;
 
 use Catalyst::Runtime '5.80';
-use v5.8;
+use v5.22;
 
 #use Catalyst::Runtime;
 
 use DBIx::Simple::MediaWords;
 use MediaWords::Util::Config;
 use URI;
-use Bundle::MediaWords;
+use MediaWords::DBI::Auth::Roles;
 
 # Set flags and add plugins for the application
 #
@@ -27,7 +27,6 @@ use Catalyst qw/
   ConfigLoader
   ConfigDefaults
   Static::Simple
-  Unicode
   StackTrace
   I18N
   Authentication
@@ -71,13 +70,10 @@ sub setup_acl()
 
     # Admin read-only interface
     my @acl_admin_readonly = qw|
-      /admin/dashboards/list
-      /admin/dashboards/list_topics
       /admin/downloads/list
       /admin/downloads/view
       /admin/downloads/view_extracted
       /admin/feeds/list
-      /admin/gearman/view_log
       /admin/media/do_eval_rss_full_text
       /admin/media/do_find_likely_full_text_rss
       /admin/media/eval_rss_full_text
@@ -85,39 +81,16 @@ sub setup_acl()
       /admin/media/list
       /admin/media/media_tags_search_json
       /admin/media/search
-      /admin/mediasets/list
       /admin/stories/list
       /admin/stories/stories_query_json
       /admin/stories/tag
       /admin/stories/view
-      /admin/topics/index
-      /admin/topics/list
       /admin/users/list
-      |;
-
-    # query-create role; can do everything admin-readonly can + create queries, dashboards,
-    # dashboard topics, media sets
-    my @acl_query_create = qw|
-      /admin/dashboards/create
-      /admin/dashboards/create_topic
-      /admin/mediasets/create
-      /admin/topics/create_do
       |;
 
     # media-edit role; can do everything admin-readonly can + add / edit media / feeds
     my @acl_media_edit = qw|
-      /admin/downloads/disable_autoexclude
-      /admin/downloads/disable_translation
-      /admin/downloads/enable_autoexclude
-      /admin/downloads/enable_translation
-      /admin/downloads/mextract
-      /admin/downloads/mextract_do
-      /admin/downloads/mextract_random
       /admin/downloads/redownload
-      /admin/downloads/useDeveloperUI
-      /admin/downloads/useTrainerUI
-      /admin/extractor_stats/index
-      /admin/extractor_stats/list
       /admin/feeds/batch_create
       /admin/feeds/batch_create_do
       /admin/feeds/create
@@ -138,7 +111,6 @@ sub setup_acl()
       /admin/media/edit_tags_do
       /admin/media/moderate
       /admin/media/moderate/merge
-      /admin/mediasets/create
       /admin/health
       /admin/health/list
       /admin/health/tag
@@ -161,7 +133,6 @@ sub setup_acl()
     # cm role; can access all cm pages + admin-readonly + media-edit + stories-edi
     my @acl_cm = qw|
       /admin/cm/
-      /admin/gearman/view_log
       |;
 
     my @acl_search = qw|
@@ -174,56 +145,74 @@ sub setup_acl()
 
     foreach my $path ( @acl_admin_readonly )
     {
-        __PACKAGE__->allow_access_if_any( $path, [ qw/admin-readonly query-create media-edit stories-edit cm/ ] );
-    }
-
-    foreach my $path ( @acl_query_create )
-    {
-        __PACKAGE__->allow_access_if_any( $path, [ qw/query-create/ ] );
+        __PACKAGE__->allow_access_if_any(
+            $path,
+            [
+                $MediaWords::DBI::Auth::Roles::ADMIN_READONLY,    #
+                $MediaWords::DBI::Auth::Roles::MEDIA_EDIT,        #
+                $MediaWords::DBI::Auth::Roles::STORIES_EDIT,      #
+                $MediaWords::DBI::Auth::Roles::CM,                #
+            ]
+        );
     }
 
     foreach my $path ( @acl_media_edit )
     {
-        __PACKAGE__->allow_access_if_any( $path, [ qw/media-edit cm/ ] );
+        __PACKAGE__->allow_access_if_any(
+            $path,
+            [
+                $MediaWords::DBI::Auth::Roles::MEDIA_EDIT,        #
+                $MediaWords::DBI::Auth::Roles::CM,                #
+            ]
+        );
     }
 
     foreach my $path ( @acl_stories_edit )
     {
-        __PACKAGE__->allow_access_if_any( $path, [ qw/stories-edit cm/ ] );
+        __PACKAGE__->allow_access_if_any(
+            $path,
+            [
+                $MediaWords::DBI::Auth::Roles::STORIES_EDIT,      #
+                $MediaWords::DBI::Auth::Roles::CM,                #
+            ]
+        );
     }
 
     for my $path ( @acl_cm )
     {
-        __PACKAGE__->allow_access_if_any( $path, [ qw/cm cm-readonly/ ] );
+        __PACKAGE__->allow_access_if_any(
+            $path,
+            [
+                $MediaWords::DBI::Auth::Roles::CM,                #
+                $MediaWords::DBI::Auth::Roles::CM_READONLY,       #
+            ]
+        );
     }
 
     for my $path ( @acl_search )
     {
-        __PACKAGE__->allow_access_if_any( $path, [ qw/search/ ] );
+        __PACKAGE__->allow_access_if_any( $path, [ $MediaWords::DBI::Auth::Roles::SEARCH ] );
     }
 
     # ---
 
     # All roles can access their profile
     __PACKAGE__->allow_access_if_any(
-        "/admin/profile",
+        '/admin/profile',
         [
-            qw/
-              admin
-              admin-readonly
-              query-create
-              media-edit
-              stories-edit
-              cm
-              stories-api
-              search
-              /
+            $MediaWords::DBI::Auth::Roles::ADMIN,             #
+            $MediaWords::DBI::Auth::Roles::ADMIN_READONLY,    #
+            $MediaWords::DBI::Auth::Roles::MEDIA_EDIT,        #
+            $MediaWords::DBI::Auth::Roles::STORIES_EDIT,      #
+            $MediaWords::DBI::Auth::Roles::CM,                #
+            $MediaWords::DBI::Auth::Roles::STORIES_API,       #
+            $MediaWords::DBI::Auth::Roles::SEARCH,            #
         ]
     );
 
     # Blanket rule for the rest of the administration controllers
-    __PACKAGE__->deny_access_unless_any( "/admin",  [ qw/admin/ ] );
-    __PACKAGE__->deny_access_unless_any( "/search", [ qw/admin/ ] );
+    __PACKAGE__->deny_access_unless_any( "/admin",  [ $MediaWords::DBI::Auth::Roles::ADMIN ] );
+    __PACKAGE__->deny_access_unless_any( "/search", [ $MediaWords::DBI::Auth::Roles::ADMIN ] );
 
     # Public interface
     __PACKAGE__->allow_access( "/login" );

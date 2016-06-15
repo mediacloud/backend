@@ -10,14 +10,6 @@ Plugin::Authentication:
             password_type: salted_hash
         store:
             class: MediaWords
-gearman:
-    servers:
-        - "127.0.0.1:4731"
-    notifications:
-        emails: []
-        from_address: gjs@mediacloud.org
-        subject_prefix: '[GJS]'
-    worker_log_dir: data/gearman_worker_logs/
 mail:
     bug_email: ''
     from_address: noreply@mediacloud.org
@@ -25,14 +17,12 @@ mediawords:
     always_show_stack_traces: no
     controversy_model_reps: 25
     default_home_page: admin/media/list
-    disable_json_top_500_words_cache: no
-    download_storage_locations:
-        - postgresql
-    extractor_method: HeuristicExtractor
-    inline_java_jni: no
+    extractor_method: InlinePythonReadability
     language: en_US_and_ru_RU
     owner: mediacloud@cyber.law.harvard.edu
-    read_gridfs_downloads_from_s3: no
+    download_storage_locations:
+        - postgresql
+    read_all_downloads_from_s3: no
     fallback_postgresql_downloads_to_s3: no
     cache_s3_downloads: no
     recaptcha_private_key: 6LfEVt0SAAAAABmI-8IJmx4g93eNcSeyeCxvLMs2
@@ -43,12 +33,6 @@ mediawords:
     cm_spider_iterations: 15
 supervisor:
     childlogdir: data/supervisor_logs/
-gearmand:
-    enabled: yes
-    listen: 127.0.0.1
-    port: 4731
-    threads: 0
-    worker_wakeup: 0
 corenlp:
     enabled: no
     annotator_url: ''
@@ -58,13 +42,16 @@ bitly:
     enabled: no
     access_token: ''
     timeout: 60
+    json_read_stores:
+        - postgresql
+    json_write_stores:
+        - postgresql
 facebook:
     enabled: no
     app_id: ''
     app_secret: ''
     timeout: 60
-crf_web_service:
-    enabled: no
-    server_url: http://127.0.0.1:8441/crf
-    listen: 127.0.0.1:8441
-    number_of_threads: 32
+ec2:
+    instance_monitor_email: ''
+    aws_access_key_id: ''
+    aws_secret_access_key: ''

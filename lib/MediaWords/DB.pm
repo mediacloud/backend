@@ -1,5 +1,5 @@
 package MediaWords::DB;
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use strict;
@@ -106,7 +106,6 @@ sub connect_settings
     # If this is Catalyst::Test run, force the label to the test database
     if ( $ENV{ MEDIAWORDS_FORCE_USING_TEST_DATABASE } )
     {
-        print STDERR "Using the 'test' database\n";
         $label = 'test';
     }
 
@@ -177,13 +176,6 @@ sub print_shell_env_commands_for_psql
     }
 }
 
-sub authenticate
-{
-    my ( $self, $label ) = @_;
-
-    return __PACKAGE__->connect( connect_info( $label ) );
-}
-
 sub run_block_with_large_work_mem( &$ )
 {
 
@@ -212,16 +204,35 @@ sub enable_story_triggers
     return;
 }
 
+# match the database name against the database names in mediawords.yml to find the current label
+sub get_label
+{
+    my ( $db ) = @_;
+
+    my $database_name = $db->query( "select current_database()" )->flat;
+
+    my $config = MediaWords::Util::Config::get_config;
+
+    for my $database_info ( @{ $config->{ database } } )
+    {
+        return $database_info->{ label } if ( $database_info->{ db } eq $database_name );
+    }
+
+    return undef;
+}
+
 # return a new db for a forked process, taking care to deactivate the existing
 # handle to avoid having the child process kill the parent db on exit
 sub reset_forked_db
 {
     my ( $db ) = @_;
 
+    my $label = get_label( $db );
+
     $db->dbh->{ InactiveDestroy } = 1;
     $db->{ dbh } = undef;
 
-    return connect_to_db;
+    return connect_to_db( $label );
 }
 
 # You can replace this text with custom content, and it will be preserved on regeneration

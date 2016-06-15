@@ -9,6 +9,7 @@ use File::Path;
 
 use DBIx::Simple::MediaWords;
 use MediaWords::DB;
+use MediaWords::DBI::Auth;
 use MediaWords::Pg::Schema;
 use MediaWords::Util::Config;
 
@@ -40,7 +41,6 @@ sub _create_test_database
     close( FILE );
 
     $test_db->query( $schema_sql );
-    $test_db->query( MediaWords::Pg::Schema::get_sql_function_definitions() );
 
     # make sure the stories table exists as a sanity check for the schema
     $test_db->query( "select * from stories" );
@@ -234,6 +234,21 @@ sub create_test_story_stack
                 $media->{ $story_label } = $story;
             }
         }
+    }
+
+    # Create a user for temporary databases
+    sub create_test_user
+    {
+        my $db = shift;
+
+        my $add_user_error_message =
+          MediaWords::DBI::Auth::add_user_or_return_error_message( $db, 'jdoe@cyber.law.harvard.edu', 'John Doe', '', [ 1 ],
+            1, 'testtest', 'testtest', 1, 1000, 1000 );
+
+        my $api_key = $db->query( "select api_token from auth_users where email =\'jdoe\@cyber.law.harvard.edu\'" )->hash;
+
+        return $api_key->{ api_token };
+
     }
 
     return $media;

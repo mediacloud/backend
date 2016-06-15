@@ -3,7 +3,7 @@ package MediaWords::Util::URL;
 use strict;
 use warnings;
 
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Readonly;
@@ -659,7 +659,7 @@ sub normalize_url($)
         @parameters_to_remove,
         qw/ fb_action_ids fb_action_types fb_source fb_ref
           action_object_map action_type_map action_ref_map
-          fsrc /
+          fsrc _fb_noscript /
     );
 
     # metrika.yandex.ru parameters
@@ -752,6 +752,23 @@ sub normalize_url($)
     return $uri->as_string;
 }
 
+# unescaping octets that can be better represented as plain characters. stolen from URI::canonical to avoid very
+# expensive URI->new( $url )->canonical() call
+sub _normalize_url_octets
+{
+    my ( $url ) = @_;
+
+    my $mark       = q(-_.!~*'());
+    my $unreserved = "A-Za-z0-9\Q$mark\E";
+
+    $url =~ s{%([0-9a-fA-F]{2})}
+                { my $a = chr(hex($1));
+                      $a =~ /^[$unreserved]\z/o ? $a : "%\U$1"
+                    }ge;
+
+    return $url;
+}
+
 # do some simple transformations on a URL to make it match other equivalent
 # URLs as well as possible; normalization is "lossy" (makes the whole URL
 # lowercase, removes subdomain parts "m.", "data.", "news.", ... in some cases)
@@ -769,14 +786,23 @@ sub normalize_url_lossy($)
     if ( $url !~ /r2\.ly/ )
     {
         $url =~
-s/^(https?:\/\/)(m|beta|media|data|image|www?|cdn|topic|article|news|archive|blog|video|search|preview|shop|sports?|act|donate|press|web|photos?|\d+?).?\./$1/i;
+s/^(https?:\/\/)(m|beta|media|data|image|www?|cdn|topic|article|news|archive|blog|video|search|preview|shop|sports?|act|donate|press|web|photos?|\d+?).?\.(.*\.)/$1$3/i;
     }
 
+    # get rid of anchor text
     $url =~ s/\#.*//;
 
-    $url =~ s/\/+$//;
+    # get rid of multiple slashes in a row
+    $url =~ s/(\/\/.*\/)\/+/$1/;
 
-    return scalar( URI->new( $url )->canonical );
+    $url =~ s/^https:/http:/;
+
+    $url = _normalize_url_octets( $url );
+
+    # add trailing slash
+    $url .= '/' if ( $url =~ m~https?://[^/]*$~ );
+
+    return $url;
 }
 
 # get the domain of the given URL (sans "www." and ".edu"; see t/URL.t for output examples)
@@ -1190,6 +1216,19 @@ sub http_urls_in_string($)
     @urls = uniq @urls;
 
     return \@urls;
+}
+
+# use a regex to get the url path much faster than URI->new()->path
+sub get_url_path_fast
+{
+    my ( $url ) = @_;
+
+    if ( $url =~ m~^[a-z]://[^/]+(/.*)~ )
+    {
+        return $1;
+    }
+
+    return '';
 }
 
 1;

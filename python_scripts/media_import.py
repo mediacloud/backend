@@ -39,8 +39,6 @@ def update_db_sequences( conn ):
     
     cursor.execute( "select setval(pg_get_serial_sequence('tags', 'tags_id'), (select max(tags_id)+1 from tags))" )
     cursor.execute( "select setval(pg_get_serial_sequence('media', 'media_id'), (select max(media_id)+1 from media))" )
-    cursor.execute( "select setval(pg_get_serial_sequence('media_sets', 'media_id'), (select max(media_id)+1 from media))" )
-    cursor.execute( "select setval(pg_get_serial_sequence('media_sets_media_map', 'media_id'), (select max(media_id)+1 from media))" )
     cursor.execute( "select setval(pg_get_serial_sequence('media_tags_map', 'media_tags_map_id'), (select max(media_tags_map_id)+1 from media_tags_map))" )
     cursor.execute( "select setval(pg_get_serial_sequence('feeds', 'feeds_id'), (select max(feeds_id)+1 from feeds))" )
     
@@ -99,8 +97,8 @@ def add_media_to_database( conn, all_media ):
     for medium in all_media:
         medium = non_list_pairs( medium)
         #del medium['dup_media_id']
-        cast_fields_to_bool( medium, [ 'extract_author', 'annotate_with_corenlp', "full_text_rss",
-                                  "foreign_rss_links",  "moderated", "use_pager", "is_not_dup"])
+        cast_fields_to_bool( medium, [ 'extract_author', "full_text_rss", "foreign_rss_links",
+            "moderated", "use_pager", "is_not_dup"])
         insert_into_table( cursor, 'media', medium )
         
         num_media_inserted += 1
@@ -143,9 +141,10 @@ def add_feeds_from_media_to_database( conn, mc, media ):
     
     for medium in media:
         feeds_for_media = mc.feedList( media_id=medium['media_id'], rows=1000)
-        assert len( feeds_for_media ) < 1000
+        assert len( feeds_for_media ) < 10000
         
         for feed in feeds_for_media:
+            cast_fields_to_bool( feed, [ 'skip_bitly_processing' ])
             insert_into_table( cursor, 'feeds', feed )
             
         num_media_processed += 1

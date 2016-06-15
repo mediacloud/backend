@@ -12,7 +12,7 @@ use Test::More tests => 96;
 use Test::NoWarnings;
 use Test::Deep;
 
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 use MediaWords::Test::DB;
 use MediaWords::DBI::Media;

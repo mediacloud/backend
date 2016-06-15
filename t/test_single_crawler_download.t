@@ -1,7 +1,7 @@
+#!/usr/bin/env perl
+
 use strict;
 use warnings;
-use Data::Dumper;
-use Modern::Perl "2013";
 
 # basic sanity test of crawler functionality
 
@@ -12,7 +12,10 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
-use Test::More tests => 16;
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
+use Test::More tests => 12;
 use Test::Differences;
 use Test::Deep;
 
@@ -20,7 +23,6 @@ require Test::NoWarnings;
 
 use MediaWords::Crawler::Engine;
 use MediaWords::DBI::DownloadTexts;
-use MediaWords::DBI::MediaSets;
 use MediaWords::DBI::Stories;
 use MediaWords::Test::DB;
 use MediaWords::Test::Data;
@@ -39,19 +41,11 @@ sub add_test_feed
 {
     my ( $db, $url_to_crawl ) = @_;
 
-    Readonly my $sw_data_start_date => '2008-02-03';
-    Readonly my $sw_data_end_date   => '2014-02-27';
-
     my $test_medium = $db->query(
-        "insert into media (name, url, moderated, sw_data_start_date, sw_data_end_date) values (?, ?, ?, ?, ?) returning *",
-        '_ Crawler Test', $url_to_crawl, 0, $sw_data_start_date, $sw_data_end_date
+        "insert into media (name, url, moderated) values (?, ?, ?) returning *",
+        '_ Crawler Test',
+        $url_to_crawl, 0
     )->hash;
-
-    ok( MediaWords::StoryVectors::_medium_has_story_words_start_date( $test_medium ) );
-    ok( MediaWords::StoryVectors::_medium_has_story_words_end_date( $test_medium ) );
-
-    is( MediaWords::StoryVectors::_get_story_words_start_date_for_medium( $test_medium ), $sw_data_start_date );
-    is( MediaWords::StoryVectors::_get_story_words_end_date_for_medium( $test_medium ),   $sw_data_end_date );
 
     my $feed = $db->query(
         "insert into feeds (media_id, name, url) values (?, ?, ?) returning *",
@@ -59,8 +53,6 @@ sub add_test_feed
         '_ Crawler Test',
         "$url_to_crawl" . "gv/test.rss"
     )->hash;
-
-    MediaWords::DBI::MediaSets::create_for_medium( $db, $test_medium );
 
     ok( $feed->{ feeds_id }, "test feed created" );
 
@@ -211,7 +203,7 @@ sub main
     # test itself will assume that stories got extracted using this extractor
     # method and thus will load input / save output data from appropriate
     # directories.
-    Readonly my $extractor_method => 'HeuristicExtractor';
+    Readonly my $extractor_method => 'InlinePythonReadability';
 
     my ( $dump ) = @ARGV;
 
@@ -242,7 +234,7 @@ sub main
 
             $crawler->crawl_single_download( $feed_download->{ downloads_id } );
 
-            print STDERR "download id: $feed_download->{ downloads_id }\n";
+            DEBUG( sub { "download id: $feed_download->{ downloads_id }" } );
             my $content_downloads =
               $db->query( "SELECT * from downloads where  type = 'content' and state <> 'success' and downloads_id > ? ",
                 $feed_download->{ downloads_id } )->hashes;
@@ -266,7 +258,7 @@ sub main
 
             test_stories( $db, $feed, $extractor_method );
 
-            say STDERR "Killing server";
+            DEBUG( "Killing server" );
             $test_http_server->stop();
 
             Test::NoWarnings::had_no_warnings();
@@ -275,4 +267,3 @@ sub main
 }
 
 main();
-

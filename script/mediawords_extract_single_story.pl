@@ -1,6 +1,7 @@
 #!/usr/bin/env perl
 
-# extract the text for the given story using the heuristic and crf extractors
+# extract the text for the given story
+
 use strict;
 use warnings;
 
@@ -28,13 +29,11 @@ sub get_extractor_results_for_story
     for my $download ( @{ $downloads } )
     {
         say STDERR "extracting \n" . Dumper( $download );
-        my $res = MediaWords::DBI::Downloads::extractor_results_for_download( $db, $download );
+        my $res = MediaWords::DBI::Downloads::extract( $db, $download );
 
         say STDERR "extractor result\n" . Dumper( $res );
 
     }
-
-    return;
 }
 
 sub main
@@ -48,8 +47,6 @@ sub main
     my $story = $db->find_by_id( 'stories', $stories_id );
 
     my $res = get_extractor_results_for_story( $db, $story );
-
-    # print Dumper( $res );
 }
 
 main();

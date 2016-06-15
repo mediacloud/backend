@@ -13,8 +13,8 @@
 [%- BLOCK program_config %]
 
 [program:[% program %]]
-    [%- IF gearman_worker_module %]
-        [%- command = './script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/' _ gearman_worker_module %]
+    [%- IF worker_module %]
+        [%- command = './script/run_with_carton.sh local/bin/mjm_worker.pl lib/MediaWords/Job/' _ worker_module %]
     [%- END %]    
     [%- nice = supervisor.programs.$program.nice || default_nice %]
     [%- IF nice %]
@@ -36,6 +36,9 @@ process_name = %(program_name)s_%(process_num)02d
     [%- END %]
     [%- IF stopwaitsecs %]
 stopwaitsecs=[% stopwaitsecs %]
+    [%- END %]
+    [%- IF stopsignal %]
+stopsignal=[% stopsignal %]
     [%- END %]
 [%- END %]
 
@@ -62,7 +65,7 @@ supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
 serverurl = unix://%(here)s/supervisord.sock                ; use a unix:// URL for a unix socket
 
 [group:mc]
-programs = crawler,crf_web_service
+programs = crawler
 
 [%- crawler_numprocs = supervisor.programs.crawler.numprocs || 1 %]
 [% INCLUDE program_config
@@ -76,46 +79,37 @@ programs = crawler,crf_web_service
     default_nice=5
 %]
 
-[% INCLUDE program_config
-    program='crf_web_service'
-    command='bash ./script/crfwebservice_wrapper.sh'
-    default_stopasgroup='false'
-    default_killasgroup='false'
-    default_autorestart='true'
-    default_autostart='false'
-    priority=5
-    default_nice=12
-%]
-
 
 [% INCLUDE program_config
-    program='reextraction_daemon'
-    command="bash ./script/run_with_carton.sh ./script/mediawords_reextraction_daemon.pl"
+    program='reextract_stories_without_readability_tag'
+    command="bash ./script/run_with_carton.sh ./script/reextract_stories_without_readability_tag.pl"
     default_stopasgroup='true'
     default_killasgroup='true'
     default_autorestart='false'
-    default_autostart='false'
+    default_autostart='true'
     priority=5
     default_nice=12
 %]
 
-; Gearman (p5-Gearman-JobScheduler) functions
-[group:gearman]
-programs = gearmand
+; Job brokers
+[group:job_broker]
+programs = rabbitmq
 
 [% INCLUDE program_config
-    program='gearmand'
-    command='bash ./script/gearmand_wrapper.sh'
-    default_stopasgroup='false'
-    default_killasgroup='false'
+    program='rabbitmq'
+    command='bash ./script/rabbitmq_wrapper.sh'
+    default_stopasgroup='true'
+    default_killasgroup='true'
     default_autorestart='true'
     default_autostart='true'
+    stopsignal='INT'
+    stopwaitsecs=30
     priority=10
 %]
 
 [% INCLUDE program_config
     program='rescrape_media'
-    gearman_worker_module='RescrapeMedia.pm'
+    worker_module='RescrapeMedia.pm'
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'
@@ -125,7 +119,7 @@ programs = gearmand
 
 [% INCLUDE program_config
     program='extract_and_vector'
-    gearman_worker_module='ExtractAndVector.pm'
+    worker_module='ExtractAndVector.pm'
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'
@@ -135,7 +129,7 @@ programs = gearmand
 
 [% INCLUDE program_config
     program='cm_mine_controversy'
-    gearman_worker_module='CM/MineControversy.pm'
+    worker_module='CM/MineControversy.pm'
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'
@@ -145,7 +139,7 @@ programs = gearmand
 
 [% INCLUDE program_config
     program='cm_dump_controversy'
-    gearman_worker_module='CM/DumpControversy.pm'
+    worker_module='CM/DumpControversy.pm'
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'
@@ -155,7 +149,7 @@ programs = gearmand
 
 [% INCLUDE program_config
     program='annotate_with_corenlp'
-    gearman_worker_module='AnnotateWithCoreNLP.pm'
+    worker_module='AnnotateWithCoreNLP.pm'
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'
@@ -164,8 +158,8 @@ programs = gearmand
 %]
 
 [% INCLUDE program_config
-    program='bitly_enqueue_controversy_stories'
-    gearman_worker_module='Bitly/EnqueueControversyStories.pm'
+    program='bitly_process_all_controversy_stories'
+    worker_module='Bitly/ProcessAllControversyStories.pm'
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'
@@ -175,7 +169,7 @@ programs = gearmand
 
 [% INCLUDE program_config
     program='bitly_fetch_story_stats'
-    gearman_worker_module='Bitly/FetchStoryURLStats.pm'
+    worker_module='Bitly/FetchStoryStats.pm'
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'
@@ -185,17 +179,7 @@ programs = gearmand
 
 [% INCLUDE program_config
     program='bitly_aggregate_story_stats'
-    gearman_worker_module='Bitly/AggregateStoryStats.pm'
-    default_stopasgroup='false'
-    default_killasgroup='false'
-    default_autorestart='false'
-    default_autostart='true'
-    default_nice=10
-%]
-
-[% INCLUDE program_config
-    program='twitter_fetch_story_stats'
-    gearman_worker_module='Twitter/FetchStoryURLStats.pm'
+    worker_module='Bitly/AggregateStoryStats.pm'
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'
@@ -205,7 +189,7 @@ programs = gearmand
 
 [% INCLUDE program_config
     program='facebook_fetch_story_stats'
-    gearman_worker_module='Facebook/FetchStoryURLStats.pm'
+    worker_module='Facebook/FetchStoryStats.pm'
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'
@@ -227,16 +211,7 @@ programs = solr
 %]
 
 [group:thrift]
-programs=solr_facets_wrapper_server,extractor_python_readability_server
-
-[% INCLUDE program_config
-    program='solr_facets_wrapper_server'
-    command='python python_scripts/solr_facets_wrapper_server.py'
-    default_stopasgroup='false'
-    default_killasgroup='false'
-    default_autorestart='false'
-    default_autostart='false'
-%]
+programs=extractor_python_readability_server
 
 [% INCLUDE program_config
     program='extractor_python_readability_server'

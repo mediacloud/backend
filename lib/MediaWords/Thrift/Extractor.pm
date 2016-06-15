@@ -3,7 +3,7 @@ package MediaWords::Thrift::Extractor;
 use strict;
 use warnings;
 
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 # functions for searching the solr server
@@ -52,22 +52,6 @@ sub _get_client
     return $client;
 }
 
-sub get_media_counts
-{
-    my ( $q, $facet_field, $fq, $mincount ) = @_;
-
-    my $transport = _get_transport();
-    my $client    = _get_client( $transport );
-
-    $transport->open();
-
-    my $ret = $client->media_counts( $q, $facet_field, $fq, $mincount );
-
-    $transport->close();
-
-    return $ret;
-}
-
 sub extract_html
 {
     my ( $raw_html ) = @_;
@@ -93,7 +77,7 @@ sub extract_html
 
             my $error_message = "Giving up trying to connect to thrift server:\n";
             $error_message .= Dumper( $e ) . "\n";
-            $error_message .= "Gearman worker is terminating so that the extractor job remains in the Gearman queue";
+            $error_message .= "Worker is terminating in order for the extractor job to remain in the queue";
 
             fatal_error( $error_message );
         }

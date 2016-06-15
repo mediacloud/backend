@@ -1,5 +1,5 @@
 package MediaWords::Crawler::Downloads_Queue;
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 # provide one request at a time a crawler process
@@ -74,6 +74,9 @@ sub get_download_site_from_hostname
 {
     my ( $host_name ) = @_;
 
+    # to improve speed, we just throttle by host name now.
+    return $host_name;
+
     confess unless defined( $host_name );
     $host_name =~ s/.*\.([^.]*\.[^.]*)/$1/;
 
@@ -90,8 +93,6 @@ sub _queue_download
     {
         die( "missing media_id" );
     }
-
-    #print STDERR "Provider _queue_download media_id $media_id\n";
 
     $self->{ downloads }->{ $media_id }->{ queued } ||= $self->_get_media_download_queue( $media_id );
     $self->{ downloads }->{ $media_id }->{ time }   ||= 0;

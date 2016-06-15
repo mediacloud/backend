@@ -1,10 +1,9 @@
 package MediaWords::Controller::Api::V2::Feeds;
-use Modern::Perl "2013";
+use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use strict;
 use warnings;
-use MediaWords::DBI::StorySubsets;
 use MediaWords::Controller::Api::V2::MC_REST_SimpleObject;
 
 use Moose;
