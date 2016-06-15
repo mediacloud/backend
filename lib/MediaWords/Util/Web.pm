@@ -158,6 +158,13 @@ sub get_original_url_from_momento_archive_url
 {
     my ( $archive_site_url ) = @_;
 
+    # archive.org is sometimes down, so get the archived URL without making any
+    # kind of requests
+    if ( $archive_site_url =~ m|^https?://web\.archive\.org/web/(\d+?/)?(https?://.+?)$|i )
+    {
+        return $2;
+    }
+
     my $ua       = MediaWords::Util::Web::UserAgent();
     my $response = $ua->get( $archive_site_url );
 
