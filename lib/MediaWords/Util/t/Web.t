@@ -21,7 +21,7 @@ BEGIN
     use_ok( 'MediaWords::Util::Web' );
 }
 
-sub test_is_http_url()
+sub test_get_original_url_from_momento_archive_url()
 {
     like(
         MediaWords::Util::Web::get_original_url_from_momento_archive_url(
@@ -77,7 +77,7 @@ sub main()
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
-    test_is_http_url();
+    test_get_original_url_from_momento_archive_url();
     test_lwp_useragent_determined_500_read_timeout();
 }
 
