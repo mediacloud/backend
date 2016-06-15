@@ -15,8 +15,8 @@
 [program:[% program %]]
     [%- IF worker_module %]
         [%- command = './script/run_with_carton.sh local/bin/mjm_worker.pl lib/MediaWords/Job/' _ worker_module %]
-    [%- END %]    
-    [%- nice = supervisor.programs.$program.nice || default_nice %]
+    [%- END %]
+    [%- nice = supervisor.programs.$program.nice || default_nice || 10 %]
     [%- IF nice %]
         [%- command = "/usr/bin/nice -n $nice $command" %]
     [%- END %]
@@ -105,6 +105,7 @@ programs = rabbitmq
     stopsignal='INT'
     stopwaitsecs=30
     priority=10
+    default_nice=0
 %]
 
 [% INCLUDE program_config
@@ -208,6 +209,7 @@ programs = solr
     default_autorestart='true'
     default_autostart='true'
     stopwaitsecs=20
+    default_nice=0
 %]
 
 [group:thrift]
@@ -220,6 +222,7 @@ programs=extractor_python_readability_server
     default_killasgroup='true'
     default_autorestart='true'
     default_autostart='true'
+    default_nice=12
 %]
 
 
