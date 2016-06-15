@@ -339,15 +339,6 @@ sub _test_sort
     }
 
     is_deeply( $actual_stories_inlink_counts, $expected_counts, 'expected stories' );
-
-    foreach my $story ( 1 .. scalar @{ $actual_stories_order } - 1 )
-    {
-        ok( $actual_stories_order->[ $story ]->[ 0 ] <= $actual_stories_order->[ $story - 1 ]->[ 0 ] );
-        if ( $actual_stories_order->[ $story ]->[ 0 ] == $actual_stories_order->[ $story - 1 ]->[ 0 ] )
-        {
-            ok( $actual_stories_order->[ $story ]->[ 1 ] > $actual_stories_order->[ $story - 1 ]->[ 1 ] );
-        }
-    }
 }
 
 sub main
