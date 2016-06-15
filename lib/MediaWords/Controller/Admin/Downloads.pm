@@ -90,18 +90,11 @@ sub view : Local
     }
 
     my $content_ref;
-    if ( $download->{ file_status } eq 'missing' )
+    eval { $content_ref = MediaWords::DBI::Downloads::fetch_content( $c->dbis, $download ) };
+    if ( $@ )
     {
-        $content_ref = \"(missing download)";
-    }
-    else
-    {
-        eval { $content_ref = MediaWords::DBI::Downloads::fetch_content( $c->dbis, $download ) };
-        if ( $@ )
-        {
-            my $content = "Error fetching download:\n" . $@;
-            $content_ref = \$content;
-        }
+        my $content = "Error fetching download:\n" . $@;
+        $content_ref = \$content;
     }
 
     if ( !$content_ref || !$$content_ref )

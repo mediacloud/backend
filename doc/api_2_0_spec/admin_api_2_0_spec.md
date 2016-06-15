@@ -152,7 +152,7 @@ returned.
 #### Example
 
 The following call returns the top 1000 stories by bitly clicks mentioning "climate change" in the Top U.S.
-Online News media set, clustered by title language.
+Online News media collection, clustered by title language.
 
 URL: https://api.mediacloud.org/api/v2/stories/cluster_stories?rows=10&q="climate change" AND tags_id_media:9139487
 

@@ -23,7 +23,6 @@ require Test::NoWarnings;
 
 use MediaWords::Crawler::Engine;
 use MediaWords::DBI::DownloadTexts;
-use MediaWords::DBI::MediaSets;
 use MediaWords::DBI::Stories;
 use MediaWords::Test::DB;
 use MediaWords::Test::Data;
@@ -54,8 +53,6 @@ sub add_test_feed
         '_ Crawler Test',
         "$url_to_crawl" . "gv/test.rss"
     )->hash;
-
-    MediaWords::DBI::MediaSets::create_for_medium( $db, $test_medium );
 
     ok( $feed->{ feeds_id }, "test feed created" );
 

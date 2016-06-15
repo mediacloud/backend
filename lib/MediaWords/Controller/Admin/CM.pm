@@ -2955,7 +2955,7 @@ END
     $c->stash->{ template }    = 'cm/edit_media_types.tt2';
 }
 
-# get a simple count of stories that belong to each partisan media set
+# get a simple count of stories that belong to each partisan media collection
 sub _get_partisan_counts
 {
 

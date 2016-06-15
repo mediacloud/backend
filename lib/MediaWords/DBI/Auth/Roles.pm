@@ -18,9 +18,6 @@ Readonly our $ADMIN => 'admin';
 # Read-only access to admin interface
 Readonly our $ADMIN_READONLY => 'admin-readonly';
 
-# Create query; includes ability to create clusters, maps, etc. under clusters
-Readonly our $QUERY_CREATE => 'query-create';
-
 # Add / edit media; includes feeds
 Readonly our $MEDIA_EDIT => 'media-edit';
 

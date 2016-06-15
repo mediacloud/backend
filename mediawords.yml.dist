@@ -128,7 +128,6 @@ database:
         #cm_mine_controversy
         #cm_dump_controversy
         #solr
-        #solr_facets_wrapper_server
         #annotate_with_corenlp
         #bitly_process_all_controversy_stories
         #bitly_fetch_story_stats
@@ -267,9 +266,6 @@ mediawords:
 
     ### script directory
     #script_dir: "<bindir>/../script"
-
-    ## media_sets_id of the media set to display on the Dashboard home page
-    ##default_media_set: 1
 
     # Uncomment to use JNI mode on Inline::Java. This improves performance but breaks the test suite.
     #inline_java_jni: "yes"
