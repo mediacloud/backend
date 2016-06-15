@@ -29,7 +29,7 @@ my $_tag_list                 = join '|', ( map { quotemeta $_ } ( @_block_level
 my $_block_level_start_tag_re = qr{< (:? $_tag_list ) (:? > | \s )}ix;
 my $_block_level_end_tag_re   = qr{</ (:? $_tag_list ) >}ix;
 
-sub contains_block_level_tags
+sub _contains_block_level_tags
 {
     my ( $string ) = @_;
 
@@ -40,11 +40,11 @@ sub contains_block_level_tags
     return 0;
 }
 
-sub new_lines_around_block_level_tags
+sub _new_lines_around_block_level_tags
 {
     my ( $string ) = @_;
 
-    return $string if ( !contains_block_level_tags( $string ) );
+    return $string if ( !_contains_block_level_tags( $string ) );
 
     $string =~ s/($_block_level_start_tag_re)/\n\n$1/gsxi;
 
@@ -69,7 +69,7 @@ sub html_strip($;$)
 {
     my ( $html, $include_title ) = @_;
 
-    $html = new_lines_around_block_level_tags( $html );
+    $html = _new_lines_around_block_level_tags( $html );
 
     unless ( defined $html )
     {

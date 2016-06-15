@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4545;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4552;
 
 BEGIN
 
@@ -75,23 +75,6 @@ DECLARE
 BEGIN
     date_trunc_result := date_trunc('week', day::timestamp);
     RETURN date_trunc_result;
-END;
-$$
-LANGUAGE 'plpgsql' IMMUTABLE
-  COST 10;
-
-CREATE OR REPLACE FUNCTION loop_forever()
-    RETURNS VOID AS
-$$
-DECLARE
-    temp integer;
-BEGIN
-   temp := 1;
-   LOOP
-    temp := temp + 1;
-    perform pg_sleep( 1 );
-    RAISE NOTICE 'time - %', temp;
-   END LOOP;
 END;
 $$
 LANGUAGE 'plpgsql' IMMUTABLE
@@ -719,42 +702,6 @@ create view media_with_media_types as
         ) on ( m.media_id = mtm.media_id );
 
 
--- A dashboard defines which collections, dates, and topics appear together within a given dashboard screen.
--- For example, a dashboard might include three media_sets for russian collections, a set of dates for which
--- to generate a dashboard for those collections, and a set of topics to use for specific dates for all media
--- sets within the collection
-create table dashboards (
-    dashboards_id               serial          primary key,
-    name                        varchar(1024)   not null,
-    start_date                  timestamp       not null,
-    end_date                    timestamp       not null,
-
-    -- A "public" dashboard is the one that is shown in the web UI
-    -- (e.g. the "create controversy" page)
-    public                      boolean         not null default true
-);
-
-create unique index dashboards_name on dashboards ( name );
-CREATE INDEX dashboards_name_trgm on dashboards USING gin (name gin_trgm_ops);
-
-CREATE TYPE query_version_enum AS ENUM ('1.0');
-
-create table queries (
-    queries_id              serial              primary key,
-    start_date              date                not null,
-    end_date                date                not null,
-    generate_page           boolean             not null default false,
-    creation_date           timestamp           not null default now(),
-    description             text                null,
-    dashboards_id           int                 null references dashboards,
-    md5_signature           varchar(32)         not null,
-    query_version           query_version_enum  NOT NULL DEFAULT enum_last (null::query_version_enum )
-);
-
-create index queries_creation_date on queries (creation_date);
-create unique index queries_hash_version on queries (md5_signature, query_version);
-create index queries_md5_signature on queries  (md5_signature);
-
 create table media_rss_full_text_detection_data (
     media_id            int references media on delete cascade,
     max_similarity      real,
@@ -767,58 +714,6 @@ create table media_rss_full_text_detection_data (
 );
 
 create index media_rss_full_text_detection_data_media on media_rss_full_text_detection_data (media_id);
-
--- Sets of media sources that should appear in the dashboard
--- The contents of the row depend on the set_type, which can be one of:
---  medium -- a single medium (media_id)
---  collection -- all media associated with the given tag (tags_id)
---  cluster -- all media within the given clusters (clusters_id)
--- see the check constraint for the definition of which set_type has which rows set
-create table media_sets (
-    media_sets_id               serial      primary key,
-    name                        text        not null,
-    description                 text        null,
-    set_type                    text        not null,
-    media_id                    int         references media on delete cascade,
-    tags_id                     int         references tags on delete cascade,
-    creation_date               timestamp   default now(),
-    vectors_added               boolean     default false,
-    include_in_dump             boolean     default true
-);
-
-CREATE INDEX media_sets_name_trgm on media_sets USING gin (name gin_trgm_ops);
-CREATE INDEX media_sets_description_trgm on media_sets USING gin (description gin_trgm_ops);
-
-CREATE VIEW media_sets_tt2_locale_format AS
-    SELECT '[% c.loc("' || COALESCE( name, '') || '") %]' || E'\n' ||  '[% c.loc("' || COALESCE (description, '') || '") %] ' AS tt2_value
-    FROM media_sets
-    WHERE set_type = 'collection'
-    ORDER BY media_sets_id;
-
-alter table media_sets add constraint dashboard_media_sets_type
-check ( ( ( set_type = 'medium' ) and ( media_id is not null ) )
-        or
-        ( ( set_type = 'collection' ) and ( tags_id is not null ) )
-        or
-        ( ( set_type = 'cluster' ) ) );
-
-create unique index media_sets_medium on media_sets ( media_id );
-create index media_sets_tag on media_sets ( tags_id );
-create index media_sets_vectors_added on media_sets ( vectors_added );
-
-create table media_sets_media_map (
-    media_sets_media_map_id     serial  primary key,
-    media_sets_id               int     not null references media_sets on delete cascade,
-    media_id                    int     not null references media on delete cascade
-);
-
-
-create index media_sets_media_map_set on media_sets_media_map ( media_sets_id );
-create index media_sets_media_map_media on media_sets_media_map ( media_id );
-
-DROP TRIGGER IF EXISTS msmm_last_updated on media_sets_media_map CASCADE;
-CREATE TRIGGER msmm_last_updated BEFORE INSERT OR UPDATE OR DELETE
-    ON media_sets_media_map FOR EACH ROW EXECUTE PROCEDURE update_media_last_updated() ;
 
 
 CREATE VIEW media_with_collections AS
@@ -839,49 +734,6 @@ CREATE VIEW media_with_collections AS
       AND mtm.media_id = m.media_id
     ORDER BY m.media_id;
 
-
--- dashboard_media_sets associates certain 'collection' type media_sets with a given dashboard.
--- Those assocaited media_sets will appear on the dashboard page, and the media associated with
--- the collections will be available from autocomplete box.
--- This table is also used to determine for which dates to create [daily|weekly|top_500_weekly]_words
--- entries for which media_sets / topics
-create table dashboard_media_sets (
-    dashboard_media_sets_id     serial          primary key,
-    dashboards_id               int             not null references dashboards on delete cascade,
-    media_sets_id               int             not null references media_sets on delete cascade,
-    color                       text            null
-);
-
-CREATE UNIQUE INDEX dashboard_media_sets_media_set_dashboard on dashboard_media_sets(media_sets_id, dashboards_id);
-create index dashboard_media_sets_dashboard on dashboard_media_sets( dashboards_id );
-
--- A topic is a query used to generate dashboard results for a subset of matching stories.
--- For instance, a topic with a query of 'health' would generate dashboard results for only stories that
--- include the word 'health'.  a given topic is confined to a given dashbaord and optionally to date range
--- within the date range of the dashboard.
-create table dashboard_topics (
-    dashboard_topics_id         serial          primary key,
-    name                        varchar(256)    not null,
-    query                       varchar(1024)   not null,
-    language                    varchar(3)      null,   -- 2- or 3-character ISO 690 language code
-    dashboards_id               int             not null references dashboards on delete cascade,
-    start_date                  timestamp       not null,
-    end_date                    timestamp       not null,
-    vectors_added               boolean         default false
-);
-
-create index dashboard_topics_dashboard on dashboard_topics ( dashboards_id );
-create index dashboard_topics_vectors_added on dashboard_topics ( vectors_added );
-
-CREATE VIEW dashboard_topics_tt2_locale_format AS
-    SELECT DISTINCT ON (tt2_value) '[% c.loc("' || name || '") %]' || ' - ' || '[% c.loc("' || lower(name) || '") %]' AS tt2_value
-    FROM (
-        SELECT *
-        FROM dashboard_topics
-        ORDER BY name,
-                 dashboard_topics_id
-    ) AS dashboard_topic_names
-    ORDER BY tt2_value;
 
 create table color_sets (
     color_sets_id               serial          primary key,
@@ -962,16 +814,6 @@ CREATE TYPE download_type AS ENUM (
     'archival_only'
 );
 
-CREATE TYPE download_file_status AS ENUM (
-    'tbd',
-    'missing',
-    'na',
-    'present',
-    'inline',
-    'redownloaded',
-    'error_redownloading'
-);
-
 create table downloads (
     downloads_id        serial          primary key,
     feeds_id            int             null references feeds,
@@ -986,14 +828,8 @@ create table downloads (
     error_message       text            null,
     priority            int             not null,
     sequence            int             not null,
-    extracted           boolean         not null default 'f',
-    old_download_time   timestamp without time zone,
-    old_state           download_state,
-    file_status         download_file_status not null default 'tbd',
-    relative_file_path  text            not null default 'tbd'
+    extracted           boolean         not null default 'f'
 );
-
-UPDATE downloads set old_download_time = download_time, old_state = state;
 
 
 alter table downloads add constraint downloads_parent_fkey
@@ -1050,19 +886,6 @@ CREATE INDEX downloads_in_old_format
     ON downloads USING btree (downloads_id)
     WHERE state = 'success'::download_state
       AND path ~~ 'content/%'::text;
-
-CREATE INDEX file_status_downloads_time_new_format
-    ON downloads USING btree (file_status, download_time)
-    WHERE relative_file_path ~~ 'mediacloud-%'::text;
-
-CREATE INDEX relative_file_paths_new_format_to_verify
-    ON downloads USING btree (relative_file_path)
-    WHERE file_status = 'tbd'::download_file_status
-      AND relative_file_path <> 'tbd'::text
-      AND relative_file_path <> 'error'::text
-      AND relative_file_path <> 'na'::text
-      AND relative_file_path <> 'inline'::text
-      AND relative_file_path ~~ 'mediacloud-%'::text;
 
 create view downloads_media as select d.*, f.media_id as _media_id from downloads d, feeds f where d.feeds_id = f.feeds_id;
 
@@ -1163,39 +986,6 @@ ALTER TABLE ONLY download_texts
 
 ALTER TABLE download_texts add CONSTRAINT download_text_length_is_correct CHECK (length(download_text)=download_text_length);
 
-
-CREATE TYPE url_discovery_status_type as ENUM ('already_processed', 'not_yet_processed');
-CREATE TABLE url_discovery_counts (
-       url_discovery_status url_discovery_status_type PRIMARY KEY,
-       num_urls INT DEFAULT  0);
-
-INSERT  into url_discovery_counts VALUES ('already_processed');
-INSERT  into url_discovery_counts VALUES ('not_yet_processed');
-
-
-CREATE TABLE extractor_results_cache (
-    extractor_results_cache_id integer NOT NULL,
-    is_story boolean NOT NULL,
-    explanation text,
-    discounted_html_density double precision,
-    html_density double precision,
-    downloads_id integer,
-    line_number integer
-);
-CREATE SEQUENCE extractor_results_cache_extractor_results_cache_id_seq
-    INCREMENT BY 1
-    NO MAXVALUE
-    NO MINVALUE
-    CACHE 1;
-ALTER SEQUENCE extractor_results_cache_extractor_results_cache_id_seq OWNED BY extractor_results_cache.extractor_results_cache_id;
-
-ALTER TABLE extractor_results_cache
-    ALTER COLUMN extractor_results_cache_id
-        SET DEFAULT nextval('extractor_results_cache_extractor_results_cache_id_seq'::regclass);
-
-ALTER TABLE ONLY extractor_results_cache
-    ADD CONSTRAINT extractor_results_cache_pkey PRIMARY KEY (extractor_results_cache_id);
-CREATE INDEX extractor_results_cache_downloads_id_index ON extractor_results_cache USING btree (downloads_id);
 
 create table story_sentences (
        story_sentences_id           bigserial       primary key,
@@ -1431,12 +1221,6 @@ create index solr_import_extra_stories_story on solr_import_extra_stories ( stor
 
 create index solr_imports_date on solr_imports ( import_date );
 
-create view story_extracted_texts as select stories_id, array_to_string(array_agg(download_text), ' ') as extracted_text
-       from (select * from downloads natural join download_texts order by downloads_id) as downloads group by stories_id;
-
-
-
-CREATE VIEW media_feed_counts as (SELECT media_id, count(*) as feed_count FROM feeds GROUP by media_id);
 
 create table controversies (
     controversies_id        serial primary key,
@@ -2309,24 +2093,6 @@ create view feedly_unscraped_feeds as
             sf.feeds_id is null;
 
 
-create table story_subsets (
-    story_subsets_id        bigserial          primary key,
-    start_date              timestamp with time zone,
-    end_date                timestamp with time zone,
-    media_id                int references media null,
-    media_sets_id           int references media_sets null,
-    ready                   boolean default 'false',
-    last_processed_stories_id bigint references processed_stories(processed_stories_id)
-);
-
-CREATE TABLE story_subsets_processed_stories_map (
-   story_subsets_processed_stories_map_id bigserial primary key,
-   story_subsets_id bigint NOT NULL references story_subsets on delete cascade,
-   processed_stories_id bigint NOT NULL references processed_stories on delete cascade
-);
-
-create index story_subsets_processed_stories_map_processed_stories_id on story_subsets_processed_stories_map ( processed_stories_id );
-
 create table controversy_query_story_searches_imported_stories_map (
     controversies_id            int not null references controversies on delete cascade,
     stories_id                  int not null references stories on delete cascade
@@ -2364,167 +2130,6 @@ CREATE VIEW daily_stats AS
             SELECT COALESCE( SUM( num_stories ), 0  ) AS solr_stories
             FROM solr_imports WHERE import_date > now() - interval '1 day'
          ) AS si;
-
-
-
-CREATE TABLE feedless_stories (
-        stories_id integer,
-        media_id integer
-);
-CREATE INDEX feedless_stories_story ON feedless_stories USING btree (stories_id);
-
-CREATE TABLE queries_country_counts_json (
-   queries_country_counts_json_id serial primary key,
-   queries_id integer references queries on delete cascade not null unique,
-   country_counts_json text not null
-);
-
-
-CREATE OR REPLACE FUNCTION add_query_version (new_query_version_enum_string character varying) RETURNS void
-AS
-$body$
-DECLARE
-    range_of_old_enum TEXT;
-    new_type_sql TEXT;
-BEGIN
-
-LOCK TABLE queries;
-
-SELECT '''' || array_to_string(ENUM_RANGE(null::query_version_enum), ''',''') || '''' INTO range_of_old_enum;
-
-DROP TYPE IF EXISTS new_query_version_enum;
-
-new_type_sql :=  'CREATE TYPE new_query_version_enum AS ENUM( ' || range_of_old_enum || ', ' || '''' || new_query_version_enum_string || '''' || ')' ;
---RAISE NOTICE 'Sql: %t', new_type_sql;
-
-EXECUTE new_type_sql;
-
-ALTER TABLE queries ADD COLUMN new_query_version new_query_version_enum DEFAULT enum_last (null::new_query_version_enum ) NOT NULL;
-UPDATE queries set new_query_version = query_version::text::new_query_version_enum;
-ALTER TYPE query_version_enum  RENAME to old_query_version_enum;
-ALTER TABLE queries rename column query_version to old_query_version;
-ALTER TABLE queries rename column new_query_version to query_version;
-ALTER TYPE new_query_version_enum RENAME to query_version_enum;
-ALTER TABLE queries DROP COLUMN old_query_version;
-DROP TYPE old_query_version_enum ;
-
-
-END;
-$body$
-    LANGUAGE 'plpgsql';
-
-CREATE OR REPLACE FUNCTION get_relative_file_path(path text)
-    RETURNS text AS
-$$
-DECLARE
-    regex_tar_format text;
-    relative_file_path text;
-BEGIN
-    IF path is null THEN
-       RETURN 'na';
-    END IF;
-
-    regex_tar_format :=  E'tar\\:\\d*\\:\\d*\\:(mediacloud-content-\\d*\.tar).*';
-
-    IF path ~ regex_tar_format THEN
-         relative_file_path =  regexp_replace(path, E'tar\\:\\d*\\:\\d*\\:(mediacloud-content-\\d*\.tar).*', E'\\1') ;
-    ELSIF  path like 'content:%' THEN
-         relative_file_path =  'inline';
-    ELSEIF path like 'content/%' THEN
-         relative_file_path =  regexp_replace(path, E'content\\/', E'\/') ;
-    ELSE
-         relative_file_path = 'error';
-    END IF;
-
---  RAISE NOTICE 'relative file path for %, is %', path, relative_file_path;
-
-    RETURN relative_file_path;
-END;
-$$
-LANGUAGE 'plpgsql' IMMUTABLE
-  COST 10;
-
-UPDATE downloads set relative_file_path = get_relative_file_path(path) where relative_file_path = 'tbd';
-
-CREATE OR REPLACE FUNCTION download_relative_file_path_trigger() RETURNS trigger AS
-$$
-   DECLARE
-      path_change boolean;
-   BEGIN
-      -- RAISE NOTICE 'BEGIN ';
-      IF TG_OP = 'UPDATE' then
-          -- RAISE NOTICE 'UPDATE ';
-
-	  -- The second part is needed because of the way comparisons with null are handled.
-	  path_change := ( OLD.path <> NEW.path )  AND (  ( OLD.path is not null) <> (NEW.path is not null) ) ;
-	  -- RAISE NOTICE 'test result % ', path_change;
-
-          IF path_change is null THEN
-	       -- RAISE NOTICE 'Path change % != %', OLD.path, NEW.path;
-               NEW.relative_file_path = get_relative_file_path(NEW.path);
-
-               IF NEW.relative_file_path = 'inline' THEN
-		  NEW.file_status = 'inline';
-	       END IF;
-	  ELSE
-               -- RAISE NOTICE 'NO path change % = %', OLD.path, NEW.path;
-          END IF;
-      ELSIF TG_OP = 'INSERT' then
-	  NEW.relative_file_path = get_relative_file_path(NEW.path);
-
-          IF NEW.relative_file_path = 'inline' THEN
-	     NEW.file_status = 'inline';
-	  END IF;
-      END IF;
-
-      RETURN NEW;
-   END;
-$$
-LANGUAGE 'plpgsql';
-
-DROP TRIGGER IF EXISTS download_relative_file_path_trigger on downloads CASCADE;
-
-CREATE TRIGGER download_relative_file_path_trigger
-    BEFORE INSERT OR UPDATE ON downloads
-    FOR EACH ROW EXECUTE PROCEDURE  download_relative_file_path_trigger() ;
-
-CREATE INDEX relative_file_paths_to_verify
-    ON downloads USING btree (relative_file_path)
-    WHERE file_status = 'tbd'::download_file_status
-      AND relative_file_path <> 'tbd'::text
-      AND relative_file_path <> 'error'::text
-      AND relative_file_path <> 'na'::text
-      AND relative_file_path <> 'inline'::text;
-
-CREATE OR REPLACE FUNCTION show_stat_activity()
- RETURNS SETOF  pg_stat_activity  AS
-$$
-DECLARE
-BEGIN
-    RETURN QUERY select * from pg_stat_activity;
-    RETURN;
-END;
-$$
-LANGUAGE 'plpgsql'
-;
-
-CREATE FUNCTION cat(text, text) RETURNS text
-    LANGUAGE plpgsql
-    AS $_$
-  DECLARE
-    t text;
-  BEGIN
-return coalesce($1) || ' | ' || coalesce($2);
-  END;
-$_$;
-
-CREATE OR REPLACE FUNCTION cancel_pg_process(cancel_pid integer) RETURNS boolean
-    LANGUAGE plpgsql SECURITY DEFINER
-    AS $$
-BEGIN
-return pg_cancel_backend(cancel_pid);
-END;
-$$;
 
 
 --
@@ -2622,7 +2227,6 @@ CREATE INDEX auth_users_roles_map_auth_users_id_auth_roles_id
 INSERT INTO auth_roles (role, description) VALUES
     ('admin', 'Do everything, including editing users.'),
     ('admin-readonly', 'Read access to admin interface.'),
-    ('query-create', 'Create query; includes ability to create clusters, maps, etc. under clusters.'),
     ('media-edit', 'Add / edit media; includes feeds.'),
     ('stories-edit', 'Add / edit stories.'),
     ('cm', 'Controversy mapper; includes media and story editing'),

@@ -4,7 +4,7 @@ use warnings;
 use utf8;
 use Test::NoWarnings;
 use Test::Deep;
-use Test::More tests => 123;
+use Test::More tests => 132;
 
 use Readonly;
 use HTTP::HashServer;
@@ -277,6 +277,23 @@ sub test_normalize_url_lossy()
     );
     is( MediaWords::Util::URL::normalize_url_lossy( 'http://543.r2.ly' ),
         'http://543.r2.ly/', 'normalize_url_lossy() - r2.ly' );
+
+    my $tests = [
+        [ 'http://nytimes.com',          'http://nytimes.com/' ],
+        [ 'http://http://nytimes.com',   'http://nytimes.com/' ],
+        [ 'HTTP://nytimes.COM',          'http://nytimes.com/' ],
+        [ 'http://beta.foo.com/bar',     'http://foo.com/bar' ],
+        [ 'http://archive.org/bar',      'http://archive.org/bar' ],
+        [ 'http://m.archive.org/bar',    'http://archive.org/bar' ],
+        [ 'http://archive.foo.com/bar',  'http://foo.com/bar' ],
+        [ 'http://foo.com/bar#baz',      'http://foo.com/bar' ],
+        [ 'http://foo.com/bar/baz//foo', 'http://foo.com/bar/baz/foo' ],
+    ];
+
+    for my $test ( @{ $tests } )
+    {
+        is( MediaWords::Util::URL::normalize_url_lossy( $test->[ 0 ] ), $test->[ 1 ], "$test->[ 0 ] -> $test->[ 1 ]" );
+    }
 }
 
 sub test_get_url_domain()
@@ -723,7 +740,7 @@ sub test_url_and_data_after_redirects_cookies()
                     print "\r\n";
                     print "Redirecting to the cookie check page...";
                 }
-              }
+            }
         },
 
         '/check_cookie' => {
@@ -756,7 +773,7 @@ sub test_url_and_data_after_redirects_cookies()
                     print "\r\n";
                     print 'Cookie wasn\'t found, redirecting you to the "no cookies" page...';
                 }
-              }
+            }
         },
         '/no_cookies' => "No cookie support, go away, we don\'t like you."
     };

@@ -4,7 +4,7 @@
 <title>Media Cloud [% title | html %]</title>
 
 <link rel="stylesheet" id="style-css" href="[% c.uri_for( '/include/auth/style.css' ) %]" type="text/css" media="all">
-[% INCLUDE 'public_ui/third_party_libs.tt2' %]
+[% INCLUDE 'common/third_party_libs.tt2' %]
 </head>
 
 <body class="archive category category-tool-blog category-11 custom-background">

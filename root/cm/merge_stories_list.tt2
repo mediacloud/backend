@@ -23,4 +23,4 @@ List of story ids to merge.
 
 </fieldset>
 
-[% INCLUDE dashboard/footer.tt2 %]
+[% INCLUDE include/footer.tt2 %]

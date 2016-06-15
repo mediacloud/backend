@@ -710,19 +710,6 @@ DISTRIBUTIONS
       Path::Class 0
       Test::More 0
       perl 5.008
-  Catalyst-Plugin-I18N-0.10
-    pathname: B/BO/BOBTFISH/Catalyst-Plugin-I18N-0.10.tar.gz
-    provides:
-      Catalyst::Plugin::I18N 0.10
-    requirements:
-      Catalyst::Runtime 0
-      ExtUtils::MakeMaker 6.42
-      I18N::LangTags 0.35
-      Locale::Maketext::Lexicon 0
-      Locale::Maketext::Simple 0.19
-      MRO::Compat 0.10
-      Test::More 0
-      perl 5.008
   Catalyst-Plugin-Session-0.39
     pathname: J/JJ/JJNAPIORK/Catalyst-Plugin-Session-0.39.tar.gz
     provides:

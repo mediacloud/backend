@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 33;
+use Test::More tests => 31;
 
 use Readonly;
 
@@ -24,7 +24,6 @@ sub test_postgresql_response_line_is_expected()
     is( MediaWords::Pg::Schema::postgresql_response_line_is_expected( "SET TIME ZONE 'Europe/Vilnius'" ),     1 );
     is( MediaWords::Pg::Schema::postgresql_response_line_is_expected( "COMMENT ON foo IS 'Bar'" ),            1 );
     is( MediaWords::Pg::Schema::postgresql_response_line_is_expected( 'INSERT INTO foo (...) VAlUES (...)' ), 1 );
-    is( MediaWords::Pg::Schema::postgresql_response_line_is_expected( ' enum_add.foo' ),                      1 );
     is( MediaWords::Pg::Schema::postgresql_response_line_is_expected( '---------- Comment' ),                 1 );
     is( MediaWords::Pg::Schema::postgresql_response_line_is_expected( '    ' ),                               1 );
     is( MediaWords::Pg::Schema::postgresql_response_line_is_expected( '(123 rows)' ),                         1 );
@@ -49,7 +48,6 @@ sub test_postgresql_response_line_is_expected()
     is( MediaWords::Pg::Schema::postgresql_response_line_is_expected( 'BEGIN' ),                         0 );
     is( MediaWords::Pg::Schema::postgresql_response_line_is_expected( 'COMMIT' ),                        0 );
     is( MediaWords::Pg::Schema::postgresql_response_line_is_expected( 'Here goes some unknown notice' ), 0 );
-    is( MediaWords::Pg::Schema::postgresql_response_line_is_expected( 'enum_add.foo' ),                  0 );
     is( MediaWords::Pg::Schema::postgresql_response_line_is_expected( '-- Comment' ),                    0 );
 }
 

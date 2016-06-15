@@ -45,7 +45,7 @@ sub _get_collection_tag_sets_id
     return $tag_set->{ tag_sets_id };
 }
 
-# list all collection tags, with media set names attached
+# list all collection tags
 sub tags : Local
 {
     my ( $self, $c, $tag_sets_id ) = @_;
@@ -58,14 +58,11 @@ sub tags : Local
 
     my $tags = $db->query( <<END, $tag_sets_id )->hashes;
 with set_tags as (
-
     select t.* from tags t
-        where tag_sets_id = ? and
-            tags_id not in ( select tags_id from media_sets where include_in_dump = false )
-
+        where tag_sets_id = ?
 )
 
-select t.*, ms.media_set_names, mtm.media_count
+select t.*, mtm.media_count
     from set_tags t
 
         left join (
@@ -73,16 +70,6 @@ select t.*, ms.media_set_names, mtm.media_count
                 from media_tags_map mtm
                 group by mtm.tags_id
         ) mtm on ( mtm.tags_id = t.tags_id )
-
-        left join (
-            select ms.tags_id,
-                array_to_string( array_agg( d.name || ':' || ms.name ), '; ' ) media_set_names
-            from media_sets ms
-                join dashboard_media_sets dms on ( dms.media_sets_id = ms.media_sets_id )
-                join dashboards d on ( d.dashboards_id = dms.dashboards_id )
-            where ms.tags_id is not null
-            group by ms.tags_id
-        ) ms on ( t.tags_id = ms.tags_id )
 
     order by t.show_on_media is null, t.show_on_media desc, t.label, t.tag
 END

@@ -151,7 +151,6 @@ Only one pre-commit hook's complaint is left to be addressed -- we have to creat
     ./script/pre_commit_hooks/postgres-diff.sh > sql_migrations/mediawords-4391-4392.sql
 
     # Review the diff, make sure things are right
-    # (apgdiff recreates function 'download_relative_file_path_trigger()' for some reason; I'm not sure why.)
     less sql_migrations/mediawords-4391-4392.sql
 
 If the diff is fine, we have to add it to the repository:

@@ -8,12 +8,11 @@ use warnings;
 
 use parent 'Catalyst::Controller';
 
-# create a new media_set of set_type collection
 sub edit : Local
 {
     my ( $self, $c, $tags_id ) = @_;
 
-    die( "no dashboards_id in path" ) unless ( $tags_id );
+    die( "'tags_id' is unset." ) unless ( $tags_id );
 
     my $db = $c->dbis;
 

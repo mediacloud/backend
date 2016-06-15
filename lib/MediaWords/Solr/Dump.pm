@@ -107,7 +107,7 @@ my $_solr_select_url;
 # order and names of fields exported to and imported from csv
 Readonly my @CSV_FIELDS =>
   qw/stories_id media_id story_sentences_id solr_id publish_date publish_day sentence_number sentence title language
-  bitly_click_count processed_stories_id media_sets_id tags_id_media tags_id_stories tags_id_story_sentences/;
+  bitly_click_count processed_stories_id tags_id_media tags_id_stories tags_id_story_sentences/;
 
 # numbner of lines in each chunk of csv to import
 Readonly my $CSV_CHUNK_LINES => 10_000;
@@ -288,13 +288,12 @@ sub _print_csv_to_file_from_csr
             next unless ( $processed_stories_id );
 
             my $click_count       = $data_lookup->{ bitly_clicks }->{ $stories_id }    || '';
-            my $media_sets_list   = $data_lookup->{ media_sets }->{ $media_id }        || '';
             my $media_tags_list   = $data_lookup->{ media_tags }->{ $media_id }        || '';
             my $stories_tags_list = $data_lookup->{ stories_tags }->{ $stories_id }    || '';
             my $ss_tags_list      = $data_lookup->{ ss_tags }->{ $story_sentences_id } || '';
 
-            $csv->combine( @{ $row }, $click_count, $processed_stories_id, $media_sets_list,
-                $media_tags_list, $stories_tags_list, $ss_tags_list );
+            $csv->combine( @{ $row }, $click_count, $processed_stories_id, $media_tags_list, $stories_tags_list,
+                $ss_tags_list );
             $fh->print( encode( 'utf8', $csv->string . "\n" ) );
 
             $imported_stories_ids->{ $stories_id } = 1;
@@ -335,8 +334,8 @@ END
     _add_extra_stories_to_import( $db, $import_date, $num_delta_stories, $num_proc, $proc );
 }
 
-# Get the $data_lookup hash that has lookup tables for values to include for each of the processed_stories, media_sets,
-# media_tags, stories_tags, and ss_tags fields for export to solr.
+# Get the $data_lookup hash that has lookup tables for values to include for each of the processed_stories, media_tags,
+# stories_tags, and ss_tags fields for export to solr.
 #
 # This is basically just a manual client side join that we do in perl because we can get postgres to stream results much
 # more quickly if we don't ask it to do this giant join on the server side.
@@ -355,11 +354,6 @@ select processed_stories_id, stories_id
         $delta_clause
 END
 
-    _set_lookup( $db, $data_lookup, 'media_sets', <<END );
-select string_agg( media_sets_id::text, ';' ) media_sets_id, media_id
-    from media_sets_media_map
-    group by media_id
-END
     _set_lookup( $db, $data_lookup, 'media_tags', <<END );
 select string_agg( tags_id::text, ';' ) tag_list, media_id
     from media_tags_map
@@ -779,8 +773,6 @@ sub _get_import_url_params
         'header'                              => 'false',
         'fieldnames'                          => join( ',', @CSV_FIELDS ),
         'overwrite'                           => ( $delta ? 'true' : 'false' ),
-        'f.media_sets_id.split'               => 'true',
-        'f.media_sets_id.separator'           => ';',
         'f.tags_id_media.split'               => 'true',
         'f.tags_id_media.separator'           => ';',
         'f.tags_id_stories.split'             => 'true',
