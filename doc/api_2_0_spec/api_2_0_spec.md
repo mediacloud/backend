@@ -1,116 +1,117 @@
-<!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
+# Table of Contents
 
-- [Authentication](#authentication)
-	- [Example](#example)
-	- [Request Limits](#request-limits)
-- [Python Client](#python-client)
-- [API URLs](#api-urls)
-	- [Errors](#errors)
-	- [Request Limits](#request-limits)
-	- [Python Client](#python-client)
-	- [Media](#media)
-		- [api/v2/media/single/](#apiv2mediasingle)
-			- [Query Parameters](#query-parameters)
-			- [Example](#example)
-	- [Media Health](#media-health)
-		- [api/v2/mediahealth/list](#apiv2mediahealthlist)
-			- [Query Parameters](#query-parameters)
-		- [Output description](#output-description)
-			- [Example](#example)
-		- [api/v2/media/list/](#apiv2medialist)
-			- [Query Parameters](#query-parameters)
-			- [Example](#example)
-	- [Feeds](#feeds)
-		- [api/v2/feeds/single](#apiv2feedssingle)
-			- [Query Parameters](#query-parameters)
-			- [Example](#example)
-		- [api/v2/feeds/list](#apiv2feedslist)
-			- [Query Parameters](#query-parameters)
-			- [Example](#example)
-	- [Stories](#stories)
-		- [Output description](#output-description)
-		- [api/v2/stories_public/single](#apiv2storiespublicsingle)
-			- [Example](#example)
-		- [api/v2/stories_public/list](#apiv2storiespubliclist)
-			- [Query Parameters](#query-parameters)
-			- [Example](#example)
-		- [api/v2/stories_public/count](#apiv2storiespubliccount)
-			- [Query Parameters](#query-parameters)
-			- [Example](#example)
-		- [api/v2/stories_public/word_matrix](#apiv2storiespublicwordmatrix)
-			- [Query Parameters](#query-parameters)
-			- [Output Description](#output-description)
-	- [Sentences](#sentences)
-		- [api/v2/sentences/count](#apiv2sentencescount)
-			- [Query Parameters](#query-parameters)
-			- [Example](#example)
-		- [api/v2/sentences/field\_count](#apiv2sentencesfieldcount)
-			- [Query Parameters](#query-parameters)
-			- [Example](#example)
-	- [Word Counting](#word-counting)
-		- [api/v2/wc/list](#apiv2wclist)
-			- [Query Parameters](#query-parameters)
-		- [Example](#example)
-	- [Tags and Tag Sets](#tags-and-tag-sets)
-		- [api/v2/tags/single/](#apiv2tagssingle)
-			- [Query Parameters](#query-parameters)
-			- [Output description](#output-description)
-			- [Example](#example)
-		- [api/v2/tags/list/](#apiv2tagslist)
-			- [Query Parameters](#query-parameters)
-			- [Example](#example)
-		- [api/v2/tag_sets/single/](#apiv2tagsetssingle)
-			- [Query Parameters](#query-parameters)
-			- [Output description](#output-description)
-			- [Example](#example)
-		- [api/v2/tag_sets/list/](#apiv2tagsetslist)
-			- [Query Parameters](#query-parameters)
-			- [Example](#example)
-	- [Controversies](#controversies)
-		- [api/v2/controversies/single/](#apiv2controversiessingle)
-			- [Query Parameters](#query-parameters)
-			- [Example](#example)
-		- [api/v2/controversies/list/](#apiv2controversieslist)
-			- [Query Parameters](#query-parameters)
-			- [Example](#example)
-		- [api/v2/controversy_dumps/single/](#apiv2controversydumpssingle)
-			- [Query Parameters](#query-parameters)
-			- [Example](#example)
-		- [api/v2/controversy_dumps/list/](#apiv2controversydumpslist)
-			- [Query Parameters](#query-parameters)
-			- [Example](#example)
-		- [api/v2/controversy_dump_time_slices/single/](#apiv2controversydumptimeslicessingle)
-			- [Query Parameters](#query-parameters)
-			- [Example](#example)
-		- [api/v2/controversy_dump_time_slices/list/](#apiv2controversydumptimesliceslist)
-			- [Query Parameters](#query-parameters)
-			- [Example](#example)
-- [Extended Examples](#extended-examples)
-	- [Output Format / JSON](#output-format-json)
-	- [Create a CSV file with all media sources.](#create-a-csv-file-with-all-media-sources)
-	- [Grab all processed stories from US Mainstream Media as a stream](#grab-all-processed-stories-from-us-mainstream-media-as-a-stream)
-		- [Grab stories by querying stories_public/list](#grab-stories-by-querying-storiespubliclist)
-	- [Grab all stories in The New York Times during October 2012](#grab-all-stories-in-the-new-york-times-during-october-2012)
-		- [Find the `media_id` of The New York Times](#find-the-mediaid-of-the-new-york-times)
-		- [Grab stories by querying stories_public/list](#grab-stories-by-querying-storiespubliclist)
-	- [Get word counts for top words for sentences matching 'trayvon' in US Mainstream Media during April 2012](#get-word-counts-for-top-words-for-sentences-matching-trayvon-in-us-mainstream-media-during-april-2012)
-		- [Find the media set](#find-the-media-set)
-		- [Make a request for the word counts based on `tags_id_media`, sentence text and date range](#make-a-request-for-the-word-counts-based-on-tagsidmedia-sentence-text-and-date-range)
-	- [Get word counts for top words for sentences with the tag `'odd'` in `tag_set = 'ts'`](#get-word-counts-for-top-words-for-sentences-with-the-tag-odd-in-tagset-ts)
-		- [Find the `tag_sets_id` for `'ts'`](#find-the-tagsetsid-for-ts)
-		- [Find the `tags_id` for `'odd'` given the `tag_sets_id`](#find-the-tagsid-for-odd-given-the-tagsetsid)
-		- [Request a word count using the `tags_id`](#request-a-word-count-using-the-tagsid)
-	- [Grab stories from 10 January 2014 with the tag `'foo:bar'`](#grab-stories-from-10-january-2014-with-the-tag-foobar)
-		- [Find the `tag_sets_id` for `'foo'`](#find-the-tagsetsid-for-foo)
-		- [Find the `tags_id` for `'bar'` given the `tag_sets_id`](#find-the-tagsid-for-bar-given-the-tagsetsid)
-		- [Grab stories by querying stories_public/list](#grab-stories-by-querying-storiespubliclist)
+<!-- MDTOC maxdepth:6 firsth1:1 numbering:0 flatten:0 bullets:1 updateOnSave:1 -->
 
-<!-- /TOC -->
+- [Table of Contents](#table-of-contents)   
+- [Overview](#overview)   
+   - [Authentication](#authentication)   
+      - [Example](#example)   
+   - [Request Limits](#request-limits)   
+   - [Python Client](#python-client)   
+   - [API URLs](#api-urls)   
+   - [Errors](#errors)   
+   - [Request Limits](#request-limits-1)   
+- [Media](#media)   
+   - [api/v2/media/single/](#apiv2mediasingle)   
+      - [Query Parameters](#query-parameters)   
+      - [Example](#example-1)   
+- [Media Health](#media-health)   
+   - [api/v2/mediahealth/list](#apiv2mediahealthlist)   
+      - [Query Parameters](#query-parameters-1)   
+      - [Output description](#output-description)   
+      - [Example](#example-2)   
+   - [api/v2/media/list/](#apiv2medialist)   
+      - [Query Parameters](#query-parameters-2)   
+      - [Example](#example-3)   
+- [Feeds](#feeds)   
+   - [api/v2/feeds/single](#apiv2feedssingle)   
+      - [Query Parameters](#query-parameters-3)   
+      - [Example](#example-4)   
+   - [api/v2/feeds/list](#apiv2feedslist)   
+      - [Query Parameters](#query-parameters-4)   
+      - [Example](#example-5)   
+- [Stories](#stories)   
+   - [Output description](#output-description-1)   
+   - [api/v2/stories_public/single](#apiv2stories_publicsingle)   
+      - [Example](#example-6)   
+   - [api/v2/stories_public/list](#apiv2stories_publiclist)   
+      - [Query Parameters](#query-parameters-5)   
+      - [Example](#example-7)   
+   - [api/v2/stories_public/count](#apiv2stories_publiccount)   
+      - [Query Parameters](#query-parameters-6)   
+      - [Example](#example-8)   
+   - [api/v2/stories_public/word_matrix](#apiv2stories_publicword_matrix)   
+      - [Query Parameters](#query-parameters-7)   
+      - [Output Description](#output-description)   
+- [Sentences](#sentences)   
+   - [api/v2/sentences/count](#apiv2sentencescount)   
+      - [Query Parameters](#query-parameters-8)   
+      - [Example](#example-9)   
+   - [api/v2/sentences/field\_count](#apiv2sentencesfield_count)   
+      - [Query Parameters](#query-parameters-9)   
+      - [Example](#example-10)   
+- [Word Counting](#word-counting)   
+   - [api/v2/wc/list](#apiv2wclist)   
+      - [Query Parameters](#query-parameters-10)   
+      - [Example](#example-11)   
+- [Tags and Tag Sets](#tags-and-tag-sets)   
+   - [api/v2/tags/single/](#apiv2tagssingle)   
+      - [Query Parameters](#query-parameters-11)   
+      - [Output description](#output-description-2)   
+      - [Example](#example-12)   
+   - [api/v2/tags/list/](#apiv2tagslist)   
+      - [Query Parameters](#query-parameters-12)   
+      - [Example](#example-13)   
+   - [api/v2/tag_sets/single/](#apiv2tag_setssingle)   
+      - [Query Parameters](#query-parameters-13)   
+      - [Output description](#output-description-3)   
+      - [Example](#example-14)   
+   - [api/v2/tag_sets/list/](#apiv2tag_setslist)   
+      - [Query Parameters](#query-parameters-14)   
+      - [Example](#example-15)   
+- [Controversies](#controversies)   
+   - [api/v2/controversies/single/](#apiv2controversiessingle)   
+      - [Query Parameters](#query-parameters-15)   
+      - [Example](#example-16)   
+   - [api/v2/controversies/list/](#apiv2controversieslist)   
+      - [Query Parameters](#query-parameters-16)   
+      - [Example](#example-17)   
+   - [api/v2/controversy_dumps/single/](#apiv2controversy_dumpssingle)   
+      - [Query Parameters](#query-parameters-17)   
+      - [Example](#example-18)   
+   - [api/v2/controversy_dumps/list/](#apiv2controversy_dumpslist)   
+      - [Query Parameters](#query-parameters-18)   
+      - [Example](#example-19)   
+   - [api/v2/controversy_dump_time_slices/single/](#apiv2controversy_dump_time_slicessingle)   
+      - [Query Parameters](#query-parameters-19)   
+      - [Example](#example-20)   
+   - [api/v2/controversy_dump_time_slices/list/](#apiv2controversy_dump_time_sliceslist)   
+      - [Query Parameters](#query-parameters-20)   
+      - [Example](#example-21)   
+- [Extended Examples](#extended-examples)   
+   - [Output Format / JSON](#output-format-json)   
+   - [Create a CSV file with all media sources.](#create-a-csv-file-with-all-media-sources)   
+   - [Grab all processed stories from US Mainstream Media as a stream](#grab-all-processed-stories-from-us-mainstream-media-as-a-stream)   
+   - [Grab stories by querying stories_public/list](#grab-stories-by-querying-stories_publiclist)   
+   - [Grab all stories in The New York Times during October 2012](#grab-all-stories-in-the-new-york-times-during-october-2012)   
+      - [Find the `media_id` of The New York Times](#find-the-media_id-of-the-new-york-times)   
+      - [Grab stories by querying stories_public/list](#grab-stories-by-querying-stories_publiclist-1)   
+   - [Get word counts for top words for sentences matching 'trayvon' in US Mainstream Media during April 2012](#get-word-counts-for-top-words-for-sentences-matching-trayvon-in-us-mainstream-media-during-april-2012)   
+      - [Find the media set](#find-the-media-set)   
+      - [Make a request for the word counts based on `tags_id_media`, sentence text and date range](#make-a-request-for-the-word-counts-based-on-tags_id_media-sentence-text-and-date-range)   
+   - [Get word counts for top words for sentences with the tag `'odd'` in `tag_set = 'ts'`](#get-word-counts-for-top-words-for-sentences-with-the-tag-odd-in-tag_set-ts)   
+      - [Find the `tag_sets_id` for `'ts'`](#find-the-tag_sets_id-for-ts)   
+      - [Request a word count using the `tags_id`](#request-a-word-count-using-the-tags_id)   
+   - [Grab stories from 10 January 2014 with the tag `'foo:bar'`](#grab-stories-from-10-january-2014-with-the-tag-foobar)   
+      - [Find the `tag_sets_id` for `'foo'`](#find-the-tag_sets_id-for-foo)   
+      - [Find the `tags_id` for `'bar'` given the `tag_sets_id`](#find-the-tags_id-for-bar-given-the-tag_sets_id)   
+   - [Grab stories by querying stories_public/list](#grab-stories-by-querying-stories_publiclist-2)   
 
-% Media Cloud API Version 2
-%
+<!-- /MDTOC -->
 
-# Authentication
+# Overview
+
+## Authentication
 
 Every call below includes a `key` parameter which will authenticate the user to the API service.  The key parameter is excluded
 from the examples in the below sections for brevity.
@@ -123,7 +124,7 @@ Once you have an account go here to see your key:
 
 https://core.mediacloud.org/admin/profile
 
-## Example
+### Example
 
 https://api.mediacloud.org/api/v2/media/single/1?key=KRN4T5JGJ2A
 
@@ -133,13 +134,13 @@ https://api.mediacloud.org/api/v2/media/single/1?key=KRN4T5JGJ2A
 Each user is limited to 1,000 API calls and 20,000 stories returned in any 7 day period.  Requests submitted beyond this
 limit will result in a status 403 error.  Users who need access to more requests should email info@mediacloud.org.
 
-#Python Client
+## Python Client
 
 A [Python client]( https://github.com/c4fcm/MediaCloud-API-Client ) for our API is now available. Users who develop in
 Python will probably find it easier to use this client than to make web requests directly. The Python client is
 available [here]( https://github.com/c4fcm/MediaCloud-API-Client ).
 
-#API URLs
+## API URLs
 
 *Note:* by default the API only returns a subset of the available fields in returned objects. The returned fields are those that we consider to be the most relevant to users of the API. If the `all_fields` parameter is provided and is non-zero, then a more complete list of fields will be returned. For space reasons, we do not list the `all_fields` parameter on individual API descriptions.
 
@@ -156,27 +157,23 @@ The Media Cloud returns an appropriate HTTP status code for any error, along wit
 Each user is limited to 1,000 API calls and 20,000 stories returned in any 7 day period.  Requests submitted beyond this
 limit will result in a status 403 error.  Users who need access to more requests should email info@mediacloud.org.
 
-## Python Client
 
-We use a python client library to access the api for our own work (including the dashboard implementation at
-dashboard.mediameter.org).  That library is available on [github](https://github.com/c4fcm/MediaCloud-API-Client).
-
-## Media
+# Media
 
 The Media api calls provide information about media sources.  A media source is a publisher of content, such as the New York
-Times or Instapundit.  Every story belongs to a single media source.  Each media source can have zero or more feeds.
+Times or Instapundit.  Every story belongs to a `single media source.  Each media source can have zero or more feeds.
 
-### api/v2/media/single/
+## api/v2/media/single/
 
 | URL                              | Function
 | -------------------------------- | -------------------------------------------------------------
 | `api/v2/media/single/<media_id>` | Return the media source in which `media_id` equals `<media_id>`
 
-#### Query Parameters
+### Query Parameters
 
 None.
 
-#### Example
+### Example
 
 Fetching information on The New York Times
 
@@ -206,7 +203,7 @@ Response:
 ]
 ```
 
-## Media Health
+# Media Health
 
 BETA - The media health feature is in beta.  The fields returned and the definitions of those fields may
 change in the future.
@@ -224,19 +221,19 @@ provides a set of metrics that compare the current number of stories being colle
 the number of stories collected over the past 90 days, and also compares coverage over time with the expected
 volume.  More details are in the field descriptions below
 
-### api/v2/mediahealth/list
+## api/v2/mediahealth/list
 
 | URL                              | Function
 | -------------------------------- | -------------------------------------------------------------
 | `api/v2/mediahealth/list`        | Return media health data for the given media sources
 
-#### Query Parameters
+### Query Parameters
 
 | Parameter                         | Default | Notes
 | --------------------------------- | ------- | -----------------------------------------------------------------
 | `media_id`                        | none    | Return health data for the given media sources. May be specified multiple times.
 
-#### Output description
+### Output description
 
 | Field               | Description
 | ------------------- | ----------------------------------------------------------------------
@@ -258,7 +255,7 @@ volume.  More details are in the field descriptions below
 | `coverage_gaps`     | Number of weeks between start_date and end_date for which fewer than 25% of expected_stories or expected_sentences were collected
 | `coverage_gaps_list`| List of weeks between start_date and end_date for which fewer than 25% of expected_stories or expected_sentences were collected
 
-#### Example
+### Example
 
 Fetch media health information for media source 4438:
 
@@ -301,13 +298,13 @@ Response:
 
 
 
-### api/v2/media/list/
+## api/v2/media/list/
 
 | URL                 | Function
 | ------------------- | -----------------------------
 | `api/v2/media/list` | Return multiple media sources
 
-#### Query Parameters
+### Query Parameters
 
 | Parameter                         | Default | Notes
 | --------------------------------- | ------- | -----------------------------------------------------------------
@@ -330,13 +327,13 @@ sorted by descending inlink_count within the controversy time slice.  If controv
 If the 'q' parameter is specified, return only media that include at least on sentence that matches the given
 solr query.  For a description of the solr query format, see the stories\_public/list call.
 
-#### Example
+### Example
 
 URL: https://api.mediacloud.org/api/v2/media/list?last_media_id=1&rows=2
 
 Output format is the same as for api/v2/media/single above.
 
-## Feeds
+# Feeds
 
 A feed is either a syndicated feed, such as an RSS feed, or a single web page.  Each feed is downloaded between once
 an hour and once a day depending on traffic.  Each time a syndicated feed is downloaded, each new URL found in the feed is
@@ -345,17 +342,17 @@ a story for the feed's media source.
 
 Each feed belongs to a single media source.  Each story can belong to one or more feeds from the same media source.
 
-### api/v2/feeds/single
+## api/v2/feeds/single
 
 | URL                              | Function
 | -------------------------------- | --------------------------------------------------------
 | `api/v2/feeds/single/<feeds_id>` | Return the feed for which `feeds_id` equals `<feeds_id>`
 
-#### Query Parameters
+### Query Parameters
 
 None.
 
-#### Example
+### Example
 
 URL: https://api.mediacloud.org/api/v2/feeds/single/1
 
@@ -371,13 +368,13 @@ URL: https://api.mediacloud.org/api/v2/feeds/single/1
 ]
 ```
 
-### api/v2/feeds/list
+## api/v2/feeds/list
 
 | URL                 | Function
 | ------------------- | --------------------------
 | `api/v2/feeds/list` | Return multiple feeds
 
-#### Query Parameters
+### Query Parameters
 
 | Parameter            | Default    | Notes
 | -------------------- | ---------- | -----------------------------------------------------------------
@@ -385,20 +382,20 @@ URL: https://api.mediacloud.org/api/v2/feeds/single/1
 | `rows`               | 20         | Number of feeds to return. Cannot be larger than 100
 | `media_id`           | (required) | Return feeds belonging to the media source
 
-#### Example
+### Example
 
 URL: https://api.mediacloud.org/api/v2/feeds/list?media_id=1
 
 Output format is the same as for api/v2/feeds/single above.
 
-## Stories
+# Stories
 
 A story represents a single published piece of content.  Each unique URL downloaded from any syndicated feed within
 a single media source is represented by a single story.  For example, a single New York Times newspaper story is a
 Media Cloud story, as is a single Instapundit blog post.  Only one story may exist for a given title for each 24 hours
 within a single media source.
 
-### Output description
+## Output description
 
 The following table describes the meaning and origin of fields returned by both api/v2/stories_public/single and api/v2/stories_public/list.
 
@@ -419,13 +416,13 @@ The following table describes the meaning and origin of fields returned by both 
 | `ap_syndicated`     | Whether our detection algorithm thinks that this is an English language syndicated AP story
 
 
-### api/v2/stories_public/single
+## api/v2/stories_public/single
 
 | URL                                  | Function
 | ------------------------------------ | ------------------------------------------------------
 | `api/v2/stories_public/single/<stories_id>` | Return the story for which `stories_id` equals `<stories_id>`
 
-#### Example
+### Example
 
 Note: This fetches data on the CC licensed Global Voices story ["Myanmar's new flag and new name"](http://globalvoicesonline.org/2010/10/26/myanmars-new-flag-and-new-name/#comment-1733161) from November 2010.
 
@@ -448,13 +445,13 @@ URL: https://api.mediacloud.org/api/v2/stories_public/single/27456565
 ]
 ```
 
-### api/v2/stories_public/list
+## api/v2/stories_public/list
 
 | URL                             | Function
 | ------------------------------- | ---------------------------------
 | `api/v2/stories_public/list` | Return multiple processed stories
 
-#### Query Parameters
+### Query Parameters
 
 | Parameter                    | Default                | Notes
 | ---------------------------- | ---------------------- | ------------------------------------------------------------------------------
@@ -527,7 +524,7 @@ link to story 5678 within the specified time slice:
 
 {~ controversy_dump_time_slice:1234-1 link_to_story:5678 }
 
-#### Example
+### Example
 
 The output of these calls is in exactly the same format as for the api/v2/stories_public/single call.
 
@@ -539,9 +536,9 @@ URL: https://api.mediacloud.org/api/v2/stories_public/list?last_processed_storie
 
 Return a stream of all stories from The New York Times mentioning `'obama'` greater than the given `last_processed_stories_id`.
 
-### api/v2/stories_public/count
+## api/v2/stories_public/count
 
-#### Query Parameters
+### Query Parameters
 
 | Parameter          | Default          | Notes
 | ------------------ | ---------------- | ----------------------------------------------------------------
@@ -553,7 +550,7 @@ api/v2/stories_public/list section above).
 
 The call returns the number of stories returned by Solr for the specified query.
 
-#### Example
+### Example
 
 Count stories containing the word 'obama' in The New York Times.
 
@@ -565,9 +562,9 @@ URL: https://api.mediacloud.org/api/v2/stories_public/count?q=sentence:obama&fq=
 }
 ```
 
-### api/v2/stories_public/word_matrix
+## api/v2/stories_public/word_matrix
 
-#### Query Parameters
+### Query Parameters
 
 | Parameter          | Default          | Notes
 | ------------------ | ---------------- | ----------------------------------------------------------------
@@ -585,7 +582,7 @@ system has stopwords for the language of each story.  Media Cloud currently supp
 English, Spanish, Finnish, French, Hungarian, Italian, Lithuanian, Dutch, Norwegian, Portuguese, Romanian, Russian,
 Swedish, Turkish.
 
-#### Output Description
+### Output Description
 
 | Field                        | Description
 | ---------------------------- | -----------------------------------------------------------------------------
@@ -630,16 +627,16 @@ the returned data would look like:
 }
 ```
 
-## Sentences
+# Sentences
 
 The text of every story processed by Media Cloud is parsed into individual sentences.  Duplicate sentences within
 the same media source in the same week are dropped (the large majority of those duplicate sentences are
 navigational snippets wrongly included in the extracted text by the extractor algorithm).
 
 
-### api/v2/sentences/count
+## api/v2/sentences/count
 
-#### Query Parameters
+### Query Parameters
 
 | Parameter          | Default          | Notes
 | ------------------ | ---------------- | ----------------------------------------------------------------
@@ -665,7 +662,7 @@ The number of days in each date range depends on the total number of days betwee
 Note that the total count returned by a split query is for all sentences found by the solr query, which query might or might not
 include a date restriction.  So in the example africa query below, the 236372 count is for all sentences matching africa, not just those within the split date range.
 
-#### Example
+### Example
 
 Count sentences containing the word 'obama' in The New York Times.
 
@@ -692,7 +689,7 @@ URL: https://api.mediacloud.org/api/v2/sentences/count?q=sentence:africa+AND+tag
     "2014-01-22T00:00:00Z": 1047,
     "2014-01-29T00:00:00Z": 1125,
     "2014-02-05T00:00:00Z": 946,
-    "2014-02-12T00:00:00Z": 1126
+    "2014-02-12T00:00:00Z": 1126,
     "2014-02-19T00:00:00Z": 1094,
     "2014-02-26T00:00:00Z": 1218,
     "gap": "+7DAYS",
@@ -702,12 +699,12 @@ URL: https://api.mediacloud.org/api/v2/sentences/count?q=sentence:africa+AND+tag
 }
 ````
 
-### api/v2/sentences/field\_count
+## api/v2/sentences/field\_count
 
 Returns the number of times a given field is associated with a given sentence.  Supported fields
 are currently `tags_id_stories` and `tags_id_story_sentences`.
 
-#### Query Parameters
+### Query Parameters
 
 | Parameter           | Default | Notes
 | ------------------- | ---------------------------- | ----------------------------------------------------------------
@@ -738,7 +735,7 @@ Setting the 'stats' field to true changes includes the following fields in the r
 | num_sentences_found          | The total number of sentences found by solr to match the query
 | sample_size_param            | The sample size passed into the call, or the default value
 
-#### Example
+### Example
 
 Gets the tag counts for all sentences containing the word `'obama'` in The New York Times
 
@@ -771,9 +768,9 @@ URL:  https://api.mediacloud.org/api/v2/sentences/field_count?q=obama+AND+media_
 ```
 
 
-## Word Counting
+# Word Counting
 
-### api/v2/wc/list
+## api/v2/wc/list
 
 Returns word frequency counts of the most common words in a randomly sampled set of all sentences returned by querying
 Solr using the `q` and `fq` parameters, with stopwords removed by default.  Words are stemmed before being counted.  For
@@ -781,7 +778,7 @@ each word, the call returns the stem and the full term most used with the given 
 example, in the below example, 'democrat' is the stem that appeared 58 times and 'democrats' is the word that was most
 commonly stemmed into 'democract').
 
-#### Query Parameters
+### Query Parameters
 
 | Parameter           | Default | Notes
 | ------------------- | ------- | ----------------------------------------------------------------
@@ -825,7 +822,7 @@ Following fields are included in the stats response:
 | num_words_param              | The num_words param passed into the call, or the default value
 | sample_size_param            | The sample size passed into the call, or the default value
 
-#### Example
+### Example
 
 Get word frequency counts for all sentences containing the word `'obama'` in The New York Times
 
@@ -917,7 +914,7 @@ URL:  https://api.mediacloud.org/api/v2/wc/list?q=obama+AND+media_id:1&stats=1
 
 ```
 
-## Tags and Tag Sets
+# Tags and Tag Sets
 
 Media Cloud associates tags with media sources, stories, and individual sentences.  A tag consists of a short snippet of text,
 a `tags_id`, and `tag_sets_id`.  Each tag belongs to a single tag set.  The tag set provides a separate name space for a group
@@ -928,17 +925,17 @@ For example, the `'gv_country'` tag set includes the tags `japan`, `brazil`, `ha
 some number of media sources (indicating that the given media source has been cited in a story tagged with the given country
 in a Global Voices post).
 
-### api/v2/tags/single/
+## api/v2/tags/single/
 
 | URL                              | Function
 | -------------------------------- | -------------------------------------------------------------
 | `api/v2/tags/single/<tags_id>`   | Return the tag in which `tags_id` equals `<tags_id>`
 
-#### Query Parameters
+### Query Parameters
 
 None.
 
-#### Output description
+### Output description
 
 | Field                 | Description
 |-----------------------|-----------------------------------
@@ -958,7 +955,7 @@ external researchers.  A tag should be considered useful for searching via tags\
 if show\_on\_media or show\_on\_stories, respectively, is set to true for _either_ the specific tag or its parent
 tag set.
 
-#### Example
+### Example
 
 Fetching information on the tag 8876989.
 
@@ -983,13 +980,13 @@ Response:
 ]
 ```
 
-### api/v2/tags/list/
+## api/v2/tags/list/
 
 | URL                 | Function
 | ------------------- | -----------------------------
 | `api/v2/tags/list`  | Return multiple tags
 
-#### Query Parameters
+### Query Parameters
 
 | Parameter       | Default    | Notes
 | --------------- | ---------- | -----------------------------------------------------------------
@@ -1012,21 +1009,21 @@ label field includes 'politics' and also tags belonging to a tag set whose name 
 'politics'.  If the search parameter has less than three characters, an empty result set will be
 returned.
 
-#### Example
+### Example
 
 URL: https://api.mediacloud.org/api/v2/tags/list?rows=2&tag_sets_id=5&last_tags_id=8875026
 
-### api/v2/tag_sets/single/
+## api/v2/tag_sets/single/
 
 | URL                                    | Function
 | -------------------------------------- | -------------------------------------------------------------
 | `api/v2/tag_sets/single/<tag_sets_id>` | Return the tag set in which `tag_sets_id` equals `<tag_sets_id>`
 
-#### Query Parameters
+### Query Parameters
 
 None.
 
-#### Output description
+### Output description
 
 | Field                 | Description
 |-----------------------|-----------------------------------
@@ -1043,7 +1040,7 @@ external researchers.  A tag should be considered useful for searching via tags\
 if show\_on\_media or show\_on\_stories, respectively, is set to true for _either_ the specific tag or its parent
 tag set.
 
-#### Example
+### Example
 
 Fetching information on the tag set 5.
 
@@ -1064,13 +1061,13 @@ Response:
 ]
 ```
 
-### api/v2/tag_sets/list/
+## api/v2/tag_sets/list/
 
 | URL                     | Function
 | ----------------------- | -----------------------------
 | `api/v2/tag_sets/list`  | Return all `tag_sets`
 
-#### Query Parameters
+### Query Parameters
 
 | Parameter          | Default | Notes
 | ------------------ | ------- | -----------------------------------------------------------------
@@ -1079,11 +1076,11 @@ Response:
 
 None.
 
-#### Example
+### Example
 
 URL: https://api.mediacloud.org/api/v2/tag_sets/list
 
-## Controversies
+# Controversies
 
 Controversies are collections of stories within some date range that match some pattern
 indicating that they belong to some topic.  Controversies both stories matched from
@@ -1104,17 +1101,17 @@ controversy_dump_time_slices_id param to list the media sources within a given c
 time slice.  See the documentation for solr pseudo queries for documentation of how to
 query for stories within a controversy.
 
-### api/v2/controversies/single/
+## api/v2/controversies/single/
 
 | URL                                                | Function
 | -------------------------------------------------- | -------------------------------------------------------------
 | `api/v2/controversies/single/<controversies_id>`   | Return a single controversy
 
-#### Query Parameters
+### Query Parameters
 
 None.
 
-#### Example
+### Example
 
 Fetching information on controversy 6.
 
@@ -1137,33 +1134,33 @@ Response:
 ]
 ```
 
-### api/v2/controversies/list/
+## api/v2/controversies/list/
 
 | URL                          | Function
 | ---------------------------- | -----------------------------
 | `api/v2/controversies/list`  | Return controversies
 
-#### Query Parameters
+### Query Parameters
 
 | Parameter       | Default    | Notes
 | --------------- | ---------- | -----------------------------------------------------------------
 | `name`          | null       | Search for controversies with names including the given text
 
-#### Example
+### Example
 
 URL: https://api.mediacloud.org/api/v2/controversies/list
 
-### api/v2/controversy_dumps/single/
+## api/v2/controversy_dumps/single/
 
 | URL                                      | Function
 | ---------------------------------------- | -------------------------------------------------------------
 | `api/v2/controversy_dumps/single/<id>`   | Return a single controversy dump
 
-#### Query Parameters
+### Query Parameters
 
 None.
 
-#### Example
+### Example
 
 Fetching information on the controversy dump 5.
 
@@ -1184,33 +1181,33 @@ Response:
 ]
 ```
 
-### api/v2/controversy_dumps/list/
+## api/v2/controversy_dumps/list/
 
 | URL                              | Function
 | -------------------------------- | ---------------------------------------------------
 | `api/v2/controversy_dumps/list`  | Return controversy dumps sorted by descending date
 
-#### Query Parameters
+### Query Parameters
 
 | Parameter          | Default    | Notes
 | ------------------ | ---------- | -----------------------------------------------------------------
 | `controversies_id` | null       | Return dumps within the given controversy
 
-#### Example
+### Example
 
 URL: https://api.mediacloud.org/api/v2/controversy_dumps/list?controversies_id=6
 
-### api/v2/controversy_dump_time_slices/single/
+## api/v2/controversy_dump_time_slices/single/
 
 | URL                                                 | Function
 | --------------------------------------------------- | -------------------------------------------------------------
 | `api/v2/controversy_dump_time_slices/single/<id>`   | Return a single controversy dump time slice
 
-#### Query Parameters
+### Query Parameters
 
 None.
 
-#### Example
+### Example
 
 Fetching information on the controversy dump 5.
 
@@ -1239,13 +1236,13 @@ Response:
 ]
 ```
 
-### api/v2/controversy_dump_time_slices/list/
+## api/v2/controversy_dump_time_slices/list/
 
 | URL                                         | Function
 | ------------------------------------------- | ---------------------------------------------------
 | `api/v2/controversy_dump_time_slices/list`  | Return controversy dump time slices
 
-#### Query Parameters
+### Query Parameters
 
 | Parameter              | Default | Notes
 | ---------------------- | ------- | -----------------------------------------------------------------
@@ -1255,7 +1252,7 @@ Response:
 | `start_date`           | null    | Return time slices that start on the given date (YYYY-MM-DD)
 | `end_date`             | null    | Return time slices that end on the given date (YYYY-MM-DD)
 
-#### Example
+### Example
 
 URL: https://api.mediacloud.org/api/v2/controversy_dump_time_slices/list?controversies_dumps_id=5
 
@@ -1326,7 +1323,7 @@ https://sources.mediameter.org/#media-tag/8875027/details
 
 The number in that url is the tags_id of the media set.
 
-### Grab stories by querying stories_public/list
+## Grab stories by querying stories_public/list
 
 We can obtain all stories by repeatedly querying api/v2/stories_public/list using the `q` parameter to restrict to `tags_id_media=8875027` and changing the `last_processed_stories_id` parameter.
 
@@ -1414,7 +1411,7 @@ curl 'https://api.mediacloud.org/api/v2/wc?q=sentence:trayvon+AND+tags_id_media:
 ## Get word counts for top words for sentences with the tag `'odd'` in `tag_set = 'ts'`
 
 
-###Find the `tag_sets_id` for `'ts'`
+### Find the `tag_sets_id` for `'ts'`
 
 The user requests a list of all tag sets.
 
@@ -1439,7 +1436,7 @@ curl https://api.mediacloud.org/api/v2/tag_sets/list
 
 Looking through the output, the user sees that the `tag_sets_id` is 800.
 
-###Find the `tags_id` for `'odd'` given the `tag_sets_id`
+##Find the `tags_id` for `'odd'` given the `tag_sets_id`
 
 The following Python function shows how to find a `tags_id` given a `tag_sets_id`
 
@@ -1466,7 +1463,7 @@ def find_tags_id( tag_name, tag_sets_id):
 
 ```
 
-###Request a word count using the `tags_id`
+### Request a word count using the `tags_id`
 
 Assume that the user determined that the `tags_id` was 12345678 using the above code.  The following will return
 the word count for all sentences in stories belonging to any media source associated with tag 12345678.
@@ -1485,7 +1482,7 @@ See the "Get Word Counts for Top Words for Sentences with the Tag `'odd'` in `ta
 
 See the "Get Word Counts for Top Words for Sentences with the Tag `'odd'` in `tag_set = 'ts'`" example above.
 
-### Grab stories by querying stories_public/list
+## Grab stories by querying stories_public/list
 
 We assume the `tags_id` is 678910.
 
