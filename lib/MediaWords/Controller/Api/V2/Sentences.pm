@@ -211,7 +211,7 @@ sub _get_count_with_split
     $params->{ q }                  = $q;
     $params->{ fq }                 = $fq;
     $params->{ facet }              = 'true';
-    $params->{ 'facet.date' }       = 'publish_date';
+    $params->{ 'facet.date' }       = 'publish_day';
     $params->{ 'facet.date.gap' }   = $facet_date_gap;
     $params->{ 'facet.date.start' } = "${ start_date }T00:00:00Z";
     $params->{ 'facet.date.end' }   = "${ end_date }T00:00:00Z";
@@ -220,7 +220,7 @@ sub _get_count_with_split
 
     return {
         count => $solr_response->{ response }->{ numFound },
-        split => $solr_response->{ facet_counts }->{ facet_dates }->{ publish_date },
+        split => $solr_response->{ facet_counts }->{ facet_dates }->{ publish_day },
     };
 }
 
