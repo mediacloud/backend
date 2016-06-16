@@ -3,12 +3,19 @@
 //
 //     gradle runSolr
 //
-// To start Solr with sharding enabled, run:
-//
-//     gradle runSolrShards
-//
 
 import org.gradle.api.plugins.jetty.JettyRunWar
+import org.apache.commons.io.FileUtils
+
+buildscript {
+  repositories {
+      mavenCentral()
+  }
+    dependencies {
+      classpath 'org.apache.commons:commons-io:1.3.2'
+  }
+}
+
 
 apply plugin: 'java'
 apply plugin: 'jetty'
@@ -17,11 +24,20 @@ ext {
     // Port to listen to
     listenPort = 8983
 
-    // Solr home directory
+    // Number of shards
+    numShards = 4
+
+    // Solr home directory (relative to build.gradle)
     solrHomeDir = "./mediacloud"
 
-    // Solr data directory
+    // Solr data directory (relative to build.gradle)
     solrDataDir = "./../data/solr"
+
+    // Bootstrap collection name for ZooKeeper
+    zooKeeperBootstrapCollection = "collection1"
+
+    // Zookeeper config name
+    zooKeeperConfigName = "mediacloud"
 
     // Lucene match version ("controls what version of Lucene various
     // components of Solr adhere to"), e.g. "LUCENE_46" or "4.10.3"
@@ -85,91 +101,91 @@ buildDir = "solr-dist"
 project.webAppDirName = "solr-dist"
 
 // Web application directory
-def explodedWebAppDir = "${buildDir}/explodedWebAppDir"
+def explodedWebAppDir = new File("${buildDir}/explodedWebAppDir").getAbsolutePath()
+logger.info("explodedWebAppDir: " + explodedWebAppDir)
 
 //
 // ---
 //
 
-task copyWar(type:Copy) {
+task copyWar(type: Copy) {
     into explodedWebAppDir 
     from zipTree(configurations.solrWebApp.singleFile)
 }
 
-task copyAdditionalSolrJars(type:Copy) {
+task copyAdditionalSolrJars(type: Copy) {
     into explodedWebAppDir + "/WEB-INF/lib/"
     from configurations.additionalSolrJars
 }
 
-task copyAdditionalJettyLoggingJars(type:Copy) {
+task copyAdditionalJettyLoggingJars(type: Copy) {
     into explodedWebAppDir + "/WEB-INF/lib/"
     from configurations.additionalJettyLoggingJars
 }
 
-// Prepare for running Solr
-task prepareForSolrRun(dependsOn: ['copyWar', 'copyAdditionalSolrJars', 'copyAdditionalJettyLoggingJars']) {
+task createShards() {
+    File solrHomeDirFile = new File(solrHomeDir)
+    for (int shard = 1; shard <= numShards; ++shard) {
+        String shardDir = solrDataDir + "/mediacloud-shard-" + shard
+        File shardDirFile = new File(shardDir)
+        if (shardDirFile.exists()) {
+            logger.info("Shard " + shard + " already exists at " + shardDirFile)
+        } else {
+            logger.info("Shard " + shard + " does not exist, copying " + solrHomeDirFile + " to " + shardDirFile + "...")
 
-    // Jetty properties
-    System.setProperty("org.eclipse.jetty.server.Request.maxFormContentSize", Integer.toString(4 * 1024 * 1024))
+            // Automagically resolves symlinks
+            FileUtils.copyDirectory(solrHomeDirFile, shardDirFile)
 
-    // Solr properties
-    System.setProperty("solr.solr.home", solrHomeDir)
-    System.setProperty("mediacloud.luceneMatchVersion", luceneMatchVersion)
-
-    // Set data dirs for all collections
-    File collectionsDir = file(solrHomeDir + "/collections")
-    FileCollection collections = files { collectionsDir.listFiles() }
-    collections.each {File collection ->
-        if (collection.isDirectory()) {
-            String collectionName = collection.name
-
-            if ( collectionName != "base_collection" ) {
-            
-                // Create data directory if it doesn't exist
-                File collectionDataDir = new File(solrDataDir + "/no-sharding/" + collectionName + "/")
-                if (! collectionDataDir.isDirectory()) {
-                    println "Collection's '" + collectionName +
-                            "' data directory '" + collectionDataDir.getPath() +
-                            "' does not exist, creating..."
-                    collectionDataDir.mkdirs()
-                }
-
-                // Make sure that solrconfig.xml exists
-                File solrConfigFile = new File(solrHomeDir + "/collections/" + collectionName + "/conf/solrconfig.xml")
-                if (! solrConfigFile.exists()) {
-                    throw new GradleException("solrconfig.xml at '" + solrConfigFile.getPath() + "' does not exist.")
-                }
-
-                String dataDirJavaProperty = "mediacloud." + collectionName + ".data.dir"
-
-                // Make sure that solrconfig.xml contains correct "dataDir"
-                String solrConfigFileContents = solrConfigFile.getText("UTF-8")
-                String expectedDataDirXML = "<dataDir>\${" + dataDirJavaProperty + "}</dataDir>"
-                if (! solrConfigFileContents.contains( expectedDataDirXML )) {
-                    throw new GradleException("solrconfig.xml at '" + solrConfigFile.getPath() +
-                        "' does not contain an expected <dataDir> XML element which should look like this: " +
-                        expectedDataDirXML)
-                }
-
-                // Set Java property so that Solr can later read it
-                System.setProperty(dataDirJavaProperty, collectionDataDir.getPath())
+            // Remove template directory
+            File baseCollectionDir = new File(shardDir + "/collections/base_collection")
+            if (baseCollectionDir.exists()) {
+                FileUtils.deleteDirectory(baseCollectionDir)
+            } else {
+                // Unexpectedly missing, maybe got renamed?
+                logger.warn("'base_collection' directory does not exist at " + baseCollectionDir)
             }
         }
     }
 }
 
+// Prepare for running Solr
+task prepareForSolrRun(dependsOn: [
+    'copyWar',
+    'copyAdditionalSolrJars',
+    'copyAdditionalJettyLoggingJars',
+    'createShards'
+]) {
+
+    // FIXME
+    int shardToStart = 1
+
+    String shardSolrHomeDir = solrDataDir + "/mediacloud-shard-" + shardToStart
+    if (! new File(shardSolrHomeDir).exists()) {
+        throw new GradleException("'solr.solr.home' for shard " + shardToStart + " does not exist at " + shardSolrHomeDir)
+    }
+
+    String bootstrapConfDir = shardSolrHomeDir + "/collections/" + zooKeeperBootstrapCollection + "/conf"
+    if (! new File(bootstrapConfDir).exists()) {
+        throw new GradleException("'bootstrap_confdir' for shard " + shardToStart + " does not exist at " + bootstrapConfDir)
+    }
+
+    // Shards
+    System.setProperty("zkRun", "")
+    System.setProperty("bootstrap_confdir", bootstrapConfDir)
+    System.setProperty("numShards", Integer.toString(numShards))
+    System.setProperty("collection.configName", zooKeeperConfigName)
+
+    // Solr properties
+    System.setProperty("solr.solr.home", shardSolrHomeDir)
+    System.setProperty("mediacloud.luceneMatchVersion", luceneMatchVersion)
+
+    // Jetty properties
+    System.setProperty("org.eclipse.jetty.server.Request.maxFormContentSize", Integer.toString(4 * 1024 * 1024))
+}
+
 // Run Solr
 task runSolr(type: JettyRun, dependsOn: ['prepareForSolrRun']) {
     description 'Run Apache Solr.'
-    // Jetty configuration
-    httpPort = listenPort
-    contextPath = 'solr'
-    webAppSourceDirectory = file(explodedWebAppDir)
-}
-
-// Run Solr with sharding enabled
-task runSolrShards(type: JettyRun, dependsOn: ['prepareForSolrRun']) {
-    description 'Run Apache Solr with sharding enabled.'
     // Jetty configuration
     httpPort = listenPort
     contextPath = 'solr'

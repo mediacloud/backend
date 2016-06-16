@@ -1,1 +1,0 @@
-../../base_collection/conf/update-script.js
