@@ -1,7 +1,7 @@
 //
 // To start Solr, run:
 //
-//     gradle runSolr
+//     gradle runSolr [-Dmediacloud.solr.shardToStart=1 -Dmediacloud.solr.numShards=1]
 //
 
 import org.gradle.api.plugins.jetty.JettyRunWar
@@ -23,9 +23,6 @@ apply plugin: 'jetty'
 ext {
     // Port to listen to
     listenPort = 8983
-
-    // Number of shards
-    numShards = 4
 
     // Solr home directory (relative to build.gradle)
     solrHomeDir = "./mediacloud"
@@ -52,6 +49,30 @@ ext {
     slf4jSimpleVersion = "1.7.12"
     commonsLoggingVersion = "1.2"
     jUnitVersion = "4.12"
+}
+
+ext.getShardToStart = {
+    final String shardToStartProperty = "mediacloud.solr.shardToStart"
+    String stringShardToStart = System.getProperty(shardToStartProperty)
+
+    if (stringShardToStart == null) {
+        logger.info("'" + shardToStartProperty + "' is not set, defaulting to shard 1")
+        return 1
+    } else {
+        return Integer.parseInt(stringShardToStart)
+    }
+}
+
+ext.getNumShards = {
+    final String numShardsProperty = "mediacloud.solr.numShards"
+    String stringNumShards = System.getProperty(numShardsProperty)
+
+    if (stringNumShards == null) {
+        logger.info("'" + numShardsProperty + "' is not set, defaulting to 1 shard")
+        return 1
+    } else {
+        return Integer.parseInt(stringNumShards)
+    }
 }
 
 repositories {
@@ -102,7 +123,7 @@ project.webAppDirName = "solr-dist"
 
 // Web application directory
 def explodedWebAppDir = new File("${buildDir}/explodedWebAppDir").getAbsolutePath()
-logger.info("explodedWebAppDir: " + explodedWebAppDir)
+logger.debug("explodedWebAppDir: " + explodedWebAppDir)
 
 //
 // ---
@@ -123,41 +144,41 @@ task copyAdditionalJettyLoggingJars(type: Copy) {
     from configurations.additionalJettyLoggingJars
 }
 
-task createShards() {
+task createShard << {
+    Integer shardToStart = getShardToStart()
+
     File solrHomeDirFile = new File(solrHomeDir)
-    for (int shard = 1; shard <= numShards; ++shard) {
-        String shardDir = solrDataDir + "/mediacloud-shard-" + shard
-        File shardDirFile = new File(shardDir)
-        if (shardDirFile.exists()) {
-            logger.info("Shard " + shard + " already exists at " + shardDirFile)
+    String shardDir = solrDataDir + "/mediacloud-shard-" + shardToStart
+    File shardDirFile = new File(shardDir)
+    if (shardDirFile.exists()) {
+        logger.info("Shard " + shardToStart + " already exists at " + shardDirFile)
+    } else {
+        logger.info("Shard " + shardToStart + " does not exist, copying " + solrHomeDirFile + " to " + shardDirFile + "...")
+
+        // Automagically resolves symlinks
+        FileUtils.copyDirectory(solrHomeDirFile, shardDirFile)
+
+        // Remove template directory
+        File baseCollectionDir = new File(shardDir + "/collections/base_collection")
+        if (baseCollectionDir.exists()) {
+            FileUtils.deleteDirectory(baseCollectionDir)
         } else {
-            logger.info("Shard " + shard + " does not exist, copying " + solrHomeDirFile + " to " + shardDirFile + "...")
-
-            // Automagically resolves symlinks
-            FileUtils.copyDirectory(solrHomeDirFile, shardDirFile)
-
-            // Remove template directory
-            File baseCollectionDir = new File(shardDir + "/collections/base_collection")
-            if (baseCollectionDir.exists()) {
-                FileUtils.deleteDirectory(baseCollectionDir)
-            } else {
-                // Unexpectedly missing, maybe got renamed?
-                logger.warn("'base_collection' directory does not exist at " + baseCollectionDir)
-            }
+            // Unexpectedly missing, maybe got renamed?
+            logger.warn("'base_collection' directory does not exist at " + baseCollectionDir)
         }
     }
 }
 
 // Prepare for running Solr
-task prepareForSolrRun(dependsOn: [
+task setSolrProperties(dependsOn: [
     'copyWar',
     'copyAdditionalSolrJars',
     'copyAdditionalJettyLoggingJars',
-    'createShards'
+    'createShard'
 ]) {
 
-    // FIXME
-    int shardToStart = 1
+    Integer shardToStart = getShardToStart()
+    Integer numShards = getNumShards()
 
     String shardSolrHomeDir = solrDataDir + "/mediacloud-shard-" + shardToStart
     if (! new File(shardSolrHomeDir).exists()) {
@@ -183,11 +204,11 @@ task prepareForSolrRun(dependsOn: [
     System.setProperty("org.eclipse.jetty.server.Request.maxFormContentSize", Integer.toString(4 * 1024 * 1024))
 }
 
-// Run Solr
-task runSolr(type: JettyRun, dependsOn: ['prepareForSolrRun']) {
-    description 'Run Apache Solr.'
-    // Jetty configuration
+jettyRun {
     httpPort = listenPort
     contextPath = 'solr'
-    webAppSourceDirectory = file(explodedWebAppDir)
+    webAppSourceDirectory = file(explodedWebAppDir)    
 }
+
+// Run Solr
+task runSolr(type: JettyRun, dependsOn: ['setSolrProperties', 'jettyRun'])
