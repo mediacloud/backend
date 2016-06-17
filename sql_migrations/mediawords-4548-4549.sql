@@ -28,17 +28,17 @@ DROP VIEW IF EXISTS downloads_with_error_in_past_day;
 DROP VIEW IF EXISTS downloads_in_past_day;
 
 
-DROP TRIGGER download_relative_file_path_trigger ON downloads;
+DROP TRIGGER IF EXISTS download_relative_file_path_trigger ON downloads;
 
-DROP FUNCTION get_relative_file_path("path" text);
+DROP FUNCTION IF EXISTS get_relative_file_path("path" text);
 
-DROP FUNCTION download_relative_file_path_trigger();
+DROP FUNCTION IF EXISTS download_relative_file_path_trigger();
 
-DROP INDEX file_status_downloads_time_new_format;
+DROP INDEX IF EXISTS file_status_downloads_time_new_format;
 
-DROP INDEX relative_file_paths_new_format_to_verify;
+DROP INDEX IF EXISTS relative_file_paths_new_format_to_verify;
 
-DROP INDEX relative_file_paths_to_verify;
+DROP INDEX IF EXISTS relative_file_paths_to_verify;
 
 
 ALTER TABLE downloads
