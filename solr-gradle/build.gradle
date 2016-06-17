@@ -144,28 +144,25 @@ task copyAdditionalJettyLoggingJars(type: Copy) {
     from configurations.additionalJettyLoggingJars
 }
 
-task createShard << {
+task createOrUpdateShard << {
     Integer shardToStart = getShardToStart()
 
     File solrHomeDirFile = new File(solrHomeDir)
     String shardDir = solrDataDir + "/mediacloud-shard-" + shardToStart
     File shardDirFile = new File(shardDir)
-    if (shardDirFile.exists()) {
-        logger.info("Shard " + shardToStart + " already exists at " + shardDirFile)
+
+    logger.info("Updating shard " + shardToStart + " at " + shardDirFile + "...")
+
+    // Automagically resolves symlinks
+    FileUtils.copyDirectory(solrHomeDirFile, shardDirFile)
+
+    // Remove template directory
+    File baseCollectionDir = new File(shardDir + "/collections/base_collection")
+    if (baseCollectionDir.exists()) {
+        FileUtils.deleteDirectory(baseCollectionDir)
     } else {
-        logger.info("Shard " + shardToStart + " does not exist, copying " + solrHomeDirFile + " to " + shardDirFile + "...")
-
-        // Automagically resolves symlinks
-        FileUtils.copyDirectory(solrHomeDirFile, shardDirFile)
-
-        // Remove template directory
-        File baseCollectionDir = new File(shardDir + "/collections/base_collection")
-        if (baseCollectionDir.exists()) {
-            FileUtils.deleteDirectory(baseCollectionDir)
-        } else {
-            // Unexpectedly missing, maybe got renamed?
-            logger.warn("'base_collection' directory does not exist at " + baseCollectionDir)
-        }
+        // Unexpectedly missing, maybe got renamed?
+        logger.warn("'base_collection' directory does not exist at " + baseCollectionDir)
     }
 }
 
@@ -174,7 +171,7 @@ task setSolrProperties(dependsOn: [
     'copyWar',
     'copyAdditionalSolrJars',
     'copyAdditionalJettyLoggingJars',
-    'createShard'
+    'createOrUpdateShard'
 ]) {
 
     Integer shardToStart = getShardToStart()
@@ -211,4 +208,4 @@ jettyRun {
 }
 
 // Run Solr
-task runSolr(type: JettyRun, dependsOn: ['setSolrProperties', 'jettyRun'])
+task runSolr(type: JettyRun, dependsOn: ['createOrUpdateShard', 'setSolrProperties', 'jettyRun'])
