@@ -191,7 +191,7 @@ task setSolrProperties(dependsOn: [
     }
 
     // Shards
-    System.setProperty("zkRun", "")
+    System.setProperty("zkRun", "true")
     System.setProperty("bootstrap_confdir", bootstrapConfDir)
     System.setProperty("numShards", Integer.toString(numShards))
     System.setProperty("collection.configName", zooKeeperConfigName)
