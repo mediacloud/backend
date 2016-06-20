@@ -1894,6 +1894,8 @@ SQL
 
     analyze_snapshot_tables( $db );
 
+    discard_temp_tables( $db );
+
     # write_cleanup_dumps( $db, $controversy ) if ( $cleanup_data );
 }
 
