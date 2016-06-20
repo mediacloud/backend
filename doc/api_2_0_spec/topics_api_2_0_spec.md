@@ -70,9 +70,9 @@ parent *frame* (and by implication the parent *snapshot*), or else the null *fra
 
 The hierarchy of *topics*, *snapshots*, *frames*, and *timespans* looks like this:
 
-* topic
-  * snapshot
-    * frame
+*  topic
+    * snapshot
+      * frame
       * timespan
 
 Every url that returns data from a *topic* accepts optional *spanshots_id*, *timespans_id*, and *frames_id* parameters.
@@ -88,31 +88,31 @@ will be returned).
 
 For calls that support paging, each url supports a *limit* parameter and a *link_id* paramter.  For these calls, only *limit* results will be returned at a time, and a set of *link_ids* will be returned along with the results.  To get the current set of results again, or the previous or next page of results, call the same end point with only the *key* and *link_id* parameters.  The *link_id* parameter includes state that remembers all of the parameters from the original call.
 
-For example, the following a paged response: 
+For example, the following a paged response:
 
 ```json
 {
-  stories:
-  [ 
+  "stories":
+  [
     {   
-   	  stories_id: 168326235,
-	  media_id: 18047,
-	  bitly_click_count: 182,
-      collect_date: "2013-10-26 09:25:39",
-      publish_date: "2012-10-24 16:09:26",
-      inlink_count: 531,
-      language: "en",
-      title: "Donald J. Trump (realDonaldTrump) on Twitter",
-      url: "https://twitter.com/realDonaldTrump",
-      outlink_count: 0,
-      guid: "https://twitter.com/realDonaldTrump"
+   	  "stories_id": 168326235,
+	  "media_id": 18047,
+	  "bitly_click_count": 182,
+      "collect_date": "2013-10-26 09:25:39",
+      "publish_date": "2012-10-24 16:09:26",
+      "inlink_count": 531,
+      "language": "en",
+      "title": "Donald J. Trump (realDonaldTrump) on Twitter",
+      "url": "https://twitter.com/realDonaldTrump",
+      "outlink_count": 0,
+      "guid": "https://twitter.com/realDonaldTrump"
     }
   ],
-  link_ids:
+  "link_ids":
   {
-    current: 123456,
-    previous: 456789,
-    next: 789123
+    "current": 123456,
+    "previous": 456789,
+    "next": 789123
   }
 }
 ```
@@ -130,6 +130,116 @@ link_ids are persistent — they can be safely used to refer to a given result f
 The section for each end point includes an example call and response for that end point.  For end points that return multiple results, we generally only show a single result (for instance a single story) for the sake of documentation brevity.
 
 # Topics
+
+## topics/create (POST)
+
+`https://api.mediacloud.org/api/v2/topics/create`
+
+Create and return a new *topic*.
+
+### Query Parameters
+
+(no parameters)
+
+### Input Description
+
+The topics/create call accepts as input the following fields described in the Output Description of the topics/list call: name, pattern, solr_query, description, max_iterations, start_date, end_date.
+
+### Example
+
+Create a new topic:
+
+`https://api.mediacloud.org/api/v2/topics/create`
+
+Input:
+
+```json
+{
+  "name": "immigration 2015",
+  "description": "immigration coverage during 2015",
+  "pattern": "[[:<:]]immigration",
+  "solr_seed_query": "immigration AND (+publish_date:[2016-01-01T00:00:00Z TO 2016-06-15T23:59:59Z]) AND tags_id_media:8875027",
+  "max_iterations": 15,
+  "start_date": "2015-01-01",
+  "end_date": "2015-12-31"
+}
+```
+
+## spider/start
+
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/spider/start`
+
+Start a topic spidering job.
+
+Topic spidering is asynchronous.  Once the topic has started spidering, you cannot start another spidering job until the current one is complete.
+
+### Query Parameters
+
+(no parameters)
+
+### Output Description
+
+| Field   | Description                              |
+| ------- | ---------------------------------------- |
+| success | boolean indicating whether the spidering job was successfully queued. |
+
+### Example
+
+Start a topic spider for the 'U.S. 2016 Election' topic:
+
+`https://api.mediacloud.org/api/v2/topics/1344/spider/start`
+
+Response:
+
+```json
+{ "success": 1 }
+```
+
+## spider/status
+
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/spider/status`
+
+Return the status of any current spidering jobs for the current topic.
+
+### Query Parameters
+
+(no parameters)
+
+### Output Description
+
+| Field         | Description                              |
+| ------------- | ---------------------------------------- |
+| state         | state of current spidering job for this topic; one of: none, queued, running, error |
+| iteration     | iteration of the running spider          |
+| num_stories   | total number of stories in controversy   |
+| queued_links  | number of links left for running spider  |
+| error_message | error message from errored spider        |
+
+The state field has the following meanings:
+
+* none - no spidering job is currently queued or running for this topic
+* queued - a spidering job has been queued to the spidering jobs pool
+* running - a spidering job is currently running
+* errored - the last spidering job to be run returned an error
+
+The num_stories, iteration, and queued_link fields are only returned when the state is running.  The error_message field is only returned when the state is errored.
+
+### Example
+
+Check the status of any spidering jobs for the 'U.S. 2016 Election' topic:
+
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/spider/status`
+
+Response:
+
+```json
+{
+  "state": "running",
+  "iteration": 10,
+  "num_stories": 32998,
+  "queued_links": 93847
+}
+```
 
 ## topics/list
 
@@ -153,6 +263,8 @@ that does not include a topics_id in the url.
 | solr_seed_query_run | boolean indicating whether the solr seed query has been run to seed the topic |
 | description         | human readable description               |
 | max_iterations      | maximum number of iterations for spidering |
+| start_date          | start of date range for topic            |
+| end_date            | end of date range for topic              |
 
 ### Example
 
@@ -164,16 +276,18 @@ Response:
 
 ```json
 {
-  topics:
+  "topics":
   [
   	{
-      topics_id: 672,
-      name: "network neutrality",
-      patern: "[[:<:]]net.*neutrality",
-      solr_seed_query: "net* and neutrality and +tags_id_media:(8875456 8875460 8875107 8875110 8875109 8875111 8875108 8875028 8875027 8875114 8875113 8875115 8875029 129 2453107 8875031 8875033 8875034 8875471 8876474 8876987 8877928 8878292 8878293 8878294 8878332) AND +publish_date:[2013-12-01T00:00:00Z TO 2015-04-24T00:00:00Z]",
-      solr_seed_query_run: 1,
-      description: "network neutrality",
-      max_iterations: 15
+      "topics_id": 672,
+      "name": "network neutrality",
+      "patern": "[[:<:]]net.*neutrality",
+      "solr_seed_query": "net* and neutrality and +tags_id_media:(8875456 8875460 8875107 8875110 8875109 8875111 8875108 8875028 8875027 8875114 8875113 8875115 8875029 129 2453107 8875031 8875033 8875034 8875471 8876474 8876987 8877928 8878292 8878293 8878294 8878332) AND +publish_date:[2013-12-01T00:00:00Z TO 2015-04-24T00:00:00Z]",
+      "solr_seed_query_run": 1,
+      "description": "network neutrality",
+      "max_iterations": 15,
+      "start_date": "2013-12-01",
+      "end_date": "2015-04-24"
 	}
   ]
 }
@@ -236,28 +350,28 @@ Response:
 
 ```json
 {
-  stories:
-  [ 
+  "stories":
+  [
     {   
-   	  stories_id: 168326235,
-	  media_id: 18047,
-	  bitly_click_count: 182,
-      collect_date: "2013-10-26 09:25:39",
-      publish_date: "2012-10-24 16:09:26",
-      date_guess_method: 'guess_by_og_article_published_time',
-      inlink_count: 531,
-      language: "en",
-      title: "Donald J. Trump (realDonaldTrump) on Twitter",
-      url: "https://twitter.com/realDonaldTrump",
-      outlink_count: 0,
-      guid: "https://twitter.com/realDonaldTrump"
+   	 "stories_id": 168326235,
+	 "media_id": 18047,
+	 "bitly_click_count": 182,
+     "collect_date": "2013-10-26 09:25:39",
+     "publish_date": "2012-10-24 16:09:26",
+     "date_guess_method": "guess_by_og_article_published_time",
+     "inlink_count": 531,
+     "language": "en",
+     "title": "Donald J. Trump (realDonaldTrump) on Twitter",
+     "url": "https://twitter.com/realDonaldTrump",
+     "outlink_count": 0,
+     "guid": "https://twitter.com/realDonaldTrump"
     }
   ],
-  link_ids:
+  "link_ids":
   {
-    current: 123456,
-    previous: 456789,
-    next: 789123
+    "current": 123456,
+    "previous": 456789,
+    "next": 789123
   }
 }
 ```
@@ -276,7 +390,7 @@ Return the number of stories that match the query.
 
 For a detailed description of the format of the query specified in `q` parameter, see the entry for [stories_public/list](https://github.com/berkmancenter/mediacloud/blob/release/doc/api_2_0_spec/api_2_0_spec.md#apiv2stories_publiclist) in the main API spec.
 
-Standard parameters accepted: snapshots_id, frames_id, timespans_id, limit, links_id.
+Standard parameters"accepted": snapshots_id, frames_id, timespans_id, limit, links_id.
 
 ### Output Description
 
@@ -294,7 +408,7 @@ Response:
 
 ```json
 {
-  count: 123
+ "count": 123
 }
 ```
 
@@ -355,24 +469,24 @@ Response:
 
 ```json
 {
-  media: 
+  "media":
   [
     {
-      bitly_click_count: 303,
-      media_id: 18346,
-      story_count: 3475,
-      name: "Twitter",
-      inlink_count: 8454,
-      url: "http://twitter.com",
-      outlink_count: 72,
-      facebook_share_count: 123
+     "bitly_click_count": 303,
+     "media_id": 18346,
+     "story_count": 3475,
+     "name": "Twitter",
+     "inlink_count": 8454,
+     "url": "http://twitter.com",
+     "outlink_count": 72,
+     "facebook_share_count": 123
     }
   ],
-  link_ids:
+  "link_ids":
   {
-    current: 123456,
-    previous: 456789,
-    next: 789123
+    "current": 123456,
+    "previous": 456789,
+    "next": 789123
   }
 }
 ```
@@ -385,13 +499,13 @@ A *frame* is a set of stories identified through some *framing method*.  *Frame 
 
 A specific *frame* exists within a specific *snapshot*.  A single topic might have many 'clinton' *frames*, one for each *snapshot*.  Each *topic* has a number of *frame definion*, each of which tells the system which *frames* to create each time a new *snapshot* is created.  *Frames* for new *frame definitions* will be only be created for *snapshots* created after the creation of the *frame definition*.
 
-The relationship of these objects is show below:
+The relationship of these objects is show"below":
 
-* topic
-  * frame set definition
-    * frame definition (+ framing method)
-  * snapshot
-    * frame set
+*     topic
+      * frame set definition
+        * frame definition (+ framing method)
+*     snapshot
+      * frame set
       * frame (+ framing method)
 
 ## Framing Methods
@@ -434,9 +548,9 @@ Input:
 
 ```json
 {
-  name: 'Candidates',
-  description: 'Stories relevant to each candidate.'
-  framing_methods_id: 123
+  "name": "Candidates",
+  "description": "Stories relevant to each candidate.",
+  "framing_methods_id": 123
 }
 ```
 
@@ -444,14 +558,14 @@ Response:
 
 ```json
 {
-  frame_set_definitions: 
+  "frame_set_definitions":
   [
-    frame_set_definitions_id: 789,
-    topics_id: 456,
-    name: 'Candidates',
-    description: 'Stories relevant to each candidate.'
-    framing_method: 'Boolean Query',
-  	is_exclusive: 0
+    "frame_set_definitions_id": 789,
+    "topics_id": 456,
+    "name": "Candidates",
+    "description": "Stories relevant to each candidate.",
+    "framing_method": "Boolean Query",
+  	"is_exclusive": 0
   ]
 }
 ```
@@ -472,7 +586,7 @@ See *frame_set_definitions/create* for a list of fields.  Only fields that are i
 
 ### Example
 
-Update the name and description of the 'Candidates'  frame set definition:
+Update the name and description of the 'Candidates'  frame set"definition":
 
 `https://api.mediacloud.org/api/v2/topics/1344/frame_set_definitions/update`
 
@@ -480,8 +594,8 @@ Input:
 
 ```json
 {
-  name: 'Major Party Candidates',
-  description: 'Stories relevant to each major party candidate.'
+  "name": "Major Party Candidates",
+  "description": "Stories relevant to each major party candidate."
 }
 ```
 
@@ -489,14 +603,16 @@ Response:
 
 ```json
 {
-  frame_set_definitions: 
+  "frame_set_definitions":
   [
-    frame_set_definitions_id: 789,
-    topics_id: 456,
-    name: 'Major Party Candidates',
-    description: 'Stories relevant to each major party candidate.'
-    framing_method: 'Boolean Query',
-  	is_exclusive: 0
+    {
+      "frame_set_definitions_id": 789,
+      "topics_id": 456,
+      "name": "Major Party Candidates",
+      "description": "Stories relevant to each major party candidate.",
+      "framing_method": "Boolean Query",
+      "is_exclusive": 0
+    }
   ]
 }
 ```
@@ -523,7 +639,7 @@ Return a list of all frame set definitions belonging to the given topic.
 
 ### Example
 
-List all frame set definitions associated with the 'U.S. 2016 Elections' topic:
+List all frame set definitions associated with the 'U.S. 2016 Elections'"topic":
 
 `https://api.mediacloud.org/api/v2/topics/1344/frame_set_definitions/list`
 
@@ -531,14 +647,14 @@ Response:
 
 ```json
 {
-  frame_set_definitions: 
+  "frame_set_definitions":
   [
-    frame_set_definitions_id: 789,
-    topics_id: 456,
-    name: 'Major Party Candidates',
-    description: 'Stories relevant to each major party candidate.'
-    framing_method: 'Boolean Query',
-  	is_exclusive: 0
+    "frame_set_definitions_id": 789,
+    "topics_id": 456,
+    "name": "Major Party Candidates",
+    "description": "Stories relevant to each major party candidate.",
+    "framing_method": "Boolean Query",
+  	"is_exclusive": 0
   ]
 }
 ```
@@ -551,7 +667,7 @@ List all *frame sets* belonging to the current *snapshot* in the given *topic*.
 
 ### Query Parameters
 
-Standard parameters accepted: snapshots_id.
+Standard parameters"accepted": snapshots_id.
 
 ### Output Description
 
@@ -572,15 +688,15 @@ Get a list of *frame sets* in the latest *snapshot* in the 'U.S. 2016 Election' 
 Response:
 
 ```json
-{ 
-  frame_sets:
+{
+ "frame_sets":
   [
   	{
-      frame_sets_id: 34567,
-      name: 'Candidates',
-      description: 'Stories relevant to each candidate.',
-      framing_method: 'Boolean Query',
-      is_exclusive: 0
+      "frame_sets_id": 34567,
+      "name": "Candidates",
+      "description": "Stories relevant to each candidate.",
+      "framing_method": "Boolean Query",
+      "is_exclusive": 0
     }
   ]
 }
@@ -616,9 +732,9 @@ Input:
 
 ```json
 {
-  name: 'Clinton',
-  description: 'stories that mention Hillary Clinton',
-  query: 'clinton'
+  "name": "Clinton",
+  "description": "stories that mention Hillary Clinton",
+  "query": "clinton"
 }
 ```
 
@@ -626,13 +742,13 @@ Response:
 
 ```json
 {
-  frame_definitions:
+ "frame_definitions":
   [
     {
-      frame_definitions_id: 234,
-      name: 'Clinton',
-      description: 'stories that mention Hillary Clinton',
-      query: 'clinton'
+      "frame_definitions_id": 234,
+      "name": "Clinton",
+      "description": "stories that mention Hillary Clinton",
+      "query": "clinton"
     }
   ]
 }
@@ -663,20 +779,20 @@ Update the query for the 'Clinton' frame definition:
 Input:
 
 ```json
-{ query: 'clinton and ( hillary or -bill )' }
+{ "query": "clinton and ( hillary or -bill )" }
 ```
 
 Response:
 
 ```json
 {
-  frame_definitions:
+  "frame_definitions":
   [
     {
-      frame_definitions_id: 234,
-      name: 'Clinton',
-      description: 'stories that mention Hillary Clinton',
-      query: 'clinton and ( hillary or -bill )'
+      "frame_definitions_id": 234,
+      "name": "Clinton",
+      "description": "stories that mention Hillary Clinton",
+      "query": "clinton and ( hillary or -bill )"
     }
   ]
 }
@@ -712,13 +828,13 @@ Response:
 
 ```json
 {
-  frame_definitions:
+  "frame_definitions":
   [
     {
-      frame_definitions_id: 234,
-      name: 'Clinton',
-      description: 'stories that mention Hillary Clinton',
-      query: 'clinton and ( hillary or -bill )'
+      "frame_definitions_id": 234,
+      "name": "Clinton",
+      "description": "stories that mention Hillary Clinton",
+      "query": "clinton and ( hillary or -bill )"
     }
   ]
 }
@@ -755,13 +871,13 @@ Response:
 
 ```json
 {
-  frames:
+  "frames":
   [
     {
-      frames_id: 234,
-      name: 'Clinton',
-      description: 'stories that mention Hillary Clinton',
-      query: 'clinton and ( hillary or -bill )'
+      "frames_id": 234,
+      "name": "Clinton",
+      "description": "stories that mention Hillary Clinton",
+      "query": "clinton and ( hillary or -bill )"
     }
   ]
 }
@@ -785,9 +901,9 @@ This is an asynchronous call.  The *snapshot* process will run in the background
 
 ### Output Description
 
-| Field      | Description                              |
-| ---------- | ---------------------------------------- |
-| job_queued | boolean indicating whether snapshot generation job was queued |
+| Field   | Description                              |
+| ------- | ---------------------------------------- |
+| success | boolean indicating whether snapshot generation job was queued |
 
 ### Example
 
@@ -798,7 +914,7 @@ Start a new *snapshot* generation job for the 'U.S. 2016 Election' *topic*:
 Response:
 
 ```json
-{ job_queued: 1 }
+{"success": 1 }
 ```
 
 ## snapshots/list
@@ -828,11 +944,11 @@ Response:
 
 ```json
 {
-  snapshots:
+  "snapshots":
   [
 	{
-      snapshots_id: 6789,
-      snapshot_date: '2016-09-29 18:14:47.481252',
+      "snapshots_id": 6789,
+      "snapshot_date": "2016-09-29 18:14:47.481252",
     }  
   ]
 }
@@ -890,20 +1006,74 @@ Return all *timespans* associated with the latest *snapshot* of the 'U.S. 2016 E
 Response:
 
 ```json
-
+{
+  "timespans":
+  [
+    {
+      "timespans_id": 6789,
+      "period": "overall",
+      "start_date": "2016-01-01",
+      "end_date": "2016-12-01",
+      "story_count": 10283,
+      "story_link_count": 543,
+      "medium_count": 2345,
+      "medium_link_count": 1543,
+      "model_r2_mean": 0.94,
+      "model_r2_sd": 0.04,
+      "top_media": 143
+    }
+  ]
+}
 ```
 
 
 
 ## timespans/add_dates (PUT)
 
+`https://api.meiacloud.org/api/v1/topics/<topics_id>/timespans/add_dates`
+
+Add a date range for which to generate *timespans* for future *spanshots*.
+
+### Query Parameters
+
+(no parameters)
+
+### Input Description
+
+| Field      | Description         |
+| ---------- | ------------------- |
+| start_date | start of date range |
+| end_date   | end of date range   |
+
+### Output Description
+
+| Field   | Description                              |
+| ------- | ---------------------------------------- |
+| success | boolean indicating that the dates have been added |
+
+### Example
+
+Add a new *timespan* date range to 'U.S. 2016 Election' *topic*:
+
+`https://api.mediacloud.org/api/v2/topics/1344/timespans/add_dates`
+
+Input:
+
+```json
+{
+  "start_date": "2016-02-01",
+  "end_date": "2016-05-01"
+}
+```
+
+Response:
+
+```json
+{ "success": 1 }
+```
+
+
+
 # TODO
 
-Stuff left to add:
-
-* clarify snapshots_id / frames_id / timespans_id for all calls
-* topics/mine
-* topic acls
-
-# QUESTIONS
-
+* topics ACLs
