@@ -65,8 +65,15 @@ A *timespan* displays the *topic* as if it exists only of stories either publish
 
 *Topics*, *snapshots*, *frames*, and *timespans* are strictly hierarchical.  Every *snapshot* belongs to a single
 *topic*.  Every *frame* belongs to a single *snapshot*, and every timespan* belongs to either a single *frame* or the
-*null *frame*.  Specifying a *frame* implies the parent *snapshot* of that *frame*.  Specifying a *topic* implies the
-*parent *frame* (and by implication the parent *snapshot*), or else the null *frame* within the parent *snapshot*.
+null *frame*.  Specifying a *frame* implies the parent *snapshot* of that *frame*.  Specifying a *topic* implies the
+parent *frame* (and by implication the parent *snapshot*), or else the null *frame* within the parent *snapshot*.
+
+The hierarchy of *topics*, *snapshots*, *frames*, and *timespans* looks like this:
+
+* topic
+  * snapshot
+    * frame
+      * timespan
 
 Every url that returns data from a *topic* accepts optional *spanshots_id*, *timespans_id*, and *frames_id* parameters.
 
@@ -79,11 +86,9 @@ will be returned).
 
 ## Paging
 
-For calls that support paging, each url supports a *limit* parameter and a *continuation_id* paramter.  For these calls, only *limit* results will be returned at a time, and a set of *continuation_ids* will be returned along with the results.  To get the current set of results again, or the previous or next page of results, call the same end point with only the *key* and *continuation_id* parameters.  The *continuation_id* parameter includes state that remembers all of the parameters from the original call.
+For calls that support paging, each url supports a *limit* parameter and a *link_id* paramter.  For these calls, only *limit* results will be returned at a time, and a set of *link_ids* will be returned along with the results.  To get the current set of results again, or the previous or next page of results, call the same end point with only the *key* and *link_id* parameters.  The *link_id* parameter includes state that remembers all of the parameters from the original call.
 
-For example, the following a paged response:
-
- 
+For example, the following a paged response: 
 
 ```json
 {
@@ -103,23 +108,22 @@ For example, the following a paged response:
       guid: "https://twitter.com/realDonaldTrump"
     }
   ],
-  continuation_ids:
+  link_ids:
   {
     current: 123456,
     previous: 456789,
     next: 789123
   }
 }
-
 ```
 
 After receiving that reponse, you can use the following url with no other parameters to fetch the next page of results:
 
-`https://api.mediacloud.org/api/v2/topics/1/stories/list?key=KEY&continuation_id=789123`
+`https://api.mediacloud.org/api/v2/topics/1/stories/list?key=KEY&link_id=789123`
 
-When the system has reached the end of the results, it will return an empty list and a null 'next' continuation_id.
+When the system has reached the end of the results, it will return an empty list and a null 'next' link_id.
 
-Continuation ids are persistent and can be safely used to refer to a given result forever (for instance, as an identifier for a link shortener).
+link_ids are persistent — they can be safely used to refer to a given result forever (for instance, as an identifier for a link shortener).
 
 ## Examples
 
@@ -196,13 +200,13 @@ The stories list call returns stories in the topic.
 | link_from_stories_id | null    | return only stories from other media that are linked from the given stories_ids |
 | media_id             | null    | return only stories belonging to the given media_ids |
 | limit                | 20      | return the given number of stories       |
-| continuation_id      | null    | return stories using the paging continuation |
+| link_id              | null    | return stories using the paging link     |
 
 The call will return an error if more than one of the following parameters are specified: `q`, `stories_id`, `link_to_stories`, `link_from_stories_id`, `media_id`.
 
 For a detailed description of the format of the query specified in `q` parameter, see the entry for [stories_public/list](api_2_0_spec.md) in the main API spec.
 
-The call also accepts the `limit` and `continuation_id` parameters.
+Standard parameters accepted: snapshots_id, frames_id, timespans_id, limit, links_id.
 
 ### Output Description
 
@@ -249,7 +253,7 @@ Response:
       guid: "https://twitter.com/realDonaldTrump"
     }
   ],
-  continuation_ids:
+  link_ids:
   {
     current: 123456,
     previous: 456789,
@@ -271,6 +275,8 @@ Return the number of stories that match the query.
 | q         | null    | count stories that match this query |
 
 For a detailed description of the format of the query specified in `q` parameter, see the entry for [stories_public/list](https://github.com/berkmancenter/mediacloud/blob/release/doc/api_2_0_spec/api_2_0_spec.md#apiv2stories_publiclist) in the main API spec.
+
+Standard parameters accepted: snapshots_id, frames_id, timespans_id, limit, links_id.
 
 ### Output Description
 
@@ -314,15 +320,17 @@ The media list call returns the list of media in the topic.
 
 ### Query Parameters
 
-| Parameter       | Default | Notes                                    |
-| --------------- | ------- | ---------------------------------------- |
-| media_id        | null    | return only the specified media          |
-| sort            | inlink  | sort field for returned stories; possible values: `inlink`, `social` |
-| name            | null    | search for media with the given name     |
-| limit           | 20      | return the given number of media         |
-| continuation_id | null    | return media using the paging continuation |
+| Parameter | Default | Notes                                    |
+| --------- | ------- | ---------------------------------------- |
+| media_id  | null    | return only the specified media          |
+| sort      | inlink  | sort field for returned stories; possible values: `inlink`, `social` |
+| name      | null    | search for media with the given name     |
+| limit     | 20      | return the given number of media         |
+| link_id   | null    | return media using the paging link       |
 
 If the `name` parameter is specified, the call returns only media sources that match a case insensitive search specified value. If the specified value is less than 3 characters long, the call returns an empty list.
+
+Standard parameters accepted: snapshots_id, frames_id, timespans_id, limit, links_id.
 
 ### Output Description
 
@@ -360,7 +368,7 @@ Response:
       facebook_share_count: 123
     }
   ],
-  continuation_ids:
+  link_ids:
   {
     current: 123456,
     previous: 456789,
@@ -370,4 +378,532 @@ Response:
 ```
 
 
+
+# Frames
+
+A *frame* is a set of stories identified through some *framing method*.  *Frame Sets* are sets of *frames* that share a *framing method* and are also usually som substantive theme determined by the user.  For example, a 'U.S. 2016 Election' topic might include a 'Candidates' *frame set* that includes 'trump' and 'clinton' frames, each of which uses a 'Boolean Query' *framing methodology* to identify stories relevant to each candidate with a separate boolean query for each.
+
+A specific *frame* exists within a specific *snapshot*.  A single topic might have many 'clinton' *frames*, one for each *snapshot*.  Each *topic* has a number of *frame definion*, each of which tells the system which *frames* to create each time a new *snapshot* is created.  *Frames* for new *frame definitions* will be only be created for *snapshots* created after the creation of the *frame definition*.
+
+The relationship of these objects is show below:
+
+* topic
+  * frame set definition
+    * frame definition (+ framing method)
+  * snapshot
+    * frame set
+      * frame (+ framing method)
+
+## Framing Methods
+
+Media Cloud currently supports the following framing methods.
+
+* Boolean Query
+
+Details about each framing method are below.  Among other properties, each framing method may or not be exclusive.  Exlcusive framing methods generate *frame sets* in which each story belongs to at most one *frame*.
+
+### Framing Method: Boolean Query
+
+The Boolean Query framing method associates a frame with a story by matching that story with a solr boolean query.  *Frame Sets* generated by the Boolean Query method are not exclusive.
+
+## frame_set_definitions/create (POST)
+
+`https://api.mediacloud.org/api/topics/<topics_id>/frame_sets/create`
+
+Create and return a new *frame set definiition*  within the given *topic*.
+
+### Query Parameters
+
+(no parameters)
+
+### Input Description
+
+| Field          | Description                              |
+| -------------- | ---------------------------------------- |
+| name           | short human readable label for frame set definition |
+| description    | human readable description of frame set definition |
+| framing_method | framing method to be used for all frame definitions in this definition |
+
+### Example
+
+Create a 'Candidates' frame set definiition in the 'U.S. 2016 Election' topic:
+
+`https://api.mediacloud.org/api/v2/topics/1344/frame_set_definitions_create`
+
+Input:
+
+```json
+{
+  name: 'Candidates',
+  description: 'Stories relevant to each candidate.'
+  framing_methods_id: 123
+}
+```
+
+Response:
+
+```json
+{
+  frame_set_definitions: 
+  [
+    frame_set_definitions_id: 789,
+    topics_id: 456,
+    name: 'Candidates',
+    description: 'Stories relevant to each candidate.'
+    framing_method: 'Boolean Query',
+  	is_exclusive: 0
+  ]
+}
+```
+
+## frame_set_definitions/update (PUT)
+
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/frame_set_definitions/update/<frame_set_definitions_id>`
+
+Update the given frame set definition.
+
+### Query Parameters
+
+(no parameters)
+
+### Input Parameters
+
+See *frame_set_definitions/create* for a list of fields.  Only fields that are included in the input are modified.
+
+### Example
+
+Update the name and description of the 'Candidates'  frame set definition:
+
+`https://api.mediacloud.org/api/v2/topics/1344/frame_set_definitions/update`
+
+Input:
+
+```json
+{
+  name: 'Major Party Candidates',
+  description: 'Stories relevant to each major party candidate.'
+}
+```
+
+Response:
+
+```json
+{
+  frame_set_definitions: 
+  [
+    frame_set_definitions_id: 789,
+    topics_id: 456,
+    name: 'Major Party Candidates',
+    description: 'Stories relevant to each major party candidate.'
+    framing_method: 'Boolean Query',
+  	is_exclusive: 0
+  ]
+}
+```
+
+## frame_set_definitions/list
+
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/frame_set_definitions/list`
+
+Return a list of all frame set definitions belonging to the given topic.
+
+### Query Parameters
+
+(no parameters)
+
+### Output Description
+
+| Field                    | Description                              |
+| ------------------------ | ---------------------------------------- |
+| frame_set_definitions_id | frame set defintion id                   |
+| name                     | short human readable label for the frame set definition |
+| description              | human readable description of the frame set definition |
+| framing_method           | framing method used for frames in this set |
+| is_exclusive             | boolean that indicates whether a given story can only belong to one frame, based on the framing method |
+
+### Example
+
+List all frame set definitions associated with the 'U.S. 2016 Elections' topic:
+
+`https://api.mediacloud.org/api/v2/topics/1344/frame_set_definitions/list`
+
+Response:
+
+```json
+{
+  frame_set_definitions: 
+  [
+    frame_set_definitions_id: 789,
+    topics_id: 456,
+    name: 'Major Party Candidates',
+    description: 'Stories relevant to each major party candidate.'
+    framing_method: 'Boolean Query',
+  	is_exclusive: 0
+  ]
+}
+```
+
+## frame_sets/list
+
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/frame_sets/list`
+
+List all *frame sets* belonging to the current *snapshot* in the given *topic*.
+
+### Query Parameters
+
+Standard parameters accepted: snapshots_id.
+
+### Output Description
+
+| Field          | Description                              |
+| -------------- | ---------------------------------------- |
+| frame_sets_id  | frame set id                             |
+| name           | short human readable label for the frame set |
+| description    | human readable description of the frame set |
+| framing_method | framing method used to generate the frames in the frame set |
+| is_exclusive   | boolean that indicates whether a given story can only belong to one frame, based on the framing method |
+
+### Example
+
+Get a list of *frame sets* in the latest *snapshot* in the 'U.S. 2016 Election' *topic*:
+
+`https://api.mediacloud.org/api/v2/topics/1344/frame_sets_list`
+
+Response:
+
+```json
+{ 
+  frame_sets:
+  [
+  	{
+      frame_sets_id: 34567,
+      name: 'Candidates',
+      description: 'Stories relevant to each candidate.',
+      framing_method: 'Boolean Query',
+      is_exclusive: 0
+    }
+  ]
+}
+```
+
+## frame_definitions/create (POST)
+
+`https://api.mediacloud.org/api/topics/<topics_id>/frame_sets/create/<frame_set_definitions_id>`
+
+Create and return a new *frame definiition*  within the given *topic* and *frame set definition*.
+
+### Query Parameters
+
+(no parameters)
+
+### Input Description
+
+| Field       | Description                              |
+| ----------- | ---------------------------------------- |
+| name        | short human readable label for frames generated by this definition |
+| description | human readable description for frames generated by this definition |
+| query       | Boolean Query: query used to generate frames generated by this definition |
+
+The input for the *frame definition* depends on the framing method of the parent *frame set definition*.  The framing method specific input fields are listed last in the table above and are prefixed with the name of applicable framing method.
+
+### Example
+
+Create the 'Clinton' *frame definition* within the 'Candidates' *frame set definition* and the 'U.S. 2016 Election' *topic*:
+
+`https://api.mediacloud.org/api/v2/topics/1344/frame_definitions/create/789`
+
+Input:
+
+```json
+{
+  name: 'Clinton',
+  description: 'stories that mention Hillary Clinton',
+  query: 'clinton'
+}
+```
+
+Response:
+
+```json
+{
+  frame_definitions:
+  [
+    {
+      frame_definitions_id: 234,
+      name: 'Clinton',
+      description: 'stories that mention Hillary Clinton',
+      query: 'clinton'
+    }
+  ]
+}
+```
+
+
+
+## frame_definitions/update (PUT)
+
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/frame_definitions/update/<frame_definitions_id>`
+
+Update the given frame definition.
+
+### Query Parameters
+
+(no parameters)
+
+### Input Description
+
+See *frame_definitions/create* for a list of fields.  Only fields that are included in the input are modified.
+
+### Example
+
+Update the query for the 'Clinton' frame definition:
+
+`https://api.mediacloud.org/api/v2/topics/1344/frame_definitions/update/234`
+
+Input:
+
+```json
+{ query: 'clinton and ( hillary or -bill )' }
+```
+
+Response:
+
+```json
+{
+  frame_definitions:
+  [
+    {
+      frame_definitions_id: 234,
+      name: 'Clinton',
+      description: 'stories that mention Hillary Clinton',
+      query: 'clinton and ( hillary or -bill )'
+    }
+  ]
+}
+```
+
+## frame_definitions/list
+
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/frame_definitions/list/<frame_set_definitions_id>`
+
+List all *frame definitions* belonging to the given *frame set definition*.
+
+### Query Parameters
+
+(no parameters)
+
+### Output Description
+
+| Field       | Description                              |
+| ----------- | ---------------------------------------- |
+| name        | short human readable label for frames generated by this definition |
+| description | human readable description for frames generated by this definition |
+| query       | Boolean Query: query used to generate frames generated by this definition |
+
+The output for *frame definition* depends on the framing method of the parent *frame set definition*.  The framing method specific fields are listed last in the table above and are prefixed with the name of applicable framing method.
+
+### Example
+
+List all *frame definitions* belonging to the 'Candidates' *frame set definition* of the 'U.S. 2016 Election' *topic*:
+
+`https://api.mediacloud.org/api/v2/topics/1344/frame_definitions_list/234`
+
+Response:
+
+```json
+{
+  frame_definitions:
+  [
+    {
+      frame_definitions_id: 234,
+      name: 'Clinton',
+      description: 'stories that mention Hillary Clinton',
+      query: 'clinton and ( hillary or -bill )'
+    }
+  ]
+}
+```
+
+## frames/list
+
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/frames/list/<frame_sets_id>`
+
+Return a list of the *frames* belonging to the given *frame set*.
+
+### Query Parameters
+
+(no parameters)
+
+### Ouput Description
+
+| Field       | Description                              |
+| ----------- | ---------------------------------------- |
+| frames_id   | frame id                                 |
+| name        | short human readable label for the frame |
+| description | human readable description of the frame  |
+| query       | Boolean Query: query used to generate the frame |
+
+The output for *frame* depends on the framing method of the parent *frame definition*.  The framing method specific fields are listed last in the table above and are prefixed with the name of applicable framing method.
+
+### Example
+
+Get a list of *frames* wihin the 'Candiates' *frame set* of the 'U.S. 2016 Election' *topic*:
+
+`https://api.mediacloud.org/api/v2/topics/1344/frames/list/34567`
+
+Response:
+
+```json
+{
+  frames:
+  [
+    {
+      frames_id: 234,
+      name: 'Clinton',
+      description: 'stories that mention Hillary Clinton',
+      query: 'clinton and ( hillary or -bill )'
+    }
+  ]
+}
+```
+
+# Snapshots
+
+Each *snapshot* contains a static copy of all data within a topic at the time the *snapshot* was made.  All data viewable by the Topics API must be viewed through a *snapshot*.
+
+## snapshots/generate
+
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/snapshots/generate`
+
+Generate a new *snapshot* for the given topic.
+
+This is an asynchronous call.  The *snapshot* process will run in the background, and the new *snapshot* will only become visible to the API once the generation is complete.  Only one *snapshot* generation job can run at a time.
+
+### Query Parameters
+
+(no parameters)
+
+### Output Description
+
+| Field      | Description                              |
+| ---------- | ---------------------------------------- |
+| job_queued | boolean indicating whether snapshot generation job was queued |
+
+### Example
+
+Start a new *snapshot* generation job for the 'U.S. 2016 Election' *topic*:
+
+`https://api.mediacloud.org/api/v2/topics/1344/snapshots/generate`
+
+Response:
+
+```json
+{ job_queued: 1 }
+```
+
+## snapshots/list
+
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/snapshots/list`
+
+Return a list of all completed *snapshots* in the given *topic*.
+
+### Query Paramaters
+
+(no parameters)
+
+### Output Description
+
+| Field         | Description                            |
+| ------------- | -------------------------------------- |
+| snapshots_id  | snapshot id                            |
+| snapshot_date | date on which the snapshot was created |
+
+### Example
+
+Return a list of *snapshots* in the 'U.S. 2016 Election' *topic*:
+
+`https://api.mediacloud.org/api/v2/topics/1344/snapshots/list`
+
+Response:
+
+```json
+{
+  snapshots:
+  [
+	{
+      snapshots_id: 6789,
+      snapshot_date: '2016-09-29 18:14:47.481252',
+    }  
+  ]
+}
+```
+
+
+
+# Timespans
+
+Each *timespan* is a view of the *topic* that presents the topic as if it consists only of *stories* within the date range of the given *timespan*.
+
+A *story* is included within a *timespan* if the publish_date of the story is within the *timespan* date range or if the *story* is linked to by a *story* that whose publish_date is within date range of the *timespan*.
+
+## timespans/list
+
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/timespans/list`
+
+Return a list of timespans in the current snapshot.
+
+### Query Parameters
+
+Standard parameters accepts: snapshots_id, frames_id.
+
+### Output Description
+
+| Field             | Description                              |
+| ----------------- | ---------------------------------------- |
+| timespans_id      | timespan id                              |
+| period            | type of period covered by timespan; possible values: overall, weekly, monthly, custom |
+| start_date        | start of timespan date range             |
+| end_date          | end of timespan date range               |
+| story_count       | number of stories in timespan            |
+| story_link_count  | number of cross media story links in timespan |
+| medium_count      | number of distinct media associated with stories in timespan |
+| medium_link_count | number of cros media media links in timespan |
+| model_r2_mean     | timespan modeling r2 mean                |
+| model_r2_sd       | timespan modeling r2 standard deviation  |
+| top_media         | number of media include in modeled top media list |
+
+Every *topic* generates the following timespans for every *snapshot*:
+
+* overall - an timespan that includes every story in the topic
+* custom all - a custom period timespan that includes all stories within the date range of the topic
+* weekly - a weekly timespan for each calendar week in the date range of the topic
+* monthly - a monthly timespan for each calendar month in the date range of the topic
+
+Media Cloud needs to guess the date of many of the stories discovered while topic spidering.  We have validated the date guessing to be about 87% accurate for all methods other than the finding a url in the story url.  The possiblity of significant date errors make it possible for the Topic Mapper system to wrongly assign stories to a given timespan and to also miscount links within a given timespan (due to stories getting misdated into or out of a given timespan).  To mitigate the risk of drawing the wrong research conclusions from a given timespan, we model what the timespan might look like if dates were wrong with the frequency that our validation tell us that they are wrong within a given timespan.  We then generate a pearson's correlation between the ranks of the top media for the given timespan in our actual data and in each of ten runs of the modeled data.  The model_* fields provide the mean and standard deviations of the square of those correlations.
+
+### Example
+
+Return all *timespans* associated with the latest *snapshot* of the 'U.S. 2016 Election' *topic*:
+
+`https://api.mediacloud.org/api/v2/topics/1344/timespans/list`
+
+Response:
+
+```json
+
+```
+
+
+
+## timespans/add_dates (PUT)
+
+# TODO
+
+Stuff left to add:
+
+* clarify snapshots_id / frames_id / timespans_id for all calls
+* topics/mine
+* topic acls
+
+# QUESTIONS
 
