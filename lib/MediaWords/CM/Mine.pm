@@ -330,7 +330,7 @@ sub insert_controversy_links
     for my $controversy_link ( @{ $controversy_links } )
     {
         $csv->combine( map { $controversy_link->{ $_ } } ( qw/stories_id url controversies_id/ ) );
-        $db->dbh->pg_putcopydata( $csv->string . "\n" );
+        $db->dbh->pg_putcopydata( encode( 'utf8', $csv->string ) . "\n" );
     }
 
     $db->dbh->pg_putcopyend();
