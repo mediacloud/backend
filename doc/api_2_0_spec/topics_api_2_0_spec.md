@@ -1,101 +1,105 @@
-<a class="mk-toclify" id="table-of-contents"></a>
+<!-- MDTOC maxdepth:6 firsth1:1 numbering:0 flatten:0 bullets:1 updateOnSave:1 -->
 
-# Table of Contents
-- [Overview](#overview)
-    - [Media Cloud Crawler and Core Data Structures](#media-cloud-crawler-and-core-data-structures)
-    - [Topic Data Structures](#topic-data-structures)
-    - [API URLs](#api-urls)
-    - [Snapshots, Timespans, and Frames](#snapshots-timespans-and-frames)
-    - [Examples](#examples)
-- [Topics](#topics)
-    - [topics/create (POST)](#topicscreate-post)
-        - [Query Parameters](#query-parameters)
-        - [Input Description](#input-description)
-        - [Example](#example)
-    - [spider/start](#spiderstart)
-        - [Query Parameters](#query-parameters)
-        - [Output Description](#output-description)
-        - [Example](#example)
-    - [spider/status](#spiderstatus)
-        - [Query Parameters](#query-parameters)
-        - [Output Description](#output-description)
-        - [Example](#example)
-    - [topics/list](#topicslist)
-        - [Query Parameters](#query-parameters)
-        - [Output Description](#output-description)
-        - [Example](#example)
-- [Stories](#stories)
-    - [stories/list](#storieslist)
-        - [Query Parameters](#query-parameters)
-        - [Output Description](#output-description)
-    - [stories/count](#storiescount)
-        - [Query Parameters](#query-parameters)
-        - [Output Description](#output-description)
-        - [Example](#example)
-- [Sentences](#sentences)
-    - [sentences/count](#sentencescount)
-- [Media](#media)
-    - [media/list](#medialist)
-        - [Query Parameters](#query-parameters)
-        - [Output Description](#output-description)
-        - [Example](#example)
-- [Frames](#frames)
-    - [Framing Methods](#framing-methods)
-        - [Framing Method: Boolean Query](#framing-method-boolean-query)
-    - [frame_set_definitions/create (POST)](#frame_set_definitionscreate-post)
-        - [Query Parameters](#query-parameters)
-        - [Input Description](#input-description)
-        - [Example](#example)
-    - [frame_set_definitions/update (PUT)](#frame_set_definitionsupdate-put)
-        - [Query Parameters](#query-parameters)
-        - [Input Parameters](#input-parameters)
-        - [Example](#example)
-    - [frame_set_definitions/list](#frame_set_definitionslist)
-        - [Query Parameters](#query-parameters)
-        - [Output Description](#output-description)
-        - [Example](#example)
-    - [frame_sets/list](#frame_setslist)
-        - [Query Parameters](#query-parameters)
-        - [Output Description](#output-description)
-        - [Example](#example)
-    - [frame_definitions/create (POST)](#frame_definitionscreate-post)
-        - [Query Parameters](#query-parameters)
-        - [Input Description](#input-description)
-        - [Example](#example)
-    - [frame_definitions/update (PUT)](#frame_definitionsupdate-put)
-        - [Query Parameters](#query-parameters)
-        - [Input Description](#input-description)
-        - [Example](#example)
-    - [frame_definitions/list](#frame_definitionslist)
-        - [Query Parameters](#query-parameters)
-        - [Output Description](#output-description)
-        - [Example](#example)
-    - [frames/list](#frameslist)
-        - [Query Parameters](#query-parameters)
-        - [Ouput Description](#ouput-description)
-        - [Example](#example)
-- [Snapshots](#snapshots)
-    - [snapshots/generate](#snapshotsgenerate)
-        - [Query Parameters](#query-parameters)
-        - [Output Description](#output-description)
-        - [Example](#example)
-    - [snapshots/list](#snapshotslist)
-        - [Query Paramaters](#query-paramaters)
-        - [Output Description](#output-description)
-        - [Example](#example)
-- [Timespans](#timespans)
-    - [timespans/list](#timespanslist)
-        - [Query Parameters](#query-parameters)
-        - [Output Description](#output-description)
-        - [Example](#example)
-    - [timespans/add_dates (PUT)](#timespansadd_dates-put)
-        - [Query Parameters](#query-parameters)
-        - [Input Description](#input-description)
-        - [Output Description](#output-description)
-        - [Example](#example)
-- [TODO](#todo)
+- [Overview](#overview)   
+   - [Media Cloud Crawler and Core Data Structures](#media-cloud-crawler-and-core-data-structures)   
+   - [Topic Data Structures](#topic-data-structures)   
+   - [API URLs](#api-urls)   
+   - [Snapshots, Timespans, and Frames](#snapshots-timespans-and-frames)   
+   - [Paging](#paging)   
+   - [Examples](#examples)   
+- [Topics](#topics)   
+   - [topics/create (POST)](#topicscreate-post)   
+      - [Query Parameters](#query-parameters)   
+      - [Input Description](#input-description)   
+      - [Example](#example)   
+   - [spider/start](#spiderstart)   
+      - [Query Parameters](#query-parameters-1)   
+      - [Output Description](#output-description)   
+      - [Example](#example-1)   
+   - [spider/status](#spiderstatus)   
+      - [Query Parameters](#query-parameters-2)   
+      - [Output Description](#output-description-1)   
+      - [Example](#example-2)   
+   - [topics/list](#topicslist)   
+      - [Query Parameters](#query-parameters-3)   
+      - [Output Description](#output-description-2)   
+      - [Example](#example-3)   
+- [Stories](#stories)   
+   - [stories/list](#storieslist)   
+      - [Query Parameters](#query-parameters-4)   
+      - [Output Description](#output-description-3)   
+      - [Example](#example-4)   
+   - [stories/count](#storiescount)   
+      - [Query Parameters](#query-parameters-5)   
+      - [Output Description](#output-description-4)   
+      - [Example](#example-5)   
+- [Sentences](#sentences)   
+   - [sentences/count](#sentencescount)   
+- [Media](#media)   
+   - [media/list](#medialist)   
+      - [Query Parameters](#query-parameters-6)   
+      - [Output Description](#output-description-5)   
+      - [Example](#example-6)   
+- [Word Counts](#word-counts)   
+   - [wc/list](#wclist)   
+- [Frames](#frames)   
+   - [Framing Methods](#framing-methods)   
+      - [Framing Method: Boolean Query](#framing-method-boolean-query)   
+   - [frame_set_definitions/create (POST)](#frame_set_definitionscreate-post)   
+      - [Query Parameters](#query-parameters-7)   
+      - [Input Description](#input-description-1)   
+      - [Example](#example-7)   
+   - [frame_set_definitions/update (PUT)](#frame_set_definitionsupdate-put)   
+      - [Query Parameters](#query-parameters-8)   
+      - [Input Parameters](#input-parameters)   
+      - [Example](#example-8)   
+   - [frame_set_definitions/list](#frame_set_definitionslist)   
+      - [Query Parameters](#query-parameters-9)   
+      - [Output Description](#output-description-6)   
+      - [Example](#example-9)   
+   - [frame_sets/list](#frame_setslist)   
+      - [Query Parameters](#query-parameters-10)   
+      - [Output Description](#output-description-7)   
+      - [Example](#example-10)   
+   - [frame_definitions/create (POST)](#frame_definitionscreate-post)   
+      - [Query Parameters](#query-parameters-11)   
+      - [Input Description](#input-description-2)   
+      - [Example](#example-11)   
+   - [frame_definitions/update (PUT)](#frame_definitionsupdate-put)   
+      - [Query Parameters](#query-parameters-12)   
+      - [Input Description](#input-description-3)   
+      - [Example](#example-12)   
+   - [frame_definitions/list](#frame_definitionslist)   
+      - [Query Parameters](#query-parameters-13)   
+      - [Output Description](#output-description-8)   
+      - [Example](#example-13)   
+   - [frames/list](#frameslist)   
+      - [Query Parameters](#query-parameters-14)   
+      - [Ouput Description](#ouput-description)   
+      - [Example](#example-14)   
+- [Snapshots](#snapshots)   
+   - [snapshots/generate](#snapshotsgenerate)   
+      - [Query Parameters](#query-parameters-15)   
+      - [Output Description](#output-description-9)   
+      - [Example](#example-15)   
+   - [snapshots/list](#snapshotslist)   
+      - [Query Paramaters](#query-paramaters)   
+      - [Output Description](#output-description-10)   
+      - [Example](#example-16)   
+- [Timespans](#timespans)   
+   - [timespans/list](#timespanslist)   
+      - [Query Parameters](#query-parameters-16)   
+      - [Output Description](#output-description-11)   
+      - [Example](#example-17)   
+   - [timespans/add_dates (PUT)](#timespansadd_dates-put)   
+      - [Query Parameters](#query-parameters-17)   
+      - [Input Description](#input-description-4)   
+      - [Output Description](#output-description-12)   
+      - [Example](#example-18)   
+- [TODO](#todo)   
 
-<a class="mk-toclify" id="overview"></a>
+<!-- /MDTOC -->
+
 # Overview
 
 This document described the Media Cloud Topics API.  The Topics API is a subset of the larger Media Cloud API.  The Topics API provides access to data about Media Cloud Topics and related data.  For a fuller understanding of Media Cloud data structures and for information about *Authentication*, *Request Limits*, the API *Python Client*, and *Errors*, see the documentation for the main [link: main api] Media Cloud API.
@@ -106,7 +110,6 @@ A *topic* currently may be created only by the Media Cloud team, though we occas
 
 
 
-<a class="mk-toclify" id="media-cloud-crawler-and-core-data-structures"></a>
 ## Media Cloud Crawler and Core Data Structures
 
 The core Media Cloud data are stored as *media*, *feeds*, and *stories*.  
@@ -126,7 +129,6 @@ The Media Cloud crawler regularly downloads every *feed* within its database and
 It downloads every new url it discovers and adds a *story* for that url, as long as the story is not a duplicate for
 the given *media source*.  The Media Cloud archive consists primarily of *stories* collected by this crawler.
 
-<a class="mk-toclify" id="topic-data-structures"></a>
 ## Topic Data Structures
 
 A Media Cloud *topic* is a set of stories relevant to some subject.  The topic spider starts by searching for a
@@ -138,7 +140,6 @@ After the spidering is complete, a *topic* consists of a set of relevant *storie
 end points provide access to all of this raw data as well as various of various analytical processes applied to this
 data.
 
-<a class="mk-toclify" id="api-urls"></a>
 ## API URLs
 
 All urls in the topics api are in the form:
@@ -149,7 +150,6 @@ For example, the following will return all stories in the latest snapshot of top
 
 `https://api.mediacloud.org/api/v2/topics/1344/stories/list?key=KEY`
 
-<a class="mk-toclify" id="snapshots-timespans-and-frames"></a>
 ## Snapshots, Timespans, and Frames
 
 Each *topic* is viewed through one of its *snapshots*.  A *snapshot* is static dump of all data from a topic at
@@ -173,9 +173,9 @@ parent *frame* (and by implication the parent *snapshot*), or else the null *fra
 The hierarchy of *topics*, *snapshots*, *frames*, and *timespans* looks like this:
 
 *  topic
-* snapshot
-* frame
-* timespan
+*  snapshot
+*  frame
+*  timespan
 
 Every url that returns data from a *topic* accepts optional *spanshots_id*, *timespans_id*, and *frames_id* parameters.
 
@@ -194,28 +194,28 @@ For example, the following a paged response:
 
 ```json
 {
-"stories":
-[
-{   
-"stories_id": 168326235,
-"media_id": 18047,
-"bitly_click_count": 182,
-"collect_date": "2013-10-26 09:25:39",
-"publish_date": "2012-10-24 16:09:26",
-"inlink_count": 531,
-"language": "en",
-"title": "Donald J. Trump (realDonaldTrump) on Twitter",
-"url": "https://twitter.com/realDonaldTrump",
-"outlink_count": 0,
-"guid": "https://twitter.com/realDonaldTrump"
-}
-],
-"link_ids":
-{
-"current": 123456,
-"previous": 456789,
-"next": 789123
-}
+    "stories":
+    [
+        {   
+            "stories_id": 168326235,
+            "media_id": 18047,
+            "bitly_click_count": 182,
+            "collect_date": "2013-10-26 09:25:39",
+            "publish_date": "2012-10-24 16:09:26",
+            "inlink_count": 531,
+            "language": "en",
+            "title": "Donald J. Trump (realDonaldTrump) on Twitter",
+            "url": "https://twitter.com/realDonaldTrump",
+            "outlink_count": 0,
+            "guid": "https://twitter.com/realDonaldTrump"
+        }
+    ],
+    "link_ids":
+    {
+        "current": 123456,
+        "previous": 456789,
+        "next": 789123
+    }
 }
 ```
 
@@ -227,32 +227,26 @@ When the system has reached the end of the results, it will return an empty list
 
 link_ids are persistent — they can be safely used to refer to a given result forever (for instance, as an identifier for a link shortener).
 
-<a class="mk-toclify" id="examples"></a>
 ## Examples
 
 The section for each end point includes an example call and response for that end point.  For end points that return multiple results, we generally only show a single result (for instance a single story) for the sake of documentation brevity.
 
-<a class="mk-toclify" id="topics"></a>
 # Topics
 
-<a class="mk-toclify" id="topicscreate-post"></a>
 ## topics/create (POST)
 
 `https://api.mediacloud.org/api/v2/topics/create`
 
 Create and return a new *topic*.
 
-<a class="mk-toclify" id="query-parameters"></a>
 ### Query Parameters
 
 (no parameters)
 
-<a class="mk-toclify" id="input-description"></a>
 ### Input Description
 
 The topics/create call accepts as input the following fields described in the Output Description of the topics/list call: name, pattern, solr_query, description, max_iterations, start_date, end_date.
 
-<a class="mk-toclify" id="example"></a>
 ### Example
 
 Create a new topic:
@@ -263,17 +257,16 @@ Input:
 
 ```json
 {
-"name": "immigration 2015",
-"description": "immigration coverage during 2015",
-"pattern": "[[:<:]]immigration",
-"solr_seed_query": "immigration AND (+publish_date:[2016-01-01T00:00:00Z TO 2016-06-15T23:59:59Z]) AND tags_id_media:8875027",
-"max_iterations": 15,
-"start_date": "2015-01-01",
-"end_date": "2015-12-31"
+    "name": "immigration 2015",
+    "description": "immigration coverage during 2015",
+    "pattern": "[[:<:]]immigration",
+    "solr_seed_query": "immigration AND (+publish_date:[2016-01-01T00:00:00Z TO 2016-06-15T23:59:59Z]) AND tags_id_media:8875027",
+    "max_iterations": 15,
+    "start_date": "2015-01-01",
+    "end_date": "2015-12-31"
 }
 ```
 
-<a class="mk-toclify" id="spiderstart"></a>
 ## spider/start
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/spider/start`
@@ -282,19 +275,16 @@ Start a topic spidering job.
 
 Topic spidering is asynchronous.  Once the topic has started spidering, you cannot start another spidering job until the current one is complete.
 
-<a class="mk-toclify" id="query-parameters"></a>
 ### Query Parameters
 
 (no parameters)
 
-<a class="mk-toclify" id="output-description"></a>
 ### Output Description
 
 | Field   | Description                              |
 | ------- | ---------------------------------------- |
 | success | boolean indicating whether the spidering job was successfully queued. |
 
-<a class="mk-toclify" id="example"></a>
 ### Example
 
 Start a topic spider for the 'U.S. 2016 Election' topic:
@@ -307,19 +297,16 @@ Response:
 { "success": 1 }
 ```
 
-<a class="mk-toclify" id="spiderstatus"></a>
 ## spider/status
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/spider/status`
 
 Return the status of any current spidering jobs for the current topic.
 
-<a class="mk-toclify" id="query-parameters"></a>
 ### Query Parameters
 
 (no parameters)
 
-<a class="mk-toclify" id="output-description"></a>
 ### Output Description
 
 | Field         | Description                              |
@@ -339,7 +326,6 @@ The state field has the following meanings:
 
 The num_stories, iteration, and queued_link fields are only returned when the state is running.  The error_message field is only returned when the state is errored.
 
-<a class="mk-toclify" id="example"></a>
 ### Example
 
 Check the status of any spidering jobs for the 'U.S. 2016 Election' topic:
@@ -350,14 +336,13 @@ Response:
 
 ```json
 {
-"state": "running",
-"iteration": 10,
-"num_stories": 32998,
-"queued_links": 93847
+    "state": "running",
+    "iteration": 10,
+    "num_stories": 32998,
+    "queued_links": 93847
 }
 ```
 
-<a class="mk-toclify" id="topicslist"></a>
 ## topics/list
 
 `https://api.mediacloud.org/api/v2/topics/list`
@@ -365,12 +350,10 @@ Response:
 The topics/list call returns a simple list of topics available in Media Cloud.  The topics/list call is is only call
 that does not include a topics_id in the url.
 
-<a class="mk-toclify" id="query-parameters"></a>
 ### Query Parameters
 
 (no parameters)
 
-<a class="mk-toclify" id="output-description"></a>
 ### Output Description
 
 | Field               | Description                              |
@@ -385,7 +368,6 @@ that does not include a topics_id in the url.
 | start_date          | start of date range for topic            |
 | end_date            | end of date range for topic              |
 
-<a class="mk-toclify" id="example"></a>
 ### Example
 
 Fetch all topics in Media Cloud:
@@ -396,36 +378,33 @@ Response:
 
 ```json
 {
-"topics":
-[
-{
-"topics_id": 672,
-"name": "network neutrality",
-"patern": "[[:<:]]net.*neutrality",
-"solr_seed_query": "net* and neutrality and +tags_id_media:(8875456 8875460 8875107 8875110 8875109 8875111 8875108 8875028 8875027 8875114 8875113 8875115 8875029 129 2453107 8875031 8875033 8875034 8875471 8876474 8876987 8877928 8878292 8878293 8878294 8878332) AND +publish_date:[2013-12-01T00:00:00Z TO 2015-04-24T00:00:00Z]",
-"solr_seed_query_run": 1,
-"description": "network neutrality",
-"max_iterations": 15,
-"start_date": "2013-12-01",
-"end_date": "2015-04-24"
-}
-]
+    "topics":
+    [
+        {
+            "topics_id": 672,
+            "name": "network neutrality",
+            "patern": "[[:<:]]net.*neutrality",
+            "solr_seed_query": "net* and neutrality and +tags_id_media:(8875456 8875460 8875107 8875110 8875109 8875111 8875108 8875028 8875027 8875114 8875113 8875115 8875029 129 2453107 8875031 8875033 8875034 8875471 8876474 8876987 8877928 8878292 8878293 8878294 8878332) AND +publish_date:[2013-12-01T00:00:00Z TO 2015-04-24T00:00:00Z]",
+            "solr_seed_query_run": 1,
+            "description": "network neutrality",
+            "max_iterations": 15,
+            "start_date": "2013-12-01",
+            "end_date": "2015-04-24"
+        }
+    ]
 }
 ```
 
 
 
-<a class="mk-toclify" id="stories"></a>
 # Stories
 
-<a class="mk-toclify" id="storieslist"></a>
 ## stories/list
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/stories/list`
 
 The stories list call returns stories in the topic.
 
-<a class="mk-toclify" id="query-parameters"></a>
 ### Query Parameters
 
 | Parameter            | Default | Notes                                    |
@@ -445,7 +424,6 @@ For a detailed description of the format of the query specified in `q` parameter
 
 Standard parameters accepted: snapshots_id, frames_id, timespans_id, limit, links_id.
 
-<a class="mk-toclify" id="output-description"></a>
 ### Output Description
 
 | Field                | Description                              |
@@ -474,40 +452,38 @@ Response:
 
 ```json
 {
-"stories":
-[
-{   
-"stories_id": 168326235,
-"media_id": 18047,
-"bitly_click_count": 182,
-"collect_date": "2013-10-26 09:25:39",
-"publish_date": "2012-10-24 16:09:26",
-"date_guess_method": "guess_by_og_article_published_time",
-"inlink_count": 531,
-"language": "en",
-"title": "Donald J. Trump (realDonaldTrump) on Twitter",
-"url": "https://twitter.com/realDonaldTrump",
-"outlink_count": 0,
-"guid": "https://twitter.com/realDonaldTrump"
-}
-],
-"link_ids":
-{
-"current": 123456,
-"previous": 456789,
-"next": 789123
-}
+    "stories":
+    [
+        {   
+            "stories_id": 168326235,
+            "media_id": 18047,
+            "bitly_click_count": 182,
+            "collect_date": "2013-10-26 09:25:39",
+            "publish_date": "2012-10-24 16:09:26",
+            "date_guess_method": "guess_by_og_article_published_time",
+            "inlink_count": 531,
+            "language": "en",
+            "title": "Donald J. Trump (realDonaldTrump) on Twitter",
+            "url": "https://twitter.com/realDonaldTrump",
+            "outlink_count": 0,
+            "guid": "https://twitter.com/realDonaldTrump"
+        }
+    ],
+    "link_ids":
+    {
+        "current": 123456,
+        "previous": 456789,
+        "next": 789123
+    }
 }
 ```
 
-<a class="mk-toclify" id="storiescount"></a>
 ## stories/count
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/stories/count`
 
 Return the number of stories that match the query.
 
-<a class="mk-toclify" id="query-parameters"></a>
 ### Query Parameters
 
 | Parameter | Default | Notes                               |
@@ -518,14 +494,12 @@ For a detailed description of the format of the query specified in `q` parameter
 
 Standard parameters"accepted": snapshots_id, frames_id, timespans_id, limit, links_id.
 
-<a class="mk-toclify" id="output-description"></a>
 ### Output Description
 
 | Field | Description                |
 | ----- | -------------------------- |
 | count | number of matching stories |
 
-<a class="mk-toclify" id="example"></a>
 ### Example
 
 Return the number of stories that mention 'immigration' in the 'US Election' topic:
@@ -535,36 +509,32 @@ Return the number of stories that mention 'immigration' in the 'US Election' top
 Response:
 
 ```json
-{
-"count": 123
-}
+{ "count": 123 }
 ```
 
-<a class="mk-toclify" id="sentences"></a>
 # Sentences
 
-<a class="mk-toclify" id="sentencescount"></a>
 ## sentences/count
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/sentences/count`
 
 Return the numer of sentences that match the query, optionally split by date.
 
-The topics `sentences/count` call is identical to the `sentences/count` call in the main API, except that the topics version accepts the snapshots_id, frames_id, and timespans_id parameters and returns counts only for stories within the topic.
+This call behaves exactly like the main api sentences/count call, except:
+
+- This call only searches within the given snapshot
+- This call accepts the standard topics parameters: snapshots_id, frames_id, timespans_id
 
 For details about this end point, including parameters, output, and examples, see the [main API](https://github.com/berkmancenter/mediacloud/blob/release/doc/api_2_0_spec/api_2_0_spec.md#apiv2sentencescount).
 
-<a class="mk-toclify" id="media"></a>
 # Media
 
-<a class="mk-toclify" id="medialist"></a>
 ## media/list
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/media/list`
 
 The media list call returns the list of media in the topic.
 
-<a class="mk-toclify" id="query-parameters"></a>
 ### Query Parameters
 
 | Parameter | Default | Notes                                    |
@@ -579,7 +549,6 @@ If the `name` parameter is specified, the call returns only media sources that m
 
 Standard parameters accepted: snapshots_id, frames_id, timespans_id, limit, links_id.
 
-<a class="mk-toclify" id="output-description"></a>
 ### Output Description
 
 | Field                | Description                              |
@@ -593,7 +562,6 @@ Standard parameters accepted: snapshots_id, frames_id, timespans_id, limit, link
 | bitly_click_count    | sum of the bitly_click_count for each story in the medium |
 | facebook_share_count | sum of the facebook_share_count for each story in the medium |
 
-<a class="mk-toclify" id="example"></a>
 ### Example
 
 Return all stories in the medium that match 'twitt':
@@ -604,31 +572,43 @@ Response:
 
 ```json
 {
-"media":
-[
-{
-"bitly_click_count": 303,
-"media_id": 18346,
-"story_count": 3475,
-"name": "Twitter",
-"inlink_count": 8454,
-"url": "http://twitter.com",
-"outlink_count": 72,
-"facebook_share_count": 123
-}
-],
-"link_ids":
-{
-"current": 123456,
-"previous": 456789,
-"next": 789123
-}
+    "media":
+    [
+        {
+            "bitly_click_count": 303,
+            "media_id": 18346,
+            "story_count": 3475,
+            "name": "Twitter",
+            "inlink_count": 8454,
+            "url": "http://twitter.com",
+            "outlink_count": 72,
+            "facebook_share_count": 123
+        }
+    ],
+    "link_ids":
+    {
+        "current": 123456,
+        "previous": 456789,
+        "next": 789123
+    }
 }
 ```
 
+# Word Counts
 
+## wc/list
 
-<a class="mk-toclify" id="frames"></a>
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/wc/list`
+
+Returns sampled counts of the most prevalent words in a topic, optionally restricted to sentences that match a given query.
+
+This call behaves exactly like the main api wc/list call, except:
+
+* This call only searches within the given snapshot
+* This call accepts the standard topics parameters: snapshots_id, frames_id, timespans_id
+
+For details about this end point, including parameters, output, and examples, see the [main API](https://github.com/berkmancenter/mediacloud/blob/release/doc/api_2_0_spec/api_2_0_spec.md#apiv2wclist). term
+
 # Frames
 
 A *frame* is a set of stories identified through some *framing method*.  *Frame Sets* are sets of *frames* that share a *framing method* and are also usually som substantive theme determined by the user.  For example, a 'U.S. 2016 Election' topic might include a 'Candidates' *frame set* that includes 'trump' and 'clinton' frames, each of which uses a 'Boolean Query' *framing methodology* to identify stories relevant to each candidate with a separate boolean query for each.
@@ -637,14 +617,13 @@ A specific *frame* exists within a specific *snapshot*.  A single topic might ha
 
 The relationship of these objects is show"below":
 
-*     topic
-* frame set definition
-* frame definition (+ framing method)
-*     snapshot
-* frame set
-* frame (+ framing method)
+*       topic
+        *       frame set definition
+                *     frame definition (+ framing method)
+        *       snapshot
+                *     frame set
+                      *     frame (+ framing method)
 
-<a class="mk-toclify" id="framing-methods"></a>
 ## Framing Methods
 
 Media Cloud currently supports the following framing methods.
@@ -653,24 +632,20 @@ Media Cloud currently supports the following framing methods.
 
 Details about each framing method are below.  Among other properties, each framing method may or not be exclusive.  Exlcusive framing methods generate *frame sets* in which each story belongs to at most one *frame*.
 
-<a class="mk-toclify" id="framing-method-boolean-query"></a>
 ### Framing Method: Boolean Query
 
 The Boolean Query framing method associates a frame with a story by matching that story with a solr boolean query.  *Frame Sets* generated by the Boolean Query method are not exclusive.
 
-<a class="mk-toclify" id="frame_set_definitionscreate-post"></a>
 ## frame_set_definitions/create (POST)
 
 `https://api.mediacloud.org/api/topics/<topics_id>/frame_sets/create`
 
 Create and return a new *frame set definiition*  within the given *topic*.
 
-<a class="mk-toclify" id="query-parameters"></a>
 ### Query Parameters
 
 (no parameters)
 
-<a class="mk-toclify" id="input-description"></a>
 ### Input Description
 
 | Field          | Description                              |
@@ -679,7 +654,6 @@ Create and return a new *frame set definiition*  within the given *topic*.
 | description    | human readable description of frame set definition |
 | framing_method | framing method to be used for all frame definitions in this definition |
 
-<a class="mk-toclify" id="example"></a>
 ### Example
 
 Create a 'Candidates' frame set definiition in the 'U.S. 2016 Election' topic:
@@ -690,9 +664,9 @@ Input:
 
 ```json
 {
-"name": "Candidates",
-"description": "Stories relevant to each candidate.",
-"framing_methods_id": 123
+    "name": "Candidates",
+    "description": "Stories relevant to each candidate.",
+    "framing_methods_id": 123
 }
 ```
 
@@ -700,36 +674,34 @@ Response:
 
 ```json
 {
-"frame_set_definitions":
-[
-"frame_set_definitions_id": 789,
-"topics_id": 456,
-"name": "Candidates",
-"description": "Stories relevant to each candidate.",
-"framing_method": "Boolean Query",
-"is_exclusive": 0
-]
+    "frame_set_definitions":
+    [
+        {
+            "frame_set_definitions_id": 789,
+            "topics_id": 456,
+            "name": "Candidates",
+            "description": "Stories relevant to each candidate.",
+            "framing_method": "Boolean Query",
+            "is_exclusive": 0
+        }
+    ]
 }
 ```
 
-<a class="mk-toclify" id="frame_set_definitionsupdate-put"></a>
 ## frame_set_definitions/update (PUT)
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/frame_set_definitions/update/<frame_set_definitions_id>`
 
 Update the given frame set definition.
 
-<a class="mk-toclify" id="query-parameters"></a>
 ### Query Parameters
 
 (no parameters)
 
-<a class="mk-toclify" id="input-parameters"></a>
 ### Input Parameters
 
 See *frame_set_definitions/create* for a list of fields.  Only fields that are included in the input are modified.
 
-<a class="mk-toclify" id="example"></a>
 ### Example
 
 Update the name and description of the 'Candidates'  frame set"definition":
@@ -740,8 +712,8 @@ Input:
 
 ```json
 {
-"name": "Major Party Candidates",
-"description": "Stories relevant to each major party candidate."
+    "name": "Major Party Candidates",
+    "description": "Stories relevant to each major party candidate."
 }
 ```
 
@@ -749,33 +721,30 @@ Response:
 
 ```json
 {
-"frame_set_definitions":
-[
-{
-"frame_set_definitions_id": 789,
-"topics_id": 456,
-"name": "Major Party Candidates",
-"description": "Stories relevant to each major party candidate.",
-"framing_method": "Boolean Query",
-"is_exclusive": 0
-}
-]
+    "frame_set_definitions":
+    [
+        {
+            "frame_set_definitions_id": 789,
+            "topics_id": 456,
+            "name": "Major Party Candidates",
+            "description": "Stories relevant to each major party candidate.",
+            "framing_method": "Boolean Query",
+            "is_exclusive": 0
+        }
+    ]
 }
 ```
 
-<a class="mk-toclify" id="frame_set_definitionslist"></a>
 ## frame_set_definitions/list
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/frame_set_definitions/list`
 
 Return a list of all frame set definitions belonging to the given topic.
 
-<a class="mk-toclify" id="query-parameters"></a>
 ### Query Parameters
 
 (no parameters)
 
-<a class="mk-toclify" id="output-description"></a>
 ### Output Description
 
 | Field                    | Description                              |
@@ -786,7 +755,6 @@ Return a list of all frame set definitions belonging to the given topic.
 | framing_method           | framing method used for frames in this set |
 | is_exclusive             | boolean that indicates whether a given story can only belong to one frame, based on the framing method |
 
-<a class="mk-toclify" id="example"></a>
 ### Example
 
 List all frame set definitions associated with the 'U.S. 2016 Elections'"topic":
@@ -797,31 +765,30 @@ Response:
 
 ```json
 {
-"frame_set_definitions":
-[
-"frame_set_definitions_id": 789,
-"topics_id": 456,
-"name": "Major Party Candidates",
-"description": "Stories relevant to each major party candidate.",
-"framing_method": "Boolean Query",
-"is_exclusive": 0
-]
+    "frame_set_definitions":
+    [
+        {
+            "frame_set_definitions_id": 789,
+            "topics_id": 456,
+            "name": "Major Party Candidates",
+            "description": "Stories relevant to each major party candidate.",
+            "framing_method": "Boolean Query",
+            "is_exclusive": 0
+        }
+    ]
 }
 ```
 
-<a class="mk-toclify" id="frame_setslist"></a>
 ## frame_sets/list
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/frame_sets/list`
 
 List all *frame sets* belonging to the current *snapshot* in the given *topic*.
 
-<a class="mk-toclify" id="query-parameters"></a>
 ### Query Parameters
 
 Standard parameters"accepted": snapshots_id.
 
-<a class="mk-toclify" id="output-description"></a>
 ### Output Description
 
 | Field          | Description                              |
@@ -832,7 +799,6 @@ Standard parameters"accepted": snapshots_id.
 | framing_method | framing method used to generate the frames in the frame set |
 | is_exclusive   | boolean that indicates whether a given story can only belong to one frame, based on the framing method |
 
-<a class="mk-toclify" id="example"></a>
 ### Example
 
 Get a list of *frame sets* in the latest *snapshot* in the 'U.S. 2016 Election' *topic*:
@@ -843,32 +809,29 @@ Response:
 
 ```json
 {
-"frame_sets":
-[
-{
-"frame_sets_id": 34567,
-"name": "Candidates",
-"description": "Stories relevant to each candidate.",
-"framing_method": "Boolean Query",
-"is_exclusive": 0
-}
-]
+    "frame_sets":
+    [
+        {
+            "frame_sets_id": 34567,
+            "name": "Candidates",
+            "description": "Stories relevant to each candidate.",
+            "framing_method": "Boolean Query",
+            "is_exclusive": 0
+        }
+    ]
 }
 ```
 
-<a class="mk-toclify" id="frame_definitionscreate-post"></a>
 ## frame_definitions/create (POST)
 
 `https://api.mediacloud.org/api/topics/<topics_id>/frame_sets/create/<frame_set_definitions_id>`
 
 Create and return a new *frame definiition*  within the given *topic* and *frame set definition*.
 
-<a class="mk-toclify" id="query-parameters"></a>
 ### Query Parameters
 
 (no parameters)
 
-<a class="mk-toclify" id="input-description"></a>
 ### Input Description
 
 | Field       | Description                              |
@@ -879,7 +842,6 @@ Create and return a new *frame definiition*  within the given *topic* and *frame
 
 The input for the *frame definition* depends on the framing method of the parent *frame set definition*.  The framing method specific input fields are listed last in the table above and are prefixed with the name of applicable framing method.
 
-<a class="mk-toclify" id="example"></a>
 ### Example
 
 Create the 'Clinton' *frame definition* within the 'Candidates' *frame set definition* and the 'U.S. 2016 Election' *topic*:
@@ -890,9 +852,9 @@ Input:
 
 ```json
 {
-"name": "Clinton",
-"description": "stories that mention Hillary Clinton",
-"query": "clinton"
+    "name": "Clinton",
+    "description": "stories that mention Hillary Clinton",
+    "query": "clinton"
 }
 ```
 
@@ -900,38 +862,34 @@ Response:
 
 ```json
 {
-"frame_definitions":
-[
-{
-"frame_definitions_id": 234,
-"name": "Clinton",
-"description": "stories that mention Hillary Clinton",
-"query": "clinton"
-}
-]
+    "frame_definitions":
+    [
+        {
+            "frame_definitions_id": 234,
+            "name": "Clinton",
+            "description": "stories that mention Hillary Clinton",
+            "query": "clinton"
+        }
+    ]
 }
 ```
 
 
 
-<a class="mk-toclify" id="frame_definitionsupdate-put"></a>
 ## frame_definitions/update (PUT)
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/frame_definitions/update/<frame_definitions_id>`
 
 Update the given frame definition.
 
-<a class="mk-toclify" id="query-parameters"></a>
 ### Query Parameters
 
 (no parameters)
 
-<a class="mk-toclify" id="input-description"></a>
 ### Input Description
 
 See *frame_definitions/create* for a list of fields.  Only fields that are included in the input are modified.
 
-<a class="mk-toclify" id="example"></a>
 ### Example
 
 Update the query for the 'Clinton' frame definition:
@@ -948,31 +906,28 @@ Response:
 
 ```json
 {
-"frame_definitions":
-[
-{
-"frame_definitions_id": 234,
-"name": "Clinton",
-"description": "stories that mention Hillary Clinton",
-"query": "clinton and ( hillary or -bill )"
-}
-]
+    "frame_definitions":
+    [
+        {
+            "frame_definitions_id": 234,
+            "name": "Clinton",
+            "description": "stories that mention Hillary Clinton",
+            "query": "clinton and ( hillary or -bill )"
+        }
+    ]
 }
 ```
 
-<a class="mk-toclify" id="frame_definitionslist"></a>
 ## frame_definitions/list
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/frame_definitions/list/<frame_set_definitions_id>`
 
 List all *frame definitions* belonging to the given *frame set definition*.
 
-<a class="mk-toclify" id="query-parameters"></a>
 ### Query Parameters
 
 (no parameters)
 
-<a class="mk-toclify" id="output-description"></a>
 ### Output Description
 
 | Field       | Description                              |
@@ -983,7 +938,6 @@ List all *frame definitions* belonging to the given *frame set definition*.
 
 The output for *frame definition* depends on the framing method of the parent *frame set definition*.  The framing method specific fields are listed last in the table above and are prefixed with the name of applicable framing method.
 
-<a class="mk-toclify" id="example"></a>
 ### Example
 
 List all *frame definitions* belonging to the 'Candidates' *frame set definition* of the 'U.S. 2016 Election' *topic*:
@@ -994,31 +948,28 @@ Response:
 
 ```json
 {
-"frame_definitions":
-[
-{
-"frame_definitions_id": 234,
-"name": "Clinton",
-"description": "stories that mention Hillary Clinton",
-"query": "clinton and ( hillary or -bill )"
-}
-]
+    "frame_definitions":
+    [
+        {
+            "frame_definitions_id": 234,
+            "name": "Clinton",
+            "description": "stories that mention Hillary Clinton",
+            "query": "clinton and ( hillary or -bill )"
+        }
+    ]
 }
 ```
 
-<a class="mk-toclify" id="frameslist"></a>
 ## frames/list
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/frames/list/<frame_sets_id>`
 
 Return a list of the *frames* belonging to the given *frame set*.
 
-<a class="mk-toclify" id="query-parameters"></a>
 ### Query Parameters
 
 (no parameters)
 
-<a class="mk-toclify" id="ouput-description"></a>
 ### Ouput Description
 
 | Field       | Description                              |
@@ -1030,7 +981,6 @@ Return a list of the *frames* belonging to the given *frame set*.
 
 The output for *frame* depends on the framing method of the parent *frame definition*.  The framing method specific fields are listed last in the table above and are prefixed with the name of applicable framing method.
 
-<a class="mk-toclify" id="example"></a>
 ### Example
 
 Get a list of *frames* wihin the 'Candiates' *frame set* of the 'U.S. 2016 Election' *topic*:
@@ -1041,24 +991,22 @@ Response:
 
 ```json
 {
-"frames":
-[
-{
-"frames_id": 234,
-"name": "Clinton",
-"description": "stories that mention Hillary Clinton",
-"query": "clinton and ( hillary or -bill )"
-}
-]
+    "frames":
+    [
+        {
+            "frames_id": 234,
+            "name": "Clinton",
+            "description": "stories that mention Hillary Clinton",
+            "query": "clinton and ( hillary or -bill )"
+        }
+    ]
 }
 ```
 
-<a class="mk-toclify" id="snapshots"></a>
 # Snapshots
 
 Each *snapshot* contains a static copy of all data within a topic at the time the *snapshot* was made.  All data viewable by the Topics API must be viewed through a *snapshot*.
 
-<a class="mk-toclify" id="snapshotsgenerate"></a>
 ## snapshots/generate
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/snapshots/generate`
@@ -1067,19 +1015,16 @@ Generate a new *snapshot* for the given topic.
 
 This is an asynchronous call.  The *snapshot* process will run in the background, and the new *snapshot* will only become visible to the API once the generation is complete.  Only one *snapshot* generation job can run at a time.
 
-<a class="mk-toclify" id="query-parameters"></a>
 ### Query Parameters
 
 (no parameters)
 
-<a class="mk-toclify" id="output-description"></a>
 ### Output Description
 
 | Field   | Description                              |
 | ------- | ---------------------------------------- |
 | success | boolean indicating whether snapshot generation job was queued |
 
-<a class="mk-toclify" id="example"></a>
 ### Example
 
 Start a new *snapshot* generation job for the 'U.S. 2016 Election' *topic*:
@@ -1092,19 +1037,16 @@ Response:
 {"success": 1 }
 ```
 
-<a class="mk-toclify" id="snapshotslist"></a>
 ## snapshots/list
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/snapshots/list`
 
 Return a list of all completed *snapshots* in the given *topic*.
 
-<a class="mk-toclify" id="query-paramaters"></a>
 ### Query Paramaters
 
 (no parameters)
 
-<a class="mk-toclify" id="output-description"></a>
 ### Output Description
 
 | Field         | Description                            |
@@ -1112,7 +1054,6 @@ Return a list of all completed *snapshots* in the given *topic*.
 | snapshots_id  | snapshot id                            |
 | snapshot_date | date on which the snapshot was created |
 
-<a class="mk-toclify" id="example"></a>
 ### Example
 
 Return a list of *snapshots* in the 'U.S. 2016 Election' *topic*:
@@ -1123,38 +1064,34 @@ Response:
 
 ```json
 {
-"snapshots":
-[
-{
-"snapshots_id": 6789,
-"snapshot_date": "2016-09-29 18:14:47.481252",
-}  
-]
+    "snapshots":
+    [
+        {
+            "snapshots_id": 6789,
+            "snapshot_date": "2016-09-29 18:14:47.481252",
+        }  
+    ]
 }
 ```
 
 
 
-<a class="mk-toclify" id="timespans"></a>
 # Timespans
 
 Each *timespan* is a view of the *topic* that presents the topic as if it consists only of *stories* within the date range of the given *timespan*.
 
 A *story* is included within a *timespan* if the publish_date of the story is within the *timespan* date range or if the *story* is linked to by a *story* that whose publish_date is within date range of the *timespan*.
 
-<a class="mk-toclify" id="timespanslist"></a>
 ## timespans/list
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/timespans/list`
 
 Return a list of timespans in the current snapshot.
 
-<a class="mk-toclify" id="query-parameters"></a>
 ### Query Parameters
 
-Standard parameters accepts: snapshots_id, frames_id.
+Standard parameters accepted: snapshots_id, frames_id.
 
-<a class="mk-toclify" id="output-description"></a>
 ### Output Description
 
 | Field             | Description                              |
@@ -1180,7 +1117,6 @@ Every *topic* generates the following timespans for every *snapshot*:
 
 Media Cloud needs to guess the date of many of the stories discovered while topic spidering.  We have validated the date guessing to be about 87% accurate for all methods other than the finding a url in the story url.  The possiblity of significant date errors make it possible for the Topic Mapper system to wrongly assign stories to a given timespan and to also miscount links within a given timespan (due to stories getting misdated into or out of a given timespan).  To mitigate the risk of drawing the wrong research conclusions from a given timespan, we model what the timespan might look like if dates were wrong with the frequency that our validation tell us that they are wrong within a given timespan.  We then generate a pearson's correlation between the ranks of the top media for the given timespan in our actual data and in each of ten runs of the modeled data.  The model_* fields provide the mean and standard deviations of the square of those correlations.
 
-<a class="mk-toclify" id="example"></a>
 ### Example
 
 Return all *timespans* associated with the latest *snapshot* of the 'U.S. 2016 Election' *topic*:
@@ -1191,40 +1127,37 @@ Response:
 
 ```json
 {
-"timespans":
-[
-{
-"timespans_id": 6789,
-"period": "overall",
-"start_date": "2016-01-01",
-"end_date": "2016-12-01",
-"story_count": 10283,
-"story_link_count": 543,
-"medium_count": 2345,
-"medium_link_count": 1543,
-"model_r2_mean": 0.94,
-"model_r2_sd": 0.04,
-"top_media": 143
-}
-]
+    "timespans":
+    [
+        {
+            "timespans_id": 6789,
+            "period": "overall",
+            "start_date": "2016-01-01",
+            "end_date": "2016-12-01",
+            "story_count": 10283,
+            "story_link_count": 543,
+            "medium_count": 2345,
+            "medium_link_count": 1543,
+            "model_r2_mean": 0.94,
+            "model_r2_sd": 0.04,
+            "top_media": 143
+        }
+    ]
 }
 ```
 
 
 
-<a class="mk-toclify" id="timespansadd_dates-put"></a>
 ## timespans/add_dates (PUT)
 
 `https://api.meiacloud.org/api/v1/topics/<topics_id>/timespans/add_dates`
 
 Add a date range for which to generate *timespans* for future *spanshots*.
 
-<a class="mk-toclify" id="query-parameters"></a>
 ### Query Parameters
 
 (no parameters)
 
-<a class="mk-toclify" id="input-description"></a>
 ### Input Description
 
 | Field      | Description         |
@@ -1232,14 +1165,12 @@ Add a date range for which to generate *timespans* for future *spanshots*.
 | start_date | start of date range |
 | end_date   | end of date range   |
 
-<a class="mk-toclify" id="output-description"></a>
 ### Output Description
 
 | Field   | Description                              |
 | ------- | ---------------------------------------- |
 | success | boolean indicating that the dates have been added |
 
-<a class="mk-toclify" id="example"></a>
 ### Example
 
 Add a new *timespan* date range to 'U.S. 2016 Election' *topic*:
@@ -1250,8 +1181,8 @@ Input:
 
 ```json
 {
-"start_date": "2016-02-01",
-"end_date": "2016-05-01"
+    "start_date": "2016-02-01",
+    "end_date": "2016-05-01"
 }
 ```
 
@@ -1263,7 +1194,6 @@ Response:
 
 
 
-<a class="mk-toclify" id="todo"></a>
 # TODO
 
 * topics ACLs
