@@ -108,8 +108,6 @@ The topics api is currently under development and is available only to Media Clo
 
 A *topic* currently may be created only by the Media Cloud team, though we occasionally run topics for external researchers.
 
-
-
 ## Media Cloud Crawler and Core Data Structures
 
 The core Media Cloud data are stored as *media*, *feeds*, and *stories*.  
@@ -144,11 +142,11 @@ data.
 
 All urls in the topics api are in the form:
 
-`https://api.mediacloud.org/api/v2/topics/<topics_id>/stories/list?key=KEY`
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/stories/list`
 
 For example, the following will return all stories in the latest snapshot of topic id 1344.
 
-`https://api.mediacloud.org/api/v2/topics/1344/stories/list?key=KEY`
+`https://api.mediacloud.org/api/v2/topics/1344/stories/list`
 
 ## Snapshots, Timespans, and Frames
 
@@ -188,7 +186,11 @@ will be returned).
 
 ## Paging
 
-For calls that support paging, each url supports a *limit* parameter and a *link_id* paramter.  For these calls, only *limit* results will be returned at a time, and a set of *link_ids* will be returned along with the results.  To get the current set of results again, or the previous or next page of results, call the same end point with only the *key* and *link_id* parameters.  The *link_id* parameter includes state that remembers all of the parameters from the original call.
+For calls that support paging, each url supports a *limit* parameter and a *link_id* paramter.  For these calls, only
+*limit* results will be returned at a time, and a set of *link_ids* will be returned along with the results.  To get the
+current set of results again, or the previous or next page of results, call the same end point with only the *key* and
+*link_id* parameters. The *link_id* parameter includes state that remembers all of the parameters from the original
+call.
 
 For example, the following a paged response:
 
@@ -221,7 +223,7 @@ For example, the following a paged response:
 
 After receiving that reponse, you can use the following url with no other parameters to fetch the next page of results:
 
-`https://api.mediacloud.org/api/v2/topics/1/stories/list?key=KEY&link_id=789123`
+`https://api.mediacloud.org/api/v2/topics/1/stories/list?link_id=789123`
 
 When the system has reached the end of the results, it will return an empty list and a null 'next' link_id.
 
