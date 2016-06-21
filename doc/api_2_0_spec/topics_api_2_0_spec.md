@@ -173,9 +173,9 @@ parent *frame* (and by implication the parent *snapshot*), or else the null *fra
 The hierarchy of *topics*, *snapshots*, *frames*, and *timespans* looks like this:
 
 *  topic
-*  snapshot
-*  frame
-*  timespan
+    *  snapshot
+        *  frame
+            *  timespan
 
 Every url that returns data from a *topic* accepts optional *spanshots_id*, *timespans_id*, and *frames_id* parameters.
 
