@@ -38,93 +38,24 @@ sub list : Chained('wc') : Args(0) : ActionClass('MC_REST')
 sub list_GET
 {
     my ( $self, $c ) = @_;
-    my $sort_by_tfidf = $c->req->params->{ sort_by_tfidf };
 
-    if ( $c->req->params->{ sample_size } && ( $c->req->params->{ sample_size } > 100_000 ) )
-    {
-        $c->req->params->{ sample_size } = 100_000;
-    }
-    my $cdts = MediaWords::CM::get_time_slice_for_controversy(
+    my $db   = $c->dbis;
+    my $cdts = MediaWords::CM::require_time_slice_for_controversy(
         $c->dbis,
         $c->stash->{ topic_id },
         $c->req->params->{ timeslice },
         $c->req->params->{ snapshot }
     );
 
-    if ( $cdts )
-    {
-        my $query = "{~ controversy_dump_time_slice:$cdts->{ controversy_dump_time_slices_id } }";
-        my $wc = MediaWords::Solr::WordCounts->new( { db => $c->dbis, q => $query } );
+    my $q = $c->req->params->{ q };
 
-        if ( $c->req->params->{ limit } )
-        {
-            $wc->num_words( $c->req->params->{ limit } );
-        }
-        my $words = undef;
-        my $stats = undef;
-        if ( $c->req->params->{ include_stopwords } )
-        {
-            $wc->include_stopwords( 1 );
-        }
+    my $cdts_clause = "{~ controversy_dump_time_slice:$cdts->{ controversy_dump_time_slices_id } ~}";
 
-        if ( $c->req->params->{ languages } )
-        {
-            $c->req->params->{ languages } = [ split( /[\s,]/, $c->req->params->{ languages } ) ];
-            $wc->languages( $c->req->params->{ languages } );
-        }
-        if ( $c->req->params->{ include_stats } )
-        {
-            $wc->include_stats( 1 );
-            my $w = $wc->get_words;
-            $words = $w->{ words };
-            $stats = $w->{ stats };
-        }
-        else
-        {
-            $words = $wc->get_words;
-        }
+    $q = $q ? "$cdts_clause and ( $q )" : $cdts_clause;
 
-        my $entity = {};
-        if ( $sort_by_tfidf )
-        {
-            for my $word ( @{ $words } )
-            {
-                my $solr_df_query = "{~ controversy:$cdts->{ controversies_id } }";
+    $c->req->params->{ q } = $q;
 
-                my $df = MediaWords::Solr::get_num_found(
-                    $c->dbis,
-                    {
-                        q  => "+sentence:" . $word->{ term },
-                        fq => $solr_df_query
-                    }
-                );
-
-                if ( $df )
-                {
-                    $word->{ tfidf }       = $word->{ count } / sqrt( $df );
-                    $word->{ total_count } = $df;
-                }
-                else
-                {
-                    $word->{ tfidf } = 0;
-                }
-            }
-            $words = [ sort { $b->{ tfidf } <=> $a->{ tfidf } } @{ $words } ];
-        }
-        map { $words->[ $_ ]->{ rank } = $_ + 1 } ( 0 .. $#{ $words } );
-        $entity->{ timeslice } = $cdts;
-        $entity->{ words }     = $words;
-        if ( $stats )
-        {
-            $entity->{ stats } = $stats;
-        }
-        $self->status_ok( $c, entity => $entity );
-    }
-    else
-    {
-        $self->status_bad_request( $c, message => "could not retrieve word counts" );
-    }
-
+    return $c->controller( 'Api::V2::Wc' )->list_GET( $c );
 }
 
 1;
