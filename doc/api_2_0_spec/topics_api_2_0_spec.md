@@ -134,7 +134,7 @@ set of stories relevant to the story within the Media Cloud archive and then spi
 stories to find more relevant stories, then iteratively repeats the process 15 times.
 
 After the spidering is complete, a *topic* consists of a set of relevant *stories*, *links* between those stories, the
-*media* that published those *stories*, and social media metrics about the *stories* and *media.  The various topics/
+*media* that published those *stories*, and social media metrics about the *stories* and *media*.  The various topics /
 end points provide access to all of this raw data as well as various of various analytical processes applied to this
 data.
 
@@ -164,7 +164,7 @@ A *timespan* displays the *topic* as if it exists only of stories either publish
 *timespan* or linked to by a story published within the date range of the *timespan*.
 
 *Topics*, *snapshots*, *frames*, and *timespans* are strictly hierarchical.  Every *snapshot* belongs to a single
-*topic*.  Every *frame* belongs to a single *snapshot*, and every timespan* belongs to either a single *frame* or the
+*topic*.  Every *frame* belongs to a single *snapshot*, and every *timespan* belongs to either a single *frame* or the
 null *frame*.  Specifying a *frame* implies the parent *snapshot* of that *frame*.  Specifying a *topic* implies the
 parent *frame* (and by implication the parent *snapshot*), or else the null *frame* within the parent *snapshot*.
 
@@ -225,9 +225,9 @@ After receiving that reponse, you can use the following url with no other parame
 
 `https://api.mediacloud.org/api/v2/topics/1/stories/list?link_id=789123`
 
-When the system has reached the end of the results, it will return an empty list and a null 'next' link_id.
+When the system has reached the end of the results, it will return an empty list and a null 'next' *link_id*.
 
-link_ids are persistent — they can be safely used to refer to a given result forever (for instance, as an identifier for a link shortener).
+*link_ids* are persistent — they can be safely used to refer to a given result forever (for instance, as an identifier for a link shortener).
 
 ## Examples
 
@@ -609,11 +609,11 @@ This call behaves exactly like the main api wc/list call, except:
 * This call only searches within the given snapshot
 * This call accepts the standard topics parameters: snapshots_id, frames_id, timespans_id
 
-For details about this end point, including parameters, output, and examples, see the [main API](https://github.com/berkmancenter/mediacloud/blob/release/doc/api_2_0_spec/api_2_0_spec.md#apiv2wclist). term
+For details about this end point, including parameters, output, and examples, see the [main API](https://github.com/berkmancenter/mediacloud/blob/release/doc/api_2_0_spec/api_2_0_spec.md#apiv2wclist).
 
 # Frames
 
-A *frame* is a set of stories identified through some *framing method*.  *Frame Sets* are sets of *frames* that share a *framing method* and are also usually som substantive theme determined by the user.  For example, a 'U.S. 2016 Election' topic might include a 'Candidates' *frame set* that includes 'trump' and 'clinton' frames, each of which uses a 'Boolean Query' *framing methodology* to identify stories relevant to each candidate with a separate boolean query for each.
+A *frame* is a set of stories identified through some *framing method*.  *Frame Sets* are sets of *frames* that share a *framing method* and are also usually some substantive theme determined by the user.  For example, a 'U.S. 2016 Election' topic might include a 'Candidates' *frame set* that includes 'trump' and 'clinton' frames, each of which uses a 'Boolean Query' *framing methodology* to identify stories relevant to each candidate with a separate boolean query for each.
 
 A specific *frame* exists within a specific *snapshot*.  A single topic might have many 'clinton' *frames*, one for each *snapshot*.  Each *topic* has a number of *frame definion*, each of which tells the system which *frames* to create each time a new *snapshot* is created.  *Frames* for new *frame definitions* will be only be created for *snapshots* created after the creation of the *frame definition*.
 
