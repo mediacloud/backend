@@ -30,6 +30,7 @@ use MediaWords::Util::Bitly;
 use MediaWords::Util::DateTime;
 use MediaWords::Job::Bitly::FetchStoryStats;
 use Readonly;
+use MediaCloud::JobManager::Job;
 
 # Having a global database object should be safe because
 # job workers don't fork()
@@ -156,7 +157,12 @@ EOF
                 start_timestamp => $start_timestamp,
                 end_timestamp   => $end_timestamp
             };
-            MediaWords::Job::Bitly::FetchStoryStats->add_to_queue( $args );
+
+            # Bit.ly click counts for controversies are usually needed sooner
+            # than the default background stats collection for all new stories
+            my $priority = $MediaCloud::JobManager::Job::MJM_JOB_PRIORITY_HIGH;
+
+            MediaWords::Job::Bitly::FetchStoryStats->add_to_queue( $args, $priority );
 
             say STDERR "Added story $stories_id to Bit.ly processing queue.";
         }
