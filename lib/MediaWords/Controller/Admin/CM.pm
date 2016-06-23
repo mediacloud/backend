@@ -1076,18 +1076,20 @@ sub _download_cd_csv
 {
     my ( $c, $controversy_dumps_id, $csv ) = @_;
 
-    my $field = $csv . '_csv';
+    my $file = "${ csv }.csv";
 
     my $db = $c->dbis;
 
-    my $cd = $db->find_by_id( 'controversy_dumps', $controversy_dumps_id );
+    my $cd_file = $db->query( <<SQL, $controversy_dumps_id, $file )->hash;
+select * from cd_files where controversy_dumps_id = ? and file_name = ?
+SQL
 
-    my $file = "${ csv }_$cd->{ controversy_dumps_id }.csv";
+    die( "no $file cd_file for dump $controversy_dumps_id" ) unless ( $cd_file );
 
     $c->response->header( "Content-Disposition" => "attachment;filename=$file" );
     $c->response->content_type( 'text/csv; charset=UTF-8' );
-    $c->response->content_length( bytes::length( $cd->{ $field } ) );
-    $c->response->body( $cd->{ $field } );
+    $c->response->content_length( bytes::length( $cd_file->{ file_content } ) );
+    $c->response->body( $cd_file->{ file_content } );
 }
 
 # download the daily_counts_csv for the given dump
@@ -1096,6 +1098,8 @@ sub dump_daily_counts : Local
     my ( $self, $c, $controversy_dumps_id ) = @_;
 
     _download_cd_csv( $c, $controversy_dumps_id, 'daily_counts' );
+
+    return 1;
 }
 
 # download the weekly_counts_csv for the given dump
@@ -1104,6 +1108,8 @@ sub dump_weekly_counts : Local
     my ( $self, $c, $controversy_dumps_id ) = @_;
 
     _download_cd_csv( $c, $controversy_dumps_id, 'weekly_counts' );
+
+    return 1;
 }
 
 # return the latest dump if it is not the dump to which the cdts belongs.  otherwise return undef.
