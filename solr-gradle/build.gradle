@@ -24,6 +24,10 @@ ext {
     // Port to listen to
     listenPort = 8983
 
+    // ZooKeeper host and port
+    zooKeeperHost = "localhost"
+    zooKeeperPort = 9983
+
     // Solr home directory (relative to build.gradle)
     solrHomeDir = "./mediacloud"
 
@@ -72,6 +76,15 @@ ext.getNumShards = {
         return 1
     } else {
         return Integer.parseInt(stringNumShards)
+    }
+}
+
+ext.getShardPort = {
+    int shardToStart = getShardToStart()
+    if (shardToStart > 1) {
+        return listenPort + shardToStart - 1
+    } else {
+        return listenPort
     }
 }
 
@@ -167,12 +180,7 @@ task createOrUpdateShard << {
 }
 
 // Prepare for running Solr
-task setSolrProperties(dependsOn: [
-    'copyWar',
-    'copyAdditionalSolrJars',
-    'copyAdditionalJettyLoggingJars',
-    'createOrUpdateShard'
-]) {
+task setSolrProperties(dependsOn: ['createOrUpdateShard']) << {
 
     Integer shardToStart = getShardToStart()
     Integer numShards = getNumShards()
@@ -187,13 +195,21 @@ task setSolrProperties(dependsOn: [
         throw new GradleException("'bootstrap_confdir' for shard " + shardToStart + " does not exist at " + bootstrapConfDir)
     }
 
+    String zooKeeperHostAndPort = zooKeeperHost + ":" + Integer.toString(zooKeeperPort)
+
     // Shards
-    System.setProperty("zkRun", "true")
-    System.setProperty("bootstrap_confdir", bootstrapConfDir)
-    System.setProperty("numShards", Integer.toString(numShards))
-    System.setProperty("collection.configName", zooKeeperConfigName)
+    if (shardToStart == 1) {
+        // Shard with embedded ZooKeeper
+        System.setProperty("zkRun", zooKeeperHostAndPort)
+        System.setProperty("bootstrap_confdir", bootstrapConfDir)
+        System.setProperty("numShards", Integer.toString(numShards))
+        System.setProperty("collection.configName", zooKeeperConfigName)
+    } else {
+        System.setProperty("zkHost", zooKeeperHostAndPort)
+    }
 
     // Solr properties
+    System.setProperty("host", "mediacloud-shard-" + Integer.toString(shardToStart))
     System.setProperty("solr.solr.home", shardSolrHomeDir)
     System.setProperty("mediacloud.luceneMatchVersion", luceneMatchVersion)
 
@@ -201,11 +217,16 @@ task setSolrProperties(dependsOn: [
     System.setProperty("org.eclipse.jetty.server.Request.maxFormContentSize", Integer.toString(4 * 1024 * 1024))
 }
 
-jettyRun {
-    httpPort = listenPort
-    contextPath = 'solr'
-    webAppSourceDirectory = file(explodedWebAppDir)    
-}
-
 // Run Solr
-task runSolr(type: JettyRun, dependsOn: ['createOrUpdateShard', 'setSolrProperties', 'jettyRun'])
+// FIXME dependency tasks don't get always run
+task runSolr(type: JettyRun, dependsOn: [
+    'copyWar',
+    'copyAdditionalSolrJars',
+    'copyAdditionalJettyLoggingJars',
+    'createOrUpdateShard',
+    'setSolrProperties',
+]) {
+    httpPort = getShardPort()
+    contextPath = 'solr'
+    webAppSourceDirectory = file(explodedWebAppDir)
+}
