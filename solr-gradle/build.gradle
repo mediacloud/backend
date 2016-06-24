@@ -1,3 +1,6 @@
+// To start ZooKeeper for managing Solr shards, run:
+//
+//    gradle runZooKeeper
 //
 // To start Solr, run:
 //
@@ -22,6 +25,9 @@ apply plugin: 'jetty'
 
 ext {
     // Port to listen to
+    // (when starting shards, this is going to be a starting port, i.e.
+    // shard #1 will start on port listenPort, shard #2 on port listenPort+1
+    // and so on)
     listenPort = 8983
 
     // ZooKeeper host and port
@@ -33,6 +39,9 @@ ext {
 
     // Solr data directory (relative to build.gradle)
     solrDataDir = "./../data/solr"
+
+    // ZooKeeper data directory (relative to build.gradle)
+    zooKeeperDataDir = "./../data/solr-zookeeper"
 
     // Bootstrap collection name for ZooKeeper
     zooKeeperBootstrapCollection = "collection1"
@@ -49,11 +58,14 @@ ext {
 
     // Package versions
     solrVersion = "4.6.0"
+    zooKeeperVersion = "3.4.8"
     postgresqlVersion = "9.3-1104-jdbc41"
     slf4jSimpleVersion = "1.7.12"
     commonsLoggingVersion = "1.2"
     jUnitVersion = "4.12"
 }
+
+/* ------------------------------------------------ */
 
 ext.getShardToStart = {
     final String shardToStartProperty = "mediacloud.solr.shardToStart"
@@ -98,12 +110,17 @@ repositories {
 
 // custom configuration for running the webapp
 configurations {
+    zooKeeperJars
     solrWebApp
     additionalSolrJars
     additionalJettyLoggingJars
 }
 
 dependencies {
+    // External ZooKeeper for managing Solr shards
+    zooKeeperJars "org.apache.zookeeper:zookeeper:${zooKeeperVersion}"
+
+    // Solr
     solrWebApp "org.apache.solr:solr:${solrVersion}@war"
 
     // Additional Solr JARs
@@ -138,23 +155,72 @@ project.webAppDirName = "solr-dist"
 def explodedWebAppDir = new File("${buildDir}/explodedWebAppDir").getAbsolutePath()
 logger.debug("explodedWebAppDir: " + explodedWebAppDir)
 
-//
-// ---
-//
+// ZooKeeper class directory
+def zooKeeperClassDir = new File("${buildDir}/zooKeeperClassDir").getAbsolutePath()
+logger.debug("zooKeeperClassDir: " + zooKeeperClassDir)
+
+/* ------------------------------------------------ */
+
+task copyZooKeeperJars(type: Copy) {
+    from configurations.zooKeeperJars
+    into zooKeeperClassDir
+}
 
 task copyWar(type: Copy) {
-    into explodedWebAppDir 
     from zipTree(configurations.solrWebApp.singleFile)
+    into explodedWebAppDir 
 }
 
 task copyAdditionalSolrJars(type: Copy) {
-    into explodedWebAppDir + "/WEB-INF/lib/"
     from configurations.additionalSolrJars
+    into explodedWebAppDir + "/WEB-INF/lib/"
 }
 
 task copyAdditionalJettyLoggingJars(type: Copy) {
-    into explodedWebAppDir + "/WEB-INF/lib/"
     from configurations.additionalJettyLoggingJars
+    into explodedWebAppDir + "/WEB-INF/lib/"
+}
+
+task zooKeeperUpConfig(type: JavaExec, dependsOn: ['copyZooKeeperJars']) {
+    main = "org.apache.solr.cloud.ZkCLI"
+    classpath = files(
+        zooKeeperClassDir + "/*",
+        explodedWebAppDir + "/WEB-INF/lib/*",
+    )
+    args = [
+        "-zkhost", zooKeeperHost + ":" + Integer.toString(zooKeeperPort),
+        "-cmd", "upconfig",
+        "-confname", zooKeeperConfigName,
+        "-confdir", solrHomeDir + "/collections/" + zooKeeperBootstrapCollection + "/conf",
+    ]
+}
+
+task zooKeeperLinkConfig(type: JavaExec, dependsOn: ['copyZooKeeperJars', 'zooKeeperUpConfig']) {
+    main = "org.apache.solr.cloud.ZkCLI"
+    classpath = files(
+        zooKeeperClassDir + "/*",
+        explodedWebAppDir + "/WEB-INF/lib/*",
+    )
+    args = [
+        "-zkhost", zooKeeperHost + ":" + Integer.toString(zooKeeperPort),
+        "-cmd", "linkconfig",
+        "-collection", zooKeeperBootstrapCollection,
+        "-confname", zooKeeperConfigName,
+        "-solrhome", solrHomeDir,
+    ]
+}
+
+task zooKeeperBootstrap(type: JavaExec, dependsOn: ['copyZooKeeperJars', 'zooKeeperLinkConfig']) {
+    main = "org.apache.solr.cloud.ZkCLI"
+    classpath = files(
+        zooKeeperClassDir + "/*",
+        explodedWebAppDir + "/WEB-INF/lib/*",
+    )
+    args = [
+        "-zkhost", zooKeeperHost + ":" + Integer.toString(zooKeeperPort),
+        "-cmd", "bootstrap",
+        "-solrhome", solrHomeDir,
+    ]
 }
 
 task createOrUpdateShard << {
@@ -180,7 +246,7 @@ task createOrUpdateShard << {
 }
 
 // Prepare for running Solr
-task setSolrProperties(dependsOn: ['createOrUpdateShard']) << {
+task setSolrProperties(dependsOn: ['createOrUpdateShard', 'zooKeeperBootstrap']) << {
 
     Integer shardToStart = getShardToStart()
     Integer numShards = getNumShards()
@@ -190,31 +256,30 @@ task setSolrProperties(dependsOn: ['createOrUpdateShard']) << {
         throw new GradleException("'solr.solr.home' for shard " + shardToStart + " does not exist at " + shardSolrHomeDir)
     }
 
-    String bootstrapConfDir = shardSolrHomeDir + "/collections/" + zooKeeperBootstrapCollection + "/conf"
-    if (! new File(bootstrapConfDir).exists()) {
-        throw new GradleException("'bootstrap_confdir' for shard " + shardToStart + " does not exist at " + bootstrapConfDir)
-    }
-
     String zooKeeperHostAndPort = zooKeeperHost + ":" + Integer.toString(zooKeeperPort)
 
-    // Shards
-    if (shardToStart == 1) {
-        // Shard with embedded ZooKeeper
-        System.setProperty("zkRun", zooKeeperHostAndPort)
-        System.setProperty("bootstrap_confdir", bootstrapConfDir)
-        System.setProperty("numShards", Integer.toString(numShards))
-        System.setProperty("collection.configName", zooKeeperConfigName)
-    } else {
-        System.setProperty("zkHost", zooKeeperHostAndPort)
-    }
-
     // Solr properties
+    System.setProperty("zkHost", zooKeeperHostAndPort)
+    System.setProperty("numShards", Integer.toString(numShards))
     System.setProperty("host", "mediacloud-shard-" + Integer.toString(shardToStart))
     System.setProperty("solr.solr.home", shardSolrHomeDir)
     System.setProperty("mediacloud.luceneMatchVersion", luceneMatchVersion)
 
     // Jetty properties
     System.setProperty("org.eclipse.jetty.server.Request.maxFormContentSize", Integer.toString(4 * 1024 * 1024))
+}
+
+// Run ZooKeeper (will be bootstrapped before starting a shard)
+task runZooKeeper(type: JavaExec, dependsOn: ['copyZooKeeperJars']) {
+    main = "org.apache.zookeeper.server.quorum.QuorumPeerMain"
+    classpath = files(zooKeeperClassDir + "/*")
+    args = [
+        Integer.toString(zooKeeperPort),
+        zooKeeperDataDir
+    ]
+    systemProperties = [
+        "zookeeper.log.dir": zooKeeperDataDir
+    ]
 }
 
 // Run Solr

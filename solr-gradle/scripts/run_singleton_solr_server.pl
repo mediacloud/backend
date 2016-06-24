@@ -24,10 +24,12 @@ sub main
 
     die( "can't find mediacloud/solr.xml" ) unless ( -f 'mediacloud/solr.xml' );
 
+    my $zookeeper_cmd = "JAVA_OPTS=\"" . JVM_OPTS . " -Xmx${ memory }g\" gradle runZooKeeper";
+    print STDERR "running $zookeeper_cmd ...\n";
+    exec( $zookeeper_cmd );
+
     my $gradle_cmd = "JAVA_OPTS=\"" . JVM_OPTS . " -Xmx${ memory }g\" gradle runSolr -Dsolr.clustering.enabled=true";
-
     print STDERR "running $gradle_cmd ...\n";
-
     exec( $gradle_cmd );
 }
 
