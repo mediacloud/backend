@@ -42,6 +42,8 @@ sub main
         "jobs=i"      => \$jobs
     ) || return;
 
+    die( "Refusing to run while lock file /tmp/solrbackup.lock exists" ) if ( -f "/tmp/solrbackup.lock" );
+
     if ( $file )
     {
         if ( $delete_all )
