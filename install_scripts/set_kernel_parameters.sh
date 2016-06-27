@@ -8,6 +8,22 @@ if [ `uname` == 'Darwin' ]; then
     :
 else
 
+    PAM_COMMON_SESSION_FILE=/etc/pam.d/common-session
+    if [ ! -f "$PAM_COMMON_SESSION_FILE" ]; then
+        echo "PAM common-session file does not exist at $PAM_COMMON_SESSION_FILE"
+        exit 1
+    fi
+    if ! grep -q "pam_limits.so" "$PAM_COMMON_SESSION_FILE"; then
+        echo "Adding pam_limits.so to PAM common-session file $PAM_COMMON_SESSION_FILE..."
+
+        sudo tee -a "$PAM_COMMON_SESSION_FILE" <<EOF
+
+# Enforce Media Cloud limits
+session required pam_limits.so
+
+EOF
+    fi
+
     MEDIACLOUD_USER=`id -un`
     echo "Setting required kernel parameters via limits.conf for user '$MEDIACLOUD_USER'..."
 
