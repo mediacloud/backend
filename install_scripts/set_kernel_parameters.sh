@@ -28,12 +28,6 @@ EOF
     echo "Setting required kernel parameters via limits.conf for user '$MEDIACLOUD_USER'..."
 
     LIMITS_FILE=/etc/security/limits.d/50-mediacloud.conf
-
-    if [ -f "$LIMITS_FILE" ]; then
-        echo "Limits file $LIMITS_FILE already exists, please either remove it or add parameters manually."
-        exit 1
-    fi
-
     sudo tee "$LIMITS_FILE" <<EOF
 #
 # Media Cloud limits
