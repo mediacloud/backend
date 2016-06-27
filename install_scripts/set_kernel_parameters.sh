@@ -3,6 +3,11 @@
 set -u
 set -o errexit
 
+if [ "$EUID" -eq 0 ]; then
+    echo "Please run this script from the user from which you intend to run Media Cloud services."
+    exit 1
+fi
+
 if [ `uname` == 'Darwin' ]; then
     # Mac OS X -- nothing to do
     :
