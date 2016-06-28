@@ -17,17 +17,29 @@ MIN_OPEN_FILES_LIMIT=65536
 # Default web interface port
 RABBITMQ_WEB_INTERFACE_PORT=15673
 
-# Newest Erlang version (18.3 at the time of writing) has memory handling issues, see:
+# Erlang version to use on Ubuntu < 16.04:
 #
+# Update install_mediacloud_system_package_dependencies.sh too!
+#
+# Newest Erlang version (18.3 at the time of writing) has memory handling issues, see:
 # https://groups.google.com/forum/#!topic/rabbitmq-users/7K0Ac5tWUIY
 #
-ERLANG_APT_VERSION="1:17.5.3"
+ERLANG_OLD_UBUNTU_APT_VERSION="1:17.5.3"
 
 
 
 log() {
     # to STDERR
     echo "$@" 1>&2
+}
+
+# Version comparison functions
+function verlte() {
+    [  "$1" = "`echo -e "$1\n$2" | sort -V | head -n1`" ]
+}
+
+function verlt() {
+    [ "$1" = "$2" ] && return 1 || verlte "$1" "$2"
 }
 
 rabbitmq_is_enabled() {
@@ -51,13 +63,22 @@ rabbitmq_is_installed() {
 erlang_is_of_the_required_version() {
     local actual_version=$(dpkg -s esl-erlang | grep Version | awk '{ print $2 }')
 
-    # 18.3 leaks memory and crashes
-    local required_version="$ERLANG_APT_VERSION"
+    source /etc/lsb-release
 
-    dpkg --compare-versions "$actual_version" eq "$required_version" || {
-        return 1    # "false" in Bash
-    }
-    return 0    # "true" in Bash
+    # Ubuntu < 16.04 APT's version of RabbitMQ is too old (we need 3.5.0+ to support priorities)
+    if verlt "$DISTRIB_RELEASE" "16.04"; then
+
+        # 18.3 leaks memory and crashes
+        local required_version="$ERLANG_APT_VERSION"
+
+        dpkg --compare-versions "$actual_version" eq "$ERLANG_OLD_UBUNTU_APT_VERSION" || {
+            return 1    # "false" in Bash
+        }
+        return 0    # "true" in Bash
+        
+    else
+        return 0    # "true" in Bash
+    fi
 }
 
 rabbitmq_is_up_to_date() {

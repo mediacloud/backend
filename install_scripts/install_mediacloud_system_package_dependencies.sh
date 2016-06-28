@@ -10,11 +10,14 @@ ERLANG_APT_GPG_KEY_URL="http://packages.erlang-solutions.com/ubuntu/erlang_solut
 ERLANG_APT_REPOSITORY_URL="http://packages.erlang-solutions.com/ubuntu"
 RABBITMQ_PACKAGECLOUD_SCRIPT="https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.deb.sh"
 
-# Newest Erlang version (18.3 at the time of writing) has memory handling issues, see:
+# Erlang version to install on Ubuntu < 16.04:
 #
+# Update rabbitmq_wrapper.sh too!
+#
+# Newest Erlang version (18.3 at the time of writing) has memory handling issues, see:
 # https://groups.google.com/forum/#!topic/rabbitmq-users/7K0Ac5tWUIY
 #
-ERLANG_APT_VERSION="1:17.5.3"
+ERLANG_OLD_UBUNTU_APT_VERSION="1:17.5.3"
 
 
 function echo_cld_instructions {
@@ -128,7 +131,7 @@ else
         }
     done
 
-    # Ubuntu 12.04 APT's version of Erlang is too old (needed by RabbitMQ)
+    # Ubuntu < 14.04 APT's version of Erlang is too old (needed by RabbitMQ)
     if verlt "$DISTRIB_RELEASE" "14.04"; then
 
          # Ubuntu 12.04 APT's version of Erlang is too old
@@ -139,13 +142,15 @@ else
         sudo apt-get -y update
     fi
 
-    # Ubuntu (all versions) APT's version of RabbitMQ is too old
-    # (we need 3.5.0+ to support priorities)
-    curl -s "$RABBITMQ_PACKAGECLOUD_SCRIPT" | sudo bash
+    # Ubuntu < 16.04 APT's version of RabbitMQ is too old (we need 3.5.0+ to support priorities)
+    if verlt "$DISTRIB_RELEASE" "16.04"; then
 
-    # Install and hold specific version of Erlang
-    sudo apt-get -y install esl-erlang="$ERLANG_APT_VERSION" erlang-mode="$ERLANG_APT_VERSION"
-    sudo apt-mark hold erlang-mode esl-erlang
+        # Install and hold specific version of Erlang
+        curl -s "$RABBITMQ_PACKAGECLOUD_SCRIPT" | sudo bash
+        sudo apt-get -y install esl-erlang="$ERLANG_OLD_UBUNTU_APT_VERSION" erlang-mode="$ERLANG_OLD_UBUNTU_APT_VERSION"
+        sudo apt-mark hold erlang-mode esl-erlang
+
+    fi
 
     # Install the rest of the packages
     sudo apt-get --assume-yes install \
