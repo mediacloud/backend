@@ -3,7 +3,7 @@
 #
 # Provisioning script for the *privileged* user (root).
 #
-# Tested on Ubuntu 12.04, 64 bit
+# Tested on Ubuntu (64 bit)
 #
 
 MC_HOSTNAME="mediacloud"
