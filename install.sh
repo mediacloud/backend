@@ -20,7 +20,11 @@ fi
 ./install_mc_perlbrew_and_modules.sh
 
 # Install Python dependencies
-sudo pip install --upgrade -r python_scripts/requirements.txt
+sudo pip install --upgrade -r python_scripts/requirements.txt || {
+    # Sometimes fails with some sort of Setuptools error
+    echo "'pip install' failed the first time, retrying..."
+    sudo pip install --upgrade -r python_scripts/requirements.txt
+}
 
 echo "install complete"
 echo "running compile test"
