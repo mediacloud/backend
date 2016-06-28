@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4552;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4553;
 
 BEGIN
 
@@ -62,7 +62,6 @@ LANGUAGE 'plpgsql';
 
 -- Set the version number right away
 SELECT set_database_schema_version();
-INSERT INTO database_variables( name, value ) values ( 'LAST_STORY_SENTENCES_ID_PROCESSED', '0' );
 
 -- This function is needed because date_trunc('week', date) is not consider immutable
 -- See http://www.mentby.com/Group/pgsql-general/datetrunc-on-date-is-immutable.html
