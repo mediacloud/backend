@@ -685,6 +685,7 @@ Input:
     "framing_methods_id": 123
 }
 ```
+<!-- what is framing_methods_id?  I presume that maps from a framing method to a unique id for it.  if so, can you return framing_methods_id in the response as well, and perhaps change framing_method in the response to framing_method_name? -->
 
 Response:
 
@@ -707,6 +708,8 @@ Response:
 ## frame_set_definitions/update (PUT)
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/frame_set_definitions/update/<frame_set_definitions_id>`
+
+<!-- a more RESTful url for this would end with /frame_set_definitions/<frame_set_definitions_id>/update/ -->
 
 Update the given frame set definition.
 
@@ -752,6 +755,8 @@ Response:
 ```
 
 ## frame_set_definitions/list
+
+<!-- who needs to consume this end point? I don't think I ever do... If the core engine is the only one that ever needs this engine then should it exist? -->
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/frame_set_definitions/list`
 
@@ -804,6 +809,7 @@ List all *frame sets* belonging to the current *snapshot* in the given *topic*.
 ### Query Parameters
 
 Standard parameters"accepted": snapshots_id.
+<!-- isn't this a REQUIRED param? or does it default to the latest if omitted? -->
 
 ### Output Description
 
@@ -837,10 +843,12 @@ Response:
     ]
 }
 ```
+<!-- can this include all the frames within each frame_set? would be handy to have those included, especially becaues this won't be tons of information.  or perhaps add an include_frames param? -->
 
 ## frame_definitions/create (POST)
 
 `https://api.mediacloud.org/api/topics/<topics_id>/frame_sets/create/<frame_set_definitions_id>`
+<!-- a more RESTful url would end with frame_sets/<frame_set_definitions_id>/create -->
 
 Create and return a new *frame definiition*  within the given *topic* and *frame set definition*.
 
@@ -889,12 +897,13 @@ Response:
     ]
 }
 ```
-
+<!-- I know it is redundant, but I think it'd be helpful to include the framing_method in these results-->
 
 
 ## frame_definitions/update (PUT)
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/frame_definitions/update/<frame_definitions_id>`
+<!-- a more RESTful url would end with frame_definitions/<frame_definitions_id>/update/ -->
 
 Update the given frame definition.
 
@@ -937,6 +946,7 @@ Response:
 ## frame_definitions/list
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/frame_definitions/list/<frame_set_definitions_id>`
+<!-- a more RESTful url would end with frame_definitions/<frame_set_definitions_id>/list/ -->
 
 List all *frame definitions* belonging to the given *frame set definition*.
 
@@ -979,6 +989,7 @@ Response:
 ## frames/list
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/frames/list/<frame_sets_id>`
+<!-- shouldn't this end with /frame_sets/<frame_sets_id>/frames/list -->
 
 Return a list of the *frames* belonging to the given *frame set*.
 
@@ -1018,6 +1029,9 @@ Response:
     ]
 }
 ```
+<!-- can you add in the framing method here too? -->
+
+<!-- how do I delete a frame_set_definition so the next snapshot doesn't include it? -->
 
 # Snapshots
 
@@ -1031,6 +1045,8 @@ Generate a new *snapshot* for the given topic.
 
 This is an asynchronous call.  The *snapshot* process will run in the background, and the new *snapshot* will only become visible to the API once the generation is complete.  Only one *snapshot* generation job can run at a time.
 
+<!-- what happens if two people are working on separate frame definitions, but one finishes and presses the button that calls snapshots/generate?  will the other person's half-finished frame set be included in the new snapshot?  I guess I need to queue up all the frame definitions while someone is working on them until they press the big "generate" button, and then make a bunch of create calls before the snapshots/generate call. -->
+
 ### Query Parameters
 
 (no parameters)
@@ -1040,6 +1056,8 @@ This is an asynchronous call.  The *snapshot* process will run in the background
 | Field   | Description                              |
 | ------- | ---------------------------------------- |
 | success | boolean indicating whether snapshot generation job was queued |
+
+<!-- can we name snapshots?  that would let peopele communicate about them easily.  Otherwise in things like the UI I can only refer to them by the date they were generated, and who made them. maybe that's ok.  perhaps a question for Alexis to investigate. -->
 
 ### Example
 
@@ -1089,8 +1107,7 @@ Response:
     ]
 }
 ```
-
-
+<!-- I bet it will be useful to include the username here that generated it -->
 
 # Timespans
 
@@ -1107,6 +1124,7 @@ Return a list of timespans in the current snapshot.
 ### Query Parameters
 
 Standard parameters accepted: snapshots_id, frames_id.
+<!-- why does this accept frames_id? -->
 
 ### Output Description
 
@@ -1161,10 +1179,11 @@ Response:
     ]
 }
 ```
-
+<!-- does this include timespans queued up for the next spanshot? if so, please add a "status" column indicating if the timespan is valid or not.  if it doesn't include does, how do I list them to show the user?  Maybe after they create one I just say "you need to generate a new snapshot to see this"... but then if they click away that information is long gone for them. -->
 
 
 ## timespans/add_dates (PUT)
+<!-- for consistency, do we want to call this a timespan_definition?  and have the url end with /timespan_definitions/create -->
 
 `https://api.meiacloud.org/api/v1/topics/<topics_id>/timespans/add_dates`
 
