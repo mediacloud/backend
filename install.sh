@@ -19,13 +19,12 @@ fi
 ./install_scripts/install_mediacloud_package_dependencies.sh
 ./install_mc_perlbrew_and_modules.sh
 
-# Upgrade Setuptools before installing Python dependencies
-# (latest version of Setuptools is 20.10.1 but it's not available on pypi.python.org yet)
-SETUPTOOLS_VERSION=20.9.0
-wget https://bootstrap.pypa.io/ez_setup.py -O - | sudo python - --version=$SETUPTOOLS_VERSION
-
 # Install Python dependencies
-sudo pip install --upgrade -r python_scripts/requirements.txt
+sudo pip install --upgrade -r python_scripts/requirements.txt || {
+    # Sometimes fails with some sort of Setuptools error
+    echo "'pip install' failed the first time, retrying..."
+    sudo pip install --upgrade -r python_scripts/requirements.txt
+}
 
 echo "install complete"
 echo "running compile test"
