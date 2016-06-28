@@ -53,7 +53,7 @@ echo "Fetching a list of APT updates and new repository listings..."
 apt-get update
 
 echo "Upgrading packages with APT..."
-DEBIAN_FRONTEND=noninteractive apt-get -y upgrade
+apt-get -y upgrade
 
 echo "Installing some basic utilities..."
-DEBIAN_FRONTEND=noninteractive apt-get -y install vim git screen mc zip unzip links htop
+apt-get -y install vim git screen mc zip unzip links htop
