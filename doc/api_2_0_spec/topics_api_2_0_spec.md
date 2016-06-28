@@ -153,12 +153,14 @@ For example, the following will return all stories in the latest snapshot of top
 Each *topic* is viewed through one of its *snapshots*.  A *snapshot* is static dump of all data from a topic at
 a given point in time.  The data within a *snapshot* will never change, so changes to a *topic* are not visible
 until a new *snapshot* is made.
+<!-- really? what is someone decides to remove a media source from a snapshot... does that generate a new snapshot automatically? -->
 
 Within a *snapshot*, data can be viewed overall, or through some combination of a *frame* and a *timespan*.
 
 A *frame* consists of a subset of stories within a *topic* defined by some user configured *framing method*.  For
 example, a 'trump' *frame* within a 'US Election' *topic* would be defined using the 'Boolean Query' *framing method*
 as all stories matching the query 'trump'.  *Frames* can be collected together in a *Frame Set* for easy comparison.
+<!-- I think frame *must* be collected together in a frame set -->
 
 A *timespan* displays the *topic* as if it exists only of stories either published within the date range of the
 *timespan* or linked to by a story published within the date range of the *timespan*.
@@ -167,6 +169,7 @@ A *timespan* displays the *topic* as if it exists only of stories either publish
 *topic*.  Every *frame* belongs to a single *snapshot*, and every *timespan* belongs to either a single *frame* or the
 null *frame*.  Specifying a *frame* implies the parent *snapshot* of that *frame*.  Specifying a *topic* implies the
 parent *frame* (and by implication the parent *snapshot*), or else the null *frame* within the parent *snapshot*.
+
 
 The hierarchy of *topics*, *snapshots*, *frames*, and *timespans* looks like this:
 
@@ -189,8 +192,9 @@ will be returned).
 For calls that support paging, each url supports a *limit* parameter and a *link_id* paramter.  For these calls, only
 *limit* results will be returned at a time, and a set of *link_ids* will be returned along with the results.  To get the
 current set of results again, or the previous or next page of results, call the same end point with only the *key* and
-*link_id* parameters. The *link_id* parameter includes state that remembers all of the parameters from the original
+*link_id* parameters. The *link_id* parameter includes state that remembers all of the parameters from the original
 call.
+<!-- what is the *key* parameter? Is that just a typo? -->
 
 For example, the following a paged response:
 
@@ -268,6 +272,8 @@ Input:
     "end_date": "2015-12-31"
 }
 ```
+<!-- are the names unique?  if so, what is the error returned? -->
+<!-- do we need a public flag? or is that something we'll figure out with the permissions stuff separately -->
 
 ## spider/start
 
@@ -276,6 +282,7 @@ Input:
 Start a topic spidering job.
 
 Topic spidering is asynchronous.  Once the topic has started spidering, you cannot start another spidering job until the current one is complete.
+<!-- what does this return if you try to start one when one is already running? -->
 
 ### Query Parameters
 
@@ -327,7 +334,7 @@ The state field has the following meanings:
 * errored - the last spidering job to be run returned an error
 
 The num_stories, iteration, and queued_link fields are only returned when the state is running.  The error_message field is only returned when the state is errored.
-
+<!-- can we just add this to the result of topic/single and topics/list? this seems like a one-to-one relationship (from the API user point of view) so it'd be nice to not have to make the extra call each time to check that the topic has been spidered -->
 ### Example
 
 Check the status of any spidering jobs for the 'U.S. 2016 Election' topic:
@@ -369,13 +376,14 @@ that does not include a topics_id in the url.
 | max_iterations      | maximum number of iterations for spidering |
 | start_date          | start of date range for topic            |
 | end_date            | end of date range for topic              |
+<!-- can you please add the spider status to these results? -->
 
 ### Example
 
 Fetch all topics in Media Cloud:
 
 `https://api.mediacloud.org/api/v2/topics/list`
-
+<!-- doesn't this call need paging support? -->
 Response:
 
 ```json
@@ -396,8 +404,11 @@ Response:
     ]
 }
 ```
+<!-- do we want to add the user that created/requested this to the output? -->
 
+<!-- what about topics/single?  I need that.  it is currently implemented as controversies/single, but I'd like the spider status added to those results -->
 
+<!-- also how do support editing a topic description?  I think I need a topic/edit, or HTTP UPDATE support on a topic/single endpoint? and are you allowed to edit the pattern, date and so on if you haven't started any spider? I need that for UX as I can show results for the seed query to alllow people can qualify/validate the query before requesting a spider to start. -->
 
 # Stories
 
@@ -413,7 +424,7 @@ The stories list call returns stories in the topic.
 | -------------------- | ------- | ---------------------------------------- |
 | q                    | null    | if specified, return only stories that match the given solr query |
 | sort                 | inlink  | sort field for returned stories; possible values: `inlink`, `social` |
-| stories_id           | null    | return only stories matching these storie_ids |
+| stories_id           | null    | return only stories matching these stories_ids |
 | link_to_stories_id   | null    | return only stories from other media that link to the given stories_ids |
 | link_from_stories_id | null    | return only stories from other media that are linked from the given stories_ids |
 | media_id             | null    | return only stories belonging to the given media_ids |
@@ -443,6 +454,7 @@ Standard parameters accepted: snapshots_id, frames_id, timespans_id, limit, link
 | outlink_count        | count of hyperlinks to stories in other media in this timespan |
 | bitly_click_count    | number of clicks on bitly links that resolve to this story's url |
 | facebook_share_count | number of facebook shares for this story's url |
+<!-- can this include an array of frame ids? it'd be nice to include those on the table of results this will feed -->
 
 ### Example
 
@@ -501,6 +513,8 @@ Standard parameters"accepted": snapshots_id, frames_id, timespans_id, limit, lin
 | Field | Description                |
 | ----- | -------------------------- |
 | count | number of matching stories |
+
+<!-- it'd be awesome if this can include split params, but I understand that might need to wait until new hardware -->
 
 ### Example
 
