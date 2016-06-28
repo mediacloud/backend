@@ -17,6 +17,8 @@ set -e
 set -u
 set -o errexit
 
+export DEBIAN_FRONTEND=noninteractive
+
 FQ_HOSTNAME="$MC_HOSTNAME.$MC_DOMAINNAME"
 echo "Setting hostname to $FQ_HOSTNAME..."
 echo -n "$FQ_HOSTNAME" > /etc/hostname
