@@ -17,10 +17,14 @@ set -e
 set -u
 set -o errexit
 
-echo "Setting hostname to $MC_HOSTNAME.$MC_DOMAINNAME..."
-echo -n $MC_HOSTNAME.$MC_DOMAINNAME > /etc/hostname
-service hostname restart
-echo "127.0.0.1 $MC_HOSTNAME $MC_HOSTNAME.$MC_DOMAINNAME" >> /etc/hosts
+FQ_HOSTNAME="$MC_HOSTNAME.$MC_DOMAINNAME"
+echo "Setting hostname to $FQ_HOSTNAME..."
+echo -n "$FQ_HOSTNAME" > /etc/hostname
+hostnamectl set-hostname "$FQ_HOSTNAME" || {
+	# pre-16.04 Ubuntus
+	service hostname restart	
+}
+echo "127.0.0.1 $MC_HOSTNAME $FQ_HOSTNAME" >> /etc/hosts
 
 echo "Setting timezone to Eastern Time..."
 ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
