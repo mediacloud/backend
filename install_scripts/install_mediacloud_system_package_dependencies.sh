@@ -152,6 +152,13 @@ else
 
     fi
 
+    # OpenJDK version to install
+    if verlt "$DISTRIB_RELEASE" "16.04"; then
+        OPENJDK_PACKAGE=openjdk-7-jdk
+    else
+        OPENJDK_PACKAGE=openjdk-8-jdk
+    fi
+
     # Install the rest of the packages
     sudo apt-get --assume-yes install \
         expat libexpat1-dev libxml2-dev gawk postgresql-server-dev-all \
@@ -161,7 +168,7 @@ else
         liblist-allutils-perl liblist-moreutils-perl libreadonly-perl \
         libreadonly-xs-perl curl python2.7 python2.7-dev python-pip \
         libxml2-dev libxslt1-dev libxslt1-dbg libxslt1.1 build-essential make gcc g++ \
-        cpanminus perl-doc liblocale-maketext-lexicon-perl openjdk-7-jdk \
+        cpanminus perl-doc liblocale-maketext-lexicon-perl $OPENJDK_PACKAGE \
         pandoc netcat rabbitmq-server libyaml-dev
 
     # Install / upgrade Setuptools before installing Python dependencies
