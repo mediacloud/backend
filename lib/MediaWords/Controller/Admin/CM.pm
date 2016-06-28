@@ -18,6 +18,7 @@ use MediaWords::DBI::Activities;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::GuessDate;
+use MediaWords::Job::CM::MineControversy;
 use MediaWords::Solr;
 use MediaWords::Solr::WordCounts;
 use MediaWords::Util::Bitly;
@@ -3180,6 +3181,21 @@ SQL
     $c->stash->{ controversy }  = $controversy;
     $c->stash->{ query_slices } = $query_slices;
     $c->stash->{ template }     = 'cm/edit_query_slices.tt2';
+}
+
+# enqueue a mining job
+sub mine
+{
+    my ( $self, $c, $controversies_id ) = @_;
+
+    my $db = $c->dbis;
+
+    my $controversy = $db->find_by_id( 'controversies', $controversies_id ) || die( "Unable to find controversy" );
+
+    MediaWords::CM::Job::MineControversy::add_to_queue( { controversies_id => $controversies_id } );
+
+    my $status = 'Controversy mining job queued.';
+    $c->res->redirect( $c->uri_for( "/admin/cm/view/" . $controversies_id, { status_msg => $status } ) );
 }
 
 1;

@@ -19,6 +19,7 @@
             <a class="boxcommand" href="[% c.uri_for( '/admin/cm/edit_dates/' _ controversy.controversies_id ) %]">edit dates</a>
             <a class="boxcommand" href="[% c.uri_for( '/admin/cm/edit_media_types/' _ controversy.controversies_id ) %]">edit media types</a>
             <a class="boxcommand" href="[% c.uri_for( '/admin/cm/edit/' _ controversy.controversies_id ) %]">edit</a>
+            <a class="boxcommand" href="[% c.uri_for( '/admin/cm/mine/' _ controversy.controversies_id ) %]">mine</a>
         </div>
         <table class="even_rows_grey">
             <tr>
@@ -38,6 +39,10 @@
             <tr>
                 <td>Dates</td>
                 <td>[% controversy.start_date | html %] - [% controversy.end_date | html %]</td>
+            </tr>
+            <tr>
+                <td>State</td>
+                <td>[% controversy.state %]</td>
             </tr>
         </table>
 

@@ -21,7 +21,8 @@ use MediaWords::Job::CM::MineControversy;
 
 sub main
 {
-    my ( $controversy_opt, $import_only, $cache_broken_downloads, $direct_job, $skip_outgoing_foreign_rss_links );
+    my ( $controversy_opt, $import_only, $cache_broken_downloads, $direct_job, $skip_outgoing_foreign_rss_links,
+        $skip_post_processing );
 
     binmode( STDOUT, 'utf8' );
     binmode( STDERR, 'utf8' );
@@ -34,6 +35,7 @@ sub main
         "cache_broken_downloads!"          => \$cache_broken_downloads,
         "direct_job!"                      => \$direct_job,
         "skip_outgoing_foreign_rss_links!" => \$skip_outgoing_foreign_rss_links,
+        "skip_post_processing!"            => \$skip_post_processing
     ) || return;
 
     my $optional_args =
@@ -57,7 +59,8 @@ sub main
             my $options = {
                 import_only                     => $import_only,
                 cache_broken_downloads          => $cache_broken_downloads,
-                skip_outgoing_foreign_rss_links => $skip_outgoing_foreign_rss_links
+                skip_outgoing_foreign_rss_links => $skip_outgoing_foreign_rss_links,
+                skip_post_processing            => $skip_post_processing
             };
 
             MediaWords::CM::Mine::mine_controversy( $db, $controversy, $options );
