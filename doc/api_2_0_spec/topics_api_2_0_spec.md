@@ -528,6 +528,8 @@ Response:
 { "count": 123 }
 ```
 
+<!-- how do I get a list of what frames a story appears in?  Do those show up as tags on a normal call to /stories/<id>? -->
+
 # Sentences
 
 ## sentences/count
@@ -609,6 +611,10 @@ Response:
     }
 }
 ```
+<!-- I think I need a list of frames each media source appears in, probably as a child array under each media item -->
+<!-- How do I remove all the stories from this media source from the topic? /topics/<id>/media/<id> (DELETE) -->
+<!-- How do I merge this media source with anotehr one within the topic? /topics/<id>/media/<id>/merge/<id> -->
+<!-- How do I change the name/url of the media source within this topic? /topics/<id>/media/<id> (PUT) -->
 
 # Word Counts
 
@@ -624,6 +630,8 @@ This call behaves exactly like the main api wc/list call, except:
 * This call accepts the standard topics parameters: snapshots_id, frames_id, timespans_id
 
 For details about this end point, including parameters, output, and examples, see the [main API](https://github.com/berkmancenter/mediacloud/blob/release/doc/api_2_0_spec/api_2_0_spec.md#apiv2wclist).
+
+<!-- How do I find out what frames a particular word appears in most often? -->
 
 # Frames
 
@@ -1232,3 +1240,7 @@ Response:
 # TODO
 
 * topics ACLs
+<!-- 
+* link and network graphing endpoints
+* endpoints for coding media sources
+-->
