@@ -2,7 +2,7 @@
 #
 # Provisioning script for the *unprivileged* user (vagrant).
 #
-# Tested on Ubuntu 12.04, 64 bit
+# Tested on Ubuntu (64 bit)
 #
 
 # Path to where Media Cloud's repository is mounted on Vagrant

@@ -153,12 +153,14 @@ For example, the following will return all stories in the latest snapshot of top
 Each *topic* is viewed through one of its *snapshots*.  A *snapshot* is static dump of all data from a topic at
 a given point in time.  The data within a *snapshot* will never change, so changes to a *topic* are not visible
 until a new *snapshot* is made.
+<!-- really? what is someone decides to remove a media source from a snapshot... does that generate a new snapshot automatically? -->
 
 Within a *snapshot*, data can be viewed overall, or through some combination of a *frame* and a *timespan*.
 
 A *frame* consists of a subset of stories within a *topic* defined by some user configured *framing method*.  For
 example, a 'trump' *frame* within a 'US Election' *topic* would be defined using the 'Boolean Query' *framing method*
 as all stories matching the query 'trump'.  *Frames* can be collected together in a *Frame Set* for easy comparison.
+<!-- I think frame *must* be collected together in a frame set -->
 
 A *timespan* displays the *topic* as if it exists only of stories either published within the date range of the
 *timespan* or linked to by a story published within the date range of the *timespan*.
@@ -167,6 +169,7 @@ A *timespan* displays the *topic* as if it exists only of stories either publish
 *topic*.  Every *frame* belongs to a single *snapshot*, and every *timespan* belongs to either a single *frame* or the
 null *frame*.  Specifying a *frame* implies the parent *snapshot* of that *frame*.  Specifying a *topic* implies the
 parent *frame* (and by implication the parent *snapshot*), or else the null *frame* within the parent *snapshot*.
+
 
 The hierarchy of *topics*, *snapshots*, *frames*, and *timespans* looks like this:
 
@@ -189,8 +192,9 @@ will be returned).
 For calls that support paging, each url supports a *limit* parameter and a *link_id* paramter.  For these calls, only
 *limit* results will be returned at a time, and a set of *link_ids* will be returned along with the results.  To get the
 current set of results again, or the previous or next page of results, call the same end point with only the *key* and
-*link_id* parameters. The *link_id* parameter includes state that remembers all of the parameters from the original
+*link_id* parameters. The *link_id* parameter includes state that remembers all of the parameters from the original
 call.
+<!-- what is the *key* parameter? Is that just a typo? -->
 
 For example, the following a paged response:
 
@@ -268,6 +272,8 @@ Input:
     "end_date": "2015-12-31"
 }
 ```
+<!-- are the names unique?  if so, what is the error returned? -->
+<!-- do we need a public flag? or is that something we'll figure out with the permissions stuff separately -->
 
 ## spider/start
 
@@ -276,6 +282,7 @@ Input:
 Start a topic spidering job.
 
 Topic spidering is asynchronous.  Once the topic has started spidering, you cannot start another spidering job until the current one is complete.
+<!-- what does this return if you try to start one when one is already running? -->
 
 ### Query Parameters
 
@@ -327,7 +334,7 @@ The state field has the following meanings:
 * errored - the last spidering job to be run returned an error
 
 The num_stories, iteration, and queued_link fields are only returned when the state is running.  The error_message field is only returned when the state is errored.
-
+<!-- can we just add this to the result of topic/single and topics/list? this seems like a one-to-one relationship (from the API user point of view) so it'd be nice to not have to make the extra call each time to check that the topic has been spidered -->
 ### Example
 
 Check the status of any spidering jobs for the 'U.S. 2016 Election' topic:
@@ -369,13 +376,14 @@ that does not include a topics_id in the url.
 | max_iterations      | maximum number of iterations for spidering |
 | start_date          | start of date range for topic            |
 | end_date            | end of date range for topic              |
+<!-- can you please add the spider status to these results? -->
 
 ### Example
 
 Fetch all topics in Media Cloud:
 
 `https://api.mediacloud.org/api/v2/topics/list`
-
+<!-- doesn't this call need paging support? -->
 Response:
 
 ```json
@@ -396,8 +404,11 @@ Response:
     ]
 }
 ```
+<!-- do we want to add the user that created/requested this to the output? -->
 
+<!-- what about topics/single?  I need that.  it is currently implemented as controversies/single, but I'd like the spider status added to those results -->
 
+<!-- also how do support editing a topic description?  I think I need a topic/edit, or HTTP UPDATE support on a topic/single endpoint? and are you allowed to edit the pattern, date and so on if you haven't started any spider? I need that for UX as I can show results for the seed query to alllow people can qualify/validate the query before requesting a spider to start. -->
 
 # Stories
 
@@ -413,7 +424,7 @@ The stories list call returns stories in the topic.
 | -------------------- | ------- | ---------------------------------------- |
 | q                    | null    | if specified, return only stories that match the given solr query |
 | sort                 | inlink  | sort field for returned stories; possible values: `inlink`, `social` |
-| stories_id           | null    | return only stories matching these storie_ids |
+| stories_id           | null    | return only stories matching these stories_ids |
 | link_to_stories_id   | null    | return only stories from other media that link to the given stories_ids |
 | link_from_stories_id | null    | return only stories from other media that are linked from the given stories_ids |
 | media_id             | null    | return only stories belonging to the given media_ids |
@@ -443,6 +454,7 @@ Standard parameters accepted: snapshots_id, frames_id, timespans_id, limit, link
 | outlink_count        | count of hyperlinks to stories in other media in this timespan |
 | bitly_click_count    | number of clicks on bitly links that resolve to this story's url |
 | facebook_share_count | number of facebook shares for this story's url |
+<!-- can this include an array of frame ids? it'd be nice to include those on the table of results this will feed -->
 
 ### Example
 
@@ -502,6 +514,8 @@ Standard parameters"accepted": snapshots_id, frames_id, timespans_id, limit, lin
 | ----- | -------------------------- |
 | count | number of matching stories |
 
+<!-- it'd be awesome if this can include split params, but I understand that might need to wait until new hardware -->
+
 ### Example
 
 Return the number of stories that mention 'immigration' in the 'US Election' topic:
@@ -513,6 +527,8 @@ Response:
 ```json
 { "count": 123 }
 ```
+
+<!-- how do I get a list of what frames a story appears in?  Do those show up as tags on a normal call to /stories/<id>? -->
 
 # Sentences
 
@@ -595,6 +611,10 @@ Response:
     }
 }
 ```
+<!-- I think I need a list of frames each media source appears in, probably as a child array under each media item -->
+<!-- How do I remove all the stories from this media source from the topic? /topics/<id>/media/<id> (DELETE) -->
+<!-- How do I merge this media source with anotehr one within the topic? /topics/<id>/media/<id>/merge/<id> -->
+<!-- How do I change the name/url of the media source within this topic? /topics/<id>/media/<id> (PUT) -->
 
 # Word Counts
 
@@ -610,6 +630,8 @@ This call behaves exactly like the main api wc/list call, except:
 * This call accepts the standard topics parameters: snapshots_id, frames_id, timespans_id
 
 For details about this end point, including parameters, output, and examples, see the [main API](https://github.com/berkmancenter/mediacloud/blob/release/doc/api_2_0_spec/api_2_0_spec.md#apiv2wclist).
+
+<!-- How do I find out what frames a particular word appears in most often? -->
 
 # Frames
 
@@ -671,6 +693,7 @@ Input:
     "framing_methods_id": 123
 }
 ```
+<!-- what is framing_methods_id?  I presume that maps from a framing method to a unique id for it.  if so, can you return framing_methods_id in the response as well, and perhaps change framing_method in the response to framing_method_name? -->
 
 Response:
 
@@ -693,6 +716,8 @@ Response:
 ## frame_set_definitions/update (PUT)
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/frame_set_definitions/update/<frame_set_definitions_id>`
+
+<!-- a more RESTful url for this would end with /frame_set_definitions/<frame_set_definitions_id>/update/ -->
 
 Update the given frame set definition.
 
@@ -738,6 +763,8 @@ Response:
 ```
 
 ## frame_set_definitions/list
+
+<!-- who needs to consume this end point? I don't think I ever do... If the core engine is the only one that ever needs this engine then should it exist? -->
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/frame_set_definitions/list`
 
@@ -790,6 +817,7 @@ List all *frame sets* belonging to the current *snapshot* in the given *topic*.
 ### Query Parameters
 
 Standard parameters"accepted": snapshots_id.
+<!-- isn't this a REQUIRED param? or does it default to the latest if omitted? -->
 
 ### Output Description
 
@@ -823,10 +851,12 @@ Response:
     ]
 }
 ```
+<!-- can this include all the frames within each frame_set? would be handy to have those included, especially becaues this won't be tons of information.  or perhaps add an include_frames param? -->
 
 ## frame_definitions/create (POST)
 
 `https://api.mediacloud.org/api/topics/<topics_id>/frame_sets/create/<frame_set_definitions_id>`
+<!-- a more RESTful url would end with frame_sets/<frame_set_definitions_id>/create -->
 
 Create and return a new *frame definiition*  within the given *topic* and *frame set definition*.
 
@@ -875,12 +905,13 @@ Response:
     ]
 }
 ```
-
+<!-- I know it is redundant, but I think it'd be helpful to include the framing_method in these results-->
 
 
 ## frame_definitions/update (PUT)
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/frame_definitions/update/<frame_definitions_id>`
+<!-- a more RESTful url would end with frame_definitions/<frame_definitions_id>/update/ -->
 
 Update the given frame definition.
 
@@ -923,6 +954,7 @@ Response:
 ## frame_definitions/list
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/frame_definitions/list/<frame_set_definitions_id>`
+<!-- a more RESTful url would end with frame_definitions/<frame_set_definitions_id>/list/ -->
 
 List all *frame definitions* belonging to the given *frame set definition*.
 
@@ -965,6 +997,7 @@ Response:
 ## frames/list
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/frames/list/<frame_sets_id>`
+<!-- shouldn't this end with /frame_sets/<frame_sets_id>/frames/list -->
 
 Return a list of the *frames* belonging to the given *frame set*.
 
@@ -1004,6 +1037,9 @@ Response:
     ]
 }
 ```
+<!-- can you add in the framing method here too? -->
+
+<!-- how do I delete a frame_set_definition so the next snapshot doesn't include it? -->
 
 # Snapshots
 
@@ -1017,6 +1053,8 @@ Generate a new *snapshot* for the given topic.
 
 This is an asynchronous call.  The *snapshot* process will run in the background, and the new *snapshot* will only become visible to the API once the generation is complete.  Only one *snapshot* generation job can run at a time.
 
+<!-- what happens if two people are working on separate frame definitions, but one finishes and presses the button that calls snapshots/generate?  will the other person's half-finished frame set be included in the new snapshot?  I guess I need to queue up all the frame definitions while someone is working on them until they press the big "generate" button, and then make a bunch of create calls before the snapshots/generate call. -->
+
 ### Query Parameters
 
 (no parameters)
@@ -1026,6 +1064,8 @@ This is an asynchronous call.  The *snapshot* process will run in the background
 | Field   | Description                              |
 | ------- | ---------------------------------------- |
 | success | boolean indicating whether snapshot generation job was queued |
+
+<!-- can we name snapshots?  that would let peopele communicate about them easily.  Otherwise in things like the UI I can only refer to them by the date they were generated, and who made them. maybe that's ok.  perhaps a question for Alexis to investigate. -->
 
 ### Example
 
@@ -1075,8 +1115,7 @@ Response:
     ]
 }
 ```
-
-
+<!-- I bet it will be useful to include the username here that generated it -->
 
 # Timespans
 
@@ -1093,6 +1132,7 @@ Return a list of timespans in the current snapshot.
 ### Query Parameters
 
 Standard parameters accepted: snapshots_id, frames_id.
+<!-- why does this accept frames_id? -->
 
 ### Output Description
 
@@ -1147,10 +1187,11 @@ Response:
     ]
 }
 ```
-
+<!-- does this include timespans queued up for the next spanshot? if so, please add a "status" column indicating if the timespan is valid or not.  if it doesn't include does, how do I list them to show the user?  Maybe after they create one I just say "you need to generate a new snapshot to see this"... but then if they click away that information is long gone for them. -->
 
 
 ## timespans/add_dates (PUT)
+<!-- for consistency, do we want to call this a timespan_definition?  and have the url end with /timespan_definitions/create -->
 
 `https://api.meiacloud.org/api/v1/topics/<topics_id>/timespans/add_dates`
 
@@ -1199,3 +1240,7 @@ Response:
 # TODO
 
 * topics ACLs
+<!-- 
+* link and network graphing endpoints
+* endpoints for coding media sources
+-->

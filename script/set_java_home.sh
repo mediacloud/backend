@@ -33,6 +33,7 @@ else
 
     # Ubuntu
     declare -a POSSIBLE_JDK_PATHS=(
+        /usr/lib/jvm/java-8-openjdk-amd64/  # even newer Ubuntu
         /usr/lib/jvm/java-8-oracle/         # Oracle Java 8
         /usr/lib/jvm/java-7-openjdk-amd64/  # newer Ubuntu
         /usr/lib/jvm/java-6-sun             # older Ubuntu
@@ -51,6 +52,8 @@ else
     if [ -z "$JAVA_HOME" ]; then
         echo "Proper Java deployment was not found anywhere."
         echo "Please download and install Java for OS X Developer Package by running:"
+        echo "    apt-get install openjdk-8-jdk"
+        echo "or"
         echo "    apt-get install openjdk-7-jdk"
         exit 1
     fi

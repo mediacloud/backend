@@ -103,7 +103,7 @@ programs = rabbitmq
     default_autorestart='true'
     default_autostart='true'
     stopsignal='INT'
-    stopwaitsecs=30
+    stopwaitsecs=60
     priority=10
     default_nice=0
 %]

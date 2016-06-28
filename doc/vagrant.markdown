@@ -32,8 +32,8 @@ Please note that the initial process of setting up Media Cloud may take a long t
 
 To create a new Media Cloud instance on Vagrant using the VirtualBox provider:
 
-    # (Run once) Add Ubuntu 12.04 as a Vagrant box for later reuse
-    vagrant box add precise64 http://files.vagrantup.com/precise64.box
+    # (Run once) Add Ubuntu 16.04 as a Vagrant box for later reuse
+    vagrant box add ubuntu/xenial64
 
     # Check out a *fresh* copy of Media Cloud from the Git repository
     git clone https://github.com/berkmancenter/mediacloud.git vagrant-mediacloud/
