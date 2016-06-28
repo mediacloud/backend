@@ -140,17 +140,15 @@ else
         echo "deb $ERLANG_APT_REPOSITORY_URL precise contrib" | \
             sudo tee -a /etc/apt/sources.list.d/erlang-solutions.list
         sudo apt-get -y update
-    fi
-
-    # Ubuntu < 16.04 APT's version of RabbitMQ is too old (we need 3.5.0+ to support priorities)
-    if verlt "$DISTRIB_RELEASE" "16.04"; then
 
         # Install and hold specific version of Erlang
-        curl -s "$RABBITMQ_PACKAGECLOUD_SCRIPT" | sudo bash
         sudo apt-get -y install esl-erlang="$ERLANG_OLD_UBUNTU_APT_VERSION" erlang-mode="$ERLANG_OLD_UBUNTU_APT_VERSION"
         sudo apt-mark hold erlang-mode esl-erlang
-
     fi
+
+    # Ubuntu (all versions) APT's version of RabbitMQ is too old
+    # (we need 3.6.0+ to support priorities and lazy queues)
+    curl -s "$RABBITMQ_PACKAGECLOUD_SCRIPT" | sudo bash
 
     # OpenJDK version to install
     if verlt "$DISTRIB_RELEASE" "16.04"; then
