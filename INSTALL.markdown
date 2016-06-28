@@ -8,7 +8,7 @@ These instructions assume comfort with PostgreSQL and especially with Perl. You
 may have a difficult time installing the system if you do not have experience
 with Perl and cpan.
 
-**Note: these instructions have only been tested on Ubuntu Linux and Mac OS X.** We recommend using Ubuntu 16.04 (Xenial Xerus) or Mac OS X 10.7 Lion. Earlier versions may be missing some of the necessary packages. Additionally, Media Cloud requires a 64 bit OS.
+**Note: these instructions have only been tested on Ubuntu Linux and Mac OS X.** We recommend using Ubuntu 12.04 (Precise Pangolin) or Mac OS X 10.7 Lion. Earlier versions may be missing some of the necessary packages. Additionally, Media Cloud requires a 64 bit OS.
 
 **Please be aware:** Mac OS X support has been less thoroughly tested than Ubuntu. We hope to improve OS X support in the future but currently some OS X users encounter problems with the install script. Advanced users comfortable with the Darwin command line will probably be able to work around these issues but others may be happier running Ubuntu in a VM if they encounter errors with the OS X install.
 
