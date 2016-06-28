@@ -159,11 +159,15 @@ else
         libopengl-perl libgraph-writer-graphviz-perl libgraphviz-perl \
         graphviz graphviz-dev graphviz-doc libgraphviz-dev libyaml-syck-perl \
         liblist-allutils-perl liblist-moreutils-perl libreadonly-perl \
-        libreadonly-xs-perl curl python python-dev python-pip python-lxml \
-        python-lxml-dbg python-lxml-doc python-libxml2 libxml2-dev \
-        libxslt1-dev libxslt1-dbg libxslt1.1 build-essential make gcc g++ \
+        libreadonly-xs-perl curl python2.7 python2.7-dev python-pip \
+        libxml2-dev libxslt1-dev libxslt1-dbg libxslt1.1 build-essential make gcc g++ \
         cpanminus perl-doc liblocale-maketext-lexicon-perl openjdk-7-jdk \
         pandoc netcat rabbitmq-server libyaml-dev
+
+    # Install / upgrade Setuptools before installing Python dependencies
+    # (latest version of Setuptools is 20.10.1 but it's not available on pypi.python.org yet)
+    SETUPTOOLS_VERSION=20.9.0
+    wget https://bootstrap.pypa.io/ez_setup.py -O - | sudo python2.7 - --version=$SETUPTOOLS_VERSION
 
     # Disable system-wide RabbitMQ server (we will start and use our very own instance)
     sudo update-rc.d rabbitmq-server disable
