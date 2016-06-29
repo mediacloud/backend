@@ -3189,7 +3189,7 @@ sub mine : Local
 
     my $controversy = $db->find_by_id( 'controversies', $controversies_id ) || die( "Unable to find controversy" );
 
-    MediaWords::CM::Job::MineControversy::add_to_queue( { controversies_id => $controversies_id } );
+    MediaWords::Job::CM::MineControversy::add_to_queue( { controversies_id => $controversies_id } );
 
     $db->update_by_id( 'controversies', $controversies_id, { state => 'queued for spidering' } );
 
