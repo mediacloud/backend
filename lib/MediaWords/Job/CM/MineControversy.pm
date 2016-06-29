@@ -60,6 +60,7 @@ sub run($;$)
     my $import_only                     = $args->{ import_only } // 0;
     my $cache_broken_downloads          = $args->{ cache_broken_downloads } // 0;
     my $skip_outgoing_foreign_rss_links = $args->{ skip_outgoing_foreign_rss_links } // 0;
+    my $skip_post_processing            = $args->{ skip_post_processing } // 0;
 
     unless ( $controversies_id )
     {
@@ -72,7 +73,8 @@ sub run($;$)
     my $options = {
         import_only                     => $import_only,
         cache_broken_downloads          => $cache_broken_downloads,
-        skip_outgoing_foreign_rss_links => $skip_outgoing_foreign_rss_links
+        skip_outgoing_foreign_rss_links => $skip_outgoing_foreign_rss_links,
+        skip_post_processing            => $skip_post_processing
     };
 
     MediaWords::CM::Mine::mine_controversy( $db, $controversy, $options );
