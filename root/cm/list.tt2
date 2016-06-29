@@ -2,7 +2,7 @@
 [% INCLUDE include/header.tt2 %]
 
 [% USE datetime = date(format => '%Y-%m-%d %H:%M:%S', locale => 'en_GB') %]
-[% USE date = date(format => '%Y-%m-%d', locale => 'en_GB') %]    
+[% USE date = date(format => '%Y-%m-%d', locale => 'en_GB') %]
 
 <a class="boxcommand" href="[% c.uri_for('/admin/cm/create') %]">create controversy</a>
 
@@ -10,7 +10,7 @@
 
 <tr>
 <th>Controversy</th>
-<th>Description</th>
+<th>State</th>
 </tr>
 
     [% FOREACH controversy IN controversies -%]
@@ -23,7 +23,7 @@
                 </a>
             </td>
 
-            <td>[% controversy.description | truncate( 48 ) | html %]</td>
+            <td>[% controversy.state %]</td>
         </tr>
     [% END # FOREACH stories -%]
 

@@ -1231,7 +1231,11 @@ create table controversies (
     controversy_tag_sets_id int not null references tag_sets,
     media_type_tag_sets_id  int references tag_sets,
     process_with_bitly      boolean not null default false,
-    max_iterations          int not null default 15
+    max_iterations          int not null default 15,
+    state                   text not null default 'created but not queued',
+    has_been_spidered       boolean not null default false,
+    has_been_dumped         boolean not null default false,
+    error_message           text null
 );
 
 COMMENT ON COLUMN controversies.process_with_bitly
@@ -1401,7 +1405,9 @@ create table controversy_dumps (
     dump_date                       timestamp not null,
     start_date                      timestamp not null,
     end_date                        timestamp not null,
-    note                            text
+    note                            text,
+    state                           text not null default 'queued',
+    error_message                   text null
 );
 
 create index controversy_dumps_controversy on controversy_dumps ( controversies_id );
