@@ -51,22 +51,22 @@ sub run($;$)
 
     my $controversies_id = $args->{ controversies_id } or die "'controversies_id' is not set.";
 
-    say STDERR "Will add all controversy's $controversies_id stories.";
+    DEBUG "Will add all controversy's $controversies_id stories.";
 
-    say STDERR "Fetching controversy $controversies_id...";
+    DEBUG "Fetching controversy $controversies_id...";
     my $controversy = $db->find_by_id( 'controversies', $controversies_id );
     unless ( $controversy )
     {
         die "Controversy $controversies_id was not found";
     }
-    say STDERR "Done fetching controversy $controversies_id.";
+    DEBUG "Done fetching controversy $controversies_id.";
 
     unless ( $controversy->{ process_with_bitly } )
     {
         die "Controversy $controversies_id is not set up for Bit.ly processing; please set controversies.process_with_bitly";
     }
 
-    say STDERR "Fetching controversy's $controversies_id start and end timestamps...";
+    DEBUG "Fetching controversy's $controversies_id start and end timestamps...";
     my $timestamps = $db->query(
         <<EOF,
         SELECT EXTRACT(EPOCH FROM MIN( start_date )::timestamp) AS start_timestamp,
@@ -91,29 +91,29 @@ EOF
     my $now = time();
     if ( $start_timestamp > $now )
     {
-        say STDERR
+        DEBUG
 "Start timestamp $start_timestamp is bigger than current timestamp $now, so worker will use current timestamp as start date.";
         $start_timestamp = undef;
     }
     else
     {
-        say STDERR "Start timestamp: " . gmt_date_string_from_timestamp( $start_timestamp );
+        DEBUG "Start timestamp: " . gmt_date_string_from_timestamp( $start_timestamp );
     }
 
     if ( $end_timestamp > $now )
     {
-        say STDERR
+        DEBUG
 "End timestamp $end_timestamp is bigger than current timestamp $now, so worker will use current timestamp as end date.";
         $end_timestamp = undef;
     }
     else
     {
-        say STDERR "End timestamp: " . gmt_date_string_from_timestamp( $end_timestamp );
+        DEBUG "End timestamp: " . gmt_date_string_from_timestamp( $end_timestamp );
     }
 
-    say STDERR "Done fetching controversy's $controversies_id start and end timestamps.";
+    DEBUG "Done fetching controversy's $controversies_id start and end timestamps.";
 
-    say STDERR "Adding controversy's $controversies_id stories to Bit.ly processing queue...";
+    DEBUG "Adding controversy's $controversies_id stories to Bit.ly processing queue...";
 
     Readonly my $CHUNK_SIZE => 100;
 
@@ -121,7 +121,7 @@ EOF
     my $offset_controversy_stories_id = 0;
     while ( scalar( @{ $stories } ) > 0 )    # while there are no more downloads
     {
-        say STDERR "Fetching chunk of stories with 'controversy_stories_id' offset $offset_controversy_stories_id...";
+        DEBUG "Fetching chunk of stories with 'controversy_stories_id' offset $offset_controversy_stories_id...";
 
         $stories = $db->query(
             <<"EOF",
@@ -136,9 +136,9 @@ EOF
 EOF
             $offset_controversy_stories_id, $controversies_id, $CHUNK_SIZE
         )->hashes;
-        say STDERR "Done fetching chunk of stories with 'controversy_stories_id' offset $offset_controversy_stories_id.";
+        DEBUG "Done fetching chunk of stories with 'controversy_stories_id' offset $offset_controversy_stories_id.";
 
-        say STDERR "Number of stories in a chunk: " . scalar( @{ $stories } );
+        DEBUG "Number of stories in a chunk: " . scalar( @{ $stories } );
 
         last unless ( scalar( @{ $stories } ) > 0 );    # no more stories
 
@@ -150,7 +150,7 @@ EOF
 
             $offset_controversy_stories_id = $controversy_stories_id;
 
-            say STDERR "Adding story $stories_id to Bit.ly processing queue...";
+            DEBUG "Adding story $stories_id to Bit.ly processing queue...";
 
             my $args = {
                 stories_id      => $stories_id,
@@ -164,13 +164,13 @@ EOF
 
             MediaWords::Job::Bitly::FetchStoryStats->add_to_queue( $args, $priority );
 
-            say STDERR "Added story $stories_id to Bit.ly processing queue.";
+            DEBUG "Added story $stories_id to Bit.ly processing queue.";
         }
 
-        say STDERR "Will fetch another chunk of stories for controversy $controversies_id.";
+        DEBUG "Will fetch another chunk of stories for controversy $controversies_id.";
     }
 
-    say STDERR "Added controversy's $controversies_id stories to Bit.ly processing queue.";
+    DEBUG "Added controversy's $controversies_id stories to Bit.ly processing queue.";
 }
 
 no Moose;    # gets rid of scaffolding

@@ -32,6 +32,7 @@ use URI::Escape;
 
 use MediaWords::CommonLibs;
 
+use MediaWords::CM::Dump;
 use MediaWords::CM::GuessDate;
 use MediaWords::CM::GuessDate::Result;
 use MediaWords::DB;
@@ -39,6 +40,8 @@ use MediaWords::DBI::Activities;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::GuessDate;
+use MediaWords::Job::Bitly::ProcessAllControversyStories;
+use MediaWords::Job::Facebook::FetchStoryStats;
 use MediaWords::Solr;
 use MediaWords::Util::HTML;
 use MediaWords::Util::SQL;
@@ -46,10 +49,15 @@ use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 use MediaWords::Util::Bitly;
-use MediaWords::Job::Bitly::ProcessAllControversyStories;
 
 # max number of solely self linked stories to include
 Readonly my $MAX_SELF_LINKED_STORIES => 100;
+
+# total time to wait for fetching of social media metrics
+Readonly my $MAX_SOCIAL_MEDIA_FETCH_TIME => 3600;
+
+# max number of stories with no bitly metrics
+Readonly my $MAX_NULL_BITLY_STORIES => 500;
 
 # ignore links that match this pattern
 my $_ignore_link_pattern =
@@ -71,6 +79,16 @@ my $_media_url_lookup;
 
 # lookup of self linked domains, for efficient skipping before adding a story
 my $_skip_self_linked_domain = {};
+
+# update controversies.state in the database
+sub update_controversy_state
+{
+    my ( $db, $controversy, $state ) = @_;
+
+    INFO( $state );
+
+    $db->update_by_id( 'controversies', $controversy->{ controversies_id }, { state => "spidering: $state" } );
+}
 
 # fetch each link and add a { redirect_url } field if the
 # { url } field redirects to another url
@@ -1716,6 +1734,31 @@ END
     }
 }
 
+# get short text description of spidering progress
+sub get_spider_progress_description
+{
+    my ( $db, $controversy, $iteration ) = @_;
+
+    my $cid = $controversy->{ controversies_id };
+
+    my ( $total_stories ) = $db->query( <<SQL, $cid )->flat;
+select count(*) from controversy_stories where controversies_id = ?
+SQL
+
+    my ( $stories_last_iteration ) = $db->query( <<SQL, $cid, $iteration )->flat;
+select count(*) from controversy_stories where controversies_id = ? and iteration = ?
+SQL
+
+    my ( $queued_links ) = $db->query( <<SQL, $cid )->flat;
+select count(*) from controversy_links where controversies_id = ? and ref_stories_id is null
+SQL
+
+    return <<END;
+iteration: $iteration; stories total / last iteration: $total_stories / $stories_last_iteration; link queue: $queued_links
+END
+
+}
+
 # run the spider over any new links, for $num_iterations iterations
 sub run_spider
 {
@@ -1725,6 +1768,7 @@ sub run_spider
 
     for my $i ( 1 .. $num_iterations )
     {
+        update_controversy_state( $db, $controversy, "spidering iteration $i" );
         spider_new_links( $db, $controversy, $i );
     }
 }
@@ -2545,12 +2589,77 @@ sub import_solr_seed_query
     $db->commit unless $db->dbh->{ AutoCommit };
 }
 
+# return true if there are fewer than $MAX_NULL_BITLY_STORIES stories without bitly data
+sub all_bitly_data_fetched
+{
+    my ( $db, $controversy ) = @_;
+
+    my $null_bitly_story = $db->query( <<SQL, $controversy->{ controversies_id }, $MAX_NULL_BITLY_STORIES )->hash;
+select 1
+    from controversy_stories cs
+        left join bitly_clicks_total b on ( cs.stories_id = b.stories_id )
+    where
+        cs.controversies_id = ? and
+        b.stories_id is null
+    offset ?
+    limit 1
+SQL
+
+    return !$null_bitly_story;
+}
+
+# return true if there are no stories without facebook data
+sub all_facebook_data_fetched
+{
+    my ( $db, $controversy ) = @_;
+
+    my $null_facebook_story = $db->query( <<SQL, $controversy->{ controversies_id } )->hash;
+select 1
+    from controversy_stories cs
+        left join story_statistics ss on ( cs.stories_id = ss.stories_id )
+    where
+        cs.controversies_id = ? and
+        (
+            ss.stories_id is null or
+            ss.facebook_share_count is null or
+            ss.facebook_comment_count is null or
+            ss.facebook_api_collect_date is null
+        )
+    limit 1
+SQL
+
+    return !$null_facebook_story;
+}
+
+# send high priority jobs to fetch bitly and facebook data for all stories that don't yet have it
+sub fetch_social_media_data ($$)
+{
+    my ( $db, $controversy ) = @_;
+
+    my $cid = $controversy->{ controversies_id };
+
+    MediaWords::Job::Bitly::ProcessAllControversyStories->run_locally( { controversies_id => $cid } );
+    MediaWords::Job::Facebook::FetchStoryStats->add_controversy_stories_to_queue( $db, $controversy );
+
+    my $poll_wait = 30;
+    my $retries   = int( $MAX_SOCIAL_MEDIA_FETCH_TIME / $poll_wait ) + 1;
+
+    for my $i ( 1 .. $retries )
+    {
+        return if ( all_bitly_data_fetched( $db, $controversy ) && all_facebook_data_fetched( $db, $controversy ) );
+        sleep $poll_wait;
+    }
+
+    die( "Timed out waiting for social media data" );
+}
+
 # mine the given controversy for links and to recursively discover new stories on the web.
 # options:
 #   import_only - only run import_seed_urls and import_solr_seed and exit
 #   cache_broken_downloads - speed up fixing broken downloads, but add time if there are no broken downloads
 #   skip_outgoing_foreign_rss_links - skip slow process of adding links from foreign_rss_links media
-sub mine_controversy ($$;$)
+#   skip_post_processing - skip social media fetching and dumping
+sub do_mine_controversy ($$;$)
 {
     my ( $db, $controversy, $options ) = @_;
 
@@ -2559,80 +2668,89 @@ sub mine_controversy ($$;$)
         $options )
       || die( "Unable to log the 'cm_mine_controversy' activity." );
 
-    INFO( "importing solr seed query ..." );
+    update_controversy_state( $db, $controversy, "importing solr seed query ..." );
     import_solr_seed_query( $db, $controversy );
 
-    INFO( "importing seed urls ..." );
+    update_controversy_state( $db, $controversy, "importing seed urls ..." );
     import_seed_urls( $db, $controversy );
 
-    INFO( "mining controversy stories ..." );
+    update_controversy_state( $db, $controversy, "mining controversy stories ..." );
     mine_controversy_stories( $db, $controversy );
 
     # # merge dup media and stories here to avoid redundant link processing for imported urls
-    INFO( "merging media_dup stories ..." );
+    update_controversy_state( $db, $controversy, "merging media_dup stories ..." );
     merge_dup_media_stories( $db, $controversy );
 
-    INFO( "merging dup stories ..." );
+    update_controversy_state( $db, $controversy, "merging dup stories ..." );
     find_and_merge_dup_stories( $db, $controversy );
 
     unless ( $options->{ import_only } )
     {
-        INFO( "merging foreign_rss stories ..." );
+        update_controversy_state( $db, $controversy, "merging foreign_rss stories ..." );
         merge_foreign_rss_stories( $db, $controversy );
 
-        INFO( "adding redirect urls to controversy stories ..." );
+        update_controversy_state( $db, $controversy, "adding redirect urls to controversy stories ..." );
         add_redirect_urls_to_controversy_stories( $db, $controversy );
 
-        INFO( "mining controversy stories ..." );
+        update_controversy_state( $db, $controversy, "mining controversy stories ..." );
         mine_controversy_stories( $db, $controversy );
 
-        INFO( "running spider ..." );
+        update_controversy_state( $db, $controversy, "running spider ..." );
         run_spider( $db, $controversy );
 
         # disabling because there are too many foreign_rss_links media sources
         # with bogus feeds that pollute the results
         # if ( !$options->{ skip_outgoing_foreign_rss_links } )
         # {
-        #     INFO( "adding outgoing foreign rss links ..." );
+        #     update_controversy_state( $db, $controversy, "adding outgoing foreign rss links ..." );
         #     add_outgoing_foreign_rss_links( $db, $controversy );
         # }
 
-        INFO( "merging archive_is stories ..." );
+        update_controversy_state( $db, $controversy, "merging archive_is stories ..." );
         merge_archive_is_stories( $db, $controversy );
 
         # merge dup media and stories again to catch dups from spidering
-        INFO( "merging media_dup stories ..." );
+        update_controversy_state( $db, $controversy, "merging media_dup stories ..." );
         merge_dup_media_stories( $db, $controversy );
 
-        INFO( "merging dup stories ..." );
+        update_controversy_state( $db, $controversy, "merging dup stories ..." );
         find_and_merge_dup_stories( $db, $controversy );
 
-        INFO( "adding source link dates ..." );
+        update_controversy_state( $db, $controversy, "adding source link dates ..." );
         add_source_link_dates( $db, $controversy );
 
-        INFO( "updating story_tags ..." );
+        update_controversy_state( $db, $controversy, "updating story_tags ..." );
         update_controversy_tags( $db, $controversy );
 
-        INFO( "analyzing controversy tables..." );
+        update_controversy_state( $db, $controversy, "analyzing controversy tables..." );
         $db->query( "analyze controversy_stories" );
         $db->query( "analyze controversy_links" );
-    }
 
-    if ( $controversy->{ process_with_bitly } )
-    {
-        unless ( MediaWords::Util::Bitly::bitly_processing_is_enabled() )
+        if ( !$options->{ skip_post_processing } )
         {
-            die "Bit.ly processing is not enabled.";
+            update_controversy_state( $db, $controversy, "fetching social media data" );
+            fetch_social_media_data( $db, $controversy );
+
+            update_controversy_state( $db, $controversy, "dumping" );
+            MediaWords::CM::Dump::dump_controversy( $db, $controversy->{ controversies_id } );
         }
+    }
+}
 
-        INFO( "Adding all (new) stories for Bit.ly processing queue..." );
+# wrap do_mine_controversy in eval and handle errors and state
+sub mine_controversy ($$;$)
+{
+    my ( $db, $controversy, $options ) = @_;
 
-        # For the sake of simplicity, just re-add all controversy's stories for
-        # Bit.ly processing. The ones that are already processed (have a respective
-        # record in the raw key-value database) will be skipped, and the new
-        # ones will be added to further jobs in the chain for fetching Bit.ly stats.
-        my $args = { controversies_id => $controversy->{ controversies_id } };
-        MediaWords::Job::Bitly::ProcessAllControversyStories->add_to_queue( $args );
+    eval { do_mine_controversy( $db, $controversy, $options ); };
+    if ( $@ )
+    {
+        my $error = $@;
+
+        ERROR( "controversy mining failed: $@" );
+
+        update_controversy_state( $db, $controversy, "spidering failed" );
+        $db->update_by_id( 'controversies', $controversy->{ controversies_id }, { error_message => $error } );
     }
 }
 

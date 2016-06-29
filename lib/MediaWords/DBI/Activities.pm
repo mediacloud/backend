@@ -206,7 +206,8 @@ Readonly::Hash my %ACTIVITIES => {
             references  => 'controversies.controversies_id'
         },
         parameters => {
-            'import_only' => { description => 'only run import_seed_urls and import_query_story_search and exit' },
+            'skip_post_processing' => { description => 'skip social media and dump' },
+            'import_only'          => { description => 'only run import_seed_urls and import_query_story_search and exit' },
             'cache_broken_downloads' => { description => 'speed up fixing broken downloads' },
             'skip_outgoing_foreign_rss_links' =>
               { description => 'skip slow process of adding links from foreign_rss_links media' }
@@ -304,10 +305,10 @@ EOF
 
             foreign_reference_subqueries => {
                 'controversies.controversies_id' => <<EOF
-            SELECT DISTINCT activities.activities_id                                                                                                                                                 
-            FROM activities                                                                                                                                                                          
-                INNER JOIN cd.live_stories on ( cd.live_stories.media_id = activities.object_id )                                                                                                  
-            WHERE activities.name = 'media_edit'                                                                                                                                                                 
+            SELECT DISTINCT activities.activities_id
+            FROM activities
+                INNER JOIN cd.live_stories on ( cd.live_stories.media_id = activities.object_id )
+            WHERE activities.name = 'media_edit'
               AND cd.live_stories.controversies_id = $ACTIVITIES_SUBQUERY_OBJECT_ID_PLACEHOLDER
 EOF
               }

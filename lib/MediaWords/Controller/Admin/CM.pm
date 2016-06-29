@@ -18,6 +18,7 @@ use MediaWords::DBI::Activities;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::GuessDate;
+use MediaWords::Job::CM::MineControversy;
 use MediaWords::Solr;
 use MediaWords::Solr::WordCounts;
 use MediaWords::Util::Bitly;
@@ -415,8 +416,6 @@ sub view : Local
 
     my $bitly_processing_is_enabled = MediaWords::Util::Bitly::bitly_processing_is_enabled();
 
-    my $mining_status = _get_mining_status( $db, $controversy );
-
     my $query_slices = $db->query( <<SQL, $controversies_id )->hashes;
 select * from controversy_query_slices where controversies_id = ? order by name
 SQL
@@ -426,7 +425,6 @@ SQL
     $c->stash->{ latest_full_dump }            = $latest_full_dump;
     $c->stash->{ latest_activities }           = $latest_activities;
     $c->stash->{ bitly_processing_is_enabled } = $bitly_processing_is_enabled;
-    $c->stash->{ mining_status }               = $mining_status;
     $c->stash->{ query_slices_id }             = $query_slices_id;
     $c->stash->{ query_slices }                = $query_slices;
     $c->stash->{ template }                    = 'cm/view.tt2';
@@ -3180,6 +3178,40 @@ SQL
     $c->stash->{ controversy }  = $controversy;
     $c->stash->{ query_slices } = $query_slices;
     $c->stash->{ template }     = 'cm/edit_query_slices.tt2';
+}
+
+# enqueue a mining job
+sub mine : Local
+{
+    my ( $self, $c, $controversies_id ) = @_;
+
+    my $db = $c->dbis;
+
+    my $controversy = $db->find_by_id( 'controversies', $controversies_id ) || die( "Unable to find controversy" );
+
+    MediaWords::CM::Job::MineControversy::add_to_queue( { controversies_id => $controversies_id } );
+
+    $db->update_by_id( 'controversies', $controversies_id, { state => 'queued for spidering' } );
+
+    my $status = 'Controversy spidering job queued.';
+    $c->res->redirect( $c->uri_for( "/admin/cm/view/" . $controversies_id, { status_msg => $status } ) );
+
+    return;
+}
+
+sub mining_status : Local
+{
+    my ( $self, $c, $controversies_id ) = @_;
+
+    my $db = $c->dbis;
+
+    my $controversy = $db->find_by_id( 'controversies', $controversies_id ) || die( "Unable to find controversy" );
+
+    my $mining_status = _get_mining_status( $db, $controversy );
+
+    $c->stash->{ controversy }   = $controversy;
+    $c->stash->{ mining_status } = $mining_status;
+    $c->stash->{ template }      = 'cm/mining_status.tt2';
 }
 
 1;

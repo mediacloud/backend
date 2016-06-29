@@ -34,7 +34,10 @@ For detailed explanation of the dump process, see doc/controversy_dumps.markdown
 =cut
 
 # This module was converted from a script, and the functions were never refactored to prefix private methods with '_'.
-# Consider any method with a perldoc head to be private.
+# Consider any method without a perldoc head to be private.
+
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
 
 use strict;
 use warnings;
@@ -889,8 +892,6 @@ sub scale_gexf_nodes
 {
     my ( $gexf ) = @_;
 
-    # print Dumper( $gexf );
-
     my $nodes = $gexf->{ graph }->[ 0 ]->{ nodes }->{ node };
 
     # my $nodes = $gexf->{ graph }->[ 0 ]->{ nodes }->[ 0 ]->{ node };
@@ -913,88 +914,6 @@ sub scale_gexf_nodes
         my $scale = $MAX_MAP_WIDTH / $map_width;
         map { $_->{ 'viz:position' }->{ $c } *= $scale } @{ $nodes };
     }
-}
-
-# post process gexf file.  gephi mucks up the gexf file by making it too big and
-# removing the weights from the gexf export.  I can't figure out how to get the gephi toolkit
-# to fix these things, so I just fix them in perl
-sub post_process_gexf
-{
-    my ( $db, $gexf_file ) = @_;
-
-    my $gexf = XML::Simple::XMLin( $gexf_file, ForceArray => 1, ForceContent => 1, KeyAttr => [] );
-
-    # add_weights_to_gexf_edges( $db, $gexf );
-
-    scale_gexf_nodes( $gexf );
-
-    open( FILE, ">$gexf_file" ) || die( "Unable to open file '$gexf_file': $!" );
-
-    print FILE encode( 'utf8', XML::Simple::XMLout( $gexf, XMLDecl => 1, RootName => 'gexf' ) );
-
-    close FILE;
-
-}
-
-# call java program to lay out graph.  the java program accepts a gexf file as input and
-# outputs a gexf file with the lay out included
-sub layout_gexf
-{
-    my ( $db, $cdts, $nolayout_gexf ) = @_;
-
-    print STDERR "generating gephi layout ...\n";
-
-    my $tmp_dir = File::Temp::tempdir( "dump_layout_$cdts->{ controversy_dump_time_slices_id }_XXXX" );
-
-    my $nolayout_path = "$tmp_dir/nolayout.gexf";
-    my $layout_path   = "$tmp_dir/layout.gexf";
-
-    my $fh = FileHandle->new( ">$nolayout_path" ) || die( "Unable to open file '$nolayout_path': $!" );
-    $fh->print( encode( 'utf8', $nolayout_gexf ) );
-    $fh->close();
-
-    Readonly my $PATH_TO_GEPHILAYOUT_DIR     => MediaWords::Util::Paths::mc_root_path() . '/java/GephiLayout/';
-    Readonly my $PATH_TO_GEPHILAYOUT_JAR     => "$PATH_TO_GEPHILAYOUT_DIR/build/jar/GephiLayout.jar";
-    Readonly my $PATH_TO_GEPHILAYOUT_TOOLKIT => "$PATH_TO_GEPHILAYOUT_DIR/lib/gephi-toolkit.jar";
-    unless ( -f $PATH_TO_GEPHILAYOUT_JAR )
-    {
-        die "GephiLayout.jar does not exist at path: $PATH_TO_GEPHILAYOUT_JAR";
-    }
-    unless ( -f $PATH_TO_GEPHILAYOUT_TOOLKIT )
-    {
-        die "gephi-toolkit.jar does not exist at path: $PATH_TO_GEPHILAYOUT_TOOLKIT";
-    }
-
-    my $cmd = "";
-    $cmd .= "java -cp $PATH_TO_GEPHILAYOUT_JAR:$PATH_TO_GEPHILAYOUT_TOOLKIT";
-    $cmd .= " ";
-    $cmd .= "edu.law.harvard.cyber.mediacloud.layout.GephiLayout";
-    $cmd .= " ";
-    $cmd .= "$nolayout_path $layout_path";
-
-    # print STDERR "$cmd\n";
-    my $exit_code = system( $cmd );
-    unless ( $exit_code == 0 )
-    {
-        die "Command '$cmd' failed with exit code $exit_code.";
-    }
-
-    post_process_gexf( $db, $layout_path );
-
-    $fh = FileHandle->new( $layout_path ) || die( "Unable to open file '$layout_path': $!" );
-
-    my $layout_gexf;
-    while ( my $line = $fh->getline )
-    {
-        $layout_gexf .= decode( 'utf8', $line );
-    }
-
-    $fh->close;
-
-    unlink( $layout_path, $nolayout_path );
-    rmdir( $tmp_dir );
-
-    return $layout_gexf;
 }
 
 # scale the nodes such that the biggest node size is $MAX_NODE_SIZE and the smallest is $MIN_NODE_SIZE
@@ -1024,8 +943,6 @@ sub scale_node_sizes
         $s = $MIN_NODE_SIZE if ( $s < $MIN_NODE_SIZE );
 
         $node->{ 'viz:size' }->{ value } = $s;
-
-        # say STDERR "viz:size $s";
     }
 }
 
@@ -1045,7 +962,7 @@ sub prune_links_to_top_nodes
         push( @{ $pruned_edges }, $edge ) unless ( $prune_lookup->{ $edge->{ target } } );
     }
 
-    say STDERR "pruned edges: " . ( @{ $edges } - @{ $pruned_edges } );
+    DEBUG( sub { "pruned edges: " . ( scalar( @{ $edges } ) - scalar( @{ $pruned_edges } ) ) } );
 
     return $pruned_edges;
 }
@@ -1066,7 +983,7 @@ sub prune_links_to_min_size
         push( @{ $pruned_edges }, $edge ) if ( $min_size_nodes->{ $edge->{ target } } );
     }
 
-    say STDERR "pruned edges: " . ( @{ $edges } - @{ $pruned_edges } );
+    DEBUG( sub { "pruned edges: " . ( scalar( @{ $edges } ) - scalar( @{ $pruned_edges } ) ) } );
 
     return $pruned_edges;
 }
@@ -1257,109 +1174,6 @@ sub stories_exist_for_period
     return $db->query( "select 1 from dump_period_stories" )->hash;
 }
 
-# dump csv of all links from one story to another in the given story's future
-sub write_post_dated_links_dump
-{
-    my ( $db, $controversy ) = @_;
-
-    write_dump_as_csv( $db, $controversy, 'controversy_post_dated_links_dump', <<END );
-select count(*) post_dated_links, sb.stories_id, min( sb.url ) url, min( sb.publish_date ) publish_date
-    from stories sa, stories sb, controversy_links_cross_media cl
-    where sa.stories_id = cl.stories_id and sb.stories_id = cl.ref_stories_id and
-        sa.publish_date < sb.publish_date - interval '1 day' and
-        not ( sa.url like '%google.search%' ) and
-        cl.controversies_id = $controversy->{ controversies_id }
-    group by sb.stories_id order by count(*) desc;
-END
-
-}
-
-# dump csv of all stories linking to another in the given story's future
-sub write_post_dated_stories_dump
-{
-    my ( $db, $controversy ) = @_;
-
-    write_dump_as_csv( $db, $controversy, 'controversy_post_dated_stories_dump', <<END );
-select distinct sa.stories_id, sa.url, sa.publish_date,
-        count(sa.stories_id) OVER (PARTITION BY sb.stories_id) post_dated_stories, sb.stories_id ref_stories_id,
-        sb.url ref_url, sb.publish_date ref_publish_date
-    from stories sa, stories sb, controversy_links_cross_media cl
-    where sa.stories_id = cl.stories_id and sb.stories_id = cl.ref_stories_id and
-        sa.publish_date < sb.publish_date - interval '1 day' and
-        not ( sa.url like '%sopa.google.search%' ) and
-        cl.controversies_id = $controversy->{ controversies_id }
-    order by post_dated_stories desc, sb.stories_id, sa.publish_date;
-END
-
-}
-
-# dump counts of distinct url domains for the last 1000 stories for each media source in the controversy
-sub write_media_domains_dump
-{
-    my ( $db, $controversy ) = @_;
-
-    my $res = $db->query( <<END );
-select m.* from media m
-    where m.media_id in
-        ( select s.media_id from stories s, controversy_stories cs
-              where s.stories_id = cs.stories_id and
-                  cs.controversies_id = $controversy->{ controversies_id } )
-    order by m.media_id
-END
-
-    my $media_fields = $res->columns;
-    my $media        = $res->hashes;
-
-    print STDERR "generating media domains ...\n";
-
-    my $num_media = scalar( @{ $media } );
-    my $i         = 0;
-    for my $medium ( @{ $media } )
-    {
-        print STDERR "[ $i / $num_media ]\n" unless ( ++$i % 100 );
-
-        my $domain_map = MediaWords::DBI::Media::get_medium_domain_counts( $db, $medium );
-
-        $medium->{ num_domains } = scalar( values( %{ $domain_map } ) );
-
-        my $domain_counts = [];
-        while ( my ( $domain, $count ) = each( %{ $domain_map } ) )
-        {
-            push( @{ $domain_counts }, "[ $domain $count ]" );
-        }
-
-        $medium->{ domain_counts } = join( " ", @{ $domain_counts } );
-
-    }
-
-    my $fields = [ shift( @{ $media_fields } ), ( 'num_domains', 'domain_counts' ), @{ $media_fields } ];
-    my $csv_string = MediaWords::Util::CSV::get_hashes_as_encoded_csv( $media, $fields );
-
-    write_dump_file( $controversy, 'controversy_media_domains', 'csv', $csv_string );
-}
-
-# generate list of all stories with duplicate titles, sorted by title
-sub write_dup_stories_dump
-{
-    my ( $db, $controversy ) = @_;
-
-    write_dump_as_csv( $db, $controversy, 'controversy_dup_stories_dump', <<END );
-select sa.title, sa.stories_id stories_id_a, sa.publish_date publish_date_a, sa.url story_url_a,
-        sa.media_id media_id_a, ma.url media_url_a, ma.name media_name_a,
-        sb.stories_id stories_id_b, sb.publish_date publish_date_b, sb.url story_url_b,
-        sb.media_id media_id_b, mb.url media_url_b, mb.name media_name_b
-    from controversy_stories csa, stories sa, media ma,
-        controversy_stories csb, stories sb, media mb
-    where csa.controversies_id = $controversy->{ controversies_id } and
-        csa.stories_id = sa.stories_id and sa.media_id = ma.media_id and
-        csb.controversies_id = csa.controversies_id and
-        csb.stories_id = sb.stories_id and sb.media_id = mb.media_id and
-        sa.stories_id > sb.stories_id and sa.title = sb.title and
-        length( sa.title ) > 16
-    order by sa.title, sa.stories_id, sb.stories_id
-END
-}
-
 sub create_controversy_dump_time_slice ($$$$$$)
 {
     my ( $db, $cd, $start_date, $end_date, $period, $query_slice ) = @_;
@@ -1427,6 +1241,15 @@ sub update_cdts_counts ($$;$)
     }
 }
 
+# update the state field in the controversy_dump
+sub _update_dump_state
+{
+    my ( $db, $cd, $state ) = @_;
+
+    DEBUG( "set dump state: $state" );
+    $db->update_by_id( 'controversy_dumps', $cd->{ controversy_dumps_id }, { state => $state } );
+}
+
 # generate the dump time slices for the given period, dates, and tag
 sub generate_cdts ($$$$$$)
 {
@@ -1437,11 +1260,13 @@ sub generate_cdts ($$$$$$)
     my $dump_label = "${ period }: ${ start_date } - ${ end_date } ";
     $dump_label .= "[ $query_slice->{ name } ]" if ( $query_slice );
 
-    print "generating $dump_label ...\n";
+    DEBUG( "generating $dump_label ..." );
+
+    _update_dump_state( $db, $cd, "dumping $dump_label" );
 
     my $all_models_top_media = MediaWords::CM::Model::get_all_models_top_media( $db, $cdts );
 
-    print "\ngenerating dump data ...\n";
+    DEBUG( "generating dump data ..." );
     generate_cdts_data( $db, $cdts );
 
     update_cdts_counts( $db, $cdts );
@@ -1562,20 +1387,6 @@ END
 
 }
 
-# write various dumps useful for cleaning up the dataset.  some of these take quite
-# a while to run, so we only want to generate them if needed
-sub write_cleanup_dumps
-{
-    my ( $db, $controversy ) = @_;
-
-    set_dump_label( 'cleanup' );
-
-    write_post_dated_links_dump( $db, $controversy );
-    write_post_dated_stories_dump( $db, $controversy );
-    write_media_domains_dump( $db, $controversy );
-    write_dup_stories_dump( $db, $controversy );
-}
-
 # create temporary table copies of temporary tables so that we can copy
 # the data back into the main temporary tables after tweaking the main temporary tables
 sub copy_temporary_tables
@@ -1619,7 +1430,7 @@ sub create_snapshot
 {
     my ( $db, $obj, $key, $table ) = @_;
 
-    say STDERR "snapshot $table...";
+    DEBUG( "snapshot $table..." );
 
     my $column_names = [ $db->query( <<END, $table, $key )->flat ];
 select column_name from information_schema.columns
@@ -1819,7 +1630,7 @@ sub analyze_snapshot_tables
 {
     my ( $db ) = @_;
 
-    print STDERR "analyzing tables...\n";
+    DEBUG( "analyzing tables..." );
 
     my $snapshot_tables = get_snapshot_tables();
 
@@ -1877,26 +1688,41 @@ SQL
 
     my $cd = create_controversy_dump( $db, $controversy, $start_date, $end_date );
 
-    write_temporary_dump_tables( $db, $controversy->{ controversies_id } );
+    eval {
+        _update_dump_state( $db, $cd, "snapshotting data" );
 
-    generate_snapshots_from_temporary_dump_tables( $db, $cd );
+        write_temporary_dump_tables( $db, $controversy->{ controversies_id } );
 
-    for my $qs ( undef, @{ $query_slices } )
-    {
-        for my $p ( @{ $periods } )
+        generate_snapshots_from_temporary_dump_tables( $db, $cd );
+
+        for my $qs ( undef, @{ $query_slices } )
         {
-            generate_period_dump( $db, $cd, $p, $qs );
+            for my $p ( @{ $periods } )
+            {
+                generate_period_dump( $db, $cd, $p, $qs );
+            }
         }
+
+        _update_dump_state( $db, $cd, "finalizing dump" );
+
+        write_date_counts_dump( $db, $cd, 'daily' );
+        write_date_counts_dump( $db, $cd, 'weekly' );
+
+        analyze_snapshot_tables( $db );
+
+        discard_temp_tables( $db );
+    };
+    if ( $@ )
+    {
+        my $error = $@;
+        ERROR( "dump failed: $error" );
+        _update_dump_state( $db, $cd, "dump failed" );
+        $db->update_by_id( 'controversy_dumps', $cd->{ controversy_dumps_id }, { error_message => $error } );
     }
-
-    write_date_counts_dump( $db, $cd, 'daily' );
-    write_date_counts_dump( $db, $cd, 'weekly' );
-
-    analyze_snapshot_tables( $db );
-
-    discard_temp_tables( $db );
-
-    # write_cleanup_dumps( $db, $controversy ) if ( $cleanup_data );
+    else
+    {
+        _update_dump_state( $db, $cd, "completed" );
+    }
 }
 
 1;
