@@ -32,6 +32,7 @@ use URI::Escape;
 
 use MediaWords::CommonLibs;
 
+use MediaWords::CM::Dump;
 use MediaWords::CM::GuessDate;
 use MediaWords::CM::GuessDate::Result;
 use MediaWords::DB;
@@ -56,10 +57,7 @@ Readonly my $MAX_SELF_LINKED_STORIES => 100;
 Readonly my $MAX_SOCIAL_MEDIA_FETCH_TIME => 3600;
 
 # max number of stories with no bitly metrics
-Readonly my $MAX_NULL_BITLY_STORIES => 100;
-
-# max number of stories with no facebook metrics
-Readonly my $MAX_NULL_FACEBOOK_STORIES => 100;
+Readonly my $MAX_NULL_BITLY_STORIES => 500;
 
 # ignore links that match this pattern
 my $_ignore_link_pattern =
@@ -2610,12 +2608,12 @@ SQL
     return !$null_bitly_story;
 }
 
-# return true if there are fewer than $MAX_NULL_FACEBOOK_STORIES stories without facebook data
+# return true if there are no stories without facebook data
 sub all_facebook_data_fetched
 {
     my ( $db, $controversy ) = @_;
 
-    my $null_facebook_story = $db->query( <<SQL, $controversy->{ controversies_id }, $MAX_NULL_FACEBOOK_STORIES )->hash;
+    my $null_facebook_story = $db->query( <<SQL, $controversy->{ controversies_id } )->hash;
 select 1
     from controversy_stories cs
         left join story_statistics ss on ( cs.stories_id = ss.stories_id )
@@ -2623,12 +2621,10 @@ select 1
         cs.controversies_id = ? and
         (
             ss.stories_id is null or
-            ss.facebook_api_error is not null or
             ss.facebook_share_count is null or
             ss.facebook_comment_count is null or
-            ss.facebook_collect_date is null
+            ss.facebook_api_collect_date is null
         )
-    offset $MAX_NULL_FACEBOOK_STORIES
     limit 1
 SQL
 
@@ -2642,7 +2638,7 @@ sub fetch_social_media_data ($$)
 
     my $cid = $controversy->{ controversies_id };
 
-    # MediaWords::Job::Bitly::ProcessAllControversyStories->run_locally( { controversies_id => $cid } );
+    MediaWords::Job::Bitly::ProcessAllControversyStories->run_locally( { controversies_id => $cid } );
     MediaWords::Job::Facebook::FetchStoryStats->add_controversy_stories_to_queue( $db, $controversy );
 
     my $poll_wait = 30;

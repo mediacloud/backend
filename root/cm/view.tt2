@@ -40,10 +40,6 @@
                 <td>Dates</td>
                 <td>[% controversy.start_date | html %] - [% controversy.end_date | html %]</td>
             </tr>
-            <tr>
-                <td>State</td>
-                <td>[% controversy.state %]</td>
-            </tr>
         </table>
 
         <div class="boxtitle">Dumps</div>
@@ -93,24 +89,21 @@
             <a href="[% c.uri_for( '/admin/cm/view/' _ controversy.controversies_id ) | html %]">(all stories)</a><br />
         </td></tr></table>
 
-        [% IF mining_status.queued_urls %]
-            [% SET ms = mining_status %]
-            <div class="boxtitle">Mining Status</a>
-            <table class="even_rows_grey" >
-                <tr><th>iteration</th><th>stories</th></tr>
-                [% FOREACH iteration IN ms.stories_by_iteration %]
-                    <tr><td>[% iteration.iteration %]</td><td>[% iteration.count %]</td></th>
-                [% END %]
-                <tr><td colspan=2>[% ms.queued_urls %] urls queued</td></tr>
-            </table>
-        [% END %]
+        <div class="boxtitle">
+            Spidering Status
+            <a class="boxcommand" href="[% c.uri_for( '/admin/cm/mine/' _ controversy.controversies_id ) %]">spider</a>
+            <a class="boxcommand" href="[% c.uri_for( '/admin/cm/mining_status/' _ controversy.controversies_id ) %]">status</a>
+        </div>
+        <table><tr><td bgcolor="#ffffff">
+            [% controversy.state %]
+        </td></tr></table>
 
         [% IF bitly_processing_is_enabled AND controversy.process_with_bitly %]
             <div class="boxtitle">
                 Bit.ly Processing
                 <a class="boxcommand" href="[% c.uri_for( '/admin/cm/bitly/add_to_queue/' _ controversy.controversies_id ) %]">add to queue</a>
                 <a class="boxcommand" href="[% c.uri_for( '/admin/cm/bitly/status/' _ controversy.controversies_id ) | html %]">status</a>
-            </a>
+            </div>
         [% END %]
 
         [% INCLUDE cm/include/latest_activities.tt2
