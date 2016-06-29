@@ -2735,6 +2735,8 @@ sub do_mine_controversy ($$;$)
             MediaWords::CM::Dump::dump_controversy( $db, $controversy->{ controversies_id } );
         }
     }
+
+    update_controversy_state( $db, $controversy, "spidering completed" );
 }
 
 # wrap do_mine_controversy in eval and handle errors and state
