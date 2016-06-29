@@ -313,8 +313,6 @@ sub _get_mining_status
 select count(*) from controversy_links where controversies_id = ? and ref_stories_id is null
 END
 
-    return { queued_urls => $queued_urls } unless ( $queued_urls );
-
     my $stories_by_iteration = $db->query( <<END, $cid )->hashes;
 select iteration, count(*) count
     from controversy_stories
