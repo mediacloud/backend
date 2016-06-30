@@ -15,17 +15,23 @@ our @EXPORT = qw(gmt_datetime_from_timestamp gmt_date_string_from_timestamp);
 
 use DateTime;
 
+# Cached because slow
+my $_local_tz = undef;
+
+# Return system timezone
 sub local_timezone
 {
-    my $local_tz = DateTime::TimeZone->new( name => 'local' );
-
-    if ( $local_tz->is_utc )
+    unless ( $_local_tz )
     {
-        # Ubuntu 16.04 doesn't set timezone properly
-        die "Local timezone is set to UTC, you probably need to edit /etc/timezone";
+        $_local_tz = DateTime::TimeZone->new( name => 'local' );
+        if ( $_local_tz->is_utc )
+        {
+            # Ubuntu 16.04 doesn't set timezone properly
+            die "Local timezone is set to UTC, you probably need to edit /etc/timezone";
+        }
     }
 
-    return $local_tz;
+    return $_local_tz;
 }
 
 # Using UNIX timestamp as a parameter, return a DateTime object using GMT
