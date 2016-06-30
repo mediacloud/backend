@@ -1,31 +1,18 @@
 package MediaWords::Util::SQL;
-use Modern::Perl "2015";
-use MediaWords::CommonLibs;
 
-# misc utility functions for sql
+# Misc. utility functions for sql
 
 use strict;
+use warnings;
+
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
 
 use DateTime;
 use DateTime::Format::Pg;
 use Time::Local;
 
 my $_local_tz = DateTime::TimeZone->new( name => 'local' );
-
-# given a ref to a list of ids, return a list suitable
-# for including in a query as an in list, eg:
-# 1,2,3,4
-sub get_ids_in_list
-{
-    my ( $list ) = @_;
-
-    if ( grep( /[^0-9]/, @{ $list } ) )
-    {
-        die( "non-number list id list: " . join( ', ', @{ $list } ) );
-    }
-
-    return join( ',', @{ $list } );
-}
 
 sub get_sql_date_from_epoch
 {
@@ -84,21 +71,6 @@ sub increment_to_monday
     }
 
     return $date;
-}
-
-# in many cases, querying a date field with an in() clause with individual dates
-# is much faster than using date >= $start_date and < $end_date
-sub get_days_clause
-{
-    my ( $start_date, $end_date ) = @_;
-
-    my $dates = [];
-    for ( my $d = $start_date ; $d le $end_date ; $d = MediaWords::Util::SQL::increment_day( $d, 1 ) )
-    {
-        push( @{ $dates }, $d );
-    }
-
-    return "in ( " . join( ',', map { "'$_'" } @{ $dates } ) . " )";
 }
 
 1;
