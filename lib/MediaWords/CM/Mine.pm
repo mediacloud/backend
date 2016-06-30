@@ -2737,7 +2737,7 @@ sub do_mine_controversy ($$;$)
         }
     }
 
-    update_controversy_state( $db, $controversy, "spidering completed" );
+    update_controversy_state( $db, $controversy, "ready" );
 }
 
 # wrap do_mine_controversy in eval and handle errors and state
