@@ -1768,7 +1768,7 @@ sub run_spider
 
     for my $i ( 1 .. $num_iterations )
     {
-        my $status = get_spidering_progress_description( $db, $controversy, $i );
+        my $status = get_spider_progress_description( $db, $controversy, $i );
         update_controversy_state( $db, $controversy, $status );
         spider_new_links( $db, $controversy, $i );
     }
