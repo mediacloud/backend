@@ -4,3 +4,6 @@
 # Solr installed by Gradle
 solr-dist
 
+# PyCharm project directory
+.idea
+
