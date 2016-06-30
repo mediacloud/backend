@@ -1746,7 +1746,7 @@ select count(*) from controversy_stories where controversies_id = ?
 SQL
 
     my ( $stories_last_iteration ) = $db->query( <<SQL, $cid, $iteration )->flat;
-select count(*) from controversy_stories where controversies_id = ? and iteration = ?
+select count(*) from controversy_stories where controversies_id = ? and iteration = ? - 1
 SQL
 
     my ( $queued_links ) = $db->query( <<SQL, $cid )->flat;
@@ -1754,7 +1754,7 @@ select count(*) from controversy_links where controversies_id = ? and ref_storie
 SQL
 
     return <<END;
-spidering iteration: $iteration; stories total / last iteration: $total_stories / $stories_last_iteration; links queue: $queued_links
+spidering iteration: $iteration; stories total / last iteration: $total_stories / $stories_last_iteration; links queued: $queued_links
 END
 
 }
