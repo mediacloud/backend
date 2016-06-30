@@ -373,12 +373,9 @@ sub provide_downloads
             next MEDIA_ID;
         }
 
-        foreach ( 1 .. 5 )
+        if ( my $download = $self->{ downloads }->_pop_download( $media_id->{ media_id } ) )
         {
-            if ( my $download = $self->{ downloads }->_pop_download( $media_id->{ media_id } ) )
-            {
-                push( @downloads, $download );
-            }
+            push( @downloads, $download );
         }
     }
 

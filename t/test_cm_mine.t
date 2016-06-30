@@ -489,7 +489,8 @@ sub test_spider
 
     my $controversy = create_controversy( $db, $sites );
 
-    my $mine_options = { cache_broken_downloads => 0, import_only => 0, skip_outgoing_foreign_rss_links => 0 };
+    my $mine_options =
+      { skip_post_processing => 1, cache_broken_downloads => 0, import_only => 0, skip_outgoing_foreign_rss_links => 0 };
 
     MediaWords::CM::Mine::mine_controversy( $db, $controversy, $mine_options );
 

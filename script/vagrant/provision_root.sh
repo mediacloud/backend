@@ -3,13 +3,14 @@
 #
 # Provisioning script for the *privileged* user (root).
 #
-# Tested on Ubuntu 12.04, 64 bit
+# Tested on Ubuntu (64 bit)
 #
 
 MC_HOSTNAME="mediacloud"
 MC_DOMAINNAME="local"
 MC_LOCALE_LANG="en_US"
 MC_LOCALE_LANG_VARIANT="UTF-8"
+MC_TIMEZONE="America/New_York"
 
 
 # Exit on error
@@ -17,13 +18,21 @@ set -e
 set -u
 set -o errexit
 
-echo "Setting hostname to $MC_HOSTNAME.$MC_DOMAINNAME..."
-echo -n $MC_HOSTNAME.$MC_DOMAINNAME > /etc/hostname
-service hostname restart
-echo "127.0.0.1 $MC_HOSTNAME $MC_HOSTNAME.$MC_DOMAINNAME" >> /etc/hosts
+export DEBIAN_FRONTEND=noninteractive
 
-echo "Setting timezone to Eastern Time..."
-ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
+FQ_HOSTNAME="$MC_HOSTNAME.$MC_DOMAINNAME"
+echo "Setting hostname to $FQ_HOSTNAME..."
+echo -n "$FQ_HOSTNAME" > /etc/hostname
+hostnamectl set-hostname "$FQ_HOSTNAME" || {
+	# pre-16.04 Ubuntus
+	service hostname restart	
+}
+echo "127.0.0.1 $MC_HOSTNAME $FQ_HOSTNAME" >> /etc/hosts
+
+echo "Setting timezone to ${MC_TIMEZONE}..."
+ln -sf "/usr/share/zoneinfo/${MC_TIMEZONE}" /etc/localtime
+echo -n "$MC_TIMEZONE" > /etc/timezone
+dpkg-reconfigure tzdata
 
 echo "Setting default locale (or else Perl's test locale.t will fail)..."
 locale-gen $MC_LOCALE_LANG
@@ -47,7 +56,7 @@ echo "Fetching a list of APT updates and new repository listings..."
 apt-get update
 
 echo "Upgrading packages with APT..."
-DEBIAN_FRONTEND=noninteractive apt-get -y upgrade
+apt-get -y upgrade
 
 echo "Installing some basic utilities..."
-DEBIAN_FRONTEND=noninteractive apt-get -y install vim git screen mc zip unzip links htop
+apt-get -y install vim git screen mc zip unzip links htop

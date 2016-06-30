@@ -18,6 +18,7 @@ use MediaWords::DBI::Activities;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::GuessDate;
+use MediaWords::Job::CM::MineControversy;
 use MediaWords::Solr;
 use MediaWords::Solr::WordCounts;
 use MediaWords::Util::Bitly;
@@ -47,7 +48,7 @@ select c.*
     from controversies c
         left join controversy_dumps cd on ( c.controversies_id = cd.controversies_id )
     group by c.controversies_id
-    order by max( coalesce( cd.dump_date, '2000-01-01'::date ) ) desc
+    order by c.state = 'ready', c.state,  max( coalesce( cd.dump_date, '2000-01-01'::date ) ) desc
 END
 
     $c->stash->{ controversies } = $controversies;
@@ -312,8 +313,6 @@ sub _get_mining_status
 select count(*) from controversy_links where controversies_id = ? and ref_stories_id is null
 END
 
-    return { queued_urls => $queued_urls } unless ( $queued_urls );
-
     my $stories_by_iteration = $db->query( <<END, $cid )->hashes;
 select iteration, count(*) count
     from controversy_stories
@@ -415,8 +414,6 @@ sub view : Local
 
     my $bitly_processing_is_enabled = MediaWords::Util::Bitly::bitly_processing_is_enabled();
 
-    my $mining_status = _get_mining_status( $db, $controversy );
-
     my $query_slices = $db->query( <<SQL, $controversies_id )->hashes;
 select * from controversy_query_slices where controversies_id = ? order by name
 SQL
@@ -426,7 +423,6 @@ SQL
     $c->stash->{ latest_full_dump }            = $latest_full_dump;
     $c->stash->{ latest_activities }           = $latest_activities;
     $c->stash->{ bitly_processing_is_enabled } = $bitly_processing_is_enabled;
-    $c->stash->{ mining_status }               = $mining_status;
     $c->stash->{ query_slices_id }             = $query_slices_id;
     $c->stash->{ query_slices }                = $query_slices;
     $c->stash->{ template }                    = 'cm/view.tt2';
@@ -1076,18 +1072,20 @@ sub _download_cd_csv
 {
     my ( $c, $controversy_dumps_id, $csv ) = @_;
 
-    my $field = $csv . '_csv';
+    my $file = "${ csv }.csv";
 
     my $db = $c->dbis;
 
-    my $cd = $db->find_by_id( 'controversy_dumps', $controversy_dumps_id );
+    my $cd_file = $db->query( <<SQL, $controversy_dumps_id, $file )->hash;
+select * from cd_files where controversy_dumps_id = ? and file_name = ?
+SQL
 
-    my $file = "${ csv }_$cd->{ controversy_dumps_id }.csv";
+    die( "no $file cd_file for dump $controversy_dumps_id" ) unless ( $cd_file );
 
     $c->response->header( "Content-Disposition" => "attachment;filename=$file" );
     $c->response->content_type( 'text/csv; charset=UTF-8' );
-    $c->response->content_length( bytes::length( $cd->{ $field } ) );
-    $c->response->body( $cd->{ $field } );
+    $c->response->content_length( bytes::length( $cd_file->{ file_content } ) );
+    $c->response->body( $cd_file->{ file_content } );
 }
 
 # download the daily_counts_csv for the given dump
@@ -1096,6 +1094,8 @@ sub dump_daily_counts : Local
     my ( $self, $c, $controversy_dumps_id ) = @_;
 
     _download_cd_csv( $c, $controversy_dumps_id, 'daily_counts' );
+
+    return 1;
 }
 
 # download the weekly_counts_csv for the given dump
@@ -1104,6 +1104,8 @@ sub dump_weekly_counts : Local
     my ( $self, $c, $controversy_dumps_id ) = @_;
 
     _download_cd_csv( $c, $controversy_dumps_id, 'weekly_counts' );
+
+    return 1;
 }
 
 # return the latest dump if it is not the dump to which the cdts belongs.  otherwise return undef.
@@ -3174,6 +3176,40 @@ SQL
     $c->stash->{ controversy }  = $controversy;
     $c->stash->{ query_slices } = $query_slices;
     $c->stash->{ template }     = 'cm/edit_query_slices.tt2';
+}
+
+# enqueue a mining job
+sub mine : Local
+{
+    my ( $self, $c, $controversies_id ) = @_;
+
+    my $db = $c->dbis;
+
+    my $controversy = $db->find_by_id( 'controversies', $controversies_id ) || die( "Unable to find controversy" );
+
+    MediaWords::Job::CM::MineControversy->add_to_queue( { controversies_id => $controversies_id } );
+
+    $db->update_by_id( 'controversies', $controversies_id, { state => 'queued for spidering' } );
+
+    my $status = 'Controversy spidering job queued.';
+    $c->res->redirect( $c->uri_for( "/admin/cm/view/" . $controversies_id, { status_msg => $status } ) );
+
+    return;
+}
+
+sub mining_status : Local
+{
+    my ( $self, $c, $controversies_id ) = @_;
+
+    my $db = $c->dbis;
+
+    my $controversy = $db->find_by_id( 'controversies', $controversies_id ) || die( "Unable to find controversy" );
+
+    my $mining_status = _get_mining_status( $db, $controversy );
+
+    $c->stash->{ controversy }   = $controversy;
+    $c->stash->{ mining_status } = $mining_status;
+    $c->stash->{ template }      = 'cm/mining_status.tt2';
 }
 
 1;

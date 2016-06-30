@@ -1073,7 +1073,7 @@ sub _get_stories_id_solr_query
     push( @{ $queries }, map { "stories_id:[$_->[ 0 ] TO $_->[ -1 ]]" } @{ $long_ranges } );
     push( @{ $queries }, 'stories_id:(' . join( ' ', @{ $singletons } ) . ')' ) if ( @{ $singletons } );
 
-    my $query = join( ' OR ', @{ $queries } );
+    my $query = join( ' ', @{ $queries } );
 
     return $query;
 }
@@ -1087,16 +1087,29 @@ sub delete_stories
 
     print STDERR "deleting " . scalar( @{ $stories_ids } ) . " stories ...\n";
 
-    my $stories_id_query = _get_stories_id_solr_query( $stories_ids );
+    $stories_ids = [ sort { $a <=> $b } @{ $stories_ids } ];
 
-    my $delete_query = "<delete><query>$stories_id_query</query></delete>";
+    my $max_chunk_size = 1000;
 
-    eval { _solr_request( 'update', undef, $staging, $delete_query, 'application/xml' ); };
-    if ( $@ )
+    while ( @{ $stories_ids } )
     {
-        my $error = $@;
-        warn "Error while deleting stories: $error";
-        return 0;
+        my $chunk_ids = [];
+        my $chunk_size = List::Util::min( $max_chunk_size, scalar( @{ $stories_ids } ) );
+        map { push( @{ $chunk_ids }, shift( @{ $stories_ids } ) ) } ( 1 .. $chunk_size );
+
+        print STDERR "deleting chunk: " . scalar( @{ $chunk_ids } ) . " stories ...\n";
+
+        my $stories_id_query = _get_stories_id_solr_query( $chunk_ids );
+
+        my $delete_query = "<delete><query>$stories_id_query</query></delete>";
+
+        eval { _solr_request( 'update', undef, $staging, $delete_query, 'application/xml' ); };
+        if ( $@ )
+        {
+            my $error = $@;
+            warn "Error while deleting stories: $error";
+            return 0;
+        }
     }
 
     return 1;

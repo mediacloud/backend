@@ -40,6 +40,7 @@ use MediaWords::Test::Data;
 use MediaWords::Test::LocalServer;
 use MediaWords::Test::Text;
 use MediaWords::Util::Config;
+use MediaWords::Util::DateTime;
 use DBIx::Simple::MediaWords;
 use MediaWords::StoryVectors;
 use LWP::UserAgent;
@@ -320,7 +321,7 @@ sub _dump_stories($$$$)
 
     my $stories = _get_expanded_stories( $db );
 
-    my $tz = DateTime::TimeZone->new( name => 'local' )->name;
+    my $tz = MediaWords::Util::DateTime::local_timezone()->name;
 
     map { $_->{ timezone } = $tz } @{ $stories };
 

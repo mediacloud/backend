@@ -51,10 +51,10 @@ EOF
         my $controversies_id = $controversy->{ controversies_id };
 
         my $stories = $db->query( <<END, $controversies_id )->hashes;
-            SELECT stories_id
-            FROM controversy_stories
-            WHERE controversies_id = ?
-            ORDER BY controversy_stories_id
+            SELECT ss.*, cs.stories_id
+            FROM controversy_stories cs left join story_statistics ss on ( cs.stories_id = ss.stories_id )
+            WHERE cs.controversies_id = ?
+            ORDER BY cs.stories_id
 END
 
         unless ( scalar @{ $stories } )
@@ -62,15 +62,12 @@ END
             say STDERR "No stories found for controversy '$controversy->{ name }' ('$controversy_opt')";
         }
 
-        for my $story ( @{ $stories } )
+        for my $ss ( @{ $stories } )
         {
-            my $stories_id = $story->{ stories_id };
+            my $stories_id = $ss->{ stories_id };
             my $args = { stories_id => $stories_id };
 
-            my $ss = $db->query( "select * from story_statistics where stories_id = ?", $stories_id )->hash;
-
             if (   $overwrite
-                or !$ss
                 or $ss->{ facebook_api_error }
                 or !defined( $ss->{ facebook_api_collect_date } )
                 or !defined( $ss->{ facebook_share_count } )

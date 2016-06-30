@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4552;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4554;
 
 BEGIN
 
@@ -62,7 +62,6 @@ LANGUAGE 'plpgsql';
 
 -- Set the version number right away
 SELECT set_database_schema_version();
-INSERT INTO database_variables( name, value ) values ( 'LAST_STORY_SENTENCES_ID_PROCESSED', '0' );
 
 -- This function is needed because date_trunc('week', date) is not consider immutable
 -- See http://www.mentby.com/Group/pgsql-general/datetrunc-on-date-is-immutable.html
@@ -1232,7 +1231,11 @@ create table controversies (
     controversy_tag_sets_id int not null references tag_sets,
     media_type_tag_sets_id  int references tag_sets,
     process_with_bitly      boolean not null default false,
-    max_iterations          int not null default 15
+    max_iterations          int not null default 15,
+    state                   text not null default 'created but not queued',
+    has_been_spidered       boolean not null default false,
+    has_been_dumped         boolean not null default false,
+    error_message           text null
 );
 
 COMMENT ON COLUMN controversies.process_with_bitly
@@ -1402,7 +1405,9 @@ create table controversy_dumps (
     dump_date                       timestamp not null,
     start_date                      timestamp not null,
     end_date                        timestamp not null,
-    note                            text
+    note                            text,
+    state                           text not null default 'queued',
+    error_message                   text null
 );
 
 create index controversy_dumps_controversy on controversy_dumps ( controversies_id );

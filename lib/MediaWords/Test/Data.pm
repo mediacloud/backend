@@ -15,6 +15,7 @@ BEGIN
 use File::Basename;
 use Data::Dumper;
 use MediaWords::Util::SQL;
+use MediaWords::Util::DateTime;
 
 # get path to where data file(s) should be stored
 sub get_path_to_data_files(;$)
@@ -222,8 +223,8 @@ sub adjust_test_timezone
 {
     my ( $test_stories, $test_timezone ) = @_;
 
-    my $test_tz  = DateTime::TimeZone->new( name => $test_timezone );
-    my $local_tz = DateTime::TimeZone->new( name => 'local' );
+    my $test_tz = DateTime::TimeZone->new( name => $test_timezone );
+    my $local_tz = MediaWords::Util::DateTime::local_timezone();
 
     for my $story ( @{ $test_stories } )
     {

@@ -35,7 +35,7 @@ sub main
     my $crawler = MediaWords::Crawler::Engine->new();
 
     $crawler->processes( $processes );
-    $crawler->throttle( 1 );
+    $crawler->throttle( 10 );
     $crawler->sleep_interval( 10 );
     $crawler->pending_check_interval( 1 ) if ( $use_test_interval );
 

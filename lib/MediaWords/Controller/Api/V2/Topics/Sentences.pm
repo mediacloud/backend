@@ -39,57 +39,28 @@ sub count : Chained('sentences') : Args(0) : ActionClass('REST')
 sub count_GET
 {
     my ( $self, $c ) = @_;
-    my $entity = {};
-    my $q      = $c->req->params->{ 'q' };
-    my $fq     = $c->req->params->{ 'fq' };
-    if ( $q )
-    {
-        my $cdts = MediaWords::CM::get_time_slice_for_controversy(
-            $c->dbis,
-            $c->stash->{ topic_id },
-            $c->req->params->{ timeslice },
-            $c->req->params->{ snapshot }
-        );
-        if ( $cdts->{ controversies_id } + 0 != $c->stash->{ topic_id } + 0 )
-        {
-            $self->status_bad_request( $c, message => "timeslice or snapshot parameter was not associated with topic" );
-            return;
-        }
-        my $solr_df_query = "{~ controversy_dump_time_slice:$cdts->{ controversy_dump_time_slices_id } }";
-        my $composed_fq = $fq ? $solr_df_query . " AND $fq" : $solr_df_query;
-        $c->req->params->{ 'fq' } = $composed_fq;
-        my $split = $c->req->params->{ 'split' };
-        my $response;
-        if ( $split )
-        {
-            $response->{ split }->{ counts } = [];
-            $response = MediaWords::Controller::Api::V2::Sentences::_get_count_with_split( $self, $c );
-            foreach my $key ( sort keys %{ $response->{ split } } )
-            {
-                if ( $key =~ /^\d\d\d\d/ )
-                {
-                    my $data = { date => $key, count => $response->{ split }->{ $key } };
-                    push @{ $response->{ split }->{ counts } }, $data;
-                    delete $response->{ split }->{ $key };
-                }
-            }
-        }
-        else
-        {
-            my $list = MediaWords::Solr::query( $c->dbis, { q => $q, fq => $composed_fq }, $c );
-            $response = { count => $list->{ response }->{ numFound } };
-        }
 
-        # my $response = MediaWords::Solr::query( $c->dbis, { q => $q, fq => $composed_fq }, $c );
-        #
-        # $response = { count => $response->{ response }->{ numFound } };
-        $self->status_ok( $c, entity => $response );
+    my $db = $c->dbis;
 
-    }
-    else
-    {
-        $self->status_bad_request( $c, message => "Did not provide required q parameter" );
-    }
+    my $cdts = MediaWords::CM::require_time_slice_for_controversy(
+        $c->dbis,
+        $c->stash->{ topic_id },
+        $c->req->params->{ timeslice },
+        $c->req->params->{ snapshot }
+    );
+
+    my $q = $c->req->params->{ q };
+
+    my $cdts_clause = "{~ controversy_dump_time_slice:$cdts->{ controversy_dump_time_slices_id } ~}";
+
+    $q = $q ? "$cdts_clause and ( $q )" : $cdts_clause;
+
+    $c->req->params->{ q } = $q;
+
+    $c->req->params->{ split_start_date } ||= substr( $cdts->{ start_date }, 0, 12 );
+    $c->req->params->{ split_end_date }   ||= substr( $cdts->{ end_date },   0, 12 );
+
+    return $c->controller( 'Api::V2::Sentences' )->count_GET( $c );
 }
 
 1;
