@@ -87,7 +87,7 @@ sub update_controversy_state
 
     INFO( $state );
 
-    $db->update_by_id( 'controversies', $controversy->{ controversies_id }, { state => "spidering: $state" } );
+    $db->update_by_id( 'controversies', $controversy->{ controversies_id }, { state => "$state" } );
 }
 
 # fetch each link and add a { redirect_url } field if the
@@ -1754,7 +1754,7 @@ select count(*) from controversy_links where controversies_id = ? and ref_storie
 SQL
 
     return <<END;
-iteration: $iteration; stories total / last iteration: $total_stories / $stories_last_iteration; link queue: $queued_links
+spidering iteration: $iteration; stories total / last iteration: $total_stories / $stories_last_iteration; links queue: $queued_links
 END
 
 }
@@ -1768,7 +1768,8 @@ sub run_spider
 
     for my $i ( 1 .. $num_iterations )
     {
-        update_controversy_state( $db, $controversy, "spidering iteration $i" );
+        my $status = get_spidering_progress_description( $db, $controversy, $i );
+        update_controversy_state( $db, $controversy, $status );
         spider_new_links( $db, $controversy, $i );
     }
 }
