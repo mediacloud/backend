@@ -48,7 +48,7 @@ select c.*
     from controversies c
         left join controversy_dumps cd on ( c.controversies_id = cd.controversies_id )
     group by c.controversies_id
-    order by c.state like '%completed',  max( coalesce( cd.dump_date, '2000-01-01'::date ) ) desc
+    order by c.state = 'ready', c.state,  max( coalesce( cd.dump_date, '2000-01-01'::date ) ) desc
 END
 
     $c->stash->{ controversies } = $controversies;
