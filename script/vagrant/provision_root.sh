@@ -10,6 +10,7 @@ MC_HOSTNAME="mediacloud"
 MC_DOMAINNAME="local"
 MC_LOCALE_LANG="en_US"
 MC_LOCALE_LANG_VARIANT="UTF-8"
+MC_TIMEZONE="America/New_York"
 
 
 # Exit on error
@@ -28,8 +29,10 @@ hostnamectl set-hostname "$FQ_HOSTNAME" || {
 }
 echo "127.0.0.1 $MC_HOSTNAME $FQ_HOSTNAME" >> /etc/hosts
 
-echo "Setting timezone to Eastern Time..."
-ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
+echo "Setting timezone to ${MC_TIMEZONE}..."
+ln -sf "/usr/share/zoneinfo/${MC_TIMEZONE}" /etc/localtime
+echo -n "$MC_TIMEZONE" > /etc/timezone
+dpkg-reconfigure tzdata
 
 echo "Setting default locale (or else Perl's test locale.t will fail)..."
 locale-gen $MC_LOCALE_LANG

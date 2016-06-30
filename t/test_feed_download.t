@@ -34,6 +34,7 @@ require Test::NoWarnings;
 use MediaWords::Crawler::Engine;
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
+use MediaWords::Util::DateTime;
 use MediaWords::Test::DB;
 use MediaWords::Test::Data;
 use MediaWords::Test::LocalServer;
@@ -102,7 +103,7 @@ sub dump_stories
 
     my $stories = get_expanded_stories( $db, $feed );
 
-    my $tz = DateTime::TimeZone->new( name => 'local' )->name;
+    my $tz = MediaWords::Util::DateTime::local_timezone()->name;
 
     map { $_->{ timezone } = $tz } @{ $stories };
 

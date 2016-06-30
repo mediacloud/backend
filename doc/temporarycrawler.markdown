@@ -48,7 +48,7 @@ Following are instructions for setting up and running a temporary crawler (backu
 
         sudo dpkg-reconfigure tzdata
 
-    and select `America/New_York`.
+    and select `America/New_York`. Additionally, ensure that `America/New_York` is set in `/etc/timezone`.
 
     **Be aware that AWS machines are often initially setup with UTC as the timezone instead of Eastern.** Vagrant should be able to do this automatically for you.
 
