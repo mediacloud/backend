@@ -8,18 +8,18 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use MediaWords::Util::DateTime;
+
 use DateTime;
 use DateTime::Format::Pg;
 use Time::Local;
-
-my $_local_tz = DateTime::TimeZone->new( name => 'local' );
 
 sub get_sql_date_from_epoch
 {
     my ( $epoch ) = @_;
 
     my $dt = DateTime->from_epoch( epoch => $epoch );
-    $dt->set_time_zone( $_local_tz );
+    $dt->set_time_zone( MediaWords::Util::DateTime::local_timezone() );
 
     my $date = $dt->datetime;
 
@@ -39,7 +39,7 @@ sub get_epoch_from_sql_date
     my ( $date ) = @_;
 
     my $dt = DateTime::Format::Pg->parse_datetime( $date );
-    $dt->set_time_zone( $_local_tz );
+    $dt->set_time_zone( MediaWords::Util::DateTime::local_timezone() );
 
     return $dt->epoch;
 }
