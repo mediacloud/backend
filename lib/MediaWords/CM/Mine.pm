@@ -87,7 +87,7 @@ sub update_controversy_state
 
     INFO( $state );
 
-    $db->update_by_id( 'controversies', $controversy->{ controversies_id }, { state => "spidering: $state" } );
+    $db->update_by_id( 'controversies', $controversy->{ controversies_id }, { state => "$state" } );
 }
 
 # fetch each link and add a { redirect_url } field if the
@@ -1754,7 +1754,7 @@ select count(*) from controversy_links where controversies_id = ? and ref_storie
 SQL
 
     return <<END;
-iteration: $iteration; stories total / last iteration: $total_stories / $stories_last_iteration; link queue: $queued_links
+spidering iteration: $iteration; stories total / last iteration: $total_stories / $stories_last_iteration; links queue: $queued_links
 END
 
 }
@@ -1768,7 +1768,8 @@ sub run_spider
 
     for my $i ( 1 .. $num_iterations )
     {
-        update_controversy_state( $db, $controversy, "spidering iteration $i" );
+        my $status = get_spidering_progress_description( $db, $controversy, $i );
+        update_controversy_state( $db, $controversy, $status );
         spider_new_links( $db, $controversy, $i );
     }
 }
@@ -2668,61 +2669,61 @@ sub do_mine_controversy ($$;$)
         $options )
       || die( "Unable to log the 'cm_mine_controversy' activity." );
 
-    update_controversy_state( $db, $controversy, "importing solr seed query ..." );
+    update_controversy_state( $db, $controversy, "importing solr seed query" );
     import_solr_seed_query( $db, $controversy );
 
-    update_controversy_state( $db, $controversy, "importing seed urls ..." );
+    update_controversy_state( $db, $controversy, "importing seed urls" );
     import_seed_urls( $db, $controversy );
 
-    update_controversy_state( $db, $controversy, "mining controversy stories ..." );
+    update_controversy_state( $db, $controversy, "mining controversy stories" );
     mine_controversy_stories( $db, $controversy );
 
     # # merge dup media and stories here to avoid redundant link processing for imported urls
-    update_controversy_state( $db, $controversy, "merging media_dup stories ..." );
+    update_controversy_state( $db, $controversy, "merging duplicate media stories" );
     merge_dup_media_stories( $db, $controversy );
 
-    update_controversy_state( $db, $controversy, "merging dup stories ..." );
+    update_controversy_state( $db, $controversy, "merging duplicate stories" );
     find_and_merge_dup_stories( $db, $controversy );
 
     unless ( $options->{ import_only } )
     {
-        update_controversy_state( $db, $controversy, "merging foreign_rss stories ..." );
+        update_controversy_state( $db, $controversy, "merging foreign rss stories" );
         merge_foreign_rss_stories( $db, $controversy );
 
-        update_controversy_state( $db, $controversy, "adding redirect urls to controversy stories ..." );
+        update_controversy_state( $db, $controversy, "adding redirect urls to controversy stories" );
         add_redirect_urls_to_controversy_stories( $db, $controversy );
 
-        update_controversy_state( $db, $controversy, "mining controversy stories ..." );
+        update_controversy_state( $db, $controversy, "mining controversy stories" );
         mine_controversy_stories( $db, $controversy );
 
-        update_controversy_state( $db, $controversy, "running spider ..." );
+        update_controversy_state( $db, $controversy, "running spider" );
         run_spider( $db, $controversy );
 
         # disabling because there are too many foreign_rss_links media sources
         # with bogus feeds that pollute the results
         # if ( !$options->{ skip_outgoing_foreign_rss_links } )
         # {
-        #     update_controversy_state( $db, $controversy, "adding outgoing foreign rss links ..." );
+        #     update_controversy_state( $db, $controversy, "adding outgoing foreign rss links" );
         #     add_outgoing_foreign_rss_links( $db, $controversy );
         # }
 
-        update_controversy_state( $db, $controversy, "merging archive_is stories ..." );
+        update_controversy_state( $db, $controversy, "merging archive stories" );
         merge_archive_is_stories( $db, $controversy );
 
         # merge dup media and stories again to catch dups from spidering
-        update_controversy_state( $db, $controversy, "merging media_dup stories ..." );
+        update_controversy_state( $db, $controversy, "merging duplicate media stories" );
         merge_dup_media_stories( $db, $controversy );
 
-        update_controversy_state( $db, $controversy, "merging dup stories ..." );
+        update_controversy_state( $db, $controversy, "merging duplicate stories" );
         find_and_merge_dup_stories( $db, $controversy );
 
-        update_controversy_state( $db, $controversy, "adding source link dates ..." );
+        update_controversy_state( $db, $controversy, "adding source link dates" );
         add_source_link_dates( $db, $controversy );
 
-        update_controversy_state( $db, $controversy, "updating story_tags ..." );
+        update_controversy_state( $db, $controversy, "updating story_tags" );
         update_controversy_tags( $db, $controversy );
 
-        update_controversy_state( $db, $controversy, "analyzing controversy tables..." );
+        update_controversy_state( $db, $controversy, "analyzing controversy tables" );
         $db->query( "analyze controversy_stories" );
         $db->query( "analyze controversy_links" );
 
