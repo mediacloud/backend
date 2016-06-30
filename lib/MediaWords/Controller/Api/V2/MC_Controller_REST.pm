@@ -78,6 +78,8 @@ sub end : Private
             $c->log->error( $error );
         }
 
+        map { $_ =~ s/Caught exception.*"(.*)at \/.*/$1/ } @{ $c->stash->{ errors } };
+
         my $message = 'Error(s): ' . join( '; ', @{ $c->stash->{ errors } } );
         my $body = JSON->new->utf8->encode( { 'error' => $message } );
 
