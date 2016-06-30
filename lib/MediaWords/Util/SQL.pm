@@ -12,7 +12,6 @@ use MediaWords::Util::DateTime;
 
 use DateTime;
 use DateTime::Format::Pg;
-use Time::Local;
 
 sub get_sql_date_from_epoch
 {
