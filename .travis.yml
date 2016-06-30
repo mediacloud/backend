@@ -4,7 +4,7 @@ sudo: true
 perl:
     - "5.22"
 addons:
-    postgresql: "9.3"
+    postgresql: "9.5"
     hosts:
         - mediacloud.local
 cache:
