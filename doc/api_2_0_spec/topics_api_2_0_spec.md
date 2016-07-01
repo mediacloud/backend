@@ -12,15 +12,15 @@
       - [Query Parameters](#query-parameters)   
       - [Input Description](#input-description)   
       - [Example](#example)   
-   - [topics/&lt;topics_id&gt;/edit (PUT)](#topicslttopics_idgtedit-put)   
+   - [topics/~topics_id~/edit (PUT)](#topicstopics_idedit-put)   
       - [Query Parameters](#query-parameters-1)   
       - [Input Description](#input-description-1)   
       - [Example](#example-1)   
-   - [topics/&lt;topics_id&gt;/spider](#topicslttopics_idgtspider)   
+   - [topics/~topics_id~/spider](#topicstopics_idspider)   
       - [Query Parameters](#query-parameters-2)   
       - [Output Description](#output-description)   
       - [Example](#example-2)   
-   - [topics/&lt;topics_id&gt;/iterations/list](#topicslttopics_idgtiterationslist)   
+   - [topics/~topics_id~/iterations/list](#topicstopics_iditerationslist)   
       - [Query Parameters](#query-parameters-3)   
       - [Output Description](#output-description-1)   
       - [Example](#example-3)   
@@ -37,12 +37,12 @@
       - [Query Parameters](#query-parameters-6)   
       - [Output Description](#output-description-4)   
       - [Example](#example-6)   
-   - [stories/&lt;stories_id&gt;/edit (PUT)](#storiesltstories_idgtedit-put)   
+   - [stories/~stories_id~/edit (PUT)](#storiesstories_idedit-put)   
       - [Query Parameters](#query-parameters-7)   
       - [Input Description](#input-description-2)   
       - [Output Description](#output-description-5)   
       - [Example](#example-7)   
-   - [stories/&lt;stories_id&gt;/remove (PUT)](#storiesltstories_idgtremove-put)   
+   - [stories/~stories_id~/remove (PUT)](#storiesstories_idremove-put)   
       - [Query Parameters](#query-parameters-8)   
       - [Output Description](#output-description-6)   
       - [Example](#example-8)   
@@ -58,11 +58,11 @@
       - [Query Parameters](#query-parameters-10)   
       - [Output Description](#output-description-8)   
       - [Example](#example-10)   
-   - [media/&lt;media_id&gt;/edit (PUT)](#medialtmedia_idgtedit-put)   
+   - [media/~media_id~/edit (PUT)](#mediamedia_idedit-put)   
       - [Query Parameters](#query-parameters-11)   
       - [Input Description](#input-description-4)   
       - [Example](#example-11)   
-   - [media/&lt;media_id&gt;/remove (PUT)](#medialtmedia_idgtremove-put)   
+   - [media/~media_id~/remove (PUT)](#mediamedia_idremove-put)   
       - [Query Parameters](#query-parameters-12)   
       - [Output Description](#output-description-9)   
       - [Example](#example-12)   
@@ -80,11 +80,11 @@
       - [Query Parameters](#query-parameters-14)   
       - [Input Description](#input-description-6)   
       - [Example](#example-14)   
-   - [frame_set_definitions/&lt;frame_set_definitions_id&gt;/update (PUT)](#frame_set_definitionsltframe_set_definitions_idgtupdate-put)   
+   - [frame_set_definitions/~frame_set_definitions_id~/update (PUT)](#frame_set_definitionsframe_set_definitions_idupdate-put)   
       - [Query Parameters](#query-parameters-15)   
       - [Input Parameters](#input-parameters)   
       - [Example](#example-15)   
-   - [frame_set_definitions/&lt;frame_set_definitions_id&gt;/delete (PUT)](#frame_set_definitionsltframe_set_definitions_idgtdelete-put)   
+   - [frame_set_definitions/~frame_set_definitions_id~/delete (PUT)](#frame_set_definitionsframe_set_definitions_iddelete-put)   
       - [Query Parameters](#query-parameters-16)   
       - [Output Description](#output-description-11)   
       - [Example](#example-16)   
@@ -96,11 +96,11 @@
       - [Query Parameters](#query-parameters-18)   
       - [Output Description](#output-description-13)   
       - [Example](#example-18)   
-   - [frame_definitions/&lt;frame_set_definitions_id&gt;/create (POST)](#frame_definitionsltframe_set_definitions_idgtcreate-post)   
+   - [frame_definitions/~frame_set_definitions_id~/create (POST)](#frame_definitionsframe_set_definitions_idcreate-post)   
       - [Query Parameters](#query-parameters-19)   
       - [Input Description](#input-description-7)   
       - [Example](#example-19)   
-   - [frame_definitions/&lt;frame_definitions_id&gt;/update (PUT)](#frame_definitionsltframe_definitions_idgtupdate-put)   
+   - [frame_definitions/~frame_definitions_id~/update (PUT)](#frame_definitionsframe_definitions_idupdate-put)   
       - [Query Parameters](#query-parameters-20)   
       - [Input Description](#input-description-8)   
       - [Example](#example-20)   
@@ -122,7 +122,7 @@
       - [Query Paramaters](#query-paramaters)   
       - [Output Description](#output-description-16)   
       - [Example](#example-24)   
-   - [snapshots/&lt;snapshots_id&gt;/edit (PUT)](#snapshotsltsnapshots_idgtedit-put)   
+   - [snapshots/~snapshots_id~/edit (PUT)](#snapshotssnapshots_idedit-put)   
       - [Query Parameters](#query-parameters-24)   
       - [Input Description](#input-description-10)   
       - [Output Description](#output-description-17)   
@@ -187,7 +187,7 @@ data.
 
 All urls in the topics api are in the form:
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id&gt;/stories/list`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/list`
 
 For example, the following will return all stories in the latest snapshot of topic id 1344.
 
@@ -353,9 +353,9 @@ to have saner errors for? -->
 
 <!-- TODO - RB - do we need a public flag? or is that something we'll figure out with the permissions stuff separately -->
 
-## topics/&lt;topics_id&gt;/edit (PUT)
+## topics/~topics_id~/edit (PUT)
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id&gt;/edit`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/edit`
 
 Edit an existing *topic*.
 
@@ -406,9 +406,9 @@ Response:
 }
 ```
 
-## topics/&lt;topics_id&gt;/spider
+## topics/~topics_id~/spider
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id&gt;/spider`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/spider`
 
 Start a topic spidering job.
 
@@ -442,9 +442,9 @@ Response:
 { "success": 1 }
 ```
 
-## topics/&lt;topics_id&gt;/iterations/list
+## topics/~topics_id~/iterations/list
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id&gt;/iterations/list`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/iterations/list`
 
 Return list of spider iterations with a story count for each
 
@@ -463,7 +463,7 @@ Return list of spider iterations with a story count for each
 
 Get the list of iterations for the 'U.S. 2016 Election' topic:
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id&gt;/iterations/list`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/iterations/list`
 
 Response:
 
@@ -483,7 +483,8 @@ Response:
       "iteration": 2,
       "count": 300,
     }
-]
+  ]
+}
 ```
 
 ## topics/list
@@ -558,7 +559,7 @@ Response:
 
 ## stories/list
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id&gt;/stories/list`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/list`
 
 The stories list call returns stories in the topic.
 
@@ -638,7 +639,7 @@ Response:
 
 ## stories/count
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id&gt;/stories/count`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/count`
 
 Return the number of stories that match the query.
 
@@ -665,7 +666,7 @@ Standard parameters accepted : snapshots_id, frames_id, timespans_id, limit.
 
 Return the number of stories that mention 'immigration' in the 'US Election' topic:
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id&gt;/stories_count?q=immigration`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/stories_count?q=immigration`
 
 Response:
 
@@ -673,9 +674,9 @@ Response:
 { "count": 123 }
 ```
 
-## stories/&lt;stories_id&gt;/edit (PUT)
+## stories/~stories_id~/edit (PUT)
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id>/stories/<stories_id&gt;/edit`
+`https://api.mediacloud.org/api/v2/topics/~topics_id>/stories/<stories_id~/edit`
 
 Edit and return a story.  Editing a story changes that story for all topics.
 
@@ -701,7 +702,7 @@ Edit and return a story.  Editing a story changes that story for all topics.
 
 Edit the publish_date of story 123456:
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id>/stories/<stories_id&gt;/edit`
+`https://api.mediacloud.org/api/v2/topics/~topics_id>/stories/<stories_id~/edit`
 
 Input:
 
@@ -715,9 +716,9 @@ Response:
 
 (see stories/list)
 
-## stories/&lt;stories_id&gt;/remove (PUT)
+## stories/~stories_id~/remove (PUT)
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id>/stories/<stories_id&gt;/remove`
+`https://api.mediacloud.org/api/v2/topics/~topics_id>/stories/<stories_id~/remove`
 
 Remove the given story from the topic (but do not delete it from Media Cloud).
 
@@ -745,7 +746,7 @@ Response:
 
 ## stories/merge (PUT)
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id&gt;/stories/merge`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/merge`
 
 Merge one story into another story within this controversy.
 
@@ -772,7 +773,7 @@ Merging from_stories_id into to_stories_id removes from_stories_id from the cont
 
 Merge story 1234 into story 6789:
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id&gt;/stories/merge`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/merge`
 
 Input:
 
@@ -793,7 +794,7 @@ Response:
 
 ## sentences/count
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id&gt;/sentences/count`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/sentences/count`
 
 Return the numer of sentences that match the query, optionally split by date.
 
@@ -808,7 +809,7 @@ For details about this end point, including parameters, output, and examples, se
 
 ## media/list
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id&gt;/media/list`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/media/list`
 
 The media list call returns the list of media in the topic.
 
@@ -844,7 +845,7 @@ Standard parameters accepted: snapshots_id, frames_id, timespans_id, limit, link
 
 Return all stories in the medium that match 'twitt':
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id&gt;/media/list?name=twitt`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/media/list?name=twitt`
 
 Response:
 
@@ -871,9 +872,9 @@ Response:
     }
 }
 ```
-## media/&lt;media_id&gt;/edit (PUT)
+## media/~media_id~/edit (PUT)
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id>/media/<media_id&gt;/edit`
+`https://api.mediacloud.org/api/v2/topics/~topics_id>/media/<media_id~/edit`
 
 Edit and return the given media source.  Media source edits apply to that media source for all controversies.
 
@@ -894,7 +895,7 @@ Edit and return the given media source.  Media source edits apply to that media 
 
 Edit the name of media_id 1:
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id>/media/<media_id&gt;/edit`
+`https://api.mediacloud.org/api/v2/topics/~topics_id>/media/<media_id~/edit`
 
 Input:
 
@@ -909,9 +910,9 @@ Output:
 
 (see media/list)
 
-## media/&lt;media_id&gt;/remove (PUT)
+## media/~media_id~/remove (PUT)
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id>/media/<media_id&gt;/remove`
+`https://api.mediacloud.org/api/v2/topics/~topics_id>/media/<media_id~/remove`
 
 Remove the given medium from the topic (but do not delete it from Media Cloud).
 
@@ -939,7 +940,7 @@ Response:
 
 ## media/merge (PUT)
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id&gt;/media/merge`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/media/merge`
 
 Merge all stories from one medium into another medium within this topic.
 
@@ -966,7 +967,7 @@ Mergin from_media_id into to_media_id merges all stories of from_media_it into t
 
 Merge medium 1 into medium 2:
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id&gt;/media/merge`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/media/merge`
 
 Input:
 
@@ -987,7 +988,7 @@ Response:
 
 ## wc/list
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id&gt;/wc/list`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/wc/list`
 
 Returns sampled counts of the most prevalent words in a topic, optionally restricted to sentences that match a given query.
 
@@ -1033,7 +1034,7 @@ The Boolean Query framing method associates a frame with a story by matching tha
 
 ## frame_set_definitions/create (POST)
 
-`https://api.mediacloud.org/api/topics/&lt;topics_id&gt;/frame_sets/create`
+`https://api.mediacloud.org/api/topics/~topics_id~/frame_sets/create`
 
 Create and return a new *frame set definiition*  within the given *topic*.
 
@@ -1082,9 +1083,9 @@ Response:
 }
 ```
 
-## frame_set_definitions/&lt;frame_set_definitions_id&gt;/update (PUT)
+## frame_set_definitions/~frame_set_definitions_id~/update (PUT)
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id>/frame_set_definitions/<frame_set_definitions_id&gt;/update/`
+`https://api.mediacloud.org/api/v2/topics/~topics_id>/frame_set_definitions/<frame_set_definitions_id~/update/`
 
 Update the given frame set definition.
 
@@ -1129,9 +1130,9 @@ Response:
 }
 ```
 
-## frame_set_definitions/&lt;frame_set_definitions_id&gt;/delete (PUT)
+## frame_set_definitions/~frame_set_definitions_id~/delete (PUT)
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id>/frame_set_definitions/<frame_set_definitions_id&gt;/delete`
+`https://api.mediacloud.org/api/v2/topics/~topics_id>/frame_set_definitions/<frame_set_definitions_id~/delete`
 
 Delete a frame set definition.
 
@@ -1149,7 +1150,7 @@ Delete a frame set definition.
 
 Delete frame_set_definitions_id 123:
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id&gt;/frame_set_definitions/123/delete`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/frame_set_definitions/123/delete`
 
 Response:
 
@@ -1175,7 +1176,7 @@ Another way I could have done this is to have the 'frame set' objects be the tem
 frame set' objects that have the actual data in them.  But the idea of a 'frame set definition' seems cleaner and
 clearer than a 'snapshot frame set'. -->
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id&gt;/frame_set_definitions/list`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/frame_set_definitions/list`
 
 Return a list of all frame set definitions belonging to the given topic.
 
@@ -1219,7 +1220,7 @@ Response:
 
 ## frame_sets/list
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id&gt;/frame_sets/list`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/frame_sets/list`
 
 List all *frame sets* belonging to the current *snapshot* in the given *topic*.
 
@@ -1274,9 +1275,9 @@ Response:
 ```
 
 
-## frame_definitions/&lt;frame_set_definitions_id&gt;/create (POST)
+## frame_definitions/~frame_set_definitions_id~/create (POST)
 
-`https://api.mediacloud.org/api/topics/&lt;topics_id>/frame_sets/<frame_set_definitions_id&gt;/create/`
+`https://api.mediacloud.org/api/topics/~topics_id>/frame_sets/<frame_set_definitions_id~/create/`
 
 Create and return a new *frame definiition*  within the given *topic* and *frame set definition*.
 
@@ -1328,9 +1329,9 @@ Response:
 ```
 
 
-## frame_definitions/&lt;frame_definitions_id&gt;/update (PUT)
+## frame_definitions/~frame_definitions_id~/update (PUT)
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id>/frame_definitions/<frame_definitions_id&gt;/update`
+`https://api.mediacloud.org/api/v2/topics/~topics_id>/frame_definitions/<frame_definitions_id~/update`
 
 Update the given frame definition.
 
@@ -1372,7 +1373,7 @@ Response:
 
 ## frame_definitions/list
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id>/frame_definitions/<frame_set_definitions_id&gt;/list`
+`https://api.mediacloud.org/api/v2/topics/~topics_id>/frame_definitions/<frame_set_definitions_id~/list`
 
 List all *frame definitions* belonging to the given *frame set definition*.
 
@@ -1415,7 +1416,7 @@ Response:
 
 ## frames/list
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id>/frame_sets/<frame_sets_id&gt;/frames/list`
+`https://api.mediacloud.org/api/v2/topics/~topics_id>/frame_sets/<frame_sets_id~/frames/list`
 
 Return a list of the *frames* belonging to the given *frame set*.
 
@@ -1463,7 +1464,7 @@ Each *snapshot* contains a static copy of all data within a topic at the time th
 
 ## snapshots/generate (POST)
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id&gt;/snapshots/generate`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/snapshots/generate`
 
 Generate and return a new *snapshot* for the given topic.
 
@@ -1500,7 +1501,7 @@ Response:
 
 ### snapshots/list
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id&gt;/snapshots/list`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/snapshots/list`
 
 Return a list of all completed *snapshots* in the given *topic*.
 
@@ -1538,9 +1539,9 @@ Response:
 ```
 <!-- TODO - I bet it will be useful to include the username here that generated it -->
 
-## snapshots/&lt;snapshots_id&gt;/edit (PUT)
+## snapshots/~snapshots_id~/edit (PUT)
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id>/snapshots/<snapshots_id&gt;/edit`
+`https://api.mediacloud.org/api/v2/topics/~topics_id>/snapshots/<snapshots_id~/edit`
 
 Edit and return the snapshot.
 
@@ -1563,7 +1564,7 @@ Edit and return the snapshot.
 
 Edit the notes for snapshot 4567:
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id>/snapshots/<snapshots_id&gt;/edit`
+`https://api.mediacloud.org/api/v2/topics/~topics_id>/snapshots/<snapshots_id~/edit`
 
 Input:
 
@@ -1586,7 +1587,7 @@ A *story* is included within a *timespan* if the publish_date of the story is wi
 
 ## timespans/list
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id&gt;/timespans/list`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/timespans/list`
 
 Return a list of timespans in the current snapshot.
 
@@ -1660,7 +1661,7 @@ Response:
 objects with ids.  We don't need to delete them. That seems simpler to me, but if consistency is more important
 I'm fine with that. -->
 
-`https://api.meiacloud.org/api/v1/topics/&lt;topics_id&gt;/timespans/add_dates`
+`https://api.meiacloud.org/api/v1/topics/~topics_id~/timespans/add_dates`
 
 Add a date range for which to generate *timespans* for future *spanshots*.
 
@@ -1702,7 +1703,7 @@ Response:
 
 ## timespans/list_dates
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id&gt;/timespans/list_dates`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/timespans/list_dates`
 
 List the dates for which timespans will be generated for each new snapshot.
 
@@ -1722,7 +1723,7 @@ List the dates for which timespans will be generated for each new snapshot.
 
 List all timespans for the 'U.S. Election 2012' topic:
 
-`https://api.mediacloud.org/api/v2/topics/&lt;topics_id&gt;/timespans/list_dates`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/timespans/list_dates`
 
 Response:
 
