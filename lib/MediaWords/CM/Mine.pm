@@ -2733,8 +2733,7 @@ sub do_mine_controversy ($$;$)
             fetch_social_media_data( $db, $controversy );
 
             update_controversy_state( $db, $controversy, "dumping" );
-
-            #MediaWords::CM::Dump::dump_controversy( $db, $controversy->{ controversies_id } );
+            MediaWords::CM::Dump::dump_controversy( $db, $controversy->{ controversies_id } );
         }
     }
 
