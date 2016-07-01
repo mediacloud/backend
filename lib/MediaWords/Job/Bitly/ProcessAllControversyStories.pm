@@ -61,11 +61,6 @@ sub run($;$)
     }
     DEBUG "Done fetching controversy $controversies_id.";
 
-    unless ( $controversy->{ process_with_bitly } )
-    {
-        die "Controversy $controversies_id is not set up for Bit.ly processing; please set controversies.process_with_bitly";
-    }
-
     DEBUG "Fetching controversy's $controversies_id start and end timestamps...";
     my $timestamps = $db->query(
         <<EOF,
