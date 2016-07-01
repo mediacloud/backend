@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4554;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4555;
 
 BEGIN
 
@@ -1230,16 +1230,12 @@ create table controversies (
     description             text not null,
     controversy_tag_sets_id int not null references tag_sets,
     media_type_tag_sets_id  int references tag_sets,
-    process_with_bitly      boolean not null default false,
     max_iterations          int not null default 15,
     state                   text not null default 'created but not queued',
     has_been_spidered       boolean not null default false,
     has_been_dumped         boolean not null default false,
     error_message           text null
 );
-
-COMMENT ON COLUMN controversies.process_with_bitly
-    IS 'Enable processing controversy''s stories with Bit.ly; add all new controversy stories to Bit.ly processing queue';
 
 create unique index controversies_name on controversies( name );
 create unique index controversies_tag_set on controversies( controversy_tag_sets_id );
@@ -1786,8 +1782,7 @@ BEGIN
 
     SELECT 1 INTO controversy_exists
     FROM controversies
-    WHERE controversies_id = param_controversies_id
-      AND process_with_bitly = 't';
+    WHERE controversies_id = param_controversies_id;
     IF NOT FOUND THEN
         RAISE EXCEPTION 'Controversy % does not exist or is not set up for Bit.ly processing.', param_controversies_id;
         RETURN FALSE;
@@ -1921,7 +1916,9 @@ create table cd.story_link_counts (
 
     -- Bit.ly stats
     -- (values can be NULL if Bit.ly is not enabled / configured for a controversy)
-    bitly_click_count                       int null
+    bitly_click_count                       int null,
+
+    facebook_share_count                    int null
 );
 
 -- TODO: add complex foreign key to check that stories_id exists for the controversy_dump stories snapshot

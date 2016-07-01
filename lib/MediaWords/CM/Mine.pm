@@ -40,7 +40,7 @@ use MediaWords::DBI::Activities;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::GuessDate;
-use MediaWords::Job::Bitly::ProcessAllControversyStories;
+use MediaWords::Job::Bitly::FetchStoryStats;
 use MediaWords::Job::Facebook::FetchStoryStats;
 use MediaWords::Solr;
 use MediaWords::Util::HTML;
@@ -2639,7 +2639,7 @@ sub fetch_social_media_data ($$)
 
     my $cid = $controversy->{ controversies_id };
 
-    MediaWords::Job::Bitly::ProcessAllControversyStories->run_locally( { controversies_id => $cid } );
+    MediaWords::Job::Bitly::FetchStoryStats->add_controversy_stories_to_queue( $db, $controversy );
     MediaWords::Job::Facebook::FetchStoryStats->add_controversy_stories_to_queue( $db, $controversy );
 
     my $poll_wait = 30;
@@ -2733,7 +2733,8 @@ sub do_mine_controversy ($$;$)
             fetch_social_media_data( $db, $controversy );
 
             update_controversy_state( $db, $controversy, "dumping" );
-            MediaWords::CM::Dump::dump_controversy( $db, $controversy->{ controversies_id } );
+
+            #MediaWords::CM::Dump::dump_controversy( $db, $controversy->{ controversies_id } );
         }
     }
 

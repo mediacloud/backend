@@ -137,6 +137,33 @@ sub run($;$)
     MediaWords::Job::Bitly::AggregateStoryStats->add_to_queue( { stories_id => $stories_id } );
 }
 
+# add all controversy stories without facebook data to the queue
+sub add_controversy_stories_to_queue ($$;$$)
+{
+    my ( $class, $db, $controversy ) = @_;
+
+    my $controversies_id = $controversy->{ controversies_id };
+
+    my $stories = $db->query( <<END, $controversies_id )->hashes;
+SELECT cs.stories_id
+    FROM controversy_stories cs
+        left join bitly_clicks_total b on ( cs.stories_id = b.stories_id )
+    WHERE cs.controversies_id = ? and b.click_count is null
+    ORDER BY cs.stories_id
+END
+
+    unless ( scalar @{ $stories } )
+    {
+        DEBUG( "No stories found for controversy '$controversy->{ name }'" );
+    }
+
+    for my $story ( @{ $stories } )
+    {
+        DEBUG( "Adding job for story $story->{ stories_id }" );
+        $class->add_to_queue( { stories_id => $story->{ stories_id } }, 'high' );
+    }
+}
+
 no Moose;    # gets rid of scaffolding
 
 # Return package name instead of 1 or otherwise worker.pl won't know the name of the package it's loading

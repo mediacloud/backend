@@ -71,13 +71,6 @@ elements:
         - Required
 
   - type: Checkbox
-    name: process_with_bitly
-    id: process_with_bitly
-    label: Process with Bit.ly
-    comment: Add all new controversy stories to Bit.ly processing queue
-    value: 1
-
-  - type: Checkbox
     name: preview
     id: preview
     label: Preview
