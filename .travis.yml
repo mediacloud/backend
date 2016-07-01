@@ -36,12 +36,6 @@ env:
         # Test PythonReadability extractor method in t/test_extractor.t
         - MC_TEST_EXTRACTOR_PYTHONREADABILITY=1
 before_install:
-    # Set correct timezone
-    - sudo ln -sf "/usr/share/zoneinfo/America/New_York" /etc/localtime
-    - echo -n "America/New_York" | sudo tee /etc/timezone
-    - sudo dpkg-reconfigure --frontend noninteractive tzdata
-    - export TZ=America/New_York
-    - date
     # Install APT packages
     - ./install_scripts/install_mediacloud_system_package_dependencies.sh
     # Set up local Media Cloud environment for Python
