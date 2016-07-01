@@ -437,7 +437,7 @@ select * from controversies c, controversy_dumps cd
     where c.controversies_id = cd.controversies_id and cd.controversy_dumps_id = ?
 END
 
-    my $tagset_name = "Controversy $cdts->{ controversy_dump }->{ controversy }->{ name }";
+    my $tagset_name = "Controversy " . $cdts->{ controversy_dump }->{ controversy }->{ name } || '';
 
     my $tags = $db->query( <<END, $tagset_name )->hashes;
 select * from dump_tags t, dump_tag_sets ts

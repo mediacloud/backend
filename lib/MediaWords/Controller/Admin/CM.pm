@@ -922,27 +922,16 @@ sub _download_cdts_csv
 
     my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
 
-    my ( $csv, $file );
-    if ( $live )
-    {
-        $db->begin;
+    $db->begin;
 
-        MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $live );
+    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $live );
 
-        $csv  = eval( 'MediaWords::CM::Dump::get_' . $table . '_csv( $db, $cdts )' );
-        $file = "${ table }.csv";
+    my $csv  = eval( 'MediaWords::CM::Dump::get_' . $table . '_csv( $db, $cdts )' );
+    my $file = "${ table }.csv";
 
-        MediaWords::CM::Dump::discard_temp_tables( $db );
+    MediaWords::CM::Dump::discard_temp_tables( $db );
 
-        $db->commit;
-    }
-    else
-    {
-        $file = $table . '.csv';
-        ( $csv ) = $db->query( <<END, $cdts->{ controversy_dump_time_slices_id }, $file )->flat;
-select file_content from cdts_files where controversy_dump_time_slices_id = ? and file_name = ?
-END
-    }
+    $db->commit;
 
     $c->response->header( "Content-Disposition" => "attachment;filename=$file" );
     $c->response->content_type( 'text/csv; charset=UTF-8' );
