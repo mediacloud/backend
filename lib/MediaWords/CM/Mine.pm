@@ -54,7 +54,7 @@ use MediaWords::Util::Bitly;
 Readonly my $MAX_SELF_LINKED_STORIES => 100;
 
 # total time to wait for fetching of social media metrics
-Readonly my $MAX_SOCIAL_MEDIA_FETCH_TIME => 3600;
+Readonly my $MAX_SOCIAL_MEDIA_FETCH_TIME => ( 60 * 60 * 3 );
 
 # max number of stories with no bitly metrics
 Readonly my $MAX_NULL_BITLY_STORIES => 500;
