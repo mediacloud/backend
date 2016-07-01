@@ -463,7 +463,7 @@ END
 select distinct s.stories_id, s.title, s.url,
         case when ( stm.tags_id is null ) then s.publish_date::text else 'undateable' end as publish_date,
         m.name media_name, m.url media_url, m.media_id,
-        slc.inlink_count, slc.outlink_count, slc.bitly_click_count
+        slc.inlink_count, slc.outlink_count, slc.bitly_click_count, slc.facebook_share_count
         $tag_clause_list
 	from dump_stories s
 	    join dump_media m on ( s.media_id = m.media_id )
@@ -499,7 +499,8 @@ create temporary table dump_story_link_counts $_temporary_tablespace as
     select distinct ps.stories_id,
             coalesce( ilc.inlink_count, 0 ) inlink_count,
             coalesce( olc.outlink_count, 0 ) outlink_count,
-            bitly_clicks_total.click_count as bitly_click_count
+            b.click_count bitly_click_count,
+            ss.facebook_share_count facebook_share_count
         from dump_period_stories ps
             left join
                 ( select cl.ref_stories_id,
@@ -517,8 +518,10 @@ create temporary table dump_story_link_counts $_temporary_tablespace as
                   where cl.ref_stories_id = ps.stories_id
                   group by cl.stories_id
                 ) olc on ( ps.stories_id = olc.stories_id )
-            left join bitly_clicks_total
-                on ps.stories_id = bitly_clicks_total.stories_id
+            left join bitly_clicks_total b
+                on ps.stories_id = b.stories_id
+            left join story_statistics ss
+                on ss.stories_id = ps.stories_id
 END
 
     if ( !$is_model )
@@ -643,7 +646,7 @@ sub get_media_csv
 
     my $res = $db->query( <<END );
 select m.media_id, m.name, m.url, mlc.inlink_count, mlc.outlink_count,
-        mlc.story_count, mlc.bitly_click_count
+        mlc.story_count, mlc.bitly_click_count, mlc.facebook_share_count
     from dump_media m, dump_medium_link_counts mlc
     where m.media_id = mlc.media_id
     order by mlc.inlink_count desc;
@@ -682,7 +685,8 @@ create temporary table dump_medium_link_counts $_temporary_tablespace as
            sum( slc.inlink_count) inlink_count,
            sum( slc.outlink_count) outlink_count,
            count(*) story_count,
-           sum( slc.bitly_click_count ) bitly_click_count
+           sum( slc.bitly_click_count ) bitly_click_count,
+           sum( slc.facebook_share_count ) facebook_share_count
         from dump_media m, dump_stories s, dump_story_link_counts slc
         where m.media_id = s.media_id and s.stories_id = slc.stories_id
         group by m.media_id

@@ -126,7 +126,6 @@ sub edit : Local
         delete( $p->{ preview } );
 
         $p->{ solr_seed_query_run } = 'f' unless ( $controversy->{ solr_seed_query } eq $p->{ solr_seed_query } );
-        $p->{ process_with_bitly } //= 'f';
 
         $c->dbis->update_by_id( 'controversies', $controversies_id, $p );
 
@@ -169,15 +168,14 @@ sub create : Local
 
     # At this point the form is submitted
 
-    my $c_name               = $c->req->params->{ name };
-    my $c_pattern            = $c->req->params->{ pattern };
-    my $c_solr_seed_query    = $c->req->params->{ solr_seed_query };
-    my $c_skip_solr_query    = ( $c->req->params->{ skip_solr_query } ? 't' : 'f' );
-    my $c_description        = $c->req->params->{ description };
-    my $c_start_date         = $c->req->params->{ start_date };
-    my $c_end_date           = $c->req->params->{ end_date };
-    my $c_max_iterations     = $c->req->params->{ max_iterations };
-    my $c_process_with_bitly = ( $c->req->params->{ process_with_bitly } ? 't' : 'f' );
+    my $c_name            = $c->req->params->{ name };
+    my $c_pattern         = $c->req->params->{ pattern };
+    my $c_solr_seed_query = $c->req->params->{ solr_seed_query };
+    my $c_skip_solr_query = ( $c->req->params->{ skip_solr_query } ? 't' : 'f' );
+    my $c_description     = $c->req->params->{ description };
+    my $c_start_date      = $c->req->params->{ start_date };
+    my $c_end_date        = $c->req->params->{ end_date };
+    my $c_max_iterations  = $c->req->params->{ max_iterations };
 
     if ( $c->req->params->{ preview } )
     {
@@ -195,7 +193,6 @@ sub create : Local
             solr_seed_query     => $c_solr_seed_query,
             solr_seed_query_run => $c_skip_solr_query,
             description         => $c_description,
-            process_with_bitly  => $c_process_with_bitly,
             max_iterations      => $c_max_iterations
         }
     );
@@ -412,20 +409,17 @@ sub view : Local
 
     my $latest_activities = _get_latest_activities( $db, $controversies_id );
 
-    my $bitly_processing_is_enabled = MediaWords::Util::Bitly::bitly_processing_is_enabled();
-
     my $query_slices = $db->query( <<SQL, $controversies_id )->hashes;
 select * from controversy_query_slices where controversies_id = ? order by name
 SQL
 
-    $c->stash->{ controversy }                 = $controversy;
-    $c->stash->{ controversy_dumps }           = $controversy_dumps;
-    $c->stash->{ latest_full_dump }            = $latest_full_dump;
-    $c->stash->{ latest_activities }           = $latest_activities;
-    $c->stash->{ bitly_processing_is_enabled } = $bitly_processing_is_enabled;
-    $c->stash->{ query_slices_id }             = $query_slices_id;
-    $c->stash->{ query_slices }                = $query_slices;
-    $c->stash->{ template }                    = 'cm/view.tt2';
+    $c->stash->{ controversy }       = $controversy;
+    $c->stash->{ controversy_dumps } = $controversy_dumps;
+    $c->stash->{ latest_full_dump }  = $latest_full_dump;
+    $c->stash->{ latest_activities } = $latest_activities;
+    $c->stash->{ query_slices_id }   = $query_slices_id;
+    $c->stash->{ query_slices }      = $query_slices;
+    $c->stash->{ template }          = 'cm/view.tt2';
 }
 
 # add num_stories, num_story_links, num_media, and num_media_links

@@ -83,7 +83,6 @@ SQL
         solr_seed_query     => '(ap sentences)',
         solr_seed_query_run => 't',
         description         => 'pseudo controversy for analyzing syndication of ap sentences',
-        process_with_bitly  => 'f',
     };
 
     $controversy = $db->create( 'controversies', $controversy );

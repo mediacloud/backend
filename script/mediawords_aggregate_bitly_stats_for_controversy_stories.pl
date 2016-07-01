@@ -49,12 +49,6 @@ EOF
     {
         my $controversies_id = $controversy->{ controversies_id };
 
-        unless ( $controversy->{ process_with_bitly } )
-        {
-            say STDERR "Controversy $controversies_id is not set up for Bit.ly, skipping.";
-            next;
-        }
-
         if ( MediaWords::Util::Bitly::num_controversy_stories_without_bitly_statistics( $db, $controversies_id ) == 0 )
         {
             say STDERR "All controversy's $controversies_id stories are processed against Bit.ly, skipping.";
