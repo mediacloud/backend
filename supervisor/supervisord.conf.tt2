@@ -159,16 +159,6 @@ programs = rabbitmq
 %]
 
 [% INCLUDE program_config
-    program='bitly_process_all_controversy_stories'
-    worker_module='Bitly/ProcessAllControversyStories.pm'
-    default_stopasgroup='false'
-    default_killasgroup='false'
-    default_autorestart='false'
-    default_autostart='true'
-    default_nice=10
-%]
-
-[% INCLUDE program_config
     program='bitly_fetch_story_stats'
     worker_module='Bitly/FetchStoryStats.pm'
     default_stopasgroup='false'

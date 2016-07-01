@@ -40,7 +40,7 @@ use MediaWords::DBI::Activities;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::GuessDate;
-use MediaWords::Job::Bitly::ProcessAllControversyStories;
+use MediaWords::Job::Bitly::FetchStoryStats;
 use MediaWords::Job::Facebook::FetchStoryStats;
 use MediaWords::Solr;
 use MediaWords::Util::HTML;
@@ -54,7 +54,7 @@ use MediaWords::Util::Bitly;
 Readonly my $MAX_SELF_LINKED_STORIES => 100;
 
 # total time to wait for fetching of social media metrics
-Readonly my $MAX_SOCIAL_MEDIA_FETCH_TIME => 3600;
+Readonly my $MAX_SOCIAL_MEDIA_FETCH_TIME => ( 60 * 60 * 3 );
 
 # max number of stories with no bitly metrics
 Readonly my $MAX_NULL_BITLY_STORIES => 500;
@@ -1746,7 +1746,7 @@ select count(*) from controversy_stories where controversies_id = ?
 SQL
 
     my ( $stories_last_iteration ) = $db->query( <<SQL, $cid, $iteration )->flat;
-select count(*) from controversy_stories where controversies_id = ? and iteration = ?
+select count(*) from controversy_stories where controversies_id = ? and iteration = ? - 1
 SQL
 
     my ( $queued_links ) = $db->query( <<SQL, $cid )->flat;
@@ -1754,7 +1754,7 @@ select count(*) from controversy_links where controversies_id = ? and ref_storie
 SQL
 
     return <<END;
-spidering iteration: $iteration; stories total / last iteration: $total_stories / $stories_last_iteration; links queue: $queued_links
+spidering iteration: $iteration; stories total / last iteration: $total_stories / $stories_last_iteration; links queued: $queued_links
 END
 
 }
@@ -2639,7 +2639,7 @@ sub fetch_social_media_data ($$)
 
     my $cid = $controversy->{ controversies_id };
 
-    MediaWords::Job::Bitly::ProcessAllControversyStories->run_locally( { controversies_id => $cid } );
+    MediaWords::Job::Bitly::FetchStoryStats->add_controversy_stories_to_queue( $db, $controversy );
     MediaWords::Job::Facebook::FetchStoryStats->add_controversy_stories_to_queue( $db, $controversy );
 
     my $poll_wait = 30;

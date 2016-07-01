@@ -74,19 +74,12 @@
                 <td><a href="[% c.uri_for( '/admin/cm/dump_medium_links/' _ cdts.controversy_dump_time_slices_id, { l => live } ) %]">CSV</a></td>
             </tr>
             <tr>
-                <td>Twitter / Facebook</td>
-                <td>&nbsp;</td>
-            </tr>
-            <tr>
                 <td># Modeled Top Media</td>
                 <td>[% cdts.model_num_media %]</td>
                 <td />
             </tr>
             <tr>
                 <td colspan="3">dates: [% INCLUDE cm/model_reliability.tt2 model_reliability_include_numbers=1 %]</td>
-            </tr>
-            <tr>
-                <td colspan="3"><a href="[% c.uri_for( '/admin/cm/dump_social/' _ cdts.controversy_dump_time_slices_id, { l => live } ) %]">download twitter / facebook stats</a></td>
             </tr>
         </table>
 
