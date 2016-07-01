@@ -676,7 +676,7 @@ Response:
 
 ## stories/~stories_id~/edit (PUT)
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id>/stories/<stories_id~/edit`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/~stories_id~/edit`
 
 Edit and return a story.  Editing a story changes that story for all topics.
 
@@ -702,7 +702,7 @@ Edit and return a story.  Editing a story changes that story for all topics.
 
 Edit the publish_date of story 123456:
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id>/stories/<stories_id~/edit`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/~stories_id~/edit`
 
 Input:
 
@@ -718,7 +718,7 @@ Response:
 
 ## stories/~stories_id~/remove (PUT)
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id>/stories/<stories_id~/remove`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/~stories_id~/remove`
 
 Remove the given story from the topic (but do not delete it from Media Cloud).
 
@@ -874,7 +874,7 @@ Response:
 ```
 ## media/~media_id~/edit (PUT)
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id>/media/<media_id~/edit`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/media/~media_id~/edit`
 
 Edit and return the given media source.  Media source edits apply to that media source for all controversies.
 
@@ -895,7 +895,7 @@ Edit and return the given media source.  Media source edits apply to that media 
 
 Edit the name of media_id 1:
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id>/media/<media_id~/edit`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/media/~media_id~/edit`
 
 Input:
 
@@ -912,7 +912,7 @@ Output:
 
 ## media/~media_id~/remove (PUT)
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id>/media/<media_id~/remove`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/media/~media_id~/remove`
 
 Remove the given medium from the topic (but do not delete it from Media Cloud).
 
@@ -1085,7 +1085,7 @@ Response:
 
 ## frame_set_definitions/~frame_set_definitions_id~/update (PUT)
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id>/frame_set_definitions/<frame_set_definitions_id~/update/`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/frame_set_definitions/~frame_set_definitions_id~/update/`
 
 Update the given frame set definition.
 
@@ -1132,7 +1132,7 @@ Response:
 
 ## frame_set_definitions/~frame_set_definitions_id~/delete (PUT)
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id>/frame_set_definitions/<frame_set_definitions_id~/delete`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/frame_set_definitions/~frame_set_definitions_id~/delete`
 
 Delete a frame set definition.
 
@@ -1277,7 +1277,7 @@ Response:
 
 ## frame_definitions/~frame_set_definitions_id~/create (POST)
 
-`https://api.mediacloud.org/api/topics/~topics_id>/frame_sets/<frame_set_definitions_id~/create/`
+`https://api.mediacloud.org/api/topics/~topics_id~/frame_sets/~frame_set_definitions_id~/create/`
 
 Create and return a new *frame definiition*  within the given *topic* and *frame set definition*.
 
@@ -1331,7 +1331,7 @@ Response:
 
 ## frame_definitions/~frame_definitions_id~/update (PUT)
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id>/frame_definitions/<frame_definitions_id~/update`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/frame_definitions/~frame_definitions_id~/update`
 
 Update the given frame definition.
 
@@ -1373,7 +1373,7 @@ Response:
 
 ## frame_definitions/list
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id>/frame_definitions/<frame_set_definitions_id~/list`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/frame_definitions/~frame_set_definitions_id~/list`
 
 List all *frame definitions* belonging to the given *frame set definition*.
 
@@ -1416,7 +1416,7 @@ Response:
 
 ## frames/list
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id>/frame_sets/<frame_sets_id~/frames/list`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/frame_sets/~frame_sets_id~/frames/list`
 
 Return a list of the *frames* belonging to the given *frame set*.
 
@@ -1541,7 +1541,7 @@ Response:
 
 ## snapshots/~snapshots_id~/edit (PUT)
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id>/snapshots/<snapshots_id~/edit`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/snapshots/~snapshots_id~/edit`
 
 Edit and return the snapshot.
 
@@ -1564,7 +1564,7 @@ Edit and return the snapshot.
 
 Edit the notes for snapshot 4567:
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id>/snapshots/<snapshots_id~/edit`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/snapshots/~snapshots_id~/edit`
 
 Input:
 
