@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4557;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4558;
 
 BEGIN
 
@@ -1034,6 +1034,14 @@ create index story_sentences_publish_day on story_sentences( date_trunc( 'day', 
 create index story_sentences_language on story_sentences(language);
 create index story_sentences_media_id    on story_sentences( media_id );
 create index story_sentences_db_row_last_updated    on story_sentences( db_row_last_updated );
+
+-- Might already exist on production
+SELECT create_index_if_not_exists(
+    'public',
+    'story_sentences',
+    'story_sentences_sentence_half_md5',
+    '(half_md5(sentence))'
+);
 
 -- we have to do this in a function to create the partial index on a constant value,
 -- which you cannot do with a simple 'create index ... where publish_date > now()'
