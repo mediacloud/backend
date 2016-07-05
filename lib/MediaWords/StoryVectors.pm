@@ -174,7 +174,8 @@ sub _get_deduped_sentences
     # non-ascii because those are sometimes logograms)
     $sentences = [ grep { $_ !~ /^[[:ascii:]]{0,5}$/ } @{ $sentences } ];
 
-    my $dup_story_sentences = _get_dup_story_sentences( $db, $story, $sentences, 1 );
+    Readonly my $do_update => 1;
+    my $dup_story_sentences = _get_dup_story_sentences( $db, $story, $sentences, $do_update );
 
     my $dup_lookup = {};
     map { $dup_lookup->{ $_->{ sentence } } = 1 } @{ $dup_story_sentences };
