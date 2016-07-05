@@ -3,7 +3,7 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 13;
+use Test::More tests => 12;
 
 use DateTime;
 
@@ -19,7 +19,6 @@ sub test_local_timezone()
 {
     my $local_tz = MediaWords::Util::DateTime::local_timezone();
     isa_ok( $local_tz, 'DateTime::TimeZone' );
-    ok( !$local_tz->is_utc );
 }
 
 sub test_gmt_datetime_from_timestamp()
