@@ -224,20 +224,22 @@ sub _get_sentences_from_story_text
     return $sentences;
 }
 
-# apply manual filters to clean out sentences that we think are junk. edits the $sentences array in place with splice
+# Apply manual filters to clean out sentences that we think are junk
 sub _clean_sentences
 {
     my ( $sentences ) = @_;
 
-    # first walk through the array, then prune any sentences we want to drop; this approach allows to splice in place
-    my $prune_indices = [];
-    for ( my $i = 0 ; $i < @{ $sentences } ; $i++ )
+    my @cleaned_sentences;
+
+    for my $sentence ( @{ $sentences } )
     {
-        push( @{ $prune_indices }, $i ) if ( $sentences->[ $i ] =~ /(\[.*\{){5,}/ );
+        unless ( $sentence =~ /(\[.*\{){5,}/ )
+        {
+            push( @cleaned_sentences, $sentence );
+        }
     }
 
-    map { splice( @{ $sentences }, $_, 1 ) } @{ $prune_indices }
-
+    return \@cleaned_sentences;
 }
 
 # detect whether the story is syndicated and update stories.ap_syndicated
@@ -333,7 +335,7 @@ sub update_story_sentences_and_language($$;$)
         return;
     }
 
-    _clean_sentences( $sentences );
+    $sentences = _clean_sentences( $sentences );
 
     if ( $extractor_args->no_dedup_sentences() )
     {
