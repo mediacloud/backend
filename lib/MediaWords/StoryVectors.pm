@@ -1,13 +1,13 @@
 package MediaWords::StoryVectors;
-use Modern::Perl "2015";
-use MediaWords::CommonLibs;
 
 # methods to generate the story_sentences and associated aggregated tables
 
 use strict;
 use warnings;
+use utf8;
 
-use Data::Dumper;
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
 
 use MediaWords::Languages::Language;
 use MediaWords::DBI::Stories;
@@ -17,30 +17,13 @@ use MediaWords::Util::IdentifyLanguage;
 use MediaWords::Util::SQL;
 use MediaWords::Util::CoreNLP;
 
+use Data::Dumper;
 use Date::Format;
 use Date::Parse;
 use Digest::MD5;
 use Encode;
-use utf8;
 use Readonly;
 use Text::CSV_XS;
-
-Readonly my $MIN_STEM_LENGTH => 3;
-
-Readonly my $sentence_study_table_prefix => 'sen_study_old_';
-Readonly my $sentence_study_table_suffix => '_2011_01_03_2011_01_10';
-
-# return 1 if the stem passes various tests
-sub _valid_stem
-{
-    my ( $stem, $word, $stop_stems ) = @_;
-
-    return ( $stem
-          && ( length( $stem ) >= $MIN_STEM_LENGTH )
-          && ( !$stop_stems->{ $stem } )
-          && ( $word !~ /[^[:print:]]/ )
-          && ( $word =~ /[^[:digit:][:punct:]]/ ) );
-}
 
 # insert the story sentences into the db
 sub _insert_story_sentences
@@ -69,18 +52,6 @@ END
     eval { $db->dbh->pg_putcopyend() };
 
     die( " Error on pg_putcopyend for story_sentences: $@" ) if ( $@ );
-}
-
-# if the length of the string is greater than the given length, cut to that length
-sub _limit_string_length
-{
-
-    # my ( $s, $l ) = @_;
-
-    if ( length( $_[ 0 ] ) > $_[ 1 ] )
-    {
-        substr( $_[ 0 ], $_[ 1 ] ) = '';
-    }
 }
 
 # get unique sentences from the list, maintaining the original order
@@ -199,7 +170,8 @@ sub _get_deduped_sentences
 
     $sentences = _get_unique_sentences( $sentences );
 
-    # drop sentences that are all ascii and 5 characters or less (keep non-ascii because those are sometimes logograms)
+    # drop sentences that are all ascii and 5 characters or less (keep
+    # non-ascii because those are sometimes logograms)
     $sentences = [ grep { $_ !~ /^[[:ascii:]]{0,5}$/ } @{ $sentences } ];
 
     my $dup_story_sentences = _get_dup_story_sentences( $db, $story, $sentences, 1 );
@@ -398,47 +370,6 @@ sub update_story_sentences_and_language($$;$)
     {
         DEBUG "Won't add $stories_id to CoreNLP annotation queue because it's set be skipped";
     }
-}
-
-##NOTE: This method is only used by the test suite, consider removing it. - 04/07/2015
-sub _get_stem_word_counts_for_sentence($$;$)
-{
-    my ( $sentence, $sentence_lang, $fallback_lang ) = @_;
-
-    # Determined sentence language
-    my $lang =
-         MediaWords::Languages::Language::language_for_code( $sentence_lang )
-      || MediaWords::Languages::Language::language_for_code( $fallback_lang )
-      || MediaWords::Languages::Language::default_language();
-
-    my $words      = $lang->tokenize( $sentence );
-    my $stop_stems = $lang->get_tiny_stop_word_stems();
-
-    my $stems = $lang->stem( @{ $words } );
-
-    my $word_counts = {};
-
-    for ( my $word_num = 0 ; $word_num < @{ $words } ; $word_num++ )
-    {
-        my ( $word, $stem ) = ( $words->[ $word_num ], $stems->[ $word_num ] );
-
-        my $word_length_limit = $lang->get_word_length_limit();
-        if ( $word_length_limit > 0 )
-        {
-            _limit_string_length( $word, $word_length_limit );
-            _limit_string_length( $stem, $word_length_limit );
-        }
-
-        if ( _valid_stem( $stem, $word, $stop_stems ) )
-        {
-            $word_counts->{ $stem }->{ word }     ||= $word;
-            $word_counts->{ $stem }->{ language } ||= $sentence_lang;
-            $word_counts->{ $stem }->{ language } ||= $fallback_lang;    # if no sentence_lang was set
-            $word_counts->{ $stem }->{ count }++;
-        }
-    }
-
-    return $word_counts;
 }
 
 1;
