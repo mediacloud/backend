@@ -102,13 +102,13 @@ sub test_dedup_sentences
 
     $story_c->{ sentences } = [ 'foo baz', 'bar baz', 'foo bar baz' ];
 
-    $story_a->{ ds } = MediaWords::StoryVectors::dedup_sentences( $db, $story_a, $story_a->{ sentences } );
+    $story_a->{ ds } = MediaWords::StoryVectors::_dedup_sentences( $db, $story_a, $story_a->{ sentences } );
     _insert_story_sentences( $db, $story_a, $story_a->{ ds } );
 
-    $story_b->{ ds } = MediaWords::StoryVectors::dedup_sentences( $db, $story_b, $story_b->{ sentences } );
+    $story_b->{ ds } = MediaWords::StoryVectors::_dedup_sentences( $db, $story_b, $story_b->{ sentences } );
     _insert_story_sentences( $db, $story_b, $story_b->{ ds } );
 
-    $story_c->{ ds } = MediaWords::StoryVectors::dedup_sentences( $db, $story_c, $story_c->{ sentences } );
+    $story_c->{ ds } = MediaWords::StoryVectors::_dedup_sentences( $db, $story_c, $story_c->{ sentences } );
     _insert_story_sentences( $db, $story_c, $story_c->{ ds } );
 
     cmp_deeply( $story_a->{ ds }, $story_a->{ sentences }, 'story a' );

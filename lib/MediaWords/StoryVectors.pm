@@ -106,7 +106,7 @@ sub _get_unique_sentences
 # exist in the same media source for the same calendar week.  fetch the sentences using the appropriate
 # query based on whether the sentences are indexed by story_sentences_dup.  if do_update is true,
 # set is_dup = true for the original versions of any dup sentences discovered.
-sub get_dup_story_sentences
+sub _get_dup_story_sentences
 {
     my ( $db, $story, $sentences, $do_update ) = @_;
 
@@ -193,7 +193,7 @@ SQL
 
 # return the sentences from the set that are dups within the same media source and calendar week.
 # also sets story_sentences.dup to true for sentences that are the dups for these sentences.
-sub get_deduped_sentences
+sub _get_deduped_sentences
 {
     my ( $db, $story, $sentences ) = @_;
 
@@ -202,7 +202,7 @@ sub get_deduped_sentences
     # drop sentences that are all ascii and 5 characters or less (keep non-ascii because those are sometimes logograms)
     $sentences = [ grep { $_ !~ /^[[:ascii:]]{0,5}$/ } @{ $sentences } ];
 
-    my $dup_story_sentences = get_dup_story_sentences( $db, $story, $sentences, 1 );
+    my $dup_story_sentences = _get_dup_story_sentences( $db, $story, $sentences, 1 );
 
     my $dup_lookup = {};
     map { $dup_lookup->{ $_->{ sentence } } = 1 } @{ $dup_story_sentences };
@@ -214,7 +214,7 @@ sub get_deduped_sentences
 
 # given a story and a list of sentences, return all of the stories that are not duplicates as defined by
 # count_duplicate_sentences()
-sub dedup_sentences
+sub _dedup_sentences
 {
     my ( $db, $story, $sentences ) = @_;
 
@@ -224,7 +224,7 @@ sub dedup_sentences
         return [];
     }
 
-    my $deduped_sentences = get_deduped_sentences( $db, $story, $sentences );
+    my $deduped_sentences = _get_deduped_sentences( $db, $story, $sentences );
 
     if ( @{ $sentences } && !@{ $deduped_sentences } )
     {
@@ -253,7 +253,7 @@ sub _get_sentences_from_story_text
 }
 
 # apply manual filters to clean out sentences that we think are junk. edits the $sentences array in place with splice
-sub clean_sentences
+sub _clean_sentences
 {
     my ( $sentences ) = @_;
 
@@ -361,7 +361,7 @@ sub update_story_sentences_and_language($$;$)
         return;
     }
 
-    clean_sentences( $sentences );
+    _clean_sentences( $sentences );
 
     if ( $extractor_args->no_dedup_sentences() )
     {
@@ -369,7 +369,7 @@ sub update_story_sentences_and_language($$;$)
     }
     else
     {
-        $sentences = dedup_sentences( $db, $story, $sentences );
+        $sentences = _dedup_sentences( $db, $story, $sentences );
     }
 
     my $sentence_refs = _get_story_sentence_refs( $sentences, $story );
