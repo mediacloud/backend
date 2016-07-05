@@ -17,6 +17,7 @@ use MediaWords::DB;
 use CHI;
 use Carp;
 use Data::Page;
+use DBD::Pg qw(:pg_types);
 use JSON;
 use Math::Random::Secure;
 
@@ -751,6 +752,31 @@ sub begin_work
     {
         Carp::confess( $@ );
     }
+}
+
+# Alias for DBD::Pg's quote()
+sub quote
+{
+    my $self = shift;
+    return $self->dbh->quote( @_ );
+}
+
+sub quote_bool
+{
+    my ( $self, $value ) = @_;
+    return $self->quote( $value, { pg_type => DBD::Pg::PG_BOOL } );
+}
+
+sub quote_varchar
+{
+    my ( $self, $value ) = @_;
+    return $self->quote( $value, { pg_type => DBD::Pg::PG_VARCHAR } );
+}
+
+sub quote_timestamp
+{
+    my ( $self, $value ) = @_;
+    return $self->quote_varchar( $value ) . '::timestamp';
 }
 
 1;
