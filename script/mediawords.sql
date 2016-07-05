@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4555;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4556;
 
 BEGIN
 
@@ -78,6 +78,27 @@ END;
 $$
 LANGUAGE 'plpgsql' IMMUTABLE
   COST 10;
+
+
+-- Create index if it doesn't exist already
+--
+-- Should be removed after migrating to PostgreSQL 9.5 because it supports
+-- CREATE INDEX IF NOT EXISTS natively.
+CREATE OR REPLACE FUNCTION create_index_if_not_exists(schema_name TEXT, table_name TEXT, index_name TEXT, index_sql TEXT)
+RETURNS void AS $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM   pg_class c
+        JOIN   pg_namespace n ON n.oid = c.relnamespace
+        WHERE  c.relname = index_name
+        AND    n.nspname = schema_name
+    ) THEN
+        EXECUTE 'CREATE INDEX ' || index_name || ' ON ' || schema_name || '.' || table_name || ' ' || index_sql;
+    END IF;
+END
+$$
+LANGUAGE plpgsql VOLATILE;
 
 
  -- Returns true if the date is greater than the latest import date in solr_imports
