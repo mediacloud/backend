@@ -23,9 +23,11 @@ fi
 if [ `uname` == 'Darwin' ]; then
     # Mac OS X
     CONFIG_DIR="/usr/local/var/postgres/"
+    POSTGRESQL_USER=`id -un`
 else
     # Ubuntu
     CONFIG_DIR=$(ls -d /etc/postgresql/*/main/)
+    POSTGRESQL_USER=`postgres`
 fi
 
 if [ $(echo $CONFIG_DIR | wc -l) -gt 1 ]; then
@@ -43,6 +45,7 @@ fi
 # Create include directory to load configuration from
 CONF_D_DIR="$CONFIG_DIR/conf.d/"
 sudo mkdir -p "$CONF_D_DIR"
+sudo chown "$POSTGRESQL_USER" "$CONF_D_DIR"
 
 # Make PostgreSQL read from the include directory
 if ! grep -q "MEDIA CLOUD CONFIGURATION" "$POSTGRESQL_CONF_FILE_PATH"; then
