@@ -31,6 +31,9 @@ use base qw(DBIx::Simple);
 # Environment variable which, when set, will make us ignore the schema version
 Readonly my $IGNORE_SCHEMA_VERSION_ENV_VARIABLE => 'MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION';
 
+# Min. "deadlock_timeout" to not cause problems under load (in seconds)
+Readonly my $MIN_DEADLOCK_TIMEOUT => 5;
+
 # STATICS
 
 # cache of table primary key columns
@@ -85,6 +88,15 @@ sub connect($$$$$;$)
 
     # If schema is not up-to-date, connect() dies and we don't get to set PID here
     $_schema_version_check_pids{ $$ } = 1;
+
+    # Check deadlock_timeout
+    my $deadlock_timeout = $db->query( 'SHOW deadlock_timeout' )->flat()->[ 0 ];
+    $deadlock_timeout =~ s/\s*s$//i;
+    $deadlock_timeout = int( $deadlock_timeout );
+    if ( $deadlock_timeout < $MIN_DEADLOCK_TIMEOUT )
+    {
+        WARN '"deadlock_timeout" is less than "' . $MIN_DEADLOCK_TIMEOUT . 's", expect deadlocks on high extractor load';
+    }
 
     return $db;
 }
