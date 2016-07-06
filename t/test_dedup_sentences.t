@@ -25,30 +25,6 @@ BEGIN
     use_ok( 'MediaWords::DB' );
 }
 
-sub _insert_story_sentences
-{
-    my ( $db, $story, $sentences ) = @_;
-
-    my $sentence_refs = [];
-    for ( my $sentence_num = 0 ; $sentence_num < @{ $sentences } ; $sentence_num++ )
-    {
-        my $sentence = $sentences->[ $sentence_num ];
-
-        my $sentence_ref = {};
-        $sentence_ref->{ sentence }         = $sentence;
-        $sentence_ref->{ language }         = 'en';
-        $sentence_ref->{ sentence_number }  = $sentence_num;
-        $sentence_ref->{ stories_id }       = $story->{ stories_id };
-        $sentence_ref->{ media_id }         = $story->{ media_id };
-        $sentence_ref->{ publish_date }     = $story->{ publish_date };
-        $sentence_ref->{ disable_triggers } = MediaWords::DB::story_triggers_disabled();
-
-        push( @{ $sentence_refs }, $sentence_ref );
-    }
-
-    MediaWords::StoryVectors::_insert_story_sentences( $db, $story, $sentence_refs );
-}
-
 sub test_dedup_sentences
 {
     my ( $db ) = @_;
@@ -102,14 +78,9 @@ sub test_dedup_sentences
 
     $story_c->{ sentences } = [ 'foo baz', 'bar baz', 'foo bar baz' ];
 
-    $story_a->{ ds } = MediaWords::StoryVectors::_dedup_sentences( $db, $story_a, $story_a->{ sentences } );
-    _insert_story_sentences( $db, $story_a, $story_a->{ ds } );
-
-    $story_b->{ ds } = MediaWords::StoryVectors::_dedup_sentences( $db, $story_b, $story_b->{ sentences } );
-    _insert_story_sentences( $db, $story_b, $story_b->{ ds } );
-
-    $story_c->{ ds } = MediaWords::StoryVectors::_dedup_sentences( $db, $story_c, $story_c->{ sentences } );
-    _insert_story_sentences( $db, $story_c, $story_c->{ ds } );
+    $story_a->{ ds } = MediaWords::StoryVectors::_insert_story_sentences( $db, $story_a, $story_a->{ sentences } );
+    $story_b->{ ds } = MediaWords::StoryVectors::_insert_story_sentences( $db, $story_b, $story_b->{ sentences } );
+    $story_c->{ ds } = MediaWords::StoryVectors::_insert_story_sentences( $db, $story_c, $story_c->{ sentences } );
 
     cmp_deeply( $story_a->{ ds }, $story_a->{ sentences }, 'story a' );
     cmp_deeply( $story_b->{ ds }, [ 'bar foo baz', 'foo bar baz' ], 'story b' );
