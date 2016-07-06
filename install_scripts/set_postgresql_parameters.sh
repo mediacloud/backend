@@ -3,6 +3,10 @@
 #
 # Copy Media Cloud's PostgreSQL configuration and restart PostgreSQL service
 #
+# Set MC_POSTGRESQL_PRODUCTION=1 to set up configuration properties designed
+# for a production system.
+#
+
 set -u
 set -o errexit
 
@@ -13,10 +17,17 @@ fi
 
 PWD="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-# Path to Media Cloud's PostgreSQL configuration file
+# Path to Media Cloud's PostgreSQL general configuration file
 MEDIACLOUD_CONF_SRC_FILE_PATH="$PWD/../config/postgresql-mediacloud.conf"
 if [ ! -f "$MEDIACLOUD_CONF_SRC_FILE_PATH" ]; then
     echo "Media Cloud's PostgreSQL configuration file was not found at: $MEDIACLOUD_CONF_SRC_FILE_PATH"
+    exit 1
+fi
+
+# Path to Media Cloud's PostgreSQL production configuration file
+MEDIACLOUD_CONF_PRODUCTION_SRC_FILE_PATH="$PWD/../config/postgresql-mediacloud-production.conf"
+if [ ! -f "$MEDIACLOUD_CONF_PRODUCTION_SRC_FILE_PATH" ]; then
+    echo "Media Cloud's PostgreSQL production configuration file was not found at: $MEDIACLOUD_CONF_PRODUCTION_SRC_FILE_PATH"
     exit 1
 fi
 
@@ -47,6 +58,10 @@ CONF_D_DIR="$CONFIG_DIR/conf.d/"
 sudo mkdir -p "$CONF_D_DIR"
 sudo chown "$POSTGRESQL_USER" "$CONF_D_DIR"
 
+PG_STAT_TMP_DIR="/var/run/postgresql/9.3-main.pg_stat_tmp/"
+sudo mkdir -p "$PG_STAT_TMP_DIR"
+sudo chown "$POSTGRESQL_USER" "$PG_STAT_TMP_DIR"
+
 # Make PostgreSQL read from the include directory
 if ! grep -q "MEDIA CLOUD CONFIGURATION" "$POSTGRESQL_CONF_FILE_PATH"; then
     echo "Enabling 'include_dir' in $POSTGRESQL_CONF_FILE_PATH..."
@@ -63,14 +78,29 @@ include_dir = 'conf.d'
 EOF
 fi
 
-# File to copy Media Cloud's configuration to
-MEDIACLOUD_CONF_DST_FILE_PATH="$CONF_D_DIR/mediacloud.conf"
+# File to copy Media Cloud's general configuration to
+MEDIACLOUD_CONF_DST_FILE_PATH="$CONF_D_DIR/01mediacloud.conf"
 if [ -f "$MEDIACLOUD_CONF_DST_FILE_PATH" ]; then
     echo "Media Cloud PostgreSQL configuration already exists, will overwrite: $MEDIACLOUD_CONF_DST_FILE_PATH"
 fi
 
 echo "Copying Media Cloud PostgreSQL configuration from $MEDIACLOUD_CONF_SRC_FILE_PATH to $MEDIACLOUD_CONF_DST_FILE_PATH..."
 sudo cp "$MEDIACLOUD_CONF_SRC_FILE_PATH" "$MEDIACLOUD_CONF_DST_FILE_PATH"
+
+if [ -z ${MC_POSTGRESQL_PRODUCTION+x} ]; then
+    echo "MC_POSTGRESQL_PRODUCTION is unset, skipping production's configuration."
+else
+
+    # File to copy Media Cloud's general configuration to
+    MEDIACLOUD_CONF_PRODUCTION_DST_FILE_PATH="$CONF_D_DIR/02mediacloud-production.conf"
+    if [ -f "$MEDIACLOUD_CONF_PRODUCTION_DST_FILE_PATH" ]; then
+        echo "Media Cloud PostgreSQL production configuration already exists, will overwrite: $MEDIACLOUD_CONF_PRODUCTION_DST_FILE_PATH"
+    fi
+
+    echo "Copying Media Cloud PostgreSQL production configuration from $MEDIACLOUD_CONF_PRODUCTION_SRC_FILE_PATH to $MEDIACLOUD_CONF_PRODUCTION_DST_FILE_PATH..."
+    sudo cp "$MEDIACLOUD_CONF_PRODUCTION_SRC_FILE_PATH" "$MEDIACLOUD_CONF_PRODUCTION_DST_FILE_PATH"
+
+fi
 
 echo "Restarting PostgreSQL..."
 if [ `uname` == 'Darwin' ]; then
