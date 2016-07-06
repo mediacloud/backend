@@ -2077,7 +2077,7 @@ Hong Kong: Say No to CCTVB
                                    'db_row_last_updated' => '2016-05-08 20:43:15.928179-05',
                                    'disable_triggers' => 0,
                                    'is_dup' => undef,
-                                   'language' => undef,
+                                   'language' => '',
                                    'media_id' => 1,
                                    'publish_date' => '2009-06-08 01:57:42',
                                    'sentence' => "\x{7121}\x{7dda}\x{65b0}\x{805e}\x{3000}\x{4e8b}\x{4e8b}\x{65e6}\x{65e6}",
