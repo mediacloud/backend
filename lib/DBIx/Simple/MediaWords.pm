@@ -28,6 +28,9 @@ use Try::Tiny;
 
 use base qw(DBIx::Simple);
 
+# Environment variable which, when set, will make us ignore the schema version
+Readonly my $IGNORE_SCHEMA_VERSION_ENV_VARIABLE => 'MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION';
+
 # STATICS
 
 # cache of table primary key columns
@@ -89,17 +92,17 @@ sub connect($$$$$;$)
 # Schema is outdated / too new; returns 1 if MC should continue nevertheless, 0 otherwise
 sub _should_continue_with_outdated_schema($$$)
 {
-    my ( $current_schema_version, $target_schema_version, $ignore_schema_version_env_variable ) = @_;
+    my ( $current_schema_version, $target_schema_version, $IGNORE_SCHEMA_VERSION_ENV_VARIABLE ) = @_;
 
     my $config_ignore_schema_version =
       MediaWords::Util::Config->get_config()->{ mediawords }->{ ignore_schema_version } || '';
 
-    if ( ( $config_ignore_schema_version eq 'yes' ) || exists $ENV{ $ignore_schema_version_env_variable } )
+    if ( ( $config_ignore_schema_version eq 'yes' ) || exists $ENV{ $IGNORE_SCHEMA_VERSION_ENV_VARIABLE } )
     {
         WARN <<"EOF";
 
 The current Media Cloud database schema is older than the schema present in mediawords.sql,
-but $ignore_schema_version_env_variable is set so continuing anyway.
+but $IGNORE_SCHEMA_VERSION_ENV_VARIABLE is set so continuing anyway.
 EOF
         return 1;
 
@@ -123,9 +126,9 @@ Please run:
 to automatically upgrade the database schema to the latest version.
 
 If you want to connect to the Media Cloud database anyway (ignoring the schema version),
-set the $ignore_schema_version_env_variable environment variable as such:
+set the $IGNORE_SCHEMA_VERSION_ENV_VARIABLE environment variable as such:
 
-    $ignore_schema_version_env_variable=1 ./script/your_script.pl
+    $IGNORE_SCHEMA_VERSION_ENV_VARIABLE=1 ./script/your_script.pl
 
 ################################
 EOF
@@ -167,11 +170,10 @@ sub schema_is_up_to_date
     die "Invalid target schema version.\n" unless ( $target_schema_version );
 
     # Check if the current schema is up-to-date
-    Readonly my $ignore_schema_version_env_variable => 'MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION';
     if ( $current_schema_version != $target_schema_version )
     {
         return _should_continue_with_outdated_schema( $current_schema_version, $target_schema_version,
-            $ignore_schema_version_env_variable );
+            $IGNORE_SCHEMA_VERSION_ENV_VARIABLE );
     }
     else
     {
