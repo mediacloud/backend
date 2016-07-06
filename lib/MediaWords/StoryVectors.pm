@@ -33,7 +33,7 @@ sub _get_db_escaped_story_sentence_refs
 
         # Identify the language of each of the sentences
         my $sentence_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $sentence );
-        if ( $sentence_lang ne $story->{ language } )
+        if ( ( $sentence_lang || '' ) ne ( $story->{ language } || '' ) )
         {
             # Mark the language as unknown if the results for the sentence are not reliable
             unless ( MediaWords::Util::IdentifyLanguage::identification_would_be_reliable( $sentence ) )
@@ -78,7 +78,7 @@ sub _get_unique_sentences_in_story
 
 # Insert the story sentences into the DB, optionally skipping duplicate
 # sentences by setting is_dup = 't' to the found duplicates that are already in
-# the table
+# the table. Returns arrayref of sentences that were inserted into the table.
 sub _insert_story_sentences($$$;$)
 {
     my ( $db, $story, $sentences, $no_dedup_sentences ) = @_;
@@ -160,10 +160,13 @@ SQL
             SELECT sentence
             FROM duplicate_sentences
         )
+        RETURNING story_sentences.sentence
 SQL
 
     # Insert sentences
-    $db->query( $sql );
+    my $inserted_sentences = $db->query( $sql )->flat();
+
+    return $inserted_sentences;
 }
 
 sub _get_sentences_from_story_text
