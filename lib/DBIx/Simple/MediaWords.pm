@@ -71,7 +71,7 @@ sub connect($$$$$;$)
         }
     }
 
-    my $ret = $self->SUPER::connect( $dsn, $user, $pass, $options );
+    my $db = $self->SUPER::connect( $dsn, $user, $pass, $options );
 
     unless ( $do_not_check_schema_version )
     {
@@ -80,13 +80,13 @@ sub connect($$$$$;$)
         # at this particular point too, but schema_is_up_to_date() warns the user about schema being
         # too old on every run, and that's supposedly a good thing.
 
-        die "Database schema is not up-to-date." unless $ret->schema_is_up_to_date();
+        die "Database schema is not up-to-date." unless $db->schema_is_up_to_date();
     }
 
     # If schema is not up-to-date, connect() dies and we don't get to set PID here
     $_schema_version_check_pids{ $$ } = 1;
 
-    return $ret;
+    return $db;
 }
 
 # Schema is outdated / too new; returns 1 if MC should continue nevertheless, 0 otherwise
