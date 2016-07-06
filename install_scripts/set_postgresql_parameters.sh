@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#
+# Copy Media Cloud's PostgreSQL configuration and restart PostgreSQL service
+#
 set -u
 set -o errexit
 
