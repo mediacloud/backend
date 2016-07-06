@@ -222,7 +222,7 @@ parent *frame* (and by implication the parent *snapshot*), or else the null *fra
 
 
 *                                                                                                                                                                                                                                                                                                         topic
-                                                                                                                                                                                                                                                                                                                                                                                                         *        snapshot
+                                                                                                                                                                                                                                                                                                                                                                                                                                      *        snapshot
 *                                                                                                                                                                                                                                                                                                         frame
                                                                                                                                                                                                                                                                                                                                                                                                                                       *  timespan
 
@@ -289,7 +289,7 @@ The section for each end point includes an example call and response for that en
 
 # Topics
 
-## topics/create (POST)
+## topics/create (POST) - 10/1
 
 `https://api.mediacloud.org/api/v2/topics/create`
 
@@ -353,7 +353,7 @@ to have saner errors for? -->
 
 <!-- TODO - RB - do we need a public flag? or is that something we'll figure out with the permissions stuff separately -->
 
-## topics/~topics_id~/edit (PUT)
+## topics/~topics_id~/edit (PUT) - 10/1
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/edit`
 
@@ -406,7 +406,7 @@ Response:
 }
 ```
 
-## topics/~topics_id~/spider
+## topics/~topics_id~/spider - 10/1
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/spider`
 
@@ -442,7 +442,7 @@ Response:
 { "success": 1 }
 ```
 
-## topics/~topics_id~/iterations/list
+## topics/~topics_id~/iterations/list - 10/1
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/iterations/list`
 
@@ -487,7 +487,7 @@ Response:
 }
 ```
 
-## topics/list
+## topics/list - 8/1
 
 `https://api.mediacloud.org/api/v2/topics/list`
 
@@ -557,7 +557,7 @@ Response:
 
 # Stories
 
-## stories/list
+## stories/list - 8/1
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/list`
 
@@ -637,7 +637,7 @@ Response:
 }
 ```
 
-## stories/count
+## stories/count - 8/1
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/count`
 
@@ -674,7 +674,7 @@ Response:
 { "count": 123 }
 ```
 
-## stories/~stories_id~/edit (PUT)
+## stories/~stories_id~/edit (PUT) - 10/1
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/~stories_id~/edit`
 
@@ -716,7 +716,7 @@ Response:
 
 (see stories/list)
 
-## stories/~stories_id~/remove (PUT)
+## stories/~stories_id~/remove (PUT) - 10/1
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/~stories_id~/remove`
 
@@ -744,7 +744,7 @@ Response:
 { "success": 1 }
 ```
 
-## stories/merge (PUT)
+## stories/merge (PUT) - 10/1
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/stories/merge`
 
@@ -792,7 +792,7 @@ Response:
 
 # Sentences
 
-## sentences/count
+## sentences/count - 8/1
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/sentences/count`
 
@@ -807,7 +807,7 @@ For details about this end point, including parameters, output, and examples, se
 
 # Media
 
-## media/list
+## media/list - 8/1
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/media/list`
 
@@ -872,7 +872,7 @@ Response:
     }
 }
 ```
-## media/~media_id~/edit (PUT)
+## media/~media_id~/edit (PUT) - 10/1
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/media/~media_id~/edit`
 
@@ -910,7 +910,7 @@ Output:
 
 (see media/list)
 
-## media/~media_id~/remove (PUT)
+## media/~media_id~/remove (PUT) - 10/1
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/media/~media_id~/remove`
 
@@ -938,7 +938,7 @@ Response:
 { "success": 1 }
 ```
 
-## media/merge (PUT)
+## media/merge (PUT) - 10/1
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/media/merge`
 
@@ -986,7 +986,7 @@ Response:
 
 # Word Counts
 
-## wc/list
+## wc/list - 8/1
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/wc/list`
 
@@ -1014,7 +1014,7 @@ A specific *frame* exists within a specific *snapshot*.  A single topic might ha
 The relationship of these objects is show"below":
 
 *                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             topic
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            *       frame set definition
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          *       frame set definition
 *                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             frame definition (+ framing method)
 *                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             snapshot
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           *     frame set
@@ -1032,7 +1032,7 @@ Details about each framing method are below.  Among other properties, each frami
 
 The Boolean Query framing method associates a frame with a story by matching that story with a solr boolean query.  *Frame Sets* generated by the Boolean Query method are not exclusive.
 
-## frame_set_definitions/create (POST)
+## frame_set_definitions/create (POST) - 8/1
 
 `https://api.mediacloud.org/api/topics/~topics_id~/frame_sets/create`
 
@@ -1083,7 +1083,7 @@ Response:
 }
 ```
 
-## frame_set_definitions/~frame_set_definitions_id~/update (PUT)
+## frame_set_definitions/~frame_set_definitions_id~/update (PUT) - 8/1
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/frame_set_definitions/~frame_set_definitions_id~/update/`
 
@@ -1130,7 +1130,7 @@ Response:
 }
 ```
 
-## frame_set_definitions/~frame_set_definitions_id~/delete (PUT)
+## frame_set_definitions/~frame_set_definitions_id~/delete (PUT) - 8/1
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/frame_set_definitions/~frame_set_definitions_id~/delete`
 
@@ -1158,7 +1158,7 @@ Response:
 { "success": 1 }
 ```
 
-## frame_set_definitions/list
+## frame_set_definitions/list - 8/1
 
 <!-- RB - who needs to consume this end point? I don't think I ever do... If the core engine is the only one that ever needs this engine then should it exist? -->
 <!-- HR - I think you misunderstand the architecture I'm proposing.  
@@ -1218,7 +1218,7 @@ Response:
 }
 ```
 
-## frame_sets/list
+## frame_sets/list - 8/1
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/frame_sets/list`
 
@@ -1275,7 +1275,7 @@ Response:
 ```
 
 
-## frame_definitions/~frame_set_definitions_id~/create (POST)
+## frame_definitions/~frame_set_definitions_id~/create (POST) - 8/1
 
 `https://api.mediacloud.org/api/topics/~topics_id~/frame_sets/~frame_set_definitions_id~/create/`
 
@@ -1329,7 +1329,7 @@ Response:
 ```
 
 
-## frame_definitions/~frame_definitions_id~/update (PUT)
+## frame_definitions/~frame_definitions_id~/update (PUT) - 8/1
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/frame_definitions/~frame_definitions_id~/update`
 
@@ -1371,7 +1371,7 @@ Response:
 }
 ```
 
-## frame_definitions/list
+## frame_definitions/list - 8/1
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/frame_definitions/~frame_set_definitions_id~/list`
 
@@ -1414,7 +1414,7 @@ Response:
 }
 ```
 
-## frames/list
+## frames/list - 8/1
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/frame_sets/~frame_sets_id~/frames/list`
 
@@ -1462,7 +1462,7 @@ Response:
 
 Each *snapshot* contains a static copy of all data within a topic at the time the *snapshot* was made.  All data viewable by the Topics API must be viewed through a *snapshot*.
 
-## snapshots/generate (POST)
+## snapshots/generate (POST) - 8/1
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/snapshots/generate`
 
@@ -1539,7 +1539,7 @@ Response:
 ```
 <!-- TODO - I bet it will be useful to include the username here that generated it -->
 
-## snapshots/~snapshots_id~/edit (PUT)
+## snapshots/~snapshots_id~/edit (PUT) - 10/1
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/snapshots/~snapshots_id~/edit`
 
@@ -1585,7 +1585,7 @@ Each *timespan* is a view of the *topic* that presents the topic as if it consis
 
 A *story* is included within a *timespan* if the publish_date of the story is within the *timespan* date range or if the *story* is linked to by a *story* that whose publish_date is within date range of the *timespan*.
 
-## timespans/list
+## timespans/list - 8/1
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/timespans/list`
 
@@ -1655,7 +1655,7 @@ Response:
 <!-- HR - there should be a timespans/list_dates call -->
 
 
-## timespans/add_dates (PUT)
+## timespans/add_dates (PUT) - 10/1
 <!-- RB - for consistency, do we want to call this a timespan_definition?  and have the url end with /timespan_definitions/create -->
 <!-- HR - I'm note sure.  the dates are simpler, so I thought I could get away with not making them first class
 objects with ids.  We don't need to delete them. That seems simpler to me, but if consistency is more important
@@ -1701,7 +1701,7 @@ Response:
 { "success": 1 }
 ```
 
-## timespans/list_dates
+## timespans/list_dates - 10/1
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/timespans/list_dates`
 
