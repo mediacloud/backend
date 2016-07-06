@@ -39,7 +39,7 @@ fi
 
 # Create include directory to load configuration from
 CONF_D_DIR="$CONFIG_DIR/conf.d/"
-mkdir -p "$CONF_D_DIR"
+sudo mkdir -p "$CONF_D_DIR"
 
 # Make PostgreSQL read from the include directory
 if ! grep -q "MEDIA CLOUD CONFIGURATION" "$POSTGRESQL_CONF_FILE_PATH"; then
