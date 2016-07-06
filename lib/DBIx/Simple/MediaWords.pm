@@ -95,7 +95,7 @@ sub _should_continue_with_outdated_schema($$$)
 
     if ( ( $config_ignore_schema_version eq 'yes' ) || exists $ENV{ $ignore_schema_version_env_variable } )
     {
-        say STDERR <<"EOF";
+        WARN <<"EOF";
 
 The current Media Cloud database schema is older than the schema present in mediawords.sql,
 but $ignore_schema_version_env_variable is set so continuing anyway.
@@ -106,7 +106,7 @@ EOF
     else
     {
 
-        say STDERR <<"EOF";
+        WARN <<"EOF";
 
 ################################
 
@@ -147,7 +147,7 @@ sub schema_is_up_to_date
     my $db_vars_table        = $db_vars_table_exists[ 0 ] + 0;
     if ( !$db_vars_table )
     {
-        say STDERR "Database table 'database_variables' does not exist, probably the database is empty at this point.";
+        DEBUG "Database table 'database_variables' does not exist, probably the database is empty at this point.";
         return 1;
     }
 
@@ -421,7 +421,7 @@ sub update_by_id_and_log($$$$$$$$)
     # If there are no changes, there is nothing to do
     if ( scalar( @changes ) == 0 )
     {
-        say STDERR "Nothing to do.";
+        DEBUG "Nothing to do.";
         return 1;
     }
 
@@ -721,37 +721,25 @@ sub get_temporary_ids_table ($;$)
 {
     my ( $db, $ids, $ordered ) = @_;
 
-    my $i = 0;
-    while ( 1 )
+    my $table = "_tmp_ids_" . Math::Random::Secure::irand( 2**64 );
+    TRACE( "temporary ids table: $table" );
+
+    my $pk = $ordered ? " ${table}_pkey   SERIAL  PRIMARY KEY," : "";
+
+    $db->query( "create temporary table $table ( $pk id bigint )" );
+
+    $db->dbh->do( "COPY $table (id) FROM STDIN" );
+
+    for my $id ( @{ $ids } )
     {
-        die( "infinite loop break" ) if ( $i++ > 1000 );
-
-        my $table = "_tmp_ids_" . int( rand( 100000 ) );
-
-        my $pk = $ordered ? " ${table}_pkey   SERIAL  PRIMARY KEY," : "";
-
-        eval { $db->query( "create temporary table $table ( $pk id bigint )" ); };
-        if ( $@ )
-        {
-            ( $@ =~ /relation .* already exists/ ) ? next : die( $@ );
-        }
-
-        eval { $db->dbh->do( "COPY $table (id) FROM STDIN" ) };
-        die( " Error on copy: $@" ) if ( $@ );
-
-        for my $id ( @{ $ids } )
-        {
-            eval { $db->dbh->pg_putcopydata( "$id\n" ); };
-            die( " Error on pg_putcopydata: $@" ) if ( $@ );
-        }
-
-        eval { $db->dbh->pg_putcopyend(); };
-        Carp::confess( " Error on pg_putcopyend: $@" ) if ( $@ );
-
-        $db->query( "ANALYZE $table" );
-
-        return $table;
+        $db->dbh->pg_putcopydata( "$id\n" );
     }
+
+    $db->dbh->pg_putcopyend();
+
+    $db->query( "ANALYZE $table" );
+
+    return $table;
 }
 
 sub begin_work

@@ -395,6 +395,9 @@ update controversy_stories set link_mined = true
     where stories_id in ( select id from $ids_table ) and
         controversies_id = $controversy->{ controversies_id }
 SQL
+
+    $db->query( "discard temp" );
+
 }
 
 # lookup or create the spidered:spidered tag
@@ -1518,6 +1521,8 @@ select d.*
         dt.downloads_id is null and
         d.stories_id in ( select id from $ids_table )
 SQL
+
+    $db->query( "discard temp" );
 
     my $downloads_lookup = {};
     map { $downloads_lookup->{ $_->{ stories_id } } = $_ } @{ $downloads };
