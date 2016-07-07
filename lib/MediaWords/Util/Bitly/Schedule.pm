@@ -151,7 +151,7 @@ sub add_to_processing_schedule($$)
     foreach my $delay ( @{ $schedule } )
     {
 
-        my $story_timestamp      = story_timestamp( $story );
+        my $story_timestamp      = _story_timestamp( $story );
         my $processing_timestamp = $story_timestamp + $delay;
 
         $db->query(
