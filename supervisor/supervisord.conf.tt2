@@ -91,6 +91,17 @@ programs = crawler
     default_nice=12
 %]
 
+[% INCLUDE program_config
+    program='reschedule_stories_from_failed_bitly_rabbitmq_queue'
+    command="bash ./script/run_with_carton.sh ./script/reschedule_stories_from_failed_bitly_rabbitmq_queue.pl"
+    default_stopasgroup='true'
+    default_killasgroup='true'
+    default_autorestart='false'
+    default_autostart='false'
+    priority=5
+    default_nice=12
+%]
+
 ; Job brokers
 [group:job_broker]
 programs = rabbitmq
