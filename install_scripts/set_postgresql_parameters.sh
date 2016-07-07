@@ -15,6 +15,11 @@ if [ "$EUID" -eq 0 ]; then
     exit 1
 fi
 
+psql --version || {
+    echo "psql is not available, maybe PostgreSQL is not installed?"
+    exit 1
+}
+
 PWD="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # Path to Media Cloud's PostgreSQL general configuration file
