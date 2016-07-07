@@ -17,6 +17,8 @@ if [ ! -f mediawords.yml ]; then
 fi
 
 ./install_scripts/install_mediacloud_package_dependencies.sh
+./install_scripts/set_kernel_parameters.sh
+./install_scripts/set_postgresql_parameters.sh
 ./install_mc_perlbrew_and_modules.sh
 
 # Install Python dependencies

@@ -36,8 +36,11 @@ env:
         # Test PythonReadability extractor method in t/test_extractor.t
         - MC_TEST_EXTRACTOR_PYTHONREADABILITY=1
 before_install:
-    # Install APT packages
+    # Install APT packages (not PostgreSQL though)
     - ./install_scripts/install_mediacloud_system_package_dependencies.sh
+    # Set up kernel and PostgreSQL parameters
+    - ./install_scripts/set_kernel_parameters.sh
+    - ./install_scripts/set_postgresql_parameters.sh
     # Set up local Media Cloud environment for Python
     - mkdir -p $HOME/mc-python
     - virtualenv $HOME/mc-python

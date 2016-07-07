@@ -215,16 +215,13 @@ A *timespan* displays the *topic* as if it exists only of stories either publish
 
 *Topics*, *snapshots*, *frames*, and *timespans* are strictly hierarchical.  Every *snapshot* belongs to a single
 *topic*.  Every *frame* belongs to a single *snapshot*, and every *timespan* belongs to either a single *frame* or the
-null *frame*.  Specifying a *frame* implies the parent *snapshot* of that *frame*.  Specifying a *topic* implies the
+null *frame*.  Specifying a *frame* implies the parent *snapshot* of that *frame*.  Specifying a *timespan* implies the
 parent *frame* (and by implication the parent *snapshot*), or else the null *frame* within the parent *snapshot*.
 
-
-
-
-*                                                                                                                                                                                                                                                                                                         topic
-                                                                                                                                                                                                                                                                                                                                                                                                         *        snapshot
-*                                                                                                                                                                                                                                                                                                         frame
-                                                                                                                                                                                                                                                                                                                                                                                                                                      *  timespan
+* topic
+  * snapshot
+    * frame
+      * timespan
 
 Every url that returns data from a *topic* accepts optional *spanshots_id*, *timespans_id*, and *frames_id* parameters.
 
@@ -588,6 +585,7 @@ Standard parameters accepted: snapshots_id, frames_id, timespans_id, limit, link
 | -------------------- | ---------------------------------------- |
 | stories_id           | story id                                 |
 | media_id             | media source id                          |
+| media_name           | media source name                        |
 | url                  | story url                                |
 | title                | story title                              |
 | guid                 | story globally unique identifier         |

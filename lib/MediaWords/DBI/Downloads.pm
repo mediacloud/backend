@@ -66,6 +66,9 @@ Readonly my $RAW_DOWNLOADS_POSTGRESQL_KVS_TABLE_NAME => 'raw_downloads';
 # Database inline content length limit
 Readonly my $INLINE_CONTENT_LENGTH => 256;
 
+# Min. content length to extract (assuming that it has some HTML in it)
+Readonly my $MIN_CONTENT_LENGTH_TO_EXTRACT => 4096;
+
 =head1 FUNCTIONS
 
 =cut
@@ -533,8 +536,9 @@ sub extract_content_ref($$)
     my $ret = {};
 
     # Don't run through expensive extractor if the content is short and has no html
-    if ( ( length( $$content_ref ) < 4096 ) and ( $$content_ref !~ /\<.*\>/ ) )
+    if ( ( length( $$content_ref ) < $MIN_CONTENT_LENGTH_TO_EXTRACT ) and ( $$content_ref !~ /\<.*\>/ ) )
     {
+        INFO( "Content length is less than $MIN_CONTENT_LENGTH_TO_EXTRACT and has no HTML so skipping extraction" );
         $ret = {
             extracted_html => $$content_ref,
             extracted_text => $$content_ref,

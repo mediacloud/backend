@@ -2344,7 +2344,7 @@ Regardless of the number of victims, for each of those involved it is extremely 
                                    'db_row_last_updated' => '2016-05-08 20:43:17.571896-05',
                                    'disable_triggers' => 0,
                                    'is_dup' => undef,
-                                   'language' => undef,
+                                   'language' => '',
                                    'media_id' => 1,
                                    'publish_date' => '2009-06-06 16:37:36',
                                    'sentence' => 'Pra mim deu',
