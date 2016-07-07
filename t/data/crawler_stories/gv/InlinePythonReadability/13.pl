@@ -2111,7 +2111,7 @@ Peru: Clashes Break Out in the Amazon Region
                                    'db_row_last_updated' => '2016-05-08 20:43:18.430032-05',
                                    'disable_triggers' => 0,
                                    'is_dup' => undef,
-                                   'language' => undef,
+                                   'language' => '',
                                    'media_id' => 1,
                                    'publish_date' => '2009-06-05 15:54:35',
                                    'sentence' => '@elguillle :',
