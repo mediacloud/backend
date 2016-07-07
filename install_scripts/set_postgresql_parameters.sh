@@ -108,6 +108,5 @@ if [ `uname` == 'Darwin' ]; then
     brew services restart postgresql
 else
     # Ubuntu
-    sudo /etc/init.d/postgresql stop
-    sudo /etc/init.d/postgresql start
+    sudo service postgresql restart
 fi
