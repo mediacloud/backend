@@ -84,6 +84,7 @@ sub _insert_story_sentences($$$;$)
     my ( $db, $story, $sentences, $no_dedup_sentences ) = @_;
 
     my $stories_id = $story->{ stories_id };
+    my $media_id   = $story->{ media_id };
 
     unless ( scalar( @{ $sentences } ) )
     {
@@ -163,10 +164,26 @@ SQL
         RETURNING story_sentences.sentence
 SQL
 
-    DEBUG "Sentence insertion query:\n$sql";
+    DEBUG "Adding advisory lock on media ID $media_id...";
+    $db->query(
+        <<EOF,
+        SELECT pg_advisory_lock(?)
+EOF
+        $media_id
+    );
+
+    DEBUG "Running sentence insertion + deduplication query:\n$sql";
 
     # Insert sentences
     my $inserted_sentences = $db->query( $sql )->flat();
+
+    DEBUG "Removing advisory lock on media ID $media_id...";
+    $db->query(
+        <<EOF,
+        SELECT pg_advisory_unlock(?)
+EOF
+        $media_id
+    );
 
     return $inserted_sentences;
 }
