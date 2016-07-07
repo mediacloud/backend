@@ -163,6 +163,8 @@ SQL
         RETURNING story_sentences.sentence
 SQL
 
+    DEBUG "Sentence insertion query:\n$sql";
+
     # Insert sentences
     my $inserted_sentences = $db->query( $sql )->flat();
 
