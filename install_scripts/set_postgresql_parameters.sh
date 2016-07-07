@@ -43,7 +43,7 @@ if [ `uname` == 'Darwin' ]; then
 else
     # Ubuntu
     CONFIG_DIR=$(ls -d /etc/postgresql/*/main/)
-    POSTGRESQL_USER=`postgres`
+    POSTGRESQL_USER="postgres"
 fi
 
 if [ $(echo $CONFIG_DIR | wc -l) -gt 1 ]; then
