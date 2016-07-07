@@ -28,7 +28,6 @@ use MediaWords::CommonLibs;
 use MediaWords::DB;
 use MediaWords::Util::Bitly;
 use MediaWords::Util::Bitly::API;
-use MediaWords::Util::Config;
 use MediaWords::Util::Process;
 use MediaWords::Job::Bitly::AggregateStoryStats;
 use Readonly;
@@ -48,16 +47,6 @@ my $db = undef;
 sub run($;$)
 {
     my ( $self, $args ) = @_;
-
-    # Skip through old reextraction queue
-    my $config                             = MediaWords::Util::Config::get_config;
-    my $skip_stories_older_than_stories_id = $config->{ mediawords }->{ skip_stories_older_than_stories_id };
-    if ( $skip_stories_older_than_stories_id and $args->{ stories_id } <= $skip_stories_older_than_stories_id )
-    {
-        WARN "Story $args->{ stories_id } is from old reextraction queue (older than " .
-          $skip_stories_older_than_stories_id . "), skipping...";
-        return;
-    }
 
     # Postpone connecting to the database so that compile test doesn't do that
     $db ||= MediaWords::DB::connect_to_db();
