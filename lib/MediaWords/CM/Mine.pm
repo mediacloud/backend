@@ -80,6 +80,23 @@ my $_media_url_lookup;
 # lookup of self linked domains, for efficient skipping before adding a story
 my $_skip_self_linked_domain = {};
 
+# cache that indicates whether we should recheck a given url
+my $_no_potential_match_urls = {};
+
+my $_story_sentences_added = {};
+my $_link_extractor;
+
+# initialize static variables for each run
+sub init_static_variables
+{
+    $_media_cache             = {};
+    $_spidered_tag            = undef;
+    $_media_url_lookup        = undef;
+    $_skip_self_linked_domain = {};
+    $_no_potential_match_urls = {};
+    $_story_sentences_added   = {};
+}
+
 # update controversies.state in the database
 sub update_controversy_state
 {
@@ -111,8 +128,6 @@ sub add_redirect_links
         $link->{ redirect_url } = $final_url;
     }
 }
-
-my $_link_extractor;
 
 # return a list of all links that appear in the html
 sub get_links_from_html
@@ -972,9 +987,6 @@ sub translate_pattern_to_perl
     return $s;
 }
 
-# cache that indicates whether we should recheck a given url
-my $_no_potential_match_urls = {};
-
 # test whether the url or content of a potential story matches the controversy pattern
 sub potential_story_matches_controversy_pattern
 {
@@ -1010,8 +1022,6 @@ sub url_failed_potential_match
 
     return $url && $_no_potential_match_urls->{ $url };
 }
-
-my $_story_sentences_added = {};
 
 # add missing story sentences, but only do so once per runtime so that we don't repeatedly try
 # to add sentences to stories with no sentences
@@ -2749,6 +2759,8 @@ sub do_mine_controversy ($$;$)
 sub mine_controversy ($$;$)
 {
     my ( $db, $controversy, $options ) = @_;
+
+    init_static_variables();
 
     eval { do_mine_controversy( $db, $controversy, $options ); };
     if ( $@ )
