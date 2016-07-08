@@ -133,10 +133,10 @@ sub write_live_dump_tables
 
     write_temporary_dump_tables( $db, $controversies_id );
     write_period_stories( $db, $cdts );
-    write_story_link_counts_dump( $db, $cdts, 1 );
     write_story_links_dump( $db, $cdts, 1 );
-    write_medium_link_counts_dump( $db, $cdts, 1 );
+    write_story_link_counts_dump( $db, $cdts, 1 );
     write_medium_links_dump( $db, $cdts, 1 );
+    write_medium_link_counts_dump( $db, $cdts, 1 );
 }
 
 # create temporary view of all the dump_* tables that call into the cd.* tables.
@@ -432,39 +432,11 @@ sub get_stories_csv
 {
     my ( $db, $cdts ) = @_;
 
-    my $controversy = $db->query( <<END, $cdts->{ controversy_dumps_id } );
-select * from controversies c, controversy_dumps cd
-    where c.controversies_id = cd.controversies_id and cd.controversy_dumps_id = ?
-END
-
-    my $tagset_name = "Controversy " . $cdts->{ controversy_dump }->{ controversy }->{ name } || '';
-
-    my $tags = $db->query( <<END, $tagset_name )->hashes;
-select * from dump_tags t, dump_tag_sets ts
-    where t.tag_sets_id = ts.tag_sets_id and ts.name = ? and t.tag <> 'all'
-END
-
-    my $tag_clauses = [];
-    for my $tag ( @{ $tags } )
-    {
-        my $label = "tagged_" . $tag->{ tag };
-
-        push(
-            @{ $tag_clauses },
-            "exists ( select 1 from dump_stories_tags_map stm " .
-              "  where s.stories_id = stm.stories_id and stm.tags_id = $tag->{ tags_id } ) $label "
-        );
-    }
-
-    my $tag_clause_list = join( ',', @{ $tag_clauses } );
-    $tag_clause_list = ", $tag_clause_list" if ( $tag_clause_list );
-
     my $csv = MediaWords::Util::CSV::get_query_as_csv( $db, <<END );
 select distinct s.stories_id, s.title, s.url,
         case when ( stm.tags_id is null ) then s.publish_date::text else 'undateable' end as publish_date,
         m.name media_name, m.url media_url, m.media_id,
-        slc.inlink_count, slc.outlink_count, slc.bitly_click_count, slc.facebook_share_count
-        $tag_clause_list
+        slc.media_inlink_count, slc.inlink_count, slc.outlink_count, slc.bitly_click_count, slc.facebook_share_count
 	from dump_stories s
 	    join dump_media m on ( s.media_id = m.media_id )
 	    join dump_story_link_counts slc on ( s.stories_id = slc.stories_id )
@@ -496,12 +468,33 @@ sub write_story_link_counts_dump
 
     $db->query( <<END );
 create temporary table dump_story_link_counts $_temporary_tablespace as
+    with  dump_story_media_links as (
+       select
+            s.media_id source_media_id,
+            sl.ref_stories_id ref_stories_id
+        from
+            dump_story_links sl
+            join dump_stories s on ( s.stories_id = sl.source_stories_id )
+        group by s.media_id, sl.ref_stories_id
+    ),
+
+    dump_story_media_link_counts as (
+        select
+                count(*) media_inlink_count,
+                sml.ref_stories_id stories_id
+            from
+                dump_story_media_links sml
+            group by sml.ref_stories_id
+    )
+
     select distinct ps.stories_id,
+            coalesce ( smlc.media_inlink_count, 0 ) media_inlink_count,
             coalesce( ilc.inlink_count, 0 ) inlink_count,
             coalesce( olc.outlink_count, 0 ) outlink_count,
             b.click_count bitly_click_count,
             ss.facebook_share_count facebook_share_count
         from dump_period_stories ps
+            left join dump_story_media_link_counts smlc using ( stories_id )
             left join
                 ( select cl.ref_stories_id,
                          count( distinct cl.stories_id ) inlink_count
@@ -645,8 +638,7 @@ sub get_media_csv
     my ( $db, $cdts ) = @_;
 
     my $res = $db->query( <<END );
-select m.media_id, m.name, m.url, mlc.inlink_count, mlc.outlink_count,
-        mlc.story_count, mlc.bitly_click_count, mlc.facebook_share_count
+select m.name, m.url, mlc.*
     from dump_media m, dump_medium_link_counts mlc
     where m.media_id = mlc.media_id
     order by mlc.inlink_count desc;
@@ -681,15 +673,37 @@ sub write_medium_link_counts_dump
 
     $db->query( <<END );
 create temporary table dump_medium_link_counts $_temporary_tablespace as
-    select m.media_id,
-           sum( slc.inlink_count) inlink_count,
-           sum( slc.outlink_count) outlink_count,
-           count(*) story_count,
-           sum( slc.bitly_click_count ) bitly_click_count,
-           sum( slc.facebook_share_count ) facebook_share_count
-        from dump_media m, dump_stories s, dump_story_link_counts slc
-        where m.media_id = s.media_id and s.stories_id = slc.stories_id
-        group by m.media_id
+
+    with medium_media_link_counts as (
+       select
+            count(*) media_inlink_count,
+            dml.ref_media_id media_id
+        from
+            dump_medium_links dml
+        group by dml.ref_media_id
+    ),
+
+    medium_link_counts as (
+        select m.media_id,
+               sum( slc.media_inlink_count ) sum_media_inlink_count,
+               sum( slc.inlink_count) inlink_count,
+               sum( slc.outlink_count) outlink_count,
+               count(*) story_count,
+               sum( slc.bitly_click_count ) bitly_click_count,
+               sum( slc.facebook_share_count ) facebook_share_count
+            from
+                dump_media m
+                join dump_stories s using ( media_id )
+                join dump_story_link_counts slc using ( stories_id )
+            where m.media_id = s.media_id and s.stories_id = slc.stories_id
+            group by m.media_id
+    )
+
+    select
+            mlc.*,
+            coalesce( mmlc.media_inlink_count, 0 ) media_inlink_count
+        from medium_link_counts mlc
+            left join medium_media_link_counts mmlc using ( media_id )
 END
 
     if ( !$is_model )
@@ -1209,10 +1223,10 @@ sub generate_cdts_data ($$;$)
 
     write_period_stories( $db, $cdts );
 
-    write_story_link_counts_dump( $db, $cdts, $is_model );
     write_story_links_dump( $db, $cdts, $is_model );
-    write_medium_link_counts_dump( $db, $cdts, $is_model );
+    write_story_link_counts_dump( $db, $cdts, $is_model );
     write_medium_links_dump( $db, $cdts, $is_model );
+    write_medium_link_counts_dump( $db, $cdts, $is_model );
 
 }
 

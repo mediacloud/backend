@@ -45,7 +45,11 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
+<<<<<<< HEAD
     MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4559;
+=======
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4560;
+>>>>>>> media_inlinks
 
 BEGIN
 
@@ -1949,6 +1953,8 @@ create table cd.story_link_counts (
     controversy_dump_time_slices_id         int not null
                                             references controversy_dump_time_slices on delete cascade,
     stories_id                              int not null,
+    media_inlink_count                      int not null,
+    sum_media_inlink_count                  int not null,
     inlink_count                            int not null,
     outlink_count                           int not null,
 
@@ -1967,6 +1973,7 @@ create table cd.medium_link_counts (
     controversy_dump_time_slices_id int not null
                                     references controversy_dump_time_slices on delete cascade,
     media_id                        int not null,
+    media_inlink_count              int not null,
     inlink_count                    int not null,
     outlink_count                   int not null,
     story_count                     int not null,
