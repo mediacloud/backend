@@ -29,7 +29,7 @@ sub main
 
     my $db = MediaWords::DB::connect_to_db;
 
-    Readonly my $CHUNK_SIZE => 1000;
+    Readonly my $CHUNK_SIZE => 10_000;
 
     DEBUG "Adding stories to reextractor queue...";
     my $stories_to_reextract;
