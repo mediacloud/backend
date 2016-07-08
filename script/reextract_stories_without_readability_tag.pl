@@ -43,7 +43,22 @@ sub main
             <<SQL,
                 SELECT stories_id
                 FROM stories_without_readability_tag
-                ORDER BY stories_id
+
+                -- "UPDATE duplicates then INSERT non-duplicates to
+                -- story_sentences" query adds an advisory lock on story's
+                -- media_id. (Most?) stories (at least the old ones to be
+                -- reextracted) got downloaded in chunks with the same media_id,
+                -- so extractor has to wait for story's media_id to get
+                -- unlocked and so can extract only a single story at a time.
+                --
+                -- Thus, randomize stories that are being fed into the queue
+                -- for them to be reextracted in parallel without having to
+                -- wait for locks.
+                --
+                -- This is going to run for ~60s but that's fine because we
+                -- don't want to fill up RabbitMQ's queue too quickly anyway.
+                ORDER BY RANDOM()
+
                 LIMIT ?
 SQL
             $CHUNK_SIZE
