@@ -40,12 +40,12 @@ sub main
         $db->begin_work;
 
         $stories_to_reextract = $db->query(
-            <<EOF,
+            <<SQL,
                 SELECT stories_id
                 FROM stories_without_readability_tag
                 ORDER BY stories_id
                 LIMIT ?
-EOF
+SQL
             $CHUNK_SIZE
         )->hashes;
 
@@ -67,10 +67,10 @@ EOF
                 MediaWords::Job::ExtractAndVector->add_to_queue( $args, $priority );
 
                 $db->query(
-                    <<EOF,
+                    <<SQL,
                     DELETE FROM stories_without_readability_tag
                     WHERE stories_id = ?
-EOF
+SQL
                     $stories_id
                 );
             }
