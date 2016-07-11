@@ -1035,13 +1035,8 @@ create index story_sentences_language on story_sentences(language);
 create index story_sentences_media_id    on story_sentences( media_id );
 create index story_sentences_db_row_last_updated    on story_sentences( db_row_last_updated );
 
--- Might already exist on production
-SELECT create_index_if_not_exists(
-    'public',
-    'story_sentences',
-    'story_sentences_sentence_half_md5',
-    '(half_md5(sentence))'
-);
+CREATE INDEX story_sentences_sentence_half_md5
+    ON story_sentences (half_md5(sentence));
 
 ALTER TABLE story_sentences
     ADD CONSTRAINT story_sentences_media_id_fkey
