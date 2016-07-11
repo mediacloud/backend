@@ -245,27 +245,4 @@ EOF
     return $stories_processed;
 }
 
-# Add due stories for which we should fetch Bit.ly statistics to job broker's
-# queue up until there are no more due stories to add
-#
-# Returns: a number of stories that have been added to job broker's queue
-sub process_due_schedule_until_finished($)
-{
-    my $db = shift;
-
-    unless ( story_processing_is_enabled() )
-    {
-        die "Bit.ly story processing is not enabled.";
-    }
-
-    DEBUG "Adding all due stories to Bit.ly fetch queue...";
-    my $stories_processed;
-    do
-    {
-        $stories_processed = process_due_schedule_chunk( $db );
-    } until ( $stories_processed == 0 );
-
-    DEBUG "Done adding all due stories to Bit.ly fetch queue.";
-}
-
 1;
