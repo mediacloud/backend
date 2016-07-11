@@ -2,35 +2,10 @@
 -- Schema for MediaWords database
 --
 
--- CREATE LANGUAGE IF NOT EXISTS plpgsql
+CREATE OR REPLACE LANGUAGE plpgsql;
 
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
-CREATE OR REPLACE FUNCTION create_language_plpgsql()
-RETURNS BOOLEAN AS $$
-    CREATE LANGUAGE plpgsql;
-    SELECT TRUE;
-$$ LANGUAGE SQL;
-
-SELECT CASE WHEN NOT
-    (
-        SELECT  TRUE AS exists
-        FROM    pg_language
-        WHERE   lanname = 'plpgsql'
-        UNION
-        SELECT  FALSE AS exists
-        ORDER BY exists DESC
-        LIMIT 1
-    )
-THEN
-    create_language_plpgsql()
-ELSE
-    FALSE
-END AS plpgsql_created;
-
-DROP FUNCTION create_language_plpgsql();
-
 
 
 -- Database properties (variables) table
@@ -45,7 +20,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4555;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4563;
 
 BEGIN
 
@@ -78,6 +53,15 @@ END;
 $$
 LANGUAGE 'plpgsql' IMMUTABLE
   COST 10;
+
+
+-- Returns first 64 bits (16 characters) of MD5 hash
+--
+-- Useful for reducing index sizes (e.g. in story_sentences.sentence) where
+-- 64 bits of entropy is enough.
+CREATE OR REPLACE FUNCTION half_md5(string TEXT) RETURNS bytea AS $$
+    SELECT SUBSTRING(digest(string, 'md5'::text), 0, 9);
+$$ LANGUAGE SQL;
 
 
  -- Returns true if the date is greater than the latest import date in solr_imports
@@ -1005,25 +989,8 @@ create index story_sentences_language on story_sentences(language);
 create index story_sentences_media_id    on story_sentences( media_id );
 create index story_sentences_db_row_last_updated    on story_sentences( db_row_last_updated );
 
--- we have to do this in a function to create the partial index on a constant value,
--- which you cannot do with a simple 'create index ... where publish_date > now()'
-create or replace function create_initial_story_sentences_dup() RETURNS boolean as $$
-declare
-    one_month_ago date;
-begin
-    select now() - interval '1 month' into one_month_ago;
-
-    raise notice 'date: %', one_month_ago;
-
-    execute 'create index story_sentences_dup on story_sentences( md5( sentence ) ) ' ||
-        'where week_start_date( publish_date::date ) > ''' || one_month_ago || '''::date';
-
-    return true;
-END;
-$$ LANGUAGE plpgsql;
-
-select create_initial_story_sentences_dup();
-
+CREATE INDEX story_sentences_sentence_half_md5
+    ON story_sentences (half_md5(sentence));
 
 ALTER TABLE story_sentences
     ADD CONSTRAINT story_sentences_media_id_fkey
@@ -1911,6 +1878,7 @@ create table cd.story_link_counts (
     controversy_dump_time_slices_id         int not null
                                             references controversy_dump_time_slices on delete cascade,
     stories_id                              int not null,
+    media_inlink_count                      int not null,
     inlink_count                            int not null,
     outlink_count                           int not null,
 
@@ -1929,6 +1897,8 @@ create table cd.medium_link_counts (
     controversy_dump_time_slices_id int not null
                                     references controversy_dump_time_slices on delete cascade,
     media_id                        int not null,
+    sum_media_inlink_count          int not null,
+    media_inlink_count              int not null,
     inlink_count                    int not null,
     outlink_count                   int not null,
     story_count                     int not null,

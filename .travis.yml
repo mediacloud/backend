@@ -38,8 +38,11 @@ env:
         # Gradle version (http://gradle.org/gradle-download/)
         - GRADLE_VERSION=gradle-2.8
 before_install:
-    # Install APT packages
+    # Install APT packages (not PostgreSQL though)
     - ./install_scripts/install_mediacloud_system_package_dependencies.sh
+    # Set up kernel and PostgreSQL parameters
+    - ./install_scripts/set_kernel_parameters.sh
+    - ./install_scripts/set_postgresql_parameters.sh
     # Set up local Media Cloud environment for Python
     - mkdir -p $HOME/mc-python
     - virtualenv $HOME/mc-python
