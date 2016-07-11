@@ -29,7 +29,7 @@ sub main
 
     my $db = MediaWords::DB::connect_to_db;
 
-    MediaWords::Util::Bitly::Schedule::process_due_schedule( $db );
+    MediaWords::Util::Bitly::Schedule::process_due_schedule_until_finished( $db );
 }
 
 main();
