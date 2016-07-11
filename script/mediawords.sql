@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4561;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4563;
 
 BEGIN
 
@@ -78,27 +78,6 @@ END;
 $$
 LANGUAGE 'plpgsql' IMMUTABLE
   COST 10;
-
-
--- Create index if it doesn't exist already
---
--- Should be removed after migrating to PostgreSQL 9.5 because it supports
--- CREATE INDEX IF NOT EXISTS natively.
-CREATE OR REPLACE FUNCTION create_index_if_not_exists(schema_name TEXT, table_name TEXT, index_name TEXT, index_sql TEXT)
-RETURNS void AS $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1
-        FROM   pg_class c
-        JOIN   pg_namespace n ON n.oid = c.relnamespace
-        WHERE  c.relname = index_name
-        AND    n.nspname = schema_name
-    ) THEN
-        EXECUTE 'CREATE INDEX ' || index_name || ' ON ' || schema_name || '.' || table_name || ' ' || index_sql;
-    END IF;
-END
-$$
-LANGUAGE plpgsql VOLATILE;
 
 
 -- Returns first 64 bits (16 characters) of MD5 hash
@@ -1035,33 +1014,8 @@ create index story_sentences_language on story_sentences(language);
 create index story_sentences_media_id    on story_sentences( media_id );
 create index story_sentences_db_row_last_updated    on story_sentences( db_row_last_updated );
 
--- Might already exist on production
-SELECT create_index_if_not_exists(
-    'public',
-    'story_sentences',
-    'story_sentences_sentence_half_md5',
-    '(half_md5(sentence))'
-);
-
--- we have to do this in a function to create the partial index on a constant value,
--- which you cannot do with a simple 'create index ... where publish_date > now()'
-create or replace function create_initial_story_sentences_dup() RETURNS boolean as $$
-declare
-    one_month_ago date;
-begin
-    select now() - interval '1 month' into one_month_ago;
-
-    raise notice 'date: %', one_month_ago;
-
-    execute 'create index story_sentences_dup on story_sentences( md5( sentence ) ) ' ||
-        'where week_start_date( publish_date::date ) > ''' || one_month_ago || '''::date';
-
-    return true;
-END;
-$$ LANGUAGE plpgsql;
-
-select create_initial_story_sentences_dup();
-
+CREATE INDEX story_sentences_sentence_half_md5
+    ON story_sentences (half_md5(sentence));
 
 ALTER TABLE story_sentences
     ADD CONSTRAINT story_sentences_media_id_fkey

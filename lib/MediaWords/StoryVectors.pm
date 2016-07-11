@@ -86,6 +86,10 @@ sub _insert_story_sentences($$$;$)
     my $stories_id = $story->{ stories_id };
     my $media_id   = $story->{ media_id };
 
+    # Story's publish date is the same for all the sentences, so we might as
+    # well pass it as a constant
+    my $escaped_story_publish_date = $db->quote_date( $story->{ publish_date } );
+
     unless ( scalar( @{ $sentences } ) )
     {
         WARN( "Story sentences are empty for story $stories_id" );
@@ -110,14 +114,14 @@ SQL
 
         # Set is_dup = 't' to sentences already in the table, return those to
         # be later skipped on INSERT of new sentences
-        $dedup_sentences_statement = <<SQL;
+        $dedup_sentences_statement = <<"SQL";
             UPDATE story_sentences
             SET is_dup = 't',
                 disable_triggers = 't'
             FROM new_sentences
             WHERE half_md5(story_sentences.sentence) = half_md5(new_sentences.sentence)
               AND week_start_date( story_sentences.publish_date::date )
-                  = week_start_date( new_sentences.publish_date::date )
+                  = week_start_date( $escaped_story_publish_date )
               AND story_sentences.media_id = new_sentences.media_id
             RETURNING story_sentences.sentence
 SQL
