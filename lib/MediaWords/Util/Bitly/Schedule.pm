@@ -120,6 +120,7 @@ sub story_processing_is_enabled()
     return ( $enabled eq 'yes' );
 }
 
+# Schedule a story to be processed with Bit.ly later
 sub add_to_processing_schedule($$)
 {
     my ( $db, $stories_id ) = @_;
@@ -165,6 +166,8 @@ EOF
     $db->commit if ( $use_transaction );
 }
 
+# Add due stories for which we should fetch Bit.ly statistics to job broker's
+# queue
 sub process_due_schedule($)
 {
     my $db = shift;
