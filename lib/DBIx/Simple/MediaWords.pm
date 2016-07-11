@@ -787,6 +787,12 @@ sub quote_varchar
     return $self->quote( $value, { pg_type => DBD::Pg::PG_VARCHAR } );
 }
 
+sub quote_date
+{
+    my ( $self, $value ) = @_;
+    return $self->quote_varchar( $value ) . '::date';
+}
+
 sub quote_timestamp
 {
     my ( $self, $value ) = @_;

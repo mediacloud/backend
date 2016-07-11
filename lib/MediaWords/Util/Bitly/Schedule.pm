@@ -120,6 +120,7 @@ sub story_processing_is_enabled()
     return ( $enabled eq 'yes' );
 }
 
+# Schedule a story to be processed with Bit.ly later
 sub add_to_processing_schedule($$)
 {
     my ( $db, $stories_id ) = @_;
@@ -165,85 +166,83 @@ EOF
     $db->commit if ( $use_transaction );
 }
 
-sub process_due_schedule($)
+# Add a chunk of due stories for which we should fetch Bit.ly statistics to job
+# broker's queue
+#
+# Returns: a number of stories that have been added to job broker's queue
+sub process_due_schedule_chunk($;$)
 {
-    my $db = shift;
+    my ( $db, $chunk_size ) = @_;
 
     unless ( story_processing_is_enabled() )
     {
         die "Bit.ly story processing is not enabled.";
     }
 
-    Readonly my $CHUNK_SIZE => 1000;
+    $chunk_size ||= 1000;
 
-    DEBUG "Adding due stories to Bit.ly fetch queue...";
-    my $stories_to_process;
-    do
+    DEBUG "Fetching chunk of up to $chunk_size stories to add to Bit.ly fetch queue...";
+
+    $db->begin_work;
+
+    my $stories_to_process = $db->query(
+        <<EOF,
+            SELECT DISTINCT stories_id
+            FROM bitly_processing_schedule
+            WHERE fetch_at <= NOW()
+            ORDER BY stories_id
+            LIMIT ?
+EOF
+        $chunk_size
+    )->hashes;
+
+    if ( scalar( @{ $stories_to_process } ) == 0 )
     {
-        DEBUG "Fetching chunk of up to $CHUNK_SIZE stories to add to Bit.ly fetch queue...";
+        DEBUG "No more stories left to process.";
+        return 0;
+    }
 
-        $db->begin_work;
+    DEBUG "Processing " . scalar( @{ $stories_to_process } ) . " stories...";
 
-        $stories_to_process = $db->query(
-            <<EOF,
-                SELECT DISTINCT stories_id
-                FROM bitly_processing_schedule
-                WHERE fetch_at <= NOW()
-                ORDER BY stories_id
-                LIMIT ?
-EOF
-            $CHUNK_SIZE
-        )->hashes;
+    foreach my $story_to_process ( @{ $stories_to_process } )
+    {
+        my $stories_id = $story_to_process->{ stories_id };
 
-        if ( scalar( @{ $stories_to_process } ) > 0 )
+        my $story = $db->find_by_id( 'stories', $stories_id );
+        unless ( $story )
         {
-            DEBUG "Processing " . scalar( @{ $stories_to_process } ) . " stories...";
+            die "Story ID $stories_id was not found.";
+        }
 
-            foreach my $story_to_process ( @{ $stories_to_process } )
+        my $story_timestamp = _story_timestamp( $story );
+        my $start_timestamp = _story_start_timestamp( $story_timestamp );
+        my $end_timestamp   = _story_end_timestamp( $story_timestamp );
+
+        DEBUG "Adding story $stories_id to Bit.ly fetch queue...";
+        MediaWords::Job::Bitly::FetchStoryStats->add_to_queue(
             {
-                my $stories_id = $story_to_process->{ stories_id };
-
-                my $story = $db->find_by_id( 'stories', $stories_id );
-                unless ( $story )
-                {
-                    die "Story ID $stories_id was not found.";
-                }
-
-                my $story_timestamp = _story_timestamp( $story );
-                my $start_timestamp = _story_start_timestamp( $story_timestamp );
-                my $end_timestamp   = _story_end_timestamp( $story_timestamp );
-
-                DEBUG "Adding story $stories_id to Bit.ly fetch queue...";
-                MediaWords::Job::Bitly::FetchStoryStats->add_to_queue(
-                    {
-                        stories_id      => $stories_id,
-                        start_timestamp => $start_timestamp,
-                        end_timestamp   => $end_timestamp
-                    }
-                );
-
-                $db->query(
-                    <<EOF,
-                    DELETE FROM bitly_processing_schedule
-                    WHERE stories_id = ?
-                      AND fetch_at <= NOW()
-EOF
-                    $stories_id
-                );
+                stories_id      => $stories_id,
+                start_timestamp => $start_timestamp,
+                end_timestamp   => $end_timestamp
             }
+        );
 
-            DEBUG "Done processing " . scalar( @{ $stories_to_process } ) . " stories.";
-        }
-        else
-        {
-            DEBUG "No more stories left to process.";
-        }
+        $db->query(
+            <<EOF,
+            DELETE FROM bitly_processing_schedule
+            WHERE stories_id = ?
+              AND fetch_at <= NOW()
+EOF
+            $stories_id
+        );
+    }
 
-        $db->commit;
+    $db->commit;
 
-    } until ( scalar( @{ $stories_to_process } ) == 0 );
+    my $stories_processed = scalar( @{ $stories_to_process } );
+    DEBUG "Done processing $stories_processed stories.";
 
-    DEBUG "Done adding due stories to Bit.ly fetch queue.";
+    return $stories_processed;
 }
 
 1;
