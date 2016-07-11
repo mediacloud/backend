@@ -45,7 +45,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4559;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4561;
 
 BEGIN
 
@@ -1949,6 +1949,7 @@ create table cd.story_link_counts (
     controversy_dump_time_slices_id         int not null
                                             references controversy_dump_time_slices on delete cascade,
     stories_id                              int not null,
+    media_inlink_count                      int not null,
     inlink_count                            int not null,
     outlink_count                           int not null,
 
@@ -1967,6 +1968,8 @@ create table cd.medium_link_counts (
     controversy_dump_time_slices_id int not null
                                     references controversy_dump_time_slices on delete cascade,
     media_id                        int not null,
+    sum_media_inlink_count          int not null,
+    media_inlink_count              int not null,
     inlink_count                    int not null,
     outlink_count                   int not null,
     story_count                     int not null,
@@ -2873,16 +2876,3 @@ CREATE INDEX stories_without_readability_tag_stories_id
 --     -- No Readability tag
 --     WHERE stories_tags_map.tags_id IS NULL
 --     ;
-
-
---
--- Stories from failed Bit.ly RabbitMQ queue
--- (RabbitMQ failed reindexing a huge queue so we had to recover stories in
--- that queue manually. Story IDs from this table are to be gradually moved to
--- Bit.ly processing schedule.)
---
-CREATE TABLE IF NOT EXISTS stories_from_failed_bitly_rabbitmq_queue (
-    stories_id BIGINT NOT NULL REFERENCES stories (stories_id)
-);
-CREATE INDEX stories_from_failed_bitly_rabbitmq_queue_stories_id
-    ON stories_from_failed_bitly_rabbitmq_queue (stories_id);

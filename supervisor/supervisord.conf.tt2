@@ -92,12 +92,12 @@ programs = crawler
 %]
 
 [% INCLUDE program_config
-    program='reschedule_stories_from_failed_bitly_rabbitmq_queue'
-    command="bash ./script/run_with_carton.sh ./script/reschedule_stories_from_failed_bitly_rabbitmq_queue.pl"
+    program='process_bitly_schedule'
+    command="bash ./script/run_with_carton.sh ./script/process_bitly_schedule.pl"
     default_stopasgroup='true'
     default_killasgroup='true'
     default_autorestart='false'
-    default_autostart='false'
+    default_autostart='true'
     priority=5
     default_nice=12
 %]
