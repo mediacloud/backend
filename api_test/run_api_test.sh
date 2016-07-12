@@ -41,7 +41,7 @@ if ps aux | grep java | grep runSolr > /dev/null; then
 fi
 
 echo "Starting Solr..."
-python ./solr-external/run_solr_standalone.py &
+python ./solr/run_solr_standalone.py &
 solr_pid=$!
 
 SOLR_IS_UP=0

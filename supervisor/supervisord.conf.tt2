@@ -204,7 +204,7 @@ programs = solr
 
 [% INCLUDE program_config
     program='solr'
-    command='python ./solr-external/run_solr_standalone.py'
+    command='python ./solr/run_solr_standalone.py'
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='true'
