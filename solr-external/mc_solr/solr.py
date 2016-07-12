@@ -1,7 +1,7 @@
 import urllib2
 
 from mc_solr.constants import *
-from mc_solr.distpath import distribution_path
+from mc_solr.path import resolve_absolute_path
 from mc_solr.utils import *
 
 logger = create_logger(__name__)
@@ -9,7 +9,7 @@ logger = create_logger(__name__)
 
 def __solr_path(dist_directory=MC_DIST_DIR, solr_version=MC_SOLR_VERSION):
     """Return path to where Solr distribution should be located."""
-    dist_path = distribution_path(dist_directory=dist_directory)
+    dist_path = resolve_absolute_path(name=dist_directory, must_exist=True)
     solr_directory = "solr-%s" % solr_version
     solr_path = os.path.join(dist_path, solr_directory)
     return solr_path
@@ -104,13 +104,7 @@ def __install_solr(dist_directory=MC_DIST_DIR, solr_version=MC_SOLR_VERSION):
 
 def __solr_home_path(solr_home_dir=MC_SOLR_HOME_DIR):
     """Return path to Solr home (with collection subdirectories)."""
-    script_path = os.path.dirname(os.path.abspath(__file__))
-    solr_home_path = os.path.join(script_path, "..", solr_home_dir)
-    if not os.path.isdir(solr_home_path):
-        raise Exception("Solr home directory '%s' at path '%s' does not exist." % (
-            solr_home_dir,
-            solr_home_path
-        ))
+    solr_home_path = resolve_absolute_path(name=solr_home_dir, must_exist=True)
     return solr_home_path
 
 
@@ -409,10 +403,7 @@ def run_solr_standalone(port=MC_SOLR_STANDALONE_PORT,
         logger.info("Solr is not installed, installing...")
         __install_solr()
 
-    base_data_dir = os.path.abspath(base_data_dir)
-    if not os.path.isdir(base_data_dir):
-        raise Exception("Solr data directory '%s' does not exist." % base_data_dir)
-
+    base_data_dir = resolve_absolute_path(name=base_data_dir, must_exist=True)
     standalone_data_dir = __standalone_data_dir(base_data_dir=base_data_dir)
 
     if tcp_port_is_open(port=port):
@@ -444,9 +435,7 @@ def run_solr_shard(shard_num,
         logger.info("Solr is not installed, installing...")
         __install_solr()
 
-    base_data_dir = os.path.abspath(base_data_dir)
-    if not os.path.isdir(base_data_dir):
-        raise Exception("Solr data directory '%s' does not exist." % base_data_dir)
+    base_data_dir = resolve_absolute_path(name=base_data_dir, must_exist=True)
 
     shard_name = __shard_name(shard_num=shard_num)
     shard_port = __shard_port(shard_num=shard_num, starting_port=starting_port)
