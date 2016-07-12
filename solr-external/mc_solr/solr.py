@@ -1,6 +1,9 @@
+import shutil
+
 from mc_solr.constants import *
 from mc_solr.distpath import distribution_path
 from mc_solr.utils import *
+import mc_solr.zookeeper
 
 logger = create_logger(__name__)
 
@@ -141,6 +144,30 @@ def solr_collections(solr_home_dir=MC_SOLR_HOME_DIR):
     return collections
 
 
+def __shard_name(shard_num):
+    """Return shard name."""
+    if shard_num < 1:
+        raise Exception("Shard number must be 1 or greater.")
+    return "mediacloud-shard-%d" % shard_num
+
+
+def __shard_port(shard_num, starting_port=MC_SOLR_PORT):
+    """Return port on which a shard should listen to."""
+    if shard_num < 1:
+        raise Exception("Shard number must be 1 or greater.")
+    return starting_port + shard_num - 1
+
+
+def __shard_data_dir(shard_num, data_dir=MC_SOLR_DATA_DIR):
+    """Return data directory for a shard."""
+    if shard_num < 1:
+        raise Exception("Shard number must be 1 or greater.")
+    if not os.path.isdir(data_dir):
+        raise Exception("Solr data directory '%s' does not exist." % data_dir)
+    shard_name = __shard_name(shard_num=shard_num)
+    return os.path.join(data_dir, shard_name)
+
+
 def run_solr_zkcli(args, dist_directory=MC_DIST_DIR, solr_version=MC_SOLR_VERSION):
     """Run Solr's zkcli.sh helper script."""
     solr_path = __solr_path(dist_directory=dist_directory, solr_version=solr_version)
@@ -164,10 +191,139 @@ def run_solr_zkcli(args, dist_directory=MC_DIST_DIR, solr_version=MC_SOLR_VERSIO
                            "org.apache.solr.cloud.ZkCLI"] + args)
 
 
-def run_solr():
-    """Run Solr shard, install if needed too."""
+def run_solr_shard(shard_num,
+                   shard_count,
+                   starting_port=MC_SOLR_PORT,
+                   data_dir=MC_SOLR_DATA_DIR,
+                   jvm_heap_size_limit=MC_SOLR_JVM_HEAP_SIZE_LIMIT,
+                   dist_directory=MC_DIST_DIR,
+                   solr_version=MC_SOLR_VERSION,
+                   zookeeper_host=MC_SOLR_ZOOKEEPER_HOST,
+                   zookeeper_port=MC_SOLR_ZOOKEEPER_PORT,
+                   zookeeper_data_dir=MC_ZOOKEEPER_DATA_DIR):
+    """Run Solr shard, install if needed too; read configuration from ZooKeeper."""
+    if shard_num < 0:
+        raise Exception("Shard number must be 1 or greater.")
+    if shard_count < 0:
+        raise Exception("Shard count must be 1 or greater.")
+
     if not solr_is_installed():
         logger.info("Solr is not installed, installing...")
         install_solr()
 
-        # FIXME
+    solr_home_dir = __solr_home_path(solr_home_dir=MC_SOLR_HOME_DIR)
+    if not os.path.isdir(solr_home_dir):
+        raise Exception("Solr home directory '%s' does not exist." % solr_home_dir)
+    solr_xml_path = os.path.join(solr_home_dir, "solr.xml")
+    if not os.path.isfile(solr_xml_path):
+        raise Exception("Solr home dir '%s' exists but doesn't contain solr.xml." % solr_home_dir)
+
+    data_dir = os.path.abspath(data_dir)
+    if not os.path.isdir(data_dir):
+        raise Exception("Solr data directory '%s' does not exist." % data_dir)
+
+    solr_path = __solr_path(dist_directory=dist_directory, solr_version=solr_version)
+
+    shard_name = __shard_name(shard_num=shard_num)
+    shard_port = __shard_port(shard_num=shard_num, starting_port=starting_port)
+    shard_data_dir = __shard_data_dir(shard_num=shard_num, data_dir=data_dir)
+
+    if not os.path.isdir(shard_data_dir):
+        logger.info("Creating data directory for shard '%s' at %s..." % (shard_name, shard_data_dir))
+        mkdir_p(shard_data_dir)
+
+    logger.info("Updating collections for shard '%s' at %s..." % (shard_name, shard_data_dir))
+
+    solr_xml_dest_path = os.path.join(shard_data_dir, "solr.xml")
+    shutil.copy(solr_xml_path, solr_xml_dest_path)
+
+    collections = solr_collections(solr_home_dir=solr_home_dir)
+    for collection_name, collection_path in sorted(collections.items()):
+        logger.info("Updating collection '%s' for shard '%s'..." % (collection_name, shard_name))
+
+        conf_src_dir = os.path.join(collection_path, "conf")
+        if not os.path.isdir(conf_src_dir):
+            raise Exception("Configuration for collection '%s' at %s does not exist" % (collection_name, conf_src_dir))
+
+        collection_dst_dir = os.path.join(shard_data_dir, collection_name)
+        conf_dst_dir = os.path.join(collection_dst_dir, "conf")
+        if os.path.isdir(conf_dst_dir):
+            logger.info("Removing existing configuration for collection '%s'..." % collection_name)
+            shutil.rmtree(conf_dst_dir)
+
+        logger.info("Copying '%s' to '%s'..." % (conf_src_dir, conf_dst_dir))
+        shutil.copytree(src=conf_src_dir, dst=conf_dst_dir, symlinks=False)
+
+        logger.info("Updating core.properties for collection '%s'..." % collection_name)
+        core_properties_path = os.path.join(collection_dst_dir, "core.properties")
+        with open(core_properties_path, 'w') as core_properties_file:
+            core_properties_file.write("""
+#
+# This file is autogenerated. Don't bother editing it!
+#
+
+name=%(collection_name)s
+instanceDir=%(instance_dir)s
+""" % {
+                "collection_name": collection_name,
+                "instance_dir": collection_dst_dir,
+            })
+
+    jetty_home_dir = os.path.join(solr_path, "example")
+    if not os.path.isdir(jetty_home_dir):
+        raise Exception("Jetty home directory '%s' does not exist." % jetty_home_dir)
+
+    log4j_properties_path = os.path.join(solr_path, "example", "resources", "log4j.properties")
+    if not os.path.isfile(log4j_properties_path):
+        raise Exception("log4j.properties at '%s' was not found.")
+
+    start_jar_path = os.path.join(solr_path, "example", "start.jar")
+    if not os.path.isfile(start_jar_path):
+        raise Exception("start.jar at '%s' was not found." % start_jar_path)
+
+    logger.info("Will start Solr shard '%s' on port %d" % (shard_name, shard_port))
+
+    logger.info("Waiting for ZooKeeper to start on %s:%d..." % (zookeeper_host, zookeeper_port))
+    while not tcp_port_is_open(hostname=zookeeper_host, port=zookeeper_port):
+        logger.info("ZooKeeper still not up.")
+        time.sleep(1)
+    logger.info("ZooKeeper is up!")
+
+    logger.info("Waiting for ZooKeeper to update Solr config...")
+    solr_config_updated_file = mc_solr.zookeeper.zookeeper_solr_config_updated_file(data_dir=zookeeper_data_dir)
+    while not os.path.isfile(solr_config_updated_file):
+        logger.info("Not yet.")
+        time.sleep(1)
+    logger.info("Solr config has been updated!")
+
+    if tcp_port_is_open(port=shard_port):
+        raise Exception("Port %d is already open on this machine." % shard_port)
+
+    solr_webapp_path = os.path.abspath(os.path.join(solr_path, "example", "solr-webapp"))
+    if not os.path.isdir(solr_webapp_path):
+        raise Exception("Solr webapp dir at '%s' was not found." % solr_webapp_path)
+
+    logger.info("Starting Solr shard '%s' on port %d..." % (shard_name, shard_port))
+
+    args = ["java"] + MC_SOLR_JVM_OPTS
+    args = args + [
+        "-server",
+        "-Xmx" + jvm_heap_size_limit,
+        "-Djava.util.logging.config.file=file://" + os.path.abspath(log4j_properties_path),
+        "-Djetty.home=%s" % jetty_home_dir,
+        "-Djetty.port=%d" % shard_port,
+        "-Dhost=%s" % shard_name,
+        "-Dsolr.solr.home=%s" % shard_data_dir,
+        "-Dsolr.data.dir=%s" % shard_data_dir,
+
+        # needed for resolving paths to JARs in solrconfig.xml
+        "-Dmediacloud.solr_dist_dir=%s" % solr_path,
+        "-Dmediacloud.solr_webapp_dir=%s" % solr_webapp_path,
+
+        "-Dmediacloud.luceneMatchVersion=%s" % MC_SOLR_LUCENEMATCHVERSION,
+        "-DzkHost=%s:%d" % (zookeeper_host, zookeeper_port),
+        "-DnumShards=%d" % shard_count,
+        "-jar", start_jar_path,
+    ]
+    logger.debug("Running command: %s" % ' '.join(args))
+    subprocess.check_call(args)

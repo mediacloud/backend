@@ -4,7 +4,7 @@ import signal
 
 from mc_solr.constants import *
 from mc_solr.distpath import distribution_path
-from mc_solr.solr import solr_is_installed, install_solr, solr_collections, run_solr_zkcli
+import mc_solr.solr
 from mc_solr.utils import *
 
 logger = create_logger(__name__)
@@ -104,6 +104,14 @@ def __install_zookeeper(dist_directory=MC_DIST_DIR, zookeeper_version=MC_ZOOKEEP
         raise Exception("I've done everything but ZooKeeper is still not installed.")
 
 
+def zookeeper_solr_config_updated_file(data_dir=MC_ZOOKEEPER_DATA_DIR):
+    """Return path to file which denotes that Solr's configuration has been uploaded successfully."""
+    data_dir = os.path.abspath(data_dir)
+    if not os.path.isdir(data_dir):
+        raise Exception("ZooKeeper data directory '%s' does not exist." % data_dir)
+    return os.path.join(data_dir, MC_ZOOKEEPER_SOLR_CONFIG_UPDATED_FILE)
+
+
 def __kill_zookeeper():
     """Kill ZooKeeper on exit."""
     global zookeeper_pid
@@ -116,18 +124,23 @@ def run_zookeeper(dist_directory=MC_DIST_DIR,
                   listen=MC_ZOOKEEPER_LISTEN,
                   port=MC_ZOOKEEPER_PORT,
                   data_dir=MC_ZOOKEEPER_DATA_DIR):
+    solr_config_updated_file = zookeeper_solr_config_updated_file(data_dir=data_dir)
+    if os.path.isfile(solr_config_updated_file):
+        logger.info("Removing 'Solr config was updated' file at %s" % solr_config_updated_file)
+        os.unlink(solr_config_updated_file)
+
     """Run ZooKeeper, install if needed too."""
     if not __zookeeper_is_installed():
         logger.info("ZooKeeper is not installed, installing...")
         __install_zookeeper()
 
-    collections = solr_collections()
+    collections = mc_solr.solr.solr_collections()
     logger.debug("Solr collections: %s" % collections)
 
     # Needed for ZkCLI
-    if not solr_is_installed():
+    if not mc_solr.solr.solr_is_installed():
         logger.info("Solr is not installed, installing...")
-        install_solr()
+        mc_solr.solr.install_solr()
 
     data_dir = os.path.abspath(data_dir)
     if not os.path.isdir(data_dir):
@@ -174,8 +187,16 @@ syncLimit=5
     zookeeper_env["ZOO_LOG_DIR"] = data_dir
     zookeeper_env["SERVER_JVMFLAGS"] = "-Dlog4j.configuration=file://" + os.path.abspath(log4j_properties_path)
 
+    args = [
+        zkserver_path,
+        "start-foreground"
+    ]
+
     logger.info("Starting ZooKeeper on %s:%d..." % (listen, port))
-    process = subprocess.Popen([zkserver_path, "start-foreground"], env=zookeeper_env)
+    logger.debug("Running command: %s" % ' '.join(args))
+    logger.debug("Environment variables: %s" % ' '.join(zookeeper_env))
+
+    process = subprocess.Popen(args, env=zookeeper_env)
 
     global zookeeper_pid
     zookeeper_pid = process.pid
@@ -193,7 +214,7 @@ syncLimit=5
         collection_conf_path = os.path.join(collection_path, "conf")
 
         logger.info("Uploading collection's '%s' configuration at '%s'..." % (collection_name, collection_conf_path))
-        run_solr_zkcli([
+        mc_solr.solr.run_solr_zkcli([
             "-zkhost", "localhost:" + str(port),
             "-cmd", "upconfig",
             "-confdir", collection_conf_path,
@@ -201,12 +222,15 @@ syncLimit=5
         ])
 
         logger.info("Linking collection's '%s' configuration..." % collection_name)
-        run_solr_zkcli([
+        mc_solr.solr.run_solr_zkcli([
             "-zkhost", "localhost:" + str(port),
             "-cmd", "linkconfig",
             "-collection", collection_name,
             "-confname", collection_name,
         ])
+
+    logger.info("Creating 'Solr config was updated' file at %s..." % solr_config_updated_file)
+    lock_file(solr_config_updated_file)
 
     logger.info("ZooKeeper is ready!")
     while True:

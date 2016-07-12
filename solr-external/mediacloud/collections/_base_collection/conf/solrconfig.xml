@@ -72,7 +72,18 @@
        The examples below can be used to load some solr-contribs along 
        with their external dependencies.
     -->
-  <lib dir="../../solr-dist/explodedWebAppDir/WEB-INF/lib/" regex=".*\.jar" />
+  <lib dir="${mediacloud.solr_webapp_dir}/webapp/WEB-INF/lib/" regex=".*\.jar" />
+  <lib dir="${mediacloud.solr_dist_dir}/dist/" regex=".*\.jar" />
+  <lib dir="${mediacloud.solr_dist_dir}/dist/solrj-lib/" regex=".*\.jar" />
+  <lib dir="${mediacloud.solr_dist_dir}/contrib/analysis-extras/lib/" regex=".*\.jar" />
+  <lib dir="${mediacloud.solr_dist_dir}/contrib/analysis-extras/lucene-libs/" regex=".*\.jar" />
+  <lib dir="${mediacloud.solr_dist_dir}/contrib/clustering/lib/" regex=".*\.jar" />
+  <lib dir="${mediacloud.solr_dist_dir}/contrib/dataimporthandler/lib/" regex=".*\.jar" />
+  <lib dir="${mediacloud.solr_dist_dir}/contrib/extraction/lib/" regex=".*\.jar" />
+  <lib dir="${mediacloud.solr_dist_dir}/contrib/langid/lib/" regex=".*\.jar" />
+  <lib dir="${mediacloud.solr_dist_dir}/contrib/uima/lib/" regex=".*\.jar" />
+  <lib dir="${mediacloud.solr_dist_dir}/contrib/uima/lucene-libs/" regex=".*\.jar" />
+  <lib dir="${mediacloud.solr_dist_dir}/contrib/velocity/lib/" regex=".*\.jar" />
 
   <!-- an exact 'path' can be used instead of a 'dir' to specify a 
        specific jar file.  This will cause a serious error to be logged 
@@ -89,8 +100,10 @@
        replication is in use, this should match the replication
        configuration.
     -->
-  <dataDir>${solr.data.dir:}</dataDir>
-
+  <!-- Media Cloud: if unset, it's being automatically set to instanceDir/data, so probably leave it that way. -->
+  <!--
+      <dataDir>${solr.data.dir:}</dataDir>
+  -->
 
   <!-- The DirectoryFactory to use for indexes.
        
