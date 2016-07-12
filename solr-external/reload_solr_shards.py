@@ -2,7 +2,6 @@
 
 import argparse
 
-from mc_solr.constants import *
 from mc_solr.solr import reload_all_solr_shards
 
 if __name__ == "__main__":
