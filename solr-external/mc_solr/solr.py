@@ -157,14 +157,14 @@ def __shard_port(shard_num, starting_port=MC_SOLR_CLUSTER_STARTING_PORT):
     return starting_port + shard_num - 1
 
 
-def __shard_data_dir(shard_num, data_dir=MC_SOLR_DATA_DIR):
+def __shard_data_dir(shard_num, base_data_dir=MC_SOLR_BASE_DATA_DIR):
     """Return data directory for a shard."""
     if shard_num < 1:
         raise Exception("Shard number must be 1 or greater.")
-    if not os.path.isdir(data_dir):
-        raise Exception("Solr data directory '%s' does not exist." % data_dir)
+    if not os.path.isdir(base_data_dir):
+        raise Exception("Solr data directory '%s' does not exist." % base_data_dir)
     shard_name = __shard_name(shard_num=shard_num)
-    return os.path.join(data_dir, shard_name)
+    return os.path.join(base_data_dir, shard_name)
 
 
 def __run_solr_zkcli(args,
@@ -396,7 +396,7 @@ instanceDir=%(instance_dir)s
 def run_solr_shard(shard_num,
                    shard_count,
                    starting_port=MC_SOLR_CLUSTER_STARTING_PORT,
-                   data_dir=MC_SOLR_DATA_DIR,
+                   base_data_dir=MC_SOLR_BASE_DATA_DIR,
                    dist_directory=MC_DIST_DIR,
                    solr_version=MC_SOLR_VERSION,
                    zookeeper_host=MC_SOLR_CLUSTER_ZOOKEEPER_HOST,
@@ -413,11 +413,11 @@ def run_solr_shard(shard_num,
 
     shard_name = __shard_name(shard_num=shard_num)
     shard_port = __shard_port(shard_num=shard_num, starting_port=starting_port)
-    shard_data_dir = __shard_data_dir(shard_num=shard_num, data_dir=data_dir)
+    shard_data_dir = __shard_data_dir(shard_num=shard_num, base_data_dir=base_data_dir)
 
-    data_dir = os.path.abspath(data_dir)
-    if not os.path.isdir(data_dir):
-        raise Exception("Solr data directory '%s' does not exist." % data_dir)
+    base_data_dir = os.path.abspath(base_data_dir)
+    if not os.path.isdir(base_data_dir):
+        raise Exception("Solr data directory '%s' does not exist." % base_data_dir)
 
     logger.info("Waiting for ZooKeeper to start on %s:%d..." % (zookeeper_host, zookeeper_port))
     while not tcp_port_is_open(hostname=zookeeper_host, port=zookeeper_port):

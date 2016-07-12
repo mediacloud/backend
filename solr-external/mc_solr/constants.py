@@ -7,8 +7,9 @@ MC_SOLR_LUCENEMATCHVERSION = "LUCENE_46"
 # Solr home directory (solr.home; relative to solr/; must already exist)
 MC_SOLR_HOME_DIR = "mediacloud/"
 
-# Solr data directory (relative to solr/; must already exist)
-MC_SOLR_DATA_DIR = "../data/solr/"
+# Solr base data directory under which both cluster and non-cluster data will be stored
+# (relative to solr/; must already exist)
+MC_SOLR_BASE_DATA_DIR = "../data/solr/"
 
 # Solr port for running a standalone server
 MC_SOLR_STANDALONE_PORT = 8983
