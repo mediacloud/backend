@@ -87,14 +87,19 @@ def download_file_to_temp_path(source_url):
     return dest_path
 
 
+def __file_extension(filename):
+    """Return file extension, e.g. "zip"."""
+    return os.path.splitext(os.path.basename(filename))[1].lower()
+
+
 def extract_tarball_to_directory(archive_file, dest_directory, strip_root=False):
-    """Extract archive (.tar.gz, .tgz or .war) to destination directory,
+    """Extract Tar archive (.tar, .tar.gz or .tgz) to destination directory,
     optionally stripping the root directory first."""
 
-    archive_file_extension = os.path.splitext(os.path.basename(archive_file))[1].lower()
+    archive_file_extension = __file_extension(archive_file)
     if archive_file_extension in [".tar.gz", ".tgz"]:
         tar_args = "-zxf"
-    elif archive_file_extension in [".tar", ".war"]:
+    elif archive_file_extension in [".tar"]:
         tar_args = "-xf"
     else:
         raise Exception("Unsupported archive '%s' with extension '%s'" % (archive_file, archive_file_extension))
