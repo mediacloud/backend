@@ -283,13 +283,15 @@ def __run_solr(port,
         collection_dst_dir = os.path.join(instance_data_dir, collection_name)
         mkdir_p(collection_dst_dir)
 
+        # Recreate symlink just in case
         conf_symlink_dst_dir = os.path.join(collection_dst_dir, "conf")
         if os.path.exists(conf_symlink_dst_dir):
             if not os.path.islink(conf_symlink_dst_dir):
                 raise Exception("Collection configuration '%s' exists but is not a symlink." % conf_symlink_dst_dir)
-        else:
-            logger.info("Symlinking '%s' to '%s'..." % (conf_symlink_src_dir, conf_symlink_dst_dir))
-            os.symlink(conf_symlink_src_dir, conf_symlink_dst_dir)
+            os.unlink(conf_symlink_dst_dir)
+
+        logger.info("Symlinking '%s' to '%s'..." % (conf_symlink_src_dir, conf_symlink_dst_dir))
+        os.symlink(conf_symlink_src_dir, conf_symlink_dst_dir)
 
         logger.info("Updating core.properties for collection '%s'..." % collection_name)
         core_properties_path = os.path.join(collection_dst_dir, "core.properties")
