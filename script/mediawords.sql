@@ -2,35 +2,10 @@
 -- Schema for MediaWords database
 --
 
--- CREATE LANGUAGE IF NOT EXISTS plpgsql
+CREATE OR REPLACE LANGUAGE plpgsql;
 
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
-CREATE OR REPLACE FUNCTION create_language_plpgsql()
-RETURNS BOOLEAN AS $$
-    CREATE LANGUAGE plpgsql;
-    SELECT TRUE;
-$$ LANGUAGE SQL;
-
-SELECT CASE WHEN NOT
-    (
-        SELECT  TRUE AS exists
-        FROM    pg_language
-        WHERE   lanname = 'plpgsql'
-        UNION
-        SELECT  FALSE AS exists
-        ORDER BY exists DESC
-        LIMIT 1
-    )
-THEN
-    create_language_plpgsql()
-ELSE
-    FALSE
-END AS plpgsql_created;
-
-DROP FUNCTION create_language_plpgsql();
-
 
 
 -- Database properties (variables) table
