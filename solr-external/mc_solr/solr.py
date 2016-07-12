@@ -1,9 +1,6 @@
-import shutil
-
 from mc_solr.constants import *
 from mc_solr.distpath import distribution_path
 from mc_solr.utils import *
-import mc_solr.zookeeper
 
 logger = create_logger(__name__)
 
@@ -199,8 +196,7 @@ def run_solr_shard(shard_num,
                    dist_directory=MC_DIST_DIR,
                    solr_version=MC_SOLR_VERSION,
                    zookeeper_host=MC_SOLR_ZOOKEEPER_HOST,
-                   zookeeper_port=MC_SOLR_ZOOKEEPER_PORT,
-                   zookeeper_data_dir=MC_ZOOKEEPER_DATA_DIR):
+                   zookeeper_port=MC_SOLR_ZOOKEEPER_PORT):
     """Run Solr shard, install if needed too; read configuration from ZooKeeper."""
     if shard_num < 0:
         raise Exception("Shard number must be 1 or greater.")
@@ -329,13 +325,6 @@ instanceDir=%(instance_dir)s
         logger.info("ZooKeeper still not up.")
         time.sleep(1)
     logger.info("ZooKeeper is up!")
-
-    logger.info("Waiting for ZooKeeper to update Solr config...")
-    solr_config_updated_file = mc_solr.zookeeper.zookeeper_solr_config_updated_file(data_dir=zookeeper_data_dir)
-    while not os.path.isfile(solr_config_updated_file):
-        logger.info("Not yet.")
-        time.sleep(1)
-    logger.info("Solr config has been updated!")
 
     if tcp_port_is_open(port=shard_port):
         raise Exception("Port %d is already open on this machine." % shard_port)

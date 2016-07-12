@@ -50,9 +50,6 @@ MC_ZOOKEEPER_PORT = MC_SOLR_ZOOKEEPER_PORT
 # ZooKeeper data directory (relative to solr/; must already exist)
 MC_ZOOKEEPER_DATA_DIR = "../data/solr-zookeeper/"
 
-# File to be placed in ZooKeeper's data directory that denotes that Solr configuration has been uploaded successfully
-MC_ZOOKEEPER_SOLR_CONFIG_UPDATED_FILE = "mc-solr-config-updated.txt"
-
 # ---
 
 # Timeout for installations (in seconds)

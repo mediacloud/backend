@@ -104,14 +104,6 @@ def __install_zookeeper(dist_directory=MC_DIST_DIR, zookeeper_version=MC_ZOOKEEP
         raise Exception("I've done everything but ZooKeeper is still not installed.")
 
 
-def zookeeper_solr_config_updated_file(data_dir=MC_ZOOKEEPER_DATA_DIR):
-    """Return path to file which denotes that Solr's configuration has been uploaded successfully."""
-    data_dir = os.path.abspath(data_dir)
-    if not os.path.isdir(data_dir):
-        raise Exception("ZooKeeper data directory '%s' does not exist." % data_dir)
-    return os.path.join(data_dir, MC_ZOOKEEPER_SOLR_CONFIG_UPDATED_FILE)
-
-
 def __kill_zookeeper():
     """Kill ZooKeeper on exit."""
     global zookeeper_pid
@@ -124,11 +116,6 @@ def run_zookeeper(dist_directory=MC_DIST_DIR,
                   listen=MC_ZOOKEEPER_LISTEN,
                   port=MC_ZOOKEEPER_PORT,
                   data_dir=MC_ZOOKEEPER_DATA_DIR):
-    solr_config_updated_file = zookeeper_solr_config_updated_file(data_dir=data_dir)
-    if os.path.isfile(solr_config_updated_file):
-        logger.info("Removing 'Solr config was updated' file at %s" % solr_config_updated_file)
-        os.unlink(solr_config_updated_file)
-
     """Run ZooKeeper, install if needed too."""
     if not __zookeeper_is_installed():
         logger.info("ZooKeeper is not installed, installing...")
@@ -228,9 +215,6 @@ syncLimit=5
             "-collection", collection_name,
             "-confname", collection_name,
         ])
-
-    logger.info("Creating 'Solr config was updated' file at %s..." % solr_config_updated_file)
-    lock_file(solr_config_updated_file)
 
     logger.info("ZooKeeper is ready!")
     while True:
