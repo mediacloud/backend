@@ -1,3 +1,5 @@
+import urllib2
+
 from mc_solr.constants import *
 from mc_solr.distpath import distribution_path
 from mc_solr.utils import *
@@ -407,3 +409,52 @@ instanceDir=%(instance_dir)s
     ]
     logger.debug("Running command: %s" % ' '.join(args))
     subprocess.check_call(args)
+
+
+def reload_solr_shard(shard_num,
+                      host="localhost",
+                      starting_port=MC_SOLR_PORT):
+    """Reload Solr shard after ZooKeeper configuration change."""
+    if shard_num < 0:
+        raise Exception("Shard number must be 1 or greater.")
+
+    shard_port = __shard_port(shard_num=shard_num, starting_port=starting_port)
+
+    if not tcp_port_is_open(hostname=host, port=shard_port):
+        raise Exception("Shard %d is not running on %s:%d." % (shard_num, host, shard_port))
+
+    logger.info("Reloading shard %d on %s:%d..." % (shard_num, host, shard_port))
+
+    collections = __solr_collections()
+    logger.debug("Solr collections: %s" % collections)
+
+    for collection_name, collection_path in sorted(collections.items()):
+        logger.info("Reloading collection '%s' on shard %d on %s:%d..." % (
+            collection_name, shard_num, host, shard_port
+        ))
+        url = "http://%(host)s:%(port)d/solr/admin/cores?action=RELOAD&core=%(collection_name)s" % {
+            "host": host,
+            "port": shard_port,
+            "collection_name": collection_name,
+        }
+        logger.debug("Requesting URL %s..." % url)
+
+        try:
+            urllib2.urlopen(url)
+        except urllib2.URLError as e:
+            raise Exception("Unable to reload shard %d on %s:%d: %s" % (shard_num, host, shard_port, e.reason))
+
+    logger.info("Reloaded shard %d on %s:%d." % (shard_num, host, shard_port))
+
+
+def reload_all_solr_shards(shard_count,
+                           host="localhost",
+                           starting_port=MC_SOLR_PORT):
+    """Reload all Solr shards after ZooKeeper configuration change."""
+    if shard_count < 0:
+        raise Exception("Shard count must be 1 or greater.")
+
+    logger.info("Reloading %d shards on %s..." % (shard_count, host))
+    for shard_num in range(1, shard_count + 1):
+        reload_solr_shard(shard_num=shard_num, host=host, starting_port=starting_port)
+    logger.info("Reloaded %d shards on %s." % (shard_count, host))
