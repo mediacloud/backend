@@ -235,6 +235,8 @@ def update_zookeeper_solr_configuration(zookeeper_host=MC_SOLR_ZOOKEEPER_HOST,
                          dist_directory=dist_directory,
                          solr_version=solr_version)
 
+    logger.info("Uploaded Solr collection configurations to ZooKeeper.")
+
 
 def run_solr_shard(shard_num,
                    shard_count,
