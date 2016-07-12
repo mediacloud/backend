@@ -143,6 +143,13 @@ def __solr_collections(solr_home_dir=MC_SOLR_HOME_DIR):
     return collections
 
 
+def __standalone_data_dir(base_data_dir=MC_SOLR_BASE_DATA_DIR):
+    """Return data directory for a standalone instance."""
+    if not os.path.isdir(base_data_dir):
+        raise Exception("Solr data directory '%s' does not exist." % base_data_dir)
+    return os.path.join(base_data_dir, "mediacloud-standalone")
+
+
 def __shard_name(shard_num):
     """Return shard name."""
     if shard_num < 1:
@@ -391,6 +398,32 @@ instanceDir=%(instance_dir)s
 
     logger.debug("Running command: %s" % ' '.join(args))
     subprocess.check_call(args)
+
+
+def run_solr_standalone(port=MC_SOLR_STANDALONE_PORT,
+                        base_data_dir=MC_SOLR_BASE_DATA_DIR,
+                        dist_directory=MC_DIST_DIR,
+                        solr_version=MC_SOLR_VERSION):
+    """Run standalone instance of Solr."""
+    if not __solr_is_installed():
+        logger.info("Solr is not installed, installing...")
+        __install_solr()
+
+    base_data_dir = os.path.abspath(base_data_dir)
+    if not os.path.isdir(base_data_dir):
+        raise Exception("Solr data directory '%s' does not exist." % base_data_dir)
+
+    standalone_data_dir = __standalone_data_dir(base_data_dir=base_data_dir)
+
+    if tcp_port_is_open(port=port):
+        raise Exception("Port %d is already open on this machine." % port)
+
+    logger.info("Starting standalone Solr instance on port %d..." % port)
+    run_solr(port=port,
+             instance_data_dir=standalone_data_dir,
+             jvm_opts=MC_SOLR_STANDALONE_JVM_OPTS,
+             dist_directory=dist_directory,
+             solr_version=solr_version)
 
 
 def run_solr_shard(shard_num,
