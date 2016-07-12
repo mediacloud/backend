@@ -33,7 +33,7 @@ def __solr_dist_url(solr_version=MC_SOLR_VERSION):
     return solr_dist_url
 
 
-def solr_is_installed(dist_directory=MC_DIST_DIR, solr_version=MC_SOLR_VERSION):
+def __solr_is_installed(dist_directory=MC_DIST_DIR, solr_version=MC_SOLR_VERSION):
     """Return True if Solr is installed in distribution path."""
     solr_path = __solr_path(dist_directory=dist_directory, solr_version=solr_version)
     installed_file_path = __solr_installed_file_path(dist_directory=dist_directory, solr_version=solr_version)
@@ -49,9 +49,9 @@ def solr_is_installed(dist_directory=MC_DIST_DIR, solr_version=MC_SOLR_VERSION):
     return False
 
 
-def install_solr(dist_directory=MC_DIST_DIR, solr_version=MC_SOLR_VERSION):
+def __install_solr(dist_directory=MC_DIST_DIR, solr_version=MC_SOLR_VERSION):
     """Install Solr to distribution directory; lock directory before installing and unlock afterwards."""
-    if solr_is_installed(dist_directory=dist_directory, solr_version=solr_version):
+    if __solr_is_installed(dist_directory=dist_directory, solr_version=solr_version):
         raise Exception("Solr %s is already installed in distribution directory '%s'." % (
             solr_version, dist_directory
         ))
@@ -67,7 +67,7 @@ def install_solr(dist_directory=MC_DIST_DIR, solr_version=MC_SOLR_VERSION):
     lock_file(installing_file_path, timeout=MC_INSTALL_TIMEOUT)
 
     # Waited for concurrent installation to finish?
-    if solr_is_installed(dist_directory=dist_directory, solr_version=solr_version):
+    if __solr_is_installed(dist_directory=dist_directory, solr_version=solr_version):
         logger.info("While waiting for Solr directory to unlock, Solr got installed to said directory.")
         return
 
@@ -96,7 +96,7 @@ def install_solr(dist_directory=MC_DIST_DIR, solr_version=MC_SOLR_VERSION):
     logger.info("Removing lock file...")
     unlock_file(installing_file_path)
 
-    if not solr_is_installed(dist_directory=dist_directory, solr_version=solr_version):
+    if not __solr_is_installed(dist_directory=dist_directory, solr_version=solr_version):
         raise Exception("I've done everything but Solr is still not installed.")
 
 
@@ -121,7 +121,7 @@ def __solr_collections_path(solr_home_dir=MC_SOLR_HOME_DIR):
     return collections_path
 
 
-def solr_collections(solr_home_dir=MC_SOLR_HOME_DIR):
+def __solr_collections(solr_home_dir=MC_SOLR_HOME_DIR):
     """Return dictionary with names and absolute paths to Solr collections."""
     collections = {}
     collections_path = __solr_collections_path(solr_home_dir)
@@ -165,7 +165,11 @@ def __shard_data_dir(shard_num, data_dir=MC_SOLR_DATA_DIR):
     return os.path.join(data_dir, shard_name)
 
 
-def run_solr_zkcli(args, dist_directory=MC_DIST_DIR, solr_version=MC_SOLR_VERSION):
+def __run_solr_zkcli(args,
+                     zookeeper_host=MC_SOLR_ZOOKEEPER_HOST,
+                     zookeeper_port=MC_SOLR_ZOOKEEPER_PORT,
+                     dist_directory=MC_DIST_DIR,
+                     solr_version=MC_SOLR_VERSION):
     """Run Solr's zkcli.sh helper script."""
     solr_path = __solr_path(dist_directory=dist_directory, solr_version=solr_version)
 
@@ -176,6 +180,11 @@ def run_solr_zkcli(args, dist_directory=MC_DIST_DIR, solr_version=MC_SOLR_VERSIO
         if not os.path.isfile(log4j_properties_path):
             raise Exception("Unable to find log4j.properties file for zkcli.sh script")
 
+    if not tcp_port_is_open(hostname=zookeeper_host, port=zookeeper_port):
+        raise Exception("ZooKeeper is not running at %s:%d." % (zookeeper_host, zookeeper_port))
+
+    zkhost = "%s:%d" % (zookeeper_host, zookeeper_port)
+
     java_classpath_dirs = [
         # Solr 4
         os.path.join(solr_path, "dist", "*"),
@@ -185,7 +194,46 @@ def run_solr_zkcli(args, dist_directory=MC_DIST_DIR, solr_version=MC_SOLR_VERSIO
     subprocess.check_call(["java",
                            "-classpath", ":".join(java_classpath_dirs),
                            "-Dlog4j.configuration=file://" + os.path.abspath(log4j_properties_path),
-                           "org.apache.solr.cloud.ZkCLI"] + args)
+                           "org.apache.solr.cloud.ZkCLI",
+                           "-zkhost", zkhost] + args)
+
+
+def update_zookeeper_solr_configuration(zookeeper_host=MC_SOLR_ZOOKEEPER_HOST,
+                                        zookeeper_port=MC_SOLR_ZOOKEEPER_PORT,
+                                        dist_directory=MC_DIST_DIR,
+                                        solr_version=MC_SOLR_VERSION):
+    """Update Solr's configuration on ZooKeeper."""
+    if not __solr_is_installed():
+        logger.info("Solr is not installed, installing...")
+        __install_solr()
+
+    if not tcp_port_is_open(hostname=zookeeper_host, port=zookeeper_port):
+        raise Exception("ZooKeeper is not running at %s:%d." % (zookeeper_host, zookeeper_port))
+
+    collections = __solr_collections()
+    logger.debug("Solr collections: %s" % collections)
+
+    logger.info("Uploading Solr collection configurations to ZooKeeper...")
+    for collection_name, collection_path in sorted(collections.items()):
+        collection_conf_path = os.path.join(collection_path, "conf")
+
+        logger.info("Uploading collection's '%s' configuration at '%s'..." % (collection_name, collection_conf_path))
+        __run_solr_zkcli(args=["-cmd", "upconfig",
+                               "-confdir", collection_conf_path,
+                               "-confname", collection_name],
+                         zookeeper_host=zookeeper_host,
+                         zookeeper_port=zookeeper_port,
+                         dist_directory=dist_directory,
+                         solr_version=solr_version)
+
+        logger.info("Linking collection's '%s' configuration..." % collection_name)
+        __run_solr_zkcli(args=["-cmd", "linkconfig",
+                               "-collection", collection_name,
+                               "-confname", collection_name],
+                         zookeeper_host=zookeeper_host,
+                         zookeeper_port=zookeeper_port,
+                         dist_directory=dist_directory,
+                         solr_version=solr_version)
 
 
 def run_solr_shard(shard_num,
@@ -203,9 +251,9 @@ def run_solr_shard(shard_num,
     if shard_count < 0:
         raise Exception("Shard count must be 1 or greater.")
 
-    if not solr_is_installed():
+    if not __solr_is_installed():
         logger.info("Solr is not installed, installing...")
-        install_solr()
+        __install_solr()
 
     solr_home_dir = __solr_home_path(solr_home_dir=MC_SOLR_HOME_DIR)
     if not os.path.isdir(solr_home_dir):
@@ -226,7 +274,7 @@ def run_solr_shard(shard_num,
         mkdir_p(shard_data_dir)
 
     logger.info("Updating collections for shard '%s' at %s..." % (shard_name, shard_data_dir))
-    collections = solr_collections(solr_home_dir=solr_home_dir)
+    collections = __solr_collections(solr_home_dir=solr_home_dir)
     for collection_name, collection_path in sorted(collections.items()):
         logger.info("Updating collection '%s' for shard '%s'..." % (collection_name, shard_name))
 

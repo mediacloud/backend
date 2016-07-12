@@ -112,22 +112,15 @@ def __kill_zookeeper():
 
 
 def run_zookeeper(dist_directory=MC_DIST_DIR,
-                  zookeeper_version=MC_ZOOKEEPER_VERSION,
                   listen=MC_ZOOKEEPER_LISTEN,
                   port=MC_ZOOKEEPER_PORT,
-                  data_dir=MC_ZOOKEEPER_DATA_DIR):
+                  data_dir=MC_ZOOKEEPER_DATA_DIR,
+                  zookeeper_version=MC_ZOOKEEPER_VERSION,
+                  solr_version=MC_SOLR_VERSION):
     """Run ZooKeeper, install if needed too."""
     if not __zookeeper_is_installed():
         logger.info("ZooKeeper is not installed, installing...")
         __install_zookeeper()
-
-    collections = mc_solr.solr.solr_collections()
-    logger.debug("Solr collections: %s" % collections)
-
-    # Needed for ZkCLI
-    if not mc_solr.solr.solr_is_installed():
-        logger.info("Solr is not installed, installing...")
-        mc_solr.solr.install_solr()
 
     data_dir = os.path.abspath(data_dir)
     if not os.path.isdir(data_dir):
@@ -196,25 +189,11 @@ syncLimit=5
     if not zookeeper_started:
         raise Exception("Unable to connect to ZooKeeper at port %d" % port)
 
-    logger.info("Uploading Solr collection configurations to ZooKeeper...")
-    for collection_name, collection_path in sorted(collections.items()):
-        collection_conf_path = os.path.join(collection_path, "conf")
-
-        logger.info("Uploading collection's '%s' configuration at '%s'..." % (collection_name, collection_conf_path))
-        mc_solr.solr.run_solr_zkcli([
-            "-zkhost", "localhost:" + str(port),
-            "-cmd", "upconfig",
-            "-confdir", collection_conf_path,
-            "-confname", collection_name,
-        ])
-
-        logger.info("Linking collection's '%s' configuration..." % collection_name)
-        mc_solr.solr.run_solr_zkcli([
-            "-zkhost", "localhost:" + str(port),
-            "-cmd", "linkconfig",
-            "-collection", collection_name,
-            "-confname", collection_name,
-        ])
+    logger.info("Uploading initial Solr collection configurations to ZooKeeper...")
+    mc_solr.solr.update_zookeeper_solr_configuration(zookeeper_host="localhost",
+                                                     zookeeper_port=port,
+                                                     dist_directory=dist_directory,
+                                                     solr_version=solr_version)
 
     logger.info("ZooKeeper is ready!")
     while True:
