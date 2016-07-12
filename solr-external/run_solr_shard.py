@@ -10,9 +10,9 @@ if __name__ == "__main__":
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-n", "--shard_num", type=int, required=True, help="Shard number.")
     parser.add_argument("-c", "--shard_count", type=int, required=True, help="Number of shards.")
-    parser.add_argument("-zh", "--zookeeper_host", type=str, required=False, default=MC_SOLR_ZOOKEEPER_HOST,
+    parser.add_argument("-zh", "--zookeeper_host", type=str, required=False, default=MC_SOLR_CLUSTER_ZOOKEEPER_HOST,
                         help="ZooKeeper host to connect to.")
-    parser.add_argument("-zp", "--zookeeper_port", type=int, required=False, default=MC_SOLR_ZOOKEEPER_PORT,
+    parser.add_argument("-zp", "--zookeeper_port", type=int, required=False, default=MC_SOLR_CLUSTER_ZOOKEEPER_PORT,
                         help="ZooKeeper port to connect to.")
     parser.add_argument("-jmx", "--jvm_heap_size_limit", type=str, required=False, default=MC_SOLR_JVM_HEAP_SIZE_LIMIT,
                         help="Java heap size (-Xmx).")

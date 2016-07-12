@@ -10,9 +10,9 @@ if __name__ == "__main__":
                                      epilog="This script does not reload Solr shards! " +
                                             "Run 'reload_solr_shards.py' afterwards.",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("-zh", "--zookeeper_host", type=str, required=False, default=MC_SOLR_ZOOKEEPER_HOST,
+    parser.add_argument("-zh", "--zookeeper_host", type=str, required=False, default=MC_SOLR_CLUSTER_ZOOKEEPER_HOST,
                         help="ZooKeeper host to connect to.")
-    parser.add_argument("-zp", "--zookeeper_port", type=int, required=False, default=MC_SOLR_ZOOKEEPER_PORT,
+    parser.add_argument("-zp", "--zookeeper_port", type=int, required=False, default=MC_SOLR_CLUSTER_ZOOKEEPER_PORT,
                         help="ZooKeeper port to connect to.")
 
     args = parser.parse_args()

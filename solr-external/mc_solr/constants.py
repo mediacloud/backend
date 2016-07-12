@@ -14,16 +14,16 @@ MC_SOLR_DATA_DIR = "../data/solr/"
 MC_SOLR_CLUSTER_STARTING_PORT = 7980
 
 # Default ZooKeeper host to connect to
-MC_SOLR_ZOOKEEPER_HOST = "localhost"
+MC_SOLR_CLUSTER_ZOOKEEPER_HOST = "localhost"
 
 # Default ZooKeeper port to connect to
-MC_SOLR_ZOOKEEPER_PORT = 9983
+MC_SOLR_CLUSTER_ZOOKEEPER_PORT = 9983
 
 # Default Java heap size (-Xmx)
 MC_SOLR_JVM_HEAP_SIZE_LIMIT = "256m"
 
-# Other JVM options to pass to each Solr shard
-MC_SOLR_JVM_OPTS = [
+# Other JVM options to pass to each Solr shard in a cluster
+MC_SOLR_CLUSTER_JVM_OPTS = [
     # "-XX:+PrintGC",
     # "-XX:+UsePerfData",
     # "-XX:+UseG1GC",
@@ -36,6 +36,13 @@ MC_SOLR_JVM_OPTS = [
     # "-XX:+AggressiveOpts",
 ]
 
+# Solr port for running a standalone server
+MC_SOLR_STANDALONE_PORT = 8983
+
+# Other JVM options to pass to Solr when running a standalone instance
+MC_SOLR_STANDALONE_JVM_OPTS = [
+]
+
 # ---
 
 # ZooKeeper version to install and use
@@ -45,7 +52,7 @@ MC_ZOOKEEPER_VERSION = "3.4.8"
 MC_ZOOKEEPER_LISTEN = "0.0.0.0"
 
 # Default ZooKeeper port to listen to
-MC_ZOOKEEPER_PORT = MC_SOLR_ZOOKEEPER_PORT
+MC_ZOOKEEPER_PORT = MC_SOLR_CLUSTER_ZOOKEEPER_PORT
 
 # ZooKeeper data directory (relative to solr/; must already exist)
 MC_ZOOKEEPER_DATA_DIR = "../data/solr-zookeeper/"

@@ -168,8 +168,8 @@ def __shard_data_dir(shard_num, data_dir=MC_SOLR_DATA_DIR):
 
 
 def __run_solr_zkcli(args,
-                     zookeeper_host=MC_SOLR_ZOOKEEPER_HOST,
-                     zookeeper_port=MC_SOLR_ZOOKEEPER_PORT,
+                     zookeeper_host=MC_SOLR_CLUSTER_ZOOKEEPER_HOST,
+                     zookeeper_port=MC_SOLR_CLUSTER_ZOOKEEPER_PORT,
                      dist_directory=MC_DIST_DIR,
                      solr_version=MC_SOLR_VERSION):
     """Run Solr's zkcli.sh helper script."""
@@ -200,8 +200,8 @@ def __run_solr_zkcli(args,
                            "-zkhost", zkhost] + args)
 
 
-def update_zookeeper_solr_configuration(zookeeper_host=MC_SOLR_ZOOKEEPER_HOST,
-                                        zookeeper_port=MC_SOLR_ZOOKEEPER_PORT,
+def update_zookeeper_solr_configuration(zookeeper_host=MC_SOLR_CLUSTER_ZOOKEEPER_HOST,
+                                        zookeeper_port=MC_SOLR_CLUSTER_ZOOKEEPER_PORT,
                                         dist_directory=MC_DIST_DIR,
                                         solr_version=MC_SOLR_VERSION):
     """Update Solr's configuration on ZooKeeper."""
@@ -240,20 +240,19 @@ def update_zookeeper_solr_configuration(zookeeper_host=MC_SOLR_ZOOKEEPER_HOST,
     logger.info("Uploaded Solr collection configurations to ZooKeeper.")
 
 
-def run_solr_shard(shard_num,
-                   shard_count,
-                   starting_port=MC_SOLR_CLUSTER_STARTING_PORT,
-                   data_dir=MC_SOLR_DATA_DIR,
-                   jvm_heap_size_limit=MC_SOLR_JVM_HEAP_SIZE_LIMIT,
-                   dist_directory=MC_DIST_DIR,
-                   solr_version=MC_SOLR_VERSION,
-                   zookeeper_host=MC_SOLR_ZOOKEEPER_HOST,
-                   zookeeper_port=MC_SOLR_ZOOKEEPER_PORT):
-    """Run Solr shard, install if needed too; read configuration from ZooKeeper."""
-    if shard_num < 0:
-        raise Exception("Shard number must be 1 or greater.")
-    if shard_count < 0:
-        raise Exception("Shard count must be 1 or greater.")
+def run_solr(port,
+             instance_data_dir,
+             start_jar_args=None,
+             jvm_opts=None,
+             jvm_heap_size_limit=MC_SOLR_JVM_HEAP_SIZE_LIMIT,
+             dist_directory=MC_DIST_DIR,
+             solr_version=MC_SOLR_VERSION):
+    """Run Solr instance."""
+    if jvm_opts is None:
+        jvm_opts = MC_SOLR_STANDALONE_JVM_OPTS
+
+    if start_jar_args is None:
+        start_jar_args = []
 
     if not __solr_is_installed():
         logger.info("Solr is not installed, installing...")
@@ -263,24 +262,16 @@ def run_solr_shard(shard_num,
     if not os.path.isdir(solr_home_dir):
         raise Exception("Solr home directory '%s' does not exist." % solr_home_dir)
 
-    data_dir = os.path.abspath(data_dir)
-    if not os.path.isdir(data_dir):
-        raise Exception("Solr data directory '%s' does not exist." % data_dir)
-
     solr_path = __solr_path(dist_directory=dist_directory, solr_version=solr_version)
 
-    shard_name = __shard_name(shard_num=shard_num)
-    shard_port = __shard_port(shard_num=shard_num, starting_port=starting_port)
-    shard_data_dir = __shard_data_dir(shard_num=shard_num, data_dir=data_dir)
+    if not os.path.isdir(instance_data_dir):
+        logger.info("Creating data directory at %s..." % instance_data_dir)
+        mkdir_p(instance_data_dir)
 
-    if not os.path.isdir(shard_data_dir):
-        logger.info("Creating data directory for shard '%s' at %s..." % (shard_name, shard_data_dir))
-        mkdir_p(shard_data_dir)
-
-    logger.info("Updating collections for shard '%s' at %s..." % (shard_name, shard_data_dir))
+    logger.info("Updating collections at %s..." % instance_data_dir)
     collections = __solr_collections(solr_home_dir=solr_home_dir)
     for collection_name, collection_path in sorted(collections.items()):
-        logger.info("Updating collection '%s' for shard '%s'..." % (collection_name, shard_name))
+        logger.info("Updating collection '%s'..." % collection_name)
 
         conf_symlink_src_dir = os.path.join(collection_path, "conf")
         if not os.path.isdir(conf_symlink_src_dir):
@@ -288,7 +279,7 @@ def run_solr_shard(shard_num,
                 collection_name, conf_symlink_src_dir
             ))
 
-        collection_dst_dir = os.path.join(shard_data_dir, collection_name)
+        collection_dst_dir = os.path.join(instance_data_dir, collection_name)
         mkdir_p(collection_dst_dir)
 
         conf_symlink_dst_dir = os.path.join(collection_dst_dir, "conf")
@@ -327,7 +318,7 @@ instanceDir=%(instance_dir)s
             raise Exception("Expected configuration item '%s' does not exist" % config_item_src_path)
 
         # Recreate symlink just in case
-        config_item_dst_path = os.path.join(shard_data_dir, config_item)
+        config_item_dst_path = os.path.join(instance_data_dir, config_item)
         if os.path.exists(config_item_dst_path):
             if not os.path.islink(config_item_dst_path):
                 raise Exception("Configuration item '%s' exists but is not a symlink." % config_item_dst_path)
@@ -349,7 +340,7 @@ instanceDir=%(instance_dir)s
             raise Exception("Expected library item '%s' does not exist" % library_item_src_path)
 
         # Recreate symlink just in case
-        library_item_dst_path = os.path.join(shard_data_dir, library_item)
+        library_item_dst_path = os.path.join(instance_data_dir, library_item)
         if os.path.exists(library_item_dst_path):
             if not os.path.islink(library_item_dst_path):
                 raise Exception("Library item '%s' exists but is not a symlink." % library_item_dst_path)
@@ -370,7 +361,66 @@ instanceDir=%(instance_dir)s
     if not os.path.isfile(start_jar_path):
         raise Exception("start.jar at '%s' was not found." % start_jar_path)
 
-    logger.info("Will start Solr shard '%s' on port %d" % (shard_name, shard_port))
+    if tcp_port_is_open(port=port):
+        raise Exception("Port %d is already open on this machine." % port)
+
+    solr_webapp_path = os.path.abspath(os.path.join(solr_path, "example", "solr-webapp"))
+    if not os.path.isdir(solr_webapp_path):
+        raise Exception("Solr webapp dir at '%s' was not found." % solr_webapp_path)
+
+    logger.info("Starting Solr instance on port %d..." % port)
+
+    args = ["java"]
+    args += jvm_opts
+    args = args + [
+        "-server",
+        "-Xmx" + jvm_heap_size_limit,
+        "-Djava.util.logging.config.file=file://" + os.path.abspath(log4j_properties_path),
+        "-Djetty.home=%s" % instance_data_dir,
+        "-Djetty.port=%d" % port,
+        "-Dsolr.solr.home=%s" % instance_data_dir,
+        "-Dsolr.data.dir=%s" % instance_data_dir,
+        "-Dmediacloud.luceneMatchVersion=%s" % MC_SOLR_LUCENEMATCHVERSION,
+
+        # needed for resolving paths to JARs in solrconfig.xml
+        "-Dmediacloud.solr_dist_dir=%s" % solr_path,
+        "-Dmediacloud.solr_webapp_dir=%s" % solr_webapp_path,
+    ]
+    args = args + start_jar_args
+    args = args + [
+        "-jar", start_jar_path,
+    ]
+
+    logger.debug("Running command: %s" % ' '.join(args))
+    subprocess.check_call(args)
+
+
+def run_solr_shard(shard_num,
+                   shard_count,
+                   starting_port=MC_SOLR_CLUSTER_STARTING_PORT,
+                   data_dir=MC_SOLR_DATA_DIR,
+                   jvm_heap_size_limit=MC_SOLR_JVM_HEAP_SIZE_LIMIT,
+                   dist_directory=MC_DIST_DIR,
+                   solr_version=MC_SOLR_VERSION,
+                   zookeeper_host=MC_SOLR_CLUSTER_ZOOKEEPER_HOST,
+                   zookeeper_port=MC_SOLR_CLUSTER_ZOOKEEPER_PORT):
+    """Run Solr shard, install Solr if needed; read configuration from ZooKeeper."""
+    if shard_num < 0:
+        raise Exception("Shard number must be 1 or greater.")
+    if shard_count < 0:
+        raise Exception("Shard count must be 1 or greater.")
+
+    if not __solr_is_installed():
+        logger.info("Solr is not installed, installing...")
+        __install_solr()
+
+    shard_name = __shard_name(shard_num=shard_num)
+    shard_port = __shard_port(shard_num=shard_num, starting_port=starting_port)
+    shard_data_dir = __shard_data_dir(shard_num=shard_num, data_dir=data_dir)
+
+    data_dir = os.path.abspath(data_dir)
+    if not os.path.isdir(data_dir):
+        raise Exception("Solr data directory '%s' does not exist." % data_dir)
 
     logger.info("Waiting for ZooKeeper to start on %s:%d..." % (zookeeper_host, zookeeper_port))
     while not tcp_port_is_open(hostname=zookeeper_host, port=zookeeper_port):
@@ -378,37 +428,19 @@ instanceDir=%(instance_dir)s
         time.sleep(1)
     logger.info("ZooKeeper is up!")
 
-    if tcp_port_is_open(port=shard_port):
-        raise Exception("Port %d is already open on this machine." % shard_port)
-
-    solr_webapp_path = os.path.abspath(os.path.join(solr_path, "example", "solr-webapp"))
-    if not os.path.isdir(solr_webapp_path):
-        raise Exception("Solr webapp dir at '%s' was not found." % solr_webapp_path)
-
     logger.info("Starting Solr shard '%s' on port %d..." % (shard_name, shard_port))
-
-    args = ["java"] + MC_SOLR_JVM_OPTS
-    args = args + [
-        "-server",
-        "-Xmx" + jvm_heap_size_limit,
-        "-Djava.util.logging.config.file=file://" + os.path.abspath(log4j_properties_path),
-        "-Djetty.home=%s" % shard_data_dir,
-        "-Djetty.port=%d" % shard_port,
+    shard_args = [
         "-Dhost=%s" % shard_name,
-        "-Dsolr.solr.home=%s" % shard_data_dir,
-        "-Dsolr.data.dir=%s" % shard_data_dir,
-
-        # needed for resolving paths to JARs in solrconfig.xml
-        "-Dmediacloud.solr_dist_dir=%s" % solr_path,
-        "-Dmediacloud.solr_webapp_dir=%s" % solr_webapp_path,
-
-        "-Dmediacloud.luceneMatchVersion=%s" % MC_SOLR_LUCENEMATCHVERSION,
         "-DzkHost=%s:%d" % (zookeeper_host, zookeeper_port),
         "-DnumShards=%d" % shard_count,
-        "-jar", start_jar_path,
     ]
-    logger.debug("Running command: %s" % ' '.join(args))
-    subprocess.check_call(args)
+    run_solr(port=shard_port,
+             instance_data_dir=shard_data_dir,
+             jvm_opts=MC_SOLR_CLUSTER_JVM_OPTS,
+             start_jar_args=shard_args,
+             jvm_heap_size_limit=jvm_heap_size_limit,
+             dist_directory=dist_directory,
+             solr_version=solr_version)
 
 
 def reload_solr_shard(shard_num,
