@@ -10,8 +10,8 @@ MC_SOLR_HOME_DIR = "mediacloud/"
 # Solr data directory (relative to solr/; must already exist)
 MC_SOLR_DATA_DIR = "../data/solr/"
 
-# Solr port (either a constant port when running a standalone instance, or a starting port for shards)
-MC_SOLR_PORT = 8983
+# Solr starting port for shards
+MC_SOLR_CLUSTER_STARTING_PORT = 7980
 
 # Default ZooKeeper host to connect to
 MC_SOLR_ZOOKEEPER_HOST = "localhost"

@@ -150,7 +150,7 @@ def __shard_name(shard_num):
     return "mediacloud-shard-%d" % shard_num
 
 
-def __shard_port(shard_num, starting_port=MC_SOLR_PORT):
+def __shard_port(shard_num, starting_port=MC_SOLR_CLUSTER_STARTING_PORT):
     """Return port on which a shard should listen to."""
     if shard_num < 1:
         raise Exception("Shard number must be 1 or greater.")
@@ -242,7 +242,7 @@ def update_zookeeper_solr_configuration(zookeeper_host=MC_SOLR_ZOOKEEPER_HOST,
 
 def run_solr_shard(shard_num,
                    shard_count,
-                   starting_port=MC_SOLR_PORT,
+                   starting_port=MC_SOLR_CLUSTER_STARTING_PORT,
                    data_dir=MC_SOLR_DATA_DIR,
                    jvm_heap_size_limit=MC_SOLR_JVM_HEAP_SIZE_LIMIT,
                    dist_directory=MC_DIST_DIR,
@@ -413,7 +413,7 @@ instanceDir=%(instance_dir)s
 
 def reload_solr_shard(shard_num,
                       host="localhost",
-                      starting_port=MC_SOLR_PORT):
+                      starting_port=MC_SOLR_CLUSTER_STARTING_PORT):
     """Reload Solr shard after ZooKeeper configuration change."""
     if shard_num < 0:
         raise Exception("Shard number must be 1 or greater.")
@@ -449,7 +449,7 @@ def reload_solr_shard(shard_num,
 
 def reload_all_solr_shards(shard_count,
                            host="localhost",
-                           starting_port=MC_SOLR_PORT):
+                           starting_port=MC_SOLR_CLUSTER_STARTING_PORT):
     """Reload all Solr shards after ZooKeeper configuration change."""
     if shard_count < 0:
         raise Exception("Shard count must be 1 or greater.")
