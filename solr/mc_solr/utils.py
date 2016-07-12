@@ -113,6 +113,20 @@ def extract_tarball_to_directory(archive_file, dest_directory, strip_root=False)
     subprocess.check_call(args)
 
 
+def extract_zip_to_directory(archive_file, dest_directory):
+    """Extract ZIP archive (.zip or .war) to destination directory."""
+
+    archive_file_extension = __file_extension(archive_file)
+    if not archive_file_extension in [".zip", ".war"]:
+        raise Exception("Unsupported archive '%s' with extension '%s'" % (archive_file, archive_file_extension))
+
+    args = ["unzip", "-q",
+            archive_file,
+            "-d", dest_directory]
+
+    subprocess.check_call(args)
+
+
 def tcp_port_is_open(port, hostname="localhost"):
     """Test if TCP port is open."""
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
