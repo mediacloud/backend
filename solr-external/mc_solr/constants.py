@@ -10,6 +10,14 @@ MC_SOLR_HOME_DIR = "mediacloud/"
 # Solr data directory (relative to solr/; must already exist)
 MC_SOLR_DATA_DIR = "../data/solr/"
 
+# Solr port for running a standalone server
+MC_SOLR_STANDALONE_PORT = 8983
+
+# Other JVM options to pass to Solr when running a standalone instance
+MC_SOLR_STANDALONE_JVM_OPTS = [
+    "-Xmx256m",
+]
+
 # Solr starting port for shards
 MC_SOLR_CLUSTER_STARTING_PORT = 7980
 
@@ -32,14 +40,6 @@ MC_SOLR_CLUSTER_JVM_OPTS = [
     # "-XX:InitiatingHeapOccupancyPercent=75",
     # "-XX:+UseLargePages",
     # "-XX:+AggressiveOpts",
-]
-
-# Solr port for running a standalone server
-MC_SOLR_STANDALONE_PORT = 8983
-
-# Other JVM options to pass to Solr when running a standalone instance
-MC_SOLR_STANDALONE_JVM_OPTS = [
-    "-Xmx256m",
 ]
 
 # ---
