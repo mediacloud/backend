@@ -247,12 +247,12 @@ def update_zookeeper_solr_configuration(zookeeper_host=MC_SOLR_CLUSTER_ZOOKEEPER
     logger.info("Uploaded Solr collection configurations to ZooKeeper.")
 
 
-def run_solr(port,
-             instance_data_dir,
-             start_jar_args=None,
-             jvm_opts=None,
-             dist_directory=MC_DIST_DIR,
-             solr_version=MC_SOLR_VERSION):
+def __run_solr(port,
+               instance_data_dir,
+               start_jar_args=None,
+               jvm_opts=None,
+               dist_directory=MC_DIST_DIR,
+               solr_version=MC_SOLR_VERSION):
     """Run Solr instance."""
     if jvm_opts is None:
         jvm_opts = MC_SOLR_STANDALONE_JVM_OPTS
@@ -419,11 +419,11 @@ def run_solr_standalone(port=MC_SOLR_STANDALONE_PORT,
         raise Exception("Port %d is already open on this machine." % port)
 
     logger.info("Starting standalone Solr instance on port %d..." % port)
-    run_solr(port=port,
-             instance_data_dir=standalone_data_dir,
-             jvm_opts=MC_SOLR_STANDALONE_JVM_OPTS,
-             dist_directory=dist_directory,
-             solr_version=solr_version)
+    __run_solr(port=port,
+               instance_data_dir=standalone_data_dir,
+               jvm_opts=MC_SOLR_STANDALONE_JVM_OPTS,
+               dist_directory=dist_directory,
+               solr_version=solr_version)
 
 
 def run_solr_shard(shard_num,
@@ -464,12 +464,12 @@ def run_solr_shard(shard_num,
         "-DzkHost=%s:%d" % (zookeeper_host, zookeeper_port),
         "-DnumShards=%d" % shard_count,
     ]
-    run_solr(port=shard_port,
-             instance_data_dir=shard_data_dir,
-             jvm_opts=MC_SOLR_CLUSTER_JVM_OPTS,
-             start_jar_args=shard_args,
-             dist_directory=dist_directory,
-             solr_version=solr_version)
+    __run_solr(port=shard_port,
+               instance_data_dir=shard_data_dir,
+               jvm_opts=MC_SOLR_CLUSTER_JVM_OPTS,
+               start_jar_args=shard_args,
+               dist_directory=dist_directory,
+               solr_version=solr_version)
 
 
 def reload_solr_shard(shard_num,
