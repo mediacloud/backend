@@ -90,7 +90,7 @@ def __install_solr(dist_directory=MC_DIST_DIR, solr_version=MC_SOLR_VERSION):
         solr_war_dest_dir = os.path.join(solr_path, "example", "solr-webapp", "webapp")
         logger.info("Extracting solr.war at '%s' to '%s'..." % (solr_war_path, solr_war_dest_dir))
         mkdir_p(solr_war_dest_dir)
-        extract_tarball_to_directory(archive_file=solr_war_path, dest_directory=solr_war_dest_dir)
+        extract_zip_to_directory(archive_file=solr_war_path, dest_directory=solr_war_dest_dir)
 
     logger.info("Creating 'installed' file...")
     installed_file_path = __solr_installed_file_path(dist_directory=dist_directory, solr_version=solr_version)
