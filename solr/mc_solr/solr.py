@@ -285,7 +285,7 @@ def __run_solr(port,
 
         # Recreate symlink just in case
         conf_symlink_dst_dir = os.path.join(collection_dst_dir, "conf")
-        if os.path.exists(conf_symlink_dst_dir):
+        if os.path.lexists(conf_symlink_dst_dir):
             if not os.path.islink(conf_symlink_dst_dir):
                 raise Exception("Collection configuration '%s' exists but is not a symlink." % conf_symlink_dst_dir)
             os.unlink(conf_symlink_dst_dir)
@@ -322,7 +322,7 @@ instanceDir=%(instance_dir)s
 
         # Recreate symlink just in case
         config_item_dst_path = os.path.join(instance_data_dir, config_item)
-        if os.path.exists(config_item_dst_path):
+        if os.path.lexists(config_item_dst_path):
             if not os.path.islink(config_item_dst_path):
                 raise Exception("Configuration item '%s' exists but is not a symlink." % config_item_dst_path)
             os.unlink(config_item_dst_path)
@@ -344,7 +344,7 @@ instanceDir=%(instance_dir)s
 
         # Recreate symlink just in case
         library_item_dst_path = os.path.join(instance_data_dir, library_item)
-        if os.path.exists(library_item_dst_path):
+        if os.path.lexists(library_item_dst_path):
             if not os.path.islink(library_item_dst_path):
                 raise Exception("Library item '%s' exists but is not a symlink." % library_item_dst_path)
             os.unlink(library_item_dst_path)
