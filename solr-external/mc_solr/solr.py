@@ -411,13 +411,13 @@ def run_solr_shard(shard_num,
         logger.info("Solr is not installed, installing...")
         __install_solr()
 
-    shard_name = __shard_name(shard_num=shard_num)
-    shard_port = __shard_port(shard_num=shard_num, starting_port=starting_port)
-    shard_data_dir = __shard_data_dir(shard_num=shard_num, base_data_dir=base_data_dir)
-
     base_data_dir = os.path.abspath(base_data_dir)
     if not os.path.isdir(base_data_dir):
         raise Exception("Solr data directory '%s' does not exist." % base_data_dir)
+
+    shard_name = __shard_name(shard_num=shard_num)
+    shard_port = __shard_port(shard_num=shard_num, starting_port=starting_port)
+    shard_data_dir = __shard_data_dir(shard_num=shard_num, base_data_dir=base_data_dir)
 
     logger.info("Waiting for ZooKeeper to start on %s:%d..." % (zookeeper_host, zookeeper_port))
     while not tcp_port_is_open(hostname=zookeeper_host, port=zookeeper_port):
