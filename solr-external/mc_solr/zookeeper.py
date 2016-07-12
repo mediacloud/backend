@@ -1,15 +1,11 @@
 import atexit
 
-import signal
-
 from mc_solr.constants import *
 from mc_solr.path import resolve_absolute_path
 import mc_solr.solr
 from mc_solr.utils import *
 
 logger = create_logger(__name__)
-
-zookeeper_pid = None
 
 
 def __zookeeper_path(dist_directory=MC_DIST_DIR, zookeeper_version=MC_ZOOKEEPER_VERSION):
@@ -104,13 +100,6 @@ def __install_zookeeper(dist_directory=MC_DIST_DIR, zookeeper_version=MC_ZOOKEEP
         raise Exception("I've done everything but ZooKeeper is still not installed.")
 
 
-def __kill_zookeeper():
-    """Kill ZooKeeper on exit."""
-    global zookeeper_pid
-    if zookeeper_pid is not None:
-        os.kill(zookeeper_pid, signal.SIGTERM)
-
-
 def run_zookeeper(dist_directory=MC_DIST_DIR,
                   listen=MC_ZOOKEEPER_LISTEN,
                   port=MC_ZOOKEEPER_PORT,
@@ -176,11 +165,12 @@ syncLimit=5
 
     process = subprocess.Popen(args, env=zookeeper_env)
 
-    global zookeeper_pid
-    zookeeper_pid = process.pid
+    @atexit.register
+    def __kill_zookeeper_process():
+        print("Trying to terminate ZooKeeper at PID %d..." % process.pid)
+        process.terminate()
 
-    logger.info("ZooKeeper PID: %d" % zookeeper_pid)
-    atexit.register(__kill_zookeeper)
+    logger.info("ZooKeeper PID: %d" % process.pid)
 
     logger.info("Waiting for ZooKeeper to start at port %d..." % port)
     zookeeper_started = wait_for_tcp_port_to_open(port=port)
