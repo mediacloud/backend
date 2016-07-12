@@ -381,28 +381,6 @@ $_$;
 
 
 --
--- Name: create_initial_story_sentences_dup(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION create_initial_story_sentences_dup() RETURNS boolean
-    LANGUAGE plpgsql
-    AS $$
-declare
-    one_month_ago date;
-begin
-    select now() - interval '1 month' into one_month_ago;
-
-    raise notice 'date: %', one_month_ago;
-
-    execute 'create index story_sentences_dup on story_sentences( md5( sentence ) ) ' ||
-        'where week_start_date( publish_date::date ) > ''' || one_month_ago || '''::date';
-
-    return true;
-END;
-$$;
-
-
---
 -- Name: delete_ss_media_stats(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -593,6 +571,17 @@ BEGIN
     SELECT encode(digest(gen_random_bytes(256), 'sha256'), 'hex') INTO token;
     RETURN token;
 END;
+$$;
+
+
+--
+-- Name: half_md5(text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION half_md5(string text) RETURNS bytea
+    LANGUAGE sql
+    AS $$
+    SELECT SUBSTRING(digest(string, 'md5'::text), 0, 9);
 $$;
 
 
@@ -1067,7 +1056,7 @@ DECLARE
 
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4552;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4563;
 
 BEGIN
 
@@ -1636,7 +1625,9 @@ CREATE TABLE medium_link_counts (
     inlink_count integer NOT NULL,
     outlink_count integer NOT NULL,
     story_count integer NOT NULL,
-    bitly_click_count integer
+    bitly_click_count integer,
+    media_inlink_count integer NOT NULL,
+    sum_media_inlink_count integer NOT NULL
 );
 
 
@@ -1692,7 +1683,9 @@ CREATE TABLE story_link_counts (
     stories_id integer NOT NULL,
     inlink_count integer NOT NULL,
     outlink_count integer NOT NULL,
-    bitly_click_count integer
+    bitly_click_count integer,
+    facebook_share_count integer,
+    media_inlink_count integer NOT NULL
 );
 
 
@@ -2320,16 +2313,12 @@ CREATE TABLE controversies (
     description text NOT NULL,
     controversy_tag_sets_id integer NOT NULL,
     media_type_tag_sets_id integer,
-    process_with_bitly boolean DEFAULT false NOT NULL,
-    max_iterations integer DEFAULT 15 NOT NULL
+    max_iterations integer DEFAULT 15 NOT NULL,
+    has_been_spidered boolean DEFAULT false NOT NULL,
+    has_been_dumped boolean DEFAULT false NOT NULL,
+    state text DEFAULT 'created but not queued'::text NOT NULL,
+    error_message text
 );
-
-
---
--- Name: COLUMN controversies.process_with_bitly; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN controversies.process_with_bitly IS 'Enable processing controversy''s stories with Bit.ly; add all new controversy stories to Bit.ly processing queue';
 
 
 --
@@ -2377,7 +2366,11 @@ CREATE VIEW controversies_with_dates AS
     c.description,
     c.controversy_tag_sets_id,
     c.media_type_tag_sets_id,
-    c.process_with_bitly,
+    c.max_iterations,
+    c.has_been_spidered,
+    c.has_been_dumped,
+    c.state,
+    c.error_message,
     to_char((cd.start_date)::timestamp with time zone, 'YYYY-MM-DD'::text) AS start_date,
     to_char((cd.end_date)::timestamp with time zone, 'YYYY-MM-DD'::text) AS end_date
    FROM (controversies c
@@ -2517,7 +2510,9 @@ CREATE TABLE controversy_dumps (
     dump_date timestamp without time zone NOT NULL,
     start_date timestamp without time zone NOT NULL,
     end_date timestamp without time zone NOT NULL,
-    note text
+    note text,
+    state text DEFAULT 'queued'::text NOT NULL,
+    error_message text
 );
 
 
@@ -4393,7 +4388,7 @@ COPY media_tags_map (controversy_dumps_id, media_tags_map_id, media_id, tags_id)
 -- Data for Name: medium_link_counts; Type: TABLE DATA; Schema: cd; Owner: -
 --
 
-COPY medium_link_counts (controversy_dump_time_slices_id, media_id, inlink_count, outlink_count, story_count, bitly_click_count) FROM stdin;
+COPY medium_link_counts (controversy_dump_time_slices_id, media_id, inlink_count, outlink_count, story_count, bitly_click_count, media_inlink_count, sum_media_inlink_count) FROM stdin;
 \.
 
 
@@ -4425,7 +4420,7 @@ COPY stories_tags_map (controversy_dumps_id, stories_tags_map_id, stories_id, ta
 -- Data for Name: story_link_counts; Type: TABLE DATA; Schema: cd; Owner: -
 --
 
-COPY story_link_counts (controversy_dump_time_slices_id, stories_id, inlink_count, outlink_count, bitly_click_count) FROM stdin;
+COPY story_link_counts (controversy_dump_time_slices_id, stories_id, inlink_count, outlink_count, bitly_click_count, facebook_share_count, media_inlink_count) FROM stdin;
 \.
 
 
@@ -5187,7 +5182,7 @@ SELECT pg_catalog.setval('color_sets_color_sets_id_seq', 3, true);
 -- Data for Name: controversies; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY controversies (controversies_id, name, pattern, solr_seed_query, solr_seed_query_run, description, controversy_tag_sets_id, media_type_tag_sets_id, process_with_bitly, max_iterations) FROM stdin;
+COPY controversies (controversies_id, name, pattern, solr_seed_query, solr_seed_query_run, description, controversy_tag_sets_id, media_type_tag_sets_id, max_iterations, has_been_spidered, has_been_dumped, state, error_message) FROM stdin;
 \.
 
 
@@ -5262,7 +5257,7 @@ SELECT pg_catalog.setval('controversy_dump_time_slices_controversy_dump_time_sli
 -- Data for Name: controversy_dumps; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY controversy_dumps (controversy_dumps_id, controversies_id, dump_date, start_date, end_date, note) FROM stdin;
+COPY controversy_dumps (controversy_dumps_id, controversies_id, dump_date, start_date, end_date, note, state, error_message) FROM stdin;
 \.
 
 
@@ -5384,8 +5379,7 @@ SELECT pg_catalog.setval('corenlp_annotations_corenlp_annotations_id_seq', 1, fa
 --
 
 COPY database_variables (database_variables_id, name, value) FROM stdin;
-2	LAST_STORY_SENTENCES_ID_PROCESSED	0
-96	database-schema-version	4552
+107	database-schema-version	4563
 \.
 
 
@@ -5393,7 +5387,7 @@ COPY database_variables (database_variables_id, name, value) FROM stdin;
 -- Name: database_variables_database_variables_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('database_variables_database_variables_id_seq', 96, true);
+SELECT pg_catalog.setval('database_variables_database_variables_id_seq', 107, true);
 
 
 --
@@ -8899,13 +8893,6 @@ CREATE INDEX story_sentences_db_row_last_updated ON story_sentences USING btree 
 
 
 --
--- Name: story_sentences_dup; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX story_sentences_dup ON story_sentences USING btree (md5(sentence)) WHERE (week_start_date((publish_date)::date) > '2016-01-16'::date);
-
-
---
 -- Name: story_sentences_language; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -8924,6 +8911,13 @@ CREATE INDEX story_sentences_media_id ON story_sentences USING btree (media_id);
 --
 
 CREATE INDEX story_sentences_publish_day ON story_sentences USING btree (date_trunc('day'::text, publish_date), media_id);
+
+
+--
+-- Name: story_sentences_sentence_half_md5; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX story_sentences_sentence_half_md5 ON story_sentences USING btree (half_md5(sentence));
 
 
 --
