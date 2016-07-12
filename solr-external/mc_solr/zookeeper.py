@@ -3,7 +3,7 @@ import atexit
 import signal
 
 from mc_solr.constants import *
-from mc_solr.distpath import distribution_path
+from mc_solr.path import resolve_absolute_path
 import mc_solr.solr
 from mc_solr.utils import *
 
@@ -14,7 +14,7 @@ zookeeper_pid = None
 
 def __zookeeper_path(dist_directory=MC_DIST_DIR, zookeeper_version=MC_ZOOKEEPER_VERSION):
     """Return path to where ZooKeeper distribution should be located."""
-    dist_path = distribution_path(dist_directory=dist_directory)
+    dist_path = resolve_absolute_path(name=dist_directory)
     zookeeper_directory = "zookeeper-%s" % zookeeper_version
     solr_path = os.path.join(dist_path, zookeeper_directory)
     return solr_path
@@ -122,9 +122,7 @@ def run_zookeeper(dist_directory=MC_DIST_DIR,
         logger.info("ZooKeeper is not installed, installing...")
         __install_zookeeper()
 
-    data_dir = os.path.abspath(data_dir)
-    if not os.path.isdir(data_dir):
-        raise Exception("ZooKeeper data directory '%s' does not exist." % data_dir)
+    data_dir = resolve_absolute_path(name=data_dir, must_exist=True)
 
     if tcp_port_is_open(port=port):
         raise Exception("Port %d is already open on this machine." % port)
