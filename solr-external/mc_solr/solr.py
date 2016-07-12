@@ -1,3 +1,4 @@
+import atexit
 import urllib2
 
 from mc_solr.constants import *
@@ -391,7 +392,19 @@ instanceDir=%(instance_dir)s
     ]
 
     logger.debug("Running command: %s" % ' '.join(args))
-    subprocess.check_call(args)
+
+    process = subprocess.Popen(args)
+
+    @atexit.register
+    def __kill_solr_process():
+        print("Trying to terminate Solr at PID %d..." % process.pid)
+        process.terminate()
+
+    logger.info("Solr PID: %d" % process.pid)
+
+    logger.info("Solr is ready!")
+    while True:
+        time.sleep(1)
 
 
 def run_solr_standalone(port=MC_SOLR_STANDALONE_PORT,
