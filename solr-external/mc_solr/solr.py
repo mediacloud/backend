@@ -126,9 +126,9 @@ def solr_collections(solr_home_dir=MC_SOLR_HOME_DIR):
     collections = {}
     collections_path = __solr_collections_path(solr_home_dir)
     collection_names = os.listdir(collections_path)
-    logger.debug("Collection names: %s" % collection_names)
+    logger.debug("Files in collections directory: %s" % collection_names)
     for name in collection_names:
-        if not name.startswith("_"):
+        if not (name.startswith("_") or name.startswith(".")):
             full_path = os.path.join(collections_path, name)
             if os.path.isdir(full_path):
 
