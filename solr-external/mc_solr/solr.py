@@ -244,7 +244,6 @@ def run_solr(port,
              instance_data_dir,
              start_jar_args=None,
              jvm_opts=None,
-             jvm_heap_size_limit=MC_SOLR_JVM_HEAP_SIZE_LIMIT,
              dist_directory=MC_DIST_DIR,
              solr_version=MC_SOLR_VERSION):
     """Run Solr instance."""
@@ -374,7 +373,6 @@ instanceDir=%(instance_dir)s
     args += jvm_opts
     args = args + [
         "-server",
-        "-Xmx" + jvm_heap_size_limit,
         "-Djava.util.logging.config.file=file://" + os.path.abspath(log4j_properties_path),
         "-Djetty.home=%s" % instance_data_dir,
         "-Djetty.port=%d" % port,
@@ -399,7 +397,6 @@ def run_solr_shard(shard_num,
                    shard_count,
                    starting_port=MC_SOLR_CLUSTER_STARTING_PORT,
                    data_dir=MC_SOLR_DATA_DIR,
-                   jvm_heap_size_limit=MC_SOLR_JVM_HEAP_SIZE_LIMIT,
                    dist_directory=MC_DIST_DIR,
                    solr_version=MC_SOLR_VERSION,
                    zookeeper_host=MC_SOLR_CLUSTER_ZOOKEEPER_HOST,
@@ -438,7 +435,6 @@ def run_solr_shard(shard_num,
              instance_data_dir=shard_data_dir,
              jvm_opts=MC_SOLR_CLUSTER_JVM_OPTS,
              start_jar_args=shard_args,
-             jvm_heap_size_limit=jvm_heap_size_limit,
              dist_directory=dist_directory,
              solr_version=solr_version)
 

@@ -19,11 +19,9 @@ MC_SOLR_CLUSTER_ZOOKEEPER_HOST = "localhost"
 # Default ZooKeeper port to connect to
 MC_SOLR_CLUSTER_ZOOKEEPER_PORT = 9983
 
-# Default Java heap size (-Xmx)
-MC_SOLR_JVM_HEAP_SIZE_LIMIT = "256m"
-
 # Other JVM options to pass to each Solr shard in a cluster
 MC_SOLR_CLUSTER_JVM_OPTS = [
+    "-Xmx256m",
     # "-XX:+PrintGC",
     # "-XX:+UsePerfData",
     # "-XX:+UseG1GC",
@@ -41,6 +39,7 @@ MC_SOLR_STANDALONE_PORT = 8983
 
 # Other JVM options to pass to Solr when running a standalone instance
 MC_SOLR_STANDALONE_JVM_OPTS = [
+    "-Xmx256m",
 ]
 
 # ---
