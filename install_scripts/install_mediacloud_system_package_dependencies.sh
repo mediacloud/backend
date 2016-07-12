@@ -95,7 +95,7 @@ EOF
     brew install \
         graphviz --with-bindings \
         coreutils curl homebrew/dupes/tidy libyaml gawk cpanminus \
-        netcat openssl rabbitmq libyaml gradle
+        netcat openssl rabbitmq libyaml
 
     sudo cpanm \
         XML::Parser XML::SAX::Expat XML::LibXML XML::LibXML::Simple \
@@ -130,9 +130,6 @@ else
             sudo apt-get -y remove $obsolete_package
         }
     done
-
-    # Apt's version of Gradle is too old
-    sudo add-apt-repository -y ppa:cwchien/gradle
 
     # Ubuntu < 14.04 APT's version of Erlang is too old (needed by RabbitMQ)
     if verlt "$DISTRIB_RELEASE" "14.04"; then
@@ -170,7 +167,7 @@ else
         libreadonly-xs-perl curl python2.7 python2.7-dev python-pip \
         libxml2-dev libxslt1-dev libxslt1-dbg libxslt1.1 build-essential make gcc g++ \
         cpanminus perl-doc liblocale-maketext-lexicon-perl $OPENJDK_PACKAGE \
-        pandoc netcat rabbitmq-server libyaml-dev gradle
+        pandoc netcat rabbitmq-server libyaml-dev
 
     # Install / upgrade Setuptools before installing Python dependencies
     # (latest version of Setuptools is 20.10.1 but it's not available on pypi.python.org yet)
