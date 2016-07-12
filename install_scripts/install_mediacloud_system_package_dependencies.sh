@@ -167,7 +167,7 @@ else
         libreadonly-xs-perl curl python2.7 python2.7-dev python-pip \
         libxml2-dev libxslt1-dev libxslt1-dbg libxslt1.1 build-essential make gcc g++ \
         cpanminus perl-doc liblocale-maketext-lexicon-perl $OPENJDK_PACKAGE \
-        pandoc netcat rabbitmq-server libyaml-dev
+        pandoc netcat rabbitmq-server libyaml-dev unzip
 
     # Install / upgrade Setuptools before installing Python dependencies
     # (latest version of Setuptools is 20.10.1 but it's not available on pypi.python.org yet)
