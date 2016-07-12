@@ -214,9 +214,6 @@ def run_solr_shard(shard_num,
     solr_home_dir = __solr_home_path(solr_home_dir=MC_SOLR_HOME_DIR)
     if not os.path.isdir(solr_home_dir):
         raise Exception("Solr home directory '%s' does not exist." % solr_home_dir)
-    solr_xml_path = os.path.join(solr_home_dir, "solr.xml")
-    if not os.path.isfile(solr_xml_path):
-        raise Exception("Solr home dir '%s' exists but doesn't contain solr.xml." % solr_home_dir)
 
     data_dir = os.path.abspath(data_dir)
     if not os.path.isdir(data_dir):
@@ -233,26 +230,26 @@ def run_solr_shard(shard_num,
         mkdir_p(shard_data_dir)
 
     logger.info("Updating collections for shard '%s' at %s..." % (shard_name, shard_data_dir))
-
-    solr_xml_dest_path = os.path.join(shard_data_dir, "solr.xml")
-    shutil.copy(solr_xml_path, solr_xml_dest_path)
-
     collections = solr_collections(solr_home_dir=solr_home_dir)
     for collection_name, collection_path in sorted(collections.items()):
         logger.info("Updating collection '%s' for shard '%s'..." % (collection_name, shard_name))
 
-        conf_src_dir = os.path.join(collection_path, "conf")
-        if not os.path.isdir(conf_src_dir):
-            raise Exception("Configuration for collection '%s' at %s does not exist" % (collection_name, conf_src_dir))
+        conf_symlink_src_dir = os.path.join(collection_path, "conf")
+        if not os.path.isdir(conf_symlink_src_dir):
+            raise Exception("Configuration for collection '%s' at %s does not exist" % (
+                collection_name, conf_symlink_src_dir
+            ))
 
         collection_dst_dir = os.path.join(shard_data_dir, collection_name)
-        conf_dst_dir = os.path.join(collection_dst_dir, "conf")
-        if os.path.isdir(conf_dst_dir):
-            logger.info("Removing existing configuration for collection '%s'..." % collection_name)
-            shutil.rmtree(conf_dst_dir)
+        mkdir_p(collection_dst_dir)
 
-        logger.info("Copying '%s' to '%s'..." % (conf_src_dir, conf_dst_dir))
-        shutil.copytree(src=conf_src_dir, dst=conf_dst_dir, symlinks=False)
+        conf_symlink_dst_dir = os.path.join(collection_dst_dir, "conf")
+        if os.path.exists(conf_symlink_dst_dir):
+            if not os.path.islink(conf_symlink_dst_dir):
+                raise Exception("Collection configuration '%s' exists but is not a symlink." % conf_symlink_dst_dir)
+        else:
+            logger.info("Symlinking '%s' to '%s'..." % (conf_symlink_src_dir, conf_symlink_dst_dir))
+            os.symlink(conf_symlink_src_dir, conf_symlink_dst_dir)
 
         logger.info("Updating core.properties for collection '%s'..." % collection_name)
         core_properties_path = os.path.join(collection_dst_dir, "core.properties")
@@ -269,11 +266,55 @@ instanceDir=%(instance_dir)s
                 "instance_dir": collection_dst_dir,
             })
 
+    logger.info("Symlinking shard configuration...")
+    config_items_to_symlink = [
+        "contexts",
+        "etc",
+        "resources",
+        "solr.xml",
+    ]
+    for config_item in config_items_to_symlink:
+        config_item_src_path = os.path.join(solr_home_dir, config_item)
+        if not os.path.exists(config_item_src_path):
+            raise Exception("Expected configuration item '%s' does not exist" % config_item_src_path)
+
+        # Recreate symlink just in case
+        config_item_dst_path = os.path.join(shard_data_dir, config_item)
+        if os.path.exists(config_item_dst_path):
+            if not os.path.islink(config_item_dst_path):
+                raise Exception("Configuration item '%s' exists but is not a symlink." % config_item_dst_path)
+            os.unlink(config_item_dst_path)
+
+        logger.info("Symlinking '%s' to '%s'..." % (config_item_src_path, config_item_dst_path))
+        os.symlink(config_item_src_path, config_item_dst_path)
+
+    logger.info("Symlinking libraries and JARs...")
+    library_items_to_symlink = [
+        "lib",
+        "solr-webapp",
+        "start.jar",
+        "webapps",
+    ]
+    for library_item in library_items_to_symlink:
+        library_item_src_path = os.path.join(solr_path, "example", library_item)
+        if not os.path.exists(library_item_src_path):
+            raise Exception("Expected library item '%s' does not exist" % library_item_src_path)
+
+        # Recreate symlink just in case
+        library_item_dst_path = os.path.join(shard_data_dir, library_item)
+        if os.path.exists(library_item_dst_path):
+            if not os.path.islink(library_item_dst_path):
+                raise Exception("Library item '%s' exists but is not a symlink." % library_item_dst_path)
+            os.unlink(library_item_dst_path)
+
+        logger.info("Symlinking '%s' to '%s'..." % (library_item_src_path, library_item_dst_path))
+        os.symlink(library_item_src_path, library_item_dst_path)
+
     jetty_home_dir = os.path.join(solr_path, "example")
     if not os.path.isdir(jetty_home_dir):
         raise Exception("Jetty home directory '%s' does not exist." % jetty_home_dir)
 
-    log4j_properties_path = os.path.join(solr_path, "example", "resources", "log4j.properties")
+    log4j_properties_path = os.path.join(solr_home_dir, "resources", "log4j.properties")
     if not os.path.isfile(log4j_properties_path):
         raise Exception("log4j.properties at '%s' was not found.")
 
@@ -310,7 +351,7 @@ instanceDir=%(instance_dir)s
         "-server",
         "-Xmx" + jvm_heap_size_limit,
         "-Djava.util.logging.config.file=file://" + os.path.abspath(log4j_properties_path),
-        "-Djetty.home=%s" % jetty_home_dir,
+        "-Djetty.home=%s" % shard_data_dir,
         "-Djetty.port=%d" % shard_port,
         "-Dhost=%s" % shard_name,
         "-Dsolr.solr.home=%s" % shard_data_dir,
