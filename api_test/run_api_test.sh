@@ -136,7 +136,8 @@ fi
 
 if [ $solr_pid ]; then
     echo "killing solr pid $solr_pid"
-    kill $solr_pid
+    # Fancy way to kill a process group on both Linux and OS X
+    kill -- -$(ps -o pgid= $solr_pid | grep -o '[0-9]*')
 fi
 
 exit $TEST_RETURN_STATUS
