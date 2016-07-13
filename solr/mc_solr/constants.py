@@ -41,16 +41,16 @@ MC_SOLR_CLUSTER_ZOOKEEPER_CONNECT_RETRIES = 2 * 60
 # Other JVM options to pass to each Solr shard in a cluster
 MC_SOLR_CLUSTER_JVM_OPTS = [
     "-Xmx256m",
-    # "-XX:+PrintGC",
-    # "-XX:+UsePerfData",
-    # "-XX:+UseG1GC",
-    # "-XX:+PerfDisableSharedMem",
-    # "-XX:+ParallelRefProcEnabled",
-    # "-XX:G1HeapRegionSize=12m",
-    # "-XX:MaxGCPauseMillis=250",
-    # "-XX:InitiatingHeapOccupancyPercent=75",
-    # "-XX:+UseLargePages",
-    # "-XX:+AggressiveOpts",
+    "-XX:+PrintGC",
+    "-XX:+UsePerfData",
+    "-XX:+UseG1GC",
+    "-XX:+PerfDisableSharedMem",
+    "-XX:+ParallelRefProcEnabled",
+    "-XX:G1HeapRegionSize=12m",
+    "-XX:MaxGCPauseMillis=250",
+    "-XX:InitiatingHeapOccupancyPercent=75",
+    "-XX:+UseLargePages",
+    "-XX:+AggressiveOpts",
 ]
 
 # ---
