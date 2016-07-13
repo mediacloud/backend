@@ -34,7 +34,7 @@ sub main
 
     # Wait a little between adding each chunk in order to not fill up job
     # broker's queue too quickly
-    Readonly my $DELAY_BETWEEN_CHUNKS => 20;
+    Readonly my $DELAY_BETWEEN_CHUNKS => 30;
 
     INFO "Starting to add due stories to job broker's queue with $DELAY_BETWEEN_CHUNKS s delays between chunks...";
     while ( 1 )
