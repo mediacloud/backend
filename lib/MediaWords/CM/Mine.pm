@@ -43,6 +43,7 @@ use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::Job::Bitly::FetchStoryStats;
 use MediaWords::Job::Facebook::FetchStoryStats;
 use MediaWords::Solr;
+use MediaWords::Util::Config;
 use MediaWords::Util::HTML;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Tags;
@@ -2576,8 +2577,11 @@ sub import_solr_seed_query
 
     return if ( $controversy->{ solr_seed_query_run } );
 
+    my $max_stories = MediaWords::Util::Config::get_config->{ mediawords }->{ max_solr_seed_query_stories } || 250000;
+
     INFO( sub { "executing solr query: $controversy->{ solr_seed_query }" } );
-    my $stories = MediaWords::Solr::search_for_stories( $db, { q => $controversy->{ solr_seed_query }, rows => 250000 } );
+    my $stories =
+      MediaWords::Solr::search_for_stories( $db, { q => $controversy->{ solr_seed_query }, rows => $max_stories } );
 
     INFO( sub { "adding " . scalar( @{ $stories } ) . " stories to controversy_seed_urls" } );
 

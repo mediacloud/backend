@@ -4,7 +4,7 @@
    - [Media Cloud Crawler and Core Data Structures](#media-cloud-crawler-and-core-data-structures)   
    - [Topic Data Structures](#topic-data-structures)   
    - [API URLs](#api-urls)   
-   - [Snapshots, Timespans, and Frames](#snapshots-timespans-and-frames)   
+   - [Snapshots, Timespans, and Foci](#snapshots-timespans-and-foci)   
    - [Paging](#paging)   
    - [Examples](#examples)   
 - [Topics](#topics)   
@@ -73,42 +73,42 @@
       - [Example](#example-13)   
 - [Word Counts](#word-counts)   
    - [wc/list](#wclist)   
-- [Frames](#frames)   
-   - [Framing Methods](#framing-methods)   
-      - [Framing Method: Boolean Query](#framing-method-boolean-query)   
-   - [frame_set_definitions/create (POST)](#frame_set_definitionscreate-post)   
+- [Foci](#foci)   
+   - [Focal Techniques](#focal-techniques)   
+      - [Focal Technique: Boolean Query](#focal-technique-boolean-query)   
+   - [focal_set_definitions/create (POST)](#focal_set_definitionscreate-post)   
       - [Query Parameters](#query-parameters-14)   
       - [Input Description](#input-description-6)   
       - [Example](#example-14)   
-   - [frame_set_definitions/~frame_set_definitions_id~/update (PUT)](#frame_set_definitionsframe_set_definitions_idupdate-put)   
+   - [focal_set_definitions/~focal_set_definitions_id~/update (PUT)](#focal_set_definitionsfocal_set_definitions_idupdate-put)   
       - [Query Parameters](#query-parameters-15)   
       - [Input Parameters](#input-parameters)   
       - [Example](#example-15)   
-   - [frame_set_definitions/~frame_set_definitions_id~/delete (PUT)](#frame_set_definitionsframe_set_definitions_iddelete-put)   
+   - [focal_set_definitions/~focal_set_definitions_id~/delete (PUT)](#focal_set_definitionsfocal_set_definitions_iddelete-put)   
       - [Query Parameters](#query-parameters-16)   
       - [Output Description](#output-description-11)   
       - [Example](#example-16)   
-   - [frame_set_definitions/list](#frame_set_definitionslist)   
+   - [focal_set_definitions/list](#focal_set_definitionslist)   
       - [Query Parameters](#query-parameters-17)   
       - [Output Description](#output-description-12)   
       - [Example](#example-17)   
-   - [frame_sets/list](#frame_setslist)   
+   - [focal_sets/list](#focal_setslist)   
       - [Query Parameters](#query-parameters-18)   
       - [Output Description](#output-description-13)   
       - [Example](#example-18)   
-   - [frame_definitions/~frame_set_definitions_id~/create (POST)](#frame_definitionsframe_set_definitions_idcreate-post)   
+   - [focus_definitions/~focal_set_definitions_id~/create (POST)](#focus_definitionsfocal_set_definitions_idcreate-post)   
       - [Query Parameters](#query-parameters-19)   
       - [Input Description](#input-description-7)   
       - [Example](#example-19)   
-   - [frame_definitions/~frame_definitions_id~/update (PUT)](#frame_definitionsframe_definitions_idupdate-put)   
+   - [focus_definitions/~focus_definitions_id~/update (PUT)](#focus_definitionsfocus_definitions_idupdate-put)   
       - [Query Parameters](#query-parameters-20)   
       - [Input Description](#input-description-8)   
       - [Example](#example-20)   
-   - [frame_definitions/list](#frame_definitionslist)   
+   - [focus_definitions/list](#focus_definitionslist)   
       - [Query Parameters](#query-parameters-21)   
       - [Output Description](#output-description-14)   
       - [Example](#example-21)   
-   - [frames/list](#frameslist)   
+   - [foci/list](#focilist)   
       - [Query Parameters](#query-parameters-22)   
       - [Ouput Description](#ouput-description)   
       - [Example](#example-22)   
@@ -193,7 +193,7 @@ For example, the following will return all stories in the latest snapshot of top
 
 `https://api.mediacloud.org/api/v2/topics/1344/stories/list`
 
-## Snapshots, Timespans, and Frames
+## Snapshots, Timespans, and Foci
 
 Each *topic* is viewed through one of its *snapshots*.  A *snapshot* is static dump of all data from a topic at
 a given point in time.  The data within a *snapshot* will never change, so changes to a *topic* are not visible
@@ -203,32 +203,32 @@ until a new *snapshot* is made.
 we can discuss whether there should be automatic triggers for creating a new snapshot or not.  think about the
 snapshot as a report that you are delivering to the user, not any kind of live view of the data.  editing media and story metadata will always be an internal option only, though, because those edits are to our core stories and media tables.  but story removal or merges will likewise not be visible until the next snapshot.   -->
 
-Within a *snapshot*, data can be viewed overall, or through some combination of a *frame* and a *timespan*.
+Within a *snapshot*, data can be viewed overall, or through some combination of a *focus* and a *timespan*.
 
-A *frame* consists of a subset of stories within a *topic* defined by some user configured *framing method*.  For
-example, a 'trump' *frame* within a 'US Election' *topic* would be defined using the 'Boolean Query' *framing method*
-as all stories matching the query 'trump'.  Each individual *frame* belongs to exactly one *frame set*.  A *frame set*
-provides a way of collecting together *frames* for easy comparison to one another.
+A *focus* consists of a subset of stories within a *topic* defined by some user configured *focal technique*.  For
+example, a 'trump' *focus* within a 'US Election' *topic* would be defined using the 'Boolean Query' *focal technique*
+as all stories matching the query 'trump'.  Each individual *focus* belongs to exactly one *focal set*.  A *focal set*
+provides a way of collecting together *foci* for easy comparison to one another.
 
 A *timespan* displays the *topic* as if it exists only of stories either published within the date range of the
 *timespan* or linked to by a story published within the date range of the *timespan*.
 
-*Topics*, *snapshots*, *frames*, and *timespans* are strictly hierarchical.  Every *snapshot* belongs to a single
-*topic*.  Every *frame* belongs to a single *snapshot*, and every *timespan* belongs to either a single *frame* or the
-null *frame*.  Specifying a *frame* implies the parent *snapshot* of that *frame*.  Specifying a *timespan* implies the
-parent *frame* (and by implication the parent *snapshot*), or else the null *frame* within the parent *snapshot*.
+*Topics*, *snapshots*, *foci*, and *timespans* are strictly hierarchical.  Every *snapshot* belongs to a single
+*topic*.  Every *focus* belongs to a single *snapshot*, and every *timespan* belongs to either a single *focus* or the
+null *focus*.  Specifying a *focus* implies the parent *snapshot* of that *focus*.  Specifying a *timespan* implies the
+parent *focus* (and by implication the parent *snapshot*), or else the null *focus* within the parent *snapshot*.
 
 * topic
   * snapshot
-    * frame
+    * focus
       * timespan
 
-Every url that returns data from a *topic* accepts optional *spanshots_id*, *timespans_id*, and *frames_id* parameters.
+Every url that returns data from a *topic* accepts optional *spanshots_id*, *timespans_id*, and *foci_id* parameters.
 
 If no *snapshots_id* is specified, the call returns data from the latest *snapshot* generated for the *topic*.  If no
-*timespans_id* is specified, the call returns data from the overall *timespan* of the given *snapshot* and *frame*.  If
-no *frames_id* is specified, the call assumes the null *frame*.  If multiple of these parameters are specified,
-they must point to the same *topic* / *snapshot* / *frame* / *timespan* or an error will be returned (for instance, a
+*timespans_id* is specified, the call returns data from the overall *timespan* of the given *snapshot* and *focus*.  If
+no *foci_id* is specified, the call assumes the null *focus*.  If multiple of these parameters are specified,
+they must point to the same *topic* / *snapshot* / *focus* / *timespan* or an error will be returned (for instance, a
 call that specifies a *snapshots_id* for a *snapshot* in a *topic* different from the one specified in the url, an error
 will be returned).
 
@@ -577,7 +577,7 @@ The call will return an error if more than one of the following parameters are s
 
 For a detailed description of the format of the query specified in `q` parameter, see the entry for [stories_public/list](api_2_0_spec.md) in the main API spec.
 
-Standard parameters accepted: snapshots_id, frames_id, timespans_id, limit, link_id.
+Standard parameters accepted: snapshots_id, foci_id, timespans_id, limit, link_id.
 
 ### Output Description
 
@@ -598,7 +598,7 @@ Standard parameters accepted: snapshots_id, frames_id, timespans_id, limit, link
 | outlink_count        | count of hyperlinks to stories in other media in this timespan |
 | bitly_click_count    | number of clicks on bitly links that resolve to this story's url |
 | facebook_share_count | number of facebook shares for this story's url |
-| frame_ids            | list of ids of frames to which this story belongs |
+| focus_ids            | list of ids of foci to which this story belongs |
 ### Example
 
 Fetch all stories in topic id 1344:
@@ -649,7 +649,7 @@ Return the number of stories that match the query.
 
 For a detailed description of the format of the query specified in `q` parameter, see the entry for [stories_public/list](https://github.com/berkmancenter/mediacloud/blob/release/doc/api_2_0_spec/api_2_0_spec.md#apiv2stories_publiclist) in the main API spec.
 
-Standard parameters accepted : snapshots_id, frames_id, timespans_id, limit.
+Standard parameters accepted : snapshots_id, foci_id, timespans_id, limit.
 
 ### Output Description
 
@@ -799,7 +799,7 @@ Return the numer of sentences that match the query, optionally split by date.
 This call behaves exactly like the main api sentences/count call, except:
 
 - This call only searches within the given snapshot
-- This call accepts the standard topics parameters: snapshots_id, frames_id, timespans_id
+- This call accepts the standard topics parameters: snapshots_id, foci_id, timespans_id
 
 For details about this end point, including parameters, output, and examples, see the [main API](https://github.com/berkmancenter/mediacloud/blob/release/doc/api_2_0_spec/api_2_0_spec.md#apiv2sentencescount).
 
@@ -823,7 +823,7 @@ The media list call returns the list of media in the topic.
 
 If the `name` parameter is specified, the call returns only media sources that match a case insensitive search specified value. If the specified value is less than 3 characters long, the call returns an empty list.
 
-Standard parameters accepted: snapshots_id, frames_id, timespans_id, limit, link_id.
+Standard parameters accepted: snapshots_id, foci_id, timespans_id, limit, link_id.
 
 ### Output Description
 
@@ -837,7 +837,7 @@ Standard parameters accepted: snapshots_id, frames_id, timespans_id, limit, link
 | outlink_count        | sum of the outlink_count for each story in the medium |
 | bitly_click_count    | sum of the bitly_click_count for each story in the medium |
 | facebook_share_count | sum of the facebook_share_count for each story in the medium |
-| frame_ids            | list of ids of frames to which this medium belongs |
+| focus_ids            | list of ids of foci to which this medium belongs |
 
 ### Example
 
@@ -993,48 +993,48 @@ Returns sampled counts of the most prevalent words in a topic, optionally restri
 This call behaves exactly like the main api wc/list call, except:
 
 * This call only searches within the given snapshot
-* This call accepts the standard topics parameters: snapshots_id, frames_id, timespans_id
+* This call accepts the standard topics parameters: snapshots_id, foci_id, timespans_id
 
 For details about this end point, including parameters, output, and examples, see the [main API](https://github.com/berkmancenter/mediacloud/blob/release/doc/api_2_0_spec/api_2_0_spec.md#apiv2wclist).
 
-<!-- RB - How do I find out what frames a particular word appears in most often? -->
-<!-- HR - This would be pretty hard.  The only way to do this is to run a solr query for the word for each frame.  That
-could have somewhat reasonable performance for a handful of frames, but I can't work my head around how to do it
-with reasonable performance with hundreds of frames, and I can imagine the tag set frame sets we've proposed having
-hundreds of frames. -->
+<!-- RB - How do I find out what foci a particular word appears in most often? -->
+<!-- HR - This would be pretty hard.  The only way to do this is to run a solr query for the word for each focus.  That
+could have somewhat reasonable performance for a handful of foci, but I can't work my head around how to do it
+with reasonable performance with hundreds of foci, and I can imagine the tag set focal sets we've proposed having
+hundreds of foci. -->
 
-# Frames
+# Foci
 
-A *frame* is a set of stories identified through some *framing method*.  *Frame Sets* are sets of *frames* that share a *framing method* and are also usually some substantive theme determined by the user.  For example, a 'U.S. 2016 Election' topic might include a 'Candidates' *frame set* that includes 'trump' and 'clinton' frames, each of which uses a 'Boolean Query' *framing methodology* to identify stories relevant to each candidate with a separate boolean query for each.
+A *focus* is a set of stories identified through some *focal technique*.  *focal sets* are sets of *foci* that share a *focal technique* and are also usually some substantive theme determined by the user.  For example, a 'U.S. 2016 Election' topic might include a 'Candidates' *focal set* that includes 'trump' and 'clinton' foci, each of which uses a 'Boolean Query' *focal techniqueology* to identify stories relevant to each candidate with a separate boolean query for each.
 
-A specific *frame* exists within a specific *snapshot*.  A single topic might have many 'clinton' *frames*, one for each *snapshot*.  Each *topic* has a number of *frame definion*, each of which tells the system which *frames* to create each time a new *snapshot* is created.  *Frames* for new *frame definitions* will be only be created for *snapshots* created after the creation of the *frame definition*.
+A specific *focus* exists within a specific *snapshot*.  A single topic might have many 'clinton' *foci*, one for each *snapshot*.  Each *topic* has a number of *focus definion*, each of which tells the system which *foci* to create each time a new *snapshot* is created.  *foci* for new *focus definitions* will be only be created for *snapshots* created after the creation of the *focus definition*.
 
 The relationship of these objects is show"below":
 
 *                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             topic
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            *       frame set definition
-*                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             frame definition (+ framing method)
-*                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             snapshot
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          *     frame set
-*                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             frame (+ framing method)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          *       focal set definition
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          *       focus definition (+ focal technique)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          *       snapshot
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            *     focal set
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              *     focus (+ focal technique)
 
-## Framing Methods
+## Focal Techniques
 
-Media Cloud currently supports the following framing methods.
+Media Cloud currently supports the following focal techniques.
 
 * Boolean Query
 
-Details about each framing method are below.  Among other properties, each framing method may or not be exclusive.  Exlcusive framing methods generate *frame sets* in which each story belongs to at most one *frame*.
+Details about each focal technique are below.  Among other properties, each focal technique may or not be exclusive.  Exlcusive focal techniques generate *focal sets* in which each story belongs to at most one *focus*.
 
-### Framing Method: Boolean Query
+### Focal Technique: Boolean Query
 
-The Boolean Query framing method associates a frame with a story by matching that story with a solr boolean query.  *Frame Sets* generated by the Boolean Query method are not exclusive.
+The Boolean Query focal technique associates a focus with a story by matching that story with a solr boolean query.  *focal sets* generated by the Boolean Query method are not exclusive.
 
-## frame_set_definitions/create (POST)
+## focal_set_definitions/create (POST)
 
-`https://api.mediacloud.org/api/topics/~topics_id~/frame_sets/create`
+`https://api.mediacloud.org/api/topics/~topics_id~/focal_sets/create`
 
-Create and return a new *frame set definiition*  within the given *topic*.
+Create and return a new *focal set definiition*  within the given *topic*.
 
 ### Query Parameters
 
@@ -1042,17 +1042,17 @@ Create and return a new *frame set definiition*  within the given *topic*.
 
 ### Input Description
 
-| Field          | Description                              |
-| -------------- | ---------------------------------------- |
-| name           | short human readable label for frame set definition |
-| description    | human readable description of frame set definition |
-| framing_method | framing method to be used for all frame definitions in this definition |
+| Field           | Description                              |
+| --------------- | ---------------------------------------- |
+| name            | short human readable label for focal set definition |
+| description     | human readable description of focal set definition |
+| focal_technique | focal technique to be used for all focus definitions in this definition |
 
 ### Example
 
-Create a 'Candidates' frame set definiition in the 'U.S. 2016 Election' topic:
+Create a 'Candidates' focal set definiition in the 'U.S. 2016 Election' topic:
 
-`https://api.mediacloud.org/api/v2/topics/1344/frame_set_definitions_create`
+`https://api.mediacloud.org/api/v2/topics/1344/focal_set_definitions_create`
 
 Input:
 
@@ -1060,32 +1060,32 @@ Input:
 {
     "name": "Candidates",
     "description": "Stories relevant to each candidate.",
-    "framing_methods": "Boolean Query"
+    "focal_techniques": "Boolean Query"
 }
 ```
 Response:
 
 ```json
 {
-    "frame_set_definitions":
+    "focal_set_definitions":
     [
         {
-            "frame_set_definitions_id": 789,
+            "focal_set_definitions_id": 789,
             "topics_id": 456,
             "name": "Candidates",
             "description": "Stories relevant to each candidate.",
-            "framing_method": "Boolean Query",
+            "focal_technique": "Boolean Query",
             "is_exclusive": 0
         }
     ]
 }
 ```
 
-## frame_set_definitions/~frame_set_definitions_id~/update (PUT)
+## focal_set_definitions/~focal_set_definitions_id~/update (PUT)
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/frame_set_definitions/~frame_set_definitions_id~/update/`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/focal_set_definitions/~focal_set_definitions_id~/update/`
 
-Update the given frame set definition.
+Update the given focal set definition.
 
 ### Query Parameters
 
@@ -1093,13 +1093,13 @@ Update the given frame set definition.
 
 ### Input Parameters
 
-See *frame_set_definitions/create* for a list of fields.  Only fields that are included in the input are modified.
+See *focal_set_definitions/create* for a list of fields.  Only fields that are included in the input are modified.
 
 ### Example
 
-Update the name and description of the 'Candidates'  frame set"definition":
+Update the name and description of the 'Candidates'  focal set"definition":
 
-`https://api.mediacloud.org/api/v2/topics/1344/frame_set_definitions/789/update`
+`https://api.mediacloud.org/api/v2/topics/1344/focal_set_definitions/789/update`
 
 Input:
 
@@ -1114,25 +1114,25 @@ Response:
 
 ```json
 {
-    "frame_set_definitions":
+    "focal_set_definitions":
     [
         {
-            "frame_set_definitions_id": 789,
+            "focal_set_definitions_id": 789,
             "topics_id": 456,
             "name": "Major Party Candidates",
             "description": "Stories relevant to each major party candidate.",
-            "framing_method": "Boolean Query",
+            "focal_technique": "Boolean Query",
             "is_exclusive": 0
         }
     ]
 }
 ```
 
-## frame_set_definitions/~frame_set_definitions_id~/delete (PUT)
+## focal_set_definitions/~focal_set_definitions_id~/delete (PUT)
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/frame_set_definitions/~frame_set_definitions_id~/delete`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/focal_set_definitions/~focal_set_definitions_id~/delete`
 
-Delete a frame set definition.
+Delete a focal set definition.
 
 ### Query Parameters
 
@@ -1142,13 +1142,13 @@ Delete a frame set definition.
 
 | Field   | Description                              |
 | ------- | ---------------------------------------- |
-| success | boolean indicating that the frame set defintion was deleted. |
+| success | boolean indicating that the focal set defintion was deleted. |
 
 ### Example
 
-Delete frame_set_definitions_id 123:
+Delete focal_set_definitions_id 123:
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/frame_set_definitions/123/delete`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/focal_set_definitions/123/delete`
 
 Response:
 
@@ -1156,27 +1156,27 @@ Response:
 { "success": 1 }
 ```
 
-## frame_set_definitions/list
+## focal_set_definitions/list
 
 <!-- RB - who needs to consume this end point? I don't think I ever do... If the core engine is the only one that ever needs this engine then should it exist? -->
 <!-- HR - I think you misunderstand the architecture I'm proposing.  
 
 When I tried to write this api, I realized that we had to distinguish between the data that the system generates for
-the frames and frame sets and the configuration data that the user creates to tell the system what data to generate.  If
-we have only a frame set object in the api, how do we update or delete existing frame sets after we have run one
-snapshot?  If we have just frame set object and not the definition and we delete a frame set, that would also
-delete the frame in all of the snapshots.
+the foci and focal sets and the configuration data that the user creates to tell the system what data to generate.  If
+we have only a focal set object in the api, how do we update or delete existing focal sets after we have run one
+snapshot?  If we have just focal set object and not the definition and we delete a focal set, that would also
+delete the focus in all of the snapshots.
 
-So the idea is that the user will edit the frame set definitions to tell the system what frame sets to generate
-each time a snapshot is generated.  I considered calling them 'frame set templates', which might be clearer?
+So the idea is that the user will edit the focal set definitions to tell the system what focal sets to generate
+each time a snapshot is generated.  I considered calling them 'focal set templates', which might be clearer?
 
-Another way I could have done this is to have the 'frame set' objects be the templates and and then have 'snapshot
-frame set' objects that have the actual data in them.  But the idea of a 'frame set definition' seems cleaner and
-clearer than a 'snapshot frame set'. -->
+Another way I could have done this is to have the 'focal set' objects be the templates and and then have 'snapshot
+focal set' objects that have the actual data in them.  But the idea of a 'focal set definition' seems cleaner and
+clearer than a 'snapshot focal set'. -->
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/frame_set_definitions/list`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/focal_set_definitions/list`
 
-Return a list of all frame set definitions belonging to the given topic.
+Return a list of all focal set definitions belonging to the given topic.
 
 ### Query Parameters
 
@@ -1186,41 +1186,41 @@ Return a list of all frame set definitions belonging to the given topic.
 
 | Field                    | Description                              |
 | ------------------------ | ---------------------------------------- |
-| frame_set_definitions_id | frame set defintion id                   |
-| name                     | short human readable label for the frame set definition |
-| description              | human readable description of the frame set definition |
-| framing_method           | framing method used for frames in this set |
-| is_exclusive             | boolean that indicates whether a given story can only belong to one frame, based on the framing method |
+| focal_set_definitions_id | focal set defintion id                   |
+| name                     | short human readable label for the focal set definition |
+| description              | human readable description of the focal set definition |
+| focal_technique          | focal technique used for foci in this set |
+| is_exclusive             | boolean that indicates whether a given story can only belong to one focus, based on the focal technique |
 
 ### Example
 
-List all frame set definitions associated with the 'U.S. 2016 Elections'"topic":
+List all focal set definitions associated with the 'U.S. 2016 Elections'"topic":
 
-`https://api.mediacloud.org/api/v2/topics/1344/frame_set_definitions/list`
+`https://api.mediacloud.org/api/v2/topics/1344/focal_set_definitions/list`
 
 Response:
 
 ```json
 {
-    "frame_set_definitions":
+    "focal_set_definitions":
     [
         {
-            "frame_set_definitions_id": 789,
+            "focal_set_definitions_id": 789,
             "topics_id": 456,
             "name": "Major Party Candidates",
             "description": "Stories relevant to each major party candidate.",
-            "framing_method": "Boolean Query",
+            "focal_technique": "Boolean Query",
             "is_exclusive": 0
         }
     ]
 }
 ```
 
-## frame_sets/list
+## focal_sets/list
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/frame_sets/list`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/focal_sets/list`
 
-List all *frame sets* belonging to the current *snapshot* in the given *topic*.
+List all *focal sets* belonging to the current *snapshot* in the given *topic*.
 
 ### Query Parameters
 
@@ -1230,41 +1230,41 @@ If no snapshots_id is specified, the latest snapshot will be used.
 
 ### Output Description
 
-| Field          | Description                              |
-| -------------- | ---------------------------------------- |
-| frame_sets_id  | frame set id                             |
-| name           | short human readable label for the frame set |
-| description    | human readable description of the frame set |
-| framing_method | framing method used to generate the frames in the frame set |
-| is_exclusive   | boolean that indicates whether a given story can only belong to one frame, based on the framing method |
-| frames         | list of frames belonging to this frame set |
+| Field           | Description                              |
+| --------------- | ---------------------------------------- |
+| focal_sets_id   | focal set id                             |
+| name            | short human readable label for the focal set |
+| description     | human readable description of the focal set |
+| focal_technique | focal technique used to generate the foci in the focal set |
+| is_exclusive    | boolean that indicates whether a given story can only belong to one focus, based on the focal technique |
+| foci            | list of foci belonging to this focal set |
 
 ### Example
 
-Get a list of *frame sets* in the latest *snapshot* in the 'U.S. 2016 Election' *topic*:
+Get a list of *focal sets* in the latest *snapshot* in the 'U.S. 2016 Election' *topic*:
 
-`https://api.mediacloud.org/api/v2/topics/1344/frame_sets_list`
+`https://api.mediacloud.org/api/v2/topics/1344/focal_sets_list`
 
 Response:
 
 ```json
 {
-    "frame_sets":
+    "focal_sets":
     [
         {
-            "frame_sets_id": 34567,
+            "focal_sets_id": 34567,
             "name": "Candidates",
             "description": "Stories relevant to each candidate.",
-            "framing_method": "Boolean Query",
+            "focal_technique": "Boolean Query",
             "is_exclusive": 0,
-            "frames":
+            "foci":
             [
                 {
-                    "frames_id": 234,
+                    "foci_id": 234,
                     "name": "Clinton",
                     "description": "stories that mention Hillary Clinton",
                     "query": "clinton and ( hillary or -bill )",
-                    "framing_method": "Boolean Query"
+                    "focal_technique": "Boolean Query"
                 }
             ]
         }
@@ -1273,11 +1273,11 @@ Response:
 ```
 
 
-## frame_definitions/~frame_set_definitions_id~/create (POST)
+## focus_definitions/~focal_set_definitions_id~/create (POST)
 
-`https://api.mediacloud.org/api/topics/~topics_id~/frame_sets/~frame_set_definitions_id~/create/`
+`https://api.mediacloud.org/api/topics/~topics_id~/focal_sets/~focal_set_definitions_id~/create/`
 
-Create and return a new *frame definiition*  within the given *topic* and *frame set definition*.
+Create and return a new *focus definiition*  within the given *topic* and *focal set definition*.
 
 ### Query Parameters
 
@@ -1287,17 +1287,17 @@ Create and return a new *frame definiition*  within the given *topic* and *frame
 
 | Field       | Description                              |
 | ----------- | ---------------------------------------- |
-| name        | short human readable label for frames generated by this definition |
-| description | human readable description for frames generated by this definition |
-| query       | Boolean Query: query used to generate frames generated by this definition |
+| name        | short human readable label for foci generated by this definition |
+| description | human readable description for foci generated by this definition |
+| query       | Boolean Query: query used to generate foci generated by this definition |
 
-The input for the *frame definition* depends on the framing method of the parent *frame set definition*.  The framing method specific input fields are listed last in the table above and are prefixed with the name of applicable framing method.
+The input for the *focus definition* depends on the focal technique of the parent *focal set definition*.  The focal technique specific input fields are listed last in the table above and are prefixed with the name of applicable focal technique.
 
 ### Example
 
-Create the 'Clinton' *frame definition* within the 'Candidates' *frame set definition* and the 'U.S. 2016 Election' *topic*:
+Create the 'Clinton' *focus definition* within the 'Candidates' *focal set definition* and the 'U.S. 2016 Election' *topic*:
 
-`https://api.mediacloud.org/api/v2/topics/1344/frame_definitions/789/create`
+`https://api.mediacloud.org/api/v2/topics/1344/focus_definitions/789/create`
 
 Input:
 
@@ -1313,25 +1313,25 @@ Response:
 
 ```json
 {
-    "frame_definitions":
+    "focus_definitions":
     [
         {
-            "frame_definitions_id": 234,
+            "focus_definitions_id": 234,
             "name": "Clinton",
             "description": "stories that mention Hillary Clinton",
             "query": "clinton",
-            "framing_method": "Boolean Query"
+            "focal_technique": "Boolean Query"
         }
     ]
 }
 ```
 
 
-## frame_definitions/~frame_definitions_id~/update (PUT)
+## focus_definitions/~focus_definitions_id~/update (PUT)
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/frame_definitions/~frame_definitions_id~/update`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/focus_definitions/~focus_definitions_id~/update`
 
-Update the given frame definition.
+Update the given focus definition.
 
 ### Query Parameters
 
@@ -1339,13 +1339,13 @@ Update the given frame definition.
 
 ### Input Description
 
-See *frame_definitions/create* for a list of fields.  Only fields that are included in the input are modified.
+See *focus_definitions/create* for a list of fields.  Only fields that are included in the input are modified.
 
 ### Example
 
-Update the query for the 'Clinton' frame definition:
+Update the query for the 'Clinton' focus definition:
 
-`https://api.mediacloud.org/api/v2/topics/1344/frame_definitions/234/update`
+`https://api.mediacloud.org/api/v2/topics/1344/focus_definitions/234/update`
 
 Input:
 
@@ -1357,10 +1357,10 @@ Response:
 
 ```json
 {
-    "frame_definitions":
+    "focus_definitions":
     [
         {
-            "frame_definitions_id": 234,
+            "focus_definitions_id": 234,
             "name": "Clinton",
             "description": "stories that mention Hillary Clinton",
             "query": "clinton and ( hillary or -bill )"
@@ -1369,11 +1369,11 @@ Response:
 }
 ```
 
-## frame_definitions/list
+## focus_definitions/list
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/frame_definitions/~frame_set_definitions_id~/list`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/focus_definitions/~focal_set_definitions_id~/list`
 
-List all *frame definitions* belonging to the given *frame set definition*.
+List all *focus definitions* belonging to the given *focal set definition*.
 
 ### Query Parameters
 
@@ -1383,27 +1383,27 @@ List all *frame definitions* belonging to the given *frame set definition*.
 
 | Field       | Description                              |
 | ----------- | ---------------------------------------- |
-| name        | short human readable label for frames generated by this definition |
-| description | human readable description for frames generated by this definition |
-| query       | Boolean Query: query used to generate frames generated by this definition |
+| name        | short human readable label for foci generated by this definition |
+| description | human readable description for foci generated by this definition |
+| query       | Boolean Query: query used to generate foci generated by this definition |
 
-The output for *frame definition* depends on the framing method of the parent *frame set definition*.  The framing
-method specific fields are listed last in the table above and are prefixed with the name of applicable framing method.
+The output for *focus definition* depends on the focal technique of the parent *focal set definition*.  The framing
+method specific fields are listed last in the table above and are prefixed with the name of applicable focal technique.
 
 ### Example
 
-List all *frame definitions* belonging to the 'Candidates' *frame set definition* of the 'U.S. 2016 Election' *topic*:
+List all *focus definitions* belonging to the 'Candidates' *focal set definition* of the 'U.S. 2016 Election' *topic*:
 
-`https://api.mediacloud.org/api/v2/topics/1344/frame_definitions/234/list`
+`https://api.mediacloud.org/api/v2/topics/1344/focus_definitions/234/list`
 
 Response:
 
 ```json
 {
-    "frame_definitions":
+    "focus_definitions":
     [
         {
-            "frame_definitions_id": 234,
+            "focus_definitions_id": 234,
             "name": "Clinton",
             "description": "stories that mention Hillary Clinton",
             "query": "clinton and ( hillary or -bill )"
@@ -1412,11 +1412,11 @@ Response:
 }
 ```
 
-## frames/list
+## foci/list
 
-`https://api.mediacloud.org/api/v2/topics/~topics_id~/frame_sets/~frame_sets_id~/frames/list`
+`https://api.mediacloud.org/api/v2/topics/~topics_id~/focal_sets/~focal_sets_id~/foci/list`
 
-Return a list of the *frames* belonging to the given *frame set*.
+Return a list of the *foci* belonging to the given *focal set*.
 
 ### Query Parameters
 
@@ -1426,31 +1426,31 @@ Return a list of the *frames* belonging to the given *frame set*.
 
 | Field       | Description                              |
 | ----------- | ---------------------------------------- |
-| frames_id   | frame id                                 |
-| name        | short human readable label for the frame |
-| description | human readable description of the frame  |
-| query       | Boolean Query: query used to generate the frame |
+| foci_id     | focus id                                 |
+| name        | short human readable label for the focus |
+| description | human readable description of the focus  |
+| query       | Boolean Query: query used to generate the focus |
 
-The output for *frame* depends on the framing method of the parent *frame definition*.  The framing method specific fields are listed last in the table above and are prefixed with the name of applicable framing method.
+The output for *focus* depends on the focal technique of the parent *focus definition*.  The focal technique specific fields are listed last in the table above and are prefixed with the name of applicable focal technique.
 
 ### Example
 
-Get a list of *frames* wihin the 'Candiates' *frame set* of the 'U.S. 2016 Election' *topic*:
+Get a list of *foci* wihin the 'Candiates' *focal set* of the 'U.S. 2016 Election' *topic*:
 
-`https://api.mediacloud.org/api/v2/topics/1344/frame_sets/34567/frames/list`
+`https://api.mediacloud.org/api/v2/topics/1344/focal_sets/34567/foci/list`
 
 Response:
 
 ```json
 {
-    "frames":
+    "foci":
     [
         {
-            "frames_id": 234,
+            "foci_id": 234,
             "name": "Clinton",
             "description": "stories that mention Hillary Clinton",
             "query": "clinton and ( hillary or -bill )",
-            "framing_method": "Boolean Query"
+            "focal_technique": "Boolean Query"
         }
     ]
 }
@@ -1468,10 +1468,10 @@ Generate and return a new *snapshot* for the given topic.
 
 This is an asynchronous call.  The *snapshot* process will run in the background, and the new *snapshot* will only become visible to the API once the generation is complete.  Only one *snapshot* generation job can run at a time.
 
-<!-- RB - what happens if two people are working on separate frame definitions, but one finishes and presses the button that calls snapshots/generate?  will the other person's half-finished frame set be included in the new snapshot?  I guess I need to queue up all the frame definitions while someone is working on them until they press the big "generate" button, and then make a bunch of create calls before the snapshots/generate call. -->
-<!-- HR - I think you are overengineering this.  I think it will be rare to edit frames over the life of a topic,
+<!-- RB - what happens if two people are working on separate focus definitions, but one finishes and presses the button that calls snapshots/generate?  will the other person's half-finished focal set be included in the new snapshot?  I guess I need to queue up all the focus definitions while someone is working on them until they press the big "generate" button, and then make a bunch of create calls before the snapshots/generate call. -->
+<!-- HR - I think you are overengineering this.  I think it will be rare to edit foci over the life of a topic,
 it will be rare for more than one person to edit a topic ever, and it will be vanishingly rare for two users to edit
-the frames for a topic concurrently. If we get complaints, we can start worrying about atomic frame editing. -->
+the foci for a topic concurrently. If we get complaints, we can start worrying about atomic focus editing. -->
 
 ### Query Parameters
 
@@ -1591,10 +1591,10 @@ Return a list of timespans in the current snapshot.
 
 ### Query Parameters
 
-Standard parameters accepted: snapshots_id, frames_id.
-<!-- RB - why does this accept frames_id? -->
-<!-- HR - remember the hierarchy!  timespan belongs to frame belongs to snapshot.  to implement alexis' slider,
-you'll be on a page for a given frame and need the list of timespans that belong to that frame -->
+Standard parameters accepted: snapshots_id, foci_id.
+<!-- RB - why does this accept foci_id? -->
+<!-- HR - remember the hierarchy!  timespan belongs to focus belongs to snapshot.  to implement alexis' slider,
+you'll be on a page for a given focus and need the list of timespans that belong to that focus -->
 
 ### Output Description
 
