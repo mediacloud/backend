@@ -1,11 +1,17 @@
 import atexit
 import urllib2
 
+import signal
+
+import sys
+
 from mc_solr.constants import *
 from mc_solr.path import resolve_absolute_path
 from mc_solr.utils import *
 
 logger = create_logger(__name__)
+
+__solr_pid = None
 
 
 def __solr_path(dist_directory=MC_DIST_DIR, solr_version=MC_SOLR_VERSION):
@@ -242,6 +248,23 @@ def update_zookeeper_solr_configuration(zookeeper_host=MC_SOLR_CLUSTER_ZOOKEEPER
     logger.info("Uploaded Solr collection configurations to ZooKeeper.")
 
 
+# noinspection PyUnusedLocal
+def __kill_solr_process(signum=None, frame=None):
+    """Pass SIGINT/SIGTERM to child Solr when exiting."""
+    print("Trying to terminate Solr at PID %d..." % __solr_pid)
+    global __solr_pid
+
+    try:
+        os.kill(__solr_pid, signal.SIGTERM)
+    except OSError as e:
+        logger.info("Unable to pass signal %d to Solr; maybe it's already killed? Exception: %s", signum, e.message)
+
+    if signum is not None:
+        sys.exit(signum)
+    else:
+        sys.exit()
+
+
 def __run_solr(port,
                instance_data_dir,
                start_jar_args=None,
@@ -396,13 +419,13 @@ instanceDir=%(instance_dir)s
     logger.debug("Running command: %s" % ' '.join(args))
 
     process = subprocess.Popen(args)
+    global __solr_pid
+    __solr_pid = process.pid
 
-    @atexit.register
-    def __kill_solr_process():
-        print("Trying to terminate Solr at PID %d..." % process.pid)
-        process.terminate()
+    signal.signal(signal.SIGTERM, __kill_solr_process)  # SIGTERM is handled differently for whatever reason
+    atexit.register(__kill_solr_process)
 
-    logger.info("Solr PID: %d" % process.pid)
+    logger.info("Solr PID: %d" % __solr_pid)
 
     logger.info("Solr is ready!")
     while True:
