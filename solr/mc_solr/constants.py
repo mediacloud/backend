@@ -14,6 +14,9 @@ MC_SOLR_BASE_DATA_DIR = "../data/solr/"
 # Solr port for running a standalone server
 MC_SOLR_STANDALONE_PORT = 8983
 
+# Seconds to wait for a standalone Solr instance to start
+MC_SOLR_STANDALONE_CONNECT_RETRIES = 2 * 60
+
 # Other JVM options to pass to Solr when running a standalone instance
 MC_SOLR_STANDALONE_JVM_OPTS = [
     "-Xmx256m",
@@ -22,11 +25,18 @@ MC_SOLR_STANDALONE_JVM_OPTS = [
 # Solr starting port for shards
 MC_SOLR_CLUSTER_STARTING_PORT = 7980
 
+# Seconds to wait for a Solr shard to start
+# (might want to make it bigger as a shard could be rebuilding indexes or whatever)
+MC_SOLR_CLUSTER_CONNECT_RETRIES = 10 * 60
+
 # Default ZooKeeper host to connect to
 MC_SOLR_CLUSTER_ZOOKEEPER_HOST = "localhost"
 
 # Default ZooKeeper port to connect to
 MC_SOLR_CLUSTER_ZOOKEEPER_PORT = 9983
+
+# Seconds to wait for external ZooKeeper to start
+MC_SOLR_CLUSTER_ZOOKEEPER_CONNECT_RETRIES = 2 * 60
 
 # Other JVM options to pass to each Solr shard in a cluster
 MC_SOLR_CLUSTER_JVM_OPTS = [
@@ -57,10 +67,14 @@ MC_ZOOKEEPER_PORT = MC_SOLR_CLUSTER_ZOOKEEPER_PORT
 # ZooKeeper data directory (relative to solr/; must already exist)
 MC_ZOOKEEPER_DATA_DIR = "../data/solr-zookeeper/"
 
+# Seconds to wait for ZooKeeper to start
+MC_ZOOKEEPER_CONNECT_RETRIES = 2 * 60
+
+
 # ---
 
 # Timeout for installations (in seconds)
-MC_INSTALL_TIMEOUT = 120
+MC_INSTALL_TIMEOUT = 2 * 60
 
 # Where to extract software distributions (relative to solr/; must already exist)
 MC_DIST_DIR = "dist"

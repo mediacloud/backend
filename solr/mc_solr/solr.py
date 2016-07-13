@@ -269,6 +269,7 @@ def __run_solr(port,
                instance_data_dir,
                start_jar_args=None,
                jvm_opts=None,
+               connect_timeout=120,
                dist_directory=MC_DIST_DIR,
                solr_version=MC_SOLR_VERSION):
     """Run Solr instance."""
@@ -427,7 +428,10 @@ instanceDir=%(instance_dir)s
 
     logger.info("Solr PID: %d" % __solr_pid)
 
-    logger.info("Solr is ready!")
+    logger.info("Solr is starting on port %d, will be available shortly..." % port)
+    wait_for_tcp_port_to_open(port=port, retries=connect_timeout)
+
+    logger.info("Solr is running on port %d!" % port)
     while True:
         time.sleep(1)
 
@@ -451,6 +455,7 @@ def run_solr_standalone(port=MC_SOLR_STANDALONE_PORT,
     __run_solr(port=port,
                instance_data_dir=standalone_data_dir,
                jvm_opts=MC_SOLR_STANDALONE_JVM_OPTS,
+               connect_timeout=MC_SOLR_STANDALONE_CONNECT_RETRIES,
                dist_directory=dist_directory,
                solr_version=solr_version)
 
@@ -480,9 +485,9 @@ def run_solr_shard(shard_num,
     shard_data_dir = __shard_data_dir(shard_num=shard_num, base_data_dir=base_data_dir)
 
     logger.info("Waiting for ZooKeeper to start on %s:%d..." % (zookeeper_host, zookeeper_port))
-    while not tcp_port_is_open(hostname=zookeeper_host, port=zookeeper_port):
-        logger.info("ZooKeeper still not up.")
-        time.sleep(1)
+    wait_for_tcp_port_to_open(hostname=zookeeper_host,
+                              port=zookeeper_port,
+                              retries=MC_SOLR_CLUSTER_ZOOKEEPER_CONNECT_RETRIES)
     logger.info("ZooKeeper is up!")
 
     logger.info("Starting Solr shard '%s' on port %d..." % (shard_name, shard_port))
@@ -495,6 +500,7 @@ def run_solr_shard(shard_num,
                instance_data_dir=shard_data_dir,
                jvm_opts=MC_SOLR_CLUSTER_JVM_OPTS,
                start_jar_args=shard_args,
+               connect_timeout=MC_SOLR_CLUSTER_CONNECT_RETRIES,
                dist_directory=dist_directory,
                solr_version=solr_version)
 

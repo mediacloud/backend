@@ -173,7 +173,7 @@ syncLimit=5
     logger.info("ZooKeeper PID: %d" % process.pid)
 
     logger.info("Waiting for ZooKeeper to start at port %d..." % port)
-    zookeeper_started = wait_for_tcp_port_to_open(port=port)
+    zookeeper_started = wait_for_tcp_port_to_open(port=port, retries=MC_ZOOKEEPER_CONNECT_RETRIES)
     if not zookeeper_started:
         raise Exception("Unable to connect to ZooKeeper at port %d" % port)
 
@@ -183,6 +183,6 @@ syncLimit=5
                                                      dist_directory=dist_directory,
                                                      solr_version=solr_version)
 
-    logger.info("ZooKeeper is ready!")
+    logger.info("ZooKeeper is ready on port %d!" % port)
     while True:
         time.sleep(1)
