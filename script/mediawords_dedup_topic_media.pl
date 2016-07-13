@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-# dedup controversy spidered media
+# dedup topic spidered media
 
 # the basic method of this script is to:
 # * group media sources by identical domains (eg. www.nytimes.com, nytimes.com, and articles.nytimes.com);
@@ -281,16 +281,16 @@ sub main
     my $spidered_tag = MediaWords::Util::Tags::lookup_tag( $db, 'spidered:spidered' )
       || die( "Unable to find spidered:spidered tag" );
 
-    # only dedup media that are either not spidered or are associated with controversy stories
-    # (this eliminates spidered media not actually associated with any controversy story)
+    # only dedup media that are either not spidered or are associated with topic stories
+    # (this eliminates spidered media not actually associated with any topic story)
     my $media = $db->query( <<END, $spidered_tag->{ tags_id } )->hashes;
 with media_link_counts as (
     select r.media_id, count(*) inlink_count
         from cd.live_stories s
-        join controversy_links cl
-            on ( s.stories_id = cl.stories_id and s.controversies_id = cl.controversies_id )
+        join topic_links cl
+            on ( s.stories_id = cl.stories_id and s.topics_id = cl.topics_id )
         join cd.live_stories r
-            on ( r.stories_id = cl.ref_stories_id and s.controversies_id = cl.controversies_id )
+            on ( r.stories_id = cl.ref_stories_id and s.topics_id = cl.topics_id )
         where r.media_id <> s.media_id
         group by r.media_id
 )

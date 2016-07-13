@@ -5,7 +5,7 @@ elements:
     name: name
     id: name
     label: Name
-    comment: Name of the controversy
+    comment: Name of the topic
     constraints:
         - Required
 
@@ -13,7 +13,7 @@ elements:
     name: pattern
     id: pattern
     label: Pattern
-    comment: Regular expression for the controversy
+    comment: Regular expression for the topic
     constraints:
         - type: Regex
           regex: '\<'
@@ -30,14 +30,14 @@ elements:
     name: skip_solr_query
     id: skip_solr_query
     label: Skip Solr Query
-    comment: do not run the solr query to seed the controversy
+    comment: do not run the solr query to seed the topic
     value: 1
 
   - type: Text
     name: description
     id: description
     label: Description
-    comment: "Human readable description of controversy including a human description of the solr seed query"
+    comment: "Human readable description of topic including a human description of the solr seed query"
     constraints:
         - Required
 
@@ -45,7 +45,7 @@ elements:
     name: start_date
     id: start_date
     label: Start Date
-    comment: start date for controversy (YYYY-MM-DD)
+    comment: start date for topic (YYYY-MM-DD)
     constraints:
         - Required
         - type: Regex
@@ -55,7 +55,7 @@ elements:
     name: end_date
     id: end_date
     label: End Date
-    comment: end date for controversy (YYYY-MM-DD)
+    comment: end date for topic (YYYY-MM-DD)
     constraints:
         - Required
         - type: Regex

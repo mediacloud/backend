@@ -1,24 +1,24 @@
-package MediaWords::Job::CM::MineControversy;
+package MediaWords::Job::CM::MineTopic;
 
 #
-# Run through stories found for the given controversy and find all the links in
+# Run through stories found for the given topic and find all the links in
 # each story.
 #
 # For each link, try to find whether it matches any given story. If it doesn't,
 # create a new story. Add that story's links to the queue if it matches the
-# pattern for the controversy. Write the resulting stories and links to
-# controversy_stories and controversy_links.
+# pattern for the topic. Write the resulting stories and links to
+# topic_stories and topic_links.
 #
 # Options:
 #
-# * dedup_stories - run story deduping code over existing controversy stories;
+# * dedup_stories - run story deduping code over existing topic stories;
 #   only necessary to rerun new dedup code
 #
 # * import_only - only run import_seed_urls and import_solr_seed and return
 #
 # Start this worker script by running:
 #
-# ./script/run_with_carton.sh local/bin/mjm_worker.pl lib/MediaWords/Job/CM/MineControversy.pm
+# ./script/run_with_carton.sh local/bin/mjm_worker.pl lib/MediaWords/Job/CM/Minetopic.pm
 #
 
 use strict;
@@ -56,19 +56,19 @@ sub run($;$)
         $db = MediaWords::DB::connect_to_db();
     }
 
-    my $controversies_id                = $args->{ controversies_id };
+    my $topics_id                       = $args->{ topics_id };
     my $import_only                     = $args->{ import_only } // 0;
     my $cache_broken_downloads          = $args->{ cache_broken_downloads } // 0;
     my $skip_outgoing_foreign_rss_links = $args->{ skip_outgoing_foreign_rss_links } // 0;
     my $skip_post_processing            = $args->{ skip_post_processing } // 0;
 
-    unless ( $controversies_id )
+    unless ( $topics_id )
     {
-        die "'controversies_id' is not set.";
+        die "'topics_id' is not set.";
     }
 
-    my $controversy = $db->find_by_id( 'controversies', $controversies_id )
-      or die( "Unable to find controversy '$controversies_id'" );
+    my $topic = $db->find_by_id( 'topics', $topics_id )
+      or die( "Unable to find topic '$topics_id'" );
 
     my $options = {
         import_only                     => $import_only,
@@ -77,7 +77,7 @@ sub run($;$)
         skip_post_processing            => $skip_post_processing
     };
 
-    MediaWords::CM::Mine::mine_controversy( $db, $controversy, $options );
+    MediaWords::CM::Mine::mine_topic( $db, $topic, $options );
 
 }
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 #
-# Add MediaWords::Job::CM::MineControversy job
+# Add MediaWords::Job::CM::MineTopic job
 #
 
 use strict;
@@ -17,11 +17,11 @@ use Getopt::Long;
 
 use MediaWords::CommonLibs;
 use MediaWords::CM;
-use MediaWords::Job::CM::MineControversy;
+use MediaWords::Job::CM::MineTopic;
 
 sub main
 {
-    my ( $controversy_opt, $import_only, $cache_broken_downloads, $direct_job, $skip_outgoing_foreign_rss_links,
+    my ( $topic_opt, $import_only, $cache_broken_downloads, $direct_job, $skip_outgoing_foreign_rss_links,
         $skip_post_processing );
 
     binmode( STDOUT, 'utf8' );
@@ -30,7 +30,7 @@ sub main
     $| = 1;
 
     Getopt::Long::GetOptions(
-        "controversy=s"                    => \$controversy_opt,
+        "topic=s"                          => \$topic_opt,
         "import_only!"                     => \$import_only,
         "cache_broken_downloads!"          => \$cache_broken_downloads,
         "direct_job!"                      => \$direct_job,
@@ -40,19 +40,19 @@ sub main
 
     my $optional_args =
       join( ' ', map { "[ --$_ ]" } qw(direct_job import_only cache_broken_downloads skip_outgoing_foreign_rss_links) );
-    die( "usage: $0 --controversy < id > $optional_args" ) unless ( $controversy_opt );
+    die( "usage: $0 --topic < id > $optional_args" ) unless ( $topic_opt );
 
     my $db = MediaWords::DB::connect_to_db;
-    my $controversies = MediaWords::CM::require_controversies_by_opt( $db, $controversy_opt );
-    unless ( $controversies )
+    my $topics = MediaWords::CM::require_topics_by_opt( $db, $topic_opt );
+    unless ( $topics )
     {
-        die "Unable to find controversies for option '$controversy_opt'";
+        die "Unable to find topics for option '$topic_opt'";
     }
 
-    for my $controversy ( @{ $controversies } )
+    for my $topic ( @{ $topics } )
     {
-        my $controversies_id = $controversy->{ controversies_id };
-        say STDERR "Processing controversy $controversies_id...";
+        my $topics_id = $topic->{ topics_id };
+        say STDERR "Processing topic $topics_id...";
 
         if ( $direct_job )
         {
@@ -63,22 +63,22 @@ sub main
                 skip_post_processing            => $skip_post_processing
             };
 
-            MediaWords::CM::Mine::mine_controversy( $db, $controversy, $options );
+            MediaWords::CM::Mine::mine_topic( $db, $topic, $options );
         }
         else
         {
             my $args = {
-                controversies_id                => $controversies_id,
+                topics_id                       => $topics_id,
                 import_only                     => $import_only,
                 cache_broken_downloads          => $cache_broken_downloads,
                 skip_outgoing_foreign_rss_links => $skip_outgoing_foreign_rss_links
             };
 
-            my $job_id = MediaWords::Job::CM::MineControversy->add_to_queue( $args );
+            my $job_id = MediaWords::Job::CM::MineTopic->add_to_queue( $args );
             say STDERR "Added job with ID: $job_id";
         }
 
-        say STDERR "Done processing controversy $controversies_id.";
+        say STDERR "Done processing topic $topics_id.";
     }
 }
 

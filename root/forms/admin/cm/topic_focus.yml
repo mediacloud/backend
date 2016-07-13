@@ -5,7 +5,7 @@ elements:
     name: name
     id: name
     label: Name
-    comment: Name for the query slice
+    comment: Name for the focus
     constraints:
         - Required
 
@@ -13,14 +13,14 @@ elements:
     name: query
     id: query
     label: Query
-    comment: Solr query to run against the controversy
+    comment: Solr query to run against the topic
     constraints:
         - Required
 
   - type: Checkbox
-    name: all_time_slices
-    label: All Time Slices
-    comment: generate the query slices for all time slices?
+    name: all_timespans
+    label: All Timespans
+    comment: generate the foci for all timespans?
     value: 1
     default_empty_value: true
 

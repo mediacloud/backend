@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-# dedup stories in a given controversy.  should only have to be run on a controversy if the deduping
+# dedup stories in a given topic.  should only have to be run on a topic if the deduping
 # code in CM::Mine has changed.
 
 use strict;
@@ -23,29 +23,29 @@ use MediaWords::Util::Web;
 
 sub main
 {
-    my ( $controversy_opt );
+    my ( $topic_opt );
 
     binmode( STDOUT, 'utf8' );
     binmode( STDERR, 'utf8' );
 
     my $archive_media;
 
-    Getopt::Long::GetOptions( "controversy=s" => \$controversy_opt, "media_id=s@" => \$archive_media ) || return;
+    Getopt::Long::GetOptions( "topic=s" => \$topic_opt, "media_id=s@" => \$archive_media ) || return;
 
-    die( "usage: $0 --controversy < controversy id or pattern > --media_id < media_id> " )
-      unless ( $controversy_opt && $archive_media );
+    die( "usage: $0 --topic < topic id or pattern > --media_id < media_id> " )
+      unless ( $topic_opt && $archive_media );
 
     my $db = MediaWords::DB::connect_to_db;
 
-    my $controversies = MediaWords::CM::require_controversies_by_opt( $db, $controversy_opt );
+    my $topics = MediaWords::CM::require_topics_by_opt( $db, $topic_opt );
 
-    for my $controversy ( @{ $controversies } )
+    for my $topic ( @{ $topics } )
     {
         $db->disconnect;
         $db = MediaWords::DB::connect_to_db;
-        print "CONTROVERSY $controversy->{ name } \n";
+        print "topic $topic->{ name } \n";
 
-        #say Dumper ( $controversy );
+        #say Dumper ( $topic );
 
         for my $media_id ( @{ $archive_media } )
         {

@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 #
-# Add MediaWords::Job::CM::DumpControversy job
+# Add MediaWords::Job::CM::DumpTopic job
 #
 
 use strict;
@@ -19,43 +19,43 @@ use MediaWords::CommonLibs;
 use MediaWords::CM::Dump;
 use MediaWords::DB;
 use MediaWords::CM;
-use MediaWords::Job::CM::DumpControversy;
+use MediaWords::Job::CM::DumpTopic;
 
 sub main
 {
-    my ( $controversy_opt, $direct_job );
+    my ( $topic_opt, $direct_job );
 
     binmode( STDOUT, 'utf8' );
     binmode( STDERR, 'utf8' );
     $| = 1;
 
     Getopt::Long::GetOptions(
-        "controversy=s" => \$controversy_opt,
+        "topic=s" => \$topic_opt,
         "direct_job!"   => \$direct_job
     ) || return;
 
-    die( "Usage: $0 --controversy < id >" ) unless ( $controversy_opt );
+    die( "Usage: $0 --topic < id >" ) unless ( $topic_opt );
 
     my $db = MediaWords::DB::connect_to_db();
-    my $controversies = MediaWords::CM::require_controversies_by_opt( $db, $controversy_opt );
-    unless ( $controversies )
+    my $topics = MediaWords::CM::require_topics_by_opt( $db, $topic_opt );
+    unless ( $topics )
     {
-        die "Unable to find controversies for option '$controversy_opt'";
+        die "Unable to find topics for option '$topic_opt'";
     }
 
-    for my $controversy ( @{ $controversies } )
+    for my $topic ( @{ $topics } )
     {
-        my $controversies_id = $controversy->{ controversies_id };
+        my $topics_id = $topic->{ topics_id };
 
         if ( $direct_job )
         {
-            MediaWords::CM::Dump::dump_controversy( $db, $controversies_id );
+            MediaWords::CM::Dump::dump_topic( $db, $topics_id );
             next;
         }
 
-        my $args = { controversies_id => $controversies_id };
-        my $job_id = MediaWords::Job::CM::DumpControversy->add_to_queue( $args );
-        say STDERR "Added controversy ID $controversies_id ('$controversy->{ name }') with job ID: $job_id";
+        my $args = { topics_id => $topics_id };
+        my $job_id = MediaWords::Job::CM::DumpTopic->add_to_queue( $args );
+        say STDERR "Added topic ID $topics_id ('$topic->{ name }') with job ID: $job_id";
     }
 
 }

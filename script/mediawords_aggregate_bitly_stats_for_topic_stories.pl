@@ -28,13 +28,13 @@ sub main
     binmode( STDERR, 'utf8' );
 
     Readonly my $usage => <<EOF;
-Usage: $0 --controversy < controversy id or pattern >
+Usage: $0 --topic < topic id or pattern >
 EOF
 
-    my ( $controversy_opt );
-    Getopt::Long::GetOptions( 'controversy=s' => \$controversy_opt, ) or die $usage;
+    my ( $topic_opt );
+    Getopt::Long::GetOptions( 'topic=s' => \$topic_opt, ) or die $usage;
 
-    die $usage unless ( $controversy_opt );
+    die $usage unless ( $topic_opt );
 
     my $db = MediaWords::DB::connect_to_db;
 
@@ -43,30 +43,30 @@ EOF
         die "Bit.ly processing is not enabled.";
     }
 
-    my $controversies = MediaWords::CM::require_controversies_by_opt( $db, $controversy_opt );
+    my $topics = MediaWords::CM::require_topics_by_opt( $db, $topic_opt );
 
-    for my $controversy ( @{ $controversies } )
+    for my $topic ( @{ $topics } )
     {
-        my $controversies_id = $controversy->{ controversies_id };
+        my $topics_id = $topic->{ topics_id };
 
-        if ( MediaWords::Util::Bitly::num_controversy_stories_without_bitly_statistics( $db, $controversies_id ) == 0 )
+        if ( MediaWords::Util::Bitly::num_topic_stories_without_bitly_statistics( $db, $topics_id ) == 0 )
         {
-            say STDERR "All controversy's $controversies_id stories are processed against Bit.ly, skipping.";
+            say STDERR "All topic's $topics_id stories are processed against Bit.ly, skipping.";
             next;
         }
 
         my $stories_to_add = $db->query(
             <<EOF,
             SELECT stories_id
-            FROM controversy_stories
-            WHERE controversies_id = ?
+            FROM topic_stories
+            WHERE topics_id = ?
               AND stories_id NOT IN (
                 SELECT stories_id
                 FROM bitly_clicks_total
             )
             ORDER BY stories_id
 EOF
-            $controversies_id
+            $topics_id
         )->hashes;
 
         foreach my $story ( @{ $stories_to_add } )

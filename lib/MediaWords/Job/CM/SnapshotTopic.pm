@@ -1,11 +1,11 @@
-package MediaWords::Job::CM::DumpControversy;
+package MediaWords::Job::CM::DumpTopic;
 
 #
-# Dump various controversy queries to csv and build a gexf file
+# Dump various topic queries to csv and build a gexf file
 #
 # Start this worker script by running:
 #
-# ./script/run_with_carton.sh local/bin/mjm_worker.pl lib/MediaWords/Job/CM/DumpControversy.pm
+# ./script/run_with_carton.sh local/bin/mjm_worker.pl lib/MediaWords/Job/CM/DumpTopic.pm
 #
 
 use strict;
@@ -43,14 +43,14 @@ sub run($;$)
         $db = MediaWords::DB::connect_to_db();
     }
 
-    my $controversies_id = $args->{ controversies_id };
-    unless ( defined $controversies_id )
+    my $topics_id = $args->{ topics_id };
+    unless ( defined $topics_id )
     {
-        die "'controversies_id' is undefined.";
+        die "'topics_id' is undefined.";
     }
 
-    # No transaction started because apparently dump_controversy() does start one itself
-    MediaWords::CM::Dump::dump_controversy( $db, $controversies_id );
+    # No transaction started because apparently dump_topic() does start one itself
+    MediaWords::CM::Dump::dump_topic( $db, $topics_id );
 }
 
 no Moose;    # gets rid of scaffolding

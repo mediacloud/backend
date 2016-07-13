@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-# generate controversy by creating controversy_links between stories with identical sentences
+# generate topic by creating topic_links between stories with identical sentences
 
 use strict;
 use warnings;
@@ -64,47 +64,47 @@ SQL
     return $sentence_matches;
 }
 
-# get or find 'ap sentences' controversy
-sub get_controversy
+# get or find 'ap sentences' topic
+sub get_topic
 {
     my ( $db ) = @_;
 
-    my $controversy_name = 'ap sentences';
+    my $topic_name = 'ap sentences';
 
-    my $controversy = $db->query( <<SQL, $controversy_name )->hash;
-select * from controversies where name = ?
+    my $topic = $db->query( <<SQL, $topic_name )->hash;
+select * from topics where name = ?
 SQL
 
-    return $controversy if ( $controversy );
+    return $topic if ( $topic );
 
-    $controversy = {
-        name                => $controversy_name,
+    $topic = {
+        name                => $topic_name,
         pattern             => '(ap sentences)',
         solr_seed_query     => '(ap sentences)',
         solr_seed_query_run => 't',
-        description         => 'pseudo controversy for analyzing syndication of ap sentences',
+        description         => 'pseudo topic for analyzing syndication of ap sentences',
     };
 
-    $controversy = $db->create( 'controversies', $controversy );
+    $topic = $db->create( 'topics', $topic );
 
     $db->create(
-        'controversy_dates',
+        'topic_dates',
         {
-            controversies_id => $controversy->{ controversies_id },
-            start_date       => '2015-01-13',
-            end_date         => '2015-02-13',
-            boundary         => 't',
+            topics_id  => $topic->{ topics_id },
+            start_date => '2015-01-13',
+            end_date   => '2015-02-13',
+            boundary   => 't',
         }
     );
 
-    return $controversy;
+    return $topic;
 
 }
 
-# insert controversy_stories rows for all distinct stories in story_sentence_matches
-sub insert_controversy_stories
+# insert topic_stories rows for all distinct stories in story_sentence_matches
+sub insert_topic_stories
 {
-    my ( $db, $controversy, $story_sentence_matches ) = @_;
+    my ( $db, $topic, $story_sentence_matches ) = @_;
 
     my $stories_id_lookup = {};
     for my $ssm ( @{ $story_sentence_matches } )
@@ -115,9 +115,9 @@ sub insert_controversy_stories
 
     my $stories_ids = [ keys( %{ $stories_id_lookup } ) ];
 
-    # create table controversy_stories (
-    #     controversy_stories_id          serial primary key,
-    #     controversies_id                int not null references controversies on delete cascade,
+    # create table topic_stories (
+    #     topic_stories_id          serial primary key,
+    #     topics_id                int not null references topics on delete cascade,
     #     stories_id                      int not null references stories on delete cascade,
     #     link_mined                      boolean default 'f',
     #     iteration                       int default 0,
@@ -130,43 +130,43 @@ sub insert_controversy_stories
 
     for my $stories_id ( @{ $stories_ids } )
     {
-        my $story_exists = $db->query( <<SQL, $controversy->{ controversies_id }, $stories_id )->hash;
-select 1 from controversy_stories where controversies_id = ? and stories_id = ?
+        my $story_exists = $db->query( <<SQL, $topic->{ topics_id }, $stories_id )->hash;
+select 1 from topic_stories where topics_id = ? and stories_id = ?
 SQL
 
         next if ( $story_exists );
 
         my $cs = {
-            controversies_id => $controversy->{ controversies_id },
-            stories_id       => $stories_id,
-            link_mined       => 't',
-            iteration        => 0
+            topics_id  => $topic->{ topics_id },
+            stories_id => $stories_id,
+            link_mined => 't',
+            iteration  => 0
         };
-        $db->create( 'controversy_stories', $cs );
+        $db->create( 'topic_stories', $cs );
     }
 }
 
-# for each item in story_sentence_matches, create a controversy_link
+# for each item in story_sentence_matches, create a topic_link
 # with the given source_stories_id and ref_stories_id
-sub insert_controversy_links
+sub insert_topic_links
 {
-    my ( $db, $controversy, $story_sentence_matches ) = @_;
+    my ( $db, $topic, $story_sentence_matches ) = @_;
 
-    my $cid = $controversy->{ controversies_id };
+    my $cid = $topic->{ topics_id };
 
     say STDERR "MATCHES " . scalar( @{ $story_sentence_matches } );
 
     for my $ssm ( @{ $story_sentence_matches } )
     {
         my $link_exists = $db->query( <<SQL, $cid, $ssm->{ source_stories_id }, $ssm->{ ref_stories_id } )->hash;
-select 1 from controversy_links where controversies_id = ? and stories_id = ? and ref_stories_id = ?
+select 1 from topic_links where topics_id = ? and stories_id = ? and ref_stories_id = ?
 SQL
 
         next if ( $link_exists );
 
-        # create table controversy_links (
-        #     controversy_links_id        serial primary key,
-        #     controversies_id            int not null,
+        # create table topic_links (
+        #     topic_links_id        serial primary key,
+        #     topics_id            int not null,
         #     stories_id                  int not null,
         #     url                         text not null,
         #     redirect_url                text,
@@ -175,13 +175,13 @@ SQL
         # );
 
         my $cl = {
-            controversies_id => $cid,
-            stories_id       => $ssm->{ source_stories_id },
-            url              => $ssm->{ ref_url },
-            ref_stories_id   => $ssm->{ ref_stories_id }
+            topics_id      => $cid,
+            stories_id     => $ssm->{ source_stories_id },
+            url            => $ssm->{ ref_url },
+            ref_stories_id => $ssm->{ ref_stories_id }
         };
 
-        $db->create( 'controversy_links', $cl );
+        $db->create( 'topic_links', $cl );
     }
 
     say STDERR "";
@@ -229,21 +229,21 @@ sub main
 
     my $story_sentence_matches = find_story_sentence_matches( $db, $media_id, $media_tags_ids );
 
-    my $controversy = get_controversy( $db );
+    my $topic = get_topic( $db );
 
     say STDERR "INSERT STORIES";
 
-    insert_controversy_stories( $db, $controversy, $story_sentence_matches );
+    insert_topic_stories( $db, $topic, $story_sentence_matches );
 
     say STDERR "INSERT LINKS";
 
-    insert_controversy_links( $db, $controversy, $story_sentence_matches );
+    insert_topic_links( $db, $topic, $story_sentence_matches );
 
     my $peer_matches = get_peer_matches( $story_sentence_matches );
 
     say STDERR "INSERT PEER LINKS";
 
-    insert_controversy_links( $db, $controversy, $peer_matches );
+    insert_topic_links( $db, $topic, $peer_matches );
 
     say STDERR "DONE";
 }
