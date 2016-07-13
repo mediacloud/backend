@@ -1,11 +1,11 @@
-[% INCLUDE cm/header.tt2 title = "CM: Edit Timeslice Dates for ${ controversy.name }" %]
+[% INCLUDE cm/header.tt2 title = "CM: Edit Timespan Dates for ${ topic.name }" %]
 
 <div id="boxtitle">Edit Dates</a>
 <div id="wholecolumn">
     <fieldset>
-        <p>Use this page to add or remove custom date ranges for timeslices.</p>
+        <p>Use this page to add or remove custom date ranges for timespans.</p>
 
-        <form action="[% c.uri_for( '/admin/cm/add_date/' _ controversy.controversies_id ) %]" method="post" >
+        <form action="[% c.uri_for( '/admin/cm/add_date/' _ topic.topics_id ) %]" method="post" >
             Start Date (YYYY-MM-DD): <input type="text" name="start_date" /><br />
             End Date (YYYY-MM-DD: <input type="text" name="end_date" /><br />
             OR<br/>
@@ -22,8 +22,8 @@
             <th>End Date</th>
             <th>Delete</th>
         </tr>
-        [% FOREACH cd IN controversy_dates %]
-            [% SET delete_url = c.uri_for( '/admin/cm/delete_date/' _ controversy.controversies_id, { start_date => cd.start_date, end_date => cd.end_date } ) %]
+        [% FOREACH cd IN topic_dates %]
+            [% SET delete_url = c.uri_for( '/admin/cm/delete_date/' _ topic.topics_id, { start_date => cd.start_date, end_date => cd.end_date } ) %]
 
             <tr>
                 <td>[% cd.start_date | html %]</td>

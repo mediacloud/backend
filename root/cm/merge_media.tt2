@@ -5,7 +5,7 @@
     <div id="warning_box">
         <p>
             This page allows you to merge the medium '[% medium.name | html %] [ id: [% medium.media_id %] ]' 
-            into some other medium within all controversies.
+            into some other medium within all topics.
         </p>
         <p>
             After merging the media, all stories that appear the above medium will be merged into the destination medium,
@@ -13,7 +13,7 @@
             the two media are copies ('jobsanger.blogspot.com' into 'jobsanger') or if one medium is a 
             subset of another medium ('articles.latimes.com' into 'latimes.com). Once a medium is merged into
             another, all further stories discovered in the merged medium will be merged into the destination
-            medium automatically in all controversies.
+            medium automatically in all topics.
         </p>
         <p>
             The merging process can take a few minutes.  Please be patient.

@@ -5,39 +5,39 @@
     <div id="warning_box">
         <p>
             This page allows you to reprocess the medium '[% medium.name | html %] [ id: [% medium.media_id %] ]' 
-            by changing all of its story urls back to their original urls.  By default, the controversy mapper
+            by changing all of its story urls back to their original urls.  By default, the topic mapper
             uses the redirected url for the authoritative url of each story, but in some cases (for instance domain
             resellers for sites that expired before we started spidering) using the redirected url distorts
-            the controversy mapper data.
+            the topic mapper data.
         </p>
         <p>
             Confirming the un-redirect action for this medium will cause the all of the below stories to be reprocessed
-            by the controversy mapper with their original urls instead of the redirect urls.  The stories will be added
+            by the topic mapper with their original urls instead of the redirect urls.  The stories will be added
             to new or existing media as needed depending on the domain of each original url and whether the original url
             matches an existing url in the database.
         </p>
         <p>
-            Note that this action will effect these stories in all controversies for which they are relevant.
+            Note that this action will effect these stories in all topics for which they are relevant.
         </p>
     </div>
 
     <fieldset>
         <form action="[% c.uri_for( '/admin/cm/unredirect_medium/' _ medium.media_id ) | html %]" method="post">
-            <input type="hidden" name="cdts" value="[% cdts.cdts_id | html %]" />
+            <input type="hidden" name="timespan" value="[% timespan.timespans_id | html %]" />
             <ul>
                 [% FOREACH story IN stories %]
                     <li>Story: [% story.title | html %] / [% story.url | html %]
             
                         <ul>
                             [% FOREACH url IN story.original_urls %]
-                                [% url_tag = story.stories_id _ '_' _ url.controversies_id _ '_' _ url.url %]
+                                [% url_tag = story.stories_id _ '_' _ url.topics_id _ '_' _ url.url %]
                     
                                 <li>
-                                    [% url.controversy_name _ ': ' _ url.url | html %]
+                                    [% url.topic_name _ ': ' _ url.url | html %]
                                     <ul>
                                         <li>
                                             <input type="hidden" name="[% "include_url_" _ url_tag %]" value="1" />
-                                            assume story matches controversy: 
+                                            assume story matches topic: 
                                             <input type="checkbox" checked name="[% "assume_match_" _ url_tag | html %]" />
                                         </li>
                                         <li>

@@ -1,4 +1,4 @@
-package MediaWords::Controller::Api::V2::Controversies;
+package MediaWords::Controller::Api::V2::Topics;
 
 use strict;
 use warnings;
@@ -11,7 +11,7 @@ use namespace::autoclean;
 
 =head1 NAME
 
-MediaWords::Controller::Controversies - Catalyst Controller
+MediaWords::Controller::Topics - Catalyst Controller
 
 =head1 DESCRIPTION
 
@@ -29,7 +29,7 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 
 sub get_table_name
 {
-    return "controversies";
+    return "topics";
 }
 
 sub list_name_search_field

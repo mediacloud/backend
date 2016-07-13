@@ -1,19 +1,19 @@
 [% PROCESS cm/header.tt2
-    title = 'Dump ' _ datetime.format( controversy_dump.dump_date ) %]
+    title = 'Dump ' _ datetime.format( snapshot.snapshot_date ) %]
 
 <div id="wholecolumn">
     <div id="widecolumn">
-        [% INCLUDE cm/time_slices_table.tt2 %]
+        [% INCLUDE cm/timespans_table.tt2 %]
     </div>
     <div id="narrowcolumn">
         <div class="boxtitle">Stats</div>
         <fieldset>
-            <p><a href="[% c.uri_for( '/admin/cm/dump_daily_counts/' _ controversy_dump.controversy_dumps_id ) %]">Daily Counts CSV</a></p>
-            <p><a href="[% c.uri_for( '/admin/cm/dump_weekly_counts/' _ controversy_dump.controversy_dumps_id ) %]">Weekly Counts CSV</a></p>
+            <p><a href="[% c.uri_for( '/admin/cm/dump_daily_counts/' _ snapshot.snapshots_id ) %]">Daily Counts CSV</a></p>
+            <p><a href="[% c.uri_for( '/admin/cm/dump_weekly_counts/' _ snapshot.snapshots_id ) %]">Weekly Counts CSV</a></p>
         </fieldset>
         <div class="boxtitle">Tools</div>
         <fieldset>
-            <p><a href="[% c.uri_for( '/admin/cm/mot/' _ controversy_dump.controversy_dumps_id ) %]">Media Over Time</a></p>
+            <p><a href="[% c.uri_for( '/admin/cm/mot/' _ snapshot.snapshots_id ) %]">Media Over Time</a></p>
         </fieldset>
     </div>
 <div>

@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #
-# fetch facebook statistics for all stories in a controversy
+# fetch facebook statistics for all stories in a topic
 #
 
 use strict;
@@ -60,39 +60,39 @@ sub fetch_stats
 
 sub main
 {
-    my ( $controversy_opt, $direct_job, $overwrite );
+    my ( $topic_opt, $direct_job, $overwrite );
 
     binmode( STDOUT, 'utf8' );
     binmode( STDERR, 'utf8' );
     $| = 1;
 
     Readonly my $usage => <<EOF;
-Usage: $0 --controversy < id > [--direct_job] [--overwrite]
+Usage: $0 --topic < id > [--direct_job] [--overwrite]
 EOF
 
     Getopt::Long::GetOptions(
-        "controversy=s" => \$controversy_opt,
-        "direct_job!"   => \$direct_job,
-        "overwrite!"    => \$overwrite,
+        "topic=s"     => \$topic_opt,
+        "direct_job!" => \$direct_job,
+        "overwrite!"  => \$overwrite,
     ) or die $usage;
-    die $usage unless ( $controversy_opt );
+    die $usage unless ( $topic_opt );
 
     my $db = MediaWords::DB::connect_to_db;
-    my $controversies = MediaWords::CM::require_controversies_by_opt( $db, $controversy_opt );
-    unless ( $controversies )
+    my $topics = MediaWords::CM::require_topics_by_opt( $db, $topic_opt );
+    unless ( $topics )
     {
-        die "Unable to find controversies for option '$controversy_opt'";
+        die "Unable to find topics for option '$topic_opt'";
     }
 
-    for my $controversy ( @{ $controversies } )
+    for my $topic ( @{ $topics } )
     {
-        my $controversies_id = $controversy->{ controversies_id };
+        my $topics_id = $topic->{ topics_id };
 
-        my $stories = $db->query( <<END, $controversies_id )->hashes;
+        my $stories = $db->query( <<END, $topics_id )->hashes;
 SELECT cs.stories_id cs_stories_id, ss.*
-    FROM controversy_stories cs
+    FROM topic_stories cs
         left join story_statistics ss on ( ss.stories_id = cs.stories_id )
-    WHERE controversies_id = ?
+    WHERE topics_id = ?
 END
 
         # ugly hack to disambiguate between cs.stories_id and ss.stories_id.  ss.stories_id may be null
@@ -101,7 +101,7 @@ END
 
         unless ( scalar @{ $stories } )
         {
-            say STDERR "No unprocessed stories found for controversy '$controversy->{ name }' ('$controversy_opt')";
+            say STDERR "No unprocessed stories found for topic '$topic->{ name }' ('$topic_opt')";
         }
 
         for my $story ( @{ $stories } )

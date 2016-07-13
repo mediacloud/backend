@@ -1,6 +1,6 @@
 [% USE date = date(format => '%Y-%m-%d', locale => 'en_GB') %]
 
-[% title = "Words matching '$q' in " _ date.format( cdts.start_date ) _ ' - ' _ date.format( cdts.end_date ) _ ' Time Slice' %]
+[% title = "Words matching '$q' in " _ date.format( timespan.start_date ) _ ' - ' _ date.format( timespan.end_date ) _ ' Timespan' %]
 
 [% PROCESS cm/header.tt2 %]
 
@@ -12,7 +12,7 @@
     Words
     
     [% SET wc_url = c.uri_for( '/admin/cm/word_cloud', { 
-        cdts = cdts.controversy_dump_time_slices_id,
+        timespan = timespan.timespans_id,
         l = live,
         sort_by_count = !sort_by_count,
         q = q } ) %]
@@ -28,7 +28,7 @@
         <th>Query Stem Count</th>
         [% IF !sort_by_count %]
             <th>TFIDF (<a href="#tfidf_description">note</a>)</th>
-            <th>Controversy Sentence Count</th>
+            <th>Topic Sentence Count</th>
         [% END %]
         <th>Stem</th>
     </tr>
@@ -40,7 +40,7 @@
 [% FOREACH w IN words -%]
 
     [% SET word_query = q ? "( $q ) and $w.term" : w.term %]
-    [% SET word_url = c.uri_for( "/admin/cm/search_stories?l=${l}&cdts=${cdts.controversy_dump_time_slices_id}&q=$word_query" ) %]
+    [% SET word_url = c.uri_for( "/admin/cm/search_stories?l=${l}&timespan=${timespan.timespans_id}&q=$word_query" ) %]
 
     <tr>
 
@@ -74,7 +74,7 @@
         <p>
             where 'term_freq( w, q )' is the number of times the word 'w' appears in the query and 
             'sentence_frequency( w )' is the number of sentences with the word 'w' in the entire
-            controversy.
+            topic.
         </p>
     </fieldset>    
 [% END %]

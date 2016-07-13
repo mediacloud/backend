@@ -1,4 +1,4 @@
-[% title = "CM: Add Media Type for $controversy.name" %]
+[% title = "CM: Add Media Type for $topic.name" %]
 [% INCLUDE include/header.tt2 %]
 
 <fieldset>

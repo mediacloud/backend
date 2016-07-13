@@ -1,4 +1,4 @@
-package MediaWords::Controller::Api::V2::Controversy_Dump_Time_Slices;
+package MediaWords::Controller::Api::V2::timespans;
 
 use strict;
 use warnings;
@@ -11,7 +11,7 @@ use namespace::autoclean;
 
 =head1 NAME
 
-MediaWords::Controller::Controversy_Dump_Time_Slices - Catalyst Controller
+MediaWords::Controller::timespans - Catalyst Controller
 
 =head1 DESCRIPTION
 
@@ -29,17 +29,17 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 
 sub get_table_name
 {
-    return "controversy_dump_time_slices";
+    return "timespans";
 }
 
 sub list_optional_query_filter_field
 {
-    return [ qw(controversy_dumps_id tags_id period start_date end_date) ];
+    return [ qw(snapshots_id tags_id period start_date end_date) ];
 }
 
 sub order_by_clause
 {
-    return "controversy_dumps_id, tags_id desc, period, start_date, end_date";
+    return "snapshots_id, tags_id desc, period, start_date, end_date";
 }
 
 =head1 AUTHOR

@@ -1,14 +1,14 @@
 [% IF display_media_title %]
     <div class="boxtitle">
     [% display_media_title %]
-    [% IF cdts_date_range %]
-        in [% cdts_date_range %] Time Slice
+    [% IF timespan_date_range %]
+        in [% timespan_date_range %] timespan
     [% END %]
     </div>
 [% END %]
 
 [% SET self_url = c.uri_for( '/admin/cm/search_media', { 
-    cdts = cdts.controversy_dump_time_slices_id,
+    timespan = timespan.timespans_id,
     l = live,
     q = q } )%]
 
@@ -27,8 +27,8 @@
 [% IF display_media %]
     [% FOREACH m IN display_media %]
         [% medium_url = c.uri_for( '/admin/cm/medium/' _ m.media_id, 
-                                   { cdts => cdts.controversy_dump_time_slices_id, 
-                                     c => controversies_id, 
+                                   { timespan => timespan.timespans_id, 
+                                     c => topics_id, 
                                      l => live } ) %]
 
     <tr>

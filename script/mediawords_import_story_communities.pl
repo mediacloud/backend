@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-# import csv of media source communities as story tags within a controversy
+# import csv of media source communities as story tags within a topic
 
 use strict;
 use warnings;
@@ -17,7 +17,7 @@ use MediaWords::Util::Tags;
 
 sub add_community_tag_to_stories
 {
-    my ( $db, $controversies_id, $media_id, $community_id ) = @_;
+    my ( $db, $topics_id, $media_id, $community_id ) = @_;
 
     die( "no media_id" ) unless ( defined( $media_id ) );
 
@@ -25,12 +25,12 @@ sub add_community_tag_to_stories
 
     my $community_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, "cc_communities:community_${ community_id }" );
 
-    $db->query( <<SQL, $community_tag->{ tags_id }, $controversies_id, $media_id );
+    $db->query( <<SQL, $community_tag->{ tags_id }, $topics_id, $media_id );
 insert into stories_tags_map
     ( stories_id, tags_id )
     select s.stories_id, \$1
         from cd.live_stories s
-        where controversies_id = \$2 and media_id = \$3 and
+        where topics_id = \$2 and media_id = \$3 and
             not exists (
                 select 1 from stories_tags_map stm
                     where stm.stories_id = s.stories_id and stm.tags_id = \$1
@@ -40,9 +40,9 @@ SQL
 
 sub main
 {
-    my ( $csv, $controversies_id ) = @ARGV;
+    my ( $csv, $topics_id ) = @ARGV;
 
-    die( "usage: $0 <csv> <controversies_id>" ) unless ( $csv && $controversies_id );
+    die( "usage: $0 <csv> <topics_id>" ) unless ( $csv && $topics_id );
 
     my $db = MediaWords::DB::connect_to_db;
 
@@ -53,7 +53,7 @@ sub main
     for my $mc ( @{ $media_communities } )
     {
         say STDERR $i++ . " / $num_mc";
-        add_community_tag_to_stories( $db, $controversies_id, $mc->{ id }, $mc->{ modularity_class } );
+        add_community_tag_to_stories( $db, $topics_id, $mc->{ id }, $mc->{ modularity_class } );
     }
 }
 main();

@@ -3,12 +3,12 @@
 <div id="warning_box">
 
 [% IF live %]
-You are viewing the live medium, as it currently exists in the database, for the [% cdts_date_range %] time slice.
+You are viewing the live medium, as it currently exists in the database, for the [% timespan_date_range %] timespan.
 [% ELSE %]
 
 This page is displaying a frozen snapshot of the [% medium.name | html %] medium, as it existed in the [%
-cdts_date_range | html %] [% cdts.period | html %] time slice from the [% datetime.format( cd.dump_date ) %] dump of the [%
-controversy.name %] controversy.  Because this data is a frozen snapshot, edits to this medium will not appear on this
+timespan_date_range | html %] [% timespan.period | html %] timespan from the [% datetime.format( cd.snapshot_date ) %] dump of the [%
+topic.name %] topic.  Because this data is a frozen snapshot, edits to this medium will not appear on this
 page, and changes made since the snapshot will not be visible.
 
 
@@ -16,12 +16,12 @@ page, and changes made since the snapshot will not be visible.
 
 </div>
 
-[% edit_url = c.uri_for( '/admin/media/edit_do/' _ medium.media_id, { controversies_id => controversy.controversies_id } ) %]
-[% merge_url = c.uri_for( '/admin/cm/merge_media/' _ medium.media_id, { cdts => cdts.cdts_id } ) %]
-[% unredirect_url = c.uri_for( '/admin/cm/unredirect_medium/' _ medium.media_id, { cdts => cdts.cdts_id } ) %]
+[% edit_url = c.uri_for( '/admin/media/edit_do/' _ medium.media_id, { topics_id => topic.topics_id } ) %]
+[% merge_url = c.uri_for( '/admin/cm/merge_media/' _ medium.media_id, { timespan => timespan.timespans_id } ) %]
+[% unredirect_url = c.uri_for( '/admin/cm/unredirect_medium/' _ medium.media_id, { timespan => timespan.timespans_id } ) %]
 
 <div class="boxtitle">
-    Basic Data for [% medium.name | html %] [% IF cdts %] in [% cdts_date_range %] Time Slice[% END %]
+    Basic Data for [% medium.name | html %] [% IF timespan %] in [% timespan_date_range %] timespan[% END %]
     <a class="boxcommand" href="[% merge_url | html %]">merge</a>
     <a class="boxcommand" href="[% unredirect_url | html %]">un-redirect</a>
     <a class="boxcommand" href="[% edit_url | html %]">edit</a>
@@ -45,25 +45,25 @@ page, and changes made since the snapshot will not be visible.
 
 [% INCLUDE cm/stories_table.tt2
     display_stories = medium.stories
-    display_stories_short_title = controversy.name _ " Stories in " _ medium.name
-    display_stories_full_title = controversy.name _ " Stories in Medium '" _ medium.name _ "'"
+    display_stories_short_title = topic.name _ " Stories in " _ medium.name
+    display_stories_full_title = topic.name _ " Stories in Medium '" _ medium.name _ "'"
     display_stories_id = "medium_stories"
     display_stories_remove_button = 1
     display_stories_solr_query = "media_id:${medium.media_id}" %]
 
 [% INCLUDE cm/stories_table.tt2
     display_stories = medium.inlink_stories
-    display_stories_short_title = controversy.name _ " Stories Linking to " _ medium.name
-    display_stories_full_title = controversy.name _ " Stories Linking to Medium '" _ medium.name _ "'"
+    display_stories_short_title = topic.name _ " Stories Linking to " _ medium.name
+    display_stories_full_title = topic.name _ " Stories Linking to Medium '" _ medium.name _ "'"
     display_stories_id = 'inlink_stories'
-    display_stories_solr_query = "{~ controversy_dump_time_slice:${cdts.controversy_dump_time_slices_id} link_to_medium:${medium.media_id} }" %]
+    display_stories_solr_query = "{~ timespan:${timespan.timespans_id} link_to_medium:${medium.media_id} }" %]
 
 [% INCLUDE cm/stories_table.tt2
     display_stories = medium.outlink_stories
-    display_stories_short_title = controversy.name _ " Stories Linked from " _ medium.name
-    display_stories_full_title = controversy.name _ " Stories Linked from Medium '" _ medium.name _ "'"
+    display_stories_short_title = topic.name _ " Stories Linked from " _ medium.name
+    display_stories_full_title = topic.name _ " Stories Linked from Medium '" _ medium.name _ "'"
     display_stories_id = 'outlink_stories'
-    display_stories_solr_query = "{~ controversy_dump_time_slice:${cdts.controversy_dump_time_slices_id} link_from_medium:${medium.media_id} }" %]
+    display_stories_solr_query = "{~ timespan:${timespan.timespans_id} link_from_medium:${medium.media_id} }" %]
 
 
 [% INCLUDE include/footer.tt2 %]

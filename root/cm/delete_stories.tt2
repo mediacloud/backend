@@ -2,13 +2,13 @@
 
 <fieldset>
 
-<form action="[% c.uri_for( '/admin/cm/delete_stories/' _ controversy.controversies_id ) %]" method="POST" >
+<form action="[% c.uri_for( '/admin/cm/delete_stories/' _ topic.topics_id ) %]" method="POST" >
 
 <div class="text label">
 
 <label>List of Story IDs</label>
 <textarea name="stories_ids" rows="16" cols="32"></textarea>
-List of story ids, one per line, to remove from this controversy.
+List of story ids, one per line, to remove from this topic.
 
 </div>
 

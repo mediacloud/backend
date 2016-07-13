@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #
-# Fetch Facebook URL statistics for all stories in a controversy
+# Fetch Facebook URL statistics for all stories in a topic
 #
 
 use strict;
@@ -28,38 +28,38 @@ sub main
     $| = 1;
 
     Readonly my $usage => <<EOF;
-Usage: $0 --controversy < id > [--direct_job] [--overwrite]
+Usage: $0 --topic < id > [--direct_job] [--overwrite]
 EOF
 
-    my ( $controversy_opt, $direct_job, $overwrite );
+    my ( $topic_opt, $direct_job, $overwrite );
     Getopt::Long::GetOptions(
-        "controversy=s" => \$controversy_opt,
-        "direct_job!"   => \$direct_job,
-        "overwrite!"    => \$overwrite,
+        "topic=s"     => \$topic_opt,
+        "direct_job!" => \$direct_job,
+        "overwrite!"  => \$overwrite,
     ) or die $usage;
-    die $usage unless ( $controversy_opt );
+    die $usage unless ( $topic_opt );
 
     my $db = MediaWords::DB::connect_to_db;
-    my $controversies = MediaWords::CM::require_controversies_by_opt( $db, $controversy_opt );
-    unless ( $controversies )
+    my $topics = MediaWords::CM::require_topics_by_opt( $db, $topic_opt );
+    unless ( $topics )
     {
-        die "Unable to find controversies for option '$controversy_opt'";
+        die "Unable to find topics for option '$topic_opt'";
     }
 
-    for my $controversy ( @{ $controversies } )
+    for my $topic ( @{ $topics } )
     {
-        my $controversies_id = $controversy->{ controversies_id };
+        my $topics_id = $topic->{ topics_id };
 
-        my $stories = $db->query( <<END, $controversies_id )->hashes;
+        my $stories = $db->query( <<END, $topics_id )->hashes;
             SELECT ss.*, cs.stories_id
-            FROM controversy_stories cs left join story_statistics ss on ( cs.stories_id = ss.stories_id )
-            WHERE cs.controversies_id = ?
+            FROM topic_stories cs left join story_statistics ss on ( cs.stories_id = ss.stories_id )
+            WHERE cs.topics_id = ?
             ORDER BY cs.stories_id
 END
 
         unless ( scalar @{ $stories } )
         {
-            say STDERR "No stories found for controversy '$controversy->{ name }' ('$controversy_opt')";
+            say STDERR "No stories found for topic '$topic->{ name }' ('$topic_opt')";
         }
 
         for my $ss ( @{ $stories } )

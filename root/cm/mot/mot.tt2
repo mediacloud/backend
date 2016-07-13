@@ -1,5 +1,5 @@
 [% PROCESS cm/header.tt2
-    title = 'Media Over Time for Dump ' _ datetime.format( controversy_dump.dump_date ) %]
+    title = 'Media Over Time for Dump ' _ datetime.format( snapshot.snapshot_date ) %]
 
 <script src="[% c.uri_for( '/cm/mot/jquery.min.js' ) %]" charset="utf-8"></script>
 <script src="[% c.uri_for( '/cm/mot/d3.min.js' ) %]" charset="utf-8"></script>
@@ -23,10 +23,10 @@ function truncate(str, maxLength, suffix) {
 	return str;
 }
 
-var controversies_id = '[% controversy.controversies_id %]';
-var controversy_dumps_id = '[% controversy_dump.controversy_dumps_id %]';
+var topics_id = '[% topic.topics_id %]';
+var snapshots_id = '[% snapshot.snapshots_id %]';
 var base_url = '[% c.uri_for( "/" ) %]';
-var json_url = base_url + "/admin/cm/view_dump_media_over_time_json/" + controversy_dumps_id;
+var json_url = base_url + "/admin/cm/view_dump_media_over_time_json/" + snapshots_id;
 
 d3.json( json_url, function(data) {
         
@@ -97,7 +97,7 @@ d3.json( json_url, function(data) {
 			.attr("r", function(d) { return rScale( d[1]) ; })
 			.style("fill", function(d) { return c(j); })
 			.style("cursor", "pointer")
-			.on("click", function(d){ window.location = base_url + "/admin/cm/view_time_slice/" + d[2] } ); 
+			.on("click", function(d){ window.location = base_url + "/admin/cm/view_timespan/" + d[2] } ); 
 			
 		text
 			.attr("y", j*20+25)

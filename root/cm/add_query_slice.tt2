@@ -1,4 +1,4 @@
-[% title = "CM: Add Query Slice for $controversy.name" %]
+[% title = "CM: Add Focus for $topic.name" %]
 [% INCLUDE include/header.tt2 %]
 
 <fieldset>

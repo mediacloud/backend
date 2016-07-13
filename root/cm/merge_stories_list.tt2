@@ -2,7 +2,7 @@
 
 <fieldset>
 
-<form action="[% c.uri_for( '/admin/cm/merge_stories_list/' _ controversy.controversies_id ) %]" method="POST" >
+<form action="[% c.uri_for( '/admin/cm/merge_stories_list/' _ topic.topics_id ) %]" method="POST" >
 
 <div class="text label">
 

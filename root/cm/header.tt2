@@ -2,32 +2,32 @@
 [% USE date = date(format => '%Y-%m-%d', locale => 'en_GB') %]
 [% USE HTML %]    
 
-[% SET controversy_label = controversy.name %]
+[% SET topic_label = topic.name %]
 
-[% cdts_date_range = date.format( cdts.start_date ) _ ' - ' _ date.format( cdts.end_date ) %]
+[% timespan_date_range = date.format( timespan.start_date ) _ ' - ' _ date.format( timespan.end_date ) %]
 
-[% controversy_link = '<a href="' _ c.uri_for( "/admin/cm/view/" _ controversy.controversies_id ) _ '">' _ HTML.escape( controversy.name ) _ '</a>' %]
+[% topic_link = '<a href="' _ c.uri_for( "/admin/cm/view/" _ topic.topics_id ) _ '">' _ HTML.escape( topic.name ) _ '</a>' %]
 
-[% IF controversy.controversy_query_slice %]
-    [% query_slice_link = '&gt; <a href="' _ c.uri_for( "/admin/cm/view/" _ controversy.controversies_id, { qs => controversy.controversy_query_slice.controversy_query_slices_id } ) _ '">' _ HTML.escape( controversy.controversy_query_slice.name ) _ '</a>'%]
-    [% controversy_label = "$controversy_label ($controversy.controversy_query_slice.name)"%]
+[% IF topic.focus %]
+    [% focus_link = '&gt; <a href="' _ c.uri_for( "/admin/cm/view/" _ topic.topics_id, { qs => topic.focus.foci_id } ) _ '">' _ HTML.escape( topic.focus.name ) _ '</a>'%]
+    [% topic_label = "$topic_label ($topic.focus.name)"%]
 [% ELSE %]
-    [% query_slice_link = ''%]
+    [% focus_link = ''%]
 [% END %]
 
 [% IF live %]
-    [% dump_link = '&gt; <a href="' _ c.uri_for( "/admin/cm/view/" _ controversy.controversies_id ) _ '">Live</a>' %]
-[% ELSIF controversy_dump %]
-    [% dump_link = '&gt; <a href="' _ c.uri_for( "/admin/cm/view_dump/" _ controversy_dump.controversy_dumps_id ) _ '">Dump ' _ date.format( controversy_dump.dump_date ) _ '</a>' %]
+    [% dump_link = '&gt; <a href="' _ c.uri_for( "/admin/cm/view/" _ topic.topics_id ) _ '">Live</a>' %]
+[% ELSIF snapshot %]
+    [% dump_link = '&gt; <a href="' _ c.uri_for( "/admin/cm/view_dump/" _ snapshot.snapshots_id ) _ '">Dump ' _ date.format( snapshot.snapshot_date ) _ '</a>' %]
 [% END %]
 
-[% IF cdts %]
-    [% cdts_link = '&gt; <a href="' _ c.uri_for( "/admin/cm/view_time_slice/" _ cdts.controversy_dump_time_slices_id, { l => live } ) _ '">' _ cdts_date_range _ ' Time Slice</a>' %]
+[% IF timespan %]
+    [% timespan_link = '&gt; <a href="' _ c.uri_for( "/admin/cm/view_timespan/" _ timespan.timespans_id, { l => live } ) _ '">' _ timespan_date_range _ ' timespan</a>' %]
 [% END %]
 
 
 [% INCLUDE include/header.tt2
-    title = "CM $controversy_label: $title"
-    breadcrumbs = "[ $controversy_link $query_slice_link $dump_link $cdts_link ]" %]
+    title = "CM $topic_label: $title"
+    breadcrumbs = "[ $topic_link $focus_link $dump_link $timespan_link ]" %]
     
 

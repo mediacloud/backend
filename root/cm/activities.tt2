@@ -1,6 +1,6 @@
-[% title = 'CM: List activities: ' _ controversy.name %]
-[% controversy_link = '<a href="' _ c.uri_for( "/admin/cm/view/" _ controversy.controversies_id ) _ '">' _ controversy.name _ '</a>' %]
-[% breadcrumbs = "[ $controversy_link &gt; activities ]" %]
+[% title = 'CM: List activities: ' _ topic.name %]
+[% topic_link = '<a href="' _ c.uri_for( "/admin/cm/view/" _ topic.topics_id ) _ '">' _ topic.name _ '</a>' %]
+[% breadcrumbs = "[ $topic_link &gt; activities ]" %]
 [% INCLUDE include/header.tt2 %]
 
 <table class="even_rows_grey">
@@ -47,7 +47,7 @@
 
     [% ELSE # IF activities.size > 0 -%]
 
-        <tr><td colspan="99">(no activities found for controversy [% controversy.name | html %])</td></tr>
+        <tr><td colspan="99">(no activities found for topic [% topic.name | html %])</td></tr>
 
     [% END # IF activities.size > 0 -%]
 

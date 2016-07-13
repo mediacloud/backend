@@ -5,10 +5,10 @@
     <div id="warning_box">
         <p>
             This page allows you to merge the story '[% story.title | html %] [ id: [% story.stories_id %] ]' 
-            into some other story within the current controversy.
+            into some other story within the current topic.
         </p>
         <p>
-            After merging the stories, the source story will be removed from the controversy and the links
+            After merging the stories, the source story will be removed from the topic and the links
             to and from the stories will be merged.
         </p>
         

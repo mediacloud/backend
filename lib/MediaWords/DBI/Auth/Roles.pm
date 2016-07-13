@@ -24,10 +24,10 @@ Readonly our $MEDIA_EDIT => 'media-edit';
 # Add / edit stories
 Readonly our $STORIES_EDIT => 'stories-edit';
 
-# Controversy mapper; includes media and story editing
+# Topic mapper; includes media and story editing
 Readonly our $CM => 'cm';
 
-# Controversy mapper; excludes media and story editing
+# topic mapper; excludes media and story editing
 Readonly our $CM_READONLY => 'cm-readonly';
 
 # Access to the stories API

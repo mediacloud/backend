@@ -1,6 +1,6 @@
 package MediaWords::CM::Model;
 
-# code to generate models of controversy_dump_time_slices based on validation
+# code to generate models of timespans based on validation
 # data about date, link extraction, and duplication error rates
 
 use strict;
@@ -37,7 +37,7 @@ Readonly my $PERCENT_DATE_UNDATEABLE => 13;
 # get the top $MODEL_PERCENT_TOP_MEDIA of media sources from the current dump by incoming links
 sub get_top_media_link_counts
 {
-    my ( $db, $cdts, $size_factor ) = @_;
+    my ( $db, $timespan, $size_factor ) = @_;
 
     my ( $num_media ) = $db->query( "select count(*) from dump_medium_link_counts" )->flat;
 
@@ -61,7 +61,7 @@ END
 # change a dateable story to an undateable one
 sub tweak_dateable_story
 {
-    my ( $db, $cdts, $story ) = @_;
+    my ( $db, $timespan, $story ) = @_;
 
     # print "tweak_dateable_story: $story->{ stories_id }\n";
 
@@ -78,7 +78,7 @@ END
 # get random sample of stories with guessed dates according to $percent_sample
 sub sample_guessed_date_stories
 {
-    my ( $db, $cdts, $percent_sample ) = @_;
+    my ( $db, $timespan, $percent_sample ) = @_;
 
     my $stories = $db->query( <<END, $percent_sample )->hashes;
 select * from
@@ -111,17 +111,17 @@ END
 # dated stories are undateable
 sub tweak_dateable_stories
 {
-    my ( $db, $cdts ) = @_;
+    my ( $db, $timespan ) = @_;
 
-    my $stories = sample_guessed_date_stories( $db, $cdts, $PERCENT_DATE_UNDATEABLE );
+    my $stories = sample_guessed_date_stories( $db, $timespan, $PERCENT_DATE_UNDATEABLE );
 
-    map { tweak_dateable_story( $db, $cdts, $_ ) } @{ $stories };
+    map { tweak_dateable_story( $db, $timespan, $_ ) } @{ $stories };
 }
 
 # change an undateable story to a dateable one by deleting the date_guess_method:undateable tag
 sub tweak_undateable_story
 {
-    my ( $db, $cdts, $story ) = @_;
+    my ( $db, $timespan, $story ) = @_;
 
     # print "tweak_undateable_story: $story->{ stories_id }\n";
 
@@ -140,7 +140,7 @@ END
 # on how many undateable stories are really dateable
 sub tweak_undateable_stories
 {
-    my ( $db, $cdts ) = @_;
+    my ( $db, $timespan ) = @_;
 
     my $stories = $db->query( <<END, $PERCENT_UNDATEABLE_DATE_DATEABLE )->hashes;
 select * from
@@ -167,7 +167,7 @@ select * from
 
 END
 
-    map { tweak_undateable_story( $db, $cdts, $_ ) } @{ $stories };
+    map { tweak_undateable_story( $db, $timespan, $_ ) } @{ $stories };
 }
 
 # get the new story date according to our validation data of how dates
@@ -209,7 +209,7 @@ sub get_tweaked_story_date
 # typically wrong
 sub tweak_story_date
 {
-    my ( $db, $cdts, $story ) = @_;
+    my ( $db, $timespan, $story ) = @_;
 
     my $new_date = get_tweaked_story_date( $story->{ publish_date } );
 
@@ -225,40 +225,40 @@ END
 # are wrong
 sub tweak_misdated_stories
 {
-    my ( $db, $cdts ) = @_;
+    my ( $db, $timespan ) = @_;
 
-    my $stories = sample_guessed_date_stories( $db, $cdts, $PERCENT_DATE_MISDATED );
+    my $stories = sample_guessed_date_stories( $db, $timespan, $PERCENT_DATE_MISDATED );
 
-    map { tweak_story_date( $db, $cdts, $_ ) } @{ $stories };
+    map { tweak_story_date( $db, $timespan, $_ ) } @{ $stories };
 }
 
 # change the dates in the current dump to model the accuracy data form our validation tests
 sub tweak_story_dates
 {
-    my ( $db, $cdts ) = @_;
+    my ( $db, $timespan ) = @_;
 
-    tweak_misdated_stories( $db, $cdts );
-    tweak_undateable_stories( $db, $cdts );
-    tweak_dateable_stories( $db, $cdts );
+    tweak_misdated_stories( $db, $timespan );
+    tweak_undateable_stories( $db, $timespan );
+    tweak_dateable_stories( $db, $timespan );
 }
 
-# generate a single model of the dump for the current time slice, tweaking
+# generate a single model of the dump for the current timespan, tweaking
 # various aspects of the data according to our validation numbers (for example
 # changing X% of dates because we know that in general X% of our dates are wrong).
 # Return an ordered list of the top media sources by incoming links.
 sub model_confidence_data
 {
-    my ( $db, $cdts ) = @_;
+    my ( $db, $timespan ) = @_;
 
     die( "model confidence data cannot be called within an ongoing transaction" ) unless ( $db->dbh->{ AutoCommit } );
 
     $db->begin;
 
-    tweak_story_dates( $db, $cdts );
+    tweak_story_dates( $db, $timespan );
 
-    MediaWords::CM::Dump::generate_cdts_data( $db, $cdts, 1 );
+    MediaWords::CM::Dump::generate_timespan_data( $db, $timespan, 1 );
 
-    my $top_media_link_counts = get_top_media_link_counts( $db, $cdts, 2 );
+    my $top_media_link_counts = get_top_media_link_counts( $db, $timespan, 2 );
 
     $db->rollback;
 
@@ -316,11 +316,11 @@ sub get_model_correlation_p_value
 # of the top media of the clean data and of each of the models
 sub update_model_correlation
 {
-    my ( $db, $cdts, $all_models_top_media ) = @_;
+    my ( $db, $timespan, $all_models_top_media ) = @_;
 
-    my $clean_top_media = get_top_media_link_counts( $db, $cdts );
+    my $clean_top_media = get_top_media_link_counts( $db, $timespan );
 
-    MediaWords::CM::Dump::update_cdts( $db, $cdts, 'model_num_media', scalar( @{ $clean_top_media } ) );
+    MediaWords::CM::Dump::update_timespan( $db, $timespan, 'model_num_media', scalar( @{ $clean_top_media } ) );
 
     return unless ( @{ $clean_top_media } > 1 && $all_models_top_media );
 
@@ -349,16 +349,16 @@ sub update_model_correlation
     my $r2_mean   = Statistics::Basic::mean( $model_r2s );
     my $r2_stddev = Statistics::Basic::stddev( $model_r2s );
 
-    MediaWords::CM::Dump::update_cdts( $db, $cdts, 'model_r2_mean',   $r2_mean );
-    MediaWords::CM::Dump::update_cdts( $db, $cdts, 'model_r2_stddev', $r2_stddev );
+    MediaWords::CM::Dump::update_timespan( $db, $timespan, 'model_r2_mean',   $r2_mean );
+    MediaWords::CM::Dump::update_timespan( $db, $timespan, 'model_r2_stddev', $r2_stddev );
 }
 
 # return text output describing how the models matched (or didn't) with the clean data
 sub print_model_matches
 {
-    my ( $db, $cdts, $all_models_top_media ) = @_;
+    my ( $db, $timespan, $all_models_top_media ) = @_;
 
-    my $clean_top_media = get_top_media_link_counts( $db, $cdts );
+    my $clean_top_media = get_top_media_link_counts( $db, $timespan );
     my $clean_medium_ranks = get_medium_count_ranks( $clean_top_media );
 
     print "evaluating models ...\n";
@@ -388,7 +388,7 @@ sub print_model_matches
         $num_model_matches++ if ( $match );
     }
 
-    # update_cdts( $db, $cdts, 'confidence', $num_model_matches );
+    # update_timespan( $db, $timespan, 'confidence', $num_model_matches );
     #
     # return $num_model_matches;
 }
@@ -416,14 +416,14 @@ sub create_dump_indexes
     create_index_if_not_exists( $db, "dump_stories_tags_map_story", "dump_stories_tags_map ( stories_id )" );
 }
 
-# run $config->{ mediawords }->{ controversy_model_reps } models and return a list of ordered lists
+# run $config->{ mediawords }->{ topic_model_reps } models and return a list of ordered lists
 # of top_media, one list of top media for each model run
 sub get_all_models_top_media ($$)
 {
-    my ( $db, $cdts ) = @_;
+    my ( $db, $timespan ) = @_;
 
     my $config     = MediaWords::Util::Config::get_config;
-    my $model_reps = $config->{ mediawords }->{ controversy_model_reps };
+    my $model_reps = $config->{ mediawords }->{ topic_model_reps };
 
     if ( $model_reps == 0 )
     {
@@ -439,7 +439,7 @@ sub get_all_models_top_media ($$)
     my $all_models_top_media = [];
     for my $i ( 1 .. $model_reps )
     {
-        my $model_top_media = model_confidence_data( $db, $cdts );
+        my $model_top_media = model_confidence_data( $db, $timespan );
 
         # MediaWords::CM::Dump::restore_temporary_tables( $db );
 

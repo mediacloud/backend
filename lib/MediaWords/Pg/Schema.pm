@@ -151,7 +151,7 @@ sub reset_all_schemas($)
 
     reset_schema( $db, 'public' );
 
-    # schema to hold all of the controversy dump snapshot tables
+    # schema to hold all of the topic dump snapshot tables
     reset_schema( $db, 'cd' );
 }
 

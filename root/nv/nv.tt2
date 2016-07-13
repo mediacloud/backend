@@ -3,7 +3,7 @@
 
 [% USE datetime = date(format => '%Y-%m-%d %H:%M:%S', locale => 'en_GB') %]
 [% USE date = date(format => '%Y-%m-%d', locale => 'en_GB') %]
-[% SET title=controversy.name _ ': ' _ date.format( cdts.start_date ) _ ' - ' _ date.format( cdts.end_date ) _ ' Time Slice' %]
+[% SET title=topic.name _ ': ' _ date.format( timespan.start_date ) _ ' - ' _ date.format( timespan.end_date ) _ ' timespan' %]
 
 <head>
 <title>Network Map: [% title | html %]</title>
@@ -26,7 +26,7 @@
   <link rel="stylesheet" media="screen and (max-height: 770px)" href="[% c.uri_for( '/nv/css/tablet.css' ) | html %]" />
 </head>
 
-[% SET ts_url = c.uri_for( "/admin/cm/view_time_slice/${cdts.controversy_dump_time_slices_id}",  { l => live } ) %]
+[% SET ts_url = c.uri_for( "/admin/cm/view_timespan/${timespan.timespans_id}",  { l => live } ) %]
 
 <body>
   <div class="sigma-parent">
@@ -35,9 +35,9 @@
 <div id="mainpanel">
   <div class="col">
 		<div id="maintitle"></div>
-    <div id="title"><a href="[% ts_url | html %]">[% controversy.name _ ': ' | html %]<br />[% date.format( cdts.start_date ) _ ' - ' _ date.format( cdts.end_date ) | html %]</a></div>
+    <div id="title"><a href="[% ts_url | html %]">[% topic.name _ ': ' | html %]<br />[% date.format( timespan.start_date ) _ ' - ' _ date.format( timespan.end_date ) | html %]</a></div>
     <div id="titletext">
-        This is a force-based layout of the top 500 media sources in this controversy / time slice, by number of inlinks, 
+        This is a force-based layout of the top 500 media sources in this topic / timespan, by number of inlinks, 
         with hyperlinks as unweighted edges.  
     <div class="info cf">
       <dl>
@@ -60,17 +60,17 @@
   </div>
   <div id="information">
             <p>
-                This is a force-based layout of the top 500 media sources in this controversy / time slice, by number of inlinks.  
+                This is a force-based layout of the top 500 media sources in this topic / timespan, by number of inlinks.  
                 Each edge represents a hyperlink between the two media sources.  The direction of hyperlinks is not
                 taken into account for the layout, and edges between nodes are unweighted.
             </p>
             <p>
-                The size of each node is determined by the number of inlinks from all media sources in the controversy 
+                The size of each node is determined by the number of inlinks from all media sources in the topic 
                 (not just the top 500).  Only media sources with at least one link to or from another top 500 media source 
                 on the map are shown.
             </p>
             <p>
-                <a href="[% c.uri_for( "/admin/cm/gexf/${cdts.controversy_dump_time_slices_id}", { l => live, cf => color_field, nm => num_media } ) | html %]">download gexf</a>
+                <a href="[% c.uri_for( "/admin/cm/gexf/${timespan.timespans_id}", { l => live, cf => color_field, nm => num_media } ) | html %]">download gexf</a>
             </p>
   </div>
 </div>

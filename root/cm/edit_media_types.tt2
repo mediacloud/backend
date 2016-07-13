@@ -1,11 +1,11 @@
-[% INCLUDE cm/header.tt2 title = "CM: Edit Media Types for ${ controversy.name }" %]
+[% INCLUDE cm/header.tt2 title = "CM: Edit Media Types for ${ topic.name }" %]
 
 <div id="boxtitle">Edit Media Types</a>
 <div id="wholecolumn">
     <fieldset>
         <p>
-            Use this page to add, edit, or remove media types specific to this single controversy.  Media types in this list
-            will be available to assign to any media source within this controversy via the edit medium page or the
+            Use this page to add, edit, or remove media types specific to this single topic.  Media types in this list
+            will be available to assign to any media source within this topic via the edit medium page or the
             add media types page.
         </p>
     </fieldset>
@@ -14,7 +14,7 @@
 <div id="wholecolumn">
     <div id="boxtitle">
         Media Types
-        <a class="boxcommand" href="[% c.uri_for( "/admin/cm/add_media_type/$controversy.controversies_id" ) | html %]">Add Media Type</a>
+        <a class="boxcommand" href="[% c.uri_for( "/admin/cm/add_media_type/$topic.topics_id" ) | html %]">Add Media Type</a>
     </div>
     <table class="even_rows_grey">
         <tr>

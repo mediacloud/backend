@@ -2,9 +2,9 @@
 
 <div id="wholecolumn" class="clearfix">
 
-    [% IF !controversy.solr_seed_query_run %]
+    [% IF !topic.solr_seed_query_run %]
         <fieldset>
-            The solr seed query has been changed since it has been run last.  Run a 'mine controversy' job to
+            The solr seed query has been changed since it has been run last.  Run a 'mine topic' job to
             add stories from the new query.
         </fieldset>
     [% END %]
@@ -14,30 +14,30 @@
         <div class="boxtitle">
             Query
 
-            <a class="boxcommand" href="[% c.uri_for( '/admin/cm/delete_stories/' _ controversy.controversies_id ) %]">remove stories</a>
-            <a class="boxcommand" href="[% c.uri_for( '/admin/cm/merge_stories_list/' _ controversy.controversies_id ) %]">merge stories</a>
-            <a class="boxcommand" href="[% c.uri_for( '/admin/cm/edit_dates/' _ controversy.controversies_id ) %]">edit dates</a>
-            <a class="boxcommand" href="[% c.uri_for( '/admin/cm/edit_media_types/' _ controversy.controversies_id ) %]">edit media types</a>
-            <a class="boxcommand" href="[% c.uri_for( '/admin/cm/edit/' _ controversy.controversies_id ) %]">edit</a>
+            <a class="boxcommand" href="[% c.uri_for( '/admin/cm/delete_stories/' _ topic.topics_id ) %]">remove stories</a>
+            <a class="boxcommand" href="[% c.uri_for( '/admin/cm/merge_stories_list/' _ topic.topics_id ) %]">merge stories</a>
+            <a class="boxcommand" href="[% c.uri_for( '/admin/cm/edit_dates/' _ topic.topics_id ) %]">edit dates</a>
+            <a class="boxcommand" href="[% c.uri_for( '/admin/cm/edit_media_types/' _ topic.topics_id ) %]">edit media types</a>
+            <a class="boxcommand" href="[% c.uri_for( '/admin/cm/edit/' _ topic.topics_id ) %]">edit</a>
         </div>
         <table class="even_rows_grey">
             <tr>
                 <td>Pattern</td>
-                <td>[% controversy.pattern | html %]</td>
+                <td>[% topic.pattern | html %]</td>
             </tr>
 
             <tr>
                 <td>Description</td>
-                <td>[% controversy.description | html %]</td>
+                <td>[% topic.description | html %]</td>
             </tr>
 
             <tr>
                 <td>Solr Seed Query</td>
-                <td>[% controversy.solr_seed_query | html %]</td>
+                <td>[% topic.solr_seed_query | html %]</td>
             </tr>
             <tr>
                 <td>Dates</td>
-                <td>[% controversy.start_date | html %] - [% controversy.end_date | html %]</td>
+                <td>[% topic.start_date | html %] - [% topic.end_date | html %]</td>
             </tr>
         </table>
 
@@ -52,11 +52,11 @@
                 <th>Note</th>
             </tr>
 
-            [% FOREACH cd IN controversy_dumps -%]
+            [% FOREACH cd IN snapshots -%]
 
                 <tr>
 
-                    <td><a href="[% c.uri_for( '/admin/cm/view_dump/' _ cd.controversy_dumps_id, { qs => query_slices_id } )%]">[% datetime.format( cd.dump_date ) %]</a></td>
+                    <td><a href="[% c.uri_for( '/admin/cm/view_dump/' _ cd.snapshots_id, { qs => foci_id } )%]">[% datetime.format( cd.snapshot_date ) %]</a></td>
 
                     <td>[% date.format( cd.start_date ) %]</td>
 
@@ -76,30 +76,30 @@
     <div id="narrowcolumn">
 
         <div class="boxtitle">
-            Query Slices
-            <a class="boxcommand" href="[% c.uri_for( '/admin/cm/edit_query_slices/' _ controversy.controversies_id ) | html %]">edit</a>
+            Foci
+            <a class="boxcommand" href="[% c.uri_for( '/admin/cm/edit_foci/' _ topic.topics_id ) | html %]">edit</a>
         </div>
         <table><tr><td bgcolor="#ffffff">
-            [% IF query_slices.size > 0 %]
-                [% FOREACH qs IN query_slices %]
-                    <a href="[% c.uri_for( '/admin/cm/view/' _ controversy.controversies_id, { qs => qs.controversy_query_slices_id } ) | html %]">[% qs.name | html %]</a><br />
+            [% IF foci.size > 0 %]
+                [% FOREACH qs IN foci %]
+                    <a href="[% c.uri_for( '/admin/cm/view/' _ topic.topics_id, { qs => qs.foci_id } ) | html %]">[% qs.name | html %]</a><br />
                 [% END %]
             [% END %]
-            <a href="[% c.uri_for( '/admin/cm/view/' _ controversy.controversies_id ) | html %]">(all stories)</a><br />
+            <a href="[% c.uri_for( '/admin/cm/view/' _ topic.topics_id ) | html %]">(all stories)</a><br />
         </td></tr></table>
 
         <div class="boxtitle">
             Spidering Status
-            <a class="boxcommand" href="[% c.uri_for( '/admin/cm/mine/' _ controversy.controversies_id ) %]">spider</a>
-            <a class="boxcommand" href="[% c.uri_for( '/admin/cm/mining_status/' _ controversy.controversies_id ) %]">status</a>
+            <a class="boxcommand" href="[% c.uri_for( '/admin/cm/mine/' _ topic.topics_id ) %]">spider</a>
+            <a class="boxcommand" href="[% c.uri_for( '/admin/cm/mining_status/' _ topic.topics_id ) %]">status</a>
         </div>
         <table><tr><td bgcolor="#ffffff">
-            [% controversy.state %]
+            [% topic.state %]
         </td></tr></table>
 
         [% INCLUDE cm/include/latest_activities.tt2
                    activities=latest_activities
-                   controversy=controversy %]
+                   topic=topic %]
 
 
 
