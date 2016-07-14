@@ -248,13 +248,13 @@ def update_zookeeper_solr_configuration(zookeeper_host=MC_SOLR_CLUSTER_ZOOKEEPER
 # noinspection PyUnusedLocal
 def __kill_solr_process(signum=None, frame=None):
     """Pass SIGINT/SIGTERM to child Solr when exiting."""
-    print("Trying to terminate Solr at PID %d..." % __solr_pid)
     global __solr_pid
-
-    try:
-        os.kill(__solr_pid, signal.SIGTERM)
-    except OSError as e:
-        logger.info("Unable to pass signal %d to Solr; maybe it's already killed? Exception: %s", signum, e.message)
+    if __solr_pid is not None:
+        print("Trying to terminate Solr at PID %d..." % __solr_pid)
+        try:
+            os.kill(__solr_pid, signal.SIGTERM)
+        except OSError as e:
+            logger.info("Unable to pass signal %d to Solr; maybe it's already killed? Exception: %s", signum, e.message)
 
     if signum is not None:
         sys.exit(signum)
