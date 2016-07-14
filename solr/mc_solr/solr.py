@@ -115,7 +115,7 @@ def __solr_home_path(solr_home_dir=MC_SOLR_HOME_DIR):
     return solr_home_path
 
 
-def __solr_collections_path(solr_home_dir=MC_SOLR_HOME_DIR):
+def __collections_path(solr_home_dir=MC_SOLR_HOME_DIR):
     solr_home_path = __solr_home_path(solr_home_dir=solr_home_dir)
     collections_path = os.path.join(solr_home_path, "collections/")
     if not os.path.isdir(collections_path):
@@ -124,10 +124,10 @@ def __solr_collections_path(solr_home_dir=MC_SOLR_HOME_DIR):
     return collections_path
 
 
-def __solr_collections(solr_home_dir=MC_SOLR_HOME_DIR):
+def __collections(solr_home_dir=MC_SOLR_HOME_DIR):
     """Return dictionary with names and absolute paths to Solr collections."""
     collections = {}
-    collections_path = __solr_collections_path(solr_home_dir)
+    collections_path = __collections_path(solr_home_dir)
     collection_names = os.listdir(collections_path)
     logger.debug("Files in collections directory: %s" % collection_names)
     for name in collection_names:
@@ -220,7 +220,7 @@ def update_zookeeper_solr_configuration(zookeeper_host=MC_SOLR_CLUSTER_ZOOKEEPER
     if not tcp_port_is_open(hostname=zookeeper_host, port=zookeeper_port):
         raise Exception("ZooKeeper is not running at %s:%d." % (zookeeper_host, zookeeper_port))
 
-    collections = __solr_collections()
+    collections = __collections()
     logger.debug("Solr collections: %s" % collections)
 
     logger.info("Uploading Solr collection configurations to ZooKeeper...")
@@ -294,7 +294,7 @@ def __run_solr(port,
         mkdir_p(instance_data_dir)
 
     logger.info("Updating collections at %s..." % instance_data_dir)
-    collections = __solr_collections(solr_home_dir=solr_home_dir)
+    collections = __collections(solr_home_dir=solr_home_dir)
     for collection_name, collection_path in sorted(collections.items()):
         logger.info("Updating collection '%s'..." % collection_name)
 
@@ -519,7 +519,7 @@ def reload_solr_shard(shard_num,
 
     logger.info("Reloading shard %d on %s:%d..." % (shard_num, host, shard_port))
 
-    collections = __solr_collections()
+    collections = __collections()
     logger.debug("Solr collections: %s" % collections)
 
     for collection_name, collection_path in sorted(collections.items()):
