@@ -117,7 +117,7 @@ def extract_zip_to_directory(archive_file, dest_directory):
     """Extract ZIP archive (.zip or .war) to destination directory."""
 
     archive_file_extension = __file_extension(archive_file)
-    if not archive_file_extension in [".zip", ".war"]:
+    if archive_file_extension not in [".zip", ".war"]:
         raise Exception("Unsupported archive '%s' with extension '%s'" % (archive_file, archive_file_extension))
 
     args = ["unzip", "-q",
