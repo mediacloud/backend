@@ -2201,8 +2201,8 @@ INSERT INTO auth_roles (role, description) VALUES
     ('admin-readonly', 'Read access to admin interface.'),
     ('media-edit', 'Add / edit media; includes feeds.'),
     ('stories-edit', 'Add / edit stories.'),
-    ('cm', 'topic mapper; includes media and story editing'),
-    ('cm-readonly', 'topic mapper; excludes media and story editing'),
+    ('tm', 'Topic mapper; includes media and story editing'),
+    ('tm-readonly', 'Topic mapper; excludes media and story editing'),
     ('stories-api', 'Access to the stories api'),
     ('search', 'Access to the /search pages');
 

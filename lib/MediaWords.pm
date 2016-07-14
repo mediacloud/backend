@@ -151,7 +151,7 @@ sub setup_acl()
                 $MediaWords::DBI::Auth::Roles::ADMIN_READONLY,    #
                 $MediaWords::DBI::Auth::Roles::MEDIA_EDIT,        #
                 $MediaWords::DBI::Auth::Roles::STORIES_EDIT,      #
-                $MediaWords::DBI::Auth::Roles::CM,                #
+                $MediaWords::DBI::Auth::Roles::TM,                #
             ]
         );
     }
@@ -162,7 +162,7 @@ sub setup_acl()
             $path,
             [
                 $MediaWords::DBI::Auth::Roles::MEDIA_EDIT,        #
-                $MediaWords::DBI::Auth::Roles::CM,                #
+                $MediaWords::DBI::Auth::Roles::TM,                #
             ]
         );
     }
@@ -173,7 +173,7 @@ sub setup_acl()
             $path,
             [
                 $MediaWords::DBI::Auth::Roles::STORIES_EDIT,      #
-                $MediaWords::DBI::Auth::Roles::CM,                #
+                $MediaWords::DBI::Auth::Roles::TM,                #
             ]
         );
     }
@@ -183,8 +183,8 @@ sub setup_acl()
         __PACKAGE__->allow_access_if_any(
             $path,
             [
-                $MediaWords::DBI::Auth::Roles::CM,                #
-                $MediaWords::DBI::Auth::Roles::CM_READONLY,       #
+                $MediaWords::DBI::Auth::Roles::TM,                #
+                $MediaWords::DBI::Auth::Roles::TM_READONLY,       #
             ]
         );
     }
@@ -204,7 +204,7 @@ sub setup_acl()
             $MediaWords::DBI::Auth::Roles::ADMIN_READONLY,    #
             $MediaWords::DBI::Auth::Roles::MEDIA_EDIT,        #
             $MediaWords::DBI::Auth::Roles::STORIES_EDIT,      #
-            $MediaWords::DBI::Auth::Roles::CM,                #
+            $MediaWords::DBI::Auth::Roles::TM,                #
             $MediaWords::DBI::Auth::Roles::STORIES_API,       #
             $MediaWords::DBI::Auth::Roles::SEARCH,            #
         ]
