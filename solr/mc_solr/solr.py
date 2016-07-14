@@ -252,7 +252,13 @@ def __kill_solr_process(signum=None, frame=None):
     if __solr_pid is not None:
         print("Trying to terminate Solr at PID %d..." % __solr_pid)
         try:
-            os.kill(__solr_pid, signal.SIGTERM)
+            # When ZooKeeper goes away first, Solr shard waits around for about
+            # a minute for it to come back even if it just got SIGINT / SIGKILL
+            # and thus initiated a graceful shutdown. So, just kill the shard
+            # with SIGTERM.
+            kill_signal = signal.SIGKILL
+
+            os.kill(__solr_pid, kill_signal)
         except OSError as e:
             logger.info("Unable to pass signal %d to Solr; maybe it's already killed? Exception: %s", signum, e.message)
 
