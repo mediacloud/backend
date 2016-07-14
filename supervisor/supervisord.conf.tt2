@@ -202,12 +202,9 @@ programs = rabbitmq
     default_nice=10
 %]
 
-[group:solr]
-programs = solr
-
 [% INCLUDE program_config
-    program='solr'
-    command='python ./solr/run_solr_standalone.py'
+    program='solr_standalone'
+    command="python ./solr/run_solr_standalone.py"
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='true'
@@ -216,6 +213,38 @@ programs = solr
     default_nice=0
     skip_numprocs=1
 %]
+
+
+[group:solr_cluster]
+programs=zookeeper, solr_shard
+
+[% INCLUDE program_config
+    program='zookeeper'
+    command="python ./solr/run_zookeeper.py"
+    default_stopasgroup='true'
+    default_killasgroup='true'
+    default_autorestart='true'
+    default_autostart='false'
+    stopsignal='INT'
+    stopwaitsecs=60
+    default_nice=0
+    redirect_stderr='true'
+%]
+
+[%- solr_cluster_shard_count = supervisor.programs.solr_shard.numprocs || 1 %]
+[% INCLUDE program_config
+    program='solr_shard'
+    command="python ./solr/run_solr_shard.py --shard_index %(process_num)d --shard_count $solr_cluster_shard_count"
+    default_stopasgroup='true'
+    default_killasgroup='true'
+    default_autorestart='true'
+    default_autostart='false'
+    stopsignal='INT'
+    stopwaitsecs=60
+    default_nice=0
+    redirect_stderr='true'
+%]
+
 
 [group:thrift]
 programs=extractor_python_readability_server

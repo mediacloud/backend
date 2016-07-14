@@ -127,11 +127,22 @@ database:
         #rescrape_media
         #cm_mine_controversy
         #cm_dump_controversy
-        #solr
         #annotate_with_corenlp
         #bitly_process_all_controversy_stories
         #bitly_fetch_story_stats
         #bitly_aggregate_story_stats
+
+        # Standalone Solr instance
+        #solr_standalone
+
+        # Solr cluster: ZooKeeper
+        #zookeeper:
+
+        # Solr cluster: Solr shards
+        #solr_shard:
+
+            # Number of shards to start
+            numprocs: 2
 
 
 ### CoreNLP annotator
