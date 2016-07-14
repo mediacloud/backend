@@ -17,9 +17,11 @@ MC_SOLR_STANDALONE_PORT = 8983
 # Seconds to wait for a standalone Solr instance to start
 MC_SOLR_STANDALONE_CONNECT_RETRIES = 2 * 60
 
+# Default JVM heap size (-Xmx) for a standalone instance
+MC_SOLR_STANDALONE_JVM_HEAP_SIZE = "256m"
+
 # Other JVM options to pass to Solr when running a standalone instance
 MC_SOLR_STANDALONE_JVM_OPTS = [
-    "-Xmx256m",
 ]
 
 # Solr starting port for shards
@@ -38,9 +40,11 @@ MC_SOLR_CLUSTER_ZOOKEEPER_PORT = 9983
 # Seconds to wait for external ZooKeeper to start
 MC_SOLR_CLUSTER_ZOOKEEPER_CONNECT_RETRIES = 2 * 60
 
+# Default JVM heap size (-Xmx) for each shard
+MC_SOLR_CLUSTER_JVM_HEAP_SIZE = "256m"
+
 # Other JVM options to pass to each Solr shard in a cluster
 MC_SOLR_CLUSTER_JVM_OPTS = [
-    "-Xmx256m",
     "-XX:+PrintGC",
     "-XX:+UsePerfData",
     "-XX:+UseG1GC",

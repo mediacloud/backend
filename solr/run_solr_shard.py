@@ -14,10 +14,13 @@ if __name__ == "__main__":
                         help="ZooKeeper host to connect to.")
     parser.add_argument("-zp", "--zookeeper_port", type=int, required=False, default=MC_SOLR_CLUSTER_ZOOKEEPER_PORT,
                         help="ZooKeeper port to connect to.")
+    parser.add_argument("-mx", "--jvm_heap_size", type=str, required=False, default=MC_SOLR_CLUSTER_JVM_HEAP_SIZE,
+                        help="JVM heap size (-Xmx).")
 
     args = parser.parse_args()
 
     run_solr_shard(shard_num=args.shard_num,
                    shard_count=args.shard_count,
                    zookeeper_host=args.zookeeper_host,
-                   zookeeper_port=args.zookeeper_port)
+                   zookeeper_port=args.zookeeper_port,
+                   jvm_heap_size=args.jvm_heap_size)

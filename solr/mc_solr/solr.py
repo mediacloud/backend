@@ -264,6 +264,7 @@ def __kill_solr_process(signum=None, frame=None):
 
 def __run_solr(port,
                instance_data_dir,
+               jvm_heap_size=None,
                start_jar_args=None,
                jvm_opts=None,
                connect_timeout=120,
@@ -395,6 +396,8 @@ instanceDir=%(instance_dir)s
     logger.info("Starting Solr instance on port %d..." % port)
 
     args = ["java"]
+    if jvm_heap_size is not None:
+        args += ["-Xmx%s" % jvm_heap_size]
     args += jvm_opts
     args = args + [
         "-server",
@@ -436,7 +439,8 @@ instanceDir=%(instance_dir)s
 def run_solr_standalone(port=MC_SOLR_STANDALONE_PORT,
                         base_data_dir=MC_SOLR_BASE_DATA_DIR,
                         dist_directory=MC_DIST_DIR,
-                        solr_version=MC_SOLR_VERSION):
+                        solr_version=MC_SOLR_VERSION,
+                        jvm_heap_size=MC_SOLR_STANDALONE_JVM_HEAP_SIZE):
     """Run standalone instance of Solr."""
     if not __solr_is_installed():
         logger.info("Solr is not installed, installing...")
@@ -451,6 +455,7 @@ def run_solr_standalone(port=MC_SOLR_STANDALONE_PORT,
     logger.info("Starting standalone Solr instance on port %d..." % port)
     __run_solr(port=port,
                instance_data_dir=standalone_data_dir,
+               jvm_heap_size=jvm_heap_size,
                jvm_opts=MC_SOLR_STANDALONE_JVM_OPTS,
                connect_timeout=MC_SOLR_STANDALONE_CONNECT_RETRIES,
                dist_directory=dist_directory,
@@ -464,7 +469,8 @@ def run_solr_shard(shard_num,
                    dist_directory=MC_DIST_DIR,
                    solr_version=MC_SOLR_VERSION,
                    zookeeper_host=MC_SOLR_CLUSTER_ZOOKEEPER_HOST,
-                   zookeeper_port=MC_SOLR_CLUSTER_ZOOKEEPER_PORT):
+                   zookeeper_port=MC_SOLR_CLUSTER_ZOOKEEPER_PORT,
+                   jvm_heap_size=MC_SOLR_CLUSTER_JVM_HEAP_SIZE):
     """Run Solr shard, install Solr if needed; read configuration from ZooKeeper."""
     if shard_num < 1:
         raise Exception("Shard number must be 1 or greater.")
@@ -495,6 +501,7 @@ def run_solr_shard(shard_num,
     ]
     __run_solr(port=shard_port,
                instance_data_dir=shard_data_dir,
+               jvm_heap_size=jvm_heap_size,
                jvm_opts=MC_SOLR_CLUSTER_JVM_OPTS,
                start_jar_args=shard_args,
                connect_timeout=MC_SOLR_CLUSTER_CONNECT_RETRIES,
