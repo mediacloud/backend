@@ -25,7 +25,7 @@ directory = %(here)s/../
 autorestart = [% supervisor.programs.$program.autorestart_b|| default_autorestart  %]
 autostart = [% supervisor.programs.$program.autostart_b || default_autostart  %]
 stopasgroup = [% supervisor.programs.$program.stopasgroup_b || default_stopasgroup  %]
-;killasgroup = [% supervisor.programs.$program.killasgroup_b || default_killasgroup %]
+killasgroup = [% supervisor.programs.$program.killasgroup_b || default_killasgroup %]
 priority = [% priority || 20 %]
     [%- UNLESS skip_numprocs %]
     [%- numprocs = supervisor.programs.$program.numprocs || default_numprocs || 1 %]
