@@ -24,8 +24,12 @@ MC_SOLR_STANDALONE_JVM_HEAP_SIZE = "256m"
 MC_SOLR_STANDALONE_JVM_OPTS = [
 ]
 
-# Solr starting port for shards
 MC_SOLR_CLUSTER_STARTING_PORT = 7980
+# Solr starting port for shards, e.g.:
+# * shard #1 will start on port MC_SOLR_CLUSTER_STARTING_PORT
+# * shard #2 will start on port MC_SOLR_CLUSTER_STARTING_PORT+1
+# * shard #3 will start on port MC_SOLR_CLUSTER_STARTING_PORT+2
+# * ...
 
 # Seconds to wait for a Solr shard to start
 # (might want to make it bigger as a shard could be rebuilding indexes or whatever)
