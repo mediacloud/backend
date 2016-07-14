@@ -142,7 +142,7 @@ database:
         #solr_shard:
 
             # Number of shards to start
-            numprocs: 2
+            #numprocs: 2
 
 
 ### CoreNLP annotator
