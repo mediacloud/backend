@@ -1,10 +1,16 @@
 import atexit
 
+import signal
+
+import sys
+
 import mc_solr.solr
 from mc_solr.constants import *
 from mc_solr.utils import *
 
 logger = create_logger(__name__)
+
+__zookeeper_pid = None
 
 
 def __zookeeper_path(dist_directory=MC_DIST_DIR, zookeeper_version=MC_ZOOKEEPER_VERSION):
@@ -99,6 +105,24 @@ def __install_zookeeper(dist_directory=MC_DIST_DIR, zookeeper_version=MC_ZOOKEEP
         raise Exception("I've done everything but ZooKeeper is still not installed.")
 
 
+# noinspection PyUnusedLocal
+def __kill_zookeeper_process(signum=None, frame=None):
+    """Pass SIGINT/SIGTERM to child ZooKeeper when exiting."""
+    global __zookeeper_pid
+    if __zookeeper_pid is not None:
+        print("Trying to terminate ZooKeeper at PID %d..." % __zookeeper_pid)
+        try:
+            os.kill(__zookeeper_pid, signal.SIGTERM)
+        except OSError as e:
+            logger.info("Unable to pass signal %d to ZooKeeper; maybe it's already killed? Exception: %s", signum,
+                        e.message)
+
+    if signum is not None:
+        sys.exit(signum)
+    else:
+        sys.exit()
+
+
 def run_zookeeper(dist_directory=MC_DIST_DIR,
                   listen=MC_ZOOKEEPER_LISTEN,
                   port=MC_ZOOKEEPER_PORT,
@@ -164,12 +188,13 @@ syncLimit=5
 
     process = subprocess.Popen(args, env=zookeeper_env)
 
-    @atexit.register
-    def __kill_zookeeper_process():
-        print("Trying to terminate ZooKeeper at PID %d..." % process.pid)
-        process.terminate()
+    global __zookeeper_pid
+    __zookeeper_pid = process.pid
 
-    logger.info("ZooKeeper PID: %d" % process.pid)
+    signal.signal(signal.SIGTERM, __kill_zookeeper_process)  # SIGTERM is handled differently for whatever reason
+    atexit.register(__kill_zookeeper_process)
+
+    logger.info("ZooKeeper PID: %d" % __zookeeper_pid)
 
     logger.info("Waiting for ZooKeeper to start at port %d..." % port)
     zookeeper_started = wait_for_tcp_port_to_open(port=port, retries=MC_ZOOKEEPER_CONNECT_RETRIES)
