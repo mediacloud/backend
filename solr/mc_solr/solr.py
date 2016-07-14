@@ -1,12 +1,9 @@
 import atexit
+import signal
+import sys
 import urllib2
 
-import signal
-
-import sys
-
 from mc_solr.constants import *
-from mc_solr.path import resolve_absolute_path
 from mc_solr.utils import *
 
 logger = create_logger(__name__)

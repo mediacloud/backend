@@ -1,8 +1,7 @@
 import atexit
 
-from mc_solr.constants import *
-from mc_solr.path import resolve_absolute_path
 import mc_solr.solr
+from mc_solr.constants import *
 from mc_solr.utils import *
 
 logger = create_logger(__name__)
