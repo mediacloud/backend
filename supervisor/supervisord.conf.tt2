@@ -214,6 +214,7 @@ programs = solr
     default_autostart='false'
     stopwaitsecs=20
     default_nice=0
+    skip_numprocs=1
 %]
 
 [group:thrift]
