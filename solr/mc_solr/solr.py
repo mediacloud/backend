@@ -469,9 +469,9 @@ def run_solr_shard(shard_num,
                    zookeeper_host=MC_SOLR_CLUSTER_ZOOKEEPER_HOST,
                    zookeeper_port=MC_SOLR_CLUSTER_ZOOKEEPER_PORT):
     """Run Solr shard, install Solr if needed; read configuration from ZooKeeper."""
-    if shard_num < 0:
+    if shard_num < 1:
         raise Exception("Shard number must be 1 or greater.")
-    if shard_count < 0:
+    if shard_count < 1:
         raise Exception("Shard count must be 1 or greater.")
 
     if not __solr_is_installed():
@@ -509,7 +509,7 @@ def reload_solr_shard(shard_num,
                       host="localhost",
                       starting_port=MC_SOLR_CLUSTER_STARTING_PORT):
     """Reload Solr shard after ZooKeeper configuration change."""
-    if shard_num < 0:
+    if shard_num < 1:
         raise Exception("Shard number must be 1 or greater.")
 
     shard_port = __shard_port(shard_num=shard_num, starting_port=starting_port)
@@ -545,7 +545,7 @@ def reload_all_solr_shards(shard_count,
                            host="localhost",
                            starting_port=MC_SOLR_CLUSTER_STARTING_PORT):
     """Reload all Solr shards after ZooKeeper configuration change."""
-    if shard_count < 0:
+    if shard_count < 1:
         raise Exception("Shard count must be 1 or greater.")
 
     logger.info("Reloading %d shards on %s..." % (shard_count, host))
