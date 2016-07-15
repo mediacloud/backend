@@ -256,6 +256,8 @@ programs=zookeeper, solr_shard
     # wait for Solr shard to attempt a more graceful shutdown
     stopwaitsecs=100
 
+    numprocs = $solr_cluster_shards_shard_count
+
     default_nice=0
     redirect_stderr='true'
 %]
