@@ -1,5 +1,7 @@
 import atexit
 
+import sys
+
 import mc_solr.solr
 from mc_solr.constants import *
 from mc_solr.utils import *
@@ -105,7 +107,11 @@ def __install_zookeeper(dist_directory=MC_DIST_DIR, zookeeper_version=MC_ZOOKEEP
 def __kill_zookeeper_process(signum=None, frame=None):
     """Pass SIGINT/SIGTERM to child ZooKeeper when exiting."""
     global __zookeeper_pid
-    exit_after_killing_child_process(child_pid=__zookeeper_pid, exit_signal=signum)
+    if __zookeeper_pid is None:
+        logger.warn("ZooKeeper PID is unset, probably it wasn't started.")
+    else:
+        gracefully_kill_child_process(child_pid=__zookeeper_pid, sigkill_timeout=MC_ZOOKEEPER_SIGKILL_TIMEOUT)
+    sys.exit(signum or 0)
 
 
 def run_zookeeper(dist_directory=MC_DIST_DIR,
@@ -172,7 +178,6 @@ syncLimit=5
     logger.debug("Environment variables: %s" % str(zookeeper_env))
 
     process = subprocess.Popen(args, env=zookeeper_env)
-
     global __zookeeper_pid
     __zookeeper_pid = process.pid
 

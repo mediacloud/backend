@@ -11,8 +11,6 @@ import time
 
 import signal
 
-import sys
-
 
 def create_logger(name):
     """Create and return 'logging' instance."""
@@ -131,27 +129,52 @@ def extract_zip_to_directory(archive_file, dest_directory):
     subprocess.check_call(args)
 
 
-def exit_after_killing_child_process(child_pid=None, exit_signal=None):
-    """Try to kill child process and exit the program."""
-    if child_pid is not None:
-        logger.info("Trying to terminate child PID %d..." % child_pid)
+def process_with_pid_is_running(pid):
+    """Return true if process with PID is still running."""
+    try:
+        os.kill(pid, 0)
+    except OSError:
+        return False
+    else:
+        return True
 
-        # When ZooKeeper goes away first, Solr shard waits around for about
-        # a minute for it to come back even if it just got SIGINT / SIGKILL
-        # and thus initiated a graceful shutdown. So, just kill the shard
-        # with SIGTERM.
-        child_signal = signal.SIGKILL
+
+def gracefully_kill_child_process(child_pid, sigkill_timeout=60):
+    """Try to kill child process gracefully with SIGKILL, then abruptly with SIGTERM."""
+    if child_pid is None:
+        raise Exception("Child PID is unset.")
+
+    if not process_with_pid_is_running(pid=child_pid):
+        logger.warn("Child process with PID %d is not running, maybe it's dead already?")
+    else:
+        logger.info("Sending SIGKILL to child process with PID %d..." % child_pid)
 
         try:
-            os.kill(child_pid, child_signal)
+            os.kill(child_pid, signal.SIGKILL)
         except OSError as e:
-            logger.info("Unable to pass signal %d to child PID %d; maybe it's already killed? Exception: %s" % (
-                child_signal,
-                child_pid,
-                e.message
-            ))
+            # Might be already killed
+            logger.warn("Unable to send SIGKILL to child PID %d: %s" % (child_pid, e.message))
 
-    sys.exit(exit_signal or 0)
+        for retry in range(sigkill_timeout):
+            if process_with_pid_is_running(pid=child_pid):
+                logger.info("Child with PID %d is still up (retry %d)." % (child_pid, retry))
+                time.sleep(1)
+            else:
+                break
+
+        if process_with_pid_is_running(pid=child_pid):
+            logger.warn("SIGKILL didn't work child process with PID %d, sending SIGTERM..." % child_pid)
+
+            try:
+                os.kill(child_pid, signal.SIGTERM)
+            except OSError as e:
+                # Might be already killed
+                logger.warn("Unable to send SIGTERM to child PID %d: %s" % (child_pid, e.message))
+
+            time.sleep(3)
+
+        if process_with_pid_is_running(pid=child_pid):
+            logger.warn("Even SIGKILL didn't do anything, kill child process with PID %d manually!" % child_pid)
 
 
 def tcp_port_is_open(port, hostname="localhost"):

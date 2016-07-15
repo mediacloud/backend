@@ -11,6 +11,9 @@ MC_SOLR_HOME_DIR = "mediacloud/"
 # (relative to solr/; must already exist)
 MC_SOLR_BASE_DATA_DIR = "../data/solr/"
 
+# Seconds to wait for Solr to shutdown after SIGKILLing it; after the timeout, SIGTERM will be sent
+MC_SOLR_SIGKILL_TIMEOUT = 60
+
 # Solr port for running a standalone server
 MC_SOLR_STANDALONE_PORT = 8983
 
@@ -77,6 +80,9 @@ MC_ZOOKEEPER_DATA_DIR = "../data/solr-zookeeper/"
 
 # Seconds to wait for ZooKeeper to start
 MC_ZOOKEEPER_CONNECT_RETRIES = 2 * 60
+
+# Seconds to wait for ZooKeeper to shutdown after SIGKILLing it; after the timeout, SIGTERM will be sent
+MC_ZOOKEEPER_SIGKILL_TIMEOUT = 60
 
 
 # ---

@@ -1,6 +1,8 @@
 import atexit
 import urllib2
 
+import sys
+
 from mc_solr.constants import *
 from mc_solr.utils import *
 
@@ -247,7 +249,11 @@ def update_zookeeper_solr_configuration(zookeeper_host=MC_SOLR_CLUSTER_ZOOKEEPER
 def __kill_solr_process(signum=None, frame=None):
     """Pass SIGINT/SIGTERM to child Solr when exiting."""
     global __solr_pid
-    exit_after_killing_child_process(child_pid=__solr_pid, exit_signal=signum)
+    if __solr_pid is None:
+        logger.warn("Solr PID is unset, probably it wasn't started.")
+    else:
+        gracefully_kill_child_process(child_pid=__solr_pid, sigkill_timeout=MC_SOLR_SIGKILL_TIMEOUT)
+    sys.exit(signum or 0)
 
 
 def __run_solr(port,
