@@ -417,6 +417,10 @@ instanceDir=%(instance_dir)s
     global __solr_pid
     __solr_pid = process.pid
 
+    # Declare that we don't care about the exit code of the child process so
+    # it doesn't become a zombie when it gets killed in signal handler
+    signal.signal(signal.SIGCHLD, signal.SIG_IGN)
+
     signal.signal(signal.SIGTERM, __kill_solr_process)  # SIGTERM is handled differently for whatever reason
     atexit.register(__kill_solr_process)
 

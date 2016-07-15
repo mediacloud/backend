@@ -181,6 +181,10 @@ syncLimit=5
     global __zookeeper_pid
     __zookeeper_pid = process.pid
 
+    # Declare that we don't care about the exit code of the child process so
+    # it doesn't become a zombie when it gets killed in signal handler
+    signal.signal(signal.SIGCHLD, signal.SIG_IGN)
+
     signal.signal(signal.SIGTERM, __kill_zookeeper_process)  # SIGTERM is handled differently for whatever reason
     atexit.register(__kill_zookeeper_process)
 
