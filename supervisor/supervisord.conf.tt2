@@ -202,9 +202,10 @@ programs = rabbitmq
     default_nice=10
 %]
 
+[%- solr_standalone_jvm_heap_size = supervisor_solr.standalone.jvm_heap_size || "256m" %]
 [% INCLUDE program_config
     program='solr_standalone'
-    command="python ./solr/run_solr_standalone.py"
+    command="python ./solr/run_solr_standalone.py --jvm_heap_size $solr_standalone_jvm_heap_size"
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='true'
@@ -221,9 +222,11 @@ programs = rabbitmq
 [group:solr_cluster]
 programs=zookeeper, solr_shard
 
+[%- solr_cluster_zookeeper_listen = supervisor_solr.cluster.zookeeper.listen || "0.0.0.0" %]
+[%- solr_cluster_zookeeper_port = supervisor_solr.cluster.zookeeper.port || 9983 %]
 [% INCLUDE program_config
     program='zookeeper'
-    command="python ./solr/run_zookeeper.py"
+    command="python ./solr/run_zookeeper.py --listen $solr_cluster_zookeeper_listen --port $solr_cluster_zookeeper_port"
     default_stopasgroup='true'
     default_killasgroup='true'
     default_autorestart='true'
@@ -237,10 +240,13 @@ programs=zookeeper, solr_shard
     redirect_stderr='true'
 %]
 
-[%- solr_cluster_shard_count = supervisor.programs.solr_shard.numprocs || 1 %]
+[%- solr_cluster_shards_jvm_heap_size = supervisor_solr.cluster.shards.jvm_heap_size || "256m" %]
+[%- solr_cluster_shards_shard_count = supervisor_solr.cluster.shards.shard_count || 2 %]
+[%- solr_cluster_shards_zookeeper_host = supervisor_solr.cluster.shards.zookeeper_host || "localhost" %]
+[%- solr_cluster_shards_zookeeper_port = supervisor_solr.cluster.shards.zookeeper_port || 9983 %]
 [% INCLUDE program_config
     program='solr_shard'
-    command="python ./solr/run_solr_shard.py --shard_index %(process_num)d --shard_count $solr_cluster_shard_count"
+    command="python ./solr/run_solr_shard.py --shard_index %(process_num)d --shard_count $solr_cluster_shards_shard_count --zookeeper_host $solr_cluster_shards_zookeeper_host --zookeeper_port $solr_cluster_shards_zookeeper_port --jvm_heap_size $solr_cluster_shards_jvm_heap_size"
     default_stopasgroup='true'
     default_killasgroup='true'
     default_autorestart='true'

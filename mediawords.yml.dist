@@ -135,15 +135,45 @@ database:
         # Standalone Solr instance
         #solr_standalone
 
-        # Solr cluster: ZooKeeper
-        #zookeeper:
+        # Solr cluster: ZooKeeper instance
+        #zookeeper
 
         # Solr cluster: Solr shards
-        #solr_shard:
+        #solr_shard
 
-            # Number of shards to start
-            #numprocs: 2
+### Solr server, when running as a Supervisor service
+#supervisor_solr:
 
+    ### Standalone Solr instance
+    #standalone:
+
+        # JVM heap size (-Xmx)
+        #jvm_heap_size: "256m"
+
+    ### Solr cluster
+    #cluster:
+
+        ### ZooKeeper instance
+        #zookeeper:
+
+            ### Address to bind to
+            #listen: "0.0.0.0"
+
+            ### Port to listen to
+            #port: 9983
+
+        ### Solr shards
+        #shards:
+
+            # Number of shards to initialize + start
+            #shard_count: 2
+
+            # JVM heap size for a single shard (-Xmx)
+            #jvm_heap_size: "256m"
+
+            # ZooKeeper host + port to connect shards to
+            #zookeeper_host: "localhost"
+            #zookeeper_port: 9983
 
 ### CoreNLP annotator
 #corenlp:
