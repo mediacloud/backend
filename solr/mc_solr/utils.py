@@ -139,6 +139,20 @@ def process_with_pid_is_running(pid):
         return True
 
 
+def relative_symlink(source, link_name):
+    """Create symlink while also converting paths to relative ones by finding common prefix."""
+    source = os.path.abspath(source)
+    link_name = os.path.abspath(link_name)
+
+    if not os.path.exists(source):
+        raise Exception("Symlink source does not exist at path: %s" % source)
+
+    rel_source = os.path.relpath(source, os.path.dirname(link_name))
+
+    logger.debug("Creating relative symlink from '%s' to '%s'..." % (rel_source, link_name))
+    os.symlink(rel_source, link_name)
+
+
 def gracefully_kill_child_process(child_pid, sigkill_timeout=60):
     """Try to kill child process gracefully with SIGKILL, then abruptly with SIGTERM."""
     if child_pid is None:

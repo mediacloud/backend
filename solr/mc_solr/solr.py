@@ -307,7 +307,7 @@ def __run_solr(port,
             os.unlink(conf_symlink_dst_dir)
 
         logger.info("Symlinking '%s' to '%s'..." % (conf_symlink_src_dir, conf_symlink_dst_dir))
-        os.symlink(conf_symlink_src_dir, conf_symlink_dst_dir)
+        relative_symlink(conf_symlink_src_dir, conf_symlink_dst_dir)
 
         logger.info("Updating core.properties for collection '%s'..." % collection_name)
         core_properties_path = os.path.join(collection_dst_dir, "core.properties")
@@ -344,7 +344,7 @@ instanceDir=%(instance_dir)s
             os.unlink(config_item_dst_path)
 
         logger.info("Symlinking '%s' to '%s'..." % (config_item_src_path, config_item_dst_path))
-        os.symlink(config_item_src_path, config_item_dst_path)
+        relative_symlink(config_item_src_path, config_item_dst_path)
 
     logger.info("Symlinking libraries and JARs...")
     library_items_to_symlink = [
@@ -366,7 +366,7 @@ instanceDir=%(instance_dir)s
             os.unlink(library_item_dst_path)
 
         logger.info("Symlinking '%s' to '%s'..." % (library_item_src_path, library_item_dst_path))
-        os.symlink(library_item_src_path, library_item_dst_path)
+        relative_symlink(library_item_src_path, library_item_dst_path)
 
     jetty_home_dir = os.path.join(solr_path, "example")
     if not os.path.isdir(jetty_home_dir):
