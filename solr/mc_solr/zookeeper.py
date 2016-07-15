@@ -146,7 +146,7 @@ def run_zookeeper(dist_directory=MC_DIST_DIR,
         raise Exception("log4j.properties at '%s' was not found.")
 
     zoo_cnf_path = os.path.join(zookeeper_data_dir, "zoo.cfg")
-    logger.info("Creating zoo.cfg in '%s'" % zoo_cnf_path)
+    logger.info("Creating zoo.cfg in '%s'..." % zoo_cnf_path)
 
     with open(zoo_cnf_path, 'w') as zoo_cnf:
         zoo_cnf.write("""
