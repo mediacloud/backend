@@ -128,7 +128,9 @@ def run_zookeeper(dist_directory=MC_DIST_DIR,
     data_dir = resolve_absolute_path(name=data_dir, must_exist=True)
 
     zookeeper_data_dir = os.path.join(data_dir, "mediacloud-cluster-zookeeper")
-    mkdir_p(zookeeper_data_dir)
+    if not os.path.isdir(zookeeper_data_dir):
+        logger.info("Creating data directory at %s..." % zookeeper_data_dir)
+        mkdir_p(zookeeper_data_dir)
 
     if tcp_port_is_open(port=port):
         raise Exception("Port %d is already open on this machine." % port)
