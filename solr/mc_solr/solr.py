@@ -380,12 +380,12 @@ instanceDir=%(instance_dir)s
     if not os.path.isfile(start_jar_path):
         raise Exception("start.jar at '%s' was not found." % start_jar_path)
 
-    if tcp_port_is_open(port=port):
-        raise Exception("Port %d is already open on this machine." % port)
-
     solr_webapp_path = os.path.abspath(os.path.join(solr_path, "example", "solr-webapp"))
     if not os.path.isdir(solr_webapp_path):
         raise Exception("Solr webapp dir at '%s' was not found." % solr_webapp_path)
+
+    if tcp_port_is_open(port=port):
+        raise Exception("Port %d is already open on this machine." % port)
 
     logger.info("Starting Solr instance on port %d..." % port)
 
