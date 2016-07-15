@@ -209,7 +209,10 @@ programs = rabbitmq
     default_killasgroup='false'
     default_autorestart='true'
     default_autostart='false'
-    stopwaitsecs=20
+
+    # wait for Solr standalone instance to attempt a more graceful shutdown
+    stopwaitsecs=100
+
     default_nice=0
     skip_numprocs=1
 %]
@@ -226,7 +229,10 @@ programs=zookeeper, solr_shard
     default_autorestart='true'
     default_autostart='false'
     stopsignal='INT'
-    stopwaitsecs=60
+
+    # wait for ZooKeeper to attempt a more graceful shutdown
+    stopwaitsecs=100
+
     default_nice=0
     redirect_stderr='true'
 %]
@@ -240,7 +246,10 @@ programs=zookeeper, solr_shard
     default_autorestart='true'
     default_autostart='false'
     stopsignal='INT'
-    stopwaitsecs=60
+
+    # wait for Solr shard to attempt a more graceful shutdown
+    stopwaitsecs=100
+
     default_nice=0
     redirect_stderr='true'
 %]
