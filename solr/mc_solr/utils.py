@@ -9,6 +9,10 @@ import subprocess
 
 import time
 
+import signal
+
+import sys
+
 
 def create_logger(name):
     """Create and return 'logging' instance."""
@@ -125,6 +129,29 @@ def extract_zip_to_directory(archive_file, dest_directory):
             "-d", dest_directory]
 
     subprocess.check_call(args)
+
+
+def exit_after_killing_child_process(child_pid=None, exit_signal=None):
+    """Try to kill child process and exit the program."""
+    if child_pid is not None:
+        logger.info("Trying to terminate child PID %d..." % child_pid)
+
+        # When ZooKeeper goes away first, Solr shard waits around for about
+        # a minute for it to come back even if it just got SIGINT / SIGKILL
+        # and thus initiated a graceful shutdown. So, just kill the shard
+        # with SIGTERM.
+        child_signal = signal.SIGKILL
+
+        try:
+            os.kill(child_pid, child_signal)
+        except OSError as e:
+            logger.info("Unable to pass signal %d to child PID %d; maybe it's already killed? Exception: %s" % (
+                child_signal,
+                child_pid,
+                e.message
+            ))
+
+    sys.exit(exit_signal or 0)
 
 
 def tcp_port_is_open(port, hostname="localhost"):

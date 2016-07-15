@@ -1,6 +1,4 @@
 import atexit
-import signal
-import sys
 import urllib2
 
 from mc_solr.constants import *
@@ -249,23 +247,7 @@ def update_zookeeper_solr_configuration(zookeeper_host=MC_SOLR_CLUSTER_ZOOKEEPER
 def __kill_solr_process(signum=None, frame=None):
     """Pass SIGINT/SIGTERM to child Solr when exiting."""
     global __solr_pid
-    if __solr_pid is not None:
-        print("Trying to terminate Solr at PID %d..." % __solr_pid)
-        try:
-            # When ZooKeeper goes away first, Solr shard waits around for about
-            # a minute for it to come back even if it just got SIGINT / SIGKILL
-            # and thus initiated a graceful shutdown. So, just kill the shard
-            # with SIGTERM.
-            kill_signal = signal.SIGKILL
-
-            os.kill(__solr_pid, kill_signal)
-        except OSError as e:
-            logger.info("Unable to pass signal %d to Solr; maybe it's already killed? Exception: %s", signum, e.message)
-
-    if signum is not None:
-        sys.exit(signum)
-    else:
-        sys.exit()
+    exit_after_killing_child_process(child_pid=__solr_pid, exit_signal=signum)
 
 
 def __run_solr(port,

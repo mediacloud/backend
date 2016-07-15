@@ -1,9 +1,5 @@
 import atexit
 
-import signal
-
-import sys
-
 import mc_solr.solr
 from mc_solr.constants import *
 from mc_solr.utils import *
@@ -109,18 +105,7 @@ def __install_zookeeper(dist_directory=MC_DIST_DIR, zookeeper_version=MC_ZOOKEEP
 def __kill_zookeeper_process(signum=None, frame=None):
     """Pass SIGINT/SIGTERM to child ZooKeeper when exiting."""
     global __zookeeper_pid
-    if __zookeeper_pid is not None:
-        print("Trying to terminate ZooKeeper at PID %d..." % __zookeeper_pid)
-        try:
-            os.kill(__zookeeper_pid, signal.SIGTERM)
-        except OSError as e:
-            logger.info("Unable to pass signal %d to ZooKeeper; maybe it's already killed? Exception: %s", signum,
-                        e.message)
-
-    if signum is not None:
-        sys.exit(signum)
-    else:
-        sys.exit()
+    exit_after_killing_child_process(child_pid=__zookeeper_pid, exit_signal=signum)
 
 
 def run_zookeeper(dist_directory=MC_DIST_DIR,
