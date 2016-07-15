@@ -168,8 +168,8 @@ syncLimit=5
     ]
 
     logger.info("Starting ZooKeeper on %s:%d..." % (listen, port))
-    logger.debug("Running command: %s" % ' '.join(args))
-    logger.debug("Environment variables: %s" % ' '.join(zookeeper_env))
+    logger.debug("Running command: %s" % str(args))
+    logger.debug("Environment variables: %s" % str(zookeeper_env))
 
     process = subprocess.Popen(args, env=zookeeper_env)
 
