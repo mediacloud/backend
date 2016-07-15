@@ -117,7 +117,7 @@ def __kill_zookeeper_process(signum=None, frame=None):
 def run_zookeeper(dist_directory=MC_DIST_DIR,
                   listen=MC_ZOOKEEPER_LISTEN,
                   port=MC_ZOOKEEPER_PORT,
-                  data_dir=MC_ZOOKEEPER_DATA_DIR,
+                  data_dir=MC_SOLR_BASE_DATA_DIR,
                   zookeeper_version=MC_ZOOKEEPER_VERSION,
                   solr_version=MC_SOLR_VERSION):
     """Run ZooKeeper, install if needed too."""
@@ -126,6 +126,9 @@ def run_zookeeper(dist_directory=MC_DIST_DIR,
         __install_zookeeper()
 
     data_dir = resolve_absolute_path(name=data_dir, must_exist=True)
+
+    zookeeper_data_dir = os.path.join(data_dir, "mediacloud-cluster-zookeeper")
+    mkdir_p(zookeeper_data_dir)
 
     if tcp_port_is_open(port=port):
         raise Exception("Port %d is already open on this machine." % port)
@@ -140,7 +143,7 @@ def run_zookeeper(dist_directory=MC_DIST_DIR,
     if not os.path.isfile(log4j_properties_path):
         raise Exception("log4j.properties at '%s' was not found.")
 
-    zoo_cnf_path = os.path.join(data_dir, "zoo.cfg")
+    zoo_cnf_path = os.path.join(zookeeper_data_dir, "zoo.cfg")
     logger.info("Creating zoo.cfg in '%s'" % zoo_cnf_path)
 
     with open(zoo_cnf_path, 'w') as zoo_cnf:
@@ -159,13 +162,13 @@ syncLimit=5
             """ % {
             "listen": listen,
             "port": port,
-            "data_dir": data_dir,
+            "data_dir": zookeeper_data_dir,
         })
 
     zookeeper_env = os.environ.copy()
-    zookeeper_env["ZOOCFGDIR"] = data_dir  # Serves as configuration dir too
+    zookeeper_env["ZOOCFGDIR"] = zookeeper_data_dir  # Serves as configuration dir too
     zookeeper_env["ZOOCFG"] = "zoo.cfg"
-    zookeeper_env["ZOO_LOG_DIR"] = data_dir
+    zookeeper_env["ZOO_LOG_DIR"] = zookeeper_data_dir
     zookeeper_env["SERVER_JVMFLAGS"] = "-Dlog4j.configuration=file://" + os.path.abspath(log4j_properties_path)
 
     args = [

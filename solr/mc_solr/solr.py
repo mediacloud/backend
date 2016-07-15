@@ -152,7 +152,7 @@ def __shard_name(shard_num):
     """Return shard name."""
     if shard_num < 1:
         raise Exception("Shard number must be 1 or greater.")
-    return "mediacloud-shard-%d" % shard_num
+    return "mediacloud-cluster-shard-%d" % shard_num
 
 
 def __shard_port(shard_num, starting_port=MC_SOLR_CLUSTER_STARTING_PORT):

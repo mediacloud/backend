@@ -7,8 +7,8 @@ MC_SOLR_LUCENEMATCHVERSION = "LUCENE_46"
 # Solr home directory (solr.home; relative to solr/; must already exist)
 MC_SOLR_HOME_DIR = "mediacloud/"
 
-# Solr base data directory under which both cluster and non-cluster data will be stored
-# (relative to solr/; must already exist)
+# Base data directory under which both cluster (Solr and ZooKeeper) and non-cluster
+# (only Solr) data will be stored (relative to solr/; must already exist)
 MC_SOLR_BASE_DATA_DIR = "../data/solr/"
 
 # Seconds to wait for Solr to shutdown after SIGKILLing it; after the timeout, SIGTERM will be sent
@@ -75,15 +75,11 @@ MC_ZOOKEEPER_LISTEN = "0.0.0.0"
 # Default ZooKeeper port to listen to
 MC_ZOOKEEPER_PORT = MC_SOLR_CLUSTER_ZOOKEEPER_PORT
 
-# ZooKeeper data directory (relative to solr/; must already exist)
-MC_ZOOKEEPER_DATA_DIR = "../data/solr-zookeeper/"
-
 # Seconds to wait for ZooKeeper to start
 MC_ZOOKEEPER_CONNECT_RETRIES = 2 * 60
 
 # Seconds to wait for ZooKeeper to shutdown after SIGKILLing it; after the timeout, SIGTERM will be sent
 MC_ZOOKEEPER_SIGKILL_TIMEOUT = 60
-
 
 # ---
 
