@@ -40,7 +40,7 @@ sub run($;$)
     my ( $self, $args ) = @_;
 
     # Postpone connecting to the database so that compile test doesn't do that
-    $db ||= MediaWords::DB::connect_to_db();
+    my $db = MediaWords::DB::connect_to_db();
 
     my $stories_id = $args->{ stories_id } or die "'stories_id' is not set.";
 
