@@ -22,7 +22,7 @@ alter index controversies_name rename to topics_name;
 alter index controversies_tag_set rename to topics_tag_set;
 alter index controversies_media_type_tag_set rename to topics_media_type_tag_set;
 
-drop trigger controversy_tag_set on controversies;
+drop trigger controversy_tag_set on topics;
 drop function insert_controversy_tag_set();
 
 create function insert_topic_tag_set() returns trigger as $insert_topic_tag_set$
@@ -292,8 +292,6 @@ create or replace function update_live_story() returns trigger as $update_live_s
 $update_live_story$ LANGUAGE plpgsql;
 
 update feeds set name = 'Spider Feed' where name = 'Controversy Spider Feed';
-
-alter table topics drop column has_been_dumped;
 
 --
 -- 2 of 2. Reset the database version.
