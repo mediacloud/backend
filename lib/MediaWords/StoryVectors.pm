@@ -155,6 +155,11 @@ SQL
         duplicate_sentences AS (
             -- Either a list of duplicate sentences already found in the table
             -- or an empty list if deduplication is disabled
+            --
+            -- The query assumes that there are no existing sentences for this
+            -- story in the "story_sentences" table, so if you are reextracting
+            -- a story, DELETE its sentences from "story_sentences" before
+            -- running this query.
             $dedup_sentences_statement
         )
         INSERT INTO story_sentences ($str_story_sentences_columns)
