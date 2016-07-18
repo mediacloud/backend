@@ -2571,9 +2571,9 @@ sub import_solr_seed_query
 
     my $max_stories = MediaWords::Util::Config::get_config->{ mediawords }->{ max_solr_seed_query_stories } || 250000;
 
-    INFO( sub { "executing solr query: $controversy->{ solr_seed_query }" } );
+    INFO( sub { "executing solr query: $topic->{ solr_seed_query }" } );
     my $stories =
-      MediaWords::Solr::search_for_stories( $db, { q => $controversy->{ solr_seed_query }, rows => $max_stories } );
+      MediaWords::Solr::search_for_stories( $db, { q => $topic->{ solr_seed_query }, rows => $max_stories } );
 
     INFO( sub { "adding " . scalar( @{ $stories } ) . " stories to topic_seed_urls" } );
 
