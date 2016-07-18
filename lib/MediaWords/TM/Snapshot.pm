@@ -1280,7 +1280,7 @@ sub generate_timespan ($$$$$$)
 
     DEBUG( "generating $snapshot_label ..." );
 
-    _update_snapshot_state( $db, $cd, "snapshoting $snapshot_label" );
+    _update_snapshot_state( $db, $cd, "snapshotting $snapshot_label" );
 
     my $all_models_top_media = MediaWords::TM::Model::get_all_models_top_media( $db, $timespan );
 

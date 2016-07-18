@@ -2,19 +2,19 @@ Snapshots
 =================
 
 topic analysis is based around the idea of a snapshot.  Snapshots store static, snapshotted data about all database
-entities related to a topic.  Snapshoting a topic also generates analytical data, like link counts, that are
-specific to both all stories within the topic and to specific date ranges within the topic.  The snapshoting
+entities related to a topic.  Snapshotting a topic also generates analytical data, like link counts, that are
+specific to both all stories within the topic and to specific date ranges within the topic.  The snapshotting
 framework also allows access to 'live' virtual snapshots that use the same database structure but do the date range specific
 analytical work on the live topic data.
 
 The notion of snapshots evolved from the earliest version of topic, in which we did not have a web interface, but
 instead just snapshoted a set of csv files each time we wanted to start analysis of a topic.  The main purpose of the
-current snapshoting system is to generate a snapshot of the topic at the time of the snapshot, so that researchers can
+current snapshotting system is to generate a snapshot of the topic at the time of the snapshot, so that researchers can
 work off of a consistent set of data while others might be cleaning the topic data and so that publications can
 refer back to a static set of data that will not ever change.
 
 Snapshot data is organized around the snapshots and timespans tables.  A topic
-snapshot represents a single run of the snapshoting process.  A snapshot timespan represents a date range for analysis
+snapshot represents a single run of the snapshotting process.  A snapshot timespan represents a date range for analysis
 within a snapshot.  So each time we run a snapshot, we generate a single row in the snapshots table and multiple rows in
 the timespans table (one for each date range set for analysis in the topic and all pointing
 to the single snapshot row).  
