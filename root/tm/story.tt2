@@ -1,4 +1,4 @@
-[% PROCESS cm/header.tt2 title="Story '$story.title'" %]
+[% PROCESS tm/header.tt2 title="Story '$story.title'" %]
 
 <script type="text/javascript">
 $(document).ready(function () {
@@ -31,8 +31,8 @@ $(document).ready(function () {
 <div id="confirmDialog">
     <p>
         Are you sure you want to remove the story from the [% topic.name | html %] topic?
-        After removal, the story will still appear in existing dumps, but it will not be in live views
-        or new dumps of the topic.
+        After removal, the story will still appear in existing snapshots, but it will not be in live views
+        or new snapshots of the topic.
     </p>
     <p>
         <label for="cm_remove_story_from_topic_reason">Reason:</label>
@@ -51,7 +51,7 @@ You are viewing the live story, as it currently exists in the database.
 [% ELSE %]
 
 This page is displaying a frozen snapshot of the [% story.title | html %] story, as it existed in the [% timespan_date_range |
-html %] [% timespan.period | html %] timespan from the [% datetime.format( snapshot.snapshot_date ) %] dump of the [%
+html %] [% timespan.period | html %] timespan from the [% datetime.format( snapshot.snapshot_date ) %] snapshot of the [%
 topic.name %] topic.  Because this data is a frozen snapshot, edits to this story will not appear on this
 page, and changes made since the snapshot will not be visible.
 [% END %]
@@ -59,9 +59,9 @@ page, and changes made since the snapshot will not be visible.
 
 </div>
 
-[% medium_url = c.uri_for( "/admin/cm/medium/$story.media_id", { timespan => timespan.timespans_id, l => live } ) %]
-[% remove_story_url = c.uri_for( "/admin/cm/remove_stories", { stories_ids => story.stories_id, timespan => timespan.timespans_id, l => live } ) %]
-[% merge_story_url = c.uri_for( "/admin/cm/merge_stories/$story.stories_id", { timespan => timespan.timespans_id } ) %]
+[% medium_url = c.uri_for( "/admin/tm/medium/$story.media_id", { timespan => timespan.timespans_id, l => live } ) %]
+[% remove_story_url = c.uri_for( "/admin/tm/remove_stories", { stories_ids => story.stories_id, timespan => timespan.timespans_id, l => live } ) %]
+[% merge_story_url = c.uri_for( "/admin/tm/merge_stories/$story.stories_id", { timespan => timespan.timespans_id } ) %]
 [% edit_story_url = c.uri_for( "/admin/stories/edit/$story.stories_id" ) %]
 
 <div class="boxtitle">
@@ -118,14 +118,14 @@ page, and changes made since the snapshot will not be visible.
 
 </table>
 
-[% INCLUDE cm/stories_table.tt2
+[% INCLUDE tm/stories_table.tt2
     display_stories = story.inlink_stories
     display_stories_short_title = topic.name _ " Stories Linking to this Story"
     display_stories_full_title = topic.name _ " Stories Linking to Story " _ story.title
     display_stories_id = 'inlink_stories'
     display_stories_solr_query = "{~ timespan:${timespan.timespans_id} link_to_story:${story.stories_id} }" %]
 
-[% INCLUDE cm/stories_table.tt2
+[% INCLUDE tm/stories_table.tt2
     display_stories = story.outlink_stories
     display_stories_short_title = topic.name _ " Stories Linked from this Story"
     display_stories_full_title = topic.name _ " Stories Linked from Story '" _ story.title _ "'"

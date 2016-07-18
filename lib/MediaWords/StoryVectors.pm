@@ -176,7 +176,7 @@ EOF
         $media_id
     );
 
-    DEBUG "Running sentence insertion + deduplication query:\n$sql";
+    TRACE "Running sentence insertion + deduplication query:\n$sql";
 
     # Insert sentences
     my $inserted_sentences = $db->query( $sql )->flat();

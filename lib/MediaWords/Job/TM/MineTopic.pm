@@ -1,4 +1,4 @@
-package MediaWords::Job::CM::MineTopic;
+package MediaWords::Job::TM::MineTopic;
 
 #
 # Run through stories found for the given topic and find all the links in
@@ -18,7 +18,7 @@ package MediaWords::Job::CM::MineTopic;
 #
 # Start this worker script by running:
 #
-# ./script/run_with_carton.sh local/bin/mjm_worker.pl lib/MediaWords/Job/CM/Minetopic.pm
+# ./script/run_with_carton.sh local/bin/mjm_worker.pl lib/MediaWords/Job/TM/Minetopic.pm
 #
 
 use strict;
@@ -38,7 +38,7 @@ BEGIN
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use MediaWords::CM::Mine;
+use MediaWords::TM::Mine;
 use MediaWords::DB;
 
 # Having a global database object should be safe because
@@ -77,7 +77,7 @@ sub run($;$)
         skip_post_processing            => $skip_post_processing
     };
 
-    MediaWords::CM::Mine::mine_topic( $db, $topic, $options );
+    MediaWords::TM::Mine::mine_topic( $db, $topic, $options );
 
 }
 

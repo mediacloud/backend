@@ -23,8 +23,8 @@ use Readonly;
 Readonly my $TIMESTAMP_12_00_GMT => 1326801600;    # Tue, 17 Jan 2012 12:00:00 GMT (UTC); for dates without time / timezone
 Readonly my $TIMESTAMP_12_00_EST => 1326819600;    # Tue, 17 Jan 2012 12:00:00 EST (-05:00)
 
-BEGIN { use_ok 'MediaWords::CM::GuessDate' }
-BEGIN { use_ok 'MediaWords::CM::GuessDate::Result' }
+BEGIN { use_ok 'MediaWords::TM::GuessDate' }
+BEGIN { use_ok 'MediaWords::TM::GuessDate::Result' }
 BEGIN { use_ok 'Date::Parse' }
 BEGIN { use_ok 'LWP::Simple' }
 BEGIN { use_ok 'LWP::Protocol::https' }
@@ -37,7 +37,7 @@ sub _gr($$;$$)
     $story_publish_date ||= 'unknown';
     my $story = { url => $story_url, publish_date => $story_publish_date };
 
-    return MediaWords::CM::GuessDate::guess_date( $db, $story, $html );
+    return MediaWords::TM::GuessDate::guess_date( $db, $story, $html );
 }
 
 # Returns timestamp of the page or undef
@@ -46,7 +46,7 @@ sub _gt($$;$$)
     my ( $db, $html, $story_url, $story_publish_date ) = @_;
 
     my $result = _gr( $db, $html, $story_url, $story_publish_date );
-    if ( $result->{ result } eq $MediaWords::CM::GuessDate::Result::FOUND )
+    if ( $result->{ result } eq $MediaWords::TM::GuessDate::Result::FOUND )
     {
         return $result->{ timestamp };
     }
@@ -77,7 +77,7 @@ sub _ts_from_html($)
 {
     my $html = shift;
 
-    return MediaWords::CM::GuessDate::timestamp_from_html( $html );
+    return MediaWords::TM::GuessDate::timestamp_from_html( $html );
 }
 
 # Shortcut for making UNIX timestamps out of RFC 822 dates
@@ -227,63 +227,63 @@ sub test_inapplicable($)
 
     is(
         _gr_url( $db, 'http://www.easyvoterguide.org/propositions/' )->{ result },
-        $MediaWords::CM::GuessDate::Result::INAPPLICABLE,
+        $MediaWords::TM::GuessDate::Result::INAPPLICABLE,
         'inapplicable: no digits in URL'
     );
     is(
         _gr_url( $db, 'http://www.calchannel.com/proposition-36-three-strikes-law/' )->{ result },
-        $MediaWords::CM::GuessDate::Result::INAPPLICABLE,
+        $MediaWords::TM::GuessDate::Result::INAPPLICABLE,
         'inapplicable: 404 Not Found'
     );
     is(
         _gr_url( $db, 'http://www.15min.lt/////' )->{ result },
-        $MediaWords::CM::GuessDate::Result::INAPPLICABLE,
+        $MediaWords::TM::GuessDate::Result::INAPPLICABLE,
         'inapplicable: no path in URL'
     );
     is(
         _gr_url( $db, 'http://en.wikipedia.org/wiki/1980s_in_fashion' )->{ result },
-        $MediaWords::CM::GuessDate::Result::INAPPLICABLE,
+        $MediaWords::TM::GuessDate::Result::INAPPLICABLE,
         'inapplicable: Wikipedia URL'
     );
     is(
         _gr_url( $db, 'https://www.phpbb.com/community/viewforum.php?f=14' )->{ result },
-        $MediaWords::CM::GuessDate::Result::INAPPLICABLE,
+        $MediaWords::TM::GuessDate::Result::INAPPLICABLE,
         'inapplicable: phpBB forum'
     );
     is(
         _gr_url( $db, 'https://twitter.com/ladygaga' )->{ result },
-        $MediaWords::CM::GuessDate::Result::INAPPLICABLE,
+        $MediaWords::TM::GuessDate::Result::INAPPLICABLE,
         'inapplicable: Twitter user URL'
     );
     is(
         _gr_url( $db,
 'https://www.facebook.com/notes/facebook-engineering/adding-face-to-every-ip-celebrating-ipv6s-one-year-anniversary/10151492544578920'
           )->{ result },
-        $MediaWords::CM::GuessDate::Result::INAPPLICABLE,
+        $MediaWords::TM::GuessDate::Result::INAPPLICABLE,
         'inapplicable: Facebook URL'
     );
     is(
         _gr_url( $db, 'http://vimeo.com/blog/archive/year:2013' )->{ result },
-        $MediaWords::CM::GuessDate::Result::INAPPLICABLE,
+        $MediaWords::TM::GuessDate::Result::INAPPLICABLE,
         'inapplicable: looks like URL of archive'
     );
     is(
         _gr_url( $db,
             'http://www.timesunion.com/news/crime/article/3-strikes-law-reformed-fewer-harsh-sentences-4013514.php' )
           ->{ result },
-        $MediaWords::CM::GuessDate::Result::INAPPLICABLE,
+        $MediaWords::TM::GuessDate::Result::INAPPLICABLE,
         'inapplicable: timesunion.com HTTP 404 Not Found'
     );
     is(
         _gr_url( $db,
             'http://www.seattlepi.com/news/crime/article/ACLU-challenges-human-trafficking-initiative-4018819.php' )
           ->{ result },
-        $MediaWords::CM::GuessDate::Result::INAPPLICABLE,
+        $MediaWords::TM::GuessDate::Result::INAPPLICABLE,
         'inapplicable: seattlepi.com HTTP 404 Not Found'
     );
     is(
         _gr_url( $db, 'http://www.kgoam810.com/Article.asp?id=2569360&spid=' )->{ result },
-        $MediaWords::CM::GuessDate::Result::INAPPLICABLE,
+        $MediaWords::TM::GuessDate::Result::INAPPLICABLE,
         'inapplicable: kgoam810.com HTTP access denied'
     );
 }

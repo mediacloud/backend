@@ -13,7 +13,7 @@ BEGIN
 
 use Data::Dumper;
 
-use MediaWords::CM::Dump;
+use MediaWords::TM::Snapshot;
 use MediaWords::DB;
 
 sub main
@@ -30,7 +30,7 @@ sub main
     my $timespan = $db->find_by_id( "timespans", $timespans_id )
       || die( "Unknown timespan: '$timespans_id'" );
 
-    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $timespan );
+    MediaWords::TM::Snapshot::setup_temporary_snapshot_tables( $db, $timespan );
 
     print $db->query( $query )->text( 'neat' );
 }

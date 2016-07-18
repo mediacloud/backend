@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 # dedup stories in a given topic.  should only have to be run on a topic if the deduping
-# code in CM::Mine has changed.
+# code in TM::Mine has changed.
 
 use strict;
 use warnings;
@@ -16,9 +16,9 @@ use MediaWords::CommonLibs;
 
 use Getopt::Long;
 
-use MediaWords::CM::Mine;
+use MediaWords::TM::Mine;
 use MediaWords::DB;
-use MediaWords::CM;
+use MediaWords::TM;
 use MediaWords::Util::Web;
 
 sub main
@@ -37,7 +37,7 @@ sub main
 
     my $db = MediaWords::DB::connect_to_db;
 
-    my $topics = MediaWords::CM::require_topics_by_opt( $db, $topic_opt );
+    my $topics = MediaWords::TM::require_topics_by_opt( $db, $topic_opt );
 
     for my $topic ( @{ $topics } )
     {
@@ -52,7 +52,8 @@ sub main
             say STDERR "media_id $media_id";
 
             my $archive_stories =
-              $db->query( "SELECT * from cd.live_stories where media_id in ( ? ) order by stories_id", $media_id )->hashes();
+              $db->query( "SELECT * from snap.live_stories where media_id in ( ? ) order by stories_id", $media_id )
+              ->hashes();
 
             #say Dumper( $archive_stories );
 
@@ -69,7 +70,7 @@ sub main
                     next;
                 }
                 say "Archive: $archive_story->{ url }, Original $original_url ";
-                my $medium = MediaWords::CM::Mine::get_spider_medium( $db, $original_url );
+                my $medium = MediaWords::TM::Mine::get_spider_medium( $db, $original_url );
 
                 #say Dumper ( $medium );
 
@@ -78,7 +79,7 @@ sub main
                 say STDERR "setting media_id for story $archive_story->{ stories_id } to $medium->{ media_id } ";
 
                 $db->query(
-                    " UPDATE cd.live_stories set media_id = ? where stories_id = ? ",
+                    " UPDATE snap.live_stories set media_id = ? where stories_id = ? ",
                     $medium->{ media_id },
                     $archive_story->{ stories_id }
                 );

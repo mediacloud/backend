@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-# test MediaWords::CM::Mine::get_matching_story_from_db
+# test MediaWords::TM::Mine::get_matching_story_from_db
 
 BEGIN
 {
@@ -21,7 +21,7 @@ BEGIN
 {
     use_ok( 'MediaWords::DB' );
     use_ok( 'MediaWords::Test::DB' );
-    use_ok( 'MediaWords::CM::Mine' );
+    use_ok( 'MediaWords::TM::Mine' );
 }
 
 sub test_match
@@ -30,7 +30,7 @@ sub test_match
 
     my $link = { url => $url, redirect_url => $redirect_url };
 
-    my $got_story = MediaWords::CM::Mine::get_matching_story_from_db( $db, $link );
+    my $got_story = MediaWords::TM::Mine::get_matching_story_from_db( $db, $link );
 
     is( $got_story->{ stories_id }, $expected_story->{ stories_id }, $description );
 }

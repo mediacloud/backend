@@ -16,7 +16,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 use MediaWords::DB;
 use MediaWords::Util::Bitly;
-use MediaWords::CM;
+use MediaWords::TM;
 use MediaWords::Job::Bitly::AggregateStoryStats;
 
 use Getopt::Long;
@@ -43,7 +43,7 @@ EOF
         die "Bit.ly processing is not enabled.";
     }
 
-    my $topics = MediaWords::CM::require_topics_by_opt( $db, $topic_opt );
+    my $topics = MediaWords::TM::require_topics_by_opt( $db, $topic_opt );
 
     for my $topic ( @{ $topics } )
     {

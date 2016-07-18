@@ -1232,13 +1232,13 @@ create table topic_dates (
 
 create view topics_with_dates as
     select c.*,
-            to_char( cd.start_date, 'YYYY-MM-DD' ) start_date,
-            to_char( cd.end_date, 'YYYY-MM-DD' ) end_date
+            to_char( td.start_date, 'YYYY-MM-DD' ) start_date,
+            to_char( td.end_date, 'YYYY-MM-DD' ) end_date
         from
             topics c
-            join topic_dates cd on ( c.topics_id = cd.topics_id )
+            join topic_dates td on ( c.topics_id = td.topics_id )
         where
-            cd.boundary;
+            td.boundary;
 
 create table snapshot_tags (
     snapshot_tags_id    serial primary key,
@@ -1375,7 +1375,7 @@ create table snapshots (
 
 create index snapshots_topic on snapshots ( topics_id );
 
-create type cd_period_type AS ENUM ( 'overall', 'weekly', 'monthly', 'custom' );
+create type snap_period_type AS ENUM ( 'overall', 'weekly', 'monthly', 'custom' );
 
 -- individual timespans within a snapshot
 create table timespans (
@@ -1384,7 +1384,7 @@ create table timespans (
     foci_id     int null references foci on delete set null,
     start_date                      timestamp not null,
     end_date                        timestamp not null,
-    period                          cd_period_type not null,
+    period                          snap_period_type not null,
     model_r2_mean                   float,
     model_r2_stddev                 float,
     model_num_media                 int,
@@ -1393,13 +1393,13 @@ create table timespans (
     medium_count                    int not null,
     medium_link_count               int not null,
 
-    -- is this just a shell timespan with no data actual dumped into it?
-    -- we use shell timespans to display foci on live data with having to make a real dump first
+    -- is this just a shell timespan with no data actual snapshoted into it?
+    -- we use shell timespans to display foci on live data with having to make a real snapshot first
     is_shell                        boolean not null default false,
     tags_id                         int references tags -- keep on cascade to avoid accidental deletion
 );
 
-create index timespans_dump on timespans ( snapshots_id );
+create index timespans_snapshot on timespans ( snapshots_id );
 
 create table timespan_files (
     timespan_files_id                   serial primary key,
@@ -1410,21 +1410,21 @@ create table timespan_files (
 
 create index timespan_files_timespan on timespan_files ( timespans_id );
 
-create table cd_files (
-    cd_files_id                     serial primary key,
+create table snap_files (
+    snap_files_id                     serial primary key,
     snapshots_id            int not null references snapshots on delete cascade,
     file_name                       text,
     file_content                    text
 );
 
-create index cd_files_cd on cd_files ( snapshots_id );
+create index snap_files_cd on snap_files ( snapshots_id );
 
 -- schema to hold the various snapshot snapshot tables
-create schema cd;
+create schema snap;
 
 -- create a table for each of these tables to hold a snapshot of stories relevant
--- to a topic for each dump for that topic
-create table cd.stories (
+-- to a topic for each snapshot for that topic
+create table snap.stories (
     snapshots_id        int             not null references snapshots on delete cascade,
     stories_id                  int,
     media_id                    int             not null,
@@ -1436,7 +1436,7 @@ create table cd.stories (
     full_text_rss               boolean         not null default 'f',
     language                    varchar(3)      null   -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
 );
-create index stories_id on cd.stories ( snapshots_id, stories_id );
+create index stories_id on snap.stories ( snapshots_id, stories_id );
 
 -- stats for various externally dervied statistics about a story.  keeping this separate for now
 -- from the bitly stats for simplicity sake during implementatino and testing
@@ -1773,7 +1773,7 @@ $$
 LANGUAGE plpgsql;
 
 
-create table cd.topic_stories (
+create table snap.topic_stories (
     snapshots_id            int not null references snapshots on delete cascade,
     topic_stories_id          int,
     topics_id                int not null,
@@ -1784,9 +1784,9 @@ create table cd.topic_stories (
     redirect_url                    text,
     valid_foreign_rss_story         boolean
 );
-create index topic_stories_id on cd.topic_stories ( snapshots_id, stories_id );
+create index topic_stories_id on snap.topic_stories ( snapshots_id, stories_id );
 
-create table cd.topic_links_cross_media (
+create table snap.topic_links_cross_media (
     snapshots_id        int not null references snapshots on delete cascade,
     topic_links_id        int,
     topics_id            int not null,
@@ -1794,19 +1794,19 @@ create table cd.topic_links_cross_media (
     url                         text not null,
     ref_stories_id              int
 );
-create index topic_links_story on cd.topic_links_cross_media ( snapshots_id, stories_id );
-create index topic_links_ref on cd.topic_links_cross_media ( snapshots_id, ref_stories_id );
+create index topic_links_story on snap.topic_links_cross_media ( snapshots_id, stories_id );
+create index topic_links_ref on snap.topic_links_cross_media ( snapshots_id, ref_stories_id );
 
-create table cd.topic_media_codes (
+create table snap.topic_media_codes (
     snapshots_id    int not null references snapshots on delete cascade,
     topics_id        int not null,
     media_id                int not null,
     code_type               text,
     code                    text
 );
-create index topic_media_codes_medium on cd.topic_media_codes ( snapshots_id, media_id );
+create index topic_media_codes_medium on snap.topic_media_codes ( snapshots_id, media_id );
 
-create table cd.media (
+create table snap.media (
     snapshots_id    int not null references snapshots on delete cascade,
     media_id                int,
     url                     varchar(1024)   not null,
@@ -1821,28 +1821,28 @@ create table cd.media (
     use_pager               boolean         null,
     unpaged_stories         int             not null default 0
 );
-create index media_id on cd.media ( snapshots_id, media_id );
+create index media_id on snap.media ( snapshots_id, media_id );
 
-create table cd.media_tags_map (
+create table snap.media_tags_map (
     snapshots_id    int not null    references snapshots on delete cascade,
     media_tags_map_id       int,
     media_id                int             not null,
     tags_id                 int             not null
 );
-create index media_tags_map_medium on cd.media_tags_map ( snapshots_id, media_id );
-create index media_tags_map_tag on cd.media_tags_map ( snapshots_id, tags_id );
+create index media_tags_map_medium on snap.media_tags_map ( snapshots_id, media_id );
+create index media_tags_map_tag on snap.media_tags_map ( snapshots_id, tags_id );
 
-create table cd.stories_tags_map
+create table snap.stories_tags_map
 (
     snapshots_id    int not null    references snapshots on delete cascade,
     stories_tags_map_id     int,
     stories_id              int,
     tags_id                 int
 );
-create index stories_tags_map_story on cd.stories_tags_map ( snapshots_id, stories_id );
-create index stories_tags_map_tag on cd.stories_tags_map ( snapshots_id, tags_id );
+create index stories_tags_map_story on snap.stories_tags_map ( snapshots_id, stories_id );
+create index stories_tags_map_tag on snap.stories_tags_map ( snapshots_id, tags_id );
 
-create table cd.tags (
+create table snap.tags (
     snapshots_id    int not null    references snapshots on delete cascade,
     tags_id                 int,
     tag_sets_id             int,
@@ -1850,19 +1850,19 @@ create table cd.tags (
     label                   text,
     description             text
 );
-create index tags_id on cd.tags ( snapshots_id, tags_id );
+create index tags_id on snap.tags ( snapshots_id, tags_id );
 
-create table cd.tag_sets (
+create table snap.tag_sets (
     snapshots_id    int not null    references snapshots on delete cascade,
     tag_sets_id             int,
     name                    varchar(512),
     label                   text,
     description             text
 );
-create index tag_sets_id on cd.tag_sets ( snapshots_id, tag_sets_id );
+create index tag_sets_id on snap.tag_sets ( snapshots_id, tag_sets_id );
 
 -- story -> story links within a timespan
-create table cd.story_links (
+create table snap.story_links (
     timespans_id         int not null
                                             references timespans on delete cascade,
     source_stories_id                       int not null,
@@ -1870,11 +1870,11 @@ create table cd.story_links (
 );
 
 -- TODO: add complex foreign key to check that *_stories_id exist for the snapshot stories snapshot
-create index story_links_source on cd.story_links( timespans_id, source_stories_id );
-create index story_links_ref on cd.story_links( timespans_id, ref_stories_id );
+create index story_links_source on snap.story_links( timespans_id, source_stories_id );
+create index story_links_ref on snap.story_links( timespans_id, ref_stories_id );
 
 -- link counts for stories within a timespan
-create table cd.story_link_counts (
+create table snap.story_link_counts (
     timespans_id         int not null
                                             references timespans on delete cascade,
     stories_id                              int not null,
@@ -1890,10 +1890,10 @@ create table cd.story_link_counts (
 );
 
 -- TODO: add complex foreign key to check that stories_id exists for the snapshot stories snapshot
-create index story_link_counts_story on cd.story_link_counts ( timespans_id, stories_id );
+create index story_link_counts_story on snap.story_link_counts ( timespans_id, stories_id );
 
 -- links counts for media within a timespan
-create table cd.medium_link_counts (
+create table snap.medium_link_counts (
     timespans_id int not null
                                     references timespans on delete cascade,
     media_id                        int not null,
@@ -1909,9 +1909,9 @@ create table cd.medium_link_counts (
 );
 
 -- TODO: add complex foreign key to check that media_id exists for the snapshot media snapshot
-create index medium_link_counts_medium on cd.medium_link_counts ( timespans_id, media_id );
+create index medium_link_counts_medium on snap.medium_link_counts ( timespans_id, media_id );
 
-create table cd.medium_links (
+create table snap.medium_links (
     timespans_id int not null
                                     references timespans on delete cascade,
     source_media_id                 int not null,
@@ -1920,34 +1920,34 @@ create table cd.medium_links (
 );
 
 -- TODO: add complex foreign key to check that *_media_id exist for the snapshot media snapshot
-create index medium_links_source on cd.medium_links( timespans_id, source_media_id );
-create index medium_links_ref on cd.medium_links( timespans_id, ref_media_id );
+create index medium_links_source on snap.medium_links( timespans_id, source_media_id );
+create index medium_links_ref on snap.medium_links( timespans_id, ref_media_id );
 
-create table cd.daily_date_counts (
+create table snap.daily_date_counts (
     snapshots_id            int not null references snapshots on delete cascade,
     publish_date                    date not null,
     story_count                     int not null,
     tags_id                         int
 );
 
-create index daily_date_counts_date on cd.daily_date_counts( snapshots_id, publish_date );
-create index daily_date_counts_tag on cd.daily_date_counts( snapshots_id, tags_id );
+create index daily_date_counts_date on snap.daily_date_counts( snapshots_id, publish_date );
+create index daily_date_counts_tag on snap.daily_date_counts( snapshots_id, tags_id );
 
-create table cd.weekly_date_counts (
+create table snap.weekly_date_counts (
     snapshots_id            int not null references snapshots on delete cascade,
     publish_date                    date not null,
     story_count                     int not null,
     tags_id                         int
 );
 
-create index weekly_date_counts_date on cd.weekly_date_counts( snapshots_id, publish_date );
-create index weekly_date_counts_tag on cd.weekly_date_counts( snapshots_id, tags_id );
+create index weekly_date_counts_date on snap.weekly_date_counts( snapshots_id, publish_date );
+create index weekly_date_counts_tag on snap.weekly_date_counts( snapshots_id, tags_id );
 
 -- create a mirror of the stories table with the stories for each topic.  this is to make
 -- it much faster to query the stories associated with a given topic, rather than querying the
 -- contested and bloated stories table.  only inserts and updates on stories are triggered, because
 -- deleted cascading stories_id and topics_id fields take care of deletes.
-create table cd.live_stories (
+create table snap.live_stories (
     topics_id            int             not null references topics on delete cascade,
     topic_stories_id      int             not null references topic_stories on delete cascade,
     stories_id                  int             not null references stories on delete cascade,
@@ -1963,23 +1963,14 @@ create table cd.live_stories (
     db_row_last_updated         timestamp with time zone null
 );
 
-create index live_story_topic on cd.live_stories ( topics_id );
-create unique index live_stories_story on cd.live_stories ( topics_id, stories_id );
-create index live_stories_story_solo on cd.live_stories ( stories_id );
-
-create table cd.word_counts (
-    timespans_id int             not null references timespans on delete cascade,
-    term                            varchar(256)    not null,
-    stem                            varchar(256)    not null,
-    stem_count                      smallint        not null
-);
-
-create index word_counts_timespan_stem on cd.word_counts ( timespans_id, stem );
+create index live_story_topic on snap.live_stories ( topics_id );
+create unique index live_stories_story on snap.live_stories ( topics_id, stories_id );
+create index live_stories_story_solo on snap.live_stories ( stories_id );
 
 create function insert_live_story() returns trigger as $insert_live_story$
     begin
 
-        insert into cd.live_stories
+        insert into snap.live_stories
             ( topics_id, topic_stories_id, stories_id, media_id, url, guid, title, description,
                 publish_date, collect_date, full_text_rss, language,
                 db_row_last_updated )
@@ -2002,7 +1993,7 @@ create trigger topic_stories_insert_live_story after insert on topic_stories
 create or replace function update_live_story() returns trigger as $update_live_story$
     begin
 
-        update cd.live_stories set
+        update snap.live_stories set
                 media_id = NEW.media_id,
                 url = NEW.url,
                 guid = NEW.guid,

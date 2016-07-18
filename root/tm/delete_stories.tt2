@@ -1,8 +1,8 @@
-[% PROCESS cm/header.tt2 title="Remove Stories" %]
+[% PROCESS tm/header.tt2 title="Remove Stories" %]
 
 <fieldset>
 
-<form action="[% c.uri_for( '/admin/cm/delete_stories/' _ topic.topics_id ) %]" method="POST" >
+<form action="[% c.uri_for( '/admin/tm/delete_stories/' _ topic.topics_id ) %]" method="POST" >
 
 <div class="text label">
 

@@ -1,4 +1,4 @@
-[% title = "CM: Add Focus for $topic.name" %]
+[% title = "TM: Add Focus for $topic.name" %]
 [% INCLUDE include/header.tt2 %]
 
 <fieldset>

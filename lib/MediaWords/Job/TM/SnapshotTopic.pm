@@ -1,11 +1,11 @@
-package MediaWords::Job::CM::DumpTopic;
+package MediaWords::Job::TM::SnapshotTopic;
 
 #
-# Dump various topic queries to csv and build a gexf file
+# Snapshot various topic queries to csv and build a gexf file
 #
 # Start this worker script by running:
 #
-# ./script/run_with_carton.sh local/bin/mjm_worker.pl lib/MediaWords/Job/CM/DumpTopic.pm
+# ./script/run_with_carton.sh local/bin/mjm_worker.pl lib/MediaWords/Job/TM/SnapshotTopic.pm
 #
 
 use strict;
@@ -25,7 +25,7 @@ BEGIN
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use MediaWords::CM::Dump;
+use MediaWords::TM::Snapshot;
 use MediaWords::DB;
 
 # Having a global database object should be safe because
@@ -49,8 +49,8 @@ sub run($;$)
         die "'topics_id' is undefined.";
     }
 
-    # No transaction started because apparently dump_topic() does start one itself
-    MediaWords::CM::Dump::dump_topic( $db, $topics_id );
+    # No transaction started because apparently snapshot_topic() does start one itself
+    MediaWords::TM::Snapshot::snapshot_topic( $db, $topics_id );
 }
 
 no Moose;    # gets rid of scaffolding

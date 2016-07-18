@@ -134,7 +134,7 @@ sub reset_schema($;$)
     $db->query( "CREATE LANGUAGE plpgsql" );
 
     # these schemas will be created later so don't recreate it here
-    if ( ( $schema ne 'enum' ) && ( $schema ne 'cd' ) )
+    if ( ( $schema ne 'enum' ) && ( $schema ne 'snap' ) )
     {
         $db->query( "CREATE SCHEMA $schema" );
     }
@@ -151,8 +151,8 @@ sub reset_all_schemas($)
 
     reset_schema( $db, 'public' );
 
-    # schema to hold all of the topic dump snapshot tables
-    reset_schema( $db, 'cd' );
+    # schema to hold all of the topic snapshot snapshot tables
+    reset_schema( $db, 'snap' );
 }
 
 # Given the PostgreSQL response line (notice) returned while importing schema,

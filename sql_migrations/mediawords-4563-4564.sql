@@ -22,7 +22,7 @@ alter index controversies_name rename to topics_name;
 alter index controversies_tag_set rename to topics_tag_set;
 alter index controversies_media_type_tag_set rename to topics_media_type_tag_set;
 
-drop trigger topic_tag_set;
+drop trigger controversy_tag_set on controversies;
 drop function insert_controversy_tag_set();
 
 create function insert_topic_tag_set() returns trigger as $insert_topic_tag_set$

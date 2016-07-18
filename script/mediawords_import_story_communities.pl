@@ -29,7 +29,7 @@ sub add_community_tag_to_stories
 insert into stories_tags_map
     ( stories_id, tags_id )
     select s.stories_id, \$1
-        from cd.live_stories s
+        from snap.live_stories s
         where topics_id = \$2 and media_id = \$3 and
             not exists (
                 select 1 from stories_tags_map stm

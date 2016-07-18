@@ -1,8 +1,8 @@
-[% PROCESS cm/header.tt2 title="Merge Stories List" %]
+[% PROCESS tm/header.tt2 title="Merge Stories List" %]
 
 <fieldset>
 
-<form action="[% c.uri_for( '/admin/cm/merge_stories_list/' _ topic.topics_id ) %]" method="POST" >
+<form action="[% c.uri_for( '/admin/tm/merge_stories_list/' _ topic.topics_id ) %]" method="POST" >
 
 <div class="text label">
 

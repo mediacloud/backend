@@ -78,7 +78,7 @@ sub _transform_link_to_story_field
 
     my $stories_ids = $db->query( <<END, $to_stories_id )->flat;
 select source_stories_id
-    from dump_story_links
+    from snapshot_story_links
     where
         ref_stories_id = ?
 END
@@ -96,7 +96,7 @@ sub _transform_link_from_story_field
 
     my $stories_ids = $db->query( <<END, $from_stories_id )->flat;
 select ref_stories_id
-    from dump_story_links
+    from snapshot_story_links
     where source_stories_id = ?
 END
 
@@ -114,8 +114,8 @@ sub _transform_link_to_medium_field
     my $stories_ids = $db->query( <<END, $to_media_id )->flat;
 select distinct sl.source_stories_id
     from
-        dump_story_links sl
-        join dump_stories s
+        snapshot_story_links sl
+        join snapshot_stories s
             on ( sl.ref_stories_id = s.stories_id )
     where
         s.media_id = \$1
@@ -135,8 +135,8 @@ sub _transform_link_from_medium_field
     my $stories_ids = $db->query( <<END, $from_media_id )->flat;
 select distinct sl.ref_stories_id
     from
-        dump_story_links sl
-        join dump_stories s
+        snapshot_story_links sl
+        join snapshot_stories s
             on ( sl.source_stories_id = s.stories_id )
     where
         s.media_id = \$1
@@ -170,14 +170,14 @@ sub _transform_timespan_field
 select distinct c.*
     from
         topics c
-        join snapshots cd on ( c.topics_id = cd.topics_id )
+        join snapshots snap on ( c.topics_id = snap.topics_id )
     where
-        cd.snapshots_id = ?
+        snap.snapshots_id = ?
 END
 
-    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $timespan, $topic, $live );
+    MediaWords::TM::Snapshot::setup_temporary_snapshot_tables( $db, $timespan, $topic, $live );
 
-    my $stories_ids = $db->query( "select stories_id from dump_story_link_counts" )->flat;
+    my $stories_ids = $db->query( "select stories_id from snapshot_story_link_counts" )->flat;
 
     return { timespans_id => $timespans_id, stories_ids => $stories_ids, live => $live };
 }
@@ -220,14 +220,14 @@ END
 
     my $stories_ids = $db->query( <<END )->flat;
 with tagged_stories as (
-    select stm.stories_id, stm.tags_id from dump_stories_tags_map stm
+    select stm.stories_id, stm.tags_id from snapshot_stories_tags_map stm
     union
-    select s.stories_id, mtm.tags_id from dump_stories s join media_tags_map mtm on ( s.media_id = mtm.media_id )
+    select s.stories_id, mtm.tags_id from snapshot_stories s join media_tags_map mtm on ( s.media_id = mtm.media_id )
 )
 
 select sl.ref_stories_id
     from
-        dump_story_links sl
+        snapshot_story_links sl
     where
         ( sl.source_stories_id in ( select stories_id from tagged_stories ts where ts.tags_id = $from_tags_id ) )
         $to_tags_id_clause

@@ -20,13 +20,13 @@ use Encode;
 use MediaWords::CommonLibs;
 
 use MediaWords::DB;
-use MediaWords::CM::Mine;
+use MediaWords::TM::Mine;
 
 sub extract_links_for_story
 {
     my ( $db, $story, $topic ) = @_;
 
-    my $youtube_links = MediaWords::CM::Mine::get_youtube_embed_links( $db, $story );
+    my $youtube_links = MediaWords::TM::Mine::get_youtube_embed_links( $db, $story );
 
     if ( !@{ $youtube_links } )
     {
@@ -78,7 +78,7 @@ sub main
 
     my $stories = $db->query( <<END, $topic->{ topics_id } )->hashes;
 select s.stories_id, s.url
-    from cd.live_stories s
+    from snap.live_stories s
         join topic_stories cs on ( cs.stories_id = s.stories_id )
     where
         cs.topics_id = ?

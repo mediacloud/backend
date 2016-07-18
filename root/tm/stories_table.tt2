@@ -1,8 +1,8 @@
 [% IF !included_remove_stories_confirm_dialog %]
     <div id="removeStoriesConfirmDialog" style="display:none">
         Are you sure you want to remove all of the listed stories from the [% topic.name | html %] topic?
-        After removal, the stories will still appear in existing dumps but will not be in live views
-        or new dumps of the topic.
+        After removal, the stories will still appear in existing snapshots but will not be in live views
+        or new snapshots of the topic.
     </div>
     [% SET included_remove_stories_confirm_dialog = 1 %]
 [% END %]
@@ -18,7 +18,7 @@ $(document).ready(function () {
     $("#removeStoriesConfirmDialog").dialog('option', 'buttons', {
       "Confirm": function () {
           form = document.getElementById( '[% display_stories_id %]_stories_ids_form' );
-          form.action = "[% c.uri_for( '/admin/cm/remove_stories' ) | url %]";
+          form.action = "[% c.uri_for( '/admin/tm/remove_stories' ) | url %]";
           form.submit();
       },
       "Cancel": function () { $(this).dialog("close"); }
@@ -31,7 +31,7 @@ $(document).ready(function () {
       e.preventDefault();
       var hrefAttribute = $(this).attr("href");
       form = document.getElementById( '[% display_stories_id %]_stories_ids_form' );
-      form.action = "[% c.uri_for( '/admin/cm/story_stats' ) | url %]";
+      form.action = "[% c.uri_for( '/admin/tm/story_stats' ) | url %]";
       form.submit();
   });
 
@@ -67,12 +67,12 @@ $(document).ready(function () {
         <a href="#" class="boxcommand remove_story_[% display_stories_id %]">remove all</a>
     [% END %]
 
-    [% SET wc_url = c.uri_for( '/admin/cm/word_cloud', {
+    [% SET wc_url = c.uri_for( '/admin/tm/word_cloud', {
         timespan = timespan.timespans_id,
         l = live,
         sort_by_count = 1,
         q = display_stories_solr_query } ) %]
-    [% SET stats_url = c.uri_for( '/admin/cm/story_stats', {
+    [% SET stats_url = c.uri_for( '/admin/tm/story_stats', {
         timespan = timespan.timespans_id,
         l = live,
         title = title,
@@ -91,7 +91,7 @@ $(document).ready(function () {
     </div>
 [% END %]
 
-[% SET self_url = c.uri_for( '/admin/cm/search_stories', {
+[% SET self_url = c.uri_for( '/admin/tm/search_stories', {
     timespan = timespan.timespans_id,
     l = live,
     title = title,
@@ -115,10 +115,10 @@ $(document).ready(function () {
 
 [% FOREACH s IN display_stories -%]
 
-    [% story_url = c.uri_for( '/admin/cm/story/' _ s.stories_id,
+    [% story_url = c.uri_for( '/admin/tm/story/' _ s.stories_id,
                               { timespan => timespan.timespans_id,
                                 l => live } ) %]
-    [% medium_url = c.uri_for( '/admin/cm/medium/' _ s.media_id,
+    [% medium_url = c.uri_for( '/admin/tm/medium/' _ s.media_id,
                               { timespan => timespan.timespans_id,
                                 l => live } ) %]
     [% edit_url = c.uri_for( "/admin/stories/edit/$s.stories_id" ) %]

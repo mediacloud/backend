@@ -1,4 +1,4 @@
-[% INCLUDE cm/header.tt2 title = "CM: Edit Foci for ${ topic.name }" %]
+[% INCLUDE tm/header.tt2 title = "TM: Edit Foci for ${ topic.name }" %]
 
 <div id="boxtitle">Edit Foci</a>
 <div id="wholecolumn">
@@ -15,24 +15,21 @@
 <div id="wholecolumn">
     <div id="boxtitle">
         Foci
-        <a class="boxcommand" href="[% c.uri_for( "/admin/cm/add_focus/$topic.topics_id" ) | html %]">Add focus</a>
+        <a class="boxcommand" href="[% c.uri_for( "/admin/tm/add_focus/$topic.topics_id" ) | html %]">Add focus</a>
     </div>
     <table class="even_rows_grey">
         <tr>
             <th>Name</th>
             <th>Query</th>
             <th>All Timespans</th>
-            <th>Edit</th>
             <th>Delete</th>
         </tr>
         [% FOREACH qs IN foci %]
-            [% SET delete_url = c.uri_for( "/admin/cm/delete_focus/$qs.foci_id" ) %]
-            [% SET edit_url = c.uri_for( "/admin/cm/edit_focus/$qs.foci_id" ) %]
+            [% SET delete_url = c.uri_for( "/admin/tm/delete_focus/$qs.foci_id" ) %]
             <tr>
                 <td>[% qs.name | html %]</td>
                 <td>[% qs.query | html %]</td>
                 <td>[% qs.all_timespans | html %]</td>
-                <td><a href="[% edit_url | html %]">edit</a></td>
                 <td><a href="[% delete_url | html %]">delete</a></td>
             </tr>
         [% END %]

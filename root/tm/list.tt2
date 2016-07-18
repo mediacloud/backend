@@ -1,10 +1,10 @@
-[% title = 'CM: Topics List' %]
+[% title = 'TM: Topics List' %]
 [% INCLUDE include/header.tt2 %]
 
 [% USE datetime = date(format => '%Y-%m-%d %H:%M:%S', locale => 'en_GB') %]
 [% USE date = date(format => '%Y-%m-%d', locale => 'en_GB') %]
 
-<a class="boxcommand" href="[% c.uri_for('/admin/cm/create') %]">create topic</a>
+<a class="boxcommand" href="[% c.uri_for('/admin/tm/create') %]">create topic</a>
 
 <table class="even_rows_grey">
 
@@ -18,7 +18,7 @@
         <tr>
 
             <td>
-                <a href="[%  c.uri_for('/admin/cm/view/'  _ topic.topics_id ) %]">
+                <a href="[%  c.uri_for('/admin/tm/view/'  _ topic.topics_id ) %]">
                     [% topic.name | html %]
                 </a>
             </td>

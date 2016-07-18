@@ -1,4 +1,4 @@
-package MediaWords::CM;
+package MediaWords::TM;
 
 # General topic mapper utilities
 
@@ -46,11 +46,11 @@ sub get_latest_overall_timespan
     my $timespan = $db->query( <<SQL, $topics_id )->hash;
 select *
    from timespans timespan
-       join snapshots cd on ( cd.snapshots_id = timespan.snapshots_id )
+       join snapshots snap on ( snap.snapshots_id = timespan.snapshots_id )
    where
-       cd.topics_id = \$1 and
+       snap.topics_id = \$1 and
        timespan.period = 'overall'
-   order by cd.snapshot_date desc
+   order by snap.snapshot_date desc
 SQL
 
     return $timespan;
@@ -58,18 +58,18 @@ SQL
 
 sub _get_timespan
 {
-    my ( $db, $timespan ) = @_;
+    my ( $db, $timespans_id ) = @_;
 
-    my $timespan = $db->query( <<SQL, $timespan )->hash;
-select *, cd.topics_id
+    my $timespan = $db->query( <<SQL, $timespans_id )->hash;
+select *, snap.topics_id
 from timespans timespan
-join snapshots cd on (cd.snapshots_id = timespan.snapshots_id)
+join snapshots snap on (snap.snapshots_id = timespan.snapshots_id)
 where
   timespan.timespans_id = \$1
 SQL
     unless ( $timespan )
     {
-        LOGDIE( "no timespan for timespan $timespan" );
+        LOGDIE( "no timespan for timespan $timespans_id" );
     }
 }
 
@@ -78,9 +78,9 @@ sub _get_overall_timespan_from_snapshot
     my ( $db, $snapshot ) = @_;
 
     my $timespan = $db->query( <<SQL, $snapshot )->hash;
-select *, cd.topics_id
+select *, snap.topics_id
   from timespans timespan
-  join snapshots cd on (cd.snapshots_id = timespan.snapshots_id)
+  join snapshots snap on (snap.snapshots_id = timespan.snapshots_id)
   where
     timespan.snapshots_id = \$1 and
     timespan.period = 'overall' and
@@ -96,14 +96,14 @@ sub _get_latest_overall_timespan_from_topic
 {
     my ( $db, $topics_id ) = @_;
     my $timespan = $db->query( <<SQL, $topics_id )->hash;
-select *, cd.topics_id
+select *, snap.topics_id
   from timespans timespan
-  join snapshots cd on (cd.snapshots_id = timespan.snapshots_id)
+  join snapshots snap on (snap.snapshots_id = timespan.snapshots_id)
   where
-    cd.topics_id = \$1 and
+    snap.topics_id = \$1 and
     timespan.period = 'overall' and
     timespan.foci_id is null
-  order by cd.snapshot_date desc limit 1
+  order by snap.snapshot_date desc limit 1
 SQL
 }
 
@@ -113,9 +113,9 @@ SQL
 # * latest overall timespan
 sub get_timespan_for_topic
 {
-    my ( $db, $topics_id, $timespan, $snapshot ) = @_;
+    my ( $db, $topics_id, $timespans_id, $snapshot ) = @_;
 
-    my $timespan = $timespan && _get_timespan( $db, $timespan );
+    my $timespan = $timespans_id && _get_timespan( $db, $timespans_id );
 
     return $timespan if ( $timespan );
 
@@ -131,9 +131,9 @@ sub get_timespan_for_topic
 # call a get_timespan_for_contoversy; die if no timespan can be found.
 sub require_timespan_for_topic
 {
-    my ( $db, $topics_id, $timespan, $snapshot ) = @_;
+    my ( $db, $topics_id, $timespans_id, $snapshot ) = @_;
 
-    my $timespan = get_timespan_for_topic( $db, $topics_id, $timespan, $snapshot );
+    my $timespan = get_timespan_for_topic( $db, $topics_id, $timespans_id, $snapshot );
 
     die( "Unable to find timespan for topic, timespan, or snapshot" ) unless ( $timespan );
 

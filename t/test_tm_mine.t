@@ -27,7 +27,7 @@ use Readonly;
 use Test::More;
 use Text::Lorem::More;
 
-use MediaWords::CM::Mine;
+use MediaWords::TM::Mine;
 use MediaWords::Test::DB;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Web;
@@ -38,7 +38,7 @@ Readonly my $NUM_SITES          => 10;
 Readonly my $NUM_PAGES_PER_SITE => 20;
 Readonly my $NUM_LINKS_PER_PAGE => 5;
 
-Readonly my $CONTROVERSY_PATTERN => 'FOOBARBAZ';
+Readonly my $TOPIC_PATTERN => 'FOOBARBAZ';
 
 sub get_html_link
 {
@@ -103,8 +103,8 @@ sub generate_content_for_page
 
     if ( rand( 2 ) < 1 )
     {
-        push( @{ $paragraphs }, $lorem->words( 10 ) . " $CONTROVERSY_PATTERN" );
-        $page->{ matches_controversy } = 1;
+        push( @{ $paragraphs }, $lorem->words( 10 ) . " $TOPIC_PATTERN" );
+        $page->{ matches_topic } = 1;
     }
 
     my $dead_link_text = $lorem->sentences( 5 );
@@ -284,17 +284,17 @@ sub test_pages
 
 sub seed_unlinked_urls
 {
-    my ( $db, $controversy, $sites ) = @_;
+    my ( $db, $topic, $sites ) = @_;
 
     my $all_pages = [];
     map { push( @{ $all_pages }, @{ $_->{ pages } } ) } @{ $sites };
 
-    # do not seed urls that are linked directly from a page that is a controversy match.
+    # do not seed urls that are linked directly from a page that is a topic match.
     # this forces the test to succesfully discover those pages through spidering.
     my $non_seeded_url_lookup = {};
     for my $page ( @{ $all_pages } )
     {
-        if ( $page->{ matches_controversy } )
+        if ( $page->{ matches_topic } )
         {
             map { $non_seeded_url_lookup->{ $_->{ url } } = 1 } @{ $page->{ links } };
         }
@@ -317,60 +317,60 @@ sub seed_unlinked_urls
     for my $seed_page ( @{ $all_pages } )
     {
         $db->create(
-            'controversy_seed_urls',
+            'topic_seed_urls',
             {
-                controversies_id => $controversy->{ controversies_id },
-                url              => $seed_page->{ url }
+                topics_id => $topic->{ topics_id },
+                url       => $seed_page->{ url }
             }
         );
     }
 }
 
-sub create_controversy
+sub create_topic
 {
     my ( $db, $sites ) = @_;
 
-    my $controversy_tag_set = $db->create( 'tag_sets', { name => 'test controversy' } );
+    my $topic_tag_set = $db->create( 'tag_sets', { name => 'test topic' } );
 
-    my $controversy = $db->create(
-        'controversies',
+    my $topic = $db->create(
+        'topics',
         {
-            name                    => 'test controversy',
-            description             => 'test controversy',
-            pattern                 => $CONTROVERSY_PATTERN,
-            solr_seed_query         => 'stories_id:0',
-            solr_seed_query_run     => 't',
-            controversy_tag_sets_id => $controversy_tag_set->{ controversy_tag_sets_id }
+            name                => 'test topic',
+            description         => 'test topic',
+            pattern             => $TOPIC_PATTERN,
+            solr_seed_query     => 'stories_id:0',
+            solr_seed_query_run => 't',
+            topic_tag_sets_id   => $topic_tag_set->{ topic_tag_sets_id }
         }
     );
 
     $db->create(
-        'controversy_dates',
+        'topic_dates',
         {
-            controversies_id => $controversy->{ controversies_id },
-            start_date       => '2000-01-01',
-            end_date         => '2030-01-01',
-            boundary         => 't'
+            topics_id  => $topic->{ topics_id },
+            start_date => '2000-01-01',
+            end_date   => '2030-01-01',
+            boundary   => 't'
         }
     );
 
-    seed_unlinked_urls( $db, $controversy, $sites );
+    seed_unlinked_urls( $db, $topic, $sites );
 
-    # avoid race condition in CM::Mine
+    # avoid race condition in TM::Mine
     $db->create( 'tag_sets', { name => 'extractor_version' } );
 
-    return $controversy;
+    return $topic;
 }
 
-sub test_controversy_stories
+sub test_topic_stories
 {
-    my ( $db, $controversy, $sites ) = @_;
+    my ( $db, $topic, $sites ) = @_;
 
-    my $controversy_stories = $db->query( <<SQL, $controversy->{ controversies_id } )->hashes;
+    my $topic_stories = $db->query( <<SQL, $topic->{ topics_id } )->hashes;
 select cs.*, s.*
-    from controversy_stories cs
+    from topic_stories cs
         join stories s on ( s.stories_id = cs.stories_id )
-    where cs.controversies_id = ?
+    where cs.topics_id = ?
 SQL
 
     my $all_pages = [];
@@ -378,71 +378,70 @@ SQL
 
     DEBUG( sub { "ALL PAGES: " . scalar( @{ $all_pages } ) } );
 
-    my $controversy_pages = [ grep { $_->{ matches_controversy } } @{ $all_pages } ];
+    my $topic_pages = [ grep { $_->{ matches_topic } } @{ $all_pages } ];
 
-    DEBUG( sub { "CONTROVERSY PAGES: " . scalar( @{ $controversy_pages } ) } );
+    DEBUG( sub { "TOPIC PAGES: " . scalar( @{ $topic_pages } ) } );
 
-    my $controversy_pages_lookup = {};
-    map { $controversy_pages_lookup->{ $_->{ url } } = $_ } @{ $controversy_stories };
+    my $topic_pages_lookup = {};
+    map { $topic_pages_lookup->{ $_->{ url } } = $_ } @{ $topic_stories };
 
-    for my $controversy_story ( @{ $controversy_stories } )
+    for my $topic_story ( @{ $topic_stories } )
     {
-        ok( $controversy_pages_lookup->{ $controversy_story->{ url } },
-            "controversy story found for controversy page '$controversy_story->{ url }'" );
+        ok( $topic_pages_lookup->{ $topic_story->{ url } }, "topic story found for topic page '$topic_story->{ url }'" );
 
-        delete( $controversy_pages_lookup->{ $controversy_story->{ url } } );
+        delete( $topic_pages_lookup->{ $topic_story->{ url } } );
     }
 
-    is( scalar( keys( %{ $controversy_pages_lookup } ) ),
-        0, "missing controversy story for controversy pages: " . Dumper( values( %{ $controversy_pages_lookup } ) ) );
+    is( scalar( keys( %{ $topic_pages_lookup } ) ),
+        0, "missing topic story for topic pages: " . Dumper( values( %{ $topic_pages_lookup } ) ) );
 
-    my ( $dead_link_count ) = $db->query( "select count(*) from controversy_dead_links" )->flat;
-    is( $dead_link_count, scalar( @{ $controversy_pages } ), "dead link count" );
+    my ( $dead_link_count ) = $db->query( "select count(*) from topic_dead_links" )->flat;
+    is( $dead_link_count, scalar( @{ $topic_pages } ), "dead link count" );
 }
 
-sub test_controversy_links
+sub test_topic_links
 {
-    my ( $db, $controversy, $sites ) = @_;
+    my ( $db, $topic, $sites ) = @_;
 
-    my $cid = $controversy->{ controversies_id };
+    my $cid = $topic->{ topics_id };
 
-    my $cl = $db->query( "select * from controversy_links" )->hashes;
+    my $cl = $db->query( "select * from topic_links" )->hashes;
 
-    # say STDERR "controversy links: " . Dumper( $cl );
+    # say STDERR "topic links: " . Dumper( $cl );
 
     my $all_pages = [];
     map { push( @{ $all_pages }, @{ $_->{ pages } } ) } @{ $sites };
 
     for my $page ( @{ $all_pages } )
     {
-        next if ( !$page->{ matches_controversy } );
+        next if ( !$page->{ matches_topic } );
 
         for my $link ( @{ $page->{ links } } )
         {
-            next unless ( $link->{ matches_controversy } );
+            next unless ( $link->{ matches_topic } );
 
-            my $controversy_links = $db->query( <<SQL, $page->{ url }, $link->{ url }, $cid )->hashes;
+            my $topic_links = $db->query( <<SQL, $page->{ url }, $link->{ url }, $cid )->hashes;
 select *
-    from controversy_links cl
+    from topic_links cl
         join stories s on ( cl.stories_id = s.stories_id )
     where
         s.url = \$1 and
         cl.url = \$2 and
-        cl.controversies_id = \$3
+        cl.topics_id = \$3
 SQL
 
-            is( scalar( @{ $controversy_links } ), 1, "number of controversy_links for $page->{ url } -> $link->{ url }" );
+            is( scalar( @{ $topic_links } ), 1, "number of topic_links for $page->{ url } -> $link->{ url }" );
         }
     }
 }
 
 sub test_spider_results
 {
-    my ( $db, $controversy, $sites ) = @_;
+    my ( $db, $topic, $sites ) = @_;
 
-    test_controversy_stories( $db, $controversy, $sites );
+    test_topic_stories( $db, $topic, $sites );
 
-    test_controversy_links( $db, $controversy, $sites );
+    test_topic_links( $db, $topic, $sites );
 }
 
 sub get_site_structure
@@ -455,11 +454,11 @@ sub get_site_structure
         my $meta_site = { url => $site->{ url } };
         for my $page ( @{ $site->{ pages } } )
         {
-            my $meta_page = { url => $page->{ url }, matches_controversy => $page->{ matches_controversy } };
+            my $meta_page = { url => $page->{ url }, matches_topic => $page->{ matches_topic } };
             map { push( @{ $meta_page->{ links } }, $_->{ url } ) } @{ $page->{ links } };
 
             $meta_page->{ content } = $page->{ content }
-              if ( $page->{ matches_controversy } && $page->{ matches_controversy } );
+              if ( $page->{ matches_topic } && $page->{ matches_topic } );
 
             push( @{ $meta_site->{ pages } }, $meta_page );
         }
@@ -487,14 +486,14 @@ sub test_spider
 
     test_pages( $sites );
 
-    my $controversy = create_controversy( $db, $sites );
+    my $topic = create_topic( $db, $sites );
 
     my $mine_options =
       { skip_post_processing => 1, cache_broken_downloads => 0, import_only => 0, skip_outgoing_foreign_rss_links => 0 };
 
-    MediaWords::CM::Mine::mine_controversy( $db, $controversy, $mine_options );
+    MediaWords::TM::Mine::mine_topic( $db, $topic, $mine_options );
 
-    test_spider_results( $db, $controversy, $sites );
+    test_spider_results( $db, $topic, $sites );
 
     map { $_->stop } @{ $hash_servers };
 

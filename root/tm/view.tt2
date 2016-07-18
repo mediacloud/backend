@@ -1,4 +1,4 @@
-[% PROCESS cm/header.tt2 title="Home"%]
+[% PROCESS tm/header.tt2 title="Home"%]
 
 <div id="wholecolumn" class="clearfix">
 
@@ -14,11 +14,11 @@
         <div class="boxtitle">
             Query
 
-            <a class="boxcommand" href="[% c.uri_for( '/admin/cm/delete_stories/' _ topic.topics_id ) %]">remove stories</a>
-            <a class="boxcommand" href="[% c.uri_for( '/admin/cm/merge_stories_list/' _ topic.topics_id ) %]">merge stories</a>
-            <a class="boxcommand" href="[% c.uri_for( '/admin/cm/edit_dates/' _ topic.topics_id ) %]">edit dates</a>
-            <a class="boxcommand" href="[% c.uri_for( '/admin/cm/edit_media_types/' _ topic.topics_id ) %]">edit media types</a>
-            <a class="boxcommand" href="[% c.uri_for( '/admin/cm/edit/' _ topic.topics_id ) %]">edit</a>
+            <a class="boxcommand" href="[% c.uri_for( '/admin/tm/delete_stories/' _ topic.topics_id ) %]">remove stories</a>
+            <a class="boxcommand" href="[% c.uri_for( '/admin/tm/merge_stories_list/' _ topic.topics_id ) %]">merge stories</a>
+            <a class="boxcommand" href="[% c.uri_for( '/admin/tm/edit_dates/' _ topic.topics_id ) %]">edit dates</a>
+            <a class="boxcommand" href="[% c.uri_for( '/admin/tm/edit_media_types/' _ topic.topics_id ) %]">edit media types</a>
+            <a class="boxcommand" href="[% c.uri_for( '/admin/tm/edit/' _ topic.topics_id ) %]">edit</a>
         </div>
         <table class="even_rows_grey">
             <tr>
@@ -41,30 +41,30 @@
             </tr>
         </table>
 
-        <div class="boxtitle">Dumps</div>
+        <div class="boxtitle">Snapshots</div>
         <table class="even_rows_grey">
 
             <tr>
-                <th>Dump Date</th>
+                <th>Snapshot Date</th>
                 <th>Start Date</th>
                 <th>End Date</th>
                 <th>Periods</th>
                 <th>Note</th>
             </tr>
 
-            [% FOREACH cd IN snapshots -%]
+            [% FOREACH snap IN snapshots -%]
 
                 <tr>
 
-                    <td><a href="[% c.uri_for( '/admin/cm/view_dump/' _ cd.snapshots_id, { qs => foci_id } )%]">[% datetime.format( cd.snapshot_date ) %]</a></td>
+                    <td><a href="[% c.uri_for( '/admin/tm/view_snapshot/' _ snap.snapshots_id, { qs => foci_id } )%]">[% datetime.format( snap.snapshot_date ) %]</a></td>
 
-                    <td>[% date.format( cd.start_date ) %]</td>
+                    <td>[% date.format( snap.start_date ) %]</td>
 
-                    <td>[% date.format( cd.end_date ) %]</td>
+                    <td>[% date.format( snap.end_date ) %]</td>
 
-                    <td>[% cd.periods | html %]</td>
+                    <td>[% snap.periods | html %]</td>
 
-                    <td>[% cd.note | html %]</td>
+                    <td>[% snap.note | html %]</td>
                 </tr>
 
             [% END # FOREACH stories -%]
@@ -77,27 +77,27 @@
 
         <div class="boxtitle">
             Foci
-            <a class="boxcommand" href="[% c.uri_for( '/admin/cm/edit_foci/' _ topic.topics_id ) | html %]">edit</a>
+            <a class="boxcommand" href="[% c.uri_for( '/admin/tm/edit_foci/' _ topic.topics_id ) | html %]">edit</a>
         </div>
         <table><tr><td bgcolor="#ffffff">
             [% IF foci.size > 0 %]
                 [% FOREACH qs IN foci %]
-                    <a href="[% c.uri_for( '/admin/cm/view/' _ topic.topics_id, { qs => qs.foci_id } ) | html %]">[% qs.name | html %]</a><br />
+                    <a href="[% c.uri_for( '/admin/tm/view/' _ topic.topics_id, { qs => qs.foci_id } ) | html %]">[% qs.name | html %]</a><br />
                 [% END %]
             [% END %]
-            <a href="[% c.uri_for( '/admin/cm/view/' _ topic.topics_id ) | html %]">(all stories)</a><br />
+            <a href="[% c.uri_for( '/admin/tm/view/' _ topic.topics_id ) | html %]">(all stories)</a><br />
         </td></tr></table>
 
         <div class="boxtitle">
             Spidering Status
-            <a class="boxcommand" href="[% c.uri_for( '/admin/cm/mine/' _ topic.topics_id ) %]">spider</a>
-            <a class="boxcommand" href="[% c.uri_for( '/admin/cm/mining_status/' _ topic.topics_id ) %]">status</a>
+            <a class="boxcommand" href="[% c.uri_for( '/admin/tm/mine/' _ topic.topics_id ) %]">spider</a>
+            <a class="boxcommand" href="[% c.uri_for( '/admin/tm/mining_status/' _ topic.topics_id ) %]">status</a>
         </div>
         <table><tr><td bgcolor="#ffffff">
             [% topic.state %]
         </td></tr></table>
 
-        [% INCLUDE cm/include/latest_activities.tt2
+        [% INCLUDE tm/include/latest_activities.tt2
                    activities=latest_activities
                    topic=topic %]
 

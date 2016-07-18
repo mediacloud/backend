@@ -1,10 +1,10 @@
-[% INCLUDE cm/header.tt2 title = "CM: Add Media Types for ${ topic.name }" %]
+[% INCLUDE tm/header.tt2 title = "TM: Add Media Types for ${ topic.name }" %]
 
 <div id="boxtitle">Media With No Types</div>
     [% IF media.size == 0 %]
         <fieldset>No media sources remain.</fieldset>
     [% ELSE %]
-        <form action="[% c.uri_for( '/admin/cm/add_media_types' ) | html %]" method="post">
+        <form action="[% c.uri_for( '/admin/tm/add_media_types' ) | html %]" method="post">
             <input type="hidden" name="timespan" value="[% timespan.timespans_id %]" />
             <input type="hidden" name="l" value="[% live | html %]" />
             <input type="hidden" name="last_media_id" value="[% last_media_id | html %]" />
@@ -21,7 +21,7 @@
                     <th># Outlinks</th>
                 </tr>
                 [% FOREACH m IN media %]
-                    [% medium_url = c.uri_for( '/admin/cm/medium/' _ m.media_id, 
+                    [% medium_url = c.uri_for( '/admin/tm/medium/' _ m.media_id, 
                                                { timespan => timespan.timespans_id, 
                                                  c => topics_id, 
                                                  l => live } ) %]
@@ -58,7 +58,7 @@
             By default, this page displays the ten media with the highest link weight that have not been typed.  If you
             would like to retype media with some other existing type, use the below form.
         </p>
-        <form action="[% c.uri_for( '/admin/cm/add_media_types' ) %]" method="get">
+        <form action="[% c.uri_for( '/admin/tm/add_media_types' ) %]" method="get">
             <input type="hidden" name="timespan" value="[% timespan.timespans_id | html %]" />
             <input type="hidden" name="l" value="[% live | html %]" />
 

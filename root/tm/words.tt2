@@ -2,7 +2,7 @@
 
 [% title = "Words matching '$q' in " _ date.format( timespan.start_date ) _ ' - ' _ date.format( timespan.end_date ) _ ' Timespan' %]
 
-[% PROCESS cm/header.tt2 %]
+[% PROCESS tm/header.tt2 %]
 
 <div id="wholecolumn">
 
@@ -11,7 +11,7 @@
 
     Words
     
-    [% SET wc_url = c.uri_for( '/admin/cm/word_cloud', { 
+    [% SET wc_url = c.uri_for( '/admin/tm/word_cloud', { 
         timespan = timespan.timespans_id,
         l = live,
         sort_by_count = !sort_by_count,
@@ -40,7 +40,7 @@
 [% FOREACH w IN words -%]
 
     [% SET word_query = q ? "( $q ) and $w.term" : w.term %]
-    [% SET word_url = c.uri_for( "/admin/cm/search_stories?l=${l}&timespan=${timespan.timespans_id}&q=$word_query" ) %]
+    [% SET word_url = c.uri_for( "/admin/tm/search_stories?l=${l}&timespan=${timespan.timespans_id}&q=$word_query" ) %]
 
     <tr>
 

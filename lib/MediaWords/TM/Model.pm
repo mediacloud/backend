@@ -1,4 +1,4 @@
-package MediaWords::CM::Model;
+package MediaWords::TM::Model;
 
 # code to generate models of timespans based on validation
 # data about date, link extraction, and duplication error rates
@@ -11,12 +11,12 @@ use POSIX;
 use Statistics::Basic;
 use Readonly;
 
-use MediaWords::CM::Dump;
+use MediaWords::TM::Snapshot;
 use MediaWords::Util::Config;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Tags;
 
-# percentage of media sources in a given dump for which to generate a confidence interval
+# percentage of media sources in a given snapshot for which to generate a confidence interval
 Readonly my $MODEL_PERCENT_TOP_MEDIA => 10;
 
 # percentage of guessed dates that are misdated
@@ -34,12 +34,12 @@ Readonly my $PERCENT_UNDATEABLE_DATE_DATEABLE => 30;
 # percent of stories guessed to be dateable that are actually undateable
 Readonly my $PERCENT_DATE_UNDATEABLE => 13;
 
-# get the top $MODEL_PERCENT_TOP_MEDIA of media sources from the current dump by incoming links
+# get the top $MODEL_PERCENT_TOP_MEDIA of media sources from the current snapshot by incoming links
 sub get_top_media_link_counts
 {
     my ( $db, $timespan, $size_factor ) = @_;
 
-    my ( $num_media ) = $db->query( "select count(*) from dump_medium_link_counts" )->flat;
+    my ( $num_media ) = $db->query( "select count(*) from snapshot_medium_link_counts" )->flat;
 
     return [] unless ( $num_media > 0 );
 
@@ -47,7 +47,7 @@ sub get_top_media_link_counts
     $num_top_media *= $size_factor if ( $size_factor );
 
     my $top_media = $db->query( <<END, $num_top_media + 1 )->hashes;
-select * from dump_medium_link_counts order by inlink_count desc limit ?
+select * from snapshot_medium_link_counts order by inlink_count desc limit ?
 END
 
     # the last medium included must have more inlinks than the first medium not included
@@ -68,7 +68,7 @@ sub tweak_dateable_story
     my $undateable_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'date_invalid:undateable' );
 
     $db->query( <<END, $story->{ stories_id }, $undateable_tag->{ tags_id } );
-insert into dump_stories_tags_map
+insert into snapshot_stories_tags_map
     ( stories_id, tags_id )
     values ( ?, ? )
 END
@@ -84,7 +84,7 @@ sub sample_guessed_date_stories
 select * from
 (
     select s.*
-        from dump_stories s, dump_tags t, dump_tag_sets ts, dump_stories_tags_map stm
+        from snapshot_stories s, snapshot_tags t, snapshot_tag_sets ts, snapshot_stories_tags_map stm
         where s.stories_id = stm.stories_id and
             t.tags_id = stm.tags_id and
             t.tag_sets_id = ts.tag_sets_id and
@@ -94,7 +94,7 @@ select * from
     except
 
     select s.*
-        from dump_stories s, dump_tags t, dump_tag_sets ts, dump_stories_tags_map stm
+        from snapshot_stories s, snapshot_tags t, snapshot_tag_sets ts, snapshot_stories_tags_map stm
         where s.stories_id = stm.stories_id and
             t.tags_id = stm.tags_id and
             t.tag_sets_id = ts.tag_sets_id and
@@ -126,8 +126,8 @@ sub tweak_undateable_story
     # print "tweak_undateable_story: $story->{ stories_id }\n";
 
     $db->query( <<END, $story->{ stories_id } );
-delete from dump_stories_tags_map stm
-    using dump_tags t, dump_tag_sets ts
+delete from snapshot_stories_tags_map stm
+    using snapshot_tags t, snapshot_tag_sets ts
     where stm.stories_id = ? and
         stm.tags_id = t.tags_id and
         t.tag_sets_id = ts.tag_sets_id and
@@ -146,7 +146,7 @@ sub tweak_undateable_stories
 select * from
 (
     select s.*
-        from dump_stories s, dump_tags t, dump_tag_sets ts, dump_stories_tags_map stm
+        from snapshot_stories s, snapshot_tags t, snapshot_tag_sets ts, snapshot_stories_tags_map stm
         where s.stories_id = stm.stories_id and
             t.tags_id = stm.tags_id and
             t.tag_sets_id = ts.tag_sets_id and
@@ -156,7 +156,7 @@ select * from
     except
 
     select s.*
-        from dump_stories s, dump_tags t, dump_tag_sets ts, dump_stories_tags_map stm
+        from snapshot_stories s, snapshot_tags t, snapshot_tag_sets ts, snapshot_stories_tags_map stm
         where s.stories_id = stm.stories_id and
             t.tags_id = stm.tags_id and
             t.tag_sets_id = ts.tag_sets_id and
@@ -216,7 +216,7 @@ sub tweak_story_date
     # print "tweak story: $story->{ stories_id } $story->{ publish_date } -> $new_date\n";
 
     $db->query( <<END, $new_date, $story->{ stories_id } );
-update dump_stories set publish_date = ? where stories_id = ?
+update snapshot_stories set publish_date = ? where stories_id = ?
 END
 
 }
@@ -232,7 +232,7 @@ sub tweak_misdated_stories
     map { tweak_story_date( $db, $timespan, $_ ) } @{ $stories };
 }
 
-# change the dates in the current dump to model the accuracy data form our validation tests
+# change the dates in the current snapshot to model the accuracy data form our validation tests
 sub tweak_story_dates
 {
     my ( $db, $timespan ) = @_;
@@ -242,7 +242,7 @@ sub tweak_story_dates
     tweak_dateable_stories( $db, $timespan );
 }
 
-# generate a single model of the dump for the current timespan, tweaking
+# generate a single model of the snapshot for the current timespan, tweaking
 # various aspects of the data according to our validation numbers (for example
 # changing X% of dates because we know that in general X% of our dates are wrong).
 # Return an ordered list of the top media sources by incoming links.
@@ -256,7 +256,7 @@ sub model_confidence_data
 
     tweak_story_dates( $db, $timespan );
 
-    MediaWords::CM::Dump::generate_timespan_data( $db, $timespan, 1 );
+    MediaWords::TM::Snapshot::generate_timespan_data( $db, $timespan, 1 );
 
     my $top_media_link_counts = get_top_media_link_counts( $db, $timespan, 2 );
 
@@ -320,7 +320,7 @@ sub update_model_correlation
 
     my $clean_top_media = get_top_media_link_counts( $db, $timespan );
 
-    MediaWords::CM::Dump::update_timespan( $db, $timespan, 'model_num_media', scalar( @{ $clean_top_media } ) );
+    MediaWords::TM::Snapshot::update_timespan( $db, $timespan, 'model_num_media', scalar( @{ $clean_top_media } ) );
 
     return unless ( @{ $clean_top_media } > 1 && $all_models_top_media );
 
@@ -349,8 +349,8 @@ sub update_model_correlation
     my $r2_mean   = Statistics::Basic::mean( $model_r2s );
     my $r2_stddev = Statistics::Basic::stddev( $model_r2s );
 
-    MediaWords::CM::Dump::update_timespan( $db, $timespan, 'model_r2_mean',   $r2_mean );
-    MediaWords::CM::Dump::update_timespan( $db, $timespan, 'model_r2_stddev', $r2_stddev );
+    MediaWords::TM::Snapshot::update_timespan( $db, $timespan, 'model_r2_mean',   $r2_mean );
+    MediaWords::TM::Snapshot::update_timespan( $db, $timespan, 'model_r2_stddev', $r2_stddev );
 }
 
 # return text output describing how the models matched (or didn't) with the clean data
@@ -405,15 +405,15 @@ sub create_index_if_not_exists
     $db->query( "create index $name on $index" );
 }
 
-# create dump indexes if they do not already exist
-sub create_dump_indexes
+# create snapshot indexes if they do not already exist
+sub create_snapshot_indexes
 {
     my ( $db ) = @_;
 
     # these make the data tweaking process and other operations much faster
-    create_index_if_not_exists( $db, "dump_stories_story",          "dump_stories ( stories_id )" );
-    create_index_if_not_exists( $db, "dump_tags_tag",               "dump_tags ( tags_id )" );
-    create_index_if_not_exists( $db, "dump_stories_tags_map_story", "dump_stories_tags_map ( stories_id )" );
+    create_index_if_not_exists( $db, "snapshot_stories_story",          "snapshot_stories ( stories_id )" );
+    create_index_if_not_exists( $db, "snapshot_tags_tag",               "snapshot_tags ( tags_id )" );
+    create_index_if_not_exists( $db, "snapshot_stories_tags_map_story", "snapshot_stories_tags_map ( stories_id )" );
 }
 
 # run $config->{ mediawords }->{ topic_model_reps } models and return a list of ordered lists
@@ -431,9 +431,9 @@ sub get_all_models_top_media ($$)
     }
 
     # print "copying temporary tables ...\n";
-    # MediaWords::CM::Dump::copy_temporary_tables( $db );
+    # MediaWords::TM::Snapshot::copy_temporary_tables( $db );
 
-    create_dump_indexes( $db );
+    create_snapshot_indexes( $db );
 
     print "running models: ";
     my $all_models_top_media = [];
@@ -441,7 +441,7 @@ sub get_all_models_top_media ($$)
     {
         my $model_top_media = model_confidence_data( $db, $timespan );
 
-        # MediaWords::CM::Dump::restore_temporary_tables( $db );
+        # MediaWords::TM::Snapshot::restore_temporary_tables( $db );
 
         return unless ( @{ $model_top_media } );
 

@@ -1,4 +1,4 @@
-[% PROCESS cm/header.tt2 title="Merge Media" %]
+[% PROCESS tm/header.tt2 title="Merge Media" %]
    
 <div id="wholecolumn">
 

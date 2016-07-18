@@ -4,7 +4,7 @@
     [% title = "All Stories" %]
 [% END %]
 
-[% PROCESS cm/header.tt2 %]
+[% PROCESS tm/header.tt2 %]
 
 
 <div id="wholecolumn">
@@ -14,7 +14,7 @@
     </div>
 
     <fieldset>
-        [% search_url = c.uri_for( "/admin/cm/search_stories" ) %]
+        [% search_url = c.uri_for( "/admin/tm/search_stories" ) %]
         <form method="get" action="[% search_url | html %]">
             <input type="hidden" name="l" value="[% live | html %]" />
             <input type="hidden" name="timespan" value="[% timespan.timespans_id %]" />
@@ -24,7 +24,7 @@
         [% IF stories.size == 1000 %]<p>Results limited to first 1000.</p>[% END %]
     </fieldset>
 
-    [% INCLUDE cm/stories_table.tt2 
+    [% INCLUDE tm/stories_table.tt2 
         display_stories = stories
         display_stories_short_title = title
         display_stories_full_title = title

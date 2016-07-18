@@ -166,7 +166,7 @@ Readonly::Hash my %ACTIVITIES => {
                 references  => 'media.media_id'
             },
             'timespans_id' => {
-                description => 'topic dump timespan',
+                description => 'topic snapshot timespan',
                 references  => 'timespans.timespans_id'
             }
         }
@@ -190,10 +190,10 @@ Readonly::Hash my %ACTIVITIES => {
         }
     },
 
-    'cm_dump_topic' => {
-        description => 'Dump topic',
+    'cm_snapshot_topic' => {
+        description => 'Snapshot topic',
         object_id   => {
-            description => 'Topic ID for which the dump was made',
+            description => 'Topic ID for which the snapshot was made',
             references  => 'topics.topics_id'
         },
         parameters => {}
@@ -206,7 +206,7 @@ Readonly::Hash my %ACTIVITIES => {
             references  => 'topics.topics_id'
         },
         parameters => {
-            'skip_post_processing' => { description => 'skip social media and dump' },
+            'skip_post_processing' => { description => 'skip social media and snapshot' },
             'import_only'          => { description => 'only run import_seed_urls and import_query_story_search and exit' },
             'cache_broken_downloads' => { description => 'speed up fixing broken downloads' },
             'skip_outgoing_foreign_rss_links' =>
@@ -307,9 +307,9 @@ EOF
                 'topics.topics_id' => <<EOF
             SELECT DISTINCT activities.activities_id
             FROM activities
-                INNER JOIN cd.live_stories on ( cd.live_stories.media_id = activities.object_id )
+                INNER JOIN snap.live_stories on ( snap.live_stories.media_id = activities.object_id )
             WHERE activities.name = 'media_edit'
-              AND cd.live_stories.topics_id = $ACTIVITIES_SUBQUERY_OBJECT_ID_PLACEHOLDER
+              AND snap.live_stories.topics_id = $ACTIVITIES_SUBQUERY_OBJECT_ID_PLACEHOLDER
 EOF
               }
 

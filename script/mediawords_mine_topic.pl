@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 #
-# Add MediaWords::Job::CM::MineTopic job
+# Add MediaWords::Job::TM::MineTopic job
 #
 
 use strict;
@@ -16,8 +16,8 @@ BEGIN
 use Getopt::Long;
 
 use MediaWords::CommonLibs;
-use MediaWords::CM;
-use MediaWords::Job::CM::MineTopic;
+use MediaWords::TM;
+use MediaWords::Job::TM::MineTopic;
 
 sub main
 {
@@ -43,7 +43,7 @@ sub main
     die( "usage: $0 --topic < id > $optional_args" ) unless ( $topic_opt );
 
     my $db = MediaWords::DB::connect_to_db;
-    my $topics = MediaWords::CM::require_topics_by_opt( $db, $topic_opt );
+    my $topics = MediaWords::TM::require_topics_by_opt( $db, $topic_opt );
     unless ( $topics )
     {
         die "Unable to find topics for option '$topic_opt'";
@@ -63,7 +63,7 @@ sub main
                 skip_post_processing            => $skip_post_processing
             };
 
-            MediaWords::CM::Mine::mine_topic( $db, $topic, $options );
+            MediaWords::TM::Mine::mine_topic( $db, $topic, $options );
         }
         else
         {
@@ -74,7 +74,7 @@ sub main
                 skip_outgoing_foreign_rss_links => $skip_outgoing_foreign_rss_links
             };
 
-            my $job_id = MediaWords::Job::CM::MineTopic->add_to_queue( $args );
+            my $job_id = MediaWords::Job::TM::MineTopic->add_to_queue( $args );
             say STDERR "Added job with ID: $job_id";
         }
 

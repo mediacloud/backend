@@ -38,7 +38,7 @@ if ( !$story_content )
 }
 ```
 
-If called from MediaWords::CM::Mine, this will get printed by the default STDERR appender as:
+If called from MediaWords::TM::Mine, this will get printed by the default STDERR appender as:
 
 ```
 2016/04/13 13:59:35 MediaWords.CM.Mine: SKIP - NO CONTENT

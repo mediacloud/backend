@@ -1,4 +1,4 @@
-[% PROCESS cm/header.tt2 title="Merge Stories" %]
+[% PROCESS tm/header.tt2 title="Merge Stories" %]
    
 <div id="wholecolumn">
 

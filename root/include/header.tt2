@@ -62,8 +62,8 @@
             <a href="[% c.uri_for('/logout') %]">Logout</a> | <a href="[% c.uri_for('/admin/profile') %]">Profile</a>
         </div>
         <div id="menu">
-            [% IF c.acl_user_can_visit('/admin/cm/list') %]
-                <a href="[% c.uri_for('/admin/cm/list') %]">CM</a>
+            [% IF c.acl_user_can_visit('/admin/tm/list') %]
+                <a href="[% c.uri_for('/admin/tm/list') %]">TM</a>
             [% END -%]
             [% IF c.acl_user_can_visit('/search') %]
                 <a href="[% c.uri_for('/search') %]">Search Stories</a>

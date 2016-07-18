@@ -1,4 +1,4 @@
-[% title = 'CM: Create Topic' %]
+[% title = 'TM: Create Topic' %]
 [% INCLUDE include/header.tt2 %]
 
 [% USE datetime = date(format => '%Y-%m-%d %H:%M:%S', locale => 'en_GB') %]

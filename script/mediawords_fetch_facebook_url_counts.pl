@@ -18,7 +18,7 @@ use MediaWords::CommonLibs;
 use Getopt::Long;
 
 use MediaWords::DB;
-use MediaWords::CM;
+use MediaWords::TM;
 use MediaWords::Job::Facebook::FetchStoryStats;
 
 sub main
@@ -40,7 +40,7 @@ EOF
     die $usage unless ( $topic_opt );
 
     my $db = MediaWords::DB::connect_to_db;
-    my $topics = MediaWords::CM::require_topics_by_opt( $db, $topic_opt );
+    my $topics = MediaWords::TM::require_topics_by_opt( $db, $topic_opt );
     unless ( $topics )
     {
         die "Unable to find topics for option '$topic_opt'";

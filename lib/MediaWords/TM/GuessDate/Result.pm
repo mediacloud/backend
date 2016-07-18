@@ -1,4 +1,4 @@
-package MediaWords::CM::GuessDate::Result;
+package MediaWords::TM::GuessDate::Result;
 
 use strict;
 use warnings;

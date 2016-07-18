@@ -1,35 +1,35 @@
-package MediaWords::CM::Dump;
+package MediaWords::TM::Snapshot;
 
 =head1 NAME
 
-MediaWords::CM::Dump - Dump and analyze topic data
+MediaWords::TM::Snapshot - Snapshot and analyze topic data
 
 =head1 SYNOPSIS
 
-    # generate a new topic dump -- this is run via mediawords_dump_topic.pl once or each dump
-    dump_topic( $db, $topics_id );
+    # generate a new topic snapshot -- this is run via mediawords_snapshot_topic.pl once or each snapshot
+    snapshot_topic( $db, $topics_id );
 
     # the rest of these examples are run each time we want to query topic data
 
-    # setup and query dump tables
+    # setup and query snapshot tables
     my $live = 1;
-    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $timespan, $topic, $live );
+    MediaWords::TM::Snapshot::setup_temporary_snapshot_tables( $db, $timespan, $topic, $live );
 
     # query data
-    my $story_links = $db->query( "select * from dump_story_links" )->hashes;
+    my $story_links = $db->query( "select * from snapshot_story_links" )->hashes;
     my $story_link_counts = $db->query( "select * from story_link_counts" )->hashes;
-    my $dump_stories = $db->query( "select * from dump_stories" )->hashes;
+    my $snapshot_stories = $db->query( "select * from snapshot_stories" )->hashes;
 
-    # get csv dump
-    my $media_csv = MediaWords::CM::Dump::get_media_csv( $db, $timespan );
+    # get csv snapshot
+    my $media_csv = MediaWords::TM::Snapshot::get_media_csv( $db, $timespan );
 
-    MediaWords::CM::Dump::discard_temp_tables( $db );
+    MediaWords::TM::Snapshot::discard_temp_tables( $db );
 
 =head1 DESCRIPTION
 
-Analyze a topic and dump the topic to snapshot tables and a gexf file.
+Analyze a topic and snapshot the topic to snapshot tables and a gexf file.
 
-For detailed explanation of the dump process, see doc/snapshots.markdown.
+For detailed explanation of the snapshot process, see doc/snapshots.markdown.
 
 =cut
 
@@ -52,7 +52,7 @@ use GraphViz2;
 use XML::Simple;
 use Readonly;
 
-use MediaWords::CM::Model;
+use MediaWords::TM::Model;
 use MediaWords::DBI::Media;
 use MediaWords::Solr;
 use MediaWords::Util::CSV;
@@ -62,17 +62,17 @@ use MediaWords::Util::Paths;
 use MediaWords::Util::SQL;
 use MediaWords::DBI::Activities;
 
-# max and mind node sizes for gexf dump
+# max and mind node sizes for gexf snapshot
 Readonly my $MAX_NODE_SIZE => 20;
 Readonly my $MIN_NODE_SIZE => 2;
 
-# max map width for gexf dump
+# max map width for gexf snapshot
 Readonly my $MAX_MAP_WIDTH => 800;
 
 # max number of media to include in gexf map
 Readonly my $MAX_GEXF_MEDIA => 500;
 
-# attributes to include in gexf dump
+# attributes to include in gexf snapshot
 my $_media_static_gexf_attribute_types = {
     url          => 'string',
     inlink_count => 'integer',
@@ -82,7 +82,7 @@ my $_media_static_gexf_attribute_types = {
     bitly_clicks => 'integer'
 };
 
-# all tables that the dump process snapshots for each snapshot
+# all tables that the snapshot process snapshots for each snapshot
 my $_snapshot_tables = [
     qw/topic_stories topic_links_cross_media topic_media_codes
       stories media stories_tags_map media_tags_map tags tag_sets/
@@ -91,8 +91,8 @@ my $_snapshot_tables = [
 # tablespace clause for temporary tables
 my $_temporary_tablespace;
 
-# temporary hack to get around dump_period_stories lock
-my $_drop_dump_period_stories = 1;
+# temporary hack to get around snapshot_period_stories lock
+my $_drop_snapshot_period_stories = 1;
 
 =head1 FUNCTIONS
 
@@ -115,8 +115,8 @@ sub set_temporary_table_tablespace
     $_temporary_tablespace = $tablespace ? "tablespace $tablespace" : '';
 }
 
-# create all of the temporary dump* tables other than medium_links and story_links
-sub write_live_dump_tables
+# create all of the temporary snapshot* tables other than medium_links and story_links
+sub write_live_snapshot_tables
 {
     my ( $db, $topic, $timespan ) = @_;
 
@@ -131,20 +131,20 @@ sub write_live_dump_tables
         $topics_id = $cd->{ topics_id };
     }
 
-    write_temporary_dump_tables( $db, $topics_id );
+    write_temporary_snapshot_tables( $db, $topics_id );
     write_period_stories( $db, $timespan );
-    write_story_links_dump( $db, $timespan, 1 );
-    write_story_link_counts_dump( $db, $timespan, 1 );
-    write_medium_links_dump( $db, $timespan, 1 );
-    write_medium_link_counts_dump( $db, $timespan, 1 );
+    write_story_links_snapshot( $db, $timespan, 1 );
+    write_story_link_counts_snapshot( $db, $timespan, 1 );
+    write_medium_links_snapshot( $db, $timespan, 1 );
+    write_medium_link_counts_snapshot( $db, $timespan, 1 );
 }
 
-# create temporary view of all the dump_* tables that call into the cd.* tables.
-# this is useful for writing queries on the cd.* tables without lots of ugly
-# joins and clauses to cd and timespan.  It also provides the same set of dump_*
-# tables as provided by write_story_link_counts_dump_tables, so that the same
+# create temporary view of all the snapshot_* tables that call into the snap.* tables.
+# this is useful for writing queries on the snap.* tables without lots of ugly
+# joins and clauses to cd and timespan.  It also provides the same set of snapshot_*
+# tables as provided by write_story_link_counts_snapshot_tables, so that the same
 # set of queries can run against either.
-sub create_temporary_dump_views
+sub create_temporary_snapshot_views
 {
     my ( $db, $timespan ) = @_;
 
@@ -153,7 +153,7 @@ sub create_temporary_dump_views
     for my $t ( @{ $snapshot_tables } )
     {
         $db->query( <<END );
-create temporary view dump_$t as select * from cd.$t
+create temporary view snapshot_$t as select * from snap.$t
     where snapshots_id = $timespan->{ snapshots_id }
 END
     }
@@ -161,42 +161,42 @@ END
     for my $t ( qw(story_link_counts story_links medium_link_counts medium_links) )
     {
         $db->query( <<END )
-create temporary view dump_$t as select * from cd.$t
+create temporary view snapshot_$t as select * from snap.$t
     where timespans_id = $timespan->{ timespans_id }
 END
     }
 
-    $db->query( "create temporary view dump_period_stories as select stories_id from dump_story_link_counts" );
+    $db->query( "create temporary view snapshot_period_stories as select stories_id from snapshot_story_link_counts" );
 
     add_media_type_views( $db );
 }
 
-=head2 setup_temporary_dump_tables( $db, $timespan, $topic, $live )
+=head2 setup_temporary_snapshot_tables( $db, $timespan, $topic, $live )
 
-Setup dump_* tables by either creating views for the relevant cd.* tables for a dump snapshot or by copying live data
+Setup snapshot_* tables by either creating views for the relevant snap.* tables for a snapshot snapshot or by copying live data
 if $live is true.
 
-The following dump_tables are created that contain a copy of all relevant rows present in the topic at the time
-the dump was created: dump_topic_stories, dump_stories, dump_media, dump_topic_links_cross_media,
-dump_stories_tags_map, dump_stories_tags_map, dump_tag_sets, dump_media_with_types.  The data in each of these tables
+The following snapshot_tables are created that contain a copy of all relevant rows present in the topic at the time
+the snapshot was created: snapshot_topic_stories, snapshot_stories, snapshot_media, snapshot_topic_links_cross_media,
+snapshot_stories_tags_map, snapshot_stories_tags_map, snapshot_tag_sets, snapshot_media_with_types.  The data in each of these tables
 consists of data related to all of the stories in the entire topic, not restricted to a specific timespan.  So
-dump_media includes all media including any story in the topic, regardless of date.  Each of these tables consists
-of the fields present in the dumped table.
+snapshot_media includes all media including any story in the topic, regardless of date.  Each of these tables consists
+of the fields present in the snapshoted table.
 
-The following dump_tables are created that contain data relevant only to the specific timespan: dump_medium_links,
-dump_story_links, dump_medium_link_counts, dump_story_link_counts.  These tables include the following fields:
+The following snapshot_tables are created that contain data relevant only to the specific timespan: snapshot_medium_links,
+snapshot_story_links, snapshot_medium_link_counts, snapshot_story_link_counts.  These tables include the following fields:
 
-dump_medium_links: source_media_id, ref_media_id
+snapshot_medium_links: source_media_id, ref_media_id
 
-dump_medium_link_counts: media_id, inlink_count, outlink_count, story_count, bitly_click_count
+snapshot_medium_link_counts: media_id, inlink_count, outlink_count, story_count, bitly_click_count
 
-dump_story_links: source_stories_id, ref_stories_id
+snapshot_story_links: source_stories_id, ref_stories_id
 
-dump_story_link_counts: stories_id, inlink_count, outlink_count, citly_click_count
+snapshot_story_link_counts: stories_id, inlink_count, outlink_count, citly_click_count
 
 =cut
 
-sub setup_temporary_dump_tables
+sub setup_temporary_snapshot_tables
 {
     my ( $db, $timespan, $topic, $live ) = @_;
 
@@ -205,18 +205,18 @@ sub setup_temporary_dump_tables
 
     if ( $live )
     {
-        MediaWords::CM::Dump::write_live_dump_tables( $db, $topic, $timespan );
+        MediaWords::TM::Snapshot::write_live_snapshot_tables( $db, $topic, $timespan );
     }
     else
     {
-        MediaWords::CM::Dump::create_temporary_dump_views( $db, $timespan );
+        MediaWords::TM::Snapshot::create_temporary_snapshot_views( $db, $timespan );
     }
 }
 
 =head2 discard_temp_tables( $db )
 
 Runs $db->query( "discard temp" ) to clean up temporary tables and views.  This should be run after calling
-setup_temporary_dump_tables().  Calling setup_temporary_dump_tables() within a transaction and committing the
+setup_temporary_snapshot_tables().  Calling setup_temporary_snapshot_tables() within a transaction and committing the
 transaction will have the same effect.
 
 =cut
@@ -228,7 +228,7 @@ sub discard_temp_tables
     $db->query( "discard temp" );
 }
 
-# remove stories from dump_period_stories that don't math solr query in the associated focus, if any
+# remove stories from snapshot_period_stories that don't math solr query in the associated focus, if any
 sub restrict_period_stories_to_focus
 {
     my ( $db, $timespan ) = @_;
@@ -237,15 +237,15 @@ sub restrict_period_stories_to_focus
 
     my $qs = $db->find_by_id( 'foci', $timespan->{ foci_id } );
 
-    my $dump_period_stories_ids = $db->query( "select stories_id from dump_period_stories" )->flat;
+    my $snapshot_period_stories_ids = $db->query( "select stories_id from snapshot_period_stories" )->flat;
 
-    if ( !@{ $dump_period_stories_ids } )
+    if ( !@{ $snapshot_period_stories_ids } )
     {
-        $db->query( "truncate table dump_period_stories" );
+        $db->query( "truncate table snapshot_period_stories" );
         return;
     }
 
-    my $stories_ids_list = join( ' ', @{ $dump_period_stories_ids } );
+    my $stories_ids_list = join( ' ', @{ $snapshot_period_stories_ids } );
 
     my $solr_q = $qs->{ query };
     $solr_q = "( $solr_q )" if ( $solr_q =~ /or/i );
@@ -254,10 +254,10 @@ sub restrict_period_stories_to_focus
 
     my $ids_table = $db->get_temporary_ids_table( $solr_stories_ids );
 
-    $db->query( "delete from dump_period_stories where stories_id not in ( select id from $ids_table )" );
+    $db->query( "delete from snapshot_period_stories where stories_id not in ( select id from $ids_table )" );
 }
 
-# get the where clause that will restrict the dump_period_stories creation
+# get the where clause that will restrict the snapshot_period_stories creation
 # to only stories within the timespan time frame
 sub get_period_stories_date_where_clause
 {
@@ -265,43 +265,43 @@ sub get_period_stories_date_where_clause
 
     my $date_clause = <<END;
 ( ( s.publish_date between \$1::timestamp and \$2::timestamp - interval '1 second'
-      and s.stories_id not in ( select stories_id from dump_undateable_stories ) ) or
+      and s.stories_id not in ( select stories_id from snapshot_undateable_stories ) ) or
   ( ss.publish_date between \$1::timestamp and \$2::timestamp - interval '1 second'
-      and ss.stories_id not in ( select stories_id from dump_undateable_stories ) )
+      and ss.stories_id not in ( select stories_id from snapshot_undateable_stories ) )
 )
 END
 
     return $date_clause;
 }
 
-# write dump_period_stories table that holds list of all stories that should be included in the
-# current period.  For an overall dump, every story should be in the current period.
-# For other dumps, a story should be in the current dump if either its date is within
+# write snapshot_period_stories table that holds list of all stories that should be included in the
+# current period.  For an overall snapshot, every story should be in the current period.
+# For other snapshots, a story should be in the current snapshot if either its date is within
 # the period dates or if a story that links to it has a date within the period dates.
 # For this purpose, stories tagged with the 'date_invalid:undateable' tag
 # are considered to have an invalid tag, so their dates cannot be used to pass
 # either of the above tests.
 #
-# The resulting dump_period_stories should be used by all other dump queries to determine
+# The resulting snapshot_period_stories should be used by all other snapshot queries to determine
 # story membership within a give period.
 sub write_period_stories
 {
     my ( $db, $timespan ) = @_;
 
-    $db->query( "drop table if exists dump_period_stories" );
+    $db->query( "drop table if exists snapshot_period_stories" );
 
     if ( !$timespan || ( $timespan->{ period } eq 'overall' ) )
     {
         $db->query( <<END );
-create temporary table dump_period_stories $_temporary_tablespace as select stories_id from dump_stories
+create temporary table snapshot_period_stories $_temporary_tablespace as select stories_id from snapshot_stories
 END
     }
     else
     {
         $db->query( <<END );
-create or replace temporary view dump_undateable_stories as
+create or replace temporary view snapshot_undateable_stories as
     select distinct s.stories_id
-        from dump_stories s, dump_stories_tags_map stm, dump_tags t, dump_tag_sets ts
+        from snapshot_stories s, snapshot_stories_tags_map stm, snapshot_tags t, snapshot_tag_sets ts
         where s.stories_id = stm.stories_id and
             stm.tags_id = t.tags_id and
             t.tag_sets_id = ts.tag_sets_id and
@@ -312,16 +312,16 @@ END
         my $date_where_clause = get_period_stories_date_where_clause( $timespan );
 
         $db->query( <<"END", $timespan->{ start_date }, $timespan->{ end_date } );
-create temporary table dump_period_stories $_temporary_tablespace as
+create temporary table snapshot_period_stories $_temporary_tablespace as
     select distinct s.stories_id
-        from dump_stories s
-            left join dump_topic_links_cross_media cl on ( cl.ref_stories_id = s.stories_id )
-            left join dump_stories ss on ( cl.stories_id = ss.stories_id )
+        from snapshot_stories s
+            left join snapshot_topic_links_cross_media cl on ( cl.ref_stories_id = s.stories_id )
+            left join snapshot_stories ss on ( cl.stories_id = ss.stories_id )
         where
             $date_where_clause
 END
 
-        $db->query( "drop view dump_undateable_stories" );
+        $db->query( "drop view snapshot_undateable_stories" );
     }
 
     if ( $timespan->{ foci_id } )
@@ -343,17 +343,17 @@ sub create_timespan_file
     return $db->create( 'timespan_files', $timespan_file );
 }
 
-sub create_cd_file
+sub create_snap_file
 {
     my ( $db, $cd, $file_name, $file_content ) = @_;
 
-    my $cd_file = {
+    my $snap_file = {
         snapshots_id => $cd->{ snapshots_id },
         file_name    => $file_name,
         file_content => $file_content
     };
 
-    return $db->create( 'cd_files', $cd_file );
+    return $db->create( 'snap_files', $snap_file );
 }
 
 # convenience function to update a field in the timespan table
@@ -366,7 +366,7 @@ sub update_timespan
 
 =head2 get_story_links_csv( $db, $timespan )
 
-Get an encoded csv dump of the story links for the given timespan.
+Get an encoded csv snapshot of the story links for the given timespan.
 
 =cut
 
@@ -379,7 +379,7 @@ select distinct sl.source_stories_id source_stories_id, ss.title source_title, s
         sm.name source_media_name, sm.url source_media_url, sm.media_id source_media_id,
 		sl.ref_stories_id ref_stories_id, rs.title ref_title, rs.url ref_url, rm.name ref_media_name, rm.url ref_media_url,
 		rm.media_id ref_media_id
-	from dump_story_links sl, cd.live_stories ss, media sm, cd.live_stories rs, media rm
+	from snapshot_story_links sl, snap.live_stories ss, media sm, snap.live_stories rs, media rm
 	where sl.source_stories_id = ss.stories_id and
 	    ss.media_id = sm.media_id and
 	    sl.ref_stories_id = rs.stories_id and
@@ -398,16 +398,16 @@ sub write_story_links_csv
     create_timespan_file( $db, $timespan, 'story_links.csv', $csv );
 }
 
-sub write_story_links_dump
+sub write_story_links_snapshot
 {
     my ( $db, $timespan, $is_model ) = @_;
 
-    $db->query( "drop table if exists dump_story_links" );
+    $db->query( "drop table if exists snapshot_story_links" );
 
     $db->query( <<END );
-create temporary table dump_story_links $_temporary_tablespace as
+create temporary table snapshot_story_links $_temporary_tablespace as
     select distinct cl.stories_id source_stories_id, cl.ref_stories_id
-	    from dump_topic_links_cross_media cl, dump_period_stories sps, dump_period_stories rps
+	    from snapshot_topic_links_cross_media cl, snapshot_period_stories sps, snapshot_period_stories rps
     	where cl.stories_id = sps.stories_id and
     	    cl.ref_stories_id = rps.stories_id
 END
@@ -424,7 +424,7 @@ END
 
 =head2 get_stories_csv( $db, $timespan )
 
-Get an encoded csv dump of the stories inr the given timespan.
+Get an encoded csv snapshot of the stories inr the given timespan.
 
 =cut
 
@@ -437,9 +437,9 @@ select distinct s.stories_id, s.title, s.url,
         case when ( stm.tags_id is null ) then s.publish_date::text else 'undateable' end as publish_date,
         m.name media_name, m.url media_url, m.media_id,
         slc.media_inlink_count, slc.inlink_count, slc.outlink_count, slc.bitly_click_count, slc.facebook_share_count
-	from dump_stories s
-	    join dump_media m on ( s.media_id = m.media_id )
-	    join dump_story_link_counts slc on ( s.stories_id = slc.stories_id )
+	from snapshot_stories s
+	    join snapshot_media m on ( s.media_id = m.media_id )
+	    join snapshot_story_link_counts slc on ( s.stories_id = slc.stories_id )
 	    left join (
 	        stories_tags_map stm
                 join tags t on ( stm.tags_id = t.tags_id  and t.tag = 'undateable' )
@@ -460,30 +460,30 @@ sub write_stories_csv
     create_timespan_file( $db, $timespan, 'stories.csv', $csv );
 }
 
-sub write_story_link_counts_dump
+sub write_story_link_counts_snapshot
 {
     my ( $db, $timespan, $is_model ) = @_;
 
-    $db->query( "drop table if exists dump_story_link_counts" );
+    $db->query( "drop table if exists snapshot_story_link_counts" );
 
     $db->query( <<END );
-create temporary table dump_story_link_counts $_temporary_tablespace as
-    with  dump_story_media_links as (
+create temporary table snapshot_story_link_counts $_temporary_tablespace as
+    with  snapshot_story_media_links as (
        select
             s.media_id source_media_id,
             sl.ref_stories_id ref_stories_id
         from
-            dump_story_links sl
-            join dump_stories s on ( s.stories_id = sl.source_stories_id )
+            snapshot_story_links sl
+            join snapshot_stories s on ( s.stories_id = sl.source_stories_id )
         group by s.media_id, sl.ref_stories_id
     ),
 
-    dump_story_media_link_counts as (
+    snapshot_story_media_link_counts as (
         select
                 count(*) media_inlink_count,
                 sml.ref_stories_id stories_id
             from
-                dump_story_media_links sml
+                snapshot_story_media_links sml
             group by sml.ref_stories_id
     )
 
@@ -493,21 +493,21 @@ create temporary table dump_story_link_counts $_temporary_tablespace as
             coalesce( olc.outlink_count, 0 ) outlink_count,
             b.click_count bitly_click_count,
             ss.facebook_share_count facebook_share_count
-        from dump_period_stories ps
-            left join dump_story_media_link_counts smlc using ( stories_id )
+        from snapshot_period_stories ps
+            left join snapshot_story_media_link_counts smlc using ( stories_id )
             left join
                 ( select cl.ref_stories_id,
                          count( distinct cl.stories_id ) inlink_count
-                  from dump_topic_links_cross_media cl,
-                       dump_period_stories ps
+                  from snapshot_topic_links_cross_media cl,
+                       snapshot_period_stories ps
                   where cl.stories_id = ps.stories_id
                   group by cl.ref_stories_id
                 ) ilc on ( ps.stories_id = ilc.ref_stories_id )
             left join
                 ( select cl.stories_id,
                          count( distinct cl.ref_stories_id ) outlink_count
-                  from dump_topic_links_cross_media cl,
-                       dump_period_stories ps
+                  from snapshot_topic_links_cross_media cl,
+                       snapshot_period_stories ps
                   where cl.ref_stories_id = ps.stories_id
                   group by cl.stories_id
                 ) olc on ( ps.stories_id = olc.stories_id )
@@ -524,15 +524,15 @@ END
     }
 }
 
-sub add_tags_to_dump_media
+sub add_tags_to_snapshot_media
 {
     my ( $db, $timespan, $media ) = @_;
 
     my $tag_sets = $db->query( <<END )->hashes;
-select * from dump_tag_sets
+select * from snapshot_tag_sets
     where tag_sets_id in
         ( select tag_sets_id
-            from dump_tags t join dump_media_tags_map mtm on ( t.tags_id = mtm.tags_id ) )
+            from snapshot_tags t join snapshot_media_tags_map mtm on ( t.tags_id = mtm.tags_id ) )
 END
 
     my $fields = [];
@@ -544,8 +544,8 @@ END
 
         my $media_tags = $db->query( <<END, $tag_set->{ tag_sets_id } )->hashes;
 select dmtm.*, dt.tag
-    from dump_media_tags_map dmtm
-        join dump_tags dt on ( dmtm.tags_id = dt.tags_id )
+    from snapshot_media_tags_map dmtm
+        join snapshot_tags dt on ( dmtm.tags_id = dt.tags_id )
     where dt.tag_sets_id = ?
 END
         my $map = {};
@@ -557,7 +557,7 @@ END
     return $fields;
 }
 
-sub add_partisan_code_to_dump_media
+sub add_partisan_code_to_snapshot_media
 {
     my ( $db, $timespan, $media ) = @_;
 
@@ -565,9 +565,9 @@ sub add_partisan_code_to_dump_media
 
     my $partisan_tags = $db->query( <<END )->hashes;
 select dmtm.*, dt.tag
-    from dump_media_tags_map dmtm
-        join dump_tags dt on ( dmtm.tags_id = dt.tags_id )
-        join dump_tag_sets dts on ( dts.tag_sets_id = dt.tag_sets_id )
+    from snapshot_media_tags_map dmtm
+        join snapshot_tags dt on ( dmtm.tags_id = dt.tags_id )
+        join snapshot_tag_sets dts on ( dts.tag_sets_id = dt.tag_sets_id )
     where
         dts.name = 'collection' and
         dt.tag like 'partisan_2012_%'
@@ -581,12 +581,12 @@ END
     return $label;
 }
 
-sub add_codes_to_dump_media
+sub add_codes_to_snapshot_media
 {
     my ( $db, $timespan, $media ) = @_;
 
     my $code_types = $db->query( <<END )->flat;
-select distinct code_type from dump_topic_media_codes
+select distinct code_type from snapshot_topic_media_codes
 END
 
     my $code_fields = [];
@@ -597,7 +597,7 @@ END
         push( @{ $code_fields }, $label );
 
         my $media_codes = $db->query( <<END, $code_type )->hashes;
-select * from dump_topic_media_codes where code_type = ?
+select * from snapshot_topic_media_codes where code_type = ?
 END
         my $media_codes_map = {};
         map { $media_codes_map->{ $_->{ media_id } } = $_->{ code } } @{ $media_codes };
@@ -608,16 +608,16 @@ END
     return $code_fields;
 }
 
-# add tags, codes, partisanship and other extra data to all dump media for the purpose
-# of making a gexf or csv dump.  return the list of extra fields added.
-sub add_extra_fields_to_dump_media
+# add tags, codes, partisanship and other extra data to all snapshot media for the purpose
+# of making a gexf or csv snapshot.  return the list of extra fields added.
+sub add_extra_fields_to_snapshot_media
 {
     my ( $db, $timespan, $media ) = @_;
 
-    # my $code_fields = add_codes_to_dump_media( $db, $timespan, $media );
+    # my $code_fields = add_codes_to_snapshot_media( $db, $timespan, $media );
 
-    # my $tag_fields = add_tags_to_dump_media( $db, $timespan, $media );
-    my $partisan_field = add_partisan_code_to_dump_media( $db, $timespan, $media );
+    # my $tag_fields = add_tags_to_snapshot_media( $db, $timespan, $media );
+    my $partisan_field = add_partisan_code_to_snapshot_media( $db, $timespan, $media );
 
     # my $all_fields = [ @{ $code_fields }, @{ $tag_fields }, $partisan_field ];
     my $all_fields = [ $partisan_field ];
@@ -629,7 +629,7 @@ sub add_extra_fields_to_dump_media
 
 =head2 get_media_csv( $db, $timespan )
 
-Get an encoded csv dump of the media in the given timespan.
+Get an encoded csv snapshot of the media in the given timespan.
 
 =cut
 
@@ -639,7 +639,7 @@ sub get_media_csv
 
     my $res = $db->query( <<END );
 select m.name, m.url, mlc.*
-    from dump_media m, dump_medium_link_counts mlc
+    from snapshot_media m, snapshot_medium_link_counts mlc
     where m.media_id = mlc.media_id
     order by mlc.inlink_count desc;
 END
@@ -647,7 +647,7 @@ END
     my $fields = $res->columns;
     my $media  = $res->hashes;
 
-    my $extra_fields = add_extra_fields_to_dump_media( $db, $timespan, $media );
+    my $extra_fields = add_extra_fields_to_snapshot_media( $db, $timespan, $media );
 
     push( @{ $fields }, @{ $extra_fields } );
 
@@ -665,21 +665,21 @@ sub write_media_csv
     create_timespan_file( $db, $timespan, 'media.csv', $csv );
 }
 
-sub write_medium_link_counts_dump
+sub write_medium_link_counts_snapshot
 {
     my ( $db, $timespan, $is_model ) = @_;
 
-    $db->query( "drop table if exists dump_medium_link_counts" );
+    $db->query( "drop table if exists snapshot_medium_link_counts" );
 
     $db->query( <<END );
-create temporary table dump_medium_link_counts $_temporary_tablespace as
+create temporary table snapshot_medium_link_counts $_temporary_tablespace as
 
     with medium_media_link_counts as (
        select
             count(*) media_inlink_count,
             dml.ref_media_id media_id
         from
-            dump_medium_links dml
+            snapshot_medium_links dml
         group by dml.ref_media_id
     ),
 
@@ -692,9 +692,9 @@ create temporary table dump_medium_link_counts $_temporary_tablespace as
                sum( slc.bitly_click_count ) bitly_click_count,
                sum( slc.facebook_share_count ) facebook_share_count
             from
-                dump_media m
-                join dump_stories s using ( media_id )
-                join dump_story_link_counts slc using ( stories_id )
+                snapshot_media m
+                join snapshot_stories s using ( media_id )
+                join snapshot_story_link_counts slc using ( stories_id )
             where m.media_id = s.media_id and s.stories_id = slc.stories_id
             group by m.media_id
     )
@@ -715,7 +715,7 @@ END
 
 =head2 get_medium_links_csv( $db, $timespan )
 
-Get an encoded csv dump of the medium_links in the given timespan.
+Get an encoded csv snapshot of the medium_links in the given timespan.
 
 =cut
 
@@ -726,7 +726,7 @@ sub get_medium_links_csv
     my $csv = MediaWords::Util::CSV::get_query_as_csv( $db, <<END );
 select ml.source_media_id, sm.name source_name, sm.url source_url,
         ml.ref_media_id, rm.name ref_name, rm.url ref_url, ml.link_count
-    from dump_medium_links ml, media sm, media rm
+    from snapshot_medium_links ml, media sm, media rm
     where ml.source_media_id = sm.media_id and ml.ref_media_id = rm.media_id
 END
 
@@ -742,16 +742,16 @@ sub write_medium_links_csv
     create_timespan_file( $db, $timespan, 'medium_links.csv', $csv );
 }
 
-sub write_medium_links_dump
+sub write_medium_links_snapshot
 {
     my ( $db, $timespan, $is_model ) = @_;
 
-    $db->query( "drop table if exists dump_medium_links" );
+    $db->query( "drop table if exists snapshot_medium_links" );
 
     $db->query( <<END );
-create temporary table dump_medium_links $_temporary_tablespace as
+create temporary table snapshot_medium_links $_temporary_tablespace as
     select s.media_id source_media_id, r.media_id ref_media_id, count(*) link_count
-        from dump_story_links sl, dump_stories s, dump_stories r
+        from snapshot_story_links sl, snapshot_stories s, snapshot_stories r
         where sl.source_stories_id = s.stories_id and sl.ref_stories_id = r.stories_id
         group by s.media_id, r.media_id
 END
@@ -769,15 +769,15 @@ sub write_date_counts_csv
 
     my $csv = MediaWords::Util::CSV::get_query_as_csv( $db, <<END );
 select dc.publish_date, t.tag, t.tags_id, dc.story_count
-    from dump_${ period }_date_counts dc, tags t
+    from snapshot_${ period }_date_counts dc, tags t
     where dc.tags_id = t.tags_id
     order by t.tag, dc.publish_date
 END
 
-    create_cd_file( $db, $cd, "${ period }_counts.csv", $csv );
+    create_snap_file( $db, $cd, "${ period }_counts.csv", $csv );
 }
 
-sub write_date_counts_dump
+sub write_date_counts_snapshot
 {
     my ( $db, $cd, $period ) = @_;
 
@@ -785,15 +785,15 @@ sub write_date_counts_dump
     my $date_trunc = ( $period eq 'daily' ) ? 'day' : 'week';
 
     $db->query( <<END, $date_trunc, $date_trunc );
-create temporary table dump_${ period }_date_counts $_temporary_tablespace as
+create temporary table snapshot_${ period }_date_counts $_temporary_tablespace as
     select date_trunc( ?, s.publish_date ) publish_date, t.tags_id, count(*) story_count
-        from dump_stories s, dump_stories_tags_map stm, dump_tags t
+        from snapshot_stories s, snapshot_stories_tags_map stm, snapshot_tags t
         where s.stories_id = stm.stories_id and
             stm.tags_id = t.tags_id
         group by date_trunc( ?, s.publish_date ), t.tags_id
 END
 
-    create_cd_snapshot( $db, $cd, "${ period }_date_counts" );
+    create_snap_snapshot( $db, $cd, "${ period }_date_counts" );
 
     write_date_counts_csv( $db, $cd, $period );
 }
@@ -813,11 +813,11 @@ sub get_weighted_edges
 
     my $media_links = $db->query( <<END, $max_media )->hashes;
 with top_media as (
-    select media_id from dump_medium_link_counts order by inlink_count desc limit ?
+    select media_id from snapshot_medium_link_counts order by inlink_count desc limit ?
 )
 
 select *
-    from dump_medium_links
+    from snapshot_medium_links
     where
         source_media_id in ( select media_id from top_media ) and
         ref_media_id in ( select media_id from top_media )
@@ -847,7 +847,7 @@ END
 }
 
 # given an rgb hex string, return a hash in the form { r => 12, g => 0, b => 255 }, which is
-# what we need for the viz:color element of the gexf dump
+# what we need for the viz:color element of the gexf snapshot
 sub get_color_hash_from_hex
 {
     my ( $rgb_hex ) = @_;
@@ -889,7 +889,7 @@ sub add_weights_to_gexf_edges
 
     my $edges = $gexf->{ graph }->[ 0 ]->{ edges }->[ 0 ]->{ edge };
 
-    my $medium_links = $db->query( "select * from dump_medium_links" )->hashes;
+    my $medium_links = $db->query( "select * from snapshot_medium_links" )->hashes;
 
     my $edge_weight_lookup = {};
     for my $m ( @{ $medium_links } )
@@ -1081,9 +1081,9 @@ sub layout_gexf_with_graphviz_1
     scale_gexf_nodes( $gexf );
 }
 
-=head2 get_gexf_dump( $db, $timespan, $color_field, $max_media )
+=head2 get_gexf_snapshot( $db, $timespan, $color_field, $max_media )
 
-Get a gexf dump of the graph described by the linked media sources within the given topic timespan.
+Get a gexf snapshot of the graph described by the linked media sources within the given topic timespan.
 
 Layout the graph using the gaphviz neato algorithm.
 
@@ -1093,7 +1093,7 @@ Include only the $max_media media sources with the most inlinks in the timespan 
 
 =cut
 
-sub get_gexf_dump
+sub get_gexf_snapshot
 {
     my ( $db, $timespan, $color_field, $max_media ) = @_;
 
@@ -1102,13 +1102,13 @@ sub get_gexf_dump
 
     my $media = $db->query( <<END, $max_media )->hashes;
 select distinct *
-    from dump_media_with_types m, dump_medium_link_counts mlc
+    from snapshot_media_with_types m, snapshot_medium_link_counts mlc
     where m.media_id = mlc.media_id
     order by mlc.inlink_count desc
     limit ?
 END
 
-    add_extra_fields_to_dump_media( $db, $timespan, $media );
+    add_extra_fields_to_snapshot_media( $db, $timespan, $media );
 
     my $gexf = {
         'xmlns'              => "http://www.gexf.net/1.2draft",
@@ -1162,7 +1162,7 @@ END
         };
 
         $medium->{ view_medium } =
-          "[_mc_base_url_]/admin/cm/medium/$medium->{ media_id }?timespan=$timespan->{ timespans_id }";
+          "[_mc_base_url_]/admin/tm/medium/$medium->{ media_id }?timespan=$timespan->{ timespans_id }";
 
         my $j = 0;
         while ( my ( $name, $type ) = each( %{ $_media_static_gexf_attribute_types } ) )
@@ -1184,12 +1184,12 @@ END
     return $layout_gexf;
 }
 
-# return true if there are any stories in the current topic_stories_dump_ table
+# return true if there are any stories in the current topic_stories_snapshot_ table
 sub stories_exist_for_period
 {
     my ( $db, $topic ) = @_;
 
-    return $db->query( "select 1 from dump_period_stories" )->hash;
+    return $db->query( "select 1 from snapshot_period_stories" )->hash;
 }
 
 sub create_timespan ($$$$$$)
@@ -1216,24 +1216,24 @@ sub create_timespan ($$$$$$)
 }
 
 # generate data for the story_links, story_link_counts, media_links, media_link_counts tables
-# based on the data in the temporary dump_* tables
+# based on the data in the temporary snapshot_* tables
 sub generate_timespan_data ($$;$)
 {
     my ( $db, $timespan, $is_model ) = @_;
 
     write_period_stories( $db, $timespan );
 
-    write_story_links_dump( $db, $timespan, $is_model );
-    write_story_link_counts_dump( $db, $timespan, $is_model );
-    write_medium_links_dump( $db, $timespan, $is_model );
-    write_medium_link_counts_dump( $db, $timespan, $is_model );
+    write_story_links_snapshot( $db, $timespan, $is_model );
+    write_story_link_counts_snapshot( $db, $timespan, $is_model );
+    write_medium_links_snapshot( $db, $timespan, $is_model );
+    write_medium_link_counts_snapshot( $db, $timespan, $is_model );
 
 }
 
 =head2 update_timespan_counts( $db, $timespan, $live )
 
 Update story_count, story_link_count, medium_count, and medium_link_count fields in the timespan
-hash.  This must be called after setup_temporary_dump_tables() to get access to these fields in the timespan hash.
+hash.  This must be called after setup_temporary_snapshot_tables() to get access to these fields in the timespan hash.
 
 Save to db unless $live is specified.
 
@@ -1243,13 +1243,13 @@ sub update_timespan_counts ($$;$)
 {
     my ( $db, $timespan, $live ) = @_;
 
-    ( $timespan->{ story_count } ) = $db->query( "select count(*) from dump_story_link_counts" )->flat;
+    ( $timespan->{ story_count } ) = $db->query( "select count(*) from snapshot_story_link_counts" )->flat;
 
-    ( $timespan->{ story_link_count } ) = $db->query( "select count(*) from dump_story_links" )->flat;
+    ( $timespan->{ story_link_count } ) = $db->query( "select count(*) from snapshot_story_links" )->flat;
 
-    ( $timespan->{ medium_count } ) = $db->query( "select count(*) from dump_medium_link_counts" )->flat;
+    ( $timespan->{ medium_count } ) = $db->query( "select count(*) from snapshot_medium_link_counts" )->flat;
 
-    ( $timespan->{ medium_link_count } ) = $db->query( "select count(*) from dump_medium_links" )->flat;
+    ( $timespan->{ medium_link_count } ) = $db->query( "select count(*) from snapshot_medium_links" )->flat;
 
     return if ( $live );
 
@@ -1260,39 +1260,39 @@ sub update_timespan_counts ($$;$)
 }
 
 # update the state field in the snapshot
-sub _update_dump_state
+sub _update_snapshot_state
 {
     my ( $db, $cd, $state ) = @_;
 
-    DEBUG( "set dump state: $state" );
+    DEBUG( "set snapshot state: $state" );
     $db->update_by_id( 'snapshots', $cd->{ snapshots_id }, { state => $state } );
 }
 
-# generate the dump timespans for the given period, dates, and tag
+# generate the snapshot timespans for the given period, dates, and tag
 sub generate_timespan ($$$$$$)
 {
     my ( $db, $cd, $start_date, $end_date, $period, $focus ) = @_;
 
     my $timespan = create_timespan( $db, $cd, $start_date, $end_date, $period, $focus );
 
-    my $dump_label = "${ period }: ${ start_date } - ${ end_date } ";
-    $dump_label .= "[ $focus->{ name } ]" if ( $focus );
+    my $snapshot_label = "${ period }: ${ start_date } - ${ end_date } ";
+    $snapshot_label .= "[ $focus->{ name } ]" if ( $focus );
 
-    DEBUG( "generating $dump_label ..." );
+    DEBUG( "generating $snapshot_label ..." );
 
-    _update_dump_state( $db, $cd, "dumping $dump_label" );
+    _update_snapshot_state( $db, $cd, "snapshoting $snapshot_label" );
 
-    my $all_models_top_media = MediaWords::CM::Model::get_all_models_top_media( $db, $timespan );
+    my $all_models_top_media = MediaWords::TM::Model::get_all_models_top_media( $db, $timespan );
 
-    DEBUG( "generating dump data ..." );
+    DEBUG( "generating snapshot data ..." );
     generate_timespan_data( $db, $timespan );
 
     update_timespan_counts( $db, $timespan );
 
-    $all_models_top_media ||= [ MediaWords::CM::Model::get_top_media_link_counts( $db, $timespan ) ];
+    $all_models_top_media ||= [ MediaWords::TM::Model::get_top_media_link_counts( $db, $timespan ) ];
 
-    MediaWords::CM::Model::print_model_matches( $db, $timespan, $all_models_top_media );
-    MediaWords::CM::Model::update_model_correlation( $db, $timespan, $all_models_top_media );
+    MediaWords::TM::Model::print_model_matches( $db, $timespan, $all_models_top_media );
+    MediaWords::TM::Model::update_model_correlation( $db, $timespan, $all_models_top_media );
 }
 
 # decrease the given date to the latest monday equal to or before the date
@@ -1322,8 +1322,8 @@ sub truncate_to_start_of_month ($)
     return MediaWords::Util::SQL::increment_day( $date, -1 * $days_offset );
 }
 
-# generate dumps for the periods in topic_dates
-sub generate_custom_period_dump ($$$ )
+# generate snapshots for the periods in topic_dates
+sub generate_custom_period_snapshot ($$$ )
 {
     my ( $db, $cd, $focus ) = @_;
 
@@ -1339,8 +1339,8 @@ END
     }
 }
 
-# generate dump for the given period (overall, monthly, weekly, or custom) and the given tag
-sub generate_period_dump ($$$$)
+# generate snapshot for the given period (overall, monthly, weekly, or custom) and the given tag
+sub generate_period_snapshot ($$$$)
 {
     my ( $db, $cd, $period, $focus ) = @_;
 
@@ -1382,7 +1382,7 @@ sub generate_period_dump ($$$$)
     }
     elsif ( $period eq 'custom' )
     {
-        generate_custom_period_dump( $db, $cd, $focus );
+        generate_custom_period_snapshot( $db, $cd, $focus );
     }
     else
     {
@@ -1396,7 +1396,7 @@ sub get_default_dates
     my ( $db, $topic ) = @_;
 
     my ( $start_date, $end_date ) = $db->query( <<END, $topic->{ topics_id } )->flat;
-select min( cd.start_date ), max( cd.end_date ) from topic_dates cd where cd.topics_id = ?
+select min( td.start_date ), max( td.end_date ) from topic_dates td where td.topics_id = ?
 END
 
     die( "Unable to find default dates" ) unless ( $start_date && $end_date );
@@ -1414,33 +1414,33 @@ sub copy_temporary_tables
     my $snapshot_tables = get_snapshot_tables();
     for my $snapshot_table ( @{ $snapshot_tables } )
     {
-        my $dump_table = "dump_${ snapshot_table }";
-        my $copy_table = "_copy_${ dump_table }";
+        my $snapshot_table = "snapshot_${ snapshot_table }";
+        my $copy_table     = "_copy_${ snapshot_table }";
 
         $db->query( "drop table if exists $copy_table" );
-        $db->query( "create temporary table $copy_table $_temporary_tablespace as select * from $dump_table" );
+        $db->query( "create temporary table $copy_table $_temporary_tablespace as select * from $snapshot_table" );
     }
 }
 
-# restore original, copied data back into dump tables
+# restore original, copied data back into snapshot tables
 sub restore_temporary_tables
 {
     my ( $db ) = @_;
 
-    my $snapshot_tables = MediaWords::CM::Dump::get_snapshot_tables();
+    my $snapshot_tables = MediaWords::TM::Snapshot::get_snapshot_tables();
     for my $snapshot_table ( @{ $snapshot_tables } )
     {
-        my $dump_table = "dump_${ snapshot_table }";
-        my $copy_table = "_copy_${ dump_table }";
+        my $snapshot_table = "snapshot_${ snapshot_table }";
+        my $copy_table     = "_copy_${ snapshot_table }";
 
-        $db->query( "drop table if exists $dump_table cascade" );
-        $db->query( "create temporary table $dump_table $_temporary_tablespace as select * from $copy_table" );
+        $db->query( "drop table if exists $snapshot_table cascade" );
+        $db->query( "create temporary table $snapshot_table $_temporary_tablespace as select * from $copy_table" );
     }
 
     add_media_type_views( $db );
 }
 
-# create a snapshot for the given table from the temporary dump_* table,
+# create a snapshot for the given table from the temporary snapshot_* table,
 # making sure to specify all the fields in the copy so that we don't have to
 # assume column position is the same in the original and snapshot tables.
 # use the $key from $obj as an additional field in the snapshot table.
@@ -1452,7 +1452,7 @@ sub create_snapshot
 
     my $column_names = [ $db->query( <<END, $table, $key )->flat ];
 select column_name from information_schema.columns
-    where table_name = ? and table_schema = 'cd' and
+    where table_name = ? and table_schema = 'snap' and
         column_name not in ( ? )
     order by ordinal_position asc
 END
@@ -1463,7 +1463,7 @@ END
     my $column_list = join( ",", @{ $column_names } );
 
     $db->query( <<END, $obj->{ $key } );
-insert into cd.${ table } ( $column_list, $key ) select $column_list, ? from dump_${ table }
+insert into snap.${ table } ( $column_list, $key ) select $column_list, ? from snapshot_${ table }
 END
 
 }
@@ -1477,95 +1477,95 @@ sub create_timespan_snapshot
 }
 
 # create a snapshot of a table for a snapshot
-sub create_cd_snapshot
+sub create_snap_snapshot
 {
     my ( $db, $cd, $table ) = @_;
 
     create_snapshot( $db, $cd, 'snapshots_id', $table );
 }
 
-# generate temporary dump_* tables for the specified snapshot for each of the snapshot_tables.
+# generate temporary snapshot_* tables for the specified snapshot for each of the snapshot_tables.
 # these are the tables that apply to the whole snapshot.
-sub write_temporary_dump_tables
+sub write_temporary_snapshot_tables
 {
     my ( $db, $topics_id ) = @_;
 
     set_temporary_table_tablespace();
 
     $db->query( <<END, $topics_id );
-create temporary table dump_topic_stories $_temporary_tablespace as
+create temporary table snapshot_topic_stories $_temporary_tablespace as
     select cs.*
         from topic_stories cs
         where cs.topics_id = ?
 END
 
     $db->query( <<END, $topics_id );
-create temporary table dump_topic_media_codes $_temporary_tablespace as
+create temporary table snapshot_topic_media_codes $_temporary_tablespace as
     select cmc.*
         from topic_media_codes cmc
         where cmc.topics_id = ?
 END
 
     $db->query( <<END, $topics_id );
-create temporary table dump_stories $_temporary_tablespace as
+create temporary table snapshot_stories $_temporary_tablespace as
     select s.stories_id, s.media_id, s.url, s.guid, s.title, s.publish_date, s.collect_date, s.full_text_rss, s.language
-        from cd.live_stories s
-            join dump_topic_stories dcs on ( s.stories_id = dcs.stories_id and s.topics_id = ? )
+        from snap.live_stories s
+            join snapshot_topic_stories dcs on ( s.stories_id = dcs.stories_id and s.topics_id = ? )
 END
 
     $db->query( <<END );
-create temporary table dump_media $_temporary_tablespace as
+create temporary table snapshot_media $_temporary_tablespace as
     select m.* from media m
-        where m.media_id in ( select media_id from dump_stories )
+        where m.media_id in ( select media_id from snapshot_stories )
 END
 
     $db->query( <<END, $topics_id );
-create temporary table dump_topic_links_cross_media $_temporary_tablespace as
+create temporary table snapshot_topic_links_cross_media $_temporary_tablespace as
     select s.stories_id, r.stories_id ref_stories_id, cl.url, cs.topics_id, cl.topic_links_id
         from topic_links cl
-            join dump_topic_stories cs on ( cs.stories_id = cl.ref_stories_id )
-            join dump_stories s on ( cl.stories_id = s.stories_id )
-            join dump_media sm on ( s.media_id = sm.media_id )
-            join dump_stories r on ( cl.ref_stories_id = r.stories_id )
-            join dump_media rm on ( r.media_id= rm.media_id )
+            join snapshot_topic_stories cs on ( cs.stories_id = cl.ref_stories_id )
+            join snapshot_stories s on ( cl.stories_id = s.stories_id )
+            join snapshot_media sm on ( s.media_id = sm.media_id )
+            join snapshot_stories r on ( cl.ref_stories_id = r.stories_id )
+            join snapshot_media rm on ( r.media_id= rm.media_id )
         where cl.topics_id = ? and r.media_id <> s.media_id
 END
 
     $db->query( <<END );
-create temporary table dump_stories_tags_map $_temporary_tablespace as
+create temporary table snapshot_stories_tags_map $_temporary_tablespace as
     select stm.*
-    from stories_tags_map stm, dump_stories ds
+    from stories_tags_map stm, snapshot_stories ds
     where stm.stories_id = ds.stories_id
 END
 
     $db->query( <<END );
-create temporary table dump_media_tags_map $_temporary_tablespace as
+create temporary table snapshot_media_tags_map $_temporary_tablespace as
     select mtm.*
-    from media_tags_map mtm, dump_media dm
+    from media_tags_map mtm, snapshot_media dm
     where mtm.media_id = dm.media_id
 END
 
     $db->query( <<END );
-create temporary table dump_tags $_temporary_tablespace as
+create temporary table snapshot_tags $_temporary_tablespace as
     select distinct t.* from tags t where t.tags_id in
         ( select a.tags_id
             from tags a
-                join dump_media_tags_map amtm on ( a.tags_id = amtm.tags_id )
+                join snapshot_media_tags_map amtm on ( a.tags_id = amtm.tags_id )
 
           union
 
           select b.tags_id
             from tags b
-                join dump_stories_tags_map bstm on ( b.tags_id = bstm.tags_id )
+                join snapshot_stories_tags_map bstm on ( b.tags_id = bstm.tags_id )
         )
 
 END
 
     $db->query( <<END );
-create temporary table dump_tag_sets $_temporary_tablespace as
+create temporary table snapshot_tag_sets $_temporary_tablespace as
     select ts.*
     from tag_sets ts
-    where ts.tag_sets_id in ( select tag_sets_id from dump_tags )
+    where ts.tag_sets_id in ( select tag_sets_id from snapshot_tags )
 END
 
     add_media_type_views( $db );
@@ -1577,9 +1577,9 @@ sub add_media_type_views
     my ( $db ) = @_;
 
     $db->query( <<END );
-create or replace view dump_media_with_types as
+create or replace view snapshot_media_with_types as
     with topics_id as (
-        select topics_id from dump_topic_stories limit 1
+        select topics_id from snapshot_topic_stories limit 1
     )
 
     select
@@ -1593,40 +1593,40 @@ create or replace view dump_media_with_types as
                     'Not Typed'
                 end as media_type
         from
-            dump_media m
+            snapshot_media m
             left join (
-                dump_tags ut
-                join dump_tag_sets uts on ( ut.tag_sets_id = uts.tag_sets_id and uts.name = 'media_type' )
-                join dump_media_tags_map umtm on ( umtm.tags_id = ut.tags_id )
+                snapshot_tags ut
+                join snapshot_tag_sets uts on ( ut.tag_sets_id = uts.tag_sets_id and uts.name = 'media_type' )
+                join snapshot_media_tags_map umtm on ( umtm.tags_id = ut.tags_id )
             ) on ( m.media_id = umtm.media_id )
             left join (
-                dump_tags ct
-                join dump_media_tags_map cmtm on ( cmtm.tags_id = ct.tags_id )
+                snapshot_tags ct
+                join snapshot_media_tags_map cmtm on ( cmtm.tags_id = ct.tags_id )
                 join topics c on ( c.media_type_tag_sets_id = ct.tag_sets_id )
                 join topics_id cid on ( c.topics_id = cid.topics_id )
             ) on ( m.media_id = cmtm.media_id )
 END
 
     $db->query( <<END );
-create or replace view dump_stories_with_types as
+create or replace view snapshot_stories_with_types as
     select s.*, m.media_type
-        from dump_stories s join dump_media_with_types m on ( s.media_id = m.media_id )
+        from snapshot_stories s join snapshot_media_with_types m on ( s.media_id = m.media_id )
 END
 
 }
 
-# generate snapshots for all of the get_snapshot_tables from the temporary dump tables
-sub generate_snapshots_from_temporary_dump_tables
+# generate snapshots for all of the get_snapshot_tables from the temporary snapshot tables
+sub generate_snapshots_from_temporary_snapshot_tables
 {
     my ( $db, $cd ) = @_;
 
     my $snapshot_tables = get_snapshot_tables();
 
-    map { create_cd_snapshot( $db, $cd, $_ ) } @{ $_snapshot_tables };
+    map { create_snap_snapshot( $db, $cd, $_ ) } @{ $_snapshot_tables };
 }
 
-# create the snapshot row for the current dump
-sub create_snapshot ($$$$)
+# create the snapshot row for the current snapshot
+sub create_snapshot_row ($$$$)
 {
     my ( $db, $topic, $start_date, $end_date ) = @_;
 
@@ -1643,7 +1643,7 @@ END
 }
 
 # analyze all of the snapshot tables because otherwise immediate queries to the
-# new dump ids offer trigger seq scans
+# new snapshot ids offer trigger seq scans
 sub analyze_snapshot_tables
 {
     my ( $db ) = @_;
@@ -1654,11 +1654,11 @@ sub analyze_snapshot_tables
 
     for my $t ( @{ $snapshot_tables } )
     {
-        $db->query( "analyze cd.$t" );
+        $db->query( "analyze snap.$t" );
     }
 }
 
-# validate and set the periods for the dump based on the period parameter
+# validate and set the periods for the snapshot based on the period parameter
 sub get_periods ($)
 {
     my ( $period ) = @_;
@@ -1673,13 +1673,13 @@ sub get_periods ($)
     return ( $period eq 'all' ) ? $all_periods : [ $period ];
 }
 
-=head2 dump_topic( $db, $topics_id )
+=head2 snapshot_topic( $db, $topics_id )
 
 Create a snapshot for the given topic.
 
 =cut
 
-sub dump_topic ($$)
+sub snapshot_topic ($$)
 {
     my ( $db, $topics_id ) = @_;
 
@@ -1692,9 +1692,9 @@ sub dump_topic ($$)
 
     # Log activity that's about to start
     my $changes = {};
-    unless ( MediaWords::DBI::Activities::log_system_activity( $db, 'cm_dump_topic', $topics_id + 0, $changes ) )
+    unless ( MediaWords::DBI::Activities::log_system_activity( $db, 'cm_snapshot_topic', $topics_id + 0, $changes ) )
     {
-        die "Unable to log the 'cm_dump_topic' activity.";
+        die "Unable to log the 'cm_snapshot_topic' activity.";
     }
 
     my ( $start_date, $end_date ) = get_default_dates( $db, $topic );
@@ -1703,27 +1703,27 @@ sub dump_topic ($$)
 select * from foci where topics_id = ?
 SQL
 
-    my $cd = create_snapshot( $db, $topic, $start_date, $end_date );
+    my $cd = create_snapshot_row( $db, $topic, $start_date, $end_date );
 
     eval {
-        _update_dump_state( $db, $cd, "snapshotting data" );
+        _update_snapshot_state( $db, $cd, "snapshotting data" );
 
-        write_temporary_dump_tables( $db, $topic->{ topics_id } );
+        write_temporary_snapshot_tables( $db, $topic->{ topics_id } );
 
-        generate_snapshots_from_temporary_dump_tables( $db, $cd );
+        generate_snapshots_from_temporary_snapshot_tables( $db, $cd );
 
         for my $qs ( undef, @{ $foci } )
         {
             for my $p ( @{ $periods } )
             {
-                generate_period_dump( $db, $cd, $p, $qs );
+                generate_period_snapshot( $db, $cd, $p, $qs );
             }
         }
 
-        _update_dump_state( $db, $cd, "finalizing dump" );
+        _update_snapshot_state( $db, $cd, "finalizing snapshot" );
 
-        write_date_counts_dump( $db, $cd, 'daily' );
-        write_date_counts_dump( $db, $cd, 'weekly' );
+        write_date_counts_snapshot( $db, $cd, 'daily' );
+        write_date_counts_snapshot( $db, $cd, 'weekly' );
 
         analyze_snapshot_tables( $db );
 
@@ -1732,13 +1732,13 @@ SQL
     if ( $@ )
     {
         my $error = $@;
-        ERROR( "dump failed: $error" );
-        _update_dump_state( $db, $cd, "dump failed" );
+        ERROR( "snapshot failed: $error" );
+        _update_snapshot_state( $db, $cd, "snapshot failed" );
         $db->update_by_id( 'snapshots', $cd->{ snapshots_id }, { error_message => $error } );
     }
     else
     {
-        _update_dump_state( $db, $cd, "completed" );
+        _update_snapshot_state( $db, $cd, "completed" );
     }
 }
 

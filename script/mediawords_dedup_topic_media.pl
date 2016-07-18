@@ -286,10 +286,10 @@ sub main
     my $media = $db->query( <<END, $spidered_tag->{ tags_id } )->hashes;
 with media_link_counts as (
     select r.media_id, count(*) inlink_count
-        from cd.live_stories s
+        from snap.live_stories s
         join topic_links cl
             on ( s.stories_id = cl.stories_id and s.topics_id = cl.topics_id )
-        join cd.live_stories r
+        join snap.live_stories r
             on ( r.stories_id = cl.ref_stories_id and s.topics_id = cl.topics_id )
         where r.media_id <> s.media_id
         group by r.media_id
@@ -305,7 +305,7 @@ select m.*,
     where
         m.dup_media_id is null and
         ( ( mtm.tags_id is null ) or
-            m.media_id in ( select distinct( cs.media_id ) from cd.live_stories cs ) )
+            m.media_id in ( select distinct( cs.media_id ) from snap.live_stories cs ) )
   order by m.media_id
 END
 

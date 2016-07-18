@@ -1,8 +1,8 @@
-[% INCLUDE cm/header.tt2 title = "CM: Bit.ly Processing Status" %]
+[% INCLUDE tm/header.tt2 title = "TM: Bit.ly Processing Status" %]
 
 <div class="boxtitle">
     Spidering Status: [% topic.state %]
-    <a class="boxcommand" href="[% c.uri_for( '/admin/cm/mine/' _ topic.topics_id ) %]">spider</a>
+    <a class="boxcommand" href="[% c.uri_for( '/admin/tm/mine/' _ topic.topics_id ) %]">spider</a>
 </div>
 
 <table class="even_rows_grey" >

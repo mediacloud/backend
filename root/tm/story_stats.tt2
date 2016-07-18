@@ -1,6 +1,6 @@
 [% USE date = date(format => '%Y-%m-%d', locale => 'en_GB') %]
 
-[% PROCESS cm/header.tt2 title="Story Stats for $title" %]
+[% PROCESS tm/header.tt2 title="Story Stats for $title" %]
 
 <div id="wholecolumn">
     

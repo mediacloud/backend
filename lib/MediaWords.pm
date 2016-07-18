@@ -132,7 +132,7 @@ sub setup_acl()
 
     # cm role; can access all cm pages + admin-readonly + media-edit + stories-edi
     my @acl_cm = qw|
-      /admin/cm/
+      /admin/tm/
       |;
 
     my @acl_search = qw|

@@ -26,7 +26,7 @@
   <link rel="stylesheet" media="screen and (max-height: 770px)" href="[% c.uri_for( '/nv/css/tablet.css' ) | html %]" />
 </head>
 
-[% SET ts_url = c.uri_for( "/admin/cm/view_timespan/${timespan.timespans_id}",  { l => live } ) %]
+[% SET ts_url = c.uri_for( "/admin/tm/view_timespan/${timespan.timespans_id}",  { l => live } ) %]
 
 <body>
   <div class="sigma-parent">
@@ -70,7 +70,7 @@
                 on the map are shown.
             </p>
             <p>
-                <a href="[% c.uri_for( "/admin/cm/gexf/${timespan.timespans_id}", { l => live, cf => color_field, nm => num_media } ) | html %]">download gexf</a>
+                <a href="[% c.uri_for( "/admin/tm/gexf/${timespan.timespans_id}", { l => live, cf => color_field, nm => num_media } ) | html %]">download gexf</a>
             </p>
   </div>
 </div>

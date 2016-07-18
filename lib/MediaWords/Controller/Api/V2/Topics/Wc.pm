@@ -12,8 +12,8 @@ use namespace::autoclean;
 use List::Compare;
 use Carp;
 use MediaWords::Solr;
-use MediaWords::CM::Dump;
-use MediaWords::CM;
+use MediaWords::TM::Snapshot;
+use MediaWords::TM;
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
@@ -40,7 +40,7 @@ sub list_GET
     my ( $self, $c ) = @_;
 
     my $db       = $c->dbis;
-    my $timespan = MediaWords::CM::require_timespan_for_topic(
+    my $timespan = MediaWords::TM::require_timespan_for_topic(
         $c->dbis,
         $c->stash->{ topic_id },
         $c->req->params->{ timespan },

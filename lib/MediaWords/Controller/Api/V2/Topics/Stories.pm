@@ -12,7 +12,7 @@ use namespace::autoclean;
 use List::Compare;
 use Carp;
 use MediaWords::Solr;
-use MediaWords::CM::Dump;
+use MediaWords::TM::Snapshot;
 use Readonly;
 
 Readonly my $DEFAULT_STORY_LIMIT => 10;
@@ -42,7 +42,7 @@ sub list_GET
     my ( $self, $c ) = @_;
 
     my $db       = $c->dbis;
-    my $timespan = MediaWords::CM::require_timespan_for_topic(
+    my $timespan = MediaWords::TM::require_timespan_for_topic(
         $c->dbis,
         $c->stash->{ topic_id },
         $c->req->params->{ timespan },
@@ -58,12 +58,12 @@ sub list_GET
       : 'slc.inlink_count desc, md5( s.stories_id::text )';
 
     my $timespans_id = $timespan->{ timespans_id };
-    my $cd_id        = $timespan->{ snapshots_id };
+    my $snap_id      = $timespan->{ snapshots_id };
 
-    my ( $stories, $continuation_id ) = $self->do_continuation_query( $c, <<SQL, [ $timespans_id, $cd_id ] );
+    my ( $stories, $continuation_id ) = $self->do_continuation_query( $c, <<SQL, [ $timespans_id, $snap_id ] );
 select *
-    from cd.story_link_counts slc
-        join cd.stories s on slc.stories_id = s.stories_id
+    from snap.story_link_counts slc
+        join snap.stories s on slc.stories_id = s.stories_id
     where slc.timespans_id = \$1
         and s.snapshots_id = \$2
     order by $sort_clause

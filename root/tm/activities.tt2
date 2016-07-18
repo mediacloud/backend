@@ -1,5 +1,5 @@
-[% title = 'CM: List activities: ' _ topic.name %]
-[% topic_link = '<a href="' _ c.uri_for( "/admin/cm/view/" _ topic.topics_id ) _ '">' _ topic.name _ '</a>' %]
+[% title = 'TM: List activities: ' _ topic.name %]
+[% topic_link = '<a href="' _ c.uri_for( "/admin/tm/view/" _ topic.topics_id ) _ '">' _ topic.name _ '</a>' %]
 [% breadcrumbs = "[ $topic_link &gt; activities ]" %]
 [% INCLUDE include/header.tt2 %]
 

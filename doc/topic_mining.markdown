@@ -1,7 +1,7 @@
-Controversy Mining
+Topic Mining
 ==================
 
-The controversy mining code in [MediaWords::CM::Mine](../lib/MediaWords/CM/Mine.pm) follows a relatively simple process
+The topic mining code in [MediaWords::TM::Mine](../lib/MediaWords/TM/Mine.pm) follows a relatively simple process
 described below but has been extensively tweaked over a few years to handle the many problems that arise when trying to
 make sense of the diverse data on the open web.  This document tries to explain both the basic flow of the spider and
 how it solves the problems we have encountered over the years.
@@ -9,22 +9,22 @@ how it solves the problems we have encountered over the years.
 Basic Spider Flow
 -----------------
 
-A controversy is defined as:
+A topic is defined as:
 
 * a solr seed query, which specifies a date range, some media collections, and a text query
 * a regex pattern for determining relevance
-* a date range which bounds the time slices and restricts which stories are mined for links
+* a date range which bounds the timespans and restricts which stories are mined for links
 
 The basic operation of the spider is:
 
 1. Run the solr query to get an initial set of matching stories from our archive.
 2. Add the urls of those stories to the spider queue.
 3. For each story in the spider queue, try to match the url against an existing media cloud story.
-4. If there is no match and the raw html content of the story matches the controversy pattern, create a new story.
-5. If the sentence text or url of the story (existing or created) matches the regex pattern, add it to the controversy
+4. If there is no match and the raw html content of the story matches the topic pattern, create a new story.
+5. If the sentence text or url of the story (existing or created) matches the regex pattern, add it to the topic
 and add all urls within the story text to the spider queue.
 6. Repeat steps 3. - 6. until the spider has completed 15 complete iterations (or the max_iterations set for the
-controversy).
+topic).
 
 Details
 -------
@@ -40,7 +40,7 @@ of those problems and the solutions we have implemented for them.
 Lack of Content or Links
 ------------------------
 
-The first and most serious problem that can happen with a controversy is simply that there either is not enough
+The first and most serious problem that can happen with a topic is simply that there either is not enough
 relevant content in our archive to create a robust set, or that the content in the seed set does not have enough
 links to discover other relevant content and create an interesting link network.
 
@@ -48,7 +48,7 @@ If the content and links simply do not exist, there obviously is no solution.  A
 find at least 1,000 stories and ideally at least 1 cross media link for every 3 stories to be able to say something
 meaningful about the topic.
 
-Approaches we have used in the past to add more content to a sparse controversy include:
+Approaches we have used in the past to add more content to a sparse topic include:
 
 * editing the parameters of the query (keywords, dates, and / or sources) to find more seed stories;
 * adding and backfilling with feedly a new media collection with relevant sources;
@@ -102,23 +102,23 @@ lossy url normalization algorithm is used on the medium url as is used on the ur
 above.  If a media source with the normalized url does not already exist, we create a new one.
 
 In many cases, media sources use urls too different for the normalization algorithm to detect.  To treat those cases,
-we periodically run a manual media source deduplication script that presents to a human lists of controversy media
+we periodically run a manual media source deduplication script that presents to a human lists of topic media
 sources with the same media url domain.  The human makes a judgment about whether media sources with the same
-url domain are duplicates or not.  These media duplicate lists are then used for all future controversy spider runs
-(including reruns on existing controversies, in which case stories from duplicate media sources are merged).
+url domain are duplicates or not.  These media duplicate lists are then used for all future topic spider runs
+(including reruns on existing topics, in which case stories from duplicate media sources are merged).
 
 For implementation of media source assignment, see lookup_medium_by_url() in
-[MediaWords::CM::Mine](../lib/MediaWords/CM/Mine.pm).  For implementation of media source deduplication, see
-[mediawords_dedup_controversy_media.pl](../script/mediawords_dedup_controversy_media.pl).
+[MediaWords::TM::Mine](../lib/MediaWords/TM/Mine.pm).  For implementation of media source deduplication, see
+[mediawords_dedup_topic_media.pl](../script/mediawords_dedup_topic_media.pl).
 
 External Seed Sets
 ------------------
 
 Problem: In some cases, the existing Media Cloud content does not provide a sufficient seed set to accurately reflect
-activity around the controversy topic.
+activity around the topic topic.
 
-For these cases, we provide the option of adding an externally generated list of urls to seed a controversy.  Those
-urls might come from manual google searches, twitter searches, or researcher curation.  When the controversy has a list
+For these cases, we provide the option of adding an externally generated list of urls to seed a topic.  Those
+urls might come from manual google searches, twitter searches, or researcher curation.  When the topic has a list
 of external seed urls, those urls are simply added to the spider url queue before running the spider.
 
 Date Assignment
@@ -143,7 +143,7 @@ like a date anywhere in the text of the html.  If date parsing fails altogether,
 of the first story discovered that linked to the story.
 
 When a date is guessed, we associate a 'date_guess_method' tag with the story.  For an idea of how commonly various
-methods are used by the module, here are the date guess method counts for the net neutrality controversy:
+methods are used by the module, here are the date guess method counts for the net neutrality topic:
 
 | tag                                  | count |
 |--------------------------------------|-------|
@@ -173,33 +173,33 @@ tries to guess whether the story is undateable by looking at the url.  For insta
 undateable, as are urls with no numbers in the path.
 
 When we validated this method, we found that dates guessed by some method other than guess_by_url_and_date_text (which
-are almost always correct) are accurate to the day in 87% of cases.  The above numbers are from a controversy with  
+are almost always correct) are accurate to the day in 87% of cases.  The above numbers are from a topic with  
 30,334 total stories, 3,254 of which were marked as undeateable and 8,125 of which were guessed using an 87% accurate
 method.
 
 We also allow the user to either edit the date or mark the date as correct, in which case we add a date_confirmed
 tag to the story.
 
-For implementation of date guessing, see [MediaWords::CM::GuessDate](../lib/MediaWords/CM/GuessDate.pm).
+For implementation of date guessing, see [MediaWords::TM::GuessDate](../lib/MediaWords/TM/GuessDate.pm).
 
 Date Accuracy Modeling
 ----------------------
 
 Problem: Even though the absolute number of misdated stories is relatively small, that small number of misdated stories
-can badly distort findings for specific time slices that have a small number of stories relative to the larger
-controversy.
+can badly distort findings for specific timespans that have a small number of stories relative to the larger
+topic.
 
 We worked hard to make the date guessing as accurate as possible, resulting for example in only about 1,000 misdated
-stories in the net neutrality debate.  But we found repeatedly in early controversies that even that small number
+stories in the net neutrality debate.  But we found repeatedly in early topics that even that small number
 of misdated stories could badly distort results in weeks with small numbers just from the large number of stories
 that potentially might by misdated linking in to the small week.
 
-To mitigate this problem, we have time slice reliability modeling.  When we run a dump for a controversy, we use the
-data generated from the date guessing validation to randomly perturb individual dates of the controversy and then
-rerun the analysis of the most inlinked media sources for each time slice.  We then run a correlation between the
+To mitigate this problem, we have timespan reliability modeling.  When we run a snapshot for a topic, we use the
+data generated from the date guessing validation to randomly perturb individual dates of the topic and then
+rerun the analysis of the most inlinked media sources for each timespan.  We then run a correlation between the
 set of media source rankings for each modeling run and the unperturbed rankings and store the mean and the stddev of
 the correlations (r2) between the perturbed rankings and the unperturbed ranking.  We mostly arbitrarily assign human
-readable labels to each time slice according to the following rubric:
+readable labels to each timespan according to the following rubric:
 
 ```
 reliable: mean - stddev > 0.85
@@ -207,5 +207,5 @@ somewhat: mean - stddev > 0.75
 not: mean - stddev <= 0.75
 ```
 
-The date accuracy modeling is performed every time a dump is generated. For implementation of date accuracy modeling,
-see [MediaWords::CM::Dump::Mine](../lib/MediaWords/CM/Dump/Mine.pm).
+The date accuracy modeling is performed every time a snapshot is generated. For implementation of date accuracy modeling,
+see [MediaWords::TM::Snapshot::Mine](../lib/MediaWords/TM/Snapshot/Mine.pm).

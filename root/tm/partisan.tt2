@@ -2,7 +2,7 @@
 
 [% title = "Partisanship for " _ date.format( timespan.start_date ) _ ' - ' _ date.format( timespan.end_date ) _ ' timespan' %]
 
-[% PROCESS cm/header.tt2 %]
+[% PROCESS tm/header.tt2 %]
 
 <div class="wholecolumn">
 
@@ -21,7 +21,7 @@
         <tr>
             <th>[% ref_tags.0.source_label | html %]</th>
             [% FOREACH ref_tag IN ref_tags %]
-                [% SET search_url = c.uri_for( '/admin/cm/search_stories/' , { q => "{~ timespan:${ timespan.timespans_id }-${ live } link_from_tag:${ ref_tag.source_tags_id }-${ ref_tag.ref_tags_id } }", timespan => timespan.timespans_id, l => live } ) %]
+                [% SET search_url = c.uri_for( '/admin/tm/search_stories/' , { q => "{~ timespan:${ timespan.timespans_id }-${ live } link_from_tag:${ ref_tag.source_tags_id }-${ ref_tag.ref_tags_id } }", timespan => timespan.timespans_id, l => live } ) %]
                 <td><a href="[% search_url | html %]">[% ref_tag.log_inlink_count | format( '%.02f' ) %] ( [% ref_tag.media_inlink_count | format( '%.02f' ) %] / [% ref_tag.inlink_count | format( '%.02f' ) %] )</a></td>
             [% END %]
         </tr>

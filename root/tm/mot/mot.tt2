@@ -1,9 +1,9 @@
-[% PROCESS cm/header.tt2
-    title = 'Media Over Time for Dump ' _ datetime.format( snapshot.snapshot_date ) %]
+[% PROCESS tm/header.tt2
+    title = 'Media Over Time for Snapshot ' _ datetime.format( snapshot.snapshot_date ) %]
 
-<script src="[% c.uri_for( '/cm/mot/jquery.min.js' ) %]" charset="utf-8"></script>
-<script src="[% c.uri_for( '/cm/mot/d3.min.js' ) %]" charset="utf-8"></script>
-<script src="[% c.uri_for( '/cm/mot/scripts.js' ) %]" charset="utf-8"></script>
+<script src="[% c.uri_for( '/tm/mot/jquery.min.js' ) %]" charset="utf-8"></script>
+<script src="[% c.uri_for( '/tm/mot/d3.min.js' ) %]" charset="utf-8"></script>
+<script src="[% c.uri_for( '/tm/mot/scripts.js' ) %]" charset="utf-8"></script>
 <style type="text/css">
 .axis path,.axis line {fill: none;stroke:#b6b6b6;shape-rendering: crispEdges;}
 /*.tick line{fill:none;stroke:none;}*/
@@ -26,7 +26,7 @@ function truncate(str, maxLength, suffix) {
 var topics_id = '[% topic.topics_id %]';
 var snapshots_id = '[% snapshot.snapshots_id %]';
 var base_url = '[% c.uri_for( "/" ) %]';
-var json_url = base_url + "/admin/cm/view_dump_media_over_time_json/" + snapshots_id;
+var json_url = base_url + "/admin/tm/view_snapshot_media_over_time_json/" + snapshots_id;
 
 d3.json( json_url, function(data) {
         
@@ -97,7 +97,7 @@ d3.json( json_url, function(data) {
 			.attr("r", function(d) { return rScale( d[1]) ; })
 			.style("fill", function(d) { return c(j); })
 			.style("cursor", "pointer")
-			.on("click", function(d){ window.location = base_url + "/admin/cm/view_timespan/" + d[2] } ); 
+			.on("click", function(d){ window.location = base_url + "/admin/tm/view_timespan/" + d[2] } ); 
 			
 		text
 			.attr("y", j*20+25)

@@ -12,7 +12,7 @@ use namespace::autoclean;
 use List::Compare;
 use Carp;
 use MediaWords::Solr;
-use MediaWords::CM::Dump;
+use MediaWords::TM::Snapshot;
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
@@ -62,12 +62,12 @@ END
 
     $db->begin;
 
-    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $timespan, $topic, 0 );
+    MediaWords::TM::Snapshot::setup_temporary_snapshot_tables( $db, $timespan, $topic, 0 );
 
     $db->query( <<END );
 create temporary table media as
     select m.name, m.url, mlc.*
-        from dump_media m join dump_medium_link_counts mlc on ( m.media_id = mlc.media_id )
+        from snapshot_media m join snapshot_medium_link_counts mlc on ( m.media_id = mlc.media_id )
 END
 
     $db->commit;
@@ -78,7 +78,7 @@ sub list_GET : Local
     my ( $self, $c ) = @_;
 
     my $db       = $c->dbis;
-    my $timespan = MediaWords::CM::require_timespan_for_topic(
+    my $timespan = MediaWords::TM::require_timespan_for_topic(
         $c->dbis,
         $c->stash->{ topic_id },
         $c->req->params->{ timespan },
@@ -94,12 +94,12 @@ sub list_GET : Local
       : 'mlc.inlink_count desc, md5( m.media_id::text )';
 
     my $timespans_id = $timespan->{ timespans_id };
-    my $cd_id        = $timespan->{ snapshots_id };
+    my $snap_id      = $timespan->{ snapshots_id };
 
-    my ( $media, $continuation_id ) = $self->do_continuation_query( $c, <<SQL, [ $timespans_id, $cd_id ] );
+    my ( $media, $continuation_id ) = $self->do_continuation_query( $c, <<SQL, [ $timespans_id, $snap_id ] );
 select *
-    from cd.medium_link_counts mlc
-        join cd.media m on mlc.media_id = m.media_id
+    from snap.medium_link_counts mlc
+        join snap.media m on mlc.media_id = m.media_id
     where mlc.timespans_id = \$1 and
         m.snapshots_id = \$2
     order by $sort_clause

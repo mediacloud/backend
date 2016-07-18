@@ -1,4 +1,4 @@
-package MediaWords::CM::GuessDate;
+package MediaWords::TM::GuessDate;
 
 # guess the date of a spidered story using a combination of the story url, html, and
 # a first guess date
@@ -6,7 +6,7 @@ package MediaWords::CM::GuessDate;
 use strict;
 use warnings;
 
-use MediaWords::CM::GuessDate::Result;
+use MediaWords::TM::GuessDate::Result;
 
 use DateTime;
 use HTML::TreeBuilder::LibXML;
@@ -879,16 +879,16 @@ sub _guessing_is_inapplicable($$$)
 }
 
 # guess the date for the story by cycling through the $_date_guess_functions one at a time.
-# returns MediaWords::CM::GuessDate::Result object
+# returns MediaWords::TM::GuessDate::Result object
 sub guess_date_impl
 {
     my ( $db, $story, $html, $use_threshold ) = @_;
 
-    my $result = MediaWords::CM::GuessDate::Result->new();
+    my $result = MediaWords::TM::GuessDate::Result->new();
 
     if ( _guessing_is_inapplicable( $db, $story, $html ) )
     {
-        $result->{ result } = $MediaWords::CM::GuessDate::Result::INAPPLICABLE;
+        $result->{ result } = $MediaWords::TM::GuessDate::Result::INAPPLICABLE;
         return $result;
     }
 
@@ -905,7 +905,7 @@ sub guess_date_impl
             my $threshold = $DATE_GUESS_THRESHOLD * 86400;
             next if ( $story_timestamp && $use_threshold && ( ( $timestamp - $story_timestamp ) > $threshold ) );
 
-            $result->{ result }       = $MediaWords::CM::GuessDate::Result::FOUND;
+            $result->{ result }       = $MediaWords::TM::GuessDate::Result::FOUND;
             $result->{ guess_method } = $date_guess_function->{ name };
             $result->{ timestamp }    = $timestamp;
             $result->{ date }         = MediaWords::Util::SQL::get_sql_date_from_epoch( $timestamp );
@@ -918,7 +918,7 @@ sub guess_date_impl
     {
 
         # print STDERR "SOURCE LINK\n";
-        $result->{ result }       = $MediaWords::CM::GuessDate::Result::FOUND;
+        $result->{ result }       = $MediaWords::TM::GuessDate::Result::FOUND;
         $result->{ guess_method } = 'source_link';
         $result->{ timestamp }    = $story_timestamp;
         $result->{ date }         = MediaWords::Util::SQL::get_sql_date_from_epoch( $story_timestamp );
@@ -926,12 +926,12 @@ sub guess_date_impl
     }
 
     # Not found
-    $result->{ result } = $MediaWords::CM::GuessDate::Result::NOT_FOUND;
+    $result->{ result } = $MediaWords::TM::GuessDate::Result::NOT_FOUND;
     return $result;
 }
 
 # guess the date for the story by cycling through the $_date_guess_functions one at a time.
-# returns MediaWords::CM::GuessDate::Result object
+# returns MediaWords::TM::GuessDate::Result object
 sub guess_date($$$;$)
 {
 
@@ -942,8 +942,8 @@ sub guess_date($$$;$)
 
     return $r if ( $r );
 
-    $r = MediaWords::CM::GuessDate::Result->new();
-    $r->{ result } = $MediaWords::CM::GuessDate::Result::INAPPLICABLE;
+    $r = MediaWords::TM::GuessDate::Result->new();
+    $r->{ result } = $MediaWords::TM::GuessDate::Result::INAPPLICABLE;
     return $r;
 }
 

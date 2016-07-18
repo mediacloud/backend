@@ -8,7 +8,7 @@
     [% SET title = title _ " for Top 10 Media in this timespan" %]
 [% END %]
 
-[% PROCESS cm/header.tt2 %]
+[% PROCESS tm/header.tt2 %]
 
 <div class="wholecolumn">
 
@@ -22,14 +22,14 @@
         <th>Timespan</th>
         <th>Count</th>
         [% FOREACH m IN top_media %]
-            [% SET medium_url = c.uri_for( '/admin/cm/medium/' _ m.media_id, { timespan => timespan.timespans_id, l => live } ) %]
+            [% SET medium_url = c.uri_for( '/admin/tm/medium/' _ m.media_id, { timespan => timespan.timespans_id, l => live } ) %]
             <th><a href="[% medium_url | html %]" title="[% m.name | html %]">[% m.name | truncate( 8 ) | html %]</a></th>
             <th>Count</th>
         [% END %]
     </tr>
 
     [% FOREACH i IN [ 0 .. 19 ] %]
-        [% SET word_url = c.uri_for( '/admin/cm/search_stories', { q => top_words.$i.term, timespan => timespan.timespans_id, l => live } ) %]
+        [% SET word_url = c.uri_for( '/admin/tm/search_stories', { q => top_words.$i.term, timespan => timespan.timespans_id, l => live } ) %]
         [% SET top_word = top_words.$i %]
     <tr>
         <td>[% i + 1 %]</td>
@@ -40,7 +40,7 @@
         [% FOREACH m IN top_media %]
 
             [% SET w = m.words.$i %]
-            [% SET word_url = c.uri_for( '/admin/cm/search_stories', { q => "media_id:${m.media_id} and ( $w.term )", timespan => timespan.timespans_id, l => live } ) %]
+            [% SET word_url = c.uri_for( '/admin/tm/search_stories', { q => "media_id:${m.media_id} and ( $w.term )", timespan => timespan.timespans_id, l => live } ) %]
             
             [% IF w %]
                 <td [% IF w.key_word %]style="font-weight:bold"[% END %]>
@@ -76,7 +76,7 @@
         detect content that it should have for the stories.
         <ul>        
             [% FOREACH m IN hide_media %]
-                [% SET medium_url = c.uri_for( '/admin/cm/medium/' _ m.media_id, { timespan => timespan.timespans_id, l => live } ) %]
+                [% SET medium_url = c.uri_for( '/admin/tm/medium/' _ m.media_id, { timespan => timespan.timespans_id, l => live } ) %]
                 <li><a href="[% medium_url | html %]" title="[% m.name | html %]">[% m.name | html %]</a></li>
             [% END %]
         </ul>

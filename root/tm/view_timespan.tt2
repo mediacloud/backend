@@ -1,6 +1,6 @@
 [% USE date = date(format => '%Y-%m-%d', locale => 'en_GB') %]
 
-[% PROCESS cm/header.tt2
+[% PROCESS tm/header.tt2
     title=date.format( timespan.start_date ) _ ' - ' _ date.format( timespan.end_date ) _ ' timespan' %]
 
 <div id="wholecolumn">
@@ -12,33 +12,33 @@
 
             [% IF live %]
                 <p>No network map is available for live data.  To see a network map, view this timespan in the
-                <a href="[% c.uri_for( "/admin/cm/view_timespan/$timespan.timespans_id" ) %]">latest dump</a>.  For that latest dump, the modeled reliability for this data is below.</p>
+                <a href="[% c.uri_for( "/admin/tm/view_timespan/$timespan.timespans_id" ) %]">latest snapshot</a>.  For that latest snapshot, the modeled reliability for this data is below.</p>
             [% ELSE %]
-                [% map_url= c.uri_for( '/gexf/index.html#' ) _ c.uri_for( '/admin/cm/gexf/' _ timespan.timespans_id ) %]
+                [% map_url= c.uri_for( '/gexf/index.html#' ) _ c.uri_for( '/admin/tm/gexf/' _ timespan.timespans_id ) %]
                 <iframe src="[% map_url | html %]" height="400" style="width:100%; border:0"></iframe>
                 <a href="[% map_url | html %]">View Map Full Screen</a>
-                | <a href="[% c.uri_for( '/admin/cm/gexf/' _ timespan.timespans_id ) %]">Download GEXF</a><br />
+                | <a href="[% c.uri_for( '/admin/tm/gexf/' _ timespan.timespans_id ) %]">Download GEXF</a><br />
             [% END %]
             <p>
-                <b>Model Reliability: [% INCLUDE cm/model_reliability.tt2 model_reliability_include_numbers=1 %]</b>
+                <b>Model Reliability: [% INCLUDE tm/model_reliability.tt2 model_reliability_include_numbers=1 %]</b>
             </p>
         </fieldset>
 -->
 
-        [% INCLUDE cm/media_table.tt2
+        [% INCLUDE tm/media_table.tt2
             display_media = top_media
             display_media_title = "Top Media" %]
-        [% all_media_url = c.uri_for( '/admin/cm/search_media',
+        [% all_media_url = c.uri_for( '/admin/tm/search_media',
                                       { timespan => timespan.timespans_id,
                                         l => live } ) %]
         <a href="[% all_media_url | html %]">View All Media</a>
 
-        [% INCLUDE cm/stories_table.tt2
+        [% INCLUDE tm/stories_table.tt2
             display_stories = top_stories
             display_stories_short_title = "Top Stories"
             display_stories_full_title = title _ ": Top Stories"
             display_stories_id = "top_stories" %]
-        [% all_stories_url = c.uri_for( '/admin/cm/search_stories',
+        [% all_stories_url = c.uri_for( '/admin/tm/search_stories',
                                         { timespan => timespan.timespans_id,
                                           l => live } ) %]
         <a href="[% all_stories_url | html %]">View All Stories</a>
@@ -49,29 +49,29 @@
     <div id="narrowcolumn">
         <div class="boxtitle">Live</div>
             <fieldset>
-                <a href="[% c.uri_for( "/admin/cm/view_timespan/" _ timespan.timespans_id _ "?l=1" ) %]">View Live Data for this timespan</a>
+                <a href="[% c.uri_for( "/admin/tm/view_timespan/" _ timespan.timespans_id _ "?l=1" ) %]">View Live Data for this timespan</a>
             </fieldset>
         <div class="boxtitle">Stats</div>
         <table class="even_rows_grey">
             <tr>
                 <td># Stories</td>
                 <td>[% timespan.story_count %]</td>
-                <td><a href="[% c.uri_for( '/admin/cm/dump_stories/' _ timespan.timespans_id, { l => live } ) %]">CSV</a></td>
+                <td><a href="[% c.uri_for( '/admin/tm/snapshot_stories/' _ timespan.timespans_id, { l => live } ) %]">CSV</a></td>
             </tr>
             <tr>
                 <td># Story Links</td>
                 <td>[% timespan.story_link_count %]</td>
-                <td><a href="[% c.uri_for( '/admin/cm/dump_story_links/' _ timespan.timespans_id, { l => live } ) %]">CSV</a></td>
+                <td><a href="[% c.uri_for( '/admin/tm/snapshot_story_links/' _ timespan.timespans_id, { l => live } ) %]">CSV</a></td>
             </tr>
             <tr>
                 <td># Media</td>
                 <td>[% timespan.medium_count %]</td>
-                <td><a href="[% c.uri_for( '/admin/cm/dump_media/' _ timespan.timespans_id, { l => live } ) %]">CSV</a></tr>
+                <td><a href="[% c.uri_for( '/admin/tm/snapshot_media/' _ timespan.timespans_id, { l => live } ) %]">CSV</a></tr>
             </tr>
             <tr>
                 <td># Medium Links</td>
                 <td>[% timespan.medium_link_count %]</td>
-                <td><a href="[% c.uri_for( '/admin/cm/dump_medium_links/' _ timespan.timespans_id, { l => live } ) %]">CSV</a></td>
+                <td><a href="[% c.uri_for( '/admin/tm/snapshot_medium_links/' _ timespan.timespans_id, { l => live } ) %]">CSV</a></td>
             </tr>
             <tr>
                 <td># Modeled Top Media</td>
@@ -79,13 +79,13 @@
                 <td />
             </tr>
             <tr>
-                <td colspan="3">dates: [% INCLUDE cm/model_reliability.tt2 model_reliability_include_numbers=1 %]</td>
+                <td colspan="3">dates: [% INCLUDE tm/model_reliability.tt2 model_reliability_include_numbers=1 %]</td>
             </tr>
         </table>
 
         <div class="boxtitle">Search Stories</div>
         <fieldset>
-            [% story_search_url = c.uri_for( "/admin/cm/search_stories" ) %]
+            [% story_search_url = c.uri_for( "/admin/tm/search_stories" ) %]
             <form method="get" action="[% story_search_url | html %]">
                 <input type="hidden" name="l" value="[% live | html %]" />
                 <input type="hidden" name="timespan" value="[% timespan.timespans_id %]" />
@@ -95,7 +95,7 @@
 
         <div class="boxtitle">Search Media</div>
         <fieldset>
-            [% medium_search_url = c.uri_for( "/admin/cm/search_media" ) %]
+            [% medium_search_url = c.uri_for( "/admin/tm/search_media" ) %]
             <form method="get" action="[% medium_search_url | html %]">
                 <input type="hidden" name="l" value="[% live | html %]" />
                 <input type="hidden" name="timespan" value="[% timespan.timespans_id %]" />
@@ -105,9 +105,9 @@
 
         <div class="boxtitle">Network Maps</div>
         <fieldset>
-            [% SET nv_config = c.uri_for( "/admin/cm/nv_config/$timespan.timespans_id/$live" ) %]
-            [% SET nv_url_media_type = c.uri_for( '/admin/cm/nv' )  _ "?cf=media_type&timespan=${timespan.timespans_id}&l=${live}&config=${nv_config}/media_type" %]
-            [% SET nv_url_partisan = c.uri_for( '/admin/cm/nv' )  _ "?cf=partisan_code&timespan=${timespan.timespans_id}&l=${live}&config=${nv_config}/partisan_code" %]
+            [% SET nv_config = c.uri_for( "/admin/tm/nv_config/$timespan.timespans_id/$live" ) %]
+            [% SET nv_url_media_type = c.uri_for( '/admin/tm/nv' )  _ "?cf=media_type&timespan=${timespan.timespans_id}&l=${live}&config=${nv_config}/media_type" %]
+            [% SET nv_url_partisan = c.uri_for( '/admin/tm/nv' )  _ "?cf=partisan_code&timespan=${timespan.timespans_id}&l=${live}&config=${nv_config}/partisan_code" %]
             <p><a href="[% nv_url_media_type | html %]">Network Map - media types</a></p>
             <p><a href="[% nv_url_partisan | html %]">Network Map - partisan</a></p>
         </fieldset>
@@ -115,10 +115,10 @@
 
         <div class="boxtitle">Tools</div>
         <fieldset>
-            [% SET imt_url = c.uri_for( '/admin/cm/influential_media_words', { timespan => timespan.timespans_id, l => live } ) %]
-            [% SET imt_overall_url = c.uri_for( '/admin/cm/influential_media_words', { timespan => timespan.timespans_id, l => live, overall => 1 } ) %]
-            [% SET partisan_url = c.uri_for( '/admin/cm/partisan', { timespan => timespan.timespans_id, l => live } ) %]
-            [% SET type_url = c.uri_for( '/admin/cm/add_media_types', { timespan => timespan.timespans_id, l => live } ) %]
+            [% SET imt_url = c.uri_for( '/admin/tm/influential_media_words', { timespan => timespan.timespans_id, l => live } ) %]
+            [% SET imt_overall_url = c.uri_for( '/admin/tm/influential_media_words', { timespan => timespan.timespans_id, l => live, overall => 1 } ) %]
+            [% SET partisan_url = c.uri_for( '/admin/tm/partisan', { timespan => timespan.timespans_id, l => live } ) %]
+            [% SET type_url = c.uri_for( '/admin/tm/add_media_types', { timespan => timespan.timespans_id, l => live } ) %]
             <p><a href="[% imt_url | html %]">Influential Media Words</a></p>
             <p><a href="[% imt_overall_url | html %]">Influential Media Words (overall)</a></p>
             <p><a href="[% partisan_url | html %]">Partisanship</a></p>

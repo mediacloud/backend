@@ -1,12 +1,12 @@
-package MediaWords::CM::Mine;
+package MediaWords::TM::Mine;
 
 =head1 NAME
 
-MediaWords::CM::Mine - topic spider implementation
+MediaWords::TM::Mine - topic spider implementation
 
 =head1 SYNOPSIS
 
-    MediaWords::CM::Mine::mine_topic( $db, $options );
+    MediaWords::TM::Mine::mine_topic( $db, $options );
 
 =head1 DESCRIPTION
 
@@ -32,9 +32,9 @@ use URI::Escape;
 
 use MediaWords::CommonLibs;
 
-use MediaWords::CM::Dump;
-use MediaWords::CM::GuessDate;
-use MediaWords::CM::GuessDate::Result;
+use MediaWords::TM::Snapshot;
+use MediaWords::TM::GuessDate;
+use MediaWords::TM::GuessDate::Result;
 use MediaWords::DB;
 use MediaWords::DBI::Activities;
 use MediaWords::DBI::Media;
@@ -661,7 +661,7 @@ sub extract_download($$$)
 
 # get a date for a new story by trying each of the following, in this order:
 # * assigning a date from the merged old story,
-# * guessing the date using MediaWords::CM::GuessDate,
+# * guessing the date using MediaWords::TM::GuessDate,
 # * assigning the date of the source link, or
 # * assigning the current date
 sub get_new_story_date
@@ -696,12 +696,12 @@ END
         $story->{ publish_date } = $source_story->{ publish_date };
     }
 
-    my $date = MediaWords::CM::GuessDate::guess_date( $db, $story, $story_content, 1 );
-    if ( $date->{ result } eq $MediaWords::CM::GuessDate::Result::FOUND )
+    my $date = MediaWords::TM::GuessDate::guess_date( $db, $story, $story_content, 1 );
+    if ( $date->{ result } eq $MediaWords::TM::GuessDate::Result::FOUND )
     {
         return ( $date->{ guess_method }, $date->{ date } );
     }
-    elsif ( $date->{ result } eq $MediaWords::CM::GuessDate::Result::INAPPLICABLE )
+    elsif ( $date->{ result } eq $MediaWords::TM::GuessDate::Result::INAPPLICABLE )
     {
         return ( 'undateable', $source_story ? $source_story->{ publish_date } : MediaWords::Util::SQL::sql_now );
     }
@@ -1320,7 +1320,7 @@ END
     # this query is much quicker than the below one, so do it first
     my ( $num_stories ) = $db->query( <<END, $cid, $story->{ media_id }, $spidered_tag->{ tags_id } )->flat;
 select count(*)
-    from cd.live_stories s
+    from snap.live_stories s
         join stories_tags_map stm on ( s.stories_id = stm.stories_id )
     where
         s.topics_id = ? and
@@ -1336,9 +1336,9 @@ END
 
     my ( $num_cross_linked_stories ) = $db->query( <<END, $cid, $story->{ media_id }, $spidered_tag->{ tags_id } )->flat;
 select count( distinct rs.stories_id )
-    from cd.live_stories rs
+    from snap.live_stories rs
         join topic_links cl on ( cl.topics_id = \$1 and rs.stories_id = cl.ref_stories_id )
-        join cd.live_stories ss on ( ss.topics_id = \$1 and cl.stories_id = ss.stories_id )
+        join snap.live_stories ss on ( ss.topics_id = \$1 and cl.stories_id = ss.stories_id )
         join stories_tags_map sstm on ( sstm.stories_id = ss.stories_id )
         join stories_tags_map rstm on ( rstm.stories_id = rs.stories_id )
     where
@@ -1352,7 +1352,7 @@ END
 
     my ( $num_unlinked_stories ) = $db->query( <<END, $cid, $story->{ media_id } )->flat;
 select count( distinct rs.stories_id )
-from cd.live_stories rs
+from snap.live_stories rs
     left join topic_links cl on ( cl.topics_id = \$1 and rs.stories_id = cl.ref_stories_id )
 where
     rs.topics_id = \$1 and
@@ -1788,7 +1788,7 @@ sub add_redirect_urls_to_topic_stories
 
     my $stories = $db->query( <<END, $topic->{ topics_id } )->hashes;
 select distinct s.*
-    from cd.live_stories s
+    from snap.live_stories s
         join topic_stories cs on ( s.stories_id = cs.stories_id and s.topics_id = cs.topics_id )
     where cs.redirect_url is null and cs.topics_id = ?
 END
@@ -1812,7 +1812,7 @@ sub mine_topic_stories
 
     my $stories = $db->query( <<SQL, $topic->{ topics_id } )->hashes;
 select distinct s.*, cs.link_mined, cs.redirect_url
-    from cd.live_stories s
+    from snap.live_stories s
         join topic_stories cs on ( s.stories_id = cs.stories_id and s.topics_id = cs.topics_id )
     where
         cs.link_mined = false and
@@ -2081,7 +2081,7 @@ sub merge_archive_is_stories
 
     my $archive_is_stories = $db->query( <<END, $topic->{ topics_id } )->hashes;
 SELECT distinct s.*
-    FROM cd.live_stories s
+    FROM snap.live_stories s
         join topic_stories cs on ( s.stories_id = cs.stories_id and s.topics_id = cs.topics_id )
         join media m on ( s.media_id = m.media_id )
     WHERE
@@ -2160,7 +2160,7 @@ sub merge_dup_media_stories
 
     my $dup_media_stories = $db->query( <<END, $topic->{ topics_id } )->hashes;
 SELECT distinct s.*
-    FROM cd.live_stories s
+    FROM snap.live_stories s
         join topic_stories cs on ( s.stories_id = cs.stories_id and s.topics_id = cs.topics_id )
         join media m on ( s.media_id = m.media_id )
     WHERE
@@ -2505,7 +2505,7 @@ sub get_topic_stories_by_medium
 
     my $stories = $db->query( <<END, $topic->{ topics_id } )->hashes;
 select s.stories_id, s.media_id, s.title, s.url
-    from cd.live_stories s
+    from snap.live_stories s
     where s.topics_id = ?
 END
 
@@ -2665,7 +2665,7 @@ sub fetch_social_media_data ($$)
 #   import_only - only run import_seed_urls and import_solr_seed and exit
 #   cache_broken_downloads - speed up fixing broken downloads, but add time if there are no broken downloads
 #   skip_outgoing_foreign_rss_links - skip slow process of adding links from foreign_rss_links media
-#   skip_post_processing - skip social media fetching and dumping
+#   skip_post_processing - skip social media fetching and snapshoting
 sub do_mine_topic ($$;$)
 {
     my ( $db, $topic, $options ) = @_;
@@ -2737,8 +2737,8 @@ sub do_mine_topic ($$;$)
             update_topic_state( $db, $topic, "fetching social media data" );
             fetch_social_media_data( $db, $topic );
 
-            update_topic_state( $db, $topic, "dumping" );
-            MediaWords::CM::Dump::dump_topic( $db, $topic->{ topics_id } );
+            update_topic_state( $db, $topic, "snapshoting" );
+            MediaWords::TM::Snapshot::snapshot_topic( $db, $topic->{ topics_id } );
         }
     }
 

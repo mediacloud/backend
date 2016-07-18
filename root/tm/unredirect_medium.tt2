@@ -1,4 +1,4 @@
-[% PROCESS cm/header.tt2 title="Un-Redirect Medium" %]
+[% PROCESS tm/header.tt2 title="Un-Redirect Medium" %]
    
 <div id="wholecolumn">
 
@@ -22,7 +22,7 @@
     </div>
 
     <fieldset>
-        <form action="[% c.uri_for( '/admin/cm/unredirect_medium/' _ medium.media_id ) | html %]" method="post">
+        <form action="[% c.uri_for( '/admin/tm/unredirect_medium/' _ medium.media_id ) | html %]" method="post">
             <input type="hidden" name="timespan" value="[% timespan.timespans_id | html %]" />
             <ul>
                 [% FOREACH story IN stories %]

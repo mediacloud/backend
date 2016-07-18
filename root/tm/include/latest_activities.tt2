@@ -22,5 +22,5 @@
 </table>
 
 <p>
-    <a href="[%  c.uri_for('/admin/cm/activities/'  _ topic.topics_id ) %]">see all activities</a>
+    <a href="[%  c.uri_for('/admin/tm/activities/'  _ topic.topics_id ) %]">see all activities</a>
 </p>

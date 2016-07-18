@@ -12,7 +12,7 @@ use namespace::autoclean;
 use List::Compare;
 use Carp;
 use MediaWords::Solr;
-use MediaWords::CM::Dump;
+use MediaWords::TM::Snapshot;
 
 =head1 NAME
 
@@ -117,12 +117,12 @@ END
 
     $db->begin;
 
-    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $timespan, $topic, $live );
+    MediaWords::TM::Snapshot::setup_temporary_snapshot_tables( $db, $timespan, $topic, $live );
 
     $db->query( <<END );
 create temporary table media as
     select m.name, m.url, mlc.*
-        from media m join dump_medium_link_counts mlc on ( m.media_id = mlc.media_id )
+        from media m join snapshot_medium_link_counts mlc on ( m.media_id = mlc.media_id )
 END
 
     $db->commit;

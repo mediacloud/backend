@@ -1,4 +1,4 @@
-[% INCLUDE cm/header.tt2 title = "CM: Edit topic ${ topic.name }" %]
+[% INCLUDE tm/header.tt2 title = "TM: Edit topic ${ topic.name }" %]
 
 <fieldset>
 [% form.render %]

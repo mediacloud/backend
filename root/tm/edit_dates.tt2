@@ -1,11 +1,11 @@
-[% INCLUDE cm/header.tt2 title = "CM: Edit Timespan Dates for ${ topic.name }" %]
+[% INCLUDE tm/header.tt2 title = "TM: Edit Timespan Dates for ${ topic.name }" %]
 
 <div id="boxtitle">Edit Dates</a>
 <div id="wholecolumn">
     <fieldset>
         <p>Use this page to add or remove custom date ranges for timespans.</p>
 
-        <form action="[% c.uri_for( '/admin/cm/add_date/' _ topic.topics_id ) %]" method="post" >
+        <form action="[% c.uri_for( '/admin/tm/add_date/' _ topic.topics_id ) %]" method="post" >
             Start Date (YYYY-MM-DD): <input type="text" name="start_date" /><br />
             End Date (YYYY-MM-DD: <input type="text" name="end_date" /><br />
             OR<br/>
@@ -22,14 +22,14 @@
             <th>End Date</th>
             <th>Delete</th>
         </tr>
-        [% FOREACH cd IN topic_dates %]
-            [% SET delete_url = c.uri_for( '/admin/cm/delete_date/' _ topic.topics_id, { start_date => cd.start_date, end_date => cd.end_date } ) %]
+        [% FOREACH td IN topic_dates %]
+            [% SET delete_url = c.uri_for( '/admin/tm/delete_date/' _ topic.topics_id, { start_date => td.start_date, end_date => td.end_date } ) %]
 
             <tr>
-                <td>[% cd.start_date | html %]</td>
-                <td>[% cd.end_date | html %]</td>
+                <td>[% td.start_date | html %]</td>
+                <td>[% td.end_date | html %]</td>
                 <td>
-                    [% IF cd.boundary %]
+                    [% IF td.boundary %]
                         (boundary)
                     [% ELSE %]
                         <a href="[% delete_url | html %]">delete</a>

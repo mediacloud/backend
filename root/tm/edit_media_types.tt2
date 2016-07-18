@@ -1,4 +1,4 @@
-[% INCLUDE cm/header.tt2 title = "CM: Edit Media Types for ${ topic.name }" %]
+[% INCLUDE tm/header.tt2 title = "TM: Edit Media Types for ${ topic.name }" %]
 
 <div id="boxtitle">Edit Media Types</a>
 <div id="wholecolumn">
@@ -14,7 +14,7 @@
 <div id="wholecolumn">
     <div id="boxtitle">
         Media Types
-        <a class="boxcommand" href="[% c.uri_for( "/admin/cm/add_media_type/$topic.topics_id" ) | html %]">Add Media Type</a>
+        <a class="boxcommand" href="[% c.uri_for( "/admin/tm/add_media_type/$topic.topics_id" ) | html %]">Add Media Type</a>
     </div>
     <table class="even_rows_grey">
         <tr>
@@ -25,8 +25,8 @@
             <th>Delete</th>
         </tr>
         [% FOREACH mt IN media_types %]
-            [% SET delete_url = c.uri_for( "/admin/cm/delete_media_type/$mt.tags_id" ) %]
-            [% SET edit_url = c.uri_for( "/admin/cm/edit_media_type/$mt.tags_id" ) %]
+            [% SET delete_url = c.uri_for( "/admin/tm/delete_media_type/$mt.tags_id" ) %]
+            [% SET edit_url = c.uri_for( "/admin/tm/edit_media_type/$mt.tags_id" ) %]
             <tr>
                 <td>[% mt.tag | html %]</td>
                 <td>[% mt.label | html %]</td>

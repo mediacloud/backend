@@ -7,7 +7,7 @@
     </div>
 [% END %]
 
-[% SET self_url = c.uri_for( '/admin/cm/search_media', { 
+[% SET self_url = c.uri_for( '/admin/tm/search_media', { 
     timespan = timespan.timespans_id,
     l = live,
     q = q } )%]
@@ -26,7 +26,7 @@
 
 [% IF display_media %]
     [% FOREACH m IN display_media %]
-        [% medium_url = c.uri_for( '/admin/cm/medium/' _ m.media_id, 
+        [% medium_url = c.uri_for( '/admin/tm/medium/' _ m.media_id, 
                                    { timespan => timespan.timespans_id, 
                                      c => topics_id, 
                                      l => live } ) %]
