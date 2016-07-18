@@ -22,7 +22,7 @@ information about the topic mining process is [here](topic_mining.markdown).
 
 The code that snapshots topics and performs analysis (aggregates link counts, generates link counts,
 models reliability for date guesses) is in [MediaWords::TM::Mine](../lib/MediaWords/TM/Mine.pm).  More information about
-the snapshoting process is [here](snapshots.markdown).
+the snapshotting process is [here](snapshots.markdown).
 
 The topic web ui is implemented in the
 [MediaWords::Controller::Admin::CM](../lib/MediaWords/Controller/Admin/CM.pm) catalyst controller.
@@ -211,7 +211,7 @@ Detailed explanation of CM process
    can act as a stable data set for research, to generate the timespan
    network maps, and to generate reliability scores for the influential media
    list in each timespans.
-    * snapshoting is implemented by `MediaWords::TM::Snapshot::snapshot_topic`
+    * snapshotting is implemented by `MediaWords::TM::Snapshot::snapshot_topic`
 
 10. Review the snapshot data, performing any more manual edits (editing story and
     media names, checking dates, analyzing influential media lists for each
@@ -224,7 +224,7 @@ Detailed explanation of CM process
     researchers need a new set of consistent results, new maps, or new
     reliability scores.  
 
-Mining vs. Snapshoting
+Mining vs. Snapshotting
 ------------------
 
 A snapshot is always required to capture new or updated data for a topic in a static snapshot.  If a user is browsing

@@ -35,8 +35,10 @@ sub list_GET : Local
 
     my $db = $c->dbis;
 
-    my $snapshots = $db->query( <<SQL )->hashes;
-select snapshots_id, snapshot_date, note, state from snapshots order by snapshots_id desc
+    my $topics_id = $c->stash->{ topics_id };
+
+    my $snapshots = $db->query( <<SQL, $topics_id )->hashes;
+select snapshots_id, snapshot_date, note, state from snapshots where topics_id = \$1 order by snapshots_id desc
 SQL
 
     $self->status_ok( $c, entity => { snapshots => $snapshots } );
