@@ -1481,7 +1481,7 @@ the foci for a topic concurrently. If we get complaints, we can start worrying a
 
 | Field | Description                              |
 | ----- | ---------------------------------------- |
-| notes | short text notes about the snapshot; optional |
+| note  | short text note about the snapshot; optional |
 
 ### Output Description
 
@@ -1512,8 +1512,12 @@ Return a list of all completed *snapshots* in the given *topic*.
 | Field         | Description                           |
 | ------------- | ------------------------------------- |
 | snapshots_id  | snapshot id                           |
-| snapshot_date | date on which the snapshot was create |
-| notes         | short text notes about the snapshot   |
+| snapshot_date | date on which the snapshot was created |
+| note        | short text note about the snapshot   |
+| state | state of the snapshotting process |
+
+The state indicates the state of the current snapshot process, including but not limmited to 'completed' for a snapshot
+whose process has successfully completed and 'snapshot failed' for a snapshot that failed for some reason.
 
 ### Example
 
@@ -1530,7 +1534,8 @@ Response:
         {
             "snapshots_id": 6789,
             "snapshot_date": "2016-09-29 18:14:47.481252",
-            "notes": "final snapshot for paper analysis"
+            "note": "final snapshot for paper analysis",
+            "state": "completed"
         }  
     ]
 }
@@ -1552,7 +1557,7 @@ Edit and return the snapshot.
 | Field        | Description                         |
 | ------------ | ----------------------------------- |
 | snapshots_id | snapshot id; required               |
-| notes        | short text notes about the snapshot |
+| note       | short text note about the snapshot |
 
 ### Output Description
 
@@ -1560,7 +1565,7 @@ Edit and return the snapshot.
 
 ### Example
 
-Edit the notes for snapshot 4567:
+Edit the note for snapshot 4567:
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/snapshots/~snapshots_id~/edit`
 
@@ -1569,7 +1574,7 @@ Input:
 ```json
 {
   "snapshots_id": 4567,
-  "notes": "final snapshot for paper analysis"
+  "note": "final snapshot for paper analysis"
 }
 ```
 
@@ -1609,8 +1614,10 @@ you'll be on a page for a given focus and need the list of timespans that belong
 | medium_count      | number of distinct media associated with stories in timespan |
 | medium_link_count | number of cros media media links in timespan |
 | model_r2_mean     | timespan modeling r2 mean                |
-| model_r2_sd       | timespan modeling r2 standard deviation  |
-| top_media         | number of media include in modeled top media list |
+| model_r2_stddev       | timespan modeling r2 standard deviation  |
+| model_num_media         | number of media include in modeled top media list |
+| foci_id           | id of focus to which the timespan belongs |
+| snapshots_id      | id of snapshot to which the timespan belongs |
 
 Every *topic* generates the following timespans for every *snapshot*:
 
@@ -1643,8 +1650,10 @@ Response:
             "medium_count": 2345,
             "medium_link_count": 1543,
             "model_r2_mean": 0.94,
-            "model_r2_sd": 0.04,
-            "top_media": 143
+            "model_r2_stddev": 0.04,
+            "model_num_media": 143,
+            "foci_id": null,
+            "snapshots_id": 456
         }
     ]
 }
