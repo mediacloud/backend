@@ -40,13 +40,14 @@ sub run($;$)
     my ( $self, $args ) = @_;
 
     # Postpone connecting to the database so that compile test doesn't do that
-    $db ||= MediaWords::DB::connect_to_db();
+    my $db = MediaWords::DB::connect_to_db();
 
     my $stories_id = $args->{ stories_id } or die "'stories_id' is not set.";
 
     say STDERR "Aggregating story stats for story $stories_id...";
 
     my $story = $db->find_by_id( 'stories', $stories_id );
+
     unless ( $story )
     {
         die "Unable to find story $stories_id.";
