@@ -1,51 +1,48 @@
 package MediaWords::Controller::Api::V2::Controversies;
-
-use strict;
-use warnings;
-
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use strict;
+use warnings;
+use base 'Catalyst::Controller';
 use Moose;
 use namespace::autoclean;
 
-=head1 NAME
+Readonly my $DEFAULT_STORY_LIMIT => 10;
 
-MediaWords::Controller::Controversies - Catalyst Controller
+BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
-=head1 DESCRIPTION
+__PACKAGE__->config( action => { list_GET => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] }, } );
 
-Catalyst Controller.
-
-=head1 METHODS
-
-=cut
-
-=head2 index 
-
-=cut
-
-BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
-
-sub get_table_name
+sub list : Local : ActionClass('MC_REST')
 {
-    return "controversies";
+
 }
 
-sub list_name_search_field
+sub list_GET
 {
-    return 'name';
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my $controversies = $db->query( <<SQL )->hashes;
+select
+        t.topics_id controversies_id,
+        t.name,
+        t.pattern,
+        t.solr_seed_query,
+        t.solr_seed_query_run,
+        t.description,
+        t.state,
+        t. error_message
+    from topics t
+        left join snapshots snap using ( topics_id )
+    group by t.topics_id
+    order by t.state = 'ready', t.state,  max( coalesce( snap.snapshot_date, '2000-01-01'::date ) ) desc
+SQL
+
+    $self->status_ok( $c, entity => $controversies );
+
 }
-
-=head1 AUTHOR
-
-David Larochelle
-
-=head1 LICENSE
-
-This library is free software, you can redistribute it and/or modify
-it under the same terms as Perl itself.
-
-=cut
 
 1;

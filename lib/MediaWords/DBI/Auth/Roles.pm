@@ -24,11 +24,11 @@ Readonly our $MEDIA_EDIT => 'media-edit';
 # Add / edit stories
 Readonly our $STORIES_EDIT => 'stories-edit';
 
-# Controversy mapper; includes media and story editing
-Readonly our $CM => 'cm';
+# Topic mapper; includes media and story editing
+Readonly our $TM => 'tm';
 
-# Controversy mapper; excludes media and story editing
-Readonly our $CM_READONLY => 'cm-readonly';
+# topic mapper; excludes media and story editing
+Readonly our $TM_READONLY => 'tm-readonly';
 
 # Access to the stories API
 Readonly our $STORIES_API => 'stories-api';

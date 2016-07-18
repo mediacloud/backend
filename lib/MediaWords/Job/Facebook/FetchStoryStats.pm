@@ -81,24 +81,24 @@ sub run($;$)
     }
 }
 
-# add all controversy stories without facebook data to the queue
-sub add_controversy_stories_to_queue ($$;$$)
+# add all topic stories without facebook data to the queue
+sub add_topic_stories_to_queue ($$;$$)
 {
-    my ( $class, $db, $controversy ) = @_;
+    my ( $class, $db, $topic ) = @_;
 
-    my $controversies_id = $controversy->{ controversies_id };
+    my $topics_id = $topic->{ topics_id };
 
-    my $stories = $db->query( <<END, $controversies_id )->hashes;
+    my $stories = $db->query( <<END, $topics_id )->hashes;
 SELECT ss.*, cs.stories_id
-    FROM controversy_stories cs
+    FROM topic_stories cs
         left join story_statistics ss on ( cs.stories_id = ss.stories_id )
-    WHERE cs.controversies_id = ?
+    WHERE cs.topics_id = ?
     ORDER BY cs.stories_id
 END
 
     unless ( scalar @{ $stories } )
     {
-        DEBUG( "No stories found for controversy '$controversy->{ name }'" );
+        DEBUG( "No stories found for topic '$topic->{ name }'" );
     }
 
     for my $ss ( @{ $stories } )

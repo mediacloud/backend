@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-# dump download to file
+# snapshot download to file
 
 use strict;
 

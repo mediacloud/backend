@@ -37,7 +37,7 @@ select url
 SQL
 
     my $feed = XML::FeedPP::RSS->new();
-    $feed->title( "Media Cloud URL Dump" );
+    $feed->title( "Media Cloud URL Snapshot" );
     $feed->link( "http://mediacloud.org/" );
     $feed->pubDate( time );
 

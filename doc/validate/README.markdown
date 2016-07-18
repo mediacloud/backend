@@ -2,7 +2,7 @@ Validation
 ==========
 
 Media Cloud consists of many systems (cf. [story_processing_flow](../doc/story_processing_flow.markdown) and
-[controversies](../doc/controversies.markdown)) that work to generate structured data out of unstructured data on
+[topics](../doc/topics.markdown)) that work to generate structured data out of unstructured data on
 the open web.  Most of those systems have to try to solve problems for which there is no perfect answer.  So our
 philosophy is to build systems that work as well as possible with as little long term maintenance as possible and to
 validate how well each system works so that we at least know what results we are getting.

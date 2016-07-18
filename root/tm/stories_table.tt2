@@ -1,0 +1,146 @@
+[% IF !included_remove_stories_confirm_dialog %]
+    <div id="removeStoriesConfirmDialog" style="display:none">
+        Are you sure you want to remove all of the listed stories from the [% topic.name | html %] topic?
+        After removal, the stories will still appear in existing snapshots but will not be in live views
+        or new snapshots of the topic.
+    </div>
+    [% SET included_remove_stories_confirm_dialog = 1 %]
+[% END %]
+
+<script type="text/javascript">
+$(document).ready(function () {
+
+  $("#removeStoriesConfirmDialog").dialog({ autoOpen: false });
+
+  $(".remove_story_[% display_stories_id %]").click(function (e) {
+    e.preventDefault();
+
+    $("#removeStoriesConfirmDialog").dialog('option', 'buttons', {
+      "Confirm": function () {
+          form = document.getElementById( '[% display_stories_id %]_stories_ids_form' );
+          form.action = "[% c.uri_for( '/admin/tm/remove_stories' ) | url %]";
+          form.submit();
+      },
+      "Cancel": function () { $(this).dialog("close"); }
+    });
+
+    $("#removeStoriesConfirmDialog").dialog("open");
+  });
+
+  $(".story_stats_[% display_stories_id %]").click(function (e) {
+      e.preventDefault();
+      var hrefAttribute = $(this).attr("href");
+      form = document.getElementById( '[% display_stories_id %]_stories_ids_form' );
+      form.action = "[% c.uri_for( '/admin/tm/story_stats' ) | url %]";
+      form.submit();
+  });
+
+
+});
+
+
+</script>
+
+
+<form id="[% display_stories_id %]_stories_ids_form" method="post">
+    <input type="hidden" name="timespan" value="[% timespan.timespans_id | html %]" />
+    <input type="hidden" name="l" value="[% live | html %]" />
+    <input type="hidden" name="title" value="[% display_stories_full_title | html %]" />
+    [% FOREACH s IN display_stories  %]
+        <input type="hidden" name="stories_ids" value="[% s.stories_id | html %]" />
+    [% END %]
+</form>
+
+
+[% IF display_stories_short_title %]
+    <div class="boxtitle">
+
+    [% display_stories_short_title %]
+
+    [% IF timespan_date_range %]
+        in [% timespan_date_range %] Timespan
+    [% END %]
+
+    ([% display_stories.size %] stories)
+
+    [% IF display_stories_remove_button %]
+        <a href="#" class="boxcommand remove_story_[% display_stories_id %]">remove all</a>
+    [% END %]
+
+    [% SET wc_url = c.uri_for( '/admin/tm/word_cloud', {
+        timespan = timespan.timespans_id,
+        l = live,
+        sort_by_count = 1,
+        q = display_stories_solr_query } ) %]
+    [% SET stats_url = c.uri_for( '/admin/tm/story_stats', {
+        timespan = timespan.timespans_id,
+        l = live,
+        title = title,
+        q = display_stories_solr_query } ) %]
+
+    [% USE date = date(format => '%Y-%m-%d', locale => 'en_GB') %]
+    [% SET dashboard_q = "{~ timespan:${ timespan.timespans_id }-${ live } }" %]
+    [% SET dashboard_q = display_stories_solr_query ? "$dashboard_q and ( " _ display_stories_solr_query.replace( '"', '\"' )  _ " ) " : dashboard_q %]
+    [% SET dashboard_url = 'https://dashboard.mediameter.org/#query/["' _ dashboard_q _ '"]/[{}]/["' _ topic.start_date _ '"]/["' _ topic.end_date _ '"]/[{"uid":5,"color":"5f165f"}]' %]
+
+
+    <a class="boxcommand" href="[% wc_url | html %]">word cloud</a>
+    <a class="boxcommand" target="new" href="[% dashboard_url | html %]">dashboard query</a>
+    <a class="boxcommand" href="[% stats_url | html %]">story stats</a>
+
+    </div>
+[% END %]
+
+[% SET self_url = c.uri_for( '/admin/tm/search_stories', {
+    timespan = timespan.timespans_id,
+    l = live,
+    title = title,
+    q = display_stories_solr_query } ) %]
+
+<table class="even_rows_grey">
+    <tr>
+        <th>Rank</th>
+        <th>Stories_id</th>
+        <th>Title</th>
+        <th>Publish Date</th>
+        <th>Medium</th>
+        <th><a href="[% self_url | html %]">Inlinks</a></th>
+        <th>Outlinks</th>
+        <th><a href="[% self_url _ '&order=bitly_click_count' | html %]">Clicks</th>
+    </tr>
+
+[% IF display_stories.size() < 1 %]
+    <tr><td colspan="9">(no stories)</td></tr>
+[% END %]
+
+[% FOREACH s IN display_stories -%]
+
+    [% story_url = c.uri_for( '/admin/tm/story/' _ s.stories_id,
+                              { timespan => timespan.timespans_id,
+                                l => live } ) %]
+    [% medium_url = c.uri_for( '/admin/tm/medium/' _ s.media_id,
+                              { timespan => timespan.timespans_id,
+                                l => live } ) %]
+    [% edit_url = c.uri_for( "/admin/stories/edit/$s.stories_id" ) %]
+
+    <tr>
+        <td>[% loop.count %]</td>
+        <td><a href="[% story_url  | html %]">[% s.stories_id %]</a></td>
+        <td><a href="[% s.url | html %]" target="blank">[% s.title | truncate( 48 ) | html %]</a></td>
+        [% story_date = s.undateable ? 'undateable' : datetime.format( s.publish_date ) %]
+        [% IF s.date_is_reliable %]
+            <td id="reliable_story_date">[% story_date | html %]</td>
+        [% ELSE %]
+            <td id="unreliable_story_date">
+                <a href="[% edit_url | html %]">[% story_date | html %]</a>
+            </td>
+        [% END %]
+        <td><a href="[% medium_url | html %]">[% s.medium_name | truncate( 32 ) | html %]</a></td>
+        <td>[% s.inlink_count %]</td>
+        <td>[% s.outlink_count %]</td>
+        <td>[% s.bitly_click_count %]</td>
+    </tr>
+
+    [% END # FOREACH s -%]
+
+</table>

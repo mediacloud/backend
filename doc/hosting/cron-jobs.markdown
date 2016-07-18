@@ -16,9 +16,9 @@ of each job.
 43 13  * * * nice /space/mediacloud/control_scripts/back_up_source_code.sh > /dev/null
 0 0   * * * nice /space/mediacloud/control_scripts/back_up_scripts.sh > /dev/null
 
-# web pages for the various controversies respond better if they have been visited recently to prime the postgres
-# buffer with the relevant results.  this script just hits the main controversy tables to prime the postgres buffers.
-42 * * * * /space/mediacloud/mediacloud/script/run_with_carton.sh /space/mediacloud/mediacloud/script/mediawords_cache_controversy_web.pl &> /dev/null
+# web pages for the various topics respond better if they have been visited recently to prime the postgres
+# buffer with the relevant results.  this script just hits the main topic tables to prime the postgres buffers.
+42 * * * * /space/mediacloud/mediacloud/script/run_with_carton.sh /space/mediacloud/mediacloud/script/mediawords_cache_topic_web.pl &> /dev/null
 
 # we have long been plagued with a slow memory leak in the extrator system, so we restart it a couple times a day
 23 4,16 * * * /space/mediacloud/control_scripts/restart_extractor_if_running.sh >& /dev/null

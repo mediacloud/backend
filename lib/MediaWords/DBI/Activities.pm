@@ -50,7 +50,7 @@ that the caller of might have initiated.
     {
         my $db = MediaWords::DB::connect_to_db;
 
-        my $controversies_id = 12345;
+        my $topics_id = 12345;
 
         # Do whatever the script needs to do
         do_something_important($db);
@@ -66,7 +66,7 @@ that the caller of might have initiated.
         unless ( MediaWords::DBI::Activities::log_system_activity(
             $db,
             'something_important',
-            $controversies_id,
+            $topics_id,
             $options ) )
         {
             die "Unable to log the 'something_important' activity.";
@@ -102,7 +102,7 @@ to what the object ID refers to and parameters.
 All activities that are logged *must* be added to this hash.
 
 To add a new activity, add a sub-entry to this hash using the example of
-"cm_remove_story_from_controversy".
+"cm_remove_story_from_topic".
 
 Also see "media_edit" and "story_edit" activities below for an example of how
 the activity can be referenced by a foreign key.
@@ -112,11 +112,11 @@ the activity can be referenced by a foreign key.
 Readonly::Hash my %ACTIVITIES => {
 
     # Activity name that identifies the activity:
-    'cm_remove_story_from_controversy' => {
+    'cm_remove_story_from_topic' => {
 
         # Human-readable description of the activity that is going to be
         # presented in the web UI
-        description => 'Remove story from a controversy',
+        description => 'Remove story from a topic',
 
         # Logged activity may provide an integer "object ID" which identifies
         # the object that was changed by the activity.
@@ -126,10 +126,10 @@ Readonly::Hash my %ACTIVITIES => {
         object_id => {
 
             # Human-readable description of the object ID
-            description => 'Controversy ID from which the story was removed',
+            description => 'Topic ID from which the story was removed',
 
             # (optional) Table and column that the object ID references
-            references => 'controversies.controversies_id'
+            references => 'topics.topics_id'
         },
 
         # Logged activity may provide other parameters that describe the
@@ -141,7 +141,7 @@ Readonly::Hash my %ACTIVITIES => {
             'stories_id' => {
 
                 # Human-readable description of the value of the parameter
-                description => 'Story ID that was removed from the controversy',
+                description => 'Story ID that was removed from the topic',
 
                 # (optional) Table and column that the value of the parameter
                 # references
@@ -153,8 +153,8 @@ Readonly::Hash my %ACTIVITIES => {
     'cm_media_merge' => {
         description => 'Merge medium into another medium',
         object_id   => {
-            description => 'Controversy ID in which the media merge was made',
-            references  => 'controversies.controversies_id'
+            description => 'Topic ID in which the media merge was made',
+            references  => 'topics.topics_id'
         },
         parameters => {
             'media_id' => {
@@ -165,9 +165,9 @@ Readonly::Hash my %ACTIVITIES => {
                 description => 'Media ID that the medium was merged into',
                 references  => 'media.media_id'
             },
-            'cdts_id' => {
-                description => 'Controversy dump time slice',
-                references  => 'controversy_dump_time_slices.controversy_dump_time_slices_id'
+            'timespans_id' => {
+                description => 'topic snapshot timespan',
+                references  => 'timespans.timespans_id'
             }
         }
     },
@@ -175,8 +175,8 @@ Readonly::Hash my %ACTIVITIES => {
     'cm_story_merge' => {
         description => 'Merge story into another story',
         object_id   => {
-            description => 'Controversy ID in which the story merge was made',
-            references  => 'controversies.controversies_id'
+            description => 'Topic ID in which the story merge was made',
+            references  => 'topics.topics_id'
         },
         parameters => {
             'stories_id' => {
@@ -190,23 +190,23 @@ Readonly::Hash my %ACTIVITIES => {
         }
     },
 
-    'cm_dump_controversy' => {
-        description => 'Dump controversy',
+    'cm_snapshot_topic' => {
+        description => 'Snapshot topic',
         object_id   => {
-            description => 'Controversy ID for which the dump was made',
-            references  => 'controversies.controversies_id'
+            description => 'Topic ID for which the snapshot was made',
+            references  => 'topics.topics_id'
         },
         parameters => {}
     },
 
-    'cm_mine_controversy' => {
-        description => 'Mine controversy',
+    'cm_mine_topic' => {
+        description => 'Mine topic',
         object_id   => {
-            description => 'Controversy ID that was mined',
-            references  => 'controversies.controversies_id'
+            description => 'Topic ID that was mined',
+            references  => 'topics.topics_id'
         },
         parameters => {
-            'skip_post_processing' => { description => 'skip social media and dump' },
+            'skip_post_processing' => { description => 'skip social media and snapshot' },
             'import_only'          => { description => 'only run import_seed_urls and import_query_story_search and exit' },
             'cache_broken_downloads' => { description => 'speed up fixing broken downloads' },
             'skip_outgoing_foreign_rss_links' =>
@@ -215,24 +215,24 @@ Readonly::Hash my %ACTIVITIES => {
     },
 
     'cm_search_tag_run' => {
-        description => 'Run the "search and tag controversy stories" script',
+        description => 'Run the "search and tag topic stories" script',
         object_id   => {
-            description => 'Controversy ID for which the stories were re-tagged',
-            references  => 'controversies.controversies_id'
+            description => 'Topic ID for which the stories were re-tagged',
+            references  => 'topics.topics_id'
         },
         parameters => {
-            'controversy_name' => {
+            'topic_name' => {
                 description =>
-'Controversy name that was passed as an argument to the "mediawords_search_and_tag_controversy_stories.pl" script'
+                  'Topic name that was passed as an argument to the "mediawords_search_and_tag_topic_stories.pl" script'
             }
         }
     },
 
     'cm_search_tag_change' => {
-        description => 'Change the tag while running the "search and tag controversy stories" script',
+        description => 'Change the tag while running the "search and tag topic stories" script',
         object_id   => {
-            description => 'Controversy ID for which the stories were re-tagged',
-            references  => 'controversies.controversies_id'
+            description => 'Topic ID for which the stories were re-tagged',
+            references  => 'topics.topics_id'
         },
         parameters => {
             'regex'      => { description => 'Regular expression that was used while re-tagging' },
@@ -263,7 +263,7 @@ Readonly::Hash my %ACTIVITIES => {
             references  => 'stories.stories_id',
 
             # To reference activities by a foreign key (e.g. story edits by the
-            # controversies to which they belong), you can add a subquery
+            # topics to which they belong), you can add a subquery
             # (subqueries) here to let the activities package know how to use
             # those foreign keys.
             foreign_reference_subqueries => {
@@ -275,14 +275,14 @@ Readonly::Hash my %ACTIVITIES => {
                 # "activities.activities_id" for the foreign key. The SQL query
                 # will be used as a subquery to get a list of valid activities
                 # for the foreign key.
-                'controversies.controversies_id' => <<EOF
+                'topics.topics_id' => <<EOF
 
                     SELECT DISTINCT activities.activities_id
                     FROM activities
-                        INNER JOIN controversy_stories
-                            ON activities.object_id = controversy_stories.stories_id
+                        INNER JOIN topic_stories
+                            ON activities.object_id = topic_stories.stories_id
                     WHERE activities.name = 'story_edit'
-                      AND controversy_stories.controversies_id = $ACTIVITIES_SUBQUERY_OBJECT_ID_PLACEHOLDER
+                      AND topic_stories.topics_id = $ACTIVITIES_SUBQUERY_OBJECT_ID_PLACEHOLDER
 EOF
               }
 
@@ -304,12 +304,12 @@ EOF
             references  => 'media.media_id',
 
             foreign_reference_subqueries => {
-                'controversies.controversies_id' => <<EOF
+                'topics.topics_id' => <<EOF
             SELECT DISTINCT activities.activities_id
             FROM activities
-                INNER JOIN cd.live_stories on ( cd.live_stories.media_id = activities.object_id )
+                INNER JOIN snap.live_stories on ( snap.live_stories.media_id = activities.object_id )
             WHERE activities.name = 'media_edit'
-              AND cd.live_stories.controversies_id = $ACTIVITIES_SUBQUERY_OBJECT_ID_PLACEHOLDER
+              AND snap.live_stories.topics_id = $ACTIVITIES_SUBQUERY_OBJECT_ID_PLACEHOLDER
 EOF
               }
 
@@ -336,7 +336,7 @@ Parameters:
 =item * C<$db> - Reference to the database object.
 
 =item * C<$activity_name> - Activity name from the C<%ACTIVITIES> hash, e.g.
-C<cm_mine_controversy>.
+C<cm_mine_topic>.
 
 =item * C<$user> - User that initiated the activity, either: a) user's email,
 e.g. C<jdoe@cyber.law.harvard.edu>, or b) system username if the activity was
@@ -503,7 +503,7 @@ Parameters:
 =over 4
 
 =item * C<$activity_name> - Activity name from the C<%ACTIVITIES> hash, e.g.
-C<cm_mine_controversy>.
+C<cm_mine_topic>.
 
 =item * C<$description_hash> - hashref of miscellaneous parameters that
 describe the activity.
@@ -560,7 +560,7 @@ Parameters:
 =over 4
 
 =item * C<$activity_name> - Activity name from the C<%ACTIVITIES> hash, e.g.
-C<cm_mine_controversy>.
+C<cm_mine_topic>.
 
 =item * C<$description_json> - (JSON-encoded) string activity description.
 
@@ -612,7 +612,7 @@ sub activity($)
 =head2 (static) C<activities_which_directly_reference_column($column_name)>
 
 Return an array of activity names for which the object ID directly references
-a specific table (e.g. C<controversies.controversies_id>).
+a specific table (e.g. C<topics.topics_id>).
 
 =cut
 
@@ -640,7 +640,7 @@ sub activities_which_directly_reference_column($)
 
 Return an array of activity names for which the object ID is not referenced
 directly but can be referenced using a subquery (e.g. referencing C<story_edit>
-and C<media_edit> actions from C<controversies.controversies_id>).
+and C<media_edit> actions from C<topics.topics_id>).
 
 =cut
 
@@ -676,11 +676,11 @@ Return a SQL query that, when executed, would return:
 =over 4
 
 =item * activities that can be directly referenced by their object ID, e.g.
-C<cm_mine_controversy> for column name C<controversies.controversies_id>, and
+C<cm_mine_topic> for column name C<topics.topics_id>, and
 
 =item * activities that can be indirectly referenced by a foreign key using a
 SQL subquery, e.g. C<story_edit> for a column name
-C<controversies.controversies_id>.
+C<topics.topics_id>.
 
 =back
 
@@ -689,9 +689,9 @@ Parameters:
 =over 4
 
 =item * Column name as present in C<%ACTIVITIES> hash (e.g.
-C<controversies.controversies_id>).
+C<topics.topics_id>).
 
-=item * Object ID value (e.g. controversies ID) by which the activities should
+=item * Object ID value (e.g. topics ID) by which the activities should
 be matched.
 
 =back

@@ -1,0 +1,40 @@
+<div class="boxtitle">
+timespans
+[% IF live_periods %]
+     - all numbers in the below table, including reliability data, are from the latest full snapshot made 
+     [% datetime.format( latest_full_snapshot.snapshot_date ) | html %].
+[% END %]
+</div>
+<table class="even_rows_grey">
+
+<tr>
+<th>Period</th>
+<th>Tag</th>
+<th>Dates</th>
+<th>Model Correlation</th>
+<th># Top Media</th>
+<th># Stories</th>
+<th># Story Links</th>
+<th># Media</th>
+<th># Media Links</th>
+
+</tr>
+
+    [% FOREACH timespan IN timespans -%]
+        [% timespan_url = c.uri_for( '/admin/tm/view_timespan/' _ timespan.timespans_id, { l => live_periods } ) %]
+
+        <tr>
+            <td><a href="[% timespan_url | html %]">[% timespan.period | html %]</a></td>
+            <td>[% timespan.tag_name | truncate( 32 ) | html %]</td>
+            <td>[% date.format( timespan.start_date ) %] - [% date.format( timespan.end_date ) %]</td>
+            <td>[% INCLUDE tm/model_reliability.tt2 %]</td>
+            <td>[% timespan.model_num_media %]</td>
+            <td>[% IF timespan.story_count > -1 %][% timespan.story_count %][% ELSE %]NA[% END %]</td>
+            <td>[% IF timespan.story_link_count > -1 %][% timespan.story_link_count %][% ELSE %]NA[% END %]</td>
+            <td>[% IF timespan.medium_count > -1 %][% timespan.medium_count %][% ELSE %]NA[% END %]</td>
+            <td>[% IF timespan.medium_link_count > -1 %][% timespan.medium_link_count %][% ELSE %]NA[% END %]</td>
+        </tr>
+
+    [% END # FOREACH stories -%]
+
+</table>

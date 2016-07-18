@@ -1,0 +1,22 @@
+[% PROCESS tm/header.tt2
+    title = 'Snapshot ' _ datetime.format( snapshot.snapshot_date ) %]
+
+<div id="wholecolumn">
+    <div id="widecolumn">
+        [% INCLUDE tm/timespans_table.tt2 %]
+    </div>
+    <div id="narrowcolumn">
+        <div class="boxtitle">Stats</div>
+        <fieldset>
+            <p><a href="[% c.uri_for( '/admin/tm/snapshot_daily_counts/' _ snapshot.snapshots_id ) %]">Daily Counts CSV</a></p>
+            <p><a href="[% c.uri_for( '/admin/tm/snapshot_weekly_counts/' _ snapshot.snapshots_id ) %]">Weekly Counts CSV</a></p>
+        </fieldset>
+        <div class="boxtitle">Tools</div>
+        <fieldset>
+            <p><a href="[% c.uri_for( '/admin/tm/mot/' _ snapshot.snapshots_id ) %]">Media Over Time</a></p>
+        </fieldset>
+    </div>
+<div>
+
+[% INCLUDE include/footer.tt2 %]
+

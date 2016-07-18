@@ -124,7 +124,7 @@ sub create_crawled_media
 create temporary table crawled_media as
     select * from media
         where exists (
-            select 1 from feeds where feeds.media_id = media.media_id and name != 'Controversy Spider Feed'
+            select 1 from feeds where feeds.media_id = media.media_id and name != 'Topic Spider Feed'
         )
 SQL
 }

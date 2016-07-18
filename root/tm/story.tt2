@@ -1,0 +1,151 @@
+[% PROCESS tm/header.tt2 title="Story '$story.title'" %]
+
+<script type="text/javascript">
+$(document).ready(function () {
+
+  $("#confirmDialog").dialog({ autoOpen: false });
+
+  $(".remove_story").click(function (e) {
+    e.preventDefault();
+    var hrefAttribute = $(this).attr("href");
+
+    $("#confirmDialog").dialog('option', 'buttons', {
+      "Confirm": function () {
+
+        // Append the "reason" GET parameter to the URL
+        if ( hrefAttribute.indexOf('?') == -1 ) {
+          alert("I have expected the target URL to have some query parameters at this point.");
+        }
+        hrefAttribute = hrefAttribute + "&reason=" + encodeURIComponent($("#cm_remove_story_from_topic_reason").val());
+        window.location.href = hrefAttribute;
+      },
+      "Cancel": function () { $(this).dialog("close"); }
+    });
+
+    $("#confirmDialog").dialog("open");
+  });
+
+});
+</script>
+
+<div id="confirmDialog">
+    <p>
+        Are you sure you want to remove the story from the [% topic.name | html %] topic?
+        After removal, the story will still appear in existing snapshots, but it will not be in live views
+        or new snapshots of the topic.
+    </p>
+    <p>
+        <label for="cm_remove_story_from_topic_reason">Reason:</label>
+        <input type="text"
+               id="cm_remove_story_from_topic_reason"
+               size="24"
+               placeholder="reason for the modification that you are making" />
+    </p>
+</div>
+
+<div id="warning_box">
+
+<p>
+[% IF live %]
+You are viewing the live story, as it currently exists in the database.
+[% ELSE %]
+
+This page is displaying a frozen snapshot of the [% story.title | html %] story, as it existed in the [% timespan_date_range |
+html %] [% timespan.period | html %] timespan from the [% datetime.format( snapshot.snapshot_date ) %] snapshot of the [%
+topic.name %] topic.  Because this data is a frozen snapshot, edits to this story will not appear on this
+page, and changes made since the snapshot will not be visible.
+[% END %]
+</p>
+
+</div>
+
+[% medium_url = c.uri_for( "/admin/tm/medium/$story.media_id", { timespan => timespan.timespans_id, l => live } ) %]
+[% remove_story_url = c.uri_for( "/admin/tm/remove_stories", { stories_ids => story.stories_id, timespan => timespan.timespans_id, l => live } ) %]
+[% merge_story_url = c.uri_for( "/admin/tm/merge_stories/$story.stories_id", { timespan => timespan.timespans_id } ) %]
+[% edit_story_url = c.uri_for( "/admin/stories/edit/$story.stories_id" ) %]
+
+<div class="boxtitle">
+    Basic Data for [% story.title | truncate( 96 ) | html %] [% IF timespan %] in [% timespan_date_range %] Timespan[% END %]
+    <a class="boxcommand remove_story" href="[% remove_story_url | html %]">remove</a>
+    <a class="boxcommand" href="[% merge_story_url | html %]">merge</a>
+    <a class="boxcommand" href="[% edit_story_url | html %]">edit</a>
+</div>
+<table class="even_rows_grey">
+    <tr>
+        <td>Stories_id</td><td>[% story.stories_id %]</td>
+    </tr>
+    <tr>
+        <td>Title</td>
+        <td>
+            [% story.title | truncate( 128 )| html %]
+        </td>
+    </tr>
+    <tr>
+        <td>Url</td><td><a href="[% story.url| html %]" target="blank">[% story.url | truncate( 96 ) | html %]</td>
+    </tr>
+    <tr>
+        <td>Publish Date</td>
+        <td id="[% story.date_is_reliable ? 'reliable_story_date' : 'unreliable_story_date' %]">
+            [% IF story.undateable %]
+                undateable story
+            [% ELSE %]
+                [% datetime.format( story.publish_date ) %]
+            [% END %]
+
+            [% IF story.date_is_reliable %]
+                (reliable)
+            [% ELSE %]
+                (unreliable - <a href="[% c.uri_for( '/admin/stories/edit/' _ story.stories_id ) | html %]">check now</a>)
+            [% END %]
+        </td>
+    </tr>
+    <tr>
+        <td>Medium</td><td><a href="[% medium_url | html %]">[% story.medium.name | truncate( 96 ) | html %]</a></td>
+    </tr>
+    <tr>
+        <td>Media Type</td><td>[% story.medium.media_type | html %]</td>
+    </tr>
+    <tr>
+        <td># Incoming Story Links</td><td>[% story.inlink_count %] </td>
+    </tr>
+    <tr>
+        <td># Outgoing Story Links</td><td>[% story.outlink_count %]</td>
+    </tr>
+    <tr>
+        <td>Topic Field Matched</td>
+        <td>[% story.topic_match | html %]
+    </tr>
+
+</table>
+
+[% INCLUDE tm/stories_table.tt2
+    display_stories = story.inlink_stories
+    display_stories_short_title = topic.name _ " Stories Linking to this Story"
+    display_stories_full_title = topic.name _ " Stories Linking to Story " _ story.title
+    display_stories_id = 'inlink_stories'
+    display_stories_solr_query = "{~ timespan:${timespan.timespans_id} link_to_story:${story.stories_id} }" %]
+
+[% INCLUDE tm/stories_table.tt2
+    display_stories = story.outlink_stories
+    display_stories_short_title = topic.name _ " Stories Linked from this Story"
+    display_stories_full_title = topic.name _ " Stories Linked from Story '" _ story.title _ "'"
+    display_stories_id = 'outlink_stories'
+    display_stories_solr_query = "{~ timespan:${timespan.timespans_id} link_from_story:${story.stories_id} }" %]
+
+<div class="boxtitle">
+    Collected Story Text
+    <a class="boxcommand" href="[% c.uri_for( '/admin/stories/view/' _ story.stories_id ) | html %]">full story details</a>
+</div>
+<table>
+    <tr>
+        <td>Description (from rss description field)</td>
+        <td>[% story.description | html | html_line_break %]</td>
+    </tr>
+    <tr>
+        <td>Extracted Text (processed from the story html)</td>
+        <td>[% story.extracted_text | html | html_line_break %]</td>
+    </td>
+</div>
+
+
+[% INCLUDE include/footer.tt2 %]

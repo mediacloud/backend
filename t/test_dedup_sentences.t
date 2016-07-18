@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-# test that inserts and updates on stories in controversy_stories are correctly mirrored to cd.live_stories
+# test that inserts and updates on stories in topic_stories are correctly mirrored to snap.live_stories
 
 BEGIN
 {

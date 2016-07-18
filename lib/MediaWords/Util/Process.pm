@@ -37,9 +37,9 @@ sub mc_fork
     return $pid;
 }
 
-sub dump_child_pids
+sub snapshot_child_pids
 {
-    say STDERR "Dumping child PIDS";
+    say STDERR "Child PIDS";
     say STDERR join "\n", @$child_pids;
 }
 
